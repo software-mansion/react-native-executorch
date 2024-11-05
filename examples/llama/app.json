@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "llama",
+    "slug": "llama",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icons/icon.png",
+    "userInterfaceStyle": "light",
+    "plugins": [
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Aeonik-Regular.otf",
+            "./assets/fonts/Aeonik-Medium.otf"
+          ]
+        }
+      ]
+    ],
+    "splash": {
+      "image": "./assets/icons/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.llama"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icons/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.anonymous.llama"
+    },
+    "web": {
+      "favicon": "./assets/icons/favicon.png"
+    }
+  }
+}
