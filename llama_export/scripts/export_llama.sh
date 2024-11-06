@@ -2,9 +2,6 @@
 
 set -eu
 
-# The quantized versions of LLaMa should cointain a quantization_args key in params.json
-QUANTIZED=$(grep "lora_args" /model/params.json)
-
 export_cmd="python -m examples.models.llama.export_llama \
     --checkpoint /model/consolidated.00.pth \
     --params /model/params.json \
@@ -12,17 +9,18 @@ export_cmd="python -m examples.models.llama.export_llama \
     --use_sdpa_with_kv_cache \
     -X \
     -d bf16 \
+    --max_seq_length 2048 \
     --metadata '{\"get_bos_id\":128000, \"get_eos_ids\":[128009, 128001]}' \
     --output_name=/outputs/llama3_2.pte"
 
-if [ -n "$QUANTIZED" ]; then
+# The quantized versions of Llama should cointain a quantization_args key in params.json
+if grep -q "lora_args" /model/params.json; then
     export_cmd="${export_cmd//-d bf16/-d fp32}"
     export_cmd+=" \
       -qat \
       -lora 16 \
       --preq_mode 8da4w_output_8da8w \
       --preq_group_size 32 \
-      --max_seq_length 2048 \
       --xnnpack-extended-ops \
       --preq_embedding_quantize 8,0"
 fi
