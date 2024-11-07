@@ -14,15 +14,22 @@ export_cmd="python -m examples.models.llama.export_llama \
     --output_name=/outputs/llama3_2.pte"
 
 # The quantized versions of Llama should cointain a quantization_args key in params.json
-if grep -q "lora_args" /model/params.json; then
+if grep -q "quantization_args" /model/params.json; then
     export_cmd="${export_cmd//-d bf16/-d fp32}"
     export_cmd+=" \
-      -qat \
-      -lora 16 \
-      --preq_mode 8da4w_output_8da8w \
-      --preq_group_size 32 \
-      --xnnpack-extended-ops \
-      --preq_embedding_quantize 8,0"
+        --preq_mode 8da4w_output_8da8w \
+        --preq_group_size 32 \
+        --xnnpack-extended-ops \
+        --preq_embedding_quantize 8,0"
+
+    if grep -q "lora_args" /model/params.json; then
+        export_cmd+=" \
+            -qat \
+            -lora 16"
+    else # SpinQuant
+        export_cmd+=" \
+            --use_spin_quant native"
+    fi
 fi
 
 if ! eval "$export_cmd"; then
