@@ -17,7 +17,7 @@ https://docs.swmansion.com/react-native-executorch
 
 ## Examples 📲
 
-We currently host a single example demonstrating a chat app built with the latest **LLaMa 3.2 1B/3B** model. If you'd like to run it, navigate to `examples/llama` from the repository root and install the dependencies with:
+We currently host a single example demonstrating a chat app built with the latest **Llama 3.2 1B/3B** model. If you'd like to run it, navigate to `examples/llama` from the repository root and install the dependencies with:
 
 ```bash
 yarn
