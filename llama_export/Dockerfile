@@ -50,7 +50,7 @@ RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1 &
 # Install ExecuTorch
 RUN git clone https://github.com/pytorch/executorch.git
 WORKDIR /executorch
-RUN git checkout cbfdf78f8
+RUN git checkout fe20be98c
 RUN git submodule sync
 RUN git submodule update --init
 

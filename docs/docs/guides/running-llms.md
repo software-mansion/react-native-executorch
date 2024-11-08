@@ -3,11 +3,11 @@ title: Running LLMs
 sidebar_position: 1
 ---
 
-React Native ExecuTorch supports LLaMa 3.2 models, including quantized versions. Before getting started, you’ll need to obtain the .pte binary—a serialized model—and the tokenizer. There are various ways to accomplish this:
+React Native ExecuTorch supports Llama 3.2 models, including quantized versions. Before getting started, you’ll need to obtain the .pte binary—a serialized model—and the tokenizer. There are various ways to accomplish this:
 
 - For your convienience, it's best if you use models exported by us, you can get them from our hugging face repository. You can also use [constants](https://github.com/software-mansion/react-native-executorch/tree/main/src/modelUrls.ts) shipped with our library.
-- If you want to export model by yourself,you can use a Docker image that we've prepared. To see how it works, check out [exporting LLaMa](./exporting-llama.mdx)
-- Follow the official [tutorial](https://github.com/pytorch/executorch/blob/cbfdf78f8/examples/demo-apps/android/LlamaDemo/docs/delegates/xnnpack_README.md) made by ExecuTorch team to build the model and tokenizer yourself
+- If you want to export model by yourself,you can use a Docker image that we've prepared. To see how it works, check out [exporting Llama](./exporting-llama.mdx)
+- Follow the official [tutorial](https://github.com/pytorch/executorch/blob/fe20be98c/examples/demo-apps/android/LlamaDemo/docs/delegates/xnnpack_README.md) made by ExecuTorch team to build the model and tokenizer yourself
 
 ## Initializing
 
