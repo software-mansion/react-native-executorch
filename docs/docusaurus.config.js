@@ -1,7 +1,3 @@
-/*
-In swizzled components look for "SWM -" string to see our modifications
-*/
-
 const lightCodeTheme = require('./src/theme/CodeBlock/highlighting-light.js');
 const darkCodeTheme = require('./src/theme/CodeBlock/highlighting-dark.js');
 // @ts-check
@@ -36,8 +32,8 @@ const config = {
         theme: {
           customCss: require.resolve('./src/css/index.css'),
         },
-        googleAnalytics: {
-          trackingID: '...',
+        gtag: {
+          trackingID: 'G-TJND8QJM9P',
           anonymizeIP: true,
         },
       }),
@@ -85,47 +81,6 @@ const config = {
         indexName: 'react-native-executorch',
       },
     }),
-  plugins: [
-    // ...[
-    //   process.env.NODE_ENV === 'production' && '@docusaurus/plugin-debug',
-    // ].filter(Boolean),
-    // async function reanimatedDocusaurusPlugin(context, options) {
-    //   return {
-    //     name: 'react-native-reanimated/docusaurus-plugin',
-    //     configureWebpack(config, isServer, utils) {
-    //       const processMock = !isServer ? { process: { env: {} } } : {};
-
-    //       const raf = require('raf');
-    //       raf.polyfill();
-
-    //       return {
-    //         mergeStrategy: {
-    //           'resolve.extensions': 'prepend',
-    //         },
-    //         plugins: [
-    //           new webpack.DefinePlugin({
-    //             ...processMock,
-    //             __DEV__: 'false',
-    //             setImmediate: () => {},
-    //           }),
-    //         ],
-    //         module: {
-    //           rules: [
-    //             {
-    //               test: /\.txt/,
-    //               type: 'asset/source',
-    //             },
-    //           ],
-    //         },
-    //         resolve: {
-    //           alias: { 'react-native$': 'react-native-web' },
-    //           extensions: ['.web.js', '...'],
-    //         },
-    //       };
-    //     },
-    //   };
-    // },
-  ],
 };
 
 module.exports = config;
