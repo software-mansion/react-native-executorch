@@ -123,6 +123,11 @@ class Fetcher {
                 return
             }
 
+            if(fileName.contains("/")){
+                onComplete(fileName, null)
+                return
+            }
+
             if (!hasValidExtension(fileName, resourceType)) {
                 onComplete(null, Exception("invalid_resource_extension"))
                 return
