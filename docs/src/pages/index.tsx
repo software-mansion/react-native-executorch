@@ -8,7 +8,8 @@ function Home() {
   return (
     <Layout
       title={`React Native ExecuTorch`}
-      description="Declarative way to run AI models in React Native on device, powered by ExecuTorch.">
+      description="Declarative way to run AI models in React Native on device, powered by ExecuTorch."
+    >
       <div className={styles.container}>
         <HomepageStartScreen />
       </div>

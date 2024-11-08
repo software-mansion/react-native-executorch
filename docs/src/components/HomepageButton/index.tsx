@@ -35,7 +35,8 @@ const HomepageButton: React.FC<{
           styles.homepageButton,
           backgroundStyling,
           borderStyling
-        )}>
+        )}
+      >
         {title}
 
         <div className={styles.arrow}>
