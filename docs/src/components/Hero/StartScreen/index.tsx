@@ -12,7 +12,8 @@ const StartScreen = () => {
             <span>ExecuTorch</span>
           </h1>
           <h2 className={styles.subheadingLabel}>
-            Declarative way to run AI models in React Native on device, powered by ExecuTorch.
+            Declarative way to run AI models in React Native on device, powered
+            by ExecuTorch.
           </h2>
         </div>
         <div className={styles.lowerHeading}>
