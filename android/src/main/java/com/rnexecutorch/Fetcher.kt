@@ -106,13 +106,14 @@ class Fetcher {
             /*
             Fetching model and tokenizer file
             1. Extract file name from provided URL
-            2. Check if the file has a valid extension
+            2. If file name contains / it means that the file is local and we should return the path
+            3. Check if the file has a valid extension
                 a. For tokenizer, the extension should be .bin
                 b. For model, the extension should be .pte
-            3. Check if models directory exists, if not create it
-            4. Check if the file already exists in the models directory, if yes return the path
-            5. If the file does not exist, and is a tokenizer, fetch the file
-            6. If the file is a model, fetch the file with ProgressResponseBody
+            4. Check if models directory exists, if not create it
+            5. Check if the file already exists in the models directory, if yes return the path
+            6. If the file does not exist, and is a tokenizer, fetch the file
+            7. If the file is a model, fetch the file with ProgressResponseBody
              */
             val fileName: String
 
@@ -120,6 +121,11 @@ class Fetcher {
                 fileName = extractFileName(url)
             } catch (e: Exception) {
                 onComplete(null, e)
+                return
+            }
+
+            if(fileName.contains("/")){
+                onComplete(fileName, null)
                 return
             }
 
