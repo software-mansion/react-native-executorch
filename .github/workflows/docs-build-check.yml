@@ -1,7 +1,9 @@
 name: Check documentation
 
 on:
-  pull_request:
+  push:
+    branches:
+      - main
     paths:
       - 'docs/**'
   workflow_dispatch:

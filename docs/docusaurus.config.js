@@ -27,7 +27,8 @@ const config = {
           breadcrumbs: false,
           sidebarPath: require.resolve('./sidebars.js'),
           sidebarCollapsible: false,
-          editUrl: 'https://github.com/software-mansion/react-native-executorch/edit/main/docs',
+          editUrl:
+            'https://github.com/software-mansion/react-native-executorch/edit/main/docs',
         },
         theme: {
           customCss: require.resolve('./src/css/index.css'),
@@ -53,9 +54,10 @@ const config = {
         },
         items: [
           {
-            href: 'https://github.com/software-mansion/react-native-executorch',
-            position: 'right',
-            className: 'header-github',
+            'href':
+              'https://github.com/software-mansion/react-native-executorch',
+            'position': 'right',
+            'className': 'header-github',
             'aria-label': 'GitHub repository',
           },
         ],

@@ -120,6 +120,14 @@
     }
   },
   "eslintConfig": {
+    "parserOptions": {
+      "requireConfigFile": false,
+      "babelOptions": {
+        "presets": [
+          "@babel/preset-react"
+        ]
+      }
+    },
     "root": true,
     "extends": [
       "@react-native",
