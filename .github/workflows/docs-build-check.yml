@@ -27,7 +27,8 @@ jobs:
           cache: 'yarn'
       - name: Install node dependencies
         working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: yarn
+        # the mkdir is a workaround to avoid this: https://github.com/actions/setup-node/issues/317
+        run: mkdir -p .yarn/cache && yarn
       - name: Generate docs
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: yarn build
