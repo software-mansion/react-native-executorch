@@ -6176,7 +6176,7 @@ __metadata:
     metro-config: ^0.80.12
     react: 18.2.0
     react-native: 0.74.5
-    react-native-executorch: "file:../../react-native-executorch-0.1.3.tgz"
+    react-native-executorch: 0.1.0
     react-native-loading-spinner-overlay: ^3.0.1
     react-native-markdown-display: ^7.0.2
     react-native-reanimated: ~3.10.1
@@ -7813,13 +7813,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-executorch@file:../../react-native-executorch-0.1.3.tgz::locator=llama%40workspace%3A.":
-  version: 0.1.3
-  resolution: "react-native-executorch@file:../../react-native-executorch-0.1.3.tgz::locator=llama%40workspace%3A."
+"react-native-executorch@npm:0.1.0":
+  version: 0.1.0
+  resolution: "react-native-executorch@npm:0.1.0"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 14439532d24554c881de19e0a9501465dbcf3cf10da60f1b13954fc0b8c35356976f13feba48fd2db4e8e70f76e98a172fa5c6118c7f0da88fefa327009c52cd
+  checksum: b0ea4cbf6e7bf254ca5476a2711bbc62e72ff9b666f904a087a9199ddc702152c71acadf7c9ecdba3ee731ce5073261d9d8356d57f3ea861f032a7d793b568ed
   languageName: node
   linkType: hard
 
