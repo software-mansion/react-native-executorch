@@ -78,9 +78,9 @@ const config = {
         darkTheme: darkCodeTheme,
       },
       algolia: {
-        appId: '...',
-        apiKey: '...',
-        indexName: 'react-native-executorch',
+        appId: '9PIVJVUUXB',
+        apiKey: '8634751cfd500c6708f63ea5fc7446c6',
+        indexName: 'swmansion',
       },
     }),
 };
