@@ -39,7 +39,7 @@ export default function Messages({
                   <AnimatedChatLoading />
                 </View>
               ) : (
-                <Text style={styles.messageText}> {llmResponse}</Text>
+                <Text style={styles.messageText}> {llmResponse.trim()}</Text>
               )}
             </View>
           )}
