@@ -54,7 +54,7 @@
   "bugs": {
     "url": "https://github.com/software-mansion/react-native-executorch/issues"
   },
-  "homepage": "https://github.com/NorbertKlockiewicz/react-native-executorch#readme",
+  "homepage": "https://docs.swmansion.com/react-native-executorch",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
