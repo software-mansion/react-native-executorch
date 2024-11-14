@@ -69,6 +69,7 @@ export default function ChatScreen() {
         >
           <View style={styles.topContainer}>
             <SWMIcon width={45} height={45} />
+            <Text style={styles.textModelName}>Llama 3.2 1B QLoRA</Text>
           </View>
           {chatHistory.length ? (
             <View style={styles.chatContainer}>
@@ -133,7 +134,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   topContainer: {
-    // flex: 1,
     height: 50,
     width: '100%',
     alignItems: 'center',
@@ -142,6 +142,9 @@ const styles = StyleSheet.create({
   chatContainer: {
     flex: 10,
     width: '100%',
+  },
+  textModelName: {
+    color: ColorPalette.primary,
   },
   helloMessageContainer: {
     flex: 10,
