@@ -90,7 +90,7 @@ The downloaded files are stored in documents directory of your application.
 In order to send a message to the model, one can use the following code:
 
 ```typescript
-const llama = useLoadModels(
+const llama = useLLM(
     modelSource: LLAMA3_2_1B_URL,
     tokenizer: require('../assets/tokenizer.bin'),
 );
