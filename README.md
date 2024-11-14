@@ -15,6 +15,9 @@ To run any AI model in ExecuTorch, you need to export it to a `.pte` format. If 
 Take a look at how our library can help build you your React Native AI features in our docs:  
 https://docs.swmansion.com/react-native-executorch
 
+## Minimal supported versions
+The minimal supported version is 17.0 for iOS and Android 13.
+
 ## Examples 📲
 
 We currently host a single example demonstrating a chat app built with the latest **Llama 3.2 1B/3B** model. If you'd like to run it, navigate to `examples/llama` from the repository root and install the dependencies with:
@@ -28,6 +31,7 @@ then run:
 ```bash
 cd ios
 pod install
+cd ..
 ```
 
 And finally, if you want to run on Android:
