@@ -1,6 +1,6 @@
 {
   "name": "react-native-executorch",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "An easy way to run AI models in react native with ExecuTorch",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",

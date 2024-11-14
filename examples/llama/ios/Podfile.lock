@@ -970,7 +970,7 @@ PODS:
   - React-Mapbuffer (0.74.5):
     - glog
     - React-debug
-  - react-native-executorch (0.1.0):
+  - react-native-executorch (0.1.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1492,7 +1492,7 @@ SPEC CHECKSUMS:
   React-jsitracing: 3b6060bbf5317663667e1dd93560c7943ab86ccc
   React-logger: 257858bd55f3a4e1bc0cf07ddc8fb9faba6f8c7c
   React-Mapbuffer: 6c1cacdbf40b531f549eba249e531a7d0bfd8e7f
-  react-native-executorch: 8ed8ade26ff47d44c6582e5e7454934c71cde32a
+  react-native-executorch: c091615cbe428d73f1c03fb261b807f08f1ae4b3
   react-native-safe-area-context: a240ad4b683349e48b1d51fed1611138d1bdad97
   React-nativeconfig: ba9a2e54e2f0882cf7882698825052793ed4c851
   React-NativeModulesApple: 8d11ff8955181540585c944cf48e9e7236952697
