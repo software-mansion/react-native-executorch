@@ -6176,7 +6176,7 @@ __metadata:
     metro-config: ^0.80.12
     react: 18.2.0
     react-native: 0.74.5
-    react-native-executorch: 0.1.0
+    react-native-executorch: 0.1.1
     react-native-loading-spinner-overlay: ^3.0.1
     react-native-markdown-display: ^7.0.2
     react-native-reanimated: ~3.10.1
@@ -7813,13 +7813,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-executorch@npm:0.1.0":
-  version: 0.1.0
-  resolution: "react-native-executorch@npm:0.1.0"
+"react-native-executorch@npm:0.1.1":
+  version: 0.1.1
+  resolution: "react-native-executorch@npm:0.1.1"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: b0ea4cbf6e7bf254ca5476a2711bbc62e72ff9b666f904a087a9199ddc702152c71acadf7c9ecdba3ee731ce5073261d9d8356d57f3ea861f032a7d793b568ed
+  checksum: e9fdf3487d6048df22d794ef65c89e509f0cd4af91a500099a9fec638e8a92376b6df6dd1472219d2aa16bebd63b8c4e7bff28833cc4d1e7222cd5cc08dc55f8
   languageName: node
   linkType: hard
 
