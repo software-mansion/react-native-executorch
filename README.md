@@ -56,11 +56,7 @@ This library is licensed under [The MIT License](./LICENSE).
 
 ## What's next?
 
-- Support for various common use cases such as object detection, segmentation etc.  
-
-- A possibility to run your own ExecuTorch models
-
-- [Join the Software Mansion Community Discord](https://discord.gg/8jpfgDqPcM) to chat about React Native ExecuTorch or other Software Mansion libraries.
+To learn about our upcoming plans and developments, please visit our [discussion page](https://github.com/software-mansion/react-native-executorch/discussions/2).
 
 ## React Native ExecuTorch is created by Software Mansion
 
