@@ -46,6 +46,10 @@ or iOS:
 yarn expo run:ios
 ```
 
+### Warning
+Running LLMs requires a significant amount of RAM. If you are encountering unexpected app crashes, try to increase the amount of RAM allocated to the emulator.
+
+
 ## License  
 
 This library is licensed under [The MIT License](./LICENSE).
