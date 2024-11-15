@@ -39,9 +39,8 @@ fi
 [ -f "$MODEL_PATH" ] || { echo "$MODEL_PATH is not a valid path! Make sure to pass a proper path to the model weights!" >&2; exit 1; }
 [ -f "$PARAMS_PATH" ] || { echo "$PARAMS_PATH is not a valid path! Make sure to pass a proper path to the model parameters!" >&2; exit 1; }
 
-# Temporarily, someday we'll pull from docker hub
-IMAGE_TAG="executorch-llama-export-image"
-docker build -t "$IMAGE_TAG" "$REPO_ROOT/llama_export/."
+IMAGE_TAG="ghcr.io/software-mansion/react-native-executorch/executorch-llama-export:latest"
+docker pull "$IMAGE_TAG"
 
 mkdir -p "$OUTPUT_PATH"
 
