@@ -21,6 +21,7 @@ class RnExecutorchPackage : TurboReactPackage() {
      }
 
    override fun getReactModuleInfoProvider() = ReactModuleInfoProvider {
+     val isTurboModule = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
      mapOf(
        RnExecutorchImpl.NAME to ReactModuleInfo(
          RnExecutorchImpl.NAME,
@@ -28,7 +29,7 @@ class RnExecutorchPackage : TurboReactPackage() {
          false, // canOverrideExistingModule
          false, // needsEagerInit
          false, // isCxxModule
-         true // isTurboModule
+         isTurboModule // isTurboModule
        )
      )
    }
