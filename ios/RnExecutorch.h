@@ -1,5 +1,15 @@
-#import <RnExecutorchSpec/RnExecutorchSpec.h>
+#import <React/RCTBridgeModule.h>
 
-@interface RnExecutorch : NSObject <NativeRnExecutorchSpec>
+#ifdef RCT_NEW_ARCH_ENABLED
+#import <RnExecutorchSpec/RnExecutorchSpec.h>
+#endif
+
+@interface RnExecutorch: NSObject <RCTBridgeModule>
 
 @end
+
+#ifdef RCT_NEW_ARCH_ENABLED
+@interface RnExecutorch () <NativeRnExecutorchSpec>
+
+@end
+#endif
