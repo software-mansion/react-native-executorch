@@ -1,6 +1,5 @@
-#import <React/RCTBridgeModule.h>
-#import <React/RCTEventEmitter.h>
+#import <RnExecutorchSpec/RnExecutorchSpec.h>
 
-@interface RnExecutorch : RCTEventEmitter <RCTBridgeModule>
+@interface RnExecutorch : NSObject <NativeRnExecutorchSpec>
 
 @end

@@ -1,8 +1,8 @@
 {
   "name": "react-native-executorch",
-  "version": "0.1.1",
+  "version": "0.1.30",
   "description": "An easy way to run AI models in react native with ExecuTorch",
-  "source": "./src/index.tsx",
+  "source": "./src/index.ts",
   "main": "./lib/commonjs/index.js",
   "module": "./lib/module/index.js",
   "types": "./lib/typescript/index.d.ts",
@@ -182,5 +182,13 @@
     "type": "module-legacy",
     "languages": "kotlin-objc",
     "version": "0.41.2"
+  },
+  "codegenConfig": {
+    "name": "RnExecutorchSpec",
+    "type": "all",
+    "jsSrcsDir": "./src",
+    "android": {
+      "javaPackageName": "com.swmansion.rnexecutorch"
+    }
   }
 }
