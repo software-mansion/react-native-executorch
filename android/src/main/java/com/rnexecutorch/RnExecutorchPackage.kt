@@ -14,7 +14,7 @@ class RnExecutorchPackage : TurboReactPackage() {
   }
 
    override fun getModule(name: String, reactContext: ReactApplicationContext): NativeModule? =
-     if (name == RnExecutorchModule.NAME) {
+     if (name == RnExecutorchImpl.NAME) {
        RnExecutorchModule(reactContext)
      } else {
        null
@@ -22,9 +22,9 @@ class RnExecutorchPackage : TurboReactPackage() {
 
    override fun getReactModuleInfoProvider() = ReactModuleInfoProvider {
      mapOf(
-       RnExecutorchModule.NAME to ReactModuleInfo(
-         RnExecutorchModule.NAME,
-         RnExecutorchModule.NAME,
+       RnExecutorchImpl.NAME to ReactModuleInfo(
+         RnExecutorchImpl.NAME,
+         RnExecutorchImpl.NAME,
          false, // canOverrideExistingModule
          false, // needsEagerInit
          false, // isCxxModule
