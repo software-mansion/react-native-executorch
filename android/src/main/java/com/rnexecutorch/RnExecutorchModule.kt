@@ -152,7 +152,7 @@ class RnExecutorchModule(reactContext: ReactApplicationContext) :
         this.onResult(END_OF_TEXT_TOKEN);
       }
 
-      // We want to add the LLM reponse to the conversation once all the tokens are generated.
+      // We want to add the LLM response to the conversation once all the tokens are generated.
       // Each token is appended to the tempLlamaResponse StringBuilder in onResult callback.
       this.conversationManager.addResponse(this.tempLlamaResponse.toString(), ChatRole.ASSISTANT)
       this.tempLlamaResponse.clear()
