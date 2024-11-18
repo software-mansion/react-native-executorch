@@ -1,4 +1,4 @@
-name: Bug report
+name: 🐛 Bug report
 description: Report an issue with React Native ExecuTorch here.
 body:
   - type: markdown
