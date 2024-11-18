@@ -1,6 +1,6 @@
 {
   "name": "react-native-executorch",
-  "version": "0.1.44",
+  "version": "0.1.1",
   "description": "An easy way to run AI models in react native with ExecuTorch",
   "source": "./src/index.ts",
   "main": "./lib/commonjs/index.js",
@@ -61,6 +61,7 @@
   "devDependencies": {
     "@commitlint/config-conventional": "^17.0.2",
     "@evilmartians/lefthook": "^1.5.0",
+    "@react-native-community/cli": "latest",
     "@react-native/eslint-config": "^0.73.1",
     "@release-it/conventional-changelog": "^5.0.0",
     "@types/jest": "^29.5.5",
