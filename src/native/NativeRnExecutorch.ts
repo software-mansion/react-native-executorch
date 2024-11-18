@@ -8,7 +8,6 @@ export interface Spec extends TurboModule {
     systemPrompt: string,
     contextWindowLength: number
   ): Promise<string>;
-
   runInference(input: string): Promise<string>;
   deleteModule(): void;
   interrupt(): void;

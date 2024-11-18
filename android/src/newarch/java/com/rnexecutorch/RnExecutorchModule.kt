@@ -10,7 +10,6 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 class RnExecutorchModule(reactContext: ReactApplicationContext) :
   NativeRnExecutorchSpec(reactContext) {
   private var implementation: RnExecutorchImpl = RnExecutorchImpl()
-  private var listenerCount = 0
   private var eventEmitter: DeviceEventManagerModule.RCTDeviceEventEmitter? = null
 
   override fun getName(): String = RnExecutorchImpl.NAME
@@ -36,7 +35,7 @@ class RnExecutorchModule(reactContext: ReactApplicationContext) :
     contextWindowLength: Double,
     promise: Promise
   ) {
-        implementation.loadLLM(modelSource, tokenizerSource, systemPrompt, contextWindowLength.toInt(), reactApplicationContext, eventEmitter, promise)
+    implementation.loadLLM(modelSource, tokenizerSource, systemPrompt, contextWindowLength.toInt(), reactApplicationContext, eventEmitter, promise)
   }
 
   override fun runInference(input: String, promise: Promise){

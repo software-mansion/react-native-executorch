@@ -1,2 +1,2 @@
-export * from './Executorch';
-export * from './modelUrls';
+export * from './RnExecutorch';
+export * from './constants/modelUrls';

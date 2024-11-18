@@ -10,7 +10,6 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 
 class RnExecutorchModule(context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
   private var implementation: RnExecutorchImpl = RnExecutorchImpl()
-  private var listenerCount = 0
   private var eventEmitter: DeviceEventManagerModule.RCTDeviceEventEmitter? = null
 
   override fun getName(): String = RnExecutorchImpl.NAME
@@ -23,12 +22,12 @@ class RnExecutorchModule(context: ReactApplicationContext) : ReactContextBaseJav
 
   @ReactMethod
   fun addListener(eventName: String) {
-    listenerCount++
+    return
   }
 
   @ReactMethod
   fun removeListeners(count: Int) {
-    listenerCount -= count
+    return
   }
 
   @RequiresApi(Build.VERSION_CODES.TIRAMISU)

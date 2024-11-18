@@ -14,7 +14,6 @@
 #import <React/RCTUtils.h>
 #import <ReactCommon/CallInvoker.h>
 #import <ReactCommon/RCTTurboModule.h>
-
 #import <react/renderer/uimanager/primitives.h>
 #endif
 
