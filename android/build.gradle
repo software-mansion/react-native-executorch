@@ -64,6 +64,23 @@ android {
     minSdkVersion getExtOrIntegerDefault("minSdkVersion")
     targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
     buildConfigField("boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString())
+
+    externalNativeBuild {
+      cmake {
+        cppFlags "-O2 -frtti -fexceptions -Wall -fstack-protector-all"
+        abiFilters (*reactNativeArchitectures())
+      }
+    }
+  }
+
+  externalNativeBuild {
+    cmake {
+      path "CMakeLists.txt"
+    }
+  }
+
+  buildFeatures {
+    buildConfig true
   }
 
   buildTypes {
@@ -84,9 +101,10 @@ android {
   sourceSets {
     main {
       if (isNewArchitectureEnabled()) {
-          java.srcDirs += ['src/newarch']
-      } else {
-          java.srcDirs += ['src/oldarch']
+          java.srcDirs += [
+            "generated/java",
+            "generated/jni"
+          ]
       }
     }
   }
@@ -107,5 +125,13 @@ dependencies {
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation(files("libs/executorch-llama.aar"))
   implementation("com.squareup.okhttp3:okhttp:4.9.2")
+}
+
+if (isNewArchitectureEnabled()) {
+  react {
+    jsRootDir = file("../src/native")
+    libraryName = "RnExecutorch"
+    codegenJavaPackageName = "com.swmansion.rnexecutorch"
+  }
 }
 

@@ -18,8 +18,7 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "esnext",
-    "outDir": "lib"
+    "target": "esnext"
   },
   "include": ["src", "babel.config.js", ".eslintrc.js"],
   "exclude": ["node_modules", "lib", "docs", "example"]

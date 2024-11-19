@@ -81,6 +81,8 @@ RCT_EXPORT_METHOD(deleteModule) {
 RCT_EXPORT_METHOD(loadLLM:(NSString *)modelSource tokenizerSource:(NSString *)tokenizerSource systemPrompt:(NSString *)systemPrompt contextWindowLength:(double)contextWindowLength resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
     NSURL *modelURL = [NSURL URLWithString:modelSource];
     NSURL *tokenizerURL = [NSURL URLWithString:tokenizerSource];
+    NSNumber *result = @(RnExecutorch2::multiply(10, 15));
+    NSLog(@"Result: %@", result);
       
     if(self->runner || isFetching){
       reject(@"model_already_loaded", @"Model and tokenizer already loaded", nil);

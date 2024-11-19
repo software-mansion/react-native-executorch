@@ -14,23 +14,25 @@ class RnExecutorchPackage : TurboReactPackage() {
   }
 
    override fun getModule(name: String, reactContext: ReactApplicationContext): NativeModule? =
-     if (name == RnExecutorchImpl.NAME) {
+     if (name == RnExecutorchModule.NAME) {
        RnExecutorchModule(reactContext)
      } else {
        null
      }
 
-   override fun getReactModuleInfoProvider() = ReactModuleInfoProvider {
-     val isTurboModule = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
-     mapOf(
-       RnExecutorchImpl.NAME to ReactModuleInfo(
-         RnExecutorchImpl.NAME,
-         RnExecutorchImpl.NAME,
-         false, // canOverrideExistingModule
-         false, // needsEagerInit
-         false, // isCxxModule
-         isTurboModule // isTurboModule
-       )
-     )
+   override fun getReactModuleInfoProvider(): ReactModuleInfoProvider {
+     return ReactModuleInfoProvider {
+      val moduleInfos: MutableMap<String, ReactModuleInfo> = HashMap()
+      moduleInfos[RnExecutorchModule.NAME] = ReactModuleInfo(
+        RnExecutorchModule.NAME,
+        RnExecutorchModule.NAME,
+        false,  // canOverrideExistingModule
+        false,  // needsEagerInit
+        true,  // hasConstants
+        false,  // isCxxModule
+        true // isTurboModule
+      )
+      moduleInfos
+    }
    }
 }

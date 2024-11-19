@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   s.frameworks = ['Accelerate', 'CoreML']
   s.ios.vendored_frameworks = "ios/LLaMARunner.xcframework"
   s.libraries = "sqlite3"
-  s.source_files = "ios/**/*.{h,m,mm}"
+  s.source_files = "ios/**/*.{h,m,mm}", "cpp/**/*.{hpp,cpp,c,h}"
 
   install_modules_dependencies(s)
 end

@@ -1,27 +1,48 @@
 package com.swmansion.rnexecutorch
 
+import com.facebook.react.bridge.ReactApplicationContext
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import com.facebook.react.bridge.Promise
-import org.pytorch.executorch.LlamaModule
-import org.pytorch.executorch.LlamaCallback
-import com.facebook.react.bridge.ReactApplicationContext;
-import java.io.File
-import java.net.URL
+import com.facebook.react.bridge.ReactContextBaseJavaModule
+import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.modules.core.DeviceEventManagerModule
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import com.facebook.react.modules.core.DeviceEventManagerModule
+import org.pytorch.executorch.LlamaModule
+import org.pytorch.executorch.LlamaCallback
+import java.io.File
+import java.net.URL
 
-class RnExecutorchImpl: LlamaCallback {
+class RnExecutorchModule(reactContext: ReactApplicationContext) :
+  NativeRnExecutorchSpec(reactContext), LlamaCallback {
+
   private var llamaModule: LlamaModule? = null
-  private var reactContext: ReactApplicationContext? = null
+  private var eventEmitter: DeviceEventManagerModule.RCTDeviceEventEmitter? = null
   private var tempLlamaResponse = StringBuilder()
   private lateinit var conversationManager: ConversationManager
   private val client = OkHttpClient()
   private var isFetching = false
-  private var eventEmitter: DeviceEventManagerModule.RCTDeviceEventEmitter? = null
+
+  override fun getName(): String {
+    return NAME
+  }
+
+  override fun initialize() {
+    super.initialize()
+    eventEmitter =
+      reactApplicationContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+  }
+
+  override fun addListener(eventName: String) {
+  }
+
+  override fun removeListeners(count: Double) {
+  }
 
   override fun onResult(result: String) {
-    eventEmitter?.emit("onToken", result)
+    this.eventEmitter?.emit("onToken", result)
     this.tempLlamaResponse.append(result)
   }
 
@@ -30,7 +51,7 @@ class RnExecutorchImpl: LlamaCallback {
   }
 
   private fun updateDownloadProgress(progress: Float) {
-    eventEmitter?.emit("onDownloadProgress", progress / 100)
+    this.eventEmitter?.emit("onDownloadProgress", progress / 100)
   }
 
   private fun downloadResource(
@@ -39,7 +60,7 @@ class RnExecutorchImpl: LlamaCallback {
     callback: (path: String?, error: Exception?) -> Unit
   ) {
     Fetcher.downloadResource(
-      this.reactContext!!, client, url, resourceType,
+      reactApplicationContext, client, url, resourceType,
       { path, error -> callback(path, error) },
       object : ProgressResponseBody.ProgressListener {
         override fun onProgress(bytesRead: Long, contentLength: Long, done: Boolean) {
@@ -58,30 +79,24 @@ class RnExecutorchImpl: LlamaCallback {
     promise.resolve("Model loaded successfully")
   }
 
-  fun loadLLM(
+  @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+  override fun loadLLM(
     modelSource: String,
     tokenizerSource: String,
     systemPrompt: String,
-    contextWindowLength: Int,
-    reactContext: ReactApplicationContext,
-    eventEmitter: DeviceEventManagerModule.RCTDeviceEventEmitter?,
+    contextWindowLength: Double,
     promise: Promise
   ) {
+    Log.d("RnExecutorch", nativeMultiply(2.0, 3.0).toString())
     if (llamaModule != null || isFetching) {
       promise.reject("Model already loaded", "Model is already loaded or fetching")
       return
     }
 
-    if(eventEmitter != null) {
-      this.eventEmitter = eventEmitter
-    }
-
-    this.reactContext = reactContext
-
     try {
       val modelURL = URL(modelSource)
       val tokenizerURL = URL(tokenizerSource)
-      this.conversationManager = ConversationManager(contextWindowLength, systemPrompt)
+      this.conversationManager = ConversationManager(contextWindowLength.toInt(), systemPrompt)
 
       isFetching = true
 
@@ -114,7 +129,8 @@ class RnExecutorchImpl: LlamaCallback {
     }
   }
 
-  fun runInference(
+  @RequiresApi(Build.VERSION_CODES.N)
+  override fun runInference(
     input: String,
     promise: Promise
   ) {
@@ -141,15 +157,21 @@ class RnExecutorchImpl: LlamaCallback {
     promise.resolve("Inference completed successfully")
   }
 
-  fun interrupt() {
+  override fun interrupt() {
     llamaModule!!.stop()
   }
 
-  fun deleteModule() {
+  override fun deleteModule() {
     llamaModule = null
   }
 
+  external fun nativeMultiply(a: Double, b: Double): Double
+
   companion object {
     const val NAME = "RnExecutorch"
+
+    init {
+        System.loadLibrary("react-native-executorch")
+    }
   }
 }
