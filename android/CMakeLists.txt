@@ -9,7 +9,16 @@ add_library(react-native-executorch            SHARED
             cpp-adapter.cpp
 )
 
+
 # Specifies a path to native header files.
 include_directories(
             ../cpp
+            ../MathLibrary/include
 )
+
+add_library(MathLibrary STATIC
+            ../MathLibrary/src/MathLibrary.cpp
+)
+
+
+target_link_libraries(react-native-executorch MathLibrary)
