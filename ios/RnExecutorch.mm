@@ -6,8 +6,6 @@
 #import "utils/LargeFileFetcher.h"
 #import <UIKit/UIKit.h>
 #import <string>
-
-#ifdef RCT_NEW_ARCH_ENABLED
 #import <React/RCTBridge+Private.h>
 #import <React/RCTBridge.h>
 #import <React/RCTBridgeModule.h>
@@ -15,11 +13,10 @@
 #import <ReactCommon/CallInvoker.h>
 #import <ReactCommon/RCTTurboModule.h>
 #import <react/renderer/uimanager/primitives.h>
-#endif
+
 
 @implementation RnExecutorch {
   LLaMARunner *runner;
-  BOOL hasListeners;
   ConversationManager *conversationManager;
   NSMutableString *tempLlamaResponse;
   BOOL isFetching;
@@ -37,52 +34,26 @@
 
 RCT_EXPORT_MODULE()
 
-- (NSArray<NSString *> *)supportedEvents {
-  return @[@"onToken", @"onDownloadProgress"];
-}
-
-- (void)startObserving {
-  hasListeners = YES;
-}
-
-- (void)stopObserving {
-  hasListeners = NO;
-}
-
 - (void)onResult:(NSString *)token prompt:(NSString *)prompt {
-  if (!self->hasListeners || [token isEqualToString:prompt]) {
+  if ([token isEqualToString:prompt]) {
     return;
   }
 
   dispatch_async(dispatch_get_main_queue(), ^{
-    [self sendEventWithName:@"onToken" body:token];
+    [self emitOnToken:token];
     [self->tempLlamaResponse appendString:token];
   });
 }
 
 - (void)updateDownloadProgress:(NSNumber *)progress {
-  if (!self->hasListeners){
-    return;
-  }
-  
   dispatch_async(dispatch_get_main_queue(), ^{
-    [self sendEventWithName:@"onDownloadProgress" body:progress];
+      [self emitOnDownloadProgress:progress];
   });
 }
 
-RCT_EXPORT_METHOD(interrupt) {
-  [self->runner stop];
-}
-
-RCT_EXPORT_METHOD(deleteModule) {
-  self->runner = nil;
-}
-
-RCT_EXPORT_METHOD(loadLLM:(NSString *)modelSource tokenizerSource:(NSString *)tokenizerSource systemPrompt:(NSString *)systemPrompt contextWindowLength:(double)contextWindowLength resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
+- (void)loadLLM:(NSString *)modelSource tokenizerSource:(NSString *)tokenizerSource systemPrompt:(NSString *)systemPrompt contextWindowLength:(double)contextWindowLength resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
     NSURL *modelURL = [NSURL URLWithString:modelSource];
     NSURL *tokenizerURL = [NSURL URLWithString:tokenizerSource];
-    NSNumber *result = @(RnExecutorch2::multiply(10, 15));
-    NSLog(@"Result: %@", result);
       
     if(self->runner || isFetching){
       reject(@"model_already_loaded", @"Model and tokenizer already loaded", nil);
@@ -120,7 +91,7 @@ RCT_EXPORT_METHOD(loadLLM:(NSString *)modelSource tokenizerSource:(NSString *)to
 }
 
 
-RCT_EXPORT_METHOD(runInference:(NSString *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
+- (void) runInference:(NSString *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
     [conversationManager addResponse:input senderRole:ChatRole::USER];
     NSString *prompt = [conversationManager getConversation];
 
@@ -150,17 +121,18 @@ RCT_EXPORT_METHOD(runInference:(NSString *)input resolve:(RCTPromiseResolveBlock
 }
 
 
-RCT_EXPORT_METHOD(multiply:(double)a b:(double)b resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
-    double result = a * b;
-    resolve(@(result));
+-(void)interrupt {
+  [self->runner stop];
 }
 
-#ifdef RCT_NEW_ARCH_ENABLED
+-(void)deleteModule {
+  self->runner = nil;
+}
+
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:(const facebook::react::ObjCTurboModule::InitParams &)params
 {
   return std::make_shared<facebook::react::NativeRnExecutorchSpecJSI>(params);
 }
-#endif
 
 @end
 

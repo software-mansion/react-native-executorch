@@ -1,4 +1,4 @@
-import { NativeEventEmitter, Platform } from 'react-native';
+import { Platform } from 'react-native';
 
 const LINKING_ERROR =
   `The package 'react-native-executorch' doesn't seem to be linked. Make sure: \n\n` +
@@ -17,21 +17,5 @@ const RnExecutorch = RnExecutorchModule
         },
       }
     );
-
-const eventEmitter = new NativeEventEmitter(RnExecutorch);
-
-export const subscribeToTokenGenerated = (
-  callback: (data?: string) => void
-) => {
-  const subscription = eventEmitter.addListener('onToken', callback);
-  return () => subscription.remove();
-};
-
-export const subscribeToDownloadProgress = (
-  callback: (data?: number) => void
-) => {
-  const subscription = eventEmitter.addListener('onDownloadProgress', callback);
-  return () => subscription.remove();
-};
 
 export default RnExecutorch;

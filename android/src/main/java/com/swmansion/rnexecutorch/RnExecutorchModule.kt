@@ -7,7 +7,6 @@ import androidx.annotation.RequiresApi
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
-import com.facebook.react.modules.core.DeviceEventManagerModule
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.pytorch.executorch.LlamaModule
@@ -19,7 +18,6 @@ class RnExecutorchModule(reactContext: ReactApplicationContext) :
   NativeRnExecutorchSpec(reactContext), LlamaCallback {
 
   private var llamaModule: LlamaModule? = null
-  private var eventEmitter: DeviceEventManagerModule.RCTDeviceEventEmitter? = null
   private var tempLlamaResponse = StringBuilder()
   private lateinit var conversationManager: ConversationManager
   private val client = OkHttpClient()
@@ -31,18 +29,10 @@ class RnExecutorchModule(reactContext: ReactApplicationContext) :
 
   override fun initialize() {
     super.initialize()
-    eventEmitter =
-      reactApplicationContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-  }
-
-  override fun addListener(eventName: String) {
-  }
-
-  override fun removeListeners(count: Double) {
   }
 
   override fun onResult(result: String) {
-    this.eventEmitter?.emit("onToken", result)
+    emitOnToken(result)
     this.tempLlamaResponse.append(result)
   }
 
@@ -51,7 +41,7 @@ class RnExecutorchModule(reactContext: ReactApplicationContext) :
   }
 
   private fun updateDownloadProgress(progress: Float) {
-    this.eventEmitter?.emit("onDownloadProgress", progress / 100)
+    emitOnDownloadProgress((progress / 100).toDouble())
   }
 
   private fun downloadResource(
@@ -87,7 +77,6 @@ class RnExecutorchModule(reactContext: ReactApplicationContext) :
     contextWindowLength: Double,
     promise: Promise
   ) {
-    Log.d("RnExecutorch", nativeMultiply(2.0, 3.0).toString())
     if (llamaModule != null || isFetching) {
       promise.reject("Model already loaded", "Model is already loaded or fetching")
       return
@@ -165,13 +154,7 @@ class RnExecutorchModule(reactContext: ReactApplicationContext) :
     llamaModule = null
   }
 
-  external fun nativeMultiply(a: Double, b: Double): Double
-
   companion object {
     const val NAME = "RnExecutorch"
-
-    init {
-        System.loadLibrary("react-native-executorch")
-    }
   }
 }

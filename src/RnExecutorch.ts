@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Image } from 'react-native';
+import { EventSubscription, Image } from 'react-native';
 import { ResourceSource, Model } from './types';
-import RnExecutorch, {
-  subscribeToDownloadProgress,
-  subscribeToTokenGenerated,
-} from './native/RnExecutorchModule';
+import RnExecutorch from './native/RnExecutorchModule';
 import {
   DEFAULT_SYSTEM_PROMPT,
   DEFAULT_CONTEXT_WINDOW_LENGTH,
@@ -31,6 +28,8 @@ export const useLLM = ({
   const [isModelGenerating, setIsModelGenerating] = useState(false);
   const [response, setResponse] = useState('');
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const downloadProgressListener = useRef<null | EventSubscription>(null);
+  const tokenGeneratedListener = useRef<null | EventSubscription>(null);
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -40,8 +39,6 @@ export const useLLM = ({
 
     initialized.current = true;
 
-    let unsubscribeTokenGenerated: () => void;
-    let unsubscribeDownloadProgress: () => void;
     const loadModel = async () => {
       try {
         let modelUrl = modelSource;
@@ -52,21 +49,25 @@ export const useLLM = ({
         if (typeof tokenizerSource === 'number') {
           tokenizerUrl = Image.resolveAssetSource(tokenizerSource).uri;
         }
-        unsubscribeDownloadProgress = subscribeToDownloadProgress(
-          (data: number | undefined) => {
+
+        downloadProgressListener.current = RnExecutorch.onDownloadProgress(
+          (data: number) => {
             if (data) {
               setDownloadProgress(data);
             }
           }
         );
+
         await RnExecutorch.loadLLM(
           modelUrl as string,
           tokenizerUrl as string,
           systemPrompt,
           contextWindowLength
         );
+
         setIsModelReady(true);
-        unsubscribeTokenGenerated = subscribeToTokenGenerated(
+
+        tokenGeneratedListener.current = RnExecutorch.onToken(
           (data: string | undefined) => {
             if (!data) {
               return;
@@ -88,8 +89,10 @@ export const useLLM = ({
     loadModel();
 
     return () => {
-      if (unsubscribeTokenGenerated) unsubscribeTokenGenerated();
-      if (unsubscribeDownloadProgress) unsubscribeDownloadProgress();
+      downloadProgressListener.current?.remove();
+      downloadProgressListener.current = null;
+      tokenGeneratedListener.current?.remove();
+      tokenGeneratedListener.current = null;
       RnExecutorch.deleteModule();
     };
   }, [contextWindowLength, modelSource, systemPrompt, tokenizerSource]);
