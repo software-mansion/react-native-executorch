@@ -5,6 +5,7 @@ import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.Response
 import okio.IOException
 import java.io.File
@@ -95,6 +96,30 @@ class Fetcher {
             })
         }
 
+        private fun isUrlPointingToHfRepo(url: URL): Boolean {
+          val expectedHost = "huggingface.co"
+          val expectedPathPrefix = "/software-mansion/"
+          if (url.host != expectedHost) {
+            return false
+          }
+          return url.path.startsWith(expectedPathPrefix)
+        }
+
+        private fun resolveConfigUrlFromModelUrl(modelUrl: URL): URL {
+          // Create a new URL using the base URL and append the desired path
+          val baseUrl = modelUrl.protocol + "://" + modelUrl.host + modelUrl.path.substringBefore("resolve/")
+          return URL(baseUrl + "resolve/main/config.json")
+        }
+
+        private fun sendRequestToUrl(url: URL, method: String, body: RequestBody?, client: OkHttpClient) : Response {
+          val request = Request.Builder()
+            .url(url)
+            .method(method, body)
+            .build()
+          val response = client.newCall(request).execute()
+          return response
+        }
+
         fun downloadResource(
             context: Context,
             client: OkHttpClient,
@@ -163,6 +188,14 @@ class Fetcher {
                 validFile = saveResponseToFile(response, modelsDirectory, fileName)
                 onComplete(validFile.absolutePath, null)
                 return
+            }
+
+            // If the url is a Software Mansion HuggingFace repo, we want to send a HEAD
+            // request to the config.json file, this increments HF download counter
+            // https://huggingface.co/docs/hub/models-download-stats
+            if (isUrlPointingToHfRepo(url)) {
+              val configUrl = resolveConfigUrlFromModelUrl(url)
+              sendRequestToUrl(configUrl, "HEAD", null, client);
             }
 
             fetchModel(tempFile, validFile, client, url, onComplete, listener)
