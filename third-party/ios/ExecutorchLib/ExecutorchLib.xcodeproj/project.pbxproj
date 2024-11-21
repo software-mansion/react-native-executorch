@@ -53,7 +53,6 @@
 		5576B4A42CEF76CC005027B7 /* backend_mps.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = backend_mps.xcframework; path = frameworks/backend_mps.xcframework; sourceTree = "<group>"; };
 		5576B4A52CEF76CC005027B7 /* backend_xnnpack.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = backend_xnnpack.xcframework; path = frameworks/backend_xnnpack.xcframework; sourceTree = "<group>"; };
 		55EA2C1C2CB90C22004315B3 /* ExecutorchLib.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ExecutorchLib.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		55EA2C1F2CB90C22004315B3 /* LLaMARunner.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LLaMARunner.h; sourceTree = "<group>"; };
 		55EA2C262CB90C7A004315B3 /* runner.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = runner.cpp; sourceTree = "<group>"; };
 		55EA2C272CB90C7A004315B3 /* runner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = runner.h; sourceTree = "<group>"; };
 		55EA2C282CB90C7A004315B3 /* stats.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stats.h; sourceTree = "<group>"; };
@@ -127,7 +126,6 @@
 				55EA2C2F2CB90C7A004315B3 /* runner */,
 				55EA2C322CB90C7A004315B3 /* sampler */,
 				55EA2C3E2CB90C7A004315B3 /* tokenizer */,
-				55EA2C1F2CB90C22004315B3 /* LLaMARunner.h */,
 			);
 			path = ExecutorchLib;
 			sourceTree = "<group>";
