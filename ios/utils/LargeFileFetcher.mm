@@ -54,6 +54,13 @@
   }
 }
 
+- (void)sendHeadRequestToURL:(NSURL *)url {
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
+    [request setHTTPMethod:@"HEAD"];
+    NSURLSessionDataTask *dataTask = [_session dataTaskWithRequest:request];
+    [dataTask resume];
+}
+
 - (void)startDownloadingFileFromURL:(NSURL *)url {
   //Check if file is a valid url, if not check if it's path to local file
   if (![Fetcher isValidURL:url]) {
@@ -77,6 +84,22 @@
     [self executeCompletionWithSuccess:filePath];
     return;
   }
+
+  // If the url is a Software Mansion HuggingFace repo, we want to send a HEAD
+  // request to the config.json file, this increments HF download counter
+  // https://huggingface.co/docs/hub/models-download-stats
+  NSString *huggingFaceOrgNSString = @"https://huggingface.co/software-mansion/";
+  NSString *modelURLNSString = [url absoluteString];
+
+  if ([modelURLNSString hasPrefix:huggingFaceOrgNSString]) {
+    NSRange resolveRange = [modelURLNSString rangeOfString:@"resolve"];
+    if (resolveRange.location != NSNotFound) {
+      NSString *configURLNSString = [modelURLNSString substringToIndex:resolveRange.location + resolveRange.length];
+      configURLNSString = [configURLNSString stringByAppendingString:@"/main/config.json"];
+      NSURL *configNSURL = [NSURL URLWithString:configURLNSString];
+      [self sendHeadRequestToURL:configNSURL];
+    }
+  }  
   
   //Cancel all running background download tasks and start new one
   _destination = filePath;
