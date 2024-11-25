@@ -1,0 +1,50 @@
+name: 🚀 Feature request
+description: Propose a new idea or improvement for the React Native ExecuTorch
+body:
+  - type: textarea
+    id: problem_description
+    attributes:
+      label: Problem description
+      description: >
+        Provide a detailed explanation of the issue or need you are experiencing.
+        Please describe the problem clearly and concisely.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution_description
+    attributes:
+      label: Proposed solution
+      description: >
+        Offer a detailed description of your proposed solution or feature enhancement.
+        Explain what changes or additions you would like to see implemented.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternative_solutions
+    attributes:
+      label: Alternative solutions
+      description: >
+        List any alternative solutions or features you have considered.
+        Explain why these alternatives are not your preferred choice.
+    validations:
+      required: false
+
+  - type: textarea
+    id: benefit_description
+    attributes:
+      label: Benefits to React Native ExecuTorch
+      description: >
+        Describe how this feature will enhance the library's capabilities.
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional context
+      description: >
+        Add any other relevant context, code examples, or screenshots that should be considered.
+    validations:
+      required: false
