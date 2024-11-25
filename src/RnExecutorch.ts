@@ -3,8 +3,8 @@ import { EventSubscription, Image } from 'react-native';
 import { ResourceSource, Model } from './types';
 import RnExecutorch from './native/RnExecutorchModule';
 import {
-  DEFAULT_SYSTEM_PROMPT,
   DEFAULT_CONTEXT_WINDOW_LENGTH,
+  DEFAULT_SYSTEM_PROMPT,
   EOT_TOKEN,
 } from './constants/constants';
 
