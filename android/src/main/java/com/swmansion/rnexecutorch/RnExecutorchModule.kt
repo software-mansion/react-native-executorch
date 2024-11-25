@@ -1,13 +1,12 @@
 package com.swmansion.rnexecutorch
 
+import com.facebook.react.bridge.ReactApplicationContext
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
-import com.facebook.react.modules.core.DeviceEventManagerModule
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.pytorch.executorch.LlamaModule
@@ -16,10 +15,9 @@ import java.io.File
 import java.net.URL
 
 class RnExecutorchModule(reactContext: ReactApplicationContext) :
-  ReactContextBaseJavaModule(reactContext), LlamaCallback {
+  NativeRnExecutorchSpec(reactContext), LlamaCallback {
+
   private var llamaModule: LlamaModule? = null
-  private var eventEmitter: DeviceEventManagerModule.RCTDeviceEventEmitter? = null
-  private var listenerCount = 0
   private var tempLlamaResponse = StringBuilder()
   private lateinit var conversationManager: ConversationManager
   private val client = OkHttpClient()
@@ -31,22 +29,10 @@ class RnExecutorchModule(reactContext: ReactApplicationContext) :
 
   override fun initialize() {
     super.initialize()
-    eventEmitter =
-      reactApplicationContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-  }
-
-  @ReactMethod
-  fun addListener(eventName: String) {
-    listenerCount++
-  }
-
-  @ReactMethod
-  fun removeListeners(count: Int) {
-    listenerCount -= count
   }
 
   override fun onResult(result: String) {
-    this.eventEmitter?.emit("onToken", result)
+    emitOnToken(result)
     this.tempLlamaResponse.append(result)
   }
 
@@ -55,7 +41,7 @@ class RnExecutorchModule(reactContext: ReactApplicationContext) :
   }
 
   private fun updateDownloadProgress(progress: Float) {
-    this.eventEmitter?.emit("onDownloadProgress", progress / 100)
+    emitOnDownloadProgress((progress / 100).toDouble())
   }
 
   private fun downloadResource(
@@ -84,12 +70,11 @@ class RnExecutorchModule(reactContext: ReactApplicationContext) :
   }
 
   @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-  @ReactMethod
-  fun loadLLM(
+  override fun loadLLM(
     modelSource: String,
     tokenizerSource: String,
     systemPrompt: String,
-    contextWindowLength: Int,
+    contextWindowLength: Double,
     promise: Promise
   ) {
     if (llamaModule != null || isFetching) {
@@ -100,7 +85,7 @@ class RnExecutorchModule(reactContext: ReactApplicationContext) :
     try {
       val modelURL = URL(modelSource)
       val tokenizerURL = URL(tokenizerSource)
-      this.conversationManager = ConversationManager(contextWindowLength, systemPrompt)
+      this.conversationManager = ConversationManager(contextWindowLength.toInt(), systemPrompt)
 
       isFetching = true
 
@@ -134,8 +119,7 @@ class RnExecutorchModule(reactContext: ReactApplicationContext) :
   }
 
   @RequiresApi(Build.VERSION_CODES.N)
-  @ReactMethod
-  fun runInference(
+  override fun runInference(
     input: String,
     promise: Promise
   ) {
@@ -162,13 +146,11 @@ class RnExecutorchModule(reactContext: ReactApplicationContext) :
     promise.resolve("Inference completed successfully")
   }
 
-  @ReactMethod
-  fun interrupt() {
+  override fun interrupt() {
     llamaModule!!.stop()
   }
 
-  @ReactMethod
-  fun deleteModule() {
+  override fun deleteModule() {
     llamaModule = null
   }
 
