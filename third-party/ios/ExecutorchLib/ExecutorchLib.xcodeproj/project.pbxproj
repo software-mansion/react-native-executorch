@@ -1,0 +1,608 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 70;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		5576B4A62CEF76CC005027B7 /* executorch.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5576B49D2CEF76CC005027B7 /* executorch.xcframework */; };
+		5576B4A72CEF76CC005027B7 /* re2.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5576B49E2CEF76CC005027B7 /* re2.xcframework */; };
+		5576B4A82CEF76CC005027B7 /* kernels_optimized.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5576B49F2CEF76CC005027B7 /* kernels_optimized.xcframework */; };
+		5576B4A92CEF76CC005027B7 /* kernels_custom.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5576B4A02CEF76CC005027B7 /* kernels_custom.xcframework */; };
+		5576B4AA2CEF76CC005027B7 /* kernels_quantized.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5576B4A12CEF76CC005027B7 /* kernels_quantized.xcframework */; };
+		5576B4AB2CEF76CC005027B7 /* backend_coreml.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5576B4A22CEF76CC005027B7 /* backend_coreml.xcframework */; };
+		5576B4AC2CEF76CC005027B7 /* kernels_portable.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5576B4A32CEF76CC005027B7 /* kernels_portable.xcframework */; };
+		5576B4AD2CEF76CC005027B7 /* backend_mps.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5576B4A42CEF76CC005027B7 /* backend_mps.xcframework */; };
+		5576B4AE2CEF76CC005027B7 /* backend_xnnpack.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5576B4A52CEF76CC005027B7 /* backend_xnnpack.xcframework */; };
+		5576B4B72CEF9709005027B7 /* ETModel.h in Headers */ = {isa = PBXBuildFile; fileRef = 5576B4B62CEF9705005027B7 /* ETModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		5576B4B92CEF970E005027B7 /* ETModel.mm in Sources */ = {isa = PBXBuildFile; fileRef = 5576B4B82CEF970C005027B7 /* ETModel.mm */; };
+		55EA2C3F2CB90C7A004315B3 /* runner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 55EA2C262CB90C7A004315B3 /* runner.cpp */; };
+		55EA2C402CB90C7A004315B3 /* runner.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C272CB90C7A004315B3 /* runner.h */; };
+		55EA2C412CB90C7A004315B3 /* stats.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C282CB90C7A004315B3 /* stats.h */; };
+		55EA2C422CB90C7A004315B3 /* text_decoder_runner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 55EA2C292CB90C7A004315B3 /* text_decoder_runner.cpp */; };
+		55EA2C432CB90C7A004315B3 /* text_decoder_runner.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C2A2CB90C7A004315B3 /* text_decoder_runner.h */; };
+		55EA2C442CB90C7A004315B3 /* text_prefiller.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 55EA2C2B2CB90C7A004315B3 /* text_prefiller.cpp */; };
+		55EA2C452CB90C7A004315B3 /* text_prefiller.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C2C2CB90C7A004315B3 /* text_prefiller.h */; };
+		55EA2C462CB90C7A004315B3 /* text_token_generator.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C2D2CB90C7A004315B3 /* text_token_generator.h */; };
+		55EA2C472CB90C7A004315B3 /* util.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C2E2CB90C7A004315B3 /* util.h */; };
+		55EA2C482CB90C7A004315B3 /* sampler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 55EA2C302CB90C7A004315B3 /* sampler.cpp */; };
+		55EA2C492CB90C7A004315B3 /* sampler.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C312CB90C7A004315B3 /* sampler.h */; };
+		55EA2C4B2CB90C7A004315B3 /* LLaMARunner.mm in Sources */ = {isa = PBXBuildFile; fileRef = 55EA2C342CB90C7A004315B3 /* LLaMARunner.mm */; };
+		55EA2C4C2CB90C7A004315B3 /* base64.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C362CB90C7A004315B3 /* base64.h */; };
+		55EA2C4D2CB90C7A004315B3 /* bpe_tokenizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 55EA2C372CB90C7A004315B3 /* bpe_tokenizer.cpp */; };
+		55EA2C4E2CB90C7A004315B3 /* bpe_tokenizer.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C382CB90C7A004315B3 /* bpe_tokenizer.h */; };
+		55EA2C4F2CB90C7A004315B3 /* llama_tiktoken.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 55EA2C392CB90C7A004315B3 /* llama_tiktoken.cpp */; };
+		55EA2C502CB90C7A004315B3 /* llama_tiktoken.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C3A2CB90C7A004315B3 /* llama_tiktoken.h */; };
+		55EA2C512CB90C7A004315B3 /* tiktoken.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 55EA2C3B2CB90C7A004315B3 /* tiktoken.cpp */; };
+		55EA2C522CB90C7A004315B3 /* tiktoken.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C3C2CB90C7A004315B3 /* tiktoken.h */; };
+		55EA2C532CB90C7A004315B3 /* tokenizer.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C3D2CB90C7A004315B3 /* tokenizer.h */; };
+		55EA2C542CB90E70004315B3 /* LLaMARunner.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C332CB90C7A004315B3 /* LLaMARunner.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		55EA2C572CB90E7D004315B3 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C562CB90E7D004315B3 /* Accelerate.framework */; };
+		55EA2C592CB90E80004315B3 /* CoreML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C582CB90E80004315B3 /* CoreML.framework */; };
+		55EA2C5B2CB90E85004315B3 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C5A2CB90E85004315B3 /* libsqlite3.tbd */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		5576B49D2CEF76CC005027B7 /* executorch.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = executorch.xcframework; path = frameworks/executorch.xcframework; sourceTree = "<group>"; };
+		5576B49E2CEF76CC005027B7 /* re2.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = re2.xcframework; path = frameworks/re2.xcframework; sourceTree = "<group>"; };
+		5576B49F2CEF76CC005027B7 /* kernels_optimized.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = kernels_optimized.xcframework; path = frameworks/kernels_optimized.xcframework; sourceTree = "<group>"; };
+		5576B4A02CEF76CC005027B7 /* kernels_custom.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = kernels_custom.xcframework; path = frameworks/kernels_custom.xcframework; sourceTree = "<group>"; };
+		5576B4A12CEF76CC005027B7 /* kernels_quantized.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = kernels_quantized.xcframework; path = frameworks/kernels_quantized.xcframework; sourceTree = "<group>"; };
+		5576B4A22CEF76CC005027B7 /* backend_coreml.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = backend_coreml.xcframework; path = frameworks/backend_coreml.xcframework; sourceTree = "<group>"; };
+		5576B4A32CEF76CC005027B7 /* kernels_portable.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = kernels_portable.xcframework; path = frameworks/kernels_portable.xcframework; sourceTree = "<group>"; };
+		5576B4A42CEF76CC005027B7 /* backend_mps.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = backend_mps.xcframework; path = frameworks/backend_mps.xcframework; sourceTree = "<group>"; };
+		5576B4A52CEF76CC005027B7 /* backend_xnnpack.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = backend_xnnpack.xcframework; path = frameworks/backend_xnnpack.xcframework; sourceTree = "<group>"; };
+		5576B4B62CEF9705005027B7 /* ETModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ETModel.h; sourceTree = "<group>"; };
+		5576B4B82CEF970C005027B7 /* ETModel.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ETModel.mm; sourceTree = "<group>"; };
+		55EA2C1C2CB90C22004315B3 /* ExecutorchLib.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ExecutorchLib.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		55EA2C262CB90C7A004315B3 /* runner.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = runner.cpp; sourceTree = "<group>"; };
+		55EA2C272CB90C7A004315B3 /* runner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = runner.h; sourceTree = "<group>"; };
+		55EA2C282CB90C7A004315B3 /* stats.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stats.h; sourceTree = "<group>"; };
+		55EA2C292CB90C7A004315B3 /* text_decoder_runner.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = text_decoder_runner.cpp; sourceTree = "<group>"; };
+		55EA2C2A2CB90C7A004315B3 /* text_decoder_runner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = text_decoder_runner.h; sourceTree = "<group>"; };
+		55EA2C2B2CB90C7A004315B3 /* text_prefiller.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = text_prefiller.cpp; sourceTree = "<group>"; };
+		55EA2C2C2CB90C7A004315B3 /* text_prefiller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = text_prefiller.h; sourceTree = "<group>"; };
+		55EA2C2D2CB90C7A004315B3 /* text_token_generator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = text_token_generator.h; sourceTree = "<group>"; };
+		55EA2C2E2CB90C7A004315B3 /* util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = util.h; sourceTree = "<group>"; };
+		55EA2C302CB90C7A004315B3 /* sampler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sampler.cpp; sourceTree = "<group>"; };
+		55EA2C312CB90C7A004315B3 /* sampler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sampler.h; sourceTree = "<group>"; };
+		55EA2C332CB90C7A004315B3 /* LLaMARunner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LLaMARunner.h; sourceTree = "<group>"; };
+		55EA2C342CB90C7A004315B3 /* LLaMARunner.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = LLaMARunner.mm; sourceTree = "<group>"; };
+		55EA2C362CB90C7A004315B3 /* base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = base64.h; sourceTree = "<group>"; };
+		55EA2C372CB90C7A004315B3 /* bpe_tokenizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = bpe_tokenizer.cpp; sourceTree = "<group>"; };
+		55EA2C382CB90C7A004315B3 /* bpe_tokenizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bpe_tokenizer.h; sourceTree = "<group>"; };
+		55EA2C392CB90C7A004315B3 /* llama_tiktoken.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = llama_tiktoken.cpp; sourceTree = "<group>"; };
+		55EA2C3A2CB90C7A004315B3 /* llama_tiktoken.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = llama_tiktoken.h; sourceTree = "<group>"; };
+		55EA2C3B2CB90C7A004315B3 /* tiktoken.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tiktoken.cpp; sourceTree = "<group>"; };
+		55EA2C3C2CB90C7A004315B3 /* tiktoken.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tiktoken.h; sourceTree = "<group>"; };
+		55EA2C3D2CB90C7A004315B3 /* tokenizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tokenizer.h; sourceTree = "<group>"; };
+		55EA2C562CB90E7D004315B3 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
+		55EA2C582CB90E80004315B3 /* CoreML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreML.framework; path = System/Library/Frameworks/CoreML.framework; sourceTree = SDKROOT; };
+		55EA2C5A2CB90E85004315B3 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		5576B4B42CEF8975005027B7 /* model */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = model; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		55EA2C192CB90C22004315B3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5576B4A62CEF76CC005027B7 /* executorch.xcframework in Frameworks */,
+				5576B4A72CEF76CC005027B7 /* re2.xcframework in Frameworks */,
+				5576B4A82CEF76CC005027B7 /* kernels_optimized.xcframework in Frameworks */,
+				5576B4A92CEF76CC005027B7 /* kernels_custom.xcframework in Frameworks */,
+				5576B4AA2CEF76CC005027B7 /* kernels_quantized.xcframework in Frameworks */,
+				5576B4AB2CEF76CC005027B7 /* backend_coreml.xcframework in Frameworks */,
+				5576B4AC2CEF76CC005027B7 /* kernels_portable.xcframework in Frameworks */,
+				5576B4AD2CEF76CC005027B7 /* backend_mps.xcframework in Frameworks */,
+				5576B4AE2CEF76CC005027B7 /* backend_xnnpack.xcframework in Frameworks */,
+				55EA2C5B2CB90E85004315B3 /* libsqlite3.tbd in Frameworks */,
+				55EA2C592CB90E80004315B3 /* CoreML.framework in Frameworks */,
+				55EA2C572CB90E7D004315B3 /* Accelerate.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		55EA2C122CB90C22004315B3 = {
+			isa = PBXGroup;
+			children = (
+				55EA2C1E2CB90C22004315B3 /* ExecutorchLib */,
+				55EA2C1D2CB90C22004315B3 /* Products */,
+				55EA2C552CB90E7D004315B3 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		55EA2C1D2CB90C22004315B3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				55EA2C1C2CB90C22004315B3 /* ExecutorchLib.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		55EA2C1E2CB90C22004315B3 /* ExecutorchLib */ = {
+			isa = PBXGroup;
+			children = (
+				5576B4B42CEF8975005027B7 /* model */,
+				55EA2C352CB90C7A004315B3 /* Exported */,
+				55EA2C2F2CB90C7A004315B3 /* runner */,
+				55EA2C322CB90C7A004315B3 /* sampler */,
+				55EA2C3E2CB90C7A004315B3 /* tokenizer */,
+			);
+			path = ExecutorchLib;
+			sourceTree = "<group>";
+		};
+		55EA2C2F2CB90C7A004315B3 /* runner */ = {
+			isa = PBXGroup;
+			children = (
+				55EA2C262CB90C7A004315B3 /* runner.cpp */,
+				55EA2C272CB90C7A004315B3 /* runner.h */,
+				55EA2C282CB90C7A004315B3 /* stats.h */,
+				55EA2C292CB90C7A004315B3 /* text_decoder_runner.cpp */,
+				55EA2C2A2CB90C7A004315B3 /* text_decoder_runner.h */,
+				55EA2C2B2CB90C7A004315B3 /* text_prefiller.cpp */,
+				55EA2C2C2CB90C7A004315B3 /* text_prefiller.h */,
+				55EA2C2D2CB90C7A004315B3 /* text_token_generator.h */,
+				55EA2C2E2CB90C7A004315B3 /* util.h */,
+			);
+			path = runner;
+			sourceTree = "<group>";
+		};
+		55EA2C322CB90C7A004315B3 /* sampler */ = {
+			isa = PBXGroup;
+			children = (
+				55EA2C302CB90C7A004315B3 /* sampler.cpp */,
+				55EA2C312CB90C7A004315B3 /* sampler.h */,
+			);
+			path = sampler;
+			sourceTree = "<group>";
+		};
+		55EA2C352CB90C7A004315B3 /* Exported */ = {
+			isa = PBXGroup;
+			children = (
+				5576B4B82CEF970C005027B7 /* ETModel.mm */,
+				5576B4B62CEF9705005027B7 /* ETModel.h */,
+				55EA2C332CB90C7A004315B3 /* LLaMARunner.h */,
+				55EA2C342CB90C7A004315B3 /* LLaMARunner.mm */,
+			);
+			path = Exported;
+			sourceTree = "<group>";
+		};
+		55EA2C3E2CB90C7A004315B3 /* tokenizer */ = {
+			isa = PBXGroup;
+			children = (
+				55EA2C362CB90C7A004315B3 /* base64.h */,
+				55EA2C372CB90C7A004315B3 /* bpe_tokenizer.cpp */,
+				55EA2C382CB90C7A004315B3 /* bpe_tokenizer.h */,
+				55EA2C392CB90C7A004315B3 /* llama_tiktoken.cpp */,
+				55EA2C3A2CB90C7A004315B3 /* llama_tiktoken.h */,
+				55EA2C3B2CB90C7A004315B3 /* tiktoken.cpp */,
+				55EA2C3C2CB90C7A004315B3 /* tiktoken.h */,
+				55EA2C3D2CB90C7A004315B3 /* tokenizer.h */,
+			);
+			path = tokenizer;
+			sourceTree = "<group>";
+		};
+		55EA2C552CB90E7D004315B3 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				5576B4A22CEF76CC005027B7 /* backend_coreml.xcframework */,
+				5576B4A42CEF76CC005027B7 /* backend_mps.xcframework */,
+				5576B4A52CEF76CC005027B7 /* backend_xnnpack.xcframework */,
+				5576B4A02CEF76CC005027B7 /* kernels_custom.xcframework */,
+				5576B4A32CEF76CC005027B7 /* kernels_portable.xcframework */,
+				5576B49F2CEF76CC005027B7 /* kernels_optimized.xcframework */,
+				5576B4A12CEF76CC005027B7 /* kernels_quantized.xcframework */,
+				5576B49D2CEF76CC005027B7 /* executorch.xcframework */,
+				5576B49E2CEF76CC005027B7 /* re2.xcframework */,
+				55EA2C5A2CB90E85004315B3 /* libsqlite3.tbd */,
+				55EA2C582CB90E80004315B3 /* CoreML.framework */,
+				55EA2C562CB90E7D004315B3 /* Accelerate.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		55EA2C172CB90C22004315B3 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				55EA2C542CB90E70004315B3 /* LLaMARunner.h in Headers */,
+				5576B4B72CEF9709005027B7 /* ETModel.h in Headers */,
+				55EA2C532CB90C7A004315B3 /* tokenizer.h in Headers */,
+				55EA2C412CB90C7A004315B3 /* stats.h in Headers */,
+				55EA2C4E2CB90C7A004315B3 /* bpe_tokenizer.h in Headers */,
+				55EA2C402CB90C7A004315B3 /* runner.h in Headers */,
+				55EA2C432CB90C7A004315B3 /* text_decoder_runner.h in Headers */,
+				55EA2C492CB90C7A004315B3 /* sampler.h in Headers */,
+				55EA2C4C2CB90C7A004315B3 /* base64.h in Headers */,
+				55EA2C452CB90C7A004315B3 /* text_prefiller.h in Headers */,
+				55EA2C522CB90C7A004315B3 /* tiktoken.h in Headers */,
+				55EA2C502CB90C7A004315B3 /* llama_tiktoken.h in Headers */,
+				55EA2C472CB90C7A004315B3 /* util.h in Headers */,
+				55EA2C462CB90C7A004315B3 /* text_token_generator.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		55EA2C1B2CB90C22004315B3 /* ExecutorchLib */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 55EA2C232CB90C22004315B3 /* Build configuration list for PBXNativeTarget "ExecutorchLib" */;
+			buildPhases = (
+				55EA2C172CB90C22004315B3 /* Headers */,
+				55EA2C182CB90C22004315B3 /* Sources */,
+				55EA2C192CB90C22004315B3 /* Frameworks */,
+				55EA2C1A2CB90C22004315B3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				5576B4B42CEF8975005027B7 /* model */,
+			);
+			name = ExecutorchLib;
+			packageProductDependencies = (
+			);
+			productName = ExecutorchLib;
+			productReference = 55EA2C1C2CB90C22004315B3 /* ExecutorchLib.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		55EA2C132CB90C22004315B3 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1540;
+				TargetAttributes = {
+					55EA2C1B2CB90C22004315B3 = {
+						CreatedOnToolsVersion = 15.4;
+					};
+				};
+			};
+			buildConfigurationList = 55EA2C162CB90C22004315B3 /* Build configuration list for PBXProject "ExecutorchLib" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 55EA2C122CB90C22004315B3;
+			packageReferences = (
+			);
+			productRefGroup = 55EA2C1D2CB90C22004315B3 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				55EA2C1B2CB90C22004315B3 /* ExecutorchLib */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		55EA2C1A2CB90C22004315B3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		55EA2C182CB90C22004315B3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				55EA2C482CB90C7A004315B3 /* sampler.cpp in Sources */,
+				55EA2C3F2CB90C7A004315B3 /* runner.cpp in Sources */,
+				55EA2C422CB90C7A004315B3 /* text_decoder_runner.cpp in Sources */,
+				55EA2C4D2CB90C7A004315B3 /* bpe_tokenizer.cpp in Sources */,
+				55EA2C4F2CB90C7A004315B3 /* llama_tiktoken.cpp in Sources */,
+				5576B4B92CEF970E005027B7 /* ETModel.mm in Sources */,
+				55EA2C442CB90C7A004315B3 /* text_prefiller.cpp in Sources */,
+				55EA2C512CB90C7A004315B3 /* tiktoken.cpp in Sources */,
+				55EA2C4B2CB90C7A004315B3 /* LLaMARunner.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		55EA2C212CB90C22004315B3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		55EA2C222CB90C22004315B3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		55EA2C242CB90C22004315B3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = B357MU264T;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				EXCLUDED_ARCHS = x86_64;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
+					"$(inherited)",
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_optimized-ios-release.a",
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_custom-ios-release.a",
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_quantized-ios-release.a",
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_xnnpack-ios-release.a",
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_coreml-ios-release.a",
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libexecutorch-ios-release.a",
+				);
+				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = (
+					"$(inherited)",
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_optimized-simulator-release.a",
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_custom-simulator-release.a",
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_quantized-simulator-release.a",
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_xnnpack-simulator-release.a",
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_coreml-simulator-release.a",
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libexecutorch-simulator-release.a",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.swmansion.Executorch;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		55EA2C252CB90C22004315B3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = B357MU264T;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				EXCLUDED_ARCHS = x86_64;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
+					"$(inherited)",
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_optimized-ios-release.a",
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_custom-ios-release.a",
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_quantized-ios-release.a",
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_xnnpack-ios-release.a",
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_coreml-ios-release.a",
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libexecutorch-ios-release.a",
+				);
+				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = (
+					"$(inherited)",
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_optimized-simulator-release.a",
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_custom-simulator-release.a",
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_quantized-simulator-release.a",
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_xnnpack-simulator-release.a",
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_coreml-simulator-release.a",
+					"-force_load",
+					"$(BUILT_PRODUCTS_DIR)/libexecutorch-simulator-release.a",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.swmansion.Executorch;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		55EA2C162CB90C22004315B3 /* Build configuration list for PBXProject "ExecutorchLib" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				55EA2C212CB90C22004315B3 /* Debug */,
+				55EA2C222CB90C22004315B3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		55EA2C232CB90C22004315B3 /* Build configuration list for PBXNativeTarget "ExecutorchLib" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				55EA2C242CB90C22004315B3 /* Debug */,
+				55EA2C252CB90C22004315B3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 55EA2C132CB90C22004315B3 /* Project object */;
+}
