@@ -6,9 +6,9 @@ const LINKING_ERROR =
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo Go\n';
 
-const RnExecutorchModule = require('./NativeRnExecutorch').default;
-const RnExecutorch = RnExecutorchModule
-  ? RnExecutorchModule
+const RnExecutorchSpec = require('./NativeRnExecutorch').default;
+const RnExecutorch = RnExecutorchSpec
+  ? RnExecutorchSpec
   : new Proxy(
       {},
       {
@@ -18,4 +18,17 @@ const RnExecutorch = RnExecutorchModule
       }
     );
 
-export default RnExecutorch;
+const ETModuleSpec = require('./NativeETModule').default;
+
+const ETModule = ETModuleSpec
+  ? ETModuleSpec
+  : new Proxy(
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
+
+export { RnExecutorch, ETModule };

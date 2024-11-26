@@ -1,17 +1,13 @@
 package com.swmansion.rnexecutorch
 
-import com.facebook.react.bridge.ReactApplicationContext
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.bridge.ReactApplicationContext
 import okhttp3.OkHttpClient
-import okhttp3.Request
-import org.pytorch.executorch.LlamaModule
 import org.pytorch.executorch.LlamaCallback
-import java.io.File
+import org.pytorch.executorch.LlamaModule
 import java.net.URL
 
 class RnExecutorchModule(reactContext: ReactApplicationContext) :
