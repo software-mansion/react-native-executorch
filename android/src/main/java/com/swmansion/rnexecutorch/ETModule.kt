@@ -1,13 +1,12 @@
 package com.swmansion.rnexecutorch
 
-import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
 import com.swmansion.rnexecutorch.utils.ArrayUtils
+import com.swmansion.rnexecutorch.utils.TensorUtils
 import okhttp3.OkHttpClient
-import org.pytorch.executorch.EValue
 import org.pytorch.executorch.Module
 import org.pytorch.executorch.Tensor
 import java.net.URL
@@ -67,12 +66,17 @@ class ETModule(reactContext: ReactApplicationContext) : NativeETModuleSpec(react
     promise.resolve(result)
   }
 
-  override fun forward(input: ReadableArray, shape: ReadableArray, promise: Promise) {
+  override fun forward(
+    input: ReadableArray,
+    shape: ReadableArray,
+    inputType: Double,
+    promise: Promise
+  ) {
+    val type = inputType.toInt()
     try {
-      val tensor =
-        Tensor.fromBlob(ArrayUtils.createFloatArray(input), ArrayUtils.createLongArray(shape))
+      val evalue = TensorUtils.getEvalue(input, ArrayUtils.createLongArray(shape), type)
       lateinit var result: Tensor
-      module.forward(EValue.from(tensor))[0].toTensor().also { result = it }
+      module.forward(evalue)[0].toTensor().also { result = it }
 
       val floatResult = result.dataAsFloatArray
       val resultArray = Arguments.createArray()

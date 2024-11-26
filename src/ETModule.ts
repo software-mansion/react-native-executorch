@@ -48,7 +48,7 @@ interface Props {
 
 interface ReturnType {
   error: string | null;
-  forward: (input: number[], shape: number[]) => Promise<number[]>;
+  forward: (input: ETInput, shape: number[]) => Promise<number[]>;
   loadMethod: (methodName: string) => Promise<void>;
   loadForward: () => Promise<void>;
   isModelLoading: boolean;
@@ -59,6 +59,24 @@ const getError = (e: unknown): string => {
   const errorCode = parseInt(error.message, 10);
   if (errorCode in ETError) return ETError[errorCode] as string;
   return ETError[255] as string;
+};
+
+/*
+  Int8Array = 0,
+  Int32Array = 1,
+  BigInt64Array = 2,
+  Float32Array = 3,
+  Float64Array = 4,
+*/
+
+const getTypeIdentifier = (arr: ETInput): number => {
+  if (arr instanceof Int8Array) return 0;
+  if (arr instanceof Int32Array) return 1;
+  if (arr instanceof BigInt64Array) return 2;
+  if (arr instanceof Float32Array) return 3;
+  if (arr instanceof Float64Array) return 4;
+
+  return -1;
 };
 
 export const useExecutorchModule = ({
@@ -85,9 +103,11 @@ export const useExecutorchModule = ({
     loadModel();
   }, [modulePath]);
 
-  const forward = async (input: number[], shape: number[]) => {
+  const forward = async (input: ETInput, shape: number[]) => {
     try {
-      const output = await ETModule.forward(input, shape);
+      const inputType = getTypeIdentifier(input);
+      const numberArray = [...input];
+      const output = await ETModule.forward(numberArray, shape, inputType);
       return output;
     } catch (e) {
       throw new Error(getError(e));
