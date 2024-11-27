@@ -1,39 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Image } from 'react-native';
 import { ETModule } from './native/RnExecutorchModules';
-
-export enum ETError {
-  //react-native-ExecuTorch errors
-  UndefinedError = -255,
-  ModuleNotLoaded = -2,
-  InvalidModelPath = -1,
-
-  //ExecuTorch mapped errors
-
-  // System errors
-  Ok = 0,
-  Internal = 1,
-  InvalidState = 2,
-  EndOfMethod = 3,
-
-  // Logical errors
-  NotSupported = 16,
-  NotImplemented = 17,
-  InvalidArgument = 18,
-  InvalidType = 19,
-  OperatorMissing = 20,
-
-  // Resource errors
-  NotFound = 32,
-  MemoryAllocationFailed = 33,
-  AccessFailed = 34,
-  InvalidProgram = 35,
-
-  // Delegate errors
-  DelegateInvalidCompatibility = 48,
-  DelegateMemoryAllocationFailed = 49,
-  DelegateInvalidHandle = 50,
-}
+import { ETError, getError } from './Error';
 
 export type ETInput =
   | Int8Array
@@ -54,13 +22,6 @@ interface ExecutorchModule {
   loadMethod: (methodName: string) => Promise<void>;
   loadForward: () => Promise<void>;
 }
-
-const getError = (e: unknown): string => {
-  const error = e as Error;
-  const errorCode = parseInt(error.message, 10);
-  if (errorCode in ETError) return ETError[errorCode] as string;
-  return ETError[-3] as string;
-};
 
 const getTypeIdentifier = (arr: ETInput): number => {
   if (arr instanceof Int8Array) return 0;
@@ -100,12 +61,12 @@ export const useExecutorchModule = ({
 
   const forward = async (input: ETInput, shape: number[]) => {
     if (isModelLoading) {
-      throw new Error(ETError[-2]);
+      throw new Error(getError(ETError.ModuleNotLoaded));
     }
 
     const inputType = getTypeIdentifier(input);
     if (inputType === -1) {
-      throw new Error(ETError[18]);
+      throw new Error(getError(ETError.InvalidArgument));
     }
 
     try {
