@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { EventSubscription, Image } from 'react-native';
 import { ResourceSource, Model } from './types';
-import RnExecutorch from './native/RnExecutorchModule';
 import {
   DEFAULT_CONTEXT_WINDOW_LENGTH,
   DEFAULT_SYSTEM_PROMPT,
   EOT_TOKEN,
-} from './constants/constants';
+} from './constants/llamaDefaults';
+import { RnExecutorch } from './native/RnExecutorchModules';
 
 const interrupt = () => {
   RnExecutorch.interrupt();

@@ -1,4 +1,4 @@
-package com.swmansion.rnexecutorch
+package com.swmansion.rnexecutorch.utils
 
 import android.content.Context
 import okhttp3.Call
@@ -113,11 +113,17 @@ class Fetcher {
 
     private fun resolveConfigUrlFromModelUrl(modelUrl: URL): URL {
       // Create a new URL using the base URL and append the desired path
-      val baseUrl = modelUrl.protocol + "://" + modelUrl.host + modelUrl.path.substringBefore("resolve/")
+      val baseUrl =
+        modelUrl.protocol + "://" + modelUrl.host + modelUrl.path.substringBefore("resolve/")
       return URL(baseUrl + "resolve/main/config.json")
     }
 
-    private fun sendRequestToUrl(url: URL, method: String, body: RequestBody?, client: OkHttpClient): Response {
+    private fun sendRequestToUrl(
+      url: URL,
+      method: String,
+      body: RequestBody?,
+      client: OkHttpClient
+    ): Response {
       val request = Request.Builder()
         .url(url)
         .method(method, body)
@@ -134,18 +140,18 @@ class Fetcher {
       onComplete: (String?, Exception?) -> Unit,
       listener: ProgressResponseBody.ProgressListener? = null,
     ) {
-            /*
-            Fetching model and tokenizer file
-            1. Extract file name from provided URL
-            2. If file name contains / it means that the file is local and we should return the path
-            3. Check if the file has a valid extension
-                a. For tokenizer, the extension should be .bin
-                b. For model, the extension should be .pte
-            4. Check if models directory exists, if not create it
-            5. Check if the file already exists in the models directory, if yes return the path
-            6. If the file does not exist, and is a tokenizer, fetch the file
-            7. If the file is a model, fetch the file with ProgressResponseBody
-             */
+      /*
+      Fetching model and tokenizer file
+      1. Extract file name from provided URL
+      2. If file name contains / it means that the file is local and we should return the path
+      3. Check if the file has a valid extension
+          a. For tokenizer, the extension should be .bin
+          b. For model, the extension should be .pte
+      4. Check if models directory exists, if not create it
+      5. Check if the file already exists in the models directory, if yes return the path
+      6. If the file does not exist, and is a tokenizer, fetch the file
+      7. If the file is a model, fetch the file with ProgressResponseBody
+       */
       val fileName: String
 
       try {
@@ -165,7 +171,7 @@ class Fetcher {
         return
       }
 
-      var tempFile = File(context.filesDir, fileName)
+      val tempFile = File(context.filesDir, fileName)
       if (tempFile.exists()) {
         tempFile.delete()
       }

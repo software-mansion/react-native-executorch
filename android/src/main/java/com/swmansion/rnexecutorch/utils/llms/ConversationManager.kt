@@ -1,4 +1,4 @@
-package com.swmansion.rnexecutorch
+package com.swmansion.rnexecutorch.utils.llms
 
 enum class ChatRole {
   SYSTEM,
@@ -11,13 +11,13 @@ const val END_OF_TEXT_TOKEN = "<|eot_id|>"
 const val START_HEADER_ID_TOKEN = "<|start_header_id|>"
 const val END_HEADER_ID_TOKEN = "<|end_header_id|>"
 
-class ConversationManager(val numMessagesContextWindow: Int, systemPrompt: String) {
+class ConversationManager(private val numMessagesContextWindow: Int, systemPrompt: String) {
   private val basePrompt: String;
   private val messages = ArrayDeque<String>();
 
   init {
     this.basePrompt =
-        BEGIN_OF_TEXT_TOKEN + 
+      BEGIN_OF_TEXT_TOKEN +
         getHeaderTokenFromRole(ChatRole.SYSTEM) +
         systemPrompt +
         END_OF_TEXT_TOKEN +
@@ -28,12 +28,10 @@ class ConversationManager(val numMessagesContextWindow: Int, systemPrompt: Strin
     if (this.messages.size >= this.numMessagesContextWindow) {
       this.messages.removeFirst()
     }
-    var formattedMessage = "";
-    if (senderRole == ChatRole.ASSISTANT) {
-      formattedMessage = text + getHeaderTokenFromRole(ChatRole.USER)
+    val formattedMessage: String = if (senderRole == ChatRole.ASSISTANT) {
+      text + getHeaderTokenFromRole(ChatRole.USER)
     } else {
-      formattedMessage = 
-        text +
+      text +
         END_OF_TEXT_TOKEN +
         getHeaderTokenFromRole(ChatRole.ASSISTANT)
     }
