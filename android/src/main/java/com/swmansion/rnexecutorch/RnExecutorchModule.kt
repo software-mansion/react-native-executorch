@@ -5,6 +5,12 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
+import com.swmansion.rnexecutorch.utils.Fetcher
+import com.swmansion.rnexecutorch.utils.ProgressResponseBody
+import com.swmansion.rnexecutorch.utils.ResourceType
+import com.swmansion.rnexecutorch.utils.llms.ChatRole
+import com.swmansion.rnexecutorch.utils.llms.ConversationManager
+import com.swmansion.rnexecutorch.utils.llms.END_OF_TEXT_TOKEN
 import okhttp3.OkHttpClient
 import org.pytorch.executorch.LlamaCallback
 import org.pytorch.executorch.LlamaModule

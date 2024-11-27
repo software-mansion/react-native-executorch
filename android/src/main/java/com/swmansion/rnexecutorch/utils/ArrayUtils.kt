@@ -1,6 +1,9 @@
 package com.swmansion.rnexecutorch.utils
 
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableArray
+import org.pytorch.executorch.DType
+import org.pytorch.executorch.Tensor
 
 class ArrayUtils {
   companion object {
@@ -42,6 +45,52 @@ class ArrayUtils {
         doubleArray[i] = input.getDouble(i)
       }
       return doubleArray
+    }
+
+    fun createReadableArray(result: Tensor): ReadableArray {
+      val resultArray = Arguments.createArray()
+      when (result.dtype()) {
+        DType.UINT8 -> {
+          val byteArray = result.dataAsByteArray
+          for (i in byteArray) {
+            resultArray.pushInt(i.toInt())
+          }
+        }
+
+        DType.INT32 -> {
+          val intArray = result.dataAsIntArray
+          for (i in intArray) {
+            resultArray.pushInt(i)
+          }
+        }
+
+        DType.FLOAT -> {
+          val longArray = result.dataAsFloatArray
+          for (i in longArray) {
+            resultArray.pushDouble(i.toDouble())
+          }
+        }
+
+        DType.DOUBLE -> {
+          val floatArray = result.dataAsDoubleArray
+          for (i in floatArray) {
+            resultArray.pushDouble(i)
+          }
+        }
+
+        DType.INT64 -> {
+          val doubleArray = result.dataAsLongArray
+          for (i in doubleArray) {
+            resultArray.pushLong(i)
+          }
+        }
+
+        else -> {
+          throw IllegalArgumentException("Invalid dtype: ${result.dtype()}")
+        }
+      }
+
+      return resultArray
     }
   }
 }

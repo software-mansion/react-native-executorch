@@ -6,36 +6,31 @@ import org.pytorch.executorch.Tensor
 
 class TensorUtils {
   companion object {
-    fun getEvalue(input: ReadableArray, shape: LongArray, type: Int): EValue {
+    fun getExecutorchInput(input: ReadableArray, shape: LongArray, type: Int): EValue {
       try {
         when (type) {
           0 -> {
-            val input = ArrayUtils.createByteArray(input)
-            val inputTensor = Tensor.fromBlob(input, shape)
+            val inputTensor = Tensor.fromBlob(ArrayUtils.createByteArray(input), shape)
             return EValue.from(inputTensor)
           }
 
           1 -> {
-            val input = ArrayUtils.createIntArray(input)
-            val inputTensor = Tensor.fromBlob(input, shape)
+            val inputTensor = Tensor.fromBlob(ArrayUtils.createIntArray(input), shape)
             return EValue.from(inputTensor)
           }
 
           2 -> {
-            val input = ArrayUtils.createLongArray(input)
-            val inputTensor = Tensor.fromBlob(input, shape)
+            val inputTensor = Tensor.fromBlob(ArrayUtils.createLongArray(input), shape)
             return EValue.from(inputTensor)
           }
 
           3 -> {
-            val input = ArrayUtils.createFloatArray(input)
-            val inputTensor = Tensor.fromBlob(input, shape)
+            val inputTensor = Tensor.fromBlob(ArrayUtils.createFloatArray(input), shape)
             return EValue.from(inputTensor)
           }
 
           4 -> {
-            val input = ArrayUtils.createDoubleArray(input)
-            val inputTensor = Tensor.fromBlob(input, shape)
+            val inputTensor = Tensor.fromBlob(ArrayUtils.createDoubleArray(input), shape)
             return EValue.from(inputTensor)
           }
 

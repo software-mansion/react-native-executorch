@@ -6,7 +6,7 @@ import {
   DEFAULT_SYSTEM_PROMPT,
   EOT_TOKEN,
 } from './constants/llamaDefaults';
-import { RnExecutorch } from './native/RnExecutorchModule';
+import { RnExecutorch } from './native/RnExecutorchModules';
 
 const interrupt = () => {
   RnExecutorch.interrupt();

@@ -1,4 +1,4 @@
-package com.swmansion.rnexecutorch
+package com.swmansion.rnexecutorch.utils.llms
 
 enum class ChatRole {
   SYSTEM,

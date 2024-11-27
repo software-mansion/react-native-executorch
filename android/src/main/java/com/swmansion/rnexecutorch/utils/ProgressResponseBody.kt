@@ -1,4 +1,4 @@
-package com.swmansion.rnexecutorch
+package com.swmansion.rnexecutorch.utils
 
 import okhttp3.MediaType
 import okhttp3.ResponseBody

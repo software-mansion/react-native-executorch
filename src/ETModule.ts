@@ -1,9 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Image } from 'react-native';
-import { ETModule } from './native/RnExecutorchModule';
+import { ETModule } from './native/RnExecutorchModules';
 
 export enum ETError {
-  FetcherError = -1,
+  //react-native-ExecuTorch errors
+  UndefinedError = -255,
+  ModuleNotLoaded = -2,
+  InvalidModelPath = -1,
+
+  //ExecuTorch mapped errors
+
   // System errors
   Ok = 0,
   Internal = 1,
@@ -36,38 +42,25 @@ export type ETInput =
   | Float32Array
   | Float64Array;
 
-export interface ExecutorchModule {
-  forward: (input: ETInput, shape: BigInt64Array) => Promise<number[]>;
-  loadMethod: (methodName: string) => Promise<void>;
-  loadForward: () => Promise<void>;
-}
-
 interface Props {
   modulePath: string | number;
 }
 
-interface ReturnType {
+interface ExecutorchModule {
   error: string | null;
+  isModelLoading: boolean;
+  isModelRunning: boolean;
   forward: (input: ETInput, shape: number[]) => Promise<number[]>;
   loadMethod: (methodName: string) => Promise<void>;
   loadForward: () => Promise<void>;
-  isModelLoading: boolean;
 }
 
 const getError = (e: unknown): string => {
   const error = e as Error;
   const errorCode = parseInt(error.message, 10);
   if (errorCode in ETError) return ETError[errorCode] as string;
-  return ETError[255] as string;
+  return ETError[-3] as string;
 };
-
-/*
-  Int8Array = 0,
-  Int32Array = 1,
-  BigInt64Array = 2,
-  Float32Array = 3,
-  Float64Array = 4,
-*/
 
 const getTypeIdentifier = (arr: ETInput): number => {
   if (arr instanceof Int8Array) return 0;
@@ -81,9 +74,10 @@ const getTypeIdentifier = (arr: ETInput): number => {
 
 export const useExecutorchModule = ({
   modulePath,
-}: Props): ReturnType | null => {
+}: Props): ExecutorchModule => {
   const [error, setError] = useState<string | null>(null);
   const [isModelLoading, setIsModelLoading] = useState(true);
+  const [isModelRunning, setIsModelRunning] = useState(false);
 
   useEffect(() => {
     const loadModel = async () => {
@@ -93,6 +87,7 @@ export const useExecutorchModule = ({
       }
 
       try {
+        setIsModelLoading(true);
         await ETModule.loadModule(path);
         setIsModelLoading(false);
       } catch (e: unknown) {
@@ -104,12 +99,23 @@ export const useExecutorchModule = ({
   }, [modulePath]);
 
   const forward = async (input: ETInput, shape: number[]) => {
+    if (isModelLoading) {
+      throw new Error(ETError[-2]);
+    }
+
+    const inputType = getTypeIdentifier(input);
+    if (inputType === -1) {
+      throw new Error(ETError[18]);
+    }
+
     try {
-      const inputType = getTypeIdentifier(input);
       const numberArray = [...input];
+      setIsModelRunning(true);
       const output = await ETModule.forward(numberArray, shape, inputType);
+      setIsModelRunning(false);
       return output;
     } catch (e) {
+      setIsModelRunning(false);
       throw new Error(getError(e));
     }
   };
@@ -129,6 +135,7 @@ export const useExecutorchModule = ({
   return {
     error: error,
     isModelLoading: isModelLoading,
+    isModelRunning: isModelRunning,
     forward: forward,
     loadMethod: loadMethod,
     loadForward: loadForward,
