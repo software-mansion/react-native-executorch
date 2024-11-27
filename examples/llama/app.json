@@ -17,6 +17,7 @@
         }
       ]
     ],
+    "newArchEnabled": true,
     "splash": {
       "image": "./assets/icons/splash.png",
       "resizeMode": "contain",
