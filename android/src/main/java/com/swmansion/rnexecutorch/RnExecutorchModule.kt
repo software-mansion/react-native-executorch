@@ -47,12 +47,13 @@ class RnExecutorchModule(reactContext: ReactApplicationContext) :
   }
 
   private fun downloadResource(
-    url: URL,
+    url: String,
     resourceType: ResourceType,
-    callback: (path: String?, error: Exception?) -> Unit
+    isLargeFile: Boolean = false,
+    callback: (path: String?, error: Exception?) -> Unit,
   ) {
     Fetcher.downloadResource(
-      reactApplicationContext, client, url, resourceType,
+      reactApplicationContext, client, url, resourceType, isLargeFile,
       { path, error -> callback(path, error) },
       object : ProgressResponseBody.ProgressListener {
         override fun onProgress(bytesRead: Long, contentLength: Long, done: Boolean) {
@@ -85,14 +86,12 @@ class RnExecutorchModule(reactContext: ReactApplicationContext) :
     }
 
     try {
-      val modelURL = URL(modelSource)
-      val tokenizerURL = URL(tokenizerSource)
       this.conversationManager = ConversationManager(contextWindowLength.toInt(), systemPrompt)
 
       isFetching = true
 
       downloadResource(
-        tokenizerURL,
+        tokenizerSource,
         ResourceType.TOKENIZER
       ) tokenizerDownload@{ tokenizerPath, error ->
         if (error != null) {
@@ -101,7 +100,7 @@ class RnExecutorchModule(reactContext: ReactApplicationContext) :
           return@tokenizerDownload
         }
 
-        downloadResource(modelURL, ResourceType.MODEL) modelDownload@{ modelPath, modelError ->
+        downloadResource(modelSource, ResourceType.MODEL, isLargeFile = true) modelDownload@{ modelPath, modelError ->
           if (modelError != null) {
             promise.reject(
               "Download Error",
@@ -120,7 +119,6 @@ class RnExecutorchModule(reactContext: ReactApplicationContext) :
     }
   }
 
-  @RequiresApi(Build.VERSION_CODES.N)
   override fun runInference(
     input: String,
     promise: Promise

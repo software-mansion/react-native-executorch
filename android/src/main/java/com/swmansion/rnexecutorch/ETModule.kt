@@ -22,12 +22,13 @@ class ETModule(reactContext: ReactApplicationContext) : NativeETModuleSpec(react
   }
 
   private fun downloadModel(
-    url: URL, resourceType: ResourceType, callback: (path: String?, error: Exception?) -> Unit
+    url: String, resourceType: ResourceType, callback: (path: String?, error: Exception?) -> Unit
   ) {
     Fetcher.downloadResource(reactApplicationContext,
       client,
       url,
       resourceType,
+      false,
       { path, error -> callback(path, error) },
       object : ProgressResponseBody.ProgressListener {
         override fun onProgress(bytesRead: Long, contentLength: Long, done: Boolean) {
@@ -38,7 +39,7 @@ class ETModule(reactContext: ReactApplicationContext) : NativeETModuleSpec(react
   override fun loadModule(modelPath: String, promise: Promise) {
     try {
       downloadModel(
-        URL(modelPath), ResourceType.MODEL
+        modelPath, ResourceType.MODEL
       ) { path, error ->
         if (error != null) {
           promise.reject(error.message!!, "-1")
