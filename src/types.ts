@@ -17,7 +17,6 @@ export type ETInput =
   | Float32Array
   | Float64Array;
 
-
 export interface ExecutorchModule {
   error: string | null;
   isModelLoading: boolean;
