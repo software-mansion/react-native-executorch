@@ -31,14 +31,14 @@ class Fetcher {
       return file
     }
 
-    private fun hasValidExtension(extension: String, resourceType: ResourceType): Boolean {
+    private fun getValidExtension(resourceType: ResourceType): String {
       return when (resourceType) {
         ResourceType.TOKENIZER -> {
-          extension == "bin"
+          "bin"
         }
 
         ResourceType.MODEL -> {
-          extension == "pte"
+          "pte"
         }
       }
     }
@@ -124,8 +124,115 @@ class Fetcher {
       return response
     }
 
-    private fun getIdOfResource(context: Context, resourceName: String): Int {
-      return context.resources.getIdentifier(resourceName, "raw", context.packageName)
+    private fun getIdOfResource(
+      context: Context,
+      resourceName: String,
+      defType: String = "raw"
+    ): Int {
+      return context.resources.getIdentifier(resourceName, defType, context.packageName)
+    }
+
+    private fun getResourceFromAssets(
+      context: Context,
+      url: String,
+      resourceType: ResourceType,
+      onComplete: (String?, Exception?) -> Unit
+    ) {
+      if (!url.contains("://")) {
+        //The provided file is from react-native assets folder in release mode
+        val resId = getIdOfResource(context, url)
+        val resName = context.resources.getResourceEntryName(resId)
+        val fileExtension = getValidExtension(resourceType)
+        context.resources.openRawResource(resId).use { inputStream ->
+          val file = File(
+            context.filesDir,
+            "$resName.$fileExtension"
+          )
+          file.outputStream().use { outputStream ->
+            inputStream.copyTo(outputStream)
+          }
+          onComplete(file.absolutePath, null)
+          return
+        }
+      }
+    }
+
+    private fun getLocalFile(
+      url: URL,
+      resourceType: ResourceType,
+      onComplete: (String?, Exception?) -> Unit
+    ) {
+      // The provided file is a local file, get rid of the file:// prefix and return path
+      if (url.protocol == "file") {
+        val localPath = url.path
+        if (getValidExtension(resourceType) != localPath.takeLast(3)) {
+          throw Exception("invalid_extension")
+        }
+
+        val file = File(localPath)
+        if (file.exists()) {
+          onComplete(localPath, null)
+          return
+        }
+
+        throw Exception("file_not_found")
+      }
+    }
+
+    private fun getRemoteFile(
+      context: Context,
+      client: OkHttpClient,
+      url: URL,
+      resourceType: ResourceType,
+      isLargeFile: Boolean,
+      onComplete: (String?, Exception?) -> Unit,
+      listener: ProgressResponseBody.ProgressListener?
+    ) {
+      val fileName = extractFileName(url)
+
+      if (getValidExtension(resourceType) != fileName.takeLast(3)) {
+        throw Exception("invalid_extension")
+      }
+
+      val modelsDirectory = File(context.filesDir, "models").apply {
+        if (!exists()) {
+          mkdirs()
+        }
+      }
+
+      var validFile = File(modelsDirectory, fileName)
+      if (validFile.exists()) {
+        onComplete(validFile.absolutePath, null)
+        return
+      }
+
+      // If the url is a Software Mansion HuggingFace repo, we want to send a HEAD
+      // request to the config.json file, this increments HF download counter
+      // https://huggingface.co/docs/hub/models-download-stats
+      if (isUrlPointingToHfRepo(url)) {
+        val configUrl = resolveConfigUrlFromModelUrl(url)
+        sendRequestToUrl(configUrl, "HEAD", null, client)
+      }
+
+      if (!isLargeFile) {
+        val request = Request.Builder().url(url).build()
+        val response = client.newCall(request).execute()
+
+        if (!response.isSuccessful) {
+          throw Exception("download_error")
+        }
+
+        validFile = saveResponseToFile(response, modelsDirectory, fileName)
+        onComplete(validFile.absolutePath, null)
+        return
+      }
+
+      val tempFile = File(context.filesDir, fileName)
+      if (tempFile.exists()) {
+        tempFile.delete()
+      }
+
+      fetchModel(tempFile, validFile, client, url, onComplete, listener)
     }
 
     fun downloadResource(
@@ -156,96 +263,22 @@ class Fetcher {
        */
 
       try {
-        if (!url.contains("://")) {
-          //The provided file is from react-native assets folder in release mode
-          val resId = getIdOfResource(context, url)
-          val resName = context.resources.getResourceEntryName(resId)
-          val fileExtension = if (resourceType == ResourceType.TOKENIZER) "bin" else "pte"
-          context.resources.openRawResource(resId).use { inputStream ->
-            val file = File(
-              context.filesDir,
-              "$resName.$fileExtension"
-            )
-            file.outputStream().use { outputStream ->
-              inputStream.copyTo(outputStream)
-            }
-            onComplete(file.absolutePath, null)
-            return
-          }
-        }
+        getResourceFromAssets(context, url, resourceType, onComplete)
 
+        val resUrl = URL(url)
         /*
           The provided file is either a remote file or a local file
-          - local file: file://path/to/file
+          - local file: file:///path/to/file
           - remote file: https://path/to/file || http://10.0.2.2:8080/path/to/file
         */
-        val resUrl = URL(url)
-        if (resUrl.protocol == "file") {
-          // The provided file is a local file, get rid of the file:// prefix and return path
-          val localPath = resUrl.toString().split("://")[1]
-          if(!hasValidExtension(localPath.takeLast(3), resourceType)) {
-            throw Exception("invalid_extension")
-          }
-
-          val file = File(localPath)
-          if (file.exists()) {
-            onComplete(localPath, null)
-            return
-          }
-
-          throw Exception("file_not_found")
-        }
+        getLocalFile(resUrl, resourceType, onComplete)
 
         /*
            The provided file is a remote file, if it's a large file
            create temporary file to store it at download time and later
            move it to the models directory
          */
-        val fileName = extractFileName(resUrl)
-
-        if (!hasValidExtension(fileName.takeLast(3), resourceType)) {
-          throw Exception("invalid_extension")
-        }
-
-        val modelsDirectory = File(context.filesDir, "models").apply {
-          if (!exists()) {
-            mkdirs()
-          }
-        }
-
-        var validFile = File(modelsDirectory, fileName)
-        if (validFile.exists()) {
-          onComplete(validFile.absolutePath, null)
-          return
-        }
-
-        // If the url is a Software Mansion HuggingFace repo, we want to send a HEAD
-        // request to the config.json file, this increments HF download counter
-        // https://huggingface.co/docs/hub/models-download-stats
-        if (isUrlPointingToHfRepo(resUrl)) {
-          val configUrl = resolveConfigUrlFromModelUrl(resUrl)
-          sendRequestToUrl(configUrl, "HEAD", null, client)
-        }
-
-        if (!isLargeFile) {
-          val request = Request.Builder().url(url).build()
-          val response = client.newCall(request).execute()
-
-          if (!response.isSuccessful) {
-            throw Exception("download_error")
-          }
-
-          validFile = saveResponseToFile(response, modelsDirectory, fileName)
-          onComplete(validFile.absolutePath, null)
-          return
-        }
-
-        val tempFile = File(context.filesDir, fileName)
-        if (tempFile.exists()) {
-          tempFile.delete()
-        }
-
-        fetchModel(tempFile, validFile, client, resUrl, onComplete, listener)
+        getRemoteFile(context, client, resUrl, resourceType, isLargeFile, onComplete, listener)
       } catch (e: Exception) {
         onComplete(null, e)
         return

@@ -1,8 +1,6 @@
 package com.swmansion.rnexecutorch
 
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.swmansion.rnexecutorch.utils.Fetcher
@@ -72,7 +70,6 @@ class RnExecutorchModule(reactContext: ReactApplicationContext) :
     promise.resolve("Model loaded successfully")
   }
 
-  @RequiresApi(Build.VERSION_CODES.TIRAMISU)
   override fun loadLLM(
     modelSource: String,
     tokenizerSource: String,
