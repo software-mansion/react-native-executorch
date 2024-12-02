@@ -1,58 +1,51 @@
 #include "Utils.hpp"
-#include <Foundation/Foundation.h>
 #include <functional>
-#include <executorch/extension/tensor/tensor.h>
 
 using namespace ::executorch::extension;
+using namespace ::torch::executor;
 
-template <typename T> T getValueFromNumber(NSNumber *number) {
-  if (std::is_same<T, int>::value) {
-    return [number intValue];
-  } else if (std::is_same<T, float>::value) {
-    return [number floatValue];
-  } else if (std::is_same<T, double>::value) {
-    return [number doubleValue];
-  } else if (std::is_same<T, long>::value) {
-    return [number longValue];
-  } else if (std::is_same<T, bool>::value) {
-    return [number boolValue];
+template <typename T> T getValueFromNSNumber(NSNumber *number) {
+  if constexpr (std::is_same<T, int8_t>::value) {
+    return static_cast<T>([number charValue]); // `charValue` for 8-bit integers
+  } else if constexpr (std::is_same<T, int32_t>::value) {
+    return static_cast<T>([number intValue]); // `intValue` for 32-bit integers
+  } else if constexpr (std::is_same<T, int64_t>::value) {
+    return static_cast<T>(
+        [number longLongValue]); // `longLongValue` for 64-bit integers
+  } else if constexpr (std::is_same<T, float>::value) {
+    return static_cast<T>([number floatValue]);
+  } else if constexpr (std::is_same<T, double>::value) {
+    return static_cast<T>([number doubleValue]);
   }
-  static_assert(false, "Unsupported type for NSNumber conversion");
 }
 
-template <typename T> T *NSArrayToTypedArray(NSArray *nsArray) {
+template <typename T>
+std::unique_ptr<T[]> NSArrayToTypedArray(NSArray *nsArray) {
   size_t arraySize = [nsArray count];
 
-  T *typedArray = new T[arraySize];
+  std::unique_ptr<T[]> typedArray(new T[arraySize]);
 
   for (NSUInteger i = 0; i < arraySize; ++i) {
     NSNumber *number = [nsArray objectAtIndex:i];
     if ([number isKindOfClass:[NSNumber class]]) {
-      typedArray[i] = getValueFromNumber<T>(number);
+      typedArray[i] = getValueFromNSNumber<T>(number);
     } else {
-      // Handle nil or incompatible object type in NSArray
-      typedArray[i] = T(); // Create a default-constructed object of type T
+      typedArray[i] = T();
     }
   }
   return typedArray;
 }
 
-void* typedArrayFromNSArrayWithTypeIndicator(NSArray *inputArray, NSNumber *inputType) {
-    int inputTypeValue = [inputType intValue];
-    switch (inputTypeValue) {
-    case 1:
-        return NSArrayToTypedArray<int8_t>(inputArray);
-    case 2:
-        return NSArrayToTypedArray<int32_t>(inputArray);
-    case 3:
-        return NSArrayToTypedArray<int64_t>(inputArray);
-    case 4:
-        return NSArrayToTypedArray<float>(inputArray);
-    case 5:
-        return NSArrayToTypedArray<double>(inputArray);
-    default:
-        throw std::runtime_error("Unsupported type");
-    }
+template <typename T>
+NSArray *arrayToNSArray(const void *array, ssize_t numel) {
+  const T *typedArray = static_cast<const T *>(array);
+  NSMutableArray *nsArray = [NSMutableArray arrayWithCapacity:numel];
+
+  for (int i = 0; i < numel; ++i) {
+    [nsArray addObject:@(typedArray[i])];
+  }
+
+  return [nsArray copy];
 }
 
 std::vector<int> NSArrayToIntVector(NSArray *inputArray) {
@@ -68,12 +61,45 @@ std::vector<int> NSArrayToIntVector(NSArray *inputArray) {
   return output;
 }
 
-NSArray *arrayToNSArray(const void *array, ssize_t numel) {
-  const float *floatArray = static_cast<const float *>(array);
-  NSMutableArray *nsArray = [NSMutableArray arrayWithCapacity:numel];
+template <typename T>
+const T *
+runForwardFromNSArray(NSArray *inputArray, ssize_t &numel,
+                      std::vector<int> shapes,
+                      std::unique_ptr<executorch::extension::Module> &model) {
+  std::unique_ptr<T[]> inputPtr = NSArrayToTypedArray<T>(inputArray);
 
-  for (int i = 0; i < numel; ++i) {
-    [nsArray addObject:@(floatArray[i])];
+  TensorPtr inputTensor = from_blob(inputPtr.get(), shapes);
+  Result result = model->forward(inputTensor);
+  if (result.ok()) {
+    Tensor outputTensor = result->at(0).toTensor();
+    numel = outputTensor.numel();
+    return outputTensor.const_data_ptr<T>();
   }
-  return [nsArray copy];
+  @throw [NSException
+      exceptionWithName:@"forward_error"
+                 reason:[NSString stringWithFormat:@"%d", (int)result.error()]
+               userInfo:nil];
 }
+
+template const int8_t *runForwardFromNSArray<int8_t>(
+    NSArray *inputArray, ssize_t &numel, std::vector<int> shapes,
+    std::unique_ptr<executorch::extension::Module> &model);
+template const int32_t *runForwardFromNSArray<int32_t>(
+    NSArray *inputArray, ssize_t &numel, std::vector<int> shapes,
+    std::unique_ptr<executorch::extension::Module> &model);
+template const int64_t *runForwardFromNSArray<int64_t>(
+    NSArray *inputArray, ssize_t &numel, std::vector<int> shapes,
+    std::unique_ptr<executorch::extension::Module> &model);
+template const float *runForwardFromNSArray<float>(
+    NSArray *inputArray, ssize_t &numel, std::vector<int> shapes,
+    std::unique_ptr<executorch::extension::Module> &model);
+
+template const double *runForwardFromNSArray<double>(
+    NSArray *inputArray, ssize_t &numel, std::vector<int> shapes,
+    std::unique_ptr<executorch::extension::Module> &model);
+
+template NSArray *arrayToNSArray<int8_t>(const void *array, ssize_t numel);
+template NSArray *arrayToNSArray<int32_t>(const void *array, ssize_t numel);
+template NSArray *arrayToNSArray<int64_t>(const void *array, ssize_t numel);
+template NSArray *arrayToNSArray<float>(const void *array, ssize_t numel);
+template NSArray *arrayToNSArray<double>(const void *array, ssize_t numel);

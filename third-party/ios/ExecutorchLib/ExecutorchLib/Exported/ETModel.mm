@@ -1,8 +1,9 @@
 #import "ETModel.h"
-#import "Utils.hpp"
+#include "Utils.hpp"
 #include <executorch/extension/module/module.h>
 #include <executorch/extension/tensor/tensor.h>
 #include <executorch/runtime/core/error.h>
+#include <executorch/runtime/core/result.h>
 #include <string>
 
 using namespace ::executorch::extension;
@@ -31,21 +32,54 @@ using namespace ::torch::executor;
 - (NSArray *)forward:(NSArray *)input
                shape:(NSArray *)shape
            inputType:(NSNumber *)inputType {
-  void *inputArray = typedArrayFromNSArrayWithTypeIndicator(input, inputType);
-  std::vector<int> shapes = convertNSArrayToIntVector(shape);
-  TensorPtr tensor_ptr = from_blob(inputArray, shapes);
-
-  Result result = _model->forward(tensor_ptr);
-
-  if (result.ok()) {
-    const auto outputTensor = result->at(0).toTensor();
-    return arrayToNSArray(outputTensor.const_data_ptr(), outputTensor.numel());
+  int inputTypeIntValue = [inputType intValue];
+  std::vector<int> shapes = NSArrayToIntVector(shape);
+  ssize_t outputNumel = 0;
+  @try {
+    switch (inputTypeIntValue) {
+    case 0: {
+      // Int8Array
+      const int8_t *output =
+          runForwardFromNSArray<int8_t>(input, outputNumel, shapes, _model);
+      return arrayToNSArray<int8_t>(output, outputNumel);
+    }
+    case 1: {
+      // Int32Array
+      const int32_t *output =
+          runForwardFromNSArray<int32_t>(input, outputNumel, shapes, _model);
+      return arrayToNSArray<int32_t>(output, outputNumel);
+    }
+    case 2: {
+      // BigInt64Array
+      const int64_t *output =
+          runForwardFromNSArray<int64_t>(input, outputNumel, shapes, _model);
+      return arrayToNSArray<int64_t>(output, outputNumel);
+    }
+    case 3: {
+      // Float32Array
+      const float *output =
+          runForwardFromNSArray<float>(input, outputNumel, shapes, _model);
+      return arrayToNSArray<float>(output, outputNumel);
+    }
+    case 4: {
+      // Float64Array
+      const double *output =
+          runForwardFromNSArray<double>(input, outputNumel, shapes, _model);
+      return arrayToNSArray<double>(output, outputNumel);
+    }
+    }
+  } @catch (NSException *exception) {
+    NSInteger originalCode = [exception.reason integerValue];
+    @throw [NSException
+        exceptionWithName:@"forward_error"
+                   reason:[NSString stringWithFormat:@"%ld", (long)originalCode]
+                 userInfo:nil];
   }
-
-  @throw [NSException
-      exceptionWithName:@"forward_error"
-                 reason:[NSString stringWithFormat:@"Error code: %d",
-                                                   (int)result.error()]
-               userInfo:nil];
+  // throwing an RN-ET exception
+  @
+  throw [NSException exceptionWithName:@"forward_error"
+                                reason:[NSString stringWithFormat:@"%d",
+                                                                  0x65] // 101
+                              userInfo:nil];
 }
 @end

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ETModel_hpp
+#define ETModel_hpp
 
 #import <UIKit/UIKit.h>
 
@@ -7,6 +8,10 @@
 - (NSNumber *)loadModel:(NSString *)filePath;
 - (NSNumber *)loadMethod:(NSString *)methodName;
 - (NSNumber *)loadForward;
-- (NSArray *)forward:(NSArray *)input shape:(NSArray *)shape inputType:(NSNumber *)inputType;
+- (NSArray *)forward:(NSArray *)input
+               shape:(NSArray *)shape
+           inputType:(NSNumber *)inputType;
 
 @end
+
+#endif // ETModel_hpp

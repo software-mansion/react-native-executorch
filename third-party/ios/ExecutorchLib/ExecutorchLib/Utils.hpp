@@ -1,20 +1,30 @@
 #ifndef Utils_hpp
 #define Utils_hpp
 
+#include <cstdint>
+#include <executorch/extension/module/module.h>
+#include <executorch/extension/tensor/tensor.h>
+#include <memory>
+#include <string>
+#include <vector>
+
 #ifdef __OBJC__
 #import <Foundation/Foundation.h>
 #endif
 
-#include <vector>
-#include <string>
-#include <cstdint>
-#include <memory>
-#include <variant>
-#include <executorch/runtime/core/error.h>
+template <typename T> NSArray *arrayToNSArray(const void *array, ssize_t numel);
 
-void convertNSArrayToInt32Array(NSArray *inputArray, int32_t **outputArray, NSUInteger *size);
-std::vector<int> convertNSArrayToIntVector(NSArray *inputArray);
-NSArray* arrayToNSArray(const void* array, ssize_t numel);
-void* typedArrayFromNSArrayWithTypeIndicator(NSArray *inputArray, NSNumber* inputType);
+std::vector<int> NSArrayToIntVector(NSArray *inputArray);
 
-#endif /* Utils_hpp */
+template <typename T>
+std::unique_ptr<T[]> NSArrayToTypedArray(NSArray *nsArray);
+
+template <typename T> T getValueFromNSNumber(NSNumber *number);
+
+template <typename T>
+const T*
+runForwardFromNSArray(NSArray *inputArray, ssize_t& numel, std::vector<int> shapes,
+                      std::unique_ptr<executorch::extension::Module> &model);
+
+
+#endif // Utils_hpp
