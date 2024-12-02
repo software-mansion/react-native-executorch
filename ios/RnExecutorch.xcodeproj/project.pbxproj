@@ -23,7 +23,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		550986902CEF541900FECBB8 /* Exceptions for "RnExecutorch" folder in "Copy Files" phase from "RnExecutorch" target */ = {
+		550986902CEF541900FECBB8 /* Exceptions for "RnExecutorch" folder in "" build phase */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			buildPhase = 550986872CEF541900FECBB8 /* CopyFiles */;
 			membershipExceptions = (
@@ -36,7 +36,7 @@
 		5509868B2CEF541900FECBB8 /* RnExecutorch */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				550986902CEF541900FECBB8 /* Exceptions for "RnExecutorch" folder in "Copy Files" phase from "RnExecutorch" target */,
+				550986902CEF541900FECBB8 /* Exceptions for "RnExecutorch" folder in "" build phase */,
 			);
 			path = RnExecutorch;
 			sourceTree = "<group>";
@@ -58,7 +58,6 @@
 			isa = PBXGroup;
 			children = (
 				5509868B2CEF541900FECBB8 /* RnExecutorch */,
-				550986962CEF544E00FECBB8 /* Frameworks */,
 				5509868A2CEF541900FECBB8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -69,13 +68,6 @@
 				550986892CEF541900FECBB8 /* libRnExecutorch.a */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		550986962CEF544E00FECBB8 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -97,8 +89,6 @@
 				5509868B2CEF541900FECBB8 /* RnExecutorch */,
 			);
 			name = RnExecutorch;
-			packageProductDependencies = (
-			);
 			productName = RnExecutorch;
 			productReference = 550986892CEF541900FECBB8 /* libRnExecutorch.a */;
 			productType = "com.apple.product-type.library.static";
