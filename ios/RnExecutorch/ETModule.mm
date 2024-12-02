@@ -48,7 +48,7 @@ RCT_EXPORT_MODULE()
         resolve:(RCTPromiseResolveBlock)resolve
          reject:(RCTPromiseRejectBlock)reject {
   @try {
-    NSArray *result = [module forward:input shape:shape];
+      NSArray *result = [module forward:input shape:shape inputType:[NSNumber numberWithInt:inputType]];
     resolve(result);
   } @catch (NSException *exception) {
     NSLog(@"An exception occurred: %@, %@", exception.name, exception.reason);
