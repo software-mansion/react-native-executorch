@@ -97,7 +97,7 @@ dependencies {
   //noinspection GradleDynamicVersion
   implementation "com.facebook.react:react-native:+"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation 'com.github.software-mansion:react-native-executorch:main-SNAPSHOT'
+  implementation 'com.github.software-mansion:react-native-executorch:v0.1.3-SNAPSHOT'
   implementation("com.squareup.okhttp3:okhttp:4.9.2")
 }
 
