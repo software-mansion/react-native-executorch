@@ -1,15 +1,17 @@
-//
-//  ETModle.h
-//  ExecutorchLib
-//
-//  Created by NorbertKlockiewicz on 21/11/2024.
-//
+#ifndef ETModel_hpp
+#define ETModel_hpp
+
 #import <UIKit/UIKit.h>
 
-@interface ETModel: NSObject
+@interface ETModel : NSObject
 
--(instancetype)loadModel:(NSString *)filePath;
-
--(void)forward;
+- (NSNumber *)loadModel:(NSString *)filePath;
+- (NSNumber *)loadMethod:(NSString *)methodName;
+- (NSNumber *)loadForward;
+- (NSArray *)forward:(NSArray *)input
+               shape:(NSArray *)shape
+           inputType:(NSNumber *)inputType;
 
 @end
+
+#endif // ETModel_hpp

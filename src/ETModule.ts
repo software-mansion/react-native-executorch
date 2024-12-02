@@ -2,26 +2,7 @@ import { useEffect, useState } from 'react';
 import { Image } from 'react-native';
 import { ETModule } from './native/RnExecutorchModules';
 import { ETError, getError } from './Error';
-
-export type ETInput =
-  | Int8Array
-  | Int32Array
-  | BigInt64Array
-  | Float32Array
-  | Float64Array;
-
-interface Props {
-  modulePath: string | number;
-}
-
-interface ExecutorchModule {
-  error: string | null;
-  isModelLoading: boolean;
-  isModelRunning: boolean;
-  forward: (input: ETInput, shape: number[]) => Promise<number[]>;
-  loadMethod: (methodName: string) => Promise<void>;
-  loadForward: () => Promise<void>;
-}
+import { ETInput, ExecutorchModule } from './types';
 
 const getTypeIdentifier = (arr: ETInput): number => {
   if (arr instanceof Int8Array) return 0;
@@ -32,6 +13,10 @@ const getTypeIdentifier = (arr: ETInput): number => {
 
   return -1;
 };
+
+interface Props {
+  modulePath: string | number;
+}
 
 export const useExecutorchModule = ({
   modulePath,

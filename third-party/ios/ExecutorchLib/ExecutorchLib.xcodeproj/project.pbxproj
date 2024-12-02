@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 56;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -42,6 +42,8 @@
 		55EA2C572CB90E7D004315B3 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C562CB90E7D004315B3 /* Accelerate.framework */; };
 		55EA2C592CB90E80004315B3 /* CoreML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C582CB90E80004315B3 /* CoreML.framework */; };
 		55EA2C5B2CB90E85004315B3 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C5A2CB90E85004315B3 /* libsqlite3.tbd */; };
+		A851C4062CF9F1B600424E93 /* Utils.mm in Sources */ = {isa = PBXBuildFile; fileRef = A851C4052CF9F1B600424E93 /* Utils.mm */; };
+		A851C4072CF9F1B600424E93 /* Utils.hpp in Headers */ = {isa = PBXBuildFile; fileRef = A851C4042CF9F1B600424E93 /* Utils.hpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -81,11 +83,9 @@
 		55EA2C562CB90E7D004315B3 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		55EA2C582CB90E80004315B3 /* CoreML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreML.framework; path = System/Library/Frameworks/CoreML.framework; sourceTree = SDKROOT; };
 		55EA2C5A2CB90E85004315B3 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
+		A851C4042CF9F1B600424E93 /* Utils.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Utils.hpp; sourceTree = "<group>"; };
+		A851C4052CF9F1B600424E93 /* Utils.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Utils.mm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		5576B4B42CEF8975005027B7 /* model */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = model; sourceTree = "<group>"; };
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		55EA2C192CB90C22004315B3 /* Frameworks */ = {
@@ -130,11 +130,12 @@
 		55EA2C1E2CB90C22004315B3 /* ExecutorchLib */ = {
 			isa = PBXGroup;
 			children = (
-				5576B4B42CEF8975005027B7 /* model */,
 				55EA2C352CB90C7A004315B3 /* Exported */,
 				55EA2C2F2CB90C7A004315B3 /* runner */,
 				55EA2C322CB90C7A004315B3 /* sampler */,
 				55EA2C3E2CB90C7A004315B3 /* tokenizer */,
+				A851C4042CF9F1B600424E93 /* Utils.hpp */,
+				A851C4052CF9F1B600424E93 /* Utils.mm */,
 			);
 			path = ExecutorchLib;
 			sourceTree = "<group>";
@@ -229,6 +230,7 @@
 				55EA2C522CB90C7A004315B3 /* tiktoken.h in Headers */,
 				55EA2C502CB90C7A004315B3 /* llama_tiktoken.h in Headers */,
 				55EA2C472CB90C7A004315B3 /* util.h in Headers */,
+				A851C4072CF9F1B600424E93 /* Utils.hpp in Headers */,
 				55EA2C462CB90C7A004315B3 /* text_token_generator.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -248,9 +250,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				5576B4B42CEF8975005027B7 /* model */,
 			);
 			name = ExecutorchLib;
 			packageProductDependencies = (
@@ -309,6 +308,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				55EA2C482CB90C7A004315B3 /* sampler.cpp in Sources */,
+				A851C4062CF9F1B600424E93 /* Utils.mm in Sources */,
 				55EA2C3F2CB90C7A004315B3 /* runner.cpp in Sources */,
 				55EA2C422CB90C7A004315B3 /* text_decoder_runner.cpp in Sources */,
 				55EA2C4D2CB90C7A004315B3 /* bpe_tokenizer.cpp in Sources */,

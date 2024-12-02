@@ -1,5 +1,5 @@
 #import "RnExecutorch.h"
-#import <LLaMARunner/LLaMARunner.h>
+#import <ExecutorchLib/LLaMARunner.h>
 #import "utils/ConversationManager.h"
 #import "utils/Constants.h"
 #import "utils/Fetcher.h"
