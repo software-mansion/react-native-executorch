@@ -1,6 +1,7 @@
 import { useFonts } from 'expo-font';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ChatScreen from './screens/ChatScreen';
+import StyleTransfer from './screens/StyleTransfer';
 
 export default function App() {
   useFonts({
@@ -10,7 +11,7 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <ChatScreen />
+      <StyleTransfer />
     </SafeAreaProvider>
   );
 }
