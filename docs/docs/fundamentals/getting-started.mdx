@@ -49,6 +49,10 @@ This allows us to use binaries, such as exported models or tokenizers for LLMs.
 When using Expo, please note that you need to use a custom development build of your app, not the standard Expo Go app. This is because we rely on native modules, which Expo Go doesn’t support.
 :::
 
+:::info[Info]
+Because we are using ExecuTorch under the hood, you won't be able to build ios app for release with simulator selected as the target device. Make sure to test release builds on real devices.
+:::
+
 Running the app with the library:
 ```bash
 yarn run expo:<ios | android> -d
