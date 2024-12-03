@@ -5269,7 +5269,8 @@ __metadata:
     metro-config: ^0.81.0
     react: 18.3.1
     react-native: 0.76.3
-    react-native-executorch: ^0.1.2
+    react-native-executorch: /Users/norbertklockiewicz/Desktop/work/react-native-executorch/react-native-executorch-0.1.464.tgz
+    react-native-image-picker: ^7.2.2
     react-native-loading-spinner-overlay: ^3.0.1
     react-native-markdown-display: ^7.0.2
     react-native-reanimated: ^3.16.3
@@ -6701,13 +6702,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-executorch@npm:^0.1.2":
-  version: 0.1.2
-  resolution: "react-native-executorch@npm:0.1.2"
+"react-native-executorch@file:/Users/norbertklockiewicz/Desktop/work/react-native-executorch/react-native-executorch-0.1.464.tgz::locator=llama%40workspace%3A.":
+  version: 0.1.464
+  resolution: "react-native-executorch@file:/Users/norbertklockiewicz/Desktop/work/react-native-executorch/react-native-executorch-0.1.464.tgz::locator=llama%40workspace%3A."
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 032166a898f87c37d79a5fa766c0282edbed8b725f06e02ef50d2c054593f8447a3027547e3ee75543f0b9923776e7e4a93ab9732adf4cdec0e24ee910f504a6
+  checksum: 062706e8bc743214c09b3845d532d45fc063f38da442f1a1fffc0432df497d6b31f10e71949f5bc6aaab88d59430e2a5b41687df14f5584db76d0a0eb9618973
   languageName: node
   linkType: hard
 
@@ -6717,6 +6718,16 @@ __metadata:
   dependencies:
     prop-types: ^15.5.10
   checksum: 2f3ce06b43191efe3a4bd0698a4117342d821455c96433e9561d50f156ee446d2c449bf9e0908f9a8b7bbb8f95c02478d4fca8d8d103f38b6ce3b8b75557af15
+  languageName: node
+  linkType: hard
+
+"react-native-image-picker@npm:^7.2.2":
+  version: 7.2.2
+  resolution: "react-native-image-picker@npm:7.2.2"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 34289e29a28c3f8d869db46fdf5bfdeec8b37221ee4dcd9a63698b106f0097d11f4c40f3a2789c23a728dc94e37e02a0cf61add80aa04ffe60a6cf82115cddea
   languageName: node
   linkType: hard
 
