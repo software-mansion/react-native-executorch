@@ -16,7 +16,7 @@ export default function StyleTransfer() {
   const [styleImageUri, setStyleImageUri] = useState('');
 
   const model = useStyleTransfer({
-    modulePath: require('../assets/style_transfer/android/candy_xnnpack_640_fp32.pte'),
+    modulePath: require('../assets/style_transfer/ios/__candy_coreml_all.pte'),
   });
 
   const handleCameraPress = async (isCamera: boolean) => {
@@ -26,7 +26,6 @@ export default function StyleTransfer() {
       setStyleImageUri(imageUri as string);
     }
   };
-
   if (model.isModelLoading) {
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -66,10 +65,8 @@ export default function StyleTransfer() {
           <Button
             title={'transfer'}
             onPress={async () => {
-              console.log('test');
               try {
                 const output = await model.forward(imageUri);
-                console.log(output);
                 setImageUri(output);
               } catch (e) {
                 console.log('Error');

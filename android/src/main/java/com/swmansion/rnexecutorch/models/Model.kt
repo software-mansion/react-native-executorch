@@ -44,7 +44,7 @@ abstract class Model<Input, Output>(val context: Context) {
     }
   }
 
-  fun forward(input: EValue): Tensor {
+  protected fun forward(input: EValue): Tensor {
     try {
       val result: Tensor = module.forward(input)[0].toTensor()
       return result
@@ -60,7 +60,7 @@ abstract class Model<Input, Output>(val context: Context) {
 
   abstract fun runModel(input: Input): Output
 
-  abstract fun preprocess(input: Input): Input
+  protected abstract fun preprocess(input: Input): Input
 
-  abstract fun postprocess(input: Output): Output
+  protected abstract fun postprocess(input: Output): Output
 }
