@@ -51,11 +51,12 @@
   UIImage *processedImage = [self preprocess:input];
   CGSize outputSize = {640, 640};
   float* processedImageData = [ImageProcessor imageToFloatArray:processedImage size:&outputSize];
-  NSArray *shape = @[@1, @3, @640, @640];
+  NSNumber *type = [module getInputType];
+  NSArray *shape = [module getInputShape];
   
   NSArray *modelInput = [self floatArrayToNSArray:processedImageData length:1228800];
   
-  NSArray *result = [self forward:modelInput shape:shape inputType:@3];
+  NSArray *result = [self forward:modelInput shape:shape inputType:type];
   free(processedImageData);
   float* outputData = [self NSArrayToFloatArray:result outLength:1228800];
   UIImage *outputImage = [ImageProcessor imageFromFloatArray:outputData size:processedImage.size];

@@ -30,6 +30,45 @@ using namespace ::torch::executor;
   return @((int)err);
 }
 
+- (NSArray *)getInputShape {
+  const auto method_meta = _model->method_meta("forward");
+  
+  if(method_meta.ok()){
+    const auto input_meta = method_meta->input_tensor_meta(0);
+    if(input_meta.ok()){
+      const auto shape = input_meta->sizes();
+      NSMutableArray *nsShape = [[NSMutableArray alloc] init];
+      
+      for(int i = 0; i < shape.size(); i++) {
+        [nsShape addObject:@(shape[i])];
+      }
+      
+      return [nsShape copy];
+    }
+  }
+  
+  return nil;
+};
+
+- (NSNumber *)getInputType {
+  const auto method_meta = _model->method_meta("forward");
+  
+  if(method_meta.ok()){
+    const auto input_meta = method_meta->input_tensor_meta(0);
+    if(input_meta.ok()){
+      switch(input_meta->scalar_type()) {
+        case ScalarType::Byte: return @0;
+        case ScalarType::Int: return @1;
+        case ScalarType::Long: return @2;
+        case ScalarType::Float: return @3;
+        case ScalarType::Double: return @4;
+      }
+    }
+  }
+  
+  return @-1;
+};
+
 - (NSArray *)forward:(NSArray *)input
                shape:(NSArray *)shape
            inputType:(NSNumber *)inputType {
@@ -66,15 +105,16 @@ using namespace ::torch::executor;
   } @catch (NSException *exception) {
     NSInteger originalCode = [exception.reason integerValue];
     @throw [NSException
-        exceptionWithName:@"forward_error"
-                   reason:[NSString stringWithFormat:@"%ld", (long)originalCode]
-                 userInfo:nil];
+            exceptionWithName:@"forward_error"
+            reason:[NSString stringWithFormat:@"%ld", (long)originalCode]
+            userInfo:nil];
   }
   // throwing an RN-ET exception
   @
   throw [NSException exceptionWithName:@"forward_error"
                                 reason:[NSString stringWithFormat:@"%d",
-                                                                  0x65] // 101
+                                        0x65] // 101
                               userInfo:nil];
 }
+
 @end
