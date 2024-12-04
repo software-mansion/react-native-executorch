@@ -7,7 +7,7 @@
 #include <string>
 
 @implementation StyleTransfer {
-  std::unique_ptr<StyleTransferModel> model;
+  StyleTransferModel* model;
 }
 
 RCT_EXPORT_MODULE()
@@ -15,8 +15,29 @@ RCT_EXPORT_MODULE()
 - (void)loadModule:(NSString *)modelSource
            resolve:(RCTPromiseResolveBlock)resolve
             reject:(RCTPromiseRejectBlock)reject {
-  model = std::make_unique<StyleTransferModel>();
-  model->loadModel(modelSource);
+  model = [[StyleTransferModel alloc] init];
+  [model loadModel: [NSURL URLWithString:modelSource] completion:^(BOOL success, NSNumber *errorCode){
+    if(success){
+      resolve(errorCode);
+      return;
+    }
+    
+    NSError *error = [NSError
+                      errorWithDomain:@"StyleTransferErrorDomain"
+                      code:[errorCode intValue]
+                      userInfo:@{
+      NSLocalizedDescriptionKey : [NSString
+                                   stringWithFormat:@"%ld", (long)[errorCode longValue]]
+    }];
+    
+    reject(@"init_module_error", error.localizedDescription, error);
+    return;
+  }];
+}
+
+- (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
+(const facebook::react::ObjCTurboModule::InitParams &)params {
+  return std::make_shared<facebook::react::NativeStyleTransferSpecJSI>(params);
 }
 
 - (void)forward:(NSString *)input
@@ -31,9 +52,8 @@ RCT_EXPORT_MODULE()
     }
     UIImage *inputImage = [UIImage imageWithData:data];
     
+    UIImage* result = [model runModel:inputImage];
     
-    UIImage* result = model->runModel(inputImage);
-  
     // save img to tmp dir, return URI
     NSString *outputPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[@"test" stringByAppendingString:@".png"]];
     if ([UIImagePNGRepresentation(result) writeToFile:outputPath atomically:YES]) {
@@ -48,11 +68,6 @@ RCT_EXPORT_MODULE()
     reject(@"result_error", [NSString stringWithFormat:@"%@", exception.reason],
            nil);
   }
-}
-
-- (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
-(const facebook::react::ObjCTurboModule::InitParams &)params {
-  return std::make_shared<facebook::react::NativeETModuleSpecJSI>(params);
 }
 
 @end

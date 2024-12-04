@@ -11,7 +11,7 @@ interface StyleTransferModule {
   error: string | null;
   isModelLoading: boolean;
   isModelRunning: boolean;
-  forward: (input: string) => Promise<number[]>;
+  forward: (input: string) => Promise<string>;
 }
 
 export const useStyleTransfer = ({
