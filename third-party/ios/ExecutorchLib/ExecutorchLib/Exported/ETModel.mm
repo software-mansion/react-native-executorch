@@ -34,38 +34,37 @@ using namespace ::torch::executor;
            inputType:(NSNumber *)inputType {
   int inputTypeIntValue = [inputType intValue];
   std::vector<int> shapes = NSArrayToIntVector(shape);
-  ssize_t outputNumel = 0;
   @try {
     switch (inputTypeIntValue) {
     case 0: {
       // Int8Array
-      const int8_t *output =
-          runForwardFromNSArray<int8_t>(input, outputNumel, shapes, _model);
-      return arrayToNSArray<int8_t>(output, outputNumel);
+      std::vector<DataPtrWithNumel<int8_t>> output =
+          runForwardFromNSArray<int8_t>(input, shapes, _model);
+      return arrayToNSArray<int8_t>(output);
     }
     case 1: {
       // Int32Array
-      const int32_t *output =
-          runForwardFromNSArray<int32_t>(input, outputNumel, shapes, _model);
-      return arrayToNSArray<int32_t>(output, outputNumel);
+      std::vector<DataPtrWithNumel<int8_t>> output =
+          runForwardFromNSArray<int8_t>(input, shapes, _model);
+      return arrayToNSArray<int8_t>(output);
     }
     case 2: {
       // BigInt64Array
-      const int64_t *output =
-          runForwardFromNSArray<int64_t>(input, outputNumel, shapes, _model);
-      return arrayToNSArray<int64_t>(output, outputNumel);
+      std::vector<DataPtrWithNumel<int8_t>> output =
+          runForwardFromNSArray<int8_t>(input, shapes, _model);
+      return arrayToNSArray<int8_t>(output);
     }
     case 3: {
       // Float32Array
-      const float *output =
-          runForwardFromNSArray<float>(input, outputNumel, shapes, _model);
-      return arrayToNSArray<float>(output, outputNumel);
+      std::vector<DataPtrWithNumel<int8_t>> output =
+          runForwardFromNSArray<int8_t>(input, shapes, _model);
+      return arrayToNSArray<int8_t>(output);
     }
     case 4: {
       // Float64Array
-      const double *output =
-          runForwardFromNSArray<double>(input, outputNumel, shapes, _model);
-      return arrayToNSArray<double>(output, outputNumel);
+      std::vector<DataPtrWithNumel<int8_t>> output =
+          runForwardFromNSArray<int8_t>(input, shapes, _model);
+      return arrayToNSArray<int8_t>(output);
     }
     }
   } @catch (NSException *exception) {

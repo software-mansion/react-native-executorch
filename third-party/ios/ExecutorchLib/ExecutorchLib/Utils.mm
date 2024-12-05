@@ -48,6 +48,24 @@ NSArray *arrayToNSArray(const void *array, ssize_t numel) {
   return [nsArray copy];
 }
 
+template <typename T>
+NSArray *arrayToNSArray(const std::vector<DataPtrWithNumel<T>> &dataPtrVec) {
+  NSMutableArray *nsArray = [NSMutableArray array];
+
+  for (const auto &dataPtrWithNumel : dataPtrVec) {
+    const T *dataPtr = dataPtrWithNumel.dataPtr;
+    ssize_t numel = dataPtrWithNumel.numel;
+
+    NSMutableArray *innerArray = [NSMutableArray arrayWithCapacity:numel];
+
+    for (ssize_t i = 0; i < numel; ++i) {
+      [innerArray addObject:@(dataPtr[i])];
+    }
+    [nsArray addObject:[innerArray copy]];
+  }
+  return [nsArray copy];
+}
+
 std::vector<int> NSArrayToIntVector(NSArray *inputArray) {
   std::vector<int> output;
   for (NSUInteger i = 0; i < [inputArray count]; ++i) {
@@ -62,41 +80,59 @@ std::vector<int> NSArrayToIntVector(NSArray *inputArray) {
 }
 
 template <typename T>
-const T *
-runForwardFromNSArray(NSArray *inputArray, ssize_t &numel,
-                      std::vector<int> shapes,
+std::vector<DataPtrWithNumel<T>>
+runForwardFromNSArray(NSArray *inputArray, std::vector<int> shapes,
                       std::unique_ptr<executorch::extension::Module> &model) {
   std::unique_ptr<T[]> inputPtr = NSArrayToTypedArray<T>(inputArray);
 
   TensorPtr inputTensor = from_blob(inputPtr.get(), shapes);
   Result result = model->forward(inputTensor);
+
   if (result.ok()) {
-    Tensor outputTensor = result->at(0).toTensor();
-    numel = outputTensor.numel();
-    return outputTensor.const_data_ptr<T>();
+    std::vector<DataPtrWithNumel<T>> outputVec;
+
+    for (const auto &currentResult : *result) {
+      DataPtrWithNumel<T> currentDataPtr;
+      Tensor currentTensor = currentResult.toTensor();
+      currentDataPtr.dataPtr = currentTensor.const_data_ptr<T>();
+      currentDataPtr.numel = currentTensor.numel();
+      outputVec.push_back(currentDataPtr);
+    }
+    return outputVec;
   }
+
   @throw [NSException
       exceptionWithName:@"forward_error"
                  reason:[NSString stringWithFormat:@"%d", (int)result.error()]
                userInfo:nil];
 }
 
-template const int8_t *runForwardFromNSArray<int8_t>(
-    NSArray *inputArray, ssize_t &numel, std::vector<int> shapes,
+template std::vector<DataPtrWithNumel<int8_t>> runForwardFromNSArray<int8_t>(
+    NSArray *inputArray, std::vector<int> shapes,
     std::unique_ptr<executorch::extension::Module> &model);
-template const int32_t *runForwardFromNSArray<int32_t>(
-    NSArray *inputArray, ssize_t &numel, std::vector<int> shapes,
+template std::vector<DataPtrWithNumel<int32_t>> runForwardFromNSArray<int32_t>(
+    NSArray *inputArray, std::vector<int> shapes,
     std::unique_ptr<executorch::extension::Module> &model);
-template const int64_t *runForwardFromNSArray<int64_t>(
-    NSArray *inputArray, ssize_t &numel, std::vector<int> shapes,
+template std::vector<DataPtrWithNumel<int64_t>> runForwardFromNSArray<int64_t>(
+    NSArray *inputArray, std::vector<int> shapes,
     std::unique_ptr<executorch::extension::Module> &model);
-template const float *runForwardFromNSArray<float>(
-    NSArray *inputArray, ssize_t &numel, std::vector<int> shapes,
+template std::vector<DataPtrWithNumel<float>> runForwardFromNSArray<float>(
+    NSArray *inputArray, std::vector<int> shapes,
+    std::unique_ptr<executorch::extension::Module> &model);
+template std::vector<DataPtrWithNumel<double>> runForwardFromNSArray<double>(
+    NSArray *inputArray, std::vector<int> shapes,
     std::unique_ptr<executorch::extension::Module> &model);
 
-template const double *runForwardFromNSArray<double>(
-    NSArray *inputArray, ssize_t &numel, std::vector<int> shapes,
-    std::unique_ptr<executorch::extension::Module> &model);
+template NSArray *
+arrayToNSArray<int8_t>(const std::vector<DataPtrWithNumel<int8_t>> &dataPtrVec);
+template NSArray *arrayToNSArray<int32_t>(
+    const std::vector<DataPtrWithNumel<int32_t>> &dataPtrVec);
+template NSArray *arrayToNSArray<int64_t>(
+    const std::vector<DataPtrWithNumel<int64_t>> &dataPtrVec);
+template NSArray *
+arrayToNSArray<float>(const std::vector<DataPtrWithNumel<float>> &dataPtrVec);
+template NSArray *
+arrayToNSArray<double>(const std::vector<DataPtrWithNumel<double>> &dataPtrVec);
 
 template NSArray *arrayToNSArray<int8_t>(const void *array, ssize_t numel);
 template NSArray *arrayToNSArray<int32_t>(const void *array, ssize_t numel);
