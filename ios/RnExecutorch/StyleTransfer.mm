@@ -1,6 +1,6 @@
 #import "StyleTransfer.h"
 #import "utils/Fetcher.h"
-#import "models/Model.h"
+#import "models/BaseModel.h"
 #import <ExecutorchLib/ETModel.h>
 #import <React/RCTBridgeModule.h>
 #import "models/StyleTransferModel.h"
