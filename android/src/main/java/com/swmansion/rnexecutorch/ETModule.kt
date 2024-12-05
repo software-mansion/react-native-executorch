@@ -1,8 +1,10 @@
 package com.swmansion.rnexecutorch
 
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
+import com.facebook.react.bridge.WritableArray
 import com.swmansion.rnexecutorch.utils.ArrayUtils
 import com.swmansion.rnexecutorch.utils.Fetcher
 import com.swmansion.rnexecutorch.utils.ProgressResponseBody
@@ -75,10 +77,14 @@ class ETModule(reactContext: ReactApplicationContext) : NativeETModuleSpec(react
       val executorchInput =
         TensorUtils.getExecutorchInput(input, ArrayUtils.createLongArray(shape), inputType.toInt())
 
-      lateinit var result: Tensor
-      module.forward(executorchInput)[0].toTensor().also { result = it }
+      val result = module.forward(executorchInput)
+      val resultArray = Arguments.createArray()
 
-      promise.resolve(ArrayUtils.createReadableArray(result))
+      for(evalue in result){
+        resultArray.pushArray(ArrayUtils.createReadableArray(evalue.toTensor()))
+      }
+
+      promise.resolve(resultArray)
       return
     } catch (e: IllegalArgumentException) {
       //The error is thrown when transformation to Tensor fails
