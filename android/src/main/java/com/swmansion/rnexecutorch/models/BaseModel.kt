@@ -7,7 +7,7 @@ import com.swmansion.rnexecutorch.utils.ResourceType
 import okhttp3.OkHttpClient
 import org.pytorch.executorch.EValue
 import org.pytorch.executorch.Module
-import org.pytorch.executorch.Tensor
+
 
 abstract class BaseModel<Input, Output>(val context: Context) {
   protected lateinit var module: Module
@@ -44,9 +44,9 @@ abstract class BaseModel<Input, Output>(val context: Context) {
     }
   }
 
-  protected fun forward(input: EValue): Tensor {
+  protected fun forward(input: EValue): Array<EValue> {
     try {
-      val result: Tensor = module.forward(input)[0].toTensor()
+      val result = module.forward(input)
       return result
     } catch (e: IllegalArgumentException) {
       //The error is thrown when transformation to Tensor fails

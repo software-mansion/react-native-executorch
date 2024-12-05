@@ -28,7 +28,7 @@ class StyleTransferModel(reactApplicationContext: ReactApplicationContext) : Bas
       }
 
       val outputTensor = forward(EValue.from(inputTensor))
-      val outputData = postprocess(TensorUtils.float32TensorToBitmap(outputTensor))
+      val outputData = postprocess(TensorUtils.float32TensorToBitmap(outputTensor[0].toTensor()))
 
       return outputData
   }
