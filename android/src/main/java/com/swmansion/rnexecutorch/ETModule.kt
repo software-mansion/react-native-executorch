@@ -4,7 +4,6 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
-import com.facebook.react.bridge.WritableArray
 import com.swmansion.rnexecutorch.utils.ArrayUtils
 import com.swmansion.rnexecutorch.utils.Fetcher
 import com.swmansion.rnexecutorch.utils.ProgressResponseBody
@@ -12,8 +11,6 @@ import com.swmansion.rnexecutorch.utils.ResourceType
 import com.swmansion.rnexecutorch.utils.TensorUtils
 import okhttp3.OkHttpClient
 import org.pytorch.executorch.Module
-import org.pytorch.executorch.Tensor
-import java.net.URL
 
 class ETModule(reactContext: ReactApplicationContext) : NativeETModuleSpec(reactContext) {
   private lateinit var module: Module
