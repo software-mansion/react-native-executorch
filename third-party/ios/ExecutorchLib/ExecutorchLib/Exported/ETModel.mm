@@ -30,11 +30,34 @@ using namespace ::torch::executor;
   return @((int)err);
 }
 
-- (NSArray *)getInputShape {
+- (NSNumber *)getNumberOfInputs {
+  const auto method_meta = _model->method_meta("forward");
+  
+  if (method_meta.ok()) {
+    return @(method_meta->num_inputs());
+  }
+  
+  return @-1;
+}
+
+- (NSNumber *)getInputType:(NSNumber *)index {
   const auto method_meta = _model->method_meta("forward");
   
   if(method_meta.ok()){
-    const auto input_meta = method_meta->input_tensor_meta(0);
+    const auto input_meta = method_meta->input_tensor_meta([index unsignedLongValue]);
+    if(input_meta.ok()){
+      return [self getTypeAsNumber:input_meta->scalar_type()];
+    }
+  }
+  
+  return @-1;
+};
+
+- (NSArray *)getInputShape:(NSNumber *)index {
+  const auto method_meta = _model->method_meta("forward");
+  
+  if(method_meta.ok()){
+    const auto input_meta = method_meta->input_tensor_meta([index unsignedLongValue]);
     if(input_meta.ok()){
       const auto shape = input_meta->sizes();
       NSMutableArray *nsShape = [[NSMutableArray alloc] init];
@@ -50,24 +73,61 @@ using namespace ::torch::executor;
   return nil;
 };
 
-- (NSNumber *)getInputType {
+- (NSNumber *)getNumberOfOutputs {
+  const auto method_meta = _model->method_meta("forward");
+  
+  if (method_meta.ok()) {
+    return @(method_meta->num_outputs());
+  }
+  
+  return @-1;
+}
+
+- (NSNumber *)getOutputType:(NSNumber *)index {
   const auto method_meta = _model->method_meta("forward");
   
   if(method_meta.ok()){
-    const auto input_meta = method_meta->input_tensor_meta(0);
-    if(input_meta.ok()){
-      switch(input_meta->scalar_type()) {
-        case ScalarType::Byte: return @0;
-        case ScalarType::Int: return @1;
-        case ScalarType::Long: return @2;
-        case ScalarType::Float: return @3;
-        case ScalarType::Double: return @4;
-      }
+    const auto output_meta = method_meta->output_tensor_meta([index unsignedLongValue]);
+    if(output_meta.ok()){
+      return [self getTypeAsNumber:output_meta->scalar_type()];
     }
   }
   
   return @-1;
 };
+
+- (NSArray *)getOutputShape:(NSNumber *)index {
+  const auto method_meta = _model->method_meta("forward");
+  
+  if(method_meta.ok()){
+    const auto output_meta = method_meta->output_tensor_meta([index unsignedLongValue]);
+    if(output_meta.ok()){
+      const auto shape = output_meta->sizes();
+      NSMutableArray *nsShape = [[NSMutableArray alloc] init];
+      
+      for(int i = 0; i < shape.size(); i++) {
+        [nsShape addObject:@(shape[i])];
+      }
+      
+      return [nsShape copy];
+    }
+  }
+  
+  return nil;
+};
+
+- (NSNumber *) getTypeAsNumber:(ScalarType)scalarType {
+  switch(scalarType) {
+    case ScalarType::Byte: return @0;
+    case ScalarType::Int: return @1;
+    case ScalarType::Long: return @2;
+    case ScalarType::Float: return @3;
+    case ScalarType::Double: return @4;
+      
+    default:
+      return @-1;
+  }
+}
 
 - (NSArray *)forward:(NSArray *)input
                shape:(NSArray *)shape
