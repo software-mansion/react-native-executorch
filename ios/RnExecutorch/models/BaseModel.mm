@@ -1,7 +1,7 @@
-#import "Model.h"
+#import "BaseModel.h"
 #import "../utils/Fetcher.h"
 
-@implementation Model
+@implementation BaseModel
 
 - (NSArray *)forward:(NSArray *)input shape:(NSArray *)shape inputType:(NSNumber *)inputType {
     @try {

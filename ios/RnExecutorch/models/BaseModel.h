@@ -2,7 +2,7 @@
 #import <UIKit/UIKit.h>
 #import "ETModel.h"
 
-@interface Model : NSObject
+@interface BaseModel : NSObject
 {
 @protected
     ETModel *module;

@@ -9,7 +9,7 @@ import org.pytorch.executorch.EValue
 import org.pytorch.executorch.Module
 import org.pytorch.executorch.Tensor
 
-abstract class Model<Input, Output>(val context: Context) {
+abstract class BaseModel<Input, Output>(val context: Context) {
   protected lateinit var module: Module
   private val client = OkHttpClient()
 

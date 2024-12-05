@@ -1,7 +1,7 @@
 #import <UIKit/UIKit.h>
-#import "Model.h"
+#import "BaseModel.h"
 
-@interface StyleTransferModel : Model
+@interface StyleTransferModel : BaseModel
 
 - (UIImage *)runModel:(UIImage *)input;
 

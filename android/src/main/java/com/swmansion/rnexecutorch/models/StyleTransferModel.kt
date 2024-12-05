@@ -6,7 +6,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.swmansion.rnexecutorch.utils.TensorUtils
 import org.pytorch.executorch.EValue
 
-class StyleTransferModel(reactApplicationContext: ReactApplicationContext) : Model<Bitmap, Bitmap>(reactApplicationContext) {
+class StyleTransferModel(reactApplicationContext: ReactApplicationContext) : BaseModel<Bitmap, Bitmap>(reactApplicationContext) {
   override fun runModel(input: Bitmap): Bitmap {
       val processedData = preprocess(input)
       val inputTensor = TensorUtils.bitmapToFloat32Tensor(processedData)
