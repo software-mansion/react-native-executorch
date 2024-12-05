@@ -7,23 +7,23 @@ import {
   TouchableOpacity,
   Image,
   Button,
+  Platform,
 } from 'react-native';
 import { getImageUri } from '../utils/utils';
 import { useStyleTransfer } from 'react-native-executorch';
 
 export default function StyleTransfer() {
   const [imageUri, setImageUri] = useState('');
-  const [styleImageUri, setStyleImageUri] = useState('');
-
+  const iosmModel = require('../assets/style_transfer/ios/__candy_coreml_all.pte');
+  const androidModel = require('../assets/style_transfer/android/candy_xnnpack_640_fp32.pte');
   const model = useStyleTransfer({
-    modulePath: require('../assets/style_transfer/ios/__candy_coreml_all.pte'),
+    modulePath: Platform.OS === 'ios' ? iosmModel : androidModel,
   });
 
   const handleCameraPress = async (isCamera: boolean) => {
     const imageUri = await getImageUri(isCamera);
     if (typeof imageUri === 'string') {
       setImageUri(imageUri as string);
-      setStyleImageUri(imageUri as string);
     }
   };
   if (model.isModelLoading) {
