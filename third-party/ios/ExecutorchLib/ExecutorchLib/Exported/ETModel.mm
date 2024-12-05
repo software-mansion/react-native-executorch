@@ -44,27 +44,27 @@ using namespace ::torch::executor;
     }
     case 1: {
       // Int32Array
-      std::vector<DataPtrWithNumel<int8_t>> output =
-          runForwardFromNSArray<int8_t>(input, shapes, _model);
-      return arrayToNSArray<int8_t>(output);
+      std::vector<DataPtrWithNumel<int32_t>> output =
+          runForwardFromNSArray<int32_t>(input, shapes, _model);
+      return arrayToNSArray<int32_t>(output);
     }
     case 2: {
       // BigInt64Array
-      std::vector<DataPtrWithNumel<int8_t>> output =
-          runForwardFromNSArray<int8_t>(input, shapes, _model);
-      return arrayToNSArray<int8_t>(output);
+      std::vector<DataPtrWithNumel<int64_t>> output =
+          runForwardFromNSArray<int64_t>(input, shapes, _model);
+      return arrayToNSArray<int64_t>(output);
     }
     case 3: {
       // Float32Array
-      std::vector<DataPtrWithNumel<int8_t>> output =
-          runForwardFromNSArray<int8_t>(input, shapes, _model);
-      return arrayToNSArray<int8_t>(output);
+      std::vector<DataPtrWithNumel<float>> output =
+          runForwardFromNSArray<float>(input, shapes, _model);
+      return arrayToNSArray<float>(output);
     }
     case 4: {
       // Float64Array
-      std::vector<DataPtrWithNumel<int8_t>> output =
-          runForwardFromNSArray<int8_t>(input, shapes, _model);
-      return arrayToNSArray<int8_t>(output);
+      std::vector<DataPtrWithNumel<double>> output =
+          runForwardFromNSArray<double>(input, shapes, _model);
+      return arrayToNSArray<double>(output);
     }
     }
   } @catch (NSException *exception) {
