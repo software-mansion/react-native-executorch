@@ -51,11 +51,9 @@ template <typename T>
 NSArray *arrayToNSArray(const std::vector<std::span<const T>> &dataPtrVec) {
     NSMutableArray *nsArray = [NSMutableArray array];
     for (const auto &span : dataPtrVec) {
-        const T *dataPtr = span.data();
-        ssize_t numel = span.size();
-        NSMutableArray *innerArray = [NSMutableArray arrayWithCapacity:numel];
-        for (ssize_t i = 0; i < numel; ++i) {
-            [innerArray addObject:@(dataPtr[i])];
+        NSMutableArray *innerArray = [NSMutableArray arrayWithCapacity:span.size()];
+        for(auto x : span) {
+            [innerArray addObject:@(x)];
         }
         [nsArray addObject:[innerArray copy]];
     }
