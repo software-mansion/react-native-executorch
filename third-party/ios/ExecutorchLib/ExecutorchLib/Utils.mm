@@ -1,5 +1,4 @@
 #include "Utils.hpp"
-#include <functional>
 
 using namespace ::executorch::extension;
 using namespace ::torch::executor;
@@ -49,21 +48,18 @@ NSArray *arrayToNSArray(const void *array, ssize_t numel) {
 }
 
 template <typename T>
-NSArray *arrayToNSArray(const std::vector<DataPtrWithNumel<T>> &dataPtrVec) {
-  NSMutableArray *nsArray = [NSMutableArray array];
-
-  for (const auto &dataPtrWithNumel : dataPtrVec) {
-    const T *dataPtr = dataPtrWithNumel.dataPtr;
-    ssize_t numel = dataPtrWithNumel.numel;
-
-    NSMutableArray *innerArray = [NSMutableArray arrayWithCapacity:numel];
-
-    for (ssize_t i = 0; i < numel; ++i) {
-      [innerArray addObject:@(dataPtr[i])];
+NSArray *arrayToNSArray(const std::vector<std::span<const T>> &dataPtrVec) {
+    NSMutableArray *nsArray = [NSMutableArray array];
+    for (const auto &span : dataPtrVec) {
+        const T *dataPtr = span.data();
+        ssize_t numel = span.size();
+        NSMutableArray *innerArray = [NSMutableArray arrayWithCapacity:numel];
+        for (ssize_t i = 0; i < numel; ++i) {
+            [innerArray addObject:@(dataPtr[i])];
+        }
+        [nsArray addObject:[innerArray copy]];
     }
-    [nsArray addObject:[innerArray copy]];
-  }
-  return [nsArray copy];
+    return [nsArray copy];
 }
 
 std::vector<int> NSArrayToIntVector(NSArray *inputArray) {
@@ -80,7 +76,7 @@ std::vector<int> NSArrayToIntVector(NSArray *inputArray) {
 }
 
 template <typename T>
-std::vector<DataPtrWithNumel<T>>
+std::vector<std::span<const T>>
 runForwardFromNSArray(NSArray *inputArray, std::vector<int> shapes,
                       std::unique_ptr<executorch::extension::Module> &model) {
   std::unique_ptr<T[]> inputPtr = NSArrayToTypedArray<T>(inputArray);
@@ -89,14 +85,12 @@ runForwardFromNSArray(NSArray *inputArray, std::vector<int> shapes,
   Result result = model->forward(inputTensor);
 
   if (result.ok()) {
-    std::vector<DataPtrWithNumel<T>> outputVec;
+    std::vector<std::span<const T>> outputVec;
 
     for (const auto &currentResult : *result) {
-      DataPtrWithNumel<T> currentDataPtr;
       Tensor currentTensor = currentResult.toTensor();
-      currentDataPtr.dataPtr = currentTensor.const_data_ptr<T>();
-      currentDataPtr.numel = currentTensor.numel();
-      outputVec.push_back(currentDataPtr);
+      std::span<const T> currentSpan(currentTensor.const_data_ptr<T>(), currentTensor.numel());
+      outputVec.push_back(std::move(currentSpan));
     }
     return outputVec;
   }
@@ -107,32 +101,32 @@ runForwardFromNSArray(NSArray *inputArray, std::vector<int> shapes,
                userInfo:nil];
 }
 
-template std::vector<DataPtrWithNumel<int8_t>> runForwardFromNSArray<int8_t>(
+template std::vector<std::span<const int8_t>> runForwardFromNSArray<int8_t>(
     NSArray *inputArray, std::vector<int> shapes,
     std::unique_ptr<executorch::extension::Module> &model);
-template std::vector<DataPtrWithNumel<int32_t>> runForwardFromNSArray<int32_t>(
+template std::vector<std::span<const int32_t>> runForwardFromNSArray<int32_t>(
     NSArray *inputArray, std::vector<int> shapes,
     std::unique_ptr<executorch::extension::Module> &model);
-template std::vector<DataPtrWithNumel<int64_t>> runForwardFromNSArray<int64_t>(
+template std::vector<std::span<const int64_t>> runForwardFromNSArray<int64_t>(
     NSArray *inputArray, std::vector<int> shapes,
     std::unique_ptr<executorch::extension::Module> &model);
-template std::vector<DataPtrWithNumel<float>> runForwardFromNSArray<float>(
+template std::vector<std::span<const float>> runForwardFromNSArray<float>(
     NSArray *inputArray, std::vector<int> shapes,
     std::unique_ptr<executorch::extension::Module> &model);
-template std::vector<DataPtrWithNumel<double>> runForwardFromNSArray<double>(
+template std::vector<std::span<const double>> runForwardFromNSArray<double>(
     NSArray *inputArray, std::vector<int> shapes,
     std::unique_ptr<executorch::extension::Module> &model);
 
 template NSArray *
-arrayToNSArray<int8_t>(const std::vector<DataPtrWithNumel<int8_t>> &dataPtrVec);
+arrayToNSArray<int8_t>(const std::vector<std::span<const int8_t>> &dataPtrVec);
 template NSArray *arrayToNSArray<int32_t>(
-    const std::vector<DataPtrWithNumel<int32_t>> &dataPtrVec);
+    const std::vector<std::span<const int32_t>> &dataPtrVec);
 template NSArray *arrayToNSArray<int64_t>(
-    const std::vector<DataPtrWithNumel<int64_t>> &dataPtrVec);
+    const std::vector<std::span<const int64_t>> &dataPtrVec);
 template NSArray *
-arrayToNSArray<float>(const std::vector<DataPtrWithNumel<float>> &dataPtrVec);
+arrayToNSArray<float>(const std::vector<std::span<const float>> &dataPtrVec);
 template NSArray *
-arrayToNSArray<double>(const std::vector<DataPtrWithNumel<double>> &dataPtrVec);
+arrayToNSArray<double>(const std::vector<std::span <const double>> &dataPtrVec);
 
 template NSArray *arrayToNSArray<int8_t>(const void *array, ssize_t numel);
 template NSArray *arrayToNSArray<int32_t>(const void *array, ssize_t numel);
