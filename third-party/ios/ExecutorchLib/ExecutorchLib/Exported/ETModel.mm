@@ -38,32 +38,27 @@ using namespace ::torch::executor;
   @try {
     switch (inputTypeIntValue) {
     case InputTypeInt8: {
-      // Int8Array
-      std::vector<DataPtrWithNumel<int8_t>> output =
+      std::vector<std::span<const int8_t>> output =
           runForwardFromNSArray<int8_t>(input, shapes, _model);
       return arrayToNSArray<int8_t>(output);
     }
     case InputTypeInt32: {
-      // Int32Array
-      std::vector<DataPtrWithNumel<int32_t>> output =
+      std::vector<std::span<const int32_t>> output =
           runForwardFromNSArray<int32_t>(input, shapes, _model);
       return arrayToNSArray<int32_t>(output);
     }
     case InputTypeInt64: {
-      // BigInt64Array
-      std::vector<DataPtrWithNumel<int64_t>> output =
+      std::vector<std::span<const int64_t>> output =
           runForwardFromNSArray<int64_t>(input, shapes, _model);
       return arrayToNSArray<int64_t>(output);
     }
     case InputTypeFloat32: {
-      // Float32Array
-      std::vector<DataPtrWithNumel<float>> output =
+      std::vector<std::span<const float>> output =
           runForwardFromNSArray<float>(input, shapes, _model);
       return arrayToNSArray<float>(output);
     }
     case InputTypeFloat64: {
-      // Float64Array
-      std::vector<DataPtrWithNumel<double>> output =
+      std::vector<std::span<const double>> output =
           runForwardFromNSArray<double>(input, shapes, _model);
       return arrayToNSArray<double>(output);
     }
