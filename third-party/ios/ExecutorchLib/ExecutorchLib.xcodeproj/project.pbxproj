@@ -42,7 +42,7 @@
 		55EA2C572CB90E7D004315B3 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C562CB90E7D004315B3 /* Accelerate.framework */; };
 		55EA2C592CB90E80004315B3 /* CoreML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C582CB90E80004315B3 /* CoreML.framework */; };
 		55EA2C5B2CB90E85004315B3 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C5A2CB90E85004315B3 /* libsqlite3.tbd */; };
-		A851C4062CF9F1B600424E93 /* Utils.mm in Sources */ = {isa = PBXBuildFile; fileRef = A851C4052CF9F1B600424E93 /* Utils.mm */; };
+		A84198842D02DF29006D4D5E /* InputType.h in Headers */ = {isa = PBXBuildFile; fileRef = A84198832D02DF29006D4D5E /* InputType.h */; };
 		A851C4072CF9F1B600424E93 /* Utils.hpp in Headers */ = {isa = PBXBuildFile; fileRef = A851C4042CF9F1B600424E93 /* Utils.hpp */; };
 /* End PBXBuildFile section */
 
@@ -83,8 +83,8 @@
 		55EA2C562CB90E7D004315B3 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		55EA2C582CB90E80004315B3 /* CoreML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreML.framework; path = System/Library/Frameworks/CoreML.framework; sourceTree = SDKROOT; };
 		55EA2C5A2CB90E85004315B3 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
+		A84198832D02DF29006D4D5E /* InputType.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InputType.h; sourceTree = "<group>"; };
 		A851C4042CF9F1B600424E93 /* Utils.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Utils.hpp; sourceTree = "<group>"; };
-		A851C4052CF9F1B600424E93 /* Utils.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Utils.mm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -135,7 +135,7 @@
 				55EA2C322CB90C7A004315B3 /* sampler */,
 				55EA2C3E2CB90C7A004315B3 /* tokenizer */,
 				A851C4042CF9F1B600424E93 /* Utils.hpp */,
-				A851C4052CF9F1B600424E93 /* Utils.mm */,
+				A84198832D02DF29006D4D5E /* InputType.h */,
 			);
 			path = ExecutorchLib;
 			sourceTree = "<group>";
@@ -220,6 +220,7 @@
 				55EA2C542CB90E70004315B3 /* LLaMARunner.h in Headers */,
 				5576B4B72CEF9709005027B7 /* ETModel.h in Headers */,
 				55EA2C532CB90C7A004315B3 /* tokenizer.h in Headers */,
+				A84198842D02DF29006D4D5E /* InputType.h in Headers */,
 				55EA2C412CB90C7A004315B3 /* stats.h in Headers */,
 				55EA2C4E2CB90C7A004315B3 /* bpe_tokenizer.h in Headers */,
 				55EA2C402CB90C7A004315B3 /* runner.h in Headers */,
@@ -308,7 +309,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				55EA2C482CB90C7A004315B3 /* sampler.cpp in Sources */,
-				A851C4062CF9F1B600424E93 /* Utils.mm in Sources */,
 				55EA2C3F2CB90C7A004315B3 /* runner.cpp in Sources */,
 				55EA2C422CB90C7A004315B3 /* text_decoder_runner.cpp in Sources */,
 				55EA2C4D2CB90C7A004315B3 /* bpe_tokenizer.cpp in Sources */,
