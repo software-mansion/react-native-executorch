@@ -89,7 +89,7 @@ std::vector<int> NSArrayToIntVector(NSArray *inputArray) {
 template <typename T>
 std::vector<std::span<const T>>
 runForwardFromNSArray(NSArray *inputArray, std::vector<int> shapes,
-                      std::unique_ptr<executorch::extension::Module> &model) {
+                      std::unique_ptr<Module> &model) {
   std::unique_ptr<T[]> inputPtr = NSArrayToTypedArray<T>(inputArray);
 
   TensorPtr inputTensor = from_blob(inputPtr.get(), shapes);
