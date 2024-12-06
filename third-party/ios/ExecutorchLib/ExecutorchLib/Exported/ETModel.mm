@@ -1,5 +1,6 @@
 #import "ETModel.h"
 #include "Utils.hpp"
+#include <InputType.h>
 #include <executorch/extension/module/module.h>
 #include <executorch/extension/tensor/tensor.h>
 #include <executorch/runtime/core/error.h>
@@ -36,31 +37,31 @@ using namespace ::torch::executor;
   std::vector<int> shapes = NSArrayToIntVector(shape);
   @try {
     switch (inputTypeIntValue) {
-    case 0: {
+    case InputTypeInt8: {
       // Int8Array
       std::vector<DataPtrWithNumel<int8_t>> output =
           runForwardFromNSArray<int8_t>(input, shapes, _model);
       return arrayToNSArray<int8_t>(output);
     }
-    case 1: {
+    case InputTypeInt32: {
       // Int32Array
       std::vector<DataPtrWithNumel<int32_t>> output =
           runForwardFromNSArray<int32_t>(input, shapes, _model);
       return arrayToNSArray<int32_t>(output);
     }
-    case 2: {
+    case InputTypeInt64: {
       // BigInt64Array
       std::vector<DataPtrWithNumel<int64_t>> output =
           runForwardFromNSArray<int64_t>(input, shapes, _model);
       return arrayToNSArray<int64_t>(output);
     }
-    case 3: {
+    case InputTypeFloat32: {
       // Float32Array
       std::vector<DataPtrWithNumel<float>> output =
           runForwardFromNSArray<float>(input, shapes, _model);
       return arrayToNSArray<float>(output);
     }
-    case 4: {
+    case InputTypeFloat64: {
       // Float64Array
       std::vector<DataPtrWithNumel<double>> output =
           runForwardFromNSArray<double>(input, shapes, _model);
