@@ -1,6 +1,6 @@
 #import "ETModel.h"
 #include "Utils.hpp"
-#include <InputType.h>
+#include "InputType.h"
 #include <executorch/extension/module/module.h>
 #include <executorch/extension/tensor/tensor.h>
 #include <executorch/runtime/core/error.h>
@@ -32,97 +32,129 @@ using namespace ::torch::executor;
 
 - (NSNumber *)getNumberOfInputs {
   const auto method_meta = _model->method_meta("forward");
-  
-  if (method_meta.ok()) {
-    return @(method_meta->num_inputs());
+  if (!method_meta.ok()) {
+    @throw [NSException
+            exceptionWithName:@"get_number_of_inputs_error"
+            reason:[NSString stringWithFormat:@"%ld", (long)method_meta.error()]
+            userInfo:nil];
   }
   
-  return @-1;
+  return @(method_meta->num_inputs());
 }
 
 - (NSNumber *)getInputType:(NSNumber *)index {
   const auto method_meta = _model->method_meta("forward");
-  
-  if(method_meta.ok()){
-    const auto input_meta = method_meta->input_tensor_meta([index unsignedLongValue]);
-    if(input_meta.ok()){
-      return [self getTypeAsNumber:input_meta->scalar_type()];
-    }
+  if(!method_meta.ok()){
+    @throw [NSException
+            exceptionWithName:@"get_input_type_error"
+            reason:[NSString stringWithFormat:@"%ld", (long)method_meta.error()]
+            userInfo:nil];
   }
   
-  return @-1;
+  const auto input_meta = method_meta->input_tensor_meta([index unsignedLongValue]);
+  if(!input_meta.ok()){
+    @throw [NSException
+            exceptionWithName:@"get_input_type_error"
+            reason:[NSString stringWithFormat:@"%ld", (long)input_meta.error()]
+            userInfo:nil];
+  }
+  
+  return [self getTypeAsNumber:input_meta->scalar_type()];
 };
 
 - (NSArray *)getInputShape:(NSNumber *)index {
   const auto method_meta = _model->method_meta("forward");
-  
-  if(method_meta.ok()){
-    const auto input_meta = method_meta->input_tensor_meta([index unsignedLongValue]);
-    if(input_meta.ok()){
-      const auto shape = input_meta->sizes();
-      NSMutableArray *nsShape = [[NSMutableArray alloc] init];
-      
-      for(int i = 0; i < shape.size(); i++) {
-        [nsShape addObject:@(shape[i])];
-      }
-      
-      return [nsShape copy];
-    }
+  if(!method_meta.ok()){
+    @throw [NSException
+            exceptionWithName:@"get_input_shape_error"
+            reason:[NSString stringWithFormat:@"%ld", (long)method_meta.error()]
+            userInfo:nil];
   }
   
-  return nil;
+  const auto input_meta = method_meta->input_tensor_meta([index unsignedLongValue]);
+  if(!input_meta.ok()){
+    @throw [NSException
+            exceptionWithName:@"get_input_shape_error"
+            reason:[NSString stringWithFormat:@"%ld", (long)input_meta.error()]
+            userInfo:nil];
+  }
+  
+  const auto shape = input_meta->sizes();
+  NSMutableArray *nsShape = [[NSMutableArray alloc] init];
+  
+  for(int i = 0; i < shape.size(); i++) {
+    [nsShape addObject:@(shape[i])];
+  }
+  
+  return [nsShape copy];
 };
 
 - (NSNumber *)getNumberOfOutputs {
   const auto method_meta = _model->method_meta("forward");
-  
-  if (method_meta.ok()) {
-    return @(method_meta->num_outputs());
+  if (!method_meta.ok()) {
+    @throw [NSException
+            exceptionWithName:@"get_number_of_outputs_error"
+            reason:[NSString stringWithFormat:@"%ld", (long)method_meta.error()]
+            userInfo:nil];
   }
   
-  return @-1;
+  return @(method_meta->num_outputs());
 }
 
 - (NSNumber *)getOutputType:(NSNumber *)index {
   const auto method_meta = _model->method_meta("forward");
-  
-  if(method_meta.ok()){
-    const auto output_meta = method_meta->output_tensor_meta([index unsignedLongValue]);
-    if(output_meta.ok()){
-      return [self getTypeAsNumber:output_meta->scalar_type()];
-    }
+  if(!method_meta.ok()){
+    @throw [NSException
+            exceptionWithName:@"get_output_type_error"
+            reason:[NSString stringWithFormat:@"%ld", (long)method_meta.error()]
+            userInfo:nil];
   }
   
-  return @-1;
+  const auto output_meta = method_meta->output_tensor_meta([index unsignedLongValue]);
+  if(!output_meta.ok()){
+    @throw [NSException
+            exceptionWithName:@"get_output_type_error"
+            reason:[NSString stringWithFormat:@"%ld", (long)output_meta.error()]
+            userInfo:nil];
+  }
+  
+  return [self getTypeAsNumber:output_meta->scalar_type()];
 };
 
 - (NSArray *)getOutputShape:(NSNumber *)index {
   const auto method_meta = _model->method_meta("forward");
-  
-  if(method_meta.ok()){
-    const auto output_meta = method_meta->output_tensor_meta([index unsignedLongValue]);
-    if(output_meta.ok()){
-      const auto shape = output_meta->sizes();
-      NSMutableArray *nsShape = [[NSMutableArray alloc] init];
-      
-      for(int i = 0; i < shape.size(); i++) {
-        [nsShape addObject:@(shape[i])];
-      }
-      
-      return [nsShape copy];
-    }
+  if(!method_meta.ok()){
+    @throw [NSException
+            exceptionWithName:@"get_output_shape_error"
+            reason:[NSString stringWithFormat:@"%ld", (long)method_meta.error()]
+            userInfo:nil];
   }
   
-  return nil;
+  const auto output_meta = method_meta->output_tensor_meta([index unsignedLongValue]);
+  if(!output_meta.ok()){
+    @throw [NSException
+            exceptionWithName:@"get_output_shape_error"
+            reason:[NSString stringWithFormat:@"%ld", (long)output_meta.error()]
+            userInfo:nil];
+  }
+  
+  const auto shape = output_meta->sizes();
+  NSMutableArray *nsShape = [[NSMutableArray alloc] init];
+  
+  for(int i = 0; i < shape.size(); i++) {
+    [nsShape addObject:@(shape[i])];
+  }
+  
+  return [nsShape copy];
 };
 
 - (NSNumber *) getTypeAsNumber:(ScalarType)scalarType {
   switch(scalarType) {
-    case ScalarType::Byte: return @0;
-    case ScalarType::Int: return @1;
-    case ScalarType::Long: return @2;
-    case ScalarType::Float: return @3;
-    case ScalarType::Double: return @4;
+    case ScalarType::Byte: return @(InputTypeInt8);
+    case ScalarType::Int: return @(InputTypeInt32);
+    case ScalarType::Long: return @(InputTypeInt64);
+    case ScalarType::Float: return @(InputTypeFloat32);
+    case ScalarType::Double: return @(InputTypeFloat64);
       
     default:
       return @-1;

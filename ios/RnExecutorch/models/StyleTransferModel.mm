@@ -1,5 +1,5 @@
 #import "StyleTransferModel.h"
-#import "ImageProcessor.h"
+#import "../utils/ImageProcessor.h"
 
 @implementation StyleTransferModel
 
@@ -75,7 +75,9 @@
     }
   }
   
-  NSArray *result = [self forward:modelInput shape:@[@1, @3, @640, @640] inputType:@3];
+  
+  NSError* forwardError = nil;
+  NSArray *result = [self forward:modelInput shape:@[@1, @3, @640, @640] inputType:@3 error:&forwardError];
   free(processedImageData);
   float* outputData = [self NSArrayToFloatArray:result outLength:1228800];
   UIImage *outputImage = [ImageProcessor imageFromFloatArray:outputData size:processedImage.size];

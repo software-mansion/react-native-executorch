@@ -18,6 +18,7 @@
 		5576B4AE2CEF76CC005027B7 /* backend_xnnpack.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5576B4A52CEF76CC005027B7 /* backend_xnnpack.xcframework */; };
 		5576B4B72CEF9709005027B7 /* ETModel.h in Headers */ = {isa = PBXBuildFile; fileRef = 5576B4B62CEF9705005027B7 /* ETModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5576B4B92CEF970E005027B7 /* ETModel.mm in Sources */ = {isa = PBXBuildFile; fileRef = 5576B4B82CEF970C005027B7 /* ETModel.mm */; };
+		55DEEA382D05ABBB004422A3 /* InputType.h in Headers */ = {isa = PBXBuildFile; fileRef = 55DEEA372D05ABB4004422A3 /* InputType.h */; };
 		55EA2C3F2CB90C7A004315B3 /* runner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 55EA2C262CB90C7A004315B3 /* runner.cpp */; };
 		55EA2C402CB90C7A004315B3 /* runner.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C272CB90C7A004315B3 /* runner.h */; };
 		55EA2C412CB90C7A004315B3 /* stats.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C282CB90C7A004315B3 /* stats.h */; };
@@ -58,6 +59,7 @@
 		5576B4A52CEF76CC005027B7 /* backend_xnnpack.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = backend_xnnpack.xcframework; path = frameworks/backend_xnnpack.xcframework; sourceTree = "<group>"; };
 		5576B4B62CEF9705005027B7 /* ETModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ETModel.h; sourceTree = "<group>"; };
 		5576B4B82CEF970C005027B7 /* ETModel.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ETModel.mm; sourceTree = "<group>"; };
+		55DEEA372D05ABB4004422A3 /* InputType.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InputType.h; sourceTree = "<group>"; };
 		55EA2C1C2CB90C22004315B3 /* ExecutorchLib.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ExecutorchLib.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		55EA2C262CB90C7A004315B3 /* runner.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = runner.cpp; sourceTree = "<group>"; };
 		55EA2C272CB90C7A004315B3 /* runner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = runner.h; sourceTree = "<group>"; };
@@ -130,6 +132,7 @@
 		55EA2C1E2CB90C22004315B3 /* ExecutorchLib */ = {
 			isa = PBXGroup;
 			children = (
+				55DEEA372D05ABB4004422A3 /* InputType.h */,
 				55EA2C352CB90C7A004315B3 /* Exported */,
 				55EA2C2F2CB90C7A004315B3 /* runner */,
 				55EA2C322CB90C7A004315B3 /* sampler */,
@@ -220,7 +223,7 @@
 				55EA2C542CB90E70004315B3 /* LLaMARunner.h in Headers */,
 				5576B4B72CEF9709005027B7 /* ETModel.h in Headers */,
 				55EA2C532CB90C7A004315B3 /* tokenizer.h in Headers */,
-				A84198842D02DF29006D4D5E /* InputType.h in Headers */,
+				55DEEA382D05ABBB004422A3 /* InputType.h in Headers */,
 				55EA2C412CB90C7A004315B3 /* stats.h in Headers */,
 				55EA2C4E2CB90C7A004315B3 /* bpe_tokenizer.h in Headers */,
 				55EA2C402CB90C7A004315B3 /* runner.h in Headers */,

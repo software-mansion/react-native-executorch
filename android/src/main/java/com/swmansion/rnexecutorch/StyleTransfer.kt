@@ -6,6 +6,7 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.swmansion.rnexecutorch.models.StyleTransferModel
 import com.swmansion.rnexecutorch.utils.BitmapUtils
+import com.swmansion.rnexecutorch.utils.ETError
 
 class StyleTransfer(reactContext: ReactApplicationContext) :
   NativeStyleTransferSpec(reactContext) {
@@ -22,7 +23,7 @@ class StyleTransfer(reactContext: ReactApplicationContext) :
       styleTransferModel.loadModel(modelSource)
       promise.resolve(0)
     } catch (e: Exception) {
-      promise.reject(e.message!!, "-1")
+      promise.reject(e.message!!, ETError.InvalidModelPath.toString())
     }
   }
 
