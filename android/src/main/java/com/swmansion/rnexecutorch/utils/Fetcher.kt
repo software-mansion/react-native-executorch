@@ -181,13 +181,13 @@ class Fetcher {
 
     private fun getRemoteFile(
       context: Context,
-      client: OkHttpClient,
       url: URL,
       resourceType: ResourceType,
       isLargeFile: Boolean,
       onComplete: (String?, Exception?) -> Unit,
       listener: ProgressResponseBody.ProgressListener?
     ) {
+      val client = OkHttpClientSingleton.instance
       val fileName = extractFileName(url)
 
       if (getValidExtension(resourceType) != fileName.takeLast(3)) {
@@ -235,9 +235,16 @@ class Fetcher {
       fetchModel(tempFile, validFile, client, url, onComplete, listener)
     }
 
+    fun downloadModel(context: Context, url: String, callback: (String?, Exception?) -> Unit) {
+      downloadResource(context,
+        url,
+        ResourceType.MODEL,
+        false,
+        { path, error -> callback(path, error) })
+    }
+
     fun downloadResource(
       context: Context,
-      client: OkHttpClient,
       url: String,
       resourceType: ResourceType,
       isLargeFile: Boolean,
@@ -278,7 +285,7 @@ class Fetcher {
            create temporary file to store it at download time and later
            move it to the models directory
          */
-        getRemoteFile(context, client, resUrl, resourceType, isLargeFile, onComplete, listener)
+        getRemoteFile(context, resUrl, resourceType, isLargeFile, onComplete, listener)
       } catch (e: Exception) {
         onComplete(null, e)
         return

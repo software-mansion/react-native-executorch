@@ -23,7 +23,7 @@ export const useExecutorchModule = ({
 }: Props): ExecutorchModule => {
   const [error, setError] = useState<string | null>(null);
   const [isModelLoading, setIsModelLoading] = useState(true);
-  const [isModelRunning, setIsModelRunning] = useState(false);
+  const [isModelGenerating, setIsModelGenerating] = useState(false);
 
   useEffect(() => {
     const loadModel = async () => {
@@ -56,12 +56,12 @@ export const useExecutorchModule = ({
 
     try {
       const numberArray = [...input];
-      setIsModelRunning(true);
+      setIsModelGenerating(true);
       const output = await ETModule.forward(numberArray, shape, inputType);
-      setIsModelRunning(false);
+      setIsModelGenerating(false);
       return output;
     } catch (e) {
-      setIsModelRunning(false);
+      setIsModelGenerating(false);
       throw new Error(getError(e));
     }
   };
@@ -81,7 +81,7 @@ export const useExecutorchModule = ({
   return {
     error: error,
     isModelLoading: isModelLoading,
-    isModelRunning: isModelRunning,
+    isModelGenerating: isModelGenerating,
     forward: forward,
     loadMethod: loadMethod,
     loadForward: loadForward,

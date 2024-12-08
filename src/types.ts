@@ -20,8 +20,8 @@ export type ETInput =
 export interface ExecutorchModule {
   error: string | null;
   isModelLoading: boolean;
-  isModelRunning: boolean;
-  forward: (input: ETInput, shape: number[]) => Promise<number[]>;
+  isModelGenerating: boolean;
+  forward: (input: ETInput, shape: number[]) => Promise<number[][]>;
   loadMethod: (methodName: string) => Promise<void>;
   loadForward: () => Promise<void>;
 }

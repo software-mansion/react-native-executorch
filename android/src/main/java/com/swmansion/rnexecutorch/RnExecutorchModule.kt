@@ -9,10 +9,8 @@ import com.swmansion.rnexecutorch.utils.ResourceType
 import com.swmansion.rnexecutorch.utils.llms.ChatRole
 import com.swmansion.rnexecutorch.utils.llms.ConversationManager
 import com.swmansion.rnexecutorch.utils.llms.END_OF_TEXT_TOKEN
-import okhttp3.OkHttpClient
 import org.pytorch.executorch.LlamaCallback
 import org.pytorch.executorch.LlamaModule
-import java.net.URL
 
 class RnExecutorchModule(reactContext: ReactApplicationContext) :
   NativeRnExecutorchSpec(reactContext), LlamaCallback {
@@ -20,7 +18,6 @@ class RnExecutorchModule(reactContext: ReactApplicationContext) :
   private var llamaModule: LlamaModule? = null
   private var tempLlamaResponse = StringBuilder()
   private lateinit var conversationManager: ConversationManager
-  private val client = OkHttpClient()
   private var isFetching = false
 
   override fun getName(): String {
@@ -51,7 +48,7 @@ class RnExecutorchModule(reactContext: ReactApplicationContext) :
     callback: (path: String?, error: Exception?) -> Unit,
   ) {
     Fetcher.downloadResource(
-      reactApplicationContext, client, url, resourceType, isLargeFile,
+      reactApplicationContext, url, resourceType, isLargeFile,
       { path, error -> callback(path, error) },
       object : ProgressResponseBody.ProgressListener {
         override fun onProgress(bytesRead: Long, contentLength: Long, done: Boolean) {

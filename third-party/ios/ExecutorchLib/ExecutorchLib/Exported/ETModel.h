@@ -11,6 +11,13 @@
 - (NSArray *)forward:(NSArray *)input
                shape:(NSArray *)shape
            inputType:(NSNumber *)inputType;
+- (NSNumber *)getNumberOfInputs;
+- (NSNumber *)getInputType:(NSNumber *)index;
+- (NSArray *)getInputShape:(NSNumber *)index;
+- (NSNumber *)getNumberOfOutputs;
+- (NSNumber *)getOutputType:(NSNumber *)index;
+- (NSArray *)getOutputShape:(NSNumber *)index;
+
 
 @end
 

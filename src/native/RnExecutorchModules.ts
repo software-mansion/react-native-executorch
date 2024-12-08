@@ -31,4 +31,17 @@ const ETModule = ETModuleSpec
       }
     );
 
-export { RnExecutorch, ETModule };
+const StyleTransferSpec = require('./NativeStyleTransfer').default;
+
+const StyleTransfer = StyleTransferSpec
+  ? StyleTransferSpec
+  : new Proxy(
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
+
+export { RnExecutorch, ETModule, StyleTransfer };
