@@ -5,52 +5,31 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
 import com.swmansion.rnexecutorch.utils.ArrayUtils
+import com.swmansion.rnexecutorch.utils.ETError
 import com.swmansion.rnexecutorch.utils.Fetcher
-import com.swmansion.rnexecutorch.utils.ProgressResponseBody
-import com.swmansion.rnexecutorch.utils.ResourceType
 import com.swmansion.rnexecutorch.utils.TensorUtils
-import okhttp3.OkHttpClient
 import org.pytorch.executorch.Module
 
 class ETModule(reactContext: ReactApplicationContext) : NativeETModuleSpec(reactContext) {
   private lateinit var module: Module
-  private val client = OkHttpClient()
 
   override fun getName(): String {
     return NAME
   }
 
-  private fun downloadModel(
-    url: String, resourceType: ResourceType, callback: (path: String?, error: Exception?) -> Unit
-  ) {
-    Fetcher.downloadResource(reactApplicationContext,
-      client,
-      url,
-      resourceType,
-      false,
-      { path, error -> callback(path, error) },
-      object : ProgressResponseBody.ProgressListener {
-        override fun onProgress(bytesRead: Long, contentLength: Long, done: Boolean) {
-        }
-      })
-  }
-
   override fun loadModule(modelPath: String, promise: Promise) {
-    try {
-      downloadModel(
-        modelPath, ResourceType.MODEL
-      ) { path, error ->
-        if (error != null) {
-          promise.reject(error.message!!, "-1")
-          return@downloadModel
-        }
-
-        module = Module.load(path)
-        promise.resolve(0)
+    Fetcher.downloadModel(
+      reactApplicationContext,
+      modelPath,
+    ) { path, error ->
+      if (error != null) {
+        promise.reject(error.message!!, ETError.InvalidModelPath.toString())
         return@downloadModel
       }
-    } catch (e: Exception) {
-      promise.reject(e.message!!, "-1")
+
+      module = Module.load(path)
+      promise.resolve(0)
+      return@downloadModel
     }
   }
 
@@ -77,7 +56,7 @@ class ETModule(reactContext: ReactApplicationContext) : NativeETModuleSpec(react
       val result = module.forward(executorchInput)
       val resultArray = Arguments.createArray()
 
-      for(evalue in result){
+      for (evalue in result) {
         resultArray.pushArray(ArrayUtils.createReadableArray(evalue.toTensor()))
       }
 
@@ -85,12 +64,10 @@ class ETModule(reactContext: ReactApplicationContext) : NativeETModuleSpec(react
       return
     } catch (e: IllegalArgumentException) {
       //The error is thrown when transformation to Tensor fails
-      promise.reject("Forward Failed Execution", "18")
+      promise.reject("Forward Failed Execution", ETError.InvalidArgument.code.toString())
       return
     } catch (e: Exception) {
-      //Executorch forward method throws an exception with a message: "Method forward failed with code XX"
-      val exceptionCode = e.message!!.substring(e.message!!.length - 2)
-      promise.reject("Forward Failed Execution", exceptionCode)
+      promise.reject("Forward Failed Execution", e.message!!)
       return
     }
   }

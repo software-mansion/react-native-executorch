@@ -1,46 +1,25 @@
 package com.swmansion.rnexecutorch.models
 
 import android.content.Context
+import com.swmansion.rnexecutorch.utils.ETError
 import com.swmansion.rnexecutorch.utils.Fetcher
-import com.swmansion.rnexecutorch.utils.ProgressResponseBody
-import com.swmansion.rnexecutorch.utils.ResourceType
-import okhttp3.OkHttpClient
 import org.pytorch.executorch.EValue
 import org.pytorch.executorch.Module
 
 
 abstract class BaseModel<Input, Output>(val context: Context) {
   protected lateinit var module: Module
-  private val client = OkHttpClient()
-
-  private fun downloadModel(
-    url: String, callback: (path: String?, error: Exception?) -> Unit
-  ) {
-    Fetcher.downloadResource(context,
-      client,
-      url,
-      ResourceType.MODEL,
-      false,
-      { path, error -> callback(path, error) },
-      object : ProgressResponseBody.ProgressListener {
-        override fun onProgress(bytesRead: Long, contentLength: Long, done: Boolean) {
-        }
-      })
-  }
 
   fun loadModel(modelSource: String) {
-    try {
-      downloadModel(
-        modelSource
-      ) { path, error ->
-        if (error != null) {
-          throw Error(error.message!!)
-        }
-
-        module = Module.load(path)
+    Fetcher.downloadModel(
+      context,
+      modelSource
+    ) { path, error ->
+      if (error != null) {
+        throw Error(error.message!!)
       }
-    } catch (e: Exception) {
-      throw Error(e.message!!)
+
+      module = Module.load(path)
     }
   }
 
@@ -50,11 +29,9 @@ abstract class BaseModel<Input, Output>(val context: Context) {
       return result
     } catch (e: IllegalArgumentException) {
       //The error is thrown when transformation to Tensor fails
-      throw Error("18")
+      throw Error(ETError.InvalidArgument.code.toString())
     } catch (e: Exception) {
-      //Executorch forward method throws an exception with a message: "Method forward failed with code XX"
-      val exceptionCode = e.message!!.substring(e.message!!.length - 2)
-      throw Error(exceptionCode)
+      throw Error(e.message!!)
     }
   }
 

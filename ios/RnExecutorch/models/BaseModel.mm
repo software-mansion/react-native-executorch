@@ -3,13 +3,12 @@
 
 @implementation BaseModel
 
-- (NSArray *)forward:(NSArray *)input shape:(NSArray *)shape inputType:(NSNumber *)inputType {
+- (NSArray *)forward:(NSArray *)input shape:(NSArray *)shape inputType:(NSNumber *)inputType error:(NSError **)error {
     @try {
         NSArray *result = [module forward:input shape:shape inputType:inputType];
         return result;
     } @catch (NSException *exception) {
-        NSLog(@"Exception encountered: %@", [exception reason]);
-        return @[@10, @10, @10]; // Error handling logic here
+      *error = [NSError errorWithDomain:@"forward_error" code:(long)exception.reason userInfo:nil];
     }
 }
 
@@ -17,7 +16,6 @@
     module = [[ETModel alloc] init];
     [Fetcher fetchResource:modelURL resourceType:ResourceType::MODEL completionHandler:^(NSString *filePath, NSError *error) {
         if (error) {
-            NSLog(@"Error loading model: %@", [error localizedDescription]);
           completion(NO, @-1);
           return;
         }
