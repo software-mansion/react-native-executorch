@@ -23,7 +23,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		550986902CEF541900FECBB8 /* Exceptions for "RnExecutorch" folder in "" build phase */ = {
+		550986902CEF541900FECBB8 /* Exceptions for "RnExecutorch" folder in "Copy Files" phase from "RnExecutorch" target */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			buildPhase = 550986872CEF541900FECBB8 /* CopyFiles */;
 			membershipExceptions = (
@@ -36,7 +36,7 @@
 		5509868B2CEF541900FECBB8 /* RnExecutorch */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				550986902CEF541900FECBB8 /* Exceptions for "RnExecutorch" folder in "" build phase */,
+				550986902CEF541900FECBB8 /* Exceptions for "RnExecutorch" folder in "Copy Files" phase from "RnExecutorch" target */,
 			);
 			path = RnExecutorch;
 			sourceTree = "<group>";
@@ -257,7 +257,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = B357MU264T;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -273,7 +272,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = B357MU264T;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
