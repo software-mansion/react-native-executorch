@@ -3,6 +3,9 @@
 
 @implementation StyleTransferModel
 
+static constexpr int32_t width_size{640}, height_size{640}, num_channels{3};
+
+
 - (float *) NSArrayToFloatArray:(NSArray<NSNumber *> *)array outLength:(size_t )outLength {
   if (!array || array.count == 0) {
     NSLog(@"Invalid NSArray input.");
@@ -38,7 +41,7 @@
 }
 
 - (UIImage *)preprocess:(UIImage *)input {
-  CGSize targetSize = CGSizeMake(640, 640);
+  CGSize targetSize = CGSizeMake(width_size, input_height);
   return [ImageProcessor resizeImage:input toSize:targetSize];
 }
 
@@ -49,10 +52,10 @@
 
 - (UIImage *)runModel:(UIImage *)input {
   UIImage *processedImage = [self preprocess:input];
-  CGSize outputSize = {640, 640};
+  CGSize outputSize = {width_size, height_size};
   float* processedImageData = [ImageProcessor imageToFloatArray:processedImage size:&outputSize];
   
-  NSArray *modelInput = [self floatArrayToNSArray:processedImageData length:1228800];
+  NSArray *modelInput = [self floatArrayToNSArray:processedImageData length:(width_size * height_size * num_channels)];
   NSNumber* numInputs = [module getNumberOfInputs];
   NSLog(@"RnExecutorch: %@", [module getNumberOfInputs]);
   for (NSUInteger i = 0; i < [[module getNumberOfInputs] intValue]; i++) {
@@ -77,9 +80,9 @@
   
   
   NSError* forwardError = nil;
-  NSArray *result = [self forward:modelInput shape:@[@1, @3, @640, @640] inputType:@3 error:&forwardError];
+  NSArray *result = [self forward:modelInput shape:@[@1, @num_channels, @width_size, @height_size] inputType:@3 error:&forwardError];
   free(processedImageData);
-  float* outputData = [self NSArrayToFloatArray:result outLength:1228800];
+  float* outputData = [self NSArrayToFloatArray:result outLength:(width_size * height_size * num_channels)];
   UIImage *outputImage = [ImageProcessor imageFromFloatArray:outputData size:processedImage.size];
   free(outputData);
   return [self postprocess:outputImage];
