@@ -19,11 +19,12 @@
         return nil;
     }
 
-    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    unsigned char *rawData = malloc(height * width * 4);
     NSUInteger bytesPerPixel = 4;
     NSUInteger bytesPerRow = bytesPerPixel * width;
     NSUInteger bitsPerComponent = 8;
+
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    unsigned char *rawData = malloc(height * width * bytesPerPixel);
 
     CGContextRef context = CGBitmapContextCreate(rawData, width, height,
                                                  bitsPerComponent, bytesPerRow, colorSpace,
@@ -32,7 +33,8 @@
     CGColorSpaceRelease(colorSpace);
     CGContextDrawImage(context, CGRectMake(0, 0, width, height), [image CGImage]);
 
-    float *floatArray = malloc(width * height * sizeof(float) * 3);
+    // only RGB, without alpha channel
+    float *floatArray = malloc(width * height * sizeof(float) * (bytesPerPixel - 1);
     int pixelCount = width * height;
     for (int i = 0; i < pixelCount; i++) {
         NSUInteger byteIndex = i * bytesPerPixel;
@@ -54,11 +56,15 @@
         return nil;
     }
 
-    int dataSize = width * height * 4; // Assuming RGBA
+    NSUInteger bytesPerPixel = 4;
+    NSUInteger bytesPerRow = bytesPerPixel * width;
+    NSUInteger bitsPerComponent = 8;
+
+    int dataSize = width * height * bytesPerPixel; // Assuming RGBA
     uint8_t *rawData = (uint8_t *)malloc(dataSize);
     
     for (int i = 0; i < width * height; i++) {
-        int pixelIndex = i * 4;
+        int pixelIndex = i * bytesPerPixel;
         int pixelCount = width * height;
         rawData[pixelIndex] = (uint8_t)(array[i] * 255);                        // R
         rawData[pixelIndex + 1] = (uint8_t)(array[pixelCount + i] * 255);       // G
@@ -67,7 +73,7 @@
     }
 
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    CGContextRef context = CGBitmapContextCreate(rawData, width, height, 8, width * 4, colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+    CGContextRef context = CGBitmapContextCreate(rawData, width, height, bitsPerComponent, width * bytesPerPixel, colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
     CGImageRef imageRef = CGBitmapContextCreateImage(context);
     UIImage *resultImage = [UIImage imageWithCGImage:imageRef];
 
