@@ -73,7 +73,7 @@
     }
 
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    CGContextRef context = CGBitmapContextCreate(rawData, width, height, bitsPerComponent, width * bytesPerPixel, colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+    CGContextRef context = CGBitmapContextCreate(rawData, width, height, bitsPerComponent, bytesPerRow, colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
     CGImageRef imageRef = CGBitmapContextCreateImage(context);
     UIImage *resultImage = [UIImage imageWithCGImage:imageRef];
 
