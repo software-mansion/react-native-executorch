@@ -15,10 +15,10 @@
 - (void)loadModel:(NSURL *)modelURL completion:(void (^)(BOOL success, NSNumber* code))completion {
     module = [[ETModel alloc] init];
     [Fetcher fetchResource:modelURL resourceType:ResourceType::MODEL completionHandler:^(NSString *filePath, NSError *error) {
-        if (error) {
-          completion(NO, @-1);
-          return;
-        }
+      if (error) {
+        completion(NO, @-1);
+        return;
+      }
       NSNumber *result = [self->module loadModel: filePath];
       if(result != 0){
         completion(NO, result);
