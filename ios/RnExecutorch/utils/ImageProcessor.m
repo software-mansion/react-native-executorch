@@ -34,7 +34,7 @@
     CGContextDrawImage(context, CGRectMake(0, 0, width, height), [image CGImage]);
 
     // only RGB, without alpha channel
-    float *floatArray = malloc(width * height * sizeof(float) * (bytesPerPixel - 1);
+    float *floatArray = malloc(width * height * sizeof(float) * (bytesPerPixel - 1));
     int pixelCount = width * height;
     for (int i = 0; i < pixelCount; i++) {
         NSUInteger byteIndex = i * bytesPerPixel;
