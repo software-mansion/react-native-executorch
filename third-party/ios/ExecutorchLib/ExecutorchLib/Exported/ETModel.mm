@@ -82,7 +82,7 @@ using namespace ::torch::executor;
   const auto shape = input_meta->sizes();
   NSMutableArray *nsShape = [[NSMutableArray alloc] init];
   
-  for(int i = 0; i < shape.size(); i++) {
+  for(size_t i = 0; i < shape.size(); i++) {
     [nsShape addObject:@(shape[i])];
   }
   
@@ -141,7 +141,7 @@ using namespace ::torch::executor;
   const auto shape = output_meta->sizes();
   NSMutableArray *nsShape = [[NSMutableArray alloc] init];
   
-  for(int i = 0; i < shape.size(); i++) {
+  for(size_t i = 0; i < shape.size(); i++) {
     [nsShape addObject:@(shape[i])];
   }
   
