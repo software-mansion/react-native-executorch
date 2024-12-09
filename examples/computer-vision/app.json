@@ -16,7 +16,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.computervision",
       "infoPlist": {
-        "NSCameraUsageDescription": "Use a photo from camera"
+        "NSCameraUsageDescription": "Process photo from camera"
       }
     },
     "android": {
@@ -24,10 +24,7 @@
         "foregroundImage": "./assets/icons/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.computervision",
-      "android": {
-        "permissions": ["android.permission.CAMERA"]
-      }
+      "package": "com.anonymous.computervision"
     },
     "web": {
       "favicon": "./assets/icons/favicon.png"

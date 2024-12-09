@@ -7,7 +7,7 @@ import { StyleTransferScreen } from './screens/StyleTransferScreen';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { View, StyleSheet } from 'react-native';
 
-enum Model {
+enum ModelType {
   STYLE_TRANSFER,
   OBJECT_DETECTION,
   IMAGE_CLASSIFICATION,
@@ -19,24 +19,26 @@ export default function App() {
     medium: require('./assets/fonts/Aeonik-Medium.otf'),
     regular: require('./assets/fonts/Aeonik-Regular.otf'),
   });
-  const [selectedMode, setSelectedMode] = useState<Model>(Model.STYLE_TRANSFER);
+  const [selectedMode, setSelectedMode] = useState<ModelType>(
+    ModelType.STYLE_TRANSFER
+  );
   const [imageUri, setImageUri] = useState('');
 
-  const handleModeChange = (mode: Model) => {
+  const handleModeChange = (mode: ModelType) => {
     setSelectedMode(mode);
   };
 
   const renderScreen = () => {
     switch (selectedMode) {
-      case Model.STYLE_TRANSFER:
+      case ModelType.STYLE_TRANSFER:
         return (
           <StyleTransferScreen imageUri={imageUri} setImageUri={setImageUri} />
         );
-      case Model.OBJECT_DETECTION:
+      case ModelType.OBJECT_DETECTION:
         return <></>;
-      case Model.IMAGE_CLASSIFICATION:
+      case ModelType.IMAGE_CLASSIFICATION:
         return <></>;
-      case Model.SEMANTIC_SEGMENTATION:
+      case ModelType.SEMANTIC_SEGMENTATION:
         return <></>;
       default:
         return (
