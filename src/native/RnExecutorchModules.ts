@@ -44,4 +44,19 @@ const StyleTransfer = StyleTransferSpec
       }
     );
 
-export { RnExecutorch, ETModule, StyleTransfer };
+const ObjectDetectionSpec = require('./NativeObjectDetection').default;
+
+const ObjectDetection = ObjectDetectionSpec
+  ? ObjectDetectionSpec
+  : new Proxy(
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
+
+  
+
+export { RnExecutorch, ETModule, StyleTransfer, ObjectDetection };

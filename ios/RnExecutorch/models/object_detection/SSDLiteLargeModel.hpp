@@ -4,7 +4,7 @@
 #import <UIKit/UIKit.h>
 #import "BaseModel.h"
 
-@interface SSDLiteLarge : BaseModel
+@interface SSDLiteLargeModel : BaseModel
 
 - (void) runModel:(UIImage *)input;
 
