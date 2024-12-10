@@ -16,5 +16,7 @@ Pod::Spec.new do |s|
   s.ios.vendored_frameworks = "ios/ExecutorchLib.xcframework"
   s.source_files = "ios/**/*.{h,m,mm}"
 
+  s.dependency "opencv-rne", "~> 0.1.0"
+
   install_modules_dependencies(s)
 end
