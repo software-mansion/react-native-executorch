@@ -57,26 +57,6 @@ static constexpr int32_t width_size{640}, height_size{640}, num_channels{3};
   
   NSArray *modelInput = [self floatArrayToNSArray:processedImageData length:(width_size * height_size * num_channels)];
   NSNumber* numInputs = [module getNumberOfInputs];
-  NSLog(@"RnExecutorch: %@", [module getNumberOfInputs]);
-  for (NSUInteger i = 0; i < [[module getNumberOfInputs] intValue]; i++) {
-    NSNumber * index = @(i);
-    NSLog(@"RnExecutorch: %@", [module getInputType:index]);
-    NSArray *inputShapes = [module getInputShape:index];
-    for (NSNumber *shape in inputShapes) {
-      NSLog(@"RnExecutorch: %@", shape);
-    }
-  }
-  
-  NSLog(@"RnExecutorch: %@", [module getNumberOfOutputs]);
-  for (NSUInteger i = 0; i < [[module getNumberOfOutputs] intValue]; i++) {
-    NSNumber * index = @(i);
-    
-    NSLog(@"RnExecutorch: %@", [module getOutputType:index]);
-    NSArray *outputShapes = [module getOutputShape:index];
-    for (NSNumber *shape in outputShapes) {
-      NSLog(@"RnExecutorch: %@", shape);
-    }
-  }
   
   
   NSError* forwardError = nil;
