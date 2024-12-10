@@ -1,88 +1,51 @@
 #import "StyleTransferModel.h"
 #import "../utils/ImageProcessor.h"
+#import "opencv2/opencv.hpp"
 
-@implementation StyleTransferModel
-
-- (float *) NSArrayToFloatArray:(NSArray<NSNumber *> *)array outLength:(size_t )outLength {
-  if (!array || array.count == 0) {
-    NSLog(@"Invalid NSArray input.");
-    outLength = 0;
-    return nullptr;
-  }
-  
-  size_t length = array.count;
-  float* floatArray = new float[length];
-  
-  for (size_t i = 0; i < length; ++i) {
-    floatArray[i] = [array[i] floatValue];
-  }
-  
-  outLength = length;
-  return floatArray;
+@implementation StyleTransferModel {
+  cv::Size originalSize;
 }
 
-- (NSArray *) floatArrayToNSArray:(float*) floatArray length:(size_t)length {
-  if (floatArray == nullptr || length == 0) {
-    NSLog(@"Invalid input array or length.");
-    return nil;
-  }
+- (NSArray *)preprocess:(cv::Mat)input {
+  self->originalSize = cv::Size(input.cols, input.rows);
+  NSArray * inputShape = [module getInputShape: 0];
+  NSNumber *widthNumber = inputShape.lastObject;
+  NSNumber *heightNumber = inputShape[inputShape.count - 2];
   
-  NSMutableArray *array = [NSMutableArray arrayWithCapacity:length];
+  int height = [heightNumber intValue];
+  int width = [widthNumber intValue];
   
-  for (size_t i = 0; i < length; ++i) {
-    NSNumber *number = [NSNumber numberWithFloat:floatArray[i]];
-    [array addObject:number];
-  }
   
-  return [array copy];
+  cv::Size inputSize = cv::Size(height, width);
+  cv::Mat resizedInput;
+  resizedInput.create(height, width, CV_8UC1);
+  cv::resize(input, resizedInput, inputSize);
+  
+  NSArray *modelInput = [ImageProcessor matToNSArray: resizedInput];
+  return modelInput;
 }
 
-- (UIImage *)preprocess:(UIImage *)input {
-  CGSize targetSize = CGSizeMake(640, 640);
-  return [ImageProcessor resizeImage:input toSize:targetSize];
+- (cv::Mat)postprocess:(NSArray *)input {
+  NSArray * inputShape = [module getInputShape: 0];
+  NSNumber *widthNumber = inputShape.lastObject;
+  NSNumber *heightNumber = inputShape[inputShape.count - 2];
+  
+  int height = [heightNumber intValue];
+  int width = [widthNumber intValue];
+  
+  cv::Mat processedImage = [ImageProcessor arrayToMat: input width:width height:height];
+  cv::resize(processedImage, processedImage, originalSize);
+  
+  return processedImage;
 }
 
-- (UIImage *)postprocess:(UIImage *)input {
-  // Assume any necessary format conversions or adjustments
-  return input;
-}
-
-- (UIImage *)runModel:(UIImage *)input {
-  UIImage *processedImage = [self preprocess:input];
-  CGSize outputSize = {640, 640};
-  float* processedImageData = [ImageProcessor imageToFloatArray:processedImage size:&outputSize];
-  
-  NSArray *modelInput = [self floatArrayToNSArray:processedImageData length:1228800];
-  NSNumber* numInputs = [module getNumberOfInputs];
-  NSLog(@"RnExecutorch: %@", [module getNumberOfInputs]);
-  for (NSUInteger i = 0; i < [[module getNumberOfInputs] intValue]; i++) {
-    NSNumber * index = @(i);
-    NSLog(@"RnExecutorch: %@", [module getInputType:index]);
-    NSArray *inputShapes = [module getInputShape:index];
-    for (NSNumber *shape in inputShapes) {
-      NSLog(@"RnExecutorch: %@", shape);
-    }
-  }
-  
-  NSLog(@"RnExecutorch: %@", [module getNumberOfOutputs]);
-  for (NSUInteger i = 0; i < [[module getNumberOfOutputs] intValue]; i++) {
-    NSNumber * index = @(i);
-    
-    NSLog(@"RnExecutorch: %@", [module getOutputType:index]);
-    NSArray *outputShapes = [module getOutputShape:index];
-    for (NSNumber *shape in outputShapes) {
-      NSLog(@"RnExecutorch: %@", shape);
-    }
-  }
-  
-  
+- (cv::Mat)runModel:(cv::Mat)input {
+  NSArray *modelInput = [self preprocess:input];
   NSError* forwardError = nil;
-  NSArray *result = [self forward:modelInput shape:@[@1, @3, @640, @640] inputType:@3 error:&forwardError];
-  free(processedImageData);
-  float* outputData = [self NSArrayToFloatArray:result outLength:1228800];
-  UIImage *outputImage = [ImageProcessor imageFromFloatArray:outputData size:processedImage.size];
-  free(outputData);
-  return [self postprocess:outputImage];
+  NSArray *result = [self forward:modelInput shape:[module getInputShape:0] inputType:[module getInputType:0] error:&forwardError];
+  cv::Mat outputImage = [self postprocess:result[0]];
+  
+  return outputImage;
 }
 
 @end

@@ -1,6 +1,6 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import "ETModel.h"
+#import "ExecutorchLib/ETModel.h"
 
 @interface BaseModel : NSObject
 {
