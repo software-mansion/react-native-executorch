@@ -4,6 +4,7 @@
 #import <ExecutorchLib/ETModel.h>
 #import <React/RCTBridgeModule.h>
 #import "models/StyleTransferModel.h"
+#import <opencv2/opencv.hpp>
 #include <string>
 
 @implementation StyleTransfer {
@@ -35,11 +36,6 @@ RCT_EXPORT_MODULE()
   }];
 }
 
-- (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
-(const facebook::react::ObjCTurboModule::InitParams &)params {
-  return std::make_shared<facebook::react::NativeStyleTransferSpecJSI>(params);
-}
-
 - (void)forward:(NSString *)input
         resolve:(RCTPromiseResolveBlock)resolve
          reject:(RCTPromiseRejectBlock)reject {
@@ -50,24 +46,28 @@ RCT_EXPORT_MODULE()
       reject(@"img_loading_error", @"Unable to load image data", nil);
       return;
     }
-    UIImage *inputImage = [UIImage imageWithData:data];
     
-    UIImage* result = [model runModel:inputImage];
+    cv::Mat decodedImage = cv::imdecode(cv::Mat(1, [data length], CV_8UC1, (void*)data.bytes), cv::IMREAD_COLOR);
     
-    // save img to tmp dir, return URI
-    NSString *outputPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[@"test" stringByAppendingString:@".png"]];
-    if ([UIImagePNGRepresentation(result) writeToFile:outputPath atomically:YES]) {
-      NSURL *fileURL = [NSURL fileURLWithPath:outputPath];
-      resolve([fileURL absoluteString]);
-    } else {
-      reject(@"img_write_error", @"Failed to write processed image to file", nil);
-    }
+    cv::Mat resultImage = [model runModel:decodedImage];
     
+    NSString *outputPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[@"rn_executorch" stringByAppendingString:@".png"]];
+    
+    std::string filePath = [outputPath UTF8String];
+    cv::imwrite(filePath, resultImage);
+    resolve(outputPath);
+    return;
   } @catch (NSException *exception) {
     NSLog(@"An exception occurred: %@, %@", exception.name, exception.reason);
     reject(@"result_error", [NSString stringWithFormat:@"%@", exception.reason],
            nil);
   }
+}
+
+
+- (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
+(const facebook::react::ObjCTurboModule::InitParams &)params {
+  return std::make_shared<facebook::react::NativeStyleTransferSpecJSI>(params);
 }
 
 @end
