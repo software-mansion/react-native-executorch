@@ -56,7 +56,6 @@ static constexpr int32_t width_size{640}, height_size{640}, num_channels{3};
   float* processedImageData = [ImageProcessor imageToFloatArray:processedImage size:&outputSize];
   
   NSArray *modelInput = [self floatArrayToNSArray:processedImageData length:(width_size * height_size * num_channels)];
-  NSNumber* numInputs = [module getNumberOfInputs];
   
   
   NSError* forwardError = nil;
