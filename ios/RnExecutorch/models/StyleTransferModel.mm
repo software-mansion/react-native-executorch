@@ -79,7 +79,7 @@
   NSError* forwardError = nil;
   NSArray *result = [self forward:modelInput shape:@[@1, @3, @640, @640] inputType:@3 error:&forwardError];
   free(processedImageData);
-  float* outputData = [self NSArrayToFloatArray:result[0] outLength:1228800];
+  float* outputData = [self NSArrayToFloatArray:result outLength:1228800];
   UIImage *outputImage = [ImageProcessor imageFromFloatArray:outputData size:processedImage.size];
   free(outputData);
   return [self postprocess:outputImage];
