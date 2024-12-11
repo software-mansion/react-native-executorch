@@ -4,6 +4,6 @@
 
 @interface StyleTransferModel : BaseModel
 
-- (cv::Mat)runModel:(cv::Mat)input;
+- (cv::Mat)runModel:(cv::Mat &)input;
 
 @end

@@ -2,6 +2,7 @@ export enum ETError {
   // React-native-ExecuTorch errors
   UndefinedError = 0x65,
   ModuleNotLoaded = 0x66,
+  FileWriteFailed = 0x67,
   InvalidModelPath = 0xff,
 
   // ExecuTorch mapped errors

@@ -1,5 +1,5 @@
 #import "ImageProcessor.h"
-#import <CoreGraphics/CoreGraphics.h>
+#import "ETError.h"
 
 @implementation ImageProcessor
 
@@ -42,5 +42,17 @@
   return mat;
 }
 
++ (NSString *)saveToTempFile:(const cv::Mat&)image {
+  NSString *outputPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[@"rn_executorch" stringByAppendingString:@".png"]];
+  
+  std::string filePath = [outputPath UTF8String];
+  if (!cv::imwrite(filePath, image)) {
+    @throw [NSException exceptionWithName:@"ImageSaveException"
+                                   reason:[NSString stringWithFormat:@"%ld", (long)FileWriteFailed]
+                                 userInfo:nil];
+  }
+  
+  return outputPath;
+}
 
 @end

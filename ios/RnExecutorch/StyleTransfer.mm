@@ -1,11 +1,12 @@
 #import "StyleTransfer.h"
 #import "utils/Fetcher.h"
 #import "models/BaseModel.h"
+#import "utils/ETError.h"
+#import "ImageProcessor.h"
 #import <ExecutorchLib/ETModel.h>
 #import <React/RCTBridgeModule.h>
 #import "models/StyleTransferModel.h"
 #import <opencv2/opencv.hpp>
-#include <string>
 
 @implementation StyleTransfer {
   StyleTransferModel* model;
@@ -23,15 +24,8 @@ RCT_EXPORT_MODULE()
       return;
     }
     
-    NSError *error = [NSError
-                      errorWithDomain:@"StyleTransferErrorDomain"
-                      code:[errorCode intValue]
-                      userInfo:@{
-      NSLocalizedDescriptionKey : [NSString
-                                   stringWithFormat:@"%ld", (long)[errorCode longValue]]
-    }];
-    
-    reject(@"init_module_error", error.localizedDescription, error);
+    reject(@"init_module_error", [NSString
+                                  stringWithFormat:@"%ld", (long)[errorCode longValue]], nil);
     return;
   }];
 }
@@ -41,26 +35,22 @@ RCT_EXPORT_MODULE()
          reject:(RCTPromiseRejectBlock)reject {
   @try {
     NSURL *url = [NSURL URLWithString:input];
-    NSData *data = [NSData dataWithContentsOfURL:url];
-    if (!data) {
-      reject(@"img_loading_error", @"Unable to load image data", nil);
+    cv::Mat image = cv::imread([[url path] UTF8String], cv::IMREAD_COLOR);
+    if(image.empty()){
+      reject(@"img_loading_error", [NSString stringWithFormat:@"%ld", (long)InvalidArgument], nil);
       return;
     }
     
-    cv::Mat decodedImage = cv::imdecode(cv::Mat(1, [data length], CV_8UC1, (void*)data.bytes), cv::IMREAD_COLOR);
+    cv::Mat resultImage = [model runModel:image];
     
-    cv::Mat resultImage = [model runModel:decodedImage];
-    
-    NSString *outputPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[@"rn_executorch" stringByAppendingString:@".png"]];
-    
-    std::string filePath = [outputPath UTF8String];
-    cv::imwrite(filePath, resultImage);
-    resolve(outputPath);
+    NSString* tempFilePath = [ImageProcessor saveToTempFile:resultImage];
+    resolve(tempFilePath);
     return;
   } @catch (NSException *exception) {
     NSLog(@"An exception occurred: %@, %@", exception.name, exception.reason);
-    reject(@"result_error", [NSString stringWithFormat:@"%@", exception.reason],
+    reject(@"forward_error", [NSString stringWithFormat:@"%@", exception.reason],
            nil);
+    return;
   }
 }
 

@@ -5,10 +5,10 @@
 @interface BaseModel : NSObject
 {
 @protected
-    ETModel *module;
+  ETModel *module;
 }
 
-- (NSArray *)forward:(NSArray *)input shape:(NSArray *)shape inputType:(NSNumber *)inputType error:(NSError **)error;
+- (NSArray *)forward:(NSArray *)input;
 - (void)loadModel:(NSURL *)modelURL completion:(void (^)(BOOL success, NSNumber *code))completion;
 
 @end
