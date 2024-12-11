@@ -3,14 +3,11 @@ import { Image } from 'react-native';
 import { ETError, getError } from '../../Error';
 import { ObjectDetection } from '../../native/RnExecutorchModules';
 import {
-    ObjectDetectionModel,
-    ObjectDetectionOutputType,
     ObjectDetectionResult,
 } from './types';
 
 interface Props {
-  model: keyof typeof ObjectDetectionModel;
-  path: string | number;
+  modelSource: string | number;
 }
 
 interface ObjectDetectionModule {
@@ -19,29 +16,25 @@ interface ObjectDetectionModule {
   isModelGenerating: boolean;
   forward: (
     input: string,
-    outputType: keyof typeof ObjectDetectionOutputType,
-    topk: number // TODO: find an alternative way
   ) => Promise<ObjectDetectionResult>;
 }
 
 export const useObjectDetection = ({
-  model,
-  path,
+  modelSource,
 }: Props): ObjectDetectionModule => {
   const [error, setError] = useState<null | string>(null);
   const [isModelLoading, setIsModelLoading] = useState(true);
   const [isModelGenerating, setIsModelGenerating] = useState(false);
 
   useEffect(() => {
-    // TODO: handle the case where kind is wrong
     const loadModel = async () => {
-      if (typeof path === 'number') {
-        path = Image.resolveAssetSource(path).uri;
+      if (typeof modelSource === 'number') {
+        modelSource = Image.resolveAssetSource(modelSource).uri;
       }
 
       try {
         setIsModelLoading(true);
-        await ObjectDetection.loadModule(path, model);
+        await ObjectDetection.loadModule(modelSource);
       } catch (e) {
         setError(getError(e));
       } finally {
@@ -50,12 +43,10 @@ export const useObjectDetection = ({
     };
 
     loadModel();
-  }, [path]);
+  }, [modelSource]);
 
   const forward = async (
     input: string,
-    outptutType: keyof typeof ObjectDetectionOutputType,
-    topk: number
   ) => {
     if (isModelLoading) {
       throw new Error(getError(ETError.ModuleNotLoaded));
@@ -63,7 +54,7 @@ export const useObjectDetection = ({
 
     try {
       setIsModelGenerating(true);
-      const output = await ObjectDetection.forward(input, outptutType, topk);
+      const output = await ObjectDetection.forward(input);
       setIsModelGenerating(false);
       return output;
     } catch (e) {

@@ -1,13 +1,3 @@
-export enum ObjectDetectionModel {
-  SSDLITE_LARGE = 'SSDLITE_LARGE',
-}
-
-export enum ObjectDetectionOutputType {
-  IMAGE = 1,
-  DETECTIONS = 2,
-  ALL = 3,
-}
-
 export interface Bbox {
   x1: number;
   y1: number;
@@ -17,11 +7,93 @@ export interface Bbox {
 
 export interface Detection {
   bbox: Bbox;
-  label: string; // TODO
+  label: keyof typeof CocoLabel;
   score: number;
 }
 
 export interface ObjectDetectionResult {
-  outputImageUri?: String[];
   detections: Detection[];
+}
+
+enum CocoLabel {
+  PERSON = 1,
+  BICYCLE = 2,
+  CAR = 3,
+  MOTORCYCLE = 4,
+  AIRPLANE = 5,
+  BUS = 6,
+  TRAIN = 7,
+  TRUCK = 8,
+  BOAT = 9,
+  TRAFFIC_LIGHT = 10,
+  FIRE_HYDRANT = 11,
+  STOP_SIGN = 12,
+  PARKING_METER = 13,
+  BENCH = 14,
+  BIRD = 15,
+  CAT = 16,
+  DOG = 17,
+  HORSE = 18,
+  SHEEP = 19,
+  COW = 20,
+  ELEPHANT = 21,
+  BEAR = 22,
+  ZEBRA = 23,
+  GIRAFFE = 24,
+  BACKPACK = 25,
+  UMBRELLA = 26,
+  HANDBAG = 27,
+  TIE = 28,
+  SUITCASE = 29,
+  FRISBEE = 30,
+  SKIS = 31,
+  SNOWBOARD = 32,
+  SPORTS_BALL = 33,
+  KITE = 34,
+  BASEBALL_BAT = 35,
+  BASEBALL_GLOVE = 36,
+  SKATEBOARD = 37,
+  SURFBOARD = 38,
+  TENNIS_RACKET = 39,
+  BOTTLE = 40,
+  WINE_GLASS = 41,
+  CUP = 42,
+  FORK = 43,
+  KNIFE = 44,
+  SPOON = 45,
+  BOWL = 46,
+  BANANA = 47,
+  APPLE = 48,
+  SANDWICH = 49,
+  ORANGE = 50,
+  BROCCOLI = 51,
+  CARROT = 52,
+  HOT_DOG = 53,
+  PIZZA = 54,
+  DONUT = 55,
+  CAKE = 56,
+  CHAIR = 57,
+  COUCH = 58,
+  POTTED_PLANT = 59,
+  BED = 60,
+  DINING_TABLE = 61,
+  TOILET = 62,
+  TV = 63,
+  LAPTOP = 64,
+  MOUSE = 65,
+  REMOTE = 66,
+  KEYBOARD = 67,
+  CELL_PHONE = 68,
+  MICROWAVE = 69,
+  OVEN = 70,
+  TOASTER = 71,
+  SINK = 72,
+  REFRIGERATOR = 73,
+  BOOK = 74,
+  CLOCK = 75,
+  VASE = 76,
+  SCISSORS = 77,
+  TEDDY_BEAR = 78,
+  HAIR_DRIER = 79,
+  TOOTHBRUSH = 80,
 }
