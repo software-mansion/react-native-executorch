@@ -5,12 +5,12 @@ sidebar_position: 1
 
 Style transfer is a technique used in computer graphics and machine learning where the visual style of one image is applied to the content of another. This is achieved using algorithms that manipulate data from both images, typically with the aid of a neural network. The result is a new image that combines the artistic elements of one picture with the structural details of another, effectively merging art with traditional imagery. React Native ExecuTorch offers a dedicated hook `useStyleTransfer`, for this task. However before you start you'll need to obtain ExecuTorch-compatible model binary.
 
-- It is recommended to use models provided with our library available at our [hugging face repository](https://huggingface.co/software-mansion), you can also use [constants](https://github.com/software-mansion/react-native-executorch/tree/main/src/constants/modelUrls.ts) shipped with our library
+- It is recommended to use models provided available at our [hugging face repository](https://huggingface.co/software-mansion), you can also use [constants](https://github.com/software-mansion/react-native-executorch/tree/main/src/constants/modelUrls.ts) shipped with our library
 - If you prefer to export model by yourself make sure to check official [ExecuTorch documentation](https://pytorch.org/executorch/stable/index.html)
 
 ## Initializing
 
-To load a model into the application you have to run required code:
+To load a model into the application, execute the following code:
 
 ```typescript
 import {
@@ -38,7 +38,7 @@ The provided code snippet fetches the model from the [specified source](../funda
 | `isModelGenerating` | `boolean`                            | Indicates whether the model is currently performing style transfer.                                      |
 | `isModelReady`      | `boolean`                            | Indicates whether the model is ready.                                                                    |
 
-### Using forward function
+### Executing forward function
 
 In order to perform style transfer, you should use following code:
 
