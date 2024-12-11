@@ -3,10 +3,10 @@ title: useStyleTransfer
 sidebar_position: 1
 ---
 
-Style transfer is a technique used in computer graphics and machine learning where the visual style of one image is applied to the content of another. This is achieved using algorithms that manipulate data from both images, typically with the aid of a neural network. The result is a new image that combines the artistic elements of one picture with the structural details of another, effectively merging art with traditional imagery. React Native ExecuTorch offers a dedicated hook for this task, but before you will get started you have to obtain ExecuTorch compatible model binary.
+Style transfer is a technique used in computer graphics and machine learning where the visual style of one image is applied to the content of another. This is achieved using algorithms that manipulate data from both images, typically with the aid of a neural network. The result is a new image that combines the artistic elements of one picture with the structural details of another, effectively merging art with traditional imagery. React Native ExecuTorch offers a dedicated hook `useStyleTransfer`, for this task. However before you start you'll need to obtain ExecuTorch-compatible model binary.
 
-- It's best to use models provided with our library, you can get them from our [hugging face repository](https://huggingface.co/software-mansion), you can also use [constants](https://github.com/software-mansion/react-native-executorch/tree/main/src/constants/modelUrls.ts) shipped with our library
-- If you want to export model by yourself make sure to check official [ExecuTorch documentation](https://pytorch.org/executorch/stable/index.html)
+- It is recommended to use models provided with our library available at our [hugging face repository](https://huggingface.co/software-mansion), you can also use [constants](https://github.com/software-mansion/react-native-executorch/tree/main/src/constants/modelUrls.ts) shipped with our library
+- If you prefer to export model by yourself make sure to check official [ExecuTorch documentation](https://pytorch.org/executorch/stable/index.html)
 
 ## Initializing
 
@@ -23,7 +23,7 @@ const model = useStyleTransfer({
 });
 ```
 
-The provided code snippet fetches the model from the [specified source](../fundamentals/loading-models.md), loads it into memory and returns an object with various methods and properties enabling you to controll lifecycle of the model.
+The provided code snippet fetches the model from the [specified source](../fundamentals/loading-models.md), loads it into memory and returns an object with various methods and properties enabling you to controll model's lifecycle.
 
 ### Arguments
 
@@ -31,12 +31,12 @@ The provided code snippet fetches the model from the [specified source](../funda
 
 ### Returns
 
-| Field               | Type                                 | Description                                                                                        |
-| ------------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------- |
-| `forward`           | `(input: string) => Promise<string>` | Function to run forward method of the model, input can be any fetchable resource or base64 string. |
-| `error`             | <code>string &#124; null</code>      | Contains the error message if the model failed to load.                                            |
-| `isModelGenerating` | `boolean`                            | Indicates whether the model is currently performing style transfer.                                |
-| `isModelReady`      | `boolean`                            | Indicates whether the model is ready.                                                              |
+| Field               | Type                                 | Description                                                                                              |
+| ------------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| `forward`           | `(input: string) => Promise<string>` | Executes the model's forward pass, where `input` can be a fetchable resource or a Base64-encoded string. |
+| `error`             | <code>string &#124; null</code>      | Contains the error message if the model failed to load.                                                  |
+| `isModelGenerating` | `boolean`                            | Indicates whether the model is currently performing style transfer.                                      |
+| `isModelReady`      | `boolean`                            | Indicates whether the model is ready.                                                                    |
 
 ### Using forward function
 
