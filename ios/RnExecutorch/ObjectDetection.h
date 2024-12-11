@@ -1,5 +1,5 @@
 #import <RnExecutorchSpec/RnExecutorchSpec.h>
 
-@interface SSDLiteLarge : NSObject <SSDLite>
+@interface ObjectDetection : NSObject <NativeObjectDetectionSpec>
 
 @end

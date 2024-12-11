@@ -1,11 +1,11 @@
-#ifndef SSDLITELARGE_HPP
-#define SSDLITELARGE_HPP
-
-#import <UIKit/UIKit.h>
 #import "BaseModel.h"
+#import <UIKit/UIKit.h>
+#include <opencv2/opencv.hpp>
 
 @interface SSDLiteLargeModel : BaseModel
 
-- (void) runModel:(UIImage *)input;
+- (NSArray *)runModel:(cv::Mat)input;
+- (NSArray *)preprocess:(cv::Mat)input;
+- (NSArray *)postprocess:(NSArray *)input;
 
 @end

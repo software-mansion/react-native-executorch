@@ -1,67 +1,62 @@
-#import "SSDLiteLarge.h"
-#import "ImageProcessor.h"
+#include "SSDLiteLargeModel.hpp"
+#include "ImageProcessor.h"
+#include "ObjectDetectionUtils.hpp"
+#include <vector>
 
-@implementation SSDLiteLarge
+inline float constexpr iouThreshold = 0.55;
+inline float constexpr detectionThreshold = 0.7;
+inline int constexpr inputWidth = 320;
+inline int constexpr inputHeight = 320;
 
-- (float *) NSArrayToFloatArray:(NSArray<NSNumber *> *)array outLength:(size_t )outLength {
-  if (!array || array.count == 0) {
-    NSLog(@"Invalid NSArray input.");
-    outLength = 0;
-    return nullptr;
-  }
-  
-  size_t length = array.count;
-  float* floatArray = new float[length];
-  
-  for (size_t i = 0; i < length; ++i) {
-    floatArray[i] = [array[i] floatValue];
-  }
-  
-  outLength = length;
-  return floatArray;
+@implementation SSDLiteLargeModel
+
+- (NSArray *)preprocess:(cv::Mat)input {
+  cv::resize(input, input, cv::Size(inputWidth, inputHeight));
+  NSArray *modelInput = [ImageProcessor matToNSArray:input];
+  return modelInput;
 }
 
-- (NSArray *) floatArrayToNSArray:(float*) floatArray length:(size_t)length {
-  if (floatArray == nullptr || length == 0) {
-    NSLog(@"Invalid input array or length.");
-    return nil;
+- (NSArray *)postprocess:(NSArray *)input {
+  NSArray *bboxes = [input objectAtIndex:0];
+  NSArray *scores = [input objectAtIndex:1];
+  NSArray *labels = [input objectAtIndex:2];
+
+  std::vector<Detection> detections;
+
+  for (NSUInteger idx = 0; idx < scores.count; idx++) {
+    float score = [scores[idx] floatValue];
+    float label = [labels[idx] floatValue];
+    if (score < detectionThreshold) {
+      continue;
+    }
+    float x1 = [bboxes[idx * 4] floatValue];
+    float y1 = [bboxes[idx * 4 + 1] floatValue];
+    float x2 = [bboxes[idx * 4 + 2] floatValue];
+    float y2 = [bboxes[idx * 4 + 3] floatValue];
+
+    Detection det = {x1, y1, x2, y2, label, score};
+    detections.push_back(det);
   }
+  std::vector<Detection> nms_output = nms(detections, iouThreshold);
   
-  NSMutableArray *array = [NSMutableArray arrayWithCapacity:length];
-  
-  for (size_t i = 0; i < length; ++i) {
-    NSNumber *number = [NSNumber numberWithFloat:floatArray[i]];
-    [array addObject:number];
+  NSMutableArray *output = [NSMutableArray array];
+  for (Detection& detection: nms_output) {
+    [output addObject: detectionToNSDictionary(detection)];
   }
-  
-  return [array copy];
+
+  return output;
 }
 
-- (UIImage *)preprocess:(UIImage *)input {
-  CGSize targetSize = CGSizeMake(320, 320);
-  return [ImageProcessor resizeImage:input toSize:targetSize];
-}
-
-- (UIImage *)postprocess:(UIImage *)input {
-  // Assume any necessary format conversions or adjustments
-  return input;
-}
-
-- (void) runModel:(UIImage *)input {
-  CGSize inputSize = CGSize({320, 320});
-  UIImage *preprocessedImage = [self preprocess:input];
-  
-  float *preprocessedImageData = [ImageProcessor imageToFloatArray:preprocessedImage size:&inputSize];
-  NSArray *modelInput = [self floatArrayToNSArray:preprocessedImageData length:1228800];
-  
-  NSError* forwardError = nil;
-  NSArray *result = [self forward:modelInput shape:@[@1, @3, @320, @320] inputType:@3 error:&forwardError];
-  
-  float* outputData = [self NSArrayToFloatArray:result outLength:1228800];
-  
-  free(preprocessedImageData);
-  free(outputData);
-//  return [self postprocess:outputImage];
+- (NSArray *)runModel:(cv::Mat)input {
+  NSLog(@"Calling runMoodel");
+  NSArray *modelInput = [self preprocess:input];
+  NSError *forwardError = nil;
+  NSArray *forwardResult = [self forward:modelInput
+                            shape:@[ @1, @3, @320, @320 ]
+                        inputType:@3
+                            error:&forwardError];
+  NSArray *output = [self postprocess:forwardResult];
+  return output;
 }
 
 @end
