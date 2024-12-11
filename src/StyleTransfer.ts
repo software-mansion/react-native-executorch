@@ -9,7 +9,7 @@ interface Props {
 
 interface StyleTransferModule {
   error: string | null;
-  isModelLoading: boolean;
+  isModelReady: boolean;
   isModelGenerating: boolean;
   forward: (input: string) => Promise<string>;
 }
@@ -18,7 +18,7 @@ export const useStyleTransfer = ({
   modulePath,
 }: Props): StyleTransferModule => {
   const [error, setError] = useState<null | string>(null);
-  const [isModelLoading, setIsModelLoading] = useState(true);
+  const [isModelReady, setIsModelReady] = useState(true);
   const [isModelGenerating, setIsModelGenerating] = useState(false);
 
   useEffect(() => {
@@ -30,12 +30,12 @@ export const useStyleTransfer = ({
       }
 
       try {
-        setIsModelLoading(true);
+        setIsModelReady(false);
         await StyleTransfer.loadModule(path);
       } catch (e) {
         setError(getError(e));
       } finally {
-        setIsModelLoading(false);
+        setIsModelReady(true);
       }
     };
 
@@ -43,8 +43,12 @@ export const useStyleTransfer = ({
   }, [modulePath]);
 
   const forward = async (input: string) => {
-    if (isModelLoading) {
+    if (!isModelReady) {
       throw new Error(getError(ETError.ModuleNotLoaded));
+    }
+
+    if (error) {
+      throw new Error(error);
     }
 
     try {
@@ -58,5 +62,5 @@ export const useStyleTransfer = ({
     }
   };
 
-  return { error, isModelLoading, isModelGenerating, forward };
+  return { error, isModelReady, isModelGenerating, forward };
 };

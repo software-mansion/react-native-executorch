@@ -34,13 +34,7 @@ RCT_EXPORT_MODULE()
         resolve:(RCTPromiseResolveBlock)resolve
          reject:(RCTPromiseRejectBlock)reject {
   @try {
-    NSURL *url = [NSURL URLWithString:input];
-    cv::Mat image = cv::imread([[url path] UTF8String], cv::IMREAD_COLOR);
-    if(image.empty()){
-      reject(@"img_loading_error", [NSString stringWithFormat:@"%ld", (long)InvalidArgument], nil);
-      return;
-    }
-    
+    cv::Mat image = [ImageProcessor readImage:input];
     cv::Mat resultImage = [model runModel:image];
     
     NSString* tempFilePath = [ImageProcessor saveToTempFile:resultImage];

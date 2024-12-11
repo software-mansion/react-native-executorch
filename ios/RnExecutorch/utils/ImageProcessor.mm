@@ -55,4 +55,39 @@
   return outputPath;
 }
 
++ (cv::Mat)readImage:(NSString *)source {
+  NSURL *url = [NSURL URLWithString:source];
+  
+  cv::Mat inputImage;
+  NSLog(@"%@", url.scheme);
+  if([[url scheme] isEqualToString: @"data"]){
+    //base64
+    NSArray *parts = [source componentsSeparatedByString:@","];
+    if ([parts count] < 2) {
+        NSLog(@"Error: Data URI is not properly formatted");
+    }
+    NSString *encodedString = parts[1];
+    NSData *data = [[NSData alloc] initWithBase64EncodedString:encodedString options:NSDataBase64DecodingIgnoreUnknownCharacters];
+    cv::Mat encodedData(1, [data length], CV_8UC1, (void *)data.bytes);
+    inputImage = cv::imdecode(encodedData, cv::IMREAD_COLOR);
+  }
+  if([[url scheme] isEqualToString: @"file"]){
+    //local file
+    inputImage = cv::imread([[url path] UTF8String], cv::IMREAD_COLOR);
+  }
+  else {
+    //external file
+    NSData *data = [NSData dataWithContentsOfURL:url];
+    inputImage = cv::imdecode(cv::Mat(1, [data length], CV_8UC1, (void*)data.bytes), cv::IMREAD_COLOR);
+  }
+  
+  if(inputImage.empty()){
+    @throw [NSException exceptionWithName:@"readImage_error"
+                                   reason:[NSString stringWithFormat:@"%ld", (long)InvalidArgument]
+                                 userInfo:nil];
+  }
+  
+  return inputImage;
+}
+
 @end
