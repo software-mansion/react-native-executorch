@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "computer-vision",
+    "slug": "computer-vision",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icons/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/icons/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.computervision",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Process photo from camera"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icons/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.anonymous.computervision"
+    },
+    "web": {
+      "favicon": "./assets/icons/favicon.png"
+    }
+  }
+}
