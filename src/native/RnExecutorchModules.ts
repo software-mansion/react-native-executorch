@@ -6,9 +6,9 @@ const LINKING_ERROR =
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo Go\n';
 
-const RnExecutorchSpec = require('./NativeRnExecutorch').default;
-const RnExecutorch = RnExecutorchSpec
-  ? RnExecutorchSpec
+const LLMSpec = require('./NativeLLM').default;
+const LLM = LLMSpec
+  ? LLMSpec
   : new Proxy(
       {},
       {
@@ -44,4 +44,4 @@ const StyleTransfer = StyleTransferSpec
       }
     );
 
-export { RnExecutorch, ETModule, StyleTransfer };
+export { LLM, ETModule, StyleTransfer };
