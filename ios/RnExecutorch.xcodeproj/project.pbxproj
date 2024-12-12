@@ -27,7 +27,7 @@
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			buildPhase = 550986872CEF541900FECBB8 /* CopyFiles */;
 			membershipExceptions = (
-				RnExecutorch.h,
+				LLM.h,
 			);
 		};
 /* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */

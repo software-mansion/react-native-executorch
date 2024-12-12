@@ -12,8 +12,8 @@ import com.swmansion.rnexecutorch.utils.llms.END_OF_TEXT_TOKEN
 import org.pytorch.executorch.LlamaCallback
 import org.pytorch.executorch.LlamaModule
 
-class RnExecutorchModule(reactContext: ReactApplicationContext) :
-  NativeRnExecutorchSpec(reactContext), LlamaCallback {
+class LLM(reactContext: ReactApplicationContext) :
+  NativeLLMSpec(reactContext), LlamaCallback {
 
   private var llamaModule: LlamaModule? = null
   private var tempLlamaResponse = StringBuilder()
@@ -94,7 +94,11 @@ class RnExecutorchModule(reactContext: ReactApplicationContext) :
           return@tokenizerDownload
         }
 
-        downloadResource(modelSource, ResourceType.MODEL, isLargeFile = true) modelDownload@{ modelPath, modelError ->
+        downloadResource(
+          modelSource,
+          ResourceType.MODEL,
+          isLargeFile = true
+        ) modelDownload@{ modelPath, modelError ->
           if (modelError != null) {
             promise.reject(
               "Download Error",
@@ -149,6 +153,6 @@ class RnExecutorchModule(reactContext: ReactApplicationContext) :
   }
 
   companion object {
-    const val NAME = "RnExecutorch"
+    const val NAME = "LLM"
   }
 }
