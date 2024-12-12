@@ -43,7 +43,9 @@
 }
 
 + (NSString *)saveToTempFile:(const cv::Mat&)image {
-  NSString *outputPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[@"rn_executorch" stringByAppendingString:@".png"]];
+  NSString *uniqueID = [[NSUUID UUID] UUIDString];
+  NSString *filename = [NSString stringWithFormat:@"rn_executorch_%@.png", uniqueID];
+  NSString *outputPath = [NSTemporaryDirectory() stringByAppendingPathComponent:filename];
   
   std::string filePath = [outputPath UTF8String];
   if (!cv::imwrite(filePath, image)) {
@@ -59,7 +61,6 @@
   NSURL *url = [NSURL URLWithString:source];
   
   cv::Mat inputImage;
-  NSLog(@"%@", url.scheme);
   if([[url scheme] isEqualToString: @"data"]){
     //base64
     NSArray *parts = [source componentsSeparatedByString:@","];
