@@ -24,13 +24,14 @@ export const useObjectDetection = ({
 
   useEffect(() => {
     const loadModel = async () => {
+      let path = modelSource;
       if (typeof modelSource === 'number') {
-        modelSource = Image.resolveAssetSource(modelSource).uri;
+        path = Image.resolveAssetSource(modelSource).uri;
       }
 
       try {
         setIsModelLoading(true);
-        await ObjectDetection.loadModule(modelSource);
+        await ObjectDetection.loadModule(path);
       } catch (e) {
         setError(getError(e));
       } finally {

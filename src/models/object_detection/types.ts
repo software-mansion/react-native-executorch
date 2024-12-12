@@ -1,12 +1,8 @@
-export interface Bbox {
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
-}
-
 export interface Detection {
-  bbox: Bbox;
+  x1: number;
+  x2: number;
+  y1: number;
+  y2: number;
   label: keyof typeof CocoLabel;
   score: number;
 }
