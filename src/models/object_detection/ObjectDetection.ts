@@ -53,8 +53,9 @@ export const useObjectDetection = ({
       setIsModelGenerating(false);
       return output;
     } catch (e) {
-      setIsModelGenerating(false);
       throw new Error(getError(e));
+    } finally {
+      setIsModelGenerating(false);
     }
   };
 

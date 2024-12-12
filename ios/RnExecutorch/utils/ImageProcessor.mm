@@ -14,8 +14,8 @@
     int row = i / mat.cols;
     int col = i % mat.cols;
     cv::Vec3b pixel = mat.at<cv::Vec3b>(row, col);
-    floatArray[i] = @(pixel[2] / 255.0f);
-    floatArray[pixelCount + i] = @(pixel[1] / 255.0f);
+    floatArray[0 * pixelCount + i] = @(pixel[2] / 255.0f);
+    floatArray[1 * pixelCount + i] = @(pixel[1] / 255.0f);
     floatArray[2 * pixelCount + i] = @(pixel[0] / 255.0f);
   }
   
@@ -31,8 +31,8 @@
     int col = i % width;
     float r = 0, g = 0, b = 0;
     
-    r = [[array objectAtIndex: i] floatValue];
-    g = [[array objectAtIndex: pixelCount + i] floatValue];
+    r = [[array objectAtIndex: 0 * pixelCount + i] floatValue];
+    g = [[array objectAtIndex: 1 * pixelCount + i] floatValue];
     b = [[array objectAtIndex: 2 * pixelCount + i] floatValue];
     
     cv::Vec3b color((uchar)(b * 255), (uchar)(g * 255), (uchar)(r * 255));

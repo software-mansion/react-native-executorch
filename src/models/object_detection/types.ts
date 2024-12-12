@@ -6,7 +6,7 @@ export interface Bbox {
 }
 
 export interface Detection {
-  bbox: Bbox,
+  bbox: Bbox;
   label: keyof typeof CocoLabel;
   score: number;
 }
@@ -101,5 +101,5 @@ enum CocoLabel {
   TEDDY_BEAR = 88,
   HAIR_DRIER = 89,
   TOOTHBRUSH = 90,
-  HAIR_BRUSH = 91
-};
+  HAIR_BRUSH = 91,
+}

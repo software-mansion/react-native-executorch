@@ -44,15 +44,15 @@ RCT_EXPORT_MODULE()
              nil);
       return;
     }
-  cv::Mat decodedImage = cv::imdecode(
-      cv::Mat(1, [data length], CV_8UC1, (void *)data.bytes), cv::IMREAD_COLOR);
-  NSArray *result = [model runModel:decodedImage];
-  resolve(result);
-}
-@catch (NSException *exception) {
-  reject(@"result_error", [NSString stringWithFormat:@"%@", exception.reason],
-         nil);
-}
+    cv::Mat decodedImage =
+        cv::imdecode(cv::Mat(1, [data length], CV_8UC1, (void *)data.bytes),
+                     cv::IMREAD_COLOR);
+    NSArray *result = [model runModel:decodedImage];
+    resolve(result);
+  } @catch (NSException *exception) {
+    reject(@"result_error", [NSString stringWithFormat:@"%@", exception.reason],
+           nil);
+  }
 }
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
