@@ -1,14 +1,14 @@
-export interface Detection {
+export interface Bbox {
   x1: number;
   x2: number;
   y1: number;
   y2: number;
-  label: keyof typeof CocoLabel;
-  score: number;
 }
 
-export interface ObjectDetectionResult {
-  detections: Detection[];
+export interface Detection {
+  bbox: Bbox,
+  label: keyof typeof CocoLabel;
+  score: number;
 }
 
 enum CocoLabel {

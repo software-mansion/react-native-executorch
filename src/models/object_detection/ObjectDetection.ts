@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Image } from 'react-native';
 import { ETError, getError } from '../../Error';
 import { ObjectDetection } from '../../native/RnExecutorchModules';
-import { ObjectDetectionResult } from './types';
+import { Detection } from './types';
 
 interface Props {
   modelSource: string | number;
@@ -12,7 +12,7 @@ interface ObjectDetectionModule {
   error: string | null;
   isModelLoading: boolean;
   isModelGenerating: boolean;
-  forward: (input: string) => Promise<ObjectDetectionResult>;
+  forward: (input: string) => Promise<Detection[]>;
 }
 
 export const useObjectDetection = ({
