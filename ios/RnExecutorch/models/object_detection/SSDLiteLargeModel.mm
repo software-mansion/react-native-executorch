@@ -1,6 +1,6 @@
 #include "SSDLiteLargeModel.hpp"
 #include "ImageProcessor.h"
-#include "ObjectDetectionUtils.hpp"
+#include "../../utils/ObjectDetectionUtils.hpp"
 #include <vector>
 
 inline float constexpr iouThreshold = 0.55;
@@ -48,13 +48,22 @@ inline int constexpr inputHeight = 320;
 }
 
 - (NSArray *)runModel:(cv::Mat)input {
-  NSLog(@"Calling runMoodel");
   NSArray *modelInput = [self preprocess:input];
   NSError *forwardError = nil;
-  NSArray *forwardResult = [self forward:modelInput
-                                   shape:@[ @1, @3, @320, @320 ]
-                               inputType:@3
-                                   error:&forwardError];
+  NSArray *inputShape = @[
+      @(1),
+      @(3),
+      @(inputWidth),
+      @(inputHeight)
+  ];
+  NSArray *forwardResult = [self forward:modelInput shape:inputShape inputType:@3 error:&forwardError];
+  if (forwardError) {
+    @
+    throw [NSException exceptionWithName:@"forward_error"
+                                  reason:[NSString stringWithFormat:@"%ld",
+                                          static_cast<long>(forwardError.code)]
+                                userInfo:nil];
+  }
   NSArray *output = [self postprocess:forwardResult];
   return output;
 }
