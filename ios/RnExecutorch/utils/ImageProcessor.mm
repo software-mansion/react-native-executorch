@@ -64,7 +64,9 @@
     //base64
     NSArray *parts = [source componentsSeparatedByString:@","];
     if ([parts count] < 2) {
-        NSLog(@"Error: Data URI is not properly formatted");
+        @throw [NSException exceptionWithName:@"readImage_error"
+                                   reason:[NSString stringWithFormat:@"%ld", (long)InvalidArgument]
+                                 userInfo:nil];
     }
     NSString *encodedString = parts[1];
     NSData *data = [[NSData alloc] initWithBase64EncodedString:encodedString options:NSDataBase64DecodingIgnoreUnknownCharacters];
