@@ -28,7 +28,7 @@
     isFetching = NO;
     tempLlamaResponse = [[NSMutableString alloc] init];
   }
-  
+
   return self;
 }
 
@@ -38,7 +38,7 @@ RCT_EXPORT_MODULE()
   if ([token isEqualToString:prompt]) {
     return;
   }
-  
+
   dispatch_async(dispatch_get_main_queue(), ^{
     [self emitOnToken:token];
     [self->tempLlamaResponse appendString:token];
@@ -47,7 +47,7 @@ RCT_EXPORT_MODULE()
 
 - (void)updateDownloadProgress:(NSNumber *)progress {
   dispatch_async(dispatch_get_main_queue(), ^{
-    [self emitOnDownloadProgress:progress];
+     [self emitOnDownloadProgress:progress];
   });
 }
 
