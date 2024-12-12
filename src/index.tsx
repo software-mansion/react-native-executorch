@@ -1,4 +1,4 @@
 export * from './ETModule';
-export * from './RnExecutorch';
+export * from './LLM';
 export * from './StyleTransfer';
 export * from './constants/modelUrls';
