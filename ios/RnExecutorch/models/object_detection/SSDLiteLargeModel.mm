@@ -38,10 +38,10 @@ inline int constexpr inputHeight = 320;
     detections.push_back(det);
   }
   std::vector<Detection> nms_output = nms(detections, iouThreshold);
-  
+
   NSMutableArray *output = [NSMutableArray array];
-  for (Detection& detection: nms_output) {
-    [output addObject: detectionToNSDictionary(detection)];
+  for (Detection &detection : nms_output) {
+    [output addObject:detectionToNSDictionary(detection)];
   }
 
   return output;
@@ -52,9 +52,9 @@ inline int constexpr inputHeight = 320;
   NSArray *modelInput = [self preprocess:input];
   NSError *forwardError = nil;
   NSArray *forwardResult = [self forward:modelInput
-                            shape:@[ @1, @3, @320, @320 ]
-                        inputType:@3
-                            error:&forwardError];
+                                   shape:@[ @1, @3, @320, @320 ]
+                               inputType:@3
+                                   error:&forwardError];
   NSArray *output = [self postprocess:forwardResult];
   return output;
 }
