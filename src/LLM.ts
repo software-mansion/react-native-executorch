@@ -6,10 +6,10 @@ import {
   DEFAULT_SYSTEM_PROMPT,
   EOT_TOKEN,
 } from './constants/llamaDefaults';
-import { RnExecutorch } from './native/RnExecutorchModules';
+import { LLM } from './native/RnExecutorchModules';
 
 const interrupt = () => {
-  RnExecutorch.interrupt();
+  LLM.interrupt();
 };
 
 export const useLLM = ({
@@ -50,7 +50,7 @@ export const useLLM = ({
           tokenizerUrl = Image.resolveAssetSource(tokenizerSource).uri;
         }
 
-        downloadProgressListener.current = RnExecutorch.onDownloadProgress(
+        downloadProgressListener.current = LLM.onDownloadProgress(
           (data: number) => {
             if (data) {
               setDownloadProgress(data);
@@ -58,7 +58,7 @@ export const useLLM = ({
           }
         );
 
-        await RnExecutorch.loadLLM(
+        await LLM.loadLLM(
           modelUrl as string,
           tokenizerUrl as string,
           systemPrompt,
@@ -67,7 +67,7 @@ export const useLLM = ({
 
         setIsModelReady(true);
 
-        tokenGeneratedListener.current = RnExecutorch.onToken(
+        tokenGeneratedListener.current = LLM.onToken(
           (data: string | undefined) => {
             if (!data) {
               return;
@@ -93,7 +93,7 @@ export const useLLM = ({
       downloadProgressListener.current = null;
       tokenGeneratedListener.current?.remove();
       tokenGeneratedListener.current = null;
-      RnExecutorch.deleteModule();
+      LLM.deleteModule();
     };
   }, [contextWindowLength, modelSource, systemPrompt, tokenizerSource]);
 
@@ -109,7 +109,7 @@ export const useLLM = ({
       try {
         setResponse('');
         setIsModelGenerating(true);
-        await RnExecutorch.runInference(input);
+        await LLM.runInference(input);
       } catch (err) {
         setIsModelGenerating(false);
         throw new Error((err as Error).message);

@@ -13,11 +13,11 @@ class RnExecutorchPackage : TurboReactPackage() {
   }
 
   override fun getModule(name: String, reactContext: ReactApplicationContext): NativeModule? =
-    if (name == RnExecutorchModule.NAME) {
-      RnExecutorchModule(reactContext)
+    if (name == LLM.NAME) {
+      LLM(reactContext)
     } else if (name == ETModule.NAME) {
       ETModule(reactContext)
-    } else if(name == StyleTransfer.NAME){
+    } else if (name == StyleTransfer.NAME) {
       StyleTransfer(reactContext)
     } else {
       null
@@ -26,9 +26,9 @@ class RnExecutorchPackage : TurboReactPackage() {
   override fun getReactModuleInfoProvider(): ReactModuleInfoProvider {
     return ReactModuleInfoProvider {
       val moduleInfos: MutableMap<String, ReactModuleInfo> = HashMap()
-      moduleInfos[RnExecutorchModule.NAME] = ReactModuleInfo(
-        RnExecutorchModule.NAME,
-        RnExecutorchModule.NAME,
+      moduleInfos[LLM.NAME] = ReactModuleInfo(
+        LLM.NAME,
+        LLM.NAME,
         false,  // canOverrideExistingModule
         false,  // needsEagerInit
         false,  // isCxxModule

@@ -17,4 +17,4 @@ export interface Spec extends TurboModule {
   readonly onDownloadProgress: EventEmitter<number>;
 }
 
-export default TurboModuleRegistry.get<Spec>('RnExecutorch');
+export default TurboModuleRegistry.get<Spec>('LLM');

@@ -1,4 +1,4 @@
-#import "RnExecutorch.h"
+#import "LLM.h"
 #import <ExecutorchLib/LLaMARunner.h>
 #import "utils/ConversationManager.h"
 #import "utils/Constants.h"
@@ -15,7 +15,7 @@
 #import <react/renderer/uimanager/primitives.h>
 
 
-@implementation RnExecutorch {
+@implementation LLM {
   LLaMARunner *runner;
   ConversationManager *conversationManager;
   NSMutableString *tempLlamaResponse;
@@ -131,7 +131,7 @@ RCT_EXPORT_MODULE()
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:(const facebook::react::ObjCTurboModule::InitParams &)params
 {
-  return std::make_shared<facebook::react::NativeRnExecutorchSpecJSI>(params);
+  return std::make_shared<facebook::react::NativeLLMSpecJSI>(params);
 }
 
 @end
