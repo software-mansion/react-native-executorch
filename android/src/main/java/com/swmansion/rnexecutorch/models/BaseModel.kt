@@ -5,6 +5,7 @@ import com.swmansion.rnexecutorch.utils.ETError
 import com.swmansion.rnexecutorch.utils.Fetcher
 import org.pytorch.executorch.EValue
 import org.pytorch.executorch.Module
+import org.pytorch.executorch.Tensor
 
 
 abstract class BaseModel<Input, Output>(val context: Context) {
@@ -39,5 +40,5 @@ abstract class BaseModel<Input, Output>(val context: Context) {
 
   protected abstract fun preprocess(input: Input): Input
 
-  protected abstract fun postprocess(input: Output): Output
+  protected abstract fun postprocess(input: Tensor): Output
 }
