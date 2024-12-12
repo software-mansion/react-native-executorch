@@ -57,6 +57,4 @@ const ObjectDetection = ObjectDetectionSpec
       }
     );
 
-  
-
 export { LLM, ETModule, StyleTransfer, ObjectDetection };
