@@ -7,7 +7,7 @@
 }
 
 - (cv::Size)getModelImageSize{
-  NSArray * inputShape = [module getInputShape: 0];
+  NSArray * inputShape = [module getInputShape: @0];
   NSNumber *widthNumber = inputShape.lastObject;
   NSNumber *heightNumber = inputShape[inputShape.count - 2];
   

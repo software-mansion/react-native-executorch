@@ -5,7 +5,7 @@
 @implementation BaseModel
 
 - (NSArray *)forward:(NSArray *)input {
-  NSArray *result = [module forward:input shape:[module getInputShape:0] inputType:[module getInputType: 0]];
+  NSArray *result = [module forward:input shape:[module getInputShape:@0] inputType:[module getInputType: @0]];
   return result;
 }
 
@@ -17,7 +17,7 @@
       return;
     }
     NSNumber *result = [self->module loadModel: filePath];
-    if(result != 0){
+    if([result intValue] != 0){
       completion(NO, result);
       return;
     }
