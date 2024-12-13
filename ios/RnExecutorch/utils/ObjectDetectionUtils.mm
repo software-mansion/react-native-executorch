@@ -1,7 +1,7 @@
 #include "ObjectDetectionUtils.hpp"
+#include "Constants.h"
 #include <map>
 #include <vector>
-#include "Constants.h"
 
 NSString *floatLabelToNSString(float label) {
   int intLabel = static_cast<int>(label);
@@ -15,10 +15,12 @@ NSString *floatLabelToNSString(float label) {
 
 NSDictionary *detectionToNSDictionary(const Detection &detection) {
   return @{
-    @"x1" : @(detection.x1),
-    @"y1" : @(detection.y1),
-    @"x2" : @(detection.x2),
-    @"y2" : @(detection.y2),
+    @"bbox" : @{
+      @"x1" : @(detection.x1),
+      @"y1" : @(detection.y1),
+      @"x2" : @(detection.x2),
+      @"y2" : @(detection.y2),
+    },
     @"label" : floatLabelToNSString(detection.label),
     @"score" : @(detection.score)
   };
