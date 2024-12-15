@@ -3352,7 +3352,7 @@ __metadata:
     metro-config: ^0.81.0
     react: 18.3.1
     react-native: 0.76.3
-    react-native-executorch: /Users/norbertklockiewicz/Desktop/work/react-native-executorch/react-native-executorch-0.1.524.tgz
+    react-native-executorch: ../../react-native-executorch-0.1.100.tgz
     react-native-image-picker: ^7.2.2
     react-native-loading-spinner-overlay: ^3.0.1
     react-native-reanimated: ^3.16.3
@@ -6799,13 +6799,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-executorch@file:/Users/norbertklockiewicz/Desktop/work/react-native-executorch/react-native-executorch-0.1.524.tgz::locator=computer-vision%40workspace%3A.":
-  version: 0.1.524
-  resolution: "react-native-executorch@file:/Users/norbertklockiewicz/Desktop/work/react-native-executorch/react-native-executorch-0.1.524.tgz::locator=computer-vision%40workspace%3A."
+"react-native-executorch@file:../../react-native-executorch-0.1.100.tgz::locator=computer-vision%40workspace%3A.":
+  version: 0.1.100
+  resolution: "react-native-executorch@file:../../react-native-executorch-0.1.100.tgz::locator=computer-vision%40workspace%3A."
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 4f67dbd81711997e5f890b2d7c7b025777d6bcf71a335c7efa56da3fa59a6d00a4915c8cb63e4362d931885adde4072fad63bfbabb93bc36edf116e4fa98f5b9
+  checksum: f258452e2050df59e150938f6482ef8eee5fbd4ef4fc4073a920293ca87d543daddf76c560701d0c2626e6677d964b446dad8e670e978ea4f80d0a1bd17dfa03
   languageName: node
   linkType: hard
 
