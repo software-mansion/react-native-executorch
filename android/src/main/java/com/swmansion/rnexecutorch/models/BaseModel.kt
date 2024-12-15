@@ -38,7 +38,7 @@ abstract class BaseModel<Input, Output>(val context: Context) {
 
   abstract fun runModel(input: Input): Output
 
-  protected abstract fun preprocess(input: Input): Input
+  protected abstract fun preprocess(input: Input): EValue
 
-  protected abstract fun postprocess(input: Tensor): Output
+  protected abstract fun postprocess(output: Array<EValue>): Output
 }

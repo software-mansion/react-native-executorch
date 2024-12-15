@@ -19,7 +19,10 @@ class RnExecutorchPackage : TurboReactPackage() {
       ETModule(reactContext)
     } else if (name == StyleTransfer.NAME) {
       StyleTransfer(reactContext)
-    } else {
+    } else if (name == Classification.NAME) {
+      Classification(reactContext)
+    } 
+    else {
       null
     }
 
@@ -46,6 +49,15 @@ class RnExecutorchPackage : TurboReactPackage() {
       moduleInfos[StyleTransfer.NAME] = ReactModuleInfo(
         StyleTransfer.NAME,
         StyleTransfer.NAME,
+        false,  // canOverrideExistingModule
+        false,  // needsEagerInit
+        false,  // isCxxModule
+        true
+      )
+
+      moduleInfos[Classification.NAME] = ReactModuleInfo(
+        Classification.NAME,
+        Classification.NAME,
         false,  // canOverrideExistingModule
         false,  // needsEagerInit
         false,  // isCxxModule
