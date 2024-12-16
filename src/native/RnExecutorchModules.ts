@@ -35,15 +35,15 @@ const ETModule = ETModuleSpec
 const ClassificationSpec = require('./NativeClassification').default;
 
 const Classification = ClassificationSpec
-? ClassificationSpec
-: new Proxy(
-    {},
-    {
-      get() {
-        throw new Error(LINKING_ERROR);
-      },
-    }
-  );
+  ? ClassificationSpec
+  : new Proxy(
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
 
 const ObjectDetectionSpec = require('./NativeObjectDetection').default;
 
@@ -71,4 +71,4 @@ const StyleTransfer = StyleTransferSpec
       }
     );
 
-export { LLM, ETModule, Classification, ObjectDetection, StyleTransfer};
+export { LLM, ETModule, Classification, ObjectDetection, StyleTransfer };
