@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		55D6EA8C2D0987D2009BA408 /* ExecutorchLib.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55D6EA8B2D0987D2009BA408 /* ExecutorchLib.xcframework */; };
+		55D6EA8E2D0987DF009BA408 /* opencv2.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55D6EA8D2D0987DF009BA408 /* opencv2.xcframework */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		550986872CEF541900FECBB8 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -20,6 +25,8 @@
 
 /* Begin PBXFileReference section */
 		550986892CEF541900FECBB8 /* libRnExecutorch.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRnExecutorch.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		55D6EA8B2D0987D2009BA408 /* ExecutorchLib.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = ExecutorchLib.xcframework; sourceTree = "<group>"; };
+		55D6EA8D2D0987DF009BA408 /* opencv2.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = opencv2.xcframework; path = ../../../opencv2.xcframework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
@@ -48,6 +55,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				55D6EA8E2D0987DF009BA408 /* opencv2.xcframework in Frameworks */,
+				55D6EA8C2D0987D2009BA408 /* ExecutorchLib.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -58,6 +67,7 @@
 			isa = PBXGroup;
 			children = (
 				5509868B2CEF541900FECBB8 /* RnExecutorch */,
+				55D6EA8A2D0987D2009BA408 /* Frameworks */,
 				5509868A2CEF541900FECBB8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -68,6 +78,15 @@
 				550986892CEF541900FECBB8 /* libRnExecutorch.a */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		55D6EA8A2D0987D2009BA408 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				55D6EA8D2D0987DF009BA408 /* opencv2.xcframework */,
+				55D6EA8B2D0987D2009BA408 /* ExecutorchLib.xcframework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

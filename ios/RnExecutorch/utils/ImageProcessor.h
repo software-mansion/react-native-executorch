@@ -1,9 +1,11 @@
 #import <UIKit/UIKit.h>
+#import <opencv2/opencv.hpp>
 
 @interface ImageProcessor : NSObject
 
-+ (UIImage *)resizeImage:(UIImage *)image toSize:(CGSize)newSize;
-+ (float *)imageToFloatArray:(UIImage *)image size:(CGSize *)outSize;
-+ (UIImage *)imageFromFloatArray:(const float *)array size:(CGSize)size;
++ (NSArray *)matToNSArray:(const cv::Mat &)mat;
++ (cv::Mat)arrayToMat:(NSArray *)array width:(int)width height:(int)height;
++ (NSString *)saveToTempFile:(const cv::Mat &)image;
++ (cv::Mat)readImage:(NSString *)source;
 
 @end
