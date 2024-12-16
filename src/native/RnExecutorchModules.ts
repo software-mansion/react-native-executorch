@@ -44,4 +44,17 @@ const StyleTransfer = StyleTransferSpec
       }
     );
 
-export { LLM, ETModule, StyleTransfer };
+const ObjectDetectionSpec = require('./NativeObjectDetection').default;
+
+const ObjectDetection = ObjectDetectionSpec
+  ? ObjectDetectionSpec
+  : new Proxy(
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
+
+export { LLM, ETModule, StyleTransfer, ObjectDetection };
