@@ -38,13 +38,6 @@ RCT_EXPORT_MODULE()
         resolve:(RCTPromiseResolveBlock)resolve
          reject:(RCTPromiseRejectBlock)reject {
   @try {
-    NSURL *url = [NSURL URLWithString:input];
-    NSData *data = [NSData dataWithContentsOfURL:url];
-    if (!data) {
-      reject(@"img_loading_error", [NSString stringWithFormat:@"%d", 0x65],
-             nil);
-      return;
-    }
     cv::Mat image = [ImageProcessor readImage:input];
     NSArray *result = [model runModel:image];
     resolve(result);
