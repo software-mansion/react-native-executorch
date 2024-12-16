@@ -26,12 +26,12 @@ class ClassificationModel(reactApplicationContext: ReactApplicationContext) : Ba
 
   override fun postprocess(output: Array<EValue>): Map<String, Float> {
     val tensor = output[0].toTensor()
-    val probabilities = tensor.dataAsFloatArray
+    val probabilities = softmax(tensor.dataAsFloatArray.toTypedArray())
 
     val result = mutableMapOf<String, Float>()
 
     for (i in probabilities.indices) {
-      result[imagenet1k_v1_labels_map[i]!!] = probabilities[i]
+      result[imagenet1k_v1_labels[i]] = probabilities[i]
     }
 
     return result
