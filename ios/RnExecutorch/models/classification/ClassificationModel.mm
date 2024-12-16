@@ -26,28 +26,29 @@
 }
 
 - (NSDictionary *)postprocess:(NSArray *)output {
+  output = output[0]; // take the first output tensor
   std::vector<double> outputVector(output.count);
+
   for (NSUInteger i = 0; i < output.count; ++i) {
     outputVector[i] = [output[i] doubleValue];
   }
-
+  
   std::vector<double> probabilities = softmax(outputVector);
-
   NSMutableDictionary *result = [NSMutableDictionary dictionary];
+  
   for (int i = 0; i < probabilities.size(); ++i) {
-    NSString *className = @(imagenet1k_v1_labels_map.at(i).c_str());
+    NSString *className = @(imagenet1k_v1_labels[i].c_str());
     NSNumber *probability = @(probabilities[i]);
     result[className] = probability;
   }
-
+  
   return result;
 }
 
 - (NSDictionary *)runModel:(cv::Mat &)input {
   NSArray *modelInput = [self preprocess:input];
   NSArray *modelOutput = [self forward:modelInput];
-  NSDictionary *result = [self postprocess:modelOutput[0]];
-  return result;
+  return [self postprocess:modelOutput];
 }
 
 @end
