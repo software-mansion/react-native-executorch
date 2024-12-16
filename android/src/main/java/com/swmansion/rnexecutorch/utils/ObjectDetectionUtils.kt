@@ -1,18 +1,101 @@
 package com.swmansion.rnexecutorch.utils
 
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.WritableMap
+
+fun nms(
+  detections: MutableList<Detection>,
+  iouThreshold: Float
+): List<Detection> {
+  if (detections.isEmpty()) {
+    return emptyList()
+  }
+
+  // Sort detections first by label, then by score (descending)
+  val sortedDetections = detections.sortedWith(compareBy({ it.label }, { -it.score }))
+
+  val result = mutableListOf<Detection>()
+
+  // Process NMS for each label group
+  var i = 0
+  while (i < sortedDetections.size) {
+    val currentLabel = sortedDetections[i].label
+
+    // Collect detections for the current label
+    val labelDetections = mutableListOf<Detection>()
+    while (i < sortedDetections.size && sortedDetections[i].label == currentLabel) {
+      labelDetections.add(sortedDetections[i])
+      i++
+    }
+
+    // Filter out detections with high IoU
+    val filteredLabelDetections = mutableListOf<Detection>()
+    while (labelDetections.isNotEmpty()) {
+      val current = labelDetections.removeAt(0)
+      filteredLabelDetections.add(current)
+
+      // Remove detections that overlap with the current detection above the IoU threshold
+      val iterator = labelDetections.iterator()
+      while (iterator.hasNext()) {
+        val other = iterator.next()
+        if (calculateIoU(current.bbox, other.bbox) > iouThreshold) {
+          iterator.remove()  // Remove detection if IoU is above threshold
+        }
+      }
+    }
+
+    // Add the filtered detections to the result
+    result.addAll(filteredLabelDetections)
+  }
+
+  return result
+}
+
+fun calculateIoU(bbox1: Bbox, bbox2: Bbox): Float {
+  val x1 = maxOf(bbox1.x1, bbox2.x1)
+  val y1 = maxOf(bbox1.y1, bbox2.y1)
+  val x2 = minOf(bbox1.x2, bbox2.x2)
+  val y2 = minOf(bbox1.y2, bbox2.y2)
+
+  val intersectionArea = maxOf(0f, x2 - x1) * maxOf(0f, y2 - y1)
+  val bbox1Area = (bbox1.x2 - bbox1.x1) * (bbox1.y2 - bbox1.y1)
+  val bbox2Area = (bbox2.x2 - bbox2.x1) * (bbox2.y2 - bbox2.y1)
+
+  val unionArea = bbox1Area + bbox2Area - intersectionArea
+  return if (unionArea == 0f) 0f else intersectionArea / unionArea
+}
+
+
 data class Bbox(
   val x1: Float,
-  val x2: Float,
   val y1: Float,
+  val x2: Float,
   val y2: Float
-)
+) {
+  fun toWritableMap(): WritableMap {
+    val map = Arguments.createMap()
+    map.putDouble("x1", x1.toDouble())
+    map.putDouble("x2", x2.toDouble())
+    map.putDouble("y1", y1.toDouble())
+    map.putDouble("y2", y2.toDouble())
+    return map
+  }
+}
 
 
 data class Detection(
   val bbox: Bbox,
   val score: Float,
   val label: CocoLabel,
-)
+) {
+  fun toWritableMap(): WritableMap {
+    val map = Arguments.createMap()
+    map.putMap("bbox", bbox.toWritableMap())
+    map.putDouble("score", score.toDouble())
+    map.putString("label", label.name)
+    return map
+  }
+}
 
 enum class CocoLabel(val id: Int) {
   PERSON(1),
@@ -107,10 +190,7 @@ enum class CocoLabel(val id: Int) {
   HAIR_BRUSH(91);
 
   companion object {
-    // A map to store the mapping from id to CocoLabel
     private val idToLabelMap = values().associateBy(CocoLabel::id)
-
-    // Function to retrieve a CocoLabel by its id
     fun fromId(id: Int): CocoLabel? = idToLabelMap[id]
   }
 }
