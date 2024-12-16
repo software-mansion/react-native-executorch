@@ -10,7 +10,7 @@ interface Props {
 
 interface ObjectDetectionModule {
   error: string | null;
-  isModelLoading: boolean;
+  isModelReady: boolean;
   isModelGenerating: boolean;
   forward: (input: string) => Promise<Detection[]>;
 }
@@ -19,7 +19,7 @@ export const useObjectDetection = ({
   modelSource,
 }: Props): ObjectDetectionModule => {
   const [error, setError] = useState<null | string>(null);
-  const [isModelLoading, setIsModelLoading] = useState(true);
+  const [isModelReady, setIsModelReady] = useState(false);
   const [isModelGenerating, setIsModelGenerating] = useState(false);
 
   useEffect(() => {
@@ -30,12 +30,10 @@ export const useObjectDetection = ({
       }
 
       try {
-        setIsModelLoading(true);
         await ObjectDetection.loadModule(path);
+        setIsModelReady(true);
       } catch (e) {
         setError(getError(e));
-      } finally {
-        setIsModelLoading(false);
       }
     };
 
@@ -43,14 +41,12 @@ export const useObjectDetection = ({
   }, [modelSource]);
 
   const forward = async (input: string) => {
-    if (isModelLoading) {
+    if (isModelReady) {
       throw new Error(getError(ETError.ModuleNotLoaded));
     }
-
     try {
       setIsModelGenerating(true);
       const output = await ObjectDetection.forward(input);
-      setIsModelGenerating(false);
       return output;
     } catch (e) {
       throw new Error(getError(e));
@@ -59,5 +55,5 @@ export const useObjectDetection = ({
     }
   };
 
-  return { error, isModelLoading, isModelGenerating, forward };
+  return { error, isModelReady, isModelGenerating, forward };
 };
