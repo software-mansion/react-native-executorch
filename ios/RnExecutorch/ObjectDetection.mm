@@ -2,6 +2,7 @@
 #import "models/object_detection/SSDLiteLargeModel.hpp"
 #import <ExecutorchLib/ETModel.h>
 #import <React/RCTBridgeModule.h>
+#import "utils/ImageProcessor.h"
 
 @implementation ObjectDetection {
   SSDLiteLargeModel *model;
@@ -44,10 +45,8 @@ RCT_EXPORT_MODULE()
              nil);
       return;
     }
-    cv::Mat decodedImage =
-        cv::imdecode(cv::Mat(1, [data length], CV_8UC1, (void *)data.bytes),
-                     cv::IMREAD_COLOR);
-    NSArray *result = [model runModel:decodedImage];
+    cv::Mat image = [ImageProcessor readImage:input];
+    NSArray *result = [model runModel:image];
     resolve(result);
   } @catch (NSException *exception) {
     reject(@"forward_error", [NSString stringWithFormat:@"%@", exception.reason],

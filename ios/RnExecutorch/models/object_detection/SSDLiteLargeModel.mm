@@ -5,13 +5,13 @@
 
 float constexpr iouThreshold = 0.55;
 float constexpr detectionThreshold = 0.7;
-int constexpr inputWidth = 320;
-int constexpr inputHeight = 320;
+int constexpr modelInputWidth = 320;
+int constexpr modelInputHeight = 320;
 
 @implementation SSDLiteLargeModel
 
 - (NSArray *)preprocess:(cv::Mat)input {
-  cv::resize(input, input, cv::Size(inputWidth, inputHeight));
+  cv::resize(input, input, cv::Size(modelInputWidth, modelInputHeight));
   NSArray *modelInput = [ImageProcessor matToNSArray:input];
   return modelInput;
 }
@@ -54,23 +54,11 @@ int constexpr inputHeight = 320;
   int inputImageWidth = size.width;
   int inputImageHeight = size.height;
   NSArray *modelInput = [self preprocess:input];
-  NSError *forwardError = nil;
-  NSArray *inputShape = @[ @(1), @(3), @(inputWidth), @(inputHeight) ];
-  NSArray *forwardResult = [self forward:modelInput
-                                   shape:inputShape
-                               inputType:@3
-                                   error:&forwardError];
-  if (forwardError) {
-    @throw [NSException
-        exceptionWithName:@"forward_error"
-                   reason:[NSString
-                              stringWithFormat:@"%ld", static_cast<long>(
-                                                           forwardError.code)]
-                 userInfo:nil];
-  }
-  NSArray *output = [self postprocess:forwardResult
-                           widthRatio:inputImageWidth / 320.f
-                          heightRatio:inputImageHeight / 320.f];
+  NSArray *forwardResult = [self forward:modelInput];
+  NSArray *output =
+      [self postprocess:forwardResult
+             widthRatio:inputImageWidth / (float)modelInputWidth
+            heightRatio:inputImageHeight / (float)modelInputHeight];
   return output;
 }
 

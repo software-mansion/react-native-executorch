@@ -43,6 +43,9 @@ export const useObjectDetection = ({
   const forward = async (input: string) => {
     if (!isModelReady) {
       throw new Error(getError(ETError.ModuleNotLoaded));
+    } 
+    if (isModelGenerating) {
+      throw new Error(getError(ETError.ModelGenerating))
     }
     try {
       setIsModelGenerating(true);
