@@ -30,6 +30,7 @@ export const useStyleTransfer = ({
       }
 
       try {
+        setIsModelReady(false);
         await StyleTransfer.loadModule(path);
         setIsModelReady(true);
       } catch (e) {
