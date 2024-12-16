@@ -18,7 +18,7 @@ export const useStyleTransfer = ({
   modulePath,
 }: Props): StyleTransferModule => {
   const [error, setError] = useState<null | string>(null);
-  const [isModelReady, setIsModelReady] = useState(true);
+  const [isModelReady, setIsModelReady] = useState(false);
   const [isModelGenerating, setIsModelGenerating] = useState(false);
 
   useEffect(() => {
@@ -30,12 +30,10 @@ export const useStyleTransfer = ({
       }
 
       try {
-        setIsModelReady(false);
         await StyleTransfer.loadModule(path);
+        setIsModelReady(true);
       } catch (e) {
         setError(getError(e));
-      } finally {
-        setIsModelReady(true);
       }
     };
 
@@ -46,19 +44,18 @@ export const useStyleTransfer = ({
     if (!isModelReady) {
       throw new Error(getError(ETError.ModuleNotLoaded));
     }
-
-    if (error) {
-      throw new Error(error);
+    if (isModelGenerating) {
+      throw new Error(getError(ETError.ModelGenerating));
     }
 
     try {
       setIsModelGenerating(true);
       const output = await StyleTransfer.forward(input);
-      setIsModelGenerating(false);
       return output;
     } catch (e) {
-      setIsModelGenerating(false);
       throw new Error(getError(e));
+    } finally {
+      setIsModelGenerating(false);
     }
   };
 

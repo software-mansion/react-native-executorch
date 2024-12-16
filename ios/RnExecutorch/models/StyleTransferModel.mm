@@ -21,18 +21,21 @@
   self->originalSize = cv::Size(input.cols, input.rows);
   
   cv::Size modelImageSize = [self getModelImageSize];
-  cv::resize(input, input, modelImageSize);
+  cv::Mat output;
+  cv::resize(input, output, modelImageSize);
   
-  NSArray *modelInput = [ImageProcessor matToNSArray: input];
+  NSArray *modelInput = [ImageProcessor matToNSArray: output];
   return modelInput;
 }
 
 - (cv::Mat)postprocess:(NSArray *)output {
   cv::Size modelImageSize = [self getModelImageSize];
   cv::Mat processedImage = [ImageProcessor arrayToMat: output width:modelImageSize.width height:modelImageSize.height];
-  cv::resize(processedImage, processedImage, originalSize);
+
+  cv::Mat processedOutput;
+  cv::resize(processedImage, processedOutput, originalSize);
   
-  return processedImage;
+  return processedOutput;
 }
 
 - (cv::Mat)runModel:(cv::Mat &)input {

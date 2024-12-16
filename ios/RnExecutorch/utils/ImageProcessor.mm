@@ -74,7 +74,7 @@
     cv::Mat encodedData(1, [data length], CV_8UC1, (void *)data.bytes);
     inputImage = cv::imdecode(encodedData, cv::IMREAD_COLOR);
   }
-  if([[url scheme] isEqualToString: @"file"]){
+  else if([[url scheme] isEqualToString: @"file"]){
     //local file
     inputImage = cv::imread([[url path] UTF8String], cv::IMREAD_COLOR);
   }
