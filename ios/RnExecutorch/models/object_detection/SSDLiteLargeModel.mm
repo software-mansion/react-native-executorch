@@ -3,10 +3,10 @@
 #include "ImageProcessor.h"
 #include <vector>
 
-inline float constexpr iouThreshold = 0.55;
-inline float constexpr detectionThreshold = 0.7;
-inline int constexpr inputWidth = 320;
-inline int constexpr inputHeight = 320;
+float constexpr iouThreshold = 0.55;
+float constexpr detectionThreshold = 0.7;
+int constexpr inputWidth = 320;
+int constexpr inputHeight = 320;
 
 @implementation SSDLiteLargeModel
 
