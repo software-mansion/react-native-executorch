@@ -50,7 +50,7 @@ RCT_EXPORT_MODULE()
     NSArray *result = [model runModel:decodedImage];
     resolve(result);
   } @catch (NSException *exception) {
-    reject(@"result_error", [NSString stringWithFormat:@"%@", exception.reason],
+    reject(@"forward_error", [NSString stringWithFormat:@"%@", exception.reason],
            nil);
   }
 }
