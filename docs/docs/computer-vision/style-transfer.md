@@ -38,7 +38,7 @@ The provided code snippet fetches the model from the [specified source](../funda
 | `isModelGenerating` | `boolean`                            | Indicates whether the model is currently performing style transfer.                                      |
 | `isModelReady`      | `boolean`                            | Indicates whether the model is ready.                                                                    |
 
-### Executing forward function
+## Executing forward function
 
 In order to perform style transfer, you should use following code:
 
