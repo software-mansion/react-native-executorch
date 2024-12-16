@@ -1,8 +1,10 @@
 package com.swmansion.rnexecutorch.utils
 
 enum class ETError(val code: Int) {
-    InvalidModelPath(0xff),
+    UndefinedError(0x65),
+    ModuleNotLoaded(0x66),
     FileWriteFailed(0x67),
+    InvalidModelPath(0xff),
 
   // System errors
     Ok(0x00),
