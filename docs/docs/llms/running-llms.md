@@ -35,7 +35,7 @@ Given computational constraints, our architecture is designed to support only on
 
 ### Arguments
 
-**`modelSource`** - A string that specifies the location of the model binary. For more information, take a look at [loading models](#loading-models) section.
+**`modelSource`** - A string that specifies the location of the model binary. For more information, take a look at [loading models](../fundamentals/loading-models.md) section.
 
 **`tokenizer`** - URL to the binary file which contains the tokenizer
 
@@ -54,36 +54,6 @@ Given computational constraints, our architecture is designed to support only on
 | `interrupt`         | `() => void`                       | Function to interrupt the current inference                                                                     |
 | `isModelReady`      | `boolean`                          | Indicates whether the model is ready                                                                            |
 | `downloadProgress`  | `number`                           | Represents the download progress as a value between 0 and 1, indicating the extent of the model file retrieval. |
-
-### Loading models
-
-There are three different methods available for loading the model and tokenizer files, depending on their size and location.
-
-**1. Load from React-Native assets folder (For Files < **512MB**)**
-
-```typescript
-modelSource: require('../assets/llama3_2.pte');
-```
-
-**2. Load from Remote URL:**
-
-For files larger than 512MB or when you want to keep size of the app smaller, you can load the model from a remote URL (e.g. HuggingFace).
-
-```typescript
-modelSource: 'https://.../llama3_2.pte';
-```
-
-**3. Load from local file system:**
-
-If you prefer to delegate the process of obtaining and loading model and tokenizer files to the user, you can use the following method:
-
-```typescript
-modelSource: 'file:://var/mobile/.../llama3_2.pte',
-```
-
-:::info[Info]
-The downloaded files are stored in documents directory of your application.
-:::
 
 ### Sending a message
 

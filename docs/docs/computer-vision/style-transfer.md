@@ -50,14 +50,14 @@ const model = useStyleTransfer(
 ...
 const imageUri = 'file::///Users/.../cute_cat.png';
 try{
-    const generatedImageUri = await model.forward(imageUri)
+    const generatedImageUrl = await model.forward(imageUri)
 }catch(error){
     console.error(error)
 }
 ...
 ```
 
-The forward function returns promise which resolves either to error or a URI to newly created image.
+The forward function returns promise which resolves either to error or a URL to newly created image.
 :::info[Info]
 Images from external sources and the generated image are stored in your application's temporary directory.
 :::
