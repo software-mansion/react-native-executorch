@@ -1,51 +1,40 @@
 package com.swmansion.rnexecutorch.models
 
-import android.graphics.Bitmap
-import android.util.Log
 import com.facebook.react.bridge.ReactApplicationContext
-import com.swmansion.rnexecutorch.utils.TensorUtils
-import org.pytorch.executorch.EValue
+import com.swmansion.rnexecutorch.utils.ImageProcessor
+import org.opencv.core.Mat
+import org.opencv.core.Size
+import org.opencv.imgproc.Imgproc
+import org.pytorch.executorch.Tensor
 
-class StyleTransferModel(reactApplicationContext: ReactApplicationContext) : BaseModel<Bitmap, Bitmap>(reactApplicationContext) {
-  override fun runModel(input: Bitmap): Bitmap {
-      val processedData = preprocess(input)
-      val inputTensor = TensorUtils.bitmapToFloat32Tensor(processedData)
 
-      Log.d("RnExecutorch", module.numberOfInputs.toString())
-      for (i in 0 until module.numberOfInputs) {
-        Log.d("RnExecutorch", module.getInputType(i).toString())
-        for(shape in module.getInputShape(i)){
-          Log.d("RnExecutorch", shape.toString())
-        }
-      }
+class StyleTransferModel(reactApplicationContext: ReactApplicationContext) : BaseModel<Mat, Mat>(reactApplicationContext) {
+  private lateinit var originalSize: Size
 
-      Log.d("RnExecutorch", module.numberOfOutputs.toString())
-      for(i in 0 until module.numberOfOutputs){
-        Log.d("RnExecutorch", module.getOutputType(i).toString())
-        for(shape in module.getOutputShape(i)){
-          Log.d("RnExecutorch", shape.toString())
-        }
-      }
+  private fun getModelImageSize(): Size {
+    val inputShape = module.getInputShape(0)
+    val width = inputShape[inputShape.lastIndex]
+    val height = inputShape[inputShape.lastIndex - 1]
 
-      val outputTensor = forward(EValue.from(inputTensor))
-      val outputData = postprocess(TensorUtils.float32TensorToBitmap(outputTensor[0].toTensor()))
-
-      return outputData
+    return Size(height.toDouble(), width.toDouble())
   }
 
-  override fun preprocess(input: Bitmap): Bitmap {
-    val inputBitmap = Bitmap.createScaledBitmap(
-      input,
-      640, 640, true
-    )
-    return inputBitmap
+  override fun preprocess(input: Mat): Mat {
+    originalSize = input.size()
+    Imgproc.resize(input, input, getModelImageSize())
+    return input
   }
 
-  override fun postprocess(input: Bitmap): Bitmap {
-    val scaledUpBitmap = Bitmap.createScaledBitmap(
-      input,
-      1280, 1280, true
-    )
-    return scaledUpBitmap
+  override fun postprocess(input: Tensor): Mat {
+    val modelShape = getModelImageSize()
+    val result = ImageProcessor.EValueToMat(input.dataAsFloatArray, modelShape.width.toInt(), modelShape.height.toInt())
+    Imgproc.resize(result, result, originalSize)
+    return result
+  }
+
+  override fun runModel(input: Mat): Mat {
+      val inputTensor = ImageProcessor.matToEValue(preprocess(input), module.getInputShape(0))
+      val outputTensor = forward(inputTensor)
+      return postprocess(outputTensor[0].toTensor())
   }
 }

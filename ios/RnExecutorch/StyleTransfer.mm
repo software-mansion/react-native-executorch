@@ -1,10 +1,12 @@
 #import "StyleTransfer.h"
 #import "utils/Fetcher.h"
 #import "models/BaseModel.h"
+#import "utils/ETError.h"
+#import "ImageProcessor.h"
 #import <ExecutorchLib/ETModel.h>
 #import <React/RCTBridgeModule.h>
 #import "models/StyleTransferModel.h"
-#include <string>
+#import <opencv2/opencv.hpp>
 
 @implementation StyleTransfer {
   StyleTransferModel* model;
@@ -22,52 +24,34 @@ RCT_EXPORT_MODULE()
       return;
     }
     
-    NSError *error = [NSError
-                      errorWithDomain:@"StyleTransferErrorDomain"
-                      code:[errorCode intValue]
-                      userInfo:@{
-      NSLocalizedDescriptionKey : [NSString
-                                   stringWithFormat:@"%ld", (long)[errorCode longValue]]
-    }];
-    
-    reject(@"init_module_error", error.localizedDescription, error);
+    reject(@"init_module_error", [NSString
+                                  stringWithFormat:@"%ld", (long)[errorCode longValue]], nil);
     return;
   }];
-}
-
-- (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
-(const facebook::react::ObjCTurboModule::InitParams &)params {
-  return std::make_shared<facebook::react::NativeStyleTransferSpecJSI>(params);
 }
 
 - (void)forward:(NSString *)input
         resolve:(RCTPromiseResolveBlock)resolve
          reject:(RCTPromiseRejectBlock)reject {
   @try {
-    NSURL *url = [NSURL URLWithString:input];
-    NSData *data = [NSData dataWithContentsOfURL:url];
-    if (!data) {
-      reject(@"img_loading_error", @"Unable to load image data", nil);
-      return;
-    }
-    UIImage *inputImage = [UIImage imageWithData:data];
+    cv::Mat image = [ImageProcessor readImage:input];
+    cv::Mat resultImage = [model runModel:image];
     
-    UIImage* result = [model runModel:inputImage];
-    
-    // save img to tmp dir, return URI
-    NSString *outputPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[@"test" stringByAppendingString:@".png"]];
-    if ([UIImagePNGRepresentation(result) writeToFile:outputPath atomically:YES]) {
-      NSURL *fileURL = [NSURL fileURLWithPath:outputPath];
-      resolve([fileURL absoluteString]);
-    } else {
-      reject(@"img_write_error", @"Failed to write processed image to file", nil);
-    }
-    
+    NSString* tempFilePath = [ImageProcessor saveToTempFile:resultImage];
+    resolve(tempFilePath);
+    return;
   } @catch (NSException *exception) {
     NSLog(@"An exception occurred: %@, %@", exception.name, exception.reason);
-    reject(@"result_error", [NSString stringWithFormat:@"%@", exception.reason],
+    reject(@"forward_error", [NSString stringWithFormat:@"%@", exception.reason],
            nil);
+    return;
   }
+}
+
+
+- (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
+(const facebook::react::ObjCTurboModule::InitParams &)params {
+  return std::make_shared<facebook::react::NativeStyleTransferSpecJSI>(params);
 }
 
 @end

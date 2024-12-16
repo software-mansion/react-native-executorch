@@ -168,31 +168,31 @@ using namespace ::torch::executor;
   std::vector<int> shapes = NSArrayToIntVector(shape);
   @try {
     switch (inputTypeIntValue) {
-    case InputTypeInt8: {
-      std::vector<std::span<const int8_t>> output =
-          runForwardFromNSArray<int8_t>(input, shapes, _model);
-      return arrayToNSArray<int8_t>(output);
-    }
-    case InputTypeInt32: {
-      std::vector<std::span<const int32_t>> output =
-          runForwardFromNSArray<int32_t>(input, shapes, _model);
-      return arrayToNSArray<int32_t>(output);
-    }
-    case InputTypeInt64: {
-      std::vector<std::span<const int64_t>> output =
-          runForwardFromNSArray<int64_t>(input, shapes, _model);
-      return arrayToNSArray<int64_t>(output);
-    }
-    case InputTypeFloat32: {
-      std::vector<std::span<const float>> output =
-          runForwardFromNSArray<float>(input, shapes, _model);
-      return arrayToNSArray<float>(output);
-    }
-    case InputTypeFloat64: {
-      std::vector<std::span<const double>> output =
-          runForwardFromNSArray<double>(input, shapes, _model);
-      return arrayToNSArray<double>(output);
-    }
+      case InputTypeInt8: {
+        std::vector<std::span<const int8_t>> output =
+        runForwardFromNSArray<int8_t>(input, shapes, _model);
+        return arrayToNSArray<int8_t>(output);
+      }
+      case InputTypeInt32: {
+        std::vector<std::span<const int32_t>> output =
+        runForwardFromNSArray<int32_t>(input, shapes, _model);
+        return arrayToNSArray<int32_t>(output);
+      }
+      case InputTypeInt64: {
+        std::vector<std::span<const int64_t>> output =
+        runForwardFromNSArray<int64_t>(input, shapes, _model);
+        return arrayToNSArray<int64_t>(output);
+      }
+      case InputTypeFloat32: {
+        std::vector<std::span<const float>> output =
+        runForwardFromNSArray<float>(input, shapes, _model);
+        return arrayToNSArray<float>(output);
+      }
+      case InputTypeFloat64: {
+        std::vector<std::span<const double>> output =
+        runForwardFromNSArray<double>(input, shapes, _model);
+        return arrayToNSArray<double>(output);
+      }
     }
   } @catch (NSException *exception) {
     NSInteger originalCode = [exception.reason integerValue];
