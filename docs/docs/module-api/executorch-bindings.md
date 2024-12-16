@@ -70,7 +70,7 @@ import {
   STYLE_TRANSFER_CANDY,
 } from 'react-native-executorch';
 
-// Initialize the executor module with the predefined style transfer model.
+// Initialize the executorch module with the predefined style transfer model.
 const executorchModule = useExecutorchModule({
   modelSource: STYLE_TRANSFER_CANDY,
 });
