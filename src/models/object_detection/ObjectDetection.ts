@@ -30,7 +30,7 @@ export const useObjectDetection = ({
       }
 
       try {
-        setIsModelReady(false)
+        setIsModelReady(false);
         await ObjectDetection.loadModule(path);
         setIsModelReady(true);
       } catch (e) {
@@ -44,9 +44,9 @@ export const useObjectDetection = ({
   const forward = async (input: string) => {
     if (!isModelReady) {
       throw new Error(getError(ETError.ModuleNotLoaded));
-    } 
+    }
     if (isModelGenerating) {
-      throw new Error(getError(ETError.ModelGenerating))
+      throw new Error(getError(ETError.ModelGenerating));
     }
     try {
       setIsModelGenerating(true);
