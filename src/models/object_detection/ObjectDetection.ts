@@ -30,6 +30,7 @@ export const useObjectDetection = ({
       }
 
       try {
+        setIsModelReady(false)
         await ObjectDetection.loadModule(path);
         setIsModelReady(true);
       } catch (e) {
