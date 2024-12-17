@@ -7,6 +7,7 @@ import { StyleTransferScreen } from './screens/StyleTransferScreen';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { View, StyleSheet } from 'react-native';
 import { ClassificationScreen } from './screens/ClassificationScreen';
+import { ObjectDetectionScreen } from './screens/ObjectDetectionScreen';
 
 enum ModelType {
   STYLE_TRANSFER,
@@ -36,7 +37,12 @@ export default function App() {
           <StyleTransferScreen imageUri={imageUri} setImageUri={setImageUri} />
         );
       case ModelType.OBJECT_DETECTION:
-        return <></>;
+        return (
+          <ObjectDetectionScreen
+            imageUri={imageUri}
+            setImageUri={setImageUri}
+          />
+        );
       case ModelType.CLASSIFICATION:
         return (
           <ClassificationScreen imageUri={imageUri} setImageUri={setImageUri} />

@@ -43,3 +43,7 @@ export const STYLE_TRANSFER_UDNIE =
   Platform.OS === 'ios'
     ? 'https://huggingface.co/software-mansion/react-native-executorch-style-transfer-udnie/resolve/main/coreml/style_transfer_udnie_coreml.pte'
     : 'https://huggingface.co/software-mansion/react-native-executorch-style-transfer-udnie/resolve/main/xnnpack/style_transfer_udnie_xnnpack.pte';
+
+// Object detection
+export const SSDLITE_320_MOBILENET_V3_LARGE_URL =
+  'https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large/resolve/main/ssdlite320-mobilenetv3-large.pte';

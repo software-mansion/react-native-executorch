@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Spinner from 'react-native-loading-spinner-overlay';
 import { BottomBar } from '../components/BottomBar';
-import { getImageUri } from '../utils';
+import { getImage } from '../utils';
 import { useClassification, EFFICIENTNET_V2_S } from 'react-native-executorch';
 import { View, StyleSheet, Image, Text, ScrollView } from 'react-native';
 
@@ -21,7 +21,8 @@ export const ClassificationScreen = ({
   });
 
   const handleCameraPress = async (isCamera: boolean) => {
-    const uri = await getImageUri(isCamera);
+    const image = await getImage(isCamera);
+    const uri = image?.uri;
     if (typeof uri === 'string') {
       setImageUri(uri as string);
       setResults([]);
