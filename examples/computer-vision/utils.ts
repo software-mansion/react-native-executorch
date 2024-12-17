@@ -4,7 +4,7 @@ import {
   launchImageLibrary,
 } from 'react-native-image-picker';
 
-export const getImageUri = async (useCamera: boolean) => {
+export const getImage = async (useCamera: boolean) => {
   const options: CameraOptions = {
     mediaType: 'photo',
   };
@@ -15,9 +15,7 @@ export const getImageUri = async (useCamera: boolean) => {
 
     if (!output.assets || output.assets.length === 0) return;
 
-    const imageUri = output.assets[0].uri;
-    if (!imageUri) return;
-    return imageUri;
+    return output.assets[0];
   } catch (err) {
     console.error(err);
   }
