@@ -20,7 +20,11 @@ The minimal supported version is 17.0 for iOS and Android 13.
 
 ## Examples 📲
 
-We currently host a single example demonstrating a chat app built with the latest **Llama 3.2 1B/3B** model. If you'd like to run it, navigate to `examples/llama` from the repository root and install the dependencies with:
+We currently host two example apps demonstrating use cases of our library:
+- examples/computer-vision - computer vision related tasks
+- examples/llama - chat applications showcasing use of LLMs
+
+If you would like to run it, navigate to it's project directory, for example `examples/llama` from the repository root and install dependencies with:
 
 ```bash
 yarn
