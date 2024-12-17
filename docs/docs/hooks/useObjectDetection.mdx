@@ -28,14 +28,14 @@ function App() {
 <summary>Type definitions</summary>
 
 ```typescript
-export interface Bbox {
+interface Bbox {
   x1: number;
   x2: number;
   y1: number;
   y2: number;
 }
 
-export interface Detection {
+interface Detection {
   bbox: Bbox;
   label: keyof typeof CocoLabel;
   score: number;
@@ -49,6 +49,12 @@ interface ObjectDetectionModule {
 }
 ```
 </details>
+
+### Running the model
+
+To run the model, you can use the `forward` method. It accepts one argument, which is the image. It can be either a remote URL,
+a local file, URI or base64 encoded image. The function returns an array of `Detection` objects. Each one contains coordinates
+of the bounding box, the label of the detected object and confidence score. For more information, please refer to the reference or type definitions.
 
 ### Arguments
 
@@ -88,12 +94,6 @@ interface Detection {
 ```
 The `bbox` property contains information about the bounding box of detected objects. It is represented as two points, one on the left bottom part of the bounding box (x1, y1), the second one as the top right part (x2, y2).
 The label property contains the name of the detected object, which is one of `CocoLabels`. The `score` is a confidence score of the detected object.
-
-### Running the model
-
-To run the model, you can use the `forward` method. It accepts one argument, which is the image. It can be either a remote URL,
-a local file or base64 encoded image. The function returns an array of `Detection` objects. Each one contains coordinates
-of the bounding box, the label of the detected object and confidence score. For more information, please refer to the reference or example.
 
 ### Example
 ```tsx
