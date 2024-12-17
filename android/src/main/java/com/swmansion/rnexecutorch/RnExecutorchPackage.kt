@@ -21,7 +21,9 @@ class RnExecutorchPackage : TurboReactPackage() {
       StyleTransfer(reactContext)
     } else if (name == Classification.NAME) {
       Classification(reactContext)
-    } 
+    } else if (name == ObjectDetection.NAME) {
+      ObjectDetection(reactContext)
+    }
     else {
       null
     }
@@ -58,6 +60,15 @@ class RnExecutorchPackage : TurboReactPackage() {
       moduleInfos[Classification.NAME] = ReactModuleInfo(
         Classification.NAME,
         Classification.NAME,
+        false,  // canOverrideExistingModule
+        false,  // needsEagerInit
+        false,  // isCxxModule
+        true
+      )
+
+      moduleInfos[ObjectDetection.NAME] = ReactModuleInfo(
+        ObjectDetection.NAME,
+        ObjectDetection.NAME,
         false,  // canOverrideExistingModule
         false,  // needsEagerInit
         false,  // isCxxModule

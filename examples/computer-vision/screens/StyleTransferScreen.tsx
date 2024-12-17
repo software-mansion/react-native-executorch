@@ -1,6 +1,6 @@
 import Spinner from 'react-native-loading-spinner-overlay';
 import { BottomBar } from '../components/BottomBar';
-import { getImageUri } from '../utils';
+import { getImage } from '../utils';
 import {
   useStyleTransfer,
   STYLE_TRANSFER_CANDY,
@@ -19,7 +19,8 @@ export const StyleTransferScreen = ({
   });
 
   const handleCameraPress = async (isCamera: boolean) => {
-    const uri = await getImageUri(isCamera);
+    const image = await getImage(isCamera);
+    const uri = image?.uri;
     if (typeof uri === 'string') {
       setImageUri(uri as string);
     }
