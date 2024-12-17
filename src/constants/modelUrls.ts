@@ -41,3 +41,11 @@ export const STYLE_TRANSFER_UDNIE =
   Platform.OS === 'ios'
     ? 'https://huggingface.co/software-mansion/react-native-executorch-style-transfer-udnie/resolve/v0.2.0/coreml/style_transfer_udnie_coreml.pte'
     : 'https://huggingface.co/software-mansion/react-native-executorch-style-transfer-udnie/resolve/v0.2.0/xnnpack/style_transfer_udnie_xnnpack.pte';
+
+// Backward compatibility
+export const LLAMA3_2_3B_URL = LLAMA3_2_3B;
+export const LLAMA3_2_3B_QLORA_URL = LLAMA3_2_3B_QLORA;
+export const LLAMA3_2_3B_SPINQUANT_URL = LLAMA3_2_3B_SPINQUANT;
+export const LLAMA3_2_1B_URL = LLAMA3_2_1B;
+export const LLAMA3_2_1B_QLORA_URL = LLAMA3_2_1B_QLORA;
+export const LLAMA3_2_1B_SPINQUANT_URL = LLAMA3_2_1B_SPINQUANT;
