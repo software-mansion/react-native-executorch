@@ -33,7 +33,6 @@ class ObjectDetection(reactContext: ReactApplicationContext) :
     try {
       ssdLiteLarge = SSDLiteLargeModel(reactApplicationContext)
       ssdLiteLarge.loadModel(modelSource)
-      Log.d("rn_executorch", "loaded the model xDD")
       promise.resolve(0)
     } catch (e: Exception) {
       promise.reject(e.message!!, ETError.InvalidModelPath.toString())
@@ -50,7 +49,6 @@ class ObjectDetection(reactContext: ReactApplicationContext) :
       }.forEach { writableMap ->
         outputWritableArray.pushMap(writableMap)
       }
-      Log.d("rn_executorch", outputWritableArray.toString())
       promise.resolve(outputWritableArray)
     } catch(e: Exception){
       promise.reject(e.message!!, e.message)
