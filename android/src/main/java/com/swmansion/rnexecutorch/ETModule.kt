@@ -17,13 +17,13 @@ class ETModule(reactContext: ReactApplicationContext) : NativeETModuleSpec(react
     return NAME
   }
 
-  override fun loadModule(modelPath: String, promise: Promise) {
+  override fun loadModule(modelSource: String, promise: Promise) {
     Fetcher.downloadModel(
       reactApplicationContext,
-      modelPath,
+      modelSource,
     ) { path, error ->
       if (error != null) {
-        promise.reject(error.message!!, ETError.InvalidModelPath.toString())
+        promise.reject(error.message!!, ETError.InvalidModelSource.toString())
         return@downloadModel
       }
 

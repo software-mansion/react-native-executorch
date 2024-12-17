@@ -2,7 +2,7 @@ typedef NS_ENUM(NSUInteger, ETError) {
   UndefinedError = 0x65,
   ModuleNotLoaded = 0x66,
   FileWriteFailed = 0x67,
-  InvalidModelPath = 0xff,
+  InvalidModelSource = 0xff,
   
   Ok = 0x00,
   Internal = 0x01,

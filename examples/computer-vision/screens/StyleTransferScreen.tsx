@@ -15,7 +15,7 @@ export const StyleTransferScreen = ({
   setImageUri: (imageUri: string) => void;
 }) => {
   const model = useStyleTransfer({
-    modulePath: STYLE_TRANSFER_CANDY,
+    modelSource: STYLE_TRANSFER_CANDY,
   });
 
   const handleCameraPress = async (isCamera: boolean) => {
