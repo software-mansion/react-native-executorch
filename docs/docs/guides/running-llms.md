@@ -14,10 +14,10 @@ React Native ExecuTorch supports Llama 3.2 models, including quantized versions.
 In order to load a model into the app, you need to run the following code:
 
 ```typescript
-import { useLLM, LLAMA3_2_1B_URL } from 'react-native-executorch';
+import { useLLM, LLAMA3_2_1B } from 'react-native-executorch';
 
 const llama = useLLM({
-  modelSource: LLAMA3_2_1B_URL,
+  modelSource: LLAMA3_2_1B,
   tokenizer: require('../assets/tokenizer.bin'),
   contextWindowLength: 3,
 });
@@ -91,7 +91,7 @@ In order to send a message to the model, one can use the following code:
 
 ```typescript
 const llama = useLLM(
-    modelSource: LLAMA3_2_1B_URL,
+    modelSource: LLAMA3_2_1B,
     tokenizer: require('../assets/tokenizer.bin'),
 );
 
