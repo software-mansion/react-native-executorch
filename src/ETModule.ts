@@ -15,11 +15,11 @@ const getTypeIdentifier = (arr: ETInput): number => {
 };
 
 interface Props {
-  modulePath: string | number;
+  modelSource: string | number;
 }
 
 export const useExecutorchModule = ({
-  modulePath,
+  modelSource,
 }: Props): ExecutorchModule => {
   const [error, setError] = useState<string | null>(null);
   const [isModelLoading, setIsModelLoading] = useState(true);
@@ -27,9 +27,9 @@ export const useExecutorchModule = ({
 
   useEffect(() => {
     const loadModel = async () => {
-      let path = modulePath;
-      if (typeof modulePath === 'number') {
-        path = Image.resolveAssetSource(modulePath).uri;
+      let path = modelSource;
+      if (typeof modelSource === 'number') {
+        path = Image.resolveAssetSource(modelSource).uri;
       }
 
       try {
@@ -42,7 +42,7 @@ export const useExecutorchModule = ({
       }
     };
     loadModel();
-  }, [modulePath]);
+  }, [modelSource]);
 
   const forward = async (input: ETInput, shape: number[]) => {
     if (isModelLoading) {

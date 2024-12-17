@@ -4,7 +4,7 @@ enum class ETError(val code: Int) {
     UndefinedError(0x65),
     ModuleNotLoaded(0x66),
     FileWriteFailed(0x67),
-    InvalidModelPath(0xff),
+    InvalidModelSource(0xff),
 
   // System errors
     Ok(0x00),

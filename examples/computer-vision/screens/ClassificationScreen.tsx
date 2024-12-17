@@ -17,7 +17,7 @@ export const ClassificationScreen = ({
   );
 
   const model = useClassification({
-    modulePath: EFFICIENTNET_V2_S,
+    modelSource: EFFICIENTNET_V2_S,
   });
 
   const handleCameraPress = async (isCamera: boolean) => {

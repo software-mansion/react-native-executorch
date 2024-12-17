@@ -4,7 +4,7 @@ export enum ETError {
   ModuleNotLoaded = 0x66,
   FileWriteFailed = 0x67,
   ModelGenerating = 0x68,
-  InvalidModelPath = 0xff,
+  InvalidModelSource = 0xff,
 
   // ExecuTorch mapped errors
   // Based on: https://github.com/pytorch/executorch/blob/main/runtime/core/error.h

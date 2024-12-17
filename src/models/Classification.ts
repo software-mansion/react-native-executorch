@@ -4,7 +4,7 @@ import { Classification } from '../native/RnExecutorchModules';
 import { ETError, getError } from '../Error';
 
 interface Props {
-  modulePath: string | number;
+  modelSource: string | number;
 }
 
 interface ClassificationModule {
@@ -15,7 +15,7 @@ interface ClassificationModule {
 }
 
 export const useClassification = ({
-  modulePath,
+  modelSource,
 }: Props): ClassificationModule => {
   const [error, setError] = useState<null | string>(null);
   const [isModelReady, setIsModelReady] = useState(false);
@@ -23,10 +23,10 @@ export const useClassification = ({
 
   useEffect(() => {
     const loadModel = async () => {
-      let path = modulePath;
+      let path = modelSource;
 
-      if (typeof modulePath === 'number') {
-        path = Image.resolveAssetSource(modulePath).uri;
+      if (typeof modelSource === 'number') {
+        path = Image.resolveAssetSource(modelSource).uri;
       }
 
       try {
@@ -40,7 +40,7 @@ export const useClassification = ({
     };
 
     loadModel();
-  }, [modulePath]);
+  }, [modelSource]);
 
   const forward = async (input: string) => {
     if (!isModelReady) {

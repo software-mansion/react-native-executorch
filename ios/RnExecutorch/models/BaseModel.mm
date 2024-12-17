@@ -13,7 +13,7 @@
   module = [[ETModel alloc] init];
   [Fetcher fetchResource:modelURL resourceType:ResourceType::MODEL completionHandler:^(NSString *filePath, NSError *error) {
     if (error) {
-      completion(NO, @(InvalidModelPath));
+      completion(NO, @(InvalidModelSource));
       return;
     }
     NSNumber *result = [self->module loadModel: filePath];
