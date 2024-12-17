@@ -18,7 +18,7 @@ export const useClassification = ({
   modulePath,
 }: Props): ClassificationModule => {
   const [error, setError] = useState<null | string>(null);
-  const [isModelReady, setIsModelReady] = useState(true);
+  const [isModelReady, setIsModelReady] = useState(false);
   const [isModelGenerating, setIsModelGenerating] = useState(false);
 
   useEffect(() => {
@@ -49,6 +49,10 @@ export const useClassification = ({
 
     if (error) {
       throw new Error(error);
+    }
+
+    if (isModelGenerating) {
+      throw new Error(getError(ETError.ModelGenerating));
     }
 
     try {
