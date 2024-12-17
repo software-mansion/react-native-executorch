@@ -1,7 +1,6 @@
-//LLM's
-
 import { Platform } from 'react-native';
 
+// LLM's
 export const LLAMA3_2_3B_URL =
   'https://huggingface.co/software-mansion/react-native-executorch-llama-3.2/resolve/v0.1.0/llama-3.2-3B/original/llama3_2_3B_bf16.pte';
 export const LLAMA3_2_3B_QLORA_URL =
@@ -19,7 +18,13 @@ export const LLAMA3_2_1B_TOKENIZER =
 export const LLAMA3_2_3B_TOKENIZER =
   'https://huggingface.co/software-mansion/react-native-executorch-llama-3.2/resolve/v0.1.0/llama-3.2-3B/original/tokenizer.bin';
 
-//Style transfer
+// Classification
+export const EFFICIENTNET_V2_S =
+  Platform.OS === 'ios'
+    ? 'https://huggingface.co/software-mansion/react-native-executorch-efficientnet-v2-s/resolve/v0.2.0/coreml/efficientnet_v2_s_coreml_all.pte'
+    : 'https://huggingface.co/software-mansion/react-native-executorch-efficientnet-v2-s/resolve/v0.2.0/xnnpack/efficientnet_v2_s_xnnpack.pte';
+
+// Style transfer
 export const STYLE_TRANSFER_CANDY =
   Platform.OS === 'ios'
     ? 'https://huggingface.co/software-mansion/react-native-executorch-style-transfer-candy/resolve/v0.2.0/coreml/style_transfer_candy_coreml.pte'

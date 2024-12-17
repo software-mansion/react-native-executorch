@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import Spinner from 'react-native-loading-spinner-overlay';
 import { BottomBar } from '../components/BottomBar';
-import { efficientnet_v2_s } from '../models/classification';
 import { getImageUri } from '../utils';
-import { useClassification } from 'react-native-executorch';
+import { useClassification, EFFICIENTNET_V2_S } from 'react-native-executorch';
 import { View, StyleSheet, Image, Text, ScrollView } from 'react-native';
 
 export const ClassificationScreen = ({
@@ -18,7 +17,7 @@ export const ClassificationScreen = ({
   );
 
   const model = useClassification({
-    modulePath: efficientnet_v2_s,
+    modulePath: EFFICIENTNET_V2_S,
   });
 
   const handleCameraPress = async (isCamera: boolean) => {
