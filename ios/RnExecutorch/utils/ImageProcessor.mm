@@ -54,7 +54,7 @@
                                  userInfo:nil];
   }
   
-  return outputPath;
+  return [NSString stringWithFormat:@"file://%@", outputPath];
 }
 
 + (cv::Mat)readImage:(NSString *)source {
