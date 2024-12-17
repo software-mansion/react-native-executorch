@@ -69,12 +69,13 @@ the model in runtime instead of bundling it, you can use the constants that we s
 The hook returns an object with the following properties:
 
 
-| Field               | Type                               | Description                                                                                                     |
-| ------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `forward`          | `(input: string) => Promise<Detection[]>` | Function that accepts an image and returns an array of Detection objects                                            |
-| `error`             | <code>string &#124; null</code>    | Contains the error message if the model failed to load or failed during generation process                                                          |
-| `isModelGenerating` | `boolean`                          | Indicates whether the model is processing the response                                                  |
-| `isModelReady`      | `boolean`                          | Indicates whether the model has properly loaded and is ready for inference. Will be set to false during inference                                                                        |
+| **Field**            | **Type**                              | **Description**                                                                                                  |
+|-----------------------|---------------------------------------|------------------------------------------------------------------------------------------------------------------|
+| `forward`            | `(input: string) => Promise<Detection[]>` | A function that accepts an image and returns an array of `Detection` objects.                                   |
+| `error`              | `string \| null`                     | Contains the error message if the model failed to load or encountered an error during the generation process.    |
+| `isModelGenerating`  | `boolean`                            | Indicates whether the model is currently processing an inference.                                               |
+| `isModelReady`       | `boolean`                            | Indicates whether the model has successfully loaded and is ready for inference.                                 |
+
 
 ### Detection object
 The detection object is specified as follows:
