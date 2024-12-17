@@ -2,7 +2,11 @@ import { useState } from 'react';
 import Spinner from 'react-native-loading-spinner-overlay';
 import { BottomBar } from '../components/BottomBar';
 import { getImage } from '../utils';
-import { Detection, useObjectDetection } from 'react-native-executorch';
+import {
+  Detection,
+  useObjectDetection,
+  SSDLITE_320_MOBILENET_V3_LARGE_URL,
+} from 'react-native-executorch';
 import { View, StyleSheet, Image } from 'react-native';
 import ImageWithBboxes from '../components/ImageWithBboxes';
 
@@ -20,7 +24,7 @@ export const ObjectDetectionScreen = ({
   }>();
 
   const ssdLite = useObjectDetection({
-    modelSource: require('../assets/frcnn_xnnpack_fp32_lts.pte'),
+    modelSource: SSDLITE_320_MOBILENET_V3_LARGE_URL,
   });
 
   const handleCameraPress = async (isCamera: boolean) => {
@@ -64,7 +68,7 @@ export const ObjectDetectionScreen = ({
           {imageUri && imageDimensions?.width && imageDimensions?.height ? (
             <ImageWithBboxes
               imageUri={
-                imageUri || require("../assets/icons/executorch_logo.png")
+                imageUri || require('../assets/icons/executorch_logo.png')
               }
               imageWidth={imageDimensions.width}
               imageHeight={imageDimensions.height}
@@ -72,8 +76,8 @@ export const ObjectDetectionScreen = ({
             />
           ) : (
             <Image
-              style={{width: "100%", height: "100%"}}
-              resizeMode='contain'
+              style={{ width: '100%', height: '100%' }}
+              resizeMode="contain"
               source={require('../assets/icons/executorch_logo.png')}
             />
           )}

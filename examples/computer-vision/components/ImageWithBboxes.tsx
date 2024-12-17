@@ -23,7 +23,7 @@ export default function ImageWithBboxes({
 
     let sx, sy; // Scale in x and y directions
     if (imageRatio > layoutRatio) {
-    // image is more "wide"
+      // image is more "wide"
       sx = layout.width / imageWidth;
       sy = layout.width / imageRatio / imageHeight;
     } else {

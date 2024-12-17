@@ -20,7 +20,7 @@ export const StyleTransferScreen = ({
 
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
-    const uri = image?.uri
+    const uri = image?.uri;
     if (typeof uri === 'string') {
       setImageUri(uri as string);
     }

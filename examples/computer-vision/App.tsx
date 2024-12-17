@@ -38,8 +38,11 @@ export default function App() {
         );
       case ModelType.OBJECT_DETECTION:
         return (
-          <ObjectDetectionScreen imageUri={imageUri} setImageUri={setImageUri}/>
-        )
+          <ObjectDetectionScreen
+            imageUri={imageUri}
+            setImageUri={setImageUri}
+          />
+        );
       case ModelType.CLASSIFICATION:
         return (
           <ClassificationScreen imageUri={imageUri} setImageUri={setImageUri} />
