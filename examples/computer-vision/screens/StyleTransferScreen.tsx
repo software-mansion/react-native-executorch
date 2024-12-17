@@ -1,8 +1,10 @@
 import Spinner from 'react-native-loading-spinner-overlay';
 import { BottomBar } from '../components/BottomBar';
-import { candy } from '../models/style_transfer';
 import { getImageUri } from '../utils';
-import { useStyleTransfer } from 'react-native-executorch';
+import {
+  useStyleTransfer,
+  STYLE_TRANSFER_CANDY,
+} from 'react-native-executorch';
 import { View, StyleSheet, Image } from 'react-native';
 
 export const StyleTransferScreen = ({
@@ -13,7 +15,7 @@ export const StyleTransferScreen = ({
   setImageUri: (imageUri: string) => void;
 }) => {
   const model = useStyleTransfer({
-    modulePath: candy,
+    modulePath: STYLE_TRANSFER_CANDY,
   });
 
   const handleCameraPress = async (isCamera: boolean) => {

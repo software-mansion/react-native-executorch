@@ -1,6 +1,5 @@
-#import <UIKit/UIKit.h>
 #import "BaseModel.h"
-#import <opencv2/opencv.hpp>
+#import "opencv2/opencv.hpp"
 
 @interface StyleTransferModel : BaseModel
 

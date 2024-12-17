@@ -6,6 +6,7 @@ import org.opencv.core.Mat
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import org.pytorch.executorch.Tensor
+import org.pytorch.executorch.EValue
 
 
 class StyleTransferModel(reactApplicationContext: ReactApplicationContext) : BaseModel<Mat, Mat>(reactApplicationContext) {
@@ -19,22 +20,23 @@ class StyleTransferModel(reactApplicationContext: ReactApplicationContext) : Bas
     return Size(height.toDouble(), width.toDouble())
   }
 
-  override fun preprocess(input: Mat): Mat {
+  override fun preprocess(input: Mat): EValue {
     originalSize = input.size()
     Imgproc.resize(input, input, getModelImageSize())
-    return input
+    return ImageProcessor.matToEValue(input, module.getInputShape(0))
   }
 
-  override fun postprocess(input: Tensor): Mat {
+  override fun postprocess(output: Array<EValue>): Mat {
+    val tensor = output[0].toTensor()
     val modelShape = getModelImageSize()
-    val result = ImageProcessor.EValueToMat(input.dataAsFloatArray, modelShape.width.toInt(), modelShape.height.toInt())
+    val result = ImageProcessor.EValueToMat(tensor.dataAsFloatArray, modelShape.width.toInt(), modelShape.height.toInt())
     Imgproc.resize(result, result, originalSize)
     return result
   }
 
   override fun runModel(input: Mat): Mat {
-      val inputTensor = ImageProcessor.matToEValue(preprocess(input), module.getInputShape(0))
-      val outputTensor = forward(inputTensor)
-      return postprocess(outputTensor[0].toTensor())
+      val modelInput = preprocess(input)
+      val modelOutput = forward(modelInput)
+      return postprocess(modelOutput)
   }
 }
