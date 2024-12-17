@@ -35,7 +35,7 @@ The `modelSource` parameter expects a location string pointing to the model bina
 | `isModelGenerating` | `boolean`                                                  | Indicates whether the model is currently generating.                                                                                              |
 | `isModelReady`      | `boolean`                                                  | Indicates whether the model is ready.                                                                                                             |
 | `loadMethod`        | `(methodName: string) => Promise<void>`                    | Loads resources specific to `methodName` into memory before execution.                                                                            |
-| `loadForward`       | `() => Promise<void>`                                      | Loads resources specific to `forward` method into memory before execution.                                                                        |
+| `loadForward`       | `() => Promise<void>`                                      | Loads resources specific to `forward` method into memory before execution. Uses `loadMethod` under the hood.                                      |
 | `forward`           | `(input: ETInput, shape: number[]) => Promise<number[][]>` | Executes the model's forward pass, where `input` is a Javascript typed array and `shape` is an array of integers representing input Tensor shape. |
 
 ### ETInput
@@ -54,7 +54,7 @@ All functions provided by the `useExecutorchModule` hook are asynchronous and ma
 
 ## Performing an Inference
 
-To run model with ExecuTorch Bindings you have to know shape and type of input tensor. The type will be automatically infered from the array you pass to `forward` method as `input`. However you will still need to explicitly provide shape for the tensor. Outputs from the model, such as classification probabilities, are returned in raw format.
+To run model with ExecuTorch Bindings it's essential to specify the shape of the input tensor. However, there's no need to explicitly define the input type, as it will automatically be inferred from the array you pass to `forward` method. However you will still need to explicitly provide shape for the tensor. Outputs from the model, such as classification probabilities, are returned in raw format.
 
 ## End to end example
 
