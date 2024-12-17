@@ -7,6 +7,7 @@ const LINKING_ERROR =
   '- You are not using Expo Go\n';
 
 const LLMSpec = require('./NativeLLM').default;
+
 const LLM = LLMSpec
   ? LLMSpec
   : new Proxy(
@@ -31,10 +32,10 @@ const ETModule = ETModuleSpec
       }
     );
 
-const StyleTransferSpec = require('./NativeStyleTransfer').default;
+const ClassificationSpec = require('./NativeClassification').default;
 
-const StyleTransfer = StyleTransferSpec
-  ? StyleTransferSpec
+const Classification = ClassificationSpec
+  ? ClassificationSpec
   : new Proxy(
       {},
       {
@@ -57,4 +58,17 @@ const ObjectDetection = ObjectDetectionSpec
       }
     );
 
-export { LLM, ETModule, StyleTransfer, ObjectDetection };
+const StyleTransferSpec = require('./NativeStyleTransfer').default;
+
+const StyleTransfer = StyleTransferSpec
+  ? StyleTransferSpec
+  : new Proxy(
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
+
+export { LLM, ETModule, Classification, ObjectDetection, StyleTransfer };

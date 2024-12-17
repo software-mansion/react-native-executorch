@@ -6,11 +6,12 @@ import { useState } from 'react';
 import { StyleTransferScreen } from './screens/StyleTransferScreen';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { View, StyleSheet } from 'react-native';
+import { ClassificationScreen } from './screens/ClassificationScreen';
 
 enum ModelType {
   STYLE_TRANSFER,
   OBJECT_DETECTION,
-  IMAGE_CLASSIFICATION,
+  CLASSIFICATION,
   SEMANTIC_SEGMENTATION,
 }
 
@@ -36,8 +37,10 @@ export default function App() {
         );
       case ModelType.OBJECT_DETECTION:
         return <></>;
-      case ModelType.IMAGE_CLASSIFICATION:
-        return <></>;
+      case ModelType.CLASSIFICATION:
+        return (
+          <ClassificationScreen imageUri={imageUri} setImageUri={setImageUri} />
+        );
       case ModelType.SEMANTIC_SEGMENTATION:
         return <></>;
       default:
@@ -57,17 +60,17 @@ export default function App() {
               dataSource={[
                 'Style Transfer',
                 'Object Detection',
-                'Image Classification',
+                'Classification',
                 'Semantic Segmentation',
               ]}
               onValueChange={(_, selectedIndex) => {
                 handleModeChange(selectedIndex);
               }}
-              wrapperHeight={135}
+              wrapperHeight={100}
               highlightColor={ColorPalette.primary}
               wrapperBackground="#fff"
               highlightBorderWidth={3}
-              itemHeight={60}
+              itemHeight={40}
               activeItemTextStyle={styles.activeScrollItem}
             />
           </View>
@@ -85,7 +88,7 @@ const styles = StyleSheet.create({
   },
   topContainer: {
     marginTop: 5,
-    height: 150,
+    height: 145,
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
@@ -93,7 +96,7 @@ const styles = StyleSheet.create({
   },
   wheelPickerContainer: {
     width: '100%',
-    height: 135,
+    height: 100,
   },
   activeScrollItem: {
     color: ColorPalette.primary,
