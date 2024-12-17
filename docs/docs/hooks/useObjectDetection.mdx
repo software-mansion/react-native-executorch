@@ -101,13 +101,13 @@ import { useObjectDetection, SSDLITE_320_MOBILENET_V3_LARGE_URL } from 'react-na
 
 function App() {
   const ssdlite = useObjectDetection({
-    modelSource: SSDLITE_320_MOBILENET_V3_LARGE_URL, // alternatively to require(...)
+    modelSource: SSDLITE_320_MOBILENET_V3_LARGE_URL,
   });
 
   const runModel = async () => {
     const detections = await ssdlite.forward("https://url-to-image.jpg");
     for (const detection of detections) {
-      console.log("Bounding box: ", detection.bbox); // [x, y, width, height]
+      console.log("Bounding box: ", detection.bbox);
       console.log("Bounding label: ", detection.label);
       console.log("Bounding score: ", detection.score);
     }
