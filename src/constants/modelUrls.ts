@@ -25,7 +25,7 @@ export const EFFICIENTNET_V2_S =
     : 'https://huggingface.co/software-mansion/react-native-executorch-efficientnet-v2-s/resolve/v0.2.0/xnnpack/efficientnet_v2_s_xnnpack.pte';
 
 // Object detection
-export const SSDLITE_320_MOBILENET_V3_LARGE_URL =
+export const SSDLITE_320_MOBILENET_V3_LARGE =
   'https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large/resolve/v0.2.0/ssdlite320-mobilenetv3-large.pte';
 
 // Style transfer

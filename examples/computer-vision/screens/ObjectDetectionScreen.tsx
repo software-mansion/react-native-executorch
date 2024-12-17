@@ -5,7 +5,7 @@ import { getImage } from '../utils';
 import {
   Detection,
   useObjectDetection,
-  SSDLITE_320_MOBILENET_V3_LARGE_URL,
+  SSDLITE_320_MOBILENET_V3_LARGE,
 } from 'react-native-executorch';
 import { View, StyleSheet, Image } from 'react-native';
 import ImageWithBboxes from '../components/ImageWithBboxes';
@@ -24,7 +24,7 @@ export const ObjectDetectionScreen = ({
   }>();
 
   const ssdLite = useObjectDetection({
-    modelSource: SSDLITE_320_MOBILENET_V3_LARGE_URL,
+    modelSource: SSDLITE_320_MOBILENET_V3_LARGE,
   });
 
   const handleCameraPress = async (isCamera: boolean) => {
