@@ -30,3 +30,16 @@ modelSource: 'file::///var/mobile/.../llama3_2.pte',
 :::info[Info]
 The downloaded files are stored in documents directory of your application.
 :::
+
+## Example
+
+The following code snippet demonstrates how to load model and tokenizer files using `useLLM` hook:
+
+```typescript
+import { useLLM } from 'react-native-executorch';
+
+const llama = useLLM({
+  modelSource: 'https://.../llama3_2.pte',
+  tokenizer: require('../assets/tokenizer.bin'),
+});
+```

@@ -29,14 +29,14 @@ The `modelSource` parameter expects a location string pointing to the model bina
 
 ### Returns
 
-| Field               | Type                                                       | Description                                                                                                                                       |
-| ------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `error`             | <code>ETError &#124; null</code>                           | Contains the error message if the model failed to load.                                                                                           |
-| `isModelGenerating` | `boolean`                                                  | Indicates whether the model is currently generating.                                                                                              |
-| `isModelReady`      | `boolean`                                                  | Indicates whether the model is ready.                                                                                                             |
-| `loadMethod`        | `(methodName: string) => Promise<void>`                    | Loads resources specific to `methodName` into memory before execution.                                                                            |
-| `loadForward`       | `() => Promise<void>`                                      | Loads resources specific to `forward` method into memory before execution. Uses `loadMethod` under the hood.                                      |
-| `forward`           | `(input: ETInput, shape: number[]) => Promise<number[][]>` | Executes the model's forward pass, where `input` is a Javascript typed array and `shape` is an array of integers representing input Tensor shape. |
+| Field               | Type                                                       | Description                                                                                                                                                                                         |
+| ------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `error`             | <code>string &#124; null</code>                            | Contains the error message if the model failed to load.                                                                                                                                             |
+| `isModelGenerating` | `boolean`                                                  | Indicates whether the model is currently processing an inference.                                                                                                                                   |
+| `isModelReady`      | `boolean`                                                  | Indicates whether the model has successfully loaded and is ready for inference.                                                                                                                     |
+| `loadMethod`        | `(methodName: string) => Promise<void>`                    | Loads resources specific to `methodName` into memory before execution.                                                                                                                              |
+| `loadForward`       | `() => Promise<void>`                                      | Loads resources specific to `forward` method into memory before execution. Uses `loadMethod` under the hood.                                                                                        |
+| `forward`           | `(input: ETInput, shape: number[]) => Promise<number[][]>` | Executes the model's forward pass, where `input` is a Javascript typed array and `shape` is an array of integers representing input Tensor shape. The output is a Tensor - raw result of inference. |
 
 ### ETInput
 
@@ -52,7 +52,7 @@ The `ETInput` type defines the typed arrays that can be used as inputs in the `f
 
 All functions provided by the `useExecutorchModule` hook are asynchronous and may throw an error. The `ETError` enum includes errors [defined by the ExecuTorch team](https://github.com/pytorch/executorch/blob/main/runtime/core/error.h) and additional errors specified by our library.
 
-## Performing an Inference
+## Performing an inference
 
 To run model with ExecuTorch Bindings it's essential to specify the shape of the input tensor. However, there's no need to explicitly define the input type, as it will automatically be inferred from the array you pass to `forward` method. However you will still need to explicitly provide shape for the tensor. Outputs from the model, such as classification probabilities, are returned in raw format.
 
@@ -60,7 +60,7 @@ To run model with ExecuTorch Bindings it's essential to specify the shape of the
 
 This example demonstrates the integration and usage of the ExecuTorch bindings with a [style transfer model](../computer-vision/style-transfer.md). Specifically, we'll be using the `STYLE_TRANSFER_CANDY` model, which applies artistic style transfer to an input image.
 
-### Importing the Module and Loading the Model
+### Importing the Module and loading the model
 
 First, import the necessary functions from the `react-native-executorch` package and initialize the ExecuTorch module with the specified style transfer model.
 
@@ -76,7 +76,9 @@ const executorchModule = useExecutorchModule({
 });
 ```
 
-### Setting Up Input Parameters
+s
+
+### Setting up input parameters
 
 To prepare the input for the model, define the shape of the input tensor. This shape depends on the model's requirements. For the `STYLE_TRANSFER_CANDY` model, we need a tensor of shape `[1, 3, 640, 640]`, corresponding to a batch size of 1, 3 color channels (RGB), and dimensions of 640x640 pixels.
 
@@ -87,7 +89,7 @@ const shape = [1, 3, 640, 640];
 const input = new Float32Array(1 * 3 * 640 * 640); // fill this array with your image data
 ```
 
-### Performing Inference
+### Performing inference
 
 ```typescript
 try {
