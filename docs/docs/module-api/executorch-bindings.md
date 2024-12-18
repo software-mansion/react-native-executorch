@@ -76,7 +76,6 @@ const executorchModule = useExecutorchModule({
 });
 ```
 
-s
 
 ### Setting up input parameters
 
