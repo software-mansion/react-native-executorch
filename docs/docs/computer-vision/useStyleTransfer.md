@@ -49,13 +49,12 @@ interface StyleTransferModule {
 **`modelSource`**
 A string that specifies the location of the model binary. For more information, take a look at [loading models](../fundamentals/loading-models.md) page.
 
-
 ### Returns
 
-| Field               | Type                                 | Description                                                                                              |
-| ------------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| `forward`           | `(input: string) => Promise<string>` | Executes the model's forward pass, where `input` can be a fetchable resource or a Base64-encoded string. |
-| `error`             | <code>string &#124; null</code>      | Contains the error message if the model failed to load.                                                  |
+| Field          | Type                                 | Description                                                                                              |
+| -------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| `forward`      | `(input: string) => Promise<string>` | Executes the model's forward pass, where `input` can be a fetchable resource or a Base64-encoded string. |
+| `error`        | <code>string &#124; null</code>      | Contains the error message if the model failed to load.                                                  |
 | `isGenerating` | `boolean`                            | Indicates whether the model is currently processing an inference.                                        |
 | `isReady`      | `boolean`                            | Indicates whether the model has successfully loaded and is ready for inference.                          |
 
@@ -86,3 +85,10 @@ function App(){
   ...
 }
 ```
+
+## Supported Models
+
+- [Candy](https://github.com/pytorch/examples/tree/main/fast_neural_style)
+- [Mosaic](https://github.com/pytorch/examples/tree/main/fast_neural_style)
+- [Udnie](https://github.com/pytorch/examples/tree/main/fast_neural_style)
+- [Rain princess](https://github.com/pytorch/examples/tree/main/fast_neural_style)
