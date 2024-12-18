@@ -3,13 +3,16 @@ title: useClassification
 sidebar_position: 1
 ---
 
-Image classification is the process of assigning a category to an image that best describes its contents. For example, when given an image of a hotdog, the image classifier should assign the hotdog class to that image.
+Image classification is the process of assigning a label to an image that best describes its contents. For example, when given an image of a puppy, the image classifier should assign the puppy class to that image.
 
 :::info
 Usually, the class with the highest probability is the one that is assigned to an image. However, if there are multiple classes with comparatively high probabilities, this may indicate that the model is not confident in its prediction.
 :::
 
-### Initializing
+- It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-efficientnet-v2-s). You can also use [constants](https://github.com/software-mansion/react-native-executorch/tree/main/src/constants/modelUrls.ts) shipped with our library
+- If you prefer to export a model by yourself, make sure to check the official [ExecuTorch documentation](https://pytorch.org/executorch/stable/index.html)
+
+## Reference
 
 ```typescript
 import { useClassification, EFFICIENTNET_V2_S } from 'react-native-executorch';
@@ -17,55 +20,81 @@ import { useClassification, EFFICIENTNET_V2_S } from 'react-native-executorch';
 const model = useClassification({
   modelSource: EFFICIENTNET_V2_S,
 });
-```
 
-The provided code snippet fetches the model from the specified `modelSource`, loads it into memory and returns an object with various methods and properties enabling you to control the model's lifecycle.
-
-## Arguments
-
-**`modelSource`** - A string that specifies the location of the model binary. For more information, take a look at [loading models](../fundamentals/loading-models.md) page.
-
-## Returns
-
-| Field               | Type                                                         | Description                                                                                              |
-| ------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| `forward`           | `(input: string) => Promise<{ [category: string]: number }>` | Executes the model's forward pass, where `input` can be a fetchable resource or a Base64-encoded string. |
-| `error`             | <code>string &#124; null</code>                              | Contains the error message if the model failed to load.                                                  |
-| `isModelGenerating` | `boolean`                                                    | Indicates whether the model is currently performing classification.                                      |
-| `isModelReady`      | `boolean`                                                    | Indicates whether the model is ready.                                                                    |
-
-:::info[Info]
-Images from external sources are stored in your application's temporary directory.
-:::
-
-## Usage
-
-In order to perform image classification, you should use the following code:
-
-```typescript
-const imageUri = 'file:///Users/.../cute_puppy.png';
+const imageUri = 'file::///Users/.../cute_puppy.png';
 
 try {
   const classesWithProbabilities = await model.forward(imageUri);
-
-  // Extract three classes with the highest probabilities
-  const topThreeClasses = Object.entries(classesWithProbabilities)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 3)
-    .map(([label, score]) => ({ label, score }));
 } catch (error) {
   console.error(error);
 }
 ```
 
-The forward function returns a promise, which resolves to an object mapping class names to their probabilities. Handle the promise result as needed, for example, by determining the classes with the highest probabilities.
+<details>
+<summary>Type definitions</summary>
 
-### Output format
+```typescript
+interface ClassificationModule {
+  error: string | null;
+  isReady: boolean;
+  isGenerating: boolean;
+  forward: (input: string) => Promise<{ [category: string]: number }>;
+}
+```
 
-- `keys`: These are the class names that the model predicts.
-- `values`: These represent the probability associated with each class, indicating the model's confidence that the image belongs to that class.
+</details>
 
-## Supported Models and Classes
+### Running the model
+
+To run the model, you can use the `forward` method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns a promise, which can resolve either to error or an object containing categories with their probabilities.
+
+:::info[Info]
+Images from external sources are stored in your application's temporary directory.
+:::
+
+### Arguments
+
+**`modelSource`**
+A string that specifies the location of the model binary. For more information, take a look at [loading models](../fundamentals/loading-models.md) page.
+
+### Returns
+
+| Field          | Type                                                         | Description                                                                                              |
+| -------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| `forward`      | `(input: string) => Promise<{ [category: string]: number }>` | Executes the model's forward pass, where `input` can be a fetchable resource or a Base64-encoded string. |
+| `error`        | <code>string &#124; null</code>                              | Contains the error message if the model failed to load.                                                  |
+| `isGenerating` | `boolean`                                                    | Indicates whether the model is currently processing an inference.                                        |
+| `isReady`      | `boolean`                                                    | Indicates whether the model has successfully loaded and is ready for inference.                          |
+
+### Example
+
+```typescript
+import { useClassification, EFFICIENTNET_V2_S } from 'react-native-executorch';
+
+function App() {
+  const model = useClassification({
+    modulePath: EFFICIENTNET_V2_S,
+  });
+
+  ...
+  const imageUri = 'file:///Users/.../cute_puppy.png';
+
+  try {
+    const classesWithProbabilities = await model.forward(imageUri);
+
+    // Extract three classes with the highest probabilities
+    const topThreeClasses = Object.entries(classesWithProbabilities)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 3)
+      .map(([label, score]) => ({ label, score }));
+  } catch (error) {
+    console.error(error);
+  }
+  ...
+}
+```
+
+## Supported Models
 
 | Model                                                                                                           | Number of classes | Class list                                                                                                                                                                 |
 | --------------------------------------------------------------------------------------------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
