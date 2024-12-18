@@ -58,7 +58,7 @@ To run model with ExecuTorch Bindings it's essential to specify the shape of the
 
 ## End to end example
 
-This example demonstrates the integration and usage of the ExecuTorch bindings with a [style transfer model](../computer-vision/style-transfer.md). Specifically, we'll be using the `STYLE_TRANSFER_CANDY` model, which applies artistic style transfer to an input image.
+This example demonstrates the integration and usage of the ExecuTorch bindings with a [style transfer model](../computer-vision/useStyleTransfer.md). Specifically, we'll be using the `STYLE_TRANSFER_CANDY` model, which applies artistic style transfer to an input image.
 
 ### Importing the Module and loading the model
 
