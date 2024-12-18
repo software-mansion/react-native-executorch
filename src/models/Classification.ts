@@ -16,8 +16,11 @@ interface ClassificationModule {
 export const useClassification = ({
   modelSource,
 }: Props): ClassificationModule => {
-  const [module, _] = useState(() => new _ClassificationModule())
-  const {error, isModelReady, isModelGenerating, forward} = useModule({modelSource, module})
+  const [module, _] = useState(() => new _ClassificationModule());
+  const { error, isModelReady, isModelGenerating, forward } = useModule({
+    modelSource,
+    module,
+  });
 
   return { error, isModelReady, isModelGenerating, forward };
 };

@@ -72,30 +72,39 @@ const StyleTransfer = StyleTransferSpec
     );
 
 class _ObjectDetectionModule {
-  async forward(input: string){
-    return await ObjectDetection.forward(input)
+  async forward(input: string) {
+    return await ObjectDetection.forward(input);
   }
-  async loadModule(modelSource: string | number){
-    return await ObjectDetection.loadModule(modelSource)
+  async loadModule(modelSource: string | number) {
+    return await ObjectDetection.loadModule(modelSource);
   }
 }
 
 class _StyleTransferModule {
-  async forward(input: string){
-    return await StyleTransfer.forward(input)
+  async forward(input: string) {
+    return await StyleTransfer.forward(input);
   }
-  async loadModule(modelSource: string | number){
+  async loadModule(modelSource: string | number) {
     return await StyleTransfer.loadModule(modelSource);
   }
 }
 
 class _ClassificationModule {
-  async forward(input: string){
-    return await Classification.forward(input)
+  async forward(input: string) {
+    return await Classification.forward(input);
   }
-  async loadModule(modelSource: string | number){
-    return await Classification.loadModule(modelSource)
+  async loadModule(modelSource: string | number) {
+    return await Classification.loadModule(modelSource);
   }
 }
 
-export { LLM, ETModule, Classification, ObjectDetection, StyleTransfer, _ClassificationModule, _StyleTransferModule, _ObjectDetectionModule };
+export {
+  LLM,
+  ETModule,
+  Classification,
+  ObjectDetection,
+  StyleTransfer,
+  _ClassificationModule,
+  _StyleTransferModule,
+  _ObjectDetectionModule,
+};

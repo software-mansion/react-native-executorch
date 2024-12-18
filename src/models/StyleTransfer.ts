@@ -16,8 +16,11 @@ interface StyleTransferModule {
 export const useStyleTransfer = ({
   modelSource,
 }: Props): StyleTransferModule => {
-  const [module, _] = useState(() => new _StyleTransferModule())
-  const {error, isModelReady, isModelGenerating, forward} = useModule({modelSource, module})
+  const [module, _] = useState(() => new _StyleTransferModule());
+  const { error, isModelReady, isModelGenerating, forward } = useModule({
+    modelSource,
+    module,
+  });
 
   return { error, isModelReady, isModelGenerating, forward };
 };

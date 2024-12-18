@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Image } from 'react-native';
 import { ETError, getError } from './Error';
-import { _ClassificationModule, _ObjectDetectionModule, _StyleTransferModule } from './native/RnExecutorchModules';
+import {
+  _ClassificationModule,
+  _ObjectDetectionModule,
+  _StyleTransferModule,
+} from './native/RnExecutorchModules';
 
 interface Props {
   modelSource: string | number;
@@ -15,10 +19,7 @@ interface _Module {
   forward: (input: string) => Promise<any>;
 }
 
-export const useModule = ({
-  modelSource,
-  module
-}: Props): _Module => {
+export const useModule = ({ modelSource, module }: Props): _Module => {
   const [error, setError] = useState<null | string>(null);
   const [isModelReady, setIsModelReady] = useState(false);
   const [isModelGenerating, setIsModelGenerating] = useState(false);

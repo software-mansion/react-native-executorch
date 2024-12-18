@@ -17,8 +17,11 @@ interface ObjectDetectionModule {
 export const useObjectDetection = ({
   modelSource,
 }: Props): ObjectDetectionModule => {
-  const [module, _] = useState(() => new _ObjectDetectionModule())
-  const {error, isModelReady, isModelGenerating, forward} = useModule({modelSource, module})
+  const [module, _] = useState(() => new _ObjectDetectionModule());
+  const { error, isModelReady, isModelGenerating, forward } = useModule({
+    modelSource,
+    module,
+  });
 
   return { error, isModelReady, isModelGenerating, forward };
 };
