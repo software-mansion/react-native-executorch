@@ -7,11 +7,11 @@ sidebar_position: 1
 
 ## Reference
 ```jsx
-import { useObjectDetection, SSDLITE_320_MOBILENET_V3_LARGE_URL } from 'react-native-executorch';
+import { useObjectDetection, SSDLITE_320_MOBILENET_V3_LARGE } from 'react-native-executorch';
 
 function App() {
   const ssdlite = useObjectDetection({
-    modelSource: SSDLITE_320_MOBILENET_V3_LARGE_URL, // alternatively, you can use require(...)
+    modelSource: SSDLITE_320_MOBILENET_V3_LARGE, // alternatively, you can use require(...)
   });
 
   ...
@@ -98,11 +98,11 @@ The `label` property contains the name of the detected object, which corresponds
 
 ### Example
 ```tsx
-import { useObjectDetection, SSDLITE_320_MOBILENET_V3_LARGE_URL } from 'react-native-executorch';
+import { useObjectDetection, SSDLITE_320_MOBILENET_V3_LARGE } from 'react-native-executorch';
 
 function App() {
   const ssdlite = useObjectDetection({
-    modelSource: SSDLITE_320_MOBILENET_V3_LARGE_URL,
+    modelSource: SSDLITE_320_MOBILENET_V3_LARGE,
   });
 
   const runModel = async () => {
