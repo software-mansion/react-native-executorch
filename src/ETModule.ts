@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Image } from 'react-native';
 import { ETModule } from './native/RnExecutorchModules';
 import { ETError, getError } from './Error';
-import { ETInput, ExecutorchModule } from './types';
+import { ETInput, ExecutorchModule } from './types/types';
 
 const getTypeIdentifier = (arr: ETInput): number => {
   if (arr instanceof Int8Array) return 0;

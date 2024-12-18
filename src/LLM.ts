@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { EventSubscription, Image } from 'react-native';
-import { ResourceSource, Model } from './types';
+import { ResourceSource, Model } from './types/types';
 import {
   DEFAULT_CONTEXT_WINDOW_LENGTH,
   DEFAULT_SYSTEM_PROMPT,

@@ -1,28 +1,30 @@
 import { useEffect, useState } from 'react';
 import { Image } from 'react-native';
-import { StyleTransfer } from './native/RnExecutorchModules';
 import { ETError, getError } from './Error';
 
 interface Props {
   modelSource: string | number;
+  _class: any;
 }
 
-interface StyleTransferModule {
+interface _Module {
   error: string | null;
   isModelReady: boolean;
   isModelGenerating: boolean;
-  forward: (input: string) => Promise<string>;
+  forward: (input: string) => Promise<any>;
 }
 
-export const useStyleTransfer = ({
+export const useModule = ({
   modelSource,
-}: Props): StyleTransferModule => {
+  _class
+}: Props): _Module => {
   const [error, setError] = useState<null | string>(null);
   const [isModelReady, setIsModelReady] = useState(false);
   const [isModelGenerating, setIsModelGenerating] = useState(false);
 
   useEffect(() => {
     const loadModel = async () => {
+      if (!modelSource) return;
       let path = modelSource;
 
       if (typeof modelSource === 'number') {
@@ -31,7 +33,7 @@ export const useStyleTransfer = ({
 
       try {
         setIsModelReady(false);
-        await StyleTransfer.loadModule(path);
+        await _class.loadModule(path);
         setIsModelReady(true);
       } catch (e) {
         setError(getError(e));
@@ -39,7 +41,7 @@ export const useStyleTransfer = ({
     };
 
     loadModel();
-  }, [modelSource]);
+  }, [modelSource, _class]);
 
   const forward = async (input: string) => {
     if (!isModelReady) {
@@ -51,7 +53,7 @@ export const useStyleTransfer = ({
 
     try {
       setIsModelGenerating(true);
-      const output = await StyleTransfer.forward(input);
+      const output = await _class.forward(input);
       return output;
     } catch (e) {
       throw new Error(getError(e));

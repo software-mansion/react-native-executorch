@@ -1,22 +1,23 @@
 import { useState } from 'react';
-import { ClassificationModule } from '../native/RnExecutorchModules';
+import { ObjectDetectionModule } from '../native/RnExecutorchModules';
 import { useModule } from '../useModule';
+import { Detection } from '../types/object_detection_types';
 
 interface Props {
   modelSource: string | number;
 }
 
-interface _ClassificationModule {
+interface _ObjectDetectionModule {
   error: string | null;
   isModelReady: boolean;
   isModelGenerating: boolean;
-  forward: (input: string) => Promise<{ [category: string]: number }>;
+  forward: (input: string) => Promise<Detection[]>;
 }
 
-export const useClassification = ({
+export const useObjectDetection = ({
   modelSource,
-}: Props): _ClassificationModule => {
-  const [_class, _] = useState(() => new ClassificationModule())
+}: Props): _ObjectDetectionModule => {
+  const [_class, _] = useState(() => new ObjectDetectionModule())
   const {error, isModelReady, isModelGenerating, forward} = useModule({modelSource, _class})
 
   return { error, isModelReady, isModelGenerating, forward };
