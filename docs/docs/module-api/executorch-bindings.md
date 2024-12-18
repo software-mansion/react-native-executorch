@@ -52,7 +52,7 @@ The `ETInput` type defines the typed arrays that can be used as inputs in the `f
 
 All functions provided by the `useExecutorchModule` hook are asynchronous and may throw an error. The `ETError` enum includes errors [defined by the ExecuTorch team](https://github.com/pytorch/executorch/blob/main/runtime/core/error.h) and additional errors specified by our library.
 
-## Performing an inference
+## Performing inference
 
 To run model with ExecuTorch Bindings it's essential to specify the shape of the input tensor. However, there's no need to explicitly define the input type, as it will automatically be inferred from the array you pass to `forward` method. However you will still need to explicitly provide shape for the tensor. Outputs from the model, such as classification probabilities, are returned in raw format.
 
