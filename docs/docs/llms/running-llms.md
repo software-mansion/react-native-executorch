@@ -6,7 +6,7 @@ sidebar_position: 1
 React Native ExecuTorch supports Llama 3.2 models, including quantized versions. Before getting started, you’ll need to obtain the .pte binary—a serialized model—and the tokenizer. There are various ways to accomplish this:
 
 - For your convienience, it's best if you use models exported by us, you can get them from our hugging face repository. You can also use [constants](https://github.com/software-mansion/react-native-executorch/tree/main/src/constants/modelUrls.ts) shipped with our library.
-- If you want to export model by yourself,you can use a Docker image that we've prepared. To see how it works, check out [exporting Llama](./exporting-llama.mdx)
+- If you want to export model by yourself,you can use a Docker image that we've prepared. To see how it works, check out [exporting Llama](./exporting-llama)
 - Follow the official [tutorial](https://github.com/pytorch/executorch/blob/fe20be98c/examples/demo-apps/android/LlamaDemo/docs/delegates/xnnpack_README.md) made by ExecuTorch team to build the model and tokenizer yourself
 
 ## Initializing
@@ -25,17 +25,17 @@ const llama = useLLM({
 
 The code snippet above fetches the model from the specified URL, loads it into memory, and returns an object with various methods and properties for controlling the model. You can monitor the loading progress by checking the `llama.downloadProgress` and `llama.isReady` property, and if anything goes wrong, the `llama.error` property will contain the error message.
 
-:::danger[Danger]
+:::danger
 Lower-end devices might not be able to fit LLMs into memory. We recommend using quantized models to reduce the memory footprint.
 :::
 
-:::caution[Caution]
+:::caution
 Given computational constraints, our architecture is designed to support only one instance of the model runner at the time. Consequently, this means you can have only one active component leveraging `useLLM` concurrently.
 :::
 
 ### Arguments
 
-**`modelSource`** - A string that specifies the location of the model binary. For more information, take a look at [loading models](#loading-models) section.
+**`modelSource`** - A string that specifies the location of the model binary. For more information, take a look at [loading models](../fundamentals/loading-models.md) section.
 
 **`tokenizer`** - URL to the binary file which contains the tokenizer
 
@@ -54,36 +54,6 @@ Given computational constraints, our architecture is designed to support only on
 | `interrupt`         | `() => void`                       | Function to interrupt the current inference                                                                     |
 | `isReady`      | `boolean`                          | Indicates whether the model is ready                                                                            |
 | `downloadProgress`  | `number`                           | Represents the download progress as a value between 0 and 1, indicating the extent of the model file retrieval. |
-
-### Loading models
-
-There are three different methods available for loading the model and tokenizer files, depending on their size and location.
-
-**1. Load from React-Native assets folder (For Files < **512MB**)**
-
-```typescript
-modelSource: require('../assets/llama3_2.pte');
-```
-
-**2. Load from Remote URL:**
-
-For files larger than 512MB or when you want to keep size of the app smaller, you can load the model from a remote URL (e.g. HuggingFace).
-
-```typescript
-modelSource: 'https://.../llama3_2.pte';
-```
-
-**3. Load from local file system:**
-
-If you prefer to delegate the process of obtaining and loading model and tokenizer files to the user, you can use the following method:
-
-```typescript
-modelSource: 'file:://var/mobile/.../llama3_2.pte',
-```
-
-:::info[Info]
-The downloaded files are stored in documents directory of your application.
-:::
 
 ### Sending a message
 
