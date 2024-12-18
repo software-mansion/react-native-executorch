@@ -13,7 +13,6 @@ enum ModelType {
   STYLE_TRANSFER,
   OBJECT_DETECTION,
   CLASSIFICATION,
-  SEMANTIC_SEGMENTATION,
 }
 
 export default function App() {
@@ -47,8 +46,6 @@ export default function App() {
         return (
           <ClassificationScreen imageUri={imageUri} setImageUri={setImageUri} />
         );
-      case ModelType.SEMANTIC_SEGMENTATION:
-        return <></>;
       default:
         return (
           <StyleTransferScreen imageUri={imageUri} setImageUri={setImageUri} />
@@ -67,7 +64,6 @@ export default function App() {
                 'Style Transfer',
                 'Object Detection',
                 'Classification',
-                'Semantic Segmentation',
               ]}
               onValueChange={(_, selectedIndex) => {
                 handleModeChange(selectedIndex);
