@@ -29,14 +29,14 @@ The `modelSource` parameter expects a location string pointing to the model bina
 
 ### Returns
 
-| Field               | Type                                                       | Description                                                                                                                                                                                         |
-| ------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `error`             | <code>string &#124; null</code>                            | Contains the error message if the model failed to load.                                                                                                                                             |
+| Field          | Type                                                       | Description                                                                                                                                                                                         |
+| -------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `error`        | <code>string &#124; null</code>                            | Contains the error message if the model failed to load.                                                                                                                                             |
 | `isGenerating` | `boolean`                                                  | Indicates whether the model is currently processing an inference.                                                                                                                                   |
 | `isReady`      | `boolean`                                                  | Indicates whether the model has successfully loaded and is ready for inference.                                                                                                                     |
-| `loadMethod`        | `(methodName: string) => Promise<void>`                    | Loads resources specific to `methodName` into memory before execution.                                                                                                                              |
-| `loadForward`       | `() => Promise<void>`                                      | Loads resources specific to `forward` method into memory before execution. Uses `loadMethod` under the hood.                                                                                        |
-| `forward`           | `(input: ETInput, shape: number[]) => Promise<number[][]>` | Executes the model's forward pass, where `input` is a Javascript typed array and `shape` is an array of integers representing input Tensor shape. The output is a Tensor - raw result of inference. |
+| `loadMethod`   | `(methodName: string) => Promise<void>`                    | Loads resources specific to `methodName` into memory before execution.                                                                                                                              |
+| `loadForward`  | `() => Promise<void>`                                      | Loads resources specific to `forward` method into memory before execution. Uses `loadMethod` under the hood.                                                                                        |
+| `forward`      | `(input: ETInput, shape: number[]) => Promise<number[][]>` | Executes the model's forward pass, where `input` is a Javascript typed array and `shape` is an array of integers representing input Tensor shape. The output is a Tensor - raw result of inference. |
 
 ### ETInput
 
@@ -58,7 +58,7 @@ To run model with ExecuTorch Bindings it's essential to specify the shape of the
 
 ## End to end example
 
-This example demonstrates the integration and usage of the ExecuTorch bindings with a [style transfer model](../computer-vision/useStyleTransfer.md). Specifically, we'll be using the `STYLE_TRANSFER_CANDY` model, which applies artistic style transfer to an input image.
+This example demonstrates the integration and usage of the ExecuTorch bindings with a [style transfer model](../computer-vision/useStyleTransfer.mdx). Specifically, we'll be using the `STYLE_TRANSFER_CANDY` model, which applies artistic style transfer to an input image.
 
 ### Importing the Module and loading the model
 
