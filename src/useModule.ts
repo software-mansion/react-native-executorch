@@ -28,6 +28,7 @@ export const useModule = ({
       if (!modelSource) return;
       let path = modelSource;
 
+      console.log(path);
       if (typeof modelSource === 'number') {
         path = Image.resolveAssetSource(modelSource).uri;
       }
