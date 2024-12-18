@@ -9,8 +9,9 @@ Image classification is the process of assigning a label to an image that best d
 Usually, the class with the highest probability is the one that is assigned to an image. However, if there are multiple classes with comparatively high probabilities, this may indicate that the model is not confident in its prediction.
 :::
 
-- It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-efficientnet-v2-s). You can also use [constants](https://github.com/software-mansion/react-native-executorch/tree/main/src/constants/modelUrls.ts) shipped with our library
-- If you prefer to export a model by yourself, make sure to check the official [ExecuTorch documentation](https://pytorch.org/executorch/stable/index.html)
+:::info
+It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-efficientnet-v2-s). You can also use [constants](https://github.com/software-mansion/react-native-executorch/tree/main/src/constants/modelUrls.ts) shipped with our library
+:::
 
 ## Reference
 
@@ -44,14 +45,6 @@ interface ClassificationModule {
 
 </details>
 
-### Running the model
-
-To run the model, you can use the `forward` method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns a promise, which can resolve either to error or an object containing categories with their probabilities.
-
-:::info[Info]
-Images from external sources are stored in your application's temporary directory.
-:::
-
 ### Arguments
 
 **`modelSource`**
@@ -66,7 +59,15 @@ A string that specifies the location of the model binary. For more information, 
 | `isGenerating` | `boolean`                                                    | Indicates whether the model is currently processing an inference.                                        |
 | `isReady`      | `boolean`                                                    | Indicates whether the model has successfully loaded and is ready for inference.                          |
 
-### Example
+## Running the model
+
+To run the model, you can use the `forward` method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns a promise, which can resolve either to error or an object containing categories with their probabilities.
+
+:::info[Info]
+Images from external sources are stored in your application's temporary directory.
+:::
+
+## Example
 
 ```typescript
 import { useClassification, EFFICIENTNET_V2_S } from 'react-native-executorch';
@@ -94,7 +95,7 @@ function App() {
 }
 ```
 
-## Supported Models
+## Supported models
 
 | Model                                                                                                           | Number of classes | Class list                                                                                                                                                                 |
 | --------------------------------------------------------------------------------------------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
