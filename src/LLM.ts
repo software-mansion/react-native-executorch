@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { EventSubscription, Image } from 'react-native';
-import { ResourceSource, Model } from './types';
+import { ResourceSource, Model } from './types/common';
 import {
   DEFAULT_CONTEXT_WINDOW_LENGTH,
   DEFAULT_SYSTEM_PROMPT,
@@ -24,8 +24,8 @@ export const useLLM = ({
   contextWindowLength?: number;
 }): Model => {
   const [error, setError] = useState<string | null>(null);
-  const [isModelReady, setIsModelReady] = useState(false);
-  const [isModelGenerating, setIsModelGenerating] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [response, setResponse] = useState('');
   const [downloadProgress, setDownloadProgress] = useState(0);
   const downloadProgressListener = useRef<null | EventSubscription>(null);
@@ -65,7 +65,7 @@ export const useLLM = ({
           contextWindowLength
         );
 
-        setIsModelReady(true);
+        setIsReady(true);
 
         tokenGeneratedListener.current = LLM.onToken(
           (data: string | undefined) => {
@@ -75,13 +75,13 @@ export const useLLM = ({
             if (data !== EOT_TOKEN) {
               setResponse((prevResponse) => prevResponse + data);
             } else {
-              setIsModelGenerating(false);
+              setIsGenerating(false);
             }
           }
         );
       } catch (err) {
         const message = (err as Error).message;
-        setIsModelReady(false);
+        setIsReady(false);
         setError(message);
       }
     };
@@ -99,7 +99,7 @@ export const useLLM = ({
 
   const generate = useCallback(
     async (input: string): Promise<void> => {
-      if (!isModelReady) {
+      if (!isReady) {
         throw new Error('Model is still loading');
       }
       if (error) {
@@ -108,21 +108,23 @@ export const useLLM = ({
 
       try {
         setResponse('');
-        setIsModelGenerating(true);
+        setIsGenerating(true);
         await LLM.runInference(input);
       } catch (err) {
-        setIsModelGenerating(false);
+        setIsGenerating(false);
         throw new Error((err as Error).message);
       }
     },
-    [isModelReady, error]
+    [isReady, error]
   );
 
   return {
     generate,
     error,
-    isModelReady,
-    isModelGenerating,
+    isReady,
+    isGenerating,
+    isModelReady: isReady,
+    isModelGenerating: isGenerating,
     response,
     downloadProgress,
     interrupt,

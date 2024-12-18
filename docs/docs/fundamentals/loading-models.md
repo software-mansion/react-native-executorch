@@ -27,7 +27,7 @@ If you prefer to delegate the process of obtaining and loading model and tokeniz
 modelSource: 'file::///var/mobile/.../llama3_2.pte',
 ```
 
-:::info[Info]
+:::info
 The downloaded files are stored in documents directory of your application.
 :::
 

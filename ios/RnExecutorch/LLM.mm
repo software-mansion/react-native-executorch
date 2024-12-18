@@ -47,14 +47,14 @@ RCT_EXPORT_MODULE()
 
 - (void)updateDownloadProgress:(NSNumber *)progress {
   dispatch_async(dispatch_get_main_queue(), ^{
-     [self emitOnDownloadProgress:progress];
+    [self emitOnDownloadProgress:progress];
   });
 }
 
 - (void)loadLLM:(NSString *)modelSource tokenizerSource:(NSString *)tokenizerSource systemPrompt:(NSString *)systemPrompt contextWindowLength:(double)contextWindowLength resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
   NSURL *modelURL = [NSURL URLWithString:modelSource];
   NSURL *tokenizerURL = [NSURL URLWithString:tokenizerSource];
-  
+    
   if(self->runner || isFetching){
     reject(@"model_already_loaded", @"Model and tokenizer already loaded", nil);
     return;
@@ -78,7 +78,7 @@ RCT_EXPORT_MODULE()
     
     modelFetcher.onFinish = ^(NSString *modelFilePath) {
       self->runner = [[LLaMARunner alloc] initWithModelPath:modelFilePath tokenizerPath:tokenizerFilePath];
-      NSUInteger contextWindowLengthUInt = (NSUInteger)round(contextWindowLength);
+        NSUInteger contextWindowLengthUInt = (NSUInteger)round(contextWindowLength);
       
       self->conversationManager = [[ConversationManager alloc] initWithNumMessagesContextWindow: contextWindowLengthUInt systemPrompt: systemPrompt];
       self->isFetching = NO;
@@ -94,23 +94,23 @@ RCT_EXPORT_MODULE()
 - (void) runInference:(NSString *)input resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
   [conversationManager addResponse:input senderRole:ChatRole::USER];
   NSString *prompt = [conversationManager getConversation];
-  
+
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
     NSError *error = nil;
     [self->runner generate:prompt withTokenCallback:^(NSString *token) {
-      [self onResult:token prompt:prompt];
+        [self onResult:token prompt:prompt];
     } error:&error];
-    
+
     // make sure to add eot token once generation is done
     if (![self->tempLlamaResponse hasSuffix:END_OF_TEXT_TOKEN_NS]) {
       [self onResult:END_OF_TEXT_TOKEN_NS prompt:prompt];
     }
-    
+
     if (self->tempLlamaResponse) {
       [self->conversationManager addResponse:self->tempLlamaResponse senderRole:ChatRole::ASSISTANT];
       self->tempLlamaResponse = [NSMutableString string];
     }
-    
+
     if (error) {
       reject(@"error_in_generation", error.localizedDescription, nil);
       return;

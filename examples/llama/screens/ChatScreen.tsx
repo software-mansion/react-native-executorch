@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import SWMIcon from '../assets/icons/swm_icon.svg';
 import SendIcon from '../assets/icons/send_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
-import { LLAMA3_2_1B_QLORA_URL, useLLM } from 'react-native-executorch';
+import { LLAMA3_2_1B_QLORA, useLLM } from 'react-native-executorch';
 import PauseIcon from '../assets/icons/pause_icon.svg';
 import ColorPalette from '../colors';
 import Messages from '../components/Messages';
@@ -25,16 +25,16 @@ export default function ChatScreen() {
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
   const llama = useLLM({
-    modelSource: LLAMA3_2_1B_QLORA_URL,
+    modelSource: LLAMA3_2_1B_QLORA,
     tokenizerSource: require('../assets/tokenizer.bin'),
     contextWindowLength: 6,
   });
   const textInputRef = useRef<TextInput>(null);
   useEffect(() => {
-    if (llama.response && !llama.isModelGenerating) {
+    if (llama.response && !llama.isGenerating) {
       appendToMessageHistory(llama.response, 'ai');
     }
-  }, [llama.response, llama.isModelGenerating]);
+  }, [llama.response, llama.isGenerating]);
 
   const appendToMessageHistory = (input: string, role: SenderType) => {
     setChatHistory((prevHistory) => [
@@ -54,9 +54,9 @@ export default function ChatScreen() {
     }
   };
 
-  return !llama.isModelReady ? (
+  return !llama.isReady ? (
     <Spinner
-      visible={!llama.isModelReady}
+      visible={!llama.isReady}
       textContent={`Loading the model ${(llama.downloadProgress * 100).toFixed(0)} %`}
     />
   ) : (
@@ -76,7 +76,7 @@ export default function ChatScreen() {
               <Messages
                 chatHistory={chatHistory}
                 llmResponse={llama.response}
-                isModelGenerating={llama.isModelGenerating}
+                isGenerating={llama.isGenerating}
               />
             </View>
           ) : (
@@ -108,13 +108,13 @@ export default function ChatScreen() {
               <TouchableOpacity
                 style={styles.sendChatTouchable}
                 onPress={async () =>
-                  !llama.isModelGenerating && (await sendMessage())
+                  !llama.isGenerating && (await sendMessage())
                 }
               >
                 <SendIcon height={24} width={24} padding={4} margin={8} />
               </TouchableOpacity>
             )}
-            {llama.isModelGenerating && (
+            {llama.isGenerating && (
               <TouchableOpacity
                 style={styles.sendChatTouchable}
                 onPress={llama.interrupt}

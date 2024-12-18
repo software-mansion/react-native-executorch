@@ -1,3 +1,10 @@
+import {
+  _ClassificationModule,
+  _StyleTransferModule,
+  _ObjectDetectionModule,
+  ETModule,
+} from '../native/RnExecutorchModules';
+
 export type ResourceSource = string | number;
 
 export interface Model {
@@ -6,7 +13,9 @@ export interface Model {
   downloadProgress: number;
   error: string | null;
   isModelGenerating: boolean;
+  isGenerating: boolean;
   isModelReady: boolean;
+  isReady: boolean;
   interrupt: () => void;
 }
 
@@ -19,9 +28,15 @@ export type ETInput =
 
 export interface ExecutorchModule {
   error: string | null;
-  isModelLoading: boolean;
-  isModelGenerating: boolean;
+  isReady: boolean;
+  isGenerating: boolean;
   forward: (input: ETInput, shape: number[]) => Promise<number[][]>;
   loadMethod: (methodName: string) => Promise<void>;
   loadForward: () => Promise<void>;
 }
+
+export type module =
+  | _ClassificationModule
+  | _StyleTransferModule
+  | _ObjectDetectionModule
+  | typeof ETModule;
