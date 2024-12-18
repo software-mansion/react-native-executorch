@@ -1,4 +1,9 @@
-import { _ClassificationModule, _StyleTransferModule, _ObjectDetectionModule, ETModule } from "../native/RnExecutorchModules";
+import {
+  _ClassificationModule,
+  _StyleTransferModule,
+  _ObjectDetectionModule,
+  ETModule,
+} from '../native/RnExecutorchModules';
 
 export type ResourceSource = string | number;
 
@@ -30,4 +35,8 @@ export interface ExecutorchModule {
   loadForward: () => Promise<void>;
 }
 
-export type module = _ClassificationModule | _StyleTransferModule | _ObjectDetectionModule | typeof ETModule;
+export type module =
+  | _ClassificationModule
+  | _StyleTransferModule
+  | _ObjectDetectionModule
+  | typeof ETModule;

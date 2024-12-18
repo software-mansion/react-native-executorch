@@ -11,8 +11,13 @@ interface Props {
 export const useExecutorchModule = ({
   modelSource,
 }: Props): ExecutorchModule => {
-  const [module, ] = useState(() => new _ETModule());
-  const { error, isReady, isGenerating, forwardETInput: forward } = useModule({
+  const [module] = useState(() => new _ETModule());
+  const {
+    error,
+    isReady,
+    isGenerating,
+    forwardETInput: forward,
+  } = useModule({
     modelSource,
     module,
   });
@@ -35,6 +40,6 @@ export const useExecutorchModule = ({
     isGenerating,
     forward,
     loadMethod,
-    loadForward
+    loadForward,
   };
 };

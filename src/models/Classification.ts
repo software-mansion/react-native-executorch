@@ -17,7 +17,12 @@ export const useClassification = ({
   modelSource,
 }: Props): ClassificationModule => {
   const [module, _] = useState(() => new _ClassificationModule());
-  const { error, isReady, isGenerating, forwardImage: forward } = useModule({
+  const {
+    error,
+    isReady,
+    isGenerating,
+    forwardImage: forward,
+  } = useModule({
     modelSource,
     module,
   });

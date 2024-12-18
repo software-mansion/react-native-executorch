@@ -103,7 +103,7 @@ class _ETModule {
     input: number[],
     shape: number[],
     inputType: number
-  ): Promise<number[]>{
+  ): Promise<number[]> {
     return await ETModule.forward(input, shape, inputType);
   }
   async loadModule(modelSource: string) {
@@ -123,5 +123,5 @@ export {
   _ETModule,
   _ClassificationModule,
   _StyleTransferModule,
-  _ObjectDetectionModule
+  _ObjectDetectionModule,
 };

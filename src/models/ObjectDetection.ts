@@ -18,7 +18,12 @@ export const useObjectDetection = ({
   modelSource,
 }: Props): ObjectDetectionModule => {
   const [module, _] = useState(() => new _ObjectDetectionModule());
-  const { error, isReady, isGenerating, forwardImage: forward } = useModule({
+  const {
+    error,
+    isReady,
+    isGenerating,
+    forwardImage: forward,
+  } = useModule({
     modelSource,
     module,
   });

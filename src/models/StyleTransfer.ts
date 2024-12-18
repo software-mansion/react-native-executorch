@@ -17,7 +17,12 @@ export const useStyleTransfer = ({
   modelSource,
 }: Props): StyleTransferModule => {
   const [module, _] = useState(() => new _StyleTransferModule());
-  const { error, isReady, isGenerating, forwardImage: forward } = useModule({
+  const {
+    error,
+    isReady,
+    isGenerating,
+    forwardImage: forward,
+  } = useModule({
     modelSource,
     module,
   });
