@@ -5,7 +5,7 @@ sidebar_position: 1
 
 ExecuTorch bindings provide streamlined interface to access the [Module API](https://pytorch.org/executorch/stable/extension-module.html) directly from Javascript.
 
-:::caution[Caution]
+:::caution
 These bindings are primarily intended for custom model integration where no dedicated hook exists. If you are considering using a provided model, first verify whether a dedicated hook is available. Dedicated hooks simplify the implementation process by managing necessary pre and post-processing automatically. Utilizing these can save you effort and reduce complexity, ensuring you do not implement additional handling that is already covered.
 :::
 
@@ -32,8 +32,8 @@ The `modelSource` parameter expects a location string pointing to the model bina
 | Field               | Type                                                       | Description                                                                                                                                                                                         |
 | ------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `error`             | <code>string &#124; null</code>                            | Contains the error message if the model failed to load.                                                                                                                                             |
-| `isModelGenerating` | `boolean`                                                  | Indicates whether the model is currently processing an inference.                                                                                                                                   |
-| `isModelReady`      | `boolean`                                                  | Indicates whether the model has successfully loaded and is ready for inference.                                                                                                                     |
+| `isGenerating` | `boolean`                                                  | Indicates whether the model is currently processing an inference.                                                                                                                                   |
+| `isReady`      | `boolean`                                                  | Indicates whether the model has successfully loaded and is ready for inference.                                                                                                                     |
 | `loadMethod`        | `(methodName: string) => Promise<void>`                    | Loads resources specific to `methodName` into memory before execution.                                                                                                                              |
 | `loadForward`       | `() => Promise<void>`                                      | Loads resources specific to `forward` method into memory before execution. Uses `loadMethod` under the hood.                                                                                        |
 | `forward`           | `(input: ETInput, shape: number[]) => Promise<number[][]>` | Executes the model's forward pass, where `input` is a Javascript typed array and `shape` is an array of integers representing input Tensor shape. The output is a Tensor - raw result of inference. |
@@ -102,6 +102,6 @@ try {
 }
 ```
 
-:::info[Info]
+:::info
 This code assumes that you have handled preprocessing of the input image (scaling, normalization) and postprocessing of the output (interpreting the raw output data) according to the model's requirements. Make sure to adjust these parts depending on your specific data and model outputs.
 :::

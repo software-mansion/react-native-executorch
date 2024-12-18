@@ -25,11 +25,11 @@ const llama = useLLM({
 
 The code snippet above fetches the model from the specified URL, loads it into memory, and returns an object with various methods and properties for controlling the model. You can monitor the loading progress by checking the `llama.downloadProgress` and `llama.isReady` property, and if anything goes wrong, the `llama.error` property will contain the error message.
 
-:::danger[Danger]
+:::danger
 Lower-end devices might not be able to fit LLMs into memory. We recommend using quantized models to reduce the memory footprint.
 :::
 
-:::caution[Caution]
+:::caution
 Given computational constraints, our architecture is designed to support only one instance of the model runner at the time. Consequently, this means you can have only one active component leveraging `useLLM` concurrently.
 :::
 

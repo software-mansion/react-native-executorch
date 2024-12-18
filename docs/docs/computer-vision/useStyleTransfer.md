@@ -5,8 +5,9 @@ sidebar_position: 1
 
 Style transfer is a technique used in computer graphics and machine learning where the visual style of one image is applied to the content of another. This is achieved using algorithms that manipulate data from both images, typically with the aid of a neural network. The result is a new image that combines the artistic elements of one picture with the structural details of another, effectively merging art with traditional imagery. React Native ExecuTorch offers a dedicated hook `useStyleTransfer`, for this task. However before you start you'll need to obtain ExecuTorch-compatible model binary.
 
-- It is recommended to use models provided by us which are available at our [HuggingFace repository](https://huggingface.co/software-mansion/react-native-executorch-style-transfer-candy), you can also use [constants](https://github.com/software-mansion/react-native-executorch/tree/main/src/constants/modelUrls.ts) shipped with our library
-- If you prefer to export model by yourself make sure to check official [ExecuTorch documentation](https://pytorch.org/executorch/stable/index.html)
+:::caution
+It is recommended to use models provided by us which are available at our [HuggingFace repository](https://huggingface.co/software-mansion/react-native-executorch-style-transfer-candy), you can also use [constants](https://github.com/software-mansion/react-native-executorch/tree/main/src/constants/modelUrls.ts) shipped with our library
+:::
 
 ## Reference
 
@@ -35,26 +36,19 @@ try {
 ```typescript
 interface StyleTransferModule {
   error: string | null;
-  isModelReady: boolean;
-  isModelGenerating: boolean;
+  isReady: boolean;
+  isGenerating: boolean;
   forward: (input: string) => Promise<string>;
 }
 ```
 
 </details>
 
-### Running the model
-
-To run the moel, you can use `forward` method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns a promise which can resolve either to error or a URL to generated image.
-
-:::info[Info]
-Images from external sources and the generated image are stored in your application's temporary directory.
-:::
-
 ### Arguments
 
 **`modelSource`**
 A string that specifies the location of the model binary. For more information, take a look at [loading models](../fundamentals/loading-models.md) page.
+
 
 ### Returns
 
@@ -62,10 +56,18 @@ A string that specifies the location of the model binary. For more information, 
 | ------------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------- |
 | `forward`           | `(input: string) => Promise<string>` | Executes the model's forward pass, where `input` can be a fetchable resource or a Base64-encoded string. |
 | `error`             | <code>string &#124; null</code>      | Contains the error message if the model failed to load.                                                  |
-| `isModelGenerating` | `boolean`                            | Indicates whether the model is currently processing an inference.                                        |
-| `isModelReady`      | `boolean`                            | Indicates whether the model has successfully loaded and is ready for inference.                          |
+| `isGenerating` | `boolean`                            | Indicates whether the model is currently processing an inference.                                        |
+| `isReady`      | `boolean`                            | Indicates whether the model has successfully loaded and is ready for inference.                          |
 
-### Example
+## Running the model
+
+To run the moel, you can use `forward` method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns a promise which can resolve either to error or a URL to generated image.
+
+:::info
+Images from external sources and the generated image are stored in your application's temporary directory.
+:::
+
+## Example
 
 ```typescript
 function App(){
