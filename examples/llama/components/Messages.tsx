@@ -9,13 +9,13 @@ import MessageItem from './MessageItem';
 interface MessagesComponentProps {
   chatHistory: Array<MessageType>;
   llmResponse: string;
-  isModelGenerating: boolean;
+  isGenerating: boolean;
 }
 
 export default function Messages({
   chatHistory,
   llmResponse,
-  isModelGenerating,
+  isGenerating,
 }: MessagesComponentProps) {
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -29,7 +29,7 @@ export default function Messages({
           {chatHistory.map((message, index) => (
             <MessageItem key={index} message={message} />
           ))}
-          {isModelGenerating && (
+          {isGenerating && (
             <View style={styles.aiMessage}>
               <View style={styles.aiMessageIconContainer}>
                 <LlamaIcon width={24} height={24} />

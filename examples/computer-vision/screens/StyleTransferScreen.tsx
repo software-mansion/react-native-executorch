@@ -37,10 +37,10 @@ export const StyleTransferScreen = ({
     }
   };
 
-  if (!model.isModelReady) {
+  if (!model.isReady) {
     return (
       <Spinner
-        visible={!model.isModelReady}
+        visible={!model.isReady}
         textContent={`Loading the model...`}
       />
     );

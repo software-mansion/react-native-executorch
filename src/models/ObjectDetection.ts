@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { _ObjectDetectionModule } from '../native/RnExecutorchModules';
 import { useModule } from '../useModule';
-import { Detection } from '../types/object_detection_types';
+import { Detection } from '../types/object_detection';
 
 interface Props {
   modelSource: string | number;
@@ -9,8 +9,8 @@ interface Props {
 
 interface ObjectDetectionModule {
   error: string | null;
-  isModelReady: boolean;
-  isModelGenerating: boolean;
+  isReady: boolean;
+  isGenerating: boolean;
   forward: (input: string) => Promise<Detection[]>;
 }
 
@@ -18,10 +18,10 @@ export const useObjectDetection = ({
   modelSource,
 }: Props): ObjectDetectionModule => {
   const [module, _] = useState(() => new _ObjectDetectionModule());
-  const { error, isModelReady, isModelGenerating, forward } = useModule({
+  const { error, isReady, isGenerating, forwardImage: forward } = useModule({
     modelSource,
     module,
   });
 
-  return { error, isModelReady, isModelGenerating, forward };
+  return { error, isReady, isGenerating, forward };
 };

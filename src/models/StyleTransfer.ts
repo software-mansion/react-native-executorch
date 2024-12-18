@@ -8,8 +8,8 @@ interface Props {
 
 interface StyleTransferModule {
   error: string | null;
-  isModelReady: boolean;
-  isModelGenerating: boolean;
+  isReady: boolean;
+  isGenerating: boolean;
   forward: (input: string) => Promise<string>;
 }
 
@@ -17,10 +17,10 @@ export const useStyleTransfer = ({
   modelSource,
 }: Props): StyleTransferModule => {
   const [module, _] = useState(() => new _StyleTransferModule());
-  const { error, isModelReady, isModelGenerating, forward } = useModule({
+  const { error, isReady, isGenerating, forwardImage: forward } = useModule({
     modelSource,
     module,
   });
 
-  return { error, isModelReady, isModelGenerating, forward };
+  return { error, isReady, isGenerating, forward };
 };

@@ -1,28 +1,35 @@
 import { useEffect, useState } from 'react';
 import { Image } from 'react-native';
 import { ETError, getError } from './Error';
-import {
-  _ClassificationModule,
-  _ObjectDetectionModule,
-  _StyleTransferModule,
-} from './native/RnExecutorchModules';
+import { ETInput, module } from './types/common';
+
+const getTypeIdentifier = (arr: ETInput): number => {
+  if (arr instanceof Int8Array) return 0;
+  if (arr instanceof Int32Array) return 1;
+  if (arr instanceof BigInt64Array) return 2;
+  if (arr instanceof Float32Array) return 3;
+  if (arr instanceof Float64Array) return 4;
+
+  return -1;
+};
 
 interface Props {
   modelSource: string | number;
-  module: _ClassificationModule | _StyleTransferModule | _ObjectDetectionModule;
+  module: module;
 }
 
 interface _Module {
   error: string | null;
-  isModelReady: boolean;
-  isModelGenerating: boolean;
-  forward: (input: string) => Promise<any>;
+  isReady: boolean;
+  isGenerating: boolean;
+  forwardETInput: (input: ETInput, shape: number[]) => Promise<any>;
+  forwardImage: (input: string) => Promise<any>;
 }
 
 export const useModule = ({ modelSource, module }: Props): _Module => {
   const [error, setError] = useState<null | string>(null);
-  const [isModelReady, setIsModelReady] = useState(false);
-  const [isModelGenerating, setIsModelGenerating] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     const loadModel = async () => {
@@ -34,9 +41,9 @@ export const useModule = ({ modelSource, module }: Props): _Module => {
       }
 
       try {
-        setIsModelReady(false);
+        setIsReady(false);
         await module.loadModule(path);
-        setIsModelReady(true);
+        setIsReady(true);
       } catch (e) {
         setError(getError(e));
       }
@@ -45,24 +52,49 @@ export const useModule = ({ modelSource, module }: Props): _Module => {
     loadModel();
   }, [modelSource, module]);
 
-  const forward = async (input: string) => {
-    if (!isModelReady) {
+  const forwardImage = async (input: string) => {
+    if (!isReady) {
       throw new Error(getError(ETError.ModuleNotLoaded));
     }
-    if (isModelGenerating) {
+    if (isGenerating) {
       throw new Error(getError(ETError.ModelGenerating));
     }
 
     try {
-      setIsModelGenerating(true);
+      setIsGenerating(true);
       const output = await module.forward(input);
       return output;
     } catch (e) {
       throw new Error(getError(e));
     } finally {
-      setIsModelGenerating(false);
+      setIsGenerating(false);
     }
   };
 
-  return { error, isModelReady, isModelGenerating, forward };
+  const forwardETInput = async (input: ETInput, shape: number[]) => {
+    if (!isReady) {
+      throw new Error(getError(ETError.ModuleNotLoaded));
+    }
+    if (isGenerating) {
+      throw new Error(getError(ETError.ModelGenerating));
+    }
+
+    const inputType = getTypeIdentifier(input);
+    if (inputType === -1) {
+      throw new Error(getError(ETError.InvalidArgument));
+    }
+
+    try {
+      const numberArray = [...input];
+      setIsGenerating(true);
+      const output = await module.forward(numberArray, shape, inputType);
+      setIsGenerating(false);
+      return output;
+    } catch (e) {
+      setIsGenerating(false);
+      throw new Error(getError(e));
+    }
+  };
+
+  return { error, isReady, isGenerating, forwardETInput, forwardImage };
 };

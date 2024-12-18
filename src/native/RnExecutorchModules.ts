@@ -98,13 +98,30 @@ class _ClassificationModule {
   }
 }
 
+class _ETModule {
+  async forward(
+    input: number[],
+    shape: number[],
+    inputType: number
+  ): Promise<number[]>{
+    return await ETModule.forward(input, shape, inputType);
+  }
+  async loadModule(modelSource: string) {
+    return await ETModule.loadModule(modelSource);
+  }
+  async loadMethod(methodName: string): Promise<number> {
+    return await ETModule.loadMethod(methodName);
+  }
+}
+
 export {
   LLM,
   ETModule,
   Classification,
   ObjectDetection,
   StyleTransfer,
+  _ETModule,
   _ClassificationModule,
   _StyleTransferModule,
-  _ObjectDetectionModule,
+  _ObjectDetectionModule
 };
