@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Image } from 'react-native';
 import { ETError, getError } from './Error';
+import { _ClassificationModule, _ObjectDetectionModule, _StyleTransferModule } from './native/RnExecutorchModules';
 
 interface Props {
   modelSource: string | number;
-  _class: any;
+  module: _ClassificationModule | _StyleTransferModule | _ObjectDetectionModule;
 }
 
 interface _Module {
@@ -16,7 +17,7 @@ interface _Module {
 
 export const useModule = ({
   modelSource,
-  _class
+  module
 }: Props): _Module => {
   const [error, setError] = useState<null | string>(null);
   const [isModelReady, setIsModelReady] = useState(false);
@@ -33,7 +34,7 @@ export const useModule = ({
 
       try {
         setIsModelReady(false);
-        await _class.loadModule(path);
+        await module.loadModule(path);
         setIsModelReady(true);
       } catch (e) {
         setError(getError(e));
@@ -41,7 +42,7 @@ export const useModule = ({
     };
 
     loadModel();
-  }, [modelSource, _class]);
+  }, [modelSource, module]);
 
   const forward = async (input: string) => {
     if (!isModelReady) {
@@ -53,7 +54,7 @@ export const useModule = ({
 
     try {
       setIsModelGenerating(true);
-      const output = await _class.forward(input);
+      const output = await module.forward(input);
       return output;
     } catch (e) {
       throw new Error(getError(e));

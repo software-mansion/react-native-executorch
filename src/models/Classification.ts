@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { ClassificationModule } from '../native/RnExecutorchModules';
+import { _ClassificationModule } from '../native/RnExecutorchModules';
 import { useModule } from '../useModule';
 
 interface Props {
   modelSource: string | number;
 }
 
-interface _ClassificationModule {
+interface ClassificationModule {
   error: string | null;
   isModelReady: boolean;
   isModelGenerating: boolean;
@@ -15,9 +15,9 @@ interface _ClassificationModule {
 
 export const useClassification = ({
   modelSource,
-}: Props): _ClassificationModule => {
-  const [_class, _] = useState(() => new ClassificationModule())
-  const {error, isModelReady, isModelGenerating, forward} = useModule({modelSource, _class})
+}: Props): ClassificationModule => {
+  const [module, _] = useState(() => new _ClassificationModule())
+  const {error, isModelReady, isModelGenerating, forward} = useModule({modelSource, module})
 
   return { error, isModelReady, isModelGenerating, forward };
 };
