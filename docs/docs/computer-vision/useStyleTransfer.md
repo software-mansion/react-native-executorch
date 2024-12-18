@@ -8,9 +8,7 @@ Style transfer is a technique used in computer graphics and machine learning whe
 - It is recommended to use models provided by us which are available at our [HuggingFace repository](https://huggingface.co/software-mansion/react-native-executorch-style-transfer-candy), you can also use [constants](https://github.com/software-mansion/react-native-executorch/tree/main/src/constants/modelUrls.ts) shipped with our library
 - If you prefer to export model by yourself make sure to check official [ExecuTorch documentation](https://pytorch.org/executorch/stable/index.html)
 
-## Initializing
-
-To load a model into the application, execute the following code:
+## Reference
 
 ```typescript
 import {
@@ -21,9 +19,15 @@ import {
 const model = useStyleTransfer({
   modelSource: STYLE_TRANSFER_CANDY,
 });
-```
 
-The provided code snippet fetches the model from the [specified source](../fundamentals/loading-models.md), loads it into memory and returns an object with various methods and properties enabling you to controll model's lifecycle.
+const imageUri = 'file::///Users/.../cute_cat.png';
+
+try {
+  const generatedImageUrl = await model.forward(imageUri);
+} catch (error) {
+  console.error(error);
+}
+```
 
 <details>
 <summary>Type definitions</summary>
@@ -39,9 +43,18 @@ interface StyleTransferModule {
 
 </details>
 
+### Running the model
+
+To run the moel, you can use `forward` method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns a promise which can resolve either to error or a URL to generated image.
+
+:::info[Info]
+Images from external sources and the generated image are stored in your application's temporary directory.
+:::
+
 ### Arguments
 
-**`modelSource`** - A string that specifies the location of the model binary. For more information, take a look at [loading models](../fundamentals/loading-models.md) page.
+**`modelSource`**
+A string that specifies the location of the model binary. For more information, take a look at [loading models](../fundamentals/loading-models.md) page.
 
 ### Returns
 
@@ -52,26 +65,22 @@ interface StyleTransferModule {
 | `isModelGenerating` | `boolean`                            | Indicates whether the model is currently processing an inference.                                        |
 | `isModelReady`      | `boolean`                            | Indicates whether the model has successfully loaded and is ready for inference.                          |
 
-## Executing forward function
-
-In order to perform style transfer, you should use following code:
+### Example
 
 ```typescript
-const model = useStyleTransfer(
-    modelSource: STYLE_TRANSFER_CANDY,
-);
+function App(){
+  const model = useStyleTransfer(
+      modelSource: STYLE_TRANSFER_CANDY,
+  );
 
-...
-const imageUri = 'file::///Users/.../cute_cat.png';
-try{
-    const generatedImageUrl = await model.forward(imageUri)
-}catch(error){
-    console.error(error)
+  ...
+  const imageUri = 'file::///Users/.../cute_cat.png';
+
+  try{
+      const generatedImageUrl = await model.forward(imageUri)
+  }catch(error){
+      console.error(error)
+  }
+  ...
 }
-...
 ```
-
-The forward function returns promise which resolves either to error or a URL to newly created image.
-:::info[Info]
-Images from external sources and the generated image are stored in your application's temporary directory.
-:::
