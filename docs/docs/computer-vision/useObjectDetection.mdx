@@ -1,17 +1,22 @@
 ---
 title: useObjectDetection
-sidebar_position: 1
+sidebar_position: 2
 ---
 
-`useObjectDetection` is a hook that lets you seamlessly integrate object detection into your React Native application. Currently, the SSDLite320Large model with MobileNetv3 backbone is supported.
+Object detection is a computer vision technique that identifies and locates objects within images or video. It’s commonly used in applications like image recognition, video surveillance or autonomous driving.
+`useObjectDetection` is a hook that allows you to seamlessly integrate object detection into your React Native applications.
+
+:::caution
+It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/69802ee1ca161d9df00def1dabe014d36341cfa9/src/constants/modelUrls.ts#L28) shipped with our library.
+:::
 
 ## Reference
 ```jsx
-import { useObjectDetection } from 'react-native-executorch';
+import { useObjectDetection, SSDLITE_320_MOBILENET_V3_LARGE } from 'react-native-executorch';
 
 function App() {
   const ssdlite = useObjectDetection({
-    modelSource: require("./assets/ssdlite320large_mobilenetv3.pte"),
+    modelSource: SSDLITE_320_MOBILENET_V3_LARGE, // alternatively, you can use require(...)
   });
 
   ...
@@ -28,6 +33,25 @@ function App() {
 <summary>Type definitions</summary>
 
 ```typescript
+interface Bbox {
+  x1: number;
+  x2: number;
+  y1: number;
+  y2: number;
+}
+
+interface Detection {
+  bbox: Bbox;
+  label: keyof typeof CocoLabel;
+  score: number;
+}
+
+interface ObjectDetectionModule {
+  error: string | null;
+  isReady: boolean;
+  isGenerating: boolean;
+  forward: (input: string) => Promise<Detection[]>;
+}
 ```
 </details>
 
@@ -35,23 +59,27 @@ function App() {
 
 `modelSource`
 
-A String that specifies the path to the model file. You can download the model from our HuggingFace repository.
-For SSDLite, you can add it to your assets directory, and use `require()`. If you prefer to download the model
-the model in runtime instead of bundling it, you can use the constants that we ship with the library.
+A string that specifies the path to the model file. You can download the model from our [HuggingFace repository](https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large/tree/main). 
+For more information on that topic, you can check out the [Loading models](https://docs.swmansion.com/react-native-executorch/fundamentals/loading-models) page.
 
 ### Returns
 
 The hook returns an object with the following properties:
 
 
-| Field               | Type                               | Description                                                                                                     |
-| ------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `forward`          | `(input: string) => Promise<Detection[]>` | Function that accepts an image and returns an array of Detection objects                                            |
-| `error`             | <code>string &#124; null</code>    | Contains the error message if the model failed to load or failed during generation process                                                          |
-| `isGenerating` | `boolean`                          | Indicates whether the model is processing the response                                                  |
-| `isReady`      | `boolean`                          | Indicates whether the model has properly loaded and is ready for inference                                                                            |
+| **Field**            | **Type**                              | **Description**                                                                                                  |
+|-----------------------|---------------------------------------|------------------------------------------------------------------------------------------------------------------|
+| `forward`            | `(input: string) => Promise<Detection[]>` | A function that accepts an image (url, b64) and returns an array of `Detection` objects.                                   |
+| `error`              | <code>string &#124; null</code>       | Contains the error message if the model loading failed.    |
+| `isGenerating`  | `boolean`                            | Indicates whether the model is currently processing an inference.                                               |
+| `isReady`       | `boolean`                            | Indicates whether the model has successfully loaded and is ready for inference.                                 |
 
-### Detection object
+
+## Running the model
+
+To run the model, you can use the `forward` method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns an array of `Detection` objects. Each object contains coordinates of the bounding box, the label of the detected object, and the confidence score. For more information, please refer to the reference or type definitions.
+
+## Detection object
 The detection object is specified as follows:
 ```typescript
 interface Bbox {
@@ -67,28 +95,24 @@ interface Detection {
   score: number;
 }
 ```
-The `bbox` property contains information about the bounding box of detected objects. It is represented as two points, one on the left bottom part of the bounding box (x1, y1), the second one as the top right part (x2, y2).
-The label property contains the name of the detected object, which is one of `CocoLabels`. The `score` is a confidence score of the detected object.
+The `bbox` property contains information about the bounding box of detected objects. It is represented as two points: one at the bottom-left corner of the bounding box (`x1`, `y1`) and the other at the top-right corner (`x2`, `y2`).
+The `label` property contains the name of the detected object, which corresponds to one of the `CocoLabels`. The `score` represents the confidence score of the detected object.
 
-### Running the model
 
-To run the model, you can use the `forward` method. It accepts one argument, which is the image. It can be either a remote URL,
-a local file or base64 encoded image. The function returns an array of `Detection` objects. Each one contains coordinates
-of the bounding box, the label of the detected object and confidence score. For more information, please refer to the reference or example.
 
-### End to end example
+## Example
 ```tsx
-import { useObjectDetection, SSDLITE320LARGE_MOBILENETV3_WEIGHTS } from 'react-native-executorch';
+import { useObjectDetection, SSDLITE_320_MOBILENET_V3_LARGE } from 'react-native-executorch';
 
 function App() {
   const ssdlite = useObjectDetection({
-    modelSource: SSDLITE320LARGE_MOBILENETV3_WEIGHTS, // Can also use require('') as well
+    modelSource: SSDLITE_320_MOBILENET_V3_LARGE,
   });
 
   const runModel = async () => {
     const detections = await ssdlite.forward("https://url-to-image.jpg");
     for (const detection of detections) {
-      console.log("Bounding box: ", detection.bbox); // [x, y, width, height]
+      console.log("Bounding box: ", detection.bbox);
       console.log("Bounding label: ", detection.label);
       console.log("Bounding score: ", detection.score);
     }
@@ -96,5 +120,8 @@ function App() {
 }
 ```
 
-### Benchmarks
-TODO
+## Supported Models
+
+| Model                                                                                                           | Number of classes | Class list                                                                                                                                                                 |
+| --------------------------------------------------------------------------------------------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [SSDLite320 MobileNetV3 Large](https://pytorch.org/vision/main/models/generated/torchvision.models.detection.ssdlite320_mobilenet_v3_large.html#torchvision.models.detection.SSDLite320_MobileNet_V3_Large_Weights) | 91              | [COCO](https://github.com/software-mansion/react-native-executorch/blob/69802ee1ca161d9df00def1dabe014d36341cfa9/src/types/object_detection.ts#L14) |
