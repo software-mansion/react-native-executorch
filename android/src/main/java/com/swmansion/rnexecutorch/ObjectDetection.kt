@@ -35,7 +35,7 @@ class ObjectDetection(reactContext: ReactApplicationContext) :
       ssdLiteLarge.loadModel(modelSource)
       promise.resolve(0)
     } catch (e: Exception) {
-      promise.reject(e.message!!, ETError.InvalidModelPath.toString())
+      promise.reject(e.message!!, ETError.InvalidModelSource.toString())
     }
   }
 

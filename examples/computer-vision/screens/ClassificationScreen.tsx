@@ -44,12 +44,9 @@ export const ClassificationScreen = ({
     }
   };
 
-  if (!model.isModelReady) {
+  if (!model.isReady) {
     return (
-      <Spinner
-        visible={!model.isModelReady}
-        textContent={`Loading the model...`}
-      />
+      <Spinner visible={!model.isReady} textContent={`Loading the model...`} />
     );
   }
 

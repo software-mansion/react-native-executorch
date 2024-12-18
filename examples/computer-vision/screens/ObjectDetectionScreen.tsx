@@ -52,10 +52,10 @@ export const ObjectDetectionScreen = ({
     }
   };
 
-  if (!ssdLite.isModelReady) {
+  if (!ssdLite.isReady) {
     return (
       <Spinner
-        visible={!ssdLite.isModelReady}
+        visible={!ssdLite.isReady}
         textContent={`Loading the model...`}
       />
     );

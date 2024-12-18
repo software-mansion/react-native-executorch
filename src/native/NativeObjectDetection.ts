@@ -1,6 +1,6 @@
 import type { TurboModule } from 'react-native';
 import { TurboModuleRegistry } from 'react-native';
-import { Detection } from '../models/object_detection/types';
+import { Detection } from '../types/object_detection';
 
 export interface Spec extends TurboModule {
   loadModule(modelSource: string): Promise<number>;
