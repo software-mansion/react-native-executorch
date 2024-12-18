@@ -3,7 +3,8 @@ title: useObjectDetection
 sidebar_position: 1
 ---
 
-`useObjectDetection` is a hook that allows you to seamlessly integrate object detection into your React Native application. Currently, the SSDLite320Large model with a MobileNetv3 backbone is supported.
+Object detection is a computer vision technique that identifies and locates objects within images or video. It’s commonly used in applications like image recognition, video surveillance or autonomous driving.
+`useObjectDetection` is a hook that allows you to seamlessly integrate object detection into your React Native applications.
 
 ## Reference
 ```jsx
@@ -50,10 +51,6 @@ interface ObjectDetectionModule {
 ```
 </details>
 
-### Running the model
-
-To run the model, you can use the `forward` method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns an array of `Detection` objects. Each object contains coordinates of the bounding box, the label of the detected object, and the confidence score. For more information, please refer to the reference or type definitions.
-
 ### Arguments
 
 `modelSource`
@@ -62,19 +59,9 @@ A string that specifies the path to the model file. You can download the model f
 For more information on that topic, you can check out the [Loading models](https://docs.swmansion.com/react-native-executorch/fundamentals/loading-models) page.
 
 
-### Returns
+### Running the model
 
-The hook returns an object with the following properties:
-
-
-| **Field**            | **Type**                              | **Description**                                                                                                  |
-|-----------------------|---------------------------------------|------------------------------------------------------------------------------------------------------------------|
-| `forward`            | `(input: string) => Promise<Detection[]>` | A function that accepts an image (url, b64) and returns an array of `Detection` objects.                                   |
-| `error`              | <code>string &#124; null</code>       | Contains the error message if the model loading failed.    |
-| `isGenerating`  | `boolean`                            | Indicates whether the model is currently processing an inference.                                               |
-| `isReady`       | `boolean`                            | Indicates whether the model has successfully loaded and is ready for inference.                                 |
-
-
+To run the model, you can use the `forward` method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns an array of `Detection` objects. Each object contains coordinates of the bounding box, the label of the detected object, and the confidence score. For more information, please refer to the reference or type definitions.
 
 ### Detection object
 The detection object is specified as follows:
@@ -96,6 +83,19 @@ The `bbox` property contains information about the bounding box of detected obje
 The `label` property contains the name of the detected object, which corresponds to one of the `CocoLabels`. The `score` represents the confidence score of the detected object.
 
 
+### Returns
+
+The hook returns an object with the following properties:
+
+
+| **Field**            | **Type**                              | **Description**                                                                                                  |
+|-----------------------|---------------------------------------|------------------------------------------------------------------------------------------------------------------|
+| `forward`            | `(input: string) => Promise<Detection[]>` | A function that accepts an image (url, b64) and returns an array of `Detection` objects.                                   |
+| `error`              | <code>string &#124; null</code>       | Contains the error message if the model loading failed.    |
+| `isGenerating`  | `boolean`                            | Indicates whether the model is currently processing an inference.                                               |
+| `isReady`       | `boolean`                            | Indicates whether the model has successfully loaded and is ready for inference.                                 |
+
+
 ### Example
 ```tsx
 import { useObjectDetection, SSDLITE_320_MOBILENET_V3_LARGE } from 'react-native-executorch';
@@ -115,3 +115,6 @@ function App() {
   }
 }
 ```
+
+### Supported models
+- `SSDLITE_320_MOBILENET_V3_LARGE`
