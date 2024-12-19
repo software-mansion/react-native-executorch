@@ -10,7 +10,6 @@ export interface Spec extends TurboModule {
     contextWindowLength: number
   ): Promise<string>;
   runInference(input: string): Promise<string>;
-  deleteModule(): void;
   interrupt(): void;
 
   readonly onToken: EventEmitter<string>;
