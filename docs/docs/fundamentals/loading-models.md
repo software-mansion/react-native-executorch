@@ -5,13 +5,13 @@ sidebar_position: 1
 
 There are three different methods available for loading model files, depending on their size and location.
 
-**1. Load from React-Native assets folder (For Files < **512MB**)**
+**1. Load from React Native assets folder (For Files < 512MB)**
 
 ```typescript
 modelSource: require('../assets/llama3_2.pte');
 ```
 
-**2. Load from Remote URL:**
+**2. Load from remote URL:**
 
 For files larger than 512MB or when you want to keep size of the app smaller, you can load the model from a remote URL (e.g. HuggingFace).
 
