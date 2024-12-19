@@ -27,7 +27,6 @@ const DetailsStyling = ({ summary, children, ...props }): JSX.Element => {
   const extractedSummaryElement = summary.props.children;
 
   return (
-    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
     <details
       {...props}
       ref={detailsRef}
@@ -62,7 +61,8 @@ const DetailsStyling = ({ summary, children, ...props }): JSX.Element => {
           // Don't do this, it breaks close animation!
           // setOpen(false);
         }
-      }}>
+      }}
+    >
       <summary>
         <ThemedImage sources={arrowIcon} className={styles.arrow} />
 
@@ -76,7 +76,8 @@ const DetailsStyling = ({ summary, children, ...props }): JSX.Element => {
         onCollapseTransitionEnd={(newCollapsed) => {
           setCollapsed(newCollapsed);
           setOpen(!newCollapsed);
-        }}>
+        }}
+      >
         <div className={styles.collapsibleContent}>{children}</div>
       </Collapsible>
     </details>
