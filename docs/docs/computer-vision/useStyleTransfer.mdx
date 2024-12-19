@@ -60,7 +60,7 @@ A string that specifies the location of the model binary. For more information, 
 
 ## Running the model
 
-To run the model, you can use `forward` method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns a promise which can resolve either to error or a URL to generated image.
+To run the model, you can use `forward` method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns a promise which can resolve either to an error or a URL to generated image.
 
 :::info
 Images from external sources and the generated image are stored in your application's temporary directory.
@@ -86,7 +86,7 @@ function App(){
 }
 ```
 
-## Supported Models
+## Supported models
 
 - [Candy](https://github.com/pytorch/examples/tree/main/fast_neural_style)
 - [Mosaic](https://github.com/pytorch/examples/tree/main/fast_neural_style)

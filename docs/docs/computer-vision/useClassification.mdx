@@ -61,9 +61,9 @@ A string that specifies the location of the model binary. For more information, 
 
 ## Running the model
 
-To run the model, you can use the `forward` method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns a promise, which can resolve either to error or an object containing categories with their probabilities.
+To run the model, you can use the `forward` method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns a promise, which can resolve either to an error or an object containing categories with their probabilities.
 
-:::info[Info]
+:::info
 Images from external sources are stored in your application's temporary directory.
 :::
 

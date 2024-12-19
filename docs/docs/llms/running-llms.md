@@ -5,8 +5,8 @@ sidebar_position: 1
 
 React Native ExecuTorch supports Llama 3.2 models, including quantized versions. Before getting started, you’ll need to obtain the .pte binary—a serialized model—and the tokenizer. There are various ways to accomplish this:
 
-- For your convienience, it's best if you use models exported by us, you can get them from our hugging face repository. You can also use [constants](https://github.com/software-mansion/react-native-executorch/tree/main/src/constants/modelUrls.ts) shipped with our library.
-- If you want to export model by yourself,you can use a Docker image that we've prepared. To see how it works, check out [exporting Llama](./exporting-llama)
+- For your convienience, it's best if you use models exported by us, you can get them from our [HuggingFace repository](https://huggingface.co/software-mansion/react-native-executorch-llama-3.2). You can also use [constants](https://github.com/software-mansion/react-native-executorch/tree/main/src/constants/modelUrls.ts) shipped with our library.
+- If you want to export model by yourself, you can use a Docker image that we've prepared. To see how it works, check out [exporting Llama](./exporting-llama)
 - Follow the official [tutorial](https://github.com/pytorch/executorch/blob/fe20be98c/examples/demo-apps/android/LlamaDemo/docs/delegates/xnnpack_README.md) made by ExecuTorch team to build the model and tokenizer yourself
 
 ## Initializing
@@ -55,7 +55,7 @@ Given computational constraints, our architecture is designed to support only on
 | `isReady`      | `boolean`                          | Indicates whether the model is ready                                                                            |
 | `downloadProgress`  | `number`                           | Represents the download progress as a value between 0 and 1, indicating the extent of the model file retrieval. |
 
-### Sending a message
+## Sending a message
 
 In order to send a message to the model, one can use the following code:
 
@@ -71,7 +71,7 @@ await llama.generate(message);
 ...
 ```
 
-### Listening for the response
+## Listening for the response
 
 As you might've noticed, there is no return value from the `runInference` function. Instead, the `.response` field of the model is updated with each token.
 This is how you can render the response of the model:
