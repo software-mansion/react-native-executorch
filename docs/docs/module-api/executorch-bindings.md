@@ -38,7 +38,7 @@ The `modelSource` parameter expects a location string pointing to the model bina
 | `loadForward`  | `() => Promise<void>`                                      | Loads resources specific to `forward` method into memory before execution. Uses `loadMethod` under the hood.                                                                                        |
 | `forward`      | `(input: ETInput, shape: number[]) => Promise<number[][]>` | Executes the model's forward pass, where `input` is a Javascript typed array and `shape` is an array of integers representing input Tensor shape. The output is a Tensor - raw result of inference. |
 
-### ETInput
+## ETInput
 
 The `ETInput` type defines the typed arrays that can be used as inputs in the `forward` method:
 
@@ -48,7 +48,7 @@ The `ETInput` type defines the typed arrays that can be used as inputs in the `f
 - Float32Array
 - Float64Array
 
-### Errors
+## Errors
 
 All functions provided by the `useExecutorchModule` hook are asynchronous and may throw an error. The `ETError` enum includes errors [defined by the ExecuTorch team](https://github.com/pytorch/executorch/blob/main/runtime/core/error.h) and additional errors specified by our library.
 
@@ -60,7 +60,7 @@ To run model with ExecuTorch Bindings it's essential to specify the shape of the
 
 This example demonstrates the integration and usage of the ExecuTorch bindings with a [style transfer model](../computer-vision/useStyleTransfer.mdx). Specifically, we'll be using the `STYLE_TRANSFER_CANDY` model, which applies artistic style transfer to an input image.
 
-### Importing the Module and loading the model
+## Importing the Module and loading the model
 
 First, import the necessary functions from the `react-native-executorch` package and initialize the ExecuTorch module with the specified style transfer model.
 
@@ -77,7 +77,7 @@ const executorchModule = useExecutorchModule({
 ```
 
 
-### Setting up input parameters
+## Setting up input parameters
 
 To prepare the input for the model, define the shape of the input tensor. This shape depends on the model's requirements. For the `STYLE_TRANSFER_CANDY` model, we need a tensor of shape `[1, 3, 640, 640]`, corresponding to a batch size of 1, 3 color channels (RGB), and dimensions of 640x640 pixels.
 
@@ -88,7 +88,7 @@ const shape = [1, 3, 640, 640];
 const input = new Float32Array(1 * 3 * 640 * 640); // fill this array with your image data
 ```
 
-### Performing inference
+## Performing inference
 
 ```typescript
 try {
