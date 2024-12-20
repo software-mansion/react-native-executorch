@@ -56,7 +56,7 @@ RCT_EXPORT_MODULE()
   NSURL *tokenizerURL = [NSURL URLWithString:tokenizerSource];
   
   if(isFetching){
-    reject(@"model_is_loaded", @"Model is fetching", nil);
+    reject(@"model_is_fetching", @"Model is fetching", nil);
     return;
   }
   
