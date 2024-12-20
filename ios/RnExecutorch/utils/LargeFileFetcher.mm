@@ -12,7 +12,7 @@
 - (instancetype)init {
   self = [super init];
   if (self) {
-    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:@"com.swmansion.rnexecutorch"];
+    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:[NSString stringWithFormat:@"com.swmansion.rnexecutorch.%@", [[NSUUID UUID] UUIDString]]];
     _session = [NSURLSession sessionWithConfiguration:configuration delegate:self delegateQueue:nil];
   }
   return self;
@@ -111,7 +111,7 @@
 
 - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location {
   NSFileManager *fileManager = [NSFileManager defaultManager];
-  
+
   [fileManager removeItemAtPath:_destination error:nil];
   
   NSError *error;

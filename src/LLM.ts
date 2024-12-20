@@ -30,15 +30,8 @@ export const useLLM = ({
   const [downloadProgress, setDownloadProgress] = useState(0);
   const downloadProgressListener = useRef<null | EventSubscription>(null);
   const tokenGeneratedListener = useRef<null | EventSubscription>(null);
-  const initialized = useRef(false);
 
   useEffect(() => {
-    if (initialized.current) {
-      return;
-    }
-
-    initialized.current = true;
-
     const loadModel = async () => {
       try {
         let modelUrl = modelSource;
@@ -57,6 +50,7 @@ export const useLLM = ({
             }
           }
         );
+        setIsReady(false);
 
         await LLM.loadLLM(
           modelUrl as string,
@@ -83,6 +77,8 @@ export const useLLM = ({
         const message = (err as Error).message;
         setIsReady(false);
         setError(message);
+      } finally {
+        setDownloadProgress(0);
       }
     };
 

@@ -64,6 +64,7 @@ class LLM(reactContext: ReactApplicationContext) :
   private fun initializeLlamaModule(modelPath: String, tokenizerPath: String, promise: Promise) {
     llamaModule = LlamaModule(1, modelPath, tokenizerPath, 0.7f)
     isFetching = false
+    this.tempLlamaResponse.clear()
     promise.resolve("Model loaded successfully")
   }
 
@@ -74,8 +75,8 @@ class LLM(reactContext: ReactApplicationContext) :
     contextWindowLength: Double,
     promise: Promise
   ) {
-    if (llamaModule != null || isFetching) {
-      promise.reject("Model already loaded", "Model is already loaded or fetching")
+    if (isFetching) {
+      promise.reject("Model is fetching", "Model is fetching")
       return
     }
 
