@@ -89,6 +89,7 @@ export const useLLM = ({
       downloadProgressListener.current = null;
       tokenGeneratedListener.current?.remove();
       tokenGeneratedListener.current = null;
+      LLM.deleteModule();
     };
   }, [contextWindowLength, modelSource, systemPrompt, tokenizerSource]);
 

@@ -11,6 +11,7 @@ export interface Spec extends TurboModule {
   ): Promise<string>;
   runInference(input: string): Promise<string>;
   interrupt(): void;
+  deleteModule(): void;
 
   readonly onToken: EventEmitter<string>;
   readonly onDownloadProgress: EventEmitter<number>;

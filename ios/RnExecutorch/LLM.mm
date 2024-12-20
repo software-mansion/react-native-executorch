@@ -56,7 +56,7 @@ RCT_EXPORT_MODULE()
   NSURL *tokenizerURL = [NSURL URLWithString:tokenizerSource];
   
   if(isFetching){
-    reject(@"model_already_loaded", @"Model and tokenizer already loaded", nil);
+    reject(@"model_is_loaded", @"Model is fetching", nil);
     return;
   }
   
@@ -121,9 +121,12 @@ RCT_EXPORT_MODULE()
   });
 }
 
-
 -(void)interrupt {
   [self->runner stop];
+}
+
+-(void)deleteModule {
+  self->runner = nil;
 }
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:(const facebook::react::ObjCTurboModule::InitParams &)params

@@ -76,7 +76,7 @@ class LLM(reactContext: ReactApplicationContext) :
     promise: Promise
   ) {
     if (isFetching) {
-      promise.reject("Model already loaded", "Model is already fetching")
+      promise.reject("Model is fetching", "Model is fetching")
       return
     }
 
@@ -147,6 +147,10 @@ class LLM(reactContext: ReactApplicationContext) :
 
   override fun interrupt() {
     llamaModule!!.stop()
+  }
+
+  override fun deleteModule() {
+    llamaModule = null
   }
 
   companion object {
