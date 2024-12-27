@@ -1,7 +1,5 @@
 const lightCodeTheme = require('./src/theme/CodeBlock/highlighting-light.js');
 const darkCodeTheme = require('./src/theme/CodeBlock/highlighting-dark.js');
-// @ts-check
-const webpack = require('webpack');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -54,10 +52,15 @@ const config = {
         },
         items: [
           {
-            'href':
-              'https://github.com/software-mansion/react-native-executorch',
-            'position': 'right',
-            'className': 'header-github',
+            to: 'docs/fundamentals/getting-started',
+            activeBasePath: 'docs',
+            label: 'Docs',
+            position: 'right',
+          },
+          {
+            href: 'https://github.com/software-mansion/react-native-executorch',
+            position: 'right',
+            className: 'header-github',
             'aria-label': 'GitHub repository',
           },
         ],
