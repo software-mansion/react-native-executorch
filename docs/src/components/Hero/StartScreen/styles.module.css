@@ -5,7 +5,22 @@
 }
 
 .heading {
-  margin-top: 11.25rem;
+  width: 100%;
+  margin-top: 8rem;
+}
+
+.subheadingContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.subheadingContainer svg {
+  height: 100%;
+  width: 100%;
+  max-width: 220px;
 }
 
 .headingLabel {
@@ -32,12 +47,12 @@
   letter-spacing: var(--swm-heading-letter-spacing-bigger);
 
   margin-top: 3rem;
-  margin-bottom: 5.5rem;
-  width: 70%;
+  width: 80%;
   color: var(--swm-landing-heading);
 }
 
 .buttonContainer {
+  margin-top: 5rem;
   display: flex;
   justify-content: flex-start;
 }
@@ -54,8 +69,8 @@
 }
 
 @media (max-width: 420px) {
-  .heading {
-    margin-top: 9.5rem;
+  .heading {  
+    margin-top: 6rem;
   }
   .headingLabel {
     font-size: 26px;
