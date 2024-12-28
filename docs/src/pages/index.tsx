@@ -2,6 +2,7 @@ import React from 'react';
 import Layout from '@theme/Layout';
 import styles from './styles.module.css';
 import HomepageStartScreen from '@site/src/components/Hero/StartScreen';
+import ExecuTorchIntroduction from '@site/src/components/ExecuTorchIntroduction';
 import ReactNativeExecuTorchFeatures from '@site/src/components/ReactNativeExecuTorchFeatures';
 import { HireUsSection } from '@swmansion/t-rex-ui';
 
@@ -13,6 +14,7 @@ function Home() {
     >
       <div className={styles.container}>
         <HomepageStartScreen />
+        <ExecuTorchIntroduction />
         <ReactNativeExecuTorchFeatures />
         <HireUsSection
           href={
