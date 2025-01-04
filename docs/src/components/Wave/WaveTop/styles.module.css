@@ -1,0 +1,13 @@
+.wave {
+  position: absolute;
+  bottom: 100%;
+  width: 100%;
+  z-index: -1;
+  margin-bottom: -5%;
+}
+
+@media (max-width: 768px) {
+  .wave {
+    margin-bottom: -29%;
+  }
+}

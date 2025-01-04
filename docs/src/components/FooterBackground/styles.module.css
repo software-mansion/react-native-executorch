@@ -1,0 +1,36 @@
+.waveContainer {
+  position: relative;
+  margin-top: 106px;
+  z-index: 0;
+}
+
+[class*='footerLanding'] {
+  margin-top: -106px;
+}
+
+@media (max-width: 996px) {
+  .waveContainer {
+    margin-top: 121px;
+  }
+  [class*='footerLanding'] {
+    margin-top: -121px;
+  }
+}
+
+@media (max-width: 700px) {
+  .waveContainer {
+    margin-top: 147px;
+  }
+  [class*='footerLanding'] {
+    margin-top: -147px;
+  }
+}
+
+@media (max-width: 376px) {
+  .waveContainer {
+    margin-top: 173px;
+  }
+  [class*='footerLanding'] {
+    margin-top: -173px;
+  }
+}

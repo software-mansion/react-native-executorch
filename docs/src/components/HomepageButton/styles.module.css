@@ -7,15 +7,15 @@
   text-wrap: nowrap;
 
   color: var(--swm-off-white);
-  background-color: var(--swm-landing-button-purple);
+  background-color: var(--swm-cornflower-80);
 
   cursor: pointer;
   transition: background-color 0.3s, color 0.3s;
 }
 
 [data-theme='dark'] .homepageButton {
-  background-color: var(--swm-purple-light-100);
-  border-color: var(--swm-purple-light-100);
+  background-color: var(--swm-cornflower-80);
+  border-color: var(--swm-cornflower-80);
 }
 
 a.homepageButtonLink:hover {
@@ -68,15 +68,15 @@ a.homepageButtonLink:hover {
 
 .buttonTransparentStyling {
   background-color: transparent;
-  color: var(--swm-landing-button-purple);
+  color: var(--swm-cornflower-80);
 }
 
 .buttonTransparentStyling svg {
-  stroke: var(--swm-landing-button-purple);
+  stroke: var(--swm-cornflower-80);
 }
 
 .buttonTransparentStyling:hover {
-  background-color: var(--swm-landing-button-purple);
+  background-color: var(--swm-cornflower-80);
   color: var(--swm-off-white);
 }
 
@@ -87,7 +87,7 @@ a.homepageButtonLink:hover {
 /* Button - purple styling */
 
 .buttonPurpleStyling {
-  background-color: var(--swm-landing-button-purple);
+  background-color: var(--swm-cornflower-80);
   color: var(--swm-off-white);
 }
 
@@ -97,15 +97,15 @@ a.homepageButtonLink:hover {
 
 .buttonPurpleStyling:hover {
   background-color: transparent;
-  color: var(--swm-landing-button-purple);
+  color: var(--swm-cornflower-80);
 }
 
 .buttonPurpleStyling:hover svg {
-  stroke: var(--swm-landing-button-purple);
+  stroke: var(--swm-cornflower-80);
 }
 
 .buttonPurpleBorderStyling {
-  border: 1px solid var(--swm-landing-button-purple);
+  border: 1px solid var(--swm-cornflower-80);
 }
 
 .arrow {

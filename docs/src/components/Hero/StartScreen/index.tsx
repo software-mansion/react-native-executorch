@@ -3,10 +3,9 @@ import styles from './styles.module.css';
 import HomepageButton from '@site/src/components/HomepageButton';
 import useScreenSize from '@site/src/hooks/useScreenSize';
 import Logo from '@site/static/img/logo-hero.svg';
+import BrowserOnly from '@docusaurus/BrowserOnly';
 
 const StartScreen = () => {
-  const { windowWidth } = useScreenSize();
-
   return (
     <section className={styles.hero}>
       <div className={styles.heading}>
@@ -21,7 +20,14 @@ const StartScreen = () => {
               powered by ExecuTorch.
             </h2>
           </div>
-          {windowWidth > 768 && <Logo />}
+          <BrowserOnly>
+            {() => {
+              const { windowWidth } = useScreenSize();
+              if (windowWidth > 768) {
+                return <Logo />;
+              }
+            }}
+          </BrowserOnly>
         </div>
         <div className={styles.lowerHeading}>
           <div className={styles.buttonContainer}>

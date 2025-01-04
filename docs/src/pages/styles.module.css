@@ -1,24 +1,65 @@
 .container {
-  width: 60%;
+  width: 70%;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 7.5rem;
+  gap: 8rem;
 }
 
-.waveContainer {
+.linearGradient {
   position: relative;
+  width: 100%;
+  margin-top: 20rem;
+  background: linear-gradient(#7394FF, #FFFFFF);
+  padding-top: 4rem;
+  margin-bottom: 2rem;
+}
+
+[data-theme='dark'] .linearGradient {
+  background: linear-gradient(#313c9c, #160042);
+}
+
+@media (max-width: 2560px) {
+  .linearGradient {
+    margin-top: 16rem;
+  }
+}
+
+@media (max-width: 1920px) {
+  .linearGradient {
+    margin-top: 14rem;
+  }
 }
 
 @media (max-width: 1440px) {
   .container {
-    width: 75%;
+    width: 80%;
+  }
+
+  .linearGradient {
+    margin-top: 12rem;
   }
 }
 
 @media (max-width: 996px) {
   .container {
     width: 85%;
-    gap: 3.5rem;
+    gap: 6rem;
+  }
+
+  .linearGradient {
+    margin-top: 10rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .linearGradient {
+    padding-top: 2rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .linearGradient {
+    margin-top: 8rem;
   }
 }

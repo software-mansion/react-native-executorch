@@ -12,12 +12,12 @@
 
 [data-theme='dark'] .featuresButton {
   background-color: transparent;
-  border-color: var(--swm-purple-dark-100);
-  color: var(--swm-purple-dark-100);
+  border-color: var(--swm-cornflower-80);
+  color: var(--swm-cornflower-80);
 }
 [data-theme='dark'] .featuresButton:hover {
-  background-color: var(--swm-purple-light-100);
-  border-color: var(--swm-purple-light-100);
+  background-color: var(--swm-cornflower-80);
+  border-color: var(--swm-cornflower-80);
   color: var(--swm-off-white);
 }
 

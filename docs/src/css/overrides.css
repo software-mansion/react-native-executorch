@@ -9,7 +9,7 @@
   background-color: #ffffff;
 }
 [data-theme='dark'][class*='plugin-pages'] {
-  background-color: var(--swm-navy-dark-140);
+  background-color: var(--swm-navy-100);
 }
 
 table {

@@ -36,7 +36,7 @@
 }
 
 .headingLabel :nth-child(2) {
-  color: var(--swm-purple-light-100);
+  color: var(--swm-cornflower-80);
 }
 
 .subheadingLabel {
@@ -52,7 +52,7 @@
 }
 
 .buttonContainer {
-  margin-top: 5rem;
+  margin-top: 3rem;
   display: flex;
   justify-content: flex-start;
 }
@@ -66,6 +66,10 @@
     font-size: 26px;
     width: 100%;
   }
+
+  .buttonContainer {
+    margin-top: -2rem;
+  }
 }
 
 @media (max-width: 420px) {
@@ -78,5 +82,9 @@
   .subheadingLabel {
     margin: 1rem 0 2rem 0;
     font-size: 20px;
+  }
+
+  .buttonContainer {
+    margin-top: -1rem;
   }
 }
