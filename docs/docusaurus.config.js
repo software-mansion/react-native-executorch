@@ -42,6 +42,9 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+      colorMode: {
+        defaultMode: 'dark',
+      },
       image: 'img/og-image.png',
       navbar: {
         title: 'React Native ExecuTorch',
