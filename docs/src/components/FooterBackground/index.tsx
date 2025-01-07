@@ -11,7 +11,7 @@ const FooterBackground = () => {
       {isLanding && (
         <>
           <WaveBottom />
-          <div className={styles.linearGradient}></div>
+          <div className={styles.linearGradient} />
         </>
       )}
     </div>

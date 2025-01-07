@@ -1,9 +1,8 @@
 import React from 'react';
+import BrowserOnly from '@docusaurus/BrowserOnly';
 import styles from './styles.module.css';
 import HomepageButton from '@site/src/components/HomepageButton';
-import useScreenSize from '@site/src/hooks/useScreenSize';
-import Logo from '@site/static/img/logo-hero.svg';
-import BrowserOnly from '@docusaurus/BrowserOnly';
+import Logo from './Logo';
 
 const StartScreen = () => {
   return (
@@ -20,14 +19,7 @@ const StartScreen = () => {
               powered by ExecuTorch.
             </h2>
           </div>
-          <BrowserOnly>
-            {() => {
-              const { windowWidth } = useScreenSize();
-              if (windowWidth > 768) {
-                return <Logo />;
-              }
-            }}
-          </BrowserOnly>
+          <BrowserOnly>{() => <Logo />}</BrowserOnly>
         </div>
         <div className={styles.lowerHeading}>
           <div className={styles.buttonContainer}>

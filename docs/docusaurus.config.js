@@ -61,9 +61,10 @@ const config = {
             position: 'right',
           },
           {
-            href: 'https://github.com/software-mansion/react-native-executorch',
-            position: 'right',
-            className: 'header-github',
+            'href':
+              'https://github.com/software-mansion/react-native-executorch',
+            'position': 'right',
+            'className': 'header-github',
             'aria-label': 'GitHub repository',
           },
         ],
