@@ -22,11 +22,13 @@ function Home() {
         <div className={styles.container}>
           <ExecuTorchIntroduction />
           <ReactNativeExecuTorchFeatures />
-          <HireUsSection
-            href={
-              'https://swmansion.com/contact/projects?utm_source=react-native-executorch&utm_medium=docs'
-            }
-          />
+          <div className={styles.hireUsSection}>
+            <HireUsSection
+              href={
+                'https://swmansion.com/contact/projects?utm_source=react-native-executorch&utm_medium=docs'
+              }
+            />
+          </div>
         </div>
       </div>
       <FooterBackground />

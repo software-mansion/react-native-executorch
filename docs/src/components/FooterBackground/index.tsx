@@ -7,7 +7,14 @@ const FooterBackground = () => {
   const { isLanding } = usePageType();
 
   return (
-    <div className={styles.waveContainer}>{isLanding && <WaveBottom />}</div>
+    <div className={styles.waveContainer}>
+      {isLanding && (
+        <>
+          <WaveBottom />
+          <div className={styles.linearGradient}></div>
+        </>
+      )}
+    </div>
   );
 };
 

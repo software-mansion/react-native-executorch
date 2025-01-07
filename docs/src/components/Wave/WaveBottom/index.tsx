@@ -13,14 +13,10 @@ const WaveBottom = () => {
         const { windowWidth } = useScreenSize();
 
         if (theme === 'dark') {
-          return windowWidth > 768
-            ? WaveDark(windowWidth)
-            : WaveDarkMobile(windowWidth);
+          return windowWidth > 768 ? WaveDark() : WaveDarkMobile();
         }
 
-        return windowWidth > 768
-          ? WaveLight(windowWidth)
-          : WaveLightMobile(windowWidth);
+        return windowWidth > 768 ? WaveLight() : WaveLightMobile();
       }}
     </BrowserOnly>
   );

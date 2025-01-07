@@ -256,7 +256,7 @@
   /* Hire Us Section */
 
   --swm-hire-us-section-title: var(--swm-cornflower-100);
-  --swm-hire-us-section: var(--swm-cornflower-80);
+  --swm-hire-us-section: var(--swm-navy-light-100);
   --swm-hire-us-section-color: var(--swm-off-white);
 
   /* Cards */
@@ -433,8 +433,8 @@
 
   /* Hire Us Section */
 
-  --swm-hire-us-section-title: var(--swm-cornflower-80);
-  --swm-hire-us-section: var(--swm-cornflower-80);
+  --swm-hire-us-section-title: var(--swm-cornflower-100);
+  --swm-hire-us-section: var(--swm-cornflower-100);
   --swm-hire-us-section-color: var(--swm-white);
 
   /* Cards */

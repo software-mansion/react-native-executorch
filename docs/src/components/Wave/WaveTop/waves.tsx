@@ -1,10 +1,10 @@
 import React from 'react';
 import styles from './styles.module.css';
 
-export const WaveLight = (width: number) => (
+export const WaveLight = () => (
   <svg
     className={styles.wave}
-    width={width}
+    width="100%"
     viewBox="0 0 1440 300"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
@@ -34,10 +34,10 @@ export const WaveLight = (width: number) => (
   </svg>
 );
 
-export const WaveDark = (width: number) => (
+export const WaveDark = () => (
   <svg
     className={styles.wave}
-    width={width}
+    width="100%"
     viewBox="0 0 1440 300"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
@@ -67,10 +67,10 @@ export const WaveDark = (width: number) => (
   </svg>
 );
 
-export const WaveLightMobile = (width: number) => (
+export const WaveLightMobile = () => (
   <svg
     className={styles.wave}
-    width={width}
+    width="100%"
     viewBox="0 0 390 150"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
@@ -100,10 +100,10 @@ export const WaveLightMobile = (width: number) => (
   </svg>
 );
 
-export const WaveDarkMobile = (width: number) => (
+export const WaveDarkMobile = () => (
   <svg
     className={styles.wave}
-    width={width}
+    width="100%"
     viewBox="0 0 390 150"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"

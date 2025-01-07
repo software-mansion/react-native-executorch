@@ -6,17 +6,33 @@
   gap: 8rem;
 }
 
+.container > div {
+  z-index: 10;
+}
+
 .linearGradient {
   position: relative;
   width: 100%;
   margin-top: 20rem;
   background: linear-gradient(#7394FF, #FFFFFF);
   padding-top: 4rem;
-  margin-bottom: 2rem;
 }
 
 [data-theme='dark'] .linearGradient {
   background: linear-gradient(#313c9c, #160042);
+}
+
+.hireUsSection {
+  z-index: 10;
+}
+
+[data-theme='dark'] .hireUsSection a div:hover {
+  border-color: var(--swm-off-white);
+  color: var(--swm-off-white);
+}
+
+[data-theme='dark'] .hireUsSection a div:hover svg{
+  stroke: var(--swm-off-white);
 }
 
 @media (max-width: 2560px) {

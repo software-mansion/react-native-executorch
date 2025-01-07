@@ -1,11 +1,11 @@
 import React from 'react';
 import styles from './styles.module.css';
 
-export const WaveLight = (width: number) => (
+export const WaveLight = () => (
   <svg
     className={styles.waveBottom}
-    width={width}
-    viewBox={`0 0 1440 ${550 - width * 0.07}`}
+    width="100%"
+    viewBox="0 0 1440 300"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
   >
@@ -23,17 +23,17 @@ export const WaveLight = (width: number) => (
         gradientUnits="userSpaceOnUse"
       >
         <stop stop-color="#7394FF" />
-        <stop offset="1" stop-color="#FFFFFF" />
+        <stop offset="1" stop-color="#7394FF" />
       </linearGradient>
     </defs>
   </svg>
 );
 
-export const WaveDark = (width: number) => (
+export const WaveDark = () => (
   <svg
     className={styles.waveBottom}
-    width={width}
-    viewBox={`0 0 1440 ${550 - width * 0.07}`}
+    width="100%"
+    viewBox="0 0 1440 300"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
   >
@@ -51,17 +51,17 @@ export const WaveDark = (width: number) => (
         gradientUnits="userSpaceOnUse"
       >
         <stop stop-color="#313C9C" />
-        <stop offset="1" stop-color="#160042" />
+        <stop offset="1" stop-color="#313C9C" />
       </linearGradient>
     </defs>
   </svg>
 );
 
-export const WaveLightMobile = (width: number) => (
+export const WaveLightMobile = () => (
   <svg
     className={styles.waveBottom}
-    width={width}
-    viewBox={`0 0 450 ${(width > 376 ? 340 : 360) - width * 0.3}`}
+    width="100%"
+    viewBox="0 0 390 50"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
   >
@@ -79,17 +79,17 @@ export const WaveLightMobile = (width: number) => (
         gradientUnits="userSpaceOnUse"
       >
         <stop stop-color="#7394FF" />
-        <stop offset="1" stop-color="#FFFFFF" />
+        <stop offset="1" stop-color="#7394FF" />
       </linearGradient>
     </defs>
   </svg>
 );
 
-export const WaveDarkMobile = (width: number) => (
+export const WaveDarkMobile = () => (
   <svg
     className={styles.waveBottom}
-    width={width}
-    viewBox={`0 0 450 ${(width > 376 ? 340 : 360) - width * 0.3}`}
+    width="100%"
+    viewBox="0 0 390 50"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
   >
@@ -107,7 +107,7 @@ export const WaveDarkMobile = (width: number) => (
         gradientUnits="userSpaceOnUse"
       >
         <stop stop-color="#313C9C" />
-        <stop offset="1" stop-color="#160042" />
+        <stop offset="1" stop-color="#313C9C" />
       </linearGradient>
     </defs>
   </svg>

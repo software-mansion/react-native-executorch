@@ -7,27 +7,34 @@
 
 .featuresButton {
   background-color: transparent;
-  color: var(--swm-landing-button-purple);
+  color: var(--swm-navy-light-100);
+  border-color: var(--swm-navy-light-100);
 }
 
 [data-theme='dark'] .featuresButton {
   background-color: transparent;
-  border-color: var(--swm-cornflower-80);
-  color: var(--swm-cornflower-80);
+  color: var(--swm-off-white);
+  border-color: var(--swm-off-white);
 }
+
+.featuresButton:hover {
+  background-color: var(--swm-navy-light-100);
+  border-color: var(--swm-navy-light-100);
+  color: var(--swm-off-white);
+}
+
 [data-theme='dark'] .featuresButton:hover {
-  background-color: var(--swm-cornflower-80);
-  border-color: var(--swm-cornflower-80);
+  background-color: var(--swm-cornflower-100);
+  border-color: var(--swm-cornflower-100);
   color: var(--swm-off-white);
 }
 
 .featuresButton svg {
-  stroke: var(--swm-landing-button-purple);
+  stroke: var(--swm-navy-light-100);
 }
 
-.featuresButton:hover {
-  background-color: var(--swm-landing-button-purple);
-  color: var(--swm-off-white);
+[data-theme='dark'] .featuresButton svg {
+  stroke: var(--swm-off-white);
 }
 
 .featuresButton:hover svg {
