@@ -5,9 +5,11 @@ import LogoIcon from '@site/static/img/logo-hero.svg';
 const Logo = () => {
   const { windowWidth } = useScreenSize();
 
-  if (windowWidth > 768) {
-    return <LogoIcon />;
+  if (windowWidth <= 768) {
+    return null;
   }
+
+  return <LogoIcon />;
 };
 
 export default Logo;
