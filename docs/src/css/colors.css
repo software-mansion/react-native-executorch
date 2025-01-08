@@ -312,7 +312,7 @@
 
   /* Color Mode */
   --swm-color-mode-enabled: var(--swm-off-navy);
-  --swm-color-mode-enabled-color-landing: var(--swm-purple-dark-120);
+  --swm-color-mode-enabled-color-landing: var(--swm-navy-100);
   --swm-color-mode-disabled-color: var(--swm-navy-light-40);
 
   /* Typography */

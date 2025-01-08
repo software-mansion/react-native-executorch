@@ -2,7 +2,7 @@ import React from 'react';
 import styles from './styles.module.css';
 import useScreenSize from '@site/src/hooks/useScreenSize';
 
-const WaveLight = () => (
+const WaveLight = (
   <svg
     className={styles.wave}
     width="100%"
@@ -35,7 +35,7 @@ const WaveLight = () => (
   </svg>
 );
 
-const WaveDark = () => (
+const WaveDark = (
   <svg
     className={styles.wave}
     width="100%"
@@ -68,7 +68,7 @@ const WaveDark = () => (
   </svg>
 );
 
-const WaveLightMobile = () => (
+const WaveLightMobile = (
   <svg
     className={styles.wave}
     width="100%"
@@ -101,7 +101,7 @@ const WaveLightMobile = () => (
   </svg>
 );
 
-const WaveDarkMobile = () => (
+const WaveDarkMobile = (
   <svg
     className={styles.wave}
     width="100%"
@@ -134,14 +134,14 @@ const WaveDarkMobile = () => (
   </svg>
 );
 
-const Wave: React.FC<{ theme: string }> = ({ theme }) => {
+const Wave = ({ theme }) => {
   const { windowWidth } = useScreenSize();
 
   if (theme === 'dark') {
-    return windowWidth > 768 ? WaveDark() : WaveDarkMobile();
+    return windowWidth > 768 ? WaveDark : WaveDarkMobile;
   }
 
-  return windowWidth > 768 ? WaveLight() : WaveLightMobile();
+  return windowWidth > 768 ? WaveLight : WaveLightMobile;
 };
 
 export default Wave;

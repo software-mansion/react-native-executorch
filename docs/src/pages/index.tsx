@@ -8,10 +8,10 @@ import ReactNativeExecuTorchFeatures from '@site/src/components/ReactNativeExecu
 import { HireUsSection } from '@swmansion/t-rex-ui';
 import FooterBackground from '../components/FooterBackground';
 
-function Home() {
+const Home = () => {
   return (
     <Layout
-      title={`React Native ExecuTorch`}
+      title="React Native ExecuTorch"
       description="Declarative way to run AI models in React Native on device, powered by ExecuTorch."
     >
       <div className={styles.container}>
@@ -23,17 +23,13 @@ function Home() {
           <ExecuTorchIntroduction />
           <ReactNativeExecuTorchFeatures />
           <div className={styles.hireUsSection}>
-            <HireUsSection
-              href={
-                'https://swmansion.com/contact/projects?utm_source=react-native-executorch&utm_medium=docs'
-              }
-            />
+            <HireUsSection href="https://swmansion.com/contact/projects?utm_source=react-native-executorch&utm_medium=docs" />
           </div>
         </div>
       </div>
       <FooterBackground />
     </Layout>
   );
-}
+};
 
 export default Home;

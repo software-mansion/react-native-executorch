@@ -3,7 +3,7 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 8rem;
+  gap: 10rem;
 }
 
 .container > div {
@@ -13,9 +13,9 @@
 .linearGradient {
   position: relative;
   width: 100%;
-  margin-top: 20rem;
+  margin-top: 18rem;
   background: linear-gradient(#7394FF, #FFFFFF);
-  padding-top: 4rem;
+  padding-top: 8.25rem;
 }
 
 [data-theme='dark'] .linearGradient {
@@ -37,13 +37,13 @@
 
 @media (max-width: 2560px) {
   .linearGradient {
-    margin-top: 16rem;
+    margin-top: 14rem;
   }
 }
 
 @media (max-width: 1920px) {
   .linearGradient {
-    margin-top: 14rem;
+    margin-top: 12rem;
   }
 }
 
@@ -53,14 +53,14 @@
   }
 
   .linearGradient {
-    margin-top: 12rem;
+    margin-top: 10rem;
   }
 }
 
 @media (max-width: 996px) {
   .container {
     width: 85%;
-    gap: 6rem;
+    gap: 8rem;
   }
 
   .linearGradient {
@@ -70,12 +70,12 @@
 
 @media (max-width: 768px) {
   .linearGradient {
-    padding-top: 2rem;
+    padding-top: 4rem;
   }
 }
 
 @media (max-width: 420px) {
   .linearGradient {
-    margin-top: 8rem;
+    margin-top: 6rem;
   }
 }
