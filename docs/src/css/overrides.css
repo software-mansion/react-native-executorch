@@ -9,7 +9,7 @@
   background-color: #ffffff;
 }
 [data-theme='dark'][class*='plugin-pages'] {
-  background-color: var(--swm-navy-dark-140);
+  background-color: var(--swm-navy-100);
 }
 
 table {
@@ -130,10 +130,6 @@ table thead tr {
   [class*='codeBlockContent'] code {
     -webkit-text-size-adjust: 100%;
   }
-}
-
-[class*='navbar__link']:not([class*='header-github']):not([role='button']) {
-  display: none;
 }
 
 /* TODO: Remove after @swmansion-t-rex-ui 0.0.10 patch */

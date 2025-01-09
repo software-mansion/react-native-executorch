@@ -7,15 +7,10 @@
   text-wrap: nowrap;
 
   color: var(--swm-off-white);
-  background-color: var(--swm-landing-button-purple);
+  background-color: var(--swm-navy-light-100);
 
   cursor: pointer;
   transition: background-color 0.3s, color 0.3s;
-}
-
-[data-theme='dark'] .homepageButton {
-  background-color: var(--swm-purple-light-100);
-  border-color: var(--swm-purple-light-100);
 }
 
 a.homepageButtonLink:hover {
@@ -67,29 +62,14 @@ a.homepageButtonLink:hover {
 /* Button - transparent styling */
 
 .buttonTransparentStyling {
-  background-color: transparent;
-  color: var(--swm-landing-button-purple);
+  color: var(--swm-navy-light-100);
 }
 
 .buttonTransparentStyling svg {
-  stroke: var(--swm-landing-button-purple);
+  stroke: var(--swm-navy-light-100);
 }
 
-.buttonTransparentStyling:hover {
-  background-color: var(--swm-landing-button-purple);
-  color: var(--swm-off-white);
-}
-
-.buttonTransparentStyling:hover svg {
-  stroke: var(--swm-off-white);
-}
-
-/* Button - purple styling */
-
-.buttonPurpleStyling {
-  background-color: var(--swm-landing-button-purple);
-  color: var(--swm-off-white);
-}
+/* Button - navy styling */
 
 .buttonPurpleStyling svg {
   stroke: var(--swm-off-white);
@@ -97,15 +77,15 @@ a.homepageButtonLink:hover {
 
 .buttonPurpleStyling:hover {
   background-color: transparent;
-  color: var(--swm-landing-button-purple);
+  color: var(--swm-navy-light-100);
 }
 
 .buttonPurpleStyling:hover svg {
-  stroke: var(--swm-landing-button-purple);
+  stroke: var(--swm-navy-light-100);
 }
 
 .buttonPurpleBorderStyling {
-  border: 1px solid var(--swm-landing-button-purple);
+  border: 1px solid var(--swm-navy-light-100);
 }
 
 .arrow {
@@ -116,4 +96,42 @@ a.homepageButtonLink:hover {
 
   width: 24px;
   height: 24px;
+}
+
+[data-theme='dark'] .homepageButton {
+  background-color: var(--swm-cornflower-100);
+  border-color: var(--swm-cornflower-100);
+}
+
+[data-theme='dark'] .homepageButton:hover {
+  border-color: var(--swm-off-white);
+}
+
+/* Button - transparent styling */
+
+[data-theme='dark'] .buttonTransparentStyling {
+  color: var(--swm-cornflower-100);
+}
+
+[data-theme='dark'] .buttonTransparentStyling svg {
+  stroke: var(--swm-cornflower-100);
+}
+
+/* Button - navy styling */
+
+[data-theme='dark'] .buttonPurpleStyling svg {
+  stroke: var(--swm-off-white);
+}
+
+[data-theme='dark'] .buttonPurpleStyling:hover {
+  background-color: transparent;
+  color: var(--swm-off-white);
+}
+
+[data-theme='dark'] .buttonPurpleStyling:hover svg {
+  stroke: var(--swm-off-white);
+}
+
+[data-theme='dark'] .buttonPurpleBorderStyling {
+  border: 1px solid var(--swm-cornflower-100);
 }

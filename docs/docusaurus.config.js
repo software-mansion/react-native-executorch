@@ -1,7 +1,5 @@
 const lightCodeTheme = require('./src/theme/CodeBlock/highlighting-light.js');
 const darkCodeTheme = require('./src/theme/CodeBlock/highlighting-dark.js');
-// @ts-check
-const webpack = require('webpack');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -44,6 +42,9 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+      colorMode: {
+        defaultMode: 'dark',
+      },
       image: 'img/og-image.png',
       navbar: {
         title: 'React Native ExecuTorch',
@@ -53,6 +54,12 @@ const config = {
           src: 'img/logo-hero.svg',
         },
         items: [
+          {
+            to: 'docs/fundamentals/getting-started',
+            activeBasePath: 'docs',
+            label: 'Docs',
+            position: 'right',
+          },
           {
             'href':
               'https://github.com/software-mansion/react-native-executorch',

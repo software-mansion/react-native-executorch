@@ -1,0 +1,24 @@
+.waveBottom {
+  position: absolute;
+  z-index: -1;
+  bottom: 100px;
+  right: 0;
+}
+
+@media (max-width: 996px) {
+  .waveBottom {
+    bottom: 115px;
+  }
+}
+
+@media (max-width: 700px) {
+  .waveBottom {
+    bottom: 141px;
+  }
+}
+
+@media (max-width: 376px) {
+  .waveBottom {
+    bottom: 167px;
+  }
+}

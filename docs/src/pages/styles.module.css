@@ -1,24 +1,81 @@
 .container {
-  width: 60%;
+  width: 70%;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 7.5rem;
+  gap: 10rem;
 }
 
-.waveContainer {
+.container > div {
+  z-index: 10;
+}
+
+.linearGradient {
   position: relative;
+  width: 100%;
+  margin-top: 18rem;
+  background: linear-gradient(#7394FF, #FFFFFF);
+  padding-top: 8.25rem;
+}
+
+[data-theme='dark'] .linearGradient {
+  background: linear-gradient(#313c9c, #160042);
+}
+
+.hireUsSection {
+  z-index: 10;
+}
+
+[data-theme='dark'] .hireUsSection a div:hover {
+  border-color: var(--swm-off-white);
+  color: var(--swm-off-white);
+}
+
+[data-theme='dark'] .hireUsSection a div:hover svg{
+  stroke: var(--swm-off-white);
+}
+
+@media (max-width: 2560px) {
+  .linearGradient {
+    margin-top: 14rem;
+  }
+}
+
+@media (max-width: 1920px) {
+  .linearGradient {
+    margin-top: 12rem;
+  }
 }
 
 @media (max-width: 1440px) {
   .container {
-    width: 75%;
+    width: 80%;
+  }
+
+  .linearGradient {
+    margin-top: 10rem;
   }
 }
 
 @media (max-width: 996px) {
   .container {
     width: 85%;
-    gap: 3.5rem;
+    gap: 8rem;
+  }
+
+  .linearGradient {
+    margin-top: 10rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .linearGradient {
+    padding-top: 4rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .linearGradient {
+    margin-top: 6rem;
   }
 }

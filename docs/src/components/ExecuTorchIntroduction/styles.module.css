@@ -1,0 +1,38 @@
+.introductionContainer {
+  max-width: 996px;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: -8rem;
+  gap: 4rem;
+}
+
+.introduction {
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.title {
+  font-size: var(--swm-h2-font-size);
+}
+
+@media (max-width: 768px) {
+  .introduction {
+    font-size: 20px;
+  }
+
+  .introductionContainer {
+    gap: 0;
+    margin-bottom: -6rem;
+  }
+
+  .title {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .title {
+    margin-bottom: 1.5rem;
+    font-size: 24px;
+  }
+}

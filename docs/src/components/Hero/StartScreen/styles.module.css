@@ -5,7 +5,22 @@
 }
 
 .heading {
-  margin-top: 11.25rem;
+  width: 100%;
+  margin-top: 11rem;
+}
+
+.subheadingContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.subheadingContainer svg {
+  height: 100%;
+  width: 100%;
+  max-width: 220px;
 }
 
 .headingLabel {
@@ -21,7 +36,7 @@
 }
 
 .headingLabel :nth-child(2) {
-  color: var(--swm-purple-light-100);
+  color: var(--swm-cornflower-80);
 }
 
 .subheadingLabel {
@@ -32,12 +47,12 @@
   letter-spacing: var(--swm-heading-letter-spacing-bigger);
 
   margin-top: 3rem;
-  margin-bottom: 5.5rem;
-  width: 70%;
+  width: 80%;
   color: var(--swm-landing-heading);
 }
 
 .buttonContainer {
+  margin-top: 3rem;
   display: flex;
   justify-content: flex-start;
 }
@@ -51,11 +66,15 @@
     font-size: 26px;
     width: 100%;
   }
+
+  .buttonContainer {
+    margin-top: -2rem;
+  }
 }
 
 @media (max-width: 420px) {
-  .heading {
-    margin-top: 9.5rem;
+  .heading {  
+    margin-top: 6rem;
   }
   .headingLabel {
     font-size: 26px;
@@ -63,5 +82,9 @@
   .subheadingLabel {
     margin: 1rem 0 2rem 0;
     font-size: 20px;
+  }
+
+  .buttonContainer {
+    margin-top: -1rem;
   }
 }

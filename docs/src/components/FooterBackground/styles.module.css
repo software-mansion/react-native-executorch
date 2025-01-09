@@ -1,0 +1,46 @@
+.waveContainer {
+  position: relative;
+  margin-top: 2rem;
+  z-index: 0;
+}
+
+[class*='footerLanding'] {
+  margin-top: -106px;
+}
+
+.linearGradient {
+  height: 106px;
+  width: 100%;
+  background: linear-gradient(#7394FF, #FFFFFF 150%);
+}
+
+[data-theme='dark'] .linearGradient {
+  background: linear-gradient(#313C9C, #160042 150%);
+}
+
+@media (max-width: 996px) {
+  [class*='footerLanding'] {
+    margin-top: -121px;
+  }
+  .linearGradient {
+    height: 121px;
+  }
+}
+
+@media (max-width: 700px) {
+  [class*='footerLanding'] {
+    margin-top: -147px;
+  }
+  .linearGradient {
+    height: 147px;
+  }
+}
+
+@media (max-width: 376px) {
+  [class*='footerLanding'] {
+    margin-top: -173px;
+  }
+  .linearGradient {
+    height: 173px;
+  }
+}
