@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkdocs=self.webpackChunkdocs||[]).push([[583],{6866:(e,t,c)=>{c.r(t),c.d(t,{default:()=>a});var n=c(6540),s=c(6347);const a=function(){return n.createElement(s.rd,{to:"/react-native-executorch/docs/fundamentals/getting-started"})}}}]);
