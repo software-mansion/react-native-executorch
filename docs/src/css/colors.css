@@ -157,13 +157,13 @@
   --swm-admonition-color-secondary: var(--swm-navy-light-10);
   --swm-admonition-color-success: var(--swm-green-light-20);
   --swm-admonition-color-danger: var(--swm-red-light-20);
-  --swm-admonition-color-info: var(--swm-blue-light-20);
+  --swm-admonition-color-info: var(--swm-cornflower-20);
   --swm-admonition-color-caution: var(--swm-yellow-light-20);
 
   --swm-admonition-color-secondary-shadow: var(--swm-navy-light-80);
   --swm-admonition-color-success-shadow: var(--swm-green-light-100);
   --swm-admonition-color-danger-shadow: var(--swm-red-light-100);
-  --swm-admonition-color-info-shadow: var(--swm-blue-light-100);
+  --swm-admonition-color-info-shadow: var(--swm-cornflower-100);
   --swm-admonition-color-caution-shadow: var(--swm-yellow-light-100);
 
   /* Details */
@@ -344,13 +344,13 @@
   --swm-admonition-color-secondary: var(--swm-navy-dark-70);
   --swm-admonition-color-success: var(--swm-green-dark-120);
   --swm-admonition-color-danger: var(--swm-red-dark-120);
-  --swm-admonition-color-info: var(--swm-blue-dark-120);
+  --swm-admonition-color-info: var(--swm-cornflower-120);
   --swm-admonition-color-caution: var(--swm-yellow-dark-120);
 
   --swm-admonition-color-secondary-shadow: var(--swm-navy-dark-100);
   --swm-admonition-color-success-shadow: var(--swm-green-dark-140);
   --swm-admonition-color-danger-shadow: var(--swm-red-dark-140);
-  --swm-admonition-color-info-shadow: var(--swm-blue-dark-140);
+  --swm-admonition-color-info-shadow: var(--swm-cornflower-140);
   --swm-admonition-color-caution-shadow: var(--swm-yellow-dark-140);
 
   /* Details */
