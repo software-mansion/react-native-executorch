@@ -1,17 +1,7 @@
 import { Image } from 'react-native';
 import { ETError, getError } from '../../Error';
 import { _ETModule } from '../../native/RnExecutorchModules';
-import { ETInput } from '../../types/common';
-
-const getTypeIdentifier = (arr: ETInput): number => {
-  if (arr instanceof Int8Array) return 0;
-  if (arr instanceof Int32Array) return 1;
-  if (arr instanceof BigInt64Array) return 2;
-  if (arr instanceof Float32Array) return 3;
-  if (arr instanceof Float64Array) return 4;
-
-  return -1;
-};
+import { ETInput, getTypeIdentifier } from '../../types/common';
 
 export class ExecutorchModule {
   protected module = new _ETModule();
