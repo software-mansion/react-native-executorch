@@ -4,7 +4,7 @@ import { _ETModule } from '../../native/RnExecutorchModules';
 import { ETInput, getTypeIdentifier } from '../../types/common';
 
 export class ExecutorchModule {
-  protected module = new _ETModule();
+  private module = new _ETModule();
 
   async loadModule(modelSource: string) {
     if (!modelSource) return;
