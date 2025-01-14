@@ -1,5 +1,5 @@
-export * from './ETModule';
-export * from './LLM';
+export * from './hooks/bindings/useExecutorchModule';
+export * from './hooks/natural_language_processing/useLLM';
 export * from './constants/modelUrls';
 
 // hooks

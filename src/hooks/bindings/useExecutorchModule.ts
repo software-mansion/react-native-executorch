@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { _ETModule } from './native/RnExecutorchModules';
-import { getError } from './Error';
-import { ExecutorchModule } from './types/common';
-import { useModule } from './useModule';
+import { _ETModule } from '../../native/RnExecutorchModules';
+import { getError } from '../../Error';
+import { ExecutorchModule } from '../../types/common';
+import { useModule } from '../../useModule';
 
 interface Props {
   modelSource: string | number;
