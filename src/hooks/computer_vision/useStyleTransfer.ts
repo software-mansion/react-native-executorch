@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { _StyleTransferModule } from '../native/RnExecutorchModules';
-import { useModule } from '../useModule';
+import { _StyleTransferModule } from '../../native/RnExecutorchModules';
+import { useModule } from '../../useModule';
 
 interface Props {
   modelSource: string | number;
