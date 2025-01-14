@@ -45,7 +45,7 @@ export interface ExecutorchModule {
   loadForward: () => Promise<void>;
 }
 
-export type module =
+export type Module =
   | _ClassificationModule
   | _StyleTransferModule
   | _ObjectDetectionModule

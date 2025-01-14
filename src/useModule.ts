@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Image } from 'react-native';
 import { ETError, getError } from './Error';
-import { ETInput, module, getTypeIdentifier } from './types/common';
+import { ETInput, Module, getTypeIdentifier } from './types/common';
 
 interface Props {
   modelSource: string | number;
-  module: module;
+  module: Module;
 }
 
 interface _Module {
