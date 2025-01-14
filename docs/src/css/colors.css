@@ -15,15 +15,6 @@
   --swm-navy-dark-40: #abbcf5;
   --swm-navy-dark-20: #c1c6e5;
 
-  /* react-native-executorch */
-  --swm-cornflower-100: #4B6CF4;
-  --swm-cornflower-80: #7394FF;
-  --swm-cornflower-60: #A6C2FF;
-  --swm-cornflower-0: #F7FAFF;
-
-  --swm-navy-100: #160042;
-  /* end react-native-executorch */
-
   --swm-purple-light-100: #782aeb;
   --swm-purple-light-80: #b58df1;
   --swm-purple-light-60: #d1bbf3;
@@ -92,6 +83,18 @@
   --swm-yellow-dark-60: #fff1b2;
   --swm-yellow-dark-40: #fff9db;
 
+  /* react-native-executorch */
+  --swm-navy-100: #160042;
+
+  --swm-cornflower-140: #23326f;
+  --swm-cornflower-120: #3851b4;
+  --swm-cornflower-100: #4B6CF4;
+  --swm-cornflower-80: #7394FF;
+  --swm-cornflower-60: #A6C2FF;
+  --swm-cornflower-40: #D0E2FF;
+  --swm-cornflower-20: #E6EFFF;
+  --swm-cornflower-0: #F7FAFF;
+
   /* Black & White palette, mainly for background settings */
   --swm-off-white: #f8f9ff;
   --swm-white: #fcfcff;
@@ -133,34 +136,34 @@
 
   /* Tabs */
   --swm-tab: var(--swm-navy-light-20);
-  --swm-tab-hover: var(--swm-blue-light-80);
-  --swm-tab-active: var(--swm-blue-light-100);
+  --swm-tab-hover: var(--swm-cornflower-80);
+  --swm-tab-active: var(--swm-cornflower-100);
 
   /* Table of Contents */
   --ifm-toc-border-color: transparent;
   --ifm-toc-link-color: var(--swm-navy-light-60);
   --ifm-toc-link-color-active: var(--swm-navy-light-100);
 
-  --swm-hire-us-toc: var(--swm-navy-light-100);
+  --swm-hire-us-toc: var(--swm-cornflower-100);
   --swm-hire-us-toc-color: var(--swm-off-white);
-  --swm-hire-us-toc-color-hover: var(--swm-navy-light-100);
-  --swm-hire-us-toc-border-hover: var(--swm-navy-light-100);
+  --swm-hire-us-toc-color-hover: var(--swm-cornflower-100);
+  --swm-hire-us-toc-border-hover: var(--swm-cornflower-100);
 
   /* Details section */
-  --swm-details-foreground: var(--swm-purple-light-20);
-  --swm-details-background: var(--swm-purple-light-100);
+  --swm-details-foreground: var(--swm-cornflower-20);
+  --swm-details-background: var(--swm-cornflower-100);
 
   /* Admonitions */
   --swm-admonition-color-secondary: var(--swm-navy-light-10);
   --swm-admonition-color-success: var(--swm-green-light-20);
   --swm-admonition-color-danger: var(--swm-red-light-20);
-  --swm-admonition-color-info: var(--swm-blue-light-20);
+  --swm-admonition-color-info: var(--swm-cornflower-20);
   --swm-admonition-color-caution: var(--swm-yellow-light-20);
 
   --swm-admonition-color-secondary-shadow: var(--swm-navy-light-80);
   --swm-admonition-color-success-shadow: var(--swm-green-light-100);
   --swm-admonition-color-danger-shadow: var(--swm-red-light-100);
-  --swm-admonition-color-info-shadow: var(--swm-blue-light-100);
+  --swm-admonition-color-info-shadow: var(--swm-cornflower-100);
   --swm-admonition-color-caution-shadow: var(--swm-yellow-light-100);
 
   /* Details */
@@ -185,7 +188,7 @@
   --swm-interactive-button-color: var(--swm-navy-light-60);
   --swm-interactive-button-active: var(--ifm-font-color-base);
 
-  --swm-interactive-slider: var(--swm-blue-light-100);
+  --swm-interactive-slider: var(--swm-cornflower-100);
   --swm-interactive-slider-rail: var(--swm-navy-light-20);
 
   /* --swm-navy-light-100 in rgba */
@@ -201,8 +204,8 @@
 
   /* Pagination */
   --swm-paginator-sublabel: var(--swm-navy-light-100);
-  --swm-paginator-label: var(--swm-blue-light-80);
-  --swm-paginator-label-hover: var(--swm-blue-light-100);
+  --swm-paginator-label: var(--swm-cornflower-80);
+  --swm-paginator-label-hover: var(--swm-cornflower-100);
 
   /* Footer */
   --swm-brand-copyright-color: var(--swm-navy-light-100);
@@ -217,12 +220,12 @@
   --swm-searchbar-text-color: var(--swm-navy-light-60);
   --swm-searchbar-background: var(--swm-background);
   --swm-searchbar-border: var(--swm-navy-light-20);
-  --swm-searchbar-border-hover: var(--swm-blue-light-100);
+  --swm-searchbar-border-hover: var(--swm-cornflower-100);
 
-  --swm-search-hit-background: var(--swm-blue-light-20);
-  --swm-search-hit-background-hover: var(--swm-blue-light-80);
-  --swm-search-hit-border: var(--swm-blue-light-40);
-  --swm-search-hit-border-hover: var(--swm-blue-light-100);
+  --swm-search-hit-background: var(--swm-cornflower-20);
+  --swm-search-hit-background-hover: var(--swm-cornflower-80);
+  --swm-search-hit-border: var(--swm-cornflower-40);
+  --swm-search-hit-border-hover: var(--swm-cornflower-100);
   --swm-search-hit-active-color: var(--swm-off-white);
 
   --swm-docsearch-hit-source-color: var(--swm-navy-light-100);
@@ -262,11 +265,11 @@
   /* Cards */
   --swm-card-background: var(--swm-background);
   --swm-card-border: var(--swm-navy-light-20);
-  --swm-card-border-hover: var(--swm-blue-light-100);
+  --swm-card-border-hover: var(--swm-cornflower-100);
 
-  /* Sidebar label*/
+  /* Sidebar label */
   --swm-sidebar-label-text-new: var(--swm-off-white);
-  --swm-sidebar-label-background-new: var(--swm-blue-light-100);
+  --swm-sidebar-label-background-new: var(--swm-cornflower-100);
 
   --swm-sidebar-label-text-experimental: var(--swm-navy-light-100);
   --swm-sidebar-label-background-experimental: var(--swm-yellow-light-40);
@@ -279,15 +282,15 @@
   /* Versions dropdown */
   --swm-dropdown-versions-background: var(--swm-off-white);
   --swm-dropdown-versions-item: var(--swm-navy-light-100);
-  --swm-dropdown-versions-item-border: var(--swm-blue-light-40);
-  --swm-dropdown-versions-item-background: var(--swm-blue-light-20);
+  --swm-dropdown-versions-item-border: var(--swm-cornflower-40);
+  --swm-dropdown-versions-item-background: var(--swm-cornflower-20);
 
   --swm-dropdown-versions-item-active: var(--swm-off-white);
-  --swm-dropdown-versions-item-border-active: var(--swm-blue-light-100);
-  --swm-dropdown-versions-item-background-active: var(--swm-blue-light-80);
+  --swm-dropdown-versions-item-border-active: var(--swm-cornflower-100);
+  --swm-dropdown-versions-item-background-active: var(--swm-cornflower-80);
 
   --swm-dropdown-versions-item-hover: var(--swm-navy-light-100);
-  --swm-dropdown-versions-item-active-hover: var(--swm-blue-light-100);
+  --swm-dropdown-versions-item-active-hover: var(--swm-cornflower-100);
 
   /* Version badge */
   --swm-version-badge: var(--swm-navy-light-100);
@@ -320,34 +323,34 @@
 
   /* Tabs */
   --swm-tab: var(--swm-navy-light-60);
-  --swm-tab-hover: var(--swm-blue-dark-60);
-  --swm-tab-active: var(--swm-blue-light-80);
+  --swm-tab-hover: var(--swm-cornflower-60);
+  --swm-tab-active: var(--swm-cornflower-80);
 
   /* Table of Contents */
   --ifm-toc-border-color: transparent;
   --ifm-toc-link-color: var(--swm-navy-light-40);
   --ifm-toc-link-color-active: var(--swm-off-white);
 
-  --swm-hire-us-toc: var(--swm-blue-light-80);
+  --swm-hire-us-toc: var(--swm-cornflower-100);
   --swm-hire-us-toc-color: var(--swm-off-white);
   --swm-hire-us-toc-color-hover: var(--swm-navy-light-40);
   --swm-hire-us-toc-border-hover: var(--swm-navy-light-40);
 
   /* Details section */
-  --swm-details-foreground: var(--swm-blue-dark-120);
-  --swm-details-background: var(--swm-blue-dark-140);
+  --swm-details-foreground: var(--swm-cornflower-120);
+  --swm-details-background: var(--swm-cornflower-140);
 
   /* Admonitions */
   --swm-admonition-color-secondary: var(--swm-navy-dark-70);
   --swm-admonition-color-success: var(--swm-green-dark-120);
   --swm-admonition-color-danger: var(--swm-red-dark-120);
-  --swm-admonition-color-info: var(--swm-blue-dark-120);
+  --swm-admonition-color-info: var(--swm-cornflower-120);
   --swm-admonition-color-caution: var(--swm-yellow-dark-120);
 
   --swm-admonition-color-secondary-shadow: var(--swm-navy-dark-100);
   --swm-admonition-color-success-shadow: var(--swm-green-dark-140);
   --swm-admonition-color-danger-shadow: var(--swm-red-dark-140);
-  --swm-admonition-color-info-shadow: var(--swm-blue-dark-140);
+  --swm-admonition-color-info-shadow: var(--swm-cornflower-140);
   --swm-admonition-color-caution-shadow: var(--swm-yellow-dark-140);
 
   /* Details */
@@ -369,7 +372,7 @@
   /* Interactive Examples */
   --swm-interactive-button-color: var(--swm-navy-light-40);
 
-  --swm-interactive-slider: var(--swm-blue-light-80);
+  --swm-interactive-slider: var(--swm-cornflower-80);
   --swm-interactive-slider-rail: var(--swm-navy-light-20);
 
   /* --swm-navy-light-20 in rgba schema */
@@ -381,8 +384,8 @@
 
   /* Pagination */
   --swm-paginator-sublabel: var(--swm-navy-light-20);
-  --swm-paginator-label: var(--swm-blue-light-60);
-  --swm-paginator-label-hover: var(--swm-blue-light-40);
+  --swm-paginator-label: var(--swm-cornflower-60);
+  --swm-paginator-label-hover: var(--swm-cornflower-40);
 
   /* Footer */
   --swm-brand-copyright-color: var(--swm-navy-light-20);
@@ -394,12 +397,12 @@
   /* Search */
   --swm-searchbar-text-color: var(--swm-navy-dark-40);
   --swm-searchbar-border: var(--swm-navy-dark-60);
-  --swm-searchbar-border-hover: var(--swm-blue-dark-80);
+  --swm-searchbar-border-hover: var(--swm-cornflower-80);
 
-  --swm-search-hit-background: var(--swm-blue-dark-120);
-  --swm-search-hit-background-hover: var(--swm-blue-dark-40);
-  --swm-search-hit-border: var(--swm-blue-dark-120);
-  --swm-search-hit-border-hover: var(--swm-blue-dark-40);
+  --swm-search-hit-background: var(--swm-cornflower-120);
+  --swm-search-hit-background-hover: var(--swm-cornflower-40);
+  --swm-search-hit-border: var(--swm-cornflower-120);
+  --swm-search-hit-border-hover: var(--swm-cornflower-40);
   --swm-search-hit-active-color: var(--swm-navy-light-100);
 
   --swm-docsearch-hit-source-color: var(--swm-navy-light-10);
@@ -440,11 +443,11 @@
   /* Cards */
   --swm-card-background: var(--swm-navy);
   --swm-card-border: var(--swm-navy-dark-60);
-  --swm-card-border-hover: var(--swm-blue-dark-80);
+  --swm-card-border-hover: var(--swm-cornflower-80);
 
   /* Sidebar label*/
   --swm-sidebar-label-text-new: var(--swm-off-white);
-  --swm-sidebar-label-background-new: var(--swm-blue-dark-120);
+  --swm-sidebar-label-background-new: var(--swm-cornflower-120);
 
   --swm-sidebar-label-text-experimental: var(--swm-off-white);
   --swm-sidebar-label-background-experimental: var(--swm-yellow-dark-120);
@@ -458,15 +461,15 @@
 
   --swm-dropdown-versions-background: var(--swm-off-navy);
   --swm-dropdown-versions-item: var(--swm-off-white);
-  --swm-dropdown-versions-item-border: var(--swm-blue-dark-40);
-  --swm-dropdown-versions-item-background: var(--swm-blue-dark-40);
+  --swm-dropdown-versions-item-border: var(--swm-cornflower-40);
+  --swm-dropdown-versions-item-background: var(--swm-cornflower-40);
 
   --swm-dropdown-versions-item-active: var(--swm-off-white);
-  --swm-dropdown-versions-item-border-active: var(--swm-blue-dark-120);
-  --swm-dropdown-versions-item-background-active: var(--swm-blue-dark-120);
+  --swm-dropdown-versions-item-border-active: var(--swm-cornflower-120);
+  --swm-dropdown-versions-item-background-active: var(--swm-cornflower-120);
 
   --swm-dropdown-versions-item-hover: var(--swm-navy-dark-100);
-  --swm-dropdown-versions-item-active-hover: var(--swm-blue-dark-100);
+  --swm-dropdown-versions-item-active-hover: var(--swm-cornflower-100);
 
   /* Version badge */
   --swm-version-badge: var(--swm-off-white);
