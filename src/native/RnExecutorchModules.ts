@@ -72,44 +72,44 @@ const StyleTransfer = StyleTransferSpec
     );
 
 class _ObjectDetectionModule {
-  async forward(input: string) {
+  static async forward(input: string) {
     return await ObjectDetection.forward(input);
   }
-  async loadModule(modelSource: string | number) {
+  static async loadModule(modelSource: string | number) {
     return await ObjectDetection.loadModule(modelSource);
   }
 }
 
 class _StyleTransferModule {
-  async forward(input: string) {
+  static async forward(input: string) {
     return await StyleTransfer.forward(input);
   }
-  async loadModule(modelSource: string | number) {
+  static async loadModule(modelSource: string | number) {
     return await StyleTransfer.loadModule(modelSource);
   }
 }
 
 class _ClassificationModule {
-  async forward(input: string) {
+  static async forward(input: string) {
     return await Classification.forward(input);
   }
-  async loadModule(modelSource: string | number) {
+  static async loadModule(modelSource: string | number) {
     return await Classification.loadModule(modelSource);
   }
 }
 
 class _ETModule {
-  async forward(
+  static async forward(
     input: number[],
     shape: number[],
     inputType: number
   ): Promise<number[]> {
     return await ETModule.forward(input, shape, inputType);
   }
-  async loadModule(modelSource: string) {
+  static async loadModule(modelSource: string) {
     return await ETModule.loadModule(modelSource);
   }
-  async loadMethod(methodName: string): Promise<number> {
+  static async loadMethod(methodName: string): Promise<number> {
     return await ETModule.loadMethod(methodName);
   }
 }

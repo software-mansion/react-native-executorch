@@ -2,13 +2,7 @@ import { Image } from 'react-native';
 import { getError } from '../../Error';
 
 export class BaseModule {
-  protected module: any;
-
-  constructor(module: any) {
-    this.module = module;
-  }
-
-  async loadModule(modelSource: string | number) {
+  static async load(module: any, modelSource: string | number) {
     if (!modelSource) return;
 
     let path = modelSource;
@@ -18,15 +12,15 @@ export class BaseModule {
     }
 
     try {
-      await this.module.loadModule(path);
+      await module.loadModule(path);
     } catch (e) {
       throw new Error(getError(e));
     }
   }
 
-  async forward(input: string) {
+  static async forward(module: any, input: string) {
     try {
-      return await this.module.forward(input);
+      return await module.forward(input);
     } catch (e) {
       throw new Error(getError(e));
     }

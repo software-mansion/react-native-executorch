@@ -3,7 +3,7 @@ import { Image } from 'react-native';
 import { ResourceSource } from '../../types/common';
 
 export class LLMModule {
-  async loadModel(
+  static async load(
     modelSource: ResourceSource,
     tokenizerSource: ResourceSource,
     systemPrompt?: string,
@@ -32,7 +32,7 @@ export class LLMModule {
     }
   }
 
-  async generate(input: string): Promise<void> {
+  static async generate(input: string) {
     try {
       await LLM.runInference(input);
     } catch (err) {
@@ -40,19 +40,19 @@ export class LLMModule {
     }
   }
 
-  onDownloadProgress(callback: (data: number) => void) {
+  static onDownloadProgress(callback: (data: number) => void) {
     return LLM.onDownloadProgress(callback);
   }
 
-  onToken(callback: (data: string | undefined) => void) {
+  static onToken(callback: (data: string | undefined) => void) {
     return LLM.onToken(callback);
   }
 
-  interrupt() {
+  static interrupt() {
     LLM.interrupt();
   }
 
-  deleteModule() {
+  static deleteModule() {
     LLM.deleteModule();
   }
 }

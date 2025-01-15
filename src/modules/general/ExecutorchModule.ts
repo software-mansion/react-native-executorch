@@ -4,9 +4,7 @@ import { _ETModule } from '../../native/RnExecutorchModules';
 import { ETInput, getTypeIdentifier } from '../../types/common';
 
 export class ExecutorchModule {
-  private module = new _ETModule();
-
-  async loadModule(modelSource: string) {
+  static async load(modelSource: string) {
     if (!modelSource) return;
 
     let path = modelSource;
@@ -16,13 +14,13 @@ export class ExecutorchModule {
     }
 
     try {
-      await this.module.loadModule(path);
+      await _ETModule.loadModule(path);
     } catch (e) {
       throw new Error(getError(e));
     }
   }
 
-  async forward(input: ETInput, shape: number[]) {
+  static async forward(input: ETInput, shape: number[]) {
     const inputType = getTypeIdentifier(input);
     if (inputType === -1) {
       throw new Error(getError(ETError.InvalidArgument));
@@ -30,21 +28,21 @@ export class ExecutorchModule {
 
     try {
       const numberArray = [...input] as number[];
-      return await this.module.forward(numberArray, shape, inputType);
+      return await _ETModule.forward(numberArray, shape, inputType);
     } catch (e) {
       throw new Error(getError(e));
     }
   }
 
-  async loadMethod(methodName: string) {
+  static async loadMethod(methodName: string) {
     try {
-      await this.module.loadMethod(methodName);
+      await _ETModule.loadMethod(methodName);
     } catch (e) {
       throw new Error(getError(e));
     }
   }
 
-  async loadForward() {
+  static async loadForward() {
     await this.loadMethod('forward');
   }
 }

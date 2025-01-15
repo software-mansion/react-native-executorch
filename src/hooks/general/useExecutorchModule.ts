@@ -11,7 +11,7 @@ interface Props {
 export const useExecutorchModule = ({
   modelSource,
 }: Props): ExecutorchModule => {
-  const [module] = useState(() => new _ETModule());
+  const [module] = useState(() => _ETModule);
   const {
     error,
     isReady,
