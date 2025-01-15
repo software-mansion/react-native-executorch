@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { _ObjectDetectionModule } from '../native/RnExecutorchModules';
-import { useModule } from '../useModule';
-import { Detection } from '../types/object_detection';
+import { _ObjectDetectionModule } from '../../native/RnExecutorchModules';
+import { useModule } from '../../useModule';
+import { Detection } from '../../types/object_detection';
 
 interface Props {
   modelSource: string | number;
@@ -17,7 +17,7 @@ interface ObjectDetectionModule {
 export const useObjectDetection = ({
   modelSource,
 }: Props): ObjectDetectionModule => {
-  const [module, _] = useState(() => new _ObjectDetectionModule());
+  const [module, _] = useState(() => _ObjectDetectionModule);
   const {
     error,
     isReady,

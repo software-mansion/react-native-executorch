@@ -1,22 +1,22 @@
 import { useState } from 'react';
-import { _StyleTransferModule } from '../native/RnExecutorchModules';
-import { useModule } from '../useModule';
+import { _ClassificationModule } from '../../native/RnExecutorchModules';
+import { useModule } from '../../useModule';
 
 interface Props {
   modelSource: string | number;
 }
 
-interface StyleTransferModule {
+interface ClassificationModule {
   error: string | null;
   isReady: boolean;
   isGenerating: boolean;
-  forward: (input: string) => Promise<string>;
+  forward: (input: string) => Promise<{ [category: string]: number }>;
 }
 
-export const useStyleTransfer = ({
+export const useClassification = ({
   modelSource,
-}: Props): StyleTransferModule => {
-  const [module, _] = useState(() => new _StyleTransferModule());
+}: Props): ClassificationModule => {
+  const [module, _] = useState(() => _ClassificationModule);
   const {
     error,
     isReady,

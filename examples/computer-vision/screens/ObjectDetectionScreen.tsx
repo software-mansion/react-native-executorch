@@ -76,7 +76,7 @@ export const ObjectDetectionScreen = ({
             />
           ) : (
             <Image
-              style={{ width: '100%', height: '100%' }}
+              style={styles.fullSizeImage}
               resizeMode="contain"
               source={require('../assets/icons/executorch_logo.png')}
             />
@@ -126,5 +126,9 @@ const styles = StyleSheet.create({
   resultLabel: {
     flex: 1,
     marginRight: 4,
+  },
+  fullSizeImage: {
+    width: '100%',
+    height: '100%',
   },
 });

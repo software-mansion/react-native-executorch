@@ -1,0 +1,48 @@
+import { Image } from 'react-native';
+import { ETError, getError } from '../../Error';
+import { _ETModule } from '../../native/RnExecutorchModules';
+import { ETInput, getTypeIdentifier } from '../../types/common';
+
+export class ExecutorchModule {
+  static async load(modelSource: string) {
+    if (!modelSource) return;
+
+    let path = modelSource;
+
+    if (typeof modelSource === 'number') {
+      path = Image.resolveAssetSource(modelSource).uri;
+    }
+
+    try {
+      await _ETModule.loadModule(path);
+    } catch (e) {
+      throw new Error(getError(e));
+    }
+  }
+
+  static async forward(input: ETInput, shape: number[]) {
+    const inputType = getTypeIdentifier(input);
+    if (inputType === -1) {
+      throw new Error(getError(ETError.InvalidArgument));
+    }
+
+    try {
+      const numberArray = [...input] as number[];
+      return await _ETModule.forward(numberArray, shape, inputType);
+    } catch (e) {
+      throw new Error(getError(e));
+    }
+  }
+
+  static async loadMethod(methodName: string) {
+    try {
+      await _ETModule.loadMethod(methodName);
+    } catch (e) {
+      throw new Error(getError(e));
+    }
+  }
+
+  static async loadForward() {
+    await this.loadMethod('forward');
+  }
+}
