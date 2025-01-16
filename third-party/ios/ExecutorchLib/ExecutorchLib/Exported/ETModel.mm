@@ -161,6 +161,32 @@ using namespace ::torch::executor;
   }
 }
 
+- (NSArray *)forward:(NSArray *)inputs
+              shapes:(NSArray *)shapes
+          inputTypes: (NSArray *)inputTypes {
+  std::vector<std::vector<int>> shapesVec;
+  std::vector<TensorPtr> modelInputVec;
+  
+  for (NSArray *shape in shapes) {
+    shapesVec.push_back(NSArrayToIntVector(shape));
+  };
+  
+  for (NSUInteger i = 0; i < [inputs count]; i++) {
+    InputType inputType = (InputType)[[inputTypes objectAtIndex:i] intValue];
+    TensorPtr currentTensor = NSArrayToTensorPtr([inputs objectAtIndex:i], shapesVec[i], inputType);
+    Error err = _model->set_input("forward", {currentTensor}, i);
+    if (!(err == Error::Ok)) {
+      @throw [NSException
+              exceptionWithName:@"forward_error"
+              reason:[NSString stringWithFormat:@"%ld", (long)err]
+              userInfo:nil];
+    }
+  }
+  
+  auto result = _model->execute("forward")->at(0).toTensor().const_data_ptr();
+  return result; // TODO: cast to NSArray
+}
+
 - (NSArray *)forward:(NSArray *)input
                shape:(NSArray *)shape
            inputType:(NSNumber *)inputType {
@@ -208,5 +234,6 @@ using namespace ::torch::executor;
                                         0x65] // 101
                               userInfo:nil];
 }
+
 
 @end
