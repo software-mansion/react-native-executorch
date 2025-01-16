@@ -1,13 +1,14 @@
 #ifndef Utils_hpp
 #define Utils_hpp
 
+#import "InputType.h"
 #include <cstdint>
 #include <executorch/extension/module/module.h>
 #include <executorch/extension/tensor/tensor.h>
 #include <memory>
+#include <span>
 #include <string>
 #include <vector>
-#include <span>
 
 #ifdef __OBJC__
 #import <Foundation/Foundation.h>
@@ -21,13 +22,17 @@ template <typename T> T getValueFromNSNumber(NSNumber *number) {
     return static_cast<T>([number charValue]); // `charValue` for 8-bit integers
   } else if constexpr (std::is_same<T, int32_t>::value) {
     return static_cast<T>([number intValue]); // `intValue` for 32-bit integers
-  } else if constexpr (std::is_same<T, int64_t>::value) {
+  } else if constexpr (std::is_same<T, long>::value ||
+                       std::is_same<T, long long>::value) {
     return static_cast<T>(
-        [number longLongValue]); // `longLongValue` for 64-bit integers
+        [number longLongValue]); // Use `longLongValue` for 64-bit integers
   } else if constexpr (std::is_same<T, float>::value) {
     return static_cast<T>([number floatValue]);
   } else if constexpr (std::is_same<T, double>::value) {
     return static_cast<T>([number doubleValue]);
+  } else {
+    static_assert(std::is_same<T, void>::value,
+                  "Unsupported type for getValueFromNSNumber");
   }
 }
 
@@ -48,6 +53,52 @@ std::unique_ptr<T[]> NSArrayToTypedArray(NSArray *nsArray) {
   return typedArray;
 }
 
+std::function<void(void *)> getDeleterForInputType(InputType inputType) {
+  switch (inputType) {
+  case InputType::InputTypeInt8:
+    return [](void *ptr) { delete[] static_cast<int8_t *>(ptr); };
+  case InputType::InputTypeInt32:
+    return [](void *ptr) { delete[] static_cast<int32_t *>(ptr); };
+  case InputType::InputTypeInt64:
+    return [](void *ptr) { delete[] static_cast<int64_t *>(ptr); };
+  case InputType::InputTypeFloat32:
+    return [](void *ptr) { delete[] static_cast<float *>(ptr); };
+  case InputType::InputTypeFloat64:
+    return [](void *ptr) { delete[] static_cast<double *>(ptr); };
+  }
+}
+
+ScalarType inputTypeToScalarType(InputType inputType) {
+  switch (inputType) {
+  case InputType::InputTypeInt8:
+    return ScalarType::Char;
+  case InputType::InputTypeInt32:
+    return ScalarType::Int;
+  case InputType::InputTypeInt64:
+    return ScalarType::Long;
+  case InputType::InputTypeFloat32:
+    return ScalarType::Float;
+  case InputType::InputTypeFloat64:
+    return ScalarType::Double;
+  default:
+    throw std::invalid_argument("Unknown InputType");
+  }
+}
+
+TensorPtr NSArrayToTensorPtr(NSArray *nsArray, std::vector<int> shape,
+                 InputType inputType) {
+  void *voidPointer = (__bridge void *)nsArray;
+  std::function<void(void *)> deleter = getDeleterForInputType(inputType);
+  ScalarType inputScalarType = inputTypeToScalarType(inputType);
+  auto tensor = make_tensor_ptr(
+      shape,
+      voidPointer,
+      inputScalarType,
+      TensorShapeDynamism::DYNAMIC_BOUND,
+      deleter);
+  return tensor;
+}
+
 template <typename T>
 NSArray *arrayToNSArray(const void *array, ssize_t numel) {
   const T *typedArray = static_cast<const T *>(array);
@@ -62,15 +113,15 @@ NSArray *arrayToNSArray(const void *array, ssize_t numel) {
 
 template <typename T>
 NSArray *arrayToNSArray(const std::vector<std::span<const T>> &dataPtrVec) {
-    NSMutableArray *nsArray = [NSMutableArray array];
-    for (const auto &span : dataPtrVec) {
-        NSMutableArray *innerArray = [NSMutableArray arrayWithCapacity:span.size()];
-        for(auto x : span) {
-            [innerArray addObject:@(x)];
-        }
-        [nsArray addObject:[innerArray copy]];
+  NSMutableArray *nsArray = [NSMutableArray array];
+  for (const auto &span : dataPtrVec) {
+    NSMutableArray *innerArray = [NSMutableArray arrayWithCapacity:span.size()];
+    for (auto x : span) {
+      [innerArray addObject:@(x)];
     }
-    return [nsArray copy];
+    [nsArray addObject:[innerArray copy]];
+  }
+  return [nsArray copy];
 }
 
 std::vector<int> NSArrayToIntVector(NSArray *inputArray) {
@@ -100,7 +151,8 @@ runForwardFromNSArray(NSArray *inputArray, std::vector<int> shapes,
 
     for (const auto &currentResult : *result) {
       Tensor currentTensor = currentResult.toTensor();
-      std::span<const T> currentSpan(currentTensor.const_data_ptr<T>(), currentTensor.numel());
+      std::span<const T> currentSpan(currentTensor.const_data_ptr<T>(),
+                                     currentTensor.numel());
       outputVec.push_back(std::move(currentSpan));
     }
     return outputVec;
