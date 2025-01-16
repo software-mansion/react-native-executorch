@@ -14,11 +14,6 @@
 - (NSArray *)forward:(NSArray *)inputs
               shapes:(NSArray *)shapes
           inputTypes: (NSArray *)inputTypes;
-- (NSArray *)forwardTemporary:(NSArray *)input
-               firstShape:(NSArray *)firstShape
-               secondShape:(NSArray *)secondShape
-               firstInputType:(NSNumber *)firstInputType
-              secondInputType:(NSNumber *)secondInputType;
 - (NSNumber *)getNumberOfInputs;
 - (NSNumber *)getInputType:(NSNumber *)index;
 - (NSArray *)getInputShape:(NSNumber *)index;
