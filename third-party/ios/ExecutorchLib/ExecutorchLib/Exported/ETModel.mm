@@ -164,18 +164,15 @@ using namespace ::torch::executor;
 - (NSArray *)forward:(NSArray *)inputs
               shapes:(NSArray *)shapes
           inputTypes: (NSArray *)inputTypes {
-  std::vector<std::vector<int>> shapesVec;
-  std::vector<TensorPtr> modelInputVec;
-  
-  for (NSArray *shape in shapes) {
-    shapesVec.push_back(NSArrayToIntVector(shape));
-  };
   
   for (NSUInteger i = 0; i < [inputs count]; i++) {
+    std::vector<int> currentInputShape = NSArrayToIntVector([shapes objectAtIndex:i]);
     InputType inputType = (InputType)[[inputTypes objectAtIndex:i] intValue];
-    TensorPtr currentTensor = NSArrayToTensorPtr([inputs objectAtIndex:i], shapesVec[i], inputType);
+    
+    TensorPtr currentTensor = NSArrayToTensorPtr([inputs objectAtIndex:i], currentInputShape, inputType);
+    
     Error err = _model->set_input("forward", {currentTensor}, i);
-    if (!(err == Error::Ok)) {
+    if (err != Error::Ok) {
       @throw [NSException
               exceptionWithName:@"forward_error"
               reason:[NSString stringWithFormat:@"%ld", (long)err]
