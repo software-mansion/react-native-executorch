@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Image } from 'react-native';
 import { ETError, getError } from './Error';
-import { ETInput, module } from './types/common';
+import { ETInput, module, ResourceSource } from './types/common';
 
 const getTypeIdentifier = (arr: ETInput): number => {
   if (arr instanceof Int8Array) return 0;
@@ -14,7 +14,7 @@ const getTypeIdentifier = (arr: ETInput): number => {
 };
 
 interface Props {
-  modelSource: string | number;
+  modelSource: ResourceSource;
   module: module;
 }
 
