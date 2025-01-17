@@ -20,10 +20,7 @@ The minimal supported version is 17.0 for iOS and Android 13.
 
 ## Examples 📲
 
-
-
-https://github.com/user-attachments/assets/9cbc01c9-3182-4266-8f7d-20357fafeb62
-
+https://github.com/user-attachments/assets/27ab3406-c7f1-4618-a981-6c86b53547ee
 
 We currently host two example apps demonstrating use cases of our library:
 - examples/computer-vision - computer vision related tasks
