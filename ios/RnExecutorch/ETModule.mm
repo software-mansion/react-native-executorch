@@ -16,9 +16,7 @@ RCT_EXPORT_MODULE()
   if (!module) {
     module = [[ETModel alloc] init];
   }
-
   NSURL *modelURL = [NSURL URLWithString:modelSource];
-
   NSNumber *result = [self->module loadModel:modelURL.path];
 
   if ([result intValue] != 0) {
