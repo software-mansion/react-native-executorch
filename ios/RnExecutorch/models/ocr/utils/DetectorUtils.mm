@@ -89,18 +89,15 @@
     int y = stats.at<int>(i, cv::CC_STAT_TOP);
     int w = stats.at<int>(i, cv::CC_STAT_WIDTH);
     int h = stats.at<int>(i, cv::CC_STAT_HEIGHT);
-    
-    int niter = sqrt(area * MIN(w, h) / (w * h)) * 2;
+    int niter = (int)(sqrt((double)(area * MIN(w, h)) / (double)(w * h)) * 2.0);
     int sx = x - niter;
     int ex = x + w + niter + 1;
     int sy = y - niter;
     int ey = y + h + niter + 1;
-    
     if (sx < 0) sx = 0;
     if (sy < 0) sy = 0;
     if (ex >= img_w) ex = img_w;
     if (ey >= img_h) ey = img_h;
-    
     cv::Rect roi(sx, sy, ex - sx, ey - sy);  // (x, y, width, height) of the ROI
     
     // Generate the kernel for dilation
@@ -128,7 +125,6 @@
 }
 
 + (NSArray<NSArray<NSNumber *> *> *)groupTextBox:(NSArray<NSArray<NSNumber *> *> *)polys
-                                        slopeThs:(CGFloat)slopeThs
                                       ycenterThs:(CGFloat)ycenterThs
                                        heightThs:(CGFloat)heightThs
                                         widthThs:(CGFloat)widthThs
@@ -147,14 +143,14 @@
     // Calculating max and min values for x coordinates
     NSNumber *xMaxNumber = [xCoords valueForKeyPath:@"@max.self"];
     NSNumber *xMinNumber = [xCoords valueForKeyPath:@"@min.self"];
-    int xMax = [xMaxNumber intValue]; // Convert max float value to int
-    int xMin = [xMinNumber intValue]; // Convert min float value to int
+    float xMax = [xMaxNumber floatValue]; // Convert max float value to int
+    float xMin = [xMinNumber floatValue]; // Convert min float value to int
     
     // Calculating max and min values for y coordinates
     NSNumber *yMaxNumber = [yCoords valueForKeyPath:@"@max.self"];
     NSNumber *yMinNumber = [yCoords valueForKeyPath:@"@min.self"];
-    int yMax = [yMaxNumber intValue]; // Convert max float value to int
-    int yMin = [yMinNumber intValue]; // Convert min float value to int
+    float yMax = [yMaxNumber floatValue]; // Convert max float value to int
+    float yMin = [yMinNumber floatValue]; // Convert min float value to int
     
     [horizontalList addObject:[@[@(xMin), @(xMax), @(yMin), @(yMax), @((yMin + yMax) / 2.0), @(yMax - yMin)] mutableCopy]];
   }
@@ -162,11 +158,10 @@
   [horizontalList sortUsingComparator:^NSComparisonResult(NSMutableArray<NSNumber *> *obj1, NSMutableArray<NSNumber *> *obj2) {
     return [obj1[4] compare:obj2[4]]; // Sorting by y_center
   }];
-  
+    
   NSMutableArray *newBox = [NSMutableArray array];
   NSMutableArray *bHeight = [NSMutableArray array];
   NSMutableArray *bYcenter = [NSMutableArray array];
-  
   for (NSArray *box in horizontalList) {
     if (newBox.count == 0) {
       [bHeight addObject:box[5]];
@@ -188,9 +183,9 @@
   }
   
   [combinedList addObject:[newBox copy]];
-  
   for (NSArray *boxes in combinedList) {
     if ([boxes count] == 1) { // If there is only one box in the line
+      NSLog(@"One in line");
       NSArray *box = boxes[0];
       int margin = (int)(addMargin * MIN([box[1] floatValue] - [box[0] floatValue], [box[5] floatValue]));
       [mergedList addObject:@[@([box[0] intValue] - margin),
@@ -272,7 +267,7 @@
       }
     }
   }
-  
+  NSLog(@"Merged List Count: %lu", (unsigned long)[mergedList count]);
   return mergedList;
 }
 
