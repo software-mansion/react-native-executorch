@@ -1,13 +1,17 @@
 import { LLM } from '../../native/RnExecutorchModules';
 import { Image } from 'react-native';
+import {
+  DEFAULT_CONTEXT_WINDOW_LENGTH,
+  DEFAULT_SYSTEM_PROMPT,
+} from '../../constants/llamaDefaults';
 import { ResourceSource } from '../../types/common';
 
 export class LLMModule {
   static async load(
     modelSource: ResourceSource,
     tokenizerSource: ResourceSource,
-    systemPrompt?: string,
-    contextWindowLength?: number
+    systemPrompt = DEFAULT_SYSTEM_PROMPT,
+    contextWindowLength = DEFAULT_CONTEXT_WINDOW_LENGTH
   ) {
     try {
       let modelUrl = modelSource;
