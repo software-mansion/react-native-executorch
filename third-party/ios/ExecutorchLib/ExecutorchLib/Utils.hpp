@@ -1,7 +1,6 @@
 #ifndef Utils_hpp
 #define Utils_hpp
 
-#import "InputType.h"
 #include <cstdint>
 #include <executorch/extension/module/module.h>
 #include <executorch/extension/tensor/tensor.h>
@@ -53,49 +52,46 @@ std::unique_ptr<T[]> NSArrayToTypedArray(NSArray *nsArray) {
   return typedArray;
 }
 
-std::function<void(void *)> getDeleterForInputType(InputType inputType) {
-  switch (inputType) {
-  case InputType::InputTypeInt8:
+std::function<void(void *)> getDeleterForScalarType(ScalarType scalarType) {
+  switch (scalarType) {
+  case ScalarType::Char:
     return [](void *ptr) { delete[] static_cast<int8_t *>(ptr); };
-  case InputType::InputTypeInt32:
+  case ScalarType::Int:
     return [](void *ptr) { delete[] static_cast<int32_t *>(ptr); };
-  case InputType::InputTypeInt64:
+  case ScalarType::Long:
     return [](void *ptr) { delete[] static_cast<int64_t *>(ptr); };
-  case InputType::InputTypeFloat32:
+  case ScalarType::Float:
     return [](void *ptr) { delete[] static_cast<float *>(ptr); };
-  case InputType::InputTypeFloat64:
+  case ScalarType::Double:
     return [](void *ptr) { delete[] static_cast<double *>(ptr); };
+  default:
+    throw std::invalid_argument(
+        "Unsupported ScalarType for getDeleterForScalarType");
   }
 }
 
-ScalarType inputTypeToScalarType(InputType inputType) {
-  switch (inputType) {
-  case InputType::InputTypeInt8:
-    return ScalarType::Char;
-  case InputType::InputTypeInt32:
-    return ScalarType::Int;
-  case InputType::InputTypeInt64:
-    return ScalarType::Long;
-  case InputType::InputTypeFloat32:
-    return ScalarType::Float;
-  case InputType::InputTypeFloat64:
-    return ScalarType::Double;
-  default:
-    throw std::invalid_argument("Unknown InputType");
+ScalarType intValueToScalarType(int intValue) {
+  // Check if the intValue is within the valid range of ScalarType
+  if (intValue < 0 || intValue >= static_cast<int>(ScalarType::NumOptions)) {
+    throw std::out_of_range("Invalid ScalarType integer value: " +
+                            std::to_string(intValue));
   }
+  return static_cast<ScalarType>(intValue);
+}
+
+NSNumber *scalarTypeToNSNumber(ScalarType scalarType) {
+  return @(static_cast<int>(scalarType));
 }
 
 TensorPtr NSArrayToTensorPtr(NSArray *nsArray, std::vector<int> shape,
-                 InputType inputType) {
+                             int inputType) {
   void *voidPointer = (__bridge void *)nsArray;
-  std::function<void(void *)> deleter = getDeleterForInputType(inputType);
-  ScalarType inputScalarType = inputTypeToScalarType(inputType);
-  auto tensor = make_tensor_ptr(
-      shape,
-      voidPointer,
-      inputScalarType,
-      TensorShapeDynamism::DYNAMIC_BOUND,
-      deleter);
+  ScalarType inputScalarType = intValueToScalarType(inputType);
+  std::function<void(void *)> deleter =
+      getDeleterForScalarType(inputScalarType);
+  auto tensor = make_tensor_ptr(shape, voidPointer, inputScalarType,
+                                TensorShapeDynamism::DYNAMIC_BOUND, deleter);
+
   return tensor;
 }
 
@@ -135,33 +131,6 @@ std::vector<int> NSArrayToIntVector(NSArray *inputArray) {
     }
   }
   return output;
-}
-
-template <typename T>
-std::vector<std::span<const T>>
-runForwardFromNSArray(NSArray *inputArray, std::vector<int> shapes,
-                      std::unique_ptr<Module> &model) {
-  std::unique_ptr<T[]> inputPtr = NSArrayToTypedArray<T>(inputArray);
-
-  TensorPtr inputTensor = from_blob(inputPtr.get(), shapes);
-  Result result = model->forward(inputTensor);
-
-  if (result.ok()) {
-    std::vector<std::span<const T>> outputVec;
-
-    for (const auto &currentResult : *result) {
-      Tensor currentTensor = currentResult.toTensor();
-      std::span<const T> currentSpan(currentTensor.const_data_ptr<T>(),
-                                     currentTensor.numel());
-      outputVec.push_back(std::move(currentSpan));
-    }
-    return outputVec;
-  }
-
-  @throw [NSException
-      exceptionWithName:@"forward_error"
-                 reason:[NSString stringWithFormat:@"%d", (int)result.error()]
-               userInfo:nil];
 }
 
 #endif // Utils_hpp
