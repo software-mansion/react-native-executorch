@@ -7,7 +7,7 @@ interface Props {
   modelSource: string | number;
 }
 
-interface ObjectDetectionModule {
+interface UseObjectDetection {
   error: string | null;
   isReady: boolean;
   isGenerating: boolean;
@@ -16,7 +16,7 @@ interface ObjectDetectionModule {
 
 export const useObjectDetection = ({
   modelSource,
-}: Props): ObjectDetectionModule => {
+}: Props): UseObjectDetection => {
   const [module, _] = useState(() => _ObjectDetectionModule);
   const {
     error,

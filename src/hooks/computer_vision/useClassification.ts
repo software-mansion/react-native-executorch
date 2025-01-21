@@ -6,7 +6,7 @@ interface Props {
   modelSource: string | number;
 }
 
-interface ClassificationModule {
+interface UseClassification {
   error: string | null;
   isReady: boolean;
   isGenerating: boolean;
@@ -15,7 +15,7 @@ interface ClassificationModule {
 
 export const useClassification = ({
   modelSource,
-}: Props): ClassificationModule => {
+}: Props): UseClassification => {
   const [module, _] = useState(() => _ClassificationModule);
   const {
     error,

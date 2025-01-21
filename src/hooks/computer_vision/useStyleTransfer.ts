@@ -6,16 +6,14 @@ interface Props {
   modelSource: string | number;
 }
 
-interface StyleTransferModule {
+interface UseStyleTransfer {
   error: string | null;
   isReady: boolean;
   isGenerating: boolean;
   forward: (input: string) => Promise<string>;
 }
 
-export const useStyleTransfer = ({
-  modelSource,
-}: Props): StyleTransferModule => {
+export const useStyleTransfer = ({ modelSource }: Props): UseStyleTransfer => {
   const [module, _] = useState(() => _StyleTransferModule);
   const {
     error,

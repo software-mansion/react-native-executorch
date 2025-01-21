@@ -36,15 +36,6 @@ export const getTypeIdentifier = (arr: ETInput): number => {
   return -1;
 };
 
-export interface ExecutorchModule {
-  error: string | null;
-  isReady: boolean;
-  isGenerating: boolean;
-  forward: (input: ETInput, shape: number[]) => Promise<number[][]>;
-  loadMethod: (methodName: string) => Promise<void>;
-  loadForward: () => Promise<void>;
-}
-
 export type Module =
   | _ClassificationModule
   | _StyleTransferModule
