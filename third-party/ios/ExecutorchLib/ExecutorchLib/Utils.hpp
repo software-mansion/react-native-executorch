@@ -55,11 +55,11 @@ std::unique_ptr<T[]> NSArrayToTypedArray(NSArray *nsArray) {
 std::function<void(void *)> getDeleterForScalarType(ScalarType scalarType) {
   switch (scalarType) {
   case ScalarType::Char:
-    return [](void *ptr) { delete[] static_cast<int8_t *>(ptr); };
+    return [](void *ptr) { delete[] static_cast<char *>(ptr); };
   case ScalarType::Int:
     return [](void *ptr) { delete[] static_cast<int32_t *>(ptr); };
   case ScalarType::Long:
-    return [](void *ptr) { delete[] static_cast<int64_t *>(ptr); };
+    return [](void *ptr) { delete[] static_cast<long *>(ptr); };
   case ScalarType::Float:
     return [](void *ptr) { delete[] static_cast<float *>(ptr); };
   case ScalarType::Double:
