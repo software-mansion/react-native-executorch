@@ -17,7 +17,7 @@ using namespace ::executorch::extension;
 using namespace ::torch::executor;
 
 template <typename T> T getValueFromNSNumber(NSNumber *number) {
-  if constexpr (std::is_same<T, int8_t>::value) {
+  if constexpr (std::is_same<T, char>::value) {
     return static_cast<T>([number charValue]); // `charValue` for 8-bit integers
   } else if constexpr (std::is_same<T, int32_t>::value) {
     return static_cast<T>([number intValue]); // `intValue` for 32-bit integers
@@ -66,7 +66,7 @@ std::function<void(void *)> getDeleterForScalarType(ScalarType scalarType) {
     return [](void *ptr) { delete[] static_cast<double *>(ptr); };
   default:
     throw std::invalid_argument(
-        "Unsupported ScalarType for getDeleterForScalarType");
+        "Unsupported ScalarType passed to getDeleterForScalarType!");
   }
 }
 
@@ -83,14 +83,46 @@ NSNumber *scalarTypeToNSNumber(ScalarType scalarType) {
   return @(static_cast<int>(scalarType));
 }
 
+void *NSArrayToVoidArray(NSArray *nsArray, ScalarType inputScalarType,
+                         size_t &outSize) {
+  outSize = [nsArray count];
+
+  switch (inputScalarType) {
+  case ScalarType::Char: {
+    auto typedArray = NSArrayToTypedArray<char>(nsArray);
+    return typedArray.release();
+  }
+  case ScalarType::Long: {
+    auto typedArray = NSArrayToTypedArray<long>(nsArray);
+    return typedArray.release();
+  }
+
+  case ScalarType::Int: {
+    auto typedArray = NSArrayToTypedArray<int>(nsArray);
+    return typedArray.release();
+  }
+  case ScalarType::Float: {
+    auto typedArray = NSArrayToTypedArray<float>(nsArray);
+    return typedArray.release();
+  }
+  case ScalarType::Double: {
+    auto typedArray = NSArrayToTypedArray<double>(nsArray);
+    return typedArray.release();
+  }
+  default:
+    throw std::invalid_argument(
+        "Unsupported ScalarType passed to NSArrayToVoidArray!");
+  }
+}
+
 TensorPtr NSArrayToTensorPtr(NSArray *nsArray, std::vector<int> shape,
                              int inputType) {
-  void *voidPointer = (__bridge void *)nsArray;
   ScalarType inputScalarType = intValueToScalarType(inputType);
+  size_t arraySize;
+  void *data = NSArrayToVoidArray(nsArray, inputScalarType, arraySize);
   std::function<void(void *)> deleter =
       getDeleterForScalarType(inputScalarType);
-  auto tensor = make_tensor_ptr(shape, voidPointer, inputScalarType,
-                                TensorShapeDynamism::DYNAMIC_BOUND, deleter);
+  auto tensor = make_tensor_ptr(shape, data, inputScalarType, TensorShapeDynamism::DYNAMIC_UNBOUND, deleter);
 
   return tensor;
 }
@@ -118,6 +150,35 @@ NSArray *arrayToNSArray(const std::vector<std::span<const T>> &dataPtrVec) {
     [nsArray addObject:[innerArray copy]];
   }
   return [nsArray copy];
+}
+
+NSArray *arrayToNsArray(const void *dataPtr, size_t numel, ScalarType scalarType) {
+  switch (scalarType) {
+  case ScalarType::Char: {
+    NSArray *outputArray = arrayToNSArray<char>(dataPtr, numel);
+    return outputArray;
+  }
+  case ScalarType::Long: {
+    NSArray *outputArray = arrayToNSArray<long>(dataPtr, numel);
+    return outputArray;
+  }
+
+  case ScalarType::Int: {
+    NSArray *outputArray = arrayToNSArray<int>(dataPtr, numel);
+    return outputArray;
+  }
+  case ScalarType::Float: {
+    NSArray *outputArray = arrayToNSArray<float>(dataPtr, numel);
+    return outputArray;
+  }
+  case ScalarType::Double: {
+    NSArray *outputArray = arrayToNSArray<double>(dataPtr, numel);
+    return outputArray;
+  }
+  default:
+    throw std::invalid_argument(
+        "Unsupported ScalarType passed to arrayToNSArray!");
+  }
 }
 
 std::vector<int> NSArrayToIntVector(NSArray *inputArray) {

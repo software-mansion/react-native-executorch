@@ -191,33 +191,45 @@ using namespace ::torch::executor;
           inputTypes:(NSArray *)inputTypes {
   std::vector<EValue> inputTensors;
   std::vector<TensorPtr> inputTensorPtrs;
-
+  
   for (NSUInteger i = 0; i < [inputTypes count]; i++) {
     NSArray *inputShapeNSArray = [shapes objectAtIndex:i];
-
+    
     std::vector<int> inputShape = NSArrayToIntVector(inputShapeNSArray);
     int inputType = [[inputTypes objectAtIndex:i] intValue];
-
+    
     NSArray *input = [inputs objectAtIndex:i];
-
+    
     TensorPtr currentTensor = NSArrayToTensorPtr(input, inputShape, inputType);
     if (!currentTensor) {
-      NSLog(@"Failed to create tensor for input %lu", (unsigned long)i);
+      throw [NSException
+             exceptionWithName:@"forward_error"
+             reason:[NSString stringWithFormat:@"%d", Error::InvalidArgument]
+             userInfo:nil];
       continue;
     }
-
+    
     inputTensors.push_back(*currentTensor);
     inputTensorPtrs.push_back(currentTensor);
   }
+  
   Result result = _model->forward(inputTensors);
-
+  
   if (!result.ok()) {
     throw [NSException
-        exceptionWithName:@"forward_error"
-                   reason:[NSString stringWithFormat:@"%d", result.error()]
-                 userInfo:nil];
+           exceptionWithName:@"forward_error"
+           reason:[NSString stringWithFormat:@"%d", result.error()]
+           userInfo:nil];
   }
-  return [NSArray new];
+  
+  NSMutableArray *output = [NSMutableArray new];
+  for (int i = 0; i < result->size(); i++) {
+    auto currentResultTensor = result->at(i).toTensor();
+    NSArray *currentOutput = arrayToNsArray(currentResultTensor.const_data_ptr(), currentResultTensor.numel(), currentResultTensor.scalar_type());
+    [output addObject:currentOutput];
+  }
+  return output;
+  
 }
 
 @end
