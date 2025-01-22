@@ -5,6 +5,7 @@
 
 + (NSArray *)matToNSArray:(const cv::Mat &)mat;
 + (cv::Mat)arrayToMat:(NSArray *)array width:(int)width height:(int)height;
++ (NSArray *)matToArrayForGrayscale:(const cv::Mat &)mat;
 + (NSString *)saveToTempFile:(const cv::Mat &)image;
 + (cv::Mat)readImage:(NSString *)source;
 
