@@ -114,9 +114,9 @@ class _ETModule {
   async forward(
     input: number[],
     shape: number[],
-    inputType: number
+    inputTypes: number[]
   ): ReturnType<ETModuleInterface['forward']> {
-    return await ETModule.forward(input, shape, inputType);
+    return await ETModule.forward(input, shape, inputTypes);
   }
   async loadModule(
     modelSource: string
