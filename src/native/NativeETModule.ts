@@ -8,7 +8,7 @@ export interface Spec extends TurboModule {
     inputs: number[],
     shapes: number[],
     inputTypes: number[]
-): Promise<number[]>;
+  ): Promise<number[]>;
   loadMethod(methodName: string): Promise<number>;
 }
 
