@@ -4,9 +4,11 @@
 #import <React/RCTBridgeModule.h>
 #import "utils/ImageProcessor.h"
 #import "models/ocr/Detector.h"
+#import "models/ocr/RecognitionHandler.h"
 
 @implementation OCR {
   Detector *detector;
+  RecognitionHandler *handler;
 }
 
 RCT_EXPORT_MODULE()
@@ -16,7 +18,6 @@ RCT_EXPORT_MODULE()
           language:(NSString *)language
            resolve:(RCTPromiseResolveBlock)resolve
             reject:(RCTPromiseRejectBlock)reject {
-  NSLog(@"TEST");
   detector = [[Detector alloc] init];
   [detector loadModel:[NSURL URLWithString:detectorSource]
            completion:^(BOOL success, NSNumber *errorCode) {
@@ -43,6 +44,10 @@ RCT_EXPORT_MODULE()
   @try {
     cv::Mat image = [ImageProcessor readImage:input];
     NSArray* result = [detector runModel:image];
+    cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
+    handler = [[RecognitionHandler alloc] init];
+    NSLog(@"TEST");
+    [handler recognize:result imgGray:image desiredWidth:1280 desiredHeight:1280];
     resolve(result);
   } @catch (NSException *exception) {
     reject(@"forward_error", [NSString stringWithFormat:@"%@", exception.reason],

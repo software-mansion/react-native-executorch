@@ -47,12 +47,10 @@
   for (NSUInteger i = 0; i < [boxes count]; i++) {
     NSArray *box = boxes[i];
     NSMutableArray *boxArray = [NSMutableArray arrayWithCapacity:4];
-    // Iterate over each point in the box
     for (NSValue *value in box) {
       CGPoint point = [value CGPointValue];
       point.x *= 2;
       point.y *= 2;
-//      NSLog(@"%d %d", (int)point.x, (int)point.y);
       [boxArray addObject:@((int)point.x)];
       [boxArray addObject:@((int)point.y)];
     }
@@ -60,22 +58,17 @@
   }
   
   NSArray* horizontalList = [DetectorUtils groupTextBox:single_img_result ycenterThs:0.5 heightThs:0.5 widthThs:0.5 addMargin:0.1];
-  NSLog(@"%lu", (unsigned long)[horizontalList count]);
-
-  NSMutableArray *boxesToKeep = [NSMutableArray array]; // Create a new array to keep the boxes that fit the condition
-
+  
+  NSMutableArray *boxesToKeep = [NSMutableArray array];
+  
   for (NSArray *box in horizontalList) {
-      if (MAX([box[1] intValue] - [box[0] intValue], [box[3] intValue] - [box[2] intValue]) >= 20) {
-          
-          [boxesToKeep addObject:box]; // Add the box to the new array only if it meets the condition
-      }
+    if (MAX([box[1] intValue] - [box[0] intValue], [box[3] intValue] - [box[2] intValue]) >= 20) {
+      
+      [boxesToKeep addObject:box];
+    }
   }
-
+  
   horizontalList = [NSMutableArray arrayWithArray:boxesToKeep];
-  NSLog(@"%lu", (unsigned long)[horizontalList count]);
-  for(NSArray *box in horizontalList){
-    NSLog(@"%d %d %d %d", [box[0] intValue], [box[1] intValue], [box[2] intValue], [box[3] intValue]);
-  }
   return horizontalList;
 }
 
@@ -83,7 +76,6 @@
   NSArray *modelInput = [self preprocess:input];
   NSArray *modelResult = [self forward:modelInput];
   NSArray *result = [self postprocess:modelResult];
-  NSLog(@"Running Inference with detector model");
   
   return result;
 }
