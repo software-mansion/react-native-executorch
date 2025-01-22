@@ -1,5 +1,4 @@
 #import "ETModel.h"
-#include "InputType.h"
 #include "Utils.hpp"
 #include <executorch/extension/module/module.h>
 #include <executorch/extension/tensor/tensor.h>
@@ -63,7 +62,7 @@ using namespace ::torch::executor;
                  userInfo:nil];
   }
 
-  return [self getTypeAsNumber:input_meta->scalar_type()];
+  return scalarTypeToNSNumber(input_meta->scalar_type());
 };
 
 - (NSArray *)getInputShape:(NSNumber *)index {
@@ -129,7 +128,7 @@ using namespace ::torch::executor;
                  userInfo:nil];
   }
 
-  return [self getTypeAsNumber:output_meta->scalar_type()];
+  return scalarTypeToNSNumber(output_meta->scalar_type());
 };
 
 - (NSArray *)getOutputShape:(NSNumber *)index {
@@ -162,102 +161,63 @@ using namespace ::torch::executor;
   return [nsShape copy];
 };
 
-- (NSNumber *)getTypeAsNumber:(ScalarType)scalarType {
-  switch (scalarType) {
-  case ScalarType::Byte:
-    return @(InputTypeInt8);
-  case ScalarType::Int:
-    return @(InputTypeInt32);
-  case ScalarType::Long:
-    return @(InputTypeInt64);
-  case ScalarType::Float:
-    return @(InputTypeFloat32);
-  case ScalarType::Double:
-    return @(InputTypeFloat64);
-
-  default:
-    return @-1;
-  }
-}
-
+/**
+ * @brief Processes inputs through the forward pass of the model.
+ *
+ * This method takes input tensors, their corresponding shapes, and types,
+ * and performs a forward pass using _model. It supports both
+ * single and multiple inputs.
+ *
+ * @param inputs NSArray* of inputs where each element is an NSArray
+ *               representing the data for a tensor.
+ * @param shapes An array of shapes corresponding to the input tensors.
+ *               Each element is an NSArray of integers defining the dimensions.
+ * @param inputTypes An array of NSNumber objects representing the ScalarType of
+ *                   the input tensors
+ *
+ * @return An NSArray containing the results of the forward pass. Each element
+ *         represents the output of the corresponding input.
+ *
+ * @throws NSException Throws an exception with name "forward_error" if
+ *                     an error occurs during input processing or model
+ * execution.
+ *
+ * @warning Ensure that the inputs, shapes, and inputTypes arrays have the
+ *          same number of elements. Mismatched sizes can lead to runtime
+ *          errors.
+ **/
 - (NSArray *)forward:(NSArray *)inputs
               shapes:(NSArray *)shapes
           inputTypes:(NSArray *)inputTypes {
-  
-  for (NSUInteger i = 0; i < [inputs count]; i++) {
-    std::vector<int> currentInputShape =
-    NSArrayToIntVector([shapes objectAtIndex:i]);
-    InputType inputType = (InputType)[[inputTypes objectAtIndex:i] intValue];
-    
-    TensorPtr currentTensor = NSArrayToTensorPtr([inputs objectAtIndex:i],
-                                                 currentInputShape, inputType);
-    
-    Error err = _model->set_input("forward", {currentTensor}, i);
-    if (err != Error::Ok) {
-      @throw [NSException
-              exceptionWithName:@"forward_error"
-              reason:[NSString stringWithFormat:@"%ld", (long)err]
-              userInfo:nil];
+  std::vector<EValue> inputTensors;
+  std::vector<TensorPtr> inputTensorPtrs;
+
+  for (NSUInteger i = 0; i < [inputTypes count]; i++) {
+    NSArray *inputShapeNSArray = [shapes objectAtIndex:i];
+
+    std::vector<int> inputShape = NSArrayToIntVector(inputShapeNSArray);
+    int inputType = [[inputTypes objectAtIndex:i] intValue];
+
+    NSArray *input = [inputs objectAtIndex:i];
+
+    TensorPtr currentTensor = NSArrayToTensorPtr(input, inputShape, inputType);
+    if (!currentTensor) {
+      NSLog(@"Failed to create tensor for input %lu", (unsigned long)i);
+      continue;
     }
+
+    inputTensors.push_back(*currentTensor);
+    inputTensorPtrs.push_back(currentTensor);
   }
-  
-  Result result = _model->execute("forward");
+  Result result = _model->forward(inputTensors);
+
   if (!result.ok()) {
     throw [NSException
-           exceptionWithName:@"forward_error"
-           reason:[NSString stringWithFormat:@"%d", result.error()]
-           userInfo:nil];
-  }
-  // FIXME: return NSArray instead of Result
-  return result;
-}
-
-- (NSArray *)forward:(NSArray *)input
-               shape:(NSArray *)shape
-           inputType:(NSNumber *)inputType {
-  int inputTypeIntValue = [inputType intValue];
-  std::vector<int> shapes = NSArrayToIntVector(shape);
-  @try {
-    switch (inputTypeIntValue) {
-    case InputTypeInt8: {
-      std::vector<std::span<const int8_t>> output =
-          runForwardFromNSArray<int8_t>(input, shapes, _model);
-      return arrayToNSArray<int8_t>(output);
-    }
-    case InputTypeInt32: {
-      std::vector<std::span<const int32_t>> output =
-          runForwardFromNSArray<int32_t>(input, shapes, _model);
-      return arrayToNSArray<int32_t>(output);
-    }
-    case InputTypeInt64: {
-      std::vector<std::span<const int64_t>> output =
-          runForwardFromNSArray<int64_t>(input, shapes, _model);
-      return arrayToNSArray<int64_t>(output);
-    }
-    case InputTypeFloat32: {
-      std::vector<std::span<const float>> output =
-          runForwardFromNSArray<float>(input, shapes, _model);
-      return arrayToNSArray<float>(output);
-    }
-    case InputTypeFloat64: {
-      std::vector<std::span<const double>> output =
-          runForwardFromNSArray<double>(input, shapes, _model);
-      return arrayToNSArray<double>(output);
-    }
-    }
-  } @catch (NSException *exception) {
-    NSInteger originalCode = [exception.reason integerValue];
-    @throw [NSException
         exceptionWithName:@"forward_error"
-                   reason:[NSString stringWithFormat:@"%ld", (long)originalCode]
+                   reason:[NSString stringWithFormat:@"%d", result.error()]
                  userInfo:nil];
   }
-  // throwing an RN-ET exception
-  @
-  throw [NSException exceptionWithName:@"forward_error"
-                                reason:[NSString stringWithFormat:@"%d",
-                                                                  0x65] // 101
-                              userInfo:nil];
+  return [NSArray new];
 }
 
 @end
