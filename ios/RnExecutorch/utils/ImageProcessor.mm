@@ -22,6 +22,26 @@
   return floatArray;
 }
 
++ (NSArray *)matToArrayForGrayscale:(const cv::Mat &)mat {
+    if (mat.empty() || mat.type() != CV_32F) {
+        NSLog(@"Invalid or empty matrix or matrix not of type CV_32F.");
+        return @[];
+    }
+
+    NSMutableArray *pixelArray = [[NSMutableArray alloc] initWithCapacity:mat.cols * mat.rows];
+
+    // Iterate through every pixel in the matrix
+    for (int row = 0; row < mat.rows; row++) {
+        for (int col = 0; col < mat.cols; col++) {
+            // Access and add the pixel value directly as a float, store as NSNumber
+            float pixelValue = mat.at<float>(row, col);
+            [pixelArray addObject:@(pixelValue)];
+        }
+    }
+
+    return pixelArray;
+}
+
 + (cv::Mat)arrayToMat:(NSArray *)array width:(int)width height:(int)height {
   cv::Mat mat(height, width, CV_8UC3);
   
