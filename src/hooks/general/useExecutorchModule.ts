@@ -8,19 +8,17 @@ interface Props {
   modelSource: string | number;
 }
 
-interface UseExecutorchModule {
+export const useExecutorchModule = ({
+  modelSource,
+}: Props): {
   error: string | null;
   isReady: boolean;
   isGenerating: boolean;
   forward: (input: ETInput, shape: number[]) => Promise<number[][]>;
   loadMethod: (methodName: string) => Promise<void>;
   loadForward: () => Promise<void>;
-}
-
-export const useExecutorchModule = ({
-  modelSource,
-}: Props): UseExecutorchModule => {
-  const [module, _] = useState(() => _ETModule);
+} => {
+  const [module] = useState(() => new _ETModule());
   const {
     error,
     isReady,

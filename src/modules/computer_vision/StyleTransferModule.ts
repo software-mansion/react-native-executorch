@@ -1,12 +1,12 @@
-import { BaseModule } from './BaseModule';
+import { BaseCVModule } from './BaseCVModule';
 import { _StyleTransferModule } from '../../native/RnExecutorchModules';
 
-export class StyleTransferModule {
-  static async load(modelSource: string | number) {
-    await BaseModule.load(_StyleTransferModule, modelSource);
-  }
+export class StyleTransferModule extends BaseCVModule {
+  static module = new _StyleTransferModule();
 
-  static async forward(input: string): Promise<string> {
-    return await BaseModule.forward(_StyleTransferModule, input);
+  static async forward(
+    input: string
+  ): ReturnType<_StyleTransferModule['forward']> {
+    return await super.forward(input);
   }
 }

@@ -1,13 +1,12 @@
-import { BaseModule } from './BaseModule';
+import { BaseCVModule } from './BaseCVModule';
 import { _ObjectDetectionModule } from '../../native/RnExecutorchModules';
-import { Detection } from '../../types/object_detection';
 
-export class ObjectDetectionModule {
-  static async load(modelSource: string | number) {
-    await BaseModule.load(_ObjectDetectionModule, modelSource);
-  }
+export class ObjectDetectionModule extends BaseCVModule {
+  static module = new _ObjectDetectionModule();
 
-  static async forward(input: string): Promise<Detection[]> {
-    return await BaseModule.forward(_ObjectDetectionModule, input);
+  static async forward(
+    input: string
+  ): ReturnType<_ObjectDetectionModule['forward']> {
+    return await super.forward(input);
   }
 }

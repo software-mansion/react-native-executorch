@@ -6,17 +6,15 @@ interface Props {
   modelSource: string | number;
 }
 
-interface UseClassification {
+export const useClassification = ({
+  modelSource,
+}: Props): {
   error: string | null;
   isReady: boolean;
   isGenerating: boolean;
   forward: (input: string) => Promise<{ [category: string]: number }>;
-}
-
-export const useClassification = ({
-  modelSource,
-}: Props): UseClassification => {
-  const [module, _] = useState(() => _ClassificationModule);
+} => {
+  const [module, _] = useState(() => new _ClassificationModule());
   const {
     error,
     isReady,

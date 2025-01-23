@@ -1,12 +1,12 @@
-import { BaseModule } from './BaseModule';
+import { BaseCVModule } from './BaseCVModule';
 import { _ClassificationModule } from '../../native/RnExecutorchModules';
 
-export class ClassificationModule {
-  static async load(modelSource: string | number) {
-    await BaseModule.load(_ClassificationModule, modelSource);
-  }
+export class ClassificationModule extends BaseCVModule {
+  static module = new _ClassificationModule();
 
-  static async forward(input: string): Promise<{ [category: string]: number }> {
-    return await BaseModule.forward(_ClassificationModule, input);
+  static async forward(
+    input: string
+  ): ReturnType<_ClassificationModule['forward']> {
+    return await super.forward(input);
   }
 }
