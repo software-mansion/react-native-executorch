@@ -12,27 +12,23 @@ class TensorUtils {
     fun getExecutorchInput(input: ReadableArray, shape: LongArray, type: Int): EValue {
       try {
         when (type) {
-          0 -> {
+          1 -> {
             val inputTensor = Tensor.fromBlob(ArrayUtils.createByteArray(input), shape)
             return EValue.from(inputTensor)
           }
-
-          1 -> {
+          3 -> {
             val inputTensor = Tensor.fromBlob(ArrayUtils.createIntArray(input), shape)
             return EValue.from(inputTensor)
           }
-
-          2 -> {
+          4 -> {
             val inputTensor = Tensor.fromBlob(ArrayUtils.createLongArray(input), shape)
             return EValue.from(inputTensor)
           }
-
-          3 -> {
+          6 -> {
             val inputTensor = Tensor.fromBlob(ArrayUtils.createFloatArray(input), shape)
             return EValue.from(inputTensor)
           }
-
-          4 -> {
+          7 -> {
             val inputTensor = Tensor.fromBlob(ArrayUtils.createDoubleArray(input), shape)
             return EValue.from(inputTensor)
           }
