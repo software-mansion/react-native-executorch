@@ -8,32 +8,24 @@
 @implementation RecognitionHandler
 
 - (NSArray<NSNumber *> *)indicesOfMaxValuesInMatrix:(cv::Mat)matrix {
-  // Ensure the matrix is 2D and has more than one column to avoid trivial results.
-  NSAssert(matrix.dims == 2 && matrix.cols > 1, @"Matrix must be 2D with more than one column.");
-  
   NSMutableArray<NSNumber *> *maxIndices = [NSMutableArray array];
   
-  // Iterating over each row to find the index of the max element
   for (int i = 0; i < matrix.rows; i++) {
-    double maxVal; // Variable to store the maximum value (not used)
-    cv::Point maxLoc; // This will store the location of the maximum value
+    double maxVal;
+    cv::Point maxLoc;
     cv::minMaxLoc(matrix.row(i), NULL, &maxVal, NULL, &maxLoc);
-    [maxIndices addObject:@(maxLoc.x)]; // Add the index of the max value to the array
+    [maxIndices addObject:@(maxLoc.x)];
   }
   
-  return [maxIndices copy]; // Return an NSArray copy of the mutable array
+  return [maxIndices copy];
 }
 
 
 - (cv::Mat)divideMatrix:(cv::Mat)matrix byVector:(NSArray<NSNumber *> *)vector {
-  // Ensure the vector's length matches the number of rows in the matrix
-  NSAssert(matrix.rows == vector.count, @"Vector length must match number of matrix rows.");
+  cv::Mat result = matrix.clone();
   
-  cv::Mat result = matrix.clone(); // Clone the matrix to keep the original unchanged
-  
-  // Iterate through each element in the matrix and divide by the corresponding vector element
   for (int i = 0; i < matrix.rows; i++) {
-    float divisor = [vector[i] floatValue]; // Get the CGFloat value from NSArray
+    float divisor = [vector[i] floatValue];
     for (int j = 0; j < matrix.cols; j++) {
       result.at<float>(i, j) /= divisor;
     }
@@ -44,17 +36,29 @@
 
 - (cv::Mat)softmax:(cv::Mat) inputs {
   cv::Mat maxVal;
-  cv::reduce(inputs, maxVal, 1, cv::REDUCE_MAX, CV_32F); // Find max per row for numerical stability
+  cv::reduce(inputs, maxVal, 1, cv::REDUCE_MAX, CV_32F);
   cv::Mat expInputs;
-  cv::exp(inputs - cv::repeat(maxVal, 1, inputs.cols), expInputs); // Compute exp(values - max)
+  cv::exp(inputs - cv::repeat(maxVal, 1, inputs.cols), expInputs);
   cv::Mat sumExp;
-  cv::reduce(expInputs, sumExp, 1, cv::REDUCE_SUM, CV_32F); // Sum of exp per row
-  cv::Mat softmaxOutput = expInputs / cv::repeat(sumExp, 1, inputs.cols); // Divide by sum(exp)
+  cv::reduce(expInputs, sumExp, 1, cv::REDUCE_SUM, CV_32F);
+  cv::Mat softmaxOutput = expInputs / cv::repeat(sumExp, 1, inputs.cols);
   return softmaxOutput;
 }
 
 - (NSArray *)recognize: (NSArray *)horizontalList imgGray:(cv::Mat)imgGray desiredWidth:(int)desiredWidth desiredHeight:(int)desiredHeight {
-  NSLog(@"Before padding");
+  const float newRatioH = (float)desiredHeight / imgGray.rows;
+  const float newRatioW = (float)desiredWidth / imgGray.cols;
+  float resizeRatio = MIN(newRatioH, newRatioW);
+  const int newWidth = imgGray.cols * resizeRatio;
+  const int newHeight = imgGray.rows * resizeRatio;
+  const int deltaW = desiredWidth - newWidth;
+  const int deltaH = desiredHeight - newHeight;
+  const int top = deltaH / 2;
+  const int left= deltaW / 2;
+  float heightRatio = (float)imgGray.rows / desiredHeight;
+  float widthRatio = (float)imgGray.cols / desiredWidth;
+  resizeRatio = MAX(heightRatio, widthRatio);
+  
   NSString *modelPath = [[NSBundle mainBundle] pathForResource:@"xnnpack_crnn_512" ofType:@"pte"];
   ETModel *recognizer_512 = [[ETModel alloc] init];
   [recognizer_512 loadModel:modelPath];
@@ -66,6 +70,7 @@
   [recognizer_128 loadModel:modelPath];
   
   imgGray = [OCRUtils resizeWithPadding:imgGray desiredWidth:desiredWidth desiredHeight:desiredHeight];
+  NSMutableArray *predictions = [NSMutableArray array];
   for (NSArray *box in horizontalList) {
     int maximum_y = imgGray.rows;
     int maximum_x = imgGray.cols;
@@ -78,7 +83,7 @@
     
     
     croppedImage = [OCRUtils normalizeForRecognizer:croppedImage adjustContrast:0.0];
-    NSArray* modelInput = [ImageProcessor matToNSArrayForGrayscale:croppedImage];
+    NSArray* modelInput = [ImageProcessor matToArrayForGrayscale:croppedImage];
     NSArray<NSArray *> *result;
     if(croppedImage.cols >= 512) {
       result = [recognizer_512 forward:modelInput shape:[recognizer_512 getInputShape:0] inputType:[recognizer_512 getInputType:0]];
@@ -89,23 +94,20 @@
     }
     
     NSInteger totalNumbers = [result.firstObject count];
-    NSInteger numRows = (totalNumbers + 96) / 97; // Each row has 97 columns, round up if needed
+    NSInteger numRows = (totalNumbers + 96) / 97;
     
-    // Initialize the matrix with appropriate size
-    cv::Mat resultMat = cv::Mat::zeros(numRows, 97, CV_32F); // 97 columns, floating point values
+    cv::Mat resultMat = cv::Mat::zeros(numRows, 97, CV_32F);
     
-    // Counter for columns and row tracker
     NSInteger counter = 0;
     NSInteger currentRow = 0;
     
     for (NSNumber *num in result.firstObject) {
-      // Set the value in the matrix
       resultMat.at<float>(currentRow, counter) = [num floatValue];
       
       counter++;
       if (counter >= 97) {
-        counter = 0; // Reset counter if 97 columns are filled
-        currentRow++; // Move to the next row
+        counter = 0;
+        currentRow++;
       }
     }
     
@@ -124,10 +126,42 @@
     CTCLabelConverter *converter = [[CTCLabelConverter alloc] initWithCharacters:@"0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~ €ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" separatorList:@{} dictPathList:@{@"en": dictPath}];
     NSArray* preds_index = [self indicesOfMaxValuesInMatrix:probabilities];
     NSArray* decodedTexts = [converter decodeGreedyWithTextIndex:preds_index length:(int)(preds_index.count)];
-    NSLog(@"%@", decodedTexts[0]);
+    NSMutableArray<NSNumber *> *valuesArray = [NSMutableArray array];
+    NSMutableArray<NSNumber *> *indicesArray = [NSMutableArray array];
+    for (int i = 0; i < probabilities.rows; i++) {
+      double maxVal = 0;
+      cv::Point maxLoc;
+      cv::minMaxLoc(probabilities.row(i), NULL, &maxVal, NULL, &maxLoc);
+      
+      [valuesArray addObject:@(maxVal)];
+      [indicesArray addObject:@(maxLoc.x)];
+    }
+    
+    NSMutableArray<NSNumber *> *predsMaxProb = [NSMutableArray array];
+    
+    for (NSUInteger index = 0; index < indicesArray.count; index++) {
+      NSNumber *indicator = indicesArray[index];
+      if ([indicator intValue] != 0) {
+        [predsMaxProb addObject:valuesArray[index]];
+      }
+    }
+    
+    
+    if (predsMaxProb.count == 0) {
+      [predsMaxProb addObject:@(0)];
+    }
+    
+    double product = 1.0;
+    for (NSNumber *prob in predsMaxProb) {
+      product *= [prob doubleValue];
+    }
+    
+    double confidenceScore = pow(product, 2.0 / sqrt(predsMaxProb.count));
+    NSDictionary *res = @{@"text": decodedTexts[0], @"bbox": @{@"x1": @((int)((x_min - left) * resizeRatio)), @"x2": @((int)((x_max - left) * resizeRatio)), @"y1": @((int)((y_min - top) * resizeRatio)), @"y2":@((int)((y_max - top) * resizeRatio))}, @"score": @(confidenceScore)};
+    [predictions addObject:res];
   }
   
-  return [NSArray init];
+  return predictions;
 }
 
 @end

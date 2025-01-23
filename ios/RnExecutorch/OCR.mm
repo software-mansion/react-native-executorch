@@ -46,8 +46,7 @@ RCT_EXPORT_MODULE()
     NSArray* result = [detector runModel:image];
     cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
     handler = [[RecognitionHandler alloc] init];
-    NSLog(@"TEST");
-    [handler recognize:result imgGray:image desiredWidth:1280 desiredHeight:1280];
+    result = [handler recognize:result imgGray:image desiredWidth:1280 desiredHeight:1280];
     resolve(result);
   } @catch (NSException *exception) {
     reject(@"forward_error", [NSString stringWithFormat:@"%@", exception.reason],
