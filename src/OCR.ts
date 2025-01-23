@@ -3,12 +3,13 @@ import { ResourceSource } from './types/common';
 import { OCR } from './native/RnExecutorchModules';
 import { ETError, getError } from './Error';
 import { Image } from 'react-native';
+import { OCRDetection } from './types/ocr';
 
 interface OCRModule {
   error: string | null;
   isReady: boolean;
   isGenerating: boolean;
-  forward: (input: string) => Promise<string>;
+  forward: (input: string) => Promise<OCRDetection[]>;
 }
 
 const getModelPath = (source: ResourceSource) => {
@@ -24,7 +25,9 @@ export const useOCR = ({
   language = 'en',
 }: {
   detectorSource: ResourceSource;
-  recognizerSources: ResourceSource[];
+  recognizerSources: {
+    [key: string]: ResourceSource;
+  };
   language?: string;
 }): OCRModule => {
   const [error, setError] = useState<string | null>(null);
@@ -33,13 +36,27 @@ export const useOCR = ({
 
   useEffect(() => {
     const loadModel = async () => {
-      if (!detectorSource || recognizerSources.length === 0) return;
+      if (!detectorSource || Object.keys(recognizerSources).length === 0)
+        return;
 
       const detectorPath = getModelPath(detectorSource);
-      const recognizerPaths = recognizerSources.map(getModelPath);
+      const recognizerPaths: {
+        [key: string]: string;
+      } = {};
+      Object.keys(recognizerSources).forEach((key: string) => {
+        recognizerPaths[key] = getModelPath(
+          recognizerSources[key] as ResourceSource
+        );
+      });
       try {
         setIsReady(false);
-        await OCR.loadModule(detectorPath, recognizerPaths, language);
+        await OCR.loadModule(
+          detectorPath,
+          recognizerPaths.recognizer512,
+          recognizerPaths.recognizer256,
+          recognizerPaths.recognizer128,
+          language
+        );
         setIsReady(true);
       } catch (e) {
         setError(getError(e));
@@ -47,7 +64,8 @@ export const useOCR = ({
     };
 
     loadModel();
-  }, [detectorSource, language, recognizerSources.length]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [detectorSource, language, JSON.stringify(recognizerSources)]);
 
   const forward = async (input: string) => {
     if (!isReady) {

@@ -28,11 +28,10 @@
   NSMutableArray *scoreText = [[NSMutableArray alloc] init];
   NSMutableArray *scoreLink = [[NSMutableArray alloc] init];
   
-  // Iterate through the array and distribute elements to scoreText or scoreLink
   [array enumerateObjectsUsingBlock:^(id element, NSUInteger idx, BOOL *stop) {
-    if (idx % 2 == 0) { // Even index, belongs to scoreText
+    if (idx % 2 == 0) {
       [scoreText addObject:element];
-    } else { // Odd index, belongs to scoreLink
+    } else {
       [scoreLink addObject:element];
     }
   }];
@@ -98,14 +97,12 @@
     if (sy < 0) sy = 0;
     if (ex >= img_w) ex = img_w;
     if (ey >= img_h) ey = img_h;
-    cv::Rect roi(sx, sy, ex - sx, ey - sy);  // (x, y, width, height) of the ROI
+    cv::Rect roi(sx, sy, ex - sx, ey - sy);
     
-    // Generate the kernel for dilation
     cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(1 + niter, 1 + niter));
-    cv::Mat roiSegMap = segMap(roi);  // Reference a sub-region of segMap for dilation
+    cv::Mat roiSegMap = segMap(roi);
     cv::dilate(roiSegMap, roiSegMap, kernel);
     
-    // Find contours and fit rotated rectangle
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(segMap, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
     if (!contours.empty()) {
@@ -158,7 +155,7 @@
   [horizontalList sortUsingComparator:^NSComparisonResult(NSMutableArray<NSNumber *> *obj1, NSMutableArray<NSNumber *> *obj2) {
     return [obj1[4] compare:obj2[4]]; // Sorting by y_center
   }];
-    
+  
   NSMutableArray *newBox = [NSMutableArray array];
   NSMutableArray *bHeight = [NSMutableArray array];
   NSMutableArray *bYcenter = [NSMutableArray array];
@@ -184,17 +181,16 @@
   
   [combinedList addObject:[newBox copy]];
   for (NSArray *boxes in combinedList) {
-    if ([boxes count] == 1) { // If there is only one box in the line
-      NSLog(@"One in line");
+    if ([boxes count] == 1) {
       NSArray *box = boxes[0];
       int margin = (int)(addMargin * MIN([box[1] floatValue] - [box[0] floatValue], [box[5] floatValue]));
       [mergedList addObject:@[@([box[0] intValue] - margin),
                               @([box[1] intValue] + margin),
                               @([box[2] intValue] - margin),
                               @([box[3] intValue] + margin)]];
-    } else { // There are multiple boxes to be merged
+    } else {
       NSArray *sortedBoxes = [boxes sortedArrayUsingComparator:^NSComparisonResult(NSArray *obj1, NSArray *obj2) {
-        return [@([obj1[0] intValue]) compare:@([obj2[0] intValue])]; // Sort boxes by x_min
+        return [@([obj1[0] intValue]) compare:@([obj2[0] intValue])];
       }];
       
       NSMutableArray *mergedBox = [NSMutableArray array];
@@ -228,14 +224,12 @@
         [mergedBox addObject:newBox];
       }
       
-      // Create merged boxes from merged box array
       for (NSArray *mbox in mergedBox) {
         if ([mbox count] != 1) {
-          NSNumber *xMin = [mbox[0] objectAtIndex:0]; // minX
-          NSNumber *xMax = [mbox[0] objectAtIndex:1]; // maxX
-          NSNumber *yMin = [mbox[0] objectAtIndex:2]; // minY
-          NSNumber *yMax = [mbox[0] objectAtIndex:3]; // maxY
-          // Iterate over each box in the mbox array to find min and max
+          NSNumber *xMin = [mbox[0] objectAtIndex:0];
+          NSNumber *xMax = [mbox[0] objectAtIndex:1];
+          NSNumber *yMin = [mbox[0] objectAtIndex:2];
+          NSNumber *yMax = [mbox[0] objectAtIndex:3];
           for (NSArray *box in mbox) {
             if ([box[0] intValue] < [xMin intValue]) {
               xMin = box[0];
@@ -267,7 +261,7 @@
       }
     }
   }
-  NSLog(@"Merged List Count: %lu", (unsigned long)[mergedList count]);
+
   return mergedList;
 }
 
