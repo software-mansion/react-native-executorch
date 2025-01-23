@@ -2,7 +2,9 @@ import Spinner from 'react-native-loading-spinner-overlay';
 import { BottomBar } from '../components/BottomBar';
 import { getImage } from '../utils';
 import { useOCR } from 'react-native-executorch';
-import { View, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet, Image, Text } from 'react-native';
+import { useState } from 'react';
+import ImageWithBboxes from '../components/ImageWithBboxes';
 
 export const OCRScreen = ({
   imageUri,
@@ -11,6 +13,12 @@ export const OCRScreen = ({
   imageUri: string;
   setImageUri: (imageUri: string) => void;
 }) => {
+  const [results, setResults] = useState<any[]>([]);
+  const [imageDimensions, setImageDimensions] = useState<{
+    width: number;
+    height: number;
+  }>();
+  const [detectedText, setDetectedText] = useState<string>('');
   const model = useOCR({
     detectorSource: require('../assets/models/xnnpack_craft.pte'),
     recognizerSources: [require('../assets/models/xnnpack_crnn_128.pte')],
@@ -18,24 +26,27 @@ export const OCRScreen = ({
 
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
+    const width = image?.width;
+    const height = image?.height;
+    setImageDimensions({ width: width as number, height: height as number });
     const uri = image?.uri;
     if (typeof uri === 'string') {
       setImageUri(uri as string);
+      setResults([]);
     }
   };
-
-  const shape = [1, 1, 64, 128];
-  const input = new Float32Array(shape[1] * shape[2] * shape[3]);
-
-  for (let i = 0; i < shape[1] * shape[2] * shape[3]; i++) {
-    input[i] = Math.random() * 255;
-  }
 
   const runForward = async () => {
     try {
       const output = await model.forward(imageUri);
-      console.log(output[0]);
-      console.log(output[1]);
+      setResults(output);
+      console.log(output);
+      let txt = '';
+      output.forEach((detection: any) => {
+        txt += detection.text + ' ';
+      });
+      console.log(txt);
+      setDetectedText(txt);
     } catch (e) {
       console.error(e);
     }
@@ -46,19 +57,29 @@ export const OCRScreen = ({
       <Spinner visible={!model.isReady} textContent={`Loading the model...`} />
     );
   }
-
+  console.log(imageDimensions?.width, imageDimensions?.height);
   return (
     <>
       <View style={styles.imageContainer}>
-        <Image
-          style={styles.image}
-          resizeMode="contain"
-          source={
-            imageUri
-              ? { uri: imageUri }
-              : require('../assets/icons/executorch_logo.png')
-          }
-        />
+        <View style={styles.image}>
+          {imageUri && imageDimensions?.width && imageDimensions?.height ? (
+            <ImageWithBboxes
+              detections={results}
+              imageWidth={imageDimensions?.width}
+              imageHeight={imageDimensions?.height}
+              imageUri={
+                imageUri || require('../assets/icons/executorch_logo.png')
+              }
+            />
+          ) : (
+            <Image
+              style={{ width: '100%', height: '100%' }}
+              resizeMode="contain"
+              source={require('../assets/icons/executorch_logo.png')}
+            />
+          )}
+        </View>
+        <Text>{detectedText}</Text>
       </View>
       <BottomBar
         handleCameraPress={handleCameraPress}
@@ -69,14 +90,14 @@ export const OCRScreen = ({
 };
 
 const styles = StyleSheet.create({
+  image: {
+    flex: 2,
+    borderRadius: 8,
+    width: '100%',
+  },
   imageContainer: {
     flex: 6,
     width: '100%',
     padding: 16,
-  },
-  image: {
-    flex: 1,
-    borderRadius: 8,
-    width: '100%',
   },
 });

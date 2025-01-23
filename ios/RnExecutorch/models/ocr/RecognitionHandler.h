@@ -1,7 +1,7 @@
 #import "opencv2/opencv.hpp"
 
-@interface RecognitionHandler: NSObject
+@interface RecognitionHandler : NSObject
 
-- (NSArray *)recognize: (NSArray *)horizontalList imgGray:(cv::Mat)imgGray desiredWidth:(int)desiredWidth desiredHeight:(int)desiredHeight;
+- (NSArray *)recognize:(NSArray *)horizontalList imgGray:(cv::Mat)imgGray desiredWidth:(int)desiredWidth desiredHeight:(int)desiredHeight;
 
 @end
