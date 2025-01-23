@@ -1,5 +1,6 @@
 package com.swmansion.rnexecutorch.utils
 
+import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableArray
 import org.pytorch.executorch.DType
@@ -9,6 +10,14 @@ class ArrayUtils {
   companion object {
     private inline fun <reified T> createTypedArrayFromReadableArray(input: ReadableArray, transform: (ReadableArray, Int) -> T): Array<T> {
       return Array(input.size()) { index -> transform(input, index) }
+    }
+
+    fun createByteArray(input: ReadableArray): ByteArray {
+      return createTypedArrayFromReadableArray(input) { array, index -> array.getInt(index).toByte() }.toByteArray()
+    }
+
+    fun createCharArray(input: ReadableArray): CharArray {
+      return createTypedArrayFromReadableArray(input) { array, index -> array.getInt(index).toChar() }.toCharArray()
     }
 
     fun createByteArray(input: ReadableArray): ByteArray {
