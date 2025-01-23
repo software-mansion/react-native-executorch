@@ -56,7 +56,7 @@ export class LLMModule {
     LLM.interrupt();
   }
 
-  static deleteModule() {
+  static delete() {
     LLM.deleteModule();
   }
 }

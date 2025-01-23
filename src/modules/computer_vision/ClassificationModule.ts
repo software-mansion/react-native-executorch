@@ -4,9 +4,9 @@ import { _ClassificationModule } from '../../native/RnExecutorchModules';
 export class ClassificationModule extends BaseCVModule {
   static module = new _ClassificationModule();
 
-  static async forward(
-    input: string
-  ): ReturnType<_ClassificationModule['forward']> {
-    return await super.forward(input);
+  static async forward(input: string) {
+    return await (super.forward(input) as ReturnType<
+      _ClassificationModule['forward']
+    >);
   }
 }
