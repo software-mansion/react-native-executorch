@@ -8,33 +8,40 @@
 
 @implementation OCR {
   Detector *detector;
-  RecognitionHandler *handler;
+  RecognitionHandler *recognitionHandler;
 }
 
 RCT_EXPORT_MODULE()
 
 - (void)loadModule:(NSString *)detectorSource
- recognizerSources:(NSArray *)recognizerSources
+recognizerSource512:(NSString *)recognizerSource512
+recognizerSource256:(NSString *)recognizerSource256
+recognizerSource128:(NSString *)recognizerSource128
           language:(NSString *)language
            resolve:(RCTPromiseResolveBlock)resolve
             reject:(RCTPromiseRejectBlock)reject {
   detector = [[Detector alloc] init];
-  [detector loadModel:[NSURL URLWithString:detectorSource]
-           completion:^(BOOL success, NSNumber *errorCode) {
-    if (success) {
-      resolve(errorCode);
+  recognitionHandler = [[RecognitionHandler alloc] init];
+  
+  [detector loadModel:[NSURL URLWithString:detectorSource] completion:^(BOOL success, NSNumber *errorCode) {
+    if (!success) {
+      NSError *error = [NSError errorWithDomain:@"OCRErrorDomain"
+                                           code:[errorCode intValue]
+                                       userInfo:@{NSLocalizedDescriptionKey: [NSString stringWithFormat:@"%ld", (long)[errorCode longValue]]}];
+      reject(@"init_module_error", @"Failed to initialize detector module", error);
       return;
     }
     
-    NSError *error = [NSError
-                      errorWithDomain:@"OCRErrorDomain"
-                      code:[errorCode intValue]
-                      userInfo:@{
-      NSLocalizedDescriptionKey : [NSString
-                                   stringWithFormat:@"%ld", (long)[errorCode longValue]]
+    [self->recognitionHandler loadRecognizers:recognizerSource512 mediumRecognizerPath:recognizerSource256 smallRecognizerPath:recognizerSource128 completion:^(BOOL allModelsLoaded, NSNumber *errorCode) {
+      if (allModelsLoaded) {
+        resolve(@(YES));
+      } else {
+        NSError *error = [NSError errorWithDomain:@"OCRErrorDomain"
+                                             code:[errorCode intValue]
+                                         userInfo:@{NSLocalizedDescriptionKey: [NSString stringWithFormat:@"%ld", (long)[errorCode longValue]]}];
+        reject(@"init_recognizer_error", @"Failed to initialize one or more recognizer models", error);
+      }
     }];
-    reject(@"init_module_error", error.localizedDescription, error);
-    return;
   }];
 }
 
@@ -44,9 +51,9 @@ RCT_EXPORT_MODULE()
   @try {
     cv::Mat image = [ImageProcessor readImage:input];
     NSArray* result = [detector runModel:image];
+    cv::Size detectorSize = [detector getModelImageSize];
     cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
-    handler = [[RecognitionHandler alloc] init];
-    result = [handler recognize:result imgGray:image desiredWidth:1280 desiredHeight:1280];
+    result = [self->recognitionHandler recognize:result imgGray:image desiredWidth:detectorSize.width desiredHeight:detectorSize.height];
     resolve(result);
   } @catch (NSException *exception) {
     reject(@"forward_error", [NSString stringWithFormat:@"%@", exception.reason],

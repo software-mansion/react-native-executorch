@@ -6,15 +6,22 @@
 
 @implementation Detector {
   cv::Size originalSize;
+  cv::Size modelSize;
 }
 
 - (cv::Size)getModelImageSize{
+  if(!modelSize.empty()) {
+    return modelSize;
+  }
+  
   NSArray * inputShape = [module getInputShape: @0];
   NSNumber *widthNumber = inputShape.lastObject;
   NSNumber *heightNumber = inputShape[inputShape.count - 2];
   
   int height = [heightNumber intValue];
   int width = [widthNumber intValue];
+  modelSize = cv::Size(height, width);
+  
   return cv::Size(height, width);
 }
 
@@ -38,11 +45,11 @@
   
   cv::Mat scoreTextCV;
   cv::Mat scoreLinkCV;
+  cv::Size modelImageSize = [self getModelImageSize];
+  scoreTextCV = [DetectorUtils arrayToMat:scoreText width:modelImageSize.width / 2 height:modelImageSize.height / 2];
+  scoreLinkCV = [DetectorUtils arrayToMat:scoreLink width:modelImageSize.width / 2 height:modelImageSize.height / 2];
   
-  scoreTextCV = [DetectorUtils arrayToMat:scoreText width:640 height:640];
-  scoreLinkCV = [DetectorUtils arrayToMat:scoreLink width:640 height:640];
-  
-  NSArray* boxes = [DetectorUtils getDetBoxes:scoreTextCV linkMap:scoreLinkCV textThreshold:0.7 linkThreshold:0.4 lowText:0.4];
+  NSArray* boxes = [DetectorUtils getDetBoxes:scoreTextCV linkMap:scoreLinkCV textThreshold:textThreshold linkThreshold:linkThreshold lowText:lowText];
   NSMutableArray *single_img_result = [NSMutableArray array];
   for (NSUInteger i = 0; i < [boxes count]; i++) {
     NSArray *box = boxes[i];
@@ -57,19 +64,17 @@
     [single_img_result addObject:boxArray];
   }
   
-  NSArray* horizontalList = [DetectorUtils groupTextBox:single_img_result ycenterThs:0.5 heightThs:0.5 widthThs:0.5 addMargin:0.1];
+  NSArray* horizontalList = [DetectorUtils groupTextBox:single_img_result ycenterThs:yCenterThs heightThs:heightThs widthThs:widthThs addMargin:addMargin];
   
   NSMutableArray *boxesToKeep = [NSMutableArray array];
   
   for (NSArray *box in horizontalList) {
-    if (MAX([box[1] intValue] - [box[0] intValue], [box[3] intValue] - [box[2] intValue]) >= 20) {
-      
+    if (MAX([box[1] intValue] - [box[0] intValue], [box[3] intValue] - [box[2] intValue]) >= minSize) {
       [boxesToKeep addObject:box];
     }
   }
   
-  horizontalList = [NSMutableArray arrayWithArray:boxesToKeep];
-  return horizontalList;
+  return boxesToKeep;
 }
 
 - (NSArray *)runModel:(cv::Mat &)input {

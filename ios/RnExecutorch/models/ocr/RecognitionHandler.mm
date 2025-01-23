@@ -1,75 +1,71 @@
 #import "RecognitionHandler.h"
 #import <React/RCTBridgeModule.h>
-#import "./utils/OCRUtils.h"
-#import "../../utils/ImageProcessor.h"
-#import "./utils/CTCLabelConverter.h"
 #import "ExecutorchLib/ETModel.h"
+#import "ExecutorchLib/ETModel.h"
+#import "../../utils/ImageProcessor.h"
+#import "../../utils/Fetcher.h"
+#import "./utils/RecognizerUtils.h"
+#import "./utils/OCRUtils.h"
+#import "./utils/CTCLabelConverter.h"
+#import "Recognizer.h"
 
-@implementation RecognitionHandler
-
-- (NSArray<NSNumber *> *)indicesOfMaxValuesInMatrix:(cv::Mat)matrix {
-  NSMutableArray<NSNumber *> *maxIndices = [NSMutableArray array];
-  
-  for (int i = 0; i < matrix.rows; i++) {
-    double maxVal;
-    cv::Point maxLoc;
-    cv::minMaxLoc(matrix.row(i), NULL, &maxVal, NULL, &maxLoc);
-    [maxIndices addObject:@(maxLoc.x)];
-  }
-  
-  return [maxIndices copy];
+@implementation RecognitionHandler {
+  Recognizer *recognizerLarge;
+  Recognizer *recognizerMedium;
+  Recognizer *recognizerSmall;
+  CTCLabelConverter *converter;
 }
 
+- (instancetype)init {
+  self = [super init];
+  if (self) {
+    recognizerLarge = [[Recognizer alloc] init];
+    recognizerMedium = [[Recognizer alloc] init];
+    recognizerSmall = [[Recognizer alloc] init];
+    NSString *dictPath = [[NSBundle mainBundle] pathForResource:@"en" ofType:@"txt"];
+    converter = [[CTCLabelConverter alloc] initWithCharacters:@"0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~ €ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" separatorList:@{} dictPathList:@{@"en": dictPath}];
+  }
+  return self;
+}
 
-- (cv::Mat)divideMatrix:(cv::Mat)matrix byVector:(NSArray<NSNumber *> *)vector {
-  cv::Mat result = matrix.clone();
+- (void)loadRecognizers:(NSString *)largeRecognizerPath mediumRecognizerPath:(NSString *)mediumRecognizerPath smallRecognizerPath:(NSString *)smallRecognizerPath completion:(void (^)(BOOL, NSNumber *))completion {
+  dispatch_group_t group = dispatch_group_create();
+  __block BOOL allSuccessful = YES;
   
-  for (int i = 0; i < matrix.rows; i++) {
-    float divisor = [vector[i] floatValue];
-    for (int j = 0; j < matrix.cols; j++) {
-      result.at<float>(i, j) /= divisor;
+  NSArray<Recognizer *> *recognizers = @[recognizerLarge, recognizerMedium, recognizerSmall];
+  NSArray<NSString *> *paths = @[largeRecognizerPath, mediumRecognizerPath, smallRecognizerPath];
+  
+  for (NSInteger i = 0; i < recognizers.count; i++) {
+    Recognizer *recognizer = recognizers[i];
+    NSString *path = paths[i];
+    
+    dispatch_group_enter(group);
+    [recognizer loadModel:[NSURL URLWithString: path] completion:^(BOOL success, NSNumber *errorCode) {
+      if (!success) {
+        allSuccessful = NO;
+        dispatch_group_leave(group);
+        completion(NO, errorCode);
+        return;
+      }
+      dispatch_group_leave(group);
+    }];
+  }
+  
+  dispatch_group_notify(group, dispatch_get_main_queue(), ^{
+    if (allSuccessful) {
+      completion(YES, @(0));
     }
-  }
-  
-  return result;
-}
-
-- (cv::Mat)softmax:(cv::Mat) inputs {
-  cv::Mat maxVal;
-  cv::reduce(inputs, maxVal, 1, cv::REDUCE_MAX, CV_32F);
-  cv::Mat expInputs;
-  cv::exp(inputs - cv::repeat(maxVal, 1, inputs.cols), expInputs);
-  cv::Mat sumExp;
-  cv::reduce(expInputs, sumExp, 1, cv::REDUCE_SUM, CV_32F);
-  cv::Mat softmaxOutput = expInputs / cv::repeat(sumExp, 1, inputs.cols);
-  return softmaxOutput;
+  });
 }
 
 - (NSArray *)recognize: (NSArray *)horizontalList imgGray:(cv::Mat)imgGray desiredWidth:(int)desiredWidth desiredHeight:(int)desiredHeight {
-  const float newRatioH = (float)desiredHeight / imgGray.rows;
-  const float newRatioW = (float)desiredWidth / imgGray.cols;
-  float resizeRatio = MIN(newRatioH, newRatioW);
-  const int newWidth = imgGray.cols * resizeRatio;
-  const int newHeight = imgGray.rows * resizeRatio;
-  const int deltaW = desiredWidth - newWidth;
-  const int deltaH = desiredHeight - newHeight;
-  const int top = deltaH / 2;
-  const int left= deltaW / 2;
-  float heightRatio = (float)imgGray.rows / desiredHeight;
-  float widthRatio = (float)imgGray.cols / desiredWidth;
-  resizeRatio = MAX(heightRatio, widthRatio);
+  NSDictionary* ratioAndPadding = [RecognizerUtils calculateResizeRatioAndPaddings:imgGray.cols height:imgGray.rows desiredWidth:desiredWidth desiredHeight:desiredHeight];
   
-  NSString *modelPath = [[NSBundle mainBundle] pathForResource:@"xnnpack_crnn_512" ofType:@"pte"];
-  ETModel *recognizer_512 = [[ETModel alloc] init];
-  [recognizer_512 loadModel:modelPath];
-  ETModel *recognizer_256 = [[ETModel alloc] init];
-  modelPath = [[NSBundle mainBundle] pathForResource:@"xnnpack_crnn_256" ofType:@"pte"];
-  [recognizer_256 loadModel:modelPath];
-  ETModel *recognizer_128 = [[ETModel alloc] init];
-  modelPath = [[NSBundle mainBundle] pathForResource:@"xnnpack_crnn_128" ofType:@"pte"];
-  [recognizer_128 loadModel:modelPath];
-  
+  int left = [ratioAndPadding[@"left"] intValue];
+  int top = [ratioAndPadding[@"top"] intValue];
+  float resizeRatio = [ratioAndPadding[@"resizeRatio"] floatValue];
   imgGray = [OCRUtils resizeWithPadding:imgGray desiredWidth:desiredWidth desiredHeight:desiredHeight];
+  
   NSMutableArray *predictions = [NSMutableArray array];
   for (NSArray *box in horizontalList) {
     int maximum_y = imgGray.rows;
@@ -79,85 +75,26 @@
     int x_max = MIN([box[1] intValue], maximum_x);
     int y_min = MAX(0, [box[2] intValue]);
     int y_max = MIN([box[3] intValue], maximum_y);
-    cv::Mat croppedImage = [OCRUtils getCroppedImage:x_max x_min:x_min y_max:y_max y_min:y_min image:imgGray modelHeight:64];
+    
+    cv::Mat croppedImage = [RecognizerUtils getCroppedImage:x_max x_min:x_min y_max:y_max y_min:y_min image:imgGray modelHeight:modelHeight];
     
     
     croppedImage = [OCRUtils normalizeForRecognizer:croppedImage adjustContrast:0.0];
-    NSArray* modelInput = [ImageProcessor matToArrayForGrayscale:croppedImage];
-    NSArray<NSArray *> *result;
-    if(croppedImage.cols >= 512) {
-      result = [recognizer_512 forward:modelInput shape:[recognizer_512 getInputShape:0] inputType:[recognizer_512 getInputType:0]];
-    } else if (croppedImage.cols >= 256) {
-      result = [recognizer_256 forward:modelInput shape:[recognizer_256 getInputShape:0] inputType:[recognizer_256 getInputType:0]];
+    NSArray *result;
+    if(croppedImage.cols >= largeModelWidth) {
+      result = [recognizerLarge runModel:croppedImage];
+    } else if (croppedImage.cols >= mediumModelWidth) {
+      result = [recognizerMedium runModel: croppedImage];
     } else {
-      result = [recognizer_128 forward:modelInput shape:[recognizer_128 getInputShape:0] inputType:[recognizer_128 getInputType:0]];
+      result = [recognizerSmall runModel: croppedImage];
     }
     
-    NSInteger totalNumbers = [result.firstObject count];
-    NSInteger numRows = (totalNumbers + 96) / 97;
+    NSNumber *confidenceScore = [result objectAtIndex:1];
+    NSArray *pred_index = [result objectAtIndex:0];
     
-    cv::Mat resultMat = cv::Mat::zeros(numRows, 97, CV_32F);
+    NSArray* decodedTexts = [converter decodeGreedyWithTextIndex:pred_index length:(int)(pred_index.count)];
     
-    NSInteger counter = 0;
-    NSInteger currentRow = 0;
-    
-    for (NSNumber *num in result.firstObject) {
-      resultMat.at<float>(currentRow, counter) = [num floatValue];
-      
-      counter++;
-      if (counter >= 97) {
-        counter = 0;
-        currentRow++;
-      }
-    }
-    
-    cv::Mat probabilities = [self softmax:resultMat];
-    NSMutableArray* pred_norm = [NSMutableArray arrayWithCapacity:probabilities.rows];
-    for(int i = 0; i < probabilities.rows; i++) {
-      float sum = 0.0;
-      for(int j = 0; j < 97; j++) {
-        sum += probabilities.at<float>(i, j);
-      }
-      [pred_norm addObject:@(sum)];
-    }
-    
-    probabilities = [self divideMatrix:probabilities byVector:pred_norm];
-    NSString *dictPath = [[NSBundle mainBundle] pathForResource:@"en" ofType:@"txt"];
-    CTCLabelConverter *converter = [[CTCLabelConverter alloc] initWithCharacters:@"0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~ €ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" separatorList:@{} dictPathList:@{@"en": dictPath}];
-    NSArray* preds_index = [self indicesOfMaxValuesInMatrix:probabilities];
-    NSArray* decodedTexts = [converter decodeGreedyWithTextIndex:preds_index length:(int)(preds_index.count)];
-    NSMutableArray<NSNumber *> *valuesArray = [NSMutableArray array];
-    NSMutableArray<NSNumber *> *indicesArray = [NSMutableArray array];
-    for (int i = 0; i < probabilities.rows; i++) {
-      double maxVal = 0;
-      cv::Point maxLoc;
-      cv::minMaxLoc(probabilities.row(i), NULL, &maxVal, NULL, &maxLoc);
-      
-      [valuesArray addObject:@(maxVal)];
-      [indicesArray addObject:@(maxLoc.x)];
-    }
-    
-    NSMutableArray<NSNumber *> *predsMaxProb = [NSMutableArray array];
-    
-    for (NSUInteger index = 0; index < indicesArray.count; index++) {
-      NSNumber *indicator = indicesArray[index];
-      if ([indicator intValue] != 0) {
-        [predsMaxProb addObject:valuesArray[index]];
-      }
-    }
-    
-    
-    if (predsMaxProb.count == 0) {
-      [predsMaxProb addObject:@(0)];
-    }
-    
-    double product = 1.0;
-    for (NSNumber *prob in predsMaxProb) {
-      product *= [prob doubleValue];
-    }
-    
-    double confidenceScore = pow(product, 2.0 / sqrt(predsMaxProb.count));
-    NSDictionary *res = @{@"text": decodedTexts[0], @"bbox": @{@"x1": @((int)((x_min - left) * resizeRatio)), @"x2": @((int)((x_max - left) * resizeRatio)), @"y1": @((int)((y_min - top) * resizeRatio)), @"y2":@((int)((y_max - top) * resizeRatio))}, @"score": @(confidenceScore)};
+    NSDictionary *res = @{@"text": decodedTexts[0], @"bbox": @{@"x1": @((int)((x_min - left) * resizeRatio)), @"x2": @((int)((x_max - left) * resizeRatio)), @"y1": @((int)((y_min - top) * resizeRatio)), @"y2":@((int)((y_max - top) * resizeRatio))}, @"score": confidenceScore};
     [predictions addObject:res];
   }
   

@@ -66,25 +66,6 @@
   return img;
 }
 
-+ (cv::Mat)getCroppedImage:(int)x_max x_min:(int)x_min y_max:(int)y_max y_min:(int)y_min image:(cv::Mat)image modelHeight:(int)modelHeight {
-  cv::Rect region(x_min, y_min, x_max - x_min, y_max - y_min);
-  cv::Mat crop_img = image(region);
-  
-  int width = x_max - x_min;
-  int height = y_max - y_min;
-  
-  CGFloat ratio = [OCRUtils calculateRatioWithWidth:width height:height];
-  int new_width = (int)(modelHeight * ratio);
-  
-  if (new_width == 0) {
-    return crop_img;  // Return nil if calculated new_width is zero to avoid further processing
-  }
-  
-  crop_img = [OCRUtils computeRatioAndResize:crop_img width:width height:height modelHeight:modelHeight];
-  
-  return crop_img;
-}
-
 + (cv::Mat)adjustContrastGrey:(cv::Mat)img target:(double)target {
   double contrast = 0.0;
   int high = 0;
@@ -118,8 +99,7 @@
 
 + (cv::Mat)normalizeForRecognizer:(cv::Mat)image adjustContrast:(double)adjustContrast {
   if (adjustContrast > 0) {
-    image = [OCRUtils adjustContrastGrey:image target:adjustContrast];  // Make sure this method exists and works as expected
-  }
+    image = [OCRUtils adjustContrastGrey:image target:adjustContrast];  }
   
   int desiredWidth = 128;
   if (image.cols >= 512) {
@@ -130,9 +110,8 @@
   
   image = [OCRUtils resizeWithPadding:image desiredWidth:desiredWidth desiredHeight:64];
   
-  // Normalization: (image / 255.0 - 0.5) * 2.0
-  image.convertTo(image, CV_32F, 1.0 / 255.0);  // Scale pixel values to [0,1]
-  image = (image - 0.5) * 2.0;  // Shift to [-1,1]
+  image.convertTo(image, CV_32F, 1.0 / 255.0);
+  image = (image - 0.5) * 2.0;
   
   return image;
 }

@@ -21,7 +21,12 @@ export const OCRScreen = ({
   const [detectedText, setDetectedText] = useState<string>('');
   const model = useOCR({
     detectorSource: require('../assets/models/xnnpack_craft.pte'),
-    recognizerSources: [require('../assets/models/xnnpack_crnn_128.pte')],
+    recognizerSources: {
+      recognizer512:
+        'https://huggingface.co/nklockiewicz/ocr/resolve/main/xnnpack_crnn_512.pte',
+      recognizer256: require('../assets/models/xnnpack_crnn_256.pte'),
+      recognizer128: require('../assets/models/xnnpack_crnn_128.pte'),
+    },
   });
 
   const handleCameraPress = async (isCamera: boolean) => {
@@ -45,7 +50,6 @@ export const OCRScreen = ({
       output.forEach((detection: any) => {
         txt += detection.text + ' ';
       });
-      console.log(txt);
       setDetectedText(txt);
     } catch (e) {
       console.error(e);
@@ -57,7 +61,7 @@ export const OCRScreen = ({
       <Spinner visible={!model.isReady} textContent={`Loading the model...`} />
     );
   }
-  console.log(imageDimensions?.width, imageDimensions?.height);
+
   return (
     <>
       <View style={styles.imageContainer}>
