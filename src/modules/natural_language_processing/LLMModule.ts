@@ -14,20 +14,19 @@ export class LLMModule {
     contextWindowLength = DEFAULT_CONTEXT_WINDOW_LENGTH
   ) {
     try {
-      let modelUrl = modelSource;
-      let tokenizerUrl = tokenizerSource;
+      let modelUrl =
+        typeof modelSource === 'number'
+          ? Image.resolveAssetSource(modelSource).uri
+          : modelSource;
 
-      if (typeof modelSource === 'number') {
-        modelUrl = Image.resolveAssetSource(modelSource).uri;
-      }
-
-      if (typeof tokenizerSource === 'number') {
-        tokenizerUrl = Image.resolveAssetSource(tokenizerSource).uri;
-      }
+      let tokenizerUrl =
+        typeof tokenizerSource === 'number'
+          ? Image.resolveAssetSource(tokenizerSource).uri
+          : tokenizerSource;
 
       await LLM.loadLLM(
-        modelUrl as string,
-        tokenizerUrl as string,
+        modelUrl,
+        tokenizerUrl,
         systemPrompt,
         contextWindowLength
       );

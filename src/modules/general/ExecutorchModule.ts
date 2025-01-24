@@ -1,26 +1,10 @@
-import { Image } from 'react-native';
+import { BaseModule } from '../BaseModule';
 import { ETError, getError } from '../../Error';
 import { _ETModule } from '../../native/RnExecutorchModules';
 import { ETInput, getTypeIdentifier } from '../../types/common';
 
-export class ExecutorchModule {
+export class ExecutorchModule extends BaseModule {
   static module = new _ETModule();
-
-  static async load(modelSource: string) {
-    if (!modelSource) return;
-
-    let path = modelSource;
-
-    if (typeof modelSource === 'number') {
-      path = Image.resolveAssetSource(modelSource).uri;
-    }
-
-    try {
-      await this.module.loadModule(path);
-    } catch (e) {
-      throw new Error(getError(e));
-    }
-  }
 
   static async forward(input: ETInput, shape: number[]) {
     const inputType = getTypeIdentifier(input);
