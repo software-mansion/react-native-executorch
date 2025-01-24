@@ -18,7 +18,7 @@ import { useLLM, LLAMA3_2_1B } from 'react-native-executorch';
 
 const llama = useLLM({
   modelSource: LLAMA3_2_1B,
-  tokenizer: require('../assets/tokenizer.bin'),
+  tokenizerSource: require('../assets/tokenizer.bin'),
   contextWindowLength: 3,
 });
 ```
@@ -37,7 +37,7 @@ Given computational constraints, our architecture is designed to support only on
 
 **`modelSource`** - A string that specifies the location of the model binary. For more information, take a look at [loading models](../fundamentals/loading-models.md) section.
 
-**`tokenizer`** - URL to the binary file which contains the tokenizer
+**`tokenizerSource`** - URL to the binary file which contains the tokenizer
 
 **`contextWindowLength`** - The number of messages from the current conversation that the model will use to generate a response. The higher the number, the more context the model will have. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
 
@@ -62,7 +62,7 @@ In order to send a message to the model, one can use the following code:
 ```typescript
 const llama = useLLM(
     modelSource: LLAMA3_2_1B,
-    tokenizer: require('../assets/tokenizer.bin'),
+    tokenizerSource: require('../assets/tokenizer.bin'),
 );
 
 ...
