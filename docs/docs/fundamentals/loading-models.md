@@ -40,6 +40,6 @@ import { useLLM } from 'react-native-executorch';
 
 const llama = useLLM({
   modelSource: 'https://.../llama3_2.pte',
-  tokenizer: require('../assets/tokenizer.bin'),
+  tokenizerSource: require('../assets/tokenizer.bin'),
 });
 ```
