@@ -206,7 +206,6 @@ using namespace ::torch::executor;
              exceptionWithName:@"forward_error"
              reason:[NSString stringWithFormat:@"%d", Error::InvalidArgument]
              userInfo:nil];
-      continue;
     }
     
     inputTensors.push_back(*currentTensor);
