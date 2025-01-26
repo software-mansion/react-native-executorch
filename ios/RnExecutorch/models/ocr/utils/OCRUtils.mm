@@ -15,7 +15,6 @@
   cv::Mat resizedImg;
   cv::resize(img, resizedImg, cv::Size(newWidth, newHeight), 0, 0, cv::INTER_AREA);
   
-  // Estimating the background color by sampling from the corners of the image
   const int cornerPatchSize = MAX(1, MIN(height, width) / 30);
   std::vector<cv::Mat> corners = {
     img(cv::Rect(0, 0, cornerPatchSize, cornerPatchSize)),
@@ -45,75 +44,6 @@
   cv::copyMakeBorder(resizedImg, centeredImg, top, bottom, left, right, cv::BORDER_CONSTANT, backgroundScalar);
   
   return centeredImg;
-}
-
-+ (CGFloat)calculateRatioWithWidth:(int)width height:(int)height {
-  CGFloat ratio = (CGFloat)width / (CGFloat)height;
-  if (ratio < 1.0) {
-    ratio = 1.0 / ratio;
-  }
-  return ratio;
-}
-
-+ (cv::Mat)computeRatioAndResize:(cv::Mat)img width:(int)width height:(int)height modelHeight:(int)modelHeight {
-  CGFloat ratio = (CGFloat)width / (CGFloat)height;
-  if (ratio < 1.0) {
-    ratio = [self calculateRatioWithWidth:width height:height];
-    cv::resize(img, img, cv::Size(modelHeight, (int)(modelHeight * ratio)), 0, 0, cv::INTER_LANCZOS4);
-  } else {
-    cv::resize(img, img, cv::Size((int)(modelHeight * ratio), modelHeight), 0, 0, cv::INTER_LANCZOS4);
-  }
-  return img;
-}
-
-+ (cv::Mat)adjustContrastGrey:(cv::Mat)img target:(double)target {
-  double contrast = 0.0;
-  int high = 0;
-  int low = 255;
-  
-  // Calculate existing contrast, high, and low
-  for (int i = 0; i < img.rows; ++i) {
-    for (int j = 0; j < img.cols; ++j) {
-      uchar pixel = img.at<uchar>(i, j);
-      high = MAX(high, pixel);
-      low = MIN(low, pixel);
-    }
-  }
-  contrast = (high - low) / 255.0;
-  
-  // Adjust contrast if below the target
-  if (contrast < target) {
-    double ratio = 200.0 / MAX(10, high - low);
-    img.convertTo(img, CV_32F); // Convert to float for scaling operations
-    img = ((img - low + 25) * ratio);
-    
-    // Clipping values to ensure they remain within valid range
-    cv::threshold(img, img, 255, 255, cv::THRESH_TRUNC); // Cap values at 255
-    cv::threshold(img, img, 0, 0, cv::THRESH_TOZERO); // Ensure no negative values
-    
-    img.convertTo(img, CV_8U); // Convert back to 8-bit pixel values
-  }
-  
-  return img;
-}
-
-+ (cv::Mat)normalizeForRecognizer:(cv::Mat)image adjustContrast:(double)adjustContrast {
-  if (adjustContrast > 0) {
-    image = [OCRUtils adjustContrastGrey:image target:adjustContrast];  }
-  
-  int desiredWidth = 128;
-  if (image.cols >= 512) {
-    desiredWidth = 512;
-  } else if (image.cols >= 256) {
-    desiredWidth = 256;
-  }
-  
-  image = [OCRUtils resizeWithPadding:image desiredWidth:desiredWidth desiredHeight:64];
-  
-  image.convertTo(image, CV_32F, 1.0 / 255.0);
-  image = (image - 0.5) * 2.0;
-  
-  return image;
 }
 
 @end

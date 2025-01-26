@@ -5,9 +5,9 @@ import { OCRDetection } from '../types/ocr';
 export interface Spec extends TurboModule {
   loadModule(
     detectorSource: string,
-    recognizerSource512: string,
-    recognizerSource256: string,
-    recognizerSource128: string,
+    recognizerSourceLarge: string,
+    recognizerSourceMedium: string,
+    recognizerSourceSmall: string,
     language: string
   ): Promise<number>;
   forward(input: string): Promise<OCRDetection[]>;

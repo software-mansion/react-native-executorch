@@ -2,28 +2,6 @@
 
 @implementation DetectorUtils
 
-+ (NSArray *)matToNSArray:(const cv::Mat &)mat {
-  cv::Scalar mean(0.485, 0.456, 0.406);
-  cv::Scalar variance(0.229, 0.224, 0.225);
-  
-  int pixelCount = mat.cols * mat.rows;
-  NSMutableArray *floatArray = [[NSMutableArray alloc] initWithCapacity:pixelCount * 3];
-  for (NSUInteger k = 0; k < pixelCount * 3; k++) {
-    [floatArray addObject:@0.0];
-  }
-  
-  for (int i = 0; i < pixelCount; i++) {
-    int row = i / mat.cols;
-    int col = i % mat.cols;
-    cv::Vec3b pixel = mat.at<cv::Vec3b>(row, col);
-    floatArray[0 * pixelCount + i] = @((pixel[0] - mean[0] * 255.0) / (variance[0] * 255.0));
-    floatArray[1 * pixelCount + i] = @((pixel[1] - mean[1] * 255.0) / (variance[1] * 255.0));
-    floatArray[2 * pixelCount + i] = @((pixel[2] - mean[2] * 255.0) / (variance[2] * 255.0));
-  }
-  
-  return floatArray;
-}
-
 + (NSDictionary *)splitInterleavedNSArray:(NSArray *)array {
   NSMutableArray *scoreText = [[NSMutableArray alloc] init];
   NSMutableArray *scoreLink = [[NSMutableArray alloc] init];
@@ -39,21 +17,28 @@
   return @{@"ScoreText": scoreText, @"ScoreLink": scoreLink};
 }
 
-+ (cv::Mat)arrayToMat:(NSArray *)array width:(int)width height:(int)height {
-  cv::Mat mat(height, width, CV_32F);
-  
-  int pixelCount = width * height;
-  for (int i = 0; i < pixelCount; i++) {
-    int row = i / width;
-    int col = i % width;
-    float value = [array[i] floatValue];
-    mat.at<float>(row, col) = value;
++ (NSArray *)restoreBboxRatio:(NSArray *)boxes {
+  NSMutableArray *result = [NSMutableArray array];
+  for (NSUInteger i = 0; i < [boxes count]; i++) {
+    NSArray *box = boxes[i];
+    NSMutableArray *boxArray = [NSMutableArray arrayWithCapacity:4];
+    for (NSValue *value in box) {
+      CGPoint point = [value CGPointValue];
+      point.x *= 2;
+      point.y *= 2;
+      [boxArray addObject:@((int)point.x)];
+      [boxArray addObject:@((int)point.y)];
+    }
+    [result addObject:boxArray];
   }
   
-  return mat;
+  return result;
 }
 
 + (NSArray *)getDetBoxes:(cv::Mat)textmap linkMap:(cv::Mat)linkmap textThreshold:(double)textThreshold linkThreshold:(double)linkThreshold lowText:(double)lowText {
+  /*
+   The getDetBoxes function uses scoreMap and affinityMap to generate bounding boxes which contain text.
+   */
   cv::Mat textmapCopy = textmap.clone();
   cv::Mat linkmapCopy = linkmap.clone();
   int img_h = textmap.rows;
@@ -79,11 +64,9 @@
     cv::minMaxLoc(textmapCopy, NULL, &maxVal, NULL, NULL, mask);
     if (maxVal < textThreshold) continue;
     
-    // Create mask for segmented area
     cv::Mat segMap = cv::Mat::zeros(textmap.size(), CV_8U);
     segMap.setTo(255, (labels == i));
     
-    // Dilate the segmented area
     int x = stats.at<int>(i, cv::CC_STAT_LEFT);
     int y = stats.at<int>(i, cv::CC_STAT_TOP);
     int w = stats.at<int>(i, cv::CC_STAT_WIDTH);
@@ -134,26 +117,23 @@
   for (NSArray<NSNumber *> *poly in polys) {
     NSArray *xCoords = @[poly[0], poly[2], poly[4], poly[6]];
     
-    // Array of y coordinates
     NSArray *yCoords = @[poly[1], poly[3], poly[5], poly[7]];
     
-    // Calculating max and min values for x coordinates
     NSNumber *xMaxNumber = [xCoords valueForKeyPath:@"@max.self"];
     NSNumber *xMinNumber = [xCoords valueForKeyPath:@"@min.self"];
-    float xMax = [xMaxNumber floatValue]; // Convert max float value to int
-    float xMin = [xMinNumber floatValue]; // Convert min float value to int
+    float xMax = [xMaxNumber floatValue];
+    float xMin = [xMinNumber floatValue];
     
-    // Calculating max and min values for y coordinates
     NSNumber *yMaxNumber = [yCoords valueForKeyPath:@"@max.self"];
     NSNumber *yMinNumber = [yCoords valueForKeyPath:@"@min.self"];
-    float yMax = [yMaxNumber floatValue]; // Convert max float value to int
-    float yMin = [yMinNumber floatValue]; // Convert min float value to int
+    float yMax = [yMaxNumber floatValue];
+    float yMin = [yMinNumber floatValue];
     
     [horizontalList addObject:[@[@(xMin), @(xMax), @(yMin), @(yMax), @((yMin + yMax) / 2.0), @(yMax - yMin)] mutableCopy]];
   }
   
   [horizontalList sortUsingComparator:^NSComparisonResult(NSMutableArray<NSNumber *> *obj1, NSMutableArray<NSNumber *> *obj2) {
-    return [obj1[4] compare:obj2[4]]; // Sorting by y_center
+    return [obj1[4] compare:obj2[4]];
   }];
   
   NSMutableArray *newBox = [NSMutableArray array];
@@ -208,7 +188,6 @@
           float meanHeight = [[bHeight valueForKeyPath:@"@avg.self"] floatValue];
           if (fabs(meanHeight - currHeight) < heightThs * meanHeight &&
               ([box[0] intValue] - xMax) < widthThs * ([box[3] intValue] - [box[2] intValue])) {
-            // merge condition is met
             [bHeight addObject:box[5]];
             xMax = [box[1] intValue];
             [newBox addObject:box];
@@ -261,7 +240,7 @@
       }
     }
   }
-
+  
   return mergedList;
 }
 

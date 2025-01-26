@@ -1,19 +1,72 @@
-#import "RecognizerUtils.h"
 #import "OCRUtils.h"
+#import "RecognizerUtils.h"
 
 @implementation RecognizerUtils
 
-+ (NSArray<NSNumber *> *)indicesOfMaxValuesInMatrix:(cv::Mat)matrix {
-  NSMutableArray<NSNumber *> *maxIndices = [NSMutableArray array];
++ (CGFloat)calculateRatio:(int)width height:(int)height {
+  CGFloat ratio = (CGFloat)width / (CGFloat)height;
+  if (ratio < 1.0) {
+    ratio = 1.0 / ratio;
+  }
+  return ratio;
+}
+
++ (cv::Mat)computeRatioAndResize:(cv::Mat)img width:(int)width height:(int)height modelHeight:(int)modelHeight {
+  CGFloat ratio = (CGFloat)width / (CGFloat)height;
+  if (ratio < 1.0) {
+    ratio = [self calculateRatio:width height:height];
+    cv::resize(img, img, cv::Size(modelHeight, (int)(modelHeight * ratio)), 0, 0, cv::INTER_LANCZOS4);
+  } else {
+    cv::resize(img, img, cv::Size((int)(modelHeight * ratio), modelHeight), 0, 0, cv::INTER_LANCZOS4);
+  }
+  return img;
+}
+
++ (cv::Mat)adjustContrastGrey:(cv::Mat)img target:(double)target {
+  double contrast = 0.0;
+  int high = 0;
+  int low = 255;
   
-  for (int i = 0; i < matrix.rows; i++) {
-    double maxVal;
-    cv::Point maxLoc;
-    cv::minMaxLoc(matrix.row(i), NULL, &maxVal, NULL, &maxLoc);
-    [maxIndices addObject:@(maxLoc.x)];
+  for (int i = 0; i < img.rows; ++i) {
+    for (int j = 0; j < img.cols; ++j) {
+      uchar pixel = img.at<uchar>(i, j);
+      high = MAX(high, pixel);
+      low = MIN(low, pixel);
+    }
+  }
+  contrast = (high - low) / 255.0;
+  
+  if (contrast < target) {
+    double ratio = 200.0 / MAX(10, high - low);
+    img.convertTo(img, CV_32F);
+    img = ((img - low + 25) * ratio);
+    
+    cv::threshold(img, img, 255, 255, cv::THRESH_TRUNC);
+    cv::threshold(img, img, 0, 0, cv::THRESH_TOZERO);
+    
+    img.convertTo(img, CV_8U);
   }
   
-  return [maxIndices copy];
+  return img;
+}
+
++ (cv::Mat)normalizeForRecognizer:(cv::Mat)image adjustContrast:(double)adjustContrast {
+  if (adjustContrast > 0) {
+    image = [self adjustContrastGrey:image target:adjustContrast];  }
+  
+  int desiredWidth = 128;
+  if (image.cols >= 512) {
+    desiredWidth = 512;
+  } else if (image.cols >= 256) {
+    desiredWidth = 256;
+  }
+  
+  image = [OCRUtils resizeWithPadding:image desiredWidth:desiredWidth desiredHeight:64];
+  
+  image.convertTo(image, CV_32F, 1.0 / 255.0);
+  image = (image - 0.5) * 2.0;
+  
+  return image;
 }
 
 + (cv::Mat)divideMatrix:(cv::Mat)matrix byVector:(NSArray<NSNumber *> *)vector {
@@ -69,16 +122,59 @@
   int width = x_max - x_min;
   int height = y_max - y_min;
   
-  CGFloat ratio = [OCRUtils calculateRatioWithWidth:width height:height];
+  CGFloat ratio = [self calculateRatio:width height:height];
   int new_width = (int)(modelHeight * ratio);
   
   if (new_width == 0) {
     return crop_img;
   }
   
-  crop_img = [OCRUtils computeRatioAndResize:crop_img width:width height:height modelHeight:modelHeight];
+  crop_img = [self computeRatioAndResize:crop_img width:width height:height modelHeight:modelHeight];
   
   return crop_img;
+}
+
++ (NSMutableArray *)sumProbabilityRows:(cv::Mat)probabilities modelOutputHeight:(int)modelOutputHeight {
+  NSMutableArray *predsNorm = [NSMutableArray arrayWithCapacity:probabilities.rows];
+  for (int i = 0; i < probabilities.rows; i++) {
+    float sum = 0.0;
+    for (int j = 0; j < modelOutputHeight; j++) {
+      sum += probabilities.at<float>(i, j);
+    }
+    [predsNorm addObject:@(sum)];
+  }
+  return predsNorm;
+}
+
++ (NSArray *)findMaxValuesAndIndices:(cv::Mat)probabilities {
+  NSMutableArray *valuesArray = [NSMutableArray array];
+  NSMutableArray *indicesArray = [NSMutableArray array];
+  for (int i = 0; i < probabilities.rows; i++) {
+    double maxVal = 0;
+    cv::Point maxLoc;
+    cv::minMaxLoc(probabilities.row(i), NULL, &maxVal, NULL, &maxLoc);
+    [valuesArray addObject:@(maxVal)];
+    [indicesArray addObject:@(maxLoc.x)];
+  }
+  return @[valuesArray, indicesArray];
+}
+
++ (double)computeConfidenceScore:(NSArray<NSNumber *> *)valuesArray indicesArray:(NSArray<NSNumber *> *)indicesArray {
+  NSMutableArray *predsMaxProb = [NSMutableArray array];
+  for (NSUInteger index = 0; index < indicesArray.count; index++) {
+    NSNumber *indicator = indicesArray[index];
+    if ([indicator intValue] != 0) {
+      [predsMaxProb addObject:valuesArray[index]];
+    }
+  }
+  if (predsMaxProb.count == 0) {
+    [predsMaxProb addObject:@(0)];
+  }
+  double product = 1.0;
+  for (NSNumber *prob in predsMaxProb) {
+    product *= [prob doubleValue];
+  }
+  return pow(product, 2.0 / sqrt(predsMaxProb.count));
 }
 
 @end

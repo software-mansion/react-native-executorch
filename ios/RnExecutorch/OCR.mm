@@ -1,7 +1,6 @@
-#import "OCR.h"
-#import "models/object_detection/SSDLiteLargeModel.hpp"
 #import <ExecutorchLib/ETModel.h>
 #import <React/RCTBridgeModule.h>
+#import "OCR.h"
 #import "utils/ImageProcessor.h"
 #import "models/ocr/Detector.h"
 #import "models/ocr/RecognitionHandler.h"
@@ -14,9 +13,9 @@
 RCT_EXPORT_MODULE()
 
 - (void)loadModule:(NSString *)detectorSource
-recognizerSource512:(NSString *)recognizerSource512
-recognizerSource256:(NSString *)recognizerSource256
-recognizerSource128:(NSString *)recognizerSource128
+recognizerSourceLarge:(NSString *)recognizerSourceLarge
+recognizerSourceMedium:(NSString *)recognizerSourceMedium
+recognizerSourceSmall:(NSString *)recognizerSourceSmall
           language:(NSString *)language
            resolve:(RCTPromiseResolveBlock)resolve
             reject:(RCTPromiseRejectBlock)reject {
@@ -32,7 +31,7 @@ recognizerSource128:(NSString *)recognizerSource128
       return;
     }
     
-    [self->recognitionHandler loadRecognizers:recognizerSource512 mediumRecognizerPath:recognizerSource256 smallRecognizerPath:recognizerSource128 completion:^(BOOL allModelsLoaded, NSNumber *errorCode) {
+    [self->recognitionHandler loadRecognizers:recognizerSourceLarge mediumRecognizerPath:recognizerSourceMedium smallRecognizerPath:recognizerSourceSmall completion:^(BOOL allModelsLoaded, NSNumber *errorCode) {
       if (allModelsLoaded) {
         resolve(@(YES));
       } else {
@@ -48,6 +47,13 @@ recognizerSource128:(NSString *)recognizerSource128
 - (void)forward:(NSString *)input
         resolve:(RCTPromiseResolveBlock)resolve
          reject:(RCTPromiseRejectBlock)reject {
+  /*
+   The OCR consists of two phases:
+   1. Detection - detecting text regions in the image, the result of this phase is a list of bounding boxes.
+   2. Recognition - recognizing the text in the bounding boxes, the result is a list of strings and corresponding confidence scores.
+   
+   Recognition uses three models, each model is resposible for recognizing text of different sizes (e.g. large - 512x64, medium - 256x64, small - 128x64).
+   */
   @try {
     cv::Mat image = [ImageProcessor readImage:input];
     NSArray* result = [detector runModel:image];

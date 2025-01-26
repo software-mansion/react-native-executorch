@@ -47,36 +47,31 @@
   _dictList = [tempDictList copy];
 }
 
-- (NSArray<NSString *> *)decodeGreedyWithTextIndex:(NSArray<NSNumber *> *)textIndex length:(NSInteger)length {
+- (NSArray<NSString *> *)decodeGreedy:(NSArray<NSNumber *> *)textIndex length:(NSInteger)length {
   NSMutableArray<NSString *> *texts = [NSMutableArray array];
   NSUInteger index = 0;
   
-  // Loop until you've processed all characters
   while (index < textIndex.count) {
-    NSUInteger segmentLength = MIN(length, textIndex.count - index); // Calculate size of the current segment
+    NSUInteger segmentLength = MIN(length, textIndex.count - index);
     NSRange range = NSMakeRange(index, segmentLength);
     NSArray<NSNumber *> *subArray = [textIndex subarrayWithRange:range];
     
     NSMutableString *text = [NSMutableString string];
     NSNumber *lastChar = nil;
     
-    // Creating mutable arrays to store states like in Python with `a` and `b`
-    NSMutableArray<NSNumber *> *isNotRepeated = [NSMutableArray arrayWithObject:@YES]; // First character is always not repeated
+    NSMutableArray<NSNumber *> *isNotRepeated = [NSMutableArray arrayWithObject:@YES];
     NSMutableArray<NSNumber *> *isNotIgnored = [NSMutableArray array];
     
     for (NSUInteger i = 0; i < subArray.count; i++) {
       NSNumber *currentChar = subArray[i];
-      // Check if character is repeated
-      if (i > 0) { // From second character onward
+      if (i > 0) {
         [isNotRepeated addObject:@(![lastChar isEqualToNumber:currentChar])];
       }
-      // Check if the current character is in the ignore list
       [isNotIgnored addObject:@(![self.ignoreIdx containsObject:currentChar])];
       
-      lastChar = currentChar;  // Update lastChar to current character
+      lastChar = currentChar;
     }
     
-    // Combine `isNotRepeated` and `isNotIgnored` conditions just like combining 'a' and 'b' in Python
     for (NSUInteger j = 0; j < subArray.count; j++) {
       if ([isNotRepeated[j] boolValue] && [isNotIgnored[j] boolValue]) {
         NSUInteger charIndex = [subArray[j] unsignedIntegerValue];
@@ -85,9 +80,9 @@
     }
     
     [texts addObject:text.copy];
-    index += segmentLength; // Move index forward
+    index += segmentLength;
     
-    if (segmentLength < length) {  // If reached the end of textIndex
+    if (segmentLength < length) {
       break;
     }
   }

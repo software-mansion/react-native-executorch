@@ -1,13 +1,17 @@
-#import "RecognitionHandler.h"
 #import <React/RCTBridgeModule.h>
 #import "ExecutorchLib/ETModel.h"
-#import "ExecutorchLib/ETModel.h"
-#import "../../utils/ImageProcessor.h"
 #import "../../utils/Fetcher.h"
-#import "./utils/RecognizerUtils.h"
-#import "./utils/OCRUtils.h"
+#import "../../utils/ImageProcessor.h"
 #import "./utils/CTCLabelConverter.h"
+#import "./utils/OCRUtils.h"
+#import "./utils/RecognizerUtils.h"
 #import "Recognizer.h"
+#import "RecognitionHandler.h"
+
+/*
+ RecognitionHandler class is responsible for loading and choosing the appropriate recognizer model based on the input image size,
+ it also handles converting the model output to text.
+ */
 
 @implementation RecognitionHandler {
   Recognizer *recognizerLarge;
@@ -79,7 +83,7 @@
     cv::Mat croppedImage = [RecognizerUtils getCroppedImage:x_max x_min:x_min y_max:y_max y_min:y_min image:imgGray modelHeight:modelHeight];
     
     
-    croppedImage = [OCRUtils normalizeForRecognizer:croppedImage adjustContrast:0.0];
+    croppedImage = [RecognizerUtils normalizeForRecognizer:croppedImage adjustContrast:0.0];
     NSArray *result;
     if(croppedImage.cols >= largeModelWidth) {
       result = [recognizerLarge runModel:croppedImage];
@@ -92,7 +96,7 @@
     NSNumber *confidenceScore = [result objectAtIndex:1];
     NSArray *pred_index = [result objectAtIndex:0];
     
-    NSArray* decodedTexts = [converter decodeGreedyWithTextIndex:pred_index length:(int)(pred_index.count)];
+    NSArray* decodedTexts = [converter decodeGreedy:pred_index length:(int)(pred_index.count)];
     
     NSDictionary *res = @{@"text": decodedTexts[0], @"bbox": @{@"x1": @((int)((x_min - left) * resizeRatio)), @"x2": @((int)((x_max - left) * resizeRatio)), @"y1": @((int)((y_min - top) * resizeRatio)), @"y2":@((int)((y_max - top) * resizeRatio))}, @"score": confidenceScore};
     [predictions addObject:res];

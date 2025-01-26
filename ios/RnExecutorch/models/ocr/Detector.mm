@@ -1,8 +1,12 @@
-#import "opencv2/opencv.hpp"
 #import "Detector.h"
 #import "../../utils/ImageProcessor.h"
 #import "utils/DetectorUtils.h"
 #import "utils/OCRUtils.h"
+
+/*
+ The model used as detector is based on CRAFT (Character Region Awareness for Text Detection) paper.
+ https://arxiv.org/pdf/1904.01941
+ */
 
 @implementation Detector {
   cv::Size originalSize;
@@ -26,17 +30,30 @@
 }
 
 - (NSArray *)preprocess:(cv::Mat &)input {
+  /*
+   Detector as an input accepts tensor with a shape of [1, 3, 1280, 1280].
+   Due to big influence of resize to quality of recognition the image preserves original
+   aspect ratio and the missing parts are filled with padding.
+   */
   self->originalSize = cv::Size(input.cols, input.rows);
   
   cv::Size modelImageSize = [self getModelImageSize];
   cv::Mat resizedImage;
   resizedImage = [OCRUtils resizeWithPadding:input desiredWidth:modelImageSize.width desiredHeight:modelImageSize.height];
   
-  NSArray *modelInput = [DetectorUtils matToNSArray: resizedImage];
+  NSArray *modelInput = [ImageProcessor matToNSArray: resizedImage mean:mean variance:variance];
   return modelInput;
 }
 
 - (NSArray *)postprocess:(NSArray *)output {
+  /*
+   The output of the model consists of two matrices:
+   1. ScoreText(Score map) - The probability of a region containing character
+   2. ScoreLink(Affinity map) - The probability of a region being a part of a text line
+   Both matrices are 640x640
+   
+   The result of this step is a list of bounding boxes that contain text.
+   */
   NSArray *predictions = [output objectAtIndex:0];
   
   NSDictionary *splittedData = [DetectorUtils splitInterleavedNSArray:predictions];
@@ -46,25 +63,13 @@
   cv::Mat scoreTextCV;
   cv::Mat scoreLinkCV;
   cv::Size modelImageSize = [self getModelImageSize];
-  scoreTextCV = [DetectorUtils arrayToMat:scoreText width:modelImageSize.width / 2 height:modelImageSize.height / 2];
-  scoreLinkCV = [DetectorUtils arrayToMat:scoreLink width:modelImageSize.width / 2 height:modelImageSize.height / 2];
   
-  NSArray* boxes = [DetectorUtils getDetBoxes:scoreTextCV linkMap:scoreLinkCV textThreshold:textThreshold linkThreshold:linkThreshold lowText:lowText];
-  NSMutableArray *single_img_result = [NSMutableArray array];
-  for (NSUInteger i = 0; i < [boxes count]; i++) {
-    NSArray *box = boxes[i];
-    NSMutableArray *boxArray = [NSMutableArray arrayWithCapacity:4];
-    for (NSValue *value in box) {
-      CGPoint point = [value CGPointValue];
-      point.x *= 2;
-      point.y *= 2;
-      [boxArray addObject:@((int)point.x)];
-      [boxArray addObject:@((int)point.y)];
-    }
-    [single_img_result addObject:boxArray];
-  }
+  scoreTextCV = [ImageProcessor arrayToMatGray:scoreText width:modelImageSize.width / 2 height:modelImageSize.height / 2];
+  scoreLinkCV = [ImageProcessor arrayToMatGray:scoreLink width:modelImageSize.width / 2 height:modelImageSize.height / 2];
   
-  NSArray* horizontalList = [DetectorUtils groupTextBox:single_img_result ycenterThs:yCenterThs heightThs:heightThs widthThs:widthThs addMargin:addMargin];
+  NSArray* horizontalList = [DetectorUtils getDetBoxes:scoreTextCV linkMap:scoreLinkCV textThreshold:textThreshold linkThreshold:linkThreshold lowText:lowText];
+  horizontalList = [DetectorUtils restoreBboxRatio:horizontalList];
+  horizontalList = [DetectorUtils groupTextBox:horizontalList ycenterThs:yCenterThs heightThs:heightThs widthThs:widthThs addMargin:addMargin];
   
   NSMutableArray *boxesToKeep = [NSMutableArray array];
   
