@@ -26,7 +26,9 @@ export const useOCR = ({
 }: {
   detectorSource: ResourceSource;
   recognizerSources: {
-    [key: string]: ResourceSource;
+    recognizerLarge: ResourceSource;
+    recognizerMedium: ResourceSource;
+    recognizerSmall: ResourceSource;
   };
   language?: string;
 }): OCRModule => {
@@ -40,21 +42,26 @@ export const useOCR = ({
         return;
 
       const detectorPath = getModelPath(detectorSource);
-      const recognizerPaths: {
-        [key: string]: string;
-      } = {};
-      Object.keys(recognizerSources).forEach((key: string) => {
-        recognizerPaths[key] = getModelPath(
-          recognizerSources[key] as ResourceSource
-        );
-      });
+      const recognizerPaths = {} as {
+        recognizerLarge: string;
+        recognizerMedium: string;
+        recognizerSmall: string;
+      };
+
+      for (const key in recognizerSources) {
+        if (recognizerSources.hasOwnProperty(key)) {
+          recognizerPaths[key as keyof typeof recognizerPaths] = getModelPath(
+            recognizerSources[key as keyof typeof recognizerSources]
+          );
+        }
+      }
       try {
         setIsReady(false);
         await OCR.loadModule(
           detectorPath,
-          recognizerPaths.recognizer512,
-          recognizerPaths.recognizer256,
-          recognizerPaths.recognizer128,
+          recognizerPaths.recognizerLarge,
+          recognizerPaths.recognizerMedium,
+          recognizerPaths.recognizerSmall,
           language
         );
         setIsReady(true);

@@ -22,10 +22,10 @@ export const OCRScreen = ({
   const model = useOCR({
     detectorSource: require('../assets/models/xnnpack_craft.pte'),
     recognizerSources: {
-      recognizer512:
+      recognizerLarge:
         'https://huggingface.co/nklockiewicz/ocr/resolve/main/xnnpack_crnn_512.pte',
-      recognizer256: require('../assets/models/xnnpack_crnn_256.pte'),
-      recognizer128: require('../assets/models/xnnpack_crnn_128.pte'),
+      recognizerMedium: require('../assets/models/xnnpack_crnn_256.pte'),
+      recognizerSmall: require('../assets/models/xnnpack_crnn_128.pte'),
     },
   });
 
@@ -38,6 +38,7 @@ export const OCRScreen = ({
     if (typeof uri === 'string') {
       setImageUri(uri as string);
       setResults([]);
+      setDetectedText('');
     }
   };
 
