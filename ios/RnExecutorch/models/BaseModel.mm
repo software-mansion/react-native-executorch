@@ -17,6 +17,13 @@
   return result;
 }
 
+- (NSArray *)forward:(NSArray *)inputs
+              shapes:(NSArray *)shapes
+          inputTypes:(NSArray *)inputTypes {
+  NSArray *result = [module forward:inputs shapes:shapes inputTypes:inputTypes];
+  return result;
+}
+
 - (void)loadModel:(NSURL *)modelURL
        completion:(void (^)(BOOL success, NSNumber *code))completion {
   module = [[ETModel alloc] init];
