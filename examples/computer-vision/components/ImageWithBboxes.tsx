@@ -68,13 +68,7 @@ export default function ImageWithBboxes({
         const height = (y2 - y1) * scaleY;
 
         return (
-          <View
-            key={index}
-            style={[
-              styles.bbox,
-              { left, top, width, height, borderColor: 'red' },
-            ]}
-          >
+          <View key={index} style={[styles.bbox, { left, top, width, height }]}>
             <Text style={styles.label}>
               {detection.label} ({(detection.score * 100).toFixed(1)}%)
             </Text>
@@ -98,6 +92,7 @@ const styles = StyleSheet.create({
   bbox: {
     position: 'absolute',
     borderWidth: 2,
+    borderColor: 'red',
   },
   label: {
     position: 'absolute',

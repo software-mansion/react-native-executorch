@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { _ETModule } from './native/RnExecutorchModules';
-import { getError } from './Error';
-import { ExecutorchModule } from './types/common';
-import { useModule } from './useModule';
+import { _ETModule } from '../../native/RnExecutorchModules';
+import { useModule } from '../../useModule';
+import { ETInput } from '../../types/common';
+import { getError } from '../../Error';
 
 interface Props {
   modelSource: string | number;
@@ -10,7 +10,14 @@ interface Props {
 
 export const useExecutorchModule = ({
   modelSource,
-}: Props): ExecutorchModule => {
+}: Props): {
+  error: string | null;
+  isReady: boolean;
+  isGenerating: boolean;
+  forward: (input: ETInput, shape: number[]) => Promise<number[][]>;
+  loadMethod: (methodName: string) => Promise<void>;
+  loadForward: () => Promise<void>;
+} => {
   const [module] = useState(() => new _ETModule());
   const {
     error,

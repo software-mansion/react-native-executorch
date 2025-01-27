@@ -46,13 +46,6 @@ interface Detection {
   label: keyof typeof CocoLabel;
   score: number;
 }
-
-interface ObjectDetectionModule {
-  error: string | null;
-  isReady: boolean;
-  isGenerating: boolean;
-  forward: (input: string) => Promise<Detection[]>;
-}
 ```
 
 </details>
@@ -116,6 +109,7 @@ function App() {
 
   const runModel = async () => {
     const detections = await ssdlite.forward('https://url-to-image.jpg');
+
     for (const detection of detections) {
       console.log('Bounding box: ', detection.bbox);
       console.log('Bounding label: ', detection.label);

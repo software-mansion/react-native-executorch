@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { EventSubscription, Image } from 'react-native';
-import { ResourceSource, Model } from './types/common';
+import { ResourceSource, Model } from '../../types/common';
 import {
   DEFAULT_CONTEXT_WINDOW_LENGTH,
   DEFAULT_SYSTEM_PROMPT,
   EOT_TOKEN,
-} from './constants/llamaDefaults';
-import { LLM } from './native/RnExecutorchModules';
+} from '../../constants/llamaDefaults';
+import { LLM } from '../../native/RnExecutorchModules';
 
 const interrupt = () => {
   LLM.interrupt();

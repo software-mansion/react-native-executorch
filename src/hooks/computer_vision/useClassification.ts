@@ -1,21 +1,19 @@
 import { useState } from 'react';
-import { _ClassificationModule } from '../native/RnExecutorchModules';
-import { useModule } from '../useModule';
+import { _ClassificationModule } from '../../native/RnExecutorchModules';
+import { useModule } from '../../useModule';
 
 interface Props {
   modelSource: string | number;
 }
 
-interface ClassificationModule {
+export const useClassification = ({
+  modelSource,
+}: Props): {
   error: string | null;
   isReady: boolean;
   isGenerating: boolean;
   forward: (input: string) => Promise<{ [category: string]: number }>;
-}
-
-export const useClassification = ({
-  modelSource,
-}: Props): ClassificationModule => {
+} => {
   const [module, _] = useState(() => new _ClassificationModule());
   const {
     error,
