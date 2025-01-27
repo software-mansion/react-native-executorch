@@ -3,13 +3,12 @@ import { Image } from 'react-native';
 import { ETError, getError } from './Error';
 import { ETInput, module } from './types/common';
 
-const getTypeIdentifier = (arr: ETInput): number => {
-  if (arr instanceof Int8Array) return 0;
-  if (arr instanceof Int32Array) return 1;
-  if (arr instanceof BigInt64Array) return 2;
-  if (arr instanceof Float32Array) return 3;
-  if (arr instanceof Float64Array) return 4;
-
+const getTypeIdentifier = (input: ETInput): number => {
+  if (input instanceof Int8Array) return 1;
+  if (input instanceof Int32Array) return 3;
+  if (input instanceof BigInt64Array) return 4;
+  if (input instanceof Float32Array) return 6;
+  if (input instanceof Float64Array) return 7;
   return -1;
 };
 
@@ -22,7 +21,10 @@ interface _Module {
   error: string | null;
   isReady: boolean;
   isGenerating: boolean;
-  forwardETInput: (input: ETInput, shape: number[]) => Promise<any>;
+  forwardETInput: (
+    input: ETInput[] | ETInput,
+    shape: number[][]
+  ) => Promise<any>;
   forwardImage: (input: string) => Promise<any>;
 }
 
@@ -71,7 +73,10 @@ export const useModule = ({ modelSource, module }: Props): _Module => {
     }
   };
 
-  const forwardETInput = async (input: ETInput, shape: number[]) => {
+  const forwardETInput = async (
+    input: ETInput[] | ETInput,
+    shape: number[][] | number[]
+  ) => {
     if (!isReady) {
       throw new Error(getError(ETError.ModuleNotLoaded));
     }
@@ -79,15 +84,28 @@ export const useModule = ({ modelSource, module }: Props): _Module => {
       throw new Error(getError(ETError.ModelGenerating));
     }
 
-    const inputType = getTypeIdentifier(input);
-    if (inputType === -1) {
-      throw new Error(getError(ETError.InvalidArgument));
+    if (!Array.isArray(input)) {
+      input = [input];
+    }
+    let inputTypeIdentifiers = [];
+    let modelInputs = [];
+
+    for (let idx = 0; idx < input.length; idx++) {
+      let currentInputTypeIdentifier = getTypeIdentifier(input[idx] as ETInput);
+      if (currentInputTypeIdentifier == -1) {
+        throw new Error(getError(ETError.InvalidArgument));
+      }
+      inputTypeIdentifiers.push(currentInputTypeIdentifier);
+      modelInputs.push([...(input[idx] as ETInput)]);
     }
 
     try {
-      const numberArray = [...input];
       setIsGenerating(true);
-      const output = await module.forward(numberArray, shape, inputType);
+      const output = await module.forward(
+        modelInputs,
+        shape,
+        inputTypeIdentifiers
+      );
       setIsGenerating(false);
       return output;
     } catch (e) {
@@ -96,5 +114,11 @@ export const useModule = ({ modelSource, module }: Props): _Module => {
     }
   };
 
-  return { error, isReady, isGenerating, forwardETInput, forwardImage };
+  return {
+    error,
+    isReady,
+    isGenerating,
+    forwardETInput,
+    forwardImage,
+  };
 };

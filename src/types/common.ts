@@ -30,7 +30,7 @@ export interface ExecutorchModule {
   error: string | null;
   isReady: boolean;
   isGenerating: boolean;
-  forward: (input: ETInput, shape: number[]) => Promise<number[][]>;
+  forward: (inputs: ETInput[] | ETInput, shapes: number[][]) => Promise<any>;
   loadMethod: (methodName: string) => Promise<void>;
   loadForward: () => Promise<void>;
 }

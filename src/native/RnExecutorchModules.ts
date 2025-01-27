@@ -100,11 +100,11 @@ class _ClassificationModule {
 
 class _ETModule {
   async forward(
-    input: number[],
-    shape: number[],
-    inputType: number
-  ): Promise<number[]> {
-    return await ETModule.forward(input, shape, inputType);
+    inputs: number[],
+    shapes: number[],
+    inputTypes: number[]
+  ): Promise<number[][]> {
+    return await ETModule.forward(inputs, shapes, inputTypes);
   }
   async loadModule(modelSource: string) {
     return await ETModule.loadModule(modelSource);
