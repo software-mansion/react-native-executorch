@@ -27,6 +27,7 @@ export const OCRScreen = ({
       recognizerMedium: require('../assets/models/xnnpack_crnn_256.pte'),
       recognizerSmall: require('../assets/models/xnnpack_crnn_128.pte'),
     },
+    language: 'en',
   });
 
   const handleCameraPress = async (isCamera: boolean) => {

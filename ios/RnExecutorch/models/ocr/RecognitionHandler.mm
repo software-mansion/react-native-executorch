@@ -20,14 +20,14 @@
   CTCLabelConverter *converter;
 }
 
-- (instancetype)init {
+- (instancetype)initWithSymbols:(NSString *)symbols languageDictPath:(NSString *)languageDictPath {
   self = [super init];
   if (self) {
     recognizerLarge = [[Recognizer alloc] init];
     recognizerMedium = [[Recognizer alloc] init];
     recognizerSmall = [[Recognizer alloc] init];
-    NSString *dictPath = [[NSBundle mainBundle] pathForResource:@"en" ofType:@"txt"];
-    converter = [[CTCLabelConverter alloc] initWithCharacters:@"0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~ €ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" separatorList:@{} dictPathList:@{@"en": dictPath}];
+    
+    converter = [[CTCLabelConverter alloc] initWithCharacters:symbols separatorList:@{} dictPathList:@{@"key": languageDictPath}];
   }
   return self;
 }

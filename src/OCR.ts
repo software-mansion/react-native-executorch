@@ -4,6 +4,8 @@ import { OCR } from './native/RnExecutorchModules';
 import { ETError, getError } from './Error';
 import { Image } from 'react-native';
 import { OCRDetection } from './types/ocr';
+import { symbols } from './constants/ocr/symbols';
+import { languageDicts } from './constants/ocr/languageDicts';
 
 interface OCRModule {
   error: string | null;
@@ -12,7 +14,7 @@ interface OCRModule {
   forward: (input: string) => Promise<OCRDetection[]>;
 }
 
-const getModelPath = (source: ResourceSource) => {
+const getResourcePath = (source: ResourceSource) => {
   if (typeof source === 'number') {
     return Image.resolveAssetSource(source).uri;
   }
@@ -41,20 +43,29 @@ export const useOCR = ({
       if (!detectorSource || Object.keys(recognizerSources).length === 0)
         return;
 
-      const detectorPath = getModelPath(detectorSource);
+      const detectorPath = getResourcePath(detectorSource);
       const recognizerPaths = {} as {
         recognizerLarge: string;
         recognizerMedium: string;
         recognizerSmall: string;
       };
 
+      if (!symbols[language] || !languageDicts[language]) {
+        setError(getError(ETError.LanguageNotSupported));
+        return;
+      }
+
       for (const key in recognizerSources) {
         if (recognizerSources.hasOwnProperty(key)) {
-          recognizerPaths[key as keyof typeof recognizerPaths] = getModelPath(
-            recognizerSources[key as keyof typeof recognizerSources]
-          );
+          recognizerPaths[key as keyof typeof recognizerPaths] =
+            getResourcePath(
+              recognizerSources[key as keyof typeof recognizerSources]
+            );
         }
       }
+
+      const languageDictPath = getResourcePath(languageDicts[language]);
+
       try {
         setIsReady(false);
         await OCR.loadModule(
@@ -62,7 +73,8 @@ export const useOCR = ({
           recognizerPaths.recognizerLarge,
           recognizerPaths.recognizerMedium,
           recognizerPaths.recognizerSmall,
-          language
+          symbols.default + symbols[language]!,
+          languageDictPath
         );
         setIsReady(true);
       } catch (e) {
