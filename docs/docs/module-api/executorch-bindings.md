@@ -76,7 +76,6 @@ const executorchModule = useExecutorchModule({
 });
 ```
 
-
 ## Setting up input parameters
 
 To prepare the input for the model, define the shape of the input tensor. This shape depends on the model's requirements. For the `STYLE_TRANSFER_CANDY` model, we need a tensor of shape `[1, 3, 640, 640]`, corresponding to a batch size of 1, 3 color channels (RGB), and dimensions of 640x640 pixels.
