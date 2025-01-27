@@ -36,9 +36,6 @@
 }
 
 + (NSArray *)getDetBoxes:(cv::Mat)textmap linkMap:(cv::Mat)linkmap textThreshold:(double)textThreshold linkThreshold:(double)linkThreshold lowText:(double)lowText {
-  /*
-   The getDetBoxes function uses scoreMap and affinityMap to generate bounding boxes which contain text.
-   */
   cv::Mat textmapCopy = textmap.clone();
   cv::Mat linkmapCopy = linkmap.clone();
   int img_h = textmap.rows;
@@ -104,72 +101,54 @@
   return detectedBoxes;
 }
 
-+ (NSArray<NSArray<NSNumber *> *> *)groupTextBox:(NSArray<NSArray<NSNumber *> *> *)polys
-                                      ycenterThs:(CGFloat)ycenterThs
-                                       heightThs:(CGFloat)heightThs
-                                        widthThs:(CGFloat)widthThs
-                                       addMargin:(CGFloat)addMargin
-{
-  NSMutableArray<NSMutableArray<NSNumber *> *> *horizontalList = [NSMutableArray array];
-  NSMutableArray<NSMutableArray<NSArray<NSNumber *> *> *> *combinedList = [NSMutableArray array];
-  NSMutableArray<NSArray<NSNumber *> *> *mergedList = [NSMutableArray array];
-  
-  for (NSArray<NSNumber *> *poly in polys) {
++ (NSMutableArray *)prepareBoxesFromPolys:(NSArray *)polys {
+  NSMutableArray *boxes = [NSMutableArray array];
+  for (NSArray *poly in polys) {
     NSArray *xCoords = @[poly[0], poly[2], poly[4], poly[6]];
-    
     NSArray *yCoords = @[poly[1], poly[3], poly[5], poly[7]];
-    
-    NSNumber *xMaxNumber = [xCoords valueForKeyPath:@"@max.self"];
-    NSNumber *xMinNumber = [xCoords valueForKeyPath:@"@min.self"];
-    float xMax = [xMaxNumber floatValue];
-    float xMin = [xMinNumber floatValue];
-    
-    NSNumber *yMaxNumber = [yCoords valueForKeyPath:@"@max.self"];
-    NSNumber *yMinNumber = [yCoords valueForKeyPath:@"@min.self"];
-    float yMax = [yMaxNumber floatValue];
-    float yMin = [yMinNumber floatValue];
-    
-    [horizontalList addObject:[@[@(xMin), @(xMax), @(yMin), @(yMax), @((yMin + yMax) / 2.0), @(yMax - yMin)] mutableCopy]];
+    NSNumber *xMin = [xCoords valueForKeyPath:@"@min.self"];
+    NSNumber *xMax = [xCoords valueForKeyPath:@"@max.self"];
+    NSNumber *yMin = [yCoords valueForKeyPath:@"@min.self"];
+    NSNumber *yMax = [yCoords valueForKeyPath:@"@max.self"];
+    [boxes addObject:@[xMin, xMax, yMin, yMax, @(([yMin floatValue] + [yMax floatValue]) / 2.0), @([yMax floatValue] - [yMin floatValue])]];
   }
+  return boxes;
+}
+
++ (NSMutableArray *)combineBoxes:(NSMutableArray *)boxes withYCenterThs:(CGFloat)ycenterThs heightThs:(CGFloat)heightThs {
+  NSMutableArray *combinedBoxes = [NSMutableArray array];
+  NSMutableArray *currentGroup = [NSMutableArray array];
   
-  [horizontalList sortUsingComparator:^NSComparisonResult(NSMutableArray<NSNumber *> *obj1, NSMutableArray<NSNumber *> *obj2) {
-    return [obj1[4] compare:obj2[4]];
-  }];
-  
-  NSMutableArray *newBox = [NSMutableArray array];
-  NSMutableArray *bHeight = [NSMutableArray array];
-  NSMutableArray *bYcenter = [NSMutableArray array];
-  for (NSArray *box in horizontalList) {
-    if (newBox.count == 0) {
-      [bHeight addObject:box[5]];
-      [bYcenter addObject:box[4]];
-      [newBox addObject:box];
+  for (NSArray *box in boxes) {
+    if (currentGroup.count == 0) {
+      [currentGroup addObject:box];
     } else {
-      if (fabs([[bYcenter valueForKeyPath:@"@avg.self"] floatValue] - [box[4] floatValue]) < ycenterThs * [[bHeight valueForKeyPath:@"@avg.self"] floatValue]) {
-        [bHeight addObject:box[5]];
-        [bYcenter addObject:box[4]];
-        [newBox addObject:box];
+      NSArray *lastBox = [currentGroup lastObject];
+      BOOL closeYCenter = fabs([[lastBox objectAtIndex:4] floatValue] - [[box objectAtIndex:4] floatValue]) < ycenterThs * [[lastBox objectAtIndex:5] floatValue];
+      if (closeYCenter) {
+        [currentGroup addObject:box];
       } else {
-        [combinedList addObject:[newBox copy]];
-        [newBox removeAllObjects];
-        [newBox addObject:box];
-        bHeight = [@[box[5]] mutableCopy];
-        bYcenter = [@[box[4]] mutableCopy];
+        [combinedBoxes addObject:[currentGroup copy]];
+        currentGroup = [@[box] mutableCopy];
       }
     }
   }
+  if (currentGroup.count > 0) {
+    [combinedBoxes addObject:[currentGroup copy]];
+  }
+  return combinedBoxes;
+}
+
++ (NSArray *)mergeBoxes:(NSMutableArray *)combinedBoxes withWidthThs:(CGFloat)widthThs heightThs:(CGFloat)heightThs addMargin:(CGFloat)addMargin {
+  NSMutableArray *mergedList = [NSMutableArray array];
   
-  [combinedList addObject:[newBox copy]];
-  for (NSArray *boxes in combinedList) {
-    if ([boxes count] == 1) {
-      NSArray *box = boxes[0];
-      int margin = (int)(addMargin * MIN([box[1] floatValue] - [box[0] floatValue], [box[5] floatValue]));
-      [mergedList addObject:@[@([box[0] intValue] - margin),
-                              @([box[1] intValue] + margin),
-                              @([box[2] intValue] - margin),
-                              @([box[3] intValue] + margin)]];
+  for (NSArray *group in combinedBoxes) {
+    if (group.count == 1) {
+      NSArray *box = group[0];
+      float margin = addMargin * MIN([[box objectAtIndex:1] floatValue] - [[box objectAtIndex:0] floatValue], [[box objectAtIndex:5] floatValue]);
+      [mergedList addObject:@[@([[box objectAtIndex:0] floatValue] - margin), @([[box objectAtIndex:1] floatValue] + margin), @([[box objectAtIndex:2] floatValue] - margin), @([[box objectAtIndex:3] floatValue] + margin)]];
     } else {
-      NSArray *sortedBoxes = [boxes sortedArrayUsingComparator:^NSComparisonResult(NSArray *obj1, NSArray *obj2) {
+      NSArray *sortedBoxes = [group sortedArrayUsingComparator:^NSComparisonResult(NSArray *obj1, NSArray *obj2) {
         return [@([obj1[0] intValue]) compare:@([obj2[0] intValue])];
       }];
       
@@ -238,10 +217,22 @@
                                   @([box[3] intValue] + margin)]];
         }
       }
+      
     }
   }
   
-  return mergedList;
+  return [mergedList copy];
+}
+
++ (NSArray<NSArray<NSNumber *> *> *)groupTextBox:(NSArray<NSArray<NSNumber *> *> *)polys
+                                      ycenterThs:(CGFloat)ycenterThs
+                                       heightThs:(CGFloat)heightThs
+                                        widthThs:(CGFloat)widthThs
+                                       addMargin:(CGFloat)addMargin
+{
+  NSMutableArray *horizontalList = [self prepareBoxesFromPolys:polys];
+  NSMutableArray *combinedList = [self combineBoxes:horizontalList withYCenterThs:ycenterThs heightThs:heightThs];
+  return [self mergeBoxes:combinedList withWidthThs:widthThs heightThs:heightThs addMargin:addMargin];
 }
 
 @end
