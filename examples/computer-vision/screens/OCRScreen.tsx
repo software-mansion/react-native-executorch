@@ -23,11 +23,11 @@ export const OCRScreen = ({
     detectorSource: require('../assets/models/xnnpack_craft.pte'),
     recognizerSources: {
       recognizerLarge:
-        'https://huggingface.co/nklockiewicz/ocr/resolve/main/xnnpack_crnn_512.pte',
-      recognizerMedium: require('../assets/models/xnnpack_crnn_256.pte'),
-      recognizerSmall: require('../assets/models/xnnpack_crnn_128.pte'),
+        'https://huggingface.co/nklockiewicz/ocr/resolve/main/xnnpack_latin_512.pte',
+      recognizerMedium: require('../assets/models/xnnpack_latin_256.pte'),
+      recognizerSmall: require('../assets/models/xnnpack_latin_128.pte'),
     },
-    language: 'en',
+    language: 'pl',
   });
 
   const handleCameraPress = async (isCamera: boolean) => {
@@ -44,6 +44,7 @@ export const OCRScreen = ({
   };
 
   const runForward = async () => {
+    console.log('RUnning forward');
     try {
       const output = await model.forward(imageUri);
       setResults(output);

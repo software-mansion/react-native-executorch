@@ -73,7 +73,7 @@ export const useOCR = ({
           recognizerPaths.recognizerLarge,
           recognizerPaths.recognizerMedium,
           recognizerPaths.recognizerSmall,
-          symbols.default + symbols[language]!,
+          symbols[language],
           languageDictPath
         );
         setIsReady(true);
