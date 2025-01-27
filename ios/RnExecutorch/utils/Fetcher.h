@@ -4,7 +4,8 @@
 enum class ResourceType
 {
   MODEL,
-  TOKENIZER
+  TOKENIZER,
+  TXT
 };
 
 inline constexpr unsigned int STATUS_OK = 200;

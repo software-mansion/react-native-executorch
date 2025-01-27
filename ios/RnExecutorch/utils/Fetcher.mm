@@ -46,6 +46,8 @@
       return [fileName hasSuffix:@".bin"];
     case ResourceType::MODEL:
       return [fileName hasSuffix:@".pte"];
+    case ResourceType::TXT:
+      return [fileName hasSuffix:@".txt"];
     default:
       return NO;
   }

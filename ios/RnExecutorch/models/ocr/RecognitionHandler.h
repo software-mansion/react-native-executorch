@@ -7,6 +7,7 @@ const int smallModelWidth = 128;
 
 @interface RecognitionHandler : NSObject
 
+- (instancetype)initWithSymbols:(NSString *)symbols languageDictPath:(NSString *)languageDictPath;
 - (void)loadRecognizers:(NSString *)largeRecognizerPath mediumRecognizerPath:(NSString *)mediumRecognizerPath smallRecognizerPath:(NSString *)smallRecognizerPath completion:(void (^)(BOOL, NSNumber *))completion;
 - (NSArray *)recognize:(NSArray *)horizontalList imgGray:(cv::Mat)imgGray desiredWidth:(int)desiredWidth desiredHeight:(int)desiredHeight;
 

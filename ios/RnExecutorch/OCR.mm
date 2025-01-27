@@ -1,6 +1,7 @@
 #import <ExecutorchLib/ETModel.h>
 #import <React/RCTBridgeModule.h>
 #import "OCR.h"
+#import "utils/Fetcher.h"
 #import "utils/ImageProcessor.h"
 #import "models/ocr/Detector.h"
 #import "models/ocr/RecognitionHandler.h"
@@ -16,12 +17,11 @@ RCT_EXPORT_MODULE()
 recognizerSourceLarge:(NSString *)recognizerSourceLarge
 recognizerSourceMedium:(NSString *)recognizerSourceMedium
 recognizerSourceSmall:(NSString *)recognizerSourceSmall
-          language:(NSString *)language
+           symbols:(NSString *)symbols
+  languageDictPath:(NSString *)languageDictPath
            resolve:(RCTPromiseResolveBlock)resolve
             reject:(RCTPromiseRejectBlock)reject {
   detector = [[Detector alloc] init];
-  recognitionHandler = [[RecognitionHandler alloc] init];
-  
   [detector loadModel:[NSURL URLWithString:detectorSource] completion:^(BOOL success, NSNumber *errorCode) {
     if (!success) {
       NSError *error = [NSError errorWithDomain:@"OCRErrorDomain"
@@ -30,16 +30,23 @@ recognizerSourceSmall:(NSString *)recognizerSourceSmall
       reject(@"init_module_error", @"Failed to initialize detector module", error);
       return;
     }
-    
-    [self->recognitionHandler loadRecognizers:recognizerSourceLarge mediumRecognizerPath:recognizerSourceMedium smallRecognizerPath:recognizerSourceSmall completion:^(BOOL allModelsLoaded, NSNumber *errorCode) {
-      if (allModelsLoaded) {
-        resolve(@(YES));
-      } else {
-        NSError *error = [NSError errorWithDomain:@"OCRErrorDomain"
-                                             code:[errorCode intValue]
-                                         userInfo:@{NSLocalizedDescriptionKey: [NSString stringWithFormat:@"%ld", (long)[errorCode longValue]]}];
-        reject(@"init_recognizer_error", @"Failed to initialize one or more recognizer models", error);
+    [Fetcher fetchResource:[NSURL URLWithString:languageDictPath] resourceType:ResourceType::TXT completionHandler:^(NSString *filePath, NSError *error) {
+      if (error) {
+        reject(@"init_module_error", @"Failed to initialize converter module", error);
+        return;
       }
+      
+      self->recognitionHandler = [[RecognitionHandler alloc] initWithSymbols:symbols languageDictPath:filePath];
+      [self->recognitionHandler loadRecognizers:recognizerSourceLarge mediumRecognizerPath:recognizerSourceMedium smallRecognizerPath:recognizerSourceSmall completion:^(BOOL allModelsLoaded, NSNumber *errorCode) {
+        if (allModelsLoaded) {
+          resolve(@(YES));
+        } else {
+          NSError *error = [NSError errorWithDomain:@"OCRErrorDomain"
+                                               code:[errorCode intValue]
+                                           userInfo:@{NSLocalizedDescriptionKey: [NSString stringWithFormat:@"%ld", (long)[errorCode longValue]]}];
+          reject(@"init_recognizer_error", @"Failed to initialize one or more recognizer models", error);
+        }
+      }];
     }];
   }];
 }
