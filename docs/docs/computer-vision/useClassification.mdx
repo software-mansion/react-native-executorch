@@ -31,20 +31,6 @@ try {
 }
 ```
 
-<details>
-<summary>Type definitions</summary>
-
-```typescript
-interface ClassificationModule {
-  error: string | null;
-  isReady: boolean;
-  isGenerating: boolean;
-  forward: (input: string) => Promise<{ [category: string]: number }>;
-}
-```
-
-</details>
-
 ### Arguments
 
 **`modelSource`**

@@ -26,16 +26,17 @@ export type ETInput =
   | Float32Array
   | Float64Array;
 
-export interface ExecutorchModule {
-  error: string | null;
-  isReady: boolean;
-  isGenerating: boolean;
-  forward: (input: ETInput, shape: number[]) => Promise<number[][]>;
-  loadMethod: (methodName: string) => Promise<void>;
-  loadForward: () => Promise<void>;
-}
+export const getTypeIdentifier = (arr: ETInput): number => {
+  if (arr instanceof Int8Array) return 0;
+  if (arr instanceof Int32Array) return 1;
+  if (arr instanceof BigInt64Array) return 2;
+  if (arr instanceof Float32Array) return 3;
+  if (arr instanceof Float64Array) return 4;
 
-export type module =
+  return -1;
+};
+
+export type Module =
   | _ClassificationModule
   | _StyleTransferModule
   | _ObjectDetectionModule

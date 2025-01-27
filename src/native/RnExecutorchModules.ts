@@ -1,4 +1,8 @@
 import { Platform } from 'react-native';
+import { Spec as ClassificationInterface } from './NativeClassification';
+import { Spec as ObjectDetectionInterface } from './NativeObjectDetection';
+import { Spec as StyleTransferInterface } from './NativeStyleTransfer';
+import { Spec as ETModuleInterface } from './NativeETModule';
 
 const LINKING_ERROR =
   `The package 'react-native-executorch' doesn't seem to be linked. Make sure: \n\n` +
@@ -72,28 +76,36 @@ const StyleTransfer = StyleTransferSpec
     );
 
 class _ObjectDetectionModule {
-  async forward(input: string) {
+  async forward(
+    input: string
+  ): ReturnType<ObjectDetectionInterface['forward']> {
     return await ObjectDetection.forward(input);
   }
-  async loadModule(modelSource: string | number) {
+  async loadModule(
+    modelSource: string | number
+  ): ReturnType<ObjectDetectionInterface['loadModule']> {
     return await ObjectDetection.loadModule(modelSource);
   }
 }
 
 class _StyleTransferModule {
-  async forward(input: string) {
+  async forward(input: string): ReturnType<StyleTransferInterface['forward']> {
     return await StyleTransfer.forward(input);
   }
-  async loadModule(modelSource: string | number) {
+  async loadModule(
+    modelSource: string | number
+  ): ReturnType<StyleTransferInterface['loadModule']> {
     return await StyleTransfer.loadModule(modelSource);
   }
 }
 
 class _ClassificationModule {
-  async forward(input: string) {
+  async forward(input: string): ReturnType<ClassificationInterface['forward']> {
     return await Classification.forward(input);
   }
-  async loadModule(modelSource: string | number) {
+  async loadModule(
+    modelSource: string | number
+  ): ReturnType<ClassificationInterface['loadModule']> {
     return await Classification.loadModule(modelSource);
   }
 }
@@ -103,13 +115,17 @@ class _ETModule {
     input: number[],
     shape: number[],
     inputType: number
-  ): Promise<number[]> {
+  ): ReturnType<ETModuleInterface['forward']> {
     return await ETModule.forward(input, shape, inputType);
   }
-  async loadModule(modelSource: string) {
+  async loadModule(
+    modelSource: string
+  ): ReturnType<ETModuleInterface['loadModule']> {
     return await ETModule.loadModule(modelSource);
   }
-  async loadMethod(methodName: string): Promise<number> {
+  async loadMethod(
+    methodName: string
+  ): ReturnType<ETModuleInterface['loadMethod']> {
     return await ETModule.loadMethod(methodName);
   }
 }
