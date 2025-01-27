@@ -71,6 +71,19 @@ const StyleTransfer = StyleTransferSpec
       }
     );
 
+const OCRSpec = require('./NativeOCR').default;
+
+const OCR = OCRSpec
+  ? OCRSpec
+  : new Proxy(
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
+
 class _ObjectDetectionModule {
   async forward(input: string) {
     return await ObjectDetection.forward(input);
@@ -120,6 +133,7 @@ export {
   Classification,
   ObjectDetection,
   StyleTransfer,
+  OCR,
   _ETModule,
   _ClassificationModule,
   _StyleTransferModule,

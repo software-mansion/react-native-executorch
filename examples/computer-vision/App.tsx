@@ -8,11 +8,13 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { View, StyleSheet } from 'react-native';
 import { ClassificationScreen } from './screens/ClassificationScreen';
 import { ObjectDetectionScreen } from './screens/ObjectDetectionScreen';
+import { OCRScreen } from './screens/OCRScreen';
 
 enum ModelType {
   STYLE_TRANSFER,
   OBJECT_DETECTION,
   CLASSIFICATION,
+  OCR,
 }
 
 export default function App() {
@@ -46,6 +48,8 @@ export default function App() {
         return (
           <ClassificationScreen imageUri={imageUri} setImageUri={setImageUri} />
         );
+      case ModelType.OCR:
+        return <OCRScreen imageUri={imageUri} setImageUri={setImageUri} />;
       default:
         return (
           <StyleTransferScreen imageUri={imageUri} setImageUri={setImageUri} />
@@ -64,6 +68,7 @@ export default function App() {
                 'Style Transfer',
                 'Object Detection',
                 'Classification',
+                'OCR',
               ]}
               onValueChange={(_, selectedIndex) => {
                 handleModeChange(selectedIndex);
