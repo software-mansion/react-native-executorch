@@ -1,6 +1,5 @@
 package com.swmansion.rnexecutorch.utils
 
-import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableArray
 import org.pytorch.executorch.DType
