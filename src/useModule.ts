@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Image } from 'react-native';
 import { ETError, getError } from './Error';
 import { ETInput, Module } from './types/common';
+import { _ETModule } from './native/RnExecutorchModules';
 
 const getTypeIdentifier = (input: ETInput): number => {
   if (input instanceof Int8Array) return 1;
@@ -23,8 +24,8 @@ interface _Module {
   isGenerating: boolean;
   forwardETInput: (
     input: ETInput[] | ETInput,
-    shape: number[][]
-  ) => Promise<any>;
+    shape: number[][] | number[]
+  ) => ReturnType<_ETModule["forward"]>;
   forwardImage: (input: string) => Promise<any>;
 }
 

@@ -3,6 +3,7 @@ import {
   _StyleTransferModule,
   _ObjectDetectionModule,
   ETModule,
+  _ETModule,
 } from '../native/RnExecutorchModules';
 
 export type ResourceSource = string | number;
@@ -30,7 +31,7 @@ export interface ExecutorchModule {
   error: string | null;
   isReady: boolean;
   isGenerating: boolean;
-  forward: (inputs: ETInput[] | ETInput, shapes: number[][]) => Promise<any>;
+  forward: (inputs: ETInput[] | ETInput, shapes: number[][]) => ReturnType<_ETModule['forward']>
   loadMethod: (methodName: string) => Promise<void>;
   loadForward: () => Promise<void>;
 }
