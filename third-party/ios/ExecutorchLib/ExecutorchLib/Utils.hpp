@@ -83,30 +83,48 @@ NSNumber *scalarTypeToNSNumber(ScalarType scalarType) {
   return @(static_cast<int>(scalarType));
 }
 
+NSArray* flattenArray(NSArray *array) {
+    NSMutableArray *flatArray = [NSMutableArray array];
+
+    for (id element in array) {
+        if ([element isKindOfClass:[NSArray class]]) {
+            NSArray *nestedArray = flattenArray(element);
+            [flatArray addObjectsFromArray:nestedArray];
+        } else {
+            [flatArray addObject:element];
+        }
+    }
+
+    return [flatArray copy];
+}
+
 void *NSArrayToVoidArray(NSArray *nsArray, ScalarType inputScalarType,
                          size_t &outSize) {
-  outSize = [nsArray count];
+  // This function assumes that the passed array may not be flattened,
+  // that's why we flatten it here
+  NSArray *flattenedArray = flattenArray(nsArray);
+  outSize = [flattenedArray count];
 
   switch (inputScalarType) {
   case ScalarType::Char: {
-    auto typedArray = NSArrayToTypedArray<char>(nsArray);
+    auto typedArray = NSArrayToTypedArray<char>(flattenedArray);
     return typedArray.release();
   }
   case ScalarType::Long: {
-    auto typedArray = NSArrayToTypedArray<long>(nsArray);
+    auto typedArray = NSArrayToTypedArray<long>(flattenedArray);
     return typedArray.release();
   }
 
   case ScalarType::Int: {
-    auto typedArray = NSArrayToTypedArray<int>(nsArray);
+    auto typedArray = NSArrayToTypedArray<int>(flattenedArray);
     return typedArray.release();
   }
   case ScalarType::Float: {
-    auto typedArray = NSArrayToTypedArray<float>(nsArray);
+    auto typedArray = NSArrayToTypedArray<float>(flattenedArray);
     return typedArray.release();
   }
   case ScalarType::Double: {
-    auto typedArray = NSArrayToTypedArray<double>(nsArray);
+    auto typedArray = NSArrayToTypedArray<double>(flattenedArray);
     return typedArray.release();
   }
   default:
