@@ -208,6 +208,9 @@ using namespace ::torch::executor;
              userInfo:nil];
     }
     
+    // Since pushing back to inputTensors would cast to EValue (forward accepts a vector of EValues)
+    // We also push back to inputTensorPtrs to keep the underlying tensor alive.
+    // inputTensorPtrs vector retains shared ownership to prevent premature destruction
     inputTensors.push_back(*currentTensor);
     inputTensorPtrs.push_back(currentTensor);
   }
