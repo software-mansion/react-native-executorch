@@ -16,7 +16,6 @@ Take a look at how our library can help build you your React Native AI features 
 https://docs.swmansion.com/react-native-executorch
 
 
-
 # 🦙 **Quickstart - Running Llama**  
 
 **Get started with AI-powered text generation in 3 easy steps!**  
