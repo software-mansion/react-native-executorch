@@ -79,8 +79,14 @@ export const useModule = ({ modelSource, module }: Props): _Module => {
       throw new Error(getError(ETError.ModelGenerating));
     }
 
+    // Since the native module expects an array of inputs and an array of shapes,
+    // if the user provides a single ETInput, we want to "unsqueeze" the array so 
+    // the data is properly processed on the native side
     if (!Array.isArray(input)) {
       input = [input];
+    }
+    if (!Array.isArray(shape)) {
+      shape = [shape];
     }
     let inputTypeIdentifiers = [];
     let modelInputs = [];
