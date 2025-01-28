@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { fetchResource } from '../utils/fetchResource';
 import { ETError, getError } from '../Error';
 import { ETInput, Module } from '../types/common';
+import { _ETModule } from '../native/RnExecutorchModules';
+
 
 const getTypeIdentifier = (input: ETInput): number => {
   if (input instanceof Int8Array) return 1;
@@ -22,7 +24,10 @@ interface _Module {
   isReady: boolean;
   isGenerating: boolean;
   downloadProgress: number;
-  forwardETInput: (input: ETInput[] | ETInput, shape: number[][]) => Promise<any>;
+  forwardETInput: (
+    input: ETInput[] | ETInput,
+    shape: number[][] | number[]
+  ) => ReturnType<_ETModule["forward"]>;
   forwardImage: (input: string) => Promise<any>;
 }
 
