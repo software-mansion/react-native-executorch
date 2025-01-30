@@ -142,7 +142,7 @@ function App() {
 ### Inference time
 
 <table>
-  <tr><th>Model</th><th>Inference Type</th><th>iPhone 16 Pro (XNNPack) [ms]</th><th>iPhone 13 Pro (XNNPack) [ms]</th><th>iPhone SE 3 (XNNPack) [ms]</th><th>Samsung Galaxy S24 (XNNPack) [ms]</th></tr>
-  <tr><td rowspan="2">SSDLITE_320_MOBILENET_V3_LARGE</td><td>First</td><td>200</td><td>280</td><td>300</td><td>120</td></tr>
-  <tr><td>Consecutive</td><td>190</td><td>260</td><td>280</td><td>100</td></tr>
+  <tr><th>Model</th><th>Inference Type</th><th>iPhone 16 Pro (XNNPack) [ms]</th><th>iPhone 13 Pro (XNNPack) [ms]</th><th>iPhone SE 3 (XNNPack) [ms]</th><th>Samsung Galaxy S24 (XNNPack) [ms]</th><th>OnePlus 12 (XNNPack) [ms]</th></tr>
+  <tr><td rowspan="2">SSDLITE_320_MOBILENET_V3_LARGE</td><td>First</td><td>200</td><td>280</td><td>300</td><td>120</td><td>140</td></tr>
+  <tr><td>Consecutive</td><td>190</td><td>260</td><td>280</td><td>100</td><td>90</td></tr>
 </table>

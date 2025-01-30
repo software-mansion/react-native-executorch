@@ -104,7 +104,7 @@ function App() {
 ### Inference time
 
 <table>
-  <tr><th>Model</th> <th>Inference Type</th> <th>iPhone 16 Pro (CoreML) [ms]</th> <th>iPhone 13 Pro (CoreML) [ms]</th> <th>iPhone SE 3 (CoreML) [ms]</th> <th>Samsung Galaxy S24 (XNNPack) [ms]</th></tr>
-  <tr><td rowspan="2">EFFICIENTNET_V2_S</td><td>First</td><td>140</td><td>180</td><td>210</td><td>220</td></tr>
-  <tr><td>Consecutive</td><td>100</td><td>120</td><td>130</td><td>180</td></tr>
+  <tr><th>Model</th> <th>Inference Type</th> <th>iPhone 16 Pro (CoreML) [ms]</th> <th>iPhone 13 Pro (CoreML) [ms]</th> <th>iPhone SE 3 (CoreML) [ms]</th> <th>Samsung Galaxy S24 (XNNPack) [ms]</th><th>OnePlus 12 (XNNPack) [ms]</th></tr>
+  <tr><td rowspan="2">EFFICIENTNET_V2_S</td><td>First</td><td>140</td><td>180</td><td>210</td><td>220</td><td>230</td></tr>
+  <tr><td>Consecutive</td><td>100</td><td>120</td><td>130</td><td>180</td><td>170</td></tr>
 </table>

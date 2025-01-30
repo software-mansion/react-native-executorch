@@ -96,7 +96,7 @@ function App(){
 ### Inference time
 
 <table>
-  <tr><th>Model</th><th>Inference Type</th><th>iPhone 16 Pro (CoreML) [ms]</th><th>iPhone 13 Pro (CoreML) [ms]</th><th>iPhone SE 3 (CoreML) [ms]</th><th>Samsung Galaxy S24 (XNNPack) [ms]</th></tr>
-  <tr><td rowspan="2">STYLE_TRANSFER_CANDY, STYLE_TRANSFER_MOSAIC, STYLE_TRANSFER_UDNIE, STYLE_TRANSFER_RAIN_PRINCESS</td><td>First</td><td>850</td><td>1150</td><td>1400</td><td>1800</td></tr>
-  <tr><td>Consecutive</td><td>450</td><td>600</td><td>750</td><td>1650</td></tr>
+  <tr><th>Model</th><th>Inference Type</th><th>iPhone 16 Pro (CoreML) [ms]</th><th>iPhone 13 Pro (CoreML) [ms]</th><th>iPhone SE 3 (CoreML) [ms]</th><th>Samsung Galaxy S24 (XNNPack) [ms]</th><th>OnePlus 12 (XNNPack) [ms]</th></tr>
+  <tr><td rowspan="2">STYLE_TRANSFER_CANDY, STYLE_TRANSFER_MOSAIC, STYLE_TRANSFER_UDNIE, STYLE_TRANSFER_RAIN_PRINCESS</td><td>First</td><td>850</td><td>1150</td><td>1400</td><td>1800</td><td>1950</td></tr>
+  <tr><td>Consecutive</td><td>450</td><td>600</td><td>750</td><td>1650</td><td>1800</td></tr>
 </table>

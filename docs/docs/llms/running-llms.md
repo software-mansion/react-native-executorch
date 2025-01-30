@@ -115,11 +115,11 @@ There are also cases when you need to check if tokens are being generated, such 
 
 ### Inference time
 
-| Model                 | iPhone 16 Pro (XNNPack) [tokens/s] | iPhone 13 Pro (XNNPack) [tokens/s] | iPhone SE 3 (XNNPack) [tokens/s] | Samsung Galaxy S24 (XNNPack) [tokens/s] |
-| --------------------- | ---------------------------------- | ---------------------------------- | -------------------------------- | --------------------------------------- |
-| LLAMA3_2_1B           | 16.1                               | 11.4                               | ❌                               | 15.6                                    |
-| LLAMA3_2_1B_SPINQUANT | 40.6                               | 16.7                               | 16.5                             | 40.3                                    |
-| LLAMA3_2_1B_QLORA     | 31.8                               | 11.4                               | 11.2                             | 37.3                                    |
-| LLAMA3_2_3B           | ❌                                 | ❌                                 | ❌                               | ❌                                      |
-| LLAMA3_2_3B_SPINQUANT | 17.2                               | 8.2                                | ❌                               | 16.2                                    |
-| LLAMA3_2_3B_QLORA     | 14.5                               | ❌                                 | ❌                               | 14.8                                    |
+| Model                 | iPhone 16 Pro (XNNPack) [tokens/s] | iPhone 13 Pro (XNNPack) [tokens/s] | iPhone SE 3 (XNNPack) [tokens/s] | Samsung Galaxy S24 (XNNPack) [tokens/s] | OnePlus 12 (XNNPack) [tokens/s] |
+| --------------------- | ---------------------------------- | ---------------------------------- | -------------------------------- | --------------------------------------- | ------------------------------- |
+| LLAMA3_2_1B           | 16.1                               | 11.4                               | ❌                               | 15.6                                    | 19.3                            |
+| LLAMA3_2_1B_SPINQUANT | 40.6                               | 16.7                               | 16.5                             | 40.3                                    | 48.2                            |
+| LLAMA3_2_1B_QLORA     | 31.8                               | 11.4                               | 11.2                             | 37.3                                    | 44.4                            |
+| LLAMA3_2_3B           | ❌                                 | ❌                                 | ❌                               | ❌                                      | 7.1                             |
+| LLAMA3_2_3B_SPINQUANT | 17.2                               | 8.2                                | ❌                               | 16.2                                    | 19.4                            |
+| LLAMA3_2_3B_QLORA     | 14.5                               | ❌                                 | ❌                               | 14.8                                    | 18.1                            |
