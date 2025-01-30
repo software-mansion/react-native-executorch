@@ -124,3 +124,25 @@ function App() {
 | Model                                                                                                                                                                                                               | Number of classes | Class list                                                                                                                                          |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [SSDLite320 MobileNetV3 Large](https://pytorch.org/vision/main/models/generated/torchvision.models.detection.ssdlite320_mobilenet_v3_large.html#torchvision.models.detection.SSDLite320_MobileNet_V3_Large_Weights) | 91                | [COCO](https://github.com/software-mansion/react-native-executorch/blob/69802ee1ca161d9df00def1dabe014d36341cfa9/src/types/object_detection.ts#L14) |
+
+## Benchmarks
+
+### Model size
+
+| Model                          | XNNPack [MB] |
+| ------------------------------ | ------------ |
+| SSDLITE_320_MOBILENET_V3_LARGE | 13.9         |
+
+### Memory usage
+
+| Model                          | Android (XNNPack) [MB] | iOS (XNNPack) [MB] |
+| ------------------------------ | ---------------------- | ------------------ |
+| SSDLITE_320_MOBILENET_V3_LARGE | 90                     | 90                 |
+
+### Inference time
+
+<table>
+  <tr><th>Model</th><th>Inference Type</th><th>iPhone 16 Pro (XNNPack) [ms]</th><th>iPhone 13 Pro (XNNPack) [ms]</th><th>iPhone SE 3 (XNNPack) [ms]</th><th>Samsung Galaxy S24 (XNNPack) [ms]</th></tr>
+  <tr><td rowspan="2">SSDLITE_320_MOBILENET_V3_LARGE</td><td>First</td><td>200</td><td>280</td><td>300</td><td>120</td></tr>
+  <tr><td>Consecutive</td><td>190</td><td>260</td><td>280</td><td>100</td></tr>
+</table>

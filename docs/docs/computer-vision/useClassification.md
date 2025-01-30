@@ -86,3 +86,25 @@ function App() {
 | Model                                                                                                           | Number of classes | Class list                                                                                                                                                                 |
 | --------------------------------------------------------------------------------------------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [efficientnet_v2_s](https://pytorch.org/vision/0.20/models/generated/torchvision.models.efficientnet_v2_s.html) | 1000              | [ImageNet1k_v1](https://github.com/software-mansion/react-native-executorch/blob/main/android/src/main/java/com/swmansion/rnexecutorch/models/classification/Constants.kt) |
+
+## Benchmarks
+
+### Model size
+
+| Model             | XNNPack [MB] | CoreML [MB] |
+| ----------------- | ------------ | ----------- |
+| EFFICIENTNET_V2_S | 85.6         | 43.9        |
+
+### Memory usage
+
+| Model             | Android (XNNPack) [MB] | iOS (CoreML) [MB] |
+| ----------------- | ---------------------- | ----------------- |
+| EFFICIENTNET_V2_S | 130                    | 85                |
+
+### Inference time
+
+<table>
+  <tr><th>Model</th> <th>Inference Type</th> <th>iPhone 16 Pro (CoreML) [ms]</th> <th>iPhone 13 Pro (CoreML) [ms]</th> <th>iPhone SE 3 (CoreML) [ms]</th> <th>Samsung Galaxy S24 (XNNPack) [ms]</th></tr>
+  <tr><td rowspan="2">EFFICIENTNET_V2_S</td><td>First</td><td>140</td><td>180</td><td>210</td><td>220</td></tr>
+  <tr><td>Consecutive</td><td>100</td><td>120</td><td>130</td><td>180</td></tr>
+</table>
