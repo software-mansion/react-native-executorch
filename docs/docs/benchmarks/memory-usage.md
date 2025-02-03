@@ -6,8 +6,8 @@ sidebar_position: 2
 ## Classification
 
 | Model             | Android (XNNPACK) [MB] | iOS (Core ML) [MB] |
-| ----------------- | ---------------------- | ----------------- |
-| EFFICIENTNET_V2_S | 130                    | 85                |
+| ----------------- | ---------------------- | ------------------ |
+| EFFICIENTNET_V2_S | 130                    | 85                 |
 
 ## Object Detection
 
@@ -18,11 +18,11 @@ sidebar_position: 2
 ## Style Transfer
 
 | Model                        | Android (XNNPACK) [MB] | iOS (Core ML) [MB] |
-| ---------------------------- | ---------------------- | ----------------- |
-| STYLE_TRANSFER_CANDY         | 950                    | 350               |
-| STYLE_TRANSFER_MOSAIC        | 950                    | 350               |
-| STYLE_TRANSFER_UDNIE         | 950                    | 350               |
-| STYLE_TRANSFER_RAIN_PRINCESS | 950                    | 350               |
+| ---------------------------- | ---------------------- | ------------------ |
+| STYLE_TRANSFER_CANDY         | 950                    | 350                |
+| STYLE_TRANSFER_MOSAIC        | 950                    | 350                |
+| STYLE_TRANSFER_UDNIE         | 950                    | 350                |
+| STYLE_TRANSFER_RAIN_PRINCESS | 950                    | 350                |
 
 ## LLMs
 

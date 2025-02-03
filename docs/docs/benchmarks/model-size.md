@@ -6,8 +6,8 @@ sidebar_position: 1
 ## Classification
 
 | Model             | XNNPACK [MB] | Core ML [MB] |
-| ----------------- | ------------ | ----------- |
-| EFFICIENTNET_V2_S | 85.6         | 43.9        |
+| ----------------- | ------------ | ------------ |
+| EFFICIENTNET_V2_S | 85.6         | 43.9         |
 
 ## Object Detection
 
@@ -18,11 +18,11 @@ sidebar_position: 1
 ## Style Transfer
 
 | Model                        | XNNPACK [MB] | Core ML [MB] |
-| ---------------------------- | ------------ | ----------- |
-| STYLE_TRANSFER_CANDY         | 6.78         | 5.22        |
-| STYLE_TRANSFER_MOSAIC        | 6.78         | 5.22        |
-| STYLE_TRANSFER_UDNIE         | 6.78         | 5.22        |
-| STYLE_TRANSFER_RAIN_PRINCESS | 6.78         | 5.22        |
+| ---------------------------- | ------------ | ------------ |
+| STYLE_TRANSFER_CANDY         | 6.78         | 5.22         |
+| STYLE_TRANSFER_MOSAIC        | 6.78         | 5.22         |
+| STYLE_TRANSFER_UDNIE         | 6.78         | 5.22         |
+| STYLE_TRANSFER_RAIN_PRINCESS | 6.78         | 5.22         |
 
 ## LLMs
 
