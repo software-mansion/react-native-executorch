@@ -83,20 +83,31 @@ function App(){
 
 ### Model size
 
-| Model                                                                                           | XNNPack [MB] | CoreML [MB] |
-| ----------------------------------------------------------------------------------------------- | ------------ | ----------- |
-| STYLE_TRANSFER_CANDY, STYLE_TRANSFER_MOSAIC, STYLE_TRANSFER_UDNIE, STYLE_TRANSFER_RAIN_PRINCESS | 6.78         | 5.22        |
+| Model                        | XNNPack [MB] | CoreML [MB] |
+| ---------------------------- | ------------ | ----------- |
+| STYLE_TRANSFER_CANDY         | 6.78         | 5.22        |
+| STYLE_TRANSFER_MOSAIC        | 6.78         | 5.22        |
+| STYLE_TRANSFER_UDNIE         | 6.78         | 5.22        |
+| STYLE_TRANSFER_RAIN_PRINCESS | 6.78         | 5.22        |
 
 ### Memory usage
 
-| Model                                                                                           | Android (XNNPack) [MB] | iOS (CoreML) [MB] |
-| ----------------------------------------------------------------------------------------------- | ---------------------- | ----------------- |
-| STYLE_TRANSFER_CANDY, STYLE_TRANSFER_MOSAIC, STYLE_TRANSFER_UDNIE, STYLE_TRANSFER_RAIN_PRINCESS | 950                    | 350               |
+| Model                        | Android (XNNPack) [MB] | iOS (CoreML) [MB] |
+| ---------------------------- | ---------------------- | ----------------- |
+| STYLE_TRANSFER_CANDY         | 950                    | 350               |
+| STYLE_TRANSFER_MOSAIC        | 950                    | 350               |
+| STYLE_TRANSFER_UDNIE         | 950                    | 350               |
+| STYLE_TRANSFER_RAIN_PRINCESS | 950                    | 350               |
 
 ### Inference time
 
-<table>
-  <tr><th>Model</th><th>Inference Type</th><th>iPhone 16 Pro (CoreML) [ms]</th><th>iPhone 13 Pro (CoreML) [ms]</th><th>iPhone SE 3 (CoreML) [ms]</th><th>Samsung Galaxy S24 (XNNPack) [ms]</th><th>OnePlus 12 (XNNPack) [ms]</th></tr>
-  <tr><td rowspan="2">STYLE_TRANSFER_CANDY, STYLE_TRANSFER_MOSAIC, STYLE_TRANSFER_UDNIE, STYLE_TRANSFER_RAIN_PRINCESS</td><td>First</td><td>850</td><td>1150</td><td>1400</td><td>1800</td><td>1950</td></tr>
-  <tr><td>Consecutive</td><td>450</td><td>600</td><td>750</td><td>1650</td><td>1800</td></tr>
-</table>
+:::info
+Times presented in the tables are measured as consecutive runs of the model. Initial run times may be longer due to model loading and initialization.
+:::
+
+| Model                        | iPhone 16 Pro (CoreML) [ms] | iPhone 13 Pro (CoreML) [ms] | iPhone SE 3 (CoreML) [ms] | Samsung Galaxy S24 (XNNPack) [ms] | OnePlus 12 (XNNPack) [ms] |
+| ---------------------------- | --------------------------- | --------------------------- | ------------------------- | --------------------------------- | ------------------------- |
+| STYLE_TRANSFER_CANDY         | 450                         | 600                         | 750                       | 1650                              | 1800                      |
+| STYLE_TRANSFER_MOSAIC        | 450                         | 600                         | 750                       | 1650                              | 1800                      |
+| STYLE_TRANSFER_UDNIE         | 450                         | 600                         | 750                       | 1650                              | 1800                      |
+| STYLE_TRANSFER_RAIN_PRINCESS | 450                         | 600                         | 750                       | 1650                              | 1800                      |

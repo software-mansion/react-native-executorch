@@ -123,3 +123,7 @@ There are also cases when you need to check if tokens are being generated, such 
 | LLAMA3_2_3B           | ❌                                 | ❌                                 | ❌                               | ❌                                      | 7.1                             |
 | LLAMA3_2_3B_SPINQUANT | 17.2                               | 8.2                                | ❌                               | 16.2                                    | 19.4                            |
 | LLAMA3_2_3B_QLORA     | 14.5                               | ❌                                 | ❌                               | 14.8                                    | 18.1                            |
+
+:::info
+❌ - Not enough memory
+:::

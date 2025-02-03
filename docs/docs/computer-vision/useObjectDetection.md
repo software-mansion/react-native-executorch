@@ -141,8 +141,10 @@ function App() {
 
 ### Inference time
 
-<table>
-  <tr><th>Model</th><th>Inference Type</th><th>iPhone 16 Pro (XNNPack) [ms]</th><th>iPhone 13 Pro (XNNPack) [ms]</th><th>iPhone SE 3 (XNNPack) [ms]</th><th>Samsung Galaxy S24 (XNNPack) [ms]</th><th>OnePlus 12 (XNNPack) [ms]</th></tr>
-  <tr><td rowspan="2">SSDLITE_320_MOBILENET_V3_LARGE</td><td>First</td><td>200</td><td>280</td><td>300</td><td>120</td><td>140</td></tr>
-  <tr><td>Consecutive</td><td>190</td><td>260</td><td>280</td><td>100</td><td>90</td></tr>
-</table>
+:::info
+Times presented in the tables are measured as consecutive runs of the model. Initial run times may be longer due to model loading and initialization.
+:::
+
+| Model                          | iPhone 16 Pro (XNNPack) [ms] | iPhone 13 Pro (XNNPack) [ms] | iPhone SE 3 (XNNPack) [ms] | Samsung Galaxy S24 (XNNPack) [ms] | OnePlus 12 (XNNPack) [ms] |
+| ------------------------------ | ---------------------------- | ---------------------------- | -------------------------- | --------------------------------- | ------------------------- |
+| SSDLITE_320_MOBILENET_V3_LARGE | 190                          | 260                          | 280                        | 100                               | 90                        |

@@ -17,9 +17,12 @@ sidebar_position: 1
 
 ## Style Transfer
 
-| Model                                                                                           | XNNPack [MB] | CoreML [MB] |
-| ----------------------------------------------------------------------------------------------- | ------------ | ----------- |
-| STYLE_TRANSFER_CANDY, STYLE_TRANSFER_MOSAIC, STYLE_TRANSFER_UDNIE, STYLE_TRANSFER_RAIN_PRINCESS | 6.78         | 5.22        |
+| Model                        | XNNPack [MB] | CoreML [MB] |
+| ---------------------------- | ------------ | ----------- |
+| STYLE_TRANSFER_CANDY         | 6.78         | 5.22        |
+| STYLE_TRANSFER_MOSAIC        | 6.78         | 5.22        |
+| STYLE_TRANSFER_UDNIE         | 6.78         | 5.22        |
+| STYLE_TRANSFER_RAIN_PRINCESS | 6.78         | 5.22        |
 
 ## LLMs
 
