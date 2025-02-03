@@ -91,13 +91,13 @@ function App() {
 
 ### Model size
 
-| Model             | XNNPack [MB] | CoreML [MB] |
+| Model             | XNNPACK [MB] | Core ML [MB] |
 | ----------------- | ------------ | ----------- |
 | EFFICIENTNET_V2_S | 85.6         | 43.9        |
 
 ### Memory usage
 
-| Model             | Android (XNNPack) [MB] | iOS (CoreML) [MB] |
+| Model             | Android (XNNPACK) [MB] | iOS (Core ML) [MB] |
 | ----------------- | ---------------------- | ----------------- |
 | EFFICIENTNET_V2_S | 130                    | 85                |
 
@@ -107,6 +107,6 @@ function App() {
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be longer due to model loading and initialization.
 :::
 
-| Model             | iPhone 16 Pro (CoreML) [ms] | iPhone 13 Pro (CoreML) [ms] | iPhone SE 3 (CoreML) [ms] | Samsung Galaxy S24 (XNNPack) [ms] | OnePlus 12 (XNNPack) [ms] |
+| Model             | iPhone 16 Pro (Core ML) [ms] | iPhone 13 Pro (Core ML) [ms] | iPhone SE 3 (Core ML) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
 | ----------------- | --------------------------- | --------------------------- | ------------------------- | --------------------------------- | ------------------------- |
 | EFFICIENTNET_V2_S | 100                         | 120                         | 130                       | 180                               | 170                       |

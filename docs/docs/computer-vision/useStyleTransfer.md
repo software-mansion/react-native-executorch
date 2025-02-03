@@ -83,7 +83,7 @@ function App(){
 
 ### Model size
 
-| Model                        | XNNPack [MB] | CoreML [MB] |
+| Model                        | XNNPACK [MB] | Core ML [MB] |
 | ---------------------------- | ------------ | ----------- |
 | STYLE_TRANSFER_CANDY         | 6.78         | 5.22        |
 | STYLE_TRANSFER_MOSAIC        | 6.78         | 5.22        |
@@ -92,7 +92,7 @@ function App(){
 
 ### Memory usage
 
-| Model                        | Android (XNNPack) [MB] | iOS (CoreML) [MB] |
+| Model                        | Android (XNNPACK) [MB] | iOS (Core ML) [MB] |
 | ---------------------------- | ---------------------- | ----------------- |
 | STYLE_TRANSFER_CANDY         | 950                    | 350               |
 | STYLE_TRANSFER_MOSAIC        | 950                    | 350               |
@@ -105,7 +105,7 @@ function App(){
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be longer due to model loading and initialization.
 :::
 
-| Model                        | iPhone 16 Pro (CoreML) [ms] | iPhone 13 Pro (CoreML) [ms] | iPhone SE 3 (CoreML) [ms] | Samsung Galaxy S24 (XNNPack) [ms] | OnePlus 12 (XNNPack) [ms] |
+| Model                        | iPhone 16 Pro (Core ML) [ms] | iPhone 13 Pro (Core ML) [ms] | iPhone SE 3 (Core ML) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
 | ---------------------------- | --------------------------- | --------------------------- | ------------------------- | --------------------------------- | ------------------------- |
 | STYLE_TRANSFER_CANDY         | 450                         | 600                         | 750                       | 1650                              | 1800                      |
 | STYLE_TRANSFER_MOSAIC        | 450                         | 600                         | 750                       | 1650                              | 1800                      |

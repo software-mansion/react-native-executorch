@@ -93,7 +93,7 @@ There are also cases when you need to check if tokens are being generated, such 
 
 ### Model size
 
-| Model                 | XNNPack [GB] |
+| Model                 | XNNPACK [GB] |
 | --------------------- | ------------ |
 | LLAMA3_2_1B           | 2.47         |
 | LLAMA3_2_1B_SPINQUANT | 1.14         |
@@ -104,7 +104,7 @@ There are also cases when you need to check if tokens are being generated, such 
 
 ### Memory usage
 
-| Model                 | Android (XNNPack) [GB] | iOS (XNNPack) [GB] |
+| Model                 | Android (XNNPACK) [GB] | iOS (XNNPACK) [GB] |
 | --------------------- | ---------------------- | ------------------ |
 | LLAMA3_2_1B           | 3.2                    | 3.1                |
 | LLAMA3_2_1B_SPINQUANT | 1.9                    | 2                  |
@@ -115,7 +115,7 @@ There are also cases when you need to check if tokens are being generated, such 
 
 ### Inference time
 
-| Model                 | iPhone 16 Pro (XNNPack) [tokens/s] | iPhone 13 Pro (XNNPack) [tokens/s] | iPhone SE 3 (XNNPack) [tokens/s] | Samsung Galaxy S24 (XNNPack) [tokens/s] | OnePlus 12 (XNNPack) [tokens/s] |
+| Model                 | iPhone 16 Pro (XNNPACK) [tokens/s] | iPhone 13 Pro (XNNPACK) [tokens/s] | iPhone SE 3 (XNNPACK) [tokens/s] | Samsung Galaxy S24 (XNNPACK) [tokens/s] | OnePlus 12 (XNNPACK) [tokens/s] |
 | --------------------- | ---------------------------------- | ---------------------------------- | -------------------------------- | --------------------------------------- | ------------------------------- |
 | LLAMA3_2_1B           | 16.1                               | 11.4                               | ❌                               | 15.6                                    | 19.3                            |
 | LLAMA3_2_1B_SPINQUANT | 40.6                               | 16.7                               | 16.5                             | 40.3                                    | 48.2                            |

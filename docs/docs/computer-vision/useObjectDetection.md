@@ -129,13 +129,13 @@ function App() {
 
 ### Model size
 
-| Model                          | XNNPack [MB] |
+| Model                          | XNNPACK [MB] |
 | ------------------------------ | ------------ |
 | SSDLITE_320_MOBILENET_V3_LARGE | 13.9         |
 
 ### Memory usage
 
-| Model                          | Android (XNNPack) [MB] | iOS (XNNPack) [MB] |
+| Model                          | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
 | ------------------------------ | ---------------------- | ------------------ |
 | SSDLITE_320_MOBILENET_V3_LARGE | 90                     | 90                 |
 
@@ -145,6 +145,6 @@ function App() {
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be longer due to model loading and initialization.
 :::
 
-| Model                          | iPhone 16 Pro (XNNPack) [ms] | iPhone 13 Pro (XNNPack) [ms] | iPhone SE 3 (XNNPack) [ms] | Samsung Galaxy S24 (XNNPack) [ms] | OnePlus 12 (XNNPack) [ms] |
+| Model                          | iPhone 16 Pro (XNNPACK) [ms] | iPhone 13 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
 | ------------------------------ | ---------------------------- | ---------------------------- | -------------------------- | --------------------------------- | ------------------------- |
 | SSDLITE_320_MOBILENET_V3_LARGE | 190                          | 260                          | 280                        | 100                               | 90                        |

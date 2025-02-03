@@ -9,19 +9,19 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 
 ## Classification
 
-| Model             | iPhone 16 Pro (CoreML) [ms] | iPhone 13 Pro (CoreML) [ms] | iPhone SE 3 (CoreML) [ms] | Samsung Galaxy S24 (XNNPack) [ms] | OnePlus 12 (XNNPack) [ms] |
+| Model             | iPhone 16 Pro (Core ML) [ms] | iPhone 13 Pro (Core ML) [ms] | iPhone SE 3 (Core ML) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
 | ----------------- | --------------------------- | --------------------------- | ------------------------- | --------------------------------- | ------------------------- |
 | EFFICIENTNET_V2_S | 100                         | 120                         | 130                       | 180                               | 170                       |
 
 ## Object Detection
 
-| Model                          | iPhone 16 Pro (XNNPack) [ms] | iPhone 13 Pro (XNNPack) [ms] | iPhone SE 3 (XNNPack) [ms] | Samsung Galaxy S24 (XNNPack) [ms] | OnePlus 12 (XNNPack) [ms] |
+| Model                          | iPhone 16 Pro (XNNPACK) [ms] | iPhone 13 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
 | ------------------------------ | ---------------------------- | ---------------------------- | -------------------------- | --------------------------------- | ------------------------- |
 | SSDLITE_320_MOBILENET_V3_LARGE | 190                          | 260                          | 280                        | 100                               | 90                        |
 
 ## Style Transfer
 
-| Model                        | iPhone 16 Pro (CoreML) [ms] | iPhone 13 Pro (CoreML) [ms] | iPhone SE 3 (CoreML) [ms] | Samsung Galaxy S24 (XNNPack) [ms] | OnePlus 12 (XNNPack) [ms] |
+| Model                        | iPhone 16 Pro (Core ML) [ms] | iPhone 13 Pro (Core ML) [ms] | iPhone SE 3 (Core ML) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
 | ---------------------------- | --------------------------- | --------------------------- | ------------------------- | --------------------------------- | ------------------------- |
 | STYLE_TRANSFER_CANDY         | 450                         | 600                         | 750                       | 1650                              | 1800                      |
 | STYLE_TRANSFER_MOSAIC        | 450                         | 600                         | 750                       | 1650                              | 1800                      |
@@ -30,7 +30,7 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 
 ## LLMs
 
-| Model                 | iPhone 16 Pro (XNNPack) [tokens/s] | iPhone 13 Pro (XNNPack) [tokens/s] | iPhone SE 3 (XNNPack) [tokens/s] | Samsung Galaxy S24 (XNNPack) [tokens/s] | OnePlus 12 (XNNPack) [tokens/s] |
+| Model                 | iPhone 16 Pro (XNNPACK) [tokens/s] | iPhone 13 Pro (XNNPACK) [tokens/s] | iPhone SE 3 (XNNPACK) [tokens/s] | Samsung Galaxy S24 (XNNPACK) [tokens/s] | OnePlus 12 (XNNPACK) [tokens/s] |
 | --------------------- | ---------------------------------- | ---------------------------------- | -------------------------------- | --------------------------------------- | ------------------------------- |
 | LLAMA3_2_1B           | 16.1                               | 11.4                               | ❌                               | 15.6                                    | 19.3                            |
 | LLAMA3_2_1B_SPINQUANT | 40.6                               | 16.7                               | 16.5                             | 40.3                                    | 48.2                            |
