@@ -124,3 +124,27 @@ function App() {
 | Model                                                                                                                                                                                                               | Number of classes | Class list                                                                                                                                          |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [SSDLite320 MobileNetV3 Large](https://pytorch.org/vision/main/models/generated/torchvision.models.detection.ssdlite320_mobilenet_v3_large.html#torchvision.models.detection.SSDLite320_MobileNet_V3_Large_Weights) | 91                | [COCO](https://github.com/software-mansion/react-native-executorch/blob/69802ee1ca161d9df00def1dabe014d36341cfa9/src/types/object_detection.ts#L14) |
+
+## Benchmarks
+
+### Model size
+
+| Model                          | XNNPACK [MB] |
+| ------------------------------ | ------------ |
+| SSDLITE_320_MOBILENET_V3_LARGE | 13.9         |
+
+### Memory usage
+
+| Model                          | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| ------------------------------ | ---------------------- | ------------------ |
+| SSDLITE_320_MOBILENET_V3_LARGE | 90                     | 90                 |
+
+### Inference time
+
+:::warning warning
+Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
+:::
+
+| Model                          | iPhone 16 Pro (XNNPACK) [ms] | iPhone 13 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| ------------------------------ | ---------------------------- | ---------------------------- | -------------------------- | --------------------------------- | ------------------------- |
+| SSDLITE_320_MOBILENET_V3_LARGE | 190                          | 260                          | 280                        | 100                               | 90                        |

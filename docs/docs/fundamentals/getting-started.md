@@ -7,12 +7,15 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
 ## What is ExecuTorch?
-ExecuTorch is a novel AI framework developed by Meta, designed to streamline deploying PyTorch models on a variety of devices, including mobile phones and microcontrollers. This framework enables exporting models into standalone binaries, allowing them to run locally without requiring API calls. ExecuTorch achieves state-of-the-art performance through optimizations and delegates such as CoreML and XNNPack. It provides a seamless export process with robust debugging options, making it easier to resolve issues if they arise.
+
+ExecuTorch is a novel AI framework developed by Meta, designed to streamline deploying PyTorch models on a variety of devices, including mobile phones and microcontrollers. This framework enables exporting models into standalone binaries, allowing them to run locally without requiring API calls. ExecuTorch achieves state-of-the-art performance through optimizations and delegates such as Core ML and XNNPACK. It provides a seamless export process with robust debugging options, making it easier to resolve issues if they arise.
 
 ## React Native ExecuTorch
+
 React Native ExecuTorch is our way of bringing ExecuTorch into the React Native world. Our API is built to be simple, declarative, and efficient. Plus, we’ll provide a set of pre-exported models for common use cases, so you won’t have to worry about handling exports yourself. With just a few lines of JavaScript, you’ll be able to run AI models (even LLMs 👀) right on your device—keeping user data private and saving on cloud costs.
 
 ## Installation
+
 Installation is pretty straightforward, just use your favorite package manager.
 
 <Tabs>
@@ -54,12 +57,15 @@ Because we are using ExecuTorch under the hood, you won't be able to build iOS a
 :::
 
 Running the app with the library:
+
 ```bash
 yarn run expo:<ios | android> -d
 ```
 
 ## Good reads
-If you want to dive deeper into ExecuTorch or our previous work with the framework, we highly encourage you to check out the following resources:  
+
+If you want to dive deeper into ExecuTorch or our previous work with the framework, we highly encourage you to check out the following resources:
+
 - [ExecuTorch docs](https://pytorch.org/executorch/stable/index.html)
 - [Native code for iOS](https://medium.com/swmansion/bringing-native-ai-to-your-mobile-apps-with-executorch-part-i-ios-f1562a4556e8?source=user_profile_page---------0-------------250189c98ccf---------------)
 - [Native code for Android](https://medium.com/swmansion/bringing-native-ai-to-your-mobile-apps-with-executorch-part-ii-android-29431b6b9f7f?source=user_profile_page---------2-------------b8e3a5cb1c63---------------)

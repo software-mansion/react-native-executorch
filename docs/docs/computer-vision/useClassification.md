@@ -86,3 +86,27 @@ function App() {
 | Model                                                                                                           | Number of classes | Class list                                                                                                                                                                 |
 | --------------------------------------------------------------------------------------------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [efficientnet_v2_s](https://pytorch.org/vision/0.20/models/generated/torchvision.models.efficientnet_v2_s.html) | 1000              | [ImageNet1k_v1](https://github.com/software-mansion/react-native-executorch/blob/main/android/src/main/java/com/swmansion/rnexecutorch/models/classification/Constants.kt) |
+
+## Benchmarks
+
+### Model size
+
+| Model             | XNNPACK [MB] | Core ML [MB] |
+| ----------------- | ------------ | ------------ |
+| EFFICIENTNET_V2_S | 85.6         | 43.9         |
+
+### Memory usage
+
+| Model             | Android (XNNPACK) [MB] | iOS (Core ML) [MB] |
+| ----------------- | ---------------------- | ------------------ |
+| EFFICIENTNET_V2_S | 130                    | 85                 |
+
+### Inference time
+
+:::warning warning
+Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
+:::
+
+| Model             | iPhone 16 Pro (Core ML) [ms] | iPhone 13 Pro (Core ML) [ms] | iPhone SE 3 (Core ML) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| ----------------- | ---------------------------- | ---------------------------- | -------------------------- | --------------------------------- | ------------------------- |
+| EFFICIENTNET_V2_S | 100                          | 120                          | 130                        | 180                               | 170                       |
