@@ -115,23 +115,55 @@
   };
 }
 
-+ (cv::Mat)getCroppedImage:(int)x_max x_min:(int)x_min y_max:(int)y_max y_min:(int)y_min image:(cv::Mat)image modelHeight:(int)modelHeight {
-  cv::Rect region(x_min, y_min, x_max - x_min, y_max - y_min);
-  cv::Mat crop_img = image(region);
++ (cv::Mat)getCroppedImage:(NSDictionary *)box image:(cv::Mat)image modelHeight:(int)modelHeight {
+  // Convert NSValue array to cv::Point2f vector
+  NSArray *coords = box[@"box"];
+  CGFloat angle = [box[@"angle"] floatValue];
   
-  int width = x_max - x_min;
-  int height = y_max - y_min;
-  
-  CGFloat ratio = [self calculateRatio:width height:height];
-  int new_width = (int)(modelHeight * ratio);
-  
-  if (new_width == 0) {
-    return crop_img;
+  std::vector<cv::Point2f> points;
+  for (NSValue *value in coords) {
+    CGPoint point = [value CGPointValue];
+    points.emplace_back(static_cast<float>(point.x), static_cast<float>(point.y));
   }
   
-  crop_img = [self computeRatioAndResize:crop_img width:width height:height modelHeight:modelHeight];
+  // Obtain the rotated rectangle from the points
+  cv::RotatedRect rotatedRect = cv::minAreaRect(points);
   
-  return crop_img;
+  // Compute the rotation matrix for the angle of the rotated rectangle
+  cv::Point2f imageCenter = cv::Point2f(image.cols / 2.0, image.rows / 2.0);
+  cv::Mat rotationMatrix = cv::getRotationMatrix2D(imageCenter, angle, 1.0);
+  
+  // Rotate the entire image
+  cv::Mat rotatedImage;
+  cv::warpAffine(image, rotatedImage, rotationMatrix, image.size(), cv::INTER_LINEAR);
+  
+  // Get vertices of the minimal rotated rectangle
+  cv::Point2f rectPoints[4];
+  rotatedRect.points(rectPoints);
+  
+  // Transform points using the rotation matrix
+  std::vector<cv::Point2f> transformedPoints(4);
+  cv::Mat rectMat(4, 2, CV_32FC2, rectPoints);
+  cv::transform(rectMat, rectMat, rotationMatrix);
+  
+  // Convert points back to array of points to compute bounding box afterward
+  for (int i = 0; i < 4; ++i) {
+    transformedPoints[i] = rectPoints[i];
+  }
+  
+  // Compute the bounding box of transformed points
+  cv::Rect boundingBox = cv::boundingRect(transformedPoints);
+  
+  // Make sure the bounding box fits within the image
+  boundingBox &= cv::Rect(0, 0, rotatedImage.cols, rotatedImage.rows);
+  
+  // Optional: Crop to this bounding box if necessary
+  cv::Mat croppedImage = rotatedImage(boundingBox);
+  
+  // If specified to resize according to modelHeight, adjust the aspect ratio and resize
+  croppedImage = [self computeRatioAndResize:croppedImage width:boundingBox.width height:boundingBox.height modelHeight:modelHeight];
+  
+  return croppedImage;
 }
 
 + (NSMutableArray *)sumProbabilityRows:(cv::Mat)probabilities modelOutputHeight:(int)modelOutputHeight {

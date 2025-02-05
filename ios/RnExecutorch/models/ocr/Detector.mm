@@ -69,23 +69,36 @@
   
   NSArray* horizontalList = [DetectorUtils getDetBoxes:scoreTextCV linkMap:scoreLinkCV textThreshold:textThreshold linkThreshold:linkThreshold lowText:lowText];
   horizontalList = [DetectorUtils restoreBboxRatio:horizontalList];
-  horizontalList = [DetectorUtils groupTextBox:horizontalList ycenterThs:yCenterThs heightThs:heightThs widthThs:widthThs addMargin:addMargin];
+  horizontalList = [DetectorUtils groupTextBoxes:horizontalList centerThreshold:centerThreshold distanceThreshold:distanceThreshold heightThreshold:heightThreshold];
   
-  NSMutableArray *boxesToKeep = [NSMutableArray array];
-  
-  for (NSArray *box in horizontalList) {
-    if (MAX([box[1] intValue] - [box[0] intValue], [box[3] intValue] - [box[2] intValue]) >= minSize) {
-      [boxesToKeep addObject:box];
-    }
-  }
-  
-  return boxesToKeep;
+  return horizontalList;
 }
 
 - (NSArray *)runModel:(cv::Mat &)input {
+  NSDate *startTime;
+  NSDate *endTime;
+  NSTimeInterval executionTime;
+  
+  // Preprocessing
+  startTime = [NSDate date];
   NSArray *modelInput = [self preprocess:input];
+  endTime = [NSDate date];
+  executionTime = [endTime timeIntervalSinceDate:startTime];
+  NSLog(@"Preprocessing time: %f seconds", executionTime);
+  
+  // Running the model
+  startTime = [NSDate date];
   NSArray *modelResult = [self forward:modelInput];
+  endTime = [NSDate date];
+  executionTime = [endTime timeIntervalSinceDate:startTime];
+  NSLog(@"Model forwarding time: %f seconds", executionTime);
+  
+  // Postprocessing
+  startTime = [NSDate date];
   NSArray *result = [self postprocess:modelResult];
+  endTime = [NSDate date];
+  executionTime = [endTime timeIntervalSinceDate:startTime];
+  NSLog(@"Postprocessing time: %f seconds", executionTime);
   
   return result;
 }

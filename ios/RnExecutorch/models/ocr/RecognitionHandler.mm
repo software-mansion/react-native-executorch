@@ -63,27 +63,12 @@
 }
 
 - (NSArray *)recognize: (NSArray *)horizontalList imgGray:(cv::Mat)imgGray desiredWidth:(int)desiredWidth desiredHeight:(int)desiredHeight {
-  NSDictionary* ratioAndPadding = [RecognizerUtils calculateResizeRatioAndPaddings:imgGray.cols height:imgGray.rows desiredWidth:desiredWidth desiredHeight:desiredHeight];
-  
-  int left = [ratioAndPadding[@"left"] intValue];
-  int top = [ratioAndPadding[@"top"] intValue];
-  float resizeRatio = [ratioAndPadding[@"resizeRatio"] floatValue];
   imgGray = [OCRUtils resizeWithPadding:imgGray desiredWidth:desiredWidth desiredHeight:desiredHeight];
-  
   NSMutableArray *predictions = [NSMutableArray array];
-  for (NSArray *box in horizontalList) {
-    int maximum_y = imgGray.rows;
-    int maximum_x = imgGray.cols;
-    
-    int x_min = MAX(0, [box[0] intValue]);
-    int x_max = MIN([box[1] intValue], maximum_x);
-    int y_min = MAX(0, [box[2] intValue]);
-    int y_max = MIN([box[3] intValue], maximum_y);
-    
-    cv::Mat croppedImage = [RecognizerUtils getCroppedImage:x_max x_min:x_min y_max:y_max y_min:y_min image:imgGray modelHeight:modelHeight];
-    
-    
-    croppedImage = [RecognizerUtils normalizeForRecognizer:croppedImage adjustContrast:0.0];
+  NSLog(@"%@", horizontalList);
+  for (NSDictionary *box in horizontalList) {
+    cv::Mat croppedImage = [RecognizerUtils getCroppedImage:box image:imgGray modelHeight:modelHeight];
+    croppedImage = [RecognizerUtils normalizeForRecognizer:croppedImage adjustContrast:0.2];
     NSArray *result;
     if(croppedImage.cols >= largeModelWidth) {
       result = [recognizerLarge runModel:croppedImage];
@@ -94,11 +79,28 @@
     }
     
     NSNumber *confidenceScore = [result objectAtIndex:1];
+    if([confidenceScore floatValue] < 0.3){
+      cv::rotate(croppedImage, croppedImage, cv::ROTATE_180);
+    }
+    NSArray *rotatedResult;
+    if(croppedImage.cols >= largeModelWidth) {
+      rotatedResult = [recognizerLarge runModel:croppedImage];
+    } else if (croppedImage.cols >= mediumModelWidth) {
+      rotatedResult = [recognizerMedium runModel: croppedImage];
+    } else {
+      rotatedResult = [recognizerSmall runModel: croppedImage];
+    }
+    NSNumber *rotatedConfidenceScore = [rotatedResult objectAtIndex:1];
+    
+    if ([rotatedConfidenceScore floatValue] > [confidenceScore floatValue]) {
+      result = rotatedResult;
+    }
+    
     NSArray *pred_index = [result objectAtIndex:0];
     
     NSArray* decodedTexts = [converter decodeGreedy:pred_index length:(int)(pred_index.count)];
-    
-    NSDictionary *res = @{@"text": decodedTexts[0], @"bbox": @{@"x1": @((int)((x_min - left) * resizeRatio)), @"x2": @((int)((x_max - left) * resizeRatio)), @"y1": @((int)((y_min - top) * resizeRatio)), @"y2":@((int)((y_max - top) * resizeRatio))}, @"score": confidenceScore};
+
+    NSDictionary *res = @{@"text": decodedTexts[0], @"bbox": box[@"box"], @"score": confidenceScore};
     [predictions addObject:res];
   }
   

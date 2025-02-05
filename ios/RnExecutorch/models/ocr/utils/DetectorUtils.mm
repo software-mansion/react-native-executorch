@@ -2,6 +2,179 @@
 
 @implementation DetectorUtils
 
++ (CGFloat)normalizeAngle:(CGFloat)angle {
+  /*
+   Normalize the angle returned by OpenCV's minAreaRect.
+   */
+  if (angle > 45) {
+    return angle - 90;
+  }
+  return angle;
+}
+
++ (CGFloat)distance:(CGPoint)p1 p2:(CGPoint)p2 {
+  double xDist = (p2.x - p1.x);
+  double yDist = (p2.y - p1.y);
+  return sqrt(xDist * xDist + yDist * yDist);
+}
+
++ (CGPoint)midpoint:(CGPoint)p1 p2:(CGPoint)p2 {
+  return CGPointMake((p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
+}
+
++ (CGPoint)centerOfBox:(NSArray *)box {
+  return CGPointMake(([box[0] CGPointValue].x + [box[2] CGPointValue].x) / 2, ([box[0] CGPointValue].y + [box[2] CGPointValue].y) / 2);
+}
+
++ (CGFloat)maxSideLength:(NSArray<NSValue *> *)points {
+  CGFloat maxSideLength = 0;
+  NSInteger numOfPoints = points.count;
+  for (NSInteger i = 0; i < numOfPoints; i++) {
+    CGPoint currentPoint = [points[i] CGPointValue];
+    CGPoint nextPoint = [points[(i + 1) % numOfPoints] CGPointValue];
+    
+    CGFloat sideLength = [self distance:currentPoint p2:nextPoint];
+    if (sideLength > maxSideLength) {
+      maxSideLength = sideLength;
+    }
+  }
+  return maxSideLength;
+}
+
++ (CGFloat)minSideLength:(NSArray<NSValue *> *)points {
+  CGFloat minSideLength = CGFLOAT_MAX;
+  NSInteger numOfPoints = points.count;
+  
+  for (NSInteger i = 0; i < numOfPoints; i++) {
+    CGPoint currentPoint = [points[i] CGPointValue];
+    CGPoint nextPoint = [points[(i + 1) % numOfPoints] CGPointValue];
+    
+    CGFloat sideLength = [self distance:currentPoint p2:nextPoint];
+    if (sideLength < minSideLength) {
+      minSideLength = sideLength;
+    }
+  }
+  
+  return minSideLength;
+}
+
++ (NSArray *)orderPointsClockwise:(NSArray<NSValue *> *)points{
+  CGPoint topLeft, topRight, bottomRight, bottomLeft;
+  float minSum = FLT_MAX;
+  float maxSum = -FLT_MAX;
+  float minDiff = FLT_MAX;
+  float maxDiff = -FLT_MAX;
+  
+  for (NSValue *value in points) {
+    CGPoint pt = [value CGPointValue];
+    float sum = pt.x + pt.y;
+    float diff = pt.y - pt.x;
+    
+    // For top-left and bottom-right determination
+    if (sum < minSum) {
+      minSum = sum;
+      topLeft = pt;
+    }
+    if (sum > maxSum) {
+      maxSum = sum;
+      bottomRight = pt;
+    }
+    
+    // For top-right and bottom-left determination
+    if (diff < minDiff) {
+      minDiff = diff;
+      topRight = pt;
+    }
+    if (diff > maxDiff) {
+      maxDiff = diff;
+      bottomLeft = pt;
+    }
+  }
+  
+  NSArray<NSValue *> *rect = @[[NSValue valueWithCGPoint:topLeft],
+                               [NSValue valueWithCGPoint:topRight],
+                               [NSValue valueWithCGPoint:bottomRight],
+                               [NSValue valueWithCGPoint:bottomLeft]];
+  
+  return rect;
+}
+
++ (NSArray<NSValue *> *)rotateBox:(NSArray<NSValue *> *)box withAngle:(CGFloat)angle {
+  // Calculate the center of the rectangle
+  CGPoint center = [self centerOfBox:box];
+  
+  // Convert angle from degrees to radians
+  CGFloat radians = angle * M_PI / 180.0;
+  
+  // Prepare an array to hold the rotated points
+  NSMutableArray<NSValue *> *rotatedPoints = [NSMutableArray arrayWithCapacity:4];
+  for (NSValue *value in box) {
+    CGPoint point = [value CGPointValue];
+    
+    // Translate point to origin
+    CGFloat translatedX = point.x - center.x;
+    CGFloat translatedY = point.y - center.y;
+    
+    // Rotate point
+    CGFloat rotatedX = translatedX * cos(radians) - translatedY * sin(radians);
+    CGFloat rotatedY = translatedX * sin(radians) + translatedY * cos(radians);
+    
+    // Translate point back
+    CGPoint rotatedPoint = CGPointMake(rotatedX + center.x, rotatedY + center.y);
+    [rotatedPoints addObject:[NSValue valueWithCGPoint:rotatedPoint]];
+  }
+
+  return rotatedPoints;
+}
+
++ (std::vector<cv::Point2f>)pointsFromNSValues:(NSArray<NSValue *> *)nsValues {
+  std::vector<cv::Point2f> points;
+  for (NSValue *value in nsValues) {
+    CGPoint point = [value CGPointValue];
+    points.emplace_back(point.x, point.y);
+  }
+  return points;
+}
+
++ (NSArray<NSValue *> *)nsValuesFromPoints:(cv::Point2f *)points count:(int)count {
+  NSMutableArray<NSValue *> *nsValues = [[NSMutableArray alloc] initWithCapacity:count];
+  for (int i = 0; i < count; i++) {
+    [nsValues addObject:[NSValue valueWithCGPoint:CGPointMake(points[i].x, points[i].y)]];
+  }
+  return nsValues;
+}
+
++ (NSArray<NSValue *> *)mergeRotatedBoxes:(NSArray<NSValue *> *)box1 withBox:(NSArray<NSValue *> *)box2 {
+  box1 = [self orderPointsClockwise:box1];
+  box2 = [self orderPointsClockwise:box2];
+  
+  std::vector<cv::Point2f> points1 = [self pointsFromNSValues:box1];
+  std::vector<cv::Point2f> points2 = [self pointsFromNSValues:box2];
+  
+  // Collect all points from both rectangles
+  std::vector<cv::Point2f> allPoints;
+  allPoints.insert(allPoints.end(), points1.begin(), points1.end());
+  allPoints.insert(allPoints.end(), points2.begin(), points2.end());
+  
+  // Calculate the convex hull of all points
+  std::vector<int> hullIndices;
+  cv::convexHull(allPoints, hullIndices, false);
+  
+  std::vector<cv::Point2f> hullPoints;
+  for (int idx : hullIndices) {
+    hullPoints.push_back(allPoints[idx]);
+  }
+  
+  // Get the minimum area rectangle that bounds the convex hull
+  cv::RotatedRect minAreaRect = cv::minAreaRect(hullPoints);
+  
+  cv::Point2f rectPoints[4];
+  minAreaRect.points(rectPoints);
+  
+  // Convert rotated rectangle points back to NSArray
+  return [self nsValuesFromPoints:rectPoints count:4];
+}
+
 + (NSDictionary *)splitInterleavedNSArray:(NSArray *)array {
   NSMutableArray *scoreText = [[NSMutableArray alloc] init];
   NSMutableArray *scoreLink = [[NSMutableArray alloc] init];
@@ -17,32 +190,133 @@
   return @{@"ScoreText": scoreText, @"ScoreLink": scoreLink};
 }
 
++ (CGFloat)calculateMinimalDistance:(NSArray<NSValue *> *)corners1 corners2:(NSArray<NSValue *> *)corners2 {
+  CGFloat minDistance = CGFLOAT_MAX;
+  for (NSValue *value1 in corners1) {
+    CGPoint corner1 = [value1 CGPointValue];
+    for (NSValue *value2 in corners2) {
+      CGPoint corner2 = [value2 CGPointValue];
+      CGFloat distance = [self distance:corner1 p2:corner2];
+      if (distance < minDistance) {
+        minDistance = distance;
+      }
+    }
+  }
+  return minDistance;
+}
+
++ (NSDictionary *)fitLineToShortestSides:(NSArray<NSValue *> *)points {
+  // Calculate distances and find midpoints
+  NSMutableArray<NSDictionary *> *sides = [NSMutableArray array];
+  NSMutableArray<NSValue *> *midpoints = [NSMutableArray array];
+  
+  for (int i = 0; i < 4; i++) {
+      CGPoint p1 = [points[i] CGPointValue];
+      CGPoint p2 = [points[(i + 1) % 4] CGPointValue];
+      
+      CGFloat sideLength = [self distance:p1 p2:p2];
+      [sides addObject:@{@"length": @(sideLength), @"index": @(i)}];
+      [midpoints addObject:[NSValue valueWithCGPoint:[self midpoint:p1 p2:p2]]];
+  }
+  
+  // Sort indices by distances
+  [sides sortUsingDescriptors:@[[NSSortDescriptor sortDescriptorWithKey:@"length" ascending:YES]]];
+  
+  CGPoint midpoint1 = [midpoints[[sides[0][@"index"] intValue]] CGPointValue];
+  CGPoint midpoint2 = [midpoints[[sides[1][@"index"] intValue]] CGPointValue];
+  CGFloat dx = fabs(midpoint2.x - midpoint1.x);
+  
+  float m, c;
+  BOOL isVertical;
+  
+  std::vector<cv::Point2f> cvMidPoints = {cv::Point2f(midpoint1.x, midpoint1.y), cv::Point2f(midpoint2.x, midpoint2.y)};
+  cv::Vec4f line;
+  
+  if (dx < 20) {
+    // If almost vertical, fit x = my + c
+    for (auto &pt : cvMidPoints) std::swap(pt.x, pt.y);
+    cv::fitLine(cvMidPoints, line, cv::DIST_L2, 0, 0.01, 0.01);
+    m = line[1] / line[0];
+    c = line[3] - m * line[2];
+    isVertical = YES;
+  } else {
+    // Fit y = mx + c
+    cv::fitLine(cvMidPoints, line, cv::DIST_L2, 0, 0.01, 0.01);
+    m = line[1] / line[0];
+    c = line[3] - m * line[2];
+    isVertical = NO;
+  }
+
+  return @{@"slope": @(m), @"intercept": @(c), @"isVertical": @(isVertical)};
+}
+
++ (NSDictionary *)findClosestBox:(NSArray<NSDictionary *> *)polys
+                     ignoredIdxs:(NSSet<NSNumber *> *)ignoredIdxs
+                      currentBox:(NSArray<NSValue *> *)currentBox
+                      isVertical:(BOOL)isVertical
+                               m:(CGFloat)m
+                               c:(CGFloat)c
+                 centerThreshold:(CGFloat)centerThreshold
+{
+  CGFloat smallestDistance = CGFLOAT_MAX;
+  NSDictionary *boxToMerge = nil;
+  NSInteger idx = -1;
+  CGFloat boxHeight = 0;
+  CGPoint centerOfCurrentBox = [self centerOfBox:currentBox];
+  
+  for (NSUInteger i = 0; i < polys.count; i++) {
+    if ([ignoredIdxs containsObject:@(i)]) {
+      continue;
+    }
+    NSArray<NSValue *> *coords = polys[i][@"box"];
+    CGFloat angle = [polys[i][@"angle"] doubleValue];
+    CGPoint centerOfProcessedBox = [self centerOfBox:coords];
+    CGFloat distanceBetweenCenters = [self distance:centerOfCurrentBox p2:centerOfProcessedBox];
+    
+    if (distanceBetweenCenters >= smallestDistance) {
+      continue;
+    }
+    
+    boxHeight = [self minSideLength:coords];
+    
+    CGFloat lineDistance = (isVertical ?
+                            fabs(centerOfProcessedBox.x - (m * centerOfProcessedBox.y + c)) :
+                            fabs(centerOfProcessedBox.y - (m * centerOfProcessedBox.x + c)));
+    
+    if (lineDistance < boxHeight * centerThreshold) {
+      boxToMerge = @{@"coords": coords, @"angle": @(angle)};
+      idx = i;
+      smallestDistance = distanceBetweenCenters;
+    }
+  }
+  
+  return boxToMerge ? @{@"boxToMerge": boxToMerge, @"idx": @(idx), @"boxHeight": @(boxHeight)} : nil;
+}
+
 + (NSArray *)restoreBboxRatio:(NSArray *)boxes {
   NSMutableArray *result = [NSMutableArray array];
   for (NSUInteger i = 0; i < [boxes count]; i++) {
-    NSArray *box = boxes[i];
+    NSDictionary *box = boxes[i];
     NSMutableArray *boxArray = [NSMutableArray arrayWithCapacity:4];
-    for (NSValue *value in box) {
+    for (NSValue *value in box[@"box"]) {
       CGPoint point = [value CGPointValue];
-      point.x *= 2;
-      point.y *= 2;
-      [boxArray addObject:@((int)point.x)];
-      [boxArray addObject:@((int)point.y)];
+      point.x *= 2 * 1.6;
+      point.y *= 2 * 1.6;
+      [boxArray addObject:[NSValue valueWithCGPoint:point]];
     }
-    [result addObject:boxArray];
+    NSDictionary *dict = @{@"box": boxArray, @"angle": box[@"angle"]};
+    [result addObject:dict];
   }
   
   return result;
 }
 
 + (NSArray *)getDetBoxes:(cv::Mat)textmap linkMap:(cv::Mat)linkmap textThreshold:(double)textThreshold linkThreshold:(double)linkThreshold lowText:(double)lowText {
-  cv::Mat textmapCopy = textmap.clone();
-  cv::Mat linkmapCopy = linkmap.clone();
   int img_h = textmap.rows;
   int img_w = textmap.cols;
   cv::Mat textScore, linkScore;
-  cv::threshold(textmapCopy, textScore, lowText, 1, 0);
-  cv::threshold(linkmapCopy, linkScore, linkThreshold, 1, 0);
+  cv::threshold(textmap, textScore, lowText, 1, 0);
+  cv::threshold(linkmap, linkScore, linkThreshold, 1, 0);
   cv::Mat textScoreComb = textScore + linkScore;
   cv::threshold(textScoreComb, textScoreComb, 0, 1, cv::THRESH_BINARY);
   cv::Mat binaryMat;
@@ -58,7 +332,7 @@
     
     cv::Mat mask = (labels == i);
     double maxVal;
-    cv::minMaxLoc(textmapCopy, NULL, &maxVal, NULL, NULL, mask);
+    cv::minMaxLoc(textmap, NULL, &maxVal, NULL, NULL, mask);
     if (maxVal < textThreshold) continue;
     
     cv::Mat segMap = cv::Mat::zeros(textmap.size(), CV_8U);
@@ -83,6 +357,7 @@
     cv::Mat roiSegMap = segMap(roi);
     cv::dilate(roiSegMap, roiSegMap, kernel);
     
+    // Find minimal area rect
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(segMap, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
     if (!contours.empty()) {
@@ -94,145 +369,84 @@
         CGPoint point = CGPointMake(vertices[j].x, vertices[j].y);
         [pointsArray addObject:[NSValue valueWithCGPoint:point]];
       }
-      [detectedBoxes addObject:pointsArray];
+      NSDictionary *dict = @{@"box": pointsArray, @"angle": @(minRect.angle)};
+      [detectedBoxes addObject:dict];
     }
   }
   
   return detectedBoxes;
 }
 
-+ (NSMutableArray *)prepareBoxesFromPolys:(NSArray *)polys {
-  NSMutableArray *boxes = [NSMutableArray array];
-  for (NSArray *poly in polys) {
-    NSArray *xCoords = @[poly[0], poly[2], poly[4], poly[6]];
-    NSArray *yCoords = @[poly[1], poly[3], poly[5], poly[7]];
-    NSNumber *xMin = [xCoords valueForKeyPath:@"@min.self"];
-    NSNumber *xMax = [xCoords valueForKeyPath:@"@max.self"];
-    NSNumber *yMin = [yCoords valueForKeyPath:@"@min.self"];
-    NSNumber *yMax = [yCoords valueForKeyPath:@"@max.self"];
-    [boxes addObject:@[xMin, xMax, yMin, yMax, @(([yMin floatValue] + [yMax floatValue]) / 2.0), @([yMax floatValue] - [yMin floatValue])]];
-  }
-  return boxes;
-}
-
-+ (NSMutableArray *)combineBoxes:(NSMutableArray *)boxes withYCenterThs:(CGFloat)ycenterThs heightThs:(CGFloat)heightThs {
-  NSMutableArray *combinedBoxes = [NSMutableArray array];
-  NSMutableArray *currentGroup = [NSMutableArray array];
-  
-  for (NSArray *box in boxes) {
-    if (currentGroup.count == 0) {
-      [currentGroup addObject:box];
-    } else {
-      NSArray *lastBox = [currentGroup lastObject];
-      BOOL closeYCenter = fabs([[lastBox objectAtIndex:4] floatValue] - [[box objectAtIndex:4] floatValue]) < ycenterThs * [[lastBox objectAtIndex:5] floatValue];
-      if (closeYCenter) {
-        [currentGroup addObject:box];
-      } else {
-        [combinedBoxes addObject:[currentGroup copy]];
-        currentGroup = [@[box] mutableCopy];
-      }
++ (CGFloat)minimumYFromBox:(NSArray<NSValue *> *)box {
+  __block CGFloat minY = CGFLOAT_MAX;
+  [box enumerateObjectsUsingBlock:^(NSValue * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+    CGPoint pt = [obj CGPointValue];
+    if (pt.y < minY) {
+      minY = pt.y;
     }
-  }
-  if (currentGroup.count > 0) {
-    [combinedBoxes addObject:[currentGroup copy]];
-  }
-  return combinedBoxes;
+  }];
+  return minY;
 }
 
-+ (NSArray *)mergeBoxes:(NSMutableArray *)combinedBoxes withWidthThs:(CGFloat)widthThs heightThs:(CGFloat)heightThs addMargin:(CGFloat)addMargin {
-  NSMutableArray *mergedList = [NSMutableArray array];
-  
-  for (NSArray *group in combinedBoxes) {
-    if (group.count == 1) {
-      NSArray *box = group[0];
-      float margin = addMargin * MIN([[box objectAtIndex:1] floatValue] - [[box objectAtIndex:0] floatValue], [[box objectAtIndex:5] floatValue]);
-      [mergedList addObject:@[@([[box objectAtIndex:0] floatValue] - margin), @([[box objectAtIndex:1] floatValue] + margin), @([[box objectAtIndex:2] floatValue] - margin), @([[box objectAtIndex:3] floatValue] + margin)]];
-    } else {
-      NSArray *sortedBoxes = [group sortedArrayUsingComparator:^NSComparisonResult(NSArray *obj1, NSArray *obj2) {
-        return [@([obj1[0] intValue]) compare:@([obj2[0] intValue])];
-      }];
-      
-      NSMutableArray *mergedBox = [NSMutableArray array];
-      NSMutableArray *newBox = [NSMutableArray array];
-      int xMax = 0;
-      NSMutableArray *bHeight = [NSMutableArray array];
-      
-      for (NSArray *box in sortedBoxes) {
-        if ([newBox count] == 0) {
-          [bHeight addObject:box[5]];
-          xMax = [box[1] intValue];
-          [newBox addObject:box];
-        } else {
-          int currHeight = [box[5] intValue];
-          float meanHeight = [[bHeight valueForKeyPath:@"@avg.self"] floatValue];
-          if (fabs(meanHeight - currHeight) < heightThs * meanHeight &&
-              ([box[0] intValue] - xMax) < widthThs * ([box[3] intValue] - [box[2] intValue])) {
-            [bHeight addObject:box[5]];
-            xMax = [box[1] intValue];
-            [newBox addObject:box];
-          } else {
-            [mergedBox addObject:[newBox copy]];
-            newBox = [@[box] mutableCopy];
-            bHeight = [@[box[5]] mutableCopy];
-            xMax = [box[1] intValue];
-          }
-        }
-      }
-      if ([newBox count] > 0) {
-        [mergedBox addObject:newBox];
-      }
-      
-      for (NSArray *mbox in mergedBox) {
-        if ([mbox count] != 1) {
-          NSNumber *xMin = [mbox[0] objectAtIndex:0];
-          NSNumber *xMax = [mbox[0] objectAtIndex:1];
-          NSNumber *yMin = [mbox[0] objectAtIndex:2];
-          NSNumber *yMax = [mbox[0] objectAtIndex:3];
-          for (NSArray *box in mbox) {
-            if ([box[0] intValue] < [xMin intValue]) {
-              xMin = box[0];
-            }
-            if([box[1] intValue] > [xMax intValue]) {
-              xMax = box[1];
-            }
-            if ([box[2] intValue] < [yMin intValue]) {
-              yMin = box[2];
-            }
-            if ([box[3] intValue] > [yMax intValue]) {
-              yMax = box[3];
-            }
-          }
-          
-          int margin = (int)(addMargin * MIN([xMax floatValue] - [xMin floatValue], [yMax floatValue] - [yMin floatValue]));
-          [mergedList addObject:@[@([xMin intValue] - margin),
-                                  @([xMax intValue] + margin),
-                                  @([yMin intValue] - margin),
-                                  @([yMax intValue] + margin)]];
-        } else {
-          NSArray *box = mbox[0];
-          int margin = (int)(addMargin * MIN([box[1] floatValue] - [box[0] floatValue], [box[3] floatValue] - [box[2] floatValue]));
-          [mergedList addObject:@[@([box[0] intValue] - margin),
-                                  @([box[1] intValue] + margin),
-                                  @([box[2] intValue] - margin),
-                                  @([box[3] intValue] + margin)]];
-        }
-      }
-      
-    }
-  }
-  
-  return [mergedList copy];
-}
-
-+ (NSArray<NSArray<NSNumber *> *> *)groupTextBox:(NSArray<NSArray<NSNumber *> *> *)polys
-                                      ycenterThs:(CGFloat)ycenterThs
-                                       heightThs:(CGFloat)heightThs
-                                        widthThs:(CGFloat)widthThs
-                                       addMargin:(CGFloat)addMargin
++ (NSArray<NSDictionary *> *)groupTextBoxes:(NSArray<NSDictionary *> *)polys
+                            centerThreshold:(CGFloat)centerThreshold
+                          distanceThreshold:(CGFloat)distanceThreshold
+                            heightThreshold:(CGFloat)heightThreshold
 {
-  NSMutableArray *horizontalList = [self prepareBoxesFromPolys:polys];
-  NSMutableArray *combinedList = [self combineBoxes:horizontalList withYCenterThs:ycenterThs heightThs:heightThs];
-  return [self mergeBoxes:combinedList withWidthThs:widthThs heightThs:heightThs addMargin:addMargin];
+  // Sort polys by max side length in descending order
+  NSMutableArray<NSDictionary *> *sortedPolys = [polys sortedArrayUsingComparator:^NSComparisonResult(NSDictionary *obj1, NSDictionary *obj2) {
+    CGFloat maxLen1 = [self maxSideLength:obj1[@"box"]];
+    CGFloat maxLen2 = [self maxSideLength:obj2[@"box"]];
+    return (maxLen1 < maxLen2) ? NSOrderedDescending : (maxLen1 > maxLen2) ? NSOrderedAscending : NSOrderedSame;
+  }].mutableCopy;
+  
+  NSMutableArray<NSDictionary *> *mergedList = [NSMutableArray array];
+  CGFloat angleDegrees;
+  while (sortedPolys.count > 0) {
+    NSMutableDictionary *currentBox = [sortedPolys[0] mutableCopy];
+    [sortedPolys removeObjectAtIndex:0];
+    CGFloat currentAngle = [self normalizeAngle:[currentBox[@"angle"] floatValue]];
+    NSMutableArray<NSNumber *> *ignoredIdxs = [NSMutableArray array];
+    
+    while (YES) {
+      NSDictionary *lineFit = [self fitLineToShortestSides:currentBox[@"box"]];
+      NSLog(@"lineFit: %@", lineFit);
+      angleDegrees = atan([lineFit[@"slope"] floatValue]) * 180 / M_PI;
+      if ([lineFit[@"isVertical"] boolValue]){
+        angleDegrees = -90;
+      }
+      CGFloat mergedHeight = [self minSideLength:currentBox[@"box"]];
+      NSDictionary *closestBoxInfo = [self findClosestBox:sortedPolys ignoredIdxs:[NSSet setWithArray:ignoredIdxs] currentBox:currentBox[@"box"] isVertical:[lineFit[@"isVertical"] boolValue] m:[lineFit[@"slope"] floatValue] c:[lineFit[@"intercept"] floatValue] centerThreshold:centerThreshold];
+      if (closestBoxInfo == nil) break;
+      
+      NSMutableDictionary *candidateBox = [closestBoxInfo[@"boxToMerge"] mutableCopy];
+      NSInteger candidateIdx = [closestBoxInfo[@"idx"] integerValue];
+      CGFloat candidateHeight = [closestBoxInfo[@"boxHeight"] floatValue];
+      if (([candidateBox[@"angle"]  isEqual: @90] && ![lineFit[@"isVertical"] boolValue]) || ([candidateBox[@"angle"] isEqual: @0] && [lineFit[@"isVertical"] boolValue])) {
+        candidateBox[@"coords"] = [self rotateBox:candidateBox[@"coords"] withAngle:currentAngle];
+      }
+      CGFloat minDistance = [self calculateMinimalDistance:candidateBox[@"coords"] corners2:currentBox[@"box"]];
+      if (minDistance < distanceThreshold * candidateHeight && fabs(mergedHeight - candidateHeight) < mergedHeight * heightThreshold) {
+        currentBox[@"box"] = [self mergeRotatedBoxes:currentBox[@"box"] withBox:candidateBox[@"coords"]];
+        [sortedPolys removeObjectAtIndex:candidateIdx];
+        [ignoredIdxs removeAllObjects];  // Restart with new merged box
+      } else {
+        [ignoredIdxs addObject:@(candidateIdx)];
+      }
+    }
+    [mergedList addObject:@{@"box" : currentBox[@"box"], @"angle" : @(angleDegrees)}];
+  }
+  
+  // Optionally sort by angle if needed
+  NSArray<NSDictionary *> *sortedBoxes = [mergedList sortedArrayUsingComparator:^NSComparisonResult(NSDictionary *obj1, NSDictionary *obj2) {
+    NSArray<NSValue *> *coords1 = obj1[@"box"];
+    NSArray<NSValue *> *coords2 = obj2[@"box"];
+    CGFloat minY1 = [self minimumYFromBox:coords1];
+    CGFloat minY2 = [self minimumYFromBox:coords2];
+    return (minY1 < minY2) ? NSOrderedAscending : (minY1 > minY2) ? NSOrderedDescending : NSOrderedSame;
+  }];
+  
+  return sortedBoxes;
 }
 
 @end
