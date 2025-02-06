@@ -486,6 +486,7 @@
   CGFloat lineAngle;
   while (boxes.count > 0) {
     NSMutableDictionary *currentBox = [boxes[0] mutableCopy];
+    CGFloat normalizedAngle = [self normalizeAngle:[currentBox[@"angle"] floatValue]];
     [boxes removeObjectAtIndex:0];
     NSMutableArray<NSNumber *> *ignoredIdxs = [NSMutableArray array];
     
@@ -509,7 +510,7 @@
       const CGFloat candidateHeight = [closestBoxInfo[@"boxHeight"] floatValue];
       
       if (([candidateBox[@"angle"]  isEqual: @90] && !isVertical) || ([candidateBox[@"angle"] isEqual: @0] && isVertical)) {
-        candidateBox[@"bbox"] = [self rotateBox:candidateBox[@"bbox"] withAngle:[currentBox[@"angle"] floatValue]];
+        candidateBox[@"bbox"] = [self rotateBox:candidateBox[@"bbox"] withAngle:normalizedAngle];
       }
       
       const CGFloat minDistance = [self calculateMinimalDistanceBetweenBox:candidateBox[@"bbox"] andBox:currentBox[@"bbox"]];
