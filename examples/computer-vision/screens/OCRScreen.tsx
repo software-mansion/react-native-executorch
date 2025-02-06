@@ -4,7 +4,7 @@ import { getImage } from '../utils';
 import { useOCR } from 'react-native-executorch';
 import { View, StyleSheet, Image, Text } from 'react-native';
 import { useState } from 'react';
-import ImageWithBboxes from '../components/ImageWithBboxes';
+import ImageWithBboxes2 from '../components/ImageWithOCRBboxes';
 
 export const OCRScreen = ({
   imageUri,
@@ -20,14 +20,17 @@ export const OCRScreen = ({
   }>();
   const [detectedText, setDetectedText] = useState<string>('');
   const model = useOCR({
-    detectorSource: require('../assets/models/xnnpack_craft.pte'),
+    detectorSource:
+      'https://huggingface.co/nklockiewicz/ocr/resolve/main/xnnpack_craft_800.pte',
     recognizerSources: {
       recognizerLarge:
-        'https://huggingface.co/nklockiewicz/ocr/resolve/main/xnnpack_latin_512.pte',
-      recognizerMedium: require('../assets/models/xnnpack_latin_256.pte'),
-      recognizerSmall: require('../assets/models/xnnpack_latin_128.pte'),
+        'https://huggingface.co/nklockiewicz/ocr/resolve/main/xnnpack_crnn_512.pte',
+      recognizerMedium:
+        'https://huggingface.co/nklockiewicz/ocr/resolve/main/xnnpack_crnn_256.pte',
+      recognizerSmall:
+        'https://huggingface.co/nklockiewicz/ocr/resolve/main/xnnpack_crnn_128.pte',
     },
-    language: 'pl',
+    language: 'en',
   });
 
   const handleCameraPress = async (isCamera: boolean) => {
@@ -70,7 +73,7 @@ export const OCRScreen = ({
       <View style={styles.imageContainer}>
         <View style={styles.image}>
           {imageUri && imageDimensions?.width && imageDimensions?.height ? (
-            <ImageWithBboxes
+            <ImageWithBboxes2
               detections={results}
               imageWidth={imageDimensions?.width}
               imageHeight={imageDimensions?.height}

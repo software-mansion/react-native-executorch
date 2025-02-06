@@ -62,45 +62,59 @@
   });
 }
 
-- (NSArray *)recognize: (NSArray *)horizontalList imgGray:(cv::Mat)imgGray desiredWidth:(int)desiredWidth desiredHeight:(int)desiredHeight {
+- (NSArray *)runModel:(cv::Mat)croppedImage {
+  NSArray *result;
+  if(croppedImage.cols >= largeModelWidth) {
+    result = [recognizerLarge runModel:croppedImage];
+  } else if (croppedImage.cols >= mediumModelWidth) {
+    result = [recognizerMedium runModel: croppedImage];
+  } else {
+    result = [recognizerSmall runModel: croppedImage];
+  }
+  
+  return result;
+}
+
+- (NSArray *)recognize: (NSArray <NSDictionary *>*)bBoxesList imgGray:(cv::Mat)imgGray desiredWidth:(int)desiredWidth desiredHeight:(int)desiredHeight {
+  NSDictionary* ratioAndPadding = [RecognizerUtils calculateResizeRatioAndPaddings:imgGray.cols height:imgGray.rows desiredWidth:desiredWidth desiredHeight:desiredHeight];
+  const int left = [ratioAndPadding[@"left"] intValue];
+  const int top = [ratioAndPadding[@"top"] intValue];
+  const CGFloat resizeRatio = [ratioAndPadding[@"resizeRatio"] floatValue];
   imgGray = [OCRUtils resizeWithPadding:imgGray desiredWidth:desiredWidth desiredHeight:desiredHeight];
+  
   NSMutableArray *predictions = [NSMutableArray array];
-  NSLog(@"%@", horizontalList);
-  for (NSDictionary *box in horizontalList) {
+  for (NSDictionary *box in bBoxesList) {
     cv::Mat croppedImage = [RecognizerUtils getCroppedImage:box image:imgGray modelHeight:modelHeight];
-    croppedImage = [RecognizerUtils normalizeForRecognizer:croppedImage adjustContrast:0.2];
-    NSArray *result;
-    if(croppedImage.cols >= largeModelWidth) {
-      result = [recognizerLarge runModel:croppedImage];
-    } else if (croppedImage.cols >= mediumModelWidth) {
-      result = [recognizerMedium runModel: croppedImage];
-    } else {
-      result = [recognizerSmall runModel: croppedImage];
+    if (croppedImage.empty()) {
+      continue;
     }
+    croppedImage = [RecognizerUtils normalizeForRecognizer:croppedImage adjustContrast:adjustContrast];
+    NSArray *result = [self runModel: croppedImage];
+
     
     NSNumber *confidenceScore = [result objectAtIndex:1];
-    if([confidenceScore floatValue] < 0.3){
+    if([confidenceScore floatValue] < lowConfidenceThreshold){
       cv::rotate(croppedImage, croppedImage, cv::ROTATE_180);
-    }
-    NSArray *rotatedResult;
-    if(croppedImage.cols >= largeModelWidth) {
-      rotatedResult = [recognizerLarge runModel:croppedImage];
-    } else if (croppedImage.cols >= mediumModelWidth) {
-      rotatedResult = [recognizerMedium runModel: croppedImage];
-    } else {
-      rotatedResult = [recognizerSmall runModel: croppedImage];
-    }
-    NSNumber *rotatedConfidenceScore = [rotatedResult objectAtIndex:1];
-    
-    if ([rotatedConfidenceScore floatValue] > [confidenceScore floatValue]) {
-      result = rotatedResult;
+      
+      NSArray *rotatedResult = [self runModel: croppedImage];
+      NSNumber *rotatedConfidenceScore = [rotatedResult objectAtIndex:1];
+      
+      if ([rotatedConfidenceScore floatValue] > [confidenceScore floatValue]) {
+        result = rotatedResult;
+        confidenceScore = rotatedConfidenceScore;
+      }
     }
     
-    NSArray *pred_index = [result objectAtIndex:0];
+    NSArray *predIndex = [result objectAtIndex:0];
+    NSArray* decodedTexts = [converter decodeGreedy:predIndex length:(int)(predIndex.count)];
     
-    NSArray* decodedTexts = [converter decodeGreedy:pred_index length:(int)(pred_index.count)];
-
-    NSDictionary *res = @{@"text": decodedTexts[0], @"bbox": box[@"box"], @"score": confidenceScore};
+    NSMutableArray *bbox = [NSMutableArray arrayWithCapacity:4];
+    for (NSValue *coords in box[@"bbox"]){
+      const CGPoint point = [coords CGPointValue];
+      [bbox addObject: @{@"x": @((point.x - left) * resizeRatio), @"y": @((point.y - top) * resizeRatio)}];
+    }
+    
+    NSDictionary *res = @{@"text": decodedTexts[0], @"bbox": bbox, @"score": confidenceScore};
     [predictions addObject:res];
   }
   
@@ -108,4 +122,3 @@
 }
 
 @end
-

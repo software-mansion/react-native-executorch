@@ -18,12 +18,12 @@
     return modelSize;
   }
   
-  NSArray * inputShape = [module getInputShape: @0];
+  NSArray *inputShape = [module getInputShape: @0];
   NSNumber *widthNumber = inputShape.lastObject;
   NSNumber *heightNumber = inputShape[inputShape.count - 2];
   
-  int height = [heightNumber intValue];
-  int width = [widthNumber intValue];
+  const int height = [heightNumber intValue];
+  const int width = [widthNumber intValue];
   modelSize = cv::Size(height, width);
   
   return cv::Size(height, width);
@@ -31,7 +31,7 @@
 
 - (NSArray *)preprocess:(cv::Mat &)input {
   /*
-   Detector as an input accepts tensor with a shape of [1, 3, 1280, 1280].
+   Detector as an input accepts tensor with a shape of [1, 3, 800, 800].
    Due to big influence of resize to quality of recognition the image preserves original
    aspect ratio and the missing parts are filled with padding.
    */
@@ -47,59 +47,36 @@
 
 - (NSArray *)postprocess:(NSArray *)output {
   /*
-   The output of the model consists of two matrices:
+   The output of the model consists of two matrices (heat maps):
    1. ScoreText(Score map) - The probability of a region containing character
-   2. ScoreLink(Affinity map) - The probability of a region being a part of a text line
-   Both matrices are 640x640
+   2. ScoreAffinity(Affinity map) - affinity between characters, used to to group each character into a single instance (sequence)
+   Both matrices are 400x400
    
    The result of this step is a list of bounding boxes that contain text.
    */
   NSArray *predictions = [output objectAtIndex:0];
   
-  NSDictionary *splittedData = [DetectorUtils splitInterleavedNSArray:predictions];
-  NSArray *scoreText = splittedData[@"ScoreText"];
-  NSArray *scoreLink = splittedData[@"ScoreLink"];
-  
-  cv::Mat scoreTextCV;
-  cv::Mat scoreLinkCV;
   cv::Size modelImageSize = [self getModelImageSize];
+  cv::Mat scoreTextCV, scoreAffinityCV;
+  /*
+   The output of the model is a matrix in size of input image containing two matrices representing heatmap.
+   Those two matrices are in the size of half of the input image, that's why the width and height is divided by 2.
+   */
+  [DetectorUtils interleavedArrayToMats:predictions
+                              outputMat1:scoreTextCV
+                              outputMat2:scoreAffinityCV
+                                withSize:cv::Size(modelImageSize.width / 2, modelImageSize.height / 2)];
+  NSArray* bBoxesList = [DetectorUtils getDetBoxesFromTextMap:scoreTextCV affinityMap:scoreAffinityCV usingTextThreshold:textThreshold linkThreshold:linkThreshold lowTextThreshold:lowTextThreshold];
+  bBoxesList = [DetectorUtils restoreBboxRatio:bBoxesList usingRestoreRatio: restoreRatio];
+  bBoxesList = [DetectorUtils groupTextBoxes:bBoxesList centerThreshold:centerThreshold distanceThreshold:distanceThreshold heightThreshold:heightThreshold minSideThreshold:minSideThreshold maxSideThreshold:maxSideThreshold maxWidth:maxWidth];
   
-  scoreTextCV = [ImageProcessor arrayToMatGray:scoreText width:modelImageSize.width / 2 height:modelImageSize.height / 2];
-  scoreLinkCV = [ImageProcessor arrayToMatGray:scoreLink width:modelImageSize.width / 2 height:modelImageSize.height / 2];
-  
-  NSArray* horizontalList = [DetectorUtils getDetBoxes:scoreTextCV linkMap:scoreLinkCV textThreshold:textThreshold linkThreshold:linkThreshold lowText:lowText];
-  horizontalList = [DetectorUtils restoreBboxRatio:horizontalList];
-  horizontalList = [DetectorUtils groupTextBoxes:horizontalList centerThreshold:centerThreshold distanceThreshold:distanceThreshold heightThreshold:heightThreshold];
-  
-  return horizontalList;
+  return bBoxesList;
 }
 
 - (NSArray *)runModel:(cv::Mat &)input {
-  NSDate *startTime;
-  NSDate *endTime;
-  NSTimeInterval executionTime;
-  
-  // Preprocessing
-  startTime = [NSDate date];
   NSArray *modelInput = [self preprocess:input];
-  endTime = [NSDate date];
-  executionTime = [endTime timeIntervalSinceDate:startTime];
-  NSLog(@"Preprocessing time: %f seconds", executionTime);
-  
-  // Running the model
-  startTime = [NSDate date];
   NSArray *modelResult = [self forward:modelInput];
-  endTime = [NSDate date];
-  executionTime = [endTime timeIntervalSinceDate:startTime];
-  NSLog(@"Model forwarding time: %f seconds", executionTime);
-  
-  // Postprocessing
-  startTime = [NSDate date];
   NSArray *result = [self postprocess:modelResult];
-  endTime = [NSDate date];
-  executionTime = [endTime timeIntervalSinceDate:startTime];
-  NSLog(@"Postprocessing time: %f seconds", executionTime);
-  
   return result;
 }
 

@@ -17,8 +17,8 @@
   NSNumber *widthNumber = inputShape.lastObject;
   NSNumber *heightNumber = inputShape[inputShape.count - 2];
   
-  int height = [heightNumber intValue];
-  int width = [widthNumber intValue];
+  const int height = [heightNumber intValue];
+  const int width = [widthNumber intValue];
   return cv::Size(height, width);
 }
 
@@ -27,8 +27,8 @@
   NSNumber *widthNumber = outputShape.lastObject;
   NSNumber *heightNumber = outputShape[outputShape.count - 2];
   
-  int height = [heightNumber intValue];
-  int width = [widthNumber intValue];
+  const int height = [heightNumber intValue];
+  const int width = [widthNumber intValue];
   return cv::Size(height, width);
 }
 
@@ -37,7 +37,7 @@
 }
 
 - (NSArray *)postprocess:(NSArray *)output {
-  int modelOutputHeight = [self getModelOutputSize].height;
+  const int modelOutputHeight = [self getModelOutputSize].height;
   NSInteger numElements = [output.firstObject count];
   NSInteger numRows = (numElements + modelOutputHeight - 1) / modelOutputHeight;
   cv::Mat resultMat = cv::Mat::zeros(numRows, modelOutputHeight, CV_32F);
@@ -55,17 +55,18 @@
   NSMutableArray *predsNorm = [RecognizerUtils sumProbabilityRows:probabilities modelOutputHeight:modelOutputHeight];
   probabilities = [RecognizerUtils divideMatrix:probabilities byVector:predsNorm];
   NSArray *maxValuesIndices = [RecognizerUtils findMaxValuesAndIndices:probabilities];
-  double confidenceScore = [RecognizerUtils computeConfidenceScore:maxValuesIndices[0] indicesArray:maxValuesIndices[1]];
+  const CGFloat confidenceScore = [RecognizerUtils computeConfidenceScore:maxValuesIndices[0] indicesArray:maxValuesIndices[1]];
   
   return @[maxValuesIndices[1], @(confidenceScore)];
 }
 
 - (NSArray *)runModel:(cv::Mat &)input {
-  NSArray* modelInput = [self preprocess:input];
+  NSArray *modelInput = [self preprocess:input];
   NSArray *modelResult = [self forward:modelInput];
   NSArray *result = [self postprocess:modelResult];
   
   return result;
 }
+
 
 @end

@@ -1,7 +1,10 @@
-import { Bbox } from './object_detection';
-
 export interface OCRDetection {
-  bbox: Bbox;
+  bbox: OCRBbox[];
   text: string;
   score: number;
+}
+
+export interface OCRBbox {
+  x: number;
+  y: number;
 }

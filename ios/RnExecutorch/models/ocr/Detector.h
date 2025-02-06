@@ -1,13 +1,19 @@
 #import "opencv2/opencv.hpp"
 #import "BaseModel.h"
+#import "RecognitionHandler.h"
 
-constexpr float textThreshold = 0.7;
-constexpr float linkThreshold = 0.4;
-constexpr float lowText = 0.4;
+constexpr CGFloat textThreshold = 0.4;
+constexpr CGFloat linkThreshold = 0.4;
+constexpr CGFloat lowTextThreshold = 0.7;
 constexpr CGFloat centerThreshold = 0.5;
 constexpr CGFloat distanceThreshold = 2.0;
 constexpr CGFloat heightThreshold = 2.0;
+constexpr CGFloat restoreRatio = 3.2;
+constexpr int minSideThreshold = 15;
+constexpr int maxSideThreshold = 30;
+constexpr int maxWidth = largeModelWidth + (largeModelWidth * 0.15);
 constexpr int minSize = 20;
+
 const cv::Scalar mean(0.485, 0.456, 0.406);
 const cv::Scalar variance(0.229, 0.224, 0.225);
 
