@@ -21,6 +21,7 @@ export * from './utils/listDownloadedResources';
 
 // types
 export * from './types/object_detection';
+export * from './types/ocr';
 
 // constants
 export * from './constants/modelUrls';

@@ -66,7 +66,7 @@ recognizerSourceSmall:(NSString *)recognizerSourceSmall
     NSArray* result = [detector runModel:image];
     cv::Size detectorSize = [detector getModelImageSize];
     cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
-    result = [self->recognitionHandler recognize:result imgGray:image desiredWidth:detectorSize.width desiredHeight:detectorSize.height];
+    result = [self->recognitionHandler recognize:result imgGray:image desiredWidth:detectorSize.width * recognizerRatio desiredHeight:detectorSize.height * recognizerRatio];
     resolve(result);
   } @catch (NSException *exception) {
     reject(@"forward_error", [NSString stringWithFormat:@"%@", exception.reason],

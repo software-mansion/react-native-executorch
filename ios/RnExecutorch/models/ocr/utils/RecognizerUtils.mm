@@ -37,7 +37,7 @@
   contrast = (high - low) / 255.0;
   
   if (contrast < target) {
-    double ratio = 200.0 / MAX(10, high - low);
+    const double ratio = 200.0 / MAX(10, high - low);
     img.convertTo(img, CV_32F);
     img = ((img - low + 25) * ratio);
     
@@ -52,7 +52,8 @@
 
 + (cv::Mat)normalizeForRecognizer:(cv::Mat)image adjustContrast:(double)adjustContrast {
   if (adjustContrast > 0) {
-    image = [self adjustContrastGrey:image target:adjustContrast];  }
+    image = [self adjustContrastGrey:image target:adjustContrast];
+  }
   
   int desiredWidth = 128;
   if (image.cols >= 512) {
@@ -73,7 +74,7 @@
   cv::Mat result = matrix.clone();
   
   for (int i = 0; i < matrix.rows; i++) {
-    float divisor = [vector[i] floatValue];
+    const float divisor = [vector[i] floatValue];
     for (int j = 0; j < matrix.cols; j++) {
       result.at<float>(i, j) /= divisor;
     }
@@ -103,8 +104,8 @@
   const int deltaH = desiredHeight - newHeight;
   const int top = deltaH / 2;
   const int left = deltaW / 2;
-  float heightRatio = (float)height / desiredHeight;
-  float widthRatio = (float)width / desiredWidth;
+  const float heightRatio = (float)height / desiredHeight;
+  const float widthRatio = (float)width / desiredWidth;
   
   resizeRatio = MAX(heightRatio, widthRatio);
   
@@ -116,51 +117,40 @@
 }
 
 + (cv::Mat)getCroppedImage:(NSDictionary *)box image:(cv::Mat)image modelHeight:(int)modelHeight {
-  // Convert NSValue array to cv::Point2f vector
-  NSArray *coords = box[@"box"];
-  CGFloat angle = [box[@"angle"] floatValue];
+  NSArray *coords = box[@"bbox"];
+  const CGFloat angle = [box[@"angle"] floatValue];
   
   std::vector<cv::Point2f> points;
   for (NSValue *value in coords) {
-    CGPoint point = [value CGPointValue];
+    const CGPoint point = [value CGPointValue];
     points.emplace_back(static_cast<float>(point.x), static_cast<float>(point.y));
   }
   
-  // Obtain the rotated rectangle from the points
   cv::RotatedRect rotatedRect = cv::minAreaRect(points);
-  
-  // Compute the rotation matrix for the angle of the rotated rectangle
+
   cv::Point2f imageCenter = cv::Point2f(image.cols / 2.0, image.rows / 2.0);
   cv::Mat rotationMatrix = cv::getRotationMatrix2D(imageCenter, angle, 1.0);
-  
-  // Rotate the entire image
   cv::Mat rotatedImage;
   cv::warpAffine(image, rotatedImage, rotationMatrix, image.size(), cv::INTER_LINEAR);
-  
-  // Get vertices of the minimal rotated rectangle
   cv::Point2f rectPoints[4];
   rotatedRect.points(rectPoints);
-  
-  // Transform points using the rotation matrix
   std::vector<cv::Point2f> transformedPoints(4);
   cv::Mat rectMat(4, 2, CV_32FC2, rectPoints);
   cv::transform(rectMat, rectMat, rotationMatrix);
   
-  // Convert points back to array of points to compute bounding box afterward
   for (int i = 0; i < 4; ++i) {
     transformedPoints[i] = rectPoints[i];
   }
   
-  // Compute the bounding box of transformed points
   cv::Rect boundingBox = cv::boundingRect(transformedPoints);
-  
-  // Make sure the bounding box fits within the image
   boundingBox &= cv::Rect(0, 0, rotatedImage.cols, rotatedImage.rows);
-  
-  // Optional: Crop to this bounding box if necessary
   cv::Mat croppedImage = rotatedImage(boundingBox);
+  if (boundingBox.width == 0 || boundingBox.height == 0){
+    croppedImage = cv::Mat().empty();
+    
+    return croppedImage;
+  }
   
-  // If specified to resize according to modelHeight, adjust the aspect ratio and resize
   croppedImage = [self computeRatioAndResize:croppedImage width:boundingBox.width height:boundingBox.height modelHeight:modelHeight];
   
   return croppedImage;
