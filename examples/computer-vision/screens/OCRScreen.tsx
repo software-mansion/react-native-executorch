@@ -47,7 +47,6 @@ export const OCRScreen = ({
   };
 
   const runForward = async () => {
-    console.log('RUnning forward');
     try {
       const output = await model.forward(imageUri);
       setResults(output);
