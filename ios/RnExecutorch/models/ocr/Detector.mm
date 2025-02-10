@@ -40,7 +40,6 @@
   cv::Size modelImageSize = [self getModelImageSize];
   cv::Mat resizedImage;
   resizedImage = [OCRUtils resizeWithPadding:input desiredWidth:modelImageSize.width desiredHeight:modelImageSize.height];
-  
   NSArray *modelInput = [ImageProcessor matToNSArray: resizedImage mean:mean variance:variance];
   return modelInput;
 }
@@ -60,13 +59,14 @@
   cv::Mat scoreTextCV, scoreAffinityCV;
   /*
    The output of the model is a matrix in size of input image containing two matrices representing heatmap.
-   Those two matrices are in the size of half of the input image, that's why the width and height is divided by 2.
+   Those two matrices are in the size of half of the input  image, that's why the width and height is divided by 2.
    */
   [DetectorUtils interleavedArrayToMats:predictions
-                              outputMat1:scoreTextCV
-                              outputMat2:scoreAffinityCV
-                                withSize:cv::Size(modelImageSize.width / 2, modelImageSize.height / 2)];
+                             outputMat1:scoreTextCV
+                             outputMat2:scoreAffinityCV
+                               withSize:cv::Size(modelImageSize.width / 2, modelImageSize.height / 2)];
   NSArray* bBoxesList = [DetectorUtils getDetBoxesFromTextMap:scoreTextCV affinityMap:scoreAffinityCV usingTextThreshold:textThreshold linkThreshold:linkThreshold lowTextThreshold:lowTextThreshold];
+  NSLog(@"Detected boxes: %lu", (unsigned long)bBoxesList.count);
   bBoxesList = [DetectorUtils restoreBboxRatio:bBoxesList usingRestoreRatio: restoreRatio];
   bBoxesList = [DetectorUtils groupTextBoxes:bBoxesList centerThreshold:centerThreshold distanceThreshold:distanceThreshold heightThreshold:heightThreshold minSideThreshold:minSideThreshold maxSideThreshold:maxSideThreshold maxWidth:maxWidth];
   

@@ -90,7 +90,7 @@
     }
     croppedImage = [RecognizerUtils normalizeForRecognizer:croppedImage adjustContrast:adjustContrast];
     NSArray *result = [self runModel: croppedImage];
-
+    
     
     NSNumber *confidenceScore = [result objectAtIndex:1];
     if([confidenceScore floatValue] < lowConfidenceThreshold){
