@@ -127,7 +127,7 @@
   }
   
   cv::RotatedRect rotatedRect = cv::minAreaRect(points);
-
+  
   cv::Point2f imageCenter = cv::Point2f(image.cols / 2.0, image.rows / 2.0);
   cv::Mat rotationMatrix = cv::getRotationMatrix2D(imageCenter, angle, 1.0);
   cv::Mat rotatedImage;

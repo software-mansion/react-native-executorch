@@ -429,8 +429,8 @@
     boxHeight = [self minSideLength:bbox];
     
     const CGFloat lineDistance = (isVertical ?
-                            fabs(centerOfProcessedBox.x - (m * centerOfProcessedBox.y + c)) :
-                            fabs(centerOfProcessedBox.y - (m * centerOfProcessedBox.x + c)));
+                                  fabs(centerOfProcessedBox.x - (m * centerOfProcessedBox.y + c)) :
+                                  fabs(centerOfProcessedBox.y - (m * centerOfProcessedBox.x + c)));
     
     if (lineDistance < boxHeight * centerThreshold) {
       idx = i;
@@ -471,9 +471,9 @@
                             centerThreshold:(CGFloat)centerThreshold
                           distanceThreshold:(CGFloat)distanceThreshold
                             heightThreshold:(CGFloat)heightThreshold
-                            minSideThreshold:(int)minSideThreshold
-                            maxSideThreshold:(int)maxSideThreshold
-                            maxWidth:(int)maxWidth
+                           minSideThreshold:(int)minSideThreshold
+                           maxSideThreshold:(int)maxSideThreshold
+                                   maxWidth:(int)maxWidth
 {
   // Sort boxes based on their maximum side length
   boxes = [boxes sortedArrayUsingComparator:^NSComparisonResult(NSDictionary *obj1, NSDictionary *obj2) {
