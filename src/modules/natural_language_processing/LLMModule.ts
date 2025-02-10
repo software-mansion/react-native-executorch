@@ -1,5 +1,5 @@
 import { LLM } from '../../native/RnExecutorchModules';
-import { Image } from 'react-native';
+import { fetchResource } from '../../utils/fetchResource';
 import {
   DEFAULT_CONTEXT_WINDOW_LENGTH,
   DEFAULT_SYSTEM_PROMPT,
@@ -7,6 +7,8 @@ import {
 import { ResourceSource } from '../../types/common';
 
 export class LLMModule {
+  static onDownloadProgressCallback = (_downloadProgress: number) => {};
+
   static async load(
     modelSource: ResourceSource,
     tokenizerSource: ResourceSource,
@@ -14,19 +16,15 @@ export class LLMModule {
     contextWindowLength = DEFAULT_CONTEXT_WINDOW_LENGTH
   ) {
     try {
-      let modelUrl =
-        typeof modelSource === 'number'
-          ? Image.resolveAssetSource(modelSource).uri
-          : modelSource;
-
-      let tokenizerUrl =
-        typeof tokenizerSource === 'number'
-          ? Image.resolveAssetSource(tokenizerSource).uri
-          : tokenizerSource;
+      const tokenizerFileUri = await fetchResource(tokenizerSource);
+      const modelFileUri = await fetchResource(
+        modelSource,
+        this.onDownloadProgressCallback
+      );
 
       await LLM.loadLLM(
-        modelUrl,
-        tokenizerUrl,
+        modelFileUri,
+        tokenizerFileUri,
         systemPrompt,
         contextWindowLength
       );
@@ -43,8 +41,8 @@ export class LLMModule {
     }
   }
 
-  static onDownloadProgress(callback: (data: number) => void) {
-    return LLM.onDownloadProgress(callback);
+  static onDownloadProgress(callback: (downloadProgress: number) => void) {
+    this.onDownloadProgressCallback = callback;
   }
 
   static onToken(callback: (data: string | undefined) => void) {

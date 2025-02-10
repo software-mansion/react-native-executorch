@@ -3,14 +3,12 @@ package com.swmansion.rnexecutorch
 import android.util.Log
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
-import com.swmansion.rnexecutorch.utils.Fetcher
-import com.swmansion.rnexecutorch.utils.ProgressResponseBody
-import com.swmansion.rnexecutorch.utils.ResourceType
 import com.swmansion.rnexecutorch.utils.llms.ChatRole
 import com.swmansion.rnexecutorch.utils.llms.ConversationManager
 import com.swmansion.rnexecutorch.utils.llms.END_OF_TEXT_TOKEN
 import org.pytorch.executorch.LlamaCallback
 import org.pytorch.executorch.LlamaModule
+import java.net.URL
 
 class LLM(reactContext: ReactApplicationContext) :
   NativeLLMSpec(reactContext), LlamaCallback {
@@ -18,7 +16,6 @@ class LLM(reactContext: ReactApplicationContext) :
   private var llamaModule: LlamaModule? = null
   private var tempLlamaResponse = StringBuilder()
   private lateinit var conversationManager: ConversationManager
-  private var isFetching = false
 
   override fun getName(): String {
     return NAME
@@ -37,37 +34,6 @@ class LLM(reactContext: ReactApplicationContext) :
     Log.d("rn_executorch", "TPS: $tps")
   }
 
-  private fun updateDownloadProgress(progress: Float) {
-    emitOnDownloadProgress((progress / 100).toDouble())
-  }
-
-  private fun downloadResource(
-    url: String,
-    resourceType: ResourceType,
-    isLargeFile: Boolean = false,
-    callback: (path: String?, error: Exception?) -> Unit,
-  ) {
-    Fetcher.downloadResource(
-      reactApplicationContext, url, resourceType, isLargeFile,
-      { path, error -> callback(path, error) },
-      object : ProgressResponseBody.ProgressListener {
-        override fun onProgress(bytesRead: Long, contentLength: Long, done: Boolean) {
-          val progress = (bytesRead * 100 / contentLength).toFloat()
-          updateDownloadProgress(progress)
-          if (done) {
-            isFetching = false
-          }
-        }
-      })
-  }
-
-  private fun initializeLlamaModule(modelPath: String, tokenizerPath: String, promise: Promise) {
-    llamaModule = LlamaModule(1, modelPath, tokenizerPath, 0.7f)
-    isFetching = false
-    this.tempLlamaResponse.clear()
-    promise.resolve("Model loaded successfully")
-  }
-
   override fun loadLLM(
     modelSource: String,
     tokenizerSource: String,
@@ -75,46 +41,13 @@ class LLM(reactContext: ReactApplicationContext) :
     contextWindowLength: Double,
     promise: Promise
   ) {
-    if (isFetching) {
-      promise.reject("Model is fetching", "Model is fetching")
-      return
-    }
-
     try {
       this.conversationManager = ConversationManager(contextWindowLength.toInt(), systemPrompt)
-
-      isFetching = true
-
-      downloadResource(
-        tokenizerSource,
-        ResourceType.TOKENIZER
-      ) tokenizerDownload@{ tokenizerPath, error ->
-        if (error != null) {
-          promise.reject("Download Error", "Tokenizer download failed: ${error.message}")
-          isFetching = false
-          return@tokenizerDownload
-        }
-
-        downloadResource(
-          modelSource,
-          ResourceType.MODEL,
-          isLargeFile = true
-        ) modelDownload@{ modelPath, modelError ->
-          if (modelError != null) {
-            promise.reject(
-              "Download Error",
-              "Model download failed: ${modelError.message}"
-            )
-            isFetching = false
-            return@modelDownload
-          }
-
-          initializeLlamaModule(modelPath!!, tokenizerPath!!, promise)
-        }
-      }
+      llamaModule = LlamaModule(1, URL(modelSource).path, URL(tokenizerSource).path, 0.7f)
+      this.tempLlamaResponse.clear()
+      promise.resolve("Model loaded successfully")
     } catch (e: Exception) {
-      promise.reject("Download Error", e.message)
-      isFetching = false
+      promise.reject("Model loading failed", e.message)
     }
   }
 

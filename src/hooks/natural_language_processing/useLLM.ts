@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { EventSubscription, Image } from 'react-native';
+import { EventSubscription } from 'react-native';
+import { LLM } from '../../native/RnExecutorchModules';
+import { fetchResource } from '../../utils/fetchResource';
 import { ResourceSource, Model } from '../../types/common';
 import {
   DEFAULT_CONTEXT_WINDOW_LENGTH,
   DEFAULT_SYSTEM_PROMPT,
   EOT_TOKEN,
 } from '../../constants/llamaDefaults';
-import { LLM } from '../../native/RnExecutorchModules';
 
 const interrupt = () => {
   LLM.interrupt();
@@ -28,33 +29,22 @@ export const useLLM = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [response, setResponse] = useState('');
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const downloadProgressListener = useRef<null | EventSubscription>(null);
   const tokenGeneratedListener = useRef<null | EventSubscription>(null);
 
   useEffect(() => {
     const loadModel = async () => {
       try {
-        let modelUrl = modelSource;
-        let tokenizerUrl = tokenizerSource;
-        if (typeof modelSource === 'number') {
-          modelUrl = Image.resolveAssetSource(modelSource).uri;
-        }
-        if (typeof tokenizerSource === 'number') {
-          tokenizerUrl = Image.resolveAssetSource(tokenizerSource).uri;
-        }
-
-        downloadProgressListener.current = LLM.onDownloadProgress(
-          (data: number) => {
-            if (data) {
-              setDownloadProgress(data);
-            }
-          }
-        );
         setIsReady(false);
 
+        const tokenizerFileUri = await fetchResource(tokenizerSource);
+        const modelFileUri = await fetchResource(
+          modelSource,
+          setDownloadProgress
+        );
+
         await LLM.loadLLM(
-          modelUrl as string,
-          tokenizerUrl as string,
+          modelFileUri,
+          tokenizerFileUri,
           systemPrompt,
           contextWindowLength
         );
@@ -85,8 +75,6 @@ export const useLLM = ({
     loadModel();
 
     return () => {
-      downloadProgressListener.current?.remove();
-      downloadProgressListener.current = null;
       tokenGeneratedListener.current?.remove();
       tokenGeneratedListener.current = null;
       LLM.deleteModule();

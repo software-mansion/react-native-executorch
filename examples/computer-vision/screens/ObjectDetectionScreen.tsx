@@ -56,7 +56,7 @@ export const ObjectDetectionScreen = ({
     return (
       <Spinner
         visible={!ssdLite.isReady}
-        textContent={`Loading the model...`}
+        textContent={`Loading the model ${(ssdLite.downloadProgress * 100).toFixed(0)} %`}
       />
     );
   }

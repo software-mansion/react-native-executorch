@@ -191,5 +191,9 @@
     "android": {
       "javaPackageName": "com.swmansion.rnexecutorch"
     }
+  },
+  "dependencies": {
+    "expo-asset": "^11.0.3",
+    "expo-file-system": "^18.0.10"
   }
 }
