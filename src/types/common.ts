@@ -31,14 +31,10 @@ export interface ExecutorchModule {
   error: string | null;
   isReady: boolean;
   isGenerating: boolean;
-<<<<<<< HEAD
   forward: (
     inputs: ETInput[] | ETInput,
     shapes: number[][]
   ) => ReturnType<_ETModule['forward']>;
-=======
-  forward: (inputs: ETInput[] | ETInput, shapes: number[][]) => ReturnType<_ETModule['forward']>
->>>>>>> 583c775 (fix: fix types)
   loadMethod: (methodName: string) => Promise<void>;
   loadForward: () => Promise<void>;
 }

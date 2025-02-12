@@ -114,15 +114,31 @@ class _StyleTransferModule {
 
 class _SpeechToTextModule {
   async encode(input: number[][]) {
-    return await SpeechToText.encode(input)
+    return await SpeechToText.encode(input);
+  }
+
+  async generate(spectrogram: number[]): Promise<number[]> {
+    return await SpeechToText.generate(spectrogram);
+  }
+
+  generateSync(fft: number[], numFrames: number, prevTokens: number[]): void {
+    return SpeechToText.generateSync(fft, numFrames, prevTokens);
   }
 
   async decode(prevTokens: number[], encoderOutput: number[]) {
     return await SpeechToText.decode(prevTokens, encoderOutput);
   }
 
-  async loadModule(encoderSource: string | number, decoderSource: string | number) {
-    return await SpeechToText.loadModule(encoderSource, decoderSource)
+  async loadModule(
+    preprocessorSource: string | number,
+    encoderSource: string | number,
+    decoderSource: string | number
+  ) {
+    return await SpeechToText.loadModule(
+      preprocessorSource,
+      encoderSource,
+      decoderSource
+    );
   }
 }
 
@@ -163,6 +179,7 @@ export {
   Classification,
   ObjectDetection,
   StyleTransfer,
+  SpeechToText,
   _ETModule,
   _ClassificationModule,
   _StyleTransferModule,
