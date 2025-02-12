@@ -31,8 +31,6 @@ export class SpeechToTextController {
   private fftBuffer: number[][] = [];
   public generatedTokens: string[] = [];
   // @ts-ignore
-  private tokensBuffer: string[] = [];
-  private inferenceCallsCounter: number;
   public isReady: boolean;
   public isGenerating: boolean;
 
@@ -45,7 +43,6 @@ export class SpeechToTextController {
     nativeModule = new _SpeechToTextModule(),
     onTokenCallback = (token: string) => console.log(token),
   } = {}) {
-    this.inferenceCallsCounter = 0;
     this.numFft = numFft;
     this.hopLength = hopLength;
     this.stftInterval = (this.hopLength / 16e3) * 1000;
@@ -93,8 +90,6 @@ export class SpeechToTextController {
         if (token === '50256') {
           console.log('EOS');
           this.isGenerating = false;
-          // After each inference call we want to append to generatedTokens
-          this.tokensBuffer = this.generatedTokens;
         } else {
           this.generatedTokens.push(token);
         }
@@ -130,22 +125,16 @@ export class SpeechToTextController {
     this.setAudioBufferSourceNode();
   }
 
-  private nativeGenerateCall(fft: number[][], prevTokens: number[]) {
+  private generate(fft: number[][]) {
     if (!this.isReady) {
       throw new Error(getError(ETError.ModuleNotLoaded));
     }
-    const numFrames = fft.length;
-    this.nativeModule.generateSync(fft.flat(), numFrames, prevTokens);
-  }
-
-  private generate(stft: number[][]) {
     if (this.isGenerating) {
       return;
     }
-    // here
-    const tokensNumberArray = this.generatedTokens.map(Number);
-    this.nativeGenerateCall(stft, tokensNumberArray);
-    this.inferenceCallsCounter++;
+    const prevTokens = this.generatedTokens.map(Number);
+    const numFrames = fft.length;
+    this.nativeModule.generateSync(fft.flat(), numFrames, prevTokens);
   }
 
   private getFftData() {
@@ -181,12 +170,12 @@ export class SpeechToTextController {
     this.audioBufferSource.start();
 
     while (true) {
+      // TODO
       elapsedTime = this.audioContext.currentTime - startTime;
       if (elapsedTime > audioDuration) {
         this.generate(this.fftBuffer);
         break;
       }
-
       this.fftBuffer.push(this.getFftData());
       await delay(this.stftInterval);
     }

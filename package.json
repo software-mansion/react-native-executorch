@@ -194,6 +194,7 @@
   },
   "dependencies": {
     "expo-asset": "^11.0.3",
-    "expo-file-system": "^18.0.10"
+    "expo-file-system": "^18.0.10",
+    "react-native-audio-api": "^0.4.4"
   }
 }
