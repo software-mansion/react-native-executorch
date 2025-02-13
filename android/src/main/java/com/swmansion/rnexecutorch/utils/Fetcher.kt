@@ -15,6 +15,7 @@ import java.net.URL
 enum class ResourceType {
   TOKENIZER,
   MODEL,
+  TXT
 }
 
 class Fetcher {
@@ -39,6 +40,10 @@ class Fetcher {
 
         ResourceType.MODEL -> {
           "pte"
+        }
+
+        ResourceType.TXT -> {
+          "txt"
         }
       }
     }
