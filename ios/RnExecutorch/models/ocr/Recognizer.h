@@ -1,5 +1,5 @@
-#import "opencv2/opencv.hpp"
 #import "BaseModel.h"
+#import "opencv2/opencv.hpp"
 
 @interface Recognizer : BaseModel
 

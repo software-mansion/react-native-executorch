@@ -1,6 +1,6 @@
-#import "opencv2/opencv.hpp"
 #import "BaseModel.h"
 #import "RecognitionHandler.h"
+#import "opencv2/opencv.hpp"
 
 constexpr CGFloat textThreshold = 0.4;
 constexpr CGFloat linkThreshold = 0.4;

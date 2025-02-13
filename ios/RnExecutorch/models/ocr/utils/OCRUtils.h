@@ -2,6 +2,8 @@
 
 @interface OCRUtils : NSObject
 
-+ (cv::Mat)resizeWithPadding:(cv::Mat)img desiredWidth:(int)desiredWidth desiredHeight:(int)desiredHeight;
++ (cv::Mat)resizeWithPadding:(cv::Mat)img
+                desiredWidth:(int)desiredWidth
+               desiredHeight:(int)desiredHeight;
 
 @end

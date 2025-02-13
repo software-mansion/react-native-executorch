@@ -1,6 +1,6 @@
 #import "Recognizer.h"
-#import "RecognizerUtils.h"
 #import "../../utils/ImageProcessor.h"
+#import "RecognizerUtils.h"
 #import "utils/OCRUtils.h"
 
 /*
@@ -12,21 +12,21 @@
   cv::Size originalSize;
 }
 
-- (cv::Size)getModelImageSize{
-  NSArray *inputShape = [module getInputShape: @0];
+- (cv::Size)getModelImageSize {
+  NSArray *inputShape = [module getInputShape:@0];
   NSNumber *widthNumber = inputShape.lastObject;
   NSNumber *heightNumber = inputShape[inputShape.count - 2];
-  
+
   const int height = [heightNumber intValue];
   const int width = [widthNumber intValue];
   return cv::Size(height, width);
 }
 
-- (cv::Size)getModelOutputSize{
-  NSArray *outputShape = [module getOutputShape: @0];
+- (cv::Size)getModelOutputSize {
+  NSArray *outputShape = [module getOutputShape:@0];
   NSNumber *widthNumber = outputShape.lastObject;
   NSNumber *heightNumber = outputShape[outputShape.count - 2];
-  
+
   const int height = [heightNumber intValue];
   const int width = [widthNumber intValue];
   return cv::Size(height, width);
@@ -47,26 +47,32 @@
     resultMat.at<float>(currentRow, counter) = [num floatValue];
     counter++;
     if (counter >= modelOutputHeight) {
-      counter = 0; currentRow++;
+      counter = 0;
+      currentRow++;
     }
   }
-  
+
   cv::Mat probabilities = [RecognizerUtils softmax:resultMat];
-  NSMutableArray *predsNorm = [RecognizerUtils sumProbabilityRows:probabilities modelOutputHeight:modelOutputHeight];
-  probabilities = [RecognizerUtils divideMatrix:probabilities byVector:predsNorm];
-  NSArray *maxValuesIndices = [RecognizerUtils findMaxValuesAndIndices:probabilities];
-  const CGFloat confidenceScore = [RecognizerUtils computeConfidenceScore:maxValuesIndices[0] indicesArray:maxValuesIndices[1]];
-  
-  return @[maxValuesIndices[1], @(confidenceScore)];
+  NSMutableArray *predsNorm =
+      [RecognizerUtils sumProbabilityRows:probabilities
+                        modelOutputHeight:modelOutputHeight];
+  probabilities = [RecognizerUtils divideMatrix:probabilities
+                                       byVector:predsNorm];
+  NSArray *maxValuesIndices =
+      [RecognizerUtils findMaxValuesAndIndices:probabilities];
+  const CGFloat confidenceScore =
+      [RecognizerUtils computeConfidenceScore:maxValuesIndices[0]
+                                 indicesArray:maxValuesIndices[1]];
+
+  return @[ maxValuesIndices[1], @(confidenceScore) ];
 }
 
 - (NSArray *)runModel:(cv::Mat &)input {
   NSArray *modelInput = [self preprocess:input];
   NSArray *modelResult = [self forward:modelInput];
   NSArray *result = [self postprocess:modelResult];
-  
+
   return result;
 }
-
 
 @end
