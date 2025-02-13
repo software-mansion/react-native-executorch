@@ -1,23 +1,15 @@
 package com.swmansion.rnexecutorch.models.ocr
 
-import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableArray
-import com.swmansion.rnexecutorch.models.ocr.utils.BBoxPoint
 import com.swmansion.rnexecutorch.models.ocr.utils.CTCLabelConverter
+import com.swmansion.rnexecutorch.models.ocr.utils.Constants
 import com.swmansion.rnexecutorch.models.ocr.utils.OCRbBox
 import com.swmansion.rnexecutorch.models.ocr.utils.RecognizerUtils
 import com.swmansion.rnexecutorch.utils.ImageProcessor
 import org.opencv.core.Core
 import org.opencv.core.Mat
-
-const val modelHeight = 64
-const val largeModelWidth = 512
-const val mediumModelWidth = 256
-const val smallModelWidth = 128
-const val lowConfidenceThreshold = 0.3
-const val adjustContrast = 0.2
 
 class RecognitionHandler(
   symbols: String,
@@ -30,9 +22,9 @@ class RecognitionHandler(
   private val converter = CTCLabelConverter(symbols, mapOf(languageDictPath to "key"))
 
   private fun runModel(croppedImage: Mat): Pair<List<Int>, Double> {
-    val result: Pair<List<Int>, Double> = if (croppedImage.cols() >= largeModelWidth) {
+    val result: Pair<List<Int>, Double> = if (croppedImage.cols() >= Constants.LARGE_MODEL_WIDTH) {
       recognizerLarge.runModel(croppedImage)
-    } else if (croppedImage.cols() >= mediumModelWidth) {
+    } else if (croppedImage.cols() >= Constants.MEDIUM_MODEL_WIDTH) {
       recognizerMedium.runModel(croppedImage)
     } else {
       recognizerSmall.runModel(croppedImage)
@@ -81,17 +73,17 @@ class RecognitionHandler(
     )
 
     for (box in bBoxesList) {
-      var croppedImage = RecognizerUtils.getCroppedImage(box, resizedImg, modelHeight)
+      var croppedImage = RecognizerUtils.getCroppedImage(box, resizedImg, Constants.MODEL_HEIGHT)
       if (croppedImage.empty()) {
         continue
       }
 
-      croppedImage = RecognizerUtils.normalizeForRecognizer(croppedImage, adjustContrast)
+      croppedImage = RecognizerUtils.normalizeForRecognizer(croppedImage, Constants.ADJUST_CONTRAST)
 
       var result = runModel(croppedImage)
       var confidenceScore = result.second
 
-      if (confidenceScore < lowConfidenceThreshold) {
+      if (confidenceScore < Constants.LOW_CONFIDENCE_THRESHOLD) {
         Core.rotate(croppedImage, croppedImage, Core.ROTATE_180)
         val rotatedResult = runModel(croppedImage)
         val rotatedConfidenceScore = rotatedResult.second
@@ -104,25 +96,15 @@ class RecognitionHandler(
       val predIndex = result.first
       val decodedTexts = converter.decodeGreedy(predIndex, predIndex.size)
 
-      val bbox = Array(4) { BBoxPoint(0.0, 0.0) }
-      for (i in 0 until 4) {
-        bbox[i] = BBoxPoint(
-          ((box.bBox[i].x - left) * resizeRatio),
-          ((box.bBox[i].y - top) * resizeRatio)
-        )
+      for (bBox in box.bBox) {
+        bBox.x = (bBox.x - left) * resizeRatio
+        bBox.y = (bBox.y - top) * resizeRatio
       }
 
-      Log.d("rn_executorch", "confidenceScore: $confidenceScore")
       val resMap = Arguments.createMap()
-      val bboxArray = Arguments.createArray()
-      bbox.forEach { point ->
-        val pointMap = Arguments.createMap()
-        pointMap.putDouble("x", point.x)
-        pointMap.putDouble("y", point.y)
-        bboxArray.pushMap(pointMap)
-      }
+
       resMap.putString("text", decodedTexts[0])
-      resMap.putArray("bbox", bboxArray)
+      resMap.putArray("bbox", box.toWritableArray())
       resMap.putDouble("confidence", confidenceScore)
 
       res.pushMap(resMap)

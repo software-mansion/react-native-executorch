@@ -8,11 +8,10 @@ import com.swmansion.rnexecutorch.utils.ImageProcessor
 import org.opencv.android.OpenCVLoader
 import com.swmansion.rnexecutorch.models.ocr.Detector
 import com.swmansion.rnexecutorch.models.ocr.RecognitionHandler
+import com.swmansion.rnexecutorch.models.ocr.utils.Constants
 import com.swmansion.rnexecutorch.utils.Fetcher
 import com.swmansion.rnexecutorch.utils.ResourceType
 import org.opencv.imgproc.Imgproc
-
-const val recognizerRatio = 1.6
 
 class OCR(reactContext: ReactApplicationContext) :
   NativeOCRSpec(reactContext) {
@@ -86,8 +85,8 @@ class OCR(reactContext: ReactApplicationContext) :
       val result = recognitionHandler.recognize(
         bBoxesList,
         inputImage,
-        (detectorSize.width * recognizerRatio).toInt(),
-        (detectorSize.height * recognizerRatio).toInt()
+        (detectorSize.width * Constants.RECOGNIZER_RATIO).toInt(),
+        (detectorSize.height * Constants.RECOGNIZER_RATIO).toInt()
       )
       promise.resolve(result)
     } catch (e: Exception) {

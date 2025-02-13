@@ -1,6 +1,7 @@
 package com.swmansion.rnexecutorch.models.ocr.utils
 
-import android.util.Log
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.WritableArray
 import org.opencv.core.Core
 import org.opencv.core.CvType
 import org.opencv.core.Mat
@@ -21,22 +22,6 @@ import kotlin.math.min
 import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
-
-data class BBoxPoint(
-  var x: Double,
-  var y: Double,
-)
-
-data class OCRbBox(
-  val bBox: List<BBoxPoint>,
-  val angle: Double,
-)
-
-data class LineInfo(
-  val slope: Double,
-  val intercept: Double,
-  val isVertical: Boolean
-)
 
 class DetectorUtils {
   companion object {
@@ -165,22 +150,18 @@ class DetectorUtils {
       val matOfAllPoints = MatOfPoint()
       matOfAllPoints.fromList(allPoints)
 
-      // Finding the convex hull
       val hullIndices = MatOfInt()
       Imgproc.convexHull(matOfAllPoints, hullIndices, false)
 
-      // Mapping the hull indices back to points
       val hullPoints = hullIndices.toArray().map { allPoints[it] }
 
       val matOfHullPoints = MatOfPoint2f()
       matOfHullPoints.fromList(hullPoints)
 
-      // Create the minimal area rectangle from the hull points
       val minAreaRect = Imgproc.minAreaRect(matOfHullPoints)
       val rectPoints = arrayOfNulls<Point>(4)
       minAreaRect.points(rectPoints)
 
-      // Convert points back to BBoxPoint
       val bBoxPoints = rectPoints.filterNotNull().map { BBoxPoint(it.x, it.y) }
 
       return OCRbBox(bBoxPoints, minAreaRect.angle)
@@ -198,11 +179,9 @@ class DetectorUtils {
     private fun minimumYFromBox(box: List<BBoxPoint>): Double = box.minOf { it.y }
 
     private fun fitLineToShortestSides(box: OCRbBox): LineInfo {
-      // Convert the BBoxPoints to OpenCV Points
-      val sides = mutableListOf<Pair<Double, Int>>()  // Store side length and index
+      val sides = mutableListOf<Pair<Double, Int>>()
       val midpoints = mutableListOf<BBoxPoint>()
 
-      // Calculate side lengths and midpoints
       for (i in box.bBox.indices) {
         val p1 = box.bBox[i]
         val p2 = box.bBox[(i + 1) % 4]
@@ -211,7 +190,6 @@ class DetectorUtils {
         midpoints.add(midpoint(p1, p2))
       }
 
-      // Sort sides by length
       sides.sortBy { it.first }
 
       val midpoint1 = midpoints[sides[0].second]
@@ -256,14 +234,14 @@ class DetectorUtils {
       m: Double,
       c: Double,
       centerThreshold: Double
-    ): Map<String, Any>? {
+    ): Pair<Int, Double>? {
       var smallestDistance = Double.MAX_VALUE
       var idx = -1
       var boxHeight = 0.0
       val centerOfCurrentBox = centerOfBox(currentBox)
       boxes.forEachIndexed { i, box ->
         if (ignoredIds.contains(i)) {
-          return@forEachIndexed  // continue in forEachIndexed is achieved by return@forEachIndexed
+          return@forEachIndexed
         }
         val centerOfProcessedBox = centerOfBox(box)
         val distanceBetweenCenters = distanceBetweenPoints(centerOfCurrentBox, centerOfProcessedBox)
@@ -282,9 +260,7 @@ class DetectorUtils {
         }
       }
 
-      return idx.takeIf { it != -1 }?.let {
-        mapOf("idx" to it, "boxHeight" to boxHeight)
-      }
+      return if (idx == -1) null else Pair(idx, boxHeight)
     }
 
     private fun createMaskFromLabels(labels: Mat, labelValue: Int): Mat {
@@ -333,14 +309,12 @@ class DetectorUtils {
       val binaryMat = Mat()
       textScoreComb.convertTo(binaryMat, CvType.CV_8UC1)
 
-
       val labels = Mat()
       val stats = Mat()
       val centroids = Mat()
       val nLabels = Imgproc.connectedComponentsWithStats(binaryMat, labels, stats, centroids, 4)
 
       val detectedBoxes = mutableListOf<OCRbBox>()
-      Log.d("rn_executorch", "nLabels: $nLabels")
       for (i in 1 until nLabels) {
         val area = stats.get(i, Imgproc.CC_STAT_AREA)[0].toInt()
         if (area < 10) continue
@@ -415,11 +389,11 @@ class DetectorUtils {
       while (boxes.isNotEmpty()) {
         var currentBox = boxes.removeAt(0)
         val normalizedAngle = normalizeAngle(currentBox.angle)
-        val ignoredIdxs = mutableSetOf<Int>()
+        val ignoredIds = mutableSetOf<Int>()
         var lineAngle: Double
         while (true) {
           val fittedLine =
-            fitLineToShortestSides(currentBox)  // Placeholder for actual implementation
+            fitLineToShortestSides(currentBox)
           val slope = fittedLine.slope
           val intercept = fittedLine.intercept
           val isVertical = fittedLine.isVertical
@@ -430,29 +404,29 @@ class DetectorUtils {
           }
 
           val closestBoxInfo = findClosestBox(
-            boxes, ignoredIdxs, currentBox,
+            boxes, ignoredIds, currentBox,
             isVertical, slope, intercept, centerThreshold
           ) ?: break
 
-          val candidateIdx = closestBoxInfo["idx"] as Int
+          val candidateIdx = closestBoxInfo.first
           var candidateBox = boxes[candidateIdx]
-          val candidateHeight = closestBoxInfo["boxHeight"] as Double
+          val candidateHeight = closestBoxInfo.second
           if ((candidateBox.angle == 90.0 && !isVertical) || (candidateBox.angle == 0.0 && isVertical)) {
             candidateBox =
-              rotateBox(candidateBox, normalizedAngle)  // Placeholder for actual implementation
+              rotateBox(candidateBox, normalizedAngle)
           }
           val minDistance =
-            calculateMinimalDistanceBetweenBoxes(candidateBox, currentBox)  // Placeholder
+            calculateMinimalDistanceBetweenBoxes(candidateBox, currentBox)
           val mergedHeight = minSideLength(currentBox)
           if (minDistance < distanceThreshold * candidateHeight && abs(mergedHeight - candidateHeight) < candidateHeight * heightThreshold) {
             currentBox = mergeRotatedBoxes(currentBox, candidateBox)
             boxes.removeAt(candidateIdx)
-            ignoredIdxs.clear()
+            ignoredIds.clear()
             if (maxSideLength(currentBox) > maxWidth) {
               break
             }
           } else {
-            ignoredIdxs.add(candidateIdx)
+            ignoredIds.add(candidateIdx)
           }
         }
         mergedArray.add(currentBox.copy(angle = lineAngle))
@@ -465,3 +439,30 @@ class DetectorUtils {
     }
   }
 }
+
+data class BBoxPoint(
+  var x: Double,
+  var y: Double,
+)
+
+data class OCRbBox(
+  val bBox: List<BBoxPoint>,
+  val angle: Double,
+) {
+  fun toWritableArray(): WritableArray {
+    val array = Arguments.createArray()
+    bBox.forEach { point ->
+      val pointMap = Arguments.createMap()
+      pointMap.putDouble("x", point.x)
+      pointMap.putDouble("y", point.y)
+      array.pushMap(pointMap)
+    }
+    return array
+  }
+}
+
+data class LineInfo(
+  val slope: Double,
+  val intercept: Double,
+  val isVertical: Boolean
+)

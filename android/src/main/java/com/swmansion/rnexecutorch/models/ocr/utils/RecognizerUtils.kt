@@ -17,81 +17,6 @@ import kotlin.math.sqrt
 
 class RecognizerUtils {
   companion object {
-    fun softmax(inputs: Mat): Mat {
-      val maxVal = Mat()
-      Core.reduce(inputs, maxVal, 1, Core.REDUCE_MAX, CvType.CV_32F)
-
-      val tiledMaxVal = Mat()
-      Core.repeat(maxVal, 1, inputs.width(), tiledMaxVal)
-      val expInputs = Mat()
-      Core.subtract(inputs, tiledMaxVal, expInputs)
-      Core.exp(expInputs, expInputs)
-
-      val sumExp = Mat()
-      Core.reduce(expInputs, sumExp, 1, Core.REDUCE_SUM, CvType.CV_32F)
-
-      val tiledSumExp = Mat()
-      Core.repeat(sumExp, 1, inputs.width(), tiledSumExp)
-      val softmaxOutput = Mat()
-      Core.divide(expInputs, tiledSumExp, softmaxOutput)
-
-      return softmaxOutput
-    }
-
-    fun sumProbabilityRows(probabilities: Mat, modelOutputHeight: Int): FloatArray {
-      val predsNorm = FloatArray(probabilities.rows())
-
-      for (i in 0 until probabilities.rows()) {
-        var sum = 0.0
-        for (j in 0 until modelOutputHeight) {
-          sum += probabilities.get(i, j)[0]
-        }
-        predsNorm[i] = sum.toFloat()
-      }
-
-      return predsNorm
-    }
-
-    fun divideMatrixByVector(matrix: Mat, vector: FloatArray): Mat {
-      for (i in 0 until matrix.rows()) {
-        for (j in 0 until matrix.cols()) {
-          val value = matrix.get(i, j)[0] / vector[i]
-          matrix.put(i, j, value)
-        }
-      }
-
-      return matrix
-    }
-
-    fun findMaxValuesAndIndices(probabilities: Mat): Pair<DoubleArray, List<Int>> {
-      val values = DoubleArray(probabilities.rows())
-      val indices = mutableListOf<Int>()
-
-      for (i in 0 until probabilities.rows()) {
-        val row = probabilities.row(i)
-        val minMaxLocResult = Core.minMaxLoc(row)
-
-        values[i] = minMaxLocResult.maxVal
-        indices.add(minMaxLocResult.maxLoc.x.toInt())
-      }
-
-      return Pair(values, indices)
-    }
-
-    fun computeConfidenceScore(valuesArray: DoubleArray, indicesArray: List<Int>): Double {
-      val predsMaxProb = mutableListOf<Double>()
-      for ((index, value) in indicesArray.withIndex()) {
-        if (value != 0) predsMaxProb.add(valuesArray[index])
-      }
-
-      val nonZeroValues =
-        if (predsMaxProb.isEmpty()) doubleArrayOf(0.0) else predsMaxProb.toDoubleArray()
-      val product = nonZeroValues.reduce { acc, d -> acc * d }
-      val score = product.pow(2.0 / sqrt(nonZeroValues.size.toDouble()))
-
-      return score
-    }
-
     private fun calculateRatio(width: Int, height: Int): Double {
       var ratio = width.toDouble() / height.toDouble()
       if (ratio < 1.0) {
@@ -174,6 +99,81 @@ class RecognizerUtils {
       return img
     }
 
+    fun softmax(inputs: Mat): Mat {
+      val maxVal = Mat()
+      Core.reduce(inputs, maxVal, 1, Core.REDUCE_MAX, CvType.CV_32F)
+
+      val tiledMaxVal = Mat()
+      Core.repeat(maxVal, 1, inputs.width(), tiledMaxVal)
+      val expInputs = Mat()
+      Core.subtract(inputs, tiledMaxVal, expInputs)
+      Core.exp(expInputs, expInputs)
+
+      val sumExp = Mat()
+      Core.reduce(expInputs, sumExp, 1, Core.REDUCE_SUM, CvType.CV_32F)
+
+      val tiledSumExp = Mat()
+      Core.repeat(sumExp, 1, inputs.width(), tiledSumExp)
+      val softmaxOutput = Mat()
+      Core.divide(expInputs, tiledSumExp, softmaxOutput)
+
+      return softmaxOutput
+    }
+
+    fun sumProbabilityRows(probabilities: Mat, modelOutputHeight: Int): FloatArray {
+      val predsNorm = FloatArray(probabilities.rows())
+
+      for (i in 0 until probabilities.rows()) {
+        var sum = 0.0
+        for (j in 0 until modelOutputHeight) {
+          sum += probabilities.get(i, j)[0]
+        }
+        predsNorm[i] = sum.toFloat()
+      }
+
+      return predsNorm
+    }
+
+    fun divideMatrixByVector(matrix: Mat, vector: FloatArray): Mat {
+      for (i in 0 until matrix.rows()) {
+        for (j in 0 until matrix.cols()) {
+          val value = matrix.get(i, j)[0] / vector[i]
+          matrix.put(i, j, value)
+        }
+      }
+
+      return matrix
+    }
+
+    fun findMaxValuesAndIndices(probabilities: Mat): Pair<DoubleArray, List<Int>> {
+      val values = DoubleArray(probabilities.rows())
+      val indices = mutableListOf<Int>()
+
+      for (i in 0 until probabilities.rows()) {
+        val row = probabilities.row(i)
+        val minMaxLocResult = Core.minMaxLoc(row)
+
+        values[i] = minMaxLocResult.maxVal
+        indices.add(minMaxLocResult.maxLoc.x.toInt())
+      }
+
+      return Pair(values, indices)
+    }
+
+    fun computeConfidenceScore(valuesArray: DoubleArray, indicesArray: List<Int>): Double {
+      val predsMaxProb = mutableListOf<Double>()
+      for ((index, value) in indicesArray.withIndex()) {
+        if (value != 0) predsMaxProb.add(valuesArray[index])
+      }
+
+      val nonZeroValues =
+        if (predsMaxProb.isEmpty()) doubleArrayOf(0.0) else predsMaxProb.toDoubleArray()
+      val product = nonZeroValues.reduce { acc, d -> acc * d }
+      val score = product.pow(2.0 / sqrt(nonZeroValues.size.toDouble()))
+
+      return score
+    }
+
     fun calculateResizeRatioAndPaddings(
       width: Int,
       height: Int,
@@ -253,12 +253,12 @@ class RecognizerUtils {
       }
 
       val desiredWidth = when {
-        img.width() >= 512 -> 512
-        img.width() >= 256 -> 256
-        else -> 128
+        img.width() >= Constants.LARGE_MODEL_WIDTH -> Constants.LARGE_MODEL_WIDTH
+        img.width() >= Constants.MEDIUM_MODEL_WIDTH -> Constants.MEDIUM_MODEL_WIDTH
+        else -> Constants.SMALL_MODEL_WIDTH
       }
 
-      img = ImageProcessor.resizeWithPadding(img, desiredWidth, 64)
+      img = ImageProcessor.resizeWithPadding(img, desiredWidth, Constants.MODEL_HEIGHT)
       img.convertTo(img, CvType.CV_32F, 1.0 / 255.0)
       Core.subtract(img, Scalar(0.5), img)
       Core.multiply(img, Scalar(2.0), img)
