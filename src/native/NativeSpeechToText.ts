@@ -10,8 +10,7 @@ export interface Spec extends TurboModule {
   ): Promise<number>;
   encode(input: number[][]): Promise<number[][][]>;
   decode(prevTokens: number[], encoderOutput: number[]): Promise<number[][][]>;
-  generate(spectrogram: number[]): Promise<number[]>;
-  generateSync(fft: number[], numFrames: number, prevTokens: number[]): void;
+  generate(waveform: number[], prevTokens: number[]): Promise<number[]>;
 
   readonly onToken: EventEmitter<string>;
 }

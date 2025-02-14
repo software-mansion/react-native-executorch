@@ -1,6 +1,5 @@
 import {
   AudioBufferSourceNode,
-  AnalyserNode,
   AudioContext,
   AudioBuffer,
 } from 'react-native-audio-api';
@@ -8,19 +7,14 @@ import { _SpeechToTextModule } from './native/RnExecutorchModules';
 import { EventSubscription, Image } from 'react-native';
 import { SpeechToText } from './native/RnExecutorchModules';
 import * as FileSystem from 'expo-file-system';
-import { ETError, getError } from './Error';
 
 type ModelSource = string | number;
 
 export class SpeechToTextController {
   // Audio config
-  private numFft: number;
-  private hopLength: number;
   private audioContext: AudioContext;
-  private analyserNode: AnalyserNode;
   private audioBuffer: AudioBuffer | null = null;
   private audioBufferSource: AudioBufferSourceNode | null = null;
-  private stftInterval: number;
 
   // Native modules / listeners
   private nativeModule: _SpeechToTextModule;
@@ -28,7 +22,6 @@ export class SpeechToTextController {
   private tokenListener: EventSubscription | null = null;
 
   // State
-  private fftBuffer: number[][] = [];
   public generatedTokens: string[] = [];
   // @ts-ignore
   public isReady: boolean;
@@ -38,23 +31,14 @@ export class SpeechToTextController {
   public onTokenCallback: (token: string) => any;
 
   constructor({
-    numFft = 512,
-    hopLength = 160,
     nativeModule = new _SpeechToTextModule(),
-    onTokenCallback = (token: string) => console.log(token),
+    // @ts-ignore
+    onTokenCallback = (token: string) => { },
   } = {}) {
-    this.numFft = numFft;
-    this.hopLength = hopLength;
-    this.stftInterval = (this.hopLength / 16e3) * 1000;
     this.nativeModule = nativeModule;
     this.isReady = false;
     this.isGenerating = false;
     this.audioContext = new AudioContext(16e3); // Passing default SR
-    this.analyserNode = this.audioContext.createAnalyser();
-    this.analyserNode.fftSize = this.numFft;
-    this.analyserNode.smoothingTimeConstant = 0;
-    this.analyserNode.window = 'hann';
-    this.analyserNode.connect(this.audioContext.destination);
     this.onTokenCallback = onTokenCallback;
   }
 
@@ -87,12 +71,6 @@ export class SpeechToTextController {
           return;
         }
         this.onTokenCallback(token);
-        if (token === '50256') {
-          console.log('EOS');
-          this.isGenerating = false;
-        } else {
-          this.generatedTokens.push(token);
-        }
       });
       this.isReady = true;
     } catch (e) {
@@ -117,7 +95,6 @@ export class SpeechToTextController {
     }
     this.audioBufferSource = this.audioContext.createBufferSource();
     this.audioBufferSource.buffer = this.audioBuffer;
-    this.audioBufferSource.connect(this.analyserNode);
   }
 
   private async loadAudio(url: string) {
@@ -125,29 +102,15 @@ export class SpeechToTextController {
     this.setAudioBufferSourceNode();
   }
 
-  private generate(fft: number[][]) {
-    if (!this.isReady) {
-      throw new Error(getError(ETError.ModuleNotLoaded));
-    }
+  public async startTranscription(url: string) {
     if (this.isGenerating) {
+      // TODO
       return;
     }
-    const prevTokens = this.generatedTokens.map(Number);
-    const numFrames = fft.length;
-    this.nativeModule.generateSync(fft.flat(), numFrames, prevTokens);
-  }
-
-  private getFftData() {
-    const bufferLength = this.analyserNode.frequencyBinCount;
-    const dataArray = new Array(bufferLength);
-    this.analyserNode.getFloatFrequencyData(dataArray);
-    return dataArray;
-  }
-
-  public async startTranscription(url: string) {
     try {
       await this.loadAudio(url);
     } catch (e) {
+      // TODO
       throw Error('An error ocurred when loading audio! ' + e);
     }
 
@@ -156,28 +119,15 @@ export class SpeechToTextController {
       !this.audioBufferSource ||
       !this.audioBuffer
     ) {
+      // TODO
       throw Error('An error ocurred when loading audio!');
     }
 
-    // Simulating hop length :)
-    // we are probing the FFT data from the Audio API each this.stftInterval ms
-    const delay = (ms: number) =>
-      new Promise((resolve) => setTimeout(resolve, ms));
-
-    const audioDuration = this.audioBuffer.duration;
-    let startTime = this.audioContext.currentTime;
-    let elapsedTime = 0;
+    const waveform = this.audioBuffer.getChannelData(0);
+    this.isGenerating = true;
+    // TODO: handle prevTokens
+    await this.nativeModule.generate(waveform, []);
+    this.isGenerating = false;
     this.audioBufferSource.start();
-
-    while (true) {
-      // TODO
-      elapsedTime = this.audioContext.currentTime - startTime;
-      if (elapsedTime > audioDuration) {
-        this.generate(this.fftBuffer);
-        break;
-      }
-      this.fftBuffer.push(this.getFftData());
-      await delay(this.stftInterval);
-    }
   }
 }
