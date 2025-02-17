@@ -24,10 +24,11 @@ const detections = await ObjectDetectionModule.forward(imageUri);
 
 ### Methods
 
-| Method    | Type                                           | Description                                                                                              |
-| --------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `load`    | `(modelSource: ResourceSource): Promise<void>` | Loads the model, where `modelSource` is a string that specifies the location of the model binary.        |
-| `forward` | `(input: string): Promise<Detection[]>`        | Executes the model's forward pass, where `input` can be a fetchable resource or a Base64-encoded string. |
+| Method               | Type                                                  | Description                                                                                              |
+| -------------------- | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `load`               | `(modelSource: ResourceSource): Promise<void>`        | Loads the model, where `modelSource` is a string that specifies the location of the model binary.        |
+| `forward`            | `(input: string): Promise<Detection[]>`               | Executes the model's forward pass, where `input` can be a fetchable resource or a Base64-encoded string. |
+| `onDownloadProgress` | `(callback: (downloadProgress: number) => void): any` | Subscribe to the download progress event.                                                                |
 
 <details>
 <summary>Type definitions</summary>
