@@ -15,6 +15,52 @@ To run any AI model in ExecuTorch, you need to export it to a `.pte` format. If 
 Take a look at how our library can help build you your React Native AI features in our docs:  
 https://docs.swmansion.com/react-native-executorch
 
+
+# 🦙 **Quickstart - Running Llama**  
+
+**Get started with AI-powered text generation in 3 easy steps!**  
+
+### 1️⃣ **Installation**  
+```bash
+# Install the package
+yarn add react-native-executorch
+cd ios && pod install && cd ..
+```
+
+---
+
+### 2️⃣ **Setup & Initialization**  
+Add this to your component file:  
+```tsx
+import { 
+  LLAMA3_2_1B_QLORA, 
+  LLAMA3_2_3B_TOKENIZER,
+  useLLM 
+} from 'react-native-executorch';
+
+function MyComponent() {
+  // Initialize the model 🚀
+  const llama = useLLM({
+    modelSource: LLAMA3_2_1B_QLORA,
+    tokenizerSource: LLAMA3_2_1B_TOKENIZER
+  });
+  // ... rest of your component
+}
+```
+
+---
+
+### 3️⃣ **Run the model!**  
+```tsx
+const handleGenerate = async () => {
+  const prompt = "The meaning of life is";
+  
+  // Generate text based on your desired prompt
+  const response = await llama.generate(prompt);
+  console.log("Llama says:", response);
+};
+```
+
 ## Minimal supported versions
 The minimal supported version is 17.0 for iOS and Android 13.
 

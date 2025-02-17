@@ -38,12 +38,13 @@ A string that specifies the location of the model binary. For more information, 
 
 ### Returns
 
-| Field          | Type                                                         | Description                                                                                              |
-| -------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| `forward`      | `(input: string) => Promise<{ [category: string]: number }>` | Executes the model's forward pass, where `input` can be a fetchable resource or a Base64-encoded string. |
-| `error`        | <code>string &#124; null</code>                              | Contains the error message if the model failed to load.                                                  |
-| `isGenerating` | `boolean`                                                    | Indicates whether the model is currently processing an inference.                                        |
-| `isReady`      | `boolean`                                                    | Indicates whether the model has successfully loaded and is ready for inference.                          |
+| Field              | Type                                                         | Description                                                                                              |
+| ------------------ | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| `forward`          | `(input: string) => Promise<{ [category: string]: number }>` | Executes the model's forward pass, where `input` can be a fetchable resource or a Base64-encoded string. |
+| `error`            | <code>string &#124; null</code>                              | Contains the error message if the model failed to load.                                                  |
+| `isGenerating`     | `boolean`                                                    | Indicates whether the model is currently processing an inference.                                        |
+| `isReady`          | `boolean`                                                    | Indicates whether the model has successfully loaded and is ready for inference.                          |
+| `downloadProgress` | `number`                                                     | Represents the download progress as a value between 0 and 1                                              |
 
 ## Running the model
 
@@ -86,3 +87,27 @@ function App() {
 | Model                                                                                                           | Number of classes | Class list                                                                                                                                                                 |
 | --------------------------------------------------------------------------------------------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [efficientnet_v2_s](https://pytorch.org/vision/0.20/models/generated/torchvision.models.efficientnet_v2_s.html) | 1000              | [ImageNet1k_v1](https://github.com/software-mansion/react-native-executorch/blob/main/android/src/main/java/com/swmansion/rnexecutorch/models/classification/Constants.kt) |
+
+## Benchmarks
+
+### Model size
+
+| Model             | XNNPACK [MB] | Core ML [MB] |
+| ----------------- | ------------ | ------------ |
+| EFFICIENTNET_V2_S | 85.6         | 43.9         |
+
+### Memory usage
+
+| Model             | Android (XNNPACK) [MB] | iOS (Core ML) [MB] |
+| ----------------- | ---------------------- | ------------------ |
+| EFFICIENTNET_V2_S | 130                    | 85                 |
+
+### Inference time
+
+:::warning warning
+Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
+:::
+
+| Model             | iPhone 16 Pro (Core ML) [ms] | iPhone 13 Pro (Core ML) [ms] | iPhone SE 3 (Core ML) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| ----------------- | ---------------------------- | ---------------------------- | -------------------------- | --------------------------------- | ------------------------- |
+| EFFICIENTNET_V2_S | 100                          | 120                          | 130                        | 180                               | 170                       |
