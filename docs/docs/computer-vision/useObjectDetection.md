@@ -61,13 +61,12 @@ For more information on that topic, you can check out the [Loading models](https
 
 The hook returns an object with the following properties:
 
-| Field              | Type                                      | Description                                                                              |
-| ------------------ | ----------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `forward`          | `(input: string) => Promise<Detection[]>` | A function that accepts an image (url, b64) and returns an array of `Detection` objects. |
-| `error`            | <code>string &#124; null</code>           | Contains the error message if the model loading failed.                                  |
-| `isGenerating`     | `boolean`                                 | Indicates whether the model is currently processing an inference.                        |
-| `isReady`          | `boolean`                                 | Indicates whether the model has successfully loaded and is ready for inference.          |
-| `downloadProgress` | `number`                                  | Represents the download progress as a value between 0 and 1                              |
+| Field          | Type                                      | Description                                                                              |
+| -------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `forward`      | `(input: string) => Promise<Detection[]>` | A function that accepts an image (url, b64) and returns an array of `Detection` objects. |
+| `error`        | <code>string &#124; null</code>           | Contains the error message if the model loading failed.                                  |
+| `isGenerating` | `boolean`                                 | Indicates whether the model is currently processing an inference.                        |
+| `isReady`      | `boolean`                                 | Indicates whether the model has successfully loaded and is ready for inference.          |
 
 ## Running the model
 
