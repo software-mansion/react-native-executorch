@@ -17,7 +17,7 @@ export * from './modules/natural_language_processing/LLMModule';
 export * from './modules/general/ExecutorchModule';
 
 // utils
-export * from './utils/listResources';
+export * from './utils/listDownloadedResources';
 
 // types
 export * from './types/object_detection';

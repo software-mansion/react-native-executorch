@@ -1,12 +1,12 @@
 import { readDirectoryAsync } from 'expo-file-system';
 import { RNEDirectory } from '../constants/directories';
 
-export const listFiles = async () => {
+export const listDownloadedFiles = async () => {
   const files = await readDirectoryAsync(RNEDirectory);
   return files.map((file) => `${RNEDirectory}${file}`);
 };
 
-export const listModels = async () => {
-  const files = await listFiles();
+export const listDownloadedModels = async () => {
+  const files = await listDownloadedFiles();
   return files.filter((file) => file.endsWith('.pte'));
 };
