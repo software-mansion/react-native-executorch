@@ -2,11 +2,11 @@
 #import "models/BaseModel.h"
 #import "models/stt/WhisperDecoder.hpp"
 #import "models/stt/WhisperEncoder.hpp"
-#import "utils/ETError.h"
 #import "utils/Fetcher.h"
 #import <Accelerate/Accelerate.h>
 #import <ExecutorchLib/ETModel.h>
 #import <React/RCTBridgeModule.h>
+#import "./utils/ScalarType.h"
 
 @implementation SpeechToText {
   WhisperEncoder *encoder;
@@ -85,7 +85,7 @@ RCT_EXPORT_MODULE()
     double magnitude = sqrt(a.realp[i] * a.realp[i] + a.imagp[i] * a.imagp[i]) *
                        magnitudeScale;
     // FIXME: we don't need that, but if we remove this we have to get rid of
-    // reversing this operation in the postprocessing part
+    // reversing this operation in the preprocessing part
     double magnitudeDb = 20 * log10f(magnitude);
     // Push to the result array
     [magnitudes addObject:@(magnitudeDb)];
@@ -97,7 +97,6 @@ RCT_EXPORT_MODULE()
 }
 
 - (void)generate:(NSArray *)waveform
-      prevTokens:(NSArray *)prevTokens
          resolve:(RCTPromiseResolveBlock)resolve
           reject:(RCTPromiseRejectBlock)reject {
   @try {
@@ -105,18 +104,10 @@ RCT_EXPORT_MODULE()
     dispatch_async(
         dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
           NSUInteger fftFrameLength = self->fftSize / 2;
-
-          // If the array passed from JS is non-empty (we have already generated
-          // some tokens and we want to pass a prompt) - then we create a
-          // mutable copy. Elsewise, we create a new mutable array with EOS
-          // token in the beginning.
-          NSMutableArray *mutablePrevTokens =
-              prevTokens.count == 0
-                  ? [NSMutableArray arrayWithObject:self->START_TOKEN]
-                  : [prevTokens mutableCopy];
-
+          NSMutableArray *mutablePrevTokens = [NSMutableArray arrayWithObject:self->START_TOKEN];
+                
           if (!self->encoder || !self->decoder || !self->preprocessor) {
-            // TODO: handle this, use proper codes etc
+            // TODO: handle this, use an actual error code
             reject(@"model_initialization_error", nil, nil);
             return;
           }
@@ -129,11 +120,13 @@ RCT_EXPORT_MODULE()
                     numFrames,
                     [NSNumber numberWithUnsignedInteger:fftFrameLength]
                   ] ]
-              inputTypes:@[ @6 ]]; // TODO: Replace this with actual type
+              inputTypes:@[ ScalarType.Float ]]; // TODO: Replace this with an actual enum
+          NSDate *start = [NSDate date];
           NSArray *encodingResult = [self->encoder encode:@[ mel ]];
+          
 
           if (!encodingResult) {
-            // TODO: handle this better
+            // TODO: handle this, use an actual error code
             reject(@"encoding_failed", nil, nil);
             return;
           }
@@ -143,21 +136,23 @@ RCT_EXPORT_MODULE()
             NSArray *result = [self->decoder decode:mutablePrevTokens
                              encoderLastHiddenState:encodingResult];
             if (!result || result.count == 0) {
+              // TODO: handle this, use an actual error code
               reject(@"decoding_failed", @"Decoder returned an empty result.",
                      nil);
               return;
             }
             NSNumber *predictedToken = result[0];
             [mutablePrevTokens addObject:predictedToken];
-            [self emitOnToken:[predictedToken stringValue]];
+            [self emitOnToken:predictedToken];
             if ([predictedToken isEqualToNumber:self->EOS_TOKEN]) {
               break;
             }
             currentSeqLen = @([currentSeqLen unsignedIntegerValue] + 1);
           }
-          resolve([mutablePrevTokens componentsJoinedByString:@","]);
+          resolve(mutablePrevTokens);
         });
   } @catch (NSException *exception) {
+    // TODO: handle this, use an actual error code
     NSLog(@"Exception caught before dispatch: %@, Reason: %@", exception.name,
           exception.reason);
     reject(@"exception_before_dispatch", exception.reason, nil);
