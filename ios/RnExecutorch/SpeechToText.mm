@@ -107,7 +107,6 @@ RCT_EXPORT_MODULE()
           NSMutableArray *mutablePrevTokens = [NSMutableArray arrayWithObject:self->START_TOKEN];
                 
           if (!self->encoder || !self->decoder || !self->preprocessor) {
-            // TODO: handle this, use an actual error code
             reject(@"model_initialization_error", nil, nil);
             return;
           }
@@ -120,14 +119,13 @@ RCT_EXPORT_MODULE()
                     numFrames,
                     [NSNumber numberWithUnsignedInteger:fftFrameLength]
                   ] ]
-              inputTypes:@[ ScalarType.Float ]]; // TODO: Replace this with an actual enum
+              inputTypes:@[ ScalarType.Float ]];
           NSDate *start = [NSDate date];
           NSArray *encodingResult = [self->encoder encode:@[ mel ]];
           
 
           if (!encodingResult) {
-            // TODO: handle this, use an actual error code
-            reject(@"encoding_failed", nil, nil);
+            reject(@"forward_error", @"Encoding returned an empty result.", nil);
             return;
           }
 
@@ -136,8 +134,7 @@ RCT_EXPORT_MODULE()
             NSArray *result = [self->decoder decode:mutablePrevTokens
                              encoderLastHiddenState:encodingResult];
             if (!result || result.count == 0) {
-              // TODO: handle this, use an actual error code
-              reject(@"decoding_failed", @"Decoder returned an empty result.",
+              reject(@"forward_error", @"Decoder returned an empty result.",
                      nil);
               return;
             }
@@ -152,7 +149,6 @@ RCT_EXPORT_MODULE()
           resolve(mutablePrevTokens);
         });
   } @catch (NSException *exception) {
-    // TODO: handle this, use an actual error code
     NSLog(@"Exception caught before dispatch: %@, Reason: %@", exception.name,
           exception.reason);
     reject(@"exception_before_dispatch", exception.reason, nil);
