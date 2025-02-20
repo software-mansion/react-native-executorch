@@ -113,14 +113,8 @@ class _StyleTransferModule {
 }
 
 class _SpeechToTextModule {
-  async encode(input: number[][]) {
-    return await SpeechToText.encode(input);
-  }
-  async generate(waveform: number[], prevTokens: number[]): Promise<number[]> {
-    return await SpeechToText.generate(waveform, prevTokens);
-  }
-  async decode(prevTokens: number[], encoderOutput: number[]) {
-    return await SpeechToText.decode(prevTokens, encoderOutput);
+  async generate(waveform: number[]): Promise<number[]> {
+    return await SpeechToText.generate(waveform);
   }
 
   async loadModule(
