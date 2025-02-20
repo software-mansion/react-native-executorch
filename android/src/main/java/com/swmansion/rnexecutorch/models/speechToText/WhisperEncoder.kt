@@ -1,10 +1,7 @@
-package com.swmansion.rnexecutorch.models.speech_to_text
+package com.swmansion.rnexecutorch.models.speechToText
 
-import android.content.Context
-import android.util.Log
 import com.facebook.react.bridge.ReactApplicationContext
 import com.swmansion.rnexecutorch.models.BaseModel
-import com.swmansion.rnexecutorch.utils.STFT
 import org.pytorch.executorch.EValue
 import org.pytorch.executorch.Tensor
 
@@ -19,10 +16,6 @@ class WhisperEncoder(reactApplicationContext: ReactApplicationContext) :
   }
 
   override fun preprocess(input: EValue): EValue {
-    // WhisperPreprocessor returns an EValue which is passed here.
-    // For some reason I can't just pass the EValue to the forward, instead i need to
-    // do that silly stuff. I have no idea why, but if i just run this.module.forward(input), it
-    // doesn't work :(
     val inputTensor = Tensor.fromBlob(input.toTensor().dataAsFloatArray, this.encoderInputShape)
     return EValue.from(inputTensor)
   }

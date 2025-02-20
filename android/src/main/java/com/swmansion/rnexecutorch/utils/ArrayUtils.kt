@@ -8,7 +8,7 @@ import org.pytorch.executorch.Tensor
 
 class ArrayUtils {
   companion object {
-    private inline fun <reified T> createTypedArrayFromReadableArray(input: ReadableArray, transform: (ReadableArray, Int) -> T): Array<T> {
+    inline fun <reified T> createTypedArrayFromReadableArray(input: ReadableArray, transform: (ReadableArray, Int) -> T): Array<T> {
       return Array(input.size()) { index -> transform(input, index) }
     }
 
@@ -71,5 +71,18 @@ class ArrayUtils {
 
       return resultArray
     }
+
+    fun createReadableArrayFromFloatArray(input: FloatArray): ReadableArray {
+      val resultArray = Arguments.createArray()
+      input.forEach { resultArray.pushDouble(it.toDouble()) }
+      return resultArray
+    }
+
+    fun createReadableArrayFromIntArray(input: IntArray): ReadableArray {
+      val resultArray = Arguments.createArray()
+      input.forEach { resultArray.pushInt(it) }
+      return resultArray
+    }
+
   }
 }

@@ -8,11 +8,9 @@ export interface Spec extends TurboModule {
     encoderSource: string,
     decoderSource: string
   ): Promise<number>;
-  encode(input: number[][]): Promise<number[][][]>;
-  decode(prevTokens: number[], encoderOutput: number[]): Promise<number[][][]>;
   generate(waveform: number[], prevTokens: number[]): Promise<number[]>;
 
-  readonly onToken: EventEmitter<string>;
+  readonly onToken: EventEmitter<number>;
 }
 
 export default TurboModuleRegistry.get<Spec>('SpeechToText');

@@ -1,4 +1,4 @@
-package com.swmansion.rnexecutorch.models.speech_to_text
+package com.swmansion.rnexecutorch.models.speechToText
 
 import com.facebook.react.bridge.ReactApplicationContext
 import com.swmansion.rnexecutorch.models.BaseModel
@@ -9,7 +9,6 @@ class WhisperDecoder(
   reactApplicationContext: ReactApplicationContext,
 ) : BaseModel<EValue, Int>(reactApplicationContext) {
   private var generatedTokens: MutableList<Int> = mutableListOf()
-//  private var encodingOutputShape = longArrayOf(1, )
 
   fun setGeneratedTokens(tokens: MutableList<Int>) {
     this.generatedTokens = tokens
@@ -25,9 +24,6 @@ class WhisperDecoder(
   }
 
   override fun preprocess(input: EValue): EValue {
-    // I am not doing the same thing as in the encoder here purposefully. The reason for that is that decoding
-    // is ran A LOT of times. This would mean that with each decoding, we're doing that stupid
-    // operation. So here we do nothing. Actually its a FIXME: fix this in the encoder as well
     TODO("Not yet implemented")
   }
 
