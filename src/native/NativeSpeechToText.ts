@@ -8,7 +8,7 @@ export interface Spec extends TurboModule {
     encoderSource: string,
     decoderSource: string
   ): Promise<number>;
-  generate(waveform: number[], prevTokens: number[]): Promise<number[]>;
+  generate(waveform: number[]): Promise<number[]>;
 
   readonly onToken: EventEmitter<number>;
 }
