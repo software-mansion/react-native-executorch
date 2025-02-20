@@ -1,7 +1,8 @@
 #import "WhisperDecoder.hpp"
+#import "../../utils/ScalarType.h"
 
-NSNumber *encoderLastHiddenStateType = @6; // ScalarType::Float
-NSNumber *prevTokensType = @3; // ScalarType::Int
+NSNumber *encoderLastHiddenStateType = ScalarType.Float;
+NSNumber *prevTokensType = ScalarType.Int32;
 NSArray *decoderInputTypes = @[prevTokensType, encoderLastHiddenStateType];
 NSArray *encoderLastHiddenStateShape = @[@1, @1500, @384];
 

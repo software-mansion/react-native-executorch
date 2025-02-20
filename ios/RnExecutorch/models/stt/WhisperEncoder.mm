@@ -1,8 +1,8 @@
 #import "WhisperEncoder.hpp"
+#import "../../utils/ScalarType.h"
 
 NSArray *spectrogramShape = [NSArray arrayWithObject:@[@1, @80, @3000]];
-// TODO: we could introduce a ScalarType enum in Obj-C to avoid doing something like this
-NSArray *spectrogramInputType = [NSArray arrayWithObject:@6];
+NSArray *spectrogramInputType = [NSArray arrayWithObject:ScalarType.Float];
 
 @implementation WhisperEncoder
 
