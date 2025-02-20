@@ -32,7 +32,7 @@ class SpeechToText(reactContext: ReactApplicationContext) :
     }
   }
 
-  override fun generate(waveform: ReadableArray, prevTokens: ReadableArray, promise: Promise) {
+  override fun generate(waveform: ReadableArray, promise: Promise) {
     val logMel = this.whisperPreprocessor.runModel(waveform)
     val encoding = this.whisperEncoder.runModel(logMel)
     val generatedTokens = mutableListOf(this.START_TOKEN)
