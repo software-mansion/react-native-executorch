@@ -28,12 +28,12 @@ export class SpeechToTextController {
   public isGenerating: boolean;
 
   // User-defined variables
-  public onTokenCallback: (token: string) => any;
+  public onTokenCallback: (token: number) => any;
 
   constructor({
     nativeModule = new _SpeechToTextModule(),
     // @ts-ignore
-    onTokenCallback = (token: string) => { },
+    onTokenCallback = (token: number) => { },
   } = {}) {
     this.nativeModule = nativeModule;
     this.isReady = false;
@@ -66,7 +66,7 @@ export class SpeechToTextController {
         encoderPath,
         decoderPath
       );
-      this.tokenListener = SpeechToText.onToken((token: string | undefined) => {
+      this.tokenListener = SpeechToText.onToken((token: number | undefined) => {
         if (!token) {
           return;
         }
@@ -125,8 +125,7 @@ export class SpeechToTextController {
 
     const waveform = this.audioBuffer.getChannelData(0);
     this.isGenerating = true;
-    // TODO: handle prevTokens
-    await this.nativeModule.generate(waveform, []);
+    await this.nativeModule.generate(waveform);
     this.isGenerating = false;
     this.audioBufferSource.start();
   }
