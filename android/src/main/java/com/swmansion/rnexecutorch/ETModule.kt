@@ -6,9 +6,9 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
 import com.swmansion.rnexecutorch.utils.ArrayUtils
 import com.swmansion.rnexecutorch.utils.ETError
-import com.swmansion.rnexecutorch.utils.Fetcher
 import com.swmansion.rnexecutorch.utils.TensorUtils
 import org.pytorch.executorch.Module
+import java.net.URL
 
 class ETModule(reactContext: ReactApplicationContext) : NativeETModuleSpec(reactContext) {
   private lateinit var module: Module
@@ -18,19 +18,8 @@ class ETModule(reactContext: ReactApplicationContext) : NativeETModuleSpec(react
   }
 
   override fun loadModule(modelSource: String, promise: Promise) {
-    Fetcher.downloadModel(
-      reactApplicationContext,
-      modelSource,
-    ) { path, error ->
-      if (error != null) {
-        promise.reject(error.message!!, ETError.InvalidModelSource.toString())
-        return@downloadModel
-      }
-
-      module = Module.load(path)
-      promise.resolve(0)
-      return@downloadModel
-    }
+    module = Module.load(URL(modelSource).path)
+    promise.resolve(0)
   }
 
   override fun loadMethod(methodName: String, promise: Promise) {

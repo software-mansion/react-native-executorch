@@ -1,8 +1,8 @@
 #import "ObjectDetection.h"
 #import "models/object_detection/SSDLiteLargeModel.hpp"
+#import "utils/ImageProcessor.h"
 #import <ExecutorchLib/ETModel.h>
 #import <React/RCTBridgeModule.h>
-#import "utils/ImageProcessor.h"
 
 @implementation ObjectDetection {
   SSDLiteLargeModel *model;
@@ -42,8 +42,8 @@ RCT_EXPORT_MODULE()
     NSArray *result = [model runModel:image];
     resolve(result);
   } @catch (NSException *exception) {
-    reject(@"forward_error", [NSString stringWithFormat:@"%@", exception.reason],
-           nil);
+    reject(@"forward_error",
+           [NSString stringWithFormat:@"%@", exception.reason], nil);
   }
 }
 

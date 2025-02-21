@@ -14,7 +14,6 @@ export interface Spec extends TurboModule {
   deleteModule(): void;
 
   readonly onToken: EventEmitter<string>;
-  readonly onDownloadProgress: EventEmitter<number>;
 }
 
 export default TurboModuleRegistry.get<Spec>('LLM');
