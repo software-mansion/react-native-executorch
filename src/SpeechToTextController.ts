@@ -7,6 +7,7 @@ import { _SpeechToTextModule } from './native/RnExecutorchModules';
 import { EventSubscription, Image } from 'react-native';
 import { SpeechToText } from './native/RnExecutorchModules';
 import * as FileSystem from 'expo-file-system';
+import decoder from './decoders/WhisperDecodings';
 
 type ModelSource = string | number;
 
@@ -70,7 +71,10 @@ export class SpeechToTextController {
         if (!token) {
           return;
         }
+        let currentToken = decoder[token]?.replaceAll('Ġ', ' ');
+        this.generatedTokens.push(currentToken!!)
         this.onTokenCallback(token);
+        
       });
       this.isReady = true;
     } catch (e) {
