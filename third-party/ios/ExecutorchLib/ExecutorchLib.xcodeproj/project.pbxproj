@@ -43,7 +43,6 @@
 		55EA2C572CB90E7D004315B3 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C562CB90E7D004315B3 /* Accelerate.framework */; };
 		55EA2C592CB90E80004315B3 /* CoreML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C582CB90E80004315B3 /* CoreML.framework */; };
 		55EA2C5B2CB90E85004315B3 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C5A2CB90E85004315B3 /* libsqlite3.tbd */; };
-		8CDA5FBF2D68AB0F005C1B75 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8CDA5FBE2D68AB0F005C1B75 /* Metal.framework */; };
 		8CDA5FC02D68AB25005C1B75 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8CDA5FBE2D68AB0F005C1B75 /* Metal.framework */; };
 		8CDA5FC32D68AB25005C1B75 /* MetalPerformanceShaders.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8CDA5FC12D68AB25005C1B75 /* MetalPerformanceShaders.framework */; };
 		8CDA5FC42D68AB25005C1B75 /* MetalPerformanceShadersGraph.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8CDA5FC22D68AB25005C1B75 /* MetalPerformanceShadersGraph.framework */; };
@@ -110,7 +109,6 @@
 				5576B4A82CEF76CC005027B7 /* kernels_optimized.xcframework in Frameworks */,
 				5576B4A92CEF76CC005027B7 /* kernels_custom.xcframework in Frameworks */,
 				5576B4AA2CEF76CC005027B7 /* kernels_quantized.xcframework in Frameworks */,
-				8CDA5FBF2D68AB0F005C1B75 /* Metal.framework in Frameworks */,
 				5576B4AB2CEF76CC005027B7 /* backend_coreml.xcframework in Frameworks */,
 				5576B4AC2CEF76CC005027B7 /* kernels_portable.xcframework in Frameworks */,
 				5576B4AD2CEF76CC005027B7 /* backend_mps.xcframework in Frameworks */,
