@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { _ETModule } from '../../native/RnExecutorchModules';
-import { useModule } from '../../useModule';
+import { useModule } from '../useModule';
 import { ETInput } from '../../types/common';
 import { getError } from '../../Error';
 
@@ -14,6 +14,7 @@ export const useExecutorchModule = ({
   error: string | null;
   isReady: boolean;
   isGenerating: boolean;
+  downloadProgress: number;
   forward: (input: ETInput, shape: number[]) => Promise<number[][]>;
   loadMethod: (methodName: string) => Promise<void>;
   loadForward: () => Promise<void>;
@@ -23,6 +24,7 @@ export const useExecutorchModule = ({
     error,
     isReady,
     isGenerating,
+    downloadProgress,
     forwardETInput: forward,
   } = useModule({
     modelSource,
@@ -45,6 +47,7 @@ export const useExecutorchModule = ({
     error,
     isReady,
     isGenerating,
+    downloadProgress,
     forward,
     loadMethod,
     loadForward,

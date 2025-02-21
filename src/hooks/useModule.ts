@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Image } from 'react-native';
-import { ETError, getError } from './Error';
-import { ETInput, Module, getTypeIdentifier } from './types/common';
+import { fetchResource } from '../utils/fetchResource';
+import { ETError, getError } from '../Error';
+import { ETInput, Module, getTypeIdentifier } from '../types/common';
 
 interface Props {
   modelSource: string | number;
@@ -12,6 +12,7 @@ interface _Module {
   error: string | null;
   isReady: boolean;
   isGenerating: boolean;
+  downloadProgress: number;
   forwardETInput: (input: ETInput, shape: number[]) => Promise<any>;
   forwardImage: (input: string) => Promise<any>;
 }
@@ -20,19 +21,16 @@ export const useModule = ({ modelSource, module }: Props): _Module => {
   const [error, setError] = useState<null | string>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
 
   useEffect(() => {
     const loadModel = async () => {
       if (!modelSource) return;
-      let path = modelSource;
-
-      if (typeof modelSource === 'number') {
-        path = Image.resolveAssetSource(modelSource).uri;
-      }
 
       try {
         setIsReady(false);
-        await module.loadModule(path);
+        const fileUri = await fetchResource(modelSource, setDownloadProgress);
+        await module.loadModule(fileUri);
         setIsReady(true);
       } catch (e) {
         setError(getError(e));
@@ -86,5 +84,12 @@ export const useModule = ({ modelSource, module }: Props): _Module => {
     }
   };
 
-  return { error, isReady, isGenerating, forwardETInput, forwardImage };
+  return {
+    error,
+    isReady,
+    isGenerating,
+    downloadProgress,
+    forwardETInput,
+    forwardImage,
+  };
 };
