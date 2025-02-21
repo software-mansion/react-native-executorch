@@ -7,9 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0E4A7F472D67549100D8DCBA /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E4A7F442D67549100D8DCBA /* Metal.framework */; };
-		0E4A7F482D67549100D8DCBA /* MetalPerformanceShaders.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E4A7F452D67549100D8DCBA /* MetalPerformanceShaders.framework */; };
-		0E4A7F492D67549100D8DCBA /* MetalPerformanceShadersGraph.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E4A7F462D67549100D8DCBA /* MetalPerformanceShadersGraph.framework */; };
 		5576B4A62CEF76CC005027B7 /* executorch.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5576B49D2CEF76CC005027B7 /* executorch.xcframework */; };
 		5576B4A72CEF76CC005027B7 /* re2.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5576B49E2CEF76CC005027B7 /* re2.xcframework */; };
 		5576B4A82CEF76CC005027B7 /* kernels_optimized.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5576B49F2CEF76CC005027B7 /* kernels_optimized.xcframework */; };
@@ -46,13 +43,14 @@
 		55EA2C572CB90E7D004315B3 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C562CB90E7D004315B3 /* Accelerate.framework */; };
 		55EA2C592CB90E80004315B3 /* CoreML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C582CB90E80004315B3 /* CoreML.framework */; };
 		55EA2C5B2CB90E85004315B3 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C5A2CB90E85004315B3 /* libsqlite3.tbd */; };
+		8CDA5FBF2D68AB0F005C1B75 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8CDA5FBE2D68AB0F005C1B75 /* Metal.framework */; };
+		8CDA5FC02D68AB25005C1B75 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8CDA5FBE2D68AB0F005C1B75 /* Metal.framework */; };
+		8CDA5FC32D68AB25005C1B75 /* MetalPerformanceShaders.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8CDA5FC12D68AB25005C1B75 /* MetalPerformanceShaders.framework */; };
+		8CDA5FC42D68AB25005C1B75 /* MetalPerformanceShadersGraph.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8CDA5FC22D68AB25005C1B75 /* MetalPerformanceShadersGraph.framework */; };
 		A851C4072CF9F1B600424E93 /* Utils.hpp in Headers */ = {isa = PBXBuildFile; fileRef = A851C4042CF9F1B600424E93 /* Utils.hpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0E4A7F442D67549100D8DCBA /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
-		0E4A7F452D67549100D8DCBA /* MetalPerformanceShaders.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalPerformanceShaders.framework; path = System/Library/Frameworks/MetalPerformanceShaders.framework; sourceTree = SDKROOT; };
-		0E4A7F462D67549100D8DCBA /* MetalPerformanceShadersGraph.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalPerformanceShadersGraph.framework; path = System/Library/Frameworks/MetalPerformanceShadersGraph.framework; sourceTree = SDKROOT; };
 		5576B49D2CEF76CC005027B7 /* executorch.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = executorch.xcframework; path = frameworks/executorch.xcframework; sourceTree = "<group>"; };
 		5576B49E2CEF76CC005027B7 /* re2.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = re2.xcframework; path = frameworks/re2.xcframework; sourceTree = "<group>"; };
 		5576B49F2CEF76CC005027B7 /* kernels_optimized.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = kernels_optimized.xcframework; path = frameworks/kernels_optimized.xcframework; sourceTree = "<group>"; };
@@ -90,6 +88,10 @@
 		55EA2C562CB90E7D004315B3 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		55EA2C582CB90E80004315B3 /* CoreML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreML.framework; path = System/Library/Frameworks/CoreML.framework; sourceTree = SDKROOT; };
 		55EA2C5A2CB90E85004315B3 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
+		8CDA5FBE2D68AB0F005C1B75 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
+		8CDA5FC12D68AB25005C1B75 /* MetalPerformanceShaders.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalPerformanceShaders.framework; path = System/Library/Frameworks/MetalPerformanceShaders.framework; sourceTree = SDKROOT; };
+		8CDA5FC22D68AB25005C1B75 /* MetalPerformanceShadersGraph.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalPerformanceShadersGraph.framework; path = System/Library/Frameworks/MetalPerformanceShadersGraph.framework; sourceTree = SDKROOT; };
+		A84198832D02DF29006D4D5E /* InputType.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InputType.h; sourceTree = "<group>"; };
 		A851C4042CF9F1B600424E93 /* Utils.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Utils.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -103,12 +105,16 @@
 				0E4A7F492D67549100D8DCBA /* MetalPerformanceShadersGraph.framework in Frameworks */,
 				5576B4A62CEF76CC005027B7 /* executorch.xcframework in Frameworks */,
 				5576B4A72CEF76CC005027B7 /* re2.xcframework in Frameworks */,
+				8CDA5FC02D68AB25005C1B75 /* Metal.framework in Frameworks */,
+				8CDA5FC42D68AB25005C1B75 /* MetalPerformanceShadersGraph.framework in Frameworks */,
 				5576B4A82CEF76CC005027B7 /* kernels_optimized.xcframework in Frameworks */,
 				5576B4A92CEF76CC005027B7 /* kernels_custom.xcframework in Frameworks */,
 				5576B4AA2CEF76CC005027B7 /* kernels_quantized.xcframework in Frameworks */,
+				8CDA5FBF2D68AB0F005C1B75 /* Metal.framework in Frameworks */,
 				5576B4AB2CEF76CC005027B7 /* backend_coreml.xcframework in Frameworks */,
 				5576B4AC2CEF76CC005027B7 /* kernels_portable.xcframework in Frameworks */,
 				5576B4AD2CEF76CC005027B7 /* backend_mps.xcframework in Frameworks */,
+				8CDA5FC32D68AB25005C1B75 /* MetalPerformanceShaders.framework in Frameworks */,
 				5576B4AE2CEF76CC005027B7 /* backend_xnnpack.xcframework in Frameworks */,
 				55EA2C5B2CB90E85004315B3 /* libsqlite3.tbd in Frameworks */,
 				55EA2C592CB90E80004315B3 /* CoreML.framework in Frameworks */,
@@ -203,9 +209,9 @@
 		55EA2C552CB90E7D004315B3 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				0E4A7F442D67549100D8DCBA /* Metal.framework */,
-				0E4A7F452D67549100D8DCBA /* MetalPerformanceShaders.framework */,
-				0E4A7F462D67549100D8DCBA /* MetalPerformanceShadersGraph.framework */,
+				8CDA5FC12D68AB25005C1B75 /* MetalPerformanceShaders.framework */,
+				8CDA5FC22D68AB25005C1B75 /* MetalPerformanceShadersGraph.framework */,
+				8CDA5FBE2D68AB0F005C1B75 /* Metal.framework */,
 				5576B4A22CEF76CC005027B7 /* backend_coreml.xcframework */,
 				5576B4A42CEF76CC005027B7 /* backend_mps.xcframework */,
 				5576B4A52CEF76CC005027B7 /* backend_xnnpack.xcframework */,
