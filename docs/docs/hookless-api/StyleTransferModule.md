@@ -1,6 +1,6 @@
 ---
 title: StyleTransferModule
-sidebar_position: 3
+sidebar_position: 4
 ---
 
 Hookless implementation of the [useStyleTransfer](../computer-vision/useStyleTransfer.mdx) hook.

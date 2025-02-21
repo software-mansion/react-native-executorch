@@ -1,6 +1,6 @@
 ---
 title: LLMModule
-sidebar_position: 4
+sidebar_position: 3
 ---
 
 Hookless implementation of the [useLLM](../llms/running-llms.md) hook.
