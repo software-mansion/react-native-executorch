@@ -13,7 +13,7 @@
     [inputTypes addObject:[module getInputType:[NSNumber numberWithInt:i]]];
   }
 
-  NSArray *result = [module forward:input shapes:shapes inputTypes:inputTypes];
+  NSArray *result = [module forward:@[input] shapes:shapes inputTypes:inputTypes];
   return result;
 }
 
