@@ -1,6 +1,6 @@
 ---
 title: useObjectDetection
-sidebar_position: 2
+sidebar_position: 3
 ---
 
 Object detection is a computer vision technique that identifies and locates objects within images or video. It’s commonly used in applications like image recognition, video surveillance or autonomous driving.

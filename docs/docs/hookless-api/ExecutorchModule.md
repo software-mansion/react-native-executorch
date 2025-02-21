@@ -1,6 +1,6 @@
 ---
 title: ExecuTorchModule
-sidebar_position: 5
+sidebar_position: 2
 ---
 
 Hookless implementation of the [useExecutorchModule](../module-api/executorch-bindings.md) hook.
