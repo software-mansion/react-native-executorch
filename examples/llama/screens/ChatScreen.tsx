@@ -32,15 +32,12 @@ export default function ChatScreen() {
   const textInputRef = useRef<TextInput>(null);
   useEffect(() => {
     if (llama.response && !llama.isGenerating) {
-      appendToMessageHistory(llama.response, 'ai');
+      appendToMessageHistory(llama.response, 'assistant');
     }
   }, [llama.response, llama.isGenerating]);
 
-  const appendToMessageHistory = (input: string, role: SenderType) => {
-    setChatHistory((prevHistory) => [
-      ...prevHistory,
-      { text: input, from: role },
-    ]);
+  const appendToMessageHistory = (content: string, role: SenderType) => {
+    setChatHistory((prevHistory) => [...prevHistory, { role, content }]);
   };
 
   const sendMessage = async () => {
