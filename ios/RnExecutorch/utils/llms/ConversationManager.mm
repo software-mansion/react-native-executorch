@@ -3,7 +3,8 @@
 @implementation ConversationManager
 
 - (instancetype)initWithNumMessagesContextWindow:(NSUInteger)numMessages
-                                    systemPrompt:(NSString *)systemPrompt {
+                                    systemPrompt:(NSString *)systemPrompt
+                                  messageHistory:(NSArray *)messageHistory {
   self = [super init];
   if (self) {
     numMessagesContextWindow = numMessages;
@@ -12,6 +13,16 @@
     basePrompt += [systemPrompt UTF8String];
     basePrompt += std::string(END_OF_TEXT_TOKEN);
     basePrompt += [self getHeaderTokenFromRole:ChatRole::USER];
+
+    for (const NSDictionary *elem in messageHistory) {
+      NSString *role = elem[@"role"];
+      NSString *content = elem[@"content"];
+      if ([role isEqualToString:@"user"]) {
+        [self addResponse:content senderRole:ChatRole::USER];
+      } else if ([role isEqualToString:@"assistant"]) {
+        [self addResponse:content senderRole:ChatRole::ASSISTANT];
+      }
+    }
   }
   return self;
 }

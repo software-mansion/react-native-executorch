@@ -2,6 +2,7 @@ package com.swmansion.rnexecutorch.utils
 
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableArray
+import com.facebook.react.bridge.ReadableMap
 import org.pytorch.executorch.DType
 import org.pytorch.executorch.Tensor
 
@@ -45,6 +46,14 @@ class ArrayUtils {
         doubleArray[i] = input.getDouble(i)
       }
       return doubleArray
+    }
+
+    fun <V> createMapArray(input: ReadableArray): Array<Map<String, V>> {
+      val mapArray = Array<Map<String, V>>(input.size()) { mapOf() }
+      for (i in 0 until input.size()) {
+        mapArray[i] = input.getMap(i).toHashMap() as Map<String, V>
+      }
+      return mapArray
     }
 
     fun createReadableArray(result: Tensor): ReadableArray {

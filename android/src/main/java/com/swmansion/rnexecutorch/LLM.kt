@@ -3,15 +3,16 @@ package com.swmansion.rnexecutorch
 import android.util.Log
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.ReadableArray
 import com.swmansion.rnexecutorch.utils.llms.ChatRole
 import com.swmansion.rnexecutorch.utils.llms.ConversationManager
 import com.swmansion.rnexecutorch.utils.llms.END_OF_TEXT_TOKEN
 import org.pytorch.executorch.LlamaCallback
 import org.pytorch.executorch.LlamaModule
+import com.swmansion.rnexecutorch.utils.ArrayUtils
 import java.net.URL
 
-class LLM(reactContext: ReactApplicationContext) :
-  NativeLLMSpec(reactContext), LlamaCallback {
+class LLM(reactContext: ReactApplicationContext) : NativeLLMSpec(reactContext), LlamaCallback {
 
   private var llamaModule: LlamaModule? = null
   private var tempLlamaResponse = StringBuilder()
@@ -38,11 +39,14 @@ class LLM(reactContext: ReactApplicationContext) :
     modelSource: String,
     tokenizerSource: String,
     systemPrompt: String,
+    messageHistory: ReadableArray,
     contextWindowLength: Double,
     promise: Promise
   ) {
     try {
-      this.conversationManager = ConversationManager(contextWindowLength.toInt(), systemPrompt)
+      this.conversationManager = ConversationManager(
+        contextWindowLength.toInt(), systemPrompt, ArrayUtils.createMapArray<String>(messageHistory)
+      )
       llamaModule = LlamaModule(1, URL(modelSource).path, URL(tokenizerSource).path, 0.7f)
       this.tempLlamaResponse.clear()
       promise.resolve("Model loaded successfully")
@@ -51,10 +55,7 @@ class LLM(reactContext: ReactApplicationContext) :
     }
   }
 
-  override fun runInference(
-    input: String,
-    promise: Promise
-  ) {
+  override fun runInference(input: String, promise: Promise) {
     this.conversationManager.addResponse(input, ChatRole.USER)
     val conversation = this.conversationManager.getConversation()
 

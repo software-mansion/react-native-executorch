@@ -23,7 +23,8 @@ inline constexpr std::string_view END_HEADER_ID_TOKEN = "<|end_header_id|>";
 }
 
 - (instancetype)initWithNumMessagesContextWindow:(NSUInteger)numMessages
-                                    systemPrompt:(NSString *)systemPrompt;
+                                    systemPrompt:(NSString *)systemPrompt
+                                  messageHistory:(NSArray *)messageHistory;
 
 - (void)addResponse:(NSString *)text senderRole:(ChatRole)senderRole;
 - (NSString *)getConversation;

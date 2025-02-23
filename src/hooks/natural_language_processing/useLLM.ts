@@ -2,9 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { EventSubscription } from 'react-native';
 import { LLM } from '../../native/RnExecutorchModules';
 import { fetchResource } from '../../utils/fetchResource';
-import { ResourceSource, Model } from '../../types/common';
+import { ResourceSource, Model, MessageType } from '../../types/common';
 import {
   DEFAULT_CONTEXT_WINDOW_LENGTH,
+  DEFAULT_MESSAGE_HISTORY,
   DEFAULT_SYSTEM_PROMPT,
   EOT_TOKEN,
 } from '../../constants/llamaDefaults';
@@ -17,11 +18,13 @@ export const useLLM = ({
   modelSource,
   tokenizerSource,
   systemPrompt = DEFAULT_SYSTEM_PROMPT,
+  messageHistory = DEFAULT_MESSAGE_HISTORY,
   contextWindowLength = DEFAULT_CONTEXT_WINDOW_LENGTH,
 }: {
   modelSource: ResourceSource;
   tokenizerSource: ResourceSource;
   systemPrompt?: string;
+  messageHistory?: MessageType[];
   contextWindowLength?: number;
 }): Model => {
   const [error, setError] = useState<string | null>(null);
@@ -46,6 +49,7 @@ export const useLLM = ({
           modelFileUri,
           tokenizerFileUri,
           systemPrompt,
+          messageHistory,
           contextWindowLength
         );
 
@@ -79,7 +83,13 @@ export const useLLM = ({
       tokenGeneratedListener.current = null;
       LLM.deleteModule();
     };
-  }, [contextWindowLength, modelSource, systemPrompt, tokenizerSource]);
+  }, [
+    modelSource,
+    tokenizerSource,
+    systemPrompt,
+    messageHistory,
+    contextWindowLength,
+  ]);
 
   const generate = useCallback(
     async (input: string): Promise<void> => {
