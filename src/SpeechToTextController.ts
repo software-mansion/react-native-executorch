@@ -4,9 +4,10 @@ import {
   AudioBuffer,
 } from 'react-native-audio-api';
 import { _SpeechToTextModule } from './native/RnExecutorchModules';
-import { EventSubscription, Image } from 'react-native';
+import { EventSubscription } from 'react-native';
 import { SpeechToText } from './native/RnExecutorchModules';
 import * as FileSystem from 'expo-file-system';
+import { fetchResource } from './utils/fetchResource';
 import decoder from './decoders/WhisperDecodings';
 
 type ModelSource = string | number;
@@ -50,20 +51,11 @@ export class SpeechToTextController {
     encoderSource: ModelSource,
     decoderSource: ModelSource
   ) {
-    let preprocessorPath = preprocessorSource;
-    let encoderPath = encoderSource;
-    let decoderPath = decoderSource;
-    if (
-      typeof encoderSource === 'number' &&
-      typeof decoderSource === 'number' &&
-      typeof preprocessorSource === 'number'
-    ) {
-      encoderPath = Image.resolveAssetSource(encoderSource).uri;
-      decoderPath = Image.resolveAssetSource(decoderSource).uri;
-      preprocessorPath = Image.resolveAssetSource(preprocessorSource).uri;
-    }
     try {
       this.isReady = false;
+      const preprocessorPath = await fetchResource(preprocessorSource);
+      const encoderPath = await fetchResource(encoderSource);
+      const decoderPath = await fetchResource(decoderSource);
       await this.nativeModule.loadModule(
         preprocessorPath,
         encoderPath,
