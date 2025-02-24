@@ -1,5 +1,4 @@
 #import "RecognitionHandler.h"
-#import "../../utils/Fetcher.h"
 #import "../../utils/ImageProcessor.h"
 #import "./utils/CTCLabelConverter.h"
 #import "./utils/OCRUtils.h"
@@ -21,8 +20,7 @@
   CTCLabelConverter *converter;
 }
 
-- (instancetype)initWithSymbols:(NSString *)symbols
-               languageDictPath:(NSString *)languageDictPath {
+- (instancetype)initWithSymbols:(NSString *)symbols {
   self = [super init];
   if (self) {
     recognizerLarge = [[Recognizer alloc] init];
@@ -31,8 +29,7 @@
 
     converter = [[CTCLabelConverter alloc]
         initWithCharacters:symbols
-             separatorList:@{}
-              dictPathList:@{@"key" : languageDictPath}];
+                 separatorList:@{}];
   }
   return self;
 }

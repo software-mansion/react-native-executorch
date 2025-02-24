@@ -19,9 +19,7 @@ class ArrayUtils {
     fun createCharArray(input: ReadableArray): CharArray {
       return createTypedArrayFromReadableArray(input) { array, index -> array.getInt(index).toChar() }.toCharArray()
     }
-    fun createByteArray(input: ReadableArray): ByteArray {
-      return createTypedArrayFromReadableArray(input) { array, index -> array.getInt(index).toByte() }.toByteArray()
-    }
+
     fun createIntArray(input: ReadableArray): IntArray {
       return createTypedArrayFromReadableArray(input) { array, index -> array.getInt(index) }.toIntArray()
     }

@@ -4,6 +4,7 @@ import android.content.Context
 import com.swmansion.rnexecutorch.utils.ETError
 import org.pytorch.executorch.EValue
 import org.pytorch.executorch.Module
+import org.pytorch.executorch.Tensor
 import java.net.URL
 
 

@@ -13,13 +13,12 @@ import org.opencv.core.Mat
 
 class RecognitionHandler(
   symbols: String,
-  languageDictPath: String,
   reactApplicationContext: ReactApplicationContext
 ) {
   private val recognizerLarge = Recognizer(reactApplicationContext)
   private val recognizerMedium = Recognizer(reactApplicationContext)
   private val recognizerSmall = Recognizer(reactApplicationContext)
-  private val converter = CTCLabelConverter(symbols, mapOf(languageDictPath to "key"))
+  private val converter = CTCLabelConverter(symbols)
 
   private fun runModel(croppedImage: Mat): Pair<List<Int>, Double> {
     val result: Pair<List<Int>, Double> = if (croppedImage.cols() >= Constants.LARGE_MODEL_WIDTH) {

@@ -1,25 +1,19 @@
 import { useEffect, useState } from 'react';
-import { ResourceSource } from './types/common';
-import { OCR } from './native/RnExecutorchModules';
-import { ETError, getError } from './Error';
-import { Image } from 'react-native';
-import { OCRDetection } from './types/ocr';
-import { symbols } from './constants/ocr/symbols';
-import { languageDicts } from './constants/ocr/languageDicts';
+import { fetchResource } from '../../utils/fetchResource';
+import { languageDicts } from '../../constants/ocr/languageDicts';
+import { symbols } from '../../constants/ocr/symbols';
+import { getError, ETError } from '../../Error';
+import { _OCRModule } from '../../native/RnExecutorchModules';
+import { ResourceSource } from '../../types/common';
+import { OCRDetection } from '../../types/ocr';
 
 interface OCRModule {
   error: string | null;
   isReady: boolean;
   isGenerating: boolean;
   forward: (input: string) => Promise<OCRDetection[]>;
+  downloadProgress: number;
 }
-
-const getResourcePath = (source: ResourceSource) => {
-  if (typeof source === 'number') {
-    return Image.resolveAssetSource(source).uri;
-  }
-  return source;
-};
 
 export const useOCR = ({
   detectorSource,
@@ -34,47 +28,48 @@ export const useOCR = ({
   };
   language?: string;
 }): OCRModule => {
+  const [module, _] = useState(() => new _OCRModule());
   const [error, setError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
 
   useEffect(() => {
     const loadModel = async () => {
-      if (!detectorSource || Object.keys(recognizerSources).length === 0)
-        return;
-
-      const detectorPath = getResourcePath(detectorSource);
-      const recognizerPaths = {} as {
-        recognizerLarge: string;
-        recognizerMedium: string;
-        recognizerSmall: string;
-      };
-
-      if (!symbols[language] || !languageDicts[language]) {
-        setError(getError(ETError.LanguageNotSupported));
-        return;
-      }
-
-      for (const key in recognizerSources) {
-        if (recognizerSources.hasOwnProperty(key)) {
-          recognizerPaths[key as keyof typeof recognizerPaths] =
-            getResourcePath(
-              recognizerSources[key as keyof typeof recognizerSources]
-            );
-        }
-      }
-
-      const languageDictPath = getResourcePath(languageDicts[language]);
-
       try {
+        if (!detectorSource || Object.keys(recognizerSources).length === 0)
+          return;
+
+        const recognizerPaths = {} as {
+          recognizerLarge: string;
+          recognizerMedium: string;
+          recognizerSmall: string;
+        };
+
+        if (!symbols[language] || !languageDicts[language]) {
+          setError(getError(ETError.LanguageNotSupported));
+          return;
+        }
+
+        const detectorPath = await fetchResource(detectorSource);
+
+        await Promise.all([
+          fetchResource(recognizerSources.recognizerLarge, setDownloadProgress),
+          fetchResource(recognizerSources.recognizerMedium),
+          fetchResource(recognizerSources.recognizerSmall),
+        ]).then((values) => {
+          recognizerPaths.recognizerLarge = values[0];
+          recognizerPaths.recognizerMedium = values[1];
+          recognizerPaths.recognizerSmall = values[2];
+        });
+
         setIsReady(false);
-        await OCR.loadModule(
+        await module.loadModule(
           detectorPath,
           recognizerPaths.recognizerLarge,
           recognizerPaths.recognizerMedium,
           recognizerPaths.recognizerSmall,
-          symbols[language],
-          languageDictPath
+          symbols[language]
         );
         setIsReady(true);
       } catch (e) {
@@ -96,7 +91,7 @@ export const useOCR = ({
 
     try {
       setIsGenerating(true);
-      const output = await OCR.forward(input);
+      const output = await module.forward(input);
       return output;
     } catch (e) {
       throw new Error(getError(e));
@@ -110,5 +105,6 @@ export const useOCR = ({
     isReady,
     isGenerating,
     forward,
+    downloadProgress,
   };
 };

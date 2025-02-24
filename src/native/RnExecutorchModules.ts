@@ -3,6 +3,7 @@ import { Spec as ClassificationInterface } from './NativeClassification';
 import { Spec as ObjectDetectionInterface } from './NativeObjectDetection';
 import { Spec as StyleTransferInterface } from './NativeStyleTransfer';
 import { Spec as ETModuleInterface } from './NativeETModule';
+import { Spec as OCRInterface } from './NativeOCR';
 
 const LINKING_ERROR =
   `The package 'react-native-executorch' doesn't seem to be linked. Make sure: \n\n` +
@@ -125,6 +126,28 @@ class _StyleTransferModule {
   }
 }
 
+class _OCRModule {
+  async forward(input: string): ReturnType<OCRInterface['forward']> {
+    return await OCR.forward(input);
+  }
+
+  async loadModule(
+    detectorSource: string | number,
+    recognizerLarge: string | number,
+    recognizerMedium: string | number,
+    recognizerSmall: string | number,
+    symbols: string
+  ): ReturnType<OCRInterface['loadModule']> {
+    return await OCR.loadModule(
+      detectorSource,
+      recognizerLarge,
+      recognizerMedium,
+      recognizerSmall,
+      symbols
+    );
+  }
+}
+
 class _SpeechToTextModule {
   async generate(waveform: number[]): Promise<number[]> {
     return await SpeechToText.generate(waveform);
@@ -187,4 +210,5 @@ export {
   _StyleTransferModule,
   _ObjectDetectionModule,
   _SpeechToTextModule,
+  _OCRModule,
 };

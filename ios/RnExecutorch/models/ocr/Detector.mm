@@ -77,7 +77,6 @@
                                            usingTextThreshold:textThreshold
                                                 linkThreshold:linkThreshold
                                              lowTextThreshold:lowTextThreshold];
-  NSLog(@"Detected boxes: %lu", (unsigned long)bBoxesList.count);
   bBoxesList = [DetectorUtils restoreBboxRatio:bBoxesList
                              usingRestoreRatio:restoreRatio];
   bBoxesList = [DetectorUtils groupTextBoxes:bBoxesList

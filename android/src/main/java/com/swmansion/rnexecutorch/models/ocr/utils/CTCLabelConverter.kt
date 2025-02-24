@@ -4,12 +4,10 @@ import java.io.File
 
 class CTCLabelConverter(
   characters: String,
-  dictPathList: Map<String, String>
 ) {
   private val dict = mutableMapOf<String, Int>()
-  val character: List<String>
+  private val character: List<String>
   private val ignoreIdx: List<Int>
-  private val dictList: Map<String, List<String>>
 
   init {
     val mutableCharacters = mutableListOf("[blank]")
@@ -22,22 +20,6 @@ class CTCLabelConverter(
     val ignoreIndexes = mutableListOf(0)
 
     ignoreIdx = ignoreIndexes.toList()
-
-    dictList = loadDictionariesWithDictPathList(dictPathList)
-  }
-
-  private fun loadDictionariesWithDictPathList(dictPathList: Map<String, String>): Map<String, List<String>> {
-    val tempDictList = mutableMapOf<String, List<String>>()
-    dictPathList.forEach { (lang, dictPath) ->
-      runCatching {
-        File(dictPath).readLines()
-      }.onSuccess { lines ->
-        tempDictList[lang] = lines
-      }.onFailure { error ->
-        println("Error reading file: ${error.localizedMessage}")
-      }
-    }
-    return tempDictList.toMap()
   }
 
   fun decodeGreedy(textIndex: List<Int>, length: Int): List<String> {

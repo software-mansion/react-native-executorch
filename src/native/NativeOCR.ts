@@ -8,8 +8,7 @@ export interface Spec extends TurboModule {
     recognizerSourceLarge: string,
     recognizerSourceMedium: string,
     recognizerSourceSmall: string,
-    symbols: string,
-    languageDictPath: string
+    symbols: string
   ): Promise<number>;
   forward(input: string): Promise<OCRDetection[]>;
 }

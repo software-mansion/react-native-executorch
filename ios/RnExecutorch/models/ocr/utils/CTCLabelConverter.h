@@ -9,10 +9,7 @@
 @property(strong, nonatomic) NSDictionary *dictList;
 
 - (instancetype)initWithCharacters:(NSString *)characters
-                     separatorList:(NSDictionary *)separatorList
-                      dictPathList:(NSDictionary *)dictPathList;
-- (void)loadDictionariesWithDictPathList:
-    (NSDictionary<NSString *, NSString *> *)dictPathList;
+                     separatorList:(NSDictionary *)separatorList;
 - (NSArray<NSString *> *)decodeGreedy:(NSArray<NSNumber *> *)textIndex
                                length:(NSInteger)length;
 

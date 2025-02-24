@@ -3,8 +3,7 @@
 @implementation CTCLabelConverter
 
 - (instancetype)initWithCharacters:(NSString *)characters
-                     separatorList:(NSDictionary *)separatorList
-                      dictPathList:(NSDictionary *)dictPathList {
+                     separatorList:(NSDictionary *)separatorList{
   self = [super init];
   if (self) {
     _dict = [NSMutableDictionary dictionary];
@@ -29,32 +28,8 @@
       }
     }
     _ignoreIdx = [ignoreIndexes copy];
-    _dictList = [NSDictionary dictionary];
-    [self loadDictionariesWithDictPathList:dictPathList];
   }
   return self;
-}
-
-- (void)loadDictionariesWithDictPathList:
-    (NSDictionary<NSString *, NSString *> *)dictPathList {
-  NSMutableDictionary *tempDictList = [NSMutableDictionary dictionary];
-  for (NSString *lang in dictPathList.allKeys) {
-    NSString *dictPath = dictPathList[lang];
-    NSError *error;
-    NSString *fileContents =
-        [NSString stringWithContentsOfFile:dictPath
-                                  encoding:NSUTF8StringEncoding
-                                     error:&error];
-    if (error) {
-      NSLog(@"Error reading file: %@", error.localizedDescription);
-      continue;
-    }
-    NSArray *lines = [fileContents
-        componentsSeparatedByCharactersInSet:[NSCharacterSet
-                                                 newlineCharacterSet]];
-    [tempDictList setObject:lines forKey:lang];
-  }
-  _dictList = [tempDictList copy];
 }
 
 - (NSArray<NSString *> *)decodeGreedy:(NSArray<NSNumber *> *)textIndex

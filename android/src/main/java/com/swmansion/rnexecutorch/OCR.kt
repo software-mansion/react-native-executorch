@@ -9,8 +9,6 @@ import org.opencv.android.OpenCVLoader
 import com.swmansion.rnexecutorch.models.ocr.Detector
 import com.swmansion.rnexecutorch.models.ocr.RecognitionHandler
 import com.swmansion.rnexecutorch.models.ocr.utils.Constants
-import com.swmansion.rnexecutorch.utils.Fetcher
-import com.swmansion.rnexecutorch.utils.ResourceType
 import org.opencv.imgproc.Imgproc
 
 class OCR(reactContext: ReactApplicationContext) :
@@ -37,40 +35,28 @@ class OCR(reactContext: ReactApplicationContext) :
     recognizerSourceMedium: String,
     recognizerSourceSmall: String,
     symbols: String,
-    languageDictPath: String,
     promise: Promise
   ) {
     try {
       detector = Detector(reactApplicationContext)
       detector.loadModel(detectorSource)
-      Fetcher.downloadResource(
-        reactApplicationContext,
-        languageDictPath,
-        ResourceType.TXT,
-        false,
-        { path, error ->
-          if (error != null) {
-            throw Error(error.message!!)
-          }
 
-          recognitionHandler = RecognitionHandler(
-            symbols,
-            path!!,
-            reactApplicationContext
-          )
+      recognitionHandler = RecognitionHandler(
+        symbols,
+        reactApplicationContext
+      )
 
-          recognitionHandler.loadRecognizers(
-            recognizerSourceLarge,
-            recognizerSourceMedium,
-            recognizerSourceSmall
-          ) { _, errorRecognizer ->
-            if (errorRecognizer != null) {
-              throw Error(errorRecognizer.message!!)
-            }
+      recognitionHandler.loadRecognizers(
+        recognizerSourceLarge,
+        recognizerSourceMedium,
+        recognizerSourceSmall
+      ) { _, errorRecognizer ->
+        if (errorRecognizer != null) {
+          throw Error(errorRecognizer.message!!)
+        }
 
-            promise.resolve(0)
-          }
-        })
+        promise.resolve(0)
+      }
     } catch (e: Exception) {
       promise.reject(e.message!!, ETError.InvalidModelSource.toString())
     }

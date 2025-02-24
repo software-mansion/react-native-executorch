@@ -9,8 +9,7 @@ constexpr CGFloat adjustContrast = 0.2;
 
 @interface RecognitionHandler : NSObject
 
-- (instancetype)initWithSymbols:(NSString *)symbols
-               languageDictPath:(NSString *)languageDictPath;
+- (instancetype)initWithSymbols:(NSString *)symbols;
 - (void)loadRecognizers:(NSString *)largeRecognizerPath
     mediumRecognizerPath:(NSString *)mediumRecognizerPath
      smallRecognizerPath:(NSString *)smallRecognizerPath

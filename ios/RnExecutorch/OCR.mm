@@ -1,7 +1,6 @@
 #import "OCR.h"
 #import "models/ocr/Detector.h"
 #import "models/ocr/RecognitionHandler.h"
-#import "utils/Fetcher.h"
 #import "utils/ImageProcessor.h"
 #import <ExecutorchLib/ETModel.h>
 #import <React/RCTBridgeModule.h>
@@ -18,7 +17,6 @@ RCT_EXPORT_MODULE()
     recognizerSourceMedium:(NSString *)recognizerSourceMedium
      recognizerSourceSmall:(NSString *)recognizerSourceSmall
                    symbols:(NSString *)symbols
-          languageDictPath:(NSString *)languageDictPath
                    resolve:(RCTPromiseResolveBlock)resolve
                     reject:(RCTPromiseRejectBlock)reject {
   detector = [[Detector alloc] init];
@@ -37,44 +35,31 @@ RCT_EXPORT_MODULE()
                  error);
           return;
         }
-        [Fetcher fetchResource:[NSURL URLWithString:languageDictPath]
-                  resourceType:ResourceType::TXT
-             completionHandler:^(NSString *filePath, NSError *error) {
-               if (error) {
-                 reject(@"init_module_error",
-                        @"Failed to initialize converter module", error);
-                 return;
-               }
-
-               self->recognitionHandler =
-                   [[RecognitionHandler alloc] initWithSymbols:symbols
-                                              languageDictPath:filePath];
-               [self->recognitionHandler
-                        loadRecognizers:recognizerSourceLarge
-                   mediumRecognizerPath:recognizerSourceMedium
-                    smallRecognizerPath:recognizerSourceSmall
-                             completion:^(BOOL allModelsLoaded,
-                                          NSNumber *errorCode) {
-                               if (allModelsLoaded) {
-                                 resolve(@(YES));
-                               } else {
-                                 NSError *error = [NSError
-                                     errorWithDomain:@"OCRErrorDomain"
-                                                code:[errorCode intValue]
-                                            userInfo:@{
-                                              NSLocalizedDescriptionKey :
-                                                  [NSString stringWithFormat:
-                                                                @"%ld",
-                                                                (long)[errorCode
-                                                                    longValue]]
-                                            }];
-                                 reject(@"init_recognizer_error",
-                                        @"Failed to initialize one or more "
-                                        @"recognizer models",
-                                        error);
-                               }
-                             }];
-             }];
+        self->recognitionHandler =
+            [[RecognitionHandler alloc] initWithSymbols:symbols];
+        [self->recognitionHandler
+                 loadRecognizers:recognizerSourceLarge
+            mediumRecognizerPath:recognizerSourceMedium
+             smallRecognizerPath:recognizerSourceSmall
+                      completion:^(BOOL allModelsLoaded, NSNumber *errorCode) {
+                        if (allModelsLoaded) {
+                          resolve(@(YES));
+                        } else {
+                          NSError *error = [NSError
+                              errorWithDomain:@"OCRErrorDomain"
+                                         code:[errorCode intValue]
+                                     userInfo:@{
+                                       NSLocalizedDescriptionKey : [NSString
+                                           stringWithFormat:@"%ld",
+                                                            (long)[errorCode
+                                                                longValue]]
+                                     }];
+                          reject(@"init_recognizer_error",
+                                 @"Failed to initialize one or more "
+                                 @"recognizer models",
+                                 error);
+                        }
+                      }];
       }];
 }
 
