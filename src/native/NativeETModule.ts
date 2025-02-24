@@ -3,7 +3,6 @@ import { TurboModuleRegistry } from 'react-native';
 
 export interface Spec extends TurboModule {
   loadModule(modelSource: string): Promise<number>;
-
   forward(
     inputs: number[][],
     shapes: number[][],

@@ -22,7 +22,21 @@ abstract class BaseModel<Input, Output>(val context: Context) {
       //The error is thrown when transformation to Tensor fails
       throw Error(ETError.InvalidArgument.code.toString())
     } catch (e: Exception) {
-      throw Error(e.message!!)
+      throw Error(e.message)
+    }
+  }
+
+  protected fun forward(inputs: Array<FloatArray>, shapes: Array<LongArray>) : Array<EValue> {
+    // We want to convert each input to EValue, a data structure accepted by ExecuTorch's
+    // Module. The array below keeps track of that values.
+    try {
+      val executorchInputs = inputs.mapIndexed { index, _ -> EValue.from(Tensor.fromBlob(inputs[index], shapes[index]))}
+      val forwardResult = module.forward(*executorchInputs.toTypedArray())
+      return forwardResult
+    } catch (e: IllegalArgumentException) {
+      throw Error(ETError.InvalidArgument.code.toString())
+    } catch (e: Exception) {
+      throw Error(e.message)
     }
   }
 
