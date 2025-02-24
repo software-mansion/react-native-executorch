@@ -75,6 +75,32 @@ const StyleTransfer = StyleTransferSpec
       }
     );
 
+const SpeechToTextSpec = require('./NativeSpeechToText').default;
+
+const SpeechToText = SpeechToTextSpec
+  ? SpeechToTextSpec
+  : new Proxy(
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
+
+const OCRSpec = require('./NativeOCR').default;
+
+const OCR = OCRSpec
+  ? OCRSpec
+  : new Proxy(
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
+
 class _ObjectDetectionModule {
   async forward(
     input: string
@@ -96,6 +122,24 @@ class _StyleTransferModule {
     modelSource: string | number
   ): ReturnType<StyleTransferInterface['loadModule']> {
     return await StyleTransfer.loadModule(modelSource);
+  }
+}
+
+class _SpeechToTextModule {
+  async generate(waveform: number[]): Promise<number[]> {
+    return await SpeechToText.generate(waveform);
+  }
+
+  async loadModule(
+    preprocessorSource: string | number,
+    encoderSource: string | number,
+    decoderSource: string | number
+  ) {
+    return await SpeechToText.loadModule(
+      preprocessorSource,
+      encoderSource,
+      decoderSource
+    );
   }
 }
 
@@ -136,8 +180,11 @@ export {
   Classification,
   ObjectDetection,
   StyleTransfer,
+  SpeechToText,
+  OCR,
   _ETModule,
   _ClassificationModule,
   _StyleTransferModule,
   _ObjectDetectionModule,
+  _SpeechToTextModule,
 };

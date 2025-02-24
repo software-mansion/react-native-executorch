@@ -1,5 +1,6 @@
 package com.swmansion.rnexecutorch.utils
 
+import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
@@ -8,13 +9,18 @@ import org.pytorch.executorch.Tensor
 
 class ArrayUtils {
   companion object {
-    private inline fun <reified T> createTypedArrayFromReadableArray(input: ReadableArray, transform: (ReadableArray, Int) -> T): Array<T> {
+    inline fun <reified T> createTypedArrayFromReadableArray(input: ReadableArray, transform: (ReadableArray, Int) -> T): Array<T> {
       return Array(input.size()) { index -> transform(input, index) }
     }
 
     fun createByteArray(input: ReadableArray): ByteArray {
       return createTypedArrayFromReadableArray(input) { array, index -> array.getInt(index).toByte() }.toByteArray()
     }
+
+    fun createCharArray(input: ReadableArray): CharArray {
+      return createTypedArrayFromReadableArray(input) { array, index -> array.getInt(index).toChar() }.toCharArray()
+    }
+
     fun createIntArray(input: ReadableArray): IntArray {
       return createTypedArrayFromReadableArray(input) { array, index -> array.getInt(index) }.toIntArray()
     }
@@ -72,5 +78,18 @@ class ArrayUtils {
 
       return resultArray
     }
+
+    fun createReadableArrayFromFloatArray(input: FloatArray): ReadableArray {
+      val resultArray = Arguments.createArray()
+      input.forEach { resultArray.pushDouble(it.toDouble()) }
+      return resultArray
+    }
+
+    fun createReadableArrayFromIntArray(input: IntArray): ReadableArray {
+      val resultArray = Arguments.createArray()
+      input.forEach { resultArray.pushInt(it) }
+      return resultArray
+    }
+
   }
 }

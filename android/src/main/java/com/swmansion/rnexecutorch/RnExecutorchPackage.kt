@@ -23,6 +23,10 @@ class RnExecutorchPackage : TurboReactPackage() {
       Classification(reactContext)
     } else if (name == ObjectDetection.NAME) {
       ObjectDetection(reactContext)
+    } else if (name == SpeechToText.NAME) {
+      SpeechToText(reactContext)
+    } else if (name == OCR.NAME){
+      OCR(reactContext)
     }
     else {
       null
@@ -69,6 +73,24 @@ class RnExecutorchPackage : TurboReactPackage() {
       moduleInfos[ObjectDetection.NAME] = ReactModuleInfo(
         ObjectDetection.NAME,
         ObjectDetection.NAME,
+        false,  // canOverrideExistingModule
+        false,  // needsEagerInit
+        false,  // isCxxModule
+        true
+      )
+
+      moduleInfos[SpeechToText.NAME] = ReactModuleInfo(
+        SpeechToText.NAME,
+        SpeechToText.NAME,
+        false,  // canOverrideExistingModule
+        false,  // needsEagerInit
+        false,  // isCxxModule
+        true
+      )
+
+      moduleInfos[OCR.NAME] = ReactModuleInfo(
+        OCR.NAME,
+        OCR.NAME,
         false,  // canOverrideExistingModule
         false,  // needsEagerInit
         false,  // isCxxModule

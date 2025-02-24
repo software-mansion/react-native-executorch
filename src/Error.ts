@@ -4,6 +4,7 @@ export enum ETError {
   ModuleNotLoaded = 0x66,
   FileWriteFailed = 0x67,
   ModelGenerating = 0x68,
+  LanguageNotSupported = 0x69,
   InvalidModelSource = 0xff,
 
   // ExecuTorch mapped errors
