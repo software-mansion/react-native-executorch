@@ -15,78 +15,78 @@ const LLMSpec = require('./NativeLLM').default;
 const LLM = LLMSpec
   ? LLMSpec
   : new Proxy(
-    {},
-    {
-      get() {
-        throw new Error(LINKING_ERROR);
-      },
-    }
-  );
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
 
 const ETModuleSpec = require('./NativeETModule').default;
 
 const ETModule = ETModuleSpec
   ? ETModuleSpec
   : new Proxy(
-    {},
-    {
-      get() {
-        throw new Error(LINKING_ERROR);
-      },
-    }
-  );
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
 
 const ClassificationSpec = require('./NativeClassification').default;
 
 const Classification = ClassificationSpec
   ? ClassificationSpec
   : new Proxy(
-    {},
-    {
-      get() {
-        throw new Error(LINKING_ERROR);
-      },
-    }
-  );
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
 
 const ObjectDetectionSpec = require('./NativeObjectDetection').default;
 
 const ObjectDetection = ObjectDetectionSpec
   ? ObjectDetectionSpec
   : new Proxy(
-    {},
-    {
-      get() {
-        throw new Error(LINKING_ERROR);
-      },
-    }
-  );
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
 
 const StyleTransferSpec = require('./NativeStyleTransfer').default;
 
 const StyleTransfer = StyleTransferSpec
   ? StyleTransferSpec
   : new Proxy(
-    {},
-    {
-      get() {
-        throw new Error(LINKING_ERROR);
-      },
-    }
-  );
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
 
 const SpeechToTextSpec = require('./NativeSpeechToText').default;
 
 const SpeechToText = SpeechToTextSpec
   ? SpeechToTextSpec
   : new Proxy(
-    {},
-    {
-      get() {
-        throw new Error(LINKING_ERROR);
-      },
-    }
-  );
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
 
 class _ObjectDetectionModule {
   async forward(
