@@ -43,6 +43,7 @@ RCT_EXPORT_MODULE()
 - (void)loadLLM:(NSString *)modelSource
         tokenizerSource:(NSString *)tokenizerSource
            systemPrompt:(NSString *)systemPrompt
+         messageHistory:(NSArray *)messageHistory
     contextWindowLength:(double)contextWindowLength
                 resolve:(RCTPromiseResolveBlock)resolve
                  reject:(RCTPromiseRejectBlock)reject {
@@ -55,7 +56,8 @@ RCT_EXPORT_MODULE()
 
     self->conversationManager = [[ConversationManager alloc]
         initWithNumMessagesContextWindow:contextWindowLengthUInt
-                            systemPrompt:systemPrompt];
+                            systemPrompt:systemPrompt
+                          messageHistory:messageHistory];
 
     self->tempLlamaResponse = [NSMutableString string];
     resolve(@"Model and tokenizer loaded successfully");

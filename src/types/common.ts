@@ -53,3 +53,8 @@ export type Module =
   | _StyleTransferModule
   | _ObjectDetectionModule
   | typeof ETModule;
+
+export interface MessageType {
+  role: 'user' | 'assistant';
+  content: string;
+}
