@@ -5,10 +5,10 @@ export interface Spec extends TurboModule {
   loadModule(modelSource: string): Promise<number>;
 
   forward(
-    inputs: number[],
-    shapes: number[],
+    inputs: number[][],
+    shapes: number[][],
     inputTypes: number[]
-  ): Promise<number[]>;
+  ): Promise<number[][]>;
   loadMethod(methodName: string): Promise<number>;
 }
 

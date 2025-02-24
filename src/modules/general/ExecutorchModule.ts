@@ -2,7 +2,7 @@ import { BaseModule } from '../BaseModule';
 import { ETError, getError } from '../../Error';
 import { _ETModule } from '../../native/RnExecutorchModules';
 import { ETInput } from '../../types/common';
-import { getTypeIdentifier } from '../../useModule';
+import { getTypeIdentifier } from '../../hooks/useModule';
 
 export class ExecutorchModule extends BaseModule {
   static module = new _ETModule();

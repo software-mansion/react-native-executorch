@@ -112,8 +112,8 @@ class _ClassificationModule {
 
 class _ETModule {
   async forward(
-    inputs: number[],
-    shapes: number[],
+    inputs: number[][],
+    shapes: number[][],
     inputTypes: number[]
   ): ReturnType<ETModuleInterface['forward']> {
     return await ETModule.forward(inputs, shapes, inputTypes);

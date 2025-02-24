@@ -4,8 +4,7 @@ import { ETError, getError } from '../Error';
 import { ETInput, Module } from '../types/common';
 import { _ETModule } from '../native/RnExecutorchModules';
 
-
-const getTypeIdentifier = (input: ETInput): number => {
+export const getTypeIdentifier = (input: ETInput): number => {
   if (input instanceof Int8Array) return 1;
   if (input instanceof Int32Array) return 3;
   if (input instanceof BigInt64Array) return 4;
@@ -27,7 +26,7 @@ interface _Module {
   forwardETInput: (
     input: ETInput[] | ETInput,
     shape: number[][] | number[]
-  ) => ReturnType<_ETModule["forward"]>;
+  ) => ReturnType<_ETModule['forward']>;
   forwardImage: (input: string) => Promise<any>;
 }
 
@@ -85,20 +84,22 @@ export const useModule = ({ modelSource, module }: Props): _Module => {
     }
 
     // Since the native module expects an array of inputs and an array of shapes,
-    // if the user provides a single ETInput, we want to "unsqueeze" the array so 
+    // if the user provides a single ETInput, we want to "unsqueeze" the array so
     // the data is properly processed on the native side
     if (!Array.isArray(input)) {
       input = [input];
     }
-    if (!Array.isArray(shape)) {
-      shape = [shape];
+
+    if (!Array.isArray(shape[0])) {
+      shape = [shape] as number[][];
     }
-    let inputTypeIdentifiers = [];
-    let modelInputs = [];
+
+    let inputTypeIdentifiers: any[] = [];
+    let modelInputs: any[] = [];
 
     for (let idx = 0; idx < input.length; idx++) {
       let currentInputTypeIdentifier = getTypeIdentifier(input[idx] as ETInput);
-      if (currentInputTypeIdentifier == -1) {
+      if (currentInputTypeIdentifier === -1) {
         throw new Error(getError(ETError.InvalidArgument));
       }
       inputTypeIdentifiers.push(currentInputTypeIdentifier);
