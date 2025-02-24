@@ -14,9 +14,9 @@
     basePrompt += std::string(END_OF_TEXT_TOKEN);
     basePrompt += [self getHeaderTokenFromRole:ChatRole::USER];
 
-    for (const NSDictionary *elem in messageHistory) {
-      NSString *role = elem[@"role"];
-      NSString *content = elem[@"content"];
+    for (const NSDictionary *message in messageHistory) {
+      NSString *role = message[@"role"];
+      NSString *content = message[@"content"];
       if ([role isEqualToString:@"user"]) {
         [self addResponse:content senderRole:ChatRole::USER];
       } else if ([role isEqualToString:@"assistant"]) {
@@ -31,7 +31,7 @@
   if (messages.size() >= numMessagesContextWindow) {
     messages.pop_front();
   }
-  
+
   std::string formattedMessage;
   if (senderRole == ChatRole::ASSISTANT) {
     formattedMessage = [text UTF8String];
@@ -46,7 +46,7 @@
 
 - (NSString *)getConversation {
   std::string prompt = basePrompt;
-  for (const auto& elem : messages) {
+  for (const auto &elem : messages) {
     prompt += elem;
   }
   return [NSString stringWithUTF8String:prompt.c_str()];
@@ -54,14 +54,17 @@
 
 - (std::string)getHeaderTokenFromRole:(ChatRole)role {
   switch (role) {
-    case ChatRole::SYSTEM:
-      return std::string(START_HEADER_ID_TOKEN) + "system" + std::string(END_HEADER_ID_TOKEN);
-    case ChatRole::USER:
-      return std::string(START_HEADER_ID_TOKEN) + "user" + std::string(END_HEADER_ID_TOKEN);
-    case ChatRole::ASSISTANT:
-      return std::string(START_HEADER_ID_TOKEN) + "assistant" + std::string(END_HEADER_ID_TOKEN);
-    default:
-      return "";
+  case ChatRole::SYSTEM:
+    return std::string(START_HEADER_ID_TOKEN) + "system" +
+           std::string(END_HEADER_ID_TOKEN);
+  case ChatRole::USER:
+    return std::string(START_HEADER_ID_TOKEN) + "user" +
+           std::string(END_HEADER_ID_TOKEN);
+  case ChatRole::ASSISTANT:
+    return std::string(START_HEADER_ID_TOKEN) + "assistant" +
+           std::string(END_HEADER_ID_TOKEN);
+  default:
+    return "";
   }
 }
 
