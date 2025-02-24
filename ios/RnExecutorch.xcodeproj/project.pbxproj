@@ -35,12 +35,20 @@
 				LLM.h,
 			);
 		};
+		552754CC2D394AC9006B38A2 /* Exceptions for "RnExecutorch" folder in "Compile Sources" phase from "RnExecutorch" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 550986852CEF541900FECBB8 /* Sources */;
+			membershipExceptions = (
+				models/ocr/utils/DetectorUtils.h,
+			);
+		};
 /* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		5509868B2CEF541900FECBB8 /* RnExecutorch */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
+				552754CC2D394AC9006B38A2 /* Exceptions for "RnExecutorch" folder in "Compile Sources" phase from "RnExecutorch" target */,
 				550986902CEF541900FECBB8 /* Exceptions for "RnExecutorch" folder in "Copy Files" phase from "RnExecutorch" target */,
 			);
 			path = RnExecutorch;
@@ -119,6 +127,7 @@
 				TargetAttributes = {
 					550986882CEF541900FECBB8 = {
 						CreatedOnToolsVersion = 16.1;
+						LastSwiftMigration = 1610;
 					};
 				};
 			};
@@ -271,6 +280,7 @@
 		550986942CEF541900FECBB8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -279,6 +289,8 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -286,6 +298,7 @@
 		550986952CEF541900FECBB8 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -294,6 +307,7 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;

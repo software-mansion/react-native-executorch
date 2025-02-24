@@ -88,6 +88,19 @@ const SpeechToText = SpeechToTextSpec
       }
     );
 
+const OCRSpec = require('./NativeOCR').default;
+
+const OCR = OCRSpec
+  ? OCRSpec
+  : new Proxy(
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
+
 class _ObjectDetectionModule {
   async forward(
     input: string
@@ -168,6 +181,7 @@ export {
   ObjectDetection,
   StyleTransfer,
   SpeechToText,
+  OCR,
   _ETModule,
   _ClassificationModule,
   _StyleTransferModule,
