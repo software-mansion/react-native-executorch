@@ -29,7 +29,7 @@
     "example": "yarn workspace react-native-executorch-example",
     "test": "jest",
     "typecheck": "tsc",
-    "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "lint": "eslint \"**/*.{js,ts,tsx}\" --ignore-pattern src/decoders/",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
     "prepare": "bob build",
     "release": "release-it"
@@ -194,6 +194,7 @@
   },
   "dependencies": {
     "expo-asset": "^11.0.3",
-    "expo-file-system": "^18.0.10"
+    "expo-file-system": "^18.0.10",
+    "react-native-audio-api": "^0.4.4"
   }
 }
