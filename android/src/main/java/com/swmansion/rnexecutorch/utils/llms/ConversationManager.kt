@@ -11,7 +11,11 @@ const val END_OF_TEXT_TOKEN = "<|eot_id|>"
 const val START_HEADER_ID_TOKEN = "<|start_header_id|>"
 const val END_HEADER_ID_TOKEN = "<|end_header_id|>"
 
-class ConversationManager(private val numMessagesContextWindow: Int, systemPrompt: String) {
+class ConversationManager(
+  private val numMessagesContextWindow: Int,
+  systemPrompt: String,
+  messageHistory: Array<Map<String, String>>
+) {
   private val basePrompt: String;
   private val messages = ArrayDeque<String>();
 
@@ -22,6 +26,13 @@ class ConversationManager(private val numMessagesContextWindow: Int, systemPromp
         systemPrompt +
         END_OF_TEXT_TOKEN +
         getHeaderTokenFromRole(ChatRole.USER)
+
+    messageHistory.forEach { message ->
+      when (message["role"]) {
+        "user" -> addResponse(message["content"]!!, ChatRole.USER)
+        "assistant" -> addResponse(message["content"]!!, ChatRole.ASSISTANT)
+      }
+    }
   }
 
   fun addResponse(text: String, senderRole: ChatRole) {
@@ -31,9 +42,7 @@ class ConversationManager(private val numMessagesContextWindow: Int, systemPromp
     val formattedMessage: String = if (senderRole == ChatRole.ASSISTANT) {
       text + getHeaderTokenFromRole(ChatRole.USER)
     } else {
-      text +
-        END_OF_TEXT_TOKEN +
-        getHeaderTokenFromRole(ChatRole.ASSISTANT)
+      text + END_OF_TEXT_TOKEN + getHeaderTokenFromRole(ChatRole.ASSISTANT)
     }
     this.messages.add(formattedMessage)
   }

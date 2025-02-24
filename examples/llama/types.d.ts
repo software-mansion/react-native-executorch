@@ -1,6 +1,6 @@
-export type SenderType = 'user' | 'ai';
+export type SenderType = 'user' | 'assistant';
 
 export interface MessageType {
-  text: string;
-  from: SenderType;
+  role: SenderType;
+  content: string;
 }

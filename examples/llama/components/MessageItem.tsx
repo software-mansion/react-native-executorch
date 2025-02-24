@@ -11,13 +11,17 @@ interface MessageItemProps {
 
 const MessageItem = memo(({ message }: MessageItemProps) => {
   return (
-    <View style={message.from === 'ai' ? styles.aiMessage : styles.userMessage}>
-      {message.from === 'ai' && (
+    <View
+      style={
+        message.role === 'assistant' ? styles.aiMessage : styles.userMessage
+      }
+    >
+      {message.role === 'assistant' && (
         <View style={styles.aiMessageIconContainer}>
           <LlamaIcon width={24} height={24} />
         </View>
       )}
-      <MarkdownComponent text={message.text} />
+      <MarkdownComponent text={message.content} />
     </View>
   );
 });
