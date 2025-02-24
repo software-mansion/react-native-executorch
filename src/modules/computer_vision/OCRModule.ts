@@ -1,13 +1,11 @@
 import { languageDicts } from '../../constants/ocr/languageDicts';
 import { symbols } from '../../constants/ocr/symbols';
 import { getError, ETError } from '../../Error';
-import { _OCRModule } from '../../native/RnExecutorchModules';
+import { OCR } from '../../native/RnExecutorchModules';
 import { ResourceSource } from '../../types/common';
 import { fetchResource } from '../../utils/fetchResource';
 
 export class OCRModule {
-  static module = new _OCRModule();
-
   static onDownloadProgressCallback = (_downloadProgress: number) => {};
 
   static async load(
@@ -48,7 +46,7 @@ export class OCRModule {
         recognizerPaths.recognizerSmall = values[2];
       });
 
-      await this.module.loadModule(
+      await OCR.loadModule(
         detectorPath,
         recognizerPaths.recognizerLarge,
         recognizerPaths.recognizerMedium,
@@ -62,7 +60,7 @@ export class OCRModule {
 
   static async forward(input: string) {
     try {
-      return await this.module.forward(input);
+      return await OCR.forward(input);
     } catch (e) {
       throw new Error(getError(e));
     }

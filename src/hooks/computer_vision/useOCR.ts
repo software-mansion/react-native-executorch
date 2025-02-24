@@ -3,7 +3,7 @@ import { fetchResource } from '../../utils/fetchResource';
 import { languageDicts } from '../../constants/ocr/languageDicts';
 import { symbols } from '../../constants/ocr/symbols';
 import { getError, ETError } from '../../Error';
-import { _OCRModule } from '../../native/RnExecutorchModules';
+import { OCR } from '../../native/RnExecutorchModules';
 import { ResourceSource } from '../../types/common';
 import { OCRDetection } from '../../types/ocr';
 
@@ -28,7 +28,6 @@ export const useOCR = ({
   };
   language?: string;
 }): OCRModule => {
-  const [module, _] = useState(() => new _OCRModule());
   const [error, setError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -64,7 +63,7 @@ export const useOCR = ({
         });
 
         setIsReady(false);
-        await module.loadModule(
+        await OCR.loadModule(
           detectorPath,
           recognizerPaths.recognizerLarge,
           recognizerPaths.recognizerMedium,
@@ -91,7 +90,7 @@ export const useOCR = ({
 
     try {
       setIsGenerating(true);
-      const output = await module.forward(input);
+      const output = await OCR.forward(input);
       return output;
     } catch (e) {
       throw new Error(getError(e));
