@@ -7,82 +7,52 @@ import org.pytorch.executorch.Tensor
 
 class ArrayUtils {
   companion object {
-    fun createByteArray(input: ReadableArray): ByteArray {
-      val byteArray = ByteArray(input.size())
-      for (i in 0 until input.size()) {
-        byteArray[i] = input.getInt(i).toByte()
-      }
-      return byteArray
+    private inline fun <reified T> createTypedArrayFromReadableArray(input: ReadableArray, transform: (ReadableArray, Int) -> T): Array<T> {
+      return Array(input.size()) { index -> transform(input, index) }
     }
 
+    fun createByteArray(input: ReadableArray): ByteArray {
+      return createTypedArrayFromReadableArray(input) { array, index -> array.getInt(index).toByte() }.toByteArray()
+    }
     fun createIntArray(input: ReadableArray): IntArray {
-      val intArray = IntArray(input.size())
-      for (i in 0 until input.size()) {
-        intArray[i] = input.getInt(i)
-      }
-      return intArray
+      return createTypedArrayFromReadableArray(input) { array, index -> array.getInt(index) }.toIntArray()
     }
 
     fun createFloatArray(input: ReadableArray): FloatArray {
-      val floatArray = FloatArray(input.size())
-      for (i in 0 until input.size()) {
-        floatArray[i] = input.getDouble(i).toFloat()
-      }
-      return floatArray
+      return createTypedArrayFromReadableArray(input) { array, index -> array.getDouble(index).toFloat() }.toFloatArray()
     }
 
     fun createLongArray(input: ReadableArray): LongArray {
-      val longArray = LongArray(input.size())
-      for (i in 0 until input.size()) {
-        longArray[i] = input.getInt(i).toLong()
-      }
-      return longArray
+      return createTypedArrayFromReadableArray(input) { array, index -> array.getInt(index).toLong() }.toLongArray()
     }
 
     fun createDoubleArray(input: ReadableArray): DoubleArray {
-      val doubleArray = DoubleArray(input.size())
-      for (i in 0 until input.size()) {
-        doubleArray[i] = input.getDouble(i)
-      }
-      return doubleArray
+      return createTypedArrayFromReadableArray(input) { array, index -> array.getDouble(index) }.toDoubleArray()
     }
-
-    fun createReadableArray(result: Tensor): ReadableArray {
+    fun createReadableArrayFromTensor(result: Tensor): ReadableArray {
       val resultArray = Arguments.createArray()
+
       when (result.dtype()) {
         DType.UINT8 -> {
-          val byteArray = result.dataAsByteArray
-          for (i in byteArray) {
-            resultArray.pushInt(i.toInt())
-          }
+          result.dataAsByteArray.forEach { resultArray.pushInt(it.toInt()) }
         }
 
         DType.INT32 -> {
-          val intArray = result.dataAsIntArray
-          for (i in intArray) {
-            resultArray.pushInt(i)
-          }
+          result.dataAsIntArray.forEach { resultArray.pushInt(it) }
         }
 
         DType.FLOAT -> {
-          val longArray = result.dataAsFloatArray
-          for (i in longArray) {
-            resultArray.pushDouble(i.toDouble())
-          }
+          result.dataAsFloatArray.forEach { resultArray.pushDouble(it.toDouble()) }
         }
 
         DType.DOUBLE -> {
-          val floatArray = result.dataAsDoubleArray
-          for (i in floatArray) {
-            resultArray.pushDouble(i)
-          }
+          result.dataAsDoubleArray.forEach { resultArray.pushDouble(it) }
         }
 
         DType.INT64 -> {
-          val doubleArray = result.dataAsLongArray
-          for (i in doubleArray) {
-            resultArray.pushLong(i)
-          }
+          // TODO: Do something to handle or deprecate long dtype
+          // https://github.com/facebook/react-native/issues/12506
+          result.dataAsLongArray.forEach { resultArray.pushInt(it.toInt()) }
         }
 
         else -> {
