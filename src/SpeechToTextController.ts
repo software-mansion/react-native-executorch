@@ -34,7 +34,9 @@ export class SpeechToTextController {
   constructor({
     nativeModule = new _SpeechToTextModule(),
     // @ts-ignore
-    onTokenCallback = (token: number) => { },
+    onTokenCallback = (token: number) => {
+      return token;
+    },
   } = {}) {
     this.nativeModule = nativeModule;
     this.isReady = false;
@@ -72,9 +74,8 @@ export class SpeechToTextController {
           return;
         }
         let currentToken = decoder[token]?.replaceAll('Ġ', ' ');
-        this.generatedTokens.push(currentToken!!)
+        this.generatedTokens.push(currentToken!!);
         this.onTokenCallback(token);
-        
       });
       this.isReady = true;
     } catch (e) {
