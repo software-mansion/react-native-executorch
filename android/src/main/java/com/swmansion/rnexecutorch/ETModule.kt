@@ -7,12 +7,13 @@ import com.facebook.react.bridge.ReadableArray
 import com.swmansion.rnexecutorch.utils.ArrayUtils
 import com.swmansion.rnexecutorch.utils.ETError
 import com.swmansion.rnexecutorch.utils.TensorUtils
+import org.pytorch.executorch.EValue
 import org.pytorch.executorch.Module
 import java.net.URL
 
 class ETModule(reactContext: ReactApplicationContext) : NativeETModuleSpec(reactContext) {
   private lateinit var module: Module
-
+  private var reactApplicationContext = reactContext;
   override fun getName(): String {
     return NAME
   }
@@ -33,26 +34,40 @@ class ETModule(reactContext: ReactApplicationContext) : NativeETModuleSpec(react
   }
 
   override fun forward(
-    input: ReadableArray,
-    shape: ReadableArray,
-    inputType: Double,
+    inputs: ReadableArray,
+    shapes: ReadableArray,
+    inputTypes: ReadableArray,
     promise: Promise
   ) {
+    val inputEValues = ArrayList<EValue>()
     try {
-      val executorchInput =
-        TensorUtils.getExecutorchInput(input, ArrayUtils.createLongArray(shape), inputType.toInt())
+      for (i in 0 until inputs.size()) {
+        val currentInput = inputs.getArray(i)
+          ?: throw Exception(ETError.InvalidArgument.code.toString())
+        val currentShape = shapes.getArray(i)
+          ?: throw Exception(ETError.InvalidArgument.code.toString())
+        val currentInputType = inputTypes.getInt(i)
 
-      val result = module.forward(executorchInput)
-      val resultArray = Arguments.createArray()
+        val currentEValue = TensorUtils.getExecutorchInput(
+          currentInput,
+          ArrayUtils.createLongArray(currentShape),
+          currentInputType
+        )
 
-      for (evalue in result) {
-        resultArray.pushArray(ArrayUtils.createReadableArray(evalue.toTensor()))
+        inputEValues.add(currentEValue)
       }
 
-      promise.resolve(resultArray)
-      return
+      val forwardOutputs = module.forward(*inputEValues.toTypedArray());
+      val outputArray = Arguments.createArray()
+
+      for (output in forwardOutputs) {
+        val arr = ArrayUtils.createReadableArrayFromTensor(output.toTensor())
+        outputArray.pushArray(arr)
+      }
+      promise.resolve(outputArray)
+
     } catch (e: IllegalArgumentException) {
-      //The error is thrown when transformation to Tensor fails
+      // The error is thrown when transformation to Tensor fails
       promise.reject("Forward Failed Execution", ETError.InvalidArgument.code.toString())
       return
     } catch (e: Exception) {

@@ -1,5 +1,6 @@
 #import "ETModule.h"
 #import <ExecutorchLib/ETModel.h>
+#include <Foundation/Foundation.h>
 #import <React/RCTBridgeModule.h>
 #include <string>
 
@@ -36,20 +37,23 @@ RCT_EXPORT_MODULE()
   resolve(result);
 }
 
-- (void)forward:(NSArray *)input
-          shape:(NSArray *)shape
-      inputType:(double)inputType
+- (void)forward:(NSArray *)inputs
+         shapes:(NSArray *)shapes
+     inputTypes:(NSArray *)inputTypes
         resolve:(RCTPromiseResolveBlock)resolve
          reject:(RCTPromiseRejectBlock)reject {
   @try {
-    NSArray *result = [module forward:input
-                                shape:shape
-                            inputType:[NSNumber numberWithInt:inputType]];
+    NSArray *result = [module forward:inputs
+                               shapes:shapes
+                           inputTypes:inputTypes];
     resolve(result);
   } @catch (NSException *exception) {
-    NSLog(@"An exception occurred: %@, %@", exception.name, exception.reason);
-    reject(@"result_error", [NSString stringWithFormat:@"%@", exception.reason],
-           nil);
+    NSLog(@"An exception occurred in forward: %@, %@", exception.name,
+          exception.reason);
+    reject(
+        @"forward_error",
+        [NSString stringWithFormat:@"An error occurred: %@", exception.reason],
+        nil);
   }
 }
 

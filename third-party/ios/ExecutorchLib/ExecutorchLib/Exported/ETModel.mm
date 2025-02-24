@@ -1,6 +1,5 @@
 #import "ETModel.h"
 #include "Utils.hpp"
-#include "InputType.h"
 #include <executorch/extension/module/module.h>
 #include <executorch/extension/tensor/tensor.h>
 #include <executorch/runtime/core/error.h>
@@ -34,58 +33,65 @@ using namespace ::torch::executor;
   const auto method_meta = _model->method_meta("forward");
   if (!method_meta.ok()) {
     @throw [NSException
-            exceptionWithName:@"get_number_of_inputs_error"
-            reason:[NSString stringWithFormat:@"%ld", (long)method_meta.error()]
-            userInfo:nil];
+        exceptionWithName:@"get_number_of_inputs_error"
+                   reason:[NSString stringWithFormat:@"%ld",
+                                                     (long)method_meta.error()]
+                 userInfo:nil];
   }
-  
+
   return @(method_meta->num_inputs());
 }
 
 - (NSNumber *)getInputType:(NSNumber *)index {
   const auto method_meta = _model->method_meta("forward");
-  if(!method_meta.ok()){
+  if (!method_meta.ok()) {
     @throw [NSException
-            exceptionWithName:@"get_input_type_error"
-            reason:[NSString stringWithFormat:@"%ld", (long)method_meta.error()]
-            userInfo:nil];
+        exceptionWithName:@"get_input_type_error"
+                   reason:[NSString stringWithFormat:@"%ld",
+                                                     (long)method_meta.error()]
+                 userInfo:nil];
   }
-  
-  const auto input_meta = method_meta->input_tensor_meta([index unsignedLongValue]);
-  if(!input_meta.ok()){
+
+  const auto input_meta =
+      method_meta->input_tensor_meta([index unsignedLongValue]);
+  if (!input_meta.ok()) {
     @throw [NSException
-            exceptionWithName:@"get_input_type_error"
-            reason:[NSString stringWithFormat:@"%ld", (long)input_meta.error()]
-            userInfo:nil];
+        exceptionWithName:@"get_input_type_error"
+                   reason:[NSString
+                              stringWithFormat:@"%ld", (long)input_meta.error()]
+                 userInfo:nil];
   }
-  
-  return [self getTypeAsNumber:input_meta->scalar_type()];
+
+  return scalarTypeToNSNumber(input_meta->scalar_type());
 };
 
 - (NSArray *)getInputShape:(NSNumber *)index {
   const auto method_meta = _model->method_meta("forward");
-  if(!method_meta.ok()){
+  if (!method_meta.ok()) {
     @throw [NSException
-            exceptionWithName:@"get_input_shape_error"
-            reason:[NSString stringWithFormat:@"%ld", (long)method_meta.error()]
-            userInfo:nil];
+        exceptionWithName:@"get_input_shape_error"
+                   reason:[NSString stringWithFormat:@"%ld",
+                                                     (long)method_meta.error()]
+                 userInfo:nil];
   }
-  
-  const auto input_meta = method_meta->input_tensor_meta([index unsignedLongValue]);
-  if(!input_meta.ok()){
+
+  const auto input_meta =
+      method_meta->input_tensor_meta([index unsignedLongValue]);
+  if (!input_meta.ok()) {
     @throw [NSException
-            exceptionWithName:@"get_input_shape_error"
-            reason:[NSString stringWithFormat:@"%ld", (long)input_meta.error()]
-            userInfo:nil];
+        exceptionWithName:@"get_input_shape_error"
+                   reason:[NSString
+                              stringWithFormat:@"%ld", (long)input_meta.error()]
+                 userInfo:nil];
   }
-  
+
   const auto shape = input_meta->sizes();
   NSMutableArray *nsShape = [[NSMutableArray alloc] init];
-  
-  for(int i = 0; i < shape.size(); i++) {
+
+  for (int i = 0; i < shape.size(); i++) {
     [nsShape addObject:@(shape[i])];
   }
-  
+
   return [nsShape copy];
 };
 
@@ -93,120 +99,139 @@ using namespace ::torch::executor;
   const auto method_meta = _model->method_meta("forward");
   if (!method_meta.ok()) {
     @throw [NSException
-            exceptionWithName:@"get_number_of_outputs_error"
-            reason:[NSString stringWithFormat:@"%ld", (long)method_meta.error()]
-            userInfo:nil];
+        exceptionWithName:@"get_number_of_outputs_error"
+                   reason:[NSString stringWithFormat:@"%ld",
+                                                     (long)method_meta.error()]
+                 userInfo:nil];
   }
-  
+
   return @(method_meta->num_outputs());
 }
 
 - (NSNumber *)getOutputType:(NSNumber *)index {
   const auto method_meta = _model->method_meta("forward");
-  if(!method_meta.ok()){
+  if (!method_meta.ok()) {
     @throw [NSException
-            exceptionWithName:@"get_output_type_error"
-            reason:[NSString stringWithFormat:@"%ld", (long)method_meta.error()]
-            userInfo:nil];
+        exceptionWithName:@"get_output_type_error"
+                   reason:[NSString stringWithFormat:@"%ld",
+                                                     (long)method_meta.error()]
+                 userInfo:nil];
   }
-  
-  const auto output_meta = method_meta->output_tensor_meta([index unsignedLongValue]);
-  if(!output_meta.ok()){
+
+  const auto output_meta =
+      method_meta->output_tensor_meta([index unsignedLongValue]);
+  if (!output_meta.ok()) {
     @throw [NSException
-            exceptionWithName:@"get_output_type_error"
-            reason:[NSString stringWithFormat:@"%ld", (long)output_meta.error()]
-            userInfo:nil];
+        exceptionWithName:@"get_output_type_error"
+                   reason:[NSString stringWithFormat:@"%ld",
+                                                     (long)output_meta.error()]
+                 userInfo:nil];
   }
-  
-  return [self getTypeAsNumber:output_meta->scalar_type()];
+
+  return scalarTypeToNSNumber(output_meta->scalar_type());
 };
 
 - (NSArray *)getOutputShape:(NSNumber *)index {
   const auto method_meta = _model->method_meta("forward");
-  if(!method_meta.ok()){
+  if (!method_meta.ok()) {
     @throw [NSException
-            exceptionWithName:@"get_output_shape_error"
-            reason:[NSString stringWithFormat:@"%ld", (long)method_meta.error()]
-            userInfo:nil];
+        exceptionWithName:@"get_output_shape_error"
+                   reason:[NSString stringWithFormat:@"%ld",
+                                                     (long)method_meta.error()]
+                 userInfo:nil];
   }
-  
-  const auto output_meta = method_meta->output_tensor_meta([index unsignedLongValue]);
-  if(!output_meta.ok()){
+
+  const auto output_meta =
+      method_meta->output_tensor_meta([index unsignedLongValue]);
+  if (!output_meta.ok()) {
     @throw [NSException
-            exceptionWithName:@"get_output_shape_error"
-            reason:[NSString stringWithFormat:@"%ld", (long)output_meta.error()]
-            userInfo:nil];
+        exceptionWithName:@"get_output_shape_error"
+                   reason:[NSString stringWithFormat:@"%ld",
+                                                     (long)output_meta.error()]
+                 userInfo:nil];
   }
-  
+
   const auto shape = output_meta->sizes();
   NSMutableArray *nsShape = [[NSMutableArray alloc] init];
-  
-  for(int i = 0; i < shape.size(); i++) {
+
+  for (int i = 0; i < shape.size(); i++) {
     [nsShape addObject:@(shape[i])];
   }
-  
+
   return [nsShape copy];
 };
 
-- (NSNumber *) getTypeAsNumber:(ScalarType)scalarType {
-  switch(scalarType) {
-    case ScalarType::Byte: return @(InputTypeInt8);
-    case ScalarType::Int: return @(InputTypeInt32);
-    case ScalarType::Long: return @(InputTypeInt64);
-    case ScalarType::Float: return @(InputTypeFloat32);
-    case ScalarType::Double: return @(InputTypeFloat64);
-      
-    default:
-      return @-1;
-  }
-}
-
-- (NSArray *)forward:(NSArray *)input
-               shape:(NSArray *)shape
-           inputType:(NSNumber *)inputType {
-  int inputTypeIntValue = [inputType intValue];
-  std::vector<int> shapes = NSArrayToIntVector(shape);
-  @try {
-    switch (inputTypeIntValue) {
-      case InputTypeInt8: {
-        std::vector<std::span<const int8_t>> output =
-        runForwardFromNSArray<int8_t>(input, shapes, _model);
-        return arrayToNSArray<int8_t>(output);
-      }
-      case InputTypeInt32: {
-        std::vector<std::span<const int32_t>> output =
-        runForwardFromNSArray<int32_t>(input, shapes, _model);
-        return arrayToNSArray<int32_t>(output);
-      }
-      case InputTypeInt64: {
-        std::vector<std::span<const int64_t>> output =
-        runForwardFromNSArray<int64_t>(input, shapes, _model);
-        return arrayToNSArray<int64_t>(output);
-      }
-      case InputTypeFloat32: {
-        std::vector<std::span<const float>> output =
-        runForwardFromNSArray<float>(input, shapes, _model);
-        return arrayToNSArray<float>(output);
-      }
-      case InputTypeFloat64: {
-        std::vector<std::span<const double>> output =
-        runForwardFromNSArray<double>(input, shapes, _model);
-        return arrayToNSArray<double>(output);
-      }
+/**
+ * @brief Processes inputs through the forward pass of the model.
+ *
+ * This method takes input tensors, their corresponding shapes, and types,
+ * and performs a forward pass using _model. It supports both
+ * single and multiple inputs.
+ *
+ * @param inputs NSArray* of inputs where each element is an NSArray
+ *               representing the data for a tensor.
+ * @param shapes An array of shapes corresponding to the input tensors.
+ *               Each element is an NSArray of integers defining the dimensions.
+ * @param inputTypes An array of NSNumber objects representing the ScalarType of
+ *                   the input tensors
+ *
+ * @return An NSArray containing the results of the forward pass. Each element
+ *         represents the output of the corresponding input.
+ *
+ * @throws NSException Throws an exception with name "forward_error" if
+ *                     an error occurs during input processing or model
+ * execution.
+ *
+ * @warning Ensure that the inputs, shapes, and inputTypes arrays have the
+ *          same number of elements. Mismatched sizes can lead to runtime
+ *          errors.
+ **/
+- (NSArray *)forward:(NSArray *)inputs
+              shapes:(NSArray *)shapes
+          inputTypes:(NSArray *)inputTypes {
+  std::vector<EValue> inputTensors;
+  std::vector<TensorPtr> inputTensorPtrs;
+  
+  for (NSUInteger i = 0; i < [inputTypes count]; i++) {
+    NSArray *inputShapeNSArray = [shapes objectAtIndex:i];
+    
+    std::vector<int> inputShape = NSArrayToIntVector(inputShapeNSArray);
+    int inputType = [[inputTypes objectAtIndex:i] intValue];
+    
+    NSArray *input = [inputs objectAtIndex:i];
+    
+    TensorPtr currentTensor = NSArrayToTensorPtr(input, inputShape, inputType);
+    if (!currentTensor) {
+      throw [NSException
+             exceptionWithName:@"forward_error"
+             reason:[NSString stringWithFormat:@"%d", Error::InvalidArgument]
+             userInfo:nil];
     }
-  } @catch (NSException *exception) {
-    NSInteger originalCode = [exception.reason integerValue];
-    @throw [NSException
-            exceptionWithName:@"forward_error"
-            reason:[NSString stringWithFormat:@"%ld", (long)originalCode]
-            userInfo:nil];
+    
+    // Since pushing back to inputTensors would cast to EValue (forward accepts a vector of EValues)
+    // We also push back to inputTensorPtrs to keep the underlying tensor alive.
+    // inputTensorPtrs vector retains shared ownership to prevent premature destruction
+    inputTensors.push_back(*currentTensor);
+    inputTensorPtrs.push_back(currentTensor);
   }
-  // throwing an RN-ET exception
-  @
-  throw [NSException exceptionWithName:@"forward_error"
-                                reason:[NSString stringWithFormat:@"%d",
-                                        0x65] // 101
-                              userInfo:nil];
+  
+  Result result = _model->forward(inputTensors);
+  
+  if (!result.ok()) {
+    throw [NSException
+           exceptionWithName:@"forward_error"
+           reason:[NSString stringWithFormat:@"%d", result.error()]
+           userInfo:nil];
+  }
+  
+  NSMutableArray *output = [NSMutableArray new];
+  for (int i = 0; i < result->size(); i++) {
+    auto currentResultTensor = result->at(i).toTensor();
+    NSArray *currentOutput = arrayToNsArray(currentResultTensor.const_data_ptr(), currentResultTensor.numel(), currentResultTensor.scalar_type());
+    [output addObject:currentOutput];
+  }
+  return output;
+  
 }
 
 @end
