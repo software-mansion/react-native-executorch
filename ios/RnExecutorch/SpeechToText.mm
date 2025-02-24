@@ -2,7 +2,6 @@
 #import "models/BaseModel.h"
 #import "models/stt/WhisperDecoder.hpp"
 #import "models/stt/WhisperEncoder.hpp"
-#import "utils/Fetcher.h"
 #import <Accelerate/Accelerate.h>
 #import <ExecutorchLib/ETModel.h>
 #import <React/RCTBridgeModule.h>
