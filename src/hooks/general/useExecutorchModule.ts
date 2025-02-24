@@ -15,7 +15,10 @@ export const useExecutorchModule = ({
   isReady: boolean;
   isGenerating: boolean;
   downloadProgress: number;
-  forward: (input: ETInput, shape: number[]) => Promise<number[][]>;
+  forward: (
+    input: ETInput | ETInput[],
+    shape: number[] | number[][]
+  ) => Promise<number[][]>;
   loadMethod: (methodName: string) => Promise<void>;
   loadForward: () => Promise<void>;
 } => {

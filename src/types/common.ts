@@ -3,6 +3,7 @@ import {
   _StyleTransferModule,
   _ObjectDetectionModule,
   ETModule,
+  _ETModule,
 } from '../native/RnExecutorchModules';
 
 export type ResourceSource = string | number;
@@ -26,15 +27,17 @@ export type ETInput =
   | Float32Array
   | Float64Array;
 
-export const getTypeIdentifier = (arr: ETInput): number => {
-  if (arr instanceof Int8Array) return 0;
-  if (arr instanceof Int32Array) return 1;
-  if (arr instanceof BigInt64Array) return 2;
-  if (arr instanceof Float32Array) return 3;
-  if (arr instanceof Float64Array) return 4;
-
-  return -1;
-};
+export interface ExecutorchModule {
+  error: string | null;
+  isReady: boolean;
+  isGenerating: boolean;
+  forward: (
+    inputs: ETInput[] | ETInput,
+    shapes: number[][]
+  ) => ReturnType<_ETModule['forward']>;
+  loadMethod: (methodName: string) => Promise<void>;
+  loadForward: () => Promise<void>;
+}
 
 export type Module =
   | _ClassificationModule

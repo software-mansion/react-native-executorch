@@ -8,6 +8,11 @@
 }
 
 - (NSArray *)forward:(NSArray *)input;
+
+- (NSArray *)forward:(NSArray *)inputs
+              shapes:(NSArray *)shapes
+          inputTypes:(NSArray *)inputTypes;
+
 - (void)loadModel:(NSURL *)modelURL
        completion:(void (^)(BOOL success, NSNumber *code))completion;
 
