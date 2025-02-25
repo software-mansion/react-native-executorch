@@ -1,5 +1,5 @@
 ---
-title: Running LLMs
+title: useLLM
 sidebar_position: 1
 ---
 
@@ -16,12 +16,61 @@ In order to load a model into the app, you need to run the following code:
 ```typescript
 import { useLLM, LLAMA3_2_1B } from 'react-native-executorch';
 
+const messageHistory = [
+  { role: 'user', content: 'Hello' },
+  { role: 'assistant', content: 'Hi, how can I help you?' },
+];
+
 const llama = useLLM({
   modelSource: LLAMA3_2_1B,
   tokenizerSource: require('../assets/tokenizer.bin'),
+  systemPrompt: 'Be a helpful assistant',
+  messageHistory: messageHistory,
   contextWindowLength: 3,
 });
 ```
+
+<details>
+<summary>Type definitions</summary>
+
+```typescript
+const useLLM: ({
+  modelSource,
+  tokenizerSource,
+  systemPrompt,
+  messageHistory,
+  contextWindowLength,
+}: {
+  modelSource: ResourceSource;
+  tokenizerSource: ResourceSource;
+  systemPrompt?: string;
+  messageHistory?: MessageType[];
+  contextWindowLength?: number;
+}) => Model;
+
+interface Model {
+  generate: (input: string) => Promise<void>;
+  response: string;
+  downloadProgress: number;
+  error: string | null;
+  isModelGenerating: boolean;
+  isGenerating: boolean;
+  isModelReady: boolean;
+  isReady: boolean;
+  interrupt: () => void;
+}
+
+type ResourceSource = string | number;
+
+interface MessageType {
+  role: 'user' | 'assistant';
+  content: string;
+}
+```
+
+</details>
+
+<br/>
 
 The code snippet above fetches the model from the specified URL, loads it into memory, and returns an object with various methods and properties for controlling the model. You can monitor the loading progress by checking the `llama.downloadProgress` and `llama.isReady` property, and if anything goes wrong, the `llama.error` property will contain the error message.
 
@@ -39,9 +88,15 @@ Given computational constraints, our architecture is designed to support only on
 
 **`tokenizerSource`** - URL to the binary file which contains the tokenizer
 
+**`systemPrompt`** - Often used to tell the model what is its purpose, for example - "Be a helpful translator"
+
+**`messageHistory`** - An array of `MessageType` objects that represent the conversation history.
+
 **`contextWindowLength`** - The number of messages from the current conversation that the model will use to generate a response. The higher the number, the more context the model will have. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
 
-**`systemPrompt`** - Often used to tell the model what is its purpose, for example - "Be a helpful translator"
+:::note
+Make sure that the reference to the `messageHistory` array is stable. Depending on your use case, you might use `useState` or `useRef` to store the message history.
+:::
 
 ### Returns
 
