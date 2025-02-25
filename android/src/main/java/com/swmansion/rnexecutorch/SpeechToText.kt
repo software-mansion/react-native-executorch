@@ -15,11 +15,12 @@ class SpeechToText(
   private var whisperPreprocessor = WhisperPreprocessor(reactContext)
   private var whisperEncoder = WhisperEncoder(reactContext)
   private var whisperDecoder = WhisperDecoder(reactContext)
-  private var START_TOKEN = 50257
-  private var EOS_TOKEN = 50256
 
   companion object {
     const val NAME = "SpeechToText"
+
+    const val START_TOKEN = 50257
+    const val EOS_TOKEN = 50256
   }
 
   override fun loadModule(
@@ -44,10 +45,10 @@ class SpeechToText(
   ) {
     val logMel = this.whisperPreprocessor.runModel(waveform)
     val encoding = this.whisperEncoder.runModel(logMel)
-    val generatedTokens = mutableListOf(this.START_TOKEN)
+    val generatedTokens = mutableListOf(START_TOKEN)
     var lastToken = 0
     Thread {
-      while (lastToken != this.EOS_TOKEN) {
+      while (lastToken != EOS_TOKEN) {
         this.whisperDecoder.setGeneratedTokens(generatedTokens)
         lastToken = this.whisperDecoder.runModel(encoding)
         emitOnToken(lastToken.toDouble())

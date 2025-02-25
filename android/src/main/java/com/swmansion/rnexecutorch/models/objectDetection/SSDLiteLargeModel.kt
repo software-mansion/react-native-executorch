@@ -12,8 +12,8 @@ import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import org.pytorch.executorch.EValue
 
-const val detectionScoreThreshold = .7f
-const val iouThreshold = .55f
+const val DETECTION_SCORE_THRESHOLD = .7f
+const val IOU_THRESHOLD = .55f
 
 class SSDLiteLargeModel(
   reactApplicationContext: ReactApplicationContext,
@@ -52,7 +52,7 @@ class SSDLiteLargeModel(
     val detections: MutableList<Detection> = mutableListOf()
     for (idx in 0 until numel.toInt()) {
       val score = scores[idx]
-      if (score < detectionScoreThreshold) {
+      if (score < DETECTION_SCORE_THRESHOLD) {
         continue
       }
       val bbox =
@@ -68,7 +68,7 @@ class SSDLiteLargeModel(
       )
     }
 
-    val detectionsPostNms = nms(detections, iouThreshold)
+    val detectionsPostNms = nms(detections, IOU_THRESHOLD)
     return detectionsPostNms.toTypedArray()
   }
 }
