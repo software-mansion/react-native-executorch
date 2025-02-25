@@ -7,11 +7,12 @@ import com.swmansion.rnexecutorch.utils.STFT
 import org.pytorch.executorch.EValue
 import org.pytorch.executorch.Tensor
 
-class WhisperPreprocessor(reactApplicationContext: ReactApplicationContext) :
-  BaseModel<ReadableArray, EValue>(reactApplicationContext) {
-    private val fftSize = 512
-    private val hopLength = 160
-    private val stft = STFT(fftSize, hopLength)
+class WhisperPreprocessor(
+  reactApplicationContext: ReactApplicationContext,
+) : BaseModel<ReadableArray, EValue>(reactApplicationContext) {
+  private val fftSize = 512
+  private val hopLength = 160
+  private val stft = STFT(fftSize, hopLength)
 
   override fun runModel(input: ReadableArray): EValue {
     val size = input.size()

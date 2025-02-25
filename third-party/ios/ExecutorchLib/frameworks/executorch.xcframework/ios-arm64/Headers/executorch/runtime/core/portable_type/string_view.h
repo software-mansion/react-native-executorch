@@ -25,15 +25,14 @@ namespace internal {
  * Mostly copy pasted from the c10 implementation but modified some to remove
  * broader c10 dependencies
  */
-template <class CharT>
-class basic_string_view final {
- public:
+template <class CharT> class basic_string_view final {
+public:
   using value_type = CharT;
-  using pointer = CharT*;
-  using const_pointer = const CharT*;
-  using reference = CharT&;
-  using const_reference = const CharT&;
-  using const_iterator = const CharT*;
+  using pointer = CharT *;
+  using const_pointer = const CharT *;
+  using reference = CharT &;
+  using const_reference = const CharT &;
+  using const_iterator = const CharT *;
   using iterator = const_iterator;
   using size_type = std::size_t;
 
@@ -47,21 +46,13 @@ class basic_string_view final {
   /* implicit */ constexpr basic_string_view(const_pointer str)
       : basic_string_view(str, strlen_(str)) {}
 
-  constexpr const_iterator begin() const noexcept {
-    return cbegin();
-  }
+  constexpr const_iterator begin() const noexcept { return cbegin(); }
 
-  constexpr const_iterator cbegin() const noexcept {
-    return begin_;
-  }
+  constexpr const_iterator cbegin() const noexcept { return begin_; }
 
-  constexpr const_iterator end() const noexcept {
-    return cend();
-  }
+  constexpr const_iterator end() const noexcept { return cend(); }
 
-  constexpr const_iterator cend() const noexcept {
-    return begin_ + size_;
-  }
+  constexpr const_iterator cend() const noexcept { return begin_ + size_; }
 
   friend constexpr const_iterator begin(basic_string_view sv) noexcept {
     return sv.begin();
@@ -71,40 +62,25 @@ class basic_string_view final {
     return sv.end();
   }
 
-  constexpr const_reference operator[](size_type pos) const {
-    return at_(pos);
-  }
+  constexpr const_reference operator[](size_type pos) const { return at_(pos); }
 
   constexpr const_reference at(size_type pos) const {
-    ET_CHECK_MSG(
-        pos >= size_,
-        "string_view::operator[] or string_view::at() out of range");
+    ET_CHECK_MSG(pos >= size_,
+                 "string_view::operator[] or string_view::at() out of range");
     return at_(pos);
   }
 
-  constexpr const_reference front() const {
-    return *begin_;
-  }
+  constexpr const_reference front() const { return *begin_; }
 
-  constexpr const_reference back() const {
-    return *(begin_ + size_ - 1);
-  }
+  constexpr const_reference back() const { return *(begin_ + size_ - 1); }
 
-  constexpr const_pointer data() const noexcept {
-    return begin_;
-  }
+  constexpr const_pointer data() const noexcept { return begin_; }
 
-  constexpr size_type size() const noexcept {
-    return size_;
-  }
+  constexpr size_type size() const noexcept { return size_; }
 
-  constexpr size_type length() const noexcept {
-    return size();
-  }
+  constexpr size_type length() const noexcept { return size(); }
 
-  constexpr bool empty() const noexcept {
-    return size() == 0;
-  }
+  constexpr bool empty() const noexcept { return size() == 0; }
 
   void remove_prefix(size_type n) {
     ET_CHECK_MSG(n > size(), "basic_string_view::remove_prefix: out of range.");
@@ -117,7 +93,7 @@ class basic_string_view final {
     size_ -= n;
   }
 
-  void swap(basic_string_view& sv) noexcept {
+  void swap(basic_string_view &sv) noexcept {
     auto tmp = *this;
     *this = sv;
     sv = tmp;
@@ -132,10 +108,10 @@ class basic_string_view final {
     return copy_length;
   }
 
-  constexpr basic_string_view substr(size_type pos = 0, size_type count = npos)
-      const {
-    ET_CHECK_MSG(
-        pos > size_, "basic_string_view::substr parameter out of bounds.");
+  constexpr basic_string_view substr(size_type pos = 0,
+                                     size_type count = npos) const {
+    ET_CHECK_MSG(pos > size_,
+                 "basic_string_view::substr parameter out of bounds.");
     return substr_(pos, count);
   }
 
@@ -159,25 +135,21 @@ class basic_string_view final {
     // if we are in C++11, we need to do it recursively because of constexpr
     // restrictions.
     return (size() == 0 && rhs.size() == 0) ? 0
-        : (size() == 0)                     ? -1
-        : (rhs.size() == 0)                 ? 1
-        : (front() < rhs.front())           ? -1
-        : (front() > rhs.front())           ? 1
-                                  : substr_(1).compare(rhs.substr_(1));
+           : (size() == 0)                  ? -1
+           : (rhs.size() == 0)              ? 1
+           : (front() < rhs.front())        ? -1
+           : (front() > rhs.front())        ? 1
+                                     : substr_(1).compare(rhs.substr_(1));
 #endif
   }
 
-  constexpr int compare(size_type pos1, size_type count1, basic_string_view v)
-      const {
+  constexpr int compare(size_type pos1, size_type count1,
+                        basic_string_view v) const {
     return substr(pos1, count1).compare(v);
   }
 
-  constexpr int compare(
-      size_type pos1,
-      size_type count1,
-      basic_string_view v,
-      size_type pos2,
-      size_type count2) const {
+  constexpr int compare(size_type pos1, size_type count1, basic_string_view v,
+                        size_type pos2, size_type count2) const {
     return substr(pos1, count1).compare(v.substr(pos2, count2));
   }
 
@@ -185,52 +157,43 @@ class basic_string_view final {
     return compare(basic_string_view(s));
   }
 
-  constexpr int compare(size_type pos1, size_type count1, const_pointer s)
-      const {
+  constexpr int compare(size_type pos1, size_type count1,
+                        const_pointer s) const {
     return substr(pos1, count1).compare(basic_string_view(s));
   }
 
-  constexpr int compare(
-      size_type pos1,
-      size_type count1,
-      const_pointer s,
-      size_type count2) const {
+  constexpr int compare(size_type pos1, size_type count1, const_pointer s,
+                        size_type count2) const {
     return substr(pos1, count1).compare(basic_string_view(s, count2));
   }
 
-  friend constexpr bool operator==(
-      basic_string_view lhs,
-      basic_string_view rhs) noexcept {
+  friend constexpr bool operator==(basic_string_view lhs,
+                                   basic_string_view rhs) noexcept {
     return lhs.equals_(rhs);
   }
 
-  friend constexpr bool operator!=(
-      basic_string_view lhs,
-      basic_string_view rhs) noexcept {
+  friend constexpr bool operator!=(basic_string_view lhs,
+                                   basic_string_view rhs) noexcept {
     return !(lhs == rhs);
   }
 
-  friend constexpr bool operator<(
-      basic_string_view lhs,
-      basic_string_view rhs) noexcept {
+  friend constexpr bool operator<(basic_string_view lhs,
+                                  basic_string_view rhs) noexcept {
     return lhs.compare(rhs) < 0;
   }
 
-  friend constexpr bool operator>=(
-      basic_string_view lhs,
-      basic_string_view rhs) noexcept {
+  friend constexpr bool operator>=(basic_string_view lhs,
+                                   basic_string_view rhs) noexcept {
     return !(lhs < rhs);
   }
 
-  friend constexpr bool operator>(
-      basic_string_view lhs,
-      basic_string_view rhs) noexcept {
+  friend constexpr bool operator>(basic_string_view lhs,
+                                  basic_string_view rhs) noexcept {
     return rhs < lhs;
   }
 
-  friend constexpr bool operator<=(
-      basic_string_view lhs,
-      basic_string_view rhs) noexcept {
+  friend constexpr bool operator<=(basic_string_view lhs,
+                                   basic_string_view rhs) noexcept {
     return !(lhs > rhs);
   }
 
@@ -249,8 +212,8 @@ class basic_string_view final {
 
   constexpr bool ends_with(basic_string_view suffix) const noexcept {
     return (suffix.size() > size())
-        ? false
-        : suffix.equals_(substr_(size() - suffix.size(), suffix.size()));
+               ? false
+               : suffix.equals_(substr_(size() - suffix.size(), suffix.size()));
   }
 
   constexpr bool ends_with(CharT suffix) const noexcept {
@@ -261,8 +224,8 @@ class basic_string_view final {
     return ends_with(basic_string_view(suffix));
   }
 
-  constexpr size_type find(basic_string_view v, size_type pos = 0)
-      const noexcept {
+  constexpr size_type find(basic_string_view v,
+                           size_type pos = 0) const noexcept {
 #if __cpp_constexpr >= 201304
     // if we are in C++14, write it iteratively. This is faster.
     if (v.size() == 0) {
@@ -281,12 +244,12 @@ class basic_string_view final {
 #else
     // if we are in C++11, we need to do it recursively because of constexpr
     // restrictions.
-    return (v.size() == 0)          ? (pos <= size() ? pos : npos)
-        : (pos + v.size() > size()) ? npos
-        : (v.at_(0) == at_(pos) &&
-           v.substr_(1).equals_(substr_(pos + 1, v.size() - 1)))
-        ? pos
-        : find(v, pos + 1);
+    return (v.size() == 0)             ? (pos <= size() ? pos : npos)
+           : (pos + v.size() > size()) ? npos
+           : (v.at_(0) == at_(pos) &&
+              v.substr_(1).equals_(substr_(pos + 1, v.size() - 1)))
+               ? pos
+               : find(v, pos + 1);
 #endif
   }
 
@@ -294,8 +257,8 @@ class basic_string_view final {
     return find_first_if_(pos, charIsEqual_{ch});
   }
 
-  constexpr size_type find(const_pointer s, size_type pos, size_type count)
-      const {
+  constexpr size_type find(const_pointer s, size_type pos,
+                           size_type count) const {
     return find(basic_string_view(s, count), pos);
   }
 
@@ -303,8 +266,8 @@ class basic_string_view final {
     return find(basic_string_view(s), pos);
   }
 
-  constexpr size_type rfind(basic_string_view v, size_type pos = npos)
-      const noexcept {
+  constexpr size_type rfind(basic_string_view v,
+                            size_type pos = npos) const noexcept {
 #if __cpp_constexpr >= 201304
     // if we are in C++14, write it iteratively. This is faster.
     if (v.size() == 0) {
@@ -324,14 +287,14 @@ class basic_string_view final {
 #else
     // if we are in C++11, we need to do it recursively because of constexpr
     // restrictions.
-    return (v.size() == 0)          ? (pos <= size() ? pos : size())
-        : (v.size() > size())       ? npos
-        : (size() - v.size() < pos) ? rfind(v, size() - v.size())
-        : (v.at_(0) == at_(pos) &&
-           v.substr_(1).equals_(substr_(pos + 1, v.size() - 1)))
-        ? pos
-        : (pos == 0) ? npos
-                     : rfind(v, pos - 1);
+    return (v.size() == 0)             ? (pos <= size() ? pos : size())
+           : (v.size() > size())       ? npos
+           : (size() - v.size() < pos) ? rfind(v, size() - v.size())
+           : (v.at_(0) == at_(pos) &&
+              v.substr_(1).equals_(substr_(pos + 1, v.size() - 1)))
+               ? pos
+           : (pos == 0) ? npos
+                        : rfind(v, pos - 1);
 #endif
   }
 
@@ -339,8 +302,8 @@ class basic_string_view final {
     return find_last_if_(pos, charIsEqual_{ch});
   }
 
-  constexpr size_type rfind(const_pointer s, size_type pos, size_type count)
-      const {
+  constexpr size_type rfind(const_pointer s, size_type pos,
+                            size_type count) const {
     return rfind(basic_string_view(s, count), pos);
   }
 
@@ -348,18 +311,18 @@ class basic_string_view final {
     return rfind(basic_string_view(s), pos);
   }
 
-  constexpr size_type find_first_of(basic_string_view v, size_type pos = 0)
-      const noexcept {
+  constexpr size_type find_first_of(basic_string_view v,
+                                    size_type pos = 0) const noexcept {
     return find_first_if_(pos, stringViewContainsChar_{v});
   }
 
-  constexpr size_type find_first_of(CharT ch, size_type pos = 0)
-      const noexcept {
+  constexpr size_type find_first_of(CharT ch,
+                                    size_type pos = 0) const noexcept {
     return find_first_if_(pos, charIsEqual_{ch});
   }
 
-  constexpr size_type
-  find_first_of(const_pointer s, size_type pos, size_type count) const {
+  constexpr size_type find_first_of(const_pointer s, size_type pos,
+                                    size_type count) const {
     return find_first_of(basic_string_view(s, count), pos);
   }
 
@@ -367,68 +330,67 @@ class basic_string_view final {
     return find_first_of(basic_string_view(s), pos);
   }
 
-  constexpr size_type find_last_of(basic_string_view v, size_type pos = npos)
-      const noexcept {
+  constexpr size_type find_last_of(basic_string_view v,
+                                   size_type pos = npos) const noexcept {
     return find_last_if_(pos, stringViewContainsChar_{v});
   }
 
-  constexpr size_type find_last_of(CharT ch, size_type pos = npos)
-      const noexcept {
+  constexpr size_type find_last_of(CharT ch,
+                                   size_type pos = npos) const noexcept {
     return find_last_if_(pos, charIsEqual_{ch});
   }
 
-  constexpr size_type
-  find_last_of(const_pointer s, size_type pos, size_type count) const {
+  constexpr size_type find_last_of(const_pointer s, size_type pos,
+                                   size_type count) const {
     return find_last_of(basic_string_view(s, count), pos);
   }
 
-  constexpr size_type find_last_of(const_pointer s, size_type pos = npos)
-      const {
+  constexpr size_type find_last_of(const_pointer s,
+                                   size_type pos = npos) const {
     return find_last_of(basic_string_view(s), pos);
   }
 
-  constexpr size_type find_first_not_of(basic_string_view v, size_type pos = 0)
-      const noexcept {
+  constexpr size_type find_first_not_of(basic_string_view v,
+                                        size_type pos = 0) const noexcept {
     return find_first_if_(pos, stringViewDoesNotContainChar_{v});
   }
 
-  constexpr size_type find_first_not_of(CharT ch, size_type pos = 0)
-      const noexcept {
+  constexpr size_type find_first_not_of(CharT ch,
+                                        size_type pos = 0) const noexcept {
     return find_first_if_(pos, charIsNotEqual_{ch});
   }
 
-  constexpr size_type
-  find_first_not_of(const_pointer s, size_type pos, size_type count) const {
+  constexpr size_type find_first_not_of(const_pointer s, size_type pos,
+                                        size_type count) const {
     return find_first_not_of(basic_string_view(s, count), pos);
   }
 
-  constexpr size_type find_first_not_of(const_pointer s, size_type pos = 0)
-      const {
+  constexpr size_type find_first_not_of(const_pointer s,
+                                        size_type pos = 0) const {
     return find_first_not_of(basic_string_view(s), pos);
   }
 
-  constexpr size_type find_last_not_of(
-      basic_string_view v,
-      size_type pos = npos) const noexcept {
+  constexpr size_type find_last_not_of(basic_string_view v,
+                                       size_type pos = npos) const noexcept {
     return find_last_if_(pos, stringViewDoesNotContainChar_{v});
   }
 
-  constexpr size_type find_last_not_of(CharT ch, size_type pos = npos)
-      const noexcept {
+  constexpr size_type find_last_not_of(CharT ch,
+                                       size_type pos = npos) const noexcept {
     return find_last_if_(pos, charIsNotEqual_{ch});
   }
 
-  constexpr size_type
-  find_last_not_of(const_pointer s, size_type pos, size_type count) const {
+  constexpr size_type find_last_not_of(const_pointer s, size_type pos,
+                                       size_type count) const {
     return find_last_not_of(basic_string_view(s, count), pos);
   }
 
-  constexpr size_type find_last_not_of(const_pointer s, size_type pos = npos)
-      const {
+  constexpr size_type find_last_not_of(const_pointer s,
+                                       size_type pos = npos) const {
     return find_last_not_of(basic_string_view(s), pos);
   }
 
- private:
+private:
   static constexpr std::size_t min_(const std::size_t a, const std::size_t b) {
     return (b < a) ? b : a;
   }
@@ -452,14 +414,14 @@ class basic_string_view final {
     return *(begin_ + pos);
   }
 
-  constexpr basic_string_view substr_(size_type pos = 0, size_type count = npos)
-      const {
+  constexpr basic_string_view substr_(size_type pos = 0,
+                                      size_type count = npos) const {
     return basic_string_view{begin_ + pos, min_(count, size() - pos)};
   }
 
   template <class Condition>
-  constexpr size_type find_first_if_(size_type pos, Condition&& condition)
-      const noexcept {
+  constexpr size_type find_first_if_(size_type pos,
+                                     Condition &&condition) const noexcept {
 #if __cpp_constexpr >= 201304
     // if we are in C++14, write it iteratively. This is faster.
     if (pos + 1 <= size()) {
@@ -474,15 +436,15 @@ class basic_string_view final {
     // if we are in C++11, we need to do it recursively because of constexpr
     // restrictions.
     return (pos + 1 > size()) ? npos
-        : condition(at_(pos))
-        ? pos
-        : find_first_if_(pos + 1, std::forward<Condition>(condition));
+           : condition(at_(pos))
+               ? pos
+               : find_first_if_(pos + 1, std::forward<Condition>(condition));
 #endif
   }
 
   template <class Condition>
-  constexpr size_type find_last_if_(size_type pos, Condition&& condition)
-      const noexcept {
+  constexpr size_type find_last_if_(size_type pos,
+                                    Condition &&condition) const noexcept {
 #if __cpp_constexpr >= 201304
     // if we are in C++14, write it iteratively. This is faster.
     if (size() > 0) {
@@ -498,12 +460,12 @@ class basic_string_view final {
     // if we are in C++11, we need to do it recursively because of constexpr
     // restrictions.
     return (size() == 0) ? npos
-        : (pos >= size())
-        ? find_last_if_(size() - 1, std::forward<Condition>(condition))
-        : condition(at_(pos)) ? pos
-        : (pos == 0)
-        ? npos
-        : find_last_if_(pos - 1, std::forward<Condition>(condition));
+           : (pos >= size())
+               ? find_last_if_(size() - 1, std::forward<Condition>(condition))
+           : condition(at_(pos)) ? pos
+           : (pos == 0)
+               ? npos
+               : find_last_if_(pos - 1, std::forward<Condition>(condition));
 #endif
   }
 
@@ -525,10 +487,10 @@ class basic_string_view final {
 #else
     // if we are in C++11, we need to do it recursively because of constexpr
     // restrictions.
-    return (size() != rhs.size())  ? false
-        : (size() == 0)            ? true
-        : (front() != rhs.front()) ? false
-                                   : (substr_(1).equals_(rhs.substr_(1)));
+    return (size() != rhs.size())     ? false
+           : (size() == 0)            ? true
+           : (front() != rhs.front()) ? false
+                                      : (substr_(1).equals_(rhs.substr_(1)));
 #endif
   }
 
@@ -565,9 +527,8 @@ class basic_string_view final {
 };
 
 template <class CharT>
-inline void swap(
-    basic_string_view<CharT>& lhs,
-    basic_string_view<CharT>& rhs) noexcept {
+inline void swap(basic_string_view<CharT> &lhs,
+                 basic_string_view<CharT> &rhs) noexcept {
   lhs.swap(rhs);
 }
 

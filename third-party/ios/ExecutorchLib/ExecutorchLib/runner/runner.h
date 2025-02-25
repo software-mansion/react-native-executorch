@@ -27,23 +27,22 @@
 namespace example {
 
 class Runner {
- public:
-  explicit Runner(
-      const std::string& model_path,
-      const std::string& tokenizer_path,
-      const float temperature = 0.8f);
+public:
+  explicit Runner(const std::string &model_path,
+                  const std::string &tokenizer_path,
+                  const float temperature = 0.8f);
 
   bool is_loaded() const;
   ::executorch::runtime::Error load();
-  ::executorch::runtime::Error generate(
-      const std::string& prompt,
-      std::function<void(const std::string&)> token_callback = {},
-      std::function<void(const ::executorch::extension::llm::Stats&)>
-          stats_callback = {},
-      bool echo = true);
+  ::executorch::runtime::Error
+  generate(const std::string &prompt,
+           std::function<void(const std::string &)> token_callback = {},
+           std::function<void(const ::executorch::extension::llm::Stats &)>
+               stats_callback = {},
+           bool echo = true);
   void stop();
 
- private:
+private:
   float temperature_;
   bool shouldStop_{false};
 

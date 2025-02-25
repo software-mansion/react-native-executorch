@@ -57,7 +57,7 @@ struct ExtendedHeader {
    *     error if size was too short, if the header was not found, or if the
    *     header appeared to be corrupt.
    */
-  static Result<ExtendedHeader> Parse(const void* data, size_t size);
+  static Result<ExtendedHeader> Parse(const void *data, size_t size);
 
   /**
    * The size in bytes of the Program flatbuffer data, starting from offset

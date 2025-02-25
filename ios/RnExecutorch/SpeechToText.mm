@@ -1,11 +1,11 @@
 #import "SpeechToText.h"
+#import "./utils/ScalarType.h"
 #import "models/BaseModel.h"
 #import "models/stt/WhisperDecoder.hpp"
 #import "models/stt/WhisperEncoder.hpp"
 #import <Accelerate/Accelerate.h>
 #import <ExecutorchLib/ETModel.h>
 #import <React/RCTBridgeModule.h>
-#import "./utils/ScalarType.h"
 
 @implementation SpeechToText {
   WhisperEncoder *encoder;
@@ -103,8 +103,9 @@ RCT_EXPORT_MODULE()
     dispatch_async(
         dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
           NSUInteger fftFrameLength = self->fftSize / 2;
-          NSMutableArray *mutablePrevTokens = [NSMutableArray arrayWithObject:self->START_TOKEN];
-                
+          NSMutableArray *mutablePrevTokens =
+              [NSMutableArray arrayWithObject:self->START_TOKEN];
+
           if (!self->encoder || !self->decoder || !self->preprocessor) {
             reject(@"model_initialization_error", nil, nil);
             return;
@@ -121,10 +122,10 @@ RCT_EXPORT_MODULE()
               inputTypes:@[ ScalarType.Float ]];
           NSDate *start = [NSDate date];
           NSArray *encodingResult = [self->encoder encode:@[ mel ]];
-          
 
           if (!encodingResult) {
-            reject(@"forward_error", @"Encoding returned an empty result.", nil);
+            reject(@"forward_error", @"Encoding returned an empty result.",
+                   nil);
             return;
           }
 

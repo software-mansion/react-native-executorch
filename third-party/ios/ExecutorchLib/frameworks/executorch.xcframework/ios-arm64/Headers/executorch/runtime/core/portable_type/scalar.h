@@ -27,27 +27,21 @@ namespace etensor {
  * semantics/behavior should also match the c10 version.
  */
 class Scalar {
- public:
+public:
   Scalar() : Scalar(int64_t(0)) {}
 
-  template <
-      typename T,
-      typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+  template <typename T, typename std::enable_if<std::is_integral<T>::value,
+                                                bool>::type = true>
   /*implicit*/ Scalar(T val) : tag(Tag::Int) {
     v.as_int = static_cast<int64_t>(val);
   }
-  /*implicit*/ Scalar(bool val) : tag(Tag::Bool) {
-    v.as_bool = val;
-  }
-  /*implicit*/ Scalar(double val) : tag(Tag::Double) {
-    v.as_double = val;
-  }
+  /*implicit*/ Scalar(bool val) : tag(Tag::Bool) { v.as_bool = val; }
+  /*implicit*/ Scalar(double val) : tag(Tag::Double) { v.as_double = val; }
   /*implicit*/ Scalar(BFloat16 val) : Scalar((double)(float)val) {}
   /*implicit*/ Scalar(Half val) : Scalar((double)(float)val) {}
 
   /// Returns the concrete scalar value stored within.
-  template <typename T>
-  T to() const;
+  template <typename T> T to() const;
 
   /// Returns true if the scalar is integral, false otherwise.
   bool isIntegral(bool includeBool) const {
@@ -55,16 +49,12 @@ class Scalar {
   }
 
   /// Returns true if the scalar is a floating point, false otherwise.
-  bool isFloatingPoint() const {
-    return tag == Tag::Double;
-  }
+  bool isFloatingPoint() const { return tag == Tag::Double; }
 
   /// Returns true if the scalar is a boolean, false otherwise.
-  bool isBoolean() const {
-    return tag == Tag::Bool;
-  }
+  bool isBoolean() const { return tag == Tag::Bool; }
 
- private:
+private:
   int64_t toInt() const {
     if (isIntegral(/*includeBool=*/false)) {
       return v.as_int;
@@ -99,11 +89,8 @@ class Scalar {
   } v;
 };
 
-#define ET_DEFINE_SCALAR_TO_METHOD(T, name) \
-  template <>                               \
-  inline T Scalar::to<T>() const {          \
-    return to##name();                      \
-  }
+#define ET_DEFINE_SCALAR_TO_METHOD(T, name)                                    \
+  template <> inline T Scalar::to<T>() const { return to##name(); }
 
 ET_DEFINE_SCALAR_TO_METHOD(double, Double)
 ET_DEFINE_SCALAR_TO_METHOD(int64_t, Int)

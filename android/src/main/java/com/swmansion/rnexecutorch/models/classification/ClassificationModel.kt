@@ -1,15 +1,16 @@
 package com.swmansion.rnexecutorch.models.classification
 
 import com.facebook.react.bridge.ReactApplicationContext
+import com.swmansion.rnexecutorch.models.BaseModel
 import com.swmansion.rnexecutorch.utils.ImageProcessor
 import org.opencv.core.Mat
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import org.pytorch.executorch.EValue
-import com.swmansion.rnexecutorch.models.BaseModel
 
-
-class ClassificationModel(reactApplicationContext: ReactApplicationContext) : BaseModel<Mat, Map<String, Float>>(reactApplicationContext) {
+class ClassificationModel(
+  reactApplicationContext: ReactApplicationContext,
+) : BaseModel<Mat, Map<String, Float>>(reactApplicationContext) {
   private fun getModelImageSize(): Size {
     val inputShape = module.getInputShape(0)
     val width = inputShape[inputShape.lastIndex]
@@ -37,8 +38,8 @@ class ClassificationModel(reactApplicationContext: ReactApplicationContext) : Ba
   }
 
   override fun runModel(input: Mat): Map<String, Float> {
-      val modelInput = preprocess(input)
-      val modelOutput = forward(modelInput)
-      return postprocess(modelOutput)
+    val modelInput = preprocess(input)
+    val modelOutput = forward(modelInput)
+    return postprocess(modelOutput)
   }
 }

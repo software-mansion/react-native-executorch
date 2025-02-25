@@ -38,8 +38,8 @@ namespace internal {
  * operators only. If operator profiling is disabled then this class is a no-op.
  */
 class EventTracerProfileOpScope final {
- public:
-  EventTracerProfileOpScope(EventTracer* event_tracer, const char* name) {
+public:
+  EventTracerProfileOpScope(EventTracer *event_tracer, const char *name) {
 #ifdef ET_EVENT_TRACER_ENABLED
     event_tracer_ = event_tracer;
     if (event_tracer_ == nullptr) {
@@ -67,9 +67,9 @@ class EventTracerProfileOpScope final {
 #endif
   }
 
- private:
+private:
 #ifdef ET_EVENT_TRACER_ENABLED
-  EventTracer* event_tracer_;
+  EventTracer *event_tracer_;
   EventTracerEntry event_entry_;
 #endif
 };
@@ -83,8 +83,8 @@ using EventTracerProfileScope = EventTracerProfileOpScope;
  * be used for profiling methods in the runtime.
  */
 class EventTracerProfileMethodScope final {
- public:
-  EventTracerProfileMethodScope(EventTracer* event_tracer, const char* name) {
+public:
+  EventTracerProfileMethodScope(EventTracer *event_tracer, const char *name) {
 #ifdef ET_EVENT_TRACER_ENABLED
     event_tracer_ = event_tracer;
     if (event_tracer_ == nullptr) {
@@ -106,9 +106,9 @@ class EventTracerProfileMethodScope final {
 #endif
   }
 
- private:
+private:
 #ifdef ET_EVENT_TRACER_ENABLED
-  EventTracer* event_tracer_;
+  EventTracer *event_tracer_;
   EventTracerEntry event_entry_;
 #endif
 };
@@ -122,11 +122,10 @@ class EventTracerProfileMethodScope final {
  * debug handle to defaults when this object goes out of scope.
  */
 class EventTracerProfileInstructionScope final {
- public:
-  EventTracerProfileInstructionScope(
-      EventTracer* event_tracer,
-      ChainID chain_idx,
-      DebugHandle debug_handle) {
+public:
+  EventTracerProfileInstructionScope(EventTracer *event_tracer,
+                                     ChainID chain_idx,
+                                     DebugHandle debug_handle) {
 #ifdef ET_EVENT_TRACER_ENABLED
     event_tracer_ = event_tracer;
     if (event_tracer_ == nullptr) {
@@ -149,9 +148,9 @@ class EventTracerProfileInstructionScope final {
 #endif
   }
 
- private:
+private:
 #ifdef ET_EVENT_TRACER_ENABLED
-  EventTracer* event_tracer_;
+  EventTracer *event_tracer_;
 #endif
 };
 
@@ -166,9 +165,8 @@ inline bool event_tracer_enabled() {
  * Create a new event block with the specified name. Any events logged
  * after this will be associated with this new event block.
  */
-inline void event_tracer_create_event_block(
-    EventTracer* event_tracer,
-    char const* name) {
+inline void event_tracer_create_event_block(EventTracer *event_tracer,
+                                            char const *name) {
 #ifdef ET_EVENT_TRACER_ENABLED
   if (event_tracer) {
     event_tracer->create_event_block(name);
@@ -185,9 +183,9 @@ inline void event_tracer_create_event_block(
  * around and pass into the corresponding event_tracer_end_profiling_event
  * call.
  */
-inline EventTracerEntry event_tracer_begin_profiling_event(
-    EventTracer* event_tracer,
-    char const* name) {
+inline EventTracerEntry
+event_tracer_begin_profiling_event(EventTracer *event_tracer,
+                                   char const *name) {
 #ifdef ET_EVENT_TRACER_ENABLED
   if (event_tracer) {
     return event_tracer->start_profiling(name);
@@ -204,9 +202,8 @@ inline EventTracerEntry event_tracer_begin_profiling_event(
  * Mark the end of a profiling event passing in the entry token
  * returned by a previous call to ET_EVENT_TRACER_BEGIN_PROFILING_EVENT.
  */
-inline void event_tracer_end_profiling_event(
-    EventTracer* event_tracer,
-    EventTracerEntry event) {
+inline void event_tracer_end_profiling_event(EventTracer *event_tracer,
+                                             EventTracerEntry event) {
 #ifdef ET_EVENT_TRACER_ENABLED
   if (event_tracer) {
     event_tracer->end_profiling(event);
@@ -222,9 +219,8 @@ inline void event_tracer_end_profiling_event(
  * an AllocatorID that will be used to track all subsequent allocations done by
  * this allocator.
  */
-inline AllocatorID event_tracer_track_allocator(
-    EventTracer* event_tracer,
-    const char* name) {
+inline AllocatorID event_tracer_track_allocator(EventTracer *event_tracer,
+                                                const char *name) {
 #ifdef ET_EVENT_TRACER_ENABLED
   if (event_tracer) {
     return event_tracer->track_allocator(name);
@@ -238,10 +234,8 @@ inline AllocatorID event_tracer_track_allocator(
 }
 
 /// Log the allocation event done via the allocator represented by id.
-inline void event_tracer_track_allocation(
-    EventTracer* event_tracer,
-    AllocatorID id,
-    size_t size) {
+inline void event_tracer_track_allocation(EventTracer *event_tracer,
+                                          AllocatorID id, size_t size) {
 #ifdef ET_EVENT_TRACER_ENABLED
   if (event_tracer) {
     event_tracer->track_allocation(id, size);
@@ -254,7 +248,7 @@ inline void event_tracer_track_allocation(
 }
 
 /// Log an intermediate value.
-inline void event_tracer_log_evalue(EventTracer* event_tracer, EValue& evalue) {
+inline void event_tracer_log_evalue(EventTracer *event_tracer, EValue &evalue) {
 #ifdef ET_EVENT_TRACER_ENABLED
   if (event_tracer) {
     if (event_tracer->event_tracer_debug_level() >=
@@ -269,9 +263,8 @@ inline void event_tracer_log_evalue(EventTracer* event_tracer, EValue& evalue) {
 }
 
 /// Log a program output.
-inline void event_tracer_log_evalue_output(
-    EventTracer* event_tracer,
-    const EValue& evalue) {
+inline void event_tracer_log_evalue_output(EventTracer *event_tracer,
+                                           const EValue &evalue) {
 #ifdef ET_EVENT_TRACER_ENABLED
   /*
    * If debugging via event tracer is enabled but intermediate output logging is
@@ -291,9 +284,8 @@ inline void event_tracer_log_evalue_output(
 
 // Set the bundled input index of the current bundled input being used by the
 // method.
-inline void event_tracer_set_bundled_input_index(
-    EventTracer* event_tracer,
-    int bundled_input_index) {
+inline void event_tracer_set_bundled_input_index(EventTracer *event_tracer,
+                                                 int bundled_input_index) {
 #ifdef ET_EVENT_TRACER_ENABLED
   if (event_tracer) {
     event_tracer->set_bundled_input_index(bundled_input_index);

@@ -10,14 +10,13 @@
 - (NSNumber *)loadForward;
 - (NSArray *)forward:(NSArray *)inputs
               shapes:(NSArray *)shapes
-          inputTypes: (NSArray *)inputTypes;
+          inputTypes:(NSArray *)inputTypes;
 - (NSNumber *)getNumberOfInputs;
 - (NSNumber *)getInputType:(NSNumber *)index;
 - (NSArray *)getInputShape:(NSNumber *)index;
 - (NSNumber *)getNumberOfOutputs;
 - (NSNumber *)getOutputType:(NSNumber *)index;
 - (NSArray *)getOutputShape:(NSNumber *)index;
-
 
 @end
 

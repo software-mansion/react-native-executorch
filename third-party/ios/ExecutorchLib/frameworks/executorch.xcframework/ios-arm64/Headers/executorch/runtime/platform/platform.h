@@ -79,8 +79,8 @@ et_timestamp_t et_pal_current_ticks(void) ET_INTERNAL_PLATFORM_WEAKNESS;
  *
  * @retval The ratio of nanoseconds to system ticks.
  */
-et_tick_ratio_t et_pal_ticks_to_ns_multiplier(void)
-    ET_INTERNAL_PLATFORM_WEAKNESS;
+et_tick_ratio_t
+et_pal_ticks_to_ns_multiplier(void) ET_INTERNAL_PLATFORM_WEAKNESS;
 
 /**
  * Severity level of a log message. Values must map to printable 7-bit ASCII
@@ -106,14 +106,10 @@ typedef enum {
  * @param[in] message Message string to log.
  * @param[in] length Message string length.
  */
-void et_pal_emit_log_message(
-    et_timestamp_t timestamp,
-    et_pal_log_level_t level,
-    const char* filename,
-    const char* function,
-    size_t line,
-    const char* message,
-    size_t length) ET_INTERNAL_PLATFORM_WEAKNESS;
+void et_pal_emit_log_message(et_timestamp_t timestamp, et_pal_log_level_t level,
+                             const char *filename, const char *function,
+                             size_t line, const char *message,
+                             size_t length) ET_INTERNAL_PLATFORM_WEAKNESS;
 
 /**
  * NOTE: Core runtime code must not call this directly. It may only be called by
@@ -125,13 +121,13 @@ void et_pal_emit_log_message(
  * @returns the allocated memory, or nullptr on failure. Must be freed using
  *     et_pal_free().
  */
-void* et_pal_allocate(size_t size) ET_INTERNAL_PLATFORM_WEAKNESS;
+void *et_pal_allocate(size_t size) ET_INTERNAL_PLATFORM_WEAKNESS;
 
 /**
  * Frees memory allocated by et_pal_allocate().
  *
  * @param[in] ptr Pointer to memory to free. May be nullptr.
  */
-void et_pal_free(void* ptr) ET_INTERNAL_PLATFORM_WEAKNESS;
+void et_pal_free(void *ptr) ET_INTERNAL_PLATFORM_WEAKNESS;
 
 } // extern "C"

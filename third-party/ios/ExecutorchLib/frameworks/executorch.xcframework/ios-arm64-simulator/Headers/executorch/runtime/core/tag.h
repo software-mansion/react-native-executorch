@@ -13,18 +13,18 @@
 namespace executorch {
 namespace runtime {
 
-#define EXECUTORCH_FORALL_TAGS(_) \
-  _(None)                         \
-  _(Tensor)                       \
-  _(String)                       \
-  _(Double)                       \
-  _(Int)                          \
-  _(Bool)                         \
-  _(ListBool)                     \
-  _(ListDouble)                   \
-  _(ListInt)                      \
-  _(ListTensor)                   \
-  _(ListScalar)                   \
+#define EXECUTORCH_FORALL_TAGS(_)                                              \
+  _(None)                                                                      \
+  _(Tensor)                                                                    \
+  _(String)                                                                    \
+  _(Double)                                                                    \
+  _(Int)                                                                       \
+  _(Bool)                                                                      \
+  _(ListBool)                                                                  \
+  _(ListDouble)                                                                \
+  _(ListInt)                                                                   \
+  _(ListTensor)                                                                \
+  _(ListScalar)                                                                \
   _(ListOptionalTensor)
 
 /**

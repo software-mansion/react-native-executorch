@@ -27,9 +27,8 @@
     recognizerMedium = [[Recognizer alloc] init];
     recognizerSmall = [[Recognizer alloc] init];
 
-    converter = [[CTCLabelConverter alloc]
-        initWithCharacters:symbols
-                 separatorList:@{}];
+    converter = [[CTCLabelConverter alloc] initWithCharacters:symbols
+                                                separatorList:@{}];
   }
   return self;
 }

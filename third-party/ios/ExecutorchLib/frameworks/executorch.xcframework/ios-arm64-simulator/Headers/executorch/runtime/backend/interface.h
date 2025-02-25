@@ -24,12 +24,12 @@ namespace executorch {
 namespace runtime {
 
 struct SizedBuffer {
-  void* buffer;
+  void *buffer;
   size_t nbytes; // number of bytes of buffer
 };
 
 struct CompileSpec {
-  const char* key; // spec key
+  const char *key;   // spec key
   SizedBuffer value; // spec value
 };
 
@@ -40,7 +40,7 @@ struct CompileSpec {
 using DelegateHandle = void;
 
 class BackendInterface {
- public:
+public:
   virtual ~BackendInterface() = 0;
 
   /**
@@ -78,10 +78,9 @@ class BackendInterface {
    *     Error::DelegateInvalidCompatibility. Other backend delegate
    *     specific error codes can be found in error.h.
    */
-  ET_NODISCARD virtual Result<DelegateHandle*> init(
-      BackendInitContext& context,
-      FreeableBuffer* processed,
-      ArrayRef<CompileSpec> compile_specs) const = 0;
+  ET_NODISCARD virtual Result<DelegateHandle *>
+  init(BackendInitContext &context, FreeableBuffer *processed,
+       ArrayRef<CompileSpec> compile_specs) const = 0;
 
   /**
    * Responsible for executing the given method’s handle, as it was produced
@@ -93,10 +92,9 @@ class BackendInterface {
    * @param[in] args The method’s inputs and outputs.
    * @retval Error::Ok if successful.
    */
-  ET_NODISCARD virtual Error execute(
-      BackendExecutionContext& context,
-      DelegateHandle* handle,
-      EValue** args) const = 0;
+  ET_NODISCARD virtual Error execute(BackendExecutionContext &context,
+                                     DelegateHandle *handle,
+                                     EValue **args) const = 0;
 
   /**
    * Responsible for destroying a handle, if it's required for some backend.
@@ -107,7 +105,7 @@ class BackendInterface {
    * @param[in] handle The handle to be destroyed. An opaque handle returned by
    *     `init()`.
    */
-  virtual void destroy(ET_UNUSED DelegateHandle* handle) const {}
+  virtual void destroy(ET_UNUSED DelegateHandle *handle) const {}
 };
 
 /**
@@ -118,16 +116,16 @@ class BackendInterface {
  * @retval Pointer to the appropriate object that implements BackendInterface.
  *         Nullptr if it can't find anything with the given name.
  */
-BackendInterface* get_backend_class(const char* name);
+BackendInterface *get_backend_class(const char *name);
 
 /**
  * A named instance of a backend.
  */
 struct Backend {
   /// The name of the backend. Must match the string used in the PTE file.
-  const char* name;
+  const char *name;
   /// The instance of the backend to use when loading and executing programs.
-  BackendInterface* backend;
+  BackendInterface *backend;
 };
 
 /**
@@ -137,7 +135,7 @@ struct Backend {
  * @param[in] backend Backend object
  * @retval Error code representing whether registration was successful.
  */
-ET_NODISCARD Error register_backend(const Backend& backend);
+ET_NODISCARD Error register_backend(const Backend &backend);
 
 } // namespace runtime
 } // namespace executorch

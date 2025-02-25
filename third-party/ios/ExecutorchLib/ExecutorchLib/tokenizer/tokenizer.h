@@ -23,15 +23,15 @@ namespace llm {
 
 // A tokenizer interface.
 class Tokenizer {
- public:
+public:
   explicit Tokenizer() {}
   virtual ~Tokenizer() {}
 
-  virtual ::executorch::runtime::Error load(
-      const std::string& tokenizer_path) = 0;
+  virtual ::executorch::runtime::Error
+  load(const std::string &tokenizer_path) = 0;
 
   virtual ::executorch::runtime::Result<std::vector<uint64_t>>
-  encode(const std::string& input, int8_t bos, int8_t eos) const = 0;
+  encode(const std::string &input, int8_t bos, int8_t eos) const = 0;
 
   ::executorch::runtime::Error decode_verify(uint64_t token) const {
     if (!initialized_) {
@@ -39,34 +39,24 @@ class Tokenizer {
       return ::executorch::runtime::Error::NotSupported;
     }
     if (token >= vocab_size_) {
-      ET_LOG(
-          Error,
-          "token  %" PRIu64 " is out side of vacab range %d",
-          token,
-          vocab_size_);
+      ET_LOG(Error, "token  %" PRIu64 " is out side of vacab range %d", token,
+             vocab_size_);
       return ::executorch::runtime::Error::NotSupported;
     }
     return ::executorch::runtime::Error::Ok;
   }
 
-  virtual ::executorch::runtime::Result<std::string> decode(
-      uint64_t prev_token,
-      uint64_t token) const = 0;
+  virtual ::executorch::runtime::Result<std::string>
+  decode(uint64_t prev_token, uint64_t token) const = 0;
 
   // getters
-  int32_t vocab_size() const {
-    return vocab_size_;
-  }
+  int32_t vocab_size() const { return vocab_size_; }
 
-  uint64_t bos_tok() const {
-    return bos_tok_;
-  }
+  uint64_t bos_tok() const { return bos_tok_; }
 
-  uint64_t eos_tok() const {
-    return eos_tok_;
-  }
+  uint64_t eos_tok() const { return eos_tok_; }
 
- protected:
+protected:
   bool initialized_ = false;
   int32_t vocab_size_ = 0;
   uint64_t bos_tok_ = 0;

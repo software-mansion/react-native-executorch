@@ -23,7 +23,7 @@ namespace runtime {
  * See //executorch/extension/data_loader for common implementations.
  */
 class DataLoader {
- public:
+public:
   /**
    * Describes the content of the segment.
    */
@@ -60,16 +60,13 @@ class DataLoader {
     /// An optional, null-terminated string describing the segment. For
     /// `Backend` segments, this is the backend ID. Null for other segment
     /// types.
-    const char* descriptor;
+    const char *descriptor;
 
     SegmentInfo() = default;
 
-    explicit SegmentInfo(
-        Type segment_type,
-        size_t segment_index = 0,
-        const char* descriptor = nullptr)
-        : segment_type(segment_type),
-          segment_index(segment_index),
+    explicit SegmentInfo(Type segment_type, size_t segment_index = 0,
+                         const char *descriptor = nullptr)
+        : segment_type(segment_type), segment_index(segment_index),
           descriptor(descriptor) {}
   };
 
@@ -88,7 +85,7 @@ class DataLoader {
    * @returns a `FreeableBuffer` that owns the loaded data.
    */
   ET_NODISCARD virtual Result<FreeableBuffer>
-  load(size_t offset, size_t size, const SegmentInfo& segment_info) const = 0;
+  load(size_t offset, size_t size, const SegmentInfo &segment_info) const = 0;
 
   /**
    * Loads data from the underlying data source into the provided buffer.
@@ -104,11 +101,9 @@ class DataLoader {
    *
    * @returns an Error indicating if the load was successful.
    */
-  ET_NODISCARD virtual Error load_into(
-      size_t offset,
-      size_t size,
-      const SegmentInfo& segment_info,
-      void* buffer) const {
+  ET_NODISCARD virtual Error load_into(size_t offset, size_t size,
+                                       const SegmentInfo &segment_info,
+                                       void *buffer) const {
     // Using a stub implementation here instead of pure virtual to expand the
     // data_loader interface in a backwards compatible way.
     (void)buffer;

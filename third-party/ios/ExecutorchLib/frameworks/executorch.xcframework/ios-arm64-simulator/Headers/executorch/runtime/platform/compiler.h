@@ -19,25 +19,25 @@
  */
 
 // https://gcc.gnu.org/projects/cxx-status.html#cxx17
-#if !defined(__clang__) && !defined(_MSC_VER) && defined(__GNUC__) && \
+#if !defined(__clang__) && !defined(_MSC_VER) && defined(__GNUC__) &&          \
     __GNUC__ < 7
-#error \
+#error                                                                         \
     "You're trying to build ExecuTorch with a too old version of GCC. We need GCC 7 or later."
 #endif
 
 // https://clang.llvm.org/cxx_status.html#cxx17
 #if defined(__clang__) && __clang_major__ < 5
-#error \
+#error                                                                         \
     "You're trying to build ExecuTorch with a too old version of Clang. We need Clang 5 or later."
 #endif
 
-#if (defined(_MSC_VER) && (!defined(_MSVC_LANG) || _MSVC_LANG < 201703L)) || \
+#if (defined(_MSC_VER) && (!defined(_MSVC_LANG) || _MSVC_LANG < 201703L)) ||   \
     (!defined(_MSC_VER) && __cplusplus < 201703L)
 #error "You need C++17 to compile ExecuTorch"
 #endif
 
 #if defined(_WIN32) && (defined(min) || defined(max))
-#error \
+#error                                                                         \
     "Macro clash with min and max -- define NOMINMAX when compiling your program on Windows"
 #endif
 
@@ -69,8 +69,8 @@
 
 #else // defined(__GNUC__)
 
-#define ET_UNREACHABLE() \
-  while (1)              \
+#define ET_UNREACHABLE()                                                       \
+  while (1)                                                                    \
     ;
 
 #endif // defined(__GNUC__)
@@ -78,7 +78,7 @@
 #if (__cplusplus) >= 201703L
 
 #define ET_DEPRECATED [[deprecated]]
-#define ET_EXPERIMENTAL \
+#define ET_EXPERIMENTAL                                                        \
   [[deprecated("This API is experimental and may change without notice.")]]
 #define ET_FALLTHROUGH [[fallthrough]]
 #define ET_NODISCARD [[nodiscard]]
@@ -87,8 +87,8 @@
 #else
 
 #define ET_DEPRECATED __attribute__((deprecated))
-#define ET_EXPERIMENTAL \
-  __attribute__((       \
+#define ET_EXPERIMENTAL                                                        \
+  __attribute__((                                                              \
       deprecated("This API is experimental and may change without notice.")))
 #define ET_FALLTHROUGH __attribute__((fallthrough))
 #define ET_NODISCARD __attribute__((warn_unused_result))
@@ -120,7 +120,7 @@
  * Annotation marking a function as printf-like, providing compiler support
  * for format string argument checking.
  */
-#define ET_PRINTFLIKE(_string_index, _va_index) \
+#define ET_PRINTFLIKE(_string_index, _va_index)                                \
   __attribute__((format(printf, _string_index, _va_index)))
 
 /// Name of the source file without a directory string.

@@ -33,14 +33,18 @@ class DetectorUtils {
       return angle
     }
 
-    private fun midpoint(p1: BBoxPoint, p2: BBoxPoint): BBoxPoint {
+    private fun midpoint(
+      p1: BBoxPoint,
+      p2: BBoxPoint,
+    ): BBoxPoint {
       val midpoint = BBoxPoint((p1.x + p2.x) / 2, (p1.y + p2.y) / 2)
       return midpoint
     }
 
-    private fun distanceBetweenPoints(p1: BBoxPoint, p2: BBoxPoint): Double {
-      return sqrt((p1.x - p2.x).pow(2.0) + (p1.y - p2.y).pow(2.0))
-    }
+    private fun distanceBetweenPoints(
+      p1: BBoxPoint,
+      p2: BBoxPoint,
+    ): Double = sqrt((p1.x - p2.x).pow(2.0) + (p1.y - p2.y).pow(2.0))
 
     private fun centerOfBox(box: OCRbBox): BBoxPoint {
       val p1 = box.bBox[0]
@@ -76,8 +80,10 @@ class DetectorUtils {
       return minSideLength
     }
 
-
-    private fun calculateMinimalDistanceBetweenBoxes(box1: OCRbBox, box2: OCRbBox): Double {
+    private fun calculateMinimalDistanceBetweenBoxes(
+      box1: OCRbBox,
+      box2: OCRbBox,
+    ): Double {
       var minDistance = Double.MAX_VALUE
       for (i in 0 until 4) {
         for (j in 0 until 4) {
@@ -91,16 +97,20 @@ class DetectorUtils {
       return minDistance
     }
 
-    private fun rotateBox(box: OCRbBox, angle: Double): OCRbBox {
+    private fun rotateBox(
+      box: OCRbBox,
+      angle: Double,
+    ): OCRbBox {
       val center = centerOfBox(box)
       val radians = angle * Math.PI / 180
-      val newBBox = box.bBox.map { point ->
-        val translatedX = point.x - center.x
-        val translatedY = point.y - center.y
-        val rotatedX = translatedX * cos(radians) - translatedY * sin(radians)
-        val rotatedY = translatedX * sin(radians) + translatedY * cos(radians)
-        BBoxPoint(rotatedX + center.x, rotatedY + center.y)
-      }
+      val newBBox =
+        box.bBox.map { point ->
+          val translatedX = point.x - center.x
+          val translatedY = point.y - center.y
+          val rotatedX = translatedX * cos(radians) - translatedY * sin(radians)
+          val rotatedY = translatedX * sin(radians) + translatedY * cos(radians)
+          BBoxPoint(rotatedX + center.x, rotatedY + center.y)
+        }
 
       return OCRbBox(newBBox, box.angle)
     }
@@ -139,7 +149,10 @@ class DetectorUtils {
       return OCRbBox(listOf(topLeft, topRight, bottomRight, bottomLeft), box.angle)
     }
 
-    private fun mergeRotatedBoxes(box1: OCRbBox, box2: OCRbBox): OCRbBox {
+    private fun mergeRotatedBoxes(
+      box1: OCRbBox,
+      box2: OCRbBox,
+    ): OCRbBox {
       val orderedBox1 = orderPointsClockwise(box1)
       val orderedBox2 = orderPointsClockwise(box2)
 
@@ -170,11 +183,11 @@ class DetectorUtils {
     private fun removeSmallBoxes(
       boxes: MutableList<OCRbBox>,
       minSideThreshold: Int,
-      maxSideThreshold: Int
-    ): MutableList<OCRbBox> {
-      return boxes.filter { minSideLength(it) > minSideThreshold && maxSideLength(it) > maxSideThreshold }
+      maxSideThreshold: Int,
+    ): MutableList<OCRbBox> =
+      boxes
+        .filter { minSideLength(it) > minSideThreshold && maxSideLength(it) > maxSideThreshold }
         .toMutableList()
-    }
 
     private fun minimumYFromBox(box: List<BBoxPoint>): Double = box.minOf { it.y }
 
@@ -198,31 +211,42 @@ class DetectorUtils {
       val dx = abs(midpoint2.x - midpoint1.x)
       val line = MatOfFloat4()
 
-      val isVertical = if (dx < 20) {
-        for (point in arrayOf(midpoint1, midpoint2)) {
-          val temp = point.x
-          point.x = point.y
-          point.y = temp
+      val isVertical =
+        if (dx < 20) {
+          for (point in arrayOf(midpoint1, midpoint2)) {
+            val temp = point.x
+            point.x = point.y
+            point.y = temp
+          }
+          Imgproc.fitLine(
+            MatOfPoint2f(
+              Point(midpoint1.x, midpoint1.y),
+              Point(midpoint2.x, midpoint2.y),
+            ),
+            line,
+            Imgproc.DIST_L2,
+            0.0,
+            0.01,
+            0.01,
+          )
+          true
+        } else {
+          Imgproc.fitLine(
+            MatOfPoint2f(
+              Point(midpoint1.x, midpoint1.y),
+              Point(midpoint2.x, midpoint2.y),
+            ),
+            line,
+            Imgproc.DIST_L2,
+            0.0,
+            0.01,
+            0.01,
+          )
+          false
         }
-        Imgproc.fitLine(
-          MatOfPoint2f(
-            Point(midpoint1.x, midpoint1.y),
-            Point(midpoint2.x, midpoint2.y)
-          ), line, Imgproc.DIST_L2, 0.0, 0.01, 0.01
-        )
-        true
-      } else {
-        Imgproc.fitLine(
-          MatOfPoint2f(
-            Point(midpoint1.x, midpoint1.y),
-            Point(midpoint2.x, midpoint2.y)
-          ), line, Imgproc.DIST_L2, 0.0, 0.01, 0.01
-        )
-        false
-      }
 
-      val m = line.get(1, 0)[0] / line.get(0, 0)[0]  // slope
-      val c = line.get(3, 0)[0] - m * line.get(2, 0)[0]  // intercept
+      val m = line.get(1, 0)[0] / line.get(0, 0)[0] // slope
+      val c = line.get(3, 0)[0] - m * line.get(2, 0)[0] // intercept
       return LineInfo(m, c, isVertical)
     }
 
@@ -233,7 +257,7 @@ class DetectorUtils {
       isVertical: Boolean,
       m: Double,
       c: Double,
-      centerThreshold: Double
+      centerThreshold: Double,
     ): Pair<Int, Double>? {
       var smallestDistance = Double.MAX_VALUE
       var idx = -1
@@ -249,10 +273,12 @@ class DetectorUtils {
           return@forEachIndexed
         }
         boxHeight = minSideLength(box)
-        val lineDistance = if (isVertical)
-          abs(centerOfProcessedBox.x - (m * centerOfProcessedBox.y + c))
-        else
-          abs(centerOfProcessedBox.y - (m * centerOfProcessedBox.x + c))
+        val lineDistance =
+          if (isVertical) {
+            abs(centerOfProcessedBox.x - (m * centerOfProcessedBox.y + c))
+          } else {
+            abs(centerOfProcessedBox.y - (m * centerOfProcessedBox.x + c))
+          }
 
         if (lineDistance < boxHeight * centerThreshold) {
           idx = i
@@ -263,7 +289,10 @@ class DetectorUtils {
       return if (idx == -1) null else Pair(idx, boxHeight)
     }
 
-    private fun createMaskFromLabels(labels: Mat, labelValue: Int): Mat {
+    private fun createMaskFromLabels(
+      labels: Mat,
+      labelValue: Int,
+    ): Mat {
       val mask = Mat.zeros(labels.size(), CvType.CV_8U)
 
       Core.compare(labels, Scalar(labelValue.toDouble()), mask, Core.CMP_EQ)
@@ -271,7 +300,10 @@ class DetectorUtils {
       return mask
     }
 
-    fun interleavedArrayToMats(array: FloatArray, size: Size): Pair<Mat, Mat> {
+    fun interleavedArrayToMats(
+      array: FloatArray,
+      size: Size,
+    ): Pair<Mat, Mat> {
       val mat1 = Mat(size.height.toInt(), size.width.toInt(), CvType.CV_32F)
       val mat2 = Mat(size.height.toInt(), size.width.toInt(), CvType.CV_32F)
 
@@ -293,7 +325,7 @@ class DetectorUtils {
       affinityMap: Mat,
       textThreshold: Double,
       linkThreshold: Double,
-      lowTextThreshold: Double
+      lowTextThreshold: Double,
     ): MutableList<OCRbBox> {
       val imgH = textMap.rows()
       val imgW = textMap.cols()
@@ -335,10 +367,11 @@ class DetectorUtils {
         val sy = max(y - dilationRadius, 0)
         val ey = min(y + h + dilationRadius + 1, imgH)
         val roi = Rect(sx, sy, ex - sx, ey - sy)
-        val kernel = Imgproc.getStructuringElement(
-          Imgproc.MORPH_RECT,
-          Size((1 + dilationRadius).toDouble(), (1 + dilationRadius).toDouble())
-        )
+        val kernel =
+          Imgproc.getStructuringElement(
+            Imgproc.MORPH_RECT,
+            Size((1 + dilationRadius).toDouble(), (1 + dilationRadius).toDouble()),
+          )
         val roiSegMap = Mat(segMap, roi)
         Imgproc.dilate(roiSegMap, roiSegMap, kernel)
 
@@ -348,7 +381,7 @@ class DetectorUtils {
           contours,
           Mat(),
           Imgproc.RETR_EXTERNAL,
-          Imgproc.CHAIN_APPROX_SIMPLE
+          Imgproc.CHAIN_APPROX_SIMPLE,
         )
         if (contours.isNotEmpty()) {
           val minRect = Imgproc.minAreaRect(MatOfPoint2f(*contours[0].toArray()))
@@ -363,7 +396,10 @@ class DetectorUtils {
       return detectedBoxes
     }
 
-    fun restoreBoxRatio(boxes: MutableList<OCRbBox>, restoreRatio: Float): MutableList<OCRbBox> {
+    fun restoreBoxRatio(
+      boxes: MutableList<OCRbBox>,
+      restoreRatio: Float,
+    ): MutableList<OCRbBox> {
       for (box in boxes) {
         for (b in box.bBox) {
           b.x *= restoreRatio
@@ -381,7 +417,7 @@ class DetectorUtils {
       heightThreshold: Double,
       minSideThreshold: Int,
       maxSideThreshold: Int,
-      maxWidth: Int
+      maxWidth: Int,
     ): MutableList<OCRbBox> {
       boxes.sortByDescending { maxSideLength(it) }
       var mergedArray = mutableListOf<OCRbBox>()
@@ -403,10 +439,16 @@ class DetectorUtils {
             lineAngle = -90.0
           }
 
-          val closestBoxInfo = findClosestBox(
-            boxes, ignoredIds, currentBox,
-            isVertical, slope, intercept, centerThreshold
-          ) ?: break
+          val closestBoxInfo =
+            findClosestBox(
+              boxes,
+              ignoredIds,
+              currentBox,
+              isVertical,
+              slope,
+              intercept,
+              centerThreshold,
+            ) ?: break
 
           val candidateIdx = closestBoxInfo.first
           var candidateBox = boxes[candidateIdx]
@@ -418,7 +460,9 @@ class DetectorUtils {
           val minDistance =
             calculateMinimalDistanceBetweenBoxes(candidateBox, currentBox)
           val mergedHeight = minSideLength(currentBox)
-          if (minDistance < distanceThreshold * candidateHeight && abs(mergedHeight - candidateHeight) < candidateHeight * heightThreshold) {
+          if (minDistance < distanceThreshold * candidateHeight &&
+            abs(mergedHeight - candidateHeight) < candidateHeight * heightThreshold
+          ) {
             currentBox = mergeRotatedBoxes(currentBox, candidateBox)
             boxes.removeAt(candidateIdx)
             ignoredIds.clear()
@@ -464,5 +508,5 @@ data class OCRbBox(
 data class LineInfo(
   val slope: Double,
   val intercept: Double,
-  val isVertical: Boolean
+  val isVertical: Boolean,
 )

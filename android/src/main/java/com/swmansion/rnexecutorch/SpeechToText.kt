@@ -9,19 +9,26 @@ import com.swmansion.rnexecutorch.models.speechToText.WhisperPreprocessor
 import com.swmansion.rnexecutorch.utils.ArrayUtils
 import com.swmansion.rnexecutorch.utils.ETError
 
-class SpeechToText(reactContext: ReactApplicationContext) :
-  NativeSpeechToTextSpec(reactContext) {
+class SpeechToText(
+  reactContext: ReactApplicationContext,
+) : NativeSpeechToTextSpec(reactContext) {
   private var whisperPreprocessor = WhisperPreprocessor(reactContext)
   private var whisperEncoder = WhisperEncoder(reactContext)
   private var whisperDecoder = WhisperDecoder(reactContext)
-  private var START_TOKEN = 50257
-  private var EOS_TOKEN = 50256
 
   companion object {
     const val NAME = "SpeechToText"
+
+    const val START_TOKEN = 50257
+    const val EOS_TOKEN = 50256
   }
 
-  override fun loadModule(preprocessorSource: String, encoderSource: String, decoderSource: String, promise: Promise) {
+  override fun loadModule(
+    preprocessorSource: String,
+    encoderSource: String,
+    decoderSource: String,
+    promise: Promise,
+  ) {
     try {
       this.whisperPreprocessor.loadModel(preprocessorSource)
       this.whisperEncoder.loadModel(encoderSource)
@@ -32,13 +39,16 @@ class SpeechToText(reactContext: ReactApplicationContext) :
     }
   }
 
-  override fun generate(waveform: ReadableArray, promise: Promise) {
+  override fun generate(
+    waveform: ReadableArray,
+    promise: Promise,
+  ) {
     val logMel = this.whisperPreprocessor.runModel(waveform)
     val encoding = this.whisperEncoder.runModel(logMel)
-    val generatedTokens = mutableListOf(this.START_TOKEN)
+    val generatedTokens = mutableListOf(START_TOKEN)
     var lastToken = 0
     Thread {
-      while (lastToken != this.EOS_TOKEN) {
+      while (lastToken != EOS_TOKEN) {
         this.whisperDecoder.setGeneratedTokens(generatedTokens)
         lastToken = this.whisperDecoder.runModel(encoding)
         emitOnToken(lastToken.toDouble())
@@ -49,7 +59,5 @@ class SpeechToText(reactContext: ReactApplicationContext) :
     }.start()
   }
 
-  override fun getName(): String {
-    return NAME
-  }
+  override fun getName(): String = NAME
 }

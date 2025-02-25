@@ -9,9 +9,9 @@
 #pragma once
 
 #include "tokenizer.h"
-#include <re2/re2.h>
 #include <memory>
 #include <optional>
+#include <re2/re2.h>
 #include <unordered_map>
 
 namespace executorch {
@@ -23,42 +23,36 @@ using Decoder = std::unordered_map<uint64_t, std::string>;
 using Re2UPtr = std::unique_ptr<re2::RE2>;
 
 class Tiktoken : public Tokenizer {
- public:
+public:
   /**
    * @param[in] special_tokens List of special tokens including bos, eos;
    * @param[in] bos_token_index Index of the bos token in special_tokens;
    * @param[in] eos_token_index Index of the eos token in special_tokens.
    */
-  explicit Tiktoken(
-      std::unique_ptr<std::vector<std::string>> special_tokens,
-      size_t bos_token_index,
-      size_t eos_token_index);
+  explicit Tiktoken(std::unique_ptr<std::vector<std::string>> special_tokens,
+                    size_t bos_token_index, size_t eos_token_index);
 
-  ::executorch::runtime::Error load(const std::string& tokenizer_path) override;
+  ::executorch::runtime::Error load(const std::string &tokenizer_path) override;
 
   ::executorch::runtime::Result<std::vector<uint64_t>>
-  encode(const std::string& input, int8_t bos, int8_t eos) const override;
+  encode(const std::string &input, int8_t bos, int8_t eos) const override;
 
-  ::executorch::runtime::Result<std::string> decode(
-      uint64_t prev_token,
-      uint64_t token) const override;
+  ::executorch::runtime::Result<std::string>
+  decode(uint64_t prev_token, uint64_t token) const override;
 
- private:
+private:
   template <typename T>
   std::pair<std::optional<std::string>, re2::StringPiece>
-  _split_with_allowed_special_token(
-      re2::StringPiece& input,
-      const T& allowed_special) const;
+  _split_with_allowed_special_token(re2::StringPiece &input,
+                                    const T &allowed_special) const;
 
-  void _encode(
-      re2::StringPiece& input,
-      std::vector<uint64_t>& ret,
-      uint64_t& last_piece_token_len) const;
+  void _encode(re2::StringPiece &input, std::vector<uint64_t> &ret,
+               uint64_t &last_piece_token_len) const;
 
   template <typename T>
-  std::pair<std::vector<uint64_t>, uint64_t> _encode_with_special_token(
-      const std::string& text,
-      const T& allowed_special) const;
+  std::pair<std::vector<uint64_t>, uint64_t>
+  _encode_with_special_token(const std::string &text,
+                             const T &allowed_special) const;
 
   Encoder _build_special_token_encoder(ssize_t num_base_tokens) const;
 

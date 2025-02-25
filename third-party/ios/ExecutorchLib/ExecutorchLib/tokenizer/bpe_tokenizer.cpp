@@ -17,14 +17,14 @@ namespace executorch {
 namespace extension {
 namespace llm {
 
-static int compare_tokens(const void* a, const void* b) {
-  if (((TokenIndex*)a)->str == nullptr) {
+static int compare_tokens(const void *a, const void *b) {
+  if (((TokenIndex *)a)->str == nullptr) {
     return -1;
   }
-  if (((TokenIndex*)b)->str == nullptr) {
+  if (((TokenIndex *)b)->str == nullptr) {
     return 1;
   }
-  return strcmp(((TokenIndex*)a)->str, ((TokenIndex*)b)->str);
+  return strcmp(((TokenIndex *)a)->str, ((TokenIndex *)b)->str);
 }
 
 BPETokenizer::BPETokenizer() : Tokenizer() {
@@ -44,13 +44,13 @@ BPETokenizer::BPETokenizer() : Tokenizer() {
  * @param tokenizer_path The path to the tokenizer file.
  * @return Error
  */
-Error BPETokenizer::load(const std::string& tokenizer_path) {
+Error BPETokenizer::load(const std::string &tokenizer_path) {
   if (initialized_) {
     ET_LOG(Info, "Tokenizer already initialized");
     return Error::Ok;
   }
   // read in the file
-  FILE* file = fopen(tokenizer_path.c_str(), "rb");
+  FILE *file = fopen(tokenizer_path.c_str(), "rb");
   if (!file) {
     ET_LOG(Error, "couldn't load %s", tokenizer_path.c_str());
     return Error::InvalidArgument;
@@ -58,10 +58,10 @@ Error BPETokenizer::load(const std::string& tokenizer_path) {
   int32_t metadata[4];
   for (int i = 0; i < 4; i++) {
     if (fread(metadata + i, sizeof(int32_t), 1, file) != 1) {
-      ET_LOG(
-          Error,
-          "Failed to read the metadata at position %d, the tokenizer file is not valid!",
-          i);
+      ET_LOG(Error,
+             "Failed to read the metadata at position %d, the tokenizer file "
+             "is not valid!",
+             i);
       return Error::InvalidArgument;
     }
   }
@@ -75,7 +75,7 @@ Error BPETokenizer::load(const std::string& tokenizer_path) {
   max_token_length_ = metadata[3];
 
   // allocate space for the vocabulary
-  vocab_ = std::make_unique<char*[]>(vocab_size_);
+  vocab_ = std::make_unique<char *[]>(vocab_size_);
   vocab_scores_ = std::make_unique<float[]>(vocab_size_);
   sorted_vocab_ = std::make_unique<TokenIndex[]>(vocab_size_);
 
@@ -96,11 +96,8 @@ Error BPETokenizer::load(const std::string& tokenizer_path) {
     }
     vocab_[i] = new char[len + 1];
     if (fread(vocab_[i], len, 1, file) != 1) {
-      ET_LOG(
-          Error,
-          "Failed to read the word, total length %d, index %d\n",
-          len,
-          i);
+      ET_LOG(Error, "Failed to read the word, total length %d, index %d\n", len,
+             i);
       return Error::InvalidArgument;
     }
     vocab_[i][len] = '\0'; // add the string terminating token
@@ -131,10 +128,10 @@ BPETokenizer::~BPETokenizer() {
  * @return Result<std::string> A pointer to the string representation of the
  * token.
  */
-Result<std::string> BPETokenizer::decode(uint64_t prev_token, uint64_t token)
-    const {
+Result<std::string> BPETokenizer::decode(uint64_t prev_token,
+                                         uint64_t token) const {
   ET_CHECK_OK_OR_RETURN_ERROR(Tokenizer::decode_verify(token));
-  const char* piece = vocab_[token];
+  const char *piece = vocab_[token];
   // following BOS token, sentencepiece decoder strips any leading
   // whitespace
   if (prev_token == bos_tok_ && piece[0] == ' ') {
@@ -144,19 +141,19 @@ Result<std::string> BPETokenizer::decode(uint64_t prev_token, uint64_t token)
   // parse this and convert and return the actual byte
   unsigned char byte_val;
   if (sscanf(piece, "<0x%02hhX>", &byte_val) == 1) {
-    piece = (char*)byte_pieces_ + byte_val * 2;
+    piece = (char *)byte_pieces_ + byte_val * 2;
   }
   std::string res(piece);
   return res;
 }
 
-static int32_t
-str_lookup(const char* str, TokenIndex* sorted_vocab, int32_t vocab_size) {
+static int32_t str_lookup(const char *str, TokenIndex *sorted_vocab,
+                          int32_t vocab_size) {
   // efficiently find the perfect match for str in vocab, return its index or -1
   // if not found
   TokenIndex tok = {.str = str}; // acts as the key to search for
-  TokenIndex* res = (TokenIndex*)bsearch(
-      &tok, sorted_vocab, vocab_size, sizeof(TokenIndex), compare_tokens);
+  TokenIndex *res = (TokenIndex *)bsearch(&tok, sorted_vocab, vocab_size,
+                                          sizeof(TokenIndex), compare_tokens);
   return res != nullptr ? res->id : -1;
 }
 
@@ -171,7 +168,7 @@ str_lookup(const char* str, TokenIndex* sorted_vocab, int32_t vocab_size) {
  * @return Result<std::vector<uint64_t>>
  */
 Result<std::vector<uint64_t>>
-BPETokenizer::encode(const std::string& text, int8_t bos, int8_t eos) const {
+BPETokenizer::encode(const std::string &text, int8_t bos, int8_t eos) const {
   if (!initialized_) {
     ET_LOG(Error, "Tokenizer not initialized");
     return Error::NotSupported;
@@ -187,7 +184,7 @@ BPETokenizer::encode(const std::string& text, int8_t bos, int8_t eos) const {
   // create a temporary buffer that will store merge candidates of always two
   // consecutive tokens *2 for concat, +1 for null terminator +2 for UTF8 (in
   // case max_token_length is 1)
-  char* str_buffer = new char[max_token_length_ * 2 + 1 + 2];
+  char *str_buffer = new char[max_token_length_ * 2 + 1 + 2];
   size_t str_len = 0;
 
   // start at 0 tokens
@@ -208,7 +205,7 @@ BPETokenizer::encode(const std::string& text, int8_t bos, int8_t eos) const {
   // TODO: pretty sure this isn't correct in the general case but I don't have
   // the energy to read more of the sentencepiece code to figure out what it's
   // doing
-  const char* space = " ";
+  const char *space = " ";
   if (text[0] != '\0') {
     int dummy_prefix = str_lookup(space, sorted_vocab_.get(), vocab_size_);
     tokens.push_back(dummy_prefix);
@@ -223,7 +220,7 @@ BPETokenizer::encode(const std::string& text, int8_t bos, int8_t eos) const {
   // U+10000  U+10FFFF    11110xxx  10xxxxxx  10xxxxxx  10xxxxxx
 
   // process the raw (UTF-8) byte sequence of the input string
-  for (const char* c = text.c_str(); *c != '\0'; c++) {
+  for (const char *c = text.c_str(); *c != '\0'; c++) {
     // reset buffer if the current byte is ASCII or a leading byte
     // 0xC0 is 11000000, so (*c & 0xC0) keeps the first 2 bits and zeros the
     // rest 0x80 is 10000000 in UTF-8, all continuation bytes start with "10" in
@@ -273,12 +270,8 @@ BPETokenizer::encode(const std::string& text, int8_t bos, int8_t eos) const {
 
     for (int i = 0; i < tokens.size() - 1; i++) {
       // check if we can merge the pair (tokens[i], tokens[i+1])
-      snprintf(
-          str_buffer,
-          max_token_length_ * 2 + 3,
-          "%s%s",
-          vocab_[tokens[i]],
-          vocab_[tokens[i + 1]]);
+      snprintf(str_buffer, max_token_length_ * 2 + 3, "%s%s", vocab_[tokens[i]],
+               vocab_[tokens[i + 1]]);
       int id = str_lookup(str_buffer, sorted_vocab_.get(), vocab_size_);
       if (id != -1 && vocab_scores_[id] > best_score) {
         // this merge pair exists in vocab! record its score and position
