@@ -130,16 +130,8 @@ class _SpeechToTextModule {
     return await SpeechToText.generate(waveform);
   }
 
-  async loadModule(
-    preprocessorSource: string | number,
-    encoderSource: string | number,
-    decoderSource: string | number
-  ) {
-    return await SpeechToText.loadModule(
-      preprocessorSource,
-      encoderSource,
-      decoderSource
-    );
+  async loadModule(modelSources: (string | number)[]) {
+    return await SpeechToText.loadModule(modelSources);
   }
 }
 

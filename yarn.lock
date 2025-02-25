@@ -10147,12 +10147,12 @@ __metadata:
   linkType: hard
 
 "react-native-audio-api@npm:^0.4.4":
-  version: 0.4.9
-  resolution: "react-native-audio-api@npm:0.4.9"
+  version: 0.4.10
+  resolution: "react-native-audio-api@npm:0.4.10"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 6a46cade4aa8575a9c239927ebc599ee7d0d5978dab720f0d576c3f95307b0cf5d5444489454b3d0d69c660f5d19d022aa05e46fcda70de56f707ae7a59a948f
+  checksum: abfa8492251bbed1d1a5ec80ead4513f59a0137f1330333f5c547139ca12d5020e86c3a3304b584023fcb27a0680e45b1a5fbe49f2ade0ac2057f0df17760119
   languageName: node
   linkType: hard
 

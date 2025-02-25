@@ -1,17 +1,19 @@
-#ifndef Whisper_hpp
-#define Whisper_hpp
+#ifndef Moonshine_hpp
+#define Moonshine_hpp
 
-#import "ExecutorchLib/ETModel.h"
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+#import "MoonshineEncoder.hpp"
+#import "Moonshinedecoder.hpp"
 
-@interface Whisper : NSObject
+@interface Moonshine : NSObject
 
 - (NSArray *)encode:(NSArray *)waveform;
 - (NSArray *)decode:(NSArray *)prevTokens encoderLastHiddenState:(NSArray *)encoderLastHiddenState;
 - (void)loadModules:(NSString[] *)modelSources;
+
 @end
 
 
 
-#endif /* Whisper_hpp */
+#endif /* Moonshine_hpp */

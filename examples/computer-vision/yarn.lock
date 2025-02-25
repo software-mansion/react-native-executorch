@@ -3385,7 +3385,7 @@ __metadata:
     metro-config: ^0.81.0
     react: 18.3.1
     react-native: 0.76.3
-    react-native-executorch: ^0.2.0
+    react-native-executorch: /Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.44.tgz
     react-native-image-picker: ^7.2.2
     react-native-loading-spinner-overlay: ^3.0.1
     react-native-reanimated: ^3.16.3
@@ -4021,6 +4021,18 @@ __metadata:
     expo: "*"
     react-native: "*"
   checksum: 96ef0469771f927dc4224a0ade609994c50638364335d56e9881506f56f5aea176b70e62bc5f5aedb5884b818e952ed76603d00ca6d9def21dc403c80ea2c297
+  languageName: node
+  linkType: hard
+
+"expo-file-system@npm:^18.0.10":
+  version: 18.0.11
+  resolution: "expo-file-system@npm:18.0.11"
+  dependencies:
+    web-streams-polyfill: ^3.3.2
+  peerDependencies:
+    expo: "*"
+    react-native: "*"
+  checksum: 2cbb30eee9b12a3eff867a425900f6bef47d4417c39744c24ab1d47ef7398c9cb952716db8dd59a4ddc474a9dab4bcfa903412c10a56144d64cb00a9afcc8c56
   languageName: node
   linkType: hard
 
@@ -6841,13 +6853,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-executorch@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "react-native-executorch@npm:0.2.0"
+"react-native-audio-api@npm:^0.4.4":
+  version: 0.4.10
+  resolution: "react-native-audio-api@npm:0.4.10"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 5a85299f05f336034e1fc99c18e9ce023714559def5a5786822f4ab08d5efa28da2a4419411fb90e66e3bffd4a63687d62bd96a1b944a876ebec572282a2e6ee
+  checksum: abfa8492251bbed1d1a5ec80ead4513f59a0137f1330333f5c547139ca12d5020e86c3a3304b584023fcb27a0680e45b1a5fbe49f2ade0ac2057f0df17760119
+  languageName: node
+  linkType: hard
+
+"react-native-executorch@file:/Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.44.tgz::locator=computer-vision%40workspace%3A.":
+  version: 0.3.44
+  resolution: "react-native-executorch@file:/Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.44.tgz::locator=computer-vision%40workspace%3A."
+  dependencies:
+    expo-file-system: ^18.0.10
+    react-native-audio-api: ^0.4.4
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 601c8ec26788e369c5d7f5931ae48185b46b1a7e998760917a911f570fac72b1cd3c14c90db5dba93b56d014f2850bdc5a5594b3dee2228efe1d0242c1e7c645
   languageName: node
   linkType: hard
 

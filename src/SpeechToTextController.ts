@@ -1,74 +1,44 @@
-import {
-  AudioBufferSourceNode,
-  AudioContext,
-  AudioBuffer,
-} from 'react-native-audio-api';
+import { AudioContext, AudioBuffer } from 'react-native-audio-api';
 import { _SpeechToTextModule } from './native/RnExecutorchModules';
-import { EventSubscription } from 'react-native';
-import { SpeechToText } from './native/RnExecutorchModules';
+import { Image } from 'react-native';
 import * as FileSystem from 'expo-file-system';
-import { fetchResource } from './utils/fetchResource';
-import decoder from './decoders/WhisperDecodings';
 
 type ModelSource = string | number;
+const SECOND = 16_000;
+const SAMPLE_RATE = 16_000;
 
 export class SpeechToTextController {
+  private nativeModule: _SpeechToTextModule;
   // Audio config
   private audioContext: AudioContext;
   private audioBuffer: AudioBuffer | null = null;
-  private audioBufferSource: AudioBufferSourceNode | null = null;
+  // private isReady: boolean = false;
+  isGenerating: boolean = false;
+  // private generatedTokens: number[] = [];
+  // private tokenListener: EventSubscription | null = null;
+  private chunks: number[][] = [];
+  private window_size = SECOND * 7;
+  private overlap_seconds = 1.2;
+  isReady = false;
+  // private isGenerating = false;
 
-  // Native modules / listeners
-  private nativeModule: _SpeechToTextModule;
-  // @ts-ignore
-  private tokenListener: EventSubscription | null = null;
-
-  // State
-  public generatedTokens: string[] = [];
-  // @ts-ignore
-  public isReady: boolean;
-  public isGenerating: boolean;
-
-  // User-defined variables
-  public onTokenCallback: (token: number) => any;
-
-  constructor({
-    nativeModule = new _SpeechToTextModule(),
-    // @ts-ignore
-    onTokenCallback = (token: number) => {
-      return token;
-    },
-  } = {}) {
-    this.nativeModule = nativeModule;
-    this.isReady = false;
-    this.isGenerating = false;
-    this.audioContext = new AudioContext(16e3); // Passing default SR
-    this.onTokenCallback = onTokenCallback;
+  constructor({} = {}) {
+    this.audioContext = new AudioContext({ sampleRate: SAMPLE_RATE });
+    this.nativeModule = new _SpeechToTextModule();
   }
 
-  public async loadModel(
-    preprocessorSource: ModelSource,
-    encoderSource: ModelSource,
-    decoderSource: ModelSource
-  ) {
+  public async loadModel(modeuleSources: ModelSource[]) {
+    let modelPaths: string[] = [];
+    for (let moduleSource in modeuleSources) {
+      if (typeof moduleSource === 'number') {
+        modelPaths.push(Image.resolveAssetSource(moduleSource).uri);
+      } else {
+        modelPaths.push(moduleSource);
+      }
+    }
     try {
       this.isReady = false;
-      const preprocessorPath = await fetchResource(preprocessorSource);
-      const encoderPath = await fetchResource(encoderSource);
-      const decoderPath = await fetchResource(decoderSource);
-      await this.nativeModule.loadModule(
-        preprocessorPath,
-        encoderPath,
-        decoderPath
-      );
-      this.tokenListener = SpeechToText.onToken((token: number | undefined) => {
-        if (!token) {
-          return;
-        }
-        let currentToken = decoder[token]?.replaceAll('Ġ', ' ');
-        this.generatedTokens.push(currentToken!!);
-        this.onTokenCallback(token);
-      });
+      await this.nativeModule.loadModule(modelPaths);
       this.isReady = true;
     } catch (e) {
       console.error('Error when loading the SpeechToTextController!', e);
@@ -84,46 +54,51 @@ export class SpeechToTextController {
     });
   }
 
-  private setAudioBufferSourceNode() {
-    if (!this.audioBuffer) {
-      throw new Error(
-        'setAudioBufferSourceNode() called before AudioBuffer was initialized!'
+  async loadAudioWeb(url: string) {
+    this.audioBuffer = await FileSystem.downloadAsync(
+      url,
+      FileSystem.documentDirectory + 'audio.wav'
+    ).then(({ uri }) => this.audioContext.decodeAudioDataSource(uri));
+  }
+
+  async loadAudio(url: string) {
+    await this.setAudioBufferFromFile(url);
+  }
+
+  private chunkWaveform(waveform: number[]) {
+    for (let i = 0; i < Math.ceil(waveform.length / this.window_size); i++) {
+      this.chunks.push(
+        waveform.slice(
+          Math.max(this.window_size * i - this.overlap_seconds * SECOND, 0),
+          Math.min(
+            this.window_size * (i + 1) + this.overlap_seconds * SECOND,
+            waveform.length
+          )
+        )
       );
     }
-    this.audioBufferSource = this.audioContext.createBufferSource();
-    this.audioBufferSource.buffer = this.audioBuffer;
   }
 
-  private async loadAudio(url: string) {
-    await this.setAudioBufferFromFile(url);
-    this.setAudioBufferSourceNode();
-  }
-
-  public async startTranscription(url: string) {
-    if (this.isGenerating) {
-      // TODO
-      return;
-    }
-    try {
-      await this.loadAudio(url);
-    } catch (e) {
-      // TODO
-      throw Error('An error ocurred when loading audio! ' + e);
+  transcribe(waveform: number[] | null) {
+    if (waveform === null) {
+      waveform = this.audioBuffer!.getChannelData(0);
     }
 
-    if (
-      !this.audioBufferSource ||
-      !this.audioBufferSource ||
-      !this.audioBuffer
-    ) {
-      // TODO
-      throw Error('An error ocurred when loading audio!');
-    }
+    // this.tokenListener = SpeechToText.onToken((token: string | undefined) => {
+    //   if (!token) {
+    //     return;
+    //   }
+    //   // this.onTokenCallback(token);
+    //   if (token === 'EOS') {
+    //     this.isGenerating = false;
+    //   } else {
+    //     this.generatedTokens.push(Number(token));
+    //   }
+    // });
 
-    const waveform = this.audioBuffer.getChannelData(0);
+    this.chunkWaveform(waveform);
+    this.nativeModule.generate(waveform);
+    // this.nativeModule.generateSync(waveform);
     this.isGenerating = true;
-    await this.nativeModule.generate(waveform);
-    this.isGenerating = false;
-    this.audioBufferSource.start();
   }
 }
