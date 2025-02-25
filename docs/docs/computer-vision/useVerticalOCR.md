@@ -21,7 +21,9 @@ import { useVerticalOCR, VERTICAL_DETECTORS, VERTICAL_CRNN_RECOGNIZERS_EN } from
 function App() {
   const model = useVerticalOCR({
     detectorSources: VERTICAL_DETECTORS,
-    recognizerSources: VERTICAL_CRNN_RECOGNIZERS_EN
+    recognizerSources: VERTICAL_CRNN_RECOGNIZERS_EN,
+    language: "en",
+    independentCharacters: True,
   });
 
   ...
@@ -67,6 +69,8 @@ interface RecognizerSources: {
 **`detectorSources`** - An object that specifies the location of the detectors binary files. For more information, take a look at [loading models](../fundamentals/loading-models.md) section.
 
 **`recognizerSources`** - An object that specifies the locations of the recognizers binary files. For more information, take a look at [loading models](../fundamentals/loading-models.md) section.
+
+**`language`** - A parameter that specifies the language of the text to be recognized by the OCR.
 
 **`independentCharacters`** – A boolean parameter that indicates whether the text in the image consists of a random sequence of characters. If set to true, the algorithm will scan each character individually instead of reading them as continuous text.
 
@@ -119,6 +123,8 @@ function App() {
   const model = useVerticalOCR({
     detectorSources: VERTICAL_DETECTORS,
     recognizerSources: VERTICAL_CRNN_RECOGNIZERS_EN,
+    language: 'en',
+    independentCharacters: True,
   });
 
   const runModel = async () => {

@@ -17,7 +17,8 @@ import { useOCR, CRAFT_800, CRNN_RECOGNIZERS_EN } from 'react-native-executorch'
 function App() {
   const model = useOCR({
     detectorSource: CRAFT_800,
-    recognizerSources: CRNN_RECOGNIZERS_EN
+    recognizerSources: CRNN_RECOGNIZERS_EN,
+    language: "en",
   });
 
   ...
@@ -59,6 +60,8 @@ interface RecognizerSources: {
 **`detectorSource`** - A string that specifies the location of the detector binary. For more information, take a look at [loading models](../fundamentals/loading-models.md) section.
 
 **`recognizerSources`** - An object that specifies locations of the recognizers binary files. For more information, take a look at [loading models](../fundamentals/loading-models.md) section.
+
+**`language`** - A parameter that specifies the language of the text to be recognized by the OCR.
 
 ### Returns
 
@@ -109,6 +112,7 @@ function App() {
   const model = useOCR({
     detectorSource: CRAFT_800,
     recognizerSources: CRNN_RECOGNIZERS_EN,
+    language: 'en',
   });
 
   const runModel = async () => {
