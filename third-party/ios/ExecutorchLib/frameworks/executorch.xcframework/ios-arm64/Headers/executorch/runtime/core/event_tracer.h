@@ -6,11 +6,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+#include <cstdint>
 #include <executorch/runtime/core/array_ref.h>
 #include <executorch/runtime/core/evalue.h>
 #include <executorch/runtime/platform/platform.h>
 #include <stdlib.h>
-#include <cstdint>
 
 #pragma once
 
@@ -113,7 +113,7 @@ struct EventTracerEntry {
  * flatbuffer.
  */
 class EventTracer {
- public:
+public:
   /**
    * Start a new event block (can consist of profiling and/or debugging events.)
    * identified by this name. A block is conceptually a set of events that we
@@ -125,7 +125,7 @@ class EventTracer {
    * pointer around. The string must be copied over into internal memory during
    * this call.
    */
-  virtual void create_event_block(const char* name) = 0;
+  virtual void create_event_block(const char *name) = 0;
 
   /**
    * Start the profiling of the event identified by name and debug_handle.
@@ -147,10 +147,9 @@ class EventTracer {
    * @return Returns an instance of EventTracerEntry which should be passed back
    * into the end_profiling() call.
    */
-  virtual EventTracerEntry start_profiling(
-      const char* name,
-      ChainID chain_id = kUnsetChainId,
-      DebugHandle debug_handle = kUnsetDebugHandle) = 0;
+  virtual EventTracerEntry
+  start_profiling(const char *name, ChainID chain_id = kUnsetChainId,
+                  DebugHandle debug_handle = kUnsetDebugHandle) = 0;
 
   /**
    * Start the profiling of a delegate event. Similar to start_profiling it will
@@ -168,9 +167,9 @@ class EventTracer {
    * based names are used by this delegate to identify ops executed in the
    * backend then kUnsetDebugHandle should be passed in here.
    */
-  virtual EventTracerEntry start_profiling_delegate(
-      const char* name,
-      DebugHandle delegate_debug_index) = 0;
+  virtual EventTracerEntry
+  start_profiling_delegate(const char *name,
+                           DebugHandle delegate_debug_index) = 0;
 
   /**
    * Signal the end of the delegate profiling event contained in
@@ -186,10 +185,9 @@ class EventTracer {
    * make it available for the user again in the post-processing stage.
    * @param[in] metadata_len Length of the metadata buffer.
    */
-  virtual void end_profiling_delegate(
-      EventTracerEntry event_tracer_entry,
-      const void* metadata = nullptr,
-      size_t metadata_len = 0) = 0;
+  virtual void end_profiling_delegate(EventTracerEntry event_tracer_entry,
+                                      const void *metadata = nullptr,
+                                      size_t metadata_len = 0) = 0;
 
   /**
    * Some delegates get access to the profiling details only after the complete
@@ -216,13 +214,12 @@ class EventTracer {
    * make it available for the user again in the post-processing stage.
    * @param[in] metadata_len Length of the metadata buffer.
    */
-  virtual void log_profiling_delegate(
-      const char* name,
-      DebugHandle delegate_debug_index,
-      et_timestamp_t start_time,
-      et_timestamp_t end_time,
-      const void* metadata = nullptr,
-      size_t metadata_len = 0) = 0;
+  virtual void log_profiling_delegate(const char *name,
+                                      DebugHandle delegate_debug_index,
+                                      et_timestamp_t start_time,
+                                      et_timestamp_t end_time,
+                                      const void *metadata = nullptr,
+                                      size_t metadata_len = 0) = 0;
 
   /**
    * End the profiling of the event identified by prof_entry
@@ -251,7 +248,7 @@ class EventTracer {
    *
    * @return Identifier to uniquely identify this allocator.
    */
-  virtual AllocatorID track_allocator(const char* name) = 0;
+  virtual AllocatorID track_allocator(const char *name) = 0;
 
   /**
    * Log an evalue during the execution of the model. This is useful for
@@ -265,9 +262,8 @@ class EventTracer {
    * @param[in] evalue_type Indicates what type of output this is logging e.g.
    * an intermediate output, program output etc.
    */
-  virtual void log_evalue(
-      const EValue& evalue,
-      LoggedEValueType evalue_type) = 0;
+  virtual void log_evalue(const EValue &evalue,
+                          LoggedEValueType evalue_type) = 0;
 
   /**
    * Log an intermediate tensor output from a delegate.
@@ -284,10 +280,10 @@ class EventTracer {
    * backend then kUnsetDebugHandle should be passed in here.
    * @param[in] output The tensor type output to be logged.
    */
-  virtual void log_intermediate_output_delegate(
-      const char* name,
-      DebugHandle delegate_debug_index,
-      const executorch::aten::Tensor& output) = 0;
+  virtual void
+  log_intermediate_output_delegate(const char *name,
+                                   DebugHandle delegate_debug_index,
+                                   const executorch::aten::Tensor &output) = 0;
 
   /**
    * Log an intermediate tensor array output from a delegate.
@@ -305,8 +301,7 @@ class EventTracer {
    * @param[in] output The tensor array type output to be logged.
    */
   virtual void log_intermediate_output_delegate(
-      const char* name,
-      DebugHandle delegate_debug_index,
+      const char *name, DebugHandle delegate_debug_index,
       const ArrayRef<executorch::aten::Tensor> output) = 0;
 
   /**
@@ -324,10 +319,10 @@ class EventTracer {
    * backend then kUnsetDebugHandle should be passed in here.
    * @param[in] output The int type output to be logged.
    */
-  virtual void log_intermediate_output_delegate(
-      const char* name,
-      DebugHandle delegate_debug_index,
-      const int& output) = 0;
+  virtual void
+  log_intermediate_output_delegate(const char *name,
+                                   DebugHandle delegate_debug_index,
+                                   const int &output) = 0;
 
   /**
    * Log an intermediate bool output from a delegate.
@@ -344,10 +339,10 @@ class EventTracer {
    * backend then kUnsetDebugHandle should be passed in here.
    * @param[in] output The bool type output to be logged.
    */
-  virtual void log_intermediate_output_delegate(
-      const char* name,
-      DebugHandle delegate_debug_index,
-      const bool& output) = 0;
+  virtual void
+  log_intermediate_output_delegate(const char *name,
+                                   DebugHandle delegate_debug_index,
+                                   const bool &output) = 0;
 
   /**
    * Log an intermediate double output from a delegate.
@@ -364,10 +359,10 @@ class EventTracer {
    * backend then kUnsetDebugHandle should be passed in here.
    * @param[in] output The double type output to be logged.
    */
-  virtual void log_intermediate_output_delegate(
-      const char* name,
-      DebugHandle delegate_debug_index,
-      const double& output) = 0;
+  virtual void
+  log_intermediate_output_delegate(const char *name,
+                                   DebugHandle delegate_debug_index,
+                                   const double &output) = 0;
 
   /**
    * Helper function to set the chain id ands debug handle. Users have two
@@ -416,9 +411,7 @@ class EventTracer {
   /**
    * Return the current bundled input index.
    */
-  int bundled_input_index() {
-    return bundled_input_index_;
-  }
+  int bundled_input_index() { return bundled_input_index_; }
 
   /**
    * Set the level of event tracer debug logging that is desired.
@@ -438,8 +431,8 @@ class EventTracer {
   /**
    * Set the level of event tracer profiling that is desired.
    */
-  void set_event_tracer_profiling_level(
-      EventTracerProfilingLevel profiling_level) {
+  void
+  set_event_tracer_profiling_level(EventTracerProfilingLevel profiling_level) {
     event_tracer_profiling_level_ = profiling_level;
   }
 
@@ -462,22 +455,18 @@ class EventTracer {
    *
    * @return Current chain id.
    */
-  ChainID current_chain_id() {
-    return chain_id_;
-  }
+  ChainID current_chain_id() { return chain_id_; }
 
   /**
    * Get the current debug handle.
    *
    * @return Current debug handle.
    */
-  DebugHandle current_debug_handle() {
-    return debug_handle_;
-  }
+  DebugHandle current_debug_handle() { return debug_handle_; }
 
   virtual ~EventTracer() {}
 
- protected:
+protected:
   ChainID chain_id_ = kUnsetChainId;
   DebugHandle debug_handle_ = kUnsetDebugHandle;
   bool event_tracer_enable_debugging_ = false;

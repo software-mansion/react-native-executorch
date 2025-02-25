@@ -24,10 +24,10 @@
 
 #pragma once
 
+#include <cassert>
 #include <executorch/runtime/core/error.h>
 #include <executorch/runtime/core/result.h>
 #include <executorch/runtime/platform/assert.h>
-#include <cassert>
 #include <string>
 #include <string_view>
 
@@ -35,12 +35,11 @@ namespace executorch {
 namespace extension {
 namespace llm {
 using Error = executorch::runtime::Error;
-template <typename T>
-using Result = executorch::runtime::Result<T>;
+template <typename T> using Result = executorch::runtime::Result<T>;
 
 namespace base64 {
 
-Result<std::string> decode(const std::string_view& input);
+Result<std::string> decode(const std::string_view &input);
 
 namespace detail {
 
@@ -69,12 +68,9 @@ inline Error validate(uint32_t v) {
   return Error::Ok;
 }
 
-inline Error decode(const std::string_view& input, std::string& output) {
-  ET_CHECK_OR_RETURN_ERROR(
-      input.size() == 4,
-      InvalidArgument,
-      "input length must be 4, got %zu",
-      input.size());
+inline Error decode(const std::string_view &input, std::string &output) {
+  ET_CHECK_OR_RETURN_ERROR(input.size() == 4, InvalidArgument,
+                           "input length must be 4, got %zu", input.size());
 
   uint32_t val = 0;
 
@@ -104,14 +100,10 @@ inline Error decode(const std::string_view& input, std::string& output) {
   return Error::Ok;
 }
 
-inline Error decode_1_padding(
-    const std::string_view& input,
-    std::string& output) {
-  ET_CHECK_OR_RETURN_ERROR(
-      input.size() == 3,
-      InvalidArgument,
-      "input length must be 3, got %zu",
-      input.size());
+inline Error decode_1_padding(const std::string_view &input,
+                              std::string &output) {
+  ET_CHECK_OR_RETURN_ERROR(input.size() == 3, InvalidArgument,
+                           "input length must be 3, got %zu", input.size());
 
   uint32_t val = 0;
 
@@ -135,14 +127,10 @@ inline Error decode_1_padding(
   return Error::Ok;
 }
 
-inline Error decode_2_padding(
-    const std::string_view& input,
-    std::string& output) {
-  ET_CHECK_OR_RETURN_ERROR(
-      input.size() == 2,
-      InvalidArgument,
-      "input length must be 2, got %zu",
-      input.size());
+inline Error decode_2_padding(const std::string_view &input,
+                              std::string &output) {
+  ET_CHECK_OR_RETURN_ERROR(input.size() == 2, InvalidArgument,
+                           "input length must be 2, got %zu", input.size());
 
   uint32_t val = 0;
 
@@ -162,13 +150,12 @@ inline Error decode_2_padding(
 
 } // namespace detail
 
-inline Result<std::string> decode(const std::string_view& input) {
+inline Result<std::string> decode(const std::string_view &input) {
   ET_CHECK_OR_RETURN_ERROR(!input.empty(), InvalidArgument, "empty input");
 
   // Faster than `input.size() % 4`.
   ET_CHECK_OR_RETURN_ERROR(
-      (input.size() & 3) == 0 && input.size() >= 4,
-      InvalidArgument,
+      (input.size() & 3) == 0 && input.size() >= 4, InvalidArgument,
       "input length must be larger than 4 and is multiple of 4, got %zu",
       input.size());
 

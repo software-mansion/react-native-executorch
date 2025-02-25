@@ -41,15 +41,15 @@
 
 #include <stdint.h>
 
-#include "util/util.h"
 #include "util/utf.h"
+#include "util/util.h"
 
 namespace re2 {
 
 enum {
   EvenOdd = 1,
   OddEven = -1,
-  EvenOddSkip = 1<<30,
+  EvenOddSkip = 1 << 30,
   OddEvenSkip,
 };
 
@@ -68,11 +68,11 @@ extern const int num_unicode_tolower;
 // Returns the CaseFold* in the tables that contains rune.
 // If rune is not in the tables, returns the first CaseFold* after rune.
 // If rune is larger than any value in the tables, returns NULL.
-extern const CaseFold* LookupCaseFold(const CaseFold*, int, Rune rune);
+extern const CaseFold *LookupCaseFold(const CaseFold *, int, Rune rune);
 
 // Returns the result of applying the fold f to the rune r.
 extern Rune ApplyFold(const CaseFold *f, Rune r);
 
-}  // namespace re2
+} // namespace re2
 
-#endif  // RE2_UNICODE_CASEFOLD_H_
+#endif // RE2_UNICODE_CASEFOLD_H_

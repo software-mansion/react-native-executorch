@@ -22,8 +22,8 @@
 #include <dlfcn.h>
 #endif
 
-static constexpr const char* DYNAMIC_LIBRARY_NOT_SUPPORTED = "NOT_SUPPORTED";
-static constexpr const char* DYNAMIC_LIBRARY_NOT_FOUND = "NOT_FOUND";
+static constexpr const char *DYNAMIC_LIBRARY_NOT_SUPPORTED = "NOT_SUPPORTED";
+static constexpr const char *DYNAMIC_LIBRARY_NOT_FOUND = "NOT_FOUND";
 
 extern "C" {
 
@@ -33,7 +33,7 @@ extern "C" {
  * @param[in] addr Address to the symbol we are looking for in shared libraries.
  * @retval The path to the shared library containing the symbol.
  */
-inline const char* et_pal_get_shared_library_name(const void* addr) {
+inline const char *et_pal_get_shared_library_name(const void *addr) {
 #if defined(ET_USE_LIBDL)
   Dl_info info;
   if (dladdr(addr, &info) && info.dli_fname) {

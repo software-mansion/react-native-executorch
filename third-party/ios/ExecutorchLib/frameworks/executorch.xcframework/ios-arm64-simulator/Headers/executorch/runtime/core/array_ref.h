@@ -52,22 +52,21 @@ namespace runtime {
  * This is intended to be trivially copyable, so it should be passed by
  * value.
  */
-template <typename T>
-class ArrayRef final {
- public:
-  using iterator = const T*;
-  using const_iterator = const T*;
+template <typename T> class ArrayRef final {
+public:
+  using iterator = const T *;
+  using const_iterator = const T *;
   using size_type = size_t;
   using value_type = T;
 
- private:
+private:
   /// The start of the array, in an external buffer.
-  const T* Data;
+  const T *Data;
 
   /// The number of elements.
   size_type Length;
 
- public:
+public:
   /// @name Constructors
   /// @{
 
@@ -76,16 +75,16 @@ class ArrayRef final {
 
   /// Construct a ArrayRef from a single element. Implicitly convert element
   /// type. It is aligned with PyTorch's c10::ArrayRef.
-  /* implicit */ constexpr ArrayRef(const T& OneElt)
+  /* implicit */ constexpr ArrayRef(const T &OneElt)
       : Data(&OneElt), Length(1) {}
 
   /// Construct a ArrayRef from a pointer and length.
-  ArrayRef(const T* data, size_t length) : Data(data), Length(length) {
+  ArrayRef(const T *data, size_t length) : Data(data), Length(length) {
     ET_DCHECK(Data != nullptr || Length == 0);
   }
 
   /// Construct a ArrayRef from a range.
-  ArrayRef(const T* begin, const T* end) : Data(begin), Length(end - begin) {}
+  ArrayRef(const T *begin, const T *end) : Data(begin), Length(end - begin) {}
 
   /// Construct a ArrayRef from a C array.
   template <size_t N>
@@ -95,45 +94,31 @@ class ArrayRef final {
   /// @name Simple Operations
   /// @{
 
-  constexpr iterator begin() const {
-    return Data;
-  }
-  constexpr iterator end() const {
-    return Data + Length;
-  }
+  constexpr iterator begin() const { return Data; }
+  constexpr iterator end() const { return Data + Length; }
 
   // These are actually the same as iterator, since ArrayRef only
   // gives you const iterators.
-  constexpr const_iterator cbegin() const {
-    return Data;
-  }
-  constexpr const_iterator cend() const {
-    return Data + Length;
-  }
+  constexpr const_iterator cbegin() const { return Data; }
+  constexpr const_iterator cend() const { return Data + Length; }
 
   /// empty - Check if the array is empty.
-  constexpr bool empty() const {
-    return Length == 0;
-  }
+  constexpr bool empty() const { return Length == 0; }
 
-  constexpr const T* data() const {
-    return Data;
-  }
+  constexpr const T *data() const { return Data; }
 
   /// size - Get the array size.
-  constexpr size_t size() const {
-    return Length;
-  }
+  constexpr size_t size() const { return Length; }
 
   /// front - Get the first element.
-  const T& front() const {
+  const T &front() const {
     // ArrayRef: attempted to access front() of empty list
     ET_CHECK(!empty());
     return Data[0];
   }
 
   /// back - Get the last element.
-  const T& back() const {
+  const T &back() const {
     // ArrayRef: attempted to access back() of empty list
     ET_CHECK(!empty());
     return Data[Length - 1];
@@ -160,19 +145,15 @@ class ArrayRef final {
   }
 
   /// slice(n) - Chop off the first N elements of the array.
-  constexpr ArrayRef<T> slice(size_t N) const {
-    return slice(N, size() - N);
-  }
+  constexpr ArrayRef<T> slice(size_t N) const { return slice(N, size() - N); }
 
   /// @}
   /// @name Operator Overloads
   /// @{
-  constexpr const T& operator[](size_t Index) const {
-    return Data[Index];
-  }
+  constexpr const T &operator[](size_t Index) const { return Data[Index]; }
 
   /// Vector compatibility
-  const T& at(size_t Index) const {
+  const T &at(size_t Index) const {
     // invalid index
     ET_CHECK(Index < Length);
     return Data[Index];
@@ -185,38 +166,32 @@ class ArrayRef final {
 /// @{
 
 /// Construct an ArrayRef from a single element.
-template <typename T>
-ArrayRef<T> makeArrayRef(const T& OneElt) {
+template <typename T> ArrayRef<T> makeArrayRef(const T &OneElt) {
   return OneElt;
 }
 
 /// Construct an ArrayRef from a pointer and length.
-template <typename T>
-ArrayRef<T> makeArrayRef(const T* data, size_t length) {
+template <typename T> ArrayRef<T> makeArrayRef(const T *data, size_t length) {
   return ArrayRef<T>(data, length);
 }
 
 /// Construct an ArrayRef from a range.
-template <typename T>
-ArrayRef<T> makeArrayRef(const T* begin, const T* end) {
+template <typename T> ArrayRef<T> makeArrayRef(const T *begin, const T *end) {
   return ArrayRef<T>(begin, end);
 }
 
 /// Construct an ArrayRef from an ArrayRef (no-op) (const)
-template <typename T>
-ArrayRef<T> makeArrayRef(const ArrayRef<T>& Vec) {
+template <typename T> ArrayRef<T> makeArrayRef(const ArrayRef<T> &Vec) {
   return Vec;
 }
 
 /// Construct an ArrayRef from an ArrayRef (no-op)
-template <typename T>
-ArrayRef<T>& makeArrayRef(ArrayRef<T>& Vec) {
+template <typename T> ArrayRef<T> &makeArrayRef(ArrayRef<T> &Vec) {
   return Vec;
 }
 
 /// Construct an ArrayRef from a C array.
-template <typename T, size_t N>
-ArrayRef<T> makeArrayRef(const T (&Arr)[N]) {
+template <typename T, size_t N> ArrayRef<T> makeArrayRef(const T (&Arr)[N]) {
   return ArrayRef<T>(Arr);
 }
 
@@ -224,13 +199,11 @@ ArrayRef<T> makeArrayRef(const T (&Arr)[N]) {
 // conversions to get you to an ArrayRef, which is why we need so
 // many overloads.
 
-template <typename T>
-bool operator==(ArrayRef<T> a1, ArrayRef<T> a2) {
+template <typename T> bool operator==(ArrayRef<T> a1, ArrayRef<T> a2) {
   return a1.equals(a2);
 }
 
-template <typename T>
-bool operator!=(ArrayRef<T> a1, ArrayRef<T> a2) {
+template <typename T> bool operator!=(ArrayRef<T> a1, ArrayRef<T> a2) {
   return !a1.equals(a2);
 }
 

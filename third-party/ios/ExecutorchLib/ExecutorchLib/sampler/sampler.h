@@ -25,32 +25,24 @@ namespace extension {
 namespace llm {
 // A simple llama2 sampler.
 
-template <typename T>
-struct ProbIndex {
+template <typename T> struct ProbIndex {
   T prob;
   int32_t index;
 }; // struct used when sorting probabilities during top-p sampling
 
 class Sampler {
- public:
-  Sampler(
-      int32_t vocab_size,
-      float temperature,
-      float topp,
-      unsigned long long rng_seed);
+public:
+  Sampler(int32_t vocab_size, float temperature, float topp,
+          unsigned long long rng_seed);
 
-  template <typename T>
-  int32_t sample(T* logits);
+  template <typename T> int32_t sample(T *logits);
 
- private:
-  template <typename T>
-  int32_t sample_topp(T* probabilities, float coin);
-  template <typename T>
-  int32_t sample_mult(T* probabilities, float coin);
-  template <typename T>
-  int32_t sample_argmax(T* probabilities);
+private:
+  template <typename T> int32_t sample_topp(T *probabilities, float coin);
+  template <typename T> int32_t sample_mult(T *probabilities, float coin);
+  template <typename T> int32_t sample_argmax(T *probabilities);
 
- private:
+private:
   int32_t vocab_size_;
   // reciprocal of temperature, or 0 if temperature == 0.
   float inv_temperature_;

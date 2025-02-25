@@ -50,76 +50,70 @@ struct alignas(2) BFloat16 {
 
   BFloat16() = default;
   struct from_bits_t {};
-  static constexpr from_bits_t from_bits() {
-    return from_bits_t();
-  }
+  static constexpr from_bits_t from_bits() { return from_bits_t(); }
 
   constexpr BFloat16(unsigned short bits, from_bits_t) : x(bits) {}
   /* implicit */ BFloat16(float value)
       : x(internal::round_to_nearest_even(value)) {}
-  operator float() const {
-    return internal::f32_from_bits(x);
-  }
+  operator float() const { return internal::f32_from_bits(x); }
 };
 
-inline std::ostream& operator<<(std::ostream& out, const BFloat16& value) {
+inline std::ostream &operator<<(std::ostream &out, const BFloat16 &value) {
   out << (float)value;
   return out;
 }
 
 /// Arithmetic
 
-inline BFloat16 operator+(const BFloat16& a, const BFloat16& b) {
+inline BFloat16 operator+(const BFloat16 &a, const BFloat16 &b) {
   return static_cast<float>(a) + static_cast<float>(b);
 }
 
-inline BFloat16 operator-(const BFloat16& a, const BFloat16& b) {
+inline BFloat16 operator-(const BFloat16 &a, const BFloat16 &b) {
   return static_cast<float>(a) - static_cast<float>(b);
 }
 
-inline BFloat16 operator*(const BFloat16& a, const BFloat16& b) {
+inline BFloat16 operator*(const BFloat16 &a, const BFloat16 &b) {
   return static_cast<float>(a) * static_cast<float>(b);
 }
 
-inline BFloat16 operator/(const BFloat16& a, const BFloat16& b) {
+inline BFloat16 operator/(const BFloat16 &a, const BFloat16 &b) {
   return static_cast<float>(a) / static_cast<float>(b);
 }
 
-inline BFloat16 operator-(const BFloat16& a) {
-  return -static_cast<float>(a);
-}
+inline BFloat16 operator-(const BFloat16 &a) { return -static_cast<float>(a); }
 
-inline BFloat16& operator+=(BFloat16& a, const BFloat16& b) {
+inline BFloat16 &operator+=(BFloat16 &a, const BFloat16 &b) {
   a = a + b;
   return a;
 }
 
-inline BFloat16& operator-=(BFloat16& a, const BFloat16& b) {
+inline BFloat16 &operator-=(BFloat16 &a, const BFloat16 &b) {
   a = a - b;
   return a;
 }
 
-inline BFloat16& operator*=(BFloat16& a, const BFloat16& b) {
+inline BFloat16 &operator*=(BFloat16 &a, const BFloat16 &b) {
   a = a * b;
   return a;
 }
 
-inline BFloat16& operator/=(BFloat16& a, const BFloat16& b) {
+inline BFloat16 &operator/=(BFloat16 &a, const BFloat16 &b) {
   a = a / b;
   return a;
 }
 
-inline BFloat16& operator|(BFloat16& a, const BFloat16& b) {
+inline BFloat16 &operator|(BFloat16 &a, const BFloat16 &b) {
   a.x = a.x | b.x;
   return a;
 }
 
-inline BFloat16& operator^(BFloat16& a, const BFloat16& b) {
+inline BFloat16 &operator^(BFloat16 &a, const BFloat16 &b) {
   a.x = a.x ^ b.x;
   return a;
 }
 
-inline BFloat16& operator&(BFloat16& a, const BFloat16& b) {
+inline BFloat16 &operator&(BFloat16 &a, const BFloat16 &b) {
   a.x = a.x & b.x;
   return a;
 }
@@ -152,16 +146,16 @@ inline float operator/(float a, BFloat16 b) {
   return a / static_cast<float>(b);
 }
 
-inline float& operator+=(float& a, const BFloat16& b) {
+inline float &operator+=(float &a, const BFloat16 &b) {
   return a += static_cast<float>(b);
 }
-inline float& operator-=(float& a, const BFloat16& b) {
+inline float &operator-=(float &a, const BFloat16 &b) {
   return a -= static_cast<float>(b);
 }
-inline float& operator*=(float& a, const BFloat16& b) {
+inline float &operator*=(float &a, const BFloat16 &b) {
   return a *= static_cast<float>(b);
 }
-inline float& operator/=(float& a, const BFloat16& b) {
+inline float &operator/=(float &a, const BFloat16 &b) {
   return a /= static_cast<float>(b);
 }
 
@@ -251,11 +245,11 @@ inline BFloat16 operator/(int64_t a, BFloat16 b) {
 
 // Overloading < and > operators, because std::max and std::min use them.
 
-inline bool operator>(BFloat16& lhs, BFloat16& rhs) {
+inline bool operator>(BFloat16 &lhs, BFloat16 &rhs) {
   return float(lhs) > float(rhs);
 }
 
-inline bool operator<(BFloat16& lhs, BFloat16& rhs) {
+inline bool operator<(BFloat16 &lhs, BFloat16 &rhs) {
   return float(lhs) < float(rhs);
 }
 
@@ -273,9 +267,8 @@ using ::executorch::runtime::etensor::BFloat16;
 
 namespace std {
 
-template <>
-class numeric_limits<executorch::runtime::etensor::BFloat16> {
- public:
+template <> class numeric_limits<executorch::runtime::etensor::BFloat16> {
+public:
   static constexpr bool is_signed = true;
   static constexpr bool is_specialized = true;
   static constexpr bool is_integer = false;
@@ -303,40 +296,40 @@ class numeric_limits<executorch::runtime::etensor::BFloat16> {
       numeric_limits<float>::tinyness_before;
 
   static constexpr torch::executor::BFloat16 min() {
-    return torch::executor::BFloat16(
-        0x0080, torch::executor::BFloat16::from_bits());
+    return torch::executor::BFloat16(0x0080,
+                                     torch::executor::BFloat16::from_bits());
   }
   static constexpr torch::executor::BFloat16 lowest() {
-    return torch::executor::BFloat16(
-        0xFF7F, torch::executor::BFloat16::from_bits());
+    return torch::executor::BFloat16(0xFF7F,
+                                     torch::executor::BFloat16::from_bits());
   }
   static constexpr torch::executor::BFloat16 max() {
-    return torch::executor::BFloat16(
-        0x7F7F, torch::executor::BFloat16::from_bits());
+    return torch::executor::BFloat16(0x7F7F,
+                                     torch::executor::BFloat16::from_bits());
   }
   static constexpr torch::executor::BFloat16 epsilon() {
-    return torch::executor::BFloat16(
-        0x3C00, torch::executor::BFloat16::from_bits());
+    return torch::executor::BFloat16(0x3C00,
+                                     torch::executor::BFloat16::from_bits());
   }
   static constexpr torch::executor::BFloat16 round_error() {
-    return torch::executor::BFloat16(
-        0x3F00, torch::executor::BFloat16::from_bits());
+    return torch::executor::BFloat16(0x3F00,
+                                     torch::executor::BFloat16::from_bits());
   }
   static constexpr torch::executor::BFloat16 infinity() {
-    return torch::executor::BFloat16(
-        0x7F80, torch::executor::BFloat16::from_bits());
+    return torch::executor::BFloat16(0x7F80,
+                                     torch::executor::BFloat16::from_bits());
   }
   static constexpr torch::executor::BFloat16 quiet_NaN() {
-    return torch::executor::BFloat16(
-        0x7FC0, torch::executor::BFloat16::from_bits());
+    return torch::executor::BFloat16(0x7FC0,
+                                     torch::executor::BFloat16::from_bits());
   }
   static constexpr torch::executor::BFloat16 signaling_NaN() {
-    return torch::executor::BFloat16(
-        0x7F80, torch::executor::BFloat16::from_bits());
+    return torch::executor::BFloat16(0x7F80,
+                                     torch::executor::BFloat16::from_bits());
   }
   static constexpr torch::executor::BFloat16 denorm_min() {
-    return torch::executor::BFloat16(
-        0x0001, torch::executor::BFloat16::from_bits());
+    return torch::executor::BFloat16(0x0001,
+                                     torch::executor::BFloat16::from_bits());
   }
 };
 

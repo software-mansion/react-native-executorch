@@ -40,14 +40,10 @@ struct Device final {
       : type_(type), index_(index) {}
 
   /// Returns the type of device this is. Only CPU is supported.
-  DeviceType type() const noexcept {
-    return type_;
-  }
+  DeviceType type() const noexcept { return type_; }
 
   /// Returns true if the device is of CPU type.
-  bool is_cpu() const noexcept {
-    return type_ == DeviceType::CPU;
-  }
+  bool is_cpu() const noexcept { return type_ == DeviceType::CPU; }
 
   /// Returns the device index. Always 0 if specified or -1 if not provided.
   DeviceIndex index() const noexcept {
@@ -55,7 +51,7 @@ struct Device final {
     return index_;
   }
 
- private:
+private:
   DeviceType type_;
   DeviceIndex index_ = -1;
 };

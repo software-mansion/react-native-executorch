@@ -32,62 +32,49 @@ namespace runtime {
  * This is intended to be trivially copyable, so it should be passed by
  * value.
  */
-template <typename T>
-class Span final {
- public:
-  using iterator = T*;
+template <typename T> class Span final {
+public:
+  using iterator = T *;
   using size_type = size_t;
 
- public:
+public:
   /// Construct an empty Span.
   /* implicit */ constexpr Span() noexcept : data_(nullptr), length_(0) {}
 
   /// Construct a Span from a pointer and length.
-  Span(T* data, size_t length) : data_(data), length_(length) {
+  Span(T *data, size_t length) : data_(data), length_(length) {
     ET_DCHECK(data_ != nullptr || length_ == 0);
   }
 
   /// Construct a Span from a range.
-  Span(T* begin, T* end) : data_(begin), length_(end - begin) {}
+  Span(T *begin, T *end) : data_(begin), length_(end - begin) {}
 
   /// Construct a Span from a C array.
   template <size_t N>
   /* implicit */ constexpr Span(T (&Arr)[N]) : data_(Arr), length_(N) {}
 
   /// @returns a pointer to the start of the underlying element buffer.
-  iterator begin() const noexcept {
-    return data_;
-  }
+  iterator begin() const noexcept { return data_; }
 
   /// @returns a pointer to the end of the underlying element buffer.
-  iterator end() const noexcept {
-    return data_ + length_;
-  }
+  iterator end() const noexcept { return data_ + length_; }
 
   /// @retval a boolean indicating if the Span is empty.
-  constexpr bool empty() const noexcept {
-    return length_ == 0;
-  }
+  constexpr bool empty() const noexcept { return length_ == 0; }
 
   /// @returns a pointer to the start of the underlying element buffer.
-  constexpr T* data() const noexcept {
-    return data_;
-  }
+  constexpr T *data() const noexcept { return data_; }
 
   /// @returns the number of elements in the Span.
-  constexpr size_t size() const noexcept {
-    return length_;
-  }
+  constexpr size_t size() const noexcept { return length_; }
 
   /// Unchecked index into the array according to the argument index.
   /// @returns a reference to the element at the specified index.
-  T& operator[](size_t index) const {
-    return data_[index];
-  }
+  T &operator[](size_t index) const { return data_[index]; }
 
- private:
+private:
   /// The start of the array, in an external buffer.
-  T* data_;
+  T *data_;
 
   /// The number of elements.
   size_type length_;

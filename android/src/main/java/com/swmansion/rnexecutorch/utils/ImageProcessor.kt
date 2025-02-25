@@ -3,7 +3,6 @@ package com.swmansion.rnexecutorch.utils
 import android.content.Context
 import android.net.Uri
 import android.util.Base64
-import android.util.Log
 import org.opencv.core.Core
 import org.opencv.core.CvType
 import org.opencv.core.Mat
@@ -19,14 +18,19 @@ import java.net.URL
 import java.util.UUID
 import kotlin.math.floor
 
-
 class ImageProcessor {
   companion object {
-    fun matToEValue(mat: Mat, shape: LongArray): EValue {
-      return matToEValue(mat, shape, Scalar(0.0, 0.0, 0.0), Scalar(1.0, 1.0, 1.0))
-    }
+    fun matToEValue(
+      mat: Mat,
+      shape: LongArray,
+    ): EValue = matToEValue(mat, shape, Scalar(0.0, 0.0, 0.0), Scalar(1.0, 1.0, 1.0))
 
-    fun matToEValue(mat: Mat, shape: LongArray, mean: Scalar, variance: Scalar): EValue {
+    fun matToEValue(
+      mat: Mat,
+      shape: LongArray,
+      mean: Scalar,
+      variance: Scalar,
+    ): EValue {
       val pixelCount = mat.cols() * mat.rows()
       val floatArray = FloatArray(pixelCount * 3)
 
@@ -63,12 +67,16 @@ class ImageProcessor {
       return EValue.from(
         Tensor.fromBlob(
           floatArray,
-          longArrayOf(1, 1, mat.rows().toLong(), mat.cols().toLong())
-        )
+          longArrayOf(1, 1, mat.rows().toLong(), mat.cols().toLong()),
+        ),
       )
     }
 
-    fun EValueToMat(array: FloatArray, width: Int, height: Int): Mat {
+    fun EValueToMat(
+      array: FloatArray,
+      width: Int,
+      height: Int,
+    ): Mat {
       val mat = Mat(height, width, CvType.CV_8UC3)
 
       val pixelCount = width * height
@@ -86,7 +94,10 @@ class ImageProcessor {
       return mat
     }
 
-    fun saveToTempFile(context: Context, mat: Mat): String {
+    fun saveToTempFile(
+      context: Context,
+      mat: Mat,
+    ): String {
       try {
         val uniqueID = UUID.randomUUID().toString()
         val tempFile = File(context.cacheDir, "rn_executorch_$uniqueID.png")
@@ -106,27 +117,28 @@ class ImageProcessor {
 
       when {
         scheme.equals("data", ignoreCase = true) -> {
-          //base64
+          // base64
           val parts = source.split(",", limit = 2)
           if (parts.size < 2) throw IllegalArgumentException(ETError.InvalidArgument.toString())
 
           val encodedString = parts[1]
           val data = Base64.decode(encodedString, Base64.DEFAULT)
 
-          val encodedData = Mat(1, data.size, CvType.CV_8UC1).apply {
-            put(0, 0, data)
-          }
+          val encodedData =
+            Mat(1, data.size, CvType.CV_8UC1).apply {
+              put(0, 0, data)
+            }
           inputImage = Imgcodecs.imdecode(encodedData, Imgcodecs.IMREAD_COLOR)
         }
 
         scheme.equals("file", ignoreCase = true) -> {
-          //device storage
+          // device storage
           val path = uri.path
           inputImage = Imgcodecs.imread(path, Imgcodecs.IMREAD_COLOR)
         }
 
         else -> {
-          //external source
+          // external source
           val url = URL(source)
           val connection = url.openConnection()
           connection.connect()
@@ -135,9 +147,10 @@ class ImageProcessor {
           val data = inputStream.readBytes()
           inputStream.close()
 
-          val encodedData = Mat(1, data.size, CvType.CV_8UC1).apply {
-            put(0, 0, data)
-          }
+          val encodedData =
+            Mat(1, data.size, CvType.CV_8UC1).apply {
+              put(0, 0, data)
+            }
           inputImage = Imgcodecs.imdecode(encodedData, Imgcodecs.IMREAD_COLOR)
         }
       }
@@ -149,7 +162,11 @@ class ImageProcessor {
       return inputImage
     }
 
-    fun resizeWithPadding(img: Mat, desiredWidth: Int, desiredHeight: Int): Mat {
+    fun resizeWithPadding(
+      img: Mat,
+      desiredWidth: Int,
+      desiredHeight: Int,
+    ): Mat {
       val height = img.rows()
       val width = img.cols()
       val heightRatio = desiredHeight.toFloat() / height
@@ -165,32 +182,35 @@ class ImageProcessor {
         Size(newWidth.toDouble(), newHeight.toDouble()),
         0.0,
         0.0,
-        Imgproc.INTER_AREA
+        Imgproc.INTER_AREA,
       )
 
       val cornerPatchSize = maxOf(1, minOf(width, height) / 30)
-      val corners = listOf(
-        img.submat(0, cornerPatchSize, 0, cornerPatchSize),
-        img.submat(0, cornerPatchSize, width - cornerPatchSize, width),
-        img.submat(height - cornerPatchSize, height, 0, cornerPatchSize),
-        img.submat(height - cornerPatchSize, height, width - cornerPatchSize, width)
-      )
+      val corners =
+        listOf(
+          img.submat(0, cornerPatchSize, 0, cornerPatchSize),
+          img.submat(0, cornerPatchSize, width - cornerPatchSize, width),
+          img.submat(height - cornerPatchSize, height, 0, cornerPatchSize),
+          img.submat(height - cornerPatchSize, height, width - cornerPatchSize, width),
+        )
 
       var backgroundScalar = Core.mean(corners[0])
       for (i in 1 until corners.size) {
         val mean = Core.mean(corners[i])
-        backgroundScalar = Scalar(
-          backgroundScalar.`val`[0] + mean.`val`[0],
-          backgroundScalar.`val`[1] + mean.`val`[1],
-          backgroundScalar.`val`[2] + mean.`val`[2]
-        )
+        backgroundScalar =
+          Scalar(
+            backgroundScalar.`val`[0] + mean.`val`[0],
+            backgroundScalar.`val`[1] + mean.`val`[1],
+            backgroundScalar.`val`[2] + mean.`val`[2],
+          )
       }
 
-      backgroundScalar = Scalar(
-        floor(backgroundScalar.`val`[0] / corners.size),
-        floor(backgroundScalar.`val`[1] / corners.size),
-        floor(backgroundScalar.`val`[2] / corners.size)
-      )
+      backgroundScalar =
+        Scalar(
+          floor(backgroundScalar.`val`[0] / corners.size),
+          floor(backgroundScalar.`val`[1] / corners.size),
+          floor(backgroundScalar.`val`[2] / corners.size),
+        )
 
       val deltaW = desiredWidth - newWidth
       val deltaH = desiredHeight - newHeight
@@ -208,7 +228,7 @@ class ImageProcessor {
         left,
         right,
         Core.BORDER_CONSTANT,
-        backgroundScalar
+        backgroundScalar,
       )
 
       return centeredImg

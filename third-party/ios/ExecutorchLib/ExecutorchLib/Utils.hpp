@@ -83,19 +83,19 @@ NSNumber *scalarTypeToNSNumber(ScalarType scalarType) {
   return @(static_cast<int>(scalarType));
 }
 
-NSArray* flattenArray(NSArray *array) {
-    NSMutableArray *flatArray = [NSMutableArray array];
+NSArray *flattenArray(NSArray *array) {
+  NSMutableArray *flatArray = [NSMutableArray array];
 
-    for (id element in array) {
-        if ([element isKindOfClass:[NSArray class]]) {
-            NSArray *nestedArray = flattenArray(element);
-            [flatArray addObjectsFromArray:nestedArray];
-        } else {
-            [flatArray addObject:element];
-        }
+  for (id element in array) {
+    if ([element isKindOfClass:[NSArray class]]) {
+      NSArray *nestedArray = flattenArray(element);
+      [flatArray addObjectsFromArray:nestedArray];
+    } else {
+      [flatArray addObject:element];
     }
+  }
 
-    return [flatArray copy];
+  return [flatArray copy];
 }
 
 void *NSArrayToVoidArray(NSArray *nsArray, ScalarType inputScalarType,
@@ -140,7 +140,8 @@ TensorPtr NSArrayToTensorPtr(NSArray *nsArray, std::vector<int> shape,
   void *data = NSArrayToVoidArray(nsArray, inputScalarType, arraySize);
   std::function<void(void *)> deleter =
       getDeleterForScalarType(inputScalarType);
-  auto tensor = make_tensor_ptr(shape, data, inputScalarType, TensorShapeDynamism::DYNAMIC_UNBOUND, deleter);
+  auto tensor = make_tensor_ptr(shape, data, inputScalarType,
+                                TensorShapeDynamism::DYNAMIC_UNBOUND, deleter);
 
   return tensor;
 }
@@ -170,7 +171,8 @@ NSArray *arrayToNSArray(const std::vector<std::span<const T>> &dataPtrVec) {
   return [nsArray copy];
 }
 
-NSArray *arrayToNsArray(const void *dataPtr, size_t numel, ScalarType scalarType) {
+NSArray *arrayToNsArray(const void *dataPtr, size_t numel,
+                        ScalarType scalarType) {
   switch (scalarType) {
   case ScalarType::Char: {
     NSArray *outputArray = arrayToNSArray<char>(dataPtr, numel);

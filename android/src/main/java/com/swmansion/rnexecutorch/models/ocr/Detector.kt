@@ -1,6 +1,5 @@
 package com.swmansion.rnexecutorch.models.ocr
 
-import android.util.Log
 import com.facebook.react.bridge.ReactApplicationContext
 import com.swmansion.rnexecutorch.models.BaseModel
 import com.swmansion.rnexecutorch.models.ocr.utils.Constants
@@ -8,12 +7,12 @@ import com.swmansion.rnexecutorch.models.ocr.utils.DetectorUtils
 import com.swmansion.rnexecutorch.models.ocr.utils.OCRbBox
 import com.swmansion.rnexecutorch.utils.ImageProcessor
 import org.opencv.core.Mat
-import org.opencv.core.Scalar
 import org.opencv.core.Size
 import org.pytorch.executorch.EValue
 
-class Detector(reactApplicationContext: ReactApplicationContext) :
-  BaseModel<Mat, List<OCRbBox>>(reactApplicationContext) {
+class Detector(
+  reactApplicationContext: ReactApplicationContext,
+) : BaseModel<Mat, List<OCRbBox>>(reactApplicationContext) {
   private lateinit var originalSize: Size
 
   fun getModelImageSize(): Size {
@@ -28,17 +27,18 @@ class Detector(reactApplicationContext: ReactApplicationContext) :
 
   override fun preprocess(input: Mat): EValue {
     originalSize = Size(input.cols().toDouble(), input.rows().toDouble())
-    val resizedImage = ImageProcessor.resizeWithPadding(
-      input,
-      getModelImageSize().width.toInt(),
-      getModelImageSize().height.toInt()
-    )
+    val resizedImage =
+      ImageProcessor.resizeWithPadding(
+        input,
+        getModelImageSize().width.toInt(),
+        getModelImageSize().height.toInt(),
+      )
 
     return ImageProcessor.matToEValue(
       resizedImage,
       module.getInputShape(0),
       Constants.MEAN,
-      Constants.VARIANCE
+      Constants.VARIANCE,
     )
   }
 
@@ -47,33 +47,34 @@ class Detector(reactApplicationContext: ReactApplicationContext) :
     val outputArray = outputTensor.dataAsFloatArray
     val modelImageSize = getModelImageSize()
 
-    val (scoreText, scoreLink) = DetectorUtils.interleavedArrayToMats(
-      outputArray,
-      Size(modelImageSize.width / 2, modelImageSize.height / 2)
-    )
-    var bBoxesList = DetectorUtils.getDetBoxesFromTextMap(
-      scoreText,
-      scoreLink,
-      Constants.TEXT_THRESHOLD,
-      Constants.LINK_THRESHOLD,
-      Constants.LOW_TEXT_THRESHOLD
-    )
+    val (scoreText, scoreLink) =
+      DetectorUtils.interleavedArrayToMats(
+        outputArray,
+        Size(modelImageSize.width / 2, modelImageSize.height / 2),
+      )
+    var bBoxesList =
+      DetectorUtils.getDetBoxesFromTextMap(
+        scoreText,
+        scoreLink,
+        Constants.TEXT_THRESHOLD,
+        Constants.LINK_THRESHOLD,
+        Constants.LOW_TEXT_THRESHOLD,
+      )
     bBoxesList =
       DetectorUtils.restoreBoxRatio(bBoxesList, (Constants.RECOGNIZER_RATIO * 2).toFloat())
-    bBoxesList = DetectorUtils.groupTextBoxes(
-      bBoxesList,
-      Constants.CENTER_THRESHOLD,
-      Constants.DISTANCE_THRESHOLD,
-      Constants.HEIGHT_THRESHOLD,
-      Constants.MIN_SIDE_THRESHOLD,
-      Constants.MAX_SIDE_THRESHOLD,
-      Constants.MAX_WIDTH
-    )
+    bBoxesList =
+      DetectorUtils.groupTextBoxes(
+        bBoxesList,
+        Constants.CENTER_THRESHOLD,
+        Constants.DISTANCE_THRESHOLD,
+        Constants.HEIGHT_THRESHOLD,
+        Constants.MIN_SIDE_THRESHOLD,
+        Constants.MAX_SIDE_THRESHOLD,
+        Constants.MAX_WIDTH,
+      )
 
     return bBoxesList.toList()
   }
 
-  override fun runModel(input: Mat): List<OCRbBox> {
-    return postprocess(forward(preprocess(input)))
-  }
+  override fun runModel(input: Mat): List<OCRbBox> = postprocess(forward(preprocess(input)))
 }

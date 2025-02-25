@@ -8,28 +8,28 @@
 
 #import "LLaMARunner.h"
 
-#import <ExecuTorch/ExecuTorchLog.h>
 #import "runner.h"
+#import <ExecuTorch/ExecuTorchLog.h>
 
 using namespace ::torch::executor;
 
 NSErrorDomain const LLaMARunnerErrorDomain = @"LLaMARunnerErrorDomain";
 NSErrorDomain const LLaVARunnerErrorDomain = @"LLaVARunnerErrorDomain";
 
-@interface LLaMARunner ()<ExecuTorchLogSink>
+@interface LLaMARunner () <ExecuTorchLogSink>
 @end
 
 @implementation LLaMARunner {
   std::unique_ptr<example::Runner> _runner;
 }
 
-- (instancetype)initWithModelPath:(NSString*)modelPath
-                    tokenizerPath:(NSString*)tokenizerPath {
+- (instancetype)initWithModelPath:(NSString *)modelPath
+                    tokenizerPath:(NSString *)tokenizerPath {
   self = [super init];
   if (self) {
     [ExecuTorchLog.sharedLog addSink:self];
-    _runner = std::make_unique<example::Runner>(
-        modelPath.UTF8String, tokenizerPath.UTF8String);
+    _runner = std::make_unique<example::Runner>(modelPath.UTF8String,
+                                                tokenizerPath.UTF8String);
   }
   return self;
 }
@@ -42,7 +42,7 @@ NSErrorDomain const LLaVARunnerErrorDomain = @"LLaVARunnerErrorDomain";
   return _runner->is_loaded();
 }
 
-- (BOOL)loadWithError:(NSError**)error {
+- (BOOL)loadWithError:(NSError **)error {
   const auto status = _runner->load();
   if (status != Error::Ok) {
     if (error) {
@@ -55,13 +55,12 @@ NSErrorDomain const LLaVARunnerErrorDomain = @"LLaVARunnerErrorDomain";
   return YES;
 }
 
-- (BOOL)generate:(NSString*)prompt
-    withTokenCallback:(nullable void (^)(NSString*))callback
-                error:(NSError**)error {
+- (BOOL)generate:(NSString *)prompt
+    withTokenCallback:(nullable void (^)(NSString *))callback
+                error:(NSError **)error {
   const auto status = _runner->generate(
-      prompt.UTF8String, [callback](const std::string& token) {
-        callback(@(token.c_str()));
-      });
+      prompt.UTF8String,
+      [callback](const std::string &token) { callback(@(token.c_str())); });
   if (status != Error::Ok) {
     if (error) {
       *error = [NSError errorWithDomain:LLaMARunnerErrorDomain
@@ -81,24 +80,17 @@ NSErrorDomain const LLaVARunnerErrorDomain = @"LLaVARunnerErrorDomain";
 
 - (void)logWithLevel:(ExecuTorchLogLevel)level
            timestamp:(NSTimeInterval)timestamp
-            filename:(NSString*)filename
+            filename:(NSString *)filename
                 line:(NSUInteger)line
-             message:(NSString*)message {
+             message:(NSString *)message {
   NSUInteger totalSeconds = (NSUInteger)timestamp;
   NSUInteger hours = (totalSeconds / 3600) % 24;
   NSUInteger minutes = (totalSeconds / 60) % 60;
   NSUInteger seconds = totalSeconds % 60;
   NSUInteger microseconds = (timestamp - totalSeconds) * 1000000;
-  NSLog(
-      @"%c %02lu:%02lu:%02lu.%06lu executorch:%s:%zu] %s",
-      (char)level,
-      hours,
-      minutes,
-      seconds,
-      microseconds,
-      filename.UTF8String,
-      line,
-      message.UTF8String);
+  NSLog(@"%c %02lu:%02lu:%02lu.%06lu executorch:%s:%zu] %s", (char)level, hours,
+        minutes, seconds, microseconds, filename.UTF8String, line,
+        message.UTF8String);
 }
 
 @end

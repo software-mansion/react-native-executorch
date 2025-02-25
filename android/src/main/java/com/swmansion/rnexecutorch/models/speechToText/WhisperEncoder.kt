@@ -5,9 +5,10 @@ import com.swmansion.rnexecutorch.models.BaseModel
 import org.pytorch.executorch.EValue
 import org.pytorch.executorch.Tensor
 
-class WhisperEncoder(reactApplicationContext: ReactApplicationContext) :
-  BaseModel<EValue, EValue>(reactApplicationContext) {
-    private val encoderInputShape = longArrayOf(1L, 80L, 3000L)
+class WhisperEncoder(
+  reactApplicationContext: ReactApplicationContext,
+) : BaseModel<EValue, EValue>(reactApplicationContext) {
+  private val encoderInputShape = longArrayOf(1L, 80L, 3000L)
 
   override fun runModel(input: EValue): EValue {
     val inputEValue = this.preprocess(input)

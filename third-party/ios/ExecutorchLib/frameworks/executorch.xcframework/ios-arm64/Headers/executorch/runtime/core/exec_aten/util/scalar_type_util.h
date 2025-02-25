@@ -67,19 +67,17 @@ namespace runtime {
 template <typename T>
 struct is_floating_point
     : std::integral_constant<
-          bool,
-          std::is_floating_point<T>::value ||
-              std::is_same<T, torch::executor::Half>::value ||
-              std::is_same<T, torch::executor::BFloat16>::value> {};
+          bool, std::is_floating_point<T>::value ||
+                    std::is_same<T, torch::executor::Half>::value ||
+                    std::is_same<T, torch::executor::BFloat16>::value> {};
 
 // Util to figure out if the scalar type is one of the
 // reduced precision floating point types.
 template <typename T>
 struct is_reduced_floating_point
     : std::integral_constant<
-          bool,
-          std::is_same<T, torch::executor::Half>::value ||
-              std::is_same<T, torch::executor::BFloat16>::value> {};
+          bool, std::is_same<T, torch::executor::Half>::value ||
+                    std::is_same<T, torch::executor::BFloat16>::value> {};
 
 template <typename T>
 constexpr bool is_reduced_floating_point_v =
@@ -87,13 +85,12 @@ constexpr bool is_reduced_floating_point_v =
 #endif
 
 /// Maps ScalarTypes to C++ types.
-template <::executorch::aten::ScalarType N>
-struct ScalarTypeToCppType;
+template <::executorch::aten::ScalarType N> struct ScalarTypeToCppType;
 
-#define SPECIALIZE_ScalarTypeToCppType(cpp_type, scalar_type)               \
-  template <>                                                               \
-  struct ScalarTypeToCppType<::executorch::aten::ScalarType::scalar_type> { \
-    using type = cpp_type;                                                  \
+#define SPECIALIZE_ScalarTypeToCppType(cpp_type, scalar_type)                  \
+  template <>                                                                  \
+  struct ScalarTypeToCppType<::executorch::aten::ScalarType::scalar_type> {    \
+    using type = cpp_type;                                                     \
   };
 
 ET_FORALL_SCALAR_TYPES(SPECIALIZE_ScalarTypeToCppType)
@@ -101,15 +98,14 @@ ET_FORALL_SCALAR_TYPES(SPECIALIZE_ScalarTypeToCppType)
 #undef SPECIALIZE_ScalarTypeToCppType
 
 /// Maps C++ types to ScalarTypes.
-template <typename T>
-struct CppTypeToScalarType;
+template <typename T> struct CppTypeToScalarType;
 
-#define SPECIALIZE_CppTypeToScalarType(cpp_type, scalar_type) \
-  template <>                                                 \
-  struct CppTypeToScalarType<cpp_type>                        \
-      : std::integral_constant<                               \
-            ::executorch::aten::ScalarType,                   \
-            ::executorch::aten::ScalarType::scalar_type> {};
+#define SPECIALIZE_CppTypeToScalarType(cpp_type, scalar_type)                  \
+  template <>                                                                  \
+  struct CppTypeToScalarType<cpp_type>                                         \
+      : std::integral_constant<::executorch::aten::ScalarType,                 \
+                               ::executorch::aten::ScalarType::scalar_type> {  \
+  };
 
 ET_FORALL_SCALAR_TYPES(SPECIALIZE_CppTypeToScalarType)
 
@@ -131,221 +127,221 @@ ET_FORALL_SCALAR_TYPES(SPECIALIZE_CppTypeToScalarType)
 
 // In this context, "INT" means integer C types, which is why the quantized
 // integer types are not included.
-#define ET_FORALL_INT_TYPES(_) \
-  _(uint8_t, Byte)             \
-  _(int8_t, Char)              \
-  _(int16_t, Short)            \
-  _(int32_t, Int)              \
+#define ET_FORALL_INT_TYPES(_)                                                 \
+  _(uint8_t, Byte)                                                             \
+  _(int8_t, Char)                                                              \
+  _(int16_t, Short)                                                            \
+  _(int32_t, Int)                                                              \
   _(int64_t, Long)
 
 // Here `ANOTHER_INPUT` should be another variable to be forwarded to a given
 // function.
-#define ET_FORALL_INT_TYPES_WITH(ANOTHER_INPUT, _) \
-  _(ANOTHER_INPUT, uint8_t, Byte)                  \
-  _(ANOTHER_INPUT, int8_t, Char)                   \
-  _(ANOTHER_INPUT, int16_t, Short)                 \
-  _(ANOTHER_INPUT, int32_t, Int)                   \
+#define ET_FORALL_INT_TYPES_WITH(ANOTHER_INPUT, _)                             \
+  _(ANOTHER_INPUT, uint8_t, Byte)                                              \
+  _(ANOTHER_INPUT, int8_t, Char)                                               \
+  _(ANOTHER_INPUT, int16_t, Short)                                             \
+  _(ANOTHER_INPUT, int32_t, Int)                                               \
   _(ANOTHER_INPUT, int64_t, Long)
 
-#define ET_FORALL_INT_TYPES_WITH2(ANOTHER_INPUT1, ANOTHER_INPUT2, _) \
-  _(ANOTHER_INPUT1, ANOTHER_INPUT2, uint8_t, Byte)                   \
-  _(ANOTHER_INPUT1, ANOTHER_INPUT2, int8_t, Char)                    \
-  _(ANOTHER_INPUT1, ANOTHER_INPUT2, int16_t, Short)                  \
-  _(ANOTHER_INPUT1, ANOTHER_INPUT2, int32_t, Int)                    \
+#define ET_FORALL_INT_TYPES_WITH2(ANOTHER_INPUT1, ANOTHER_INPUT2, _)           \
+  _(ANOTHER_INPUT1, ANOTHER_INPUT2, uint8_t, Byte)                             \
+  _(ANOTHER_INPUT1, ANOTHER_INPUT2, int8_t, Char)                              \
+  _(ANOTHER_INPUT1, ANOTHER_INPUT2, int16_t, Short)                            \
+  _(ANOTHER_INPUT1, ANOTHER_INPUT2, int32_t, Int)                              \
   _(ANOTHER_INPUT1, ANOTHER_INPUT2, int64_t, Long)
 
-#define ET_FORALL_INT_TYPES_AND(SCALARTYPE, _)             \
-  _(uint8_t, Byte)                                         \
-  _(int8_t, Char)                                          \
-  _(int16_t, Short)                                        \
-  _(int32_t, Int)                                          \
-  _(int64_t, Long)                                         \
-  _(::executorch::runtime::ScalarTypeToCppType<            \
-        ::executorch::aten::ScalarType::SCALARTYPE>::type, \
+#define ET_FORALL_INT_TYPES_AND(SCALARTYPE, _)                                 \
+  _(uint8_t, Byte)                                                             \
+  _(int8_t, Char)                                                              \
+  _(int16_t, Short)                                                            \
+  _(int32_t, Int)                                                              \
+  _(int64_t, Long)                                                             \
+  _(::executorch::runtime::ScalarTypeToCppType<                                \
+        ::executorch::aten::ScalarType::SCALARTYPE>::type,                     \
     SCALARTYPE)
 
 // In this context, "FLOAT" means float C types, which is why BFloat16 is not
 // included.
-#define ET_FORALL_FLOAT_TYPES(_) \
-  _(float, Float)                \
+#define ET_FORALL_FLOAT_TYPES(_)                                               \
+  _(float, Float)                                                              \
   _(double, Double)
 
-#define ET_FORALL_FLOAT_TYPES_AND(SCALARTYPE, _)           \
-  _(float, Float)                                          \
-  _(double, Double)                                        \
-  _(::executorch::runtime::ScalarTypeToCppType<            \
-        ::executorch::aten::ScalarType::SCALARTYPE>::type, \
+#define ET_FORALL_FLOAT_TYPES_AND(SCALARTYPE, _)                               \
+  _(float, Float)                                                              \
+  _(double, Double)                                                            \
+  _(::executorch::runtime::ScalarTypeToCppType<                                \
+        ::executorch::aten::ScalarType::SCALARTYPE>::type,                     \
     SCALARTYPE)
 
-#define ET_FORALL_FLOAT_TYPES_AND2(SCALARTYPE1, SCALARTYPE2, _) \
-  _(float, Float)                                               \
-  _(double, Double)                                             \
-  _(::executorch::runtime::ScalarTypeToCppType<                 \
-        ::executorch::aten::ScalarType::SCALARTYPE1>::type,     \
-    SCALARTYPE1)                                                \
-  _(::executorch::runtime::ScalarTypeToCppType<                 \
-        ::executorch::aten::ScalarType::SCALARTYPE2>::type,     \
+#define ET_FORALL_FLOAT_TYPES_AND2(SCALARTYPE1, SCALARTYPE2, _)                \
+  _(float, Float)                                                              \
+  _(double, Double)                                                            \
+  _(::executorch::runtime::ScalarTypeToCppType<                                \
+        ::executorch::aten::ScalarType::SCALARTYPE1>::type,                    \
+    SCALARTYPE1)                                                               \
+  _(::executorch::runtime::ScalarTypeToCppType<                                \
+        ::executorch::aten::ScalarType::SCALARTYPE2>::type,                    \
     SCALARTYPE2)
 
 #define ET_FORALL_FLOATH_TYPES(_) ET_FORALL_FLOAT_TYPES_AND(Half, _)
 
-#define ET_FORALL_FLOATHBF16_TYPES(_) \
+#define ET_FORALL_FLOATHBF16_TYPES(_)                                          \
   ET_FORALL_FLOAT_TYPES_AND2(Half, BFloat16, _)
 
 // Here `ANOTHER_INPUT` should be another variable to be forwarded to a given
 // function. Not to be confused with another scalar type as in
 // `ET_FORALL_FLOAT_TYPES_AND`.
-#define ET_FORALL_FLOAT_TYPES_WITH(ANOTHER_INPUT, _) \
-  _(ANOTHER_INPUT, float, Float)                     \
+#define ET_FORALL_FLOAT_TYPES_WITH(ANOTHER_INPUT, _)                           \
+  _(ANOTHER_INPUT, float, Float)                                               \
   _(ANOTHER_INPUT, double, Double)
 
-#define ET_FORALL_FLOAT_TYPES_WITH2(ANOTHER_INPUT1, ANOTHER_INPUT2, _) \
-  _(ANOTHER_INPUT1, ANOTHER_INPUT2, float, Float)                      \
+#define ET_FORALL_FLOAT_TYPES_WITH2(ANOTHER_INPUT1, ANOTHER_INPUT2, _)         \
+  _(ANOTHER_INPUT1, ANOTHER_INPUT2, float, Float)                              \
   _(ANOTHER_INPUT1, ANOTHER_INPUT2, double, Double)
 
-#define ET_FORALL_FLOATHBF16_TYPES_WITH2(ANOTHER_INPUT1, ANOTHER_INPUT2, _) \
-  _(ANOTHER_INPUT1, ANOTHER_INPUT2, float, Float)                           \
-  _(ANOTHER_INPUT1, ANOTHER_INPUT2, double, Double)                         \
-  _(ANOTHER_INPUT1, ANOTHER_INPUT2, ::executorch::aten::Half, Half)         \
+#define ET_FORALL_FLOATHBF16_TYPES_WITH2(ANOTHER_INPUT1, ANOTHER_INPUT2, _)    \
+  _(ANOTHER_INPUT1, ANOTHER_INPUT2, float, Float)                              \
+  _(ANOTHER_INPUT1, ANOTHER_INPUT2, double, Double)                            \
+  _(ANOTHER_INPUT1, ANOTHER_INPUT2, ::executorch::aten::Half, Half)            \
   _(ANOTHER_INPUT1, ANOTHER_INPUT2, ::executorch::aten::BFloat16, BFloat16)
 
 // In this context, "REAL" means integer/float C types, which is why BFloat16
 // and Half are not included.
-#define ET_FORALL_REAL_TYPES(_) \
-  _(uint8_t, Byte)              \
-  _(int8_t, Char)               \
-  _(int16_t, Short)             \
-  _(int32_t, Int)               \
-  _(int64_t, Long)              \
-  _(float, Float)               \
+#define ET_FORALL_REAL_TYPES(_)                                                \
+  _(uint8_t, Byte)                                                             \
+  _(int8_t, Char)                                                              \
+  _(int16_t, Short)                                                            \
+  _(int32_t, Int)                                                              \
+  _(int64_t, Long)                                                             \
+  _(float, Float)                                                              \
   _(double, Double)
 
 // Here `ANOTHER_INPUT` should be another variable to be forwarded to a given
 // function. Not to be confused with another scalar type as in
 // `ET_FORALL_REAL_TYPES_AND`.
-#define ET_FORALL_REAL_TYPES_WITH(ANOTHER_INPUT, _) \
-  _(ANOTHER_INPUT, uint8_t, Byte)                   \
-  _(ANOTHER_INPUT, int8_t, Char)                    \
-  _(ANOTHER_INPUT, int16_t, Short)                  \
-  _(ANOTHER_INPUT, int32_t, Int)                    \
-  _(ANOTHER_INPUT, int64_t, Long)                   \
-  _(ANOTHER_INPUT, float, Float)                    \
+#define ET_FORALL_REAL_TYPES_WITH(ANOTHER_INPUT, _)                            \
+  _(ANOTHER_INPUT, uint8_t, Byte)                                              \
+  _(ANOTHER_INPUT, int8_t, Char)                                               \
+  _(ANOTHER_INPUT, int16_t, Short)                                             \
+  _(ANOTHER_INPUT, int32_t, Int)                                               \
+  _(ANOTHER_INPUT, int64_t, Long)                                              \
+  _(ANOTHER_INPUT, float, Float)                                               \
   _(ANOTHER_INPUT, double, Double)
 
-#define ET_FORALL_REAL_TYPES_WITH2(ANOTHER_INPUT1, ANOTHER_INPUT2, _) \
-  _(ANOTHER_INPUT1, ANOTHER_INPUT2, uint8_t, Byte)                    \
-  _(ANOTHER_INPUT1, ANOTHER_INPUT2, int8_t, Char)                     \
-  _(ANOTHER_INPUT1, ANOTHER_INPUT2, int16_t, Short)                   \
-  _(ANOTHER_INPUT1, ANOTHER_INPUT2, int32_t, Int)                     \
-  _(ANOTHER_INPUT1, ANOTHER_INPUT2, int64_t, Long)                    \
-  _(ANOTHER_INPUT1, ANOTHER_INPUT2, float, Float)                     \
+#define ET_FORALL_REAL_TYPES_WITH2(ANOTHER_INPUT1, ANOTHER_INPUT2, _)          \
+  _(ANOTHER_INPUT1, ANOTHER_INPUT2, uint8_t, Byte)                             \
+  _(ANOTHER_INPUT1, ANOTHER_INPUT2, int8_t, Char)                              \
+  _(ANOTHER_INPUT1, ANOTHER_INPUT2, int16_t, Short)                            \
+  _(ANOTHER_INPUT1, ANOTHER_INPUT2, int32_t, Int)                              \
+  _(ANOTHER_INPUT1, ANOTHER_INPUT2, int64_t, Long)                             \
+  _(ANOTHER_INPUT1, ANOTHER_INPUT2, float, Float)                              \
   _(ANOTHER_INPUT1, ANOTHER_INPUT2, double, Double)
 
-#define ET_FORALL_REALHBF16_TYPES_WITH2(ANOTHER_INPUT1, ANOTHER_INPUT2, _) \
-  _(ANOTHER_INPUT1, ANOTHER_INPUT2, uint8_t, Byte)                         \
-  _(ANOTHER_INPUT1, ANOTHER_INPUT2, int8_t, Char)                          \
-  _(ANOTHER_INPUT1, ANOTHER_INPUT2, int16_t, Short)                        \
-  _(ANOTHER_INPUT1, ANOTHER_INPUT2, int32_t, Int)                          \
-  _(ANOTHER_INPUT1, ANOTHER_INPUT2, int64_t, Long)                         \
-  _(ANOTHER_INPUT1, ANOTHER_INPUT2, float, Float)                          \
-  _(ANOTHER_INPUT1, ANOTHER_INPUT2, double, Double)                        \
-  _(ANOTHER_INPUT1, ANOTHER_INPUT2, ::executorch::aten::Half, Half)        \
+#define ET_FORALL_REALHBF16_TYPES_WITH2(ANOTHER_INPUT1, ANOTHER_INPUT2, _)     \
+  _(ANOTHER_INPUT1, ANOTHER_INPUT2, uint8_t, Byte)                             \
+  _(ANOTHER_INPUT1, ANOTHER_INPUT2, int8_t, Char)                              \
+  _(ANOTHER_INPUT1, ANOTHER_INPUT2, int16_t, Short)                            \
+  _(ANOTHER_INPUT1, ANOTHER_INPUT2, int32_t, Int)                              \
+  _(ANOTHER_INPUT1, ANOTHER_INPUT2, int64_t, Long)                             \
+  _(ANOTHER_INPUT1, ANOTHER_INPUT2, float, Float)                              \
+  _(ANOTHER_INPUT1, ANOTHER_INPUT2, double, Double)                            \
+  _(ANOTHER_INPUT1, ANOTHER_INPUT2, ::executorch::aten::Half, Half)            \
   _(ANOTHER_INPUT1, ANOTHER_INPUT2, ::executorch::aten::BFloat16, BFloat16)
 
 // For macros that take `SCALARTYPEn` parameters, those parameters should be
 // an unquoted/unqualified enumerator name like `Int` or `Float`.
-#define ET_FORALL_REAL_TYPES_AND(SCALARTYPE, _)            \
-  _(uint8_t, Byte)                                         \
-  _(int8_t, Char)                                          \
-  _(int16_t, Short)                                        \
-  _(int32_t, Int)                                          \
-  _(int64_t, Long)                                         \
-  _(float, Float)                                          \
-  _(double, Double)                                        \
-  _(::executorch::runtime::ScalarTypeToCppType<            \
-        ::executorch::aten::ScalarType::SCALARTYPE>::type, \
+#define ET_FORALL_REAL_TYPES_AND(SCALARTYPE, _)                                \
+  _(uint8_t, Byte)                                                             \
+  _(int8_t, Char)                                                              \
+  _(int16_t, Short)                                                            \
+  _(int32_t, Int)                                                              \
+  _(int64_t, Long)                                                             \
+  _(float, Float)                                                              \
+  _(double, Double)                                                            \
+  _(::executorch::runtime::ScalarTypeToCppType<                                \
+        ::executorch::aten::ScalarType::SCALARTYPE>::type,                     \
     SCALARTYPE)
 
-#define ET_FORALL_REAL_TYPES_AND2(SCALARTYPE1, SCALARTYPE2, _) \
-  _(uint8_t, Byte)                                             \
-  _(int8_t, Char)                                              \
-  _(int16_t, Short)                                            \
-  _(int32_t, Int)                                              \
-  _(int64_t, Long)                                             \
-  _(float, Float)                                              \
-  _(double, Double)                                            \
-  _(::executorch::runtime::ScalarTypeToCppType<                \
-        ::executorch::aten::ScalarType::SCALARTYPE1>::type,    \
-    SCALARTYPE1)                                               \
-  _(::executorch::runtime::ScalarTypeToCppType<                \
-        ::executorch::aten::ScalarType::SCALARTYPE2>::type,    \
+#define ET_FORALL_REAL_TYPES_AND2(SCALARTYPE1, SCALARTYPE2, _)                 \
+  _(uint8_t, Byte)                                                             \
+  _(int8_t, Char)                                                              \
+  _(int16_t, Short)                                                            \
+  _(int32_t, Int)                                                              \
+  _(int64_t, Long)                                                             \
+  _(float, Float)                                                              \
+  _(double, Double)                                                            \
+  _(::executorch::runtime::ScalarTypeToCppType<                                \
+        ::executorch::aten::ScalarType::SCALARTYPE1>::type,                    \
+    SCALARTYPE1)                                                               \
+  _(::executorch::runtime::ScalarTypeToCppType<                                \
+        ::executorch::aten::ScalarType::SCALARTYPE2>::type,                    \
     SCALARTYPE2)
 
 #define ET_FORALL_REALH_TYPES(_) ET_FORALL_REAL_TYPES_AND(Half, _)
 
-#define ET_FORALL_REALHBF16_TYPES(_) \
+#define ET_FORALL_REALHBF16_TYPES(_)                                           \
   ET_FORALL_REAL_TYPES_AND2(Half, BFloat16, _)
 
-#define ET_FORALL_REALHBBF16_TYPES(_) \
+#define ET_FORALL_REALHBBF16_TYPES(_)                                          \
   ET_FORALL_REAL_TYPES_AND3(Bool, Half, BFloat16, _)
 
-#define ET_FORALL_REAL_TYPES_AND_WITH(SCALARTYPE, ANOTHER_INPUT, _) \
-  _(ANOTHER_INPUT, uint8_t, Byte)                                   \
-  _(ANOTHER_INPUT, int8_t, Char)                                    \
-  _(ANOTHER_INPUT, int16_t, Short)                                  \
-  _(ANOTHER_INPUT, int32_t, Int)                                    \
-  _(ANOTHER_INPUT, int64_t, Long)                                   \
-  _(ANOTHER_INPUT, float, Float)                                    \
-  _(ANOTHER_INPUT, double, Double)                                  \
-  _(ANOTHER_INPUT,                                                  \
-    ::executorch::runtime::ScalarTypeToCppType<                     \
-        ::executorch::aten::ScalarType::SCALARTYPE>::type,          \
+#define ET_FORALL_REAL_TYPES_AND_WITH(SCALARTYPE, ANOTHER_INPUT, _)            \
+  _(ANOTHER_INPUT, uint8_t, Byte)                                              \
+  _(ANOTHER_INPUT, int8_t, Char)                                               \
+  _(ANOTHER_INPUT, int16_t, Short)                                             \
+  _(ANOTHER_INPUT, int32_t, Int)                                               \
+  _(ANOTHER_INPUT, int64_t, Long)                                              \
+  _(ANOTHER_INPUT, float, Float)                                               \
+  _(ANOTHER_INPUT, double, Double)                                             \
+  _(ANOTHER_INPUT,                                                             \
+    ::executorch::runtime::ScalarTypeToCppType<                                \
+        ::executorch::aten::ScalarType::SCALARTYPE>::type,                     \
     SCALARTYPE)
 
-#define ET_FORALL_REAL_TYPES_AND2(SCALARTYPE1, SCALARTYPE2, _) \
-  _(uint8_t, Byte)                                             \
-  _(int8_t, Char)                                              \
-  _(int16_t, Short)                                            \
-  _(int32_t, Int)                                              \
-  _(int64_t, Long)                                             \
-  _(float, Float)                                              \
-  _(double, Double)                                            \
-  _(::executorch::runtime::ScalarTypeToCppType<                \
-        ::executorch::aten::ScalarType::SCALARTYPE1>::type,    \
-    SCALARTYPE1)                                               \
-  _(::executorch::runtime::ScalarTypeToCppType<                \
-        ::executorch::aten::ScalarType::SCALARTYPE2>::type,    \
+#define ET_FORALL_REAL_TYPES_AND2(SCALARTYPE1, SCALARTYPE2, _)                 \
+  _(uint8_t, Byte)                                                             \
+  _(int8_t, Char)                                                              \
+  _(int16_t, Short)                                                            \
+  _(int32_t, Int)                                                              \
+  _(int64_t, Long)                                                             \
+  _(float, Float)                                                              \
+  _(double, Double)                                                            \
+  _(::executorch::runtime::ScalarTypeToCppType<                                \
+        ::executorch::aten::ScalarType::SCALARTYPE1>::type,                    \
+    SCALARTYPE1)                                                               \
+  _(::executorch::runtime::ScalarTypeToCppType<                                \
+        ::executorch::aten::ScalarType::SCALARTYPE2>::type,                    \
     SCALARTYPE2)
 
-#define ET_FORALL_REAL_TYPES_AND3(SCALARTYPE1, SCALARTYPE2, SCALARTYPE3, _) \
-  _(uint8_t, Byte)                                                          \
-  _(int8_t, Char)                                                           \
-  _(int16_t, Short)                                                         \
-  _(int32_t, Int)                                                           \
-  _(int64_t, Long)                                                          \
-  _(float, Float)                                                           \
-  _(double, Double)                                                         \
-  _(::executorch::runtime::ScalarTypeToCppType<                             \
-        ::executorch::aten::ScalarType::SCALARTYPE1>::type,                 \
-    SCALARTYPE1)                                                            \
-  _(::executorch::runtime::ScalarTypeToCppType<                             \
-        ::executorch::aten::ScalarType::SCALARTYPE2>::type,                 \
-    SCALARTYPE2)                                                            \
-  _(::executorch::runtime::ScalarTypeToCppType<                             \
-        ::executorch::aten::ScalarType::SCALARTYPE3>::type,                 \
+#define ET_FORALL_REAL_TYPES_AND3(SCALARTYPE1, SCALARTYPE2, SCALARTYPE3, _)    \
+  _(uint8_t, Byte)                                                             \
+  _(int8_t, Char)                                                              \
+  _(int16_t, Short)                                                            \
+  _(int32_t, Int)                                                              \
+  _(int64_t, Long)                                                             \
+  _(float, Float)                                                              \
+  _(double, Double)                                                            \
+  _(::executorch::runtime::ScalarTypeToCppType<                                \
+        ::executorch::aten::ScalarType::SCALARTYPE1>::type,                    \
+    SCALARTYPE1)                                                               \
+  _(::executorch::runtime::ScalarTypeToCppType<                                \
+        ::executorch::aten::ScalarType::SCALARTYPE2>::type,                    \
+    SCALARTYPE2)                                                               \
+  _(::executorch::runtime::ScalarTypeToCppType<                                \
+        ::executorch::aten::ScalarType::SCALARTYPE3>::type,                    \
     SCALARTYPE3)
 
-#define ET_FORALL_QINT_TYPES(_)            \
-  _(::torch::executor::qint8, QInt8)       \
-  _(::torch::executor::quint8, QUInt8)     \
-  _(::torch::executor::qint32, QInt32)     \
-  _(::torch::executor::quint4x2, QUInt4x2) \
+#define ET_FORALL_QINT_TYPES(_)                                                \
+  _(::torch::executor::qint8, QInt8)                                           \
+  _(::torch::executor::quint8, QUInt8)                                         \
+  _(::torch::executor::qint32, QInt32)                                         \
+  _(::torch::executor::quint4x2, QUInt4x2)                                     \
   _(::torch::executor::quint2x4, QUInt2x4)
 
 // In this context, "COMPLEX" means complex types based on primitive C types,
 // which is why ComplexHalf is not included.
-#define ET_FORALL_COMPLEX_TYPES(_)                   \
-  _(::torch::executor::complex<float>, ComplexFloat) \
+#define ET_FORALL_COMPLEX_TYPES(_)                                             \
+  _(::torch::executor::complex<float>, ComplexFloat)                           \
   _(::torch::executor::complex<double>, ComplexDouble)
 
 //
@@ -358,8 +354,8 @@ ET_FORALL_SCALAR_TYPES(SPECIALIZE_CppTypeToScalarType)
  */
 inline bool isValid(::executorch::aten::ScalarType type) {
   return static_cast<int8_t>(type) >= 0 &&
-      type < ::executorch::aten::ScalarType::NumOptions &&
-      type != ::executorch::aten::ScalarType::Undefined;
+         type < ::executorch::aten::ScalarType::NumOptions &&
+         type != ::executorch::aten::ScalarType::Undefined;
 }
 
 /**
@@ -368,17 +364,17 @@ inline bool isValid(::executorch::aten::ScalarType type) {
  * @param[in] t The type to get the name of.
  * @return The name of the type, or "UNKNOWN_SCALAR" if the type is not known.
  */
-inline const char* toString(::executorch::aten::ScalarType t) {
-#define DEFINE_CASE(_, name)                 \
-  case ::executorch::aten::ScalarType::name: \
+inline const char *toString(::executorch::aten::ScalarType t) {
+#define DEFINE_CASE(_, name)                                                   \
+  case ::executorch::aten::ScalarType::name:                                   \
     return #name;
 
   switch (t) {
     ET_FORALL_SCALAR_TYPES(DEFINE_CASE)
-    case ::executorch::aten::ScalarType::Undefined:
-      return "Undefined";
-    default:
-      return "UNKNOWN_SCALAR";
+  case ::executorch::aten::ScalarType::Undefined:
+    return "Undefined";
+  default:
+    return "UNKNOWN_SCALAR";
   }
 #undef DEFINE_CASE
 }
@@ -392,64 +388,59 @@ inline const char* toString(::executorch::aten::ScalarType t) {
  * @return The size of the associated C type in bytes.
  */
 inline size_t elementSize(::executorch::aten::ScalarType t) {
-#define CASE_ELEMENTSIZE_CASE(ctype, name)   \
-  case ::executorch::aten::ScalarType::name: \
+#define CASE_ELEMENTSIZE_CASE(ctype, name)                                     \
+  case ::executorch::aten::ScalarType::name:                                   \
     return sizeof(ctype);
 
   switch (t) {
     ET_FORALL_SCALAR_TYPES(CASE_ELEMENTSIZE_CASE)
-    default:
-      ET_CHECK_MSG(false, "Unknown ScalarType %" PRId8, static_cast<int8_t>(t));
+  default:
+    ET_CHECK_MSG(false, "Unknown ScalarType %" PRId8, static_cast<int8_t>(t));
   }
 #undef CASE_ELEMENTSIZE_CASE
 }
 
-inline constexpr bool isIntegralType(
-    ::executorch::aten::ScalarType t,
-    bool includeBool) {
+inline constexpr bool isIntegralType(::executorch::aten::ScalarType t,
+                                     bool includeBool) {
   return (includeBool && t == ::executorch::aten::ScalarType::Bool) ||
-      (t == ::executorch::aten::ScalarType::Byte ||
-       t == ::executorch::aten::ScalarType::Char ||
-       t == ::executorch::aten::ScalarType::Int ||
-       t == ::executorch::aten::ScalarType::Long ||
-       t == ::executorch::aten::ScalarType::Short);
+         (t == ::executorch::aten::ScalarType::Byte ||
+          t == ::executorch::aten::ScalarType::Char ||
+          t == ::executorch::aten::ScalarType::Int ||
+          t == ::executorch::aten::ScalarType::Long ||
+          t == ::executorch::aten::ScalarType::Short);
 }
 
 template <typename T, bool includeBool>
 struct is_integral_type
     : public std::integral_constant<
-          bool,
-          isIntegralType(CppTypeToScalarType<T>::value, includeBool)> {};
+          bool, isIntegralType(CppTypeToScalarType<T>::value, includeBool)> {};
 
 inline constexpr bool isFloatingType(::executorch::aten::ScalarType t) {
-  return (
-      t == ::executorch::aten::ScalarType::Double ||
-      t == ::executorch::aten::ScalarType::Float ||
-      t == ::executorch::aten::ScalarType::Half ||
-      t == ::executorch::aten::ScalarType::BFloat16);
+  return (t == ::executorch::aten::ScalarType::Double ||
+          t == ::executorch::aten::ScalarType::Float ||
+          t == ::executorch::aten::ScalarType::Half ||
+          t == ::executorch::aten::ScalarType::BFloat16);
 }
 
 inline bool isRealType(::executorch::aten::ScalarType t) {
-  return (
-      t == ::executorch::aten::ScalarType::Byte ||
-      t == ::executorch::aten::ScalarType::Char ||
-      t == ::executorch::aten::ScalarType::Short ||
-      t == ::executorch::aten::ScalarType::Int ||
-      t == ::executorch::aten::ScalarType::Long ||
-      t == ::executorch::aten::ScalarType::Float ||
-      t == ::executorch::aten::ScalarType::Double);
+  return (t == ::executorch::aten::ScalarType::Byte ||
+          t == ::executorch::aten::ScalarType::Char ||
+          t == ::executorch::aten::ScalarType::Short ||
+          t == ::executorch::aten::ScalarType::Int ||
+          t == ::executorch::aten::ScalarType::Long ||
+          t == ::executorch::aten::ScalarType::Float ||
+          t == ::executorch::aten::ScalarType::Double);
 }
 
 inline bool isRealHType(::executorch::aten::ScalarType t) {
-  return (
-      t == ::executorch::aten::ScalarType::Byte ||
-      t == ::executorch::aten::ScalarType::Char ||
-      t == ::executorch::aten::ScalarType::Short ||
-      t == ::executorch::aten::ScalarType::Int ||
-      t == ::executorch::aten::ScalarType::Long ||
-      t == ::executorch::aten::ScalarType::Float ||
-      t == ::executorch::aten::ScalarType::Double ||
-      t == ::executorch::aten::ScalarType::Half);
+  return (t == ::executorch::aten::ScalarType::Byte ||
+          t == ::executorch::aten::ScalarType::Char ||
+          t == ::executorch::aten::ScalarType::Short ||
+          t == ::executorch::aten::ScalarType::Int ||
+          t == ::executorch::aten::ScalarType::Long ||
+          t == ::executorch::aten::ScalarType::Float ||
+          t == ::executorch::aten::ScalarType::Double ||
+          t == ::executorch::aten::ScalarType::Half);
 }
 
 inline bool isRealHBType(::executorch::aten::ScalarType t) {
@@ -465,23 +456,22 @@ inline bool isRealHBBF16Type(::executorch::aten::ScalarType t) {
 }
 
 inline constexpr bool isComplexType(::executorch::aten::ScalarType t) {
-  return (
-      t == ::executorch::aten::ScalarType::ComplexHalf ||
-      t == ::executorch::aten::ScalarType::ComplexFloat ||
-      t == ::executorch::aten::ScalarType::ComplexDouble);
+  return (t == ::executorch::aten::ScalarType::ComplexHalf ||
+          t == ::executorch::aten::ScalarType::ComplexFloat ||
+          t == ::executorch::aten::ScalarType::ComplexDouble);
 }
 
 template <typename T>
-struct is_complex_type : std::integral_constant<
-                             bool,
+struct is_complex_type
+    : std::integral_constant<bool,
                              isComplexType(CppTypeToScalarType<T>::value)> {};
 
 constexpr bool isBitsType(::executorch::aten::ScalarType t) {
   return t == ::executorch::aten::ScalarType::Bits1x8 ||
-      t == ::executorch::aten::ScalarType::Bits2x4 ||
-      t == ::executorch::aten::ScalarType::Bits4x2 ||
-      t == ::executorch::aten::ScalarType::Bits8 ||
-      t == ::executorch::aten::ScalarType::Bits16;
+         t == ::executorch::aten::ScalarType::Bits2x4 ||
+         t == ::executorch::aten::ScalarType::Bits4x2 ||
+         t == ::executorch::aten::ScalarType::Bits8 ||
+         t == ::executorch::aten::ScalarType::Bits16;
 }
 
 template <typename T>
@@ -492,10 +482,10 @@ struct is_bits_type
 constexpr bool isQIntType(::executorch::aten::ScalarType t) {
   // Don't forget to extend this when adding new QInt types
   return t == ::executorch::aten::ScalarType::QInt8 ||
-      t == ::executorch::aten::ScalarType::QUInt8 ||
-      t == ::executorch::aten::ScalarType::QInt32 ||
-      t == ::executorch::aten::ScalarType::QUInt4x2 ||
-      t == ::executorch::aten::ScalarType::QUInt2x4;
+         t == ::executorch::aten::ScalarType::QUInt8 ||
+         t == ::executorch::aten::ScalarType::QInt32 ||
+         t == ::executorch::aten::ScalarType::QUInt4x2 ||
+         t == ::executorch::aten::ScalarType::QUInt2x4;
 }
 
 template <typename T>
@@ -503,162 +493,149 @@ struct is_qint_type
     : std::integral_constant<bool, isQIntType(CppTypeToScalarType<T>::value)> {
 };
 
-inline ::executorch::aten::ScalarType toQIntType(
-    ::executorch::aten::ScalarType t) {
+inline ::executorch::aten::ScalarType
+toQIntType(::executorch::aten::ScalarType t) {
   switch (t) {
-    case ::executorch::aten::ScalarType::Byte:
-      return ::executorch::aten::ScalarType::QUInt8;
-    case ::executorch::aten::ScalarType::Char:
-      return ::executorch::aten::ScalarType::QInt8;
-    case ::executorch::aten::ScalarType::Int:
-      return ::executorch::aten::ScalarType::QInt32;
-    default:
-      return t;
+  case ::executorch::aten::ScalarType::Byte:
+    return ::executorch::aten::ScalarType::QUInt8;
+  case ::executorch::aten::ScalarType::Char:
+    return ::executorch::aten::ScalarType::QInt8;
+  case ::executorch::aten::ScalarType::Int:
+    return ::executorch::aten::ScalarType::QInt32;
+  default:
+    return t;
   }
 }
 
-inline ::executorch::aten::ScalarType toUnderlying(
-    ::executorch::aten::ScalarType t) {
+inline ::executorch::aten::ScalarType
+toUnderlying(::executorch::aten::ScalarType t) {
   switch (t) {
-    case ::executorch::aten::ScalarType::QUInt8:
-      return ::executorch::aten::ScalarType::Byte;
-    case ::executorch::aten::ScalarType::QInt8:
-      return ::executorch::aten::ScalarType::Char;
-    case ::executorch::aten::ScalarType::QInt32:
-      return ::executorch::aten::ScalarType::Int;
-    case ::executorch::aten::ScalarType::QUInt4x2:
-      return ::executorch::aten::ScalarType::Byte;
-    case ::executorch::aten::ScalarType::QUInt2x4:
-      return ::executorch::aten::ScalarType::Byte;
-    default:
-      return t;
+  case ::executorch::aten::ScalarType::QUInt8:
+    return ::executorch::aten::ScalarType::Byte;
+  case ::executorch::aten::ScalarType::QInt8:
+    return ::executorch::aten::ScalarType::Char;
+  case ::executorch::aten::ScalarType::QInt32:
+    return ::executorch::aten::ScalarType::Int;
+  case ::executorch::aten::ScalarType::QUInt4x2:
+    return ::executorch::aten::ScalarType::Byte;
+  case ::executorch::aten::ScalarType::QUInt2x4:
+    return ::executorch::aten::ScalarType::Byte;
+  default:
+    return t;
   }
 }
 
 inline bool isSignedType(::executorch::aten::ScalarType t) {
-  ET_CHECK_MSG(
-      !::executorch::runtime::isQIntType(t),
-      "isSignedType not supported for quantized types like %" PRId8,
-      static_cast<int8_t>(t));
-#define CASE_SIGNED(ctype, name)             \
-  case ::executorch::aten::ScalarType::name: \
+  ET_CHECK_MSG(!::executorch::runtime::isQIntType(t),
+               "isSignedType not supported for quantized types like %" PRId8,
+               static_cast<int8_t>(t));
+#define CASE_SIGNED(ctype, name)                                               \
+  case ::executorch::aten::ScalarType::name:                                   \
     return std::numeric_limits<ctype>::is_signed;
 
   switch (t) {
-    case ::executorch::aten::ScalarType::ComplexHalf:
-    case ::executorch::aten::ScalarType::ComplexFloat:
-    case ::executorch::aten::ScalarType::ComplexDouble:
-      return true;
-      ET_FORALL_REAL_TYPES_AND3(Half, Bool, BFloat16, CASE_SIGNED)
-    default:
-      ET_CHECK_MSG(false, "Unknown ScalarType %" PRId8, static_cast<int8_t>(t));
+  case ::executorch::aten::ScalarType::ComplexHalf:
+  case ::executorch::aten::ScalarType::ComplexFloat:
+  case ::executorch::aten::ScalarType::ComplexDouble:
+    return true;
+    ET_FORALL_REAL_TYPES_AND3(Half, Bool, BFloat16, CASE_SIGNED)
+  default:
+    ET_CHECK_MSG(false, "Unknown ScalarType %" PRId8, static_cast<int8_t>(t));
   }
 #undef CASE_SIGNED
 }
 
-inline bool isUnderlying(
-    ::executorch::aten::ScalarType type,
-    ::executorch::aten::ScalarType qtype) {
+inline bool isUnderlying(::executorch::aten::ScalarType type,
+                         ::executorch::aten::ScalarType qtype) {
   return type == ::executorch::runtime::toUnderlying(qtype);
 }
 
-inline ::executorch::aten::ScalarType toRealValueType(
-    ::executorch::aten::ScalarType t) {
+inline ::executorch::aten::ScalarType
+toRealValueType(::executorch::aten::ScalarType t) {
   switch (t) {
-    case ::executorch::aten::ScalarType::ComplexHalf:
-      return ::executorch::aten::ScalarType::Half;
-    case ::executorch::aten::ScalarType::ComplexFloat:
-      return ::executorch::aten::ScalarType::Float;
-    case ::executorch::aten::ScalarType::ComplexDouble:
-      return ::executorch::aten::ScalarType::Double;
-    default:
-      return t;
+  case ::executorch::aten::ScalarType::ComplexHalf:
+    return ::executorch::aten::ScalarType::Half;
+  case ::executorch::aten::ScalarType::ComplexFloat:
+    return ::executorch::aten::ScalarType::Float;
+  case ::executorch::aten::ScalarType::ComplexDouble:
+    return ::executorch::aten::ScalarType::Double;
+  default:
+    return t;
   }
 }
 
-inline ::executorch::aten::ScalarType toComplexType(
-    ::executorch::aten::ScalarType t) {
+inline ::executorch::aten::ScalarType
+toComplexType(::executorch::aten::ScalarType t) {
   switch (t) {
-    case ::executorch::aten::ScalarType::BFloat16:
-      // BFloat16 has range equivalent to Float,
-      // so we map it to ComplexFloat.
-      return ::executorch::aten::ScalarType::ComplexFloat;
-    case ::executorch::aten::ScalarType::Half:
-      return ::executorch::aten::ScalarType::ComplexHalf;
-    case ::executorch::aten::ScalarType::Float:
-      return ::executorch::aten::ScalarType::ComplexFloat;
-    case ::executorch::aten::ScalarType::Double:
-      return ::executorch::aten::ScalarType::ComplexDouble;
-    case ::executorch::aten::ScalarType::ComplexHalf:
-      return ::executorch::aten::ScalarType::ComplexHalf;
-    case ::executorch::aten::ScalarType::ComplexFloat:
-      return ::executorch::aten::ScalarType::ComplexFloat;
-    case ::executorch::aten::ScalarType::ComplexDouble:
-      return ::executorch::aten::ScalarType::ComplexDouble;
-    default:
-      ET_CHECK_MSG(
-          false,
-          "Unknown Complex ScalarType for %" PRId8,
-          static_cast<int8_t>(t));
+  case ::executorch::aten::ScalarType::BFloat16:
+    // BFloat16 has range equivalent to Float,
+    // so we map it to ComplexFloat.
+    return ::executorch::aten::ScalarType::ComplexFloat;
+  case ::executorch::aten::ScalarType::Half:
+    return ::executorch::aten::ScalarType::ComplexHalf;
+  case ::executorch::aten::ScalarType::Float:
+    return ::executorch::aten::ScalarType::ComplexFloat;
+  case ::executorch::aten::ScalarType::Double:
+    return ::executorch::aten::ScalarType::ComplexDouble;
+  case ::executorch::aten::ScalarType::ComplexHalf:
+    return ::executorch::aten::ScalarType::ComplexHalf;
+  case ::executorch::aten::ScalarType::ComplexFloat:
+    return ::executorch::aten::ScalarType::ComplexFloat;
+  case ::executorch::aten::ScalarType::ComplexDouble:
+    return ::executorch::aten::ScalarType::ComplexDouble;
+  default:
+    ET_CHECK_MSG(false, "Unknown Complex ScalarType for %" PRId8,
+                 static_cast<int8_t>(t));
   }
 }
 
 /**
  * Encodes type casting rules that are consistent with ATen behaviour.
  */
-inline constexpr bool canCast(
-    const ::executorch::aten::ScalarType from,
-    const ::executorch::aten::ScalarType to) {
+inline constexpr bool canCast(const ::executorch::aten::ScalarType from,
+                              const ::executorch::aten::ScalarType to) {
   // Disallow complex -> non-complex
   return !(::executorch::runtime::isComplexType(from) &&
            !::executorch::runtime::isComplexType(to)) &&
-      // Disallow float -> integral
-      !(::executorch::runtime::isFloatingType(from) &&
-        ::executorch::runtime::isIntegralType(to, /*includeBool=*/false)) &&
-      // Treat bool as a special category. Disallow non-bool -> bool
-      !(from != ::executorch::aten::ScalarType::Bool &&
-        to == ::executorch::aten::ScalarType::Bool);
+         // Disallow float -> integral
+         !(::executorch::runtime::isFloatingType(from) &&
+           ::executorch::runtime::isIntegralType(to, /*includeBool=*/false)) &&
+         // Treat bool as a special category. Disallow non-bool -> bool
+         !(from != ::executorch::aten::ScalarType::Bool &&
+           to == ::executorch::aten::ScalarType::Bool);
 }
 
 template <typename T1, typename T2>
-struct can_cast : std::integral_constant<
-                      bool,
-                      canCast(
-                          CppTypeToScalarType<T1>::value,
-                          CppTypeToScalarType<T2>::value)> {};
+struct can_cast
+    : std::integral_constant<bool, canCast(CppTypeToScalarType<T1>::value,
+                                           CppTypeToScalarType<T2>::value)> {};
 
 /**
  * When casting from floating point to integral type, if the floating value is
  * outside the integral type range, then an error is thrown if sanitization is
  * enabled. To circumvent this, we cast the floating point to int64_t first.
  */
-template <
-    typename To,
-    typename From,
-    typename std::enable_if<
-        (std::is_floating_point<From>::value && std::is_integral<To>::value),
-        int>::type = 0>
+template <typename To, typename From,
+          typename std::enable_if<(std::is_floating_point<From>::value &&
+                                   std::is_integral<To>::value),
+                                  int>::type = 0>
 To convert(From val) {
   return static_cast<To>(static_cast<int64_t>(val));
 }
 
-template <
-    typename To,
-    typename From,
-    typename std::enable_if<
-        !(std::is_floating_point<From>::value && std::is_integral<To>::value),
-        int>::type = 0>
+template <typename To, typename From,
+          typename std::enable_if<!(std::is_floating_point<From>::value &&
+                                    std::is_integral<To>::value),
+                                  int>::type = 0>
 To convert(From val) {
   return static_cast<To>(val);
 }
 
 namespace internal {
 
-template <typename T1, typename T2>
-struct promote_types_lookup;
+template <typename T1, typename T2> struct promote_types_lookup;
 
-template <typename T1>
-struct promote_types_lookup<T1, T1> {
+template <typename T1> struct promote_types_lookup<T1, T1> {
   using type = T1;
 };
 
@@ -689,10 +666,9 @@ using B1 =
 using BF = typename ScalarTypeToCppType<
     ::executorch::aten::ScalarType::BFloat16>::type;
 
-#define TABLE_ENTRY(key1, key2, value)      \
-  template <>                               \
-  struct promote_types_lookup<key1, key2> { \
-    using type = value;                     \
+#define TABLE_ENTRY(key1, key2, value)                                         \
+  template <> struct promote_types_lookup<key1, key2> {                        \
+    using type = value;                                                        \
   }
 
 /* promote_types_lookup is a compile-time-accessible version of the
@@ -874,20 +850,18 @@ TABLE_ENTRY(BF, BF, BF);
 
 template <typename T1, typename T2, bool half_to_float = false>
 struct promote_types {
- private:
-  static_assert(
-      std::is_same<T1, T2>::value ||
-          (!is_qint_type<T1>::value && !is_qint_type<T2>::value),
-      "promote_types not valid for quantized dtypes");
-  static_assert(
-      std::is_same<T1, T2>::value ||
-          (!is_bits_type<T1>::value && !is_bits_type<T2>::value),
-      "promote_types not valid for bits dtypes");
+private:
+  static_assert(std::is_same<T1, T2>::value ||
+                    (!is_qint_type<T1>::value && !is_qint_type<T2>::value),
+                "promote_types not valid for quantized dtypes");
+  static_assert(std::is_same<T1, T2>::value ||
+                    (!is_bits_type<T1>::value && !is_bits_type<T2>::value),
+                "promote_types not valid for bits dtypes");
 
   using promoted_type_not_respecting_half_to_float =
       typename internal::promote_types_lookup<T1, T2>::type;
 
- public:
+public:
   using type = typename std::conditional<
       half_to_float &&
           (std::is_same<
@@ -908,10 +882,9 @@ struct promote_types {
  * If half_to_float is set to true, then half and bfloat16 will be promoted to
  * float instead
  */
-inline ::executorch::aten::ScalarType promoteTypes(
-    ::executorch::aten::ScalarType a,
-    ::executorch::aten::ScalarType b,
-    bool half_to_float = false) {
+inline ::executorch::aten::ScalarType
+promoteTypes(::executorch::aten::ScalarType a, ::executorch::aten::ScalarType b,
+             bool half_to_float = false) {
   // This is generated according to NumPy's promote_types
   constexpr auto u1 = ::executorch::aten::ScalarType::Byte;
   constexpr auto i1 = ::executorch::aten::ScalarType::Char;
@@ -948,12 +921,12 @@ inline ::executorch::aten::ScalarType promoteTypes(
   // 12 types are handled by this function, see the constexpr definitions above
   const int NUM_PROMOTE_TYPES = 13;
 
-  static constexpr std::
-      array<int, int(::executorch::aten::ScalarType::NumOptions)>
-          dtype2index = {{
-              0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11,
-              -1, -1, -1, 12, -1, -1, -1, -1, -1, -1, -1, -1,
-          }};
+  static constexpr std::array<int,
+                              int(::executorch::aten::ScalarType::NumOptions)>
+      dtype2index = {{
+          0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11,
+          -1, -1, -1, 12, -1, -1, -1, -1, -1, -1, -1, -1,
+      }};
   auto ix_a = dtype2index[(int)a];
   ET_CHECK(ix_a != -1);
   auto ix_b = dtype2index[(int)b];
@@ -997,200 +970,197 @@ inline ::executorch::aten::ScalarType promoteTypes(
 //
 
 #ifdef ET_INTERNAL_CHECK_SELECTIVE_BUILD
-#define ET_INTERNAL_SWITCH_CASE(enum_type, CTYPE_ALIAS, ...)         \
-  case enum_type: {                                                  \
-    ET_INTERNAL_CHECK_SELECTIVE_BUILD(enum_type);                    \
-    using CTYPE_ALIAS =                                              \
-        ::executorch::runtime::ScalarTypeToCppType<enum_type>::type; \
-    return __VA_ARGS__();                                            \
+#define ET_INTERNAL_SWITCH_CASE(enum_type, CTYPE_ALIAS, ...)                   \
+  case enum_type: {                                                            \
+    ET_INTERNAL_CHECK_SELECTIVE_BUILD(enum_type);                              \
+    using CTYPE_ALIAS =                                                        \
+        ::executorch::runtime::ScalarTypeToCppType<enum_type>::type;           \
+    return __VA_ARGS__();                                                      \
   }
 #else
-#define ET_INTERNAL_SWITCH_CASE(enum_type, CTYPE_ALIAS, ...)         \
-  case enum_type: {                                                  \
-    using CTYPE_ALIAS =                                              \
-        ::executorch::runtime::ScalarTypeToCppType<enum_type>::type; \
-    return __VA_ARGS__();                                            \
+#define ET_INTERNAL_SWITCH_CASE(enum_type, CTYPE_ALIAS, ...)                   \
+  case enum_type: {                                                            \
+    using CTYPE_ALIAS =                                                        \
+        ::executorch::runtime::ScalarTypeToCppType<enum_type>::type;           \
+    return __VA_ARGS__();                                                      \
   }
 #endif
 
-#define ET_INTERNAL_SWITCH(TYPE, CONTEXT, NAME, ...) \
-  [&] {                                              \
-    const auto& _st = TYPE;                          \
-    constexpr const char* et_switch_name = NAME;     \
-    (void)et_switch_name; /* Suppress unused var */  \
-    switch (_st) {                                   \
-      __VA_ARGS__                                    \
-      default:                                       \
-        ET_CHECK_MSG(                                \
-            false,                                   \
-            "Unhandled dtype %s for %s",             \
-            ::executorch::runtime::toString(_st),    \
-            et_switch_name);                         \
-    }                                                \
+#define ET_INTERNAL_SWITCH(TYPE, CONTEXT, NAME, ...)                           \
+  [&] {                                                                        \
+    const auto &_st = TYPE;                                                    \
+    constexpr const char *et_switch_name = NAME;                               \
+    (void)et_switch_name; /* Suppress unused var */                            \
+    switch (_st) {                                                             \
+      __VA_ARGS__                                                              \
+    default:                                                                   \
+      ET_CHECK_MSG(false, "Unhandled dtype %s for %s",                         \
+                   ::executorch::runtime::toString(_st), et_switch_name);      \
+    }                                                                          \
   }()
 
 #define ET_INTERNAL_SWITCH_CASE_ALL_TYPES(CTYPE_ALIAS, ...)                    \
-  ET_INTERNAL_SWITCH_CASE(                                                     \
-      ::executorch::aten::ScalarType::Byte, CTYPE_ALIAS, __VA_ARGS__)          \
-  ET_INTERNAL_SWITCH_CASE(                                                     \
-      ::executorch::aten::ScalarType::Char, CTYPE_ALIAS, __VA_ARGS__)          \
-  ET_INTERNAL_SWITCH_CASE(                                                     \
-      ::executorch::aten::ScalarType::Short, CTYPE_ALIAS, __VA_ARGS__)         \
-  ET_INTERNAL_SWITCH_CASE(                                                     \
-      ::executorch::aten::ScalarType::Int, CTYPE_ALIAS, __VA_ARGS__)           \
-  ET_INTERNAL_SWITCH_CASE(                                                     \
-      ::executorch::aten::ScalarType::Long, CTYPE_ALIAS, __VA_ARGS__)          \
-  ET_INTERNAL_SWITCH_CASE(                                                     \
-      ::executorch::aten::ScalarType::Half, CTYPE_ALIAS, __VA_ARGS__)          \
-  ET_INTERNAL_SWITCH_CASE(                                                     \
-      ::executorch::aten::ScalarType::Float, CTYPE_ALIAS, __VA_ARGS__)         \
-  ET_INTERNAL_SWITCH_CASE(                                                     \
-      ::executorch::aten::ScalarType::Double, CTYPE_ALIAS, __VA_ARGS__)        \
-  ET_INTERNAL_SWITCH_CASE(                                                     \
-      ::executorch::aten::ScalarType::ComplexHalf, CTYPE_ALIAS, __VA_ARGS__)   \
-  ET_INTERNAL_SWITCH_CASE(                                                     \
-      ::executorch::aten::ScalarType::ComplexFloat, CTYPE_ALIAS, __VA_ARGS__)  \
-  ET_INTERNAL_SWITCH_CASE(                                                     \
-      ::executorch::aten::ScalarType::ComplexDouble, CTYPE_ALIAS, __VA_ARGS__) \
-  ET_INTERNAL_SWITCH_CASE(                                                     \
-      ::executorch::aten::ScalarType::Bool, CTYPE_ALIAS, __VA_ARGS__)          \
-  ET_INTERNAL_SWITCH_CASE(                                                     \
-      ::executorch::aten::ScalarType::QInt8, CTYPE_ALIAS, __VA_ARGS__)         \
-  ET_INTERNAL_SWITCH_CASE(                                                     \
-      ::executorch::aten::ScalarType::QUInt8, CTYPE_ALIAS, __VA_ARGS__)        \
-  ET_INTERNAL_SWITCH_CASE(                                                     \
-      ::executorch::aten::ScalarType::QInt32, CTYPE_ALIAS, __VA_ARGS__)        \
-  ET_INTERNAL_SWITCH_CASE(                                                     \
-      ::executorch::aten::ScalarType::BFloat16, CTYPE_ALIAS, __VA_ARGS__)      \
-  ET_INTERNAL_SWITCH_CASE(                                                     \
-      ::executorch::aten::ScalarType::QUInt4x2, CTYPE_ALIAS, __VA_ARGS__)      \
-  ET_INTERNAL_SWITCH_CASE(                                                     \
-      ::executorch::aten::ScalarType::QUInt2x4, CTYPE_ALIAS, __VA_ARGS__)      \
-  ET_INTERNAL_SWITCH_CASE(                                                     \
-      ::executorch::aten::ScalarType::Bits1x8, CTYPE_ALIAS, __VA_ARGS__)       \
-  ET_INTERNAL_SWITCH_CASE(                                                     \
-      ::executorch::aten::ScalarType::Bits2x4, CTYPE_ALIAS, __VA_ARGS__)       \
-  ET_INTERNAL_SWITCH_CASE(                                                     \
-      ::executorch::aten::ScalarType::Bits4x2, CTYPE_ALIAS, __VA_ARGS__)       \
-  ET_INTERNAL_SWITCH_CASE(                                                     \
-      ::executorch::aten::ScalarType::Bits8, CTYPE_ALIAS, __VA_ARGS__)         \
-  ET_INTERNAL_SWITCH_CASE(                                                     \
-      ::executorch::aten::ScalarType::Bits16, CTYPE_ALIAS, __VA_ARGS__)
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Byte, CTYPE_ALIAS,   \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Char, CTYPE_ALIAS,   \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Short, CTYPE_ALIAS,  \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Int, CTYPE_ALIAS,    \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Long, CTYPE_ALIAS,   \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Half, CTYPE_ALIAS,   \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Float, CTYPE_ALIAS,  \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Double, CTYPE_ALIAS, \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::ComplexHalf,         \
+                          CTYPE_ALIAS, __VA_ARGS__)                            \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::ComplexFloat,        \
+                          CTYPE_ALIAS, __VA_ARGS__)                            \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::ComplexDouble,       \
+                          CTYPE_ALIAS, __VA_ARGS__)                            \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Bool, CTYPE_ALIAS,   \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::QInt8, CTYPE_ALIAS,  \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::QUInt8, CTYPE_ALIAS, \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::QInt32, CTYPE_ALIAS, \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::BFloat16,            \
+                          CTYPE_ALIAS, __VA_ARGS__)                            \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::QUInt4x2,            \
+                          CTYPE_ALIAS, __VA_ARGS__)                            \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::QUInt2x4,            \
+                          CTYPE_ALIAS, __VA_ARGS__)                            \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Bits1x8,             \
+                          CTYPE_ALIAS, __VA_ARGS__)                            \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Bits2x4,             \
+                          CTYPE_ALIAS, __VA_ARGS__)                            \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Bits4x2,             \
+                          CTYPE_ALIAS, __VA_ARGS__)                            \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Bits8, CTYPE_ALIAS,  \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Bits16, CTYPE_ALIAS, \
+                          __VA_ARGS__)
 
-#define ET_INTERNAL_SWITCH_CASE_REAL_TYPES(CTYPE_ALIAS, ...)           \
-  ET_INTERNAL_SWITCH_CASE(                                             \
-      ::executorch::aten::ScalarType::Byte, CTYPE_ALIAS, __VA_ARGS__)  \
-  ET_INTERNAL_SWITCH_CASE(                                             \
-      ::executorch::aten::ScalarType::Char, CTYPE_ALIAS, __VA_ARGS__)  \
-  ET_INTERNAL_SWITCH_CASE(                                             \
-      ::executorch::aten::ScalarType::Short, CTYPE_ALIAS, __VA_ARGS__) \
-  ET_INTERNAL_SWITCH_CASE(                                             \
-      ::executorch::aten::ScalarType::Int, CTYPE_ALIAS, __VA_ARGS__)   \
-  ET_INTERNAL_SWITCH_CASE(                                             \
-      ::executorch::aten::ScalarType::Long, CTYPE_ALIAS, __VA_ARGS__)  \
-  ET_INTERNAL_SWITCH_CASE(                                             \
-      ::executorch::aten::ScalarType::Float, CTYPE_ALIAS, __VA_ARGS__) \
-  ET_INTERNAL_SWITCH_CASE(                                             \
-      ::executorch::aten::ScalarType::Double, CTYPE_ALIAS, __VA_ARGS__)
+#define ET_INTERNAL_SWITCH_CASE_REAL_TYPES(CTYPE_ALIAS, ...)                   \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Byte, CTYPE_ALIAS,   \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Char, CTYPE_ALIAS,   \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Short, CTYPE_ALIAS,  \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Int, CTYPE_ALIAS,    \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Long, CTYPE_ALIAS,   \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Float, CTYPE_ALIAS,  \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Double, CTYPE_ALIAS, \
+                          __VA_ARGS__)
 
-#define ET_INTERNAL_SWITCH_CASE_REAL_TYPES_AND(ADDITIONAL, CTYPE_ALIAS, ...) \
-  ET_INTERNAL_SWITCH_CASE_REAL_TYPES(CTYPE_ALIAS, __VA_ARGS__)               \
-  ET_INTERNAL_SWITCH_CASE(                                                   \
-      ::executorch::aten::ScalarType::ADDITIONAL, CTYPE_ALIAS, __VA_ARGS__)
+#define ET_INTERNAL_SWITCH_CASE_REAL_TYPES_AND(ADDITIONAL, CTYPE_ALIAS, ...)   \
+  ET_INTERNAL_SWITCH_CASE_REAL_TYPES(CTYPE_ALIAS, __VA_ARGS__)                 \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::ADDITIONAL,          \
+                          CTYPE_ALIAS, __VA_ARGS__)
 
-#define ET_INTERNAL_SWITCH_CASE_REAL_TYPES_AND2(                             \
-    ADDITIONAL1, ADDITIONAL2, CTYPE_ALIAS, ...)                              \
-  ET_INTERNAL_SWITCH_CASE_REAL_TYPES(CTYPE_ALIAS, __VA_ARGS__)               \
-  ET_INTERNAL_SWITCH_CASE(                                                   \
-      ::executorch::aten::ScalarType::ADDITIONAL1, CTYPE_ALIAS, __VA_ARGS__) \
-  ET_INTERNAL_SWITCH_CASE(                                                   \
-      ::executorch::aten::ScalarType::ADDITIONAL2, CTYPE_ALIAS, __VA_ARGS__)
+#define ET_INTERNAL_SWITCH_CASE_REAL_TYPES_AND2(ADDITIONAL1, ADDITIONAL2,      \
+                                                CTYPE_ALIAS, ...)              \
+  ET_INTERNAL_SWITCH_CASE_REAL_TYPES(CTYPE_ALIAS, __VA_ARGS__)                 \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::ADDITIONAL1,         \
+                          CTYPE_ALIAS, __VA_ARGS__)                            \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::ADDITIONAL2,         \
+                          CTYPE_ALIAS, __VA_ARGS__)
 
-#define ET_INTERNAL_SWITCH_CASE_REAL_TYPES_AND3(             \
-    ADDITIONAL1, ADDITIONAL2, ADDITIONAL3, CTYPE_ALIAS, ...) \
-  ET_INTERNAL_SWITCH_CASE_REAL_TYPES_AND2(                   \
-      ADDITIONAL1, ADDITIONAL2, CTYPE_ALIAS, __VA_ARGS__)    \
-  ET_INTERNAL_SWITCH_CASE(                                   \
-      ::executorch::aten::ScalarType::ADDITIONAL3, CTYPE_ALIAS, __VA_ARGS__)
+#define ET_INTERNAL_SWITCH_CASE_REAL_TYPES_AND3(ADDITIONAL1, ADDITIONAL2,      \
+                                                ADDITIONAL3, CTYPE_ALIAS, ...) \
+  ET_INTERNAL_SWITCH_CASE_REAL_TYPES_AND2(ADDITIONAL1, ADDITIONAL2,            \
+                                          CTYPE_ALIAS, __VA_ARGS__)            \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::ADDITIONAL3,         \
+                          CTYPE_ALIAS, __VA_ARGS__)
 
-#define ET_INTERNAL_SWITCH_CASE_INT_TYPES(CTYPE_ALIAS, ...)            \
-  ET_INTERNAL_SWITCH_CASE(                                             \
-      ::executorch::aten::ScalarType::Byte, CTYPE_ALIAS, __VA_ARGS__)  \
-  ET_INTERNAL_SWITCH_CASE(                                             \
-      ::executorch::aten::ScalarType::Char, CTYPE_ALIAS, __VA_ARGS__)  \
-  ET_INTERNAL_SWITCH_CASE(                                             \
-      ::executorch::aten::ScalarType::Short, CTYPE_ALIAS, __VA_ARGS__) \
-  ET_INTERNAL_SWITCH_CASE(                                             \
-      ::executorch::aten::ScalarType::Int, CTYPE_ALIAS, __VA_ARGS__)   \
-  ET_INTERNAL_SWITCH_CASE(                                             \
-      ::executorch::aten::ScalarType::Long, CTYPE_ALIAS, __VA_ARGS__)
+#define ET_INTERNAL_SWITCH_CASE_INT_TYPES(CTYPE_ALIAS, ...)                    \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Byte, CTYPE_ALIAS,   \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Char, CTYPE_ALIAS,   \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Short, CTYPE_ALIAS,  \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Int, CTYPE_ALIAS,    \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Long, CTYPE_ALIAS,   \
+                          __VA_ARGS__)
 
-#define ET_INTERNAL_SWITCH_CASE_INT_TYPES_AND(ADDITIONAL, CTYPE_ALIAS, ...) \
-  ET_INTERNAL_SWITCH_CASE_INT_TYPES(CTYPE_ALIAS, __VA_ARGS__)               \
-  ET_INTERNAL_SWITCH_CASE(                                                  \
-      ::executorch::aten::ScalarType::ADDITIONAL, CTYPE_ALIAS, __VA_ARGS__)
+#define ET_INTERNAL_SWITCH_CASE_INT_TYPES_AND(ADDITIONAL, CTYPE_ALIAS, ...)    \
+  ET_INTERNAL_SWITCH_CASE_INT_TYPES(CTYPE_ALIAS, __VA_ARGS__)                  \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::ADDITIONAL,          \
+                          CTYPE_ALIAS, __VA_ARGS__)
 
-#define ET_INTERNAL_SWITCH_CASE_FLOAT_TYPES(CTYPE_ALIAS, ...)           \
-  ET_INTERNAL_SWITCH_CASE(                                              \
-      ::executorch::aten::ScalarType::Double, CTYPE_ALIAS, __VA_ARGS__) \
-  ET_INTERNAL_SWITCH_CASE(                                              \
-      ::executorch::aten::ScalarType::Float, CTYPE_ALIAS, __VA_ARGS__)
+#define ET_INTERNAL_SWITCH_CASE_FLOAT_TYPES(CTYPE_ALIAS, ...)                  \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Double, CTYPE_ALIAS, \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Float, CTYPE_ALIAS,  \
+                          __VA_ARGS__)
 
-#define ET_INTERNAL_SWITCH_CASE_FLOAT_TYPES_AND(ADDITIONAL, CTYPE_ALIAS, ...) \
-  ET_INTERNAL_SWITCH_CASE_FLOAT_TYPES(CTYPE_ALIAS, __VA_ARGS__)               \
-  ET_INTERNAL_SWITCH_CASE(                                                    \
-      ::executorch::aten::ScalarType::ADDITIONAL, CTYPE_ALIAS, __VA_ARGS__)
+#define ET_INTERNAL_SWITCH_CASE_FLOAT_TYPES_AND(ADDITIONAL, CTYPE_ALIAS, ...)  \
+  ET_INTERNAL_SWITCH_CASE_FLOAT_TYPES(CTYPE_ALIAS, __VA_ARGS__)                \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::ADDITIONAL,          \
+                          CTYPE_ALIAS, __VA_ARGS__)
 
-#define ET_INTERNAL_SWITCH_CASE_FLOAT_TYPES_AND2( \
-    ADDITIONAL1, ADDITIONAL2, CTYPE_ALIAS, ...)   \
-  ET_INTERNAL_SWITCH_CASE_FLOAT_TYPES_AND(        \
-      ADDITIONAL1, CTYPE_ALIAS, __VA_ARGS__)      \
-  ET_INTERNAL_SWITCH_CASE(                        \
-      ::executorch::aten::ScalarType::ADDITIONAL2, CTYPE_ALIAS, __VA_ARGS__)
+#define ET_INTERNAL_SWITCH_CASE_FLOAT_TYPES_AND2(ADDITIONAL1, ADDITIONAL2,     \
+                                                 CTYPE_ALIAS, ...)             \
+  ET_INTERNAL_SWITCH_CASE_FLOAT_TYPES_AND(ADDITIONAL1, CTYPE_ALIAS,            \
+                                          __VA_ARGS__)                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::ADDITIONAL2,         \
+                          CTYPE_ALIAS, __VA_ARGS__)
 
-#define ET_INTERNAL_SWITCH_CASE_QINT_TYPES(CTYPE_ALIAS, ...)              \
-  ET_INTERNAL_SWITCH_CASE(                                                \
-      ::executorch::aten::ScalarType::QInt8, CTYPE_ALIAS, __VA_ARGS__)    \
-  ET_INTERNAL_SWITCH_CASE(                                                \
-      ::executorch::aten::ScalarType::QUInt8, CTYPE_ALIAS, __VA_ARGS__)   \
-  ET_INTERNAL_SWITCH_CASE(                                                \
-      ::executorch::aten::ScalarType::QInt32, CTYPE_ALIAS, __VA_ARGS__)   \
-  ET_INTERNAL_SWITCH_CASE(                                                \
-      ::executorch::aten::ScalarType::QUInt4x2, CTYPE_ALIAS, __VA_ARGS__) \
-  ET_INTERNAL_SWITCH_CASE(                                                \
-      ::executorch::aten::ScalarType::QUInt2x4, CTYPE_ALIAS, __VA_ARGS__)
+#define ET_INTERNAL_SWITCH_CASE_QINT_TYPES(CTYPE_ALIAS, ...)                   \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::QInt8, CTYPE_ALIAS,  \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::QUInt8, CTYPE_ALIAS, \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::QInt32, CTYPE_ALIAS, \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::QUInt4x2,            \
+                          CTYPE_ALIAS, __VA_ARGS__)                            \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::QUInt2x4,            \
+                          CTYPE_ALIAS, __VA_ARGS__)
 
-#define ET_INTERNAL_SWITCH_CASE_COMPLEX_TYPES(CTYPE_ALIAS, ...)               \
-  ET_INTERNAL_SWITCH_CASE(                                                    \
-      ::executorch::aten::ScalarType::ComplexFloat, CTYPE_ALIAS, __VA_ARGS__) \
-  ET_INTERNAL_SWITCH_CASE(                                                    \
-      ::executorch::aten::ScalarType::ComplexDouble, CTYPE_ALIAS, __VA_ARGS__)
+#define ET_INTERNAL_SWITCH_CASE_COMPLEX_TYPES(CTYPE_ALIAS, ...)                \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::ComplexFloat,        \
+                          CTYPE_ALIAS, __VA_ARGS__)                            \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::ComplexDouble,       \
+                          CTYPE_ALIAS, __VA_ARGS__)
 
-#define ET_INTERNAL_SWITCH_CASE_SCALAR_OBJ_TYPES(CTYPE_ALIAS, ...)    \
-  ET_INTERNAL_SWITCH_CASE(                                            \
-      ::executorch::aten::ScalarType::Bool, CTYPE_ALIAS, __VA_ARGS__) \
-  ET_INTERNAL_SWITCH_CASE(                                            \
-      ::executorch::aten::ScalarType::Long, CTYPE_ALIAS, __VA_ARGS__) \
-  ET_INTERNAL_SWITCH_CASE(                                            \
-      ::executorch::aten::ScalarType::Double, CTYPE_ALIAS, __VA_ARGS__)
+#define ET_INTERNAL_SWITCH_CASE_SCALAR_OBJ_TYPES(CTYPE_ALIAS, ...)             \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Bool, CTYPE_ALIAS,   \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Long, CTYPE_ALIAS,   \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Double, CTYPE_ALIAS, \
+                          __VA_ARGS__)
 
-#define ET_INTERNAL_SWITCH_CASE_SCALAR_OBJ_REAL_TYPES(CTYPE_ALIAS, ...) \
-  ET_INTERNAL_SWITCH_CASE(                                              \
-      ::executorch::aten::ScalarType::Long, CTYPE_ALIAS, __VA_ARGS__)   \
-  ET_INTERNAL_SWITCH_CASE(                                              \
-      ::executorch::aten::ScalarType::Double, CTYPE_ALIAS, __VA_ARGS__)
+#define ET_INTERNAL_SWITCH_CASE_SCALAR_OBJ_REAL_TYPES(CTYPE_ALIAS, ...)        \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Long, CTYPE_ALIAS,   \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Double, CTYPE_ALIAS, \
+                          __VA_ARGS__)
 
-#define ET_INTERNAL_SWITCH_CASE_SCALAR_OBJ_INTB_TYPES(CTYPE_ALIAS, ...) \
-  ET_INTERNAL_SWITCH_CASE(                                              \
-      ::executorch::aten::ScalarType::Bool, CTYPE_ALIAS, __VA_ARGS__)   \
-  ET_INTERNAL_SWITCH_CASE(                                              \
-      ::executorch::aten::ScalarType::Long, CTYPE_ALIAS, __VA_ARGS__)
+#define ET_INTERNAL_SWITCH_CASE_SCALAR_OBJ_INTB_TYPES(CTYPE_ALIAS, ...)        \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Bool, CTYPE_ALIAS,   \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Long, CTYPE_ALIAS,   \
+                          __VA_ARGS__)
 
-#define ET_INTERNAL_SWITCH_CASE_SCALAR_OBJ_FLOATB_TYPES(CTYPE_ALIAS, ...) \
-  ET_INTERNAL_SWITCH_CASE(                                                \
-      ::executorch::aten::ScalarType::Bool, CTYPE_ALIAS, __VA_ARGS__)     \
-  ET_INTERNAL_SWITCH_CASE(                                                \
-      ::executorch::aten::ScalarType::Double, CTYPE_ALIAS, __VA_ARGS__)
+#define ET_INTERNAL_SWITCH_CASE_SCALAR_OBJ_FLOATB_TYPES(CTYPE_ALIAS, ...)      \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Bool, CTYPE_ALIAS,   \
+                          __VA_ARGS__)                                         \
+  ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::Double, CTYPE_ALIAS, \
+                          __VA_ARGS__)
 
 //
 // Switch case macros
@@ -1228,188 +1198,137 @@ inline ::executorch::aten::ScalarType promoteTypes(
 // used to alias the ctype associated with the ScalarType that is being handled.
 //
 
-#define ET_SWITCH_ALL_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...) \
-  ET_INTERNAL_SWITCH(                                              \
-      TYPE,                                                        \
-      CONTEXT,                                                     \
-      NAME,                                                        \
+#define ET_SWITCH_ALL_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...)             \
+  ET_INTERNAL_SWITCH(                                                          \
+      TYPE, CONTEXT, NAME,                                                     \
       ET_INTERNAL_SWITCH_CASE_ALL_TYPES(CTYPE_ALIAS, __VA_ARGS__))
 
-#define ET_SWITCH_REAL_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...) \
-  ET_INTERNAL_SWITCH(                                               \
-      TYPE,                                                         \
-      CONTEXT,                                                      \
-      NAME,                                                         \
+#define ET_SWITCH_REAL_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...)            \
+  ET_INTERNAL_SWITCH(                                                          \
+      TYPE, CONTEXT, NAME,                                                     \
       ET_INTERNAL_SWITCH_CASE_REAL_TYPES(CTYPE_ALIAS, __VA_ARGS__))
 
-#define ET_SWITCH_REAL_TYPES_AND(                      \
-    ADDITIONAL, TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...) \
-  ET_INTERNAL_SWITCH(                                  \
-      TYPE,                                            \
-      CONTEXT,                                         \
-      NAME,                                            \
-      ET_INTERNAL_SWITCH_CASE_REAL_TYPES_AND(          \
-          ADDITIONAL, CTYPE_ALIAS, __VA_ARGS__))
+#define ET_SWITCH_REAL_TYPES_AND(ADDITIONAL, TYPE, CONTEXT, NAME, CTYPE_ALIAS, \
+                                 ...)                                          \
+  ET_INTERNAL_SWITCH(TYPE, CONTEXT, NAME,                                      \
+                     ET_INTERNAL_SWITCH_CASE_REAL_TYPES_AND(                   \
+                         ADDITIONAL, CTYPE_ALIAS, __VA_ARGS__))
 
-#define ET_SWITCH_REAL_TYPES_AND2(                                   \
-    ADDITIONAL1, ADDITIONAL2, TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...) \
-  ET_INTERNAL_SWITCH(                                                \
-      TYPE,                                                          \
-      CONTEXT,                                                       \
-      NAME,                                                          \
-      ET_INTERNAL_SWITCH_CASE_REAL_TYPES_AND2(                       \
-          ADDITIONAL1, ADDITIONAL2, CTYPE_ALIAS, __VA_ARGS__))
+#define ET_SWITCH_REAL_TYPES_AND2(ADDITIONAL1, ADDITIONAL2, TYPE, CONTEXT,     \
+                                  NAME, CTYPE_ALIAS, ...)                      \
+  ET_INTERNAL_SWITCH(TYPE, CONTEXT, NAME,                                      \
+                     ET_INTERNAL_SWITCH_CASE_REAL_TYPES_AND2(                  \
+                         ADDITIONAL1, ADDITIONAL2, CTYPE_ALIAS, __VA_ARGS__))
 
-#define ET_SWITCH_REAL_TYPES_AND3(             \
-    ADDITIONAL1,                               \
-    ADDITIONAL2,                               \
-    ADDITIONAL3,                               \
-    TYPE,                                      \
-    CONTEXT,                                   \
-    NAME,                                      \
-    CTYPE_ALIAS,                               \
-    ...)                                       \
-  ET_INTERNAL_SWITCH(                          \
-      TYPE,                                    \
-      CONTEXT,                                 \
-      NAME,                                    \
-      ET_INTERNAL_SWITCH_CASE_REAL_TYPES_AND3( \
+#define ET_SWITCH_REAL_TYPES_AND3(ADDITIONAL1, ADDITIONAL2, ADDITIONAL3, TYPE, \
+                                  CONTEXT, NAME, CTYPE_ALIAS, ...)             \
+  ET_INTERNAL_SWITCH(                                                          \
+      TYPE, CONTEXT, NAME,                                                     \
+      ET_INTERNAL_SWITCH_CASE_REAL_TYPES_AND3(                                 \
           ADDITIONAL1, ADDITIONAL2, ADDITIONAL3, CTYPE_ALIAS, __VA_ARGS__))
 
-#define ET_SWITCH_REALH_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...) \
+#define ET_SWITCH_REALH_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...)           \
   ET_SWITCH_REAL_TYPES_AND(Half, TYPE, CONTEXT, NAME, CTYPE_ALIAS, __VA_ARGS__)
 
-#define ET_SWITCH_REALHBF16_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...) \
-  ET_SWITCH_REAL_TYPES_AND2(                                             \
-      Half, BFloat16, TYPE, CONTEXT, NAME, CTYPE_ALIAS, __VA_ARGS__)
+#define ET_SWITCH_REALHBF16_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...)       \
+  ET_SWITCH_REAL_TYPES_AND2(Half, BFloat16, TYPE, CONTEXT, NAME, CTYPE_ALIAS,  \
+                            __VA_ARGS__)
 
-#define ET_SWITCH_REALB_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...) \
+#define ET_SWITCH_REALB_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...)           \
   ET_SWITCH_REAL_TYPES_AND(Bool, TYPE, CONTEXT, NAME, CTYPE_ALIAS, __VA_ARGS__)
 
-#define ET_SWITCH_REALHB_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...) \
-  ET_SWITCH_REAL_TYPES_AND2(                                          \
-      Half, Bool, TYPE, CONTEXT, NAME, CTYPE_ALIAS, __VA_ARGS__)
+#define ET_SWITCH_REALHB_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...)          \
+  ET_SWITCH_REAL_TYPES_AND2(Half, Bool, TYPE, CONTEXT, NAME, CTYPE_ALIAS,      \
+                            __VA_ARGS__)
 
-#define ET_SWITCH_REALHBBF16_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...) \
-  ET_SWITCH_REAL_TYPES_AND3(                                              \
-      Half, Bool, BFloat16, TYPE, CONTEXT, NAME, CTYPE_ALIAS, __VA_ARGS__)
+#define ET_SWITCH_REALHBBF16_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...)      \
+  ET_SWITCH_REAL_TYPES_AND3(Half, Bool, BFloat16, TYPE, CONTEXT, NAME,         \
+                            CTYPE_ALIAS, __VA_ARGS__)
 
-#define ET_SWITCH_INT_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...) \
-  ET_INTERNAL_SWITCH(                                              \
-      TYPE,                                                        \
-      CONTEXT,                                                     \
-      NAME,                                                        \
+#define ET_SWITCH_INT_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...)             \
+  ET_INTERNAL_SWITCH(                                                          \
+      TYPE, CONTEXT, NAME,                                                     \
       ET_INTERNAL_SWITCH_CASE_INT_TYPES(CTYPE_ALIAS, __VA_ARGS__))
 
-#define ET_SWITCH_INT_TYPES_AND(                       \
-    ADDITIONAL, TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...) \
-  ET_INTERNAL_SWITCH(                                  \
-      TYPE,                                            \
-      CONTEXT,                                         \
-      NAME,                                            \
-      ET_INTERNAL_SWITCH_CASE_INT_TYPES_AND(           \
-          ADDITIONAL, CTYPE_ALIAS, __VA_ARGS__))
+#define ET_SWITCH_INT_TYPES_AND(ADDITIONAL, TYPE, CONTEXT, NAME, CTYPE_ALIAS,  \
+                                ...)                                           \
+  ET_INTERNAL_SWITCH(TYPE, CONTEXT, NAME,                                      \
+                     ET_INTERNAL_SWITCH_CASE_INT_TYPES_AND(                    \
+                         ADDITIONAL, CTYPE_ALIAS, __VA_ARGS__))
 
-#define ET_SWITCH_FLOAT_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...) \
-  ET_INTERNAL_SWITCH(                                                \
-      TYPE,                                                          \
-      CONTEXT,                                                       \
-      NAME,                                                          \
+#define ET_SWITCH_FLOAT_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...)           \
+  ET_INTERNAL_SWITCH(                                                          \
+      TYPE, CONTEXT, NAME,                                                     \
       ET_INTERNAL_SWITCH_CASE_FLOAT_TYPES(CTYPE_ALIAS, __VA_ARGS__))
 
-#define ET_SWITCH_FLOAT_TYPES_AND(                     \
-    ADDITIONAL, TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...) \
-  ET_INTERNAL_SWITCH(                                  \
-      TYPE,                                            \
-      CONTEXT,                                         \
-      NAME,                                            \
-      ET_INTERNAL_SWITCH_CASE_FLOAT_TYPES_AND(         \
-          ADDITIONAL, CTYPE_ALIAS, __VA_ARGS__))
+#define ET_SWITCH_FLOAT_TYPES_AND(ADDITIONAL, TYPE, CONTEXT, NAME,             \
+                                  CTYPE_ALIAS, ...)                            \
+  ET_INTERNAL_SWITCH(TYPE, CONTEXT, NAME,                                      \
+                     ET_INTERNAL_SWITCH_CASE_FLOAT_TYPES_AND(                  \
+                         ADDITIONAL, CTYPE_ALIAS, __VA_ARGS__))
 
-#define ET_SWITCH_FLOAT_TYPES_AND2(                                  \
-    ADDITIONAL1, ADDITIONAL2, TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...) \
-  ET_INTERNAL_SWITCH(                                                \
-      TYPE,                                                          \
-      CONTEXT,                                                       \
-      NAME,                                                          \
-      ET_INTERNAL_SWITCH_CASE_FLOAT_TYPES_AND2(                      \
-          ADDITIONAL1, ADDITIONAL2, CTYPE_ALIAS, __VA_ARGS__))
+#define ET_SWITCH_FLOAT_TYPES_AND2(ADDITIONAL1, ADDITIONAL2, TYPE, CONTEXT,    \
+                                   NAME, CTYPE_ALIAS, ...)                     \
+  ET_INTERNAL_SWITCH(TYPE, CONTEXT, NAME,                                      \
+                     ET_INTERNAL_SWITCH_CASE_FLOAT_TYPES_AND2(                 \
+                         ADDITIONAL1, ADDITIONAL2, CTYPE_ALIAS, __VA_ARGS__))
 
-#define ET_SWITCH_FLOATH_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...) \
+#define ET_SWITCH_FLOATH_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...)          \
   ET_SWITCH_FLOAT_TYPES_AND(Half, TYPE, CONTEXT, NAME, CTYPE_ALIAS, __VA_ARGS__)
 
-#define ET_SWITCH_FLOATHBF16_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...) \
-  ET_SWITCH_FLOAT_TYPES_AND2(                                             \
-      Half, BFloat16, TYPE, CONTEXT, NAME, CTYPE_ALIAS, __VA_ARGS__)
+#define ET_SWITCH_FLOATHBF16_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...)      \
+  ET_SWITCH_FLOAT_TYPES_AND2(Half, BFloat16, TYPE, CONTEXT, NAME, CTYPE_ALIAS, \
+                             __VA_ARGS__)
 
-#define ET_SWITCH_QINT_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...) \
-  ET_INTERNAL_SWITCH(                                               \
-      TYPE,                                                         \
-      CONTEXT,                                                      \
-      NAME,                                                         \
+#define ET_SWITCH_QINT_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...)            \
+  ET_INTERNAL_SWITCH(                                                          \
+      TYPE, CONTEXT, NAME,                                                     \
       ET_INTERNAL_SWITCH_CASE_QINT_TYPES(CTYPE_ALIAS, __VA_ARGS__))
 
-#define ET_SWITCH_COMPLEX_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...) \
-  ET_INTERNAL_SWITCH(                                                  \
-      TYPE,                                                            \
-      CONTEXT,                                                         \
-      NAME,                                                            \
+#define ET_SWITCH_COMPLEX_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...)         \
+  ET_INTERNAL_SWITCH(                                                          \
+      TYPE, CONTEXT, NAME,                                                     \
       ET_INTERNAL_SWITCH_CASE_COMPLEX_TYPES(CTYPE_ALIAS, __VA_ARGS__))
 
-#define ET_SWITCH_SCALAR_OBJ_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...) \
-  ET_INTERNAL_SWITCH(                                                     \
-      TYPE,                                                               \
-      CONTEXT,                                                            \
-      NAME,                                                               \
+#define ET_SWITCH_SCALAR_OBJ_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...)      \
+  ET_INTERNAL_SWITCH(                                                          \
+      TYPE, CONTEXT, NAME,                                                     \
       ET_INTERNAL_SWITCH_CASE_SCALAR_OBJ_TYPES(CTYPE_ALIAS, __VA_ARGS__))
 
 #define ET_SWITCH_SCALAR_OBJ_REAL_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...) \
   ET_INTERNAL_SWITCH(                                                          \
-      TYPE,                                                                    \
-      CONTEXT,                                                                 \
-      NAME,                                                                    \
+      TYPE, CONTEXT, NAME,                                                     \
       ET_INTERNAL_SWITCH_CASE_SCALAR_OBJ_REAL_TYPES(CTYPE_ALIAS, __VA_ARGS__))
 
 #define ET_SWITCH_SCALAR_OBJ_INTB_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...) \
   ET_INTERNAL_SWITCH(                                                          \
-      TYPE,                                                                    \
-      CONTEXT,                                                                 \
-      NAME,                                                                    \
+      TYPE, CONTEXT, NAME,                                                     \
       ET_INTERNAL_SWITCH_CASE_SCALAR_OBJ_INTB_TYPES(CTYPE_ALIAS, __VA_ARGS__))
 
-#define ET_SWITCH_SCALAR_OBJ_FLOATB_TYPES(             \
-    TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...)             \
-  ET_INTERNAL_SWITCH(                                  \
-      TYPE,                                            \
-      CONTEXT,                                         \
-      NAME,                                            \
-      ET_INTERNAL_SWITCH_CASE_SCALAR_OBJ_FLOATB_TYPES( \
-          CTYPE_ALIAS, __VA_ARGS__))
+#define ET_SWITCH_SCALAR_OBJ_FLOATB_TYPES(TYPE, CONTEXT, NAME, CTYPE_ALIAS,    \
+                                          ...)                                 \
+  ET_INTERNAL_SWITCH(TYPE, CONTEXT, NAME,                                      \
+                     ET_INTERNAL_SWITCH_CASE_SCALAR_OBJ_FLOATB_TYPES(          \
+                         CTYPE_ALIAS, __VA_ARGS__))
 
-#define ET_SWITCH_TWO_TYPES(T1, T2, TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...) \
-  ET_INTERNAL_SWITCH(                                                      \
-      TYPE,                                                                \
-      CONTEXT,                                                             \
-      NAME,                                                                \
-      ET_INTERNAL_SWITCH_CASE(                                             \
-          ::executorch::aten::ScalarType::T1, CTYPE_ALIAS, __VA_ARGS__)    \
-          ET_INTERNAL_SWITCH_CASE(                                         \
-              ::executorch::aten::ScalarType::T2, CTYPE_ALIAS, __VA_ARGS__))
+#define ET_SWITCH_TWO_TYPES(T1, T2, TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...)     \
+  ET_INTERNAL_SWITCH(                                                          \
+      TYPE, CONTEXT, NAME,                                                     \
+      ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::T1, CTYPE_ALIAS, \
+                              __VA_ARGS__)                                     \
+          ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::T2,          \
+                                  CTYPE_ALIAS, __VA_ARGS__))
 
-#define ET_SWITCH_THREE_TYPES(                                              \
-    T1, T2, T3, TYPE, CONTEXT, NAME, CTYPE_ALIAS, ...)                      \
-  ET_INTERNAL_SWITCH(                                                       \
-      TYPE,                                                                 \
-      CONTEXT,                                                              \
-      NAME,                                                                 \
-      ET_INTERNAL_SWITCH_CASE(                                              \
-          ::executorch::aten::ScalarType::T1, CTYPE_ALIAS, __VA_ARGS__)     \
-          ET_INTERNAL_SWITCH_CASE(                                          \
-              ::executorch::aten::ScalarType::T2, CTYPE_ALIAS, __VA_ARGS__) \
-              ET_INTERNAL_SWITCH_CASE(                                      \
-                  ::executorch::aten::ScalarType::T3,                       \
-                  CTYPE_ALIAS,                                              \
-                  __VA_ARGS__))
+#define ET_SWITCH_THREE_TYPES(T1, T2, T3, TYPE, CONTEXT, NAME, CTYPE_ALIAS,    \
+                              ...)                                             \
+  ET_INTERNAL_SWITCH(                                                          \
+      TYPE, CONTEXT, NAME,                                                     \
+      ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::T1, CTYPE_ALIAS, \
+                              __VA_ARGS__)                                     \
+          ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::T2,          \
+                                  CTYPE_ALIAS, __VA_ARGS__)                    \
+              ET_INTERNAL_SWITCH_CASE(::executorch::aten::ScalarType::T3,      \
+                                      CTYPE_ALIAS, __VA_ARGS__))
 
 } // namespace runtime
 } // namespace executorch
@@ -1418,7 +1337,7 @@ namespace executorch {
 namespace aten {
 #ifdef USE_ATEN_LIB
 using ::at::elementSize;
-#else // USE_ATEN_LIB
+#else  // USE_ATEN_LIB
 using ::executorch::runtime::elementSize;
 #endif // USE_ATEN_LIB
 } // namespace aten

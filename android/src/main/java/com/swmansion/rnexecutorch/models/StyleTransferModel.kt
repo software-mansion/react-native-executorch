@@ -5,11 +5,11 @@ import com.swmansion.rnexecutorch.utils.ImageProcessor
 import org.opencv.core.Mat
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
-import org.pytorch.executorch.Tensor
 import org.pytorch.executorch.EValue
 
-
-class StyleTransferModel(reactApplicationContext: ReactApplicationContext) : BaseModel<Mat, Mat>(reactApplicationContext) {
+class StyleTransferModel(
+  reactApplicationContext: ReactApplicationContext,
+) : BaseModel<Mat, Mat>(reactApplicationContext) {
   private lateinit var originalSize: Size
 
   private fun getModelImageSize(): Size {
@@ -35,8 +35,8 @@ class StyleTransferModel(reactApplicationContext: ReactApplicationContext) : Bas
   }
 
   override fun runModel(input: Mat): Mat {
-      val modelInput = preprocess(input)
-      val modelOutput = forward(modelInput)
-      return postprocess(modelOutput)
+    val modelInput = preprocess(input)
+    val modelOutput = forward(modelInput)
+    return postprocess(modelOutput)
   }
 }

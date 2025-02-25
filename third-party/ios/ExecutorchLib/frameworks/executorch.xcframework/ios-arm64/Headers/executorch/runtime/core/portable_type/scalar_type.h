@@ -59,30 +59,30 @@ namespace etensor {
  * @param _ A macro that takes two parameters: the name of a C type, and the
  *     name of the corresponding ScalarType enumerator.
  */
-#define ET_FORALL_SCALAR_TYPES(_)                                             \
-  _(uint8_t, Byte) /* 0 */                                                    \
-  _(int8_t, Char) /* 1 */                                                     \
-  _(int16_t, Short) /* 2 */                                                   \
-  _(int32_t, Int) /* 3 */                                                     \
-  _(int64_t, Long) /* 4 */                                                    \
-  _(::torch::executor::Half, Half) /* 5 */                                    \
-  _(float, Float) /* 6 */                                                     \
-  _(double, Double) /* 7 */                                                   \
-  _(::torch::executor::complex<::torch::executor::Half>, ComplexHalf) /* 8 */ \
-  _(::torch::executor::complex<float>, ComplexFloat) /* 9 */                  \
-  _(::torch::executor::complex<double>, ComplexDouble) /* 10 */               \
-  _(bool, Bool) /* 11 */                                                      \
-  _(::torch::executor::qint8, QInt8) /* 12 */                                 \
-  _(::torch::executor::quint8, QUInt8) /* 13 */                               \
-  _(::torch::executor::qint32, QInt32) /* 14 */                               \
-  _(::torch::executor::BFloat16, BFloat16) /* 15 */                           \
-  _(::torch::executor::quint4x2, QUInt4x2) /* 16 */                           \
-  _(::torch::executor::quint2x4, QUInt2x4) /* 17 */                           \
-  _(::torch::executor::bits1x8, Bits1x8) /* 18 */                             \
-  _(::torch::executor::bits2x4, Bits2x4) /* 19 */                             \
-  _(::torch::executor::bits4x2, Bits4x2) /* 20 */                             \
-  _(::torch::executor::bits8, Bits8) /* 21 */                                 \
-  _(::torch::executor::bits16, Bits16) /* 22 */
+#define ET_FORALL_SCALAR_TYPES(_)                                              \
+  _(uint8_t, Byte)                                                    /* 0 */  \
+  _(int8_t, Char)                                                     /* 1 */  \
+  _(int16_t, Short)                                                   /* 2 */  \
+  _(int32_t, Int)                                                     /* 3 */  \
+  _(int64_t, Long)                                                    /* 4 */  \
+  _(::torch::executor::Half, Half)                                    /* 5 */  \
+  _(float, Float)                                                     /* 6 */  \
+  _(double, Double)                                                   /* 7 */  \
+  _(::torch::executor::complex<::torch::executor::Half>, ComplexHalf) /* 8 */  \
+  _(::torch::executor::complex<float>, ComplexFloat)                  /* 9 */  \
+  _(::torch::executor::complex<double>, ComplexDouble)                /* 10 */ \
+  _(bool, Bool)                                                       /* 11 */ \
+  _(::torch::executor::qint8, QInt8)                                  /* 12 */ \
+  _(::torch::executor::quint8, QUInt8)                                /* 13 */ \
+  _(::torch::executor::qint32, QInt32)                                /* 14 */ \
+  _(::torch::executor::BFloat16, BFloat16)                            /* 15 */ \
+  _(::torch::executor::quint4x2, QUInt4x2)                            /* 16 */ \
+  _(::torch::executor::quint2x4, QUInt2x4)                            /* 17 */ \
+  _(::torch::executor::bits1x8, Bits1x8)                              /* 18 */ \
+  _(::torch::executor::bits2x4, Bits2x4)                              /* 19 */ \
+  _(::torch::executor::bits4x2, Bits4x2)                              /* 20 */ \
+  _(::torch::executor::bits8, Bits8)                                  /* 21 */ \
+  _(::torch::executor::bits16, Bits16)                                /* 22 */
 
 /**
  * Data types (dtypes) that can be used as element types in ETensors.

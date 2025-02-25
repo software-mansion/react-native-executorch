@@ -15,15 +15,15 @@
 
 #include <stack>
 
-#include "util/logging.h"
 #include "re2/regexp.h"
+#include "util/logging.h"
 
 namespace re2 {
 
-template<typename T> struct WalkState;
+template <typename T> struct WalkState;
 
-template<typename T> class Regexp::Walker {
- public:
+template <typename T> class Regexp::Walker {
+public:
   Walker();
   virtual ~Walker();
 
@@ -36,7 +36,7 @@ template<typename T> class Regexp::Walker {
   // into the children.  Instead it behaves as though the return
   // value from PreVisit is the return value from PostVisit.
   // The default PreVisit returns parent_arg.
-  virtual T PreVisit(Regexp* re, T parent_arg, bool* stop);
+  virtual T PreVisit(Regexp *re, T parent_arg, bool *stop);
 
   // Virtual method called after visiting re's children.
   // The pre_arg is the T that PreVisit returned.
@@ -47,8 +47,8 @@ template<typename T> class Regexp::Walker {
   // PostVisit passes ownership of its return value
   // to its caller.
   // The default PostVisit simply returns pre_arg.
-  virtual T PostVisit(Regexp* re, T parent_arg, T pre_arg,
-                      T* child_args, int nchild_args);
+  virtual T PostVisit(Regexp *re, T parent_arg, T pre_arg, T *child_args,
+                      int nchild_args);
 
   // Virtual method called to copy a T,
   // when Walk notices that more than one child is the same re.
@@ -62,12 +62,12 @@ template<typename T> class Regexp::Walker {
   // This function is (hopefully) only called by
   // WalkExponential, but must be implemented by all clients,
   // just in case.
-  virtual T ShortVisit(Regexp* re, T parent_arg) = 0;
+  virtual T ShortVisit(Regexp *re, T parent_arg) = 0;
 
   // Walks over a regular expression.
   // Top_arg is passed as parent_arg to PreVisit and PostVisit of re.
   // Returns the T returned by PostVisit on re.
-  T Walk(Regexp* re, T top_arg);
+  T Walk(Regexp *re, T top_arg);
 
   // Like Walk, but doesn't use Copy.  This can lead to
   // exponential runtimes on cross-linked Regexps like the
@@ -77,7 +77,7 @@ template<typename T> class Regexp::Walker {
   // If the walk *is* cut off early, ShortVisit(re)
   // will be called on regexps that cannot be fully
   // visited rather than calling PreVisit/PostVisit.
-  T WalkExponential(Regexp* re, T top_arg, int max_visits);
+  T WalkExponential(Regexp *re, T top_arg, int max_visits);
 
   // Clears the stack.  Should never be necessary, since
   // Walk always enters and exits with an empty stack.
@@ -87,64 +87,52 @@ template<typename T> class Regexp::Walker {
   // Returns whether walk was cut off.
   bool stopped_early() { return stopped_early_; }
 
- private:
+private:
   // Walk state for the entire traversal.
   std::stack<WalkState<T>> stack_;
   bool stopped_early_;
   int max_visits_;
 
-  T WalkInternal(Regexp* re, T top_arg, bool use_copy);
+  T WalkInternal(Regexp *re, T top_arg, bool use_copy);
 
-  Walker(const Walker&) = delete;
-  Walker& operator=(const Walker&) = delete;
+  Walker(const Walker &) = delete;
+  Walker &operator=(const Walker &) = delete;
 };
 
-template<typename T> T Regexp::Walker<T>::PreVisit(Regexp* re,
-                                                   T parent_arg,
-                                                   bool* stop) {
+template <typename T>
+T Regexp::Walker<T>::PreVisit(Regexp *re, T parent_arg, bool *stop) {
   return parent_arg;
 }
 
-template<typename T> T Regexp::Walker<T>::PostVisit(Regexp* re,
-                                                    T parent_arg,
-                                                    T pre_arg,
-                                                    T* child_args,
-                                                    int nchild_args) {
+template <typename T>
+T Regexp::Walker<T>::PostVisit(Regexp *re, T parent_arg, T pre_arg,
+                               T *child_args, int nchild_args) {
   return pre_arg;
 }
 
-template<typename T> T Regexp::Walker<T>::Copy(T arg) {
-  return arg;
-}
+template <typename T> T Regexp::Walker<T>::Copy(T arg) { return arg; }
 
 // State about a single level in the traversal.
-template<typename T> struct WalkState {
-  WalkState(Regexp* re, T parent)
-    : re(re),
-      n(-1),
-      parent_arg(parent),
-      child_args(NULL) { }
+template <typename T> struct WalkState {
+  WalkState(Regexp *re, T parent)
+      : re(re), n(-1), parent_arg(parent), child_args(NULL) {}
 
-  Regexp* re;  // The regexp
-  int n;  // The index of the next child to process; -1 means need to PreVisit
-  T parent_arg;  // Accumulated arguments.
+  Regexp *re; // The regexp
+  int n; // The index of the next child to process; -1 means need to PreVisit
+  T parent_arg; // Accumulated arguments.
   T pre_arg;
-  T child_arg;  // One-element buffer for child_args.
-  T* child_args;
+  T child_arg; // One-element buffer for child_args.
+  T *child_args;
 };
 
-template<typename T> Regexp::Walker<T>::Walker() {
-  stopped_early_ = false;
-}
+template <typename T> Regexp::Walker<T>::Walker() { stopped_early_ = false; }
 
-template<typename T> Regexp::Walker<T>::~Walker() {
-  Reset();
-}
+template <typename T> Regexp::Walker<T>::~Walker() { Reset(); }
 
 // Clears the stack.  Should never be necessary, since
 // Walk always enters and exits with an empty stack.
 // Logs DFATAL if stack is not already clear.
-template<typename T> void Regexp::Walker<T>::Reset() {
+template <typename T> void Regexp::Walker<T>::Reset() {
   if (!stack_.empty()) {
     LOG(DFATAL) << "Stack not empty.";
     while (!stack_.empty()) {
@@ -155,8 +143,8 @@ template<typename T> void Regexp::Walker<T>::Reset() {
   }
 }
 
-template<typename T> T Regexp::Walker<T>::WalkInternal(Regexp* re, T top_arg,
-                                                       bool use_copy) {
+template <typename T>
+T Regexp::Walker<T>::WalkInternal(Regexp *re, T top_arg, bool use_copy) {
   Reset();
 
   if (re == NULL) {
@@ -166,51 +154,51 @@ template<typename T> T Regexp::Walker<T>::WalkInternal(Regexp* re, T top_arg,
 
   stack_.push(WalkState<T>(re, top_arg));
 
-  WalkState<T>* s;
+  WalkState<T> *s;
   for (;;) {
     T t;
     s = &stack_.top();
     re = s->re;
     switch (s->n) {
-      case -1: {
-        if (--max_visits_ < 0) {
-          stopped_early_ = true;
-          t = ShortVisit(re, s->parent_arg);
-          break;
-        }
-        bool stop = false;
-        s->pre_arg = PreVisit(re, s->parent_arg, &stop);
-        if (stop) {
-          t = s->pre_arg;
-          break;
-        }
-        s->n = 0;
-        s->child_args = NULL;
-        if (re->nsub_ == 1)
-          s->child_args = &s->child_arg;
-        else if (re->nsub_ > 1)
-          s->child_args = new T[re->nsub_];
-        FALLTHROUGH_INTENDED;
-      }
-      default: {
-        if (re->nsub_ > 0) {
-          Regexp** sub = re->sub();
-          if (s->n < re->nsub_) {
-            if (use_copy && s->n > 0 && sub[s->n - 1] == sub[s->n]) {
-              s->child_args[s->n] = Copy(s->child_args[s->n - 1]);
-              s->n++;
-            } else {
-              stack_.push(WalkState<T>(sub[s->n], s->pre_arg));
-            }
-            continue;
-          }
-        }
-
-        t = PostVisit(re, s->parent_arg, s->pre_arg, s->child_args, s->n);
-        if (re->nsub_ > 1)
-          delete[] s->child_args;
+    case -1: {
+      if (--max_visits_ < 0) {
+        stopped_early_ = true;
+        t = ShortVisit(re, s->parent_arg);
         break;
       }
+      bool stop = false;
+      s->pre_arg = PreVisit(re, s->parent_arg, &stop);
+      if (stop) {
+        t = s->pre_arg;
+        break;
+      }
+      s->n = 0;
+      s->child_args = NULL;
+      if (re->nsub_ == 1)
+        s->child_args = &s->child_arg;
+      else if (re->nsub_ > 1)
+        s->child_args = new T[re->nsub_];
+      FALLTHROUGH_INTENDED;
+    }
+    default: {
+      if (re->nsub_ > 0) {
+        Regexp **sub = re->sub();
+        if (s->n < re->nsub_) {
+          if (use_copy && s->n > 0 && sub[s->n - 1] == sub[s->n]) {
+            s->child_args[s->n] = Copy(s->child_args[s->n - 1]);
+            s->n++;
+          } else {
+            stack_.push(WalkState<T>(sub[s->n], s->pre_arg));
+          }
+          continue;
+        }
+      }
+
+      t = PostVisit(re, s->parent_arg, s->pre_arg, s->child_args, s->n);
+      if (re->nsub_ > 1)
+        delete[] s->child_args;
+      break;
+    }
     }
 
     // We've finished stack_.top().
@@ -227,7 +215,7 @@ template<typename T> T Regexp::Walker<T>::WalkInternal(Regexp* re, T top_arg,
   }
 }
 
-template<typename T> T Regexp::Walker<T>::Walk(Regexp* re, T top_arg) {
+template <typename T> T Regexp::Walker<T>::Walk(Regexp *re, T top_arg) {
   // Without the exponential walking behavior,
   // this budget should be more than enough for any
   // regexp, and yet not enough to get us in trouble
@@ -236,12 +224,12 @@ template<typename T> T Regexp::Walker<T>::Walk(Regexp* re, T top_arg) {
   return WalkInternal(re, top_arg, true);
 }
 
-template<typename T> T Regexp::Walker<T>::WalkExponential(Regexp* re, T top_arg,
-                                                          int max_visits) {
+template <typename T>
+T Regexp::Walker<T>::WalkExponential(Regexp *re, T top_arg, int max_visits) {
   max_visits_ = max_visits;
   return WalkInternal(re, top_arg, false);
 }
 
-}  // namespace re2
+} // namespace re2
 
-#endif  // RE2_WALKER_INL_H_
+#endif // RE2_WALKER_INL_H_
