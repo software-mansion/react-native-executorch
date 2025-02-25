@@ -1,6 +1,4 @@
-#ifndef Whisper_hpp
-#define Whisper_hpp
-
+#import "Moonshine.hpp"
 #import "ExecutorchLib/ETModel.h"
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
@@ -26,17 +24,17 @@
 }
 
 - (NSArray *)encode:(NSArray *)waveform {
-  return [self->encoder encode:waveform];
+  return [self->encoder encode:[NSArray arrayWithObject:waveform]];
 }
 
 - (NSArray *)decode:(NSArray *)prevTokens encoderLastHiddenState:(NSArray *)encoderLastHiddenState {
   return [self->decoder decode:prevTokens encoderLastHiddenState:encoderLastHiddenState];
 }
 
-- (void)loadModules:(NSString *)modelSources {
+- (void)loadModules:(NSArray *)modelSources {
 
-  encoder = [[MoonshineEncoder alloc] init];
-  decoder = [[MoonshineDecoder alloc] init];
+  self->encoder = [[MoonshineEncoder alloc] init];
+  self->decoder = [[MoonshineDecoder alloc] init];
 
   // Load encoder
   [self loadModuleHelper:self->encoder
@@ -56,7 +54,3 @@
 }
 
 @end
-
-
-
-#endif /* Whisper_hpp */

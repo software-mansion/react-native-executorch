@@ -5,13 +5,9 @@
 #import <UIKit/UIKit.h>
 #import "MoonshineEncoder.hpp"
 #import "Moonshinedecoder.hpp"
+#import "SpeechToTextBaseModel.hpp"
 
-@interface Moonshine : NSObject
-
-- (NSArray *)encode:(NSArray *)waveform;
-- (NSArray *)decode:(NSArray *)prevTokens encoderLastHiddenState:(NSArray *)encoderLastHiddenState;
-- (void)loadModules:(NSString[] *)modelSources;
-
+@interface Moonshine : SpeechToTextBaseModel
 @end
 
 

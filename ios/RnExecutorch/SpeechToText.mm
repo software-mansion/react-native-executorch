@@ -1,13 +1,14 @@
 #import "SpeechToText.h"
 #import "models/BaseModel.h"
-#import "models/stt/WhisperDecoder.hpp"
-#import "models/stt/WhisperEncoder.hpp"
 #import <Accelerate/Accelerate.h>
+#import "models/stt/Whisper.hpp"
+#import "models/stt/Moonshine.hpp"
 #import "utils/Fetcher.h"
 #import "utils/SFFT.hpp"
 #import <ExecutorchLib/ETModel.h>
 #import <React/RCTBridgeModule.h>
 #import "./utils/ScalarType.h"
+#import "models/stt/SpeechToTextBaseModel.hpp"
 
 @implementation SpeechToText {
   Whisper *whisper;
@@ -20,15 +21,16 @@ RCT_EXPORT_MODULE()
          resolve:(RCTPromiseResolveBlock)resolve
           reject:(RCTPromiseRejectBlock)reject {
   @try {
-    NSObject model = self->whisper ? self->whisper : self->moonshine;
-    NSArray *stft = [SFFT stftFromWaveform:waveform];
+    SpeechToTextBaseModel* model = self->whisper ? self->whisper : self->moonshine;
+
     dispatch_async(
         dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+          NSArray *encodingResult = [model encode:waveform];
+          
           NSMutableArray *mutablePrevTokens = [NSMutableArray arrayWithObject:model->START_TOKEN];
-
           NSNumber *currentSeqLen = @0;
-          while ([currentSeqLen unsignedIntegerValue] < model -> maxSeqLen) {
-            NSArray *result = [model->decoder decode:mutablePrevTokens
+          while ([currentSeqLen unsignedIntegerValue] < model->maxSeqLen) {
+            NSArray *result = [model decode:mutablePrevTokens
                              encoderLastHiddenState:encodingResult];
             if (!result || result.count == 0) {
               reject(@"forward_error", @"Decoder returned an empty result.",
@@ -53,39 +55,45 @@ RCT_EXPORT_MODULE()
 }
 
 - (void)loadModule:(NSString *)modelName
-     modelSources:(NSString[] *)modelSources
+      modelSources:(NSArray*)modelSources
            resolve:(RCTPromiseResolveBlock)resolve
             reject:(RCTPromiseRejectBlock)reject {
 
 
-  NSObject *model;
-  if(modelName == @"moonshine") {
-    if ([modelName count] != @2) reject(@"corrupted model sources", nil, nil);
+  SpeechToTextBaseModel* model;
+  if([modelName isEqualToString:@"moonshine"]) {
+    if ([modelSources count] != 2) {
+      reject(@"corrupted model sources", nil, nil);
+      return;
+    }
 
     moonshine = [[Moonshine alloc] init];
     model = moonshine;
   }
-  if(modelName == @"whisper") {
-    if ([modelName count] != @3) reject(@"corrupted model sources", nil, nil);
+  if([modelName isEqualToString:@"whisper"]) {
+    if ([modelSources count] != 3) {
+      reject(@"corrupted model sources", nil, nil);
+      return;
+    }
 
     whisper = [[Whisper alloc] init];
     model = whisper;
   }
 
   @try {
-    [model loadModules: modelSources]
+    [model loadModules: modelSources];
+    resolve(@(0));
   } @catch (NSException *exception) {
     reject(@"init_decoder_error", [NSString stringWithFormat:@"%@", exception.reason], nil);
   }
-  resolve(@(0));
 }
 
 - (void)encode:(NSArray *)input
        resolve:(RCTPromiseResolveBlock)resolve
         reject:(RCTPromiseRejectBlock)reject {
-  NSObject model = self->whisper ? self->whisper : self->moonshine;
+  SpeechToTextBaseModel* model = self->whisper ? self->whisper : self->moonshine;
   @try {
-    NSArray *encodingResult = [model->encoder encode:input];
+    NSArray *encodingResult = [model encode:input];
     resolve(encodingResult);
   } @catch (NSException *exception) {
     reject(@"forward_error",
@@ -97,9 +105,9 @@ RCT_EXPORT_MODULE()
     encoderOutput:(NSArray *)encoderOutput
           resolve:(RCTPromiseResolveBlock)resolve
            reject:(RCTPromiseRejectBlock)reject {
-  NSObject model = self->whisper ? self->whisper : self->moonshine;
+  SpeechToTextBaseModel* model = self->whisper ? self->whisper : self->moonshine;
   @try {
-    NSArray *token = [model->decoder decode:prevTokens
+    NSArray *token = [model decode:prevTokens
               encoderLastHiddenState:encoderOutput];
     resolve(token);
   } @catch (NSException *exception) {

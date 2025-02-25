@@ -46,6 +46,21 @@ export const STYLE_TRANSFER_UDNIE =
     ? 'https://huggingface.co/software-mansion/react-native-executorch-style-transfer-udnie/resolve/v0.2.0/coreml/style_transfer_udnie_coreml.pte'
     : 'https://huggingface.co/software-mansion/react-native-executorch-style-transfer-udnie/resolve/v0.2.0/xnnpack/style_transfer_udnie_xnnpack.pte';
 
+export const MOONSHINE_DECODER =
+  'https://ai.swmansion.com/storage/moonshine/decoder_with_post_with_cache.pte';
+export const MOONSHINE_ENCODER =
+  'https://ai.swmansion.com/storage/moonshine/encoder.pte';
+export const MOONSHINE_TOKENIZER =
+  'https://ai.swmansion.com/storage/moonshine/rev_tokenizer.json';
+export const WHISPER_TOKENIZER =
+  'https://ai.swmansion.com/storage/whisper/rev_tokenizer.json';
+export const WHISPER_DECODER =
+  'https://ai.swmansion.com/storage/whisper/xnnpack_whisper_decoder_int32.pte';
+export const WHISPER_ENCODER =
+  'https://ai.swmansion.com/storage/whisper/xnnpack_whisper_encoder.pte';
+export const WHISPER_PREPROCESSOR =
+  'https://ai.swmansion.com/storage/whisper/xnnpack_whisper_preprocessor.pte';
+
 // Backward compatibility
 export const LLAMA3_2_3B_URL = LLAMA3_2_3B;
 export const LLAMA3_2_3B_QLORA_URL = LLAMA3_2_3B_QLORA;

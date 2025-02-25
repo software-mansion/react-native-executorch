@@ -6,7 +6,7 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-@interface WhisperEncoder
+@interface WhisperEncoder : BaseModel
 
 - (NSArray *)encode:(NSArray *)melSpectrogram;
 - (NSArray *)decode:(NSArray *)prevTokens encoderLastHiddenState:(NSArray *)encoderLastHiddenState;

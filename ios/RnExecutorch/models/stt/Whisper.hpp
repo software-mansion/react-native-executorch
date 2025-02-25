@@ -4,14 +4,10 @@
 #import "ExecutorchLib/ETModel.h"
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+#import "SpeechToTextBaseModel.hpp"
 
-@interface Whisper : NSObject
-
-- (NSArray *)encode:(NSArray *)waveform;
-- (NSArray *)decode:(NSArray *)prevTokens encoderLastHiddenState:(NSArray *)encoderLastHiddenState;
-- (void)loadModules:(NSString[] *)modelSources;
+@interface Whisper : SpeechToTextBaseModel
 @end
-
 
 
 #endif /* Whisper_hpp */

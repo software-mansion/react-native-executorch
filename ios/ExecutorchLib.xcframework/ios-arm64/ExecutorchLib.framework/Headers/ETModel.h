@@ -8,9 +8,13 @@
 - (NSNumber *)loadModel:(NSString *)filePath;
 - (NSNumber *)loadMethod:(NSString *)methodName;
 - (NSNumber *)loadForward;
+- (NSArray *)execute:(NSString *)methodName
+              inputs:(NSArray *)inputs
+              shapes:(NSArray *)shapes
+          inputTypes:(NSArray *)inputTypes;
 - (NSArray *)forward:(NSArray *)inputs
               shapes:(NSArray *)shapes
-          inputTypes: (NSArray *)inputTypes;
+          inputTypes:(NSArray *)inputTypes;
 - (NSNumber *)getNumberOfInputs;
 - (NSNumber *)getInputType:(NSNumber *)index;
 - (NSArray *)getInputShape:(NSNumber *)index;

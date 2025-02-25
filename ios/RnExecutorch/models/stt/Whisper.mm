@@ -1,20 +1,21 @@
-#ifndef Whisper_hpp
-#define Whisper_hpp
-
+#import "Whisper.hpp"
 #import "ExecutorchLib/ETModel.h"
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import "WhisperEncoder.hpp"
 #import "Whisperdecoder.hpp"
+#import "../../utils/SFFT.hpp"
+#import "../../utils/ScalarType.h"
 
-@implementation Whispe {
+@implementation Whisper {
   BaseModel *preprocessor;
   WhisperEncoder *encoder;
   WhisperDecoder *decoder;
   NSNumber *START_TOKEN;
   NSNumber *EOS_TOKEN;
-  int fftSize;
   int maxSeqLen;
+  int fftSize;
+  int fftHopLength;
 }
 
 - (instancetype)init {
@@ -24,6 +25,7 @@
     START_TOKEN = @50257;
     EOS_TOKEN = @50256;
     maxSeqLen = 512;
+    fftHopLength = 160;
   }
   return self;
 }
@@ -34,10 +36,10 @@
   if (!self->encoder || !self->preprocessor) {
     [NSException raise:@"model_initialization_error" format:nil];
   }
-
-  NSNumber *numFrames = [NSNumber numberWithDouble:(stft.count / fftFrameLength)];
+  NSArray *sfft = [SFFT sfftFromWaveform:waveform fftSize:self->fftSize fftHopLength:self->fftHopLength];
+  NSNumber *numFrames = [NSNumber numberWithDouble:(sfft.count / fftFrameLength)];
   NSArray *mel = [self->preprocessor
-          forward:@[ stft ]
+          forward:@[ sfft ]
           shapes:@[ @[
             numFrames,
             [NSNumber numberWithUnsignedInteger:fftFrameLength]
@@ -45,29 +47,24 @@
       inputTypes:@[ ScalarType.Float ]];
   NSArray *encodingResult = [self->encoder encode:@[ mel ]];
   
-
   if (!encodingResult) {
     [NSException raise:@"forward_error" format:nil];
   }
-
-  NSArray *waveformShape = [NSArray arrayWithObject:@[@1, @([waveform[0] count])]];
-  NSArray *result = [self->encoder forward:waveform shapes:waveformShape inputTypes:waveformTypes];
-  
-  return [result objectAtIndex:0];
+  return encodingResult;
 }
 
 - (NSArray *)decode:(NSArray *)prevTokens encoderLastHiddenState:(NSArray *)encoderLastHiddenState{
   return [self->decoder decode:prevTokens encoderLastHiddenState:encoderLastHiddenState];
 }
 
-- (void)loadModules:(NSString[] *)modelSources {
+- (void)loadModules:(NSArray *)modelSources {
 
-  preprocessor = [[BaseModel alloc] init];
-  encoder = [[WhisperEncoder alloc] init];
-  decoder = [[WhisperDecoder alloc] init];
+  self->preprocessor = [[BaseModel alloc] init];
+  self->encoder = [[WhisperEncoder alloc] init];
+  self->decoder = [[WhisperDecoder alloc] init];
 
   // Load preprocessor first
-  [self loadModuleHelper:preprocessor
+  [self loadModuleHelper:self->preprocessor
     withSource:[modelSources objectAtIndex:0]
     onSuccess:^{
       // Load encoder after preprocessor
@@ -92,7 +89,3 @@
 }
 
 @end
-
-
-
-#endif /* Whisper_hpp */
