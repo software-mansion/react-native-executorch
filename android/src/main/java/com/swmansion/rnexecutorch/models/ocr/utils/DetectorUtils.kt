@@ -1,5 +1,6 @@
 package com.swmansion.rnexecutorch.models.ocr.utils
 
+import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableArray
 import org.opencv.core.Core
@@ -288,6 +289,97 @@ class DetectorUtils {
       return Pair(mat1, mat2)
     }
 
+    fun getDetBoxesFromTextMapVertical(
+      textMap: Mat,
+      affinityMap: Mat,
+      textThreshold: Double,
+      linkThreshold: Double,
+      independentCharacters: Boolean
+    ): MutableList<OCRbBox> {
+      val imgH = textMap.rows()
+      val imgW = textMap.cols()
+
+      val textScore = Mat()
+      val affinityScore = Mat()
+      Imgproc.threshold(textMap, textScore, textThreshold, 1.0, Imgproc.THRESH_BINARY)
+      Imgproc.threshold(affinityMap, affinityScore, linkThreshold, 1.0, Imgproc.THRESH_BINARY)
+      val textScoreComb = Mat()
+      val kernel = Imgproc.getStructuringElement(
+        Imgproc.MORPH_RECT,
+        Size(3.0, 3.0)
+      )
+      if (independentCharacters) {
+        Core.subtract(textScore, affinityScore, textScoreComb)
+        Imgproc.threshold(textScoreComb, textScoreComb, 0.0, 0.0, Imgproc.THRESH_TOZERO)
+        Imgproc.threshold(textScoreComb, textScoreComb, 1.0, 1.0, Imgproc.THRESH_TRUNC)
+        Imgproc.erode(textScoreComb, textScoreComb, kernel, Point(-1.0, -1.0), 1)
+        Imgproc.dilate(textScoreComb, textScoreComb, kernel, Point(-1.0, -1.0), 4)
+      } else {
+        Core.add(textScore, affinityScore, textScoreComb)
+        Imgproc.threshold(textScoreComb, textScoreComb, 0.0, 0.0, Imgproc.THRESH_TOZERO)
+        Imgproc.threshold(textScoreComb, textScoreComb, 1.0, 1.0, Imgproc.THRESH_TRUNC)
+        Imgproc.dilate(textScoreComb, textScoreComb, kernel, Point(-1.0, -1.0), 2)
+      }
+
+      val binaryMat = Mat()
+      textScoreComb.convertTo(binaryMat, CvType.CV_8UC1)
+
+      val labels = Mat()
+      val stats = Mat()
+      val centroids = Mat()
+      val nLabels = Imgproc.connectedComponentsWithStats(binaryMat, labels, stats, centroids, 4)
+
+      val detectedBoxes = mutableListOf<OCRbBox>()
+      for (i in 1 until nLabels) {
+        val area = stats.get(i, Imgproc.CC_STAT_AREA)[0].toInt()
+        val height = stats.get(i, Imgproc.CC_STAT_HEIGHT)[0].toInt()
+        val width = stats.get(i, Imgproc.CC_STAT_WIDTH)[0].toInt()
+        if (area < 20) continue
+
+        if (!independentCharacters && height < width) continue
+        val mask = createMaskFromLabels(labels, i)
+
+        val segMap = Mat.zeros(textMap.size(), CvType.CV_8U)
+        segMap.setTo(Scalar(255.0), mask)
+
+        val x = stats.get(i, Imgproc.CC_STAT_LEFT)[0].toInt()
+        val y = stats.get(i, Imgproc.CC_STAT_TOP)[0].toInt()
+        val w = stats.get(i, Imgproc.CC_STAT_WIDTH)[0].toInt()
+        val h = stats.get(i, Imgproc.CC_STAT_HEIGHT)[0].toInt()
+        val dilationRadius = (sqrt(area / max(w, h).toDouble()) * 2.0).toInt()
+        val sx = max(x - dilationRadius, 0)
+        val ex = min(x + w + dilationRadius + 1, imgW)
+        val sy = max(y - dilationRadius, 0)
+        val ey = min(y + h + dilationRadius + 1, imgH)
+        val roi = Rect(sx, sy, ex - sx, ey - sy)
+        val kernel = Imgproc.getStructuringElement(
+          Imgproc.MORPH_RECT,
+          Size((1 + dilationRadius).toDouble(), (1 + dilationRadius).toDouble())
+        )
+        val roiSegMap = Mat(segMap, roi)
+        Imgproc.dilate(roiSegMap, roiSegMap, kernel, Point(-1.0, -1.0), 2)
+
+        val contours: List<MatOfPoint> = ArrayList()
+        Imgproc.findContours(
+          segMap,
+          contours,
+          Mat(),
+          Imgproc.RETR_EXTERNAL,
+          Imgproc.CHAIN_APPROX_SIMPLE
+        )
+        if (contours.isNotEmpty()) {
+          val minRect = Imgproc.minAreaRect(MatOfPoint2f(*contours[0].toArray()))
+          val points = Array(4) { Point() }
+          minRect.points(points)
+          val pointsList = points.map { point -> BBoxPoint(point.x, point.y) }
+          val boxInfo = OCRbBox(pointsList, minRect.angle)
+          detectedBoxes.add(boxInfo)
+        }
+      }
+
+      return detectedBoxes
+    }
+
     fun getDetBoxesFromTextMap(
       textMap: Mat,
       affinityMap: Mat,
@@ -434,6 +526,8 @@ class DetectorUtils {
 
       mergedArray = removeSmallBoxes(mergedArray, minSideThreshold, maxSideThreshold)
       mergedArray = mergedArray.sortedWith(compareBy { minimumYFromBox(it.bBox) }).toMutableList()
+
+      mergedArray = mergedArray.map { box -> orderPointsClockwise(box) }.toMutableList()
 
       return mergedArray
     }

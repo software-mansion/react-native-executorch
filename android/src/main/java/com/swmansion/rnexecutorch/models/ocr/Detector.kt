@@ -12,14 +12,18 @@ import org.opencv.core.Scalar
 import org.opencv.core.Size
 import org.pytorch.executorch.EValue
 
-class Detector(reactApplicationContext: ReactApplicationContext) :
+class Detector(
+  val isVertical: Boolean,
+  val detectSingleCharacter: Boolean,
+  reactApplicationContext: ReactApplicationContext
+) :
   BaseModel<Mat, List<OCRbBox>>(reactApplicationContext) {
   private lateinit var originalSize: Size
 
   fun getModelImageSize(): Size {
     val inputShape = module.getInputShape(0)
-    val width = inputShape[inputShape.lastIndex]
-    val height = inputShape[inputShape.lastIndex - 1]
+    val width = inputShape[inputShape.lastIndex - 1]
+    val height = inputShape[inputShape.lastIndex]
 
     val modelImageSize = Size(height.toDouble(), width.toDouble())
 
@@ -51,15 +55,41 @@ class Detector(reactApplicationContext: ReactApplicationContext) :
       outputArray,
       Size(modelImageSize.width / 2, modelImageSize.height / 2)
     )
-    var bBoxesList = DetectorUtils.getDetBoxesFromTextMap(
-      scoreText,
-      scoreLink,
-      Constants.TEXT_THRESHOLD,
-      Constants.LINK_THRESHOLD,
-      Constants.LOW_TEXT_THRESHOLD
-    )
-    bBoxesList =
-      DetectorUtils.restoreBoxRatio(bBoxesList, (Constants.RECOGNIZER_RATIO * 2).toFloat())
+    var bBoxesList: MutableList<OCRbBox> = mutableListOf()
+    if (!isVertical) {
+      bBoxesList = DetectorUtils.getDetBoxesFromTextMap(
+        scoreText,
+        scoreLink,
+        Constants.TEXT_THRESHOLD,
+        Constants.LINK_THRESHOLD,
+        Constants.LOW_TEXT_THRESHOLD
+      )
+
+      bBoxesList =
+        DetectorUtils.restoreBoxRatio(bBoxesList, (Constants.RECOGNIZER_RATIO * 2).toFloat())
+    } else {
+      var txtThreshold = Constants.TEXT_THRESHOLD
+
+      if (!detectSingleCharacter) {
+        txtThreshold = Constants.TEXT_THRESHOLD_VERTICAL
+      }
+
+      bBoxesList = DetectorUtils.getDetBoxesFromTextMapVertical(
+        scoreText,
+        scoreLink,
+        txtThreshold,
+        Constants.LINK_THRESHOLD,
+        detectSingleCharacter
+      )
+
+      bBoxesList =
+        DetectorUtils.restoreBoxRatio(bBoxesList, (Constants.RESTORE_RATIO_VERTICAL).toFloat())
+
+      if (detectSingleCharacter) {
+        return bBoxesList
+      }
+    }
+
     bBoxesList = DetectorUtils.groupTextBoxes(
       bBoxesList,
       Constants.CENTER_THRESHOLD,

@@ -11,6 +11,18 @@
 @implementation Detector {
   cv::Size originalSize;
   cv::Size modelSize;
+  BOOL isVertical;
+  BOOL detectSingleCharacters;
+}
+
+- (instancetype)initWithIsVertical:(BOOL)isVertical
+            detectSingleCharacters:(BOOL)detectSingleCharacters {
+  self = [super init];
+  if (self) {
+    self->isVertical = isVertical;
+    self->detectSingleCharacters = detectSingleCharacters;
+  }
+  return self;
 }
 
 - (cv::Size)getModelImageSize {
@@ -19,8 +31,8 @@
   }
 
   NSArray *inputShape = [module getInputShape:@0];
-  NSNumber *widthNumber = inputShape.lastObject;
-  NSNumber *heightNumber = inputShape[inputShape.count - 2];
+  NSNumber *widthNumber = inputShape[inputShape.count - 2];
+  NSNumber *heightNumber = inputShape.lastObject;
 
   const int height = [heightNumber intValue];
   const int width = [widthNumber intValue];
@@ -36,7 +48,6 @@
    original aspect ratio and the missing parts are filled with padding.
    */
   self->originalSize = cv::Size(input.cols, input.rows);
-
   cv::Size modelImageSize = [self getModelImageSize];
   cv::Mat resizedImage;
   resizedImage = [OCRUtils resizeWithPadding:input
@@ -72,13 +83,34 @@
                              outputMat2:scoreAffinityCV
                                withSize:cv::Size(modelImageSize.width / 2,
                                                  modelImageSize.height / 2)];
-  NSArray *bBoxesList = [DetectorUtils getDetBoxesFromTextMap:scoreTextCV
-                                                  affinityMap:scoreAffinityCV
-                                           usingTextThreshold:textThreshold
-                                                linkThreshold:linkThreshold
-                                             lowTextThreshold:lowTextThreshold];
-  bBoxesList = [DetectorUtils restoreBboxRatio:bBoxesList
-                             usingRestoreRatio:restoreRatio];
+  NSArray *bBoxesList;
+  if (!self->isVertical) {
+    bBoxesList = [DetectorUtils getDetBoxesFromTextMap:scoreTextCV
+                                           affinityMap:scoreAffinityCV
+                                    usingTextThreshold:textThreshold
+                                         linkThreshold:linkThreshold
+                                      lowTextThreshold:lowTextThreshold];
+    bBoxesList = [DetectorUtils restoreBboxRatio:bBoxesList
+                               usingRestoreRatio:restoreRatio];
+  } else if (self->isVertical) {
+    CGFloat txtThreshold = textThreshold;
+    if (!self->detectSingleCharacters) {
+      txtThreshold = textThresholdVertical;
+    }
+    bBoxesList =
+        [DetectorUtils getDetBoxesFromTextMapVertical:scoreTextCV
+                                          affinityMap:scoreAffinityCV
+                                   usingTextThreshold:txtThreshold
+                                        linkThreshold:linkThreshold
+                                independentCharacters:self->detectSingleCharacters];
+    bBoxesList = [DetectorUtils restoreBboxRatio:bBoxesList
+                               usingRestoreRatio:restoreRatioVertical];
+    
+    if (self->detectSingleCharacters){
+      return bBoxesList;
+    }
+  }
+
   bBoxesList = [DetectorUtils groupTextBoxes:bBoxesList
                              centerThreshold:centerThreshold
                            distanceThreshold:distanceThreshold

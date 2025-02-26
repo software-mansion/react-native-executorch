@@ -255,7 +255,8 @@ class RecognizerUtils {
       val desiredWidth = when {
         img.width() >= Constants.LARGE_MODEL_WIDTH -> Constants.LARGE_MODEL_WIDTH
         img.width() >= Constants.MEDIUM_MODEL_WIDTH -> Constants.MEDIUM_MODEL_WIDTH
-        else -> Constants.SMALL_MODEL_WIDTH
+        img.width() >= Constants.SMALL_MODEL_WIDTH -> Constants.SMALL_MODEL_WIDTH
+        else -> Constants.VERTICAL_SMALL_MODEL_WIDTH
       }
 
       img = ImageProcessor.resizeWithPadding(img, desiredWidth, Constants.MODEL_HEIGHT)
@@ -264,6 +265,45 @@ class RecognizerUtils {
       Core.multiply(img, Scalar(2.0), img)
 
       return img
+    }
+
+    fun cropImageWithBoundingBox(
+      image: Mat,
+      bbox: List<BBoxPoint>,
+      originalBbox: List<BBoxPoint>,
+      paddings: Map<String, Any>,
+      originalPaddings: Map<String, Any>
+    ): Mat {
+      var topLeft = originalBbox[0]
+      val points = arrayOfNulls<Point>(4)
+
+      for (i in 0 until 4) {
+        val coords = bbox[i]
+        coords.x -= paddings["left"]!! as Int
+        coords.y -= paddings["top"]!! as Int
+
+        coords.x *= paddings["resizeRatio"]!! as Float
+        coords.y *= paddings["resizeRatio"]!! as Float
+
+        coords.x += topLeft.x
+        coords.y += topLeft.y
+
+        coords.x -= originalPaddings["left"]!! as Int
+        coords.y -= (originalPaddings["top"]!! as Int)
+
+        coords.x *= originalPaddings["resizeRatio"]!! as Float
+        coords.y *= originalPaddings["resizeRatio"]!! as Float
+
+        points[i] = Point(coords.x, coords.y)
+      }
+
+      val boundingBox = Imgproc.boundingRect(MatOfPoint2f(*points))
+      val croppedImage = Mat(image, boundingBox)
+      Imgproc.cvtColor(croppedImage, croppedImage, Imgproc.COLOR_BGR2GRAY)
+      Imgproc.resize(croppedImage, croppedImage, Size(64.0, 64.0), 0.0, 0.0, Imgproc.INTER_LANCZOS4)
+      Imgproc.medianBlur(croppedImage, croppedImage, 1)
+
+      return croppedImage
     }
   }
 }

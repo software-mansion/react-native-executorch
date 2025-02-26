@@ -22,6 +22,98 @@
   }
 }
 
++ (NSArray *)getDetBoxesFromTextMapVertical:(cv::Mat)textMap
+                                affinityMap:(cv::Mat)affinityMap
+                         usingTextThreshold:(CGFloat)textThreshold
+                              linkThreshold:(CGFloat)linkThreshold
+                      independentCharacters:(BOOL)independentCharacters {
+  const int imgH = textMap.rows;
+  const int imgW = textMap.cols;
+  cv::Mat textScore;
+  cv::Mat affinityScore;
+  cv::threshold(textMap, textScore, textThreshold, 1, cv::THRESH_BINARY);
+  cv::threshold(affinityMap, affinityScore, linkThreshold, 1,
+                cv::THRESH_BINARY);
+  cv::Mat textScoreComb;
+  if (independentCharacters) {
+    textScoreComb = textScore - affinityScore;
+    cv::threshold(textScoreComb, textScoreComb, 0.0, 0, cv::THRESH_TOZERO);
+    cv::threshold(textScoreComb, textScoreComb, 1.0, 1.0, cv::THRESH_TRUNC);
+    cv::erode(textScoreComb, textScoreComb,
+              cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3)),
+              cv::Point(-1, -1), 1);
+    cv::dilate(textScoreComb, textScoreComb,
+               cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3)),
+               cv::Point(-1, -1), 4);
+  } else {
+    textScoreComb = textScore + affinityScore;
+    cv::threshold(textScoreComb, textScoreComb, 0.0, 0, cv::THRESH_TOZERO);
+    cv::threshold(textScoreComb, textScoreComb, 1.0, 1.0, cv::THRESH_TRUNC);
+    cv::dilate(textScoreComb, textScoreComb,
+               cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3)),
+               cv::Point(-1, -1), 2);
+  }
+
+  cv::Mat binaryMat;
+  textScoreComb.convertTo(binaryMat, CV_8UC1);
+
+  cv::Mat labels, stats, centroids;
+  const int nLabels =
+      cv::connectedComponentsWithStats(binaryMat, labels, stats, centroids, 4);
+
+  NSMutableArray *detectedBoxes = [NSMutableArray array];
+  for (int i = 1; i < nLabels; i++) {
+    const int area = stats.at<int>(i, cv::CC_STAT_AREA);
+    const int width = stats.at<int>(i, cv::CC_STAT_WIDTH);
+    const int height = stats.at<int>(i, cv::CC_STAT_HEIGHT);
+    if (area < 20)
+      continue;
+
+    if (!independentCharacters && height < width)
+      continue;
+
+    cv::Mat mask = (labels == i);
+
+    cv::Mat segMap = cv::Mat::zeros(textMap.size(), CV_8U);
+    segMap.setTo(255, mask);
+
+    const int x = stats.at<int>(i, cv::CC_STAT_LEFT);
+    const int y = stats.at<int>(i, cv::CC_STAT_TOP);
+    const int w = stats.at<int>(i, cv::CC_STAT_WIDTH);
+    const int h = stats.at<int>(i, cv::CC_STAT_HEIGHT);
+    const int dilationRadius = (int)(sqrt((double)(area / MAX(w, h))) * 2.0);
+    const int sx = MAX(x - dilationRadius, 0);
+    const int ex = MIN(x + w + dilationRadius + 1, imgW);
+    const int sy = MAX(y - dilationRadius, 0);
+    const int ey = MIN(y + h + dilationRadius + 1, imgH);
+
+    cv::Rect roi(sx, sy, ex - sx, ey - sy);
+    cv::Mat kernel = cv::getStructuringElement(
+        cv::MORPH_RECT, cv::Size(1 + dilationRadius, 1 + dilationRadius));
+    cv::Mat roiSegMap = segMap(roi);
+    cv::dilate(roiSegMap, roiSegMap, kernel, cv::Point(-1, -1), 2);
+
+    std::vector<std::vector<cv::Point>> contours;
+    cv::findContours(segMap, contours, cv::RETR_EXTERNAL,
+                     cv::CHAIN_APPROX_SIMPLE);
+    if (!contours.empty()) {
+      cv::RotatedRect minRect = cv::minAreaRect(contours[0]);
+      cv::Point2f vertices[4];
+      minRect.points(vertices);
+      NSMutableArray *pointsArray = [NSMutableArray arrayWithCapacity:4];
+      for (int j = 0; j < 4; j++) {
+        const CGPoint point = CGPointMake(vertices[j].x, vertices[j].y);
+        [pointsArray addObject:[NSValue valueWithCGPoint:point]];
+      }
+      NSDictionary *dict =
+          @{@"bbox" : pointsArray, @"angle" : @(minRect.angle)};
+      [detectedBoxes addObject:dict];
+    }
+  }
+
+  return detectedBoxes;
+}
+
 /**
  * This method applies a series of image processing operations to identify
  * likely areas of text in the textMap and return the bounding boxes for single
@@ -545,7 +637,7 @@
  * criteria.
  * 4. Sort the final array of boxes by their vertical positions.
  */
-+ (NSArray<NSDictionary *> *)groupTextBoxes:
++ (NSArray *)groupTextBoxes:
                                  (NSMutableArray<NSDictionary *> *)boxes
                             centerThreshold:(CGFloat)centerThreshold
                           distanceThreshold:(CGFloat)distanceThreshold
@@ -635,7 +727,7 @@
                           usingMinSideThreshold:minSideThreshold
                                maxSideThreshold:maxSideThreshold];
 
-  NSArray<NSDictionary *> *sortedBoxes = [mergedArray
+  NSArray *sortedBoxes = [mergedArray
       sortedArrayUsingComparator:^NSComparisonResult(NSDictionary *obj1,
                                                      NSDictionary *obj2) {
         NSArray<NSValue *> *coords1 = obj1[@"bbox"];
@@ -646,8 +738,17 @@
                : (minY1 > minY2) ? NSOrderedDescending
                                  : NSOrderedSame;
       }];
-
-  return sortedBoxes;
+  
+  NSMutableArray *orderedSortedBoxes = [[NSMutableArray alloc] initWithCapacity:[sortedBoxes count]];
+  for (NSDictionary *dict in sortedBoxes) {
+      NSMutableDictionary *mutableDict = [dict mutableCopy];
+      NSArray<NSValue *> *originalBBox = mutableDict[@"bbox"];
+      NSArray<NSValue *> *orderedBBox = [self orderPointsClockwise:originalBBox];
+      mutableDict[@"bbox"] = orderedBBox;
+      [orderedSortedBoxes addObject:mutableDict];
+  }
+  
+  return orderedSortedBoxes;
 }
 
 @end

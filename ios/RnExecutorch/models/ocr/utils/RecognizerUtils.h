@@ -24,5 +24,6 @@
 + (NSArray *)findMaxValuesAndIndices:(cv::Mat)probabilities;
 + (double)computeConfidenceScore:(NSArray<NSNumber *> *)valuesArray
                     indicesArray:(NSArray<NSNumber *> *)indicesArray;
++ (cv::Mat)cropImageWithBoundingBox:(cv::Mat &)img bbox:(NSArray *)bbox originalBbox:(NSArray *)originalBbox paddings:(NSDictionary *)paddings originalPaddings:(NSDictionary *)originalPaddings;
 
 @end

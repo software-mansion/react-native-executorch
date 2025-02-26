@@ -101,6 +101,19 @@ const OCR = OCRSpec
       }
     );
 
+const VerticalOCRSpec = require('./NativeVerticalOCR').default;
+
+const VerticalOCR = VerticalOCRSpec
+  ? VerticalOCRSpec
+  : new Proxy(
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
+
 class _ObjectDetectionModule {
   async forward(
     input: string
@@ -182,6 +195,7 @@ export {
   StyleTransfer,
   SpeechToText,
   OCR,
+  VerticalOCR,
   _ETModule,
   _ClassificationModule,
   _StyleTransferModule,
