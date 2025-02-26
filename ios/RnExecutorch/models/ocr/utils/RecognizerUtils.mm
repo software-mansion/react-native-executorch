@@ -61,11 +61,13 @@
     image = [self adjustContrastGrey:image target:adjustContrast];
   }
 
-  int desiredWidth = 128;
+  int desiredWidth = 64;
   if (image.cols >= 512) {
     desiredWidth = 512;
   } else if (image.cols >= 256) {
     desiredWidth = 256;
+  } else if (image.cols >= 128){
+    desiredWidth = 128;
   }
 
   image = [OCRUtils resizeWithPadding:image
@@ -218,6 +220,38 @@
     product *= [prob doubleValue];
   }
   return pow(product, 2.0 / sqrt(predsMaxProb.count));
+}
+
++ (cv::Mat)cropImageWithBoundingBox:(cv::Mat&)img bbox:(NSArray *)bbox originalBbox:(NSArray *)originalBbox paddings:(NSDictionary *)paddings originalPaddings:(NSDictionary *)originalPaddings {
+  CGPoint topLeft = [originalBbox[0] CGPointValue];
+  std::vector<cv::Point2f> points;
+  for(NSValue* coords in bbox) {
+    CGPoint point = [coords CGPointValue];
+    
+    point.x = point.x - [paddings[@"left"] intValue];
+    point.y = point.y - [paddings[@"top"] intValue];
+    
+    point.x = point.x * [paddings[@"resizeRatio"] floatValue];
+    point.y = point.y * [paddings[@"resizeRatio"] floatValue];
+    
+    point.x = point.x + topLeft.x;
+    point.y = point.y + topLeft.y;
+    
+    point.x = point.x - [originalPaddings[@"left"] intValue];
+    point.y = point.y - [originalPaddings[@"top"] intValue];
+    
+    point.x = point.x * [originalPaddings[@"resizeRatio"] floatValue];
+    point.y = point.y * [originalPaddings[@"resizeRatio"] floatValue];
+    
+    points.push_back(cv::Point2f(point.x, point.y));
+  }
+  
+  cv::Rect rect = cv::boundingRect(points);
+  cv::Mat croppedImage = img(rect);
+  cv::cvtColor(croppedImage, croppedImage, cv::COLOR_BGR2GRAY);
+  cv::resize(croppedImage, croppedImage, cv::Size(64, 64), 0, 0, cv::INTER_AREA);
+  cv::medianBlur(croppedImage, croppedImage, 1);
+  return croppedImage;
 }
 
 @end
