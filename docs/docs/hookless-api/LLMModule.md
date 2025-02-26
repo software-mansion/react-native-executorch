@@ -69,7 +69,7 @@ To load the model, use the `load` method. It accepts:
 - `modelSource` - A string that specifies the location of the model binary. For more information, take a look at [loading models](../fundamentals/loading-models.md) page.
 - `tokenizerSource` - URL to the binary file which contains the tokenizer
 - `systemPrompt` - Often used to tell the model what is its purpose, for example - "Be a helpful translator"
-- `messageHistory` - An array of `MessageType` objects that represent the conversation history.
+- `messageHistory` - An array of `MessageType` objects that represent the conversation history. This can be used to provide context to the model.
 - `contextWindowLength` - The number of messages from the current conversation that the model will use to generate a response. The higher the number, the more context the model will have. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
 
 This method returns a promise, which can resolve to an error or void.

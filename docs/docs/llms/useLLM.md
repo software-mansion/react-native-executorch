@@ -90,7 +90,7 @@ Given computational constraints, our architecture is designed to support only on
 
 **`systemPrompt`** - Often used to tell the model what is its purpose, for example - "Be a helpful translator"
 
-**`messageHistory`** - An array of `MessageType` objects that represent the conversation history.
+**`messageHistory`** - An array of `MessageType` objects that represent the conversation history. This can be used to provide context to the model.
 
 **`contextWindowLength`** - The number of messages from the current conversation that the model will use to generate a response. The higher the number, the more context the model will have. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
 
