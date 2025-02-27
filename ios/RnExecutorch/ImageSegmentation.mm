@@ -4,8 +4,6 @@
 #import "utils/ETError.h"
 #import <ExecutorchLib/ETModel.h>
 #import <React/RCTBridgeModule.h>
-#import <opencv2/opencv.hpp>
-#import "ImageProcessor.h"
 
 @implementation ImageSegmentation {
   ImageSegmentationModel *model;
@@ -17,6 +15,7 @@ RCT_EXPORT_MODULE()
            resolve:(RCTPromiseResolveBlock)resolve
             reject:(RCTPromiseRejectBlock)reject {
 
+  NSLog(@"Segmentation: loadModule");
   model = [[ImageSegmentationModel alloc] init];
   [model
        loadModel:[NSURL URLWithString:modelSource]
@@ -34,25 +33,22 @@ RCT_EXPORT_MODULE()
 }
 
 - (void)forward:(NSString *)input
-        classesOfInterest:(NSArray *)classesOfInterest
-        resize:(BOOL)resize
         resolve:(RCTPromiseResolveBlock)resolve
-        reject:(RCTPromiseRejectBlock)reject {
+         reject:(RCTPromiseRejectBlock)reject {
+    NSLog(@"Segmentation: forward");
+//   @try {
+//     cv::Mat image = [ImageProcessor readImage:input];
+//     cv::Mat resultImage = [model runModel:image];
 
-  @try {
-    cv::Mat image = [ImageProcessor readImage:input];
-    NSDictionary *result = [model runModel:image 
-                                  returnClasses:classesOfInterest
-                                  resize:resize];
-                                  
-    resolve(result);
-    return;
-  } @catch (NSException *exception) {
-    NSLog(@"An exception occurred: %@, %@", exception.name, exception.reason);
-    reject(@"forward_error",
-           [NSString stringWithFormat:@"%@", exception.reason], nil);
-    return;
-  }
+//     NSString *tempFilePath = [ImageProcessor saveToTempFile:resultImage];
+//     resolve(tempFilePath);
+//     return;
+//   } @catch (NSException *exception) {
+//     NSLog(@"An exception occurred: %@, %@", exception.name, exception.reason);
+//     reject(@"forward_error",
+//            [NSString stringWithFormat:@"%@", exception.reason], nil);
+//     return;
+//   }
 }
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
