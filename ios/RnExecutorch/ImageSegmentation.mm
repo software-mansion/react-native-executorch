@@ -1,14 +1,12 @@
-#import "StyleTransfer.h"
-#import "ImageProcessor.h"
+#import "ImageSegmentation.h"
+#import "models/image_segmentation/ImageSegmentationModel.h"
 #import "models/BaseModel.h"
-#import "models/style_transfer/StyleTransferModel.h"
 #import "utils/ETError.h"
 #import <ExecutorchLib/ETModel.h>
 #import <React/RCTBridgeModule.h>
-#import <opencv2/opencv.hpp>
 
-@implementation StyleTransfer {
-  StyleTransferModel *model;
+@implementation ImageSegmentation {
+  ImageSegmentationModel *model;
 }
 
 RCT_EXPORT_MODULE()
@@ -16,7 +14,9 @@ RCT_EXPORT_MODULE()
 - (void)loadModule:(NSString *)modelSource
            resolve:(RCTPromiseResolveBlock)resolve
             reject:(RCTPromiseRejectBlock)reject {
-  model = [[StyleTransferModel alloc] init];
+
+  NSLog(@"Segmentation: loadModule");
+  model = [[ImageSegmentationModel alloc] init];
   [model
        loadModel:[NSURL URLWithString:modelSource]
       completion:^(BOOL success, NSNumber *errorCode) {
@@ -35,24 +35,25 @@ RCT_EXPORT_MODULE()
 - (void)forward:(NSString *)input
         resolve:(RCTPromiseResolveBlock)resolve
          reject:(RCTPromiseRejectBlock)reject {
-  @try {
-    cv::Mat image = [ImageProcessor readImage:input];
-    cv::Mat resultImage = [model runModel:image];
+    NSLog(@"Segmentation: forward");
+//   @try {
+//     cv::Mat image = [ImageProcessor readImage:input];
+//     cv::Mat resultImage = [model runModel:image];
 
-    NSString *tempFilePath = [ImageProcessor saveToTempFile:resultImage];
-    resolve(tempFilePath);
-    return;
-  } @catch (NSException *exception) {
-    NSLog(@"An exception occurred: %@, %@", exception.name, exception.reason);
-    reject(@"forward_error",
-           [NSString stringWithFormat:@"%@", exception.reason], nil);
-    return;
-  }
+//     NSString *tempFilePath = [ImageProcessor saveToTempFile:resultImage];
+//     resolve(tempFilePath);
+//     return;
+//   } @catch (NSException *exception) {
+//     NSLog(@"An exception occurred: %@, %@", exception.name, exception.reason);
+//     reject(@"forward_error",
+//            [NSString stringWithFormat:@"%@", exception.reason], nil);
+//     return;
+//   }
 }
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params {
-  return std::make_shared<facebook::react::NativeStyleTransferSpecJSI>(params);
+  return std::make_shared<facebook::react::NativeImageSegmentationSpecJSI>(params);
 }
 
 @end
