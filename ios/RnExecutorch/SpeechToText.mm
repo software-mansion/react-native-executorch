@@ -3,7 +3,6 @@
 #import <Accelerate/Accelerate.h>
 #import "models/stt/Whisper.hpp"
 #import "models/stt/Moonshine.hpp"
-#import "utils/Fetcher.h"
 #import "utils/SFFT.hpp"
 #import <ExecutorchLib/ETModel.h>
 #import <React/RCTBridgeModule.h>
@@ -81,7 +80,7 @@ RCT_EXPORT_MODULE()
   }
 
   @try {
-    [model loadModules: modelSources];
+    [model loadModules:modelSources];
     resolve(@(0));
   } @catch (NSException *exception) {
     reject(@"init_decoder_error", [NSString stringWithFormat:@"%@", exception.reason], nil);

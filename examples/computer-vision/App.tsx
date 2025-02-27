@@ -26,6 +26,7 @@ export default function App() {
   });
   const [selectedMode, setSelectedMode] = useState<ModelType>(
     ModelType.SPEECH_TO_TEXT
+    // ModelType.STYLE_TRANSFER
   );
   const [imageUri, setImageUri] = useState('');
 

@@ -4,17 +4,22 @@ import { useEffect, useState } from 'react';
 
 export const SpeechToTextScreen = () => {
   const [sequence, setSequence] = useState<number[]>([]);
+  const [downloadProgress, setDownloadProgress] = useState<number>(0);
+
   const [model, _] = useState(
     () =>
       new SpeechToTextController({
         transribeCallback: setSequence,
+        modelDownloadProgessCallback: setDownloadProgress,
       })
   );
 
   useEffect(() => {
     const loadModel = async () => {
       await model.loadModel('moonshine');
+      console.log('loaded');
     };
+    console.log('useEffect');
     loadModel();
   }, [model]);
 
@@ -23,16 +28,13 @@ export const SpeechToTextScreen = () => {
       <View style={styles.imageContainer}>
         <Button
           title="Download"
-          onPress={() =>
-            model.loadAudio(
-              'https://ai.swmansion.com/storage/moonshine/test_audio.mp3'
-            )
-          }
+          onPress={() => model.loadAudio('http://localhost:8080/output.mp3')}
         />
         <Button
           title="Transcribe"
           onPress={async () => await model.transcribe()}
         />
+        <Text>{downloadProgress}</Text>
         <Text>{model.decodeSeq(sequence)}</Text>
       </View>
     </>

@@ -1283,10 +1283,60 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@expo/config-plugins@npm:~9.0.15":
+  version: 9.0.16
+  resolution: "@expo/config-plugins@npm:9.0.16"
+  dependencies:
+    "@expo/config-types": ^52.0.5
+    "@expo/json-file": ~9.0.2
+    "@expo/plist": ^0.2.2
+    "@expo/sdk-runtime-versions": ^1.0.0
+    chalk: ^4.1.2
+    debug: ^4.3.5
+    getenv: ^1.0.0
+    glob: ^10.4.2
+    resolve-from: ^5.0.0
+    semver: ^7.5.4
+    slash: ^3.0.0
+    slugify: ^1.6.6
+    xcode: ^3.0.1
+    xml2js: 0.6.0
+  checksum: 717a8868c9a3a718c21461a1679897da5cc6bf97ff0b4b361fed3f453004bad97ac29ba7bd1e24614b04f103af950fb7014bddb23f74e19e7364b0a75591f3c6
+  languageName: node
+  linkType: hard
+
 "@expo/config-types@npm:^52.0.0":
   version: 52.0.1
   resolution: "@expo/config-types@npm:52.0.1"
   checksum: eff316abcf9244b880eb40b6eb51f9924973d833148a30084bf76aa33add144822a97a7eefe0c1c24cce3c4951d21f39b980db247944ce0f9c02b397412a3c48
+  languageName: node
+  linkType: hard
+
+"@expo/config-types@npm:^52.0.4, @expo/config-types@npm:^52.0.5":
+  version: 52.0.5
+  resolution: "@expo/config-types@npm:52.0.5"
+  checksum: 2e8aa1a0d88e788868df494709f7a2544ef4ff555b038bfe5f6a8e4ee0d20c1e1239e58504026bf0e41afc9422532a8aee6cb0fe121bb8b71ea5521fd9bb27d0
+  languageName: node
+  linkType: hard
+
+"@expo/config@npm:~10.0.10":
+  version: 10.0.10
+  resolution: "@expo/config@npm:10.0.10"
+  dependencies:
+    "@babel/code-frame": ~7.10.4
+    "@expo/config-plugins": ~9.0.15
+    "@expo/config-types": ^52.0.4
+    "@expo/json-file": ^9.0.2
+    deepmerge: ^4.3.1
+    getenv: ^1.0.0
+    glob: ^10.4.2
+    require-from-string: ^2.0.2
+    resolve-from: ^5.0.0
+    resolve-workspace-root: ^2.0.0
+    semver: ^7.6.0
+    slugify: ^1.3.4
+    sucrase: 3.35.0
+  checksum: ba9c4a4eaa714824ecc88d27df09bef532268abcad25fd06cc79dfbb8f592e591d3d3afd3288041535be94155536eb5f0c65ab718f661f2d16cbcb881b003a71
   languageName: node
   linkType: hard
 
@@ -1344,6 +1394,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@expo/env@npm:~0.4.2":
+  version: 0.4.2
+  resolution: "@expo/env@npm:0.4.2"
+  dependencies:
+    chalk: ^4.0.0
+    debug: ^4.3.4
+    dotenv: ~16.4.5
+    dotenv-expand: ~11.0.6
+    getenv: ^1.0.0
+  checksum: cc9264e50faf5f38e6253b5c97e775bc8cb29bf8ca37bcd427cbb67dd773a4e62a2bdb030904565bac4644eac89e10fc61206d5aa42e5b1f26acf5ca1f6b9ce9
+  languageName: node
+  linkType: hard
+
 "@expo/fingerprint@npm:0.11.4":
   version: 0.11.4
   resolution: "@expo/fingerprint@npm:0.11.4"
@@ -1382,6 +1445,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@expo/image-utils@npm:^0.6.5":
+  version: 0.6.5
+  resolution: "@expo/image-utils@npm:0.6.5"
+  dependencies:
+    "@expo/spawn-async": ^1.7.2
+    chalk: ^4.0.0
+    fs-extra: 9.0.0
+    getenv: ^1.0.0
+    jimp-compact: 0.16.1
+    parse-png: ^2.1.0
+    resolve-from: ^5.0.0
+    semver: ^7.6.0
+    temp-dir: ~2.0.0
+    unique-string: ~2.0.0
+  checksum: f6fe5efd518d84463d767a4fb8a920d8b70779c8d93ba07ef407e0f016452324e3da6cff8292d0e2b436facdaef0073b8d527881e73ff5ba0288b4c942cdb539
+  languageName: node
+  linkType: hard
+
 "@expo/json-file@npm:^9.0.0, @expo/json-file@npm:~9.0.0":
   version: 9.0.0
   resolution: "@expo/json-file@npm:9.0.0"
@@ -1390,6 +1471,17 @@ __metadata:
     json5: ^2.2.3
     write-file-atomic: ^2.3.0
   checksum: 28a3db84a8a90eae901df14519f12d075dfd3ecd1502b07bc7c76b6c5445da0983c8d04651d71e2688722e915b56ab785a7372e23cc8e046e92f795fd36eb9d9
+  languageName: node
+  linkType: hard
+
+"@expo/json-file@npm:^9.0.2, @expo/json-file@npm:~9.0.2":
+  version: 9.0.2
+  resolution: "@expo/json-file@npm:9.0.2"
+  dependencies:
+    "@babel/code-frame": ~7.10.4
+    json5: ^2.2.3
+    write-file-atomic: ^2.3.0
+  checksum: 665fb72028e403adcb3ff9d7763ff6fab0ce16eaa1485a6b502daaab709608a9953599cce2f5c46e91b4791bd2380c87eb911deef4161b9d1f3a7631c2630366
   languageName: node
   linkType: hard
 
@@ -1457,6 +1549,17 @@ __metadata:
     base64-js: ^1.2.3
     xmlbuilder: ^14.0.0
   checksum: f2714a33789451d97d7d4d3699ef0d687cc5c734aedce844f568165f12671aeeb26044eb6cf6fd8ec0cc4da76069019fc510286bd52daa5b509d82e7ce6beb9f
+  languageName: node
+  linkType: hard
+
+"@expo/plist@npm:^0.2.2":
+  version: 0.2.2
+  resolution: "@expo/plist@npm:0.2.2"
+  dependencies:
+    "@xmldom/xmldom": ~0.7.7
+    base64-js: ^1.2.3
+    xmlbuilder: ^14.0.0
+  checksum: ccc8256f07352e327092132d885c3e2291f14b3ef6060065eb11080f130a575012cfff7ae92c579b5e04cc6b2587930caed70e277c2f1f5b63591e39366e659a
   languageName: node
   linkType: hard
 
@@ -3386,7 +3489,7 @@ __metadata:
     react: 18.3.1
     react-native: 0.76.3
     react-native-audio-api: 0.4.8-rc2
-    react-native-executorch: /Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.122.tgz
+    react-native-executorch: /Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.134.tgz
     react-native-image-picker: ^7.2.2
     react-native-loading-spinner-overlay: ^3.0.1
     react-native-reanimated: ^3.16.3
@@ -3996,6 +4099,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-asset@npm:^11.0.3":
+  version: 11.0.4
+  resolution: "expo-asset@npm:11.0.4"
+  dependencies:
+    "@expo/image-utils": ^0.6.5
+    expo-constants: ~17.0.7
+    invariant: ^2.2.4
+    md5-file: ^3.2.3
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 21cf9b34e4e51c5af2e424de2445c9d4d5d5e010692f712300f8a7f3c8b89ff39ad92dfb0f177557592a1d49c5480eba0257ff5770f25b4568831cf955853db5
+  languageName: node
+  linkType: hard
+
 "expo-asset@npm:~11.0.1":
   version: 11.0.1
   resolution: "expo-asset@npm:11.0.1"
@@ -4022,6 +4141,19 @@ __metadata:
     expo: "*"
     react-native: "*"
   checksum: 96ef0469771f927dc4224a0ade609994c50638364335d56e9881506f56f5aea176b70e62bc5f5aedb5884b818e952ed76603d00ca6d9def21dc403c80ea2c297
+  languageName: node
+  linkType: hard
+
+"expo-constants@npm:~17.0.7":
+  version: 17.0.7
+  resolution: "expo-constants@npm:17.0.7"
+  dependencies:
+    "@expo/config": ~10.0.10
+    "@expo/env": ~0.4.2
+  peerDependencies:
+    expo: "*"
+    react-native: "*"
+  checksum: 6b7d8536f7dd2a9531ccc1ee946a8cade67fa3a74e44d0bfb70f8098694e0e49a0d981d33760668d4d5475bf6bbf685024f9b2b9c19c9be47f17781aac53b28d
   languageName: node
   linkType: hard
 
@@ -6864,16 +6996,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-executorch@file:/Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.122.tgz::locator=computer-vision%40workspace%3A.":
-  version: 0.3.122
-  resolution: "react-native-executorch@file:/Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.122.tgz::locator=computer-vision%40workspace%3A."
+"react-native-executorch@file:/Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.134.tgz::locator=computer-vision%40workspace%3A.":
+  version: 0.3.134
+  resolution: "react-native-executorch@file:/Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.134.tgz::locator=computer-vision%40workspace%3A."
   dependencies:
+    expo-asset: ^11.0.3
     expo-file-system: ^18.0.10
     react-native-audio-api: 0.4.8-rc2
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 7753c5e3b4762fbb179b23305cdecce884d8b816d91c886c886b6f581b0b82c0be5532c6935a7f0fda69c68f303cd2717cf627004b2750df29149c43cc083130
+  checksum: c7ec1248927c30057595b56a7927a145d6d9b3383093c77e38542e704efa90478ba573cd7ccd9f0f22360233a3c72fb119e1afaa43209ae6932cf11ec21980a8
   languageName: node
   linkType: hard
 

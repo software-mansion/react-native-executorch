@@ -11,6 +11,7 @@ import {
   WHISPER_TOKENIZER,
   MOONSHINE_TOKENIZER,
 } from '../../constants/modelUrls';
+import { fetchResource } from '../../utils/fetchResource';
 
 const SECOND = 16_000;
 const SAMPLE_RATE = 16_000;
@@ -64,19 +65,24 @@ export class SpeechToTextController {
   public isReady = false;
   public isGenerating = false;
   private modelName: 'moonshine' | 'whisper' = 'moonshine';
-  public transribeCallback: (sequence: number[]) => void;
+  private transribeCallback: (sequence: number[]) => void;
+  private modelDownloadProgessCallback: (downloadProgress: number) => void;
   private tokenMapping!: { [key: number]: string };
 
   constructor({
     transribeCallback,
+    modelDownloadProgessCallback,
     overlap_seconds,
     window_size,
   }: {
     transribeCallback: (sequence: number[]) => void;
+    modelDownloadProgessCallback?: (downloadProgress: number) => void;
     overlap_seconds?: number;
     window_size?: number;
   }) {
     this.transribeCallback = transribeCallback;
+    this.modelDownloadProgessCallback =
+      modelDownloadProgessCallback || ((_) => {});
     this.audioContext = new AudioContext({ sampleRate: SAMPLE_RATE });
     this.nativeModule = new _SpeechToTextModule();
     this.window_size = window_size || this.window_size;
@@ -89,17 +95,38 @@ export class SpeechToTextController {
     ).then((resp) => resp.json());
   }
 
-  public async loadModel(modelName: 'moonshine' | 'whisper') {
+  public async loadModel(
+    modelName: 'moonshine' | 'whisper',
+    fileUris?: string[]
+  ) {
     this.modelName = modelName;
     this.tokenMapping = await this.fetch_tokenizer();
 
     let modelPaths: string[] = [];
-    for (let idx in MODEL_SOURCES[modelName]) {
-      let moduleSource = MODEL_SOURCES[modelName][idx]!;
-      if (typeof moduleSource === 'number') {
-        modelPaths.push(Image.resolveAssetSource(moduleSource).uri);
-      } else {
-        modelPaths.push(moduleSource);
+    if (fileUris) {
+      modelPaths = fileUris;
+    } else {
+      for (let idx in MODEL_SOURCES[modelName]) {
+        let moduleSource = MODEL_SOURCES[modelName][idx]!;
+        moduleSource =
+          typeof moduleSource === 'number'
+            ? Image.resolveAssetSource(moduleSource).uri
+            : moduleSource;
+        try {
+          modelPaths.push(
+            await fetchResource(
+              moduleSource,
+              //set download progress to % of download for all submodels of the model
+              (progress) =>
+                this.modelDownloadProgessCallback(
+                  (Number(idx) * 100 + progress) /
+                    MODEL_SOURCES[modelName].length
+                )
+            )
+          );
+        } catch (e) {
+          console.error(`Error when fetching resource: ${moduleSource}`, e);
+        }
       }
     }
 
