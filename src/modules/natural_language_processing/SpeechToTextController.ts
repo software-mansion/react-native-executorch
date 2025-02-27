@@ -1,6 +1,5 @@
 import { AudioContext, AudioBuffer } from 'react-native-audio-api';
 import { _SpeechToTextModule } from '../../native/RnExecutorchModules';
-import { Image } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import {
   MOONSHINE_ENCODER,
@@ -64,6 +63,8 @@ export class SpeechToTextController {
   public sequence: number[] = [];
   public isReady = false;
   public isGenerating = false;
+  private eos_token!: number;
+  private sos_token!: number;
   private modelName: 'moonshine' | 'whisper' = 'moonshine';
   private transribeCallback: (sequence: number[]) => void;
   private modelDownloadProgessCallback: (downloadProgress: number) => void;
@@ -101,6 +102,10 @@ export class SpeechToTextController {
   ) {
     this.modelName = modelName;
     this.tokenMapping = await this.fetch_tokenizer();
+    this.sos_token =
+      this.modelName === 'moonshine' ? this.MOONSHINE_SOS : this.WHISPER_SOS;
+    this.eos_token =
+      this.modelName === 'moonshine' ? this.MOONSHINE_EOS : this.WHISPER_EOS;
 
     let modelPaths: string[] = [];
     if (fileUris) {
@@ -108,10 +113,6 @@ export class SpeechToTextController {
     } else {
       for (let idx in MODEL_SOURCES[modelName]) {
         let moduleSource = MODEL_SOURCES[modelName][idx]!;
-        moduleSource =
-          typeof moduleSource === 'number'
-            ? Image.resolveAssetSource(moduleSource).uri
-            : moduleSource;
         try {
           modelPaths.push(
             await fetchResource(
@@ -158,15 +159,8 @@ export class SpeechToTextController {
         )
       );
 
-      //pad array to 30sec for whisper
-      if (this.modelName === 'whisper') {
-        chunk = this.pad_array(chunk, SECOND * 30, 0);
-      }
       this.chunks.push(chunk);
     }
-  }
-  private pad_array<T>(arr: T[], len: number, fill: T): T[] {
-    return arr.concat(Array(len).fill(fill)).slice(0, len);
   }
 
   public async transcribe(waveform?: number[]): Promise<string> {
@@ -180,18 +174,14 @@ export class SpeechToTextController {
     let seqs: number[][] = [];
     let prevseq: number[] = [];
     for (let chunk_id = 0; chunk_id < this.chunks.length; chunk_id++) {
-      let sos_token =
-        this.modelName === 'moonshine' ? this.MOONSHINE_SOS : this.WHISPER_SOS;
-      let eos_token =
-        this.modelName === 'moonshine' ? this.MOONSHINE_EOS : this.WHISPER_EOS;
-      let last_token = sos_token;
+      let last_token = this.sos_token;
       let prev_seq_token_idx = 0;
       let final_seq: number[] = [];
       let seq = [last_token];
       const enc_output = await this.nativeModule.encode(
         this.chunks!.at(chunk_id)!
       );
-      while (last_token !== eos_token) {
+      while (last_token !== this.eos_token) {
         let output = await this.nativeModule.decode(seq, [enc_output]);
         last_token = output[output.length - 1];
         seq = [...seq, last_token];
@@ -244,12 +234,9 @@ export class SpeechToTextController {
       this.modelName === 'moonshine'
         ? this.MOONSHINE_SPECIAL_CHAR
         : this.WHISPER_SPECIAL_CHAR;
-    const EOS_TOKEN =
-      this.modelName === 'moonshine' ? this.MOONSHINE_EOS : this.WHISPER_EOS;
-    const SOS_TOKEN =
-      this.modelName === 'moonshine' ? this.MOONSHINE_SOS : this.WHISPER_SOS;
+
     return seq
-      .filter((token) => token !== EOS_TOKEN && token !== SOS_TOKEN)
+      .filter((token) => token !== this.eos_token && token !== this.sos_token)
       .map((token) => this.tokenMapping[token])
       .join('')
       .replaceAll(SPECIAL_CHAR, ' ');

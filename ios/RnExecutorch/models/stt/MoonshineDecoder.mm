@@ -1,6 +1,7 @@
 #import "MoonshineDecoder.hpp"
+#import "../../utils/ScalarType.h"
 
-NSArray *mdecoderInputTypes = @[@4, @6];
+NSArray *decoderInputTypes = @[ScalarType.Long, ScalarType.Float];
 
 @implementation MoonshineDecoder
 
@@ -11,7 +12,7 @@ NSArray *mdecoderInputTypes = @[@4, @6];
   NSArray *predictedToken = [self execute:@"forward_cached"
                                   inputs:@[prevTokens, encoderLastHiddenState]
                                   shapes:@[prevTokensShape, encoderLastHiddenStateShape]
-                                  inputTypes:mdecoderInputTypes];
+                                  inputTypes:decoderInputTypes];
 
   return [predictedToken objectAtIndex:0];
 }

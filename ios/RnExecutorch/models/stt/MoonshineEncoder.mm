@@ -1,6 +1,7 @@
 #import "MoonshineEncoder.hpp"
+#import "../../utils/ScalarType.h"
 
-NSArray *waveformTypes = [NSArray arrayWithObject:@6];
+NSArray *waveformTypes = [NSArray arrayWithObject:ScalarType.Float];
 
 @implementation MoonshineEncoder
 
