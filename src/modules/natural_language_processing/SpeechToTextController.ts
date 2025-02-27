@@ -1,5 +1,5 @@
 import { AudioContext, AudioBuffer } from 'react-native-audio-api';
-import { _SpeechToTextModule } from './native/RnExecutorchModules';
+import { _SpeechToTextModule } from '../../native/RnExecutorchModules';
 import { Image } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import {
@@ -10,7 +10,7 @@ import {
   WHISPER_PREPROCESSOR,
   WHISPER_TOKENIZER,
   MOONSHINE_TOKENIZER,
-} from './constants/modelUrls';
+} from '../../constants/modelUrls';
 
 const SECOND = 16_000;
 const SAMPLE_RATE = 16_000;

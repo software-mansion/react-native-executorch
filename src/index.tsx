@@ -5,6 +5,7 @@ export * from './hooks/computer_vision/useStyleTransfer';
 export * from './hooks/computer_vision/useOCR';
 
 export * from './hooks/natural_language_processing/useLLM';
+export * from './hooks/natural_language_processing/SpeechToText';
 
 export * from './hooks/general/useExecutorchModule';
 

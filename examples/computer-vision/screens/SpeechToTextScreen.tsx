@@ -1,7 +1,6 @@
 import { SpeechToTextController } from 'react-native-executorch';
 import { Text, View, StyleSheet, Button } from 'react-native';
 import { useEffect, useState } from 'react';
-import React from 'react';
 
 export const SpeechToTextScreen = () => {
   const [sequence, setSequence] = useState<number[]>([]);
@@ -24,7 +23,11 @@ export const SpeechToTextScreen = () => {
       <View style={styles.imageContainer}>
         <Button
           title="Download"
-          onPress={() => model.loadAudio('http://localhost:8080/output.mp3')}
+          onPress={() =>
+            model.loadAudio(
+              'https://ai.swmansion.com/storage/moonshine/test_audio.mp3'
+            )
+          }
         />
         <Button
           title="Transcribe"

@@ -3386,7 +3386,7 @@ __metadata:
     react: 18.3.1
     react-native: 0.76.3
     react-native-audio-api: 0.4.8-rc2
-    react-native-executorch: /Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.119.tgz
+    react-native-executorch: /Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.122.tgz
     react-native-image-picker: ^7.2.2
     react-native-loading-spinner-overlay: ^3.0.1
     react-native-reanimated: ^3.16.3
@@ -6864,16 +6864,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-executorch@file:/Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.119.tgz::locator=computer-vision%40workspace%3A.":
-  version: 0.3.119
-  resolution: "react-native-executorch@file:/Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.119.tgz::locator=computer-vision%40workspace%3A."
+"react-native-executorch@file:/Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.122.tgz::locator=computer-vision%40workspace%3A.":
+  version: 0.3.122
+  resolution: "react-native-executorch@file:/Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.122.tgz::locator=computer-vision%40workspace%3A."
   dependencies:
     expo-file-system: ^18.0.10
     react-native-audio-api: 0.4.8-rc2
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 3b3d834919ad09f57f1377bea9af6c0121f27a153a8d60c446cf94640052776b4b99201aecb6ec3e8d00cf2a086b38ad133b67456d730c51fd975a896c39558e
+  checksum: 7753c5e3b4762fbb179b23305cdecce884d8b816d91c886c886b6f581b0b82c0be5532c6935a7f0fda69c68f303cd2717cf627004b2750df29149c43cc083130
   languageName: node
   linkType: hard
 
