@@ -1,16 +1,15 @@
 #import "SpeechToText.h"
+#import "./utils/ScalarType.h"
 #import "models/BaseModel.h"
 #import "models/stt/WhisperDecoder.hpp"
 #import "models/stt/WhisperEncoder.hpp"
 #import <Accelerate/Accelerate.h>
 #import <ExecutorchLib/ETModel.h>
 #import <React/RCTBridgeModule.h>
-#import "./utils/ScalarType.h"
 
 @implementation SpeechToText {
   WhisperEncoder *encoder;
   WhisperDecoder *decoder;
-  BaseModel *preprocessor;
   NSNumber *START_TOKEN;
   NSNumber *EOS_TOKEN;
   int fftSize;
@@ -103,28 +102,21 @@ RCT_EXPORT_MODULE()
     dispatch_async(
         dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
           NSUInteger fftFrameLength = self->fftSize / 2;
-          NSMutableArray *mutablePrevTokens = [NSMutableArray arrayWithObject:self->START_TOKEN];
-                
-          if (!self->encoder || !self->decoder || !self->preprocessor) {
+          NSMutableArray *mutablePrevTokens =
+              [NSMutableArray arrayWithObject:self->START_TOKEN];
+
+          if (!self->encoder || !self->decoder) {
             reject(@"model_initialization_error", nil, nil);
             return;
           }
 
           NSNumber *numFrames =
               [NSNumber numberWithDouble:(stft.count / fftFrameLength)];
-          NSArray *mel = [self->preprocessor
-                 forward:@[ stft ]
-                  shapes:@[ @[
-                    numFrames,
-                    [NSNumber numberWithUnsignedInteger:fftFrameLength]
-                  ] ]
-              inputTypes:@[ ScalarType.Float ]];
-          NSDate *start = [NSDate date];
-          NSArray *encodingResult = [self->encoder encode:@[ mel ]];
-          
+          NSArray *encodingResult = [self->encoder encode:@[ stft ]];
 
           if (!encodingResult) {
-            reject(@"forward_error", @"Encoding returned an empty result.", nil);
+            reject(@"forward_error", @"Encoding returned an empty result.",
+                   nil);
             return;
           }
 
@@ -160,34 +152,25 @@ RCT_EXPORT_MODULE()
            resolve:(RCTPromiseResolveBlock)resolve
             reject:(RCTPromiseRejectBlock)reject {
 
-  preprocessor = [[BaseModel alloc] init];
   encoder = [[WhisperEncoder alloc] init];
   decoder = [[WhisperDecoder alloc] init];
 
-  // Load preprocessor first
-  [self loadModuleHelper:preprocessor
-      withSource:preprocessorSource
+  // Load encoder after preprocessor
+  [self loadModuleHelper:self->encoder
+      withSource:encoderSource
       onSuccess:^{
-        // Load encoder after preprocessor
-        [self loadModuleHelper:self->encoder
-            withSource:encoderSource
+        // Load decoder after encoder
+        [self loadModuleHelper:self->decoder
+            withSource:decoderSource
             onSuccess:^{
-              // Load decoder after encoder
-              [self loadModuleHelper:self->decoder
-                  withSource:decoderSource
-                  onSuccess:^{
-                    resolve(@(0));
-                  }
-                  onFailure:^(NSString *errorCode) {
-                    reject(@"init_decoder_error", errorCode, nil);
-                  }];
+              resolve(@(0));
             }
             onFailure:^(NSString *errorCode) {
-              reject(@"init_encoder_error", errorCode, nil);
+              reject(@"init_decoder_error", errorCode, nil);
             }];
       }
       onFailure:^(NSString *errorCode) {
-        reject(@"init_preprocessor_error", errorCode, nil);
+        reject(@"init_encoder_error", errorCode, nil);
       }];
 }
 
@@ -211,8 +194,9 @@ RCT_EXPORT_MODULE()
        resolve:(RCTPromiseResolveBlock)resolve
         reject:(RCTPromiseRejectBlock)reject {
   @try {
-    NSArray *encodingResult = [encoder encode:input];
-    resolve(encodingResult);
+    //    NSArray *encodingResult = [encoder encode:input];
+    //    resolve(encodingResult);
+    resolve(@[]);
   } @catch (NSException *exception) {
     reject(@"forward_error",
            [NSString stringWithFormat:@"%@", exception.reason], nil);
