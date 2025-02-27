@@ -21,7 +21,6 @@ const cv::Scalar variance(0.229, 0.224, 0.225);
 
 @interface Detector : BaseModel
 
-- (instancetype)initWithDetectSingleCharacters:(BOOL)detectSingleCharacters;
 - (cv::Size)getModelImageSize;
 - (NSArray *)runModel:(cv::Mat &)input;
 

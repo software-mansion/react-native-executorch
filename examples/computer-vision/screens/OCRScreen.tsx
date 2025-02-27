@@ -1,7 +1,13 @@
 import Spinner from 'react-native-loading-spinner-overlay';
 import { BottomBar } from '../components/BottomBar';
 import { getImage } from '../utils';
-import { useOCR } from 'react-native-executorch';
+import {
+  DETECTOR_CRAFT_800,
+  RECOGNIZER_EN_CRNN_128,
+  RECOGNIZER_EN_CRNN_256,
+  RECOGNIZER_EN_CRNN_512,
+  useOCR,
+} from 'react-native-executorch';
 import { View, StyleSheet, Image, Text } from 'react-native';
 import { useState } from 'react';
 import ImageWithBboxes2 from '../components/ImageWithOCRBboxes';
@@ -21,15 +27,11 @@ export const OCRScreen = ({
   const [detectedText, setDetectedText] = useState<string>('');
 
   const model = useOCR({
-    detectorSource:
-      'https://huggingface.co/nklockiewicz/ocr/resolve/main/xnnpack_craft_800.pte',
+    detectorSource: DETECTOR_CRAFT_800,
     recognizerSources: {
-      recognizerLarge:
-        'https://huggingface.co/nklockiewicz/ocr/resolve/main/xnnpack_crnn_512.pte',
-      recognizerMedium:
-        'https://huggingface.co/nklockiewicz/ocr/resolve/main/xnnpack_crnn_256.pte',
-      recognizerSmall:
-        'https://huggingface.co/nklockiewicz/ocr/resolve/main/xnnpack_crnn_128.pte',
+      recognizerLarge: RECOGNIZER_EN_CRNN_512,
+      recognizerMedium: RECOGNIZER_EN_CRNN_256,
+      recognizerSmall: RECOGNIZER_EN_CRNN_128,
     },
     language: 'en',
   });

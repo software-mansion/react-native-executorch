@@ -1,7 +1,13 @@
 import Spinner from 'react-native-loading-spinner-overlay';
 import { BottomBar } from '../components/BottomBar';
 import { getImage } from '../utils';
-import { useVerticalOCR } from 'react-native-executorch';
+import {
+  DETECTOR_CRAFT_1280,
+  DETECTOR_CRAFT_320,
+  RECOGNIZER_EN_CRNN_512,
+  RECOGNIZER_EN_CRNN_64,
+  useVerticalOCR,
+} from 'react-native-executorch';
 import { View, StyleSheet, Image, Text } from 'react-native';
 import { useState } from 'react';
 import ImageWithBboxes2 from '../components/ImageWithOCRBboxes';
@@ -21,16 +27,12 @@ export const VerticalOCRScreen = ({
   const [detectedText, setDetectedText] = useState<string>('');
   const model = useVerticalOCR({
     detectorSources: {
-      detectorLarge:
-        'https://huggingface.co/nklockiewicz/ocr/resolve/main/xnnpack_craft.pte',
-      detectorNarrow:
-        'https://huggingface.co/nklockiewicz/ocr/resolve/main/xnnpack_craft_narrow.pte',
+      detectorLarge: DETECTOR_CRAFT_1280,
+      detectorNarrow: DETECTOR_CRAFT_320,
     },
     recognizerSources: {
-      recognizerLarge:
-        'https://huggingface.co/nklockiewicz/ocr/resolve/main/xnnpack_crnn_512.pte',
-      recognizerSmall:
-        'https://huggingface.co/nklockiewicz/ocr/resolve/main/xnnpack_crnn_64.pte',
+      recognizerLarge: RECOGNIZER_EN_CRNN_512,
+      recognizerSmall: RECOGNIZER_EN_CRNN_64,
     },
     language: 'en',
     independentCharacters: true,
