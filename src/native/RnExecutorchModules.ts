@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 import { Spec as ClassificationInterface } from './NativeClassification';
 import { Spec as ObjectDetectionInterface } from './NativeObjectDetection';
 import { Spec as StyleTransferInterface } from './NativeStyleTransfer';
+import { Spec as ImageSegmentationInterface } from './NativeImageSegmentation';
 import { Spec as ETModuleInterface } from './NativeETModule';
 import { Spec as OCRInterface } from './NativeOCR';
 import { Spec as VerticalOCRInterface } from './NativeVerticalOCR';
@@ -42,6 +43,19 @@ const ClassificationSpec = require('./NativeClassification').default;
 
 const Classification = ClassificationSpec
   ? ClassificationSpec
+  : new Proxy(
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
+
+const ImageSegmentationSpec = require('./NativeImageSegmentation').default;
+
+const ImageSegmentation = ImageSegmentationSpec
+  ? ImageSegmentationSpec
   : new Proxy(
       {},
       {
@@ -115,6 +129,19 @@ const VerticalOCR = VerticalOCRSpec
         },
       }
     );
+
+class _ImageSegmentationModule {
+  async forward(
+    input: string
+  ): ReturnType<ImageSegmentationInterface['forward']> {
+    return await ImageSegmentation.forward(input);
+  }
+  async loadModule(
+    modelSource: string | number
+  ): ReturnType<ImageSegmentationInterface['loadModule']> {
+    return await ImageSegmentation.loadModule(modelSource);
+  }
+}
 
 class _ObjectDetectionModule {
   async forward(
@@ -239,12 +266,14 @@ export {
   Classification,
   ObjectDetection,
   StyleTransfer,
+  ImageSegmentation,
   SpeechToText,
   OCR,
   VerticalOCR,
   _ETModule,
   _ClassificationModule,
   _StyleTransferModule,
+  _ImageSegmentationModule,
   _ObjectDetectionModule,
   _SpeechToTextModule,
   _OCRModule,
