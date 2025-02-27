@@ -9,8 +9,10 @@ import { View, StyleSheet } from 'react-native';
 import { ClassificationScreen } from './screens/ClassificationScreen';
 import { ObjectDetectionScreen } from './screens/ObjectDetectionScreen';
 import { OCRScreen } from './screens/OCRScreen';
+import { SpeechToTextScreen } from './screens/SpeechToTextScreen';
 
 enum ModelType {
+  SPEECH_TO_TEXT,
   STYLE_TRANSFER,
   OBJECT_DETECTION,
   CLASSIFICATION,
@@ -23,7 +25,8 @@ export default function App() {
     regular: require('./assets/fonts/Aeonik-Regular.otf'),
   });
   const [selectedMode, setSelectedMode] = useState<ModelType>(
-    ModelType.STYLE_TRANSFER
+    ModelType.SPEECH_TO_TEXT
+    // ModelType.STYLE_TRANSFER
   );
   const [imageUri, setImageUri] = useState('');
 
@@ -33,6 +36,8 @@ export default function App() {
 
   const renderScreen = () => {
     switch (selectedMode) {
+      case ModelType.SPEECH_TO_TEXT:
+        return <SpeechToTextScreen />;
       case ModelType.STYLE_TRANSFER:
         return (
           <StyleTransferScreen imageUri={imageUri} setImageUri={setImageUri} />
@@ -51,9 +56,7 @@ export default function App() {
       case ModelType.OCR:
         return <OCRScreen imageUri={imageUri} setImageUri={setImageUri} />;
       default:
-        return (
-          <StyleTransferScreen imageUri={imageUri} setImageUri={setImageUri} />
-        );
+        return <SpeechToTextScreen />;
     }
   };
 
@@ -65,6 +68,7 @@ export default function App() {
           <View style={styles.wheelPickerContainer}>
             <ScrollPicker
               dataSource={[
+                'Speech To Text',
                 'Style Transfer',
                 'Object Detection',
                 'Classification',

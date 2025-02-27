@@ -9,6 +9,7 @@
 @interface WhisperEncoder : BaseModel
 
 - (NSArray *)encode:(NSArray *)melSpectrogram;
+- (NSArray *)decode:(NSArray *)prevTokens encoderLastHiddenState:(NSArray *)encoderLastHiddenState;
 
 @end
 

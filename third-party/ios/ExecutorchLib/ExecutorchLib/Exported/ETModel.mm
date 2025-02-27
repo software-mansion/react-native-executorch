@@ -186,7 +186,8 @@ using namespace ::torch::executor;
  *          same number of elements. Mismatched sizes can lead to runtime
  *          errors.
  **/
-- (NSArray *)forward:(NSArray *)inputs
+- (NSArray *)execute:(NSString *)methodName
+              inputs:(NSArray *)inputs
               shapes:(NSArray *)shapes
           inputTypes:(NSArray *)inputTypes {
   std::vector<EValue> inputTensors;
@@ -203,9 +204,9 @@ using namespace ::torch::executor;
     TensorPtr currentTensor = NSArrayToTensorPtr(input, inputShape, inputType);
     if (!currentTensor) {
       throw [NSException
-             exceptionWithName:@"forward_error"
-             reason:[NSString stringWithFormat:@"%d", Error::InvalidArgument]
-             userInfo:nil];
+            exceptionWithName:@"forward_error"
+            reason:[NSString stringWithFormat:@"%d", Error::InvalidArgument]
+            userInfo:nil];
     }
     
     // Since pushing back to inputTensors would cast to EValue (forward accepts a vector of EValues)
@@ -215,13 +216,13 @@ using namespace ::torch::executor;
     inputTensorPtrs.push_back(currentTensor);
   }
   
-  Result result = _model->forward(inputTensors);
+  Result result = _model->execute([methodName UTF8String], inputTensors);
   
   if (!result.ok()) {
     throw [NSException
-           exceptionWithName:@"forward_error"
-           reason:[NSString stringWithFormat:@"%d", result.error()]
-           userInfo:nil];
+          exceptionWithName:@"forward_error"
+          reason:[NSString stringWithFormat:@"%d", result.error()]
+          userInfo:nil];
   }
   
   NSMutableArray *output = [NSMutableArray new];
@@ -231,7 +232,11 @@ using namespace ::torch::executor;
     [output addObject:currentOutput];
   }
   return output;
-  
+}
+- (NSArray *)forward:(NSArray *)inputs
+              shapes:(NSArray *)shapes
+          inputTypes:(NSArray *)inputTypes {
+  return [self execute:@"forward" inputs:inputs shapes:shapes inputTypes:inputTypes];
 }
 
 @end
