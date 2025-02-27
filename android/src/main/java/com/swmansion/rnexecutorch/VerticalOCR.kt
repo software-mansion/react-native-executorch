@@ -1,6 +1,5 @@
 package com.swmansion.rnexecutorch
 
-import android.media.Image
 import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
@@ -8,22 +7,19 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.swmansion.rnexecutorch.utils.ETError
 import com.swmansion.rnexecutorch.utils.ImageProcessor
 import org.opencv.android.OpenCVLoader
-import com.swmansion.rnexecutorch.models.ocr.Detector
 import com.swmansion.rnexecutorch.models.ocr.Recognizer
+import com.swmansion.rnexecutorch.models.ocr.VerticalDetector
 import com.swmansion.rnexecutorch.models.ocr.utils.CTCLabelConverter
-import com.swmansion.rnexecutorch.models.ocr.utils.DetectorUtils
+import com.swmansion.rnexecutorch.models.ocr.utils.Constants
 import com.swmansion.rnexecutorch.models.ocr.utils.RecognizerUtils
 import org.opencv.core.Core
 import org.opencv.core.Mat
-import org.opencv.core.MatOfPoint
-import org.opencv.core.Point
-import org.opencv.imgproc.Imgproc
 
 class VerticalOCR(reactContext: ReactApplicationContext) :
   NativeVerticalOCRSpec(reactContext) {
 
-  private lateinit var detectorLarge: Detector
-  private lateinit var detectorNarrow: Detector
+  private lateinit var detectorLarge: VerticalDetector
+  private lateinit var detectorNarrow: VerticalDetector
   private lateinit var recognizer: Recognizer
   private lateinit var converter: CTCLabelConverter
   private var independentCharacters = true
@@ -50,9 +46,9 @@ class VerticalOCR(reactContext: ReactApplicationContext) :
   ) {
     try {
       this.independentCharacters = independentCharacters
-      detectorLarge = Detector(true, false, reactApplicationContext)
+      detectorLarge = VerticalDetector(false, reactApplicationContext)
       detectorLarge.loadModel(detectorLargeSource)
-      detectorNarrow = Detector(true, true, reactApplicationContext)
+      detectorNarrow = VerticalDetector(true, reactApplicationContext)
       detectorNarrow.loadModel(detectorNarrowSource)
       recognizer = Recognizer(reactApplicationContext)
       recognizer.loadModel(recognizerSource)
@@ -69,50 +65,54 @@ class VerticalOCR(reactContext: ReactApplicationContext) :
     try {
       val inputImage = ImageProcessor.readImage(input)
       val result = detectorLarge.runModel(inputImage)
-
-      val resizedImage = ImageProcessor.resizeWithPadding(inputImage, 1280, 1280)
+      val largeDetectorSize = detectorLarge.getModelImageSize()
+      val resizedImage = ImageProcessor.resizeWithPadding(
+        inputImage,
+        largeDetectorSize.width.toInt(),
+        largeDetectorSize.height.toInt()
+      )
       val predictions = Arguments.createArray()
       for (box in result) {
-        val coords = box.bBox
-        val boxWidth = coords[2].x - coords[0].x
-        val boxHeight = coords[2].y - coords[0].y
-        val points = arrayOfNulls<Point>(4)
+        val cords = box.bBox
+        val boxWidth = cords[2].x - cords[0].x
+        val boxHeight = cords[2].y - cords[0].y
 
-        for (i in 0 until 4) {
-          points.set(i, Point(coords[i].x, coords[i].y))
-        }
-
-        val boundingBox = Imgproc.boundingRect(MatOfPoint(*points))
+        val boundingBox = RecognizerUtils.extractBoundingBox(cords)
         val croppedImage = Mat(resizedImage, boundingBox)
 
-        val ratioAndPadding = RecognizerUtils.calculateResizeRatioAndPaddings(
+        val paddings = RecognizerUtils.calculateResizeRatioAndPaddings(
           inputImage.width(),
           inputImage.height(),
-          1280,
-          1280
+          largeDetectorSize.width.toInt(),
+          largeDetectorSize.height.toInt()
         )
 
         var text = ""
         var confidenceScore = 0.0
-        var detectionResult = detectorNarrow.runModel(croppedImage)
+        val boxResult = detectorNarrow.runModel(croppedImage)
+        val narrowDetectorSize = detectorNarrow.getModelImageSize()
 
-        var croppedCharacters = mutableListOf<Mat>()
+        val croppedCharacters = mutableListOf<Mat>()
 
-        for (bbox in detectionResult) {
-          val coords2 = bbox.bBox
-          var paddingsSingle = RecognizerUtils.calculateResizeRatioAndPaddings(
-            boxWidth.toInt(), boxHeight.toInt(), 320, 1280
+        for (characterBox in boxResult) {
+          val boxCords = characterBox.bBox
+          val paddingsBox = RecognizerUtils.calculateResizeRatioAndPaddings(
+            boxWidth.toInt(),
+            boxHeight.toInt(),
+            narrowDetectorSize.width.toInt(),
+            narrowDetectorSize.height.toInt()
           )
 
           var croppedCharacter = RecognizerUtils.cropImageWithBoundingBox(
             inputImage,
-            coords2,
-            coords,
-            paddingsSingle,
-            ratioAndPadding
+            boxCords,
+            cords,
+            paddingsBox,
+            paddings
           )
+
           if (this.independentCharacters) {
-            croppedCharacter = RecognizerUtils.normalizeForRecognizer(croppedCharacter, 0.0)
+            croppedCharacter = RecognizerUtils.normalizeForRecognizer(croppedCharacter, 0.0, true)
             val recognitionResult = recognizer.runModel(croppedCharacter)
             val predIndex = recognitionResult.first
             val decodedText = converter.decodeGreedy(predIndex, predIndex.size)
@@ -124,11 +124,15 @@ class VerticalOCR(reactContext: ReactApplicationContext) :
         }
 
         if (this.independentCharacters) {
-          confidenceScore /= detectionResult.size
+          confidenceScore /= boxResult.size
         } else {
           var mergedCharacters = Mat()
           Core.hconcat(croppedCharacters, mergedCharacters)
-          mergedCharacters = ImageProcessor.resizeWithPadding(mergedCharacters, 512, 64)
+          mergedCharacters = ImageProcessor.resizeWithPadding(
+            mergedCharacters,
+            Constants.LARGE_MODEL_WIDTH,
+            Constants.MODEL_HEIGHT
+          )
           mergedCharacters = RecognizerUtils.normalizeForRecognizer(mergedCharacters, 0.0)
 
           val recognitionResult = recognizer.runModel(mergedCharacters)
@@ -141,9 +145,9 @@ class VerticalOCR(reactContext: ReactApplicationContext) :
 
         for (bBox in box.bBox) {
           bBox.x =
-            (bBox.x - ratioAndPadding["left"] as Int) * ratioAndPadding["resizeRatio"] as Float
+            (bBox.x - paddings["left"] as Int) * paddings["resizeRatio"] as Float
           bBox.y =
-            (bBox.y - ratioAndPadding["top"] as Int) * ratioAndPadding["resizeRatio"] as Float
+            (bBox.y - paddings["top"] as Int) * paddings["resizeRatio"] as Float
         }
 
         val resMap = Arguments.createMap()
@@ -154,6 +158,7 @@ class VerticalOCR(reactContext: ReactApplicationContext) :
 
         predictions.pushMap(resMap)
       }
+
       promise.resolve(predictions)
     } catch (e: Exception) {
       Log.d("rn_executorch", "Error running model: ${e.message}")

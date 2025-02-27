@@ -8,7 +8,8 @@
                           height:(int)height
                      modelHeight:(int)modelHeight;
 + (cv::Mat)normalizeForRecognizer:(cv::Mat)image
-                   adjustContrast:(double)adjustContrast;
+                   adjustContrast:(double)adjustContrast
+                       isVertical:(BOOL)isVertical;
 + (cv::Mat)adjustContrastGrey:(cv::Mat)img target:(double)target;
 + (cv::Mat)divideMatrix:(cv::Mat)matrix byVector:(NSArray<NSNumber *> *)vector;
 + (cv::Mat)softmax:(cv::Mat)inputs;
@@ -24,6 +25,10 @@
 + (NSArray *)findMaxValuesAndIndices:(cv::Mat)probabilities;
 + (double)computeConfidenceScore:(NSArray<NSNumber *> *)valuesArray
                     indicesArray:(NSArray<NSNumber *> *)indicesArray;
-+ (cv::Mat)cropImageWithBoundingBox:(cv::Mat &)img bbox:(NSArray *)bbox originalBbox:(NSArray *)originalBbox paddings:(NSDictionary *)paddings originalPaddings:(NSDictionary *)originalPaddings;
++ (cv::Mat)cropImageWithBoundingBox:(cv::Mat &)img
+                               bbox:(NSArray *)bbox
+                       originalBbox:(NSArray *)originalBbox
+                           paddings:(NSDictionary *)paddings
+                   originalPaddings:(NSDictionary *)originalPaddings;
 
 @end

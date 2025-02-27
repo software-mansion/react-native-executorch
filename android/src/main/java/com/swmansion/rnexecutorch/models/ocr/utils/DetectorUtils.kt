@@ -304,7 +304,7 @@ class DetectorUtils {
       Imgproc.threshold(textMap, textScore, textThreshold, 1.0, Imgproc.THRESH_BINARY)
       Imgproc.threshold(affinityMap, affinityScore, linkThreshold, 1.0, Imgproc.THRESH_BINARY)
       val textScoreComb = Mat()
-      val kernel = Imgproc.getStructuringElement(
+      var kernel = Imgproc.getStructuringElement(
         Imgproc.MORPH_RECT,
         Size(3.0, 3.0)
       )
@@ -352,7 +352,7 @@ class DetectorUtils {
         val sy = max(y - dilationRadius, 0)
         val ey = min(y + h + dilationRadius + 1, imgH)
         val roi = Rect(sx, sy, ex - sx, ey - sy)
-        val kernel = Imgproc.getStructuringElement(
+        kernel = Imgproc.getStructuringElement(
           Imgproc.MORPH_RECT,
           Size((1 + dilationRadius).toDouble(), (1 + dilationRadius).toDouble())
         )

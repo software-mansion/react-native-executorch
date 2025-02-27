@@ -1,5 +1,5 @@
 #import "VerticalOCR.h"
-#import "models/ocr/Detector.h"
+#import "models/ocr/VerticalDetector.h"
 #import "models/ocr/RecognitionHandler.h"
 #import "models/ocr/Recognizer.h"
 #import "models/ocr/utils/RecognizerUtils.h"
@@ -10,8 +10,8 @@
 #import "models/ocr/utils/CTCLabelConverter.h"
 
 @implementation VerticalOCR {
-  Detector *detectorLarge;
-  Detector *detectorNarrow;
+  VerticalDetector *detectorLarge;
+  VerticalDetector *detectorNarrow;
   Recognizer *recognizer;
   CTCLabelConverter *converter;
   BOOL independentCharacters;
@@ -26,8 +26,7 @@ detectorNarrowSource:(NSString *)detectorNarrowSource
 independentCharacters:(BOOL)independentCharacters
            resolve:(RCTPromiseResolveBlock)resolve
             reject:(RCTPromiseRejectBlock)reject {
-  NSLog(@"%@", recognizerSource);
-  detectorLarge = [[Detector alloc] initWithIsVertical:YES detectSingleCharacters: NO];
+  detectorLarge = [[VerticalDetector alloc] initWithDetectSingleCharacters:NO];
   converter = [[CTCLabelConverter alloc] initWithCharacters:symbols separatorList:@{}];
   self->independentCharacters = independentCharacters;
   [detectorLarge
@@ -38,7 +37,7 @@ independentCharacters:(BOOL)independentCharacters
              nil);
       return;
     }
-    self->detectorNarrow = [[Detector alloc] initWithIsVertical:YES detectSingleCharacters:YES];
+    self->detectorNarrow = [[VerticalDetector alloc] initWithDetectSingleCharacters:YES];
     [self->detectorNarrow
      loadModel:[NSURL URLWithString:detectorNarrowSource]
      completion:^(BOOL success, NSNumber *errorCode) {
@@ -70,37 +69,34 @@ independentCharacters:(BOOL)independentCharacters
   @try {
     cv::Mat image = [ImageProcessor readImage:input];
     NSArray *result = [detectorLarge runModel:image];
-    cv::Mat resizedImage = [OCRUtils resizeWithPadding:image desiredWidth:1280 desiredHeight:1280];
+    cv::Size largeDetectorSize = [detectorLarge getModelImageSize];
+    cv::Mat resizedImage = [OCRUtils resizeWithPadding:image desiredWidth:largeDetectorSize.width desiredHeight:largeDetectorSize.height];
     NSMutableArray *predictions = [NSMutableArray array];
+    
     for (NSDictionary *box in result){
-      NSArray *coords = box[@"bbox"];
-      const int boxWidth = [[coords objectAtIndex:2] CGPointValue].x - [[coords objectAtIndex:0] CGPointValue].x;
-      const int boxHeight = [[coords objectAtIndex:2] CGPointValue].y - [[coords objectAtIndex:0] CGPointValue].y;
-      std::vector<cv::Point2f> points;
-      for (NSValue *value in coords) {
-        const CGPoint point = [value CGPointValue];
-        points.emplace_back(static_cast<float>(point.x),
-                            static_cast<float>(point.y));
-      }
+      NSArray *cords = box[@"bbox"];
+      const int boxWidth = [[cords objectAtIndex:2] CGPointValue].x - [[cords objectAtIndex:0] CGPointValue].x;
+      const int boxHeight = [[cords objectAtIndex:2] CGPointValue].y - [[cords objectAtIndex:0] CGPointValue].y;
       
-      cv::Rect boundingBox = cv::boundingRect(points);
+      cv::Rect boundingBox = [OCRUtils extractBoundingBox:cords];
       cv::Mat croppedImage = resizedImage(boundingBox);
-      NSDictionary *ratioAndPadding =
+      NSDictionary *paddings =
           [RecognizerUtils calculateResizeRatioAndPaddings:image.cols
                                                     height:image.rows
-                                              desiredWidth:1280
-                                             desiredHeight:1280];
+                                              desiredWidth:largeDetectorSize.width
+                                             desiredHeight:largeDetectorSize.height];
       
       NSString *text = @"";
       NSNumber *confidenceScore = @0.0;
-      NSArray *detectionResult = [detectorNarrow runModel:croppedImage];
+      NSArray *boxResult = [detectorNarrow runModel:croppedImage];
       std::vector<cv::Mat> croppedCharacters;
-      for(NSDictionary *bbox in detectionResult){
-        NSArray *coords2 = bbox[@"bbox"];
-        NSDictionary *paddingsSingle = [RecognizerUtils calculateResizeRatioAndPaddings:boxWidth height:boxHeight desiredWidth:320 desiredHeight:1280];
-        cv::Mat croppedCharacter = [RecognizerUtils cropImageWithBoundingBox:image bbox:coords2 originalBbox:coords paddings:paddingsSingle originalPaddings:ratioAndPadding];
+      
+      for(NSDictionary *characterBox in boxResult){
+        NSArray *boxCords = characterBox[@"bbox"];
+        NSDictionary *paddingsBox = [RecognizerUtils calculateResizeRatioAndPaddings:boxWidth height:boxHeight desiredWidth:320 desiredHeight:1280];
+        cv::Mat croppedCharacter = [RecognizerUtils cropImageWithBoundingBox:image bbox:boxCords originalBbox:cords paddings:paddingsBox originalPaddings:paddings];
         if(self->independentCharacters){
-          croppedCharacter = [RecognizerUtils normalizeForRecognizer:croppedCharacter adjustContrast:0.0];
+          croppedCharacter = [RecognizerUtils normalizeForRecognizer:croppedCharacter adjustContrast:0.0 isVertical: YES];
           NSArray *recognitionResult = [recognizer runModel:croppedCharacter];
           NSArray *predIndex = [recognitionResult objectAtIndex:0];
           NSArray *decodedText = [converter decodeGreedy: predIndex length:(int)(predIndex.count)];
@@ -112,12 +108,12 @@ independentCharacters:(BOOL)independentCharacters
       }
       
       if(self->independentCharacters){
-        confidenceScore = @([confidenceScore floatValue] / detectionResult.count);
+        confidenceScore = @([confidenceScore floatValue] / boxResult.count);
       }else{
         cv::Mat mergedCharacters;
         cv::hconcat(croppedCharacters.data(), (int)croppedCharacters.size(), mergedCharacters);
         mergedCharacters = [OCRUtils resizeWithPadding:mergedCharacters desiredWidth:512 desiredHeight:64];
-        mergedCharacters = [RecognizerUtils normalizeForRecognizer:mergedCharacters adjustContrast:0.0];
+        mergedCharacters = [RecognizerUtils normalizeForRecognizer:mergedCharacters adjustContrast:0.0 isVertical: NO];
         NSArray *recognitionResult = [recognizer runModel:mergedCharacters];
         NSArray *predIndex = [recognitionResult objectAtIndex:0];
         NSArray *decodedText = [converter decodeGreedy: predIndex length:(int)(predIndex.count)];
@@ -126,12 +122,12 @@ independentCharacters:(BOOL)independentCharacters
       }
       
       NSMutableArray *newCoords = [NSMutableArray arrayWithCapacity:4];
-      for (NSValue *coord in coords) {
-        const CGPoint point = [coord CGPointValue];
+      for (NSValue *cord in cords){
+        const CGPoint point = [cord CGPointValue];
         
         [newCoords addObject:@{
-          @"x" : @((point.x - [ratioAndPadding[@"left"] intValue]) * [ratioAndPadding[@"resizeRatio"] floatValue]),
-          @"y" : @((point.y - [ratioAndPadding[@"top"] intValue]) * [ratioAndPadding[@"resizeRatio"] floatValue])
+          @"x" : @((point.x - [paddings[@"left"] intValue]) * [paddings[@"resizeRatio"] floatValue]),
+          @"y" : @((point.y - [paddings[@"top"] intValue]) * [paddings[@"resizeRatio"] floatValue])
         }];
       }
       
