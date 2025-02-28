@@ -3,7 +3,7 @@ title: VerticalOCRModule
 sidebar_position: 7
 ---
 
-Hookless implementation of the [useVerticalOCR](../computer-vision/useVerticalOCR.mdx) hook.
+Hookless implementation of the [useVerticalOCR](../computer-vision/useVerticalOCR.md) hook.
 
 ## Reference
 

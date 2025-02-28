@@ -3,7 +3,7 @@ title: OCRModule
 sidebar_position: 6
 ---
 
-Hookless implementation of the [useOCR](../computer-vision/useOCR.mdx) hook.
+Hookless implementation of the [useOCR](../computer-vision/useOCR.md) hook.
 
 ## Reference
 

@@ -3,7 +3,7 @@ title: ObjectDetectionModule
 sidebar_position: 5
 ---
 
-Hookless implementation of the [useObjectDetection](../computer-vision/useObjectDetection.mdx) hook.
+Hookless implementation of the [useObjectDetection](../computer-vision/useObjectDetection.md) hook.
 
 ## Reference
 

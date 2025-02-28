@@ -152,15 +152,19 @@ function App() {
 
 ### Model size
 
-| Model                                                | XNNPACK [MB] |
-| ---------------------------------------------------- | ------------ |
-| CRAFT_1280 + CRAFT_NARROW + CRNN_EN_512 + CRNN_EN_64 | 13.9         |
+| Model       | XNNPACK [MB] |
+| ----------- | ------------ |
+| CRAFT_1280  | 83.1         |
+| CRAFT_320   | 83.1         |
+| CRNN_EN_512 | 277          |
+| CRNN_EN_64  | 74.3         |
 
 ### Memory usage
 
-| Model                                                | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| ---------------------------------------------------- | ---------------------- | ------------------ |
-| CRAFT_1280 + CRAFT_NARROW + CRNN_EN_512 + CRNN_EN_64 | 90                     | 90                 |
+| Model                                | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| ------------------------------------ | ---------------------- | ------------------ |
+| CRAFT_1280 + CRAFT_320 + CRNN_EN_512 | 2770                   | 3720               |
+| CRAFT_1280 + CRAFT_320 + CRNN_EN_64  | 1770                   | 2740               |
 
 ### Inference time
 
@@ -168,6 +172,9 @@ function App() {
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
 :::
 
-| Model                                                | iPhone 16 Pro (XNNPACK) [ms] | iPhone 13 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
-| ---------------------------------------------------- | ---------------------------- | ---------------------------- | -------------------------- | --------------------------------- | ------------------------- |
-| CRAFT_1280 + CRAFT_NARROW + CRNN_EN_512 + CRNN_EN_64 | 190                          | 260                          | 280                        | 100                               | 90                        |
+| Model       | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | Samsung Galaxy S21 (XNNPACK) [ms] |
+| ----------- | ---------------------------- | -------------------------------- | -------------------------- | --------------------------------- | --------------------------------- |
+| CRAFT_1280  | 5457                         | 5833                             | ❌                         | 6296                              | 14053                             |
+| CRAFT_320   | 1351                         | 1460                             | ❌                         | 1485                              | 3101                              |
+| CRNN_EN_512 | 39                           | 123                              | ❌                         | 24                                | 78                                |
+| CRNN_EN_64  | 10                           | 33                               | ❌                         | 7                                 | 18                                |

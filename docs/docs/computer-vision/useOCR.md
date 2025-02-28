@@ -140,15 +140,18 @@ function App() {
 
 ### Model size
 
-| Model                                               | XNNPACK [MB] |
-| --------------------------------------------------- | ------------ |
-| CRAFT_800 + CRNN_EN_512 + CRNN_EN_256 + CRNN_EN_128 | 13.9         |
+| Model       | XNNPACK [MB] |
+| ----------- | ------------ |
+| CRAFT_800   | 83.1         |
+| CRNN_EN_512 | 547          |
+| CRNN_EN_256 | 277          |
+| CRNN_EN_128 | 142          |
 
 ### Memory usage
 
 | Model                                               | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
 | --------------------------------------------------- | ---------------------- | ------------------ |
-| CRAFT_800 + CRNN_EN_512 + CRNN_EN_256 + CRNN_EN_128 | 90                     | 90                 |
+| CRAFT_800 + CRNN_EN_512 + CRNN_EN_256 + CRNN_EN_128 | 2100                   | 1782               |
 
 ### Inference time
 
@@ -156,6 +159,9 @@ function App() {
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
 :::
 
-| Model                                               | iPhone 16 Pro (XNNPACK) [ms] | iPhone 13 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
-| --------------------------------------------------- | ---------------------------- | ---------------------------- | -------------------------- | --------------------------------- | ------------------------- |
-| CRAFT_800 + CRNN_EN_512 + CRNN_EN_256 + CRNN_EN_128 | 190                          | 260                          | 280                        | 100                               | 90                        |
+| Model       | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | Samsung Galaxy S21 (XNNPACK) [ms] |
+| ----------- | ---------------------------- | -------------------------------- | -------------------------- | --------------------------------- | --------------------------------- |
+| CRAFT_800   | 2099                         | 2227                             | ❌                         | 2245                              | 7108                              |
+| CRNN_EN_512 | 70                           | 252                              | ❌                         | 54                                | 151                               |
+| CRNN_EN_256 | 39                           | 123                              | ❌                         | 24                                | 78                                |
+| CRNN_EN_128 | 17                           | 83                               | ❌                         | 14                                | 39                                |
