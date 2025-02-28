@@ -22,6 +22,4 @@
 
 @end
 
-
-
 #endif /* SpeechToTextBaseModel_hpp */
