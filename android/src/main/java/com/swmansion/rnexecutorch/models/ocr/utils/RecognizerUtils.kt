@@ -256,15 +256,11 @@ class RecognizerUtils {
         img = adjustContrastGrey(img, adjustContrast)
       }
 
-      var desiredWidth =
-        if (isVertical) Constants.VERTICAL_SMALL_MODEL_WIDTH else Constants.SMALL_MODEL_WIDTH
-
-      if (img.width() >= Constants.LARGE_MODEL_WIDTH) {
-        desiredWidth = Constants.LARGE_MODEL_WIDTH
-      } else if (img.width() >= Constants.MEDIUM_MODEL_WIDTH) {
-        desiredWidth = Constants.MEDIUM_MODEL_WIDTH
+      val desiredWidth =when {
+        img.width() >= Constants.LARGE_MODEL_WIDTH -> Constants.LARGE_MODEL_WIDTH
+        img.width() >= Constants.MEDIUM_MODEL_WIDTH -> Constants.MEDIUM_MODEL_WIDTH
+        else -> if (isVertical) Constants.VERTICAL_SMALL_MODEL_WIDTH else Constants.SMALL_MODEL_WIDTH
       }
-
 
       img = ImageProcessor.resizeWithPadding(img, desiredWidth, Constants.MODEL_HEIGHT)
       img.convertTo(img, CvType.CV_32F, 1.0 / 255.0)

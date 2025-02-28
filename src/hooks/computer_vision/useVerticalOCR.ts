@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { fetchResource } from '../../utils/fetchResource';
-import { languageDicts } from '../../constants/ocr/languageDicts';
 import { symbols } from '../../constants/ocr/symbols';
 import { getError, ETError } from '../../Error';
 import { VerticalOCR } from '../../native/RnExecutorchModules';
@@ -46,37 +45,25 @@ export const useVerticalOCR = ({
         )
           return;
 
-        let recognizerPath;
-
-        const detectorPaths = {} as {
-          detectorLarge: string;
-          detectorNarrow: string;
-        };
-
-        if (!symbols[language] || !languageDicts[language]) {
+        if (!symbols[language]) {
           setError(getError(ETError.LanguageNotSupported));
           return;
         }
 
-        await Promise.all([
-          fetchResource(detectorSources.detectorLarge),
-          fetchResource(detectorSources.detectorNarrow),
-        ]).then((values) => {
-          detectorPaths.detectorLarge = values[0];
-          detectorPaths.detectorNarrow = values[1];
-        });
+        const recognizerPath = independentCharacters
+          ? await fetchResource(
+              recognizerSources.recognizerSmall,
+              setDownloadProgress
+            )
+          : await fetchResource(
+              recognizerSources.recognizerLarge,
+              setDownloadProgress
+            );
 
-        if (independentCharacters) {
-          recognizerPath = await fetchResource(
-            recognizerSources.recognizerSmall,
-            setDownloadProgress
-          );
-        } else {
-          recognizerPath = await fetchResource(
-            recognizerSources.recognizerLarge,
-            setDownloadProgress
-          );
-        }
+        const detectorPaths = {
+          detectorLarge: await fetchResource(detectorSources.detectorLarge),
+          detectorNarrow: await fetchResource(detectorSources.detectorNarrow),
+        };
 
         setIsReady(false);
         await VerticalOCR.loadModule(

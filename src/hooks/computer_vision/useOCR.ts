@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { fetchResource } from '../../utils/fetchResource';
-import { languageDicts } from '../../constants/ocr/languageDicts';
 import { symbols } from '../../constants/ocr/symbols';
 import { getError, ETError } from '../../Error';
 import { OCR } from '../../native/RnExecutorchModules';
@@ -45,7 +44,7 @@ export const useOCR = ({
           recognizerSmall: string;
         };
 
-        if (!symbols[language] || !languageDicts[language]) {
+        if (!symbols[language]) {
           setError(getError(ETError.LanguageNotSupported));
           return;
         }

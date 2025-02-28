@@ -53,12 +53,7 @@ class VerticalDetector(
       Size(modelImageSize.width / 2, modelImageSize.height / 2)
     )
 
-    var txtThreshold = Constants.TEXT_THRESHOLD
-
-    if (!detectSingleCharacter) {
-      txtThreshold = Constants.TEXT_THRESHOLD_VERTICAL
-    }
-
+    val txtThreshold = if (detectSingleCharacter) Constants.TEXT_THRESHOLD else Constants.TEXT_THRESHOLD_VERTICAL
     var bBoxesList = DetectorUtils.getDetBoxesFromTextMapVertical(
       scoreText,
       scoreLink,

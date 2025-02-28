@@ -1,4 +1,3 @@
-import { languageDicts } from '../../constants/ocr/languageDicts';
 import { symbols } from '../../constants/ocr/symbols';
 import { getError, ETError } from '../../Error';
 import { OCR } from '../../native/RnExecutorchModules';
@@ -27,7 +26,7 @@ export class OCRModule {
         recognizerSmall: string;
       };
 
-      if (!symbols[language] || !languageDicts[language]) {
+      if (!symbols[language]) {
         throw new Error(getError(ETError.LanguageNotSupported));
       }
 

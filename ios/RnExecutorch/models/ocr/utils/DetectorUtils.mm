@@ -64,10 +64,10 @@
   NSMutableArray *detectedBoxes = [NSMutableArray array];
   for (int i = 1; i < nLabels; i++) {
     const int area = stats.at<int>(i, cv::CC_STAT_AREA);
-    const int width = stats.at<int>(i, cv::CC_STAT_WIDTH);
-    const int height = stats.at<int>(i, cv::CC_STAT_HEIGHT);
     if (area < 20)
       continue;
+    const int width = stats.at<int>(i, cv::CC_STAT_WIDTH);
+    const int height = stats.at<int>(i, cv::CC_STAT_HEIGHT);
 
     if (!independentCharacters && height < width)
       continue;

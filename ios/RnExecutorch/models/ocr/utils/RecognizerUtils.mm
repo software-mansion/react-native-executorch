@@ -62,12 +62,8 @@
     image = [self adjustContrastGrey:image target:adjustContrast];
   }
 
-  int desiredWidth;
-  if (isVertical){
-    desiredWidth = 64;
-  }else{
-    desiredWidth = 128;
-  }
+  int desiredWidth = (isVertical) ? 64 : 128;
+
   if (image.cols >= 512) {
     desiredWidth = 512;
   } else if (image.cols >= 256) {
@@ -233,6 +229,7 @@
                    originalPaddings:(NSDictionary *)originalPaddings {
   CGPoint topLeft = [originalBbox[0] CGPointValue];
   std::vector<cv::Point2f> points;
+  points.reserve(bbox.count);
   for (NSValue *coords in bbox) {
     CGPoint point = [coords CGPointValue];
 
@@ -251,7 +248,7 @@
     point.x = point.x * [originalPaddings[@"resizeRatio"] floatValue];
     point.y = point.y * [originalPaddings[@"resizeRatio"] floatValue];
 
-    points.push_back(cv::Point2f(point.x, point.y));
+    points.emplace_back(cv::Point2f(point.x, point.y));
   }
 
   cv::Rect rect = cv::boundingRect(points);
