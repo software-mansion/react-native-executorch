@@ -46,6 +46,24 @@ export const STYLE_TRANSFER_UDNIE =
     ? 'https://huggingface.co/software-mansion/react-native-executorch-style-transfer-udnie/resolve/v0.2.0/coreml/style_transfer_udnie_coreml.pte'
     : 'https://huggingface.co/software-mansion/react-native-executorch-style-transfer-udnie/resolve/v0.2.0/xnnpack/style_transfer_udnie_xnnpack.pte';
 
+// OCR
+
+export const DETECTOR_CRAFT_1280 =
+  'https://huggingface.co/software-mansion/react-native-executorch-detector-craft/resolve/v0.3.0/xnnpack/xnnpack_craft_1280.pte';
+export const DETECTOR_CRAFT_800 =
+  'https://huggingface.co/software-mansion/react-native-executorch-detector-craft/resolve/v0.3.0/xnnpack/xnnpack_craft_800.pte';
+export const DETECTOR_CRAFT_320 =
+  'https://huggingface.co/software-mansion/react-native-executorch-detector-craft/resolve/v0.3.0/xnnpack/xnnpack_craft_320.pte';
+
+export const RECOGNIZER_EN_CRNN_512 =
+  'https://huggingface.co/software-mansion/react-native-executorch-recognizer-crnn.en/resolve/v0.3.0/xnnpack/xnnpack_crnn_en_512.pte';
+export const RECOGNIZER_EN_CRNN_256 =
+  'https://huggingface.co/software-mansion/react-native-executorch-recognizer-crnn.en/resolve/v0.3.0/xnnpack/xnnpack_crnn_en_256.pte';
+export const RECOGNIZER_EN_CRNN_128 =
+  'https://huggingface.co/software-mansion/react-native-executorch-recognizer-crnn.en/resolve/v0.3.0/xnnpack/xnnpack_crnn_en_128.pte';
+export const RECOGNIZER_EN_CRNN_64 =
+  'https://huggingface.co/software-mansion/react-native-executorch-recognizer-crnn.en/resolve/v0.3.0/xnnpack/xnnpack_crnn_en_64.pte';
+
 // Backward compatibility
 export const LLAMA3_2_3B_URL = LLAMA3_2_3B;
 export const LLAMA3_2_3B_QLORA_URL = LLAMA3_2_3B_QLORA;

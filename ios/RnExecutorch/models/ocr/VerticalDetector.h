@@ -3,8 +3,9 @@
 #import "opencv2/opencv.hpp"
 #import "utils/Constants.h"
 
-@interface Detector : BaseModel
+@interface VerticalDetector : BaseModel
 
+- (instancetype)initWithDetectSingleCharacters:(BOOL)detectSingleCharacters;
 - (cv::Size)getModelImageSize;
 - (NSArray *)runModel:(cv::Mat &)input;
 

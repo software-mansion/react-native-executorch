@@ -1,4 +1,5 @@
 #import "OCRUtils.h"
+#import "RecognizerUtils.h"
 
 @implementation OCRUtils
 
@@ -50,6 +51,18 @@
                      cv::BORDER_CONSTANT, backgroundScalar);
 
   return centeredImg;
+}
+
++ (cv::Rect)extractBoundingBox:(NSArray *)coords {
+  std::vector<cv::Point2f> points;
+  points.reserve(coords.count);
+  for (NSValue *value in coords) {
+    const CGPoint point = [value CGPointValue];
+
+    points.emplace_back(point.x, point.y);
+  }
+
+  return cv::boundingRect(points);
 }
 
 @end

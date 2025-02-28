@@ -5,13 +5,16 @@ import org.opencv.core.Scalar
 class Constants {
   companion object {
     const val RECOGNIZER_RATIO = 1.6
+    const val RESTORE_RATIO_VERTICAL = 2.0
     const val MODEL_HEIGHT = 64
     const val LARGE_MODEL_WIDTH = 512
     const val MEDIUM_MODEL_WIDTH = 256
     const val SMALL_MODEL_WIDTH = 128
+    const val VERTICAL_SMALL_MODEL_WIDTH = 64
     const val LOW_CONFIDENCE_THRESHOLD = 0.3
     const val ADJUST_CONTRAST = 0.2
     const val TEXT_THRESHOLD = 0.4
+    const val TEXT_THRESHOLD_VERTICAL = 0.3
     const val LINK_THRESHOLD = 0.4
     const val LOW_TEXT_THRESHOLD = 0.7
     const val CENTER_THRESHOLD = 0.5

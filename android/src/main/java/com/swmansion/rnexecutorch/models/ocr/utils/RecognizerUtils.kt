@@ -245,17 +245,21 @@ class RecognizerUtils {
       return computeRatioAndResize(croppedImage, boundingBox.width, boundingBox.height, modelHeight)
     }
 
-    fun normalizeForRecognizer(image: Mat, adjustContrast: Double): Mat {
+    fun normalizeForRecognizer(
+      image: Mat,
+      adjustContrast: Double,
+      isVertical: Boolean = false
+    ): Mat {
       var img = image.clone()
 
       if (adjustContrast > 0) {
         img = adjustContrastGrey(img, adjustContrast)
       }
 
-      val desiredWidth = when {
+      val desiredWidth =when {
         img.width() >= Constants.LARGE_MODEL_WIDTH -> Constants.LARGE_MODEL_WIDTH
         img.width() >= Constants.MEDIUM_MODEL_WIDTH -> Constants.MEDIUM_MODEL_WIDTH
-        else -> Constants.SMALL_MODEL_WIDTH
+        else -> if (isVertical) Constants.VERTICAL_SMALL_MODEL_WIDTH else Constants.SMALL_MODEL_WIDTH
       }
 
       img = ImageProcessor.resizeWithPadding(img, desiredWidth, Constants.MODEL_HEIGHT)
@@ -264,6 +268,57 @@ class RecognizerUtils {
       Core.multiply(img, Scalar(2.0), img)
 
       return img
+    }
+
+    fun cropImageWithBoundingBox(
+      image: Mat,
+      box: List<BBoxPoint>,
+      originalBox: List<BBoxPoint>,
+      paddings: Map<String, Any>,
+      originalPaddings: Map<String, Any>
+    ): Mat {
+      val topLeft = originalBox[0]
+      val points = arrayOfNulls<Point>(4)
+
+      for (i in 0 until 4) {
+        val cords = box[i]
+        cords.x -= paddings["left"]!! as Int
+        cords.y -= paddings["top"]!! as Int
+
+        cords.x *= paddings["resizeRatio"]!! as Float
+        cords.y *= paddings["resizeRatio"]!! as Float
+
+        cords.x += topLeft.x
+        cords.y += topLeft.y
+
+        cords.x -= originalPaddings["left"]!! as Int
+        cords.y -= (originalPaddings["top"]!! as Int)
+
+        cords.x *= originalPaddings["resizeRatio"]!! as Float
+        cords.y *= originalPaddings["resizeRatio"]!! as Float
+
+        points[i] = Point(cords.x, cords.y)
+      }
+
+      val boundingBox = Imgproc.boundingRect(MatOfPoint2f(*points))
+      val croppedImage = Mat(image, boundingBox)
+      Imgproc.cvtColor(croppedImage, croppedImage, Imgproc.COLOR_BGR2GRAY)
+      Imgproc.resize(croppedImage, croppedImage, Size(64.0, 64.0), 0.0, 0.0, Imgproc.INTER_LANCZOS4)
+      Imgproc.medianBlur(croppedImage, croppedImage, 1)
+
+      return croppedImage
+    }
+
+    fun extractBoundingBox(cords: List<BBoxPoint>): Rect {
+      val points = arrayOfNulls<Point>(4)
+
+      for (i in 0 until 4) {
+        points[i] = Point(cords[i].x, cords[i].y)
+      }
+
+      val boundingBox = Imgproc.boundingRect(MatOfPoint2f(*points))
+
+      return boundingBox
     }
   }
 }
