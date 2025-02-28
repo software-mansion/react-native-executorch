@@ -37,7 +37,8 @@ Can be either `'whisper'` or `'moonshine'`. The first one will use the [Whisper]
 
 | Field          | Type                                                         | Description                                                                                              |
 | -------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| `transcribe`      | `(input: string) => Promise<string>` | Starts a transcription process for an audio at given `input` URL. Resolves a promise with the output transcription when the model is finished. |
+| `transcribe`      | `(input: number[]) => Promise<string>` | Starts a transcription process for a given input array, which should be a waveform at 16khz. Resolves a promise with the output transcription when the model is finished. |
+| `loadAudio`     |   `(url: string) => number[]`                                 | Loads audio file from given URL and returns a waveform, which serves as an input to `transcribe()`.         |
 | `error`        | <code>string &#124; null</code>                              | Contains the error message if the model failed to load.                                                  |
 | `response`        | <code>string &#124; null</code>                              | This property is updated with each generated token.                                                  |
 | `isGenerating` | `boolean`                                                    | Indicates whether the model is currently processing an inference.                                        |
