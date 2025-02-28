@@ -3,7 +3,7 @@ title: ClassificationModule
 sidebar_position: 1
 ---
 
-Hookless implementation of the [useClassification](../computer-vision/useClassification.mdx) hook.
+Hookless implementation of the [useClassification](../computer-vision/useClassification.md) hook.
 
 ## Reference
 
