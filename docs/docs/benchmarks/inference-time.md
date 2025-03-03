@@ -28,6 +28,24 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 | STYLE_TRANSFER_UDNIE         | 450                          | 600                          | 750                        | 1650                              | 1800                      |
 | STYLE_TRANSFER_RAIN_PRINCESS | 450                          | 600                          | 750                        | 1650                              | 1800                      |
 
+## OCR
+
+| Model       | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | Samsung Galaxy S21 (XNNPACK) [ms] |
+| ----------- | ---------------------------- | -------------------------------- | -------------------------- | --------------------------------- | --------------------------------- |
+| CRAFT_800   | 2099                         | 2227                             | ❌                         | 2245                              | 7108                              |
+| CRNN_EN_512 | 70                           | 252                              | ❌                         | 54                                | 151                               |
+| CRNN_EN_256 | 39                           | 123                              | ❌                         | 24                                | 78                                |
+| CRNN_EN_128 | 17                           | 83                               | ❌                         | 14                                | 39                                |
+
+## Vertical OCR
+
+| Model       | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | Samsung Galaxy S21 (XNNPACK) [ms] |
+| ----------- | ---------------------------- | -------------------------------- | -------------------------- | --------------------------------- | --------------------------------- |
+| CRAFT_1280  | 5457                         | 5833                             | ❌                         | 6296                              | 14053                             |
+| CRAFT_320   | 1351                         | 1460                             | ❌                         | 1485                              | 3101                              |
+| CRNN_EN_512 | 39                           | 123                              | ❌                         | 24                                | 78                                |
+| CRNN_EN_64  | 10                           | 33                               | ❌                         | 7                                 | 18                                |
+
 ## LLMs
 
 | Model                 | iPhone 16 Pro (XNNPACK) [tokens/s] | iPhone 13 Pro (XNNPACK) [tokens/s] | iPhone SE 3 (XNNPACK) [tokens/s] | Samsung Galaxy S24 (XNNPACK) [tokens/s] | OnePlus 12 (XNNPACK) [tokens/s] |

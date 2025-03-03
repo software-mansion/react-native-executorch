@@ -12,12 +12,22 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## Reference
 
 ```jsx
-import { useOCR, CRAFT_800, CRNN_RECOGNIZERS_EN } from 'react-native-executorch';
+import {
+  useOCR,
+  CRAFT_800,
+  RECOGNIZER_EN_CRNN_512,
+  RECOGNIZER_EN_CRNN_256,
+  RECOGNIZER_EN_CRNN_128
+} from 'react-native-executorch';
 
 function App() {
   const model = useOCR({
     detectorSource: CRAFT_800,
-    recognizerSources: CRNN_RECOGNIZERS_EN,
+    recognizerSources: {
+      recognizerLarge: RECOGNIZER_EN_CRNN_512,
+      recognizerMedium: RECOGNIZER_EN_CRNN_256,
+      recognizerSmall: RECOGNIZER_EN_CRNN_128
+    },
     language: "en",
   });
 
@@ -35,6 +45,14 @@ function App() {
 <summary>Type definitions</summary>
 
 ```typescript
+interface RecognizerSources {
+  recognizerLarge: string;
+  recognizerMedium: string;
+  recognizerSmall: string;
+}
+
+type OCRLanguage = 'en';
+
 interface Point {
   x: number;
   y: number;
@@ -44,12 +62,6 @@ interface OCRDetection {
   bbox: Point[];
   text: string;
   score: number;
-}
-
-interface RecognizerSources: {
-    recognizerLarge: string;
-    recognizerMedium: string;
-    recognizerSmall: string;
 }
 ```
 
@@ -97,7 +109,7 @@ interface OCRDetection {
 ```
 
 The `bbox` property contains information about the bounding box of detected text regions. It is represented as four points, which are corners of detected bounding box.
-The `text` property contains the text recognized withinh detected text region. The `score` represents the confidence score of the recognized text.
+The `text` property contains the text recognized within detected text region. The `score` represents the confidence score of the recognized text.
 
 ## Example
 
@@ -105,13 +117,19 @@ The `text` property contains the text recognized withinh detected text region. T
 import {
   useOCR,
   CRAFT_800,
-  CRNN_RECOGNIZERS_EN,
+  RECOGNIZER_EN_CRNN_512,
+  RECOGNIZER_EN_CRNN_256,
+  RECOGNIZER_EN_CRNN_128,
 } from 'react-native-executorch';
 
 function App() {
   const model = useOCR({
     detectorSource: CRAFT_800,
-    recognizerSources: CRNN_RECOGNIZERS_EN,
+    recognizerSources: {
+      recognizerLarge: RECOGNIZER_EN_CRNN_512,
+      recognizerMedium: RECOGNIZER_EN_CRNN_256,
+      recognizerSmall: RECOGNIZER_EN_CRNN_128,
+    },
     language: 'en',
   });
 

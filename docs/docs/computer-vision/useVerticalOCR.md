@@ -16,14 +16,26 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## Reference
 
 ```jsx
-import { useVerticalOCR, VERTICAL_DETECTORS, VERTICAL_CRNN_RECOGNIZERS_EN } from 'react-native-executorch';
+import {
+  DETECTOR_CRAFT_1280,
+  DETECTOR_CRAFT_320,
+  RECOGNIZER_EN_CRNN_512,
+  RECOGNIZER_EN_CRNN_64,
+  useVerticalOCR,
+} from 'react-native-executorch';
 
 function App() {
   const model = useVerticalOCR({
-    detectorSources: VERTICAL_DETECTORS,
-    recognizerSources: VERTICAL_CRNN_RECOGNIZERS_EN,
-    language: "en",
-    independentCharacters: True,
+    detectorSources: {
+      detectorLarge: DETECTOR_CRAFT_1280,
+      detectorNarrow: DETECTOR_CRAFT_320,
+    },
+    recognizerSources: {
+      recognizerLarge: RECOGNIZER_EN_CRNN_512,
+      recognizerSmall: RECOGNIZER_EN_CRNN_64,
+    },
+    language: 'en',
+    independentCharacters: true,
   });
 
   ...
@@ -40,6 +52,18 @@ function App() {
 <summary>Type definitions</summary>
 
 ```typescript
+interface DetectorSources {
+  detectorLarge: string;
+  detectorNarrow: string;
+}
+
+interface RecognizerSources {
+  recognizerLarge: string;
+  recognizerSmall: string;
+}
+
+type OCRLanguage = 'en';
+
 interface Point {
   x: number;
   y: number;
@@ -49,16 +73,6 @@ interface OCRDetection {
   bbox: Point[];
   text: string;
   score: number;
-}
-
-interface DetectorSources: {
-    detectorLarge: string;
-    detectorNarrow: string;
-}
-
-interface RecognizerSources: {
-    recognizerLarge: string;
-    recognizerSmall: string;
 }
 ```
 
@@ -114,17 +128,25 @@ The `text` property contains the text recognized withinh detected text region. T
 
 ```tsx
 import {
+  DETECTOR_CRAFT_1280,
+  DETECTOR_CRAFT_320,
+  RECOGNIZER_EN_CRNN_512,
+  RECOGNIZER_EN_CRNN_64,
   useVerticalOCR,
-  VERTICAL_DETECTORS,
-  VERTICAL_CRNN_RECOGNIZERS_EN,
 } from 'react-native-executorch';
 
 function App() {
   const model = useVerticalOCR({
-    detectorSources: VERTICAL_DETECTORS,
-    recognizerSources: VERTICAL_CRNN_RECOGNIZERS_EN,
+    detectorSources: {
+      detectorLarge: DETECTOR_CRAFT_1280,
+      detectorNarrow: DETECTOR_CRAFT_320,
+    },
+    recognizerSources: {
+      recognizerLarge: RECOGNIZER_EN_CRNN_512,
+      recognizerSmall: RECOGNIZER_EN_CRNN_64,
+    },
     language: 'en',
-    independentCharacters: True,
+    independentCharacters: true,
   });
 
   const runModel = async () => {

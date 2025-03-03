@@ -9,17 +9,27 @@ Hookless implementation of the [useVerticalOCR](../computer-vision/useVerticalOC
 
 ```typescript
 import {
-  VerticalOCRModule,
-  VERTICAL_DETECTORS,
-  VERTICAL_CRNN_RECOGNIZERS_EN,
+  DETECTOR_CRAFT_1280,
+  DETECTOR_CRAFT_320,
+  RECOGNIZER_EN_CRNN_512,
+  RECOGNIZER_EN_CRNN_64,
+  useVerticalOCR,
 } from 'react-native-executorch';
 
 const imageUri = 'path/to/image.png';
 
 // Loading the model
 await VerticalOCRModule.load({
-  detectorSources: VERTICAL_DETECTORS,
-  recognizerSources: VERTICAL_CRNN_RECOGNIZERS_EN,
+  detectorSources: {
+    detectorLarge: DETECTOR_CRAFT_1280,
+    detectorNarrow: DETECTOR_CRAFT_320,
+  },
+  recognizerSources: {
+    recognizerLarge: RECOGNIZER_EN_CRNN_512,
+    recognizerSmall: RECOGNIZER_EN_CRNN_64,
+  },
+  language: 'en',
+  independentCharacters: true,
 });
 
 // Running the model
@@ -28,16 +38,28 @@ const ocrDetections = await VerticalOCRModule.forward(imageUri);
 
 ### Methods
 
-| Method               | Type                                                                                                                      | Description                                                                                              |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `load`               | `(detectorSources: DetectorSources, recognizerSources: RecognizerSources, independentCharacters: boolean): Promise<void>` | Loads the model, where `modelSource` is a string that specifies the location of the model binary.        |
-| `forward`            | `(input: string): Promise<OCRDetections[]>`                                                                               | Executes the model's forward pass, where `input` can be a fetchable resource or a Base64-encoded string. |
-| `onDownloadProgress` | `(callback: (downloadProgress: number) => void): any`                                                                     | Subscribe to the download progress event.                                                                |
+| Method               | Type                                                                                                                                            | Description                                                                                                  |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `load`               | `(detectorSources: DetectorSources, recognizerSources: RecognizerSources, language: OCRLanguage independentCharacters: boolean): Promise<void>` | Loads detectors and recognizers, which sources are represented by `DetectorSources` and `RecognizerSources`. |
+| `forward`            | `(input: string): Promise<OCRDetections[]>`                                                                                                     | Executes the model's forward pass, where `input` can be a fetchable resource or a Base64-encoded string.     |
+| `onDownloadProgress` | `(callback: (downloadProgress: number) => void): any`                                                                                           | Subscribe to the download progress event.                                                                    |
 
 <details>
 <summary>Type definitions</summary>
 
 ```typescript
+interface DetectorSources {
+  detectorLarge: string;
+  detectorNarrow: string;
+}
+
+interface RecognizerSources {
+  recognizerLarge: string;
+  recognizerSmall: string;
+}
+
+type OCRLanguage = 'en';
+
 interface Point {
   x: number;
   y: number;
@@ -47,16 +69,6 @@ interface OCRDetection {
   bbox: Point[];
   text: string;
   score: number;
-}
-
-interface DetectorSources: {
-    detectorLarge: string;
-    detectorNarrow: string;
-}
-
-interface RecognizerSources: {
-    recognizerLarge: string;
-    recognizerSmall: string;
 }
 ```
 
@@ -69,6 +81,13 @@ To load the model, use the `load` method. It accepts:
 - `detectorSources` - An object that specifies the location of the detectors binary files. For more information, take a look at [loading models](../fundamentals/loading-models.md) section.
 - `recognizerSources` - An object that specifies the locations of the recognizers binary files. For more information, take a look at [loading models](../fundamentals/loading-models.md) section.
 - `independentCharacters` - A boolean parameter that indicates whether the text in the image consists of a random sequence of characters. If set to true, the algorithm will scan each character individually instead of reading them as continuous text.
+- `language` - A parameter that specifies the language of the text to be recognized by the OCR.
+
+This method returns a promise, which can resolve to an error or void.
+
+## Listening for download progress
+
+To subscribe to the download progress event, you can use the `onDownloadProgress` method. It accepts a callback function that will be called whenever the download progress changes.
 
 ## Running the model
 

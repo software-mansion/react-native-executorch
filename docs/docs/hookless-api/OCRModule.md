@@ -11,15 +11,21 @@ Hookless implementation of the [useOCR](../computer-vision/useOCR.md) hook.
 import {
   OCRModule,
   CRAFT_800,
-  CRNN_RECOGNIZERS_EN,
+  RECOGNIZER_EN_CRNN_512,
+  RECOGNIZER_EN_CRNN_256,
+  RECOGNIZER_EN_CRNN_128,
 } from 'react-native-executorch';
-
 const imageUri = 'path/to/image.png';
 
 // Loading the model
 await OCRModule.load({
   detectorSource: CRAFT_800,
-  recognizerSources: CRNN_RECOGNIZERS_EN,
+  recognizerSources: {
+    recognizerLarge: RECOGNIZER_EN_CRNN_512,
+    recognizerMedium: RECOGNIZER_EN_CRNN_256,
+    recognizerSmall: RECOGNIZER_EN_CRNN_128,
+  },
+  language: 'en',
 });
 
 // Running the model
@@ -28,16 +34,24 @@ const ocrDetections = await OCRModule.forward(imageUri);
 
 ### Methods
 
-| Method               | Type                                                                            | Description                                                                                              |
-| -------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `load`               | `(detectorSource: string, recognizerSources: RecognizerSources): Promise<void>` | Loads the model, where `modelSource` is a string that specifies the location of the model binary.        |
-| `forward`            | `(input: string): Promise<OCRDetections[]>`                                     | Executes the model's forward pass, where `input` can be a fetchable resource or a Base64-encoded string. |
-| `onDownloadProgress` | `(callback: (downloadProgress: number) => void): any`                           | Subscribe to the download progress event.                                                                |
+| Method               | Type                                                                                                   | Description                                                                                              |
+| -------------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| `load`               | `(detectorSource: string, recognizerSources: RecognizerSources, language: OCRLanguage): Promise<void>` | Loads the detector and recognizers, which sources are represented by `RecognizerSources`.                |
+| `forward`            | `(input: string): Promise<OCRDetections[]>`                                                            | Executes the model's forward pass, where `input` can be a fetchable resource or a Base64-encoded string. |
+| `onDownloadProgress` | `(callback: (downloadProgress: number) => void): any`                                                  | Subscribe to the download progress event.                                                                |
 
 <details>
 <summary>Type definitions</summary>
 
 ```typescript
+interface RecognizerSources {
+  recognizerLarge: string;
+  recognizerMedium: string;
+  recognizerSmall: string;
+}
+
+type OCRLanguage = 'en';
+
 interface Point {
   x: number;
   y: number;
@@ -48,19 +62,23 @@ interface OCRDetection {
   text: string;
   score: number;
 }
-
-interface RecognizerSources: {
-    recognizerLarge: String;
-    recognizerMedium: String;
-    recognizerSmall: String;
-}
 ```
 
 </details>
 
 ## Loading the model
 
-To load the model, use the `load` method. It accepts the `detectorSource` - a string that specifies the location of the detector binary and `recognizerSources` which is an object specifying locations of the recognizer binary files. For more information, take a look at [loading models](../fundamentals/loading-models.md) page. This method returns a promise, which can resolve to an error or void.
+To load the model, use the `load` method. It accepts:
+
+- `detectorSource` - A string that specifies the location of the detector binary file. For more information, take a look at [loading models](../fundamentals/loading-models.md) section.
+- `recognizerSources` - An object that specifies the locations of the recognizers binary files. For more information, take a look at [loading models](../fundamentals/loading-models.md) section.
+- `language` - A parameter that specifies the language of the text to be recognized by the OCR.
+
+This method returns a promise, which can resolve to an error or void.
+
+## Listening for download progress
+
+To subscribe to the download progress event, you can use the `onDownloadProgress` method. It accepts a callback function that will be called whenever the download progress changes.
 
 ## Running the model
 
