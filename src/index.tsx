@@ -14,6 +14,7 @@ export * from './modules/computer_vision/ClassificationModule';
 export * from './modules/computer_vision/ObjectDetectionModule';
 export * from './modules/computer_vision/StyleTransferModule';
 export * from './modules/computer_vision/OCRModule';
+export * from './modules/computer_vision/VerticalOCRModule';
 
 export * from './modules/natural_language_processing/LLMModule';
 

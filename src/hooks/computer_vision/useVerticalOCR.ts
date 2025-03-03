@@ -1,13 +1,7 @@
 import { useEffect, useState } from 'react';
-import {
-  calculateDownloadProgres,
-  fetchResource,
-} from '../../utils/fetchResource';
-import { symbols } from '../../constants/ocr/symbols';
-import { getError, ETError } from '../../Error';
-import { VerticalOCR } from '../../native/RnExecutorchModules';
 import { ResourceSource } from '../../types/common';
 import { OCRDetection, OCRLanguage } from '../../types/ocr';
+import { VerticalOCRController } from '../../controllers/VerticalOCRController';
 
 interface OCRModule {
   error: string | null;
@@ -39,54 +33,24 @@ export const useVerticalOCR = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
 
+  const [model, _] = useState(
+    () =>
+      new VerticalOCRController({
+        modelDownloadProgressCallback: setDownloadProgress,
+        isReadyCallback: setIsReady,
+        isGeneratingCallback: setIsGenerating,
+        errorCallback: setError,
+      })
+  );
+
   useEffect(() => {
     const loadModel = async () => {
-      try {
-        if (
-          Object.keys(detectorSources).length !== 2 ||
-          Object.keys(recognizerSources).length !== 2
-        )
-          return;
-
-        if (!symbols[language]) {
-          setError(getError(ETError.LanguageNotSupported));
-          return;
-        }
-
-        setIsReady(false);
-
-        const recognizerPath = independentCharacters
-          ? await fetchResource(
-              recognizerSources.recognizerSmall,
-              calculateDownloadProgres(3, 0, setDownloadProgress)
-            )
-          : await fetchResource(
-              recognizerSources.recognizerLarge,
-              calculateDownloadProgres(3, 0, setDownloadProgress)
-            );
-
-        const detectorPaths = {
-          detectorLarge: await fetchResource(
-            detectorSources.detectorLarge,
-            calculateDownloadProgres(3, 1, setDownloadProgress)
-          ),
-          detectorNarrow: await fetchResource(
-            detectorSources.detectorNarrow,
-            calculateDownloadProgres(3, 2, setDownloadProgress)
-          ),
-        };
-
-        await VerticalOCR.loadModule(
-          detectorPaths.detectorLarge,
-          detectorPaths.detectorNarrow,
-          recognizerPath,
-          symbols[language],
-          independentCharacters
-        );
-        setIsReady(true);
-      } catch (e) {
-        setError(getError(e));
-      }
+      await model.loadModel(
+        detectorSources,
+        recognizerSources,
+        language,
+        independentCharacters
+      );
     };
 
     loadModel();
@@ -100,30 +64,11 @@ export const useVerticalOCR = ({
     JSON.stringify(recognizerSources),
   ]);
 
-  const forward = async (input: string) => {
-    if (!isReady) {
-      throw new Error(getError(ETError.ModuleNotLoaded));
-    }
-    if (isGenerating) {
-      throw new Error(getError(ETError.ModelGenerating));
-    }
-
-    try {
-      setIsGenerating(true);
-      const output = await VerticalOCR.forward(input);
-      return output;
-    } catch (e) {
-      throw new Error(getError(e));
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
   return {
     error,
     isReady,
     isGenerating,
-    forward,
+    forward: model.forward,
     downloadProgress,
   };
 };
