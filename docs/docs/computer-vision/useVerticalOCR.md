@@ -10,7 +10,7 @@ The `useVerticalOCR` hook is currently in an experimental phase. We appreciate f
 Optical Character Recognition (OCR) is a computer vision technique used to detect and recognize text within images. It is commonly utilized to convert a variety of documents, such as scanned paper documents, PDF files, or images captured by a digital camera, into editable and searchable data. Traditionally, OCR technology has been optimized for recognizing horizontal text, and integrating support for vertical text recognition often requires significant additional effort from developers. To simplify this, we introduce `useVerticalOCR`, a tool designed to abstract the complexities of vertical text OCR, enabling seamless integration into your applications.
 
 :::caution
-It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/69802ee1ca161d9df00def1dabe014d36341cfa9/src/constants/modelUrls.ts#L28) shipped with our library.
+It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/69802ee1ca161d9df00def1dabe014d36341cfa9/src/constants/modelUrls.ts#L28) shipped with our library.
 :::
 
 ## Reference
@@ -200,3 +200,5 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 | CRAFT_320   | 1351                         | 1460                             | ❌                         | 1485                              | 3101                              |
 | CRNN_EN_512 | 39                           | 123                              | ❌                         | 24                                | 78                                |
 | CRNN_EN_64  | 10                           | 33                               | ❌                         | 7                                 | 18                                |
+
+❌ - Insufficient RAM.

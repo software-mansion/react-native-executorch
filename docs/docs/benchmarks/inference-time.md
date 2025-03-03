@@ -37,6 +37,8 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 | CRNN_EN_256 | 39                           | 123                              | ❌                         | 24                                | 78                                |
 | CRNN_EN_128 | 17                           | 83                               | ❌                         | 14                                | 39                                |
 
+❌ - Insufficient RAM.
+
 ## Vertical OCR
 
 | Model       | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | Samsung Galaxy S21 (XNNPACK) [ms] |
@@ -45,6 +47,8 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 | CRAFT_320   | 1351                         | 1460                             | ❌                         | 1485                              | 3101                              |
 | CRNN_EN_512 | 39                           | 123                              | ❌                         | 24                                | 78                                |
 | CRNN_EN_64  | 10                           | 33                               | ❌                         | 7                                 | 18                                |
+
+❌ - Insufficient RAM.
 
 ## LLMs
 
