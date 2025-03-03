@@ -14,16 +14,32 @@ import { fetchResource } from '../../utils/fetchResource';
 
 const SECOND = 16_000;
 const SAMPLE_RATE = 16_000;
+const HAMMING_DIST_THRESHOLD = 1;
 
-const MODEL_SOURCES = {
-  moonshine: [MOONSHINE_ENCODER, MOONSHINE_DECODER],
-  whisper: [WHISPER_PREPROCESSOR, WHISPER_ENCODER, WHISPER_DECODER],
+const MODEL_CONFIGS = {
+  moonshine: {
+    sources: [MOONSHINE_ENCODER, MOONSHINE_DECODER],
+    tokenizer: {
+      source: MOONSHINE_TOKENIZER,
+      sos: 1,
+      eos: 2,
+      special_char: '\u2581',
+    },
+  },
+  whisper: {
+    sources: [WHISPER_PREPROCESSOR, WHISPER_ENCODER, WHISPER_DECODER],
+    tokenizer: {
+      source: WHISPER_TOKENIZER,
+      sos: 50257,
+      eos: 50256,
+      special_char: 'Ġ',
+    },
+  },
 };
 
 const longCommonInfPref = (seq1: number[], seq2: number[]) => {
   let maxInd = 0;
   let maxLength = 0;
-  const HAMMING_DIST_THRESHOLD = 1;
 
   for (let i = 0; i < seq1.length; i++) {
     let j = 0;
@@ -48,27 +64,28 @@ const longCommonInfPref = (seq1: number[], seq2: number[]) => {
 
 export class SpeechToTextController {
   private nativeModule: _SpeechToTextModule;
+
   // Audio config
   private audioContext: AudioContext;
   private audioBuffer: AudioBuffer | null = null;
-  private chunks: number[][] = [];
+
   private overlap_seconds = 1.2;
   private window_size = SECOND * 7;
-  private MOONSHINE_SOS = 1;
-  private MOONSHINE_EOS = 2;
-  private MOONSHINE_SPECIAL_CHAR = '\u2581';
-  private WHISPER_SPECIAL_CHAR = 'Ġ';
-  private WHISPER_SOS = 50257;
-  private WHISPER_EOS = 50256;
+
+  private chunks: number[][] = [];
   public sequence: number[] = [];
   public isReady = false;
   public isGenerating = false;
   private eos_token!: number;
   private sos_token!: number;
   private modelName: 'moonshine' | 'whisper' = 'moonshine';
+
+  // tokenizer tokens to string mapping used for decoding sequence
+  private tokenMapping!: { [key: number]: string };
+
+  // User callbacks
   private transribeCallback: (sequence: number[]) => void;
   private modelDownloadProgessCallback: (downloadProgress: number) => void;
-  private tokenMapping!: { [key: number]: string };
 
   constructor({
     transribeCallback,
@@ -90,29 +107,36 @@ export class SpeechToTextController {
     this.overlap_seconds = overlap_seconds || this.overlap_seconds;
   }
 
-  private async fetch_tokenizer(): Promise<{ [key: number]: string }> {
-    return fetch(
-      this.modelName === 'moonshine' ? MOONSHINE_TOKENIZER : WHISPER_TOKENIZER
-    ).then((resp) => resp.json());
+  private async fetch_tokenizer(
+    localUri?: string
+  ): Promise<{ [key: number]: string }> {
+    let tokenzerUri = await fetchResource(
+      localUri || MODEL_CONFIGS[this.modelName].tokenizer.source
+    );
+    return JSON.parse(await FileSystem.readAsStringAsync(tokenzerUri));
   }
 
   public async loadModel(
     modelName: 'moonshine' | 'whisper',
-    fileUris?: string[]
+    fileUris?: string[],
+    tokenizerUri?: string
   ) {
     this.modelName = modelName;
-    this.tokenMapping = await this.fetch_tokenizer();
-    this.sos_token =
-      this.modelName === 'moonshine' ? this.MOONSHINE_SOS : this.WHISPER_SOS;
-    this.eos_token =
-      this.modelName === 'moonshine' ? this.MOONSHINE_EOS : this.WHISPER_EOS;
+    this.tokenMapping = await this.fetch_tokenizer(tokenizerUri);
+    this.sos_token = MODEL_CONFIGS[this.modelName].tokenizer.sos;
+    this.eos_token = MODEL_CONFIGS[this.modelName].tokenizer.eos;
 
     let modelPaths: string[] = [];
     if (fileUris) {
+      if (fileUris.length !== MODEL_CONFIGS[this.modelName].sources.length) {
+        throw new Error(
+          `fileUris should be of length '${MODEL_CONFIGS[this.modelName].sources.length}' instead got ${fileUris.length}`
+        );
+      }
       modelPaths = fileUris;
     } else {
-      for (let idx in MODEL_SOURCES[modelName]) {
-        let moduleSource = MODEL_SOURCES[modelName][idx]!;
+      for (let idx in MODEL_CONFIGS[modelName].sources) {
+        let moduleSource = MODEL_CONFIGS[modelName].sources[idx]!;
         try {
           modelPaths.push(
             await fetchResource(
@@ -121,7 +145,7 @@ export class SpeechToTextController {
               (progress) =>
                 this.modelDownloadProgessCallback(
                   (Number(idx) * 100 + progress) /
-                    MODEL_SOURCES[modelName].length
+                    MODEL_CONFIGS[modelName].sources.length
                 )
             )
           );
@@ -161,6 +185,10 @@ export class SpeechToTextController {
 
       this.chunks.push(chunk);
     }
+  }
+
+  public async forward(waveform?: number[]): Promise<string> {
+    return this.transcribe(waveform);
   }
 
   public async transcribe(waveform?: number[]): Promise<string> {
@@ -230,15 +258,10 @@ export class SpeechToTextController {
   public decodeSeq(seq?: number[]): string {
     if (!seq) seq = this.sequence;
 
-    const SPECIAL_CHAR =
-      this.modelName === 'moonshine'
-        ? this.MOONSHINE_SPECIAL_CHAR
-        : this.WHISPER_SPECIAL_CHAR;
-
     return seq
       .filter((token) => token !== this.eos_token && token !== this.sos_token)
       .map((token) => this.tokenMapping[token])
       .join('')
-      .replaceAll(SPECIAL_CHAR, ' ');
+      .replaceAll(MODEL_CONFIGS[this.modelName].tokenizer.special_char, ' ');
   }
 }

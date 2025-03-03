@@ -16,8 +16,8 @@ export const SpeechToTextScreen = () => {
 
   useEffect(() => {
     const loadModel = async () => {
-      await model.loadModel('moonshine');
-      console.log('loaded');
+      await model.loadModel('whisper');
+      console.log('loaded moonshine');
     };
     console.log('useEffect');
     loadModel();
@@ -28,13 +28,17 @@ export const SpeechToTextScreen = () => {
       <View style={styles.imageContainer}>
         <Button
           title="Download"
-          onPress={() => model.loadAudio('http://localhost:8080/output.mp3')}
+          onPress={() =>
+            model.loadAudio(
+              'https://ai.swmansion.com/storage/moonshine/test_audio.mp3'
+            )
+          }
         />
         <Button
           title="Transcribe"
           onPress={async () => await model.transcribe()}
         />
-        <Text>{downloadProgress}</Text>
+        <Text>downloadProgress: {downloadProgress}</Text>
         <Text>{model.decodeSeq(sequence)}</Text>
       </View>
     </>
