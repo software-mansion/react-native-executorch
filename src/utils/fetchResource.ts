@@ -80,3 +80,17 @@ export const fetchResource = async (
 
   return fileUri;
 };
+
+export const calculateDownloadProgres =
+  (
+    numberOfFiles: number,
+    currentFileIndex: number,
+    setProgress: (downloadProgress: number) => void
+  ) =>
+  (progress: number) => {
+    const contributionPerFile = 1 / numberOfFiles;
+    const baseProgress = contributionPerFile * currentFileIndex;
+    const scaledProgress = progress * contributionPerFile;
+    const updatedProgress = baseProgress + scaledProgress;
+    setProgress(updatedProgress);
+  };

@@ -2,7 +2,11 @@ import { symbols } from '../../constants/ocr/symbols';
 import { getError, ETError } from '../../Error';
 import { OCR } from '../../native/RnExecutorchModules';
 import { ResourceSource } from '../../types/common';
-import { fetchResource } from '../../utils/fetchResource';
+import { OCRLanguage } from '../../types/ocr';
+import {
+  calculateDownloadProgres,
+  fetchResource,
+} from '../../utils/fetchResource';
 
 export class OCRModule {
   static onDownloadProgressCallback = (_downloadProgress: number) => {};
@@ -14,36 +18,35 @@ export class OCRModule {
       recognizerMedium: ResourceSource;
       recognizerSmall: ResourceSource;
     },
-    language = 'en'
+    language: OCRLanguage = 'en'
   ) {
     try {
-      if (!detectorSource || Object.keys(recognizerSources).length === 0)
+      if (!detectorSource || Object.keys(recognizerSources).length !== 3)
         return;
-
-      const recognizerPaths = {} as {
-        recognizerLarge: string;
-        recognizerMedium: string;
-        recognizerSmall: string;
-      };
 
       if (!symbols[language]) {
         throw new Error(getError(ETError.LanguageNotSupported));
       }
 
-      const detectorPath = await fetchResource(detectorSource);
+      const detectorPath = await fetchResource(
+        detectorSource,
+        calculateDownloadProgres(4, 0, this.onDownloadProgressCallback)
+      );
 
-      await Promise.all([
-        fetchResource(
+      const recognizerPaths = {
+        recognizerLarge: await fetchResource(
           recognizerSources.recognizerLarge,
-          this.onDownloadProgressCallback
+          calculateDownloadProgres(4, 1, this.onDownloadProgressCallback)
         ),
-        fetchResource(recognizerSources.recognizerMedium),
-        fetchResource(recognizerSources.recognizerSmall),
-      ]).then((values) => {
-        recognizerPaths.recognizerLarge = values[0];
-        recognizerPaths.recognizerMedium = values[1];
-        recognizerPaths.recognizerSmall = values[2];
-      });
+        recognizerMedium: await fetchResource(
+          recognizerSources.recognizerMedium,
+          calculateDownloadProgres(4, 2, this.onDownloadProgressCallback)
+        ),
+        recognizerSmall: await fetchResource(
+          recognizerSources.recognizerSmall,
+          calculateDownloadProgres(4, 3, this.onDownloadProgressCallback)
+        ),
+      };
 
       await OCR.loadModule(
         detectorPath,

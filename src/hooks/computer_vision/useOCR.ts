@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
-import { fetchResource } from '../../utils/fetchResource';
+import {
+  calculateDownloadProgres,
+  fetchResource,
+} from '../../utils/fetchResource';
 import { symbols } from '../../constants/ocr/symbols';
 import { getError, ETError } from '../../Error';
 import { OCR } from '../../native/RnExecutorchModules';
 import { ResourceSource } from '../../types/common';
-import { OCRDetection } from '../../types/ocr';
+import { OCRDetection, OCRLanguage } from '../../types/ocr';
 
 interface OCRModule {
   error: string | null;
@@ -25,7 +28,7 @@ export const useOCR = ({
     recognizerMedium: ResourceSource;
     recognizerSmall: ResourceSource;
   };
-  language?: string;
+  language?: OCRLanguage;
 }): OCRModule => {
   const [error, setError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -35,33 +38,36 @@ export const useOCR = ({
   useEffect(() => {
     const loadModel = async () => {
       try {
-        if (!detectorSource || Object.keys(recognizerSources).length === 0)
+        if (!detectorSource || Object.keys(recognizerSources).length !== 3)
           return;
-
-        const recognizerPaths = {} as {
-          recognizerLarge: string;
-          recognizerMedium: string;
-          recognizerSmall: string;
-        };
 
         if (!symbols[language]) {
           setError(getError(ETError.LanguageNotSupported));
           return;
         }
 
-        const detectorPath = await fetchResource(detectorSource);
-
-        await Promise.all([
-          fetchResource(recognizerSources.recognizerLarge, setDownloadProgress),
-          fetchResource(recognizerSources.recognizerMedium),
-          fetchResource(recognizerSources.recognizerSmall),
-        ]).then((values) => {
-          recognizerPaths.recognizerLarge = values[0];
-          recognizerPaths.recognizerMedium = values[1];
-          recognizerPaths.recognizerSmall = values[2];
-        });
-
         setIsReady(false);
+
+        const detectorPath = await fetchResource(
+          detectorSource,
+          calculateDownloadProgres(4, 0, setDownloadProgress)
+        );
+
+        const recognizerPaths = {
+          recognizerLarge: await fetchResource(
+            recognizerSources.recognizerLarge,
+            calculateDownloadProgres(4, 1, setDownloadProgress)
+          ),
+          recognizerMedium: await fetchResource(
+            recognizerSources.recognizerMedium,
+            calculateDownloadProgres(4, 2, setDownloadProgress)
+          ),
+          recognizerSmall: await fetchResource(
+            recognizerSources.recognizerSmall,
+            calculateDownloadProgres(4, 3, setDownloadProgress)
+          ),
+        };
+
         await OCR.loadModule(
           detectorPath,
           recognizerPaths.recognizerLarge,

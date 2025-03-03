@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
-import { fetchResource } from '../../utils/fetchResource';
+import {
+  calculateDownloadProgres,
+  fetchResource,
+} from '../../utils/fetchResource';
 import { symbols } from '../../constants/ocr/symbols';
 import { getError, ETError } from '../../Error';
 import { VerticalOCR } from '../../native/RnExecutorchModules';
 import { ResourceSource } from '../../types/common';
-import { OCRDetection } from '../../types/ocr';
+import { OCRDetection, OCRLanguage } from '../../types/ocr';
 
 interface OCRModule {
   error: string | null;
@@ -28,7 +31,7 @@ export const useVerticalOCR = ({
     recognizerLarge: ResourceSource;
     recognizerSmall: ResourceSource;
   };
-  language?: string;
+  language?: OCRLanguage;
   independentCharacters?: boolean;
 }): OCRModule => {
   const [error, setError] = useState<string | null>(null);
@@ -50,22 +53,29 @@ export const useVerticalOCR = ({
           return;
         }
 
+        setIsReady(false);
+
         const recognizerPath = independentCharacters
           ? await fetchResource(
               recognizerSources.recognizerSmall,
-              setDownloadProgress
+              calculateDownloadProgres(3, 0, setDownloadProgress)
             )
           : await fetchResource(
               recognizerSources.recognizerLarge,
-              setDownloadProgress
+              calculateDownloadProgres(3, 0, setDownloadProgress)
             );
 
         const detectorPaths = {
-          detectorLarge: await fetchResource(detectorSources.detectorLarge),
-          detectorNarrow: await fetchResource(detectorSources.detectorNarrow),
+          detectorLarge: await fetchResource(
+            detectorSources.detectorLarge,
+            calculateDownloadProgres(3, 1, setDownloadProgress)
+          ),
+          detectorNarrow: await fetchResource(
+            detectorSources.detectorNarrow,
+            calculateDownloadProgres(3, 2, setDownloadProgress)
+          ),
         };
 
-        setIsReady(false);
         await VerticalOCR.loadModule(
           detectorPaths.detectorLarge,
           detectorPaths.detectorNarrow,
