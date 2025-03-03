@@ -121,12 +121,12 @@ Given that Whisper accepts a 30 seconds audio chunks, we employed a streaming al
 
 | Model             | iPhone 16 Pro (XNNPack) | iPhone 13 Pro (XNNPack) | iPhone SE 3 (XNNPack) | Samsung Galaxy S24 (XNNPack) |
 | ----------------- | ----------------------- | ----------------------- | --------------------- | ---------------------------- |
-| Whisper (tiny.en) | 8.65 tokens/s           | 5.41 tokens/s           | 5.31 tokens/s         | 20.0 tokens/s                |
-| Moonshine (tiny)  | 13.23 tokens/s          | 7.77 tokens/s           | 7.61 tokens/s         | 20.0 tokens/s                |
+| Whisper (tiny.en) | 8.65 tokens/s           | 5.41 tokens/s           | 5.31 tokens/s         | ❌                            |
+| Moonshine (tiny)  | 13.23 tokens/s          | 7.77 tokens/s           | 7.61 tokens/s         | ❌                            |
 
 #### Encoder
 | Model             | iPhone 16 Pro (XNNPack) | iPhone 13 Pro (XNNPack) | iPhone SE 3 (XNNPack) | Samsung Galaxy S24 (XNNPack) |
 | ----------------- | ----------------------- | ----------------------- | --------------------- | ---------------------------- |
-| Whisper (tiny.en) | 1.00s                   | 1.40s                   | 1.49s                 | 1.00s                        |
-| Moonshine (tiny)  | 0.48s                   | 0.69s                   | 0.69s                 | 1.00s                        |
+| Whisper (tiny.en) | 1.00s                   | 1.40s                   | 1.49s                 | ❌                            |
+| Moonshine (tiny)  | 0.48s                   | 0.69s                   | 0.69s                 | ❌                            |
 
