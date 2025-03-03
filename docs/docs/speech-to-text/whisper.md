@@ -6,18 +6,18 @@ sidebar_position: 1
 With the latest `v0.3.0` release we introduce a new hook - `useSpeechToText`. Speech to text is a task that allows to transform spoken language to written text. It is commonly used to implement features such as transcription or voice assistants. As of now, [every supported STT model](#supported-models) runs on the XNNPack backend.
 
 :::info
-Currently, we do not support direct microphone input streaming to the model. Instead, in  `v0.3.0`, we provide a way to transcribe an audio file.
+Currently, we do not support direct microphone input streaming to the model. Instead, in  v0.3.0, we provide a way to transcribe an audio file.
 :::
 
 ## Reference
 
 ```typescript
-import { useSpeechToText, MOONSINE_TOKENIZER_URL, MOONSHINE_ENCODER_URL, MOONSHINE_DECODER_URL } from 'react-native-executorch';
+import { useSpeechToText, MOONSHINE_TINY_TOKENIZER_URL, MOONSHINE_TINY_ENCODER_URL, MOONSHINE_TINY_DECODER_URL } from 'react-native-executorch';
 
 const model = useSpeechToText({
-  encoderSource: MOONSHINE_ENCODER_URL,
-  decoderSource: MOONSHINE_DECODER_URL,
-  tokenizerSource: MOONSHINE_TOKENIZER_URL
+  encoderSource: MOONSHINE_TINY_ENCODER_URL,
+  decoderSource: MOONSHINE_TINY_DECODER_URL,
+  tokenizerSource: MOONSHINE_TINY_TOKENIZER_URL
   modelName: 'moonshine',
 });
 
@@ -49,14 +49,14 @@ A literal of `"moonshine" | "whisper"` which serves as an identifier for which m
 
 ### Returns
 
-| Field          | Type                                                         | Description                                                                                              |
-| -------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| `transcribe`      | `(input: number[]?) => Promise<string>` | Starts a transcription process for a given input array, which should be a waveform at 16kHz. This can be obtained from the `loadAudio` function. When no input is provided, it uses an internal state which is set by calling `loadAudio`. Resolves a promise with the output transcription when the model is finished. |
-| `loadAudio`     |   `(url: string) => number[]`                                 | Loads audio file from given URL and returns a waveform, which serves as an input to `transcribe()`. It also sets an internal state for the input, so when you call `loadAudio`, you don't need to pass anything to `transcribe`.         |
-| `error`        | <code>string &#124; null</code>                              | Contains the error message if the model failed to load.                                                  |
-| `response`        | <code>string &#124; null</code>                              | This property is updated with each generated token.                                                  |
-| `isGenerating` | `boolean`                                                    | Indicates whether the model is currently processing an inference.                                        |
-| `isReady`      | `boolean`                                                    | Indicates whether the model has successfully loaded and is ready for inference.                          |
+| Field          | Type                                    | Description                                                                                                                                                                                                                                                                                                             |
+| -------------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `transcribe`   | `(input: number[]?) => Promise<string>` | Starts a transcription process for a given input array, which should be a waveform at 16kHz. This can be obtained from the `loadAudio` function. When no input is provided, it uses an internal state which is set by calling `loadAudio`. Resolves a promise with the output transcription when the model is finished. |
+| `loadAudio`    | `(url: string) => number[]`             | Loads audio file from given URL and returns a waveform, which serves as an input to `transcribe()`. It also sets an internal state for the input, so when you call `loadAudio`, you don't need to pass anything to `transcribe`.                                                                                        |
+| `error`        | <code>string &#124; null</code>         | Contains the error message if the model failed to load.                                                                                                                                                                                                                                                                 |
+| `response`     | <code>string &#124; null</code>         | This property is updated with each generated token.                                                                                                                                                                                                                                                                     |
+| `isGenerating` | `boolean`                               | Indicates whether the model is currently processing an inference.                                                                                                                                                                                                                                                       |
+| `isReady`      | `boolean`                               | Indicates whether the model has successfully loaded and is ready for inference.                                                                                                                                                                                                                                         |
 
 ## Running the model
 
@@ -67,13 +67,13 @@ To run the model, you can use the `transcribe` method. It accepts one optional a
 
 ```typescript
 import { Button, Text } from 'react-native';
-import { useSpeechToText, WHISPER_TOKENIZER_URL, WHISPER_ENCODER_URL, WHISPER_DECODER_URL } from 'react-native-executorch';
+import { useSpeechToText, WHISPER_TINY_TOKENIZER_URL, WHISPER_TINY_ENCODER_URL, WHISPER_TINY_DECODER_URL } from 'react-native-executorch';
 
 function App() {
   const model = useSpeechToText({
-    encoderSource: WHISPER_ENCODER_URL,
-    decoderSource: WHISPER_DECODER_URL,
-    tokenizerSource: WHISPER_TOKENIZER_URL
+    encoderSource: WHISPER_TINY_ENCODER_URL,
+    decoderSource: WHISPER_TINY_DECODER_URL,
+    tokenizerSource: WHISPER_TINY_TOKENIZER_URL
     modelName: 'whisper',
   });
   const audioUrl = 'file:///Users/.../never-gonna-give-you-up.mp3';
@@ -92,8 +92,8 @@ function App() {
 }
 ```
 ## Supported models
-- [Whisper tiny.en](https://github.com/openai/whisper)
-- [Moonshine](https://github.com/usefulsensors/moonshine)
+- [Whisper (tiny.en)](https://github.com/openai/whisper)
+- [Moonshine (tiny)](https://github.com/usefulsensors/moonshine)
 
 ## Benchmarks
 
@@ -101,15 +101,15 @@ function App() {
 
 | Model             | XNNPACK [MB] |
 | ----------------- | ------------ |
-| Whisper | 231     |
-| Moonshine | 149   |
+| Whisper (tiny.en) | 231          |
+| Moonshine tiny    | 149          |
 
 ### Memory usage
 
 | Model             | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
 | ----------------- | ---------------------- | ------------------ |
-| Whisper | ❌                    | 950                 |
-| Moonshine | ❌                    | 868                 |
+| Whisper (tiny.en) | ❌                      | 950                |
+| Moonshine (tiny)  | ❌                      | 868                |
 
 ### Inference time
 
@@ -119,16 +119,14 @@ Given that Whisper accepts a 30 seconds audio chunks, we employed a streaming al
 
 #### Decoder
 
-| Model | iPhone 16 Pro (XNNPack) | iPhone 13 Pro (XNNPack) | iPhone SE 3 (XNNPack) | Samsung Galaxy S24 (XNNPack) |
-| ------ | -----------------------| ---------------------- | --------------------- | ---------------------------- |
-| Whisper (tiny.en) | 8.65 tokens/s | 5.41 tokens/s | 5,31 tokens/s | 20.0 tokens/s |
-| Moonshine | 13.23 tokens/s | 7.77 tokens/s | 7.61 tokens/s | 20.0 tokens/s |
+| Model             | iPhone 16 Pro (XNNPack) | iPhone 13 Pro (XNNPack) | iPhone SE 3 (XNNPack) | Samsung Galaxy S24 (XNNPack) |
+| ----------------- | ----------------------- | ----------------------- | --------------------- | ---------------------------- |
+| Whisper (tiny.en) | 8.65 tokens/s           | 5.41 tokens/s           | 5.31 tokens/s         | 20.0 tokens/s                |
+| Moonshine (tiny)  | 13.23 tokens/s          | 7.77 tokens/s           | 7.61 tokens/s         | 20.0 tokens/s                |
 
 #### Encoder
-| Model | iPhone 16 Pro (XNNPack) | iPhone 13 Pro (XNNPack) | iPhone SE 3 (XNNPack) | Samsung Galaxy S24 (XNNPack) |
-| ------ | -----------------------| ---------------------- | --------------------- | ---------------------------- |
-| Whisper (tiny.en) | 1.00s | 1.40s | 1.49s | 1.00s |
-| Moonshine | 0.48s | 0.69s | 0.69s | 1.00s |
-
-#
+| Model             | iPhone 16 Pro (XNNPack) | iPhone 13 Pro (XNNPack) | iPhone SE 3 (XNNPack) | Samsung Galaxy S24 (XNNPack) |
+| ----------------- | ----------------------- | ----------------------- | --------------------- | ---------------------------- |
+| Whisper (tiny.en) | 1.00s                   | 1.40s                   | 1.49s                 | 1.00s                        |
+| Moonshine (tiny)  | 0.48s                   | 0.69s                   | 0.69s                 | 1.00s                        |
 
