@@ -34,7 +34,6 @@ const MODEL_CONFIGS = {
       encoder: WHISPER_ENCODER,
       decoder: WHISPER_DECODER,
     },
-    // sources: [WHISPER_PREPROCESSOR, WHISPER_ENCODER, WHISPER_DECODER],
     tokenizer: {
       source: WHISPER_TOKENIZER,
       sos: 50257,
