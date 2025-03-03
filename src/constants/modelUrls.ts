@@ -57,9 +57,7 @@ export const WHISPER_TOKENIZER =
 export const WHISPER_DECODER =
   'https://ai.swmansion.com/storage/whisper/xnnpack_whisper_decoder_int32.pte';
 export const WHISPER_ENCODER =
-  'https://ai.swmansion.com/storage/whisper/xnnpack_whisper_encoder.pte';
-export const WHISPER_PREPROCESSOR =
-  'https://ai.swmansion.com/storage/whisper/xnnpack_whisper_preprocessor.pte';
+  'https://ai.swmansion.com/storage/whisper/xnnpack_whisper_encoder_dynamic.pte';
 
 // Backward compatibility
 export const LLAMA3_2_3B_URL = LLAMA3_2_3B;

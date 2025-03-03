@@ -1,45 +1,30 @@
-import { SpeechToTextController } from 'react-native-executorch';
+import { useSpeechToText } from 'react-native-executorch';
 import { Text, View, StyleSheet, Button } from 'react-native';
-import { useEffect, useState } from 'react';
 
 export const SpeechToTextScreen = () => {
-  const [sequence, setSequence] = useState<number[]>([]);
-  const [downloadProgress, setDownloadProgress] = useState<number>(0);
-
-  const [model, _] = useState(
-    () =>
-      new SpeechToTextController({
-        transribeCallback: setSequence,
-        modelDownloadProgessCallback: setDownloadProgress,
-      })
-  );
-
-  useEffect(() => {
-    const loadModel = async () => {
-      await model.loadModel('whisper');
-      console.log('loaded moonshine');
-    };
-    console.log('useEffect');
-    loadModel();
-  }, [model]);
+  const {
+    isModelGenerating,
+    isModelReady,
+    sequence,
+    transcribe,
+    loadAudio,
+    downloadProgress,
+  } = useSpeechToText({ modelName: 'moonshine' });
 
   return (
     <>
       <View style={styles.imageContainer}>
         <Button
           title="Download"
-          onPress={() =>
-            model.loadAudio(
-              'https://ai.swmansion.com/storage/moonshine/test_audio.mp3'
-            )
-          }
+          onPress={() => loadAudio('http://localhost:8080/output.mp3')}
         />
-        <Button
-          title="Transcribe"
-          onPress={async () => await model.transcribe()}
-        />
+        <Button title="Transcribe" onPress={async () => await transcribe()} />
         <Text>downloadProgress: {downloadProgress}</Text>
-        <Text>{model.decodeSeq(sequence)}</Text>
+        <Text>isReady: {isModelReady ? 'ready' : 'not ready'}</Text>
+        <Text>
+          isGenerating: {isModelGenerating ? 'generating' : 'not generating'}
+        </Text>
+        <Text>{sequence}</Text>
       </View>
     </>
   );

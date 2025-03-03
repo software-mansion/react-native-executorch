@@ -1,6 +1,6 @@
 {
   "name": "react-native-executorch",
-  "version": "0.3.141",
+  "version": "0.3.150",
   "description": "An easy way to run AI models in react native with ExecuTorch",
   "source": "./src/index.ts",
   "main": "./lib/commonjs/index.js",
@@ -195,6 +195,6 @@
   "dependencies": {
     "expo-asset": "^11.0.3",
     "expo-file-system": "^18.0.10",
-    "react-native-audio-api": "0.4.8-rc2"
+    "react-native-audio-api": "0.4.11"
   }
 }

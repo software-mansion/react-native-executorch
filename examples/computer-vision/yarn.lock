@@ -3488,8 +3488,8 @@ __metadata:
     metro-config: ^0.81.0
     react: 18.3.1
     react-native: 0.76.3
-    react-native-audio-api: 0.4.8-rc2
-    react-native-executorch: /Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.141.tgz
+    react-native-audio-api: 0.4.11
+    react-native-executorch: /Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.150.tgz
     react-native-image-picker: ^7.2.2
     react-native-loading-spinner-overlay: ^3.0.1
     react-native-reanimated: ^3.16.3
@@ -6986,27 +6986,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-audio-api@npm:0.4.8-rc2":
-  version: 0.4.8-rc2
-  resolution: "react-native-audio-api@npm:0.4.8-rc2"
+"react-native-audio-api@npm:0.4.11":
+  version: 0.4.11
+  resolution: "react-native-audio-api@npm:0.4.11"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 27a106bc93c5411811740968dc1cdca2f509cb1a2b2ab111510c6d81bd2a55d79c61e30465bc4be9f3a8005d047d57ada0bbb83514080c900c154228c6c9f6eb
+  checksum: 7e80da3fc61881f61dcb676da6dcf0255ee2ea2d35ee39b40d8a329efdc0e5dd483cd2f820cba0b014042f9118d4c1a3d12456d3cab8de6cceda751df3b5e885
   languageName: node
   linkType: hard
 
-"react-native-executorch@file:/Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.141.tgz::locator=computer-vision%40workspace%3A.":
-  version: 0.3.141
-  resolution: "react-native-executorch@file:/Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.141.tgz::locator=computer-vision%40workspace%3A."
+"react-native-executorch@file:/Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.150.tgz::locator=computer-vision%40workspace%3A.":
+  version: 0.3.150
+  resolution: "react-native-executorch@file:/Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.150.tgz::locator=computer-vision%40workspace%3A."
   dependencies:
     expo-asset: ^11.0.3
     expo-file-system: ^18.0.10
-    react-native-audio-api: 0.4.8-rc2
+    react-native-audio-api: 0.4.11
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: fcb840c4c7d8370612512d122d38fe3bf7c008999d9c69f85c2c7f6fd555693fa309d54d2d13a8a8bd34a9da6586dbc51676b8c92eeb69db38cf3d74707ec94a
+  checksum: 6bdf4b79dbe44e0a09d656dd0d26d119c6492aa640e755b6abd5e67e36fef121b82de6ae9f4f0a2dfc2289af367a281414f856d7be26d4735f8426d1e5ee4190
   languageName: node
   linkType: hard
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { SpeechToTextController } from '../../modules/natural_language_processing/SpeechToTextController';
+import { SpeechToTextController } from '../../controllers/SpeechToTextController';
 
 interface SpeechToTextModule {
   isReady: boolean;

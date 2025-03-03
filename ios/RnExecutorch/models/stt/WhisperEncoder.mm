@@ -1,16 +1,19 @@
 #import "WhisperEncoder.hpp"
 #import "../../utils/ScalarType.h"
+#import "../../utils/SFFT.hpp"
 
-NSArray *spectrogramShape = [NSArray arrayWithObject:@[@1, @80, @3000]];
 NSArray *spectrogramInputType = [NSArray arrayWithObject:ScalarType.Float];
+NSNumber *fftFrameSize = @256;
 
 @implementation WhisperEncoder
 
-- (NSArray *)encode:(NSArray *)melSpectrogram {
-  NSArray *result = [self forward:melSpectrogram shapes:spectrogramShape inputTypes:spectrogramInputType];
+- (NSArray *)encode:(NSArray *)waveform {
+  NSArray *stft = [SFFT sfftFromWaveform:waveform fftSize:512 fftHopLength:160];
+  NSNumber *numFrames = [NSNumber numberWithDouble:([stft count] / 256)];
+  NSArray *inputShape = @[ @[ numFrames, fftFrameSize ] ];
+  NSArray *result = [self forward:@[stft] shapes:inputShape inputTypes:spectrogramInputType];
   // unsquezing before the return, since forward returns an array of results;
   return [result objectAtIndex:0];
 }
-
 
 @end

@@ -1,16 +1,16 @@
 import { AudioContext, AudioBuffer } from 'react-native-audio-api';
-import { _SpeechToTextModule } from '../../native/RnExecutorchModules';
+import { _SpeechToTextModule } from '../native/RnExecutorchModules';
 import * as FileSystem from 'expo-file-system';
 import {
   MOONSHINE_ENCODER,
   MOONSHINE_DECODER,
   WHISPER_DECODER,
   WHISPER_ENCODER,
-  WHISPER_PREPROCESSOR,
   WHISPER_TOKENIZER,
   MOONSHINE_TOKENIZER,
-} from '../../constants/modelUrls';
-import { fetchResource } from '../../utils/fetchResource';
+} from '../constants/modelUrls';
+import { fetchResource } from '../utils/fetchResource';
+import { ResourceSource } from '../types/common';
 
 const SECOND = 16_000;
 const SAMPLE_RATE = 16_000;
@@ -18,7 +18,10 @@ const HAMMING_DIST_THRESHOLD = 1;
 
 const MODEL_CONFIGS = {
   moonshine: {
-    sources: [MOONSHINE_ENCODER, MOONSHINE_DECODER],
+    sources: {
+      encoder: MOONSHINE_ENCODER,
+      decoder: MOONSHINE_DECODER,
+    },
     tokenizer: {
       source: MOONSHINE_TOKENIZER,
       sos: 1,
@@ -27,7 +30,11 @@ const MODEL_CONFIGS = {
     },
   },
   whisper: {
-    sources: [WHISPER_PREPROCESSOR, WHISPER_ENCODER, WHISPER_DECODER],
+    sources: {
+      encoder: WHISPER_ENCODER,
+      decoder: WHISPER_DECODER,
+    },
+    // sources: [WHISPER_PREPROCESSOR, WHISPER_ENCODER, WHISPER_DECODER],
     tokenizer: {
       source: WHISPER_TOKENIZER,
       sos: 50257,
@@ -78,7 +85,7 @@ export class SpeechToTextController {
   public isGenerating = false;
   private eos_token!: number;
   private sos_token!: number;
-  private modelName: 'moonshine' | 'whisper' = 'moonshine';
+  private modelName!: 'moonshine' | 'whisper';
 
   // tokenizer tokens to string mapping used for decoding sequence
   private tokenMapping!: { [key: number]: string };
@@ -86,21 +93,29 @@ export class SpeechToTextController {
   // User callbacks
   private transribeCallback: (sequence: number[]) => void;
   private modelDownloadProgessCallback: (downloadProgress: number) => void;
+  private isReadyCallback: (isReady: boolean) => void;
+  private isGeneratingCallback: (isGenerating: boolean) => void;
 
   constructor({
     transribeCallback,
     modelDownloadProgessCallback,
+    isReadyCallback,
+    isGeneratingCallback,
     overlap_seconds,
     window_size,
   }: {
     transribeCallback: (sequence: number[]) => void;
     modelDownloadProgessCallback?: (downloadProgress: number) => void;
+    isReadyCallback?: (isReady: boolean) => void;
+    isGeneratingCallback?: (isGenerating: boolean) => void;
     overlap_seconds?: number;
     window_size?: number;
   }) {
     this.transribeCallback = transribeCallback;
     this.modelDownloadProgessCallback =
       modelDownloadProgessCallback || ((_) => {});
+    this.isReadyCallback = isReadyCallback || ((_) => {});
+    this.isGeneratingCallback = isGeneratingCallback || ((_) => {});
     this.audioContext = new AudioContext({ sampleRate: SAMPLE_RATE });
     this.nativeModule = new _SpeechToTextModule();
     this.window_size = window_size || this.window_size;
@@ -108,7 +123,7 @@ export class SpeechToTextController {
   }
 
   private async fetch_tokenizer(
-    localUri?: string
+    localUri?: ResourceSource
   ): Promise<{ [key: number]: string }> {
     let tokenzerUri = await fetchResource(
       localUri || MODEL_CONFIGS[this.modelName].tokenizer.source
@@ -118,59 +133,58 @@ export class SpeechToTextController {
 
   public async loadModel(
     modelName: 'moonshine' | 'whisper',
-    fileUris?: string[],
-    tokenizerUri?: string
+    encoderSource?: ResourceSource,
+    decoderSource?: ResourceSource,
+    tokenizerSource?: ResourceSource
   ) {
+    this.isReady = false;
+    this.isReadyCallback(this.isReady);
     this.modelName = modelName;
-    this.tokenMapping = await this.fetch_tokenizer(tokenizerUri);
+    this.tokenMapping = await this.fetch_tokenizer(tokenizerSource);
     this.sos_token = MODEL_CONFIGS[this.modelName].tokenizer.sos;
     this.eos_token = MODEL_CONFIGS[this.modelName].tokenizer.eos;
 
-    let modelPaths: string[] = [];
-    if (fileUris) {
-      if (fileUris.length !== MODEL_CONFIGS[this.modelName].sources.length) {
-        throw new Error(
-          `fileUris should be of length '${MODEL_CONFIGS[this.modelName].sources.length}' instead got ${fileUris.length}`
-        );
-      }
-      modelPaths = fileUris;
-    } else {
-      for (let idx in MODEL_CONFIGS[modelName].sources) {
-        let moduleSource = MODEL_CONFIGS[modelName].sources[idx]!;
-        try {
-          modelPaths.push(
-            await fetchResource(
-              moduleSource,
-              //set download progress to % of download for all submodels of the model
-              (progress) =>
-                this.modelDownloadProgessCallback(
-                  (Number(idx) * 100 + progress) /
-                    MODEL_CONFIGS[modelName].sources.length
-                )
-            )
-          );
-        } catch (e) {
-          console.error(`Error when fetching resource: ${moduleSource}`, e);
-        }
-      }
+    try {
+      encoderSource = await fetchResource(
+        encoderSource || MODEL_CONFIGS[this.modelName].sources.encoder,
+        (progress) => this.modelDownloadProgessCallback(progress / 2)
+      );
+
+      decoderSource = await fetchResource(
+        decoderSource || MODEL_CONFIGS[this.modelName].sources.decoder,
+        (progress) => this.modelDownloadProgessCallback(0.5 + progress / 2)
+      );
+    } catch (e) {
+      console.error(e);
     }
 
     try {
-      this.isReady = false;
-      await this.nativeModule.loadModule(modelName, modelPaths);
+      await this.nativeModule.loadModule(modelName, [
+        encoderSource!,
+        decoderSource!,
+      ]);
       this.isReady = true;
+      this.isReadyCallback(this.isReady);
     } catch (e) {
       console.error('Error when loading the SpeechToTextController!', e);
     }
   }
 
   public async loadAudio(url: string) {
-    this.audioBuffer = await FileSystem.downloadAsync(
-      url,
-      FileSystem.documentDirectory + '_tmp_transcribe_audio.mp3'
-    ).then(({ uri }) => {
-      return this.audioContext.decodeAudioDataSource(uri);
-    });
+    this.isReady = false;
+    this.isReadyCallback(this.isReady);
+    try {
+      this.audioBuffer = await FileSystem.downloadAsync(
+        url,
+        FileSystem.documentDirectory + '_tmp_transcribe_audio.mp3'
+      ).then(({ uri }) => {
+        return this.audioContext.decodeAudioDataSource(uri);
+      });
+    } catch (e) {
+      console.log(e);
+    }
+    this.isReady = true;
+    this.isReadyCallback(this.isReady);
   }
 
   private chunkWaveform(waveform: number[]) {
@@ -193,10 +207,22 @@ export class SpeechToTextController {
 
   public async transcribe(waveform?: number[]): Promise<string> {
     this.isGenerating = true;
+    this.isGeneratingCallback(this.isGenerating);
+
     this.sequence = [];
     if (!waveform) {
       waveform = this.audioBuffer!.getChannelData(0);
     }
+
+    if (!waveform) {
+      this.isGenerating = false;
+      this.isGeneratingCallback(this.isGenerating);
+
+      throw new Error(
+        `Nothing to transcribe, perhaps you forgot to call this.loadAudio().`
+      );
+    }
+
     this.chunkWaveform(waveform);
 
     let seqs: number[][] = [];
@@ -251,11 +277,14 @@ export class SpeechToTextController {
         prevseq = final_seq;
       }
     }
+    const decodedSeq = this.decodeSeq(this.sequence);
     this.isGenerating = false;
-    return this.decodeSeq(this.sequence);
+    this.isGeneratingCallback(this.isGenerating);
+    return decodedSeq;
   }
 
   public decodeSeq(seq?: number[]): string {
+    if (!this.modelName) return '';
     if (!seq) seq = this.sequence;
 
     return seq

@@ -5,7 +5,7 @@ export * from './hooks/computer_vision/useStyleTransfer';
 export * from './hooks/computer_vision/useOCR';
 
 export * from './hooks/natural_language_processing/useLLM';
-export * from './hooks/natural_language_processing/SpeechToText';
+export * from './hooks/natural_language_processing/useSpeechToText';
 
 export * from './hooks/general/useExecutorchModule';
 
@@ -15,7 +15,7 @@ export * from './modules/computer_vision/ObjectDetectionModule';
 export * from './modules/computer_vision/StyleTransferModule';
 export * from './modules/computer_vision/OCRModule';
 
-export * from './modules/natural_language_processing/SpeechToTextController';
+export * from './controllers/SpeechToTextController';
 export * from './modules/natural_language_processing/LLMModule';
 
 export * from './modules/general/ExecutorchModule';

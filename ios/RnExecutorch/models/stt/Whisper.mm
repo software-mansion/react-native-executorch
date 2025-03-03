@@ -8,7 +8,6 @@
 #import "../../utils/ScalarType.h"
 
 @implementation Whisper {
-  BaseModel *preprocessor;
   WhisperEncoder *encoder;
   WhisperDecoder *decoder;
   NSNumber *START_TOKEN;
@@ -31,21 +30,10 @@
 }
 
 - (NSArray *)encode:(NSArray *)waveform {
-  NSUInteger fftFrameLength = self->fftSize / 2;
-        
-  if (!self->encoder || !self->preprocessor) {
+  if (!self->encoder) {
     [NSException raise:@"model_initialization_error" format:nil];
   }
-  NSArray *sfft = [SFFT sfftFromWaveform:waveform fftSize:self->fftSize fftHopLength:self->fftHopLength];
-  NSNumber *numFrames = [NSNumber numberWithDouble:(sfft.count / fftFrameLength)];
-  NSArray *mel = [self->preprocessor
-          forward:@[ sfft ]
-          shapes:@[ @[
-            numFrames,
-            [NSNumber numberWithUnsignedInteger:fftFrameLength]
-          ] ]
-      inputTypes:@[ ScalarType.Float ]];
-  NSArray *encodingResult = [self->encoder encode:@[ mel ]];
+  NSArray *encodingResult = [self->encoder encode:waveform];
   
   if (!encodingResult) {
     [NSException raise:@"forward_error" format:nil];
@@ -59,32 +47,23 @@
 
 - (void)loadModules:(NSArray *)modelSources {
 
-  self->preprocessor = [[BaseModel alloc] init];
   self->encoder = [[WhisperEncoder alloc] init];
   self->decoder = [[WhisperDecoder alloc] init];
 
-  // Load preprocessor first
-  [self loadModuleHelper:self->preprocessor
+  // Load encoder after preprocessor
+  [self loadModuleHelper:self->encoder
     withSource:[modelSources objectAtIndex:0]
     onSuccess:^{
-      // Load encoder after preprocessor
-      [self loadModuleHelper:self->encoder
+      // Load decoder after encoder
+      [self loadModuleHelper:self->decoder
         withSource:[modelSources objectAtIndex:1]
-        onSuccess:^{
-          // Load decoder after encoder
-          [self loadModuleHelper:self->decoder
-            withSource:[modelSources objectAtIndex:2]
-            onSuccess:^{}
-            onFailure:^(NSString *errorCode) {
-              [NSException raise:@"init_decoder_error" format:@"%d", errorCode];
-            }];
-        }
+        onSuccess:^{}
         onFailure:^(NSString *errorCode) {
-          [NSException raise:@"init_encoder_error" format:@"%d", errorCode];
+          [NSException raise:@"init_decoder_error" format:@"%d", errorCode];
         }];
     }
     onFailure:^(NSString *errorCode) {
-      [NSException raise:@"init_preprocessor_error" format:@"%d", errorCode];
+      [NSException raise:@"init_encoder_error" format:@"%d", errorCode];
     }];
 }
 

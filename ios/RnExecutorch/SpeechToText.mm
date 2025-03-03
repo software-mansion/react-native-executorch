@@ -25,7 +25,7 @@ RCT_EXPORT_MODULE()
     dispatch_async(
         dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
           NSArray *encodingResult = [model encode:waveform];
-          
+
           NSMutableArray *mutablePrevTokens = [NSMutableArray arrayWithObject:model->START_TOKEN];
           NSNumber *currentSeqLen = @0;
           while ([currentSeqLen unsignedIntegerValue] < model->maxSeqLen) {
@@ -58,23 +58,21 @@ RCT_EXPORT_MODULE()
            resolve:(RCTPromiseResolveBlock)resolve
             reject:(RCTPromiseRejectBlock)reject {
 
+  if ([modelSources count] != 2) {
+    reject(@"corrupted model sources", nil, nil);
+    return;
+  }
+  if (![@[@"moonshine", @"whisper"] containsObject:modelName]) {
+      reject(@"invalid_model_identifier", nil, nil);
+      return;
+  }
 
   SpeechToTextBaseModel* model;
   if([modelName isEqualToString:@"moonshine"]) {
-    if ([modelSources count] != 2) {
-      reject(@"corrupted model sources", nil, nil);
-      return;
-    }
-
     moonshine = [[Moonshine alloc] init];
     model = moonshine;
   }
   if([modelName isEqualToString:@"whisper"]) {
-    if ([modelSources count] != 3) {
-      reject(@"corrupted model sources", nil, nil);
-      return;
-    }
-
     whisper = [[Whisper alloc] init];
     model = whisper;
   }
