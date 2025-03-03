@@ -24,7 +24,7 @@ const model = useSpeechToText({
 const audioUrl = 'https://your-url.com/never-gonna-give-you-up.mp3';
 
 try {
-  const audio = await model.loadAudio(audioUrl);
+  await model.loadAudio(audioUrl);
   const transcription = await model.transcribe();
   console.log(transcription);
 } catch (error) {
@@ -43,20 +43,20 @@ Analogous to the encoderSource, this takes in a string which is a source for the
 A string that specifies the location to the tokenizer for the model. This works just as the encoder and decoder do.
 
 `modelName`
-A literal of `"moonshine" | "whisper"` which serves as an identifier for which model should be used
+A literal of `"moonshine" | "whisper"` which serves as an identifier for which model should be used.
 
 
 
 ### Returns
 
-| Field          | Type                                    | Description                                                                                                                                                                                                                                                                                                             |
-| -------------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `transcribe`   | `(input?: number[]) => Promise<string>` | Starts a transcription process for a given input array, which should be a waveform at 16kHz. This can be obtained from the `loadAudio` function. When no input is provided, it uses an internal state which is set by calling `loadAudio`. Resolves a promise with the output transcription when the model is finished. |
-| `loadAudio`    | `(url: string) => void`                 | Loads audio file from given url. It sets an internal state which serves as an input to `transcribe()`.                                                                                                                                                                                                                  |
-| `error`        | <code>string &#124; null</code>         | Contains the error message if the model failed to load.                                                                                                                                                                                                                                                                 |
-| `response`     | <code>string &#124; null</code>         | This property is updated with each generated token.                                                                                                                                                                                                                                                                     |
-| `isGenerating` | `boolean`                               | Indicates whether the model is currently processing an inference.                                                                                                                                                                                                                                                       |
-| `isReady`      | `boolean`                               | Indicates whether the model has successfully loaded and is ready for inference.                                                                                                                                                                                                                                         |
+| Field          | Type                                    | Description                                                                                                                                                                                                                                                         |
+| -------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `transcribe`   | `(input?: number[]) => Promise<string>` | Starts a transcription process for a given input array, which should be a waveform at 16kHz. When no input is provided, it uses an internal state which is set by calling `loadAudio`. Resolves a promise with the output transcription when the model is finished. |
+| `loadAudio`    | `(url: string) => void`                 | Loads audio file from given url. It sets an internal state which serves as an input to `transcribe()`.                                                                                                                                                              |
+| `error`        | <code>string &#124; null</code>         | Contains the error message if the model failed to load.                                                                                                                                                                                                             |
+| `response`     | <code>string &#124; null</code>         | This property is updated with each generated token. If you're looking to obtain tokens as they're generated, you should use this property.                                                                                                                                                                                                                 |
+| `isGenerating` | `boolean`                               | Indicates whether the model is currently processing an inference.                                                                                                                                                                                                   |
+| `isReady`      | `boolean`                               | Indicates whether the model has successfully loaded and is ready for inference.                                                                                                                                                                                     |
 
 ## Running the model
 
