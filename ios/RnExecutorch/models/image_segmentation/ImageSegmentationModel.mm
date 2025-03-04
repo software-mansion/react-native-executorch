@@ -46,7 +46,6 @@
   NSAssert(outputSize ==  numLabels * numModelPixels, 
         @"Model generated unexpected output size.");
 
-
   // For each label extract it's matrix and rescale it to the original size
   std::vector<cv::Mat> resizedLabelScores(numLabels);
   for (std::size_t label = 0; label < numLabels; ++label) {
@@ -61,6 +60,8 @@
     cv::resize(labelMat, resizedLabelScores[label], originalSize);
   }
 
+  cv::Mat maxArg = cv::Mat(originalSize, CV_32S);
+
   // For each pixel apply softmax across all the labels
   for (std::size_t pixel = 0; pixel < numOriginalPixels; ++pixel) {
     int row = pixel / originalSize.width;
@@ -73,25 +74,29 @@
 
     std::vector<double> adjustedScores = softmax(scores);
 
+    std::size_t maxArgIndex = 0;
+    double maxArgVal = 0;
     for (std::size_t label = 0; label < numLabels; ++label) {
       resizedLabelScores[label].at<double>(row, col) = adjustedScores[label];
+      if (adjustedScores[label] > maxArgVal) {
+        maxArgIndex = label;
+        maxArgVal = adjustedScores[label];
+      }
     }
+
+    maxArg.at<int>(row, col) = maxArgIndex;
   }
 
   NSMutableDictionary *result = [NSMutableDictionary dictionary];
   
+  // Convert to NSArray and populate the final dictionary
   for (std::size_t label = 0; label < numLabels; ++label) {
     NSString *labelString = @(deeplabv3_resnet50_labels[label].c_str());
-    NSMutableArray *arr = [[NSMutableArray alloc] initWithCapacity:numOriginalPixels];
-
-    for (std::size_t x = 0; x < originalSize.height; ++x) {
-        for (std::size_t y = 0; y < originalSize.width; ++y) {
-            arr[x * originalSize.width + y] = @(resizedLabelScores[label].at<double>(x, y));
-        }
-    }
-
+    NSMutableArray *arr = matToNSArray<double>(resizedLabelScores[label]);
     result[labelString] = arr;
   }
+
+  result[@"argmax"] = matToNSArray<int>(maxArg);
 
   return result;
 }
