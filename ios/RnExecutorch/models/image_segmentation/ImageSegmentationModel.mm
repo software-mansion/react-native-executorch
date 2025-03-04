@@ -1,6 +1,108 @@
 #import "ImageSegmentationModel.h"
+#import "../../utils/ImageProcessor.h"
+#import "../../utils/Numerical.h"
+#import "opencv2/opencv.hpp"
+#import "Constants.h"
+
+@interface ImageSegmentationModel ()
+  - (NSArray *)preprocess:(cv::Mat &)input;
+  - (NSDictionary *)postprocess:(NSArray *)output;
+@end
 
 @implementation ImageSegmentationModel {
+  cv::Size originalSize;
+}
+
+- (cv::Size)getModelImageSize {
+  NSArray *inputShape = [module getInputShape:@0];
+  NSNumber *widthNumber = inputShape.lastObject;
+  NSNumber *heightNumber = inputShape[inputShape.count - 2];
+
+  int height = [heightNumber intValue];
+  int width = [widthNumber intValue];
+
+  return cv::Size(height, width);
+}
+
+- (NSArray *)preprocess:(cv::Mat &)input {
+  originalSize = cv::Size(input.cols, input.rows);
+
+  cv::Size modelImageSize = [self getModelImageSize];
+  cv::Mat output;
+  cv::resize(input, output, modelImageSize);
+
+  NSArray *modelInput = [ImageProcessor matToNSArray:output];
+  return modelInput;
+}
+
+- (NSDictionary *)postprocess:(NSArray *)output {
+  cv::Size modelImageSize = [self getModelImageSize];
+
+  std::size_t numLabels = deeplabv3_resnet50_labels.size();
+  std::size_t numModelPixels = modelImageSize.height * modelImageSize.width;
+  std::size_t numOriginalPixels = originalSize.height * originalSize.width;
+  std::size_t outputSize = (std::size_t)output.count;
+
+  NSAssert(outputSize ==  numLabels * numModelPixels, 
+        @"Model generated unexpected output size.");
+
+
+  // For each label extract it's matrix and rescale it to the original size
+  std::vector<cv::Mat> resizedLabelScores(numLabels);
+  for (std::size_t label = 0; label < numLabels; ++label) {
+    cv::Mat labelMat = cv::Mat(modelImageSize, CV_64F);
+
+    for(std::size_t pixel = 0; pixel < numModelPixels; ++pixel){
+      int row = pixel / modelImageSize.width;
+      int col = pixel % modelImageSize.width;
+      labelMat.at<double>(row, col) = [output[label * numModelPixels + pixel] doubleValue];
+    }
+
+    cv::resize(labelMat, resizedLabelScores[label], originalSize);
+  }
+
+  // For each pixel apply softmax across all the labels
+  for (std::size_t pixel = 0; pixel < numOriginalPixels; ++pixel) {
+    int row = pixel / originalSize.width;
+    int col = pixel % originalSize.width;
+    std::vector<double> scores;
+    scores.reserve(numLabels);
+    for (const cv::Mat& mat : resizedLabelScores) {
+      scores.push_back(mat.at<double>(row, col));
+    }
+
+    std::vector<double> adjustedScores = softmax(scores);
+
+    for (std::size_t label = 0; label < numLabels; ++label) {
+      resizedLabelScores[label].at<double>(row, col) = adjustedScores[label];
+    }
+  }
+
+  NSMutableDictionary *result = [NSMutableDictionary dictionary];
+  
+  for (std::size_t label = 0; label < numLabels; ++label) {
+    NSString *labelString = @(deeplabv3_resnet50_labels[label].c_str());
+    NSMutableArray *arr = [[NSMutableArray alloc] initWithCapacity:numOriginalPixels];
+
+    for (std::size_t x = 0; x < originalSize.height; ++x) {
+        for (std::size_t y = 0; y < originalSize.width; ++y) {
+            arr[x * originalSize.width + y] = @(resizedLabelScores[label].at<double>(x, y));
+        }
+    }
+
+    result[labelString] = arr;
+  }
+
+  return result;
+}
+
+- (NSDictionary *)runModel:(cv::Mat &)input {
+  NSArray *modelInput = [self preprocess:input];
+  NSArray *result = [self forward:modelInput];
+
+  NSDictionary *output = [self postprocess:result[0]];
+
+  return output;
 }
 
 @end

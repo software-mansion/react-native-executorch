@@ -13,7 +13,7 @@ export const useImageSegmentation = ({
   isReady: boolean;
   isGenerating: boolean;
   downloadProgress: number;
-  forward: (input: string) => Promise<string>;
+  forward: (input: string) => Promise<{ [category: string]: number[] }>;
 } => {
   const [module, _] = useState(() => new _ImageSegmentationModule());
   const {
