@@ -90,10 +90,10 @@ independentCharacters:(BOOL)independentCharacters
       NSNumber *confidenceScore = @0.0;
       NSArray *boxResult = [detectorNarrow runModel:croppedImage];
       std::vector<cv::Mat> croppedCharacters;
-      
+      cv::Size narrowRecognizerSize = [detectorNarrow getModelImageSize];
       for(NSDictionary *characterBox in boxResult){
         NSArray *boxCords = characterBox[@"bbox"];
-        NSDictionary *paddingsBox = [RecognizerUtils calculateResizeRatioAndPaddings:boxWidth height:boxHeight desiredWidth:320 desiredHeight:1280];
+        NSDictionary *paddingsBox = [RecognizerUtils calculateResizeRatioAndPaddings:boxWidth height:boxHeight desiredWidth:narrowRecognizerSize.width desiredHeight:narrowRecognizerSize.height];
         cv::Mat croppedCharacter = [RecognizerUtils cropImageWithBoundingBox:image bbox:boxCords originalBbox:cords paddings:paddingsBox originalPaddings:paddings];
         if(self->independentCharacters){
           croppedCharacter = [RecognizerUtils cropSingleCharacter:croppedCharacter];
@@ -113,7 +113,7 @@ independentCharacters:(BOOL)independentCharacters
       }else{
         cv::Mat mergedCharacters;
         cv::hconcat(croppedCharacters.data(), (int)croppedCharacters.size(), mergedCharacters);
-        mergedCharacters = [OCRUtils resizeWithPadding:mergedCharacters desiredWidth:512 desiredHeight:64];
+        mergedCharacters = [OCRUtils resizeWithPadding:mergedCharacters desiredWidth:largeRecognizerWidth desiredHeight:recognizerHeight];
         mergedCharacters = [RecognizerUtils normalizeForRecognizer:mergedCharacters adjustContrast:0.0 isVertical: NO];
         NSArray *recognitionResult = [recognizer runModel:mergedCharacters];
         NSArray *predIndex = [recognitionResult objectAtIndex:0];

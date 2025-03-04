@@ -3,6 +3,7 @@
 #import "./utils/CTCLabelConverter.h"
 #import "./utils/OCRUtils.h"
 #import "./utils/RecognizerUtils.h"
+#import "./utils/Constants.h"
 #import "ExecutorchLib/ETModel.h"
 #import "Recognizer.h"
 #import <React/RCTBridgeModule.h>
@@ -72,9 +73,9 @@
 
 - (NSArray *)runModel:(cv::Mat)croppedImage {
   NSArray *result;
-  if (croppedImage.cols >= largeModelWidth) {
+  if (croppedImage.cols >= largeRecognizerWidth) {
     result = [recognizerLarge runModel:croppedImage];
-  } else if (croppedImage.cols >= mediumModelWidth) {
+  } else if (croppedImage.cols >= mediumRecognizerWidth) {
     result = [recognizerMedium runModel:croppedImage];
   } else {
     result = [recognizerSmall runModel:croppedImage];
@@ -103,7 +104,7 @@
   for (NSDictionary *box in bBoxesList) {
     cv::Mat croppedImage = [RecognizerUtils getCroppedImage:box
                                                       image:imgGray
-                                                modelHeight:modelHeight];
+                                                modelHeight:recognizerHeight];
     if (croppedImage.empty()) {
       continue;
     }
