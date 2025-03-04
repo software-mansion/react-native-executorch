@@ -8,3 +8,5 @@ export interface OCRBbox {
   x: number;
   y: number;
 }
+
+export type OCRLanguage = 'en';

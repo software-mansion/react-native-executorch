@@ -2,6 +2,7 @@
 #import "models/ocr/Detector.h"
 #import "models/ocr/RecognitionHandler.h"
 #import "utils/ImageProcessor.h"
+#import "models/ocr/utils/Constants.h"
 #import <ExecutorchLib/ETModel.h>
 #import <React/RCTBridgeModule.h>
 
@@ -80,6 +81,7 @@ RCT_EXPORT_MODULE()
     cv::Mat image = [ImageProcessor readImage:input];
     NSArray *result = [detector runModel:image];
     cv::Size detectorSize = [detector getModelImageSize];
+    const CGFloat recognizerRatio = recognizerImageSize / detectorSize.width;
     cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
     result = [self->recognitionHandler
             recognize:result

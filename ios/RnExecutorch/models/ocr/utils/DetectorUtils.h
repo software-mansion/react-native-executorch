@@ -13,9 +13,14 @@ constexpr int verticalLineThreshold = 20;
                  usingTextThreshold:(CGFloat)textThreshold
                       linkThreshold:(CGFloat)linkThreshold
                    lowTextThreshold:(CGFloat)lowTextThreshold;
++ (NSArray *)getDetBoxesFromTextMapVertical:(cv::Mat)textMap
+                                affinityMap:(cv::Mat)affinityMap
+                         usingTextThreshold:(CGFloat)textThreshold
+                              linkThreshold:(CGFloat)linkThreshold
+                      independentCharacters:(BOOL)independentCharacters;
 + (NSArray *)restoreBboxRatio:(NSArray *)boxes
             usingRestoreRatio:(CGFloat)restoreRatio;
-+ (NSArray<NSDictionary *> *)groupTextBoxes:(NSArray<NSDictionary *> *)polys
++ (NSArray *)groupTextBoxes:(NSArray<NSDictionary *> *)polys
                             centerThreshold:(CGFloat)centerThreshold
                           distanceThreshold:(CGFloat)distanceThreshold
                             heightThreshold:(CGFloat)heightThreshold
