@@ -236,7 +236,11 @@ export class SpeechToTextController {
       );
       while (last_token !== this.eos_token) {
         let output = await this.nativeModule.decode(seq, [enc_output]);
-        last_token = output[output.length - 1];
+        if (typeof output === 'number') {
+          last_token = output;
+        } else {
+          last_token = output[output.length - 1];
+        }
         seq = [...seq, last_token];
         if (
           seqs.length > 0 &&

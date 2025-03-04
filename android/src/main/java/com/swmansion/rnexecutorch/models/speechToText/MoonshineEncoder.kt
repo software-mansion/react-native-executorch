@@ -1,38 +1,32 @@
 package com.swmansion.rnexecutorch.models.speechToText
 
-import android.util.Log
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
+import com.facebook.react.bridge.WritableArray
 import com.swmansion.rnexecutorch.models.BaseModel
-import com.swmansion.rnexecutorch.utils.ArrayUtils.Companion.createDoubleArray
 import com.swmansion.rnexecutorch.utils.ArrayUtils.Companion.createFloatArray
 import org.pytorch.executorch.EValue
 import org.pytorch.executorch.Tensor
 
 class MoonshineEncoder(reactApplicationContext: ReactApplicationContext) :
-  BaseModel<ReadableArray, EValue>(reactApplicationContext) {
+  BaseModel<ReadableArray, WritableArray>(reactApplicationContext) {
 
-  override fun runModel(input: ReadableArray): EValue {
-    val size = input.size()
-    val inputFloatArray = FloatArray(size)
-    for (i in 0 until size) {
-      inputFloatArray[i] = input.getDouble(i).toFloat()
-    }
-    val preprocessorInputShape = longArrayOf(1, size.toLong())
-    val doubleInput = createDoubleArray(input);
-    Log.i("rn_executorch", "${EValue.from(Tensor.fromBlob(doubleInput, preprocessorInputShape)).isTensor}")
-    Log.i("rn_executorch", "${EValue.from(Tensor.fromBlob(doubleInput, preprocessorInputShape)).isDoubleList}")
-    Log.i("rn_executorch", "${doubleInput} shape: ${Tensor.fromBlob(doubleInput, preprocessorInputShape).shape().size}")
-
-    val hiddenState = this.module.forward(EValue.from(Tensor.fromBlob(doubleInput, preprocessorInputShape)))
-    return hiddenState[0]
+  override fun runModel(input: ReadableArray): WritableArray {
+    return this.postprocess(this.module.forward(this.preprocess(input)))
   }
 
   override fun preprocess(input: ReadableArray): EValue {
-    TODO("Not yet implemented")
+    val size = input.size()
+    val preprocessorInputShape = longArrayOf(1, size.toLong())
+    return EValue.from(Tensor.fromBlob(createFloatArray(input), preprocessorInputShape))
   }
 
-  override fun postprocess(output: Array<EValue>): EValue {
-    TODO("Not yet implemented")
+  public override fun postprocess(output: Array<EValue>): WritableArray {
+    val outputWritableArray: WritableArray = Arguments.createArray()
+    output[0].toTensor().dataAsFloatArray.map {outputWritableArray.pushDouble(
+        it.toDouble()
+    )}
+    return outputWritableArray;
   }
 }

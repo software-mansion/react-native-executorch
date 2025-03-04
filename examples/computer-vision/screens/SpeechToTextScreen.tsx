@@ -9,7 +9,7 @@ export const SpeechToTextScreen = () => {
     transcribe,
     loadAudio,
     downloadProgress,
-  } = useSpeechToText({ modelName: 'whisper' });
+  } = useSpeechToText({ modelName: 'moonshine' });
 
   return (
     <>
@@ -30,7 +30,7 @@ export const SpeechToTextScreen = () => {
           isGenerating: {isModelGenerating ? 'generating' : 'not generating'}
         </Text>
         <Text>{sequence}</Text>
-        <Text>whisper</Text>
+        <Text>moonshine</Text>
       </View>
     </>
   );
