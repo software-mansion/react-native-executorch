@@ -24,6 +24,7 @@ class Constants {
     const val MAX_SIDE_THRESHOLD = 30
     const val MAX_WIDTH = (LARGE_MODEL_WIDTH + (LARGE_MODEL_WIDTH * 0.15)).toInt()
     const val MIN_SIZE = 20
+    const val SINGLE_CHARACTER_MIN_SIZE = 70
     val MEAN = Scalar(0.485, 0.456, 0.406)
     val VARIANCE = Scalar(0.229, 0.224, 0.225)
   }

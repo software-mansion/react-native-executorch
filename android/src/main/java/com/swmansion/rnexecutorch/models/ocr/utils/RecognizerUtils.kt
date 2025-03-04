@@ -369,7 +369,7 @@ class RecognizerUtils {
         val area = stats.get(i, Imgproc.CC_STAT_AREA)[0].toInt()
         val cx = centroids.get(i, 0)[0]
         val cy = centroids.get(i, 1)[0]
-        if (cx > minX && cx < maxX && cy > minY && cy < maxY && area > 70) {
+        if (cx > minX && cx < maxX && cy > minY && cy < maxY && area > Constants.SINGLE_CHARACTER_MIN_SIZE) {
           if (selectedComponent == -1 || area > stats.get(selectedComponent, Imgproc.CC_STAT_AREA)[0]) {
             selectedComponent = i
           }

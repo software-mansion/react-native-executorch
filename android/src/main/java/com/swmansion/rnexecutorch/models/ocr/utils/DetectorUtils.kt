@@ -332,7 +332,7 @@ class DetectorUtils {
       val detectedBoxes = mutableListOf<OCRbBox>()
       for (i in 1 until nLabels) {
         val area = stats.get(i, Imgproc.CC_STAT_AREA)[0].toInt()
-        if (area < 20) continue
+        if (area < Constants.MIN_SIZE) continue
 
         val height = stats.get(i, Imgproc.CC_STAT_HEIGHT)[0].toInt()
         val width = stats.get(i, Imgproc.CC_STAT_WIDTH)[0].toInt()
