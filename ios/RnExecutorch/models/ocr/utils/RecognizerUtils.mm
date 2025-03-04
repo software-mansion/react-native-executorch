@@ -283,12 +283,7 @@
     sumRight += histogram.at<float>(i);
   }
 
-  int thresholdType;
-  if (sumLeft < sumRight) {
-    thresholdType = cv::THRESH_BINARY_INV;
-  } else {
-    thresholdType = cv::THRESH_BINARY;
-  }
+  const int thresholdType = (sumLeft < sumRight) ? cv::THRESH_BINARY_INV : cv::THRESH_BINARY;
 
   cv::Mat thresh;
   cv::threshold(img, thresh, 0, 255, thresholdType + cv::THRESH_OTSU);

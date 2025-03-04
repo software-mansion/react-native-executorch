@@ -88,12 +88,13 @@ export const calculateDownloadProgres =
     setProgress: (downloadProgress: number) => void
   ) =>
   (progress: number) => {
+    if (progress === 1 && currentFileIndex === numberOfFiles - 1) {
+      setProgress(1);
+      return;
+    }
     const contributionPerFile = 1 / numberOfFiles;
     const baseProgress = contributionPerFile * currentFileIndex;
     const scaledProgress = progress * contributionPerFile;
     const updatedProgress = baseProgress + scaledProgress;
     setProgress(updatedProgress);
-    if (progress === 1 && currentFileIndex === numberOfFiles - 1) {
-      setProgress(1);
-    }
   };
