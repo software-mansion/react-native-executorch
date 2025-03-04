@@ -10146,13 +10146,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-audio-api@npm:0.4.8-rc2":
-  version: 0.4.8-rc2
-  resolution: "react-native-audio-api@npm:0.4.8-rc2"
+"react-native-audio-api@npm:0.4.11":
+  version: 0.4.11
+  resolution: "react-native-audio-api@npm:0.4.11"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 27a106bc93c5411811740968dc1cdca2f509cb1a2b2ab111510c6d81bd2a55d79c61e30465bc4be9f3a8005d047d57ada0bbb83514080c900c154228c6c9f6eb
+  checksum: 7e80da3fc61881f61dcb676da6dcf0255ee2ea2d35ee39b40d8a329efdc0e5dd483cd2f820cba0b014042f9118d4c1a3d12456d3cab8de6cceda751df3b5e885
   languageName: node
   linkType: hard
 
@@ -10211,7 +10211,7 @@ __metadata:
     prettier: ^3.0.3
     react: 18.3.1
     react-native: ^0.76.1
-    react-native-audio-api: 0.4.8-rc2
+    react-native-audio-api: 0.4.11
     react-native-builder-bob: ^0.30.2
     turbo: ^1.10.7
     typescript: ^5.2.2
