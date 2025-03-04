@@ -93,4 +93,7 @@ export const calculateDownloadProgres =
     const scaledProgress = progress * contributionPerFile;
     const updatedProgress = baseProgress + scaledProgress;
     setProgress(updatedProgress);
+    if (progress === 1 && currentFileIndex === numberOfFiles - 1) {
+      setProgress(1);
+    }
   };
