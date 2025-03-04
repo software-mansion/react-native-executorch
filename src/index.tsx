@@ -15,8 +15,8 @@ export * from './modules/computer_vision/ObjectDetectionModule';
 export * from './modules/computer_vision/StyleTransferModule';
 export * from './modules/computer_vision/OCRModule';
 
-export * from './controllers/SpeechToTextController';
 export * from './modules/natural_language_processing/LLMModule';
+export * from './modules/natural_language_processing/SpeechToTextModule';
 
 export * from './modules/general/ExecutorchModule';
 

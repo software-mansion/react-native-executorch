@@ -1,47 +1,14 @@
 import { AudioContext, AudioBuffer } from 'react-native-audio-api';
 import { _SpeechToTextModule } from '../native/RnExecutorchModules';
 import * as FileSystem from 'expo-file-system';
-import {
-  MOONSHINE_ENCODER,
-  MOONSHINE_DECODER,
-  WHISPER_DECODER,
-  WHISPER_ENCODER,
-  WHISPER_TOKENIZER,
-  MOONSHINE_TOKENIZER,
-} from '../constants/modelUrls';
 import { fetchResource } from '../utils/fetchResource';
 import { ResourceSource } from '../types/common';
-
-const SECOND = 16_000;
-const SAMPLE_RATE = 16_000;
-const HAMMING_DIST_THRESHOLD = 1;
-
-const MODEL_CONFIGS = {
-  moonshine: {
-    sources: {
-      encoder: MOONSHINE_ENCODER,
-      decoder: MOONSHINE_DECODER,
-    },
-    tokenizer: {
-      source: MOONSHINE_TOKENIZER,
-      sos: 1,
-      eos: 2,
-      special_char: '\u2581',
-    },
-  },
-  whisper: {
-    sources: {
-      encoder: WHISPER_ENCODER,
-      decoder: WHISPER_DECODER,
-    },
-    tokenizer: {
-      source: WHISPER_TOKENIZER,
-      sos: 50257,
-      eos: 50256,
-      special_char: 'Ġ',
-    },
-  },
-};
+import {
+  HAMMING_DIST_THRESHOLD,
+  SECOND,
+  SAMPLE_RATE,
+  MODEL_CONFIGS,
+} from '../constants/sttDefaults';
 
 const longCommonInfPref = (seq1: number[], seq2: number[]) => {
   let maxInd = 0;
@@ -75,50 +42,49 @@ export class SpeechToTextController {
   private audioContext: AudioContext;
   private audioBuffer: AudioBuffer | null = null;
 
-  private overlap_seconds = 1.2;
-  private window_size = SECOND * 7;
+  private overlapSeconds = 1.2;
+  private windowSize = SECOND * 7;
 
   private chunks: number[][] = [];
   public sequence: number[] = [];
   public isReady = false;
   public isGenerating = false;
-  private eos_token!: number;
-  private sos_token!: number;
   private modelName!: 'moonshine' | 'whisper';
 
   // tokenizer tokens to string mapping used for decoding sequence
   private tokenMapping!: { [key: number]: string };
 
   // User callbacks
-  private transribeCallback: (sequence: number[]) => void;
+  private decodedTranscribeCallback: (sequence: number[]) => void;
   private modelDownloadProgessCallback: (downloadProgress: number) => void;
   private isReadyCallback: (isReady: boolean) => void;
   private isGeneratingCallback: (isGenerating: boolean) => void;
 
   constructor({
-    transribeCallback,
+    transcribeCallback,
     modelDownloadProgessCallback,
     isReadyCallback,
     isGeneratingCallback,
-    overlap_seconds,
-    window_size,
+    overlapSeconds,
+    windowSize,
   }: {
-    transribeCallback: (sequence: number[]) => void;
+    transcribeCallback: (sequence: string) => void;
     modelDownloadProgessCallback?: (downloadProgress: number) => void;
     isReadyCallback?: (isReady: boolean) => void;
     isGeneratingCallback?: (isGenerating: boolean) => void;
-    overlap_seconds?: number;
-    window_size?: number;
+    overlapSeconds?: number;
+    windowSize?: number;
   }) {
-    this.transribeCallback = transribeCallback;
+    this.decodedTranscribeCallback = (seq) =>
+      transcribeCallback(this.decodeSeq(seq));
     this.modelDownloadProgessCallback =
       modelDownloadProgessCallback || ((_) => {});
     this.isReadyCallback = isReadyCallback || ((_) => {});
     this.isGeneratingCallback = isGeneratingCallback || ((_) => {});
     this.audioContext = new AudioContext({ sampleRate: SAMPLE_RATE });
     this.nativeModule = new _SpeechToTextModule();
-    this.window_size = window_size || this.window_size;
-    this.overlap_seconds = overlap_seconds || this.overlap_seconds;
+    this.windowSize = windowSize || this.windowSize;
+    this.overlapSeconds = overlapSeconds || this.overlapSeconds;
   }
 
   private async fetch_tokenizer(
@@ -140,8 +106,6 @@ export class SpeechToTextController {
     this.isReadyCallback(this.isReady);
     this.modelName = modelName;
     this.tokenMapping = await this.fetch_tokenizer(tokenizerSource);
-    this.sos_token = MODEL_CONFIGS[this.modelName].tokenizer.sos;
-    this.eos_token = MODEL_CONFIGS[this.modelName].tokenizer.eos;
 
     try {
       encoderSource = await fetchResource(
@@ -181,27 +145,24 @@ export class SpeechToTextController {
       });
     } catch (e) {
       console.log(e);
+    } finally {
+      this.isReady = true;
+      this.isReadyCallback(this.isReady);
     }
-    this.isReady = true;
-    this.isReadyCallback(this.isReady);
   }
 
   private chunkWaveform(waveform: number[]) {
-    for (let i = 0; i < Math.ceil(waveform.length / this.window_size); i++) {
+    for (let i = 0; i < Math.ceil(waveform.length / this.windowSize); i++) {
       let chunk = waveform.slice(
-        Math.max(this.window_size * i - this.overlap_seconds * SECOND, 0),
+        Math.max(this.windowSize * i - this.overlapSeconds * SECOND, 0),
         Math.min(
-          this.window_size * (i + 1) + this.overlap_seconds * SECOND,
+          this.windowSize * (i + 1) + this.overlapSeconds * SECOND,
           waveform.length
         )
       );
 
       this.chunks.push(chunk);
     }
-  }
-
-  public async forward(waveform?: number[]): Promise<string> {
-    return this.transcribe(waveform);
   }
 
   public async transcribe(waveform?: number[]): Promise<string> {
@@ -227,14 +188,14 @@ export class SpeechToTextController {
     let seqs: number[][] = [];
     let prevseq: number[] = [];
     for (let chunk_id = 0; chunk_id < this.chunks.length; chunk_id++) {
-      let last_token = this.sos_token;
+      let last_token = MODEL_CONFIGS[this.modelName].tokenizer.sos;
       let prev_seq_token_idx = 0;
       let final_seq: number[] = [];
       let seq = [last_token];
       const enc_output = await this.nativeModule.encode(
         this.chunks!.at(chunk_id)!
       );
-      while (last_token !== this.eos_token) {
+      while (last_token !== MODEL_CONFIGS[this.modelName].tokenizer.eos) {
         let output = await this.nativeModule.decode(seq, [enc_output]);
         if (typeof output === 'number') {
           last_token = output;
@@ -248,7 +209,7 @@ export class SpeechToTextController {
           seq.length % 3 !== 0
         ) {
           prevseq = [...prevseq, seqs.at(-1)![prev_seq_token_idx++]!];
-          this.transribeCallback(prevseq);
+          this.decodedTranscribeCallback(prevseq);
         }
       }
       // remove sos/eos token and 3 additional ones
@@ -256,7 +217,7 @@ export class SpeechToTextController {
         seqs = [seq.slice(0, -4)];
       } else if (
         seqs.length ===
-        Math.ceil(waveform.length / this.window_size) - 1
+        Math.ceil(waveform.length / this.windowSize) - 1
       ) {
         seqs = [...seqs, seq.slice(4)];
       } else {
@@ -269,14 +230,14 @@ export class SpeechToTextController {
       const maxInd = longCommonInfPref(seqs.at(-2)!, seqs.at(-1)!);
       final_seq = [...this.sequence, ...seqs.at(-2)!.slice(0, maxInd)];
       this.sequence = final_seq;
-      this.transribeCallback(final_seq);
+      this.decodedTranscribeCallback(final_seq);
       prevseq = final_seq;
 
       //last sequence processed
-      if (seqs.length === Math.ceil(waveform.length / this.window_size)) {
+      if (seqs.length === Math.ceil(waveform.length / this.windowSize)) {
         final_seq = [...this.sequence, ...seqs.at(-1)!];
         this.sequence = final_seq;
-        this.transribeCallback(final_seq);
+        this.decodedTranscribeCallback(final_seq);
         prevseq = final_seq;
       }
     }
@@ -291,7 +252,11 @@ export class SpeechToTextController {
     if (!seq) seq = this.sequence;
 
     return seq
-      .filter((token) => token !== this.eos_token && token !== this.sos_token)
+      .filter(
+        (token) =>
+          token !== MODEL_CONFIGS[this.modelName].tokenizer.eos &&
+          token !== MODEL_CONFIGS[this.modelName].tokenizer.sos
+      )
       .map((token) => this.tokenMapping[token])
       .join('')
       .replaceAll(MODEL_CONFIGS[this.modelName].tokenizer.special_char, ' ');

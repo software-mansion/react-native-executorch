@@ -8,14 +8,14 @@ export class SpeechToText {
 
   static async load(
     modelName: 'moonshine' | 'whisper',
-    transribeCallback: (sequence: number[]) => void,
+    transcribeCallback: (sequence: string) => void,
     modelDownloadProgessCallback?: (downloadProgress: number) => void,
     encoderSource?: ResourceSource,
     decoderSource?: ResourceSource,
     tokenizerSource?: ResourceSource
   ) {
     this.module = new SpeechToTextController({
-      transribeCallback: transribeCallback,
+      transcribeCallback: transcribeCallback,
       modelDownloadProgessCallback: modelDownloadProgessCallback,
     });
     await this.module.loadModel(
@@ -29,12 +29,12 @@ export class SpeechToText {
   static async transcribe(
     waveform: number[]
   ): ReturnType<SpeechToTextController['transcribe']> {
-    return this.module.transcribe(waveform);
+    return await this.module.transcribe(waveform);
   }
 
   static async loadAudio(
     url: string
   ): ReturnType<SpeechToTextController['loadAudio']> {
-    return this.module.loadAudio(url);
+    return await this.module.loadAudio(url);
   }
 }

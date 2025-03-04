@@ -13,18 +13,14 @@
   NSNumber *START_TOKEN;
   NSNumber *EOS_TOKEN;
   int maxSeqLen;
-  int fftSize;
-  int fftHopLength;
 }
 
 - (instancetype)init {
   self = [super init];
   if (self) {
-    fftSize = 512;
     START_TOKEN = @50257;
     EOS_TOKEN = @50256;
     maxSeqLen = 512;
-    fftHopLength = 160;
   }
   return self;
 }

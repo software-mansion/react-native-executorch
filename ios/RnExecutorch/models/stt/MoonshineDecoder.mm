@@ -4,8 +4,9 @@
 @implementation MoonshineDecoder
 
 - (NSArray *)decode:(NSArray *)prevTokens encoderLastHiddenState:(NSArray *)encoderLastHiddenState {
-  NSNumber *noEncoderTokens = @(@([[encoderLastHiddenState objectAtIndex:0] count]).intValue / 288);
-  NSArray  *encoderLastHiddenStateShape = @[@1, noEncoderTokens, @288];
+  NSNumber *innerDim = @288;
+  NSNumber *noEncoderTokens = @(@([[encoderLastHiddenState objectAtIndex:0] count]).intValue / [innerDim intValue]);
+  NSArray  *encoderLastHiddenStateShape = @[@1, noEncoderTokens, innerDim];
   NSArray *prevTokensShape = @[@1, @([prevTokens count])];
   NSArray *predictedToken = [self execute:@"forward_cached"
                                   inputs:@[prevTokens, encoderLastHiddenState]

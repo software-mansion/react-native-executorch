@@ -7,8 +7,10 @@ interface SpeechToTextModule {
   isModelGenerating: boolean;
   sequence: string;
   downloadProgress: number;
-  transcribe: (input?: number[]) => Promise<string>;
-  loadAudio: (url: string) => void;
+  transcribe: (
+    input?: number[]
+  ) => ReturnType<SpeechToTextController['transcribe']>;
+  loadAudio: (url: string) => ReturnType<SpeechToTextController['loadAudio']>;
 }
 
 export const useSpeechToText = ({
@@ -16,17 +18,17 @@ export const useSpeechToText = ({
   encoderSource,
   decoderSource,
   tokenizerSource,
-  overlap_seconds,
-  window_size,
+  overlapSeconds,
+  windowSize,
 }: {
   modelName: 'moonshine' | 'whisper';
   encoderSource?: ResourceSource;
   decoderSource?: ResourceSource;
   tokenizerSource?: ResourceSource;
-  overlap_seconds?: number;
-  window_size?: number;
+  overlapSeconds?: number;
+  windowSize?: number;
 }): SpeechToTextModule => {
-  const [sequence, setSequence] = useState<number[]>([]);
+  const [sequence, setSequence] = useState<string>('');
   const [isReady, setIsReady] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -34,12 +36,12 @@ export const useSpeechToText = ({
   const [model, _] = useState(
     () =>
       new SpeechToTextController({
-        transribeCallback: setSequence,
+        transcribeCallback: setSequence,
         isReadyCallback: setIsReady,
         isGeneratingCallback: setIsGenerating,
         modelDownloadProgessCallback: setDownloadProgress,
-        overlap_seconds: overlap_seconds,
-        window_size: window_size,
+        overlapSeconds: overlapSeconds,
+        windowSize: windowSize,
       })
   );
 
@@ -59,7 +61,7 @@ export const useSpeechToText = ({
     isModelReady: isReady,
     isModelGenerating: isGenerating,
     downloadProgress,
-    sequence: model.decodeSeq(sequence),
+    sequence: sequence,
     transcribe: (waveform?: number[]) => model.transcribe(waveform),
     loadAudio: (url: string) => model.loadAudio(url),
   };
