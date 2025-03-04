@@ -260,4 +260,41 @@
   return croppedImage;
 }
 
++ (cv::Mat)cropSingleCharacter:(cv::Mat)img {
+  cv::Mat thresh;
+  cv::threshold(img, thresh, 0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
+  
+  cv::Mat labels, stats, centroids;
+  const int numLabels = connectedComponentsWithStats(thresh, labels, stats, centroids, 8);
+  const CGFloat centralThreshold = 0.3;
+  const int height = thresh.rows;
+  const int width = thresh.cols;
+  
+  const int minX = centralThreshold * width;
+  const int maxX = (1 - centralThreshold) * width;
+  const int minY = centralThreshold * height;
+  const int maxY = (1 - centralThreshold) * height;
+  
+  int selectedComponent = -1;
+  
+  for (int i = 1; i < numLabels; i++) {
+      const int area = stats.at<int>(i, cv::CC_STAT_AREA);
+      const double cx = centroids.at<double>(i, 0);
+      const double cy = centroids.at<double>(i, 1);
+      
+      if (minX < cx && cx < maxX && minY < cy && cy < maxY && area > 70) {
+          if (selectedComponent == -1 || area > stats.at<int>(selectedComponent, cv::CC_STAT_AREA)) {
+              selectedComponent = i;
+          }
+      }
+  }
+  cv::Mat mask = cv::Mat::zeros(img.size(), CV_8UC1);
+  if (selectedComponent != -1) {
+      mask = (labels == selectedComponent) / 255;
+  }
+  cv::Mat resultImage = cv::Mat::zeros(img.size(), img.type());
+  img.copyTo(resultImage, mask);
+  
+  return resultImage;
+}
 @end

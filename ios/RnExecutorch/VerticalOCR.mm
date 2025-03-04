@@ -96,6 +96,7 @@ independentCharacters:(BOOL)independentCharacters
         NSDictionary *paddingsBox = [RecognizerUtils calculateResizeRatioAndPaddings:boxWidth height:boxHeight desiredWidth:320 desiredHeight:1280];
         cv::Mat croppedCharacter = [RecognizerUtils cropImageWithBoundingBox:image bbox:boxCords originalBbox:cords paddings:paddingsBox originalPaddings:paddings];
         if(self->independentCharacters){
+          croppedCharacter = [RecognizerUtils cropSingleCharacter:croppedCharacter];
           croppedCharacter = [RecognizerUtils normalizeForRecognizer:croppedCharacter adjustContrast:0.0 isVertical: YES];
           NSArray *recognitionResult = [recognizer runModel:croppedCharacter];
           NSArray *predIndex = [recognitionResult objectAtIndex:0];

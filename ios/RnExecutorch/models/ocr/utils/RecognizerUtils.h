@@ -30,5 +30,6 @@
                        originalBbox:(NSArray *)originalBbox
                            paddings:(NSDictionary *)paddings
                    originalPaddings:(NSDictionary *)originalPaddings;
++ (cv::Mat)cropSingleCharacter:(cv::Mat)img;
 
 @end
