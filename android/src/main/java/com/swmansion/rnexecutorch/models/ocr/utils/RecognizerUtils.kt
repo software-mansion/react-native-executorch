@@ -4,6 +4,8 @@ import com.swmansion.rnexecutorch.utils.ImageProcessor
 import org.opencv.core.Core
 import org.opencv.core.CvType
 import org.opencv.core.Mat
+import org.opencv.core.MatOfFloat
+import org.opencv.core.MatOfInt
 import org.opencv.core.MatOfPoint2f
 import org.opencv.core.Point
 import org.opencv.core.Rect
@@ -245,17 +247,21 @@ class RecognizerUtils {
       return computeRatioAndResize(croppedImage, boundingBox.width, boundingBox.height, modelHeight)
     }
 
-    fun normalizeForRecognizer(image: Mat, adjustContrast: Double): Mat {
+    fun normalizeForRecognizer(
+      image: Mat,
+      adjustContrast: Double,
+      isVertical: Boolean = false
+    ): Mat {
       var img = image.clone()
 
       if (adjustContrast > 0) {
         img = adjustContrastGrey(img, adjustContrast)
       }
 
-      val desiredWidth = when {
+      val desiredWidth =when {
         img.width() >= Constants.LARGE_MODEL_WIDTH -> Constants.LARGE_MODEL_WIDTH
         img.width() >= Constants.MEDIUM_MODEL_WIDTH -> Constants.MEDIUM_MODEL_WIDTH
-        else -> Constants.SMALL_MODEL_WIDTH
+        else -> if (isVertical) Constants.VERTICAL_SMALL_MODEL_WIDTH else Constants.SMALL_MODEL_WIDTH
       }
 
       img = ImageProcessor.resizeWithPadding(img, desiredWidth, Constants.MODEL_HEIGHT)
@@ -264,6 +270,122 @@ class RecognizerUtils {
       Core.multiply(img, Scalar(2.0), img)
 
       return img
+    }
+
+    fun cropImageWithBoundingBox(
+      image: Mat,
+      box: List<BBoxPoint>,
+      originalBox: List<BBoxPoint>,
+      paddings: Map<String, Any>,
+      originalPaddings: Map<String, Any>
+    ): Mat {
+      val topLeft = originalBox[0]
+      val points = arrayOfNulls<Point>(4)
+
+      for (i in 0 until 4) {
+        val cords = box[i]
+        cords.x -= paddings["left"]!! as Int
+        cords.y -= paddings["top"]!! as Int
+
+        cords.x *= paddings["resizeRatio"]!! as Float
+        cords.y *= paddings["resizeRatio"]!! as Float
+
+        cords.x += topLeft.x
+        cords.y += topLeft.y
+
+        cords.x -= originalPaddings["left"]!! as Int
+        cords.y -= (originalPaddings["top"]!! as Int)
+
+        cords.x *= originalPaddings["resizeRatio"]!! as Float
+        cords.y *= originalPaddings["resizeRatio"]!! as Float
+
+        points[i] = Point(cords.x, cords.y)
+      }
+
+      val boundingBox = Imgproc.boundingRect(MatOfPoint2f(*points))
+      val croppedImage = Mat(image, boundingBox)
+      Imgproc.cvtColor(croppedImage, croppedImage, Imgproc.COLOR_BGR2GRAY)
+      Imgproc.resize(croppedImage, croppedImage, Size(64.0, 64.0), 0.0, 0.0, Imgproc.INTER_LANCZOS4)
+      Imgproc.medianBlur(croppedImage, croppedImage, 1)
+
+      return croppedImage
+    }
+
+    fun extractBoundingBox(cords: List<BBoxPoint>): Rect {
+      val points = arrayOfNulls<Point>(4)
+
+      for (i in 0 until 4) {
+        points[i] = Point(cords[i].x, cords[i].y)
+      }
+
+      val boundingBox = Imgproc.boundingRect(MatOfPoint2f(*points))
+
+      return boundingBox
+    }
+
+    fun cropSingleCharacter(img: Mat): Mat {
+      val histogram = Mat()
+      val histSize = MatOfInt(256)
+      val range = MatOfFloat(0f, 256f)
+      Imgproc.calcHist(
+        listOf(img),
+        MatOfInt(0),
+        Mat(),
+        histogram,
+        histSize,
+        range
+      )
+
+      val midPoint = 256 / 2
+      var sumLeft = 0.0
+      var sumRight = 0.0
+      for (i in 0 until midPoint) {
+        sumLeft += histogram.get(i, 0)[0]
+      }
+      for (i in midPoint until 256) {
+        sumRight += histogram.get(i, 0)[0]
+      }
+
+      val thresholdType = if (sumLeft < sumRight) Imgproc.THRESH_BINARY_INV else Imgproc.THRESH_BINARY
+
+      val thresh = Mat()
+      Imgproc.threshold(img, thresh, 0.0, 255.0, thresholdType + Imgproc.THRESH_OTSU)
+
+      val labels = Mat()
+      val stats = Mat()
+      val centroids = Mat()
+      val numLabels = Imgproc.connectedComponentsWithStats(thresh, labels, stats, centroids, 8)
+
+      val centralThreshold = 0.3
+      val height = thresh.rows()
+      val width = thresh.cols()
+      val minX = centralThreshold * width
+      val maxX = (1 - centralThreshold) * width
+      val minY = centralThreshold * height
+      val maxY = (1 - centralThreshold) * height
+
+      var selectedComponent = -1
+      for (i in 1 until numLabels) {
+        val area = stats.get(i, Imgproc.CC_STAT_AREA)[0].toInt()
+        val cx = centroids.get(i, 0)[0]
+        val cy = centroids.get(i, 1)[0]
+        if (cx > minX && cx < maxX && cy > minY && cy < maxY && area > Constants.SINGLE_CHARACTER_MIN_SIZE) {
+          if (selectedComponent == -1 || area > stats.get(selectedComponent, Imgproc.CC_STAT_AREA)[0]) {
+            selectedComponent = i
+          }
+        }
+      }
+
+      val mask = Mat.zeros(img.size(), CvType.CV_8UC1)
+      if (selectedComponent != -1) {
+        Core.compare(labels, Scalar(selectedComponent.toDouble()), mask, Core.CMP_EQ)
+      }
+
+      val resultImage = Mat.zeros(img.size(), img.type())
+      img.copyTo(resultImage, mask)
+
+      Core.bitwise_not(resultImage, resultImage)
+      return resultImage
     }
   }
 }

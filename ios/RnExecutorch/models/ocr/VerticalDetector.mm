@@ -1,4 +1,4 @@
-#import "Detector.h"
+#import "VerticalDetector.h"
 #import "../../utils/ImageProcessor.h"
 #import "utils/DetectorUtils.h"
 #import "utils/OCRUtils.h"
@@ -8,9 +8,18 @@
  Text Detection) paper. https://arxiv.org/pdf/1904.01941
  */
 
-@implementation Detector {
+@implementation VerticalDetector {
   cv::Size originalSize;
   cv::Size modelSize;
+  BOOL detectSingleCharacters;
+}
+
+- (instancetype)initWithDetectSingleCharacters:(BOOL)detectSingleCharacters {
+  self = [super init];
+  if (self) {
+    self->detectSingleCharacters = detectSingleCharacters;
+  }
+  return self;
 }
 
 - (cv::Size)getModelImageSize {
@@ -71,13 +80,21 @@
                              outputMat2:scoreAffinityCV
                                withSize:cv::Size(modelImageSize.width / 2,
                                                  modelImageSize.height / 2)];
-  NSArray *bBoxesList = [DetectorUtils getDetBoxesFromTextMap:scoreTextCV
-                                                  affinityMap:scoreAffinityCV
-                                           usingTextThreshold:textThreshold
-                                                linkThreshold:linkThreshold
-                                             lowTextThreshold:lowTextThreshold];
+  CGFloat txtThreshold = (self->detectSingleCharacters) ? textThreshold
+                                                        : textThresholdVertical;
+                                                        
+  NSArray *bBoxesList = [DetectorUtils
+      getDetBoxesFromTextMapVertical:scoreTextCV
+                         affinityMap:scoreAffinityCV
+                  usingTextThreshold:txtThreshold
+                       linkThreshold:linkThreshold
+               independentCharacters:self->detectSingleCharacters];
   bBoxesList = [DetectorUtils restoreBboxRatio:bBoxesList
-                             usingRestoreRatio:restoreRatio];
+                             usingRestoreRatio:restoreRatioVertical];
+
+  if (self->detectSingleCharacters) {
+    return bBoxesList;
+  }
 
   bBoxesList = [DetectorUtils groupTextBoxes:bBoxesList
                              centerThreshold:centerThreshold
