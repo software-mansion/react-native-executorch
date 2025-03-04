@@ -9,14 +9,19 @@ export const SpeechToTextScreen = () => {
     transcribe,
     loadAudio,
     downloadProgress,
-  } = useSpeechToText({ modelName: 'moonshine' });
+  } = useSpeechToText({ modelName: 'whisper' });
 
   return (
     <>
       <View style={styles.imageContainer}>
         <Button
           title="Download"
-          onPress={() => loadAudio('http://localhost:8080/output.mp3')}
+          // onPress={() => loadAudio('http://localhost:8080/output.mp3')}
+          onPress={() =>
+            loadAudio(
+              'https://ai.swmansion.com/storage/moonshine/test_audio.mp3'
+            )
+          }
         />
         <Button title="Transcribe" onPress={async () => await transcribe()} />
         <Text>downloadProgress: {downloadProgress}</Text>
@@ -25,6 +30,7 @@ export const SpeechToTextScreen = () => {
           isGenerating: {isModelGenerating ? 'generating' : 'not generating'}
         </Text>
         <Text>{sequence}</Text>
+        <Text>whisper</Text>
       </View>
     </>
   );

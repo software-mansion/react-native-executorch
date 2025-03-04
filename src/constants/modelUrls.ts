@@ -47,17 +47,17 @@ export const STYLE_TRANSFER_UDNIE =
     : 'https://huggingface.co/software-mansion/react-native-executorch-style-transfer-udnie/resolve/v0.2.0/xnnpack/style_transfer_udnie_xnnpack.pte';
 
 export const MOONSHINE_DECODER =
-  'https://huggingface.co/software-mansion/react-native-executorch-moonshine-tiny/blob/v0.3.0/xnnpack/moonshine_tiny_xnnpack_decoder.pte';
+  'https://huggingface.co/software-mansion/react-native-executorch-moonshine-tiny/resolve/v0.3.0/xnnpack/moonshine_tiny_xnnpack_decoder.pte';
 export const MOONSHINE_ENCODER =
-  'https://huggingface.co/software-mansion/react-native-executorch-moonshine-tiny/blob/v0.3.0/xnnpack/moonshine_tiny_xnnpack_encoder.pte';
+  'https://huggingface.co/software-mansion/react-native-executorch-moonshine-tiny/resolve/v0.3.0/xnnpack/moonshine_tiny_xnnpack_encoder.pte';
 export const MOONSHINE_TOKENIZER =
-  'https://huggingface.co/software-mansion/react-native-executorch-moonshine-tiny/blob/v0.3.0/moonshine_tiny_tokenizer.json';
+  'https://huggingface.co/software-mansion/react-native-executorch-moonshine-tiny/resolve/v0.3.0/moonshine_tiny_tokenizer.json';
 export const WHISPER_TOKENIZER =
-  'https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/blob/v0.3.0/whisper_tokenizer.json';
+  'https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/v0.3.0/whisper_tokenizer.json';
 export const WHISPER_DECODER =
-  'https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/blob/v0.3.0/xnnpack/whisper_tiny_en_xnnpack_decoder.pte';
+  'https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/v0.3.0/xnnpack/whisper_tiny_en_xnnpack_decoder.pte';
 export const WHISPER_ENCODER =
-  'https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/blob/v0.3.0/xnnpack/whisper_tiny_en_xnnpack_encoder.pte';
+  'https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/v0.3.0/xnnpack/whisper_tiny_en_xnnpack_encoder.pte';
 
 // Backward compatibility
 export const LLAMA3_2_3B_URL = LLAMA3_2_3B;
