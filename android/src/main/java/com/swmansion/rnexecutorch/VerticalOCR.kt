@@ -112,6 +112,7 @@ class VerticalOCR(reactContext: ReactApplicationContext) :
           )
 
           if (this.independentCharacters) {
+            croppedCharacter = RecognizerUtils.cropSingleCharacter(croppedCharacter)
             croppedCharacter = RecognizerUtils.normalizeForRecognizer(croppedCharacter, 0.0, true)
             val recognitionResult = recognizer.runModel(croppedCharacter)
             val predIndex = recognitionResult.first

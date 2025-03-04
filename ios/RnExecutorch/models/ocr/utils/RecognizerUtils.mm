@@ -261,40 +261,70 @@
 }
 
 + (cv::Mat)cropSingleCharacter:(cv::Mat)img {
+  cv::Mat histogram;
+
+  int histSize = 256;
+  float range[] = {0, 256};
+  const float *histRange = {range};
+  bool uniform = true, accumulate = false;
+
+  cv::calcHist(&img, 1, 0, cv::Mat(), histogram, 1, &histSize, &histRange, uniform,
+           accumulate);
+
+  int midPoint = histSize / 2;
+
+  double sumLeft = 0.0, sumRight = 0.0;
+  for (int i = 0; i < midPoint; i++) {
+    sumLeft += histogram.at<float>(i);
+  }
+  for (int i = midPoint; i < histSize; i++) {
+    sumRight += histogram.at<float>(i);
+  }
+
+  int thresholdType;
+  if (sumLeft < sumRight) {
+    thresholdType = cv::THRESH_BINARY_INV;
+  } else {
+    thresholdType = cv::THRESH_BINARY;
+  }
+
   cv::Mat thresh;
-  cv::threshold(img, thresh, 0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
-  
+  cv::threshold(img, thresh, 0, 255, thresholdType + cv::THRESH_OTSU);
+
   cv::Mat labels, stats, centroids;
-  const int numLabels = connectedComponentsWithStats(thresh, labels, stats, centroids, 8);
+  const int numLabels =
+      connectedComponentsWithStats(thresh, labels, stats, centroids, 8);
   const CGFloat centralThreshold = 0.3;
   const int height = thresh.rows;
   const int width = thresh.cols;
-  
+
   const int minX = centralThreshold * width;
   const int maxX = (1 - centralThreshold) * width;
   const int minY = centralThreshold * height;
   const int maxY = (1 - centralThreshold) * height;
-  
+
   int selectedComponent = -1;
-  
+
   for (int i = 1; i < numLabels; i++) {
-      const int area = stats.at<int>(i, cv::CC_STAT_AREA);
-      const double cx = centroids.at<double>(i, 0);
-      const double cy = centroids.at<double>(i, 1);
-      
-      if (minX < cx && cx < maxX && minY < cy && cy < maxY && area > 70) {
-          if (selectedComponent == -1 || area > stats.at<int>(selectedComponent, cv::CC_STAT_AREA)) {
-              selectedComponent = i;
-          }
+    const int area = stats.at<int>(i, cv::CC_STAT_AREA);
+    const double cx = centroids.at<double>(i, 0);
+    const double cy = centroids.at<double>(i, 1);
+
+    if (minX < cx && cx < maxX && minY < cy && cy < maxY && area > 70) {
+      if (selectedComponent == -1 ||
+          area > stats.at<int>(selectedComponent, cv::CC_STAT_AREA)) {
+        selectedComponent = i;
       }
+    }
   }
   cv::Mat mask = cv::Mat::zeros(img.size(), CV_8UC1);
   if (selectedComponent != -1) {
-      mask = (labels == selectedComponent) / 255;
+    mask = (labels == selectedComponent) / 255;
   }
   cv::Mat resultImage = cv::Mat::zeros(img.size(), img.type());
   img.copyTo(resultImage, mask);
-  
+  cv::bitwise_not(resultImage, resultImage);
   return resultImage;
 }
+
 @end
