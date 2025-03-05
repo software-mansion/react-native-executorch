@@ -74,7 +74,7 @@ Specifies the size of each audio chunk.
 
 ## Running the model
 
-To run the model, you can use the `transcribe` method. It accepts one optional argument, which is the waveform representation of the audio. If you called `loadAudio` beforehand, you don't need to pass anything to `transcribe`. However, you can still pass this argument if you want to use your own audio. This function returns a promise, which will return the generated tokens when everything succeeds. If the model fails during inference, it will throw an error. If you want to obtain tokens in streaming fashion, you can also use the `.sequence` property which is updated with each generated token, analogously to the useLLM hook.
+To run the model, you can use the `transcribe` method. It accepts one optional argument, which is the waveform representation of the audio. If you called `loadAudio` beforehand, you don't need to pass anything to `transcribe`. However, you can still pass this argument if you want to use your own audio. This function returns a promise, which will return the generated tokens when everything succeeds. If the model fails during inference, it will throw an error. If you want to obtain tokens in streaming fashion, you can also use the `sequence` property which is updated with each generated token, analogously to the useLLM hook.
 
 ## Example
 
@@ -89,19 +89,25 @@ function App() {
     tokenizerSource: WHISPER_TOKENIZER_URL,
     modelName: 'whisper',
   });
+
   const audioUrl = 'https://your-url.com/never-gonna-give-you-up.mp3';
 
   return (
-    <Button
-      onPress=(async () => {
-        // Alternatively, you can obtain audio from any other source and pass it to transcribe()
-        await model.loadAudio(audioUrl);
-        await model.transcribe();
-      })
-    />
-    <Text>{model.sequence}</Text>
-  )
-  // ... Rest of your component
+    <View>
+      <Button
+        onPress={async () => {
+          try {
+            await model.loadAudio(audioUrl);
+            await model.transcribe();
+          } catch (error) {
+            console.error("Error transcribing audio:", error);
+          }
+        }}
+        title="Transcribe"
+      />
+      <Text>{model.sequence}</Text>
+    </View>
+  );
 }
 ```
 
@@ -125,8 +131,8 @@ function App() {
 
 | Model          | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
 | -------------- | ---------------------- | ------------------ |
-| WHISPER_TINY   | ❌                     | 950                |
-| MOONSHINE_TINY | ❌                     | 868                |
+| WHISPER_TINY   | ❌                      | 950                |
+| MOONSHINE_TINY | ❌                      | 868                |
 
 ### Inference time
 
@@ -138,12 +144,12 @@ Given that Whisper accepts a 30 seconds audio chunks, we employed a streaming al
 
 | Model          | iPhone 16 Pro (XNNPACK) | iPhone 13 Pro (XNNPACK) | iPhone SE 3 (XNNPACK) | Samsung Galaxy S24 (XNNPACK) |
 | -------------- | ----------------------- | ----------------------- | --------------------- | ---------------------------- |
-| WHISPER_TINY   | 1.00s                   | 1.40s                   | 1.49s                 | ❌                           |
-| MOONSHINE_TINY | 0.48s                   | 0.69s                   | 0.69s                 | ❌                           |
+| WHISPER_TINY   | 1.00s                   | 1.40s                   | 1.49s                 | ❌                            |
+| MOONSHINE_TINY | 0.48s                   | 0.69s                   | 0.69s                 | ❌                            |
 
 #### Decoding
 
 | Model          | iPhone 16 Pro (XNNPACK) | iPhone 13 Pro (XNNPACK) | iPhone SE 3 (XNNPACK) | Samsung Galaxy S24 (XNNPACK) |
 | -------------- | ----------------------- | ----------------------- | --------------------- | ---------------------------- |
-| WHISPER_TINY   | 8.65 tokens/s           | 5.41 tokens/s           | 5.31 tokens/s         | ❌                           |
-| MOONSHINE_TINY | 13.23 tokens/s          | 7.77 tokens/s           | 7.61 tokens/s         | ❌                           |
+| WHISPER_TINY   | 8.65 tokens/s           | 5.41 tokens/s           | 5.31 tokens/s         | ❌                            |
+| MOONSHINE_TINY | 13.23 tokens/s          | 7.77 tokens/s           | 7.61 tokens/s         | ❌                            |
