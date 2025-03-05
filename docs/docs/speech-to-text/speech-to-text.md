@@ -39,7 +39,7 @@ Given that STT models need to take in a specified sequence length, there is a ne
 A literal of `"moonshine" | "whisper"` which serves as an identifier for which model should be used.
 
 **`encoderSource?`**
-A string that specifies the location of a .pte file for the encoder. For further information on passing model sources, check out [Loading Models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models). Defaults to (constants)[https://github.com/software-mansion/react-native-executorch/blob/main/src/constants/modelUrls.ts] for given model.
+A string that specifies the location of a .pte file for the encoder. For further information on passing model sources, check out [Loading Models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models). Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/main/src/constants/modelUrls.ts) for given model.
 
 **`decoderSource?`**
 Analogous to the encoderSource, this takes in a string which is a source for the decoder part of the model. Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/main/src/constants/modelUrls.ts) for given model.
