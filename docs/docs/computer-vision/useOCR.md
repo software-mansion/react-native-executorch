@@ -46,9 +46,9 @@ function App() {
 
 ```typescript
 interface RecognizerSources {
-  recognizerLarge: string;
-  recognizerMedium: string;
-  recognizerSmall: string;
+  recognizerLarge: string | number;
+  recognizerMedium: string | number;
+  recognizerSmall: string | number;
 }
 
 type OCRLanguage = 'en';
@@ -71,7 +71,11 @@ interface OCRDetection {
 
 **`detectorSource`** - A string that specifies the location of the detector binary. For more information, take a look at [loading models](../fundamentals/loading-models.md) section.
 
-**`recognizerSources`** - An object that specifies locations of the recognizers binary files. For more information, take a look at [loading models](../fundamentals/loading-models.md) section.
+**`recognizerSources`** - An object that specifies locations of the recognizers binary files. For more information, take a look at [loading models](../fundamentals/loading-models.md) section. Each recognizer is composed of three models tailored to process images of varying widths.
+
+- `recognizerLarge` - A string that specifies the location of the recognizer binary file which accepts input images with a width of 512 pixels.
+- `recognizerMedium` - A string that specifies the location of the recognizer binary file which accepts input images with a width of 256 pixels.
+- `recognizerSmall` - A string that specifies the location of the recognizer binary file which accepts input images with a width of 128 pixels.
 
 **`language`** - A parameter that specifies the language of the text to be recognized by the OCR.
 
