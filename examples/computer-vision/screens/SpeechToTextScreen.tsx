@@ -40,7 +40,7 @@ const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
 };
 
 export const SpeechToTextScreen = () => {
-  const { sequence, transcribe } = useSpeechToText({ modelName: 'moonshine' });
+  const { sequence, transcribe, error } = useSpeechToText({ modelName: 'moonshine' });
   const [isRecording, setIsRecording] = useState(false);
   const audioBuffer = useRef<number[]>([]);
 
@@ -82,6 +82,7 @@ export const SpeechToTextScreen = () => {
             {sequence || 'Start recording to transcribe audio...'}
           </Text>
         </View>
+        <Text>{`${error}`}</Text>
         <View style={styles.iconsContainer}>
           <View
             style={[
