@@ -6,7 +6,7 @@ sidebar_position: 1
 With the latest `v0.3.0` release we introduce a new hook - `useSpeechToText`. Speech to text is a task that allows to transform spoken language to written text. It is commonly used to implement features such as transcription or voice assistants. As of now, [every supported STT model](#supported-models) runs on the XNNPack backend.
 
 :::info
-Currently, we do not support direct microphone input streaming to the model. Instead, in  v0.3.0, we provide a way to transcribe an audio file.
+Currently, we do not support direct microphone input streaming to the model. Instead, in v0.3.0, we provide a way to transcribe an audio file.
 :::
 
 :::caution
@@ -35,10 +35,13 @@ try {
   console.error(error);
 }
 ```
+
 ### Streaming
+
 Given that STT models need to take in a specified sequence length, there is a need to chunk the input audio. Chunking audio may result in cutting speech mid-sentence, which might be hard to understand for the model. To make it work, we employed an algorithm that uses overlapping audio chunks which might introduce some overhead, but gives way better results.
 
 ### Arguments
+
 **`modelName`**
 A literal of `"moonshine" | "whisper"` which serves as an identifier for which model should be used.
 
@@ -73,7 +76,6 @@ Specifies the size of each audio chunk.
 
 To run the model, you can use the `transcribe` method. It accepts one optional argument, which is the waveform representation of the audio. If you called `loadAudio` beforehand, you don't need to pass anything to `transcribe`. However, you can still pass this argument if you want to use your own audio. This function returns a promise, which will return the generated tokens when everything succeeds. If the model fails during inference, it will throw an error. If you want to obtain tokens in streaming fashion, you can also use the `.sequence` property which is updated with each generated token, analogously to the useLLM hook.
 
-
 ## Example
 
 ```typescript
@@ -102,7 +104,9 @@ function App() {
   // ... Rest of your component
 }
 ```
+
 ## Supported models
+
 - [Whisper (tiny.en)](https://github.com/openai/whisper)
 - [Moonshine (tiny)](https://github.com/usefulsensors/moonshine)
 
@@ -119,8 +123,8 @@ function App() {
 
 | Model             | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
 | ----------------- | ---------------------- | ------------------ |
-| Whisper (tiny.en) | ❌                      | 950                |
-| Moonshine (tiny)  | ❌                      | 868                |
+| Whisper (tiny.en) | ❌                     | 950                |
+| Moonshine (tiny)  | ❌                     | 868                |
 
 ### Inference time
 
@@ -132,12 +136,12 @@ Given that Whisper accepts a 30 seconds audio chunks, we employed a streaming al
 
 | Model             | iPhone 16 Pro (XNNPack) | iPhone 13 Pro (XNNPack) | iPhone SE 3 (XNNPack) | Samsung Galaxy S24 (XNNPack) |
 | ----------------- | ----------------------- | ----------------------- | --------------------- | ---------------------------- |
-| Whisper (tiny.en) | 8.65 tokens/s           | 5.41 tokens/s           | 5.31 tokens/s         | ❌                            |
-| Moonshine (tiny)  | 13.23 tokens/s          | 7.77 tokens/s           | 7.61 tokens/s         | ❌                            |
+| Whisper (tiny.en) | 8.65 tokens/s           | 5.41 tokens/s           | 5.31 tokens/s         | ❌                           |
+| Moonshine (tiny)  | 13.23 tokens/s          | 7.77 tokens/s           | 7.61 tokens/s         | ❌                           |
 
 #### Encoder
+
 | Model             | iPhone 16 Pro (XNNPack) | iPhone 13 Pro (XNNPack) | iPhone SE 3 (XNNPack) | Samsung Galaxy S24 (XNNPack) |
 | ----------------- | ----------------------- | ----------------------- | --------------------- | ---------------------------- |
-| Whisper (tiny.en) | 1.00s                   | 1.40s                   | 1.49s                 | ❌                            |
-| Moonshine (tiny)  | 0.48s                   | 0.69s                   | 0.69s                 | ❌                            |
-
+| Whisper (tiny.en) | 1.00s                   | 1.40s                   | 1.49s                 | ❌                           |
+| Moonshine (tiny)  | 0.48s                   | 0.69s                   | 0.69s                 | ❌                           |

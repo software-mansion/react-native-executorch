@@ -41,5 +41,3 @@ sidebar_position: 1
 | -------------- | ------------ |
 | MOONSHINE_TINY | 148.9        |
 | WHISPER_TINY   | 231.0        |
-
-
