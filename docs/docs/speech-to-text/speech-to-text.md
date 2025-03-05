@@ -9,6 +9,10 @@ With the latest `v0.3.0` release we introduce a new hook - `useSpeechToText`. Sp
 Currently, we do not support direct microphone input streaming to the model. Instead, in  v0.3.0, we provide a way to transcribe an audio file.
 :::
 
+:::caution
+It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-moonshine-tiny). You can also use [constants](https://github.com/software-mansion/react-native-executorch/tree/main/src/constants/modelUrls.ts) shipped with our library
+:::
+
 ## Reference
 
 ```typescript
