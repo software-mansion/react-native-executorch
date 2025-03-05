@@ -37,19 +37,10 @@
   return modelInput;
 }
 
-- (NSDictionary *)postprocess:(NSArray *)output
-                  returnClasses:(NSArray *)classesOfInterest{
-  cv::Size modelImageSize = [self getModelImageSize];
-
-  std::size_t numLabels = deeplabv3_resnet50_labels.size();
+std::vector<cv::Mat> rescaleResults(NSArray *result, std::size_t numLabels, 
+                cv::Size modelImageSize, cv::Size originalSize) {
   std::size_t numModelPixels = modelImageSize.height * modelImageSize.width;
-  std::size_t numOriginalPixels = originalSize.height * originalSize.width;
-  std::size_t outputSize = (std::size_t)output.count;
 
-  NSAssert(outputSize ==  numLabels * numModelPixels, 
-        @"Model generated unexpected output size.");
-
-  // For each label extract it's matrix and rescale it to the original size
   std::vector<cv::Mat> resizedLabelScores(numLabels);
   for (std::size_t label = 0; label < numLabels; ++label) {
     cv::Mat labelMat = cv::Mat(modelImageSize, CV_64F);
@@ -57,30 +48,32 @@
     for(std::size_t pixel = 0; pixel < numModelPixels; ++pixel){
       int row = pixel / modelImageSize.width;
       int col = pixel % modelImageSize.width;
-      labelMat.at<double>(row, col) = [output[label * numModelPixels + pixel] doubleValue];
+      labelMat.at<double>(row, col) = [result[label * numModelPixels + pixel] doubleValue];
     }
 
     cv::resize(labelMat, resizedLabelScores[label], originalSize);
   }
+  return resizedLabelScores;
+}
 
-  cv::Mat maxArg = cv::Mat(originalSize, CV_32S);
-
-  // For each pixel apply softmax across all the labels
+void adjustScoresPerPixel(std::vector<cv::Mat>& labelScores, cv::Mat& maxArg,
+                cv::Size originalSize, std::size_t numLabels) {
+  std::size_t numOriginalPixels = originalSize.height * originalSize.width;
   for (std::size_t pixel = 0; pixel < numOriginalPixels; ++pixel) {
     int row = pixel / originalSize.width;
     int col = pixel % originalSize.width;
     std::vector<double> scores;
     scores.reserve(numLabels);
-    for (const cv::Mat& mat : resizedLabelScores) {
+    for (const cv::Mat& mat : labelScores) {
       scores.push_back(mat.at<double>(row, col));
     }
-
+    
     std::vector<double> adjustedScores = softmax(scores);
-
+    
     std::size_t maxArgIndex = 0;
     double maxArgVal = 0;
     for (std::size_t label = 0; label < numLabels; ++label) {
-      resizedLabelScores[label].at<double>(row, col) = adjustedScores[label];
+      labelScores[label].at<double>(row, col) = adjustedScores[label];
       if (adjustedScores[label] > maxArgVal) {
         maxArgIndex = label;
         maxArgVal = adjustedScores[label];
@@ -89,6 +82,25 @@
 
     maxArg.at<int>(row, col) = maxArgIndex;
   }
+}
+
+- (NSDictionary *)postprocess:(NSArray *)output
+                  returnClasses:(NSArray *)classesOfInterest{
+  cv::Size modelImageSize = [self getModelImageSize];
+
+  std::size_t numLabels = deeplabv3_resnet50_labels.size();
+
+  NSAssert((std::size_t)output.count ==  numLabels * modelImageSize.height * modelImageSize.width, 
+        @"Model generated unexpected output size.");
+
+  // For each label extract it's matrix and rescale it to the original size
+  std::vector<cv::Mat> resizedLabelScores = 
+        rescaleResults(output, numLabels, modelImageSize, originalSize);
+
+  cv::Mat maxArg = cv::Mat(originalSize, CV_32S);
+
+  // For each pixel apply softmax across all the labels and calculate the maxArg
+  adjustScoresPerPixel(resizedLabelScores, maxArg, originalSize, numLabels);
 
   std::unordered_set<std::string> labelSet;
 
