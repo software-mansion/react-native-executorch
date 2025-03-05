@@ -12,12 +12,12 @@ Currently, we do not support direct microphone input streaming to the model. Ins
 ## Reference
 
 ```typescript
-import { useSpeechToText, MOONSHINE_TINY_TOKENIZER_URL, MOONSHINE_TINY_ENCODER_URL, MOONSHINE_TINY_DECODER_URL } from 'react-native-executorch';
+import { useSpeechToText, MOONSHINE_TOKENIZER_URL, MOONSHINE_TINY_ENCODER_URL, MOONSHINE_TINY_DECODER_URL } from 'react-native-executorch';
 
 const model = useSpeechToText({
   encoderSource: MOONSHINE_TINY_ENCODER_URL,
   decoderSource: MOONSHINE_TINY_DECODER_URL,
-  tokenizerSource: MOONSHINE_TINY_TOKENIZER_URL
+  tokenizerSource: MOONSHINE_TOKENIZER_URL
   modelName: 'moonshine',
 });
 
@@ -73,13 +73,13 @@ To run the model, you can use the `transcribe` method. It accepts one optional a
 
 ```typescript
 import { Button, Text } from 'react-native';
-import { useSpeechToText, WHISPER_TINY_TOKENIZER_URL, WHISPER_TINY_ENCODER_URL, WHISPER_TINY_DECODER_URL } from 'react-native-executorch';
+import { useSpeechToText, WHISPER_TOKENIZER_URL, WHISPER_TINY_ENCODER_URL, WHISPER_TINY_DECODER_URL } from 'react-native-executorch';
 
 function App() {
   const model = useSpeechToText({
     encoderSource: WHISPER_TINY_ENCODER_URL,
     decoderSource: WHISPER_TINY_DECODER_URL,
-    tokenizerSource: WHISPER_TINY_TOKENIZER_URL
+    tokenizerSource: WHISPER_TOKENIZER_URL
     modelName: 'whisper',
   });
   const audioUrl = 'file:///Users/.../never-gonna-give-you-up.mp3';
