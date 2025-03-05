@@ -21,7 +21,7 @@ import { useSpeechToText, MOONSHINE_TOKENIZER_URL, MOONSHINE_TINY_ENCODER_URL, M
 const model = useSpeechToText({
   encoderSource: MOONSHINE_TINY_ENCODER_URL,
   decoderSource: MOONSHINE_TINY_DECODER_URL,
-  tokenizerSource: MOONSHINE_TOKENIZER_URL
+  tokenizerSource: MOONSHINE_TOKENIZER_URL,
   modelName: 'moonshine',
 });
 
@@ -86,7 +86,7 @@ function App() {
   const model = useSpeechToText({
     encoderSource: WHISPER_TINY_ENCODER_URL,
     decoderSource: WHISPER_TINY_DECODER_URL,
-    tokenizerSource: WHISPER_TOKENIZER_URL
+    tokenizerSource: WHISPER_TOKENIZER_URL,
     modelName: 'whisper',
   });
   const audioUrl = 'https://your-url.com/never-gonna-give-you-up.mp3';
