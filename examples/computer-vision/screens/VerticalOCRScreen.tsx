@@ -8,7 +8,7 @@ import {
   RECOGNIZER_EN_CRNN_64,
   useVerticalOCR,
 } from 'react-native-executorch';
-import { View, StyleSheet, Image, Text } from 'react-native';
+import { View, StyleSheet, Image, Text, ScrollView } from 'react-native';
 import { useState } from 'react';
 import ImageWithBboxes2 from '../components/ImageWithOCRBboxes';
 
@@ -24,7 +24,6 @@ export const VerticalOCRScreen = ({
     width: number;
     height: number;
   }>();
-  const [detectedText, setDetectedText] = useState<string>('');
   const model = useVerticalOCR({
     detectorSources: {
       detectorLarge: DETECTOR_CRAFT_1280,
@@ -47,7 +46,6 @@ export const VerticalOCRScreen = ({
     if (typeof uri === 'string') {
       setImageUri(uri as string);
       setResults([]);
-      setDetectedText('');
     }
   };
 
@@ -56,11 +54,6 @@ export const VerticalOCRScreen = ({
       const output = await model.forward(imageUri);
       setResults(output);
       console.log(output);
-      let txt = '';
-      output.forEach((detection: any) => {
-        txt += detection.text + ' ';
-      });
-      setDetectedText(txt);
     } catch (e) {
       console.error(e);
     }
@@ -96,7 +89,19 @@ export const VerticalOCRScreen = ({
             />
           )}
         </View>
-        <Text>{detectedText}</Text>
+        {results.length > 0 && (
+          <View style={styles.results}>
+            <Text style={styles.resultHeader}>Results</Text>
+            <ScrollView style={styles.resultsList}>
+              {results.map(({ text, score }) => (
+                <View key={text} style={styles.resultRecord}>
+                  <Text style={styles.resultLabel}>{text}</Text>
+                  <Text>{score.toFixed(3)}</Text>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        )}
       </View>
       <BottomBar
         handleCameraPress={handleCameraPress}
@@ -116,5 +121,30 @@ const styles = StyleSheet.create({
     flex: 6,
     width: '100%',
     padding: 16,
+  },
+  results: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    padding: 4,
+  },
+  resultHeader: {
+    fontSize: 18,
+    color: 'navy',
+  },
+  resultsList: {
+    flex: 1,
+  },
+  resultRecord: {
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between',
+    padding: 8,
+    borderBottomWidth: 1,
+  },
+  resultLabel: {
+    flex: 1,
+    marginRight: 4,
   },
 });
