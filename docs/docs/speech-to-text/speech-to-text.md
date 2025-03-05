@@ -55,15 +55,15 @@ Specifies the size of each audio chunk.
 
 ### Returns
 
-| Field          | Type                                    | Description                                                                                                                                                                                                                                                         |
-| -------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `transcribe`   | `(input?: number[]) => Promise<string>` | Starts a transcription process for a given input array, which should be a waveform at 16kHz. When no input is provided, it uses an internal state which is set by calling `loadAudio`. Resolves a promise with the output transcription when the model is finished. |
-| `loadAudio`    | `(url: string) => void`                 | Loads audio file from given url. It sets an internal state which serves as an input to `transcribe()`.                                                                                                                                                              |
-| `error`        | <code>string &#124; null</code>         | Contains the error message if the model failed to load.                                                                                                                                                                                                             |
-| `sequence`     | <code>string &#124; null</code>         | This property is updated with each generated token. If you're looking to obtain tokens as they're generated, you should use this property.                                                                                                                                                                                                                 |
-| `isGenerating` | `boolean`                               | Indicates whether the model is currently processing an inference.                                                                                                                                                                                                   |
-| `isReady`      | `boolean`                               | Indicates whether the model has successfully loaded and is ready for inference. |
-| `downloadProgress`      | `number`                               | Tracks the progress of the model download process.                                                                                                                          |
+| Field              | Type                                    | Description                                                                                                                                                                                                                                                         |
+| ------------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `transcribe`       | `(input?: number[]) => Promise<string>` | Starts a transcription process for a given input array, which should be a waveform at 16kHz. When no input is provided, it uses an internal state which is set by calling `loadAudio`. Resolves a promise with the output transcription when the model is finished. |
+| `loadAudio`        | `(url: string) => void`                 | Loads audio file from given url. It sets an internal state which serves as an input to `transcribe()`.                                                                                                                                                              |
+| `error`            | <code>string &#124; null</code>         | Contains the error message if the model failed to load.                                                                                                                                                                                                             |
+| `sequence`         | <code>string &#124; null</code>         | This property is updated with each generated token. If you're looking to obtain tokens as they're generated, you should use this property.                                                                                                                          |
+| `isGenerating`     | `boolean`                               | Indicates whether the model is currently processing an inference.                                                                                                                                                                                                   |
+| `isReady`          | `boolean`                               | Indicates whether the model has successfully loaded and is ready for inference.                                                                                                                                                                                     |
+| `downloadProgress` | `number`                                | Tracks the progress of the model download process.                                                                                                                                                                                                                  |
 
 ## Running the model
 
@@ -83,7 +83,7 @@ function App() {
     tokenizerSource: WHISPER_TOKENIZER_URL
     modelName: 'whisper',
   });
-  const audioUrl = 'file:///Users/.../never-gonna-give-you-up.mp3';
+  const audioUrl = 'https://your-url.com/never-gonna-give-you-up.mp3';
 
   return (
     <Button
