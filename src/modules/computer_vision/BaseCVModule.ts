@@ -3,7 +3,6 @@ import {
   _StyleTransferModule,
   _ObjectDetectionModule,
   _ClassificationModule,
-  _ImageSegmentationModule,
 } from '../../native/RnExecutorchModules';
 import { getError } from '../../Error';
 
@@ -11,7 +10,6 @@ export class BaseCVModule extends BaseModule {
   static module:
     | _StyleTransferModule
     | _ObjectDetectionModule
-    | _ImageSegmentationModule
     | _ClassificationModule;
 
   static async forward(input: string) {
