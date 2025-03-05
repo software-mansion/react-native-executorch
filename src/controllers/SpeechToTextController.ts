@@ -44,7 +44,7 @@ export class SpeechToTextController {
   private audioBuffer: AudioBuffer | null = null;
 
   private overlapSeconds = 1.2;
-  private windowSize = SECOND * 7;
+  private windowSize = 7;
 
   private chunks: number[][] = [];
   public sequence: number[] = [];
@@ -96,7 +96,7 @@ export class SpeechToTextController {
     this.onErrorCallback = onErrorCallback;
     this.audioContext = new AudioContext({ sampleRate: SAMPLE_RATE });
     this.nativeModule = new _SpeechToTextModule();
-    this.windowSize = windowSize || this.windowSize;
+    this.windowSize = (windowSize || this.windowSize) * SECOND;
     this.overlapSeconds = overlapSeconds || this.overlapSeconds;
   }
 
@@ -141,6 +141,7 @@ export class SpeechToTextController {
         encoderSource!,
         decoderSource!,
       ]);
+      this.modelDownloadProgessCallback?.(1);
       this.isReadyCallback(true);
     } catch (e) {
       this.onErrorCallback?.(
@@ -307,6 +308,8 @@ export class SpeechToTextController {
   }
 
   public async decode(tokens: number[], encodings: number[]) {
-    return await this.nativeModule.decode(tokens, [encodings]);
+    return await this.nativeModule.decode(tokens, [
+      encodings as unknown as any,
+    ]);
   }
 }

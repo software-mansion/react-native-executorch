@@ -7,9 +7,10 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import LiveAudioStream from 'react-native-live-audio-stream';
-import SWMIcon from '../assets/icons/swm_icon.svg';
+import SWMIcon from '../assets/swm_icon.svg';
 import { useRef, useState } from 'react';
 import { Buffer } from 'buffer';
+import DeviceInfo from 'react-native-device-info';
 
 const options = {
   sampleRate: 16000,
@@ -40,7 +41,15 @@ const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
 };
 
 export const SpeechToTextScreen = () => {
-  const { sequence, transcribe, error } = useSpeechToText({ modelName: 'moonshine' });
+  const {
+    isModelGenerating,
+    isModelReady,
+    downloadProgress,
+    sequence,
+    error,
+    transcribe,
+    loadAudio,
+  } = useSpeechToText({ modelName: 'moonshine' });
   const [isRecording, setIsRecording] = useState(false);
   const audioBuffer = useRef<number[]>([]);
 
@@ -66,23 +75,47 @@ export const SpeechToTextScreen = () => {
     <>
       <SafeAreaView style={styles.mainContainer}>
         <View style={styles.topContainer}>
-          <SWMIcon />
+          <SWMIcon width={80} height={80} />
           <Text style={styles.topContainerText}>
-            {'React Native ExecuTorch - Speech to Text demo'}
+            {'React Native ExecuTorch'}
           </Text>
+          <Text style={styles.topContainerText}>{'Speech to Text demo'}</Text>
         </View>
-        <View style={styles.transcriptionContainer}>
+        {downloadProgress !== 1 ? (
+          <View style={styles.transcriptionContainer}>
+            <Text
+              style={{
+                ...styles.transcriptionText,
+                color: 'gray',
+                textAlign: 'center',
+              }}
+            >
+              {`Downloading model: ${(Number(downloadProgress.toFixed(4)) * 100).toFixed(2)}%`}
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.transcriptionContainer}>
+            <Text
+              style={
+                sequence
+                  ? styles.transcriptionText
+                  : {
+                      ...styles.transcriptionText,
+                      color: 'gray',
+                      textAlign: 'center',
+                    }
+              }
+            >
+              {sequence || 'Start transcription...'}
+            </Text>
+          </View>
+        )}
+        {error && (
           <Text
-            style={
-              sequence
-                ? styles.transcriptionText
-                : { ...styles.transcriptionText, color: 'gray' }
-            }
-          >
-            {sequence || 'Start recording to transcribe audio...'}
-          </Text>
-        </View>
-        <Text>{`${error}`}</Text>
+            style={{ ...styles.transcriptionText, color: 'red' }}
+          >{`${error}`}</Text>
+        )}
+
         <View style={styles.iconsContainer}>
           <View
             style={[
@@ -91,14 +124,60 @@ export const SpeechToTextScreen = () => {
             ]}
           >
             <TouchableOpacity
+              disabled={isModelGenerating || !isModelReady}
               style={[
                 styles.recordingButton,
+                (isModelGenerating || !isModelReady) && {
+                  backgroundColor: 'rgba(74, 74, 74, 0.8)',
+                },
+                isRecording && { backgroundColor: 'rgba(240, 63, 50, 0.8)' },
+              ]}
+              onPress={async () => {
+                await loadAudio(
+                  'https://ai.swmansion.com/storage/moonshine/test_audio.mp3'
+                );
+                await transcribe();
+              }}
+            >
+              <Text style={{ ...styles.recordingButtonText, fontSize: 13 }}>
+                {'TRANSCRIBE FROM EXAMPLE FILE'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View style={styles.iconsContainer}>
+          <View
+            style={[
+              styles.recordingButtonWrapper,
+              DeviceInfo.isEmulatorSync() && {
+                borderColor: 'rgba(74, 74, 74, 0.8)',
+              },
+              isRecording && { borderColor: 'rgb(240, 63, 50)' },
+            ]}
+          >
+            <TouchableOpacity
+              disabled={DeviceInfo.isEmulatorSync()}
+              style={[
+                styles.recordingButton,
+                DeviceInfo.isEmulatorSync() && {
+                  backgroundColor: 'rgba(74, 74, 74, 0.8)',
+                },
                 isRecording && { backgroundColor: 'rgba(240, 63, 50, 0.8)' },
               ]}
               onPress={handleRecordPress}
             >
               <Text style={styles.recordingButtonText}>
                 {isRecording ? 'STOP RECORDING' : 'START RECORDING'}
+              </Text>
+              <Text
+                style={{
+                  ...styles.recordingButtonText,
+                  color: 'rgb(254, 148, 141)',
+                  fontSize: 11,
+                }}
+              >
+                {DeviceInfo.isEmulatorSync() &&
+                  'recording does not work on emulator'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -142,23 +221,24 @@ const styles = StyleSheet.create({
     borderRadius: 40,
   },
   topContainer: {
+    marginTop: 80,
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   topContainerText: {
-    fontSize: 16,
-    marginTop: 6,
-    color: 'black',
+    fontSize: 30,
+    marginTop: 16,
+    color: '#001A72',
     fontWeight: '600',
   },
   transcriptionContainer: {
     flex: 9,
-    paddingTop: 20,
+    paddingTop: 100,
     width: '90%',
   },
   transcriptionText: {
-    fontSize: 24,
+    fontSize: 13,
     fontWeight: '600',
   },
   iconsContainer: {
