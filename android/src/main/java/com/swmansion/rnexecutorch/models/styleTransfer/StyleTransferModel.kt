@@ -1,4 +1,4 @@
-package com.swmansion.rnexecutorch.models
+package com.swmansion.rnexecutorch.models.styletransfer
 
 import com.facebook.react.bridge.ReactApplicationContext
 import com.swmansion.rnexecutorch.utils.ImageProcessor
