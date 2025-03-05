@@ -132,9 +132,10 @@ const VerticalOCR = VerticalOCRSpec
 
 class _ImageSegmentationModule {
   async forward(
-    input: string
+    input: string,
+    classesOfInteres: string[]
   ): ReturnType<ImageSegmentationInterface['forward']> {
-    return await ImageSegmentation.forward(input);
+    return await ImageSegmentation.forward(input, classesOfInteres);
   }
   async loadModule(
     modelSource: string | number

@@ -3,7 +3,8 @@
 
 @interface ImageSegmentationModel : BaseModel
 - (cv::Size)getModelImageSize;
-- (NSDictionary *)runModel:(cv::Mat &)input;
+- (NSDictionary *)runModel:(cv::Mat &)input
+                  returnClasses:(NSArray *)classesOfInterest;
 
 @end
 
