@@ -68,8 +68,8 @@ export const OCRScreen = ({
 
   return (
     <>
-      <View style={styles.imageContainer}>
-        <View style={styles.image}>
+      <View style={styles.container}>
+        <View style={styles.imageContainer}>
           {imageUri && imageDimensions?.width && imageDimensions?.height ? (
             <ImageWithBboxes2
               detections={results}
@@ -81,7 +81,7 @@ export const OCRScreen = ({
             />
           ) : (
             <Image
-              style={{ width: '100%', height: '100%' }}
+              style={styles.image}
               resizeMode="contain"
               source={require('../assets/icons/executorch_logo.png')}
             />
@@ -110,15 +110,19 @@ export const OCRScreen = ({
 };
 
 const styles = StyleSheet.create({
-  image: {
+  imageContainer: {
     flex: 2,
     borderRadius: 8,
     width: '100%',
   },
-  imageContainer: {
+  container: {
     flex: 6,
     width: '100%',
     padding: 16,
+  },
+  image: {
+    width: '100%',
+    height: '100%',
   },
   results: {
     flex: 1,
