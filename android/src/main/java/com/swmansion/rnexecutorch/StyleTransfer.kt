@@ -3,7 +3,7 @@ package com.swmansion.rnexecutorch
 import android.util.Log
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
-import com.swmansion.rnexecutorch.models.StyleTransferModel
+import com.swmansion.rnexecutorch.models.styletransfer.StyleTransferModel
 import com.swmansion.rnexecutorch.utils.ETError
 import com.swmansion.rnexecutorch.utils.ImageProcessor
 import org.opencv.android.OpenCVLoader
