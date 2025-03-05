@@ -22,7 +22,8 @@ class WhisperEncoder(reactApplicationContext: ReactApplicationContext) :
   override fun runModel(input: ReadableArray): WritableArray {
     val inputEValue = this.preprocess(input)
     val hiddenState = this.module.forward(inputEValue)
-    return this.postprocess(hiddenState)
+    val tmp = this.postprocess(hiddenState)
+    return tmp
   }
 
   override fun preprocess(input: ReadableArray): EValue {
@@ -36,8 +37,10 @@ class WhisperEncoder(reactApplicationContext: ReactApplicationContext) :
 
   public override fun postprocess(output: Array<EValue>): WritableArray {
     val outputWritableArray: WritableArray = Arguments.createArray()
-    output[0].toDoubleList().map {outputWritableArray.pushDouble(
-      it
+
+    output[0].toTensor().dataAsFloatArray.map {
+      outputWritableArray.pushDouble(
+        it.toDouble()
     )}
     return outputWritableArray
   }

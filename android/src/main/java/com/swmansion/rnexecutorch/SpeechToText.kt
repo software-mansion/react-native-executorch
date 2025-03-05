@@ -1,16 +1,15 @@
 package com.swmansion.rnexecutorch
 
-import android.util.Log
-import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.WritableArray
-import com.swmansion.rnexecutorch.models.speechToText.BaseS2TDecoder
 import com.swmansion.rnexecutorch.models.speechToText.BaseS2TModule
 import com.swmansion.rnexecutorch.models.speechToText.Moonshine
+import com.swmansion.rnexecutorch.models.speechToText.MoonshineDecoder
 import com.swmansion.rnexecutorch.models.speechToText.MoonshineEncoder
 import com.swmansion.rnexecutorch.models.speechToText.Whisper
+import com.swmansion.rnexecutorch.models.speechToText.WhisperDecoder
 import com.swmansion.rnexecutorch.models.speechToText.WhisperEncoder
 import com.swmansion.rnexecutorch.utils.ArrayUtils
 import com.swmansion.rnexecutorch.utils.ArrayUtils.Companion.createFloatArray
@@ -31,14 +30,12 @@ class SpeechToText(reactContext: ReactApplicationContext) : NativeSpeechToTextSp
       if(modelName == "moonshine") {
         this.speechToTextModule = Moonshine()
         this.speechToTextModule.encoder = MoonshineEncoder(reactApplicationContext)
-        this.speechToTextModule.decoder = BaseS2TDecoder(reactApplicationContext)
-        this.speechToTextModule.decoder.methodName = "forward_cached"
+        this.speechToTextModule.decoder = MoonshineDecoder(reactApplicationContext)
       }
       if(modelName == "whisper") {
         this.speechToTextModule = Whisper()
         this.speechToTextModule.encoder = WhisperEncoder(reactApplicationContext)
-        this.speechToTextModule.decoder = BaseS2TDecoder(reactApplicationContext)
-        this.speechToTextModule.decoder.methodName = "forward"
+        this.speechToTextModule.decoder = WhisperDecoder(reactApplicationContext)
       }
     } catch(e: Exception){
     }

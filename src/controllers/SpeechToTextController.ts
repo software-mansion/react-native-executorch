@@ -78,7 +78,7 @@ export class SpeechToTextController {
     modelDownloadProgessCallback?: (downloadProgress: number) => void;
     isReadyCallback?: (isReady: boolean) => void;
     isGeneratingCallback?: (isGenerating: boolean) => void;
-    onErrorCallback?: (error: any) => void;
+    onErrorCallback?: (error: Error | undefined) => void;
     overlapSeconds?: number;
     windowSize?: number;
   }) {
@@ -115,6 +115,7 @@ export class SpeechToTextController {
     decoderSource?: ResourceSource,
     tokenizerSource?: ResourceSource
   ) {
+    this.onErrorCallback?.(undefined);
     this.isReadyCallback(false);
     this.config = MODEL_CONFIGS[modelName];
     this.modelName = modelName;
@@ -150,6 +151,7 @@ export class SpeechToTextController {
   }
 
   public async loadAudio(url: string) {
+    this.onErrorCallback?.(undefined);
     this.isReadyCallback(false);
     try {
       this.audioBuffer = await FileSystem.downloadAsync(
@@ -159,7 +161,7 @@ export class SpeechToTextController {
         return this.audioContext.decodeAudioDataSource(uri);
       });
     } catch (e) {
-      console.log(e);
+      this.onErrorCallback?.(e);
     } finally {
       this.isReadyCallback(true);
     }
@@ -184,10 +186,11 @@ export class SpeechToTextController {
       this.onErrorCallback?.(new Error('Model is not yet ready'));
       return '';
     }
-    if (!this.isGenerating) {
+    if (this.isGenerating) {
       this.onErrorCallback?.(new Error('Model is already transcribing'));
       return '';
     }
+    this.onErrorCallback?.(undefined);
     this.isGeneratingCallback(true);
 
     this.sequence = [];
@@ -218,14 +221,16 @@ export class SpeechToTextController {
       try {
         enc_output = await this.nativeModule.encode(this.chunks!.at(chunk_id)!);
       } catch (error) {
-        this.onErrorCallback?.(error);
+        this.onErrorCallback?.(`Encode ${error}`);
+        return '';
       }
       while (last_token !== this.config.tokenizer.eos) {
         let output;
         try {
           output = await this.nativeModule.decode(seq, [enc_output]);
         } catch (error) {
-          this.onErrorCallback?.(error);
+          this.onErrorCallback?.(`Decode ${error}`);
+          return '';
         }
         if (typeof output === 'number') {
           last_token = output;
@@ -283,6 +288,7 @@ export class SpeechToTextController {
       );
       return '';
     }
+    this.onErrorCallback?.(undefined);
     if (!seq) seq = this.sequence;
 
     return seq

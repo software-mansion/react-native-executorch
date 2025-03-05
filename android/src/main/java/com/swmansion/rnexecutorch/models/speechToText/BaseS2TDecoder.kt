@@ -1,5 +1,6 @@
 package com.swmansion.rnexecutorch.models.speechToText
 
+import android.util.Log
 import com.swmansion.rnexecutorch.models.BaseModel
 import org.pytorch.executorch.EValue
 import com.facebook.react.bridge.ReactApplicationContext
@@ -7,16 +8,15 @@ import com.facebook.react.bridge.ReadableArray
 import com.swmansion.rnexecutorch.utils.ArrayUtils.Companion.createFloatArray
 import org.pytorch.executorch.Tensor
 
-class BaseS2TDecoder(reactApplicationContext: ReactApplicationContext): BaseModel<ReadableArray, Int>(reactApplicationContext)  {
-  private lateinit var generatedTokens: LongArray
-  var methodName: String = "forward"
+abstract class BaseS2TDecoder(reactApplicationContext: ReactApplicationContext): BaseModel<ReadableArray, Int>(reactApplicationContext)  {
+  protected abstract var methodName: String
 
-  fun setGeneratedTokens(tokens: LongArray) {
-    this.generatedTokens = tokens
-  }
+  abstract fun setGeneratedTokens(tokens: ReadableArray)
+
+  abstract fun getTokensEValue(): EValue
 
   override fun runModel(input: ReadableArray): Int {
-    val tokensEValue = EValue.from(Tensor.fromBlob(this.generatedTokens, longArrayOf(1, generatedTokens.size.toLong())))
+    val tokensEValue = getTokensEValue()
     return this.module
       .execute(methodName, tokensEValue, this.preprocess(input))[0]
       .toTensor()
@@ -24,10 +24,11 @@ class BaseS2TDecoder(reactApplicationContext: ReactApplicationContext): BaseMode
       .toInt()
   }
 
+  abstract fun getInputShape(inputLength: Int): LongArray
+
   override fun preprocess(input: ReadableArray): EValue {
     val inputArray = input.getArray(0)!!
-    val size = inputArray.size()
-    val preprocessorInputShape = longArrayOf(1, size.toLong()/288, 288)
+    val preprocessorInputShape = this.getInputShape(inputArray.size())
     return EValue.from(Tensor.fromBlob(createFloatArray(inputArray), preprocessorInputShape))
   }
 

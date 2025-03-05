@@ -7,6 +7,7 @@ interface SpeechToTextModule {
   isModelGenerating: boolean;
   sequence: string;
   downloadProgress: number;
+  error: Error | undefined;
   transcribe: (
     input?: number[]
   ) => ReturnType<SpeechToTextController['transcribe']>;
@@ -32,6 +33,7 @@ export const useSpeechToText = ({
   const [isReady, setIsReady] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<Error | undefined>();
 
   const [model, _] = useState(
     () =>
@@ -39,6 +41,7 @@ export const useSpeechToText = ({
         transcribeCallback: setSequence,
         isReadyCallback: setIsReady,
         isGeneratingCallback: setIsGenerating,
+        onErrorCallback: setError,
         modelDownloadProgessCallback: setDownloadProgress,
         overlapSeconds: overlapSeconds,
         windowSize: windowSize,
@@ -62,6 +65,7 @@ export const useSpeechToText = ({
     isModelGenerating: isGenerating,
     downloadProgress,
     sequence: sequence,
+    error: error,
     transcribe: (waveform?: number[]) => model.transcribe(waveform),
     loadAudio: (url: string) => model.loadAudio(url),
   };
