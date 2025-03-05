@@ -78,15 +78,19 @@ interface OCRDetection {
 
 To load the model, use the `load` method. It accepts:
 
-**`detectorSources`** - An object that specifies the location of the detectors binary files. For more information, take a look at [loading models](../fundamentals/loading-models.md) section. Each detector is composed of two models tailored to process images of varying widths.
+**`detectorSources`** - An object that specifies the location of the detectors binary files. Each detector is composed of two models tailored to process images of varying widths.
 
 - `detectorLarge` - A string that specifies the location of the recognizer binary file which accepts input images with a width of 1280 pixels.
 - `detectorNarrow` - A string that specifies the location of the detector binary file which accepts input images with a width of 320 pixels.
 
-**`recognizerSources`** - An object that specifies the locations of the recognizers binary files. For more information, take a look at [loading models](../fundamentals/loading-models.md) section. Each recognizer is composed of two models tailored to process images of varying widths.
+For more information, take a look at [loading models](../fundamentals/loading-models.md) section.
+
+**`recognizerSources`** - An object that specifies the locations of the recognizers binary files. Each recognizer is composed of two models tailored to process images of varying widths.
 
 - `recognizerLarge` - A string that specifies the location of the recognizer binary file which accepts input images with a width of 512 pixels.
 - `recognizerSmall` - A string that specifies the location of the recognizer binary file which accepts input images with a width of 64 pixels.
+
+For more information, take a look at [loading models](../fundamentals/loading-models.md) section.
 
 **`language`** - A parameter that specifies the language of the text to be recognized by the OCR.
 
