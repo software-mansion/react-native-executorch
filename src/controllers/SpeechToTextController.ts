@@ -8,6 +8,7 @@ import {
   SECOND,
   SAMPLE_RATE,
   MODEL_CONFIGS,
+  ModelConfig,
 } from '../constants/sttDefaults';
 
 const longCommonInfPref = (seq1: number[], seq2: number[]) => {
@@ -56,15 +57,20 @@ export class SpeechToTextController {
 
   // User callbacks
   private decodedTranscribeCallback: (sequence: number[]) => void;
-  private modelDownloadProgessCallback: (downloadProgress: number) => void;
+  private modelDownloadProgessCallback:
+    | ((downloadProgress: number) => void)
+    | undefined;
   private isReadyCallback: (isReady: boolean) => void;
   private isGeneratingCallback: (isGenerating: boolean) => void;
+  private onErrorCallback: ((error: any) => void) | undefined;
+  private config!: ModelConfig;
 
   constructor({
     transcribeCallback,
     modelDownloadProgessCallback,
     isReadyCallback,
     isGeneratingCallback,
+    onErrorCallback,
     overlapSeconds,
     windowSize,
   }: {
@@ -72,15 +78,22 @@ export class SpeechToTextController {
     modelDownloadProgessCallback?: (downloadProgress: number) => void;
     isReadyCallback?: (isReady: boolean) => void;
     isGeneratingCallback?: (isGenerating: boolean) => void;
+    onErrorCallback?: (error: any) => void;
     overlapSeconds?: number;
     windowSize?: number;
   }) {
     this.decodedTranscribeCallback = (seq) =>
       transcribeCallback(this.decodeSeq(seq));
-    this.modelDownloadProgessCallback =
-      modelDownloadProgessCallback || ((_) => {});
-    this.isReadyCallback = isReadyCallback || ((_) => {});
-    this.isGeneratingCallback = isGeneratingCallback || ((_) => {});
+    this.modelDownloadProgessCallback = modelDownloadProgessCallback;
+    this.isReadyCallback = (isReady) => {
+      this.isReady = isReady;
+      isReadyCallback?.(isReady);
+    };
+    this.isGeneratingCallback = (isGenerating) => {
+      this.isGenerating = isGenerating;
+      isGeneratingCallback?.(isGenerating);
+    };
+    this.onErrorCallback = onErrorCallback;
     this.audioContext = new AudioContext({ sampleRate: SAMPLE_RATE });
     this.nativeModule = new _SpeechToTextModule();
     this.windowSize = windowSize || this.windowSize;
@@ -91,7 +104,7 @@ export class SpeechToTextController {
     localUri?: ResourceSource
   ): Promise<{ [key: number]: string }> {
     let tokenzerUri = await fetchResource(
-      localUri || MODEL_CONFIGS[this.modelName].tokenizer.source
+      localUri || this.config.tokenizer.source
     );
     return JSON.parse(await FileSystem.readAsStringAsync(tokenzerUri));
   }
@@ -102,23 +115,24 @@ export class SpeechToTextController {
     decoderSource?: ResourceSource,
     tokenizerSource?: ResourceSource
   ) {
-    this.isReady = false;
-    this.isReadyCallback(this.isReady);
+    this.isReadyCallback(false);
+    this.config = MODEL_CONFIGS[modelName];
     this.modelName = modelName;
-    this.tokenMapping = await this.fetch_tokenizer(tokenizerSource);
 
     try {
+      this.tokenMapping = await this.fetch_tokenizer(tokenizerSource);
       encoderSource = await fetchResource(
-        encoderSource || MODEL_CONFIGS[this.modelName].sources.encoder,
-        (progress) => this.modelDownloadProgessCallback(progress / 2)
+        encoderSource || this.config.sources.encoder,
+        (progress) => this.modelDownloadProgessCallback?.(progress / 2)
       );
 
       decoderSource = await fetchResource(
-        decoderSource || MODEL_CONFIGS[this.modelName].sources.decoder,
-        (progress) => this.modelDownloadProgessCallback(0.5 + progress / 2)
+        decoderSource || this.config.sources.decoder,
+        (progress) => this.modelDownloadProgessCallback?.(0.5 + progress / 2)
       );
     } catch (e) {
-      console.error(e);
+      this.onErrorCallback?.(e);
+      return;
     }
 
     try {
@@ -126,16 +140,17 @@ export class SpeechToTextController {
         encoderSource!,
         decoderSource!,
       ]);
-      this.isReady = true;
-      this.isReadyCallback(this.isReady);
+      this.isReadyCallback(true);
     } catch (e) {
+      this.onErrorCallback?.(
+        new Error(`Error when loading the SpeechToTextController! ${e}`)
+      );
       console.error('Error when loading the SpeechToTextController!', e);
     }
   }
 
   public async loadAudio(url: string) {
-    this.isReady = false;
-    this.isReadyCallback(this.isReady);
+    this.isReadyCallback(false);
     try {
       this.audioBuffer = await FileSystem.downloadAsync(
         url,
@@ -146,8 +161,7 @@ export class SpeechToTextController {
     } catch (e) {
       console.log(e);
     } finally {
-      this.isReady = true;
-      this.isReadyCallback(this.isReady);
+      this.isReadyCallback(true);
     }
   }
 
@@ -166,8 +180,15 @@ export class SpeechToTextController {
   }
 
   public async transcribe(waveform?: number[]): Promise<string> {
-    this.isGenerating = true;
-    this.isGeneratingCallback(this.isGenerating);
+    if (!this.isReady) {
+      this.onErrorCallback?.(new Error('Model is not yet ready'));
+      return '';
+    }
+    if (!this.isGenerating) {
+      this.onErrorCallback?.(new Error('Model is already transcribing'));
+      return '';
+    }
+    this.isGeneratingCallback(true);
 
     this.sequence = [];
     if (!waveform) {
@@ -175,11 +196,12 @@ export class SpeechToTextController {
     }
 
     if (!waveform) {
-      this.isGenerating = false;
-      this.isGeneratingCallback(this.isGenerating);
+      this.isGeneratingCallback(false);
 
-      throw new Error(
-        `Nothing to transcribe, perhaps you forgot to call this.loadAudio().`
+      this.onErrorCallback?.(
+        new Error(
+          `Nothing to transcribe, perhaps you forgot to call this.loadAudio().`
+        )
       );
     }
 
@@ -188,15 +210,23 @@ export class SpeechToTextController {
     let seqs: number[][] = [];
     let prevseq: number[] = [];
     for (let chunk_id = 0; chunk_id < this.chunks.length; chunk_id++) {
-      let last_token = MODEL_CONFIGS[this.modelName].tokenizer.sos;
+      let last_token = this.config.tokenizer.sos;
       let prev_seq_token_idx = 0;
       let final_seq: number[] = [];
       let seq = [last_token];
-      const enc_output = await this.nativeModule.encode(
-        this.chunks!.at(chunk_id)!
-      );
-      while (last_token !== MODEL_CONFIGS[this.modelName].tokenizer.eos) {
-        let output = await this.nativeModule.decode(seq, [enc_output]);
+      let enc_output;
+      try {
+        enc_output = await this.nativeModule.encode(this.chunks!.at(chunk_id)!);
+      } catch (error) {
+        this.onErrorCallback?.(error);
+      }
+      while (last_token !== this.config.tokenizer.eos) {
+        let output;
+        try {
+          output = await this.nativeModule.decode(seq, [enc_output]);
+        } catch (error) {
+          this.onErrorCallback?.(error);
+        }
         if (typeof output === 'number') {
           last_token = output;
         } else {
@@ -242,23 +272,27 @@ export class SpeechToTextController {
       }
     }
     const decodedSeq = this.decodeSeq(this.sequence);
-    this.isGenerating = false;
-    this.isGeneratingCallback(this.isGenerating);
+    this.isGeneratingCallback(false);
     return decodedSeq;
   }
 
   public decodeSeq(seq?: number[]): string {
-    if (!this.modelName) return '';
+    if (!this.modelName) {
+      this.onErrorCallback?.(
+        new Error('Model is not loaded, call `loadModel` first')
+      );
+      return '';
+    }
     if (!seq) seq = this.sequence;
 
     return seq
       .filter(
         (token) =>
-          token !== MODEL_CONFIGS[this.modelName].tokenizer.eos &&
-          token !== MODEL_CONFIGS[this.modelName].tokenizer.sos
+          token !== this.config.tokenizer.eos &&
+          token !== this.config.tokenizer.sos
       )
       .map((token) => this.tokenMapping[token])
       .join('')
-      .replaceAll(MODEL_CONFIGS[this.modelName].tokenizer.special_char, ' ');
+      .replaceAll(this.config.tokenizer.special_char, ' ');
   }
 }

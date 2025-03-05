@@ -29,13 +29,13 @@ class SpeechToText(reactContext: ReactApplicationContext) : NativeSpeechToTextSp
   override fun loadModule(modelName: String, modelSources: ReadableArray, promise: Promise): Unit {
     try {
       if(modelName == "moonshine") {
-        this.speechToTextModule = Moonshine(modelName)
+        this.speechToTextModule = Moonshine()
         this.speechToTextModule.encoder = MoonshineEncoder(reactApplicationContext)
         this.speechToTextModule.decoder = BaseS2TDecoder(reactApplicationContext)
         this.speechToTextModule.decoder.methodName = "forward_cached"
       }
       if(modelName == "whisper") {
-        this.speechToTextModule = Whisper(modelName)
+        this.speechToTextModule = Whisper()
         this.speechToTextModule.encoder = WhisperEncoder(reactApplicationContext)
         this.speechToTextModule.decoder = BaseS2TDecoder(reactApplicationContext)
         this.speechToTextModule.decoder.methodName = "forward"
