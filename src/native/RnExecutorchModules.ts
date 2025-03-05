@@ -138,7 +138,7 @@ class _SpeechToTextModule {
     return await SpeechToText.encode(input);
   }
 
-  async decode(prevTokens: number[], encoderOutput: number[]) {
+  async decode(prevTokens: number[], encoderOutput: number[][]) {
     return await SpeechToText.decode(prevTokens, encoderOutput);
   }
 }

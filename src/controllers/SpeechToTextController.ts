@@ -301,4 +301,12 @@ export class SpeechToTextController {
       .join('')
       .replaceAll(this.config.tokenizer.special_char, ' ');
   }
+
+  public async encode(waveform: number[]) {
+    return await this.nativeModule.encode(waveform);
+  }
+
+  public async decode(tokens: number[], encodings: number[]) {
+    return await this.nativeModule.decode(tokens, [encodings]);
+  }
 }

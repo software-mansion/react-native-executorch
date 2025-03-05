@@ -1278,7 +1278,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-executorch (0.3.151):
+  - react-native-executorch (0.3.262):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1675,6 +1675,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - RNLiveAudioStream (1.1.1):
+    - React
   - RNReanimated (3.16.5):
     - DoubleConversion
     - glog
@@ -1884,6 +1886,7 @@ DEPENDENCIES:
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - RNAudioAPI (from `../node_modules/react-native-audio-api`)
+  - RNLiveAudioStream (from `../node_modules/react-native-live-audio-stream`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
@@ -2041,6 +2044,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   RNAudioAPI:
     :path: "../node_modules/react-native-audio-api"
+  RNLiveAudioStream:
+    :path: "../node_modules/react-native-live-audio-stream"
   RNReanimated:
     :path: "../node_modules/react-native-reanimated"
   RNSVG:
@@ -2092,7 +2097,7 @@ SPEC CHECKSUMS:
   React-logger: 26155dc23db5c9038794db915f80bd2044512c2e
   React-Mapbuffer: ad1ba0205205a16dbff11b8ade6d1b3959451658
   React-microtasksnativemodule: e771eb9eb6ace5884ee40a293a0e14a9d7a4343c
-  react-native-executorch: 2df97239270ae096a3cf0cecf9e520c9dfd49b9c
+  react-native-executorch: b0f19197ea9dc9b41d1e31a6c55edcc1310bcb33
   react-native-image-picker: e7331948589e764ecd5a9c715c3fc14d4e6187e6
   react-native-safe-area-context: d6406c2adbd41b2e09ab1c386781dc1c81a90919
   React-nativeconfig: aeed6e2a8ac02b2df54476afcc7c663416c12bf7
@@ -2123,6 +2128,7 @@ SPEC CHECKSUMS:
   ReactCodegen: ae99a130606068ed40d1d9c0d5f25fda142a0647
   ReactCommon: 89c87b343deacc8610b099ac764848f0ce937e3e
   RNAudioAPI: f814d97e85004b5869c6d53d5e321a45663872eb
+  RNLiveAudioStream: 02584d52711b6b9f268cb371a4b1bdd76ab3e079
   RNReanimated: eb3170ded1ec1f61d8129c6cc2df06778f99703f
   RNSVG: ec2e9d524612ee95db5df143a54518c5404d93f0
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748

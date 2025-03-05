@@ -3125,6 +3125,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"buffer@npm:^6.0.3":
+  version: 6.0.3
+  resolution: "buffer@npm:6.0.3"
+  dependencies:
+    base64-js: ^1.3.1
+    ieee754: ^1.2.1
+  checksum: 5ad23293d9a731e4318e420025800b42bf0d264004c0286c8cc010af7a270c7a0f6522e84f54b9ad65cbd6db20b8badbfd8d2ebf4f80fa03dab093b89e68c3f9
+  languageName: node
+  linkType: hard
+
 "bytes@npm:3.1.2":
   version: 3.1.2
   resolution: "bytes@npm:3.1.2"
@@ -3482,6 +3492,7 @@ __metadata:
     "@babel/core": ^7.25.2
     "@react-native/metro-config": ^0.76.3
     "@types/react": ~18.3.12
+    buffer: ^6.0.3
     expo: ~52.0.17
     expo-font: ^13.0.1
     expo-status-bar: ~2.0.0
@@ -3489,8 +3500,9 @@ __metadata:
     react: 18.3.1
     react-native: 0.76.3
     react-native-audio-api: 0.4.11
-    react-native-executorch: /Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.230.tgz
+    react-native-executorch: /Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.262.tgz
     react-native-image-picker: ^7.2.2
+    react-native-live-audio-stream: ^1.1.1
     react-native-loading-spinner-overlay: ^3.0.1
     react-native-reanimated: ^3.16.3
     react-native-safe-area-context: ^5.0.0
@@ -4824,7 +4836,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ieee754@npm:^1.1.13":
+"ieee754@npm:^1.1.13, ieee754@npm:^1.2.1":
   version: 1.2.1
   resolution: "ieee754@npm:1.2.1"
   checksum: 5144c0c9815e54ada181d80a0b810221a253562422e7c6c3a60b1901154184f49326ec239d618c416c1c5945a2e197107aee8d986a3dd836b53dffefd99b5e7e
@@ -6996,17 +7008,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-executorch@file:/Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.230.tgz::locator=computer-vision%40workspace%3A.":
-  version: 0.3.230
-  resolution: "react-native-executorch@file:/Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.230.tgz::locator=computer-vision%40workspace%3A."
+"react-native-executorch@file:/Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.262.tgz::locator=computer-vision%40workspace%3A.":
+  version: 0.3.262
+  resolution: "react-native-executorch@file:/Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.262.tgz::locator=computer-vision%40workspace%3A."
   dependencies:
     expo-asset: ^11.0.3
     expo-file-system: ^18.0.10
     react-native-audio-api: 0.4.11
+    react-native-live-audio-stream: ^1.1.1
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 6bd0794f0a7b3beb52e0c16b6d0b23defc13c665511aed72ead26c00bcd5369cfebd09b906563c31103a733a19aa0a25a77c3a1a0fafb242f058fdd6c1ae3040
+  checksum: a8415c76e5435cadfd60e21e14c8183ee38b7aa01fcbcb124a5f94f89e68a1131723d0ac4a505b87acb393fbd04d3cc7f0202266ea7cf47f53a6e099bf53390a
   languageName: node
   linkType: hard
 
@@ -7017,6 +7030,13 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 96d67516e8e1c1768c593ca1b0a507d5212d8ac5df2610ad9d6f38c188b8d0720966559867849f74b6c19d2500664ce17c907e5fa37ab72487abd363cf493e7d
+  languageName: node
+  linkType: hard
+
+"react-native-live-audio-stream@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "react-native-live-audio-stream@npm:1.1.1"
+  checksum: 1503fb1d9e2df58bf31bfa9ee3cf5167802a659ec64e3a6ca8ba2401b6388af158f9e04895699152e91eec66bcc949a3f35ae38fb63435ae28959b5be56bbd2e
   languageName: node
   linkType: hard
 
