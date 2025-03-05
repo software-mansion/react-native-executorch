@@ -89,7 +89,7 @@ function App() {
     <Button
       onPress=(async () => {
         // Alternatively, you can obtain audio from any other source and pass it to transcribe()
-        model.loadAudio(audioUrl);
+        await model.loadAudio(audioUrl);
         await model.transcribe();
       })
     />
