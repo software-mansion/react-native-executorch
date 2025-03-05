@@ -3,6 +3,8 @@ import { Spec as ClassificationInterface } from './NativeClassification';
 import { Spec as ObjectDetectionInterface } from './NativeObjectDetection';
 import { Spec as StyleTransferInterface } from './NativeStyleTransfer';
 import { Spec as ETModuleInterface } from './NativeETModule';
+import { Spec as OCRInterface } from './NativeOCR';
+import { Spec as VerticalOCRInterface } from './NativeVerticalOCR';
 
 const LINKING_ERROR =
   `The package 'react-native-executorch' doesn't seem to be linked. Make sure: \n\n` +
@@ -101,6 +103,19 @@ const OCR = OCRSpec
       }
     );
 
+const VerticalOCRSpec = require('./NativeVerticalOCR').default;
+
+const VerticalOCR = VerticalOCRSpec
+  ? VerticalOCRSpec
+  : new Proxy(
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
+
 class _ObjectDetectionModule {
   async forward(
     input: string
@@ -154,6 +169,50 @@ class _ClassificationModule {
   }
 }
 
+class _OCRModule {
+  async forward(input: string): ReturnType<OCRInterface['forward']> {
+    return await OCR.forward(input);
+  }
+
+  async loadModule(
+    detectorSource: string,
+    recognizerSourceLarge: string,
+    recognizerSourceMedium: string,
+    recognizerSourceSmall: string,
+    symbols: string
+  ) {
+    return await OCR.loadModule(
+      detectorSource,
+      recognizerSourceLarge,
+      recognizerSourceMedium,
+      recognizerSourceSmall,
+      symbols
+    );
+  }
+}
+
+class _VerticalOCRModule {
+  async forward(input: string): ReturnType<VerticalOCRInterface['forward']> {
+    return await VerticalOCR.forward(input);
+  }
+
+  async loadModule(
+    detectorLargeSource: string,
+    detectorMediumSource: string,
+    recognizerSource: string,
+    symbols: string,
+    independentCharacters: boolean
+  ): ReturnType<VerticalOCRInterface['loadModule']> {
+    return await VerticalOCR.loadModule(
+      detectorLargeSource,
+      detectorMediumSource,
+      recognizerSource,
+      symbols,
+      independentCharacters
+    );
+  }
+}
+
 class _ETModule {
   async forward(
     inputs: number[][],
@@ -182,9 +241,12 @@ export {
   StyleTransfer,
   SpeechToText,
   OCR,
+  VerticalOCR,
   _ETModule,
   _ClassificationModule,
   _StyleTransferModule,
   _ObjectDetectionModule,
   _SpeechToTextModule,
+  _OCRModule,
+  _VerticalOCRModule,
 };

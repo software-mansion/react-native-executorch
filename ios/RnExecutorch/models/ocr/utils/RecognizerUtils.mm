@@ -1,5 +1,6 @@
 #import "RecognizerUtils.h"
 #import "OCRUtils.h"
+#import "Constants.h"
 
 @implementation RecognizerUtils
 
@@ -56,21 +57,23 @@
 }
 
 + (cv::Mat)normalizeForRecognizer:(cv::Mat)image
-                   adjustContrast:(double)adjustContrast {
+                   adjustContrast:(double)adjustContrast
+                       isVertical:(BOOL)isVertical {
   if (adjustContrast > 0) {
     image = [self adjustContrastGrey:image target:adjustContrast];
   }
 
-  int desiredWidth = 128;
-  if (image.cols >= 512) {
-    desiredWidth = 512;
-  } else if (image.cols >= 256) {
-    desiredWidth = 256;
+  int desiredWidth = (isVertical) ? smallVerticalRecognizerWidth : smallRecognizerWidth;
+
+  if (image.cols >= largeRecognizerWidth) {
+    desiredWidth = largeRecognizerWidth;
+  } else if (image.cols >= mediumRecognizerWidth) {
+    desiredWidth = mediumRecognizerWidth;
   }
 
   image = [OCRUtils resizeWithPadding:image
                          desiredWidth:desiredWidth
-                        desiredHeight:64];
+                        desiredHeight:recognizerHeight];
 
   image.convertTo(image, CV_32F, 1.0 / 255.0);
   image = (image - 0.5) * 2.0;
@@ -218,6 +221,107 @@
     product *= [prob doubleValue];
   }
   return pow(product, 2.0 / sqrt(predsMaxProb.count));
+}
+
++ (cv::Mat)cropImageWithBoundingBox:(cv::Mat &)img
+                               bbox:(NSArray *)bbox
+                       originalBbox:(NSArray *)originalBbox
+                           paddings:(NSDictionary *)paddings
+                   originalPaddings:(NSDictionary *)originalPaddings {
+  CGPoint topLeft = [originalBbox[0] CGPointValue];
+  std::vector<cv::Point2f> points;
+  points.reserve(bbox.count);
+  for (NSValue *coords in bbox) {
+    CGPoint point = [coords CGPointValue];
+
+    point.x = point.x - [paddings[@"left"] intValue];
+    point.y = point.y - [paddings[@"top"] intValue];
+
+    point.x = point.x * [paddings[@"resizeRatio"] floatValue];
+    point.y = point.y * [paddings[@"resizeRatio"] floatValue];
+
+    point.x = point.x + topLeft.x;
+    point.y = point.y + topLeft.y;
+
+    point.x = point.x - [originalPaddings[@"left"] intValue];
+    point.y = point.y - [originalPaddings[@"top"] intValue];
+
+    point.x = point.x * [originalPaddings[@"resizeRatio"] floatValue];
+    point.y = point.y * [originalPaddings[@"resizeRatio"] floatValue];
+
+    points.emplace_back(cv::Point2f(point.x, point.y));
+  }
+
+  cv::Rect rect = cv::boundingRect(points);
+  cv::Mat croppedImage = img(rect);
+  return croppedImage;
+}
+
++ (cv::Mat)cropSingleCharacter:(cv::Mat)img {
+  cv::cvtColor(img, img, cv::COLOR_BGR2GRAY);
+  cv::resize(img, img, cv::Size(smallVerticalRecognizerWidth, recognizerHeight), 0, 0,
+             cv::INTER_AREA);
+  cv::medianBlur(img, img, 1);
+
+  cv::Mat histogram;
+
+  int histSize = 256;
+  float range[] = {0, 256};
+  const float *histRange = {range};
+  bool uniform = true, accumulate = false;
+
+  cv::calcHist(&img, 1, 0, cv::Mat(), histogram, 1, &histSize, &histRange, uniform,
+           accumulate);
+
+  int midPoint = histSize / 2;
+
+  double sumLeft = 0.0, sumRight = 0.0;
+  for (int i = 0; i < midPoint; i++) {
+    sumLeft += histogram.at<float>(i);
+  }
+  for (int i = midPoint; i < histSize; i++) {
+    sumRight += histogram.at<float>(i);
+  }
+
+  const int thresholdType = (sumLeft < sumRight) ? cv::THRESH_BINARY_INV : cv::THRESH_BINARY;
+
+  cv::Mat thresh;
+  cv::threshold(img, thresh, 0, 255, thresholdType + cv::THRESH_OTSU);
+
+  cv::Mat labels, stats, centroids;
+  const int numLabels =
+      connectedComponentsWithStats(thresh, labels, stats, centroids, 8);
+  const CGFloat centralThreshold = singleCharacterCenterThreshold;
+  const int height = thresh.rows;
+  const int width = thresh.cols;
+
+  const int minX = centralThreshold * width;
+  const int maxX = (1 - centralThreshold) * width;
+  const int minY = centralThreshold * height;
+  const int maxY = (1 - centralThreshold) * height;
+
+  int selectedComponent = -1;
+
+  for (int i = 1; i < numLabels; i++) {
+    const int area = stats.at<int>(i, cv::CC_STAT_AREA);
+    const double cx = centroids.at<double>(i, 0);
+    const double cy = centroids.at<double>(i, 1);
+
+    if (minX < cx && cx < maxX && minY < cy && cy < maxY && area > singleCharacterMinSize) {
+      if (selectedComponent == -1 ||
+          area > stats.at<int>(selectedComponent, cv::CC_STAT_AREA)) {
+        selectedComponent = i;
+      }
+    }
+  }
+  cv::Mat mask = cv::Mat::zeros(img.size(), CV_8UC1);
+  if (selectedComponent != -1) {
+    mask = (labels == selectedComponent) / 255;
+  }
+  cv::Mat resultImage = cv::Mat::zeros(img.size(), img.type());
+  img.copyTo(resultImage, mask);
+  cv::bitwise_not(resultImage, resultImage);
+  return resultImage;
 }
 
 @end

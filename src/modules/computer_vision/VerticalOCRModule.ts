@@ -1,26 +1,34 @@
-import { OCRController } from '../../controllers/OCRController';
+import { VerticalOCRController } from '../../controllers/VerticalOCRController';
 import { ResourceSource } from '../../types/common';
 import { OCRLanguage } from '../../types/ocr';
 
-export class OCRModule {
-  static module: OCRController;
+export class VerticalOCRModule {
+  static module: VerticalOCRController;
 
   static onDownloadProgressCallback = (_downloadProgress: number) => {};
 
   static async load(
-    detectorSource: ResourceSource,
+    detectorSources: {
+      detectorLarge: ResourceSource;
+      detectorNarrow: ResourceSource;
+    },
     recognizerSources: {
       recognizerLarge: ResourceSource;
-      recognizerMedium: ResourceSource;
       recognizerSmall: ResourceSource;
     },
-    language: OCRLanguage = 'en'
+    language: OCRLanguage = 'en',
+    independentCharacters: boolean = false
   ) {
-    this.module = new OCRController({
+    this.module = new VerticalOCRController({
       modelDownloadProgressCallback: this.onDownloadProgressCallback,
     });
 
-    await this.module.loadModel(detectorSource, recognizerSources, language);
+    await this.module.loadModel(
+      detectorSources,
+      recognizerSources,
+      language,
+      independentCharacters
+    );
   }
 
   static async forward(input: string) {
