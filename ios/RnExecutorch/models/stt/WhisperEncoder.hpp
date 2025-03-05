@@ -8,7 +8,7 @@
 
 @interface WhisperEncoder : BaseModel
 
-- (NSArray *)encode:(NSArray *)melSpectrogram;
+- (NSArray *)encode:(NSArray *)waveform;
 
 @end
 

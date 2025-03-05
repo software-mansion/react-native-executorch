@@ -4,11 +4,12 @@ import type { EventEmitter } from 'react-native/Libraries/Types/CodegenTypes';
 
 export interface Spec extends TurboModule {
   loadModule(
-    preprocessorSource: string,
-    encoderSource: string,
-    decoderSource: string
+    modelName: string,
+    modelSources: (string | number)[]
   ): Promise<number>;
   generate(waveform: number[]): Promise<number[]>;
+  encode(input: number[][]): Promise<number[]>;
+  decode(prevTokens: number[], encoderOutput: number[]): Promise<number[]>;
 
   readonly onToken: EventEmitter<number>;
 }
