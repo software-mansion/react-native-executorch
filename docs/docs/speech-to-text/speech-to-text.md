@@ -60,13 +60,14 @@ Specifies the size of each audio chunk.
 | `transcribe`   | `(input?: number[]) => Promise<string>` | Starts a transcription process for a given input array, which should be a waveform at 16kHz. When no input is provided, it uses an internal state which is set by calling `loadAudio`. Resolves a promise with the output transcription when the model is finished. |
 | `loadAudio`    | `(url: string) => void`                 | Loads audio file from given url. It sets an internal state which serves as an input to `transcribe()`.                                                                                                                                                              |
 | `error`        | <code>string &#124; null</code>         | Contains the error message if the model failed to load.                                                                                                                                                                                                             |
-| `response`     | <code>string &#124; null</code>         | This property is updated with each generated token. If you're looking to obtain tokens as they're generated, you should use this property.                                                                                                                                                                                                                 |
+| `sequence`     | <code>string &#124; null</code>         | This property is updated with each generated token. If you're looking to obtain tokens as they're generated, you should use this property.                                                                                                                                                                                                                 |
 | `isGenerating` | `boolean`                               | Indicates whether the model is currently processing an inference.                                                                                                                                                                                                   |
-| `isReady`      | `boolean`                               | Indicates whether the model has successfully loaded and is ready for inference.                                                                                                                                                                                     |
+| `isReady`      | `boolean`                               | Indicates whether the model has successfully loaded and is ready for inference. |
+| `downloadProgress`      | `number`                               | Tracks the progress of the model download process.                                                                                                                          |
 
 ## Running the model
 
-To run the model, you can use the `transcribe` method. It accepts one optional argument, which is the waveform representation of the audio. If you called `loadAudio` beforehand, you don't need to pass anything to `transcribe`. However, you can still pass this argument if you want to use your own audio. This function returns a promise, which will return the generated tokens when everything succeeds. If the model fails during inference, it will throw an error. If you want to obtain tokens in streaming fashion, you can also use the `.response` property which is updated with each generated token, analogously to the useLLM hook.
+To run the model, you can use the `transcribe` method. It accepts one optional argument, which is the waveform representation of the audio. If you called `loadAudio` beforehand, you don't need to pass anything to `transcribe`. However, you can still pass this argument if you want to use your own audio. This function returns a promise, which will return the generated tokens when everything succeeds. If the model fails during inference, it will throw an error. If you want to obtain tokens in streaming fashion, you can also use the `.sequence` property which is updated with each generated token, analogously to the useLLM hook.
 
 
 ## Example
@@ -92,7 +93,7 @@ function App() {
         await model.transcribe();
       })
     />
-    <Text>{model.response}</Text>
+    <Text>{model.sequence}</Text>
   )
   // ... Rest of your component
 }
