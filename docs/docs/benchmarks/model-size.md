@@ -39,5 +39,5 @@ sidebar_position: 1
 
 | Model          | XNNPACK [MB] |
 | -------------- | ------------ |
-| MOONSHINE_TINY | 148.9        |
 | WHISPER_TINY   | 231.0        |
+| MOONSHINE_TINY | 148.9        |

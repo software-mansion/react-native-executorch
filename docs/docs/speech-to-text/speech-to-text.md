@@ -3,7 +3,7 @@ title: useSpeechToText
 sidebar_position: 1
 ---
 
-With the latest `v0.3.0` release we introduce a new hook - `useSpeechToText`. Speech to text is a task that allows to transform spoken language to written text. It is commonly used to implement features such as transcription or voice assistants. As of now, [every supported STT model](#supported-models) runs on the XNNPack backend.
+With the latest `v0.3.0` release we introduce a new hook - `useSpeechToText`. Speech to text is a task that allows to transform spoken language to written text. It is commonly used to implement features such as transcription or voice assistants. As of now, [all supported STT models](#supported-models) run on the XNNPACK backend.
 
 :::info
 Currently, we do not support direct microphone input streaming to the model. Instead, in v0.3.0, we provide a way to transcribe an audio file.
@@ -107,24 +107,26 @@ function App() {
 
 ## Supported models
 
-- [Whisper (tiny.en)](https://github.com/openai/whisper)
-- [Moonshine (tiny)](https://github.com/usefulsensors/moonshine)
+| Model                                                                 | Language |
+| --------------------------------------------------------------------- | -------- |
+| [Whisper tiny.en](https://huggingface.co/openai/whisper-tiny.en)      | English  |
+| [Moonshine tiny](https://huggingface.co/UsefulSensors/moonshine-tiny) | English  |
 
 ## Benchmarks
 
 ### Model size
 
-| Model             | XNNPACK [MB] |
-| ----------------- | ------------ |
-| Whisper (tiny.en) | 231          |
-| Moonshine tiny    | 149          |
+| Model          | XNNPACK [MB] |
+| -------------- | ------------ |
+| WHISPER_TINY   | 231.0        |
+| MOONSHINE_TINY | 148.9        |
 
 ### Memory usage
 
-| Model             | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| ----------------- | ---------------------- | ------------------ |
-| Whisper (tiny.en) | ❌                     | 950                |
-| Moonshine (tiny)  | ❌                     | 868                |
+| Model          | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| -------------- | ---------------------- | ------------------ |
+| WHISPER_TINY   | ❌                     | 950                |
+| MOONSHINE_TINY | ❌                     | 868                |
 
 ### Inference time
 
@@ -132,16 +134,16 @@ function App() {
 Given that Whisper accepts a 30 seconds audio chunks, we employed a streaming algorithm to maintain consistency across long audio files. Therefore, data presented in this table may differ from what you experience in your apps.
 :::
 
-#### Decoder
+#### Encoding
 
-| Model             | iPhone 16 Pro (XNNPack) | iPhone 13 Pro (XNNPack) | iPhone SE 3 (XNNPack) | Samsung Galaxy S24 (XNNPack) |
-| ----------------- | ----------------------- | ----------------------- | --------------------- | ---------------------------- |
-| Whisper (tiny.en) | 8.65 tokens/s           | 5.41 tokens/s           | 5.31 tokens/s         | ❌                           |
-| Moonshine (tiny)  | 13.23 tokens/s          | 7.77 tokens/s           | 7.61 tokens/s         | ❌                           |
+| Model          | iPhone 16 Pro (XNNPACK) | iPhone 13 Pro (XNNPACK) | iPhone SE 3 (XNNPACK) | Samsung Galaxy S24 (XNNPACK) |
+| -------------- | ----------------------- | ----------------------- | --------------------- | ---------------------------- |
+| WHISPER_TINY   | 1.00s                   | 1.40s                   | 1.49s                 | ❌                           |
+| MOONSHINE_TINY | 0.48s                   | 0.69s                   | 0.69s                 | ❌                           |
 
-#### Encoder
+#### Decoding
 
-| Model             | iPhone 16 Pro (XNNPack) | iPhone 13 Pro (XNNPack) | iPhone SE 3 (XNNPack) | Samsung Galaxy S24 (XNNPack) |
-| ----------------- | ----------------------- | ----------------------- | --------------------- | ---------------------------- |
-| Whisper (tiny.en) | 1.00s                   | 1.40s                   | 1.49s                 | ❌                           |
-| Moonshine (tiny)  | 0.48s                   | 0.69s                   | 0.69s                 | ❌                           |
+| Model          | iPhone 16 Pro (XNNPACK) | iPhone 13 Pro (XNNPACK) | iPhone SE 3 (XNNPACK) | Samsung Galaxy S24 (XNNPACK) |
+| -------------- | ----------------------- | ----------------------- | --------------------- | ---------------------------- |
+| WHISPER_TINY   | 8.65 tokens/s           | 5.41 tokens/s           | 5.31 tokens/s         | ❌                           |
+| MOONSHINE_TINY | 13.23 tokens/s          | 7.77 tokens/s           | 7.61 tokens/s         | ❌                           |
