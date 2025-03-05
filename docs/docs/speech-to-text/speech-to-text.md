@@ -35,22 +35,22 @@ try {
 Given that STT models need to take in a specified sequence length, there is a need to chunk the input audio. Chunking audio may result in cutting speech mid-sentence, which might be hard to understand for the model. To make it work, we employed an algorithm that uses overlapping audio chunks which might introduce some overhead, but gives way better results.
 
 ### Arguments
-**`encoderSource`**
-A string that specifies the location of a .pte file for the encoder. For further information on passing model sources, check out [Loading Models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models).
+**`modelName`**
+A literal of `"moonshine" | "whisper"` which serves as an identifier for which model should be used.
 
-`decoderSource?`
-Analogous to the encoderSource, this takes in a string which is a source for the decoder part of the model. Defaults to our [HuggingFace repositories]().
+**`encoderSource?`**
+A string that specifies the location of a .pte file for the encoder. For further information on passing model sources, check out [Loading Models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models). Defaults to (constants)[https://github.com/software-mansion/react-native-executorch/blob/main/src/constants/modelUrls.ts] for given model.
 
-`tokenizerSource?`
-A string that specifies the location to the tokenizer for the model. This works just as the encoder and decoder do. Defaults to our [HuggingFace repositories]().
+**`decoderSource?`**
+Analogous to the encoderSource, this takes in a string which is a source for the decoder part of the model. Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/main/src/constants/modelUrls.ts) for given model.
 
-`modelName?`
-A literal of `"moonshine" | "whisper"` which serves as an identifier for which model should be used. Defaults to our [HuggingFace repositories]().
+**`tokenizerSource?`**
+A string that specifies the location to the tokenizer for the model. This works just as the encoder and decoder do. Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/main/src/constants/modelUrls.ts) for given model.
 
-`overlapSeconds?`
+**`overlapSeconds?`**
 Specifies the length of overlap between each audio chunk.
 
-`windowSize?`
+**`windowSize?`**
 Specifies the size of each audio chunk.
 
 ### Returns
