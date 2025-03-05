@@ -1,4 +1,5 @@
 #import "ImageSegmentationModel.h"
+#import <unordered_set>
 #import "../../utils/ImageProcessor.h"
 #import "../../utils/Numerical.h"
 #import "opencv2/opencv.hpp"
@@ -6,7 +7,8 @@
 
 @interface ImageSegmentationModel ()
   - (NSArray *)preprocess:(cv::Mat &)input;
-  - (NSDictionary *)postprocess:(NSArray *)output;
+  - (NSDictionary *)postprocess:(NSArray *)output
+                    returnClasses:(NSArray *)classesOfInterest;
 @end
 
 @implementation ImageSegmentationModel {
@@ -35,7 +37,8 @@
   return modelInput;
 }
 
-- (NSDictionary *)postprocess:(NSArray *)output {
+- (NSDictionary *)postprocess:(NSArray *)output
+                  returnClasses:(NSArray *)classesOfInterest{
   cv::Size modelImageSize = [self getModelImageSize];
 
   std::size_t numLabels = deeplabv3_resnet50_labels.size();
@@ -87,13 +90,21 @@
     maxArg.at<int>(row, col) = maxArgIndex;
   }
 
+  std::unordered_set<std::string> labelSet;
+
+  for (id label in classesOfInterest) {
+      labelSet.insert(std::string([label UTF8String]));
+  }
+
   NSMutableDictionary *result = [NSMutableDictionary dictionary];
-  
+
   // Convert to NSArray and populate the final dictionary
   for (std::size_t label = 0; label < numLabels; ++label) {
-    NSString *labelString = @(deeplabv3_resnet50_labels[label].c_str());
-    NSMutableArray *arr = matToNSArray<double>(resizedLabelScores[label]);
-    result[labelString] = arr;
+    if (labelSet.contains(deeplabv3_resnet50_labels[label])){
+        NSString *labelString = @(deeplabv3_resnet50_labels[label].c_str());
+        NSArray *arr = matToNSArray<double>(resizedLabelScores[label]);
+        result[labelString] = arr;
+    }
   }
 
   result[@"argmax"] = matToNSArray<int>(maxArg);
@@ -101,11 +112,12 @@
   return result;
 }
 
-- (NSDictionary *)runModel:(cv::Mat &)input {
+- (NSDictionary *)runModel:(cv::Mat &)input
+                  returnClasses:(NSArray *)classesOfInterest {
   NSArray *modelInput = [self preprocess:input];
   NSArray *result = [self forward:modelInput];
 
-  NSDictionary *output = [self postprocess:result[0]];
+  NSDictionary *output = [self postprocess:result[0] returnClasses:classesOfInterest];
 
   return output;
 }
