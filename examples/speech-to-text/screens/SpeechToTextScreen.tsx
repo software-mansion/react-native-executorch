@@ -106,7 +106,9 @@ export const SpeechToTextScreen = () => {
                     }
               }
             >
-              {sequence || 'Start transcription...'}
+              {sequence ||
+                (isModelGenerating && 'Transcribing...') ||
+                'Start transcription...'}
             </Text>
           </View>
         )}
@@ -227,8 +229,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   topContainerText: {
+    height: '100%',
     fontSize: 30,
-    marginTop: 16,
+    marginTop: 5,
     color: '#001A72',
     fontWeight: '600',
   },
