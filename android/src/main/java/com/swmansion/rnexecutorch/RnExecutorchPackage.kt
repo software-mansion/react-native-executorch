@@ -25,10 +25,11 @@ class RnExecutorchPackage : TurboReactPackage() {
       ObjectDetection(reactContext)
     } else if (name == SpeechToText.NAME) {
       SpeechToText(reactContext)
-    } else if (name == OCR.NAME){
+    } else if (name == OCR.NAME) {
       OCR(reactContext)
-    }
-    else {
+    } else if (name == VerticalOCR.NAME) {
+      VerticalOCR(reactContext)
+    } else {
       null
     }
 
@@ -44,54 +45,49 @@ class RnExecutorchPackage : TurboReactPackage() {
         true,
       )
       moduleInfos[ETModule.NAME] = ReactModuleInfo(
-        ETModule.NAME,
-        ETModule.NAME,
-        false,  // canOverrideExistingModule
+        ETModule.NAME, ETModule.NAME, false,  // canOverrideExistingModule
         false,  // needsEagerInit
         false,  // isCxxModule
         true
       )
 
       moduleInfos[StyleTransfer.NAME] = ReactModuleInfo(
-        StyleTransfer.NAME,
-        StyleTransfer.NAME,
-        false,  // canOverrideExistingModule
+        StyleTransfer.NAME, StyleTransfer.NAME, false,  // canOverrideExistingModule
         false,  // needsEagerInit
         false,  // isCxxModule
         true
       )
 
       moduleInfos[Classification.NAME] = ReactModuleInfo(
-        Classification.NAME,
-        Classification.NAME,
-        false,  // canOverrideExistingModule
+        Classification.NAME, Classification.NAME, false,  // canOverrideExistingModule
         false,  // needsEagerInit
         false,  // isCxxModule
         true
       )
 
       moduleInfos[ObjectDetection.NAME] = ReactModuleInfo(
-        ObjectDetection.NAME,
-        ObjectDetection.NAME,
-        false,  // canOverrideExistingModule
+        ObjectDetection.NAME, ObjectDetection.NAME, false,  // canOverrideExistingModule
         false,  // needsEagerInit
         false,  // isCxxModule
         true
       )
 
       moduleInfos[SpeechToText.NAME] = ReactModuleInfo(
-        SpeechToText.NAME,
-        SpeechToText.NAME,
-        false,  // canOverrideExistingModule
+        SpeechToText.NAME, SpeechToText.NAME, false,  // canOverrideExistingModule
         false,  // needsEagerInit
         false,  // isCxxModule
         true
       )
 
       moduleInfos[OCR.NAME] = ReactModuleInfo(
-        OCR.NAME,
-        OCR.NAME,
-        false,  // canOverrideExistingModule
+        OCR.NAME, OCR.NAME, false,  // canOverrideExistingModule
+        false,  // needsEagerInit
+        false,  // isCxxModule
+        true
+      )
+
+      moduleInfos[VerticalOCR.NAME] = ReactModuleInfo(
+        VerticalOCR.NAME, VerticalOCR.NAME, false,  // canOverrideExistingModule
         false,  // needsEagerInit
         false,  // isCxxModule
         true

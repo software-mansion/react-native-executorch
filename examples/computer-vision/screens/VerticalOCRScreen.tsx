@@ -2,17 +2,17 @@ import Spinner from 'react-native-loading-spinner-overlay';
 import { BottomBar } from '../components/BottomBar';
 import { getImage } from '../utils';
 import {
-  DETECTOR_CRAFT_800,
-  RECOGNIZER_EN_CRNN_128,
-  RECOGNIZER_EN_CRNN_256,
+  DETECTOR_CRAFT_1280,
+  DETECTOR_CRAFT_320,
   RECOGNIZER_EN_CRNN_512,
-  useOCR,
+  RECOGNIZER_EN_CRNN_64,
+  useVerticalOCR,
 } from 'react-native-executorch';
 import { View, StyleSheet, Image, Text, ScrollView } from 'react-native';
 import { useState } from 'react';
 import ImageWithBboxes2 from '../components/ImageWithOCRBboxes';
 
-export const OCRScreen = ({
+export const VerticalOCRScreen = ({
   imageUri,
   setImageUri,
 }: {
@@ -24,15 +24,17 @@ export const OCRScreen = ({
     width: number;
     height: number;
   }>();
-
-  const model = useOCR({
-    detectorSource: DETECTOR_CRAFT_800,
+  const model = useVerticalOCR({
+    detectorSources: {
+      detectorLarge: DETECTOR_CRAFT_1280,
+      detectorNarrow: DETECTOR_CRAFT_320,
+    },
     recognizerSources: {
       recognizerLarge: RECOGNIZER_EN_CRNN_512,
-      recognizerMedium: RECOGNIZER_EN_CRNN_256,
-      recognizerSmall: RECOGNIZER_EN_CRNN_128,
+      recognizerSmall: RECOGNIZER_EN_CRNN_64,
     },
     language: 'en',
+    independentCharacters: true,
   });
 
   const handleCameraPress = async (isCamera: boolean) => {

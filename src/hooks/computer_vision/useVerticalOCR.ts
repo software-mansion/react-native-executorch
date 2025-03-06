@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ResourceSource } from '../../types/common';
 import { OCRDetection, OCRLanguage } from '../../types/ocr';
-import { OCRController } from '../../controllers/OCRController';
+import { VerticalOCRController } from '../../controllers/VerticalOCRController';
 
 interface OCRModule {
   error: string | null;
@@ -11,18 +11,22 @@ interface OCRModule {
   downloadProgress: number;
 }
 
-export const useOCR = ({
-  detectorSource,
+export const useVerticalOCR = ({
+  detectorSources,
   recognizerSources,
   language = 'en',
+  independentCharacters = false,
 }: {
-  detectorSource: ResourceSource;
+  detectorSources: {
+    detectorLarge: ResourceSource;
+    detectorNarrow: ResourceSource;
+  };
   recognizerSources: {
     recognizerLarge: ResourceSource;
-    recognizerMedium: ResourceSource;
     recognizerSmall: ResourceSource;
   };
   language?: OCRLanguage;
+  independentCharacters?: boolean;
 }): OCRModule => {
   const [error, setError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -31,7 +35,7 @@ export const useOCR = ({
 
   const [model, _] = useState(
     () =>
-      new OCRController({
+      new VerticalOCRController({
         modelDownloadProgressCallback: setDownloadProgress,
         isReadyCallback: setIsReady,
         isGeneratingCallback: setIsGenerating,
@@ -41,12 +45,24 @@ export const useOCR = ({
 
   useEffect(() => {
     const loadModel = async () => {
-      await model.loadModel(detectorSource, recognizerSources, language);
+      await model.loadModel(
+        detectorSources,
+        recognizerSources,
+        language,
+        independentCharacters
+      );
     };
 
     loadModel();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [detectorSource, language, JSON.stringify(recognizerSources)]);
+  }, [
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    JSON.stringify(detectorSources),
+    language,
+    independentCharacters,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    JSON.stringify(recognizerSources),
+  ]);
 
   return {
     error,

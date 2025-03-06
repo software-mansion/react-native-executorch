@@ -9,12 +9,14 @@ import { View, StyleSheet } from 'react-native';
 import { ClassificationScreen } from './screens/ClassificationScreen';
 import { ObjectDetectionScreen } from './screens/ObjectDetectionScreen';
 import { OCRScreen } from './screens/OCRScreen';
+import { VerticalOCRScreen } from './screens/VerticalOCRScreen';
 
 enum ModelType {
   STYLE_TRANSFER,
   OBJECT_DETECTION,
   CLASSIFICATION,
   OCR,
+  VERTICAL_OCR,
 }
 
 export default function App() {
@@ -50,6 +52,10 @@ export default function App() {
         );
       case ModelType.OCR:
         return <OCRScreen imageUri={imageUri} setImageUri={setImageUri} />;
+      case ModelType.VERTICAL_OCR:
+        return (
+          <VerticalOCRScreen imageUri={imageUri} setImageUri={setImageUri} />
+        );
       default:
         return (
           <StyleTransferScreen imageUri={imageUri} setImageUri={setImageUri} />
@@ -70,6 +76,7 @@ export default function App() {
                 'Object Detection',
                 'Classification',
                 'OCR',
+                'Vertical OCR',
               ]}
               onValueChange={(_, selectedIndex) => {
                 handleModeChange(selectedIndex);
