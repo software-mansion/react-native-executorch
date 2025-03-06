@@ -234,6 +234,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 100,
   },
   recordingButtonWrapper: {
     flex: 1,

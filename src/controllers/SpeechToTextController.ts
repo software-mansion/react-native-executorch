@@ -169,6 +169,7 @@ export class SpeechToTextController {
   }
 
   private chunkWaveform(waveform: number[]) {
+    this.chunks = [];
     for (let i = 0; i < Math.ceil(waveform.length / this.windowSize); i++) {
       let chunk = waveform.slice(
         Math.max(this.windowSize * i - this.overlapSeconds * SECOND, 0),

@@ -3,13 +3,13 @@ package com.swmansion.rnexecutorch
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
-import com.swmansion.rnexecutorch.models.speechToText.BaseS2TModule
-import com.swmansion.rnexecutorch.models.speechToText.Moonshine
-import com.swmansion.rnexecutorch.models.speechToText.MoonshineDecoder
-import com.swmansion.rnexecutorch.models.speechToText.MoonshineEncoder
-import com.swmansion.rnexecutorch.models.speechToText.Whisper
-import com.swmansion.rnexecutorch.models.speechToText.WhisperDecoder
-import com.swmansion.rnexecutorch.models.speechToText.WhisperEncoder
+import com.swmansion.rnexecutorch.models.speechtotext.BaseS2TModule
+import com.swmansion.rnexecutorch.models.speechtotext.Moonshine
+import com.swmansion.rnexecutorch.models.speechtotext.MoonshineDecoder
+import com.swmansion.rnexecutorch.models.speechtotext.MoonshineEncoder
+import com.swmansion.rnexecutorch.models.speechtotext.Whisper
+import com.swmansion.rnexecutorch.models.speechtotext.WhisperDecoder
+import com.swmansion.rnexecutorch.models.speechtotext.WhisperEncoder
 import com.swmansion.rnexecutorch.utils.ArrayUtils
 import com.swmansion.rnexecutorch.utils.ArrayUtils.Companion.writableArrayToEValue
 import com.swmansion.rnexecutorch.utils.ETError
@@ -38,7 +38,6 @@ class SpeechToText(reactContext: ReactApplicationContext) : NativeSpeechToTextSp
       promise.reject(e.message!!, ETError.InvalidModelSource.toString())
       return
     }
-
 
     try {
       this.speechToTextModule.loadModel(modelSources.getString(0)!!, modelSources.getString(1)!!)

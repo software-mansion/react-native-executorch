@@ -8,7 +8,7 @@ import org.pytorch.executorch.Tensor
 
 class MoonshineDecoder(reactApplicationContext: ReactApplicationContext) : BaseS2TDecoder(reactApplicationContext) {
   private lateinit var generatedTokens: LongArray
-  private var innerDim = 288;
+  private var innerDim: Long = 288;
 
   override var methodName: String
     get() = "forward_cached"
