@@ -1,10 +1,10 @@
 package com.swmansion.rnexecutorch.utils
 
-import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableArray
-import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.WritableArray
 import org.pytorch.executorch.DType
+import org.pytorch.executorch.EValue
 import org.pytorch.executorch.Tensor
 
 class ArrayUtils {
@@ -91,5 +91,10 @@ class ArrayUtils {
       return resultArray
     }
 
+    fun writableArrayToEValue(input: WritableArray): EValue {
+      val size = input.size()
+      val preprocessorInputShape = longArrayOf(1, size.toLong())
+      return EValue.from(Tensor.fromBlob(createFloatArray(input), preprocessorInputShape))
+    }
   }
 }

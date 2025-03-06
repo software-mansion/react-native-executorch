@@ -46,6 +46,20 @@ export const STYLE_TRANSFER_UDNIE =
     ? 'https://huggingface.co/software-mansion/react-native-executorch-style-transfer-udnie/resolve/v0.2.0/coreml/style_transfer_udnie_coreml.pte'
     : 'https://huggingface.co/software-mansion/react-native-executorch-style-transfer-udnie/resolve/v0.2.0/xnnpack/style_transfer_udnie_xnnpack.pte';
 
+// S2T
+export const MOONSHINE_TINY_DECODER =
+  'https://huggingface.co/software-mansion/react-native-executorch-moonshine-tiny/resolve/v0.3.0/xnnpack/moonshine_tiny_xnnpack_decoder.pte';
+export const MOONSHINE_TINY_ENCODER =
+  'https://huggingface.co/software-mansion/react-native-executorch-moonshine-tiny/resolve/v0.3.0/xnnpack/moonshine_tiny_xnnpack_encoder.pte';
+export const MOONSHINE_TOKENIZER =
+  'https://huggingface.co/software-mansion/react-native-executorch-moonshine-tiny/resolve/v0.3.0/moonshine_tiny_tokenizer.json';
+export const WHISPER_TOKENIZER =
+  'https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/v0.3.0/whisper_tokenizer.json';
+export const WHISPER_TINY_DECODER =
+  'https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/v0.3.0/xnnpack/whisper_tiny_en_xnnpack_decoder.pte';
+export const WHISPER_TINY_ENCODER =
+  'https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/v0.3.0/xnnpack/whisper_tiny_en_xnnpack_encoder.pte';
+
 // OCR
 
 export const DETECTOR_CRAFT_1280 =
