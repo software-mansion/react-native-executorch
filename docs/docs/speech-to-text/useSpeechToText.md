@@ -138,19 +138,5 @@ function App() {
 ### Inference time
 
 :::warning warning
-Given that Whisper accepts a 30 seconds audio chunks, we employed a streaming algorithm to maintain consistency across long audio files. Therefore, data presented in this table may differ from what you experience in your apps.
+Given that Whisper accepts a 30 seconds audio chunks, we employed a streaming algorithm to maintain consistency across long audio files. Therefore, the inference time for benchmarks are not there yet.
 :::
-
-#### Encoding
-
-| Model          | iPhone 16 Pro (XNNPACK) | iPhone 13 Pro (XNNPACK) | iPhone SE 3 (XNNPACK) | Samsung Galaxy S24 (XNNPACK) |
-| -------------- | ----------------------- | ----------------------- | --------------------- | ---------------------------- |
-| WHISPER_TINY   | 1.00s                   | 1.40s                   | 1.49s                 | ❌                            |
-| MOONSHINE_TINY | 0.48s                   | 0.69s                   | 0.69s                 | ❌                            |
-
-#### Decoding
-
-| Model          | iPhone 16 Pro (XNNPACK) | iPhone 13 Pro (XNNPACK) | iPhone SE 3 (XNNPACK) | Samsung Galaxy S24 (XNNPACK) |
-| -------------- | ----------------------- | ----------------------- | --------------------- | ---------------------------- |
-| WHISPER_TINY   | 8.65 tokens/s           | 5.41 tokens/s           | 5.31 tokens/s         | ❌                            |
-| MOONSHINE_TINY | 13.23 tokens/s          | 7.77 tokens/s           | 7.61 tokens/s         | ❌                            |
