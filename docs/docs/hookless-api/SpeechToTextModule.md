@@ -44,7 +44,7 @@ type ResourceSource = string | number;
 
 ## Loading the model
 
-To load the model, use the `load` method. It accepts the `encoderSource`, `decoderSource`, `tokenizerSource` which are strings that specify the location of the binaries for the model. For more information, take a look at [loading models](../fundamentals/loading-models.md) page. This method returns a promise, which can resolve to an error or void.
+To load the model, use the `load` method. The required argument is `modelName`, which serves as an identifier for which model to use. It also accepts accepts optional arguments such as `encoderSource`, `decoderSource`, `tokenizerSource` which are strings that specify the location of the binaries for the model. For more information, take a look at [loading models](../fundamentals/loading-models.md) page. This method returns a promise, which can resolve to an error or void.
 
 ## Running the model
 
