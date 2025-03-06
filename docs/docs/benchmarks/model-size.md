@@ -52,3 +52,10 @@ sidebar_position: 1
 | LLAMA3_2_3B           | 6.43         |
 | LLAMA3_2_3B_SPINQUANT | 2.55         |
 | LLAMA3_2_3B_QLORA     | 2.65         |
+
+## Speech to text
+
+| Model          | XNNPACK [MB] |
+| -------------- | ------------ |
+| WHISPER_TINY   | 231.0        |
+| MOONSHINE_TINY | 148.9        |

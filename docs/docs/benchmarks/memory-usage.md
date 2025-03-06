@@ -47,3 +47,10 @@ sidebar_position: 2
 | LLAMA3_2_3B           | 7.1                    | 7.3                |
 | LLAMA3_2_3B_SPINQUANT | 3.7                    | 3.8                |
 | LLAMA3_2_3B_QLORA     | 4                      | 4.1                |
+
+## Speech to text
+
+| Model          | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| -------------- | ---------------------- | ------------------ |
+| WHISPER_TINY   | 900                    | 600                |
+| MOONSHINE_TINY | 650                    | 560                |
