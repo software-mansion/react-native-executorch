@@ -3,8 +3,8 @@ import { SpeechToTextController } from '../../controllers/SpeechToTextController
 import { ResourceSource } from '../../types/common';
 
 interface SpeechToTextModule {
-  isModelReady: boolean;
-  isModelGenerating: boolean;
+  isReady: boolean;
+  isGenerating: boolean;
   sequence: string;
   downloadProgress: number;
   error: Error | undefined;
@@ -61,8 +61,8 @@ export const useSpeechToText = ({
   }, [model, modelName, encoderSource, decoderSource, tokenizerSource]);
 
   return {
-    isModelReady: isReady,
-    isModelGenerating: isGenerating,
+    isReady,
+    isGenerating,
     downloadProgress,
     sequence: sequence,
     error: error,

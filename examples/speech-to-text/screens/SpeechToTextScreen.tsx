@@ -43,8 +43,8 @@ const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
 
 export const SpeechToTextScreen = () => {
   const {
-    isModelGenerating,
-    isModelReady,
+    isGenerating,
+    isReady,
     downloadProgress,
     sequence,
     error,
@@ -74,9 +74,9 @@ export const SpeechToTextScreen = () => {
   };
 
   const buttonDisabled =
-    modalVisible || isModelGenerating || !isModelReady || isRecording;
+    modalVisible || isGenerating || !isReady || isRecording;
   const recordingButtonDisabled =
-    modalVisible || !isModelReady || DeviceInfo.isEmulatorSync();
+    modalVisible || !isReady || DeviceInfo.isEmulatorSync();
 
   return (
     <>
@@ -114,7 +114,7 @@ export const SpeechToTextScreen = () => {
               }
             >
               {sequence ||
-                (isModelGenerating && 'Transcribing...') ||
+                (isGenerating && 'Transcribing...') ||
                 'Start transcription...'}
             </Text>
           </View>
@@ -179,7 +179,7 @@ export const SpeechToTextScreen = () => {
             ]}
           >
             <TouchableOpacity
-              disabled={recordingButtonDisabled || isModelGenerating}
+              disabled={recordingButtonDisabled || isGenerating}
               style={[
                 styles.recordingButton,
                 recordingButtonDisabled && {
