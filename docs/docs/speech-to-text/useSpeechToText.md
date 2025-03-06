@@ -18,13 +18,13 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ```typescript
 import { useSpeechToText } from 'react-native-executorch';
 
-const { transcribe, error } = useSpeechToText({
+const { transcribe, error, loadAudio } = useSpeechToText({
   modelName: 'moonshine',
 });
 
 const audioUrl = ...; // URL with audio to transcribe
 
-await model.loadAudio(audioUrl);
+await loadAudio(audioUrl);
 const transcription = await transcribe();
 if (error) {
   console.log(error);
@@ -65,8 +65,8 @@ Specifies the size of each audio chunk (expressed in seconds).
 | `loadAudio`        | `(url: string) => void`                 | Loads audio file from given url. It sets an internal state which serves as an input to `transcribe()`.                                                                                                                                                              |
 | `error`            | <code>Error &#124; undefined</code>         | Contains the error message if the model failed to load.                                                                                                                                                                                                             |
 | `sequence`         | <code>string</code>         | This property is updated with each generated token. If you're looking to obtain tokens as they're generated, you should use this property.                                                                                                                          |
-| `isModelGenerating`     | `boolean`                               | Indicates whether the model is currently processing an inference.                                                                                                                                                                                                   |
-| `isModelReady`          | `boolean`                               | Indicates whether the model has successfully loaded and is ready for inference.                                                                                                                                                                                     |
+| `isGenerating`     | `boolean`                               | Indicates whether the model is currently processing an inference.                                                                                                                                                                                                   |
+| `isReady`          | `boolean`                               | Indicates whether the model has successfully loaded and is ready for inference.                                                                                                                                                                                     |
 | `downloadProgress` | `number`                                | Tracks the progress of the model download process.                                                                                                                                                                                                                  |
 
 ## Running the model
@@ -80,7 +80,7 @@ import { Button, Text } from 'react-native';
 import { useSpeechToText } from 'react-native-executorch';
 
 function App() {
-  const { loadAudio, transcribe, sequence } = useSpeechToText({
+  const { loadAudio, transcribe, sequence, error } = useSpeechToText({
     modelName: 'whisper',
   });
 
@@ -90,16 +90,12 @@ function App() {
     <View>
       <Button
         onPress={async () => {
-          try {
-            await loadAudio(audioUrl);
-            await transcribe();
-          } catch (error) {
-            console.error("Error transcribing audio:", error);
-          }
+          await loadAudio(audioUrl);
+          await transcribe();
         }
         title="Transcribe"
       />
-      <Text>{sequence}</Text>
+      <Text>{error ? error : sequence}</Text>
     </View>
   );
 }
