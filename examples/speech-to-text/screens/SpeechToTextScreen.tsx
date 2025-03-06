@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   topContainerText: {
-    height: '100%',
+    height: 35,
     fontSize: 30,
     marginTop: 5,
     color: '#001A72',
