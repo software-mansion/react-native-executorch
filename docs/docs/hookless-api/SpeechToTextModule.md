@@ -33,6 +33,15 @@ const transcribedText = await SpeechToTextModule.transcribe();
 | `encode`     | `(waveform: number[]) => Promise<number[]>`                                                                                                                                                                                                                                | Runs the encoding part of the model. Returns a float array representing the output of the encoder.                                                                                                                                                                                                                                          |
 | `decode`     | `(tokens: number[], encodings: number[]) => Promise<number[]>`                                                                                                                                                                                                             | Runs the decoder of the model. Returns a single token representing a next token in the output sequence.                                                                                                                                                                                                                                     |
 
+<details>
+<summary>Type definitions</summary>
+
+```typescript
+type ResourceSource = string | number;
+```
+
+</details>
+
 ## Loading the model
 
 To load the model, use the `load` method. It accepts the `encoderSource`, `decoderSource`, `tokenizerSource` which are strings that specify the location of the binaries for the model. For more information, take a look at [loading models](../fundamentals/loading-models.md) page. This method returns a promise, which can resolve to an error or void.
