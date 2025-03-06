@@ -16,29 +16,26 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## Reference
 
 ```typescript
-import { useSpeechToText, MOONSHINE_TOKENIZER_URL, MOONSHINE_TINY_ENCODER_URL, MOONSHINE_TINY_DECODER_URL } from 'react-native-executorch';
+import { useSpeechToText } from 'react-native-executorch';
 
-const model = useSpeechToText({
-  encoderSource: MOONSHINE_TINY_ENCODER_URL,
-  decoderSource: MOONSHINE_TINY_DECODER_URL,
-  tokenizerSource: MOONSHINE_TOKENIZER_URL,
+const {transcribe, error} = useSpeechToText({
   modelName: 'moonshine',
 });
 
-const audioUrl = 'https://your-url.com/your-audio.mp3';
+const audioUrl = ...; // url with audio to transcribe
 
-try {
-  await model.loadAudio(audioUrl);
-  const transcription = await model.transcribe();
+await model.loadAudio(audioUrl);
+const transcription = await transcribe();
+if (error) {
+  console.log(error);
+} else {
   console.log(transcription);
-} catch (error) {
-  console.error(error);
 }
 ```
 
 ### Streaming
 
-Given that STT models take in a fixed length sequence, there is a need to chunk the input audio. Chunking audio may result in cutting speech mid-sentence, which might be hard to understand for the model. To make it work, we employed an algorithm that uses overlapping audio chunks which might introduce some overhead, but yield way better transcription results for longer audio.
+Given that STT models can process audio no longer than 30 seconds, there is a need to chunk the input audio. Chunking audio may result in cutting speech mid-sentence, which might be hard to understand for the model. To make it work, we employed an algorithm (adapted for mobile devices from [whisper-streaming](https://aclanthology.org/2023.ijcnlp-demo.3.pdf)) that uses overlapping audio chunks. This might introduce some overhead, but allows for processing audio inputs of arbitrary length.
 
 ### Arguments
 
@@ -55,10 +52,10 @@ Analogous to the encoderSource, this takes in a string which is a source for the
 A string that specifies the location to the tokenizer for the model. This works just as the encoder and decoder do. Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/main/src/constants/modelUrls.ts) for given model.
 
 **`overlapSeconds?`**
-Specifies the length of overlap between consecutive audio chunks.
+Specifies the length of overlap between consecutive audio chunks (expressed in seconds).
 
 **`windowSize?`**
-Specifies the size of each audio chunk.
+Specifies the size of each audio chunk (expressed in seconds).
 
 ### Returns
 
@@ -66,28 +63,24 @@ Specifies the size of each audio chunk.
 | ------------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `transcribe`       | `(input?: number[]) => Promise<string>` | Starts a transcription process for a given input array, which should be a waveform at 16kHz. When no input is provided, it uses an internal state which is set by calling `loadAudio`. Resolves a promise with the output transcription when the model is finished. |
 | `loadAudio`        | `(url: string) => void`                 | Loads audio file from given url. It sets an internal state which serves as an input to `transcribe()`.                                                                                                                                                              |
-| `error`            | <code>string &#124; null</code>         | Contains the error message if the model failed to load.                                                                                                                                                                                                             |
-| `sequence`         | <code>string &#124; null</code>         | This property is updated with each generated token. If you're looking to obtain tokens as they're generated, you should use this property.                                                                                                                          |
-| `isGenerating`     | `boolean`                               | Indicates whether the model is currently processing an inference.                                                                                                                                                                                                   |
-| `isReady`          | `boolean`                               | Indicates whether the model has successfully loaded and is ready for inference.                                                                                                                                                                                     |
+| `error`            | <code>Error &#124; undefined</code>         | Contains the error message if the model failed to load.                                                                                                                                                                                                             |
+| `sequence`         | <code>string</code>         | This property is updated with each generated token. If you're looking to obtain tokens as they're generated, you should use this property.                                                                                                                          |
+| `isModelGenerating`     | `boolean`                               | Indicates whether the model is currently processing an inference.                                                                                                                                                                                                   |
+| `isModelReady`          | `boolean`                               | Indicates whether the model has successfully loaded and is ready for inference.                                                                                                                                                                                     |
 | `downloadProgress` | `number`                                | Tracks the progress of the model download process.                                                                                                                                                                                                                  |
 
 ## Running the model
 
-To run the model, you can use the `transcribe` method. It accepts one optional argument: the waveform representation of the audio. If you called `loadAudio` beforehand, you don't need to pass anything to `transcribe`. However, you can still pass this argument if you want to use your own audio.
-This function returns a promise, which resolves to the generated tokens when successful. If the model fails during inference, it will throw an error. If you want to obtain tokens in a streaming fashion, you can also use the sequence property, which is updated with each generated token, similar to the [useLLM](../llms/useLLM.md) hook.
+Before running the model's `transcribe` method be sure to obtain waveform of the audio You wish to transcribe. You can either use `loadAudio` method to load audio from a url and save it in model's internal state or obtain the waveform on your own (remember to use sampling rate of 16kHz!). In the latter case just pass the obtained waveform as argument to the `transcribe` method which returns a promise resolving to the generated tokens when successful. If the model fails during inference the `error` property contains details of the error. If you want to obtain tokens in a streaming fashion, you can also use the sequence property, which is updated with each generated token, similar to the [useLLM](../llms/useLLM.md) hook.
 
 ## Example
 
 ```typescript
 import { Button, Text } from 'react-native';
-import { useSpeechToText, WHISPER_TOKENIZER_URL, WHISPER_TINY_ENCODER_URL, WHISPER_TINY_DECODER_URL } from 'react-native-executorch';
+import { useSpeechToText } from 'react-native-executorch';
 
 function App() {
-  const model = useSpeechToText({
-    encoderSource: WHISPER_TINY_ENCODER_URL,
-    decoderSource: WHISPER_TINY_DECODER_URL,
-    tokenizerSource: WHISPER_TOKENIZER_URL,
+  const {loadAudio, transcribe, sequence} = useSpeechToText({
     modelName: 'whisper',
   });
 
@@ -98,15 +91,15 @@ function App() {
       <Button
         onPress={async () => {
           try {
-            await model.loadAudio(audioUrl);
-            await model.transcribe();
+            await loadAudio(audioUrl);
+            await transcribe();
           } catch (error) {
             console.error("Error transcribing audio:", error);
           }
-        }}
+        }
         title="Transcribe"
       />
-      <Text>{model.sequence}</Text>
+      <Text>{sequence}</Text>
     </View>
   );
 }
@@ -134,9 +127,3 @@ function App() {
 | -------------- | ---------------------- | ------------------ |
 | WHISPER_TINY   | 900                    | 600                |
 | MOONSHINE_TINY | 650                    | 560                |
-
-### Inference time
-
-:::warning warning
-Given that Whisper accepts a 30 seconds audio chunks, we employed a streaming algorithm to maintain consistency across long audio files. Therefore, the inference time for benchmarks are not there yet.
-:::
