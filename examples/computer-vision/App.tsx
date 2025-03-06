@@ -71,7 +71,6 @@ export default function App() {
           <View style={styles.wheelPickerContainer}>
             <ScrollPicker
               dataSource={[
-                'Speech To Text',
                 'Style Transfer',
                 'Object Detection',
                 'Classification',
