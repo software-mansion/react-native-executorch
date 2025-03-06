@@ -1,136 +1,35 @@
 #import "SpeechToText.h"
 #import "models/BaseModel.h"
-#import "models/stt/WhisperDecoder.hpp"
-#import "models/stt/WhisperEncoder.hpp"
 #import <Accelerate/Accelerate.h>
+#import "models/stt/Whisper.hpp"
+#import "models/stt/Moonshine.hpp"
+#import "utils/SFFT.hpp"
 #import <ExecutorchLib/ETModel.h>
 #import <React/RCTBridgeModule.h>
 #import "./utils/ScalarType.h"
+#import "models/stt/SpeechToTextBaseModel.hpp"
 
 @implementation SpeechToText {
-  WhisperEncoder *encoder;
-  WhisperDecoder *decoder;
-  BaseModel *preprocessor;
-  NSNumber *START_TOKEN;
-  NSNumber *EOS_TOKEN;
-  int fftSize;
-  int fftHopLength;
-  int maxSeqLen;
-}
-
-- (instancetype)init {
-  self = [super init];
-  if (self) {
-    maxSeqLen = 512;
-    fftSize = 512;
-    fftHopLength = 160;
-    START_TOKEN = @50257;
-    EOS_TOKEN = @50256;
-  }
-  return self;
+  Whisper *whisper;
+  Moonshine *moonshine;
 }
 
 RCT_EXPORT_MODULE()
-
-- (NSArray *)stftFromWaveform:(NSArray *)waveform {
-  FFTSetup fftSetup = vDSP_create_fftsetup(log2(self->fftSize), kFFTRadix2);
-  if (!fftSetup) {
-    NSLog(@"Error creating FFT setup.");
-  }
-
-  // Generate Hann Window coefficients.
-  // https://www.mathworks.com/help/signal/ref/hann.html
-  float hann[self->fftSize];
-  for (int i = 0; i < self->fftSize; i++) {
-    hann[i] = 0.5 * (1 - cos(2 * M_PI * i / (self->fftSize - 1)));
-  }
-
-  NSMutableArray *stftResult = [NSMutableArray new];
-  int currentIndex = 0;
-  while (currentIndex + self->fftSize <= waveform.count) {
-    float signal[self->fftSize];
-
-    // Extract signal and apply the Hann window
-    for (int i = 0; i < self->fftSize; i++) {
-      signal[i] = [waveform[currentIndex + i] floatValue] * hann[i];
-    }
-
-    [self fft:signal fftSetup:fftSetup magnitudes:stftResult];
-
-    currentIndex += self->fftHopLength;
-  }
-
-  vDSP_destroy_fftsetup(fftSetup);
-  return stftResult;
-}
-
-- (void)fft:(float *)signal
-      fftSetup:(FFTSetup)fftSetup
-    magnitudes:(NSMutableArray *)magnitudes {
-  const int log2n = log2(self->fftSize);
-  DSPSplitComplex a;
-  a.realp = (float *)malloc(self->fftSize / 2 * sizeof(float));
-  a.imagp = (float *)malloc(self->fftSize / 2 * sizeof(float));
-
-  // Perform the FFT
-  vDSP_ctoz((DSPComplex *)signal, 2, &a, 1, self->fftSize / 2);
-  vDSP_fft_zrip(fftSetup, &a, 1, log2n, FFT_FORWARD);
-
-  // Zero out Nyquist component
-  a.imagp[0] = 0.0f;
-
-  const float magnitudeScale = 1.0f / self->fftSize;
-  for (int i = 0; i < self->fftSize / 2; ++i) {
-    double magnitude = sqrt(a.realp[i] * a.realp[i] + a.imagp[i] * a.imagp[i]) *
-                       magnitudeScale;
-    // FIXME: we don't need that, but if we remove this we have to get rid of
-    // reversing this operation in the preprocessing part
-    double magnitudeDb = 20 * log10f(magnitude);
-    // Push to the result array
-    [magnitudes addObject:@(magnitudeDb)];
-  }
-
-  // Cleanup
-  free(a.realp);
-  free(a.imagp);
-}
 
 - (void)generate:(NSArray *)waveform
          resolve:(RCTPromiseResolveBlock)resolve
           reject:(RCTPromiseRejectBlock)reject {
   @try {
-    NSArray *stft = [self stftFromWaveform:waveform];
+    SpeechToTextBaseModel* model = self->whisper ? self->whisper : self->moonshine;
+
     dispatch_async(
         dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-          NSUInteger fftFrameLength = self->fftSize / 2;
-          NSMutableArray *mutablePrevTokens = [NSMutableArray arrayWithObject:self->START_TOKEN];
-                
-          if (!self->encoder || !self->decoder || !self->preprocessor) {
-            reject(@"model_initialization_error", nil, nil);
-            return;
-          }
+          NSArray *encodingResult = [model encode:waveform];
 
-          NSNumber *numFrames =
-              [NSNumber numberWithDouble:(stft.count / fftFrameLength)];
-          NSArray *mel = [self->preprocessor
-                 forward:@[ stft ]
-                  shapes:@[ @[
-                    numFrames,
-                    [NSNumber numberWithUnsignedInteger:fftFrameLength]
-                  ] ]
-              inputTypes:@[ ScalarType.Float ]];
-          NSDate *start = [NSDate date];
-          NSArray *encodingResult = [self->encoder encode:@[ mel ]];
-          
-
-          if (!encodingResult) {
-            reject(@"forward_error", @"Encoding returned an empty result.", nil);
-            return;
-          }
-
+          NSMutableArray *mutablePrevTokens = [NSMutableArray arrayWithObject:model->START_TOKEN];
           NSNumber *currentSeqLen = @0;
-          while ([currentSeqLen unsignedIntegerValue] < self -> maxSeqLen) {
-            NSArray *result = [self->decoder decode:mutablePrevTokens
+          while ([currentSeqLen unsignedIntegerValue] < model->maxSeqLen) {
+            NSArray *result = [model decode:mutablePrevTokens
                              encoderLastHiddenState:encodingResult];
             if (!result || result.count == 0) {
               reject(@"forward_error", @"Decoder returned an empty result.",
@@ -140,7 +39,7 @@ RCT_EXPORT_MODULE()
             NSNumber *predictedToken = result[0];
             [mutablePrevTokens addObject:predictedToken];
             [self emitOnToken:predictedToken];
-            if ([predictedToken isEqualToNumber:self->EOS_TOKEN]) {
+            if ([predictedToken isEqualToNumber:model->EOS_TOKEN]) {
               break;
             }
             currentSeqLen = @([currentSeqLen unsignedIntegerValue] + 1);
@@ -154,64 +53,44 @@ RCT_EXPORT_MODULE()
   }
 }
 
-- (void)loadModule:(NSString *)preprocessorSource
-     encoderSource:(NSString *)encoderSource
-     decoderSource:(NSString *)decoderSource
+- (void)loadModule:(NSString *)modelName
+      modelSources:(NSArray*)modelSources
            resolve:(RCTPromiseResolveBlock)resolve
             reject:(RCTPromiseRejectBlock)reject {
 
-  preprocessor = [[BaseModel alloc] init];
-  encoder = [[WhisperEncoder alloc] init];
-  decoder = [[WhisperDecoder alloc] init];
+  if ([modelSources count] != 2) {
+    reject(@"corrupted model sources", nil, nil);
+    return;
+  }
+  if (![@[@"moonshine", @"whisper"] containsObject:modelName]) {
+      reject(@"invalid_model_identifier", nil, nil);
+      return;
+  }
 
-  // Load preprocessor first
-  [self loadModuleHelper:preprocessor
-      withSource:preprocessorSource
-      onSuccess:^{
-        // Load encoder after preprocessor
-        [self loadModuleHelper:self->encoder
-            withSource:encoderSource
-            onSuccess:^{
-              // Load decoder after encoder
-              [self loadModuleHelper:self->decoder
-                  withSource:decoderSource
-                  onSuccess:^{
-                    resolve(@(0));
-                  }
-                  onFailure:^(NSString *errorCode) {
-                    reject(@"init_decoder_error", errorCode, nil);
-                  }];
-            }
-            onFailure:^(NSString *errorCode) {
-              reject(@"init_encoder_error", errorCode, nil);
-            }];
-      }
-      onFailure:^(NSString *errorCode) {
-        reject(@"init_preprocessor_error", errorCode, nil);
-      }];
-}
+  SpeechToTextBaseModel* model;
+  if([modelName isEqualToString:@"moonshine"]) {
+    moonshine = [[Moonshine alloc] init];
+    model = moonshine;
+  }
+  if([modelName isEqualToString:@"whisper"]) {
+    whisper = [[Whisper alloc] init];
+    model = whisper;
+  }
 
-- (void)loadModuleHelper:(id)model
-              withSource:(NSString *)source
-               onSuccess:(void (^)(void))success
-               onFailure:(void (^)(NSString *))failure {
-
-  [model loadModel:[NSURL URLWithString:source]
-        completion:^(BOOL isSuccess, NSNumber *errorCode) {
-          if (isSuccess) {
-            success();
-          } else {
-            failure([NSString
-                stringWithFormat:@"%ld", (long)[errorCode longValue]]);
-          }
-        }];
+  @try {
+    [model loadModules:modelSources];
+    resolve(@(0));
+  } @catch (NSException *exception) {
+    reject(@"init_decoder_error", [NSString stringWithFormat:@"%@", exception.reason], nil);
+  }
 }
 
 - (void)encode:(NSArray *)input
        resolve:(RCTPromiseResolveBlock)resolve
         reject:(RCTPromiseRejectBlock)reject {
+  SpeechToTextBaseModel* model = self->whisper ? self->whisper : self->moonshine;
   @try {
-    NSArray *encodingResult = [encoder encode:input];
+    NSArray *encodingResult = [model encode:input];
     resolve(encodingResult);
   } @catch (NSException *exception) {
     reject(@"forward_error",
@@ -223,8 +102,9 @@ RCT_EXPORT_MODULE()
     encoderOutput:(NSArray *)encoderOutput
           resolve:(RCTPromiseResolveBlock)resolve
            reject:(RCTPromiseRejectBlock)reject {
+  SpeechToTextBaseModel* model = self->whisper ? self->whisper : self->moonshine;
   @try {
-    NSArray *token = [decoder decode:prevTokens
+    NSArray *token = [model decode:prevTokens
               encoderLastHiddenState:encoderOutput];
     resolve(token);
   } @catch (NSException *exception) {

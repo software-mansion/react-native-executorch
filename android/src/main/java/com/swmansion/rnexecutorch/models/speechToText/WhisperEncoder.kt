@@ -1,26 +1,46 @@
-package com.swmansion.rnexecutorch.models.speechToText
+package com.swmansion.rnexecutorch.models.speechtotext
 
+import android.util.Log
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext
+import com.swmansion.rnexecutorch.utils.ArrayUtils
+import com.facebook.react.bridge.ReadableArray
+import com.facebook.react.bridge.WritableArray
 import com.swmansion.rnexecutorch.models.BaseModel
+import com.swmansion.rnexecutorch.utils.STFT
 import org.pytorch.executorch.EValue
 import org.pytorch.executorch.Tensor
 
 class WhisperEncoder(reactApplicationContext: ReactApplicationContext) :
-  BaseModel<EValue, EValue>(reactApplicationContext) {
-    private val encoderInputShape = longArrayOf(1L, 80L, 3000L)
+  BaseModel<ReadableArray, WritableArray>(reactApplicationContext) {
 
-  override fun runModel(input: EValue): EValue {
+  private val fftSize = 512
+  private val hopLength = 160
+  private val stftFrameSize = (this.fftSize / 2).toLong()
+  private val stft = STFT(fftSize, hopLength)
+
+  override fun runModel(input: ReadableArray): WritableArray {
     val inputEValue = this.preprocess(input)
     val hiddenState = this.module.forward(inputEValue)
-    return hiddenState[0]
+    return this.postprocess(hiddenState)
   }
 
-  override fun preprocess(input: EValue): EValue {
-    val inputTensor = Tensor.fromBlob(input.toTensor().dataAsFloatArray, this.encoderInputShape)
+  override fun preprocess(input: ReadableArray): EValue {
+    val waveformFloatArray = ArrayUtils.createFloatArray(input)
+
+    val stftResult = this.stft.fromWaveform(waveformFloatArray)
+    val numStftFrames = stftResult.size / this.stftFrameSize
+    val inputTensor = Tensor.fromBlob(stftResult, longArrayOf(numStftFrames, this.stftFrameSize))
     return EValue.from(inputTensor)
   }
 
-  override fun postprocess(output: Array<EValue>): EValue {
-    TODO("Not yet implemented")
+  public override fun postprocess(output: Array<EValue>): WritableArray {
+    val outputWritableArray: WritableArray = Arguments.createArray()
+
+    output[0].toTensor().dataAsFloatArray.map {
+      outputWritableArray.pushDouble(
+        it.toDouble()
+    )}
+    return outputWritableArray
   }
 }

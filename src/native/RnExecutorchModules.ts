@@ -141,20 +141,20 @@ class _StyleTransferModule {
 }
 
 class _SpeechToTextModule {
-  async generate(waveform: number[]): Promise<number[]> {
+  async generate(waveform: number[][]): Promise<number[]> {
     return await SpeechToText.generate(waveform);
   }
 
-  async loadModule(
-    preprocessorSource: string | number,
-    encoderSource: string | number,
-    decoderSource: string | number
-  ) {
-    return await SpeechToText.loadModule(
-      preprocessorSource,
-      encoderSource,
-      decoderSource
-    );
+  async loadModule(modelName: String, modelSources: (string | number)[]) {
+    return await SpeechToText.loadModule(modelName, modelSources);
+  }
+
+  async encode(input: number[]) {
+    return await SpeechToText.encode(input);
+  }
+
+  async decode(prevTokens: number[], encoderOutput: number[]) {
+    return await SpeechToText.decode(prevTokens, encoderOutput);
   }
 }
 
