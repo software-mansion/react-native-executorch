@@ -86,9 +86,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.mkopcins.speechtotext'
+    namespace 'com.anonymous.speechtotext'
     defaultConfig {
-        applicationId 'com.mkopcins.speechtotext'
+        applicationId 'com.anonymous.speechtotext'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

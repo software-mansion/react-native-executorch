@@ -1,4 +1,4 @@
-package com.mkopcins.speechtotext
+package com.anonymous.speechtotext
 
 import android.os.Build
 import android.os.Bundle
