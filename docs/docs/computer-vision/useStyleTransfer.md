@@ -1,6 +1,6 @@
 ---
 title: useStyleTransfer
-sidebar_position: 3
+sidebar_position: 2
 ---
 
 Style transfer is a technique used in computer graphics and machine learning where the visual style of one image is applied to the content of another. This is achieved using algorithms that manipulate data from both images, typically with the aid of a neural network. The result is a new image that combines the artistic elements of one picture with the structural details of another, effectively merging art with traditional imagery. React Native ExecuTorch offers a dedicated hook `useStyleTransfer`, for this task. However before you start you'll need to obtain ExecuTorch-compatible model binary.
@@ -37,12 +37,13 @@ A string that specifies the location of the model binary. For more information, 
 
 ### Returns
 
-| Field          | Type                                 | Description                                                                                              |
-| -------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| `forward`      | `(input: string) => Promise<string>` | Executes the model's forward pass, where `input` can be a fetchable resource or a Base64-encoded string. |
-| `error`        | <code>string &#124; null</code>      | Contains the error message if the model failed to load.                                                  |
-| `isGenerating` | `boolean`                            | Indicates whether the model is currently processing an inference.                                        |
-| `isReady`      | `boolean`                            | Indicates whether the model has successfully loaded and is ready for inference.                          |
+| Field              | Type                                 | Description                                                                                              |
+| ------------------ | ------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| `forward`          | `(input: string) => Promise<string>` | Executes the model's forward pass, where `input` can be a fetchable resource or a Base64-encoded string. |
+| `error`            | <code>string &#124; null</code>      | Contains the error message if the model failed to load.                                                  |
+| `isGenerating`     | `boolean`                            | Indicates whether the model is currently processing an inference.                                        |
+| `isReady`          | `boolean`                            | Indicates whether the model has successfully loaded and is ready for inference.                          |
+| `downloadProgress` | `number`                             | Represents the download progress as a value between 0 and 1.                                             |
 
 ## Running the model
 
