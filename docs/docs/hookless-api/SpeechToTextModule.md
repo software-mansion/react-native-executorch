@@ -3,14 +3,14 @@ title: SpeechToTextModule
 sidebar_position: 6
 ---
 
-Hookless implementation of the [useSpeechToText](../speech-to-text/) hook.
+Hookless implementation of the [useSpeechToText](../speech-to-text/useSpeechToText.md) hook.
 
 ## Reference
 
 ```typescript
 import { SpeechToTextModule } from 'react-native-executorch';
 
-const audioUrl = 'https://www.your-url.com/cool-audio.mp3';
+const audioUrl = ...; // URL with audio to transcribe
 
 // Loading the model
 const onSequenceUpdate = (sequence) => {
