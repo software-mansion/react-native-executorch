@@ -10,7 +10,7 @@ Hookless implementation of the [useSpeechToText](../speech-to-text/) hook.
 ```typescript
 import { SpeechToTextModule } from 'react-native-executorch';
 
-const audioUrl = 'https://www.your-url.com/cool-music.mp3';
+const audioUrl = 'https://www.your-url.com/cool-audio.mp3';
 
 // Loading the model
 const onSequenceUpdate = (sequence) => {

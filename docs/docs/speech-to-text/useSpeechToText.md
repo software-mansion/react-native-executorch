@@ -25,7 +25,7 @@ const model = useSpeechToText({
   modelName: 'moonshine',
 });
 
-const audioUrl = 'https://your-url.com/never-gonna-give-you-up.mp3';
+const audioUrl = 'https://your-url.com/your-audio.mp3';
 
 try {
   await model.loadAudio(audioUrl);
@@ -38,7 +38,7 @@ try {
 
 ### Streaming
 
-Given that STT models need to take in a specified sequence length, there is a need to chunk the input audio. Chunking audio may result in cutting speech mid-sentence, which might be hard to understand for the model. To make it work, we employed an algorithm that uses overlapping audio chunks which might introduce some overhead, but gives way better results.
+Given that STT models take in a fixed length sequence, there is a need to chunk the input audio. Chunking audio may result in cutting speech mid-sentence, which might be hard to understand for the model. To make it work, we employed an algorithm that uses overlapping audio chunks which might introduce some overhead, but yield way better transcription results for longer audio.
 
 ### Arguments
 
@@ -74,7 +74,8 @@ Specifies the size of each audio chunk.
 
 ## Running the model
 
-To run the model, you can use the `transcribe` method. It accepts one optional argument, which is the waveform representation of the audio. If you called `loadAudio` beforehand, you don't need to pass anything to `transcribe`. However, you can still pass this argument if you want to use your own audio. This function returns a promise, which will return the generated tokens when everything succeeds. If the model fails during inference, it will throw an error. If you want to obtain tokens in streaming fashion, you can also use the `sequence` property which is updated with each generated token, analogously to the useLLM hook.
+To run the model, you can use the `transcribe` method. It accepts one optional argument: the waveform representation of the audio. If you called `loadAudio` beforehand, you don't need to pass anything to `transcribe`. However, you can still pass this argument if you want to use your own audio.
+This function returns a promise, which resolves to the generated tokens when successful. If the model fails during inference, it will throw an error. If you want to obtain tokens in a streaming fashion, you can also use the sequence property, which is updated with each generated token, similar to the [useLLM](../llms/useLLM.md) hook.
 
 ## Example
 
@@ -90,7 +91,7 @@ function App() {
     modelName: 'whisper',
   });
 
-  const audioUrl = 'https://your-url.com/never-gonna-give-you-up.mp3';
+  const audioUrl = 'https://your-url.com/your-audio.mp3';
 
   return (
     <View>
