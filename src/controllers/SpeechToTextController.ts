@@ -259,6 +259,12 @@ export class SpeechToTextController {
       } else {
         seqs = [...seqs, seq.slice(4, -4)];
       }
+      if (this.chunks.length == 1) {
+        final_seq = seqs[0]!;
+        this.sequence = final_seq;
+        this.decodedTranscribeCallback(final_seq);
+        break;
+      }
       if (seqs.length < 2) {
         continue;
       }
@@ -301,15 +307,5 @@ export class SpeechToTextController {
       .map((token) => this.tokenMapping[token])
       .join('')
       .replaceAll(this.config.tokenizer.special_char, ' ');
-  }
-
-  public async encode(waveform: number[]) {
-    return await this.nativeModule.encode(waveform);
-  }
-
-  public async decode(tokens: number[], encodings: number[]) {
-    return await this.nativeModule.decode(tokens, [
-      encodings as unknown as any,
-    ]);
   }
 }

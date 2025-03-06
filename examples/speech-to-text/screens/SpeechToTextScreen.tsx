@@ -11,6 +11,7 @@ import SWMIcon from '../assets/swm_icon.svg';
 import { useRef, useState } from 'react';
 import { Buffer } from 'buffer';
 import DeviceInfo from 'react-native-device-info';
+import InputPrompt from '../components/TextInputModal';
 
 const options = {
   sampleRate: 16000,
@@ -51,11 +52,12 @@ export const SpeechToTextScreen = () => {
     loadAudio,
   } = useSpeechToText({ modelName: 'moonshine' });
   const [isRecording, setIsRecording] = useState(false);
+  const [audioUrl, setAudioUrl] = useState('');
   const audioBuffer = useRef<number[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const onChunk = (data: string) => {
     const float32Chunk = float32ArrayFromPCMBinaryBuffer(data);
-    console.log('psuhing buffer', float32Chunk.length);
     audioBuffer.current?.push(...float32Chunk);
   };
 
@@ -70,6 +72,11 @@ export const SpeechToTextScreen = () => {
       startStreamingAudio(options, onChunk);
     }
   };
+
+  const buttonDisabled =
+    modalVisible || isModelGenerating || !isModelReady || isRecording;
+  const recordingButtonDisabled =
+    modalVisible || !isModelReady || DeviceInfo.isEmulatorSync();
 
   return (
     <>
@@ -117,32 +124,46 @@ export const SpeechToTextScreen = () => {
             style={{ ...styles.transcriptionText, color: 'red' }}
           >{`${error}`}</Text>
         )}
-
+        <InputPrompt
+          modalVisible={modalVisible}
+          setModalVisible={async (visible: boolean) => {
+            setModalVisible(visible);
+            if (audioUrl) {
+              await loadAudio(audioUrl);
+              await transcribe();
+            }
+          }}
+          onChangeText={setAudioUrl}
+          value={audioUrl}
+        />
         <View style={styles.iconsContainer}>
           <View
             style={[
               styles.recordingButtonWrapper,
-              isRecording && { borderColor: 'rgb(240, 63, 50)' },
+              buttonDisabled && {
+                borderColor: 'grey',
+              },
             ]}
           >
             <TouchableOpacity
-              disabled={isModelGenerating || !isModelReady}
+              disabled={buttonDisabled}
               style={[
                 styles.recordingButton,
-                (isModelGenerating || !isModelReady) && {
-                  backgroundColor: 'rgba(74, 74, 74, 0.8)',
+                buttonDisabled && {
+                  backgroundColor: 'grey',
                 },
-                isRecording && { backgroundColor: 'rgba(240, 63, 50, 0.8)' },
               ]}
               onPress={async () => {
-                await loadAudio(
-                  'https://ai.swmansion.com/storage/moonshine/test_audio.mp3'
-                );
-                await transcribe();
+                if (!audioUrl) {
+                  setModalVisible(true);
+                } else {
+                  await loadAudio(audioUrl);
+                  await transcribe();
+                }
               }}
             >
               <Text style={{ ...styles.recordingButtonText, fontSize: 13 }}>
-                {'TRANSCRIBE FROM EXAMPLE FILE'}
+                {'TRANSCRIBE FROM URL'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -151,36 +172,37 @@ export const SpeechToTextScreen = () => {
           <View
             style={[
               styles.recordingButtonWrapper,
-              DeviceInfo.isEmulatorSync() && {
-                borderColor: 'rgba(74, 74, 74, 0.8)',
+              recordingButtonDisabled && {
+                borderColor: 'grey',
               },
               isRecording && { borderColor: 'rgb(240, 63, 50)' },
             ]}
           >
             <TouchableOpacity
-              disabled={DeviceInfo.isEmulatorSync()}
+              disabled={recordingButtonDisabled || isModelGenerating}
               style={[
                 styles.recordingButton,
-                DeviceInfo.isEmulatorSync() && {
-                  backgroundColor: 'rgba(74, 74, 74, 0.8)',
+                recordingButtonDisabled && {
+                  backgroundColor: 'grey',
                 },
-                isRecording && { backgroundColor: 'rgba(240, 63, 50, 0.8)' },
+                isRecording && { backgroundColor: 'rgb(240, 63, 50)' },
               ]}
               onPress={handleRecordPress}
             >
               <Text style={styles.recordingButtonText}>
                 {isRecording ? 'STOP RECORDING' : 'START RECORDING'}
               </Text>
-              <Text
-                style={{
-                  ...styles.recordingButtonText,
-                  color: 'rgb(254, 148, 141)',
-                  fontSize: 11,
-                }}
-              >
-                {DeviceInfo.isEmulatorSync() &&
-                  'recording does not work on emulator'}
-              </Text>
+              {DeviceInfo.isEmulatorSync() && (
+                <Text
+                  style={{
+                    ...styles.recordingButtonText,
+                    color: 'rgb(254, 148, 141)',
+                    fontSize: 11,
+                  }}
+                >
+                  recording does not work on emulator
+                </Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -190,6 +212,14 @@ export const SpeechToTextScreen = () => {
 };
 
 const styles = StyleSheet.create({
+  textInput: {
+    height: 40,
+    margin: 12,
+    borderWidth: 1,
+    padding: 10,
+    width: '75%',
+    borderRadius: 20,
+  },
   imageContainer: {
     flex: 6,
     width: '100%',

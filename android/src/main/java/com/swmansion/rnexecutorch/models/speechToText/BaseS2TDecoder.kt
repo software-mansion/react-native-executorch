@@ -1,6 +1,5 @@
-package com.swmansion.rnexecutorch.models.speechToText
+package com.swmansion.rnexecutorch.models.speechtotext
 
-import android.util.Log
 import com.swmansion.rnexecutorch.models.BaseModel
 import org.pytorch.executorch.EValue
 import com.facebook.react.bridge.ReactApplicationContext

@@ -1,4 +1,4 @@
-package com.swmansion.rnexecutorch.models.speechToText
+package com.swmansion.rnexecutorch.models.speechtotext
 
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
@@ -8,6 +8,7 @@ import org.pytorch.executorch.Tensor
 
 class MoonshineDecoder(reactApplicationContext: ReactApplicationContext) : BaseS2TDecoder(reactApplicationContext) {
   private lateinit var generatedTokens: LongArray
+  private var innerDim = 288;
 
   override var methodName: String
     get() = "forward_cached"
@@ -22,6 +23,6 @@ class MoonshineDecoder(reactApplicationContext: ReactApplicationContext) : BaseS
   }
 
   override fun getInputShape(inputLength: Int): LongArray {
-    return longArrayOf(1, inputLength.toLong()/288, 288)
+    return longArrayOf(1, inputLength.toLong()/innerDim, innerDim)
   }
 }

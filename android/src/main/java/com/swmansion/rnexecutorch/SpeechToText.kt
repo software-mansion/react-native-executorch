@@ -3,7 +3,6 @@ package com.swmansion.rnexecutorch
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
-import com.facebook.react.bridge.WritableArray
 import com.swmansion.rnexecutorch.models.speechToText.BaseS2TModule
 import com.swmansion.rnexecutorch.models.speechToText.Moonshine
 import com.swmansion.rnexecutorch.models.speechToText.MoonshineDecoder
@@ -12,10 +11,8 @@ import com.swmansion.rnexecutorch.models.speechToText.Whisper
 import com.swmansion.rnexecutorch.models.speechToText.WhisperDecoder
 import com.swmansion.rnexecutorch.models.speechToText.WhisperEncoder
 import com.swmansion.rnexecutorch.utils.ArrayUtils
-import com.swmansion.rnexecutorch.utils.ArrayUtils.Companion.createFloatArray
+import com.swmansion.rnexecutorch.utils.ArrayUtils.Companion.writableArrayToEValue
 import com.swmansion.rnexecutorch.utils.ETError
-import org.pytorch.executorch.EValue
-import org.pytorch.executorch.Tensor
 
 class SpeechToText(reactContext: ReactApplicationContext) : NativeSpeechToTextSpec(reactContext) {
 
@@ -38,6 +35,8 @@ class SpeechToText(reactContext: ReactApplicationContext) : NativeSpeechToTextSp
         this.speechToTextModule.decoder = WhisperDecoder(reactApplicationContext)
       }
     } catch(e: Exception){
+      promise.reject(e.message!!, ETError.InvalidModelSource.toString())
+      return
     }
 
 
@@ -50,7 +49,7 @@ class SpeechToText(reactContext: ReactApplicationContext) : NativeSpeechToTextSp
   }
 
   override fun generate(waveform: ReadableArray, promise: Promise) {
-    val encoding = this.writableArrayToEValue(this.speechToTextModule.encode(waveform))
+    val encoding = writableArrayToEValue(this.speechToTextModule.encode(waveform))
     val generatedTokens = mutableListOf(this.speechToTextModule.START_TOKEN)
     var lastToken = 0
     Thread {
@@ -64,12 +63,6 @@ class SpeechToText(reactContext: ReactApplicationContext) : NativeSpeechToTextSp
         ArrayUtils.createReadableArrayFromIntArray(generatedTokens.toIntArray())
       promise.resolve(generatedTokensReadableArray)
     }.start()
-  }
-
-  private fun writableArrayToEValue(input: WritableArray): EValue {
-    val size = input.size()
-    val preprocessorInputShape = longArrayOf(1, size.toLong())
-    return EValue.from(Tensor.fromBlob(createFloatArray(input), preprocessorInputShape))
   }
 
   override fun encode(waveform: ReadableArray, promise: Promise) {

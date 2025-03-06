@@ -91,5 +91,10 @@ class ArrayUtils {
       return resultArray
     }
 
+    fun writableArrayToEValue(input: WritableArray): EValue {
+      val size = input.size()
+      val preprocessorInputShape = longArrayOf(1, size.toLong())
+      return EValue.from(Tensor.fromBlob(createFloatArray(input), preprocessorInputShape))
+    }
   }
 }

@@ -1,4 +1,4 @@
-package com.swmansion.rnexecutorch.models.speechToText
+package com.swmansion.rnexecutorch.models.speechtotext
 
 import android.util.Log
 import com.facebook.react.bridge.Arguments

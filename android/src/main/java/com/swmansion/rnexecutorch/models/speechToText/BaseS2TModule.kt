@@ -1,4 +1,4 @@
-package com.swmansion.rnexecutorch.models.speechToText
+package com.swmansion.rnexecutorch.models.speechtotext
 
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.WritableArray
