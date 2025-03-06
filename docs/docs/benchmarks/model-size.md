@@ -24,6 +24,24 @@ sidebar_position: 1
 | STYLE_TRANSFER_UDNIE         | 6.78         | 5.22         |
 | STYLE_TRANSFER_RAIN_PRINCESS | 6.78         | 5.22         |
 
+## OCR
+
+| Model       | XNNPACK [MB] |
+| ----------- | ------------ |
+| CRAFT_800   | 83.1         |
+| CRNN_EN_512 | 547          |
+| CRNN_EN_256 | 277          |
+| CRNN_EN_128 | 142          |
+
+## Vertical OCR
+
+| Model       | XNNPACK [MB] |
+| ----------- | ------------ |
+| CRAFT_1280  | 83.1         |
+| CRAFT_320   | 83.1         |
+| CRNN_EN_512 | 277          |
+| CRNN_EN_64  | 74.3         |
+
 ## LLMs
 
 | Model                 | XNNPACK [GB] |
