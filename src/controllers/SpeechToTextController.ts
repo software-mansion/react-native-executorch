@@ -249,6 +249,12 @@ export class SpeechToTextController {
           this.decodedTranscribeCallback(prevseq);
         }
       }
+      if (this.chunks.length == 1) {
+        final_seq = seq;
+        this.sequence = final_seq;
+        this.decodedTranscribeCallback(final_seq);
+        break;
+      }
       // remove sos/eos token and 3 additional ones
       if (seqs.length === 0) {
         seqs = [seq.slice(0, -4)];
@@ -259,12 +265,6 @@ export class SpeechToTextController {
         seqs = [...seqs, seq.slice(4)];
       } else {
         seqs = [...seqs, seq.slice(4, -4)];
-      }
-      if (this.chunks.length == 1) {
-        final_seq = seqs[0]!;
-        this.sequence = final_seq;
-        this.decodedTranscribeCallback(final_seq);
-        break;
       }
       if (seqs.length < 2) {
         continue;

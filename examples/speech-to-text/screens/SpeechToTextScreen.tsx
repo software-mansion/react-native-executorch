@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 100,
+    marginBottom: 20,
   },
   recordingButtonWrapper: {
     flex: 1,
@@ -267,8 +267,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   transcriptionContainer: {
-    flex: 9,
-    paddingTop: 100,
+    flex: 5,
+    paddingTop: 80,
     width: '90%',
   },
   transcriptionText: {
