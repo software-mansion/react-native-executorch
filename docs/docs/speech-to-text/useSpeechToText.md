@@ -18,11 +18,11 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ```typescript
 import { useSpeechToText } from 'react-native-executorch';
 
-const {transcribe, error} = useSpeechToText({
+const { transcribe, error } = useSpeechToText({
   modelName: 'moonshine',
 });
 
-const audioUrl = ...; // url with audio to transcribe
+const audioUrl = ...; // URL with audio to transcribe
 
 await model.loadAudio(audioUrl);
 const transcription = await transcribe();
@@ -80,11 +80,11 @@ import { Button, Text } from 'react-native';
 import { useSpeechToText } from 'react-native-executorch';
 
 function App() {
-  const {loadAudio, transcribe, sequence} = useSpeechToText({
+  const { loadAudio, transcribe, sequence } = useSpeechToText({
     modelName: 'whisper',
   });
 
-  const audioUrl = 'https://your-url.com/your-audio.mp3';
+  const audioUrl = ...; // URL with audio to transcribe
 
   return (
     <View>
