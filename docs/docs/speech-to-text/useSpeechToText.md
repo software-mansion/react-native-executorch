@@ -55,7 +55,7 @@ Analogous to the encoderSource, this takes in a string which is a source for the
 A string that specifies the location to the tokenizer for the model. This works just as the encoder and decoder do. Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/main/src/constants/modelUrls.ts) for given model.
 
 **`overlapSeconds?`**
-Specifies the length of overlap between each audio chunk.
+Specifies the length of overlap between consecutive audio chunks.
 
 **`windowSize?`**
 Specifies the size of each audio chunk.
