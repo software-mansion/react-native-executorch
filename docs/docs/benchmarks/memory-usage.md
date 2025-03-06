@@ -39,5 +39,5 @@ sidebar_position: 2
 
 | Model          | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
 | -------------- | ---------------------- | ------------------ |
-| WHISPER_TINY   | ❌                     | 950                |
-| MOONSHINE_TINY | ❌                     | 868                |
+| WHISPER_TINY   | 900                    | 600                |
+| MOONSHINE_TINY | 650                    | 560                |
