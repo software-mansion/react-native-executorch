@@ -25,7 +25,7 @@ class WhisperEncoder(reactApplicationContext: ReactApplicationContext) :
     return this.postprocess(hiddenState)
   }
 
-  override fun preprocess(input: ReadableArray): EValue {
+  fun preprocess(input: ReadableArray): EValue {
     val waveformFloatArray = ArrayUtils.createFloatArray(input)
 
     val stftResult = this.stft.fromWaveform(waveformFloatArray)
@@ -34,7 +34,7 @@ class WhisperEncoder(reactApplicationContext: ReactApplicationContext) :
     return EValue.from(inputTensor)
   }
 
-  public override fun postprocess(output: Array<EValue>): WritableArray {
+  public fun postprocess(output: Array<EValue>): WritableArray {
     val outputWritableArray: WritableArray = Arguments.createArray()
 
     output[0].toTensor().dataAsFloatArray.map {

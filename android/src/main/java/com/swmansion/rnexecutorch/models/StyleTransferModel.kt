@@ -9,7 +9,8 @@ import org.pytorch.executorch.Tensor
 import org.pytorch.executorch.EValue
 
 
-class StyleTransferModel(reactApplicationContext: ReactApplicationContext) : BaseModel<Mat, Mat>(reactApplicationContext) {
+class StyleTransferModel(reactApplicationContext: ReactApplicationContext) : 
+  BaseModel<Mat, Mat>(reactApplicationContext) {
   private lateinit var originalSize: Size
 
   private fun getModelImageSize(): Size {
@@ -20,13 +21,13 @@ class StyleTransferModel(reactApplicationContext: ReactApplicationContext) : Bas
     return Size(height.toDouble(), width.toDouble())
   }
 
-  override fun preprocess(input: Mat): EValue {
+  fun preprocess(input: Mat): EValue {
     originalSize = input.size()
     Imgproc.resize(input, input, getModelImageSize())
     return ImageProcessor.matToEValue(input, module.getInputShape(0))
   }
 
-  override fun postprocess(output: Array<EValue>): Mat {
+  fun postprocess(output: Array<EValue>): Mat {
     val tensor = output[0].toTensor()
     val modelShape = getModelImageSize()
     val result = ImageProcessor.EValueToMat(tensor.dataAsFloatArray, modelShape.width.toInt(), modelShape.height.toInt())

@@ -6,7 +6,8 @@ import com.swmansion.rnexecutorch.utils.ArrayUtils
 import org.pytorch.executorch.EValue
 import org.pytorch.executorch.Tensor
 
-class WhisperDecoder(reactApplicationContext: ReactApplicationContext) : BaseS2TDecoder(reactApplicationContext) {
+class WhisperDecoder(reactApplicationContext: ReactApplicationContext) : 
+  BaseS2TDecoder(reactApplicationContext) {
   private lateinit var generatedTokens: IntArray
   override var methodName: String
     get() = "forward"
