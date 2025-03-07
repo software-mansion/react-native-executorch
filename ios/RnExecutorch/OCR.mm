@@ -87,7 +87,6 @@ RCT_EXPORT_MODULE()
                                    desiredHeight:recognizerImageSize];
     resolve(result);
   } @catch (NSException *exception) {
-    NSLog(@"%@", exception.reason);
     reject(@"forward_error",
            [NSString stringWithFormat:@"%@", exception.reason], nil);
   }

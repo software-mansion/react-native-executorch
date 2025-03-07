@@ -104,7 +104,6 @@ independentCharacters:(BOOL)independentCharacters
           text = [text stringByAppendingString:decodedText[0]];
           confidenceScore = @([confidenceScore floatValue] + [[recognitionResult objectAtIndex:1] floatValue]);
         }else{
-          NSLog(@"width: %d, height: %d", croppedCharacter.cols, croppedCharacter.rows);
           croppedCharacters.push_back(croppedCharacter);
         }
       }
