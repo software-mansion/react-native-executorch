@@ -104,7 +104,7 @@ class RecognitionHandler(
 
       resMap.putString("text", decodedTexts[0])
       resMap.putArray("bbox", box.toWritableArray())
-      resMap.putDouble("confidence", confidenceScore)
+      resMap.putDouble("score", confidenceScore)
 
       res.pushMap(resMap)
     }
