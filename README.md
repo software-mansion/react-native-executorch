@@ -30,6 +30,8 @@ https://docs.swmansion.com/react-native-executorch
 ```bash
 # Install the package
 yarn add react-native-executorch
+# Install necessary peer dependency
+yarn add react-native-audio-api
 cd ios && pod install && cd ..
 ```
 
