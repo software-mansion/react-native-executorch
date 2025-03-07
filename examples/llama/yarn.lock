@@ -6074,6 +6074,7 @@ __metadata:
     metro-config: ^0.81.0
     react: 18.3.1
     react-native: 0.76.3
+    react-native-audio-api: ^0.4.13
     react-native-executorch: ^0.3.0
     react-native-loading-spinner-overlay: ^3.0.1
     react-native-markdown-display: ^7.0.2
@@ -7552,6 +7553,18 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 7e80da3fc61881f61dcb676da6dcf0255ee2ea2d35ee39b40d8a329efdc0e5dd483cd2f820cba0b014042f9118d4c1a3d12456d3cab8de6cceda751df3b5e885
+  languageName: node
+  linkType: hard
+
+"react-native-audio-api@npm:^0.4.13":
+  version: 0.4.13
+  resolution: "react-native-audio-api@npm:0.4.13"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  bin:
+    setup-rn-audio-api-web: scripts/setup-rn-audio-api-web.js
+  checksum: 9a5db4626a0663224cdcdc957ed5176df9ed65df9f58bf06c5eae2a91895b7ee0f0a632ecaa79b23ef7536983485cea2720ca46201e2e690548f400b66970ff6
   languageName: node
   linkType: hard
 

@@ -251,17 +251,17 @@
 
     points.emplace_back(cv::Point2f(point.x, point.y));
   }
-
+  
   cv::Rect rect = cv::boundingRect(points);
   cv::Mat croppedImage = img(rect);
+  cv::cvtColor(croppedImage, croppedImage, cv::COLOR_BGR2GRAY);
+  cv::resize(croppedImage, croppedImage, cv::Size(smallVerticalRecognizerWidth, recognizerHeight), 0, 0,
+               cv::INTER_AREA);
+  cv::medianBlur(img, img, 1);
   return croppedImage;
 }
 
 + (cv::Mat)cropSingleCharacter:(cv::Mat)img {
-  cv::cvtColor(img, img, cv::COLOR_BGR2GRAY);
-  cv::resize(img, img, cv::Size(smallVerticalRecognizerWidth, recognizerHeight), 0, 0,
-             cv::INTER_AREA);
-  cv::medianBlur(img, img, 1);
 
   cv::Mat histogram;
 
