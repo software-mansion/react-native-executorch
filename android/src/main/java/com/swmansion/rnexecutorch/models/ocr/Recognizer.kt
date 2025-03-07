@@ -19,11 +19,11 @@ class Recognizer(reactApplicationContext: ReactApplicationContext) :
     return Size(height.toDouble(), width.toDouble())
   }
 
-  override fun preprocess(input: Mat): EValue {
+  fun preprocess(input: Mat): EValue {
     return ImageProcessor.matToEValueGray(input)
   }
 
-  override fun postprocess(output: Array<EValue>): Pair<List<Int>, Double> {
+  fun postprocess(output: Array<EValue>): Pair<List<Int>, Double> {
     val modelOutputHeight = getModelOutputSize().height.toInt()
     val tensor = output[0].toTensor().dataAsFloatArray
     val numElements = tensor.size

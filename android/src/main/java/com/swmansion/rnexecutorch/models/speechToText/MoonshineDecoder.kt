@@ -6,7 +6,8 @@ import com.swmansion.rnexecutorch.utils.ArrayUtils
 import org.pytorch.executorch.EValue
 import org.pytorch.executorch.Tensor
 
-class MoonshineDecoder(reactApplicationContext: ReactApplicationContext) : BaseS2TDecoder(reactApplicationContext) {
+class MoonshineDecoder(reactApplicationContext: ReactApplicationContext) : 
+  BaseS2TDecoder(reactApplicationContext) {
   private lateinit var generatedTokens: LongArray
   private var innerDim: Long = 288;
 

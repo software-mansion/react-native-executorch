@@ -9,7 +9,8 @@ import org.pytorch.executorch.EValue
 import com.swmansion.rnexecutorch.models.BaseModel
 
 
-class ClassificationModel(reactApplicationContext: ReactApplicationContext) : BaseModel<Mat, Map<String, Float>>(reactApplicationContext) {
+class ClassificationModel(reactApplicationContext: ReactApplicationContext) : 
+  BaseModel<Mat, Map<String, Float>>(reactApplicationContext) {
   private fun getModelImageSize(): Size {
     val inputShape = module.getInputShape(0)
     val width = inputShape[inputShape.lastIndex]
@@ -18,12 +19,12 @@ class ClassificationModel(reactApplicationContext: ReactApplicationContext) : Ba
     return Size(height.toDouble(), width.toDouble())
   }
 
-  override fun preprocess(input: Mat): EValue {
+  fun preprocess(input: Mat): EValue {
     Imgproc.resize(input, input, getModelImageSize())
     return ImageProcessor.matToEValue(input, module.getInputShape(0))
   }
 
-  override fun postprocess(output: Array<EValue>): Map<String, Float> {
+  fun postprocess(output: Array<EValue>): Map<String, Float> {
     val tensor = output[0].toTensor()
     val probabilities = softmax(tensor.dataAsFloatArray.toTypedArray())
 

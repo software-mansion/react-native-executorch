@@ -15,7 +15,8 @@ import org.pytorch.executorch.EValue
 const val detectionScoreThreshold = .7f
 const val iouThreshold = .55f
 
-class SSDLiteLargeModel(reactApplicationContext: ReactApplicationContext) : BaseModel<Mat, Array<Detection>>(reactApplicationContext) {
+class SSDLiteLargeModel(reactApplicationContext: ReactApplicationContext) : 
+  BaseModel<Mat, Array<Detection>>(reactApplicationContext) {
   private var heightRatio: Float = 1.0f
   private var widthRatio: Float = 1.0f
 
@@ -27,7 +28,7 @@ class SSDLiteLargeModel(reactApplicationContext: ReactApplicationContext) : Base
     return Size(height.toDouble(), width.toDouble())
   }
 
-  override fun preprocess(input: Mat): EValue {
+  fun preprocess(input: Mat): EValue {
     this.widthRatio = (input.size().width / getModelImageSize().width).toFloat()
     this.heightRatio = (input.size().height / getModelImageSize().height).toFloat()
     Imgproc.resize(input, input, getModelImageSize())
@@ -40,7 +41,7 @@ class SSDLiteLargeModel(reactApplicationContext: ReactApplicationContext) : Base
     return postprocess(modelOutput)
   }
 
-  override fun postprocess(output: Array<EValue>): Array<Detection> {
+  fun postprocess(output: Array<EValue>): Array<Detection> {
     val scoresTensor = output[1].toTensor()
     val numel = scoresTensor.numel()
     val bboxes = output[0].toTensor().dataAsFloatArray
