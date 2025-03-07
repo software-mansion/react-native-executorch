@@ -13,7 +13,7 @@ import { Buffer } from 'buffer';
 import DeviceInfo from 'react-native-device-info';
 import InputPrompt from '../components/TextInputModal';
 
-const options = {
+const audioStreamOptions = {
   sampleRate: 16000,
   channels: 1,
   bitsPerSample: 16,
@@ -35,7 +35,7 @@ const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
   for (let i = 0; i < int16Array.length; i++) {
     float32Array[i] = Math.max(
       -1,
-      Math.min(1, (int16Array[i] / options.bufferSize) * 8)
+      Math.min(1, (int16Array[i] / audioStreamOptions.bufferSize) * 8)
     );
   }
   return float32Array;
@@ -69,7 +69,7 @@ export const SpeechToTextScreen = () => {
       audioBuffer.current = [];
     } else {
       setIsRecording(true);
-      startStreamingAudio(options, onChunk);
+      startStreamingAudio(audioStreamOptions, onChunk);
     }
   };
 
