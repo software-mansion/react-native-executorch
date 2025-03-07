@@ -33,7 +33,7 @@ cd ios && pod install && cd ..
 Add this to your component file:  
 ```tsx
 import { 
-  LLAMA3_2_1B_QLORA, 
+  LLAMA3_2_3B_QLORA, 
   LLAMA3_2_3B_TOKENIZER,
   useLLM 
 } from 'react-native-executorch';
@@ -41,8 +41,8 @@ import {
 function MyComponent() {
   // Initialize the model 🚀
   const llama = useLLM({
-    modelSource: LLAMA3_2_1B_QLORA,
-    tokenizerSource: LLAMA3_2_1B_TOKENIZER
+    modelSource: LLAMA3_2_3B_QLORA,
+    tokenizerSource: LLAMA3_2_3B_TOKENIZER
   });
   // ... rest of your component
 }
