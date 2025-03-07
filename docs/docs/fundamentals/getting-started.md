@@ -39,7 +39,7 @@ Installation is pretty straightforward, just use your favorite package manager. 
   </TabItem>
 </Tabs>
 
-If you plan on using your models via require() insteadf of fetching them from a url, you also need to add following lines to your `metro.config.js`:
+If you plan on using your models via require() instead of fetching them from a url, you also need to add following lines to your `metro.config.js`:
 
 ```json
 // metro.config.js
