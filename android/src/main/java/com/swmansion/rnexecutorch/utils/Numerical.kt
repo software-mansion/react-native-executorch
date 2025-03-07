@@ -1,4 +1,4 @@
-package com.swmansion.rnexecutorch.models.classification
+package com.swmansion.rnexecutorch.utils
 
 fun softmax(x: Array<Float>): Array<Float> {
   val max = x.maxOrNull()!!
