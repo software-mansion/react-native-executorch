@@ -7,6 +7,7 @@ import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import org.pytorch.executorch.Tensor
 import org.pytorch.executorch.EValue
+import com.swmansion.rnexecutorch.models.BaseModel
 
 
 class StyleTransferModel(reactApplicationContext: ReactApplicationContext) : BaseModel<Mat, Mat>(reactApplicationContext) {
