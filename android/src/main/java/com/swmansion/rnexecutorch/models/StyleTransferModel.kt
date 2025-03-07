@@ -20,13 +20,13 @@ class StyleTransferModel(
     return Size(height.toDouble(), width.toDouble())
   }
 
-  override fun preprocess(input: Mat): EValue {
+  fun preprocess(input: Mat): EValue {
     originalSize = input.size()
     Imgproc.resize(input, input, getModelImageSize())
     return ImageProcessor.matToEValue(input, module.getInputShape(0))
   }
 
-  override fun postprocess(output: Array<EValue>): Mat {
+  fun postprocess(output: Array<EValue>): Mat {
     val tensor = output[0].toTensor()
     val modelShape = getModelImageSize()
     val result = ImageProcessor.eValueToMat(tensor.dataAsFloatArray, modelShape.width.toInt(), modelShape.height.toInt())

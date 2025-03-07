@@ -28,13 +28,13 @@ abstract class BaseS2TDecoder(
 
   abstract fun getInputShape(inputLength: Int): LongArray
 
-  override fun preprocess(input: ReadableArray): EValue {
+  fun preprocess(input: ReadableArray): EValue {
     val inputArray = input.getArray(0)!!
     val preprocessorInputShape = this.getInputShape(inputArray.size())
     return EValue.from(Tensor.fromBlob(createFloatArray(inputArray), preprocessorInputShape))
   }
 
-  override fun postprocess(output: Array<EValue>): Int {
+  fun postprocess(output: Array<EValue>): Int {
     TODO("Not yet implemented")
   }
 }
