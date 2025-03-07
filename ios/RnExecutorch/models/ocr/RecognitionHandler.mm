@@ -1,9 +1,9 @@
 #import "RecognitionHandler.h"
 #import "../../utils/ImageProcessor.h"
 #import "./utils/CTCLabelConverter.h"
+#import "./utils/Constants.h"
 #import "./utils/OCRUtils.h"
 #import "./utils/RecognizerUtils.h"
-#import "./utils/Constants.h"
 #import "ExecutorchLib/ETModel.h"
 #import "Recognizer.h"
 #import <React/RCTBridgeModule.h>
@@ -28,9 +28,8 @@
     recognizerMedium = [[Recognizer alloc] init];
     recognizerSmall = [[Recognizer alloc] init];
 
-    converter = [[CTCLabelConverter alloc]
-        initWithCharacters:symbols
-                 separatorList:@{}];
+    converter = [[CTCLabelConverter alloc] initWithCharacters:symbols
+                                                separatorList:@{}];
   }
   return self;
 }
@@ -109,7 +108,8 @@
       continue;
     }
     croppedImage = [RecognizerUtils normalizeForRecognizer:croppedImage
-                                            adjustContrast:adjustContrast isVertical:NO];
+                                            adjustContrast:adjustContrast
+                                                isVertical:NO];
     NSArray *result = [self runModel:croppedImage];
 
     NSNumber *confidenceScore = [result objectAtIndex:1];

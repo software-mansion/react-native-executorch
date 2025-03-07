@@ -4,12 +4,8 @@
 
 using ::executorch::extension::Module;
 
-Model::Model(
-             const std::string& file_path
-             ){
+Model::Model(const std::string &file_path) {
   module_ = std::make_unique<Module>(file_path);
 }
 
-void Model::forward(){
-  return;
-}
+void Model::forward() { return; }

@@ -12,6 +12,4 @@
 
 @end
 
-
-
 #endif /* MoonshineEncoder_hpp */

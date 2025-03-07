@@ -22,7 +22,6 @@
 - (NSNumber *)getOutputType:(NSNumber *)index;
 - (NSArray *)getOutputShape:(NSNumber *)index;
 
-
 @end
 
 #endif // ETModel_hpp

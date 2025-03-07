@@ -1,6 +1,6 @@
 #import "RecognizerUtils.h"
-#import "OCRUtils.h"
 #import "Constants.h"
+#import "OCRUtils.h"
 
 @implementation RecognizerUtils
 
@@ -63,7 +63,8 @@
     image = [self adjustContrastGrey:image target:adjustContrast];
   }
 
-  int desiredWidth = (isVertical) ? smallVerticalRecognizerWidth : smallRecognizerWidth;
+  int desiredWidth =
+      (isVertical) ? smallVerticalRecognizerWidth : smallRecognizerWidth;
 
   if (image.cols >= largeRecognizerWidth) {
     desiredWidth = largeRecognizerWidth;
@@ -251,12 +252,13 @@
 
     points.emplace_back(cv::Point2f(point.x, point.y));
   }
-  
+
   cv::Rect rect = cv::boundingRect(points);
   cv::Mat croppedImage = img(rect);
   cv::cvtColor(croppedImage, croppedImage, cv::COLOR_BGR2GRAY);
-  cv::resize(croppedImage, croppedImage, cv::Size(smallVerticalRecognizerWidth, recognizerHeight), 0, 0,
-               cv::INTER_AREA);
+  cv::resize(croppedImage, croppedImage,
+             cv::Size(smallVerticalRecognizerWidth, recognizerHeight), 0, 0,
+             cv::INTER_AREA);
   cv::medianBlur(img, img, 1);
   return croppedImage;
 }
@@ -270,8 +272,8 @@
   const float *histRange = {range};
   bool uniform = true, accumulate = false;
 
-  cv::calcHist(&img, 1, 0, cv::Mat(), histogram, 1, &histSize, &histRange, uniform,
-           accumulate);
+  cv::calcHist(&img, 1, 0, cv::Mat(), histogram, 1, &histSize, &histRange,
+               uniform, accumulate);
 
   int midPoint = histSize / 2;
 
@@ -283,7 +285,8 @@
     sumRight += histogram.at<float>(i);
   }
 
-  const int thresholdType = (sumLeft < sumRight) ? cv::THRESH_BINARY_INV : cv::THRESH_BINARY;
+  const int thresholdType =
+      (sumLeft < sumRight) ? cv::THRESH_BINARY_INV : cv::THRESH_BINARY;
 
   cv::Mat thresh;
   cv::threshold(img, thresh, 0, 255, thresholdType + cv::THRESH_OTSU);
@@ -307,7 +310,8 @@
     const double cx = centroids.at<double>(i, 0);
     const double cy = centroids.at<double>(i, 1);
 
-    if (minX < cx && cx < maxX && minY < cy && cy < maxY && area > singleCharacterMinSize) {
+    if (minX < cx && cx < maxX && minY < cy && cy < maxY &&
+        area > singleCharacterMinSize) {
       if (selectedComponent == -1 ||
           area > stats.at<int>(selectedComponent, cv::CC_STAT_AREA)) {
         selectedComponent = i;

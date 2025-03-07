@@ -13,7 +13,7 @@ import org.opencv.core.Mat
 
 class RecognitionHandler(
   symbols: String,
-  reactApplicationContext: ReactApplicationContext
+  reactApplicationContext: ReactApplicationContext,
 ) {
   private val recognizerLarge = Recognizer(reactApplicationContext)
   private val recognizerMedium = Recognizer(reactApplicationContext)
@@ -21,13 +21,14 @@ class RecognitionHandler(
   private val converter = CTCLabelConverter(symbols)
 
   private fun runModel(croppedImage: Mat): Pair<List<Int>, Double> {
-    val result: Pair<List<Int>, Double> = if (croppedImage.cols() >= Constants.LARGE_MODEL_WIDTH) {
-      recognizerLarge.runModel(croppedImage)
-    } else if (croppedImage.cols() >= Constants.MEDIUM_MODEL_WIDTH) {
-      recognizerMedium.runModel(croppedImage)
-    } else {
-      recognizerSmall.runModel(croppedImage)
-    }
+    val result: Pair<List<Int>, Double> =
+      if (croppedImage.cols() >= Constants.LARGE_MODEL_WIDTH) {
+        recognizerLarge.runModel(croppedImage)
+      } else if (croppedImage.cols() >= Constants.MEDIUM_MODEL_WIDTH) {
+        recognizerMedium.runModel(croppedImage)
+      } else {
+        recognizerSmall.runModel(croppedImage)
+      }
 
     return result
   }
@@ -36,7 +37,7 @@ class RecognitionHandler(
     largeRecognizerPath: String,
     mediumRecognizerPath: String,
     smallRecognizerPath: String,
-    onComplete: (Int, Exception?) -> Unit
+    onComplete: (Int, Exception?) -> Unit,
   ) {
     try {
       recognizerLarge.loadModel(largeRecognizerPath)
@@ -52,24 +53,26 @@ class RecognitionHandler(
     bBoxesList: List<OCRbBox>,
     imgGray: Mat,
     desiredWidth: Int,
-    desiredHeight: Int
+    desiredHeight: Int,
   ): WritableArray {
     val res: WritableArray = Arguments.createArray()
-    val ratioAndPadding = RecognizerUtils.calculateResizeRatioAndPaddings(
-      imgGray.width(),
-      imgGray.height(),
-      desiredWidth,
-      desiredHeight
-    )
+    val ratioAndPadding =
+      RecognizerUtils.calculateResizeRatioAndPaddings(
+        imgGray.width(),
+        imgGray.height(),
+        desiredWidth,
+        desiredHeight,
+      )
 
     val left = ratioAndPadding["left"] as Int
     val top = ratioAndPadding["top"] as Int
     val resizeRatio = ratioAndPadding["resizeRatio"] as Float
-    val resizedImg = ImageProcessor.resizeWithPadding(
-      imgGray,
-      desiredWidth,
-      desiredHeight
-    )
+    val resizedImg =
+      ImageProcessor.resizeWithPadding(
+        imgGray,
+        desiredWidth,
+        desiredHeight,
+      )
 
     for (box in bBoxesList) {
       var croppedImage = RecognizerUtils.getCroppedImage(box, resizedImg, Constants.MODEL_HEIGHT)

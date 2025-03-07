@@ -10,7 +10,9 @@
   background-color: var(--swm-navy-light-100);
 
   cursor: pointer;
-  transition: background-color 0.3s, color 0.3s;
+  transition:
+    background-color 0.3s,
+    color 0.3s;
 }
 
 a.homepageButtonLink:hover {

@@ -3,7 +3,7 @@
 @implementation CTCLabelConverter
 
 - (instancetype)initWithCharacters:(NSString *)characters
-                     separatorList:(NSDictionary *)separatorList{
+                     separatorList:(NSDictionary *)separatorList {
   self = [super init];
   if (self) {
     _dict = [NSMutableDictionary dictionary];

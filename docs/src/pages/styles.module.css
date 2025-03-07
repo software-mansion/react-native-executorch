@@ -14,7 +14,7 @@
   position: relative;
   width: 100%;
   margin-top: 18rem;
-  background: linear-gradient(#7394FF, #FFFFFF);
+  background: linear-gradient(#7394ff, #ffffff);
   padding-top: 8.25rem;
 }
 
@@ -31,7 +31,7 @@
   color: var(--swm-off-white);
 }
 
-[data-theme='dark'] .hireUsSection a div:hover svg{
+[data-theme='dark'] .hireUsSection a div:hover svg {
   stroke: var(--swm-off-white);
 }
 

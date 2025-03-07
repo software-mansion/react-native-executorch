@@ -9,12 +9,10 @@ import com.swmansion.rnexecutorch.utils.ArrayUtils.Companion.createFloatArray
 import org.pytorch.executorch.EValue
 import org.pytorch.executorch.Tensor
 
-class MoonshineEncoder(reactApplicationContext: ReactApplicationContext) :
-  BaseModel<ReadableArray, WritableArray>(reactApplicationContext) {
-
-  override fun runModel(input: ReadableArray): WritableArray {
-    return this.postprocess(this.module.forward(this.preprocess(input)))
-  }
+class MoonshineEncoder(
+  reactApplicationContext: ReactApplicationContext,
+) : BaseModel<ReadableArray, WritableArray>(reactApplicationContext) {
+  override fun runModel(input: ReadableArray): WritableArray = this.postprocess(this.module.forward(this.preprocess(input)))
 
   override fun preprocess(input: ReadableArray): EValue {
     val size = input.size()
@@ -24,9 +22,11 @@ class MoonshineEncoder(reactApplicationContext: ReactApplicationContext) :
 
   public override fun postprocess(output: Array<EValue>): WritableArray {
     val outputWritableArray: WritableArray = Arguments.createArray()
-    output[0].toTensor().dataAsFloatArray.map {outputWritableArray.pushDouble(
-        it.toDouble()
-    )}
-    return outputWritableArray;
+    output[0].toTensor().dataAsFloatArray.map {
+      outputWritableArray.pushDouble(
+        it.toDouble(),
+      )
+    }
+    return outputWritableArray
   }
 }

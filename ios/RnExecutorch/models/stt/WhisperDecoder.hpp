@@ -8,10 +8,9 @@
 
 @interface WhisperDecoder : BaseModel
 
-- (NSArray *)decode:(NSArray *)prevTokens encoderLastHiddenState:(NSArray *)encoderLastHiddenState;
+- (NSArray *)decode:(NSArray *)prevTokens
+    encoderLastHiddenState:(NSArray *)encoderLastHiddenState;
 
 @end
-
-
 
 #endif /* WhisperDecoder_hpp */

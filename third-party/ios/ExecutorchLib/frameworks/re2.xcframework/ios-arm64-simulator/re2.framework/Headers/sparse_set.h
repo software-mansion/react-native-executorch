@@ -65,40 +65,27 @@
 
 namespace re2 {
 
-template<typename Value>
-class SparseSetT {
- public:
+template <typename Value> class SparseSetT {
+public:
   SparseSetT();
   explicit SparseSetT(int max_size);
   ~SparseSetT();
 
-  typedef int* iterator;
-  typedef const int* const_iterator;
+  typedef int *iterator;
+  typedef const int *const_iterator;
 
   // Return the number of entries in the set.
-  int size() const {
-    return size_;
-  }
+  int size() const { return size_; }
 
   // Indicate whether the set is empty.
-  int empty() const {
-    return size_ == 0;
-  }
+  int empty() const { return size_ == 0; }
 
   // Iterate over the set.
-  iterator begin() {
-    return dense_.data();
-  }
-  iterator end() {
-    return dense_.data() + size_;
-  }
+  iterator begin() { return dense_.data(); }
+  iterator end() { return dense_.data() + size_; }
 
-  const_iterator begin() const {
-    return dense_.data();
-  }
-  const_iterator end() const {
-    return dense_.data() + size_;
-  }
+  const_iterator begin() const { return dense_.data(); }
+  const_iterator end() const { return dense_.data() + size_; }
 
   // Change the maximum size of the set.
   // Invalidates all iterators.
@@ -114,9 +101,7 @@ class SparseSetT {
   }
 
   // Clear the set.
-  void clear() {
-    size_ = 0;
-  }
+  void clear() { size_ = 0; }
 
   // Check whether index i is in the set.
   bool contains(int i) const;
@@ -127,19 +112,15 @@ class SparseSetT {
   // std::sort(arr.begin(), arr.end(), arr.less);
   static bool less(int a, int b);
 
- public:
+public:
   // Insert index i into the set.
-  iterator insert(int i) {
-    return InsertInternal(true, i);
-  }
+  iterator insert(int i) { return InsertInternal(true, i); }
 
   // Insert index i into the set.
   // Fast but unsafe: only use if contains(i) is false.
-  iterator insert_new(int i) {
-    return InsertInternal(false, i);
-  }
+  iterator insert_new(int i) { return InsertInternal(false, i); }
 
- private:
+private:
   iterator InsertInternal(bool allow_existing, int i) {
     DebugCheckInvariants();
     if (static_cast<uint32_t>(i) >= static_cast<uint32_t>(max_size())) {
@@ -187,13 +168,11 @@ class SparseSetT {
   PODArray<int> dense_;
 };
 
-template<typename Value>
-SparseSetT<Value>::SparseSetT() = default;
+template <typename Value> SparseSetT<Value>::SparseSetT() = default;
 
 // Change the maximum size of the set.
 // Invalidates all iterators.
-template<typename Value>
-void SparseSetT<Value>::resize(int new_max_size) {
+template <typename Value> void SparseSetT<Value>::resize(int new_max_size) {
   DebugCheckInvariants();
   if (new_max_size > max_size()) {
     const int old_max_size = max_size();
@@ -216,20 +195,17 @@ void SparseSetT<Value>::resize(int new_max_size) {
 }
 
 // Check whether index i is in the set.
-template<typename Value>
-bool SparseSetT<Value>::contains(int i) const {
+template <typename Value> bool SparseSetT<Value>::contains(int i) const {
   assert(i >= 0);
   assert(i < max_size());
   if (static_cast<uint32_t>(i) >= static_cast<uint32_t>(max_size())) {
     return false;
   }
   // Unsigned comparison avoids checking sparse_[i] < 0.
-  return (uint32_t)sparse_[i] < (uint32_t)size_ &&
-         dense_[sparse_[i]] == i;
+  return (uint32_t)sparse_[i] < (uint32_t)size_ && dense_[sparse_[i]] == i;
 }
 
-template<typename Value>
-void SparseSetT<Value>::create_index(int i) {
+template <typename Value> void SparseSetT<Value>::create_index(int i) {
   assert(!contains(i));
   assert(size_ < max_size());
   sparse_[i] = size_;
@@ -237,28 +213,29 @@ void SparseSetT<Value>::create_index(int i) {
   size_++;
 }
 
-template<typename Value> SparseSetT<Value>::SparseSetT(int max_size) :
-    sparse_(max_size), dense_(max_size) {
+template <typename Value>
+SparseSetT<Value>::SparseSetT(int max_size)
+    : sparse_(max_size), dense_(max_size) {
   MaybeInitializeMemory(size_, max_size);
   DebugCheckInvariants();
 }
 
-template<typename Value> SparseSetT<Value>::~SparseSetT() {
+template <typename Value> SparseSetT<Value>::~SparseSetT() {
   DebugCheckInvariants();
 }
 
-template<typename Value> void SparseSetT<Value>::DebugCheckInvariants() const {
+template <typename Value> void SparseSetT<Value>::DebugCheckInvariants() const {
   assert(0 <= size_);
   assert(size_ <= max_size());
 }
 
 // Comparison function for sorting.
-template<typename Value> bool SparseSetT<Value>::less(int a, int b) {
+template <typename Value> bool SparseSetT<Value>::less(int a, int b) {
   return a < b;
 }
 
 typedef SparseSetT<void> SparseSet;
 
-}  // namespace re2
+} // namespace re2
 
-#endif  // RE2_SPARSE_SET_H_
+#endif // RE2_SPARSE_SET_H_

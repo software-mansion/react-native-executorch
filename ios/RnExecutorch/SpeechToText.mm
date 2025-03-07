@@ -1,13 +1,13 @@
 #import "SpeechToText.h"
+#import "./utils/ScalarType.h"
 #import "models/BaseModel.h"
-#import <Accelerate/Accelerate.h>
-#import "models/stt/Whisper.hpp"
 #import "models/stt/Moonshine.hpp"
+#import "models/stt/SpeechToTextBaseModel.hpp"
+#import "models/stt/Whisper.hpp"
 #import "utils/SFFT.hpp"
+#import <Accelerate/Accelerate.h>
 #import <ExecutorchLib/ETModel.h>
 #import <React/RCTBridgeModule.h>
-#import "./utils/ScalarType.h"
-#import "models/stt/SpeechToTextBaseModel.hpp"
 
 @implementation SpeechToText {
   Whisper *whisper;
@@ -20,17 +20,19 @@ RCT_EXPORT_MODULE()
          resolve:(RCTPromiseResolveBlock)resolve
           reject:(RCTPromiseRejectBlock)reject {
   @try {
-    SpeechToTextBaseModel* model = self->whisper ? self->whisper : self->moonshine;
+    SpeechToTextBaseModel *model =
+        self->whisper ? self->whisper : self->moonshine;
 
     dispatch_async(
         dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
           NSArray *encodingResult = [model encode:waveform];
 
-          NSMutableArray *mutablePrevTokens = [NSMutableArray arrayWithObject:model->START_TOKEN];
+          NSMutableArray *mutablePrevTokens =
+              [NSMutableArray arrayWithObject:model->START_TOKEN];
           NSNumber *currentSeqLen = @0;
-          while ([currentSeqLen unsignedIntegerValue] < model->maxSeqLen) {
+          while ([currentSeqLen unsignedIntegerValue] < model -> maxSeqLen) {
             NSArray *result = [model decode:mutablePrevTokens
-                             encoderLastHiddenState:encodingResult];
+                     encoderLastHiddenState:encodingResult];
             if (!result || result.count == 0) {
               reject(@"forward_error", @"Decoder returned an empty result.",
                      nil);
@@ -54,7 +56,7 @@ RCT_EXPORT_MODULE()
 }
 
 - (void)loadModule:(NSString *)modelName
-      modelSources:(NSArray*)modelSources
+      modelSources:(NSArray *)modelSources
            resolve:(RCTPromiseResolveBlock)resolve
             reject:(RCTPromiseRejectBlock)reject {
 
@@ -62,17 +64,17 @@ RCT_EXPORT_MODULE()
     reject(@"corrupted model sources", nil, nil);
     return;
   }
-  if (![@[@"moonshine", @"whisper"] containsObject:modelName]) {
-      reject(@"invalid_model_identifier", nil, nil);
-      return;
+  if (![@[ @"moonshine", @"whisper" ] containsObject:modelName]) {
+    reject(@"invalid_model_identifier", nil, nil);
+    return;
   }
 
-  SpeechToTextBaseModel* model;
-  if([modelName isEqualToString:@"moonshine"]) {
+  SpeechToTextBaseModel *model;
+  if ([modelName isEqualToString:@"moonshine"]) {
     moonshine = [[Moonshine alloc] init];
     model = moonshine;
   }
-  if([modelName isEqualToString:@"whisper"]) {
+  if ([modelName isEqualToString:@"whisper"]) {
     whisper = [[Whisper alloc] init];
     model = whisper;
   }
@@ -81,14 +83,16 @@ RCT_EXPORT_MODULE()
     [model loadModules:modelSources];
     resolve(@(0));
   } @catch (NSException *exception) {
-    reject(@"init_decoder_error", [NSString stringWithFormat:@"%@", exception.reason], nil);
+    reject(@"init_decoder_error",
+           [NSString stringWithFormat:@"%@", exception.reason], nil);
   }
 }
 
 - (void)encode:(NSArray *)input
        resolve:(RCTPromiseResolveBlock)resolve
         reject:(RCTPromiseRejectBlock)reject {
-  SpeechToTextBaseModel* model = self->whisper ? self->whisper : self->moonshine;
+  SpeechToTextBaseModel *model =
+      self->whisper ? self->whisper : self->moonshine;
   @try {
     NSArray *encodingResult = [model encode:input];
     resolve(encodingResult);
@@ -102,10 +106,11 @@ RCT_EXPORT_MODULE()
     encoderOutput:(NSArray *)encoderOutput
           resolve:(RCTPromiseResolveBlock)resolve
            reject:(RCTPromiseRejectBlock)reject {
-  SpeechToTextBaseModel* model = self->whisper ? self->whisper : self->moonshine;
+  SpeechToTextBaseModel *model =
+      self->whisper ? self->whisper : self->moonshine;
   @try {
     NSArray *token = [model decode:prevTokens
-              encoderLastHiddenState:encoderOutput];
+            encoderLastHiddenState:encoderOutput];
     resolve(token);
   } @catch (NSException *exception) {
     reject(@"forward_error",

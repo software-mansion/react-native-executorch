@@ -62,7 +62,7 @@ When using Expo, please note that you need to use a custom development build of 
 :::
 
 :::caution
-If you encountered an error that native modules for React Native Audio API were not installed, please make sure to install react-native-audio-api. 
+If you encountered an error that native modules for React Native Audio API were not installed, please make sure to install react-native-audio-api.
 :::
 
 :::info

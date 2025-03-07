@@ -21,11 +21,11 @@ constexpr int verticalLineThreshold = 20;
 + (NSArray *)restoreBboxRatio:(NSArray *)boxes
             usingRestoreRatio:(CGFloat)restoreRatio;
 + (NSArray *)groupTextBoxes:(NSArray<NSDictionary *> *)polys
-                            centerThreshold:(CGFloat)centerThreshold
-                          distanceThreshold:(CGFloat)distanceThreshold
-                            heightThreshold:(CGFloat)heightThreshold
-                           minSideThreshold:(int)minSideThreshold
-                           maxSideThreshold:(int)maxSideThreshold
-                                   maxWidth:(int)maxWidth;
+            centerThreshold:(CGFloat)centerThreshold
+          distanceThreshold:(CGFloat)distanceThreshold
+            heightThreshold:(CGFloat)heightThreshold
+           minSideThreshold:(int)minSideThreshold
+           maxSideThreshold:(int)maxSideThreshold
+                   maxWidth:(int)maxWidth;
 
 @end

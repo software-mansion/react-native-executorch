@@ -12,6 +12,4 @@
 
 @end
 
-
-
 #endif /* WhisperEncoder_hpp */

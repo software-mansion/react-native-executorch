@@ -13,7 +13,7 @@ import { Buffer } from 'buffer';
 import DeviceInfo from 'react-native-device-info';
 import InputPrompt from '../components/TextInputModal';
 
-const options = {
+const audioStreamOptions = {
   sampleRate: 16000,
   channels: 1,
   bitsPerSample: 16,
@@ -35,7 +35,7 @@ const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
   for (let i = 0; i < int16Array.length; i++) {
     float32Array[i] = Math.max(
       -1,
-      Math.min(1, (int16Array[i] / options.bufferSize) * 8)
+      Math.min(1, (int16Array[i] / audioStreamOptions.bufferSize) * 8)
     );
   }
   return float32Array;
@@ -69,7 +69,7 @@ export const SpeechToTextScreen = () => {
       audioBuffer.current = [];
     } else {
       setIsRecording(true);
-      startStreamingAudio(options, onChunk);
+      startStreamingAudio(audioStreamOptions, onChunk);
     }
   };
 
@@ -90,13 +90,7 @@ export const SpeechToTextScreen = () => {
         </View>
         {downloadProgress !== 1 ? (
           <View style={styles.transcriptionContainer}>
-            <Text
-              style={{
-                ...styles.transcriptionText,
-                color: 'gray',
-                textAlign: 'center',
-              }}
-            >
+            <Text style={[styles.transcriptionText, styles.textGreyCenter]}>
               {`Downloading model: ${(Number(downloadProgress.toFixed(4)) * 100).toFixed(2)}%`}
             </Text>
           </View>
@@ -106,11 +100,7 @@ export const SpeechToTextScreen = () => {
               style={
                 sequence
                   ? styles.transcriptionText
-                  : {
-                      ...styles.transcriptionText,
-                      color: 'gray',
-                      textAlign: 'center',
-                    }
+                  : [styles.transcriptionText, styles.textGreyCenter]
               }
             >
               {sequence ||
@@ -121,7 +111,7 @@ export const SpeechToTextScreen = () => {
         )}
         {error && (
           <Text
-            style={{ ...styles.transcriptionText, color: 'red' }}
+            style={[styles.transcriptionText, styles.redText]}
           >{`${error}`}</Text>
         )}
         <InputPrompt
@@ -140,18 +130,14 @@ export const SpeechToTextScreen = () => {
           <View
             style={[
               styles.recordingButtonWrapper,
-              buttonDisabled && {
-                borderColor: 'grey',
-              },
+              buttonDisabled && styles.borderGrey,
             ]}
           >
             <TouchableOpacity
               disabled={buttonDisabled}
               style={[
                 styles.recordingButton,
-                buttonDisabled && {
-                  backgroundColor: 'grey',
-                },
+                buttonDisabled && styles.backgroundGrey,
               ]}
               onPress={async () => {
                 if (!audioUrl) {
@@ -162,7 +148,7 @@ export const SpeechToTextScreen = () => {
                 }
               }}
             >
-              <Text style={{ ...styles.recordingButtonText, fontSize: 13 }}>
+              <Text style={[styles.recordingButtonText, styles.font13]}>
                 {'TRANSCRIBE FROM URL'}
               </Text>
             </TouchableOpacity>
@@ -172,20 +158,17 @@ export const SpeechToTextScreen = () => {
           <View
             style={[
               styles.recordingButtonWrapper,
-              recordingButtonDisabled && {
-                borderColor: 'grey',
-              },
-              isRecording && { borderColor: 'rgb(240, 63, 50)' },
+              recordingButtonDisabled && styles.borderGrey,
+              isRecording && styles.borderRed,
             ]}
           >
+            zRXW
             <TouchableOpacity
               disabled={recordingButtonDisabled || isGenerating}
               style={[
                 styles.recordingButton,
-                recordingButtonDisabled && {
-                  backgroundColor: 'grey',
-                },
-                isRecording && { backgroundColor: 'rgb(240, 63, 50)' },
+                recordingButtonDisabled && styles.backgroundGrey,
+                isRecording && styles.backgroundRed,
               ]}
               onPress={handleRecordPress}
             >
@@ -194,11 +177,7 @@ export const SpeechToTextScreen = () => {
               </Text>
               {DeviceInfo.isEmulatorSync() && (
                 <Text
-                  style={{
-                    ...styles.recordingButtonText,
-                    color: 'rgb(254, 148, 141)',
-                    fontSize: 11,
-                  }}
+                  style={[styles.recordingButtonText, styles.emulatorWarning]}
                 >
                   recording does not work on emulator
                 </Text>
@@ -285,5 +264,31 @@ const styles = StyleSheet.create({
   recordingButtonText: {
     color: 'white',
     fontWeight: '600',
+  },
+  textGreyCenter: {
+    color: 'gray',
+    textAlign: 'center',
+  },
+  redText: {
+    color: 'red',
+  },
+  borderGrey: {
+    borderColor: 'grey',
+  },
+  backgroundGrey: {
+    backgroundColor: 'grey',
+  },
+  font13: {
+    fontSize: 13,
+  },
+  borderRed: {
+    borderColor: 'rgb(240, 63, 50)',
+  },
+  backgroundRed: {
+    backgroundColor: 'rgb(240, 63, 50)',
+  },
+  emulatorWarning: {
+    color: 'rgb(254, 148, 141)',
+    fontSize: 11,
   },
 });

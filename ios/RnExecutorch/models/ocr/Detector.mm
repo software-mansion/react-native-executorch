@@ -21,7 +21,7 @@
   NSArray *inputShape = [module getInputShape:@0];
   NSNumber *widthNumber = inputShape[inputShape.count - 2];
   NSNumber *heightNumber = inputShape.lastObject;
-  
+
   const int height = [heightNumber intValue];
   const int width = [widthNumber intValue];
   modelSize = cv::Size(height, width);

@@ -53,7 +53,7 @@ namespace etensor {
  * with `#ifdef USE_ATEN_LIB`.
  */
 class TensorImpl {
- public:
+public:
   /**
    * The type used for elements of `sizes()`.
    *
@@ -100,14 +100,10 @@ class TensorImpl {
    *     entries.
    * @param dynamism The mutability of the shape of the tensor.
    */
-  TensorImpl(
-      ScalarType type,
-      ssize_t dim,
-      SizesType* sizes,
-      void* data = nullptr,
-      DimOrderType* dim_order = nullptr,
-      StridesType* strides = nullptr,
-      TensorShapeDynamism dynamism = TensorShapeDynamism::STATIC);
+  TensorImpl(ScalarType type, ssize_t dim, SizesType *sizes,
+             void *data = nullptr, DimOrderType *dim_order = nullptr,
+             StridesType *strides = nullptr,
+             TensorShapeDynamism dynamism = TensorShapeDynamism::STATIC);
 
   /**
    * Returns the size of the tensor in bytes.
@@ -126,32 +122,23 @@ class TensorImpl {
    * rest of the methods on this class and in ETensor.
    */
   ssize_t size(ssize_t dim) const {
-    ET_CHECK_MSG(
-        dim < dim_ && dim >= 0,
-        "Dimension out of range (expected to be in range of [0, %zd], but got %zd",
-        dim_ - 1,
-        dim);
+    ET_CHECK_MSG(dim < dim_ && dim >= 0,
+                 "Dimension out of range (expected to be in range of [0, %zd], "
+                 "but got %zd",
+                 dim_ - 1, dim);
     return sizes_[dim];
   }
 
   /// Returns the tensor's number of dimensions.
-  ssize_t dim() const {
-    return dim_;
-  }
+  ssize_t dim() const { return dim_; }
 
   /// Returns the number of elements in the tensor.
-  ssize_t numel() const {
-    return numel_;
-  }
+  ssize_t numel() const { return numel_; }
 
   /// Returns the type of the elements in the tensor (int32, float, bool, etc).
-  ScalarType scalar_type() const {
-    return type_;
-  }
+  ScalarType scalar_type() const { return type_; }
 
-  inline ScalarType dtype() const {
-    return scalar_type();
-  }
+  inline ScalarType dtype() const { return scalar_type(); }
 
   /// Returns the size in bytes of one element of the tensor.
   ssize_t element_size() const;
@@ -172,36 +159,26 @@ class TensorImpl {
   }
 
   /// Returns the mutability of the shape of the tensor.
-  TensorShapeDynamism shape_dynamism() const {
-    return shape_dynamism_;
-  }
+  TensorShapeDynamism shape_dynamism() const { return shape_dynamism_; }
 
   /// Returns a pointer of type T to the constant underlying data blob.
-  template <typename T>
-  inline const T* data() const {
-    return static_cast<const T*>(data());
+  template <typename T> inline const T *data() const {
+    return static_cast<const T *>(data());
   }
 
   /// Returns a pointer to the constant underlying data blob.
-  const void* data() const {
-    return data_;
-  }
+  const void *data() const { return data_; }
 
   /// Returns a pointer of type T to the mutable underlying data blob.
-  template <typename T>
-  inline T* mutable_data() const {
-    return static_cast<T*>(mutable_data());
+  template <typename T> inline T *mutable_data() const {
+    return static_cast<T *>(mutable_data());
   }
 
   /// Returns a pointer to the mutable underlying data blob.
-  void* mutable_data() const {
-    return data_;
-  }
+  void *mutable_data() const { return data_; }
 
   /// Sets the underlying data blob to the passed in pointer.
-  void set_data(void* ptr) {
-    data_ = ptr;
-  }
+  void set_data(void *ptr) { data_ = ptr; }
 
   /*
    * DEPRECATED: Use torch::executor::resize_tensor() or
@@ -210,11 +187,11 @@ class TensorImpl {
   ET_DEPRECATED
   void set_sizes_contiguous(ArrayRef<SizesType> new_sizes) {
     Error err = internal_resize_contiguous(new_sizes);
-    ET_CHECK_MSG(
-        err == Error::Ok, "Could not resize Tensor; see logs for details");
+    ET_CHECK_MSG(err == Error::Ok,
+                 "Could not resize Tensor; see logs for details");
   }
 
- private:
+private:
   // For access to internal_resize_contiguous().
   friend class ::executorch::runtime::internal::TensorResizerFriend;
 
@@ -231,20 +208,20 @@ class TensorImpl {
    */
   ET_NODISCARD Error internal_resize_contiguous(ArrayRef<SizesType> new_sizes);
 
- private:
+private:
   // Keep fields arranged to avoid unnecessary alignment holes.
 
   /// List of sizes of each dimension in the tensor.
-  SizesType* sizes_;
+  SizesType *sizes_;
 
   /// List of the order that dimensions are laid out in memory.
-  DimOrderType* dim_order_;
+  DimOrderType *dim_order_;
 
   // TODO(T148356881): Get rid of strides from ETensor
-  StridesType* strides_;
+  StridesType *strides_;
 
   /// Pointer to underlying data blob. NOTE: Can be null.
-  void* data_;
+  void *data_;
 
   /// Tensor's number of dimensions.
   const ssize_t dim_;
@@ -267,7 +244,7 @@ class TensorImpl {
  * Compute the number of elements based on the sizes of a tensor.
  */
 ssize_t compute_numel(
-    const ::executorch::runtime::etensor::TensorImpl::SizesType* sizes,
+    const ::executorch::runtime::etensor::TensorImpl::SizesType *sizes,
     ssize_t dim);
 
 } // namespace etensor

@@ -637,14 +637,13 @@
  * criteria.
  * 4. Sort the final array of boxes by their vertical positions.
  */
-+ (NSArray *)groupTextBoxes:
-                                 (NSMutableArray<NSDictionary *> *)boxes
-                            centerThreshold:(CGFloat)centerThreshold
-                          distanceThreshold:(CGFloat)distanceThreshold
-                            heightThreshold:(CGFloat)heightThreshold
-                           minSideThreshold:(int)minSideThreshold
-                           maxSideThreshold:(int)maxSideThreshold
-                                   maxWidth:(int)maxWidth {
++ (NSArray *)groupTextBoxes:(NSMutableArray<NSDictionary *> *)boxes
+            centerThreshold:(CGFloat)centerThreshold
+          distanceThreshold:(CGFloat)distanceThreshold
+            heightThreshold:(CGFloat)heightThreshold
+           minSideThreshold:(int)minSideThreshold
+           maxSideThreshold:(int)maxSideThreshold
+                   maxWidth:(int)maxWidth {
   // Sort boxes based on their maximum side length
   boxes = [boxes sortedArrayUsingComparator:^NSComparisonResult(
                      NSDictionary *obj1, NSDictionary *obj2) {
@@ -738,16 +737,17 @@
                : (minY1 > minY2) ? NSOrderedDescending
                                  : NSOrderedSame;
       }];
-  
-  NSMutableArray *orderedSortedBoxes = [[NSMutableArray alloc] initWithCapacity:[sortedBoxes count]];
+
+  NSMutableArray *orderedSortedBoxes =
+      [[NSMutableArray alloc] initWithCapacity:[sortedBoxes count]];
   for (NSDictionary *dict in sortedBoxes) {
-      NSMutableDictionary *mutableDict = [dict mutableCopy];
-      NSArray<NSValue *> *originalBBox = mutableDict[@"bbox"];
-      NSArray<NSValue *> *orderedBBox = [self orderPointsClockwise:originalBBox];
-      mutableDict[@"bbox"] = orderedBBox;
-      [orderedSortedBoxes addObject:mutableDict];
+    NSMutableDictionary *mutableDict = [dict mutableCopy];
+    NSArray<NSValue *> *originalBBox = mutableDict[@"bbox"];
+    NSArray<NSValue *> *orderedBBox = [self orderPointsClockwise:originalBBox];
+    mutableDict[@"bbox"] = orderedBBox;
+    [orderedSortedBoxes addObject:mutableDict];
   }
-  
+
   return orderedSortedBoxes;
 }
 

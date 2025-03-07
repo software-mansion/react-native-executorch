@@ -192,43 +192,47 @@ using namespace ::torch::executor;
           inputTypes:(NSArray *)inputTypes {
   std::vector<EValue> inputTensors;
   std::vector<TensorPtr> inputTensorPtrs;
-  
+
   for (NSUInteger i = 0; i < [inputTypes count]; i++) {
     NSArray *inputShapeNSArray = [shapes objectAtIndex:i];
-    
+
     std::vector<int> inputShape = NSArrayToIntVector(inputShapeNSArray);
     int inputType = [[inputTypes objectAtIndex:i] intValue];
-    
+
     NSArray *input = [inputs objectAtIndex:i];
-    
+
     TensorPtr currentTensor = NSArrayToTensorPtr(input, inputShape, inputType);
     if (!currentTensor) {
       throw [NSException
-            exceptionWithName:@"forward_error"
-            reason:[NSString stringWithFormat:@"%d", Error::InvalidArgument]
-            userInfo:nil];
+          exceptionWithName:@"forward_error"
+                     reason:[NSString
+                                stringWithFormat:@"%d", Error::InvalidArgument]
+                   userInfo:nil];
     }
-    
-    // Since pushing back to inputTensors would cast to EValue (forward accepts a vector of EValues)
-    // We also push back to inputTensorPtrs to keep the underlying tensor alive.
-    // inputTensorPtrs vector retains shared ownership to prevent premature destruction
+
+    // Since pushing back to inputTensors would cast to EValue (forward accepts
+    // a vector of EValues) We also push back to inputTensorPtrs to keep the
+    // underlying tensor alive. inputTensorPtrs vector retains shared ownership
+    // to prevent premature destruction
     inputTensors.push_back(*currentTensor);
     inputTensorPtrs.push_back(currentTensor);
   }
-  
+
   Result result = _model->execute([methodName UTF8String], inputTensors);
-  
+
   if (!result.ok()) {
     throw [NSException
-          exceptionWithName:@"forward_error"
-          reason:[NSString stringWithFormat:@"%d", result.error()]
-          userInfo:nil];
+        exceptionWithName:@"forward_error"
+                   reason:[NSString stringWithFormat:@"%d", result.error()]
+                 userInfo:nil];
   }
-  
+
   NSMutableArray *output = [NSMutableArray new];
   for (int i = 0; i < result->size(); i++) {
     auto currentResultTensor = result->at(i).toTensor();
-    NSArray *currentOutput = arrayToNsArray(currentResultTensor.const_data_ptr(), currentResultTensor.numel(), currentResultTensor.scalar_type());
+    NSArray *currentOutput = arrayToNsArray(
+        currentResultTensor.const_data_ptr(), currentResultTensor.numel(),
+        currentResultTensor.scalar_type());
     [output addObject:currentOutput];
   }
   return output;
@@ -236,7 +240,10 @@ using namespace ::torch::executor;
 - (NSArray *)forward:(NSArray *)inputs
               shapes:(NSArray *)shapes
           inputTypes:(NSArray *)inputTypes {
-  return [self execute:@"forward" inputs:inputs shapes:shapes inputTypes:inputTypes];
+  return [self execute:@"forward"
+                inputs:inputs
+                shapes:shapes
+            inputTypes:inputTypes];
 }
 
 @end

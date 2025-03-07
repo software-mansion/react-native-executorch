@@ -1,19 +1,18 @@
 package com.swmansion.rnexecutorch.models.speechtotext
 
-import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactApplicationContext
-import com.swmansion.rnexecutorch.utils.ArrayUtils
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.WritableArray
 import com.swmansion.rnexecutorch.models.BaseModel
+import com.swmansion.rnexecutorch.utils.ArrayUtils
 import com.swmansion.rnexecutorch.utils.STFT
 import org.pytorch.executorch.EValue
 import org.pytorch.executorch.Tensor
 
-class WhisperEncoder(reactApplicationContext: ReactApplicationContext) :
-  BaseModel<ReadableArray, WritableArray>(reactApplicationContext) {
-
+class WhisperEncoder(
+  reactApplicationContext: ReactApplicationContext,
+) : BaseModel<ReadableArray, WritableArray>(reactApplicationContext) {
   private val fftSize = 512
   private val hopLength = 160
   private val stftFrameSize = (this.fftSize / 2).toLong()
@@ -39,8 +38,9 @@ class WhisperEncoder(reactApplicationContext: ReactApplicationContext) :
 
     output[0].toTensor().dataAsFloatArray.map {
       outputWritableArray.pushDouble(
-        it.toDouble()
-    )}
+        it.toDouble(),
+      )
+    }
     return outputWritableArray
   }
 }

@@ -26,9 +26,8 @@ struct nullopt_t final {
 constexpr nullopt_t nullopt{0};
 
 /// Leaner optional class, subset of c10, std, and boost optional APIs.
-template <class T>
-class optional final {
- public:
+template <class T> class optional final {
+public:
   /// The type wrapped by the optional class.
   using value_type = T;
 
@@ -40,7 +39,7 @@ class optional final {
       : storage_(trivial_init), init_(false) {}
 
   /// Constructs an optional object that matches the state of v.
-  /* implicit */ optional(const optional<T>& v)
+  /* implicit */ optional(const optional<T> &v)
       : storage_(trivial_init), init_(v.init_) {
     if (init_) {
       new (&storage_.value_) T(v.storage_.value_);
@@ -48,10 +47,10 @@ class optional final {
   }
 
   /// Constructs an optional object that contains the specified value.
-  /* implicit */ optional(const T& v) : storage_(v), init_(true) {}
+  /* implicit */ optional(const T &v) : storage_(v), init_(true) {}
 
   /// Constructs an optional object from v.
-  /* implicit */ optional(optional<T>&& v) noexcept(
+  /* implicit */ optional(optional<T> &&v) noexcept(
       std::is_nothrow_move_constructible<T>::value)
       : storage_(trivial_init), init_(v.init_) {
     if (init_) {
@@ -60,9 +59,9 @@ class optional final {
   }
 
   /// Constructs an optional object that contains the specified value.
-  /* implicit */ optional(T&& v) : storage_(std::forward<T>(v)), init_(true) {}
+  /* implicit */ optional(T &&v) : storage_(std::forward<T>(v)), init_(true) {}
 
-  optional& operator=(const optional& rhs) {
+  optional &operator=(const optional &rhs) {
     if (init_ && !rhs.init_) {
       clear();
     } else if (!init_ && rhs.init_) {
@@ -74,7 +73,7 @@ class optional final {
     return *this;
   }
 
-  optional& operator=(optional&& rhs) noexcept(
+  optional &operator=(optional &&rhs) noexcept(
       std::is_nothrow_move_assignable<T>::value &&
       std::is_nothrow_move_constructible<T>::value) {
     if (init_ && !rhs.init_) {
@@ -95,43 +94,39 @@ class optional final {
     }
   }
 
-  optional& operator=(nullopt_t) noexcept {
+  optional &operator=(nullopt_t) noexcept {
     clear();
     return *this;
   }
 
   /// Returns true if the object contains a value, false otherwise
-  explicit operator bool() const noexcept {
-    return init_;
-  }
+  explicit operator bool() const noexcept { return init_; }
 
   /// Returns true if the object contains a value, false otherwise
-  bool has_value() const noexcept {
-    return init_;
-  }
+  bool has_value() const noexcept { return init_; }
 
   /// Returns a constant reference to the contained value. Calls ET_CHECK if
   /// the object does not contain a value.
-  T const& value() const& {
+  T const &value() const & {
     ET_CHECK(init_);
     return contained_val();
   }
 
   /// Returns a mutable reference to the contained value. Calls ET_CHECK if the
   /// object does not contain a value.
-  T& value() & {
+  T &value() & {
     ET_CHECK(init_);
     return contained_val();
   }
 
   /// Returns an rvalue of the contained value. Calls ET_CHECK if the object
   /// does not contain a value.
-  T&& value() && {
+  T &&value() && {
     ET_CHECK(init_);
     return std::forward<T>(contained_val());
   }
 
- private:
+private:
   // Used to invoke the dummy ctor of storage_t in the initializer lists of
   // optional_base as default ctor is implicitly deleted because T is nontrivial
   struct trivial_init_t {
@@ -147,25 +142,17 @@ class optional final {
     /// The constructed value itself, if optional::has_value_ is true.
     T value_;
 
-    /* implicit */ storage_t(trivial_init_t) {
-      dummy_ = 0;
-    }
+    /* implicit */ storage_t(trivial_init_t) { dummy_ = 0; }
 
     template <class... Args>
-    storage_t(Args&&... args) : value_(std::forward<Args>(args)...) {}
+    storage_t(Args &&...args) : value_(std::forward<Args>(args)...) {}
 
     ~storage_t() {}
   };
 
-  const T& contained_val() const& {
-    return storage_.value_;
-  }
-  T&& contained_val() && {
-    return std::move(storage_.value_);
-  }
-  T& contained_val() & {
-    return storage_.value_;
-  }
+  const T &contained_val() const & { return storage_.value_; }
+  T &&contained_val() && { return std::move(storage_.value_); }
+  T &contained_val() & { return storage_.value_; }
 
   void clear() noexcept {
     if (init_) {
