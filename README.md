@@ -6,6 +6,12 @@
 
 **ExecuTorch** is a novel framework created by Meta that enables running AI models on devices such as mobile phones or microcontrollers. React Native ExecuTorch bridges the gap between React Native and native platform capabilities, allowing developers to run AI models locally on mobile devices with state-of-the-art performance, without requiring deep knowledge of native code or machine learning internals.
 
+## Compatibility
+
+React Native Executorch supports only the [New React Native architecture](https://reactnative.dev/architecture/landing-page).
+
+If your app still runs on the old architecture, please consider upgrading to the New Architecture.
+
 ## Readymade models 🤖
 
 To run any AI model in ExecuTorch, you need to export it to a `.pte` format. If you're interested in experimenting with your own models, we highly encourage you to check out the [Python API](https://pypi.org/project/executorch/). If you prefer focusing on developing your React Native app, we will cover several common use cases. For more details, please refer to the documentation.
@@ -15,12 +21,12 @@ To run any AI model in ExecuTorch, you need to export it to a `.pte` format. If 
 Take a look at how our library can help build you your React Native AI features in our docs:  
 https://docs.swmansion.com/react-native-executorch
 
+# 🦙 **Quickstart - Running Llama**
 
-# 🦙 **Quickstart - Running Llama**  
+**Get started with AI-powered text generation in 3 easy steps!**
 
-**Get started with AI-powered text generation in 3 easy steps!**  
+### 1️⃣ **Installation**
 
-### 1️⃣ **Installation**  
 ```bash
 # Install the package
 yarn add react-native-executorch
@@ -29,20 +35,22 @@ cd ios && pod install && cd ..
 
 ---
 
-### 2️⃣ **Setup & Initialization**  
-Add this to your component file:  
+### 2️⃣ **Setup & Initialization**
+
+Add this to your component file:
+
 ```tsx
-import { 
-  LLAMA3_2_3B_QLORA, 
+import {
+  LLAMA3_2_3B_QLORA,
   LLAMA3_2_3B_TOKENIZER,
-  useLLM 
+  useLLM,
 } from 'react-native-executorch';
 
 function MyComponent() {
   // Initialize the model 🚀
   const llama = useLLM({
     modelSource: LLAMA3_2_3B_QLORA,
-    tokenizerSource: LLAMA3_2_3B_TOKENIZER
+    tokenizerSource: LLAMA3_2_3B_TOKENIZER,
   });
   // ... rest of your component
 }
@@ -50,18 +58,20 @@ function MyComponent() {
 
 ---
 
-### 3️⃣ **Run the model!**  
+### 3️⃣ **Run the model!**
+
 ```tsx
 const handleGenerate = async () => {
-  const prompt = "The meaning of life is";
-  
+  const prompt = 'The meaning of life is';
+
   // Generate text based on your desired prompt
   const response = await llama.generate(prompt);
-  console.log("Llama says:", response);
+  console.log('Llama says:', response);
 };
 ```
 
 ## Minimal supported versions
+
 The minimal supported version is 17.0 for iOS and Android 13.
 
 ## Examples 📲
@@ -69,6 +79,7 @@ The minimal supported version is 17.0 for iOS and Android 13.
 https://github.com/user-attachments/assets/27ab3406-c7f1-4618-a981-6c86b53547ee
 
 We currently host two example apps demonstrating use cases of our library:
+
 - examples/speech-to-text - Whisper and Moonshine models ready for transcription tasks
 - examples/computer-vision - computer vision related tasks
 - examples/llama - chat applications showcasing use of LLMs
@@ -100,10 +111,10 @@ yarn expo run:ios
 ```
 
 ### Warning
+
 Running LLMs requires a significant amount of RAM. If you are encountering unexpected app crashes, try to increase the amount of RAM allocated to the emulator.
 
-
-## License  
+## License
 
 This library is licensed under [The MIT License](./LICENSE).
 
