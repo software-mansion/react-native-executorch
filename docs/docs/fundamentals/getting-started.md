@@ -14,6 +14,12 @@ ExecuTorch is a novel AI framework developed by Meta, designed to streamline dep
 
 React Native ExecuTorch is our way of bringing ExecuTorch into the React Native world. Our API is built to be simple, declarative, and efficient. Plus, we’ll provide a set of pre-exported models for common use cases, so you won’t have to worry about handling exports yourself. With just a few lines of JavaScript, you’ll be able to run AI models (even LLMs 👀) right on your device—keeping user data private and saving on cloud costs.
 
+## Compatibility
+
+React Native Executorch supports only the [New React Native architecture](https://reactnative.dev/architecture/landing-page).
+
+If your app still runs on the old architecture, please consider adopting the New Architecture.
+
 ## Installation
 
 Installation is pretty straightforward, just use your favorite package manager.
