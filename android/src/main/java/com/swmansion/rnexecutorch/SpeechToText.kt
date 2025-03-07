@@ -57,10 +57,10 @@ class SpeechToText(
     promise: Promise,
   ) {
     val encoding = writableArrayToEValue(this.speechToTextModule.encode(waveform))
-    val generatedTokens = mutableListOf(this.speechToTextModule.START_TOKEN)
+    val generatedTokens = mutableListOf(this.speechToTextModule.startToken)
     var lastToken = 0
     Thread {
-      while (lastToken != this.speechToTextModule.EOS_TOKEN) {
+      while (lastToken != this.speechToTextModule.eosToken) {
         // TODO uncomment, for now
         //        lastToken = this.speechToTextModule.decode(generatedTokens, encoding)
         emitOnToken(lastToken.toDouble())

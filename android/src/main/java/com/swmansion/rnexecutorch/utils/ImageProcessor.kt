@@ -72,7 +72,7 @@ class ImageProcessor {
       )
     }
 
-    fun EValueToMat(
+    fun eValueToMat(
       array: FloatArray,
       width: Int,
       height: Int,

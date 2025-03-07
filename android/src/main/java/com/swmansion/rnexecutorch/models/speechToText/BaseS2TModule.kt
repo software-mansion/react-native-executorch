@@ -7,8 +7,8 @@ import com.swmansion.rnexecutorch.models.BaseModel
 abstract class BaseS2TModule {
   lateinit var encoder: BaseModel<ReadableArray, WritableArray>
   lateinit var decoder: BaseS2TDecoder
-  abstract var START_TOKEN: Int
-  abstract var EOS_TOKEN: Int
+  abstract var startToken: Int
+  abstract var eosToken: Int
 
   fun encode(input: ReadableArray): WritableArray = this.encoder.runModel(input)
 
