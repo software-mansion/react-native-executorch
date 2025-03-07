@@ -1,4 +1,5 @@
 import {
+  _ImageSegmentationModule,
   _StyleTransferModule,
   _ObjectDetectionModule,
   _ClassificationModule,
@@ -10,6 +11,7 @@ import { getError } from '../Error';
 
 export class BaseModule {
   static module:
+    | _ImageSegmentationModule
     | _StyleTransferModule
     | _ObjectDetectionModule
     | _ClassificationModule
