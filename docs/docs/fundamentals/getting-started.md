@@ -18,7 +18,7 @@ React Native ExecuTorch is our way of bringing ExecuTorch into the React Native 
 
 React Native Executorch supports only the [New React Native architecture](https://reactnative.dev/architecture/landing-page).
 
-If your app still runs on the old architecture, please consider adopting the New Architecture.
+If your app still runs on the old architecture, please consider upgrading to the New Architecture.
 
 ## Installation
 
