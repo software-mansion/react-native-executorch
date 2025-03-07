@@ -40,8 +40,7 @@ namespace extension {
 namespace llm {
 
 // sampler stuff
-template <typename T>
-int32_t Sampler::sample_argmax(T* probabilities) {
+template <typename T> int32_t Sampler::sample_argmax(T *probabilities) {
   // return the index that has the highest probability
   int max_i = 0;
   T max_p = probabilities[0];
@@ -55,7 +54,7 @@ int32_t Sampler::sample_argmax(T* probabilities) {
 }
 
 template <typename T>
-int32_t Sampler::sample_mult(T* probabilities, float coin) {
+int32_t Sampler::sample_mult(T *probabilities, float coin) {
   // sample index from probabilities (they must sum to 1!)
   // coin is a random number in [0, 1), usually from random_f32()
   T cdf = 0.0;
@@ -69,7 +68,7 @@ int32_t Sampler::sample_mult(T* probabilities, float coin) {
 }
 
 template <typename T>
-int32_t Sampler::sample_topp(T* probabilities, float coin) {
+int32_t Sampler::sample_topp(T *probabilities, float coin) {
   // top-p sampling (or "nucleus sampling") samples from the smallest set of
   // tokens that exceed probability topp. This way we never sample tokens that
   // have very low probabilities and are less likely to go "off the rails".
@@ -91,7 +90,7 @@ int32_t Sampler::sample_topp(T* probabilities, float coin) {
     }
   }
 
-  auto compare = [](const ProbIndex<T>& a, const ProbIndex<T>& b) {
+  auto compare = [](const ProbIndex<T> &a, const ProbIndex<T> &b) {
     return a.prob > b.prob;
   };
   std::sort(probindex.get(), probindex.get() + n0, compare);
@@ -108,7 +107,7 @@ int32_t Sampler::sample_topp(T* probabilities, float coin) {
   }
 
   // sample from the truncated list
-  const T& r = coin * cumulative_prob;
+  const T &r = coin * cumulative_prob;
   T cdf = 0;
   for (int i = 0; i <= last_idx; i++) {
     cdf += probindex[i].prob;
@@ -119,18 +118,13 @@ int32_t Sampler::sample_topp(T* probabilities, float coin) {
   return probindex[last_idx].index; // in case of rounding errors
 }
 
-Sampler::Sampler(
-    int vocab_size,
-    float temperature,
-    float topp,
-    unsigned long long rng_seed)
+Sampler::Sampler(int vocab_size, float temperature, float topp,
+                 unsigned long long rng_seed)
     : vocab_size_(vocab_size),
       inv_temperature_(static_cast<bool>(temperature) ? 1.0f / temperature : 0),
-      topp_(topp),
-      rng_state_(rng_seed) {}
+      topp_(topp), rng_state_(rng_seed) {}
 
-template <typename T>
-static void softmax(T* x, int size) {
+template <typename T> static void softmax(T *x, int size) {
   // find max value (for numerical stability)
   T max_val = x[0];
   for (int i = 1; i < size; i++) {
@@ -150,7 +144,7 @@ static void softmax(T* x, int size) {
   }
 }
 
-static unsigned int random_u32(unsigned long long* state) {
+static unsigned int random_u32(unsigned long long *state) {
   // xorshift rng: https://en.wikipedia.org/wiki/Xorshift#xorshift.2A
   *state ^= *state >> 12;
   *state ^= *state << 25;
@@ -158,12 +152,11 @@ static unsigned int random_u32(unsigned long long* state) {
   return (*state * 0x2545F4914F6CDD1Dull) >> 32;
 }
 
-static float random_f32(unsigned long long* state) { // random float32 in [0,1)
+static float random_f32(unsigned long long *state) { // random float32 in [0,1)
   return (random_u32(state) >> 8) / 16777216.0f;
 }
 
-template <typename T>
-int32_t Sampler::sample(T* logits) {
+template <typename T> int32_t Sampler::sample(T *logits) {
   // sample the token given the logits and some hyperparameters
   int next;
   if (inv_temperature_ == 0.0f) {
@@ -190,10 +183,10 @@ int32_t Sampler::sample(T* logits) {
   return next;
 }
 
-template int32_t Sampler::sample<float>(float* logits);
-template int32_t Sampler::sample<exec_aten::Half>(exec_aten::Half* logits);
-template int32_t Sampler::sample<exec_aten::BFloat16>(
-    exec_aten::BFloat16* logits);
+template int32_t Sampler::sample<float>(float *logits);
+template int32_t Sampler::sample<exec_aten::Half>(exec_aten::Half *logits);
+template int32_t
+Sampler::sample<exec_aten::BFloat16>(exec_aten::BFloat16 *logits);
 
 } // namespace llm
 } // namespace extension

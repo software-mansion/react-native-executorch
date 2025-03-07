@@ -19,7 +19,7 @@ namespace runtime {
 
 namespace {
 template <typename DimOrderType>
-bool validate_dim_order(const DimOrderType* dim_order, const size_t dims) {
+bool validate_dim_order(const DimOrderType *dim_order, const size_t dims) {
   for (int32_t i = 0; i < dims; ++i) {
     if (dim_order[i] >= dims) {
       return false;
@@ -37,9 +37,8 @@ bool validate_dim_order(const DimOrderType* dim_order, const size_t dims) {
  * @param[in] dims length of the dim_order array
  */
 template <typename DimOrderType>
-inline bool is_contiguous_dim_order(
-    const DimOrderType* dim_order,
-    const size_t dims) {
+inline bool is_contiguous_dim_order(const DimOrderType *dim_order,
+                                    const size_t dims) {
   for (int i = 0; i < dims; ++i) {
     if (dim_order[i] != i) {
       return false;
@@ -56,9 +55,8 @@ inline bool is_contiguous_dim_order(
  * @param[in] dims length of the dim_order array
  */
 template <typename DimOrderType>
-bool is_channels_last_dim_order(
-    const DimOrderType* dim_order,
-    const size_t dims) {
+bool is_channels_last_dim_order(const DimOrderType *dim_order,
+                                const size_t dims) {
   if (dims != 4 && dims != 5) {
     return false;
   }
@@ -108,11 +106,10 @@ bool is_channels_last_dim_order(
  * dim_order_to_stride which will check that the dim order is valid.
  */
 template <typename SizesType, typename DimOrderType, typename StridesType>
-inline void dim_order_to_stride_nocheck(
-    const SizesType* sizes,
-    const DimOrderType* dim_order,
-    const size_t dims,
-    StridesType* strides) {
+inline void dim_order_to_stride_nocheck(const SizesType *sizes,
+                                        const DimOrderType *dim_order,
+                                        const size_t dims,
+                                        StridesType *strides) {
   // For 0 dim tensors, just return ok.
   if (dims == 0) {
     return;
@@ -134,20 +131,17 @@ inline void dim_order_to_stride_nocheck(
 }
 
 template <typename SizesType, typename DimOrderType, typename StridesType>
-ET_NODISCARD inline Error dim_order_to_stride(
-    const SizesType* sizes,
-    const DimOrderType* dim_order,
-    const size_t dims,
-    StridesType* strides) {
+ET_NODISCARD inline Error
+dim_order_to_stride(const SizesType *sizes, const DimOrderType *dim_order,
+                    const size_t dims, StridesType *strides) {
   // For 0 dim tensors, just return ok.
   if (dims == 0) {
     return Error::Ok;
   }
-  ET_CHECK_OR_RETURN_ERROR(
-      validate_dim_order(dim_order, dims),
-      InvalidArgument,
-      "Invalid dim order. One of the value is larger than the number of dims %zu",
-      dims);
+  ET_CHECK_OR_RETURN_ERROR(validate_dim_order(dim_order, dims), InvalidArgument,
+                           "Invalid dim order. One of the value is larger than "
+                           "the number of dims %zu",
+                           dims);
 
   dim_order_to_stride_nocheck(sizes, dim_order, dims, strides);
   return Error::Ok;
@@ -155,23 +149,21 @@ ET_NODISCARD inline Error dim_order_to_stride(
 
 namespace internal {
 
-template <typename StridesType, typename DimOrderType>
-struct StrideDimOrder {
+template <typename StridesType, typename DimOrderType> struct StrideDimOrder {
   StridesType stride;
   DimOrderType dim_order;
 
   StrideDimOrder(StridesType stride, DimOrderType dim_order)
       : stride(stride), dim_order(dim_order) {}
   StrideDimOrder() = default;
-  bool operator>(const StrideDimOrder& other) const {
+  bool operator>(const StrideDimOrder &other) const {
     // descending order
     return stride < other.stride;
   }
 };
 
-template <typename ValueType>
-struct Sorter {
- public:
+template <typename ValueType> struct Sorter {
+public:
   void quick_sort(ValueType arr[], int32_t low, int32_t high) {
     if (low < high) {
       ValueType pivot = arr[high];
@@ -182,15 +174,15 @@ struct Sorter {
     }
   }
 
- private:
+private:
   void swap(ValueType arr[], int32_t pos1, int32_t pos2) noexcept {
     ValueType temp = arr[pos1];
     arr[pos1] = arr[pos2];
     arr[pos2] = temp;
   }
 
-  int32_t
-  partition(ValueType arr[], int32_t low, int32_t high, ValueType pivot) {
+  int32_t partition(ValueType arr[], int32_t low, int32_t high,
+                    ValueType pivot) {
     int32_t i = low;
     int32_t j = low;
     while (i <= high) {
@@ -226,21 +218,15 @@ struct Sorter {
  * TODO(T148342910)
  */
 template <typename DimOrderType, typename StridesType>
-ET_NODISCARD inline Error stride_to_dim_order(
-    const StridesType* strides,
-    const size_t dims,
-    DimOrderType* dim_order) {
+ET_NODISCARD inline Error stride_to_dim_order(const StridesType *strides,
+                                              const size_t dims,
+                                              DimOrderType *dim_order) {
   const size_t kMaxNumOfDimensions = 16;
-  ET_CHECK_OR_RETURN_ERROR(
-      dim_order != nullptr,
-      MemoryAllocationFailed,
-      "Need memory to get dim_order.");
-  ET_CHECK_OR_RETURN_ERROR(
-      dims <= kMaxNumOfDimensions,
-      NotSupported,
-      "dims %zu exceeds maximum allowed %zu",
-      dims,
-      kMaxNumOfDimensions);
+  ET_CHECK_OR_RETURN_ERROR(dim_order != nullptr, MemoryAllocationFailed,
+                           "Need memory to get dim_order.");
+  ET_CHECK_OR_RETURN_ERROR(dims <= kMaxNumOfDimensions, NotSupported,
+                           "dims %zu exceeds maximum allowed %zu", dims,
+                           kMaxNumOfDimensions);
   internal::StrideDimOrder<StridesType, DimOrderType>
       array[kMaxNumOfDimensions];
   for (DimOrderType i = 0; i < dims; i++) {

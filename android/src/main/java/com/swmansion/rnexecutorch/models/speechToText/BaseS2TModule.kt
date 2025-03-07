@@ -4,22 +4,24 @@ import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.WritableArray
 import com.swmansion.rnexecutorch.models.BaseModel
 
-
-abstract class BaseS2TModule() {
+abstract class BaseS2TModule {
   lateinit var encoder: BaseModel<ReadableArray, WritableArray>
   lateinit var decoder: BaseS2TDecoder
-  abstract var START_TOKEN:Int
-  abstract var EOS_TOKEN:Int
+  abstract var START_TOKEN: Int
+  abstract var EOS_TOKEN: Int
 
-  fun encode(input: ReadableArray): WritableArray {
-    return this.encoder.runModel(input)
-  }
+  fun encode(input: ReadableArray): WritableArray = this.encoder.runModel(input)
 
-  abstract fun decode(prevTokens: ReadableArray, encoderOutput: ReadableArray): Int
+  abstract fun decode(
+    prevTokens: ReadableArray,
+    encoderOutput: ReadableArray,
+  ): Int
 
-  fun loadModel(encoderSource: String, decoderSource: String) {
+  fun loadModel(
+    encoderSource: String,
+    decoderSource: String,
+  ) {
     this.encoder.loadModel(encoderSource)
     this.decoder.loadModel(decoderSource)
   }
-
 }

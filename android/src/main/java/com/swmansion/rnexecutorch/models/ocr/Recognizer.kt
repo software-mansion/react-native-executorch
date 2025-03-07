@@ -8,9 +8,9 @@ import org.opencv.core.Mat
 import org.opencv.core.Size
 import org.pytorch.executorch.EValue
 
-class Recognizer(reactApplicationContext: ReactApplicationContext) :
-  BaseModel<Mat, Pair<List<Int>, Double>>(reactApplicationContext) {
-
+class Recognizer(
+  reactApplicationContext: ReactApplicationContext,
+) : BaseModel<Mat, Pair<List<Int>, Double>>(reactApplicationContext) {
   private fun getModelOutputSize(): Size {
     val outputShape = module.getOutputShape(0)
     val width = outputShape[outputShape.lastIndex]
@@ -19,9 +19,7 @@ class Recognizer(reactApplicationContext: ReactApplicationContext) :
     return Size(height.toDouble(), width.toDouble())
   }
 
-  override fun preprocess(input: Mat): EValue {
-    return ImageProcessor.matToEValueGray(input)
-  }
+  override fun preprocess(input: Mat): EValue = ImageProcessor.matToEValueGray(input)
 
   override fun postprocess(output: Array<EValue>): Pair<List<Int>, Double> {
     val modelOutputHeight = getModelOutputSize().height.toInt()
@@ -49,8 +47,5 @@ class Recognizer(reactApplicationContext: ReactApplicationContext) :
     return Pair(indices, confidenceScore)
   }
 
-
-  override fun runModel(input: Mat): Pair<List<Int>, Double> {
-    return postprocess(module.forward(preprocess(input)))
-  }
+  override fun runModel(input: Mat): Pair<List<Int>, Double> = postprocess(module.forward(preprocess(input)))
 }

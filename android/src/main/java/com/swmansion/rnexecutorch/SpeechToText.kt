@@ -14,27 +14,32 @@ import com.swmansion.rnexecutorch.utils.ArrayUtils
 import com.swmansion.rnexecutorch.utils.ArrayUtils.Companion.writableArrayToEValue
 import com.swmansion.rnexecutorch.utils.ETError
 
-class SpeechToText(reactContext: ReactApplicationContext) : NativeSpeechToTextSpec(reactContext) {
-
-  private lateinit var speechToTextModule: BaseS2TModule;
+class SpeechToText(
+  reactContext: ReactApplicationContext,
+) : NativeSpeechToTextSpec(reactContext) {
+  private lateinit var speechToTextModule: BaseS2TModule
 
   companion object {
     const val NAME = "SpeechToText"
   }
 
-  override fun loadModule(modelName: String, modelSources: ReadableArray, promise: Promise): Unit {
+  override fun loadModule(
+    modelName: String,
+    modelSources: ReadableArray,
+    promise: Promise,
+  ) {
     try {
-      if(modelName == "moonshine") {
+      if (modelName == "moonshine") {
         this.speechToTextModule = Moonshine()
         this.speechToTextModule.encoder = MoonshineEncoder(reactApplicationContext)
         this.speechToTextModule.decoder = MoonshineDecoder(reactApplicationContext)
       }
-      if(modelName == "whisper") {
+      if (modelName == "whisper") {
         this.speechToTextModule = Whisper()
         this.speechToTextModule.encoder = WhisperEncoder(reactApplicationContext)
         this.speechToTextModule.decoder = WhisperDecoder(reactApplicationContext)
       }
-    } catch(e: Exception){
+    } catch (e: Exception) {
       promise.reject(e.message!!, ETError.InvalidModelSource.toString())
       return
     }
@@ -47,7 +52,10 @@ class SpeechToText(reactContext: ReactApplicationContext) : NativeSpeechToTextSp
     }
   }
 
-  override fun generate(waveform: ReadableArray, promise: Promise) {
+  override fun generate(
+    waveform: ReadableArray,
+    promise: Promise,
+  ) {
     val encoding = writableArrayToEValue(this.speechToTextModule.encode(waveform))
     val generatedTokens = mutableListOf(this.speechToTextModule.START_TOKEN)
     var lastToken = 0
@@ -64,15 +72,20 @@ class SpeechToText(reactContext: ReactApplicationContext) : NativeSpeechToTextSp
     }.start()
   }
 
-  override fun encode(waveform: ReadableArray, promise: Promise) {
+  override fun encode(
+    waveform: ReadableArray,
+    promise: Promise,
+  ) {
     promise.resolve(this.speechToTextModule.encode(waveform))
   }
 
-  override fun decode(prevTokens: ReadableArray, encoderOutput: ReadableArray, promise: Promise) {
+  override fun decode(
+    prevTokens: ReadableArray,
+    encoderOutput: ReadableArray,
+    promise: Promise,
+  ) {
     promise.resolve(this.speechToTextModule.decode(prevTokens, encoderOutput))
   }
 
-  override fun getName(): String {
-    return NAME
-  }
+  override fun getName(): String = NAME
 }

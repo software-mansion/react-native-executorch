@@ -8,16 +8,16 @@ import com.swmansion.rnexecutorch.utils.ETError
 import com.swmansion.rnexecutorch.utils.ImageProcessor
 import org.opencv.android.OpenCVLoader
 
-class StyleTransfer(reactContext: ReactApplicationContext) :
-  NativeStyleTransferSpec(reactContext) {
-
+class StyleTransfer(
+  reactContext: ReactApplicationContext,
+) : NativeStyleTransferSpec(reactContext) {
   private lateinit var styleTransferModel: StyleTransferModel
 
   companion object {
     const val NAME = "StyleTransfer"
 
     init {
-      if(!OpenCVLoader.initLocal()){
+      if (!OpenCVLoader.initLocal()) {
         Log.d("rn_executorch", "OpenCV not loaded")
       } else {
         Log.d("rn_executorch", "OpenCV loaded")
@@ -25,7 +25,10 @@ class StyleTransfer(reactContext: ReactApplicationContext) :
     }
   }
 
-  override fun loadModule(modelSource: String, promise: Promise) {
+  override fun loadModule(
+    modelSource: String,
+    promise: Promise,
+  ) {
     try {
       styleTransferModel = StyleTransferModel(reactApplicationContext)
       styleTransferModel.loadModel(modelSource)
@@ -35,16 +38,17 @@ class StyleTransfer(reactContext: ReactApplicationContext) :
     }
   }
 
-  override fun forward(input: String, promise: Promise) {
+  override fun forward(
+    input: String,
+    promise: Promise,
+  ) {
     try {
       val output = styleTransferModel.runModel(ImageProcessor.readImage(input))
       promise.resolve(ImageProcessor.saveToTempFile(reactApplicationContext, output))
-    }catch(e: Exception){
+    } catch (e: Exception) {
       promise.reject(e.message!!, e.message)
     }
   }
 
-  override fun getName(): String {
-    return NAME
-  }
+  override fun getName(): String = NAME
 }

@@ -19,7 +19,10 @@ import kotlin.math.sqrt
 
 class RecognizerUtils {
   companion object {
-    private fun calculateRatio(width: Int, height: Int): Double {
+    private fun calculateRatio(
+      width: Int,
+      height: Int,
+    ): Double {
       var ratio = width.toDouble() / height.toDouble()
       if (ratio < 1.0) {
         ratio = 1.0 / ratio
@@ -28,7 +31,10 @@ class RecognizerUtils {
       return ratio
     }
 
-    private fun findIntersection(r1: Rect, r2: Rect): Rect {
+    private fun findIntersection(
+      r1: Rect,
+      r2: Rect,
+    ): Rect {
       val aLeft = r1.x
       val aTop = r1.y
       val aRight = r1.x + r1.width
@@ -51,7 +57,10 @@ class RecognizerUtils {
       }
     }
 
-    private fun adjustContrastGrey(img: Mat, target: Double): Mat {
+    private fun adjustContrastGrey(
+      img: Mat,
+      target: Double,
+    ): Mat {
       var high = 0
       var low = 255
 
@@ -81,20 +90,33 @@ class RecognizerUtils {
       return img
     }
 
-    private fun computeRatioAndResize(img: Mat, width: Int, height: Int, modelHeight: Int): Mat {
+    private fun computeRatioAndResize(
+      img: Mat,
+      width: Int,
+      height: Int,
+      modelHeight: Int,
+    ): Mat {
       var ratio = width.toDouble() / height.toDouble()
 
       if (ratio < 1.0) {
         ratio =
           calculateRatio(width, height)
         Imgproc.resize(
-          img, img, Size(modelHeight.toDouble(), (modelHeight * ratio)),
-          0.0, 0.0, Imgproc.INTER_LANCZOS4
+          img,
+          img,
+          Size(modelHeight.toDouble(), (modelHeight * ratio)),
+          0.0,
+          0.0,
+          Imgproc.INTER_LANCZOS4,
         )
       } else {
         Imgproc.resize(
-          img, img, Size((modelHeight * ratio), modelHeight.toDouble()),
-          0.0, 0.0, Imgproc.INTER_LANCZOS4
+          img,
+          img,
+          Size((modelHeight * ratio), modelHeight.toDouble()),
+          0.0,
+          0.0,
+          Imgproc.INTER_LANCZOS4,
         )
       }
 
@@ -122,7 +144,10 @@ class RecognizerUtils {
       return softmaxOutput
     }
 
-    fun sumProbabilityRows(probabilities: Mat, modelOutputHeight: Int): FloatArray {
+    fun sumProbabilityRows(
+      probabilities: Mat,
+      modelOutputHeight: Int,
+    ): FloatArray {
       val predsNorm = FloatArray(probabilities.rows())
 
       for (i in 0 until probabilities.rows()) {
@@ -136,7 +161,10 @@ class RecognizerUtils {
       return predsNorm
     }
 
-    fun divideMatrixByVector(matrix: Mat, vector: FloatArray): Mat {
+    fun divideMatrixByVector(
+      matrix: Mat,
+      vector: FloatArray,
+    ): Mat {
       for (i in 0 until matrix.rows()) {
         for (j in 0 until matrix.cols()) {
           val value = matrix.get(i, j)[0] / vector[i]
@@ -162,7 +190,10 @@ class RecognizerUtils {
       return Pair(values, indices)
     }
 
-    fun computeConfidenceScore(valuesArray: DoubleArray, indicesArray: List<Int>): Double {
+    fun computeConfidenceScore(
+      valuesArray: DoubleArray,
+      indicesArray: List<Int>,
+    ): Double {
       val predsMaxProb = mutableListOf<Double>()
       for ((index, value) in indicesArray.withIndex()) {
         if (value != 0) predsMaxProb.add(valuesArray[index])
@@ -180,7 +211,7 @@ class RecognizerUtils {
       width: Int,
       height: Int,
       desiredWidth: Int,
-      desiredHeight: Int
+      desiredHeight: Int,
     ): Map<String, Any> {
       val newRatioH = desiredHeight.toFloat() / height
       val newRatioW = desiredWidth.toFloat() / width
@@ -203,11 +234,15 @@ class RecognizerUtils {
       return mapOf(
         "resizeRatio" to resizeRatio,
         "top" to top,
-        "left" to left
+        "left" to left,
       )
     }
 
-    fun getCroppedImage(box: OCRbBox, image: Mat, modelHeight: Int): Mat {
+    fun getCroppedImage(
+      box: OCRbBox,
+      image: Mat,
+      modelHeight: Int,
+    ): Mat {
       val cords = box.bBox
       val angle = box.angle
       val points = ArrayList<Point>()
@@ -250,7 +285,7 @@ class RecognizerUtils {
     fun normalizeForRecognizer(
       image: Mat,
       adjustContrast: Double,
-      isVertical: Boolean = false
+      isVertical: Boolean = false,
     ): Mat {
       var img = image.clone()
 
@@ -258,11 +293,12 @@ class RecognizerUtils {
         img = adjustContrastGrey(img, adjustContrast)
       }
 
-      val desiredWidth =when {
-        img.width() >= Constants.LARGE_MODEL_WIDTH -> Constants.LARGE_MODEL_WIDTH
-        img.width() >= Constants.MEDIUM_MODEL_WIDTH -> Constants.MEDIUM_MODEL_WIDTH
-        else -> if (isVertical) Constants.VERTICAL_SMALL_MODEL_WIDTH else Constants.SMALL_MODEL_WIDTH
-      }
+      val desiredWidth =
+        when {
+          img.width() >= Constants.LARGE_MODEL_WIDTH -> Constants.LARGE_MODEL_WIDTH
+          img.width() >= Constants.MEDIUM_MODEL_WIDTH -> Constants.MEDIUM_MODEL_WIDTH
+          else -> if (isVertical) Constants.VERTICAL_SMALL_MODEL_WIDTH else Constants.SMALL_MODEL_WIDTH
+        }
 
       img = ImageProcessor.resizeWithPadding(img, desiredWidth, Constants.MODEL_HEIGHT)
       img.convertTo(img, CvType.CV_32F, 1.0 / 255.0)
@@ -277,7 +313,7 @@ class RecognizerUtils {
       box: List<BBoxPoint>,
       originalBox: List<BBoxPoint>,
       paddings: Map<String, Any>,
-      originalPaddings: Map<String, Any>
+      originalPaddings: Map<String, Any>,
     ): Mat {
       val topLeft = originalBox[0]
       val points = arrayOfNulls<Point>(4)
@@ -333,7 +369,7 @@ class RecognizerUtils {
         Mat(),
         histogram,
         histSize,
-        range
+        range,
       )
 
       val midPoint = 256 / 2

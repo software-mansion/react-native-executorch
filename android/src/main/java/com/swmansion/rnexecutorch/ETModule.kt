@@ -11,19 +11,26 @@ import org.pytorch.executorch.EValue
 import org.pytorch.executorch.Module
 import java.net.URL
 
-class ETModule(reactContext: ReactApplicationContext) : NativeETModuleSpec(reactContext) {
+class ETModule(
+  reactContext: ReactApplicationContext,
+) : NativeETModuleSpec(reactContext) {
   private lateinit var module: Module
-  private var reactApplicationContext = reactContext;
-  override fun getName(): String {
-    return NAME
-  }
+  private var reactApplicationContext = reactContext
 
-  override fun loadModule(modelSource: String, promise: Promise) {
+  override fun getName(): String = NAME
+
+  override fun loadModule(
+    modelSource: String,
+    promise: Promise,
+  ) {
     module = Module.load(URL(modelSource).path)
     promise.resolve(0)
   }
 
-  override fun loadMethod(methodName: String, promise: Promise) {
+  override fun loadMethod(
+    methodName: String,
+    promise: Promise,
+  ) {
     val result = module.loadMethod(methodName)
     if (result != 0) {
       promise.reject("Method loading failed", result.toString())
@@ -37,27 +44,30 @@ class ETModule(reactContext: ReactApplicationContext) : NativeETModuleSpec(react
     inputs: ReadableArray,
     shapes: ReadableArray,
     inputTypes: ReadableArray,
-    promise: Promise
+    promise: Promise,
   ) {
     val inputEValues = ArrayList<EValue>()
     try {
       for (i in 0 until inputs.size()) {
-        val currentInput = inputs.getArray(i)
-          ?: throw Exception(ETError.InvalidArgument.code.toString())
-        val currentShape = shapes.getArray(i)
-          ?: throw Exception(ETError.InvalidArgument.code.toString())
+        val currentInput =
+          inputs.getArray(i)
+            ?: throw Exception(ETError.InvalidArgument.code.toString())
+        val currentShape =
+          shapes.getArray(i)
+            ?: throw Exception(ETError.InvalidArgument.code.toString())
         val currentInputType = inputTypes.getInt(i)
 
-        val currentEValue = TensorUtils.getExecutorchInput(
-          currentInput,
-          ArrayUtils.createLongArray(currentShape),
-          currentInputType
-        )
+        val currentEValue =
+          TensorUtils.getExecutorchInput(
+            currentInput,
+            ArrayUtils.createLongArray(currentShape),
+            currentInputType,
+          )
 
         inputEValues.add(currentEValue)
       }
 
-      val forwardOutputs = module.forward(*inputEValues.toTypedArray());
+      val forwardOutputs = module.forward(*inputEValues.toTypedArray())
       val outputArray = Arguments.createArray()
 
       for (output in forwardOutputs) {
@@ -65,7 +75,6 @@ class ETModule(reactContext: ReactApplicationContext) : NativeETModuleSpec(react
         outputArray.pushArray(arr)
       }
       promise.resolve(outputArray)
-
     } catch (e: IllegalArgumentException) {
       // The error is thrown when transformation to Tensor fails
       promise.reject("Forward Failed Execution", ETError.InvalidArgument.code.toString())

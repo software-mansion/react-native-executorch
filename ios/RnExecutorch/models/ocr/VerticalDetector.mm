@@ -80,9 +80,9 @@
                              outputMat2:scoreAffinityCV
                                withSize:cv::Size(modelImageSize.width / 2,
                                                  modelImageSize.height / 2)];
-  CGFloat txtThreshold = (self->detectSingleCharacters) ? textThreshold
-                                                        : textThresholdVertical;
-                                                        
+  CGFloat txtThreshold =
+      (self->detectSingleCharacters) ? textThreshold : textThresholdVertical;
+
   NSArray *bBoxesList = [DetectorUtils
       getDetBoxesFromTextMapVertical:scoreTextCV
                          affinityMap:scoreAffinityCV

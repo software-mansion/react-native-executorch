@@ -18,10 +18,9 @@ namespace runtime {
  * BackendExecutionContext will be used to inject run time context.
  */
 class BackendExecutionContext final {
- public:
-  BackendExecutionContext(
-      EventTracer* event_tracer = nullptr,
-      MemoryAllocator* temp_allocator = nullptr)
+public:
+  BackendExecutionContext(EventTracer *event_tracer = nullptr,
+                          MemoryAllocator *temp_allocator = nullptr)
       : event_tracer_(event_tracer), temp_allocator_(temp_allocator) {}
 
   /**
@@ -29,17 +28,14 @@ class BackendExecutionContext final {
    * logging inside the delegate backend. Users will need access to this pointer
    * to use any of the event tracer APIs.
    */
-  EventTracer* event_tracer() {
-    return event_tracer_;
-  }
+  EventTracer *event_tracer() { return event_tracer_; }
 
   /**
    * Returns a pointer to the address allocated by temp allocator. This
    * allocator will be reset after every delegate call during execution.
    */
-  void* allocate(
-      size_t size,
-      size_t alignment = MemoryAllocator::kDefaultAlignment) {
+  void *allocate(size_t size,
+                 size_t alignment = MemoryAllocator::kDefaultAlignment) {
     // TODO(chenlai): depends on the need, we may expose more functionality for
     // memory allocation.
     return temp_allocator_->allocate(size, alignment);
@@ -48,13 +44,11 @@ class BackendExecutionContext final {
   /**
    * Returns the temp allocator. This allocator will be reset every instruction.
    */
-  MemoryAllocator* get_temp_allocator() {
-    return temp_allocator_;
-  }
+  MemoryAllocator *get_temp_allocator() { return temp_allocator_; }
 
- private:
-  EventTracer* event_tracer_ = nullptr;
-  MemoryAllocator* temp_allocator_ = nullptr;
+private:
+  EventTracer *event_tracer_ = nullptr;
+  MemoryAllocator *temp_allocator_ = nullptr;
 };
 
 } // namespace runtime
