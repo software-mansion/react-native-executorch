@@ -155,7 +155,7 @@ class VerticalOCR(reactContext: ReactApplicationContext) :
 
         resMap.putString("text", text)
         resMap.putArray("bbox", box.toWritableArray())
-        resMap.putDouble("confidence", confidenceScore)
+        resMap.putDouble("score", confidenceScore)
 
         predictions.pushMap(resMap)
       }
