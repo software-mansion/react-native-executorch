@@ -22,27 +22,30 @@ If your app still runs on the old architecture, please consider upgrading to the
 
 ## Installation
 
-Installation is pretty straightforward, just use your favorite package manager.
+Installation is pretty straightforward, just use your favorite package manager. We use React Native Audio API as a peer dependency to make it possible to load audio for Speech To Text.
 
 <Tabs>
   <TabItem value="npm" label="NPM">
 
     npm install react-native-executorch
+    npm install react-native-audio-api
 
   </TabItem>
   <TabItem value="pnpm" label="PNPM">
 
     pnpm install react-native-executorch
+    pnpm install react-native-audio-api
 
   </TabItem>
   <TabItem value="yarn" label="YARN">
 
     yarn add react-native-executorch
+    yarn add react-native-audio-api
 
   </TabItem>
 </Tabs>
 
-If you plan on adding your models to the assets instead of fetching them from a url, you also need to add following lines to your `metro.config.js`:
+If you plan on using your models via require() instead of fetching them from a url, you also need to add following lines to your `metro.config.js`:
 
 ```json
 // metro.config.js
@@ -56,6 +59,10 @@ This allows us to use binaries, such as exported models or tokenizers for LLMs.
 
 :::caution
 When using Expo, please note that you need to use a custom development build of your app, not the standard Expo Go app. This is because we rely on native modules, which Expo Go doesn’t support.
+:::
+
+:::caution
+If you encountered an error that native modules for React Native Audio API were not installed, please make sure to install react-native-audio-api. 
 :::
 
 :::info
