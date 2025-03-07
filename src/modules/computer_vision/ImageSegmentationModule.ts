@@ -6,7 +6,6 @@ export class ImageSegmentationModule extends BaseModule {
   static module = new _ImageSegmentationModule();
 
   static async forward(input: string, classesOfInteres?: string[]) {
-    console.log('# classes: ', classesOfInteres?.length);
     try {
       return await (this.module.forward(
         input,

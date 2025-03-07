@@ -2,6 +2,7 @@
 #import <unordered_set>
 #import "../../utils/ImageProcessor.h"
 #import "../../utils/Numerical.h"
+#import "../../utils/Conversions.h"
 #import "opencv2/opencv.hpp"
 #import "Constants.h"
 
@@ -64,7 +65,7 @@ void adjustScoresPerPixel(std::vector<cv::Mat>& labelScores, cv::Mat& maxArg,
     int col = pixel % originalSize.width;
     std::vector<double> scores;
     scores.reserve(numLabels);
-    for (const cv::Mat& mat : labelScores) {
+    for (const auto& mat : labelScores) {
       scores.push_back(mat.at<double>(row, col));
     }
     
@@ -114,12 +115,12 @@ void adjustScoresPerPixel(std::vector<cv::Mat>& labelScores, cv::Mat& maxArg,
   for (std::size_t label = 0; label < numLabels; ++label) {
     if (labelSet.contains(deeplabv3_resnet50_labels[label])){
         NSString *labelString = @(deeplabv3_resnet50_labels[label].c_str());
-        NSArray *arr = matToNSArray<double>(resizedLabelScores[label]);
+        NSArray *arr = simpleMatToNSArray<double>(resizedLabelScores[label]);
         result[labelString] = arr;
     }
   }
 
-  result[@"argmax"] = matToNSArray<int>(maxArg);
+  result[@"argmax"] = simpleMatToNSArray<int>(maxArg);
 
   return result;
 }

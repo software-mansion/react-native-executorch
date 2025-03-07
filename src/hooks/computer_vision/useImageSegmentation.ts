@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { _ImageSegmentationModule } from '../../native/RnExecutorchModules';
-import { fetchResource } from '../../utils/fetchResource';
 import { ETError, getError } from '../../Error';
+import { useModule } from '../useModule';
 
 interface Props {
   modelSource: string | number;
@@ -20,27 +20,11 @@ export const useImageSegmentation = ({
   ) => Promise<{ [category: string]: number[] }>;
 } => {
   const [module, _] = useState(() => new _ImageSegmentationModule());
-  const [error, setError] = useState<null | string>(null);
-  const [isReady, setIsReady] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
-
-  useEffect(() => {
-    const loadModel = async () => {
-      if (!modelSource) return;
-
-      try {
-        setIsReady(false);
-        const fileUri = await fetchResource(modelSource, setDownloadProgress);
-        await module.loadModule(fileUri);
-        setIsReady(true);
-      } catch (e) {
-        setError(getError(e));
-      }
-    };
-
-    loadModel();
-  }, [modelSource, module]);
+  const { error, isReady, downloadProgress } = useModule({
+    modelSource,
+    module,
+  });
 
   const forward = async (input: string, classesOfInterest?: string[]) => {
     if (!isReady) {
