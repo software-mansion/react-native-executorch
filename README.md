@@ -24,6 +24,8 @@ https://docs.swmansion.com/react-native-executorch
 ```bash
 # Install the package
 yarn add react-native-executorch
+# This dependency is needed for loading audio in STT
+yarn add react-native-audio-api
 cd ios && pod install && cd ..
 ```
 
