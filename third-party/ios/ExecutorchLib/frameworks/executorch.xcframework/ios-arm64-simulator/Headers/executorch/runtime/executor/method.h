@@ -34,35 +34,30 @@ class Program;
 class BackendDelegate;
 struct Chain;
 class KernelRuntimeContext;
-using OpFunction = void (*)(KernelRuntimeContext&, EValue**);
+using OpFunction = void (*)(KernelRuntimeContext &, EValue **);
 /// A list of pointers into the master values table that together compose the
 /// argument list for a single instruction
-using InstructionArgs = Span<EValue*>;
+using InstructionArgs = Span<EValue *>;
 
 /**
  * An executable method of an executorch program. Maps to a python method like
  * `forward()` on the original nn.Module.
  */
 class Method final {
- public:
+public:
   /**
    * Move ctor. Takes ownership of resources previously owned by `rhs`,
    * and leaves `rhs` in an uninitialized state.
    */
-  Method(Method&& rhs) noexcept
-      : step_state_(rhs.step_state_),
-        program_(rhs.program_),
+  Method(Method &&rhs) noexcept
+      : step_state_(rhs.step_state_), program_(rhs.program_),
         memory_manager_(rhs.memory_manager_),
         temp_allocator_(rhs.temp_allocator_),
         serialization_plan_(rhs.serialization_plan_),
-        event_tracer_(rhs.event_tracer_),
-        n_value_(rhs.n_value_),
-        values_(rhs.values_),
-        n_delegate_(rhs.n_delegate_),
-        delegates_(rhs.delegates_),
-        n_chains_(rhs.n_chains_),
-        chains_(rhs.chains_),
-        init_state_(rhs.init_state_) {
+        event_tracer_(rhs.event_tracer_), n_value_(rhs.n_value_),
+        values_(rhs.values_), n_delegate_(rhs.n_delegate_),
+        delegates_(rhs.delegates_), n_chains_(rhs.n_chains_),
+        chains_(rhs.chains_), init_state_(rhs.init_state_) {
     // Required: clear out fields that the dtor looks at, so that we don't free
     // anything twice.
     rhs.n_value_ = 0;
@@ -100,7 +95,7 @@ class Method final {
    *
    * @returns Error::Ok on success, non-Ok on failure.
    */
-  ET_NODISCARD Error set_input(const EValue& input_evalue, size_t input_idx);
+  ET_NODISCARD Error set_input(const EValue &input_evalue, size_t input_idx);
 
   /**
    * Sets the values of all method inputs.
@@ -115,7 +110,7 @@ class Method final {
    * @returns Error::Ok on success, non-Ok on failure.
    */
   ET_NODISCARD Error
-  set_inputs(const executorch::aten::ArrayRef<EValue>& input_evalues);
+  set_inputs(const executorch::aten::ArrayRef<EValue> &input_evalues);
 
   /**
    * Sets the data buffer of the specified method output to the provided value.
@@ -136,8 +131,8 @@ class Method final {
    *
    * @returns Error::Ok on success, non-Ok on failure.
    */
-  ET_NODISCARD Error
-  set_output_data_ptr(void* buffer, size_t size, size_t output_idx);
+  ET_NODISCARD Error set_output_data_ptr(void *buffer, size_t size,
+                                         size_t output_idx);
 
   /**
    * Copies the method's outputs into the provided array.
@@ -156,7 +151,7 @@ class Method final {
    *
    * @returns Error::Ok on success, non-Ok on failure.
    */
-  ET_NODISCARD Error get_outputs(EValue* output_evalues, size_t length);
+  ET_NODISCARD Error get_outputs(EValue *output_evalues, size_t length);
 
   /**
    * Copies the method's inputs into the provided array.
@@ -172,7 +167,7 @@ class Method final {
    *
    * @returns Error::Ok on success, non-Ok on failure.
    */
-  ET_NODISCARD Error get_inputs(EValue* input_evalues, size_t length);
+  ET_NODISCARD Error get_inputs(EValue *input_evalues, size_t length);
 
   /**
    * Execute the method.
@@ -228,27 +223,27 @@ class Method final {
   /**
    * Retrieves the output at the specified index.
    */
-  const EValue& get_output(size_t i) const;
+  const EValue &get_output(size_t i) const;
 
-  EventTracer* get_event_tracer();
+  EventTracer *get_event_tracer();
 
   /// DEPRECATED: Use MethodMeta instead to access metadata, and set_input to
   /// update Method inputs.
-  ET_DEPRECATED const EValue& get_input(size_t i) const;
+  ET_DEPRECATED const EValue &get_input(size_t i) const;
   /// DEPRECATED: Use MethodMeta instead to access metadata, and set_input to
   /// update Method inputs.
-  ET_DEPRECATED EValue& mutable_input(size_t i);
+  ET_DEPRECATED EValue &mutable_input(size_t i);
   /// DEPRECATED: Use MethodMeta instead to access metadata, and get_output to
   /// retrieve Method outputs.
-  ET_DEPRECATED EValue& mutable_output(size_t i);
+  ET_DEPRECATED EValue &mutable_output(size_t i);
 
   ~Method();
 
- private:
+private:
   // Delete other rule-of-five methods.
-  Method(const Method&) = delete;
-  Method& operator=(const Method&) noexcept = delete;
-  Method& operator=(Method&&) = delete;
+  Method(const Method &) = delete;
+  Method &operator=(const Method &) noexcept = delete;
+  Method &operator=(Method &&) = delete;
 
   // Let Program call load().
   friend class Program;
@@ -267,46 +262,33 @@ class Method final {
     size_t instr_idx;
   };
 
-  Method(
-      const Program* program,
-      MemoryManager* memory_manager,
-      EventTracer* event_tracer,
-      MemoryAllocator* temp_allocator)
-      : step_state_(),
-        program_(program),
-        memory_manager_(memory_manager),
-        temp_allocator_(temp_allocator),
-        serialization_plan_(nullptr),
-        event_tracer_(event_tracer),
-        n_value_(0),
-        values_(nullptr),
-        n_delegate_(0),
-        delegates_(nullptr),
-        n_chains_(0),
-        chains_(nullptr),
+  Method(const Program *program, MemoryManager *memory_manager,
+         EventTracer *event_tracer, MemoryAllocator *temp_allocator)
+      : step_state_(), program_(program), memory_manager_(memory_manager),
+        temp_allocator_(temp_allocator), serialization_plan_(nullptr),
+        event_tracer_(event_tracer), n_value_(0), values_(nullptr),
+        n_delegate_(0), delegates_(nullptr), n_chains_(0), chains_(nullptr),
         init_state_(InitializationState::Uninitialized) {}
 
   /// Static factory used by Program.
-  ET_NODISCARD static Result<Method> load(
-      executorch_flatbuffer::ExecutionPlan* s_plan,
-      const Program* program,
-      MemoryManager* memory_manager,
-      EventTracer* event_tracer);
+  ET_NODISCARD static Result<Method>
+  load(executorch_flatbuffer::ExecutionPlan *s_plan, const Program *program,
+       MemoryManager *memory_manager, EventTracer *event_tracer);
 
   /**
    * Initialize the method from its serialized representation.
    *
    * @returns Error::Ok on success, non-Ok on failure.
    */
-  ET_NODISCARD Error init(executorch_flatbuffer::ExecutionPlan* s_plan);
+  ET_NODISCARD Error init(executorch_flatbuffer::ExecutionPlan *s_plan);
 
   /// Returns true if the Method was successfully initialized.
   inline bool initialized() const {
     return init_state_ == InitializationState::Initialized;
   }
 
-  const EValue& get_value(size_t i) const;
-  EValue& mutable_value(size_t i);
+  const EValue &get_value(size_t i) const;
+  EValue &mutable_value(size_t i);
   size_t get_input_index(size_t i) const;
   size_t get_output_index(size_t i) const;
 
@@ -314,20 +296,20 @@ class Method final {
   ET_NODISCARD Error execute_instruction();
 
   StepState step_state_;
-  const Program* program_;
-  MemoryManager* memory_manager_;
-  MemoryAllocator* temp_allocator_;
-  executorch_flatbuffer::ExecutionPlan* serialization_plan_;
-  EventTracer* event_tracer_;
+  const Program *program_;
+  MemoryManager *memory_manager_;
+  MemoryAllocator *temp_allocator_;
+  executorch_flatbuffer::ExecutionPlan *serialization_plan_;
+  EventTracer *event_tracer_;
 
   size_t n_value_;
-  EValue* values_;
+  EValue *values_;
 
   size_t n_delegate_;
-  BackendDelegate* delegates_;
+  BackendDelegate *delegates_;
 
   size_t n_chains_;
-  Chain* chains_;
+  Chain *chains_;
 
   InitializationState init_state_;
 
@@ -338,12 +320,9 @@ class Method final {
    */
   ET_NODISCARD Error parse_values();
 
-  ET_NODISCARD Error resolve_operator(
-      int32_t op_index,
-      OpFunction* kernels,
-      size_t kernel_index,
-      InstructionArgs args,
-      size_t n_args);
+  ET_NODISCARD Error resolve_operator(int32_t op_index, OpFunction *kernels,
+                                      size_t kernel_index, InstructionArgs args,
+                                      size_t n_args);
 
   void log_outputs();
 };

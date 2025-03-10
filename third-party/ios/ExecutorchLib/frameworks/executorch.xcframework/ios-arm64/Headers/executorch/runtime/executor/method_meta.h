@@ -29,12 +29,12 @@ namespace runtime {
  * TensorInfo must outlive this TensorInfo.
  */
 class TensorInfo final {
- public:
+public:
   TensorInfo() = delete;
-  TensorInfo(const TensorInfo&) = default;
-  TensorInfo(TensorInfo&&) = default;
-  TensorInfo& operator=(const TensorInfo&) = default;
-  TensorInfo& operator=(TensorInfo&& other) = default;
+  TensorInfo(const TensorInfo &) = default;
+  TensorInfo(TensorInfo &&) = default;
+  TensorInfo &operator=(const TensorInfo &) = default;
+  TensorInfo &operator=(TensorInfo &&other) = default;
   ~TensorInfo() = default;
 
   /**
@@ -62,15 +62,13 @@ class TensorInfo final {
    */
   size_t nbytes() const;
 
- private:
+private:
   // Let MethodMeta create TensorInfo.
   friend class MethodMeta;
 
-  TensorInfo(
-      Span<const int32_t> sizes,
-      Span<const uint8_t> dim_order,
-      executorch::aten::ScalarType scalar_type,
-      const bool is_memory_planned);
+  TensorInfo(Span<const int32_t> sizes, Span<const uint8_t> dim_order,
+             executorch::aten::ScalarType scalar_type,
+             const bool is_memory_planned);
 
   /**
    * The sizes of the tensor.
@@ -106,12 +104,12 @@ class TensorInfo final {
  * paying the initialization cost of loading the full Method.
  */
 class MethodMeta final {
- public:
+public:
   MethodMeta() = delete;
-  MethodMeta(const MethodMeta&) = default;
-  MethodMeta(MethodMeta&&) = default;
-  MethodMeta& operator=(const MethodMeta&) = default;
-  MethodMeta& operator=(MethodMeta&& other) = default;
+  MethodMeta(const MethodMeta &) = default;
+  MethodMeta(MethodMeta &&) = default;
+  MethodMeta &operator=(const MethodMeta &) = default;
+  MethodMeta &operator=(MethodMeta &&other) = default;
   ~MethodMeta() = default;
 
   /**
@@ -119,7 +117,7 @@ class MethodMeta final {
    *
    * @returns The method name.
    */
-  const char* name() const;
+  const char *name() const;
 
   /**
    * Get the number of inputs to this method.
@@ -199,14 +197,14 @@ class MethodMeta final {
     return memory_planned_buffer_size(index);
   }
 
- private:
+private:
   // Let Program create MethodMeta.
   friend class Program;
 
-  explicit MethodMeta(const executorch_flatbuffer::ExecutionPlan* s_plan);
+  explicit MethodMeta(const executorch_flatbuffer::ExecutionPlan *s_plan);
 
   /// Source of truth for method information
-  const executorch_flatbuffer::ExecutionPlan* s_plan_;
+  const executorch_flatbuffer::ExecutionPlan *s_plan_;
 };
 
 } // namespace runtime

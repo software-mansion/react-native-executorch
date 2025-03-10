@@ -106,9 +106,8 @@
 
 namespace re2 {
 
-template<typename Value>
-class SparseArray {
- public:
+template <typename Value> class SparseArray {
+public:
   SparseArray();
   explicit SparseArray(int max_size);
   ~SparseArray();
@@ -116,39 +115,27 @@ class SparseArray {
   // IndexValue pairs: exposed in SparseArray::iterator.
   class IndexValue;
 
-  typedef IndexValue* iterator;
-  typedef const IndexValue* const_iterator;
+  typedef IndexValue *iterator;
+  typedef const IndexValue *const_iterator;
 
-  SparseArray(const SparseArray& src);
-  SparseArray(SparseArray&& src);
+  SparseArray(const SparseArray &src);
+  SparseArray(SparseArray &&src);
 
-  SparseArray& operator=(const SparseArray& src);
-  SparseArray& operator=(SparseArray&& src);
+  SparseArray &operator=(const SparseArray &src);
+  SparseArray &operator=(SparseArray &&src);
 
   // Return the number of entries in the array.
-  int size() const {
-    return size_;
-  }
+  int size() const { return size_; }
 
   // Indicate whether the array is empty.
-  int empty() const {
-    return size_ == 0;
-  }
+  int empty() const { return size_ == 0; }
 
   // Iterate over the array.
-  iterator begin() {
-    return dense_.data();
-  }
-  iterator end() {
-    return dense_.data() + size_;
-  }
+  iterator begin() { return dense_.data(); }
+  iterator end() { return dense_.data() + size_; }
 
-  const_iterator begin() const {
-    return dense_.data();
-  }
-  const_iterator end() const {
-    return dense_.data() + size_;
-  }
+  const_iterator begin() const { return dense_.data(); }
+  const_iterator end() const { return dense_.data() + size_; }
 
   // Change the maximum size of the array.
   // Invalidates all iterators.
@@ -164,9 +151,7 @@ class SparseArray {
   }
 
   // Clear the array.
-  void clear() {
-    size_ = 0;
-  }
+  void clear() { size_ = 0; }
 
   // Check whether index i is in the array.
   bool has_index(int i) const;
@@ -175,39 +160,35 @@ class SparseArray {
   // Can sort the sparse array so that future iterations
   // will visit indices in increasing order using
   // std::sort(arr.begin(), arr.end(), arr.less);
-  static bool less(const IndexValue& a, const IndexValue& b);
+  static bool less(const IndexValue &a, const IndexValue &b);
 
- public:
+public:
   // Set the value at index i to v.
-  iterator set(int i, const Value& v) {
-    return SetInternal(true, i, v);
-  }
+  iterator set(int i, const Value &v) { return SetInternal(true, i, v); }
 
   // Set the value at new index i to v.
   // Fast but unsafe: only use if has_index(i) is false.
-  iterator set_new(int i, const Value& v) {
-    return SetInternal(false, i, v);
-  }
+  iterator set_new(int i, const Value &v) { return SetInternal(false, i, v); }
 
   // Set the value at index i to v.
   // Fast but unsafe: only use if has_index(i) is true.
-  iterator set_existing(int i, const Value& v) {
+  iterator set_existing(int i, const Value &v) {
     return SetExistingInternal(i, v);
   }
 
   // Get the value at index i.
   // Fast but unsafe: only use if has_index(i) is true.
-  Value& get_existing(int i) {
+  Value &get_existing(int i) {
     assert(has_index(i));
     return dense_[sparse_[i]].value_;
   }
-  const Value& get_existing(int i) const {
+  const Value &get_existing(int i) const {
     assert(has_index(i));
     return dense_[sparse_[i]].value_;
   }
 
- private:
-  iterator SetInternal(bool allow_existing, int i, const Value& v) {
+private:
+  iterator SetInternal(bool allow_existing, int i, const Value &v) {
     DebugCheckInvariants();
     if (static_cast<uint32_t>(i) >= static_cast<uint32_t>(max_size())) {
       assert(false && "illegal index");
@@ -226,7 +207,7 @@ class SparseArray {
     return SetExistingInternal(i, v);
   }
 
-  iterator SetExistingInternal(int i, const Value& v) {
+  iterator SetExistingInternal(int i, const Value &v) {
     DebugCheckInvariants();
     assert(has_index(i));
     dense_[sparse_[i]].value_ = v;
@@ -262,28 +243,24 @@ class SparseArray {
   PODArray<IndexValue> dense_;
 };
 
-template<typename Value>
-SparseArray<Value>::SparseArray() = default;
+template <typename Value> SparseArray<Value>::SparseArray() = default;
 
-template<typename Value>
-SparseArray<Value>::SparseArray(const SparseArray& src)
-    : size_(src.size_),
-      sparse_(src.max_size()),
-      dense_(src.max_size()) {
+template <typename Value>
+SparseArray<Value>::SparseArray(const SparseArray &src)
+    : size_(src.size_), sparse_(src.max_size()), dense_(src.max_size()) {
   std::copy_n(src.sparse_.data(), src.max_size(), sparse_.data());
   std::copy_n(src.dense_.data(), src.max_size(), dense_.data());
 }
 
-template<typename Value>
-SparseArray<Value>::SparseArray(SparseArray&& src)
-    : size_(src.size_),
-      sparse_(std::move(src.sparse_)),
+template <typename Value>
+SparseArray<Value>::SparseArray(SparseArray &&src)
+    : size_(src.size_), sparse_(std::move(src.sparse_)),
       dense_(std::move(src.dense_)) {
   src.size_ = 0;
 }
 
-template<typename Value>
-SparseArray<Value>& SparseArray<Value>::operator=(const SparseArray& src) {
+template <typename Value>
+SparseArray<Value> &SparseArray<Value>::operator=(const SparseArray &src) {
   // Construct these first for exception safety.
   PODArray<int> a(src.max_size());
   PODArray<IndexValue> b(src.max_size());
@@ -296,8 +273,8 @@ SparseArray<Value>& SparseArray<Value>::operator=(const SparseArray& src) {
   return *this;
 }
 
-template<typename Value>
-SparseArray<Value>& SparseArray<Value>::operator=(SparseArray&& src) {
+template <typename Value>
+SparseArray<Value> &SparseArray<Value>::operator=(SparseArray &&src) {
   size_ = src.size_;
   sparse_ = std::move(src.sparse_);
   dense_ = std::move(src.dense_);
@@ -306,14 +283,13 @@ SparseArray<Value>& SparseArray<Value>::operator=(SparseArray&& src) {
 }
 
 // IndexValue pairs: exposed in SparseArray::iterator.
-template<typename Value>
-class SparseArray<Value>::IndexValue {
- public:
+template <typename Value> class SparseArray<Value>::IndexValue {
+public:
   int index() const { return index_; }
-  Value& value() { return value_; }
-  const Value& value() const { return value_; }
+  Value &value() { return value_; }
+  const Value &value() const { return value_; }
 
- private:
+private:
   friend class SparseArray;
   int index_;
   Value value_;
@@ -321,8 +297,7 @@ class SparseArray<Value>::IndexValue {
 
 // Change the maximum size of the array.
 // Invalidates all iterators.
-template<typename Value>
-void SparseArray<Value>::resize(int new_max_size) {
+template <typename Value> void SparseArray<Value>::resize(int new_max_size) {
   DebugCheckInvariants();
   if (new_max_size > max_size()) {
     const int old_max_size = max_size();
@@ -345,8 +320,7 @@ void SparseArray<Value>::resize(int new_max_size) {
 }
 
 // Check whether index i is in the array.
-template<typename Value>
-bool SparseArray<Value>::has_index(int i) const {
+template <typename Value> bool SparseArray<Value>::has_index(int i) const {
   assert(i >= 0);
   assert(i < max_size());
   if (static_cast<uint32_t>(i) >= static_cast<uint32_t>(max_size())) {
@@ -357,8 +331,7 @@ bool SparseArray<Value>::has_index(int i) const {
          dense_[sparse_[i]].index_ == i;
 }
 
-template<typename Value>
-void SparseArray<Value>::create_index(int i) {
+template <typename Value> void SparseArray<Value>::create_index(int i) {
   assert(!has_index(i));
   assert(size_ < max_size());
   sparse_[i] = size_;
@@ -366,27 +339,29 @@ void SparseArray<Value>::create_index(int i) {
   size_++;
 }
 
-template<typename Value> SparseArray<Value>::SparseArray(int max_size) :
-    sparse_(max_size), dense_(max_size) {
+template <typename Value>
+SparseArray<Value>::SparseArray(int max_size)
+    : sparse_(max_size), dense_(max_size) {
   MaybeInitializeMemory(size_, max_size);
   DebugCheckInvariants();
 }
 
-template<typename Value> SparseArray<Value>::~SparseArray() {
+template <typename Value> SparseArray<Value>::~SparseArray() {
   DebugCheckInvariants();
 }
 
-template<typename Value> void SparseArray<Value>::DebugCheckInvariants() const {
+template <typename Value>
+void SparseArray<Value>::DebugCheckInvariants() const {
   assert(0 <= size_);
   assert(size_ <= max_size());
 }
 
 // Comparison function for sorting.
-template<typename Value> bool SparseArray<Value>::less(const IndexValue& a,
-                                                       const IndexValue& b) {
+template <typename Value>
+bool SparseArray<Value>::less(const IndexValue &a, const IndexValue &b) {
   return a.index_ < b.index_;
 }
 
-}  // namespace re2
+} // namespace re2
 
-#endif  // RE2_SPARSE_ARRAY_H_
+#endif // RE2_SPARSE_ARRAY_H_

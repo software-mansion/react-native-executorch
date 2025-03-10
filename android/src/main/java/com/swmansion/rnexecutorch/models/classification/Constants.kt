@@ -1,6 +1,7 @@
 package com.swmansion.rnexecutorch.models.classification
 
-val imagenet1k_v1_labels: Array<String> = arrayOf(
+val imagenet1k_v1_labels: Array<String> =
+  arrayOf(
     "tench, Tinca tinca",
     "goldfish, Carassius auratus",
     "great white shark, white shark, man-eater, man-eating shark, Carcharodon carcharias",
@@ -1000,5 +1001,5 @@ val imagenet1k_v1_labels: Array<String> = arrayOf(
     "hen-of-the-woods, hen of the woods, Polyporus frondosus, Grifola frondosa",
     "bolete",
     "ear, spike, capitulum",
-    "toilet tissue, toilet paper, bathroom tissue"
-)
+    "toilet tissue, toilet paper, bathroom tissue",
+  )

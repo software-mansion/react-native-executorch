@@ -9,44 +9,45 @@
 // See regexp.h for the Regexp class, which represents a regular
 // expression symbolically.
 
-#include <stdint.h>
 #include <functional>
 #include <mutex>
+#include <stdint.h>
 #include <string>
-#include <vector>
 #include <type_traits>
+#include <vector>
 
-#include "util/util.h"
-#include "util/logging.h"
 #include "re2/pod_array.h"
 #include "re2/re2.h"
 #include "re2/sparse_array.h"
 #include "re2/sparse_set.h"
+#include "util/logging.h"
+#include "util/util.h"
 
 namespace re2 {
 
 // Opcodes for Inst
 enum InstOp {
-  kInstAlt = 0,      // choose between out_ and out1_
-  kInstAltMatch,     // Alt: out_ is [00-FF] and back, out1_ is match; or vice versa.
-  kInstByteRange,    // next (possible case-folded) byte must be in [lo_, hi_]
-  kInstCapture,      // capturing parenthesis number cap_
-  kInstEmptyWidth,   // empty-width special (^ $ ...); bit(s) set in empty_
-  kInstMatch,        // found a match!
-  kInstNop,          // no-op; occasionally unavoidable
-  kInstFail,         // never match; occasionally unavoidable
+  kInstAlt = 0,    // choose between out_ and out1_
+  kInstAltMatch,   // Alt: out_ is [00-FF] and back, out1_ is match; or vice
+                   // versa.
+  kInstByteRange,  // next (possible case-folded) byte must be in [lo_, hi_]
+  kInstCapture,    // capturing parenthesis number cap_
+  kInstEmptyWidth, // empty-width special (^ $ ...); bit(s) set in empty_
+  kInstMatch,      // found a match!
+  kInstNop,        // no-op; occasionally unavoidable
+  kInstFail,       // never match; occasionally unavoidable
   kNumInst,
 };
 
 // Bit flags for empty-width specials
 enum EmptyOp {
-  kEmptyBeginLine        = 1<<0,      // ^ - beginning of line
-  kEmptyEndLine          = 1<<1,      // $ - end of line
-  kEmptyBeginText        = 1<<2,      // \A - beginning of text
-  kEmptyEndText          = 1<<3,      // \z - end of text
-  kEmptyWordBoundary     = 1<<4,      // \b - word boundary
-  kEmptyNonWordBoundary  = 1<<5,      // \B - not \b
-  kEmptyAllFlags         = (1<<6)-1,
+  kEmptyBeginLine = 1 << 0,       // ^ - beginning of line
+  kEmptyEndLine = 1 << 1,         // $ - end of line
+  kEmptyBeginText = 1 << 2,       // \A - beginning of text
+  kEmptyEndText = 1 << 3,         // \z - end of text
+  kEmptyWordBoundary = 1 << 4,    // \b - word boundary
+  kEmptyNonWordBoundary = 1 << 5, // \B - not \b
+  kEmptyAllFlags = (1 << 6) - 1,
 };
 
 class DFA;
@@ -54,19 +55,19 @@ class Regexp;
 
 // Compiled form of regexp program.
 class Prog {
- public:
+public:
   Prog();
   ~Prog();
 
   // Single instruction in regexp program.
   class Inst {
-   public:
+  public:
     // See the assertion below for why this is so.
     Inst() = default;
 
     // Copyable.
-    Inst(const Inst&) = default;
-    Inst& operator=(const Inst&) = default;
+    Inst(const Inst &) = default;
+    Inst &operator=(const Inst &) = default;
 
     // Constructors per opcode
     void InitAlt(uint32_t out, uint32_t out1);
@@ -78,20 +79,44 @@ class Prog {
     void InitFail();
 
     // Getters
-    int id(Prog* p) { return static_cast<int>(this - p->inst_.data()); }
-    InstOp opcode() { return static_cast<InstOp>(out_opcode_&7); }
-    int last()      { return (out_opcode_>>3)&1; }
-    int out()       { return out_opcode_>>4; }
-    int out1()      { DCHECK(opcode() == kInstAlt || opcode() == kInstAltMatch); return out1_; }
-    int cap()       { DCHECK_EQ(opcode(), kInstCapture); return cap_; }
-    int lo()        { DCHECK_EQ(opcode(), kInstByteRange); return lo_; }
-    int hi()        { DCHECK_EQ(opcode(), kInstByteRange); return hi_; }
-    int foldcase()  { DCHECK_EQ(opcode(), kInstByteRange); return hint_foldcase_&1; }
-    int hint()      { DCHECK_EQ(opcode(), kInstByteRange); return hint_foldcase_>>1; }
-    int match_id()  { DCHECK_EQ(opcode(), kInstMatch); return match_id_; }
-    EmptyOp empty() { DCHECK_EQ(opcode(), kInstEmptyWidth); return empty_; }
+    int id(Prog *p) { return static_cast<int>(this - p->inst_.data()); }
+    InstOp opcode() { return static_cast<InstOp>(out_opcode_ & 7); }
+    int last() { return (out_opcode_ >> 3) & 1; }
+    int out() { return out_opcode_ >> 4; }
+    int out1() {
+      DCHECK(opcode() == kInstAlt || opcode() == kInstAltMatch);
+      return out1_;
+    }
+    int cap() {
+      DCHECK_EQ(opcode(), kInstCapture);
+      return cap_;
+    }
+    int lo() {
+      DCHECK_EQ(opcode(), kInstByteRange);
+      return lo_;
+    }
+    int hi() {
+      DCHECK_EQ(opcode(), kInstByteRange);
+      return hi_;
+    }
+    int foldcase() {
+      DCHECK_EQ(opcode(), kInstByteRange);
+      return hint_foldcase_ & 1;
+    }
+    int hint() {
+      DCHECK_EQ(opcode(), kInstByteRange);
+      return hint_foldcase_ >> 1;
+    }
+    int match_id() {
+      DCHECK_EQ(opcode(), kInstMatch);
+      return match_id_;
+    }
+    EmptyOp empty() {
+      DCHECK_EQ(opcode(), kInstEmptyWidth);
+      return empty_;
+    }
 
-    bool greedy(Prog* p) {
+    bool greedy(Prog *p) {
       DCHECK_EQ(opcode(), kInstAltMatch);
       return p->inst(out())->opcode() == kInstByteRange ||
              (p->inst(out())->opcode() == kInstNop &&
@@ -111,54 +136,53 @@ class Prog {
 
     // Maximum instruction id.
     // (Must fit in out_opcode_. PatchList/last steal another bit.)
-    static const int kMaxInst = (1<<28) - 1;
+    static const int kMaxInst = (1 << 28) - 1;
 
-   private:
+  private:
     void set_opcode(InstOp opcode) {
-      out_opcode_ = (out()<<4) | (last()<<3) | opcode;
+      out_opcode_ = (out() << 4) | (last() << 3) | opcode;
     }
 
-    void set_last() {
-      out_opcode_ = (out()<<4) | (1<<3) | opcode();
-    }
+    void set_last() { out_opcode_ = (out() << 4) | (1 << 3) | opcode(); }
 
     void set_out(int out) {
-      out_opcode_ = (out<<4) | (last()<<3) | opcode();
+      out_opcode_ = (out << 4) | (last() << 3) | opcode();
     }
 
     void set_out_opcode(int out, InstOp opcode) {
-      out_opcode_ = (out<<4) | (last()<<3) | opcode;
+      out_opcode_ = (out << 4) | (last() << 3) | opcode;
     }
 
-    uint32_t out_opcode_;  // 28 bits: out, 1 bit: last, 3 (low) bits: opcode
-    union {                // additional instruction arguments:
-      uint32_t out1_;      // opcode == kInstAlt
-                           //   alternate next instruction
+    uint32_t out_opcode_; // 28 bits: out, 1 bit: last, 3 (low) bits: opcode
+    union {               // additional instruction arguments:
+      uint32_t out1_;     // opcode == kInstAlt
+                          //   alternate next instruction
 
-      int32_t cap_;        // opcode == kInstCapture
-                           //   Index of capture register (holds text
-                           //   position recorded by capturing parentheses).
-                           //   For \n (the submatch for the nth parentheses),
-                           //   the left parenthesis captures into register 2*n
-                           //   and the right one captures into register 2*n+1.
+      int32_t cap_; // opcode == kInstCapture
+                    //   Index of capture register (holds text
+                    //   position recorded by capturing parentheses).
+                    //   For \n (the submatch for the nth parentheses),
+                    //   the left parenthesis captures into register 2*n
+                    //   and the right one captures into register 2*n+1.
 
-      int32_t match_id_;   // opcode == kInstMatch
-                           //   Match ID to identify this match (for re2::Set).
+      int32_t match_id_; // opcode == kInstMatch
+                         //   Match ID to identify this match (for re2::Set).
 
-      struct {             // opcode == kInstByteRange
-        uint8_t lo_;       //   byte range is lo_-hi_ inclusive
-        uint8_t hi_;       //
-        uint16_t hint_foldcase_;  // 15 bits: hint, 1 (low) bit: foldcase
-                           //   hint to execution engines: the delta to the
-                           //   next instruction (in the current list) worth
-                           //   exploring iff this instruction matched; 0
-                           //   means there are no remaining possibilities,
-                           //   which is most likely for character classes.
-                           //   foldcase: A-Z -> a-z before checking range.
+      struct {       // opcode == kInstByteRange
+        uint8_t lo_; //   byte range is lo_-hi_ inclusive
+        uint8_t hi_; //
+        uint16_t
+            hint_foldcase_; // 15 bits: hint, 1 (low) bit: foldcase
+                            //   hint to execution engines: the delta to the
+                            //   next instruction (in the current list) worth
+                            //   exploring iff this instruction matched; 0
+                            //   means there are no remaining possibilities,
+                            //   which is most likely for character classes.
+                            //   foldcase: A-Z -> a-z before checking range.
       };
 
-      EmptyOp empty_;       // opcode == kInstEmptyWidth
-                            //   empty_ is bitwise OR of kEmpty* flags above.
+      EmptyOp empty_; // opcode == kInstEmptyWidth
+                      //   empty_ is bitwise OR of kEmpty* flags above.
     };
 
     friend class Compiler;
@@ -173,8 +197,8 @@ class Prog {
 
   // Whether to anchor the search.
   enum Anchor {
-    kUnanchored,  // match anywhere
-    kAnchored,    // match only starting at beginning of text
+    kUnanchored, // match anywhere
+    kAnchored,   // match only starting at beginning of text
   };
 
   // Kind of match to look for (for anchor != kFullMatch)
@@ -190,10 +214,10 @@ class Prog {
   // the matching code can run faster if it knows to consider only
   // full matches.
   enum MatchKind {
-    kFirstMatch,     // like Perl, PCRE
-    kLongestMatch,   // like egrep or POSIX
-    kFullMatch,      // match only entire text; implies anchor==kAnchored
-    kManyMatch       // for SearchDFA, records set of matches
+    kFirstMatch,   // like Perl, PCRE
+    kLongestMatch, // like egrep or POSIX
+    kFullMatch,    // match only entire text; implies anchor==kAnchored
+    kManyMatch     // for SearchDFA, records set of matches
   };
 
   Inst *inst(int id) { return &inst_[id]; }
@@ -206,7 +230,7 @@ class Prog {
   void set_reversed(bool reversed) { reversed_ = reversed; }
   int list_count() { return list_count_; }
   int inst_count(InstOp op) { return inst_count_[op]; }
-  uint16_t* list_heads() { return list_heads_.data(); }
+  uint16_t *list_heads() { return list_heads_.data(); }
   size_t bit_state_text_max_size() { return bit_state_text_max_size_; }
   int64_t dfa_mem() { return dfa_mem_; }
   void set_dfa_mem(int64_t dfa_mem) { dfa_mem_ = dfa_mem; }
@@ -215,12 +239,12 @@ class Prog {
   bool anchor_end() { return anchor_end_; }
   void set_anchor_end(bool b) { anchor_end_ = b; }
   int bytemap_range() { return bytemap_range_; }
-  const uint8_t* bytemap() { return bytemap_; }
+  const uint8_t *bytemap() { return bytemap_; }
   bool can_prefix_accel() { return prefix_size_ != 0; }
 
   // Accelerates to the first likely occurrence of the prefix.
   // Returns a pointer to the first byte or NULL if not found.
-  const void* PrefixAccel(const void* data, size_t size) {
+  const void *PrefixAccel(const void *data, size_t size) {
     DCHECK(can_prefix_accel());
     if (prefix_foldcase_) {
       return PrefixAccel_ShiftDFA(data, size);
@@ -232,15 +256,15 @@ class Prog {
   }
 
   // Configures prefix accel using the analysis performed during compilation.
-  void ConfigurePrefixAccel(const std::string& prefix, bool prefix_foldcase);
+  void ConfigurePrefixAccel(const std::string &prefix, bool prefix_foldcase);
 
   // An implementation of prefix accel that uses prefix_dfa_ to perform
   // case-insensitive search.
-  const void* PrefixAccel_ShiftDFA(const void* data, size_t size);
+  const void *PrefixAccel_ShiftDFA(const void *data, size_t size);
 
   // An implementation of prefix accel that looks for prefix_front_ and
   // prefix_back_ to return fewer false positives than memchr(3) alone.
-  const void* PrefixAccel_FrontAndBack(const void* data, size_t size);
+  const void *PrefixAccel_FrontAndBack(const void *data, size_t size);
 
   // Returns string representation of program for debugging.
   std::string Dump();
@@ -249,7 +273,7 @@ class Prog {
 
   // Returns the set of kEmpty flags that are in effect at
   // position p within context.
-  static uint32_t EmptyFlags(const StringPiece& context, const char* p);
+  static uint32_t EmptyFlags(const StringPiece &context, const char *p);
 
   // Returns whether byte c is a word character: ASCII only.
   // Used by the implementation of \b and \B.
@@ -259,10 +283,8 @@ class Prog {
   //   - even if the lookahead were possible, the Progs would be huge.
   // This crude approximation is the same one PCRE uses.
   static bool IsWordChar(uint8_t c) {
-    return ('A' <= c && c <= 'Z') ||
-           ('a' <= c && c <= 'z') ||
-           ('0' <= c && c <= '9') ||
-           c == '_';
+    return ('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z') ||
+           ('0' <= c && c <= '9') || c == '_';
   }
 
   // Execution engines.  They all search for the regexp (run the prog)
@@ -280,9 +302,8 @@ class Prog {
   // match anything.  Either way, match[i] == NULL.
 
   // Search using NFA: can find submatches but kind of slow.
-  bool SearchNFA(const StringPiece& text, const StringPiece& context,
-                 Anchor anchor, MatchKind kind,
-                 StringPiece* match, int nmatch);
+  bool SearchNFA(const StringPiece &text, const StringPiece &context,
+                 Anchor anchor, MatchKind kind, StringPiece *match, int nmatch);
 
   // Search using DFA: much faster than NFA but only finds
   // end of match and can use a lot more memory.
@@ -290,9 +311,9 @@ class Prog {
   // If the DFA runs out of memory, sets *failed to true and returns false.
   // If matches != NULL and kind == kManyMatch and there is a match,
   // SearchDFA fills matches with the match IDs of the final matching state.
-  bool SearchDFA(const StringPiece& text, const StringPiece& context,
-                 Anchor anchor, MatchKind kind, StringPiece* match0,
-                 bool* failed, SparseSet* matches);
+  bool SearchDFA(const StringPiece &text, const StringPiece &context,
+                 Anchor anchor, MatchKind kind, StringPiece *match0,
+                 bool *failed, SparseSet *matches);
 
   // The callback issued after building each DFA state with BuildEntireDFA().
   // If next is null, then the memory budget has been exhausted and building
@@ -301,7 +322,7 @@ class Prog {
   // kByteEndText. The number of the state is implied by the callback sequence:
   // the first callback is for state 0, the second callback is for state 1, ...
   // match indicates whether the state is a matching state.
-  using DFAStateCallback = std::function<void(const int* next, bool match)>;
+  using DFAStateCallback = std::function<void(const int *next, bool match)>;
 
   // Build the entire DFA for the given match kind.
   // Usually the DFA is built out incrementally, as needed, which
@@ -309,7 +330,7 @@ class Prog {
   // If cb is not empty, it receives one callback per state built.
   // Returns the number of states built.
   // FOR TESTING OR EXPERIMENTAL PURPOSES ONLY.
-  int BuildEntireDFA(MatchKind kind, const DFAStateCallback& cb);
+  int BuildEntireDFA(MatchKind kind, const DFAStateCallback &cb);
 
   // Compute bytemap.
   void ComputeByteMap();
@@ -321,18 +342,18 @@ class Prog {
   // but much faster than NFA (competitive with PCRE)
   // for those expressions.
   bool IsOnePass();
-  bool SearchOnePass(const StringPiece& text, const StringPiece& context,
-                     Anchor anchor, MatchKind kind,
-                     StringPiece* match, int nmatch);
+  bool SearchOnePass(const StringPiece &text, const StringPiece &context,
+                     Anchor anchor, MatchKind kind, StringPiece *match,
+                     int nmatch);
 
   // Bit-state backtracking.  Fast on small cases but uses memory
   // proportional to the product of the list count and the text size.
   bool CanBitState() { return list_heads_.data() != NULL; }
-  bool SearchBitState(const StringPiece& text, const StringPiece& context,
-                      Anchor anchor, MatchKind kind,
-                      StringPiece* match, int nmatch);
+  bool SearchBitState(const StringPiece &text, const StringPiece &context,
+                      Anchor anchor, MatchKind kind, StringPiece *match,
+                      int nmatch);
 
-  static const int kMaxOnePassCapture = 5;  // $0 through $4
+  static const int kMaxOnePassCapture = 5; // $0 through $4
 
   // Backtracking search: the gold standard against which the other
   // implementations are checked.  FOR TESTING ONLY.
@@ -340,10 +361,9 @@ class Prog {
   // It is also recursive, so can't use in production (will overflow stacks).
   // The name "Unsafe" here is supposed to be a flag that
   // you should not be using this function.
-  bool UnsafeSearchBacktrack(const StringPiece& text,
-                             const StringPiece& context,
-                             Anchor anchor, MatchKind kind,
-                             StringPiece* match, int nmatch);
+  bool UnsafeSearchBacktrack(const StringPiece &text,
+                             const StringPiece &context, Anchor anchor,
+                             MatchKind kind, StringPiece *match, int nmatch);
 
   // Computes range for any strings matching regexp. The min and max can in
   // some cases be arbitrarily precise, so the caller gets to specify the
@@ -359,14 +379,14 @@ class Prog {
   // do not compile down to infinite repetitions.
   //
   // Returns true on success, false on error.
-  bool PossibleMatchRange(std::string* min, std::string* max, int maxlen);
+  bool PossibleMatchRange(std::string *min, std::string *max, int maxlen);
 
   // Outputs the program fanout into the given sparse array.
-  void Fanout(SparseArray<int>* fanout);
+  void Fanout(SparseArray<int> *fanout);
 
   // Compiles a collection of regexps to Prog.  Each regexp will have
   // its own Match instruction recording the index in the output vector.
-  static Prog* CompileSet(Regexp* re, RE2::Anchor anchor, int64_t max_mem);
+  static Prog *CompileSet(Regexp *re, RE2::Anchor anchor, int64_t max_mem);
 
   // Flattens the Prog from "tree" form to "list" form. This is an in-place
   // operation in the sense that the old instructions are lost.
@@ -375,93 +395,89 @@ class Prog {
   // Walks the Prog; the "successor roots" or predecessors of the reachable
   // instructions are marked in rootmap or predmap/predvec, respectively.
   // reachable and stk are preallocated scratch structures.
-  void MarkSuccessors(SparseArray<int>* rootmap,
-                      SparseArray<int>* predmap,
-                      std::vector<std::vector<int>>* predvec,
-                      SparseSet* reachable, std::vector<int>* stk);
+  void MarkSuccessors(SparseArray<int> *rootmap, SparseArray<int> *predmap,
+                      std::vector<std::vector<int>> *predvec,
+                      SparseSet *reachable, std::vector<int> *stk);
 
   // Walks the Prog from the given "root" instruction; the "dominator root"
   // of the reachable instructions (if such exists) is marked in rootmap.
   // reachable and stk are preallocated scratch structures.
-  void MarkDominator(int root, SparseArray<int>* rootmap,
-                     SparseArray<int>* predmap,
-                     std::vector<std::vector<int>>* predvec,
-                     SparseSet* reachable, std::vector<int>* stk);
+  void MarkDominator(int root, SparseArray<int> *rootmap,
+                     SparseArray<int> *predmap,
+                     std::vector<std::vector<int>> *predvec,
+                     SparseSet *reachable, std::vector<int> *stk);
 
   // Walks the Prog from the given "root" instruction; the reachable
   // instructions are emitted in "list" form and appended to flat.
   // reachable and stk are preallocated scratch structures.
-  void EmitList(int root, SparseArray<int>* rootmap,
-                std::vector<Inst>* flat,
-                SparseSet* reachable, std::vector<int>* stk);
+  void EmitList(int root, SparseArray<int> *rootmap, std::vector<Inst> *flat,
+                SparseSet *reachable, std::vector<int> *stk);
 
   // Computes hints for ByteRange instructions in [begin, end).
-  void ComputeHints(std::vector<Inst>* flat, int begin, int end);
+  void ComputeHints(std::vector<Inst> *flat, int begin, int end);
 
   // Controls whether the DFA should bail out early if the NFA would be faster.
   // FOR TESTING ONLY.
   static void TESTING_ONLY_set_dfa_should_bail_when_slow(bool b);
 
- private:
+private:
   friend class Compiler;
 
-  DFA* GetDFA(MatchKind kind);
-  void DeleteDFA(DFA* dfa);
+  DFA *GetDFA(MatchKind kind);
+  void DeleteDFA(DFA *dfa);
 
-  bool anchor_start_;       // regexp has explicit start anchor
-  bool anchor_end_;         // regexp has explicit end anchor
-  bool reversed_;           // whether program runs backward over input
-  bool did_flatten_;        // has Flatten been called?
-  bool did_onepass_;        // has IsOnePass been called?
+  bool anchor_start_; // regexp has explicit start anchor
+  bool anchor_end_;   // regexp has explicit end anchor
+  bool reversed_;     // whether program runs backward over input
+  bool did_flatten_;  // has Flatten been called?
+  bool did_onepass_;  // has IsOnePass been called?
 
-  int start_;               // entry point for program
-  int start_unanchored_;    // unanchored entry point for program
-  int size_;                // number of instructions
-  int bytemap_range_;       // bytemap_[x] < bytemap_range_
+  int start_;            // entry point for program
+  int start_unanchored_; // unanchored entry point for program
+  int size_;             // number of instructions
+  int bytemap_range_;    // bytemap_[x] < bytemap_range_
 
-  bool prefix_foldcase_;    // whether prefix is case-insensitive
-  size_t prefix_size_;      // size of prefix (0 if no prefix)
+  bool prefix_foldcase_; // whether prefix is case-insensitive
+  size_t prefix_size_;   // size of prefix (0 if no prefix)
   union {
-    uint64_t* prefix_dfa_;  // "Shift DFA" for prefix
+    uint64_t *prefix_dfa_; // "Shift DFA" for prefix
     struct {
-      int prefix_front_;    // first byte of prefix
-      int prefix_back_;     // last byte of prefix
+      int prefix_front_; // first byte of prefix
+      int prefix_back_;  // last byte of prefix
     };
   };
 
-  int list_count_;                  // count of lists (see above)
-  int inst_count_[kNumInst];        // count of instructions by opcode
-  PODArray<uint16_t> list_heads_;   // sparse array enumerating list heads
-                                    // not populated if size_ is overly large
-  size_t bit_state_text_max_size_;  // upper bound (inclusive) on text.size()
+  int list_count_;                 // count of lists (see above)
+  int inst_count_[kNumInst];       // count of instructions by opcode
+  PODArray<uint16_t> list_heads_;  // sparse array enumerating list heads
+                                   // not populated if size_ is overly large
+  size_t bit_state_text_max_size_; // upper bound (inclusive) on text.size()
 
-  PODArray<Inst> inst_;              // pointer to instruction array
-  PODArray<uint8_t> onepass_nodes_;  // data for OnePass nodes
+  PODArray<Inst> inst_;             // pointer to instruction array
+  PODArray<uint8_t> onepass_nodes_; // data for OnePass nodes
 
-  int64_t dfa_mem_;         // Maximum memory for DFAs.
-  DFA* dfa_first_;          // DFA cached for kFirstMatch/kManyMatch
-  DFA* dfa_longest_;        // DFA cached for kLongestMatch/kFullMatch
+  int64_t dfa_mem_;  // Maximum memory for DFAs.
+  DFA *dfa_first_;   // DFA cached for kFirstMatch/kManyMatch
+  DFA *dfa_longest_; // DFA cached for kLongestMatch/kFullMatch
 
-  uint8_t bytemap_[256];    // map from input bytes to byte classes
+  uint8_t bytemap_[256]; // map from input bytes to byte classes
 
   std::once_flag dfa_first_once_;
   std::once_flag dfa_longest_once_;
 
-  Prog(const Prog&) = delete;
-  Prog& operator=(const Prog&) = delete;
+  Prog(const Prog &) = delete;
+  Prog &operator=(const Prog &) = delete;
 };
 
 // std::string_view in MSVC has iterators that aren't just pointers and
 // that don't allow comparisons between different objects - not even if
 // those objects are views into the same string! Thus, we provide these
 // conversion functions for convenience.
-static inline const char* BeginPtr(const StringPiece& s) {
-  return s.data();
-}
-static inline const char* EndPtr(const StringPiece& s) {
+static inline const char *BeginPtr(const StringPiece &s) { return s.data(); }
+static inline const char *EndPtr(const StringPiece &s) {
   return s.data() + s.size();
 }
 
-}  // namespace re2
+} // namespace re2
 
-#endif  // RE2_PROG_H_
+#endif // RE2_PROG_H_

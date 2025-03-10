@@ -17,12 +17,12 @@ on:
 jobs:
   build:
     if: github.repository == 'software-mansion/react-native-executorch'
-    name: "Example app iOS build check"
+    name: 'Example app iOS build check'
     runs-on: macos-latest
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
-        
+
       - name: Install node dependencies
         working-directory: examples/llama
         run: yarn
@@ -42,4 +42,3 @@ jobs:
             -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
             build \
             CODE_SIGNING_ALLOWED=NO | xcbeautify
-        

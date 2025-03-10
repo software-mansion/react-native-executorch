@@ -1,7 +1,5 @@
 package com.swmansion.rnexecutorch.models.ocr.utils
 
-import java.io.File
-
 class CTCLabelConverter(
   characters: String,
 ) {
@@ -22,7 +20,10 @@ class CTCLabelConverter(
     ignoreIdx = ignoreIndexes.toList()
   }
 
-  fun decodeGreedy(textIndex: List<Int>, length: Int): List<String> {
+  fun decodeGreedy(
+    textIndex: List<Int>,
+    length: Int,
+  ): List<String> {
     val texts = mutableListOf<String>()
     var index = 0
     while (index < textIndex.size) {

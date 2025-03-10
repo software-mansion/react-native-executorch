@@ -249,7 +249,7 @@ export class SpeechToTextController {
           this.decodedTranscribeCallback(prevseq);
         }
       }
-      if (this.chunks.length == 1) {
+      if (this.chunks.length === 1) {
         final_seq = seq;
         this.sequence = final_seq;
         this.decodedTranscribeCallback(final_seq);

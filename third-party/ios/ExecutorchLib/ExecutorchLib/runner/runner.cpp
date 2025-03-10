@@ -39,35 +39,29 @@ static constexpr auto kUseKVCache = "use_kv_cache";
 static constexpr auto kUseSDPAWithKVCache = "use_sdpa_with_kv_cache";
 } // namespace
 
-Runner::Runner(
-    const std::string& model_path,
-    const std::string& tokenizer_path,
-    const float temperature)
+Runner::Runner(const std::string &model_path, const std::string &tokenizer_path,
+               const float temperature)
     // NOTE: we observed ~2x loading performance increase on iPhone 15
     // and a ~5% improvement on Galaxy S22 by switching to
     // FileDataLoader instead of MmapDataLoader + UseMlockIgnoreErrors.
     : temperature_(temperature),
       module_(std::make_unique<Module>(model_path, Module::LoadMode::File)),
-      tokenizer_path_(tokenizer_path),
-      metadata_({
-          {kAppendEosToPrompt, false},
-          {kEnableDynamicShape, false},
-          {kMaxSeqLen, 128},
-          {kNBos, 1},
-          {kNEos, 1},
-          {kUseKVCache, true},
-          {kUseSDPAWithKVCache, false},
-      }) {
-  ET_LOG(
-      Info,
-      "Creating LLaMa runner: model_path=%s, tokenizer_path=%s",
-      model_path.c_str(),
-      tokenizer_path.c_str());
+      tokenizer_path_(tokenizer_path), metadata_({
+                                           {kAppendEosToPrompt, false},
+                                           {kEnableDynamicShape, false},
+                                           {kMaxSeqLen, 128},
+                                           {kNBos, 1},
+                                           {kNEos, 1},
+                                           {kUseKVCache, true},
+                                           {kUseSDPAWithKVCache, false},
+                                       }) {
+  ET_LOG(Info, "Creating LLaMa runner: model_path=%s, tokenizer_path=%s",
+         model_path.c_str(), tokenizer_path.c_str());
 }
 
 bool Runner::is_loaded() const {
   return module_->is_loaded() && tokenizer_ && text_decoder_runner_ &&
-      text_prefiller_ && text_token_generator_;
+         text_prefiller_ && text_token_generator_;
 }
 
 Error Runner::load() {
@@ -82,10 +76,9 @@ Error Runner::load() {
   // Rely on tiktoken to throw error if the artifact is incompatible. Then we
   // fallback to BPE tokenizer.
   if (err == Error::InvalidArgument) {
-    ET_LOG(
-        Info,
-        "Failed to load %s as a Tiktoken artifact, trying BPE tokenizer",
-        tokenizer_path_.c_str());
+    ET_LOG(Info,
+           "Failed to load %s as a Tiktoken artifact, trying BPE tokenizer",
+           tokenizer_path_.c_str());
     tokenizer_.reset();
     tokenizer_ = std::make_unique<llm::BPETokenizer>();
     tokenizer_->load(tokenizer_path_);
@@ -101,56 +94,46 @@ Error Runner::load() {
   const auto method_names =
       ET_UNWRAP(module_->method_names(), "Failed reading method names");
 
-  for (auto& pair : metadata_) {
-    const auto& method_name = pair.first;
-    auto& value = pair.second;
+  for (auto &pair : metadata_) {
+    const auto &method_name = pair.first;
+    auto &value = pair.second;
 
     if (method_names.count(method_name)) {
       value = ET_UNWRAP(module_->get(method_name))
                   .toScalar()
                   .to<decltype(metadata_)::mapped_type>();
     } else {
-      ET_LOG(
-          Info,
-          "Methond %s not found, using the default value %" PRId64,
-          method_name.c_str(),
-          value);
+      ET_LOG(Info, "Methond %s not found, using the default value %" PRId64,
+             method_name.c_str(), value);
     }
     ET_LOG(Info, "Metadata: %s = %" PRId64, method_name.c_str(), value);
   }
   if (method_names.count(kEosIds)) {
     eos_ids->clear();
-    for (const auto& eos_id : ET_UNWRAP(module_->execute(kEosIds))) {
+    for (const auto &eos_id : ET_UNWRAP(module_->execute(kEosIds))) {
       auto value = eos_id.toScalar().to<int64_t>();
       eos_ids->emplace(value);
       ET_LOG(Info, "eos_id = %" PRId64, value);
     }
   }
   text_decoder_runner_ = std::make_unique<llm::TextDecoderRunner>(
-      module_.get(),
-      metadata_.at(kUseKVCache),
-      metadata_.at(kVocabSize),
+      module_.get(), metadata_.at(kUseKVCache), metadata_.at(kVocabSize),
       temperature_);
   text_prefiller_ = std::make_unique<llm::TextPrefiller>(
-      text_decoder_runner_.get(),
-      metadata_.at(kUseKVCache),
+      text_decoder_runner_.get(), metadata_.at(kUseKVCache),
       metadata_.at(kEnableDynamicShape));
 
   text_token_generator_ = std::make_unique<llm::TextTokenGenerator>(
-      tokenizer_.get(),
-      text_decoder_runner_.get(),
-      metadata_.at(kUseKVCache),
-      std::move(eos_ids),
-      &stats_);
+      tokenizer_.get(), text_decoder_runner_.get(), metadata_.at(kUseKVCache),
+      std::move(eos_ids), &stats_);
 
   return Error::Ok;
 }
 
-Error Runner::generate(
-    const std::string& prompt,
-    std::function<void(const std::string&)> token_callback,
-    std::function<void(const llm::Stats&)> stats_callback,
-    bool echo) {
+Error Runner::generate(const std::string &prompt,
+                       std::function<void(const std::string &)> token_callback,
+                       std::function<void(const llm::Stats &)> stats_callback,
+                       bool echo) {
   // Prepare the inputs.
   // Use ones-initialized inputs.
   ET_CHECK_MSG(!prompt.empty(), "Prompt cannot be null");
@@ -160,14 +143,12 @@ Error Runner::generate(
     stats_.model_load_end_ms = llm::time_in_ms();
   }
 
-  ET_LOG(
-      Info,
-      "RSS after loading model: %f MiB (0 if unsupported)",
-      llm::get_rss_bytes() / 1024.0 / 1024.0);
+  ET_LOG(Info, "RSS after loading model: %f MiB (0 if unsupported)",
+         llm::get_rss_bytes() / 1024.0 / 1024.0);
 
   // Wrap the token_callback with print function
-  std::function<void(const std::string&)> wrapped_callback =
-      [token_callback](const std::string& piece) {
+  std::function<void(const std::string &)> wrapped_callback =
+      [token_callback](const std::string &piece) {
         llm::safe_printf(piece.c_str());
         fflush(stdout);
         if (token_callback) {
@@ -184,29 +165,26 @@ Error Runner::generate(
   int32_t seq_len = metadata_.at(kMaxSeqLen);
 
   Result<std::vector<uint64_t>> encode_res = tokenizer_->encode(
-      prompt,
-      metadata_.at(kNBos),
+      prompt, metadata_.at(kNBos),
       metadata_.at(kAppendEosToPrompt) ? metadata_.at(kNEos) : 0);
 
-  ET_CHECK_OK_OR_RETURN_ERROR(
-      encode_res.error(), "Failed to encode prompt %s", prompt.c_str());
+  ET_CHECK_OK_OR_RETURN_ERROR(encode_res.error(), "Failed to encode prompt %s",
+                              prompt.c_str());
 
   // encode the (string) prompt into tokens sequence
   std::vector<uint64_t> prompt_tokens = encode_res.get();
   int num_prompt_tokens = prompt_tokens.size();
 
   ET_CHECK_MSG(num_prompt_tokens >= 1, "Expected at least 1 prompt token");
-  ET_CHECK_MSG(
-      num_prompt_tokens < metadata_.at(kMaxSeqLen),
-      "num_prompt_tokens %d >= max_seq_len_ %" PRId64
-      ", Max seq length exceeded - please increase max seq len value in .../llama2/model.py",
-      num_prompt_tokens,
-      metadata_.at(kMaxSeqLen));
-  ET_CHECK_MSG(
-      num_prompt_tokens < seq_len,
-      "num_prompt_tokens %d >= seq_len %d, Sequence length exceeded - please increase the seq_len value passed to generate()",
-      num_prompt_tokens,
-      seq_len);
+  ET_CHECK_MSG(num_prompt_tokens < metadata_.at(kMaxSeqLen),
+               "num_prompt_tokens %d >= max_seq_len_ %" PRId64
+               ", Max seq length exceeded - please increase max seq len value "
+               "in .../llama2/model.py",
+               num_prompt_tokens, metadata_.at(kMaxSeqLen));
+  ET_CHECK_MSG(num_prompt_tokens < seq_len,
+               "num_prompt_tokens %d >= seq_len %d, Sequence length exceeded - "
+               "please increase the seq_len value passed to generate()",
+               num_prompt_tokens, seq_len);
 
   // Prefill first
   // Here feed all tokens to the model and get the next predicted token
@@ -225,10 +203,8 @@ Error Runner::generate(
 
   // print the first token from prefill. No prev_token so use cur_token for it.
   wrapped_callback(ET_UNWRAP(tokenizer_->decode(cur_token, cur_token)));
-  ET_LOG(
-      Info,
-      "RSS after prompt prefill: %f MiB (0 if unsupported)",
-      llm::get_rss_bytes() / 1024.0 / 1024.0);
+  ET_LOG(Info, "RSS after prompt prefill: %f MiB (0 if unsupported)",
+         llm::get_rss_bytes() / 1024.0 / 1024.0);
 
   // start the main loop
   prompt_tokens.push_back(cur_token);
@@ -237,10 +213,8 @@ Error Runner::generate(
 
   stats_.inference_end_ms = llm::time_in_ms();
   printf("\n");
-  ET_LOG(
-      Info,
-      "RSS after finishing text generation: %f MiB (0 if unsupported)",
-      llm::get_rss_bytes() / 1024.0 / 1024.0);
+  ET_LOG(Info, "RSS after finishing text generation: %f MiB (0 if unsupported)",
+         llm::get_rss_bytes() / 1024.0 / 1024.0);
 
   if (num_prompt_tokens + num_generated_tokens == seq_len) {
     ET_LOG(Info, "Sequence length (%i tokens) reached!", seq_len);
