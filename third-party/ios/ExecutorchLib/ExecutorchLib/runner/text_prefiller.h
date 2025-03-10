@@ -21,11 +21,9 @@ namespace extension {
 namespace llm {
 
 class TextPrefiller {
- public:
-  TextPrefiller(
-      TextDecoderRunner* text_decoder_runner,
-      bool use_kv_cache_,
-      bool enable_parallel_prefill);
+public:
+  TextPrefiller(TextDecoderRunner *text_decoder_runner, bool use_kv_cache_,
+                bool enable_parallel_prefill);
   /**
    * Prefill an LLM Module with the given text input.
    * @param prompt_tokens The text prompt tokens to the LLM Module. Encoded by
@@ -34,12 +32,11 @@ class TextPrefiller {
    * Module.
    * @return The next token of the LLM Module after prefill.
    */
-  ::executorch::runtime::Result<uint64_t> prefill(
-      std::vector<uint64_t>& prompt_tokens,
-      int64_t& start_pos);
+  ::executorch::runtime::Result<uint64_t>
+  prefill(std::vector<uint64_t> &prompt_tokens, int64_t &start_pos);
 
- private:
-  TextDecoderRunner* text_decoder_runner_;
+private:
+  TextDecoderRunner *text_decoder_runner_;
   bool use_kv_cache_;
   bool enable_parallel_prefill_;
 };

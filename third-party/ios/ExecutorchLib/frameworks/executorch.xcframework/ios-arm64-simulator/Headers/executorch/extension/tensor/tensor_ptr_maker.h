@@ -24,13 +24,13 @@ namespace extension {
  * by converting TensorPtrMaker to TensorPtr.
  */
 class TensorPtrMaker final {
- public:
+public:
   // This class may have non-copyable members in the future.
-  TensorPtrMaker(const TensorPtrMaker&) = delete;
-  TensorPtrMaker& operator=(const TensorPtrMaker&) = delete;
+  TensorPtrMaker(const TensorPtrMaker &) = delete;
+  TensorPtrMaker &operator=(const TensorPtrMaker &) = delete;
   // But it is movable.
-  TensorPtrMaker(TensorPtrMaker&&) = default;
-  TensorPtrMaker& operator=(TensorPtrMaker&&) = default;
+  TensorPtrMaker(TensorPtrMaker &&) = default;
+  TensorPtrMaker &operator=(TensorPtrMaker &&) = default;
 
   /**
    * Sets the scalar type of the tensor elements.
@@ -38,7 +38,7 @@ class TensorPtrMaker final {
    * @param type The scalar type (e.g., float, int, bool).
    * @return Rvalue to this TensorPtrMaker for method chaining.
    */
-  TensorPtrMaker&& type(executorch::aten::ScalarType type) {
+  TensorPtrMaker &&type(executorch::aten::ScalarType type) {
     type_ = type;
     return std::move(*this);
   }
@@ -49,8 +49,8 @@ class TensorPtrMaker final {
    * @param dim_order A vector specifying the dimension order.
    * @return Rvalue to this TensorPtrMaker for method chaining.
    */
-  TensorPtrMaker&& dim_order(
-      std::vector<executorch::aten::DimOrderType> dim_order) {
+  TensorPtrMaker &&
+  dim_order(std::vector<executorch::aten::DimOrderType> dim_order) {
     dim_order_ = std::move(dim_order);
     return std::move(*this);
   }
@@ -61,7 +61,7 @@ class TensorPtrMaker final {
    * @param strides A vector specifying the stride for each dimension.
    * @return Rvalue to this TensorPtrMaker for method chaining.
    */
-  TensorPtrMaker&& strides(std::vector<executorch::aten::StridesType> strides) {
+  TensorPtrMaker &&strides(std::vector<executorch::aten::StridesType> strides) {
     strides_ = std::move(strides);
     return std::move(*this);
   }
@@ -73,7 +73,7 @@ class TensorPtrMaker final {
    * bounded.
    * @return Rvalue to this TensorPtrMaker for method chaining.
    */
-  TensorPtrMaker&& dynamism(executorch::aten::TensorShapeDynamism dynamism) {
+  TensorPtrMaker &&dynamism(executorch::aten::TensorShapeDynamism dynamism) {
     dynamism_ = dynamism;
     return std::move(*this);
   }
@@ -87,7 +87,7 @@ class TensorPtrMaker final {
    * lambda that has captured some state.
    * @return Rvalue to this TensorPtrMaker for method chaining.
    */
-  TensorPtrMaker&& deleter(std::function<void(void*)>&& deleter) {
+  TensorPtrMaker &&deleter(std::function<void(void *)> &&deleter) {
     deleter_ = std::move(deleter);
     return std::move(*this);
   }
@@ -100,13 +100,8 @@ class TensorPtrMaker final {
    */
   TensorPtr make_tensor_ptr() && {
     return ::executorch::extension::make_tensor_ptr(
-        std::move(sizes_),
-        data_,
-        std::move(dim_order_),
-        std::move(strides_),
-        type_,
-        dynamism_,
-        std::move(deleter_));
+        std::move(sizes_), data_, std::move(dim_order_), std::move(strides_),
+        type_, dynamism_, std::move(deleter_));
   }
 
   /**
@@ -114,30 +109,25 @@ class TensorPtrMaker final {
    *
    * @return A TensorPtr instance that manages the newly created Tensor.
    */
-  operator TensorPtr() && {
-    return std::move(*this).make_tensor_ptr();
-  }
+  operator TensorPtr() && { return std::move(*this).make_tensor_ptr(); }
 
- private:
-  TensorPtrMaker(
-      void* data,
-      std::vector<executorch::aten::SizesType> sizes,
-      executorch::aten::ScalarType type)
+private:
+  TensorPtrMaker(void *data, std::vector<executorch::aten::SizesType> sizes,
+                 executorch::aten::ScalarType type)
       : sizes_(std::move(sizes)), data_(data), type_(type) {}
 
- private:
+private:
   // The following properties are required to create a Tensor.
-  friend TensorPtrMaker for_blob(
-      void* data,
-      std::vector<executorch::aten::SizesType> sizes,
-      executorch::aten::ScalarType type);
+  friend TensorPtrMaker for_blob(void *data,
+                                 std::vector<executorch::aten::SizesType> sizes,
+                                 executorch::aten::ScalarType type);
 
- private:
+private:
   std::vector<executorch::aten::SizesType> sizes_;
   std::vector<executorch::aten::StridesType> strides_;
   std::vector<executorch::aten::DimOrderType> dim_order_;
-  std::function<void(void*)> deleter_ = nullptr;
-  void* data_ = nullptr;
+  std::function<void(void *)> deleter_ = nullptr;
+  void *data_ = nullptr;
   executorch::aten::ScalarType type_ = executorch::aten::ScalarType::Float;
   executorch::aten::TensorShapeDynamism dynamism_ =
       executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND;
@@ -158,8 +148,7 @@ class TensorPtrMaker final {
  * @return A TensorPtrMaker instance for creating a TensorPtr.
  */
 inline TensorPtrMaker for_blob(
-    void* data,
-    std::vector<executorch::aten::SizesType> sizes,
+    void *data, std::vector<executorch::aten::SizesType> sizes,
     executorch::aten::ScalarType type = executorch::aten::ScalarType::Float) {
   return TensorPtrMaker(data, std::move(sizes), type);
 }
@@ -180,8 +169,7 @@ inline TensorPtrMaker for_blob(
  * @return A TensorPtr instance managing the newly created Tensor.
  */
 inline TensorPtr from_blob(
-    void* data,
-    std::vector<executorch::aten::SizesType> sizes,
+    void *data, std::vector<executorch::aten::SizesType> sizes,
     executorch::aten::ScalarType type = executorch::aten::ScalarType::Float,
     executorch::aten::TensorShapeDynamism dynamism =
         executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
@@ -208,8 +196,7 @@ inline TensorPtr from_blob(
  * @return A TensorPtr instance managing the newly created Tensor.
  */
 inline TensorPtr from_blob(
-    void* data,
-    std::vector<executorch::aten::SizesType> sizes,
+    void *data, std::vector<executorch::aten::SizesType> sizes,
     std::vector<executorch::aten::StridesType> strides,
     executorch::aten::ScalarType type = executorch::aten::ScalarType::Float,
     executorch::aten::TensorShapeDynamism dynamism =
@@ -236,13 +223,12 @@ inline TensorPtr from_blob(
  * @param dynamism Specifies whether the tensor's shape is static or dynamic.
  * @return A TensorPtr instance that manages the newly created Tensor.
  */
-inline TensorPtr from_blob(
-    void* data,
-    std::vector<executorch::aten::SizesType> sizes,
-    executorch::aten::ScalarType type,
-    std::function<void(void*)>&& deleter,
-    executorch::aten::TensorShapeDynamism dynamism =
-        executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
+inline TensorPtr
+from_blob(void *data, std::vector<executorch::aten::SizesType> sizes,
+          executorch::aten::ScalarType type,
+          std::function<void(void *)> &&deleter,
+          executorch::aten::TensorShapeDynamism dynamism =
+              executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
   return for_blob(data, std::move(sizes), type)
       .deleter(std::move(deleter))
       .dynamism(dynamism)
@@ -266,14 +252,13 @@ inline TensorPtr from_blob(
  * @param dynamism Specifies whether the tensor's shape is static or dynamic.
  * @return A TensorPtr instance that manages the newly created Tensor.
  */
-inline TensorPtr from_blob(
-    void* data,
-    std::vector<executorch::aten::SizesType> sizes,
-    std::vector<executorch::aten::StridesType> strides,
-    executorch::aten::ScalarType type,
-    std::function<void(void*)>&& deleter,
-    executorch::aten::TensorShapeDynamism dynamism =
-        executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
+inline TensorPtr
+from_blob(void *data, std::vector<executorch::aten::SizesType> sizes,
+          std::vector<executorch::aten::StridesType> strides,
+          executorch::aten::ScalarType type,
+          std::function<void(void *)> &&deleter,
+          executorch::aten::TensorShapeDynamism dynamism =
+              executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
   return for_blob(data, std::move(sizes), type)
       .strides(std::move(strides))
       .deleter(std::move(deleter))
@@ -316,18 +301,16 @@ TensorPtr empty_strided(
  * @return A TensorPtr instance managing the newly created Tensor.
  */
 inline TensorPtr empty_like(
-    const TensorPtr& other,
+    const TensorPtr &other,
     executorch::aten::ScalarType type = executorch::aten::ScalarType::Undefined,
     executorch::aten::TensorShapeDynamism dynamism =
         executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
   if (type == executorch::aten::ScalarType::Undefined) {
     type = other->scalar_type();
   }
-  return empty_strided(
-      {other->sizes().begin(), other->sizes().end()},
-      {other->strides().begin(), other->strides().end()},
-      type,
-      dynamism);
+  return empty_strided({other->sizes().begin(), other->sizes().end()},
+                       {other->strides().begin(), other->strides().end()}, type,
+                       dynamism);
 }
 
 /**
@@ -341,11 +324,11 @@ inline TensorPtr empty_like(
  * @param dynamism Specifies whether the tensor's shape is static or dynamic.
  * @return A TensorPtr instance managing the newly created Tensor.
  */
-inline TensorPtr empty(
-    std::vector<executorch::aten::SizesType> sizes,
-    executorch::aten::ScalarType type = executorch::aten::ScalarType::Float,
-    executorch::aten::TensorShapeDynamism dynamism =
-        executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
+inline TensorPtr
+empty(std::vector<executorch::aten::SizesType> sizes,
+      executorch::aten::ScalarType type = executorch::aten::ScalarType::Float,
+      executorch::aten::TensorShapeDynamism dynamism =
+          executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
   return empty_strided(std::move(sizes), {}, type, dynamism);
 }
 
@@ -380,20 +363,16 @@ TensorPtr full_strided(
  * @return A TensorPtr instance managing the newly created Tensor.
  */
 inline TensorPtr full_like(
-    const TensorPtr& other,
-    executorch::aten::Scalar fill_value,
+    const TensorPtr &other, executorch::aten::Scalar fill_value,
     executorch::aten::ScalarType type = executorch::aten::ScalarType::Undefined,
     executorch::aten::TensorShapeDynamism dynamism =
         executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
   if (type == executorch::aten::ScalarType::Undefined) {
     type = other->scalar_type();
   }
-  return full_strided(
-      {other->sizes().begin(), other->sizes().end()},
-      {other->strides().begin(), other->strides().end()},
-      fill_value,
-      type,
-      dynamism);
+  return full_strided({other->sizes().begin(), other->sizes().end()},
+                      {other->strides().begin(), other->strides().end()},
+                      fill_value, type, dynamism);
 }
 
 /**
@@ -405,12 +384,12 @@ inline TensorPtr full_like(
  * @param dynamism Specifies whether the tensor's shape is static or dynamic.
  * @return A TensorPtr instance managing the newly created Tensor.
  */
-inline TensorPtr full(
-    std::vector<executorch::aten::SizesType> sizes,
-    executorch::aten::Scalar fill_value,
-    executorch::aten::ScalarType type = executorch::aten::ScalarType::Float,
-    executorch::aten::TensorShapeDynamism dynamism =
-        executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
+inline TensorPtr
+full(std::vector<executorch::aten::SizesType> sizes,
+     executorch::aten::Scalar fill_value,
+     executorch::aten::ScalarType type = executorch::aten::ScalarType::Float,
+     executorch::aten::TensorShapeDynamism dynamism =
+         executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
   return full_strided(std::move(sizes), {}, fill_value, type, dynamism);
 }
 
@@ -439,7 +418,7 @@ inline TensorPtr scalar_tensor(
  * @return A TensorPtr instance managing the newly created Tensor.
  */
 inline TensorPtr ones_like(
-    const TensorPtr& other,
+    const TensorPtr &other,
     executorch::aten::ScalarType type = executorch::aten::ScalarType::Undefined,
     executorch::aten::TensorShapeDynamism dynamism =
         executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
@@ -454,11 +433,11 @@ inline TensorPtr ones_like(
  * @param dynamism Specifies whether the tensor's shape is static or dynamic.
  * @return A TensorPtr instance managing the newly created Tensor.
  */
-inline TensorPtr ones(
-    std::vector<executorch::aten::SizesType> sizes,
-    executorch::aten::ScalarType type = executorch::aten::ScalarType::Float,
-    executorch::aten::TensorShapeDynamism dynamism =
-        executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
+inline TensorPtr
+ones(std::vector<executorch::aten::SizesType> sizes,
+     executorch::aten::ScalarType type = executorch::aten::ScalarType::Float,
+     executorch::aten::TensorShapeDynamism dynamism =
+         executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
   return full(std::move(sizes), 1, type, dynamism);
 }
 
@@ -474,7 +453,7 @@ inline TensorPtr ones(
  * @return A TensorPtr instance managing the newly created Tensor.
  */
 inline TensorPtr zeros_like(
-    const TensorPtr& other,
+    const TensorPtr &other,
     executorch::aten::ScalarType type = executorch::aten::ScalarType::Undefined,
     executorch::aten::TensorShapeDynamism dynamism =
         executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
@@ -489,11 +468,11 @@ inline TensorPtr zeros_like(
  * @param dynamism Specifies whether the tensor's shape is static or dynamic.
  * @return A TensorPtr instance managing the newly created Tensor.
  */
-inline TensorPtr zeros(
-    std::vector<executorch::aten::SizesType> sizes,
-    executorch::aten::ScalarType type = executorch::aten::ScalarType::Float,
-    executorch::aten::TensorShapeDynamism dynamism =
-        executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
+inline TensorPtr
+zeros(std::vector<executorch::aten::SizesType> sizes,
+      executorch::aten::ScalarType type = executorch::aten::ScalarType::Float,
+      executorch::aten::TensorShapeDynamism dynamism =
+          executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
   return full(std::move(sizes), 0, type, dynamism);
 }
 
@@ -524,18 +503,16 @@ TensorPtr rand_strided(
  * @return A TensorPtr instance managing the newly created Tensor.
  */
 inline TensorPtr rand_like(
-    const TensorPtr& other,
+    const TensorPtr &other,
     executorch::aten::ScalarType type = executorch::aten::ScalarType::Undefined,
     executorch::aten::TensorShapeDynamism dynamism =
         executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
   if (type == executorch::aten::ScalarType::Undefined) {
     type = other->scalar_type();
   }
-  return rand_strided(
-      {other->sizes().begin(), other->sizes().end()},
-      {other->strides().begin(), other->strides().end()},
-      type,
-      dynamism);
+  return rand_strided({other->sizes().begin(), other->sizes().end()},
+                      {other->strides().begin(), other->strides().end()}, type,
+                      dynamism);
 }
 
 /**
@@ -546,11 +523,11 @@ inline TensorPtr rand_like(
  * @param dynamism Specifies whether the tensor's shape is static or dynamic.
  * @return A TensorPtr instance managing the newly created Tensor.
  */
-inline TensorPtr rand(
-    std::vector<executorch::aten::SizesType> sizes,
-    executorch::aten::ScalarType type = executorch::aten::ScalarType::Float,
-    executorch::aten::TensorShapeDynamism dynamism =
-        executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
+inline TensorPtr
+rand(std::vector<executorch::aten::SizesType> sizes,
+     executorch::aten::ScalarType type = executorch::aten::ScalarType::Float,
+     executorch::aten::TensorShapeDynamism dynamism =
+         executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
   return rand_strided(std::move(sizes), {}, type, dynamism);
 }
 
@@ -582,18 +559,16 @@ TensorPtr randn_strided(
  * @return A TensorPtr instance managing the newly created Tensor.
  */
 inline TensorPtr randn_like(
-    const TensorPtr& other,
+    const TensorPtr &other,
     executorch::aten::ScalarType type = executorch::aten::ScalarType::Undefined,
     executorch::aten::TensorShapeDynamism dynamism =
         executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
   if (type == executorch::aten::ScalarType::Undefined) {
     type = other->scalar_type();
   }
-  return randn_strided(
-      {other->sizes().begin(), other->sizes().end()},
-      {other->strides().begin(), other->strides().end()},
-      type,
-      dynamism);
+  return randn_strided({other->sizes().begin(), other->sizes().end()},
+                       {other->strides().begin(), other->strides().end()}, type,
+                       dynamism);
 }
 
 /**
@@ -605,11 +580,11 @@ inline TensorPtr randn_like(
  * @param dynamism Specifies whether the tensor's shape is static or dynamic.
  * @return A TensorPtr instance managing the newly created Tensor.
  */
-inline TensorPtr randn(
-    std::vector<executorch::aten::SizesType> sizes,
-    executorch::aten::ScalarType type = executorch::aten::ScalarType::Float,
-    executorch::aten::TensorShapeDynamism dynamism =
-        executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
+inline TensorPtr
+randn(std::vector<executorch::aten::SizesType> sizes,
+      executorch::aten::ScalarType type = executorch::aten::ScalarType::Float,
+      executorch::aten::TensorShapeDynamism dynamism =
+          executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
   return randn_strided(std::move(sizes), {}, type, dynamism);
 }
 
@@ -625,9 +600,7 @@ inline TensorPtr randn(
  * @return A TensorPtr instance managing the newly created Tensor.
  */
 TensorPtr randint_strided(
-    int64_t low,
-    int64_t high,
-    std::vector<executorch::aten::SizesType> sizes,
+    int64_t low, int64_t high, std::vector<executorch::aten::SizesType> sizes,
     std::vector<executorch::aten::StridesType> strides,
     executorch::aten::ScalarType type = executorch::aten::ScalarType::Int,
     executorch::aten::TensorShapeDynamism dynamism =
@@ -646,9 +619,7 @@ TensorPtr randint_strided(
  * @return A TensorPtr instance managing the newly created Tensor.
  */
 inline TensorPtr randint_like(
-    const TensorPtr& other,
-    int64_t low,
-    int64_t high,
+    const TensorPtr &other, int64_t low, int64_t high,
     executorch::aten::ScalarType type = executorch::aten::ScalarType::Undefined,
     executorch::aten::TensorShapeDynamism dynamism =
         executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
@@ -656,12 +627,8 @@ inline TensorPtr randint_like(
     type = other->scalar_type();
   }
   return randint_strided(
-      low,
-      high,
-      {other->sizes().begin(), other->sizes().end()},
-      {other->strides().begin(), other->strides().end()},
-      type,
-      dynamism);
+      low, high, {other->sizes().begin(), other->sizes().end()},
+      {other->strides().begin(), other->strides().end()}, type, dynamism);
 }
 
 /**
@@ -675,13 +642,12 @@ inline TensorPtr randint_like(
  * @param dynamism Specifies whether the tensor's shape is static or dynamic.
  * @return A TensorPtr instance managing the newly created Tensor.
  */
-inline TensorPtr randint(
-    int64_t low,
-    int64_t high,
-    std::vector<executorch::aten::SizesType> sizes,
-    executorch::aten::ScalarType type = executorch::aten::ScalarType::Int,
-    executorch::aten::TensorShapeDynamism dynamism =
-        executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
+inline TensorPtr
+randint(int64_t low, int64_t high,
+        std::vector<executorch::aten::SizesType> sizes,
+        executorch::aten::ScalarType type = executorch::aten::ScalarType::Int,
+        executorch::aten::TensorShapeDynamism dynamism =
+            executorch::aten::TensorShapeDynamism::DYNAMIC_BOUND) {
   return randint_strided(low, high, std::move(sizes), {}, type, dynamism);
 }
 

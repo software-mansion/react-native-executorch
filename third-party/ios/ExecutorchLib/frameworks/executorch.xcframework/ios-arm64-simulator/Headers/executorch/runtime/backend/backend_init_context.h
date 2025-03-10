@@ -17,20 +17,18 @@ namespace runtime {
  * delegate.
  */
 class BackendInitContext final {
- public:
-  explicit BackendInitContext(MemoryAllocator* runtime_allocator)
+public:
+  explicit BackendInitContext(MemoryAllocator *runtime_allocator)
       : runtime_allocator_(runtime_allocator) {}
 
   /** Get the runtime allocator passed from Method. It's the same runtime
    * executor used by the standard executor runtime and the life span is the
    * same as the model.
    */
-  MemoryAllocator* get_runtime_allocator() {
-    return runtime_allocator_;
-  }
+  MemoryAllocator *get_runtime_allocator() { return runtime_allocator_; }
 
- private:
-  MemoryAllocator* runtime_allocator_ = nullptr;
+private:
+  MemoryAllocator *runtime_allocator_ = nullptr;
 };
 
 } // namespace runtime

@@ -7,9 +7,9 @@
  */
 
 #pragma once
+#include <cctype>
 #include <stdio.h>
 #include <time.h>
-#include <cctype>
 #if defined(__linux__) || defined(__ANDROID__) || defined(__unix__)
 #include <sys/resource.h>
 #endif
@@ -18,7 +18,7 @@ namespace executorch {
 namespace extension {
 namespace llm {
 
-void inline safe_printf(const char* piece) {
+void inline safe_printf(const char *piece) {
   // piece might be a raw byte token, and we only want to print printable chars
   // or whitespace because some of the other bytes can be various control codes,
   // backspace, etc.

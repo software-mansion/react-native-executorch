@@ -20,27 +20,24 @@
 
 #include <stdint.h>
 
-#include "util/util.h"
 #include "util/utf.h"
+#include "util/util.h"
 
 namespace re2 {
 
-struct URange16
-{
+struct URange16 {
   uint16_t lo;
   uint16_t hi;
 };
 
-struct URange32
-{
+struct URange32 {
   Rune lo;
   Rune hi;
 };
 
-struct UGroup
-{
+struct UGroup {
   const char *name;
-  int sign;  // +1 for [abc], -1 for [^abc]
+  int sign; // +1 for [abc], -1 for [^abc]
   const URange16 *r16;
   int nr16;
   const URange32 *r32;
@@ -62,6 +59,6 @@ extern const int num_posix_groups;
 extern const UGroup perl_groups[];
 extern const int num_perl_groups;
 
-}  // namespace re2
+} // namespace re2
 
-#endif  // RE2_UNICODE_GROUPS_H_
+#endif // RE2_UNICODE_GROUPS_H_
