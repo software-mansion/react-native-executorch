@@ -35,13 +35,16 @@ RCT_EXPORT_MODULE()
 
 - (void)forward:(NSString *)input
         classesOfInterest:(NSArray *)classesOfInterest
+        resize:(BOOL)resize
         resolve:(RCTPromiseResolveBlock)resolve
-         reject:(RCTPromiseRejectBlock)reject {
+        reject:(RCTPromiseRejectBlock)reject {
 
   @try {
     cv::Mat image = [ImageProcessor readImage:input];
-    NSDictionary *result = [model runModel:image returnClasses:classesOfInterest];
-
+    NSDictionary *result = [model runModel:image 
+                                  returnClasses:classesOfInterest
+                                  resize:resize];
+                                  
     resolve(result);
     return;
   } @catch (NSException *exception) {

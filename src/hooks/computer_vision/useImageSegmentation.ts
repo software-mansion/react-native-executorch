@@ -17,7 +17,8 @@ export const useImageSegmentation = ({
   downloadProgress: number;
   forward: (
     input: string,
-    classesOfInterest?: DeeplabLabel[]
+    classesOfInterest?: DeeplabLabel[],
+    resize?: boolean
   ) => Promise<{ [key in DeeplabLabel]?: number[] }>;
 } => {
   const [module, _] = useState(() => new _ImageSegmentationModule());
@@ -27,7 +28,11 @@ export const useImageSegmentation = ({
     module,
   });
 
-  const forward = async (input: string, classesOfInterest?: DeeplabLabel[]) => {
+  const forward = async (
+    input: string,
+    classesOfInterest?: DeeplabLabel[],
+    resize?: boolean
+  ) => {
     if (!isReady) {
       throw new Error(getError(ETError.ModuleNotLoaded));
     }
@@ -39,7 +44,8 @@ export const useImageSegmentation = ({
       setIsGenerating(true);
       const stringDict = await module.forward(
         input,
-        (classesOfInterest || []).map((label) => DeeplabLabel[label])
+        (classesOfInterest || []).map((label) => DeeplabLabel[label]),
+        resize || false
       );
 
       let enumDict: { [key in DeeplabLabel]?: number[] } = {};

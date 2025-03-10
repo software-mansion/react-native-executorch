@@ -2,7 +2,7 @@
 #import <unordered_set>
 #import <algorithm>
 #import <vector>
-#i\port "../../utils/ImageProcessor.h"
+#import "../../utils/ImageProcessor.h"
 #import "../../utils/Numerical.h"
 #import "../../utils/Conversions.h"
 #import "opencv2/opencv.hpp"
@@ -11,7 +11,8 @@
 @interface ImageSegmentationModel ()
   - (NSArray *)preprocess:(cv::Mat &)input;
   - (NSDictionary *)postprocess:(NSArray *)output
-                    returnClasses:(NSArray *)classesOfInterest;
+                    returnClasses:(NSArray *)classesOfInterest
+                    resize:(BOOL)resize;
 @end
 
 @implementation ImageSegmentationModel {
@@ -40,8 +41,8 @@
   return modelInput;
 }
 
-std::vector<cv::Mat> rescaleResults(NSArray *result, std::size_t numLabels, 
-                cv::Size modelImageSize, cv::Size originalSize) {
+std::vector<cv::Mat> extractResults(NSArray *result, std::size_t numLabels, 
+                cv::Size modelImageSize, cv::Size originalSize, BOOL resize) {
   std::size_t numModelPixels = modelImageSize.height * modelImageSize.width;
 
   std::vector<cv::Mat> resizedLabelScores(numLabels);
@@ -54,17 +55,22 @@ std::vector<cv::Mat> rescaleResults(NSArray *result, std::size_t numLabels,
       labelMat.at<double>(row, col) = [result[label * numModelPixels + pixel] doubleValue];
     }
 
-    cv::resize(labelMat, resizedLabelScores[label], originalSize);
+    if (resize) {
+      cv::resize(labelMat, resizedLabelScores[label], originalSize);
+    }
+    else {
+      resizedLabelScores[label] = std::move(labelMat);
+    }
   }
   return resizedLabelScores;
 }
 
 void adjustScoresPerPixel(std::vector<cv::Mat>& labelScores, cv::Mat& argMax,
-                cv::Size originalSize, std::size_t numLabels) {
-  std::size_t numOriginalPixels = originalSize.height * originalSize.width;
-  for (std::size_t pixel = 0; pixel < numOriginalPixels; ++pixel) {
-    int row = pixel / originalSize.width;
-    int col = pixel % originalSize.width;
+                cv::Size outputSize, std::size_t numLabels) {
+  std::size_t numOutputPixels = outputSize.height * outputSize.width;
+  for (std::size_t pixel = 0; pixel < numOutputPixels; ++pixel) {
+    int row = pixel / outputSize.width;
+    int col = pixel % outputSize.width;
     std::vector<double> scores;
     scores.reserve(numLabels);
     for (const auto& mat : labelScores) {
@@ -83,7 +89,8 @@ void adjustScoresPerPixel(std::vector<cv::Mat>& labelScores, cv::Mat& argMax,
 }
 
 - (NSDictionary *)postprocess:(NSArray *)output
-                  returnClasses:(NSArray *)classesOfInterest{
+                  returnClasses:(NSArray *)classesOfInterest
+                  resize:(BOOL)resize {
   cv::Size modelImageSize = [self getModelImageSize];
 
   std::size_t numLabels = deeplabv3_resnet50_labels.size();
@@ -91,14 +98,16 @@ void adjustScoresPerPixel(std::vector<cv::Mat>& labelScores, cv::Mat& argMax,
   NSAssert((std::size_t)output.count ==  numLabels * modelImageSize.height * modelImageSize.width, 
         @"Model generated unexpected output size.");
 
-  // For each label extract it's matrix and rescale it to the original size
+  // For each label extract it's matrix,
+  // and rescale it to the original size if `resize`
   std::vector<cv::Mat> resizedLabelScores = 
-        rescaleResults(output, numLabels, modelImageSize, originalSize);
+        extractResults(output, numLabels, modelImageSize, originalSize, resize);
 
-  cv::Mat argMax = cv::Mat(originalSize, CV_32S);
+  cv::Size outputSize = resize ? originalSize : modelImageSize;
+  cv::Mat argMax = cv::Mat(outputSize, CV_32S);
 
   // For each pixel apply softmax across all the labels and calculate the argMax
-  adjustScoresPerPixel(resizedLabelScores, argMax, originalSize, numLabels);
+  adjustScoresPerPixel(resizedLabelScores, argMax, outputSize, numLabels);
 
   std::unordered_set<std::string> labelSet;
 
@@ -123,11 +132,14 @@ void adjustScoresPerPixel(std::vector<cv::Mat>& labelScores, cv::Mat& argMax,
 }
 
 - (NSDictionary *)runModel:(cv::Mat &)input
-                  returnClasses:(NSArray *)classesOfInterest {
+                  returnClasses:(NSArray *)classesOfInterest
+                  resize:(BOOL)resize {
   NSArray *modelInput = [self preprocess:input];
   NSArray *result = [self forward:modelInput];
 
-  NSDictionary *output = [self postprocess:result[0] returnClasses:classesOfInterest];
+  NSDictionary *output = [self postprocess:result[0]
+                               returnClasses:classesOfInterest
+                               resize:resize];
 
   return output;
 }
