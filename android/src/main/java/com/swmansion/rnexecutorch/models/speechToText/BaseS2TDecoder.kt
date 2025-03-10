@@ -33,8 +33,4 @@ abstract class BaseS2TDecoder(
     val preprocessorInputShape = this.getInputShape(inputArray.size())
     return EValue.from(Tensor.fromBlob(createFloatArray(inputArray), preprocessorInputShape))
   }
-
-  fun postprocess(output: Array<EValue>): Int {
-    TODO("Not yet implemented")
-  }
 }

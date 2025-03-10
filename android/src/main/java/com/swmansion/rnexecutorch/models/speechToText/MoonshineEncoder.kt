@@ -20,7 +20,7 @@ class MoonshineEncoder(
     return EValue.from(Tensor.fromBlob(createFloatArray(input), preprocessorInputShape))
   }
 
-  public fun postprocess(output: Array<EValue>): WritableArray {
+  fun postprocess(output: Array<EValue>): WritableArray {
     val outputWritableArray: WritableArray = Arguments.createArray()
     output[0].toTensor().dataAsFloatArray.map {
       outputWritableArray.pushDouble(
