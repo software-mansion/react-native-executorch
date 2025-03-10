@@ -19,12 +19,12 @@ class ClassificationModel(
     return Size(height.toDouble(), width.toDouble())
   }
 
-  override fun preprocess(input: Mat): EValue {
+  fun preprocess(input: Mat): EValue {
     Imgproc.resize(input, input, getModelImageSize())
     return ImageProcessor.matToEValue(input, module.getInputShape(0))
   }
 
-  override fun postprocess(output: Array<EValue>): Map<String, Float> {
+  fun postprocess(output: Array<EValue>): Map<String, Float> {
     val tensor = output[0].toTensor()
     val probabilities = softmax(tensor.dataAsFloatArray.toTypedArray())
 
