@@ -4,7 +4,9 @@
 @implementation ImageProcessor
 
 + (NSArray *)matToNSArray:(const cv::Mat &)mat {
-  return [ImageProcessor matToNSArray:mat mean:cv::Scalar(0.0, 0.0, 0.0) variance:cv::Scalar(1.0, 1.0, 1.0)];
+  return [ImageProcessor matToNSArray:mat
+                                 mean:cv::Scalar(0.0, 0.0, 0.0)
+                             variance:cv::Scalar(1.0, 1.0, 1.0)];
 }
 
 + (NSArray *)matToNSArray:(const cv::Mat &)mat
@@ -21,24 +23,28 @@
     int row = i / mat.cols;
     int col = i % mat.cols;
     cv::Vec3b pixel = mat.at<cv::Vec3b>(row, col);
-    floatArray[0 * pixelCount + i] = @((pixel[0] - mean[0] * 255.0) / (variance[0] * 255.0));
-    floatArray[1 * pixelCount + i] = @((pixel[1] - mean[1] * 255.0) / (variance[1] * 255.0));
-    floatArray[2 * pixelCount + i] = @((pixel[2] - mean[2] * 255.0) / (variance[2] * 255.0));
+    floatArray[0 * pixelCount + i] =
+        @((pixel[0] - mean[0] * 255.0) / (variance[0] * 255.0));
+    floatArray[1 * pixelCount + i] =
+        @((pixel[1] - mean[1] * 255.0) / (variance[1] * 255.0));
+    floatArray[2 * pixelCount + i] =
+        @((pixel[2] - mean[2] * 255.0) / (variance[2] * 255.0));
   }
 
   return floatArray;
 }
 
 + (NSArray *)matToNSArrayGray:(const cv::Mat &)mat {
-  NSMutableArray *pixelArray = [[NSMutableArray alloc] initWithCapacity:mat.cols * mat.rows];
-  
+  NSMutableArray *pixelArray =
+      [[NSMutableArray alloc] initWithCapacity:mat.cols * mat.rows];
+
   for (int row = 0; row < mat.rows; row++) {
     for (int col = 0; col < mat.cols; col++) {
       float pixelValue = mat.at<float>(row, col);
       [pixelArray addObject:@(pixelValue)];
     }
   }
-  
+
   return pixelArray;
 }
 
@@ -64,7 +70,7 @@
 
 + (cv::Mat)arrayToMatGray:(NSArray *)array width:(int)width height:(int)height {
   cv::Mat mat(height, width, CV_32F);
-  
+
   int pixelCount = width * height;
   for (int i = 0; i < pixelCount; i++) {
     int row = i / width;
@@ -72,7 +78,7 @@
     float value = [array[i] floatValue];
     mat.at<float>(row, col) = value;
   }
-  
+
   return mat;
 }
 

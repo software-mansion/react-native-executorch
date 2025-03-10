@@ -17,7 +17,7 @@ enum class Version {
   Multimodal,
 };
 
-std::unique_ptr<::executorch::extension::llm::Tiktoken> get_tiktoken_for_llama(
-    Version version = Version::Default);
+std::unique_ptr<::executorch::extension::llm::Tiktoken>
+get_tiktoken_for_llama(Version version = Version::Default);
 
 } // namespace example

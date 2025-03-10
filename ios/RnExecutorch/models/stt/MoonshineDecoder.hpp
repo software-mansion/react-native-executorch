@@ -8,10 +8,9 @@
 
 @interface MoonshineDecoder : BaseModel
 
-- (NSArray *)decode:(NSArray *)prevTokens encoderLastHiddenState:(NSArray *)encoderLastHiddenState;
+- (NSArray *)decode:(NSArray *)prevTokens
+    encoderLastHiddenState:(NSArray *)encoderLastHiddenState;
 
 @end
-
-
 
 #endif /* MoonshineDecoder_hpp */

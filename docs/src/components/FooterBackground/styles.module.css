@@ -11,11 +11,11 @@
 .linearGradient {
   height: 106px;
   width: 100%;
-  background: linear-gradient(#7394FF, #FFFFFF 150%);
+  background: linear-gradient(#7394ff, #ffffff 150%);
 }
 
 [data-theme='dark'] .linearGradient {
-  background: linear-gradient(#313C9C, #160042 150%);
+  background: linear-gradient(#313c9c, #160042 150%);
 }
 
 @media (max-width: 996px) {

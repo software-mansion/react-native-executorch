@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include <stdio.h>
 #include <cinttypes>
 #include <cstdint>
+#include <stdio.h>
 
 #include <executorch/runtime/core/error.h>
 #include <executorch/runtime/platform/assert.h>
@@ -38,13 +38,13 @@ namespace runtime {
  *   allocator.allocate() to keep iterating cur_ pointer
  */
 class MemoryAllocator {
- public:
+public:
   /**
    * Default alignment of memory returned by this class. Ensures that pointer
    * fields of structs will be aligned. Larger types like `long double` may not
    * be, however, depending on the toolchain and architecture.
    */
-  static constexpr size_t kDefaultAlignment = alignof(void*);
+  static constexpr size_t kDefaultAlignment = alignof(void *);
 
   /**
    * Constructs a new memory allocator of a given `size`, starting at the
@@ -55,10 +55,8 @@ class MemoryAllocator {
    *     ownership of this buffer, so it must be valid for the lifetime of of
    *     the MemoryAllocator.
    */
-  MemoryAllocator(uint32_t size, uint8_t* base_address)
-      : begin_(base_address),
-        end_(base_address + size),
-        cur_(base_address),
+  MemoryAllocator(uint32_t size, uint8_t *base_address)
+      : begin_(base_address), end_(base_address + size), cur_(base_address),
         size_(size) {}
 
   /**
@@ -71,7 +69,7 @@ class MemoryAllocator {
    * @returns Aligned pointer to the allocated memory on success.
    * @retval nullptr Not enough memory, or `alignment` was not a power of 2.
    */
-  virtual void* allocate(size_t size, size_t alignment = kDefaultAlignment) {
+  virtual void *allocate(size_t size, size_t alignment = kDefaultAlignment) {
     if (!isPowerOf2(alignment)) {
       ET_LOG(Error, "Alignment %zu is not a power of 2", alignment);
       return nullptr;
@@ -79,17 +77,16 @@ class MemoryAllocator {
 
     // The allocation will occupy [start, end), where the start is the next
     // position that's a multiple of alignment.
-    uint8_t* start = alignPointer(cur_, alignment);
-    uint8_t* end = start + size;
+    uint8_t *start = alignPointer(cur_, alignment);
+    uint8_t *end = start + size;
 
     // If the end of this allocation exceeds the end of this allocator, print
     // error messages and return nullptr
     if (end > end_) {
-      ET_LOG(
-          Error,
-          "Memory allocation failed: %zuB requested (adjusted for alignment), %zuB available",
-          static_cast<size_t>(end - cur_),
-          static_cast<size_t>(end_ - cur_));
+      ET_LOG(Error,
+             "Memory allocation failed: %zuB requested (adjusted for "
+             "alignment), %zuB available",
+             static_cast<size_t>(end - cur_), static_cast<size_t>(end_ - cur_));
       return nullptr;
     }
 
@@ -98,7 +95,7 @@ class MemoryAllocator {
     // instead of (end - start) because start > cur_ if there is a misalignment
     EXECUTORCH_TRACK_ALLOCATION(prof_id_, end - cur_);
     cur_ = end;
-    return static_cast<void*>(start);
+    return static_cast<void *>(start);
   }
 
   /**
@@ -116,9 +113,8 @@ class MemoryAllocator {
    * @returns Aligned pointer to the allocated memory on success.
    * @retval nullptr Not enough memory, or `alignment` was not a power of 2.
    */
-  template <typename T>
-  T* allocateInstance(size_t alignment = alignof(T)) {
-    return static_cast<T*>(this->allocate(sizeof(T), alignment));
+  template <typename T> T *allocateInstance(size_t alignment = alignof(T)) {
+    return static_cast<T *>(this->allocate(sizeof(T), alignment));
   }
 
   /**
@@ -133,42 +129,34 @@ class MemoryAllocator {
    * @retval nullptr Not enough memory, or `alignment` was not a power of 2.
    */
   template <typename T>
-  T* allocateList(size_t size, size_t alignment = alignof(T)) {
+  T *allocateList(size_t size, size_t alignment = alignof(T)) {
     // Some users of this method allocate lists of pointers, causing the next
     // line to expand to `sizeof(type *)`, which triggers a clang-tidy warning.
     // NOLINTNEXTLINE(bugprone-sizeof-expression)
-    return static_cast<T*>(this->allocate(size * sizeof(T), alignment));
+    return static_cast<T *>(this->allocate(size * sizeof(T), alignment));
   }
 
   // Returns the allocator memory's base address.
-  virtual uint8_t* base_address() const {
-    return begin_;
-  }
+  virtual uint8_t *base_address() const { return begin_; }
 
   // Returns the total size of the allocator's memory buffer.
-  virtual uint32_t size() const {
-    return size_;
-  }
+  virtual uint32_t size() const { return size_; }
 
   // Resets the current pointer to the base address. It does nothing to
   // the contents.
-  virtual void reset() {
-    cur_ = begin_;
-  }
+  virtual void reset() { cur_ = begin_; }
 
-  void enable_profiling(ET_UNUSED const char* name) {
+  void enable_profiling(ET_UNUSED const char *name) {
     prof_id_ = EXECUTORCH_TRACK_ALLOCATOR(name);
   }
 
   virtual ~MemoryAllocator() {}
 
- protected:
+protected:
   /**
    * Returns the profiler ID for this allocator.
    */
-  int32_t prof_id() const {
-    return prof_id_;
-  }
+  int32_t prof_id() const { return prof_id_; }
 
   /**
    * Returns true if the value is an integer power of 2.
@@ -180,20 +168,20 @@ class MemoryAllocator {
   /**
    * Returns the next alignment for a given pointer.
    */
-  static uint8_t* alignPointer(void* ptr, size_t alignment) {
+  static uint8_t *alignPointer(void *ptr, size_t alignment) {
     intptr_t addr = reinterpret_cast<intptr_t>(ptr);
     if ((addr & (alignment - 1)) == 0) {
       // Already aligned.
-      return reinterpret_cast<uint8_t*>(ptr);
+      return reinterpret_cast<uint8_t *>(ptr);
     }
     addr = (addr | (alignment - 1)) + 1;
-    return reinterpret_cast<uint8_t*>(addr);
+    return reinterpret_cast<uint8_t *>(addr);
   }
 
- private:
-  uint8_t* const begin_;
-  uint8_t* const end_;
-  uint8_t* cur_;
+private:
+  uint8_t *const begin_;
+  uint8_t *const end_;
+  uint8_t *cur_;
   uint32_t const size_;
   int32_t prof_id_ = -1;
 };
@@ -214,15 +202,15 @@ class MemoryAllocator {
  *       });
  * @endcode
  */
-#define ET_TRY_ALLOCATE_OR(memory_allocator__, nbytes__, ...)              \
-  ({                                                                       \
-    void* et_try_allocate_result = memory_allocator__->allocate(nbytes__); \
-    if (et_try_allocate_result == nullptr && nbytes__ > 0) {               \
-      __VA_ARGS__                                                          \
-      /* The args must return. */                                          \
-      ET_UNREACHABLE();                                                    \
-    }                                                                      \
-    et_try_allocate_result;                                                \
+#define ET_TRY_ALLOCATE_OR(memory_allocator__, nbytes__, ...)                  \
+  ({                                                                           \
+    void *et_try_allocate_result = memory_allocator__->allocate(nbytes__);     \
+    if (et_try_allocate_result == nullptr && nbytes__ > 0) {                   \
+      __VA_ARGS__                                                              \
+      /* The args must return. */                                              \
+      ET_UNREACHABLE();                                                        \
+    }                                                                          \
+    et_try_allocate_result;                                                    \
   })
 
 /**
@@ -240,16 +228,16 @@ class MemoryAllocator {
  *       { *out_err = Error::MemoryAllocationFailed; return nullopt; });
  * @endcode
  */
-#define ET_TRY_ALLOCATE_INSTANCE_OR(memory_allocator__, type__, ...) \
-  ({                                                                 \
-    type__* et_try_allocate_result =                                 \
-        memory_allocator__->allocateInstance<type__>();              \
-    if (et_try_allocate_result == nullptr) {                         \
-      __VA_ARGS__                                                    \
-      /* The args must return. */                                    \
-      ET_UNREACHABLE();                                              \
-    }                                                                \
-    et_try_allocate_result;                                          \
+#define ET_TRY_ALLOCATE_INSTANCE_OR(memory_allocator__, type__, ...)           \
+  ({                                                                           \
+    type__ *et_try_allocate_result =                                           \
+        memory_allocator__->allocateInstance<type__>();                        \
+    if (et_try_allocate_result == nullptr) {                                   \
+      __VA_ARGS__                                                              \
+      /* The args must return. */                                              \
+      ET_UNREACHABLE();                                                        \
+    }                                                                          \
+    et_try_allocate_result;                                                    \
   })
 
 /**
@@ -268,16 +256,16 @@ class MemoryAllocator {
  *       });
  * @endcode
  */
-#define ET_TRY_ALLOCATE_LIST_OR(memory_allocator__, type__, nelem__, ...) \
-  ({                                                                      \
-    type__* et_try_allocate_result =                                      \
-        memory_allocator__->allocateList<type__>(nelem__);                \
-    if (et_try_allocate_result == nullptr && nelem__ > 0) {               \
-      __VA_ARGS__                                                         \
-      /* The args must return. */                                         \
-      ET_UNREACHABLE();                                                   \
-    }                                                                     \
-    et_try_allocate_result;                                               \
+#define ET_TRY_ALLOCATE_LIST_OR(memory_allocator__, type__, nelem__, ...)      \
+  ({                                                                           \
+    type__ *et_try_allocate_result =                                           \
+        memory_allocator__->allocateList<type__>(nelem__);                     \
+    if (et_try_allocate_result == nullptr && nelem__ > 0) {                    \
+      __VA_ARGS__                                                              \
+      /* The args must return. */                                              \
+      ET_UNREACHABLE();                                                        \
+    }                                                                          \
+    et_try_allocate_result;                                                    \
   })
 #else // !ET_HAVE_GNU_STATEMENT_EXPRESSIONS
 /**
@@ -285,10 +273,8 @@ class MemoryAllocator {
  * is to directly allocate the memory.
  * e.g. memory_allocator__->allocate(nbytes__);
  */
-#define ET_TRY_ALLOCATE_OR(memory_allocator__, nbytes__, ...) \
-  static_assert(                                              \
-      false,                                                  \
-      "ET_TRY_ALLOCATE_OR uses statement expressions and \
+#define ET_TRY_ALLOCATE_OR(memory_allocator__, nbytes__, ...)                  \
+  static_assert(false, "ET_TRY_ALLOCATE_OR uses statement expressions and \
       thus is not available for use with this compiler.");
 
 /**
@@ -296,10 +282,8 @@ class MemoryAllocator {
  * is to directly allocate the memory.
  * e.g. memory_allocator__->allocateInstance<type__>();
  */
-#define ET_TRY_ALLOCATE_INSTANCE_OR(memory_allocator__, type__, ...) \
-  static_assert(                                                     \
-      false,                                                         \
-      "ET_TRY_ALLOCATE_INSTANCE_OR uses statement \
+#define ET_TRY_ALLOCATE_INSTANCE_OR(memory_allocator__, type__, ...)           \
+  static_assert(false, "ET_TRY_ALLOCATE_INSTANCE_OR uses statement \
     expressions and thus is not available for use with this compiler.");
 
 /**
@@ -307,10 +291,8 @@ class MemoryAllocator {
  * is to directly use allocate the memory.
  * e.g. memory_allocator__->allocateList<type__>(nelem__);
  */
-#define ET_TRY_ALLOCATE_LIST_OR(memory_allocator__, type__, nelem__, ...) \
-  static_assert(                                                          \
-      false,                                                              \
-      "ET_TRY_ALLOCATE_LIST_OR uses statement \
+#define ET_TRY_ALLOCATE_LIST_OR(memory_allocator__, type__, nelem__, ...)      \
+  static_assert(false, "ET_TRY_ALLOCATE_LIST_OR uses statement \
     expressions and thus is not available for use with this compiler.");
 #endif // !ET_HAVE_GNU_STATEMENT_EXPRESSIONS
 
@@ -326,9 +308,9 @@ class MemoryAllocator {
  *   char* buf = ET_ALLOCATE_OR_RETURN_ERROR(memory_allocator, bufsize);
  * @endcode
  */
-#define ET_ALLOCATE_OR_RETURN_ERROR(memory_allocator__, nbytes__) \
-  ET_TRY_ALLOCATE_OR(memory_allocator__, nbytes__, {              \
-    return ::executorch::runtime::Error::MemoryAllocationFailed;  \
+#define ET_ALLOCATE_OR_RETURN_ERROR(memory_allocator__, nbytes__)              \
+  ET_TRY_ALLOCATE_OR(memory_allocator__, nbytes__, {                           \
+    return ::executorch::runtime::Error::MemoryAllocationFailed;               \
   })
 
 /**
@@ -344,9 +326,9 @@ class MemoryAllocator {
  *   char* buf = ET_ALLOCATE_INSTANCE_OR_RETURN_ERROR(memory_allocator, MyType);
  * @endcode
  */
-#define ET_ALLOCATE_INSTANCE_OR_RETURN_ERROR(memory_allocator__, type__) \
-  ET_TRY_ALLOCATE_INSTANCE_OR(memory_allocator__, type__, {              \
-    return ::executorch::runtime::Error::MemoryAllocationFailed;         \
+#define ET_ALLOCATE_INSTANCE_OR_RETURN_ERROR(memory_allocator__, type__)       \
+  ET_TRY_ALLOCATE_INSTANCE_OR(memory_allocator__, type__, {                    \
+    return ::executorch::runtime::Error::MemoryAllocationFailed;               \
   })
 
 /**
@@ -363,9 +345,9 @@ class MemoryAllocator {
  *       memory_allocator, Tensor, num_tensors);
  * @endcode
  */
-#define ET_ALLOCATE_LIST_OR_RETURN_ERROR(memory_allocator__, type__, nelem__) \
-  ET_TRY_ALLOCATE_LIST_OR(memory_allocator__, type__, nelem__, {              \
-    return ::executorch::runtime::Error::MemoryAllocationFailed;              \
+#define ET_ALLOCATE_LIST_OR_RETURN_ERROR(memory_allocator__, type__, nelem__)  \
+  ET_TRY_ALLOCATE_LIST_OR(memory_allocator__, type__, nelem__, {               \
+    return ::executorch::runtime::Error::MemoryAllocationFailed;               \
   })
 
 } // namespace runtime
