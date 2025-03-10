@@ -1,6 +1,8 @@
 #import "ImageSegmentationModel.h"
 #import <unordered_set>
-#import "../../utils/ImageProcessor.h"
+#import <algorithm>
+#import <vector>
+#i\port "../../utils/ImageProcessor.h"
 #import "../../utils/Numerical.h"
 #import "../../utils/Conversions.h"
 #import "opencv2/opencv.hpp"
@@ -57,7 +59,7 @@ std::vector<cv::Mat> rescaleResults(NSArray *result, std::size_t numLabels,
   return resizedLabelScores;
 }
 
-void adjustScoresPerPixel(std::vector<cv::Mat>& labelScores, cv::Mat& maxArg,
+void adjustScoresPerPixel(std::vector<cv::Mat>& labelScores, cv::Mat& argMax,
                 cv::Size originalSize, std::size_t numLabels) {
   std::size_t numOriginalPixels = originalSize.height * originalSize.width;
   for (std::size_t pixel = 0; pixel < numOriginalPixels; ++pixel) {
@@ -71,17 +73,12 @@ void adjustScoresPerPixel(std::vector<cv::Mat>& labelScores, cv::Mat& maxArg,
     
     std::vector<double> adjustedScores = softmax(scores);
     
-    std::size_t maxArgIndex = 0;
-    double maxArgVal = 0;
     for (std::size_t label = 0; label < numLabels; ++label) {
       labelScores[label].at<double>(row, col) = adjustedScores[label];
-      if (adjustedScores[label] > maxArgVal) {
-        maxArgIndex = label;
-        maxArgVal = adjustedScores[label];
-      }
     }
 
-    maxArg.at<int>(row, col) = maxArgIndex;
+    auto maxIt = std::max_element(scores.begin(), scores.end());
+    argMax.at<int>(row, col) = std::distance(scores.begin(), maxIt);
   }
 }
 
@@ -98,10 +95,10 @@ void adjustScoresPerPixel(std::vector<cv::Mat>& labelScores, cv::Mat& maxArg,
   std::vector<cv::Mat> resizedLabelScores = 
         rescaleResults(output, numLabels, modelImageSize, originalSize);
 
-  cv::Mat maxArg = cv::Mat(originalSize, CV_32S);
+  cv::Mat argMax = cv::Mat(originalSize, CV_32S);
 
-  // For each pixel apply softmax across all the labels and calculate the maxArg
-  adjustScoresPerPixel(resizedLabelScores, maxArg, originalSize, numLabels);
+  // For each pixel apply softmax across all the labels and calculate the argMax
+  adjustScoresPerPixel(resizedLabelScores, argMax, originalSize, numLabels);
 
   std::unordered_set<std::string> labelSet;
 
@@ -120,7 +117,7 @@ void adjustScoresPerPixel(std::vector<cv::Mat>& labelScores, cv::Mat& maxArg,
     }
   }
 
-  result[@"argmax"] = simpleMatToNSArray<int>(maxArg);
+  result[@"argmax"] = simpleMatToNSArray<int>(argMax);
 
   return result;
 }
