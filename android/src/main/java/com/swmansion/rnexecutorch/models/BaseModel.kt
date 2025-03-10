@@ -52,8 +52,4 @@ abstract class BaseModel<Input, Output>(
   }
 
   abstract fun runModel(input: Input): Output
-
-  protected abstract fun preprocess(input: Input): EValue
-
-  protected abstract fun postprocess(output: Array<EValue>): Output
 }

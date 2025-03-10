@@ -26,7 +26,7 @@ class VerticalDetector(
     return modelImageSize
   }
 
-  override fun preprocess(input: Mat): EValue {
+  fun preprocess(input: Mat): EValue {
     originalSize = Size(input.cols().toDouble(), input.rows().toDouble())
     val resizedImage =
       ImageProcessor.resizeWithPadding(
@@ -43,7 +43,7 @@ class VerticalDetector(
     )
   }
 
-  override fun postprocess(output: Array<EValue>): List<OCRbBox> {
+  fun postprocess(output: Array<EValue>): List<OCRbBox> {
     val outputTensor = output[0].toTensor()
     val outputArray = outputTensor.dataAsFloatArray
     val modelImageSize = getModelImageSize()
