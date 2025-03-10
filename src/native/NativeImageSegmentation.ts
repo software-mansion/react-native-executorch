@@ -6,7 +6,8 @@ export interface Spec extends TurboModule {
 
   forward(
     input: string,
-    classesOfInterest: string[]
+    classesOfInterest: string[],
+    resize: boolean
   ): Promise<{ [category: string]: number[] }>;
 }
 
