@@ -16,15 +16,11 @@
 namespace re2 {
 
 class Bitmap256 {
- public:
-  Bitmap256() {
-    Clear();
-  }
+public:
+  Bitmap256() { Clear(); }
 
   // Clears all of the bits.
-  void Clear() {
-    memset(words_, 0, sizeof words_);
-  }
+  void Clear() { memset(words_, 0, sizeof words_); }
 
   // Tests the bit with index c.
   bool Test(int c) const {
@@ -46,7 +42,7 @@ class Bitmap256 {
   // Returns -1 if no such bit exists.
   int FindNextSetBit(int c) const;
 
- private:
+private:
   // Finds the least significant non-zero bit in n.
   static int FindLSBSet(uint64_t n) {
     DCHECK_NE(n, 0);
@@ -81,6 +77,6 @@ class Bitmap256 {
   uint64_t words_[4];
 };
 
-}  // namespace re2
+} // namespace re2
 
-#endif  // RE2_BITMAP256_H_
+#endif // RE2_BITMAP256_H_

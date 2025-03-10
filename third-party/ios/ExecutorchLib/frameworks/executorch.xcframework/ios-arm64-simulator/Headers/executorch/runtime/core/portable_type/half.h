@@ -8,10 +8,10 @@
 
 #pragma once
 
-#include <math.h>
 #include <cstdint>
 #include <cstring>
 #include <limits>
+#include <math.h>
 #include <ostream>
 
 #if defined(__GNUC__) || defined(__clang__)
@@ -23,14 +23,14 @@
 #endif // GNUC or clang
 
 #if defined(__GNUC__) || defined(__clang__)
-#if defined(__x86_64__) || defined(_M_X64) || defined(__i386) || \
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386) ||               \
     defined(_M_IX86)
 #if defined(__AVX2__)
 #define X86_F16 1
 #include <immintrin.h> // import conversion ops from f16cintrin.h
-#endif // __AVX2__
-#endif // __x86_64__ || _M_X64 || __i386 || _M_IX86
-#endif // __GNUC__ || __clang__
+#endif                 // __AVX2__
+#endif                 // __x86_64__ || _M_X64 || __i386 || _M_IX86
+#endif                 // __GNUC__ || __clang__
 
 namespace executorch {
 namespace runtime {
@@ -49,9 +49,7 @@ struct alignas(2) Half {
   };
 
   struct from_bits_t {};
-  static constexpr from_bits_t from_bits() {
-    return from_bits_t();
-  }
+  static constexpr from_bits_t from_bits() { return from_bits_t(); }
 
   Half() = default;
 
@@ -171,9 +169,9 @@ inline uint32_t fp16_ieee_to_fp32_bits(uint16_t h) {
    * 7. Combine with the sign of the input number.
    */
   return sign |
-      ((((nonsign << renorm_shift >> 3) + ((0x70 - renorm_shift) << 23)) |
-        inf_nan_mask) &
-       ~zero_mask);
+         ((((nonsign << renorm_shift >> 3) + ((0x70 - renorm_shift) << 23)) |
+           inf_nan_mask) &
+          ~zero_mask);
 }
 
 /*
@@ -308,9 +306,9 @@ inline float fp16_ieee_to_fp32_value(uint16_t h) {
    * of the input number.
    */
   constexpr uint32_t denormalized_cutoff = UINT32_C(1) << 27;
-  const uint32_t result = sign |
-      (two_w < denormalized_cutoff ? fp32_to_bits(denormalized_value)
-                                   : fp32_to_bits(normalized_value));
+  const uint32_t result =
+      sign | (two_w < denormalized_cutoff ? fp32_to_bits(denormalized_value)
+                                          : fp32_to_bits(normalized_value));
   return fp32_from_bits(result);
 
 #endif // not X86_F16
@@ -336,8 +334,8 @@ inline uint16_t fp16_ieee_from_fp32_value(float f) {
   constexpr uint32_t scale_to_zero_bits = (uint32_t)17 << 23;
   float scale_to_inf_val = 0, scale_to_zero_val = 0;
   std::memcpy(&scale_to_inf_val, &scale_to_inf_bits, sizeof(scale_to_inf_val));
-  std::memcpy(
-      &scale_to_zero_val, &scale_to_zero_bits, sizeof(scale_to_zero_val));
+  std::memcpy(&scale_to_zero_val, &scale_to_zero_bits,
+              sizeof(scale_to_zero_val));
   const float scale_to_inf = scale_to_inf_val;
   const float scale_to_zero = scale_to_zero_val;
 
@@ -378,9 +376,7 @@ inline Half::Half(float value)
 
 /// Implicit conversions
 #ifdef NATIVE_FP16
-inline Half::operator float() const {
-  return (float)y;
-}
+inline Half::operator float() const { return (float)y; }
 #else
 inline Half::operator float() const {
   return internal::fp16_ieee_to_fp32_value(x);
@@ -391,92 +387,82 @@ inline Half::operator float() const {
 
 #ifdef NATIVE_FP16
 
-#define return_half(r) \
-  do {                 \
-    Half ret;          \
-    ret.y = r;         \
-    return ret;        \
+#define return_half(r)                                                         \
+  do {                                                                         \
+    Half ret;                                                                  \
+    ret.y = r;                                                                 \
+    return ret;                                                                \
   } while (0)
 
-inline Half operator+(const Half& a, const Half& b) {
-  return_half(a.y + b.y);
-}
+inline Half operator+(const Half &a, const Half &b) { return_half(a.y + b.y); }
 
-inline Half operator-(const Half& a, const Half& b) {
+inline Half operator-(const Half &a, const Half &b) {
   return_half(a.y - b.y);
   return static_cast<float>(a) - static_cast<float>(b);
 }
 
-inline Half operator*(const Half& a, const Half& b) {
-  return_half(a.y * b.y);
-}
+inline Half operator*(const Half &a, const Half &b) { return_half(a.y * b.y); }
 
-inline Half operator/(const Half& a, const Half& b) {
-  return_half(a.y / b.y);
-}
+inline Half operator/(const Half &a, const Half &b) { return_half(a.y / b.y); }
 
-inline Half operator-(const Half& a) {
-  return_half(-a.y);
-}
+inline Half operator-(const Half &a) { return_half(-a.y); }
 
-inline Half& operator+=(Half& a, const Half& b) {
+inline Half &operator+=(Half &a, const Half &b) {
   a.y += b.y;
   return a;
 }
 
-inline Half& operator-=(Half& a, const Half& b) {
+inline Half &operator-=(Half &a, const Half &b) {
   a.y -= b.y;
   return a;
 }
 
-inline Half& operator*=(Half& a, const Half& b) {
+inline Half &operator*=(Half &a, const Half &b) {
   a.y *= b.y;
   return a;
 }
 
-inline Half& operator/=(Half& a, const Half& b) {
+inline Half &operator/=(Half &a, const Half &b) {
   a.y /= b.y;
   return a;
 }
 
 #else
 
-inline Half operator+(const Half& a, const Half& b) {
+inline Half operator+(const Half &a, const Half &b) {
   return static_cast<float>(a) + static_cast<float>(b);
 }
 
-inline Half operator-(const Half& a, const Half& b) {
+inline Half operator-(const Half &a, const Half &b) {
   return static_cast<float>(a) - static_cast<float>(b);
 }
 
-inline Half operator*(const Half& a, const Half& b) {
+inline Half operator*(const Half &a, const Half &b) {
   return static_cast<float>(a) * static_cast<float>(b);
 }
 
-inline Half operator/(const Half& a, const Half& b) {
+inline Half operator/(const Half &a, const Half &b) {
   return static_cast<float>(a) / static_cast<float>(b);
 }
 
-inline Half operator-(const Half& a) {
-  return -static_cast<float>(a);
-}
+inline Half operator-(const Half &a) { return -static_cast<float>(a); }
 
-inline Half& operator+=(Half& a, const Half& b) {
+inline Half &operator+=(Half &a, const Half &b) {
   a = a + b;
   return a;
 }
 
-inline Half& operator-=(Half& a, const Half& b) {
+inline Half &operator-=(Half &a, const Half &b) {
   a = a - b;
   return a;
 }
 
-inline Half& operator*=(Half& a, const Half& b) {
+inline Half &operator*=(Half &a, const Half &b) {
   a = a * b;
   return a;
 }
 
-inline Half& operator/=(Half& a, const Half& b) {
+inline Half &operator/=(Half &a, const Half &b) {
   a = a / b;
   return a;
 }
@@ -485,130 +471,66 @@ inline Half& operator/=(Half& a, const Half& b) {
 
 /// Arithmetic with floats
 
-inline float operator+(Half a, float b) {
-  return static_cast<float>(a) + b;
-}
-inline float operator-(Half a, float b) {
-  return static_cast<float>(a) - b;
-}
-inline float operator*(Half a, float b) {
-  return static_cast<float>(a) * b;
-}
-inline float operator/(Half a, float b) {
-  return static_cast<float>(a) / b;
-}
+inline float operator+(Half a, float b) { return static_cast<float>(a) + b; }
+inline float operator-(Half a, float b) { return static_cast<float>(a) - b; }
+inline float operator*(Half a, float b) { return static_cast<float>(a) * b; }
+inline float operator/(Half a, float b) { return static_cast<float>(a) / b; }
 
-inline float operator+(float a, Half b) {
-  return a + static_cast<float>(b);
-}
-inline float operator-(float a, Half b) {
-  return a - static_cast<float>(b);
-}
-inline float operator*(float a, Half b) {
-  return a * static_cast<float>(b);
-}
-inline float operator/(float a, Half b) {
-  return a / static_cast<float>(b);
-}
+inline float operator+(float a, Half b) { return a + static_cast<float>(b); }
+inline float operator-(float a, Half b) { return a - static_cast<float>(b); }
+inline float operator*(float a, Half b) { return a * static_cast<float>(b); }
+inline float operator/(float a, Half b) { return a / static_cast<float>(b); }
 
-inline float& operator+=(float& a, const Half& b) {
+inline float &operator+=(float &a, const Half &b) {
   return a += static_cast<float>(b);
 }
-inline float& operator-=(float& a, const Half& b) {
+inline float &operator-=(float &a, const Half &b) {
   return a -= static_cast<float>(b);
 }
-inline float& operator*=(float& a, const Half& b) {
+inline float &operator*=(float &a, const Half &b) {
   return a *= static_cast<float>(b);
 }
-inline float& operator/=(float& a, const Half& b) {
+inline float &operator/=(float &a, const Half &b) {
   return a /= static_cast<float>(b);
 }
 
 /// Arithmetic with doubles
 
-inline double operator+(Half a, double b) {
-  return static_cast<double>(a) + b;
-}
-inline double operator-(Half a, double b) {
-  return static_cast<double>(a) - b;
-}
-inline double operator*(Half a, double b) {
-  return static_cast<double>(a) * b;
-}
-inline double operator/(Half a, double b) {
-  return static_cast<double>(a) / b;
-}
+inline double operator+(Half a, double b) { return static_cast<double>(a) + b; }
+inline double operator-(Half a, double b) { return static_cast<double>(a) - b; }
+inline double operator*(Half a, double b) { return static_cast<double>(a) * b; }
+inline double operator/(Half a, double b) { return static_cast<double>(a) / b; }
 
-inline double operator+(double a, Half b) {
-  return a + static_cast<double>(b);
-}
-inline double operator-(double a, Half b) {
-  return a - static_cast<double>(b);
-}
-inline double operator*(double a, Half b) {
-  return a * static_cast<double>(b);
-}
-inline double operator/(double a, Half b) {
-  return a / static_cast<double>(b);
-}
+inline double operator+(double a, Half b) { return a + static_cast<double>(b); }
+inline double operator-(double a, Half b) { return a - static_cast<double>(b); }
+inline double operator*(double a, Half b) { return a * static_cast<double>(b); }
+inline double operator/(double a, Half b) { return a / static_cast<double>(b); }
 
 /// Arithmetic with ints
 
 #ifdef NATIVE_FP16
 
-inline Half operator+(Half a, int32_t b) {
-  return_half(a.y + b);
-}
-inline Half operator-(Half a, int32_t b) {
-  return_half(a.y - b);
-}
-inline Half operator*(Half a, int32_t b) {
-  return_half(a.y * b);
-}
-inline Half operator/(Half a, int32_t b) {
-  return_half(a.y / b);
-}
+inline Half operator+(Half a, int32_t b) { return_half(a.y + b); }
+inline Half operator-(Half a, int32_t b) { return_half(a.y - b); }
+inline Half operator*(Half a, int32_t b) { return_half(a.y * b); }
+inline Half operator/(Half a, int32_t b) { return_half(a.y / b); }
 
-inline Half operator+(int32_t a, Half b) {
-  return_half(a + b.y);
-}
-inline Half operator-(int32_t a, Half b) {
-  return_half(a - b.y);
-}
-inline Half operator*(int32_t a, Half b) {
-  return_half(a * b.y);
-}
-inline Half operator/(int32_t a, Half b) {
-  return_half(a / b.y);
-}
+inline Half operator+(int32_t a, Half b) { return_half(a + b.y); }
+inline Half operator-(int32_t a, Half b) { return_half(a - b.y); }
+inline Half operator*(int32_t a, Half b) { return_half(a * b.y); }
+inline Half operator/(int32_t a, Half b) { return_half(a / b.y); }
 
 #else
 
-inline Half operator+(Half a, int32_t b) {
-  return a + static_cast<Half>(b);
-}
-inline Half operator-(Half a, int32_t b) {
-  return a - static_cast<Half>(b);
-}
-inline Half operator*(Half a, int32_t b) {
-  return a * static_cast<Half>(b);
-}
-inline Half operator/(Half a, int32_t b) {
-  return a / static_cast<Half>(b);
-}
+inline Half operator+(Half a, int32_t b) { return a + static_cast<Half>(b); }
+inline Half operator-(Half a, int32_t b) { return a - static_cast<Half>(b); }
+inline Half operator*(Half a, int32_t b) { return a * static_cast<Half>(b); }
+inline Half operator/(Half a, int32_t b) { return a / static_cast<Half>(b); }
 
-inline Half operator+(int32_t a, Half b) {
-  return static_cast<Half>(a) + b;
-}
-inline Half operator-(int32_t a, Half b) {
-  return static_cast<Half>(a) - b;
-}
-inline Half operator*(int32_t a, Half b) {
-  return static_cast<Half>(a) * b;
-}
-inline Half operator/(int32_t a, Half b) {
-  return static_cast<Half>(a) / b;
-}
+inline Half operator+(int32_t a, Half b) { return static_cast<Half>(a) + b; }
+inline Half operator-(int32_t a, Half b) { return static_cast<Half>(a) - b; }
+inline Half operator*(int32_t a, Half b) { return static_cast<Half>(a) * b; }
+inline Half operator/(int32_t a, Half b) { return static_cast<Half>(a) / b; }
 
 #endif
 
@@ -616,68 +538,35 @@ inline Half operator/(int32_t a, Half b) {
 
 #ifdef NATIVE_FP16
 
-inline Half operator+(Half a, int64_t b) {
-  return_half(a.y + b);
-}
-inline Half operator-(Half a, int64_t b) {
-  return_half(a.y - b);
-}
-inline Half operator*(Half a, int64_t b) {
-  return_half(a.y * b);
-}
-inline Half operator/(Half a, int64_t b) {
-  return_half(a.y / b);
-}
+inline Half operator+(Half a, int64_t b) { return_half(a.y + b); }
+inline Half operator-(Half a, int64_t b) { return_half(a.y - b); }
+inline Half operator*(Half a, int64_t b) { return_half(a.y * b); }
+inline Half operator/(Half a, int64_t b) { return_half(a.y / b); }
 
-inline Half operator+(int64_t a, Half b) {
-  return_half(a + b.y);
-}
-inline Half operator-(int64_t a, Half b) {
-  return_half(a - b.y);
-}
-inline Half operator*(int64_t a, Half b) {
-  return_half(a * b.y);
-}
-inline Half operator/(int64_t a, Half b) {
-  return_half(a / b.y);
-}
+inline Half operator+(int64_t a, Half b) { return_half(a + b.y); }
+inline Half operator-(int64_t a, Half b) { return_half(a - b.y); }
+inline Half operator*(int64_t a, Half b) { return_half(a * b.y); }
+inline Half operator/(int64_t a, Half b) { return_half(a / b.y); }
 
 #else
 
-inline Half operator+(Half a, int64_t b) {
-  return a + static_cast<Half>(b);
-}
-inline Half operator-(Half a, int64_t b) {
-  return a - static_cast<Half>(b);
-}
-inline Half operator*(Half a, int64_t b) {
-  return a * static_cast<Half>(b);
-}
-inline Half operator/(Half a, int64_t b) {
-  return a / static_cast<Half>(b);
-}
+inline Half operator+(Half a, int64_t b) { return a + static_cast<Half>(b); }
+inline Half operator-(Half a, int64_t b) { return a - static_cast<Half>(b); }
+inline Half operator*(Half a, int64_t b) { return a * static_cast<Half>(b); }
+inline Half operator/(Half a, int64_t b) { return a / static_cast<Half>(b); }
 
-inline Half operator+(int64_t a, Half b) {
-  return static_cast<Half>(a) + b;
-}
-inline Half operator-(int64_t a, Half b) {
-  return static_cast<Half>(a) - b;
-}
-inline Half operator*(int64_t a, Half b) {
-  return static_cast<Half>(a) * b;
-}
-inline Half operator/(int64_t a, Half b) {
-  return static_cast<Half>(a) / b;
-}
+inline Half operator+(int64_t a, Half b) { return static_cast<Half>(a) + b; }
+inline Half operator-(int64_t a, Half b) { return static_cast<Half>(a) - b; }
+inline Half operator*(int64_t a, Half b) { return static_cast<Half>(a) * b; }
+inline Half operator/(int64_t a, Half b) { return static_cast<Half>(a) / b; }
 
 #endif
 
 /// NOTE: we do not define comparisons directly and instead rely on the implicit
 /// conversion Half to float.
 
-static inline std::ostream& operator<<(
-    std::ostream& out,
-    const executorch::runtime::etensor::Half& value) {
+static inline std::ostream &
+operator<<(std::ostream &out, const executorch::runtime::etensor::Half &value) {
   out << (float)value;
   return out;
 }
@@ -695,9 +584,8 @@ using ::executorch::runtime::etensor::Half;
 
 namespace std {
 
-template <>
-class numeric_limits<executorch::runtime::etensor::Half> {
- public:
+template <> class numeric_limits<executorch::runtime::etensor::Half> {
+public:
   static constexpr bool is_specialized = true;
   static constexpr bool is_signed = true;
   static constexpr bool is_integer = false;

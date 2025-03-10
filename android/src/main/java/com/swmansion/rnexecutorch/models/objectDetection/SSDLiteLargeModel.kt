@@ -1,21 +1,23 @@
 package com.swmansion.rnexecutorch.models.objectdetection
 
 import com.facebook.react.bridge.ReactApplicationContext
-import com.swmansion.rnexecutorch.utils.ImageProcessor
-import org.opencv.core.Mat
-import org.opencv.core.Size
-import org.opencv.imgproc.Imgproc
 import com.swmansion.rnexecutorch.models.BaseModel
 import com.swmansion.rnexecutorch.utils.Bbox
 import com.swmansion.rnexecutorch.utils.CocoLabel
 import com.swmansion.rnexecutorch.utils.Detection
+import com.swmansion.rnexecutorch.utils.ImageProcessor
 import com.swmansion.rnexecutorch.utils.nms
+import org.opencv.core.Mat
+import org.opencv.core.Size
+import org.opencv.imgproc.Imgproc
 import org.pytorch.executorch.EValue
 
-const val detectionScoreThreshold = .7f
-const val iouThreshold = .55f
+const val DETECTION_SCORE_THRESHOLD = .7f
+const val IOU_THRESHOLD = .55f
 
-class SSDLiteLargeModel(reactApplicationContext: ReactApplicationContext) : BaseModel<Mat, Array<Detection>>(reactApplicationContext) {
+class SSDLiteLargeModel(
+  reactApplicationContext: ReactApplicationContext,
+) : BaseModel<Mat, Array<Detection>>(reactApplicationContext) {
   private var heightRatio: Float = 1.0f
   private var widthRatio: Float = 1.0f
 
@@ -47,25 +49,26 @@ class SSDLiteLargeModel(reactApplicationContext: ReactApplicationContext) : Base
     val scores = scoresTensor.dataAsFloatArray
     val labels = output[2].toTensor().dataAsFloatArray
 
-    val detections: MutableList<Detection> = mutableListOf();
+    val detections: MutableList<Detection> = mutableListOf()
     for (idx in 0 until numel.toInt()) {
       val score = scores[idx]
-      if (score < detectionScoreThreshold) {
+      if (score < DETECTION_SCORE_THRESHOLD) {
         continue
       }
-      val bbox = Bbox(
-        bboxes[idx * 4 + 0] * this.widthRatio,
-        bboxes[idx * 4 + 1] * this.heightRatio,
-        bboxes[idx * 4 + 2] * this.widthRatio,
-        bboxes[idx * 4 + 3] * this.heightRatio
-      )
+      val bbox =
+        Bbox(
+          bboxes[idx * 4 + 0] * this.widthRatio,
+          bboxes[idx * 4 + 1] * this.heightRatio,
+          bboxes[idx * 4 + 2] * this.widthRatio,
+          bboxes[idx * 4 + 3] * this.heightRatio,
+        )
       val label = labels[idx]
       detections.add(
-        Detection(bbox, score, CocoLabel.fromId(label.toInt())!!)
+        Detection(bbox, score, CocoLabel.fromId(label.toInt())!!),
       )
     }
 
-    val detectionsPostNms = nms(detections, iouThreshold);
+    val detectionsPostNms = nms(detections, IOU_THRESHOLD)
     return detectionsPostNms.toTypedArray()
   }
 }

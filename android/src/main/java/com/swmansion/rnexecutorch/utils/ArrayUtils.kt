@@ -9,33 +9,28 @@ import org.pytorch.executorch.Tensor
 
 class ArrayUtils {
   companion object {
-    inline fun <reified T> createTypedArrayFromReadableArray(input: ReadableArray, transform: (ReadableArray, Int) -> T): Array<T> {
-      return Array(input.size()) { index -> transform(input, index) }
-    }
+    inline fun <reified T> createTypedArrayFromReadableArray(
+      input: ReadableArray,
+      transform: (ReadableArray, Int) -> T,
+    ): Array<T> = Array(input.size()) { index -> transform(input, index) }
 
-    fun createByteArray(input: ReadableArray): ByteArray {
-      return createTypedArrayFromReadableArray(input) { array, index -> array.getInt(index).toByte() }.toByteArray()
-    }
+    fun createByteArray(input: ReadableArray): ByteArray =
+      createTypedArrayFromReadableArray(input) { array, index -> array.getInt(index).toByte() }.toByteArray()
 
-    fun createCharArray(input: ReadableArray): CharArray {
-      return createTypedArrayFromReadableArray(input) { array, index -> array.getInt(index).toChar() }.toCharArray()
-    }
+    fun createCharArray(input: ReadableArray): CharArray =
+      createTypedArrayFromReadableArray(input) { array, index -> array.getInt(index).toChar() }.toCharArray()
 
-    fun createIntArray(input: ReadableArray): IntArray {
-      return createTypedArrayFromReadableArray(input) { array, index -> array.getInt(index) }.toIntArray()
-    }
+    fun createIntArray(input: ReadableArray): IntArray =
+      createTypedArrayFromReadableArray(input) { array, index -> array.getInt(index) }.toIntArray()
 
-    fun createFloatArray(input: ReadableArray): FloatArray {
-      return createTypedArrayFromReadableArray(input) { array, index -> array.getDouble(index).toFloat() }.toFloatArray()
-    }
+    fun createFloatArray(input: ReadableArray): FloatArray =
+      createTypedArrayFromReadableArray(input) { array, index -> array.getDouble(index).toFloat() }.toFloatArray()
 
-    fun createLongArray(input: ReadableArray): LongArray {
-      return createTypedArrayFromReadableArray(input) { array, index -> array.getInt(index).toLong() }.toLongArray()
-    }
+    fun createLongArray(input: ReadableArray): LongArray =
+      createTypedArrayFromReadableArray(input) { array, index -> array.getInt(index).toLong() }.toLongArray()
 
-    fun createDoubleArray(input: ReadableArray): DoubleArray {
-      return createTypedArrayFromReadableArray(input) { array, index -> array.getDouble(index) }.toDoubleArray()
-    }
+    fun createDoubleArray(input: ReadableArray): DoubleArray =
+      createTypedArrayFromReadableArray(input) { array, index -> array.getDouble(index) }.toDoubleArray()
 
     fun <V> createMapArray(input: ReadableArray): Array<Map<String, V>> {
       val mapArray = Array<Map<String, V>>(input.size()) { mapOf() }

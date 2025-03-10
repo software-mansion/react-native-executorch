@@ -16,28 +16,27 @@ namespace extension {
 namespace llm {
 
 struct TokenIndex {
-  const char* str;
+  const char *str;
   int32_t id;
 };
 
 // A simple Byte Pair Encoding (BPE) Tokenizer. Note that the current C++ code
 // won't work with this class, it needs to go through tokenizer.py first.
 class BPETokenizer : public Tokenizer {
- public:
+public:
   explicit BPETokenizer();
   ~BPETokenizer() override;
 
-  ::executorch::runtime::Error load(const std::string& tokenizer_path) override;
+  ::executorch::runtime::Error load(const std::string &tokenizer_path) override;
 
   ::executorch::runtime::Result<std::vector<uint64_t>>
-  encode(const std::string& input, int8_t bos, int8_t eos) const override;
+  encode(const std::string &input, int8_t bos, int8_t eos) const override;
 
-  ::executorch::runtime::Result<std::string> decode(
-      uint64_t prev_token,
-      uint64_t token) const override;
+  ::executorch::runtime::Result<std::string>
+  decode(uint64_t prev_token, uint64_t token) const override;
 
- private:
-  std::unique_ptr<char*[]> vocab_ = nullptr;
+private:
+  std::unique_ptr<char *[]> vocab_ = nullptr;
   std::unique_ptr<float[]> vocab_scores_ = nullptr;
   std::unique_ptr<TokenIndex[]> sorted_vocab_ = nullptr;
   unsigned int max_token_length_ = 0;

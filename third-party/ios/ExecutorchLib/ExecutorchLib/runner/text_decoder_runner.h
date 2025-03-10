@@ -21,12 +21,9 @@ namespace extension {
 namespace llm {
 
 class TextDecoderRunner {
- public:
-  TextDecoderRunner(
-      Module* module,
-      bool use_kv_cache,
-      int32_t vocab_size,
-      float temperature);
+public:
+  TextDecoderRunner(Module *module, bool use_kv_cache, int32_t vocab_size,
+                    float temperature);
 
   virtual ~TextDecoderRunner() = default;
 
@@ -37,9 +34,8 @@ class TextDecoderRunner {
    * Module.
    * @return The output of the LLM Module. This will be a tensor of logits.
    */
-  virtual ::executorch::runtime::Result<exec_aten::Tensor> step(
-      TensorPtr& input,
-      TensorPtr& start_pos);
+  virtual ::executorch::runtime::Result<exec_aten::Tensor>
+  step(TensorPtr &input, TensorPtr &start_pos);
 
   /**
    * Load the Module for text decode purpose.
@@ -57,46 +53,39 @@ class TextDecoderRunner {
     return module_->is_method_loaded("forward");
   }
 
-  inline void stop() {
-    should_stop_ = true;
-  }
+  inline void stop() { should_stop_ = true; }
 
   /**
    * Sample the next token from the logits tensor.
    * @param logits_tensor The logits tensor.
    * @return The next token.
    */
-  inline int32_t logits_to_token(const exec_aten::Tensor& logits_tensor) {
+  inline int32_t logits_to_token(const exec_aten::Tensor &logits_tensor) {
     int32_t result = 0;
-    ET_SWITCH_THREE_TYPES(
-        Float,
-        Half,
-        BFloat16,
-        logits_tensor.scalar_type(),
-        unused,
-        "logits_to_token",
-        CTYPE,
-        [&]() {
-          // If the logit_tensor rank is 3, the shape is [batch, seq_length,
-          // vocab_size], get the last logits, sample and return. Else the model
-          // outputs the last logit, directly sample and return.
-          auto* logits = logits_tensor.mutable_data_ptr<CTYPE>();
-          if (logits_tensor.dim() == 3) {
-            auto num_tokens = logits_tensor.size(1);
-            auto vocab_size = logits_tensor.size(2);
-            auto* logits_last = logits;
-            logits_last += (num_tokens - 1) * vocab_size;
-            result = sampler_->sample(logits_last);
-          } else {
-            result = sampler_->sample(logits);
-          }
-        });
+    ET_SWITCH_THREE_TYPES(Float, Half, BFloat16, logits_tensor.scalar_type(),
+                          unused, "logits_to_token", CTYPE, [&]() {
+                            // If the logit_tensor rank is 3, the shape is
+                            // [batch, seq_length, vocab_size], get the last
+                            // logits, sample and return. Else the model outputs
+                            // the last logit, directly sample and return.
+                            auto *logits =
+                                logits_tensor.mutable_data_ptr<CTYPE>();
+                            if (logits_tensor.dim() == 3) {
+                              auto num_tokens = logits_tensor.size(1);
+                              auto vocab_size = logits_tensor.size(2);
+                              auto *logits_last = logits;
+                              logits_last += (num_tokens - 1) * vocab_size;
+                              result = sampler_->sample(logits_last);
+                            } else {
+                              result = sampler_->sample(logits);
+                            }
+                          });
     return result;
   }
 
- protected:
+protected:
   // TODO: use shared_ptr for module
-  Module* module_;
+  Module *module_;
   std::unique_ptr<Sampler> sampler_;
   bool use_kv_cache_;
   bool should_stop_{false};

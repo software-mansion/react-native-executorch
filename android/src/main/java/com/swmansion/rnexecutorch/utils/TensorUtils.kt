@@ -9,7 +9,11 @@ import java.nio.FloatBuffer
 
 class TensorUtils {
   companion object {
-    fun getExecutorchInput(input: ReadableArray, shape: LongArray, type: Int): EValue {
+    fun getExecutorchInput(
+      input: ReadableArray,
+      shape: LongArray,
+      type: Int,
+    ): EValue {
       try {
         when (type) {
           1 -> {
@@ -91,8 +95,8 @@ class TensorUtils {
         val g = Color.green(c) / 255.0f
         val b = Color.blue(c) / 255.0f
         outBuffer.put(i, r)
-        outBuffer.put( offsetG + i, g)
-        outBuffer.put( offsetB + i, b)
+        outBuffer.put(offsetG + i, g)
+        outBuffer.put(offsetB + i, b)
       }
     }
   }

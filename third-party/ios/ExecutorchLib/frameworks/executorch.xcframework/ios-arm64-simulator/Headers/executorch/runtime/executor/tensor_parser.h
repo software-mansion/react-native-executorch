@@ -18,31 +18,26 @@ namespace executorch {
 namespace runtime {
 namespace deserialization {
 
-ET_NODISCARD Result<executorch::aten::Tensor> parseTensor(
-    const Program* program,
-    MemoryManager* memory_manager,
-    const executorch_flatbuffer::Tensor* s_tensor);
+ET_NODISCARD Result<executorch::aten::Tensor>
+parseTensor(const Program *program, MemoryManager *memory_manager,
+            const executorch_flatbuffer::Tensor *s_tensor);
 
-ET_NODISCARD Result<BoxedEvalueList<executorch::aten::Tensor>> parseTensorList(
-    const flatbuffers::Vector<int32_t>* tensor_indices,
-    EValue* values_,
-    MemoryManager* memory_manager);
+ET_NODISCARD Result<BoxedEvalueList<executorch::aten::Tensor>>
+parseTensorList(const flatbuffers::Vector<int32_t> *tensor_indices,
+                EValue *values_, MemoryManager *memory_manager);
 
 // Deserializes a List of optional type. The code here is the same between all
 // list of optionals: list of optional Tensor, list of optional float etc, so we
 // just use a template to avoid boilerplate.
 template <typename T>
 ET_NODISCARD Result<BoxedEvalueList<executorch::aten::optional<T>>>
-parseListOptionalType(
-    const flatbuffers::Vector<int32_t>* value_indices,
-    EValue* values_,
-    MemoryManager* memory_manager) {
-  auto* evalp_list = ET_ALLOCATE_LIST_OR_RETURN_ERROR(
-      memory_manager->method_allocator(), EValue*, value_indices->size());
+parseListOptionalType(const flatbuffers::Vector<int32_t> *value_indices,
+                      EValue *values_, MemoryManager *memory_manager) {
+  auto *evalp_list = ET_ALLOCATE_LIST_OR_RETURN_ERROR(
+      memory_manager->method_allocator(), EValue *, value_indices->size());
 
-  auto* optional_tensor_list = ET_ALLOCATE_LIST_OR_RETURN_ERROR(
-      memory_manager->method_allocator(),
-      executorch::aten::optional<T>,
+  auto *optional_tensor_list = ET_ALLOCATE_LIST_OR_RETURN_ERROR(
+      memory_manager->method_allocator(), executorch::aten::optional<T>,
       value_indices->size());
 
   size_t output_idx = 0;
@@ -92,11 +87,10 @@ parseListOptionalType(
  * @returns On success, the data pointer to use for the tensor. On failure, a
  *     non-Ok Error.
  */
-ET_NODISCARD Result<void*> getTensorDataPtr(
-    const executorch_flatbuffer::Tensor* s_tensor,
-    const Program* program,
-    size_t nbytes,
-    HierarchicalAllocator* allocator);
+ET_NODISCARD Result<void *>
+getTensorDataPtr(const executorch_flatbuffer::Tensor *s_tensor,
+                 const Program *program, size_t nbytes,
+                 HierarchicalAllocator *allocator);
 
 } // namespace deserialization
 } // namespace runtime

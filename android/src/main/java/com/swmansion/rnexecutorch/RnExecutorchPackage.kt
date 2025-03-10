@@ -8,11 +8,12 @@ import com.facebook.react.module.model.ReactModuleInfoProvider
 import com.facebook.react.uimanager.ViewManager
 
 class RnExecutorchPackage : TurboReactPackage() {
-  override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> {
-    return listOf()
-  }
+  override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> = listOf()
 
-  override fun getModule(name: String, reactContext: ReactApplicationContext): NativeModule? =
+  override fun getModule(
+    name: String,
+    reactContext: ReactApplicationContext,
+  ): NativeModule? =
     if (name == LLM.NAME) {
       LLM(reactContext)
     } else if (name == ETModule.NAME) {
@@ -33,66 +34,87 @@ class RnExecutorchPackage : TurboReactPackage() {
       null
     }
 
-  override fun getReactModuleInfoProvider(): ReactModuleInfoProvider {
-    return ReactModuleInfoProvider {
+  override fun getReactModuleInfoProvider(): ReactModuleInfoProvider =
+    ReactModuleInfoProvider {
       val moduleInfos: MutableMap<String, ReactModuleInfo> = HashMap()
-      moduleInfos[LLM.NAME] = ReactModuleInfo(
-        LLM.NAME,
-        LLM.NAME,
-        false,  // canOverrideExistingModule
-        false,  // needsEagerInit
-        false,  // isCxxModule
-        true,
-      )
-      moduleInfos[ETModule.NAME] = ReactModuleInfo(
-        ETModule.NAME, ETModule.NAME, false,  // canOverrideExistingModule
-        false,  // needsEagerInit
-        false,  // isCxxModule
-        true
-      )
+      moduleInfos[LLM.NAME] =
+        ReactModuleInfo(
+          LLM.NAME,
+          LLM.NAME,
+          false, // canOverrideExistingModule
+          false, // needsEagerInit
+          false, // isCxxModule
+          true,
+        )
+      moduleInfos[ETModule.NAME] =
+        ReactModuleInfo(
+          ETModule.NAME,
+          ETModule.NAME,
+          false, // canOverrideExistingModule
+          false, // needsEagerInit
+          false, // isCxxModule
+          true,
+        )
 
-      moduleInfos[StyleTransfer.NAME] = ReactModuleInfo(
-        StyleTransfer.NAME, StyleTransfer.NAME, false,  // canOverrideExistingModule
-        false,  // needsEagerInit
-        false,  // isCxxModule
-        true
-      )
+      moduleInfos[StyleTransfer.NAME] =
+        ReactModuleInfo(
+          StyleTransfer.NAME,
+          StyleTransfer.NAME,
+          false, // canOverrideExistingModule
+          false, // needsEagerInit
+          false, // isCxxModule
+          true,
+        )
 
-      moduleInfos[Classification.NAME] = ReactModuleInfo(
-        Classification.NAME, Classification.NAME, false,  // canOverrideExistingModule
-        false,  // needsEagerInit
-        false,  // isCxxModule
-        true
-      )
+      moduleInfos[Classification.NAME] =
+        ReactModuleInfo(
+          Classification.NAME,
+          Classification.NAME,
+          false, // canOverrideExistingModule
+          false, // needsEagerInit
+          false, // isCxxModule
+          true,
+        )
 
-      moduleInfos[ObjectDetection.NAME] = ReactModuleInfo(
-        ObjectDetection.NAME, ObjectDetection.NAME, false,  // canOverrideExistingModule
-        false,  // needsEagerInit
-        false,  // isCxxModule
-        true
-      )
+      moduleInfos[ObjectDetection.NAME] =
+        ReactModuleInfo(
+          ObjectDetection.NAME,
+          ObjectDetection.NAME,
+          false, // canOverrideExistingModule
+          false, // needsEagerInit
+          false, // isCxxModule
+          true,
+        )
 
-      moduleInfos[SpeechToText.NAME] = ReactModuleInfo(
-        SpeechToText.NAME, SpeechToText.NAME, false,  // canOverrideExistingModule
-        false,  // needsEagerInit
-        false,  // isCxxModule
-        true
-      )
+      moduleInfos[SpeechToText.NAME] =
+        ReactModuleInfo(
+          SpeechToText.NAME,
+          SpeechToText.NAME,
+          false, // canOverrideExistingModule
+          false, // needsEagerInit
+          false, // isCxxModule
+          true,
+        )
 
-      moduleInfos[OCR.NAME] = ReactModuleInfo(
-        OCR.NAME, OCR.NAME, false,  // canOverrideExistingModule
-        false,  // needsEagerInit
-        false,  // isCxxModule
-        true
-      )
+      moduleInfos[OCR.NAME] =
+        ReactModuleInfo(
+          OCR.NAME,
+          OCR.NAME,
+          false, // canOverrideExistingModule
+          false, // needsEagerInit
+          false, // isCxxModule
+          true,
+        )
 
-      moduleInfos[VerticalOCR.NAME] = ReactModuleInfo(
-        VerticalOCR.NAME, VerticalOCR.NAME, false,  // canOverrideExistingModule
-        false,  // needsEagerInit
-        false,  // isCxxModule
-        true
-      )
+      moduleInfos[VerticalOCR.NAME] =
+        ReactModuleInfo(
+          VerticalOCR.NAME,
+          VerticalOCR.NAME,
+          false, // canOverrideExistingModule
+          false, // needsEagerInit
+          false, // isCxxModule
+          true,
+        )
       moduleInfos
     }
-  }
 }

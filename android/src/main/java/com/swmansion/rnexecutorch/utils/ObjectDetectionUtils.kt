@@ -5,7 +5,7 @@ import com.facebook.react.bridge.WritableMap
 
 fun nms(
   detections: MutableList<Detection>,
-  iouThreshold: Float
+  iouThreshold: Float,
 ): List<Detection> {
   if (detections.isEmpty()) {
     return emptyList()
@@ -39,7 +39,7 @@ fun nms(
       while (iterator.hasNext()) {
         val other = iterator.next()
         if (calculateIoU(current.bbox, other.bbox) > iouThreshold) {
-          iterator.remove()  // Remove detection if IoU is above threshold
+          iterator.remove() // Remove detection if IoU is above threshold
         }
       }
     }
@@ -51,7 +51,10 @@ fun nms(
   return result
 }
 
-fun calculateIoU(bbox1: Bbox, bbox2: Bbox): Float {
+fun calculateIoU(
+  bbox1: Bbox,
+  bbox2: Bbox,
+): Float {
   val x1 = maxOf(bbox1.x1, bbox2.x1)
   val y1 = maxOf(bbox1.y1, bbox2.y1)
   val x2 = minOf(bbox1.x2, bbox2.x2)
@@ -65,12 +68,11 @@ fun calculateIoU(bbox1: Bbox, bbox2: Bbox): Float {
   return if (unionArea == 0f) 0f else intersectionArea / unionArea
 }
 
-
 data class Bbox(
   val x1: Float,
   val y1: Float,
   val x2: Float,
-  val y2: Float
+  val y2: Float,
 ) {
   fun toWritableMap(): WritableMap {
     val map = Arguments.createMap()
@@ -81,7 +83,6 @@ data class Bbox(
     return map
   }
 }
-
 
 data class Detection(
   val bbox: Bbox,
@@ -97,7 +98,9 @@ data class Detection(
   }
 }
 
-enum class CocoLabel(val id: Int) {
+enum class CocoLabel(
+  val id: Int,
+) {
   PERSON(1),
   BICYCLE(2),
   CAR(3),
@@ -187,10 +190,12 @@ enum class CocoLabel(val id: Int) {
   TEDDY_BEAR(88),
   HAIR_DRIER(89),
   TOOTHBRUSH(90),
-  HAIR_BRUSH(91);
+  HAIR_BRUSH(91),
+  ;
 
   companion object {
     private val idToLabelMap = values().associateBy(CocoLabel::id)
+
     fun fromId(id: Int): CocoLabel? = idToLabelMap[id]
   }
 }
