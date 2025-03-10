@@ -30,6 +30,7 @@ export * from './utils/listDownloadedResources';
 // types
 export * from './types/object_detection';
 export * from './types/ocr';
+export * from './types/image_segmentation';
 
 // constants
 export * from './constants/modelUrls';

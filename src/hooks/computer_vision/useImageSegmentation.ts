@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { _ImageSegmentationModule } from '../../native/RnExecutorchModules';
 import { ETError, getError } from '../../Error';
 import { useModule } from '../useModule';
+import { DeeplabLabel } from '../../types/image_segmentation';
 
 interface Props {
   modelSource: string | number;
@@ -16,8 +17,8 @@ export const useImageSegmentation = ({
   downloadProgress: number;
   forward: (
     input: string,
-    classesOfInterest?: string[]
-  ) => Promise<{ [category: string]: number[] }>;
+    classesOfInterest?: DeeplabLabel[]
+  ) => Promise<{ [key in DeeplabLabel]?: number[] }>;
 } => {
   const [module, _] = useState(() => new _ImageSegmentationModule());
   const [isGenerating, setIsGenerating] = useState(false);
@@ -26,7 +27,7 @@ export const useImageSegmentation = ({
     module,
   });
 
-  const forward = async (input: string, classesOfInterest?: string[]) => {
+  const forward = async (input: string, classesOfInterest?: DeeplabLabel[]) => {
     if (!isReady) {
       throw new Error(getError(ETError.ModuleNotLoaded));
     }
@@ -36,8 +37,20 @@ export const useImageSegmentation = ({
 
     try {
       setIsGenerating(true);
-      const output = await module.forward(input, classesOfInterest || []);
-      return output;
+      const stringDict = await module.forward(
+        input,
+        (classesOfInterest || []).map((label) => DeeplabLabel[label])
+      );
+
+      let enumDict: { [key in DeeplabLabel]?: number[] } = {};
+
+      for (const key in stringDict) {
+        if (key in DeeplabLabel) {
+          const enumKey = DeeplabLabel[key as keyof typeof DeeplabLabel];
+          enumDict[enumKey] = stringDict[key];
+        }
+      }
+      return enumDict;
     } catch (e) {
       throw new Error(getError(e));
     } finally {
