@@ -45,6 +45,8 @@ Installation is pretty straightforward, just use your favorite package manager. 
   </TabItem>
 </Tabs>
 
+If you're using bare React Native (instead of a managed Expo project), you also need to install Expo Modules because the underlying implementation relies on expo-file-system. Since expo-file-system is an Expo package, bare React Native projects need **Expo Modules** to properly integrate and use it. The link provided (https://docs.expo.dev/bare/installing-expo-modules/) offers guidance on setting up Expo Modules in a bare React Native environment.
+
 If you plan on using your models via require() instead of fetching them from a url, you also need to add following lines to your `metro.config.js`:
 
 ```json
@@ -62,7 +64,7 @@ When using Expo, please note that you need to use a custom development build of 
 :::
 
 :::caution
-If you encountered an error that native modules for React Native Audio API were not installed, please make sure to install react-native-audio-api. 
+If you encountered an error that native modules for React Native Audio API were not installed, please make sure to install react-native-audio-api.
 :::
 
 :::info
