@@ -1,22 +1,22 @@
 package com.swmansion.rnexecutorch.models.imagesegmentation
 
-import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.WritableMap
-import com.facebook.react.bridge.ReactApplicationContext
-import com.swmansion.rnexecutorch.utils.ImageProcessor
-import com.swmansion.rnexecutorch.utils.softmax
-import org.opencv.core.Mat
-import org.opencv.core.CvType
-import org.opencv.core.Size
-import org.opencv.imgproc.Imgproc
-import org.pytorch.executorch.Tensor
-import org.pytorch.executorch.EValue
 import com.swmansion.rnexecutorch.models.BaseModel
 import com.swmansion.rnexecutorch.utils.ArrayUtils
+import com.swmansion.rnexecutorch.utils.ImageProcessor
+import com.swmansion.rnexecutorch.utils.softmax
+import org.opencv.core.CvType
+import org.opencv.core.Mat
+import org.opencv.core.Size
+import org.opencv.imgproc.Imgproc
+import org.pytorch.executorch.EValue
 
-class ImageSegmentationModel(reactApplicationContext: ReactApplicationContext)
-    : BaseModel <Pair<Mat, ReadableArray>, WritableMap>(reactApplicationContext) {
+class ImageSegmentationModel(
+  reactApplicationContext: ReactApplicationContext,
+) : BaseModel<Triple<Mat, ReadableArray, Boolean>, WritableMap>(reactApplicationContext) {
   private lateinit var originalSize: Size
 
   private fun getModelImageSize(): Size {
@@ -27,44 +27,53 @@ class ImageSegmentationModel(reactApplicationContext: ReactApplicationContext)
     return Size(height.toDouble(), width.toDouble())
   }
 
-  override fun preprocess(input: Pair<Mat, ReadableArray>): EValue {
-    originalSize = input.first.size()
-    Imgproc.resize(input.first, input.first, getModelImageSize())
-    return ImageProcessor.matToEValue(input.first, module.getInputShape(0))
+  fun preprocess(input: Mat): EValue {
+    originalSize = input.size()
+    Imgproc.resize(input, input, getModelImageSize())
+    return ImageProcessor.matToEValue(input, module.getInputShape(0))
   }
 
-  private fun rescaleResults(result: Array<Float>, numLabels: Int)
-        : List<Mat> {
-    val modelShape = getModelImageSize()
-    val numModelPixels = (modelShape.height * modelShape.width).toInt()
+  private fun extractResults(
+    result: Array<Float>,
+    numLabels: Int,
+    resize: Boolean,
+  ): List<Mat> {
+    val modelSize = getModelImageSize()
+    val numModelPixels = (modelSize.height * modelSize.width).toInt()
 
-    val resizedLabelScores = mutableListOf<Mat>()
+    val extractedLabelScores = mutableListOf<Mat>()
 
     for (label in 0..<numLabels) {
-      val mat = Mat(modelShape, CvType.CV_32F)
+      val mat = Mat(modelSize, CvType.CV_32F)
 
       for (pixel in 0..<numModelPixels) {
-        val row = pixel / modelShape.width.toInt()
-        val col = pixel % modelShape.width.toInt()
+        val row = pixel / modelSize.width.toInt()
+        val col = pixel % modelSize.width.toInt()
         val v = floatArrayOf(result[label * numModelPixels + pixel])
         mat.put(row, col, v)
       }
 
-      val resizedMat = Mat()
-      Imgproc.resize(mat, resizedMat, originalSize)
-      resizedLabelScores.add(resizedMat)
+      if (resize) {
+        val resizedMat = Mat()
+        Imgproc.resize(mat, resizedMat, originalSize)
+        extractedLabelScores.add(resizedMat)
+      } else {
+        extractedLabelScores.add(mat)
+      }
     }
-    return resizedLabelScores;
+    return extractedLabelScores
   }
 
-  private fun adjustScoresPerPixel(labelScores: List<Mat>, numLabels: Int)
-        : Mat {
-    val argMax = Mat(originalSize, CvType.CV_32S)
-    val numOriginalPixels = (originalSize.height * originalSize.width).toInt()
-    android.util.Log.d("ETTT", "adjustScoresPerPixel: start")
-    for (pixel in 0..<numOriginalPixels) {
-      val row = pixel / originalSize.width.toInt()
-      val col = pixel % originalSize.width.toInt()
+  private fun adjustScoresPerPixel(
+    labelScores: List<Mat>,
+    numLabels: Int,
+    outputSize: Size,
+  ): Mat {
+    val argMax = Mat(outputSize, CvType.CV_32S)
+    val numPixels = (outputSize.height * outputSize.width).toInt()
+    for (pixel in 0..<numPixels) {
+      val row = pixel / outputSize.width.toInt()
+      val col = pixel % outputSize.width.toInt()
       val scores = mutableListOf<Float>()
       for (mat in labelScores) {
         scores.add(mat.get(row, col)[0].toFloat())
@@ -74,59 +83,71 @@ class ImageSegmentationModel(reactApplicationContext: ReactApplicationContext)
         labelScores[label].put(row, col, floatArrayOf(adjustedScores[label]))
       }
 
-      val maxIndex = scores.withIndex().maxBy{it.value}.index
+      val maxIndex = scores.withIndex().maxBy { it.value }.index
       argMax.put(row, col, intArrayOf(maxIndex))
     }
 
     return argMax
   }
 
-  override fun postprocess(output: Array<EValue>)
-    : WritableMap {
+  fun postprocess(
+    output: Array<EValue>,
+    classesOfInterest: ReadableArray,
+    resize: Boolean,
+  ): WritableMap {
     val output = output[0].toTensor().dataAsFloatArray.toTypedArray()
-    val modelShape = getModelImageSize()
-    val numLabels = deeplabv3_resnet50_labels.size;
-    val numOriginalPixels = (originalSize.height * originalSize.width).toInt()
+    val modelSize = getModelImageSize()
+    val numLabels = deeplabv3_resnet50_labels.size
 
-    require(output.count() == (numLabels * modelShape.height * modelShape.width).toInt())
-      {"Model generated unexpected output size."}
+    require(output.count() == (numLabels * modelSize.height * modelSize.width).toInt()) { "Model generated unexpected output size." }
 
-    val rescaledResults = rescaleResults(output, numLabels)
+    val outputSize = if (resize) originalSize else modelSize
+    val numOutputPixels = (outputSize.height * outputSize.width).toInt()
 
-    val argMax = adjustScoresPerPixel(rescaledResults, numLabels)
+    val extractedResults = extractResults(output, numLabels, resize)
 
-    // val labelSet = mutableSetOf<String>()
+    val argMax = adjustScoresPerPixel(extractedResults, numLabels, outputSize)
+
+    val labelSet = mutableSetOf<String>()
     // Filter by the label set when base class changed
+    for (i in 0..<classesOfInterest.size()) {
+      labelSet.add(classesOfInterest.getString(i))
+    }
 
     val res = Arguments.createMap()
 
     for (label in 0..<numLabels) {
-      val buffer = FloatArray(numOriginalPixels)
-      for (pixel in 0..<numOriginalPixels) {
-        val row = pixel / originalSize.width.toInt()
-        val col = pixel % originalSize.width.toInt()
-        buffer[pixel] = rescaledResults[label].get(row, col)[0].toFloat()
+      if (labelSet.contains(deeplabv3_resnet50_labels[label])) {
+        val buffer = FloatArray(numOutputPixels)
+        for (pixel in 0..<numOutputPixels) {
+          val row = pixel / outputSize.width.toInt()
+          val col = pixel % outputSize.width.toInt()
+          buffer[pixel] = extractedResults[label].get(row, col)[0].toFloat()
+        }
+        res.putArray(
+          deeplabv3_resnet50_labels[label],
+          ArrayUtils.createReadableArrayFromFloatArray(buffer),
+        )
       }
-      res.putArray(deeplabv3_resnet50_labels[label], 
-                   ArrayUtils.createReadableArrayFromFloatArray(buffer))
     }
 
-    val argMaxBuffer = IntArray(numOriginalPixels)
-    for (pixel in 0..<numOriginalPixels) {
-      val row = pixel / originalSize.width.toInt()
-      val col = pixel % originalSize.width.toInt()
+    val argMaxBuffer = IntArray(numOutputPixels)
+    for (pixel in 0..<numOutputPixels) {
+      val row = pixel / outputSize.width.toInt()
+      val col = pixel % outputSize.width.toInt()
       argMaxBuffer[pixel] = argMax.get(row, col)[0].toInt()
     }
-    res.putArray("argmax", 
-                 ArrayUtils.createReadableArrayFromIntArray(argMaxBuffer))
+    res.putArray(
+      "argmax",
+      ArrayUtils.createReadableArrayFromIntArray(argMaxBuffer),
+    )
 
     return res
   }
 
-  override fun runModel(input: Pair<Mat, ReadableArray>)
-    : WritableMap {
-    val modelInput = preprocess(input)
+  override fun runModel(input: Triple<Mat, ReadableArray, Boolean>): WritableMap {
+    val modelInput = preprocess(input.first)
     val modelOutput = forward(modelInput)
-    return postprocess(modelOutput)
+    return postprocess(modelOutput, input.second, input.third)
   }
 }
