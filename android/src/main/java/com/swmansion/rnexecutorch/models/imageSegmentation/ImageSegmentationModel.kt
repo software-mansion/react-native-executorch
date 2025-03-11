@@ -1,6 +1,8 @@
 package com.swmansion.rnexecutorch.models.imagesegmentation
 
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReadableArray
+import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.ReactApplicationContext
 import com.swmansion.rnexecutorch.utils.ImageProcessor
 import com.swmansion.rnexecutorch.utils.softmax
@@ -11,9 +13,10 @@ import org.opencv.imgproc.Imgproc
 import org.pytorch.executorch.Tensor
 import org.pytorch.executorch.EValue
 import com.swmansion.rnexecutorch.models.BaseModel
+import com.swmansion.rnexecutorch.utils.ArrayUtils
 
 class ImageSegmentationModel(reactApplicationContext: ReactApplicationContext)
-    : BaseModel <Pair<Mat, ReadableArray>, Map<String, List<Any>>>(reactApplicationContext) {
+    : BaseModel <Pair<Mat, ReadableArray>, WritableMap>(reactApplicationContext) {
   private lateinit var originalSize: Size
 
   private fun getModelImageSize(): Size {
@@ -58,30 +61,28 @@ class ImageSegmentationModel(reactApplicationContext: ReactApplicationContext)
         : Mat {
     val argMax = Mat(originalSize, CvType.CV_32S)
     val numOriginalPixels = (originalSize.height * originalSize.width).toInt()
+    android.util.Log.d("ETTT", "adjustScoresPerPixel: start")
     for (pixel in 0..<numOriginalPixels) {
       val row = pixel / originalSize.width.toInt()
-      val col = pixel % originalSize.height.toInt()
+      val col = pixel % originalSize.width.toInt()
       val scores = mutableListOf<Float>()
       for (mat in labelScores) {
-        val v = FloatArray(1)
-        mat.get(row, col, v)
-        scores.add(v[0])
+        scores.add(mat.get(row, col)[0].toFloat())
       }
-
       val adjustedScores = softmax(scores.toTypedArray())
-
       for (label in 0..<numLabels) {
-        labelScores[label].put(row, col, FloatArray(1){adjustedScores[label]})
+        labelScores[label].put(row, col, floatArrayOf(adjustedScores[label]))
       }
 
       val maxIndex = scores.withIndex().maxBy{it.value}.index
-      argMax.put(row, col, IntArray(1){maxIndex})
+      argMax.put(row, col, intArrayOf(maxIndex))
     }
 
     return argMax
   }
 
-  override fun postprocess(output: Array<EValue>): Map<String, List<Any>> {
+  override fun postprocess(output: Array<EValue>)
+    : WritableMap {
     val output = output[0].toTensor().dataAsFloatArray.toTypedArray()
     val modelShape = getModelImageSize()
     val numLabels = deeplabv3_resnet50_labels.size;
@@ -93,26 +94,37 @@ class ImageSegmentationModel(reactApplicationContext: ReactApplicationContext)
     val rescaledResults = rescaleResults(output, numLabels)
 
     val argMax = adjustScoresPerPixel(rescaledResults, numLabels)
-    
+
     // val labelSet = mutableSetOf<String>()
     // Filter by the label set when base class changed
 
-    val res = mutableMapOf<String, List<Any>>()
-    
+    val res = Arguments.createMap()
+
     for (label in 0..<numLabels) {
       val buffer = FloatArray(numOriginalPixels)
-      rescaledResults[label].get(0, 0, buffer)
-      res[deeplabv3_resnet50_labels[label]] = buffer.toList()
+      for (pixel in 0..<numOriginalPixels) {
+        val row = pixel / originalSize.width.toInt()
+        val col = pixel % originalSize.width.toInt()
+        buffer[pixel] = rescaledResults[label].get(row, col)[0].toFloat()
+      }
+      res.putArray(deeplabv3_resnet50_labels[label], 
+                   ArrayUtils.createReadableArrayFromFloatArray(buffer))
     }
 
     val argMaxBuffer = IntArray(numOriginalPixels)
-    argMax.get(0, 0, argMaxBuffer)
-    res["argmax"] = argMaxBuffer.toList()
+    for (pixel in 0..<numOriginalPixels) {
+      val row = pixel / originalSize.width.toInt()
+      val col = pixel % originalSize.width.toInt()
+      argMaxBuffer[pixel] = argMax.get(row, col)[0].toInt()
+    }
+    res.putArray("argmax", 
+                 ArrayUtils.createReadableArrayFromIntArray(argMaxBuffer))
 
     return res
   }
 
-  override fun runModel(input: Pair<Mat, ReadableArray>): Map<String, List<Any>> {
+  override fun runModel(input: Pair<Mat, ReadableArray>)
+    : WritableMap {
     val modelInput = preprocess(input)
     val modelOutput = forward(modelInput)
     return postprocess(modelOutput)

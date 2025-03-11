@@ -2,6 +2,7 @@ package com.swmansion.rnexecutorch
 
 import android.util.Log
 import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReactApplicationContext
 import com.swmansion.rnexecutorch.utils.ETError
@@ -36,7 +37,10 @@ class ImageSegmentation(reactContext: ReactApplicationContext) :
     }
   }
 
-  override fun forward(input: String, classesOfInterest: ReadableArray, promise: Promise) {
+  override fun forward(input: String, 
+                       classesOfInterest: ReadableArray,
+                       resize:Boolean,
+                       promise: Promise) {
     try {
       val output =
           model.runModel(Pair(ImageProcessor.readImage(input), classesOfInterest))
