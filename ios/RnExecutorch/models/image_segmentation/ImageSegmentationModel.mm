@@ -126,7 +126,7 @@ void adjustScoresPerPixel(std::vector<cv::Mat>& labelScores, cv::Mat& argMax,
     }
   }
 
-  result[@"argmax"] = simpleMatToNSArray<int>(argMax);
+  result[@"ARGMAX"] = simpleMatToNSArray<int>(argMax);
 
   return result;
 }

@@ -3,8 +3,8 @@
 #import <vector>
 
 const std::vector<std::string> deeplabv3_resnet50_labels = {
-    "background", "aeroplane", "bicycle", "bird", "boat",
-    "bottle", "bus", "car", "cat", "chair", "cow", "diningtable",
-    "dog", "horse", "motorbike", "person", "pottedplant", "sheep",
-    "sofa", "train", "tvmonitor"
+    "BACKGROUND", "AEROPLANE", "BICYCLE", "BIRD", "BOAT",
+    "BOTTLE", "BUS", "CAR", "CAT", "CHAIR", "COW", "DININGTABLE",
+    "DOG", "HORSE", "MOTORBIKE", "PERSON", "POTTEDPLANT", "SHEEP",
+    "SOFA", "TRAIN", "TVMONITOR"
 };
