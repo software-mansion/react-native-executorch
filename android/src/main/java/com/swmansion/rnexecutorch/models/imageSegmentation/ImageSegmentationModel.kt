@@ -34,57 +34,56 @@ class ImageSegmentationModel(
   }
 
   private fun extractResults(
-    result: Array<Float>,
+    result: FloatArray,
     numLabels: Int,
     resize: Boolean,
-  ): List<Mat> {
+  ): List<FloatArray> {
     val modelSize = getModelImageSize()
     val numModelPixels = (modelSize.height * modelSize.width).toInt()
 
-    val extractedLabelScores = mutableListOf<Mat>()
+    val extractedLabelScores = mutableListOf<FloatArray>()
 
     for (label in 0..<numLabels) {
-      val mat = Mat(modelSize, CvType.CV_32F)
-
-      for (pixel in 0..<numModelPixels) {
-        val row = pixel / modelSize.width.toInt()
-        val col = pixel % modelSize.width.toInt()
-        val v = floatArrayOf(result[label * numModelPixels + pixel])
-        mat.put(row, col, v)
-      }
+      // Calls to OpenCV via JNI are very slow so we do as much as we can
+      // with pure Kotlin
+      val range = IntRange(label * numModelPixels, (label + 1) * numModelPixels - 1)
+      val pixelBuffer = result.slice(range).toFloatArray()
 
       if (resize) {
+        // Rescale the image with OpenCV
+        val mat = Mat(modelSize, CvType.CV_32F)
+        mat.put(0, 0, pixelBuffer)
         val resizedMat = Mat()
         Imgproc.resize(mat, resizedMat, originalSize)
-        extractedLabelScores.add(resizedMat)
+        val resizedBuffer = FloatArray((originalSize.height * originalSize.width).toInt())
+        resizedMat.get(0, 0, resizedBuffer)
+        extractedLabelScores.add(resizedBuffer)
       } else {
-        extractedLabelScores.add(mat)
+        extractedLabelScores.add(pixelBuffer)
       }
     }
     return extractedLabelScores
   }
 
   private fun adjustScoresPerPixel(
-    labelScores: List<Mat>,
+    labelScores: List<FloatArray>,
     numLabels: Int,
     outputSize: Size,
-  ): Mat {
-    val argMax = Mat(outputSize, CvType.CV_32S)
+  ): IntArray {
     val numPixels = (outputSize.height * outputSize.width).toInt()
+    val argMax = IntArray(numPixels)
     for (pixel in 0..<numPixels) {
-      val row = pixel / outputSize.width.toInt()
-      val col = pixel % outputSize.width.toInt()
       val scores = mutableListOf<Float>()
-      for (mat in labelScores) {
-        scores.add(mat.get(row, col)[0].toFloat())
+      for (buffer in labelScores) {
+        scores.add(buffer[pixel])
       }
       val adjustedScores = softmax(scores.toTypedArray())
       for (label in 0..<numLabels) {
-        labelScores[label].put(row, col, floatArrayOf(adjustedScores[label]))
+        labelScores[label][pixel] = adjustedScores[label]
       }
 
       val maxIndex = scores.withIndex().maxBy { it.value }.index
-      argMax.put(row, col, intArrayOf(maxIndex))
+      argMax[pixel] = maxIndex
     }
 
     return argMax
@@ -95,14 +94,13 @@ class ImageSegmentationModel(
     classesOfInterest: ReadableArray,
     resize: Boolean,
   ): WritableMap {
-    val output = output[0].toTensor().dataAsFloatArray.toTypedArray()
+    val output = output[0].toTensor().dataAsFloatArray
     val modelSize = getModelImageSize()
     val numLabels = deeplabv3_resnet50_labels.size
 
     require(output.count() == (numLabels * modelSize.height * modelSize.width).toInt()) { "Model generated unexpected output size." }
 
     val outputSize = if (resize) originalSize else modelSize
-    val numOutputPixels = (outputSize.height * outputSize.width).toInt()
 
     val extractedResults = extractResults(output, numLabels, resize)
 
@@ -118,28 +116,16 @@ class ImageSegmentationModel(
 
     for (label in 0..<numLabels) {
       if (labelSet.contains(deeplabv3_resnet50_labels[label])) {
-        val buffer = FloatArray(numOutputPixels)
-        for (pixel in 0..<numOutputPixels) {
-          val row = pixel / outputSize.width.toInt()
-          val col = pixel % outputSize.width.toInt()
-          buffer[pixel] = extractedResults[label].get(row, col)[0].toFloat()
-        }
         res.putArray(
           deeplabv3_resnet50_labels[label],
-          ArrayUtils.createReadableArrayFromFloatArray(buffer),
+          ArrayUtils.createReadableArrayFromFloatArray(extractedResults[label]),
         )
       }
     }
 
-    val argMaxBuffer = IntArray(numOutputPixels)
-    for (pixel in 0..<numOutputPixels) {
-      val row = pixel / outputSize.width.toInt()
-      val col = pixel % outputSize.width.toInt()
-      argMaxBuffer[pixel] = argMax.get(row, col)[0].toInt()
-    }
     res.putArray(
       "argmax",
-      ArrayUtils.createReadableArrayFromIntArray(argMaxBuffer),
+      ArrayUtils.createReadableArrayFromIntArray(argMax),
     )
 
     return res
