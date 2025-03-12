@@ -94,15 +94,15 @@ class ImageSegmentationModel(
     classesOfInterest: ReadableArray,
     resize: Boolean,
   ): WritableMap {
-    val output = output[0].toTensor().dataAsFloatArray
+    val outputData = output[0].toTensor().dataAsFloatArray
     val modelSize = getModelImageSize()
     val numLabels = deeplabv3_resnet50_labels.size
 
-    require(output.count() == (numLabels * modelSize.height * modelSize.width).toInt()) { "Model generated unexpected output size." }
+    require(outputData.count() == (numLabels * modelSize.height * modelSize.width).toInt()) { "Model generated unexpected output size." }
 
     val outputSize = if (resize) originalSize else modelSize
 
-    val extractedResults = extractResults(output, numLabels, resize)
+    val extractedResults = extractResults(outputData, numLabels, resize)
 
     val argMax = adjustScoresPerPixel(extractedResults, numLabels, outputSize)
 
@@ -124,7 +124,7 @@ class ImageSegmentationModel(
     }
 
     res.putArray(
-      "argmax",
+      "ARGMAX",
       ArrayUtils.createReadableArrayFromIntArray(argMax),
     )
 

@@ -1,8 +1,26 @@
 package com.swmansion.rnexecutorch.models.imagesegmentation
 
-val deeplabv3_resnet50_labels: Array<String> = arrayOf(
-    "background", "aeroplane", "bicycle", "bird", "boat",
-    "bottle", "bus", "car", "cat", "chair", "cow", "diningtable",
-    "dog", "horse", "motorbike", "person", "pottedplant", "sheep",
-    "sofa", "train", "tvmonitor"
-)
+val deeplabv3_resnet50_labels: Array<String> =
+  arrayOf(
+    "BACKGROUND",
+    "AEROPLANE",
+    "BICYCLE",
+    "BIRD",
+    "BOAT",
+    "BOTTLE",
+    "BUS",
+    "CAR",
+    "CAT",
+    "CHAIR",
+    "COW",
+    "DININGTABLE",
+    "DOG",
+    "HORSE",
+    "MOTORBIKE",
+    "PERSON",
+    "POTTEDPLANT",
+    "SHEEP",
+    "SOFA",
+    "TRAIN",
+    "TVMONITOR",
+  )
