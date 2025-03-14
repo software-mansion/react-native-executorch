@@ -1,14 +1,14 @@
-#import "StyleTransfer.h"
-#import "ImageProcessor.h"
+#import "ImageSegmentation.h"
+#import "models/image_segmentation/ImageSegmentationModel.h"
 #import "models/BaseModel.h"
-#import "models/style_transfer/StyleTransferModel.h"
 #import "utils/ETError.h"
 #import <ExecutorchLib/ETModel.h>
 #import <React/RCTBridgeModule.h>
 #import <opencv2/opencv.hpp>
+#import "ImageProcessor.h"
 
-@implementation StyleTransfer {
-  StyleTransferModel *model;
+@implementation ImageSegmentation {
+  ImageSegmentationModel *model;
 }
 
 RCT_EXPORT_MODULE()
@@ -16,7 +16,8 @@ RCT_EXPORT_MODULE()
 - (void)loadModule:(NSString *)modelSource
            resolve:(RCTPromiseResolveBlock)resolve
             reject:(RCTPromiseRejectBlock)reject {
-  model = [[StyleTransferModel alloc] init];
+
+  model = [[ImageSegmentationModel alloc] init];
   [model
        loadModel:[NSURL URLWithString:modelSource]
       completion:^(BOOL success, NSNumber *errorCode) {
@@ -33,14 +34,18 @@ RCT_EXPORT_MODULE()
 }
 
 - (void)forward:(NSString *)input
+        classesOfInterest:(NSArray *)classesOfInterest
+        resize:(BOOL)resize
         resolve:(RCTPromiseResolveBlock)resolve
-         reject:(RCTPromiseRejectBlock)reject {
+        reject:(RCTPromiseRejectBlock)reject {
+
   @try {
     cv::Mat image = [ImageProcessor readImage:input];
-    cv::Mat resultImage = [model runModel:image];
-
-    NSString *tempFilePath = [ImageProcessor saveToTempFile:resultImage];
-    resolve(tempFilePath);
+    NSDictionary *result = [model runModel:image 
+                                  returnClasses:classesOfInterest
+                                  resize:resize];
+                                  
+    resolve(result);
     return;
   } @catch (NSException *exception) {
     NSLog(@"An exception occurred: %@, %@", exception.name, exception.reason);
@@ -52,7 +57,7 @@ RCT_EXPORT_MODULE()
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params {
-  return std::make_shared<facebook::react::NativeStyleTransferSpecJSI>(params);
+  return std::make_shared<facebook::react::NativeImageSegmentationSpecJSI>(params);
 }
 
 @end
