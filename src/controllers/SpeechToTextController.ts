@@ -9,6 +9,7 @@ import {
   SAMPLE_RATE,
   MODEL_CONFIGS,
   ModelConfig,
+  PRESETS,
 } from '../constants/sttDefaults';
 
 const longCommonInfPref = (seq1: number[], seq2: number[]) => {
@@ -43,8 +44,8 @@ export class SpeechToTextController {
   private audioContext: AudioContext;
   private audioBuffer: AudioBuffer | null = null;
 
-  private overlapSeconds = 1.2;
-  private windowSize = 7;
+  private overlapSeconds!: number;
+  private windowSize!: number;
 
   private chunks: number[][] = [];
   public sequence: number[] = [];
@@ -73,6 +74,7 @@ export class SpeechToTextController {
     onErrorCallback,
     overlapSeconds,
     windowSize,
+    preset,
   }: {
     transcribeCallback: (sequence: string) => void;
     modelDownloadProgessCallback?: (downloadProgress: number) => void;
@@ -81,6 +83,7 @@ export class SpeechToTextController {
     onErrorCallback?: (error: Error | undefined) => void;
     overlapSeconds?: number;
     windowSize?: number;
+    preset?: keyof typeof PRESETS;
   }) {
     this.decodedTranscribeCallback = (seq) =>
       transcribeCallback(this.decodeSeq(seq));
@@ -96,8 +99,10 @@ export class SpeechToTextController {
     this.onErrorCallback = onErrorCallback;
     this.audioContext = new AudioContext({ sampleRate: SAMPLE_RATE });
     this.nativeModule = new _SpeechToTextModule();
-    this.windowSize = (windowSize || this.windowSize) * SECOND;
-    this.overlapSeconds = overlapSeconds || this.overlapSeconds;
+    this.windowSize =
+      (windowSize || PRESETS[preset || 'medium'].windowSize) * SECOND;
+    this.overlapSeconds =
+      overlapSeconds || PRESETS[preset || 'medium'].overlapSeconds;
   }
 
   private async fetch_tokenizer(
@@ -184,6 +189,8 @@ export class SpeechToTextController {
   }
 
   public async transcribe(waveform?: number[]): Promise<string> {
+    const _start = performance.now();
+    let _latency;
     if (!this.isReady) {
       this.onErrorCallback?.(new Error('Model is not yet ready'));
       return '';
@@ -219,25 +226,21 @@ export class SpeechToTextController {
       let prev_seq_token_idx = 0;
       let final_seq: number[] = [];
       let seq = [last_token];
-      let enc_output;
+      // let enc_output;
       try {
-        enc_output = await this.nativeModule.encode(this.chunks!.at(chunk_id)!);
+        // enc_output = await this.nativeModule.encode(this.chunks!.at(chunk_id)!);
+        await this.nativeModule.encode(this.chunks!.at(chunk_id)!);
       } catch (error) {
         this.onErrorCallback?.(`Encode ${error}`);
         return '';
       }
+      let _start2 = performance.now();
       while (last_token !== this.config.tokenizer.eos) {
-        let output;
         try {
-          output = await this.nativeModule.decode(seq, [enc_output]);
+          last_token = await this.nativeModule.decode(seq);
         } catch (error) {
           this.onErrorCallback?.(`Decode ${error}`);
           return '';
-        }
-        if (typeof output === 'number') {
-          last_token = output;
-        } else {
-          last_token = output[output.length - 1];
         }
         seq = [...seq, last_token];
         if (
@@ -246,9 +249,14 @@ export class SpeechToTextController {
           seq.length % 3 !== 0
         ) {
           prevseq = [...prevseq, seqs.at(-1)![prev_seq_token_idx++]!];
+          _latency = _latency || performance.now() - _start;
           this.decodedTranscribeCallback(prevseq);
         }
       }
+      console.log(
+        `Decoded ${seq.length} tokens with speed: ${(performance.now() - _start2) / seq.length}`
+      );
+
       if (this.chunks.length === 1) {
         final_seq = seq;
         this.sequence = final_seq;
@@ -286,6 +294,9 @@ export class SpeechToTextController {
     }
     const decodedSeq = this.decodeSeq(this.sequence);
     this.isGeneratingCallback(false);
+    console.log(
+      `latency: ${_latency} time: ${performance.now() - _start}, length: ${this.sequence.length}, t/s: ${this.sequence.length / (performance.now() - _start)}`
+    );
     return decodedSeq;
   }
 

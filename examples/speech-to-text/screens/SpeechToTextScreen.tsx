@@ -50,9 +50,12 @@ export const SpeechToTextScreen = () => {
     error,
     transcribe,
     loadAudio,
-  } = useSpeechToText({ modelName: 'moonshine' });
+  } = useSpeechToText({ modelName: 'moonshine', preset: 'quality' });
+
   const [isRecording, setIsRecording] = useState(false);
-  const [audioUrl, setAudioUrl] = useState('');
+  const [audioUrl, setAudioUrl] = useState(
+    'https://ai.swmansion.com/storage/moonshine/test_audio.mp3'
+  );
   const audioBuffer = useRef<number[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -162,7 +165,6 @@ export const SpeechToTextScreen = () => {
               isRecording && styles.borderRed,
             ]}
           >
-            zRXW
             <TouchableOpacity
               disabled={recordingButtonDisabled || isGenerating}
               style={[

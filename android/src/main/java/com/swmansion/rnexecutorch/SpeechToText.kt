@@ -1,5 +1,6 @@
 package com.swmansion.rnexecutorch
 
+import android.util.Log
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
@@ -84,6 +85,7 @@ class SpeechToText(
     encoderOutput: ReadableArray,
     promise: Promise,
   ) {
+    Log.i("rn_executorch", "SpeechToText:decode")
     promise.resolve(this.speechToTextModule.decode(prevTokens, encoderOutput))
   }
 

@@ -21,13 +21,19 @@ export const useSpeechToText = ({
   tokenizerSource,
   overlapSeconds,
   windowSize,
+  preset,
 }: {
   modelName: 'moonshine' | 'whisper';
   encoderSource?: ResourceSource;
   decoderSource?: ResourceSource;
   tokenizerSource?: ResourceSource;
-  overlapSeconds?: number;
-  windowSize?: number;
+  overlapSeconds?: ConstructorParameters<
+    typeof SpeechToTextController
+  >['0']['overlapSeconds'];
+  windowSize?: ConstructorParameters<
+    typeof SpeechToTextController
+  >['0']['windowSize'];
+  preset?: ConstructorParameters<typeof SpeechToTextController>['0']['preset'];
 }): SpeechToTextModule => {
   const [sequence, setSequence] = useState<string>('');
   const [isReady, setIsReady] = useState(false);
@@ -45,6 +51,7 @@ export const useSpeechToText = ({
         modelDownloadProgessCallback: setDownloadProgress,
         overlapSeconds: overlapSeconds,
         windowSize: windowSize,
+        preset: preset,
       })
   );
 

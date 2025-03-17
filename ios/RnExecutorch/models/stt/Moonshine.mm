@@ -10,6 +10,7 @@
   MoonshineDecoder *decoder;
   NSNumber *START_TOKEN;
   NSNumber *EOS_TOKEN;
+  NSArray *encoderLastHiddenState;
   int maxSeqLen;
 }
 
@@ -24,13 +25,22 @@
 }
 
 - (NSArray *)encode:(NSArray *)waveform {
-  return [self->encoder encode:[NSArray arrayWithObject:waveform]];
+  self->encoderLastHiddenState = [self->encoder encode:waveform];
+
+  if (!self->encoderLastHiddenState) {
+    [NSException raise:@"forward_error" format:nil];
+  }
+  return self->encoderLastHiddenState;
 }
 
 - (NSArray *)decode:(NSArray *)prevTokens
     encoderLastHiddenState:(NSArray *)encoderLastHiddenState {
+  if ([encoderLastHiddenState count] > 0) {
+    return [self->decoder decode:prevTokens
+          encoderLastHiddenState:encoderLastHiddenState];
+  }
   return [self->decoder decode:prevTokens
-        encoderLastHiddenState:encoderLastHiddenState];
+        encoderLastHiddenState:self->encoderLastHiddenState];
 }
 
 - (void)loadModules:(NSArray *)modelSources {

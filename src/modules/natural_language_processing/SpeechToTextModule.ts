@@ -12,11 +12,21 @@ export class SpeechToText {
     modelDownloadProgessCallback?: (downloadProgress: number) => void,
     encoderSource?: ResourceSource,
     decoderSource?: ResourceSource,
-    tokenizerSource?: ResourceSource
+    tokenizerSource?: ResourceSource,
+    overlapSeconds?: ConstructorParameters<
+      typeof SpeechToTextController
+    >['0']['overlapSeconds'],
+    windowSize?: ConstructorParameters<
+      typeof SpeechToTextController
+    >['0']['windowSize'],
+    preset?: ConstructorParameters<typeof SpeechToTextController>['0']['preset']
   ) {
     this.module = new SpeechToTextController({
       transcribeCallback: transcribeCallback,
       modelDownloadProgessCallback: modelDownloadProgessCallback,
+      overlapSeconds: overlapSeconds,
+      windowSize: windowSize,
+      preset: preset,
     });
     await this.module.loadModel(
       (modelName = modelName),
