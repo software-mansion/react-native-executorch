@@ -1,7 +1,11 @@
 import Spinner from 'react-native-loading-spinner-overlay';
 import { BottomBar } from '../components/BottomBar';
 import { getImage } from '../utils';
-import { useImageSegmentation, DeeplabLabel } from 'react-native-executorch';
+import {
+  useImageSegmentation,
+  DeeplabLabel,
+  DEEPLABV3_RESNET50,
+} from 'react-native-executorch';
 import {
   Canvas,
   Image as SkiaImage,
@@ -61,7 +65,7 @@ export const ImageSegmentationScreen = ({
   setImageUri: (imageUri: string) => void;
 }) => {
   const model = useImageSegmentation({
-    modelSource: require('../assets/deeplabV3_xnnpack_fp32.pte'),
+    modelSource: DEEPLABV3_RESNET50,
   });
 
   const handleCameraPress = async (isCamera: boolean) => {
