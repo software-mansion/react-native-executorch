@@ -105,7 +105,6 @@ export const ImageSegmentationScreen = ({
           data,
           width * 4
         );
-        //setImageUri(output);
       } catch (e) {
         console.error(e);
       }
