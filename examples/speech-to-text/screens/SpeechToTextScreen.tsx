@@ -65,9 +65,7 @@ export const SpeechToTextScreen = () => {
   };
 
   const [isRecording, setIsRecording] = useState(false);
-  const [audioUrl, setAudioUrl] = useState(
-    'https://ai.swmansion.com/storage/moonshine/test_audio.mp3'
-  );
+  const [audioUrl, setAudioUrl] = useState('');
   const audioBuffer = useRef<number[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
 
