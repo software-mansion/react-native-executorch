@@ -3,6 +3,7 @@ package com.swmansion.rnexecutorch.models.classification
 import com.facebook.react.bridge.ReactApplicationContext
 import com.swmansion.rnexecutorch.models.BaseModel
 import com.swmansion.rnexecutorch.utils.ImageProcessor
+import com.swmansion.rnexecutorch.utils.softmax
 import org.opencv.core.Mat
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc

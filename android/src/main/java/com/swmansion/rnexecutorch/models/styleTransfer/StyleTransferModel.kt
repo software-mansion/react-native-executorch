@@ -1,4 +1,4 @@
-package com.swmansion.rnexecutorch.models
+package com.swmansion.rnexecutorch.models.styletransfer
 
 import com.facebook.react.bridge.ReactApplicationContext
 import com.swmansion.rnexecutorch.utils.ImageProcessor
@@ -6,6 +6,7 @@ import org.opencv.core.Mat
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import org.pytorch.executorch.EValue
+import com.swmansion.rnexecutorch.models.BaseModel
 
 class StyleTransferModel(
   reactApplicationContext: ReactApplicationContext,
