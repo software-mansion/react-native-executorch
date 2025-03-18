@@ -78,7 +78,7 @@ export const SpeechToTextScreen = () => {
     if (isRecording) {
       LiveAudioStream.stop();
       setIsRecording(false);
-      // await transcribe(audioBuffer.current);
+      await transcribe(audioBuffer.current);
       audioBuffer.current = [];
     } else {
       setIsRecording(true);

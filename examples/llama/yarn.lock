@@ -6074,7 +6074,7 @@ __metadata:
     metro-config: ^0.81.0
     react: 18.3.1
     react-native: 0.76.3
-    react-native-executorch: ^0.3.0
+    react-native-executorch: /Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.0-dev27.tgz
     react-native-loading-spinner-overlay: ^3.0.1
     react-native-markdown-display: ^7.0.2
     react-native-reanimated: ^3.16.3
@@ -7545,9 +7545,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-executorch@npm:^0.3.0":
-  version: 0.3.0
-  resolution: "react-native-executorch@npm:0.3.0"
+"react-native-executorch@file:/Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.0-dev27.tgz::locator=llama%40workspace%3A.":
+  version: 0.3.0-dev27
+  resolution: "react-native-executorch@file:/Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.0-dev27.tgz::locator=llama%40workspace%3A."
   dependencies:
     expo: ^52.0.37
     expo-asset: ^11.0.3
@@ -7558,7 +7558,7 @@ __metadata:
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 182620fa41ee13a124bb731017180aebf0935f91f0b9fd7c95fef89bc466e1dcf6e6e60f6759369e5f1f623106bb11a0b4d51b1c090e4970acbf1cb26795af5f
+  checksum: 39f2a417e83cad6e944c2ceb037a8dff5f05976d0462b24dbbbfcd9066810ee5c820c9d9ca13abce70f550f7b65cd60dfa53a2279a7e30c8a9c82caf66eaee36
   languageName: node
   linkType: hard
 
