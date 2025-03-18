@@ -104,7 +104,7 @@ function App() {
 ## Supported models
 
 | Model                                                                 | Language |
-| --------------------------------------------------------------------- | -------- |
+| --------------------------------------------------------------------- | :------: |
 | [Whisper tiny.en](https://huggingface.co/openai/whisper-tiny.en)      | English  |
 | [Moonshine tiny](https://huggingface.co/UsefulSensors/moonshine-tiny) | English  |
 
@@ -113,13 +113,13 @@ function App() {
 ### Model size
 
 | Model          | XNNPACK [MB] |
-| -------------- | ------------ |
-| WHISPER_TINY   | 231.0        |
-| MOONSHINE_TINY | 148.9        |
+| -------------- | :----------: |
+| WHISPER_TINY   |    231.0     |
+| MOONSHINE_TINY |    148.9     |
 
 ### Memory usage
 
 | Model          | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| -------------- | ---------------------- | ------------------ |
-| WHISPER_TINY   | 900                    | 600                |
-| MOONSHINE_TINY | 650                    | 560                |
+| -------------- | :--------------------: | :----------------: |
+| WHISPER_TINY   |          900           |        600         |
+| MOONSHINE_TINY |          650           |        560         |

@@ -1,6 +1,6 @@
 {
   "name": "react-native-executorch",
-  "version": "0.3.0-dev21",
+  "version": "0.3.0-dev25",
   "description": "An easy way to run AI models in react native with ExecuTorch",
   "source": "./src/index.ts",
   "main": "./lib/commonjs/index.js",
@@ -32,7 +32,9 @@
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
     "prepare": "bob build",
-    "release": "release-it"
+    "release": "release-it",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "keywords": [
     "react-native",
@@ -198,6 +200,8 @@
     "expo": "^52.0.37",
     "expo-asset": "^11.0.3",
     "expo-file-system": "^18.0.10",
+    "react": "18.3.1",
+    "react-native": "0.76.7",
     "react-native-live-audio-stream": "^1.1.1"
   }
 }
