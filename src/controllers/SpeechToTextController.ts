@@ -100,12 +100,15 @@ export class SpeechToTextController {
     this.overlapSeconds = overlapSeconds || this.overlapSeconds;
   }
 
-  private async fetch_tokenizer(
+  private async fetchTokenizer(
     localUri?: ResourceSource
   ): Promise<{ [key: number]: string }> {
-    let tokenzerUri = await fetchResource(
-      localUri || this.config.tokenizer.source
-    );
+    if (localUri) {
+      // When we run require() on a JSON, it basically reads a JSON. Therefore,
+      // there is no need to do anything else
+      return localUri as { [key: number]: string };
+    }
+    let tokenzerUri = await fetchResource(this.config.tokenizer.source);
     return JSON.parse(await FileSystem.readAsStringAsync(tokenzerUri));
   }
 
@@ -121,7 +124,7 @@ export class SpeechToTextController {
     this.modelName = modelName;
 
     try {
-      this.tokenMapping = await this.fetch_tokenizer(tokenizerSource);
+      this.tokenMapping = await this.fetchTokenizer(tokenizerSource);
       encoderSource = await fetchResource(
         encoderSource || this.config.sources.encoder,
         (progress) => this.modelDownloadProgessCallback?.(progress / 2)
