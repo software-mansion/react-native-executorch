@@ -166,8 +166,10 @@ export class SpeechToTextController {
       ).then(({ uri }) => {
         return this.audioContext.decodeAudioDataSource(uri);
       });
+      return this.audioBuffer?.getChannelData(0);
     } catch (e) {
       this.onErrorCallback?.(e);
+      return undefined;
     } finally {
       this.isReadyCallback(true);
     }
@@ -319,5 +321,13 @@ export class SpeechToTextController {
       .map((token) => this.tokenMapping[token])
       .join('')
       .replaceAll(this.config.tokenizer.special_char, ' ');
+  }
+
+  public async encode(waveform: number[]) {
+    return await this.nativeModule.encode(waveform);
+  }
+
+  public async decode(seq: number[], encodings?: number[]) {
+    return await this.nativeModule.decode(seq, encodings);
   }
 }
