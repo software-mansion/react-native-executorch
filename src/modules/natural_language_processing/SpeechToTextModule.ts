@@ -42,12 +42,6 @@ export class SpeechToText {
     return await this.module.transcribe(waveform);
   }
 
-  static async loadAudio(
-    url: string
-  ): ReturnType<SpeechToTextController['loadAudio']> {
-    return await this.module.loadAudio(url);
-  }
-
   static async encode(waveform: number[]) {
     return await this.module.encode(waveform);
   }

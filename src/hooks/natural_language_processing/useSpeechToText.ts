@@ -9,9 +9,8 @@ interface SpeechToTextModule {
   downloadProgress: number;
   error: Error | undefined;
   transcribe: (
-    input?: number[]
+    input: number[]
   ) => ReturnType<SpeechToTextController['transcribe']>;
-  loadAudio: (url: string) => ReturnType<SpeechToTextController['loadAudio']>;
 }
 
 export const useSpeechToText = ({
@@ -73,7 +72,6 @@ export const useSpeechToText = ({
     downloadProgress,
     sequence: sequence,
     error: error,
-    transcribe: (waveform?: number[]) => model.transcribe(waveform),
-    loadAudio: (url: string) => model.loadAudio(url),
+    transcribe: (waveform: number[]) => model.transcribe(waveform),
   };
 };

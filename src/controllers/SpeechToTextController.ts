@@ -1,4 +1,3 @@
-import { AudioContext, AudioBuffer } from 'react-native-audio-api';
 import { _SpeechToTextModule } from '../native/RnExecutorchModules';
 import * as FileSystem from 'expo-file-system';
 import { fetchResource } from '../utils/fetchResource';
@@ -6,7 +5,6 @@ import { ResourceSource } from '../types/common';
 import {
   HAMMING_DIST_THRESHOLD,
   SECOND,
-  SAMPLE_RATE,
   MODEL_CONFIGS,
   ModelConfig,
   PRESETS,
@@ -39,10 +37,6 @@ const longCommonInfPref = (seq1: number[], seq2: number[]) => {
 
 export class SpeechToTextController {
   private nativeModule: _SpeechToTextModule;
-
-  // Audio config
-  private audioContext: AudioContext;
-  private audioBuffer: AudioBuffer | null = null;
 
   private overlapSeconds!: number;
   private windowSize!: number;
@@ -97,7 +91,6 @@ export class SpeechToTextController {
       isGeneratingCallback?.(isGenerating);
     };
     this.onErrorCallback = onErrorCallback;
-    this.audioContext = new AudioContext({ sampleRate: SAMPLE_RATE });
     this.nativeModule = new _SpeechToTextModule();
     this.windowSize =
       (windowSize || PRESETS[preset || 'medium'].windowSize) * SECOND;
@@ -156,25 +149,6 @@ export class SpeechToTextController {
     }
   }
 
-  public async loadAudio(url: string) {
-    this.onErrorCallback?.(undefined);
-    this.isReadyCallback(false);
-    try {
-      this.audioBuffer = await FileSystem.downloadAsync(
-        url,
-        FileSystem.documentDirectory + '_tmp_transcribe_audio.mp3'
-      ).then(({ uri }) => {
-        return this.audioContext.decodeAudioDataSource(uri);
-      });
-      return this.audioBuffer?.getChannelData(0);
-    } catch (e) {
-      this.onErrorCallback?.(e);
-      return undefined;
-    } finally {
-      this.isReadyCallback(true);
-    }
-  }
-
   private chunkWaveform(waveform: number[]) {
     this.chunks = [];
     for (let i = 0; i < Math.ceil(waveform.length / this.windowSize); i++) {
@@ -190,7 +164,7 @@ export class SpeechToTextController {
     }
   }
 
-  public async transcribe(waveform?: number[]): Promise<string> {
+  public async transcribe(waveform: number[]): Promise<string> {
     const _start = performance.now();
     let _latency;
     if (!this.isReady) {
@@ -205,9 +179,6 @@ export class SpeechToTextController {
     this.isGeneratingCallback(true);
 
     this.sequence = [];
-    if (!waveform) {
-      waveform = this.audioBuffer!.getChannelData(0);
-    }
 
     if (!waveform) {
       this.isGeneratingCallback(false);
@@ -228,9 +199,7 @@ export class SpeechToTextController {
       let prev_seq_token_idx = 0;
       let final_seq: number[] = [];
       let seq = [last_token];
-      // let enc_output;
       try {
-        // enc_output = await this.nativeModule.encode(this.chunks!.at(chunk_id)!);
         await this.nativeModule.encode(this.chunks!.at(chunk_id)!);
       } catch (error) {
         this.onErrorCallback?.(`Encode ${error}`);

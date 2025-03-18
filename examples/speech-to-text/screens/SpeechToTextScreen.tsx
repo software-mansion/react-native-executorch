@@ -12,6 +12,8 @@ import { useRef, useState } from 'react';
 import { Buffer } from 'buffer';
 import DeviceInfo from 'react-native-device-info';
 import InputPrompt from '../components/TextInputModal';
+import * as FileSystem from 'expo-file-system';
+import { AudioContext } from 'react-native-audio-api';
 
 const audioStreamOptions = {
   sampleRate: 16000,
@@ -49,8 +51,18 @@ export const SpeechToTextScreen = () => {
     sequence,
     error,
     transcribe,
-    loadAudio,
-  } = useSpeechToText({ modelName: 'moonshine', preset: 'quality' });
+  } = useSpeechToText({ modelName: 'moonshine', preset: 'medium' });
+
+  const loadAudio = async (url: string) => {
+    const audioContext = new AudioContext({ sampleRate: 16e3 });
+    const audioBuffer = await FileSystem.downloadAsync(
+      url,
+      FileSystem.documentDirectory + '_tmp_transcribe_audio.mp3'
+    ).then(({ uri }) => {
+      return audioContext.decodeAudioDataSource(uri);
+    });
+    return audioBuffer?.getChannelData(0);
+  };
 
   const [isRecording, setIsRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState(
@@ -99,6 +111,7 @@ export const SpeechToTextScreen = () => {
           </View>
         ) : (
           <View style={styles.transcriptionContainer}>
+            ``
             <Text
               style={
                 sequence
@@ -122,8 +135,7 @@ export const SpeechToTextScreen = () => {
           setModalVisible={async (visible: boolean) => {
             setModalVisible(visible);
             if (audioUrl) {
-              await loadAudio(audioUrl);
-              await transcribe();
+              await transcribe(await loadAudio(audioUrl));
             }
           }}
           onChangeText={setAudioUrl}
@@ -146,8 +158,7 @@ export const SpeechToTextScreen = () => {
                 if (!audioUrl) {
                   setModalVisible(true);
                 } else {
-                  await loadAudio(audioUrl);
-                  await transcribe();
+                  await transcribe(await loadAudio(audioUrl));
                 }
               }}
             >

@@ -1,6 +1,6 @@
 {
   "name": "react-native-executorch",
-  "version": "0.3.0-dev25",
+  "version": "0.3.0-dev26",
   "description": "An easy way to run AI models in react native with ExecuTorch",
   "source": "./src/index.ts",
   "main": "./lib/commonjs/index.js",
@@ -78,7 +78,6 @@
     "prettier": "^3.0.3",
     "react": "18.3.1",
     "react-native": "^0.76.1",
-    "react-native-audio-api": "0.4.13",
     "react-native-builder-bob": "^0.30.2",
     "turbo": "^1.10.7",
     "typescript": "^5.2.2"
@@ -88,8 +87,7 @@
   },
   "peerDependencies": {
     "react": "*",
-    "react-native": "*",
-    "react-native-audio-api": "*"
+    "react-native": "*"
   },
   "workspaces": [
     "example"

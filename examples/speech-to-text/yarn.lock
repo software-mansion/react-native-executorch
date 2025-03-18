@@ -6964,9 +6964,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-executorch@file:/Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.0-dev25.tgz::locator=speech-to-text%40workspace%3A.":
-  version: 0.3.0-dev25
-  resolution: "react-native-executorch@file:/Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.0-dev25.tgz::locator=speech-to-text%40workspace%3A."
+"react-native-executorch@file:/Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.0-dev26.tgz::locator=speech-to-text%40workspace%3A.":
+  version: 0.3.0-dev26
+  resolution: "react-native-executorch@file:/Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.0-dev26.tgz::locator=speech-to-text%40workspace%3A."
   dependencies:
     expo: ^52.0.37
     expo-asset: ^11.0.3
@@ -6978,7 +6978,7 @@ __metadata:
     react: "*"
     react-native: "*"
     react-native-audio-api: "*"
-  checksum: 1439f9dcdf7a801da5c939c56a1c6565fe6a25ed53d10e994df34c7b9d71646ec551fe4dd81d5a70b94d0c8aac9fd8099e5833a8595679f8f116f428720643e5
+  checksum: 17ddab5727c86420021019d8df8a3a72010cf2baebe086ad7679f14ff7fe45611a8bda5783c63bf34ec09c33f8cc8a1a0ffbf2e570b5483e60511c8b8781e561
   languageName: node
   linkType: hard
 
@@ -7807,7 +7807,7 @@ __metadata:
     react-native: 0.76.3
     react-native-audio-api: 0.4.11
     react-native-device-info: ^14.0.4
-    react-native-executorch: /Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.0-dev25.tgz
+    react-native-executorch: /Users/kopcion/swm-ai/react-native-executorch/react-native-executorch-0.3.0-dev26.tgz
     react-native-image-picker: ^7.2.2
     react-native-live-audio-stream: ^1.1.1
     react-native-loading-spinner-overlay: ^3.0.1
