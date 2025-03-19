@@ -1,5 +1,6 @@
 import React from 'react';
 import Layout from '@theme/Layout';
+import Head from '@docusaurus/Head';
 import styles from './styles.module.css';
 import HomepageStartScreen from '@site/src/components/Hero/StartScreen';
 import WaveTop from '@site/src/components/Wave/WaveTop';
@@ -14,6 +15,12 @@ const Home = () => {
       title="React Native ExecuTorch"
       description="Declarative way to run AI models in React Native on device, powered by ExecuTorch."
     >
+      <Head>
+        <meta
+          name="keywords"
+          content="react native, executorch, ai, machine learning, on-device, pytorch, mobile ai, react native ai, artificial intelligence, mobile machine learning, on-device inference, llama, llm, whisper, ocr, moonshine, speech to text"
+        />
+      </Head>
       <div className={styles.container}>
         <HomepageStartScreen />
       </div>

@@ -4,6 +4,8 @@ const darkCodeTheme = require('./src/theme/CodeBlock/highlighting-dark.js');
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'React Native ExecuTorch',
+  tagline:
+    'Declarative way to run AI models in React Native on device, powered by ExecuTorch',
   favicon: 'img/favicon.ico',
 
   url: 'https://docs.swmansion.com',
@@ -34,6 +36,12 @@ const config = {
         gtag: {
           trackingID: 'G-TJND8QJM9P',
           anonymizeIP: true,
+        },
+        sitemap: {
+          changefreq: 'weekly',
+          priority: 0.5,
+          ignorePatterns: ['/tags/**'],
+          filename: 'sitemap.xml',
         },
       }),
     ],
