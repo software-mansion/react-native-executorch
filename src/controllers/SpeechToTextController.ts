@@ -10,6 +10,7 @@ import {
   MODEL_CONFIGS,
   ModelConfig,
 } from '../constants/sttDefaults';
+import { unicodeToBytes } from '../utils/tokenizerUtils';
 
 const longCommonInfPref = (seq1: number[], seq2: number[]) => {
   let maxInd = 0;
@@ -17,14 +18,14 @@ const longCommonInfPref = (seq1: number[], seq2: number[]) => {
 
   for (let i = 0; i < seq1.length; i++) {
     let j = 0;
-    let hamming_dist = 0;
+    let hammingDist = 0;
     while (
       j < seq2.length &&
       i + j < seq1.length &&
-      (seq1[i + j] === seq2[j] || hamming_dist < HAMMING_DIST_THRESHOLD)
+      (seq1[i + j] === seq2[j] || hammingDist < HAMMING_DIST_THRESHOLD)
     ) {
       if (seq1[i + j] !== seq2[j]) {
-        hamming_dist++;
+        hammingDist++;
       }
       j++;
     }
@@ -54,6 +55,8 @@ export class SpeechToTextController {
 
   // tokenizer tokens to string mapping used for decoding sequence
   private tokenMapping!: { [key: number]: string };
+  private textDecoder: any;
+  private charDecoder: { [key: string]: number };
 
   // User callbacks
   private decodedTranscribeCallback: (sequence: number[]) => void;
@@ -93,6 +96,8 @@ export class SpeechToTextController {
       this.isGenerating = isGenerating;
       isGeneratingCallback?.(isGenerating);
     };
+    this.charDecoder = unicodeToBytes();
+    this.textDecoder = new TextDecoder('utf-8', { fatal: false });
     this.onErrorCallback = onErrorCallback;
     this.audioContext = new AudioContext({ sampleRate: SAMPLE_RATE });
     this.nativeModule = new _SpeechToTextModule();
@@ -205,7 +210,6 @@ export class SpeechToTextController {
 
     if (!waveform) {
       this.isGeneratingCallback(false);
-
       this.onErrorCallback?.(
         new Error(
           `Nothing to transcribe, perhaps you forgot to call this.loadAudio().`
@@ -216,49 +220,51 @@ export class SpeechToTextController {
     this.chunkWaveform(waveform);
 
     let seqs: number[][] = [];
-    let prevseq: number[] = [];
-    for (let chunk_id = 0; chunk_id < this.chunks.length; chunk_id++) {
-      let last_token = this.config.tokenizer.sos;
-      let prev_seq_token_idx = 0;
-      let final_seq: number[] = [];
-      let seq = [last_token];
-      let enc_output;
+    let prevSeq: number[] = [];
+    for (let chunkId = 0; chunkId < this.chunks.length; chunkId++) {
+      let lastToken = this.config.tokenizer.bos;
+      let prevSeqTokenIdx = 0;
+      let finalSeq: number[] = [];
+      let seq = [lastToken];
+      let encoderOutput;
       try {
-        enc_output = await this.nativeModule.encode(this.chunks!.at(chunk_id)!);
+        encoderOutput = await this.nativeModule.encode(
+          this.chunks!.at(chunkId)!
+        );
       } catch (error) {
         this.onErrorCallback?.(`Encode ${error}`);
         return '';
       }
-      while (last_token !== this.config.tokenizer.eos) {
+      while (lastToken !== this.config.tokenizer.eos) {
         let output;
         try {
-          output = await this.nativeModule.decode(seq, [enc_output]);
+          output = await this.nativeModule.decode(seq, [encoderOutput]);
         } catch (error) {
           this.onErrorCallback?.(`Decode ${error}`);
           return '';
         }
         if (typeof output === 'number') {
-          last_token = output;
+          lastToken = output;
         } else {
-          last_token = output[output.length - 1];
+          lastToken = output[output.length - 1];
         }
-        seq = [...seq, last_token];
+        seq.push(lastToken);
         if (
           seqs.length > 0 &&
           seq.length < seqs.at(-1)!.length &&
           seq.length % 3 !== 0
         ) {
-          prevseq = [...prevseq, seqs.at(-1)![prev_seq_token_idx++]!];
-          this.decodedTranscribeCallback(prevseq);
+          prevSeq = [...prevSeq, seqs.at(-1)![prevSeqTokenIdx++]!];
+          this.decodedTranscribeCallback(prevSeq);
         }
       }
       if (this.chunks.length === 1) {
-        final_seq = seq;
-        this.sequence = final_seq;
-        this.decodedTranscribeCallback(final_seq);
+        finalSeq = seq;
+        this.sequence = finalSeq;
+        this.decodedTranscribeCallback(finalSeq);
         break;
       }
-      // remove sos/eos token and 3 additional ones
+      // remove bos/eos token and 3 additional ones
       if (seqs.length === 0) {
         seqs = [seq.slice(0, -4)];
       } else if (
@@ -274,17 +280,17 @@ export class SpeechToTextController {
       }
 
       const maxInd = longCommonInfPref(seqs.at(-2)!, seqs.at(-1)!);
-      final_seq = [...this.sequence, ...seqs.at(-2)!.slice(0, maxInd)];
-      this.sequence = final_seq;
-      this.decodedTranscribeCallback(final_seq);
-      prevseq = final_seq;
+      finalSeq = [...this.sequence, ...seqs.at(-2)!.slice(0, maxInd)];
+      this.sequence = finalSeq;
+      this.decodedTranscribeCallback(finalSeq);
+      prevSeq = finalSeq;
 
-      //last sequence processed
+      // last sequence processed
       if (seqs.length === Math.ceil(waveform.length / this.windowSize)) {
-        final_seq = [...this.sequence, ...seqs.at(-1)!];
-        this.sequence = final_seq;
-        this.decodedTranscribeCallback(final_seq);
-        prevseq = final_seq;
+        finalSeq = [...this.sequence, ...seqs.at(-1)!];
+        this.sequence = finalSeq;
+        this.decodedTranscribeCallback(finalSeq);
+        prevSeq = finalSeq;
       }
     }
     const decodedSeq = this.decodeSeq(this.sequence);
@@ -292,7 +298,7 @@ export class SpeechToTextController {
     return decodedSeq;
   }
 
-  public decodeSeq(seq?: number[]): string {
+  private decodeSeq(seq?: number[]): string {
     if (!this.modelName) {
       this.onErrorCallback?.(
         new Error('Model is not loaded, call `loadModel` first')
@@ -302,14 +308,22 @@ export class SpeechToTextController {
     this.onErrorCallback?.(undefined);
     if (!seq) seq = this.sequence;
 
-    return seq
+    const decodedSeq = seq
       .filter(
-        (token) =>
-          token !== this.config.tokenizer.eos &&
-          token !== this.config.tokenizer.sos
+        (tokenId) =>
+          tokenId !== this.config.tokenizer.eos &&
+          tokenId !== this.config.tokenizer.bos
       )
-      .map((token) => this.tokenMapping[token])
-      .join('')
-      .replaceAll(this.config.tokenizer.special_char, ' ');
+      .map((tokenId) => this.tokenMapping[tokenId])
+      .join('');
+
+    let byteArray = Array.from(decodedSeq).map(
+      (char) => this.charDecoder[char]
+    );
+    const text = this.textDecoder.decode(
+      new Uint8Array(byteArray as number[]),
+      { stream: false }
+    );
+    return text;
   }
 }
