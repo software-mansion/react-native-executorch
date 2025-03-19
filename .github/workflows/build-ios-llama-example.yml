@@ -1,4 +1,4 @@
-name: Example app iOS build check
+name: Llama Example app iOS build check
 on:
   push:
     branches:
@@ -17,20 +17,19 @@ on:
 jobs:
   build:
     if: github.repository == 'software-mansion/react-native-executorch'
-    name: 'Example app iOS build check'
     runs-on: macos-latest
+    concurrency:
+      group: ios-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
-
       - name: Install node dependencies
         working-directory: examples/llama
         run: yarn
-
       - name: Install pods
         working-directory: examples/llama/ios
         run: pod install
-
       - name: Build app
         working-directory: examples/llama/ios
         run: |
