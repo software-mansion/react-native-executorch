@@ -13,10 +13,8 @@ export class TokenDecoder {
 
   /**
    * Creates an instance of TokenDecoder.
-   * @param {any} vocab - A mapping of token IDs to their corresponding string tokens.
    */
-  constructor(vocabSource: ResourceSource) {
-    this.vocab = vocabSource; // FIXME: for now I assume that it's just a JSON from require()
+  constructor() {
     this.unicodeToBytes = unicodeToBytes();
     this.textDecoder = new TextDecoder('utf-8', { fatal: false });
   }
@@ -26,11 +24,22 @@ export class TokenDecoder {
    * @param {ResourceSource} source - URL to the tokenizer vocab to fetch
    * @returns {Promise<{ [key: number]: string }>} - A mapping of with tokenId as key and token as value.
    */
-  public async fetchVocab(
-    source: ResourceSource
-  ): Promise<{ [key: number]: string }> {
-    let tokenzerUri = await fetchResource(source);
-    return JSON.parse(await FileSystem.readAsStringAsync(tokenzerUri));
+  public async setVocabFromResource(
+    source: ResourceSource | Object
+  ): Promise<void> {
+    if (typeof source === 'object') {
+      this.vocab = source;
+    } else {
+      try {
+        let tokenzerUri = await fetchResource(source);
+        return JSON.parse(await FileSystem.readAsStringAsync(tokenzerUri));
+      } catch (e) {
+        throw new Error(
+          'An error occurred while fetching or parsing the tokenizer: ' +
+            (e as Error).message
+        );
+      }
+    }
   }
 
   /**
