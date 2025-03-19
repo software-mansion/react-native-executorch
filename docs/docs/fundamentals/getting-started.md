@@ -1,6 +1,20 @@
 ---
 title: Getting Started
 sidebar_position: 1
+keywords:
+  [
+    react native,
+    executorch,
+    ai,
+    machine learning,
+    on-device,
+    pytorch,
+    mobile ai,
+    getting started,
+    installation,
+    llm,
+  ]
+description: 'Get started with React Native ExecuTorch - a framework for running AI models on-device in your React Native applications.'
 ---
 
 import Tabs from '@theme/Tabs';
