@@ -162,7 +162,6 @@ export const SpeechToTextScreen = () => {
               isRecording && styles.borderRed,
             ]}
           >
-            zRXW
             <TouchableOpacity
               disabled={recordingButtonDisabled || isGenerating}
               style={[
