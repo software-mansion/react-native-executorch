@@ -65,10 +65,13 @@ Analogous to the encoderSource, this takes in a string which is a source for the
 A string that specifies the location to the tokenizer for the model. This works just as the encoder and decoder do. Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/main/src/constants/modelUrls.ts) for given model.
 
 **`overlapSeconds?`**
-Specifies the length of overlap between consecutive audio chunks (expressed in seconds).
+Specifies the length of overlap between consecutive audio chunks (expressed in seconds). Overrides `preset` argument.
 
 **`windowSize?`**
-Specifies the size of each audio chunk (expressed in seconds).
+Specifies the size of each audio chunk (expressed in seconds). Overrides `preset` argument.
+
+**`preset?`**
+Specifies preset for both `overlapSeconds` and `windowSize` values. Three options are available: `fast`, `balanced` and `quality`. We discourage using `fast` preset with `Whisper` model which while has the lowest latency to first token has the slowest overall speed.
 
 ### Returns
 

@@ -12,10 +12,6 @@ NSArray *waveformTypes = [NSArray arrayWithObject:ScalarType.Float];
                            shapes:waveformShape
                        inputTypes:waveformTypes];
 
-  // NSArray *waveformShape = [NSArray arrayWithObject:@[@1, @([waveform
-  // count])]]; NSArray *result = [self forward:[NSArray
-  // arrayWithObject:waveform] shapes:waveformShape inputTypes:waveformTypes];
-
   return [result objectAtIndex:0];
 }
 

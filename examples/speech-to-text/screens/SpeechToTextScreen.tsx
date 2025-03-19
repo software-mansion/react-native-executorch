@@ -51,7 +51,7 @@ export const SpeechToTextScreen = () => {
     sequence,
     error,
     transcribe,
-  } = useSpeechToText({ modelName: 'moonshine', preset: 'medium' });
+  } = useSpeechToText({ modelName: 'moonshine', preset: 'balanced' });
 
   const loadAudio = async (url: string) => {
     const audioContext = new AudioContext({ sampleRate: 16e3 });
@@ -109,7 +109,6 @@ export const SpeechToTextScreen = () => {
           </View>
         ) : (
           <View style={styles.transcriptionContainer}>
-            ``
             <Text
               style={
                 sequence

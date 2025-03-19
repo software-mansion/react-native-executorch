@@ -93,9 +93,9 @@ export class SpeechToTextController {
     this.onErrorCallback = onErrorCallback;
     this.nativeModule = new _SpeechToTextModule();
     this.windowSize =
-      (windowSize || PRESETS[preset || 'medium'].windowSize) * SECOND;
+      (windowSize || PRESETS[preset || 'balanced'].windowSize) * SECOND;
     this.overlapSeconds =
-      overlapSeconds || PRESETS[preset || 'medium'].overlapSeconds;
+      overlapSeconds || PRESETS[preset || 'balanced'].overlapSeconds;
   }
 
   private async fetch_tokenizer(
@@ -165,8 +165,6 @@ export class SpeechToTextController {
   }
 
   public async transcribe(waveform: number[]): Promise<string> {
-    const _start = performance.now();
-    let _latency;
     if (!this.isReady) {
       this.onErrorCallback?.(new Error('Model is not yet ready'));
       return '';
@@ -205,7 +203,6 @@ export class SpeechToTextController {
         this.onErrorCallback?.(`Encode ${error}`);
         return '';
       }
-      let _start2 = performance.now();
       while (last_token !== this.config.tokenizer.eos) {
         try {
           last_token = await this.nativeModule.decode(seq);
@@ -220,13 +217,9 @@ export class SpeechToTextController {
           seq.length % 3 !== 0
         ) {
           prevseq = [...prevseq, seqs.at(-1)![prev_seq_token_idx++]!];
-          _latency = _latency || performance.now() - _start;
           this.decodedTranscribeCallback(prevseq);
         }
       }
-      console.log(
-        `Decoded ${seq.length} tokens with speed: ${(performance.now() - _start2) / seq.length}`
-      );
 
       if (this.chunks.length === 1) {
         final_seq = seq;
@@ -265,9 +258,6 @@ export class SpeechToTextController {
     }
     const decodedSeq = this.decodeSeq(this.sequence);
     this.isGeneratingCallback(false);
-    console.log(
-      `latency: ${_latency} time: ${performance.now() - _start}, length: ${this.sequence.length}, t/s: ${this.sequence.length / (performance.now() - _start)}`
-    );
     return decodedSeq;
   }
 
