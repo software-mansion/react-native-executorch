@@ -1,28 +1,65 @@
+import * as FileSystem from 'expo-file-system';
+import { ResourceSource } from '../types/common';
+import { fetchResource } from '../utils/fetchResource';
 import { unicodeToBytes } from '../utils/tokenizerUtils';
 
+/**
+ * TokenDecoder class responsible for decoding token IDs into tokens and converting tokens into text.
+ */
 export class TokenDecoder {
   private vocab: any;
-  private charDecoder;
+  private unicodeToBytes;
   private textDecoder;
 
-  constructor(vocab: any) {
-    this.vocab = vocab;
-    this.charDecoder = unicodeToBytes();
+  /**
+   * Creates an instance of TokenDecoder.
+   * @param {any} vocab - A mapping of token IDs to their corresponding string tokens.
+   */
+  constructor(vocabSource: ResourceSource) {
+    this.vocab = vocabSource; // FIXME: for now I assume that it's just a JSON from require()
+    this.unicodeToBytes = unicodeToBytes();
     this.textDecoder = new TextDecoder('utf-8', { fatal: false });
   }
 
-  public tokenIdsToTokens(tokenIds: number[]) {
+  /**
+   * Fetches the vocabulary of the tokenizer which can later be used for mapping tokenIds to tokens.
+   * @param {ResourceSource} source - URL to the tokenizer vocab to fetch
+   * @returns {Promise<{ [key: number]: string }>} - A mapping of with tokenId as key and token as value.
+   */
+  public async fetchVocab(
+    source: ResourceSource
+  ): Promise<{ [key: number]: string }> {
+    let tokenzerUri = await fetchResource(source);
+    return JSON.parse(await FileSystem.readAsStringAsync(tokenzerUri));
+  }
+
+  /**
+   * Converts an array of token IDs into their corresponding token strings.
+   * @param {number[]} tokenIds - An array of token IDs.
+   * @returns {string[]} An array of token strings.
+   */
+  public tokenIdsToTokens(tokenIds: number[]): string[] {
     return tokenIds.map((token) => this.vocab[token]);
   }
 
-  public tokenIdtoToken(tokenId: number) {
+  /**
+   * Converts a single token ID into its corresponding token string.
+   * @param {number} tokenId - A single token ID.
+   * @returns {string} The corresponding token string.
+   */
+  public tokenIdtoToken(tokenId: number): string {
     return this.vocab[tokenId];
   }
 
-  public tokensToDecodedText(tokens: string[]) {
+  /**
+   * Decodes an array of tokens into a readable text string.
+   * @param {string[]} tokens - An array of token strings.
+   * @returns {string} The decoded text.
+   */
+  public tokensToDecodedText(tokens: string[]): string {
     const stringifiedTokens = tokens.join('');
     const byteArray = Array.from(stringifiedTokens).map(
-      (char) => this.charDecoder[char]
+      (char) => this.unicodeToBytes[char]
     );
     const text = this.textDecoder.decode(
       new Uint8Array(byteArray as number[]),
