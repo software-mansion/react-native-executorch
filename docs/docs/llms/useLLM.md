@@ -1,6 +1,22 @@
 ---
 title: useLLM
 sidebar_position: 1
+keywords:
+  [
+    llm,
+    large language model,
+    llama,
+    llama 3,
+    react native,
+    executorch,
+    ai,
+    machine learning,
+    on-device,
+    mobile ai,
+    inference,
+    text generation,
+  ]
+description: "Learn how to use Llama models in your React Native applications with React Native ExecuTorch's useLLM hook."
 ---
 
 React Native ExecuTorch supports Llama 3.2 models, including quantized versions. Before getting started, you’ll need to obtain the .pte binary—a serialized model—and the tokenizer. There are various ways to accomplish this:
