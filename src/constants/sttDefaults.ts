@@ -18,7 +18,7 @@ export interface ModelConfig {
   };
   tokenizer: {
     source: string;
-    sos: number;
+    bos: number;
     eos: number;
     specialChar: string;
   };
@@ -33,7 +33,7 @@ export const MODEL_CONFIGS: { [key in 'moonshine' | 'whisper']: ModelConfig } =
       },
       tokenizer: {
         source: MOONSHINE_TOKENIZER,
-        sos: 1,
+        bos: 1,
         eos: 2,
         specialChar: '\u2581',
       },
@@ -45,7 +45,7 @@ export const MODEL_CONFIGS: { [key in 'moonshine' | 'whisper']: ModelConfig } =
       },
       tokenizer: {
         source: WHISPER_TOKENIZER,
-        sos: 50257,
+        bos: 50257,
         eos: 50256,
         specialChar: 'Ġ',
       },
