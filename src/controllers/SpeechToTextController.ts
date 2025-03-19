@@ -9,6 +9,7 @@ import {
   ModelConfig,
   MODES,
 } from '../constants/sttDefaults';
+import { unicodeToBytes } from '../utils/tokenizerUtils';
 
 const longCommonInfPref = (seq1: number[], seq2: number[]) => {
   let maxInd = 0;
@@ -49,6 +50,8 @@ export class SpeechToTextController {
 
   // tokenizer tokens to string mapping used for decoding sequence
   private tokenMapping!: { [key: number]: string };
+  private textDecoder: any;
+  private charDecoder: { [key: string]: number };
 
   // User callbacks
   private decodedTranscribeCallback: (sequence: number[]) => void;
@@ -90,6 +93,8 @@ export class SpeechToTextController {
       this.isGenerating = isGenerating;
       isGeneratingCallback?.(isGenerating);
     };
+    this.charDecoder = unicodeToBytes();
+    this.textDecoder = new TextDecoder('utf-8', { fatal: false });
     this.onErrorCallback = onErrorCallback;
     this.nativeModule = new _SpeechToTextModule();
     this.configureStreaming(
@@ -209,7 +214,6 @@ export class SpeechToTextController {
 
     if (!waveform) {
       this.isGeneratingCallback(false);
-
       this.onErrorCallback?.(
         new Error(
           `Nothing to transcribe, perhaps you forgot to call this.loadAudio().`
@@ -220,33 +224,42 @@ export class SpeechToTextController {
     this.chunkWaveform(waveform);
 
     let seqs: number[][] = [];
-    let prevseq: number[] = [];
+    let prevSeq: number[] = [];
     for (let chunkId = 0; chunkId < this.chunks.length; chunkId++) {
-      let lastToken = this.config.tokenizer.sos;
+      let lastToken = this.config.tokenizer.bos;
       let prevSeqTokenIdx = 0;
       let finalSeq: number[] = [];
       let seq = [lastToken];
+      let encoderOutput;
       try {
-        await this.nativeModule.encode(this.chunks!.at(chunkId)!);
+        encoderOutput = await this.nativeModule.encode(
+          this.chunks!.at(chunkId)!
+        );
       } catch (error) {
         this.onErrorCallback?.(`Encode ${error}`);
         return '';
       }
       while (lastToken !== this.config.tokenizer.eos) {
+        let output;
         try {
-          lastToken = await this.nativeModule.decode(seq);
+          output = await this.nativeModule.decode(seq, [encoderOutput]);
         } catch (error) {
           this.onErrorCallback?.(`Decode ${error}`);
           return '';
         }
-        seq = [...seq, lastToken];
+        if (typeof output === 'number') {
+          lastToken = output;
+        } else {
+          lastToken = output[output.length - 1];
+        }
+        seq.push(lastToken);
         if (
           seqs.length > 0 &&
           seq.length < seqs.at(-1)!.length &&
           seq.length % 3 !== 0
         ) {
-          prevseq = [...prevseq, seqs.at(-1)![prevSeqTokenIdx++]!];
-          this.decodedTranscribeCallback(prevseq);
+          prevSeq = [...prevSeq, seqs.at(-1)![prevSeqTokenIdx++]!];
+          this.decodedTranscribeCallback(prevSeq);
         }
       }
 
@@ -256,7 +269,7 @@ export class SpeechToTextController {
         this.decodedTranscribeCallback(finalSeq);
         break;
       }
-      // remove sos/eos token and 3 additional ones
+      // remove bos/eos token and 3 additional ones
       if (seqs.length === 0) {
         seqs = [seq.slice(0, -4)];
       } else if (seqs.length === this.chunks.length - 1) {
@@ -272,14 +285,14 @@ export class SpeechToTextController {
       finalSeq = [...this.sequence, ...seqs.at(-2)!.slice(0, maxInd)];
       this.sequence = finalSeq;
       this.decodedTranscribeCallback(finalSeq);
-      prevseq = finalSeq;
+      prevSeq = finalSeq;
 
-      //last sequence processed
-      if (seqs.length === this.chunks.length) {
+      // last sequence processed
+      if (seqs.length === Math.ceil(waveform.length / this.windowSize)) {
         finalSeq = [...this.sequence, ...seqs.at(-1)!];
         this.sequence = finalSeq;
         this.decodedTranscribeCallback(finalSeq);
-        prevseq = finalSeq;
+        prevSeq = finalSeq;
       }
     }
     const decodedSeq = this.decodeSeq(this.sequence);
@@ -287,7 +300,7 @@ export class SpeechToTextController {
     return decodedSeq;
   }
 
-  public decodeSeq(seq?: number[]): string {
+  private decodeSeq(seq?: number[]): string {
     if (!this.modelName) {
       this.onErrorCallback?.(
         new Error('Model is not loaded, call `loadModel` first')
@@ -297,22 +310,22 @@ export class SpeechToTextController {
     this.onErrorCallback?.(undefined);
     if (!seq) seq = this.sequence;
 
-    return seq
+    const decodedSeq = seq
       .filter(
-        (token) =>
-          token !== this.config.tokenizer.eos &&
-          token !== this.config.tokenizer.sos
+        (tokenId) =>
+          tokenId !== this.config.tokenizer.eos &&
+          tokenId !== this.config.tokenizer.bos
       )
-      .map((token) => this.tokenMapping[token])
-      .join('')
-      .replaceAll(this.config.tokenizer.specialChar, ' ');
-  }
+      .map((tokenId) => this.tokenMapping[tokenId])
+      .join('');
 
-  public async encode(waveform: number[]) {
-    return await this.nativeModule.encode(waveform);
-  }
-
-  public async decode(seq: number[], encodings?: number[]) {
-    return await this.nativeModule.decode(seq, encodings);
+    let byteArray = Array.from(decodedSeq).map(
+      (char) => this.charDecoder[char]
+    );
+    const text = this.textDecoder.decode(
+      new Uint8Array(byteArray as number[]),
+      { stream: false }
+    );
+    return text;
   }
 }
