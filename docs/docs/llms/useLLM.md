@@ -131,10 +131,10 @@ Make sure that the reference to the `messageHistory` array is stable. Depending 
 In order to send a message to the model, one can use the following code:
 
 ```typescript
-const llama = useLLM(
+const llama = useLLM({
     modelSource: LLAMA3_2_1B,
     tokenizerSource: require('../assets/tokenizer.bin'),
-);
+});
 
 ...
 const message = 'Hi, who are you?';
