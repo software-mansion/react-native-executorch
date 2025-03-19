@@ -1,6 +1,22 @@
 ---
 title: useSpeechToText
 sidebar_position: 1
+keywords:
+  [
+    speech to text,
+    stt,
+    voice recognition,
+    transcription,
+    whisper,
+    moonshine,
+    react native,
+    executorch,
+    ai,
+    machine learning,
+    on-device,
+    mobile ai,
+  ]
+description: "Learn how to use speech-to-text models in your React Native applications with React Native ExecuTorch's useSpeechToText hook."
 ---
 
 With the latest `v0.3.0` release we introduce a new hook - `useSpeechToText`. Speech to text is a task that allows to transform spoken language to written text. It is commonly used to implement features such as transcription or voice assistants. As of now, [all supported STT models](#supported-models) run on the XNNPACK backend.

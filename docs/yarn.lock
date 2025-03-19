@@ -4739,6 +4739,7 @@ __metadata:
   dependencies:
     "@docusaurus/core": 2.4.3
     "@docusaurus/module-type-aliases": 2.4.3
+    "@docusaurus/plugin-sitemap": 2.4.3
     "@docusaurus/preset-classic": 2.4.3
     "@mdx-js/react": ^1.6.22
     "@swmansion/t-rex-ui": ^0.0.14
