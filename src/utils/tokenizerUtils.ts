@@ -1,4 +1,14 @@
-export function bytesToUnicode() {
+/**
+ * Generates a mapping of Unicode characters to their corresponding UTF-8 byte values.
+ * This is useful for multilingual token decoding, as some tokenizers include
+ * uncommon characters that need to be properly decoded.
+ *
+ * The function follows a predefined set of byte ranges for common characters
+ * and assigns extended Unicode values to unused bytes (0-255) to ensure full coverage.
+ *
+ * @returns {Record<string, number>} A mapping of Unicode characters to their UTF-8 byte values.
+ */
+export function unicodeToBytes() {
   const predefinedByteRanges: [number, number][] = [
     [33, 126], // '!' to '~'
     [161, 172], // '¡' to '¬'
@@ -21,12 +31,12 @@ export function bytesToUnicode() {
     }
   }
 
-  const byteToUnicodeMap: Record<string, number> = {};
+  const unicodeToByteMap: Record<string, number> = {};
 
   unicodeValues.forEach((unicodeValue, index) => {
     const character = String.fromCharCode(unicodeValue);
-    byteToUnicodeMap[character] = definedBytes[index] as number;
+    unicodeToByteMap[character] = definedBytes[index] as number;
   });
 
-  return byteToUnicodeMap;
+  return unicodeToByteMap;
 }
