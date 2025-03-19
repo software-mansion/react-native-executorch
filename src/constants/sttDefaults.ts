@@ -22,47 +22,41 @@ export interface ModelConfig {
     eos: number;
     specialChar: string;
   };
+  multilingual: boolean;
 }
 
-export const MODEL_CONFIGS: { [key in 'moonshine' | 'whisper']: ModelConfig } =
-  {
-    moonshine: {
-      sources: {
-        encoder: MOONSHINE_TINY_ENCODER,
-        decoder: MOONSHINE_TINY_DECODER,
-      },
-      tokenizer: {
-        source: MOONSHINE_TOKENIZER,
-        bos: 1,
-        eos: 2,
-        specialChar: '\u2581',
-      },
-    },
-    whisper: {
-      sources: {
-        encoder: WHISPER_TINY_ENCODER,
-        decoder: WHISPER_TINY_DECODER,
-      },
-      tokenizer: {
-        source: WHISPER_TOKENIZER,
-        bos: 50257,
-        eos: 50256,
-        specialChar: 'Ġ',
-      },
-    },
-  };
+const whisperTinyModelConfig = {
+  sources: {
+    encoder: WHISPER_TINY_ENCODER,
+    decoder: WHISPER_TINY_DECODER,
+  },
+  tokenizer: {
+    source: WHISPER_TOKENIZER,
+    bos: 50257,
+    eos: 50256,
+    special_char: 'Ġ',
+  },
+  multilingual: false,
+};
 
-export const MODES = {
-  fast: {
-    windowSize: 5,
-    overlapSeconds: 1.2,
+const moonshineTinyModelConfig = {
+  sources: {
+    encoder: MOONSHINE_TINY_ENCODER,
+    decoder: MOONSHINE_TINY_DECODER,
   },
-  balanced: {
-    windowSize: 12,
-    overlapSeconds: 2,
+  tokenizer: {
+    source: MOONSHINE_TOKENIZER,
+    bos: 1,
+    eos: 2,
+    special_char: '\u2581',
   },
-  quality: {
-    windowSize: 24,
-    overlapSeconds: 3,
-  },
+  multilingual: false,
+};
+
+export const MODEL_CONFIGS: {
+  [key in 'moonshine' | 'whisper' | 'whisperMultilingual']: ModelConfig;
+} = {
+  moonshine: moonshineTinyModelConfig,
+  whisper: whisperTinyModelConfig,
+  whisperMultilingual: { ...whisperTinyModelConfig, multilingual: true },
 };
