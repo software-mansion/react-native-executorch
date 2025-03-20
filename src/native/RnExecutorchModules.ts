@@ -130,6 +130,18 @@ const VerticalOCR = VerticalOCRSpec
       }
     );
 
+const TokenizerSpec = require('./NativeTokenizer').default;
+
+const Tokenizer = TokenizerSpec
+  ? TokenizerSpec
+  : new Proxy(
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
 class _ImageSegmentationModule {
   async forward(
     input: string,
@@ -272,6 +284,7 @@ export {
   SpeechToText,
   OCR,
   VerticalOCR,
+  Tokenizer,
   _ETModule,
   _ClassificationModule,
   _StyleTransferModule,

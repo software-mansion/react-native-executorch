@@ -24,6 +24,8 @@ export * from './modules/natural_language_processing/SpeechToTextModule';
 
 export * from './modules/general/ExecutorchModule';
 
+export * from './modules/natural_language_processing/TokenizerModule';
+
 // utils
 export * from './utils/listDownloadedResources';
 
