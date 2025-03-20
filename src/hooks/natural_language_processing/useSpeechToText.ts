@@ -7,6 +7,7 @@ interface SpeechToTextModule {
   isGenerating: boolean;
   sequence: string;
   downloadProgress: number;
+  configureStreaming: SpeechToTextController['configureStreaming'];
   error: Error | undefined;
   transcribe: (
     input: number[]
@@ -20,7 +21,7 @@ export const useSpeechToText = ({
   tokenizerSource,
   overlapSeconds,
   windowSize,
-  preset,
+  streamingConfig,
 }: {
   modelName: 'moonshine' | 'whisper';
   encoderSource?: ResourceSource;
@@ -32,7 +33,9 @@ export const useSpeechToText = ({
   windowSize?: ConstructorParameters<
     typeof SpeechToTextController
   >['0']['windowSize'];
-  preset?: ConstructorParameters<typeof SpeechToTextController>['0']['preset'];
+  streamingConfig?: ConstructorParameters<
+    typeof SpeechToTextController
+  >['0']['streamingConfig'];
 }): SpeechToTextModule => {
   const [sequence, setSequence] = useState<string>('');
   const [isReady, setIsReady] = useState(false);
@@ -50,7 +53,7 @@ export const useSpeechToText = ({
         modelDownloadProgessCallback: setDownloadProgress,
         overlapSeconds: overlapSeconds,
         windowSize: windowSize,
-        preset: preset,
+        streamingConfig: streamingConfig,
       })
   );
 
@@ -70,8 +73,9 @@ export const useSpeechToText = ({
     isReady,
     isGenerating,
     downloadProgress,
-    sequence: sequence,
-    error: error,
+    configureStreaming: model.configureStreaming,
+    sequence,
+    error,
     transcribe: (waveform: number[]) => model.transcribe(waveform),
   };
 };

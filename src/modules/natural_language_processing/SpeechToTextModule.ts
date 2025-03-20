@@ -19,14 +19,16 @@ export class SpeechToText {
     windowSize?: ConstructorParameters<
       typeof SpeechToTextController
     >['0']['windowSize'],
-    preset?: ConstructorParameters<typeof SpeechToTextController>['0']['preset']
+    streamingConfig?: ConstructorParameters<
+      typeof SpeechToTextController
+    >['0']['streamingConfig']
   ) {
     this.module = new SpeechToTextController({
       transcribeCallback: transcribeCallback,
       modelDownloadProgessCallback: modelDownloadProgessCallback,
       overlapSeconds: overlapSeconds,
       windowSize: windowSize,
-      preset: preset,
+      streamingConfig: streamingConfig,
     });
     await this.module.loadModel(
       (modelName = modelName),
@@ -34,6 +36,12 @@ export class SpeechToText {
       (decoderSource = decoderSource),
       (tokenizerSource = tokenizerSource)
     );
+  }
+
+  static configureStreaming(
+    props: Parameters<SpeechToTextController['configureStreaming']>
+  ) {
+    this.module.configureStreaming(...props);
   }
 
   static async transcribe(

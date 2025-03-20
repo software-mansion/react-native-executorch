@@ -1278,7 +1278,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-executorch (0.3.0-dev27):
+  - react-native-executorch (0.3.1):
     - DoubleConversion
     - glog
     - hermes-engine

@@ -52,7 +52,7 @@ export const MODEL_CONFIGS: { [key in 'moonshine' | 'whisper']: ModelConfig } =
     },
   };
 
-export const PRESETS = {
+export const MODES = {
   fast: {
     windowSize: 5,
     overlapSeconds: 1.2,

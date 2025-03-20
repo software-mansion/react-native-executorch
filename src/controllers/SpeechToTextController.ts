@@ -7,7 +7,7 @@ import {
   SECOND,
   MODEL_CONFIGS,
   ModelConfig,
-  PRESETS,
+  MODES,
 } from '../constants/sttDefaults';
 
 const longCommonInfPref = (seq1: number[], seq2: number[]) => {
@@ -38,8 +38,8 @@ const longCommonInfPref = (seq1: number[], seq2: number[]) => {
 export class SpeechToTextController {
   private nativeModule: _SpeechToTextModule;
 
-  private overlapSeconds!: number;
-  private windowSize!: number;
+  private overlapSeconds: number;
+  private windowSize: number;
 
   private chunks: number[][] = [];
   public sequence: number[] = [];
@@ -68,7 +68,7 @@ export class SpeechToTextController {
     onErrorCallback,
     overlapSeconds,
     windowSize,
-    preset,
+    streamingConfig,
   }: {
     transcribeCallback: (sequence: string) => void;
     modelDownloadProgessCallback?: (downloadProgress: number) => void;
@@ -77,7 +77,7 @@ export class SpeechToTextController {
     onErrorCallback?: (error: Error | undefined) => void;
     overlapSeconds?: number;
     windowSize?: number;
-    preset?: keyof typeof PRESETS;
+    streamingConfig?: keyof typeof MODES;
   }) {
     this.decodedTranscribeCallback = (seq) =>
       transcribeCallback(this.decodeSeq(seq));
@@ -92,10 +92,16 @@ export class SpeechToTextController {
     };
     this.onErrorCallback = onErrorCallback;
     this.nativeModule = new _SpeechToTextModule();
+    if (streamingConfig && (windowSize || overlapSeconds)) {
+      console.warn(
+        `window size and overlapSeconds overrides values from streamingConfig ${streamingConfig}`
+      );
+    }
     this.windowSize =
-      (windowSize || PRESETS[preset || 'balanced'].windowSize) * SECOND;
+      (windowSize || MODES[streamingConfig || 'balanced'].windowSize) * SECOND;
     this.overlapSeconds =
-      overlapSeconds || PRESETS[preset || 'balanced'].overlapSeconds;
+      overlapSeconds ||
+      MODES[streamingConfig || 'balanced'].overlapSeconds * SECOND;
   }
 
   private async fetch_tokenizer(
@@ -149,13 +155,32 @@ export class SpeechToTextController {
     }
   }
 
+  public configureStreaming(
+    overlapSeconds?: number,
+    windowSize?: number,
+    streamingConfig?: keyof typeof MODES
+  ) {
+    if (streamingConfig) {
+      this.windowSize = MODES[streamingConfig].windowSize * SECOND;
+      this.overlapSeconds = MODES[streamingConfig].overlapSeconds * SECOND;
+    }
+    if (streamingConfig && (windowSize || overlapSeconds)) {
+      console.warn(
+        `window size and overlapSeconds overrides values from streamingConfig ${streamingConfig}`
+      );
+    }
+    this.windowSize = (windowSize || 0) * SECOND || this.windowSize;
+    this.overlapSeconds = (overlapSeconds || 0) * SECOND || this.overlapSeconds;
+  }
+
   private chunkWaveform(waveform: number[]) {
     this.chunks = [];
-    for (let i = 0; i < Math.ceil(waveform.length / this.windowSize); i++) {
+    const num_of_chunks = Math.ceil(waveform.length / this.windowSize);
+    for (let i = 0; i < num_of_chunks; i++) {
       let chunk = waveform.slice(
-        Math.max(this.windowSize * i - this.overlapSeconds * SECOND, 0),
+        Math.max(this.windowSize * i - this.overlapSeconds, 0),
         Math.min(
-          this.windowSize * (i + 1) + this.overlapSeconds * SECOND,
+          this.windowSize * (i + 1) + this.overlapSeconds,
           waveform.length
         )
       );
@@ -230,10 +255,7 @@ export class SpeechToTextController {
       // remove sos/eos token and 3 additional ones
       if (seqs.length === 0) {
         seqs = [seq.slice(0, -4)];
-      } else if (
-        seqs.length ===
-        Math.ceil(waveform.length / this.windowSize) - 1
-      ) {
+      } else if (seqs.length === this.chunks.length - 1) {
         seqs = [...seqs, seq.slice(4)];
       } else {
         seqs = [...seqs, seq.slice(4, -4)];
@@ -249,7 +271,7 @@ export class SpeechToTextController {
       prevseq = final_seq;
 
       //last sequence processed
-      if (seqs.length === Math.ceil(waveform.length / this.windowSize)) {
+      if (seqs.length === this.chunks.length) {
         final_seq = [...this.sequence, ...seqs.at(-1)!];
         this.sequence = final_seq;
         this.decodedTranscribeCallback(final_seq);
