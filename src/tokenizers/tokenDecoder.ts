@@ -11,9 +11,6 @@ export class TokenDecoder {
   private unicodeToBytes;
   private textDecoder;
 
-  /**
-   * Creates an instance of TokenDecoder.
-   */
   constructor() {
     this.unicodeToBytes = unicodeToBytes();
     this.textDecoder = new TextDecoder('utf-8', { fatal: false });
@@ -21,13 +18,13 @@ export class TokenDecoder {
 
   /**
    * Fetches the vocabulary of the tokenizer which can later be used for mapping tokenIds to tokens.
-   * @param {ResourceSource} source - URL to the tokenizer vocab to fetch
+   * @param {ResourceSource} source - URL to the tokenizer vocab to fetch.
    * @returns {Promise<{ [key: number]: string }>} - A mapping of with tokenId as key and token as value.
    */
-  public async setVocabFromResource(
-    source: ResourceSource | Object
-  ): Promise<void> {
+  public async setVocabFromResource(source: ResourceSource): Promise<void> {
     if (typeof source === 'object') {
+      // When using require(), we might get a parsed JS object in return.
+      // This means that we don't need to to anything else
       this.vocab = source;
     } else {
       try {
