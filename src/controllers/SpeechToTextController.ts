@@ -137,7 +137,8 @@ export class SpeechToTextController {
 
   private chunkWaveform(waveform: number[]) {
     this.chunks = [];
-    for (let i = 0; i < Math.ceil(waveform.length / this.windowSize); i++) {
+    let numChunks = Math.ceil(waveform.length / this.windowSize);
+    for (let i = 0; i < numChunks; i++) {
       let chunk = waveform.slice(
         Math.max(this.windowSize * i - this.overlapSeconds * SECOND, 0),
         Math.min(
@@ -145,20 +146,27 @@ export class SpeechToTextController {
           waveform.length
         )
       );
-
       this.chunks.push(chunk);
     }
   }
 
-  public async transcribe(waveform?: number[]): Promise<string> {
+  private checkCanTranscribe() {
     if (!this.isReady) {
-      this.onErrorCallback?.(new Error('Model is not yet ready'));
-      return '';
+      throw Error('Model is not yet ready');
     }
     if (this.isGenerating) {
-      this.onErrorCallback?.(new Error('Model is already transcribing'));
-      return '';
+      throw Error('Model is already transcribing');
     }
+  }
+
+  public async transcribe(waveform?: number[]): Promise<string> {
+    try {
+      this.checkCanTranscribe();
+    } catch (e) {
+      this.onErrorCallback?.(e);
+    }
+
+    // Making sure that the error is not set when we get there
     this.onErrorCallback?.(undefined);
     this.isGeneratingCallback(true);
 
@@ -167,6 +175,7 @@ export class SpeechToTextController {
       waveform = this.audioBuffer!.getChannelData(0);
     }
 
+    // if .getChannelData() returns nothing
     if (!waveform) {
       this.isGeneratingCallback(false);
       this.onErrorCallback?.(
