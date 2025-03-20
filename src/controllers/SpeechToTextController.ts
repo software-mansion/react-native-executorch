@@ -8,34 +8,10 @@ import {
   SECOND,
 } from '../constants/sttDefaults';
 import { _SpeechToTextModule } from '../native/RnExecutorchModules';
+import { TokenDecoder } from '../tokenizers/tokenDecoder';
 import { ResourceSource } from '../types/common';
 import { fetchResource } from '../utils/fetchResource';
-import { TokenDecoder } from '../tokenizers/tokenDecoder';
-
-const longCommonInfPref = (seq1: number[], seq2: number[]) => {
-  let maxInd = 0;
-  let maxLength = 0;
-
-  for (let i = 0; i < seq1.length; i++) {
-    let j = 0;
-    let hammingDist = 0;
-    while (
-      j < seq2.length &&
-      i + j < seq1.length &&
-      (seq1[i + j] === seq2[j] || hammingDist < HAMMING_DIST_THRESHOLD)
-    ) {
-      if (seq1[i + j] !== seq2[j]) {
-        hammingDist++;
-      }
-      j++;
-    }
-    if (j >= maxLength) {
-      maxLength = j;
-      maxInd = i;
-    }
-  }
-  return maxInd;
-};
+import { longCommonInfPref } from '../utils/tokenizerUtils';
 
 export class SpeechToTextController {
   private nativeModule: _SpeechToTextModule;
@@ -139,7 +115,6 @@ export class SpeechToTextController {
       this.onErrorCallback?.(
         new Error(`Error when loading the SpeechToTextController! ${e}`)
       );
-      console.error('Error when loading the SpeechToTextController!', e);
     }
   }
 
@@ -228,7 +203,6 @@ export class SpeechToTextController {
         let output;
         try {
           output = await this.nativeModule.decode(seq, [encoderOutput]);
-          console.log(output[0]);
         } catch (error) {
           this.onErrorCallback?.(`Decode ${error}`);
           return '';
@@ -267,7 +241,11 @@ export class SpeechToTextController {
         continue;
       }
 
-      const maxInd = longCommonInfPref(seqs.at(-2)!, seqs.at(-1)!);
+      const maxInd = longCommonInfPref(
+        seqs.at(-2)!,
+        seqs.at(-1)!,
+        HAMMING_DIST_THRESHOLD
+      );
       finalSeq = [...this.sequence, ...seqs.at(-2)!.slice(0, maxInd)];
       this.sequence = finalSeq;
       this.decodedTranscribeCallback(finalSeq);
