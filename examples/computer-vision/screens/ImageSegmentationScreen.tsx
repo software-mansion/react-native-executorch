@@ -14,6 +14,7 @@ import {
   ColorType,
 } from '@shopify/react-native-skia';
 import { View, StyleSheet, Image } from 'react-native';
+import { useState } from 'react';
 
 const width = 224;
 const height = 224;
@@ -71,10 +72,10 @@ export const ImageSegmentationScreen = ({
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
     const uri = image?.uri;
-    if (typeof uri === 'string') {
-      setImageUri(uri as string);
-    }
+    setImageUri(uri as string);
   };
+
+  const [resultPresent, setResultPresent] = useState(false);
 
   const runForward = async () => {
     if (imageUri) {
@@ -105,6 +106,7 @@ export const ImageSegmentationScreen = ({
           data,
           width * 4
         );
+        setResultPresent(true);
       } catch (e) {
         console.error(e);
       }
@@ -122,28 +124,32 @@ export const ImageSegmentationScreen = ({
 
   return (
     <>
-      <View style={styles.imageContainer}>
-        <Image
-          style={styles.image}
-          resizeMode="contain"
-          source={
-            imageUri
-              ? { uri: imageUri }
-              : require('../assets/icons/executorch_logo.png')
-          }
-        />
-      </View>
-      <View style={styles.canvasContainer}>
-        <Canvas style={styles.canvas}>
-          <SkiaImage
-            image={img}
-            fit="contain"
-            x={0}
-            y={0}
-            width={width}
-            height={height}
+      <View style={styles.imageCanvasContainer}>
+        <View style={styles.imageContainer}>
+          <Image
+            style={styles.image}
+            resizeMode="contain"
+            source={
+              imageUri
+                ? { uri: imageUri }
+                : require('../assets/icons/executorch_logo.png')
+            }
           />
-        </Canvas>
+        </View>
+        {resultPresent && (
+          <View style={styles.canvasContainer}>
+            <Canvas style={styles.canvas}>
+              <SkiaImage
+                image={img}
+                fit="contain"
+                x={0}
+                y={0}
+                width={width}
+                height={height}
+              />
+            </Canvas>
+          </View>
+        )}
       </View>
       <BottomBar
         handleCameraPress={handleCameraPress}
@@ -154,10 +160,14 @@ export const ImageSegmentationScreen = ({
 };
 
 const styles = StyleSheet.create({
-  imageContainer: {
-    flex: 3,
+  imageCanvasContainer: {
+    flex: 6,
     width: '100%',
     padding: 16,
+  },
+  imageContainer: {
+    flex: 1,
+    width: '100%',
   },
   image: {
     flex: 1,
@@ -165,8 +175,11 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   canvasContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 4,
+    padding: 4,
   },
   canvas: {
     width: width,
