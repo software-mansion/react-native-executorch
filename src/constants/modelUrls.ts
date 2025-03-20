@@ -80,7 +80,7 @@ export const RECOGNIZER_EN_CRNN_64 =
 
 // Image segmentation
 export const DEEPLABV3_RESNET50 =
-  'https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3/resolve/main/xnnpack/deeplabV3_xnnpack_fp32.pte';
+  'https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3/resolve/v0.4.0/xnnpack/deeplabV3_xnnpack_fp32.pte';
 
 // Backward compatibility
 export const LLAMA3_2_3B_URL = LLAMA3_2_3B;
