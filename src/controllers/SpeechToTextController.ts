@@ -153,25 +153,33 @@ export class SpeechToTextController {
           waveform.length
         )
       );
-
       this.chunks.push(chunk);
     }
   }
 
-  public async transcribe(waveform: number[]): Promise<string> {
+  private checkCanTranscribe() {
     if (!this.isReady) {
-      this.onErrorCallback?.(new Error('Model is not yet ready'));
-      return '';
+      throw Error('Model is not yet ready');
     }
     if (this.isGenerating) {
-      this.onErrorCallback?.(new Error('Model is already transcribing'));
-      return '';
+      throw Error('Model is already transcribing');
     }
+  }
+
+  public async transcribe(waveform?: number[]): Promise<string> {
+    try {
+      this.checkCanTranscribe();
+    } catch (e) {
+      this.onErrorCallback?.(e);
+    }
+
+    // Making sure that the error is not set when we get there
     this.onErrorCallback?.(undefined);
     this.isGeneratingCallback(true);
 
     this.sequence = [];
 
+    // if .getChannelData() returns nothing
     if (!waveform) {
       this.isGeneratingCallback(false);
       this.onErrorCallback?.(
