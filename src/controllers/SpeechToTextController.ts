@@ -1,16 +1,16 @@
-import { AudioContext, AudioBuffer } from 'react-native-audio-api';
-import { _SpeechToTextModule } from '../native/RnExecutorchModules';
 import * as FileSystem from 'expo-file-system';
-import { fetchResource } from '../utils/fetchResource';
-import { ResourceSource } from '../types/common';
+import { AudioBuffer, AudioContext } from 'react-native-audio-api';
 import {
   HAMMING_DIST_THRESHOLD,
-  SECOND,
-  SAMPLE_RATE,
   MODEL_CONFIGS,
   ModelConfig,
+  SAMPLE_RATE,
+  SECOND,
 } from '../constants/sttDefaults';
-import { unicodeToBytes } from '../utils/tokenizerUtils';
+import { _SpeechToTextModule } from '../native/RnExecutorchModules';
+import { ResourceSource } from '../types/common';
+import { fetchResource } from '../utils/fetchResource';
+import { TokenDecoder } from '../tokenizers/tokenDecoder';
 
 const longCommonInfPref = (seq1: number[], seq2: number[]) => {
   let maxInd = 0;
@@ -51,12 +51,8 @@ export class SpeechToTextController {
   public sequence: number[] = [];
   public isReady = false;
   public isGenerating = false;
-  private modelName!: 'moonshine' | 'whisper';
-
-  // tokenizer tokens to string mapping used for decoding sequence
-  private tokenMapping!: { [key: number]: string };
-  private textDecoder: any;
-  private charDecoder: { [key: string]: number };
+  private modelName!: 'moonshine' | 'whisper' | 'whisperMultilingual';
+  private tokenDecoder = new TokenDecoder();
 
   // User callbacks
   private decodedTranscribeCallback: (sequence: number[]) => void;
@@ -96,25 +92,11 @@ export class SpeechToTextController {
       this.isGenerating = isGenerating;
       isGeneratingCallback?.(isGenerating);
     };
-    this.charDecoder = unicodeToBytes();
-    this.textDecoder = new TextDecoder('utf-8', { fatal: false });
     this.onErrorCallback = onErrorCallback;
     this.audioContext = new AudioContext({ sampleRate: SAMPLE_RATE });
     this.nativeModule = new _SpeechToTextModule();
     this.windowSize = (windowSize || this.windowSize) * SECOND;
     this.overlapSeconds = overlapSeconds || this.overlapSeconds;
-  }
-
-  private async fetchTokenizer(
-    localUri?: ResourceSource
-  ): Promise<{ [key: number]: string }> {
-    if (localUri) {
-      // When we run require() on a JSON, it basically reads a JSON. Therefore,
-      // there is no need to do anything else
-      return localUri as { [key: number]: string };
-    }
-    let tokenzerUri = await fetchResource(this.config.tokenizer.source);
-    return JSON.parse(await FileSystem.readAsStringAsync(tokenzerUri));
   }
 
   public async loadModel(
@@ -129,7 +111,6 @@ export class SpeechToTextController {
     this.modelName = modelName;
 
     try {
-      this.tokenMapping = await this.fetchTokenizer(tokenizerSource);
       encoderSource = await fetchResource(
         encoderSource || this.config.sources.encoder,
         (progress) => this.modelDownloadProgessCallback?.(progress / 2)
@@ -138,6 +119,9 @@ export class SpeechToTextController {
       decoderSource = await fetchResource(
         decoderSource || this.config.sources.decoder,
         (progress) => this.modelDownloadProgessCallback?.(0.5 + progress / 2)
+      );
+      this.tokenDecoder.setVocabFromResource(
+        tokenizerSource || this.config.tokenizer.source
       );
     } catch (e) {
       this.onErrorCallback?.(e);
@@ -239,6 +223,7 @@ export class SpeechToTextController {
         let output;
         try {
           output = await this.nativeModule.decode(seq, [encoderOutput]);
+          console.log(output[0]);
         } catch (error) {
           this.onErrorCallback?.(`Decode ${error}`);
           return '';
@@ -308,22 +293,8 @@ export class SpeechToTextController {
     this.onErrorCallback?.(undefined);
     if (!seq) seq = this.sequence;
 
-    const decodedSeq = seq
-      .filter(
-        (tokenId) =>
-          tokenId !== this.config.tokenizer.eos &&
-          tokenId !== this.config.tokenizer.bos
-      )
-      .map((tokenId) => this.tokenMapping[tokenId])
-      .join('');
-
-    let byteArray = Array.from(decodedSeq).map(
-      (char) => this.charDecoder[char]
-    );
-    const text = this.textDecoder.decode(
-      new Uint8Array(byteArray as number[]),
-      { stream: false }
-    );
+    const tokens = this.tokenDecoder.tokenIdsToTokens(seq);
+    const text = this.tokenDecoder.tokensToDecodedText(tokens);
     return text;
   }
 }
