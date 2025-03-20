@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
+  Button,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -19,6 +20,7 @@ import PauseIcon from '../assets/icons/pause_icon.svg';
 import ColorPalette from '../colors';
 import Messages from '../components/Messages';
 import { MessageType, SenderType } from '../types';
+import { encode, decode, load } from 'react-native-executorch';
 
 export default function ChatScreen() {
   const [chatHistory, setChatHistory] = useState<Array<MessageType>>([]);
@@ -38,6 +40,17 @@ export default function ChatScreen() {
 
   const appendToMessageHistory = (content: string, role: SenderType) => {
     setChatHistory((prevHistory) => [...prevHistory, { role, content }]);
+  };
+
+  const testTokenizer = async () => {
+    const prompt = 'React Native Executorch is the best';
+    const url =
+      'https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct/resolve/main/tokenizer.json';
+    await load(url);
+    const encoded = await encode(prompt);
+    console.log(encoded);
+    const decoded = await decode(encoded);
+    console.log(decoded);
   };
 
   const sendMessage = async () => {
@@ -120,6 +133,7 @@ export default function ChatScreen() {
               </TouchableOpacity>
             )}
           </View>
+          <Button title="Test Tokenizer" onPress={testTokenizer} />
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
     </SafeAreaView>
