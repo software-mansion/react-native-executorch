@@ -29,7 +29,9 @@ export class TokenDecoder {
     } else {
       try {
         let tokenzerUri = await fetchResource(source);
-        return JSON.parse(await FileSystem.readAsStringAsync(tokenzerUri));
+        this.vocab = JSON.parse(
+          await FileSystem.readAsStringAsync(tokenzerUri)
+        );
       } catch (e) {
         throw new Error(
           'An error occurred while fetching or parsing the tokenizer: ' +
