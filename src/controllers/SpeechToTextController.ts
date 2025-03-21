@@ -168,7 +168,10 @@ export class SpeechToTextController {
   }
 
   // TODO: when tokenizers are done, type the lang so it actually does anything
-  public async transcribe(waveform?: number[], lang?: any): Promise<string> {
+  public async transcribe(
+    waveform?: number[],
+    speakerLanguage?: any
+  ): Promise<string> {
     try {
       this.checkCanTranscribe();
     } catch (e) {
@@ -176,14 +179,14 @@ export class SpeechToTextController {
       return '';
     }
 
-    if (!lang && this.config.isMultilingual) {
+    if (!speakerLanguage && this.config.isMultilingual) {
       this.onErrorCallback?.(
         new Error(
           'Language parameter was not provided for a multilingual model. Please pass lang parameter to the transcribe.'
         )
       );
       return '';
-    } else if (lang && !this.config.isMultilingual) {
+    } else if (speakerLanguage && !this.config.isMultilingual) {
       this.onErrorCallback?.(
         new Error(
           'Language parameter was passed to a non-multilingual model. Please either use a multilingual version or delete the lang parameter.'
