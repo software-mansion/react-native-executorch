@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { SpeechToTextController } from '../../controllers/SpeechToTextController';
 import { ResourceSource } from '../../types/common';
+import { availableModels } from '../../constants/sttDefaults';
 
 interface SpeechToTextModule {
   isReady: boolean;
@@ -23,7 +24,7 @@ export const useSpeechToText = ({
   windowSize,
   streamingConfig,
 }: {
-  modelName: 'moonshine' | 'whisper';
+  modelName: availableModels;
   encoderSource?: ResourceSource;
   decoderSource?: ResourceSource;
   tokenizerSource?: ResourceSource;
