@@ -1,6 +1,7 @@
 import * as FileSystem from 'expo-file-system';
 import { AudioBuffer, AudioContext } from 'react-native-audio-api';
 import {
+  availableModels,
   HAMMING_DIST_THRESHOLD,
   MODEL_CONFIGS,
   ModelConfig,
@@ -23,7 +24,7 @@ export class SpeechToTextController {
   public sequence: number[] = [];
   public isReady = false;
   public isGenerating = false;
-  private modelName!: 'moonshine' | 'whisper' | 'whisperMultilingual';
+  private modelName!: availableModels;
   private tokenDecoder = new TokenDecoder();
 
   // User callbacks
@@ -76,7 +77,7 @@ export class SpeechToTextController {
   }
 
   public async loadModel(
-    modelName: 'moonshine' | 'whisper',
+    modelName: availableModels,
     encoderSource?: ResourceSource,
     decoderSource?: ResourceSource,
     tokenizerSource?: ResourceSource
