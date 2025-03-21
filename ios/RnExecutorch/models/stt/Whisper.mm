@@ -12,6 +12,7 @@
   WhisperDecoder *decoder;
   NSNumber *START_TOKEN;
   NSNumber *EOS_TOKEN;
+  NSArray *encoderLastHiddenState;
   int maxSeqLen;
 }
 
@@ -26,21 +27,24 @@
 }
 
 - (NSArray *)encode:(NSArray *)waveform {
-  if (!self->encoder) {
-    [NSException raise:@"model_initialization_error" format:nil];
-  }
-  NSArray *encodingResult = [self->encoder encode:waveform];
+  self->encoderLastHiddenState = [self->encoder encode:waveform];
 
-  if (!encodingResult) {
+  if (!self->encoderLastHiddenState) {
     [NSException raise:@"forward_error" format:nil];
   }
-  return encodingResult;
+  return self->encoderLastHiddenState;
 }
 
 - (NSArray *)decode:(NSArray *)prevTokens
     encoderLastHiddenState:(NSArray *)encoderLastHiddenState {
-  return [self->decoder decode:prevTokens
-        encoderLastHiddenState:encoderLastHiddenState];
+  if ([encoderLastHiddenState count] > 0) {
+    return [self->decoder decode:prevTokens
+          encoderLastHiddenState:encoderLastHiddenState];
+  }
+  return [self->decoder
+                      decode:prevTokens
+      encoderLastHiddenState:[NSMutableArray
+                                 arrayWithObject:self->encoderLastHiddenState]];
 }
 
 - (void)loadModules:(NSArray *)modelSources {

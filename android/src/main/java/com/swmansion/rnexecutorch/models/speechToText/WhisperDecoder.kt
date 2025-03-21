@@ -10,9 +10,7 @@ class WhisperDecoder(
   reactApplicationContext: ReactApplicationContext,
 ) : BaseS2TDecoder(reactApplicationContext) {
   private lateinit var generatedTokens: IntArray
-  override var methodName: String
-    get() = "forward"
-    set(value) {}
+  override var methodName: String = "forward"
 
   override fun setGeneratedTokens(tokens: ReadableArray) {
     this.generatedTokens = ArrayUtils.createIntArray(tokens)

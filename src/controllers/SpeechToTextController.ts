@@ -1,4 +1,3 @@
-import { AudioContext, AudioBuffer } from 'react-native-audio-api';
 import { _SpeechToTextModule } from '../native/RnExecutorchModules';
 import * as FileSystem from 'expo-file-system';
 import { fetchResource } from '../utils/fetchResource';
@@ -6,9 +5,9 @@ import { ResourceSource } from '../types/common';
 import {
   HAMMING_DIST_THRESHOLD,
   SECOND,
-  SAMPLE_RATE,
   MODEL_CONFIGS,
   ModelConfig,
+  MODES,
 } from '../constants/sttDefaults';
 
 const longCommonInfPref = (seq1: number[], seq2: number[]) => {
@@ -17,14 +16,14 @@ const longCommonInfPref = (seq1: number[], seq2: number[]) => {
 
   for (let i = 0; i < seq1.length; i++) {
     let j = 0;
-    let hamming_dist = 0;
+    let hammingDist = 0;
     while (
       j < seq2.length &&
       i + j < seq1.length &&
-      (seq1[i + j] === seq2[j] || hamming_dist < HAMMING_DIST_THRESHOLD)
+      (seq1[i + j] === seq2[j] || hammingDist < HAMMING_DIST_THRESHOLD)
     ) {
       if (seq1[i + j] !== seq2[j]) {
-        hamming_dist++;
+        hammingDist++;
       }
       j++;
     }
@@ -39,12 +38,8 @@ const longCommonInfPref = (seq1: number[], seq2: number[]) => {
 export class SpeechToTextController {
   private nativeModule: _SpeechToTextModule;
 
-  // Audio config
-  private audioContext: AudioContext;
-  private audioBuffer: AudioBuffer | null = null;
-
-  private overlapSeconds = 1.2;
-  private windowSize = 7;
+  private overlapSeconds!: number;
+  private windowSize!: number;
 
   private chunks: number[][] = [];
   public sequence: number[] = [];
@@ -73,6 +68,7 @@ export class SpeechToTextController {
     onErrorCallback,
     overlapSeconds,
     windowSize,
+    streamingConfig,
   }: {
     transcribeCallback: (sequence: string) => void;
     modelDownloadProgessCallback?: (downloadProgress: number) => void;
@@ -81,6 +77,7 @@ export class SpeechToTextController {
     onErrorCallback?: (error: Error | undefined) => void;
     overlapSeconds?: number;
     windowSize?: number;
+    streamingConfig?: keyof typeof MODES;
   }) {
     this.decodedTranscribeCallback = (seq) =>
       transcribeCallback(this.decodeSeq(seq));
@@ -94,13 +91,15 @@ export class SpeechToTextController {
       isGeneratingCallback?.(isGenerating);
     };
     this.onErrorCallback = onErrorCallback;
-    this.audioContext = new AudioContext({ sampleRate: SAMPLE_RATE });
     this.nativeModule = new _SpeechToTextModule();
-    this.windowSize = (windowSize || this.windowSize) * SECOND;
-    this.overlapSeconds = overlapSeconds || this.overlapSeconds;
+    this.configureStreaming(
+      overlapSeconds,
+      windowSize,
+      streamingConfig || 'balanced'
+    );
   }
 
-  private async fetch_tokenizer(
+  private async fetchTokenizer(
     localUri?: ResourceSource
   ): Promise<{ [key: number]: string }> {
     let tokenzerUri = await fetchResource(
@@ -121,7 +120,7 @@ export class SpeechToTextController {
     this.modelName = modelName;
 
     try {
-      this.tokenMapping = await this.fetch_tokenizer(tokenizerSource);
+      this.tokenMapping = await this.fetchTokenizer(tokenizerSource);
       encoderSource = await fetchResource(
         encoderSource || this.config.sources.encoder,
         (progress) => this.modelDownloadProgessCallback?.(progress / 2)
@@ -151,30 +150,38 @@ export class SpeechToTextController {
     }
   }
 
-  public async loadAudio(url: string) {
-    this.onErrorCallback?.(undefined);
-    this.isReadyCallback(false);
-    try {
-      this.audioBuffer = await FileSystem.downloadAsync(
-        url,
-        FileSystem.documentDirectory + '_tmp_transcribe_audio.mp3'
-      ).then(({ uri }) => {
-        return this.audioContext.decodeAudioDataSource(uri);
-      });
-    } catch (e) {
-      this.onErrorCallback?.(e);
-    } finally {
-      this.isReadyCallback(true);
+  public configureStreaming(
+    overlapSeconds?: number,
+    windowSize?: number,
+    streamingConfig?: keyof typeof MODES
+  ) {
+    if (streamingConfig) {
+      this.windowSize = MODES[streamingConfig].windowSize * SECOND;
+      this.overlapSeconds = MODES[streamingConfig].overlapSeconds * SECOND;
+    }
+    if (streamingConfig && (windowSize || overlapSeconds)) {
+      console.warn(
+        `windowSize and overlapSeconds overrides values from streamingConfig ${streamingConfig}.`
+      );
+    }
+    this.windowSize = (windowSize || 0) * SECOND || this.windowSize;
+    this.overlapSeconds = (overlapSeconds || 0) * SECOND || this.overlapSeconds;
+    if (2 * this.overlapSeconds + this.windowSize >= 30 * SECOND) {
+      console.warn(
+        `Invalid values for overlapSeconds and/or windowSize provided. Expected windowSize + 2 * overlapSeconds (== ${this.windowSize + 2 * this.overlapSeconds}) <= 30. Setting windowSize to ${30 * SECOND - 2 * this.overlapSeconds}.`
+      );
+      this.windowSize = 30 * SECOND - 2 * this.overlapSeconds;
     }
   }
 
   private chunkWaveform(waveform: number[]) {
     this.chunks = [];
-    for (let i = 0; i < Math.ceil(waveform.length / this.windowSize); i++) {
+    const numOfChunks = Math.ceil(waveform.length / this.windowSize);
+    for (let i = 0; i < numOfChunks; i++) {
       let chunk = waveform.slice(
-        Math.max(this.windowSize * i - this.overlapSeconds * SECOND, 0),
+        Math.max(this.windowSize * i - this.overlapSeconds, 0),
         Math.min(
-          this.windowSize * (i + 1) + this.overlapSeconds * SECOND,
+          this.windowSize * (i + 1) + this.overlapSeconds,
           waveform.length
         )
       );
@@ -183,7 +190,7 @@ export class SpeechToTextController {
     }
   }
 
-  public async transcribe(waveform?: number[]): Promise<string> {
+  public async transcribe(waveform: number[]): Promise<string> {
     if (!this.isReady) {
       this.onErrorCallback?.(new Error('Model is not yet ready'));
       return '';
@@ -196,9 +203,6 @@ export class SpeechToTextController {
     this.isGeneratingCallback(true);
 
     this.sequence = [];
-    if (!waveform) {
-      waveform = this.audioBuffer!.getChannelData(0);
-    }
 
     if (!waveform) {
       this.isGeneratingCallback(false);
@@ -214,54 +218,45 @@ export class SpeechToTextController {
 
     let seqs: number[][] = [];
     let prevseq: number[] = [];
-    for (let chunk_id = 0; chunk_id < this.chunks.length; chunk_id++) {
-      let last_token = this.config.tokenizer.sos;
-      let prev_seq_token_idx = 0;
-      let final_seq: number[] = [];
-      let seq = [last_token];
-      let enc_output;
+    for (let chunkId = 0; chunkId < this.chunks.length; chunkId++) {
+      let lastToken = this.config.tokenizer.sos;
+      let prevSeqTokenIdx = 0;
+      let finalSeq: number[] = [];
+      let seq = [lastToken];
       try {
-        enc_output = await this.nativeModule.encode(this.chunks!.at(chunk_id)!);
+        await this.nativeModule.encode(this.chunks!.at(chunkId)!);
       } catch (error) {
         this.onErrorCallback?.(`Encode ${error}`);
         return '';
       }
-      while (last_token !== this.config.tokenizer.eos) {
-        let output;
+      while (lastToken !== this.config.tokenizer.eos) {
         try {
-          output = await this.nativeModule.decode(seq, [enc_output]);
+          lastToken = await this.nativeModule.decode(seq);
         } catch (error) {
           this.onErrorCallback?.(`Decode ${error}`);
           return '';
         }
-        if (typeof output === 'number') {
-          last_token = output;
-        } else {
-          last_token = output[output.length - 1];
-        }
-        seq = [...seq, last_token];
+        seq = [...seq, lastToken];
         if (
           seqs.length > 0 &&
           seq.length < seqs.at(-1)!.length &&
           seq.length % 3 !== 0
         ) {
-          prevseq = [...prevseq, seqs.at(-1)![prev_seq_token_idx++]!];
+          prevseq = [...prevseq, seqs.at(-1)![prevSeqTokenIdx++]!];
           this.decodedTranscribeCallback(prevseq);
         }
       }
+
       if (this.chunks.length === 1) {
-        final_seq = seq;
-        this.sequence = final_seq;
-        this.decodedTranscribeCallback(final_seq);
+        finalSeq = seq;
+        this.sequence = finalSeq;
+        this.decodedTranscribeCallback(finalSeq);
         break;
       }
       // remove sos/eos token and 3 additional ones
       if (seqs.length === 0) {
         seqs = [seq.slice(0, -4)];
-      } else if (
-        seqs.length ===
-        Math.ceil(waveform.length / this.windowSize) - 1
-      ) {
+      } else if (seqs.length === this.chunks.length - 1) {
         seqs = [...seqs, seq.slice(4)];
       } else {
         seqs = [...seqs, seq.slice(4, -4)];
@@ -271,17 +266,17 @@ export class SpeechToTextController {
       }
 
       const maxInd = longCommonInfPref(seqs.at(-2)!, seqs.at(-1)!);
-      final_seq = [...this.sequence, ...seqs.at(-2)!.slice(0, maxInd)];
-      this.sequence = final_seq;
-      this.decodedTranscribeCallback(final_seq);
-      prevseq = final_seq;
+      finalSeq = [...this.sequence, ...seqs.at(-2)!.slice(0, maxInd)];
+      this.sequence = finalSeq;
+      this.decodedTranscribeCallback(finalSeq);
+      prevseq = finalSeq;
 
       //last sequence processed
-      if (seqs.length === Math.ceil(waveform.length / this.windowSize)) {
-        final_seq = [...this.sequence, ...seqs.at(-1)!];
-        this.sequence = final_seq;
-        this.decodedTranscribeCallback(final_seq);
-        prevseq = final_seq;
+      if (seqs.length === this.chunks.length) {
+        finalSeq = [...this.sequence, ...seqs.at(-1)!];
+        this.sequence = finalSeq;
+        this.decodedTranscribeCallback(finalSeq);
+        prevseq = finalSeq;
       }
     }
     const decodedSeq = this.decodeSeq(this.sequence);
@@ -307,6 +302,14 @@ export class SpeechToTextController {
       )
       .map((token) => this.tokenMapping[token])
       .join('')
-      .replaceAll(this.config.tokenizer.special_char, ' ');
+      .replaceAll(this.config.tokenizer.specialChar, ' ');
+  }
+
+  public async encode(waveform: number[]) {
+    return await this.nativeModule.encode(waveform);
+  }
+
+  public async decode(seq: number[], encodings?: number[]) {
+    return await this.nativeModule.decode(seq, encodings);
   }
 }

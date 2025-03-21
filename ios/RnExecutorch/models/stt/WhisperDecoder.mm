@@ -16,7 +16,7 @@ NSArray *encoderLastHiddenStateShape = @[ @1, @1500, @384 ];
       [self forward:@[ prevTokens, encoderLastHiddenState ]
               shapes:@[ prevTokensShape, encoderLastHiddenStateShape ]
           inputTypes:decoderInputTypes];
-  return [predictedToken objectAtIndex:0];
+  return [[predictedToken objectAtIndex:0] lastObject];
 }
 
 @end

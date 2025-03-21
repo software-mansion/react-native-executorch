@@ -11,15 +11,19 @@ abstract class BaseS2TDecoder(
   reactApplicationContext: ReactApplicationContext,
 ) : BaseModel<ReadableArray, Int>(reactApplicationContext) {
   protected abstract var methodName: String
+  lateinit var encoderOutput: EValue
 
   abstract fun setGeneratedTokens(tokens: ReadableArray)
 
   abstract fun getTokensEValue(): EValue
 
   override fun runModel(input: ReadableArray): Int {
-    val tokensEValue = getTokensEValue()
+    var encoderOutput = this.encoderOutput
+    if (input.size() != 0) {
+      encoderOutput = this.preprocess(input)
+    }
     return this.module
-      .execute(methodName, tokensEValue, this.preprocess(input))[0]
+      .execute(methodName, getTokensEValue(), encoderOutput)[0]
       .toTensor()
       .dataAsLongArray
       .last()
@@ -28,8 +32,7 @@ abstract class BaseS2TDecoder(
 
   abstract fun getInputShape(inputLength: Int): LongArray
 
-  fun preprocess(input: ReadableArray): EValue {
-    val inputArray = input.getArray(0)!!
+  fun preprocess(inputArray: ReadableArray): EValue {
     val preprocessorInputShape = this.getInputShape(inputArray.size())
     return EValue.from(Tensor.fromBlob(createFloatArray(inputArray), preprocessorInputShape))
   }

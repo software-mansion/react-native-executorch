@@ -11596,18 +11596,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-audio-api@npm:0.4.13":
-  version: 0.4.13
-  resolution: "react-native-audio-api@npm:0.4.13"
-  peerDependencies:
-    react: "*"
-    react-native: "*"
-  bin:
-    setup-rn-audio-api-web: scripts/setup-rn-audio-api-web.js
-  checksum: 9a5db4626a0663224cdcdc957ed5176df9ed65df9f58bf06c5eae2a91895b7ee0f0a632ecaa79b23ef7536983485cea2720ca46201e2e690548f400b66970ff6
-  languageName: node
-  linkType: hard
-
 "react-native-builder-bob@npm:^0.30.2":
   version: 0.30.3
   resolution: "react-native-builder-bob@npm:0.30.3"
@@ -11664,7 +11652,6 @@ __metadata:
     prettier: ^3.0.3
     react: 18.3.1
     react-native: ^0.76.1
-    react-native-audio-api: 0.4.13
     react-native-builder-bob: ^0.30.2
     react-native-live-audio-stream: ^1.1.1
     turbo: ^1.10.7
@@ -11672,7 +11659,6 @@ __metadata:
   peerDependencies:
     react: "*"
     react-native: "*"
-    react-native-audio-api: "*"
   languageName: unknown
   linkType: soft
 
