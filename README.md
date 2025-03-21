@@ -1,4 +1,6 @@
-# React Native ExecuTorch
+<div align="right">
+  <h1 align="left" style="display:inline-block">React Native ExecuTorch <a href="https://www.producthunt.com/posts/react-native-executorch?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-react&#0045;native&#0045;executorch" target="_blank" rel="noopener noreferrer"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=891872&theme=neutral&t=1742503583297" alt="React Native ExecuTorch - Product Hunt" height="34" align="right" /></a></h1>
+</div>
 
 ![Software Mansion banner](https://github.com/user-attachments/assets/fa2c4735-e75c-4cc1-970d-88905d95e3a4)
 
