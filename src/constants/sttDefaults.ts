@@ -25,6 +25,8 @@ export interface ModelConfig {
   isMultilingual: boolean;
 }
 
+export type availableModels = 'whisper' | 'moonshine' | 'whisperMultilingual';
+
 const whisperTinyModelConfig = {
   sources: {
     encoder: WHISPER_TINY_ENCODER,
@@ -54,7 +56,7 @@ const moonshineTinyModelConfig = {
 };
 
 export const MODEL_CONFIGS: {
-  [key in 'moonshine' | 'whisper' | 'whisperMultilingual']: ModelConfig;
+  [key in availableModels]: ModelConfig;
 } = {
   moonshine: moonshineTinyModelConfig,
   whisper: whisperTinyModelConfig,
