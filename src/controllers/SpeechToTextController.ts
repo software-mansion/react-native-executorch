@@ -166,11 +166,28 @@ export class SpeechToTextController {
     }
   }
 
-  public async transcribe(waveform?: number[]): Promise<string> {
+  // TODO: when tokenizers are done, type the lang so it actually does anything
+  public async transcribe(waveform?: number[], lang?: any): Promise<string> {
     try {
       this.checkCanTranscribe();
     } catch (e) {
       this.onErrorCallback?.(e);
+      return '';
+    }
+
+    if (!lang && this.config.isMultilingual) {
+      this.onErrorCallback?.(
+        new Error(
+          'Language parameter was not provided for a multilingual model. Please pass lang parameter to the transcribe.'
+        )
+      );
+      return '';
+    } else if (lang && !this.config.isMultilingual) {
+      this.onErrorCallback?.(
+        new Error(
+          'Language parameter was passed to a non-multilingual model. Please either use a multilingual version or delete the lang parameter.'
+        )
+      );
       return '';
     }
 
