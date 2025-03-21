@@ -22,6 +22,7 @@ export interface ModelConfig {
     eos: number;
     specialChar: string;
   };
+  isMultilingual: boolean;
 }
 
 const whisperTinyModelConfig = {
@@ -35,6 +36,7 @@ const whisperTinyModelConfig = {
     eos: 50256,
     special_char: 'Ġ',
   },
+  isMultilingual: false,
 };
 
 const moonshineTinyModelConfig = {
@@ -48,6 +50,7 @@ const moonshineTinyModelConfig = {
     eos: 2,
     special_char: '\u2581',
   },
+  isMultilingual: false,
 };
 
 export const MODEL_CONFIGS: {
@@ -55,5 +58,5 @@ export const MODEL_CONFIGS: {
 } = {
   moonshine: moonshineTinyModelConfig,
   whisper: whisperTinyModelConfig,
-  whisperMultilingual: whisperTinyModelConfig,
+  whisperMultilingual: { ...whisperTinyModelConfig, isMultilingual: true },
 };
