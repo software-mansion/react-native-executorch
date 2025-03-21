@@ -1278,7 +1278,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-executorch (0.3.0):
+  - react-native-executorch (0.3.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1379,6 +1379,29 @@ PODS:
     - React-graphics
     - React-ImageManager
     - react-native-safe-area-context/common
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - react-native-skia (1.11.18):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React
+    - React-callinvoker
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
     - React-NativeModulesApple
     - React-RCTFabric
     - React-rendererdebug
@@ -1900,6 +1923,7 @@ DEPENDENCIES:
   - react-native-executorch (from `../node_modules/react-native-executorch`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
+  - "react-native-skia (from `../node_modules/@shopify/react-native-skia`)"
   - React-nativeconfig (from `../node_modules/react-native/ReactCommon`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
@@ -2029,6 +2053,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-image-picker"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
+  react-native-skia:
+    :path: "../node_modules/@shopify/react-native-skia"
   React-nativeconfig:
     :path: "../node_modules/react-native/ReactCommon"
   React-NativeModulesApple:
@@ -2136,9 +2162,10 @@ SPEC CHECKSUMS:
   React-logger: 2736a90a3fdaed3dab1e2e9c5a5e9b3be00c287d
   React-Mapbuffer: bd6a2ffbf401f11cfc8b5e8f38acab9fe117620c
   React-microtasksnativemodule: 2fa3b8c7a876b84bd8166f11e07f101929a87f97
-  react-native-executorch: b5792f4e6f690d1c9f9f9c5025f04b23c3c161d3
+  react-native-executorch: 31b53984ab9c32e489203b3a3ea5cd7f12ef07e4
   react-native-image-picker: 91f4e8dd458db2acdb278479e960bc224cbf0217
   react-native-safe-area-context: f145b8906585d648f9f9c7dfa3885bac54f38fcc
+  react-native-skia: d897170273e51d0983251a3f906342ef539f1263
   React-nativeconfig: aeed6e2a8ac02b2df54476afcc7c663416c12bf7
   React-NativeModulesApple: c0783e5e21c71aa2764ac33120abc96208466fa6
   React-perflogger: 2991d4258277af250eb7a2705980ebb3ef9ba85e
