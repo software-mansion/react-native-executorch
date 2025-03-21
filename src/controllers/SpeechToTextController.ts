@@ -221,7 +221,7 @@ export class SpeechToTextController {
       while (lastToken !== this.config.tokenizer.eos) {
         let decoderOutput;
         try {
-          decoderOutput = await this.nativeModule.decode(seq, [encoderOutput]);
+          decoderOutput = await this.nativeModule.decode(seq, encoderOutput);
         } catch (error) {
           this.onErrorCallback?.(
             `An error has ocurred while decoding: ${error}`
