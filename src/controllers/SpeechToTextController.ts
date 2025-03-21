@@ -16,14 +16,14 @@ const longCommonInfPref = (seq1: number[], seq2: number[]) => {
 
   for (let i = 0; i < seq1.length; i++) {
     let j = 0;
-    let hamming_dist = 0;
+    let hammingDist = 0;
     while (
       j < seq2.length &&
       i + j < seq1.length &&
-      (seq1[i + j] === seq2[j] || hamming_dist < HAMMING_DIST_THRESHOLD)
+      (seq1[i + j] === seq2[j] || hammingDist < HAMMING_DIST_THRESHOLD)
     ) {
       if (seq1[i + j] !== seq2[j]) {
-        hamming_dist++;
+        hammingDist++;
       }
       j++;
     }
@@ -38,8 +38,8 @@ const longCommonInfPref = (seq1: number[], seq2: number[]) => {
 export class SpeechToTextController {
   private nativeModule: _SpeechToTextModule;
 
-  private overlapSeconds: number;
-  private windowSize: number;
+  private overlapSeconds!: number;
+  private windowSize!: number;
 
   private chunks: number[][] = [];
   public sequence: number[] = [];
@@ -92,19 +92,14 @@ export class SpeechToTextController {
     };
     this.onErrorCallback = onErrorCallback;
     this.nativeModule = new _SpeechToTextModule();
-    if (streamingConfig && (windowSize || overlapSeconds)) {
-      console.warn(
-        `window size and overlapSeconds overrides values from streamingConfig ${streamingConfig}`
-      );
-    }
-    this.windowSize =
-      (windowSize || MODES[streamingConfig || 'balanced'].windowSize) * SECOND;
-    this.overlapSeconds =
-      overlapSeconds ||
-      MODES[streamingConfig || 'balanced'].overlapSeconds * SECOND;
+    this.configureStreaming(
+      overlapSeconds,
+      windowSize,
+      streamingConfig || 'balanced'
+    );
   }
 
-  private async fetch_tokenizer(
+  private async fetchTokenizer(
     localUri?: ResourceSource
   ): Promise<{ [key: number]: string }> {
     let tokenzerUri = await fetchResource(
@@ -125,7 +120,7 @@ export class SpeechToTextController {
     this.modelName = modelName;
 
     try {
-      this.tokenMapping = await this.fetch_tokenizer(tokenizerSource);
+      this.tokenMapping = await this.fetchTokenizer(tokenizerSource);
       encoderSource = await fetchResource(
         encoderSource || this.config.sources.encoder,
         (progress) => this.modelDownloadProgessCallback?.(progress / 2)
@@ -166,17 +161,23 @@ export class SpeechToTextController {
     }
     if (streamingConfig && (windowSize || overlapSeconds)) {
       console.warn(
-        `window size and overlapSeconds overrides values from streamingConfig ${streamingConfig}`
+        `windowSize and overlapSeconds overrides values from streamingConfig ${streamingConfig}.`
       );
     }
     this.windowSize = (windowSize || 0) * SECOND || this.windowSize;
     this.overlapSeconds = (overlapSeconds || 0) * SECOND || this.overlapSeconds;
+    if (2 * this.overlapSeconds + this.windowSize >= 30 * SECOND) {
+      console.warn(
+        `Invalid values for overlapSeconds and/or windowSize provided. Expected windowSize + 2 * overlapSeconds (== ${this.windowSize + 2 * this.overlapSeconds}) <= 30. Setting windowSize to ${30 * SECOND - 2 * this.overlapSeconds}.`
+      );
+      this.windowSize = 30 * SECOND - 2 * this.overlapSeconds;
+    }
   }
 
   private chunkWaveform(waveform: number[]) {
     this.chunks = [];
-    const num_of_chunks = Math.ceil(waveform.length / this.windowSize);
-    for (let i = 0; i < num_of_chunks; i++) {
+    const numOfChunks = Math.ceil(waveform.length / this.windowSize);
+    for (let i = 0; i < numOfChunks; i++) {
       let chunk = waveform.slice(
         Math.max(this.windowSize * i - this.overlapSeconds, 0),
         Math.min(
@@ -217,39 +218,39 @@ export class SpeechToTextController {
 
     let seqs: number[][] = [];
     let prevseq: number[] = [];
-    for (let chunk_id = 0; chunk_id < this.chunks.length; chunk_id++) {
-      let last_token = this.config.tokenizer.sos;
-      let prev_seq_token_idx = 0;
-      let final_seq: number[] = [];
-      let seq = [last_token];
+    for (let chunkId = 0; chunkId < this.chunks.length; chunkId++) {
+      let lastToken = this.config.tokenizer.sos;
+      let prevSeqTokenIdx = 0;
+      let finalSeq: number[] = [];
+      let seq = [lastToken];
       try {
-        await this.nativeModule.encode(this.chunks!.at(chunk_id)!);
+        await this.nativeModule.encode(this.chunks!.at(chunkId)!);
       } catch (error) {
         this.onErrorCallback?.(`Encode ${error}`);
         return '';
       }
-      while (last_token !== this.config.tokenizer.eos) {
+      while (lastToken !== this.config.tokenizer.eos) {
         try {
-          last_token = await this.nativeModule.decode(seq);
+          lastToken = await this.nativeModule.decode(seq);
         } catch (error) {
           this.onErrorCallback?.(`Decode ${error}`);
           return '';
         }
-        seq = [...seq, last_token];
+        seq = [...seq, lastToken];
         if (
           seqs.length > 0 &&
           seq.length < seqs.at(-1)!.length &&
           seq.length % 3 !== 0
         ) {
-          prevseq = [...prevseq, seqs.at(-1)![prev_seq_token_idx++]!];
+          prevseq = [...prevseq, seqs.at(-1)![prevSeqTokenIdx++]!];
           this.decodedTranscribeCallback(prevseq);
         }
       }
 
       if (this.chunks.length === 1) {
-        final_seq = seq;
-        this.sequence = final_seq;
-        this.decodedTranscribeCallback(final_seq);
+        finalSeq = seq;
+        this.sequence = finalSeq;
+        this.decodedTranscribeCallback(finalSeq);
         break;
       }
       // remove sos/eos token and 3 additional ones
@@ -265,17 +266,17 @@ export class SpeechToTextController {
       }
 
       const maxInd = longCommonInfPref(seqs.at(-2)!, seqs.at(-1)!);
-      final_seq = [...this.sequence, ...seqs.at(-2)!.slice(0, maxInd)];
-      this.sequence = final_seq;
-      this.decodedTranscribeCallback(final_seq);
-      prevseq = final_seq;
+      finalSeq = [...this.sequence, ...seqs.at(-2)!.slice(0, maxInd)];
+      this.sequence = finalSeq;
+      this.decodedTranscribeCallback(finalSeq);
+      prevseq = finalSeq;
 
       //last sequence processed
       if (seqs.length === this.chunks.length) {
-        final_seq = [...this.sequence, ...seqs.at(-1)!];
-        this.sequence = final_seq;
-        this.decodedTranscribeCallback(final_seq);
-        prevseq = final_seq;
+        finalSeq = [...this.sequence, ...seqs.at(-1)!];
+        this.sequence = finalSeq;
+        this.decodedTranscribeCallback(finalSeq);
+        prevseq = finalSeq;
       }
     }
     const decodedSeq = this.decodeSeq(this.sequence);
@@ -301,7 +302,7 @@ export class SpeechToTextController {
       )
       .map((token) => this.tokenMapping[token])
       .join('')
-      .replaceAll(this.config.tokenizer.special_char, ' ');
+      .replaceAll(this.config.tokenizer.specialChar, ' ');
   }
 
   public async encode(waveform: number[]) {

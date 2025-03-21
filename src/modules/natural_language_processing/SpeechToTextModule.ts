@@ -39,9 +39,15 @@ export class SpeechToText {
   }
 
   static configureStreaming(
-    props: Parameters<SpeechToTextController['configureStreaming']>
+    overlapSeconds: Parameters<SpeechToTextController['configureStreaming']>[0],
+    windowSize: Parameters<SpeechToTextController['configureStreaming']>[1],
+    streamingConfig: Parameters<SpeechToTextController['configureStreaming']>[2]
   ) {
-    this.module.configureStreaming(...props);
+    this.module?.configureStreaming(
+      overlapSeconds,
+      windowSize,
+      streamingConfig
+    );
   }
 
   static async transcribe(

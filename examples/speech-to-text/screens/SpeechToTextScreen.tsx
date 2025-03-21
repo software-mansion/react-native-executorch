@@ -51,7 +51,7 @@ export const SpeechToTextScreen = () => {
     sequence,
     error,
     transcribe,
-  } = useSpeechToText({ modelName: 'moonshine', preset: 'balanced' });
+  } = useSpeechToText({ modelName: 'moonshine', streamingConfig: 'balanced' });
 
   const loadAudio = async (url: string) => {
     const audioContext = new AudioContext({ sampleRate: 16e3 });
@@ -65,7 +65,9 @@ export const SpeechToTextScreen = () => {
   };
 
   const [isRecording, setIsRecording] = useState(false);
-  const [audioUrl, setAudioUrl] = useState('');
+  const [audioUrl, setAudioUrl] = useState(
+    'https://ai.swmansion.com/storage/moonshine/test_audio.mp3'
+  );
   const audioBuffer = useRef<number[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
 
