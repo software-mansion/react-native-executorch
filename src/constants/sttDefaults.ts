@@ -18,36 +18,47 @@ export interface ModelConfig {
   };
   tokenizer: {
     source: string;
-    sos: number;
+    bos: number;
     eos: number;
     special_char: string;
   };
+  isMultilingual: boolean;
 }
 
-export const MODEL_CONFIGS: { [key in 'moonshine' | 'whisper']: ModelConfig } =
-  {
-    moonshine: {
-      sources: {
-        encoder: MOONSHINE_TINY_ENCODER,
-        decoder: MOONSHINE_TINY_DECODER,
-      },
-      tokenizer: {
-        source: MOONSHINE_TOKENIZER,
-        sos: 1,
-        eos: 2,
-        special_char: '\u2581',
-      },
-    },
-    whisper: {
-      sources: {
-        encoder: WHISPER_TINY_ENCODER,
-        decoder: WHISPER_TINY_DECODER,
-      },
-      tokenizer: {
-        source: WHISPER_TOKENIZER,
-        sos: 50257,
-        eos: 50256,
-        special_char: 'Ġ',
-      },
-    },
-  };
+export type availableModels = 'whisper' | 'moonshine' | 'whisperMultilingual';
+
+const whisperTinyModelConfig = {
+  sources: {
+    encoder: WHISPER_TINY_ENCODER,
+    decoder: WHISPER_TINY_DECODER,
+  },
+  tokenizer: {
+    source: WHISPER_TOKENIZER,
+    bos: 50257,
+    eos: 50256,
+    special_char: 'Ġ',
+  },
+  isMultilingual: false,
+};
+
+const moonshineTinyModelConfig = {
+  sources: {
+    encoder: MOONSHINE_TINY_ENCODER,
+    decoder: MOONSHINE_TINY_DECODER,
+  },
+  tokenizer: {
+    source: MOONSHINE_TOKENIZER,
+    bos: 1,
+    eos: 2,
+    special_char: '\u2581',
+  },
+  isMultilingual: false,
+};
+
+export const MODEL_CONFIGS: {
+  [key in availableModels]: ModelConfig;
+} = {
+  moonshine: moonshineTinyModelConfig,
+  whisper: whisperTinyModelConfig,
+  whisperMultilingual: { ...whisperTinyModelConfig, isMultilingual: true },
+};

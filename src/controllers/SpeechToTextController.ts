@@ -1,40 +1,18 @@
-import { AudioContext, AudioBuffer } from 'react-native-audio-api';
-import { _SpeechToTextModule } from '../native/RnExecutorchModules';
 import * as FileSystem from 'expo-file-system';
-import { fetchResource } from '../utils/fetchResource';
-import { ResourceSource } from '../types/common';
+import { AudioBuffer, AudioContext } from 'react-native-audio-api';
 import {
+  availableModels,
   HAMMING_DIST_THRESHOLD,
-  SECOND,
-  SAMPLE_RATE,
   MODEL_CONFIGS,
   ModelConfig,
+  SAMPLE_RATE,
+  SECOND,
 } from '../constants/sttDefaults';
-
-const longCommonInfPref = (seq1: number[], seq2: number[]) => {
-  let maxInd = 0;
-  let maxLength = 0;
-
-  for (let i = 0; i < seq1.length; i++) {
-    let j = 0;
-    let hamming_dist = 0;
-    while (
-      j < seq2.length &&
-      i + j < seq1.length &&
-      (seq1[i + j] === seq2[j] || hamming_dist < HAMMING_DIST_THRESHOLD)
-    ) {
-      if (seq1[i + j] !== seq2[j]) {
-        hamming_dist++;
-      }
-      j++;
-    }
-    if (j >= maxLength) {
-      maxLength = j;
-      maxInd = i;
-    }
-  }
-  return maxInd;
-};
+import { _SpeechToTextModule } from '../native/RnExecutorchModules';
+import { TokenDecoder } from '../tokenizers/tokenDecoder';
+import { ResourceSource } from '../types/common';
+import { fetchResource } from '../utils/fetchResource';
+import { longCommonInfPref } from '../utils/tokenizerUtils';
 
 export class SpeechToTextController {
   private nativeModule: _SpeechToTextModule;
@@ -50,10 +28,8 @@ export class SpeechToTextController {
   public sequence: number[] = [];
   public isReady = false;
   public isGenerating = false;
-  private modelName!: 'moonshine' | 'whisper';
-
-  // tokenizer tokens to string mapping used for decoding sequence
-  private tokenMapping!: { [key: number]: string };
+  private modelName!: availableModels;
+  private tokenDecoder = new TokenDecoder();
 
   // User callbacks
   private decodedTranscribeCallback: (sequence: number[]) => void;
@@ -100,17 +76,8 @@ export class SpeechToTextController {
     this.overlapSeconds = overlapSeconds || this.overlapSeconds;
   }
 
-  private async fetch_tokenizer(
-    localUri?: ResourceSource
-  ): Promise<{ [key: number]: string }> {
-    let tokenzerUri = await fetchResource(
-      localUri || this.config.tokenizer.source
-    );
-    return JSON.parse(await FileSystem.readAsStringAsync(tokenzerUri));
-  }
-
   public async loadModel(
-    modelName: 'moonshine' | 'whisper',
+    modelName: availableModels,
     encoderSource?: ResourceSource,
     decoderSource?: ResourceSource,
     tokenizerSource?: ResourceSource
@@ -121,7 +88,6 @@ export class SpeechToTextController {
     this.modelName = modelName;
 
     try {
-      this.tokenMapping = await this.fetch_tokenizer(tokenizerSource);
       encoderSource = await fetchResource(
         encoderSource || this.config.sources.encoder,
         (progress) => this.modelDownloadProgessCallback?.(progress / 2)
@@ -130,6 +96,9 @@ export class SpeechToTextController {
       decoderSource = await fetchResource(
         decoderSource || this.config.sources.decoder,
         (progress) => this.modelDownloadProgessCallback?.(0.5 + progress / 2)
+      );
+      this.tokenDecoder.setVocabFromResource(
+        tokenizerSource || this.config.tokenizer.source
       );
     } catch (e) {
       this.onErrorCallback?.(e);
@@ -147,7 +116,6 @@ export class SpeechToTextController {
       this.onErrorCallback?.(
         new Error(`Error when loading the SpeechToTextController! ${e}`)
       );
-      console.error('Error when loading the SpeechToTextController!', e);
     }
   }
 
@@ -170,7 +138,8 @@ export class SpeechToTextController {
 
   private chunkWaveform(waveform: number[]) {
     this.chunks = [];
-    for (let i = 0; i < Math.ceil(waveform.length / this.windowSize); i++) {
+    let numChunks = Math.ceil(waveform.length / this.windowSize);
+    for (let i = 0; i < numChunks; i++) {
       let chunk = waveform.slice(
         Math.max(this.windowSize * i - this.overlapSeconds * SECOND, 0),
         Math.min(
@@ -178,20 +147,48 @@ export class SpeechToTextController {
           waveform.length
         )
       );
-
       this.chunks.push(chunk);
     }
   }
 
-  public async transcribe(waveform?: number[]): Promise<string> {
+  private checkCanTranscribe() {
     if (!this.isReady) {
-      this.onErrorCallback?.(new Error('Model is not yet ready'));
-      return '';
+      throw Error('Model is not yet ready');
     }
     if (this.isGenerating) {
-      this.onErrorCallback?.(new Error('Model is already transcribing'));
+      throw Error('Model is already transcribing');
+    }
+  }
+
+  // TODO: when tokenizers are done, type the lang so it actually does anything
+  public async transcribe(
+    waveform?: number[],
+    speakerLanguage?: any
+  ): Promise<string> {
+    try {
+      this.checkCanTranscribe();
+    } catch (e) {
+      this.onErrorCallback?.(e);
       return '';
     }
+
+    if (!speakerLanguage && this.config.isMultilingual) {
+      this.onErrorCallback?.(
+        new Error(
+          'Language parameter was not provided for a multilingual model. Please pass lang parameter to the transcribe.'
+        )
+      );
+      return '';
+    } else if (speakerLanguage && !this.config.isMultilingual) {
+      this.onErrorCallback?.(
+        new Error(
+          'Language parameter was passed to a non-multilingual model. Please either use a multilingual version or delete the lang parameter.'
+        )
+      );
+      return '';
+    }
+
+    // Making sure that the error is not set when we get there
     this.onErrorCallback?.(undefined);
     this.isGeneratingCallback(true);
 
@@ -200,88 +197,115 @@ export class SpeechToTextController {
       waveform = this.audioBuffer!.getChannelData(0);
     }
 
+    // if .getChannelData() returns nothing
     if (!waveform) {
       this.isGeneratingCallback(false);
-
       this.onErrorCallback?.(
         new Error(
           `Nothing to transcribe, perhaps you forgot to call this.loadAudio().`
         )
       );
+      return '';
     }
 
     this.chunkWaveform(waveform);
 
     let seqs: number[][] = [];
-    let prevseq: number[] = [];
-    for (let chunk_id = 0; chunk_id < this.chunks.length; chunk_id++) {
-      let last_token = this.config.tokenizer.sos;
-      let prev_seq_token_idx = 0;
-      let final_seq: number[] = [];
-      let seq = [last_token];
-      let enc_output;
+    let prevSeq: number[] = [];
+    for (let chunkId = 0; chunkId < this.chunks.length; chunkId++) {
+      let prevSeqTokenIdx = 0;
+      let finalSeq: number[] = [];
+      let seq;
+
+      // We need different starting token based on the multilinguality of the model.
+      // The eng verison only needs BOS token, while the multilingual one needs:
+      // [BOS, LANG, TRANSCRIBE]
+      if (this.config.isMultilingual) {
+        // FIXME: this is a placeholder, will need to change it once HF tokenizers are merged
+        seq = [this.config.tokenizer.bos, 50261, 50359];
+      } else {
+        seq = [this.config.tokenizer.bos];
+      }
+
+      let numSpecialTokens = seq.length;
+      let encoderOutput;
       try {
-        enc_output = await this.nativeModule.encode(this.chunks!.at(chunk_id)!);
+        encoderOutput = await this.nativeModule.encode(
+          this.chunks!.at(chunkId)!
+        );
       } catch (error) {
         this.onErrorCallback?.(`Encode ${error}`);
         return '';
       }
-      while (last_token !== this.config.tokenizer.eos) {
-        let output;
+
+      let lastToken = seq[seq.length - 1] as number;
+      while (lastToken !== this.config.tokenizer.eos) {
+        let decoderOutput;
         try {
-          output = await this.nativeModule.decode(seq, [enc_output]);
+          decoderOutput = await this.nativeModule.decode(seq, encoderOutput);
         } catch (error) {
-          this.onErrorCallback?.(`Decode ${error}`);
+          this.onErrorCallback?.(
+            `An error has ocurred while decoding: ${error}`
+          );
           return '';
         }
-        if (typeof output === 'number') {
-          last_token = output;
-        } else {
-          last_token = output[output.length - 1];
+
+        if (typeof decoderOutput !== 'number') {
+          decoderOutput = decoderOutput[decoderOutput.length - 1];
         }
-        seq = [...seq, last_token];
+
+        lastToken = decoderOutput;
+        seq.push(lastToken);
+
         if (
           seqs.length > 0 &&
           seq.length < seqs.at(-1)!.length &&
           seq.length % 3 !== 0
         ) {
-          prevseq = [...prevseq, seqs.at(-1)![prev_seq_token_idx++]!];
-          this.decodedTranscribeCallback(prevseq);
+          prevSeq = [...prevSeq, seqs.at(-1)![prevSeqTokenIdx++]!];
+          this.decodedTranscribeCallback(prevSeq);
         }
       }
       if (this.chunks.length === 1) {
-        final_seq = seq;
-        this.sequence = final_seq;
-        this.decodedTranscribeCallback(final_seq);
+        finalSeq = seq;
+        this.sequence = finalSeq;
+        this.decodedTranscribeCallback(finalSeq);
         break;
       }
-      // remove sos/eos token and 3 additional ones
+      // remove bos/eos token and 3 additional ones
       if (seqs.length === 0) {
-        seqs = [seq.slice(0, -4)];
+        seqs = [seq.slice(0, -(numSpecialTokens + 3))];
       } else if (
         seqs.length ===
         Math.ceil(waveform.length / this.windowSize) - 1
       ) {
-        seqs = [...seqs, seq.slice(4)];
+        seqs = [...seqs, seq.slice(numSpecialTokens + 3)];
       } else {
-        seqs = [...seqs, seq.slice(4, -4)];
+        seqs = [
+          ...seqs,
+          seq.slice(numSpecialTokens + 3, -(numSpecialTokens + 3)),
+        ];
       }
       if (seqs.length < 2) {
         continue;
       }
 
-      const maxInd = longCommonInfPref(seqs.at(-2)!, seqs.at(-1)!);
-      final_seq = [...this.sequence, ...seqs.at(-2)!.slice(0, maxInd)];
-      this.sequence = final_seq;
-      this.decodedTranscribeCallback(final_seq);
-      prevseq = final_seq;
+      const maxInd = longCommonInfPref(
+        seqs.at(-2)!,
+        seqs.at(-1)!,
+        HAMMING_DIST_THRESHOLD
+      );
+      finalSeq = [...this.sequence, ...seqs.at(-2)!.slice(0, maxInd)];
+      this.sequence = finalSeq;
+      this.decodedTranscribeCallback(finalSeq);
+      prevSeq = finalSeq;
 
-      //last sequence processed
+      // last sequence processed
       if (seqs.length === Math.ceil(waveform.length / this.windowSize)) {
-        final_seq = [...this.sequence, ...seqs.at(-1)!];
-        this.sequence = final_seq;
-        this.decodedTranscribeCallback(final_seq);
-        prevseq = final_seq;
+        finalSeq = [...this.sequence, ...seqs.at(-1)!];
+        this.sequence = finalSeq;
+        this.decodedTranscribeCallback(finalSeq);
+        prevSeq = finalSeq;
       }
     }
     const decodedSeq = this.decodeSeq(this.sequence);
@@ -289,7 +313,7 @@ export class SpeechToTextController {
     return decodedSeq;
   }
 
-  public decodeSeq(seq?: number[]): string {
+  private decodeSeq(seq?: number[]): string {
     if (!this.modelName) {
       this.onErrorCallback?.(
         new Error('Model is not loaded, call `loadModel` first')
@@ -299,14 +323,8 @@ export class SpeechToTextController {
     this.onErrorCallback?.(undefined);
     if (!seq) seq = this.sequence;
 
-    return seq
-      .filter(
-        (token) =>
-          token !== this.config.tokenizer.eos &&
-          token !== this.config.tokenizer.sos
-      )
-      .map((token) => this.tokenMapping[token])
-      .join('')
-      .replaceAll(this.config.tokenizer.special_char, ' ');
+    const tokens = this.tokenDecoder.tokenIdsToTokens(seq);
+    const text = this.tokenDecoder.tokensToDecodedText(tokens);
+    return text;
   }
 }
