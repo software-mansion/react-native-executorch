@@ -171,6 +171,7 @@ export class SpeechToTextController {
       this.checkCanTranscribe();
     } catch (e) {
       this.onErrorCallback?.(e);
+      return '';
     }
 
     // Making sure that the error is not set when we get there
@@ -187,6 +188,7 @@ export class SpeechToTextController {
           `Nothing to transcribe, perhaps you forgot to call this.loadAudio().`
         )
       );
+      return '';
     }
 
     this.chunkWaveform(waveform);
@@ -194,10 +196,21 @@ export class SpeechToTextController {
     let seqs: number[][] = [];
     let prevSeq: number[] = [];
     for (let chunkId = 0; chunkId < this.chunks.length; chunkId++) {
-      let lastToken = this.config.tokenizer.bos;
       let prevSeqTokenIdx = 0;
       let finalSeq: number[] = [];
-      let seq = [lastToken];
+      let seq;
+
+      // We need different starting token based on the multilinguality of the model.
+      // The eng verison only needs BOS token, while the multilingual one needs:
+      // [BOS, LANG, TRANSCRIBE]
+      if (this.config.isMultilingual) {
+        // FIXME: this is a placeholder, will need to change it once HF tokenizers are merged
+        seq = [this.config.tokenizer.bos, 50261, 50359];
+      } else {
+        seq = [this.config.tokenizer.bos];
+      }
+
+      let numSpecialTokens = seq.length;
       let encoderOutput;
       try {
         encoderOutput = await this.nativeModule.encode(
@@ -207,20 +220,26 @@ export class SpeechToTextController {
         this.onErrorCallback?.(`Encode ${error}`);
         return '';
       }
+
+      let lastToken = seq[seq.length - 1] as number;
       while (lastToken !== this.config.tokenizer.eos) {
-        let output;
+        let decoderOutput;
         try {
-          output = await this.nativeModule.decode(seq, [encoderOutput]);
+          decoderOutput = await this.nativeModule.decode(seq, [encoderOutput]);
         } catch (error) {
-          this.onErrorCallback?.(`Decode ${error}`);
+          this.onErrorCallback?.(
+            `An error has ocurred while decoding: ${error}`
+          );
           return '';
         }
-        if (typeof output === 'number') {
-          lastToken = output;
-        } else {
-          lastToken = output[output.length - 1];
+
+        if (typeof decoderOutput !== 'number') {
+          decoderOutput = decoderOutput[decoderOutput.length - 1];
         }
+
+        lastToken = decoderOutput;
         seq.push(lastToken);
+
         if (
           seqs.length > 0 &&
           seq.length < seqs.at(-1)!.length &&
@@ -239,11 +258,17 @@ export class SpeechToTextController {
       }
       // remove bos/eos token and 3 additional ones
       if (seqs.length === 0) {
-        seqs = [seq.slice(0, -4)];
-      } else if (seqs.length === this.chunks.length - 1) {
-        seqs = [...seqs, seq.slice(4)];
+        seqs = [seq.slice(0, -(numSpecialTokens + 3))];
+      } else if (
+        seqs.length ===
+        Math.ceil(waveform.length / this.windowSize) - 1
+      ) {
+        seqs = [...seqs, seq.slice(numSpecialTokens + 3)];
       } else {
-        seqs = [...seqs, seq.slice(4, -4)];
+        seqs = [
+          ...seqs,
+          seq.slice(numSpecialTokens + 3, -(numSpecialTokens + 3)),
+        ];
       }
       if (seqs.length < 2) {
         continue;
