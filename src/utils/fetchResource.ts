@@ -38,6 +38,12 @@ export const fetchResource = async (
 ) => {
   const uri =
     typeof source === 'number' ? Asset.fromModule(source).uri : source;
+
+  // Handle local files
+  if (uri.startsWith('file://')) {
+    return uri;
+  }
+
   const filename = getFilenameFromUri(uri);
   const fileUri = `${RNEDirectory}${filename}`;
 
