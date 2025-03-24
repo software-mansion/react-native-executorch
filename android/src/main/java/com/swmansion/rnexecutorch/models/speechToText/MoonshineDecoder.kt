@@ -10,11 +10,8 @@ class MoonshineDecoder(
   reactApplicationContext: ReactApplicationContext,
 ) : BaseS2TDecoder(reactApplicationContext) {
   private lateinit var generatedTokens: LongArray
+  override var methodName: String = "forward_cached"
   private var innerDim: Long = 288
-
-  override var methodName: String
-    get() = "forward_cached"
-    set(value) {}
 
   override fun setGeneratedTokens(tokens: ReadableArray) {
     this.generatedTokens = ArrayUtils.createLongArray(tokens)

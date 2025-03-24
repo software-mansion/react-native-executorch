@@ -93,7 +93,7 @@ repositories {
   maven { url 'https://jitpack.io' }
 }
 
-def kotlin_version = getExtOrDefault("kotlinVersion")
+def kotlin_version = rootProject.ext.has("kotlinVersion") ? rootProject.ext.get("kotlinVersion") : project.properties["RnExecutorch_kotlinVersion"]
 
 dependencies {
   // For < 0.71, this will be from the local maven repo

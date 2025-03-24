@@ -42,19 +42,16 @@ Installation is pretty straightforward, just use your favorite package manager. 
   <TabItem value="npm" label="NPM">
 
     npm install react-native-executorch
-    npm install react-native-audio-api
 
   </TabItem>
   <TabItem value="pnpm" label="PNPM">
 
     pnpm install react-native-executorch
-    pnpm install react-native-audio-api
 
   </TabItem>
   <TabItem value="yarn" label="YARN">
 
     yarn add react-native-executorch
-    yarn add react-native-audio-api
 
   </TabItem>
 </Tabs>
@@ -75,10 +72,6 @@ This allows us to use binaries, such as exported models or tokenizers for LLMs.
 
 :::caution
 When using Expo, please note that you need to use a custom development build of your app, not the standard Expo Go app. This is because we rely on native modules, which Expo Go doesn’t support.
-:::
-
-:::caution
-If you encountered an error that native modules for React Native Audio API were not installed, please make sure to install react-native-audio-api.
 :::
 
 :::info
