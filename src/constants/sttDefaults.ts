@@ -20,7 +20,7 @@ export interface ModelConfig {
     source: string;
     sos: number;
     eos: number;
-    special_char: string;
+    specialChar: string;
   };
 }
 
@@ -35,7 +35,7 @@ export const MODEL_CONFIGS: { [key in 'moonshine' | 'whisper']: ModelConfig } =
         source: MOONSHINE_TOKENIZER,
         sos: 1,
         eos: 2,
-        special_char: '\u2581',
+        specialChar: '\u2581',
       },
     },
     whisper: {
@@ -47,7 +47,22 @@ export const MODEL_CONFIGS: { [key in 'moonshine' | 'whisper']: ModelConfig } =
         source: WHISPER_TOKENIZER,
         sos: 50257,
         eos: 50256,
-        special_char: 'Ġ',
+        specialChar: 'Ġ',
       },
     },
   };
+
+export const MODES = {
+  fast: {
+    windowSize: 5,
+    overlapSeconds: 1.2,
+  },
+  balanced: {
+    windowSize: 12,
+    overlapSeconds: 2,
+  },
+  quality: {
+    windowSize: 24,
+    overlapSeconds: 3,
+  },
+};

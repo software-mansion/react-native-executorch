@@ -31,17 +31,31 @@ It is recommended to use models provided by us, which are available at our [Hugg
 
 ## Reference
 
+You can obtain waveform from audio in any way most suitable to you, however in the snippet below we utilize `react-native-audio-api` library to process a mp3 file.
+
 ```typescript
 import { useSpeechToText } from 'react-native-executorch';
+import { AudioContext } from 'react-native-audio-api';
+import * as FileSystem from 'expo-file-system';
 
-const { transcribe, error, loadAudio } = useSpeechToText({
+const { transcribe, error } = useSpeechToText({
   modelName: 'moonshine',
 });
 
-const audioUrl = ...; // URL with audio to transcribe
+const loadAudio = async (url: string) => {
+  const audioContext = new AudioContext({ sampleRate: 16e3 });
+  const audioBuffer = await FileSystem.downloadAsync(
+    url,
+    FileSystem.documentDirectory + '_tmp_transcribe_audio.mp3'
+  ).then(({ uri }) => {
+    return audioContext.decodeAudioDataSource(uri);
+  });
+  return audioBuffer?.getChannelData(0);
+};
 
-await loadAudio(audioUrl);
-const transcription = await transcribe();
+const audioUrl = ...; // URL with audio to transcribe
+const waveform = await loadAudio(audioUrl);
+const transcription = await transcribe(waveform);
 if (error) {
   console.log(error);
 } else {
@@ -68,26 +82,29 @@ Analogous to the encoderSource, this takes in a string which is a source for the
 A string that specifies the location to the tokenizer for the model. This works just as the encoder and decoder do. Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/main/src/constants/modelUrls.ts) for given model.
 
 **`overlapSeconds?`**
-Specifies the length of overlap between consecutive audio chunks (expressed in seconds).
+Specifies the length of overlap between consecutive audio chunks (expressed in seconds). Overrides `streamingConfig` argument.
 
 **`windowSize?`**
-Specifies the size of each audio chunk (expressed in seconds).
+Specifies the size of each audio chunk (expressed in seconds). Overrides `streamingConfig` argument.
+
+**`streamingConfig?`**
+Specifies config for both `overlapSeconds` and `windowSize` values. Three options are available: `fast`, `balanced` and `quality`. We discourage using `fast` config with `Whisper` model which while has the lowest latency to first token has the slowest overall speed.
 
 ### Returns
 
-| Field              | Type                                    | Description                                                                                                                                                                                                                                                         |
-| ------------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `transcribe`       | `(input?: number[]) => Promise<string>` | Starts a transcription process for a given input array, which should be a waveform at 16kHz. When no input is provided, it uses an internal state which is set by calling `loadAudio`. Resolves a promise with the output transcription when the model is finished. |
-| `loadAudio`        | `(url: string) => void`                 | Loads audio file from given url. It sets an internal state which serves as an input to `transcribe()`.                                                                                                                                                              |
-| `error`            | <code>Error &#124; undefined</code>     | Contains the error message if the model failed to load.                                                                                                                                                                                                             |
-| `sequence`         | <code>string</code>                     | This property is updated with each generated token. If you're looking to obtain tokens as they're generated, you should use this property.                                                                                                                          |
-| `isGenerating`     | `boolean`                               | Indicates whether the model is currently processing an inference.                                                                                                                                                                                                   |
-| `isReady`          | `boolean`                               | Indicates whether the model has successfully loaded and is ready for inference.                                                                                                                                                                                     |
-| `downloadProgress` | `number`                                | Tracks the progress of the model download process.                                                                                                                                                                                                                  |
+| Field                | Type                                                                                                                     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `transcribe`         | `(input: number[]) => Promise<string>`                                                                                   | Starts a transcription process for a given input array, which should be a waveform at 16kHz. Resolves a promise with the output transcription when the model is finished.                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `error`              | <code>Error &#124; undefined</code>                                                                                      | Contains the error message if the model failed to load.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `sequence`           | <code>string</code>                                                                                                      | This property is updated with each generated token. If you're looking to obtain tokens as they're generated, you should use this property.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `isGenerating`       | `boolean`                                                                                                                | Indicates whether the model is currently processing an inference.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `isReady`            | `boolean`                                                                                                                | Indicates whether the model has successfully loaded and is ready for inference.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `configureStreaming` | <code>(overlapSeconds?: number, windowSize?: number, streamingConfig?: 'fast' &#124; 'balanced' &#124; 'quality')</code> | Configures options for the streaming algorithm: <ul><li>`overlapSeconds` determines how much adjacent audio chunks overlap (increasing it slows down transcription, decreases probability of weird wording at the chunks intersection, setting it larger than 3 seconds generally is discouraged), </li><li>`windowSize` describes size of the audio chunks (increasing it speeds up the end to end transcription time, but increases latency for the first token to be returned),</li><li> `streamingConfig` predefined configs for `windowSize` and `overlapSeconds` values.</li></ul> Keep `windowSize + 2 * overlapSeconds <= 30`. |
+| `downloadProgress`   | `number`                                                                                                                 | Tracks the progress of the model download process.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 
 ## Running the model
 
-Before running the model's `transcribe` method be sure to obtain waveform of the audio You wish to transcribe. You can either use `loadAudio` method to load audio from a url and save it in model's internal state or obtain the waveform on your own (remember to use sampling rate of 16kHz!). In the latter case just pass the obtained waveform as argument to the `transcribe` method which returns a promise resolving to the generated tokens when successful. If the model fails during inference the `error` property contains details of the error. If you want to obtain tokens in a streaming fashion, you can also use the sequence property, which is updated with each generated token, similar to the [useLLM](../llms/useLLM.md) hook.
+Before running the model's `transcribe` method be sure to obtain waveform of the audio You wish to transcribe. You need to obtain the waveform from audio on your own (remember to use sampling rate of 16kHz!), in the snippet above we provide an example how you can do that. In the latter case just pass the obtained waveform as argument to the `transcribe` method which returns a promise resolving to the generated tokens when successful. If the model fails during inference the `error` property contains details of the error. If you want to obtain tokens in a streaming fashion, you can also use the sequence property, which is updated with each generated token, similar to the [useLLM](../llms/useLLM.md) hook.
 
 ## Example
 
@@ -120,7 +137,7 @@ function App() {
 ## Supported models
 
 | Model                                                                 | Language |
-| --------------------------------------------------------------------- | -------- |
+| --------------------------------------------------------------------- | :------: |
 | [Whisper tiny.en](https://huggingface.co/openai/whisper-tiny.en)      | English  |
 | [Moonshine tiny](https://huggingface.co/UsefulSensors/moonshine-tiny) | English  |
 
@@ -129,13 +146,13 @@ function App() {
 ### Model size
 
 | Model          | XNNPACK [MB] |
-| -------------- | ------------ |
-| WHISPER_TINY   | 231.0        |
-| MOONSHINE_TINY | 148.9        |
+| -------------- | :----------: |
+| WHISPER_TINY   |    231.0     |
+| MOONSHINE_TINY |    148.9     |
 
 ### Memory usage
 
 | Model          | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| -------------- | ---------------------- | ------------------ |
-| WHISPER_TINY   | 900                    | 600                |
-| MOONSHINE_TINY | 650                    | 560                |
+| -------------- | :--------------------: | :----------------: |
+| WHISPER_TINY   |          900           |        600         |
+| MOONSHINE_TINY |          650           |        560         |

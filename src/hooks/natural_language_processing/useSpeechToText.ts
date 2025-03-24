@@ -7,11 +7,11 @@ interface SpeechToTextModule {
   isGenerating: boolean;
   sequence: string;
   downloadProgress: number;
+  configureStreaming: SpeechToTextController['configureStreaming'];
   error: Error | undefined;
   transcribe: (
-    input?: number[]
+    input: number[]
   ) => ReturnType<SpeechToTextController['transcribe']>;
-  loadAudio: (url: string) => ReturnType<SpeechToTextController['loadAudio']>;
 }
 
 export const useSpeechToText = ({
@@ -21,13 +21,21 @@ export const useSpeechToText = ({
   tokenizerSource,
   overlapSeconds,
   windowSize,
+  streamingConfig,
 }: {
   modelName: 'moonshine' | 'whisper';
   encoderSource?: ResourceSource;
   decoderSource?: ResourceSource;
   tokenizerSource?: ResourceSource;
-  overlapSeconds?: number;
-  windowSize?: number;
+  overlapSeconds?: ConstructorParameters<
+    typeof SpeechToTextController
+  >['0']['overlapSeconds'];
+  windowSize?: ConstructorParameters<
+    typeof SpeechToTextController
+  >['0']['windowSize'];
+  streamingConfig?: ConstructorParameters<
+    typeof SpeechToTextController
+  >['0']['streamingConfig'];
 }): SpeechToTextModule => {
   const [sequence, setSequence] = useState<string>('');
   const [isReady, setIsReady] = useState(false);
@@ -45,6 +53,7 @@ export const useSpeechToText = ({
         modelDownloadProgessCallback: setDownloadProgress,
         overlapSeconds: overlapSeconds,
         windowSize: windowSize,
+        streamingConfig: streamingConfig,
       })
   );
 
@@ -64,9 +73,9 @@ export const useSpeechToText = ({
     isReady,
     isGenerating,
     downloadProgress,
-    sequence: sequence,
-    error: error,
-    transcribe: (waveform?: number[]) => model.transcribe(waveform),
-    loadAudio: (url: string) => model.loadAudio(url),
+    configureStreaming: model.configureStreaming,
+    sequence,
+    error,
+    transcribe: (waveform: number[]) => model.transcribe(waveform),
   };
 };
