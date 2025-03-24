@@ -7,8 +7,8 @@ NSArray *waveformTypes = [NSArray arrayWithObject:ScalarType.Float];
 
 - (NSArray *)encode:(NSArray *)waveform {
   NSArray *waveformShape =
-      [NSArray arrayWithObject:@[ @1, @([waveform[0] count]) ]];
-  NSArray *result = [self forward:waveform
+      [NSArray arrayWithObject:@[ @1, @([waveform count]) ]];
+  NSArray *result = [self forward:[NSArray arrayWithObject:waveform]
                            shapes:waveformShape
                        inputTypes:waveformTypes];
 

@@ -153,9 +153,9 @@ function App() {
 
 ## Supported models
 
-| Model                                                  | Type       |
-| ------------------------------------------------------ | ---------- |
-| [CRAFT_800](https://github.com/clovaai/CRAFT-pytorch)  | Detector   |
+| Model                                                  |    Type    |
+| ------------------------------------------------------ | :--------: |
+| [CRAFT_800](https://github.com/clovaai/CRAFT-pytorch)  |  Detector  |
 | [CRNN_EN_512](https://www.jaided.ai/easyocr/modelhub/) | Recognizer |
 | [CRNN_EN_256](https://www.jaided.ai/easyocr/modelhub/) | Recognizer |
 | [CRNN_EN_128](https://www.jaided.ai/easyocr/modelhub/) | Recognizer |
@@ -165,17 +165,17 @@ function App() {
 ### Model size
 
 | Model       | XNNPACK [MB] |
-| ----------- | ------------ |
-| CRAFT_800   | 83.1         |
-| CRNN_EN_512 | 547          |
-| CRNN_EN_256 | 277          |
-| CRNN_EN_128 | 142          |
+| ----------- | :----------: |
+| CRAFT_800   |     83.1     |
+| CRNN_EN_512 |     547      |
+| CRNN_EN_256 |     277      |
+| CRNN_EN_128 |     142      |
 
 ### Memory usage
 
 | Model                                               | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| --------------------------------------------------- | ---------------------- | ------------------ |
-| CRAFT_800 + CRNN_EN_512 + CRNN_EN_256 + CRNN_EN_128 | 2100                   | 1782               |
+| --------------------------------------------------- | :--------------------: | :----------------: |
+| CRAFT_800 + CRNN_EN_512 + CRNN_EN_256 + CRNN_EN_128 |          2100          |        1782        |
 
 ### Inference time
 
@@ -184,10 +184,10 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 :::
 
 | Model       | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | Samsung Galaxy S21 (XNNPACK) [ms] |
-| ----------- | ---------------------------- | -------------------------------- | -------------------------- | --------------------------------- | --------------------------------- |
-| CRAFT_800   | 2099                         | 2227                             | ❌                         | 2245                              | 7108                              |
-| CRNN_EN_512 | 70                           | 252                              | ❌                         | 54                                | 151                               |
-| CRNN_EN_256 | 39                           | 123                              | ❌                         | 24                                | 78                                |
-| CRNN_EN_128 | 17                           | 83                               | ❌                         | 14                                | 39                                |
+| ----------- | :--------------------------: | :------------------------------: | :------------------------: | :-------------------------------: | :-------------------------------: |
+| CRAFT_800   |             2099             |               2227               |             ❌             |               2245                |               7108                |
+| CRNN_EN_512 |              70              |               252                |             ❌             |                54                 |                151                |
+| CRNN_EN_256 |              39              |               123                |             ❌             |                24                 |                78                 |
+| CRNN_EN_128 |              17              |                83                |             ❌             |                14                 |                39                 |
 
 ❌ - Insufficient RAM.
