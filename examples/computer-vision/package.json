@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@react-native/metro-config": "^0.76.3",
+    "@shopify/react-native-skia": "^1.11.11",
     "expo": "~52.0.17",
     "expo-font": "^13.0.1",
     "expo-status-bar": "~2.0.0",
