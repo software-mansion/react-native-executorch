@@ -85,20 +85,20 @@ function App(){
 ### Model size
 
 | Model                        | XNNPACK [MB] | Core ML [MB] |
-| ---------------------------- | ------------ | ------------ |
-| STYLE_TRANSFER_CANDY         | 6.78         | 5.22         |
-| STYLE_TRANSFER_MOSAIC        | 6.78         | 5.22         |
-| STYLE_TRANSFER_UDNIE         | 6.78         | 5.22         |
-| STYLE_TRANSFER_RAIN_PRINCESS | 6.78         | 5.22         |
+| ---------------------------- | :----------: | :----------: |
+| STYLE_TRANSFER_CANDY         |     6.78     |     5.22     |
+| STYLE_TRANSFER_MOSAIC        |     6.78     |     5.22     |
+| STYLE_TRANSFER_UDNIE         |     6.78     |     5.22     |
+| STYLE_TRANSFER_RAIN_PRINCESS |     6.78     |     5.22     |
 
 ### Memory usage
 
 | Model                        | Android (XNNPACK) [MB] | iOS (Core ML) [MB] |
-| ---------------------------- | ---------------------- | ------------------ |
-| STYLE_TRANSFER_CANDY         | 950                    | 350                |
-| STYLE_TRANSFER_MOSAIC        | 950                    | 350                |
-| STYLE_TRANSFER_UDNIE         | 950                    | 350                |
-| STYLE_TRANSFER_RAIN_PRINCESS | 950                    | 350                |
+| ---------------------------- | :--------------------: | :----------------: |
+| STYLE_TRANSFER_CANDY         |          950           |        350         |
+| STYLE_TRANSFER_MOSAIC        |          950           |        350         |
+| STYLE_TRANSFER_UDNIE         |          950           |        350         |
+| STYLE_TRANSFER_RAIN_PRINCESS |          950           |        350         |
 
 ### Inference time
 
@@ -107,8 +107,8 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 :::
 
 | Model                        | iPhone 16 Pro (Core ML) [ms] | iPhone 13 Pro (Core ML) [ms] | iPhone SE 3 (Core ML) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
-| ---------------------------- | ---------------------------- | ---------------------------- | -------------------------- | --------------------------------- | ------------------------- |
-| STYLE_TRANSFER_CANDY         | 450                          | 600                          | 750                        | 1650                              | 1800                      |
-| STYLE_TRANSFER_MOSAIC        | 450                          | 600                          | 750                        | 1650                              | 1800                      |
-| STYLE_TRANSFER_UDNIE         | 450                          | 600                          | 750                        | 1650                              | 1800                      |
-| STYLE_TRANSFER_RAIN_PRINCESS | 450                          | 600                          | 750                        | 1650                              | 1800                      |
+| ---------------------------- | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
+| STYLE_TRANSFER_CANDY         |             450              |             600              |            750             |               1650                |           1800            |
+| STYLE_TRANSFER_MOSAIC        |             450              |             600              |            750             |               1650                |           1800            |
+| STYLE_TRANSFER_UDNIE         |             450              |             600              |            750             |               1650                |           1800            |
+| STYLE_TRANSFER_RAIN_PRINCESS |             450              |             600              |            750             |               1650                |           1800            |
