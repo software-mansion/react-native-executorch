@@ -335,6 +335,9 @@ class RecognizerUtils {
         cords.x *= originalPaddings["resizeRatio"]!! as Float
         cords.y *= originalPaddings["resizeRatio"]!! as Float
 
+        cords.x = cords.x.coerceIn(0.0, (image.cols() - 1).toDouble())
+        cords.y = cords.y.coerceIn(0.0, (image.rows() - 1).toDouble())
+
         points[i] = Point(cords.x, cords.y)
       }
 
