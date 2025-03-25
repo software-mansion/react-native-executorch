@@ -69,6 +69,12 @@ const config = {
             position: 'right',
           },
           {
+            'href': 'https://discord.gg/ZGqqY55qkP',
+            'position': 'right',
+            'className': 'header-discord',
+            'aria-label': 'Discord server',
+          },
+          {
             'href':
               'https://github.com/software-mansion/react-native-executorch',
             'position': 'right',
