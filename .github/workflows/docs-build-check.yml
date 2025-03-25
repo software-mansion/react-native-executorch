@@ -36,7 +36,7 @@ jobs:
       - name: Install node dependencies
         working-directory: ${{ env.WORKING_DIRECTORY }}
         # the mkdir is a workaround to avoid this: https://github.com/actions/setup-node/issues/317
-        run: mkdir -p /home/runner/.cache/yarn/v6 && yarn install --immutable --cwd ${{ env.WORKING_DIRECTORY }} --frozen-lockfile
+        run: mkdir -p ../.yarn/cache && yarn install --immutable --cwd ${{ env.WORKING_DIRECTORY }} --frozen-lockfile
         continue-on-error: true
       - name: Generate docs
         working-directory: ${{ env.WORKING_DIRECTORY }}
