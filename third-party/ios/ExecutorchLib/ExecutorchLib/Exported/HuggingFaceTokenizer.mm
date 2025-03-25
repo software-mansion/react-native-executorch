@@ -1,17 +1,14 @@
 #import "HuggingFaceTokenizer.h"
 #include <fstream>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <tokenizers-cpp/tokenizers_cpp.h>
-
-@implementation HuggingFaceTokenizer {
-  std::unique_ptr<tokenizers::Tokenizer> _tokenizer;
-}
 
 std::string loadBytesFromFile(const std::string &path) {
   std::ifstream fs(path, std::ios::in | std::ios::binary);
   if (fs.fail()) {
-    exit(1);
+    throw std::runtime_error("Failed to open tokenizer file");
   }
   std::string data;
   fs.seekg(0, std::ios::end);
@@ -22,15 +19,17 @@ std::string loadBytesFromFile(const std::string &path) {
   return data;
 }
 
-- (NSNumber *)loadTokenizer:(NSString *)jsonPath {
-  try {
-    auto blob = loadBytesFromFile([jsonPath UTF8String]);
-    _tokenizer = tokenizers::Tokenizer::FromBlobJSON(blob);
-  } catch (const std::exception &e) {
-    return @1;
-  }
+@implementation HuggingFaceTokenizer {
+  std::unique_ptr<tokenizers::Tokenizer> _tokenizer;
+}
 
-  return @0;
+- (instancetype)initWithTokenizerPath:(NSString *)tokenizerPath {
+  self = [super init];
+  if (self) {
+    auto blob = loadBytesFromFile([tokenizerPath UTF8String]);
+    _tokenizer = tokenizers::Tokenizer::FromBlobJSON(blob);
+  }
+  return self;
 }
 
 - (NSArray<NSNumber *> *)encode:(NSString *)text {
@@ -40,6 +39,7 @@ std::string loadBytesFromFile(const std::string &path) {
   for (int32_t tokenId : result) {
     [encodedResult addObject:@(tokenId)];
   }
+
   return encodedResult;
 }
 
