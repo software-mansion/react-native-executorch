@@ -144,7 +144,7 @@ await llama.generate(message);
 
 ## Listening for the response
 
-As you might've noticed, there is no return value from the `runInference` function. Instead, the `.response` field of the model is updated with each token.
+As you might've noticed, there is no return value from the `generate` function. Instead, the `.response` field of the model is updated with each token.
 This is how you can render the response of the model:
 
 ```typescript
