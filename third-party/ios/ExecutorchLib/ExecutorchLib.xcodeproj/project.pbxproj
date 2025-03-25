@@ -10,17 +10,17 @@
 		0E4A7F472D67549100D8DCBA /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E4A7F442D67549100D8DCBA /* Metal.framework */; };
 		0E4A7F482D67549100D8DCBA /* MetalPerformanceShaders.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E4A7F452D67549100D8DCBA /* MetalPerformanceShaders.framework */; };
 		0E4A7F492D67549100D8DCBA /* MetalPerformanceShadersGraph.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E4A7F462D67549100D8DCBA /* MetalPerformanceShadersGraph.framework */; };
+		5522657E2D9295DF00E4C4C6 /* executorch.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 552265762D9295DF00E4C4C6 /* executorch.xcframework */; };
+		5522657F2D9295DF00E4C4C6 /* backend_mps.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 552265772D9295DF00E4C4C6 /* backend_mps.xcframework */; };
+		552265802D9295DF00E4C4C6 /* kernels_custom.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 552265782D9295DF00E4C4C6 /* kernels_custom.xcframework */; };
+		552265812D9295DF00E4C4C6 /* kernels_optimized.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 552265792D9295DF00E4C4C6 /* kernels_optimized.xcframework */; };
+		552265822D9295DF00E4C4C6 /* backend_xnnpack.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5522657A2D9295DF00E4C4C6 /* backend_xnnpack.xcframework */; };
+		552265832D9295DF00E4C4C6 /* kernels_portable.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5522657B2D9295DF00E4C4C6 /* kernels_portable.xcframework */; };
+		552265842D9295DF00E4C4C6 /* kernels_quantized.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5522657C2D9295DF00E4C4C6 /* kernels_quantized.xcframework */; };
+		552265852D9295DF00E4C4C6 /* backend_coreml.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5522657D2D9295DF00E4C4C6 /* backend_coreml.xcframework */; };
 		5576B4B72CEF9709005027B7 /* ETModel.h in Headers */ = {isa = PBXBuildFile; fileRef = 5576B4B62CEF9705005027B7 /* ETModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5576B4B92CEF970E005027B7 /* ETModel.mm in Sources */ = {isa = PBXBuildFile; fileRef = 5576B4B82CEF970C005027B7 /* ETModel.mm */; };
 		558699BB2D8AD562004180E5 /* re2.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5576B49E2CEF76CC005027B7 /* re2.xcframework */; };
-		558699BD2D8B1C5D004180E5 /* backend_coreml.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 558699BC2D8B1C5D004180E5 /* backend_coreml.xcframework */; };
-		558699C52D8B1D24004180E5 /* kernels_custom.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 558699BE2D8B1D24004180E5 /* kernels_custom.xcframework */; };
-		558699C62D8B1D24004180E5 /* kernels_portable.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 558699BF2D8B1D24004180E5 /* kernels_portable.xcframework */; };
-		558699C72D8B1D24004180E5 /* kernels_optimized.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 558699C02D8B1D24004180E5 /* kernels_optimized.xcframework */; };
-		558699C82D8B1D24004180E5 /* kernels_quantized.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 558699C12D8B1D24004180E5 /* kernels_quantized.xcframework */; };
-		558699C92D8B1D24004180E5 /* backend_xnnpack.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 558699C22D8B1D24004180E5 /* backend_xnnpack.xcframework */; };
-		558699CA2D8B1D24004180E5 /* executorch.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 558699C32D8B1D24004180E5 /* executorch.xcframework */; };
-		558699CB2D8B1D24004180E5 /* backend_mps.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 558699C42D8B1D24004180E5 /* backend_mps.xcframework */; };
 		55DEEA382D05ABBB004422A3 /* InputType.h in Headers */ = {isa = PBXBuildFile; fileRef = 55DEEA372D05ABB4004422A3 /* InputType.h */; };
 		55DEEBF02D8C45960033DBBA /* HuggingFaceTokenizer.h in Headers */ = {isa = PBXBuildFile; fileRef = 55DEEBEF2D8C458F0033DBBA /* HuggingFaceTokenizer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		55DEEBF22D8C459A0033DBBA /* HuggingFaceTokenizer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 55DEEBF12D8C45990033DBBA /* HuggingFaceTokenizer.mm */; };
@@ -55,17 +55,17 @@
 		0E4A7F442D67549100D8DCBA /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		0E4A7F452D67549100D8DCBA /* MetalPerformanceShaders.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalPerformanceShaders.framework; path = System/Library/Frameworks/MetalPerformanceShaders.framework; sourceTree = SDKROOT; };
 		0E4A7F462D67549100D8DCBA /* MetalPerformanceShadersGraph.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalPerformanceShadersGraph.framework; path = System/Library/Frameworks/MetalPerformanceShadersGraph.framework; sourceTree = SDKROOT; };
+		552265762D9295DF00E4C4C6 /* executorch.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = executorch.xcframework; path = frameworks/executorch.xcframework; sourceTree = "<group>"; };
+		552265772D9295DF00E4C4C6 /* backend_mps.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = backend_mps.xcframework; path = frameworks/backend_mps.xcframework; sourceTree = "<group>"; };
+		552265782D9295DF00E4C4C6 /* kernels_custom.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = kernels_custom.xcframework; path = frameworks/kernels_custom.xcframework; sourceTree = "<group>"; };
+		552265792D9295DF00E4C4C6 /* kernels_optimized.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = kernels_optimized.xcframework; path = frameworks/kernels_optimized.xcframework; sourceTree = "<group>"; };
+		5522657A2D9295DF00E4C4C6 /* backend_xnnpack.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = backend_xnnpack.xcframework; path = frameworks/backend_xnnpack.xcframework; sourceTree = "<group>"; };
+		5522657B2D9295DF00E4C4C6 /* kernels_portable.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = kernels_portable.xcframework; path = frameworks/kernels_portable.xcframework; sourceTree = "<group>"; };
+		5522657C2D9295DF00E4C4C6 /* kernels_quantized.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = kernels_quantized.xcframework; path = frameworks/kernels_quantized.xcframework; sourceTree = "<group>"; };
+		5522657D2D9295DF00E4C4C6 /* backend_coreml.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = backend_coreml.xcframework; path = frameworks/backend_coreml.xcframework; sourceTree = "<group>"; };
 		5576B49E2CEF76CC005027B7 /* re2.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = re2.xcframework; path = frameworks/re2.xcframework; sourceTree = "<group>"; };
 		5576B4B62CEF9705005027B7 /* ETModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ETModel.h; sourceTree = "<group>"; };
 		5576B4B82CEF970C005027B7 /* ETModel.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ETModel.mm; sourceTree = "<group>"; };
-		558699BC2D8B1C5D004180E5 /* backend_coreml.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = backend_coreml.xcframework; path = "../../../../tokenizerTest/third-party/executorch/cmake-out/backend_coreml.xcframework"; sourceTree = "<group>"; };
-		558699BE2D8B1D24004180E5 /* kernels_custom.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = kernels_custom.xcframework; path = "../../../../tokenizerTest/third-party/executorch/cmake-out/kernels_custom.xcframework"; sourceTree = "<group>"; };
-		558699BF2D8B1D24004180E5 /* kernels_portable.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = kernels_portable.xcframework; path = "../../../../tokenizerTest/third-party/executorch/cmake-out/kernels_portable.xcframework"; sourceTree = "<group>"; };
-		558699C02D8B1D24004180E5 /* kernels_optimized.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = kernels_optimized.xcframework; path = "../../../../tokenizerTest/third-party/executorch/cmake-out/kernels_optimized.xcframework"; sourceTree = "<group>"; };
-		558699C12D8B1D24004180E5 /* kernels_quantized.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = kernels_quantized.xcframework; path = "../../../../tokenizerTest/third-party/executorch/cmake-out/kernels_quantized.xcframework"; sourceTree = "<group>"; };
-		558699C22D8B1D24004180E5 /* backend_xnnpack.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = backend_xnnpack.xcframework; path = "../../../../tokenizerTest/third-party/executorch/cmake-out/backend_xnnpack.xcframework"; sourceTree = "<group>"; };
-		558699C32D8B1D24004180E5 /* executorch.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = executorch.xcframework; path = "../../../../tokenizerTest/third-party/executorch/cmake-out/executorch.xcframework"; sourceTree = "<group>"; };
-		558699C42D8B1D24004180E5 /* backend_mps.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = backend_mps.xcframework; path = "../../../../tokenizerTest/third-party/executorch/cmake-out/backend_mps.xcframework"; sourceTree = "<group>"; };
 		55DEEA372D05ABB4004422A3 /* InputType.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InputType.h; sourceTree = "<group>"; };
 		55DEEBEF2D8C458F0033DBBA /* HuggingFaceTokenizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HuggingFaceTokenizer.h; sourceTree = "<group>"; };
 		55DEEBF12D8C45990033DBBA /* HuggingFaceTokenizer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = HuggingFaceTokenizer.mm; sourceTree = "<group>"; };
@@ -102,14 +102,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				558699C52D8B1D24004180E5 /* kernels_custom.xcframework in Frameworks */,
-				558699C62D8B1D24004180E5 /* kernels_portable.xcframework in Frameworks */,
-				558699C72D8B1D24004180E5 /* kernels_optimized.xcframework in Frameworks */,
-				558699C82D8B1D24004180E5 /* kernels_quantized.xcframework in Frameworks */,
-				558699C92D8B1D24004180E5 /* backend_xnnpack.xcframework in Frameworks */,
-				558699CA2D8B1D24004180E5 /* executorch.xcframework in Frameworks */,
-				558699CB2D8B1D24004180E5 /* backend_mps.xcframework in Frameworks */,
-				558699BD2D8B1C5D004180E5 /* backend_coreml.xcframework in Frameworks */,
+				5522657E2D9295DF00E4C4C6 /* executorch.xcframework in Frameworks */,
+				5522657F2D9295DF00E4C4C6 /* backend_mps.xcframework in Frameworks */,
+				552265802D9295DF00E4C4C6 /* kernels_custom.xcframework in Frameworks */,
+				552265812D9295DF00E4C4C6 /* kernels_optimized.xcframework in Frameworks */,
+				552265822D9295DF00E4C4C6 /* backend_xnnpack.xcframework in Frameworks */,
+				552265832D9295DF00E4C4C6 /* kernels_portable.xcframework in Frameworks */,
+				552265842D9295DF00E4C4C6 /* kernels_quantized.xcframework in Frameworks */,
+				552265852D9295DF00E4C4C6 /* backend_coreml.xcframework in Frameworks */,
 				558699BB2D8AD562004180E5 /* re2.xcframework in Frameworks */,
 				0E4A7F472D67549100D8DCBA /* Metal.framework in Frameworks */,
 				0E4A7F482D67549100D8DCBA /* MetalPerformanceShaders.framework in Frameworks */,
@@ -209,14 +209,14 @@
 		55EA2C552CB90E7D004315B3 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				558699C42D8B1D24004180E5 /* backend_mps.xcframework */,
-				558699C22D8B1D24004180E5 /* backend_xnnpack.xcframework */,
-				558699C32D8B1D24004180E5 /* executorch.xcframework */,
-				558699BE2D8B1D24004180E5 /* kernels_custom.xcframework */,
-				558699C02D8B1D24004180E5 /* kernels_optimized.xcframework */,
-				558699BF2D8B1D24004180E5 /* kernels_portable.xcframework */,
-				558699C12D8B1D24004180E5 /* kernels_quantized.xcframework */,
-				558699BC2D8B1C5D004180E5 /* backend_coreml.xcframework */,
+				5522657D2D9295DF00E4C4C6 /* backend_coreml.xcframework */,
+				552265772D9295DF00E4C4C6 /* backend_mps.xcframework */,
+				5522657A2D9295DF00E4C4C6 /* backend_xnnpack.xcframework */,
+				552265762D9295DF00E4C4C6 /* executorch.xcframework */,
+				552265782D9295DF00E4C4C6 /* kernels_custom.xcframework */,
+				552265792D9295DF00E4C4C6 /* kernels_optimized.xcframework */,
+				5522657B2D9295DF00E4C4C6 /* kernels_portable.xcframework */,
+				5522657C2D9295DF00E4C4C6 /* kernels_quantized.xcframework */,
 				0E4A7F442D67549100D8DCBA /* Metal.framework */,
 				0E4A7F452D67549100D8DCBA /* MetalPerformanceShaders.framework */,
 				0E4A7F462D67549100D8DCBA /* MetalPerformanceShadersGraph.framework */,
@@ -341,7 +341,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\n\nif ! command -v cmake &> /dev/null\nthen\n    echo \"Cmake not found, please install Cmake. \\n1. Download Cmake.app from https://cmake.org/download with version > 3.19. \\n2. Install it to Applications/ folder and run `sudo /Applications/CMake.app/Contents/bin/cmake-gui --install` to install CMake commandline tools.\"\n    exit 1\nfi\n\n# Type a script or drag a script file from your workspace to insert its path.\nCMAKE_DIR=\"$TEMP_DIR/cmake\"\nrm -rf \"$CMAKE_DIR\"\n\nPLATFORM=\"SIMULATORARM64\"\nDEPLOYMENT_TARGET=\"17.0\"\n\nif [[ \"$PLATFORM_NAME\" == \"iphoneos\" ]]; then\n  TOKENIZERS_TARGET=\"aarch64-apple-ios\"\nelif [[ \"$PLATFORM_NAME\" == \"iphonesimulator\" ]]; then\n  TOKENIZERS_TARGET=\"x86_64-apple-ios\"\nfi\n\nif [[ \"$PLATFORM_NAME\" == *\"iphoneos\"* ]]; then\n  PLATFORM=\"OS64\"\nelif [[ \"$PLATFORM_NAME\" == *\"macos\"* ]]; then\n  PLATFORM=\"MAC_ARM64\"\n  DEPLOYMENT_TARGET=\"10.15\"\nfi\n\n\ncmake_build_tokenizers() {\n    echo \"CHUJ\"\n    echo \"$(which ld)\"\n    export PATH=\"$PATH:$HOME/.cargo/bin\"\n    export PATH=\"/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib:$PATH\"\n    export LIBRARY_PATH=\"$LIBRARY_PATH:/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib\"\n    local src_dir=$1\n    local target=$2\n    local extra_args=(\"$@\")\n    local build_dir=\"$CMAKE_DIR/build/$(basename \"$src_dir\")\"\n    mkdir -p \"$build_dir\" && cd \"$build_dir\"\n    \n    if [[ \"$PLATFORM\" == \"MAC_ARM64\" ]]; then\n        extra_args+=(-DCMAKE_INSTALL_BUNDLEDIR=\"${CMAKE_DIR}/bin\")\n        extra_args+=(-DCMAKE_MACOSX_BUNDLE=OFF)\n    fi\n    \n    cmake \"$src_dir\" -DCMAKE_TOOLCHAIN_FILE=\"/Users/norbertklockiewicz/Desktop/work/swm_ai/tokenizers-cpp/ios.toolchain.cmake\" \\\n         -DPLATFORM=\"$PLATFORM\" \\\n         -DDEPLOYMENT_TARGET=\"$DEPLOYMENT_TARGET\" \\\n         -DENABLE_BITCODE=FALSE \\\n         -DENABLE_ARC=TRUE \\\n         -DENABLE_VISIBILITY=TRUE \\\n         -DCMAKE_INSTALL_PREFIX=\"$CMAKE_DIR\" \\\n         -DMLC_ENABLE_SENTENCEPIECE_TOKENIZER=ON\n          \n    cmake --build . --config \"Release\" --target \"install\"\n}\n\ncmake_build_tokenizers \"/Users/norbertklockiewicz/Desktop/work/swm_ai/tokenizers-cpp\" \"install\"\n\necho \"$(find $CMAKE_DIR/lib -name \"*.a\" | sed -E 's|^.*/lib([^/]+)\\.a|-l\\1|g' | tr '\\n' ' ')\" > \"$CMAKE_DIR/linker_flags\"\n\n";
+			shellScript = "set -e\n\nif ! command -v cmake &> /dev/null\nthen\n    echo \"Cmake not found, please install Cmake. \\n1. Download Cmake.app from https://cmake.org/download with version > 3.19. \\n2. Install it to Applications/ folder and run `sudo /Applications/CMake.app/Contents/bin/cmake-gui --install` to install CMake commandline tools.\"\n    exit 1\nfi\n\n# Type a script or drag a script file from your workspace to insert its path.\nCMAKE_DIR=\"$TEMP_DIR/cmake\"\nrm -rf \"$CMAKE_DIR\"\n\nPLATFORM=\"SIMULATORARM64\"\nDEPLOYMENT_TARGET=\"17.0\"\n\nif [[ \"$PLATFORM_NAME\" == \"iphoneos\" ]]; then\n  TOKENIZERS_TARGET=\"aarch64-apple-ios\"\nelif [[ \"$PLATFORM_NAME\" == \"iphonesimulator\" ]]; then\n  TOKENIZERS_TARGET=\"x86_64-apple-ios\"\nfi\n\nif [[ \"$PLATFORM_NAME\" == *\"iphoneos\"* ]]; then\n  PLATFORM=\"OS64\"\nelif [[ \"$PLATFORM_NAME\" == *\"macos\"* ]]; then\n  PLATFORM=\"MAC_ARM64\"\n  DEPLOYMENT_TARGET=\"10.15\"\nfi\n\n\ncmake_build_tokenizers() {\n    export PATH=\"$PATH:$HOME/.cargo/bin\"\n    export PATH=\"/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib:$PATH\"\n    export LIBRARY_PATH=\"$LIBRARY_PATH:/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib\"\n    local src_dir=$1\n    local target=$2\n    local extra_args=(\"$@\")\n    local build_dir=\"$CMAKE_DIR/build/$(basename \"$src_dir\")\"\n    mkdir -p \"$build_dir\" && cd \"$build_dir\"\n    \n    if [[ \"$PLATFORM\" == \"MAC_ARM64\" ]]; then\n        extra_args+=(-DCMAKE_INSTALL_BUNDLEDIR=\"${CMAKE_DIR}/bin\")\n        extra_args+=(-DCMAKE_MACOSX_BUNDLE=OFF)\n    fi\n    \n    cmake \"$src_dir\" -DCMAKE_TOOLCHAIN_FILE=\"$SRCROOT/../../ios/ios.toolchain.cmake\" \\\n         -DPLATFORM=\"$PLATFORM\" \\\n         -DDEPLOYMENT_TARGET=\"$DEPLOYMENT_TARGET\" \\\n         -DENABLE_BITCODE=FALSE \\\n         -DENABLE_ARC=TRUE \\\n         -DENABLE_VISIBILITY=TRUE \\\n         -DCMAKE_INSTALL_PREFIX=\"$CMAKE_DIR\" \\\n         -DMLC_ENABLE_SENTENCEPIECE_TOKENIZER=ON\n          \n    cmake --build . --config \"Release\" --target \"install\"\n}\n\ncmake_build_tokenizers \"$SRCROOT/../../tokenizers-cpp\" \"install\"\n\necho \"$(find $CMAKE_DIR/lib -name \"*.a\" | sed -E 's|^.*/lib([^/]+)\\.a|-l\\1|g' | tr '\\n' ' ')\" > \"$CMAKE_DIR/linker_flags\"\n\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -525,37 +525,37 @@
 				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"$(inherited)",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libkernels_optimized_ios.a",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_optimized-ios-release.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libkernels_custom_ios.a",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_custom-ios-release.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libkernels_quantized_ios.a",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_quantized-ios-release.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libbackend_xnnpack_ios.a",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_xnnpack-ios-release.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libbackend_coreml_ios.a",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_coreml-ios-release.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libbackend_mps_ios.a",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_mps-ios-release.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libexecutorch_ios.a",
+					"$(BUILT_PRODUCTS_DIR)/libexecutorch-ios-release.a",
 					"@$(TEMP_DIR)/cmake/linker_flags",
 				);
 				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = (
 					"$(inherited)",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libkernels_optimized_simulator.a",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_optimized-simulator-release.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libkernels_custom_simulator.a",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_custom-simulator-release.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libkernels_quantized_simulator.a",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_quantized-simulator-release.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libbackend_xnnpack_simulator.a",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_xnnpack-simulator-release.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libbackend_coreml_simulator.a",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_coreml-simulator-release.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libbackend_mps_simulator.a",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_mps-simulator-release.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libexecutorch_simulator.a",
+					"$(BUILT_PRODUCTS_DIR)/libexecutorch-simulator-release.a",
 					"@$(TEMP_DIR)/cmake/linker_flags",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.swmansion.Executorch;
@@ -607,37 +607,37 @@
 				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"$(inherited)",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libkernels_optimized_ios.a",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_optimized-ios-release.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libkernels_custom_ios.a",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_custom-ios-release.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libkernels_quantized_ios.a",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_quantized-ios-release.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libbackend_xnnpack_ios.a",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_xnnpack-ios-release.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libbackend_coreml_ios.a",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_coreml-ios-release.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libbackend_mps_ios.a",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_mps-ios-release.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libexecutorch_ios.a",
+					"$(BUILT_PRODUCTS_DIR)/libexecutorch-ios-release.a",
 					"@$(TEMP_DIR)/cmake/linker_flags",
 				);
 				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = (
 					"$(inherited)",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libkernels_optimized_simulator.a",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_optimized-simulator-release.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libkernels_custom_simulator.a",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_custom-simulator-release.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libkernels_quantized_simulator.a",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_quantized-simulator-release.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libbackend_xnnpack_simulator.a",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_xnnpack-simulator-release.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libbackend_coreml_simulator.a",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_coreml-simulator-release.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libbackend_mps_simulator.a",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_mps-simulator-release.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libexecutorch_simulator.a",
+					"$(BUILT_PRODUCTS_DIR)/libexecutorch-simulator-release.a",
 					"@$(TEMP_DIR)/cmake/linker_flags",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.swmansion.Executorch;
