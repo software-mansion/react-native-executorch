@@ -80,7 +80,7 @@ The minimal supported version is 17.0 for iOS and Android 13.
 
 https://github.com/user-attachments/assets/27ab3406-c7f1-4618-a981-6c86b53547ee
 
-We currently host few example apps demonstrating use cases of our library:
+We currently host a few example apps demonstrating use cases of our library:
 
 - examples/speech-to-text - Whisper and Moonshine models ready for transcription tasks
 - examples/computer-vision - computer vision related tasks
