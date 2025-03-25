@@ -2,7 +2,7 @@
 
 @interface HuggingFaceTokenizer : NSObject
 
-- (NSNumber *)loadTokenizer:(NSString *)jsonPath;
+- (instancetype)initWithTokenizerPath:(NSString *)tokenizerPath;
 - (NSArray<NSNumber *> *)encode:(NSString *)text;
 - (NSString *)decode:(NSArray<NSNumber *> *)tokenIds;
 - (NSUInteger)getVocabSize;

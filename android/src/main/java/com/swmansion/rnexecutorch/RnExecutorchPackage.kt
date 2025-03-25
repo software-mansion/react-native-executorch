@@ -32,6 +32,8 @@ class RnExecutorchPackage : TurboReactPackage() {
       VerticalOCR(reactContext)
     } else if (name == ImageSegmentation.NAME) {
       ImageSegmentation(reactContext)
+    } else if (name == Tokenizer.NAME) {
+      Tokenizer(reactContext)
     } else {
       null
     }
@@ -118,12 +120,25 @@ class RnExecutorchPackage : TurboReactPackage() {
           true,
         )
 
-      moduleInfos[ImageSegmentation.NAME] = ReactModuleInfo(
-        ImageSegmentation.NAME, ImageSegmentation.NAME, false,  // canOverrideExistingModule
-        false,  // needsEagerInit
-        false,  // isCxxModule
-        true
-      )
+      moduleInfos[ImageSegmentation.NAME] =
+        ReactModuleInfo(
+          ImageSegmentation.NAME,
+          ImageSegmentation.NAME,
+          false, // canOverrideExistingModule
+          false, // needsEagerInit
+          false, // isCxxModule
+          true,
+        )
+
+      moduleInfos[Tokenizer.NAME] =
+        ReactModuleInfo(
+          Tokenizer.NAME,
+          Tokenizer.NAME,
+          false, // canOverrideExistingModule
+          false, // needsEagerInit
+          false, // isCxxModule
+          true,
+        )
       moduleInfos
     }
 }
