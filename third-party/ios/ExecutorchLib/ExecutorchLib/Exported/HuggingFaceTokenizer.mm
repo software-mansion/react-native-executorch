@@ -8,7 +8,7 @@
   std::unique_ptr<tokenizers::Tokenizer> _tokenizer;
 }
 
-std::string LoadBytesFromFile(const std::string &path) {
+std::string loadBytesFromFile(const std::string &path) {
   std::ifstream fs(path, std::ios::in | std::ios::binary);
   if (fs.fail()) {
     exit(1);
@@ -24,7 +24,7 @@ std::string LoadBytesFromFile(const std::string &path) {
 
 - (NSNumber *)loadTokenizer:(NSString *)jsonPath {
   try {
-    auto blob = LoadBytesFromFile([jsonPath UTF8String]);
+    auto blob = loadBytesFromFile([jsonPath UTF8String]);
     _tokenizer = tokenizers::Tokenizer::FromBlobJSON(blob);
   } catch (const std::exception &e) {
     return @1;
