@@ -23,10 +23,6 @@ jobs:
     env:
       WORKING_DIRECTORY: docs
     steps:
-      - name: checkout
-        uses: actions/checkout@v2
-      - name: For act to work (local testing)
-        run: npm -g install yarn
       - name: Use Node.js 18
         uses: actions/setup-node@v2
         with:
