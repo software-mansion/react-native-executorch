@@ -6,8 +6,13 @@ on:
       - main
     paths:
       - 'docs/**'
-  workflow_dispatch:
-
+      - '.github/workflows/docs-build-check.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs-build-check.yml'
 jobs:
   check:
     if: github.repository == 'software-mansion/react-native-executorch'
@@ -20,6 +25,8 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v2
+      - name: For act to work (local testing)
+        run: npm -g install yarn
       - name: Use Node.js 18
         uses: actions/setup-node@v2
         with:
@@ -28,7 +35,7 @@ jobs:
       - name: Install node dependencies
         working-directory: ${{ env.WORKING_DIRECTORY }}
         # the mkdir is a workaround to avoid this: https://github.com/actions/setup-node/issues/317
-        run: mkdir -p .yarn/cache && yarn
+        run: mkdir -p ../.yarn/cache && yarn
       - name: Generate docs
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: yarn build
