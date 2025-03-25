@@ -28,11 +28,11 @@ jobs:
         with:
           node-version: 18
           cache: 'yarn'
-          cache-dependency-path: ${{env.WORKING_DIRECTORY}}/.yarn.lock
+          # cache-dependency-path: ${{env.WORKING_DIRECTORY}}/.yarn.lock
       - name: Install node dependencies
         working-directory: ${{ env.WORKING_DIRECTORY }}
         # the mkdir is a workaround to avoid this: https://github.com/actions/setup-node/issues/317
-        run: mkdir -p ../.yarn/cache && yarn install --immutable
+        run: mkdir -p .yarn/cache && yarn install --immutable
       - name: Generate docs
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: yarn build
