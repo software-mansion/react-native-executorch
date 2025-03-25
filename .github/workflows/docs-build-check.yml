@@ -31,7 +31,7 @@ jobs:
       - name: Install node dependencies
         working-directory: ${{ env.WORKING_DIRECTORY }}
         # the mkdir is a workaround to avoid this: https://github.com/actions/setup-node/issues/317
-        run: mkdir -p ../.yarn/cache && yarn
+        run: mkdir -p ../.yarn/cache && yarn install --immutable
       - name: Generate docs
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: yarn build
