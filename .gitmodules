@@ -1,6 +1,6 @@
-[submodule "tokenizers-cpp"]
-	path = third-party/tokenizers-cpp
-	url = https://github.com/software-mansion-labs/tokenizers-cpp
 [submodule "executorch"]
     path = third-party/executorch
     url = https://github.com/software-mansion-labs/executorch
+[submodule "tokenizers-cpp"]
+	path = third-party/tokenizers-cpp
+	url = https://github.com/software-mansion-labs/tokenizers-cpp
