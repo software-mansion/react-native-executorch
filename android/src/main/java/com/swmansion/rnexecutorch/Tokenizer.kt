@@ -1,6 +1,5 @@
 package com.swmansion.rnexecutorch
 
-import android.util.Log
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
@@ -24,7 +23,6 @@ class Tokenizer(
     promise: Promise,
   ) {
     try {
-      Log.d("rn_executorch", "Loading tokenizer from $tokenizerSource")
       tokenizer = HuggingFaceTokenizer(URL(tokenizerSource).path)
       promise.resolve(0)
     } catch (e: Exception) {
