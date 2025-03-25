@@ -25,8 +25,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-      - name: Conditionally Install Yarn for local Github Actions Emulator ACT
-        run: npm -g install yarn
       - name: Use Node.js 18
         uses: actions/setup-node@v2
         with:
@@ -36,7 +34,7 @@ jobs:
       - name: Install node dependencies
         working-directory: ${{ env.WORKING_DIRECTORY }}
         # the mkdir is a workaround to avoid this: https://github.com/actions/setup-node/issues/317
-        run: mkdir -p ../.yarn/cache && yarn install --immutable --cwd ${{ env.WORKING_DIRECTORY }} --frozen-lockfile
+        run: mkdir -p ../.yarn/cache && yarn install --immutable --cwd ${{ env.WORKING_DIRECTORY }}
         continue-on-error: true
       - name: Generate docs
         working-directory: ${{ env.WORKING_DIRECTORY }}
