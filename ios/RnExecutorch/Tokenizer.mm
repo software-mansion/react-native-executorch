@@ -23,31 +23,56 @@ RCT_EXPORT_MODULE()
 - (void)encode:(NSString *)input
        resolve:(RCTPromiseResolveBlock)resolve
         reject:(RCTPromiseRejectBlock)reject {
-  resolve([tokenizer encode:input]);
+  @try {
+    resolve([tokenizer encode:input]);
+  } @catch (NSException *exception) {
+    reject(@"tokenizer_error",
+           [NSString stringWithFormat:@"%@", exception.reason], nil);
+  }
 }
 
 - (void)decode:(NSArray *)input
        resolve:(RCTPromiseResolveBlock)resolve
         reject:(RCTPromiseRejectBlock)reject {
-  resolve([tokenizer decode:input]);
+  @try {
+    resolve([tokenizer decode:input]);
+  } @catch (NSException *exception) {
+    reject(@"tokenizer_error",
+           [NSString stringWithFormat:@"%@", exception.reason], nil);
+  }
 }
 
 - (void)getVocabSize:(RCTPromiseResolveBlock)resolve
               reject:(RCTPromiseRejectBlock)reject {
-  resolve([NSNumber numberWithUnsignedInteger:[tokenizer getVocabSize]]);
+  @try {
+    resolve([NSNumber numberWithUnsignedInteger:[tokenizer getVocabSize]]);
+  } @catch (NSException *exception) {
+    reject(@"tokenizer_error",
+           [NSString stringWithFormat:@"%@", exception.reason], nil);
+  }
 }
 
 - (void)idToToken:(double)input
           resolve:(RCTPromiseResolveBlock)resolve
            reject:(RCTPromiseRejectBlock)reject {
-  NSInteger tokenID = (NSInteger)input;
-  resolve([tokenizer idToToken:tokenID]);
+  @try {
+    NSInteger tokenID = (NSInteger)input;
+    resolve([tokenizer idToToken:tokenID]);
+  } @catch (NSException *exception) {
+    reject(@"tokenizer_error",
+           [NSString stringWithFormat:@"%@", exception.reason], nil);
+  }
 }
 
 - (void)tokenToId:(NSString *)input
           resolve:(RCTPromiseResolveBlock)resolve
            reject:(RCTPromiseRejectBlock)reject {
-  resolve([NSNumber numberWithInteger:[tokenizer tokenToId:input]]);
+  @try {
+    resolve([NSNumber numberWithInteger:[tokenizer tokenToId:input]]);
+  } @catch (NSException *exception) {
+    reject(@"tokenizer_error",
+           [NSString stringWithFormat:@"%@", exception.reason], nil);
+  }
 }
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
