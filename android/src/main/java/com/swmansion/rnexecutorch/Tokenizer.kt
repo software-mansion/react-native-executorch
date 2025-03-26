@@ -34,32 +34,52 @@ class Tokenizer(
     input: ReadableArray,
     promise: Promise,
   ) {
-    promise.resolve(tokenizer.decode(createIntArray(input)))
+    try {
+      promise.resolve(tokenizer.decode(createIntArray(input)))
+    } catch (e: Exception) {
+      promise.reject(e.message!!, ETError.UndefinedError.toString())
+    }
   }
 
   override fun encode(
     input: String,
     promise: Promise,
   ) {
-    promise.resolve(createReadableArrayFromIntArray(tokenizer.encode(input)))
+    try {
+      promise.resolve(createReadableArrayFromIntArray(tokenizer.encode(input)))
+    } catch (e: Exception) {
+      promise.reject(e.message!!, ETError.UndefinedError.toString())
+    }
   }
 
   override fun getVocabSize(promise: Promise) {
-    promise.resolve(tokenizer.vocabSize)
+    try {
+      promise.resolve(tokenizer.vocabSize)
+    } catch (e: Exception) {
+      promise.reject(e.message!!, ETError.UndefinedError.toString())
+    }
   }
 
   override fun idToToken(
     id: Double,
     promise: Promise,
   ) {
-    promise.resolve(tokenizer.idToToken(id.toInt()))
+    try {
+      promise.resolve(tokenizer.idToToken(id.toInt()))
+    } catch (e: Exception) {
+      promise.reject(e.message!!, ETError.UndefinedError.toString())
+    }
   }
 
   override fun tokenToId(
     token: String,
     promise: Promise,
   ) {
-    promise.resolve(tokenizer.tokenToId(token))
+    try {
+      promise.resolve(tokenizer.tokenToId(token))
+    } catch (e: Exception) {
+      promise.reject(e.message!!, ETError.UndefinedError.toString())
+    }
   }
 
   override fun getName(): String = NAME
