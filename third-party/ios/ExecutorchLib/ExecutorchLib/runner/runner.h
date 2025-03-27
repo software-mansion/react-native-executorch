@@ -11,22 +11,22 @@
 
 #pragma once
 
-#include <cstdint>
-#include <functional>
-#include <memory>
-#include <string>
-#include <unordered_map>
-
+#include "irunner.h"
 #include "stats.h"
 #include "text_decoder_runner.h"
 #include "text_prefiller.h"
 #include "text_token_generator.h"
-#include "tokenizer.h"
+#include <cstdint>
 #include <executorch/extension/module/module.h>
+#include <functional>
+#include <memory>
+#include <string>
+#include <tokenizers-cpp/tokenizers_cpp.h>
+#include <unordered_map>
 
 namespace example {
 
-class Runner {
+class ET_EXPERIMENTAL Runner : public executorch::extension::llm::IRunner {
 public:
   explicit Runner(const std::string &model_path,
                   const std::string &tokenizer_path,
@@ -39,7 +39,9 @@ public:
            std::function<void(const std::string &)> token_callback = {},
            std::function<void(const ::executorch::extension::llm::Stats &)>
                stats_callback = {},
-           bool echo = true);
+           bool echo = true, bool warming = false);
+  ::executorch::runtime::Error warmup(const std::string &prompt,
+                                      int32_t seq_len = 128);
   void stop();
 
 private:
@@ -49,7 +51,7 @@ private:
   // model
   std::unique_ptr<::executorch::extension::Module> module_;
   std::string tokenizer_path_;
-  std::unique_ptr<::executorch::extension::llm::Tokenizer> tokenizer_;
+  std::unique_ptr<tokenizers::Tokenizer> tokenizer_;
   std::unordered_map<std::string, int64_t> metadata_;
   std::unique_ptr<::executorch::extension::llm::TextDecoderRunner>
       text_decoder_runner_;
