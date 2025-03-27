@@ -44,12 +44,18 @@ std::string loadBytesFromFile(const std::string &path) {
 }
 
 - (NSString *)decode:(NSArray<NSNumber *> *)tokenIds {
+  return [self decode:tokenIds skipSpecialTokens:NO];
+}
+
+- (NSString *)decode:(NSArray<NSNumber *> *)tokenIds
+    skipSpecialTokens:(BOOL)skipSpecialTokens {
   std::vector<int32_t> stdTokenIds;
   stdTokenIds.reserve([tokenIds count]);
   for (NSNumber *tokenId in tokenIds) {
     stdTokenIds.push_back([tokenId intValue]);
   }
-  std::string decodedString = _tokenizer->Decode(stdTokenIds);
+  std::string decodedString =
+      _tokenizer->Decode(stdTokenIds, skipSpecialTokens);
   return [NSString stringWithUTF8String:decodedString.c_str()];
 }
 
