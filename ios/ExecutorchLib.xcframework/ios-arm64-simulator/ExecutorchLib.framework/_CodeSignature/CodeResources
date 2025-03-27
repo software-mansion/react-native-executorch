@@ -6,15 +6,19 @@
 	<dict>
 		<key>Headers/ETModel.h</key>
 		<data>
-		CFAz750OjepOG7MVBPABGfKHNeI=
+		uR77dUqxDWLwIE0h9dvXHSjMFWo=
+		</data>
+		<key>Headers/HuggingFaceTokenizer.h</key>
+		<data>
+		cVZsliuTmV2umgK601d6PamTRSw=
 		</data>
 		<key>Headers/LLaMARunner.h</key>
 		<data>
-		SU8Fo2gR+gVVl9IplHgBJBRh1gQ=
+		7OcOQPzHkK7faqsbtXBztEr9VO0=
 		</data>
 		<key>Info.plist</key>
 		<data>
-		l3rE2nBARVh++WIyHCfeHXD6Ewo=
+		wBJJ2TZXoQXEBBiUjBovczXIsbU=
 		</data>
 	</dict>
 	<key>files2</key>
@@ -23,14 +27,21 @@
 		<dict>
 			<key>hash2</key>
 			<data>
-			UXFd6a5OARqV4JnB+Jm4uqmt15aUmnXSOLPQKZTWZCc=
+			+Ty+KzH7+xNA5B9kfmD44hgTJKIZuk2qN1kauF6thOw=
+			</data>
+		</dict>
+		<key>Headers/HuggingFaceTokenizer.h</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			0ETM5qw12+W8ULx2zP2UkVomFrBRnwAr8I7po2ACk/k=
 			</data>
 		</dict>
 		<key>Headers/LLaMARunner.h</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			or8gFkCO2QVkQgaeFAaqs/WqGjv8kABL8Rzcdcuexw0=
+			AZECdFqfkT4YWu8Nqga5ALaJUme8IOAnhOaAUM+iOvU=
 			</data>
 		</dict>
 	</dict>
