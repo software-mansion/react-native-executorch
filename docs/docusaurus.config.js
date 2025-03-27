@@ -12,6 +12,8 @@ const config = {
 
   baseUrl: '/react-native-executorch/',
 
+  trailingSlash: false,
+
   organizationName: 'software-mansion',
   projectName: 'react-native-executorch',
 
