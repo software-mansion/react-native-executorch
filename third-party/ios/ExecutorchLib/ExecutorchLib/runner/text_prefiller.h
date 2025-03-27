@@ -12,15 +12,13 @@
 #pragma once
 
 #include "text_decoder_runner.h"
-#include "tokenizer.h"
-// patternlint-disable-next-line executorch-cpp-nostdinc
 #include <functional>
 
 namespace executorch {
 namespace extension {
 namespace llm {
 
-class TextPrefiller {
+class ET_EXPERIMENTAL TextPrefiller {
 public:
   TextPrefiller(TextDecoderRunner *text_decoder_runner, bool use_kv_cache_,
                 bool enable_parallel_prefill);

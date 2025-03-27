@@ -10,13 +10,10 @@
 // The module takes in a string as input and emits a string as output.
 
 #include "runner.h"
-
-#include <ctime>
-
 #include "util.h"
-
-#include "bpe_tokenizer.h"
-#include "llama_tiktoken.h"
+#include <ctime>
+#include <fstream>
+#include <iostream>
 
 namespace example {
 
@@ -26,14 +23,24 @@ using ::executorch::runtime::Result;
 
 namespace llm = ::executorch::extension::llm;
 
+std::string loadBytesFromFile(const std::string &path) {
+  std::ifstream fs(path, std::ios::in | std::ios::binary);
+  if (fs.fail()) {
+    throw std::runtime_error("Failed to open tokenizer file");
+  }
+  std::string data;
+  fs.seekg(0, std::ios::end);
+  size_t size = static_cast<size_t>(fs.tellg());
+  fs.seekg(0, std::ios::beg);
+  data.resize(size);
+  fs.read(data.data(), size);
+  return data;
+}
+
 namespace {
-static constexpr auto kAppendEosToPrompt = "append_eos_to_prompt";
 static constexpr auto kEnableDynamicShape = "enable_dynamic_shape";
-static constexpr auto kBosId = "get_bos_id";
 static constexpr auto kEosIds = "get_eos_ids";
 static constexpr auto kMaxSeqLen = "get_max_seq_len";
-static constexpr auto kNBos = "get_n_bos";
-static constexpr auto kNEos = "get_n_eos";
 static constexpr auto kVocabSize = "get_vocab_size";
 static constexpr auto kUseKVCache = "use_kv_cache";
 static constexpr auto kUseSDPAWithKVCache = "use_sdpa_with_kv_cache";
@@ -47,11 +54,8 @@ Runner::Runner(const std::string &model_path, const std::string &tokenizer_path,
     : temperature_(temperature),
       module_(std::make_unique<Module>(model_path, Module::LoadMode::File)),
       tokenizer_path_(tokenizer_path), metadata_({
-                                           {kAppendEosToPrompt, false},
                                            {kEnableDynamicShape, false},
                                            {kMaxSeqLen, 128},
-                                           {kNBos, 1},
-                                           {kNEos, 1},
                                            {kUseKVCache, true},
                                            {kUseSDPAWithKVCache, false},
                                        }) {
@@ -69,27 +73,15 @@ Error Runner::load() {
     return Error::Ok;
   }
   ET_CHECK_OK_OR_RETURN_ERROR(module_->load_method("forward"));
-  // load tokenizer. Assuming tiktoken is the default tokenizer
-  tokenizer_ = nullptr;
-  tokenizer_ = get_tiktoken_for_llama();
-  Error err = tokenizer_->load(tokenizer_path_);
-  // Rely on tiktoken to throw error if the artifact is incompatible. Then we
-  // fallback to BPE tokenizer.
-  if (err == Error::InvalidArgument) {
-    ET_LOG(Info,
-           "Failed to load %s as a Tiktoken artifact, trying BPE tokenizer",
-           tokenizer_path_.c_str());
-    tokenizer_.reset();
-    tokenizer_ = std::make_unique<llm::BPETokenizer>();
-    tokenizer_->load(tokenizer_path_);
-  }
+  // load tokenizer.
+
+  auto blob = loadBytesFromFile(tokenizer_path_);
+  tokenizer_ = tokenizers::Tokenizer::FromBlobJSON(blob);
 
   ET_LOG(Info, "Reading metadata from model");
 
-  metadata_[kBosId] = tokenizer_->bos_tok();
-  auto eos_ids = std::make_unique<std::unordered_set<uint64_t>>(
-      std::unordered_set<uint64_t>{tokenizer_->eos_tok()});
-  metadata_[kVocabSize] = tokenizer_->vocab_size();
+  auto eos_ids = std::make_unique<std::unordered_set<uint64_t>>();
+  metadata_[kVocabSize] = tokenizer_->GetVocabSize();
 
   const auto method_names =
       ET_UNWRAP(module_->method_names(), "Failed reading method names");
@@ -97,7 +89,6 @@ Error Runner::load() {
   for (auto &pair : metadata_) {
     const auto &method_name = pair.first;
     auto &value = pair.second;
-
     if (method_names.count(method_name)) {
       value = ET_UNWRAP(module_->get(method_name))
                   .toScalar()
@@ -130,10 +121,18 @@ Error Runner::load() {
   return Error::Ok;
 }
 
+// Don't print with the same priority during warmup
+#define RUNNER_ET_LOG(warmup, format, ...)                                     \
+  if (warmup) {                                                                \
+    ET_LOG(Debug, format, __VA_ARGS__);                                        \
+  } else {                                                                     \
+    ET_LOG(Info, format, __VA_ARGS__);                                         \
+  }
+
 Error Runner::generate(const std::string &prompt,
                        std::function<void(const std::string &)> token_callback,
                        std::function<void(const llm::Stats &)> stats_callback,
-                       bool echo) {
+                       bool echo, bool warmup) {
   // Prepare the inputs.
   // Use ones-initialized inputs.
   ET_CHECK_MSG(!prompt.empty(), "Prompt cannot be null");
@@ -143,14 +142,20 @@ Error Runner::generate(const std::string &prompt,
     stats_.model_load_end_ms = llm::time_in_ms();
   }
 
-  ET_LOG(Info, "RSS after loading model: %f MiB (0 if unsupported)",
-         llm::get_rss_bytes() / 1024.0 / 1024.0);
+  if (warmup) {
+    ET_LOG(Info, "Doing a warmup run...");
+  }
+
+  RUNNER_ET_LOG(warmup, "RSS after loading model: %f MiB (0 if unsupported)",
+                llm::get_rss_bytes() / 1024.0 / 1024.0);
 
   // Wrap the token_callback with print function
   std::function<void(const std::string &)> wrapped_callback =
-      [token_callback](const std::string &piece) {
-        llm::safe_printf(piece.c_str());
-        fflush(stdout);
+      [token_callback, warmup](const std::string &piece) {
+        if (!warmup) {
+          llm::safe_printf(piece.c_str());
+          fflush(stdout);
+        }
         if (token_callback) {
           token_callback(piece);
         }
@@ -164,15 +169,11 @@ Error Runner::generate(const std::string &prompt,
   // Set the sequence length to the max seq length if not provided
   int32_t seq_len = metadata_.at(kMaxSeqLen);
 
-  Result<std::vector<uint64_t>> encode_res = tokenizer_->encode(
-      prompt, metadata_.at(kNBos),
-      metadata_.at(kAppendEosToPrompt) ? metadata_.at(kNEos) : 0);
-
-  ET_CHECK_OK_OR_RETURN_ERROR(encode_res.error(), "Failed to encode prompt %s",
-                              prompt.c_str());
+  std::vector<int32_t> prompt_tokens = tokenizer_->Encode(prompt);
+  std::vector<uint64_t> prompt_tokens_uint64(prompt_tokens.begin(),
+                                             prompt_tokens.end());
 
   // encode the (string) prompt into tokens sequence
-  std::vector<uint64_t> prompt_tokens = encode_res.get();
   int num_prompt_tokens = prompt_tokens.size();
 
   ET_CHECK_MSG(num_prompt_tokens >= 1, "Expected at least 1 prompt token");
@@ -195,39 +196,59 @@ Error Runner::generate(const std::string &prompt,
     wrapped_callback(prompt);
   }
   int64_t pos = 0;
-  auto prefill_res = text_prefiller_->prefill(prompt_tokens, pos);
+  auto prefill_res = text_prefiller_->prefill(prompt_tokens_uint64, pos);
   stats_.first_token_ms = llm::time_in_ms();
   stats_.prompt_eval_end_ms = llm::time_in_ms();
   ET_CHECK_OK_OR_RETURN_ERROR(prefill_res.error());
   uint64_t cur_token = prefill_res.get();
 
   // print the first token from prefill. No prev_token so use cur_token for it.
-  wrapped_callback(ET_UNWRAP(tokenizer_->decode(cur_token, cur_token)));
-  ET_LOG(Info, "RSS after prompt prefill: %f MiB (0 if unsupported)",
-         llm::get_rss_bytes() / 1024.0 / 1024.0);
+  wrapped_callback(tokenizer_->Decode(
+      std::vector<int32_t>{static_cast<int32_t>(cur_token)}));
+  RUNNER_ET_LOG(warmup, "RSS after prompt prefill: %f MiB (0 if unsupported)",
+                llm::get_rss_bytes() / 1024.0 / 1024.0);
 
   // start the main loop
-  prompt_tokens.push_back(cur_token);
+  prompt_tokens_uint64.push_back(cur_token);
   int64_t num_generated_tokens = ET_UNWRAP(text_token_generator_->generate(
-      prompt_tokens, num_prompt_tokens, seq_len, wrapped_callback));
+      prompt_tokens_uint64, num_prompt_tokens, seq_len, wrapped_callback));
 
   stats_.inference_end_ms = llm::time_in_ms();
-  printf("\n");
-  ET_LOG(Info, "RSS after finishing text generation: %f MiB (0 if unsupported)",
-         llm::get_rss_bytes() / 1024.0 / 1024.0);
+  if (!warmup) {
+    printf("\n");
+  }
+  RUNNER_ET_LOG(
+      warmup, "RSS after finishing text generation: %f MiB (0 if unsupported)",
+      llm::get_rss_bytes() / 1024.0 / 1024.0);
 
   if (num_prompt_tokens + num_generated_tokens == seq_len) {
-    ET_LOG(Info, "Sequence length (%i tokens) reached!", seq_len);
+    RUNNER_ET_LOG(warmup, "Sequence length (%i tokens) reached!", seq_len);
   }
 
   stats_.num_prompt_tokens = num_prompt_tokens;
   stats_.num_generated_tokens = num_generated_tokens;
-  ::executorch::llm::print_report(stats_);
+
+  if (warmup) {
+    ET_LOG(Info, "Warmup run finished!");
+  } else {
+    // Do not print report during warmup
+    ::executorch::llm::print_report(stats_);
+  }
   if (stats_callback) {
     stats_callback(stats_);
   }
 
   return Error::Ok;
+}
+
+Error Runner::warmup(const std::string &prompt, int32_t seq_len) {
+  Error err = generate(prompt,
+                       /*token_callback=*/nullptr,
+                       /*stats_callbak=*/nullptr,
+                       /*echo=*/false,
+                       /*warmup=*/true);
+  stats_.reset();
+  return err;
 }
 
 void Runner::stop() {

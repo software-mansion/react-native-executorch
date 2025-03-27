@@ -13,14 +13,14 @@
 #include "sampler.h"
 #include <executorch/extension/module/module.h>
 #include <executorch/extension/tensor/tensor.h>
-// patternlint-disable-next-line executorch-cpp-nostdinc
+#include <executorch/runtime/platform/compiler.h>
 #include <functional>
 
 namespace executorch {
 namespace extension {
 namespace llm {
 
-class TextDecoderRunner {
+class ET_EXPERIMENTAL TextDecoderRunner {
 public:
   TextDecoderRunner(Module *module, bool use_kv_cache, int32_t vocab_size,
                     float temperature);
@@ -34,7 +34,7 @@ public:
    * Module.
    * @return The output of the LLM Module. This will be a tensor of logits.
    */
-  virtual ::executorch::runtime::Result<exec_aten::Tensor>
+  virtual ::executorch::runtime::Result<executorch::aten::Tensor>
   step(TensorPtr &input, TensorPtr &start_pos);
 
   /**
@@ -60,7 +60,8 @@ public:
    * @param logits_tensor The logits tensor.
    * @return The next token.
    */
-  inline int32_t logits_to_token(const exec_aten::Tensor &logits_tensor) {
+  inline int32_t
+  logits_to_token(const executorch::aten::Tensor &logits_tensor) {
     int32_t result = 0;
     ET_SWITCH_THREE_TYPES(Float, Half, BFloat16, logits_tensor.scalar_type(),
                           unused, "logits_to_token", CTYPE, [&]() {
