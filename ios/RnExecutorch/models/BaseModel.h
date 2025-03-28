@@ -9,6 +9,8 @@
 
 - (NSArray *)forward:(NSArray *)input;
 
+- (NSArray *)forwards:(NSArray *)inputs;
+
 - (NSArray *)forward:(NSArray *)inputs
               shapes:(NSArray *)shapes
           inputTypes:(NSArray *)inputTypes;
