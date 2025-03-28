@@ -16,9 +16,9 @@ abstract class BaseModel<Input, Output>(
     module = Module.load(URL(modelSource).path)
   }
 
-  protected fun forward(input: EValue): Array<EValue> {
+  protected fun forward(vararg inputs: EValue): Array<EValue> {
     try {
-      val result = module.forward(input)
+      val result = module.forward(*inputs)
       return result
     } catch (e: IllegalArgumentException) {
       // The error is thrown when transformation to Tensor fails

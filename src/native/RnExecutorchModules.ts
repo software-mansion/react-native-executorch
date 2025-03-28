@@ -14,7 +14,6 @@ const LINKING_ERROR =
   '- You are not using Expo Go\n';
 
 const LLMSpec = require('./NativeLLM').default;
-
 const LLM = LLMSpec
   ? LLMSpec
   : new Proxy(
@@ -27,7 +26,6 @@ const LLM = LLMSpec
     );
 
 const ETModuleSpec = require('./NativeETModule').default;
-
 const ETModule = ETModuleSpec
   ? ETModuleSpec
   : new Proxy(
@@ -40,7 +38,6 @@ const ETModule = ETModuleSpec
     );
 
 const ClassificationSpec = require('./NativeClassification').default;
-
 const Classification = ClassificationSpec
   ? ClassificationSpec
   : new Proxy(
@@ -53,7 +50,6 @@ const Classification = ClassificationSpec
     );
 
 const ImageSegmentationSpec = require('./NativeImageSegmentation').default;
-
 const ImageSegmentation = ImageSegmentationSpec
   ? ImageSegmentationSpec
   : new Proxy(
@@ -66,7 +62,6 @@ const ImageSegmentation = ImageSegmentationSpec
     );
 
 const ObjectDetectionSpec = require('./NativeObjectDetection').default;
-
 const ObjectDetection = ObjectDetectionSpec
   ? ObjectDetectionSpec
   : new Proxy(
@@ -79,7 +74,6 @@ const ObjectDetection = ObjectDetectionSpec
     );
 
 const StyleTransferSpec = require('./NativeStyleTransfer').default;
-
 const StyleTransfer = StyleTransferSpec
   ? StyleTransferSpec
   : new Proxy(
@@ -92,7 +86,6 @@ const StyleTransfer = StyleTransferSpec
     );
 
 const SpeechToTextSpec = require('./NativeSpeechToText').default;
-
 const SpeechToText = SpeechToTextSpec
   ? SpeechToTextSpec
   : new Proxy(
@@ -105,7 +98,6 @@ const SpeechToText = SpeechToTextSpec
     );
 
 const OCRSpec = require('./NativeOCR').default;
-
 const OCR = OCRSpec
   ? OCRSpec
   : new Proxy(
@@ -118,7 +110,6 @@ const OCR = OCRSpec
     );
 
 const VerticalOCRSpec = require('./NativeVerticalOCR').default;
-
 const VerticalOCR = VerticalOCRSpec
   ? VerticalOCRSpec
   : new Proxy(
@@ -131,9 +122,20 @@ const VerticalOCR = VerticalOCRSpec
     );
 
 const TokenizerSpec = require('./NativeTokenizer').default;
-
 const Tokenizer = TokenizerSpec
   ? TokenizerSpec
+  : new Proxy(
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
+
+const TextEmbeddingsSpec = require('./NativeTextEmbeddings').default;
+const TextEmbeddings = TextEmbeddingsSpec
+  ? TextEmbeddingsSpec
   : new Proxy(
       {},
       {
@@ -285,6 +287,7 @@ export {
   SpeechToText,
   OCR,
   VerticalOCR,
+  TextEmbeddings,
   Tokenizer,
   _ETModule,
   _ClassificationModule,

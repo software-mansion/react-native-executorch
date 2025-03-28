@@ -16,6 +16,24 @@
   NSArray *result = [module forward:@[ input ]
                              shapes:shapes
                          inputTypes:inputTypes];
+
+  return result;
+}
+
+- (NSArray *)forwards:(NSArray *)inputs {
+  NSMutableArray *shapes = [NSMutableArray new];
+  NSMutableArray *inputTypes = [NSMutableArray new];
+  NSNumber *numberOfInputs = [module getNumberOfInputs];
+
+  for (NSUInteger i = 0; i < [numberOfInputs intValue]; i++) {
+    [shapes addObject:[module getInputShape:[NSNumber numberWithInt:i]]];
+    [inputTypes addObject:[module getInputType:[NSNumber numberWithInt:i]]];
+  }
+
+  NSArray *result = [module forward:inputs
+                             shapes:shapes
+                         inputTypes:inputTypes];
+
   return result;
 }
 

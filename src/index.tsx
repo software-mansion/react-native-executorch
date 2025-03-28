@@ -21,6 +21,7 @@ export * from './modules/computer_vision/VerticalOCRModule';
 
 export * from './modules/natural_language_processing/LLMModule';
 export * from './modules/natural_language_processing/SpeechToTextModule';
+export * from './modules/natural_language_processing/TextEmbeddingsModule';
 
 export * from './modules/general/ExecutorchModule';
 
