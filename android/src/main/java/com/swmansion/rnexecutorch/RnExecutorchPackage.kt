@@ -34,6 +34,8 @@ class RnExecutorchPackage : TurboReactPackage() {
       ImageSegmentation(reactContext)
     } else if (name == Tokenizer.NAME) {
       Tokenizer(reactContext)
+    } else if (name == TextEmbeddings.NAME) {
+      TextEmbeddings(reactContext)
     } else {
       null
     }
@@ -139,6 +141,17 @@ class RnExecutorchPackage : TurboReactPackage() {
           false, // isCxxModule
           true,
         )
+
+      moduleInfos[TextEmbeddings.NAME] =
+        ReactModuleInfo(
+          TextEmbeddings.NAME,
+          TextEmbeddings.NAME,
+          false, // canOverrideExistingModule
+          false, // needsEagerInit
+          false, // isCxxModule
+          true,
+        )
+
       moduleInfos
     }
 }
