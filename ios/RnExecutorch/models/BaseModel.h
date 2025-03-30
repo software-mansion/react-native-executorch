@@ -9,7 +9,8 @@
 
 - (NSArray *)forward:(NSArray *)input;
 
-- (NSArray *)forwards:(NSArray *)inputs;
+// TODO: This method should be removed, `forward` should accept multiple inputs instead
+- (NSArray *)forwardMultiple:(NSArray *)inputs;
 
 - (NSArray *)forward:(NSArray *)inputs
               shapes:(NSArray *)shapes
@@ -20,6 +21,7 @@
               shapes:(NSArray *)shapes
           inputTypes:(NSArray *)inputTypes;
 
+// TODO: This method should be synchronous
 - (void)loadModel:(NSURL *)modelURL
        completion:(void (^)(BOOL success, NSNumber *code))completion;
 

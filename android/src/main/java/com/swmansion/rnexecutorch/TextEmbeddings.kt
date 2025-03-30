@@ -37,10 +37,7 @@ class TextEmbeddings(
     promise: Promise,
   ) {
     try {
-      println("Hello1")
       val output = textEmbeddingsModel.runModel(input)
-      println(output)
-      println("Hello2")
       val writableArray = WritableNativeArray()
       output.forEach { writableArray.pushDouble(it) }
 

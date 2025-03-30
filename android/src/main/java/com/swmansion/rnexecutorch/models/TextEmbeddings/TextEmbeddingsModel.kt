@@ -16,15 +16,15 @@ class TextEmbeddingsModel(
     tokenizer = HuggingFaceTokenizer(URL(tokenizerSource).path)
   }
 
-  fun preprocess(input: String): Array<Array<LongArray>> {
+  fun preprocess(input: String): Array<LongArray> {
     val inputIds = tokenizer.encode(input).map { it.toLong() }.toLongArray()
     val attentionMask = inputIds.map { if (it != 0L) 1L else 0L }.toLongArray()
-    return arrayOf(arrayOf(inputIds), arrayOf(attentionMask)) // Shape: [2, 1, max_length]
+    return arrayOf(inputIds, attentionMask) // Shape: [2, max_length]
   }
 
   fun postprocess(
-    modelOutput: FloatArray,
-    attentionMask: LongArray,
+    modelOutput: FloatArray, // [max_length * embedding_dim]
+    attentionMask: LongArray, // [max_length]
   ): DoubleArray {
     val modelOutputDouble = modelOutput.map { it.toDouble() }.toDoubleArray()
     val embeddings = TextEmbeddingsUtils.meanPooling(modelOutputDouble, attentionMask)
@@ -36,14 +36,14 @@ class TextEmbeddingsModel(
     val inputsIds = modelInput[0]
     val attentionMask = modelInput[1]
 
-    val inputsIdsShape = longArrayOf(1, inputsIds[0].size.toLong())
-    val attentionMaskShape = longArrayOf(1, attentionMask[0].size.toLong())
+    val inputsIdsShape = longArrayOf(1, inputsIds.size.toLong())
+    val attentionMaskShape = longArrayOf(1, attentionMask.size.toLong())
 
-    val inputIdsEValue = EValue.from(Tensor.fromBlob(inputsIds[0], inputsIdsShape))
-    val attentionMaskEValue = EValue.from(Tensor.fromBlob(attentionMask[0], attentionMaskShape))
+    val inputIdsEValue = EValue.from(Tensor.fromBlob(inputsIds, inputsIdsShape))
+    val attentionMaskEValue = EValue.from(Tensor.fromBlob(attentionMask, attentionMaskShape))
 
     val modelOutput = forward(inputIdsEValue, attentionMaskEValue)[0].toTensor().dataAsFloatArray
 
-    return postprocess(modelOutput, attentionMask[0])
+    return postprocess(modelOutput, attentionMask)
   }
 }
