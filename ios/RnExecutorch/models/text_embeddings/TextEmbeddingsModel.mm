@@ -9,13 +9,14 @@
   for (int i = 0; i < [input_ids count]; i++) {
     [attention_mask addObject:@([input_ids[i] intValue] != 0 ? 1 : 0)];
   }
-  return @[input_ids, attention_mask]; // [2, max_length]
+  return @[ input_ids, attention_mask ]; // [2, max_length]
 }
 
 - (NSArray *)postprocess:(NSArray *)modelOutput // [max_length * embedding_dim]
-           attentionMask: (NSArray *)attentionMask // [max_length]
+           attentionMask:(NSArray *)attentionMask // [max_length]
 {
-  NSArray* embeddings = [TextEmbeddingsUtils meanPooling:modelOutput attentionMask:attentionMask];
+  NSArray *embeddings = [TextEmbeddingsUtils meanPooling:modelOutput
+                                           attentionMask:attentionMask];
   return [TextEmbeddingsUtils normalize:embeddings];
 }
 
@@ -26,7 +27,8 @@
 }
 
 - (void)loadTokenizer:(NSString *)tokenizerSource {
-  tokenizer = [[HuggingFaceTokenizer alloc] initWithTokenizerPath:[NSURL URLWithString:tokenizerSource].path];
+  tokenizer = [[HuggingFaceTokenizer alloc]
+      initWithTokenizerPath:[NSURL URLWithString:tokenizerSource].path];
 }
 
 @end

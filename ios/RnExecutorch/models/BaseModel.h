@@ -9,7 +9,8 @@
 
 - (NSArray *)forward:(NSArray *)input;
 
-// TODO: This method should be removed, `forward` should accept multiple inputs instead
+// TODO: This method should be removed, `forward` should accept multiple inputs
+// instead
 - (NSArray *)forwardMultiple:(NSArray *)inputs;
 
 - (NSArray *)forward:(NSArray *)inputs
