@@ -21,12 +21,13 @@ export const useTextEmbeddings = ({
 
       try {
         setIsReady(false);
-        const fileUri = await fetchResource(modelSource, setDownloadProgress);
-        const tokenizerUri = await fetchResource(
-          tokenizerSource,
+        const tokenizerFileUri = await fetchResource(tokenizerSource);
+        const modelFileUri = await fetchResource(
+          modelSource,
           setDownloadProgress
         );
-        await TextEmbeddings.loadModule(fileUri, tokenizerUri);
+
+        await TextEmbeddings.loadModule(modelFileUri, tokenizerFileUri);
         setIsReady(true);
       } catch (e) {
         setError(getError(e));
