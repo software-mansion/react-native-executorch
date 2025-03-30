@@ -3,12 +3,13 @@ import { TextEmbeddings } from '../../native/RnExecutorchModules';
 import { fetchResource } from '../../utils/fetchResource';
 import { ETError, getError } from '../../Error';
 
-interface Props {
+export const useTextEmbeddings = ({
+  modelSource,
+  tokenizerSource,
+}: {
   modelSource: string | number;
   tokenizerSource: string | number;
-}
-
-export const useTextEmbeddings = ({ modelSource, tokenizerSource }: Props) => {
+}) => {
   const [error, setError] = useState<null | string>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -35,7 +36,7 @@ export const useTextEmbeddings = ({ modelSource, tokenizerSource }: Props) => {
     loadModel();
   }, [modelSource, tokenizerSource]);
 
-  const forward = async (input: string) => {
+  const forward = async (input: string): Promise<number[]> => {
     if (!isReady) {
       throw new Error(getError(ETError.ModuleNotLoaded));
     }
