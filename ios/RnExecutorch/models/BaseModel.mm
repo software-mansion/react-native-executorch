@@ -20,7 +20,7 @@
   return result;
 }
 
-- (NSArray *)forwards:(NSArray *)inputs {
+- (NSArray *)forwardMultiple:(NSArray *)inputs {
   NSMutableArray *shapes = [NSMutableArray new];
   NSMutableArray *inputTypes = [NSMutableArray new];
   NSNumber *numberOfInputs = [module getNumberOfInputs];

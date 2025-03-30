@@ -12,27 +12,29 @@ RCT_EXPORT_MODULE()
            resolve:(RCTPromiseResolveBlock)resolve
             reject:(RCTPromiseRejectBlock)reject {
   model = [[TextEmbeddingsModel alloc] init];
-  
-  NSNumber *modelLoadingResult = [model loadModelSync:modelSource];
-  if(!modelLoadingResult) {
-    reject(@"init_module_error", [NSString stringWithFormat:@"%@", modelLoadingResult], nil);
-    return;
-  }
-  
-  if (![model loadTokenizer:tokenizerSource]) {
-    reject(@"init_tokenizer_error", [NSString stringWithFormat:@"%@", @33], nil);
-    return;
-  }
-  
-  resolve(@0);
+  [model
+       loadModel:[NSURL URLWithString:modelSource]
+      completion:^(BOOL success, NSNumber *errorCode) {
+        if (success) {
+          @try {
+            [self->model loadTokenizer:tokenizerSource];
+            resolve(@0);
+          } @catch (NSException *exception) {
+            reject(@"Tokenizer_Error", @"Failed to load tokenizer", nil);
+          }
+        } else {
+          reject(@"init_module_error",
+                 [NSString stringWithFormat:@"%ld", (long)[errorCode longValue]],
+                 nil);
+        }
+      }];
 }
 
 - (void)forward:(NSString *)input
         resolve:(RCTPromiseResolveBlock)resolve
          reject:(RCTPromiseRejectBlock)reject {
   @try {
-    NSArray *result = [model runModel:input];
-    resolve(result);
+    resolve([model runModel:input]);
     return;
   } @catch (NSException *exception) {
     NSLog(@"An exception occurred: %@, %@", exception.name, exception.reason);
