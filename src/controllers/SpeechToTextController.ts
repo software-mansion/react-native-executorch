@@ -109,7 +109,7 @@ export class SpeechToTextController {
     if (modelName === 'whisperMultilingual') {
       // The underlying native class is instantiated based on the name of the model. There is no need to
       // create a separate class for multilingual version of Whisper, since it is the same. We just need
-      // the distinction here, in TS, to pass proper tokens to the decode function. If we introduce
+      // the distinction here, in TS, for start tokens and such. If we introduce
       // more versions of Whisper, such as the small one, this should be refactored.
       modelName = 'whisper';
     }
@@ -256,25 +256,16 @@ export class SpeechToTextController {
       let lastToken;
       while (lastToken !== this.config.tokenizer.eos) {
         lastToken = seq[seq.length - 1];
-        let decoderOutput;
         try {
           // Returns a single predicted token
-          decoderOutput = await this.nativeModule.decode(seq, encoderOutput);
+          lastToken = await this.nativeModule.decode(seq, encoderOutput);
         } catch (error) {
           this.onErrorCallback?.(
             `An error has ocurred while decoding: ${error}`
           );
           return '';
         }
-
-        // TODO: I think i can remove this now
-        if (typeof decoderOutput !== 'number') {
-          decoderOutput = decoderOutput[decoderOutput.length - 1];
-        }
-
-        lastToken = decoderOutput;
         seq.push(lastToken);
-
         if (
           seqs.length > 0 &&
           seq.length < seqs.at(-1)!.length &&
