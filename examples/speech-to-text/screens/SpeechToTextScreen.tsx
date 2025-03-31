@@ -78,18 +78,18 @@ export const SpeechToTextScreen = () => {
   const onChunk = (data: string) => {
     const float32Chunk = float32ArrayFromPCMBinaryBuffer(data);
     audioBuffer.current?.push(...float32Chunk);
-    streamingTranscribe(audioBuffer.current, STREAMING_ACTION.DATA);
+    streamingTranscribe(float32Chunk, STREAMING_ACTION.DATA);
   };
 
   const handleRecordPress = async () => {
     if (isRecording) {
       LiveAudioStream.stop();
       setIsRecording(false);
-      await streamingTranscribe(audioBuffer.current, STREAMING_ACTION.STOP);
+      await streamingTranscribe([], STREAMING_ACTION.STOP);
       audioBuffer.current = [];
     } else {
       setIsRecording(true);
-      streamingTranscribe(audioBuffer.current, STREAMING_ACTION.START);
+      streamingTranscribe([], STREAMING_ACTION.START);
       startStreamingAudio(audioStreamOptions, onChunk);
     }
   };
@@ -184,7 +184,7 @@ export const SpeechToTextScreen = () => {
             ]}
           >
             <TouchableOpacity
-              disabled={recordingButtonDisabled || isGenerating}
+              disabled={recordingButtonDisabled}
               style={[
                 styles.recordingButton,
                 recordingButtonDisabled && styles.backgroundGrey,
