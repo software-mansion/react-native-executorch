@@ -8,6 +8,7 @@ import {
   MODEL_CONFIGS,
   ModelConfig,
   MODES,
+  STREAMING_ACTION,
 } from '../constants/sttDefaults';
 
 const longCommonInfPref = (seq1: number[], seq2: number[]) => {
@@ -46,6 +47,11 @@ export class SpeechToTextController {
   public isReady = false;
   public isGenerating = false;
   private modelName!: 'moonshine' | 'whisper';
+  private seqs: number[][] = [];
+  private prevSeq: number[] = [];
+  private streamWaveform: number[] = [];
+  private isDecodingChunk = false;
+  private numberOfDecodedChunks = 0;
 
   // tokenizer tokens to string mapping used for decoding sequence
   private tokenMapping!: { [key: number]: string };
@@ -190,6 +196,44 @@ export class SpeechToTextController {
     }
   }
 
+  private async decodeChunk(chunk: number[]): Promise<number[]> {
+    let lastToken = this.config.tokenizer.sos;
+    let seq = [lastToken];
+    let prevSeqTokenIdx = 0;
+    try {
+      await this.nativeModule.encode(chunk);
+    } catch (error) {
+      this.onErrorCallback?.(`Encode ${error}`);
+      return [];
+    }
+    while (lastToken !== this.config.tokenizer.eos) {
+      try {
+        lastToken = await this.nativeModule.decode(seq);
+      } catch (error) {
+        this.onErrorCallback?.(`Decode ${error}`);
+        return [];
+      }
+      seq = [...seq, lastToken];
+      if (
+        this.seqs.length > 0 &&
+        seq.length < this.seqs.at(-1)!.length &&
+        seq.length % 3 !== 0
+      ) {
+        this.prevSeq = [...this.prevSeq, this.seqs.at(-1)![prevSeqTokenIdx++]!];
+        this.decodedTranscribeCallback(this.prevSeq);
+      }
+    }
+    return seq;
+  }
+
+  private handleOverlaps(seqs: number[][]): number[] {
+    const maxInd = longCommonInfPref(seqs.at(-2)!, seqs.at(-1)!);
+    let finalSeq = [...this.sequence, ...seqs.at(-2)!.slice(0, maxInd)];
+    this.sequence = finalSeq;
+    this.decodedTranscribeCallback(finalSeq);
+    return finalSeq;
+  }
+
   public async transcribe(waveform: number[]): Promise<string> {
     if (!this.isReady) {
       this.onErrorCallback?.(new Error('Model is not yet ready'));
@@ -200,53 +244,17 @@ export class SpeechToTextController {
       return '';
     }
     this.onErrorCallback?.(undefined);
+    this.decodedTranscribeCallback([]);
     this.isGeneratingCallback(true);
 
     this.sequence = [];
-
-    if (!waveform) {
-      this.isGeneratingCallback(false);
-
-      this.onErrorCallback?.(
-        new Error(
-          `Nothing to transcribe, perhaps you forgot to call this.loadAudio().`
-        )
-      );
-    }
-
+    this.seqs = [];
+    this.prevSeq = [];
     this.chunkWaveform(waveform);
 
-    let seqs: number[][] = [];
-    let prevseq: number[] = [];
     for (let chunkId = 0; chunkId < this.chunks.length; chunkId++) {
-      let lastToken = this.config.tokenizer.sos;
-      let prevSeqTokenIdx = 0;
+      let seq = await this.decodeChunk(this.chunks!.at(chunkId)!);
       let finalSeq: number[] = [];
-      let seq = [lastToken];
-      try {
-        await this.nativeModule.encode(this.chunks!.at(chunkId)!);
-      } catch (error) {
-        this.onErrorCallback?.(`Encode ${error}`);
-        return '';
-      }
-      while (lastToken !== this.config.tokenizer.eos) {
-        try {
-          lastToken = await this.nativeModule.decode(seq);
-        } catch (error) {
-          this.onErrorCallback?.(`Decode ${error}`);
-          return '';
-        }
-        seq = [...seq, lastToken];
-        if (
-          seqs.length > 0 &&
-          seq.length < seqs.at(-1)!.length &&
-          seq.length % 3 !== 0
-        ) {
-          prevseq = [...prevseq, seqs.at(-1)![prevSeqTokenIdx++]!];
-          this.decodedTranscribeCallback(prevseq);
-        }
-      }
-
       if (this.chunks.length === 1) {
         finalSeq = seq;
         this.sequence = finalSeq;
@@ -254,33 +262,105 @@ export class SpeechToTextController {
         break;
       }
       // remove sos/eos token and 3 additional ones
-      if (seqs.length === 0) {
-        seqs = [seq.slice(0, -4)];
-      } else if (seqs.length === this.chunks.length - 1) {
-        seqs = [...seqs, seq.slice(4)];
+      if (this.seqs.length === 0) {
+        this.seqs = [seq.slice(0, -4)];
+      } else if (this.seqs.length === this.chunks.length - 1) {
+        this.seqs = [...this.seqs, seq.slice(4)];
       } else {
-        seqs = [...seqs, seq.slice(4, -4)];
+        this.seqs = [...this.seqs, seq.slice(4, -4)];
       }
-      if (seqs.length < 2) {
+      if (this.seqs.length < 2) {
         continue;
       }
 
-      const maxInd = longCommonInfPref(seqs.at(-2)!, seqs.at(-1)!);
-      finalSeq = [...this.sequence, ...seqs.at(-2)!.slice(0, maxInd)];
-      this.sequence = finalSeq;
-      this.decodedTranscribeCallback(finalSeq);
-      prevseq = finalSeq;
+      this.prevSeq = this.handleOverlaps(this.seqs);
 
       //last sequence processed
-      if (seqs.length === this.chunks.length) {
-        finalSeq = [...this.sequence, ...seqs.at(-1)!];
+      if (this.seqs.length === this.chunks.length) {
+        finalSeq = [...this.sequence, ...this.seqs.at(-1)!];
         this.sequence = finalSeq;
         this.decodedTranscribeCallback(finalSeq);
-        prevseq = finalSeq;
+        this.prevSeq = finalSeq;
       }
     }
     const decodedSeq = this.decodeSeq(this.sequence);
     this.isGeneratingCallback(false);
+    return decodedSeq;
+  }
+
+  public async streamingTranscribe(
+    waveform: number[],
+    streamAction: STREAMING_ACTION
+  ): Promise<string> {
+    if (!this.isReady) {
+      this.onErrorCallback?.(new Error('Model is not yet ready'));
+      return '';
+    }
+    this.onErrorCallback?.(undefined);
+
+    if (streamAction == STREAMING_ACTION.START) {
+      this.sequence = [];
+      this.seqs = [];
+      this.streamWaveform = [];
+      this.prevSeq = [];
+      this.numberOfDecodedChunks = 0;
+      this.decodedTranscribeCallback([]);
+      this.isGeneratingCallback(true);
+    }
+    this.streamWaveform = [...this.streamWaveform, ...waveform];
+    this.chunkWaveform(this.streamWaveform);
+    if (!this.isDecodingChunk && streamAction != 2) {
+      this.isDecodingChunk = true;
+      while (
+        this.chunks.at(this.numberOfDecodedChunks)?.length ==
+          2 * this.overlapSeconds + this.windowSize ||
+        (this.numberOfDecodedChunks == 0 &&
+          this.chunks.at(this.numberOfDecodedChunks)?.length ==
+            this.windowSize + this.overlapSeconds)
+      ) {
+        let seq = await this.decodeChunk(
+          this.chunks.at(this.numberOfDecodedChunks)!
+        );
+        // remove sos/eos token and 3 additional ones
+        if (this.numberOfDecodedChunks == 0) {
+          this.seqs = [seq.slice(0, -4)];
+        } else {
+          this.seqs = [...this.seqs, seq.slice(4, -4)];
+          this.prevSeq = this.handleOverlaps(this.seqs);
+        }
+        this.numberOfDecodedChunks++;
+        if (this.seqs.length < 2) {
+          continue;
+        }
+      }
+      this.isDecodingChunk = false;
+    }
+    while (
+      this.numberOfDecodedChunks < this.chunks.length &&
+      streamAction == STREAMING_ACTION.STOP
+    ) {
+      let seq = await this.decodeChunk(
+        this.chunks.at(this.numberOfDecodedChunks)!
+      );
+      if (this.numberOfDecodedChunks == 0) {
+        this.sequence = seq;
+        this.decodedTranscribeCallback(seq);
+        this.isGeneratingCallback(false);
+        break;
+      }
+      //last sequence processed
+      if (this.numberOfDecodedChunks == this.chunks.length - 1) {
+        let finalSeq = [...this.sequence, ...seq];
+        this.sequence = finalSeq;
+        this.decodedTranscribeCallback(finalSeq);
+        this.isGeneratingCallback(false);
+      } else {
+        this.seqs = [...this.seqs, seq.slice(4, -4)];
+        this.handleOverlaps(this.seqs);
+      }
+      this.numberOfDecodedChunks++;
+    }
+    const decodedSeq = this.decodeSeq(this.sequence);
     return decodedSeq;
   }
 

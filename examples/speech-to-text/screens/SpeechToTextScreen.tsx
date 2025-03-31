@@ -1,4 +1,4 @@
-import { useSpeechToText } from 'react-native-executorch';
+import { useSpeechToText, STREAMING_ACTION } from 'react-native-executorch';
 import {
   Text,
   View,
@@ -51,7 +51,13 @@ export const SpeechToTextScreen = () => {
     sequence,
     error,
     transcribe,
-  } = useSpeechToText({ modelName: 'moonshine', streamingConfig: 'balanced' });
+    streamingTranscribe,
+  } = useSpeechToText({
+    modelName: 'moonshine',
+    streamingConfig: 'balanced',
+    windowSize: 5,
+    overlapSeconds: 1.2,
+  });
 
   const loadAudio = async (url: string) => {
     const audioContext = new AudioContext({ sampleRate: 16e3 });
@@ -72,16 +78,18 @@ export const SpeechToTextScreen = () => {
   const onChunk = (data: string) => {
     const float32Chunk = float32ArrayFromPCMBinaryBuffer(data);
     audioBuffer.current?.push(...float32Chunk);
+    streamingTranscribe(audioBuffer.current, STREAMING_ACTION.DATA);
   };
 
   const handleRecordPress = async () => {
     if (isRecording) {
       LiveAudioStream.stop();
       setIsRecording(false);
-      await transcribe(audioBuffer.current);
+      await streamingTranscribe(audioBuffer.current, STREAMING_ACTION.STOP);
       audioBuffer.current = [];
     } else {
       setIsRecording(true);
+      streamingTranscribe(audioBuffer.current, STREAMING_ACTION.START);
       startStreamingAudio(audioStreamOptions, onChunk);
     }
   };
@@ -133,6 +141,7 @@ export const SpeechToTextScreen = () => {
             setModalVisible(visible);
             if (audioUrl) {
               await transcribe(await loadAudio(audioUrl));
+              setAudioUrl('');
             }
           }}
           onChangeText={setAudioUrl}
@@ -156,6 +165,7 @@ export const SpeechToTextScreen = () => {
                   setModalVisible(true);
                 } else {
                   await transcribe(await loadAudio(audioUrl));
+                  setAudioUrl('');
                 }
               }}
             >
