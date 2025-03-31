@@ -3,7 +3,7 @@ import { TurboModuleRegistry } from 'react-native';
 
 export interface Spec extends TurboModule {
   load(tokenizerSource: string): Promise<number>;
-  decode(input: number[]): Promise<string>;
+  decode(input: number[], skipSpecialTokens: boolean): Promise<string>;
   encode(input: string): Promise<number[]>;
   getVocabSize(): Promise<number>;
   idToToken(tokenId: number): Promise<string>;

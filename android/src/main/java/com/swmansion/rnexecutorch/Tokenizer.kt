@@ -32,10 +32,11 @@ class Tokenizer(
 
   override fun decode(
     input: ReadableArray,
+    skipSpecialTokens: Boolean,
     promise: Promise,
   ) {
     try {
-      promise.resolve(tokenizer.decode(createIntArray(input)))
+      promise.resolve(tokenizer.decode(createIntArray(input), skipSpecialTokens))
     } catch (e: Exception) {
       promise.reject(e.message!!, ETError.UndefinedError.toString())
     }
