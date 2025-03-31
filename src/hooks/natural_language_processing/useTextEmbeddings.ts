@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import { TextEmbeddings } from '../../native/RnExecutorchModules';
 import { fetchResource } from '../../utils/fetchResource';
 import { ETError, getError } from '../../Error';
+import { ResourceSource } from '../../types/common';
 
 export const useTextEmbeddings = ({
   modelSource,
   tokenizerSource,
 }: {
-  modelSource: string | number;
-  tokenizerSource: string | number;
+  modelSource: ResourceSource;
+  tokenizerSource: ResourceSource;
 }) => {
   const [error, setError] = useState<null | string>(null);
   const [isReady, setIsReady] = useState(false);
