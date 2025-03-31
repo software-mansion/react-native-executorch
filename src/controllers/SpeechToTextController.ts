@@ -11,7 +11,7 @@ import {
 } from '../native/RnExecutorchModules';
 import { ResourceSource } from '../types/common';
 import { fetchResource } from '../utils/fetchResource';
-import { longCommonInfPref } from '../utils/tokenizerUtils';
+import { longCommonInfPref } from '../utils/stt';
 
 export class SpeechToTextController {
   private nativeModule: _SpeechToTextModule;
