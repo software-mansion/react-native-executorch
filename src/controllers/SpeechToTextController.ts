@@ -1,15 +1,14 @@
-import * as FileSystem from 'expo-file-system';
-import { AudioBuffer, AudioContext } from 'react-native-audio-api';
 import {
-  availableModels,
   HAMMING_DIST_THRESHOLD,
   MODEL_CONFIGS,
-  ModelConfig,
-  SAMPLE_RATE,
   SECOND,
+  MODES,
 } from '../constants/sttDefaults';
-import { _SpeechToTextModule } from '../native/RnExecutorchModules';
-import { TokenDecoder } from '../tokenizers/tokenDecoder';
+import { AvailableModels, ModelConfig } from '../types/stt';
+import {
+  _SpeechToTextModule,
+  _TokenizerModule,
+} from '../native/RnExecutorchModules';
 import { ResourceSource } from '../types/common';
 import { fetchResource } from '../utils/fetchResource';
 import { longCommonInfPref } from '../utils/tokenizerUtils';
@@ -24,8 +23,7 @@ export class SpeechToTextController {
   public sequence: number[] = [];
   public isReady = false;
   public isGenerating = false;
-  private modelName!: availableModels;
-  private tokenDecoder = new TokenDecoder();
+  private nativeTokenizer = new _TokenizerModule();
 
   // User callbacks
   private decodedTranscribeCallback: (sequence: number[]) => void;
@@ -56,8 +54,8 @@ export class SpeechToTextController {
     windowSize?: number;
     streamingConfig?: keyof typeof MODES;
   }) {
-    this.decodedTranscribeCallback = (seq) =>
-      transcribeCallback(this.decodeSeq(seq));
+    this.decodedTranscribeCallback = async (seq) =>
+      transcribeCallback(await this.tokenIdsToText(seq));
     this.modelDownloadProgessCallback = modelDownloadProgessCallback;
     this.isReadyCallback = (isReady) => {
       this.isReady = isReady;
@@ -77,7 +75,7 @@ export class SpeechToTextController {
   }
 
   public async loadModel(
-    modelName: availableModels,
+    modelName: AvailableModels,
     encoderSource?: ResourceSource,
     decoderSource?: ResourceSource,
     tokenizerSource?: ResourceSource
@@ -85,7 +83,6 @@ export class SpeechToTextController {
     this.onErrorCallback?.(undefined);
     this.isReadyCallback(false);
     this.config = MODEL_CONFIGS[modelName];
-    this.modelName = modelName;
 
     try {
       encoderSource = await fetchResource(
@@ -97,9 +94,13 @@ export class SpeechToTextController {
         decoderSource || this.config.sources.decoder,
         (progress) => this.modelDownloadProgessCallback?.(0.5 + progress / 2)
       );
-      this.tokenDecoder.setVocabFromResource(
+
+      let tokenizerUri = await fetchResource(
         tokenizerSource || this.config.tokenizer.source
       );
+
+      // The tokenizer native module does not accept the file:// prefix
+      await this.nativeTokenizer.load(tokenizerUri.replace('file://', ''));
     } catch (e) {
       this.onErrorCallback?.(e);
       return;
@@ -167,10 +168,33 @@ export class SpeechToTextController {
     }
   }
 
-  // TODO: when tokenizers are done, type the lang so it actually does anything
+  private async getStartingTokenIds(lang?: string): Promise<number[]> {
+    // We need different starting token ids based on the multilinguality of the model.
+    // The eng verison only needs BOS token, while the multilingual one needs:
+    // [BOS, LANG, TRANSCRIBE]. Optionally we should also set notimestamps token, as timestamping
+    // is not yet supported.
+    if (!lang) {
+      return [this.config.tokenizer.bos];
+    }
+    // FIXME: I should use .getTokenId for the BOS as well, should remove it from config
+    const langTokenId = await this.nativeTokenizer.tokenToId(`<|${lang}|>`);
+    const transcribeTokenId =
+      await this.nativeTokenizer.tokenToId('<|transcribe|>');
+    const noTimestampsTokenId =
+      await this.nativeTokenizer.tokenToId('<|notimestamps|>');
+    const startingTokenIds = [
+      this.config.tokenizer.bos,
+      langTokenId,
+      transcribeTokenId,
+      noTimestampsTokenId,
+    ];
+    return startingTokenIds;
+  }
+
+  // TODO: think about narrowing the type of speakerLanguage
   public async transcribe(
-    waveform?: number[],
-    speakerLanguage?: any
+    waveform: number[],
+    speakerLanguage?: string
   ): Promise<string> {
     try {
       this.checkCanTranscribe();
@@ -199,21 +223,9 @@ export class SpeechToTextController {
     this.onErrorCallback?.(undefined);
     this.isGeneratingCallback(true);
 
-    this.sequence = [];
-
-    // if .getChannelData() returns nothing
-    if (!waveform) {
-      this.isGeneratingCallback(false);
-      this.onErrorCallback?.(
-        new Error(
-          `Nothing to transcribe, perhaps you forgot to call this.loadAudio().`
-        )
-      );
-      return '';
-    }
-
     this.chunkWaveform(waveform);
 
+    this.sequence = [];
     let seqs: number[][] = [];
     let prevSeq: number[] = [];
     for (let chunkId = 0; chunkId < this.chunks.length; chunkId++) {
@@ -221,16 +233,7 @@ export class SpeechToTextController {
       let finalSeq: number[] = [];
       let seq;
 
-      // We need different starting token based on the multilinguality of the model.
-      // The eng verison only needs BOS token, while the multilingual one needs:
-      // [BOS, LANG, TRANSCRIBE]
-      if (this.config.isMultilingual) {
-        // FIXME: this is a placeholder, will need to change it once HF tokenizers are merged
-        seq = [this.config.tokenizer.bos, 50261, 50359];
-      } else {
-        seq = [this.config.tokenizer.bos];
-      }
-
+      seq = await this.getStartingTokenIds(speakerLanguage);
       let numSpecialTokens = seq.length;
       let encoderOutput;
       try {
@@ -242,10 +245,12 @@ export class SpeechToTextController {
         return '';
       }
 
-      let lastToken = seq[seq.length - 1] as number;
+      let lastToken;
       while (lastToken !== this.config.tokenizer.eos) {
+        lastToken = seq[seq.length - 1];
         let decoderOutput;
         try {
+          // Returns a single predicted token
           decoderOutput = await this.nativeModule.decode(seq, encoderOutput);
         } catch (error) {
           this.onErrorCallback?.(
@@ -254,6 +259,7 @@ export class SpeechToTextController {
           return '';
         }
 
+        // TODO: I think i can remove this now
         if (typeof decoderOutput !== 'number') {
           decoderOutput = decoderOutput[decoderOutput.length - 1];
         }
@@ -266,7 +272,7 @@ export class SpeechToTextController {
           seq.length < seqs.at(-1)!.length &&
           seq.length % 3 !== 0
         ) {
-          prevSeq = [...prevSeq, seqs.at(-1)![prevSeqTokenIdx++]!];
+          prevSeq.push(seqs.at(-1)![prevSeqTokenIdx++]!);
           this.decodedTranscribeCallback(prevSeq);
         }
       }
@@ -277,19 +283,17 @@ export class SpeechToTextController {
         this.decodedTranscribeCallback(finalSeq);
         break;
       }
-      // remove bos/eos token and 3 additional ones
+
+      // Remove starting tokenIds and 3 additional ones
       if (seqs.length === 0) {
         seqs = [seq.slice(0, -(numSpecialTokens + 3))];
       } else if (
         seqs.length ===
         Math.ceil(waveform.length / this.windowSize) - 1
       ) {
-        seqs = [...seqs, seq.slice(numSpecialTokens + 3)];
+        seqs.push(seq.slice(numSpecialTokens + 3));
       } else {
-        seqs = [
-          ...seqs,
-          seq.slice(numSpecialTokens + 3, -(numSpecialTokens + 3)),
-        ];
+        seqs.push(seq.slice(numSpecialTokens + 3, -(numSpecialTokens + 3)));
       }
       if (seqs.length < 2) {
         continue;
@@ -313,23 +317,19 @@ export class SpeechToTextController {
         prevSeq = finalSeq;
       }
     }
-    const decodedSeq = this.decodeSeq(this.sequence);
+    const decodedText = await this.tokenIdsToText(this.sequence);
     this.isGeneratingCallback(false);
-    return decodedSeq;
+    return decodedText;
   }
 
-  private decodeSeq(seq?: number[]): string {
-    if (!this.modelName) {
+  private async tokenIdsToText(tokenIds: number[]): Promise<string> {
+    try {
+      return this.nativeTokenizer.decode(tokenIds);
+    } catch (e) {
       this.onErrorCallback?.(
-        new Error('Model is not loaded, call `loadModel` first')
+        new Error(`Error when decoding the token ids: ${e}`)
       );
       return '';
     }
-    this.onErrorCallback?.(undefined);
-    if (!seq) seq = this.sequence;
-
-    const tokens = this.tokenDecoder.tokenIdsToTokens(seq);
-    const text = this.tokenDecoder.tokensToDecodedText(tokens);
-    return text;
   }
 }

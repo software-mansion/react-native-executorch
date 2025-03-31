@@ -1,6 +1,6 @@
 import { ResourceSource } from '../../types/common';
 import { SpeechToTextController } from '../../controllers/SpeechToTextController';
-import { availableModels } from '../../constants/sttDefaults';
+import { AvailableModels } from '../../types/stt';
 
 export class SpeechToText {
   static module: SpeechToTextController;
@@ -8,7 +8,7 @@ export class SpeechToText {
   static onDownloadProgressCallback = (_downloadProgress: number) => {};
 
   static async load(
-    modelName: availableModels,
+    modelName: AvailableModels,
     transcribeCallback: (sequence: string) => void,
     modelDownloadProgessCallback?: (downloadProgress: number) => void,
     encoderSource?: ResourceSource,
@@ -53,16 +53,8 @@ export class SpeechToText {
 
   static async transcribe(
     waveform: number[],
-    speakerLanguage: any
+    speakerLanguage: string
   ): ReturnType<SpeechToTextController['transcribe']> {
     return await this.module.transcribe(waveform, speakerLanguage);
-  }
-
-  static async encode(waveform: number[]) {
-    return await this.module.encode(waveform);
-  }
-
-  static async decode(seq: number[], encodings?: number[]) {
-    return await this.module.decode(seq, encodings);
   }
 }
