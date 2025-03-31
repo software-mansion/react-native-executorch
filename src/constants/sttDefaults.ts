@@ -66,3 +66,9 @@ export const MODES = {
     overlapSeconds: 3,
   },
 };
+
+export enum STREAMING_ACTION {
+  START,
+  DATA,
+  STOP,
+}
