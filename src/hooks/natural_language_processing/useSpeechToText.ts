@@ -12,7 +12,7 @@ interface SpeechToTextModule {
   error: Error | undefined;
   transcribe: (
     input: number[],
-    targetLanguage: any
+    targetLanguage?: string
   ) => ReturnType<SpeechToTextController['transcribe']>;
 }
 
@@ -78,7 +78,7 @@ export const useSpeechToText = ({
     configureStreaming: model.configureStreaming,
     sequence,
     error,
-    transcribe: (waveform: number[], targetLanguage: any) =>
+    transcribe: (waveform: number[], targetLanguage?: string) =>
       model.transcribe(waveform, targetLanguage),
   };
 };

@@ -309,7 +309,7 @@ export class SpeechToTextController {
       prevSeq = finalSeq;
 
       // last sequence processed
-      if (seqs.length === Math.ceil(waveform.length / this.windowSize)) {
+      if (seqs.length === this.chunks.length) {
         finalSeq = [...this.sequence, ...seqs.at(-1)!];
         this.sequence = finalSeq;
         this.decodedTranscribeCallback(finalSeq);
