@@ -106,6 +106,14 @@ export class SpeechToTextController {
       return;
     }
 
+    if (modelName === 'whisperMultilingual') {
+      // The underlying native class is instantiated based on the name of the model. There is no need to
+      // create a separate class for multilingual version of Whisper, since it is the same. We just need
+      // the distinction here, in TS, to pass proper tokens to the decode function. If we introduce
+      // more versions of Whisper, such as the small one, this should be refactored.
+      modelName = 'whisper';
+    }
+
     try {
       await this.nativeModule.loadModule(modelName, [
         encoderSource!,
