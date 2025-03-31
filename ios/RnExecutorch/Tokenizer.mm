@@ -32,10 +32,11 @@ RCT_EXPORT_MODULE()
 }
 
 - (void)decode:(NSArray *)input
-       resolve:(RCTPromiseResolveBlock)resolve
-        reject:(RCTPromiseRejectBlock)reject {
+    skipSpecialTokens:(BOOL)skipSpecialTokens
+              resolve:(RCTPromiseResolveBlock)resolve
+               reject:(RCTPromiseRejectBlock)reject {
   @try {
-    resolve([tokenizer decode:input]);
+    resolve([tokenizer decode:input skipSpecialTokens:skipSpecialTokens]);
   } @catch (NSException *exception) {
     reject(@"tokenizer_error",
            [NSString stringWithFormat:@"%@", exception.reason], nil);
