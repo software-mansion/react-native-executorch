@@ -6,26 +6,11 @@ import {
   WHISPER_TINY_DECODER,
   WHISPER_TOKENIZER,
 } from './modelUrls';
+import { AvailableModels, ModelConfig } from '../types/stt';
 
 export const SAMPLE_RATE = 16_000;
 export const SECOND = SAMPLE_RATE;
 export const HAMMING_DIST_THRESHOLD = 1;
-
-export interface ModelConfig {
-  sources: {
-    encoder: string;
-    decoder: string;
-  };
-  tokenizer: {
-    source: string;
-    bos: number;
-    eos: number;
-    specialChar: string;
-  };
-  isMultilingual: boolean;
-}
-
-export type availableModels = 'whisper' | 'moonshine' | 'whisperMultilingual';
 
 const whisperTinyModelConfig = {
   sources: {
@@ -34,9 +19,9 @@ const whisperTinyModelConfig = {
   },
   tokenizer: {
     source: WHISPER_TOKENIZER,
-    bos: 50257,
-    eos: 50256,
-    special_char: 'Ġ',
+    bos: 50258, // FIXME: this is a placeholder and needs to be changed
+    eos: 50257, // FIXME: this is a placeholder and needs to be changed
+    specialChar: 'Ġ',
   },
   isMultilingual: false,
 };
@@ -50,15 +35,30 @@ const moonshineTinyModelConfig = {
     source: MOONSHINE_TOKENIZER,
     bos: 1,
     eos: 2,
-    special_char: '\u2581',
+    specialChar: '\u2581',
   },
   isMultilingual: false,
 };
 
 export const MODEL_CONFIGS: {
-  [key in availableModels]: ModelConfig;
+  [key in AvailableModels]: ModelConfig;
 } = {
   moonshine: moonshineTinyModelConfig,
   whisper: whisperTinyModelConfig,
   whisperMultilingual: { ...whisperTinyModelConfig, isMultilingual: true },
+};
+
+export const MODES = {
+  fast: {
+    windowSize: 5,
+    overlapSeconds: 1.2,
+  },
+  balanced: {
+    windowSize: 12,
+    overlapSeconds: 2,
+  },
+  quality: {
+    windowSize: 24,
+    overlapSeconds: 3,
+  },
 };
