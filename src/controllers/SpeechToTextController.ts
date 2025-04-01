@@ -3,6 +3,7 @@ import {
   MODEL_CONFIGS,
   SECOND,
   MODES,
+  NUM_TOKENS_TO_SLICE,
 } from '../constants/sttDefaults';
 import { AvailableModels, ModelConfig } from '../types/stt';
 import {
@@ -12,6 +13,7 @@ import {
 import { ResourceSource } from '../types/common';
 import { fetchResource } from '../utils/fetchResource';
 import { longCommonInfPref } from '../utils/stt';
+import { WhisperMultilingualLanguage } from '../types/stt';
 
 export class SpeechToTextController {
   private nativeModule: _SpeechToTextModule;
@@ -199,10 +201,9 @@ export class SpeechToTextController {
     return startingTokenIds;
   }
 
-  // TODO: think about narrowing the type of speakerLanguage
   public async transcribe(
     waveform: number[],
-    speakerLanguage?: string
+    speakerLanguage?: WhisperMultilingualLanguage
   ): Promise<string> {
     try {
       this.checkCanTranscribe();
@@ -239,23 +240,21 @@ export class SpeechToTextController {
     for (let chunkId = 0; chunkId < this.chunks.length; chunkId++) {
       let prevSeqTokenIdx = 0;
       let finalSeq: number[] = [];
-      let seq;
 
-      seq = await this.getStartingTokenIds(speakerLanguage);
-      let numSpecialTokens = seq.length;
+      let seq = await this.getStartingTokenIds(speakerLanguage);
+      const numSpecialTokens = seq.length;
       let encoderOutput;
       try {
         encoderOutput = await this.nativeModule.encode(
           this.chunks!.at(chunkId)!
         );
       } catch (error) {
-        this.onErrorCallback?.(`Encode ${error}`);
+        this.onErrorCallback?.(`An error has ocurred while decoding ${error}`);
         return '';
       }
 
-      let lastToken;
+      let lastToken = seq.at(-1) as number;
       while (lastToken !== this.config.tokenizer.eos) {
-        lastToken = seq[seq.length - 1];
         try {
           // Returns a single predicted token
           lastToken = await this.nativeModule.decode(seq, encoderOutput);
@@ -285,14 +284,16 @@ export class SpeechToTextController {
 
       // Remove starting tokenIds and 3 additional ones
       if (seqs.length === 0) {
-        seqs = [seq.slice(0, -(numSpecialTokens + 3))];
-      } else if (
-        seqs.length ===
-        Math.ceil(waveform.length / this.windowSize) - 1
-      ) {
-        seqs.push(seq.slice(numSpecialTokens + 3));
+        seqs = [seq.slice(0, -(numSpecialTokens + NUM_TOKENS_TO_SLICE))];
+      } else if (seqs.length === this.chunks.length - 1) {
+        seqs.push(seq.slice(numSpecialTokens + NUM_TOKENS_TO_SLICE));
       } else {
-        seqs.push(seq.slice(numSpecialTokens + 3, -(numSpecialTokens + 3)));
+        seqs.push(
+          seq.slice(
+            numSpecialTokens + NUM_TOKENS_TO_SLICE,
+            -(numSpecialTokens + NUM_TOKENS_TO_SLICE)
+          )
+        );
       }
       if (seqs.length < 2) {
         continue;
@@ -326,7 +327,7 @@ export class SpeechToTextController {
       return this.nativeTokenizer.decode(tokenIds);
     } catch (e) {
       this.onErrorCallback?.(
-        new Error(`Error when decoding the token ids: ${e}`)
+        new Error(`An error has ocurred when decoding the token ids: ${e}`)
       );
       return '';
     }

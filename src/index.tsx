@@ -1,3 +1,5 @@
+import { WhisperMultilingualLanguage } from './types/stt';
+
 // hooks
 export * from './hooks/computer_vision/useClassification';
 export * from './hooks/computer_vision/useObjectDetection';
@@ -31,6 +33,7 @@ export * from './utils/listDownloadedResources';
 export * from './types/object_detection';
 export * from './types/ocr';
 export * from './types/image_segmentation';
+export { WhisperMultilingualLanguage };
 
 // constants
 export * from './constants/modelUrls';

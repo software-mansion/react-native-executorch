@@ -62,3 +62,5 @@ export const MODES = {
     overlapSeconds: 3,
   },
 };
+
+export const NUM_TOKENS_TO_SLICE = 3;
