@@ -14,9 +14,9 @@ export const LLAMA3_2_1B_QLORA =
 export const LLAMA3_2_1B_SPINQUANT =
   'https://huggingface.co/software-mansion/react-native-executorch-llama-3.2/resolve/v0.4.0/llama-3.2-1B/spinquant/llama3_2_spinquant.pte';
 export const LLAMA3_2_1B_TOKENIZER =
-  'https://huggingface.co/software-mansion/react-native-executorch-llama-3.2/resolve/v0.4.0/llama-3.2-1B/original/tokenizer.bin';
+  'https://huggingface.co/software-mansion/react-native-executorch-llama-3.2/resolve/v0.4.0/tokenizer.json';
 export const LLAMA3_2_3B_TOKENIZER =
-  'https://huggingface.co/software-mansion/react-native-executorch-llama-3.2/resolve/v0.4.0/llama-3.2-3B/original/tokenizer.bin';
+  'https://huggingface.co/software-mansion/react-native-executorch-llama-3.2/resolve/v0.4.0/tokenizer.json';
 
 // Classification
 export const EFFICIENTNET_V2_S =
