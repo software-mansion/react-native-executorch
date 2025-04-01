@@ -45,14 +45,18 @@ export default function App() {
           'He drove to the stadium.',
         ];
 
-        const embeddings = await Promise.all(
-          sentences.map(async (sentence) => ({
-            sentence,
-            embedding: await model.forward(sentence),
-          }))
-        );
+        try {
+          const embeddings = await Promise.all(
+            sentences.map(async (sentence) => ({
+              sentence,
+              embedding: await model.forward(sentence),
+            }))
+          );
 
-        setSentencesWithEmbeddings(embeddings);
+          setSentencesWithEmbeddings(embeddings);
+        } catch (error) {
+          console.error('Error generating embeddings:', error);
+        }
       };
 
       computeEmbeddings();
@@ -64,29 +68,46 @@ export default function App() {
   const checkSimilarities = async () => {
     if (!model.isReady || !inputSentence.trim()) return;
 
-    const inputEmbedding = await model.forward(inputSentence);
-
-    const matches = sentencesWithEmbeddings.map(({ sentence, embedding }) => ({
-      sentence,
-      similarity: dotProduct(inputEmbedding, embedding),
-    }));
-
-    matches.sort((a, b) => b.similarity - a.similarity);
-    setTopMatches(matches.slice(0, 3));
+    try {
+      const inputEmbedding = await model.forward(inputSentence);
+      const matches = sentencesWithEmbeddings.map(
+        ({ sentence, embedding }) => ({
+          sentence,
+          similarity: dotProduct(inputEmbedding, embedding),
+        })
+      );
+      matches.sort((a, b) => b.similarity - a.similarity);
+      setTopMatches(matches.slice(0, 3));
+    } catch (error) {
+      console.error('Error generating embedding:', error);
+    }
   };
 
   const addToSentences = async () => {
     if (!model.isReady || !inputSentence.trim()) return;
 
-    const embedding = await model.forward(inputSentence);
-
-    setSentencesWithEmbeddings((prev) => [
-      ...prev,
-      { sentence: inputSentence, embedding },
-    ]);
+    try {
+      const embedding = await model.forward(inputSentence);
+      setSentencesWithEmbeddings((prev) => [
+        ...prev,
+        { sentence: inputSentence, embedding },
+      ]);
+    } catch (error) {
+      console.error('Error generating embedding:', error);
+    }
 
     setInputSentence('');
     setTopMatches([]);
+  };
+
+  const getModelStatusText = () => {
+    if (model.error) {
+      return `Oops! Error: ${model.error}`;
+    }
+    if (!model.isReady) {
+      return `Loading model ${(model.downloadProgress * 100).toFixed(2)}%`;
+    }
+    return model.isGenerating ? 'Generating...' : 'Model is ready';
   };
 
   return (
@@ -94,10 +115,11 @@ export default function App() {
       <KeyboardAvoidingView
         style={styles.flexContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={80}
       >
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <Text style={styles.heading}>Text Embeddings Playground</Text>
+
+          <Text style={styles.sectionTitle}>{getModelStatusText()}</Text>
 
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Existing Sentences</Text>
@@ -164,7 +186,7 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '500',
     marginBottom: 20,
     color: '#0F172A',
   },
@@ -173,15 +195,13 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: 16,
     borderRadius: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
+    borderColor: '#E2E8F0',
+    borderWidth: 2,
     marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 12,
     color: '#1E293B',
   },
@@ -228,12 +248,12 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'white',
     textAlign: 'center',
-    fontWeight: '600',
+    fontWeight: '500',
   },
   buttonTextOutline: {
     color: 'navy',
     textAlign: 'center',
-    fontWeight: '600',
+    fontWeight: '500',
   },
   topMatchesContainer: {
     marginTop: 20,
