@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { SpeechToTextController } from '../../controllers/SpeechToTextController';
 import { ResourceSource } from '../../types/common';
-import { AvailableModels } from '../../types/stt';
+import { AvailableModels, SpeechToTextLanguage } from '../../types/stt';
 
 interface SpeechToTextModule {
   isReady: boolean;
@@ -12,7 +12,7 @@ interface SpeechToTextModule {
   error: Error | undefined;
   transcribe: (
     input: number[],
-    targetLanguage?: string
+    targetLanguage?: SpeechToTextLanguage
   ) => ReturnType<SpeechToTextController['transcribe']>;
 }
 
@@ -78,7 +78,7 @@ export const useSpeechToText = ({
     configureStreaming: model.configureStreaming,
     sequence,
     error,
-    transcribe: (waveform: number[], targetLanguage?: string) =>
+    transcribe: (waveform: number[], targetLanguage?: SpeechToTextLanguage) =>
       model.transcribe(waveform, targetLanguage),
   };
 };

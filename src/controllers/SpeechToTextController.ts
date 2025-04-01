@@ -13,7 +13,7 @@ import {
 import { ResourceSource } from '../types/common';
 import { fetchResource } from '../utils/fetchResource';
 import { longCommonInfPref } from '../utils/stt';
-import { WhisperMultilingualLanguage } from '../types/stt';
+import { SpeechToTextLanguage } from '../types/stt';
 
 export class SpeechToTextController {
   private nativeModule: _SpeechToTextModule;
@@ -203,7 +203,7 @@ export class SpeechToTextController {
 
   public async transcribe(
     waveform: number[],
-    speakerLanguage?: WhisperMultilingualLanguage
+    speakerLanguage?: SpeechToTextLanguage
   ): Promise<string> {
     try {
       this.checkCanTranscribe();

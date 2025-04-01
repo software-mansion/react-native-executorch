@@ -1,6 +1,6 @@
 import { ResourceSource } from '../../types/common';
 import { SpeechToTextController } from '../../controllers/SpeechToTextController';
-import { AvailableModels } from '../../types/stt';
+import { AvailableModels, SpeechToTextLanguage } from '../../types/stt';
 
 export class SpeechToText {
   static module: SpeechToTextController;
@@ -53,7 +53,7 @@ export class SpeechToText {
 
   static async transcribe(
     waveform: number[],
-    targetLanguage?: string
+    targetLanguage?: SpeechToTextLanguage
   ): ReturnType<SpeechToTextController['transcribe']> {
     return await this.module.transcribe(waveform, targetLanguage);
   }
