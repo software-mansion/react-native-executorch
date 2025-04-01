@@ -59,9 +59,14 @@ export const WHISPER_TINY_DECODER =
   'https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/v0.3.0/xnnpack/whisper_tiny_en_xnnpack_decoder.pte';
 export const WHISPER_TINY_ENCODER =
   'https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/v0.3.0/xnnpack/whisper_tiny_en_xnnpack_encoder.pte';
+export const WHISPER_TINY_MULTILINGUAL_ENCODER =
+  'https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny/resolve/v0.4.0/xnnpack/xnnpack_whisper_encoder.pte';
+export const WHISPER_TINY_MULTILINGUAL_DECODER =
+  'https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny/resolve/v0.4.0/xnnpack/xnnpack_whisper_decoder.pte';
+export const WHISPER_TINY_MULTILINGUAL_TOKENIZER =
+  'https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny/resolve/v0.4.0/tokenizer.json';
 
 // OCR
-
 export const DETECTOR_CRAFT_1280 =
   'https://huggingface.co/software-mansion/react-native-executorch-detector-craft/resolve/v0.3.0/xnnpack/xnnpack_craft_1280.pte';
 export const DETECTOR_CRAFT_800 =

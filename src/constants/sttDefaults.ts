@@ -5,52 +5,62 @@ import {
   WHISPER_TINY_ENCODER,
   WHISPER_TINY_DECODER,
   WHISPER_TOKENIZER,
+  WHISPER_TINY_MULTILINGUAL_ENCODER,
+  WHISPER_TINY_MULTILINGUAL_DECODER,
+  WHISPER_TINY_MULTILINGUAL_TOKENIZER,
 } from './modelUrls';
+import { AvailableModels, ModelConfig } from '../types/stt';
 
 export const SAMPLE_RATE = 16_000;
 export const SECOND = SAMPLE_RATE;
 export const HAMMING_DIST_THRESHOLD = 1;
 
-export interface ModelConfig {
+const whisperTinyModelConfig = {
   sources: {
-    encoder: string;
-    decoder: string;
-  };
+    encoder: WHISPER_TINY_ENCODER,
+    decoder: WHISPER_TINY_DECODER,
+  },
   tokenizer: {
-    source: string;
-    sos: number;
-    eos: number;
-    specialChar: string;
-  };
-}
+    source: WHISPER_TOKENIZER,
+    bos: 50258, // FIXME: this is a placeholder and needs to be changed
+    eos: 50257, // FIXME: this is a placeholder and needs to be changed
+  },
+  isMultilingual: false,
+};
 
-export const MODEL_CONFIGS: { [key in 'moonshine' | 'whisper']: ModelConfig } =
-  {
-    moonshine: {
-      sources: {
-        encoder: MOONSHINE_TINY_ENCODER,
-        decoder: MOONSHINE_TINY_DECODER,
-      },
-      tokenizer: {
-        source: MOONSHINE_TOKENIZER,
-        sos: 1,
-        eos: 2,
-        specialChar: '\u2581',
-      },
-    },
-    whisper: {
-      sources: {
-        encoder: WHISPER_TINY_ENCODER,
-        decoder: WHISPER_TINY_DECODER,
-      },
-      tokenizer: {
-        source: WHISPER_TOKENIZER,
-        sos: 50257,
-        eos: 50256,
-        specialChar: 'Ġ',
-      },
-    },
-  };
+const moonshineTinyModelConfig = {
+  sources: {
+    encoder: MOONSHINE_TINY_ENCODER,
+    decoder: MOONSHINE_TINY_DECODER,
+  },
+  tokenizer: {
+    source: MOONSHINE_TOKENIZER,
+    bos: 1, // FIXME: this is a placeholder and needs to be changed
+    eos: 2, // FIXME: this is a placeholder and needs to be changed
+  },
+  isMultilingual: false,
+};
+
+const whisperTinyMultilingualModelConfig = {
+  sources: {
+    encoder: WHISPER_TINY_MULTILINGUAL_ENCODER,
+    decoder: WHISPER_TINY_MULTILINGUAL_DECODER,
+  },
+  tokenizer: {
+    source: WHISPER_TINY_MULTILINGUAL_TOKENIZER,
+    bos: 50258, // FIXME: this is a placeholder and needs to be changed
+    eos: 50257, // FIXME: this is a placeholder and needs to be changed
+  },
+  isMultilingual: true,
+};
+
+export const MODEL_CONFIGS: {
+  [key in AvailableModels]: ModelConfig;
+} = {
+  moonshine: moonshineTinyModelConfig,
+  whisper: whisperTinyModelConfig,
+  whisperMultilingual: whisperTinyMultilingualModelConfig,
+};
 
 export const MODES = {
   fast: {
@@ -66,3 +76,5 @@ export const MODES = {
     overlapSeconds: 3,
   },
 };
+
+export const NUM_TOKENS_TO_SLICE = 3;
