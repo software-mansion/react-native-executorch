@@ -5,6 +5,9 @@ import {
   WHISPER_TINY_ENCODER,
   WHISPER_TINY_DECODER,
   WHISPER_TOKENIZER,
+  WHISPER_TINY_MULTILINGUAL_ENCODER,
+  WHISPER_TINY_MULTILINGUAL_DECODER,
+  WHISPER_TINY_MULTILINGUAL_TOKENIZER,
 } from './modelUrls';
 import { AvailableModels, ModelConfig } from '../types/stt';
 
@@ -21,7 +24,6 @@ const whisperTinyModelConfig = {
     source: WHISPER_TOKENIZER,
     bos: 50258, // FIXME: this is a placeholder and needs to be changed
     eos: 50257, // FIXME: this is a placeholder and needs to be changed
-    specialChar: 'Ġ',
   },
   isMultilingual: false,
 };
@@ -33,11 +35,23 @@ const moonshineTinyModelConfig = {
   },
   tokenizer: {
     source: MOONSHINE_TOKENIZER,
-    bos: 1,
-    eos: 2,
-    specialChar: '\u2581',
+    bos: 1, // FIXME: this is a placeholder and needs to be changed
+    eos: 2, // FIXME: this is a placeholder and needs to be changed
   },
   isMultilingual: false,
+};
+
+const whisperTinyMultilingualModelConfig = {
+  sources: {
+    encoder: WHISPER_TINY_MULTILINGUAL_ENCODER,
+    decoder: WHISPER_TINY_MULTILINGUAL_DECODER,
+  },
+  tokenizer: {
+    source: WHISPER_TINY_MULTILINGUAL_TOKENIZER,
+    bos: 50258, // FIXME: this is a placeholder and needs to be changed
+    eos: 50257, // FIXME: this is a placeholder and needs to be changed
+  },
+  isMultilingual: true,
 };
 
 export const MODEL_CONFIGS: {
@@ -45,7 +59,7 @@ export const MODEL_CONFIGS: {
 } = {
   moonshine: moonshineTinyModelConfig,
   whisper: whisperTinyModelConfig,
-  whisperMultilingual: { ...whisperTinyModelConfig, isMultilingual: true },
+  whisperMultilingual: whisperTinyMultilingualModelConfig,
 };
 
 export const MODES = {

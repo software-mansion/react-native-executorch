@@ -7,7 +7,6 @@ export interface ModelConfig {
     source: string;
     bos: number;
     eos: number;
-    specialChar: string;
   };
   isMultilingual: boolean;
 }
