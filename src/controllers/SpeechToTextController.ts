@@ -257,7 +257,7 @@ export class SpeechToTextController {
           this.chunks!.at(chunkId)!
         );
       } catch (error) {
-        this.onErrorCallback?.(`An error has ocurred while decoding ${error}`);
+        this.onErrorCallback?.(`An error has ocurred while encoding ${error}`);
         return '';
       }
 
