@@ -1,4 +1,4 @@
-import { WhisperMultilingualLanguage } from './types/stt';
+import { SpeechToTextLanguage } from './types/stt';
 
 // hooks
 export * from './hooks/computer_vision/useClassification';
@@ -33,7 +33,7 @@ export * from './utils/listDownloadedResources';
 export * from './types/object_detection';
 export * from './types/ocr';
 export * from './types/image_segmentation';
-export { WhisperMultilingualLanguage };
+export { SpeechToTextLanguage };
 
 // constants
 export * from './constants/modelUrls';
