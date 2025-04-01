@@ -7,7 +7,7 @@
   NSArray *input_ids = [self->tokenizer encode:input];
   NSMutableArray *attention_mask = [NSMutableArray new];
   for (int i = 0; i < [input_ids count]; i++) {
-    [attention_mask addObject:@([input_ids[i] intValue] != 0 ? 1 : 0)];
+    [attention_mask addObject:@((int)([input_ids[i] intValue] != 0))];
   }
   return @[ input_ids, attention_mask ]; // [2, max_length]
 }
