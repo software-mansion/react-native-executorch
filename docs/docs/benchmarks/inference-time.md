@@ -99,3 +99,9 @@ Average time for decoding one token in sequence of 100 tokens, with encoding con
 | Moonshine-tiny (10s) |            54.24             |            51.74             |           55.07            |               46.31               |           32.41           |
 | Moonshine-tiny (30s) |            76.38             |            76.19             |           87.37            |               65.61               |           45.04           |
 | Whisper-tiny (30s)   |            128.03            |            113.65            |           141.63           |               89.08               |           84.49           |
+
+## Text Embeddings
+
+| Model            | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) | OnePlus 12 (XNNPACK) [ms] |
+| ---------------- | :--------------------------: | :------------------------------: | :------------------------: | :--------------------------: | :-----------------------: |
+| ALL_MINILM_L6_V2 |             105              |               126                |            151             |             165              |            152            |

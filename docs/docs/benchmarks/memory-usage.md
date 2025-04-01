@@ -54,3 +54,9 @@ sidebar_position: 2
 | -------------- | :--------------------: | :----------------: |
 | WHISPER_TINY   |          900           |        600         |
 | MOONSHINE_TINY |          650           |        560         |
+
+## Text Embeddings
+
+| Model            | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| ---------------- | :--------------------: | :----------------: |
+| ALL_MINILM_L6_V2 |          140           |         64         |
