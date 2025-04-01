@@ -22,8 +22,8 @@ const whisperTinyModelConfig = {
   },
   tokenizer: {
     source: WHISPER_TOKENIZER,
-    bos: 50258, // FIXME: this is a placeholder and needs to be changed
-    eos: 50257, // FIXME: this is a placeholder and needs to be changed
+    bos: 50257, // FIXME: this is a placeholder and needs to be changed
+    eos: 50256, // FIXME: this is a placeholder and needs to be changed
   },
   isMultilingual: false,
 };
