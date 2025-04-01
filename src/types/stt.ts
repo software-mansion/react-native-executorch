@@ -12,7 +12,8 @@ export interface ModelConfig {
   isMultilingual: boolean;
 }
 
-export enum WhisperMultilingualLanguage {
+// Those languages are supported just by whisper multilingual
+export enum SpeechToTextLanguage {
   Afrikaans = 'af',
   Albanian = 'sq',
   Arabic = 'ar',
