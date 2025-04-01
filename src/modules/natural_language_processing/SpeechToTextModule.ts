@@ -61,8 +61,8 @@ export class SpeechToText {
 
   static async transcribe(
     waveform: number[],
-    targetLanguage?: SpeechToTextLanguage
+    audioLanguage?: SpeechToTextLanguage
   ): ReturnType<SpeechToTextController['transcribe']> {
-    return await this.module.transcribe(waveform, targetLanguage);
+    return await this.module.transcribe(waveform, audioLanguage);
   }
 }

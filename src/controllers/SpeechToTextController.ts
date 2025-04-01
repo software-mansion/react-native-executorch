@@ -186,16 +186,18 @@ export class SpeechToTextController {
     return await this.nativeModule.decode(seq, encodings);
   }
 
-  private async getStartingTokenIds(lang?: string): Promise<number[]> {
+  private async getStartingTokenIds(audioLanguage?: string): Promise<number[]> {
     // We need different starting token ids based on the multilinguality of the model.
     // The eng verison only needs BOS token, while the multilingual one needs:
     // [BOS, LANG, TRANSCRIBE]. Optionally we should also set notimestamps token, as timestamping
     // is not yet supported.
-    if (!lang) {
+    if (!audioLanguage) {
       return [this.config.tokenizer.bos];
     }
     // FIXME: I should use .getTokenId for the BOS as well, should remove it from config
-    const langTokenId = await this.nativeTokenizer.tokenToId(`<|${lang}|>`);
+    const langTokenId = await this.nativeTokenizer.tokenToId(
+      `<|${audioLanguage}|>`
+    );
     const transcribeTokenId =
       await this.nativeTokenizer.tokenToId('<|transcribe|>');
     const noTimestampsTokenId =
@@ -211,7 +213,7 @@ export class SpeechToTextController {
 
   public async transcribe(
     waveform: number[],
-    speakerLanguage?: SpeechToTextLanguage
+    audioLanguage?: SpeechToTextLanguage
   ): Promise<string> {
     try {
       this.checkCanTranscribe();
@@ -220,14 +222,14 @@ export class SpeechToTextController {
       return '';
     }
 
-    if (!speakerLanguage && this.config.isMultilingual) {
+    if (!audioLanguage && this.config.isMultilingual) {
       this.onErrorCallback?.(
         new Error(
           'Language parameter was not provided for a multilingual model. Please pass lang parameter to the transcribe.'
         )
       );
       return '';
-    } else if (speakerLanguage && !this.config.isMultilingual) {
+    } else if (audioLanguage && !this.config.isMultilingual) {
       this.onErrorCallback?.(
         new Error(
           'Language parameter was passed to a non-multilingual model. Please either use a multilingual version or delete the lang parameter.'
@@ -249,7 +251,7 @@ export class SpeechToTextController {
       let prevSeqTokenIdx = 0;
       let finalSeq: number[] = [];
 
-      let seq = await this.getStartingTokenIds(speakerLanguage);
+      let seq = await this.getStartingTokenIds(audioLanguage);
       const numSpecialTokens = seq.length;
       let encoderOutput;
       try {
