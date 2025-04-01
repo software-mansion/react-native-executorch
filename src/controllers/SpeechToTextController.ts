@@ -178,6 +178,14 @@ export class SpeechToTextController {
     }
   }
 
+  public async encode(waveform: number[]) {
+    return await this.nativeModule.encode(waveform);
+  }
+
+  public async decode(seq: number[], encodings?: number[]) {
+    return await this.nativeModule.decode(seq, encodings);
+  }
+
   private async getStartingTokenIds(lang?: string): Promise<number[]> {
     // We need different starting token ids based on the multilinguality of the model.
     // The eng verison only needs BOS token, while the multilingual one needs:
