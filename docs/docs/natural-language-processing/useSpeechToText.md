@@ -1,6 +1,6 @@
 ---
 title: useSpeechToText
-sidebar_position: 1
+sidebar_position: 2
 keywords:
   [
     speech to text,
