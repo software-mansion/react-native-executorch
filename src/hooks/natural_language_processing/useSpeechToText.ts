@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { SpeechToTextController } from '../../controllers/SpeechToTextController';
 import { ResourceSource } from '../../types/common';
 import { STREAMING_ACTION } from '../../constants/sttDefaults';
+import { AvailableModels, SpeechToTextLanguage } from '../../types/stt';
 
 interface SpeechToTextModule {
   isReady: boolean;
@@ -11,11 +12,13 @@ interface SpeechToTextModule {
   configureStreaming: SpeechToTextController['configureStreaming'];
   error: Error | undefined;
   transcribe: (
-    input: number[]
+    input: number[],
+    audioLanguage?: SpeechToTextLanguage
   ) => ReturnType<SpeechToTextController['transcribe']>;
   streamingTranscribe: (
     input: number[],
-    streamAction: STREAMING_ACTION
+    streamAction: STREAMING_ACTION,
+    audioLanguage?: SpeechToTextLanguage
   ) => ReturnType<SpeechToTextController['streamingTranscribe']>;
 }
 
@@ -28,7 +31,7 @@ export const useSpeechToText = ({
   windowSize,
   streamingConfig,
 }: {
-  modelName: 'moonshine' | 'whisper';
+  modelName: AvailableModels;
   encoderSource?: ResourceSource;
   decoderSource?: ResourceSource;
   tokenizerSource?: ResourceSource;
@@ -81,8 +84,12 @@ export const useSpeechToText = ({
     configureStreaming: model.configureStreaming,
     sequence,
     error,
-    transcribe: (waveform: number[]) => model.transcribe(waveform),
-    streamingTranscribe: (waveform: number[], streamAction: STREAMING_ACTION) =>
-      model.streamingTranscribe(waveform, streamAction),
+    transcribe: (waveform: number[], audioLanguage?: SpeechToTextLanguage) =>
+      model.transcribe(waveform, audioLanguage),
+    streamingTranscribe: (
+      waveform: number[],
+      streamAction: STREAMING_ACTION,
+      audioLanguage?: SpeechToTextLanguage
+    ) => model.streamingTranscribe(waveform, streamAction, audioLanguage),
   };
 };
