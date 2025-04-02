@@ -1,6 +1,7 @@
 import { TextEmbeddings } from '../../native/RnExecutorchModules';
 import { fetchResource } from '../../utils/fetchResource';
 import { ResourceSource } from '../../types/common';
+import { getError } from '../../Error';
 
 export class TextEmbeddingsModule {
   static onDownloadProgressCallback = (_downloadProgress: number) => {};
@@ -15,18 +16,17 @@ export class TextEmbeddingsModule {
         modelSource,
         this.onDownloadProgressCallback
       );
-
       await TextEmbeddings.loadModule(modelFileUri, tokenizerFileUri);
-    } catch (err) {
-      throw new Error((err as Error).message);
+    } catch (error) {
+      throw new Error(getError(error));
     }
   }
 
-  static async forward(input: string) {
+  static async forward(input: string): Promise<number[]> {
     try {
       return await TextEmbeddings.forward(input);
-    } catch (err) {
-      throw new Error((err as Error).message);
+    } catch (error) {
+      throw new Error(getError(error));
     }
   }
 

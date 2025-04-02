@@ -1,5 +1,4 @@
 import {
-  _ClassificationModule,
   _StyleTransferModule,
   _ObjectDetectionModule,
   ETModule,
@@ -49,7 +48,6 @@ export interface ExecutorchModule {
 }
 
 export type Module =
-  | _ClassificationModule
   | _StyleTransferModule
   | _ObjectDetectionModule
   | typeof ETModule;

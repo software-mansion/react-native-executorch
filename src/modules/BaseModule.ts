@@ -2,7 +2,6 @@ import {
   _ImageSegmentationModule,
   _StyleTransferModule,
   _ObjectDetectionModule,
-  _ClassificationModule,
   _ETModule,
 } from '../native/RnExecutorchModules';
 import { fetchResource } from '../utils/fetchResource';
@@ -14,7 +13,6 @@ export class BaseModule {
     | _ImageSegmentationModule
     | _StyleTransferModule
     | _ObjectDetectionModule
-    | _ClassificationModule
     | _ETModule;
 
   static onDownloadProgressCallback = (_downloadProgress: number) => {};

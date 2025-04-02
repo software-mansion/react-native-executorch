@@ -1,31 +1,19 @@
-import { useState } from 'react';
-import { _ClassificationModule } from '../../native/RnExecutorchModules';
-import { useModule } from '../useModule';
+import { ClassificationModule } from '../../modules/computer_vision/ClassificationModule';
+import { ResourceSource } from '../../types/common';
+import { useModule2 } from '../useModule2';
 
-interface Props {
-  modelSource: string | number;
-}
+type LoadArgs = Parameters<typeof ClassificationModule.load>;
+type ForwardArgs = Parameters<typeof ClassificationModule.forward>[0];
+type ForwardReturn = Awaited<ReturnType<typeof ClassificationModule.forward>>;
 
 export const useClassification = ({
   modelSource,
-}: Props): {
-  error: string | null;
-  isReady: boolean;
-  isGenerating: boolean;
-  downloadProgress: number;
-  forward: (input: string) => Promise<{ [category: string]: number }>;
-} => {
-  const [module, _] = useState(() => new _ClassificationModule());
-  const {
-    error,
-    isReady,
-    isGenerating,
-    downloadProgress,
-    forwardImage: forward,
-  } = useModule({
-    modelSource,
-    module,
+}: {
+  modelSource: ResourceSource;
+}) =>
+  useModule2<LoadArgs, ForwardArgs, ForwardReturn>({
+    loadArgs: [modelSource],
+    loadFn: ClassificationModule.load,
+    forwardFn: ClassificationModule.forward,
+    onDownloadProgress: ClassificationModule.onDownloadProgress,
   });
-
-  return { error, isReady, isGenerating, downloadProgress, forward };
-};

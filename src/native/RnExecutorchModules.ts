@@ -1,5 +1,4 @@
 import { Platform } from 'react-native';
-import { Spec as ClassificationInterface } from './NativeClassification';
 import { Spec as ObjectDetectionInterface } from './NativeObjectDetection';
 import { Spec as StyleTransferInterface } from './NativeStyleTransfer';
 import { Spec as ImageSegmentationInterface } from './NativeImageSegmentation';
@@ -202,17 +201,6 @@ class _SpeechToTextModule {
   }
 }
 
-class _ClassificationModule {
-  async forward(input: string): ReturnType<ClassificationInterface['forward']> {
-    return await Classification.forward(input);
-  }
-  async loadModule(
-    modelSource: string | number
-  ): ReturnType<ClassificationInterface['loadModule']> {
-    return await Classification.loadModule(modelSource);
-  }
-}
-
 class _OCRModule {
   async forward(input: string): ReturnType<OCRInterface['forward']> {
     return await OCR.forward(input);
@@ -290,7 +278,6 @@ export {
   TextEmbeddings,
   Tokenizer,
   _ETModule,
-  _ClassificationModule,
   _StyleTransferModule,
   _ImageSegmentationModule,
   _ObjectDetectionModule,
