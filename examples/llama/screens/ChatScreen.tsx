@@ -26,7 +26,8 @@ export default function ChatScreen() {
   const [userInput, setUserInput] = useState('');
   const llama = useLLM({
     modelSource: LLAMA3_2_1B_QLORA,
-    tokenizerSource: require('../assets/tokenizer.bin'),
+    tokenizerSource:
+      'https://huggingface.co/nklockiewicz/ocr/resolve/main/tokenizer-llama.json',
     contextWindowLength: 6,
   });
   const textInputRef = useRef<TextInput>(null);

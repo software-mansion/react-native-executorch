@@ -21,6 +21,7 @@
 		5576B4B72CEF9709005027B7 /* ETModel.h in Headers */ = {isa = PBXBuildFile; fileRef = 5576B4B62CEF9705005027B7 /* ETModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5576B4B92CEF970E005027B7 /* ETModel.mm in Sources */ = {isa = PBXBuildFile; fileRef = 5576B4B82CEF970C005027B7 /* ETModel.mm */; };
 		558699BB2D8AD562004180E5 /* re2.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5576B49E2CEF76CC005027B7 /* re2.xcframework */; };
+		55A815F22D9D40680075A106 /* irunner.h in Headers */ = {isa = PBXBuildFile; fileRef = 55A815F12D9D40680075A106 /* irunner.h */; };
 		55DEEA382D05ABBB004422A3 /* InputType.h in Headers */ = {isa = PBXBuildFile; fileRef = 55DEEA372D05ABB4004422A3 /* InputType.h */; };
 		55DEEBF02D8C45960033DBBA /* HuggingFaceTokenizer.h in Headers */ = {isa = PBXBuildFile; fileRef = 55DEEBEF2D8C458F0033DBBA /* HuggingFaceTokenizer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		55DEEBF22D8C459A0033DBBA /* HuggingFaceTokenizer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 55DEEBF12D8C45990033DBBA /* HuggingFaceTokenizer.mm */; };
@@ -66,6 +67,7 @@
 		5576B49E2CEF76CC005027B7 /* re2.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = re2.xcframework; path = frameworks/re2.xcframework; sourceTree = "<group>"; };
 		5576B4B62CEF9705005027B7 /* ETModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ETModel.h; sourceTree = "<group>"; };
 		5576B4B82CEF970C005027B7 /* ETModel.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ETModel.mm; sourceTree = "<group>"; };
+		55A815F12D9D40680075A106 /* irunner.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = irunner.h; sourceTree = "<group>"; };
 		55DEEA372D05ABB4004422A3 /* InputType.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InputType.h; sourceTree = "<group>"; };
 		55DEEBEF2D8C458F0033DBBA /* HuggingFaceTokenizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HuggingFaceTokenizer.h; sourceTree = "<group>"; };
 		55DEEBF12D8C45990033DBBA /* HuggingFaceTokenizer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = HuggingFaceTokenizer.mm; sourceTree = "<group>"; };
@@ -156,6 +158,7 @@
 		55EA2C2F2CB90C7A004315B3 /* runner */ = {
 			isa = PBXGroup;
 			children = (
+				55A815F12D9D40680075A106 /* irunner.h */,
 				55EA2C262CB90C7A004315B3 /* runner.cpp */,
 				55EA2C272CB90C7A004315B3 /* runner.h */,
 				55EA2C282CB90C7A004315B3 /* stats.h */,
@@ -243,6 +246,7 @@
 				55EA2C412CB90C7A004315B3 /* stats.h in Headers */,
 				55EA2C4E2CB90C7A004315B3 /* bpe_tokenizer.h in Headers */,
 				55EA2C402CB90C7A004315B3 /* runner.h in Headers */,
+				55A815F22D9D40680075A106 /* irunner.h in Headers */,
 				55EA2C432CB90C7A004315B3 /* text_decoder_runner.h in Headers */,
 				55EA2C492CB90C7A004315B3 /* sampler.h in Headers */,
 				55EA2C4C2CB90C7A004315B3 /* base64.h in Headers */,
@@ -525,37 +529,37 @@
 				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"$(inherited)",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libkernels_optimized-ios-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_optimized_ios.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libkernels_custom-ios-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_custom_ios.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libkernels_quantized-ios-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_quantized_ios.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libbackend_xnnpack-ios-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_xnnpack_ios.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libbackend_coreml-ios-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_coreml_ios.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libbackend_mps-ios-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_mps_ios.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libexecutorch-ios-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libexecutorch_ios.a",
 					"@$(TEMP_DIR)/cmake/linker_flags",
 				);
 				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = (
 					"$(inherited)",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libkernels_optimized-simulator-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_optimized_simulator.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libkernels_custom-simulator-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_custom_simulator.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libkernels_quantized-simulator-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_quantized_simulator.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libbackend_xnnpack-simulator-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_xnnpack_simulator.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libbackend_coreml-simulator-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_coreml_simulator.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libbackend_mps-simulator-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_mps_simulator.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libexecutorch-simulator-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libexecutorch_simulator.a",
 					"@$(TEMP_DIR)/cmake/linker_flags",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.swmansion.Executorch;
@@ -607,37 +611,37 @@
 				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"$(inherited)",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libkernels_optimized-ios-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_optimized_ios.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libkernels_custom-ios-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_custom_ios.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libkernels_quantized-ios-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_quantized_ios.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libbackend_xnnpack-ios-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_xnnpack_ios.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libbackend_coreml-ios-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_coreml_ios.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libbackend_mps-ios-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_mps_ios.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libexecutorch-ios-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libexecutorch_ios.a",
 					"@$(TEMP_DIR)/cmake/linker_flags",
 				);
 				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = (
 					"$(inherited)",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libkernels_optimized-simulator-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_optimized_simulator.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libkernels_custom-simulator-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_custom_simulator.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libkernels_quantized-simulator-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libkernels_quantized_simulator.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libbackend_xnnpack-simulator-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_xnnpack_simulator.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libbackend_coreml-simulator-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_coreml_simulator.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libbackend_mps-simulator-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libbackend_mps_simulator.a",
 					"-force_load",
-					"$(BUILT_PRODUCTS_DIR)/libexecutorch-simulator-release.a",
+					"$(BUILT_PRODUCTS_DIR)/libexecutorch_simulator.a",
 					"@$(TEMP_DIR)/cmake/linker_flags",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.swmansion.Executorch;

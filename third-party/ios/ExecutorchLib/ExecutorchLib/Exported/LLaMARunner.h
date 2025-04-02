@@ -18,7 +18,7 @@ NS_SWIFT_NAME(Runner)
 
 - (instancetype)initWithModelPath:(NSString *)filePath
                     tokenizerPath:(NSString *)tokenizerPath;
-- (BOOL)isloaded;
+- (BOOL)isLoaded;
 - (BOOL)loadWithError:(NSError **)error;
 - (BOOL)generate:(NSString *)prompt
     withTokenCallback:(nullable void (^)(NSString *))callback
