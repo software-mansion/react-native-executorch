@@ -54,7 +54,7 @@ int constexpr modelInputHeight = 320;
   int inputImageWidth = size.width;
   int inputImageHeight = size.height;
   NSArray *modelInput = [self preprocess:input];
-  NSArray *forwardResult = [self forward:modelInput];
+  NSArray *forwardResult = [self forward:@[ modelInput ]];
   NSArray *output =
       [self postprocess:forwardResult
              widthRatio:inputImageWidth / (float)modelInputWidth

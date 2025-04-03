@@ -42,7 +42,7 @@
 
 - (cv::Mat)runModel:(cv::Mat &)input {
   NSArray *modelInput = [self preprocess:input];
-  NSArray *result = [self forward:modelInput];
+  NSArray *result = [self forward:@[ modelInput ]];
   input = [self postprocess:result[0]];
 
   return input;

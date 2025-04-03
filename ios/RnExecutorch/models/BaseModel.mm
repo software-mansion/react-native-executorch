@@ -3,24 +3,7 @@
 
 @implementation BaseModel
 
-- (NSArray *)forward:(NSArray *)input {
-  NSMutableArray *shapes = [NSMutableArray new];
-  NSMutableArray *inputTypes = [NSMutableArray new];
-  NSNumber *numberOfInputs = [module getNumberOfInputs];
-
-  for (NSUInteger i = 0; i < [numberOfInputs intValue]; i++) {
-    [shapes addObject:[module getInputShape:[NSNumber numberWithInt:i]]];
-    [inputTypes addObject:[module getInputType:[NSNumber numberWithInt:i]]];
-  }
-
-  NSArray *result = [module forward:@[ input ]
-                             shapes:shapes
-                         inputTypes:inputTypes];
-
-  return result;
-}
-
-- (NSArray *)forwardMultiple:(NSArray *)inputs {
+- (NSArray *)forward:(NSArray *)inputs {
   NSMutableArray *shapes = [NSMutableArray new];
   NSMutableArray *inputTypes = [NSMutableArray new];
   NSNumber *numberOfInputs = [module getNumberOfInputs];

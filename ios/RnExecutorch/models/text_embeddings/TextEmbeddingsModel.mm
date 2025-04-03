@@ -22,7 +22,7 @@
 
 - (NSArray *)runModel:(NSString *)input {
   NSArray *modelInput = [self preprocess:input];
-  NSArray *modelOutput = [self forwardMultiple:modelInput];
+  NSArray *modelOutput = [self forward:modelInput];
   return [self postprocess:modelOutput[0] attentionMask:modelInput[1]];
 }
 
