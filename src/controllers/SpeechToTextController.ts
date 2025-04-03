@@ -32,6 +32,8 @@ export class SpeechToTextController {
   private streamWaveform: number[] = [];
   private isDecodingChunk = false;
   private numberOfDecodedChunks = 0;
+  private numberOfDeletedChunks = 0;
+  private numOfChunks = 0;
 
   // User callbacks
   private decodedTranscribeCallback: (sequence: number[]) => void;
@@ -162,15 +164,26 @@ export class SpeechToTextController {
 
   private chunkWaveform(waveform: number[]) {
     this.chunks = [];
-    const numOfChunks = Math.ceil(waveform.length / this.windowSize);
-    for (let i = 0; i < numOfChunks; i++) {
-      let chunk = waveform.slice(
-        Math.max(this.windowSize * i - this.overlapSeconds, 0),
-        Math.min(
-          this.windowSize * (i + 1) + this.overlapSeconds,
-          waveform.length
-        )
-      );
+    this.numOfChunks = Math.ceil(waveform.length / this.windowSize);
+    for (let i = 0; i < this.numOfChunks; i++) {
+      let chunk;
+      if (i == 0 && this.numberOfDeletedChunks > 0) {
+        chunk = waveform.slice(
+          0,
+          Math.min(
+            this.windowSize * (i + 1) + 2 * this.overlapSeconds,
+            waveform.length
+          )
+        );
+      } else {
+        chunk = waveform.slice(
+          Math.max(this.windowSize * i - this.overlapSeconds, 0),
+          Math.min(
+            this.windowSize * (i + 1) + this.overlapSeconds,
+            waveform.length
+          )
+        );
+      }
       this.chunks.push(chunk);
     }
   }
@@ -376,21 +389,29 @@ export class SpeechToTextController {
     if (!this.isDecodingChunk && streamAction != 2) {
       this.isDecodingChunk = true;
       while (
-        this.chunks.at(this.numberOfDecodedChunks)?.length ==
+        this.chunks.at(-this.numOfChunks)?.length ==
           2 * this.overlapSeconds + this.windowSize ||
         (this.numberOfDecodedChunks == 0 &&
-          this.chunks.at(this.numberOfDecodedChunks)?.length ==
+          this.chunks.at(-this.numOfChunks)?.length ==
             this.windowSize + this.overlapSeconds)
       ) {
         let seq = await this.decodeChunk(
-          this.chunks.at(this.numberOfDecodedChunks)!,
+          this.chunks.at(-this.numOfChunks)!,
           audioLanguage
         );
+        const numSpecialTokens = (await this.getStartingTokenIds(audioLanguage))
+          .length;
         // remove sos/eos token and 3 additional ones
         if (this.numberOfDecodedChunks == 0) {
-          this.seqs = [seq.slice(0, -4)];
+          this.seqs = [seq.slice(0, -(numSpecialTokens + NUM_TOKENS_TO_SLICE))];
         } else {
-          this.seqs = [...this.seqs, seq.slice(4, -4)];
+          this.seqs = [
+            ...this.seqs,
+            seq.slice(
+              numSpecialTokens + NUM_TOKENS_TO_SLICE,
+              -(numSpecialTokens + NUM_TOKENS_TO_SLICE)
+            ),
+          ];
           this.prevSeq = this.handleOverlaps(this.seqs);
         }
         this.numberOfDecodedChunks++;
@@ -400,13 +421,25 @@ export class SpeechToTextController {
       }
       this.isDecodingChunk = false;
     }
-    while (
-      this.numberOfDecodedChunks < this.chunks.length &&
-      streamAction == STREAMING_ACTION.STOP
-    ) {
-      let seq = await this.decodeChunk(
-        this.chunks.at(this.numberOfDecodedChunks)!
-      );
+    // remove data from waveform, which was processed and saved to this.seqs
+    while (this.numOfChunks > 2) {
+      if (this.numberOfDeletedChunks == 0) {
+        this.streamWaveform = this.streamWaveform.slice(
+          -(
+            this.streamWaveform.length -
+            (this.windowSize + this.overlapSeconds)
+          )
+        );
+      } else {
+        this.streamWaveform = this.streamWaveform.slice(
+          -(this.streamWaveform.length - this.windowSize)
+        );
+      }
+      this.numberOfDeletedChunks++;
+      this.numOfChunks--;
+    }
+    while (this.numOfChunks > 0 && streamAction == STREAMING_ACTION.STOP) {
+      let seq = await this.decodeChunk(this.chunks.at(-this.numOfChunks)!);
       if (this.numberOfDecodedChunks == 0) {
         this.sequence = seq;
         this.decodedTranscribeCallback(seq);
@@ -414,7 +447,7 @@ export class SpeechToTextController {
         break;
       }
       //last sequence processed
-      if (this.numberOfDecodedChunks == this.chunks.length - 1) {
+      if (this.numOfChunks == 1) {
         let finalSeq = [...this.sequence, ...seq];
         this.sequence = finalSeq;
         this.decodedTranscribeCallback(finalSeq);
@@ -424,6 +457,7 @@ export class SpeechToTextController {
         this.handleOverlaps(this.seqs);
       }
       this.numberOfDecodedChunks++;
+      this.numOfChunks--;
     }
     const decodedText = await this.tokenIdsToText(this.sequence);
     return decodedText;
