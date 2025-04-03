@@ -3,7 +3,7 @@ title: LLMModule
 sidebar_position: 3
 ---
 
-Hookless implementation of the [useLLM](../llms/useLLM.md) hook.
+Hookless implementation of the [useLLM](../natural-language-processing/useLLM.md) hook.
 
 ## Reference
 

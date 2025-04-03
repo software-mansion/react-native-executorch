@@ -3,7 +3,7 @@ title: TextEmbeddingsModule
 sidebar_position: 8
 ---
 
-Hookless implementation of the [useTextEmbeddings](../text-embeddings/useTextEmbeddings.md) hook.
+Hookless implementation of the [useTextEmbeddings](../natural-language-processing/useTextEmbeddings.md) hook.
 
 ## Reference
 
