@@ -3,7 +3,7 @@ import { ResourceSource } from '../../types/common';
 import { useModule2 } from '../useModule2';
 
 type LoadArgs = Parameters<typeof TextEmbeddingsModule.load>;
-type ForwardArgs = Parameters<typeof TextEmbeddingsModule.forward>[0];
+type ForwardArgs = Parameters<typeof TextEmbeddingsModule.forward>;
 type ForwardReturn = Awaited<ReturnType<typeof TextEmbeddingsModule.forward>>;
 
 export const useTextEmbeddings = ({

@@ -3,7 +3,7 @@ import { ResourceSource } from '../../types/common';
 import { useModule2 } from '../useModule2';
 
 type LoadArgs = Parameters<typeof ClassificationModule.load>;
-type ForwardArgs = Parameters<typeof ClassificationModule.forward>[0];
+type ForwardArgs = Parameters<typeof ClassificationModule.forward>;
 type ForwardReturn = Awaited<ReturnType<typeof ClassificationModule.forward>>;
 
 export const useClassification = ({

@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react';
 import { ETError, getError } from '../Error';
 
-interface Params<LoadArgs extends any[], Input, Output> {
+interface Params<LoadArgs extends any[], Input extends any[], Output> {
   loadArgs: LoadArgs;
   loadFn: (...args: LoadArgs) => Promise<void>;
-  forwardFn: (input: Input) => Promise<Output>;
+  forwardFn: (...input: Input) => Promise<Output>;
   onDownloadProgress: (cb: (progress: number) => void) => void;
 }
 
-export const useModule2 = <LoadArgs extends any[], Input, Output>({
+export const useModule2 = <
+  LoadArgs extends any[],
+  Input extends any[],
+  Output,
+>({
   loadArgs,
   loadFn,
   forwardFn,
@@ -34,12 +38,12 @@ export const useModule2 = <LoadArgs extends any[], Input, Output>({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...loadArgs]);
 
-  const forward = async (input: Input): Promise<Output> => {
+  const forward = async (...input: Input): Promise<Output> => {
     if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
     if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
     try {
       setIsGenerating(true);
-      return await forwardFn(input);
+      return await forwardFn(...input);
     } finally {
       setIsGenerating(false);
     }
