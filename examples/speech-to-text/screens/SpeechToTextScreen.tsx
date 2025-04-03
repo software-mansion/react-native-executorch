@@ -51,7 +51,7 @@ export const SpeechToTextScreen = () => {
     sequence,
     error,
     transcribe,
-  } = useSpeechToText({ modelName: 'whisper', streamingConfig: 'balanced' });
+  } = useSpeechToText({ modelName: 'moonshine', streamingConfig: 'balanced' });
 
   const loadAudio = async (url: string) => {
     const audioContext = new AudioContext({ sampleRate: 16e3 });
