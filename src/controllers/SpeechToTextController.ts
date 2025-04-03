@@ -334,7 +334,7 @@ export class SpeechToTextController {
 
   private async tokenIdsToText(tokenIds: number[]): Promise<string> {
     try {
-      return this.nativeTokenizer.decode(tokenIds);
+      return this.nativeTokenizer.decode(tokenIds, true);
     } catch (e) {
       this.onErrorCallback?.(
         new Error(`An error has ocurred when decoding the token ids: ${e}`)
