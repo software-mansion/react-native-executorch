@@ -2,7 +2,6 @@
 #import "../../utils/ImageProcessor.h"
 #import "../../utils/Numerical.h"
 #import "Constants.h"
-#import "opencv2/opencv.hpp"
 
 @implementation ClassificationModel
 

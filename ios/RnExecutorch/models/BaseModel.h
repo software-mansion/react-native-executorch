@@ -1,6 +1,4 @@
 #import "ExecutorchLib/ETModel.h"
-#import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
 
 @interface BaseModel : NSObject {
 @protected

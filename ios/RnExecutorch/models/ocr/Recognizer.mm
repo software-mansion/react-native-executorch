@@ -1,7 +1,6 @@
 #import "Recognizer.h"
 #import "../../utils/ImageProcessor.h"
 #import "RecognizerUtils.h"
-#import "utils/OCRUtils.h"
 
 /*
  The model used as detector is based on CRNN paper.

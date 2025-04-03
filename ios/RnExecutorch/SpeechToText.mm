@@ -1,13 +1,6 @@
 #import "SpeechToText.h"
-#import "./utils/ScalarType.h"
-#import "models/BaseModel.h"
 #import "models/stt/Moonshine.hpp"
-#import "models/stt/SpeechToTextBaseModel.hpp"
 #import "models/stt/Whisper.hpp"
-#import "utils/SFFT.hpp"
-#import <Accelerate/Accelerate.h>
-#import <ExecutorchLib/ETModel.h>
-#import <React/RCTBridgeModule.h>
 
 @implementation SpeechToText {
   Whisper *whisper;

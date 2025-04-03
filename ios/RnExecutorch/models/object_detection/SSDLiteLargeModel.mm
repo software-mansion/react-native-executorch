@@ -1,7 +1,6 @@
 #include "SSDLiteLargeModel.hpp"
 #include "../../utils/ObjectDetectionUtils.hpp"
 #include "ImageProcessor.h"
-#include <vector>
 
 float constexpr iouThreshold = 0.55;
 float constexpr detectionThreshold = 0.7;

@@ -1,6 +1,5 @@
 #import "StyleTransferModel.h"
 #import "../../utils/ImageProcessor.h"
-#import "opencv2/opencv.hpp"
 
 @implementation StyleTransferModel {
   cv::Size originalSize;

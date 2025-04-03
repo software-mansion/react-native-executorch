@@ -1,5 +1,4 @@
 #import "BaseModel.h"
-#import "../utils/ETError.h"
 
 @implementation BaseModel
 

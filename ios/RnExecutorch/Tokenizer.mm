@@ -1,6 +1,5 @@
 #import "Tokenizer.h"
 #import <ExecutorchLib/HuggingFaceTokenizer.h>
-#import <React/RCTBridgeModule.h>
 
 @implementation Tokenizer {
   HuggingFaceTokenizer *tokenizer;

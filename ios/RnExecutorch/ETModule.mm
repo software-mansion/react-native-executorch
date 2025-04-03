@@ -1,8 +1,5 @@
 #import "ETModule.h"
 #import <ExecutorchLib/ETModel.h>
-#include <Foundation/Foundation.h>
-#import <React/RCTBridgeModule.h>
-#include <string>
 
 @implementation ETModule {
   ETModel *module;

@@ -1,10 +1,7 @@
 #import "OCR.h"
 #import "models/ocr/Detector.h"
-#import "models/ocr/RecognitionHandler.h"
 #import "models/ocr/utils/Constants.h"
 #import "utils/ImageProcessor.h"
-#import <ExecutorchLib/ETModel.h>
-#import <React/RCTBridgeModule.h>
 
 @implementation OCR {
   Detector *detector;

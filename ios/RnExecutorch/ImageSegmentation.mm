@@ -1,11 +1,6 @@
 #import "ImageSegmentation.h"
-#import "models/image_segmentation/ImageSegmentationModel.h"
-#import "models/BaseModel.h"
-#import "utils/ETError.h"
-#import <ExecutorchLib/ETModel.h>
-#import <React/RCTBridgeModule.h>
-#import <opencv2/opencv.hpp>
 #import "ImageProcessor.h"
+#import "models/image_segmentation/ImageSegmentationModel.h"
 
 @implementation ImageSegmentation {
   ImageSegmentationModel *model;
@@ -34,17 +29,17 @@ RCT_EXPORT_MODULE()
 }
 
 - (void)forward:(NSString *)input
-        classesOfInterest:(NSArray *)classesOfInterest
-        resize:(BOOL)resize
-        resolve:(RCTPromiseResolveBlock)resolve
-        reject:(RCTPromiseRejectBlock)reject {
+    classesOfInterest:(NSArray *)classesOfInterest
+               resize:(BOOL)resize
+              resolve:(RCTPromiseResolveBlock)resolve
+               reject:(RCTPromiseRejectBlock)reject {
 
   @try {
     cv::Mat image = [ImageProcessor readImage:input];
-    NSDictionary *result = [model runModel:image 
-                                  returnClasses:classesOfInterest
-                                  resize:resize];
-                                  
+    NSDictionary *result = [model runModel:image
+                             returnClasses:classesOfInterest
+                                    resize:resize];
+
     resolve(result);
     return;
   } @catch (NSException *exception) {
@@ -57,7 +52,8 @@ RCT_EXPORT_MODULE()
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params {
-  return std::make_shared<facebook::react::NativeImageSegmentationSpecJSI>(params);
+  return std::make_shared<facebook::react::NativeImageSegmentationSpecJSI>(
+      params);
 }
 
 @end

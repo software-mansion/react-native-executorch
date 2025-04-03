@@ -1,6 +1,5 @@
 #import "Constants.h"
 #import "ConversationManager.h"
-#import <string>
 
 NSString *const END_OF_TEXT_TOKEN_NS =
     [[NSString alloc] initWithBytes:END_OF_TEXT_TOKEN.data()

@@ -1,5 +1,6 @@
 #import "VerticalDetector.h"
 #import "../../utils/ImageProcessor.h"
+#import "utils/Constants.h"
 #import "utils/DetectorUtils.h"
 #import "utils/OCRUtils.h"
 

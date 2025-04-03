@@ -3,10 +3,7 @@
 #import "../../utils/ImageProcessor.h"
 #import "../../utils/Numerical.h"
 #import "Constants.h"
-#import "opencv2/opencv.hpp"
-#import <algorithm>
 #import <unordered_set>
-#import <vector>
 
 @interface ImageSegmentationModel ()
 - (NSArray *)preprocess:(cv::Mat &)input;

@@ -1,8 +1,6 @@
 #import "ObjectDetection.h"
 #import "models/object_detection/SSDLiteLargeModel.hpp"
 #import "utils/ImageProcessor.h"
-#import <ExecutorchLib/ETModel.h>
-#import <React/RCTBridgeModule.h>
 
 @implementation ObjectDetection {
   SSDLiteLargeModel *model;

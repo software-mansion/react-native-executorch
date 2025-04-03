@@ -1,12 +1,9 @@
 #import "RecognitionHandler.h"
-#import "../../utils/ImageProcessor.h"
 #import "./utils/CTCLabelConverter.h"
 #import "./utils/Constants.h"
 #import "./utils/OCRUtils.h"
 #import "./utils/RecognizerUtils.h"
-#import "ExecutorchLib/ETModel.h"
 #import "Recognizer.h"
-#import <React/RCTBridgeModule.h>
 
 /*
  RecognitionHandler class is responsible for loading and choosing the

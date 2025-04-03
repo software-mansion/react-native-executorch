@@ -1,11 +1,6 @@
 #import "Classification.h"
 #import "ImageProcessor.h"
-#import "models/BaseModel.h"
 #import "models/classification/ClassificationModel.h"
-#import "opencv2/opencv.hpp"
-#import "utils/ETError.h"
-#import <ExecutorchLib/ETModel.h>
-#import <React/RCTBridgeModule.h>
 
 @implementation Classification {
   ClassificationModel *model;

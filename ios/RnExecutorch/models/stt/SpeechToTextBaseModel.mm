@@ -1,6 +1,4 @@
 #import "SpeechToTextBaseModel.hpp"
-#import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
 
 @implementation SpeechToTextBaseModel
 

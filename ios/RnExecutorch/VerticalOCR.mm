@@ -1,13 +1,11 @@
 #import "VerticalOCR.h"
-#import "models/ocr/RecognitionHandler.h"
 #import "models/ocr/Recognizer.h"
 #import "models/ocr/VerticalDetector.h"
 #import "models/ocr/utils/CTCLabelConverter.h"
+#import "models/ocr/utils/Constants.h"
 #import "models/ocr/utils/OCRUtils.h"
 #import "models/ocr/utils/RecognizerUtils.h"
 #import "utils/ImageProcessor.h"
-#import <ExecutorchLib/ETModel.h>
-#import <React/RCTBridgeModule.h>
 
 @implementation VerticalOCR {
   VerticalDetector *detectorLarge;

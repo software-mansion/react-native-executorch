@@ -1,4 +1,3 @@
-#import <UIKit/UIKit.h>
 #import <opencv2/opencv.hpp>
 
 @interface ImageProcessor : NSObject
