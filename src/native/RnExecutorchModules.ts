@@ -279,8 +279,8 @@ class _TokenizerModule {
   async load(tokenizerSource: string): Promise<number> {
     return await Tokenizer.load(tokenizerSource);
   }
-  async decode(input: number[]): Promise<string> {
-    return await Tokenizer.decode(input);
+  async decode(input: number[], skipSpecialTokens: boolean): Promise<string> {
+    return await Tokenizer.decode(input, skipSpecialTokens);
   }
   async encode(input: string): Promise<number[]> {
     return await Tokenizer.encode(input);
