@@ -31,6 +31,7 @@ export enum SpeechToTextLanguage {
   Danish = 'da',
   Dutch = 'nl',
   Estonian = 'et',
+  English = 'en',
   Finnish = 'fi',
   French = 'fr',
   Galician = 'gl',
