@@ -16,8 +16,6 @@
               shapes:(NSArray *)shapes
           inputTypes:(NSArray *)inputTypes;
 
-// TODO: This method should be synchronous
-- (void)loadModel:(NSURL *)modelURL
-       completion:(void (^)(BOOL success, NSNumber *code))completion;
+- (NSNumber *)loadModel:(NSString *)modelSource;
 
 @end

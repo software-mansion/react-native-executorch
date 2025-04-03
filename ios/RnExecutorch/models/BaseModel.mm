@@ -35,17 +35,9 @@
   return result;
 }
 
-- (void)loadModel:(NSURL *)modelURL
-       completion:(void (^)(BOOL success, NSNumber *code))completion {
+- (NSNumber *)loadModel:(NSString *)modelSource {
   module = [[ETModel alloc] init];
-  NSNumber *result = [self->module loadModel:modelURL.path];
-  if ([result intValue] != 0) {
-    completion(NO, result);
-    return;
-  }
-
-  completion(YES, result);
-  return;
+  return [self->module loadModel:modelSource];
 }
 
 @end

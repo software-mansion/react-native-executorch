@@ -18,47 +18,49 @@ RCT_EXPORT_MODULE()
                    resolve:(RCTPromiseResolveBlock)resolve
                     reject:(RCTPromiseRejectBlock)reject {
   detector = [[Detector alloc] init];
-  [detector
-       loadModel:[NSURL URLWithString:detectorSource]
-      completion:^(BOOL success, NSNumber *errorCode) {
-        if (!success) {
-          NSError *error = [NSError
-              errorWithDomain:@"OCRErrorDomain"
-                         code:[errorCode intValue]
-                     userInfo:@{
-                       NSLocalizedDescriptionKey : [NSString
-                           stringWithFormat:@"%ld", (long)[errorCode longValue]]
-                     }];
-          reject(@"init_module_error", @"Failed to initialize detector module",
-                 error);
-          return;
-        }
-        self->recognitionHandler =
-            [[RecognitionHandler alloc] initWithSymbols:symbols];
-        [self->recognitionHandler
-                 loadRecognizers:recognizerSourceLarge
-            mediumRecognizerPath:recognizerSourceMedium
-             smallRecognizerPath:recognizerSourceSmall
-                      completion:^(BOOL allModelsLoaded, NSNumber *errorCode) {
-                        if (allModelsLoaded) {
-                          resolve(@(YES));
-                        } else {
-                          NSError *error = [NSError
-                              errorWithDomain:@"OCRErrorDomain"
-                                         code:[errorCode intValue]
-                                     userInfo:@{
-                                       NSLocalizedDescriptionKey : [NSString
-                                           stringWithFormat:@"%ld",
-                                                            (long)[errorCode
-                                                                longValue]]
-                                     }];
-                          reject(@"init_recognizer_error",
-                                 @"Failed to initialize one or more "
-                                 @"recognizer models",
-                                 error);
-                        }
-                      }];
-      }];
+
+  NSNumber *errorCode =
+      [detector loadModel:[NSURL URLWithString:detectorSource].path];
+  if ([errorCode intValue] != 0) {
+    NSError *error = [NSError
+        errorWithDomain:@"OCRErrorDomain"
+                   code:[errorCode intValue]
+               userInfo:@{
+                 NSLocalizedDescriptionKey : [NSString
+                     stringWithFormat:@"%ld", (long)[errorCode longValue]]
+               }];
+    reject(@"init_module_error", @"Failed to initialize detector module",
+           error);
+    return;
+  }
+
+  recognitionHandler = [[RecognitionHandler alloc] initWithSymbols:symbols];
+
+  [recognitionHandler
+           loadRecognizers:recognizerSourceLarge
+      mediumRecognizerPath:recognizerSourceMedium
+       smallRecognizerPath:recognizerSourceSmall
+                completion:^(BOOL allModelsLoaded, NSNumber *errorCode) {
+                  if (allModelsLoaded) {
+                    resolve(@(YES));
+                  } else {
+                    NSError *error = [NSError
+                        errorWithDomain:@"OCRErrorDomain"
+                                   code:[errorCode intValue]
+                               userInfo:@{
+                                 NSLocalizedDescriptionKey : [NSString
+                                     stringWithFormat:@"%ld",
+                                                      (long)
+                                                          [errorCode longValue]]
+                               }];
+                    reject(@"init_recognizer_error",
+                           @"Failed to initialize one or more "
+                           @"recognizer models",
+                           error);
+                  }
+                }];
+
+  resolve(@0);
 }
 
 - (void)forward:(NSString *)input

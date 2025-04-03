@@ -24,42 +24,37 @@ RCT_EXPORT_MODULE()
     independentCharacters:(BOOL)independentCharacters
                   resolve:(RCTPromiseResolveBlock)resolve
                    reject:(RCTPromiseRejectBlock)reject {
-  detectorLarge = [[VerticalDetector alloc] initWithDetectSingleCharacters:NO];
   converter = [[CTCLabelConverter alloc] initWithCharacters:symbols
                                               separatorList:@{}];
   self->independentCharacters = independentCharacters;
-  [detectorLarge
-       loadModel:[NSURL URLWithString:detectorLargeSource]
-      completion:^(BOOL success, NSNumber *errorCode) {
-        if (!success) {
-          reject(@"init_module_error", @"Failed to initialize detector module",
-                 nil);
-          return;
-        }
-        self->detectorNarrow =
-            [[VerticalDetector alloc] initWithDetectSingleCharacters:YES];
-        [self->detectorNarrow
-             loadModel:[NSURL URLWithString:detectorNarrowSource]
-            completion:^(BOOL success, NSNumber *errorCode) {
-              if (!success) {
-                reject(@"init_module_error",
-                       @"Failed to initialize detector module", nil);
-                return;
-              }
 
-              self->recognizer = [[Recognizer alloc] init];
-              [self->recognizer
-                   loadModel:[NSURL URLWithString:recognizerSource]
-                  completion:^(BOOL success, NSNumber *errorCode) {
-                    if (!success) {
-                      reject(@"init_module_error",
-                             @"Failed to initialize recognizer module", nil);
-                    }
+  detectorLarge = [[VerticalDetector alloc] initWithDetectSingleCharacters:NO];
+  NSNumber *errorCode =
+      [detectorLarge loadModel:[NSURL URLWithString:detectorLargeSource].path];
+  if ([errorCode intValue] != 0) {
+    reject(@"init_module_error", @"Failed to initialize detector module", nil);
+    return;
+  }
 
-                    resolve(@(YES));
-                  }];
-            }];
-      }];
+  detectorNarrow =
+      [[VerticalDetector alloc] initWithDetectSingleCharacters:YES];
+  errorCode = [detectorNarrow
+      loadModel:[NSURL URLWithString:detectorNarrowSource].path];
+  if ([errorCode intValue] != 0) {
+    reject(@"init_module_error", @"Failed to initialize detector module", nil);
+    return;
+  }
+
+  recognizer = [[Recognizer alloc] init];
+  errorCode =
+      [recognizer loadModel:[NSURL URLWithString:recognizerSource].path];
+  if ([errorCode intValue] != 0) {
+    reject(@"init_module_error", @"Failed to initialize recognizer module",
+           nil);
+    return;
+  }
+
+  resolve(@0);
 }
 
 - (void)forward:(NSString *)input

@@ -11,21 +11,21 @@ RCT_EXPORT_MODULE()
 - (void)loadModule:(NSString *)modelSource
            resolve:(RCTPromiseResolveBlock)resolve
             reject:(RCTPromiseRejectBlock)reject {
-
   model = [[ImageSegmentationModel alloc] init];
-  [model
-       loadModel:[NSURL URLWithString:modelSource]
-      completion:^(BOOL success, NSNumber *errorCode) {
-        if (success) {
-          resolve(errorCode);
-          return;
-        }
 
-        reject(@"init_module_error",
-               [NSString stringWithFormat:@"%ld", (long)[errorCode longValue]],
-               nil);
-        return;
-      }];
+  NSNumber *errorCode =
+      [model loadModel:[NSURL URLWithString:modelSource].path];
+  if ([errorCode intValue] != 0) {
+    reject(@"init_module_error",
+           [NSString stringWithFormat:@"%ld", (long)[errorCode longValue]],
+           nil);
+    reject(@"init_module_error",
+           [NSString stringWithFormat:@"%ld", (long)[errorCode longValue]],
+           nil);
+    return;
+  }
+
+  resolve(@0);
 }
 
 - (void)forward:(NSString *)input

@@ -6,16 +6,14 @@
               withSource:(NSString *)source
                onSuccess:(void (^)(void))success
                onFailure:(void (^)(NSString *))failure {
+  NSNumber *errorCode = [model loadModel:[NSURL URLWithString:source].path];
 
-  [model loadModel:[NSURL URLWithString:source]
-        completion:^(BOOL isSuccess, NSNumber *errorCode) {
-          if (isSuccess) {
-            success();
-          } else {
-            failure([NSString
-                stringWithFormat:@"%ld", (long)[errorCode longValue]]);
-          }
-        }];
+  if ([errorCode intValue] != 0) {
+    failure([NSString stringWithFormat:@"%ld", (long)[errorCode longValue]]);
+    return;
+  }
+
+  success();
 }
 
 @end

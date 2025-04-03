@@ -48,16 +48,17 @@
     NSString *path = paths[i];
 
     dispatch_group_enter(group);
-    [recognizer loadModel:[NSURL URLWithString:path]
-               completion:^(BOOL success, NSNumber *errorCode) {
-                 if (!success) {
-                   allSuccessful = NO;
-                   dispatch_group_leave(group);
-                   completion(NO, errorCode);
-                   return;
-                 }
-                 dispatch_group_leave(group);
-               }];
+
+    NSNumber *errorCode =
+        [recognizer loadModel:[NSURL URLWithString:path].path];
+    if ([errorCode intValue] != 0) {
+      allSuccessful = NO;
+      dispatch_group_leave(group);
+      completion(NO, errorCode);
+      return;
+    }
+
+    dispatch_group_leave(group);
   }
 
   dispatch_group_notify(group, dispatch_get_main_queue(), ^{
