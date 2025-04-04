@@ -11,6 +11,11 @@
 
 RCT_EXPORT_MODULE()
 
+- (void)cleanUp {
+  detector = nil;
+  recognitionHandler = nil;
+}
+
 - (void)loadModule:(NSString *)detectorSource
      recognizerSourceLarge:(NSString *)recognizerSourceLarge
     recognizerSourceMedium:(NSString *)recognizerSourceMedium
@@ -39,6 +44,7 @@ RCT_EXPORT_MODULE()
                              mediumRecognizerPath:recognizerSourceMedium
                               smallRecognizerPath:recognizerSourceSmall];
   if ([errorCode intValue] != 0) {
+    [self cleanUp];
     NSError *error = [NSError
         errorWithDomain:@"OCRErrorDomain"
                    code:[errorCode intValue]

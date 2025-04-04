@@ -54,6 +54,7 @@ RCT_EXPORT_MODULE()
     resolve(@"Model and tokenizer loaded successfully");
     return;
   } @catch (NSException *exception) {
+    [self deleteModule];
     reject(@"Model or tokenizer loading failed", exception.reason, nil);
     return;
   }
@@ -100,6 +101,8 @@ RCT_EXPORT_MODULE()
 
 - (void)deleteModule {
   self->runner = nil;
+  self->conversationManager = nil;
+  self->tempLlamaResponse = nil;
 }
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
