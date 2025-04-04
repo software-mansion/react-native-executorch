@@ -2,10 +2,6 @@ import { TextEmbeddingsModule } from '../../modules/natural_language_processing/
 import { ResourceSource } from '../../types/common';
 import { useModule2 } from '../useModule2';
 
-type LoadArgs = Parameters<typeof TextEmbeddingsModule.load>;
-type ForwardArgs = Parameters<typeof TextEmbeddingsModule.forward>;
-type ForwardReturn = Awaited<ReturnType<typeof TextEmbeddingsModule.forward>>;
-
 export const useTextEmbeddings = ({
   modelSource,
   tokenizerSource,
@@ -13,9 +9,7 @@ export const useTextEmbeddings = ({
   modelSource: ResourceSource;
   tokenizerSource: ResourceSource;
 }) =>
-  useModule2<LoadArgs, ForwardArgs, ForwardReturn>({
+  useModule2({
+    module: TextEmbeddingsModule,
     loadArgs: [modelSource, tokenizerSource],
-    loadFn: TextEmbeddingsModule.load,
-    forwardFn: TextEmbeddingsModule.forward,
-    onDownloadProgress: TextEmbeddingsModule.onDownloadProgress,
   });

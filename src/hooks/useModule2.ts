@@ -1,23 +1,24 @@
 import { useEffect, useState } from 'react';
 import { ETError, getError } from '../Error';
 
-interface Params<LoadArgs extends any[], Input extends any[], Output> {
-  loadArgs: LoadArgs;
-  loadFn: (...args: LoadArgs) => Promise<void>;
-  forwardFn: (...input: Input) => Promise<Output>;
+interface Module {
+  load: (...args: any[]) => Promise<void>;
+  forward: (...input: any[]) => Promise<any>;
   onDownloadProgress: (cb: (progress: number) => void) => void;
 }
 
 export const useModule2 = <
-  LoadArgs extends any[],
-  Input extends any[],
-  Output,
+  M extends Module,
+  LoadArgs extends Parameters<M['load']>,
+  ForwardArgs extends Parameters<M['forward']>,
+  ForwardReturn extends Awaited<ReturnType<M['forward']>>,
 >({
+  module,
   loadArgs,
-  loadFn,
-  forwardFn,
-  onDownloadProgress,
-}: Params<LoadArgs, Input, Output>) => {
+}: {
+  module: M;
+  loadArgs: LoadArgs;
+}) => {
   const [error, setError] = useState<null | string>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -27,23 +28,23 @@ export const useModule2 = <
     const loadModule = async () => {
       try {
         setIsReady(false);
-        onDownloadProgress(setDownloadProgress);
-        await loadFn(...loadArgs);
+        module.onDownloadProgress(setDownloadProgress);
+        await module.load(...loadArgs);
         setIsReady(true);
-      } catch (error) {
-        setError((error as Error).message);
+      } catch (err) {
+        setError((err as Error).message);
       }
     };
     loadModule();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...loadArgs]);
 
-  const forward = async (...input: Input): Promise<Output> => {
+  const forward = async (...input: ForwardArgs): Promise<ForwardReturn> => {
     if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
     if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
     try {
       setIsGenerating(true);
-      return await forwardFn(...input);
+      return await module.forward(...input);
     } finally {
       setIsGenerating(false);
     }
