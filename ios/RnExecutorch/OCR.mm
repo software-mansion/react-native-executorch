@@ -1,5 +1,6 @@
 #import "OCR.h"
 #import "models/ocr/Detector.h"
+#import "models/ocr/RecognitionHandler.h"
 #import "models/ocr/utils/Constants.h"
 #import "utils/ImageProcessor.h"
 
@@ -18,7 +19,6 @@ RCT_EXPORT_MODULE()
                    resolve:(RCTPromiseResolveBlock)resolve
                     reject:(RCTPromiseRejectBlock)reject {
   detector = [[Detector alloc] init];
-
   NSNumber *errorCode =
       [detector loadModel:[NSURL URLWithString:detectorSource].path];
   if ([errorCode intValue] != 0) {
@@ -35,30 +35,21 @@ RCT_EXPORT_MODULE()
   }
 
   recognitionHandler = [[RecognitionHandler alloc] initWithSymbols:symbols];
-
-  [recognitionHandler
-           loadRecognizers:recognizerSourceLarge
-      mediumRecognizerPath:recognizerSourceMedium
-       smallRecognizerPath:recognizerSourceSmall
-                completion:^(BOOL allModelsLoaded, NSNumber *errorCode) {
-                  if (allModelsLoaded) {
-                    resolve(@(YES));
-                  } else {
-                    NSError *error = [NSError
-                        errorWithDomain:@"OCRErrorDomain"
-                                   code:[errorCode intValue]
-                               userInfo:@{
-                                 NSLocalizedDescriptionKey : [NSString
-                                     stringWithFormat:@"%ld",
-                                                      (long)
-                                                          [errorCode longValue]]
-                               }];
-                    reject(@"init_recognizer_error",
-                           @"Failed to initialize one or more "
-                           @"recognizer models",
-                           error);
-                  }
-                }];
+  errorCode = [recognitionHandler loadRecognizers:recognizerSourceLarge
+                             mediumRecognizerPath:recognizerSourceMedium
+                              smallRecognizerPath:recognizerSourceSmall];
+  if ([errorCode intValue] != 0) {
+    NSError *error = [NSError
+        errorWithDomain:@"OCRErrorDomain"
+                   code:[errorCode intValue]
+               userInfo:@{
+                 NSLocalizedDescriptionKey : [NSString
+                     stringWithFormat:@"%ld", (long)[errorCode longValue]]
+               }];
+    reject(@"init_recognizer_error",
+           @"Failed to initialize one or more recognizer models", error);
+    return;
+  }
 
   resolve(@0);
 }

@@ -19,9 +19,6 @@ RCT_EXPORT_MODULE()
     reject(@"init_module_error",
            [NSString stringWithFormat:@"%ld", (long)[errorCode longValue]],
            nil);
-    reject(@"init_module_error",
-           [NSString stringWithFormat:@"%ld", (long)[errorCode longValue]],
-           nil);
     return;
   }
 

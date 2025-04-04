@@ -16,7 +16,10 @@ RCT_EXPORT_MODULE()
   @try {
     [self->model loadTokenizer:tokenizerSource];
   } @catch (NSException *exception) {
-    reject(@"Tokenizer_Error", @"Failed to load tokenizer", nil);
+    reject(@"Tokenizer_Error",
+           [NSString stringWithFormat:@"Failed to load tokenizer: %@",
+                                      tokenizerSource],
+           nil);
     return;
   }
 
