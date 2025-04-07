@@ -7,7 +7,7 @@
 
 RCT_EXPORT_MODULE()
 
-- (void)cleanUp {
+- (void)releaseResources {
   model = nil;
 }
 
@@ -20,6 +20,7 @@ RCT_EXPORT_MODULE()
   @try {
     [self->model loadTokenizer:tokenizerSource];
   } @catch (NSException *exception) {
+    [self releaseResources];
     reject(@"Tokenizer_Error",
            [NSString stringWithFormat:@"Failed to load tokenizer from: %@",
                                       tokenizerSource],
@@ -30,7 +31,7 @@ RCT_EXPORT_MODULE()
   NSNumber *errorCode =
       [model loadModel:[NSURL URLWithString:modelSource].path];
   if ([errorCode intValue] != 0) {
-    [self cleanUp];
+    [self releaseResources];
     reject(@"init_module_error",
            [NSString stringWithFormat:@"%ld", (long)[errorCode longValue]],
            nil);

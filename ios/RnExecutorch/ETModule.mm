@@ -7,6 +7,10 @@
 
 RCT_EXPORT_MODULE()
 
+- (void)releaseResources {
+  module = nil;
+}
+
 - (void)loadModule:(NSString *)modelSource
            resolve:(RCTPromiseResolveBlock)resolve
             reject:(RCTPromiseRejectBlock)reject {
@@ -17,6 +21,7 @@ RCT_EXPORT_MODULE()
   NSNumber *result = [self->module loadModel:modelURL.path];
 
   if ([result intValue] != 0) {
+    [self releaseResources];
     NSError *error =
         [NSError errorWithDomain:@"ETModuleErrorDomain"
                             code:[result intValue]

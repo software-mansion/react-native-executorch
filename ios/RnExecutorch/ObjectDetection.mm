@@ -8,6 +8,10 @@
 
 RCT_EXPORT_MODULE()
 
+- (void)releaseResources {
+  model = nil;
+}
+
 - (void)loadModule:(NSString *)modelSource
            resolve:(RCTPromiseResolveBlock)resolve
             reject:(RCTPromiseRejectBlock)reject {
@@ -16,6 +20,7 @@ RCT_EXPORT_MODULE()
   NSNumber *errorCode =
       [model loadModel:[NSURL URLWithString:modelSource].path];
   if ([errorCode intValue] != 0) {
+    [self releaseResources];
     NSError *error = [NSError
         errorWithDomain:@"StyleTransferErrorDomain"
                    code:[errorCode intValue]

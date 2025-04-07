@@ -17,7 +17,7 @@
 
 RCT_EXPORT_MODULE()
 
-- (void)cleanUp {
+- (void)releaseResources {
   detectorLarge = nil;
   detectorNarrow = nil;
   recognizer = nil;
@@ -39,6 +39,7 @@ RCT_EXPORT_MODULE()
   NSNumber *errorCode =
       [detectorLarge loadModel:[NSURL URLWithString:detectorLargeSource].path];
   if ([errorCode intValue] != 0) {
+    [self releaseResources];
     reject(@"init_module_error", @"Failed to initialize detector module", nil);
     return;
   }
@@ -48,7 +49,7 @@ RCT_EXPORT_MODULE()
   errorCode = [detectorNarrow
       loadModel:[NSURL URLWithString:detectorNarrowSource].path];
   if ([errorCode intValue] != 0) {
-    [self cleanUp];
+    [self releaseResources];
     reject(@"init_module_error", @"Failed to initialize detector module", nil);
     return;
   }
@@ -57,7 +58,7 @@ RCT_EXPORT_MODULE()
   errorCode =
       [recognizer loadModel:[NSURL URLWithString:recognizerSource].path];
   if ([errorCode intValue] != 0) {
-    [self cleanUp];
+    [self releaseResources];
     reject(@"init_module_error", @"Failed to initialize recognizer module",
            nil);
     return;

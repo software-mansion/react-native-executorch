@@ -54,7 +54,7 @@ RCT_EXPORT_MODULE()
     resolve(@"Model and tokenizer loaded successfully");
     return;
   } @catch (NSException *exception) {
-    [self deleteModule];
+    [self releaseResources];
     reject(@"Model or tokenizer loading failed", exception.reason, nil);
     return;
   }
@@ -99,7 +99,7 @@ RCT_EXPORT_MODULE()
   [self->runner stop];
 }
 
-- (void)deleteModule {
+- (void)releaseResources {
   self->runner = nil;
   self->conversationManager = nil;
   self->tempLlamaResponse = nil;

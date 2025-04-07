@@ -11,7 +11,7 @@
 
 RCT_EXPORT_MODULE()
 
-- (void)cleanUp {
+- (void)releaseResources {
   detector = nil;
   recognitionHandler = nil;
 }
@@ -27,6 +27,7 @@ RCT_EXPORT_MODULE()
   NSNumber *errorCode =
       [detector loadModel:[NSURL URLWithString:detectorSource].path];
   if ([errorCode intValue] != 0) {
+    [self releaseResources];
     NSError *error = [NSError
         errorWithDomain:@"OCRErrorDomain"
                    code:[errorCode intValue]
@@ -44,7 +45,7 @@ RCT_EXPORT_MODULE()
                              mediumRecognizerPath:recognizerSourceMedium
                               smallRecognizerPath:recognizerSourceSmall];
   if ([errorCode intValue] != 0) {
-    [self cleanUp];
+    [self releaseResources];
     NSError *error = [NSError
         errorWithDomain:@"OCRErrorDomain"
                    code:[errorCode intValue]

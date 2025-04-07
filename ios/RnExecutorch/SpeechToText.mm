@@ -9,6 +9,11 @@
 
 RCT_EXPORT_MODULE()
 
+- (void)releaseResources {
+  whisper = nil;
+  moonshine = nil;
+}
+
 - (void)generate:(NSArray *)waveform
          resolve:(RCTPromiseResolveBlock)resolve
           reject:(RCTPromiseRejectBlock)reject {
@@ -76,6 +81,7 @@ RCT_EXPORT_MODULE()
     [model loadModules:modelSources];
     resolve(@(0));
   } @catch (NSException *exception) {
+    [self releaseResources];
     reject(@"init_decoder_error",
            [NSString stringWithFormat:@"%@", exception.reason], nil);
   }
