@@ -32,7 +32,7 @@ export class SpeechToTextController {
   private streamWaveform: number[] = [];
   private isDecodingChunk = false;
   private numberOfDecodedChunks = 0;
-  private numberOfDeletedChunks = 0;
+  private isChunkDeleted = false;
   private numOfChunks = 0;
 
   // User callbacks
@@ -162,12 +162,12 @@ export class SpeechToTextController {
     }
   }
 
-  private chunkWaveform(waveform: number[]) {
+  private chunkWaveform(waveform: number[], streamingSlice?: boolean) {
     this.chunks = [];
     this.numOfChunks = Math.ceil(waveform.length / this.windowSize);
     for (let i = 0; i < this.numOfChunks; i++) {
       let chunk;
-      if (i == 0 && this.numberOfDeletedChunks > 0) {
+      if (i == 0 && streamingSlice) {
         chunk = waveform.slice(
           0,
           Math.min(
@@ -381,24 +381,21 @@ export class SpeechToTextController {
       this.streamWaveform = [];
       this.prevSeq = [];
       this.numberOfDecodedChunks = 0;
+      this.isChunkDeleted = false;
       this.decodedTranscribeCallback([]);
       this.isGeneratingCallback(true);
     }
     this.streamWaveform = [...this.streamWaveform, ...waveform];
-    this.chunkWaveform(this.streamWaveform);
+    this.chunkWaveform(this.streamWaveform, this.isChunkDeleted);
     if (!this.isDecodingChunk && streamAction != 2) {
       this.isDecodingChunk = true;
       while (
-        this.chunks.at(-this.numOfChunks)?.length ==
+        this.chunks.at(0)?.length ==
           2 * this.overlapSeconds + this.windowSize ||
         (this.numberOfDecodedChunks == 0 &&
-          this.chunks.at(-this.numOfChunks)?.length ==
-            this.windowSize + this.overlapSeconds)
+          this.chunks.at(0)?.length == this.windowSize + this.overlapSeconds)
       ) {
-        let seq = await this.decodeChunk(
-          this.chunks.at(-this.numOfChunks)!,
-          audioLanguage
-        );
+        let seq = await this.decodeChunk(this.chunks.at(0)!, audioLanguage);
         const numSpecialTokens = (await this.getStartingTokenIds(audioLanguage))
           .length;
         // remove sos/eos token and 3 additional ones
@@ -418,28 +415,28 @@ export class SpeechToTextController {
         if (this.seqs.length < 2) {
           continue;
         }
+        // remove data, which was processed and saved to this.seqs
+        if (this.numOfChunks > 2) {
+          if (!this.isChunkDeleted) {
+            this.streamWaveform = this.streamWaveform.slice(
+              -(
+                this.streamWaveform.length -
+                (this.windowSize + this.overlapSeconds)
+              )
+            );
+          } else {
+            this.streamWaveform = this.streamWaveform.slice(
+              -(this.streamWaveform.length - this.windowSize)
+            );
+          }
+          this.isChunkDeleted = true;
+          this.numOfChunks--;
+        }
       }
       this.isDecodingChunk = false;
     }
-    // remove data from waveform, which was processed and saved to this.seqs
-    while (this.numOfChunks > 2) {
-      if (this.numberOfDeletedChunks == 0) {
-        this.streamWaveform = this.streamWaveform.slice(
-          -(
-            this.streamWaveform.length -
-            (this.windowSize + this.overlapSeconds)
-          )
-        );
-      } else {
-        this.streamWaveform = this.streamWaveform.slice(
-          -(this.streamWaveform.length - this.windowSize)
-        );
-      }
-      this.numberOfDeletedChunks++;
-      this.numOfChunks--;
-    }
     while (this.numOfChunks > 0 && streamAction == STREAMING_ACTION.STOP) {
-      let seq = await this.decodeChunk(this.chunks.at(-this.numOfChunks)!);
+      let seq = await this.decodeChunk(this.chunks.at(0)!);
       if (this.numberOfDecodedChunks == 0) {
         this.sequence = seq;
         this.decodedTranscribeCallback(seq);
@@ -465,7 +462,7 @@ export class SpeechToTextController {
 
   private async tokenIdsToText(tokenIds: number[]): Promise<string> {
     try {
-      return this.nativeTokenizer.decode(tokenIds);
+      return this.nativeTokenizer.decode(tokenIds, true);
     } catch (e) {
       this.onErrorCallback?.(
         new Error(`An error has ocurred when decoding the token ids: ${e}`)
