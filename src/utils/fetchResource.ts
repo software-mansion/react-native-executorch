@@ -9,12 +9,14 @@ import {
 import { Asset } from 'expo-asset';
 import { RNEDirectory } from '../constants/directories';
 
-const getFilenameFromUri = (uri: string) => {
-  const filename = uri.split('/').pop()?.split('?')[0];
-  if (!filename) {
-    throw new Error('Cannot derive filename from URI');
-  }
-  return filename;
+const getFilenameFromUri = (uri: string): string => {
+  let cleanUri = uri.replace(/^https?:\/\//, '');
+  cleanUri = cleanUri.split('?')?.[0]?.split('#')?.[0] ?? cleanUri;
+  return cleanUri.replace(/[^a-zA-Z0-9._-]/g, '_');
+};
+
+const removeFilePrefix = (uri: string) => {
+  return uri.startsWith('file://') ? uri.slice(7) : uri;
 };
 
 /**
@@ -41,7 +43,7 @@ export const fetchResource = async (
 
   // Handle local files
   if (uri.startsWith('file://')) {
-    return uri;
+    return removeFilePrefix(uri);
   }
 
   const filename = getFilenameFromUri(uri);
@@ -49,7 +51,7 @@ export const fetchResource = async (
 
   // Check if the file already exists
   if ((await getInfoAsync(fileUri)).exists) {
-    return fileUri;
+    return removeFilePrefix(fileUri);
   }
 
   // Create the RNEDirectory if it doesn't exist
@@ -62,8 +64,11 @@ export const fetchResource = async (
     const asset = Asset.fromModule(source);
     const fileUriWithType = `${fileUri}.${asset.type}`;
     await asset.downloadAsync();
-    await moveAsync({ from: asset.localUri!, to: fileUriWithType });
-    return fileUriWithType;
+    if (!asset.localUri) {
+      throw new Error(`Asset local URI is not available for ${source}`);
+    }
+    await moveAsync({ from: asset.localUri, to: fileUriWithType });
+    return removeFilePrefix(fileUriWithType);
   }
 
   // Handle remote file download
@@ -84,10 +89,10 @@ export const fetchResource = async (
 
   triggerHuggingFaceDownloadCounter(uri);
 
-  return fileUri;
+  return removeFilePrefix(fileUri);
 };
 
-export const calculateDownloadProgres =
+export const calculateDownloadProgress =
   (
     numberOfFiles: number,
     currentFileIndex: number,
