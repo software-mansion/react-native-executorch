@@ -17,8 +17,7 @@ RCT_EXPORT_MODULE()
             reject:(RCTPromiseRejectBlock)reject {
   model = [[ImageSegmentationModel alloc] init];
 
-  NSNumber *errorCode =
-      [model loadModel:[NSURL URLWithString:modelSource].path];
+  NSNumber *errorCode = [model loadModel:modelSource];
   if ([errorCode intValue] != 0) {
     [self releaseResources];
     reject(@"init_module_error",

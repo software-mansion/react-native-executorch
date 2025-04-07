@@ -6,7 +6,7 @@
               withSource:(NSString *)source
                onSuccess:(void (^)(void))success
                onFailure:(void (^)(NSString *))failure {
-  NSNumber *errorCode = [model loadModel:[NSURL URLWithString:source].path];
+  NSNumber *errorCode = [model loadModel:source];
 
   if ([errorCode intValue] != 0) {
     failure([NSString stringWithFormat:@"%ld", (long)[errorCode longValue]]);

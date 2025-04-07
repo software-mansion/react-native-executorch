@@ -24,8 +24,7 @@ RCT_EXPORT_MODULE()
                    resolve:(RCTPromiseResolveBlock)resolve
                     reject:(RCTPromiseRejectBlock)reject {
   detector = [[Detector alloc] init];
-  NSNumber *errorCode =
-      [detector loadModel:[NSURL URLWithString:detectorSource].path];
+  NSNumber *errorCode = [detector loadModel:detectorSource];
   if ([errorCode intValue] != 0) {
     [self releaseResources];
     NSError *error = [NSError

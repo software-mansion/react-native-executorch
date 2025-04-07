@@ -9,7 +9,6 @@ import com.swmansion.rnexecutorch.utils.ETError
 import com.swmansion.rnexecutorch.utils.TensorUtils
 import org.pytorch.executorch.EValue
 import org.pytorch.executorch.Module
-import java.net.URL
 
 class ETModule(
   reactContext: ReactApplicationContext,
@@ -23,7 +22,7 @@ class ETModule(
     modelSource: String,
     promise: Promise,
   ) {
-    module = Module.load(URL(modelSource).path)
+    module = Module.load(modelSource)
     promise.resolve(0)
   }
 

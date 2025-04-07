@@ -5,7 +5,6 @@ import com.swmansion.rnexecutorch.utils.ETError
 import org.pytorch.executorch.EValue
 import org.pytorch.executorch.Module
 import org.pytorch.executorch.Tensor
-import java.net.URL
 
 abstract class BaseModel<Input, Output>(
   val context: Context,
@@ -13,7 +12,7 @@ abstract class BaseModel<Input, Output>(
   protected lateinit var module: Module
 
   fun loadModel(modelSource: String) {
-    module = Module.load(URL(modelSource).path)
+    module = Module.load(modelSource)
   }
 
   protected fun forward(vararg inputs: EValue): Array<EValue> {

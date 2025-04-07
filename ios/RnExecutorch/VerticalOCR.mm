@@ -36,8 +36,7 @@ RCT_EXPORT_MODULE()
   self->independentCharacters = independentCharacters;
 
   detectorLarge = [[VerticalDetector alloc] initWithDetectSingleCharacters:NO];
-  NSNumber *errorCode =
-      [detectorLarge loadModel:[NSURL URLWithString:detectorLargeSource].path];
+  NSNumber *errorCode = [detectorLarge loadModel:detectorLargeSource];
   if ([errorCode intValue] != 0) {
     [self releaseResources];
     reject(@"init_module_error", @"Failed to initialize detector module", nil);
@@ -46,8 +45,7 @@ RCT_EXPORT_MODULE()
 
   detectorNarrow =
       [[VerticalDetector alloc] initWithDetectSingleCharacters:YES];
-  errorCode = [detectorNarrow
-      loadModel:[NSURL URLWithString:detectorNarrowSource].path];
+  errorCode = [detectorNarrow loadModel:detectorNarrowSource];
   if ([errorCode intValue] != 0) {
     [self releaseResources];
     reject(@"init_module_error", @"Failed to initialize detector module", nil);
@@ -55,8 +53,7 @@ RCT_EXPORT_MODULE()
   }
 
   recognizer = [[Recognizer alloc] init];
-  errorCode =
-      [recognizer loadModel:[NSURL URLWithString:recognizerSource].path];
+  errorCode = [recognizer loadModel:recognizerSource];
   if ([errorCode intValue] != 0) {
     [self releaseResources];
     reject(@"init_module_error", @"Failed to initialize recognizer module",
