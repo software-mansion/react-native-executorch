@@ -12,10 +12,10 @@ import { Asset } from 'expo-asset';
 import { RNEDirectory } from '../constants/directories';
 
 export class ResourceFetcher {
-  static fetch = async (
+  static async fetch(
     source: string | number | object,
     callback: (downloadProgress: number) => void = () => {}
-  ) => {
+  ) {
     if (typeof source === 'object') {
       return this.handleObject(source);
     }
@@ -31,11 +31,9 @@ export class ResourceFetcher {
     const filename = this.getFilenameFromUri(uri);
     const fileUri = `${RNEDirectory}${filename}`;
 
-    // Check if the file already exists
-    if ((await getInfoAsync(fileUri)).exists) {
+    if (await this.checkFileExists(fileUri)) {
       return this.removeFilePrefix(fileUri);
     }
-
     await this.createDirectoryIfNoExists();
 
     // Handle local asset files in release mode
@@ -69,15 +67,14 @@ export class ResourceFetcher {
     this.triggerHuggingFaceDownloadCounter(uri);
 
     return this.removeFilePrefix(fileUri);
-  };
+  }
 
-  static calculateDownloadProgress =
-    (
-      numberOfFiles: number,
-      currentFileIndex: number,
-      setProgress: (downloadProgress: number) => void
-    ) =>
-    (progress: number) => {
+  static calculateDownloadProgress(
+    numberOfFiles: number,
+    currentFileIndex: number,
+    setProgress: (downloadProgress: number) => void
+  ) {
+    return (progress: number) => {
       if (progress === 1 && currentFileIndex === numberOfFiles - 1) {
         setProgress(1);
         return;
@@ -88,49 +85,50 @@ export class ResourceFetcher {
       const updatedProgress = baseProgress + scaledProgress;
       setProgress(updatedProgress);
     };
+  }
 
-  private static handleObject = async (source: object) => {
+  private static async handleObject(source: object) {
     const jsonString = JSON.stringify(source);
     const digest = this.hashObject(jsonString);
     const filename = `${digest}.json`;
     const path = `${RNEDirectory}${filename}`;
 
-    await this.createDirectoryIfNoExists();
-
-    const fileInfo = await getInfoAsync(path);
-    if (!fileInfo.exists) {
-      await writeAsStringAsync(path, jsonString, {
-        encoding: EncodingType.UTF8,
-      });
+    if (await this.checkFileExists(path)) {
+      return this.removeFilePrefix(path);
     }
 
-    return this.removeFilePrefix(path);
-  };
+    await this.createDirectoryIfNoExists();
+    await writeAsStringAsync(path, jsonString, {
+      encoding: EncodingType.UTF8,
+    });
 
-  private static getFilenameFromUri = (uri: string): string => {
+    return this.removeFilePrefix(path);
+  }
+
+  private static getFilenameFromUri(uri: string) {
     let cleanUri = uri.replace(/^https?:\/\//, '');
     cleanUri = cleanUri.split('?')?.[0]?.split('#')?.[0] ?? cleanUri;
     return cleanUri.replace(/[^a-zA-Z0-9._-]/g, '_');
-  };
+  }
 
-  private static removeFilePrefix = (uri: string) => {
+  private static removeFilePrefix(uri: string) {
     return uri.startsWith('file://') ? uri.slice(7) : uri;
-  };
+  }
 
-  private static hashObject = (jsonString: string) => {
+  private static hashObject(jsonString: string) {
     let hash = 0;
     for (let i = 0; i < jsonString.length; i++) {
       hash = (hash << 5) - hash + jsonString.charCodeAt(i);
       hash |= 0;
     }
     return (hash >>> 0).toString();
-  };
+  }
 
   /*
    * Increments the Hugging Face download counter if the URI points to a Software Mansion Hugging Face repo.
    * More information: https://huggingface.co/docs/hub/models-download-stats
    */
-  private static triggerHuggingFaceDownloadCounter = (uri: string) => {
+  private static triggerHuggingFaceDownloadCounter(uri: string) {
     const url = new URL(uri);
     if (
       url.host === 'huggingface.co' &&
@@ -139,11 +137,16 @@ export class ResourceFetcher {
       const baseUrl = `${url.protocol}//${url.host}${url.pathname.split('resolve')[0]}`;
       fetch(`${baseUrl}resolve/main/config.json`, { method: 'HEAD' });
     }
-  };
+  }
 
-  private static createDirectoryIfNoExists = async () => {
-    if (!(await getInfoAsync(RNEDirectory)).exists) {
+  private static async createDirectoryIfNoExists() {
+    if (!(await this.checkFileExists(RNEDirectory))) {
       await makeDirectoryAsync(RNEDirectory, { intermediates: true });
     }
-  };
+  }
+
+  private static async checkFileExists(fileUri: string) {
+    const fileInfo = await getInfoAsync(fileUri);
+    return fileInfo.exists;
+  }
 }
