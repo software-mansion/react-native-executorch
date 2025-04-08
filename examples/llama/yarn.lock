@@ -4686,6 +4686,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-speech@npm:^13.0.1":
+  version: 13.1.0
+  resolution: "expo-speech@npm:13.1.0"
+  peerDependencies:
+    expo: "*"
+  checksum: 87ab0dcd4a49ad02a803d60577995b5e0aaa904e0ee7394394dc5f71fdc1d7b956fe71cb55e18ebfef336f884b0ca813b4c84e0ab6fecc140f94635a1948258e
+  languageName: node
+  linkType: hard
+
 "expo-status-bar@npm:~2.0.0":
   version: 2.0.0
   resolution: "expo-status-bar@npm:2.0.0"
@@ -6070,10 +6079,12 @@ __metadata:
     "@types/react": ~18.3.12
     expo: ~52.0.11
     expo-font: ^13.0.1
+    expo-speech: ^13.0.1
     expo-status-bar: ~2.0.0
     metro-config: ^0.81.0
     react: 18.3.1
     react-native: 0.76.3
+    react-native-audio-api: ^0.5.6
     react-native-executorch: ^0.3.0
     react-native-loading-spinner-overlay: ^3.0.1
     react-native-markdown-display: ^7.0.2
@@ -7542,6 +7553,18 @@ __metadata:
   version: 18.3.1
   resolution: "react-is@npm:18.3.1"
   checksum: e20fe84c86ff172fc8d898251b7cc2c43645d108bf96d0b8edf39b98f9a2cae97b40520ee7ed8ee0085ccc94736c4886294456033304151c3f94978cec03df21
+  languageName: node
+  linkType: hard
+
+"react-native-audio-api@npm:^0.5.6":
+  version: 0.5.6
+  resolution: "react-native-audio-api@npm:0.5.6"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  bin:
+    setup-rn-audio-api-web: scripts/setup-rn-audio-api-web.js
+  checksum: b5fb31e70853b750d22dcf495df64dd0473952c959ebbf1ff331a7c3d7524fdbee83accdc752fc45e93f476d83a0484458d45d2f9440bac753e83a959fd862a6
   languageName: node
   linkType: hard
 
