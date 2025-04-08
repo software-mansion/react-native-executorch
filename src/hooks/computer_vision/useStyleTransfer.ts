@@ -1,5 +1,5 @@
 import { ResourceSource } from '../../types/common';
-import { useModule2 } from '../useModule2';
+import { useModule } from '../useModule';
 import { StyleTransferModule } from '../../modules/computer_vision/StyleTransferModule';
 
 interface Props {
@@ -7,4 +7,4 @@ interface Props {
 }
 
 export const useStyleTransfer = ({ modelSource }: Props) =>
-  useModule2({ module: StyleTransferModule, loadArgs: [modelSource] });
+  useModule({ module: StyleTransferModule, loadArgs: [modelSource] });

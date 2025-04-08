@@ -1,5 +1,5 @@
 import { ResourceSource } from '../../types/common';
-import { useModule2 } from '../useModule2';
+import { useModule } from '../useModule';
 import { ObjectDetectionModule } from '../../modules/computer_vision/ObjectDetectionModule';
 
 interface Props {
@@ -7,4 +7,4 @@ interface Props {
 }
 
 export const useObjectDetection = ({ modelSource }: Props) =>
-  useModule2({ module: ObjectDetectionModule, loadArgs: [modelSource] });
+  useModule({ module: ObjectDetectionModule, loadArgs: [modelSource] });

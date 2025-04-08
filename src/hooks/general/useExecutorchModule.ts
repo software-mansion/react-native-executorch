@@ -1,9 +1,9 @@
 import { ExecutorchModule } from '../../modules/general/ExecutorchModule';
-import { useModule2 } from '../useModule2';
+import { useModule } from '../useModule';
 
 interface Props {
   modelSource: string | number;
 }
 
 export const useExecutorchModule = ({ modelSource }: Props) =>
-  useModule2({ module: ExecutorchModule, loadArgs: [modelSource] });
+  useModule({ module: ExecutorchModule, loadArgs: [modelSource] });

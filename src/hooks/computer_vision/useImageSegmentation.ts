@@ -1,4 +1,4 @@
-import { useModule2 } from '../useModule2';
+import { useModule } from '../useModule';
 import { ImageSegmentationModule } from '../../modules/computer_vision/ImageSegmentationModule';
 
 interface Props {
@@ -6,4 +6,4 @@ interface Props {
 }
 
 export const useImageSegmentation = ({ modelSource }: Props) =>
-  useModule2({ module: ImageSegmentationModule, loadArgs: [modelSource] });
+  useModule({ module: ImageSegmentationModule, loadArgs: [modelSource] });

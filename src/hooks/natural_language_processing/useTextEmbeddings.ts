@@ -1,6 +1,6 @@
 import { TextEmbeddingsModule } from '../../modules/natural_language_processing/TextEmbeddingsModule';
 import { ResourceSource } from '../../types/common';
-import { useModule2 } from '../useModule2';
+import { useModule } from '../useModule';
 
 export const useTextEmbeddings = ({
   modelSource,
@@ -9,7 +9,7 @@ export const useTextEmbeddings = ({
   modelSource: ResourceSource;
   tokenizerSource: ResourceSource;
 }) =>
-  useModule2({
+  useModule({
     module: TextEmbeddingsModule,
     loadArgs: [modelSource, tokenizerSource],
   });
