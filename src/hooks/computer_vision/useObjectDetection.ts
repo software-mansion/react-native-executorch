@@ -1,10 +1,10 @@
 import { ResourceSource } from '../../types/common';
 import { useModule2 } from '../useModule2';
-import { ObjectDetection } from '../../native/RnExecutorchModules';
+import { ObjectDetectionModule } from '../../modules/computer_vision/ObjectDetectionModule';
 
 interface Props {
   modelSource: ResourceSource;
 }
 
 export const useObjectDetection = ({ modelSource }: Props) =>
-  useModule2({ module: ObjectDetection, loadArgs: [modelSource] });
+  useModule2({ module: ObjectDetectionModule, loadArgs: [modelSource] });
