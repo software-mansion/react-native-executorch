@@ -2,34 +2,24 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { EventSubscription } from 'react-native';
 import { LLM } from '../../native/RnExecutorchModules';
 import { fetchResource } from '../../utils/fetchResource';
-import { ResourceSource, Model, MessageType } from '../../types/common';
-import {
-  DEFAULT_CONTEXT_WINDOW_LENGTH,
-  DEFAULT_MESSAGE_HISTORY,
-  DEFAULT_SYSTEM_PROMPT,
-  EOT_TOKEN,
-} from '../../constants/llamaDefaults';
+import { ResourceSource, LLMType } from '../../types/common';
 
 const interrupt = () => {
   LLM.interrupt();
 };
 
+/*
+Hook to use bare model and receive responses. It doesn't handle message history, or prompts. Those will be moved to useLLMChat
+*/
 export const useLLM = ({
   modelSource,
   tokenizerSource,
-  systemPrompt = DEFAULT_SYSTEM_PROMPT,
-  messageHistory = DEFAULT_MESSAGE_HISTORY,
-  contextWindowLength = DEFAULT_CONTEXT_WINDOW_LENGTH,
 }: {
   modelSource: ResourceSource;
   tokenizerSource: ResourceSource;
-  systemPrompt?: string;
-  messageHistory?: MessageType[];
-  contextWindowLength?: number;
-}): Model => {
+}): LLMType => {
   const [error, setError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [response, setResponse] = useState('');
   const [downloadProgress, setDownloadProgress] = useState(0);
   const tokenGeneratedListener = useRef<null | EventSubscription>(null);
@@ -45,13 +35,7 @@ export const useLLM = ({
           setDownloadProgress
         );
 
-        await LLM.loadLLM(
-          modelFileUri,
-          tokenizerFileUri,
-          systemPrompt,
-          messageHistory,
-          contextWindowLength
-        );
+        await LLM.loadLLM(modelFileUri, tokenizerFileUri);
 
         setIsReady(true);
 
@@ -60,11 +44,7 @@ export const useLLM = ({
             if (!data) {
               return;
             }
-            if (data !== EOT_TOKEN) {
-              setResponse((prevResponse) => prevResponse + data);
-            } else {
-              setIsGenerating(false);
-            }
+            setResponse((prevResponse) => prevResponse + data);
           }
         );
       } catch (err) {
@@ -83,13 +63,7 @@ export const useLLM = ({
       tokenGeneratedListener.current = null;
       LLM.deleteModule();
     };
-  }, [
-    modelSource,
-    tokenizerSource,
-    systemPrompt,
-    messageHistory,
-    contextWindowLength,
-  ]);
+  }, [modelSource, tokenizerSource]);
 
   const generate = useCallback(
     async (input: string): Promise<void> => {
@@ -102,10 +76,9 @@ export const useLLM = ({
 
       try {
         setResponse('');
-        setIsGenerating(true);
         await LLM.runInference(input);
       } catch (err) {
-        setIsGenerating(false);
+        setError((err as Error).message);
         throw new Error((err as Error).message);
       }
     },
@@ -116,9 +89,7 @@ export const useLLM = ({
     generate,
     error,
     isReady,
-    isGenerating,
     isModelReady: isReady,
-    isModelGenerating: isGenerating,
     response,
     downloadProgress,
     interrupt,

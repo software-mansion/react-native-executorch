@@ -4,7 +4,7 @@ import {
   DEFAULT_CONTEXT_WINDOW_LENGTH,
   DEFAULT_MESSAGE_HISTORY,
   DEFAULT_SYSTEM_PROMPT,
-} from '../../constants/llamaDefaults';
+} from '../../constants/llmDefaults';
 import { ResourceSource } from '../../types/common';
 
 export class LLMModule {

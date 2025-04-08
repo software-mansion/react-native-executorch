@@ -9,6 +9,7 @@ export * from './hooks/computer_vision/useOCR';
 export * from './hooks/computer_vision/useVerticalOCR';
 
 export * from './hooks/natural_language_processing/useLLM';
+export * from './hooks/natural_language_processing/useLLMChat';
 export * from './hooks/natural_language_processing/useSpeechToText';
 
 export * from './hooks/general/useExecutorchModule';
