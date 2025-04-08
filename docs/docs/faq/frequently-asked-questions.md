@@ -7,7 +7,7 @@ This section is meant to answer some common community inquiries, expecially rega
 
 ### What models are supported?
 
-Each hook documentation subpage (useClassification, useLLM, etc) contains a supported models section, which lists the models that are runnable within the library with close to no setup. For running your custom models, refer to `ExecuTorchModule` or `useExecuTorchModule`.
+Each hook documentation subpage (useClassification, useLLM, etc.) contains a supported models section, which lists the models that are runnable within the library with close to no setup. For running your custom models, refer to `ExecuTorchModule` or `useExecuTorchModule`.
 
 ### How can I run my own AI model?
 
@@ -19,7 +19,7 @@ We currently don't provide an out-of-the-box solution for function calling, but 
 
 ### Can I use React Native ExecuTorch in bare React Native apps?
 
-To use the library, you need to install Expo Modules first. For a setup guide, refer to [this tutorial](https://docs.expo.dev/bare/installing-expo-modules/). This is because we use Expo FS under the hood to download and manage the model binaries.
+To use the library, you need to install Expo Modules first. For a setup guide, refer to [this tutorial](https://docs.expo.dev/bare/installing-expo-modules/). This is because we use Expo File System under the hood to download and manage the model binaries.
 
 ### Do you support the old architecture?
 
@@ -27,7 +27,7 @@ The old architecture is not supported and we're currently not planning to add su
 
 ### Can I run GGUF models using the library?
 
-No, as of now ExecuTorch runtime doesn't provide a reliable way to use GGUF models, hence we it is not possible.
+No, as of now ExecuTorch runtime doesn't provide a reliable way to use GGUF models, hence it is not possible.
 
 ### Are the models leveraging GPU acceleration?
 
