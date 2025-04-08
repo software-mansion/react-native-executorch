@@ -31,7 +31,7 @@ export class SpeechToTextController {
   private prevSeq: number[] = [];
   private streamWaveform: number[] = [];
   private isDecodingChunk = false;
-  private numberOfDecodedChunks = 0;
+  private indexOfCurrentlyDecodingChunk = 0;
   private isChunkDeleted = false;
   private numOfChunks = 0;
 
@@ -166,8 +166,8 @@ export class SpeechToTextController {
     this.chunks = [];
     this.numOfChunks = Math.ceil(waveform.length / this.windowSize);
     for (let i = 0; i < this.numOfChunks; i++) {
-      let chunk;
-      if (i == 0 && streamingSlice) {
+      let chunk: number[] = [];
+      if (streamingSlice && i == 0) {
         chunk = waveform.slice(
           0,
           Math.min(
@@ -341,14 +341,7 @@ export class SpeechToTextController {
         continue;
       }
 
-      const maxInd = longCommonInfPref(
-        this.seqs.at(-2)!,
-        this.seqs.at(-1)!,
-        HAMMING_DIST_THRESHOLD
-      );
-      finalSeq = [...this.sequence, ...this.seqs.at(-2)!.slice(0, maxInd)];
-      this.sequence = finalSeq;
-      this.decodedTranscribeCallback(finalSeq);
+      finalSeq = this.handleOverlaps(this.seqs);
       this.prevSeq = finalSeq;
 
       //last sequence processed
@@ -380,26 +373,29 @@ export class SpeechToTextController {
       this.seqs = [];
       this.streamWaveform = [];
       this.prevSeq = [];
-      this.numberOfDecodedChunks = 0;
+      this.indexOfCurrentlyDecodingChunk = 0;
       this.isChunkDeleted = false;
       this.decodedTranscribeCallback([]);
       this.isGeneratingCallback(true);
     }
     this.streamWaveform = [...this.streamWaveform, ...waveform];
     this.chunkWaveform(this.streamWaveform, this.isChunkDeleted);
-    if (!this.isDecodingChunk && streamAction != 2) {
+    if (!this.isDecodingChunk && streamAction != STREAMING_ACTION.STOP) {
       this.isDecodingChunk = true;
       while (
-        this.chunks.at(0)?.length ==
+        this.chunks.at(this.indexOfCurrentlyDecodingChunk)?.length ==
           2 * this.overlapSeconds + this.windowSize ||
-        (this.numberOfDecodedChunks == 0 &&
+        (this.indexOfCurrentlyDecodingChunk == 0 &&
           this.chunks.at(0)?.length == this.windowSize + this.overlapSeconds)
       ) {
-        let seq = await this.decodeChunk(this.chunks.at(0)!, audioLanguage);
+        let seq = await this.decodeChunk(
+          this.chunks.at(this.indexOfCurrentlyDecodingChunk)!,
+          audioLanguage
+        );
         const numSpecialTokens = (await this.getStartingTokenIds(audioLanguage))
           .length;
         // remove sos/eos token and 3 additional ones
-        if (this.numberOfDecodedChunks == 0) {
+        if (this.indexOfCurrentlyDecodingChunk == 0) {
           this.seqs = [seq.slice(0, -(numSpecialTokens + NUM_TOKENS_TO_SLICE))];
         } else {
           this.seqs = [
@@ -411,50 +407,42 @@ export class SpeechToTextController {
           ];
           this.prevSeq = this.handleOverlaps(this.seqs);
         }
-        this.numberOfDecodedChunks++;
+        this.indexOfCurrentlyDecodingChunk++;
         if (this.seqs.length < 2) {
           continue;
         }
         // remove data, which was processed and saved to this.seqs
         if (this.numOfChunks > 2) {
-          if (!this.isChunkDeleted) {
-            this.streamWaveform = this.streamWaveform.slice(
-              -(
-                this.streamWaveform.length -
-                (this.windowSize + this.overlapSeconds)
-              )
-            );
-          } else {
-            this.streamWaveform = this.streamWaveform.slice(
-              -(this.streamWaveform.length - this.windowSize)
-            );
-          }
+          this.streamWaveform = this.streamWaveform.slice(this.windowSize);
           this.isChunkDeleted = true;
-          this.numOfChunks--;
+          this.indexOfCurrentlyDecodingChunk--;
+          break;
         }
       }
       this.isDecodingChunk = false;
     }
-    while (this.numOfChunks > 0 && streamAction == STREAMING_ACTION.STOP) {
-      let seq = await this.decodeChunk(this.chunks.at(0)!);
-      if (this.numberOfDecodedChunks == 0) {
+    while (streamAction == STREAMING_ACTION.STOP) {
+      let seq = await this.decodeChunk(
+        this.chunks.at(this.indexOfCurrentlyDecodingChunk)!
+      );
+      if (this.seqs.length == 0) {
         this.sequence = seq;
         this.decodedTranscribeCallback(seq);
         this.isGeneratingCallback(false);
         break;
       }
       //last sequence processed
-      if (this.numOfChunks == 1) {
+      if (this.indexOfCurrentlyDecodingChunk == this.numOfChunks - 1) {
         let finalSeq = [...this.sequence, ...seq];
         this.sequence = finalSeq;
         this.decodedTranscribeCallback(finalSeq);
         this.isGeneratingCallback(false);
+        break;
       } else {
         this.seqs = [...this.seqs, seq.slice(4, -4)];
         this.handleOverlaps(this.seqs);
       }
-      this.numberOfDecodedChunks++;
-      this.numOfChunks--;
+      this.indexOfCurrentlyDecodingChunk++;
     }
     const decodedText = await this.tokenIdsToText(this.sequence);
     return decodedText;
