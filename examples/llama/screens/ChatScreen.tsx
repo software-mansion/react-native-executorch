@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -14,51 +14,42 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import SWMIcon from '../assets/icons/swm_icon.svg';
 import SendIcon from '../assets/icons/send_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
-import {
-  LLAMA3_2_1B_QLORA,
-  LLAMA3_2_1B_TOKENIZER,
-  useLLM,
-} from 'react-native-executorch';
+import { useLLMChat } from 'react-native-executorch';
 import PauseIcon from '../assets/icons/pause_icon.svg';
 import ColorPalette from '../colors';
 import Messages from '../components/Messages';
-import { MessageType, SenderType } from '../types';
 
 export default function ChatScreen() {
-  const [chatHistory, setChatHistory] = useState<Array<MessageType>>([]);
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
-  const llama = useLLM({
-    modelSource: LLAMA3_2_1B_QLORA,
-    tokenizerSource: LLAMA3_2_1B_TOKENIZER,
+  const chat = useLLMChat({
+    modelSource:
+      'https://huggingface.co/nklockiewicz/ocr/resolve/main/hammer/hammer-1_5b_bf16.pte',
+    tokenizerSource:
+      'https://huggingface.co/nklockiewicz/ocr/resolve/main/hammer/tokenizer-hammer.json',
+    tokenizerConfigSource:
+      'https://huggingface.co/MadeAgents/Hammer2.1-1.5b/resolve/main/tokenizer_config.json',
     contextWindowLength: 6,
   });
-  const textInputRef = useRef<TextInput>(null);
-  useEffect(() => {
-    if (llama.response && !llama.isGenerating) {
-      appendToMessageHistory(llama.response, 'assistant');
-    }
-  }, [llama.response, llama.isGenerating]);
 
-  const appendToMessageHistory = (content: string, role: SenderType) => {
-    setChatHistory((prevHistory) => [...prevHistory, { role, content }]);
-  };
+  const textInputRef = useRef<TextInput>(null);
 
   const sendMessage = async () => {
-    appendToMessageHistory(userInput.trim(), 'user');
     setUserInput('');
     textInputRef.current?.clear();
     try {
-      await llama.generate(userInput);
+      console.log('userInput:', userInput);
+      await chat.sendMessage(userInput);
     } catch (e) {
+      console.log('ERROR');
       console.error(e);
     }
   };
 
-  return !llama.isReady ? (
+  return !chat.isReady ? (
     <Spinner
-      visible={!llama.isReady}
-      textContent={`Loading the model ${(llama.downloadProgress * 100).toFixed(0)} %`}
+      visible={!chat.isReady}
+      textContent={`Loading the model ${(chat.downloadProgress * 100).toFixed(0)} %`}
     />
   ) : (
     <SafeAreaView style={styles.container}>
@@ -72,12 +63,12 @@ export default function ChatScreen() {
             <SWMIcon width={45} height={45} />
             <Text style={styles.textModelName}>Llama 3.2 1B QLoRA</Text>
           </View>
-          {chatHistory.length ? (
+          {chat.messageHistory.length ? (
             <View style={styles.chatContainer}>
               <Messages
-                chatHistory={chatHistory}
-                llmResponse={llama.response}
-                isGenerating={llama.isGenerating}
+                chatHistory={chat.messageHistory}
+                llmResponse={chat.response}
+                isGenerating={chat.isGenerating}
               />
             </View>
           ) : (
@@ -109,16 +100,16 @@ export default function ChatScreen() {
               <TouchableOpacity
                 style={styles.sendChatTouchable}
                 onPress={async () =>
-                  !llama.isGenerating && (await sendMessage())
+                  !chat.isGenerating && (await sendMessage())
                 }
               >
                 <SendIcon height={24} width={24} padding={4} margin={8} />
               </TouchableOpacity>
             )}
-            {llama.isGenerating && (
+            {chat.isGenerating && (
               <TouchableOpacity
                 style={styles.sendChatTouchable}
-                onPress={llama.interrupt}
+                onPress={chat.interrupt}
               >
                 <PauseIcon height={24} width={24} padding={4} margin={8} />
               </TouchableOpacity>

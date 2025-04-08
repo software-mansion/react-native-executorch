@@ -17,16 +17,19 @@ export const getTypeIdentifier = (input: ETInput): number => {
 
 export type ResourceSource = string | number;
 
-export interface Model {
+export interface LLMType {
   generate: (input: string) => Promise<void>;
   response: string;
   downloadProgress: number;
   error: string | null;
-  isModelGenerating: boolean;
-  isGenerating: boolean;
   isModelReady: boolean;
   isReady: boolean;
   interrupt: () => void;
+}
+
+export interface ChatType extends LLMType {
+  isModelGenerating: boolean;
+  isGenerating: boolean;
 }
 
 export type ETInput =
@@ -54,7 +57,8 @@ export type Module =
   | _ObjectDetectionModule
   | typeof ETModule;
 
+export type MessageRole = 'user' | 'assistant' | 'system';
 export interface MessageType {
-  role: 'user' | 'assistant';
+  role: MessageRole;
   content: string;
 }
