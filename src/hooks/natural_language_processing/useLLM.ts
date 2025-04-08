@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { EventSubscription } from 'react-native';
 import { LLM } from '../../native/RnExecutorchModules';
-import { fetchResource } from '../../utils/fetchResource';
+import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource, Model, MessageType } from '../../types/common';
 import {
   DEFAULT_CONTEXT_WINDOW_LENGTH,
@@ -39,8 +39,8 @@ export const useLLM = ({
       try {
         setIsReady(false);
 
-        const tokenizerFileUri = await fetchResource(tokenizerSource);
-        const modelFileUri = await fetchResource(
+        const tokenizerFileUri = await ResourceFetcher.fetch(tokenizerSource);
+        const modelFileUri = await ResourceFetcher.fetch(
           modelSource,
           setDownloadProgress
         );

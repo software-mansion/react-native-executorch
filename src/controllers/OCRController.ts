@@ -3,10 +3,7 @@ import { ETError, getError } from '../Error';
 import { _OCRModule } from '../native/RnExecutorchModules';
 import { ResourceSource } from '../types/common';
 import { OCRLanguage } from '../types/ocr';
-import {
-  fetchResource,
-  calculateDownloadProgress,
-} from '../utils/fetchResource';
+import { ResourceFetcher } from '../utils/ResourceFetcher';
 
 export class OCRController {
   private nativeModule: _OCRModule;
@@ -50,23 +47,39 @@ export class OCRController {
       this.isReady = false;
       this.isReadyCallback(false);
 
-      const detectorPath = await fetchResource(
+      const detectorPath = await ResourceFetcher.fetch(
         detectorSource,
-        calculateDownloadProgress(4, 0, this.modelDownloadProgressCallback)
+        ResourceFetcher.calculateDownloadProgress(
+          4,
+          0,
+          this.modelDownloadProgressCallback
+        )
       );
 
       const recognizerPaths = {
-        recognizerLarge: await fetchResource(
+        recognizerLarge: await ResourceFetcher.fetch(
           recognizerSources.recognizerLarge,
-          calculateDownloadProgress(4, 1, this.modelDownloadProgressCallback)
+          ResourceFetcher.calculateDownloadProgress(
+            4,
+            1,
+            this.modelDownloadProgressCallback
+          )
         ),
-        recognizerMedium: await fetchResource(
+        recognizerMedium: await ResourceFetcher.fetch(
           recognizerSources.recognizerMedium,
-          calculateDownloadProgress(4, 2, this.modelDownloadProgressCallback)
+          ResourceFetcher.calculateDownloadProgress(
+            4,
+            2,
+            this.modelDownloadProgressCallback
+          )
         ),
-        recognizerSmall: await fetchResource(
+        recognizerSmall: await ResourceFetcher.fetch(
           recognizerSources.recognizerSmall,
-          calculateDownloadProgress(4, 3, this.modelDownloadProgressCallback)
+          ResourceFetcher.calculateDownloadProgress(
+            4,
+            3,
+            this.modelDownloadProgressCallback
+          )
         ),
       };
 

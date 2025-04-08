@@ -1,6 +1,6 @@
 import { _SpeechToTextModule } from '../native/RnExecutorchModules';
 import * as FileSystem from 'expo-file-system';
-import { fetchResource } from '../utils/fetchResource';
+import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { ResourceSource } from '../types/common';
 import {
   HAMMING_DIST_THRESHOLD,
@@ -102,7 +102,7 @@ export class SpeechToTextController {
   private async fetchTokenizer(
     localUri?: ResourceSource
   ): Promise<{ [key: number]: string }> {
-    let tokenzerUri = await fetchResource(
+    let tokenzerUri = await ResourceFetcher.fetch(
       localUri || this.config.tokenizer.source
     );
     return JSON.parse(await FileSystem.readAsStringAsync(tokenzerUri));
@@ -121,12 +121,12 @@ export class SpeechToTextController {
 
     try {
       this.tokenMapping = await this.fetchTokenizer(tokenizerSource);
-      encoderSource = await fetchResource(
+      encoderSource = await ResourceFetcher.fetch(
         encoderSource || this.config.sources.encoder,
         (progress) => this.modelDownloadProgessCallback?.(progress / 2)
       );
 
-      decoderSource = await fetchResource(
+      decoderSource = await ResourceFetcher.fetch(
         decoderSource || this.config.sources.decoder,
         (progress) => this.modelDownloadProgessCallback?.(0.5 + progress / 2)
       );
