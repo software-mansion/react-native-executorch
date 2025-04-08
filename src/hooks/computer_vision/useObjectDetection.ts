@@ -1,32 +1,10 @@
-import { useState } from 'react';
-import { _ObjectDetectionModule } from '../../native/RnExecutorchModules';
-import { useModule } from '../useModule';
-import { Detection } from '../../types/object_detection';
+import { ResourceSource } from '../../types/common';
+import { useModule2 } from '../useModule2';
+import { ObjectDetection } from '../../native/RnExecutorchModules';
 
 interface Props {
-  modelSource: string | number;
+  modelSource: ResourceSource;
 }
 
-export const useObjectDetection = ({
-  modelSource,
-}: Props): {
-  error: string | null;
-  isReady: boolean;
-  isGenerating: boolean;
-  downloadProgress: number;
-  forward: (input: string) => Promise<Detection[]>;
-} => {
-  const [module, _] = useState(() => new _ObjectDetectionModule());
-  const {
-    error,
-    isReady,
-    isGenerating,
-    downloadProgress,
-    forwardImage: forward,
-  } = useModule({
-    modelSource,
-    module,
-  });
-
-  return { error, isReady, isGenerating, downloadProgress, forward };
-};
+export const useObjectDetection = ({ modelSource }: Props) =>
+  useModule2({ module: ObjectDetection, loadArgs: [modelSource] });
