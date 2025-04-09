@@ -104,6 +104,8 @@ export default function ChatScreen() {
       setIsRecording(false);
       LiveAudioStream.stop();
       await speechToText.streamingTranscribe([], STREAMING_ACTION.STOP);
+      // await speechToText.transcribe(audioBuffer.current);
+      await llama.generate(speechToText.sequence);
       messageRecorded.current = true;
       audioBuffer.current = [];
     } else {
@@ -121,7 +123,7 @@ export default function ChatScreen() {
       setIsTextInputFocused(false);
       textInputRef.current?.clear();
       try {
-        await llama.generate(userInput);
+        if (!llama.isGenerating) await llama.generate(userInput);
       } catch (e) {
         console.error(e);
       }
@@ -146,15 +148,6 @@ export default function ChatScreen() {
     }
   };
 
-  const sendMessage = async () => {
-    modifyLastMessage(speechToText.sequence);
-    try {
-      await llama.generate(speechToText.sequence);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
   useEffect(() => {
     if (!mounted.current) {
       mounted.current = true;
@@ -163,7 +156,7 @@ export default function ChatScreen() {
     if (speechToText.isGenerating) {
       if (speechToText.sequence) modifyLastMessage(speechToText.sequence);
       else modifyLastMessage('...');
-    } else sendMessage();
+    } else modifyLastMessage(speechToText.sequence);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [speechToText.sequence, speechToText.isGenerating]);
 
@@ -213,7 +206,9 @@ export default function ChatScreen() {
             setModalVisible={async (visible: boolean) => {
               setModalVisible(visible);
               if (audioUrl) {
-                await speechToText.transcribe(await loadAudio(audioUrl));
+                await speechToText.transcribe(
+                  Array.from(await loadAudio(audioUrl))
+                );
               }
             }}
             onChangeText={setAudioUrl}
