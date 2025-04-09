@@ -5924,7 +5924,7 @@ __metadata:
     react: 18.3.1
     react-native: 0.76.9
     react-native-audio-api: ^0.5.6
-    react-native-executorch: "file:../../react-native-executorch-20250409090338.tgz"
+    react-native-executorch: ^0.3.2
     react-native-live-audio-stream: ^1.1.1
     react-native-loading-spinner-overlay: ^3.0.1
     react-native-markdown-display: ^7.0.2
@@ -7408,9 +7408,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-executorch@file:../../react-native-executorch-20250409090338.tgz::locator=llama%40workspace%3A.":
-  version: 20250409090338
-  resolution: "react-native-executorch@file:../../react-native-executorch-20250409090338.tgz::locator=llama%40workspace%3A."
+"react-native-executorch@npm:^0.3.2":
+  version: 0.3.2
+  resolution: "react-native-executorch@npm:0.3.2"
   dependencies:
     expo: ^52.0.37
     expo-asset: ^11.0.3
@@ -7419,7 +7419,7 @@ __metadata:
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 5d1fe0fd2dd7c959fda2e74ca9bc034657a9bad76e5b6043e51a53f84f78855f8603a897dfb7cf5882ea72adb7e784a00efc299690f24e70ce6cfb636bd6cf8d
+  checksum: c5ac5f0739186e05cc5bd5b7d03c9a8709ff037c0704e4cce12a489b20ac3dc572a454088c9cb81828abce755d576e980db1ef55fc64659ca0cfc0962789ab62
   languageName: node
   linkType: hard
 
