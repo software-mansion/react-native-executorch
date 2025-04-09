@@ -12,137 +12,43 @@ const LINKING_ERROR =
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo Go\n';
 
-const LLMSpec = require('./NativeLLM').default;
-const LLM = LLMSpec
-  ? LLMSpec
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      }
-    );
+function returnSpecOrThrowLinkingError(source: any) {
+  const spec = source;
+  if (!spec) {
+    throw new Error(LINKING_ERROR);
+  }
+  return spec;
+}
 
-const ETModuleSpec = require('./NativeETModule').default;
-const ETModule = ETModuleSpec
-  ? ETModuleSpec
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      }
-    );
-
-const ClassificationSpec = require('./NativeClassification').default;
-const Classification = ClassificationSpec
-  ? ClassificationSpec
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      }
-    );
-
-const ImageSegmentationSpec = require('./NativeImageSegmentation').default;
-const ImageSegmentation = ImageSegmentationSpec
-  ? ImageSegmentationSpec
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      }
-    );
-
-const ObjectDetectionSpec = require('./NativeObjectDetection').default;
-const ObjectDetection = ObjectDetectionSpec
-  ? ObjectDetectionSpec
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      }
-    );
-
-const StyleTransferSpec = require('./NativeStyleTransfer').default;
-const StyleTransfer = StyleTransferSpec
-  ? StyleTransferSpec
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      }
-    );
-
-const SpeechToTextSpec = require('./NativeSpeechToText').default;
-const SpeechToText = SpeechToTextSpec
-  ? SpeechToTextSpec
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      }
-    );
-
-const OCRSpec = require('./NativeOCR').default;
-const OCR = OCRSpec
-  ? OCRSpec
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      }
-    );
-
-const VerticalOCRSpec = require('./NativeVerticalOCR').default;
-const VerticalOCR = VerticalOCRSpec
-  ? VerticalOCRSpec
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      }
-    );
-
-const TokenizerSpec = require('./NativeTokenizer').default;
-const Tokenizer = TokenizerSpec
-  ? TokenizerSpec
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      }
-    );
-
-const TextEmbeddingsSpec = require('./NativeTextEmbeddings').default;
-const TextEmbeddings = TextEmbeddingsSpec
-  ? TextEmbeddingsSpec
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      }
-    );
+const LLM = returnSpecOrThrowLinkingError(require('./NativeLLM').default);
+const ETModule = returnSpecOrThrowLinkingError(
+  require('./NativeETModule').default
+);
+const Classification = returnSpecOrThrowLinkingError(
+  require('./NativeClassification').default
+);
+const ImageSegmentation = returnSpecOrThrowLinkingError(
+  require('./NativeImageSegmentation').default
+);
+const ObjectDetection = returnSpecOrThrowLinkingError(
+  require('./NativeObjectDetection').default
+);
+const StyleTransfer = returnSpecOrThrowLinkingError(
+  require('./NativeStyleTransfer').default
+);
+const SpeechToText = returnSpecOrThrowLinkingError(
+  require('./NativeSpeechToText').default
+);
+const OCR = returnSpecOrThrowLinkingError(require('./NativeOCR').default);
+const VerticalOCR = returnSpecOrThrowLinkingError(
+  require('./NativeVerticalOCR').default
+);
+const Tokenizer = returnSpecOrThrowLinkingError(
+  require('./NativeTokenizer').default
+);
+const TextEmbeddings = returnSpecOrThrowLinkingError(
+  require('./NativeTextEmbeddings').default
+);
 
 class _ImageSegmentationModule {
   async forward(
