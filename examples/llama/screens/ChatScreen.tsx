@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useSpeechToText, STREAMING_ACTION } from 'react-native-executorch';
+import { useSpeechToText } from 'react-native-executorch';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -82,10 +82,7 @@ export default function ChatScreen() {
 
   const onChunk = (data: string) => {
     const float32Chunk = float32ArrayFromPCMBinaryBuffer(data);
-    speechToText.streamingTranscribe(
-      Array.from(float32Chunk),
-      STREAMING_ACTION.DATA
-    );
+    audioBuffer.current.push(...float32Chunk);
   };
 
   const loadAudio = async (url: string) => {
@@ -103,14 +100,12 @@ export default function ChatScreen() {
     if (isRecording) {
       setIsRecording(false);
       LiveAudioStream.stop();
-      await speechToText.streamingTranscribe([], STREAMING_ACTION.STOP);
-      // await speechToText.transcribe(audioBuffer.current);
+      await speechToText.transcribe(audioBuffer.current);
       await llama.generate(speechToText.sequence);
       messageRecorded.current = true;
       audioBuffer.current = [];
     } else {
       setIsRecording(true);
-      speechToText.streamingTranscribe([], STREAMING_ACTION.START);
       startStreamingAudio(audioStreamOptions, onChunk);
     }
   };
