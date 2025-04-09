@@ -167,23 +167,21 @@ export class SpeechToTextController {
     this.numOfChunks = Math.ceil(waveform.length / this.windowSize);
     for (let i = 0; i < this.numOfChunks; i++) {
       let chunk: number[] = [];
-      if (streamingSlice && i == 0) {
-        chunk = waveform.slice(
-          0,
-          Math.min(
-            this.windowSize * (i + 1) + 2 * this.overlapSeconds,
-            waveform.length
-          )
+      let left, right;
+      if (streamingSlice) {
+        left = Math.max(this.windowSize * i, 0);
+        right = Math.min(
+          this.overlapSeconds + this.windowSize * (i + 1) + this.overlapSeconds,
+          waveform.length
         );
       } else {
-        chunk = waveform.slice(
-          Math.max(this.windowSize * i - this.overlapSeconds, 0),
-          Math.min(
-            this.windowSize * (i + 1) + this.overlapSeconds,
-            waveform.length
-          )
+        left = Math.max(this.windowSize * i - this.overlapSeconds, 0);
+        right = Math.min(
+          this.windowSize * (i + 1) + this.overlapSeconds,
+          waveform.length
         );
       }
+      chunk = waveform.slice(left, right);
       this.chunks.push(chunk);
     }
   }
@@ -324,7 +322,7 @@ export class SpeechToTextController {
       }
       const numSpecialTokens = (await this.getStartingTokenIds(audioLanguage))
         .length;
-      // Remove starting tokenIds and 3 additional ones
+      // Remove starting tokenIds and some additional ones
       if (this.seqs.length === 0) {
         this.seqs = [seq.slice(0, -(numSpecialTokens + NUM_TOKENS_TO_SLICE))];
       } else if (this.seqs.length === this.chunks.length - 1) {
@@ -379,7 +377,7 @@ export class SpeechToTextController {
       this.isGeneratingCallback(true);
     }
     this.streamWaveform = [...this.streamWaveform, ...waveform];
-    this.chunkWaveform(this.streamWaveform, this.isChunkDeleted);
+    this.chunkWaveform(this.streamWaveform, this.isDecodingChunk);
     if (!this.isDecodingChunk && streamAction != STREAMING_ACTION.STOP) {
       this.isDecodingChunk = true;
       while (
@@ -394,7 +392,7 @@ export class SpeechToTextController {
         );
         const numSpecialTokens = (await this.getStartingTokenIds(audioLanguage))
           .length;
-        // remove sos/eos token and 3 additional ones
+        // remove sos/eos token and some additional ones
         if (this.indexOfCurrentlyDecodingChunk == 0) {
           this.seqs = [seq.slice(0, -(numSpecialTokens + NUM_TOKENS_TO_SLICE))];
         } else {
@@ -408,12 +406,11 @@ export class SpeechToTextController {
           this.prevSeq = this.handleOverlaps(this.seqs);
         }
         this.indexOfCurrentlyDecodingChunk++;
-        if (this.seqs.length < 2) {
-          continue;
-        }
         // remove data, which was processed and saved to this.seqs
         if (this.numOfChunks > 2) {
-          this.streamWaveform = this.streamWaveform.slice(this.windowSize);
+          this.streamWaveform = this.isChunkDeleted
+            ? this.streamWaveform.slice(this.windowSize)
+            : this.streamWaveform.slice(this.windowSize - this.overlapSeconds);
           this.isChunkDeleted = true;
           this.indexOfCurrentlyDecodingChunk--;
           break;
@@ -432,6 +429,8 @@ export class SpeechToTextController {
         break;
       }
       //last sequence processed
+      const numSpecialTokens = (await this.getStartingTokenIds(audioLanguage))
+        .length;
       if (this.indexOfCurrentlyDecodingChunk == this.numOfChunks - 1) {
         let finalSeq = [...this.sequence, ...seq];
         this.sequence = finalSeq;
@@ -439,7 +438,13 @@ export class SpeechToTextController {
         this.isGeneratingCallback(false);
         break;
       } else {
-        this.seqs = [...this.seqs, seq.slice(4, -4)];
+        this.seqs = [
+          ...this.seqs,
+          seq.slice(
+            numSpecialTokens + NUM_TOKENS_TO_SLICE,
+            -(numSpecialTokens + NUM_TOKENS_TO_SLICE)
+          ),
+        ];
         this.handleOverlaps(this.seqs);
       }
       this.indexOfCurrentlyDecodingChunk++;

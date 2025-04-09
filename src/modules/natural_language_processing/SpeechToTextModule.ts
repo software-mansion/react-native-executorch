@@ -1,5 +1,6 @@
 import { ResourceSource } from '../../types/common';
 import { SpeechToTextController } from '../../controllers/SpeechToTextController';
+import { STREAMING_ACTION } from '../../constants/sttDefaults';
 import { AvailableModels, SpeechToTextLanguage } from '../../types/stt';
 
 export class SpeechToText {
@@ -64,5 +65,17 @@ export class SpeechToText {
     audioLanguage?: SpeechToTextLanguage
   ): ReturnType<SpeechToTextController['transcribe']> {
     return await this.module.transcribe(waveform, audioLanguage);
+  }
+
+  static async streamingTranscribe(
+    waveform: number[],
+    action: STREAMING_ACTION,
+    audioLanguage?: SpeechToTextLanguage
+  ): ReturnType<SpeechToTextController['streamingTranscribe']> {
+    return await this.module.streamingTranscribe(
+      waveform,
+      action,
+      audioLanguage
+    );
   }
 }
