@@ -269,7 +269,7 @@ export class SpeechToTextController {
       HAMMING_DIST_THRESHOLD
     );
     let finalSeq = [...this.sequence, ...seqs.at(-2)!.slice(0, maxInd)];
-    this.sequence = finalSeq;
+    this.sequence = finalSeq.slice();
     this.decodedTranscribeCallback(finalSeq);
     return finalSeq;
   }
@@ -432,11 +432,7 @@ export class SpeechToTextController {
       const numSpecialTokens = (await this.getStartingTokenIds(audioLanguage))
         .length;
       if (this.indexOfCurrentlyDecodingChunk == this.numOfChunks - 1) {
-        let finalSeq = [...this.sequence, ...seq];
-        this.sequence = finalSeq;
-        this.decodedTranscribeCallback(finalSeq);
-        this.isGeneratingCallback(false);
-        break;
+        this.seqs.push(seq.slice(numSpecialTokens + NUM_TOKENS_TO_SLICE));
       } else {
         this.seqs = [
           ...this.seqs,
@@ -445,7 +441,14 @@ export class SpeechToTextController {
             -(numSpecialTokens + NUM_TOKENS_TO_SLICE)
           ),
         ];
-        this.handleOverlaps(this.seqs);
+      }
+      this.handleOverlaps(this.seqs);
+      if (this.indexOfCurrentlyDecodingChunk == this.numOfChunks - 1) {
+        let finalSeq = [...this.sequence, ...this.seqs.at(-1)!];
+        this.sequence = finalSeq;
+        this.decodedTranscribeCallback(finalSeq);
+        this.isGeneratingCallback(false);
+        break;
       }
       this.indexOfCurrentlyDecodingChunk++;
     }
