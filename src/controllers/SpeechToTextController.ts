@@ -356,12 +356,16 @@ export class SpeechToTextController {
   }
 
   public async streamingTranscribe(
-    waveform: number[],
     streamAction: STREAMING_ACTION,
+    waveform?: number[],
     audioLanguage?: SpeechToTextLanguage
   ): Promise<string> {
     if (!this.isReady) {
       this.onErrorCallback?.(new Error('Model is not yet ready'));
+      return '';
+    }
+    if (streamAction == STREAMING_ACTION.DATA && !waveform) {
+      this.onErrorCallback?.(new Error('Waveform has to be provided'));
       return '';
     }
     this.onErrorCallback?.(undefined);
@@ -376,7 +380,7 @@ export class SpeechToTextController {
       this.decodedTranscribeCallback([]);
       this.isGeneratingCallback(true);
     }
-    this.streamWaveform = [...this.streamWaveform, ...waveform];
+    this.streamWaveform = [...this.streamWaveform, ...waveform!];
     this.chunkWaveform(this.streamWaveform, this.isDecodingChunk);
     if (!this.isDecodingChunk && streamAction != STREAMING_ACTION.STOP) {
       this.isDecodingChunk = true;

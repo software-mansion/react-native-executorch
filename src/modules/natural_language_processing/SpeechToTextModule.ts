@@ -68,13 +68,13 @@ export class SpeechToText {
   }
 
   static async streamingTranscribe(
-    waveform: number[],
     action: STREAMING_ACTION,
+    waveform?: number[],
     audioLanguage?: SpeechToTextLanguage
   ): ReturnType<SpeechToTextController['streamingTranscribe']> {
     return await this.module.streamingTranscribe(
-      waveform,
       action,
+      waveform,
       audioLanguage
     );
   }

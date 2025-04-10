@@ -16,8 +16,8 @@ interface SpeechToTextModule {
     audioLanguage?: SpeechToTextLanguage
   ) => ReturnType<SpeechToTextController['transcribe']>;
   streamingTranscribe: (
-    input: number[],
     streamAction: STREAMING_ACTION,
+    input?: number[],
     audioLanguage?: SpeechToTextLanguage
   ) => ReturnType<SpeechToTextController['streamingTranscribe']>;
 }
@@ -87,9 +87,9 @@ export const useSpeechToText = ({
     transcribe: (waveform: number[], audioLanguage?: SpeechToTextLanguage) =>
       model.transcribe(waveform, audioLanguage),
     streamingTranscribe: (
-      waveform: number[],
       streamAction: STREAMING_ACTION,
+      waveform?: number[],
       audioLanguage?: SpeechToTextLanguage
-    ) => model.streamingTranscribe(waveform, streamAction, audioLanguage),
+    ) => model.streamingTranscribe(streamAction, waveform, audioLanguage),
   };
 };
