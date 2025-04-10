@@ -1,6 +1,6 @@
 import { symbols } from '../constants/ocr/symbols';
 import { ETError, getError } from '../Error';
-import { _OCRModule } from '../native/RnExecutorchModules';
+import { OCRNativeModule } from '../native/RnExecutorchModules';
 import { ResourceSource } from '../types/common';
 import { OCRLanguage } from '../types/ocr';
 import {
@@ -9,7 +9,7 @@ import {
 } from '../utils/fetchResource';
 
 export class OCRController {
-  private nativeModule: _OCRModule;
+  private nativeModule: typeof OCRNativeModule
   public isReady: boolean = false;
   public isGenerating: boolean = false;
   public error: string | null = null;
@@ -19,12 +19,12 @@ export class OCRController {
   private errorCallback: (error: string) => void;
 
   constructor({
-    modelDownloadProgressCallback = (_downloadProgress: number) => {},
-    isReadyCallback = (_isReady: boolean) => {},
-    isGeneratingCallback = (_isGenerating: boolean) => {},
-    errorCallback = (_error: string) => {},
+    modelDownloadProgressCallback = (_downloadProgress: number) => { },
+    isReadyCallback = (_isReady: boolean) => { },
+    isGeneratingCallback = (_isGenerating: boolean) => { },
+    errorCallback = (_error: string) => { },
   }) {
-    this.nativeModule = new _OCRModule();
+    this.nativeModule = OCRNativeModule;
     this.modelDownloadProgressCallback = modelDownloadProgressCallback;
     this.isReadyCallback = isReadyCallback;
     this.isGeneratingCallback = isGeneratingCallback;
