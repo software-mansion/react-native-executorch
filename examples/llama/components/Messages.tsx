@@ -1,10 +1,10 @@
 import { useRef } from 'react';
 import { ScrollView, StyleSheet, View, Text } from 'react-native';
-import { MessageType } from '../types';
 import AnimatedChatLoading from './AnimatedChatLoading';
 import LlamaIcon from '../assets/icons/llama_icon.svg';
 import ColorPalette from '../colors';
 import MessageItem from './MessageItem';
+import { MessageType } from 'react-native-executorch/lib/typescript/types/common';
 
 interface MessagesComponentProps {
   chatHistory: Array<MessageType>;

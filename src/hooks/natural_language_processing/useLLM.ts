@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { EventSubscription } from 'react-native';
 import { LLM } from '../../native/RnExecutorchModules';
-import { fetchResource } from '../../utils/fetchResource';
+import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource, LLMType } from '../../types/common';
 
 const interrupt = () => {
+  console.log('call interrupt');
   LLM.interrupt();
 };
 
@@ -29,8 +30,8 @@ export const useLLM = ({
       try {
         setIsReady(false);
 
-        const tokenizerFileUri = await fetchResource(tokenizerSource);
-        const modelFileUri = await fetchResource(
+        const tokenizerFileUri = await ResourceFetcher.fetch(tokenizerSource);
+        const modelFileUri = await ResourceFetcher.fetch(
           modelSource,
           setDownloadProgress
         );
@@ -44,6 +45,7 @@ export const useLLM = ({
             if (!data) {
               return;
             }
+            console.log('new data:', data);
             setResponse((prevResponse) => prevResponse + data);
           }
         );
@@ -78,6 +80,7 @@ export const useLLM = ({
         setResponse('');
         await LLM.runInference(input);
       } catch (err) {
+        console.log('useLLM sets error', error);
         setError((err as Error).message);
         throw new Error((err as Error).message);
       }

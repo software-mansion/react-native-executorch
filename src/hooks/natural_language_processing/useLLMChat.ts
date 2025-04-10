@@ -1,14 +1,14 @@
 import { Template } from '@huggingface/jinja';
-import { MessageType, ResourceSource } from '../../types/common';
+import { LLMTool, MessageType, ResourceSource } from '../../types/common';
 import { readAsStringAsync } from 'expo-file-system';
-import { fetchResource } from '../../utils/fetchResource';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   DEFAULT_CONTEXT_WINDOW_LENGTH,
   DEFAULT_MESSAGE_HISTORY,
   DEFAULT_SYSTEM_PROMPT,
 } from '../../constants/llmDefaults';
 import { useLLM } from './useLLM';
+import { ResourceFetcher } from '../../utils/ResourceFetcher';
 
 const SPECIAL_TOKENS = [
   'bos_token',
@@ -26,6 +26,7 @@ TODO add tools here
 */
 export const applyChatTemplate = (
   messages: Array<MessageType>,
+  tools: LLMTool[],
   tokenizerConfig: any
 ): string => {
   if (!tokenizerConfig.chat_template) {
@@ -42,6 +43,7 @@ export const applyChatTemplate = (
 
   const result = template.render({
     messages,
+    tools,
     ...specialTokens,
   });
   return result;
@@ -78,58 +80,81 @@ export const useLLMChat = ({
       throw new Error('Initial history is longer than context window length');
     }
     setMessageHistory(initialMessageHistory);
-  }, [initialMessageHistory, contextWindowLength]);
-
-  useEffect(() => {
     const parseTokenizerConfig = async () => {
-      const tokenizerConfigFileUri = await fetchResource(tokenizerConfigSource);
+      const tokenizerConfigFileUri = await ResourceFetcher.fetch(
+        tokenizerConfigSource
+      );
 
       const config = JSON.parse(
         await readAsStringAsync(tokenizerConfigFileUri)
       );
+      // console.log("config", config)
+      // console.log("eos_token", config["eos_token"], config.eos_token)
 
       setTokenizerConfig(config);
     };
     parseTokenizerConfig();
-  }, [tokenizerConfigSource]);
+  }, [initialMessageHistory, contextWindowLength, tokenizerConfigSource]);
 
   useEffect(() => {
-    if (
-      llm.response &&
-      'bos_token' in tokenizerConfig &&
-      llm.response.endsWith(tokenizerConfig.bos_token)
-    ) {
-      appendToMessageHistory({ content: llm.response, role: 'assistant' });
-      setIsGenerating(false);
-    }
-  }, [llm.response, tokenizerConfig, setIsGenerating]);
+    // console.log(
+    //   '1',
+    //   llm.response,
+    //   tokenizerConfig
+    //     ? 'eos_token' in tokenizerConfig
+    //       ? tokenizerConfig.eos_token
+    //       : 'no eos_token'
+    //     : 'no config'
+    // );
+  }, [
+    llm.response,
+    tokenizerConfig,
+    contextWindowLength,
+    messageHistory,
+    isGenerating,
+  ]);
 
   useEffect(() => {
+    console.log('useChatLLM consumes error', llm.error);
     setIsGenerating(false);
   }, [llm.error]);
 
-  const appendToMessageHistory = (message: MessageType) => {
-    setMessageHistory((prevMessageHistory) => [...prevMessageHistory, message]);
-  };
+  const sendMessage = useCallback(
+    async (message: string, tools: LLMTool[]) => {
+      let newMessageHistory: Array<MessageType> = [
+        ...messageHistory,
+        { content: message, role: 'user' },
+      ];
+      setMessageHistory(newMessageHistory);
+      setIsGenerating(true);
 
-  const sendMessage = async (message: string) => {
-    const newMessageHistory: Array<MessageType> = [
-      ...messageHistory,
-      { content: message, role: 'user' },
-    ];
-    setMessageHistory(newMessageHistory);
-    setIsGenerating(true);
+      const messageHistoryWithPrompt: Array<MessageType> = [
+        { content: systemPrompt, role: 'system' },
+        ...newMessageHistory,
+      ];
+      const renderedChat = applyChatTemplate(
+        messageHistoryWithPrompt,
+        tools,
+        tokenizerConfig
+      );
+      await llm.generate(renderedChat);
 
-    const messageHistoryWithPrompt: Array<MessageType> = [
-      { content: systemPrompt, role: 'system' },
-      ...newMessageHistory,
-    ];
-    const renderedChat = applyChatTemplate(
-      messageHistoryWithPrompt,
-      tokenizerConfig
-    );
-    await llm.generate(renderedChat);
-  };
+      setIsGenerating(false);
+      if (llm.response) {
+        newMessageHistory.push({
+          content: llm.response.replace(tokenizerConfig.eos_token, ''),
+          role: 'assistant',
+        });
+
+        if (newMessageHistory.length > contextWindowLength) {
+          newMessageHistory.shift();
+        }
+
+        setMessageHistory(newMessageHistory);
+      }
+    },
+    [contextWindowLength, llm, messageHistory, systemPrompt, tokenizerConfig]
+  );
 
   return {
     messageHistory,
