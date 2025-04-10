@@ -17,12 +17,17 @@ const LINKING_ERROR =
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo Go\n';
 
-function returnSpecOrThrowLinkingError(source: any) {
-  const spec = source;
-  if (!spec) {
-    throw new Error(LINKING_ERROR);
-  }
-  return spec;
+function returnSpecOrThrowLinkingError(spec: any) {
+  return spec
+    ? spec
+    : new Proxy(
+        {},
+        {
+          get() {
+            throw new Error(LINKING_ERROR);
+          },
+        }
+      );
 }
 
 const LLMNativeModule: LLMInterface = returnSpecOrThrowLinkingError(
