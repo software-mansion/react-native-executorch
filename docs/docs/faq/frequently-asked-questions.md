@@ -3,7 +3,7 @@ title: Frequently asked questions
 sidebar_position: 1
 ---
 
-This section is meant to answer some common community inquiries, expecially regarding the ExecuTorch runtime or adding your own models. If you can't see an answer to your question, feel free to open up a [discussion](https://github.com/software-mansion/react-native-executorch/discussions/new/choose).
+This section is meant to answer some common community inquiries, especially regarding the ExecuTorch runtime or adding your own models. If you can't see an answer to your question, feel free to open up a [discussion](https://github.com/software-mansion/react-native-executorch/discussions/new/choose).
 
 ### What models are supported?
 
@@ -11,7 +11,7 @@ Each hook documentation subpage (useClassification, useLLM, etc.) contains a sup
 
 ### How can I run my own AI model?
 
-To run your own model, you need to directly access the underlying [ExecuTorch Module API](https://pytorch.org/executorch/stable/extension-module.html). We provide an experimental [React hook](../executorch-bindings/useExecutorchModule.md) along with a [TypeScript alternative](../typescript-api/ExecutorchModule.md), which serve as a way to use the aformentioned API without the need of diving into native code. In order to get a model in a format runnable by the runtime, you'll need to get your hands dirty with some ExecuTorch knowledge. For more guides on exporting models, please refer to the [ExecuTorch tutorials](https://pytorch.org/executorch/stable/tutorials/export-to-executorch-tutorial.html). Once you obtain your model in a `.pte` format, you can run it with `useExecuTorchModule` and `ExecuTorchModule`.
+To run your own model, you need to directly access the underlying [ExecuTorch Module API](https://pytorch.org/executorch/stable/extension-module.html). We provide an experimental [React hook](../executorch-bindings/useExecutorchModule.md) along with a [TypeScript alternative](../typescript-api/ExecutorchModule.md), which serve as a way to use the aforementioned API without the need of diving into native code. In order to get a model in a format runnable by the runtime, you'll need to get your hands dirty with some ExecuTorch knowledge. For more guides on exporting models, please refer to the [ExecuTorch tutorials](https://pytorch.org/executorch/stable/tutorials/export-to-executorch-tutorial.html). Once you obtain your model in a `.pte` format, you can run it with `useExecuTorchModule` and `ExecuTorchModule`.
 
 ### Can you do function calling with useLLM?
 
@@ -31,8 +31,8 @@ No, as of now ExecuTorch runtime doesn't provide a reliable way to use GGUF mode
 
 ### Are the models leveraging GPU acceleration?
 
-While it is possible to run some models using CoreML on iOS, which is a backend that utilizes CPU, GPU and ANE, we currently don't have much models exported to CoreML. For Android, the current state of GPU acceleration is pretty limited. As of now, there are attempts of running the models using a Vulkan backend. However the operator support is very limited meaning that the resulting performance is often inferior to XNNPack. Hence, most of the models use XNNPack, which is a highly optimized and mature CPU backend that runs on both Android and iOS.
+While it is possible to run some models using Core ML on iOS, which is a backend that utilizes CPU, GPU and ANE, we currently don't have many models exported to Core ML. For Android, the current state of GPU acceleration is pretty limited. As of now, there are attempts of running the models using a Vulkan backend. However the operator support is very limited meaning that the resulting performance is often inferior to XNNPACK. Hence, most of the models use XNNPACK, which is a highly optimized and mature CPU backend that runs on both Android and iOS.
 
-### Does this library support XNNPack and CoreML?
+### Does this library support XNNPACK and Core ML?
 
 Yes, all of the backends are linked, therefore the only thing that needs to be done on your end is to export the model with the backend that you're interested in using.
