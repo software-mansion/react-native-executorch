@@ -62,3 +62,5 @@ export interface MessageType {
   role: MessageRole;
   content: string;
 }
+// unfortunately there's no one standard so it's hard to type it better
+export type LLMTool = Object;
