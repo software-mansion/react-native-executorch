@@ -10,6 +10,7 @@ import { Spec as TextEmbeddingsInterface } from './NativeTextEmbeddings';
 import { Spec as LLMInterface } from './NativeLLM';
 import { Spec as ClassificationInterface } from './NativeClassification';
 import { Spec as TokenizerInterface } from './NativeTokenizer';
+import { Spec as ETInstallerInterface } from './NativeETInstaller';
 
 const LINKING_ERROR =
   `The package 'react-native-executorch' doesn't seem to be linked. Make sure: \n\n` +
@@ -56,6 +57,9 @@ const TokenizerNativeModule: TokenizerInterface = returnSpecOrThrowLinkingError(
 );
 const TextEmbeddingsNativeModule: TextEmbeddingsInterface =
   returnSpecOrThrowLinkingError(require('./NativeTextEmbeddings').default);
+const ETInstallerModule: ETInstallerInterface = returnSpecOrThrowLinkingError(
+  require('./NativeTextEmbeddings').default
+);
 
 export {
   LLMNativeModule,
@@ -69,4 +73,5 @@ export {
   VerticalOCRNativeModule,
   TextEmbeddingsNativeModule,
   TokenizerNativeModule,
+  ETInstallerModule,
 };
