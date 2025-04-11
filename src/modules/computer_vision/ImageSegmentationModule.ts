@@ -5,19 +5,19 @@ import { ResourceSource } from '../../types/common';
 import { ImageSegmentationNativeModule } from '../../native/RnExecutorchModules';
 
 export class ImageSegmentationModule extends BaseModule {
-  static nativeModule = ImageSegmentationNativeModule;
+  protected static override nativeModule = ImageSegmentationNativeModule;
 
-  static async load(modelSource: ResourceSource) {
+  static override async load(modelSource: ResourceSource) {
     return await super.load(modelSource);
   }
 
-  static async forward(
+  static override async forward(
     input: string,
     classesOfInterest?: DeeplabLabel[],
     resize?: boolean
   ) {
     try {
-      const stringDict = await (super.forward(
+      const stringDict = await (this.nativeModule.forward(
         input,
         (classesOfInterest || []).map((label) => DeeplabLabel[label]),
         resize || false

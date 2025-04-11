@@ -6,13 +6,13 @@ import { getTypeIdentifier } from '../../types/common';
 import { BaseModule } from '../BaseModule';
 
 export class ExecutorchModule extends BaseModule {
-  static nativeModule = ETModuleNativeModule;
+  protected static override nativeModule = ETModuleNativeModule;
 
-  static async load(modelSource: ResourceSource) {
+  static override async load(modelSource: ResourceSource) {
     return await super.load(modelSource as string);
   }
 
-  static async forward(input: ETInput[] | ETInput, shape: number[][]) {
+  static override async forward(input: ETInput[] | ETInput, shape: number[][]) {
     if (!Array.isArray(input)) {
       input = [input];
     }
@@ -30,7 +30,11 @@ export class ExecutorchModule extends BaseModule {
     }
 
     try {
-      return await super.forward(modelInputs, shape, inputTypeIdentifiers);
+      return await this.nativeModule.forward(
+        modelInputs,
+        shape,
+        inputTypeIdentifiers
+      );
     } catch (e) {
       throw new Error(getError(e));
     }

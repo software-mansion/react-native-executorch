@@ -3,14 +3,14 @@ import { ResourceSource } from '../../types/common';
 import { BaseModule } from '../BaseModule';
 
 export class ObjectDetectionModule extends BaseModule {
-  static nativeModule = ObjectDetectionNativeModule;
+  protected static override nativeModule = ObjectDetectionNativeModule;
 
-  static async load(modelSource: ResourceSource) {
+  static override async load(modelSource: ResourceSource) {
     return await super.load(modelSource);
   }
-  static async forward(
+  static override async forward(
     input: string
   ): ReturnType<typeof this.nativeModule.forward> {
-    return await super.forward(input);
+    return await this.nativeModule.forward(input);
   }
 }

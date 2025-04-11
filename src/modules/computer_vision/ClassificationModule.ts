@@ -3,15 +3,15 @@ import { ResourceSource } from '../../types/common';
 import { BaseModule } from '../BaseModule';
 
 export class ClassificationModule extends BaseModule {
-  static nativeModule = ClassificationNativeModule;
+  protected static override nativeModule = ClassificationNativeModule;
 
-  static async load(modelSource: ResourceSource) {
+  static override async load(modelSource: ResourceSource) {
     await super.load(modelSource as string);
   }
 
-  static async forward(
+  static override async forward(
     input: string
   ): ReturnType<typeof ClassificationNativeModule.forward> {
-    return await super.forward(input);
+    return await this.nativeModule.forward(input);
   }
 }
