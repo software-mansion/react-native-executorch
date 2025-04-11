@@ -1,10 +1,3 @@
-import {
-  _StyleTransferModule,
-  _ObjectDetectionModule,
-  ETModule,
-  _ETModule,
-} from '../native/RnExecutorchModules';
-
 export const getTypeIdentifier = (input: ETInput): number => {
   if (input instanceof Int8Array) return 1;
   if (input instanceof Int32Array) return 3;
@@ -34,23 +27,6 @@ export type ETInput =
   | BigInt64Array
   | Float32Array
   | Float64Array;
-
-export interface ExecutorchModule {
-  error: string | null;
-  isReady: boolean;
-  isGenerating: boolean;
-  forward: (
-    inputs: ETInput[] | ETInput,
-    shapes: number[][]
-  ) => ReturnType<_ETModule['forward']>;
-  loadMethod: (methodName: string) => Promise<void>;
-  loadForward: () => Promise<void>;
-}
-
-export type Module =
-  | _StyleTransferModule
-  | _ObjectDetectionModule
-  | typeof ETModule;
 
 export interface MessageType {
   role: 'user' | 'assistant';
