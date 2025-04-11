@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		55D6EA8C2D0987D2009BA408 /* ExecutorchLib.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55D6EA8B2D0987D2009BA408 /* ExecutorchLib.xcframework */; };
+		8C53B8782D96BFCD0097900E /* JsiPromise.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C53B8702D96BFCD0097900E /* JsiPromise.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +26,10 @@
 /* Begin PBXFileReference section */
 		550986892CEF541900FECBB8 /* libRnExecutorch.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRnExecutorch.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		55D6EA8B2D0987D2009BA408 /* ExecutorchLib.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = ExecutorchLib.xcframework; sourceTree = "<group>"; };
+		8C53B86F2D96BFCD0097900E /* JsiPromise.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JsiPromise.h; sourceTree = "<group>"; };
+		8C53B8702D96BFCD0097900E /* JsiPromise.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = JsiPromise.cpp; sourceTree = "<group>"; };
+		8C53B8752D96BFCD0097900E /* RnExecutorchInstaller.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RnExecutorchInstaller.h; sourceTree = "<group>"; };
+		8CB19AA72DA3D1A200EB6786 /* Log.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Log.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
@@ -71,6 +76,7 @@
 		550986802CEF541900FECBB8 = {
 			isa = PBXGroup;
 			children = (
+				8C53B8762D96BFCD0097900E /* common */,
 				5509868B2CEF541900FECBB8 /* RnExecutorch */,
 				55D6EA8A2D0987D2009BA408 /* Frameworks */,
 				5509868A2CEF541900FECBB8 /* Products */,
@@ -92,6 +98,26 @@
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
+		};
+		8C53B8712D96BFCD0097900E /* jsi */ = {
+			isa = PBXGroup;
+			children = (
+				8C53B86F2D96BFCD0097900E /* JsiPromise.h */,
+				8C53B8702D96BFCD0097900E /* JsiPromise.cpp */,
+			);
+			path = jsi;
+			sourceTree = "<group>";
+		};
+		8C53B8762D96BFCD0097900E /* common */ = {
+			isa = PBXGroup;
+			children = (
+				8CB19AA72DA3D1A200EB6786 /* Log.h */,
+				8C53B8712D96BFCD0097900E /* jsi */,
+				8C53B8752D96BFCD0097900E /* RnExecutorchInstaller.h */,
+			);
+			name = common;
+			path = ../common;
+			sourceTree = SOURCE_ROOT;
 		};
 /* End PBXGroup section */
 
@@ -155,6 +181,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8C53B8782D96BFCD0097900E /* JsiPromise.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

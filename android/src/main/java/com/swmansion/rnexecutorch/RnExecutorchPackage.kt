@@ -32,6 +32,8 @@ class RnExecutorchPackage : TurboReactPackage() {
       VerticalOCR(reactContext)
     } else if (name == ImageSegmentation.NAME) {
       ImageSegmentation(reactContext)
+    } else if (name == ETInstaller.NAME) {
+      ETInstaller(reactContext)
     } else if (name == Tokenizer.NAME) {
       Tokenizer(reactContext)
     } else {
@@ -47,6 +49,7 @@ class RnExecutorchPackage : TurboReactPackage() {
           LLM.NAME,
           false, // canOverrideExistingModule
           false, // needsEagerInit
+          true, // hasConstants
           false, // isCxxModule
           true,
         )
@@ -56,6 +59,7 @@ class RnExecutorchPackage : TurboReactPackage() {
           ETModule.NAME,
           false, // canOverrideExistingModule
           false, // needsEagerInit
+          true, // hasConstants
           false, // isCxxModule
           true,
         )
@@ -66,6 +70,7 @@ class RnExecutorchPackage : TurboReactPackage() {
           StyleTransfer.NAME,
           false, // canOverrideExistingModule
           false, // needsEagerInit
+          true, // hasConstants
           false, // isCxxModule
           true,
         )
@@ -76,6 +81,7 @@ class RnExecutorchPackage : TurboReactPackage() {
           Classification.NAME,
           false, // canOverrideExistingModule
           false, // needsEagerInit
+          true, // hasConstants
           false, // isCxxModule
           true,
         )
@@ -86,6 +92,7 @@ class RnExecutorchPackage : TurboReactPackage() {
           ObjectDetection.NAME,
           false, // canOverrideExistingModule
           false, // needsEagerInit
+          true, // hasConstants
           false, // isCxxModule
           true,
         )
@@ -96,6 +103,7 @@ class RnExecutorchPackage : TurboReactPackage() {
           SpeechToText.NAME,
           false, // canOverrideExistingModule
           false, // needsEagerInit
+          true, // hasConstants
           false, // isCxxModule
           true,
         )
@@ -106,6 +114,7 @@ class RnExecutorchPackage : TurboReactPackage() {
           OCR.NAME,
           false, // canOverrideExistingModule
           false, // needsEagerInit
+          true, // hasConstants
           false, // isCxxModule
           true,
         )
@@ -116,6 +125,7 @@ class RnExecutorchPackage : TurboReactPackage() {
           VerticalOCR.NAME,
           false, // canOverrideExistingModule
           false, // needsEagerInit
+          true, // hasConstants
           false, // isCxxModule
           true,
         )
@@ -126,6 +136,7 @@ class RnExecutorchPackage : TurboReactPackage() {
           ImageSegmentation.NAME,
           false, // canOverrideExistingModule
           false, // needsEagerInit
+          true, // hasConstants
           false, // isCxxModule
           true,
         )
@@ -136,6 +147,18 @@ class RnExecutorchPackage : TurboReactPackage() {
           Tokenizer.NAME,
           false, // canOverrideExistingModule
           false, // needsEagerInit
+          true, // hasConstants
+          false, // isCxxModule
+          true,
+        )
+
+      moduleInfos[ETInstaller.NAME] =
+        ReactModuleInfo(
+          ETInstaller.NAME,
+          ETInstaller.NAME,
+          false, // canOverrideExistingModule
+          false, // needsEagerInit
+          true, // hasConstants
           false, // isCxxModule
           true,
         )

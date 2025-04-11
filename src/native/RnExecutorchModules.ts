@@ -6,6 +6,7 @@ import { Spec as ImageSegmentationInterface } from './NativeImageSegmentation';
 import { Spec as ETModuleInterface } from './NativeETModule';
 import { Spec as OCRInterface } from './NativeOCR';
 import { Spec as VerticalOCRInterface } from './NativeVerticalOCR';
+import { Spec as ETInstallerInterface } from './NativeETInstaller';
 
 const LINKING_ERROR =
   `The package 'react-native-executorch' doesn't seem to be linked. Make sure: \n\n` +
@@ -134,6 +135,19 @@ const TokenizerSpec = require('./NativeTokenizer').default;
 
 const Tokenizer = TokenizerSpec
   ? TokenizerSpec
+  : new Proxy(
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
+
+const ETInstallerSpec = require('./NativeETInstaller').default;
+
+const ETInstaller = ETInstallerSpec
+  ? ETInstallerSpec
   : new Proxy(
       {},
       {
@@ -296,6 +310,12 @@ class _TokenizerModule {
   }
 }
 
+class _ETInstallerModule {
+  install(): ReturnType<ETInstallerInterface['install']> {
+    return ETInstaller.install();
+  }
+}
+
 export {
   LLM,
   ETModule,
@@ -307,6 +327,7 @@ export {
   OCR,
   VerticalOCR,
   Tokenizer,
+  ETInstaller,
   _ETModule,
   _TokenizerModule,
   _ClassificationModule,
@@ -316,4 +337,5 @@ export {
   _SpeechToTextModule,
   _OCRModule,
   _VerticalOCRModule,
+  _ETInstallerModule,
 };
