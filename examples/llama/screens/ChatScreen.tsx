@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import SWMIcon from '../assets/icons/swm_icon.svg';
 import SendIcon from '../assets/icons/send_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
-import { useLLMChat } from 'react-native-executorch';
+import { useLLM } from 'react-native-executorch';
 import PauseIcon from '../assets/icons/pause_icon.svg';
 import ColorPalette from '../colors';
 import Messages from '../components/Messages';
@@ -136,14 +136,13 @@ const TOOL_DEFINITIONS_PHONE: LLMTool[] = [
 export default function ChatScreen() {
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
-  const chat = useLLMChat({
+  const chat = useLLM({
     modelSource:
       'https://huggingface.co/nklockiewicz/ocr/resolve/main/hammer/hammer-1_5b_bf16.pte',
     tokenizerSource:
       'https://huggingface.co/nklockiewicz/ocr/resolve/main/hammer/tokenizer-hammer.json',
     tokenizerConfigSource:
       'https://huggingface.co/MadeAgents/Hammer2.1-1.5b/resolve/main/tokenizer_config.json',
-    contextWindowLength: 6,
   });
 
   const textInputRef = useRef<TextInput>(null);

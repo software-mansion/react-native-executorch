@@ -5,4 +5,4 @@ export const DEFAULT_SYSTEM_PROMPT =
 
 export const DEFAULT_MESSAGE_HISTORY: MessageType[] = [];
 
-export const DEFAULT_CONTEXT_WINDOW_LENGTH = 3;
+export const DEFAULT_CONTEXT_WINDOW_LENGTH = 5;

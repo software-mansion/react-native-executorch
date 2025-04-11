@@ -1,100 +1,76 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { EventSubscription } from 'react-native';
-import { LLM } from '../../native/RnExecutorchModules';
-import { ResourceFetcher } from '../../utils/ResourceFetcher';
-import { ResourceSource, LLMType } from '../../types/common';
+import { useEffect, useState } from 'react';
+import { ResourceSource, MessageType, LLMTool } from '../../types/common';
+import { ChatConfig, LLMController } from '../../controllers/LLMController';
 
-const interrupt = () => {
-  console.log('call interrupt');
-  LLM.interrupt();
-};
+export interface LLMType {
+  messageHistory: Array<MessageType>;
+  response: string;
+  isReady: boolean;
+  isGenerating: boolean;
+  downloadProgress: number;
+  error: string | null;
+  runInference: (input: string) => Promise<void>;
+  sendMessage: (message: string, tools?: LLMTool[]) => Promise<void>;
+  interrupt: () => void;
+}
 
 /*
-Hook to use bare model and receive responses. It doesn't handle message history, or prompts. Those will be moved to useLLMChat
+Hook version of LLMController
 */
 export const useLLM = ({
   modelSource,
   tokenizerSource,
+  tokenizerConfigSource,
+  chatConfig,
 }: {
   modelSource: ResourceSource;
   tokenizerSource: ResourceSource;
+  tokenizerConfigSource: ResourceSource;
+  chatConfig?: ChatConfig;
 }): LLMType => {
-  const [error, setError] = useState<string | null>(null);
-  const [isReady, setIsReady] = useState(false);
   const [response, setResponse] = useState('');
+  const [messageHistory, setMessageHistory] = useState<Array<MessageType>>([]);
+  const [isReady, setIsReady] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const tokenGeneratedListener = useRef<null | EventSubscription>(null);
+  const [error, setError] = useState<any>(null);
 
-  useEffect(() => {
-    const loadModel = async () => {
-      try {
-        setIsReady(false);
-
-        const tokenizerFileUri = await ResourceFetcher.fetch(tokenizerSource);
-        const modelFileUri = await ResourceFetcher.fetch(
-          modelSource,
-          setDownloadProgress
-        );
-
-        await LLM.loadLLM(modelFileUri, tokenizerFileUri);
-
-        setIsReady(true);
-
-        tokenGeneratedListener.current = LLM.onToken(
-          (data: string | undefined) => {
-            if (!data) {
-              return;
-            }
-            console.log('new data:', data);
-            setResponse((prevResponse) => prevResponse + data);
-          }
-        );
-      } catch (err) {
-        const message = (err as Error).message;
-        setIsReady(false);
-        setError(message);
-      } finally {
-        setDownloadProgress(0);
-      }
-    };
-
-    loadModel();
-
-    return () => {
-      tokenGeneratedListener.current?.remove();
-      tokenGeneratedListener.current = null;
-      LLM.deleteModule();
-    };
-  }, [modelSource, tokenizerSource]);
-
-  const generate = useCallback(
-    async (input: string): Promise<void> => {
-      if (!isReady) {
-        throw new Error('Model is still loading');
-      }
-      if (error) {
-        throw new Error(error);
-      }
-
-      try {
-        setResponse('');
-        await LLM.runInference(input);
-      } catch (err) {
-        console.log('useLLM sets error', error);
-        setError((err as Error).message);
-        throw new Error((err as Error).message);
-      }
-    },
-    [isReady, error]
+  const [model, _] = useState(
+    () =>
+      new LLMController({
+        responseCallback: setResponse,
+        messageHistoryCallback: setMessageHistory,
+        isReadyCallback: setIsReady,
+        isGeneratingCallback: setIsGenerating,
+        modelDownloadProgessCallback: setDownloadProgress,
+        errorCallback: setError,
+        chatConfig: chatConfig,
+      })
   );
 
+  useEffect(() => {
+    (async () => {
+      await model.loadModel(
+        modelSource,
+        tokenizerSource,
+        tokenizerConfigSource
+      );
+    })();
+
+    return () => {
+      model.deleteModel();
+    };
+  }, [modelSource, tokenizerSource, tokenizerConfigSource, model]);
+
   return {
-    generate,
-    error,
-    isReady,
-    isModelReady: isReady,
+    messageHistory,
     response,
+    isReady,
+    isGenerating,
     downloadProgress,
-    interrupt,
+    error,
+    runInference: model.runInference,
+    sendMessage: model.sendMessage,
+    interrupt: model.interrupt,
   };
 };
