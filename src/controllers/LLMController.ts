@@ -4,12 +4,23 @@ import { LLMTool, MessageType, ResourceSource } from '../types/common';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { getError } from '../Error';
 import { Template } from '@huggingface/jinja';
+import {
+  DEFAULT_CONTEXT_WINDOW_LENGTH,
+  DEFAULT_MESSAGE_HISTORY,
+  DEFAULT_SYSTEM_PROMPT,
+} from '../constants/llmDefaults';
+import { readAsStringAsync } from 'expo-file-system';
 
 export class LLMController {
   private nativeModule: typeof LLM;
+  private chatConfig: ChatConfig;
+  private tokenizerConfig: any;
+  private onToken: EventSubscription | null = null;
+  private _response = '';
+  private _isReady = false;
+  private _isGenerating = false;
 
   // User callbacks
-  // transcribe callback
   private modelDownloadProgessCallback:
     | ((downloadProgress: number) => void)
     | undefined;
@@ -17,62 +28,83 @@ export class LLMController {
   private isGeneratingCallback: (isGenerating: boolean) => void | undefined;
   private errorCallback: ((error: any) => void) | undefined;
 
-  // public API
-  public isReady = false;
-  public isGenerating = false;
-  public onToken: EventSubscription | null = null;
-  public response = '';
-  public messageHistory: Array<MessageType> = [];
+  // public fields
+  public messageHistory: Array<MessageType>;
 
   constructor({
-    // transcribeCallback,
     modelDownloadProgessCallback,
     isReadyCallback,
     isGeneratingCallback,
     errorCallback,
+    chatConfig = {
+      systemPrompt: DEFAULT_SYSTEM_PROMPT,
+      initialMessageHistory: DEFAULT_MESSAGE_HISTORY,
+      contextWindowLength: DEFAULT_CONTEXT_WINDOW_LENGTH,
+    },
   }: {
-    // transcribeCallback: (sequence: string) => void;
     modelDownloadProgessCallback?: (downloadProgress: number) => void;
     isReadyCallback?: (isReady: boolean) => void;
     isGeneratingCallback?: (isGenerating: boolean) => void;
     errorCallback?: (error: Error | undefined) => void;
+    chatConfig?: ChatConfig;
   }) {
     this.modelDownloadProgessCallback = modelDownloadProgessCallback;
     this.isReadyCallback = (isReady) => {
-      this.isReady = isReady;
+      this._isReady = isReady;
       isReadyCallback?.(isReady);
     };
     this.isGeneratingCallback = (isGenerating) => {
-      this.isGenerating = isGenerating;
+      this._isGenerating = isGenerating;
       isGeneratingCallback?.(isGenerating);
     };
     this.errorCallback = errorCallback;
+
+    this.messageHistory = chatConfig.initialMessageHistory;
+    this.chatConfig = chatConfig;
     this.nativeModule = LLM;
+  }
+
+  public get response() {
+    return this._response;
+  }
+  public get isReady() {
+    return this._isReady;
+  }
+  public get isGenerating() {
+    return this._isGenerating;
   }
 
   public async loadModel(
     modelSource: ResourceSource,
-    tokenizerSource: ResourceSource
+    tokenizerSource: ResourceSource,
+    tokenizerConfigSource: ResourceSource
   ) {
-    this.isReady = false;
+    this.isReadyCallback(false);
     try {
       const tokenizerFileUri = await ResourceFetcher.fetch(tokenizerSource);
+      const tokenizerConfigFileUri = await ResourceFetcher.fetch(
+        tokenizerConfigSource
+      );
+      this.tokenizerConfig = JSON.parse(
+        await readAsStringAsync(tokenizerConfigFileUri)
+      );
+
       const modelFileUri = await ResourceFetcher.fetch(
         modelSource,
         this.modelDownloadProgessCallback
       );
 
       await this.nativeModule.loadLLM(modelFileUri, tokenizerFileUri);
-      this.isReady = true;
+      this.isReadyCallback(true);
       this.onToken = this.nativeModule.onToken((data: string | undefined) => {
         if (!data) {
           return;
         }
-        this.response += data;
+        this._response += data;
       });
     } catch (e) {
       this.handleError(e);
-      this.isReady = false;
+      this.isReadyCallback(false);
     }
   }
 
@@ -83,11 +115,11 @@ export class LLMController {
   }
 
   public async runInference(input: string) {
-    if (!this.isReady) {
+    if (!this._isReady) {
       throw new Error('Model is not loaded!');
     }
     try {
-      this.response = '';
+      this._response = '';
       await this.nativeModule.runInference(input);
     } catch (e) {
       this.handleError(e);
@@ -96,6 +128,32 @@ export class LLMController {
 
   public interrupt() {
     this.nativeModule.interrupt();
+  }
+
+  public async sendMessage(message: string, tools: LLMTool[]) {
+    this.isGeneratingCallback(true);
+    this.messageHistory.push({ content: message, role: 'user' });
+
+    const messageHistoryWithPrompt: Array<MessageType> = [
+      { content: this.chatConfig.systemPrompt, role: 'system' },
+      ...this.messageHistory.slice(-this.chatConfig.contextWindowLength),
+    ];
+
+    const renderedChat: string = this.applyChatTemplate(
+      messageHistoryWithPrompt,
+      tools,
+      this.tokenizerConfig
+    );
+
+    await this.runInference(renderedChat);
+    this.isGeneratingCallback(false);
+
+    if (this._response) {
+      this.messageHistory.push({
+        content: this._response.replace(this.tokenizerConfig.eos_token, ''),
+        role: 'assistant',
+      });
+    }
   }
 
   private handleError(error: unknown) {
@@ -132,7 +190,13 @@ export class LLMController {
   }
 }
 
-const SPECIAL_TOKENS = [
+export interface ChatConfig {
+  initialMessageHistory: Array<MessageType>;
+  contextWindowLength: number;
+  systemPrompt: string;
+}
+
+export const SPECIAL_TOKENS = [
   'bos_token',
   'eos_token',
   'unk_token',
