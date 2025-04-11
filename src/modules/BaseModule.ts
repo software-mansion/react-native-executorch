@@ -3,7 +3,7 @@ import { getError } from '../Error';
 import { ResourceSource } from '../types/common';
 
 export class BaseModule {
-  static nativeModule: any;
+  protected static nativeModule: any;
   static onDownloadProgressCallback: (downloadProgress: number) => void =
     () => {};
 
@@ -20,12 +20,10 @@ export class BaseModule {
     }
   }
 
-  static async forward(...args: any[]) {
-    try {
-      return await this.nativeModule.forward(...args);
-    } catch (error) {
-      throw new Error(getError(error));
-    }
+  protected static async forward(..._args: any[]): Promise<any> {
+    throw new Error(
+      'forward method is not implemented in the BaseModule class. Please implement it in the derived class.'
+    );
   }
 
   static onDownloadProgress(callback: (downloadProgress: number) => void) {
