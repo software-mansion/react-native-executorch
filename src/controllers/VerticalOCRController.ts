@@ -1,6 +1,6 @@
 import { symbols } from '../constants/ocr/symbols';
 import { ETError, getError } from '../Error';
-import { _VerticalOCRModule } from '../native/RnExecutorchModules';
+import { VerticalOCRNativeModule } from '../native/RnExecutorchModules';
 import { ResourceSource } from '../types/common';
 import { OCRLanguage } from '../types/ocr';
 import {
@@ -9,7 +9,7 @@ import {
 } from '../utils/fetchResource';
 
 export class VerticalOCRController {
-  private nativeModule: _VerticalOCRModule;
+  private nativeModule: typeof VerticalOCRNativeModule;
   public isReady: boolean = false;
   public isGenerating: boolean = false;
   public error: string | null = null;
@@ -24,7 +24,7 @@ export class VerticalOCRController {
     isGeneratingCallback = (_isGenerating: boolean) => {},
     errorCallback = (_error: string) => {},
   }) {
-    this.nativeModule = new _VerticalOCRModule();
+    this.nativeModule = VerticalOCRNativeModule;
     this.modelDownloadProgressCallback = modelDownloadProgressCallback;
     this.isReadyCallback = isReadyCallback;
     this.isGeneratingCallback = isGeneratingCallback;
