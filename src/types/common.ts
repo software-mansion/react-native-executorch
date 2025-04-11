@@ -17,21 +17,6 @@ export const getTypeIdentifier = (input: ETInput): number => {
 
 export type ResourceSource = string | number;
 
-export interface LLMType {
-  generate: (input: string) => Promise<void>;
-  response: string;
-  downloadProgress: number;
-  error: string | null;
-  isModelReady: boolean;
-  isReady: boolean;
-  interrupt: () => void;
-}
-
-export interface ChatType extends LLMType {
-  isModelGenerating: boolean;
-  isGenerating: boolean;
-}
-
 export type ETInput =
   | Int8Array
   | Int32Array

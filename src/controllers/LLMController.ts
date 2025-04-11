@@ -19,22 +19,26 @@ export class LLMController {
   private _response = '';
   private _isReady = false;
   private _isGenerating = false;
+  private _messageHistory: Array<MessageType> = [];
 
   // User callbacks
+  private responseCallback: (response: string) => void;
+  private messageHistoryCallback: (messageHistory: Array<MessageType>) => void;
   private modelDownloadProgessCallback:
     | ((downloadProgress: number) => void)
     | undefined;
-  private isReadyCallback: (isReady: boolean) => void | undefined;
-  private isGeneratingCallback: (isGenerating: boolean) => void | undefined;
+  private isReadyCallback: (isReady: boolean) => void;
+  private isGeneratingCallback: (isGenerating: boolean) => void;
   private errorCallback: ((error: any) => void) | undefined;
 
   // public fields
-  public messageHistory: Array<MessageType>;
 
   constructor({
-    modelDownloadProgessCallback,
+    responseCallback,
+    messageHistoryCallback,
     isReadyCallback,
     isGeneratingCallback,
+    modelDownloadProgessCallback,
     errorCallback,
     chatConfig = {
       systemPrompt: DEFAULT_SYSTEM_PROMPT,
@@ -42,13 +46,22 @@ export class LLMController {
       contextWindowLength: DEFAULT_CONTEXT_WINDOW_LENGTH,
     },
   }: {
-    modelDownloadProgessCallback?: (downloadProgress: number) => void;
+    responseCallback?: (response: string) => void;
+    messageHistoryCallback: (messageHistory: Array<MessageType>) => void;
     isReadyCallback?: (isReady: boolean) => void;
     isGeneratingCallback?: (isGenerating: boolean) => void;
+    modelDownloadProgessCallback?: (downloadProgress: number) => void;
     errorCallback?: (error: Error | undefined) => void;
     chatConfig?: ChatConfig;
   }) {
-    this.modelDownloadProgessCallback = modelDownloadProgessCallback;
+    this.responseCallback = (response) => {
+      this._response = response;
+      responseCallback?.(response);
+    };
+    this.messageHistoryCallback = (messageHistory) => {
+      this._messageHistory = messageHistory;
+      messageHistoryCallback?.(messageHistory);
+    };
     this.isReadyCallback = (isReady) => {
       this._isReady = isReady;
       isReadyCallback?.(isReady);
@@ -58,8 +71,9 @@ export class LLMController {
       isGeneratingCallback?.(isGenerating);
     };
     this.errorCallback = errorCallback;
+    this.modelDownloadProgessCallback = modelDownloadProgessCallback;
 
-    this.messageHistory = chatConfig.initialMessageHistory;
+    this.messageHistoryCallback(chatConfig.initialMessageHistory);
     this.chatConfig = chatConfig;
     this.nativeModule = LLM;
   }
@@ -72,6 +86,9 @@ export class LLMController {
   }
   public get isGenerating() {
     return this._isGenerating;
+  }
+  public get messageHistory() {
+    return this._messageHistory;
   }
 
   public async loadModel(
@@ -100,7 +117,7 @@ export class LLMController {
         if (!data) {
           return;
         }
-        this._response += data;
+        this.responseCallback(this._response + data);
       });
     } catch (e) {
       this.handleError(e);
@@ -119,9 +136,12 @@ export class LLMController {
       throw new Error('Model is not loaded!');
     }
     try {
-      this._response = '';
+      this.responseCallback('');
+      this.isGeneratingCallback(true);
       await this.nativeModule.runInference(input);
+      this.isGeneratingCallback(false);
     } catch (e) {
+      this.isGeneratingCallback(false);
       this.handleError(e);
     }
   }
@@ -130,29 +150,36 @@ export class LLMController {
     this.nativeModule.interrupt();
   }
 
-  public async sendMessage(message: string, tools: LLMTool[]) {
-    this.isGeneratingCallback(true);
-    this.messageHistory.push({ content: message, role: 'user' });
+  public async sendMessage(message: string, tools?: LLMTool[]) {
+    this.messageHistoryCallback([
+      ...this._messageHistory,
+      { content: message, role: 'user' },
+    ]);
 
     const messageHistoryWithPrompt: Array<MessageType> = [
       { content: this.chatConfig.systemPrompt, role: 'system' },
-      ...this.messageHistory.slice(-this.chatConfig.contextWindowLength),
+      ...this._messageHistory.slice(-this.chatConfig.contextWindowLength),
     ];
 
     const renderedChat: string = this.applyChatTemplate(
       messageHistoryWithPrompt,
-      tools,
-      this.tokenizerConfig
+      this.tokenizerConfig,
+      tools
     );
 
     await this.runInference(renderedChat);
-    this.isGeneratingCallback(false);
 
     if (this._response) {
-      this.messageHistory.push({
-        content: this._response.replace(this.tokenizerConfig.eos_token, ''),
-        role: 'assistant',
-      });
+      this.responseCallback(
+        this._response.replace(this.tokenizerConfig.eos_token, '')
+      );
+      this.messageHistoryCallback([
+        ...this._messageHistory,
+        {
+          content: this._response,
+          role: 'assistant',
+        },
+      ]);
     }
   }
 
@@ -166,8 +193,8 @@ export class LLMController {
 
   private applyChatTemplate(
     messages: Array<MessageType>,
-    tools: LLMTool[],
-    tokenizerConfig: any
+    tokenizerConfig: any,
+    tools?: LLMTool[]
   ): string {
     if (!tokenizerConfig.chat_template) {
       throw Error("Tokenizer config doesn't include chat_template");
