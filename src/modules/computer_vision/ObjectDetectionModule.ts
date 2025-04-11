@@ -8,6 +8,7 @@ export class ObjectDetectionModule extends BaseModule {
   static override async load(modelSource: ResourceSource) {
     return await super.load(modelSource);
   }
+
   static override async forward(
     input: string
   ): ReturnType<typeof this.nativeModule.forward> {

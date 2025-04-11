@@ -9,7 +9,7 @@ export class ExecutorchModule extends BaseModule {
   protected static override nativeModule = ETModuleNativeModule;
 
   static override async load(modelSource: ResourceSource) {
-    return await super.load(modelSource as string);
+    return await super.load(modelSource);
   }
 
   static override async forward(input: ETInput[] | ETInput, shape: number[][]) {

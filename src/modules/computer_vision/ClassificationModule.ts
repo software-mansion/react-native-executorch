@@ -6,7 +6,7 @@ export class ClassificationModule extends BaseModule {
   protected static override nativeModule = ClassificationNativeModule;
 
   static override async load(modelSource: ResourceSource) {
-    await super.load(modelSource as string);
+    await super.load(modelSource);
   }
 
   static override async forward(
