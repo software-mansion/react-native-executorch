@@ -50,6 +50,7 @@ export * from './modules/general/ExecutorchModule';
 
 // utils
 export * from './utils/listDownloadedResources';
+export * from './utils/fetchResource';
 
 // types
 export * from './types/object_detection';
