@@ -5,7 +5,6 @@ import com.swmansion.rnexecutorch.models.BaseModel
 import org.pytorch.executorch.EValue
 import org.pytorch.executorch.HuggingFaceTokenizer
 import org.pytorch.executorch.Tensor
-import java.net.URL
 
 class TextEmbeddingsModel(
   reactApplicationContext: ReactApplicationContext,
@@ -13,7 +12,7 @@ class TextEmbeddingsModel(
   private lateinit var tokenizer: HuggingFaceTokenizer
 
   fun loadTokenizer(tokenizerSource: String) {
-    tokenizer = HuggingFaceTokenizer(URL(tokenizerSource).path)
+    tokenizer = HuggingFaceTokenizer(tokenizerSource)
   }
 
   fun preprocess(input: String): Array<LongArray> {

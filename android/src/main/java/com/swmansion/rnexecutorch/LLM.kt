@@ -10,7 +10,6 @@ import com.swmansion.rnexecutorch.utils.llms.ConversationManager
 import com.swmansion.rnexecutorch.utils.llms.END_OF_TEXT_TOKEN
 import org.pytorch.executorch.LlamaCallback
 import org.pytorch.executorch.LlamaModule
-import java.net.URL
 
 class LLM(
   reactContext: ReactApplicationContext,
@@ -50,7 +49,7 @@ class LLM(
           systemPrompt,
           ArrayUtils.createMapArray<String>(messageHistory),
         )
-      llamaModule = LlamaModule(1, URL(modelSource).path, URL(tokenizerSource).path, 0.7f)
+      llamaModule = LlamaModule(1, modelSource, tokenizerSource, 0.7f)
       this.tempLlamaResponse.clear()
       promise.resolve("Model loaded successfully")
     } catch (e: Exception) {

@@ -44,8 +44,7 @@
     Recognizer *recognizer = recognizers[i];
     NSString *path = paths[i];
 
-    NSNumber *errorCode =
-        [recognizer loadModel:[NSURL URLWithString:path].path];
+    NSNumber *errorCode = [recognizer loadModel:path];
     if ([errorCode intValue] != 0) {
       return errorCode;
     }

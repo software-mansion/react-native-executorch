@@ -1,5 +1,5 @@
 import { TextEmbeddings } from '../../native/RnExecutorchModules';
-import { fetchResource } from '../../utils/fetchResource';
+import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
 
 export class TextEmbeddingsModule {
@@ -10,8 +10,8 @@ export class TextEmbeddingsModule {
     tokenizerSource: ResourceSource
   ) {
     try {
-      const tokenizerFileUri = await fetchResource(tokenizerSource);
-      const modelFileUri = await fetchResource(
+      const tokenizerFileUri = await ResourceFetcher.fetch(tokenizerSource);
+      const modelFileUri = await ResourceFetcher.fetch(
         modelSource,
         this.onDownloadProgressCallback
       );

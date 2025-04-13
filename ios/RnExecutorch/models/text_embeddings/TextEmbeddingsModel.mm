@@ -27,8 +27,8 @@
 }
 
 - (void)loadTokenizer:(NSString *)tokenizerSource {
-  tokenizer = [[HuggingFaceTokenizer alloc]
-      initWithTokenizerPath:[NSURL URLWithString:tokenizerSource].path];
+  tokenizer =
+      [[HuggingFaceTokenizer alloc] initWithTokenizerPath:tokenizerSource];
 }
 
 @end

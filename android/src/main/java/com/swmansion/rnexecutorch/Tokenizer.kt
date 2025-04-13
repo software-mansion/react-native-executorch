@@ -7,7 +7,6 @@ import com.swmansion.rnexecutorch.utils.ArrayUtils.Companion.createIntArray
 import com.swmansion.rnexecutorch.utils.ArrayUtils.Companion.createReadableArrayFromIntArray
 import com.swmansion.rnexecutorch.utils.ETError
 import org.pytorch.executorch.HuggingFaceTokenizer
-import java.net.URL
 
 class Tokenizer(
   reactContext: ReactApplicationContext,
@@ -23,7 +22,7 @@ class Tokenizer(
     promise: Promise,
   ) {
     try {
-      tokenizer = HuggingFaceTokenizer(URL(tokenizerSource).path)
+      tokenizer = HuggingFaceTokenizer(tokenizerSource)
       promise.resolve(0)
     } catch (e: Exception) {
       promise.reject(e.message!!, ETError.InvalidModelSource.toString())

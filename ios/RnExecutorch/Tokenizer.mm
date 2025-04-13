@@ -11,8 +11,8 @@ RCT_EXPORT_MODULE()
      resolve:(RCTPromiseResolveBlock)resolve
       reject:(RCTPromiseRejectBlock)reject {
   @try {
-    tokenizer = [[HuggingFaceTokenizer alloc]
-        initWithTokenizerPath:[NSURL URLWithString:tokenizerSource].path];
+    tokenizer =
+        [[HuggingFaceTokenizer alloc] initWithTokenizerPath:tokenizerSource];
     resolve(@(0));
   } @catch (NSException *exception) {
     reject(@"Tokenizer_Error", @"Failed to load tokenizer", nil);
