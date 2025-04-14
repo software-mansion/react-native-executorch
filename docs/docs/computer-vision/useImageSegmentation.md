@@ -14,11 +14,11 @@ It is recommended to use models provided by us which are available at our [Huggi
 ```typescript
 import {
   useImageSegmentation,
-  DEEPLABV3_RESNET50,
+  DEEPLAB_V3_RESNET50,
 } from 'react-native-executorch';
 
 const model = useImageSegmentation({
-  modelSource: DEEPLABV3_RESNET50,
+  modelSource: DEEPLAB_V3_RESNET50,
 });
 
 const imageUri = 'file::///Users/.../cute_cat.png';
@@ -51,7 +51,7 @@ To run the model, you can use the `forward` method. It accepts three arguments: 
 
 - The image can be a remote URL, a local file URI, or a base64-encoded image.
 - The `classesOfInterest` list contains classes for which to output the full results. By default the list is empty, and only the most probable classes are returned (esentially an arg max for each pixel). Look at [`DeeplabLabel`](http://github.com/software-mansion/react-native-executorch/blob/main/src/types/image_segmentation.ts) enum for possible classes.
-- The `resize` flag says whether the output will be rescaled back to the size of the image you put in. The default is `false`. The model runs inference on a scaled (probably smaller) version of your image (224x224 for `DEEPLABV3_RESNET50`). If you choose to resize, the output will be `number[]` of size `width * height` of your original image.
+- The `resize` flag says whether the output will be rescaled back to the size of the image you put in. The default is `false`. The model runs inference on a scaled (probably smaller) version of your image (224x224 for `DEEPLAB_V3_RESNET50`). If you choose to resize, the output will be `number[]` of size `width * height` of your original image.
 
 :::caution
 Setting `resize` to true will make `forward` slower.
@@ -67,7 +67,7 @@ Setting `resize` to true will make `forward` slower.
 ```typescript
 function App(){
   const model = useImageSegmentation(
-    modelSource: DEEPLABV3_RESNET50,
+    modelSource: DEEPLAB_V3_RESNET50,
   );
 
   ...

@@ -10,13 +10,13 @@ Hookless implementation of the [useImageSegmentation](../computer-vision/useImag
 ```typescript
 import {
   ImageSegmentationModule,
-  DEEPLABV3_RESNET50,
+  DEEPLAB_V3_RESNET50,
 } from 'react-native-executorch';
 
 const imageUri = 'path/to/image.png';
 
 // Loading the model
-await ImageSegmentationModule.load(DEEPLABV3_RESNET50);
+await ImageSegmentationModule.load(DEEPLAB_V3_RESNET50);
 
 // Running the model
 const outputDict = await StyleTransferModule.forward(imageUri);
@@ -49,7 +49,7 @@ To run the model, you can use the `forward` method. It accepts three arguments: 
 
 - The image can be a remote URL, a local file URI, or a base64-encoded image.
 - The `classesOfInterest` list contains classes for which to output the full results. By default the list is empty, and only the most probable classes are returned (esentially an arg max for each pixel). Look at `DeeplabLabel` enum for possible classes.
-- The `resize` flag says whether the output will be rescaled back to the size of the image you put in. The default is `false`. The model runs inference on a scaled (probably smaller) version of your image (224x224 for the `DEEPLABV3_RESNET50`). If you choose to resize, the output will be `number[]` of size `width * height` of your original image.
+- The `resize` flag says whether the output will be rescaled back to the size of the image you put in. The default is `false`. The model runs inference on a scaled (probably smaller) version of your image (224x224 for the `DEEPLAB_V3_RESNET50`). If you choose to resize, the output will be `number[]` of size `width * height` of your original image.
 
 :::caution
 Setting `resize` to true will make `forward` slower.
