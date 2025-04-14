@@ -15,3 +15,5 @@ udnie
 crnn
 mobilenet
 microcontrollers
+notimestamps
+seqs

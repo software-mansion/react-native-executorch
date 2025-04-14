@@ -187,9 +187,9 @@ export class SpeechToTextController {
   }
 
   private async getStartingTokenIds(audioLanguage?: string): Promise<number[]> {
-    // We need different starting token ids based on the multilinguality of the model.
-    // The eng verison only needs BOS token, while the multilingual one needs:
-    // [BOS, LANG, TRANSCRIBE]. Optionally we should also set notimestamps token, as timestamping
+    // We need different starting token ids based on the multilingualism of the model.
+    // The eng version only needs BOS token, while the multilingual one needs:
+    // [BOS, LANG, TRANSCRIBE]. Optionally we should also set notimestamps token, as timestamps
     // is not yet supported.
     if (!audioLanguage) {
       return [this.config.tokenizer.bos];
@@ -259,7 +259,7 @@ export class SpeechToTextController {
           this.chunks!.at(chunkId)!
         );
       } catch (error) {
-        this.onErrorCallback?.(`An error has ocurred while encoding ${error}`);
+        this.onErrorCallback?.(`An error has occurred while encoding ${error}`);
         return '';
       }
 
@@ -270,7 +270,7 @@ export class SpeechToTextController {
           lastToken = await this.nativeModule.decode(seq, encoderOutput);
         } catch (error) {
           this.onErrorCallback?.(
-            `An error has ocurred while decoding: ${error}`
+            `An error has occurred while decoding: ${error}`
           );
           return '';
         }
@@ -337,7 +337,7 @@ export class SpeechToTextController {
       return this.nativeTokenizer.decode(tokenIds, true);
     } catch (e) {
       this.onErrorCallback?.(
-        new Error(`An error has ocurred when decoding the token ids: ${e}`)
+        new Error(`An error has occurred when decoding the token ids: ${e}`)
       );
       return '';
     }
