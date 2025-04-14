@@ -9,8 +9,7 @@ import java.net.URL
 
 class LLM(
   reactContext: ReactApplicationContext,
-) : NativeLLMSpec(reactContext),
-  LlmCallback {
+) : NativeLLMSpec(reactContext), LlmCallback {
   private var llamaModule: LlmModule? = null
 
   override fun getName(): String = NAME
@@ -44,9 +43,7 @@ class LLM(
     input: String,
     promise: Promise,
   ) {
-    Thread {
-      llamaModule!!.generate(input, this)
-    }.start()
+    Thread { llamaModule!!.generate(input, this) }.start()
 
     promise.resolve("Inference completed successfully")
   }
