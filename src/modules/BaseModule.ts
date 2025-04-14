@@ -1,4 +1,7 @@
-import { fetchResource } from '../utils/fetchResource';
+import {
+  calculateDownloadProgres,
+  fetchResource,
+} from '../utils/fetchResource';
 import { getError } from '../Error';
 import { ResourceSource } from '../types/common';
 
@@ -8,12 +11,24 @@ export class BaseModule {
     () => {};
 
   static async load(...sources: ResourceSource[]): Promise<void> {
-    try {
-      const modelFileUris = await Promise.all(
-        sources.map((source) =>
-          fetchResource(source, this.onDownloadProgressCallback)
-        )
+    const modelFileUris: string[] = [];
+
+    for (const [idx, source] of sources.entries()) {
+      const progressCallback = calculateDownloadProgres(
+        sources.length,
+        idx,
+        this.onDownloadProgressCallback
       );
+
+      try {
+        const uri = await fetchResource(source, progressCallback);
+        modelFileUris.push(uri);
+      } catch (error) {
+        throw new Error(getError(error));
+      }
+    }
+
+    try {
       await this.nativeModule.loadModule(...modelFileUris);
     } catch (error) {
       throw new Error(getError(error));
