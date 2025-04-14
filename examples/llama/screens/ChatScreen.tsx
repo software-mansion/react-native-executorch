@@ -24,7 +24,7 @@ const TOOL_DEFINITIONS_PHONE: LLMTool[] = [
   {
     name: 'brightness',
     description:
-      'Change screen brigthness. Change can be relative (higher/lower) or set to miniaml or maximal.',
+      'Change screen brightness. Change can be relative (higher/lower) or set to minimal or maximal.',
     parameters: {
       type: 'dict',
       properties: {
@@ -50,12 +50,12 @@ const TOOL_DEFINITIONS_PHONE: LLMTool[] = [
         name: {
           type: 'string',
           description:
-            'Full or partial name of person to retrive. Those will be some part of names or letters, not numbers.',
+            'Full or partial name of person to retrieve. Those will be some part of names or letters, not numbers.',
         },
         phoneNumberPrefix: {
           type: 'string',
           description:
-            'Prefix or part of phone number of contact to retrive. Those will be numbers.',
+            'Prefix or part of phone number of contact to retrieve. Those will be numbers.',
         },
       },
     },

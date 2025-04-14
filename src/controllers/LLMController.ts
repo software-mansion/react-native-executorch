@@ -24,7 +24,7 @@ export class LLMController {
   // User callbacks
   private responseCallback: (response: string) => void;
   private messageHistoryCallback: (messageHistory: Array<MessageType>) => void;
-  private modelDownloadProgessCallback:
+  private modelDownloadProgressCallback:
     | ((downloadProgress: number) => void)
     | undefined;
   private isReadyCallback: (isReady: boolean) => void;
@@ -38,7 +38,7 @@ export class LLMController {
     messageHistoryCallback,
     isReadyCallback,
     isGeneratingCallback,
-    modelDownloadProgessCallback,
+    modelDownloadProgressCallback,
     errorCallback,
     chatConfig = {
       systemPrompt: DEFAULT_SYSTEM_PROMPT,
@@ -50,7 +50,7 @@ export class LLMController {
     messageHistoryCallback: (messageHistory: Array<MessageType>) => void;
     isReadyCallback?: (isReady: boolean) => void;
     isGeneratingCallback?: (isGenerating: boolean) => void;
-    modelDownloadProgessCallback?: (downloadProgress: number) => void;
+    modelDownloadProgressCallback?: (downloadProgress: number) => void;
     errorCallback?: (error: Error | undefined) => void;
     chatConfig?: ChatConfig;
   }) {
@@ -71,7 +71,7 @@ export class LLMController {
       isGeneratingCallback?.(isGenerating);
     };
     this.errorCallback = errorCallback;
-    this.modelDownloadProgessCallback = modelDownloadProgessCallback;
+    this.modelDownloadProgressCallback = modelDownloadProgressCallback;
 
     this.messageHistoryCallback(chatConfig.initialMessageHistory);
     this.chatConfig = chatConfig;
@@ -108,7 +108,7 @@ export class LLMController {
 
       const modelFileUri = await ResourceFetcher.fetch(
         modelSource,
-        this.modelDownloadProgessCallback
+        this.modelDownloadProgressCallback
       );
 
       await this.nativeModule.loadLLM(modelFileUri, tokenizerFileUri);

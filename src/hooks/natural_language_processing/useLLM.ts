@@ -42,7 +42,7 @@ export const useLLM = ({
         messageHistoryCallback: setMessageHistory,
         isReadyCallback: setIsReady,
         isGeneratingCallback: setIsGenerating,
-        modelDownloadProgessCallback: setDownloadProgress,
+        modelDownloadProgressCallback: setDownloadProgress,
         errorCallback: setError,
         chatConfig: chatConfig,
       })
