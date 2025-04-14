@@ -48,7 +48,7 @@ body:
         Issues without a reproduction are likely to stale.
       placeholder: Link to a Snack or a GitHub repository
     validations:
-      required: true
+      required: false
 
   - type: input
     id: react-native-executorch-version
