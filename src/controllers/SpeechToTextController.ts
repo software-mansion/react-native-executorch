@@ -5,6 +5,7 @@ import {
   MODES,
   STREAMING_ACTION,
   NUM_TOKENS_TO_SLICE,
+  SLICING_PLACE,
 } from '../constants/sttDefaults';
 import { AvailableModels, ModelConfig } from '../types/stt';
 import {
@@ -31,7 +32,7 @@ export class SpeechToTextController {
   private prevSeq: number[] = [];
   private streamWaveform: number[] = [];
   private isDecodingChunk = false;
-  private indexOfCurrentlyDecodingChunk = 0;
+  private firstChunk = true;
   private isChunkDeleted = false;
   private numOfChunks = 0;
 
@@ -203,6 +204,44 @@ export class SpeechToTextController {
     return await this.nativeModule.decode(seq, encodings);
   }
 
+  private resetState() {
+    this.sequence = [];
+    this.seqs = [];
+    this.streamWaveform = [];
+    this.prevSeq = [];
+    this.isChunkDeleted = false;
+    this.firstChunk = true;
+    this.decodedTranscribeCallback([]);
+  }
+
+  private expectedChunkLength() {
+    return !this.firstChunk
+      ? this.windowSize + 2 * this.overlapSeconds
+      : this.windowSize + this.overlapSeconds;
+  }
+
+  private async trimSequenceTokens(
+    place: SLICING_PLACE,
+    seq: number[],
+    audioLanguage?: string
+  ) {
+    const numSpecialTokens = (await this.getStartingTokenIds(audioLanguage))
+      .length;
+    switch (place) {
+      case SLICING_PLACE.END:
+        return seq.slice(numSpecialTokens + NUM_TOKENS_TO_SLICE);
+      case SLICING_PLACE.MIDDLE:
+        return seq.slice(
+          numSpecialTokens + NUM_TOKENS_TO_SLICE,
+          -(numSpecialTokens + NUM_TOKENS_TO_SLICE)
+        );
+      case SLICING_PLACE.START:
+        return seq.slice(0, -(numSpecialTokens + NUM_TOKENS_TO_SLICE));
+      default:
+        throw new Error('Invalid slicing place');
+    }
+  }
+
   private async getStartingTokenIds(audioLanguage?: string): Promise<number[]> {
     // We need different starting token ids based on the multilinguality of the model.
     // The eng verison only needs BOS token, while the multilingual one needs:
@@ -232,11 +271,10 @@ export class SpeechToTextController {
     chunk: number[],
     audioLanguage?: SpeechToTextLanguage
   ): Promise<number[]> {
-    let seq = await this.getStartingTokenIds(audioLanguage);
+    const seq = await this.getStartingTokenIds(audioLanguage);
     let prevSeqTokenIdx = 0;
-    let encoderOutput;
     try {
-      encoderOutput = await this.nativeModule.encode(chunk);
+      await this.nativeModule.encode(chunk);
     } catch (error) {
       this.onErrorCallback?.(`An error has ocurred while encoding ${error}`);
       return [];
@@ -244,7 +282,7 @@ export class SpeechToTextController {
     let lastToken = seq.at(-1) as number;
     while (lastToken !== this.config.tokenizer.eos) {
       try {
-        lastToken = await this.nativeModule.decode(seq, encoderOutput);
+        lastToken = await this.nativeModule.decode(seq);
       } catch (error) {
         this.onErrorCallback?.(`Decode ${error}`);
         return [];
@@ -268,10 +306,9 @@ export class SpeechToTextController {
       seqs.at(-1)!,
       HAMMING_DIST_THRESHOLD
     );
-    let finalSeq = [...this.sequence, ...seqs.at(-2)!.slice(0, maxInd)];
-    this.sequence = finalSeq.slice();
-    this.decodedTranscribeCallback(finalSeq);
-    return finalSeq;
+    this.sequence = [...this.sequence, ...seqs.at(-2)!.slice(0, maxInd)];
+    this.decodedTranscribeCallback(this.sequence);
+    return this.sequence.slice();
   }
 
   public async transcribe(
@@ -303,12 +340,9 @@ export class SpeechToTextController {
 
     // Making sure that the error is not set when we get there
     this.onErrorCallback?.(undefined);
-    this.decodedTranscribeCallback([]);
     this.isGeneratingCallback(true);
 
-    this.sequence = [];
-    this.seqs = [];
-    this.prevSeq = [];
+    this.resetState();
     this.chunkWaveform(waveform);
 
     for (let chunkId = 0; chunkId < this.chunks.length; chunkId++) {
@@ -320,18 +354,25 @@ export class SpeechToTextController {
         this.decodedTranscribeCallback(finalSeq);
         break;
       }
-      const numSpecialTokens = (await this.getStartingTokenIds(audioLanguage))
-        .length;
       // Remove starting tokenIds and some additional ones
       if (this.seqs.length === 0) {
-        this.seqs = [seq.slice(0, -(numSpecialTokens + NUM_TOKENS_TO_SLICE))];
+        this.seqs = [
+          await this.trimSequenceTokens(
+            SLICING_PLACE.START,
+            seq,
+            audioLanguage
+          ),
+        ];
       } else if (this.seqs.length === this.chunks.length - 1) {
-        this.seqs.push(seq.slice(numSpecialTokens + NUM_TOKENS_TO_SLICE));
+        this.seqs.push(
+          await this.trimSequenceTokens(SLICING_PLACE.END, seq, audioLanguage)
+        );
       } else {
         this.seqs.push(
-          seq.slice(
-            numSpecialTokens + NUM_TOKENS_TO_SLICE,
-            -(numSpecialTokens + NUM_TOKENS_TO_SLICE)
+          await this.trimSequenceTokens(
+            SLICING_PLACE.MIDDLE,
+            seq,
+            audioLanguage
           )
         );
       }
@@ -339,15 +380,13 @@ export class SpeechToTextController {
         continue;
       }
 
-      finalSeq = this.handleOverlaps(this.seqs);
-      this.prevSeq = finalSeq;
+      this.prevSeq = this.handleOverlaps(this.seqs);
 
       //last sequence processed
       if (this.seqs.length === this.chunks.length) {
-        finalSeq = [...this.sequence, ...this.seqs.at(-1)!];
-        this.sequence = finalSeq;
-        this.decodedTranscribeCallback(finalSeq);
-        this.prevSeq = finalSeq;
+        this.sequence = [...this.sequence, ...this.seqs.at(-1)!];
+        this.decodedTranscribeCallback(this.sequence);
+        this.prevSeq = this.sequence;
       }
     }
     const decodedText = await this.tokenIdsToText(this.sequence);
@@ -364,97 +403,97 @@ export class SpeechToTextController {
       this.onErrorCallback?.(new Error('Model is not yet ready'));
       return '';
     }
-    if (streamAction == STREAMING_ACTION.DATA && !waveform) {
+    if (streamAction === STREAMING_ACTION.DATA && !waveform) {
       this.onErrorCallback?.(new Error('Waveform has to be provided'));
       return '';
     }
     this.onErrorCallback?.(undefined);
 
-    if (streamAction == STREAMING_ACTION.START) {
-      this.sequence = [];
-      this.seqs = [];
-      this.streamWaveform = [];
-      this.prevSeq = [];
-      this.indexOfCurrentlyDecodingChunk = 0;
-      this.isChunkDeleted = false;
-      this.decodedTranscribeCallback([]);
+    if (streamAction === STREAMING_ACTION.START) {
+      this.resetState();
       this.isGeneratingCallback(true);
     }
-    this.streamWaveform = [...this.streamWaveform, ...waveform!];
-    this.chunkWaveform(this.streamWaveform, this.isDecodingChunk);
-    if (!this.isDecodingChunk && streamAction != STREAMING_ACTION.STOP) {
+    if (waveform) {
+      this.streamWaveform = [...this.streamWaveform, ...waveform!];
+    }
+    this.chunkWaveform(this.streamWaveform, this.isChunkDeleted);
+    if (!this.isDecodingChunk && streamAction !== STREAMING_ACTION.STOP) {
       this.isDecodingChunk = true;
       while (
-        this.chunks.at(this.indexOfCurrentlyDecodingChunk)?.length ==
-          2 * this.overlapSeconds + this.windowSize ||
-        (this.indexOfCurrentlyDecodingChunk == 0 &&
-          this.chunks.at(0)?.length == this.windowSize + this.overlapSeconds)
+        this.chunks.at(this.firstChunk ? 0 : 1)?.length ==
+        this.expectedChunkLength()
       ) {
         let seq = await this.decodeChunk(
-          this.chunks.at(this.indexOfCurrentlyDecodingChunk)!,
+          this.chunks.at(this.firstChunk ? 0 : 1)!,
           audioLanguage
         );
-        const numSpecialTokens = (await this.getStartingTokenIds(audioLanguage))
-          .length;
         // remove sos/eos token and some additional ones
-        if (this.indexOfCurrentlyDecodingChunk == 0) {
-          this.seqs = [seq.slice(0, -(numSpecialTokens + NUM_TOKENS_TO_SLICE))];
+        if (this.firstChunk) {
+          this.seqs = [
+            await this.trimSequenceTokens(
+              SLICING_PLACE.START,
+              seq,
+              audioLanguage
+            ),
+          ];
         } else {
           this.seqs = [
             ...this.seqs,
-            seq.slice(
-              numSpecialTokens + NUM_TOKENS_TO_SLICE,
-              -(numSpecialTokens + NUM_TOKENS_TO_SLICE)
+            await this.trimSequenceTokens(
+              SLICING_PLACE.MIDDLE,
+              seq,
+              audioLanguage
             ),
           ];
           this.prevSeq = this.handleOverlaps(this.seqs);
         }
-        this.indexOfCurrentlyDecodingChunk++;
+        this.firstChunk = false;
         // remove data, which was processed and saved to this.seqs
         if (this.numOfChunks > 2) {
           this.streamWaveform = this.isChunkDeleted
             ? this.streamWaveform.slice(this.windowSize)
             : this.streamWaveform.slice(this.windowSize - this.overlapSeconds);
           this.isChunkDeleted = true;
-          this.indexOfCurrentlyDecodingChunk--;
           break;
         }
       }
       this.isDecodingChunk = false;
     }
-    while (streamAction == STREAMING_ACTION.STOP) {
+    let indexOfCurrentlyDecodingChunk = this.firstChunk ? 0 : 1;
+    while (streamAction === STREAMING_ACTION.STOP) {
       let seq = await this.decodeChunk(
-        this.chunks.at(this.indexOfCurrentlyDecodingChunk)!
+        this.chunks.at(indexOfCurrentlyDecodingChunk)!
       );
-      if (this.seqs.length == 0) {
+      if (this.seqs.length === 0) {
         this.sequence = seq;
         this.decodedTranscribeCallback(seq);
         this.isGeneratingCallback(false);
         break;
       }
       //last sequence processed
-      const numSpecialTokens = (await this.getStartingTokenIds(audioLanguage))
-        .length;
-      if (this.indexOfCurrentlyDecodingChunk == this.numOfChunks - 1) {
-        this.seqs.push(seq.slice(numSpecialTokens + NUM_TOKENS_TO_SLICE));
+      if (indexOfCurrentlyDecodingChunk === this.numOfChunks - 1) {
+        this.seqs.push(
+          await this.trimSequenceTokens(SLICING_PLACE.END, seq, audioLanguage)
+        );
       } else {
         this.seqs = [
           ...this.seqs,
-          seq.slice(
-            numSpecialTokens + NUM_TOKENS_TO_SLICE,
-            -(numSpecialTokens + NUM_TOKENS_TO_SLICE)
+          await this.trimSequenceTokens(
+            SLICING_PLACE.MIDDLE,
+            seq,
+            audioLanguage
           ),
         ];
       }
       this.handleOverlaps(this.seqs);
-      if (this.indexOfCurrentlyDecodingChunk == this.numOfChunks - 1) {
+      if (indexOfCurrentlyDecodingChunk === this.numOfChunks - 1) {
         let finalSeq = [...this.sequence, ...this.seqs.at(-1)!];
         this.sequence = finalSeq;
         this.decodedTranscribeCallback(finalSeq);
         this.isGeneratingCallback(false);
         break;
       }
-      this.indexOfCurrentlyDecodingChunk++;
+      indexOfCurrentlyDecodingChunk++;
     }
     const decodedText = await this.tokenIdsToText(this.sequence);
     return decodedText;
