@@ -60,15 +60,16 @@
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^17.0.2",
+    "@cspell/eslint-plugin": "^8.18.1",
     "@evilmartians/lefthook": "^1.5.0",
     "@react-native-community/cli": "latest",
-    "@react-native/eslint-config": "^0.73.1",
+    "@react-native/eslint-config": "^0.79.0",
     "@release-it/conventional-changelog": "^5.0.0",
     "@types/jest": "^29.5.5",
     "@types/react": "^18.2.44",
     "commitlint": "^17.0.2",
     "del-cli": "^5.1.0",
-    "eslint": "^8.51.0",
+    "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.1",
     "jest": "^29.7.0",
@@ -119,45 +120,6 @@
         "preset": "angular"
       }
     }
-  },
-  "eslintConfig": {
-    "parserOptions": {
-      "requireConfigFile": false,
-      "babelOptions": {
-        "presets": [
-          "@babel/preset-react"
-        ]
-      }
-    },
-    "root": true,
-    "extends": [
-      "@react-native",
-      "prettier"
-    ],
-    "rules": {
-      "react/react-in-jsx-scope": "off",
-      "prettier/prettier": [
-        "error",
-        {
-          "quoteProps": "consistent",
-          "singleQuote": true,
-          "tabWidth": 2,
-          "trailingComma": "es5",
-          "useTabs": false
-        }
-      ]
-    }
-  },
-  "eslintIgnore": [
-    "node_modules/",
-    "lib/"
-  ],
-  "prettier": {
-    "quoteProps": "consistent",
-    "singleQuote": true,
-    "tabWidth": 2,
-    "trailingComma": "es5",
-    "useTabs": false
   },
   "babel": {
     "presets": [
