@@ -146,10 +146,10 @@ const Tokenizer = TokenizerSpec
 class _ImageSegmentationModule {
   async forward(
     input: string,
-    classesOfInteres: string[],
+    classesOfInterest: string[],
     resize: boolean
   ): ReturnType<ImageSegmentationInterface['forward']> {
-    return await ImageSegmentation.forward(input, classesOfInteres, resize);
+    return await ImageSegmentation.forward(input, classesOfInterest, resize);
   }
   async loadModule(
     modelSource: string | number

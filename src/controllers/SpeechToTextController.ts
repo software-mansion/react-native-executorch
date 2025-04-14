@@ -29,7 +29,7 @@ export class SpeechToTextController {
 
   // User callbacks
   private decodedTranscribeCallback: (sequence: number[]) => void;
-  private modelDownloadProgessCallback:
+  private modelDownloadProgressCallback:
     | ((downloadProgress: number) => void)
     | undefined;
   private isReadyCallback: (isReady: boolean) => void;
@@ -39,7 +39,7 @@ export class SpeechToTextController {
 
   constructor({
     transcribeCallback,
-    modelDownloadProgessCallback,
+    modelDownloadProgressCallback,
     isReadyCallback,
     isGeneratingCallback,
     onErrorCallback,
@@ -48,7 +48,7 @@ export class SpeechToTextController {
     streamingConfig,
   }: {
     transcribeCallback: (sequence: string) => void;
-    modelDownloadProgessCallback?: (downloadProgress: number) => void;
+    modelDownloadProgressCallback?: (downloadProgress: number) => void;
     isReadyCallback?: (isReady: boolean) => void;
     isGeneratingCallback?: (isGenerating: boolean) => void;
     onErrorCallback?: (error: Error | undefined) => void;
@@ -58,7 +58,7 @@ export class SpeechToTextController {
   }) {
     this.decodedTranscribeCallback = async (seq) =>
       transcribeCallback(await this.tokenIdsToText(seq));
-    this.modelDownloadProgessCallback = modelDownloadProgessCallback;
+    this.modelDownloadProgressCallback = modelDownloadProgressCallback;
     this.isReadyCallback = (isReady) => {
       this.isReady = isReady;
       isReadyCallback?.(isReady);
@@ -89,12 +89,12 @@ export class SpeechToTextController {
     try {
       encoderSource = await fetchResource(
         encoderSource || this.config.sources.encoder,
-        (progress) => this.modelDownloadProgessCallback?.(progress / 2)
+        (progress) => this.modelDownloadProgressCallback?.(progress / 2)
       );
 
       decoderSource = await fetchResource(
         decoderSource || this.config.sources.decoder,
-        (progress) => this.modelDownloadProgessCallback?.(0.5 + progress / 2)
+        (progress) => this.modelDownloadProgressCallback?.(0.5 + progress / 2)
       );
 
       let tokenizerUri = await fetchResource(
@@ -121,7 +121,7 @@ export class SpeechToTextController {
         encoderSource!,
         decoderSource!,
       ]);
-      this.modelDownloadProgessCallback?.(1);
+      this.modelDownloadProgressCallback?.(1);
       this.isReadyCallback(true);
     } catch (e) {
       this.onErrorCallback?.(

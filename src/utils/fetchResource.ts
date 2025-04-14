@@ -87,7 +87,7 @@ export const fetchResource = async (
   return fileUri;
 };
 
-export const calculateDownloadProgres =
+export const calculateDownloadProgress =
   (
     numberOfFiles: number,
     currentFileIndex: number,

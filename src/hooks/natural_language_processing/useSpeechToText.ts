@@ -52,7 +52,7 @@ export const useSpeechToText = ({
         isReadyCallback: setIsReady,
         isGeneratingCallback: setIsGenerating,
         onErrorCallback: setError,
-        modelDownloadProgessCallback: setDownloadProgress,
+        modelDownloadProgressCallback: setDownloadProgress,
         overlapSeconds: overlapSeconds,
         windowSize: windowSize,
         streamingConfig: streamingConfig,

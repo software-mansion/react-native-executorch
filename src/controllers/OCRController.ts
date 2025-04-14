@@ -5,7 +5,7 @@ import { ResourceSource } from '../types/common';
 import { OCRLanguage } from '../types/ocr';
 import {
   fetchResource,
-  calculateDownloadProgres,
+  calculateDownloadProgress,
 } from '../utils/fetchResource';
 
 export class OCRController {
@@ -52,21 +52,21 @@ export class OCRController {
 
       const detectorPath = await fetchResource(
         detectorSource,
-        calculateDownloadProgres(4, 0, this.modelDownloadProgressCallback)
+        calculateDownloadProgress(4, 0, this.modelDownloadProgressCallback)
       );
 
       const recognizerPaths = {
         recognizerLarge: await fetchResource(
           recognizerSources.recognizerLarge,
-          calculateDownloadProgres(4, 1, this.modelDownloadProgressCallback)
+          calculateDownloadProgress(4, 1, this.modelDownloadProgressCallback)
         ),
         recognizerMedium: await fetchResource(
           recognizerSources.recognizerMedium,
-          calculateDownloadProgres(4, 2, this.modelDownloadProgressCallback)
+          calculateDownloadProgress(4, 2, this.modelDownloadProgressCallback)
         ),
         recognizerSmall: await fetchResource(
           recognizerSources.recognizerSmall,
-          calculateDownloadProgres(4, 3, this.modelDownloadProgressCallback)
+          calculateDownloadProgress(4, 3, this.modelDownloadProgressCallback)
         ),
       };
 
