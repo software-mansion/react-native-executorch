@@ -14,6 +14,19 @@ const LINKING_ERROR =
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo Go\n';
 
+function returnSpecOrThrowLinkingError(spec: any) {
+  return spec
+    ? spec
+    : new Proxy(
+        {},
+        {
+          get() {
+            throw new Error(LINKING_ERROR);
+          },
+        }
+      );
+}
+
 const LLMSpec = require('./NativeLLM').default;
 
 const LLM = LLMSpec
@@ -135,19 +148,6 @@ const TokenizerSpec = require('./NativeTokenizer').default;
 
 const Tokenizer = TokenizerSpec
   ? TokenizerSpec
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      }
-    );
-
-const ETInstallerSpec = require('./NativeETInstaller').default;
-
-const ETInstaller = ETInstallerSpec
-  ? ETInstallerSpec
   : new Proxy(
       {},
       {
@@ -310,11 +310,8 @@ class _TokenizerModule {
   }
 }
 
-class _ETInstallerModule {
-  install(): ReturnType<ETInstallerInterface['install']> {
-    return ETInstaller.install();
-  }
-}
+const ETInstallerNativeModule: ETInstallerInterface =
+  returnSpecOrThrowLinkingError(require('./NativeETInstaller').default);
 
 export {
   LLM,
@@ -327,7 +324,6 @@ export {
   OCR,
   VerticalOCR,
   Tokenizer,
-  ETInstaller,
   _ETModule,
   _TokenizerModule,
   _ClassificationModule,
@@ -337,5 +333,5 @@ export {
   _SpeechToTextModule,
   _OCRModule,
   _VerticalOCRModule,
-  _ETInstallerModule,
+  ETInstallerNativeModule,
 };
