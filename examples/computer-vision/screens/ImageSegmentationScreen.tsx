@@ -4,7 +4,7 @@ import { getImage } from '../utils';
 import {
   useImageSegmentation,
   DeeplabLabel,
-  DEEPLABV3_RESNET50,
+  DEEPLAB_V3_RESNET50,
 } from 'react-native-executorch';
 import {
   Canvas,
@@ -66,7 +66,7 @@ export const ImageSegmentationScreen = ({
   setImageUri: (imageUri: string) => void;
 }) => {
   const model = useImageSegmentation({
-    modelSource: DEEPLABV3_RESNET50,
+    modelSource: DEEPLAB_V3_RESNET50,
   });
 
   const handleCameraPress = async (isCamera: boolean) => {
