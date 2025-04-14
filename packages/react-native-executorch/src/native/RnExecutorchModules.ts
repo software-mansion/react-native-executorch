@@ -57,9 +57,8 @@ const TokenizerNativeModule: TokenizerInterface = returnSpecOrThrowLinkingError(
 );
 const TextEmbeddingsNativeModule: TextEmbeddingsInterface =
   returnSpecOrThrowLinkingError(require('./NativeTextEmbeddings').default);
-const ETInstallerModule: ETInstallerInterface = returnSpecOrThrowLinkingError(
-  require('./NativeTextEmbeddings').default
-);
+const ETInstallerNativeModule: ETInstallerInterface =
+  returnSpecOrThrowLinkingError(require('./NativeETInstaller').default);
 
 export {
   LLMNativeModule,
@@ -73,5 +72,5 @@ export {
   VerticalOCRNativeModule,
   TextEmbeddingsNativeModule,
   TokenizerNativeModule,
-  ETInstallerModule,
+  ETInstallerNativeModule
 };
