@@ -11,16 +11,17 @@
 
 #include "stats.h"
 #include "text_decoder_runner.h"
-#include "tokenizer.h"
 #include <executorch/extension/tensor/tensor.h>
+#include <iostream>
+#include <tokenizers-cpp/tokenizers_cpp.h>
 
 namespace executorch {
 namespace extension {
 namespace llm {
 
-class TextTokenGenerator {
+class ET_EXPERIMENTAL TextTokenGenerator {
 public:
-  TextTokenGenerator(Tokenizer *tokenizer,
+  TextTokenGenerator(tokenizers::Tokenizer *tokenizer,
                      TextDecoderRunner *text_decoder_runner, bool use_kv_cache,
                      std::unique_ptr<std::unordered_set<uint64_t>> &&eos_ids,
                      Stats *stats)
@@ -45,10 +46,9 @@ public:
     ET_CHECK_MSG(!tokens.empty(),
                  "Token generation loop shouldn't take empty tokens");
     int64_t pos = start_pos; // position in the sequence
-    should_stop_ = false;
 
     std::vector<uint64_t> token_data; // allocate space for the tokens
-    std::vector<exec_aten::SizesType> token_shape;
+    std::vector<executorch::aten::SizesType> token_shape;
 
     // Token after prefill
     uint64_t cur_token = tokens.back();
@@ -65,10 +65,12 @@ public:
     }
 
     // initialize tensor wrappers
-    auto tokens_managed =
-        from_blob(token_data.data(), token_shape, exec_aten::ScalarType::Long);
+    auto tokens_managed = from_blob(token_data.data(), token_shape,
+                                    executorch::aten::ScalarType::Long);
+    auto start_pos_managed =
+        from_blob(&pos, {1}, executorch::aten::ScalarType::Long);
 
-    auto start_pos_managed = from_blob(&pos, {1}, exec_aten::ScalarType::Long);
+    should_stop_ = false;
 
     // Generate our tokens
     while (pos < seq_len - 1) {
@@ -77,7 +79,7 @@ public:
           text_decoder_runner_->step(tokens_managed, start_pos_managed);
 
       ET_CHECK_OK_OR_RETURN_ERROR(logits_res.error());
-      exec_aten::Tensor &logits_tensor = logits_res.get();
+      executorch::aten::Tensor &logits_tensor = logits_res.get();
 
       prev_token = cur_token;
 
@@ -99,7 +101,15 @@ public:
       }
 
       // print the token as string, decode it with the Tokenizer object
-      token_callback(ET_UNWRAP(tokenizer_->decode(prev_token, cur_token)));
+
+      std::string prev_decoded = tokenizer_->Decode(
+          std::vector<int32_t>{static_cast<int32_t>(prev_token)});
+      std::string merged_decoded = tokenizer_->Decode(std::vector<int32_t>{
+          static_cast<int32_t>(prev_token), static_cast<int32_t>(cur_token)});
+
+      std::string new_part = merged_decoded.substr(prev_decoded.size());
+
+      token_callback(new_part);
 
       if (should_stop_) {
         break;
@@ -121,7 +131,7 @@ public:
   inline void stop() { should_stop_ = true; }
 
 private:
-  Tokenizer *tokenizer_;
+  tokenizers::Tokenizer *tokenizer_;
   TextDecoderRunner *text_decoder_runner_;
   std::unique_ptr<std::unordered_set<uint64_t>> eos_ids_;
   bool use_kv_cache_;

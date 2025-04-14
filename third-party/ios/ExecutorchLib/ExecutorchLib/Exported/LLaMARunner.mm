@@ -14,7 +14,6 @@
 using namespace ::torch::executor;
 
 NSErrorDomain const LLaMARunnerErrorDomain = @"LLaMARunnerErrorDomain";
-NSErrorDomain const LLaVARunnerErrorDomain = @"LLaVARunnerErrorDomain";
 
 @interface LLaMARunner () <ExecuTorchLogSink>
 @end
@@ -38,7 +37,7 @@ NSErrorDomain const LLaVARunnerErrorDomain = @"LLaVARunnerErrorDomain";
   [ExecuTorchLog.sharedLog removeSink:self];
 }
 
-- (BOOL)isloaded {
+- (BOOL)isLoaded {
   return _runner->is_loaded();
 }
 
