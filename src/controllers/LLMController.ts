@@ -31,8 +31,6 @@ export class LLMController {
   private isGeneratingCallback: (isGenerating: boolean) => void;
   private errorCallback: ((error: any) => void) | undefined;
 
-  // public fields
-
   constructor({
     responseCallback,
     messageHistoryCallback,
