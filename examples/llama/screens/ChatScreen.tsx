@@ -20,6 +20,108 @@ import ColorPalette from '../colors';
 import Messages from '../components/Messages';
 import { LLMTool } from '../../../src/types/common';
 
+export default function ChatScreen() {
+  const [isTextInputFocused, setIsTextInputFocused] = useState(false);
+  const [userInput, setUserInput] = useState('');
+  const chat = useLLM({
+    modelSource:
+      'https://huggingface.co/nklockiewicz/ocr/resolve/main/hammer/hammer-1_5b_bf16.pte',
+    tokenizerSource:
+      'https://huggingface.co/nklockiewicz/ocr/resolve/main/hammer/tokenizer-hammer.json',
+    tokenizerConfigSource:
+      'https://huggingface.co/MadeAgents/Hammer2.1-1.5b/resolve/main/tokenizer_config.json',
+  });
+
+  const textInputRef = useRef<TextInput>(null);
+  console.log('isGenerating', chat.isGenerating);
+
+  const sendMessage = async () => {
+    setUserInput('');
+    textInputRef.current?.clear();
+    try {
+      console.log('userInput:', userInput);
+      await chat.sendMessage(userInput, TOOL_DEFINITIONS_PHONE);
+    } catch (e) {
+      console.log('ERROR');
+      console.error(e);
+    }
+  };
+
+  return !chat.isReady ? (
+    <Spinner
+      visible={!chat.isReady}
+      textContent={`Loading the model ${(chat.downloadProgress * 100).toFixed(0)} %`}
+    />
+  ) : (
+    <SafeAreaView style={styles.container}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <KeyboardAvoidingView
+          style={styles.keyboardAvoidingView}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'android' ? 30 : 0}
+        >
+          <View style={styles.topContainer}>
+            <SWMIcon width={45} height={45} />
+            <Text style={styles.textModelName}>Llama 3.2 1B QLoRA</Text>
+          </View>
+          {chat.messageHistory.length ? (
+            <View style={styles.chatContainer}>
+              <Messages
+                chatHistory={chat.messageHistory}
+                llmResponse={chat.response}
+                isGenerating={chat.isGenerating}
+              />
+            </View>
+          ) : (
+            <View style={styles.helloMessageContainer}>
+              <Text style={styles.helloText}>Hello! 👋</Text>
+              <Text style={styles.bottomHelloText}>
+                What can I help you with?
+              </Text>
+            </View>
+          )}
+
+          <View style={styles.bottomContainer}>
+            <TextInput
+              onFocus={() => setIsTextInputFocused(true)}
+              onBlur={() => setIsTextInputFocused(false)}
+              style={{
+                ...styles.textInput,
+                borderColor: isTextInputFocused
+                  ? ColorPalette.blueDark
+                  : ColorPalette.blueLight,
+              }}
+              placeholder="Your message"
+              placeholderTextColor={'#C1C6E5'}
+              multiline={true}
+              ref={textInputRef}
+              onChangeText={(text: string) => setUserInput(text)}
+            />
+            {userInput && (
+              <TouchableOpacity
+                style={styles.sendChatTouchable}
+                onPress={async () =>
+                  !chat.isGenerating && (await sendMessage())
+                }
+              >
+                <SendIcon height={24} width={24} padding={4} margin={8} />
+              </TouchableOpacity>
+            )}
+            {chat.isGenerating && (
+              <TouchableOpacity
+                style={styles.sendChatTouchable}
+                onPress={chat.interrupt}
+              >
+                <PauseIcon height={24} width={24} padding={4} margin={8} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
+    </SafeAreaView>
+  );
+}
+
 const TOOL_DEFINITIONS_PHONE: LLMTool[] = [
   {
     name: 'brightness',
@@ -133,107 +235,6 @@ const TOOL_DEFINITIONS_PHONE: LLMTool[] = [
     },
   },
 ];
-export default function ChatScreen() {
-  const [isTextInputFocused, setIsTextInputFocused] = useState(false);
-  const [userInput, setUserInput] = useState('');
-  const chat = useLLM({
-    modelSource:
-      'https://huggingface.co/nklockiewicz/ocr/resolve/main/hammer/hammer-1_5b_bf16.pte',
-    tokenizerSource:
-      'https://huggingface.co/nklockiewicz/ocr/resolve/main/hammer/tokenizer-hammer.json',
-    tokenizerConfigSource:
-      'https://huggingface.co/MadeAgents/Hammer2.1-1.5b/resolve/main/tokenizer_config.json',
-  });
-
-  const textInputRef = useRef<TextInput>(null);
-  console.log('isGenerating', chat.isGenerating);
-
-  const sendMessage = async () => {
-    setUserInput('');
-    textInputRef.current?.clear();
-    try {
-      console.log('userInput:', userInput);
-      await chat.sendMessage(userInput, TOOL_DEFINITIONS_PHONE);
-    } catch (e) {
-      console.log('ERROR');
-      console.error(e);
-    }
-  };
-
-  return !chat.isReady ? (
-    <Spinner
-      visible={!chat.isReady}
-      textContent={`Loading the model ${(chat.downloadProgress * 100).toFixed(0)} %`}
-    />
-  ) : (
-    <SafeAreaView style={styles.container}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <KeyboardAvoidingView
-          style={styles.keyboardAvoidingView}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'android' ? 30 : 0}
-        >
-          <View style={styles.topContainer}>
-            <SWMIcon width={45} height={45} />
-            <Text style={styles.textModelName}>Llama 3.2 1B QLoRA</Text>
-          </View>
-          {chat.messageHistory.length ? (
-            <View style={styles.chatContainer}>
-              <Messages
-                chatHistory={chat.messageHistory}
-                llmResponse={chat.response}
-                isGenerating={chat.isGenerating}
-              />
-            </View>
-          ) : (
-            <View style={styles.helloMessageContainer}>
-              <Text style={styles.helloText}>Hello! 👋</Text>
-              <Text style={styles.bottomHelloText}>
-                What can I help you with?
-              </Text>
-            </View>
-          )}
-
-          <View style={styles.bottomContainer}>
-            <TextInput
-              onFocus={() => setIsTextInputFocused(true)}
-              onBlur={() => setIsTextInputFocused(false)}
-              style={{
-                ...styles.textInput,
-                borderColor: isTextInputFocused
-                  ? ColorPalette.blueDark
-                  : ColorPalette.blueLight,
-              }}
-              placeholder="Your message"
-              placeholderTextColor={'#C1C6E5'}
-              multiline={true}
-              ref={textInputRef}
-              onChangeText={(text: string) => setUserInput(text)}
-            />
-            {userInput && (
-              <TouchableOpacity
-                style={styles.sendChatTouchable}
-                onPress={async () =>
-                  !chat.isGenerating && (await sendMessage())
-                }
-              >
-                <SendIcon height={24} width={24} padding={4} margin={8} />
-              </TouchableOpacity>
-            )}
-            {chat.isGenerating && (
-              <TouchableOpacity
-                style={styles.sendChatTouchable}
-                onPress={chat.interrupt}
-              >
-                <PauseIcon height={24} width={24} padding={4} margin={8} />
-              </TouchableOpacity>
-            )}
-          </View>
-        </KeyboardAvoidingView>
-      </TouchableWithoutFeedback>
-    </SafeAreaView>
-  );
-}
 
 const styles = StyleSheet.create({
   container: {

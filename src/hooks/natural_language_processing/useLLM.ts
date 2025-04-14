@@ -69,8 +69,8 @@ export const useLLM = ({
     isGenerating,
     downloadProgress,
     error,
-    runInference: model.runInference,
-    sendMessage: model.sendMessage,
+    runInference: (input) => model.runInference(input),
+    sendMessage: (message, tools) => model.sendMessage(message, tools),
     interrupt: model.interrupt,
   };
 };
