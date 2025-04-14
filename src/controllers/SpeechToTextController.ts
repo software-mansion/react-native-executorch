@@ -29,7 +29,7 @@ export class SpeechToTextController {
 
   // User callbacks
   private decodedTranscribeCallback: (sequence: number[]) => void;
-  private modelDownloadProgessCallback:
+  private modelDownloadProgressCallback:
     | ((downloadProgress: number) => void)
     | undefined;
   private isReadyCallback: (isReady: boolean) => void;
@@ -39,7 +39,7 @@ export class SpeechToTextController {
 
   constructor({
     transcribeCallback,
-    modelDownloadProgessCallback,
+    modelDownloadProgressCallback,
     isReadyCallback,
     isGeneratingCallback,
     onErrorCallback,
@@ -48,7 +48,7 @@ export class SpeechToTextController {
     streamingConfig,
   }: {
     transcribeCallback: (sequence: string) => void;
-    modelDownloadProgessCallback?: (downloadProgress: number) => void;
+    modelDownloadProgressCallback?: (downloadProgress: number) => void;
     isReadyCallback?: (isReady: boolean) => void;
     isGeneratingCallback?: (isGenerating: boolean) => void;
     onErrorCallback?: (error: Error | undefined) => void;
@@ -58,7 +58,7 @@ export class SpeechToTextController {
   }) {
     this.decodedTranscribeCallback = async (seq) =>
       transcribeCallback(await this.tokenIdsToText(seq));
-    this.modelDownloadProgessCallback = modelDownloadProgessCallback;
+    this.modelDownloadProgressCallback = modelDownloadProgressCallback;
     this.isReadyCallback = (isReady) => {
       this.isReady = isReady;
       isReadyCallback?.(isReady);
@@ -89,12 +89,12 @@ export class SpeechToTextController {
     try {
       encoderSource = await fetchResource(
         encoderSource || this.config.sources.encoder,
-        (progress) => this.modelDownloadProgessCallback?.(progress / 2)
+        (progress) => this.modelDownloadProgressCallback?.(progress / 2)
       );
 
       decoderSource = await fetchResource(
         decoderSource || this.config.sources.decoder,
-        (progress) => this.modelDownloadProgessCallback?.(0.5 + progress / 2)
+        (progress) => this.modelDownloadProgressCallback?.(0.5 + progress / 2)
       );
 
       let tokenizerUri = await fetchResource(
@@ -121,7 +121,7 @@ export class SpeechToTextController {
         encoderSource!,
         decoderSource!,
       ]);
-      this.modelDownloadProgessCallback?.(1);
+      this.modelDownloadProgressCallback?.(1);
       this.isReadyCallback(true);
     } catch (e) {
       this.onErrorCallback?.(
@@ -187,9 +187,9 @@ export class SpeechToTextController {
   }
 
   private async getStartingTokenIds(audioLanguage?: string): Promise<number[]> {
-    // We need different starting token ids based on the multilinguality of the model.
-    // The eng verison only needs BOS token, while the multilingual one needs:
-    // [BOS, LANG, TRANSCRIBE]. Optionally we should also set notimestamps token, as timestamping
+    // We need different starting token ids based on the multilingualism of the model.
+    // The eng version only needs BOS token, while the multilingual one needs:
+    // [BOS, LANG, TRANSCRIBE]. Optionally we should also set notimestamps token, as timestamps
     // is not yet supported.
     if (!audioLanguage) {
       return [this.config.tokenizer.bos];
@@ -259,7 +259,7 @@ export class SpeechToTextController {
           this.chunks!.at(chunkId)!
         );
       } catch (error) {
-        this.onErrorCallback?.(`An error has ocurred while encoding ${error}`);
+        this.onErrorCallback?.(`An error has occurred while encoding ${error}`);
         return '';
       }
 
@@ -270,7 +270,7 @@ export class SpeechToTextController {
           lastToken = await this.nativeModule.decode(seq, encoderOutput);
         } catch (error) {
           this.onErrorCallback?.(
-            `An error has ocurred while decoding: ${error}`
+            `An error has occurred while decoding: ${error}`
           );
           return '';
         }
@@ -337,7 +337,7 @@ export class SpeechToTextController {
       return this.nativeTokenizer.decode(tokenIds, true);
     } catch (e) {
       this.onErrorCallback?.(
-        new Error(`An error has ocurred when decoding the token ids: ${e}`)
+        new Error(`An error has occurred when decoding the token ids: ${e}`)
       );
       return '';
     }
