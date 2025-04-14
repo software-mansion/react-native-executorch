@@ -9,7 +9,7 @@ import {
 } from '../utils/fetchResource';
 
 export class VerticalOCRController {
-  private nativeModule: typeof VerticalOCRNativeModule;
+  private ocrNativeModule: typeof VerticalOCRNativeModule;
   public isReady: boolean = false;
   public isGenerating: boolean = false;
   public error: string | null = null;
@@ -24,7 +24,7 @@ export class VerticalOCRController {
     isGeneratingCallback = (_isGenerating: boolean) => {},
     errorCallback = (_error: string) => {},
   }) {
-    this.nativeModule = VerticalOCRNativeModule;
+    this.ocrNativeModule = VerticalOCRNativeModule;
     this.modelDownloadProgressCallback = modelDownloadProgressCallback;
     this.isReadyCallback = isReadyCallback;
     this.isGeneratingCallback = isGeneratingCallback;
@@ -78,7 +78,7 @@ export class VerticalOCRController {
         ),
       };
 
-      await this.nativeModule.loadModule(
+      await this.ocrNativeModule.loadModule(
         detectorPaths.detectorLarge,
         detectorPaths.detectorNarrow,
         recognizerPath,
@@ -108,7 +108,7 @@ export class VerticalOCRController {
     try {
       this.isGenerating = true;
       this.isGeneratingCallback(this.isGenerating);
-      return await this.nativeModule.forward(input);
+      return await this.ocrNativeModule.forward(input);
     } catch (e) {
       throw new Error(getError(e));
     } finally {
