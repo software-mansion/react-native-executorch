@@ -84,7 +84,7 @@ export const RECOGNIZER_EN_CRNN_64 =
   'https://huggingface.co/software-mansion/react-native-executorch-recognizer-crnn.en/resolve/v0.3.0/xnnpack/xnnpack_crnn_en_64.pte';
 
 // Image segmentation
-export const DEEPLABV3_RESNET50 =
+export const DEEPLAB_V3_RESNET50 =
   'https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3/resolve/v0.4.0/xnnpack/deeplabV3_xnnpack_fp32.pte';
 
 // Backward compatibility
