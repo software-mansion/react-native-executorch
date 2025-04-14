@@ -21,6 +21,7 @@ module.exports = {
       },
     },
     {
+      // eslint-disable-next-line @cspell/spellchecker
       types: ['string', 'property', 'atrule', 'selector', 'tag'],
       style: {
         color: 'var(--swm-navy-light-80)',

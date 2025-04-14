@@ -5,7 +5,7 @@ import { ResourceSource } from '../types/common';
 import { OCRLanguage } from '../types/ocr';
 import {
   fetchResource,
-  calculateDownloadProgres,
+  calculateDownloadProgress,
 } from '../utils/fetchResource';
 
 export class VerticalOCRController {
@@ -60,21 +60,21 @@ export class VerticalOCRController {
       const recognizerPath = independentCharacters
         ? await fetchResource(
             recognizerSources.recognizerSmall,
-            calculateDownloadProgres(3, 0, this.modelDownloadProgressCallback)
+            calculateDownloadProgress(3, 0, this.modelDownloadProgressCallback)
           )
         : await fetchResource(
             recognizerSources.recognizerLarge,
-            calculateDownloadProgres(3, 0, this.modelDownloadProgressCallback)
+            calculateDownloadProgress(3, 0, this.modelDownloadProgressCallback)
           );
 
       const detectorPaths = {
         detectorLarge: await fetchResource(
           detectorSources.detectorLarge,
-          calculateDownloadProgres(3, 1, this.modelDownloadProgressCallback)
+          calculateDownloadProgress(3, 1, this.modelDownloadProgressCallback)
         ),
         detectorNarrow: await fetchResource(
           detectorSources.detectorNarrow,
-          calculateDownloadProgres(3, 2, this.modelDownloadProgressCallback)
+          calculateDownloadProgress(3, 2, this.modelDownloadProgressCallback)
         ),
       };
 

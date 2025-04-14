@@ -1,3 +1,4 @@
+/* eslint-disable @cspell/spellchecker */
 export enum DeeplabLabel {
   BACKGROUND,
   AEROPLANE,
