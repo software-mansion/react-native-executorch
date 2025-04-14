@@ -29,10 +29,8 @@ def reactNativeArchitectures() {
   if(!value) {
     return defaultArchitectures
   }
-  else { 
-    def architectures = value.split(",")
-    return architectures.findAll { it in defaultArchitectures }
-  }
+  def architectures = value.split(",")
+  return architectures.findAll { it in defaultArchitectures }
 }
 
 def isNewArchitectureEnabled() {
