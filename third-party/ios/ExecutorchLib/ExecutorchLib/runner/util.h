@@ -8,17 +8,40 @@
 
 #pragma once
 #include <cctype>
+#include <executorch/runtime/platform/compiler.h>
 #include <stdio.h>
 #include <time.h>
 #if defined(__linux__) || defined(__ANDROID__) || defined(__unix__)
 #include <sys/resource.h>
 #endif
 
+#define ET_UNWRAP_TOKENIZER(result__)                                          \
+  ({                                                                           \
+    auto tk_result__ = (result__);                                             \
+    if (!tk_result__.ok()) {                                                   \
+      ET_LOG(Error, "Tokenizers error code %d",                                \
+             static_cast<uint32_t>(tk_result__.error()));                      \
+      return ::executorch::runtime::Error::InvalidArgument;                    \
+    }                                                                          \
+    std::move(*tk_result__);                                                   \
+  })
+
+#define ET_CHECK_TK_OK_OR_RETURN_ERROR(result__, ...)                          \
+  ({                                                                           \
+    auto tk_result__ = (result__);                                             \
+    if (tk_result__ != ::tokenizers::Error::Ok) {                              \
+      ET_LOG(Error, "Tokenizer error: %d",                                     \
+             static_cast<uint32_t>(tk_result__));                              \
+      ET_CHECK_OK_OR_RETURN_ERROR(                                             \
+          ::executorch::runtime::Error::InvalidArgument, ##__VA_ARGS__);       \
+    }                                                                          \
+  })
+
 namespace executorch {
 namespace extension {
 namespace llm {
 
-void inline safe_printf(const char *piece) {
+ET_EXPERIMENTAL void inline safe_printf(const char *piece) {
   // piece might be a raw byte token, and we only want to print printable chars
   // or whitespace because some of the other bytes can be various control codes,
   // backspace, etc.
@@ -40,7 +63,7 @@ void inline safe_printf(const char *piece) {
 // ----------------------------------------------------------------------------
 // utilities: time
 
-long inline time_in_ms() {
+ET_EXPERIMENTAL long inline time_in_ms() {
   // return time in milliseconds, for benchmarking the model speed
   struct timespec time;
   clock_gettime(CLOCK_REALTIME, &time);
@@ -54,18 +77,18 @@ long inline time_in_ms() {
 // RSS: Resident Set Size, the amount of memory currently in the RAM for this
 // process. These values are approximate, and are only used for logging
 // purposes.
-size_t inline get_rss_bytes() {
+ET_EXPERIMENTAL size_t inline get_rss_bytes() {
 #if defined(__linux__) || defined(__ANDROID__) || defined(__unix__)
   struct rusage r_usage;
   if (getrusage(RUSAGE_SELF, &r_usage) == 0) {
     return r_usage.ru_maxrss * 1024;
   }
 #endif // __linux__ || __ANDROID__ || __unix__
-  // Unsupported platform like Windows, or getrusage() failed.
-  // __APPLE__ and __MACH__ are not supported because r_usage.ru_maxrss does not
-  // consistently return kbytes on macOS. On older versions of macOS, it
-  // returns bytes, but on newer versions it returns kbytes. Need to figure out
-  // when this changed.
+       // Unsupported platform like Windows, or getrusage() failed.
+       // __APPLE__ and __MACH__ are not supported because r_usage.ru_maxrss
+       // does not consistently return kbytes on macOS. On older versions of
+       // macOS, it returns bytes, but on newer versions it returns kbytes. Need
+       // to figure out when this changed.
   return 0;
 }
 } // namespace llm

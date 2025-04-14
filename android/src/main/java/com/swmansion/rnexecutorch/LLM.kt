@@ -8,15 +8,15 @@ import com.swmansion.rnexecutorch.utils.ArrayUtils
 import com.swmansion.rnexecutorch.utils.llms.ChatRole
 import com.swmansion.rnexecutorch.utils.llms.ConversationManager
 import com.swmansion.rnexecutorch.utils.llms.END_OF_TEXT_TOKEN
-import org.pytorch.executorch.LlamaCallback
-import org.pytorch.executorch.LlamaModule
+import org.pytorch.executorch.extension.llm.LlmCallback
+import org.pytorch.executorch.extension.llm.LlmModule
 import java.net.URL
 
 class LLM(
   reactContext: ReactApplicationContext,
 ) : NativeLLMSpec(reactContext),
-  LlamaCallback {
-  private var llamaModule: LlamaModule? = null
+  LlmCallback {
+  private var llamaModule: LlmModule? = null
   private var tempLlamaResponse = StringBuilder()
   private lateinit var conversationManager: ConversationManager
 
@@ -50,7 +50,7 @@ class LLM(
           systemPrompt,
           ArrayUtils.createMapArray<String>(messageHistory),
         )
-      llamaModule = LlamaModule(1, URL(modelSource).path, URL(tokenizerSource).path, 0.7f)
+      llamaModule = LlmModule(URL(modelSource).path, URL(tokenizerSource).path, 0.7f)
       this.tempLlamaResponse.clear()
       promise.resolve("Model loaded successfully")
     } catch (e: Exception) {
@@ -66,7 +66,7 @@ class LLM(
     val conversation = this.conversationManager.getConversation()
 
     Thread {
-      llamaModule!!.generate(conversation, (conversation.length * 0.75).toInt() + 64, this, false)
+      llamaModule!!.generate(conversation, this)
 
       // When we call .interrupt(), the LLM doesn't produce EOT token, that also could happen when the
       // generated sequence length is larger than specified in the JNI callback, hence we check if EOT

@@ -33,6 +33,15 @@
 #define ET_LOG_ENABLED 1
 #endif // !defined(ET_LOG_ENABLED)
 
+// Even though it is supposed to be "portable" some toolchains
+// do not define, so providing a definition here
+#ifndef PRIu64
+#define PRIu64 "llu"
+#endif
+#ifndef PRId64
+#define PRId64 "lld"
+#endif
+
 namespace executorch {
 namespace runtime {
 
@@ -143,7 +152,7 @@ using ::executorch::runtime::LogLevel;
  * @param[in] _format Log message format string.
  */
 #define ET_LOG(_level, _format, ...)                                           \
-  ({                                                                           \
+  do {                                                                         \
     const auto _log_level = ::executorch::runtime::LogLevel::_level;           \
     if (static_cast<uint32_t>(_log_level) >=                                   \
         static_cast<uint32_t>(                                                 \
@@ -154,8 +163,7 @@ using ::executorch::runtime::LogLevel;
                                             ET_SHORT_FILENAME, ET_FUNCTION,    \
                                             ET_LINE, _format, ##__VA_ARGS__);  \
     }                                                                          \
-  })
-
+  } while (0)
 #else // ET_LOG_ENABLED
 
 /**

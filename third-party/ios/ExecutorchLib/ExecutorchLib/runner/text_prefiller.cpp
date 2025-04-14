@@ -36,10 +36,10 @@ TextPrefiller::prefill(std::vector<uint64_t> &prompt_tokens,
   if (enable_parallel_prefill_ || !use_kv_cache_) {
     // initialize tensor wrappers
     auto tokens = from_blob(prompt_tokens.data(), {1, num_prompt_tokens},
-                            exec_aten::ScalarType::Long);
+                            executorch::aten::ScalarType::Long);
 
     auto start_pos_tensor =
-        from_blob(&start_pos, {1}, exec_aten::ScalarType::Long);
+        from_blob(&start_pos, {1}, executorch::aten::ScalarType::Long);
 
     auto outputs_res = text_decoder_runner_->step(tokens, start_pos_tensor);
 
@@ -55,10 +55,11 @@ TextPrefiller::prefill(std::vector<uint64_t> &prompt_tokens,
     cur_token = prompt_tokens[0];
 
     // initialize tensor wrappers
-    auto tokens = from_blob(&cur_token, {1, 1}, exec_aten::ScalarType::Long);
+    auto tokens =
+        from_blob(&cur_token, {1, 1}, executorch::aten::ScalarType::Long);
 
     auto start_pos_tensor =
-        from_blob(&start_pos, {1}, exec_aten::ScalarType::Long);
+        from_blob(&start_pos, {1}, executorch::aten::ScalarType::Long);
 
     // run the first token and get back logits tensor. Assuming the first token
     // is bos so don't callback.
