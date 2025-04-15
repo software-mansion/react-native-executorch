@@ -146,10 +146,10 @@ const Tokenizer = TokenizerSpec
 class _ImageSegmentationModule {
   async forward(
     input: string,
-    classesOfInteres: string[],
+    classesOfInterest: string[],
     resize: boolean
   ): ReturnType<ImageSegmentationInterface['forward']> {
-    return await ImageSegmentation.forward(input, classesOfInteres, resize);
+    return await ImageSegmentation.forward(input, classesOfInterest, resize);
   }
   async loadModule(
     modelSource: string | number
@@ -275,6 +275,27 @@ class _ETModule {
   }
 }
 
+class _TokenizerModule {
+  async load(tokenizerSource: string): Promise<number> {
+    return await Tokenizer.load(tokenizerSource);
+  }
+  async decode(input: number[], skipSpecialTokens: boolean): Promise<string> {
+    return await Tokenizer.decode(input, skipSpecialTokens);
+  }
+  async encode(input: string): Promise<number[]> {
+    return await Tokenizer.encode(input);
+  }
+  async getVocabSize(): Promise<number> {
+    return await Tokenizer.getVocabSize();
+  }
+  async idToToken(tokenId: number): Promise<string> {
+    return await Tokenizer.idToToken(tokenId);
+  }
+  async tokenToId(token: string): Promise<number> {
+    return await Tokenizer.tokenToId(token);
+  }
+}
+
 export {
   LLM,
   ETModule,
@@ -287,6 +308,7 @@ export {
   VerticalOCR,
   Tokenizer,
   _ETModule,
+  _TokenizerModule,
   _ClassificationModule,
   _StyleTransferModule,
   _ImageSegmentationModule,
