@@ -3,7 +3,7 @@ title: ExecuTorchModule
 sidebar_position: 2
 ---
 
-Hookless implementation of the [useExecutorchModule](../module-api/executorch-bindings.md) hook.
+TypeScript API implementation of the [useExecutorchModule](../executorch-bindings/useExecutorchModule.md) hook.
 
 ## Reference
 
