@@ -3,7 +3,7 @@ title: OCRModule
 sidebar_position: 6
 ---
 
-Hookless implementation of the [useOCR](../computer-vision/useOCR.md) hook.
+TypeScript API implementation of the [useOCR](../computer-vision/useOCR.md) hook.
 
 ## Reference
 

@@ -1,6 +1,6 @@
 {
-  "label": "Speech To Text",
-  "position": 3,
+  "label": "TypeScript API",
+  "position": 4,
   "link": {
     "type": "generated-index"
   }
