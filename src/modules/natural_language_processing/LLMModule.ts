@@ -45,7 +45,7 @@ export class LLMModule {
     },
   }: {
     responseCallback?: (response: string) => void;
-    messageHistoryCallback: (messageHistory: Array<MessageType>) => void;
+    messageHistoryCallback?: (messageHistory: Array<MessageType>) => void;
     isReadyCallback?: (isReady: boolean) => void;
     isGeneratingCallback?: (isGenerating: boolean) => void;
     modelDownloadProgressCallback?: (downloadProgress: number) => void;
