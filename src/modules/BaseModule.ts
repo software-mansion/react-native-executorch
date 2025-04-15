@@ -1,5 +1,5 @@
 import {
-  calculateDownloadProgres,
+  calculateDownloadProgress,
   fetchResource,
 } from '../utils/fetchResource';
 import { getError } from '../Error';
@@ -14,7 +14,7 @@ export class BaseModule {
     const modelFileUris: string[] = [];
 
     for (const [idx, source] of sources.entries()) {
-      const progressCallback = calculateDownloadProgres(
+      const progressCallback = calculateDownloadProgress(
         sources.length,
         idx,
         this.onDownloadProgressCallback
