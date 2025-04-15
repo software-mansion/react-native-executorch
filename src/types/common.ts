@@ -17,18 +17,6 @@ export const getTypeIdentifier = (input: ETInput): number => {
 
 export type ResourceSource = string | number;
 
-export interface Model {
-  generate: (input: string) => Promise<void>;
-  response: string;
-  downloadProgress: number;
-  error: string | null;
-  isModelGenerating: boolean;
-  isGenerating: boolean;
-  isModelReady: boolean;
-  isReady: boolean;
-  interrupt: () => void;
-}
-
 export type ETInput =
   | Int8Array
   | Int32Array
@@ -54,7 +42,10 @@ export type Module =
   | _ObjectDetectionModule
   | typeof ETModule;
 
+export type MessageRole = 'user' | 'assistant' | 'system';
 export interface MessageType {
-  role: 'user' | 'assistant';
+  role: MessageRole;
   content: string;
 }
+// unfortunately there's no one standard so it's hard to type it better
+export type LLMTool = Object;

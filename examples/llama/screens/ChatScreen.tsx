@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -14,51 +14,40 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import SWMIcon from '../assets/icons/swm_icon.svg';
 import SendIcon from '../assets/icons/send_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
-import {
-  LLAMA3_2_1B_QLORA,
-  LLAMA3_2_1B_TOKENIZER,
-  useLLM,
-} from 'react-native-executorch';
+import { useLLM } from 'react-native-executorch';
 import PauseIcon from '../assets/icons/pause_icon.svg';
 import ColorPalette from '../colors';
 import Messages from '../components/Messages';
-import { MessageType, SenderType } from '../types';
+import { LLMTool } from '../../../src/types/common';
 
 export default function ChatScreen() {
-  const [chatHistory, setChatHistory] = useState<Array<MessageType>>([]);
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
-  const llama = useLLM({
-    modelSource: LLAMA3_2_1B_QLORA,
-    tokenizerSource: LLAMA3_2_1B_TOKENIZER,
-    contextWindowLength: 6,
+  const chat = useLLM({
+    modelSource:
+      'https://huggingface.co/nklockiewicz/ocr/resolve/main/hammer/hammer-1_5b_bf16.pte',
+    tokenizerSource:
+      'https://huggingface.co/nklockiewicz/ocr/resolve/main/hammer/tokenizer-hammer.json',
+    tokenizerConfigSource:
+      'https://huggingface.co/MadeAgents/Hammer2.1-1.5b/resolve/main/tokenizer_config.json',
   });
-  const textInputRef = useRef<TextInput>(null);
-  useEffect(() => {
-    if (llama.response && !llama.isGenerating) {
-      appendToMessageHistory(llama.response, 'assistant');
-    }
-  }, [llama.response, llama.isGenerating]);
 
-  const appendToMessageHistory = (content: string, role: SenderType) => {
-    setChatHistory((prevHistory) => [...prevHistory, { role, content }]);
-  };
+  const textInputRef = useRef<TextInput>(null);
 
   const sendMessage = async () => {
-    appendToMessageHistory(userInput.trim(), 'user');
     setUserInput('');
     textInputRef.current?.clear();
     try {
-      await llama.generate(userInput);
+      await chat.sendMessage(userInput, TOOL_DEFINITIONS_PHONE);
     } catch (e) {
       console.error(e);
     }
   };
 
-  return !llama.isReady ? (
+  return !chat.isReady ? (
     <Spinner
-      visible={!llama.isReady}
-      textContent={`Loading the model ${(llama.downloadProgress * 100).toFixed(0)} %`}
+      visible={!chat.isReady}
+      textContent={`Loading the model ${(chat.downloadProgress * 100).toFixed(0)} %`}
     />
   ) : (
     <SafeAreaView style={styles.container}>
@@ -72,12 +61,12 @@ export default function ChatScreen() {
             <SWMIcon width={45} height={45} />
             <Text style={styles.textModelName}>Llama 3.2 1B QLoRA</Text>
           </View>
-          {chatHistory.length ? (
+          {chat.messageHistory.length ? (
             <View style={styles.chatContainer}>
               <Messages
-                chatHistory={chatHistory}
-                llmResponse={llama.response}
-                isGenerating={llama.isGenerating}
+                chatHistory={chat.messageHistory}
+                llmResponse={chat.response}
+                isGenerating={chat.isGenerating}
               />
             </View>
           ) : (
@@ -109,16 +98,16 @@ export default function ChatScreen() {
               <TouchableOpacity
                 style={styles.sendChatTouchable}
                 onPress={async () =>
-                  !llama.isGenerating && (await sendMessage())
+                  !chat.isGenerating && (await sendMessage())
                 }
               >
                 <SendIcon height={24} width={24} padding={4} margin={8} />
               </TouchableOpacity>
             )}
-            {llama.isGenerating && (
+            {chat.isGenerating && (
               <TouchableOpacity
                 style={styles.sendChatTouchable}
-                onPress={llama.interrupt}
+                onPress={chat.interrupt}
               >
                 <PauseIcon height={24} width={24} padding={4} margin={8} />
               </TouchableOpacity>
@@ -129,6 +118,120 @@ export default function ChatScreen() {
     </SafeAreaView>
   );
 }
+
+const TOOL_DEFINITIONS_PHONE: LLMTool[] = [
+  {
+    name: 'brightness',
+    description:
+      'Change screen brightness. Change can be relative (higher/lower) or set to minimal or maximal.',
+    parameters: {
+      type: 'dict',
+      properties: {
+        relativeChange: {
+          type: 'number',
+          description:
+            'Relative change of brightness (from 0 to 100). Change should be negative if user asks for less bright screen.',
+        },
+        targetBrightness: {
+          type: 'number',
+          description: 'Relative change of brightness (from 0 to 100).',
+        },
+      },
+    },
+  },
+  {
+    name: 'get_contacts',
+    description:
+      'Gets user phone contacts. Returns both name and phone number.',
+    parameters: {
+      type: 'dict',
+      properties: {
+        name: {
+          type: 'string',
+          description:
+            'Full or partial name of person to retrieve. Those will be some part of names or letters, not numbers.',
+        },
+        phoneNumberPrefix: {
+          type: 'string',
+          description:
+            'Prefix or part of phone number of contact to retrieve. Those will be numbers.',
+        },
+      },
+    },
+  },
+  {
+    name: 'send_sms',
+    description: 'Sends SMS/text message to specified user.',
+    parameters: {
+      type: 'dict',
+      properties: {
+        to: {
+          type: 'string',
+          description: 'The recipient phone number.',
+        },
+        body: {
+          type: 'string',
+          description: 'Body of the text message.',
+        },
+      },
+      required: ['to', 'body'],
+    },
+  },
+  {
+    name: 'read_calendar',
+    description: 'Read calendar events from now up to given point in time',
+    parameters: {
+      type: 'dict',
+      properties: {
+        time: {
+          type: 'string',
+          description: 'Date and time to which we want to read calendar',
+        },
+      },
+      required: ['time'],
+    },
+  },
+  {
+    name: 'add_event_to_calendar',
+    description: 'Schedules event in your calendar at given time.',
+    parameters: {
+      type: 'dict',
+      properties: {
+        time: {
+          type: 'string',
+          description: 'Date and time of an event.',
+        },
+        title: {
+          type: 'string',
+          description: 'Title of an event',
+        },
+        description: {
+          type: 'string',
+          description: 'Description of an event',
+        },
+      },
+      required: ['time', 'title'],
+    },
+  },
+  {
+    name: 'flashlight',
+    description: 'Turns the flashlight on/off',
+    parameters: {
+      type: 'dict',
+      properties: {
+        turn_on: {
+          type: 'boolean',
+          description: 'Turns the flashlight on.',
+        },
+        turn_off: {
+          type: 'boolean',
+          description: 'Turns the flashlight off.',
+        },
+      },
+      required: ['turn_on', 'turn_off'],
+    },
+  },
+];
 
 const styles = StyleSheet.create({
   container: {

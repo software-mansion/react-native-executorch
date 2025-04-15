@@ -1,126 +1,79 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { EventSubscription } from 'react-native';
-import { LLM } from '../../native/RnExecutorchModules';
-import { fetchResource } from '../../utils/fetchResource';
-import { ResourceSource, Model, MessageType } from '../../types/common';
+import { useEffect, useState } from 'react';
+import { ResourceSource, MessageType, LLMTool } from '../../types/common';
 import {
-  DEFAULT_CONTEXT_WINDOW_LENGTH,
-  DEFAULT_MESSAGE_HISTORY,
-  DEFAULT_SYSTEM_PROMPT,
-  EOT_TOKEN,
-} from '../../constants/llamaDefaults';
+  LLMModule,
+  ChatConfig,
+} from '../../modules/natural_language_processing/LLMModule';
 
-const interrupt = () => {
-  LLM.interrupt();
-};
+export interface LLMType {
+  messageHistory: Array<MessageType>;
+  response: string;
+  isReady: boolean;
+  isGenerating: boolean;
+  downloadProgress: number;
+  error: string | null;
+  runInference: (input: string) => Promise<void>;
+  sendMessage: (message: string, tools?: LLMTool[]) => Promise<void>;
+  interrupt: () => void;
+}
 
+/*
+Hook version of LLMController
+*/
 export const useLLM = ({
   modelSource,
   tokenizerSource,
-  systemPrompt = DEFAULT_SYSTEM_PROMPT,
-  messageHistory = DEFAULT_MESSAGE_HISTORY,
-  contextWindowLength = DEFAULT_CONTEXT_WINDOW_LENGTH,
+  tokenizerConfigSource,
+  chatConfig,
 }: {
   modelSource: ResourceSource;
   tokenizerSource: ResourceSource;
-  systemPrompt?: string;
-  messageHistory?: MessageType[];
-  contextWindowLength?: number;
-}): Model => {
-  const [error, setError] = useState<string | null>(null);
+  tokenizerConfigSource: ResourceSource;
+  chatConfig?: ChatConfig;
+}): LLMType => {
+  const [response, setResponse] = useState('');
+  const [messageHistory, setMessageHistory] = useState<Array<MessageType>>([]);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [response, setResponse] = useState('');
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const tokenGeneratedListener = useRef<null | EventSubscription>(null);
+  const [error, setError] = useState<any>(null);
 
-  useEffect(() => {
-    const loadModel = async () => {
-      try {
-        setIsReady(false);
-
-        const tokenizerFileUri = await fetchResource(tokenizerSource);
-        const modelFileUri = await fetchResource(
-          modelSource,
-          setDownloadProgress
-        );
-
-        await LLM.loadLLM(
-          modelFileUri,
-          tokenizerFileUri,
-          systemPrompt,
-          messageHistory,
-          contextWindowLength
-        );
-
-        setIsReady(true);
-
-        tokenGeneratedListener.current = LLM.onToken(
-          (data: string | undefined) => {
-            if (!data) {
-              return;
-            }
-            if (data !== EOT_TOKEN) {
-              setResponse((prevResponse) => prevResponse + data);
-            } else {
-              setIsGenerating(false);
-            }
-          }
-        );
-      } catch (err) {
-        const message = (err as Error).message;
-        setIsReady(false);
-        setError(message);
-      } finally {
-        setDownloadProgress(0);
-      }
-    };
-
-    loadModel();
-
-    return () => {
-      tokenGeneratedListener.current?.remove();
-      tokenGeneratedListener.current = null;
-      LLM.deleteModule();
-    };
-  }, [
-    modelSource,
-    tokenizerSource,
-    systemPrompt,
-    messageHistory,
-    contextWindowLength,
-  ]);
-
-  const generate = useCallback(
-    async (input: string): Promise<void> => {
-      if (!isReady) {
-        throw new Error('Model is still loading');
-      }
-      if (error) {
-        throw new Error(error);
-      }
-
-      try {
-        setResponse('');
-        setIsGenerating(true);
-        await LLM.runInference(input);
-      } catch (err) {
-        setIsGenerating(false);
-        throw new Error((err as Error).message);
-      }
-    },
-    [isReady, error]
+  const [model, _] = useState(
+    () =>
+      new LLMModule({
+        responseCallback: setResponse,
+        messageHistoryCallback: setMessageHistory,
+        isReadyCallback: setIsReady,
+        isGeneratingCallback: setIsGenerating,
+        modelDownloadProgressCallback: setDownloadProgress,
+        errorCallback: setError,
+        chatConfig: chatConfig,
+      })
   );
 
+  useEffect(() => {
+    (async () => {
+      await model.loadModel(
+        modelSource,
+        tokenizerSource,
+        tokenizerConfigSource
+      );
+    })();
+
+    return () => {
+      model.deleteModel();
+    };
+  }, [modelSource, tokenizerSource, tokenizerConfigSource, model]);
+
   return {
-    generate,
-    error,
+    messageHistory,
+    response,
     isReady,
     isGenerating,
-    isModelReady: isReady,
-    isModelGenerating: isGenerating,
-    response,
     downloadProgress,
-    interrupt,
+    error,
+    runInference: (input) => model.runInference(input),
+    sendMessage: (message, tools) => model.sendMessage(message, tools),
+    interrupt: model.interrupt,
   };
 };
