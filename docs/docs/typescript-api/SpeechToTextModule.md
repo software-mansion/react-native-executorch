@@ -3,7 +3,7 @@ title: SpeechToTextModule
 sidebar_position: 6
 ---
 
-Hookless implementation of the [useSpeechToText](../natural-language-processing/useSpeechToText.md) hook.
+TypeScript API implementation of the [useSpeechToText](../natural-language-processing/useSpeechToText.md) hook.
 
 ## Reference
 

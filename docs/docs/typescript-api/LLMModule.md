@@ -3,7 +3,7 @@ title: LLMModule
 sidebar_position: 3
 ---
 
-Hookless implementation of the [useLLM](../natural-language-processing/useLLM.md) hook.
+TypeScript API implementation of the [useLLM](../natural-language-processing/useLLM.md) hook.
 
 ## Reference
 

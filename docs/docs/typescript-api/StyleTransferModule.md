@@ -3,7 +3,7 @@ title: StyleTransferModule
 sidebar_position: 4
 ---
 
-Hookless implementation of the [useStyleTransfer](../computer-vision/useStyleTransfer.md) hook.
+TypeScript API implementation of the [useStyleTransfer](../computer-vision/useStyleTransfer.md) hook.
 
 ## Reference
 
