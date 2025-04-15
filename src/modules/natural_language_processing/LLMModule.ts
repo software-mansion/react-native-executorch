@@ -1,4 +1,4 @@
-import { LLM } from '../../native/RnExecutorchModules';
+import { LLMNativeModule } from '../../native/RnExecutorchModules';
 import { fetchResource } from '../../utils/fetchResource';
 import {
   DEFAULT_CONTEXT_WINDOW_LENGTH,
@@ -24,7 +24,7 @@ export class LLMModule {
         this.onDownloadProgressCallback
       );
 
-      await LLM.loadLLM(
+      await LLMNativeModule.loadLLM(
         modelFileUri,
         tokenizerFileUri,
         systemPrompt,
@@ -38,7 +38,7 @@ export class LLMModule {
 
   static async generate(input: string) {
     try {
-      await LLM.runInference(input);
+      await LLMNativeModule.runInference(input);
     } catch (err) {
       throw new Error((err as Error).message);
     }
@@ -49,14 +49,14 @@ export class LLMModule {
   }
 
   static onToken(callback: (data: string | undefined) => void) {
-    return LLM.onToken(callback);
+    return LLMNativeModule.onToken(callback);
   }
 
   static interrupt() {
-    LLM.interrupt();
+    LLMNativeModule.interrupt();
   }
 
   static delete() {
-    LLM.deleteModule();
+    LLMNativeModule.deleteModule();
   }
 }

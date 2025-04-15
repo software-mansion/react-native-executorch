@@ -8,8 +8,8 @@ export interface Spec extends TurboModule {
     modelSources: (string | number)[]
   ): Promise<number>;
   generate(waveform: number[]): Promise<number[]>;
-  encode(input: number[][]): Promise<number[]>;
-  decode(prevTokens: number[], encoderOutput: number[]): Promise<number[]>;
+  encode(input: number[]): Promise<number[]>;
+  decode(prevTokens: number[], encoderOutput: number[]): Promise<number>;
 
   readonly onToken: EventEmitter<number>;
 }

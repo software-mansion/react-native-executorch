@@ -1,15 +1,15 @@
 import { symbols } from '../constants/ocr/symbols';
 import { ETError, getError } from '../Error';
-import { _VerticalOCRModule } from '../native/RnExecutorchModules';
+import { VerticalOCRNativeModule } from '../native/RnExecutorchModules';
 import { ResourceSource } from '../types/common';
 import { OCRLanguage } from '../types/ocr';
 import {
   fetchResource,
-  calculateDownloadProgres,
+  calculateDownloadProgress,
 } from '../utils/fetchResource';
 
 export class VerticalOCRController {
-  private nativeModule: _VerticalOCRModule;
+  private ocrNativeModule: typeof VerticalOCRNativeModule;
   public isReady: boolean = false;
   public isGenerating: boolean = false;
   public error: string | null = null;
@@ -24,7 +24,7 @@ export class VerticalOCRController {
     isGeneratingCallback = (_isGenerating: boolean) => {},
     errorCallback = (_error: string) => {},
   }) {
-    this.nativeModule = new _VerticalOCRModule();
+    this.ocrNativeModule = VerticalOCRNativeModule;
     this.modelDownloadProgressCallback = modelDownloadProgressCallback;
     this.isReadyCallback = isReadyCallback;
     this.isGeneratingCallback = isGeneratingCallback;
@@ -60,25 +60,25 @@ export class VerticalOCRController {
       const recognizerPath = independentCharacters
         ? await fetchResource(
             recognizerSources.recognizerSmall,
-            calculateDownloadProgres(3, 0, this.modelDownloadProgressCallback)
+            calculateDownloadProgress(3, 0, this.modelDownloadProgressCallback)
           )
         : await fetchResource(
             recognizerSources.recognizerLarge,
-            calculateDownloadProgres(3, 0, this.modelDownloadProgressCallback)
+            calculateDownloadProgress(3, 0, this.modelDownloadProgressCallback)
           );
 
       const detectorPaths = {
         detectorLarge: await fetchResource(
           detectorSources.detectorLarge,
-          calculateDownloadProgres(3, 1, this.modelDownloadProgressCallback)
+          calculateDownloadProgress(3, 1, this.modelDownloadProgressCallback)
         ),
         detectorNarrow: await fetchResource(
           detectorSources.detectorNarrow,
-          calculateDownloadProgres(3, 2, this.modelDownloadProgressCallback)
+          calculateDownloadProgress(3, 2, this.modelDownloadProgressCallback)
         ),
       };
 
-      await this.nativeModule.loadModule(
+      await this.ocrNativeModule.loadModule(
         detectorPaths.detectorLarge,
         detectorPaths.detectorNarrow,
         recognizerPath,
@@ -108,7 +108,7 @@ export class VerticalOCRController {
     try {
       this.isGenerating = true;
       this.isGeneratingCallback(this.isGenerating);
-      return await this.nativeModule.forward(input);
+      return await this.ocrNativeModule.forward(input);
     } catch (e) {
       throw new Error(getError(e));
     } finally {

@@ -1,22 +1,27 @@
 import { BaseModule } from '../BaseModule';
-import { _ImageSegmentationModule } from '../../native/RnExecutorchModules';
 import { getError } from '../../Error';
 import { DeeplabLabel } from '../../types/image_segmentation';
+import { ResourceSource } from '../../types/common';
+import { ImageSegmentationNativeModule } from '../../native/RnExecutorchModules';
 
 export class ImageSegmentationModule extends BaseModule {
-  static module = new _ImageSegmentationModule();
+  protected static override nativeModule = ImageSegmentationNativeModule;
 
-  static async forward(
+  static override async load(modelSource: ResourceSource) {
+    return await super.load(modelSource);
+  }
+
+  static override async forward(
     input: string,
     classesOfInterest?: DeeplabLabel[],
     resize?: boolean
   ) {
     try {
-      const stringDict = await (this.module.forward(
+      const stringDict = await (this.nativeModule.forward(
         input,
         (classesOfInterest || []).map((label) => DeeplabLabel[label]),
         resize || false
-      ) as ReturnType<_ImageSegmentationModule['forward']>);
+      ) as ReturnType<(typeof this.nativeModule)['forward']>);
 
       let enumDict: { [key in DeeplabLabel]?: number[] } = {};
 

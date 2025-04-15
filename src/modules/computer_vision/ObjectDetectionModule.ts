@@ -1,12 +1,17 @@
-import { BaseCVModule } from './BaseCVModule';
-import { _ObjectDetectionModule } from '../../native/RnExecutorchModules';
+import { ObjectDetectionNativeModule } from '../../native/RnExecutorchModules';
+import { ResourceSource } from '../../types/common';
+import { BaseModule } from '../BaseModule';
 
-export class ObjectDetectionModule extends BaseCVModule {
-  static module = new _ObjectDetectionModule();
+export class ObjectDetectionModule extends BaseModule {
+  protected static override nativeModule = ObjectDetectionNativeModule;
 
-  static async forward(input: string) {
-    return await (super.forward(input) as ReturnType<
-      _ObjectDetectionModule['forward']
-    >);
+  static override async load(modelSource: ResourceSource) {
+    return await super.load(modelSource);
+  }
+
+  static override async forward(
+    input: string
+  ): ReturnType<typeof this.nativeModule.forward> {
+    return await this.nativeModule.forward(input);
   }
 }
