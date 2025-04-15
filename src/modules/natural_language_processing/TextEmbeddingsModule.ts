@@ -1,36 +1,18 @@
-import { TextEmbeddings } from '../../native/RnExecutorchModules';
-import { fetchResource } from '../../utils/fetchResource';
+import { TextEmbeddingsNativeModule } from '../../native/RnExecutorchModules';
 import { ResourceSource } from '../../types/common';
-import { getError } from '../../Error';
+import { BaseModule } from '../BaseModule';
 
-export class TextEmbeddingsModule {
-  static onDownloadProgressCallback = (_downloadProgress: number) => {};
+export class TextEmbeddingsModule extends BaseModule {
+  protected static override nativeModule = TextEmbeddingsNativeModule;
 
-  static async load(
+  static override async load(
     modelSource: ResourceSource,
     tokenizerSource: ResourceSource
   ) {
-    try {
-      const tokenizerFileUri = await fetchResource(tokenizerSource);
-      const modelFileUri = await fetchResource(
-        modelSource,
-        this.onDownloadProgressCallback
-      );
-      await TextEmbeddings.loadModule(modelFileUri, tokenizerFileUri);
-    } catch (error) {
-      throw new Error(getError(error));
-    }
+    await super.load(modelSource, tokenizerSource);
   }
 
-  static async forward(input: string): Promise<number[]> {
-    try {
-      return await TextEmbeddings.forward(input);
-    } catch (error) {
-      throw new Error(getError(error));
-    }
-  }
-
-  static onDownloadProgress(callback: (downloadProgress: number) => void) {
-    this.onDownloadProgressCallback = callback;
+  static override async forward(input: string): Promise<number[]> {
+    return this.nativeModule.forward(input);
   }
 }

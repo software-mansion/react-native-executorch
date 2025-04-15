@@ -1,32 +1,17 @@
-import { Classification } from '../../native/RnExecutorchModules';
-import { fetchResource } from '../../utils/fetchResource';
+import { ClassificationNativeModule } from '../../native/RnExecutorchModules';
 import { ResourceSource } from '../../types/common';
-import { getError } from '../../Error';
+import { BaseModule } from '../BaseModule';
 
-export class ClassificationModule {
-  static onDownloadProgressCallback = (_downloadProgress: number) => {};
+export class ClassificationModule extends BaseModule {
+  protected static override nativeModule = ClassificationNativeModule;
 
-  static async load(modelSource: ResourceSource) {
-    try {
-      const modelFileUri = await fetchResource(
-        modelSource,
-        this.onDownloadProgressCallback
-      );
-      await Classification.loadModule(modelFileUri);
-    } catch (error) {
-      throw new Error(getError(error));
-    }
+  static override async load(modelSource: ResourceSource) {
+    await super.load(modelSource);
   }
 
-  static async forward(input: string): Promise<{ [category: string]: number }> {
-    try {
-      return await Classification.forward(input);
-    } catch (error) {
-      throw new Error(getError(error));
-    }
-  }
-
-  static onDownloadProgress(callback: (downloadProgress: number) => void) {
-    this.onDownloadProgressCallback = callback;
+  static override async forward(
+    input: string
+  ): ReturnType<typeof ClassificationNativeModule.forward> {
+    return await this.nativeModule.forward(input);
   }
 }

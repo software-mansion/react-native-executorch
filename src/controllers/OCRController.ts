@@ -1,15 +1,15 @@
 import { symbols } from '../constants/ocr/symbols';
 import { ETError, getError } from '../Error';
-import { _OCRModule } from '../native/RnExecutorchModules';
+import { OCRNativeModule } from '../native/RnExecutorchModules';
 import { ResourceSource } from '../types/common';
 import { OCRLanguage } from '../types/ocr';
 import {
   fetchResource,
-  calculateDownloadProgres,
+  calculateDownloadProgress,
 } from '../utils/fetchResource';
 
 export class OCRController {
-  private nativeModule: _OCRModule;
+  private nativeModule: typeof OCRNativeModule;
   public isReady: boolean = false;
   public isGenerating: boolean = false;
   public error: string | null = null;
@@ -24,7 +24,7 @@ export class OCRController {
     isGeneratingCallback = (_isGenerating: boolean) => {},
     errorCallback = (_error: string) => {},
   }) {
-    this.nativeModule = new _OCRModule();
+    this.nativeModule = OCRNativeModule;
     this.modelDownloadProgressCallback = modelDownloadProgressCallback;
     this.isReadyCallback = isReadyCallback;
     this.isGeneratingCallback = isGeneratingCallback;
@@ -52,21 +52,21 @@ export class OCRController {
 
       const detectorPath = await fetchResource(
         detectorSource,
-        calculateDownloadProgres(4, 0, this.modelDownloadProgressCallback)
+        calculateDownloadProgress(4, 0, this.modelDownloadProgressCallback)
       );
 
       const recognizerPaths = {
         recognizerLarge: await fetchResource(
           recognizerSources.recognizerLarge,
-          calculateDownloadProgres(4, 1, this.modelDownloadProgressCallback)
+          calculateDownloadProgress(4, 1, this.modelDownloadProgressCallback)
         ),
         recognizerMedium: await fetchResource(
           recognizerSources.recognizerMedium,
-          calculateDownloadProgres(4, 2, this.modelDownloadProgressCallback)
+          calculateDownloadProgress(4, 2, this.modelDownloadProgressCallback)
         ),
         recognizerSmall: await fetchResource(
           recognizerSources.recognizerSmall,
-          calculateDownloadProgres(4, 3, this.modelDownloadProgressCallback)
+          calculateDownloadProgress(4, 3, this.modelDownloadProgressCallback)
         ),
       };
 
