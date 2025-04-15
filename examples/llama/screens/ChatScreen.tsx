@@ -23,7 +23,7 @@ import { LLMTool } from '../../../src/types/common';
 export default function ChatScreen() {
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
-  const chat = useLLM({
+  const llm = useLLM({
     modelSource:
       'https://huggingface.co/nklockiewicz/ocr/resolve/main/hammer/hammer-1_5b_bf16.pte',
     tokenizerSource:
@@ -38,16 +38,16 @@ export default function ChatScreen() {
     setUserInput('');
     textInputRef.current?.clear();
     try {
-      await chat.sendMessage(userInput, TOOL_DEFINITIONS_PHONE);
+      await llm.sendMessage(userInput, TOOL_DEFINITIONS_PHONE);
     } catch (e) {
       console.error(e);
     }
   };
 
-  return !chat.isReady ? (
+  return !llm.isReady ? (
     <Spinner
-      visible={!chat.isReady}
-      textContent={`Loading the model ${(chat.downloadProgress * 100).toFixed(0)} %`}
+      visible={!llm.isReady}
+      textContent={`Loading the model ${(llm.downloadProgress * 100).toFixed(0)} %`}
     />
   ) : (
     <SafeAreaView style={styles.container}>
@@ -61,12 +61,12 @@ export default function ChatScreen() {
             <SWMIcon width={45} height={45} />
             <Text style={styles.textModelName}>Llama 3.2 1B QLoRA</Text>
           </View>
-          {chat.messageHistory.length ? (
+          {llm.messageHistory.length ? (
             <View style={styles.chatContainer}>
               <Messages
-                chatHistory={chat.messageHistory}
-                llmResponse={chat.response}
-                isGenerating={chat.isGenerating}
+                chatHistory={llm.messageHistory}
+                llmResponse={llm.response}
+                isGenerating={llm.isGenerating}
               />
             </View>
           ) : (
@@ -97,17 +97,15 @@ export default function ChatScreen() {
             {userInput && (
               <TouchableOpacity
                 style={styles.sendChatTouchable}
-                onPress={async () =>
-                  !chat.isGenerating && (await sendMessage())
-                }
+                onPress={async () => !llm.isGenerating && (await sendMessage())}
               >
                 <SendIcon height={24} width={24} padding={4} margin={8} />
               </TouchableOpacity>
             )}
-            {chat.isGenerating && (
+            {llm.isGenerating && (
               <TouchableOpacity
                 style={styles.sendChatTouchable}
-                onPress={chat.interrupt}
+                onPress={llm.interrupt}
               >
                 <PauseIcon height={24} width={24} padding={4} margin={8} />
               </TouchableOpacity>
