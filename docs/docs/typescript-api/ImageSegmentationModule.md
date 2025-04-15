@@ -3,7 +3,7 @@ title: ImageSegmentationModule
 sidebar_position: 4
 ---
 
-Hookless implementation of the [useImageSegmentation](../computer-vision/useImageSegmentation.md) hook.
+TypeScript API implementation of the [useImageSegmentation](../computer-vision/useImageSegmentation.md) hook.
 
 ## Reference
 
