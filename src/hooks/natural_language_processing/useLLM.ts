@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { ResourceSource, MessageType, LLMTool } from '../../types/common';
-import { ChatConfig, LLMController } from '../../controllers/LLMController';
+import {
+  LLMModule,
+  ChatConfig,
+} from '../../modules/natural_language_processing/LLMModule';
 
 export interface LLMType {
   messageHistory: Array<MessageType>;
@@ -37,7 +40,7 @@ export const useLLM = ({
 
   const [model, _] = useState(
     () =>
-      new LLMController({
+      new LLMModule({
         responseCallback: setResponse,
         messageHistoryCallback: setMessageHistory,
         isReadyCallback: setIsReady,
