@@ -16,6 +16,7 @@ on:
       - third-party/android/**
       - examples/llama/package.json
       - examples/llama/android/**
+  workflow_dispatch:
 jobs:
   build:
     if: github.repository == 'software-mansion/react-native-executorch'
