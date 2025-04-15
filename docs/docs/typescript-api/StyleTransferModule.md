@@ -1,25 +1,25 @@
 ---
-title: ObjectDetectionModule
-sidebar_position: 5
+title: StyleTransferModule
+sidebar_position: 4
 ---
 
-Hookless implementation of the [useObjectDetection](../computer-vision/useObjectDetection.md) hook.
+TypeScript API implementation of the [useStyleTransfer](../computer-vision/useStyleTransfer.md) hook.
 
 ## Reference
 
 ```typescript
 import {
-  ObjectDetectionModule,
-  SSDLITE_320_MOBILENET_V3_LARGE,
+  StyleTransferModule,
+  STYLE_TRANSFER_CANDY,
 } from 'react-native-executorch';
 
 const imageUri = 'path/to/image.png';
 
 // Loading the model
-await ObjectDetectionModule.load(SSDLITE_320_MOBILENET_V3_LARGE);
+await StyleTransferModule.load(STYLE_TRANSFER_CANDY);
 
 // Running the model
-const detections = await ObjectDetectionModule.forward(imageUri);
+const generatedImageUrl = await StyleTransferModule.forward(imageUri);
 ```
 
 ### Methods
@@ -27,7 +27,7 @@ const detections = await ObjectDetectionModule.forward(imageUri);
 | Method               | Type                                                  | Description                                                                                              |
 | -------------------- | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | `load`               | `(modelSource: ResourceSource): Promise<void>`        | Loads the model, where `modelSource` is a string that specifies the location of the model binary.        |
-| `forward`            | `(input: string): Promise<Detection[]>`               | Executes the model's forward pass, where `input` can be a fetchable resource or a Base64-encoded string. |
+| `forward`            | `(input: string): Promise<string>`                    | Executes the model's forward pass, where `input` can be a fetchable resource or a Base64-encoded string. |
 | `onDownloadProgress` | `(callback: (downloadProgress: number) => void): any` | Subscribe to the download progress event.                                                                |
 
 <details>
@@ -35,19 +35,6 @@ const detections = await ObjectDetectionModule.forward(imageUri);
 
 ```typescript
 type ResourceSource = string | number;
-
-interface Bbox {
-  x1: number;
-  x2: number;
-  y1: number;
-  y2: number;
-}
-
-interface Detection {
-  bbox: Bbox;
-  label: keyof typeof CocoLabel;
-  score: number;
-}
 ```
 
 </details>
@@ -58,4 +45,4 @@ To load the model, use the `load` method. It accepts the `modelSource` which is 
 
 ## Running the model
 
-To run the model, you can use the `forward` method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The method returns a promise, which can resolve either to an error or an array of `Detection` objects. Each object contains coordinates of the bounding box, the label of the detected object, and the confidence score.
+To run the model, you can use the `forward` method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The method returns a promise, which can resolve either to an error or a URL to generated image.

@@ -1,5 +1,5 @@
 ---
-title: ExecuTorch Bindings
+title: useExecutorchModule
 sidebar_position: 1
 ---
 
