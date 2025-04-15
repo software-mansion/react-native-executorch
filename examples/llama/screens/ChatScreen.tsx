@@ -33,16 +33,13 @@ export default function ChatScreen() {
   });
 
   const textInputRef = useRef<TextInput>(null);
-  console.log('isGenerating', chat.isGenerating);
 
   const sendMessage = async () => {
     setUserInput('');
     textInputRef.current?.clear();
     try {
-      console.log('userInput:', userInput);
       await chat.sendMessage(userInput, TOOL_DEFINITIONS_PHONE);
     } catch (e) {
-      console.log('ERROR');
       console.error(e);
     }
   };
