@@ -57,7 +57,7 @@ export const useLLM = ({
     })();
 
     return () => {
-      model.deleteModel();
+      model.delete();
     };
   }, [modelSource, tokenizerSource, tokenizerConfigSource, model]);
 

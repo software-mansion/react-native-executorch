@@ -101,7 +101,7 @@ export class LLMModule {
         tokenizerConfigSource
       );
       this.tokenizerConfig = JSON.parse(
-        await readAsStringAsync(tokenizerConfigFileUri)
+        await readAsStringAsync('file://' + tokenizerConfigFileUri)
       );
 
       const modelFileUri = await ResourceFetcher.fetch(
@@ -123,7 +123,7 @@ export class LLMModule {
     }
   }
 
-  public deleteModel() {
+  public delete() {
     this.onToken?.remove();
     this.onToken = null;
     this.nativeModule.deleteModule();
@@ -179,6 +179,7 @@ export class LLMModule {
   }
 
   private handleError(error: unknown) {
+    console.log(error);
     if (this.errorCallback) {
       this.errorCallback(getError(error));
     } else {
