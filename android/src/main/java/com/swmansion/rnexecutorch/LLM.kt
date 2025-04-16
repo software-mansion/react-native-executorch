@@ -5,7 +5,6 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import org.pytorch.executorch.extension.llm.LlmCallback
 import org.pytorch.executorch.extension.llm.LlmModule
-import java.net.URL
 
 class LLM(
   reactContext: ReactApplicationContext,
@@ -33,7 +32,7 @@ class LLM(
     promise: Promise,
   ) {
     try {
-      llamaModule = LlmModule(URL(modelSource).path, URL(tokenizerSource).path, 0.7f)
+      llamaModule = LlmModule(modelSource, tokenizerSource, 0.7f)
       promise.resolve("Model loaded successfully")
     } catch (e: Exception) {
       promise.reject("Model loading failed", e.message)
