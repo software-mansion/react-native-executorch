@@ -137,10 +137,10 @@ export class LLMModule {
       this.responseCallback('');
       this.isGeneratingCallback(true);
       await this.nativeModule.runInference(input);
-      this.isGeneratingCallback(false);
     } catch (e) {
-      this.isGeneratingCallback(false);
       this.handleError(e);
+    } finally {
+      this.isGeneratingCallback(false);
     }
   }
 
