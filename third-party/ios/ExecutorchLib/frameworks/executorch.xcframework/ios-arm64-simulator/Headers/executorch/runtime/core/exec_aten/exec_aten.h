@@ -9,6 +9,7 @@
 #pragma once
 
 #include <executorch/runtime/core/tensor_shape_dynamism.h> // @manual
+#include <executorch/runtime/platform/compiler.h>
 #ifdef USE_ATEN_LIB
 #include <ATen/Tensor.h> // @manual
 #include <c10/core/Device.h>
@@ -56,11 +57,11 @@ using TensorShapeDynamism = executorch::runtime::TensorShapeDynamism;
 using Tensor = at::Tensor;
 using TensorList = at::TensorList;
 using TensorImpl = at::TensorImpl;
-using string_view = c10::string_view;
+using string_view = std::string_view;
 template <typename T> using ArrayRef = c10::ArrayRef<T>;
 template <typename T> using optional = std::optional<T>;
-using nullopt_t = c10::nullopt_t;
-using c10::nullopt;
+using nullopt_t = std::nullopt_t;
+using std::nullopt;
 using ScalarType = at::ScalarType;
 using Scalar = c10::Scalar;
 using MemoryFormat = c10::MemoryFormat;
@@ -99,7 +100,7 @@ template <typename T> using ArrayRef = torch::executor::ArrayRef<T>;
 template <typename T> using optional = torch::executor::optional<T>;
 using nullopt_t = torch::executor::nullopt_t;
 // NOLINTNEXTLINE(facebook-hte-NamespaceScopedStaticDeclaration)
-static constexpr nullopt_t nullopt{0};
+using std::nullopt;
 using ScalarType = torch::executor::ScalarType;
 using TensorList = ArrayRef<Tensor>;
 using Scalar = torch::executor::Scalar;
@@ -141,6 +142,6 @@ namespace exec_aten = executorch::aten;
 
 namespace torch {
 namespace executor {
-using TensorList = exec_aten::TensorList;
+using TensorList = ::executorch::aten::TensorList;
 } // namespace executor
 } // namespace torch

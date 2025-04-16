@@ -249,21 +249,30 @@ using ::executorch::runtime::track_allocator;
 
 #else
 
-#define EXECUTORCH_PROFILE_CREATE_BLOCK(name) ({ (void)(name); })
+#define EXECUTORCH_PROFILE_CREATE_BLOCK(name)                                  \
+  do {                                                                         \
+    (void)(name);                                                              \
+  } while (0)
 
 #define EXECUTORCH_BEGIN_PROF(name)                                            \
   {                                                                            \
   }
 
-#define EXECUTORCH_END_PROF(token_id) ({ (void)(token_id); })
+#define EXECUTORCH_END_PROF(token_id)                                          \
+  do {                                                                         \
+    (void)(token_id);                                                          \
+  } while (0)
 
-#define EXECUTORCH_SCOPE_PROF(name) ({ (void)(name); })
+#define EXECUTORCH_SCOPE_PROF(name)                                            \
+  do {                                                                         \
+    (void)(name);                                                              \
+  } while (0)
 
 #define EXECUTORCH_PROFILE_INSTRUCTION_SCOPE(chain_idx, instruction_idx)       \
-  ({                                                                           \
+  do {                                                                         \
     (void)(chain_idx);                                                         \
     (void)(instruction_idx);                                                   \
-  })
+  } while (0)
 
 #define EXECUTORCH_DUMP_PROFILE_RESULTS(prof_result_test)                      \
   memset(prof_result_test, 0, sizeof(::executorch::runtime::prof_result_t));
@@ -272,16 +281,12 @@ using ::executorch::runtime::track_allocator;
   {                                                                            \
   }
 
-#define EXECUTORCH_TRACK_ALLOCATOR(name)                                       \
-  ({                                                                           \
-    (void)(name);                                                              \
-    -1;                                                                        \
-  })
+#define EXECUTORCH_TRACK_ALLOCATOR(name) ((void)(name), -1)
 
 #define EXECUTORCH_TRACK_ALLOCATION(id, size)                                  \
-  ({                                                                           \
+  do {                                                                         \
     (void)(id);                                                                \
     (void)(size);                                                              \
-  })
+  } while (0)
 
 #endif

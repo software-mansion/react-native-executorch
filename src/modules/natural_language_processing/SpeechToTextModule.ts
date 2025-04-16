@@ -11,7 +11,7 @@ export class SpeechToText {
   static async load(
     modelName: AvailableModels,
     transcribeCallback: (sequence: string) => void,
-    modelDownloadProgessCallback?: (downloadProgress: number) => void,
+    modelDownloadProgressCallback?: (downloadProgress: number) => void,
     encoderSource?: ResourceSource,
     decoderSource?: ResourceSource,
     tokenizerSource?: ResourceSource,
@@ -27,7 +27,7 @@ export class SpeechToText {
   ) {
     this.module = new SpeechToTextController({
       transcribeCallback: transcribeCallback,
-      modelDownloadProgessCallback: modelDownloadProgessCallback,
+      modelDownloadProgressCallback: modelDownloadProgressCallback,
       overlapSeconds: overlapSeconds,
       windowSize: windowSize,
       streamingConfig: streamingConfig,

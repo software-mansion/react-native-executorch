@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <executorch/runtime/core/array_ref.h>
 #include <executorch/runtime/core/evalue.h>
+#include <executorch/runtime/core/result.h>
 #include <executorch/runtime/platform/platform.h>
 #include <stdlib.h>
 
@@ -65,6 +66,43 @@ enum class EventTracerDebugLogLevel {
   /// When set to this all intermediate outputs and program level outputs
   /// will be logged.
   kIntermediateOutputs,
+};
+
+/**
+ * EventTracerFilterBase is an abstract base class that provides an interface
+ * for filtering events based on their name or delegate debug index.
+ * Derived classes should implement the filter method to define specific
+ * filtering logic.
+ */
+class EventTracerFilterBase {
+public:
+  /**
+   * Filters events based on the given name or delegate debug index.
+   *
+   * Note that only one of either the name or delegate_debug_index should be
+   * passed in.
+   *
+   * @param[in] name A pointer to a string representing the `name` of the
+   * event. If `delegate_debug_index` is not set to kUnsetDebugHandle, `name`
+   * should be set to nullptr.
+   *
+   * @param[in] delegate_debug_index A DebugHandle representing the debug index
+   * of the delegate. If `name` is not nullptr, this should be set to
+   * kUnsetDebugHandle.
+   *
+   * @return A Result<bool> indicating whether the event matches the filter
+   * criteria.
+   *         - True if the event matches the filter.
+   *         - False if the event does not match or is unknown.
+   *         - An error code if an error occurs during filtering.
+   */
+  virtual Result<bool> filter(char *name, DebugHandle delegate_debug_index);
+
+  /**
+   * Virtual destructor for the EventTracerFilterBase class.
+   * Ensures proper cleanup of derived class objects.
+   */
+  virtual ~EventTracerFilterBase();
 };
 
 /**
@@ -279,8 +317,12 @@ public:
    * based names are used by this delegate to identify ops executed in the
    * backend then kUnsetDebugHandle should be passed in here.
    * @param[in] output The tensor type output to be logged.
+   * @return A Result<bool> indicating the status of the logging operation.
+   *         - True if the tensor type output was successfully logged.
+   *         - False if the tensor type output was filtered out and not logged.
+   *         - An error code if an error occurs during logging.
    */
-  virtual void
+  virtual Result<bool>
   log_intermediate_output_delegate(const char *name,
                                    DebugHandle delegate_debug_index,
                                    const executorch::aten::Tensor &output) = 0;
@@ -299,8 +341,13 @@ public:
    * based names are used by this delegate to identify ops executed in the
    * backend then kUnsetDebugHandle should be passed in here.
    * @param[in] output The tensor array type output to be logged.
+   * @return A Result<bool> indicating the status of the logging operation.
+   *         - True if the tensor array type output was successfully logged.
+   *         - False if the tensor array type output was filtered out and not
+   * logged.
+   *         - An error code if an error occurs during logging.
    */
-  virtual void log_intermediate_output_delegate(
+  virtual Result<bool> log_intermediate_output_delegate(
       const char *name, DebugHandle delegate_debug_index,
       const ArrayRef<executorch::aten::Tensor> output) = 0;
 
@@ -318,8 +365,12 @@ public:
    * based names are used by this delegate to identify ops executed in the
    * backend then kUnsetDebugHandle should be passed in here.
    * @param[in] output The int type output to be logged.
+   * @return A Result<bool> indicating the status of the logging operation.
+   *         - True if the int type output was successfully logged.
+   *         - False if the int type output was filtered out and not logged.
+   *         - An error code if an error occurs during logging.
    */
-  virtual void
+  virtual Result<bool>
   log_intermediate_output_delegate(const char *name,
                                    DebugHandle delegate_debug_index,
                                    const int &output) = 0;
@@ -338,8 +389,12 @@ public:
    * based names are used by this delegate to identify ops executed in the
    * backend then kUnsetDebugHandle should be passed in here.
    * @param[in] output The bool type output to be logged.
+   * @return A Result<bool> indicating the status of the logging operation.
+   *         - True if the bool type output was successfully logged.
+   *         - False if the bool type output was filtered out and not logged.
+   *         - An error code if an error occurs during logging.
    */
-  virtual void
+  virtual Result<bool>
   log_intermediate_output_delegate(const char *name,
                                    DebugHandle delegate_debug_index,
                                    const bool &output) = 0;
@@ -358,8 +413,12 @@ public:
    * based names are used by this delegate to identify ops executed in the
    * backend then kUnsetDebugHandle should be passed in here.
    * @param[in] output The double type output to be logged.
+   * @return A Result<bool> indicating the status of the logging operation.
+   *         - True if the double type output was successfully logged.
+   *         - False if the double type output was filtered out and not logged.
+   *         - An error code if an error occurs during logging.
    */
-  virtual void
+  virtual Result<bool>
   log_intermediate_output_delegate(const char *name,
                                    DebugHandle delegate_debug_index,
                                    const double &output) = 0;
@@ -435,6 +494,12 @@ public:
   set_event_tracer_profiling_level(EventTracerProfilingLevel profiling_level) {
     event_tracer_profiling_level_ = profiling_level;
   }
+
+  /**
+   * Set the filter of event tracer for delegation intermediate outputs.
+   */
+  void set_delegation_intermediate_output_filter(
+      EventTracerFilterBase *event_tracer_filter);
 
   /**
    * Return the current level of event tracer profiling.
