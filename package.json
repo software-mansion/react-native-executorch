@@ -156,8 +156,8 @@
   },
   "dependencies": {
     "expo": "^52.0.37",
-    "expo-asset": "^11.0.3",
-    "expo-file-system": "^18.0.10",
+    "expo-asset": "~11.0.5",
+    "expo-file-system": "~18.0.12",
     "react-native-live-audio-stream": "^1.1.1"
   }
 }
