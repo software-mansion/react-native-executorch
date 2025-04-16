@@ -36,11 +36,9 @@ RCT_EXPORT_MODULE()
     tokenizerSource:(NSString *)tokenizerSource
             resolve:(RCTPromiseResolveBlock)resolve
              reject:(RCTPromiseRejectBlock)reject {
-  NSURL *modelURL = [NSURL URLWithString:modelSource];
-  NSURL *tokenizerURL = [NSURL URLWithString:tokenizerSource];
   @try {
-    self->runner = [[LLaMARunner alloc] initWithModelPath:modelURL.path
-                                            tokenizerPath:tokenizerURL.path];
+    self->runner = [[LLaMARunner alloc] initWithModelPath:modelSource
+                                            tokenizerPath:tokenizerSource];
 
     resolve(@"Model and tokenizer loaded successfully");
     return;
