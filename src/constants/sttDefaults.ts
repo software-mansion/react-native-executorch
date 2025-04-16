@@ -84,3 +84,9 @@ export enum STREAMING_ACTION {
   DATA,
   STOP,
 }
+
+export enum SLICING_PLACE {
+  START,
+  MIDDLE,
+  END,
+}

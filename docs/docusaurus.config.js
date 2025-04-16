@@ -34,6 +34,7 @@ const config = {
           customCss: require.resolve('./src/css/index.css'),
         },
         gtag: {
+          // eslint-disable-next-line @cspell/spellchecker
           trackingID: 'G-TJND8QJM9P',
           anonymizeIP: true,
         },
@@ -88,6 +89,7 @@ const config = {
         darkTheme: darkCodeTheme,
       },
       algolia: {
+        // eslint-disable-next-line @cspell/spellchecker
         appId: '9PIVJVUUXB',
         apiKey: '8634751cfd500c6708f63ea5fc7446c6',
         indexName: 'swmansion',

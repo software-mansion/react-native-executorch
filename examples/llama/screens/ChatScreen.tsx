@@ -14,7 +14,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SWMIcon from '../assets/icons/swm_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
-import { LLAMA3_2_1B_QLORA, useLLM } from 'react-native-executorch';
+import {
+  LLAMA3_2_1B_QLORA,
+  LLAMA3_2_1B_TOKENIZER,
+  useLLM,
+} from 'react-native-executorch';
 import PauseIcon from '../assets/icons/pause_icon.svg';
 import MicIcon from '../assets/icons/mic_icon.svg';
 import SendIcon from '../assets/icons/send_icon.svg';
@@ -71,7 +75,7 @@ export default function ChatScreen() {
   const mounted = useRef(false);
   const llama = useLLM({
     modelSource: LLAMA3_2_1B_QLORA,
-    tokenizerSource: require('../assets/tokenizer.bin'),
+    tokenizerSource: LLAMA3_2_1B_TOKENIZER,
     contextWindowLength: 6,
   });
   const speechToText = useSpeechToText({

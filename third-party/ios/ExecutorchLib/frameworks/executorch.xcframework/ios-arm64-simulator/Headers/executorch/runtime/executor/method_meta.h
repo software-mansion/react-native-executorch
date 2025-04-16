@@ -184,6 +184,37 @@ public:
   Result<int64_t> memory_planned_buffer_size(size_t index) const;
 
   /**
+   * Check to see if a backend is used in this method.
+   *
+   * @param[in] backend_name The name of the backend to search for.
+   * @returns true if a backend is used in this method, otherwise false.
+   */
+  bool uses_backend(const char *backend_name) const;
+
+  /**
+   * Get the number of backends used in this method.
+   *
+   * @returns The total number of backend names.
+   */
+  size_t num_backends() const;
+
+  /**
+   * Get the backend name at the given index.
+   *
+   * @param[in] index The index of the backend name.
+   * @returns A Result wrapping the backend name as a C-style string
+   * on success, or an error if the index is invalid.
+   */
+  Result<const char *> get_backend_name(size_t index) const;
+
+  /**
+   * Get the number of instructions in this method.
+   *
+   * @returns The number of instructions.
+   */
+  ET_EXPERIMENTAL size_t num_instructions() const;
+
+  /**
    * DEPRECATED: Use num_memory_planned_buffers() instead.
    */
   ET_DEPRECATED size_t num_non_const_buffers() const {
