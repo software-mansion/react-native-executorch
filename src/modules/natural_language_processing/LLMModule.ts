@@ -24,11 +24,11 @@ export class LLMModule {
   // User callbacks
   private responseCallback: (response: string) => void;
   private messageHistoryCallback: (messageHistory: MessageType[]) => void;
+  private isReadyCallback: (isReady: boolean) => void;
+  private isGeneratingCallback: (isGenerating: boolean) => void;
   private modelDownloadProgressCallback:
     | ((downloadProgress: number) => void)
     | undefined;
-  private isReadyCallback: (isReady: boolean) => void;
-  private isGeneratingCallback: (isGenerating: boolean) => void;
   private errorCallback: ((error: any) => void) | undefined;
 
   constructor({
