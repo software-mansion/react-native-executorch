@@ -1324,7 +1324,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-executorch (0.3.2):
+  - react-native-executorch (20250416102430):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1684,71 +1684,6 @@ PODS:
     - React-logger
     - React-perflogger
     - React-utils (= 0.76.9)
-  - RNAudioAPI (0.5.6):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.10.14.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - RNAudioAPI/audioapi (= 0.5.6)
-    - Yoga
-  - RNAudioAPI/audioapi (0.5.6):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.10.14.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - RNAudioAPI/audioapi/ios (= 0.5.6)
-    - Yoga
-  - RNAudioAPI/audioapi/ios (0.5.6):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.10.14.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - RNLiveAudioStream (1.1.1):
     - React
   - RNReanimated (3.16.5):
@@ -1960,7 +1895,6 @@ DEPENDENCIES:
   - React-utils (from `../node_modules/react-native/ReactCommon/react/utils`)
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
-  - RNAudioAPI (from `../node_modules/react-native-audio-api`)
   - RNLiveAudioStream (from `../node_modules/react-native-live-audio-stream`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNSVG (from `../node_modules/react-native-svg`)
@@ -2119,8 +2053,6 @@ EXTERNAL SOURCES:
     :path: build/generated/ios
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
-  RNAudioAPI:
-    :path: "../node_modules/react-native-audio-api"
   RNLiveAudioStream:
     :path: "../node_modules/react-native-live-audio-stream"
   RNReanimated:
@@ -2176,7 +2108,7 @@ SPEC CHECKSUMS:
   React-logger: c4052eb941cca9a097ef01b59543a656dc088559
   React-Mapbuffer: 33546a3ebefbccb8770c33a1f8a5554fa96a54de
   React-microtasksnativemodule: d80ff86c8902872d397d9622f1a97aadcc12cead
-  react-native-executorch: 63ab47d8a0c602a4dee0acb36f6e8d9891ad357f
+  react-native-executorch: 8fc625eec16bb32b42db3e2b193712545b3402cd
   react-native-safe-area-context: cd916088cac5300c3266876218377518987b995e
   React-nativeconfig: 8efdb1ef1e9158c77098a93085438f7e7b463678
   React-NativeModulesApple: cebca2e5320a3d66e123cade23bd90a167ffce5e
@@ -2205,7 +2137,6 @@ SPEC CHECKSUMS:
   React-utils: ed818f19ab445000d6b5c4efa9d462449326cc9f
   ReactCodegen: f853a20cc9125c5521c8766b4b49375fec20648b
   ReactCommon: 300d8d9c5cb1a6cd79a67cf5d8f91e4d477195f9
-  RNAudioAPI: eed2c302ff4c0744eb68b94ea380ea506ccbd35b
   RNLiveAudioStream: 93ac2bb6065be9018d0b00157b220f11cebc1513
   RNReanimated: b2ce210b0f268d1b91c0075f7734f4e251be0bc0
   RNSVG: b889dc9c1948eeea0576a16cc405c91c37a12c19

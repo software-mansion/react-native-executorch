@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useSpeechToText } from 'react-native-executorch';
+import { STREAMING_ACTION, useSpeechToText } from 'react-native-executorch';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -22,16 +22,12 @@ import {
 import PauseIcon from '../assets/icons/pause_icon.svg';
 import MicIcon from '../assets/icons/mic_icon.svg';
 import SendIcon from '../assets/icons/send_icon.svg';
-import WebIcon from '../assets/icons/web_icon.svg';
 import StopIcon from '../assets/icons/stop_icon.svg';
 import ColorPalette from '../colors';
 import Messages from '../components/Messages';
 import { MessageType, SenderType } from '../types';
-import InputPrompt from '../components/TextInputModal';
 import LiveAudioStream from 'react-native-live-audio-stream';
 import { Buffer } from 'buffer';
-import * as FileSystem from 'expo-file-system';
-import { AudioContext } from 'react-native-audio-api';
 import * as Speech from 'expo-speech';
 
 const audioStreamOptions = {
@@ -64,15 +60,11 @@ const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
 
 export default function ChatScreen() {
   const [chatHistory, setChatHistory] = useState<Array<MessageType>>([]);
-  const [audioUrl, setAudioUrl] = useState('');
-  const [modalVisible, setModalVisible] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
   const textInputRef = useRef<TextInput>(null);
-  const audioBuffer = useRef<number[]>([]);
   const messageRecorded = useRef<boolean>(false);
-  const mounted = useRef(false);
   const llama = useLLM({
     modelSource: LLAMA3_2_1B_QLORA,
     tokenizerSource: LLAMA3_2_1B_TOKENIZER,
@@ -86,31 +78,24 @@ export default function ChatScreen() {
 
   const onChunk = (data: string) => {
     const float32Chunk = float32ArrayFromPCMBinaryBuffer(data);
-    audioBuffer.current.push(...float32Chunk);
-  };
-
-  const loadAudio = async (url: string) => {
-    const audioContext = new AudioContext({ sampleRate: 16e3 });
-    const audioBuffer = await FileSystem.downloadAsync(
-      url,
-      FileSystem.documentDirectory + '_tmp_transcribe_audio.mp3'
-    ).then(({ uri }) => {
-      return audioContext.decodeAudioDataSource(uri);
-    });
-    return audioBuffer?.getChannelData(0);
+    speechToText.streamingTranscribe(
+      STREAMING_ACTION.DATA,
+      Array.from(float32Chunk)
+    );
   };
 
   const handleRecordPress = async () => {
     if (isRecording) {
       setIsRecording(false);
       LiveAudioStream.stop();
-      await speechToText.transcribe(audioBuffer.current);
-      await llama.generate(speechToText.sequence);
       messageRecorded.current = true;
-      audioBuffer.current = [];
+      await llama.generate(
+        await speechToText.streamingTranscribe(STREAMING_ACTION.STOP)
+      );
     } else {
       setIsRecording(true);
       startStreamingAudio(audioStreamOptions, onChunk);
+      speechToText.streamingTranscribe(STREAMING_ACTION.START);
     }
   };
 
@@ -148,10 +133,7 @@ export default function ChatScreen() {
   };
 
   useEffect(() => {
-    if (!mounted.current) {
-      mounted.current = true;
-      return;
-    }
+    if (chatHistory.length === 0 && !speechToText.isGenerating) return;
     if (speechToText.isGenerating) {
       if (speechToText.sequence) modifyLastMessage(speechToText.sequence);
       else modifyLastMessage('...');
@@ -200,31 +182,8 @@ export default function ChatScreen() {
               </Text>
             </View>
           )}
-          <InputPrompt
-            modalVisible={modalVisible}
-            setModalVisible={async (visible: boolean) => {
-              setModalVisible(visible);
-              if (audioUrl) {
-                await speechToText.transcribe(
-                  Array.from(await loadAudio(audioUrl))
-                );
-              }
-            }}
-            onChangeText={setAudioUrl}
-            value={audioUrl}
-          />
 
           <View style={styles.bottomContainer}>
-            {!isRecording && (
-              <TouchableOpacity
-                style={styles.fromUrlTouchable}
-                onPress={async () => {
-                  setModalVisible(true);
-                }}
-              >
-                <WebIcon height={40} width={40} padding={4} margin={8} />
-              </TouchableOpacity>
-            )}
             <TextInput
               onFocus={() => setIsTextInputFocused(true)}
               onBlur={() => setIsTextInputFocused(false)}

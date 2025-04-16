@@ -362,7 +362,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2CGMJVT76Y;
+				DEVELOPMENT_TEAM = A973VC3GVK;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -381,7 +381,7 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = com.anonymous.llama;
+				PRODUCT_BUNDLE_IDENTIFIER = com.anonymous.llamadydmichal;
 				PRODUCT_NAME = llama;
 				SWIFT_OBJC_BRIDGING_HEADER = "llama/llama-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -401,7 +401,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 2CGMJVT76Y;
+				DEVELOPMENT_TEAM = A973VC3GVK;
 				INFOPLIST_FILE = llama/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -415,7 +415,7 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = com.anonymous.llama;
+				PRODUCT_BUNDLE_IDENTIFIER = com.anonymous.llamadydmichal;
 				PRODUCT_NAME = llama;
 				SWIFT_OBJC_BRIDGING_HEADER = "llama/llama-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
