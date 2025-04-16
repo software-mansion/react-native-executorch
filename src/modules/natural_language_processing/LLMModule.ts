@@ -179,7 +179,6 @@ export class LLMModule {
   }
 
   private handleError(error: unknown) {
-    console.log(error);
     if (this.errorCallback) {
       this.errorCallback(getError(error));
     } else {
