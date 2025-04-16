@@ -8,9 +8,9 @@
 
 RCT_EXPORT_MODULE()
 
-- (void)load:(NSString *)tokenizerSource
-     resolve:(RCTPromiseResolveBlock)resolve
-      reject:(RCTPromiseRejectBlock)reject {
+- (void)loadModule:(NSString *)tokenizerSource
+           resolve:(RCTPromiseResolveBlock)resolve
+            reject:(RCTPromiseRejectBlock)reject {
   @try {
     tokenizer = [[HuggingFaceTokenizer alloc]
         initWithTokenizerPath:[NSURL URLWithString:tokenizerSource].path];
