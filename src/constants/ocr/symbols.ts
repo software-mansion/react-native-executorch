@@ -39,7 +39,7 @@ export const symbols = {
   ch_sim: alphabets['zh_sim'],
   //Chechen
   che: alphabets['cyrillic'],
-  //Chech
+  //Czech
   cs: alphabets['latin'],
   //Welsh
   cy: alphabets['latin'],
@@ -133,8 +133,6 @@ export const symbols = {
   tab: alphabets['cyrillic'],
   //Telugu
   te: alphabets['telugu'],
-  //Thai
-  th: 'thai',
   //Tajik
   tjk: alphabets['cyrillic'],
   //Tagalog

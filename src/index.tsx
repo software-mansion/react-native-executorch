@@ -37,3 +37,4 @@ export { SpeechToTextLanguage };
 
 // constants
 export * from './constants/modelUrls';
+export * from './constants/ocr/models';
