@@ -193,7 +193,7 @@ Before running the model's `transcribe` method be sure to obtain waveform of the
 
 #### Multilingual transcription
 
-If you aim to obtain a transcription in other languages than English, in v0.4.0 we introduced a new model - `whisperMultilingual`, which is basically a multilingual version of `whisper`. To obtain the output text in your desired language, make sure pass `audioLanguage` to `transcribe`. You should not pass this flag if you're using a non-multilingual model. For example:
+If you aim to obtain a transcription in other languages than English, in v0.4.0 we introduced a new model - `whisperMultilingual`, a multilingual version of Whisper. To obtain the output text in your desired language, make sure pass `audioLanguage` to `transcribe`. You should not pass this flag if you're using a non-multilingual model. For example:
 
 ```typescript
 import { SpeechToTextLanguage } from 'react-native-executorch';
