@@ -11,7 +11,7 @@
   "dependencies": {
     "@react-native/metro-config": "^0.76.3",
     "buffer": "^6.0.3",
-    "expo": "~52.0.42",
+    "expo": "~52.0.46",
     "expo-font": "^13.0.1",
     "expo-status-bar": "~2.0.0",
     "metro-config": "^0.81.0",
