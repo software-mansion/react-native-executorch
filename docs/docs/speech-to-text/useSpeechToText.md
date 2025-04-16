@@ -70,7 +70,7 @@ Given that STT models can process audio no longer than 30 seconds, there is a ne
 ### Arguments
 
 **`modelName`**
-A literal of `"moonshine" | "whisper"` which serves as an identifier for which model should be used.
+A literal of `"moonshine" | "whisper" | "whisperMultilingual` which serves as an identifier for which model should be used.
 
 **`encoderSource?`**
 A string that specifies the location of a .pte file for the encoder. For further information on passing model sources, check out [Loading Models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models). Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/main/src/constants/modelUrls.ts) for given model.
@@ -94,7 +94,7 @@ Specifies config for both `overlapSeconds` and `windowSize` values. Three option
 
 | Field                | Type                                                                                                                     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `transcribe`         | `(input: number[]) => Promise<string>`                                                                                   | Starts a transcription process for a given input array, which should be a waveform at 16kHz. Resolves a promise with the output transcription when the model is finished.                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `transcribe`         | `(input: number[], audioLanguage?: SpeechToTextLanguage) => Promise<string>`                                             | Starts a transcription process for a given input array, which should be a waveform at 16kHz. Resolves a promise with the output transcription when the model is finished. For multilingual models, you have to specify the audioLanguage flag, which is the language of the spoken language in the audio.                                                                                                                                                                                                             |
 | `error`              | <code>Error &#124; undefined</code>                                                                                      | Contains the error message if the model failed to load.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `sequence`           | <code>string</code>                                                                                                      | This property is updated with each generated token. If you're looking to obtain tokens as they're generated, you should use this property.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | `isGenerating`       | `boolean`                                                                                                                | Indicates whether the model is currently processing an inference.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
@@ -102,9 +102,107 @@ Specifies config for both `overlapSeconds` and `windowSize` values. Three option
 | `configureStreaming` | <code>(overlapSeconds?: number, windowSize?: number, streamingConfig?: 'fast' &#124; 'balanced' &#124; 'quality')</code> | Configures options for the streaming algorithm: <ul><li>`overlapSeconds` determines how much adjacent audio chunks overlap (increasing it slows down transcription, decreases probability of weird wording at the chunks intersection, setting it larger than 3 seconds generally is discouraged), </li><li>`windowSize` describes size of the audio chunks (increasing it speeds up the end to end transcription time, but increases latency for the first token to be returned),</li><li> `streamingConfig` predefined configs for `windowSize` and `overlapSeconds` values.</li></ul> Keep `windowSize + 2 * overlapSeconds <= 30`. |
 | `downloadProgress`   | `number`                                                                                                                 | Tracks the progress of the model download process.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 
+<details>
+<summary>Type definitions</summary>
+
+```typescript
+enum SpeechToTextLanguage {
+  Afrikaans = 'af',
+  Albanian = 'sq',
+  Arabic = 'ar',
+  Armenian = 'hy',
+  Azerbaijani = 'az',
+  Basque = 'eu',
+  Belarusian = 'be',
+  Bengali = 'bn',
+  Bosnian = 'bs',
+  Bulgarian = 'bg',
+  Burmese = 'my',
+  Catalan = 'ca',
+  Chinese = 'zh',
+  Croatian = 'hr',
+  Czech = 'cs',
+  Danish = 'da',
+  Dutch = 'nl',
+  Estonian = 'et',
+  English = 'en',
+  Finnish = 'fi',
+  French = 'fr',
+  Galician = 'gl',
+  Georgian = 'ka',
+  German = 'de',
+  Greek = 'el',
+  Gujarati = 'gu',
+  HaitianCreole = 'ht',
+  Hebrew = 'he',
+  Hindi = 'hi',
+  Hungarian = 'hu',
+  Icelandic = 'is',
+  Indonesian = 'id',
+  Italian = 'it',
+  Japanese = 'ja',
+  Kannada = 'kn',
+  Kazakh = 'kk',
+  Khmer = 'km',
+  Korean = 'ko',
+  Lao = 'lo',
+  Latvian = 'lv',
+  Lithuanian = 'lt',
+  Macedonian = 'mk',
+  Malagasy = 'mg',
+  Malay = 'ms',
+  Malayalam = 'ml',
+  Maltese = 'mt',
+  Marathi = 'mr',
+  Nepali = 'ne',
+  Norwegian = 'no',
+  Persian = 'fa',
+  Polish = 'pl',
+  Portuguese = 'pt',
+  Punjabi = 'pa',
+  Romanian = 'ro',
+  Russian = 'ru',
+  Serbian = 'sr',
+  Sinhala = 'si',
+  Slovak = 'sk',
+  Slovenian = 'sl',
+  Spanish = 'es',
+  Sundanese = 'su',
+  Swahili = 'sw',
+  Swedish = 'sv',
+  Tagalog = 'tl',
+  Tajik = 'tg',
+  Tamil = 'ta',
+  Telugu = 'te',
+  Thai = 'th',
+  Turkish = 'tr',
+  Ukrainian = 'uk',
+  Urdu = 'ur',
+  Uzbek = 'uz',
+  Vietnamese = 'vi',
+  Welsh = 'cy',
+  Yiddish = 'yi',
+}
+```
+
+</details>
+
 ## Running the model
 
-Before running the model's `transcribe` method be sure to obtain waveform of the audio You wish to transcribe. You need to obtain the waveform from audio on your own (remember to use sampling rate of 16kHz!), in the snippet above we provide an example how you can do that. In the latter case just pass the obtained waveform as argument to the `transcribe` method which returns a promise resolving to the generated tokens when successful. If the model fails during inference the `error` property contains details of the error. If you want to obtain tokens in a streaming fashion, you can also use the sequence property, which is updated with each generated token, similar to the [useLLM](../llms/useLLM.md) hook.
+Before running the model's `transcribe` method be sure to obtain waveform of the audio you wish to transcribe. You need to obtain the waveform from audio on your own (remember to use sampling rate of 16kHz!), in the snippet above we provide an example how you can do that. In the latter case just pass the obtained waveform as argument to the `transcribe` method which returns a promise resolving to the generated tokens when successful. If the model fails during inference the `error` property contains details of the error. If you want to obtain tokens in a streaming fashion, you can also use the sequence property, which is updated with each generated token, similar to the [useLLM](../llms/useLLM.md) hook.
+
+#### Multilingual transcription
+
+If you aim to obtain a transcription in other languages than English, in v0.4.0 we introduced a new model - `whisperMultilingual`, a multilingual version of Whisper. To obtain the output text in your desired language, make sure pass `audioLanguage` to `transcribe`. You should not pass this flag if you're using a non-multilingual model. For example:
+
+```typescript
+import { SpeechToTextLanguage } from 'react-native-executorch';
+
+// Rest of your code...
+const mySpanishAudio = ...;
+await model.transcribe(mySpanishAudio, SpeechToTextLanguage.Spanish);
+// Rest of your code...
+```
 
 ## Example
 
@@ -129,17 +227,18 @@ function App() {
         title="Transcribe"
       />
       <Text>{error ? error : sequence}</Text>
-    </View>
+    </View>****
   );
 }
 ```
 
 ## Supported models
 
-| Model                                                                 | Language |
-| --------------------------------------------------------------------- | :------: |
-| [Whisper tiny.en](https://huggingface.co/openai/whisper-tiny.en)      | English  |
-| [Moonshine tiny](https://huggingface.co/UsefulSensors/moonshine-tiny) | English  |
+| Model                                                                 |   Language   |
+| --------------------------------------------------------------------- | :----------: |
+| [Whisper tiny.en](https://huggingface.co/openai/whisper-tiny.en)      |   English    |
+| [Whisper tiny](https://huggingface.co/openai/whisper-tiny)            | Multilingual |
+| [Moonshine tiny](https://huggingface.co/UsefulSensors/moonshine-tiny) |   English    |
 
 ## Benchmarks
 
