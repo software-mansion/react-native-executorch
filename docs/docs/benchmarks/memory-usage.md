@@ -26,16 +26,16 @@ sidebar_position: 2
 
 ## OCR
 
-| Model                                               | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| --------------------------------------------------- | :--------------------: | :----------------: |
-| CRAFT_800 + CRNN_EN_512 + CRNN_EN_256 + CRNN_EN_128 |          2100          |        1782        |
+| Model                                                                                        | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| -------------------------------------------------------------------------------------------- | :--------------------: | :----------------: |
+| Detector (CRAFT_800) + Recognizer (CRNN_512) + Recognizer (CRNN_256) + Recognizer (CRNN_128) |          2100          |        1782        |
 
 ## Vertical OCR
 
-| Model                                | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| ------------------------------------ | :--------------------: | :----------------: |
-| CRAFT_1280 + CRAFT_320 + CRNN_EN_512 |          2770          |        3720        |
-| CRAFT_1280 + CRAFT_320 + CRNN_EN_64  |          1770          |        2740        |
+| Model                                                                | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| -------------------------------------------------------------------- | :--------------------: | :----------------: |
+| Detector (CRAFT_1280) + Detector (CRAFT_320) + Recognizer (CRNN_512) |          2770          |        3720        |
+| Detector(CRAFT_1280) + Detector(CRAFT_320) + Recognizer (CRNN_64)    |          1770          |        2740        |
 
 ## LLMs
 
