@@ -19,11 +19,11 @@ export class LLMModule {
   private _response = '';
   private _isReady = false;
   private _isGenerating = false;
-  private _messageHistory: Array<MessageType> = [];
+  private _messageHistory: MessageType[] = [];
 
   // User callbacks
   private responseCallback: (response: string) => void;
-  private messageHistoryCallback: (messageHistory: Array<MessageType>) => void;
+  private messageHistoryCallback: (messageHistory: MessageType[]) => void;
   private modelDownloadProgressCallback:
     | ((downloadProgress: number) => void)
     | undefined;
@@ -45,7 +45,7 @@ export class LLMModule {
     },
   }: {
     responseCallback?: (response: string) => void;
-    messageHistoryCallback?: (messageHistory: Array<MessageType>) => void;
+    messageHistoryCallback?: (messageHistory: MessageType[]) => void;
     isReadyCallback?: (isReady: boolean) => void;
     isGeneratingCallback?: (isGenerating: boolean) => void;
     modelDownloadProgressCallback?: (downloadProgress: number) => void;
@@ -89,7 +89,7 @@ export class LLMModule {
     return this._messageHistory;
   }
 
-  public async loadModel(
+  public async load(
     modelSource: ResourceSource,
     tokenizerSource: ResourceSource,
     tokenizerConfigSource: ResourceSource
@@ -154,7 +154,7 @@ export class LLMModule {
       { content: message, role: 'user' },
     ]);
 
-    const messageHistoryWithPrompt: Array<MessageType> = [
+    const messageHistoryWithPrompt: MessageType[] = [
       { content: this.chatConfig.systemPrompt, role: 'system' },
       ...this._messageHistory.slice(-this.chatConfig.contextWindowLength),
     ];
@@ -173,10 +173,7 @@ export class LLMModule {
       );
       this.messageHistoryCallback([
         ...this._messageHistory,
-        {
-          content: this._response,
-          role: 'assistant',
-        },
+        { content: this._response, role: 'assistant' },
       ]);
     }
   }
@@ -190,7 +187,7 @@ export class LLMModule {
   }
 
   private applyChatTemplate(
-    messages: Array<MessageType>,
+    messages: MessageType[],
     tokenizerConfig: any,
     tools?: LLMTool[]
   ): string {
@@ -206,17 +203,13 @@ export class LLMModule {
       ])
     );
 
-    const result = template.render({
-      messages,
-      tools,
-      ...specialTokens,
-    });
+    const result = template.render({ messages, tools, ...specialTokens });
     return result;
   }
 }
 
 export interface ChatConfig {
-  initialMessageHistory: Array<MessageType>;
+  initialMessageHistory: MessageType[];
   contextWindowLength: number;
   systemPrompt: string;
 }

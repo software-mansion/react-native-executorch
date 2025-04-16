@@ -6,7 +6,7 @@ import {
 } from '../../modules/natural_language_processing/LLMModule';
 
 export interface LLMType {
-  messageHistory: Array<MessageType>;
+  messageHistory: MessageType[];
   response: string;
   isReady: boolean;
   isGenerating: boolean;
@@ -32,7 +32,7 @@ export const useLLM = ({
   chatConfig?: ChatConfig;
 }): LLMType => {
   const [response, setResponse] = useState('');
-  const [messageHistory, setMessageHistory] = useState<Array<MessageType>>([]);
+  const [messageHistory, setMessageHistory] = useState<MessageType[]>([]);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
@@ -53,11 +53,7 @@ export const useLLM = ({
 
   useEffect(() => {
     (async () => {
-      await model.loadModel(
-        modelSource,
-        tokenizerSource,
-        tokenizerConfigSource
-      );
+      await model.load(modelSource, tokenizerSource, tokenizerConfigSource);
     })();
 
     return () => {
