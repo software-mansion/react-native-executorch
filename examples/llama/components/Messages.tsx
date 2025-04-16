@@ -7,7 +7,7 @@ import MessageItem from './MessageItem';
 import { MessageType } from 'react-native-executorch/lib/typescript/types/common';
 
 interface MessagesComponentProps {
-  chatHistory: Array<MessageType>;
+  chatHistory: MessageType[];
   llmResponse: string;
   isGenerating: boolean;
 }
@@ -50,19 +50,14 @@ export default function Messages({
 }
 
 const styles = StyleSheet.create({
-  chatContainer: {
-    flex: 1,
-    width: '100%',
-  },
+  chatContainer: { flex: 1, width: '100%' },
   aiMessage: {
     flexDirection: 'row',
     maxWidth: '80%',
     alignSelf: 'flex-start',
     marginVertical: 8,
   },
-  messageLoadingContainer: {
-    width: 28,
-  },
+  messageLoadingContainer: { width: 28 },
   aiMessageIconContainer: {
     backgroundColor: ColorPalette.seaBlueLight,
     height: 32,

@@ -163,14 +163,8 @@ const TOOL_DEFINITIONS_PHONE: LLMTool[] = [
     parameters: {
       type: 'dict',
       properties: {
-        to: {
-          type: 'string',
-          description: 'The recipient phone number.',
-        },
-        body: {
-          type: 'string',
-          description: 'Body of the text message.',
-        },
+        to: { type: 'string', description: 'The recipient phone number.' },
+        body: { type: 'string', description: 'Body of the text message.' },
       },
       required: ['to', 'body'],
     },
@@ -195,18 +189,9 @@ const TOOL_DEFINITIONS_PHONE: LLMTool[] = [
     parameters: {
       type: 'dict',
       properties: {
-        time: {
-          type: 'string',
-          description: 'Date and time of an event.',
-        },
-        title: {
-          type: 'string',
-          description: 'Title of an event',
-        },
-        description: {
-          type: 'string',
-          description: 'Description of an event',
-        },
+        time: { type: 'string', description: 'Date and time of an event.' },
+        title: { type: 'string', description: 'Title of an event' },
+        description: { type: 'string', description: 'Description of an event' },
       },
       required: ['time', 'title'],
     },
@@ -217,14 +202,8 @@ const TOOL_DEFINITIONS_PHONE: LLMTool[] = [
     parameters: {
       type: 'dict',
       properties: {
-        turn_on: {
-          type: 'boolean',
-          description: 'Turns the flashlight on.',
-        },
-        turn_off: {
-          type: 'boolean',
-          description: 'Turns the flashlight off.',
-        },
+        turn_on: { type: 'boolean', description: 'Turns the flashlight on.' },
+        turn_off: { type: 'boolean', description: 'Turns the flashlight off.' },
       },
       required: ['turn_on', 'turn_off'],
     },
@@ -232,25 +211,16 @@ const TOOL_DEFINITIONS_PHONE: LLMTool[] = [
 ];
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  keyboardAvoidingView: {
-    flex: 1,
-  },
+  container: { flex: 1 },
+  keyboardAvoidingView: { flex: 1 },
   topContainer: {
     height: 68,
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  chatContainer: {
-    flex: 10,
-    width: '100%',
-  },
-  textModelName: {
-    color: ColorPalette.primary,
-  },
+  chatContainer: { flex: 10, width: '100%' },
+  textModelName: { color: ColorPalette.primary },
   helloMessageContainer: {
     flex: 10,
     width: '100%',
