@@ -16,6 +16,7 @@
     "common",
     "*.podspec",
     "third-party/include",
+    "third-party/android/libs",
     "!ios/build",
     "!android/build",
     "!android/gradle",
