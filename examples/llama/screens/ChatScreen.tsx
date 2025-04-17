@@ -14,29 +14,30 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import SWMIcon from '../assets/icons/swm_icon.svg';
 import SendIcon from '../assets/icons/send_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
-import { useLLM } from 'react-native-executorch';
+import {
+  HAMMER2_1_1_5B,
+  HAMMER2_1_TOKENIZER,
+  HAMMER2_1_TOKENIZER_CONFIG,
+  useLLM,
+} from 'react-native-executorch';
 import PauseIcon from '../assets/icons/pause_icon.svg';
 import ColorPalette from '../colors';
 import Messages from '../components/Messages';
-import { LLMTool } from '../../../src/types/common';
+import { LLMTool } from 'react-native-executorch/lib/typescript/types/common';
 
 export default function ChatScreen() {
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
   const llm = useLLM({
-    modelSource:
-      Platform.OS === 'ios'
-        ? 'https://huggingface.co/nklockiewicz/ocr/resolve/main/hammer/hammer-1_5b_bf16.pte'
-        : 'https://huggingface.co/nklockiewicz/ocr/resolve/main/hammer/hammer-1_5b_fp16.pte',
-
-    tokenizerSource:
-      'https://huggingface.co/nklockiewicz/ocr/resolve/main/hammer/tokenizer-hammer.json',
-    tokenizerConfigSource:
-      'https://huggingface.co/MadeAgents/Hammer2.1-1.5b/resolve/main/tokenizer_config.json',
+    modelSource: HAMMER2_1_1_5B,
+    tokenizerSource: HAMMER2_1_TOKENIZER,
+    tokenizerConfigSource: HAMMER2_1_TOKENIZER_CONFIG,
   });
 
   useEffect(() => {
-    console.log('LLM error:', llm.error);
+    if (llm.error) {
+      console.log('LLM error:', llm.error);
+    }
   }, [llm.error]);
 
   const textInputRef = useRef<TextInput>(null);

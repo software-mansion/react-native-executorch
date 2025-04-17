@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
-import { ResourceSource, MessageType, LLMTool } from '../../types/common';
-import {
-  LLMModule,
-  ChatConfig,
-} from '../../modules/natural_language_processing/LLMModule';
+import { ResourceSource } from '../../types/common';
+import { LLMModule } from '../../modules/natural_language_processing/LLMModule';
+import { ChatConfig, LLMTool, MessageType } from '../../types/llm';
 
 export interface LLMType {
   messageHistory: MessageType[];
@@ -45,7 +43,7 @@ export const useLLM = ({
         messageHistoryCallback: setMessageHistory,
         isReadyCallback: setIsReady,
         isGeneratingCallback: setIsGenerating,
-        modelDownloadProgressCallback: setDownloadProgress,
+        onDownloadProgressCallback: setDownloadProgress,
         errorCallback: setError,
         chatConfig: chatConfig,
       })

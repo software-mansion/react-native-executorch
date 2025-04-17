@@ -1,8 +1,8 @@
 import { EventSubscription } from 'react-native';
 import { LLM } from '../../native/RnExecutorchModules';
-import { LLMTool, MessageType, ResourceSource } from '../../types/common';
+import { ResourceSource } from '../../types/common';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
-import { getError } from '../../Error';
+import { ETError, getError } from '../../Error';
 import { Template } from '@huggingface/jinja';
 import {
   DEFAULT_CONTEXT_WINDOW_LENGTH,
@@ -10,6 +10,12 @@ import {
   DEFAULT_SYSTEM_PROMPT,
 } from '../../constants/llmDefaults';
 import { readAsStringAsync } from 'expo-file-system';
+import {
+  ChatConfig,
+  LLMTool,
+  MessageType,
+  SPECIAL_TOKENS,
+} from '../../types/llm';
 
 export class LLMModule {
   private nativeModule: typeof LLM;
@@ -26,7 +32,7 @@ export class LLMModule {
   private messageHistoryCallback: (messageHistory: MessageType[]) => void;
   private isReadyCallback: (isReady: boolean) => void;
   private isGeneratingCallback: (isGenerating: boolean) => void;
-  private modelDownloadProgressCallback:
+  private onDownloadProgressCallback:
     | ((downloadProgress: number) => void)
     | undefined;
   private errorCallback: ((error: any) => void) | undefined;
@@ -36,7 +42,7 @@ export class LLMModule {
     messageHistoryCallback,
     isReadyCallback,
     isGeneratingCallback,
-    modelDownloadProgressCallback,
+    onDownloadProgressCallback,
     errorCallback,
     chatConfig = {
       systemPrompt: DEFAULT_SYSTEM_PROMPT,
@@ -48,7 +54,7 @@ export class LLMModule {
     messageHistoryCallback?: (messageHistory: MessageType[]) => void;
     isReadyCallback?: (isReady: boolean) => void;
     isGeneratingCallback?: (isGenerating: boolean) => void;
-    modelDownloadProgressCallback?: (downloadProgress: number) => void;
+    onDownloadProgressCallback?: (downloadProgress: number) => void;
     errorCallback?: (error: Error | undefined) => void;
     chatConfig?: ChatConfig;
   }) {
@@ -69,7 +75,7 @@ export class LLMModule {
       isGeneratingCallback?.(isGenerating);
     };
     this.errorCallback = errorCallback;
-    this.modelDownloadProgressCallback = modelDownloadProgressCallback;
+    this.onDownloadProgressCallback = onDownloadProgressCallback;
 
     this.messageHistoryCallback(chatConfig.initialMessageHistory);
     this.chatConfig = chatConfig;
@@ -106,7 +112,7 @@ export class LLMModule {
 
       const modelFileUri = await ResourceFetcher.fetch(
         modelSource,
-        this.modelDownloadProgressCallback
+        this.onDownloadProgressCallback
       );
 
       await this.nativeModule.loadLLM(modelFileUri, tokenizerFileUri);
@@ -131,7 +137,7 @@ export class LLMModule {
 
   public async runInference(input: string) {
     if (!this._isReady) {
-      throw new Error('Model is not loaded!');
+      throw new Error(getError(ETError.ModuleNotLoaded));
     }
     try {
       this.responseCallback('');
@@ -207,19 +213,3 @@ export class LLMModule {
     return result;
   }
 }
-
-export interface ChatConfig {
-  initialMessageHistory: MessageType[];
-  contextWindowLength: number;
-  systemPrompt: string;
-}
-
-export const SPECIAL_TOKENS = [
-  'bos_token',
-  'eos_token',
-  'unk_token',
-  'sep_token',
-  'pad_token',
-  'cls_token',
-  'mask_token',
-];
