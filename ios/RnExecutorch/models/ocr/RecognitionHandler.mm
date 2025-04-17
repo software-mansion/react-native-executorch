@@ -1,12 +1,9 @@
 #import "RecognitionHandler.h"
-#import "../../utils/ImageProcessor.h"
 #import "./utils/CTCLabelConverter.h"
 #import "./utils/Constants.h"
 #import "./utils/OCRUtils.h"
 #import "./utils/RecognizerUtils.h"
-#import "ExecutorchLib/ETModel.h"
 #import "Recognizer.h"
-#import <React/RCTBridgeModule.h>
 
 /*
  RecognitionHandler class is responsible for loading and choosing the
@@ -34,15 +31,12 @@
   return self;
 }
 
-- (void)loadRecognizers:(NSString *)largeRecognizerPath
-    mediumRecognizerPath:(NSString *)mediumRecognizerPath
-     smallRecognizerPath:(NSString *)smallRecognizerPath
-              completion:(void (^)(BOOL, NSNumber *))completion {
-  dispatch_group_t group = dispatch_group_create();
-  __block BOOL allSuccessful = YES;
-
+- (NSNumber *)loadRecognizers:(NSString *)largeRecognizerPath
+         mediumRecognizerPath:(NSString *)mediumRecognizerPath
+          smallRecognizerPath:(NSString *)smallRecognizerPath {
   NSArray<Recognizer *> *recognizers =
       @[ recognizerLarge, recognizerMedium, recognizerSmall ];
+
   NSArray<NSString *> *paths =
       @[ largeRecognizerPath, mediumRecognizerPath, smallRecognizerPath ];
 
@@ -50,24 +44,13 @@
     Recognizer *recognizer = recognizers[i];
     NSString *path = paths[i];
 
-    dispatch_group_enter(group);
-    [recognizer loadModel:[NSURL URLWithString:path]
-               completion:^(BOOL success, NSNumber *errorCode) {
-                 if (!success) {
-                   allSuccessful = NO;
-                   dispatch_group_leave(group);
-                   completion(NO, errorCode);
-                   return;
-                 }
-                 dispatch_group_leave(group);
-               }];
+    NSNumber *errorCode = [recognizer loadModel:path];
+    if ([errorCode intValue] != 0) {
+      return errorCode;
+    }
   }
 
-  dispatch_group_notify(group, dispatch_get_main_queue(), ^{
-    if (allSuccessful) {
-      completion(YES, @(0));
-    }
-  });
+  return @0;
 }
 
 - (NSArray *)runModel:(cv::Mat)croppedImage {

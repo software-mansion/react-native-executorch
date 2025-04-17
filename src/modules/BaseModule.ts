@@ -5,7 +5,7 @@ import {
   _ClassificationModule,
   _ETModule,
 } from '../native/RnExecutorchModules';
-import { fetchResource } from '../utils/fetchResource';
+import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { ResourceSource } from '../types/common';
 import { getError } from '../Error';
 
@@ -23,7 +23,7 @@ export class BaseModule {
     if (!modelSource) return;
 
     try {
-      const fileUri = await fetchResource(
+      const fileUri = await ResourceFetcher.fetch(
         modelSource,
         this.onDownloadProgressCallback
       );

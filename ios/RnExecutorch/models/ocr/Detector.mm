@@ -1,5 +1,6 @@
 #import "Detector.h"
 #import "../../utils/ImageProcessor.h"
+#import "utils/Constants.h"
 #import "utils/DetectorUtils.h"
 #import "utils/OCRUtils.h"
 
@@ -92,7 +93,7 @@
 
 - (NSArray *)runModel:(cv::Mat &)input {
   NSArray *modelInput = [self preprocess:input];
-  NSArray *modelResult = [self forward:modelInput];
+  NSArray *modelResult = [self forward:@[ modelInput ]];
   NSArray *result = [self postprocess:modelResult];
   return result;
 }

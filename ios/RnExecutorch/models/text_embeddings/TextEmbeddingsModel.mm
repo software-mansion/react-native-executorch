@@ -22,13 +22,13 @@
 
 - (NSArray *)runModel:(NSString *)input {
   NSArray *modelInput = [self preprocess:input];
-  NSArray *modelOutput = [self forwardMultiple:modelInput];
+  NSArray *modelOutput = [self forward:modelInput];
   return [self postprocess:modelOutput[0] attentionMask:modelInput[1]];
 }
 
 - (void)loadTokenizer:(NSString *)tokenizerSource {
-  tokenizer = [[HuggingFaceTokenizer alloc]
-      initWithTokenizerPath:[NSURL URLWithString:tokenizerSource].path];
+  tokenizer =
+      [[HuggingFaceTokenizer alloc] initWithTokenizerPath:tokenizerSource];
 }
 
 @end

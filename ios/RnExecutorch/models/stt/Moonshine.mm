@@ -1,9 +1,4 @@
 #import "Moonshine.hpp"
-#import "ExecutorchLib/ETModel.h"
-#import "MoonshineEncoder.hpp"
-#import "Moonshinedecoder.hpp"
-#import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
 
 @implementation Moonshine {
   MoonshineEncoder *encoder;

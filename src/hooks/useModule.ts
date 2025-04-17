@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { fetchResource } from '../utils/fetchResource';
+import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { ETError, getError } from '../Error';
 import { ETInput, Module } from '../types/common';
 import { _ETModule } from '../native/RnExecutorchModules';
@@ -34,7 +34,10 @@ export const useModule = ({ modelSource, module }: Props): _Module => {
 
       try {
         setIsReady(false);
-        const fileUri = await fetchResource(modelSource, setDownloadProgress);
+        const fileUri = await ResourceFetcher.fetch(
+          modelSource,
+          setDownloadProgress
+        );
         await module.loadModule(fileUri);
         setIsReady(true);
       } catch (e) {
