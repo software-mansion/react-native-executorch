@@ -23,7 +23,7 @@ import {
 import PauseIcon from '../assets/icons/pause_icon.svg';
 import ColorPalette from '../colors';
 import Messages from '../components/Messages';
-import { LLMTool } from 'react-native-executorch/lib/typescript/types/common';
+import { LLMTool } from 'react-native-executorch/lib/typescript/types/llm';
 
 export default function ChatScreen() {
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
