@@ -78,3 +78,15 @@ export const MODES = {
 };
 
 export const NUM_TOKENS_TO_SLICE = 3;
+
+export enum STREAMING_ACTION {
+  START,
+  DATA,
+  STOP,
+}
+
+export enum SLICING_PLACE {
+  START,
+  MIDDLE,
+  END,
+}

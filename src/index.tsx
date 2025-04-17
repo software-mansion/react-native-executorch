@@ -37,3 +37,4 @@ export { SpeechToTextLanguage };
 
 // constants
 export * from './constants/modelUrls';
+export { STREAMING_ACTION } from './constants/sttDefaults';
