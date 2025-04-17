@@ -10,10 +10,11 @@ import {
 } from 'expo-file-system';
 import { Asset } from 'expo-asset';
 import { RNEDirectory } from '../constants/directories';
+import { ResourceSource } from '../types/common';
 
 export class ResourceFetcher {
   static async fetch(
-    source: string | number | object,
+    source: ResourceSource,
     callback: (downloadProgress: number) => void = () => {}
   ) {
     if (typeof source === 'object') {
@@ -69,7 +70,25 @@ export class ResourceFetcher {
     return this.removeFilePrefix(fileUri);
   }
 
-  static calculateDownloadProgress(
+  static async fetchMultipleResources(
+    callback: (downloadProgress: number) => void = () => {},
+    ...sources: ResourceSource[]
+  ) {
+    const paths = [];
+
+    for (let idx = 0; idx < sources.length; idx++) {
+      paths.push(
+        await this.fetch(
+          sources[idx]!,
+          this.calculateDownloadProgress(sources.length, idx, callback)
+        )
+      );
+    }
+
+    return paths;
+  }
+
+  private static calculateDownloadProgress(
     numberOfFiles: number,
     currentFileIndex: number,
     setProgress: (downloadProgress: number) => void

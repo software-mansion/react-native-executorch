@@ -44,50 +44,23 @@ export class OCRController {
       if (!symbols[language]) {
         throw new Error(getError(ETError.LanguageNotSupported));
       }
+
       this.isReady = false;
       this.isReadyCallback(false);
 
-      const detectorPath = await ResourceFetcher.fetch(
+      const paths = await ResourceFetcher.fetchMultipleResources(
+        this.modelDownloadProgressCallback,
         detectorSource,
-        ResourceFetcher.calculateDownloadProgress(
-          4,
-          0,
-          this.modelDownloadProgressCallback
-        )
+        recognizerSources.recognizerLarge,
+        recognizerSources.recognizerMedium,
+        recognizerSources.recognizerSmall
       );
 
-      const recognizerPaths = {
-        recognizerLarge: await ResourceFetcher.fetch(
-          recognizerSources.recognizerLarge,
-          ResourceFetcher.calculateDownloadProgress(
-            4,
-            1,
-            this.modelDownloadProgressCallback
-          )
-        ),
-        recognizerMedium: await ResourceFetcher.fetch(
-          recognizerSources.recognizerMedium,
-          ResourceFetcher.calculateDownloadProgress(
-            4,
-            2,
-            this.modelDownloadProgressCallback
-          )
-        ),
-        recognizerSmall: await ResourceFetcher.fetch(
-          recognizerSources.recognizerSmall,
-          ResourceFetcher.calculateDownloadProgress(
-            4,
-            3,
-            this.modelDownloadProgressCallback
-          )
-        ),
-      };
-
       await this.nativeModule.loadModule(
-        detectorPath,
-        recognizerPaths.recognizerLarge,
-        recognizerPaths.recognizerMedium,
-        recognizerPaths.recognizerSmall,
+        paths[0]!,
+        paths[1]!,
+        paths[2]!,
+        paths[3]!,
         symbols[language]
       );
 
