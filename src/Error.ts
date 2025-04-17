@@ -43,5 +43,5 @@ export const getError = (e: unknown | ETError): string => {
   const error = e as Error;
   const errorCode = parseInt(error.message, 10);
   if (errorCode in ETError) return ETError[errorCode] as string;
-  return ETError[ETError.UndefinedError] as string;
+  return error.toString();
 };
