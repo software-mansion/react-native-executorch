@@ -18,6 +18,16 @@ export const LLAMA3_2_TOKENIZER =
 export const LLAMA3_2_TOKENIZER_CONFIG =
   'https://huggingface.co/software-mansion/react-native-executorch-llama-3.2/resolve/v0.4.0/tokenizer_config.json';
 
+export const HAMMER2_1_1_5B =
+  Platform.OS === 'ios'
+    ? 'https://huggingface.co/nklockiewicz/ocr/resolve/main/hammer/hammer-1_5b_bf16.pte'
+    : 'https://huggingface.co/nklockiewicz/ocr/resolve/main/hammer/hammer-1_5b_fp16.pte';
+
+export const HAMMER2_1_TOKENIZER =
+  'https://huggingface.co/nklockiewicz/ocr/resolve/main/hammer/tokenizer-hammer.json';
+export const HAMMER2_1_TOKENIZER_CONFIG =
+  'https://huggingface.co/MadeAgents/Hammer2.1-1.5b/resolve/main/tokenizer_config.json';
+
 // Classification
 export const EFFICIENTNET_V2_S =
   Platform.OS === 'ios'
@@ -85,3 +95,5 @@ export const LLAMA3_2_3B_SPINQUANT_URL = LLAMA3_2_3B_SPINQUANT;
 export const LLAMA3_2_1B_URL = LLAMA3_2_1B;
 export const LLAMA3_2_1B_QLORA_URL = LLAMA3_2_1B_QLORA;
 export const LLAMA3_2_1B_SPINQUANT_URL = LLAMA3_2_1B_SPINQUANT;
+export const LLAMA3_2_1B_TOKENIZER = LLAMA3_2_TOKENIZER;
+export const LLAMA3_2_3B_TOKENIZER = LLAMA3_2_TOKENIZER;
