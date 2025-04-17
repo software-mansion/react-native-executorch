@@ -1,5 +1,3 @@
-#import <Foundation/Foundation.h>
-
 @interface TextEmbeddingsUtils : NSObject
 
 + (NSArray *)meanPooling:(NSArray *)modelOutput

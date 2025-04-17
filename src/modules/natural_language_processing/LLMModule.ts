@@ -1,5 +1,5 @@
 import { LLM } from '../../native/RnExecutorchModules';
-import { fetchResource } from '../../utils/fetchResource';
+import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import {
   DEFAULT_CONTEXT_WINDOW_LENGTH,
   DEFAULT_MESSAGE_HISTORY,
@@ -18,8 +18,8 @@ export class LLMModule {
     contextWindowLength = DEFAULT_CONTEXT_WINDOW_LENGTH
   ) {
     try {
-      const tokenizerFileUri = await fetchResource(tokenizerSource);
-      const modelFileUri = await fetchResource(
+      const tokenizerFileUri = await ResourceFetcher.fetch(tokenizerSource);
+      const modelFileUri = await ResourceFetcher.fetch(
         modelSource,
         this.onDownloadProgressCallback
       );

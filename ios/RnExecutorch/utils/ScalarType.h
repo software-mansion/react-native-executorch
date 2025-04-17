@@ -1,8 +1,6 @@
 #ifndef ScalarType_h
 #define ScalarType_h
 
-#import <Foundation/Foundation.h>
-
 @interface ScalarType : NSObject
 
 @property(class, nonatomic, readonly) NSNumber *Int8;

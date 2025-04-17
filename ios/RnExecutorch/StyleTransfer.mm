@@ -1,11 +1,6 @@
 #import "StyleTransfer.h"
 #import "ImageProcessor.h"
-#import "models/BaseModel.h"
 #import "models/style_transfer/StyleTransferModel.h"
-#import "utils/ETError.h"
-#import <ExecutorchLib/ETModel.h>
-#import <React/RCTBridgeModule.h>
-#import <opencv2/opencv.hpp>
 
 @implementation StyleTransfer {
   StyleTransferModel *model;
@@ -13,23 +8,25 @@
 
 RCT_EXPORT_MODULE()
 
+- (void)releaseResources {
+  model = nil;
+}
+
 - (void)loadModule:(NSString *)modelSource
            resolve:(RCTPromiseResolveBlock)resolve
             reject:(RCTPromiseRejectBlock)reject {
   model = [[StyleTransferModel alloc] init];
-  [model
-       loadModel:[NSURL URLWithString:modelSource]
-      completion:^(BOOL success, NSNumber *errorCode) {
-        if (success) {
-          resolve(errorCode);
-          return;
-        }
 
-        reject(@"init_module_error",
-               [NSString stringWithFormat:@"%ld", (long)[errorCode longValue]],
-               nil);
-        return;
-      }];
+  NSNumber *errorCode = [model loadModel:modelSource];
+  if ([errorCode intValue] != 0) {
+    [self releaseResources];
+    reject(@"init_module_error",
+           [NSString stringWithFormat:@"%ld", (long)[errorCode longValue]],
+           nil);
+    return;
+  }
+
+  resolve(@0);
 }
 
 - (void)forward:(NSString *)input

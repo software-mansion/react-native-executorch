@@ -1,3 +1,6 @@
+import * as FileSystem from 'expo-file-system';
+import { ResourceFetcher } from '../utils/ResourceFetcher';
+import { ResourceSource } from '../types/common';
 import {
   HAMMING_DIST_THRESHOLD,
   MODEL_CONFIGS,
@@ -10,7 +13,6 @@ import {
   _SpeechToTextModule,
   _TokenizerModule,
 } from '../native/RnExecutorchModules';
-import { ResourceSource } from '../types/common';
 import { fetchResource } from '../utils/fetchResource';
 import { longCommonInfPref } from '../utils/stt';
 import { SpeechToTextLanguage } from '../types/stt';
@@ -76,6 +78,15 @@ export class SpeechToTextController {
     );
   }
 
+  private async fetchTokenizer(
+    localUri?: ResourceSource
+  ): Promise<{ [key: number]: string }> {
+    let tokenzerUri = await ResourceFetcher.fetch(
+      localUri || this.config.tokenizer.source
+    );
+    return JSON.parse(await FileSystem.readAsStringAsync(tokenzerUri));
+  }
+
   public async loadModel(
     modelName: AvailableModels,
     encoderSource?: ResourceSource,
@@ -87,14 +98,11 @@ export class SpeechToTextController {
     this.config = MODEL_CONFIGS[modelName];
 
     try {
-      encoderSource = await fetchResource(
+      this.tokenMapping = await this.fetchTokenizer(tokenizerSource);
+      [encoderSource, decoderSource] = await ResourceFetcher.fetchMultipleResources(
+        this.modelDownloadProgessCallback,
         encoderSource || this.config.sources.encoder,
-        (progress) => this.modelDownloadProgressCallback?.(progress / 2)
-      );
-
-      decoderSource = await fetchResource(
-        decoderSource || this.config.sources.decoder,
-        (progress) => this.modelDownloadProgressCallback?.(0.5 + progress / 2)
+        decoderSource || this.config.sources.decoder
       );
 
       let tokenizerUri = await fetchResource(

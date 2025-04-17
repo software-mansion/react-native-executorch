@@ -3,8 +3,6 @@
 #import "models/ocr/RecognitionHandler.h"
 #import "models/ocr/utils/Constants.h"
 #import "utils/ImageProcessor.h"
-#import <ExecutorchLib/ETModel.h>
-#import <React/RCTBridgeModule.h>
 
 @implementation OCR {
   Detector *detector;
@@ -12,6 +10,11 @@
 }
 
 RCT_EXPORT_MODULE()
+
+- (void)releaseResources {
+  detector = nil;
+  recognitionHandler = nil;
+}
 
 - (void)loadModule:(NSString *)detectorSource
      recognizerSourceLarge:(NSString *)recognizerSourceLarge
@@ -21,47 +24,40 @@ RCT_EXPORT_MODULE()
                    resolve:(RCTPromiseResolveBlock)resolve
                     reject:(RCTPromiseRejectBlock)reject {
   detector = [[Detector alloc] init];
-  [detector
-       loadModel:[NSURL URLWithString:detectorSource]
-      completion:^(BOOL success, NSNumber *errorCode) {
-        if (!success) {
-          NSError *error = [NSError
-              errorWithDomain:@"OCRErrorDomain"
-                         code:[errorCode intValue]
-                     userInfo:@{
-                       NSLocalizedDescriptionKey : [NSString
-                           stringWithFormat:@"%ld", (long)[errorCode longValue]]
-                     }];
-          reject(@"init_module_error", @"Failed to initialize detector module",
-                 error);
-          return;
-        }
-        self->recognitionHandler =
-            [[RecognitionHandler alloc] initWithSymbols:symbols];
-        [self->recognitionHandler
-                 loadRecognizers:recognizerSourceLarge
-            mediumRecognizerPath:recognizerSourceMedium
-             smallRecognizerPath:recognizerSourceSmall
-                      completion:^(BOOL allModelsLoaded, NSNumber *errorCode) {
-                        if (allModelsLoaded) {
-                          resolve(@(YES));
-                        } else {
-                          NSError *error = [NSError
-                              errorWithDomain:@"OCRErrorDomain"
-                                         code:[errorCode intValue]
-                                     userInfo:@{
-                                       NSLocalizedDescriptionKey : [NSString
-                                           stringWithFormat:@"%ld",
-                                                            (long)[errorCode
-                                                                longValue]]
-                                     }];
-                          reject(@"init_recognizer_error",
-                                 @"Failed to initialize one or more "
-                                 @"recognizer models",
-                                 error);
-                        }
-                      }];
-      }];
+  NSNumber *errorCode = [detector loadModel:detectorSource];
+  if ([errorCode intValue] != 0) {
+    [self releaseResources];
+    NSError *error = [NSError
+        errorWithDomain:@"OCRErrorDomain"
+                   code:[errorCode intValue]
+               userInfo:@{
+                 NSLocalizedDescriptionKey : [NSString
+                     stringWithFormat:@"%ld", (long)[errorCode longValue]]
+               }];
+    reject(@"init_module_error", @"Failed to initialize detector module",
+           error);
+    return;
+  }
+
+  recognitionHandler = [[RecognitionHandler alloc] initWithSymbols:symbols];
+  errorCode = [recognitionHandler loadRecognizers:recognizerSourceLarge
+                             mediumRecognizerPath:recognizerSourceMedium
+                              smallRecognizerPath:recognizerSourceSmall];
+  if ([errorCode intValue] != 0) {
+    [self releaseResources];
+    NSError *error = [NSError
+        errorWithDomain:@"OCRErrorDomain"
+                   code:[errorCode intValue]
+               userInfo:@{
+                 NSLocalizedDescriptionKey : [NSString
+                     stringWithFormat:@"%ld", (long)[errorCode longValue]]
+               }];
+    reject(@"init_recognizer_error",
+           @"Failed to initialize one or more recognizer models", error);
+    return;
+  }
+
+  resolve(@0);
 }
 
 - (void)forward:(NSString *)input
