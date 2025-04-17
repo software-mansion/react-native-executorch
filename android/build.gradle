@@ -162,7 +162,7 @@ dependencies {
   implementation 'com.facebook.fbjni:fbjni:0.6.0'
   implementation 'org.opencv:opencv:4.10.0'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation(files("libs/executorch.aar"))
+  implementation(files("../third-party/android/libs/executorch.aar"))
   implementation 'org.opencv:opencv:4.10.0'
   implementation("com.squareup.okhttp3:okhttp:4.9.2")
 }
