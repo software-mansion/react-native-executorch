@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -25,12 +25,19 @@ export default function ChatScreen() {
   const [userInput, setUserInput] = useState('');
   const llm = useLLM({
     modelSource:
-      'https://huggingface.co/nklockiewicz/ocr/resolve/main/hammer/hammer-1_5b_bf16.pte',
+      Platform.OS === 'ios'
+        ? 'https://huggingface.co/nklockiewicz/ocr/resolve/main/hammer/hammer-1_5b_bf16.pte'
+        : 'https://huggingface.co/nklockiewicz/ocr/resolve/main/hammer/hammer-1_5b_fp16.pte',
+
     tokenizerSource:
       'https://huggingface.co/nklockiewicz/ocr/resolve/main/hammer/tokenizer-hammer.json',
     tokenizerConfigSource:
       'https://huggingface.co/MadeAgents/Hammer2.1-1.5b/resolve/main/tokenizer_config.json',
   });
+
+  useEffect(() => {
+    console.log('LLM error:', llm.error);
+  }, [llm.error]);
 
   const textInputRef = useRef<TextInput>(null);
 
