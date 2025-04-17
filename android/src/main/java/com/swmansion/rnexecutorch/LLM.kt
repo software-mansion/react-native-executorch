@@ -7,10 +7,9 @@ import org.pytorch.executorch.extension.llm.LlmCallback
 import org.pytorch.executorch.extension.llm.LlmModule
 
 class LLM(
-  reactContext: ReactApplicationContext,
-) : NativeLLMSpec(reactContext),
-  LlmCallback {
-  private var llamaModule: LlmModule? = null
+        reactContext: ReactApplicationContext,
+) : NativeLLMSpec(reactContext), LlmCallback {
+  private var llmModule: LlmModule? = null
 
   override fun getName(): String = NAME
 
@@ -27,12 +26,12 @@ class LLM(
   }
 
   override fun loadLLM(
-    modelSource: String,
-    tokenizerSource: String,
-    promise: Promise,
+          modelSource: String,
+          tokenizerSource: String,
+          promise: Promise,
   ) {
     try {
-      llamaModule = LlmModule(modelSource, tokenizerSource, 0.7f)
+      llmModule = LlmModule(modelSource, tokenizerSource, 0.7f)
       promise.resolve("Model loaded successfully")
     } catch (e: Exception) {
       promise.reject("Model loading failed", e.message)
@@ -40,22 +39,22 @@ class LLM(
   }
 
   override fun runInference(
-    input: String,
-    promise: Promise,
+          input: String,
+          promise: Promise,
   ) {
     Thread {
-      llamaModule!!.generate(input, this)
-    }.start()
-
-    promise.resolve("Inference completed successfully")
+              llmModule!!.generate(input, this)
+              promise.resolve("Inference completed successfully")
+            }
+            .start()
   }
 
   override fun interrupt() {
-    llamaModule!!.stop()
+    llmModule!!.stop()
   }
 
   override fun deleteModule() {
-    llamaModule = null
+    llmModule = null
   }
 
   companion object {
