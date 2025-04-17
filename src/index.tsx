@@ -1,5 +1,27 @@
 import { SpeechToTextLanguage } from './types/stt';
 
+import { ETInstallerNativeModule } from './native/RnExecutorchModules';
+
+// In the future install pick a symbol to check for to avoid installing multiple times
+/*
+// eslint-disable no-var
+declare global {
+  var exampleGlobalFunction: () => void;
+}
+// eslint-disable no-var
+
+if (global.exampleGlobalFunction == null) {
+  if (!ETInstallerNativeModule) {
+    throw new Error(
+      `Failed to install react-native-executorch: The native module could not be found.`
+    );
+  }
+
+  ETInstallerNativeModule.install();
+}
+*/
+ETInstallerNativeModule.install();
+
 // hooks
 export * from './hooks/computer_vision/useClassification';
 export * from './hooks/computer_vision/useObjectDetection';
@@ -28,6 +50,7 @@ export * from './modules/general/ExecutorchModule';
 
 // utils
 export * from './utils/listDownloadedResources';
+export * from './utils/fetchResource';
 
 // types
 export * from './types/object_detection';

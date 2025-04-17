@@ -13,10 +13,50 @@ Pod::Spec.new do |s|
   s.platforms    = { :ios => min_ios_version_supported }
   s.source       = { :git => "https://github.com/NorbertKlockiewicz/react-native-executorch.git", :tag => "#{s.version}" }
 
-  s.ios.vendored_frameworks = "ios/ExecutorchLib.xcframework"
-  s.source_files = "ios/**/*.{h,m,mm}"
+  s.user_target_xcconfig = {
+    "HEADER_SEARCH_PATHS" => "$(PODS_TARGET_SRCROOT)/third-party/include",
+    "OTHER_LDFLAGS[sdk=iphoneos*][arch=*]" => [
+      '$(inherited)', 
+      '-framework "CoreML"', 
+      '-framework "Accelerate"', 
+      '-framework "Metal"', 
+      '-framework "MetalPerformanceShaders"', 
+      '-framework "MetalPerformanceShadersGraph"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libbackend_coreml_ios.a"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libbackend_mps_ios.a"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libbackend_xnnpack_ios.a"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libexecutorch_ios.a"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libkernels_custom_ios.a"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libkernels_optimized_ios.a"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libkernels_quantized_ios.a"'
+    ].join(' '),
+      
+    "OTHER_LDFLAGS[sdk=iphonesimulator*][arch=*]" => [
+      '$(inherited)', 
+      '-framework "CoreML"', 
+      '-framework "Accelerate"', 
+      '-framework "Metal"', 
+      '-framework "MetalPerformanceShaders"', 
+      '-framework "MetalPerformanceShadersGraph"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libbackend_coreml_simulator.a"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libbackend_mps_simulator.a"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libbackend_xnnpack_simulator.a"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libexecutorch_simulator.a"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libkernels_custom_simulator.a"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libkernels_optimized_simulator.a"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libkernels_quantized_simulator.a"'
+    ].join(' ')
+  }
 
+  s.pod_target_xcconfig = {
+    "HEADER_SEARCH_PATHS" => "$(PODS_TARGET_SRCROOT)/third-party/include"
+  }
+
+  s.ios.vendored_frameworks = "ios/ExecutorchLib.xcframework"
+  s.source_files = "ios/**/*.{h,m,mm}", "common/**/*.{hpp,cpp,c,h}"
+  
   s.dependency "opencv-rne", "~> 0.1.0"
+  s.dependency "sqlite3"
 
   install_modules_dependencies(s)
 end
