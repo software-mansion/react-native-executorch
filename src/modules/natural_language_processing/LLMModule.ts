@@ -124,7 +124,11 @@ export class LLMModule {
         this.responseCallback(this._response + data);
       });
     } catch (e) {
-      this.handleError(e);
+      if (this.errorCallback) {
+        this.errorCallback(getError(e));
+      } else {
+        throw new Error(getError(e));
+      }
       this.isReadyCallback(false);
     }
   }
@@ -144,7 +148,7 @@ export class LLMModule {
       this.isGeneratingCallback(true);
       await this.nativeModule.runInference(input);
     } catch (e) {
-      this.handleError(e);
+      throw new Error(getError(e));
     } finally {
       this.isGeneratingCallback(false);
     }
@@ -181,14 +185,6 @@ export class LLMModule {
         ...this._messageHistory,
         { content: this._response, role: 'assistant' },
       ]);
-    }
-  }
-
-  private handleError(error: unknown) {
-    if (this.errorCallback) {
-      this.errorCallback(getError(error));
-    } else {
-      throw new Error(getError(error));
     }
   }
 
