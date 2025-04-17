@@ -121,14 +121,10 @@ export class SpeechToTextController {
 
     try {
       this.tokenMapping = await this.fetchTokenizer(tokenizerSource);
-      encoderSource = await ResourceFetcher.fetch(
+      [encoderSource, decoderSource] = await ResourceFetcher.fetchMultipleResources(
+        this.modelDownloadProgessCallback,
         encoderSource || this.config.sources.encoder,
-        (progress) => this.modelDownloadProgessCallback?.(progress / 2)
-      );
-
-      decoderSource = await ResourceFetcher.fetch(
-        decoderSource || this.config.sources.decoder,
-        (progress) => this.modelDownloadProgessCallback?.(0.5 + progress / 2)
+        decoderSource || this.config.sources.decoder
       );
     } catch (e) {
       this.onErrorCallback?.(e);
