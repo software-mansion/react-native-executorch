@@ -1395,13 +1395,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@expo/config-types@npm:^53.0.0-preview.0":
-  version: 53.0.0-preview.0
-  resolution: "@expo/config-types@npm:53.0.0-preview.0"
-  checksum: 74991970b6d251791658fb234d3526dde502f80796dda2d9ae8617e1e980c9d528433b5cb12c4297feecc701893678489892b2dab79cd1687624da753262785d
-  languageName: node
-  linkType: hard
-
 "@expo/config@npm:~10.0.10":
   version: 10.0.10
   resolution: "@expo/config@npm:10.0.10"
@@ -1523,16 +1516,6 @@ __metadata:
     json5: ^2.2.3
     write-file-atomic: ^2.3.0
   checksum: 665fb72028e403adcb3ff9d7763ff6fab0ce16eaa1485a6b502daaab709608a9953599cce2f5c46e91b4791bd2380c87eb911deef4161b9d1f3a7631c2630366
-  languageName: node
-  linkType: hard
-
-"@expo/json-file@npm:^9.1.0, @expo/json-file@npm:~9.1.0":
-  version: 9.1.0
-  resolution: "@expo/json-file@npm:9.1.0"
-  dependencies:
-    "@babel/code-frame": ~7.10.4
-    json5: ^2.2.3
-  checksum: 02c9db64d400dea5d83c8012aa973af845c43dc070a483ee63f8490018918ab28fb947f502afc423d933063a46e6d6c07821e5c735400e28672edb1b3e0220aa
   languageName: node
   linkType: hard
 
@@ -4446,6 +4429,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-speech@npm:^13.0.1":
+  version: 13.1.4
+  resolution: "expo-speech@npm:13.1.4"
+  peerDependencies:
+    expo: "*"
+  checksum: ea6677d22b3678bae89a03a69699b1c66690846c1427dbc41d7b5d3eb5ae45821996d79a58ef3ee760fe44e23d588262500a476c0dbdcee2ea6f24dbc31cb132
+  languageName: node
+  linkType: hard
+
 "expo-status-bar@npm:~2.0.1":
   version: 2.0.1
   resolution: "expo-status-bar@npm:2.0.1"
@@ -5832,6 +5824,7 @@ __metadata:
     "@types/react": ~18.3.12
     expo: ~52.0.46
     expo-font: ~13.0.4
+    expo-speech: ^13.0.1
     expo-status-bar: ~2.0.1
     metro-config: ^0.81.0
     react: 18.3.1

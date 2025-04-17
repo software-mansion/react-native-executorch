@@ -36,6 +36,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - ExpoSpeech (13.1.4):
+    - ExpoModulesCore
   - fast_float (6.1.4)
   - FBLazyVector (0.76.9)
   - fmt (11.0.2)
@@ -1825,6 +1827,7 @@ DEPENDENCIES:
   - ExpoFont (from `../node_modules/expo-font/ios`)
   - ExpoKeepAwake (from `../node_modules/expo-keep-awake/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
+  - ExpoSpeech (from `../node_modules/expo-speech/ios`)
   - fast_float (from `../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
@@ -1890,7 +1893,6 @@ DEPENDENCIES:
   - React-utils (from `../node_modules/react-native/ReactCommon/react/utils`)
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
-  - RNLiveAudioStream (from `../node_modules/react-native-live-audio-stream`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
@@ -1919,6 +1921,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-keep-awake/ios"
   ExpoModulesCore:
     :path: "../node_modules/expo-modules-core"
+  ExpoSpeech:
+    :path: "../node_modules/expo-speech/ios"
   fast_float:
     :podspec: "../node_modules/react-native/third-party-podspecs/fast_float.podspec"
   FBLazyVector:
@@ -2046,8 +2050,6 @@ EXTERNAL SOURCES:
     :path: build/generated/ios
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
-  RNLiveAudioStream:
-    :path: "../node_modules/react-native-live-audio-stream"
   RNReanimated:
     :path: "../node_modules/react-native-reanimated"
   RNSVG:
@@ -2065,6 +2067,7 @@ SPEC CHECKSUMS:
   ExpoFont: f354e926f8feae5e831ec8087f36652b44a0b188
   ExpoKeepAwake: b0171a73665bfcefcfcc311742a72a956e6aa680
   ExpoModulesCore: c25d77625038b1968ea1afefc719862c0d8dd993
+  ExpoSpeech: 4db7ef7888b9edc39ca9afee54e9c4b3df269ccb
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: 7605ea4810e0e10ae4815292433c09bf4324ba45
   fmt: 01b82d4ca6470831d1cc0852a1af644be019e8f6
