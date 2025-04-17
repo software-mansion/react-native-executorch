@@ -470,21 +470,15 @@ export class SpeechToTextController {
         this.isGeneratingCallback(false);
         break;
       }
-      //last sequence processed
-      if (indexOfCurrentlyDecodingChunk === this.numOfChunks - 1) {
-        this.seqs.push(
-          await this.trimSequenceTokens(SLICING_PLACE.END, seq, audioLanguage)
-        );
-      } else {
-        this.seqs = [
-          ...this.seqs,
-          await this.trimSequenceTokens(
-            SLICING_PLACE.MIDDLE,
-            seq,
-            audioLanguage
-          ),
-        ];
-      }
+      this.seqs.push(
+        await this.trimSequenceTokens(
+          indexOfCurrentlyDecodingChunk === this.numOfChunks - 1
+            ? SLICING_PLACE.END
+            : SLICING_PLACE.MIDDLE,
+          seq,
+          audioLanguage
+        )
+      );
       this.handleOverlaps(this.seqs);
       if (indexOfCurrentlyDecodingChunk === this.numOfChunks - 1) {
         let finalSeq = [...this.sequence, ...this.seqs.at(-1)!];

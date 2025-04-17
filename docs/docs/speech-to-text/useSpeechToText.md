@@ -63,6 +63,58 @@ if (error) {
 }
 ```
 
+You can also get microphone data however you want, but we provide example using `react-native-live-audio-stream` library.
+
+:::caution
+Before trying to obtain microphone input remember to add proper permissions in your app. [Details](https://www.npmjs.com/package/react-native-live-audio-stream#add-microphone-permissions)
+:::
+
+```typescript
+import LiveAudioStream from 'react-native-live-audio-stream';
+import { Buffer } from 'buffer';
+
+const audioStreamOptions = {
+  sampleRate: 16000,
+  channels: 1,
+  bitsPerSample: 16,
+  audioSource: 1,
+  bufferSize: 16000,
+};
+
+const startStreamingAudio = (options: any, onChunk: (data: string) => void) => {
+  LiveAudioStream.init(options);
+  LiveAudioStream.on('data', onChunk);
+  LiveAudioStream.start();
+};
+
+const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
+  const b64DecodedChunk = Buffer.from(b64EncodedBuffer, 'base64');
+  const int16Array = new Int16Array(b64DecodedChunk.buffer);
+
+  const float32Array = new Float32Array(int16Array.length);
+  for (let i = 0; i < int16Array.length; i++) {
+    float32Array[i] = Math.max(
+      -1,
+      Math.min(1, (int16Array[i] / audioStreamOptions.bufferSize) * 8)
+    );
+  }
+  return float32Array;
+};
+
+const onChunk = (data: string) => {
+  const float32Chunk = float32ArrayFromPCMBinaryBuffer(data);
+};
+
+// code for handling microphone button
+const handleRecordPress = async () => {
+  if (/* recording */) {
+    LiveAudioStream.stop();
+  } else {
+    startStreamingAudio(audioStreamOptions, onChunk);
+  }
+};
+```
+
 ### Streaming
 
 Given that STT models can process audio no longer than 30 seconds, there is a need to chunk the input audio. Chunking audio may result in cutting speech mid-sentence, which might be hard to understand for the model. To make it work, we employed an algorithm (adapted for mobile devices from [whisper-streaming](https://aclanthology.org/2023.ijcnlp-demo.3.pdf)) that uses overlapping audio chunks. This might introduce some overhead, but allows for processing audio inputs of arbitrary length.
@@ -70,7 +122,7 @@ Given that STT models can process audio no longer than 30 seconds, there is a ne
 ### Arguments
 
 **`modelName`**
-A literal of `"moonshine" | "whisper"` which serves as an identifier for which model should be used.
+A literal of `"moonshine" | "whisper" | "whisperMultilingual` which serves as an identifier for which model should be used.
 
 **`encoderSource?`**
 A string that specifies the location of a .pte file for the encoder. For further information on passing model sources, check out [Loading Models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models). Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/main/src/constants/modelUrls.ts) for given model.
@@ -92,21 +144,120 @@ Specifies config for both `overlapSeconds` and `windowSize` values. Three option
 
 ### Returns
 
-| Field                | Type                                                                                                                     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `transcribe`         | `(input: number[]) => Promise<string>`                                                                                   | Starts a transcription process for a given input array, which should be a waveform at 16kHz. Resolves a promise with the output transcription when the model is finished.                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `error`              | <code>Error &#124; undefined</code>                                                                                      | Contains the error message if the model failed to load.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `sequence`           | <code>string</code>                                                                                                      | This property is updated with each generated token. If you're looking to obtain tokens as they're generated, you should use this property.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `isGenerating`       | `boolean`                                                                                                                | Indicates whether the model is currently processing an inference.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `isReady`            | `boolean`                                                                                                                | Indicates whether the model has successfully loaded and is ready for inference.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `configureStreaming` | <code>(overlapSeconds?: number, windowSize?: number, streamingConfig?: 'fast' &#124; 'balanced' &#124; 'quality')</code> | Configures options for the streaming algorithm: <ul><li>`overlapSeconds` determines how much adjacent audio chunks overlap (increasing it slows down transcription, decreases probability of weird wording at the chunks intersection, setting it larger than 3 seconds generally is discouraged), </li><li>`windowSize` describes size of the audio chunks (increasing it speeds up the end to end transcription time, but increases latency for the first token to be returned),</li><li> `streamingConfig` predefined configs for `windowSize` and `overlapSeconds` values.</li></ul> Keep `windowSize + 2 * overlapSeconds <= 30`. |
-| `downloadProgress`   | `number`                                                                                                                 | Tracks the progress of the model download process.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Field                 | Type                                                                                                                     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `transcribeStreaming` | `(streamAction: STREAMING_ACTION, input?: number[], audioLanguage?: SpeechToTextLanguage) => Promise<string>`            | Allows optimal transcribing when data is generated real-time e.g microphone data. Options for `STREAMING_ACTION` parameter: <ul> <li> `STREAMING_ACTION.START` resets previous remembered state and prepare for upcoming data.</li><li>`STREAMING_ACTION.DATA` should be invoked with new portions of input, which will be processed after filling the certain size. If input not provided error is thrown.</li> <li>`STREAMING_ACTION.STOP` decodes rest of the data and resolves promise. </li></ul> For multilingual models, you have to specify the audioLanguage flag, which is the language of the spoken language in the audio. |
+| `transcribe`          | `(input: number[], audioLanguage?: SpeechToTextLanguage) => Promise<string>`                                             | Starts a transcription process for a given input array, which should be a waveform at 16kHz. Resolves a promise with the output transcription when the model is finished. For multilingual models, you have to specify the audioLanguage flag, which is the language of the spoken language in the audio.                                                                                                                                                                                                                                                                                                                              |
+| `error`               | <code>Error &#124; undefined</code>                                                                                      | Contains the error message if the model failed to load.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `sequence`            | <code>string</code>                                                                                                      | This property is updated with each generated token. If you're looking to obtain tokens as they're generated, you should use this property.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `isGenerating`        | `boolean`                                                                                                                | Indicates whether the model is currently processing an inference.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `isReady`             | `boolean`                                                                                                                | Indicates whether the model has successfully loaded and is ready for inference.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `configureStreaming`  | <code>(overlapSeconds?: number, windowSize?: number, streamingConfig?: 'fast' &#124; 'balanced' &#124; 'quality')</code> | Configures options for the streaming algorithm: <ul><li>`overlapSeconds` determines how much adjacent audio chunks overlap (increasing it slows down transcription, decreases probability of weird wording at the chunks intersection, setting it larger than 3 seconds generally is discouraged), </li><li>`windowSize` describes size of the audio chunks (increasing it speeds up the end to end transcription time, but increases latency for the first token to be returned),</li><li> `streamingConfig` predefined configs for `windowSize` and `overlapSeconds` values.</li></ul> Keep `windowSize + 2 * overlapSeconds <= 30`. |
+| `downloadProgress`    | `number`                                                                                                                 | Tracks the progress of the model download process.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+
+<details>
+<summary>Type definitions</summary>
+
+```typescript
+enum SpeechToTextLanguage {
+  Afrikaans = 'af',
+  Albanian = 'sq',
+  Arabic = 'ar',
+  Armenian = 'hy',
+  Azerbaijani = 'az',
+  Basque = 'eu',
+  Belarusian = 'be',
+  Bengali = 'bn',
+  Bosnian = 'bs',
+  Bulgarian = 'bg',
+  Burmese = 'my',
+  Catalan = 'ca',
+  Chinese = 'zh',
+  Croatian = 'hr',
+  Czech = 'cs',
+  Danish = 'da',
+  Dutch = 'nl',
+  Estonian = 'et',
+  English = 'en',
+  Finnish = 'fi',
+  French = 'fr',
+  Galician = 'gl',
+  Georgian = 'ka',
+  German = 'de',
+  Greek = 'el',
+  Gujarati = 'gu',
+  HaitianCreole = 'ht',
+  Hebrew = 'he',
+  Hindi = 'hi',
+  Hungarian = 'hu',
+  Icelandic = 'is',
+  Indonesian = 'id',
+  Italian = 'it',
+  Japanese = 'ja',
+  Kannada = 'kn',
+  Kazakh = 'kk',
+  Khmer = 'km',
+  Korean = 'ko',
+  Lao = 'lo',
+  Latvian = 'lv',
+  Lithuanian = 'lt',
+  Macedonian = 'mk',
+  Malagasy = 'mg',
+  Malay = 'ms',
+  Malayalam = 'ml',
+  Maltese = 'mt',
+  Marathi = 'mr',
+  Nepali = 'ne',
+  Norwegian = 'no',
+  Persian = 'fa',
+  Polish = 'pl',
+  Portuguese = 'pt',
+  Punjabi = 'pa',
+  Romanian = 'ro',
+  Russian = 'ru',
+  Serbian = 'sr',
+  Sinhala = 'si',
+  Slovak = 'sk',
+  Slovenian = 'sl',
+  Spanish = 'es',
+  Sundanese = 'su',
+  Swahili = 'sw',
+  Swedish = 'sv',
+  Tagalog = 'tl',
+  Tajik = 'tg',
+  Tamil = 'ta',
+  Telugu = 'te',
+  Thai = 'th',
+  Turkish = 'tr',
+  Ukrainian = 'uk',
+  Urdu = 'ur',
+  Uzbek = 'uz',
+  Vietnamese = 'vi',
+  Welsh = 'cy',
+  Yiddish = 'yi',
+}
+```
+
+</details>
 
 ## Running the model
 
-Before running the model's `transcribe` method be sure to obtain waveform of the audio You wish to transcribe. You need to obtain the waveform from audio on your own (remember to use sampling rate of 16kHz!), in the snippet above we provide an example how you can do that. In the latter case just pass the obtained waveform as argument to the `transcribe` method which returns a promise resolving to the generated tokens when successful. If the model fails during inference the `error` property contains details of the error. If you want to obtain tokens in a streaming fashion, you can also use the sequence property, which is updated with each generated token, similar to the [useLLM](../llms/useLLM.md) hook.
+Before running the model's `transcribe` or `streamingTranscribe` methods be sure to obtain waveform of the audio you wish to transcribe. You need to obtain the waveform from audio on your own (remember to use sampling rate of 16kHz!), in the snippets above we provide examples how you can do that. In the former case just pass the obtained waveform as argument to the `transcribe` method which returns a promise resolving to the generated tokens when successful. In the latter, same rules apply. After invoking `streamingTranscribe` with `STREAMING_ACTION.START`, `STREAMING_ACTION.DATA` and `STREAMING_ACTION.STOP` respectively, it will return promise if it was successful. If the model fails during inference the `error` property contains details of the error. If you want to obtain tokens in a streaming fashion, you can also use the sequence property, which is updated with each generated token, similar to the [useLLM](../llms/useLLM.md) hook.
 
-## Example
+#### Multilingual transcription
+
+If you aim to obtain a transcription in other languages than English, in v0.4.0 we introduced a new model - `whisperMultilingual`, a multilingual version of Whisper. To obtain the output text in your desired language, make sure pass `audioLanguage` to `transcribe`. You should not pass this flag if you're using a non-multilingual model. For example:
+
+```typescript
+import { SpeechToTextLanguage } from 'react-native-executorch';
+
+// Rest of your code...
+const mySpanishAudio = ...;
+await model.transcribe(mySpanishAudio, SpeechToTextLanguage.Spanish);
+// Rest of your code...
+```
+
+## File example
 
 ```typescript
 import { Button, Text } from 'react-native';
@@ -134,12 +285,54 @@ function App() {
 }
 ```
 
+## Microphone example
+
+```typescript {9,20,24}
+import { useState } from 'react';
+import { Button, View } from 'react-native';
+import { useSpeechToText, STREAMING_ACTION } from 'react-native-executorch';
+
+function App() {
+  const [isRecording, setIsRecording] = useState(false);
+  const onChunk = (data: string) => {
+    const float32Chunk = float32ArrayFromPCMBinaryBuffer(data);
+    speechToText.streamingTranscribe(STREAMING_ACTION.DATA, Array.from(float32Chunk));
+  };
+
+  const speechToText = useSpeechToText({
+    modelName: 'whisper'
+  });
+
+  const handleRecordPress = async () => {
+    if (isRecording) {
+      setIsRecording(false);
+      LiveAudioStream.stop();
+      console.log(await speechToText.streamingTranscribe(STREAMING_ACTION.STOP));
+    } else {
+      setIsRecording(true);
+      startStreamingAudio(audioStreamOptions, onChunk);
+      speechToText.streamingTranscribe(STREAMING_ACTION.START);
+    }
+  };
+
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Button
+        onPress={async () => await handleRecordPress()}
+        title={isRecording ? "Start" : "Stop"}
+      />
+    </View>
+  );
+}
+```
+
 ## Supported models
 
-| Model                                                                 | Language |
-| --------------------------------------------------------------------- | :------: |
-| [Whisper tiny.en](https://huggingface.co/openai/whisper-tiny.en)      | English  |
-| [Moonshine tiny](https://huggingface.co/UsefulSensors/moonshine-tiny) | English  |
+| Model                                                                 |   Language   |
+| --------------------------------------------------------------------- | :----------: |
+| [Whisper tiny.en](https://huggingface.co/openai/whisper-tiny.en)      |   English    |
+| [Whisper tiny](https://huggingface.co/openai/whisper-tiny)            | Multilingual |
+| [Moonshine tiny](https://huggingface.co/UsefulSensors/moonshine-tiny) |   English    |
 
 ## Benchmarks
 
