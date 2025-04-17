@@ -22,13 +22,13 @@ Pod::Spec.new do |s|
       '-framework "Metal"', 
       '-framework "MetalPerformanceShaders"', 
       '-framework "MetalPerformanceShadersGraph"', 
-      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libbackend_coreml-ios-release.a"', 
-      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libbackend_mps-ios-release.a"', 
-      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libbackend_xnnpack-ios-release.a"', 
-      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libexecutorch-ios-release.a"', 
-      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libkernels_custom-ios-release.a"', 
-      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libkernels_optimized-ios-release.a"', 
-      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libkernels_quantized-ios-release.a"'
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libbackend_coreml_ios.a"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libbackend_mps_ios.a"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libbackend_xnnpack_ios.a"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libexecutorch_ios.a"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libkernels_custom_ios.a"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libkernels_optimized_ios.a"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libkernels_quantized_ios.a"'
     ].join(' '),
       
     "OTHER_LDFLAGS[sdk=iphonesimulator*][arch=*]" => [
@@ -38,13 +38,13 @@ Pod::Spec.new do |s|
       '-framework "Metal"', 
       '-framework "MetalPerformanceShaders"', 
       '-framework "MetalPerformanceShadersGraph"', 
-      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libbackend_coreml-simulator-release.a"', 
-      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libbackend_mps-simulator-release.a"', 
-      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libbackend_xnnpack-simulator-release.a"', 
-      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libexecutorch-simulator-release.a"', 
-      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libkernels_custom-simulator-release.a"', 
-      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libkernels_optimized-simulator-release.a"', 
-      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libkernels_quantized-simulator-release.a"'
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libbackend_coreml_simulator.a"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libbackend_mps_simulator.a"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libbackend_xnnpack_simulator.a"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libexecutorch_simulator.a"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libkernels_custom_simulator.a"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libkernels_optimized_simulator.a"', 
+      '-force_load "$(PODS_ROOT)/../../node_modules/react-native-executorch/ios/libs/libkernels_quantized_simulator.a"'
     ].join(' ')
   }
 
