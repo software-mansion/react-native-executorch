@@ -10,7 +10,7 @@ export const useTokenizer = ({
 }) => {
   const [error, setError] = useState<null | string>(null);
   const [isReady, setIsReady] = useState(false);
-  const [isRunning, setIsRunning] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
 
   useEffect(() => {
@@ -32,13 +32,13 @@ export const useTokenizer = ({
 
     return async (...args: Parameters<T>): Promise<ReturnType<T>> => {
       if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
-      if (isRunning) throw new Error(getError(ETError.ModuleRunning));
+      if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
 
-      setIsRunning(true);
+      setIsGenerating(true);
       try {
         return await boundFn(...args);
       } finally {
-        setIsRunning(false);
+        setIsGenerating(false);
       }
     };
   };
@@ -46,6 +46,7 @@ export const useTokenizer = ({
   return {
     error,
     isReady,
+    isGenerating,
     downloadProgress,
     decode: stateWrapper(TokenizerModule.decode),
     encode: stateWrapper(TokenizerModule.encode),
