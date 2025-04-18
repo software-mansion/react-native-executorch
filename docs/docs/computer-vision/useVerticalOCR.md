@@ -323,8 +323,10 @@ function App() {
 | --------------------- | :----------: |
 | Detector (CRAFT_1280) |     83.1     |
 | Detector (CRAFT_320)  |     83.1     |
-| Recognizer (CRNN_512) |   15 - 18    |
-| Recognizer (CRNN_64)  |   15 - 16    |
+| Recognizer (CRNN_512) |  15 - 18\*   |
+| Recognizer (CRNN_64)  |  15 - 16\*   |
+
+\* - The model weights vary depending on the language.
 
 ### Memory usage
 

@@ -302,9 +302,11 @@ function App() {
 | Model                 | XNNPACK [MB] |
 | --------------------- | :----------: |
 | Detector (CRAFT_800)  |     83.1     |
-| Recognizer (CRNN_512) |   15 - 18    |
-| Recognizer (CRNN_256) |   16 - 18    |
-| Recognizer (CRNN_128) |   17 - 19    |
+| Recognizer (CRNN_512) |  15 - 18\*   |
+| Recognizer (CRNN_256) |  16 - 18\*   |
+| Recognizer (CRNN_128) |  17 - 19\*   |
+
+\* - The model weights vary depending on the language.
 
 ### Memory usage
 
