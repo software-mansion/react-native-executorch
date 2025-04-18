@@ -80,13 +80,13 @@ The minimal supported version is 17.0 for iOS and Android 13.
 
 https://github.com/user-attachments/assets/27ab3406-c7f1-4618-a981-6c86b53547ee
 
-We currently host two example apps demonstrating use cases of our library:
+We currently host three example apps demonstrating use cases of our library:
 
-- examples/speech-to-text - Whisper and Moonshine models ready for transcription tasks
-- examples/computer-vision - computer vision related tasks
-- examples/llama - chat applications showcasing use of LLMs
+- apps/speech-to-text - Whisper and Moonshine models ready for transcription tasks
+- apps/computer-vision - computer vision related tasks
+- apps/llama - chat applications showcasing use of LLMs
 
-If you would like to run it, navigate to it's project directory, for example `examples/llama` from the repository root and install dependencies with:
+If you would like to run it, navigate to it's project directory, for example `apps/llama` from the repository root and install dependencies with:
 
 ```bash
 yarn

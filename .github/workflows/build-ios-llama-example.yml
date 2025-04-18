@@ -6,14 +6,14 @@ on:
     paths:
       - '.github/workflows/build-ios-llama-example.yml'
       - '*.podspec'
-      - 'examples/llama/ios/**'
-      - 'examples/llama/package.json'
+      - 'apps/llama/ios/**'
+      - 'apps/llama/package.json'
   pull_request:
     paths:
       - '.github/workflows/build-ios-llama-example.yml'
       - '*.podspec'
-      - 'examples/llama/ios/**'
-      - 'examples/llama/package.json'
+      - 'apps/llama/ios/**'
+      - 'apps/llama/package.json'
 jobs:
   build:
     if: github.repository == 'software-mansion/react-native-executorch'
@@ -25,13 +25,13 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v4
       - name: Install node dependencies
-        working-directory: examples/llama
+        working-directory: apps/llama
         run: yarn
       - name: Install pods
-        working-directory: examples/llama/ios
+        working-directory: apps/llama/ios
         run: pod install
       - name: Build app
-        working-directory: examples/llama/ios
+        working-directory: apps/llama/ios
         run: |
           set -o pipefail && xcodebuild \
             -workspace llama.xcworkspace \

@@ -5,8 +5,8 @@ on:
       - .github/workflows/build-android-llama-example.yml
       - android/**
       - third-party/android/**
-      - examples/llama/package.json
-      - examples/llama/android/**
+      - apps/llama/package.json
+      - apps/llama/android/**
   push:
     branches:
       - main
@@ -14,14 +14,14 @@ on:
       - .github/workflows/build-android-llama-example.yml
       - android/**
       - third-party/android/**
-      - examples/llama/package.json
-      - examples/llama/android/**
+      - apps/llama/package.json
+      - apps/llama/android/**
 jobs:
   build:
     if: github.repository == 'software-mansion/react-native-executorch'
     runs-on: ubuntu-latest
     env:
-      WORKING_DIRECTORY: examples/llama
+      WORKING_DIRECTORY: apps/llama
     concurrency:
       group: android-${{ github.ref }}
       cancel-in-progress: true

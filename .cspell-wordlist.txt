@@ -17,3 +17,4 @@ mobilenet
 microcontrollers
 notimestamps
 seqs
+wordlist
