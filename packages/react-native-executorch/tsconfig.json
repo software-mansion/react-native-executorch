@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib",
+    "composite": true,
     "allowJs": false,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
@@ -18,8 +21,9 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "esnext"
+    "target": "esnext",
+    "types": ["react"]
   },
-  "include": ["src", "babel.config.js", ".eslintrc.js"],
-  "exclude": ["node_modules", "lib", "docs", "example"]
+  "include": ["src"],
+  "exclude": ["node_modules", "lib"]
 }

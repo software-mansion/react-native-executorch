@@ -37,7 +37,7 @@ const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
   for (let i = 0; i < int16Array.length; i++) {
     float32Array[i] = Math.max(
       -1,
-      Math.min(1, (int16Array[i] / audioStreamOptions.bufferSize) * 8)
+      Math.min(1, (int16Array[i]! / audioStreamOptions.bufferSize) * 8)
     );
   }
   return float32Array;

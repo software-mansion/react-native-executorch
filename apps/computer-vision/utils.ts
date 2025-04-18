@@ -18,5 +18,6 @@ export const getImage = async (useCamera: boolean) => {
     return output.assets[0];
   } catch (err) {
     console.error(err);
+    return;
   }
 };

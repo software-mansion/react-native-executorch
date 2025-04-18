@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { MessageType } from '../types';
 import MarkdownComponent from './MarkdownComponent';

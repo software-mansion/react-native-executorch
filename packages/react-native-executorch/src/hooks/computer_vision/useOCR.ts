@@ -24,8 +24,6 @@ export const useOCR = ({
   };
   language?: OCRLanguage;
 }): OCRModule => {
-  console.log("XD")
-  console.log("JA JEBIE")
   const [error, setError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);

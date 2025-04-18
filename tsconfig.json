@@ -1,0 +1,9 @@
+{
+  "files": [],
+  "references": [
+    { "path": "apps/computer-vision" },
+    { "path": "apps/llama" },
+    { "path": "apps/speech-to-text" },
+    { "path": "packages/react-native-executorch" }
+  ]
+}

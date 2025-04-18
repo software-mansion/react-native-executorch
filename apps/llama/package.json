@@ -3,10 +3,13 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "build": "cd ios && pod install",
     "start": "expo start",
     "android": "expo run:android",
-    "ios": "expo run:ios"
+    "ios": "expo run:ios",
+    "lint": "eslint . --ext .ts,.tsx,.js"
+  },
+  "peerDependencies": {
+    "react-native": "*"
   },
   "dependencies": {
     "@react-native/metro-config": "^0.76.3",
