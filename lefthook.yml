@@ -20,5 +20,5 @@ pre-commit:
       glob: '*.{json,yml,watchmanconfig,md,css}'
       run: npx prettier --write {staged_files} && git add {staged_files}
     spell-check-other:
-      glob: '*.{json,yml,watchmanconfig,md,css}'
+      glob: '*.{md,css}'
       run: cspell {staged_files} --config .cspell.json --quiet && git add {staged_files}
