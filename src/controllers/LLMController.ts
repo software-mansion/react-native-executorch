@@ -171,7 +171,8 @@ export class LLMController {
     const renderedChat: string = this.applyChatTemplate(
       messageHistoryWithPrompt,
       this.tokenizerConfig,
-      tools
+      tools,
+      { tools_in_user_message: false, add_generation_prompt: true }
     );
 
     await this.runInference(renderedChat);
@@ -190,7 +191,8 @@ export class LLMController {
   private applyChatTemplate(
     messages: MessageType[],
     tokenizerConfig: any,
-    tools?: LLMTool[]
+    tools?: LLMTool[],
+    template_flags?: Object
   ): string {
     if (!tokenizerConfig.chat_template) {
       throw Error("Tokenizer config doesn't include chat_template");
@@ -204,7 +206,12 @@ export class LLMController {
       ])
     );
 
-    const result = template.render({ messages, tools, ...specialTokens });
+    const result = template.render({
+      messages,
+      tools,
+      ...template_flags,
+      ...specialTokens,
+    });
     return result;
   }
 }

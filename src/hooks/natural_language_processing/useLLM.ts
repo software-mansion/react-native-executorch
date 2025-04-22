@@ -68,6 +68,6 @@ export const useLLM = ({
     error,
     runInference: (input) => model.runInference(input),
     sendMessage: (message, tools) => model.sendMessage(message, tools),
-    interrupt: model.interrupt,
+    interrupt: () => model.interrupt(),
   };
 };

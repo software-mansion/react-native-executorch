@@ -18,6 +18,10 @@ import {
   HAMMER2_1_1_5B,
   HAMMER2_1_TOKENIZER,
   HAMMER2_1_TOKENIZER_CONFIG,
+  LLAMA3_2_1B_QLORA,
+  LLAMA3_2_TOKENIZER,
+  LLAMA3_2_TOKENIZER_CONFIG,
+  LLMType,
   useLLM,
 } from 'react-native-executorch';
 import PauseIcon from '../assets/icons/pause_icon.svg';
@@ -25,14 +29,35 @@ import ColorPalette from '../colors';
 import Messages from '../components/Messages';
 import { LLMTool } from 'react-native-executorch/lib/typescript/types/llm';
 
-export default function ChatScreen() {
-  const [isTextInputFocused, setIsTextInputFocused] = useState(false);
-  const [userInput, setUserInput] = useState('');
+export const ChatScreenLLM = () => {
+  const llm = useLLM({
+    modelSource: LLAMA3_2_1B_QLORA,
+    tokenizerSource: LLAMA3_2_TOKENIZER,
+    tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
+  });
+
+  return <ChatScreen llm={llm} />;
+};
+
+export const ChatScreenLLMToolCalling = () => {
   const llm = useLLM({
     modelSource: HAMMER2_1_1_5B,
     tokenizerSource: HAMMER2_1_TOKENIZER,
     tokenizerConfigSource: HAMMER2_1_TOKENIZER_CONFIG,
   });
+
+  return <ChatScreen llm={llm} tools={true} />;
+};
+
+export default function ChatScreen({
+  llm,
+  tools,
+}: {
+  llm: LLMType;
+  tools?: boolean;
+}) {
+  const [isTextInputFocused, setIsTextInputFocused] = useState(false);
+  const [userInput, setUserInput] = useState('');
 
   useEffect(() => {
     if (llm.error) {
@@ -46,7 +71,10 @@ export default function ChatScreen() {
     setUserInput('');
     textInputRef.current?.clear();
     try {
-      await llm.sendMessage(userInput, TOOL_DEFINITIONS_PHONE);
+      await llm.sendMessage(
+        userInput,
+        tools ? TOOL_DEFINITIONS_PHONE : undefined
+      );
     } catch (e) {
       console.error(e);
     }
@@ -67,7 +95,7 @@ export default function ChatScreen() {
         >
           <View style={styles.topContainer}>
             <SWMIcon width={45} height={45} />
-            <Text style={styles.textModelName}>Llama 3.2 1B QLoRA</Text>
+            <Text style={styles.textModelName}>LLM on device demo</Text>
           </View>
           {llm.messageHistory.length ? (
             <View style={styles.chatContainer}>
