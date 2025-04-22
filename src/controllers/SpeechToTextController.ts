@@ -1,3 +1,4 @@
+import { SpeechToTextNativeModule } from '../native/RnExecutorchModules';
 import * as FileSystem from 'expo-file-system';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { ResourceSource } from '../types/common';
@@ -9,16 +10,11 @@ import {
   NUM_TOKENS_TO_SLICE,
 } from '../constants/sttDefaults';
 import { AvailableModels, ModelConfig } from '../types/stt';
-import {
-  _SpeechToTextModule,
-  _TokenizerModule,
-} from '../native/RnExecutorchModules';
-import { fetchResource } from '../utils/fetchResource';
 import { longCommonInfPref } from '../utils/stt';
 import { SpeechToTextLanguage } from '../types/stt';
 
 export class SpeechToTextController {
-  private nativeModule: _SpeechToTextModule;
+  private speechToTextNativeModule: typeof SpeechToTextNativeModule;
 
   private overlapSeconds!: number;
   private windowSize!: number;
@@ -70,7 +66,7 @@ export class SpeechToTextController {
       isGeneratingCallback?.(isGenerating);
     };
     this.onErrorCallback = onErrorCallback;
-    this.nativeModule = new _SpeechToTextModule();
+    this.speechToTextNativeModule = SpeechToTextNativeModule;
     this.configureStreaming(
       overlapSeconds,
       windowSize,
@@ -99,18 +95,12 @@ export class SpeechToTextController {
 
     try {
       this.tokenMapping = await this.fetchTokenizer(tokenizerSource);
-      [encoderSource, decoderSource] = await ResourceFetcher.fetchMultipleResources(
-        this.modelDownloadProgessCallback,
-        encoderSource || this.config.sources.encoder,
-        decoderSource || this.config.sources.decoder
-      );
-
-      let tokenizerUri = await fetchResource(
-        tokenizerSource || this.config.tokenizer.source
-      );
-
-      // The tokenizer native module does not accept the file:// prefix
-      await this.nativeTokenizer.load(tokenizerUri.replace('file://', ''));
+      [encoderSource, decoderSource] =
+        await ResourceFetcher.fetchMultipleResources(
+          this.modelDownloadProgessCallback,
+          encoderSource || this.config.sources.encoder,
+          decoderSource || this.config.sources.decoder
+        );
     } catch (e) {
       this.onErrorCallback?.(e);
       return;
@@ -125,7 +115,7 @@ export class SpeechToTextController {
     }
 
     try {
-      await this.nativeModule.loadModule(modelName, [
+      await this.speechToTextNativeModule.loadModule(modelName, [
         encoderSource!,
         decoderSource!,
       ]);
@@ -184,14 +174,123 @@ export class SpeechToTextController {
     if (this.isGenerating) {
       throw Error('Model is already transcribing');
     }
+    this.onErrorCallback?.(undefined);
+    this.isGeneratingCallback(true);
+
+    this.sequence = [];
+
+    if (!waveform) {
+      this.isGeneratingCallback(false);
+
+      this.onErrorCallback?.(
+        new Error(
+          `Nothing to transcribe, perhaps you forgot to call this.loadAudio().`
+        )
+      );
+    }
+
+    this.chunkWaveform(waveform);
+
+    let seqs: number[][] = [];
+    let prevseq: number[] = [];
+    for (let chunkId = 0; chunkId < this.chunks.length; chunkId++) {
+      let lastToken = this.config.tokenizer.sos;
+      let prevSeqTokenIdx = 0;
+      let finalSeq: number[] = [];
+      let seq = [lastToken];
+      try {
+        await this.speechToTextNativeModule.encode(this.chunks!.at(chunkId)!);
+      } catch (error) {
+        this.onErrorCallback?.(`Encode ${error}`);
+        return '';
+      }
+      while (lastToken !== this.config.tokenizer.eos) {
+        try {
+          lastToken = await this.decode(seq);
+        } catch (error) {
+          this.onErrorCallback?.(`Decode ${error}`);
+          return '';
+        }
+        seq = [...seq, lastToken];
+        if (
+          seqs.length > 0 &&
+          seq.length < seqs.at(-1)!.length &&
+          seq.length % 3 !== 0
+        ) {
+          prevseq = [...prevseq, seqs.at(-1)![prevSeqTokenIdx++]!];
+          this.decodedTranscribeCallback(prevseq);
+        }
+      }
+
+      if (this.chunks.length === 1) {
+        finalSeq = seq;
+        this.sequence = finalSeq;
+        this.decodedTranscribeCallback(finalSeq);
+        break;
+      }
+      // remove sos/eos token and 3 additional ones
+      if (seqs.length === 0) {
+        seqs = [seq.slice(0, -4)];
+      } else if (seqs.length === this.chunks.length - 1) {
+        seqs = [...seqs, seq.slice(4)];
+      } else {
+        seqs = [...seqs, seq.slice(4, -4)];
+      }
+      if (seqs.length < 2) {
+        continue;
+      }
+
+      const maxInd = longCommonInfPref(seqs.at(-2)!, seqs.at(-1)!);
+      finalSeq = [...this.sequence, ...seqs.at(-2)!.slice(0, maxInd)];
+      this.sequence = finalSeq;
+      this.decodedTranscribeCallback(finalSeq);
+      prevseq = finalSeq;
+
+      //last sequence processed
+      if (seqs.length === this.chunks.length) {
+        finalSeq = [...this.sequence, ...seqs.at(-1)!];
+        this.sequence = finalSeq;
+        this.decodedTranscribeCallback(finalSeq);
+        prevseq = finalSeq;
+      }
+    }
+    const decodedSeq = this.decodeSeq(this.sequence);
+    this.isGeneratingCallback(false);
+    return decodedSeq;
+  }
+
+  public decodeSeq(seq?: number[]): string {
+    if (!this.modelName) {
+      this.onErrorCallback?.(
+        new Error('Model is not loaded, call `loadModel` first')
+      );
+      return '';
+    }
+    this.onErrorCallback?.(undefined);
+    if (!seq) seq = this.sequence;
+
+    return seq
+      .filter(
+        (token) =>
+          token !== this.config.tokenizer.eos &&
+          token !== this.config.tokenizer.sos
+      )
+      .map((token) => this.tokenMapping[token])
+      .join('')
+      .replaceAll(this.config.tokenizer.specialChar, ' ');
   }
 
   public async encode(waveform: number[]) {
-    return await this.nativeModule.encode(waveform);
+    return await this.speechToTextNativeModule.encode(waveform);
   }
 
   public async decode(seq: number[], encodings?: number[]) {
-    return await this.nativeModule.decode(seq, encodings);
+    /*
+    CAUTION: When you pass empty decoding array, it uses the cached encodings.
+    For instance, when you call .encode() for the first time, it internally caches
+    the encoding results. 
+    */
+    return await this.speechToTextNativeModule.decode(seq, encodings || []);
   }
 
   private async getStartingTokenIds(audioLanguage?: string): Promise<number[]> {

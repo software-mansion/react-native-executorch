@@ -11,6 +11,7 @@ export * from './hooks/computer_vision/useVerticalOCR';
 export * from './hooks/natural_language_processing/useLLM';
 export * from './hooks/natural_language_processing/useSpeechToText';
 export * from './hooks/natural_language_processing/useTextEmbeddings';
+export * from './hooks/natural_language_processing/useTokenizer';
 
 export * from './hooks/general/useExecutorchModule';
 
@@ -25,6 +26,7 @@ export * from './modules/computer_vision/VerticalOCRModule';
 export * from './modules/natural_language_processing/LLMModule';
 export * from './modules/natural_language_processing/SpeechToTextModule';
 export * from './modules/natural_language_processing/TextEmbeddingsModule';
+export * from './modules/natural_language_processing/TokenizerModule';
 
 export * from './modules/general/ExecutorchModule';
 
