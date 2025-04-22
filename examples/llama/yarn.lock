@@ -4429,6 +4429,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-speech@npm:^13.0.1":
+  version: 13.1.4
+  resolution: "expo-speech@npm:13.1.4"
+  peerDependencies:
+    expo: "*"
+  checksum: ea6677d22b3678bae89a03a69699b1c66690846c1427dbc41d7b5d3eb5ae45821996d79a58ef3ee760fe44e23d588262500a476c0dbdcee2ea6f24dbc31cb132
+  languageName: node
+  linkType: hard
+
 "expo-status-bar@npm:~2.0.1":
   version: 2.0.1
   resolution: "expo-status-bar@npm:2.0.1"
@@ -5815,6 +5824,7 @@ __metadata:
     "@types/react": ~18.3.12
     expo: ~52.0.46
     expo-font: ~13.0.4
+    expo-speech: ^13.0.1
     expo-status-bar: ~2.0.1
     metro-config: ^0.81.0
     react: 18.3.1
