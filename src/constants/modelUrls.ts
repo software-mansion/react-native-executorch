@@ -74,15 +74,6 @@ export const DETECTOR_CRAFT_800 =
 export const DETECTOR_CRAFT_320 =
   'https://huggingface.co/software-mansion/react-native-executorch-detector-craft/resolve/v0.4.0/xnnpack/xnnpack_craft_320.pte';
 
-export const RECOGNIZER_EN_CRNN_512 =
-  'https://huggingface.co/software-mansion/react-native-executorch-recognizer-crnn.en/resolve/v0.4.0/xnnpack/xnnpack_crnn_en_512.pte';
-export const RECOGNIZER_EN_CRNN_256 =
-  'https://huggingface.co/software-mansion/react-native-executorch-recognizer-crnn.en/resolve/v0.4.0/xnnpack/xnnpack_crnn_en_256.pte';
-export const RECOGNIZER_EN_CRNN_128 =
-  'https://huggingface.co/software-mansion/react-native-executorch-recognizer-crnn.en/resolve/v0.4.0/xnnpack/xnnpack_crnn_en_128.pte';
-export const RECOGNIZER_EN_CRNN_64 =
-  'https://huggingface.co/software-mansion/react-native-executorch-recognizer-crnn.en/resolve/v0.4.0/xnnpack/xnnpack_crnn_en_64.pte';
-
 // Image segmentation
 export const DEEPLAB_V3_RESNET50 =
   'https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3/resolve/v0.4.0/xnnpack/deeplabV3_xnnpack_fp32.pte';
