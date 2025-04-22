@@ -2918,6 +2918,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@huggingface/jinja@npm:^0.3.4":
+  version: 0.3.4
+  resolution: "@huggingface/jinja@npm:0.3.4"
+  checksum: 5a2eac0da4522e6a60af0a73cb6bdcca6b0a5e3d4987b40a260a5735da686e13a689e87428ca9945576135a29c4485e14d2f8fc130a89f93fd390c5c3904d224
+  languageName: node
+  linkType: hard
+
 "@humanwhocodes/config-array@npm:^0.13.0":
   version: 0.13.0
   resolution: "@humanwhocodes/config-array@npm:0.13.0"
@@ -12292,6 +12299,7 @@ __metadata:
     "@commitlint/config-conventional": ^17.0.2
     "@cspell/eslint-plugin": ^8.18.1
     "@evilmartians/lefthook": ^1.5.0
+    "@huggingface/jinja": ^0.3.4
     "@react-native-community/cli": latest
     "@react-native/eslint-config": ^0.79.0
     "@release-it/conventional-changelog": ^5.0.0
