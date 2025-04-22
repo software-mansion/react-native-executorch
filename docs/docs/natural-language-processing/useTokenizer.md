@@ -16,7 +16,7 @@ keywords:
 description: "Learn how to tokenize your text in your React Native applications using React Native ExecuTorch's useTokenizer hook."
 ---
 
-Tokenization is the process of breaking down text into smaller units called tokens, which can be words, characters, or subwords. It’s a crucial step in natural language processing that
+Tokenization is the process of breaking down text into smaller units called tokens. It’s a crucial step in natural language processing that
 converts text into a format that machine learning models can understand.
 
 :::info
