@@ -40,8 +40,12 @@ export const getError = (e: unknown | ETError): string => {
     return ETError[ETError.UndefinedError] as string;
   }
 
+  // try to extract number from message (can contain false positives)
   const error = e as Error;
   const errorCode = parseInt(error.message, 10);
-  if (errorCode in ETError) return ETError[errorCode] as string;
-  return ETError[ETError.UndefinedError] as string;
+  const ETErrorMessage = (
+    errorCode in ETError ? ETError[errorCode] : ETError[ETError.UndefinedError]
+  ) as string;
+
+  return ETErrorMessage + error.message;
 };
