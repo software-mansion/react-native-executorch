@@ -1,6 +1,5 @@
 ---
 title: OCRModule
-sidebar_position: 6
 ---
 
 TypeScript API implementation of the [useOCR](../computer-vision/useOCR.md) hook.

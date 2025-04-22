@@ -1,6 +1,5 @@
 ---
 title: VerticalOCRModule
-sidebar_position: 7
 ---
 
 TypeScript API implementation of the [useVerticalOCR](../computer-vision/useVerticalOCR.md) hook.

@@ -1,6 +1,5 @@
 ---
 title: ObjectDetectionModule
-sidebar_position: 5
 ---
 
 TypeScript API implementation of the [useObjectDetection](../computer-vision/useObjectDetection.md) hook.
@@ -34,7 +33,7 @@ const detections = await ObjectDetectionModule.forward(imageUri);
 <summary>Type definitions</summary>
 
 ```typescript
-type ResourceSource = string | number;
+type ResourceSource = string | number | object;
 
 interface Bbox {
   x1: number;

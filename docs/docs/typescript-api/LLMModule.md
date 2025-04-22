@@ -1,6 +1,5 @@
 ---
 title: LLMModule
-sidebar_position: 3
 ---
 
 TypeScript API implementation of the [useLLM](../natural-language-processing/useLLM.md) hook.
@@ -52,7 +51,7 @@ LLMModule.delete();
 <summary>Type definitions</summary>
 
 ```typescript
-type ResourceSource = string | number;
+type ResourceSource = string | number | object;
 
 interface MessageType {
   role: 'user' | 'assistant';

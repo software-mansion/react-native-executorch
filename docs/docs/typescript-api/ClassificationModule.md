@@ -1,6 +1,5 @@
 ---
 title: ClassificationModule
-sidebar_position: 1
 ---
 
 TypeScript API implementation of the [useClassification](../computer-vision/useClassification.md) hook.
@@ -34,7 +33,7 @@ const classesWithProbabilities = await ClassificationModule.forward(imageUri);
 <summary>Type definitions</summary>
 
 ```typescript
-type ResourceSource = string | number;
+type ResourceSource = string | number | object;
 ```
 
 </details>

@@ -1,6 +1,5 @@
 ---
 title: SpeechToTextModule
-sidebar_position: 6
 ---
 
 TypeScript API implementation of the [useSpeechToText](../natural-language-processing/useSpeechToText.md) hook.
@@ -50,7 +49,7 @@ const transcribedText = await SpeechToTextModule.transcribe(waveform);
 <summary>Type definitions</summary>
 
 ```typescript
-type ResourceSource = string | number;
+type ResourceSource = string | number | object;
 ```
 
 </details>

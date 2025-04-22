@@ -1,6 +1,5 @@
 ---
 title: StyleTransferModule
-sidebar_position: 4
 ---
 
 TypeScript API implementation of the [useStyleTransfer](../computer-vision/useStyleTransfer.md) hook.
@@ -34,7 +33,7 @@ const generatedImageUrl = await StyleTransferModule.forward(imageUri);
 <summary>Type definitions</summary>
 
 ```typescript
-type ResourceSource = string | number;
+type ResourceSource = string | number | object;
 ```
 
 </details>

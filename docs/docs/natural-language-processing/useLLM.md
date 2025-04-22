@@ -75,7 +75,7 @@ interface Model {
   interrupt: () => void;
 }
 
-type ResourceSource = string | number;
+type ResourceSource = string | number | object;
 
 interface MessageType {
   role: 'user' | 'assistant';

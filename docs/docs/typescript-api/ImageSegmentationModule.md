@@ -1,6 +1,5 @@
 ---
 title: ImageSegmentationModule
-sidebar_position: 4
 ---
 
 TypeScript API implementation of the [useImageSegmentation](../computer-vision/useImageSegmentation.md) hook.
@@ -34,7 +33,7 @@ const outputDict = await StyleTransferModule.forward(imageUri);
 <summary>Type definitions</summary>
 
 ```typescript
-type ResourceSource = string | number;
+type ResourceSource = string | number | object;
 ```
 
 </details>
