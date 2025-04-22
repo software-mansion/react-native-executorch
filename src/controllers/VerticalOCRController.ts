@@ -1,12 +1,12 @@
 import { symbols } from '../constants/ocr/symbols';
 import { ETError, getError } from '../Error';
-import { _VerticalOCRModule } from '../native/RnExecutorchModules';
+import { VerticalOCRNativeModule } from '../native/RnExecutorchModules';
 import { ResourceSource } from '../types/common';
 import { OCRLanguage } from '../types/ocr';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
 
 export class VerticalOCRController {
-  private nativeModule: _VerticalOCRModule;
+  private ocrNativeModule: typeof VerticalOCRNativeModule;
   public isReady: boolean = false;
   public isGenerating: boolean = false;
   public error: string | null = null;
@@ -21,7 +21,7 @@ export class VerticalOCRController {
     isGeneratingCallback = (_isGenerating: boolean) => {},
     errorCallback = (_error: string) => {},
   }) {
-    this.nativeModule = new _VerticalOCRModule();
+    this.ocrNativeModule = VerticalOCRNativeModule;
     this.modelDownloadProgressCallback = modelDownloadProgressCallback;
     this.isReadyCallback = isReadyCallback;
     this.isGeneratingCallback = isGeneratingCallback;
@@ -63,7 +63,7 @@ export class VerticalOCRController {
           : recognizerSources.recognizerLarge
       );
 
-      await this.nativeModule.loadModule(
+      await this.ocrNativeModule.loadModule(
         paths[0]!,
         paths[1]!,
         paths[2]!,
@@ -93,7 +93,7 @@ export class VerticalOCRController {
     try {
       this.isGenerating = true;
       this.isGeneratingCallback(this.isGenerating);
-      return await this.nativeModule.forward(input);
+      return await this.ocrNativeModule.forward(input);
     } catch (e) {
       throw new Error(getError(e));
     } finally {

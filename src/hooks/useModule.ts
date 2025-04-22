@@ -1,118 +1,52 @@
 import { useEffect, useState } from 'react';
-import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { ETError, getError } from '../Error';
-import { ETInput, Module } from '../types/common';
-import { _ETModule } from '../native/RnExecutorchModules';
-import { getTypeIdentifier } from '../types/common';
 
-interface Props {
-  modelSource: string | number;
-  module: Module;
+interface Module {
+  load: (...args: any[]) => Promise<void>;
+  forward: (...input: any[]) => Promise<any>;
+  onDownloadProgress: (cb: (progress: number) => void) => void;
 }
 
-interface _Module {
-  error: string | null;
-  isReady: boolean;
-  isGenerating: boolean;
-  downloadProgress: number;
-  forwardETInput: (
-    input: ETInput[] | ETInput,
-    shape: number[][] | number[]
-  ) => ReturnType<_ETModule['forward']>;
-  forwardImage: (input: string) => Promise<any>;
-}
-
-export const useModule = ({ modelSource, module }: Props): _Module => {
+export const useModule = <
+  M extends Module,
+  LoadArgs extends Parameters<M['load']>,
+  ForwardArgs extends Parameters<M['forward']>,
+  ForwardReturn extends Awaited<ReturnType<M['forward']>>,
+>({
+  module,
+  loadArgs,
+}: {
+  module: M;
+  loadArgs: LoadArgs;
+}) => {
   const [error, setError] = useState<null | string>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
 
   useEffect(() => {
-    const loadModel = async () => {
-      if (!modelSource) return;
-
+    const loadModule = async () => {
       try {
         setIsReady(false);
-        const fileUri = await ResourceFetcher.fetch(
-          modelSource,
-          setDownloadProgress
-        );
-        await module.loadModule(fileUri);
+        module.onDownloadProgress(setDownloadProgress);
+        await module.load(...loadArgs);
         setIsReady(true);
-      } catch (e) {
-        setError(getError(e));
+      } catch (err) {
+        setError((err as Error).message);
       }
     };
+    loadModule();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [...loadArgs]);
 
-    loadModel();
-  }, [modelSource, module]);
-
-  const forwardImage = async (input: string) => {
-    if (!isReady) {
-      throw new Error(getError(ETError.ModuleNotLoaded));
-    }
-    if (isGenerating) {
-      throw new Error(getError(ETError.ModelGenerating));
-    }
-
+  const forward = async (...input: ForwardArgs): Promise<ForwardReturn> => {
+    if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
+    if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
     try {
       setIsGenerating(true);
-      const output = await module.forward(input);
-      return output;
-    } catch (e) {
-      throw new Error(getError(e));
+      return await module.forward(...input);
     } finally {
       setIsGenerating(false);
-    }
-  };
-
-  const forwardETInput = async (
-    input: ETInput[] | ETInput,
-    shape: number[][] | number[]
-  ) => {
-    if (!isReady) {
-      throw new Error(getError(ETError.ModuleNotLoaded));
-    }
-    if (isGenerating) {
-      throw new Error(getError(ETError.ModelGenerating));
-    }
-
-    // Since the native module expects an array of inputs and an array of shapes,
-    // if the user provides a single ETInput, we want to "unsqueeze" the array so
-    // the data is properly processed on the native side
-    if (!Array.isArray(input)) {
-      input = [input];
-    }
-
-    if (!Array.isArray(shape[0])) {
-      shape = [shape] as number[][];
-    }
-
-    let inputTypeIdentifiers: any[] = [];
-    let modelInputs: any[] = [];
-
-    for (let idx = 0; idx < input.length; idx++) {
-      let currentInputTypeIdentifier = getTypeIdentifier(input[idx] as ETInput);
-      if (currentInputTypeIdentifier === -1) {
-        throw new Error(getError(ETError.InvalidArgument));
-      }
-      inputTypeIdentifiers.push(currentInputTypeIdentifier);
-      modelInputs.push([...(input[idx] as ETInput)]);
-    }
-
-    try {
-      setIsGenerating(true);
-      const output = await module.forward(
-        modelInputs,
-        shape,
-        inputTypeIdentifiers
-      );
-      setIsGenerating(false);
-      return output;
-    } catch (e) {
-      setIsGenerating(false);
-      throw new Error(getError(e));
     }
   };
 
@@ -121,7 +55,6 @@ export const useModule = ({ modelSource, module }: Props): _Module => {
     isReady,
     isGenerating,
     downloadProgress,
-    forwardETInput,
-    forwardImage,
+    forward,
   };
 };
