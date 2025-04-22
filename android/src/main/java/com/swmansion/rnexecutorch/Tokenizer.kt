@@ -18,7 +18,7 @@ class Tokenizer(
     const val NAME = "Tokenizer"
   }
 
-  override fun load(
+  override fun loadModule(
     tokenizerSource: String,
     promise: Promise,
   ) {
