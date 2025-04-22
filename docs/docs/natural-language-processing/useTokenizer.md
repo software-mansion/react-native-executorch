@@ -59,7 +59,7 @@ A string that specifies the path or URI of the tokenizer JSON file.
 | Field              | Type                                  | Description                                                           |
 | ------------------ | ------------------------------------- | --------------------------------------------------------------------- |
 | `encode`           | `(text: string) => Promise<number[]>` | Converts a string into an array of token IDs.                         |
-| `decode`           | `(ids: number[]) => Promise<string>`  | Converts a list of token IDs back into a string.                      |
+| `decode`           | `(ids: number[]) => Promise<string>`  | Converts a list of token IDs into a string.                      |
 | `getVocabSize`     | `() => Promise<number>`               | Returns the size of the tokenizer's vocabulary.                       |
 | `idToToken`        | `(id: number) => Promise<string>`     | Returns the token associated to the ID.                        |
 | `tokenToId`        | `(token: string) => Promise<number>`  | Returns the  ID associated to the token.                        |
