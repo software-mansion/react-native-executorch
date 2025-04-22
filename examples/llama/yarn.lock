@@ -7294,6 +7294,7 @@ __metadata:
   version: 0.3.2
   resolution: "react-native-executorch@npm:0.3.2"
   dependencies:
+    "@huggingface/jinja": ^0.3.4
     expo: ^52.0.37
     expo-asset: ^11.0.3
     expo-file-system: ^18.0.10
