@@ -1,8 +1,6 @@
 #import "ObjectDetection.h"
 #import "models/object_detection/SSDLiteLargeModel.hpp"
 #import "utils/ImageProcessor.h"
-#import <ExecutorchLib/ETModel.h>
-#import <React/RCTBridgeModule.h>
 
 @implementation ObjectDetection {
   SSDLiteLargeModel *model;
@@ -10,28 +8,30 @@
 
 RCT_EXPORT_MODULE()
 
+- (void)releaseResources {
+  model = nil;
+}
+
 - (void)loadModule:(NSString *)modelSource
            resolve:(RCTPromiseResolveBlock)resolve
             reject:(RCTPromiseRejectBlock)reject {
   model = [[SSDLiteLargeModel alloc] init];
-  [model loadModel:[NSURL URLWithString:modelSource]
-        completion:^(BOOL success, NSNumber *errorCode) {
-          if (success) {
-            resolve(errorCode);
-            return;
-          }
 
-          NSError *error = [NSError
-              errorWithDomain:@"StyleTransferErrorDomain"
-                         code:[errorCode intValue]
-                     userInfo:@{
-                       NSLocalizedDescriptionKey : [NSString
-                           stringWithFormat:@"%ld", (long)[errorCode longValue]]
-                     }];
+  NSNumber *errorCode = [model loadModel:modelSource];
+  if ([errorCode intValue] != 0) {
+    [self releaseResources];
+    NSError *error = [NSError
+        errorWithDomain:@"StyleTransferErrorDomain"
+                   code:[errorCode intValue]
+               userInfo:@{
+                 NSLocalizedDescriptionKey : [NSString
+                     stringWithFormat:@"%ld", (long)[errorCode longValue]]
+               }];
+    reject(@"init_module_error", error.localizedDescription, error);
+    return;
+  }
 
-          reject(@"init_module_error", error.localizedDescription, error);
-          return;
-        }];
+  resolve(@0);
 }
 
 - (void)forward:(NSString *)input

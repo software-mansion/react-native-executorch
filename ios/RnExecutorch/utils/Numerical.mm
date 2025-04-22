@@ -1,6 +1,4 @@
 #include "Utils.h"
-#include <cmath>
-#include <vector>
 
 std::vector<double> softmax(const std::vector<double> &v) {
   std::vector<double> result(v.size());

@@ -2,7 +2,6 @@
 #import "../../utils/ImageProcessor.h"
 #import "../../utils/Numerical.h"
 #import "Constants.h"
-#import "opencv2/opencv.hpp"
 
 @implementation ClassificationModel
 
@@ -47,7 +46,7 @@
 
 - (NSDictionary *)runModel:(cv::Mat &)input {
   NSArray *modelInput = [self preprocess:input];
-  NSArray *modelOutput = [self forward:modelInput];
+  NSArray *modelOutput = [self forward:@[ modelInput ]];
   return [self postprocess:modelOutput];
 }
 

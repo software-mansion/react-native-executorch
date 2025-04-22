@@ -7,7 +7,7 @@ export const getTypeIdentifier = (input: ETInput): number => {
   return -1;
 };
 
-export type ResourceSource = string | number;
+export type ResourceSource = string | number | object;
 
 export interface Model {
   generate: (input: string) => Promise<void>;
