@@ -11,8 +11,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import SWMIcon from '../assets/icons/swm_icon.svg';
-import SendIcon from '../assets/icons/send_icon.svg';
+import SWMIcon from '../../assets/icons/swm_icon.svg';
+import SendIcon from '../../assets/icons/send_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {
   HAMMER2_1_1_5B,

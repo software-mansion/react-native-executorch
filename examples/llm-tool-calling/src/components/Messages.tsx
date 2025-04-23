@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { ScrollView, StyleSheet, View, Text } from 'react-native';
 import AnimatedChatLoading from './AnimatedChatLoading';
-import LlamaIcon from '../../assets/icons/llm_tool_calling_icon.svg';
+import LlamaIcon from '../../assets/icons/llama_icon.svg';
 import MessageItem from './MessageItem';
 import { MessageType } from 'react-native-executorch/lib/typescript/types/llm';
 import ColorPalette from '../colors';

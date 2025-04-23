@@ -6,7 +6,7 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
-import ColorPalette from '../src/colors';
+import ColorPalette from '../colors';
 
 export default function AnimatedChatLoading() {
   const progress = useSharedValue(0);
