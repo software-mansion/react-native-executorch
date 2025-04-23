@@ -423,7 +423,7 @@ export class SpeechToTextController {
         this.chunks.at(this.firstChunk ? 0 : 1)?.length ==
         this.expectedChunkLength()
       ) {
-        let seq = await this.decodeChunk(
+        const seq = await this.decodeChunk(
           this.chunks.at(this.firstChunk ? 0 : 1)!,
           audioLanguage
         );
@@ -461,7 +461,7 @@ export class SpeechToTextController {
     }
     let indexOfCurrentlyDecodingChunk = this.firstChunk ? 0 : 1;
     while (streamAction === STREAMING_ACTION.STOP) {
-      let seq = await this.decodeChunk(
+      const seq = await this.decodeChunk(
         this.chunks.at(indexOfCurrentlyDecodingChunk)!
       );
       if (this.seqs.length === 0) {
@@ -481,7 +481,7 @@ export class SpeechToTextController {
       );
       this.handleOverlaps(this.seqs);
       if (indexOfCurrentlyDecodingChunk === this.numOfChunks - 1) {
-        let finalSeq = [...this.sequence, ...this.seqs.at(-1)!];
+        const finalSeq = [...this.sequence, ...this.seqs.at(-1)!];
         this.sequence = finalSeq;
         this.decodedTranscribeCallback(finalSeq);
         this.isGeneratingCallback(false);

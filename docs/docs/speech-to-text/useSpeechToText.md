@@ -21,10 +21,6 @@ description: "Learn how to use speech-to-text models in your React Native applic
 
 With the latest `v0.3.0` release we introduce a new hook - `useSpeechToText`. Speech to text is a task that allows to transform spoken language to written text. It is commonly used to implement features such as transcription or voice assistants. As of now, [all supported STT models](#supported-models) run on the XNNPACK backend.
 
-:::info
-Currently, we do not support direct microphone input streaming to the model. Instead, in v0.3.0, we provide a way to transcribe an audio file.
-:::
-
 :::caution
 It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-moonshine-tiny). You can also use [constants](https://github.com/software-mansion/react-native-executorch/tree/main/src/constants/modelUrls.ts) shipped with our library.
 :::
@@ -72,6 +68,7 @@ Before trying to obtain microphone input remember to add proper permissions in y
 ```typescript
 import LiveAudioStream from 'react-native-live-audio-stream';
 import { Buffer } from 'buffer';
+import { useSpeechToText, STREAMING_ACTION } from 'react-native-executorch';
 
 const audioStreamOptions = {
   sampleRate: 16000,
@@ -86,6 +83,10 @@ const startStreamingAudio = (options: any, onChunk: (data: string) => void) => {
   LiveAudioStream.on('data', onChunk);
   LiveAudioStream.start();
 };
+
+const speechToText = useSpeechToText({
+  modelName: 'whisper'
+});
 
 const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
   const b64DecodedChunk = Buffer.from(b64EncodedBuffer, 'base64');
@@ -103,14 +104,17 @@ const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
 
 const onChunk = (data: string) => {
   const float32Chunk = float32ArrayFromPCMBinaryBuffer(data);
+  speechToText.streamingTranscribe(STREAMING_ACTION.DATA, Array.from(float32Chunk));
 };
 
 // code for handling microphone button
 const handleRecordPress = async () => {
   if (/* recording */) {
     LiveAudioStream.stop();
+    console.log(await speechToText.streamingTranscribe(STREAMING_ACTION.STOP));
   } else {
     startStreamingAudio(audioStreamOptions, onChunk);
+    speechToText.streamingTranscribe(STREAMING_ACTION.START);
   }
 };
 ```
@@ -144,16 +148,16 @@ Specifies config for both `overlapSeconds` and `windowSize` values. Three option
 
 ### Returns
 
-| Field                 | Type                                                                                                                     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `transcribeStreaming` | `(streamAction: STREAMING_ACTION, input?: number[], audioLanguage?: SpeechToTextLanguage) => Promise<string>`            | Allows optimal transcribing when data is generated real-time e.g microphone data. Options for `STREAMING_ACTION` parameter: <ul> <li> `STREAMING_ACTION.START` resets previous remembered state and prepare for upcoming data.</li><li>`STREAMING_ACTION.DATA` should be invoked with new portions of input, which will be processed after filling the certain size. If input not provided error is thrown.</li> <li>`STREAMING_ACTION.STOP` decodes rest of the data and resolves promise. </li></ul> For multilingual models, you have to specify the audioLanguage flag, which is the language of the spoken language in the audio. |
-| `transcribe`          | `(input: number[], audioLanguage?: SpeechToTextLanguage) => Promise<string>`                                             | Starts a transcription process for a given input array, which should be a waveform at 16kHz. Resolves a promise with the output transcription when the model is finished. For multilingual models, you have to specify the audioLanguage flag, which is the language of the spoken language in the audio.                                                                                                                                                                                                                                                                                                                              |
-| `error`               | <code>Error &#124; undefined</code>                                                                                      | Contains the error message if the model failed to load.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `sequence`            | <code>string</code>                                                                                                      | This property is updated with each generated token. If you're looking to obtain tokens as they're generated, you should use this property.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `isGenerating`        | `boolean`                                                                                                                | Indicates whether the model is currently processing an inference.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `isReady`             | `boolean`                                                                                                                | Indicates whether the model has successfully loaded and is ready for inference.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `configureStreaming`  | <code>(overlapSeconds?: number, windowSize?: number, streamingConfig?: 'fast' &#124; 'balanced' &#124; 'quality')</code> | Configures options for the streaming algorithm: <ul><li>`overlapSeconds` determines how much adjacent audio chunks overlap (increasing it slows down transcription, decreases probability of weird wording at the chunks intersection, setting it larger than 3 seconds generally is discouraged), </li><li>`windowSize` describes size of the audio chunks (increasing it speeds up the end to end transcription time, but increases latency for the first token to be returned),</li><li> `streamingConfig` predefined configs for `windowSize` and `overlapSeconds` values.</li></ul> Keep `windowSize + 2 * overlapSeconds <= 30`. |
-| `downloadProgress`    | `number`                                                                                                                 | Tracks the progress of the model download process.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Field                 | Type                                                                                                                     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `transcribeStreaming` | `(streamAction: STREAMING_ACTION, input?: number[], audioLanguage?: SpeechToTextLanguage) => Promise<string>`            | Starts a transcription process for a chunked data stream (e.g. microphone data). `Input` should be a waveform at 16kHz. Options for `STREAMING_ACTION` parameter: <ul> <li> `STREAMING_ACTION.START` prepares module for processing data stream.</li><li>`STREAMING_ACTION.DATA` should be invoked with new data chunks. Transcription is triggered when inner buffer is filled. If input not provided error is thrown.</li> <li>`STREAMING_ACTION.STOP` decodes rest of the inner buffer and resolves the promise. </li></ul> For multilingual models, you have to specify the audioLanguage flag, which is the language of the spoken language in the audio. |
+| `transcribe`          | `(input: number[], audioLanguage?: SpeechToTextLanguage) => Promise<string>`                                             | Starts a transcription process for a given input array, which should be a waveform at 16kHz. Resolves a promise with the output transcription when the model is finished. For multilingual models, you have to specify the audioLanguage flag, which is the language of the spoken language in the audio.                                                                                                                                                                                                                                                                                                                                                      |
+| `error`               | <code>Error &#124; undefined</code>                                                                                      | Contains the error message if the model failed to load.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `sequence`            | <code>string</code>                                                                                                      | This property is updated with each generated token. If you're looking to obtain tokens as they're generated, you should use this property.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `isGenerating`        | `boolean`                                                                                                                | Indicates whether the model is currently processing an inference.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `isReady`             | `boolean`                                                                                                                | Indicates whether the model has successfully loaded and is ready for inference.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `configureStreaming`  | <code>(overlapSeconds?: number, windowSize?: number, streamingConfig?: 'fast' &#124; 'balanced' &#124; 'quality')</code> | Configures options for the streaming algorithm: <ul><li>`overlapSeconds` determines how much adjacent audio chunks overlap (increasing it slows down transcription, decreases probability of weird wording at the chunks intersection, setting it larger than 3 seconds generally is discouraged), </li><li>`windowSize` describes size of the audio chunks (increasing it speeds up the end to end transcription time, but increases latency for the first token to be returned),</li><li> `streamingConfig` predefined configs for `windowSize` and `overlapSeconds` values.</li></ul> Keep `windowSize + 2 * overlapSeconds <= 30`.                         |
+| `downloadProgress`    | `number`                                                                                                                 | Tracks the progress of the model download process.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 
 <details>
 <summary>Type definitions</summary>
@@ -257,7 +261,7 @@ await model.transcribe(mySpanishAudio, SpeechToTextLanguage.Spanish);
 // Rest of your code...
 ```
 
-## File example
+### `transcribe` example
 
 ```typescript
 import { Button, Text } from 'react-native';
@@ -285,7 +289,7 @@ function App() {
 }
 ```
 
-## Microphone example
+### `transcribeStreaming` example
 
 ```typescript {9,20,24}
 import { useState } from 'react';
