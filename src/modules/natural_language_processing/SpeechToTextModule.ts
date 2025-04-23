@@ -1,6 +1,5 @@
 import { ResourceSource } from '../../types/common';
 import { SpeechToTextController } from '../../controllers/SpeechToTextController';
-import { AvailableModels, SpeechToTextLanguage } from '../../types/stt';
 
 export class SpeechToText {
   static module: SpeechToTextController;
@@ -8,9 +7,9 @@ export class SpeechToText {
   static onDownloadProgressCallback = (_downloadProgress: number) => {};
 
   static async load(
-    modelName: AvailableModels,
+    modelName: 'moonshine' | 'whisper',
     transcribeCallback: (sequence: string) => void,
-    modelDownloadProgressCallback?: (downloadProgress: number) => void,
+    modelDownloadProgessCallback?: (downloadProgress: number) => void,
     encoderSource?: ResourceSource,
     decoderSource?: ResourceSource,
     tokenizerSource?: ResourceSource,
@@ -26,7 +25,7 @@ export class SpeechToText {
   ) {
     this.module = new SpeechToTextController({
       transcribeCallback: transcribeCallback,
-      modelDownloadProgressCallback: modelDownloadProgressCallback,
+      modelDownloadProgessCallback: modelDownloadProgessCallback,
       overlapSeconds: overlapSeconds,
       windowSize: windowSize,
       streamingConfig: streamingConfig,
@@ -51,18 +50,17 @@ export class SpeechToText {
     );
   }
 
+  static async transcribe(
+    waveform: number[]
+  ): ReturnType<SpeechToTextController['transcribe']> {
+    return await this.module.transcribe(waveform);
+  }
+
   static async encode(waveform: number[]) {
     return await this.module.encode(waveform);
   }
 
   static async decode(seq: number[], encodings?: number[]) {
     return await this.module.decode(seq, encodings);
-  }
-
-  static async transcribe(
-    waveform: number[],
-    audioLanguage?: SpeechToTextLanguage
-  ): ReturnType<SpeechToTextController['transcribe']> {
-    return await this.module.transcribe(waveform, audioLanguage);
   }
 }

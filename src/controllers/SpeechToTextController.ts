@@ -4,14 +4,36 @@ import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { ResourceSource } from '../types/common';
 import {
   HAMMING_DIST_THRESHOLD,
-  MODEL_CONFIGS,
   SECOND,
+  MODEL_CONFIGS,
+  ModelConfig,
   MODES,
-  NUM_TOKENS_TO_SLICE,
 } from '../constants/sttDefaults';
-import { AvailableModels, ModelConfig } from '../types/stt';
-import { longCommonInfPref } from '../utils/stt';
-import { SpeechToTextLanguage } from '../types/stt';
+
+const longCommonInfPref = (seq1: number[], seq2: number[]) => {
+  let maxInd = 0;
+  let maxLength = 0;
+
+  for (let i = 0; i < seq1.length; i++) {
+    let j = 0;
+    let hammingDist = 0;
+    while (
+      j < seq2.length &&
+      i + j < seq1.length &&
+      (seq1[i + j] === seq2[j] || hammingDist < HAMMING_DIST_THRESHOLD)
+    ) {
+      if (seq1[i + j] !== seq2[j]) {
+        hammingDist++;
+      }
+      j++;
+    }
+    if (j >= maxLength) {
+      maxLength = j;
+      maxInd = i;
+    }
+  }
+  return maxInd;
+};
 
 export class SpeechToTextController {
   private speechToTextNativeModule: typeof SpeechToTextNativeModule;
@@ -23,11 +45,14 @@ export class SpeechToTextController {
   public sequence: number[] = [];
   public isReady = false;
   public isGenerating = false;
-  private nativeTokenizer = new _TokenizerModule();
+  private modelName!: 'moonshine' | 'whisper';
+
+  // tokenizer tokens to string mapping used for decoding sequence
+  private tokenMapping!: { [key: number]: string };
 
   // User callbacks
   private decodedTranscribeCallback: (sequence: number[]) => void;
-  private modelDownloadProgressCallback:
+  private modelDownloadProgessCallback:
     | ((downloadProgress: number) => void)
     | undefined;
   private isReadyCallback: (isReady: boolean) => void;
@@ -37,7 +62,7 @@ export class SpeechToTextController {
 
   constructor({
     transcribeCallback,
-    modelDownloadProgressCallback,
+    modelDownloadProgessCallback,
     isReadyCallback,
     isGeneratingCallback,
     onErrorCallback,
@@ -46,7 +71,7 @@ export class SpeechToTextController {
     streamingConfig,
   }: {
     transcribeCallback: (sequence: string) => void;
-    modelDownloadProgressCallback?: (downloadProgress: number) => void;
+    modelDownloadProgessCallback?: (downloadProgress: number) => void;
     isReadyCallback?: (isReady: boolean) => void;
     isGeneratingCallback?: (isGenerating: boolean) => void;
     onErrorCallback?: (error: Error | undefined) => void;
@@ -54,9 +79,9 @@ export class SpeechToTextController {
     windowSize?: number;
     streamingConfig?: keyof typeof MODES;
   }) {
-    this.decodedTranscribeCallback = async (seq) =>
-      transcribeCallback(await this.tokenIdsToText(seq));
-    this.modelDownloadProgressCallback = modelDownloadProgressCallback;
+    this.decodedTranscribeCallback = (seq) =>
+      transcribeCallback(this.decodeSeq(seq));
+    this.modelDownloadProgessCallback = modelDownloadProgessCallback;
     this.isReadyCallback = (isReady) => {
       this.isReady = isReady;
       isReadyCallback?.(isReady);
@@ -84,7 +109,7 @@ export class SpeechToTextController {
   }
 
   public async loadModel(
-    modelName: AvailableModels,
+    modelName: 'moonshine' | 'whisper',
     encoderSource?: ResourceSource,
     decoderSource?: ResourceSource,
     tokenizerSource?: ResourceSource
@@ -92,6 +117,7 @@ export class SpeechToTextController {
     this.onErrorCallback?.(undefined);
     this.isReadyCallback(false);
     this.config = MODEL_CONFIGS[modelName];
+    this.modelName = modelName;
 
     try {
       this.tokenMapping = await this.fetchTokenizer(tokenizerSource);
@@ -106,25 +132,18 @@ export class SpeechToTextController {
       return;
     }
 
-    if (modelName === 'whisperMultilingual') {
-      // The underlying native class is instantiated based on the name of the model. There is no need to
-      // create a separate class for multilingual version of Whisper, since it is the same. We just need
-      // the distinction here, in TS, for start tokens and such. If we introduce
-      // more versions of Whisper, such as the small one, this should be refactored.
-      modelName = 'whisper';
-    }
-
     try {
       await this.speechToTextNativeModule.loadModule(modelName, [
         encoderSource!,
         decoderSource!,
       ]);
-      this.modelDownloadProgressCallback?.(1);
+      this.modelDownloadProgessCallback?.(1);
       this.isReadyCallback(true);
     } catch (e) {
       this.onErrorCallback?.(
         new Error(`Error when loading the SpeechToTextController! ${e}`)
       );
+      console.error('Error when loading the SpeechToTextController!', e);
     }
   }
 
@@ -163,16 +182,19 @@ export class SpeechToTextController {
           waveform.length
         )
       );
+
       this.chunks.push(chunk);
     }
   }
 
-  private checkCanTranscribe() {
+  public async transcribe(waveform: number[]): Promise<string> {
     if (!this.isReady) {
-      throw Error('Model is not yet ready');
+      this.onErrorCallback?.(new Error('Model is not yet ready'));
+      return '';
     }
     if (this.isGenerating) {
-      throw Error('Model is already transcribing');
+      this.onErrorCallback?.(new Error('Model is already transcribing'));
+      return '';
     }
     this.onErrorCallback?.(undefined);
     this.isGeneratingCallback(true);
@@ -291,162 +313,5 @@ export class SpeechToTextController {
     the encoding results. 
     */
     return await this.speechToTextNativeModule.decode(seq, encodings || []);
-  }
-
-  private async getStartingTokenIds(audioLanguage?: string): Promise<number[]> {
-    // We need different starting token ids based on the multilingualism of the model.
-    // The eng version only needs BOS token, while the multilingual one needs:
-    // [BOS, LANG, TRANSCRIBE]. Optionally we should also set notimestamps token, as timestamps
-    // is not yet supported.
-    if (!audioLanguage) {
-      return [this.config.tokenizer.bos];
-    }
-    // FIXME: I should use .getTokenId for the BOS as well, should remove it from config
-    const langTokenId = await this.nativeTokenizer.tokenToId(
-      `<|${audioLanguage}|>`
-    );
-    const transcribeTokenId =
-      await this.nativeTokenizer.tokenToId('<|transcribe|>');
-    const noTimestampsTokenId =
-      await this.nativeTokenizer.tokenToId('<|notimestamps|>');
-    const startingTokenIds = [
-      this.config.tokenizer.bos,
-      langTokenId,
-      transcribeTokenId,
-      noTimestampsTokenId,
-    ];
-    return startingTokenIds;
-  }
-
-  public async transcribe(
-    waveform: number[],
-    audioLanguage?: SpeechToTextLanguage
-  ): Promise<string> {
-    try {
-      this.checkCanTranscribe();
-    } catch (e) {
-      this.onErrorCallback?.(e);
-      return '';
-    }
-
-    if (!audioLanguage && this.config.isMultilingual) {
-      this.onErrorCallback?.(
-        new Error(
-          'Language parameter was not provided for a multilingual model. Please pass lang parameter to the transcribe.'
-        )
-      );
-      return '';
-    } else if (audioLanguage && !this.config.isMultilingual) {
-      this.onErrorCallback?.(
-        new Error(
-          'Language parameter was passed to a non-multilingual model. Please either use a multilingual version or delete the lang parameter.'
-        )
-      );
-      return '';
-    }
-
-    // Making sure that the error is not set when we get there
-    this.onErrorCallback?.(undefined);
-    this.isGeneratingCallback(true);
-
-    this.chunkWaveform(waveform);
-
-    this.sequence = [];
-    let seqs: number[][] = [];
-    let prevSeq: number[] = [];
-    for (let chunkId = 0; chunkId < this.chunks.length; chunkId++) {
-      let prevSeqTokenIdx = 0;
-      let finalSeq: number[] = [];
-
-      let seq = await this.getStartingTokenIds(audioLanguage);
-      const numSpecialTokens = seq.length;
-      let encoderOutput;
-      try {
-        encoderOutput = await this.nativeModule.encode(
-          this.chunks!.at(chunkId)!
-        );
-      } catch (error) {
-        this.onErrorCallback?.(`An error has occurred while encoding ${error}`);
-        return '';
-      }
-
-      let lastToken = seq.at(-1) as number;
-      while (lastToken !== this.config.tokenizer.eos) {
-        try {
-          // Returns a single predicted token
-          lastToken = await this.nativeModule.decode(seq, encoderOutput);
-        } catch (error) {
-          this.onErrorCallback?.(
-            `An error has occurred while decoding: ${error}`
-          );
-          return '';
-        }
-        seq.push(lastToken);
-        if (
-          seqs.length > 0 &&
-          seq.length < seqs.at(-1)!.length &&
-          seq.length % 3 !== 0
-        ) {
-          prevSeq.push(seqs.at(-1)![prevSeqTokenIdx++]!);
-          this.decodedTranscribeCallback(prevSeq);
-        }
-      }
-
-      if (this.chunks.length === 1) {
-        finalSeq = seq;
-        this.sequence = finalSeq;
-        this.decodedTranscribeCallback(finalSeq);
-        break;
-      }
-
-      // Remove starting tokenIds and 3 additional ones
-      if (seqs.length === 0) {
-        seqs = [seq.slice(0, -(numSpecialTokens + NUM_TOKENS_TO_SLICE))];
-      } else if (seqs.length === this.chunks.length - 1) {
-        seqs.push(seq.slice(numSpecialTokens + NUM_TOKENS_TO_SLICE));
-      } else {
-        seqs.push(
-          seq.slice(
-            numSpecialTokens + NUM_TOKENS_TO_SLICE,
-            -(numSpecialTokens + NUM_TOKENS_TO_SLICE)
-          )
-        );
-      }
-      if (seqs.length < 2) {
-        continue;
-      }
-
-      const maxInd = longCommonInfPref(
-        seqs.at(-2)!,
-        seqs.at(-1)!,
-        HAMMING_DIST_THRESHOLD
-      );
-      finalSeq = [...this.sequence, ...seqs.at(-2)!.slice(0, maxInd)];
-      this.sequence = finalSeq;
-      this.decodedTranscribeCallback(finalSeq);
-      prevSeq = finalSeq;
-
-      // last sequence processed
-      if (seqs.length === this.chunks.length) {
-        finalSeq = [...this.sequence, ...seqs.at(-1)!];
-        this.sequence = finalSeq;
-        this.decodedTranscribeCallback(finalSeq);
-        prevSeq = finalSeq;
-      }
-    }
-    const decodedText = await this.tokenIdsToText(this.sequence);
-    this.isGeneratingCallback(false);
-    return decodedText;
-  }
-
-  private async tokenIdsToText(tokenIds: number[]): Promise<string> {
-    try {
-      return this.nativeTokenizer.decode(tokenIds, true);
-    } catch (e) {
-      this.onErrorCallback?.(
-        new Error(`An error has occurred when decoding the token ids: ${e}`)
-      );
-      return '';
-    }
   }
 }

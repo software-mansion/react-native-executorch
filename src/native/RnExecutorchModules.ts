@@ -57,27 +57,6 @@ const TokenizerNativeModule: TokenizerInterface = returnSpecOrThrowLinkingError(
 const TextEmbeddingsNativeModule: TextEmbeddingsInterface =
   returnSpecOrThrowLinkingError(require('./NativeTextEmbeddings').default);
 
-class _TokenizerModule {
-  async load(tokenizerSource: string): Promise<number> {
-    return await Tokenizer.load(tokenizerSource);
-  }
-  async decode(input: number[], skipSpecialTokens: boolean): Promise<string> {
-    return await Tokenizer.decode(input, skipSpecialTokens);
-  }
-  async encode(input: string): Promise<number[]> {
-    return await Tokenizer.encode(input);
-  }
-  async getVocabSize(): Promise<number> {
-    return await Tokenizer.getVocabSize();
-  }
-  async idToToken(tokenId: number): Promise<string> {
-    return await Tokenizer.idToToken(tokenId);
-  }
-  async tokenToId(token: string): Promise<number> {
-    return await Tokenizer.tokenToId(token);
-  }
-}
-
 export {
   LLMNativeModule,
   ETModuleNativeModule,
