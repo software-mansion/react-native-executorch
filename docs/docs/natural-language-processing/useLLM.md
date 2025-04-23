@@ -68,7 +68,7 @@ const useLLM: ({
   modelSource: ResourceSource;
   tokenizerSource: ResourceSource;
   tokenizerConfigSource: ResourceSource;
-  chatConfig?: ChatConfig;
+  chatConfig?: Partial<ChatConfig>;
 }) => LLMType;
 
 interface LLMType {
