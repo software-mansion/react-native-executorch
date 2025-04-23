@@ -69,6 +69,8 @@ export default function ChatScreen() {
     if (llm.response && !llm.isGenerating) {
       const toolCalls = parseToolCall(llm.response);
 
+      console.log(toolCalls);
+
       for (const toolCall of toolCalls) {
         executeToolCall(toolCall).then((toolResponse: string | undefined) => {
           console.log('Tool response:', toolResponse);

@@ -2,58 +2,45 @@ import * as Brightness from 'expo-brightness';
 import { clamp } from 'react-native-reanimated';
 import * as Contacts from 'expo-contacts';
 import * as SMS from 'expo-sms';
+import { LLMTool } from 'react-native-executorch/lib/typescript/types/llm';
 
 export interface ToolCall {
-  functionName: string;
+  toolName: string;
   arguments: Object;
 }
 
 export const parseToolCall: (message: string) => ToolCall[] = (
   message: string
 ) => {
-  // console.log("parseToolCall:", message);
-  const functionCalls = message.match(RegExp('\\[(.*)\\]'));
+  try {
+    const unparsedToolCalls = message.match('\\[(.|\\s)*\\]');
+    if (!unparsedToolCalls) {
+      throw Error('Regex did not match array.');
+    }
+    const parsedMessage: LLMTool[] = JSON.parse(unparsedToolCalls[0]);
+    const results = [];
 
-  if (functionCalls?.length !== 2 || functionCalls[1].length === 0) {
-    // 1st element is entire match, 2nd group inside []
+    for (const tool of parsedMessage) {
+      if ('name' in tool && typeof tool.name === 'string') {
+        results.push({
+          toolName: tool.name,
+          arguments: { ...tool },
+        });
+      }
+    }
+
+    return results;
+  } catch (e) {
+    console.error(e);
     return [];
   }
-  const functions = functionCalls[1].split(RegExp('\\),\\s?', 'g'));
-
-  const results = [];
-
-  for (const unparsedFunction of functions) {
-    const regexResults = unparsedFunction.match('([^\\"\\\'\\s]*)\\((.*)\\)');
-    if (regexResults?.length !== 3) {
-      continue;
-    }
-    const functionName = regexResults[1];
-    const argumentsUnparsed = regexResults[2];
-    const args = Object.fromEntries(
-      argumentsUnparsed
-        .replace(')', '')
-        .split(',')
-        .map((argument) => {
-          const [uncleanedArgumentName, uncleanedArgumentValue] =
-            argument.split('=');
-          const argumentName = uncleanedArgumentName.replaceAll(' ', '');
-          const argumentValue = uncleanedArgumentValue
-            .replaceAll('"', '')
-            .replaceAll("'", '');
-          return [argumentName, argumentValue];
-        })
-    );
-    results.push({ functionName, arguments: args });
-  }
-
-  return results;
 };
 
 export const executeToolCall: (
   call: ToolCall
 ) => Promise<string | undefined> = async (call) => {
   console.log('call', call);
-  switch (call.functionName) {
+  switch (call.toolName) {
     case 'brightness':
       console.log('Changing brightness!');
       if (
