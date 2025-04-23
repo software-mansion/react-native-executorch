@@ -188,7 +188,6 @@ Error Runner::generate(const std::string &prompt,
   int num_prompt_tokens = prompt_tokens.size();
 
   if (num_prompt_tokens < 1) {
-    printf("Expected at least 1 prompt token\n");
     ET_LOG(Error,
            "num_prompt_tokens %d < 1, expected at least 1 token to be passed "
            "to generate()!",
