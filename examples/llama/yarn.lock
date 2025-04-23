@@ -1711,6 +1711,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@huggingface/jinja@npm:^0.3.4":
+  version: 0.3.4
+  resolution: "@huggingface/jinja@npm:0.3.4"
+  checksum: 5a2eac0da4522e6a60af0a73cb6bdcca6b0a5e3d4987b40a260a5735da686e13a689e87428ca9945576135a29c4485e14d2f8fc130a89f93fd390c5c3904d224
+  languageName: node
+  linkType: hard
+
 "@isaacs/cliui@npm:^8.0.2":
   version: 8.0.2
   resolution: "@isaacs/cliui@npm:8.0.2"
@@ -5826,6 +5833,7 @@ __metadata:
     react-native-safe-area-context: 4.12.0
     react-native-svg: 15.8.0
     react-native-svg-transformer: ^1.5.0
+    react-native-wheel-scrollview-picker: ^2.0.6
     typescript: ^5.3.3
   languageName: unknown
   linkType: soft
@@ -7406,6 +7414,19 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: ad9d6093f3aef0d53c5e2a562afb7805009f2bf50fd4ec6e77f8c18a6cb7e06a7793d55cc66d523c7d30c77cae170ee26767c72ad5b1a1f07032420ccf4162fe
+  languageName: node
+  linkType: hard
+
+"react-native-wheel-scrollview-picker@npm:^2.0.6":
+  version: 2.0.9
+  resolution: "react-native-wheel-scrollview-picker@npm:2.0.9"
+  peerDependencies:
+    "@types/react": "*"
+    "@types/react-native": "*"
+    react: "*"
+    react-native: "*"
+    typescript: "*"
+  checksum: 5200c211c523164859245d8f0c47565e0437488ec59d4bd9091f1435374a29ae13b2db7e4b6c4159d2ff5f3f9396904271b97669a22db1a045e87240dee9721b
   languageName: node
   linkType: hard
 
