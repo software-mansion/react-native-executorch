@@ -17,7 +17,7 @@ export class LLMModule {
     modelSource: ResourceSource;
     tokenizerSource: ResourceSource;
     tokenizerConfigSource: ResourceSource;
-    chatConfig?: ChatConfig;
+    chatConfig?: Partial<ChatConfig>;
     onDownloadProgressCallback?: (_downloadProgress: number) => void;
     responseCallback?: (response: string) => void;
     messageHistoryCallback?: (messageHistory: MessageType[]) => void;

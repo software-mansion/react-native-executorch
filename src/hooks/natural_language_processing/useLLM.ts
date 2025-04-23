@@ -15,7 +15,7 @@ export const useLLM = ({
   modelSource: ResourceSource;
   tokenizerSource: ResourceSource;
   tokenizerConfigSource: ResourceSource;
-  chatConfig?: ChatConfig;
+  chatConfig?: Partial<ChatConfig>;
 }): LLMType => {
   const [response, setResponse] = useState('');
   const [messageHistory, setMessageHistory] = useState<MessageType[]>([]);

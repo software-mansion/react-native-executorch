@@ -3,11 +3,7 @@ import { ResourceSource } from '../types/common';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { ETError, getError } from '../Error';
 import { Template } from '@huggingface/jinja';
-import {
-  DEFAULT_CONTEXT_WINDOW_LENGTH,
-  DEFAULT_MESSAGE_HISTORY,
-  DEFAULT_SYSTEM_PROMPT,
-} from '../constants/llmDefaults';
+import { DEFAULT_CHAT_CONFIG } from '../constants/llmDefaults';
 import { readAsStringAsync } from 'expo-file-system';
 import { ChatConfig, LLMTool, MessageType, SPECIAL_TOKENS } from '../types/llm';
 import { LLMNativeModule } from '../native/RnExecutorchModules';
@@ -39,11 +35,7 @@ export class LLMController {
     isGeneratingCallback,
     onDownloadProgressCallback,
     errorCallback,
-    chatConfig = {
-      systemPrompt: DEFAULT_SYSTEM_PROMPT,
-      initialMessageHistory: DEFAULT_MESSAGE_HISTORY,
-      contextWindowLength: DEFAULT_CONTEXT_WINDOW_LENGTH,
-    },
+    chatConfig = DEFAULT_CHAT_CONFIG,
   }: {
     responseCallback?: (response: string) => void;
     messageHistoryCallback?: (messageHistory: MessageType[]) => void;
@@ -51,7 +43,7 @@ export class LLMController {
     isGeneratingCallback?: (isGenerating: boolean) => void;
     onDownloadProgressCallback?: (downloadProgress: number) => void;
     errorCallback?: (error: Error | undefined) => void;
-    chatConfig?: ChatConfig;
+    chatConfig?: Partial<ChatConfig>;
   }) {
     this.responseCallback = (response) => {
       this._response = response;
@@ -72,9 +64,10 @@ export class LLMController {
     this.errorCallback = errorCallback;
     this.onDownloadProgressCallback = onDownloadProgressCallback;
 
-    this.messageHistoryCallback(chatConfig.initialMessageHistory);
-    this.chatConfig = chatConfig;
-    this.nativeModule = LLMNativeModule;
+    this.messageHistoryCallback(chatConfig?.initialMessageHistory ?? []);
+    this.chatConfig = { ...DEFAULT_CHAT_CONFIG, ...chatConfig };
+    console.log(this.chatConfig);
+    this.nativeModule = LLM;
   }
 
   public get response() {
