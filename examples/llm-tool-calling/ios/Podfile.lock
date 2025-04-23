@@ -9,7 +9,7 @@ PODS:
     - ExpoModulesCore
   - ExpoBrightness (13.0.3):
     - ExpoModulesCore
-  - ExpoContacts (14.0.5):
+  - ExpoCalendar (14.0.6):
     - ExpoModulesCore
   - ExpoFileSystem (18.0.12):
     - ExpoModulesCore
@@ -40,8 +40,6 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - ExpoSMS (13.0.1):
-    - ExpoModulesCore
   - fast_float (6.1.4)
   - FBLazyVector (0.76.9)
   - fmt (11.0.2)
@@ -1328,7 +1326,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-executorch (0.420.20250423104340):
+  - react-native-executorch (0.420.20250423142407):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1828,12 +1826,11 @@ DEPENDENCIES:
   - Expo (from `../node_modules/expo`)
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
   - ExpoBrightness (from `../node_modules/expo-brightness/ios`)
-  - ExpoContacts (from `../node_modules/expo-contacts/ios`)
+  - ExpoCalendar (from `../node_modules/expo-calendar/ios`)
   - ExpoFileSystem (from `../node_modules/expo-file-system/ios`)
   - ExpoFont (from `../node_modules/expo-font/ios`)
   - ExpoKeepAwake (from `../node_modules/expo-keep-awake/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
-  - ExpoSMS (from `../node_modules/expo-sms/ios`)
   - fast_float (from `../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
@@ -1921,8 +1918,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-asset/ios"
   ExpoBrightness:
     :path: "../node_modules/expo-brightness/ios"
-  ExpoContacts:
-    :path: "../node_modules/expo-contacts/ios"
+  ExpoCalendar:
+    :path: "../node_modules/expo-calendar/ios"
   ExpoFileSystem:
     :path: "../node_modules/expo-file-system/ios"
   ExpoFont:
@@ -1931,8 +1928,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-keep-awake/ios"
   ExpoModulesCore:
     :path: "../node_modules/expo-modules-core"
-  ExpoSMS:
-    :path: "../node_modules/expo-sms/ios"
   fast_float:
     :podspec: "../node_modules/react-native/third-party-podspecs/fast_float.podspec"
   FBLazyVector:
@@ -2074,12 +2069,11 @@ SPEC CHECKSUMS:
   Expo: 3e53243e3281214a7d613f8a875c0b732d7512c2
   ExpoAsset: 0687fe05f5d051c4a34dd1f9440bd00858413cfe
   ExpoBrightness: d3f54a52ea62b6c4deb81bfb5569a8bc664487ab
-  ExpoContacts: 95526dcc8b50a65e61d569655f4cb05edb713cbb
+  ExpoCalendar: 2494a630f176436783a8941efd3c38a9c657ae65
   ExpoFileSystem: c8c19bf80d914c83dda3beb8569d7fb603be0970
   ExpoFont: 773955186469acc5108ff569712a2d243857475f
   ExpoKeepAwake: 2a5f15dd4964cba8002c9a36676319a3394c85c7
   ExpoModulesCore: dd965804a882f1dbb6036fceea4d912461aeaa0d
-  ExpoSMS: 2f90c7c780ef65c9f52b800183aab554360b34a2
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: 7605ea4810e0e10ae4815292433c09bf4324ba45
   fmt: 01b82d4ca6470831d1cc0852a1af644be019e8f6
@@ -2115,7 +2109,7 @@ SPEC CHECKSUMS:
   React-logger: dbca7bdfd4aa5ef69431362bde6b36d49403cb20
   React-Mapbuffer: 6efad4a606c1fae7e4a93385ee096681ef0300dc
   React-microtasksnativemodule: a645237a841d733861c70b69908ab4a1707b52ad
-  react-native-executorch: 8eddef33240ae6c5a12d8088e126a3c9d079a787
+  react-native-executorch: d75cce29ea3ac9633ac02f9f8e156ac2cb341c73
   react-native-safe-area-context: 0dfbd139206a79364916959bc8b1a6bea3caba97
   React-nativeconfig: 8efdb1ef1e9158c77098a93085438f7e7b463678
   React-NativeModulesApple: 958d4f6c5c2ace4c0f427cf7ef82e28ae6538a22

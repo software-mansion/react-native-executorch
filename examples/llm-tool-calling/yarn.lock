@@ -4338,6 +4338,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-calendar@npm:~14.0.6":
+  version: 14.0.6
+  resolution: "expo-calendar@npm:14.0.6"
+  peerDependencies:
+    expo: "*"
+    react-native: "*"
+  checksum: b879b4c3241285d33ab746adab63f39d321b0f31e6968205a3012217e4efe034eca2eba9ded59b12f3c53632ad358741ef8dcc7eb5bd1b1b45045497284c02c0
+  languageName: node
+  linkType: hard
+
 "expo-constants@npm:~17.0.7":
   version: 17.0.7
   resolution: "expo-constants@npm:17.0.7"
@@ -4361,16 +4371,6 @@ __metadata:
     expo: "*"
     react-native: "*"
   checksum: 493e18f8ea2c49efd69aae37b756ede1c37ecc29ac9bd5c23cb2ca88dbc57109c7f915196bcfaab71ceca2141e9a9806a685f8ac787fa206af7f1391be2e09f2
-  languageName: node
-  linkType: hard
-
-"expo-contacts@npm:~14.0.5":
-  version: 14.0.5
-  resolution: "expo-contacts@npm:14.0.5"
-  peerDependencies:
-    expo: "*"
-    react-native: "*"
-  checksum: e119135f13087c32c07c9f8e7475f8e654f5c90a7f1becb9f4cbd724f720d895305e6e06a5964604bba28c225eab9a4309d95d666b6c4c720c9da68a91c49254
   languageName: node
   linkType: hard
 
@@ -4453,15 +4453,6 @@ __metadata:
   dependencies:
     invariant: ^2.2.4
   checksum: 7b2952f1220b55eb03f395d1549525edeb5bff7bf805257d9652ea4ef85ea71e34ad13b5971f1b559e7aa080f41130846b24cbe3d754660c08196c3ce899143b
-  languageName: node
-  linkType: hard
-
-"expo-sms@npm:~13.0.1":
-  version: 13.0.1
-  resolution: "expo-sms@npm:13.0.1"
-  peerDependencies:
-    expo: "*"
-  checksum: ac249e8f950dd23aa484f8bafd380b0ec1f1539a3331a54790e7ea2bbbdf449e02ef229974b763c41649928368149778b4e80b9b585c499b2d0d3bb3866de584
   languageName: node
   linkType: hard
 
@@ -5851,14 +5842,13 @@ __metadata:
     "@types/react": ~18.3.12
     expo: ~52.0.46
     expo-brightness: ~13.0.3
-    expo-contacts: ~14.0.5
+    expo-calendar: ~14.0.6
     expo-font: ~13.0.4
-    expo-sms: ~13.0.1
     expo-status-bar: ~2.0.1
     metro-config: ^0.81.0
     react: 18.3.1
     react-native: 0.76.9
-    react-native-executorch: "file:../../react-native-executorch-0.420.20250423104340.tgz"
+    react-native-executorch: "file:../../react-native-executorch-0.420.20250423142407.tgz"
     react-native-loading-spinner-overlay: ^3.0.1
     react-native-markdown-display: ^7.0.2
     react-native-reanimated: ^3.16.3
@@ -7330,9 +7320,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-executorch@file:../../react-native-executorch-0.420.20250423104340.tgz::locator=llm_tool_calling%40workspace%3A.":
-  version: 0.420.20250423104340
-  resolution: "react-native-executorch@file:../../react-native-executorch-0.420.20250423104340.tgz::locator=llm_tool_calling%40workspace%3A."
+"react-native-executorch@file:../../react-native-executorch-0.420.20250423142407.tgz::locator=llm_tool_calling%40workspace%3A.":
+  version: 0.420.20250423142407
+  resolution: "react-native-executorch@file:../../react-native-executorch-0.420.20250423142407.tgz::locator=llm_tool_calling%40workspace%3A."
   dependencies:
     "@huggingface/jinja": ^0.3.4
     expo: ^52.0.37
@@ -7342,7 +7332,7 @@ __metadata:
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 3bd8680a34dd14e8bbfef548af0a1a1bdb190b4c1752c76158b5ee41c2d6e1a0c9132e5871daba094793864fee5bedb2aa748913cf3ec92630eb9d9ebcb923aa
+  checksum: 775ce97d9590c2683bd68c84a36a0d266af7f004e01a3546e4bb22649cdde2076fd822f262266567a9c18c08e9450ea23cc5aef016644180f20d916fd10b598c
   languageName: node
   linkType: hard
 
