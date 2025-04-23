@@ -8,8 +8,8 @@ import com.swmansion.rnexecutorch.utils.ArrayUtils
 import com.swmansion.rnexecutorch.utils.llms.ChatRole
 import com.swmansion.rnexecutorch.utils.llms.ConversationManager
 import com.swmansion.rnexecutorch.utils.llms.END_OF_TEXT_TOKEN
-import org.pytorch.executorch.LlamaCallback
-import org.pytorch.executorch.LlamaModule
+import org.pytorch.executorch.extension.llm.LlmCallback
+import org.pytorch.executorch.extension.llm.LlmModule
 
 class LLM(
   reactContext: ReactApplicationContext,
@@ -49,7 +49,7 @@ class LLM(
           systemPrompt,
           ArrayUtils.createMapArray<String>(messageHistory),
         )
-      llamaModule = LlamaModule(1, modelSource, tokenizerSource, 0.7f)
+      llamaModule = LlmModule(modelSource, tokenizerSource, 0.7f)
       this.tempLlamaResponse.clear()
       promise.resolve("Model loaded successfully")
     } catch (e: Exception) {
