@@ -51,18 +51,18 @@ export class SpeechToText {
     );
   }
 
-  static async transcribe(
-    waveform: number[],
-    audioLanguage?: SpeechToTextLanguage
-  ): ReturnType<SpeechToTextController['transcribe']> {
-    return await this.module.transcribe(waveform, audioLanguage);
-  }
-
   static async encode(waveform: number[]) {
     return await this.module.encode(waveform);
   }
 
   static async decode(seq: number[], encodings: number[]) {
     return await this.module.decode(seq, encodings);
+  }
+
+  static async transcribe(
+    waveform: number[],
+    audioLanguage?: SpeechToTextLanguage
+  ): ReturnType<SpeechToTextController['transcribe']> {
+    return await this.module.transcribe(waveform, audioLanguage);
   }
 }
