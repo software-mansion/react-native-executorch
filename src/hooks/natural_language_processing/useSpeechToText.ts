@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { SpeechToTextController } from '../../controllers/SpeechToTextController';
 import { ResourceSource } from '../../types/common';
+import { AvailableModels, SpeechToTextLanguage } from '../../types/stt';
 
 interface SpeechToTextModule {
   isReady: boolean;
@@ -10,7 +11,8 @@ interface SpeechToTextModule {
   configureStreaming: SpeechToTextController['configureStreaming'];
   error: Error | undefined;
   transcribe: (
-    input: number[]
+    input: number[],
+    audioLanguage?: SpeechToTextLanguage
   ) => ReturnType<SpeechToTextController['transcribe']>;
 }
 
@@ -23,7 +25,7 @@ export const useSpeechToText = ({
   windowSize,
   streamingConfig,
 }: {
-  modelName: 'moonshine' | 'whisper';
+  modelName: AvailableModels;
   encoderSource?: ResourceSource;
   decoderSource?: ResourceSource;
   tokenizerSource?: ResourceSource;
@@ -50,7 +52,7 @@ export const useSpeechToText = ({
         isReadyCallback: setIsReady,
         isGeneratingCallback: setIsGenerating,
         onErrorCallback: setError,
-        modelDownloadProgessCallback: setDownloadProgress,
+        modelDownloadProgressCallback: setDownloadProgress,
         overlapSeconds: overlapSeconds,
         windowSize: windowSize,
         streamingConfig: streamingConfig,
@@ -76,6 +78,7 @@ export const useSpeechToText = ({
     configureStreaming: model.configureStreaming,
     sequence,
     error,
-    transcribe: (waveform: number[]) => model.transcribe(waveform),
+    transcribe: (waveform: number[], audioLanguage?: SpeechToTextLanguage) =>
+      model.transcribe(waveform, audioLanguage),
   };
 };

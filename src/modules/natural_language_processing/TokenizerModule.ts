@@ -9,8 +9,11 @@ export class TokenizerModule extends BaseModule {
     await super.load(tokenizerSource);
   }
 
-  static async decode(input: number[]): Promise<string> {
-    return await this.nativeModule.decode(input);
+  static async decode(
+    input: number[],
+    skipSpecialTokens: boolean
+  ): Promise<string> {
+    return await this.nativeModule.decode(input, skipSpecialTokens);
   }
 
   static async encode(input: string): Promise<number[]> {
