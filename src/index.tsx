@@ -38,3 +38,4 @@ export { SpeechToTextLanguage };
 // constants
 export * from './constants/modelUrls';
 export * from './constants/ocr/models';
+export { STREAMING_ACTION } from './constants/sttDefaults';
