@@ -176,9 +176,9 @@ Error Runner::generate(const std::string &prompt,
   shouldStop_ = false;
 
   // Set the sequence length to the max seq length if not provided
-  int32_t seq_len = (seq_len > 0 && seq_len <= metadata_.at(kMaxContextLen))
+  int32_t seq_len = (seq_len > 0 && seq_len <= metadata_.at(kMaxSeqLen))
                         ? seq_len
-                        : metadata_.at(kMaxContextLen);
+                        : metadata_.at(kMaxSeqLen);
 
   std::vector<int32_t> prompt_tokens = tokenizer_->Encode(prompt);
   std::vector<uint64_t> prompt_tokens_uint64(prompt_tokens.begin(),
@@ -187,16 +187,20 @@ Error Runner::generate(const std::string &prompt,
   // encode the (string) prompt into tokens sequence
   int num_prompt_tokens = prompt_tokens.size();
 
-  ET_CHECK_MSG(num_prompt_tokens >= 1, "Expected at least 1 prompt token");
-  ET_CHECK_MSG(num_prompt_tokens < metadata_.at(kMaxSeqLen),
-               "num_prompt_tokens %d >= max_seq_len_ %" PRId64
-               ", Max seq length exceeded - please increase max seq len value "
-               "in .../llama2/model.py",
-               num_prompt_tokens, metadata_.at(kMaxSeqLen));
-  ET_CHECK_MSG(num_prompt_tokens < seq_len,
-               "num_prompt_tokens %d >= seq_len %d, Sequence length exceeded - "
-               "please increase the seq_len value passed to generate()",
-               num_prompt_tokens, seq_len);
+  if (num_prompt_tokens < 1) {
+    printf("Expected at least 1 prompt token\n");
+    ET_LOG(Error,
+           "num_prompt_tokens %d < 1, expected at least 1 token to be passed "
+           "to generate()!",
+           num_prompt_tokens);
+    return Error::InvalidArgument;
+  } else if (num_prompt_tokens >= seq_len) {
+    ET_LOG(Error,
+           "num_prompt_tokens %d >= seq_len %d, Sequence length exceeded - "
+           "please increate the seq_len value papsed to generate()!",
+           num_prompt_tokens, seq_len);
+    return Error::InvalidArgument;
+  }
 
   // Prefill first
   // Here feed all tokens to the model and get the next predicted token
