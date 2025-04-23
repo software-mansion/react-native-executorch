@@ -1,0 +1,24 @@
+{
+  "name": "text-embeddings",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "expo": "~52.0.42",
+    "expo-status-bar": "~2.0.1",
+    "react": "18.3.1",
+    "react-native": "0.76.8"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@types/react": "~18.3.12",
+    "react-native-executorch": "file:../../react-native-executorch-20250401133031.tgz",
+    "typescript": "^5.3.3"
+  },
+  "private": true
+}

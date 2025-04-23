@@ -1,13 +1,6 @@
 #import "SpeechToText.h"
-#import "./utils/ScalarType.h"
-#import "models/BaseModel.h"
 #import "models/stt/Moonshine.hpp"
-#import "models/stt/SpeechToTextBaseModel.hpp"
 #import "models/stt/Whisper.hpp"
-#import "utils/SFFT.hpp"
-#import <Accelerate/Accelerate.h>
-#import <ExecutorchLib/ETModel.h>
-#import <React/RCTBridgeModule.h>
 
 @implementation SpeechToText {
   Whisper *whisper;
@@ -15,6 +8,11 @@
 }
 
 RCT_EXPORT_MODULE()
+
+- (void)releaseResources {
+  whisper = nil;
+  moonshine = nil;
+}
 
 - (void)generate:(NSArray *)waveform
          resolve:(RCTPromiseResolveBlock)resolve
@@ -83,6 +81,7 @@ RCT_EXPORT_MODULE()
     [model loadModules:modelSources];
     resolve(@(0));
   } @catch (NSException *exception) {
+    [self releaseResources];
     reject(@"init_decoder_error",
            [NSString stringWithFormat:@"%@", exception.reason], nil);
   }

@@ -1,8 +1,5 @@
 #import "ETModule.h"
 #import <ExecutorchLib/ETModel.h>
-#include <Foundation/Foundation.h>
-#import <React/RCTBridgeModule.h>
-#include <string>
 
 @implementation ETModule {
   ETModel *module;
@@ -10,16 +7,20 @@
 
 RCT_EXPORT_MODULE()
 
+- (void)releaseResources {
+  module = nil;
+}
+
 - (void)loadModule:(NSString *)modelSource
            resolve:(RCTPromiseResolveBlock)resolve
             reject:(RCTPromiseRejectBlock)reject {
   if (!module) {
     module = [[ETModel alloc] init];
   }
-  NSURL *modelURL = [NSURL URLWithString:modelSource];
-  NSNumber *result = [self->module loadModel:modelURL.path];
 
+  NSNumber *result = [self->module loadModel:modelSource];
   if ([result intValue] != 0) {
+    [self releaseResources];
     NSError *error =
         [NSError errorWithDomain:@"ETModuleErrorDomain"
                             code:[result intValue]

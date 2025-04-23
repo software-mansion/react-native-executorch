@@ -4,7 +4,7 @@
 @interface ImageSegmentationModel : BaseModel
 - (cv::Size)getModelImageSize;
 - (NSDictionary *)runModel:(cv::Mat &)input
-                  returnClasses:(NSArray *)classesOfInterest
-                  resize:(BOOL)resize;
+             returnClasses:(NSArray *)classesOfInterest
+                    resize:(BOOL)resize;
 
 @end
