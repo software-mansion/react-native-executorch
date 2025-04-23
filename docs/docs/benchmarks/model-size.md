@@ -26,21 +26,25 @@ sidebar_position: 1
 
 ## OCR
 
-| Model       | XNNPACK [MB] |
-| ----------- | :----------: |
-| CRAFT_800   |     83.1     |
-| CRNN_EN_512 |     547      |
-| CRNN_EN_256 |     277      |
-| CRNN_EN_128 |     142      |
+| Model                 | XNNPACK [MB] |
+| --------------------- | :----------: |
+| Detector (CRAFT_800)  |     83.1     |
+| Recognizer (CRNN_512) |  15 - 18\*   |
+| Recognizer (CRNN_256) |  16 - 18\*   |
+| Recognizer (CRNN_128) |  17 - 19\*   |
+
+\* - The model weights vary depending on the language.
 
 ## Vertical OCR
 
-| Model       | XNNPACK [MB] |
-| ----------- | :----------: |
-| CRAFT_1280  |     83.1     |
-| CRAFT_320   |     83.1     |
-| CRNN_EN_512 |     277      |
-| CRNN_EN_64  |     74.3     |
+| Model                    | XNNPACK [MB] |
+| ------------------------ | :----------: |
+| Detector (CRAFT_1280)    |     83.1     |
+| Detector (CRAFT_320)     |     83.1     |
+| Recognizer (CRNN_EN_512) |  15 - 18\*   |
+| Recognizer (CRNN_EN_64)  |  15 - 16\*   |
+
+\* - The model weights vary depending on the language.
 
 ## LLMs
 

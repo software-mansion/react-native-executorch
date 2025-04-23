@@ -1,3 +1,5 @@
+import { symbols } from '../constants/ocr/symbols';
+
 export interface OCRDetection {
   bbox: OCRBbox[];
   text: string;
@@ -9,4 +11,4 @@ export interface OCRBbox {
   y: number;
 }
 
-export type OCRLanguage = 'en';
+export type OCRLanguage = keyof typeof symbols;
