@@ -55,7 +55,7 @@ export class SpeechToText {
     return await this.module.encode(waveform);
   }
 
-  static async decode(seq: number[], encodings?: number[]) {
+  static async decode(seq: number[], encodings: number[]) {
     return await this.module.decode(seq, encodings);
   }
 

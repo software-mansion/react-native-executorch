@@ -1,11 +1,6 @@
 #import "Whisper.hpp"
-#import "../../utils/SFFT.hpp"
-#import "../../utils/ScalarType.h"
-#import "ExecutorchLib/ETModel.h"
 #import "WhisperEncoder.hpp"
 #import "Whisperdecoder.hpp"
-#import <Foundation/Foundation.h>
-#import <UIKit/UIKit.h>
 
 @implementation Whisper {
   WhisperEncoder *encoder;

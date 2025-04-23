@@ -88,6 +88,12 @@ export const DETECTOR_CRAFT_320 =
 export const DEEPLAB_V3_RESNET50 =
   'https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3/resolve/v0.4.0/xnnpack/deeplabV3_xnnpack_fp32.pte';
 
+// Text Embeddings
+export const ALL_MINILM_L6_V2 =
+  'https://huggingface.co/software-mansion/react-native-executorch-all-MiniLM-L6-v2/resolve/v0.4.0/all-MiniLM-L6-v2_xnnpack.pte';
+export const ALL_MINILM_L6_V2_TOKENIZER =
+  'https://huggingface.co/software-mansion/react-native-executorch-all-MiniLM-L6-v2/resolve/v0.4.0/tokenizer.json';
+
 // Backward compatibility
 export const LLAMA3_2_3B_URL = LLAMA3_2_3B;
 export const LLAMA3_2_3B_QLORA_URL = LLAMA3_2_3B_QLORA;

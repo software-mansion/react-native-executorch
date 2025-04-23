@@ -1,5 +1,4 @@
 #import "Constants.h"
-#import <string>
 
 const std::string imagenet1k_v1_labels[] = {
     "tench, Tinca tinca",

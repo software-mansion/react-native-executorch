@@ -1,14 +1,5 @@
 #import "LLM.h"
 #import <ExecutorchLib/LLaMARunner.h>
-#import <React/RCTBridge+Private.h>
-#import <React/RCTBridge.h>
-#import <React/RCTBridgeModule.h>
-#import <React/RCTUtils.h>
-#import <ReactCommon/CallInvoker.h>
-#import <ReactCommon/RCTTurboModule.h>
-#import <UIKit/UIKit.h>
-#import <react/renderer/uimanager/primitives.h>
-#import <string>
 
 @implementation LLM {
   LLaMARunner *runner;
@@ -43,6 +34,7 @@ RCT_EXPORT_MODULE()
     resolve(@"Model and tokenizer loaded successfully");
     return;
   } @catch (NSException *exception) {
+    [self releaseResources];
     reject(@"Model or tokenizer loading failed", exception.reason, nil);
     return;
   }
@@ -74,8 +66,10 @@ RCT_EXPORT_MODULE()
   [self->runner stop];
 }
 
-- (void)deleteModule {
+- (void)releaseResources {
   self->runner = nil;
+  self->conversationManager = nil;
+  self->tempLlamaResponse = nil;
 }
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:

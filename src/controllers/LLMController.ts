@@ -1,5 +1,4 @@
 import { EventSubscription } from 'react-native';
-import { LLM } from '../native/RnExecutorchModules';
 import { ResourceSource } from '../types/common';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { ETError, getError } from '../Error';
@@ -11,9 +10,10 @@ import {
 } from '../constants/llmDefaults';
 import { readAsStringAsync } from 'expo-file-system';
 import { ChatConfig, LLMTool, MessageType, SPECIAL_TOKENS } from '../types/llm';
+import { LLMNativeModule } from '../native/RnExecutorchModules';
 
 export class LLMController {
-  private nativeModule: typeof LLM;
+  private nativeModule: typeof LLMNativeModule;
   private chatConfig: ChatConfig;
   private tokenizerConfig: any;
   private onToken: EventSubscription | null = null;
@@ -74,7 +74,7 @@ export class LLMController {
 
     this.messageHistoryCallback(chatConfig.initialMessageHistory);
     this.chatConfig = chatConfig;
-    this.nativeModule = LLM;
+    this.nativeModule = LLMNativeModule;
   }
 
   public get response() {

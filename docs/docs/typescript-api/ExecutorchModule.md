@@ -1,6 +1,5 @@
 ---
 title: ExecuTorchModule
-sidebar_position: 2
 ---
 
 TypeScript API implementation of the [useExecutorchModule](../executorch-bindings/useExecutorchModule.md) hook.
@@ -38,7 +37,7 @@ const output = await ExecutorchModule.forward(input, shape);
 <summary>Type definitions</summary>
 
 ```typescript
-type ResourceSource = string | number;
+type ResourceSource = string | number | object;
 
 export type ETInput =
   | Int8Array

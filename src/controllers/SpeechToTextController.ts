@@ -7,25 +7,24 @@ import {
 } from '../constants/sttDefaults';
 import { AvailableModels, ModelConfig } from '../types/stt';
 import {
-  _SpeechToTextModule,
-  _TokenizerModule,
+  SpeechToTextNativeModule,
+  TokenizerNativeModule,
 } from '../native/RnExecutorchModules';
 import { ResourceSource } from '../types/common';
-import { fetchResource } from '../utils/fetchResource';
+import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { longCommonInfPref } from '../utils/stt';
 import { SpeechToTextLanguage } from '../types/stt';
 
 export class SpeechToTextController {
-  private nativeModule: _SpeechToTextModule;
+  private speechToTextNativeModule = SpeechToTextNativeModule;
 
   private overlapSeconds!: number;
   private windowSize!: number;
-
   private chunks: number[][] = [];
   public sequence: number[] = [];
   public isReady = false;
   public isGenerating = false;
-  private nativeTokenizer = new _TokenizerModule();
+  private nativeTokenizer = TokenizerNativeModule;
 
   // User callbacks
   private decodedTranscribeCallback: (sequence: number[]) => void;
@@ -68,7 +67,6 @@ export class SpeechToTextController {
       isGeneratingCallback?.(isGenerating);
     };
     this.onErrorCallback = onErrorCallback;
-    this.nativeModule = new _SpeechToTextModule();
     this.configureStreaming(
       overlapSeconds,
       windowSize,
@@ -87,22 +85,24 @@ export class SpeechToTextController {
     this.config = MODEL_CONFIGS[modelName];
 
     try {
-      encoderSource = await fetchResource(
+      encoderSource = await ResourceFetcher.fetch(
         encoderSource || this.config.sources.encoder,
         (progress) => this.modelDownloadProgressCallback?.(progress / 2)
       );
 
-      decoderSource = await fetchResource(
+      decoderSource = await ResourceFetcher.fetch(
         decoderSource || this.config.sources.decoder,
         (progress) => this.modelDownloadProgressCallback?.(0.5 + progress / 2)
       );
 
-      let tokenizerUri = await fetchResource(
+      let tokenizerUri = await ResourceFetcher.fetch(
         tokenizerSource || this.config.tokenizer.source
       );
 
       // The tokenizer native module does not accept the file:// prefix
-      await this.nativeTokenizer.load(tokenizerUri.replace('file://', ''));
+      await this.nativeTokenizer.loadModule(
+        tokenizerUri.replace('file://', '')
+      );
     } catch (e) {
       this.onErrorCallback?.(e);
       return;
@@ -117,7 +117,7 @@ export class SpeechToTextController {
     }
 
     try {
-      await this.nativeModule.loadModule(modelName, [
+      await this.speechToTextNativeModule.loadModule(modelName, [
         encoderSource!,
         decoderSource!,
       ]);
@@ -153,7 +153,6 @@ export class SpeechToTextController {
       this.windowSize = 30 * SECOND - 2 * this.overlapSeconds;
     }
   }
-
   private chunkWaveform(waveform: number[]) {
     this.chunks = [];
     const numOfChunks = Math.ceil(waveform.length / this.windowSize);
@@ -179,11 +178,11 @@ export class SpeechToTextController {
   }
 
   public async encode(waveform: number[]) {
-    return await this.nativeModule.encode(waveform);
+    return await this.speechToTextNativeModule.encode(waveform);
   }
 
-  public async decode(seq: number[], encodings?: number[]) {
-    return await this.nativeModule.decode(seq, encodings);
+  public async decode(seq: number[], encodings: number[]) {
+    return await this.speechToTextNativeModule.decode(seq, encodings);
   }
 
   private async getStartingTokenIds(audioLanguage?: string): Promise<number[]> {
@@ -255,7 +254,7 @@ export class SpeechToTextController {
       const numSpecialTokens = seq.length;
       let encoderOutput;
       try {
-        encoderOutput = await this.nativeModule.encode(
+        encoderOutput = await this.speechToTextNativeModule.encode(
           this.chunks!.at(chunkId)!
         );
       } catch (error) {
@@ -267,7 +266,10 @@ export class SpeechToTextController {
       while (lastToken !== this.config.tokenizer.eos) {
         try {
           // Returns a single predicted token
-          lastToken = await this.nativeModule.decode(seq, encoderOutput);
+          lastToken = await this.speechToTextNativeModule.decode(
+            seq,
+            encoderOutput
+          );
         } catch (error) {
           this.onErrorCallback?.(
             `An error has occurred while decoding: ${error}`

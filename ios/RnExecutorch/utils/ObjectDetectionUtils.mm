@@ -1,7 +1,5 @@
 #include "ObjectDetectionUtils.hpp"
 #include "Constants.h"
-#include <map>
-#include <vector>
 
 NSString *floatLabelToNSString(float label) {
   int intLabel = static_cast<int>(label);

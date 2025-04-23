@@ -63,3 +63,9 @@ sidebar_position: 1
 | -------------- | :----------: |
 | WHISPER_TINY   |    231.0     |
 | MOONSHINE_TINY |    148.9     |
+
+## Text Embeddings
+
+| Model            | XNNPACK [MB] |
+| ---------------- | :----------: |
+| ALL_MINILM_L6_V2 |      91      |
