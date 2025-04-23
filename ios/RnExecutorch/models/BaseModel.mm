@@ -1,9 +1,8 @@
 #import "BaseModel.h"
-#import "../utils/ETError.h"
 
 @implementation BaseModel
 
-- (NSArray *)forward:(NSArray *)input {
+- (NSArray *)forward:(NSArray *)inputs {
   NSMutableArray *shapes = [NSMutableArray new];
   NSMutableArray *inputTypes = [NSMutableArray new];
   NSNumber *numberOfInputs = [module getNumberOfInputs];
@@ -13,9 +12,8 @@
     [inputTypes addObject:[module getInputType:[NSNumber numberWithInt:i]]];
   }
 
-  NSArray *result = [module forward:@[ input ]
-                             shapes:shapes
-                         inputTypes:inputTypes];
+  NSArray *result = [module forward:inputs shapes:shapes inputTypes:inputTypes];
+
   return result;
 }
 
@@ -37,17 +35,9 @@
   return result;
 }
 
-- (void)loadModel:(NSURL *)modelURL
-       completion:(void (^)(BOOL success, NSNumber *code))completion {
+- (NSNumber *)loadModel:(NSString *)modelSource {
   module = [[ETModel alloc] init];
-  NSNumber *result = [self->module loadModel:modelURL.path];
-  if ([result intValue] != 0) {
-    completion(NO, result);
-    return;
-  }
-
-  completion(YES, result);
-  return;
+  return [self->module loadModel:modelSource];
 }
 
 @end

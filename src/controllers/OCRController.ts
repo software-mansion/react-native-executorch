@@ -1,15 +1,12 @@
 import { symbols } from '../constants/ocr/symbols';
 import { ETError, getError } from '../Error';
-import { _OCRModule } from '../native/RnExecutorchModules';
+import { OCRNativeModule } from '../native/RnExecutorchModules';
 import { ResourceSource } from '../types/common';
 import { OCRLanguage } from '../types/ocr';
-import {
-  fetchResource,
-  calculateDownloadProgress,
-} from '../utils/fetchResource';
+import { ResourceFetcher } from '../utils/ResourceFetcher';
 
 export class OCRController {
-  private nativeModule: _OCRModule;
+  private nativeModule: typeof OCRNativeModule;
   public isReady: boolean = false;
   public isGenerating: boolean = false;
   public error: string | null = null;
@@ -24,7 +21,7 @@ export class OCRController {
     isGeneratingCallback = (_isGenerating: boolean) => {},
     errorCallback = (_error: string) => {},
   }) {
-    this.nativeModule = new _OCRModule();
+    this.nativeModule = OCRNativeModule;
     this.modelDownloadProgressCallback = modelDownloadProgressCallback;
     this.isReadyCallback = isReadyCallback;
     this.isGeneratingCallback = isGeneratingCallback;
@@ -47,34 +44,23 @@ export class OCRController {
       if (!symbols[language]) {
         throw new Error(getError(ETError.LanguageNotSupported));
       }
+
       this.isReady = false;
       this.isReadyCallback(false);
 
-      const detectorPath = await fetchResource(
+      const paths = await ResourceFetcher.fetchMultipleResources(
+        this.modelDownloadProgressCallback,
         detectorSource,
-        calculateDownloadProgress(4, 0, this.modelDownloadProgressCallback)
+        recognizerSources.recognizerLarge,
+        recognizerSources.recognizerMedium,
+        recognizerSources.recognizerSmall
       );
 
-      const recognizerPaths = {
-        recognizerLarge: await fetchResource(
-          recognizerSources.recognizerLarge,
-          calculateDownloadProgress(4, 1, this.modelDownloadProgressCallback)
-        ),
-        recognizerMedium: await fetchResource(
-          recognizerSources.recognizerMedium,
-          calculateDownloadProgress(4, 2, this.modelDownloadProgressCallback)
-        ),
-        recognizerSmall: await fetchResource(
-          recognizerSources.recognizerSmall,
-          calculateDownloadProgress(4, 3, this.modelDownloadProgressCallback)
-        ),
-      };
-
       await this.nativeModule.loadModule(
-        detectorPath,
-        recognizerPaths.recognizerLarge,
-        recognizerPaths.recognizerMedium,
-        recognizerPaths.recognizerSmall,
+        paths[0]!,
+        paths[1]!,
+        paths[2]!,
+        paths[3]!,
         symbols[language]
       );
 

@@ -3,10 +3,11 @@
 @interface RecognitionHandler : NSObject
 
 - (instancetype)initWithSymbols:(NSString *)symbols;
-- (void)loadRecognizers:(NSString *)largeRecognizerPath
-    mediumRecognizerPath:(NSString *)mediumRecognizerPath
-     smallRecognizerPath:(NSString *)smallRecognizerPath
-              completion:(void (^)(BOOL, NSNumber *))completion;
+
+- (NSNumber *)loadRecognizers:(NSString *)largeRecognizerPath
+         mediumRecognizerPath:(NSString *)mediumRecognizerPath
+          smallRecognizerPath:(NSString *)smallRecognizerPath;
+
 - (NSArray *)recognize:(NSArray<NSDictionary *> *)bBoxesList
                imgGray:(cv::Mat)imgGray
           desiredWidth:(int)desiredWidth

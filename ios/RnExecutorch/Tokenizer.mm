@@ -1,6 +1,5 @@
 #import "Tokenizer.h"
 #import <ExecutorchLib/HuggingFaceTokenizer.h>
-#import <React/RCTBridgeModule.h>
 
 @implementation Tokenizer {
   HuggingFaceTokenizer *tokenizer;
@@ -8,12 +7,12 @@
 
 RCT_EXPORT_MODULE()
 
-- (void)load:(NSString *)tokenizerSource
-     resolve:(RCTPromiseResolveBlock)resolve
-      reject:(RCTPromiseRejectBlock)reject {
+- (void)loadModule:(NSString *)tokenizerSource
+           resolve:(RCTPromiseResolveBlock)resolve
+            reject:(RCTPromiseRejectBlock)reject {
   @try {
-    tokenizer = [[HuggingFaceTokenizer alloc]
-        initWithTokenizerPath:[NSURL URLWithString:tokenizerSource].path];
+    tokenizer =
+        [[HuggingFaceTokenizer alloc] initWithTokenizerPath:tokenizerSource];
     resolve(@(0));
   } @catch (NSException *exception) {
     reject(@"Tokenizer_Error", @"Failed to load tokenizer", nil);
