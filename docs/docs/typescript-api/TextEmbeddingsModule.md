@@ -1,6 +1,5 @@
 ---
 title: TextEmbeddingsModule
-sidebar_position: 8
 ---
 
 TypeScript API implementation of the [useTextEmbeddings](../natural-language-processing/useTextEmbeddings.md) hook.
@@ -33,7 +32,7 @@ const embedding = await TextEmbeddingsModule.forward('Hello World!');
 <summary>Type definitions</summary>
 
 ```typescript
-type ResourceSource = string | number;
+type ResourceSource = string | number | object;
 ```
 
 </details>
