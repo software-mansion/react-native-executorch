@@ -45,10 +45,10 @@ console.log('Token for ID:', token);
 | -------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | `load`         | `(tokenizerSource: ResourceSource): Promise<void>` | Loads the tokenizer from the specified source. `tokenizerSource` is a string that points to the location of the tokenizer JSON file. |
 | `encode`       | `(input: string): Promise<number[]>`               | Converts a string into an array of token IDs.                                                                                        |
-| `decode`       | `(input: number[]): Promise<string>`               | Converts an array of token IDs back into a string.                                                                                   |
-| `getVocabSize` | `(): Promise<number>`                              | Returns the size of the tokenizer’s vocabulary.                                                                                      |
-| `idToToken`    | `(tokenId: number): Promise<string>`               | Returns the token string corresponding to the given token ID.                                                                        |
-| `tokenToId`    | `(token: string): Promise<number>`                 | Returns the token ID corresponding to the given token string.                                                                        |
+| `decode`       | `(input: number[]): Promise<string>`               | Converts an array of token IDs into a string.                                                                                        |
+| `getVocabSize` | `(): Promise<number>`                              | Returns the size of the tokenizer's vocabulary.                                                                                      |
+| `idToToken`    | `(tokenId: number): Promise<string>`               | Returns the token associated to the ID.                                                                                              |
+| `tokenToId`    | `(token: string): Promise<number>`                 | Returns the ID associated to the token.                                                                                              |
 
 <details>
 <summary>Type definitions</summary>

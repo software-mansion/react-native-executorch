@@ -59,10 +59,10 @@ A string that specifies the path or URI of the tokenizer JSON file.
 | Field              | Type                                  | Description                                                           |
 | ------------------ | ------------------------------------- | --------------------------------------------------------------------- |
 | `encode`           | `(text: string) => Promise<number[]>` | Converts a string into an array of token IDs.                         |
-| `decode`           | `(ids: number[]) => Promise<string>`  | Converts a list of token IDs into a string.                      |
+| `decode`           | `(ids: number[]) => Promise<string>`  | Converts an array of token IDs into a string.                         |
 | `getVocabSize`     | `() => Promise<number>`               | Returns the size of the tokenizer's vocabulary.                       |
-| `idToToken`        | `(id: number) => Promise<string>`     | Returns the token associated to the ID.                        |
-| `tokenToId`        | `(token: string) => Promise<number>`  | Returns the  ID associated to the token.                        |
+| `idToToken`        | `(id: number) => Promise<string>`     | Returns the token associated to the ID.                               |
+| `tokenToId`        | `(token: string) => Promise<number>`  | Returns the ID associated to the token.                               |
 | `error`            | <code>string &#124; null</code>       | Contains the error message if the tokenizer failed to load.           |
 | `isGenerating`     | `boolean`                             | Indicates whether the tokenizer is currently running.                 |
 | `isReady`          | `boolean`                             | Indicates whether the tokenizer has successfully loaded and is ready. |
