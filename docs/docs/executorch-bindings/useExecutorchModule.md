@@ -9,7 +9,7 @@ ExecuTorch bindings provide streamlined interface to access the [Module API](htt
 These bindings are primarily intended for custom model integration where no dedicated hook exists. If you are considering using a provided model, first verify whether a dedicated hook is available. Dedicated hooks simplify the implementation process by managing necessary pre and post-processing automatically. Utilizing these can save you effort and reduce complexity, ensuring you do not implement additional handling that is already covered.
 :::
 
-## Intializing ExecuTorch Module
+## Initializing ExecuTorch Module
 
 You can initialize the ExecuTorch module in your JavaScript application using the `useExecutorchModule` hook. This hook facilitates the loading of models from the specified source and prepares them for use.
 

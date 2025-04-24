@@ -68,6 +68,7 @@
     "@types/jest": "^29.5.5",
     "@types/react": "^18.2.44",
     "commitlint": "^17.0.2",
+    "cspell": "^8.19.2",
     "del-cli": "^5.1.0",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.0.0",

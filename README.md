@@ -14,7 +14,7 @@ React Native Executorch supports only the [New React Native architecture](https:
 
 If your app still runs on the old architecture, please consider upgrading to the New Architecture.
 
-## Readymade models 🤖
+## Ready-made models 🤖
 
 To run any AI model in ExecuTorch, you need to export it to a `.pte` format. If you're interested in experimenting with your own models, we highly encourage you to check out the [Python API](https://pypi.org/project/executorch/). If you prefer focusing on developing your React Native app, we will cover several common use cases. For more details, please refer to the documentation.
 
