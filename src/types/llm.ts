@@ -1,3 +1,15 @@
+export interface LLMType {
+  messageHistory: MessageType[];
+  response: string;
+  isReady: boolean;
+  isGenerating: boolean;
+  downloadProgress: number;
+  error: string | null;
+  runInference: (input: string) => Promise<void>;
+  sendMessage: (message: string, tools?: LLMTool[]) => Promise<void>;
+  interrupt: () => void;
+}
+
 export type MessageRole = 'user' | 'assistant' | 'system';
 export interface MessageType {
   role: MessageRole;

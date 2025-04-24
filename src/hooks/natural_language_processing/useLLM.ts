@@ -1,19 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ResourceSource } from '../../types/common';
-import { ChatConfig, LLMTool, MessageType } from '../../types/llm';
+import { ChatConfig, LLMType, MessageType } from '../../types/llm';
 import { LLMController } from '../../controllers/LLMController';
-
-export interface LLMType {
-  messageHistory: MessageType[];
-  response: string;
-  isReady: boolean;
-  isGenerating: boolean;
-  downloadProgress: number;
-  error: string | null;
-  runInference: (input: string) => Promise<void>;
-  sendMessage: (message: string, tools?: LLMTool[]) => Promise<void>;
-  interrupt: () => void;
-}
 
 /*
 Hook version of LLMController
