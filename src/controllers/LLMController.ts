@@ -5,12 +5,20 @@ import { ETError, getError } from '../Error';
 import { Template } from '@huggingface/jinja';
 import { DEFAULT_CHAT_CONFIG } from '../constants/llmDefaults';
 import { readAsStringAsync } from 'expo-file-system';
-import { ChatConfig, LLMTool, MessageType, SPECIAL_TOKENS } from '../types/llm';
+import {
+  ChatConfig,
+  LLMTool,
+  MessageType,
+  SPECIAL_TOKENS,
+  ToolsConfig,
+} from '../types/llm';
 import { LLMNativeModule } from '../native/RnExecutorchModules';
+import { parseToolCall } from '../utils/llm';
 
 export class LLMController {
   private nativeModule: typeof LLMNativeModule;
   private chatConfig: ChatConfig;
+  private toolsConfig: ToolsConfig | undefined;
   private tokenizerConfig: any;
   private onToken: EventSubscription | null = null;
   private _response = '';
@@ -36,6 +44,7 @@ export class LLMController {
     onDownloadProgressCallback,
     errorCallback,
     chatConfig = DEFAULT_CHAT_CONFIG,
+    toolsConfig,
   }: {
     responseCallback?: (response: string) => void;
     messageHistoryCallback?: (messageHistory: MessageType[]) => void;
@@ -44,6 +53,7 @@ export class LLMController {
     onDownloadProgressCallback?: (downloadProgress: number) => void;
     errorCallback?: (error: Error | undefined) => void;
     chatConfig?: Partial<ChatConfig>;
+    toolsConfig?: ToolsConfig;
   }) {
     this.responseCallback = (response) => {
       this._response = response;
@@ -66,8 +76,8 @@ export class LLMController {
 
     this.messageHistoryCallback(chatConfig?.initialMessageHistory ?? []);
     this.chatConfig = { ...DEFAULT_CHAT_CONFIG, ...chatConfig };
-    console.log(this.chatConfig);
-    this.nativeModule = LLM;
+    this.toolsConfig = toolsConfig;
+    this.nativeModule = LLMNativeModule;
   }
 
   public get response() {
@@ -150,7 +160,7 @@ export class LLMController {
     this.nativeModule.interrupt();
   }
 
-  public async sendMessage(message: string, tools?: LLMTool[]) {
+  public async sendMessage(message: string) {
     this.messageHistoryCallback([
       ...this._messageHistory,
       { content: message, role: 'user' },
@@ -164,13 +174,17 @@ export class LLMController {
     const renderedChat: string = this.applyChatTemplate(
       messageHistoryWithPrompt,
       this.tokenizerConfig,
-      tools,
+      this.toolsConfig?.tools,
       { tools_in_user_message: false, add_generation_prompt: true }
     );
 
     await this.runInference(renderedChat);
 
-    if (this._response) {
+    if (!this._response) {
+      return;
+    }
+
+    if (!this.toolsConfig) {
       this.responseCallback(
         this._response.replace(this.tokenizerConfig.eos_token, '')
       );
@@ -178,6 +192,24 @@ export class LLMController {
         ...this._messageHistory,
         { content: this._response, role: 'assistant' },
       ]);
+      return;
+    }
+
+    console.log(this._response);
+    const toolCalls = parseToolCall(this._response);
+
+    for (const toolCall of toolCalls) {
+      this.toolsConfig
+        .executeToolCallback(toolCall)
+        .then((toolResponse: string | undefined) => {
+          console.log('Tool response:', toolResponse);
+          if (toolResponse) {
+            this.messageHistoryCallback([
+              ...this._messageHistory,
+              { content: toolResponse, role: 'assistant' },
+            ]);
+          }
+        });
     }
   }
 

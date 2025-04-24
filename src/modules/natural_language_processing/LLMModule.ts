@@ -1,6 +1,6 @@
 import { LLMController } from '../../controllers/LLMController';
 import { ResourceSource } from '../../types/common';
-import { ChatConfig, LLMTool, MessageType } from '../../types/llm';
+import { ChatConfig, MessageType, ToolsConfig } from '../../types/llm';
 
 export class LLMModule {
   static controller: LLMController;
@@ -10,6 +10,7 @@ export class LLMModule {
     tokenizerSource,
     tokenizerConfigSource,
     chatConfig,
+    toolsConfig,
     onDownloadProgressCallback,
     responseCallback,
     messageHistoryCallback,
@@ -18,6 +19,7 @@ export class LLMModule {
     tokenizerSource: ResourceSource;
     tokenizerConfigSource: ResourceSource;
     chatConfig?: Partial<ChatConfig>;
+    toolsConfig?: ToolsConfig;
     onDownloadProgressCallback?: (_downloadProgress: number) => void;
     responseCallback?: (response: string) => void;
     messageHistoryCallback?: (messageHistory: MessageType[]) => void;
@@ -27,6 +29,7 @@ export class LLMModule {
       messageHistoryCallback: messageHistoryCallback,
       onDownloadProgressCallback: onDownloadProgressCallback,
       chatConfig,
+      toolsConfig,
     });
     await this.controller.load({
       modelSource,
@@ -40,11 +43,8 @@ export class LLMModule {
     return this.controller.response;
   }
 
-  static async sendMessage(
-    message: string,
-    tools: LLMTool[]
-  ): Promise<MessageType[]> {
-    await this.controller.sendMessage(message, tools);
+  static async sendMessage(message: string): Promise<MessageType[]> {
+    await this.controller.sendMessage(message);
     return this.controller.messageHistory;
   }
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ResourceSource } from '../../types/common';
-import { ChatConfig, LLMType, MessageType } from '../../types/llm';
+import { ChatConfig, LLMType, MessageType, ToolsConfig } from '../../types/llm';
 import { LLMController } from '../../controllers/LLMController';
 
 /*
@@ -11,11 +11,13 @@ export const useLLM = ({
   tokenizerSource,
   tokenizerConfigSource,
   chatConfig,
+  toolsConfig,
 }: {
   modelSource: ResourceSource;
   tokenizerSource: ResourceSource;
   tokenizerConfigSource: ResourceSource;
   chatConfig?: Partial<ChatConfig>;
+  toolsConfig?: ToolsConfig;
 }): LLMType => {
   const [response, setResponse] = useState('');
   const [messageHistory, setMessageHistory] = useState<MessageType[]>([]);
@@ -34,6 +36,7 @@ export const useLLM = ({
         onDownloadProgressCallback: setDownloadProgress,
         errorCallback: setError,
         chatConfig: chatConfig,
+        toolsConfig: toolsConfig,
       })
   );
 
@@ -55,7 +58,7 @@ export const useLLM = ({
     downloadProgress,
     error,
     runInference: (input) => model.runInference(input),
-    sendMessage: (message, tools) => model.sendMessage(message, tools),
+    sendMessage: (message) => model.sendMessage(message),
     interrupt: () => model.interrupt(),
   };
 };

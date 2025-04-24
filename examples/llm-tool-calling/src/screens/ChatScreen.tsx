@@ -23,10 +23,10 @@ import {
 import PauseIcon from '../../assets/icons/pause_icon.svg';
 import ColorPalette from '../colors';
 import Messages from '../components/Messages';
-import { executeToolCall, parseToolCall } from '../utils/toolCalling';
-import * as Contacts from 'expo-contacts';
 import * as Brightness from 'expo-brightness';
-import { TOOL_DEFINITIONS_PHONE } from '../utils/toolDefinitionPrompt';
+import { DEFAULT_SYSTEM_PROMPT } from 'react-native-executorch/src/constants/llmDefaults';
+import * as Calendar from 'expo-calendar';
+import { executeTool, TOOL_DEFINITIONS_PHONE } from './tools';
 
 export default function ChatScreen() {
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
@@ -35,6 +35,13 @@ export default function ChatScreen() {
     modelSource: HAMMER2_1_1_5B,
     tokenizerSource: HAMMER2_1_TOKENIZER,
     tokenizerConfigSource: HAMMER2_1_TOKENIZER_CONFIG,
+    chatConfig: {
+      systemPrompt: `${DEFAULT_SYSTEM_PROMPT} Current time and date: ${new Date().toString()}`,
+    },
+    toolsConfig: {
+      tools: TOOL_DEFINITIONS_PHONE,
+      executeToolCallback: executeTool,
+    },
   });
   const textInputRef = useRef<TextInput>(null);
 
@@ -47,10 +54,10 @@ export default function ChatScreen() {
   // PERMISSIONS
   useEffect(() => {
     (async () => {
-      const { status } = await Contacts.requestPermissionsAsync();
+      const { status } = await Calendar.requestCalendarPermissionsAsync();
       if (status !== 'granted') {
         console.log(
-          'No access to contacts! We need this to use app correctly!'
+          'No access to calendar! We need this to use app correctly!'
         );
       }
     })();
@@ -64,23 +71,6 @@ export default function ChatScreen() {
       }
     })();
   }, []);
-
-  useEffect(() => {
-    if (llm.response && !llm.isGenerating) {
-      const toolCalls = parseToolCall(llm.response);
-
-      console.log(toolCalls);
-
-      for (const toolCall of toolCalls) {
-        executeToolCall(toolCall).then((toolResponse: string | undefined) => {
-          console.log('Tool response:', toolResponse);
-          if (toolResponse) {
-            console.log(toolResponse, 'assistant');
-          }
-        });
-      }
-    }
-  }, [llm.response, llm.isGenerating]);
 
   const sendMessage = async () => {
     setUserInput('');
