@@ -196,7 +196,7 @@ interface OCRDetection {
 ```
 
 The `bbox` property contains information about the bounding box of detected text regions. It is represented as four points, which are corners of detected bounding box.
-The `text` property contains the text recognized withinh detected text region. The `score` represents the confidence score of the recognized text.
+The `text` property contains the text recognized within detected text region. The `score` represents the confidence score of the recognized text.
 
 ## Example
 
