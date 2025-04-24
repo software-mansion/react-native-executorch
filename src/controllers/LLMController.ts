@@ -201,7 +201,7 @@ export class LLMController {
     for (const toolCall of toolCalls) {
       this.toolsConfig
         .executeToolCallback(toolCall)
-        .then((toolResponse: string | undefined) => {
+        .then((toolResponse: string | null) => {
           console.log('Tool response:', toolResponse);
           if (toolResponse) {
             this.messageHistoryCallback([

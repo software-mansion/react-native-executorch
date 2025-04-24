@@ -34,7 +34,7 @@ export interface ChatConfig {
 
 export interface ToolsConfig {
   tools: LLMTool[];
-  executeToolCallback: (call: ToolCall) => Promise<string | undefined>;
+  executeToolCallback: (call: ToolCall) => Promise<string | null>;
 }
 
 export const SPECIAL_TOKENS = [
