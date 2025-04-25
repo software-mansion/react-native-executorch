@@ -18,6 +18,34 @@ export const LLAMA3_2_1B_TOKENIZER =
 export const LLAMA3_2_3B_TOKENIZER =
   'https://huggingface.co/software-mansion/react-native-executorch-llama-3.2/resolve/v0.4.0/tokenizer.json';
 
+export const HAMMER2_1_1_5B =
+  'https://huggingface.co/software-mansion/react-native-executorch-hammer-2.1/resolve/v0.4.0/original/hammer2_1_bf16.pte';
+export const HAMMER2_1_1_5B_TOKENIZER =
+  'https://huggingface.co/software-mansion/react-native-executorch-hammer-2.1/resolve/v0.4.0/tokenizer.json';
+export const HAMMER2_1_1_5B_TOKENIZER_CONFIG =
+  'https://huggingface.co/software-mansion/react-native-executorch-hammer-2.1/resolve/v0.4.0/tokenizer_config.json';
+
+export const SMOLLM2_1_7B =
+  'https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.4.0/original/smolLm2_bf16.pte';
+export const SMOLLM2_1_7B_TOKENIZER =
+  'https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.4.0/tokenizer.json';
+export const SMOLLM2_1_7B_TOKENIZER_CONFIG =
+  'https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.4.0/tokenizer_config.json';
+
+export const QWEN2_5_1_5B =
+  'https://huggingface.co/software-mansion/react-native-executorch-qwen-2.5/resolve/v0.4.0/original/qwen2_5_bf16.pte';
+export const QWEN2_5_1_5B_TOKENIZER =
+  'https://huggingface.co/software-mansion/react-native-executorch-qwen-2.5/resolve/v0.4.0/tokenizer.json';
+export const QWEN2_5_1_5B_TOKENIZER_CONFIG =
+  'https://huggingface.co/software-mansion/react-native-executorch-qwen-2.5/resolve/v0.4.0/tokenizer_config.json';
+
+export const PHI_4_MINI_4B =
+  'https://huggingface.co/software-mansion/react-native-executorch-phi-4-mini/resolve/v0.4.0/original/phi-4-mini_bf16.pte';
+export const PHI_4_MINI_4B_TOKENIZER =
+  'https://huggingface.co/software-mansion/react-native-executorch-phi-4-mini/resolve/v0.4.0/tokenizer.json';
+export const PHI_4_MINI_4B_TOKENIZER_CONFIG =
+  'https://huggingface.co/software-mansion/react-native-executorch-phi-4-mini/resolve/v0.4.0/tokenizer_config.json';
+
 // Classification
 export const EFFICIENTNET_V2_S =
   Platform.OS === 'ios'
