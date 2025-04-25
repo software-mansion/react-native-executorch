@@ -6,7 +6,7 @@ export interface LLMType {
   downloadProgress: number;
   error: string | null;
   runInference: (input: string) => Promise<void>;
-  sendMessage: (message: string, tools?: LLMTool[]) => Promise<void>;
+  sendMessage: (message: string) => Promise<void>;
   interrupt: () => void;
 }
 
@@ -35,6 +35,7 @@ export interface ChatConfig {
 export interface ToolsConfig {
   tools: LLMTool[];
   executeToolCallback: (call: ToolCall) => Promise<string | null>;
+  displayToolCalls?: boolean;
 }
 
 export const SPECIAL_TOKENS = [

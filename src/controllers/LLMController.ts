@@ -138,7 +138,7 @@ export class LLMController {
   public delete() {
     this.onToken?.remove();
     this.onToken = null;
-    this.nativeModule.deleteModule();
+    this.nativeModule.releaseResources();
   }
 
   public async runInference(input: string) {
@@ -184,7 +184,7 @@ export class LLMController {
       return;
     }
 
-    if (!this.toolsConfig) {
+    if (!this.toolsConfig || this.toolsConfig.displayToolCalls) {
       this.responseCallback(
         this._response.replace(this.tokenizerConfig.eos_token, '')
       );
