@@ -21,9 +21,9 @@ keywords:
 description: "Learn how to use LLMs in your React Native applications with React Native ExecuTorch's useLLM hook."
 ---
 
-React Native ExecuTorch supports Llama 3.2 models, including quantized versions (and few other LLMs as well, checkout our [HuggingFace repository](https://huggingface.co/software-mansion)). Before getting started, you’ll need to obtain the .pte binary—a serialized model and the tokenizer and tokenizer config JSON files. There are various ways to accomplish this:
+React Native ExecuTorch supports a variety of LLMs (checkout our [HuggingFace repository]() for model already converted to ExecuTorch format) including Llama 3.2. Before getting started, you’ll need to obtain the .pte binary—a serialized model and the tokenizer and tokenizer config JSON files. There are various ways to accomplish this:
 
-- For your convenience, it's best if you use models exported by us, you can get them from our [HuggingFace repository](https://huggingface.co/software-mansion/react-native-executorch-llama-3.2). You can also use [constants](https://github.com/software-mansion/react-native-executorch/tree/main/src/constants/modelUrls.ts) shipped with our library.
+- For your convenience, it's best if you use models exported by us, you can get them from our [HuggingFace repository](https://huggingface.co/software-mansion). You can also use [constants](https://github.com/software-mansion/react-native-executorch/tree/main/src/constants/modelUrls.ts) shipped with our library.
 - If you want to export model by yourself, you can use a Docker image that we've prepared. To see how it works, check out [exporting Llama](./exporting-llama)
 - Follow the official [tutorial](https://github.com/pytorch/executorch/blob/fe20be98c/examples/demo-apps/android/LlamaDemo/docs/delegates/xnnpack_README.md) made by ExecuTorch team to build the model and tokenizer yourself
 
@@ -32,7 +32,11 @@ React Native ExecuTorch supports Llama 3.2 models, including quantized versions 
 In order to load a model into the app, you need to run the following code:
 
 ```typescript
-import { useLLM, LLAMA3_2_1B } from 'react-native-executorch';
+import {
+  useLLM,
+  LLAMA3_2_1B,
+  LLAMA3_2_TOKENIZER_CONFIG,
+} from 'react-native-executorch';
 
 const messageHistory = [
   { role: 'user', content: 'Hello' },
@@ -116,7 +120,7 @@ Given computational constraints, our architecture is designed to support only on
 
 **`tokenizerConfigSource`** - URL to the JSON file which contains the tokenizer config
 
-**`chatConfig`** - Object configuring chat management:
+**`chatConfig`** - Object configuring chat management, contains following properties:
 
 - **`systemPrompt`** - Often used to tell the model what is its purpose, for example - "Be a helpful translator"
 
@@ -151,13 +155,13 @@ const llm = useLLM({
 
 ...
 const message = 'Hi, who are you?';
-await llm.generate(message);
+await llm.sendMessage(message);
 ...
 ```
 
 ## Listening for the response
 
-As you might've noticed, there is no return value from the `runInference` function. Instead, the `response` field of the model is updated with each token.
+As you might've noticed, there is no return value from the `sendMessage` function. Instead, the `response` field of the model is updated with each token.
 This is how you can render the response of the model:
 
 ```typescript
@@ -174,7 +178,7 @@ If you want to render entire conversation you can use `messageHistory` field:
 ```typescript
 return (
   <View>
-    {llm.chatHistory.map((message) => (
+    {llm.messageHistory.map((message) => (
       <Text>{message.content}</Text>
     ))}
   </View>

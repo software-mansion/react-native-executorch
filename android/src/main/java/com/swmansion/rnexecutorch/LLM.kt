@@ -7,7 +7,7 @@ import org.pytorch.executorch.extension.llm.LlmCallback
 import org.pytorch.executorch.extension.llm.LlmModule
 
 class LLM(
-        reactContext: ReactApplicationContext,
+  reactContext: ReactApplicationContext,
 ) : NativeLLMSpec(reactContext), LlmCallback {
   private var llmModule: LlmModule? = null
 
@@ -26,9 +26,9 @@ class LLM(
   }
 
   override fun loadLLM(
-          modelSource: String,
-          tokenizerSource: String,
-          promise: Promise,
+    modelSource: String,
+    tokenizerSource: String,
+    promise: Promise,
   ) {
     try {
       llmModule = LlmModule(modelSource, tokenizerSource, 0.7f)
@@ -39,14 +39,14 @@ class LLM(
   }
 
   override fun runInference(
-          input: String,
-          promise: Promise,
+    input: String,
+    promise: Promise,
   ) {
     Thread {
-              llmModule!!.generate(input, this)
-              promise.resolve("Inference completed successfully")
-            }
-            .start()
+      llmModule!!.generate(input, this)
+      promise.resolve("Inference completed successfully")
+    }
+      .start()
   }
 
   override fun interrupt() {

@@ -4,7 +4,7 @@ import AnimatedChatLoading from './AnimatedChatLoading';
 import LlamaIcon from '../assets/icons/llama_icon.svg';
 import ColorPalette from '../colors';
 import MessageItem from './MessageItem';
-import { MessageType } from 'react-native-executorch/lib/typescript/types/llm';
+import { MessageType } from 'react-native-executorch';
 
 interface MessagesComponentProps {
   chatHistory: MessageType[];

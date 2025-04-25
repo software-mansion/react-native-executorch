@@ -22,12 +22,12 @@ import {
   LLAMA3_2_TOKENIZER,
   LLAMA3_2_TOKENIZER_CONFIG,
   LLMType,
+  LLMTool,
   useLLM,
 } from 'react-native-executorch';
 import PauseIcon from '../assets/icons/pause_icon.svg';
 import ColorPalette from '../colors';
 import Messages from '../components/Messages';
-import { LLMTool } from 'react-native-executorch/lib/typescript/types/llm';
 
 export const ChatScreenLLM = () => {
   const llm = useLLM({

@@ -68,8 +68,6 @@ RCT_EXPORT_MODULE()
 
 - (void)releaseResources {
   self->runner = nil;
-  self->conversationManager = nil;
-  self->tempLlamaResponse = nil;
 }
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:

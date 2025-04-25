@@ -37,6 +37,7 @@ export * from './utils/listDownloadedResources';
 export * from './types/object_detection';
 export * from './types/ocr';
 export * from './types/image_segmentation';
+export * from './types/llm';
 export { SpeechToTextLanguage };
 
 // constants
