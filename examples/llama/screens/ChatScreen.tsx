@@ -44,18 +44,22 @@ export const ChatScreenLLMToolCalling = () => {
     modelSource: HAMMER2_1_1_5B,
     tokenizerSource: HAMMER2_1_TOKENIZER,
     tokenizerConfigSource: HAMMER2_1_TOKENIZER_CONFIG,
+    toolsConfig: {
+      tools: TOOL_DEFINITIONS_PHONE,
+      // we don't implement any tool execution here
+      // we just want to showcase model's ability
+      executeToolCallback: async () => {
+        return null;
+      },
+      // just for demo purpose
+      displayToolCalls: true,
+    },
   });
 
-  return <ChatScreen llm={llm} tools={true} />;
+  return <ChatScreen llm={llm} />;
 };
 
-export default function ChatScreen({
-  llm,
-  tools,
-}: {
-  llm: LLMType;
-  tools?: boolean;
-}) {
+export default function ChatScreen({ llm }: { llm: LLMType }) {
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
 
@@ -71,10 +75,7 @@ export default function ChatScreen({
     setUserInput('');
     textInputRef.current?.clear();
     try {
-      await llm.sendMessage(
-        userInput,
-        tools ? TOOL_DEFINITIONS_PHONE : undefined
-      );
+      await llm.sendMessage(userInput);
     } catch (e) {
       console.error(e);
     }
