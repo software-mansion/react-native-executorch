@@ -11,7 +11,6 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import SWMIcon from '../assets/icons/swm_icon.svg';
 import SendIcon from '../assets/icons/send_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {
@@ -94,16 +93,13 @@ export default function ChatScreen({ llm }: { llm: LLMType }) {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'android' ? 30 : 0}
         >
-          <View style={styles.topContainer}>
-            <SWMIcon width={45} height={45} />
-            <Text style={styles.textModelName}>LLM on device demo</Text>
-          </View>
           {llm.messageHistory.length ? (
             <View style={styles.chatContainer}>
               <Messages
                 chatHistory={llm.messageHistory}
                 llmResponse={llm.response}
                 isGenerating={llm.isGenerating}
+                deleteMessage={llm.deleteMessage}
               />
             </View>
           ) : (
@@ -250,14 +246,7 @@ const TOOL_DEFINITIONS_PHONE: LLMTool[] = [
 const styles = StyleSheet.create({
   container: { flex: 1 },
   keyboardAvoidingView: { flex: 1 },
-  topContainer: {
-    height: 68,
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   chatContainer: { flex: 10, width: '100%' },
-  textModelName: { color: ColorPalette.primary },
   helloMessageContainer: {
     flex: 10,
     width: '100%',

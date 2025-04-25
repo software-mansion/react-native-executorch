@@ -59,6 +59,7 @@ export const useLLM = ({
     error,
     runInference: (input) => model.runInference(input),
     sendMessage: (message) => model.sendMessage(message),
+    deleteMessage: (index) => model.deleteMessage(index),
     interrupt: () => model.interrupt(),
   };
 };

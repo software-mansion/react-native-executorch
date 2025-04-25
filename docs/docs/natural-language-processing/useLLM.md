@@ -76,6 +76,7 @@ interface LLMType {
   error: string | null;
   runInference: (input: string) => Promise<void>;
   sendMessage: (message: string) => Promise<void>;
+  deleteMessage: (index: number) => void;
   interrupt: () => void;
 }
 
@@ -157,6 +158,7 @@ Given computational constraints, our architecture is designed to support only on
 | `downloadProgress` | `number`                                                | Represents the download progress as a value between 0 and 1, indicating the extent of the model file retrieval.                                                                                                                                                                                                                                                        |
 | `error`            | <code>string &#124; null</code>                         | Contains the error message if the model failed to load                                                                                                                                                                                                                                                                                                                 |
 | `sendMessage`      | `(message: string, tools?: LLMTool[]) => Promise<void>` | Method to add user message to conversation. After model responds, `messageHistory` will be updated with both user message and model response.                                                                                                                                                                                                                          |
+| `deleteMessage`    | `(index: number) => void`                               | Deletes all messages starting with message on `index` position.                                                                                                                                                                                                                                                                                                        |
 | `runInference`     | `(input: string) => Promise<void>`                      | Runs model inference with raw input string. You need to provide entire conversation and prompt (in correct format and with special tokens!) in input string to this method. It doesn't manage conversation context. It is intended for users that need access to the model itself without any wrapper. If you want simple chat with model consider using `sendMessage` |
 | `interrupt`        | `() => void`                                            | Function to interrupt the current inference                                                                                                                                                                                                                                                                                                                            |
 
