@@ -15,7 +15,7 @@ export const executeTool: (call: ToolCall) => Promise<string | null> = async (
     case 'add_event_to_calendar':
       return await addEventToCalendar(call);
     default:
-      console.log(`Wrong function! We don't handle it!`);
+      console.error(`Wrong function! We don't handle it!`);
       return null;
   }
 };
@@ -73,10 +73,6 @@ export const TOOL_DEFINITIONS_PHONE = [
           type: 'string',
           description: 'Title of an event',
         },
-        description: {
-          type: 'string',
-          description: 'Description of an event',
-        },
       },
       required: ['time', 'title'],
     },
@@ -84,8 +80,7 @@ export const TOOL_DEFINITIONS_PHONE = [
 ];
 
 const brightness = async (call: ToolCall) => {
-  console.log('Changing brightness!');
-  console.log(call.arguments);
+  console.log('Changing brightness!', call);
   if (
     'targetBrightness' in call.arguments &&
     typeof call.arguments.targetBrightness === 'number'
@@ -108,118 +103,110 @@ const brightness = async (call: ToolCall) => {
 };
 
 const readCalendar = async (call: ToolCall) => {
-  console.log('Reading calendar!');
-  console.log(call);
-  console.log(call.arguments);
+  console.log('Reading calendar!', call);
+
+  let startTime = Date.parse(
+    'timeStart' in call.arguments &&
+      typeof call.arguments.timeStart === 'string'
+      ? call.arguments.timeStart
+      : ''
+  );
+  let endTime = Date.parse(
+    'timeEnd' in call.arguments && typeof call.arguments.timeEnd === 'string'
+      ? call.arguments.timeEnd
+      : ''
+  );
 
   if (
-    ('timeStart' in call.arguments &&
-      typeof call.arguments.timeStart === 'string' &&
-      'timeEnd' in call.arguments &&
-      typeof call.arguments.timeEnd === 'string') ||
-    (!('timeStart' in call.arguments) && !('timeEnd' in call.arguments))
+    startTime === endTime ||
+    (Number.isNaN(startTime) && Number.isNaN(endTime))
   ) {
-    let startTime = Date.parse(
-      'timeStart' in call.arguments &&
-        typeof call.arguments.timeStart === 'string'
-        ? call.arguments.timeStart
-        : ''
-    );
-    let endTime = Date.parse(
-      'timeEnd' in call.arguments && typeof call.arguments.timeEnd === 'string'
-        ? call.arguments.timeEnd
-        : ''
-    );
-    if (startTime === endTime) {
-      // default to today
-      let date;
-      if (Number.isNaN(startTime)) {
-        date = new Date();
-      } else {
-        date = new Date(startTime);
-      }
-      // Set the time to 00:00:00.000 for the start of the day
+    // default to today for empty function calls
+    let date;
+    if (Number.isNaN(startTime)) {
+      date = new Date();
+    } else {
+      date = new Date(startTime);
+    }
+    // Set the time to 00:00:00 for the start of the day
+    startTime = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      0,
+      0,
+      0
+    ).valueOf();
+
+    // Set the time to 23:59:59 for the end of the day
+    endTime = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      23,
+      59,
+      59
+    ).valueOf();
+  } else if (Number.isNaN(startTime) || Number.isNaN(endTime)) {
+    if (Number.isNaN(startTime)) {
+      const endDay = new Date(endTime);
       startTime = new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate(),
+        endDay.getFullYear(),
+        endDay.getMonth(),
+        endDay.getDate(),
         0,
         0,
         0
       ).valueOf();
+    } else if (Number.isNaN(endTime)) {
+      const startDay = new Date(startTime);
 
-      // Set the time to 23:59:59.999 for the end of the day
       endTime = new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate(),
+        startDay.getFullYear(),
+        startDay.getMonth(),
+        startDay.getDate(),
         23,
         59,
         59
       ).valueOf();
-    } else if (Number.isNaN(startTime) || Number.isNaN(endTime)) {
-      if (Number.isNaN(startTime)) {
-        const endDay = new Date(endTime);
-        startTime = new Date(
-          endDay.getFullYear(),
-          endDay.getMonth(),
-          endDay.getDate(),
-          0,
-          0,
-          0
-        ).valueOf();
-      } else if (Number.isNaN(endTime)) {
-        const startDay = new Date(startTime);
-
-        endTime = new Date(
-          startDay.getFullYear(),
-          startDay.getMonth(),
-          startDay.getDate(),
-          23,
-          59,
-          59
-        ).valueOf();
-      }
     }
-    console.log(startTime, endTime);
-    const startDate = new Date(startTime);
-    const endDate = new Date(endTime);
-    console.log(startDate, endDate);
+  }
+  const startDate = new Date(startTime);
+  const endDate = new Date(endTime);
+  const calendars = await Calendar.getCalendarsAsync(
+    Platform.OS === 'ios' ? Calendar.EntityTypes.EVENT : undefined
+  );
+  const events = await Calendar.getEventsAsync(
+    calendars.map((calendar) => calendar.id),
+    startDate,
+    endDate
+  );
+
+  const eventsStringRepresentation = events.map(
+    (event) => `${event.title}, from: ${event.startDate}, to: ${event.endDate}`
+  );
+  return eventsStringRepresentation.join('\n');
+};
+const addEventToCalendar = async (call: ToolCall) => {
+  console.log('Adding event to calendar!', call);
+  if (
+    'time' in call.arguments &&
+    typeof call.arguments.time === 'string' &&
+    'title' in call.arguments &&
+    typeof call.arguments.title === 'string'
+  ) {
     const calendars = await Calendar.getCalendarsAsync(
       Platform.OS === 'ios' ? Calendar.EntityTypes.EVENT : undefined
     );
-    console.log(calendars);
-    const events = await Calendar.getEventsAsync(
-      calendars.map((calendar) => calendar.id),
-      startDate,
-      endDate
-    );
+    let startDate = new Date(Date.parse(call.arguments.time));
+    const endDate = new Date(startDate);
+    endDate.setHours(endDate.getHours() + 1);
 
-    const eventsStringRepresentation = events.map(
-      (event) =>
-        `${event.title}, from: ${event.startDate}, to: ${event.endDate}`
-    );
-    console.log(events);
-    console.log(eventsStringRepresentation);
-    return eventsStringRepresentation.join('\n');
+    await Calendar.createEventAsync(calendars[0].id, {
+      title: call.arguments.title,
+      startDate: startDate,
+      endDate: endDate,
+    });
   }
-  return null;
-};
-const addEventToCalendar = (call: ToolCall) => {
-  console.log(call);
-  // properties: {
-  //   time: {
-  //     type: 'string',
-  //     description: 'Date and time of an event.',
-  //   },
-  //   title: {
-  //     type: 'string',
-  //     description: 'Title of an event',
-  //   },
-  //   description: {
-  //     type: 'string',
-  //     description: 'Description of an event',
-  //   },
-  // },
   return null;
 };
