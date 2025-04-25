@@ -17,3 +17,5 @@ mobilenet
 microcontrollers
 notimestamps
 seqs
+smollm
+qwen
