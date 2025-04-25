@@ -1326,7 +1326,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-executorch (0.420.20250423142407):
+  - react-native-executorch (0.3.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2109,7 +2109,7 @@ SPEC CHECKSUMS:
   React-logger: dbca7bdfd4aa5ef69431362bde6b36d49403cb20
   React-Mapbuffer: 6efad4a606c1fae7e4a93385ee096681ef0300dc
   React-microtasksnativemodule: a645237a841d733861c70b69908ab4a1707b52ad
-  react-native-executorch: d75cce29ea3ac9633ac02f9f8e156ac2cb341c73
+  react-native-executorch: 460895a9b44bba86e89675c4e461b43dd797fab9
   react-native-safe-area-context: 0dfbd139206a79364916959bc8b1a6bea3caba97
   React-nativeconfig: 8efdb1ef1e9158c77098a93085438f7e7b463678
   React-NativeModulesApple: 958d4f6c5c2ace4c0f427cf7ef82e28ae6538a22

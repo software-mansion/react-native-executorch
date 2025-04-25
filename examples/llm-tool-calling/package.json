@@ -18,7 +18,7 @@
     "metro-config": "^0.81.0",
     "react": "18.3.1",
     "react-native": "0.76.9",
-    "react-native-executorch": "file:../../react-native-executorch-0.420.20250423104340.tgz",
+    "react-native-executorch": "0.3.2",
     "react-native-loading-spinner-overlay": "^3.0.1",
     "react-native-markdown-display": "^7.0.2",
     "react-native-reanimated": "^3.16.3",
