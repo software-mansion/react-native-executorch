@@ -1,5 +1,5 @@
-import { LLM } from '../../native/RnExecutorchModules';
-import { fetchResource } from '../../utils/fetchResource';
+import { LLMNativeModule } from '../../native/RnExecutorchModules';
+import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import {
   DEFAULT_CONTEXT_WINDOW_LENGTH,
   DEFAULT_MESSAGE_HISTORY,
@@ -18,13 +18,13 @@ export class LLMModule {
     contextWindowLength = DEFAULT_CONTEXT_WINDOW_LENGTH
   ) {
     try {
-      const tokenizerFileUri = await fetchResource(tokenizerSource);
-      const modelFileUri = await fetchResource(
+      const tokenizerFileUri = await ResourceFetcher.fetch(tokenizerSource);
+      const modelFileUri = await ResourceFetcher.fetch(
         modelSource,
         this.onDownloadProgressCallback
       );
 
-      await LLM.loadLLM(
+      await LLMNativeModule.loadLLM(
         modelFileUri,
         tokenizerFileUri,
         systemPrompt,
@@ -38,7 +38,7 @@ export class LLMModule {
 
   static async generate(input: string) {
     try {
-      await LLM.runInference(input);
+      await LLMNativeModule.runInference(input);
     } catch (err) {
       throw new Error((err as Error).message);
     }
@@ -49,14 +49,14 @@ export class LLMModule {
   }
 
   static onToken(callback: (data: string | undefined) => void) {
-    return LLM.onToken(callback);
+    return LLMNativeModule.onToken(callback);
   }
 
   static interrupt() {
-    LLM.interrupt();
+    LLMNativeModule.interrupt();
   }
 
   static delete() {
-    LLM.deleteModule();
+    LLMNativeModule.deleteModule();
   }
 }

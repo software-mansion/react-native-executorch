@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { EventSubscription } from 'react-native';
-import { LLM } from '../../native/RnExecutorchModules';
-import { fetchResource } from '../../utils/fetchResource';
+import { LLMNativeModule } from '../../native/RnExecutorchModules';
+import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource, Model, MessageType } from '../../types/common';
 import {
   DEFAULT_CONTEXT_WINDOW_LENGTH,
@@ -11,7 +11,7 @@ import {
 } from '../../constants/llamaDefaults';
 
 const interrupt = () => {
-  LLM.interrupt();
+  LLMNativeModule.interrupt();
 };
 
 export const useLLM = ({
@@ -39,13 +39,13 @@ export const useLLM = ({
       try {
         setIsReady(false);
 
-        const tokenizerFileUri = await fetchResource(tokenizerSource);
-        const modelFileUri = await fetchResource(
+        const tokenizerFileUri = await ResourceFetcher.fetch(tokenizerSource);
+        const modelFileUri = await ResourceFetcher.fetch(
           modelSource,
           setDownloadProgress
         );
 
-        await LLM.loadLLM(
+        await LLMNativeModule.loadLLM(
           modelFileUri,
           tokenizerFileUri,
           systemPrompt,
@@ -55,7 +55,7 @@ export const useLLM = ({
 
         setIsReady(true);
 
-        tokenGeneratedListener.current = LLM.onToken(
+        tokenGeneratedListener.current = LLMNativeModule.onToken(
           (data: string | undefined) => {
             if (!data) {
               return;
@@ -81,7 +81,7 @@ export const useLLM = ({
     return () => {
       tokenGeneratedListener.current?.remove();
       tokenGeneratedListener.current = null;
-      LLM.deleteModule();
+      LLMNativeModule.deleteModule();
     };
   }, [
     modelSource,
@@ -103,7 +103,7 @@ export const useLLM = ({
       try {
         setResponse('');
         setIsGenerating(true);
-        await LLM.runInference(input);
+        await LLMNativeModule.runInference(input);
       } catch (err) {
         setIsGenerating(false);
         throw new Error((err as Error).message);
