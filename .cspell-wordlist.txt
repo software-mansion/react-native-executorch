@@ -18,6 +18,8 @@ mobilenet
 microcontrollers
 notimestamps
 seqs
+smollm
+qwen
 XNNPACK
 EFFICIENTNET
 SSDLITE
