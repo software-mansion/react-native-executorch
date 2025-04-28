@@ -15,50 +15,75 @@ import SWMIcon from '../assets/icons/swm_icon.svg';
 import SendIcon from '../assets/icons/send_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {
+  HAMMER2_1_1_5B,
+  HAMMER2_1_TOKENIZER,
+  HAMMER2_1_TOKENIZER_CONFIG,
   LLAMA3_2_1B_QLORA,
-  LLAMA3_2_1B_TOKENIZER,
+  LLAMA3_2_TOKENIZER,
+  LLAMA3_2_TOKENIZER_CONFIG,
+  LLMType,
+  LLMTool,
   useLLM,
 } from 'react-native-executorch';
 import PauseIcon from '../assets/icons/pause_icon.svg';
 import ColorPalette from '../colors';
 import Messages from '../components/Messages';
-import { MessageType, SenderType } from '../types';
 
-export default function ChatScreen() {
-  const [chatHistory, setChatHistory] = useState<Array<MessageType>>([]);
+export const ChatScreenLLM = () => {
+  const llm = useLLM({
+    modelSource: LLAMA3_2_1B_QLORA,
+    tokenizerSource: LLAMA3_2_TOKENIZER,
+    tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
+  });
+
+  return <ChatScreen llm={llm} />;
+};
+
+export const ChatScreenLLMToolCalling = () => {
+  const llm = useLLM({
+    modelSource: HAMMER2_1_1_5B,
+    tokenizerSource: HAMMER2_1_TOKENIZER,
+    tokenizerConfigSource: HAMMER2_1_TOKENIZER_CONFIG,
+  });
+
+  return <ChatScreen llm={llm} tools={true} />;
+};
+
+export default function ChatScreen({
+  llm,
+  tools,
+}: {
+  llm: LLMType;
+  tools?: boolean;
+}) {
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
-  const llama = useLLM({
-    modelSource: LLAMA3_2_1B_QLORA,
-    tokenizerSource: LLAMA3_2_1B_TOKENIZER,
-    contextWindowLength: 6,
-  });
-  const textInputRef = useRef<TextInput>(null);
-  useEffect(() => {
-    if (llama.response && !llama.isGenerating) {
-      appendToMessageHistory(llama.response, 'assistant');
-    }
-  }, [llama.response, llama.isGenerating]);
 
-  const appendToMessageHistory = (content: string, role: SenderType) => {
-    setChatHistory((prevHistory) => [...prevHistory, { role, content }]);
-  };
+  useEffect(() => {
+    if (llm.error) {
+      console.log('LLM error:', llm.error);
+    }
+  }, [llm.error]);
+
+  const textInputRef = useRef<TextInput>(null);
 
   const sendMessage = async () => {
-    appendToMessageHistory(userInput.trim(), 'user');
     setUserInput('');
     textInputRef.current?.clear();
     try {
-      await llama.generate(userInput);
+      await llm.sendMessage(
+        userInput,
+        tools ? TOOL_DEFINITIONS_PHONE : undefined
+      );
     } catch (e) {
       console.error(e);
     }
   };
 
-  return !llama.isReady ? (
+  return !llm.isReady ? (
     <Spinner
-      visible={!llama.isReady}
-      textContent={`Loading the model ${(llama.downloadProgress * 100).toFixed(0)} %`}
+      visible={!llm.isReady}
+      textContent={`Loading the model ${(llm.downloadProgress * 100).toFixed(0)} %`}
     />
   ) : (
     <SafeAreaView style={styles.container}>
@@ -70,14 +95,14 @@ export default function ChatScreen() {
         >
           <View style={styles.topContainer}>
             <SWMIcon width={45} height={45} />
-            <Text style={styles.textModelName}>Llama 3.2 1B QLoRA</Text>
+            <Text style={styles.textModelName}>LLM on device demo</Text>
           </View>
-          {chatHistory.length ? (
+          {llm.messageHistory.length ? (
             <View style={styles.chatContainer}>
               <Messages
-                chatHistory={chatHistory}
-                llmResponse={llama.response}
-                isGenerating={llama.isGenerating}
+                chatHistory={llm.messageHistory}
+                llmResponse={llm.response}
+                isGenerating={llm.isGenerating}
               />
             </View>
           ) : (
@@ -108,17 +133,15 @@ export default function ChatScreen() {
             {userInput && (
               <TouchableOpacity
                 style={styles.sendChatTouchable}
-                onPress={async () =>
-                  !llama.isGenerating && (await sendMessage())
-                }
+                onPress={async () => !llm.isGenerating && (await sendMessage())}
               >
                 <SendIcon height={24} width={24} padding={4} margin={8} />
               </TouchableOpacity>
             )}
-            {llama.isGenerating && (
+            {llm.isGenerating && (
               <TouchableOpacity
                 style={styles.sendChatTouchable}
-                onPress={llama.interrupt}
+                onPress={llm.interrupt}
               >
                 <PauseIcon height={24} width={24} padding={4} margin={8} />
               </TouchableOpacity>
@@ -130,26 +153,110 @@ export default function ChatScreen() {
   );
 }
 
+const TOOL_DEFINITIONS_PHONE: LLMTool[] = [
+  {
+    name: 'brightness',
+    description:
+      'Change screen brightness. Change can be relative (higher/lower) or set to minimal or maximal.',
+    parameters: {
+      type: 'dict',
+      properties: {
+        relativeChange: {
+          type: 'number',
+          description:
+            'Relative change of brightness (from 0 to 100). Change should be negative if user asks for less bright screen.',
+        },
+        targetBrightness: {
+          type: 'number',
+          description: 'Relative change of brightness (from 0 to 100).',
+        },
+      },
+    },
+  },
+  {
+    name: 'get_contacts',
+    description:
+      'Gets user phone contacts. Returns both name and phone number.',
+    parameters: {
+      type: 'dict',
+      properties: {
+        name: {
+          type: 'string',
+          description:
+            'Full or partial name of person to retrieve. Those will be some part of names or letters, not numbers.',
+        },
+        phoneNumberPrefix: {
+          type: 'string',
+          description:
+            'Prefix or part of phone number of contact to retrieve. Those will be numbers.',
+        },
+      },
+    },
+  },
+  {
+    name: 'send_sms',
+    description: 'Sends SMS/text message to specified user.',
+    parameters: {
+      type: 'dict',
+      properties: {
+        to: { type: 'string', description: 'The recipient phone number.' },
+        body: { type: 'string', description: 'Body of the text message.' },
+      },
+      required: ['to', 'body'],
+    },
+  },
+  {
+    name: 'read_calendar',
+    description: 'Read calendar events from now up to given point in time',
+    parameters: {
+      type: 'dict',
+      properties: {
+        time: {
+          type: 'string',
+          description: 'Date and time to which we want to read calendar',
+        },
+      },
+      required: ['time'],
+    },
+  },
+  {
+    name: 'add_event_to_calendar',
+    description: 'Schedules event in your calendar at given time.',
+    parameters: {
+      type: 'dict',
+      properties: {
+        time: { type: 'string', description: 'Date and time of an event.' },
+        title: { type: 'string', description: 'Title of an event' },
+        description: { type: 'string', description: 'Description of an event' },
+      },
+      required: ['time', 'title'],
+    },
+  },
+  {
+    name: 'flashlight',
+    description: 'Turns the flashlight on/off',
+    parameters: {
+      type: 'dict',
+      properties: {
+        turn_on: { type: 'boolean', description: 'Turns the flashlight on.' },
+        turn_off: { type: 'boolean', description: 'Turns the flashlight off.' },
+      },
+      required: ['turn_on', 'turn_off'],
+    },
+  },
+];
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  keyboardAvoidingView: {
-    flex: 1,
-  },
+  container: { flex: 1 },
+  keyboardAvoidingView: { flex: 1 },
   topContainer: {
     height: 68,
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  chatContainer: {
-    flex: 10,
-    width: '100%',
-  },
-  textModelName: {
-    color: ColorPalette.primary,
-  },
+  chatContainer: { flex: 10, width: '100%' },
+  textModelName: { color: ColorPalette.primary },
   helloMessageContainer: {
     flex: 10,
     width: '100%',

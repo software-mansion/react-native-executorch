@@ -9,26 +9,9 @@ export const getTypeIdentifier = (input: ETInput): number => {
 
 export type ResourceSource = string | number | object;
 
-export interface Model {
-  generate: (input: string) => Promise<void>;
-  response: string;
-  downloadProgress: number;
-  error: string | null;
-  isModelGenerating: boolean;
-  isGenerating: boolean;
-  isModelReady: boolean;
-  isReady: boolean;
-  interrupt: () => void;
-}
-
 export type ETInput =
   | Int8Array
   | Int32Array
   | BigInt64Array
   | Float32Array
   | Float64Array;
-
-export interface MessageType {
-  role: 'user' | 'assistant';
-  content: string;
-}

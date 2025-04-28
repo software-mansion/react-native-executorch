@@ -3038,6 +3038,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@huggingface/jinja@npm:^0.3.4":
+  version: 0.3.4
+  resolution: "@huggingface/jinja@npm:0.3.4"
+  checksum: 5a2eac0da4522e6a60af0a73cb6bdcca6b0a5e3d4987b40a260a5735da686e13a689e87428ca9945576135a29c4485e14d2f8fc130a89f93fd390c5c3904d224
+  languageName: node
+  linkType: hard
+
 "@humanwhocodes/config-array@npm:^0.13.0":
   version: 0.13.0
   resolution: "@humanwhocodes/config-array@npm:0.13.0"
@@ -3508,10 +3515,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pkgr/core@npm:^0.2.0, @pkgr/core@npm:^0.2.3":
-  version: 0.2.3
-  resolution: "@pkgr/core@npm:0.2.3"
-  checksum: 38c9435ebc14f6a00cdf45f0ca0c07e652d22949687c9cf709b86caa98054ad5403f2463d5f2407713754f7337b372acda14e537d3a9397f2da78237d4e69841
+"@pkgr/core@npm:^0.2.0":
+  version: 0.2.2
+  resolution: "@pkgr/core@npm:0.2.2"
+  checksum: 7eea03fb7b650f18cbe49e72844de81402476c6f62090ecaba414db14863bee4bcf596cfef334dc882901e5abcb2c82dab7e64010690a8eb7cf01755db357e49
+  languageName: node
+  linkType: hard
+
+"@pkgr/core@npm:^0.2.3":
+  version: 0.2.4
+  resolution: "@pkgr/core@npm:0.2.4"
+  checksum: 8544f0346c3f7035b9e2fdf60179c68b12d3c76b3fba9533844099af67cf5c0ce5257538f5faa05953d48cc1536d046f003231f321b2f75b3fb449db8410a2b7
   languageName: node
   linkType: hard
 
@@ -12579,6 +12593,7 @@ __metadata:
     "@commitlint/config-conventional": ^17.0.2
     "@cspell/eslint-plugin": ^8.18.1
     "@evilmartians/lefthook": ^1.5.0
+    "@huggingface/jinja": ^0.3.4
     "@react-native-community/cli": latest
     "@react-native/eslint-config": ^0.79.0
     "@release-it/conventional-changelog": ^5.0.0

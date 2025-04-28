@@ -43,16 +43,17 @@ Add this to your component file:
 
 ```tsx
 import {
-  LLAMA3_2_3B_QLORA,
-  LLAMA3_2_3B_TOKENIZER,
   useLLM,
+  LLAMA3_2_1B,
+  LLAMA3_2_TOKENIZER_CONFIG,
 } from 'react-native-executorch';
 
 function MyComponent() {
   // Initialize the model 🚀
   const llama = useLLM({
-    modelSource: LLAMA3_2_3B_QLORA,
-    tokenizerSource: LLAMA3_2_3B_TOKENIZER,
+    modelSource: LLAMA3_2_1B,
+    tokenizerSource: LLAMA3_2_TOKENIZER,
+    tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
   });
   // ... rest of your component
 }
@@ -67,8 +68,8 @@ const handleGenerate = async () => {
   const prompt = 'The meaning of life is';
 
   // Generate text based on your desired prompt
-  const response = await llama.generate(prompt);
-  console.log('Llama says:', response);
+  await llama.runInference(prompt);
+  console.log('Llama says:', llama.response);
 };
 ```
 
