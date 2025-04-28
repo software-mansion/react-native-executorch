@@ -1,13 +1,13 @@
 import { useRef } from 'react';
 import { ScrollView, StyleSheet, View, Text } from 'react-native';
-import { MessageType } from '../types';
 import AnimatedChatLoading from './AnimatedChatLoading';
 import LlamaIcon from '../assets/icons/llama_icon.svg';
 import ColorPalette from '../colors';
 import MessageItem from './MessageItem';
+import { MessageType } from 'react-native-executorch';
 
 interface MessagesComponentProps {
-  chatHistory: Array<MessageType>;
+  chatHistory: MessageType[];
   llmResponse: string;
   isGenerating: boolean;
 }
@@ -50,19 +50,14 @@ export default function Messages({
 }
 
 const styles = StyleSheet.create({
-  chatContainer: {
-    flex: 1,
-    width: '100%',
-  },
+  chatContainer: { flex: 1, width: '100%' },
   aiMessage: {
     flexDirection: 'row',
     maxWidth: '80%',
     alignSelf: 'flex-start',
     marginVertical: 8,
   },
-  messageLoadingContainer: {
-    width: 28,
-  },
+  messageLoadingContainer: { width: 28 },
   aiMessageIconContainer: {
     backgroundColor: ColorPalette.seaBlueLight,
     height: 32,
