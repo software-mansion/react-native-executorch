@@ -132,6 +132,10 @@ Alternatively, you can use `runInference`. It provides direct access to the mode
 
 To subscribe to the token generation event, you can pass `responseCallback` or `messageHistoryCallback` functions to constructor. `responseCallback` is called on every token and contains only the most recent model response and `messageHistoryCallback` is called whenever model finishes generation and contains all message history including user's and model's last messages.
 
+## Interrupting the model
+
+In order to interrupt the model, you can use the `interrupt` method.
+
 ## Deleting the model from memory
 
 To delete the model from memory, you can use the `delete` method.
