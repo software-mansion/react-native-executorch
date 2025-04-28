@@ -1812,6 +1812,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@huggingface/jinja@npm:^0.3.4":
+  version: 0.3.4
+  resolution: "@huggingface/jinja@npm:0.3.4"
+  checksum: 5a2eac0da4522e6a60af0a73cb6bdcca6b0a5e3d4987b40a260a5735da686e13a689e87428ca9945576135a29c4485e14d2f8fc130a89f93fd390c5c3904d224
+  languageName: node
+  linkType: hard
+
 "@isaacs/cliui@npm:^8.0.2":
   version: 8.0.2
   resolution: "@isaacs/cliui@npm:8.0.2"
@@ -7435,6 +7442,7 @@ __metadata:
   version: 0.3.2
   resolution: "react-native-executorch@npm:0.3.2"
   dependencies:
+    "@huggingface/jinja": ^0.3.4
     expo: ^52.0.37
     expo-asset: ^11.0.3
     expo-file-system: ^18.0.10
