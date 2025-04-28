@@ -149,22 +149,22 @@ const readCalendar = async (call: ToolCall) => {
     ).valueOf();
   } else if (Number.isNaN(startTime) || Number.isNaN(endTime)) {
     if (Number.isNaN(startTime)) {
-      const endDay = new Date(endTime);
+      const today = new Date();
       startTime = new Date(
-        endDay.getFullYear(),
-        endDay.getMonth(),
-        endDay.getDate(),
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate(),
         0,
         0,
         0
       ).valueOf();
     } else if (Number.isNaN(endTime)) {
-      const startDay = new Date(startTime);
+      const today = new Date();
 
       endTime = new Date(
-        startDay.getFullYear(),
-        startDay.getMonth(),
-        startDay.getDate(),
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate(),
         23,
         59,
         59

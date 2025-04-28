@@ -2,20 +2,22 @@ import { useRef } from 'react';
 import { ScrollView, StyleSheet, View, Text } from 'react-native';
 import AnimatedChatLoading from './AnimatedChatLoading';
 import LlamaIcon from '../../assets/icons/llama_icon.svg';
-import MessageItem from './MessageItem';
-import { MessageType } from 'react-native-executorch/lib/typescript/types/llm';
 import ColorPalette from '../colors';
+import MessageItem from './MessageItem';
+import { MessageType } from 'react-native-executorch';
 
 interface MessagesComponentProps {
   chatHistory: MessageType[];
   llmResponse: string;
   isGenerating: boolean;
+  deleteMessage: (index: number) => void;
 }
 
 export default function Messages({
   chatHistory,
   llmResponse,
   isGenerating,
+  deleteMessage,
 }: MessagesComponentProps) {
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -27,7 +29,11 @@ export default function Messages({
       >
         <View onStartShouldSetResponder={() => true}>
           {chatHistory.map((message, index) => (
-            <MessageItem key={index} message={message} />
+            <MessageItem
+              key={index}
+              message={message}
+              deleteMessage={() => deleteMessage(index)}
+            />
           ))}
           {isGenerating && (
             <View style={styles.aiMessage}>
