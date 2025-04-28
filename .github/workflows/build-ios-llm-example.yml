@@ -1,0 +1,43 @@
+name: LLM Example app iOS build check
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/build-ios-llm-example.yml'
+      - '*.podspec'
+      - 'examples/llm/ios/**'
+      - 'examples/llm/package.json'
+  pull_request:
+    paths:
+      - '.github/workflows/build-ios-llm-example.yml'
+      - '*.podspec'
+      - 'examples/llm/ios/**'
+      - 'examples/llm/package.json'
+jobs:
+  build:
+    if: github.repository == 'software-mansion/react-native-executorch'
+    runs-on: macos-latest
+    concurrency:
+      group: ios-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+      - name: Install node dependencies
+        working-directory: examples/llm
+        run: yarn
+      - name: Install pods
+        working-directory: examples/llm/ios
+        run: pod install
+      - name: Build app
+        working-directory: examples/llm/ios
+        run: |
+          set -o pipefail && xcodebuild \
+            -workspace llm.xcworkspace \
+            -scheme llm \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+            build \
+            CODE_SIGNING_ALLOWED=NO | xcbeautify

@@ -21,11 +21,10 @@ keywords:
 description: "Learn how to use LLMs in your React Native applications with React Native ExecuTorch's useLLM hook."
 ---
 
-React Native ExecuTorch supports a variety of LLMs (checkout our [HuggingFace repository]() for model already converted to ExecuTorch format) including Llama 3.2. Before getting started, you’ll need to obtain the .pte binary—a serialized model and the tokenizer and tokenizer config JSON files. There are various ways to accomplish this:
+React Native ExecuTorch supports a variety of LLMs (checkout our [HuggingFace repository](https://huggingface.co/software-mansion) for model already converted to ExecuTorch format) including Llama 3.2. Before getting started, you’ll need to obtain the .pte binary—a serialized model, the tokenizer and tokenizer config JSON files. There are various ways to accomplish this:
 
 - For your convenience, it's best if you use models exported by us, you can get them from our [HuggingFace repository](https://huggingface.co/software-mansion). You can also use [constants](https://github.com/software-mansion/react-native-executorch/tree/main/src/constants/modelUrls.ts) shipped with our library.
-- If you want to export model by yourself, you can use a Docker image that we've prepared. To see how it works, check out [exporting Llama](./exporting-llama)
-- Follow the official [tutorial](https://github.com/pytorch/executorch/blob/fe20be98c/examples/demo-apps/android/LlamaDemo/docs/delegates/xnnpack_README.md) made by ExecuTorch team to build the model and tokenizer yourself
+- Follow the official [tutorial](https://github.com/pytorch/executorch/blob/fe20be98c/examples/demo-apps/android/LlamaDemo/docs/delegates/xnnpack_README.md) made by ExecuTorch team to build the model and tokenizer yourself.
 
 ## Initializing
 
@@ -47,11 +46,6 @@ const llm = useLLM({
   modelSource: LLAMA3_2_1B,
   tokenizerSource: LLAMA3_2_TOKENIZER,
   tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
-  chatConfig: {
-    systemPrompt: 'Be a helpful assistant',
-    initialMessageHistory: messageHistory,
-    contextWindowLength: 5,
-  },
 });
 ```
 
@@ -64,11 +58,13 @@ const useLLM: ({
   tokenizerSource,
   tokenizerConfigSource,
   chatConfig,
+  toolsConfig,
 }: {
   modelSource: ResourceSource;
   tokenizerSource: ResourceSource;
   tokenizerConfigSource: ResourceSource;
   chatConfig?: Partial<ChatConfig>;
+  toolsConfig?: ToolsConfig;
 }) => LLMType;
 
 interface LLMType {
@@ -79,7 +75,7 @@ interface LLMType {
   downloadProgress: number;
   error: string | null;
   runInference: (input: string) => Promise<void>;
-  sendMessage: (message: string, tools?: LLMTool[]) => Promise<void>;
+  sendMessage: (message: string) => Promise<void>;
   interrupt: () => void;
 }
 
@@ -96,6 +92,20 @@ interface ChatConfig {
   contextWindowLength: number;
   systemPrompt: string;
 }
+
+// tool calling
+interface ToolsConfig {
+  tools: LLMTool[];
+  executeToolCallback: (call: ToolCall) => Promise<string | null>;
+  displayToolCalls?: boolean;
+}
+
+interface ToolCall {
+  toolName: string;
+  arguments: Object;
+}
+
+type LLMTool = Object;
 ```
 
 </details>
@@ -122,11 +132,19 @@ Given computational constraints, our architecture is designed to support only on
 
 **`chatConfig`** - Object configuring chat management, contains following properties:
 
-- **`systemPrompt`** - Often used to tell the model what is its purpose, for example - "Be a helpful translator"
+- **`systemPrompt`** - Often used to tell the model what is its purpose, for example - "Be a helpful translator".
 
 - **`initialMessageHistory`** - An array of `MessageType` objects that represent the conversation history. This can be used to provide initial context to the model.
 
 - **`contextWindowLength`** - The number of messages from the current conversation that the model will use to generate a response. The higher the number, the more context the model will have. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
+
+**`toolsConfig`** - Object configuring options for enabling and managing tool use. **It will only have effect if your model's chat template support it**. Contains following properties:
+
+- **`tools`** - List of objects defining tools.
+
+- **`executeToolCallback`** - Function that accepts `ToolCall`, executes tool and returns the string to model.
+
+- **`displayToolCalls`** - If set to true, JSON tool calls will be displayed in chat. If false, only answers will be displayed.
 
 ### Returns
 
@@ -151,6 +169,11 @@ const llm = useLLM({
   modelSource: LLAMA3_2_1B,
   tokenizerSource: LLAMA3_2_TOKENIZER,
   tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
+  chatConfig: {
+    systemPrompt: 'Be a helpful assistant',
+    initialMessageHistory: [],
+    contextWindowLength: 5,
+  },
 });
 
 ...
@@ -188,6 +211,54 @@ return (
 Sometimes, you might want to stop the model while it’s generating. To do this, you can use `interrupt()`, which will halt the model and append the current response to the conversation history.
 
 There are also cases when you need to check if tokens are being generated, such as to conditionally render a stop button. We’ve made this easy with the `isGenerating` property.
+
+## Tool calling
+
+Sometimes text processing capabilities of LLMs are not enough. That's when you may want to introduce tool calling (also called function calling). It allows model to use external tools to perform its task. The tools may be any arbitrary function that you want your model to run. It may retrieve some data from 3rd party API. It may do an action inside an app like changing or it may use system APIs to interact with you phone (turning on torchlight, adding events to your calendar, changing volume etc.).
+
+```typescript
+const TOOL_DEFINITIONS: LLMTool[] = [
+  {
+    name: 'get_weather',
+    description: 'Get/check weather in given location.',
+    parameters: {
+      type: 'dict',
+      properties: {
+        location: {
+          type: 'string',
+          description: 'Location where user wants to check weather',
+        },
+      },
+      required: ['location'],
+    },
+  },
+];
+
+const llm = useLLM({
+  modelSource: HAMMER2_1_1_5B,
+  tokenizerSource: HAMMER2_1_TOKENIZER,
+  tokenizerConfigSource: HAMMER2_1_TOKENIZER_CONFIG,
+  toolsConfig: {
+    tools: TOOL_DEFINITIONS,
+    // we don't implement any tool execution here
+    // we just want to showcase model's ability
+    executeToolCallback: async (call) => {
+      if (call.toolName == 'get_weather') {
+        console.log('Checking weather!');
+        // perform call to some weather API
+        const mockResults = 'Weather is great!';
+        return mockResult;
+      }
+      return null;
+    },
+    // just for demo purpose
+    displayToolCalls: true,
+  },
+});
+
+const message = `Hi, what's the weather like in Cracow right now?`;
+await llm.sendMessage(message);
+```
 
 ## Benchmarks
 
