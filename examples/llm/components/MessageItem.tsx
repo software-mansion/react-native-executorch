@@ -1,15 +1,22 @@
 import React, { memo } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { MessageType } from '../types';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Text,
+  Platform,
+} from 'react-native';
 import MarkdownComponent from './MarkdownComponent';
 import LlamaIcon from '../assets/icons/llama_icon.svg';
 import ColorPalette from '../colors';
+import { MessageType } from 'react-native-executorch/lib/typescript/types/llm';
 
 interface MessageItemProps {
   message: MessageType;
+  deleteMessage: () => void;
 }
 
-const MessageItem = memo(({ message }: MessageItemProps) => {
+const MessageItem = memo(({ message, deleteMessage }: MessageItemProps) => {
   return (
     <View
       style={
@@ -22,28 +29,52 @@ const MessageItem = memo(({ message }: MessageItemProps) => {
         </View>
       )}
       <MarkdownComponent text={message.content} />
+      <CloseButton deleteMessage={deleteMessage} role={message.role} />
     </View>
   );
 });
+
+const CloseButton = ({
+  deleteMessage,
+  role,
+}: {
+  deleteMessage: () => void;
+  role: string;
+}) => {
+  return (
+    <TouchableOpacity
+      style={[
+        styles.closeButton,
+        role === 'assistant' ? styles.closeButtonRight : styles.closeButtonLeft,
+      ]}
+      onPress={deleteMessage}
+    >
+      <Text style={styles.buttonText}>✕</Text>
+    </TouchableOpacity>
+  );
+};
 
 export default MessageItem;
 
 const styles = StyleSheet.create({
   aiMessage: {
     flexDirection: 'row',
-    maxWidth: '80%',
+    maxWidth: '75%',
     alignSelf: 'flex-start',
     marginVertical: 8,
+    alignItems: 'center',
   },
   userMessage: {
+    flexDirection: 'row-reverse',
     paddingHorizontal: 12,
     paddingVertical: 8,
     marginRight: 8,
     marginVertical: 8,
-    maxWidth: 220,
+    maxWidth: '75%',
     borderRadius: 8,
     backgroundColor: ColorPalette.seaBlueLight,
     alignSelf: 'flex-end',
+    alignItems: 'center',
   },
   aiMessageIconContainer: {
     backgroundColor: ColorPalette.seaBlueLight,
@@ -54,10 +85,22 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginHorizontal: 7,
   },
-  messageText: {
-    fontSize: 14,
-    lineHeight: 19.6,
-    color: ColorPalette.primary,
-    fontFamily: 'regular',
+  closeButton: {
+    borderRadius: 11,
+    backgroundColor: ColorPalette.blueLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 22,
+    height: 22,
+  },
+  closeButtonRight: {
+    marginLeft: 8,
+  },
+  closeButtonLeft: {
+    marginRight: 8,
+  },
+  buttonText: {
+    fontSize: Platform.OS === 'ios' ? 16 : 14,
+    color: '#000',
   },
 });

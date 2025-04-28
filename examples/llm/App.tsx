@@ -6,7 +6,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { ChatScreenLLM, ChatScreenLLMToolCalling } from './screens/ChatScreen';
 import { useState } from 'react';
 import ColorPalette from './colors';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 
 enum ModelType {
   LLM,
@@ -42,13 +42,14 @@ export default function App() {
       <SafeAreaView style={styles.container}>
         <View style={styles.topContainer}>
           <SWMIcon width={45} height={45} />
+          <Text style={styles.textModelName}>LLM on device demo</Text>
           <View style={styles.wheelPickerContainer}>
             <ScrollPicker
               dataSource={['Chat with LLM', 'Tool calling']}
               onValueChange={(_, selectedIndex) => {
                 handleModeChange(selectedIndex);
               }}
-              wrapperHeight={100}
+              wrapperHeight={120}
               highlightColor={ColorPalette.primary}
               wrapperBackground="#fff"
               highlightBorderWidth={3}
@@ -67,22 +68,23 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: 'space-between',
     backgroundColor: '#fff',
   },
   topContainer: {
     marginTop: 5,
-    height: 145,
+    height: 165,
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
   },
   wheelPickerContainer: {
     width: '100%',
-    height: 100,
+    height: 120,
   },
   activeScrollItem: {
     color: ColorPalette.primary,
     fontWeight: 'bold',
   },
+  textModelName: { color: ColorPalette.primary },
 });

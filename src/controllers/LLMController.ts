@@ -213,6 +213,14 @@ export class LLMController {
     }
   }
 
+  public deleteMessage(index: number) {
+    // we delete referenced message and all messages after it
+    // so the model responses that used them are deleted as well
+    const newMessageHistory = this._messageHistory.slice(0, index);
+
+    this.messageHistoryCallback(newMessageHistory);
+  }
+
   private applyChatTemplate(
     messages: MessageType[],
     tokenizerConfig: any,

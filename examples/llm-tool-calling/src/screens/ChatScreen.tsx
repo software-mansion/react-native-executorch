@@ -108,6 +108,7 @@ export default function ChatScreen() {
                 chatHistory={llm.messageHistory}
                 llmResponse={llm.response}
                 isGenerating={llm.isGenerating}
+                deleteMessage={llm.deleteMessage}
               />
             </View>
           ) : (

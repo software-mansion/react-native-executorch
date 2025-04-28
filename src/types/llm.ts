@@ -7,6 +7,7 @@ export interface LLMType {
   error: string | null;
   runInference: (input: string) => Promise<void>;
   sendMessage: (message: string) => Promise<void>;
+  deleteMessage: (index: number) => void;
   interrupt: () => void;
 }
 
