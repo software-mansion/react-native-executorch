@@ -238,8 +238,8 @@ const TOOL_DEFINITIONS: LLMTool[] = [
 
 const llm = useLLM({
   modelSource: HAMMER2_1_1_5B,
-  tokenizerSource: HAMMER2_1_TOKENIZER,
-  tokenizerConfigSource: HAMMER2_1_TOKENIZER_CONFIG,
+  tokenizerSource: HAMMER2_1_1_5B_TOKENIZER,
+  tokenizerConfigSource: HAMMER2_1_1_5B_TOKENIZER_CONFIG,
   toolsConfig: {
     tools: TOOL_DEFINITIONS,
     // we don't implement any tool execution here

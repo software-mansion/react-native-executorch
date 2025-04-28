@@ -15,8 +15,8 @@ import SendIcon from '../assets/icons/send_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {
   HAMMER2_1_1_5B,
-  HAMMER2_1_TOKENIZER,
-  HAMMER2_1_TOKENIZER_CONFIG,
+  HAMMER2_1_1_5B_TOKENIZER,
+  HAMMER2_1_1_5B_TOKENIZER_CONFIG,
   LLAMA3_2_1B_QLORA,
   LLAMA3_2_TOKENIZER,
   LLAMA3_2_TOKENIZER_CONFIG,
@@ -41,8 +41,8 @@ export const ChatScreenLLM = () => {
 export const ChatScreenLLMToolCalling = () => {
   const llm = useLLM({
     modelSource: HAMMER2_1_1_5B,
-    tokenizerSource: HAMMER2_1_TOKENIZER,
-    tokenizerConfigSource: HAMMER2_1_TOKENIZER_CONFIG,
+    tokenizerSource: HAMMER2_1_1_5B_TOKENIZER,
+    tokenizerConfigSource: HAMMER2_1_1_5B_TOKENIZER_CONFIG,
     toolsConfig: {
       tools: TOOL_DEFINITIONS_PHONE,
       // we don't implement any tool execution here

@@ -19,16 +19,6 @@ export const LLAMA3_2_TOKENIZER_CONFIG =
   'https://huggingface.co/software-mansion/react-native-executorch-llama-3.2/resolve/v0.4.0/tokenizer_config.json';
 
 export const HAMMER2_1_1_5B =
-  Platform.OS === 'ios'
-    ? 'https://huggingface.co/nklockiewicz/ocr/resolve/main/hammer/hammer-1_5b_bf16.pte'
-    : 'https://huggingface.co/nklockiewicz/ocr/resolve/main/hammer/hammer-1_5b_fp16.pte';
-
-export const HAMMER2_1_TOKENIZER =
-  'https://huggingface.co/nklockiewicz/ocr/resolve/main/hammer/tokenizer-hammer.json';
-export const HAMMER2_1_TOKENIZER_CONFIG =
-  'https://huggingface.co/MadeAgents/Hammer2.1-1.5b/resolve/main/tokenizer_config.json';
-
-export const HAMMER2_1_1_5B =
   'https://huggingface.co/software-mansion/react-native-executorch-hammer-2.1/resolve/v0.4.0/original/hammer2_1_bf16.pte';
 export const HAMMER2_1_1_5B_TOKENIZER =
   'https://huggingface.co/software-mansion/react-native-executorch-hammer-2.1/resolve/v0.4.0/tokenizer.json';
