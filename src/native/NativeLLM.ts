@@ -6,7 +6,7 @@ export interface Spec extends TurboModule {
   loadLLM(modelSource: string, tokenizerSource: string): Promise<string>;
   runInference(input: string): Promise<string>;
   interrupt(): void;
-  deleteModule(): void;
+  releaseResources(): void;
 
   readonly onToken: EventEmitter<string>;
 }

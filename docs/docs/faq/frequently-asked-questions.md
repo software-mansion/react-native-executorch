@@ -15,7 +15,9 @@ To run your own model, you need to directly access the underlying [ExecuTorch Mo
 
 ### Can you do function calling with useLLM?
 
-We currently don't provide an out-of-the-box solution for function calling, but modifying system prompts for Llama models should be enough for simple use cases. For more details, refer to [this comment](https://github.com/software-mansion/react-native-executorch/issues/173#issuecomment-2775082278)
+If your model supports tool calling (i.e. its chat template can process tools) you can use the method explained in [useLLM page](../natural-language-processing/useLLM.md#tool-calling).
+
+If your model doesn't support it, you can still work around it using context. For details, refer to [this comment](https://github.com/software-mansion/react-native-executorch/issues/173#issuecomment-2775082278).
 
 ### Can I use React Native ExecuTorch in bare React Native apps?
 
