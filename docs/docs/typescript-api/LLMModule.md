@@ -90,25 +90,25 @@ To load the model, use the `load` method. It accepts object with following field
 
 **`modelSource`** - A string that specifies the location of the model binary.
 
-**`tokenizerSource`** - URL to the JSON file which contains the tokenizer
+**`tokenizerSource`** - URL to the JSON file which contains the tokenizer.
 
-**`tokenizerConfigSource`** - URL to the JSON file which contains the tokenizer config
+**`tokenizerConfigSource`** - URL to the JSON file which contains the tokenizer config.
 
 **`chatConfig`** - Object configuring chat management:
 
-- **`systemPrompt`** - Often used to tell the model what is its purpose, for example - "Be a helpful translator"
+- **`systemPrompt`** - Often used to tell the model what is its purpose, for example - "Be a helpful translator".
 
 - **`initialMessageHistory`** - An array of `MessageType` objects that represent the conversation history. This can be used to provide initial context to the model.
 
 - **`contextWindowLength`** - The number of messages from the current conversation that the model will use to generate a response. The higher the number, the more context the model will have. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
 
-**`toolsConfig`** - Only use, if you're interested in tool calling and your model's chat template support it:
+**`toolsConfig`** - Object configuring options for enabling and managing tool use. **It will only have effect if your model's chat template support it**. Contains following properties:
 
-- **`tools`** - List of objects defining tools
+- **`tools`** - List of objects defining tools.
 
-- **`executeToolCallback`** - Function that accepts `ToolCall`, executes tool and returns the string to model
+- **`executeToolCallback`** - Function that accepts `ToolCall`, executes tool and returns the string to model.
 
-- **`displayToolCalls`** - If set to true, JSON tool calls will be displayed in chat. If false, only answers will be displayed
+- **`displayToolCalls`** - If set to true, JSON tool calls will be displayed in chat. If false, only answers will be displayed.
 
 **`onDownloadProgressCallback`** - Function that will be called on download progress.
 
@@ -124,7 +124,7 @@ To subscribe to the download progress event, you can pass the `modelDownloadProg
 
 ## Running the model
 
-To run the model, you can use the `sendMessage` method. It accepts the user message. After model responds it will return new message history containing both user message and model response.. Additionally, it will call `messageHistoryCallback`
+To run the model, you can use the `sendMessage` method. It accepts the user message. After model responds it will return new message history containing both user message and model response.. Additionally, it will call `messageHistoryCallback`.
 
 Alternatively, you can use `runInference`. It provides direct access to the model, without any wrapper, so the input string is passed straight into the model. If you're not sure what are implications of that, you're better off with `sendMessage`
 
