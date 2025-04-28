@@ -3,18 +3,22 @@ import { ResourceSource } from '../types/common';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { ETError, getError } from '../Error';
 import { Template } from '@huggingface/jinja';
-import {
-  DEFAULT_CONTEXT_WINDOW_LENGTH,
-  DEFAULT_MESSAGE_HISTORY,
-  DEFAULT_SYSTEM_PROMPT,
-} from '../constants/llmDefaults';
+import { DEFAULT_CHAT_CONFIG } from '../constants/llmDefaults';
 import { readAsStringAsync } from 'expo-file-system';
-import { ChatConfig, LLMTool, MessageType, SPECIAL_TOKENS } from '../types/llm';
+import {
+  ChatConfig,
+  LLMTool,
+  MessageType,
+  SPECIAL_TOKENS,
+  ToolsConfig,
+} from '../types/llm';
 import { LLMNativeModule } from '../native/RnExecutorchModules';
+import { parseToolCall } from '../utils/llm';
 
 export class LLMController {
   private nativeModule: typeof LLMNativeModule;
   private chatConfig: ChatConfig;
+  private toolsConfig: ToolsConfig | undefined;
   private tokenizerConfig: any;
   private onToken: EventSubscription | null = null;
   private _response = '';
@@ -39,11 +43,8 @@ export class LLMController {
     isGeneratingCallback,
     onDownloadProgressCallback,
     errorCallback,
-    chatConfig = {
-      systemPrompt: DEFAULT_SYSTEM_PROMPT,
-      initialMessageHistory: DEFAULT_MESSAGE_HISTORY,
-      contextWindowLength: DEFAULT_CONTEXT_WINDOW_LENGTH,
-    },
+    chatConfig = DEFAULT_CHAT_CONFIG,
+    toolsConfig,
   }: {
     responseCallback?: (response: string) => void;
     messageHistoryCallback?: (messageHistory: MessageType[]) => void;
@@ -51,7 +52,8 @@ export class LLMController {
     isGeneratingCallback?: (isGenerating: boolean) => void;
     onDownloadProgressCallback?: (downloadProgress: number) => void;
     errorCallback?: (error: Error | undefined) => void;
-    chatConfig?: ChatConfig;
+    chatConfig?: Partial<ChatConfig>;
+    toolsConfig?: ToolsConfig;
   }) {
     this.responseCallback = (response) => {
       this._response = response;
@@ -72,8 +74,9 @@ export class LLMController {
     this.errorCallback = errorCallback;
     this.onDownloadProgressCallback = onDownloadProgressCallback;
 
-    this.messageHistoryCallback(chatConfig.initialMessageHistory);
-    this.chatConfig = chatConfig;
+    this.messageHistoryCallback(chatConfig?.initialMessageHistory ?? []);
+    this.chatConfig = { ...DEFAULT_CHAT_CONFIG, ...chatConfig };
+    this.toolsConfig = toolsConfig;
     this.nativeModule = LLMNativeModule;
   }
 
@@ -135,7 +138,7 @@ export class LLMController {
   public delete() {
     this.onToken?.remove();
     this.onToken = null;
-    this.nativeModule.deleteModule();
+    this.nativeModule.releaseResources();
   }
 
   public async runInference(input: string) {
@@ -157,7 +160,7 @@ export class LLMController {
     this.nativeModule.interrupt();
   }
 
-  public async sendMessage(message: string, tools?: LLMTool[]) {
+  public async sendMessage(message: string) {
     this.messageHistoryCallback([
       ...this._messageHistory,
       { content: message, role: 'user' },
@@ -171,13 +174,17 @@ export class LLMController {
     const renderedChat: string = this.applyChatTemplate(
       messageHistoryWithPrompt,
       this.tokenizerConfig,
-      tools,
+      this.toolsConfig?.tools,
       { tools_in_user_message: false, add_generation_prompt: true }
     );
 
     await this.runInference(renderedChat);
 
-    if (this._response) {
+    if (!this._response) {
+      return;
+    }
+
+    if (!this.toolsConfig || this.toolsConfig.displayToolCalls) {
       this.responseCallback(
         this._response.replace(this.tokenizerConfig.eos_token, '')
       );
@@ -186,6 +193,32 @@ export class LLMController {
         { content: this._response, role: 'assistant' },
       ]);
     }
+    if (!this.toolsConfig) {
+      return;
+    }
+
+    const toolCalls = parseToolCall(this._response);
+
+    for (const toolCall of toolCalls) {
+      this.toolsConfig
+        .executeToolCallback(toolCall)
+        .then((toolResponse: string | null) => {
+          if (toolResponse) {
+            this.messageHistoryCallback([
+              ...this._messageHistory,
+              { content: toolResponse, role: 'assistant' },
+            ]);
+          }
+        });
+    }
+  }
+
+  public deleteMessage(index: number) {
+    // we delete referenced message and all messages after it
+    // so the model responses that used them are deleted as well
+    const newMessageHistory = this._messageHistory.slice(0, index);
+
+    this.messageHistoryCallback(newMessageHistory);
   }
 
   private applyChatTemplate(

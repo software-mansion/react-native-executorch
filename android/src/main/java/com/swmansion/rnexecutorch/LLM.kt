@@ -53,7 +53,7 @@ class LLM(
     llmModule!!.stop()
   }
 
-  override fun deleteModule() {
+  override fun releaseResources() {
     llmModule = null
   }
 
