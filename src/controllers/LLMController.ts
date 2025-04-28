@@ -192,6 +192,8 @@ export class LLMController {
         ...this._messageHistory,
         { content: this._response, role: 'assistant' },
       ]);
+    }
+    if (!this.toolsConfig) {
       return;
     }
 
