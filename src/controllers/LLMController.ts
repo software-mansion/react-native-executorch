@@ -195,14 +195,12 @@ export class LLMController {
       return;
     }
 
-    console.log(this._response);
     const toolCalls = parseToolCall(this._response);
 
     for (const toolCall of toolCalls) {
       this.toolsConfig
         .executeToolCallback(toolCall)
         .then((toolResponse: string | null) => {
-          console.log('Tool response:', toolResponse);
           if (toolResponse) {
             this.messageHistoryCallback([
               ...this._messageHistory,

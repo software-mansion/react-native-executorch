@@ -187,6 +187,7 @@ const readCalendar = async (call: ToolCall) => {
   );
   return eventsStringRepresentation.join('\n');
 };
+
 const addEventToCalendar = async (call: ToolCall) => {
   console.log('Adding event to calendar!', call);
   if (

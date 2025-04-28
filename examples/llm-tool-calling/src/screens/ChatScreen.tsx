@@ -41,6 +41,7 @@ export default function ChatScreen() {
     toolsConfig: {
       tools: TOOL_DEFINITIONS_PHONE,
       executeToolCallback: executeTool,
+      displayToolCalls: true,
     },
   });
   const textInputRef = useRef<TextInput>(null);
@@ -76,7 +77,7 @@ export default function ChatScreen() {
     setUserInput('');
     textInputRef.current?.clear();
     try {
-      await llm.sendMessage(userInput, TOOL_DEFINITIONS_PHONE);
+      await llm.sendMessage(userInput);
     } catch (e) {
       console.error(e);
     }
@@ -113,7 +114,7 @@ export default function ChatScreen() {
             <View style={styles.helloMessageContainer}>
               <Text style={styles.helloText}>Hello! 👋</Text>
               <Text style={styles.bottomHelloText}>
-                What can I help you with?
+                I can use calendar! Ask me to check it or add an event for you!
               </Text>
             </View>
           )}
@@ -192,6 +193,7 @@ const styles = StyleSheet.create({
     fontFamily: 'regular',
     fontSize: 20,
     lineHeight: 28,
+    textAlign: 'center',
     color: ColorPalette.primary,
   },
   bottomContainer: {

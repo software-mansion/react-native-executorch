@@ -16,7 +16,6 @@ module.exports = (() => {
   };
 
   config.resolver.assetExts.push('pte');
-  config.resolver.assetExts.push('bin');
 
   return config;
 })();
