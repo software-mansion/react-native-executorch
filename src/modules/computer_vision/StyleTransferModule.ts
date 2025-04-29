@@ -1,17 +1,15 @@
-import { StyleTransferNativeModule } from '../../native/RnExecutorchModules';
 import { ResourceSource } from '../../types/common';
-import { BaseModule } from '../BaseModule';
+import { BaseNonStaticModule } from '../BaseNonStaticModule';
 
-export class StyleTransferModule extends BaseModule {
-  protected static override nativeModule = StyleTransferNativeModule;
-
-  static override async load(modelSource: ResourceSource) {
-    return await super.load(modelSource);
-  }
-
-  static override async forward(
-    input: string
-  ): ReturnType<typeof this.nativeModule.forward> {
-    return await this.nativeModule.forward(input);
+export class StyleTransferModule extends BaseNonStaticModule {
+  static async load(
+    modelSource: ResourceSource,
+    onDownloadProgressCallback = this.onDownloadProgressStub
+  ): Promise<any> {
+    const loadedPaths = await super.loadFiles(
+      onDownloadProgressCallback,
+      modelSource
+    );
+    return global.loadStyleTransfer(loadedPaths[0] || '');
   }
 }
