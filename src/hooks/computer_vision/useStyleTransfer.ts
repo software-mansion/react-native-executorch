@@ -1,5 +1,5 @@
 import { ResourceSource } from '../../types/common';
-import { useModule } from '../useModule';
+import { useNonStaticModule } from '../useNonStaticModule';
 import { StyleTransferModule } from '../../modules/computer_vision/StyleTransferModule';
 
 interface Props {
@@ -7,4 +7,9 @@ interface Props {
 }
 
 export const useStyleTransfer = ({ modelSource }: Props) =>
-  useModule({ module: StyleTransferModule, loadArgs: [modelSource] });
+  useNonStaticModule<
+    typeof StyleTransferModule,
+    Parameters<(typeof StyleTransferModule)['load']>,
+    [string],
+    string
+  >({ module: StyleTransferModule, loadArgs: [modelSource] });
