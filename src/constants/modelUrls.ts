@@ -1,6 +1,8 @@
 import { Platform } from 'react-native';
 
 // LLM's
+
+// LLAMA 3.2
 export const LLAMA3_2_3B =
   'https://huggingface.co/software-mansion/react-native-executorch-llama-3.2/resolve/v0.4.0/llama-3.2-3B/original/llama3_2_3B_bf16.pte';
 export const LLAMA3_2_3B_QLORA =
@@ -18,32 +20,86 @@ export const LLAMA3_2_TOKENIZER =
 export const LLAMA3_2_TOKENIZER_CONFIG =
   'https://huggingface.co/software-mansion/react-native-executorch-llama-3.2/resolve/v0.4.0/tokenizer_config.json';
 
+// QWEN 3
+export const QWEN3_0_6B =
+  'https://huggingface.co/software-mansion/react-native-executorch-qwen-3/resolve/v0.4.0/qwen-3-0.6B/original/qwen3_0_6b_bf16.pte';
+export const QWEN3_0_6B_QUANTIZED =
+  'https://huggingface.co/software-mansion/react-native-executorch-qwen-3/resolve/v0.4.0/qwen-3-0.6B/quantized/qwen3_0_6b_8da4w.pte';
+export const QWEN3_1_7B =
+  'https://huggingface.co/software-mansion/react-native-executorch-qwen-3/resolve/v0.4.0/qwen-3-1.7B/original/qwen3_1_7b_bf16.pte';
+export const QWEN3_1_7B_QUANTIZED =
+  'https://huggingface.co/software-mansion/react-native-executorch-qwen-3/resolve/v0.4.0/qwen-3-1.7B/quantized/qwen3_1_7b_8da4w.pte';
+export const QWEN3_4B =
+  'https://huggingface.co/software-mansion/react-native-executorch-qwen-3/resolve/v0.4.0/qwen-3-4B/original/qwen3_4b_bf16.pte';
+export const QWEN3_4B_QUANTIZED =
+  'https://huggingface.co/software-mansion/react-native-executorch-qwen-3/resolve/v0.4.0/qwen-3-4B/quantized/qwen3_4b_8da4w.pte';
+export const QWEN3_TOKENIZER =
+  'https://huggingface.co/software-mansion/react-native-executorch-qwen-3/resolve/v0.4.0/tokenizer.json';
+export const QWEN3_TOKENIZER_CONFIG =
+  'https://huggingface.co/software-mansion/react-native-executorch-qwen-3/resolve/v0.4.0/tokenizer_config.json';
+
+// HAMMER 2.1
+export const HAMMER2_1_0_5B =
+  'https://huggingface.co/software-mansion/react-native-executorch-hammer-2.1/resolve/v0.4.0/hammer-2.1-0.5B/original/hammer2_1_0_5B_bf16.pte';
+export const HAMMER2_1_0_5B_QUANTIZED =
+  'https://huggingface.co/software-mansion/react-native-executorch-hammer-2.1/resolve/v0.4.0/hammer-2.1-0.5B/quantized/hammer2_1_0_5B_8da4w.pte';
 export const HAMMER2_1_1_5B =
-  'https://huggingface.co/software-mansion/react-native-executorch-hammer-2.1/resolve/v0.4.0/original/hammer2_1_bf16.pte';
-export const HAMMER2_1_1_5B_TOKENIZER =
+  'https://huggingface.co/software-mansion/react-native-executorch-hammer-2.1/resolve/v0.4.0/hammer-2.1-1.5B/original/hammer2_1_1_5B_bf16.pte';
+export const HAMMER2_1_1_5B_QUANTIZED =
+  'https://huggingface.co/software-mansion/react-native-executorch-hammer-2.1/resolve/v0.4.0/hammer-2.1-1.5B/quantized/hammer2_1_1_5B_8da4w.pte';
+export const HAMMER2_1_3B =
+  'https://huggingface.co/software-mansion/react-native-executorch-hammer-2.1/resolve/v0.4.0/hammer-2.1-3B/original/hammer2_1_3B_bf16.pte';
+export const HAMMER2_1_3B_QUANTIZED =
+  'https://huggingface.co/software-mansion/react-native-executorch-hammer-2.1/resolve/v0.4.0/hammer-2.1-3B/quantized/hammer2_1_3B_8da4w.pte';
+export const HAMMER2_1_TOKENIZER =
   'https://huggingface.co/software-mansion/react-native-executorch-hammer-2.1/resolve/v0.4.0/tokenizer.json';
-export const HAMMER2_1_1_5B_TOKENIZER_CONFIG =
+export const HAMMER2_1_TOKENIZER_CONFIG =
   'https://huggingface.co/software-mansion/react-native-executorch-hammer-2.1/resolve/v0.4.0/tokenizer_config.json';
 
-export const SMOLLM2_1_7B =
-  'https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.4.0/original/smolLm2_bf16.pte';
-export const SMOLLM2_1_7B_TOKENIZER =
+// SMOLLM2
+export const SMOLLM2_1_135M =
+  'https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.4.0/smolLm-2-135M/original/smolLm2_135M_bf16.pte';
+export const SMOLLM2_1_135M_QUANTIZED =
+  'https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.4.0/smolLm-2-135M/quantized/smolLm2_135M_8da4w.pte';
+export const SMOLLM2_1_360M =
+  'https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.4.0/smolLm-2-360M/original/smolLm2_360M_bf16.pte';
+export const SMOLLM2_1_360M_QUANTIZED =
+  'https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.4.0/smolLm-2-360M/quantized/smolLm2_360M_8da4w.pte';
+export const SMOLLM2_1_1_7B =
+  'https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.4.0/smolLm-2-1.7B/original/smolLm2_1_7B_bf16.pte';
+export const SMOLLM2_1_1_7B_QUANTIZED =
+  'https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.4.0/smolLm-2-1.7B/quantized/smolLm2_1_7B_8da4w.pte';
+export const SMOLLM2_1_TOKENIZER =
   'https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.4.0/tokenizer.json';
-export const SMOLLM2_1_7B_TOKENIZER_CONFIG =
+export const SMOLLM2_1_TOKENIZER_CONFIG =
   'https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.4.0/tokenizer_config.json';
 
+// QWEN 2.5
+export const QWEN2_5_0_5B =
+  'https://huggingface.co/software-mansion/react-native-executorch-qwen-2.5/resolve/v0.4.0/qwen-2.5-0.5B/original/qwen2_5_0_5b_bf16.pte';
+export const QWEN2_5_0_5B_QUANTIZED =
+  'https://huggingface.co/software-mansion/react-native-executorch-qwen-2.5/resolve/v0.4.0/qwen-2.5-0.5B/quantized/qwen2_5_0_5b_8da4w.pte';
 export const QWEN2_5_1_5B =
-  'https://huggingface.co/software-mansion/react-native-executorch-qwen-2.5/resolve/v0.4.0/original/qwen2_5_bf16.pte';
-export const QWEN2_5_1_5B_TOKENIZER =
+  'https://huggingface.co/software-mansion/react-native-executorch-qwen-2.5/resolve/v0.4.0/qwen-2.5-1.5B/original/qwen2_5_1_5b_bf16.pte';
+export const QWEN2_5_1_5B_QUANTIZED =
+  'https://huggingface.co/software-mansion/react-native-executorch-qwen-2.5/resolve/v0.4.0/qwen-2.5-1.5B/quantized/qwen2_5_1_5b_8da4w.pte';
+export const QWEN2_5_3B =
+  'https://huggingface.co/software-mansion/react-native-executorch-qwen-2.5/resolve/v0.4.0/qwen-2.5-3B/original/qwen2_5_3b_bf16.pte';
+export const QWEN2_5_3B_QUANTIZED =
+  'https://huggingface.co/software-mansion/react-native-executorch-qwen-2.5/resolve/v0.4.0/qwen-2.5-3B/quantized/qwen2_5_3b_8da4w.pte';
+export const QWEN2_5_TOKENIZER =
   'https://huggingface.co/software-mansion/react-native-executorch-qwen-2.5/resolve/v0.4.0/tokenizer.json';
-export const QWEN2_5_1_5B_TOKENIZER_CONFIG =
+export const QWEN2_5_TOKENIZER_CONFIG =
   'https://huggingface.co/software-mansion/react-native-executorch-qwen-2.5/resolve/v0.4.0/tokenizer_config.json';
 
+// PHI 4
 export const PHI_4_MINI_4B =
   'https://huggingface.co/software-mansion/react-native-executorch-phi-4-mini/resolve/v0.4.0/original/phi-4-mini_bf16.pte';
-export const PHI_4_MINI_4B_TOKENIZER =
+export const PHI_4_MINI_4B_QUANTIZED =
+  'https://huggingface.co/software-mansion/react-native-executorch-phi-4-mini/resolve/v0.4.0/quantized/phi-4-mini_8da4w.pte';
+export const PHI_4_MINI_TOKENIZER =
   'https://huggingface.co/software-mansion/react-native-executorch-phi-4-mini/resolve/v0.4.0/tokenizer.json';
-export const PHI_4_MINI_4B_TOKENIZER_CONFIG =
+export const PHI_4_MINI_TOKENIZER_CONFIG =
   'https://huggingface.co/software-mansion/react-native-executorch-phi-4-mini/resolve/v0.4.0/tokenizer_config.json';
 
 // Classification
