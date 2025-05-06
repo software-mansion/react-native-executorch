@@ -1,0 +1,58 @@
+name: Publish Package & Deploy Docs
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish-package:
+    if: github.repository == 'software-mansion/react-native-executorch'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/react-native-executorch
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build package
+        run: yarn build
+
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-docs:
+    if: github.repository == 'software-mansion/react-native-executorch'
+    needs: publish-package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Install docs dependencies & build docs
+        working-directory: docs
+        run: |
+          yarn
+          yarn build
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@releases/v3
+        with:
+          FOLDER: docs/build
+          BRANCH: gh-pages
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
