@@ -1,0 +1,42 @@
+name: Test Exported Models
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install prerequisites
+        run: sudo apt-get update && sudo apt-get install -y python3-venv
+
+      - name: Clone executorch Repository
+        run: |
+          git clone https://github.com/software-mansion-labs/executorch
+          git submodule sync
+          git submodule update --init --recursive
+
+      - name: Setup Python Virtual Environment and Build
+        run: |
+          cd executorch
+          python3 -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
+          ./install_executorch.sh
+          cmake --build cmake-out -j9
+        shell: bash
+      - name: Run models with executor_runner
+        run: |
+          cd executorch
+          source .venv/bin/activate
+          python ../download_hf_models.py
+        shell: bash
