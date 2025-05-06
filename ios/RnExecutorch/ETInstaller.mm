@@ -4,7 +4,7 @@
 
 #import <React/RCTCallInvoker.h>
 #import <ReactCommon/RCTTurboModule.h>
-#include <RnExecutorchInstaller.h>
+#include <rnexecutorch/RnExecutorchInstaller.h>
 
 using namespace facebook::react;
 
@@ -25,8 +25,18 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install) {
 
   assert(jsiRuntime != nullptr);
 
-  rnexecutorch::RnExecutorchInstaller::injectJSIBindings(jsiRuntime,
-                                                         jsCallInvoker);
+  auto fetchUrl = [](std::string url) {
+    NSString *nsUrlStr =
+        [NSString stringWithCString:url.c_str()
+                           encoding:[NSString defaultCStringEncoding]];
+    NSURL *nsUrl = [NSURL URLWithString:nsUrlStr];
+    NSData *data = [NSData dataWithContentsOfURL:nsUrl];
+    const std::byte *bytePtr = reinterpret_cast<const std::byte *>(data.bytes);
+    int bufferLength = [data length];
+    return std::vector<std::byte>(bytePtr, bytePtr + bufferLength);
+  };
+  rnexecutorch::RnExecutorchInstaller::injectJSIBindings(
+      jsiRuntime, jsCallInvoker, fetchUrl);
 
   NSLog(@"Successfully installed JSI bindings for react-native-executorch!");
   return @true;

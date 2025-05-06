@@ -1,4 +1,4 @@
-#import "BaseModel.h"
+#import "../BaseModel.h"
 #import "opencv2/opencv.hpp"
 
 @interface VerticalDetector : BaseModel

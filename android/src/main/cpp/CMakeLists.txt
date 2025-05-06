@@ -13,11 +13,10 @@ target_include_directories(
   PUBLIC
   "${COMMON_CPP_DIR}"
   "${ANDROID_CPP_DIR}"
-  "${ET_INCLUDE_DIR}"
+  "${INCLUDE_DIR}"
   "${REACT_NATIVE_DIR}/ReactCommon"
   "${REACT_NATIVE_DIR}/ReactAndroid/src/main/jni/react/turbomodule"
   "${REACT_NATIVE_DIR}/ReactCommon/callinvoker"
-  "${BUILD_DIR}/generated/source/codegen/jni/react/renderer/components/RnExecutorchSpec"
 )
 
 set(LINK_LIBRARIES
@@ -31,14 +30,42 @@ set(RN_VERSION_LINK_LIBRARIES
   ReactAndroid::reactnative
 )
 
+# Dependencies:
+# ------- Executorch -------
+
 add_library(executorch SHARED IMPORTED)
 
 set_target_properties(executorch PROPERTIES
-                      IMPORTED_LOCATION "${ET_LIB_DIR}/${ANDROID_ABI}/libexecutorch.so")
+                      IMPORTED_LOCATION "${LIBS_DIR}/executorch/${ANDROID_ABI}/libexecutorch.so")
+
+# ------- OpenCV -------
+
+set(OPENCV_LIBS 
+  "${LIBS_DIR}/opencv/${ANDROID_ABI}/libopencv_core.a"
+  "${LIBS_DIR}/opencv/${ANDROID_ABI}/libopencv_features2d.a"
+  "${LIBS_DIR}/opencv/${ANDROID_ABI}/libopencv_highgui.a"
+  "${LIBS_DIR}/opencv/${ANDROID_ABI}/libopencv_imgproc.a"
+  "${LIBS_DIR}/opencv/${ANDROID_ABI}/libopencv_photo.a"
+  "${LIBS_DIR}/opencv/${ANDROID_ABI}/libopencv_video.a"
+)
+
+if(ANDROID_ABI STREQUAL "arm64-v8a")
+  set(OPENCV_THIRD_PARTY_LIBS
+    "${LIBS_DIR}/opencv-third-party/${ANDROID_ABI}/libkleidicv_hal.a"
+    "${LIBS_DIR}/opencv-third-party/${ANDROID_ABI}/libkleidicv_thread.a"
+    "${LIBS_DIR}/opencv-third-party/${ANDROID_ABI}/libkleidicv.a"
+  )
+elseif(ANDROID_ABI STREQUAL "x86_64")
+  set(OPENCV_THIRD_PARTY_LIBS "")
+endif()
+
+# --------------
 
 target_link_libraries(
   react-native-executorch 
   ${LINK_LIBRARIES} 
   ${RN_VERSION_LINK_LIBRARIES}
+  ${OPENCV_LIBS}
+  ${OPENCV_THIRD_PARTY_LIBS}
   executorch
 )
