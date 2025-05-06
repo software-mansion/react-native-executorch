@@ -22,7 +22,6 @@ public:
   }
 
   JSI_HOST_FUNCTION(forward) {
-
     auto promise = promiseVendor.createPromise(
         [this, count, args, &runtime](std::shared_ptr<Promise> promise) {
           std::thread([this, promise = std::move(promise), count, args,
@@ -40,19 +39,32 @@ public:
               return;
             }
 
+          // Do the asynchronous work
+          std::thread([this, promise = std::move(promise), args, &runtime]() {
             try {
               auto argsConverted = jsiconversion::createArgsTupleFromJsi(
                   &Model::forward, args, runtime);
-              promise->resolve([this, argsConverted = std::move(argsConverted)](
-                                   jsi::Runtime &runtime) {
-                auto result = std::apply(
-                    std::bind_front(&Model::forward, model), argsConverted);
-                auto resultValue =
-                    jsiconversion::getJsiValue(std::move(result), runtime);
-                return resultValue;
+              auto result = std::apply(std::bind_front(&Model::forward, model),
+                                       argsConverted);
+
+              promise->resolve([result =
+                                    std::move(result)](jsi::Runtime &runtime) {
+                return jsiconversion::getJsiValue(std::move(result), runtime);
               });
+            } catch (const std::runtime_error &e) {
+              // This catch should be merged with the next one
+              // (std::runtime_error inherits from std::exception) HOWEVER react
+              // native has broken RTTI which breaks proper exception type
+              // checking. Remove when the following change is present in our
+              // version:
+              // https://github.com/facebook/react-native/commit/3132cc88dd46f95898a756456bebeeb6c248f20e
+              promise->reject(e.what());
+              return;
             } catch (const std::exception &e) {
               promise->reject(e.what());
+              return;
+            } catch (...) {
+              promise->reject("Unknown error");
               return;
             }
           }).detach();
