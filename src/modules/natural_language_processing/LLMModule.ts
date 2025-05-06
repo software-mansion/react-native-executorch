@@ -1,6 +1,6 @@
 import { LLMController } from '../../controllers/LLMController';
 import { ResourceSource } from '../../types/common';
-import { ChatConfig, MessageType, ToolsConfig } from '../../types/llm';
+import { ChatConfig, LLMTool, Message, ToolsConfig } from '../../types/llm';
 
 export class LLMModule {
   static controller: LLMController;
@@ -22,7 +22,7 @@ export class LLMModule {
     toolsConfig?: ToolsConfig;
     onDownloadProgressCallback?: (_downloadProgress: number) => void;
     responseCallback?: (response: string) => void;
-    messageHistoryCallback?: (messageHistory: MessageType[]) => void;
+    messageHistoryCallback?: (messageHistory: Message[]) => void;
   }) {
     this.controller = new LLMController({
       responseCallback: responseCallback,
@@ -38,13 +38,26 @@ export class LLMModule {
     });
   }
 
-  static async runInference(input: string): Promise<string> {
-    await this.controller.runInference(input);
+  static async forward(input: string): Promise<string> {
+    await this.controller.forward(input);
     return this.controller.response;
   }
 
-  static async sendMessage(message: string): Promise<MessageType[]> {
+  static async generate(
+    messages: Message[],
+    tools?: LLMTool[]
+  ): Promise<string> {
+    await this.controller.generate(messages, tools);
+    return this.controller.response;
+  }
+
+  static async sendMessage(message: string): Promise<Message[]> {
     await this.controller.sendMessage(message);
+    return this.controller.messageHistory;
+  }
+
+  static async deleteMessage(index: number): Promise<Message[]> {
+    await this.controller.deleteMessage(index);
     return this.controller.messageHistory;
   }
 

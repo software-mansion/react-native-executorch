@@ -1,11 +1,12 @@
 export interface LLMType {
-  messageHistory: MessageType[];
+  messageHistory: Message[];
   response: string;
   isReady: boolean;
   isGenerating: boolean;
   downloadProgress: number;
   error: string | null;
-  runInference: (input: string) => Promise<void>;
+  forward: (input: string) => Promise<void>;
+  generate: (messages: Message[], tools?: LLMTool[]) => Promise<void>;
   sendMessage: (message: string) => Promise<void>;
   deleteMessage: (index: number) => void;
   interrupt: () => void;
@@ -13,7 +14,7 @@ export interface LLMType {
 
 export type MessageRole = 'user' | 'assistant' | 'system';
 
-export interface MessageType {
+export interface Message {
   role: MessageRole;
   content: string;
 }
@@ -28,7 +29,7 @@ export interface ToolCall {
 export type LLMTool = Object;
 
 export interface ChatConfig {
-  initialMessageHistory: MessageType[];
+  initialMessageHistory: Message[];
   contextWindowLength: number;
   systemPrompt: string;
 }

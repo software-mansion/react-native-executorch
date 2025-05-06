@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ResourceSource } from '../../types/common';
-import { ChatConfig, LLMType, MessageType, ToolsConfig } from '../../types/llm';
+import { ChatConfig, LLMType, Message, ToolsConfig } from '../../types/llm';
 import { LLMController } from '../../controllers/LLMController';
 
 /*
@@ -20,7 +20,7 @@ export const useLLM = ({
   toolsConfig?: ToolsConfig;
 }): LLMType => {
   const [response, setResponse] = useState('');
-  const [messageHistory, setMessageHistory] = useState<MessageType[]>([]);
+  const [messageHistory, setMessageHistory] = useState<Message[]>([]);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
@@ -57,7 +57,8 @@ export const useLLM = ({
     isGenerating,
     downloadProgress,
     error,
-    runInference: (input) => model.runInference(input),
+    forward: (input) => model.forward(input),
+    generate: (messages, tools) => model.generate(messages, tools),
     sendMessage: (message) => model.sendMessage(message),
     deleteMessage: (index) => model.deleteMessage(index),
     interrupt: () => model.interrupt(),

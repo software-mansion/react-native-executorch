@@ -68,7 +68,7 @@ const handleGenerate = async () => {
   const prompt = 'The meaning of life is';
 
   // Generate text based on your desired prompt
-  await llama.runInference(prompt);
+  await llama.forward(prompt);
   console.log('Llama says:', llama.response);
 };
 ```

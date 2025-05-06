@@ -4,7 +4,7 @@ import type { EventEmitter } from 'react-native/Libraries/Types/CodegenTypes';
 
 export interface Spec extends TurboModule {
   loadLLM(modelSource: string, tokenizerSource: string): Promise<string>;
-  runInference(input: string): Promise<string>;
+  forward(input: string): Promise<string>;
   interrupt(): void;
   releaseResources(): void;
 

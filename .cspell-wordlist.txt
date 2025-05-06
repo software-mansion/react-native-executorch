@@ -46,3 +46,4 @@ Infima
 sublabel
 Aeonik
 Lexend
+finetuned

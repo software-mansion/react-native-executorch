@@ -40,9 +40,9 @@ RCT_EXPORT_MODULE()
   }
 }
 
-- (void)runInference:(NSString *)input
-             resolve:(RCTPromiseResolveBlock)resolve
-              reject:(RCTPromiseRejectBlock)reject {
+- (void)forward:(NSString *)input
+        resolve:(RCTPromiseResolveBlock)resolve
+         reject:(RCTPromiseRejectBlock)reject {
 
   dispatch_async(
       dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
