@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -27,7 +28,13 @@ public:
             constexpr std::size_t forwardArgCount =
                 jsiconversion::getArgumentCount(&Model::forward);
             if (forwardArgCount != count) {
-              promise->reject("Argument count mismatch");
+              char errorMessage[100];
+              std::snprintf(
+                  errorMessage, sizeof(errorMessage),
+                  "Argument count mismatch, was expecting: %zu but got: %zu",
+                  forwardArgCount, count);
+
+              promise->reject(errorMessage);
               return;
             }
 
