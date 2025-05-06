@@ -4443,6 +4443,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-brightness@npm:~13.0.3":
+  version: 13.0.3
+  resolution: "expo-brightness@npm:13.0.3"
+  peerDependencies:
+    expo: "*"
+    react-native: "*"
+  checksum: 66e55dbdaf87c82c75105083e39a50690e4fe165ccc44f09db868bfdc4be2b17a0210f944d85afbf966fb7a765834a8958fc0dce3975e4899868a409887d2d0d
+  languageName: node
+  linkType: hard
+
+"expo-calendar@npm:~14.0.6":
+  version: 14.0.6
+  resolution: "expo-calendar@npm:14.0.6"
+  peerDependencies:
+    expo: "*"
+    react-native: "*"
+  checksum: b879b4c3241285d33ab746adab63f39d321b0f31e6968205a3012217e4efe034eca2eba9ded59b12f3c53632ad358741ef8dcc7eb5bd1b1b45045497284c02c0
+  languageName: node
+  linkType: hard
+
 "expo-constants@npm:~17.0.7":
   version: 17.0.7
   resolution: "expo-constants@npm:17.0.7"
@@ -5961,6 +5981,8 @@ __metadata:
     "@react-native/metro-config": ^0.76.3
     "@types/react": ~18.3.12
     expo: ~52.0.46
+    expo-brightness: ~13.0.3
+    expo-calendar: ~14.0.6
     expo-font: ~13.0.4
     expo-status-bar: ~2.0.1
     metro-config: ^0.81.0

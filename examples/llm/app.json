@@ -15,6 +15,12 @@
             "./assets/fonts/Aeonik-Medium.otf"
           ]
         }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "The app needs to access your calendar."
+        }
       ]
     ],
     "newArchEnabled": true,

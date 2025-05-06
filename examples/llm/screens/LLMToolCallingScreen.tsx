@@ -11,30 +11,30 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import SWMIcon from '../../assets/icons/swm_icon.svg';
-import SendIcon from '../../assets/icons/send_icon.svg';
+import SWMIcon from '../assets/icons/swm_icon.svg';
+import SendIcon from '../assets/icons/send_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {
   HAMMER2_1_1_5B,
-  HAMMER2_1_1_5B_TOKENIZER,
-  HAMMER2_1_1_5B_TOKENIZER_CONFIG,
+  HAMMER2_1_TOKENIZER,
+  HAMMER2_1_TOKENIZER_CONFIG,
   useLLM,
+  DEFAULT_SYSTEM_PROMPT,
 } from 'react-native-executorch';
-import PauseIcon from '../../assets/icons/pause_icon.svg';
+import PauseIcon from '../assets/icons/pause_icon.svg';
 import ColorPalette from '../colors';
 import Messages from '../components/Messages';
 import * as Brightness from 'expo-brightness';
-import { DEFAULT_SYSTEM_PROMPT } from 'react-native-executorch/src/constants/llmDefaults';
 import * as Calendar from 'expo-calendar';
-import { executeTool, TOOL_DEFINITIONS_PHONE } from './tools';
+import { executeTool, TOOL_DEFINITIONS_PHONE } from '../utils/tools';
 
-export default function ChatScreen() {
+export default function LLMToolCallingScreen() {
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
   const llm = useLLM({
     modelSource: HAMMER2_1_1_5B,
-    tokenizerSource: HAMMER2_1_1_5B_TOKENIZER,
-    tokenizerConfigSource: HAMMER2_1_1_5B_TOKENIZER_CONFIG,
+    tokenizerSource: HAMMER2_1_TOKENIZER,
+    tokenizerConfigSource: HAMMER2_1_TOKENIZER_CONFIG,
     chatConfig: {
       systemPrompt: `${DEFAULT_SYSTEM_PROMPT} Current time and date: ${new Date().toString()}`,
     },
