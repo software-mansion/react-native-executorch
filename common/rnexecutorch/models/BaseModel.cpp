@@ -32,10 +32,7 @@ std::vector<int32_t> BaseModel::getInputShape() {
   }
 
   auto shape = input_meta->sizes();
-  std::vector<int32_t> output(shape.size());
-  for (int i = 0; i < shape.size(); i++) {
-    output[i] = shape[i];
-  }
+  std::vector<int32_t> output(shape.begin(), shape.end());
 
   return output;
 }

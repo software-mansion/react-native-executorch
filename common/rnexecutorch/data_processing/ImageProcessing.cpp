@@ -49,13 +49,13 @@ cv::Mat bufferToColorMat(const std::span<const float> &buffer,
   for (int i = 0; i < pixelCount; i++) {
     int row = i / matSize.width;
     int col = i % matSize.width;
-    float r = 0, g = 0, b = 0;
 
-    r = buffer[0 * pixelCount + i];
-    g = buffer[1 * pixelCount + i];
-    b = buffer[2 * pixelCount + i];
+    float r = buffer[0 * pixelCount + i];
+    float g = buffer[1 * pixelCount + i];
+    float b = buffer[2 * pixelCount + i];
 
-    cv::Vec3b color((uchar)(b * 255), (uchar)(g * 255), (uchar)(r * 255));
+    cv::Vec3b color(static_cast<uchar>(b * 255), static_cast<uchar>(g * 255),
+                    static_cast<uchar>(r * 255));
     mat.at<cv::Vec3b>(row, col) = color;
   }
 
