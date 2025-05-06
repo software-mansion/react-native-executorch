@@ -175,9 +175,10 @@ export class LLMController {
       return;
     }
 
-    this.responseCallback(
-      this._response.replace(this.tokenizerConfig.eos_token, '')
-    );
+    const cleanedResponse = this._response
+      .replaceAll(this.tokenizerConfig.eos_token, '')
+      .replaceAll(this.tokenizerConfig.pad_token, '');
+    this.responseCallback(cleanedResponse);
   }
 
   public async sendMessage(message: string) {
