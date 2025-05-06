@@ -130,7 +130,7 @@ To run the model, you can use the `sendMessage` method. It accepts the user mess
 
 Alternatively, you can use `generate` method. It allows you to simply pass chat messages and receive completion from the model. It doesn't provide any message history management.
 
-If you need raw model, without any wrappers, you can use `forward`. It provides direct access to the model, without any wrapper, so the input string is passed straight into the model. It may be useful to work with models that aren't finetuned for chat completions. If you're not sure what are implications of that, you're better off with `sendMessage`
+If you need raw model, without any wrappers, you can use `forward`. It provides direct access to the model, so the input string is passed straight into the model. It may be useful to work with models that aren't finetuned for chat completions. If you're not sure what are implications of that, you're better off with `sendMessage`
 
 ## Listening for token
 
