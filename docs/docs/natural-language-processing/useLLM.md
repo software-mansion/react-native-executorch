@@ -262,6 +262,17 @@ const message = `Hi, what's the weather like in Cracow right now?`;
 await llm.sendMessage(message);
 ```
 
+## Available models
+
+| Model Family                                                                             |      Sizes       | Quantized |
+| ---------------------------------------------------------------------------------------- | :--------------: | :-------: |
+| [Hammer 2.1](https://huggingface.co/software-mansion/react-native-executorch-hammer-2.1) |  0.5B, 1.5B, 3B  |    ✅     |
+| [Qwen 2.5](https://huggingface.co/software-mansion/react-native-executorch-qwen-2.5)     |  0.5B, 1.5B, 3B  |    ✅     |
+| [Qwen 3](https://huggingface.co/software-mansion/react-native-executorch-qwen-3)         |  0.6B, 1.7B, 4B  |    ✅     |
+| [Phi 4 Mini](https://huggingface.co/software-mansion/react-native-executorch-phi-4-mini) |        4B        |    ✅     |
+| [SmolLM 2](https://huggingface.co/software-mansion/react-native-executorch-smolLm-2)     | 135M, 360M, 1.7B |    ✅     |
+| [LLaMA 3.2](https://huggingface.co/software-mansion/react-native-executorch-llama-3.2)   |      1B, 3B      |    ✅     |
+
 ## Benchmarks
 
 ### Model size
