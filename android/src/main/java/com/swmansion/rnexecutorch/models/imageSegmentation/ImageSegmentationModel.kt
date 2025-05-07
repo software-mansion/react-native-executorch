@@ -109,7 +109,10 @@ class ImageSegmentationModel(
     val labelSet = mutableSetOf<String>()
     // Filter by the label set when base class changed
     for (i in 0..<classesOfInterest.size()) {
-      labelSet.add(classesOfInterest.getString(i))
+      val label = classesOfInterest.getString(i)
+      if (label != null) {
+        labelSet.add(label)
+      }
     }
 
     val res = Arguments.createMap()
