@@ -24,20 +24,18 @@ public:
   JSI_HOST_FUNCTION(forward) {
     auto promise = promiseVendor.createPromise(
         [this, count, args, &runtime](std::shared_ptr<Promise> promise) {
-          std::thread([this, promise = std::move(promise), count, args,
-                       &runtime]() {
-            constexpr std::size_t forwardArgCount =
-                jsiconversion::getArgumentCount(&Model::forward);
-            if (forwardArgCount != count) {
-              char errorMessage[100];
-              std::snprintf(
-                  errorMessage, sizeof(errorMessage),
-                  "Argument count mismatch, was expecting: %zu but got: %zu",
-                  forwardArgCount, count);
+          constexpr std::size_t forwardArgCount =
+              jsiconversion::getArgumentCount(&Model::forward);
+          if (forwardArgCount != count) {
+            char errorMessage[100];
+            std::snprintf(
+                errorMessage, sizeof(errorMessage),
+                "Argument count mismatch, was expecting: %zu but got: %zu",
+                forwardArgCount, count);
 
-              promise->reject(errorMessage);
-              return;
-            }
+            promise->reject(errorMessage);
+            return;
+          }
 
           // Do the asynchronous work
           std::thread([this, promise = std::move(promise), args, &runtime]() {
