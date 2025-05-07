@@ -65,10 +65,10 @@ function MyComponent() {
 
 ```tsx
 const handleGenerate = async () => {
-  const prompt = 'The meaning of life is';
+  const chat = [{ role: 'user', content: 'What is the meaning of life?' }];
 
-  // Generate text based on your desired prompt
-  await llama.forward(prompt);
+  // Chat completion
+  await llama.generate(chat);
   console.log('Llama says:', llama.response);
 };
 ```

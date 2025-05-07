@@ -234,7 +234,7 @@ export class LLMController {
     messages: Message[],
     tokenizerConfig: any,
     tools?: LLMTool[],
-    template_flags?: Object
+    templateFlags?: Object
   ): string {
     if (!tokenizerConfig.chat_template) {
       throw Error("Tokenizer config doesn't include chat_template");
@@ -251,7 +251,7 @@ export class LLMController {
     const result = template.render({
       messages,
       tools,
-      ...template_flags,
+      ...templateFlags,
       ...specialTokens,
     });
     return result;
