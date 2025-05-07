@@ -34,6 +34,7 @@ jobs:
           distribution: 'zulu'
           java-version: 17
       - name: Install node dependencies
+        working-directory: ${{ env.WORKING_DIRECTORY }}
         run: yarn install --immutable
       - name: Build app
         working-directory: ${{ env.WORKING_DIRECTORY }}/android
