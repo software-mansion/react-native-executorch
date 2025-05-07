@@ -40,9 +40,9 @@ jsi::Value PromiseVendor::createPromise(
 
         auto rejectWrapper = [reject, &runtime, callInvoker](
                                  const std::string &errorMessage) -> void {
-          auto error = jsi::JSError(runtime, errorMessage);
-          auto errorShared = std::make_shared<jsi::JSError>(error);
-          callInvoker->invokeAsync([reject, &runtime, errorShared]() -> void {
+          callInvoker->invokeAsync([reject, &runtime, errorMessage]() -> void {
+            auto error = jsi::JSError(runtime, errorMessage);
+            auto errorShared = std::make_shared<jsi::JSError>(error);
             reject->call(runtime, errorShared->value());
           });
         };
