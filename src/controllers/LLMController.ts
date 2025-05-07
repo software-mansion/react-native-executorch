@@ -148,7 +148,6 @@ export class LLMController {
     try {
       this.responseCallback('');
       this.isGeneratingCallback(true);
-      console.log('INPUT:', input);
       await this.nativeModule.forward(input);
     } catch (e) {
       throw new Error(getError(e));
