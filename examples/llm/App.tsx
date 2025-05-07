@@ -5,7 +5,13 @@ import SWMIcon from './assets/icons/swm_icon.svg';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
 import ColorPalette from './colors';
-import { View, StyleSheet, Text } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Text,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import LLMScreen from './screens/LLMScreen';
 import LLMToolCallingScreen from './screens/LLMToolCallingScreen';
 
@@ -41,26 +47,32 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
-        <View style={styles.topContainer}>
-          <SWMIcon width={45} height={45} />
-          <Text style={styles.textModelName}>LLM on device demo</Text>
-          <View style={styles.wheelPickerContainer}>
-            <ScrollPicker
-              dataSource={['Chat with LLM', 'Tool calling']}
-              onValueChange={(_, selectedIndex) => {
-                handleModeChange(selectedIndex);
-              }}
-              wrapperHeight={120}
-              highlightColor={ColorPalette.primary}
-              wrapperBackground="#fff"
-              highlightBorderWidth={3}
-              itemHeight={40}
-              activeItemTextStyle={styles.activeScrollItem}
-            />
+        <KeyboardAvoidingView
+          style={styles.keyboardAvoidingView}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'android' ? 30 : 0}
+        >
+          <View style={styles.topContainer}>
+            <SWMIcon width={45} height={45} />
+            <Text style={styles.textModelName}>LLM on device demo</Text>
+            <View style={styles.wheelPickerContainer}>
+              <ScrollPicker
+                dataSource={['Chat with LLM', 'Tool calling']}
+                onValueChange={(_, selectedIndex) => {
+                  handleModeChange(selectedIndex);
+                }}
+                wrapperHeight={120}
+                highlightColor={ColorPalette.primary}
+                wrapperBackground="#fff"
+                highlightBorderWidth={3}
+                itemHeight={40}
+                activeItemTextStyle={styles.activeScrollItem}
+              />
+            </View>
           </View>
-        </View>
 
-        {renderScreen()}
+          {renderScreen()}
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </SafeAreaProvider>
   );
@@ -72,6 +84,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#fff',
   },
+  keyboardAvoidingView: { flex: 1 },
   topContainer: {
     marginTop: 5,
     height: 165,
