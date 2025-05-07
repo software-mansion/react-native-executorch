@@ -4,15 +4,15 @@ sidebar_position: 1
 keywords:
   [
     react native,
+    react native ai,
+    react native llm,
+    react native qwen,
+    react native llama,
+    react native executorch,
     executorch,
-    ai,
-    machine learning,
-    on-device,
+    on-device ai,
     pytorch,
     mobile ai,
-    getting started,
-    installation,
-    llm,
   ]
 description: 'Get started with React Native ExecuTorch - a framework for running AI models on-device in your React Native applications.'
 ---
