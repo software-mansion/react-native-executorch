@@ -14,7 +14,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.speechtotext"
+      "bundleIdentifier": "com.anonymous.speechtotext",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "This app needs access to your microphone to record audio."
+      }
     },
     "android": {
       "adaptiveIcon": {

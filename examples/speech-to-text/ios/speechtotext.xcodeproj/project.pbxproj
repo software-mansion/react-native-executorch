@@ -8,26 +8,26 @@
 
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		1A530386B1482BE3AD1A5572 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 8A60F2D9F9273DB698973BD5 /* PrivacyInfo.xcprivacy */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		64D1023F714D43179621879B /* libPods-speechtotext.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F410A7392E131952D55F93A /* libPods-speechtotext.a */; };
-		9BDAAB6F4EBAE399494B920F /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFAF730FD176B0FF1AAA26E3 /* ExpoModulesProvider.swift */; };
+		5912880DF8FC4DCBC085EDCC /* libPods-speechtotext.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EF9888415A13C36A709394EE /* libPods-speechtotext.a */; };
+		818A627018EDE1BEBA5EF2CB /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 425BCC1B75126D172B2195E9 /* PrivacyInfo.xcprivacy */; };
+		BA8E9D06DBFC9C14EA7608DF /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ED1BB349998F9D10B452ACA /* ExpoModulesProvider.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0F410A7392E131952D55F93A /* libPods-speechtotext.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-speechtotext.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07F961A680F5B00A75B9A /* speechtotext.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = speechtotext.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = speechtotext/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = speechtotext/Info.plist; sourceTree = "<group>"; };
-		3401126A798280293BF2F050 /* Pods-speechtotext.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-speechtotext.debug.xcconfig"; path = "Target Support Files/Pods-speechtotext/Pods-speechtotext.debug.xcconfig"; sourceTree = "<group>"; };
-		6DBEE31D53940C113E0AC728 /* Pods-speechtotext.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-speechtotext.release.xcconfig"; path = "Target Support Files/Pods-speechtotext/Pods-speechtotext.release.xcconfig"; sourceTree = "<group>"; };
-		8A60F2D9F9273DB698973BD5 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = speechtotext/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		347799804C36DF3833DFC31B /* Pods-speechtotext.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-speechtotext.release.xcconfig"; path = "Target Support Files/Pods-speechtotext/Pods-speechtotext.release.xcconfig"; sourceTree = "<group>"; };
+		425BCC1B75126D172B2195E9 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = speechtotext/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		828A1E9AD6FED7A81DFB08F5 /* Pods-speechtotext.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-speechtotext.debug.xcconfig"; path = "Target Support Files/Pods-speechtotext/Pods-speechtotext.debug.xcconfig"; sourceTree = "<group>"; };
+		9ED1BB349998F9D10B452ACA /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-speechtotext/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = speechtotext/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		EFAF730FD176B0FF1AAA26E3 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-speechtotext/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		EF9888415A13C36A709394EE /* libPods-speechtotext.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-speechtotext.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = speechtotext/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* speechtotext-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "speechtotext-Bridging-Header.h"; path = "speechtotext/speechtotext-Bridging-Header.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -37,21 +37,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				64D1023F714D43179621879B /* libPods-speechtotext.a in Frameworks */,
+				5912880DF8FC4DCBC085EDCC /* libPods-speechtotext.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		12A8C95285AEA9439E5B4195 /* ExpoModulesProviders */ = {
-			isa = PBXGroup;
-			children = (
-				C7C937DA5B35B0DDE0EC840B /* speechtotext */,
-			);
-			name = ExpoModulesProviders;
-			sourceTree = "<group>";
-		};
 		13B07FAE1A68108700A75B9A /* speechtotext */ = {
 			isa = PBXGroup;
 			children = (
@@ -61,7 +53,15 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				8A60F2D9F9273DB698973BD5 /* PrivacyInfo.xcprivacy */,
+				425BCC1B75126D172B2195E9 /* PrivacyInfo.xcprivacy */,
+			);
+			name = speechtotext;
+			sourceTree = "<group>";
+		};
+		1A549875EC612AE9709D24A0 /* speechtotext */ = {
+			isa = PBXGroup;
+			children = (
+				9ED1BB349998F9D10B452ACA /* ExpoModulesProvider.swift */,
 			);
 			name = speechtotext;
 			sourceTree = "<group>";
@@ -70,9 +70,19 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				0F410A7392E131952D55F93A /* libPods-speechtotext.a */,
+				EF9888415A13C36A709394EE /* libPods-speechtotext.a */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		434B4447E0BFE12147368745 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				828A1E9AD6FED7A81DFB08F5 /* Pods-speechtotext.debug.xcconfig */,
+				347799804C36DF3833DFC31B /* Pods-speechtotext.release.xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -89,8 +99,8 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				937D5FE78FB8EB2F3B0EE17E /* Pods */,
-				12A8C95285AEA9439E5B4195 /* ExpoModulesProviders */,
+				434B4447E0BFE12147368745 /* Pods */,
+				DDE9213BDA7F15B529AD33AA /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -105,16 +115,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		937D5FE78FB8EB2F3B0EE17E /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				3401126A798280293BF2F050 /* Pods-speechtotext.debug.xcconfig */,
-				6DBEE31D53940C113E0AC728 /* Pods-speechtotext.release.xcconfig */,
-			);
-			name = Pods;
-			path = Pods;
-			sourceTree = "<group>";
-		};
 		BB2F792B24A3F905000567C9 /* Supporting */ = {
 			isa = PBXGroup;
 			children = (
@@ -124,12 +124,12 @@
 			path = speechtotext/Supporting;
 			sourceTree = "<group>";
 		};
-		C7C937DA5B35B0DDE0EC840B /* speechtotext */ = {
+		DDE9213BDA7F15B529AD33AA /* ExpoModulesProviders */ = {
 			isa = PBXGroup;
 			children = (
-				EFAF730FD176B0FF1AAA26E3 /* ExpoModulesProvider.swift */,
+				1A549875EC612AE9709D24A0 /* speechtotext */,
 			);
-			name = speechtotext;
+			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -140,13 +140,13 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "speechtotext" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				A921F7FD9791267CBCD301DD /* [Expo] Configure project */,
+				BE9E05EB2D02F7D797429FF3 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				58B2C33685E4178EE049CC84 /* [CP] Embed Pods Frameworks */,
+				8D98C865A5C8C604F9BF6A6C /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -167,6 +167,8 @@
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
 						LastSwiftMigration = 1250;
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -196,7 +198,7 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				1A530386B1482BE3AD1A5572 /* PrivacyInfo.xcprivacy in Resources */,
+				818A627018EDE1BEBA5EF2CB /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -240,26 +242,6 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		58B2C33685E4178EE049CC84 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-speechtotext/Pods-speechtotext-frameworks.sh",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/react-native-executorch/ExecutorchLib.framework/ExecutorchLib",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ExecutorchLib.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-speechtotext/Pods-speechtotext-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -298,7 +280,27 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-speechtotext/Pods-speechtotext-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		A921F7FD9791267CBCD301DD /* [Expo] Configure project */ = {
+		8D98C865A5C8C604F9BF6A6C /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-speechtotext/Pods-speechtotext-frameworks.sh",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/react-native-executorch/ExecutorchLib.framework/ExecutorchLib",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ExecutorchLib.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-speechtotext/Pods-speechtotext-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		BE9E05EB2D02F7D797429FF3 /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -325,7 +327,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				9BDAAB6F4EBAE399494B920F /* ExpoModulesProvider.swift in Sources */,
+				BA8E9D06DBFC9C14EA7608DF /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -334,7 +336,7 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 3401126A798280293BF2F050 /* Pods-speechtotext.debug.xcconfig */;
+			baseConfigurationReference = 828A1E9AD6FED7A81DFB08F5 /* Pods-speechtotext.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -365,12 +367,15 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
+				DEVELOPMENT_TEAM = "";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 			};
 			name = Debug;
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 6DBEE31D53940C113E0AC728 /* Pods-speechtotext.release.xcconfig */;
+			baseConfigurationReference = 347799804C36DF3833DFC31B /* Pods-speechtotext.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -395,6 +400,9 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
+				DEVELOPMENT_TEAM = "";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 			};
 			name = Release;
 		};
