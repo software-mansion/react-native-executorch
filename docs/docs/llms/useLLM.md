@@ -3,18 +3,21 @@ title: useLLM
 sidebar_position: 1
 keywords:
   [
-    llm,
-    large language model,
-    llama,
-    llama 3,
     react native,
+    react native ai,
+    react native llm,
+    react native qwen,
+    react native llama,
+    react native executorch,
     executorch,
-    ai,
-    machine learning,
-    on-device,
+    pytorch,
+    on-device ai,
     mobile ai,
-    inference,
+    llama 3,
+    qwen,
     text generation,
+    tool calling,
+    function calling,
   ]
 description: "Learn how to use Llama models in your React Native applications with React Native ExecuTorch's useLLM hook."
 ---
