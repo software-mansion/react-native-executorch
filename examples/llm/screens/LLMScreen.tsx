@@ -11,40 +11,27 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import SWMIcon from '../../assets/icons/swm_icon.svg';
-import SendIcon from '../../assets/icons/send_icon.svg';
+import SendIcon from '../assets/icons/send_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {
+  LLAMA3_2_1B_QLORA,
+  LLAMA3_2_TOKENIZER,
+  LLAMA3_2_TOKENIZER_CONFIG,
   useLLM,
-  HAMMER2_1_1_5B,
-  HAMMER2_1_TOKENIZER,
-  HAMMER2_1_TOKENIZER_CONFIG,
 } from 'react-native-executorch';
-import PauseIcon from '../../assets/icons/pause_icon.svg';
+import PauseIcon from '../assets/icons/pause_icon.svg';
 import ColorPalette from '../colors';
 import Messages from '../components/Messages';
-import * as Brightness from 'expo-brightness';
-import { DEFAULT_SYSTEM_PROMPT } from 'react-native-executorch/src/constants/llmDefaults';
-import * as Calendar from 'expo-calendar';
-import { executeTool, TOOL_DEFINITIONS_PHONE } from './tools';
 
-export default function ChatScreen() {
+export default function LLMScreen() {
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
+
   const llm = useLLM({
-    modelSource: HAMMER2_1_1_5B,
-    tokenizerSource: HAMMER2_1_TOKENIZER,
-    tokenizerConfigSource: HAMMER2_1_TOKENIZER_CONFIG,
-    chatConfig: {
-      systemPrompt: `${DEFAULT_SYSTEM_PROMPT} Current time and date: ${new Date().toString()}`,
-    },
-    toolsConfig: {
-      tools: TOOL_DEFINITIONS_PHONE,
-      executeToolCallback: executeTool,
-      displayToolCalls: true,
-    },
+    modelSource: LLAMA3_2_1B_QLORA,
+    tokenizerSource: LLAMA3_2_TOKENIZER,
+    tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
   });
-  const textInputRef = useRef<TextInput>(null);
 
   useEffect(() => {
     if (llm.error) {
@@ -52,26 +39,7 @@ export default function ChatScreen() {
     }
   }, [llm.error]);
 
-  // PERMISSIONS
-  useEffect(() => {
-    (async () => {
-      const { status } = await Calendar.requestCalendarPermissionsAsync();
-      if (status !== 'granted') {
-        console.log(
-          'No access to calendar! We need this to use app correctly!'
-        );
-      }
-    })();
-
-    (async () => {
-      const { status } = await Brightness.requestPermissionsAsync();
-      if (status !== 'granted') {
-        console.log(
-          'No access to brightness! We need this to use app correctly!'
-        );
-      }
-    })();
-  }, []);
+  const textInputRef = useRef<TextInput>(null);
 
   const sendMessage = async () => {
     setUserInput('');
@@ -86,9 +54,7 @@ export default function ChatScreen() {
   return !llm.isReady ? (
     <Spinner
       visible={!llm.isReady}
-      textContent={`Loading the model ${(llm.downloadProgress * 100).toFixed(
-        0
-      )} %`}
+      textContent={`Loading the model ${(llm.downloadProgress * 100).toFixed(0)} %`}
     />
   ) : (
     <SafeAreaView style={styles.container}>
@@ -98,10 +64,6 @@ export default function ChatScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'android' ? 30 : 0}
         >
-          <View style={styles.topContainer}>
-            <SWMIcon width={45} height={45} />
-            <Text style={styles.textModelName}>LLM Tool-calling Demo</Text>
-          </View>
           {llm.messageHistory.length ? (
             <View style={styles.chatContainer}>
               <Messages
@@ -115,7 +77,7 @@ export default function ChatScreen() {
             <View style={styles.helloMessageContainer}>
               <Text style={styles.helloText}>Hello! 👋</Text>
               <Text style={styles.bottomHelloText}>
-                I can use calendar! Ask me to check it or add an event for you!
+                What can I help you with?
               </Text>
             </View>
           )}
@@ -160,25 +122,9 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  keyboardAvoidingView: {
-    flex: 1,
-  },
-  topContainer: {
-    height: 68,
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  chatContainer: {
-    flex: 10,
-    width: '100%',
-  },
-  textModelName: {
-    color: ColorPalette.primary,
-  },
+  container: { flex: 1 },
+  keyboardAvoidingView: { flex: 1 },
+  chatContainer: { flex: 10, width: '100%' },
   helloMessageContainer: {
     flex: 10,
     width: '100%',
@@ -194,7 +140,6 @@ const styles = StyleSheet.create({
     fontFamily: 'regular',
     fontSize: 20,
     lineHeight: 28,
-    textAlign: 'center',
     color: ColorPalette.primary,
   },
   bottomContainer: {

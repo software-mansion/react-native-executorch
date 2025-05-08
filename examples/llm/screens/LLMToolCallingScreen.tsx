@@ -11,56 +11,40 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import SWMIcon from '../assets/icons/swm_icon.svg';
 import SendIcon from '../assets/icons/send_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {
   HAMMER2_1_1_5B,
   HAMMER2_1_TOKENIZER,
   HAMMER2_1_TOKENIZER_CONFIG,
-  LLAMA3_2_1B_QLORA,
-  LLAMA3_2_TOKENIZER,
-  LLAMA3_2_TOKENIZER_CONFIG,
-  LLMType,
-  LLMTool,
   useLLM,
+  DEFAULT_SYSTEM_PROMPT,
 } from 'react-native-executorch';
 import PauseIcon from '../assets/icons/pause_icon.svg';
 import ColorPalette from '../colors';
 import Messages from '../components/Messages';
+import * as Brightness from 'expo-brightness';
+import * as Calendar from 'expo-calendar';
+import { executeTool, TOOL_DEFINITIONS_PHONE } from '../utils/tools';
 
-export const ChatScreenLLM = () => {
-  const llm = useLLM({
-    modelSource: LLAMA3_2_1B_QLORA,
-    tokenizerSource: LLAMA3_2_TOKENIZER,
-    tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
-  });
-
-  return <ChatScreen llm={llm} />;
-};
-
-export const ChatScreenLLMToolCalling = () => {
+export default function LLMToolCallingScreen() {
+  const [isTextInputFocused, setIsTextInputFocused] = useState(false);
+  const [userInput, setUserInput] = useState('');
   const llm = useLLM({
     modelSource: HAMMER2_1_1_5B,
     tokenizerSource: HAMMER2_1_TOKENIZER,
     tokenizerConfigSource: HAMMER2_1_TOKENIZER_CONFIG,
+    chatConfig: {
+      systemPrompt: `${DEFAULT_SYSTEM_PROMPT} Current time and date: ${new Date().toString()}`,
+    },
     toolsConfig: {
       tools: TOOL_DEFINITIONS_PHONE,
-      // we don't implement any tool execution here
-      // we just want to showcase model's ability
-      executeToolCallback: async () => {
-        return null;
-      },
-      // just for demo purpose
+      executeToolCallback: executeTool,
       displayToolCalls: true,
     },
   });
-
-  return <ChatScreen llm={llm} />;
-};
-
-export default function ChatScreen({ llm }: { llm: LLMType }) {
-  const [isTextInputFocused, setIsTextInputFocused] = useState(false);
-  const [userInput, setUserInput] = useState('');
+  const textInputRef = useRef<TextInput>(null);
 
   useEffect(() => {
     if (llm.error) {
@@ -68,7 +52,26 @@ export default function ChatScreen({ llm }: { llm: LLMType }) {
     }
   }, [llm.error]);
 
-  const textInputRef = useRef<TextInput>(null);
+  // PERMISSIONS
+  useEffect(() => {
+    (async () => {
+      const { status } = await Calendar.requestCalendarPermissionsAsync();
+      if (status !== 'granted') {
+        console.log(
+          'No access to calendar! We need this to use app correctly!'
+        );
+      }
+    })();
+
+    (async () => {
+      const { status } = await Brightness.requestPermissionsAsync();
+      if (status !== 'granted') {
+        console.log(
+          'No access to brightness! We need this to use app correctly!'
+        );
+      }
+    })();
+  }, []);
 
   const sendMessage = async () => {
     setUserInput('');
@@ -83,7 +86,9 @@ export default function ChatScreen({ llm }: { llm: LLMType }) {
   return !llm.isReady ? (
     <Spinner
       visible={!llm.isReady}
-      textContent={`Loading the model ${(llm.downloadProgress * 100).toFixed(0)} %`}
+      textContent={`Loading the model ${(llm.downloadProgress * 100).toFixed(
+        0
+      )} %`}
     />
   ) : (
     <SafeAreaView style={styles.container}>
@@ -93,6 +98,10 @@ export default function ChatScreen({ llm }: { llm: LLMType }) {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'android' ? 30 : 0}
         >
+          <View style={styles.topContainer}>
+            <SWMIcon width={45} height={45} />
+            <Text style={styles.textModelName}>LLM Tool-calling Demo</Text>
+          </View>
           {llm.messageHistory.length ? (
             <View style={styles.chatContainer}>
               <Messages
@@ -106,7 +115,7 @@ export default function ChatScreen({ llm }: { llm: LLMType }) {
             <View style={styles.helloMessageContainer}>
               <Text style={styles.helloText}>Hello! 👋</Text>
               <Text style={styles.bottomHelloText}>
-                What can I help you with?
+                I can use calendar! Ask me to check it or add an event for you!
               </Text>
             </View>
           )}
@@ -150,103 +159,26 @@ export default function ChatScreen({ llm }: { llm: LLMType }) {
   );
 }
 
-const TOOL_DEFINITIONS_PHONE: LLMTool[] = [
-  {
-    name: 'brightness',
-    description:
-      'Change screen brightness. Change can be relative (higher/lower) or set to minimal or maximal.',
-    parameters: {
-      type: 'dict',
-      properties: {
-        relativeChange: {
-          type: 'number',
-          description:
-            'Relative change of brightness (from 0 to 100). Change should be negative if user asks for less bright screen.',
-        },
-        targetBrightness: {
-          type: 'number',
-          description: 'Relative change of brightness (from 0 to 100).',
-        },
-      },
-    },
-  },
-  {
-    name: 'get_contacts',
-    description:
-      'Gets user phone contacts. Returns both name and phone number.',
-    parameters: {
-      type: 'dict',
-      properties: {
-        name: {
-          type: 'string',
-          description:
-            'Full or partial name of person to retrieve. Those will be some part of names or letters, not numbers.',
-        },
-        phoneNumberPrefix: {
-          type: 'string',
-          description:
-            'Prefix or part of phone number of contact to retrieve. Those will be numbers.',
-        },
-      },
-    },
-  },
-  {
-    name: 'send_sms',
-    description: 'Sends SMS/text message to specified user.',
-    parameters: {
-      type: 'dict',
-      properties: {
-        to: { type: 'string', description: 'The recipient phone number.' },
-        body: { type: 'string', description: 'Body of the text message.' },
-      },
-      required: ['to', 'body'],
-    },
-  },
-  {
-    name: 'read_calendar',
-    description: 'Read calendar events from now up to given point in time',
-    parameters: {
-      type: 'dict',
-      properties: {
-        time: {
-          type: 'string',
-          description: 'Date and time to which we want to read calendar',
-        },
-      },
-      required: ['time'],
-    },
-  },
-  {
-    name: 'add_event_to_calendar',
-    description: 'Schedules event in your calendar at given time.',
-    parameters: {
-      type: 'dict',
-      properties: {
-        time: { type: 'string', description: 'Date and time of an event.' },
-        title: { type: 'string', description: 'Title of an event' },
-        description: { type: 'string', description: 'Description of an event' },
-      },
-      required: ['time', 'title'],
-    },
-  },
-  {
-    name: 'flashlight',
-    description: 'Turns the flashlight on/off',
-    parameters: {
-      type: 'dict',
-      properties: {
-        turn_on: { type: 'boolean', description: 'Turns the flashlight on.' },
-        turn_off: { type: 'boolean', description: 'Turns the flashlight off.' },
-      },
-      required: ['turn_on', 'turn_off'],
-    },
-  },
-];
-
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  keyboardAvoidingView: { flex: 1 },
-  chatContainer: { flex: 10, width: '100%' },
+  container: {
+    flex: 1,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  topContainer: {
+    height: 68,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chatContainer: {
+    flex: 10,
+    width: '100%',
+  },
+  textModelName: {
+    color: ColorPalette.primary,
+  },
   helloMessageContainer: {
     flex: 10,
     width: '100%',
@@ -262,6 +194,7 @@ const styles = StyleSheet.create({
     fontFamily: 'regular',
     fontSize: 20,
     lineHeight: 28,
+    textAlign: 'center',
     color: ColorPalette.primary,
   },
   bottomContainer: {
