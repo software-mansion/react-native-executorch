@@ -132,7 +132,8 @@ export const SpeechToTextScreen = () => {
           setModalVisible={async (visible: boolean) => {
             setModalVisible(visible);
             if (audioUrl) {
-              await transcribe(await loadAudio(audioUrl));
+              const loadedAudio = await loadAudio(audioUrl);
+              await transcribe(Array.from(loadedAudio));
             }
           }}
           onChangeText={setAudioUrl}
@@ -155,7 +156,8 @@ export const SpeechToTextScreen = () => {
                 if (!audioUrl) {
                   setModalVisible(true);
                 } else {
-                  await transcribe(await loadAudio(audioUrl));
+                  const loadedAudio = await loadAudio(audioUrl);
+                  await transcribe(Array.from(loadedAudio));
                 }
               }}
             >
