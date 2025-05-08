@@ -18,12 +18,12 @@ class TextEmbeddingsModel(
   fun preprocess(input: String): Array<LongArray> {
     val inputIds = tokenizer.encode(input).map { it.toLong() }.toLongArray()
     val attentionMask = inputIds.map { if (it != 0L) 1L else 0L }.toLongArray()
-    return arrayOf(inputIds, attentionMask) // Shape: [2, max_length]
+    return arrayOf(inputIds, attentionMask) // Shape: [2, tokens]
   }
 
   fun postprocess(
-    modelOutput: FloatArray, // [max_length * embedding_dim]
-    attentionMask: LongArray, // [max_length]
+    modelOutput: FloatArray, // [tokens * embedding_dim]
+    attentionMask: LongArray, // [tokens]
   ): DoubleArray {
     val modelOutputDouble = modelOutput.map { it.toDouble() }.toDoubleArray()
     val embeddings = TextEmbeddingsUtils.meanPooling(modelOutputDouble, attentionMask)
