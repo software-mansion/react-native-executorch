@@ -52,6 +52,8 @@
     <string>Allow $(PRODUCT_NAME) to access your reminders</string>
     <key>NSRemindersUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your reminders</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>We need your permission to use the microphone.</string>
     <key>UIAppFonts</key>
     <array>
       <string>Aeonik-Regular.otf</string>

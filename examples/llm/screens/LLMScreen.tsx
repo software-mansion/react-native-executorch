@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -14,12 +14,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import SWMIcon from '../assets/icons/swm_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {
-  // STREAMING_ACTION,
+  STREAMING_ACTION,
   useSpeechToText,
-  LLAMA3_2_1B_QLORA,
-  LLAMA3_2_1B_TOKENIZER,
   useLLM,
-  LLAMA3_2_TOKENIZER_CONFIG,
+  QWEN3_0_6B_QUANTIZED,
+  QWEN3_TOKENIZER,
+  QWEN3_TOKENIZER_CONFIG,
 } from 'react-native-executorch';
 import PauseIcon from '../assets/icons/pause_icon.svg';
 import MicIcon from '../assets/icons/mic_icon.svg';
@@ -29,7 +29,6 @@ import ColorPalette from '../colors';
 import Messages from '../components/Messages';
 import LiveAudioStream from 'react-native-live-audio-stream';
 import { Buffer } from 'buffer';
-// import * as Speech from 'expo-speech';
 
 const audioStreamOptions = {
   sampleRate: 16000,
@@ -59,34 +58,36 @@ const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
   return float32Array;
 };
 
-export default function ChatScreen() {
-  // const [currentMessage, setCurrentMessage] = useState('');
+export default function LLMScreen({
+  setIsGenerating,
+}: {
+  setIsGenerating: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   const [isRecording, setIsRecording] = useState(false);
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
   const textInputRef = useRef<TextInput>(null);
   const messageRecorded = useRef<boolean>(false);
   const llm = useLLM({
-    modelSource: LLAMA3_2_1B_QLORA,
-    tokenizerSource: LLAMA3_2_1B_TOKENIZER,
-    tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
+    modelSource: QWEN3_0_6B_QUANTIZED,
+    tokenizerSource: QWEN3_TOKENIZER,
+    tokenizerConfigSource: QWEN3_TOKENIZER_CONFIG,
     chatConfig: {
       contextWindowLength: 6,
     },
   });
   const speechToText = useSpeechToText({
-    modelName: 'whisper',
-    windowSize: 5,
+    modelName: 'moonshine',
+    windowSize: 3,
     overlapSeconds: 1.2,
   });
 
   const onChunk = (data: string) => {
     const float32Chunk = float32ArrayFromPCMBinaryBuffer(data);
-    speechToText.transcribe(Array.from(float32Chunk));
-    // speechToText.streamingTranscribe(
-    //   STREAMING_ACTION.DATA,
-    //   Array.from(float32Chunk)
-    // );
+    speechToText.streamingTranscribe(
+      STREAMING_ACTION.DATA,
+      Array.from(float32Chunk)
+    );
   };
 
   const handleRecordPress = async () => {
@@ -94,25 +95,20 @@ export default function ChatScreen() {
       setIsRecording(false);
       LiveAudioStream.stop();
       messageRecorded.current = true;
-      // await llm.generate(
-      //   await speechToText.streamingTranscribe(STREAMING_ACTION.STOP)
-      // );
+      await llm.sendMessage(
+        await speechToText.streamingTranscribe(STREAMING_ACTION.STOP)
+      );
     } else {
       setIsRecording(true);
       startStreamingAudio(audioStreamOptions, onChunk);
-      // await speechToText.streamingTranscribe(STREAMING_ACTION.START);
+      await speechToText.streamingTranscribe(STREAMING_ACTION.START);
     }
   };
 
-  // const sendMessage = async () => {
-  //   setUserInput('');
-  //   textInputRef.current?.clear();
-  //   try {
-  //     await llm.sendMessage(userInput);
-  //   } catch (e) {
-  //     console.error(e);
-  //   }
-  // };
+  useEffect(() => {
+    setIsGenerating(llm.isGenerating);
+  }, [llm.isGenerating, setIsGenerating]);
+
   const sendMessage = async () => {
     if (userInput) {
       llm.sendMessage(userInput);
@@ -121,28 +117,6 @@ export default function ChatScreen() {
       textInputRef.current?.clear();
     }
   };
-
-  // useEffect(() => {
-  //   if (llm.response && !llm.isGenerating) {
-  //     appendToMessageHistory(llm.response, 'assistant');
-  //   }
-  // }, [llm.response, llm.isGenerating]);
-
-  // const modifyLastMessage = (content: string) => {
-  //   setCurrentMessage((prevMessage) => prevMessage + content);
-  // };
-
-  useEffect(() => {
-    if (speechToText.sequence.length && !speechToText.isGenerating) {
-      llm.sendMessage(speechToText.sequence);
-    }
-  }, [speechToText.sequence, speechToText.isGenerating, llm.sendMessage]); //eslint-disable-line react-hooks/exhaustive-deps
-
-  // const appendToMessageHistory = (content: string, role: SenderType) => {
-  //   setChatHistory((prevHistory) => [...prevHistory, { role, content }]);
-  //   if (role == 'assistant' && messageRecorded.current)
-  //     Speech.speak(content, { language: 'en-US' });
-  // };
 
   return !llm.isReady || !speechToText.isReady ? (
     <Spinner
@@ -161,13 +135,17 @@ export default function ChatScreen() {
             <SWMIcon width={45} height={45} />
             <Text style={styles.textModelName}>llm 3.2 1B QLoRA x Whisper</Text>
           </View>
-          {llm.messageHistory.length ? (
+          {llm.messageHistory.length || speechToText.sequence ? (
             <View style={styles.chatContainer}>
               <Messages
-                chatHistory={[
-                  ...llm.messageHistory,
-                  { role: 'user', content: speechToText.sequence },
-                ]}
+                chatHistory={
+                  speechToText.isGenerating
+                    ? [
+                        ...llm.messageHistory,
+                        { role: 'user', content: speechToText.sequence },
+                      ]
+                    : llm.messageHistory
+                }
                 llmResponse={llm.response}
                 isGenerating={llm.isGenerating}
                 deleteMessage={llm.deleteMessage}
