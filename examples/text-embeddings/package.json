@@ -17,7 +17,7 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~19.0.10",
-    "react-native-executorch": "0.3.2",
+    "react-native-executorch": "^0.3.2",
     "typescript": "~5.8.3"
   },
   "private": true
