@@ -38,7 +38,7 @@ class LLM(
     }
   }
 
-  override fun runInference(
+  override fun forward(
     input: String,
     promise: Promise,
   ) {

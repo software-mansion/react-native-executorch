@@ -8,7 +8,7 @@ import { readAsStringAsync } from 'expo-file-system';
 import {
   ChatConfig,
   LLMTool,
-  MessageType,
+  Message,
   SPECIAL_TOKENS,
   ToolsConfig,
 } from '../types/llm';
@@ -24,11 +24,11 @@ export class LLMController {
   private _response = '';
   private _isReady = false;
   private _isGenerating = false;
-  private _messageHistory: MessageType[] = [];
+  private _messageHistory: Message[] = [];
 
   // User callbacks
   private responseCallback: (response: string) => void;
-  private messageHistoryCallback: (messageHistory: MessageType[]) => void;
+  private messageHistoryCallback: (messageHistory: Message[]) => void;
   private isReadyCallback: (isReady: boolean) => void;
   private isGeneratingCallback: (isGenerating: boolean) => void;
   private onDownloadProgressCallback:
@@ -47,7 +47,7 @@ export class LLMController {
     toolsConfig,
   }: {
     responseCallback?: (response: string) => void;
-    messageHistoryCallback?: (messageHistory: MessageType[]) => void;
+    messageHistoryCallback?: (messageHistory: Message[]) => void;
     isReadyCallback?: (isReady: boolean) => void;
     isGeneratingCallback?: (isGenerating: boolean) => void;
     onDownloadProgressCallback?: (downloadProgress: number) => void;
@@ -141,14 +141,14 @@ export class LLMController {
     this.nativeModule.releaseResources();
   }
 
-  public async runInference(input: string) {
+  public async forward(input: string) {
     if (!this._isReady) {
       throw new Error(getError(ETError.ModuleNotLoaded));
     }
     try {
       this.responseCallback('');
       this.isGeneratingCallback(true);
-      await this.nativeModule.runInference(input);
+      await this.nativeModule.forward(input);
     } catch (e) {
       throw new Error(getError(e));
     } finally {
@@ -160,29 +160,38 @@ export class LLMController {
     this.nativeModule.interrupt();
   }
 
+  public async generate(messages: Message[], tools?: LLMTool[]) {
+    const renderedChat: string = this.applyChatTemplate(
+      messages,
+      this.tokenizerConfig,
+      tools,
+      { tools_in_user_message: false, add_generation_prompt: true }
+    );
+
+    await this.forward(renderedChat);
+
+    if (!this._response) {
+      return;
+    }
+
+    const cleanedResponse = this._response
+      .replaceAll(this.tokenizerConfig.eos_token, '')
+      .replaceAll(this.tokenizerConfig.pad_token, '');
+    this.responseCallback(cleanedResponse);
+  }
+
   public async sendMessage(message: string) {
     this.messageHistoryCallback([
       ...this._messageHistory,
       { content: message, role: 'user' },
     ]);
 
-    const messageHistoryWithPrompt: MessageType[] = [
+    const messageHistoryWithPrompt: Message[] = [
       { content: this.chatConfig.systemPrompt, role: 'system' },
       ...this._messageHistory.slice(-this.chatConfig.contextWindowLength),
     ];
 
-    const renderedChat: string = this.applyChatTemplate(
-      messageHistoryWithPrompt,
-      this.tokenizerConfig,
-      this.toolsConfig?.tools,
-      { tools_in_user_message: false, add_generation_prompt: true }
-    );
-
-    await this.runInference(renderedChat);
-
-    if (!this._response) {
-      return;
-    }
+    await this.generate(messageHistoryWithPrompt, this.toolsConfig?.tools);
 
     if (!this.toolsConfig || this.toolsConfig.displayToolCalls) {
       this.responseCallback(
@@ -222,10 +231,10 @@ export class LLMController {
   }
 
   private applyChatTemplate(
-    messages: MessageType[],
+    messages: Message[],
     tokenizerConfig: any,
     tools?: LLMTool[],
-    template_flags?: Object
+    templateFlags?: Object
   ): string {
     if (!tokenizerConfig.chat_template) {
       throw Error("Tokenizer config doesn't include chat_template");
@@ -242,7 +251,7 @@ export class LLMController {
     const result = template.render({
       messages,
       tools,
-      ...template_flags,
+      ...templateFlags,
       ...specialTokens,
     });
     return result;

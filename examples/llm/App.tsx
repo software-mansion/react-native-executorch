@@ -8,7 +8,7 @@ import { useState } from 'react';
 import ColorPalette from './colors';
 import { View, StyleSheet, Text } from 'react-native';
 
-enum ModelType {
+enum Mode {
   LLM,
   LLM_TOOL_CALLING,
 }
@@ -18,18 +18,18 @@ export default function App() {
     medium: require('./assets/fonts/Aeonik-Medium.otf'),
     regular: require('./assets/fonts/Aeonik-Regular.otf'),
   });
-  const [selectedMode, setSelectedMode] = useState<ModelType>(ModelType.LLM);
+  const [selectedMode, setSelectedMode] = useState<Mode>(Mode.LLM);
 
-  const handleModeChange = (mode: ModelType) => {
+  const handleModeChange = (mode: Mode) => {
     setSelectedMode(mode);
   };
 
   const renderScreen = () => {
     switch (selectedMode) {
-      case ModelType.LLM:
+      case Mode.LLM:
         return <ChatScreenLLM />;
 
-      case ModelType.LLM_TOOL_CALLING:
+      case Mode.LLM_TOOL_CALLING:
         return <ChatScreenLLMToolCalling />;
 
       default:
