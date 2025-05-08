@@ -112,6 +112,21 @@ export const ALL_MINILM_L6_V2 =
 export const ALL_MINILM_L6_V2_TOKENIZER =
   'https://huggingface.co/software-mansion/react-native-executorch-all-MiniLM-L6-v2/resolve/v0.4.0/tokenizer.json';
 
+export const ALL_MPNET_BASE_V2 =
+  'https://huggingface.co/software-mansion/react-native-executorch-all-mpnet-base-v2/resolve/v0.4.0/all-mpnet-base-v2_xnnpack.pte';
+export const ALL_MPNET_BASE_V2_TOKENIZER =
+  'https://huggingface.co/software-mansion/react-native-executorch-all-mpnet-base-v2/resolve/v0.4.0/tokenizer.json';
+
+export const MULTI_QA_MINILM_L6_COS_V1 =
+  'https://huggingface.co/software-mansion/react-native-executorch-multi-qa-MiniLM-L6-cos-v1/resolve/v0.4.0/multi-qa-MiniLM-L6-cos-v1_xnnpack.pte';
+export const MULTI_QA_MINILM_L6_COS_V1_TOKENIZER =
+  'https://huggingface.co/software-mansion/react-native-executorch-multi-qa-MiniLM-L6-cos-v1/resolve/v0.4.0/tokenizer.json';
+
+export const MULTI_QA_MPNET_BASE_DOT_V1 =
+  'https://huggingface.co/software-mansion/react-native-executorch-multi-qa-mpnet-base-dot-v1/resolve/v0.4.0/multi-qa-mpnet-base-dot-v1_xnnpack.pte';
+export const MULTI_QA_MPNET_BASE_DOT_V1_TOKENIZER =
+  'https://huggingface.co/software-mansion/react-native-executorch-multi-qa-mpnet-base-dot-v1/resolve/v0.4.0/tokenizer.json';
+
 // Backward compatibility
 export const LLAMA3_2_3B_URL = LLAMA3_2_3B;
 export const LLAMA3_2_3B_QLORA_URL = LLAMA3_2_3B_QLORA;
