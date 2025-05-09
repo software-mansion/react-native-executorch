@@ -1,5 +1,6 @@
 {
   "expo": {
+    "scheme": "llm",
     "name": "llm",
     "slug": "llm",
     "version": "1.0.0",
@@ -15,6 +16,23 @@
             "./assets/fonts/Aeonik-Medium.otf"
           ]
         }
+      ],
+      "expo-router",
+      [
+        "expo-sqlite",
+        {
+          "enableFTS": true,
+          "useSQLCipher": true,
+          "android": {
+            "enableFTS": false,
+            "useSQLCipher": false
+          },
+          "ios": {
+            "customBuildFlags": [
+              "-DSQLITE_ENABLE_DBSTAT_VTAB=1 -DSQLITE_ENABLE_SNAPSHOT=1"
+            ]
+          }
+        }
       ]
     ],
     "newArchEnabled": true,
@@ -25,7 +43,8 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.llm"
+      "bundleIdentifier": "com.anonymous.llm",
+      "appleTeamId": "B357MU264T"
     },
     "android": {
       "adaptiveIcon": {
