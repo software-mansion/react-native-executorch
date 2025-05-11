@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
-  KeyboardAvoidingView,
-  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -57,73 +55,66 @@ export default function LLMScreen() {
       textContent={`Loading the model ${(llm.downloadProgress * 100).toFixed(0)} %`}
     />
   ) : (
-    <SafeAreaView style={styles.container}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <KeyboardAvoidingView
-          style={styles.keyboardAvoidingView}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'android' ? 30 : 0}
-        >
-          {llm.messageHistory.length ? (
-            <View style={styles.chatContainer}>
-              <Messages
-                chatHistory={llm.messageHistory}
-                llmResponse={llm.response}
-                isGenerating={llm.isGenerating}
-                deleteMessage={llm.deleteMessage}
-              />
-            </View>
-          ) : (
-            <View style={styles.helloMessageContainer}>
-              <Text style={styles.helloText}>Hello! 👋</Text>
-              <Text style={styles.bottomHelloText}>
-                What can I help you with?
-              </Text>
-            </View>
-          )}
-
-          <View style={styles.bottomContainer}>
-            <TextInput
-              onFocus={() => setIsTextInputFocused(true)}
-              onBlur={() => setIsTextInputFocused(false)}
-              style={{
-                ...styles.textInput,
-                borderColor: isTextInputFocused
-                  ? ColorPalette.blueDark
-                  : ColorPalette.blueLight,
-              }}
-              placeholder="Your message"
-              placeholderTextColor={'#C1C6E5'}
-              multiline={true}
-              ref={textInputRef}
-              onChangeText={(text: string) => setUserInput(text)}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <SafeAreaView style={styles.container}>
+        {llm.messageHistory.length ? (
+          <View style={styles.chatContainer}>
+            <Messages
+              chatHistory={llm.messageHistory}
+              llmResponse={llm.response}
+              isGenerating={llm.isGenerating}
+              deleteMessage={llm.deleteMessage}
             />
-            {userInput && (
-              <TouchableOpacity
-                style={styles.sendChatTouchable}
-                onPress={async () => !llm.isGenerating && (await sendMessage())}
-              >
-                <SendIcon height={24} width={24} padding={4} margin={8} />
-              </TouchableOpacity>
-            )}
-            {llm.isGenerating && (
-              <TouchableOpacity
-                style={styles.sendChatTouchable}
-                onPress={llm.interrupt}
-              >
-                <PauseIcon height={24} width={24} padding={4} margin={8} />
-              </TouchableOpacity>
-            )}
           </View>
-        </KeyboardAvoidingView>
-      </TouchableWithoutFeedback>
-    </SafeAreaView>
+        ) : (
+          <View style={styles.helloMessageContainer}>
+            <Text style={styles.helloText}>Hello! 👋</Text>
+            <Text style={styles.bottomHelloText}>
+              What can I help you with?
+            </Text>
+          </View>
+        )}
+
+        <View style={styles.bottomContainer}>
+          <TextInput
+            onFocus={() => setIsTextInputFocused(true)}
+            onBlur={() => setIsTextInputFocused(false)}
+            style={{
+              ...styles.textInput,
+              borderColor: isTextInputFocused
+                ? ColorPalette.blueDark
+                : ColorPalette.blueLight,
+            }}
+            placeholder="Your message"
+            placeholderTextColor={'#C1C6E5'}
+            multiline={true}
+            ref={textInputRef}
+            onChangeText={(text: string) => setUserInput(text)}
+          />
+          {userInput && (
+            <TouchableOpacity
+              style={styles.sendChatTouchable}
+              onPress={async () => !llm.isGenerating && (await sendMessage())}
+            >
+              <SendIcon height={24} width={24} padding={4} margin={8} />
+            </TouchableOpacity>
+          )}
+          {llm.isGenerating && (
+            <TouchableOpacity
+              style={styles.sendChatTouchable}
+              onPress={llm.interrupt}
+            >
+              <PauseIcon height={24} width={24} padding={4} margin={8} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  keyboardAvoidingView: { flex: 1 },
   chatContainer: { flex: 10, width: '100%' },
   helloMessageContainer: {
     flex: 10,
