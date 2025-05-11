@@ -1,5 +1,4 @@
 package com.anonymous.llama
-
 import android.app.Application
 import android.content.res.Configuration
 import com.facebook.react.PackageList
@@ -14,9 +13,7 @@ import com.facebook.soloader.SoLoader
 import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
 
-class MainApplication :
-  Application(),
-  ReactApplication {
+class MainApplication : Application(), ReactApplication {
   override val reactNativeHost: ReactNativeHost =
     ReactNativeHostWrapper(
       this,
@@ -24,7 +21,7 @@ class MainApplication :
         override fun getPackages(): List<ReactPackage> {
           val packages = PackageList(this).packages
           // Packages that cannot be autolinked yet can be added manually here, for example:
-          // packages.add(new MyReactNativePackage());
+          // packages.add(MyReactNativePackage())
           return packages
         }
 
@@ -42,6 +39,9 @@ class MainApplication :
 
   override fun onCreate() {
     super.onCreate()
+    // @generated begin xml-fonts-init - expo prebuild (DO NOT MODIFY) sync-da39a3ee5e6b4b0d3255bfef95601890afd80709
+
+    // @generated end xml-fonts-init
     SoLoader.init(this, OpenSourceMergedSoMapping)
     if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
       // If you opted-in for the New Architecture, we load the native entry point for this app.

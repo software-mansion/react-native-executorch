@@ -35,7 +35,7 @@ class ArrayUtils {
     fun <V> createMapArray(input: ReadableArray): Array<Map<String, V>> {
       val mapArray = Array<Map<String, V>>(input.size()) { mapOf() }
       for (i in 0 until input.size()) {
-        mapArray[i] = input.getMap(i).toHashMap() as Map<String, V>
+        mapArray[i] = input.getMap(i)?.toHashMap() as Map<String, V>
       }
       return mapArray
     }

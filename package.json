@@ -65,7 +65,7 @@
     "@react-native/eslint-config": "^0.73.1",
     "@release-it/conventional-changelog": "^5.0.0",
     "@types/jest": "^29.5.5",
-    "@types/react": "^18.2.44",
+    "@types/react": "~19.0.10",
     "commitlint": "^17.0.2",
     "del-cli": "^5.1.0",
     "eslint": "^8.51.0",
@@ -74,11 +74,11 @@
     "jest": "^29.7.0",
     "metro-react-native-babel-preset": "^0.77.0",
     "prettier": "^3.0.3",
-    "react": "18.3.1",
-    "react-native": "^0.76.1",
+    "react": "19.0.0",
+    "react-native": "0.79.2",
     "react-native-builder-bob": "^0.30.2",
     "turbo": "^1.10.7",
-    "typescript": "^5.2.2"
+    "typescript": "~5.8.3"
   },
   "resolutions": {
     "@types/react": "^18.2.44"
@@ -193,9 +193,9 @@
     }
   },
   "dependencies": {
-    "expo": "^52.0.37",
-    "expo-asset": "^11.0.3",
-    "expo-file-system": "^18.0.10",
+    "expo": "53.0.9",
+    "expo-asset": "~11.1.5",
+    "expo-file-system": "~18.1.9",
     "react-native-live-audio-stream": "^1.1.1"
   }
 }
