@@ -3,10 +3,11 @@ import { useFonts } from 'expo-font';
 import ScrollPicker from 'react-native-wheel-scrollview-picker';
 import SWMIcon from './assets/icons/swm_icon.svg';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { ChatScreenLLM, ChatScreenLLMToolCalling } from './screens/ChatScreen';
 import { useState } from 'react';
 import ColorPalette from './colors';
 import { View, StyleSheet, Text } from 'react-native';
+import LLMScreen from './screens/LLMScreen';
+import LLMToolCallingScreen from './screens/LLMToolCallingScreen';
 
 enum Mode {
   LLM,
@@ -27,13 +28,13 @@ export default function App() {
   const renderScreen = () => {
     switch (selectedMode) {
       case Mode.LLM:
-        return <ChatScreenLLM />;
+        return <LLMScreen />;
 
       case Mode.LLM_TOOL_CALLING:
-        return <ChatScreenLLMToolCalling />;
+        return <LLMToolCallingScreen />;
 
       default:
-        return <ChatScreenLLM />;
+        return <LLMScreen />;
     }
   };
 
