@@ -17,7 +17,7 @@ import { parseToolCall } from '../utils/llm';
 
 export class LLMController {
   private nativeModule: typeof LLMNativeModule;
-  private chatConfig: ChatConfig;
+  private chatConfig: ChatConfig = DEFAULT_CHAT_CONFIG;
   private toolsConfig: ToolsConfig | undefined;
   private tokenizerConfig: any;
   private onToken: EventSubscription | null = null;
@@ -43,8 +43,6 @@ export class LLMController {
     isGeneratingCallback,
     onDownloadProgressCallback,
     errorCallback,
-    chatConfig = DEFAULT_CHAT_CONFIG,
-    toolsConfig,
   }: {
     responseCallback?: (response: string) => void;
     messageHistoryCallback?: (messageHistory: Message[]) => void;
@@ -52,8 +50,6 @@ export class LLMController {
     isGeneratingCallback?: (isGenerating: boolean) => void;
     onDownloadProgressCallback?: (downloadProgress: number) => void;
     errorCallback?: (error: Error | undefined) => void;
-    chatConfig?: Partial<ChatConfig>;
-    toolsConfig?: ToolsConfig;
   }) {
     this.responseCallback = (response) => {
       this._response = response;
@@ -74,9 +70,6 @@ export class LLMController {
     this.errorCallback = errorCallback;
     this.onDownloadProgressCallback = onDownloadProgressCallback;
 
-    this.messageHistoryCallback(chatConfig?.initialMessageHistory ?? []);
-    this.chatConfig = { ...DEFAULT_CHAT_CONFIG, ...chatConfig };
-    this.toolsConfig = toolsConfig;
     this.nativeModule = LLMNativeModule;
   }
 
@@ -102,7 +95,12 @@ export class LLMController {
     tokenizerSource: ResourceSource;
     tokenizerConfigSource: ResourceSource;
   }) {
+    // reset inner state when loading new model
+    this.responseCallback('');
+    this.messageHistoryCallback(this.chatConfig.initialMessageHistory);
+    this.isGeneratingCallback(false);
     this.isReadyCallback(false);
+
     try {
       const tokenizerFileUri = await ResourceFetcher.fetch(tokenizerSource);
       const tokenizerConfigFileUri = await ResourceFetcher.fetch(
@@ -135,10 +133,33 @@ export class LLMController {
     }
   }
 
+  public configure({
+    chatConfig,
+    toolsConfig,
+  }: {
+    chatConfig?: Partial<ChatConfig>;
+    toolsConfig?: ToolsConfig;
+  }) {
+    this.chatConfig = { ...DEFAULT_CHAT_CONFIG, ...chatConfig };
+    this.toolsConfig = toolsConfig;
+
+    // reset inner state when loading new configuration
+    this.responseCallback('');
+    this.messageHistoryCallback(this.chatConfig.initialMessageHistory);
+    this.isGeneratingCallback(false);
+  }
+
   public delete() {
+    if (this._isGenerating) {
+      throw new Error(
+        'Model is generating! You cannot delete the model now. You need to interrupt first.'
+      );
+    }
     this.onToken?.remove();
     this.onToken = null;
     this.nativeModule.releaseResources();
+    this.isReadyCallback(false);
+    this.isGeneratingCallback(false);
   }
 
   public async forward(input: string) {
@@ -158,6 +179,7 @@ export class LLMController {
 
   public interrupt() {
     this.nativeModule.interrupt();
+    this.isGeneratingCallback(false);
   }
 
   public async generate(messages: Message[], tools?: LLMTool[]) {

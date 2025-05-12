@@ -9,8 +9,7 @@ export class LLMModule {
     modelSource,
     tokenizerSource,
     tokenizerConfigSource,
-    chatConfig,
-    toolsConfig,
+
     onDownloadProgressCallback,
     responseCallback,
     messageHistoryCallback,
@@ -18,8 +17,7 @@ export class LLMModule {
     modelSource: ResourceSource;
     tokenizerSource: ResourceSource;
     tokenizerConfigSource: ResourceSource;
-    chatConfig?: Partial<ChatConfig>;
-    toolsConfig?: ToolsConfig;
+
     onDownloadProgressCallback?: (_downloadProgress: number) => void;
     responseCallback?: (response: string) => void;
     messageHistoryCallback?: (messageHistory: Message[]) => void;
@@ -28,14 +26,22 @@ export class LLMModule {
       responseCallback: responseCallback,
       messageHistoryCallback: messageHistoryCallback,
       onDownloadProgressCallback: onDownloadProgressCallback,
-      chatConfig,
-      toolsConfig,
     });
     await this.controller.load({
       modelSource,
       tokenizerSource,
       tokenizerConfigSource,
     });
+  }
+
+  static configure({
+    chatConfig,
+    toolsConfig,
+  }: {
+    chatConfig?: Partial<ChatConfig>;
+    toolsConfig?: ToolsConfig;
+  }) {
+    this.controller.configure({ chatConfig, toolsConfig });
   }
 
   static async forward(input: string): Promise<string> {

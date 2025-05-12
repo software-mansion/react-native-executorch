@@ -21,9 +21,14 @@ import PauseIcon from '../assets/icons/pause_icon.svg';
 import ColorPalette from '../colors';
 import Messages from '../components/Messages';
 
-export default function LLMScreen() {
+export default function LLMScreen({
+  setIsGenerating,
+}: {
+  setIsGenerating: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
+  const textInputRef = useRef<TextInput>(null);
 
   const llm = useLLM({
     modelSource: LLAMA3_2_1B_QLORA,
@@ -37,7 +42,9 @@ export default function LLMScreen() {
     }
   }, [llm.error]);
 
-  const textInputRef = useRef<TextInput>(null);
+  useEffect(() => {
+    setIsGenerating(llm.isGenerating);
+  }, [llm.isGenerating, setIsGenerating]);
 
   const sendMessage = async () => {
     setUserInput('');

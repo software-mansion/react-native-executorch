@@ -26,21 +26,24 @@ export default function App() {
     regular: require('./assets/fonts/Aeonik-Regular.otf'),
   });
   const [selectedMode, setSelectedMode] = useState<Mode>(Mode.LLM);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const handleModeChange = (mode: Mode) => {
-    setSelectedMode(mode);
+    if (!isGenerating) {
+      setSelectedMode(mode);
+    }
   };
 
   const renderScreen = () => {
     switch (selectedMode) {
       case Mode.LLM:
-        return <LLMScreen />;
+        return <LLMScreen setIsGenerating={setIsGenerating} />;
 
       case Mode.LLM_TOOL_CALLING:
-        return <LLMToolCallingScreen />;
+        return <LLMToolCallingScreen setIsGenerating={setIsGenerating} />;
 
       default:
-        return <LLMScreen />;
+        return <LLMScreen setIsGenerating={setIsGenerating} />;
     }
   };
 
@@ -55,20 +58,26 @@ export default function App() {
           <View style={styles.topContainer}>
             <SWMIcon width={45} height={45} />
             <Text style={styles.textModelName}>LLM on device demo</Text>
-            <View style={styles.wheelPickerContainer}>
-              <ScrollPicker
-                dataSource={['Chat with LLM', 'Tool calling']}
-                onValueChange={(_, selectedIndex) => {
-                  handleModeChange(selectedIndex);
-                }}
-                wrapperHeight={120}
-                highlightColor={ColorPalette.primary}
-                wrapperBackground="#fff"
-                highlightBorderWidth={3}
-                itemHeight={40}
-                activeItemTextStyle={styles.activeScrollItem}
-              />
-            </View>
+            {!isGenerating ? (
+              <View style={styles.wheelPickerContainer}>
+                <ScrollPicker
+                  dataSource={['Chat with LLM', 'Tool calling']}
+                  onValueChange={(_, selectedIndex) => {
+                    handleModeChange(selectedIndex);
+                  }}
+                  wrapperHeight={120}
+                  highlightColor={ColorPalette.primary}
+                  wrapperBackground="#fff"
+                  highlightBorderWidth={3}
+                  itemHeight={40}
+                  activeItemTextStyle={styles.activeScrollItem}
+                />
+              </View>
+            ) : (
+              <Text style={styles.placeholderText}>
+                Model is generating. Interrupt to swap models!
+              </Text>
+            )}
           </View>
 
           {renderScreen()}
@@ -92,13 +101,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  wheelPickerContainer: {
-    width: '100%',
-    height: 120,
-  },
-  activeScrollItem: {
-    color: ColorPalette.primary,
-    fontWeight: 'bold',
-  },
+  wheelPickerContainer: { width: '100%', height: 120 },
+  activeScrollItem: { color: ColorPalette.primary, fontWeight: 'bold' },
   textModelName: { color: ColorPalette.primary },
+  placeholderText: {
+    color: ColorPalette.primary,
+    fontSize: 25,
+    marginTop: 20,
+    textAlign: 'center',
+  },
 });
