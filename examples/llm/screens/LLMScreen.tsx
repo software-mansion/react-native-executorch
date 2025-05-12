@@ -77,6 +77,7 @@ export default function LLMScreen() {
 
         <View style={styles.bottomContainer}>
           <TextInput
+            autoCorrect={false}
             onFocus={() => setIsTextInputFocused(true)}
             onBlur={() => setIsTextInputFocused(false)}
             style={{
