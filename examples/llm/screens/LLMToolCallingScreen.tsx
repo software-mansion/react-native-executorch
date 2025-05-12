@@ -122,6 +122,7 @@ export default function LLMToolCallingScreen() {
 
           <View style={styles.bottomContainer}>
             <TextInput
+              autoCorrect={false}
               onFocus={() => setIsTextInputFocused(true)}
               onBlur={() => setIsTextInputFocused(false)}
               style={{
