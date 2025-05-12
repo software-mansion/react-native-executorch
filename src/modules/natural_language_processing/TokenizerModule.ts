@@ -11,7 +11,7 @@ export class TokenizerModule extends BaseModule {
 
   static async decode(
     input: number[],
-    skipSpecialTokens: boolean
+    skipSpecialTokens = false
   ): Promise<string> {
     return await this.nativeModule.decode(input, skipSpecialTokens);
   }
