@@ -7,6 +7,7 @@
 
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/RnExecutorchInstaller.h>
+#include <rnexecutorch/data_processing/FileUtils.h>
 #include <rnexecutorch/data_processing/base64.h>
 
 namespace rnexecutorch {
@@ -62,14 +63,8 @@ cv::Mat bufferToColorMat(const std::span<const float> &buffer,
   return mat;
 }
 
-std::string getTimeID() {
-  return std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(
-                            std::chrono::system_clock::now().time_since_epoch())
-                            .count());
-}
-
 std::string saveToTempFile(const cv::Mat &image) {
-  std::string filename = "rn_executorch_" + getTimeID() + ".png";
+  std::string filename = "rn_executorch_" + fileutils::getTimeID() + ".png";
 
   std::filesystem::path tempDir = std::filesystem::temp_directory_path();
   std::filesystem::path filePath = tempDir / filename;
@@ -117,6 +112,18 @@ cv::Mat readImage(const std::string &imageURI) {
   }
 
   return image;
+}
+
+TensorPtr getTensorFromMatrix(const std::vector<int32_t> &sizes,
+                              const cv::Mat &matrix) {
+  std::vector<float> inputVector = colorMatToVector(matrix);
+  return executorch::extension::make_tensor_ptr(sizes, inputVector);
+}
+
+cv::Mat getMatrixFromTensor(cv::Size size, const Tensor &tensor) {
+  auto resultData = static_cast<const float *>(tensor.const_data_ptr());
+  return bufferToColorMat(std::span<const float>(resultData, tensor.numel()),
+                          size);
 }
 } // namespace imageprocessing
 } // namespace rnexecutorch

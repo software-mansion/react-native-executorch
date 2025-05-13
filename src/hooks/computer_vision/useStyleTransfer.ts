@@ -4,12 +4,12 @@ import { StyleTransferModule } from '../../modules/computer_vision/StyleTransfer
 
 interface Props {
   modelSource: ResourceSource;
+  doNotLoad?: boolean;
 }
 
-export const useStyleTransfer = ({ modelSource }: Props) =>
-  useNonStaticModule<
-    typeof StyleTransferModule,
-    Parameters<(typeof StyleTransferModule)['load']>,
-    [string],
-    string
-  >({ module: StyleTransferModule, loadArgs: [modelSource] });
+export const useStyleTransfer = ({ modelSource, doNotLoad = false }: Props) =>
+  useNonStaticModule({
+    module: StyleTransferModule,
+    loadArgs: [modelSource],
+    doNotLoad: doNotLoad,
+  });
