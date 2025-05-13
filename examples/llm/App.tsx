@@ -25,7 +25,7 @@ export default function App() {
     medium: require('./assets/fonts/Aeonik-Medium.otf'),
     regular: require('./assets/fonts/Aeonik-Regular.otf'),
   });
-  const [selectedMode, setSelectedMode] = useState<Mode>(Mode.LLM);
+  const [selectedMode, setSelectedMode] = useState<Mode>(Mode.LLM_TOOL_CALLING);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleModeChange = (mode: Mode) => {
@@ -55,7 +55,7 @@ export default function App() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'android' ? 30 : 0}
         >
-          <View style={styles.topContainer}>
+          {/* <View style={styles.topContainer}>
             <SWMIcon width={45} height={45} />
             <Text style={styles.textModelName}>LLM on device demo</Text>
             {!isGenerating ? (
@@ -78,7 +78,7 @@ export default function App() {
                 Model is generating. Interrupt to swap models!
               </Text>
             )}
-          </View>
+          </View> */}
 
           {renderScreen()}
         </KeyboardAvoidingView>
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'space-between',
-    backgroundColor: '#fff',
+    backgroundColor: '#232736',
   },
   keyboardAvoidingView: { flex: 1 },
   topContainer: {

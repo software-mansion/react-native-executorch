@@ -7,7 +7,7 @@ import {
   Platform,
 } from 'react-native';
 import MarkdownComponent from './MarkdownComponent';
-import LlamaIcon from '../assets/icons/llama_icon.svg';
+import LlamaIcon from '../assets/icons/llama_icon_white.svg';
 import ColorPalette from '../colors';
 import { Message } from 'react-native-executorch/lib/typescript/types/llm';
 
@@ -29,7 +29,7 @@ const MessageItem = memo(({ message, deleteMessage }: MessageItemProps) => {
         </View>
       )}
       <MarkdownComponent text={message.content} />
-      <CloseButton deleteMessage={deleteMessage} role={message.role} />
+      {/* <CloseButton deleteMessage={deleteMessage} role={message.role} /> */}
     </View>
   );
 });

@@ -10,16 +10,15 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import SWMIcon from '../assets/icons/swm_icon.svg';
-import SendIcon from '../assets/icons/send_icon.svg';
+import SWMIcon from '../assets/icons/swm_icon_white.svg';
+import SendIcon from '../assets/icons/send_icon_white.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {
-  HAMMER2_1_1_5B,
   HAMMER2_1_TOKENIZER,
   HAMMER2_1_TOKENIZER_CONFIG,
   useLLM,
   DEFAULT_SYSTEM_PROMPT,
+  HAMMER2_1_1_5B_QUANTIZED,
 } from 'react-native-executorch';
 import PauseIcon from '../assets/icons/pause_icon.svg';
 import ColorPalette from '../colors';
@@ -38,7 +37,7 @@ export default function LLMToolCallingScreen({
   const textInputRef = useRef<TextInput>(null);
 
   const llm = useLLM({
-    modelSource: HAMMER2_1_1_5B,
+    modelSource: HAMMER2_1_1_5B_QUANTIZED,
     tokenizerSource: HAMMER2_1_TOKENIZER,
     tokenizerConfigSource: HAMMER2_1_TOKENIZER_CONFIG,
   });
@@ -51,7 +50,8 @@ export default function LLMToolCallingScreen({
   useEffect(() => {
     configure({
       chatConfig: {
-        systemPrompt: `${DEFAULT_SYSTEM_PROMPT} Current time and date: ${new Date().toString()}`,
+        systemPrompt: `${DEFAULT_SYSTEM_PROMPT} Current time and date: ${new Date().toString()}. Use this kind of date format. Perform only one tool call per answer.`,
+        contextWindowLength: 7,
       },
       toolsConfig: {
         tools: TOOL_DEFINITIONS_PHONE,
@@ -106,7 +106,7 @@ export default function LLMToolCallingScreen({
       )} %`}
     />
   ) : (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView
           style={styles.keyboardAvoidingView}
@@ -170,7 +170,7 @@ export default function LLMToolCallingScreen({
           </View>
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -178,7 +178,6 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   keyboardAvoidingView: { flex: 1 },
   topContainer: {
-    height: 68,
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
