@@ -25,6 +25,15 @@ export default function MarkdownComponent({ text }: MarkdownComponentProps) {
         heading1: { fontSize: 14 },
         heading2: { fontSize: 14 },
         strong: { fontFamily: 'medium' },
+        bullet_list_content: {
+          flex: undefined,
+        },
+        ordered_list_content: {
+          flex: undefined,
+        },
+        fence: {
+          backgroundColor: '#272b3c',
+        },
       }}
     >
       {text}

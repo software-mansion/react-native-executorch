@@ -43,7 +43,7 @@ export const TOOL_DEFINITIONS_PHONE = [
   {
     name: 'read_calendar',
     description:
-      'Read calendar events from now up to given point in time. If nothing is specified leave both empty.',
+      'Read/checks/examines calendar events from now up to given point in time. If nothing is specified leave both empty.',
     parameters: {
       type: 'dict',
       properties: {
@@ -182,10 +182,15 @@ const readCalendar = async (call: ToolCall) => {
     endDate
   );
 
-  const eventsStringRepresentation = events.map(
-    (event) => `${event.title}, from: ${event.startDate}, to: ${event.endDate}`
-  );
-  return eventsStringRepresentation.join('\n');
+  const eventsStringRepresentation = events.map((event, idx) => {
+    if (typeof event.startDate === 'string') {
+      return `${idx + 1}. ${event.title}, from: ${new Date(event.startDate).toLocaleString([], { hour: '2-digit', minute: '2-digit' })}, to: ${new Date(event.endDate).toLocaleString([], { hour: '2-digit', minute: '2-digit' })}\n\n`;
+    } else {
+      return `${idx + 1}. ${event.title}, from: ${event.startDate.toLocaleString([], { hour: '2-digit', minute: '2-digit' })}, to: ${event.endDate.toLocaleString([], { hour: '2-digit', minute: '2-digit' })}\n\n`;
+    }
+  });
+  console.log(eventsStringRepresentation.join(''));
+  return eventsStringRepresentation.join('');
 };
 
 const addEventToCalendar = async (call: ToolCall) => {
