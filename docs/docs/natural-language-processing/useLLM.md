@@ -133,7 +133,7 @@ Given computational constraints, our architecture is designed to support only on
 
 **`tokenizerConfigSource`** - URL to the JSON file which contains the tokenizer config.
 
-**`[Optional]preventLoad`** - flag providing a way to control when to start loading model (and more importantly - downloading model data, when you load it first time).
+**`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook
 
 ### Returns
 

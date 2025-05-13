@@ -179,7 +179,6 @@ export class LLMController {
 
   public interrupt() {
     this.nativeModule.interrupt();
-    this.isGeneratingCallback(false);
   }
 
   public async generate(messages: Message[], tools?: LLMTool[]) {

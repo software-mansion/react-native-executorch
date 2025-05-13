@@ -8,7 +8,6 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import SendIcon from '../assets/icons/send_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {
@@ -63,7 +62,7 @@ export default function LLMScreen({
     />
   ) : (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         {llm.messageHistory.length ? (
           <View style={styles.chatContainer}>
             <Messages
@@ -115,7 +114,7 @@ export default function LLMScreen({
             </TouchableOpacity>
           )}
         </View>
-      </SafeAreaView>
+      </View>
     </TouchableWithoutFeedback>
   );
 }
