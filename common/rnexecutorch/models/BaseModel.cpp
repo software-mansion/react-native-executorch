@@ -19,21 +19,23 @@ BaseModel::BaseModel(const std::string &modelSource,
   }
 }
 
-std::vector<int32_t> BaseModel::getInputShape() {
+std::vector<std::vector<int32_t>> BaseModel::getInputShape() {
   auto method_meta = module->method_meta("forward");
 
   if (!method_meta.ok()) {
     throw std::runtime_error("Failed to load forward");
   }
-
-  auto input_meta = method_meta->input_tensor_meta(0);
-  if (!input_meta.ok()) {
-    throw std::runtime_error("Failed to load forward input");
+  std::vector<std::vector<int32_t>> output;
+  std::size_t numInputs = method_meta->num_inputs();
+  output.reserve(numInputs);
+  for (std::size_t input = 0; input < numInputs; ++input) {
+    auto input_meta = method_meta->input_tensor_meta(input);
+    if (!input_meta.ok()) {
+      throw std::runtime_error("Failed to load forward input");
+    }
+    auto shape = input_meta->sizes();
+    output.emplace_back(std::vector<int32_t>(shape.begin(), shape.end()));
   }
-
-  auto shape = input_meta->sizes();
-  std::vector<int32_t> output(shape.begin(), shape.end());
-
   return output;
 }
 
