@@ -18,16 +18,35 @@ jsi::Function RnExecutorchInstaller::loadStyleTransfer(
       [jsCallInvoker](jsi::Runtime &runtime, const jsi::Value &thisValue,
                       const jsi::Value *args, size_t count) -> jsi::Value {
         assert(count == 1);
-        auto source = jsiconversion::getValue<std::string>(args[0], runtime);
+        try {
+          auto source = jsiconversion::getValue<std::string>(args[0], runtime);
 
-        auto styleTransferPtr =
-            std::make_shared<StyleTransfer>(source, &runtime);
-        auto styleTransferHostObject =
-            std::make_shared<ModelHostObject<StyleTransfer>>(
-                styleTransferPtr, &runtime, jsCallInvoker);
+          auto styleTransferPtr =
+              std::make_shared<StyleTransfer>(source, &runtime);
+          auto styleTransferHostObject =
+              std::make_shared<ModelHostObject<StyleTransfer>>(
+                  styleTransferPtr, &runtime, jsCallInvoker);
 
-        return jsi::Object::createFromHostObject(runtime,
-                                                 styleTransferHostObject);
+          return jsi::Object::createFromHostObject(runtime,
+                                                   styleTransferHostObject);
+        } catch (const std::runtime_error &e) {
+          // This catch should be merged with the next one
+          // (std::runtime_error inherits from std::exception) HOWEVER react
+          // native has broken RTTI which breaks proper exception type
+          // checking. Remove when the following change is present in our
+          // version:
+          // https://github.com/facebook/react-native/commit/3132cc88dd46f95898a756456bebeeb6c248f20e
+          throw jsi::JSError(runtime, e.what());
+          return jsi::Value();
+        } catch (const std::exception &e) {
+          throw jsi::JSError(runtime, e.what());
+          return jsi::Value();
+          ;
+        } catch (...) {
+          throw jsi::JSError(runtime, "Unknown error");
+          return jsi::Value();
+          ;
+        }
       });
 }
 
