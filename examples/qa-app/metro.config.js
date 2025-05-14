@@ -17,5 +17,6 @@ config.resolver = {
 };
 
 config.resolver.assetExts.push('pte');
+config.resolver.assetExts.push('txt');
 
 module.exports = config;
