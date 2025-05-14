@@ -1395,7 +1395,7 @@ PODS:
     - React-jsiexecutor
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
-  - react-native-executorch (20250508171113):
+  - react-native-executorch (0.3.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2363,8 +2363,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
-  DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
+  boost: 1dca942403ed9342f98334bf4c3621f011aa7946
+  DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
   EXConstants: a1112af878fddfe6acc0399473ac56a07ced0f47
   Expo: add141aa1cdd34f2590f1f2a33e304e7f87be2f9
   ExpoAsset: 3bc9adb7dbbf27ae82c18ca97eb988a3ae7e73b1
@@ -2374,8 +2374,8 @@ SPEC CHECKSUMS:
   ExpoModulesCore: 3ac17421302df62928fc99c133cf25bdbcf0b004
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: 84b955f7b4da8b895faf5946f73748267347c975
-  fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
-  glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
+  fmt: 01b82d4ca6470831d1cc0852a1af644be019e8f6
+  glog: 08b301085f15bcbb6ff8632a8ebaf239aae04e6a
   hermes-engine: 314be5250afa5692b57b4dd1705959e1973a8ebe
   opencv-rne: 63e933ae2373fc91351f9a348dc46c3f523c2d3f
   RCT-Folly: e78785aa9ba2ed998ea4151e314036f6c49e6d82
@@ -2409,7 +2409,7 @@ SPEC CHECKSUMS:
   React-logger: 8edfcedc100544791cd82692ca5a574240a16219
   React-Mapbuffer: c3f4b608e4a59dd2f6a416ef4d47a14400194468
   React-microtasksnativemodule: 054f34e9b82f02bd40f09cebd4083828b5b2beb6
-  react-native-executorch: 101fc5c5e2d414b72c975b9ae282add31f3c254b
+  react-native-executorch: 9dbeaeb7b1f493ab6b61dfecc4408c2e0b9a4c6f
   react-native-image-picker: 8a3f16000e794f5381a7fe47bb48fd8d06741e47
   react-native-safe-area-context: 562163222d999b79a51577eda2ea8ad2c32b4d06
   React-NativeModulesApple: 2c4377e139522c3d73f5df582e4f051a838ff25e
