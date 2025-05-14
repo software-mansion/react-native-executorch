@@ -2,7 +2,6 @@
 
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/host_objects/ModelHostObject.h>
-#include <rnexecutorch/jsi/JsiPromise.h>
 #include <rnexecutorch/models/StyleTransfer.h>
 
 namespace rnexecutorch {
