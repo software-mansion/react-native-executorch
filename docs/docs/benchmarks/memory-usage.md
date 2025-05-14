@@ -57,6 +57,9 @@ sidebar_position: 2
 
 ## Text Embeddings
 
-| Model            | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| ---------------- | :--------------------: | :----------------: |
-| ALL_MINILM_L6_V2 |          140           |         64         |
+| Model                      | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| -------------------------- | :--------------------: | :----------------: |
+| ALL_MINILM_L6_V2           |          150           |        190         |
+| ALL_MPNET_BASE_V2          |          520           |        470         |
+| MULTI_QA_MINILM_L6_COS_V1  |          160           |        225         |
+| MULTI_QA_MPNET_BASE_DOT_V1 |          540           |        500         |

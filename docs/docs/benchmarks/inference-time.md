@@ -102,6 +102,9 @@ Average time for decoding one token in sequence of 100 tokens, with encoding con
 
 ## Text Embeddings
 
-| Model            | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) | OnePlus 12 (XNNPACK) [ms] |
-| ---------------- | :--------------------------: | :------------------------------: | :------------------------: | :--------------------------: | :-----------------------: |
-| ALL_MINILM_L6_V2 |             105              |               126                |            151             |             165              |            152            |
+| Model                      | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) | OnePlus 12 (XNNPACK) [ms] |
+| -------------------------- | :--------------------------: | :------------------------------: | :------------------------: | :--------------------------: | :-----------------------: |
+| ALL_MINILM_L6_V2           |              53              |                69                |             78             |              60              |            65             |
+| ALL_MPNET_BASE_V2          |             352              |               423                |            478             |             521              |            527            |
+| MULTI_QA_MINILM_L6_COS_V1  |             135              |               166                |            180             |             158              |            165            |
+| MULTI_QA_MPNET_BASE_DOT_V1 |             503              |               598                |            680             |             694              |            743            |
