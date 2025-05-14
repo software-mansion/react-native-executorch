@@ -1,4 +1,4 @@
-package com.anonymous.speechtotext
+package com.anonymous.qaapp
 
 import android.os.Build
 import android.os.Bundle

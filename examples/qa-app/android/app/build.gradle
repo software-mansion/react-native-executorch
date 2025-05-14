@@ -87,9 +87,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.anonymous.speechtotext'
+    namespace 'com.anonymous.qaapp'
     defaultConfig {
-        applicationId 'com.anonymous.speechtotext'
+        applicationId 'com.anonymous.qaapp'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

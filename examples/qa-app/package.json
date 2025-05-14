@@ -1,5 +1,5 @@
 {
-  "name": "speech-to-text",
+  "name": "qa-app",
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
@@ -12,6 +12,8 @@
     "@react-native/metro-config": "^0.76.3",
     "buffer": "^6.0.3",
     "expo": "^53.0.0",
+    "expo-asset": "~11.1.5",
+    "expo-file-system": "~18.1.10",
     "expo-font": "~13.3.1",
     "expo-status-bar": "~2.2.3",
     "metro-config": "^0.81.0",
@@ -19,7 +21,7 @@
     "react-native": "0.79.2",
     "react-native-audio-api": "0.5.7",
     "react-native-device-info": "^14.0.4",
-    "react-native-executorch": "^0.3.2",
+    "react-native-executorch": "file:../../react-native-executorch-0.420.20250514110509.tgz",
     "react-native-image-picker": "^7.2.2",
     "react-native-live-audio-stream": "^1.1.1",
     "react-native-loading-spinner-overlay": "^3.0.1",
@@ -31,6 +33,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@react-native-community/cli": "^18.0.0",
     "@types/react": "~19.0.10",
     "typescript": "~5.8.3"
   },

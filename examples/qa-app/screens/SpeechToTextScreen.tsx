@@ -43,7 +43,7 @@ const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
   return float32Array;
 };
 
-export const SpeechToTextScreen = () => {
+export const MainScreen = () => {
   const {
     isGenerating,
     isReady,

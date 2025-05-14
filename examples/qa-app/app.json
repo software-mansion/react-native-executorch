@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "speech-to-text",
-    "slug": "speech-to-text",
+    "name": "qa-app",
+    "slug": "qa-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,18 +14,18 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.speechtotext"
+      "bundleIdentifier": "com.anonymous.qaapp"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.speechtotext"
+      "package": "com.anonymous.qaapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-font"]
+    "plugins": ["expo-font", "expo-asset"]
   }
 }

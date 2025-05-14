@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "speechtotext.app"
-               BlueprintName = "speechtotext"
-               ReferencedContainer = "container:speechtotext.xcodeproj">
+               BuildableName = "qaapp.app"
+               BlueprintName = "qaapp"
+               ReferencedContainer = "container:qaapp.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "speechtotextTests.xctest"
-               BlueprintName = "speechtotextTests"
-               ReferencedContainer = "container:speechtotext.xcodeproj">
+               BuildableName = "qaappTests.xctest"
+               BlueprintName = "qaappTests"
+               ReferencedContainer = "container:qaapp.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "speechtotext.app"
-            BlueprintName = "speechtotext"
-            ReferencedContainer = "container:speechtotext.xcodeproj">
+            BuildableName = "qaapp.app"
+            BlueprintName = "qaapp"
+            ReferencedContainer = "container:qaapp.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "speechtotext.app"
-            BlueprintName = "speechtotext"
-            ReferencedContainer = "container:speechtotext.xcodeproj">
+            BuildableName = "qaapp.app"
+            BlueprintName = "qaapp"
+            ReferencedContainer = "container:qaapp.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
