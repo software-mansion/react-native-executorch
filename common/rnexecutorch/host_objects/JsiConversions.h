@@ -1,7 +1,9 @@
 #pragma once
 
-#include <jsi/jsi.h>
+#include <set>
 #include <type_traits>
+
+#include <jsi/jsi.h>
 
 namespace rnexecutorch::jsiconversion {
 
@@ -12,22 +14,23 @@ using namespace facebook;
 template <typename T> T getValue(const jsi::Value &val, jsi::Runtime &runtime);
 
 template <>
-double getValue<double>(const jsi::Value &val, jsi::Runtime &runtime) {
+inline double getValue<double>(const jsi::Value &val, jsi::Runtime &runtime) {
   return val.asNumber();
 }
 
-template <> bool getValue<bool>(const jsi::Value &val, jsi::Runtime &runtime) {
+template <>
+inline bool getValue<bool>(const jsi::Value &val, jsi::Runtime &runtime) {
   return val.asBool();
 }
 
 template <>
-std::string getValue<std::string>(const jsi::Value &val,
-                                  jsi::Runtime &runtime) {
+inline std::string getValue<std::string>(const jsi::Value &val,
+                                         jsi::Runtime &runtime) {
   return val.getString(runtime).utf8(runtime);
 }
 
 template <>
-std::vector<std::string>
+inline std::vector<std::string>
 getValue<std::vector<std::string>>(const jsi::Value &val,
                                    jsi::Runtime &runtime) {
   jsi::Array array = val.asObject(runtime).asArray(runtime);
@@ -42,6 +45,25 @@ getValue<std::vector<std::string>>(const jsi::Value &val,
   return result;
 }
 
+// Set with heterogenerous look-up (adding std::less<> enables querying
+// with std::string_view)
+template <>
+inline std::set<std::string, std::less<>>
+getValue<std::set<std::string, std::less<>>>(const jsi::Value &val,
+                                             jsi::Runtime &runtime) {
+  // C++ set from JS array
+
+  jsi::Array array = val.asObject(runtime).asArray(runtime);
+  size_t length = array.size(runtime);
+  std::set<std::string, std::less<>> result;
+
+  for (size_t i = 0; i < length; ++i) {
+    jsi::Value element = array.getValueAtIndex(runtime, i);
+    result.insert(getValue<std::string>(element, runtime));
+  }
+  return result;
+}
+
 // Conversion from C++ types to jsi --------------------------------------------
 
 // Implementation functions might return any type, but in a promise we can only
@@ -49,15 +71,11 @@ getValue<std::vector<std::string>>(const jsi::Value &val,
 // we add a function here.
 
 // Identity function for the sake of completeness
-jsi::Value getJsiValue(jsi::Value &&value, jsi::Runtime &runtime) {
+inline jsi::Value getJsiValue(jsi::Value &&value, jsi::Runtime &runtime) {
   return std::move(value);
 }
 
-jsi::Value getJsiValue(jsi::Object &&value, jsi::Runtime &runtime) {
-  return jsi::Value(std::move(value));
-}
-
-jsi::Value getJsiValue(const std::string &str, jsi::Runtime &runtime) {
+inline jsi::Value getJsiValue(const std::string &str, jsi::Runtime &runtime) {
   return jsi::String::createFromAscii(runtime, str);
 }
 

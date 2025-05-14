@@ -1,9 +1,15 @@
-import { useModule } from '../useModule';
+import { ResourceSource } from '../../types/common';
+import { useNonStaticModule } from '../useNonStaticModule';
 import { ImageSegmentationModule } from '../../modules/computer_vision/ImageSegmentationModule';
 
 interface Props {
-  modelSource: string | number;
+  modelSource: ResourceSource;
 }
 
 export const useImageSegmentation = ({ modelSource }: Props) =>
-  useModule({ module: ImageSegmentationModule, loadArgs: [modelSource] });
+  useNonStaticModule<
+    typeof ImageSegmentationModule,
+    Parameters<(typeof ImageSegmentationModule)['load']>,
+    [string, string[], boolean],
+    { [category: string]: number[] }
+  >({ module: ImageSegmentationModule, loadArgs: [modelSource] });

@@ -2,7 +2,6 @@
 
 #include <string>
 
-#include <executorch/extension/module/module.h>
 #include <jsi/jsi.h>
 
 #include <rnexecutorch/models/BaseModel.h>
