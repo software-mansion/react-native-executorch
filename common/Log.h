@@ -12,17 +12,17 @@
 
 namespace rnexecutorch {
 
-enum LOG_LEVEL { INFO_LVL, ERROR_LVL, DEBUG_LVL };
+enum class LOG_LEVEL { INFO, ERROR, DEBUG };
 
 #ifdef __ANDROID__
 android_LogPriority androidLogLevel(LOG_LEVEL logLevel) {
   switch (logLevel) {
-  case LOG_LEVEL::INFO_LVL:
+  case LOG_LEVEL::INFO:
   default:
     return ANDROID_LOG_INFO;
-  case LOG_LEVEL::ERROR_LVL:
+  case LOG_LEVEL::ERROR:
     return ANDROID_LOG_ERROR;
-  case LOG_LEVEL::DEBUG_LVL:
+  case LOG_LEVEL::DEBUG:
     return ANDROID_LOG_DEBUG;
   }
 }
@@ -34,12 +34,13 @@ void log(LOG_LEVEL logLevel, const char *fmt, ...) {
   va_start(args, fmt);
 
   // Maximum length of a log message.
-  static constexpr size_t kMaxLogMessageLength = 256;
+  static constexpr size_t kMaxLogMessageLength = 1024;
   char buf[kMaxLogMessageLength];
   size_t len = vsnprintf(buf, kMaxLogMessageLength, fmt, args);
   if (len >= kMaxLogMessageLength - 1) {
-    buf[kMaxLogMessageLength - 2] = '$';
-    len = kMaxLogMessageLength - 1;
+    for (std::size_t i = 0; i < 3; ++i)
+      buf[kMaxLogMessageLength - 2 - i] = '.';
+    len = kMaxLogMessageLength - 3;
   }
   buf[kMaxLogMessageLength - 1] = 0;
 
@@ -51,14 +52,14 @@ void log(LOG_LEVEL logLevel, const char *fmt, ...) {
 #ifdef __APPLE__
 
   switch (logLevel) {
-  case LOG_LEVEL::INFO_LVL:
+  case LOG_LEVEL::INFO:
   default:
     os_log_info(OS_LOG_DEFAULT, "%s", buf);
     break;
-  case LOG_LEVEL::ERROR_LVL:
+  case LOG_LEVEL::ERROR:
     os_log_error(OS_LOG_DEFAULT, "%s", buf);
     break;
-  case LOG_LEVEL::DEBUG_LVL:
+  case LOG_LEVEL::DEBUG:
     os_log_debug(OS_LOG_DEFAULT, "%s", buf);
     break;
   }
