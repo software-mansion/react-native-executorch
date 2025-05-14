@@ -34,22 +34,24 @@ public:
                 errorMessage, sizeof(errorMessage),
                 "Argument count mismatch, was expecting: %zu but got: %zu",
                 forwardArgCount, count);
-
-            promise->reject(errorMessage);
+            callInvoker->invokeAsync(
+                [errorMessage, &promise]() { promise->reject(errorMessage); });
             return;
           }
 
           // We need to dispatch a thread if we want the forward to be
           // asynchronous
-          std::thread([args, &runtime, this, promise = std::move(promise)]() {
+          std::thread([args, this, promise, &runtime]() {
             try {
               auto argsConverted = jsiconversion::createArgsTupleFromJsi(
                   &Model::forward, args, runtime);
               auto result = std::apply(std::bind_front(&Model::forward, model),
                                        argsConverted);
-
-              promise->resolve(
-                  jsiconversion::getJsiValue(std::move(result), runtime));
+              callInvoker->invokeAsync(
+                  [promise, result = std::move(result)](jsi::Runtime &runtime) {
+                    promise->resolve(
+                        jsiconversion::getJsiValue(std::move(result), runtime));
+                  });
             } catch (const std::runtime_error &e) {
               // This catch should be merged with the next two
               // (std::runtime_error and jsi::JSError inherits from
@@ -57,16 +59,20 @@ public:
               // breaks proper exception type checking. Remove when the
               // following change is present in our version:
               // https://github.com/facebook/react-native/commit/3132cc88dd46f95898a756456bebeeb6c248f20e
-              promise->reject(e.what());
+              callInvoker->invokeAsync(
+                  [&e, promise]() { promise->reject(e.what()); });
               return;
             } catch (const jsi::JSError &e) {
-              promise->reject(e.what());
+              callInvoker->invokeAsync(
+                  [&e, promise]() { promise->reject(e.what()); });
               return;
             } catch (const std::exception &e) {
-              promise->reject(e.what());
+              callInvoker->invokeAsync(
+                  [&e, promise]() { promise->reject(e.what()); });
               return;
             } catch (...) {
-              promise->reject("Unknown error");
+              callInvoker->invokeAsync(
+                  [promise]() { promise->reject("Unknown error"); });
               return;
             }
           }).detach();
