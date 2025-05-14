@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { SpeechToTextController } from '../../controllers/SpeechToTextController';
 import { ResourceSource } from '../../types/common';
 import { AvailableModels, SpeechToTextLanguage } from '../../types/stt';
@@ -45,7 +45,7 @@ export const useSpeechToText = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<Error | undefined>();
 
-  const [model, _] = useState(
+  const model = useMemo(
     () =>
       new SpeechToTextController({
         transcribeCallback: setSequence,
@@ -53,11 +53,13 @@ export const useSpeechToText = ({
         isGeneratingCallback: setIsGenerating,
         onErrorCallback: setError,
         modelDownloadProgressCallback: setDownloadProgress,
-        overlapSeconds: overlapSeconds,
-        windowSize: windowSize,
-        streamingConfig: streamingConfig,
-      })
+      }),
+    []
   );
+
+  useEffect(() => {
+    model.configureStreaming(overlapSeconds, windowSize, streamingConfig);
+  }, [model, overlapSeconds, windowSize, streamingConfig]);
 
   useEffect(() => {
     const loadModel = async () => {
