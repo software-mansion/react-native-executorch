@@ -3,7 +3,6 @@ import { BottomBar } from '../components/BottomBar';
 import { getImage } from '../utils';
 import {
   useImageSegmentation,
-  DeeplabLabel,
   DEEPLAB_V3_RESNET50,
 } from 'react-native-executorch';
 import {
@@ -80,16 +79,14 @@ export const ImageSegmentationScreen = ({
   const runForward = async () => {
     if (imageUri) {
       try {
-        const output = await model.forward(imageUri);
+        const output = await model.forward(imageUri, [], false);
         pixels = new Uint8Array(width * height * 4);
 
         for (let x = 0; x < width; x++) {
           for (let y = 0; y < height; y++) {
             for (let i = 0; i < 3; i++) {
               pixels[(x * height + y) * 4 + i] =
-                numberToColor[
-                  (output[DeeplabLabel.ARGMAX] || [])[x * height + y]
-                ][i];
+                numberToColor[(output['ARGMAX'] || [])[x * height + y]][i];
             }
             pixels[(x * height + y) * 4 + 3] = 255;
           }
