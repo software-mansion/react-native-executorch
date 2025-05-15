@@ -1,204 +1,92 @@
-import { useSpeechToText } from 'react-native-executorch';
 import {
   Text,
   View,
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
+  TextInput,
 } from 'react-native';
-import LiveAudioStream from 'react-native-live-audio-stream';
-import SWMIcon from '../assets/swm_icon.svg';
+import SendIcon from '../assets/send_icon.svg';
 import { useRef, useState } from 'react';
-import { Buffer } from 'buffer';
-import DeviceInfo from 'react-native-device-info';
-import InputPrompt from '../components/TextInputModal';
-import * as FileSystem from 'expo-file-system';
-import { AudioContext } from 'react-native-audio-api';
+import { findClosestEmbeddings } from '../utils';
+import { DbRow } from '../types';
 
-const audioStreamOptions = {
-  sampleRate: 16000,
-  channels: 1,
-  bitsPerSample: 16,
-  audioSource: 1,
-  bufferSize: 16000,
-};
+// const audioStreamOptions = {
+//   sampleRate: 16000,
+//   channels: 1,
+//   bitsPerSample: 16,
+//   audioSource: 1,
+//   bufferSize: 16000,
+// };
 
-const startStreamingAudio = (options: any, onChunk: (data: string) => void) => {
-  LiveAudioStream.init(options);
-  LiveAudioStream.on('data', onChunk);
-  LiveAudioStream.start();
-};
+// const startStreamingAudio = (options: any, onChunk: (data: string) => void) => {
+//   LiveAudioStream.init(options);
+//   LiveAudioStream.on('data', onChunk);
+//   LiveAudioStream.start();
+// };
 
-const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
-  const b64DecodedChunk = Buffer.from(b64EncodedBuffer, 'base64');
-  const int16Array = new Int16Array(b64DecodedChunk.buffer);
+// const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
+//   const b64DecodedChunk = Buffer.from(b64EncodedBuffer, 'base64');
+//   const int16Array = new Int16Array(b64DecodedChunk.buffer);
 
-  const float32Array = new Float32Array(int16Array.length);
-  for (let i = 0; i < int16Array.length; i++) {
-    float32Array[i] = Math.max(
-      -1,
-      Math.min(1, (int16Array[i] / audioStreamOptions.bufferSize) * 8)
-    );
-  }
-  return float32Array;
-};
+//   const float32Array = new Float32Array(int16Array.length);
+//   for (let i = 0; i < int16Array.length; i++) {
+//     float32Array[i] = Math.max(
+//       -1,
+//       Math.min(1, (int16Array[i] / audioStreamOptions.bufferSize) * 8)
+//     );
+//   }
+//   return float32Array;
+// };
 
-export const MainScreen = () => {
-  const {
-    isGenerating,
-    isReady,
-    downloadProgress,
-    sequence,
-    error,
-    transcribe,
-  } = useSpeechToText({ modelName: 'moonshine', streamingConfig: 'balanced' });
+export const MainScreen = ({
+  db,
+  forward,
+}: {
+  db: DbRow[];
+  forward: (input: string) => Promise<number[]>;
+}) => {
+  const [userInput, setUserInput] = useState('');
+  const textInputRef = useRef<TextInput>(null);
 
-  const loadAudio = async (url: string) => {
-    const audioContext = new AudioContext({ sampleRate: 16e3 });
-    const audioBuffer = await FileSystem.downloadAsync(
-      url,
-      FileSystem.documentDirectory + '_tmp_transcribe_audio.mp3'
-    ).then(({ uri }) => {
-      return audioContext.decodeAudioDataSource(uri);
-    });
-    return audioBuffer?.getChannelData(0);
-  };
-
-  const [isRecording, setIsRecording] = useState(false);
-  const [audioUrl, setAudioUrl] = useState('');
-  const audioBuffer = useRef<number[]>([]);
-  const [modalVisible, setModalVisible] = useState(false);
-
-  const onChunk = (data: string) => {
-    const float32Chunk = float32ArrayFromPCMBinaryBuffer(data);
-    audioBuffer.current?.push(...float32Chunk);
-  };
-
-  const handleRecordPress = async () => {
-    if (isRecording) {
-      LiveAudioStream.stop();
-      setIsRecording(false);
-      await transcribe(audioBuffer.current);
-      audioBuffer.current = [];
-    } else {
-      setIsRecording(true);
-      startStreamingAudio(audioStreamOptions, onChunk);
+  const sendQuestion = async () => {
+    if (db.length > 0) {
+      (async () => {
+        console.log('query:', userInput);
+        const queryEmbedding = await forward(userInput);
+        const temp = findClosestEmbeddings(queryEmbedding, db, 3);
+        console.log(temp);
+      })();
     }
+    setUserInput('');
+    textInputRef.current?.clear();
   };
-
-  const buttonDisabled =
-    modalVisible || isGenerating || !isReady || isRecording;
-  const recordingButtonDisabled =
-    modalVisible || !isReady || DeviceInfo.isEmulatorSync();
 
   return (
-    <>
-      <SafeAreaView style={styles.mainContainer}>
-        <View style={styles.topContainer}>
-          <SWMIcon width={80} height={80} />
-          <Text style={styles.topContainerText}>
-            {'React Native ExecuTorch'}
-          </Text>
-          <Text style={styles.topContainerText}>{'Speech to Text demo'}</Text>
-        </View>
-        {downloadProgress !== 1 ? (
-          <View style={styles.transcriptionContainer}>
-            <Text style={[styles.transcriptionText, styles.textGreyCenter]}>
-              {`Downloading model: ${(Number(downloadProgress.toFixed(4)) * 100).toFixed(2)}%`}
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.transcriptionContainer}>
-            <Text
-              style={
-                sequence
-                  ? styles.transcriptionText
-                  : [styles.transcriptionText, styles.textGreyCenter]
-              }
-            >
-              {sequence ||
-                (isGenerating && 'Transcribing...') ||
-                'Start transcription...'}
-            </Text>
-          </View>
-        )}
-        {error && (
-          <Text
-            style={[styles.transcriptionText, styles.redText]}
-          >{`${error}`}</Text>
-        )}
-        <InputPrompt
-          modalVisible={modalVisible}
-          setModalVisible={async (visible: boolean) => {
-            setModalVisible(visible);
-            if (audioUrl) {
-              const loadedAudio = await loadAudio(audioUrl);
-              await transcribe(Array.from(loadedAudio));
-            }
+    <SafeAreaView style={styles.mainContainer}>
+      <Text>Hi</Text>
+      <View>
+        <TextInput
+          autoCorrect={false}
+          style={{
+            ...styles.textInput,
           }}
-          onChangeText={setAudioUrl}
-          value={audioUrl}
+          placeholder="Your message"
+          placeholderTextColor={'#C1C6E5'}
+          multiline={true}
+          ref={textInputRef}
+          onChangeText={(text: string) => setUserInput(text)}
         />
-        <View style={styles.iconsContainer}>
-          <View
-            style={[
-              styles.recordingButtonWrapper,
-              buttonDisabled && styles.borderGrey,
-            ]}
+        {userInput && (
+          <TouchableOpacity
+            style={styles.sendChatTouchable}
+            onPress={async () => await sendQuestion()}
           >
-            <TouchableOpacity
-              disabled={buttonDisabled}
-              style={[
-                styles.recordingButton,
-                buttonDisabled && styles.backgroundGrey,
-              ]}
-              onPress={async () => {
-                if (!audioUrl) {
-                  setModalVisible(true);
-                } else {
-                  const loadedAudio = await loadAudio(audioUrl);
-                  await transcribe(Array.from(loadedAudio));
-                }
-              }}
-            >
-              <Text style={[styles.recordingButtonText, styles.font13]}>
-                {'TRANSCRIBE FROM URL'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View style={styles.iconsContainer}>
-          <View
-            style={[
-              styles.recordingButtonWrapper,
-              recordingButtonDisabled && styles.borderGrey,
-              isRecording && styles.borderRed,
-            ]}
-          >
-            <TouchableOpacity
-              disabled={recordingButtonDisabled || isGenerating}
-              style={[
-                styles.recordingButton,
-                recordingButtonDisabled && styles.backgroundGrey,
-                isRecording && styles.backgroundRed,
-              ]}
-              onPress={handleRecordPress}
-            >
-              <Text style={styles.recordingButtonText}>
-                {isRecording ? 'STOP RECORDING' : 'START RECORDING'}
-              </Text>
-              {DeviceInfo.isEmulatorSync() && (
-                <Text
-                  style={[styles.recordingButtonText, styles.emulatorWarning]}
-                >
-                  recording does not work on emulator
-                </Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-      </SafeAreaView>
-    </>
+            <SendIcon height={24} width={24} padding={4} margin={8} />
+          </TouchableOpacity>
+        )}
+      </View>
+    </SafeAreaView>
   );
 };
 
@@ -302,5 +190,11 @@ const styles = StyleSheet.create({
   emulatorWarning: {
     color: 'rgb(254, 148, 141)',
     fontSize: 11,
+  },
+  sendChatTouchable: {
+    height: '100%',
+    width: 48,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
   },
 });

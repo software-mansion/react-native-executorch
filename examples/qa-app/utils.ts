@@ -1,30 +1,24 @@
+import { DbRow } from './types';
+
 export const dotProduct = (a: number[], b: number[]): number =>
   a.reduce((sum, val, i) => sum + val * b[i], 0);
 
-export const findClosestEmbedding = (
+export const findClosestEmbeddings = (
   target: number[],
-  embeddings: number[][]
+  db: DbRow[],
+  getNBest: number
 ) => {
-  if (embeddings.length === 0) {
+  if (db.length === 0) {
     throw new Error('The array of embeddings is empty.');
   }
 
-  let closestIndex = -1;
-  let highestSimilarity = -Infinity;
+  const matches = db.map(({ text, embedding }) => ({
+    text,
+    similarity: dotProduct(target, embedding),
+  }));
+  matches.sort((a, b) => b.similarity - a.similarity);
 
-  embeddings.forEach((embedding, index) => {
-    const similarity = dotProduct(target, embedding);
-    if (similarity > highestSimilarity) {
-      highestSimilarity = similarity;
-      closestIndex = index;
-    }
-  });
-
-  return {
-    index: closestIndex,
-    similarity: highestSimilarity,
-    embedding: embeddings[closestIndex],
-  };
+  return matches.slice(0, getNBest);
 };
 
 export const slidingWindowSlice = (
