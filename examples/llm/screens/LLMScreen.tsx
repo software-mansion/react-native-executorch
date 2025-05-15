@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -10,7 +10,6 @@ import {
   View,
   TextInput,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import SWMIcon from '../assets/icons/swm_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {
@@ -125,88 +124,86 @@ export default function LLMScreen({
       textContent={`Loading the model ${(llm.downloadProgress * 100).toFixed(0)} %\nLoading the speech model ${(speechToText.downloadProgress * 100).toFixed(0)} %`}
     />
   ) : (
-    <SafeAreaView style={styles.container}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <KeyboardAvoidingView
-          style={styles.keyboardAvoidingView}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'android' ? 30 : 0}
-        >
-          <View style={styles.topContainer}>
-            <SWMIcon width={45} height={45} />
-            <Text style={styles.textModelName}>llm 3.2 1B QLoRA x Whisper</Text>
-          </View>
-          {llm.messageHistory.length || speechToText.sequence ? (
-            <View style={styles.chatContainer}>
-              <Messages
-                chatHistory={
-                  speechToText.isGenerating
-                    ? [
-                        ...llm.messageHistory,
-                        { role: 'user', content: speechToText.sequence },
-                      ]
-                    : llm.messageHistory
-                }
-                llmResponse={llm.response}
-                isGenerating={llm.isGenerating}
-                deleteMessage={llm.deleteMessage}
-              />
-            </View>
-          ) : (
-            <View style={styles.helloMessageContainer}>
-              <Text style={styles.helloText}>Hello! 👋</Text>
-              <Text style={styles.bottomHelloText}>
-                What can I help you with?
-              </Text>
-            </View>
-          )}
-          <View style={styles.bottomContainer}>
-            <TextInput
-              onFocus={() => setIsTextInputFocused(true)}
-              onBlur={() => setIsTextInputFocused(false)}
-              editable={!isRecording && !llm.isGenerating}
-              style={{
-                ...styles.textInput,
-                borderColor: isTextInputFocused
-                  ? ColorPalette.blueDark
-                  : ColorPalette.blueLight,
-                display: isRecording ? 'none' : 'flex',
-              }}
-              placeholder="Your message"
-              placeholderTextColor={'#C1C6E5'}
-              multiline={true}
-              ref={textInputRef}
-              onChangeText={(text: string) => setUserInput(text)}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'android' ? 30 : 0}
+      >
+        <View style={styles.topContainer}>
+          <SWMIcon width={45} height={45} />
+          <Text style={styles.textModelName}>Qwen 3 x Whisper</Text>
+        </View>
+        {llm.messageHistory.length || speechToText.sequence ? (
+          <View style={styles.chatContainer}>
+            <Messages
+              chatHistory={
+                speechToText.isGenerating
+                  ? [
+                      ...llm.messageHistory,
+                      { role: 'user', content: speechToText.sequence },
+                    ]
+                  : llm.messageHistory
+              }
+              llmResponse={llm.response}
+              isGenerating={llm.isGenerating}
+              deleteMessage={llm.deleteMessage}
             />
-            {llm.isGenerating ? (
-              <TouchableOpacity onPress={llm.interrupt}>
-                <PauseIcon height={40} width={40} padding={4} margin={8} />
-              </TouchableOpacity>
-            ) : !userInput ? (
-              <TouchableOpacity
-                style={
-                  !isRecording ? styles.recordTouchable : styles.recordingInfo
-                }
-                onPress={handleRecordPress}
-              >
-                {isRecording ? (
-                  <StopIcon height={40} width={40} padding={4} margin={8} />
-                ) : (
-                  <MicIcon height={40} width={40} padding={4} margin={8} />
-                )}
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={styles.recordTouchable}
-                onPress={async () => !llm.isGenerating && (await sendMessage())}
-              >
-                <SendIcon height={40} width={40} padding={4} margin={8} />
-              </TouchableOpacity>
-            )}
           </View>
-        </KeyboardAvoidingView>
-      </TouchableWithoutFeedback>
-    </SafeAreaView>
+        ) : (
+          <View style={styles.helloMessageContainer}>
+            <Text style={styles.helloText}>Hello! 👋</Text>
+            <Text style={styles.bottomHelloText}>
+              What can I help you with?
+            </Text>
+          </View>
+        )}
+        <View style={styles.bottomContainer}>
+          <TextInput
+            onFocus={() => setIsTextInputFocused(true)}
+            onBlur={() => setIsTextInputFocused(false)}
+            editable={!isRecording && !llm.isGenerating}
+            style={{
+              ...styles.textInput,
+              borderColor: isTextInputFocused
+                ? ColorPalette.blueDark
+                : ColorPalette.blueLight,
+              display: isRecording ? 'none' : 'flex',
+            }}
+            placeholder="Your message"
+            placeholderTextColor={'#C1C6E5'}
+            multiline={true}
+            ref={textInputRef}
+            onChangeText={(text: string) => setUserInput(text)}
+          />
+          {llm.isGenerating ? (
+            <TouchableOpacity onPress={llm.interrupt}>
+              <PauseIcon height={40} width={40} padding={4} margin={8} />
+            </TouchableOpacity>
+          ) : !userInput ? (
+            <TouchableOpacity
+              style={
+                !isRecording ? styles.recordTouchable : styles.recordingInfo
+              }
+              onPress={handleRecordPress}
+            >
+              {isRecording ? (
+                <StopIcon height={40} width={40} padding={4} margin={8} />
+              ) : (
+                <MicIcon height={40} width={40} padding={4} margin={8} />
+              )}
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={styles.recordTouchable}
+              onPress={async () => !llm.isGenerating && (await sendMessage())}
+            >
+              <SendIcon height={40} width={40} padding={4} margin={8} />
+            </TouchableOpacity>
+          )}
+        </View>
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 }
 
