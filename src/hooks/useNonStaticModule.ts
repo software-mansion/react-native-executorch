@@ -18,11 +18,11 @@ export const useNonStaticModule = <
 >({
   module,
   loadArgs,
-  doNotLoad = false,
+  preventLoad = false,
 }: {
   module: ModuleConstructor<M>;
   loadArgs: LoadArgs;
-  doNotLoad?: boolean;
+  preventLoad?: boolean;
 }) => {
   const [error, setError] = useState<null | string>(null);
   const [isReady, setIsReady] = useState(false);
@@ -31,7 +31,7 @@ export const useNonStaticModule = <
   const model = useMemo(() => new module(), [module]);
 
   useEffect(() => {
-    if (!doNotLoad) {
+    if (!preventLoad) {
       (async () => {
         setDownloadProgress(0);
         setError(null);
@@ -45,7 +45,7 @@ export const useNonStaticModule = <
       })();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [...loadArgs, doNotLoad]);
+  }, [...loadArgs, preventLoad]);
 
   const forward = async (...input: ForwardArgs): Promise<ForwardReturn> => {
     if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
