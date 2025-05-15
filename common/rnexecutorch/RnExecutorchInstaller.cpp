@@ -7,6 +7,9 @@
 
 namespace rnexecutorch {
 
+// This function fetches data from a url address. It is implemented in
+// Kotlin/ObjectiveC++ and then bound to this variable. It's done to not handle
+// SSL intricacies manually, as it is done automagically in ObjC++/Kotlin.
 FetchUrlFunc_t fetchUrlFunc;
 
 jsi::Function RnExecutorchInstaller::loadStyleTransfer(

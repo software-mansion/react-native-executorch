@@ -77,19 +77,19 @@ jsi::Value JsiHostObject::get(jsi::Runtime &runtime,
   }
 
   auto function = functions_->find(nameAsString);
-  if (function != functions_->end()) {
-    auto dispatcher =
-        std::bind(function->second, reinterpret_cast<JsiHostObject *>(this),
-                  std::placeholders::_1, std::placeholders::_2,
-                  std::placeholders::_3, std::placeholders::_4);
-
-    return hostFunctionCache
-        .emplace(nameAsString, jsi::Function::createFromHostFunction(
-                                   runtime, name, 0, dispatcher))
-        .first->second.asFunction(runtime);
+  if (function == functions_->end()) {
+    return jsi::Value::undefined();
   }
 
-  return jsi::Value::undefined();
+  auto dispatcher =
+      std::bind(function->second, reinterpret_cast<JsiHostObject *>(this),
+                std::placeholders::_1, std::placeholders::_2,
+                std::placeholders::_3, std::placeholders::_4);
+
+  return hostFunctionCache
+      .emplace(nameAsString, jsi::Function::createFromHostFunction(
+                                 runtime, name, 0, dispatcher))
+      .first->second.asFunction(runtime);
 }
 
 void JsiHostObject::set(jsi::Runtime &runtime, const jsi::PropNameID &name,
