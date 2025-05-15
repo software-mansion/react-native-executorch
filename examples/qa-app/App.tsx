@@ -33,9 +33,6 @@ export default function App() {
     tokenizerSource: MULTI_QA_MINILM_L6_COS_V1_TOKENIZER,
   });
 
-  console.log('rerender');
-  console.log(encoder);
-
   const { forward, isReady } = encoder;
 
   useEffect(() => {
@@ -83,24 +80,11 @@ export default function App() {
         const newDb: DbRow[] = [];
         let counter = 0;
         for (const slice of slices) {
-          let time = performance.now();
           const sliceText = await tokenizer.decode(slice);
-          console.log('tokenizer.decode() time:', performance.now() - time);
-          time = performance.now();
           const embedding = await forward(sliceText);
-          console.log('encoder.forward() time:', performance.now() - time);
-          // console.log(
-          //   '###########',
-          //   counter,
-          //   '\nslice:',
-          //   slice,
-          //   '\nsliceText:',
-          //   sliceText,
-          //   '\nembedding:',
-          //   embedding
-          // );
+
           newDb.push({ text: sliceText, embedding: embedding });
-          if (counter % 1 === 0) {
+          if (counter % 50 === 0) {
             console.log(counter);
           }
           counter++;
@@ -123,27 +107,25 @@ export default function App() {
 
   useEffect(() => {
     // test useEffect
-    if (!result && encoder.isReady && !encoder.isGenerating) {
+    if (!result && db.length > 0) {
       let queryEmbedding: number[] = [];
       (async () => {
-        queryEmbedding = await encoder.forward('What do hobbits eat?');
+        queryEmbedding = await forward('What do hobbits eat?');
       })();
 
-      if (db.length > 0) {
-        const newResult = findClosestEmbedding(
-          queryEmbedding,
-          db.map((row) => row.embedding)
-        );
+      const newResult = findClosestEmbedding(
+        queryEmbedding,
+        db.map((row) => row.embedding)
+      );
 
-        console.log(
-          newResult.index,
-          db[newResult.index].text,
-          newResult.similarity
-        );
-        setResult(newResult);
-      }
+      console.log(
+        newResult.index,
+        db[newResult.index].text,
+        newResult.similarity
+      );
+      setResult(newResult);
     }
-  }, [encoder, db, result]);
+  }, [forward, db, result]);
 
   return <MainScreen />;
 }
