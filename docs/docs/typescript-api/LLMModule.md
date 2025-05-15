@@ -20,14 +20,12 @@ const printDownloadProgress = (progress: number) => {
 };
 
 // Loading the model
-await LLMModule.load(
-  {
-    modelSource:,
-    tokenizerSource: LLAMA3_2_TOKENIZER,
-    tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
-    onDownloadProgressCallback: printDownloadProgress,
-  }
-);
+await LLMModule.load({
+  modelSource: LLAMA3_2_1B_QLORA,
+  tokenizerSource: LLAMA3_2_TOKENIZER,
+  tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
+  onDownloadProgressCallback: printDownloadProgress,
+});
 
 // Running the model
 await LLMModule.sendMessage('Hello, World!');
@@ -41,15 +39,16 @@ LLMModule.delete();
 
 ### Methods
 
-| Method          | Type                                                                                                                                                                                                                                                                                                                                         | Description                                                                                                                                                                                                                                                                                                                                                           |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `load`          | `({  modelSource: ResourceSource, tokenizerSource: ResourceSource, tokenizerConfigSource: ResourceSource, chatConfig?: Partial<ChatConfig>, onDownloadProgressCallback?: (downloadProgress: number) => void, responseCallback?: (response: string) => void, messageHistoryCallback?: (messageHistory: Message[]) => void}) => Promise<void>` | Loads the model. Checkout the [loading the model](#loading-the-model) section for details.                                                                                                                                                                                                                                                                            |
-| `sendMessage`   | `(message: string) => Promise<Message[]>`                                                                                                                                                                                                                                                                                                    | Method to add user message to conversation. After model responds it will call `messageHistoryCallback()`containing both user message and model response. It also returns them.                                                                                                                                                                                        |
-| `deleteMessage` | `(index: number) => void`                                                                                                                                                                                                                                                                                                                    | Deletes all messages starting with message on `index` position. After deletion it will call `messageHistoryCallback()` containing new history. It also returns it.                                                                                                                                                                                                    |
-| `generate`      | `(messages: Message[], tools?: LLMTool[]) => Promise<string>`                                                                                                                                                                                                                                                                                | Runs model to complete chat passed in `messages` argument. It doesn't manage conversation context.                                                                                                                                                                                                                                                                    |
-| `forward`       | `(input: string) => Promise<string>`                                                                                                                                                                                                                                                                                                         | Runs model inference with raw input string. You need to provide entire conversation and prompt (in correct format and with special tokens!) in input string to this method. It doesn't manage conversation context. It is intended for users that need access to the model itself without any wrapper. If you want simple chat with model consider using`sendMessage` |
-| `delete`        | `() => void`                                                                                                                                                                                                                                                                                                                                 | Method to delete the model from memory.                                                                                                                                                                                                                                                                                                                               |
-| `interrupt`     | `() => void`                                                                                                                                                                                                                                                                                                                                 | Interrupts model generation.                                                                                                                                                                                                                                                                                                                                          |
+| Method          | Type                                                                                                                                                                                                                                                                                                       | Description                                                                                                                                                                                                                                                                                                                                                           |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `load`          | `({  modelSource: ResourceSource, tokenizerSource: ResourceSource, tokenizerConfigSource: ResourceSource, onDownloadProgressCallback?: (downloadProgress: number) => void, responseCallback?: (response: string) => void, messageHistoryCallback?: (messageHistory: Message[]) => void}) => Promise<void>` | Loads the model. Checkout the [loading the model](#loading-the-model) section for details.                                                                                                                                                                                                                                                                            |
+| `configure`     | `({chatConfig?: Partial<ChatConfig>, toolsConfig?: ToolsConfig}) => void`                                                                                                                                                                                                                                  | Configures chat and tool calling. See more details in [configuring the model](#configuring-the-model).                                                                                                                                                                                                                                                                |
+| `sendMessage`   | `(message: string) => Promise<Message[]>`                                                                                                                                                                                                                                                                  | Method to add user message to conversation. After model responds it will call `messageHistoryCallback()`containing both user message and model response. It also returns them.                                                                                                                                                                                        |
+| `deleteMessage` | `(index: number) => void`                                                                                                                                                                                                                                                                                  | Deletes all messages starting with message on `index` position. After deletion it will call `messageHistoryCallback()` containing new history. It also returns it.                                                                                                                                                                                                    |
+| `generate`      | `(messages: Message[], tools?: LLMTool[]) => Promise<string>`                                                                                                                                                                                                                                              | Runs model to complete chat passed in `messages` argument. It doesn't manage conversation context.                                                                                                                                                                                                                                                                    |
+| `forward`       | `(input: string) => Promise<string>`                                                                                                                                                                                                                                                                       | Runs model inference with raw input string. You need to provide entire conversation and prompt (in correct format and with special tokens!) in input string to this method. It doesn't manage conversation context. It is intended for users that need access to the model itself without any wrapper. If you want simple chat with model consider using`sendMessage` |
+| `delete`        | `() => void`                                                                                                                                                                                                                                                                                               | Method to delete the model from memory.                                                                                                                                                                                                                                                                                                                               |
+| `interrupt`     | `() => void`                                                                                                                                                                                                                                                                                               | Interrupts model generation.                                                                                                                                                                                                                                                                                                                                          |
 
 <details>
 <summary>Type definitions</summary>
@@ -96,6 +95,19 @@ To load the model, use the `load` method. It accepts object with following field
 
 **`tokenizerConfigSource`** - URL to the JSON file which contains the tokenizer config.
 
+**`onDownloadProgressCallback`** - Function that will be called on download progress.
+
+**`responseCallback`** - Function that will be called on every generated token.
+
+**`messageHistoryCallback`** - Function that will be called on every finished message. Returns entire message history.
+
+This method returns a promise, which can resolve to an error or void.
+
+## Configuring the model
+
+To configure model (i.e. change system prompt, load initial conversation history or manage tool calling) you can use
+`configure` method. It accepts object with following fields:
+
 **`chatConfig`** - Object configuring chat management:
 
 - **`systemPrompt`** - Often used to tell the model what is its purpose, for example - "Be a helpful translator".
@@ -111,14 +123,6 @@ To load the model, use the `load` method. It accepts object with following field
 - **`executeToolCallback`** - Function that accepts `ToolCall`, executes tool and returns the string to model.
 
 - **`displayToolCalls`** - If set to true, JSON tool calls will be displayed in chat. If false, only answers will be displayed.
-
-**`onDownloadProgressCallback`** - Function that will be called on download progress.
-
-**`responseCallback`** - Function that will be called on every generated token.
-
-**`messageHistoryCallback`** - Function that will be called on every finished message. Returns entire message history.
-
-This method returns a promise, which can resolve to an error or void.
 
 ## Listening for download progress
 

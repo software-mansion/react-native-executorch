@@ -68,6 +68,7 @@ export default function LLMScreen({
   const [userInput, setUserInput] = useState('');
   const textInputRef = useRef<TextInput>(null);
   const messageRecorded = useRef<boolean>(false);
+
   const llm = useLLM({
     modelSource: QWEN3_0_6B_QUANTIZED,
     tokenizerSource: QWEN3_TOKENIZER,
@@ -159,7 +160,6 @@ export default function LLMScreen({
               </Text>
             </View>
           )}
-
           <View style={styles.bottomContainer}>
             <TextInput
               onFocus={() => setIsTextInputFocused(true)}

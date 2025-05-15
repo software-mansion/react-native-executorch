@@ -5,6 +5,13 @@ export interface LLMType {
   isGenerating: boolean;
   downloadProgress: number;
   error: string | null;
+  configure: ({
+    chatConfig,
+    toolsConfig,
+  }: {
+    chatConfig?: Partial<ChatConfig>;
+    toolsConfig?: ToolsConfig;
+  }) => void;
   forward: (input: string) => Promise<void>;
   generate: (messages: Message[], tools?: LLMTool[]) => Promise<void>;
   sendMessage: (message: string) => Promise<void>;

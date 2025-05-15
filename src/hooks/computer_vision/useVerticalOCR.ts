@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ResourceSource } from '../../types/common';
 import { OCRDetection, OCRLanguage } from '../../types/ocr';
 import { VerticalOCRController } from '../../controllers/VerticalOCRController';
@@ -33,14 +33,15 @@ export const useVerticalOCR = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
 
-  const [model, _] = useState(
+  const model = useMemo(
     () =>
       new VerticalOCRController({
         modelDownloadProgressCallback: setDownloadProgress,
         isReadyCallback: setIsReady,
         isGeneratingCallback: setIsGenerating,
         errorCallback: setError,
-      })
+      }),
+    []
   );
 
   useEffect(() => {
@@ -56,6 +57,7 @@ export const useVerticalOCR = ({
     loadModel();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    model,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     JSON.stringify(detectorSources),
     language,

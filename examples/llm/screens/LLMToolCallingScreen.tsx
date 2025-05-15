@@ -10,7 +10,6 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import SWMIcon from '../assets/icons/swm_icon.svg';
 import SendIcon from '../assets/icons/send_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
@@ -28,23 +27,38 @@ import * as Brightness from 'expo-brightness';
 import * as Calendar from 'expo-calendar';
 import { executeTool, TOOL_DEFINITIONS_PHONE } from '../utils/tools';
 
-export default function LLMToolCallingScreen() {
+export default function LLMToolCallingScreen({
+  setIsGenerating,
+}: {
+  setIsGenerating: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
+  const textInputRef = useRef<TextInput>(null);
+
   const llm = useLLM({
     modelSource: HAMMER2_1_1_5B,
     tokenizerSource: HAMMER2_1_TOKENIZER,
     tokenizerConfigSource: HAMMER2_1_TOKENIZER_CONFIG,
-    chatConfig: {
-      systemPrompt: `${DEFAULT_SYSTEM_PROMPT} Current time and date: ${new Date().toString()}`,
-    },
-    toolsConfig: {
-      tools: TOOL_DEFINITIONS_PHONE,
-      executeToolCallback: executeTool,
-      displayToolCalls: true,
-    },
   });
-  const textInputRef = useRef<TextInput>(null);
+
+  useEffect(() => {
+    setIsGenerating(llm.isGenerating);
+  }, [llm.isGenerating, setIsGenerating]);
+
+  const { configure } = llm;
+  useEffect(() => {
+    configure({
+      chatConfig: {
+        systemPrompt: `${DEFAULT_SYSTEM_PROMPT} Current time and date: ${new Date().toString()}`,
+      },
+      toolsConfig: {
+        tools: TOOL_DEFINITIONS_PHONE,
+        executeToolCallback: executeTool,
+        displayToolCalls: true,
+      },
+    });
+  }, [configure]);
 
   useEffect(() => {
     if (llm.error) {
@@ -91,8 +105,8 @@ export default function LLMToolCallingScreen() {
       )} %`}
     />
   ) : (
-    <SafeAreaView style={styles.container}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
         <KeyboardAvoidingView
           style={styles.keyboardAvoidingView}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -155,31 +169,22 @@ export default function LLMToolCallingScreen() {
             )}
           </View>
         </KeyboardAvoidingView>
-      </TouchableWithoutFeedback>
-    </SafeAreaView>
+      </View>
+    </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  keyboardAvoidingView: {
-    flex: 1,
-  },
+  container: { flex: 1 },
+  keyboardAvoidingView: { flex: 1 },
   topContainer: {
     height: 68,
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  chatContainer: {
-    flex: 10,
-    width: '100%',
-  },
-  textModelName: {
-    color: ColorPalette.primary,
-  },
+  chatContainer: { flex: 10, width: '100%' },
+  textModelName: { color: ColorPalette.primary },
   helloMessageContainer: {
     flex: 10,
     width: '100%',
