@@ -44,3 +44,4 @@ export { SpeechToTextLanguage };
 export * from './constants/modelUrls';
 export * from './constants/ocr/models';
 export * from './constants/llmDefaults';
+export { STREAMING_ACTION, MODES } from './constants/sttDefaults';

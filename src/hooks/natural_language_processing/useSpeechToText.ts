@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { SpeechToTextController } from '../../controllers/SpeechToTextController';
 import { ResourceSource } from '../../types/common';
+import { STREAMING_ACTION } from '../../constants/sttDefaults';
 import { AvailableModels, SpeechToTextLanguage } from '../../types/stt';
 
 interface SpeechToTextModule {
@@ -14,6 +15,11 @@ interface SpeechToTextModule {
     input: number[],
     audioLanguage?: SpeechToTextLanguage
   ) => ReturnType<SpeechToTextController['transcribe']>;
+  streamingTranscribe: (
+    streamAction: STREAMING_ACTION,
+    input?: number[],
+    audioLanguage?: SpeechToTextLanguage
+  ) => ReturnType<SpeechToTextController['streamingTranscribe']>;
 }
 
 export const useSpeechToText = ({
@@ -82,5 +88,10 @@ export const useSpeechToText = ({
     error,
     transcribe: (waveform: number[], audioLanguage?: SpeechToTextLanguage) =>
       model.transcribe(waveform, audioLanguage),
+    streamingTranscribe: (
+      streamAction: STREAMING_ACTION,
+      waveform?: number[],
+      audioLanguage?: SpeechToTextLanguage
+    ) => model.streamingTranscribe(streamAction, waveform, audioLanguage),
   };
 };

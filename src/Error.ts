@@ -7,6 +7,11 @@ export enum ETError {
   LanguageNotSupported = 0x69,
   InvalidModelSource = 0xff,
 
+  //SpeechToText errors
+  MultilingualConfiguration = 0xa0,
+  MissingDataChunk = 0xa1,
+  StreamingNotStarted = 0xa2,
+
   // ExecuTorch mapped errors
   // Based on: https://github.com/pytorch/executorch/blob/main/runtime/core/error.h
   // System errors
@@ -34,7 +39,7 @@ export enum ETError {
   DelegateInvalidHandle = 0x32,
 }
 
-export const getError = (e: unknown | ETError): string => {
+export const getError = (e: unknown | ETError | Error): string => {
   if (typeof e === 'number') {
     if (e in ETError) return ETError[e] as string;
     return ETError[ETError.UndefinedError] as string;
@@ -43,9 +48,13 @@ export const getError = (e: unknown | ETError): string => {
   // try to extract number from message (can contain false positives)
   const error = e as Error;
   const errorCode = parseInt(error.message, 10);
+  const message = Number.isNaN(errorCode)
+    ? error.message
+    : ' ' + error.message.slice(`${errorCode}`.length).trimStart();
+
   const ETErrorMessage = (
     errorCode in ETError ? ETError[errorCode] : ETError[ETError.UndefinedError]
   ) as string;
 
-  return ETErrorMessage + error.message;
+  return ETErrorMessage + message;
 };
