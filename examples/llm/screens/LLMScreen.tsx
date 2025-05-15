@@ -8,7 +8,6 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import SendIcon from '../assets/icons/send_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {
@@ -21,9 +20,14 @@ import PauseIcon from '../assets/icons/pause_icon.svg';
 import ColorPalette from '../colors';
 import Messages from '../components/Messages';
 
-export default function LLMScreen() {
+export default function LLMScreen({
+  setIsGenerating,
+}: {
+  setIsGenerating: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
+  const textInputRef = useRef<TextInput>(null);
 
   const llm = useLLM({
     modelSource: LLAMA3_2_1B_QLORA,
@@ -37,7 +41,9 @@ export default function LLMScreen() {
     }
   }, [llm.error]);
 
-  const textInputRef = useRef<TextInput>(null);
+  useEffect(() => {
+    setIsGenerating(llm.isGenerating);
+  }, [llm.isGenerating, setIsGenerating]);
 
   const sendMessage = async () => {
     setUserInput('');
@@ -56,7 +62,7 @@ export default function LLMScreen() {
     />
   ) : (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         {llm.messageHistory.length ? (
           <View style={styles.chatContainer}>
             <Messages
@@ -109,7 +115,7 @@ export default function LLMScreen() {
             </TouchableOpacity>
           )}
         </View>
-      </SafeAreaView>
+      </View>
     </TouchableWithoutFeedback>
   );
 }
