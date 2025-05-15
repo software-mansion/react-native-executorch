@@ -53,6 +53,10 @@ void ETInstallerModule::injectJSIBindings() {
     jbyteArray byteData =
         (jbyteArray)env->CallStaticObjectMethod(cls, method, jUrl);
 
+    if (env->IsSameObject(byteData, NULL)) {
+      throw std::runtime_error("Error fetching data from a url");
+    }
+
     int size = env->GetArrayLength(byteData);
     jbyte *bytes = env->GetByteArrayElements(byteData, JNI_FALSE);
     std::byte *dataBytePtr = reinterpret_cast<std::byte *>(bytes);

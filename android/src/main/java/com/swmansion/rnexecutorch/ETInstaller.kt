@@ -21,16 +21,20 @@ class ETInstaller(
     @JvmStatic
     @DoNotStrip
     @Throws(Exception::class)
-    fun fetchByteDataFromUrl(source: String): ByteArray {
-      val url = URL(source)
-      val connection = url.openConnection()
-      connection.connect()
+    fun fetchByteDataFromUrl(source: String): ByteArray? {
+      try {
+        val url = URL(source)
+        val connection = url.openConnection()
+        connection.connect()
 
-      val inputStream: InputStream = connection.getInputStream()
-      val data = inputStream.readBytes()
-      inputStream.close()
+        val inputStream: InputStream = connection.getInputStream()
+        val data = inputStream.readBytes()
+        inputStream.close()
 
-      return data
+        return data
+      } catch (exception: Throwable) {
+        return null
+      }
     }
   }
 
