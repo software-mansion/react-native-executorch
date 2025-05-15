@@ -12,7 +12,6 @@ export interface LLMType {
     chatConfig?: Partial<ChatConfig>;
     toolsConfig?: ToolsConfig;
   }) => void;
-  forward: (input: string) => Promise<void>;
   generate: (messages: Message[], tools?: LLMTool[]) => Promise<void>;
   sendMessage: (message: string) => Promise<void>;
   deleteMessage: (index: number) => void;

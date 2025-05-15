@@ -74,7 +74,6 @@ export const useLLM = ({
     [model]
   );
 
-  const forward = useCallback((input: string) => model.forward(input), [model]);
   const generate = useCallback(
     (messages: Message[], tools?: LLMTool[]) => model.generate(messages, tools),
     [model]
@@ -99,7 +98,6 @@ export const useLLM = ({
     downloadProgress,
     error,
     configure: configure,
-    forward: forward,
     generate: generate,
     sendMessage: sendMessage,
     deleteMessage: deleteMessage,
