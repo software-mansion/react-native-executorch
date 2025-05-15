@@ -5633,7 +5633,7 @@ __metadata:
     metro-config: ^0.81.0
     react: 19.0.0
     react-native: ^0.79.2
-    react-native-executorch: "file:../../react-native-executorch-20250508160708.tgz"
+    react-native-executorch: "file:../../react-native-executorch-20250514143442.tgz"
     react-native-gesture-handler: ~2.24.0
     react-native-loading-spinner-overlay: ^3.0.1
     react-native-markdown-display: ^7.0.2
@@ -5644,6 +5644,7 @@ __metadata:
     react-native-svg-transformer: ^1.5.0
     react-native-wheel-scrollview-picker: ^2.0.6
     typescript: ~5.8.3
+    zustand: ^5.0.4
   languageName: unknown
   linkType: soft
 
@@ -7279,9 +7280,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-executorch@file:../../react-native-executorch-20250508160708.tgz::locator=llm%40workspace%3A.":
-  version: 20250508160708
-  resolution: "react-native-executorch@file:../../react-native-executorch-20250508160708.tgz::locator=llm%40workspace%3A."
+"react-native-executorch@file:../../react-native-executorch-20250514143442.tgz::locator=llm%40workspace%3A.":
+  version: 20250514143442
+  resolution: "react-native-executorch@file:../../react-native-executorch-20250514143442.tgz::locator=llm%40workspace%3A."
   dependencies:
     "@huggingface/jinja": ^0.5.0
     expo: ^53.0.7
@@ -7291,7 +7292,7 @@ __metadata:
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 3669e9bb3e6e8de5815c0a41863893c2d79c34e7de2868419bb0ec3e7a88cb9ea7d1470cb70d01f3d3116dcb4a5c06b03f1b22610380bc6c4b12ad68476b41e5
+  checksum: 8663f0fd5398ad805be857ee3f07b9dc1aa4ec48b7354583fe99a81d3e39f6adff9fd249c6bedb5964abab7c7318f662ee3e3b6c439d281184c17fe60c0934de
   languageName: node
   linkType: hard
 
@@ -8974,5 +8975,26 @@ __metadata:
   version: 0.1.0
   resolution: "yocto-queue@npm:0.1.0"
   checksum: f77b3d8d00310def622123df93d4ee654fc6a0096182af8bd60679ddcdfb3474c56c6c7190817c84a2785648cdee9d721c0154eb45698c62176c322fb46fc700
+  languageName: node
+  linkType: hard
+
+"zustand@npm:^5.0.4":
+  version: 5.0.4
+  resolution: "zustand@npm:5.0.4"
+  peerDependencies:
+    "@types/react": ">=18.0.0"
+    immer: ">=9.0.6"
+    react: ">=18.0.0"
+    use-sync-external-store: ">=1.2.0"
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    immer:
+      optional: true
+    react:
+      optional: true
+    use-sync-external-store:
+      optional: true
+  checksum: 75f45c00a799c28afdb56f35c9fdcb1c5861113604daaffa1ffe05beff4e506f1a8b332f585076610ef737e14960be64af653eaa0d3022fb2f1ecec6e2bee1dd
   languageName: node
   linkType: hard

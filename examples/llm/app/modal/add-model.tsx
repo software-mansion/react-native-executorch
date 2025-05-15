@@ -9,12 +9,12 @@ import {
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
-import { useSQLiteContext } from 'expo-sqlite';
-import { addModel } from '../../database/modelRepository';
+import { useModelStore } from '../../store/modelStore';
+import { ModelEntry } from '../../database/modelRepository';
 
 export default function AddModelModal() {
   const router = useRouter();
-  const db = useSQLiteContext();
+  const { addModelToDB } = useModelStore();
 
   const [modelUrl, setModelUrl] = useState('');
   const [tokenizerUrl, setTokenizerUrl] = useState('');
@@ -52,8 +52,9 @@ export default function AddModelModal() {
     }
 
     const id = `model-${Date.now()}`;
-    const data = {
+    const model: ModelEntry = {
       id,
+      source: isRemote ? 'remote' : 'local',
       modelUrl: modelUrl || '',
       tokenizerUrl: tokenizerUrl || '',
       tokenizerConfigUrl: tokenizerConfigUrl || '',
@@ -62,17 +63,8 @@ export default function AddModelModal() {
       tokenizerConfigPath,
     };
 
-    await addModel(db, {
-      id,
-      source: isRemote ? 'remote' : 'local',
-      modelUrl: data.modelUrl,
-      tokenizerUrl: data.tokenizerUrl,
-      tokenizerConfigUrl: data.tokenizerConfigUrl,
-      modelPath: data.modelPath,
-      tokenizerPath: data.tokenizerPath,
-      tokenizerConfigPath: data.tokenizerConfigPath,
-    });
-    console.log('Saving model:', data);
+    await addModelToDB(model);
+    console.log('Saving model:', model);
     router.back();
   };
 

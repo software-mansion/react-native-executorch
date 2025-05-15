@@ -23,7 +23,7 @@
     "metro-config": "^0.81.0",
     "react": "19.0.0",
     "react-native": "^0.79.2",
-    "react-native-executorch": "file:../../react-native-executorch-20250508160708.tgz",
+    "react-native-executorch": "file:../../react-native-executorch-20250514143442.tgz",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-loading-spinner-overlay": "^3.0.1",
     "react-native-markdown-display": "^7.0.2",
@@ -32,7 +32,8 @@
     "react-native-screens": "~4.10.0",
     "react-native-svg": "15.11.2",
     "react-native-svg-transformer": "^1.5.0",
-    "react-native-wheel-scrollview-picker": "^2.0.6"
+    "react-native-wheel-scrollview-picker": "^2.0.6",
+    "zustand": "^5.0.4"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -6,80 +6,156 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import SendIcon from '../assets/icons/send_icon.svg';
-import PauseIcon from '../assets/icons/pause_icon.svg';
+import { ModelEntry } from '../database/modelRepository';
+import Messages from '../components/Messages';
 import ColorPalette from '../colors';
+import ChatInputBar from '../components/chat-screen/ChatInputBar';
+import ModelSelectorModal from '../components/chat-screen/ModelSelector';
+import { useModelStore } from '../store/modelStore';
+import { useLLMStore } from '../store/llmStore';
+import { Message } from 'react-native-executorch';
+import { getChatMessages } from '../database/chatRepository';
+import { useChatStore } from '../store/chatStore';
 
-export default function ChatScreen() {
-  const [isTextInputFocused, setIsTextInputFocused] = useState(false);
+interface ChatScreenProps {
+  chatId: number | null;
+}
+
+export default function ChatScreen({ chatId }: ChatScreenProps) {
+  const inputRef = useRef<TextInput>(null);
+  const chatIdRef = useRef<number | null>(chatId);
+
+  const { downloadedModels, loadModels } = useModelStore();
+  const {
+    db,
+    setChatId,
+    loadModel,
+    model,
+    sendChatMessage,
+    response,
+    isGenerating,
+    isLoading,
+    activeChatId,
+    activeChatMessages,
+  } = useLLMStore();
+  const { addChat } = useChatStore();
+
   const [userInput, setUserInput] = useState('');
-  const textInputRef = useRef<TextInput>(null);
+  const [showModelModal, setShowModelModal] = useState(false);
+  const [messageHistory, setMessageHistory] = useState<Message[]>([]);
 
-  const sendMessage = async () => {
-    // setUserInput('');
-    // textInputRef.current?.clear();
-    // try {
-    //   await llm.sendMessage(userInput);
-    // } catch (e) {
-    //   console.error(e);
-    // }
+  useEffect(() => {
+    (async () => {
+      if (chatId !== null) {
+        const messages = await getChatMessages(db, chatIdRef.current!);
+        setMessageHistory(messages);
+      } else {
+        setMessageHistory([]);
+      }
+    })();
+    loadModels();
+  }, [chatId, loadModels, db]);
+
+  useEffect(() => {
+    if (activeChatId === chatIdRef.current && activeChatMessages.length > 0) {
+      setMessageHistory(activeChatMessages);
+    }
+  }, [activeChatMessages, activeChatId]);
+
+  const handleSelectModel = async (selectedModel: ModelEntry) => {
+    setShowModelModal(false);
+    try {
+      await loadModel(selectedModel);
+    } catch (error) {
+      console.error('Error loading model:', error);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!userInput || isGenerating) return;
+    if (chatIdRef.current) {
+      setChatId(chatIdRef.current);
+    } else if (!chatIdRef.current) {
+      const newChatId = await addChat();
+      chatIdRef.current = newChatId!;
+      setChatId(chatIdRef.current);
+    }
+
+    inputRef.current?.clear();
+    setUserInput('');
+    setMessageHistory((prev) => [
+      ...prev,
+      { role: 'user', content: userInput },
+    ]);
+    await sendChatMessage([
+      ...messageHistory,
+      { role: 'user', content: userInput },
+    ]);
   };
 
   return (
     <>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView
-          style={styles.keyboardAvoidingView}
+          style={styles.container}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'android' ? 30 : 0}
         >
-          <View style={styles.contentContainer}>
-            <View style={styles.helloMessageContainer}>
-              <Text style={styles.helloText}>Hello! 👋</Text>
-              <Text style={styles.bottomHelloText}>
-                What can I help you with?
-              </Text>
-            </View>
-            <View style={styles.bottomContainer}>
-              <TextInput
-                onFocus={() => setIsTextInputFocused(true)}
-                onBlur={() => setIsTextInputFocused(false)}
-                style={{
-                  ...styles.textInput,
-                  borderColor: isTextInputFocused
-                    ? ColorPalette.blueDark
-                    : ColorPalette.blueLight,
-                }}
-                placeholder="Your message"
-                placeholderTextColor={'#C1C6E5'}
-                multiline={true}
-                ref={textInputRef}
-                onChangeText={(text: string) => setUserInput(text)}
-              />
-              {userInput && (
-                <TouchableOpacity
-                  style={styles.sendChatTouchable}
-                  onPress={async () => false && (await sendMessage())}
-                >
-                  <SendIcon height={24} width={24} padding={4} margin={8} />
-                </TouchableOpacity>
+          <View style={styles.header}>
+            <Text style={styles.headerText}>
+              {model ? (
+                <>
+                  Using model: <Text style={styles.modelName}>{model.id}</Text>{' '}
+                  <Text
+                    style={styles.changeModel}
+                    onPress={() => setShowModelModal(true)}
+                  >
+                    (Change)
+                  </Text>
+                </>
+              ) : (
+                <>
+                  No model selected{' '}
+                  <Text
+                    style={styles.changeModel}
+                    onPress={() => setShowModelModal(true)}
+                  >
+                    (Select)
+                  </Text>
+                </>
               )}
-              {false && (
-                <TouchableOpacity
-                  style={styles.sendChatTouchable}
-                  onPress={() => {}}
-                >
-                  <PauseIcon height={24} width={24} padding={4} margin={8} />
-                </TouchableOpacity>
-              )}
-            </View>
+            </Text>
           </View>
+
+          <View style={styles.messages}>
+            <Messages
+              chatHistory={messageHistory}
+              llmResponse={activeChatId === chatIdRef.current ? response : ''}
+              isGenerating={isGenerating}
+              deleteMessage={() => {}}
+            />
+          </View>
+
+          <ChatInputBar
+            isLoading={isLoading}
+            selectedModel={model}
+            userInput={userInput}
+            setUserInput={setUserInput}
+            onSend={handleSendMessage}
+            onSelectModel={() => setShowModelModal(true)}
+            inputRef={inputRef}
+          />
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
+      <ModelSelectorModal
+        visible={showModelModal}
+        models={downloadedModels}
+        onSelect={handleSelectModel}
+        onClose={() => setShowModelModal(false)}
+      />
     </>
   );
 }
@@ -87,12 +163,30 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'space-between',
+    backgroundColor: '#fff',
   },
-  keyboardAvoidingView: { flex: 1 },
-  contentContainer: {
-    flex: 1,
-    justifyContent: 'space-between',
+  header: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    backgroundColor: '#f8f8f8',
+  },
+  headerText: {
+    color: ColorPalette.primary,
+    fontSize: 16,
+  },
+  modelName: {
+    fontWeight: '600',
+  },
+  changeModel: {
+    color: ColorPalette.blueDark,
+    fontWeight: 'bold',
+  },
+  messages: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    height: '80%',
   },
   helloMessageContainer: {
     flex: 10,
@@ -110,30 +204,5 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 28,
     color: ColorPalette.primary,
-  },
-  bottomContainer: {
-    flex: 1,
-    height: 60,
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  textInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 8,
-    lineHeight: 19.6,
-    fontFamily: 'regular',
-    fontSize: 14,
-    color: ColorPalette.primary,
-    padding: 16,
-  },
-  sendChatTouchable: {
-    height: '100%',
-    width: 48,
-    justifyContent: 'center',
-    alignItems: 'flex-end',
   },
 });

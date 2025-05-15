@@ -4,10 +4,10 @@ import AnimatedChatLoading from './AnimatedChatLoading';
 import LlamaIcon from '../assets/icons/llama_icon.svg';
 import ColorPalette from '../colors';
 import MessageItem from './MessageItem';
-import { MessageType } from 'react-native-executorch';
+import { Message } from 'react-native-executorch';
 
 interface MessagesComponentProps {
-  chatHistory: MessageType[];
+  chatHistory: Message[];
   llmResponse: string;
   isGenerating: boolean;
   deleteMessage: (index: number) => void;
@@ -78,5 +78,11 @@ const styles = StyleSheet.create({
     lineHeight: 19.6,
     color: ColorPalette.primary,
     fontFamily: 'regular',
+  },
+  emptyState: {
+    textAlign: 'center',
+    color: '#999',
+    marginTop: 20,
+    fontStyle: 'italic',
   },
 });

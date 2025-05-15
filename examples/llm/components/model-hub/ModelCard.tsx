@@ -54,7 +54,12 @@ const ModelCard: React.FC<ModelCardProps> = ({
         model.tokenizerUrl,
         model.tokenizerConfigUrl
       );
-      await onDownloaded(model.id, filePaths[0], filePaths[1], filePaths[2]);
+      await onDownloaded(
+        model.id,
+        `file://${filePaths[0]}`,
+        `file://${filePaths[1]}`,
+        `file://${filePaths[2]}`
+      );
     } catch (error) {
       console.error('Download failed:', error);
     } finally {
