@@ -8,20 +8,11 @@ import {
 } from 'react-native-executorch';
 import * as FileSystem from 'expo-file-system';
 import { Asset } from 'expo-asset';
-import { findClosestEmbedding, slidingWindowSlice } from './utils';
-
-interface DbRow {
-  text: string;
-  embedding: number[];
-}
+import { slidingWindowSlice } from './utils';
+import { DbCache, DbRow } from './types';
 
 export default function App() {
   const [text, setText] = useState<string | null>(null);
-  const [result, setResult] = useState<{
-    index: number;
-    similarity: number;
-    embedding: number[];
-  } | null>(null);
   const [db, setDb] = useState<DbRow[]>([]);
 
   const encoder = useTextEmbeddings({
@@ -37,27 +28,28 @@ export default function App() {
 
   useEffect(() => {
     if (isReady && !text) {
-      console.log('run processing');
       (async () => {
+        const cachePath = `${FileSystem.cacheDirectory}${'db'}`;
         // TODO caching
-        // const cachePath = `${FileSystem.cacheDirectory}${'db'}`;
-        // try {
-        //   const fileInfo = await FileSystem.getInfoAsync(path);
-        //   if (fileInfo.exists) {
-        //     const jsonString = await FileSystem.readAsStringAsync(path, {
-        //       encoding: FileSystem.EncodingType.UTF8,
-        //     });
-        //     const object = JSON.parse(jsonString);
-        //     console.log('File read successfully:', object);
-        //     return object;
-        //   } else {
-        //     console.log('File does not exist.');
-        //   }
-        // } catch (error) {
-        //   console.error('Error reading file:', error);
-        // }
+        let fileInfo;
+        try {
+          fileInfo = await FileSystem.getInfoAsync(cachePath);
+        } catch (error) {
+          console.error('Error reading file:', error);
+        }
 
-        // read file
+        if (fileInfo && fileInfo.exists) {
+          const jsonString = await FileSystem.readAsStringAsync(cachePath, {
+            encoding: FileSystem.EncodingType.UTF8,
+          });
+          const object: DbCache = JSON.parse(jsonString);
+          console.log('loading cache - db length:', object.db.length);
+          setText(object.text);
+          setDb(object.db);
+          return;
+        }
+
+        // read text
         const assets = await Asset.loadAsync(require('./assets/lotr1.txt'));
         if (assets.length !== 1 || !assets[0].localUri) {
           throw Error('Problem loading book txt file');
@@ -93,39 +85,19 @@ export default function App() {
         console.log(newDb.length);
         setDb(newDb);
 
-        // TODO caching
-        // const jsonString = JSON.stringify(newDb);
-        // try {
-        //   await FileSystem.writeAsStringAsync(path, jsonString);
-        //   console.log('File written successfully!');
-        // } catch (error) {
-        //   console.error('Error writing file:', error);
-        // }
+        const newCache: DbCache = { db: newDb, text: newText };
+
+        const cacheString = JSON.stringify(newCache);
+        try {
+          await FileSystem.writeAsStringAsync(cachePath, cacheString);
+          console.log('File written successfully!');
+        } catch (error) {
+          console.error('Error writing file:', error);
+        }
+        return;
       })();
     }
   }, [text, forward, isReady, tokenizer]);
 
-  useEffect(() => {
-    // test useEffect
-    if (!result && db.length > 0) {
-      let queryEmbedding: number[] = [];
-      (async () => {
-        queryEmbedding = await forward('What do hobbits eat?');
-      })();
-
-      const newResult = findClosestEmbedding(
-        queryEmbedding,
-        db.map((row) => row.embedding)
-      );
-
-      console.log(
-        newResult.index,
-        db[newResult.index].text,
-        newResult.similarity
-      );
-      setResult(newResult);
-    }
-  }, [forward, db, result]);
-
-  return <MainScreen />;
+  return <MainScreen db={db} forward={forward} />;
 }
