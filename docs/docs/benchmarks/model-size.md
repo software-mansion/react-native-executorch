@@ -66,6 +66,9 @@ sidebar_position: 1
 
 ## Text Embeddings
 
-| Model            | XNNPACK [MB] |
-| ---------------- | :----------: |
-| ALL_MINILM_L6_V2 |      91      |
+| Model                      | XNNPACK [MB] |
+| -------------------------- | :----------: |
+| ALL_MINILM_L6_V2           |      91      |
+| ALL_MPNET_BASE_V2          |     438      |
+| MULTI_QA_MINILM_L6_COS_V1  |      91      |
+| MULTI_QA_MPNET_BASE_DOT_V1 |     438      |
