@@ -186,6 +186,7 @@ export class LLMController {
       messages,
       this.tokenizerConfig,
       tools,
+      // eslint-disable-next-line camelcase
       { tools_in_user_message: false, add_generation_prompt: true }
     );
 

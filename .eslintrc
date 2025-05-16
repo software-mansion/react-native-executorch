@@ -25,8 +25,8 @@
                 "useTabs": false
             }
         ],
-        "@cspell/spellchecker": ["warn", { "customWordListFile": ".cspell-wordlist.txt" }]
-
+        "@cspell/spellchecker": ["warn", { "customWordListFile": ".cspell-wordlist.txt" }],
+        "camelcase": "error"
     },
     "plugins": [
         "eslint-plugin-prettier"
