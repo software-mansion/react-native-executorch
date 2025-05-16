@@ -7,12 +7,12 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { ModelEntry } from '../../database/modelRepository';
+import { Model } from '../../database/modelRepository';
 
 interface Props {
   visible: boolean;
-  models: ModelEntry[];
-  onSelect: (model: ModelEntry) => void;
+  models: Model[];
+  onSelect: (model: Model) => void;
   onClose: () => void;
 }
 

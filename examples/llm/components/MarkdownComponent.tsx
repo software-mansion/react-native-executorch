@@ -6,7 +6,7 @@ interface MarkdownComponentProps {
   text: string;
 }
 
-export default function MarkdownComponent({ text }: MarkdownComponentProps) {
+const MarkdownComponent = ({ text }: MarkdownComponentProps) => {
   const fontSize = Platform.OS === 'ios' ? 16 : 14;
   return (
     <Markdown
@@ -30,4 +30,6 @@ export default function MarkdownComponent({ text }: MarkdownComponentProps) {
       {text}
     </Markdown>
   );
-}
+};
+
+export default MarkdownComponent;

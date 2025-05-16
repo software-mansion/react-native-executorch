@@ -9,10 +9,10 @@ import {
 import MarkdownComponent from './MarkdownComponent';
 import LlamaIcon from '../assets/icons/llama_icon.svg';
 import ColorPalette from '../colors';
-import { MessageType } from 'react-native-executorch/lib/typescript/types/llm';
+import { Message } from 'react-native-executorch/lib/typescript/types/llm';
 
 interface MessageItemProps {
-  message: MessageType;
+  message: Message;
   deleteMessage: () => void;
 }
 

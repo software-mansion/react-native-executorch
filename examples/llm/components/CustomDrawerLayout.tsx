@@ -13,11 +13,7 @@ import { DrawerProvider } from '../context/DrawerContext';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const DRAWER_WIDTH = SCREEN_WIDTH * 0.75;
 
-export default function CustomDrawerLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+const CustomDrawerLayout = ({ children }: { children: React.ReactNode }) => {
   const [isOpen, setIsOpen] = useState(false);
   const translateX = useState(new Animated.Value(-DRAWER_WIDTH))[0];
   const insets = useSafeAreaInsets();
@@ -43,7 +39,7 @@ export default function CustomDrawerLayout({
 
   return (
     <DrawerProvider openDrawer={openDrawer} closeDrawer={closeDrawer}>
-      <View style={{ flex: 1 }}>
+      <View style={styles.container}>
         <View style={styles.content}>{children}</View>
 
         {isOpen && <Pressable style={styles.backdrop} onPress={closeDrawer} />}
@@ -62,9 +58,14 @@ export default function CustomDrawerLayout({
       </View>
     </DrawerProvider>
   );
-}
+};
+
+export default CustomDrawerLayout;
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   header: {
     height: 56,
     backgroundColor: '#fff',

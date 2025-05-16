@@ -1,42 +1,29 @@
 import React, { useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { useSQLiteContext } from 'expo-sqlite';
 import FloatingActionButton from '../../components/FloatingActionButton';
 import ModelCard from '../../components/model-hub/ModelCard';
 import {
-  updateModelPaths,
-  clearModelPaths,
+  removeModelFiles,
+  updateModelDownloaded,
 } from '../../database/modelRepository';
 import { useDefaultHeader } from '../../hooks/useDefaultHeader';
 import { useModelStore } from '../../store/modelStore';
 
 const ModelHubScreen: React.FC = () => {
   useDefaultHeader();
-  const { models, loadModels } = useModelStore();
-  const db = useSQLiteContext();
+  const { models, loadModels, db } = useModelStore();
 
   useEffect(() => {
     loadModels();
   }, [loadModels]);
 
-  const onModelDownloaded = async (
-    modelId: string,
-    modelPath: string,
-    tokenizerPath: string,
-    tokenizerConfigPath: string
-  ) => {
-    await updateModelPaths(
-      db,
-      modelId,
-      modelPath,
-      tokenizerPath,
-      tokenizerConfigPath
-    );
+  const onModelDownloaded = async (modelId: string) => {
+    await updateModelDownloaded(db, modelId);
     await loadModels();
   };
 
   const onModelRemoved = async (modelId: string) => {
-    await clearModelPaths(db, modelId);
+    await removeModelFiles(db, modelId);
     await loadModels();
   };
 

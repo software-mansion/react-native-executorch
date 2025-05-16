@@ -1,7 +1,5 @@
 import { useFonts } from 'expo-font';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import ChatScreen from '../screens/ChatScreen';
-import { StyleSheet } from 'react-native';
+import ChatScreen from '../components/chat-screen/ChatScreen';
 import { useDefaultHeader } from '../hooks/useDefaultHeader';
 
 export default function App() {
@@ -11,19 +9,5 @@ export default function App() {
   });
   useDefaultHeader();
 
-  return (
-    <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
-        <ChatScreen chatId={null} />
-      </SafeAreaView>
-    </SafeAreaProvider>
-  );
+  return <ChatScreen chatId={null} />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'space-between',
-    backgroundColor: '#fff',
-  },
-});

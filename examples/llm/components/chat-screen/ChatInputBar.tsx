@@ -1,18 +1,19 @@
-import React, { Ref, useState } from 'react';
+import React, { Ref } from 'react';
 import {
   View,
   TextInput,
   TouchableOpacity,
   Text,
   StyleSheet,
+  Platform,
 } from 'react-native';
 import SendIcon from '../../assets/icons/send_icon.svg';
-import { ModelEntry } from '../../database/modelRepository';
+import { Model } from '../../database/modelRepository';
 import ColorPalette from '../../colors';
 
 interface Props {
   isLoading: boolean;
-  selectedModel: ModelEntry | null;
+  selectedModel: Model | null;
   userInput: string;
   setUserInput: (text: string) => void;
   onSend: () => void;
@@ -29,40 +30,35 @@ const ChatInputBar = ({
   onSelectModel,
   inputRef,
 }: Props) => {
-  const [focused, setFocused] = useState(false);
-
   return (
     <View style={styles.container}>
       {isLoading ? (
-        <Text>Loading model...</Text>
+        <Text style={styles.selectButtonText}>Loading model...</Text>
       ) : !selectedModel ? (
-        <TouchableOpacity style={styles.selectButton} onPress={onSelectModel}>
-          <Text style={styles.selectButtonText}>Select Model</Text>
+        <TouchableOpacity onPress={onSelectModel}>
+          <Text style={styles.selectButtonText}>
+            Model not loaded. Please initialize the model.
+          </Text>
         </TouchableOpacity>
       ) : (
-        <>
+        <View style={styles.inputContainer}>
           <TextInput
             ref={inputRef}
             style={{
               ...styles.input,
-              borderColor: focused
-                ? ColorPalette.blueDark
-                : ColorPalette.blueLight,
             }}
             multiline
             placeholder="Your message"
-            placeholderTextColor="#C1C6E5"
+            placeholderTextColor={ColorPalette.blueDark}
             value={userInput}
             onChangeText={setUserInput}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
           />
-          {!!userInput && (
+          <View style={styles.buttonBar}>
             <TouchableOpacity style={styles.sendButton} onPress={onSend}>
               <SendIcon width={24} height={24} />
             </TouchableOpacity>
-          )}
-        </>
+          </View>
+        </View>
       )}
     </View>
   );
@@ -72,40 +68,41 @@ export default ChatInputBar;
 
 const styles = StyleSheet.create({
   container: {
-    height: 100,
+    height: 112,
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  selectButton: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: ColorPalette.blueLight,
-    borderRadius: 8,
-    padding: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingBottom: Platform.OS === 'ios' ? 16 : 12,
+    paddingTop: 12,
+    backgroundColor: 'lightblue',
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
   },
   selectButtonText: {
     color: ColorPalette.primary,
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: '500',
+  },
+  inputContainer: {
+    flexDirection: 'column',
+    flex: 1,
   },
   input: {
     flex: 1,
-    borderWidth: 1,
-    borderRadius: 8,
     fontSize: 14,
     padding: 12,
     color: ColorPalette.primary,
   },
   sendButton: {
-    marginLeft: 12,
     width: 44,
     height: 44,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  buttonBar: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
   },
 });
