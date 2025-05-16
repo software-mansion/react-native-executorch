@@ -5,6 +5,8 @@ import {
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
+  PermissionsAndroid,
+  Platform,
 } from 'react-native';
 import LiveAudioStream from 'react-native-live-audio-stream';
 import SWMIcon from '../assets/swm_icon.svg';
@@ -75,6 +77,21 @@ export const SpeechToTextScreen = () => {
   };
 
   const handleRecordPress = async () => {
+    if (Platform.OS === 'android') {
+      const permission = await PermissionsAndroid.check(
+        PermissionsAndroid.PERMISSIONS.RECORD_AUDIO
+      );
+      if (!permission) {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          console.log('Microphone permission denied');
+          return;
+        }
+      }
+    }
+
     if (isRecording) {
       LiveAudioStream.stop();
       setIsRecording(false);
@@ -162,7 +179,7 @@ export const SpeechToTextScreen = () => {
               }}
             >
               <Text style={[styles.recordingButtonText, styles.font13]}>
-                {'TRANSCRIBE FROM URL'}
+                TRANSCRIBE FROM URL
               </Text>
             </TouchableOpacity>
           </View>
@@ -226,6 +243,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
+    backgroundColor: 'white',
   },
   recordingButtonWrapper: {
     flex: 1,

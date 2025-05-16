@@ -110,9 +110,12 @@ function App() {
 
 ## Supported models
 
-| Model                                                                             | Language | Max Tokens | Embedding Dimensions |
-| --------------------------------------------------------------------------------- | :------: | :--------: | :------------------: |
-| [all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) | English  |    256     |         384          |
+| Model                                                                                                 | Language | Max Tokens | Embedding Dimensions | Description                                                                                                                                                             |
+| ----------------------------------------------------------------------------------------------------- | :------: | :--------: | :------------------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)                     | English  |    256     |         384          | All-round model tuned for many use-cases. Trained on a large and diverse dataset of over 1 billion training pairs.                                                      |
+| [all-mpnet-base-v2](https://huggingface.co/sentence-transformers/all-mpnet-base-v2)                   | English  |    384     |         768          | All-round model tuned for many use-cases. Trained on a large and diverse dataset of over 1 billion training pairs.                                                      |
+| [multi-qa-MiniLM-L6-cos-v1](https://huggingface.co/sentence-transformers/multi-qa-MiniLM-L6-cos-v1)   | English  |    511     |         384          | This model was tuned for semantic search: Given a query/question, it can find relevant passages. It was trained on a large and diverse set of (question, answer) pairs. |
+| [multi-qa-mpnet-base-dot-v1](https://huggingface.co/sentence-transformers/multi-qa-mpnet-base-dot-v1) | English  |    512     |         768          | This model was tuned for semantic search: Given a query/question, it can find relevant passages. It was trained on a large and diverse set of (question, answer) pairs. |
 
 **`Max Tokens`** - the maximum number of tokens that can be processed by the model. If the input text exceeds this limit, it will be truncated.
 
@@ -122,15 +125,21 @@ function App() {
 
 ### Model size
 
-| Model            | XNNPACK [MB] |
-| ---------------- | :----------: |
-| ALL_MINILM_L6_V2 |      91      |
+| Model                      | XNNPACK [MB] |
+| -------------------------- | :----------: |
+| ALL_MINILM_L6_V2           |      91      |
+| ALL_MPNET_BASE_V2          |     438      |
+| MULTI_QA_MINILM_L6_COS_V1  |      91      |
+| MULTI_QA_MPNET_BASE_DOT_V1 |     438      |
 
 ### Memory usage
 
-| Model            | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| ---------------- | :--------------------: | :----------------: |
-| ALL_MINILM_L6_V2 |          140           |         64         |
+| Model                      | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| -------------------------- | :--------------------: | :----------------: |
+| ALL_MINILM_L6_V2           |          150           |        190         |
+| ALL_MPNET_BASE_V2          |          520           |        470         |
+| MULTI_QA_MINILM_L6_COS_V1  |          160           |        225         |
+| MULTI_QA_MPNET_BASE_DOT_V1 |          540           |        500         |
 
 ### Inference time
 
@@ -138,6 +147,9 @@ function App() {
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
 :::
 
-| Model            | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) | OnePlus 12 (XNNPACK) [ms] |
-| ---------------- | :--------------------------: | :------------------------------: | :------------------------: | :--------------------------: | :-----------------------: |
-| ALL_MINILM_L6_V2 |             105              |               126                |            151             |             165              |            152            |
+| Model                      | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) | OnePlus 12 (XNNPACK) [ms] |
+| -------------------------- | :--------------------------: | :------------------------------: | :------------------------: | :--------------------------: | :-----------------------: |
+| ALL_MINILM_L6_V2           |              53              |                69                |             78             |              60              |            65             |
+| ALL_MPNET_BASE_V2          |             352              |               423                |            478             |             521              |            527            |
+| MULTI_QA_MINILM_L6_COS_V1  |             135              |               166                |            180             |             158              |            165            |
+| MULTI_QA_MPNET_BASE_DOT_V1 |             503              |               598                |            680             |             694              |            743            |

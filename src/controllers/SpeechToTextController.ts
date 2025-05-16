@@ -8,12 +8,12 @@ import {
 } from '../constants/sttDefaults';
 import { AvailableModels, ModelConfig } from '../types/stt';
 import { SpeechToTextNativeModule } from '../native/RnExecutorchModules';
+import { TokenizerModule } from '../modules/natural_language_processing/TokenizerModule';
 import { ResourceSource } from '../types/common';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { longCommonInfPref } from '../utils/stt';
 import { SpeechToTextLanguage } from '../types/stt';
 import { ETError, getError } from '../Error';
-import { TokenizerModule } from '../modules/natural_language_processing/TokenizerModule';
 
 export class SpeechToTextController {
   private speechToTextNativeModule = SpeechToTextNativeModule;
@@ -90,22 +90,16 @@ export class SpeechToTextController {
     this.config = MODEL_CONFIGS[modelName];
 
     try {
-      encoderSource = await ResourceFetcher.fetch(
-        encoderSource || this.config.sources.encoder,
-        (progress) => this.modelDownloadProgressCallback?.(progress / 2)
-      );
-
-      decoderSource = await ResourceFetcher.fetch(
-        decoderSource || this.config.sources.decoder,
-        (progress) => this.modelDownloadProgressCallback?.(0.5 + progress / 2)
-      );
-
-      let tokenizerUri = await ResourceFetcher.fetch(
+      await TokenizerModule.load(
         tokenizerSource || this.config.tokenizer.source
       );
 
-      // The tokenizer native module does not accept the file:// prefix
-      TokenizerModule.load(tokenizerUri.replace('file://', ''));
+      [encoderSource, decoderSource] =
+        await ResourceFetcher.fetchMultipleResources(
+          this.modelDownloadProgressCallback,
+          encoderSource || this.config.sources.encoder,
+          decoderSource || this.config.sources.decoder
+        );
     } catch (e) {
       this.onErrorCallback?.(e);
       return;

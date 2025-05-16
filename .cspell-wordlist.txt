@@ -47,3 +47,5 @@ sublabel
 Aeonik
 Lexend
 finetuned
+MINILM
+MPNET
