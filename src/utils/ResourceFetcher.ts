@@ -137,9 +137,12 @@ export class ResourceFetcher {
   private static hashObject(jsonString: string) {
     let hash = 0;
     for (let i = 0; i < jsonString.length; i++) {
+      // eslint-disable-next-line no-bitwise
       hash = (hash << 5) - hash + jsonString.charCodeAt(i);
+      // eslint-disable-next-line no-bitwise
       hash |= 0;
     }
+    // eslint-disable-next-line no-bitwise
     return (hash >>> 0).toString();
   }
 
