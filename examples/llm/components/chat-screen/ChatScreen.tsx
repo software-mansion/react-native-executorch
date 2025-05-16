@@ -9,16 +9,16 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import { ModelEntry } from '../database/modelRepository';
-import Messages from '../components/Messages';
-import ColorPalette from '../colors';
-import ChatInputBar from '../components/chat-screen/ChatInputBar';
-import ModelSelectorModal from '../components/chat-screen/ModelSelector';
-import { useModelStore } from '../store/modelStore';
-import { useLLMStore } from '../store/llmStore';
+import { Model } from '../../database/modelRepository';
+import Messages from '../Messages';
+import ColorPalette from '../../colors';
+import ChatInputBar from './ChatInputBar';
+import ModelSelectorModal from './ModelSelector';
+import { useModelStore } from '../../store/modelStore';
+import { useLLMStore } from '../../store/llmStore';
 import { Message } from 'react-native-executorch';
-import { getChatMessages } from '../database/chatRepository';
-import { useChatStore } from '../store/chatStore';
+import { getChatMessages } from '../../database/chatRepository';
+import { useChatStore } from '../../store/chatStore';
 
 interface ChatScreenProps {
   chatId: number | null;
@@ -65,7 +65,7 @@ export default function ChatScreen({ chatId }: ChatScreenProps) {
     }
   }, [activeChatMessages, activeChatId]);
 
-  const handleSelectModel = async (selectedModel: ModelEntry) => {
+  const handleSelectModel = async (selectedModel: Model) => {
     setShowModelModal(false);
     try {
       await loadModel(selectedModel);
@@ -101,8 +101,8 @@ export default function ChatScreen({ chatId }: ChatScreenProps) {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView
           style={styles.container}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'android' ? 30 : 0}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 100}
         >
           <View style={styles.header}>
             <Text style={styles.headerText}>
@@ -130,7 +130,7 @@ export default function ChatScreen({ chatId }: ChatScreenProps) {
             </Text>
           </View>
 
-          <View style={styles.messages}>
+          <View style={styles.messagesContainer}>
             <Messages
               chatHistory={messageHistory}
               llmResponse={activeChatId === chatIdRef.current ? response : ''}
@@ -183,26 +183,9 @@ const styles = StyleSheet.create({
     color: ColorPalette.blueDark,
     fontWeight: 'bold',
   },
-  messages: {
+  messagesContainer: {
     paddingVertical: 8,
     paddingHorizontal: 12,
-    height: '80%',
-  },
-  helloMessageContainer: {
-    flex: 10,
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  helloText: {
-    fontFamily: 'medium',
-    fontSize: 30,
-    color: ColorPalette.primary,
-  },
-  bottomHelloText: {
-    fontFamily: 'regular',
-    fontSize: 20,
-    lineHeight: 28,
-    color: ColorPalette.primary,
+    flex: 1,
   },
 });

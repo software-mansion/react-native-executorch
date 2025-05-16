@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { LLMModule, Message } from 'react-native-executorch';
-import { ModelEntry } from '../database/modelRepository';
+import { Model } from '../database/modelRepository';
 import { SQLiteDatabase } from 'expo-sqlite';
 import { persistMessage } from '../database/chatRepository';
 
@@ -11,11 +11,11 @@ interface LLMStore {
   activeChatId: number | null;
   activeChatMessages: Message[];
   response: string;
-  model: ModelEntry | null;
+  model: Model | null;
 
   sendChatMessage: (messages: Message[]) => Promise<void>;
   setDB: (db: SQLiteDatabase) => void;
-  loadModel: (model: ModelEntry) => Promise<void>;
+  loadModel: (model: Model) => Promise<void>;
   setChatId: (chatId: number) => void;
 }
 
@@ -35,15 +35,15 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
       activeChatMessages: [],
     }),
 
-  loadModel: async (model: ModelEntry) => {
+  loadModel: async (model: Model) => {
     if (get().model !== null) {
       LLMModule.delete();
     }
     set({ isLoading: true });
     await LLMModule.load({
-      modelSource: model.modelUrl,
-      tokenizerSource: model.tokenizerUrl,
-      tokenizerConfigSource: model.tokenizerConfigUrl,
+      modelSource: model.modelPath,
+      tokenizerSource: model.tokenizerPath,
+      tokenizerConfigSource: model.tokenizerConfigPath,
       responseCallback: (response) => {
         set({ response });
       },

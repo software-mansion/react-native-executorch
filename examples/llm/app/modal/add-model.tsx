@@ -10,21 +10,23 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
 import { useModelStore } from '../../store/modelStore';
-import { ModelEntry } from '../../database/modelRepository';
+import { Model } from '../../database/modelRepository';
 
 export default function AddModelModal() {
   const router = useRouter();
   const { addModelToDB } = useModelStore();
 
-  const [modelUrl, setModelUrl] = useState('');
-  const [tokenizerUrl, setTokenizerUrl] = useState('');
-  const [tokenizerConfigUrl, setTokenizerConfigUrl] = useState('');
-
-  const [modelPath, setModelPath] = useState<string | null>(null);
-  const [tokenizerPath, setTokenizerPath] = useState<string | null>(null);
-  const [tokenizerConfigPath, setTokenizerConfigPath] = useState<string | null>(
+  const [remoteModelPath, setRemoteModelPath] = useState<string>('');
+  const [remoteTokenizerPath, setRemoteTokenizerPath] = useState<string>('');
+  const [remoteTokenizerConfigPath, setRemoteTokenizerConfigPath] =
+    useState<string>('');
+  const [localModelPath, setLocalModelPath] = useState<string | null>(null);
+  const [localTokenizerPath, setLocalTokenizerPath] = useState<string | null>(
     null
   );
+  const [localTokenizerConfigPath, setLocalTokenizerConfigPath] = useState<
+    string | null
+  >(null);
 
   const pickFile = async (label: string, setPath: (path: string) => void) => {
     try {
@@ -42,22 +44,23 @@ export default function AddModelModal() {
     }
   };
 
-  const isRemote = !!(modelUrl || tokenizerUrl || tokenizerConfigUrl);
-  const isLocal = !!(modelPath || tokenizerPath || tokenizerConfigPath);
-
   const handleSave = async () => {
-    if (!isRemote && !isLocal) {
-      alert('Please provide at least one file/url.');
+    const isRemote = remoteModelPath.length > 0;
+    const modelPath = isRemote ? remoteModelPath : localModelPath;
+    const tokenizerPath = isRemote ? remoteTokenizerPath : localTokenizerPath;
+    const tokenizerConfigPath = isRemote
+      ? remoteTokenizerConfigPath
+      : localTokenizerConfigPath;
+    if (!modelPath || !tokenizerPath || !tokenizerConfigPath) {
+      alert('Please provide all required fields.');
       return;
     }
 
     const id = `model-${Date.now()}`;
-    const model: ModelEntry = {
+    const model: Model = {
       id,
+      isDownloaded: isRemote ? false : true,
       source: isRemote ? 'remote' : 'local',
-      modelUrl: modelUrl || '',
-      tokenizerUrl: tokenizerUrl || '',
-      tokenizerConfigUrl: tokenizerConfigUrl || '',
       modelPath,
       tokenizerPath,
       tokenizerConfigPath,
@@ -77,43 +80,45 @@ export default function AddModelModal() {
         placeholder="Model URL"
         style={styles.input}
         autoCapitalize="none"
-        value={modelUrl}
-        onChangeText={setModelUrl}
+        value={remoteModelPath}
+        onChangeText={setRemoteModelPath}
       />
       <TextInput
         placeholder="Tokenizer URL"
         style={styles.input}
         autoCapitalize="none"
-        value={tokenizerUrl}
-        onChangeText={setTokenizerUrl}
+        value={remoteTokenizerPath}
+        onChangeText={setRemoteTokenizerPath}
       />
       <TextInput
         placeholder="Tokenizer Config URL"
         style={styles.input}
         autoCapitalize="none"
-        value={tokenizerConfigUrl}
-        onChangeText={setTokenizerConfigUrl}
+        value={remoteTokenizerConfigPath}
+        onChangeText={setRemoteTokenizerConfigPath}
       />
 
       <Text style={styles.sectionTitle}>Or Select Local Files</Text>
       <TouchableOpacity
         style={styles.fileButton}
-        onPress={() => pickFile('Model', (uri) => setModelPath(uri))}
+        onPress={() => pickFile('Model', (uri) => setLocalModelPath(uri))}
       >
         <Text>
-          {modelPath
-            ? `📎 Selected: ${modelPath.split('/').pop()}`
+          {localModelPath
+            ? `📎 Selected: ${localModelPath.split('/').pop()}`
             : '📂 Choose Model File'}
         </Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.fileButton}
-        onPress={() => pickFile('Tokenizer', (uri) => setTokenizerPath(uri))}
+        onPress={() =>
+          pickFile('Tokenizer', (uri) => setLocalTokenizerPath(uri))
+        }
       >
         <Text>
-          {tokenizerPath
-            ? `📎 Selected: ${tokenizerPath.split('/').pop()}`
+          {localTokenizerPath
+            ? `📎 Selected: ${localTokenizerPath.split('/').pop()}`
             : '📂 Choose Tokenizer File'}
         </Text>
       </TouchableOpacity>
@@ -121,12 +126,14 @@ export default function AddModelModal() {
       <TouchableOpacity
         style={styles.fileButton}
         onPress={() =>
-          pickFile('Tokenizer Config', (uri) => setTokenizerConfigPath(uri))
+          pickFile('Tokenizer Config', (uri) =>
+            setLocalTokenizerConfigPath(uri)
+          )
         }
       >
         <Text>
-          {tokenizerConfigPath
-            ? `📎 Selected: ${tokenizerConfigPath.split('/').pop()}`
+          {localTokenizerConfigPath
+            ? `📎 Selected: ${localTokenizerConfigPath.split('/').pop()}`
             : '📂 Choose Tokenizer Config'}
         </Text>
       </TouchableOpacity>

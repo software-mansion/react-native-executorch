@@ -1,13 +1,24 @@
 import React from 'react';
-import { TouchableOpacity, Text } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useDrawer } from '../context/DrawerContext';
 
-export default function DrawerToggleButton() {
+const DrawerToggleButton = () => {
   const { openDrawer } = useDrawer();
 
   return (
-    <TouchableOpacity onPress={openDrawer} style={{ paddingHorizontal: 16 }}>
-      <Text style={{ fontSize: 20 }}>☰</Text>
+    <TouchableOpacity onPress={openDrawer} style={styles.button}>
+      <Text style={styles.text}>☰</Text>
     </TouchableOpacity>
   );
-}
+};
+
+export default DrawerToggleButton;
+
+const styles = StyleSheet.create({
+  button: {
+    paddingHorizontal: 16,
+  },
+  text: {
+    fontSize: 20,
+  },
+});

@@ -13,12 +13,12 @@ interface MessagesComponentProps {
   deleteMessage: (index: number) => void;
 }
 
-export default function Messages({
+const Messages = ({
   chatHistory,
   llmResponse,
   isGenerating,
   deleteMessage,
-}: MessagesComponentProps) {
+}: MessagesComponentProps) => {
   const scrollViewRef = useRef<ScrollView>(null);
 
   return (
@@ -53,7 +53,9 @@ export default function Messages({
       </ScrollView>
     </View>
   );
-}
+};
+
+export default Messages;
 
 const styles = StyleSheet.create({
   chatContainer: { flex: 1, width: '100%' },

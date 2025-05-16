@@ -1,36 +1,30 @@
 import { type SQLiteDatabase } from 'expo-sqlite';
 
-export type ModelEntry = {
+export type Model = {
   id: string;
   source: 'local' | 'remote' | null;
-  modelUrl: string;
-  tokenizerUrl: string;
-  tokenizerConfigUrl: string;
-  modelPath: string | null;
-  tokenizerPath: string | null;
-  tokenizerConfigPath: string | null;
+  isDownloaded: boolean;
+  modelPath: string;
+  tokenizerPath: string;
+  tokenizerConfigPath: string;
 };
 
-export async function addModel(db: SQLiteDatabase, model: ModelEntry) {
+export async function addModel(db: SQLiteDatabase, model: Model) {
   await db.runAsync(
     `
     INSERT OR IGNORE INTO models (
       id,
+      isDownloaded,
       source,
-      modelUrl,
-      tokenizerUrl,
-      tokenizerConfigUrl,
       modelPath,
       tokenizerPath,
       tokenizerConfigPath
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?)
   `,
     [
       model.id,
+      model.isDownloaded ? 1 : 0,
       model.source || 'remote',
-      model.modelUrl,
-      model.tokenizerUrl,
-      model.tokenizerConfigUrl,
       model.modelPath,
       model.tokenizerPath,
       model.tokenizerConfigPath,
@@ -38,44 +32,36 @@ export async function addModel(db: SQLiteDatabase, model: ModelEntry) {
   );
 }
 
-export async function updateModelPaths(
-  db: SQLiteDatabase,
-  id: string,
-  modelPath: string,
-  tokenizerPath: string,
-  tokenizerConfigPath: string
-) {
+export async function updateModelDownloaded(db: SQLiteDatabase, id: string) {
   await db.runAsync(
     `
     UPDATE models
-    SET modelPath = ?, tokenizerPath = ?, tokenizerConfigPath = ?
-    WHERE id = ?
-  `,
-    [modelPath, tokenizerPath, tokenizerConfigPath, id]
-  );
-}
-
-export async function clearModelPaths(db: SQLiteDatabase, id: string) {
-  await db.runAsync(
-    `
-    UPDATE models
-    SET modelPath = NULL,
-        tokenizerPath = NULL,
-        tokenizerConfigPath = NULL
+    SET isDownloaded = 1
     WHERE id = ?
   `,
     [id]
   );
 }
 
-export async function getAllModels(db: SQLiteDatabase): Promise<ModelEntry[]> {
-  return await db.getAllAsync<ModelEntry>(`SELECT * FROM models`);
+export async function removeModelFiles(db: SQLiteDatabase, id: string) {
+  await db.runAsync(
+    `
+    UPDATE models
+    SET isDownloaded = 0
+    WHERE id = ?
+  `,
+    [id]
+  );
+}
+
+export async function getAllModels(db: SQLiteDatabase): Promise<Model[]> {
+  return await db.getAllAsync<Model>(`SELECT * FROM models`);
 }
 
 export async function getDownloadedModels(
   db: SQLiteDatabase
-): Promise<ModelEntry[]> {
-  return await db.getAllAsync<ModelEntry>(
+): Promise<Model[]> {
+  return await db.getAllAsync<Model>(
     `
     SELECT * FROM models
     WHERE modelPath IS NOT NULL

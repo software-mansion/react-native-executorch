@@ -1,11 +1,6 @@
 import { create } from 'zustand';
-import {
-  addModel,
-  getAllModels,
-  ModelEntry,
-} from '../database/modelRepository';
+import { addModel, getAllModels, Model } from '../database/modelRepository';
 import { SQLiteDatabase } from 'expo-sqlite';
-import { Model } from '../components/model-hub/ModelCard';
 
 interface ModelStore {
   db: SQLiteDatabase;
@@ -13,7 +8,7 @@ interface ModelStore {
   downloadedModels: Model[];
   setDB: (db: SQLiteDatabase) => void;
   loadModels: () => Promise<void>;
-  addModelToDB: (model: ModelEntry) => Promise<void>;
+  addModelToDB: (model: Model) => Promise<void>;
 }
 
 export const useModelStore = create<ModelStore>((set, get) => ({
@@ -29,11 +24,11 @@ export const useModelStore = create<ModelStore>((set, get) => ({
 
     set({
       models,
-      downloadedModels: models.filter((m) => m.modelPath !== null),
+      downloadedModels: models.filter((m) => m.isDownloaded),
     });
   },
 
-  addModelToDB: async (model: ModelEntry) => {
+  addModelToDB: async (model: Model) => {
     const db = get().db;
     if (!db) return;
 

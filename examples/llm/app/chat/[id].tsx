@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams, useNavigation } from 'expo-router';
-import ChatScreen from '../../screens/ChatScreen';
+import ChatScreen from '../../components/chat-screen/ChatScreen';
 import { useDefaultHeader } from '../../hooks/useDefaultHeader';
 import { useLayoutEffect } from 'react';
 import { TouchableOpacity, Text } from 'react-native';

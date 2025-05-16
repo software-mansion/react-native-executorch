@@ -2,33 +2,17 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ResourceFetcher } from 'react-native-executorch';
 import Divider from '../Divider';
-
-export interface Model {
-  id: string;
-  source: 'remote' | 'local' | null;
-  modelUrl: string;
-  tokenizerUrl: string;
-  tokenizerConfigUrl: string;
-  modelPath?: string | null;
-  tokenizerPath?: string | null;
-  tokenizerConfigPath?: string | null;
-}
+import { Model } from '../../database/modelRepository';
 
 interface ModelCardProps {
   model: Model;
   isDownloaded: boolean;
-  onDownloaded: (
-    modelId: string,
-    modelPath: string,
-    tokenizerPath: string,
-    tokenizerConfigPath: string
-  ) => Promise<void>;
+  onDownloaded: (modelId: string) => Promise<void>;
   onRemoved: (modelId: string) => Promise<void>;
 }
 
 const ModelCard: React.FC<ModelCardProps> = ({
   model,
-  isDownloaded,
   onDownloaded,
   onRemoved,
 }) => {
@@ -37,7 +21,7 @@ const ModelCard: React.FC<ModelCardProps> = ({
 
   const handlePress = async () => {
     if (downloading) return;
-    if (isDownloaded) {
+    if (model.isDownloaded) {
       await deleteModel();
     } else {
       await downloadModel();
@@ -48,18 +32,13 @@ const ModelCard: React.FC<ModelCardProps> = ({
     setDownloading(true);
     setProgress(0);
     try {
-      const filePaths = await ResourceFetcher.fetchMultipleResources(
-        (p) => setProgress(p),
-        model.modelUrl,
-        model.tokenizerUrl,
-        model.tokenizerConfigUrl
+      await ResourceFetcher.fetchMultipleResources(
+        (p: number) => setProgress(p),
+        model.modelPath,
+        model.tokenizerPath,
+        model.tokenizerConfigPath
       );
-      await onDownloaded(
-        model.id,
-        `file://${filePaths[0]}`,
-        `file://${filePaths[1]}`,
-        `file://${filePaths[2]}`
-      );
+      await onDownloaded(model.id);
     } catch (error) {
       console.error('Download failed:', error);
     } finally {
@@ -91,12 +70,12 @@ const ModelCard: React.FC<ModelCardProps> = ({
         {model.source === 'remote' ? 'Remote' : 'Local'}
       </Text>
       <Divider />
-      {!downloading && !isDownloaded && (
+      {!downloading && !model.isDownloaded && (
         <View style={styles.buttonContainer}>
           <Text style={styles.downloadHint}>Tap to Download</Text>
         </View>
       )}
-      {isDownloaded && (
+      {model.isDownloaded && (
         <View style={styles.buttonContainer}>
           <Text style={styles.deleteHint}>Tap to Delete</Text>
         </View>

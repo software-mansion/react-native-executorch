@@ -8,7 +8,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import ColorPalette from '../colors';
 
-export default function AnimatedChatLoading() {
+const AnimatedChatLoading = () => {
   const progress = useSharedValue(0);
   progress.value = withRepeat(withTiming(1, { duration: 500 }), -1, true);
 
@@ -33,7 +33,9 @@ export default function AnimatedChatLoading() {
       <Animated.View style={[styles.loadingDot, animatedStyle]} />
     </View>
   );
-}
+};
+
+export default AnimatedChatLoading;
 
 const styles = StyleSheet.create({
   messageLoadingContainer: {

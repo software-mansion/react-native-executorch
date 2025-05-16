@@ -3,7 +3,7 @@ import { Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
 import { useChatStore } from '../store/chatStore';
 
-export default function DrawerMenu({ onNavigate }: { onNavigate: () => void }) {
+const DrawerMenu = ({ onNavigate }: { onNavigate: () => void }) => {
   const router = useRouter();
   const pathname = usePathname();
   const { chats, loadChats } = useChatStore();
@@ -44,9 +44,11 @@ export default function DrawerMenu({ onNavigate }: { onNavigate: () => void }) {
       })}
     </ScrollView>
   );
-}
+};
 
-function DrawerItem({
+export default DrawerMenu;
+
+const DrawerItem = ({
   label,
   active,
   onPress,
@@ -54,7 +56,7 @@ function DrawerItem({
   label: string;
   active: boolean;
   onPress: () => void;
-}) {
+}) => {
   return (
     <Pressable
       onPress={onPress}
@@ -63,7 +65,7 @@ function DrawerItem({
       <Text style={[styles.label, active && styles.activeLabel]}>{label}</Text>
     </Pressable>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
