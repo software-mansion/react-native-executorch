@@ -149,7 +149,7 @@
   },
   "codegenConfig": {
     "name": "RnExecutorchSpec",
-    "type": "all",
+    "type": "modules",
     "jsSrcsDir": "./src/native",
     "android": {
       "javaPackageName": "com.swmansion.rnexecutorch"
