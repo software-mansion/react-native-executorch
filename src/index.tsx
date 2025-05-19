@@ -31,7 +31,6 @@ export * from './modules/natural_language_processing/TokenizerModule';
 export * from './modules/general/ExecutorchModule';
 
 // utils
-export * from './utils/listDownloadedResources';
 export * from './utils/ResourceFetcher';
 
 // types
