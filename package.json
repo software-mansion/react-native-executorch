@@ -158,8 +158,8 @@
   "dependencies": {
     "@huggingface/jinja": "^0.5.0",
     "expo": "^53.0.7",
-    "expo-asset": "~11.0.5",
-    "expo-file-system": "~18.0.12",
+    "expo-asset": "~11.1.5",
+    "expo-file-system": "~18.1.10",
     "react-native-live-audio-stream": "^1.1.1"
   }
 }
