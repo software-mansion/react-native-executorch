@@ -7,6 +7,7 @@ import {
   FileSystemSessionType,
   writeAsStringAsync,
   EncodingType,
+  deleteAsync,
 } from 'expo-file-system';
 import { Asset } from 'expo-asset';
 import { RNEDirectory } from '../constants/directories';
@@ -86,6 +87,17 @@ export class ResourceFetcher {
     }
 
     return paths;
+  }
+
+  static async deleteMultipleResources(...sources: ResourceSource[]) {
+    for (const source of sources) {
+      const filename = this.getFilenameFromUri(source as string);
+      const fileUri = `${RNEDirectory}${filename}`;
+      console.log('removing', fileUri);
+      if (await this.checkFileExists(fileUri)) {
+        await deleteAsync(fileUri);
+      }
+    }
   }
 
   private static calculateDownloadProgress(
