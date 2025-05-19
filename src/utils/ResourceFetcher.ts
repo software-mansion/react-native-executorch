@@ -94,7 +94,6 @@ export class ResourceFetcher {
     for (const source of sources) {
       const filename = this.getFilenameFromUri(source as string);
       const fileUri = `${RNEDirectory}${filename}`;
-      console.log('removing', fileUri);
       if (await this.checkFileExists(fileUri)) {
         await deleteAsync(fileUri);
       }
