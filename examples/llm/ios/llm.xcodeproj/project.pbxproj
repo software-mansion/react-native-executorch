@@ -23,8 +23,8 @@
 		13B07F961A680F5B00A75B9A /* llm.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = llm.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = llm/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = llm/Info.plist; sourceTree = "<group>"; };
-		52F93D50E948F855530BE970 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = llm/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		66FD0DA88DE041D4B2294CB4 /* Aeonik-Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Aeonik-Medium.otf"; path = "../assets/fonts/Aeonik-Medium.otf"; sourceTree = "<group>"; };
+		52F93D50E948F855530BE970 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = llm/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		66FD0DA88DE041D4B2294CB4 /* Aeonik-Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Aeonik-Medium.otf"; path = "../assets/fonts/Aeonik-Medium.otf"; sourceTree = "<group>"; };
 		99F00DD47E42AF45816C58B8 /* Pods-llm.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-llm.release.xcconfig"; path = "Target Support Files/Pods-llm/Pods-llm.release.xcconfig"; sourceTree = "<group>"; };
 		A8F7447548358E44DADA5029 /* Pods-llm.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-llm.debug.xcconfig"; path = "Target Support Files/Pods-llm/Pods-llm.debug.xcconfig"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = llm/SplashScreen.storyboard; sourceTree = "<group>"; };
@@ -33,7 +33,7 @@
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = llm/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* llm-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "llm-Bridging-Header.h"; path = "llm/llm-Bridging-Header.h"; sourceTree = "<group>"; };
-		F73A1A19BDF34985A5AAA585 /* Aeonik-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Aeonik-Regular.otf"; path = "../assets/fonts/Aeonik-Regular.otf"; sourceTree = "<group>"; };
+		F73A1A19BDF34985A5AAA585 /* Aeonik-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Aeonik-Regular.otf"; path = "../assets/fonts/Aeonik-Regular.otf"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -117,6 +117,7 @@
 				66FD0DA88DE041D4B2294CB4 /* Aeonik-Medium.otf */,
 			);
 			name = Resources;
+			path = "";
 			sourceTree = "<group>";
 		};
 		B83BB53798F9A57DA3D5DBEC /* Pods */ = {
@@ -125,6 +126,7 @@
 				A8F7447548358E44DADA5029 /* Pods-llm.debug.xcconfig */,
 				99F00DD47E42AF45816C58B8 /* Pods-llm.release.xcconfig */,
 			);
+			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -351,7 +353,6 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = llm/llm.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = J5FM626PE2;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -388,7 +389,6 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = llm/llm.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = J5FM626PE2;
 				INFOPLIST_FILE = llm/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (

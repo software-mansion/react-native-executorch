@@ -447,6 +447,6 @@ export class SpeechToTextController {
   }
 
   public async decode(seq: number[], encodings?: number[]) {
-    return await this.speechToTextNativeModule.decode(seq, encodings);
+    return await this.speechToTextNativeModule.decode(seq, encodings || []);
   }
 }

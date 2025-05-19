@@ -1,25 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
-  KeyboardAvoidingView,
-  Platform,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
-  TextInput,
 } from 'react-native';
-import SWMIcon from '../assets/icons/swm_icon.svg';
+import SendIcon from '../assets/icons/send_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {
+  LLAMA3_2_1B_QLORA,
+  LLAMA3_2_TOKENIZER,
+  LLAMA3_2_TOKENIZER_CONFIG,
   useLLM,
-  QWEN3_0_6B_QUANTIZED,
-  QWEN3_TOKENIZER,
-  QWEN3_TOKENIZER_CONFIG,
 } from 'react-native-executorch';
 import PauseIcon from '../assets/icons/pause_icon.svg';
-import SendIcon from '../assets/icons/send_icon.svg';
 import ColorPalette from '../colors';
 import Messages from '../components/Messages';
 
@@ -33,40 +30,39 @@ export default function LLMScreen({
   const textInputRef = useRef<TextInput>(null);
 
   const llm = useLLM({
-    modelSource: QWEN3_0_6B_QUANTIZED,
-    tokenizerSource: QWEN3_TOKENIZER,
-    tokenizerConfigSource: QWEN3_TOKENIZER_CONFIG,
+    modelSource: LLAMA3_2_1B_QLORA,
+    tokenizerSource: LLAMA3_2_TOKENIZER,
+    tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
   });
+
+  useEffect(() => {
+    if (llm.error) {
+      console.log('LLM error:', llm.error);
+    }
+  }, [llm.error]);
 
   useEffect(() => {
     setIsGenerating(llm.isGenerating);
   }, [llm.isGenerating, setIsGenerating]);
 
   const sendMessage = async () => {
-    if (userInput) {
-      llm.sendMessage(userInput);
-      setUserInput('');
-      setIsTextInputFocused(false);
-      textInputRef.current?.clear();
+    setUserInput('');
+    textInputRef.current?.clear();
+    try {
+      await llm.sendMessage(userInput);
+    } catch (e) {
+      console.error(e);
     }
   };
 
   return !llm.isReady ? (
     <Spinner
       visible={!llm.isReady}
-      textContent={`Loading the model ${(llm.downloadProgress * 100).toFixed(0)} %\n`}
+      textContent={`Loading the model ${(llm.downloadProgress * 100).toFixed(0)} %`}
     />
   ) : (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'android' ? 30 : 0}
-      >
-        <View style={styles.topContainer}>
-          <SWMIcon width={45} height={45} />
-          <Text style={styles.textModelName}>Qwen 3 x Whisper</Text>
-        </View>
+      <View style={styles.container}>
         {llm.messageHistory.length ? (
           <View style={styles.chatContainer}>
             <Messages
@@ -84,17 +80,17 @@ export default function LLMScreen({
             </Text>
           </View>
         )}
+
         <View style={styles.bottomContainer}>
           <TextInput
+            autoCorrect={false}
             onFocus={() => setIsTextInputFocused(true)}
             onBlur={() => setIsTextInputFocused(false)}
-            editable={!!llm.isGenerating}
             style={{
               ...styles.textInput,
               borderColor: isTextInputFocused
                 ? ColorPalette.blueDark
                 : ColorPalette.blueLight,
-              display: 'flex',
             }}
             placeholder="Your message"
             placeholderTextColor={'#C1C6E5'}
@@ -102,41 +98,31 @@ export default function LLMScreen({
             ref={textInputRef}
             onChangeText={(text: string) => setUserInput(text)}
           />
-          {llm.isGenerating ? (
-            <TouchableOpacity onPress={llm.interrupt}>
-              <PauseIcon height={40} width={40} padding={4} margin={8} />
-            </TouchableOpacity>
-          ) : (
+          {userInput && (
             <TouchableOpacity
-              style={styles.recordTouchable}
+              style={styles.sendChatTouchable}
               onPress={async () => !llm.isGenerating && (await sendMessage())}
             >
-              <SendIcon height={40} width={40} padding={4} margin={8} />
+              <SendIcon height={24} width={24} padding={4} margin={8} />
+            </TouchableOpacity>
+          )}
+          {llm.isGenerating && (
+            <TouchableOpacity
+              style={styles.sendChatTouchable}
+              onPress={llm.interrupt}
+            >
+              <PauseIcon height={24} width={24} padding={4} margin={8} />
             </TouchableOpacity>
           )}
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
-  keyboardAvoidingView: {
-    flex: 1,
-  },
-  topContainer: {
-    height: 68,
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  chatContainer: {
-    flex: 10,
-    width: '100%',
-  },
-  textModelName: {
-    color: ColorPalette.primary,
-  },
+  container: { flex: 1 },
+  chatContainer: { flex: 10, width: '100%' },
   helloMessageContainer: {
     flex: 10,
     width: '100%',
@@ -172,9 +158,10 @@ const styles = StyleSheet.create({
     color: ColorPalette.primary,
     padding: 16,
   },
-  recordTouchable: {
+  sendChatTouchable: {
     height: '100%',
+    width: 48,
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'flex-end',
   },
 });

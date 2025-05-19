@@ -14,7 +14,6 @@
     "expo-brightness": "~13.1.4",
     "expo-calendar": "~14.1.4",
     "expo-font": "~13.3.1",
-    "expo-speech": "^13.0.1",
     "expo-status-bar": "~2.2.3",
     "metro-config": "^0.81.0",
     "react": "19.0.0",
