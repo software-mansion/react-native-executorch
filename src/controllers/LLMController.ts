@@ -182,6 +182,9 @@ export class LLMController {
   }
 
   public async generate(messages: Message[], tools?: LLMTool[]) {
+    if (!this._isReady) {
+      throw new Error(getError(ETError.ModuleNotLoaded));
+    }
     const renderedChat: string = this.applyChatTemplate(
       messages,
       this.tokenizerConfig,
