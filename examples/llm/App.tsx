@@ -14,9 +14,11 @@ import {
 } from 'react-native';
 import LLMScreen from './screens/LLMScreen';
 import LLMToolCallingScreen from './screens/LLMToolCallingScreen';
+import VoiceChatScreen from './screens/VocieChatScreen';
 
 enum Mode {
   LLM,
+  LLM_VOICE_CHAT,
   LLM_TOOL_CALLING,
 }
 
@@ -38,6 +40,9 @@ export default function App() {
     switch (selectedMode) {
       case Mode.LLM:
         return <LLMScreen setIsGenerating={setIsGenerating} />;
+
+      case Mode.LLM_VOICE_CHAT:
+        return <VoiceChatScreen setIsGenerating={setIsGenerating} />;
 
       case Mode.LLM_TOOL_CALLING:
         return <LLMToolCallingScreen setIsGenerating={setIsGenerating} />;
@@ -61,7 +66,7 @@ export default function App() {
             {!isGenerating ? (
               <View style={styles.wheelPickerContainer}>
                 <ScrollPicker
-                  dataSource={['Chat with LLM', 'Tool calling']}
+                  dataSource={['Chat with LLM', 'Talk to LLM', 'Tool calling']}
                   onValueChange={(_, selectedIndex) => {
                     handleModeChange(selectedIndex);
                   }}

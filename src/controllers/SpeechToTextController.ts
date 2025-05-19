@@ -3,7 +3,7 @@ import {
   MODEL_CONFIGS,
   SECOND,
   MODES,
-  NUM_TOKENS_TO_SLICE,
+  NUM_TOKENS_TO_TRIM,
   STREAMING_ACTION,
 } from '../constants/sttDefaults';
 import { AvailableModels, ModelConfig } from '../types/stt';
@@ -38,7 +38,7 @@ export class SpeechToTextController {
     | undefined;
   private isReadyCallback: (isReady: boolean) => void;
   private isGeneratingCallback: (isGenerating: boolean) => void;
-  private onErrorCallback: ((error: any) => void) | undefined;
+  private onErrorCallback: (error: any) => void;
   private config!: ModelConfig;
 
   constructor({
@@ -71,7 +71,13 @@ export class SpeechToTextController {
       this.isGenerating = isGenerating;
       isGeneratingCallback?.(isGenerating);
     };
-    this.onErrorCallback = onErrorCallback;
+    this.onErrorCallback = (error) => {
+      if (onErrorCallback) {
+        return onErrorCallback(error ? new Error(getError(error)) : undefined);
+      } else {
+        throw new Error(getError(error));
+      }
+    };
     this.configureStreaming(
       overlapSeconds,
       windowSize,
@@ -85,7 +91,7 @@ export class SpeechToTextController {
     decoderSource?: ResourceSource,
     tokenizerSource?: ResourceSource
   ) {
-    this.onErrorCallback?.(undefined);
+    this.onErrorCallback(undefined);
     this.isReadyCallback(false);
     this.config = MODEL_CONFIGS[modelName];
 
@@ -101,7 +107,7 @@ export class SpeechToTextController {
           decoderSource || this.config.sources.decoder
         );
     } catch (e) {
-      this.onErrorCallback?.(e);
+      this.onErrorCallback(e);
       return;
     }
 
@@ -121,9 +127,7 @@ export class SpeechToTextController {
       this.modelDownloadProgressCallback?.(1);
       this.isReadyCallback(true);
     } catch (e) {
-      this.onErrorCallback?.(
-        new Error(`Error when loading the SpeechToTextController! ${e}`)
-      );
+      this.onErrorCallback(e);
     }
   }
 
@@ -172,7 +176,7 @@ export class SpeechToTextController {
     this.prevSeq = [];
     this.chunks = [];
     this.decodedTranscribeCallback([]);
-    this.onErrorCallback?.(undefined);
+    this.onErrorCallback(undefined);
   }
 
   private expectedChunkLength() {
@@ -214,7 +218,7 @@ export class SpeechToTextController {
     try {
       await this.encode(chunk);
     } catch (error) {
-      this.onErrorCallback?.(new Error(getError(error) + ' encoding error'));
+      this.onErrorCallback(new Error(getError(error) + ' encoding error'));
       return [];
     }
     let lastToken = seq.at(-1) as number;
@@ -222,7 +226,7 @@ export class SpeechToTextController {
       try {
         lastToken = await this.decode(seq);
       } catch (error) {
-        this.onErrorCallback?.(new Error(getError(error) + ' decoding error'));
+        this.onErrorCallback(new Error(getError(error) + ' decoding error'));
         return [...seq, this.config.tokenizer.eos];
       }
       seq.push(lastToken);
@@ -249,25 +253,27 @@ export class SpeechToTextController {
     return this.sequence.slice();
   }
 
-  private trimLeft(numOfTokensToSlice: number) {
-    for (let idx = 1; idx < this.seqs.length; idx++) {
-      if (this.seqs[idx]![0] === this.config.tokenizer.bos)
-        this.seqs[idx] = this.seqs[idx]!.slice(numOfTokensToSlice);
+  private trimLeft(numOfTokensToTrim: number) {
+    const idx = this.seqs.length - 1;
+    if (this.seqs[idx]![0] === this.config.tokenizer.bos) {
+      this.seqs[idx] = this.seqs[idx]!.slice(numOfTokensToTrim);
     }
   }
 
-  private trimRight(numOfTokensToSlice: number) {
-    for (let idx = 0; idx < this.seqs.length - 1; idx++) {
-      if (this.seqs[idx]!.at(-1) === this.config.tokenizer.eos)
-        this.seqs[idx] = this.seqs[idx]!.slice(0, -numOfTokensToSlice);
+  private trimRight(numOfTokensToTrim: number) {
+    const idx = this.seqs.length - 2;
+    if (this.seqs[idx]!.at(-1) === this.config.tokenizer.eos) {
+      this.seqs[idx] = this.seqs[idx]!.slice(0, -numOfTokensToTrim);
     }
   }
 
+  // since we are calling this every time (except first) after a new seq is pushed to this.seqs
+  // we can only trim left the last seq and trim right the second to last seq
   private async trimSequences(audioLanguage?: string) {
     const numSpecialTokens = (await this.getStartingTokenIds(audioLanguage))
       .length;
-    this.trimLeft(numSpecialTokens + NUM_TOKENS_TO_SLICE);
-    this.trimRight(numSpecialTokens + NUM_TOKENS_TO_SLICE);
+    this.trimLeft(numSpecialTokens + NUM_TOKENS_TO_TRIM);
+    this.trimRight(numSpecialTokens + NUM_TOKENS_TO_TRIM);
   }
 
   // if last chunk is too short combine it with second to last to improve quality
@@ -287,7 +293,7 @@ export class SpeechToTextController {
     try {
       return TokenizerModule.decode(tokenIds, true);
     } catch (e) {
-      this.onErrorCallback?.(
+      this.onErrorCallback(
         new Error(`An error has occurred when decoding the token ids: ${e}`)
       );
       return '';
@@ -305,7 +311,7 @@ export class SpeechToTextController {
       if (!!audioLanguage !== this.config.isMultilingual)
         throw new Error(getError(ETError.MultilingualConfiguration));
     } catch (e) {
-      this.onErrorCallback?.(e);
+      this.onErrorCallback(e);
       return '';
     }
 
@@ -327,10 +333,10 @@ export class SpeechToTextController {
       }
       this.seqs.push(seq);
 
+      if (this.seqs.length < 2) continue;
+
       // Remove starting tokenIds and some additional ones
       await this.trimSequences(audioLanguage);
-
-      if (this.seqs.length < 2) continue;
 
       this.prevSeq = await this.handleOverlaps(this.seqs);
 
@@ -372,7 +378,7 @@ export class SpeechToTextController {
       if (streamAction === STREAMING_ACTION.DATA && !waveform)
         throw new Error(getError(ETError.MissingDataChunk));
     } catch (e) {
-      this.onErrorCallback?.(e);
+      this.onErrorCallback(e);
       return '';
     }
 
@@ -397,9 +403,10 @@ export class SpeechToTextController {
       );
       const seq = await this.decodeChunk(chunk, audioLanguage);
       this.seqs.push(seq);
-      await this.trimSequences(audioLanguage);
 
       if (this.seqs.length < 2) continue;
+
+      await this.trimSequences(audioLanguage);
       await this.handleOverlaps(this.seqs);
     }
 
