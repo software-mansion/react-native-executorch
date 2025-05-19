@@ -7,6 +7,8 @@ import {
   FileSystemSessionType,
   writeAsStringAsync,
   EncodingType,
+  deleteAsync,
+  readDirectoryAsync,
 } from 'expo-file-system';
 import { Asset } from 'expo-asset';
 import { RNEDirectory } from '../constants/directories';
@@ -88,6 +90,16 @@ export class ResourceFetcher {
     return paths;
   }
 
+  static async deleteMultipleResources(...sources: ResourceSource[]) {
+    for (const source of sources) {
+      const filename = this.getFilenameFromUri(source as string);
+      const fileUri = `${RNEDirectory}${filename}`;
+      if (await this.checkFileExists(fileUri)) {
+        await deleteAsync(fileUri);
+      }
+    }
+  }
+
   private static calculateDownloadProgress(
     numberOfFiles: number,
     currentFileIndex: number,
@@ -104,6 +116,16 @@ export class ResourceFetcher {
       const updatedProgress = baseProgress + scaledProgress;
       setProgress(updatedProgress);
     };
+  }
+
+  static async listDownloadedFiles() {
+    const files = await readDirectoryAsync(RNEDirectory);
+    return files.map((file) => `${RNEDirectory}${file}`);
+  }
+
+  static async listDownloadedModels() {
+    const files = await this.listDownloadedFiles();
+    return files.filter((file) => file.endsWith('.pte'));
   }
 
   private static async handleObject(source: object) {
