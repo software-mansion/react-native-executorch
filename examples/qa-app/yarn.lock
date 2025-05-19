@@ -7468,7 +7468,7 @@ __metadata:
     react-native: 0.79.2
     react-native-audio-api: 0.5.7
     react-native-device-info: ^14.0.4
-    react-native-executorch: "file:../../react-native-executorch-0.420.20250514110509.tgz"
+    react-native-executorch: "file:../../react-native-executorch-0.420.20250519145048.tgz"
     react-native-image-picker: ^7.2.2
     react-native-live-audio-stream: ^1.1.1
     react-native-loading-spinner-overlay: ^3.0.1
@@ -7610,9 +7610,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-executorch@file:../../react-native-executorch-0.420.20250514110509.tgz::locator=qa-app%40workspace%3A.":
-  version: 0.420.20250514110509
-  resolution: "react-native-executorch@file:../../react-native-executorch-0.420.20250514110509.tgz::locator=qa-app%40workspace%3A."
+"react-native-executorch@file:../../react-native-executorch-0.420.20250519145048.tgz::locator=qa-app%40workspace%3A.":
+  version: 0.420.20250519145048
+  resolution: "react-native-executorch@file:../../react-native-executorch-0.420.20250519145048.tgz::locator=qa-app%40workspace%3A."
   dependencies:
     "@huggingface/jinja": ^0.5.0
     expo: ^53.0.7
@@ -7622,7 +7622,7 @@ __metadata:
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 895a8f895013fffaec16d5451304c1da0d864e91d440eb344d073a6aea66c28b30fa938e568bb2445c845503b71587a011fd58dad441778767e95d5da2f34a8c
+  checksum: b33942ede5019d69f475741defc7db41f0b2a59bfb54576ab9dbc59ad32cbe2e2e25271df1e589ffa57b00f45cee2eee60a04de3a9671ae6ea53f3631d54d5ae
   languageName: node
   linkType: hard
 

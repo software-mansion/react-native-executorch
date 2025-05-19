@@ -1395,7 +1395,7 @@ PODS:
     - React-jsiexecutor
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
-  - react-native-executorch (0.420.20250514110509):
+  - react-native-executorch (0.420.20250519145048):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2409,7 +2409,7 @@ SPEC CHECKSUMS:
   React-logger: 368570a253f00879a1e4fea24ed4047e72e7bbf3
   React-Mapbuffer: c04fcda1c6281fc0a6824c7dcc1633dd217ac1ec
   React-microtasksnativemodule: ca2804a25fdcefffa0aa942aa23ab53b99614a34
-  react-native-executorch: 536de45bbe811ae077b5f6cc55425021bf8e63d7
+  react-native-executorch: f0f2df14fc906686aa376aa30cf933f556331c70
   react-native-image-picker: 2d194850656e2eb5aaefe9c25c0ba926b44cf6a6
   react-native-safe-area-context: 00d03dc688ba86664be66f9e3f203fc7d747d899
   React-NativeModulesApple: 452b86b29fae99ed0a4015dca3ad9cd222f88abf

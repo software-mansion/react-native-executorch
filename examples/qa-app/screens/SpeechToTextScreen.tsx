@@ -1,43 +1,50 @@
-import {
-  Text,
-  View,
-  StyleSheet,
-  SafeAreaView,
-  TouchableOpacity,
-  TextInput,
-} from 'react-native';
-import SendIcon from '../assets/send_icon.svg';
 import { useRef, useState } from 'react';
-import { findClosestEmbeddings } from '../utils';
+import {
+  Keyboard,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
+import SWMIcon from '../assets/icons/swm_icon.svg';
+import Spinner from 'react-native-loading-spinner-overlay';
+import { STREAMING_ACTION, useSpeechToText } from 'react-native-executorch';
+import MicIcon from '../assets/icons/mic_icon.svg';
+import StopIcon from '../assets/icons/stop_icon.svg';
+import LiveAudioStream from 'react-native-live-audio-stream';
+import { Buffer } from 'buffer';
 import { DbRow } from '../types';
+import { findClosestEmbeddings } from '../utils';
+import ColorPalette from '../colors';
 
-// const audioStreamOptions = {
-//   sampleRate: 16000,
-//   channels: 1,
-//   bitsPerSample: 16,
-//   audioSource: 1,
-//   bufferSize: 16000,
-// };
+const audioStreamOptions = {
+  sampleRate: 16000,
+  channels: 1,
+  bitsPerSample: 16,
+  audioSource: 1,
+  bufferSize: 16000,
+};
 
-// const startStreamingAudio = (options: any, onChunk: (data: string) => void) => {
-//   LiveAudioStream.init(options);
-//   LiveAudioStream.on('data', onChunk);
-//   LiveAudioStream.start();
-// };
+const startStreamingAudio = (options: any, onChunk: (data: string) => void) => {
+  LiveAudioStream.init(options);
+  LiveAudioStream.on('data', onChunk);
+  LiveAudioStream.start();
+};
 
-// const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
-//   const b64DecodedChunk = Buffer.from(b64EncodedBuffer, 'base64');
-//   const int16Array = new Int16Array(b64DecodedChunk.buffer);
+const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
+  const b64DecodedChunk = Buffer.from(b64EncodedBuffer, 'base64');
+  const int16Array = new Int16Array(b64DecodedChunk.buffer);
 
-//   const float32Array = new Float32Array(int16Array.length);
-//   for (let i = 0; i < int16Array.length; i++) {
-//     float32Array[i] = Math.max(
-//       -1,
-//       Math.min(1, (int16Array[i] / audioStreamOptions.bufferSize) * 8)
-//     );
-//   }
-//   return float32Array;
-// };
+  const float32Array = new Float32Array(int16Array.length);
+  for (let i = 0; i < int16Array.length; i++) {
+    float32Array[i] = Math.max(
+      -1,
+      Math.min(1, (int16Array[i] / audioStreamOptions.bufferSize) * 8)
+    );
+  }
+  return float32Array;
+};
 
 export const MainScreen = ({
   db,
@@ -46,155 +53,189 @@ export const MainScreen = ({
   db: DbRow[];
   forward: (input: string) => Promise<number[]>;
 }) => {
-  const [userInput, setUserInput] = useState('');
-  const textInputRef = useRef<TextInput>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const messageRecorded = useRef<boolean>(false);
 
-  const sendQuestion = async () => {
-    if (db.length > 0) {
-      (async () => {
-        console.log('query:', userInput);
-        const queryEmbedding = await forward(userInput);
-        const temp = findClosestEmbeddings(queryEmbedding, db, 3);
-        console.log(temp);
-      })();
-    }
-    setUserInput('');
-    textInputRef.current?.clear();
+  const speechToText = useSpeechToText({
+    modelName: 'moonshine',
+    windowSize: 3,
+    overlapSeconds: 1.2,
+  });
+
+  const onChunk = (data: string) => {
+    console.log('onChunk');
+    const float32Chunk = float32ArrayFromPCMBinaryBuffer(data);
+    speechToText.streamingTranscribe(
+      STREAMING_ACTION.DATA,
+      Array.from(float32Chunk)
+    );
   };
 
-  return (
-    <SafeAreaView style={styles.mainContainer}>
-      <Text>Hi</Text>
+  const sendQuestion = async (question: string) => {
+    if (db.length > 0) {
+      (async () => {
+        // console.log('query:', question);
+        const queryEmbedding = await forward(question);
+        const temp = findClosestEmbeddings(queryEmbedding, db, 3);
+        console.log(temp.length);
+      })();
+    }
+  };
+
+  const handleRecordPress = async () => {
+    if (isRecording) {
+      setIsRecording(false);
+      LiveAudioStream.stop();
+      messageRecorded.current = true;
+
+      console.log('finishing transcription');
+      const question = await speechToText.streamingTranscribe(
+        STREAMING_ACTION.STOP
+      );
+      console.log('transcribed_test:', question);
+
+      await sendQuestion('Who are hobbits?');
+    } else {
+      console.log('start recording');
+      setIsRecording(true);
+      startStreamingAudio(audioStreamOptions, onChunk);
+      await speechToText.streamingTranscribe(STREAMING_ACTION.START);
+    }
+  };
+
+  return !speechToText.isReady ? (
+    <Spinner
+      visible={!speechToText.isReady}
+      textContent={`Loading the speech model ${(speechToText.downloadProgress * 100).toFixed(0)}  and semantic search DB`}
+    />
+  ) : (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View>
-        <TextInput
-          autoCorrect={false}
-          style={{
-            ...styles.textInput,
-          }}
-          placeholder="Your message"
-          placeholderTextColor={'#C1C6E5'}
-          multiline={true}
-          ref={textInputRef}
-          onChangeText={(text: string) => setUserInput(text)}
-        />
-        {userInput && (
+        <View style={styles.topContainer}>
+          <SWMIcon width={45} height={45} />
+          <Text style={styles.textModelName}>Qwen 3 x Whisper</Text>
+        </View>
+
+        <View style={styles.helloMessageContainer}>
+          <Text style={styles.helloText}>Hello! 👋</Text>
+          <Text style={styles.bottomHelloText}>What can I help you with?</Text>
+        </View>
+
+        <View style={styles.bottomContainer}>
           <TouchableOpacity
-            style={styles.sendChatTouchable}
-            onPress={async () => await sendQuestion()}
+            style={!isRecording ? styles.recordTouchable : styles.recordingInfo}
+            onPress={handleRecordPress}
           >
-            <SendIcon height={24} width={24} padding={4} margin={8} />
+            {isRecording ? (
+              <StopIcon height={40} width={40} padding={4} margin={8} />
+            ) : (
+              <MicIcon height={40} width={40} padding={4} margin={8} />
+            )}
           </TouchableOpacity>
-        )}
+        </View>
       </View>
-    </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 };
 
 const styles = StyleSheet.create({
-  textInput: {
-    height: 40,
-    margin: 12,
-    borderWidth: 1,
-    padding: 10,
-    width: '75%',
-    borderRadius: 20,
-  },
-  imageContainer: {
-    flex: 6,
-    width: '100%',
-    padding: 16,
-  },
-  image: {
-    flex: 1,
-    borderRadius: 8,
-    width: '100%',
-  },
-  mainContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  recordingButtonWrapper: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 2,
-    borderWidth: 3,
-    borderColor: '#001A72',
-    borderRadius: 50,
-  },
-  recordingButton: {
-    paddingVertical: 20,
-    backgroundColor: '#001A72',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
-    borderRadius: 40,
-  },
   topContainer: {
-    marginTop: 80,
-    flex: 1,
-    justifyContent: 'center',
+    height: 68,
+    width: '100%',
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  topContainerText: {
-    height: 35,
+  chatContainer: {
+    flex: 10,
+    width: '100%',
+  },
+  textModelName: {
+    color: ColorPalette.primary,
+  },
+  helloMessageContainer: {
+    flex: 10,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  helloText: {
+    fontFamily: 'medium',
     fontSize: 30,
-    marginTop: 5,
-    color: '#001A72',
-    fontWeight: '600',
+    color: ColorPalette.primary,
   },
-  transcriptionContainer: {
-    flex: 5,
-    paddingTop: 80,
-    width: '90%',
+  bottomHelloText: {
+    fontFamily: 'regular',
+    fontSize: 20,
+    lineHeight: 28,
+    color: ColorPalette.primary,
   },
-  transcriptionText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  iconsContainer: {
-    flex: 2,
-    flexDirection: 'row',
+  bottomContainer: {
+    height: 100,
+    width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    width: '60%',
+    paddingHorizontal: 16,
   },
-  recordingButtonText: {
-    color: 'white',
-    fontWeight: '600',
-  },
-  textGreyCenter: {
-    color: 'gray',
-    textAlign: 'center',
-  },
-  redText: {
-    color: 'red',
-  },
-  borderGrey: {
-    borderColor: 'grey',
-  },
-  backgroundGrey: {
-    backgroundColor: 'grey',
-  },
-  font13: {
-    fontSize: 13,
-  },
-  borderRed: {
-    borderColor: 'rgb(240, 63, 50)',
-  },
-  backgroundRed: {
-    backgroundColor: 'rgb(240, 63, 50)',
-  },
-  emulatorWarning: {
-    color: 'rgb(254, 148, 141)',
-    fontSize: 11,
-  },
-  sendChatTouchable: {
+  recordTouchable: {
     height: '100%',
-    width: 48,
     justifyContent: 'center',
-    alignItems: 'flex-end',
+    alignItems: 'center',
+  },
+  recordingInfo: {
+    width: '100%',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
+
+// export const MainScreen = ({
+//   db,
+//   forward,
+// }: {
+//   db: DbRow[];
+//   forward: (input: string) => Promise<number[]>;
+// }) => {
+//   const [userInput, setUserInput] = useState('');
+//   const textInputRef = useRef<TextInput>(null);
+
+//   const sendQuestion = async () => {
+//     if (db.length > 0) {
+//       (async () => {
+//         console.log('query:', userInput);
+//         const queryEmbedding = await forward(userInput);
+//         const temp = findClosestEmbeddings(queryEmbedding, db, 3);
+//         console.log(temp);
+//       })();
+//     }
+//     setUserInput('');
+//     textInputRef.current?.clear();
+//   };
+
+//   return (
+//     <SafeAreaView style={styles.mainContainer}>
+//       <Text>Hi</Text>
+//       <View>
+//         <TextInput
+//           autoCorrect={false}
+//           style={{
+//             ...styles.textInput,
+//           }}
+//           placeholder="Your message"
+//           placeholderTextColor={'#C1C6E5'}
+//           multiline={true}
+//           ref={textInputRef}
+//           onChangeText={(text: string) => setUserInput(text)}
+//         />
+//         {userInput && (
+//           <TouchableOpacity
+//             style={styles.sendChatTouchable}
+//             onPress={async () => await sendQuestion()}
+//           >
+//             <SendIcon height={24} width={24} padding={4} margin={8} />
+//           </TouchableOpacity>
+//         )}
+//       </View>
+//     </SafeAreaView>
+//   );
+// };

@@ -10,6 +10,8 @@ import * as FileSystem from 'expo-file-system';
 import { Asset } from 'expo-asset';
 import { slidingWindowSlice } from './utils';
 import { DbCache, DbRow } from './types';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { Text } from 'react-native';
 
 export default function App() {
   const [text, setText] = useState<string | null>(null);
@@ -99,5 +101,15 @@ export default function App() {
     }
   }, [text, forward, isReady, tokenizer]);
 
-  return <MainScreen db={db} forward={forward} />;
+  return (
+    <SafeAreaProvider>
+      <SafeAreaView>
+        {db.length !== 0 ? (
+          <MainScreen db={db} forward={forward} />
+        ) : (
+          <Text>Loading DB...</Text>
+        )}
+      </SafeAreaView>
+    </SafeAreaProvider>
+  );
 }

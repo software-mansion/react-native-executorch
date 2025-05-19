@@ -18,6 +18,8 @@
     <string>$(PRODUCT_NAME)</string>
     <key>CFBundlePackageType</key>
     <string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>This app needs access to your microphone to record audio.</string>
     <key>CFBundleShortVersionString</key>
     <string>1.0.0</string>
     <key>CFBundleSignature</key>
