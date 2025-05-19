@@ -71,7 +71,7 @@ type OCRLanguage =
   | 'be'
   | 'bg'
   | 'bs'
-  | 'ch_sim'
+  | 'chSim'
   | 'che'
   | 'cs'
   | 'cy'
@@ -111,8 +111,8 @@ type OCRLanguage =
   | 'pt'
   | 'ro'
   | 'ru'
-  | 'rs_cyrillic'
-  | 'rs_latin'
+  | 'rsCyrillic'
+  | 'rsLatin'
   | 'sk'
   | 'sl'
   | 'sq'
@@ -237,72 +237,72 @@ function App() {
 
 ## Supported languages
 
-|      Language      |  Code Name  |
-| :----------------: | :---------: |
-|       Abaza        |     abq     |
-|       Adyghe       |     ady     |
-|      Africans      |     af      |
-|        Avar        |     ava     |
-|    Azerbaijani     |     az      |
-|     Belarusian     |     be      |
-|     Bulgarian      |     bg      |
-|      Bosnian       |     bs      |
-| Simplified Chinese |   ch_sim    |
-|      Chechen       |     che     |
-|       Chech        |     cs      |
-|       Welsh        |     cy      |
-|       Danish       |     da      |
-|       Dargwa       |     dar     |
-|       German       |     de      |
-|      English       |     en      |
-|      Spanish       |     es      |
-|      Estonian      |     et      |
-|       French       |     fr      |
-|       Irish        |     ga      |
-|      Croatian      |     hr      |
-|     Hungarian      |     hu      |
-|     Indonesian     |     id      |
-|       Ingush       |     inh     |
-|     Icelandic      |     ic      |
-|      Italian       |     it      |
-|      Japanese      |     ja      |
-|     Karbadian      |     kbd     |
-|      Kannada       |     kn      |
-|       Korean       |     ko      |
-|      Kurdish       |     ku      |
-|       Latin        |     la      |
-|        Lak         |     lbe     |
-|      Lezghian      |     lez     |
-|     Lithuanian     |     lt      |
-|      Latvian       |     lv      |
-|       Maori        |     mi      |
-|     Mongolian      |     mn      |
-|       Malay        |     ms      |
-|      Maltese       |     mt      |
-|       Dutch        |     nl      |
-|     Norwegian      |     no      |
-|      Occitan       |     oc      |
-|        Pali        |     pi      |
-|       Polish       |     pl      |
-|     Portuguese     |     pt      |
-|      Romanian      |     ro      |
-|      Russian       |     ru      |
-| Serbian (Cyrillic) | rs_cyrillic |
-|  Serbian (Latin)   |  rs_latin   |
-|       Slovak       |     sk      |
-|     Slovenian      |     sl      |
-|      Albanian      |     sq      |
-|      Swedish       |     sv      |
-|      Swahili       |     sw      |
-|     Tabassaran     |     tab     |
-|       Telugu       |     te      |
-|        Thai        |     th      |
-|       Tajik        |     tjk     |
-|      Tagalog       |     tl      |
-|      Turkish       |     tr      |
-|     Ukrainian      |     uk      |
-|       Uzbek        |     uz      |
-|     Vietnamese     |     vi      |
+|      Language      | Code Name  |
+| :----------------: | :--------: |
+|       Abaza        |    abq     |
+|       Adyghe       |    ady     |
+|      Africans      |     af     |
+|        Avar        |    ava     |
+|    Azerbaijani     |     az     |
+|     Belarusian     |     be     |
+|     Bulgarian      |     bg     |
+|      Bosnian       |     bs     |
+| Simplified Chinese |   chSim    |
+|      Chechen       |    che     |
+|       Chech        |     cs     |
+|       Welsh        |     cy     |
+|       Danish       |     da     |
+|       Dargwa       |    dar     |
+|       German       |     de     |
+|      English       |     en     |
+|      Spanish       |     es     |
+|      Estonian      |     et     |
+|       French       |     fr     |
+|       Irish        |     ga     |
+|      Croatian      |     hr     |
+|     Hungarian      |     hu     |
+|     Indonesian     |     id     |
+|       Ingush       |    inh     |
+|     Icelandic      |     ic     |
+|      Italian       |     it     |
+|      Japanese      |     ja     |
+|     Karbadian      |    kbd     |
+|      Kannada       |     kn     |
+|       Korean       |     ko     |
+|      Kurdish       |     ku     |
+|       Latin        |     la     |
+|        Lak         |    lbe     |
+|      Lezghian      |    lez     |
+|     Lithuanian     |     lt     |
+|      Latvian       |     lv     |
+|       Maori        |     mi     |
+|     Mongolian      |     mn     |
+|       Malay        |     ms     |
+|      Maltese       |     mt     |
+|       Dutch        |     nl     |
+|     Norwegian      |     no     |
+|      Occitan       |     oc     |
+|        Pali        |     pi     |
+|       Polish       |     pl     |
+|     Portuguese     |     pt     |
+|      Romanian      |     ro     |
+|      Russian       |     ru     |
+| Serbian (Cyrillic) | rsCyrillic |
+|  Serbian (Latin)   |  rsLatin   |
+|       Slovak       |     sk     |
+|     Slovenian      |     sl     |
+|      Albanian      |     sq     |
+|      Swedish       |     sv     |
+|      Swahili       |     sw     |
+|     Tabassaran     |    tab     |
+|       Telugu       |     te     |
+|        Thai        |     th     |
+|       Tajik        |    tjk     |
+|      Tagalog       |     tl     |
+|      Turkish       |     tr     |
+|     Ukrainian      |     uk     |
+|       Uzbek        |     uz     |
+|     Vietnamese     |     vi     |
 
 ## Supported models
 

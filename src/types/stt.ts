@@ -69,7 +69,6 @@ export enum SpeechToTextLanguage {
   Romanian = 'ro',
   Russian = 'ru',
   Serbian = 'sr',
-  // eslint-disable-next-line @cspell/spellchecker
   Sinhala = 'si',
   Slovak = 'sk',
   Slovenian = 'sl',
