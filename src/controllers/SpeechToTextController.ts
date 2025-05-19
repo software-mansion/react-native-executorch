@@ -73,7 +73,8 @@ export class SpeechToTextController {
     };
     this.onErrorCallback = (error) => {
       if (onErrorCallback) {
-        return onErrorCallback(error ? new Error(getError(error)) : undefined);
+        onErrorCallback(error ? new Error(getError(error)) : undefined);
+        return;
       } else {
         throw new Error(getError(error));
       }

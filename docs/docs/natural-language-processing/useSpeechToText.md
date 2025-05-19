@@ -31,8 +31,6 @@ It is recommended to use models provided by us, which are available at our [Hugg
 
 ## Reference
 
-### File transcription
-
 You can obtain waveform from audio in any way most suitable to you, however in the snippet below we utilize `react-native-audio-api` library to process a mp3 file.
 
 ```typescript
@@ -63,72 +61,6 @@ if (error) {
 } else {
   console.log(transcription);
 }
-```
-
-### Live data (microphone) transcription
-
-```typescript
-import { STREAMING_ACTION, useSpeechToText } from 'react-native-executorch';
-import LiveAudioStream from 'react-native-live-audio-stream';
-import { useState } from 'react';
-import { Buffer } from 'buffer';
-
-const audioStreamOptions = {
-  sampleRate: 16000,
-  channels: 1,
-  bitsPerSample: 16,
-  audioSource: 1,
-  bufferSize: 16000,
-};
-
-const startStreamingAudio = (options: any, onChunk: (data: string) => void) => {
-  LiveAudioStream.init(options);
-  LiveAudioStream.on('data', onChunk);
-  LiveAudioStream.start();
-};
-
-const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
-  const b64DecodedChunk = Buffer.from(b64EncodedBuffer, 'base64');
-  const int16Array = new Int16Array(b64DecodedChunk.buffer);
-
-  const float32Array = new Float32Array(int16Array.length);
-  for (let i = 0; i < int16Array.length; i++) {
-    float32Array[i] = Math.max(
-      -1,
-      Math.min(1, (int16Array[i] / audioStreamOptions.bufferSize) * 8)
-    );
-  }
-  return float32Array;
-};
-
-const [isRecording, setIsRecording] = useState(false);
-
-const speechToText = useSpeechToText({
-  modelName: 'moonshine',
-  windowSize: 3,
-  overlapSeconds: 1.2,
-});
-
-const onChunk = (data: string) => {
-  const float32Chunk = float32ArrayFromPCMBinaryBuffer(data);
-  speechToText.streamingTranscribe(
-    STREAMING_ACTION.DATA,
-    Array.from(float32Chunk)
-  );
-};
-
-const handleRecordPress = async () => {
-  if (isRecording) {
-    setIsRecording(false);
-    LiveAudioStream.stop();
-    messageRecorded.current = true;
-    await speechToText.streamingTranscribe(STREAMING_ACTION.STOP);
-  } else {
-    setIsRecording(true);
-    startStreamingAudio(audioStreamOptions, onChunk);
-    await speechToText.streamingTranscribe(STREAMING_ACTION.START);
-  }
-};
 ```
 
 ### Streaming
@@ -302,8 +234,94 @@ function App() {
         title="Transcribe"
       />
       <Text>{error ? error : sequence}</Text>
-    </View>****
+    </View>
   );
+}
+```
+
+### Live data (microphone) transcription
+
+```typescript
+import { STREAMING_ACTION, useSpeechToText } from 'react-native-executorch';
+import LiveAudioStream from 'react-native-live-audio-stream';
+import { useState } from 'react';
+import { Buffer } from 'buffer';
+
+const audioStreamOptions = {
+  sampleRate: 16000,
+  channels: 1,
+  bitsPerSample: 16,
+  audioSource: 1,
+  bufferSize: 16000,
+};
+
+const startStreamingAudio = (options: any, onChunk: (data: string) => void) => {
+  LiveAudioStream.init(options);
+  LiveAudioStream.on('data', onChunk);
+  LiveAudioStream.start();
+};
+
+const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
+  const b64DecodedChunk = Buffer.from(b64EncodedBuffer, 'base64');
+  const int16Array = new Int16Array(b64DecodedChunk.buffer);
+
+  const float32Array = new Float32Array(int16Array.length);
+  for (let i = 0; i < int16Array.length; i++) {
+    float32Array[i] = Math.max(
+      -1,
+      Math.min(1, (int16Array[i] / audioStreamOptions.bufferSize) * 8)
+    );
+  }
+  return float32Array;
+};
+
+function App() {
+  const [isRecording, setIsRecording] = useState(false);
+  const speechToText = useSpeechToText({
+    modelName: 'moonshine',
+    windowSize: 3,
+    overlapSeconds: 1.2,
+  });
+
+  const onChunk = (data: string) => {
+    const float32Chunk = float32ArrayFromPCMBinaryBuffer(data);
+    speechToText.streamingTranscribe(
+      STREAMING_ACTION.DATA,
+      Array.from(float32Chunk)
+    );
+  };
+
+  const handleRecordPress = async () => {
+    if (isRecording) {
+      setIsRecording(false);
+      LiveAudioStream.stop();
+      messageRecorded.current = true;
+      await speechToText.streamingTranscribe(STREAMING_ACTION.STOP);
+    } else {
+      setIsRecording(true);
+      startStreamingAudio(audioStreamOptions, onChunk);
+      await speechToText.streamingTranscribe(STREAMING_ACTION.START);
+    }
+  };
+
+  return
+    <View>
+      <Text>
+        {speechToText.sequence}
+      </Text>
+      <TouchableOpacity
+        style={
+          !isRecording ? styles.recordTouchable : styles.recordingInfo
+        }
+        onPress={handleRecordPress}
+      >
+        {isRecording ? (
+          <Text>Stop</Text>
+        ) : (
+          <Text>Record</Text>
+        )}
+      </TouchableOpacity>
+    </View>
 }
 ```
 
