@@ -77,4 +77,10 @@ export const MODES = {
   },
 };
 
-export const NUM_TOKENS_TO_SLICE = 3;
+export const NUM_TOKENS_TO_TRIM = 3;
+
+export enum STREAMING_ACTION {
+  START,
+  DATA,
+  STOP,
+}

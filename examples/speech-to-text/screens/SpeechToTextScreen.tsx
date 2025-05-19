@@ -63,7 +63,7 @@ export const SpeechToTextScreen = () => {
     ).then(({ uri }) => {
       return audioContext.decodeAudioDataSource(uri);
     });
-    return audioBuffer?.getChannelData(0);
+    return Array.from(audioBuffer?.getChannelData(0));
   };
 
   const [isRecording, setIsRecording] = useState(false);
@@ -150,7 +150,7 @@ export const SpeechToTextScreen = () => {
             setModalVisible(visible);
             if (audioUrl) {
               const loadedAudio = await loadAudio(audioUrl);
-              await transcribe(Array.from(loadedAudio));
+              await transcribe(loadedAudio);
             }
           }}
           onChangeText={setAudioUrl}
@@ -174,7 +174,7 @@ export const SpeechToTextScreen = () => {
                   setModalVisible(true);
                 } else {
                   const loadedAudio = await loadAudio(audioUrl);
-                  await transcribe(Array.from(loadedAudio));
+                  await transcribe(loadedAudio);
                 }
               }}
             >
