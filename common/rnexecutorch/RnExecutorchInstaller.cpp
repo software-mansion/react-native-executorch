@@ -40,15 +40,10 @@ jsi::Function RnExecutorchInstaller::loadStyleTransfer(
           // version:
           // https://github.com/facebook/react-native/commit/3132cc88dd46f95898a756456bebeeb6c248f20e
           throw jsi::JSError(runtime, e.what());
-          return jsi::Value();
         } catch (const std::exception &e) {
           throw jsi::JSError(runtime, e.what());
-          return jsi::Value();
-          ;
         } catch (...) {
           throw jsi::JSError(runtime, "Unknown error");
-          return jsi::Value();
-          ;
         }
       });
 }
