@@ -14,7 +14,7 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ```jsx
 import {
   useOCR,
-  CRAFT_800,
+  DETECTOR_CRAFT_800,
   RECOGNIZER_EN_CRNN_512,
   RECOGNIZER_EN_CRNN_256,
   RECOGNIZER_EN_CRNN_128
@@ -22,7 +22,7 @@ import {
 
 function App() {
   const model = useOCR({
-    detectorSource: CRAFT_800,
+    detectorSource: DETECTOR_CRAFT_800,
     recognizerSources: {
       recognizerLarge: RECOGNIZER_EN_CRNN_512,
       recognizerMedium: RECOGNIZER_EN_CRNN_256,
@@ -186,7 +186,7 @@ The `text` property contains the text recognized within detected text region. Th
 ```tsx
 import {
   useOCR,
-  CRAFT_800,
+  DETECTOR_CRAFT_800,
   RECOGNIZER_EN_CRNN_512,
   RECOGNIZER_EN_CRNN_256,
   RECOGNIZER_EN_CRNN_128,
@@ -194,7 +194,7 @@ import {
 
 function App() {
   const model = useOCR({
-    detectorSource: CRAFT_800,
+    detectorSource: DETECTOR_CRAFT_800,
     recognizerSources: {
       recognizerLarge: RECOGNIZER_EN_CRNN_512,
       recognizerMedium: RECOGNIZER_EN_CRNN_256,

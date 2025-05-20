@@ -18,7 +18,7 @@ const imageUri = 'path/to/image.png';
 await ImageSegmentationModule.load(DEEPLAB_V3_RESNET50);
 
 // Running the model
-const outputDict = await StyleTransferModule.forward(imageUri);
+const outputDict = await ImageSegmentationModule.forward(imageUri);
 ```
 
 ### Methods
