@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import LLMScreen from './screens/LLMScreen';
 import LLMToolCallingScreen from './screens/LLMToolCallingScreen';
-import VoiceChatScreen from './screens/VocieChatScreen';
+import VoiceChatScreen from './screens/VoiceChatScreen';
 
 enum Mode {
   LLM,
