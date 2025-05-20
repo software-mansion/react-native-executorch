@@ -114,6 +114,7 @@ export const useModelStore = create<ModelStore>((set, get) => ({
         );
       } else if (model.source === 'local') {
         await removeModelFiles(db, modelId);
+        await get().loadModels();
       }
 
       await updateModelDownloaded(db, modelId, 0);
