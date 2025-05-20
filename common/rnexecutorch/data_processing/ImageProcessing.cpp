@@ -85,8 +85,6 @@ cv::Mat readImage(const std::string &imageURI) {
     std::string stringData;
     std::size_t segmentIndex{0};
     while (std::getline(uriStream, stringData, ',')) {
-      if (segmentIndex == 1)
-        break;
       ++segmentIndex;
     }
     if (segmentIndex != 1) {
