@@ -51,6 +51,20 @@ public:
                   std::unique_ptr<runtime::EventTracer> event_tracer = nullptr);
 
   /**
+   * Constructs an instance by loading a program from a file with specified
+   * memory locking behavior.
+   *
+   * @param[in] file_path The path to the ExecuTorch program file to load.
+   * @param[in] data_map_path The path to a .ptd file
+   * @param[in] load_mode The loading mode to use.
+   * @param[in] event_tracer A EventTracer used for tracking and logging events.
+   */
+  explicit Module(const std::string &file_path,
+                  const std::string &data_map_path,
+                  const LoadMode load_mode = LoadMode::MmapUseMlock,
+                  std::unique_ptr<runtime::EventTracer> event_tracer = nullptr);
+
+  /**
    * Constructs an instance with the provided data loader and memory allocator.
    *
    * @param[in] data_loader A DataLoader used for loading program data.
@@ -58,12 +72,14 @@ public:
    * @param[in] temp_allocator A MemoryAllocator to use when allocating
    * temporary data during kernel or delegate execution.
    * @param[in] event_tracer A EventTracer used for tracking and logging events.
+   * @param[in] data_map_loader A DataLoader used for loading external weights.
    */
   explicit Module(
       std::unique_ptr<runtime::DataLoader> data_loader,
       std::unique_ptr<runtime::MemoryAllocator> memory_allocator = nullptr,
       std::unique_ptr<runtime::MemoryAllocator> temp_allocator = nullptr,
-      std::unique_ptr<runtime::EventTracer> event_tracer = nullptr);
+      std::unique_ptr<runtime::EventTracer> event_tracer = nullptr,
+      std::unique_ptr<runtime::DataLoader> data_map_loader = nullptr);
 
   /**
    * Constructs an instance using an existing shared program.
@@ -74,12 +90,14 @@ public:
    * @param[in] temp_allocator A MemoryAllocator to use when allocating
    * temporary data.
    * @param[in] event_tracer A EventTracer used for tracking and logging events.
+   * @param[in] data_map_loader A DataLoader used for loading external weights.
    */
   explicit Module(
       std::shared_ptr<runtime::Program> program,
       std::unique_ptr<runtime::MemoryAllocator> memory_allocator = nullptr,
       std::unique_ptr<runtime::MemoryAllocator> temp_allocator = nullptr,
-      std::unique_ptr<runtime::EventTracer> event_tracer = nullptr);
+      std::unique_ptr<runtime::EventTracer> event_tracer = nullptr,
+      std::unique_ptr<runtime::DataLoader> data_map_loader = nullptr);
 
   Module(const Module &) = delete;
   Module &operator=(const Module &) = delete;
@@ -114,6 +132,14 @@ public:
   inline std::shared_ptr<runtime::Program> program() const { return program_; }
 
   /**
+   * Get the number of methods available in the loaded program.
+   *
+   * @returns A Result object containing either the number of methods available
+   *          or an error to indicate failure.
+   */
+  runtime::Result<size_t> num_methods();
+
+  /**
    * Get a list of method names available in the loaded program.
    * Loads the program and method if needed.
    *
@@ -127,6 +153,8 @@ public:
    * needed. The loaded method is cached to reuse the next time it's executed.
    *
    * @param[in] method_name The name of the method to load.
+   * @param[in] planned_memory The memory-planned buffers to use for mutable
+   * tensor data when executing a method.
    * @param[in] event_tracer Per-method event tracer to profile/trace methods
    * individually. When not given, the event tracer passed to the Module
    * constructor is used. Otherwise, this per-method event tracer takes
@@ -137,20 +165,35 @@ public:
   ET_NODISCARD
   runtime::Error
   load_method(const std::string &method_name,
+              runtime::HierarchicalAllocator *planned_memory = nullptr,
               torch::executor::EventTracer *event_tracer = nullptr);
+
+  ET_DEPRECATED ET_NODISCARD runtime::Error inline load_method(
+      const std::string &method_name,
+      torch::executor::EventTracer *event_tracer) {
+    return load_method(method_name, nullptr, event_tracer);
+  }
 
   /**
    * Load the 'forward' method from the program and set up memory management if
    * needed. The loaded method is cached to reuse the next time it's executed.
    *
+   * @param[in] planned_memory The memory-planned buffers to use for mutable
+   * tensor data when executing the 'forward' method.
    * @param[in] event_tracer An event tracer used for tracking and logging
    * events.
    *
    * @returns An Error to indicate success or failure.
    */
   ET_NODISCARD inline runtime::Error
-  load_forward(torch::executor::EventTracer *event_tracer = nullptr) {
-    return load_method("forward", event_tracer);
+  load_forward(runtime::HierarchicalAllocator *planned_memory = nullptr,
+               torch::executor::EventTracer *event_tracer = nullptr) {
+    return load_method("forward", planned_memory, event_tracer);
+  }
+
+  ET_DEPRECATED ET_NODISCARD inline runtime::Error
+  load_forward(torch::executor::EventTracer *event_tracer) {
+    return load_forward(nullptr, event_tracer);
   }
 
   /**
@@ -420,14 +463,16 @@ private:
     std::vector<runtime::EValue> inputs;
   };
 
-private:
   std::string file_path_;
+  std::string data_map_path_;
   LoadMode load_mode_{LoadMode::MmapUseMlock};
   std::shared_ptr<runtime::Program> program_;
   std::unique_ptr<runtime::DataLoader> data_loader_;
   std::unique_ptr<runtime::MemoryAllocator> memory_allocator_;
   std::unique_ptr<runtime::MemoryAllocator> temp_allocator_;
   std::unique_ptr<runtime::EventTracer> event_tracer_;
+  std::unique_ptr<runtime::DataLoader> data_map_loader_;
+  std::unique_ptr<runtime::NamedDataMap> data_map_;
 
 protected:
   std::unordered_map<std::string, MethodHolder> methods_;

@@ -1,6 +1,5 @@
 import { Platform } from 'react-native';
 import { Spec as ObjectDetectionInterface } from './NativeObjectDetection';
-import { Spec as StyleTransferInterface } from './NativeStyleTransfer';
 import { Spec as ImageSegmentationInterface } from './NativeImageSegmentation';
 import { Spec as ETModuleInterface } from './NativeETModule';
 import { Spec as OCRInterface } from './NativeOCR';
@@ -43,8 +42,6 @@ const ImageSegmentationNativeModule: ImageSegmentationInterface =
   returnSpecOrThrowLinkingError(require('./NativeImageSegmentation').default);
 const ObjectDetectionNativeModule: ObjectDetectionInterface =
   returnSpecOrThrowLinkingError(require('./NativeObjectDetection').default);
-const StyleTransferNativeModule: StyleTransferInterface =
-  returnSpecOrThrowLinkingError(require('./NativeStyleTransfer').default);
 const SpeechToTextNativeModule: SpeechToTextInterface =
   returnSpecOrThrowLinkingError(require('./NativeSpeechToText').default);
 const OCRNativeModule: OCRInterface = returnSpecOrThrowLinkingError(
@@ -65,12 +62,11 @@ export {
   ETModuleNativeModule,
   ClassificationNativeModule,
   ObjectDetectionNativeModule,
-  StyleTransferNativeModule,
   ImageSegmentationNativeModule,
   SpeechToTextNativeModule,
   OCRNativeModule,
   VerticalOCRNativeModule,
   TextEmbeddingsNativeModule,
   TokenizerNativeModule,
-  ETInstallerNativeModule
+  ETInstallerNativeModule,
 };
