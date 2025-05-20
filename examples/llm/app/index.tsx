@@ -1,9 +1,9 @@
 import { useFonts } from 'expo-font';
 import ChatScreen from '../components/chat-screen/ChatScreen';
 import { useDefaultHeader } from '../hooks/useDefaultHeader';
-import { router, useNavigation } from 'expo-router';
+import { useNavigation } from 'expo-router';
 import { useLayoutEffect, useState } from 'react';
-import { TouchableOpacity, Text } from 'react-native';
+import SettingsHeaderButton from '../components/SettingsHeaderButton';
 
 export default function App() {
   const navigation = useNavigation();
@@ -13,16 +13,11 @@ export default function App() {
     regular: require('../assets/fonts/Aeonik-Regular.otf'),
   });
   useDefaultHeader();
+
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity
-          onPress={() => router.push(`/chat/${chatId}/settings`)}
-          style={{ paddingHorizontal: 16 }}
-        >
-          <Text style={{ fontSize: 16 }}>⚙️</Text>
-        </TouchableOpacity>
-      ),
+      // eslint-disable-next-line react/no-unstable-nested-components
+      headerRight: () => <SettingsHeaderButton chatId={chatId} />,
     });
   }, [navigation, chatId]);
 

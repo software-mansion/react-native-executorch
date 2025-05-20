@@ -5,12 +5,13 @@ import {
   TextInput,
   TouchableOpacity,
   Platform,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
-import { useModelStore } from '../../store/modelStore';
 import { Model } from '../../database/modelRepository';
+import { useModelStore } from '../../store/modelStore';
 
 export default function AddModelModal() {
   const router = useRouter();
@@ -54,7 +55,9 @@ export default function AddModelModal() {
       : `file://${localTokenizerConfigPath}`;
 
     if (!modelPath || !tokenizerPath || !tokenizerConfigPath) {
-      alert('Please provide all required fields.');
+      Alert.alert('Error', 'Please provide all required fields.', [
+        { text: 'OK', onPress: () => {} },
+      ]);
       return;
     }
 

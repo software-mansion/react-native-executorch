@@ -25,7 +25,7 @@ const DrawerMenu = ({ onNavigate }: { onNavigate: () => void }) => {
         onPress={() => navigate('/')}
       />
       <DrawerItem
-        label="Model Hub"
+        label="Models"
         active={pathname === '/model-hub'}
         onPress={() => navigate('/model-hub')}
       />

@@ -1,8 +1,8 @@
 import React, { memo } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import MarkdownComponent from './MarkdownComponent';
-import LlamaIcon from '../assets/icons/llama_icon.svg';
-import ColorPalette from '../colors';
+import LlamaIcon from '../../assets/icons/llama_icon.svg';
+import ColorPalette from '../../colors';
 import { Message } from 'react-native-executorch/lib/typescript/types/llm';
 
 interface MessageItemProps {
