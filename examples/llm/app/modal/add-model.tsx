@@ -32,11 +32,10 @@ export default function AddModelModal() {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: '*/*',
-        copyToCacheDirectory: true,
+        copyToCacheDirectory: false,
       });
 
       if (result.canceled || !result.assets[0]?.uri) return;
-
       const { uri } = result.assets[0];
       setPath(Platform.OS === 'ios' ? uri.replace('file://', '') : uri);
     } catch (err) {
@@ -46,11 +45,14 @@ export default function AddModelModal() {
 
   const handleSave = async () => {
     const isRemote = remoteModelPath.length > 0;
-    const modelPath = isRemote ? remoteModelPath : localModelPath;
-    const tokenizerPath = isRemote ? remoteTokenizerPath : localTokenizerPath;
+    const modelPath = isRemote ? remoteModelPath : `file://${localModelPath}`;
+    const tokenizerPath = isRemote
+      ? remoteTokenizerPath
+      : `file://${localTokenizerPath}`;
     const tokenizerConfigPath = isRemote
       ? remoteTokenizerConfigPath
-      : localTokenizerConfigPath;
+      : `file://${localTokenizerConfigPath}`;
+
     if (!modelPath || !tokenizerPath || !tokenizerConfigPath) {
       alert('Please provide all required fields.');
       return;
@@ -59,7 +61,7 @@ export default function AddModelModal() {
     const id = `model-${Date.now()}`;
     const model: Model = {
       id,
-      isDownloaded: isRemote ? false : true,
+      isDownloaded: isRemote ? 0 : 1,
       source: isRemote ? 'remote' : 'local',
       modelPath,
       tokenizerPath,
@@ -67,14 +69,11 @@ export default function AddModelModal() {
     };
 
     await addModelToDB(model);
-    console.log('Saving model:', model);
     router.back();
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Add New Model</Text>
-
       <Text style={styles.sectionTitle}>Remote / External URLs</Text>
       <TextInput
         placeholder="Model URL"

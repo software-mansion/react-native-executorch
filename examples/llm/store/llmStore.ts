@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { LLMModule, Message } from 'react-native-executorch';
 import { Model } from '../database/modelRepository';
 import { SQLiteDatabase } from 'expo-sqlite';
-import { persistMessage } from '../database/chatRepository';
+import { getChatSettings, persistMessage } from '../database/chatRepository';
 
 interface LLMStore {
   isLoading: boolean;
@@ -57,14 +57,28 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
     if (isGenerating || !db || model === null || isLoading || !activeChatId)
       return;
     set({ isGenerating: true, response: '', activeChatMessages: messages });
-
     try {
       await persistMessage(db, activeChatId, {
         role: 'user',
         content: messages[messages.length - 1].content,
       });
 
-      const generatedResponse = await LLMModule.generate(messages);
+      const chatSettings = await getChatSettings(db, activeChatId);
+      console.log(chatSettings);
+
+      const systemPrompt = chatSettings.systemPrompt;
+      const contextWindow = chatSettings.contextWindow;
+
+      const messagesWithSystemPrompt: Message[] = [
+        { role: 'system', content: systemPrompt },
+        ...messages.slice(-contextWindow),
+      ];
+
+      console.log('messagesWithSystemPrompt', messagesWithSystemPrompt);
+
+      const generatedResponse = await LLMModule.generate(
+        messagesWithSystemPrompt
+      );
 
       if (generatedResponse) {
         await persistMessage(db, activeChatId, {

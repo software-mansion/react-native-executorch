@@ -1,11 +1,5 @@
 import React, { memo } from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Text,
-  Platform,
-} from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import MarkdownComponent from './MarkdownComponent';
 import LlamaIcon from '../assets/icons/llama_icon.svg';
 import ColorPalette from '../colors';
@@ -13,10 +7,9 @@ import { Message } from 'react-native-executorch/lib/typescript/types/llm';
 
 interface MessageItemProps {
   message: Message;
-  deleteMessage: () => void;
 }
 
-const MessageItem = memo(({ message, deleteMessage }: MessageItemProps) => {
+const MessageItem = memo(({ message }: MessageItemProps) => {
   return (
     <View
       style={
@@ -29,30 +22,9 @@ const MessageItem = memo(({ message, deleteMessage }: MessageItemProps) => {
         </View>
       )}
       <MarkdownComponent text={message.content} />
-      <CloseButton deleteMessage={deleteMessage} role={message.role} />
     </View>
   );
 });
-
-const CloseButton = ({
-  deleteMessage,
-  role,
-}: {
-  deleteMessage: () => void;
-  role: string;
-}) => {
-  return (
-    <TouchableOpacity
-      style={[
-        styles.closeButton,
-        role === 'assistant' ? styles.closeButtonRight : styles.closeButtonLeft,
-      ]}
-      onPress={deleteMessage}
-    >
-      <Text style={styles.buttonText}>✕</Text>
-    </TouchableOpacity>
-  );
-};
 
 export default MessageItem;
 

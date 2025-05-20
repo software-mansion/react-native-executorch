@@ -1,59 +1,45 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ResourceFetcher } from 'react-native-executorch';
 import Divider from '../Divider';
 import { Model } from '../../database/modelRepository';
+import { useModelStore } from '../../store/modelStore';
 
 interface ModelCardProps {
   model: Model;
-  isDownloaded: boolean;
-  onDownloaded: (modelId: string) => Promise<void>;
-  onRemoved: (modelId: string) => Promise<void>;
 }
 
-const ModelCard: React.FC<ModelCardProps> = ({
-  model,
-  onDownloaded,
-  onRemoved,
-}) => {
-  const [downloading, setDownloading] = useState(false);
-  const [progress, setProgress] = useState(0);
+const ModelCard: React.FC<ModelCardProps> = ({ model }) => {
+  const { downloadStates, downloadModel, removeModel } = useModelStore();
 
-  const handlePress = async () => {
-    if (downloading) return;
-    if (model.isDownloaded) {
-      await deleteModel();
-    } else {
-      await downloadModel();
-    }
+  const downloadState = downloadStates[model.id] || {
+    progress: 0,
+    status: 'not_started',
   };
 
-  const downloadModel = async () => {
-    setDownloading(true);
-    setProgress(0);
-    try {
-      await ResourceFetcher.fetchMultipleResources(
-        (p: number) => setProgress(p),
-        model.modelPath,
-        model.tokenizerPath,
-        model.tokenizerConfigPath
-      );
-      await onDownloaded(model.id);
-    } catch (error) {
-      console.error('Download failed:', error);
-    } finally {
-      setDownloading(false);
+  const isDownloading = downloadState.status === 'downloading';
+  const isDownloaded =
+    model.isDownloaded === 1 || downloadState.status === 'downloaded';
+
+  const handlePress = async () => {
+    if (isDownloading) return;
+    if (isDownloaded) {
+      await deleteModel();
+    } else {
+      await downloadModel(model);
     }
   };
 
   const deleteModel = async () => {
     try {
-      await ResourceFetcher.removeMultipleResources(
-        model.modelPath,
-        model.tokenizerPath,
-        model.tokenizerConfigPath
-      );
-      await onRemoved(model.id);
+      if (model.source === 'remote') {
+        await ResourceFetcher.removeMultipleResources(
+          model.modelPath,
+          model.tokenizerPath,
+          model.tokenizerConfigPath
+        );
+      }
+      await removeModel(model.id);
     } catch (error) {
       console.error('Delete failed:', error);
     }
@@ -61,29 +47,39 @@ const ModelCard: React.FC<ModelCardProps> = ({
 
   return (
     <TouchableOpacity
-      style={[styles.card, downloading && styles.downloading]}
+      style={[styles.card, isDownloading && styles.downloading]}
       onPress={handlePress}
-      disabled={downloading}
+      disabled={isDownloading}
     >
       <Text style={styles.name}>{model.id}</Text>
       <Text style={styles.sourceText}>
         {model.source === 'remote' ? 'Remote' : 'Local'}
       </Text>
       <Divider />
-      {!downloading && !model.isDownloaded && (
+
+      {!isDownloading && !isDownloaded && (
         <View style={styles.buttonContainer}>
           <Text style={styles.downloadHint}>Tap to Download</Text>
         </View>
       )}
-      {model.isDownloaded && (
+
+      {isDownloaded && (
         <View style={styles.buttonContainer}>
           <Text style={styles.deleteHint}>Tap to Delete</Text>
         </View>
       )}
-      {downloading && (
+
+      {isDownloading && (
         <View style={styles.progressBarContainer}>
-          <View style={[styles.progressBar, { width: `${progress * 100}%` }]} />
-          <Text style={styles.progressText}>{Math.floor(progress * 100)}%</Text>
+          <View
+            style={[
+              styles.progressBar,
+              { width: `${downloadState.progress * 100}%` },
+            ]}
+          />
+          <Text style={styles.progressText}>
+            {Math.floor(downloadState.progress * 100)}%
+          </Text>
         </View>
       )}
     </TouchableOpacity>

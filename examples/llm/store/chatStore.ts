@@ -1,8 +1,6 @@
-import { create } from 'zustand';
 import { SQLiteDatabase } from 'expo-sqlite';
-import { createChat, getAllChats } from '../database/chatRepository';
-
-type Chat = { id: number };
+import { create } from 'zustand';
+import { Chat, getAllChats, createChat } from '../database/chatRepository';
 
 interface ChatStore {
   chats: Chat[];
@@ -14,21 +12,28 @@ interface ChatStore {
 
 export const useChatStore = create<ChatStore>((set, get) => ({
   chats: [],
+  settings: {},
   db: {} as SQLiteDatabase,
   setDB: (db) => set({ db }),
   loadChats: async () => {
     const db = get().db;
     if (!db) return;
+
     const chats = await getAllChats(db);
-    set({ chats });
+    set({
+      chats,
+    });
   },
   addChat: async () => {
     const db = get().db;
     if (!db) return;
+
     const newChatId = await createChat(db);
+
     set((state) => ({
       chats: [...state.chats, { id: newChatId }],
     }));
+
     return newChatId;
   },
 }));

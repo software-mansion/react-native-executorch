@@ -5633,7 +5633,7 @@ __metadata:
     metro-config: ^0.81.0
     react: 19.0.0
     react-native: ^0.79.2
-    react-native-executorch: "file:../../react-native-executorch-20250514143442.tgz"
+    react-native-executorch: "file:../../react-native-executorch-20250518141123.tgz"
     react-native-gesture-handler: ~2.24.0
     react-native-loading-spinner-overlay: ^3.0.1
     react-native-markdown-display: ^7.0.2
@@ -7280,9 +7280,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-executorch@file:../../react-native-executorch-20250514143442.tgz::locator=llm%40workspace%3A.":
-  version: 20250514143442
-  resolution: "react-native-executorch@file:../../react-native-executorch-20250514143442.tgz::locator=llm%40workspace%3A."
+"react-native-executorch@file:../../react-native-executorch-20250518141123.tgz::locator=llm%40workspace%3A.":
+  version: 20250518141123
+  resolution: "react-native-executorch@file:../../react-native-executorch-20250518141123.tgz::locator=llm%40workspace%3A."
   dependencies:
     "@huggingface/jinja": ^0.5.0
     expo: ^53.0.7
@@ -7292,7 +7292,7 @@ __metadata:
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 8663f0fd5398ad805be857ee3f07b9dc1aa4ec48b7354583fe99a81d3e39f6adff9fd249c6bedb5964abab7c7318f662ee3e3b6c439d281184c17fe60c0934de
+  checksum: 1918b1127e983b0dcdb59c40a83e571f9b4de2e1c07d9d208bdae239f78a6735d8d1ad895befdfbc97ce034638eab2305b70d58b0cd40e637b2a6dd3a4dfc7cf
   languageName: node
   linkType: hard
 

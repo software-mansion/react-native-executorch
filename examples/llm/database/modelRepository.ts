@@ -3,7 +3,7 @@ import { type SQLiteDatabase } from 'expo-sqlite';
 export type Model = {
   id: string;
   source: 'local' | 'remote' | null;
-  isDownloaded: boolean;
+  isDownloaded: number;
   modelPath: string;
   tokenizerPath: string;
   tokenizerConfigPath: string;
@@ -32,30 +32,30 @@ export async function addModel(db: SQLiteDatabase, model: Model) {
   );
 }
 
-export async function updateModelDownloaded(db: SQLiteDatabase, id: string) {
+export async function updateModelDownloaded(
+  db: SQLiteDatabase,
+  id: string,
+  downloadedStatus: number
+) {
   await db.runAsync(
     `
     UPDATE models
-    SET isDownloaded = 1
+    SET isDownloaded = ?
     WHERE id = ?
   `,
-    [id]
+    [downloadedStatus, id]
   );
 }
 
 export async function removeModelFiles(db: SQLiteDatabase, id: string) {
-  await db.runAsync(
-    `
-    UPDATE models
-    SET isDownloaded = 0
-    WHERE id = ?
-  `,
-    [id]
-  );
+  await db.runAsync(`DELETE FROM models WHERE id = ?`, [id]);
 }
 
 export async function getAllModels(db: SQLiteDatabase): Promise<Model[]> {
-  return await db.getAllAsync<Model>(`SELECT * FROM models`);
+  const models = await db.getAllAsync<Model>(`SELECT * FROM models`);
+  return models.map((model) => ({
+    ...model,
+  }));
 }
 
 export async function getDownloadedModels(
