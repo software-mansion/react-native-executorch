@@ -425,11 +425,11 @@ export class SpeechToTextController {
       this.waveform = [];
       const seq = await this.decodeChunk(chunk, audioLanguage);
       this.seqs.push(seq);
-      await this.trimSequences(audioLanguage);
 
       if (this.seqs.length === 1) {
         this.sequence = this.seqs[0]!;
       } else {
+        await this.trimSequences(audioLanguage);
         await this.handleOverlaps(this.seqs);
         this.sequence = [...this.sequence, ...this.seqs.at(-1)!];
       }
