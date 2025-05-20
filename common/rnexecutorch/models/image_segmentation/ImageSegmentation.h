@@ -3,6 +3,7 @@
 #include <set>
 #include <utility>
 
+#include <executorch/extension/tensor/tensor_ptr.h>
 #include <jsi/jsi.h>
 #include <opencv2/opencv.hpp>
 
