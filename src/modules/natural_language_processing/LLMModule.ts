@@ -62,7 +62,7 @@ export class LLMModule {
     return this.controller.messageHistory;
   }
 
-  static async deleteMessage(index: number): Promise<Message[]> {
+  static deleteMessage(index: number): Message[] {
     this.controller.deleteMessage(index);
     return this.controller.messageHistory;
   }
