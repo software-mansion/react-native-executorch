@@ -26,8 +26,8 @@ jsi::Function RnExecutorchInstaller::loadStyleTransfer(
           auto styleTransferPtr =
               std::make_shared<StyleTransfer>(source, &runtime);
           auto styleTransferHostObject =
-              std::make_shared<ModelHostObject<StyleTransfer>>(
-                  styleTransferPtr, &runtime, jsCallInvoker);
+              std::make_shared<ModelHostObject<StyleTransfer>>(styleTransferPtr,
+                                                               jsCallInvoker);
 
           return jsi::Object::createFromHostObject(runtime,
                                                    styleTransferHostObject);
