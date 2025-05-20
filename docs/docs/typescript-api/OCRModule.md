@@ -9,7 +9,7 @@ TypeScript API implementation of the [useOCR](../computer-vision/useOCR.md) hook
 ```typescript
 import {
   OCRModule,
-  CRAFT_800,
+  DETECTOR_CRAFT_800,
   RECOGNIZER_EN_CRNN_512,
   RECOGNIZER_EN_CRNN_256,
   RECOGNIZER_EN_CRNN_128,
@@ -18,7 +18,7 @@ const imageUri = 'path/to/image.png';
 
 // Loading the model
 await OCRModule.load({
-  detectorSource: CRAFT_800,
+  detectorSource: DETECTOR_CRAFT_800,
   recognizerSources: {
     recognizerLarge: RECOGNIZER_EN_CRNN_512,
     recognizerMedium: RECOGNIZER_EN_CRNN_256,
