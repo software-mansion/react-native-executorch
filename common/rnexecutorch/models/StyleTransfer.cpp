@@ -1,12 +1,12 @@
 #include "StyleTransfer.h"
 
+#include <rnexecutorch/Log.h>
+#include <rnexecutorch/data_processing/ImageProcessing.h>
+
 #include <span>
 
 #include <executorch/extension/tensor/tensor.h>
 #include <opencv2/opencv.hpp>
-
-#include <rnexecutorch/Log.h>
-#include <rnexecutorch/data_processing/ImageProcessing.h>
 
 namespace rnexecutorch {
 using namespace facebook;

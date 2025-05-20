@@ -1,4 +1,4 @@
-#include <rnexecutorch/models/BaseModel.h>
+#include "BaseModel.h"
 
 #include <rnexecutorch/Log.h>
 

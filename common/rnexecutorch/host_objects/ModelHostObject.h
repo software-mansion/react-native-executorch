@@ -5,24 +5,26 @@
 #include <tuple>
 #include <vector>
 
+#include <ReactCommon/CallInvoker.h>
+
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/jsi/JsiHostObject.h>
-#include <rnexecutorch/jsi/JsiPromise.h>
+#include <rnexecutorch/jsi/Promise.h>
 
 namespace rnexecutorch {
 
 template <typename Model> class ModelHostObject : public JsiHostObject {
 public:
-  explicit ModelHostObject(
-      const std::shared_ptr<Model> &model, jsi::Runtime *runtime,
-      const std::shared_ptr<react::CallInvoker> &callInvoker)
-      : model(model), promiseVendor(runtime, callInvoker) {
-    addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject, forward));
+  explicit ModelHostObject(const std::shared_ptr<Model> &model,
+                           std::shared_ptr<react::CallInvoker> callInvoker)
+      : model(model), callInvoker(callInvoker) {
+    addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>, forward));
   }
 
   JSI_HOST_FUNCTION(forward) {
-    auto promise = promiseVendor.createPromise(
+    auto promise = Promise::createPromise(
+        runtime, callInvoker,
         [this, count, args, &runtime](std::shared_ptr<Promise> promise) {
           constexpr std::size_t forwardArgCount =
               jsiconversion::getArgumentCount(&Model::forward);
@@ -32,40 +34,56 @@ public:
                 errorMessage, sizeof(errorMessage),
                 "Argument count mismatch, was expecting: %zu but got: %zu",
                 forwardArgCount, count);
-
             promise->reject(errorMessage);
             return;
           }
 
-          // Do the asynchronous work
-          std::thread([this, promise = std::move(promise), args, &runtime]() {
-            try {
-              auto argsConverted = jsiconversion::createArgsTupleFromJsi(
-                  &Model::forward, args, runtime);
-              auto result = std::apply(std::bind_front(&Model::forward, model),
-                                       argsConverted);
+          try {
+            auto argsConverted = jsiconversion::createArgsTupleFromJsi(
+                &Model::forward, args, runtime);
 
-              promise->resolve([result =
-                                    std::move(result)](jsi::Runtime &runtime) {
-                return jsiconversion::getJsiValue(std::move(result), runtime);
-              });
-            } catch (const std::runtime_error &e) {
-              // This catch should be merged with the next one
-              // (std::runtime_error inherits from std::exception) HOWEVER react
-              // native has broken RTTI which breaks proper exception type
-              // checking. Remove when the following change is present in our
-              // version:
-              // https://github.com/facebook/react-native/commit/3132cc88dd46f95898a756456bebeeb6c248f20e
-              promise->reject(e.what());
-              return;
-            } catch (const std::exception &e) {
-              promise->reject(e.what());
-              return;
-            } catch (...) {
-              promise->reject("Unknown error");
-              return;
-            }
-          }).detach();
+            // We need to dispatch a thread if we want the forward to be
+            // asynchronous. In this thread all accesses to jsi::Runtime need to
+            // be done via the callInvoker.
+            std::thread([this, promise,
+                         argsConverted = std::move(argsConverted)]() {
+              try {
+                auto result = std::apply(
+                    std::bind_front(&Model::forward, model), argsConverted);
+
+                callInvoker->invokeAsync([promise, result = std::move(result)](
+                                             jsi::Runtime &runtime) {
+                  promise->resolve(
+                      jsiconversion::getJsiValue(std::move(result), runtime));
+                });
+              } catch (const std::runtime_error &e) {
+                // This catch should be merged with the next two
+                // (std::runtime_error and jsi::JSError inherits from
+                // std::exception) HOWEVER react native has broken RTTI which
+                // breaks proper exception type checking. Remove when the
+                // following change is present in our version:
+                // https://github.com/facebook/react-native/commit/3132cc88dd46f95898a756456bebeeb6c248f20e
+                callInvoker->invokeAsync(
+                    [&e, promise]() { promise->reject(e.what()); });
+                return;
+              } catch (const jsi::JSError &e) {
+                callInvoker->invokeAsync(
+                    [&e, promise]() { promise->reject(e.what()); });
+                return;
+              } catch (const std::exception &e) {
+                callInvoker->invokeAsync(
+                    [&e, promise]() { promise->reject(e.what()); });
+                return;
+              } catch (...) {
+                callInvoker->invokeAsync(
+                    [promise]() { promise->reject("Unknown error"); });
+                return;
+              }
+            }).detach();
+          } catch (...) {
+            promise->reject(
+                "Couldn't parse JS arguments in native forward function");
+          }
         });
 
     return promise;
@@ -73,7 +91,7 @@ public:
 
 private:
   std::shared_ptr<Model> model;
-  PromiseVendor promiseVendor;
+  std::shared_ptr<react::CallInvoker> callInvoker;
 };
 
 } // namespace rnexecutorch

@@ -2,7 +2,6 @@
 
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/host_objects/ModelHostObject.h>
-#include <rnexecutorch/jsi/JsiPromise.h>
 #include <rnexecutorch/models/StyleTransfer.h>
 
 namespace rnexecutorch {
@@ -27,8 +26,8 @@ jsi::Function RnExecutorchInstaller::loadStyleTransfer(
           auto styleTransferPtr =
               std::make_shared<StyleTransfer>(source, &runtime);
           auto styleTransferHostObject =
-              std::make_shared<ModelHostObject<StyleTransfer>>(
-                  styleTransferPtr, &runtime, jsCallInvoker);
+              std::make_shared<ModelHostObject<StyleTransfer>>(styleTransferPtr,
+                                                               jsCallInvoker);
 
           return jsi::Object::createFromHostObject(runtime,
                                                    styleTransferHostObject);
