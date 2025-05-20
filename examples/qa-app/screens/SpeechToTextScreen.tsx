@@ -63,7 +63,6 @@ export const MainScreen = ({
   });
 
   const onChunk = (data: string) => {
-    console.log('onChunk');
     const float32Chunk = float32ArrayFromPCMBinaryBuffer(data);
     speechToText.streamingTranscribe(
       STREAMING_ACTION.DATA,
@@ -74,29 +73,31 @@ export const MainScreen = ({
   const sendQuestion = async (question: string) => {
     if (db.length > 0) {
       (async () => {
-        // console.log('query:', question);
+        console.log('question:', question);
         const queryEmbedding = await forward(question);
-        const temp = findClosestEmbeddings(queryEmbedding, db, 3);
-        console.log(temp.length);
+        const result = findClosestEmbeddings(queryEmbedding, db, 3);
+        for (const row of result) {
+          console.log(row);
+        }
       })();
     }
   };
 
   const handleRecordPress = async () => {
+    console.log('press');
     if (isRecording) {
+      console.log('stop');
       setIsRecording(false);
       LiveAudioStream.stop();
       messageRecorded.current = true;
 
-      console.log('finishing transcription');
       const question = await speechToText.streamingTranscribe(
         STREAMING_ACTION.STOP
       );
-      console.log('transcribed_test:', question);
 
-      await sendQuestion('Who are hobbits?');
+      await sendQuestion(question);
     } else {
-      console.log('start recording');
+      console.log('start');
       setIsRecording(true);
       startStreamingAudio(audioStreamOptions, onChunk);
       await speechToText.streamingTranscribe(STREAMING_ACTION.START);

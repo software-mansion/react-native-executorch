@@ -3,8 +3,8 @@ import { MainScreen } from './screens/SpeechToTextScreen';
 import {
   MULTI_QA_MINILM_L6_COS_V1,
   MULTI_QA_MINILM_L6_COS_V1_TOKENIZER,
+  TokenizerModule,
   useTextEmbeddings,
-  useTokenizer,
 } from 'react-native-executorch';
 import * as FileSystem from 'expo-file-system';
 import { Asset } from 'expo-asset';
@@ -22,17 +22,13 @@ export default function App() {
     tokenizerSource: MULTI_QA_MINILM_L6_COS_V1_TOKENIZER,
   });
 
-  const tokenizer = useTokenizer({
-    tokenizerSource: MULTI_QA_MINILM_L6_COS_V1_TOKENIZER,
-  });
-
   const { forward, isReady } = encoder;
-
   useEffect(() => {
     if (isReady && !text) {
       (async () => {
+        await TokenizerModule.load(MULTI_QA_MINILM_L6_COS_V1_TOKENIZER);
+
         const cachePath = `${FileSystem.cacheDirectory}${'db'}`;
-        // TODO caching
         let fileInfo;
         try {
           fileInfo = await FileSystem.getInfoAsync(cachePath);
@@ -62,7 +58,7 @@ export default function App() {
         console.log('text length:', newText.length);
 
         // Tokenize the text
-        const tokens = await tokenizer.encode(newText);
+        const tokens = await TokenizerModule.encode(newText);
 
         console.log('tokens length', tokens.length);
 
@@ -74,7 +70,7 @@ export default function App() {
         const newDb: DbRow[] = [];
         let counter = 0;
         for (const slice of slices) {
-          const sliceText = await tokenizer.decode(slice);
+          const sliceText = await TokenizerModule.decode(slice);
           const embedding = await forward(sliceText);
 
           newDb.push({ text: sliceText, embedding: embedding });
@@ -99,7 +95,7 @@ export default function App() {
         return;
       })();
     }
-  }, [text, forward, isReady, tokenizer]);
+  }, [text, forward, isReady]);
 
   return (
     <SafeAreaProvider>
