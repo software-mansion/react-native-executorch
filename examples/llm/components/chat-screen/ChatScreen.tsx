@@ -19,12 +19,14 @@ import { useLLMStore } from '../../store/llmStore';
 import { Message } from 'react-native-executorch';
 import { getChatMessages } from '../../database/chatRepository';
 import { useChatStore } from '../../store/chatStore';
+import { router } from 'expo-router';
 
 interface ChatScreenProps {
   chatId: number | null;
+  setChat: (chatId: number) => void;
 }
 
-export default function ChatScreen({ chatId }: ChatScreenProps) {
+export default function ChatScreen({ chatId, setChat }: ChatScreenProps) {
   const inputRef = useRef<TextInput>(null);
   const chatIdRef = useRef<number | null>(chatId);
 
@@ -82,6 +84,8 @@ export default function ChatScreen({ chatId }: ChatScreenProps) {
       const newChatId = await addChat();
       chatIdRef.current = newChatId!;
       setChatId(chatIdRef.current);
+      setChat(newChatId!);
+      router.replace(`/chat/${newChatId}`);
     }
 
     inputRef.current?.clear();
@@ -135,7 +139,6 @@ export default function ChatScreen({ chatId }: ChatScreenProps) {
               chatHistory={messageHistory}
               llmResponse={activeChatId === chatIdRef.current ? response : ''}
               isGenerating={isGenerating}
-              deleteMessage={() => {}}
             />
           </View>
 

@@ -19,6 +19,7 @@ export const initDatabase = async (db: SQLiteDatabase) => {
 
   // await db.execAsync(`DROP TABLE IF EXISTS chats`);
   // await db.execAsync(`DROP TABLE IF EXISTS messages`);
+  //await db.execAsync(`DROP TABLE IF EXISTS chatSettings`);
 
   await db.execAsync(`
       CREATE TABLE IF NOT EXISTS chats (
@@ -35,6 +36,14 @@ export const initDatabase = async (db: SQLiteDatabase) => {
         FOREIGN KEY (chatId) REFERENCES chats (id) ON DELETE CASCADE
       )`);
 
+  await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS chatSettings (
+        chatId INTEGER PRIMARY KEY NOT NULL,
+        systemPrompt TEXT DEFAULT '',
+        contextWindow INTEGER DEFAULT 10,
+        FOREIGN KEY(chatId) REFERENCES chats(id) ON DELETE CASCADE
+    )`);
+
   useChatStore.getState().setDB(db);
   useModelStore.getState().setDB(db);
   useLLMStore.getState().setDB(db);
@@ -45,7 +54,7 @@ export const initDatabase = async (db: SQLiteDatabase) => {
       await addModel(db, {
         id,
         source: 'remote',
-        isDownloaded: false,
+        isDownloaded: 0,
         modelPath: modelPath,
         tokenizerPath: tokenizerPath,
         tokenizerConfigPath: tokenizerConfigPath,

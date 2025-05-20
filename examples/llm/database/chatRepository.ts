@@ -1,8 +1,14 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SQLiteDatabase } from 'expo-sqlite';
 import { Message } from 'react-native-executorch';
 
 export type Chat = {
   id: number;
+};
+
+export type ChatSettings = {
+  systemPrompt: string;
+  contextWindow: number;
 };
 
 export type DBMessage = {
@@ -48,3 +54,56 @@ export const deleteChat = async (
 ): Promise<void> => {
   await db.runAsync(`DELETE FROM chats WHERE id = ?;`, [chatId]);
 };
+
+export async function getChatSettings(
+  db: SQLiteDatabase,
+  chatId: number | null
+): Promise<ChatSettings> {
+  const result = await db.getFirstAsync<ChatSettings>(
+    'SELECT systemPrompt, contextWindow FROM chatSettings WHERE chatId = ?',
+    [chatId]
+  );
+
+  if (!result) {
+    const defaultSettings = await AsyncStorage.getItem('default_chat_settings');
+    if (defaultSettings) {
+      return JSON.parse(defaultSettings);
+    }
+  }
+
+  return (
+    result ?? {
+      systemPrompt: '',
+      contextWindow: 6,
+    }
+  );
+}
+
+export async function setChatSettings(
+  db: SQLiteDatabase,
+  chatId: number,
+  settings: ChatSettings
+): Promise<void> {
+  if (chatId === null) {
+    await AsyncStorage.setItem(
+      'default_chat_settings',
+      JSON.stringify({
+        systemPrompt: settings.systemPrompt,
+        contextWindow: settings.contextWindow,
+      })
+    );
+
+    return;
+  }
+
+  await db.runAsync(
+    `
+    INSERT INTO chatSettings (chatId, systemPrompt, contextWindow)
+    VALUES (?, ?, ?)
+    ON CONFLICT(chatId) DO UPDATE SET
+      systemPrompt = excluded.systemPrompt,
+      contextWindow = excluded.contextWindow
+  `,
+    [chatId, settings.systemPrompt, settings.contextWindow]
+  );
+}

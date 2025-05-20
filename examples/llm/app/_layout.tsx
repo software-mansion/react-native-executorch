@@ -22,8 +22,11 @@ export default function Layout() {
               name="model-hub/index"
               options={{ title: 'Model Hub' }}
             />
-            <Stack.Screen name="index" options={{ title: 'Chat' }} />
-            <Stack.Screen name="chat/[id]" />
+            <Stack.Screen
+              name="index"
+              options={{ title: 'Chat', animation: 'none' }}
+            />
+            <Stack.Screen name="chat/[id]" options={{ animation: 'none' }} />
             <Stack.Screen
               name="chat/[id]/settings"
               options={{

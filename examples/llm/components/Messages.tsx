@@ -10,14 +10,12 @@ interface MessagesComponentProps {
   chatHistory: Message[];
   llmResponse: string;
   isGenerating: boolean;
-  deleteMessage: (index: number) => void;
 }
 
 const Messages = ({
   chatHistory,
   llmResponse,
   isGenerating,
-  deleteMessage,
 }: MessagesComponentProps) => {
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -29,11 +27,7 @@ const Messages = ({
       >
         <View onStartShouldSetResponder={() => true}>
           {chatHistory.map((message, index) => (
-            <MessageItem
-              key={index}
-              message={message}
-              deleteMessage={() => deleteMessage(index)}
-            />
+            <MessageItem key={index} message={message} />
           ))}
           {isGenerating && (
             <View style={styles.aiMessage}>

@@ -26,5 +26,5 @@ export default function ChatScreenWrapper() {
     }
   }, [navigation, id]);
 
-  return <ChatScreen chatId={chatId} />;
+  return <ChatScreen chatId={chatId} setChat={() => {}} />;
 }
