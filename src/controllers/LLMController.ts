@@ -34,7 +34,6 @@ export class LLMController {
   private onDownloadProgressCallback:
     | ((downloadProgress: number) => void)
     | undefined;
-  private errorCallback: ((error: any) => void) | undefined;
 
   constructor({
     responseCallback,
@@ -42,14 +41,12 @@ export class LLMController {
     isReadyCallback,
     isGeneratingCallback,
     onDownloadProgressCallback,
-    errorCallback,
   }: {
     responseCallback?: (response: string) => void;
     messageHistoryCallback?: (messageHistory: Message[]) => void;
     isReadyCallback?: (isReady: boolean) => void;
     isGeneratingCallback?: (isGenerating: boolean) => void;
     onDownloadProgressCallback?: (downloadProgress: number) => void;
-    errorCallback?: (error: Error | undefined) => void;
   }) {
     this.responseCallback = (response) => {
       this._response = response;
@@ -67,7 +64,7 @@ export class LLMController {
       this._isGenerating = isGenerating;
       isGeneratingCallback?.(isGenerating);
     };
-    this.errorCallback = errorCallback;
+
     this.onDownloadProgressCallback = onDownloadProgressCallback;
 
     this.nativeModule = LLMNativeModule;
@@ -124,12 +121,8 @@ export class LLMController {
         this.responseCallback(this._response + data);
       });
     } catch (e) {
-      if (this.errorCallback) {
-        this.errorCallback(getError(e));
-      } else {
-        throw new Error(getError(e));
-      }
       this.isReadyCallback(false);
+      throw new Error(getError(e));
     }
   }
 
@@ -185,6 +178,15 @@ export class LLMController {
     if (!this._isReady) {
       throw new Error(getError(ETError.ModuleNotLoaded));
     }
+    if (messages.length === 0) {
+      throw new Error(`Empty 'messages' array!`);
+    }
+    if (messages[0] && messages[0].role !== 'system') {
+      console.warn(
+        `You are not providing system prompt. You can pass it in the first message using { role: 'system', content: YOUR_PROMPT }. Otherwise prompt from your model's chat template will be used.`
+      );
+    }
+
     const renderedChat: string = this.applyChatTemplate(
       messages,
       this.tokenizerConfig,

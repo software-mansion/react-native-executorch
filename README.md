@@ -77,11 +77,14 @@ function MyComponent() {
 
 ```tsx
 const handleGenerate = async () => {
-  const chat = [{ role: 'user', content: 'What is the meaning of life?' }];
+  const chat = [
+    { role: 'system' content: 'You are a helpful assistant' }
+    { role: 'user', content: 'What is the meaning of life?' }
+  ];
 
   // Chat completion
-  await llama.generate(chat);
-  console.log('Llama says:', llama.response);
+  await llm.generate(chat);
+  console.log('Llama says:', llm.response);
 };
 ```
 
