@@ -49,13 +49,31 @@ Pod::Spec.new do |s|
   }
 
   s.pod_target_xcconfig = {
-    "HEADER_SEARCH_PATHS" => "$(PODS_TARGET_SRCROOT)/third-party/include"
+    "USE_HEADERMAP" => "YES",
+    "HEADER_SEARCH_PATHS" => 
+      '"$(PODS_TARGET_SRCROOT)/ios" '+
+      '"$(PODS_TARGET_SRCROOT)/third-party/include" '+
+      '"$(PODS_TARGET_SRCROOT)/common" ',
+    "CLANG_CXX_LANGUAGE_STANDARD" => "c++20",
   }
 
   s.ios.vendored_frameworks = "ios/ExecutorchLib.xcframework"
-  s.source_files = "ios/**/*.{h,m,mm}", "common/**/*.{hpp,cpp,c,h}"
+  s.source_files = [
+    "ios/**/*.{m,mm,h}",
+    "common/**/*.{cpp,c,h,hpp}",
+  ]
+  # Do not include the headers from common/rnexecutorch/jsi/ as source files. 
+  # Xcode/Cocoapods leaks them to other pods that an app also depends on, so if 
+  # another pod includes a header with the same name without a path by 
+  # #include "Header.h" we get a conflict. Here, headers in jsi/ collide with 
+  # react-native-skia. The headers are preserved by preserve_paths and 
+  # then made available by HEADER_SEARCH_PATHS.
+  s.exclude_files = "common/rnexecutorch/jsi/*.{h,hpp}"
+  s.header_mappings_dir = "common/rnexecutorch"
+  s.header_dir = "rnexecutorch"
+  s.preserve_paths = "common/rnexecutorch/jsi/*.{h,hpp}"
   
-  s.dependency "opencv-rne", "~> 0.1.0"
+  s.dependency "opencv-rne", "~> 4.11.0"
   s.dependency "sqlite3"
 
   install_modules_dependencies(s)
