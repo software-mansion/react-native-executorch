@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { ResourceFetcher } from 'react-native-executorch';
 import Divider from '../Divider';
 import { Model } from '../../database/modelRepository';
 import { useModelStore } from '../../store/modelStore';
+import { useLLMStore } from '../../store/llmStore';
 
 interface ModelCardProps {
   model: Model;
@@ -11,18 +11,25 @@ interface ModelCardProps {
 
 const ModelCard: React.FC<ModelCardProps> = ({ model }) => {
   const { downloadStates, downloadModel, removeModel } = useModelStore();
-
+  const { model: activeModel } = useLLMStore();
   const downloadState = downloadStates[model.id] || {
     progress: 0,
     status: 'not_started',
   };
-
   const isDownloading = downloadState.status === 'downloading';
-  const isDownloaded =
-    model.isDownloaded === 1 || downloadState.status === 'downloaded';
+  const [isDownloaded, setIsDownloaded] = useState(
+    model.isDownloaded === 1 || downloadState.status === 'downloaded'
+  );
+  const isLoaded = activeModel?.id === model.id;
+
+  useEffect(() => {
+    if (downloadState.status === 'downloaded') {
+      setIsDownloaded(true);
+    }
+  }, [downloadState.status]);
 
   const handlePress = async () => {
-    if (isDownloading) return;
+    if (isDownloading || isLoaded) return;
     if (isDownloaded) {
       await deleteModel();
     } else {
@@ -32,14 +39,8 @@ const ModelCard: React.FC<ModelCardProps> = ({ model }) => {
 
   const deleteModel = async () => {
     try {
-      if (model.source === 'remote') {
-        await ResourceFetcher.removeMultipleResources(
-          model.modelPath,
-          model.tokenizerPath,
-          model.tokenizerConfigPath
-        );
-      }
       await removeModel(model.id);
+      setIsDownloaded(false);
     } catch (error) {
       console.error('Delete failed:', error);
     }
@@ -63,9 +64,15 @@ const ModelCard: React.FC<ModelCardProps> = ({ model }) => {
         </View>
       )}
 
-      {isDownloaded && (
+      {isDownloaded && !isLoaded && (
         <View style={styles.buttonContainer}>
           <Text style={styles.deleteHint}>Tap to Delete</Text>
+        </View>
+      )}
+
+      {isDownloaded && isLoaded && (
+        <View style={styles.buttonContainer}>
+          <Text style={styles.loadedHint}>Model Loaded</Text>
         </View>
       )}
 
@@ -117,6 +124,12 @@ const styles = StyleSheet.create({
   deleteHint: {
     marginTop: 4,
     color: '#FF3B30',
+    textAlign: 'center',
+    width: '100%',
+  },
+  loadedHint: {
+    marginTop: 4,
+    color: '#4CD964',
     textAlign: 'center',
     width: '100%',
   },

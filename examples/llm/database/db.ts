@@ -19,7 +19,7 @@ export const initDatabase = async (db: SQLiteDatabase) => {
 
   // await db.execAsync(`DROP TABLE IF EXISTS chats`);
   // await db.execAsync(`DROP TABLE IF EXISTS messages`);
-  //await db.execAsync(`DROP TABLE IF EXISTS chatSettings`);
+  // await db.execAsync(`DROP TABLE IF EXISTS chatSettings`);
 
   await db.execAsync(`
       CREATE TABLE IF NOT EXISTS chats (

@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import Markdown from 'react-native-markdown-display';
-import ColorPalette from '../colors';
+import ColorPalette from '../../colors';
 
 interface MarkdownComponentProps {
   text: string;

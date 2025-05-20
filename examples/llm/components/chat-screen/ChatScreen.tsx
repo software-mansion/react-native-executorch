@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import { Model } from '../../database/modelRepository';
-import Messages from '../Messages';
+import Messages from './Messages';
 import ColorPalette from '../../colors';
 import ChatInputBar from './ChatInputBar';
 import ModelSelectorModal from './ModelSelector';

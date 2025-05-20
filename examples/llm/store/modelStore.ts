@@ -117,7 +117,6 @@ export const useModelStore = create<ModelStore>((set, get) => ({
       }
 
       await updateModelDownloaded(db, modelId, 0);
-      await get().loadModels();
     } catch (err) {
       console.error('Failed to remove files:', err);
     }

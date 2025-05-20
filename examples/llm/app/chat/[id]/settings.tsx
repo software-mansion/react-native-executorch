@@ -58,7 +58,7 @@ export default function ChatSettingsScreen() {
 
       <Text style={styles.label}>System Prompt</Text>
       <TextInput
-        style={[styles.input, { height: 100, textAlignVertical: 'top' }]}
+        style={[styles.input, styles.largeInput]}
         value={systemPrompt}
         onChangeText={setSystemPrompt}
         multiline
@@ -85,5 +85,9 @@ const styles = StyleSheet.create({
     padding: 8,
     marginTop: 6,
     borderRadius: 4,
+  },
+  largeInput: {
+    height: 100,
+    textAlignVertical: 'top',
   },
 });

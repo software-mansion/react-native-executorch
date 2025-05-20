@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
-import FloatingActionButton from '../../components/FloatingActionButton';
-import ModelCard from '../../components/model-hub/ModelCard';
-import { useDefaultHeader } from '../../hooks/useDefaultHeader';
-import { useModelStore } from '../../store/modelStore';
+import ModelCard from '../components/model-hub/ModelCard';
+import { useDefaultHeader } from '../hooks/useDefaultHeader';
+import { useModelStore } from '../store/modelStore';
+import FloatingActionButton from '../components/model-hub/FloatingActionButton';
 
 const ModelHubScreen: React.FC = () => {
   useDefaultHeader();
@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     paddingBottom: 80,
   },
   heading: {
-    fontSize: 20,
+    fontSize: 16,
     marginVertical: 10,
     fontWeight: 'bold',
   },
