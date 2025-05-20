@@ -97,12 +97,14 @@ cv::Mat readImage(const std::string &imageURI) {
     // local file
     auto url = ada::parse(imageURI);
     image = cv::imread(std::string{url->get_pathname()}, cv::IMREAD_COLOR);
-  } else {
+  } else if (imageURI.starts_with("http")) {
     // remote file
     std::vector<std::byte> imageData = fetchUrlFunc(imageURI);
     image = cv::imdecode(
         cv::Mat(1, imageData.size(), CV_8UC1, (void *)imageData.data()),
         cv::IMREAD_COLOR);
+  } else {
+    throw std::runtime_error("Read image error: unknown protocol");
   }
 
   if (image.empty()) {
