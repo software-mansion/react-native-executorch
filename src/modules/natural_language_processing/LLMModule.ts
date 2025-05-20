@@ -9,7 +9,6 @@ export class LLMModule {
     modelSource,
     tokenizerSource,
     tokenizerConfigSource,
-
     onDownloadProgressCallback,
     responseCallback,
     messageHistoryCallback,
@@ -17,7 +16,6 @@ export class LLMModule {
     modelSource: ResourceSource;
     tokenizerSource: ResourceSource;
     tokenizerConfigSource: ResourceSource;
-
     onDownloadProgressCallback?: (_downloadProgress: number) => void;
     responseCallback?: (response: string) => void;
     messageHistoryCallback?: (messageHistory: Message[]) => void;
