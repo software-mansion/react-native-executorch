@@ -185,8 +185,15 @@ export class LLMController {
     if (!this._isReady) {
       throw new Error(getError(ETError.ModuleNotLoaded));
     }
+
+    // Prepend a system prompt to the messages
+    const messagesWithSystemPrompt = [
+      { content: this.chatConfig.systemPrompt, role: 'system' },
+      ...messages.slice(-this.chatConfig.contextWindowLength),
+    ] as Message[];
+
     const renderedChat: string = this.applyChatTemplate(
-      messages,
+      messagesWithSystemPrompt,
       this.tokenizerConfig,
       tools,
       // eslint-disable-next-line camelcase
