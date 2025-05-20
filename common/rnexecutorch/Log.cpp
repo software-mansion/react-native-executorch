@@ -15,12 +15,12 @@ namespace rnexecutorch {
 #ifdef __ANDROID__
 android_LogPriority androidLogLevel(LOG_LEVEL logLevel) {
   switch (logLevel) {
-  case LOG_LEVEL::INFO:
+  case LOG_LEVEL::Info:
   default:
     return ANDROID_LOG_INFO;
-  case LOG_LEVEL::ERROR:
+  case LOG_LEVEL::Error:
     return ANDROID_LOG_ERROR;
-  case LOG_LEVEL::DEBUG:
+  case LOG_LEVEL::Debug:
     return ANDROID_LOG_DEBUG;
   }
 }
@@ -49,14 +49,14 @@ void log(LOG_LEVEL logLevel, const char *fmt, ...) {
 #ifdef __APPLE__
 
   switch (logLevel) {
-  case LOG_LEVEL::INFO:
+  case LOG_LEVEL::Info:
   default:
     os_log_info(OS_LOG_DEFAULT, "%s", buf);
     break;
-  case LOG_LEVEL::ERROR:
+  case LOG_LEVEL::Error:
     os_log_error(OS_LOG_DEFAULT, "%s", buf);
     break;
-  case LOG_LEVEL::DEBUG:
+  case LOG_LEVEL::Debug:
     os_log_debug(OS_LOG_DEFAULT, "%s", buf);
     break;
   }

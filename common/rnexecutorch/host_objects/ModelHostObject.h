@@ -34,48 +34,56 @@ public:
                 errorMessage, sizeof(errorMessage),
                 "Argument count mismatch, was expecting: %zu but got: %zu",
                 forwardArgCount, count);
-            callInvoker->invokeAsync(
-                [errorMessage, &promise]() { promise->reject(errorMessage); });
+            promise->reject(errorMessage);
             return;
           }
 
-          // We need to dispatch a thread if we want the forward to be
-          // asynchronous
-          std::thread([args, this, promise, &runtime]() {
-            try {
-              auto argsConverted = jsiconversion::createArgsTupleFromJsi(
-                  &Model::forward, args, runtime);
-              auto result = std::apply(std::bind_front(&Model::forward, model),
-                                       argsConverted);
-              callInvoker->invokeAsync(
-                  [promise, result = std::move(result)](jsi::Runtime &runtime) {
-                    promise->resolve(
-                        jsiconversion::getJsiValue(std::move(result), runtime));
-                  });
-            } catch (const std::runtime_error &e) {
-              // This catch should be merged with the next two
-              // (std::runtime_error and jsi::JSError inherits from
-              // std::exception) HOWEVER react native has broken RTTI which
-              // breaks proper exception type checking. Remove when the
-              // following change is present in our version:
-              // https://github.com/facebook/react-native/commit/3132cc88dd46f95898a756456bebeeb6c248f20e
-              callInvoker->invokeAsync(
-                  [&e, promise]() { promise->reject(e.what()); });
-              return;
-            } catch (const jsi::JSError &e) {
-              callInvoker->invokeAsync(
-                  [&e, promise]() { promise->reject(e.what()); });
-              return;
-            } catch (const std::exception &e) {
-              callInvoker->invokeAsync(
-                  [&e, promise]() { promise->reject(e.what()); });
-              return;
-            } catch (...) {
-              callInvoker->invokeAsync(
-                  [promise]() { promise->reject("Unknown error"); });
-              return;
-            }
-          }).detach();
+          try {
+            auto argsConverted = jsiconversion::createArgsTupleFromJsi(
+                &Model::forward, args, runtime);
+
+            // We need to dispatch a thread if we want the forward to be
+            // asynchronous. In this thread all accesses to jsi::Runtime need to
+            // be done via the callInvoker.
+            std::thread([this, promise,
+                         argsConverted = std::move(argsConverted)]() {
+              try {
+                auto result = std::apply(
+                    std::bind_front(&Model::forward, model), argsConverted);
+
+                callInvoker->invokeAsync([promise, result = std::move(result)](
+                                             jsi::Runtime &runtime) {
+                  promise->resolve(
+                      jsiconversion::getJsiValue(std::move(result), runtime));
+                });
+              } catch (const std::runtime_error &e) {
+                // This catch should be merged with the next two
+                // (std::runtime_error and jsi::JSError inherits from
+                // std::exception) HOWEVER react native has broken RTTI which
+                // breaks proper exception type checking. Remove when the
+                // following change is present in our version:
+                // https://github.com/facebook/react-native/commit/3132cc88dd46f95898a756456bebeeb6c248f20e
+                callInvoker->invokeAsync(
+                    [&e, promise]() { promise->reject(e.what()); });
+                return;
+              } catch (const jsi::JSError &e) {
+                callInvoker->invokeAsync(
+                    [&e, promise]() { promise->reject(e.what()); });
+                return;
+              } catch (const std::exception &e) {
+                callInvoker->invokeAsync(
+                    [&e, promise]() { promise->reject(e.what()); });
+                return;
+              } catch (...) {
+                callInvoker->invokeAsync(
+                    [promise]() { promise->reject("Unknown error"); });
+                return;
+              }
+            }).detach();
+          } catch (...) {
+            promise->reject(
+                "Couldn't parse JS arguments in native forward function");
+          }
         });
 
     return promise;
