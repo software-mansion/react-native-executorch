@@ -1,6 +1,5 @@
 ---
 title: useVerticalOCR
-sidebar_position: 5
 ---
 
 :::danger Experimental

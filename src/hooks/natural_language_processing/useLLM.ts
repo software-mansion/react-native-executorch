@@ -38,7 +38,6 @@ export const useLLM = ({
         isReadyCallback: setIsReady,
         isGeneratingCallback: setIsGenerating,
         onDownloadProgressCallback: setDownloadProgress,
-        errorCallback: setError,
       }),
     []
   );
@@ -48,13 +47,17 @@ export const useLLM = ({
     setError(null);
 
     if (!preventLoad) {
-      (async () => {
-        await model.load({
-          modelSource,
-          tokenizerSource,
-          tokenizerConfigSource,
-        });
-      })();
+      try {
+        (async () => {
+          await model.load({
+            modelSource,
+            tokenizerSource,
+            tokenizerConfigSource,
+          });
+        })();
+      } catch (e) {
+        setError(e);
+      }
     }
 
     return () => {

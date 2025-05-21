@@ -1,6 +1,5 @@
 ---
 title: Inference Time
-sidebar_position: 3
 ---
 
 :::warning warning

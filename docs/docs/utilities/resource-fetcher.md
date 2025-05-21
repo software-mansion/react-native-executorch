@@ -1,6 +1,5 @@
 ---
 title: Resource Fetcher
-sidebar_position: 1
 ---
 
 This module provides functions to download and work with downloaded files stored in the application's document directory inside the `react-native-executorch/` directory. These utilities can help you manage your storage and clean up the downloaded files when they are no longer needed.

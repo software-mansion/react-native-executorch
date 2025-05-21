@@ -1,6 +1,5 @@
 ---
 title: useTextEmbeddings
-sidebar_position: 3
 keywords:
   [
     text embedding,

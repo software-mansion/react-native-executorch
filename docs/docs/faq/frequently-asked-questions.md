@@ -1,6 +1,5 @@
 ---
 title: Frequently asked questions
-sidebar_position: 1
 ---
 
 This section is meant to answer some common community inquiries, especially regarding the ExecuTorch runtime or adding your own models. If you can't see an answer to your question, feel free to open up a [discussion](https://github.com/software-mansion/react-native-executorch/discussions/new/choose).
