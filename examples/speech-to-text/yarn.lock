@@ -7651,6 +7651,7 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: c5ac5f0739186e05cc5bd5b7d03c9a8709ff037c0704e4cce12a489b20ac3dc572a454088c9cb81828abce755d576e980db1ef55fc64659ca0cfc0962789ab62
+  checksum: c5ac5f0739186e05cc5bd5b7d03c9a8709ff037c0704e4cce12a489b20ac3dc572a454088c9cb81828abce755d576e980db1ef55fc64659ca0cfc0962789ab62
   languageName: node
   linkType: hard
 
@@ -8412,6 +8413,7 @@ __metadata:
     react-native: 0.79.2
     react-native-audio-api: 0.5.7
     react-native-device-info: ^14.0.4
+    react-native-executorch: ^0.3.2
     react-native-executorch: ^0.3.2
     react-native-image-picker: ^7.2.2
     react-native-live-audio-stream: ^1.1.1

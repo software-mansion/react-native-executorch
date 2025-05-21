@@ -12,6 +12,8 @@ const config = {
 
   baseUrl: '/react-native-executorch/',
 
+  trailingSlash: false,
+
   organizationName: 'software-mansion',
   projectName: 'react-native-executorch',
 
@@ -70,6 +72,12 @@ const config = {
             position: 'right',
           },
           {
+            'href': 'https://discord.gg/ZGqqY55qkP',
+            'position': 'right',
+            'className': 'header-discord',
+            'aria-label': 'Discord server',
+          },
+          {
             'href':
               'https://github.com/software-mansion/react-native-executorch',
             'position': 'right',
@@ -85,6 +93,7 @@ const config = {
           'All trademarks and copyrights belong to their respective owners.',
       },
       prism: {
+        additionalLanguages: ['bash'],
         theme: lightCodeTheme,
         darkTheme: darkCodeTheme,
       },

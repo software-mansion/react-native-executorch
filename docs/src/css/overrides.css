@@ -66,8 +66,8 @@ table thead tr {
   height: 24px;
   width: 24px;
 
-  mask: url(/static/img/github.svg) no-repeat 100% 100%;
-  mask-size: cover;
+  mask: url(/static/img/github.svg) no-repeat center;
+  mask-size: contain;
   content: '';
 
   background-color: var(--ifm-navbar-link-color);
@@ -81,6 +81,35 @@ table thead tr {
 }
 
 .header-github:hover:before {
+  background-color: var(--ifm-navbar-link-hover-color);
+}
+
+@media (min-width: 996px) {
+  .header-discord {
+    margin-left: 1.5em;
+  }
+}
+
+.header-discord:before {
+  display: flex;
+  height: 24px;
+  width: 24px;
+
+  mask: url(/static/img/discord.svg) no-repeat center;
+  mask-size: contain;
+  content: '';
+
+  background-color: var(--ifm-navbar-link-color);
+}
+
+@media (max-height: 420px) {
+  .header-discord:before {
+    height: 20px;
+    width: 20px;
+  }
+}
+
+.header-discord:hover:before {
   background-color: var(--ifm-navbar-link-hover-color);
 }
 
