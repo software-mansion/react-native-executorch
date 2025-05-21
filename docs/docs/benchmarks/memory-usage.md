@@ -1,6 +1,5 @@
 ---
 title: Memory Usage
-sidebar_position: 2
 ---
 
 ## Classification

@@ -114,6 +114,16 @@ const sidebars = {
     },
     {
       type: 'category',
+      label: 'Benchmarks',
+      collapsed: false,
+      items: [
+        'benchmarks/inference-time',
+        'benchmarks/memory-usage',
+        'benchmarks/model-size',
+      ],
+    },
+    {
+      type: 'category',
       label: 'Utilities',
       collapsed: false,
       items: ['utilities/resource-fetcher'],

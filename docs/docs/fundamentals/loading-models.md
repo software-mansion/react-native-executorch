@@ -1,6 +1,5 @@
 ---
 title: Loading models
-sidebar_position: 2
 ---
 
 There are three different methods available for loading model files, depending on their size and location.

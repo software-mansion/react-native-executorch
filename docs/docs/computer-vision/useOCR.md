@@ -1,6 +1,5 @@
 ---
 title: useOCR
-sidebar_position: 4
 ---
 
 Optical character recognition(OCR) is a computer vision technique that detects and recognizes text within the image. It's commonly used to convert different types of documents, such as scanned paper documents, PDF files, or images captured by a digital camera, into editable and searchable data.
