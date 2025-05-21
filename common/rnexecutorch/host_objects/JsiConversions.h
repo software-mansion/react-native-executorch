@@ -12,22 +12,23 @@ using namespace facebook;
 template <typename T> T getValue(const jsi::Value &val, jsi::Runtime &runtime);
 
 template <>
-double getValue<double>(const jsi::Value &val, jsi::Runtime &runtime) {
+inline double getValue<double>(const jsi::Value &val, jsi::Runtime &runtime) {
   return val.asNumber();
 }
 
-template <> bool getValue<bool>(const jsi::Value &val, jsi::Runtime &runtime) {
+template <>
+inline bool getValue<bool>(const jsi::Value &val, jsi::Runtime &runtime) {
   return val.asBool();
 }
 
 template <>
-std::string getValue<std::string>(const jsi::Value &val,
-                                  jsi::Runtime &runtime) {
+inline std::string getValue<std::string>(const jsi::Value &val,
+                                         jsi::Runtime &runtime) {
   return val.getString(runtime).utf8(runtime);
 }
 
 template <>
-std::vector<std::string>
+inline std::vector<std::string>
 getValue<std::vector<std::string>>(const jsi::Value &val,
                                    jsi::Runtime &runtime) {
   jsi::Array array = val.asObject(runtime).asArray(runtime);
@@ -49,15 +50,15 @@ getValue<std::vector<std::string>>(const jsi::Value &val,
 // we add a function here.
 
 // Identity function for the sake of completeness
-jsi::Value getJsiValue(jsi::Value &&value, jsi::Runtime &runtime) {
+inline jsi::Value getJsiValue(jsi::Value &&value, jsi::Runtime &runtime) {
   return std::move(value);
 }
 
-jsi::Value getJsiValue(jsi::Object &&value, jsi::Runtime &runtime) {
+inline jsi::Value getJsiValue(jsi::Object &&value, jsi::Runtime &runtime) {
   return jsi::Value(std::move(value));
 }
 
-jsi::Value getJsiValue(const std::string &str, jsi::Runtime &runtime) {
+inline jsi::Value getJsiValue(const std::string &str, jsi::Runtime &runtime) {
   return jsi::String::createFromAscii(runtime, str);
 }
 
