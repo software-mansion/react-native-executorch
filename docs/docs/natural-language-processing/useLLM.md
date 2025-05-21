@@ -60,11 +60,11 @@ The code snippet above fetches the model from the specified URL, loads it into m
 
 ### Arguments
 
-**`modelSource`** - A string that specifies the location of the model binary. For more information, take a look at [loading models](../fundamentals/loading-models.md) section.
+**`modelSource`** - `ResourceSource` that specifies the location of the model binary. For more information, take a look at [loading models](../fundamentals/loading-models.md) section.
 
-**`tokenizerSource`** - URL to the JSON file which contains the tokenizer.
+**`tokenizerSource`** - `ResourceSource` pointing to the JSON file which contains the tokenizer.
 
-**`tokenizerConfigSource`** - URL to the JSON file which contains the tokenizer config.
+**`tokenizerConfigSource`** - `ResourceSource` pointing to the JSON file which contains the tokenizer config.
 
 **`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
 
@@ -120,7 +120,7 @@ interface LLMType {
   interrupt: () => void;
 }
 
-type ResourceSource = string | number;
+type ResourceSource = string | number | object;
 
 type MessageRole = 'user' | 'assistant' | 'system';
 
@@ -153,15 +153,15 @@ type LLMTool = Object;
 
 ## Functional vs managed
 
-You cas use functions returned from this hooks in two manners.
+You can use functions returned from this hooks in two manners:
 
-1. Functional/pure - we will not keep any state for you. You'll need to keep conversation history and handle function calling yourself. Use `generate` (and rarely `forward`) and `response`.
+1. Functional/pure - we will not keep any state for you. You'll need to keep conversation history and handle function calling yourself. Use `generate` (and rarely `forward`) and `response`. Note that you don't need to run `configure` to use those. Furthermore, it will not have any effect on those functions.
 
 2. Managed/stateful - we will manage conversation state. Tool calls will be parsed and called automatically after passing appropriate callbacks. See more at [managed LLM chat](#managed-llm-chat).
 
 ## Simple generation
 
-To perform chat completion you can use `generate` function:
+To perform chat completion you can use the `generate` function:
 
 ```typescript
 const llm = useLLM({
@@ -172,8 +172,10 @@ const llm = useLLM({
 
 const handleGenerate = async () => {
   const chat = [
-    { role: 'system' content: 'You are a helpful assistant' }
-    { role: 'user', content: 'What is the meaning of life?' }
+    { role: 'system' content: 'You are a helpful assistant' },
+    { role: 'user', content: 'Hi!' },
+    { role: 'assistant', content: 'Hi!, how can I help you?'},
+    { role: 'user', content: 'What is the meaning of life?' },
   ];
 
   // Chat completion
@@ -202,12 +204,12 @@ There are also cases when you need to check if tokens are being generated, such 
 
 :::caution
 If you try to dismount the component using this hook while generation is still going on, it will result in crash.
-You'll need to interrupt the model first and wait until it stops generating.
+You'll need to interrupt the model first and wait until `isGenerating` is set to false.
 :::
 
 ## Tool calling
 
-Sometimes text processing capabilities of LLMs are not enough. That's when you may want to introduce tool calling (also called function calling). It allows model to use external tools to perform its tasks. The tools may be any arbitrary function that you want your model to run. It may retrieve some data from 3rd party API. It may do an action inside an app like changing or it may use system APIs to interact with you phone (turning on torchlight, adding events to your calendar, changing volume etc.).
+Sometimes text processing capabilities of LLMs are not enough. That's when you may want to introduce tool calling (also called function calling). It allows model to use external tools to perform its tasks. The tools may be any arbitrary function that you want your model to run. It may retrieve some data from 3rd party API. It may do an action inside an app like pressing buttons or filling forms, or it may use system APIs to interact with your phone (turning on flashlight, adding events to your calendar, changing volume etc.).
 
 ```typescript
 const TOOL_DEFINITIONS: LLMTool[] = [
