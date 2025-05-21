@@ -71,8 +71,9 @@ getValue<std::set<std::string, std::less<>>>(const jsi::Value &val,
 // we add a function here.
 
 // Identity function for the sake of completeness
-inline jsi::Value getJsiValue(jsi::Value &&value, jsi::Runtime &runtime) {
-  return std::move(value);
+inline jsi::Value getJsiValue(std::unique_ptr<jsi::Object> &&valuePtr,
+                              jsi::Runtime &runtime) {
+  return std::move(*valuePtr);
 }
 
 inline jsi::Value getJsiValue(const std::string &str, jsi::Runtime &runtime) {

@@ -19,19 +19,22 @@ using executorch::extension::TensorPtr;
 
 class ImageSegmentation : public BaseModel {
 public:
-  ImageSegmentation(const std::string &modelSource, jsi::Runtime *runtime);
-  jsi::Value forward(std::string imageSource,
-                     std::set<std::string, std::less<>> classesOfInterest,
-                     bool resize);
+  ImageSegmentation(const std::string &modelSource,
+                    std::shared_ptr<react::CallInvoker> callInvoker);
+  std::unique_ptr<jsi::Object>
+  forward(std::string imageSource,
+          std::set<std::string, std::less<>> classesOfInterest, bool resize);
 
 private:
   std::pair<TensorPtr, cv::Size> preprocess(const std::string &imageSource);
-  jsi::Value postprocess(const Tensor &tensor, cv::Size originalSize,
-                         std::set<std::string, std::less<>> classesOfInterest,
-                         bool resize);
-  jsi::Value populateDictionary(
+  std::unique_ptr<jsi::Object>
+  postprocess(const Tensor &tensor, cv::Size originalSize,
+              std::set<std::string, std::less<>> classesOfInterest,
+              bool resize);
+  std::unique_ptr<jsi::Object> populateDictionary(
       std::shared_ptr<OwningArrayBuffer> argmax,
-      std::unordered_map<std::string_view, std::shared_ptr<OwningArrayBuffer>>
+      std::shared_ptr<std::unordered_map<std::string_view,
+                                         std::shared_ptr<OwningArrayBuffer>>>
           classesToOutput);
 
   static constexpr std::size_t numClasses{deeplabv3_resnet50_labels.size()};

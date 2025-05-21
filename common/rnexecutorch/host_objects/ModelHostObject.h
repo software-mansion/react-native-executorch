@@ -51,8 +51,8 @@ public:
                 auto result = std::apply(
                     std::bind_front(&Model::forward, model), argsConverted);
 
-                callInvoker->invokeAsync([promise, result = std::move(result)](
-                                             jsi::Runtime &runtime) {
+                callInvoker->invokeSync([promise,
+                                         &result](jsi::Runtime &runtime) {
                   promise->resolve(
                       jsiconversion::getJsiValue(std::move(result), runtime));
                 });

@@ -1,15 +1,45 @@
+import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
-import { BaseNonStaticModule } from '../BaseNonStaticModule';
+import { DeeplabLabel } from '../../types/image_segmentation';
+import { ETError, getError } from '../../Error';
 
-export class ImageSegmentationModule extends BaseNonStaticModule {
-  static async load(
+export class ImageSegmentationModule {
+  nativeModule: any = null;
+
+  async load(
     modelSource: ResourceSource,
-    onDownloadProgressCallback = this.onDownloadProgressStub
-  ): Promise<any> {
-    const loadedPaths = await super.loadFiles(
+    onDownloadProgressCallback: (_: number) => void = () => {}
+  ): Promise<void> {
+    const paths = await ResourceFetcher.fetchMultipleResources(
       onDownloadProgressCallback,
       modelSource
     );
-    return global.loadImageSegmentation(loadedPaths[0] || '');
+    this.nativeModule = global.loadImageSegmentation(paths[0] || '');
+  }
+
+  async forward(
+    imageSource: string,
+    classesOfInterest?: DeeplabLabel[],
+    resize?: boolean
+  ) {
+    if (this.nativeModule == null) {
+      throw new Error(getError(ETError.ModuleNotLoaded));
+    }
+
+    const stringDict = await this.nativeModule.forward(
+      imageSource,
+      (classesOfInterest || []).map((label) => DeeplabLabel[label]),
+      resize || false
+    );
+
+    let enumDict: { [key in DeeplabLabel]?: number[] } = {};
+
+    for (const key in stringDict) {
+      if (key in DeeplabLabel) {
+        const enumKey = DeeplabLabel[key as keyof typeof DeeplabLabel];
+        enumDict[enumKey] = stringDict[key];
+      }
+    }
+    return enumDict;
   }
 }
