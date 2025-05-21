@@ -36,7 +36,14 @@ private:
         0,
         [jsCallInvoker](jsi::Runtime &runtime, const jsi::Value &thisValue,
                         const jsi::Value *args, size_t count) -> jsi::Value {
-          assert(count == 1);
+          if (count != 1) {
+            char errorMessage[100];
+            std::snprintf(
+                errorMessage, sizeof(errorMessage),
+                "Argument count mismatch, was expecting: 1 but got: %zu",
+                count);
+            throw jsi::JSError(runtime, errorMessage);
+          }
           try {
             auto source =
                 jsiconversion::getValue<std::string>(args[0], runtime);
