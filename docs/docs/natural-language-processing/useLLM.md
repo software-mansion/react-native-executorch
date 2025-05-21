@@ -159,9 +159,11 @@ You can use functions returned from this hooks in two manners:
 
 2. Managed/stateful - we will manage conversation state. Tool calls will be parsed and called automatically after passing appropriate callbacks. See more at [managed LLM chat](#managed-llm-chat).
 
-## Simple generation
+## Functional way
 
-To perform chat completion you can use the `generate` function:
+### Simple generation
+
+To perform chat completion you can use the `generate` function. There is no return value. Instead, the `response` value is updated with each token.
 
 ```typescript
 const llm = useLLM({
@@ -182,21 +184,13 @@ const handleGenerate = async () => {
   await llm.generate(chat);
   console.log('Llama says:', llm.response);
 };
-```
 
-## Listening for the response
-
-As you might've noticed, there is no return value from the `generate` function. Instead, the `response` value is updated with each token.
-This is how you can render the response of the model:
-
-```typescript
-...
 return (
-    <Text>{llm.response}</Text>
+  <Text>{llm.response}</Text>
 )
 ```
 
-## Interrupting the model
+### Interrupting the model
 
 Sometimes, you might want to stop the model while it’s generating. To do this, you can use `interrupt()`, which will halt the model and update the response one last time.
 
@@ -207,7 +201,7 @@ If you try to dismount the component using this hook while generation is still g
 You'll need to interrupt the model first and wait until `isGenerating` is set to false.
 :::
 
-## Tool calling
+### Tool calling
 
 Sometimes text processing capabilities of LLMs are not enough. That's when you may want to introduce tool calling (also called function calling). It allows model to use external tools to perform its tasks. The tools may be any arbitrary function that you want your model to run. It may retrieve some data from 3rd party API. It may do an action inside an app like pressing buttons or filling forms, or it may use system APIs to interact with your phone (turning on flashlight, adding events to your calendar, changing volume etc.).
 
