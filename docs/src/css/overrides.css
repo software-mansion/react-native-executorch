@@ -146,10 +146,6 @@ button[class*='DocSearch-Button'] {
   margin-left: 0rem !important;
 }
 
-[class*='theme-doc-sidebar-item-link-level-'] {
-  /* margin-left: 1rem !important; */
-}
-
 .theme-doc-sidebar-item-link-level-1 {
   margin-left: 0rem !important;
 }
