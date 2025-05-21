@@ -1,6 +1,5 @@
 ---
 title: LLMModule
-sidebar_position: 3
 ---
 
 TypeScript API implementation of the [useLLM](../natural-language-processing/useLLM.md) hook.

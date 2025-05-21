@@ -1,6 +1,5 @@
 ---
 title: useExecutorchModule
-sidebar_position: 1
 ---
 
 ExecuTorch bindings provide streamlined interface to access the [Module API](https://pytorch.org/executorch/stable/extension-module.html) directly from Javascript.

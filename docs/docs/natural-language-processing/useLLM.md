@@ -1,6 +1,5 @@
 ---
 title: useLLM
-sidebar_position: 1
 keywords:
   [
     react native,

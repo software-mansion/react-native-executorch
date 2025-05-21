@@ -1,6 +1,5 @@
 ---
 title: useClassification
-sidebar_position: 1
 ---
 
 Image classification is the process of assigning a label to an image that best describes its contents. For example, when given an image of a puppy, the image classifier should assign the puppy class to that image.

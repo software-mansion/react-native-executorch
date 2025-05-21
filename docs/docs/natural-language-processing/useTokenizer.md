@@ -1,6 +1,5 @@
 ---
 title: useTokenizer
-sidebar_position: 4
 keywords:
   [
     tokenizer,
