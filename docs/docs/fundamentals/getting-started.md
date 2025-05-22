@@ -40,17 +40,23 @@ Installation is pretty straightforward, just use your favorite package manager. 
 <Tabs>
   <TabItem value="npm" label="NPM">
 
+    ```
     npm install react-native-executorch
+    ```
 
   </TabItem>
   <TabItem value="pnpm" label="PNPM">
-
+    
+    ```
     pnpm install react-native-executorch
+    ```
 
   </TabItem>
   <TabItem value="yarn" label="YARN">
 
+    ```
     yarn add react-native-executorch
+    ```
 
   </TabItem>
 </Tabs>
