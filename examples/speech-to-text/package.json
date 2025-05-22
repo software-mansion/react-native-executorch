@@ -19,7 +19,7 @@
     "react-native": "0.79.2",
     "react-native-audio-api": "0.5.7",
     "react-native-device-info": "^14.0.4",
-    "react-native-executorch": "^0.4.0",
+    "react-native-executorch": "^0.4.1",
     "react-native-image-picker": "^7.2.2",
     "react-native-live-audio-stream": "^1.1.1",
     "react-native-loading-spinner-overlay": "^3.0.1",
