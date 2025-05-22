@@ -2,11 +2,11 @@ import { Platform } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 import ColorPalette from '../../colors';
 
-interface MarkdownComponentProps {
+interface Props {
   text: string;
 }
 
-const MarkdownComponent = ({ text }: MarkdownComponentProps) => {
+const MarkdownComponent = ({ text }: Props) => {
   const fontSize = Platform.OS === 'ios' ? 16 : 14;
   return (
     <Markdown

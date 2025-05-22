@@ -1,22 +1,18 @@
 import React, { useEffect, useRef } from 'react';
 import { ScrollView, StyleSheet, View, Text } from 'react-native';
-import { Message } from 'react-native-executorch';
 import AnimatedChatLoading from './AnimatedChatLoading';
 import MessageItem from './MessageItem';
 import LlamaIcon from '../../assets/icons/llama_icon.svg';
 import ColorPalette from '../../colors';
+import { Message } from '../../database/chatRepository';
 
-interface MessagesComponentProps {
+interface Props {
   chatHistory: Message[];
   llmResponse: string;
   isGenerating: boolean;
 }
 
-const Messages: React.FC<MessagesComponentProps> = ({
-  chatHistory,
-  llmResponse,
-  isGenerating,
-}) => {
+const Messages = ({ chatHistory, llmResponse, isGenerating }: Props) => {
   const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {

@@ -9,8 +9,11 @@ export type Model = {
   tokenizerConfigPath: string;
 };
 
-export async function addModel(db: SQLiteDatabase, model: Model) {
-  await db.runAsync(
+export const addModel = async (
+  db: SQLiteDatabase,
+  model: Model
+): Promise<number> => {
+  const result = await db.runAsync(
     `
     INSERT OR IGNORE INTO models (
       id,
@@ -30,13 +33,15 @@ export async function addModel(db: SQLiteDatabase, model: Model) {
       model.tokenizerConfigPath,
     ]
   );
-}
 
-export async function updateModelDownloaded(
+  return result.lastInsertRowId;
+};
+
+export const updateModelDownloaded = async (
   db: SQLiteDatabase,
   id: string,
   downloadedStatus: number
-) {
+) => {
   await db.runAsync(
     `
     UPDATE models
@@ -45,22 +50,22 @@ export async function updateModelDownloaded(
   `,
     [downloadedStatus, id]
   );
-}
+};
 
-export async function removeModelFiles(db: SQLiteDatabase, id: string) {
+export const removeModelFiles = async (db: SQLiteDatabase, id: string) => {
   await db.runAsync(`DELETE FROM models WHERE id = ?`, [id]);
-}
+};
 
-export async function getAllModels(db: SQLiteDatabase): Promise<Model[]> {
+export const getAllModels = async (db: SQLiteDatabase): Promise<Model[]> => {
   const models = await db.getAllAsync<Model>(`SELECT * FROM models`);
   return models.map((model) => ({
     ...model,
   }));
-}
+};
 
-export async function getDownloadedModels(
+export const getDownloadedModels = async (
   db: SQLiteDatabase
-): Promise<Model[]> {
+): Promise<Model[]> => {
   return await db.getAllAsync<Model>(
     `
     SELECT * FROM models
@@ -69,4 +74,4 @@ export async function getDownloadedModels(
       AND tokenizerConfigPath IS NOT NULL
   `
   );
-}
+};

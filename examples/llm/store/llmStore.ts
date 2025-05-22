@@ -13,6 +13,7 @@ import {
   BenchmarkResult,
   insertBenchmark,
 } from '../database/benchmarkRepository';
+import { type Message as ExecutorchMessage } from 'react-native-executorch';
 
 interface LLMStore {
   isLoading: boolean;
@@ -25,10 +26,10 @@ interface LLMStore {
   tokenCount: number;
   firstTokenTime: number;
 
-  sendChatMessage: (messages: Message[]) => Promise<void>;
+  sendChatMessage: (messages: Message[], newMessage: string) => Promise<void>;
   setDB: (db: SQLiteDatabase) => void;
   loadModel: (model: Model) => Promise<void>;
-  setChatId: (chatId: number) => void;
+  setActiveChatId: (chatId: number) => void;
   runBenchmark: () => Promise<BenchmarkResult>;
 }
 
@@ -64,7 +65,7 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
   firstTokenTime: 0,
 
   setDB: (db) => set({ db }),
-  setChatId: (chatId) =>
+  setActiveChatId: (chatId) =>
     set({
       activeChatId: chatId,
       activeChatMessages: [],
@@ -91,21 +92,33 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
     set({ model, isLoading: false });
   },
 
-  sendChatMessage: async (messages: Message[]) => {
+  sendChatMessage: async (messages: Message[], newMessage: string) => {
     const { isGenerating, db, model, isLoading, activeChatId } = get();
     if (isGenerating || !db || model === null || isLoading || !activeChatId)
       return;
 
-    set({
-      isGenerating: true,
-      response: '',
-      activeChatMessages: messages,
-      tokenCount: 0,
-    });
     try {
-      await persistMessage(db, activeChatId, {
+      const userMessageId = await persistMessage(db, {
+        chatId: activeChatId,
         role: 'user',
-        content: messages[messages.length - 1].content,
+        content: newMessage,
+        timeToFirstToken: 0,
+        tokensPerSecond: 0,
+      });
+
+      messages.push({
+        role: 'user',
+        content: newMessage,
+        chatId: activeChatId,
+        timestamp: Date.now(),
+        id: userMessageId,
+      });
+
+      set({
+        isGenerating: true,
+        response: '',
+        activeChatMessages: messages,
+        tokenCount: 0,
       });
 
       const chatSettings = await getChatSettings(db, activeChatId);
@@ -113,7 +126,7 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
       const systemPrompt = chatSettings.systemPrompt;
       const contextWindow = chatSettings.contextWindow;
 
-      const messagesWithSystemPrompt: Message[] = [
+      const messagesWithSystemPrompt: ExecutorchMessage[] = [
         { role: 'system', content: systemPrompt },
         ...messages.slice(-contextWindow),
       ];
@@ -131,15 +144,26 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
       );
 
       if (generatedResponse) {
-        const newMessage: Message = {
+        const assistantMessageId = await persistMessage(db, {
           role: 'assistant',
           content: generatedResponse,
           tokensPerSecond: tokensPerSecond,
           timeToFirstToken: timeToFirstToken,
-        };
-        await persistMessage(db, activeChatId, newMessage);
+          chatId: activeChatId,
+        });
 
-        const newMessageHistory = [...messages, newMessage];
+        const newMessageHistory: Message[] = [
+          ...messages,
+          {
+            role: 'assistant',
+            content: generatedResponse,
+            tokensPerSecond: tokensPerSecond,
+            timeToFirstToken: timeToFirstToken,
+            chatId: activeChatId,
+            timestamp: Date.now(),
+            id: assistantMessageId,
+          },
+        ];
 
         set({ activeChatMessages: newMessageHistory });
       }

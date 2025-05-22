@@ -107,7 +107,7 @@ export const useModelStore = create<ModelStore>((set, get) => ({
 
     try {
       if (model.source === 'remote') {
-        await ResourceFetcher.removeMultipleResources(
+        await ResourceFetcher.deleteMultipleResources(
           model.modelPath,
           model.tokenizerPath,
           model.tokenizerConfigPath

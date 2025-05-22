@@ -6,7 +6,7 @@ import { useModelStore } from '../store/modelStore';
 import FloatingActionButton from '../components/model-hub/FloatingActionButton';
 import ColorPalette from '../colors';
 
-const ModelHubScreen: React.FC = () => {
+const ModelHubScreen = () => {
   useDefaultHeader();
   const { models } = useModelStore();
 

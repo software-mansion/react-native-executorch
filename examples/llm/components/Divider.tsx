@@ -6,8 +6,9 @@ import {
   ViewStyle,
   DimensionValue,
 } from 'react-native';
+import ColorPalette from '../colors';
 
-interface DividerProps {
+interface Props {
   color?: string;
   thickness?: DimensionValue;
   orientation?: 'horizontal' | 'vertical';
@@ -15,13 +16,13 @@ interface DividerProps {
   style?: StyleProp<ViewStyle>;
 }
 
-const Divider: React.FC<DividerProps> = ({
-  color = '#CED0CE',
+const Divider = ({
+  color = ColorPalette.seaBlueMedium,
   thickness = StyleSheet.hairlineWidth,
   orientation = 'horizontal',
   length = '100%',
   style = {},
-}) => {
+}: Props) => {
   const isHorizontal = orientation === 'horizontal';
 
   const dividerStyle: ViewStyle = {

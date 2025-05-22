@@ -12,7 +12,7 @@ const DrawerToggleButton = () => {
   );
 };
 
-export default DrawerToggleButton;
+export default React.memo(DrawerToggleButton);
 
 const styles = StyleSheet.create({
   button: {
