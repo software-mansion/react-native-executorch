@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { useRouter } from 'expo-router';
+import ColorPalette from '../../colors';
 
 const FloatingActionButton = () => {
   const router = useRouter();
@@ -24,7 +25,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#007AFF',
+    backgroundColor: ColorPalette.primary,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 4,

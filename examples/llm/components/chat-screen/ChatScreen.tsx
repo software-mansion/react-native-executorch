@@ -9,17 +9,17 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import { Model } from '../../database/modelRepository';
-import Messages from './Messages';
-import ColorPalette from '../../colors';
-import ChatInputBar from './ChatInputBar';
-import ModelSelectorModal from './ModelSelector';
+import { router } from 'expo-router';
 import { useModelStore } from '../../store/modelStore';
 import { useLLMStore } from '../../store/llmStore';
-import { Message } from 'react-native-executorch';
-import { getChatMessages } from '../../database/chatRepository';
 import { useChatStore } from '../../store/chatStore';
-import { router } from 'expo-router';
+import { getChatMessages } from '../../database/chatRepository';
+import { Message } from 'react-native-executorch';
+import { Model } from '../../database/modelRepository';
+import Messages from './Messages';
+import ChatInputBar from './ChatInputBar';
+import ModelSelectorModal from './ModelSelector';
+import ColorPalette from '../../colors';
 
 interface ChatScreenProps {
   chatId: number | null;
@@ -33,21 +33,22 @@ export default function ChatScreen({ chatId, setChat }: ChatScreenProps) {
   const { downloadedModels, loadModels } = useModelStore();
   const {
     db,
-    setChatId,
-    loadModel,
     model,
-    sendChatMessage,
+    loadModel,
     response,
-    isGenerating,
     isLoading,
+    isGenerating,
+    sendChatMessage,
     activeChatId,
     activeChatMessages,
+    setChatId,
   } = useLLMStore();
   const { addChat } = useChatStore();
 
   const [userInput, setUserInput] = useState('');
   const [showModelModal, setShowModelModal] = useState(false);
   const [messageHistory, setMessageHistory] = useState<Message[]>([]);
+
   useEffect(() => {
     (async () => {
       if (chatId !== null && db !== null) {
@@ -58,7 +59,7 @@ export default function ChatScreen({ chatId, setChat }: ChatScreenProps) {
       }
     })();
     loadModels();
-  }, [chatId, loadModels, db]);
+  }, [chatId, db, loadModels]);
 
   useEffect(() => {
     if (activeChatId === chatIdRef.current && activeChatMessages.length > 0) {
@@ -76,10 +77,11 @@ export default function ChatScreen({ chatId, setChat }: ChatScreenProps) {
   };
 
   const handleSendMessage = async () => {
-    if (!userInput || isGenerating) return;
+    if (!userInput.trim() || isGenerating) return;
+
     if (chatIdRef.current) {
       setChatId(chatIdRef.current);
-    } else if (!chatIdRef.current) {
+    } else {
       const newChatId = await addChat();
       chatIdRef.current = newChatId!;
       setChatId(chatIdRef.current);
@@ -87,21 +89,17 @@ export default function ChatScreen({ chatId, setChat }: ChatScreenProps) {
       router.replace(`/chat/${newChatId}`);
     }
 
+    const newMessage: Message = { role: 'user', content: userInput };
     inputRef.current?.clear();
     setUserInput('');
-    setMessageHistory((prev) => [
-      ...prev,
-      { role: 'user', content: userInput },
-    ]);
-    await sendChatMessage([
-      ...messageHistory,
-      { role: 'user', content: userInput },
-    ]);
+    setMessageHistory((prev) => [...prev, newMessage]);
+
+    await sendChatMessage([...messageHistory, newMessage]);
   };
 
   return (
     <>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <KeyboardAvoidingView
           style={styles.container}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -156,6 +154,7 @@ export default function ChatScreen({ chatId, setChat }: ChatScreenProps) {
           />
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
+
       <ModelSelectorModal
         visible={showModelModal}
         models={downloadedModels}
@@ -175,23 +174,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    backgroundColor: '#f8f8f8',
+    borderBottomColor: ColorPalette.seaBlueDark,
+    backgroundColor: ColorPalette.seaBlueLight,
   },
   headerText: {
-    color: ColorPalette.primary,
     fontSize: 16,
+    color: ColorPalette.primary,
   },
   modelName: {
     fontWeight: '600',
+    color: ColorPalette.primary,
   },
   changeModel: {
     color: ColorPalette.blueDark,
     fontWeight: 'bold',
   },
   messagesContainer: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
     flex: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#fdfdfd',
   },
 });

@@ -1,26 +1,28 @@
+import React, { useState } from 'react';
 import {
-  View,
   Text,
   StyleSheet,
   TextInput,
   TouchableOpacity,
   Platform,
   Alert,
+  ScrollView,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
 import * as DocumentPicker from 'expo-document-picker';
+import { useRouter } from 'expo-router';
 import { Model } from '../../database/modelRepository';
 import { useModelStore } from '../../store/modelStore';
+import ColorPalette from '../../colors';
 
 export default function AddModelModal() {
   const router = useRouter();
   const { addModelToDB } = useModelStore();
 
-  const [remoteModelPath, setRemoteModelPath] = useState<string>('');
-  const [remoteTokenizerPath, setRemoteTokenizerPath] = useState<string>('');
+  const [remoteModelPath, setRemoteModelPath] = useState('');
+  const [remoteTokenizerPath, setRemoteTokenizerPath] = useState('');
   const [remoteTokenizerConfigPath, setRemoteTokenizerConfigPath] =
-    useState<string>('');
+    useState('');
+
   const [localModelPath, setLocalModelPath] = useState<string | null>(null);
   const [localTokenizerPath, setLocalTokenizerPath] = useState<string | null>(
     null
@@ -29,23 +31,26 @@ export default function AddModelModal() {
     string | null
   >(null);
 
-  const pickFile = async (label: string, setPath: (path: string) => void) => {
+  const pickFile = async (label: string, setPath: (uri: string) => void) => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: '*/*',
         copyToCacheDirectory: false,
       });
-
       if (result.canceled || !result.assets[0]?.uri) return;
-      const { uri } = result.assets[0];
-      setPath(Platform.OS === 'ios' ? uri.replace('file://', '') : uri);
+
+      const uri = result.assets[0].uri;
+      const normalizedUri =
+        Platform.OS === 'ios' ? uri.replace('file://', '') : uri;
+      setPath(normalizedUri);
     } catch (err) {
-      console.warn(`DocumentPicker error for ${label}:`, err);
+      console.warn(`Error picking file for ${label}:`, err);
     }
   };
 
   const handleSave = async () => {
     const isRemote = remoteModelPath.length > 0;
+
     const modelPath = isRemote ? remoteModelPath : `file://${localModelPath}`;
     const tokenizerPath = isRemote
       ? remoteTokenizerPath
@@ -55,9 +60,7 @@ export default function AddModelModal() {
       : `file://${localTokenizerConfigPath}`;
 
     if (!modelPath || !tokenizerPath || !tokenizerConfigPath) {
-      Alert.alert('Error', 'Please provide all required fields.', [
-        { text: 'OK', onPress: () => {} },
-      ]);
+      Alert.alert('Missing Fields', 'Please provide all necessary paths.');
       return;
     }
 
@@ -76,69 +79,48 @@ export default function AddModelModal() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Remote / External URLs</Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>➕ Add New LLM Model</Text>
+
+      <Text style={styles.section}>🌐 Remote Model (URLs)</Text>
       <TextInput
         placeholder="Model URL"
         style={styles.input}
-        autoCapitalize="none"
         value={remoteModelPath}
         onChangeText={setRemoteModelPath}
+        autoCapitalize="none"
       />
       <TextInput
         placeholder="Tokenizer URL"
         style={styles.input}
-        autoCapitalize="none"
         value={remoteTokenizerPath}
         onChangeText={setRemoteTokenizerPath}
+        autoCapitalize="none"
       />
       <TextInput
         placeholder="Tokenizer Config URL"
         style={styles.input}
-        autoCapitalize="none"
         value={remoteTokenizerConfigPath}
         onChangeText={setRemoteTokenizerConfigPath}
+        autoCapitalize="none"
       />
 
-      <Text style={styles.sectionTitle}>Or Select Local Files</Text>
-      <TouchableOpacity
-        style={styles.fileButton}
-        onPress={() => pickFile('Model', (uri) => setLocalModelPath(uri))}
-      >
-        <Text>
-          {localModelPath
-            ? `📎 Selected: ${localModelPath.split('/').pop()}`
-            : '📂 Choose Model File'}
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.fileButton}
-        onPress={() =>
-          pickFile('Tokenizer', (uri) => setLocalTokenizerPath(uri))
-        }
-      >
-        <Text>
-          {localTokenizerPath
-            ? `📎 Selected: ${localTokenizerPath.split('/').pop()}`
-            : '📂 Choose Tokenizer File'}
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.fileButton}
-        onPress={() =>
-          pickFile('Tokenizer Config', (uri) =>
-            setLocalTokenizerConfigPath(uri)
-          )
-        }
-      >
-        <Text>
-          {localTokenizerConfigPath
-            ? `📎 Selected: ${localTokenizerConfigPath.split('/').pop()}`
-            : '📂 Choose Tokenizer Config'}
-        </Text>
-      </TouchableOpacity>
+      <Text style={styles.section}>📁 Local Files (pick from device)</Text>
+      <FilePickerButton
+        label="Choose Model File"
+        selectedPath={localModelPath}
+        onPick={() => pickFile('Model', setLocalModelPath)}
+      />
+      <FilePickerButton
+        label="Choose Tokenizer File"
+        selectedPath={localTokenizerPath}
+        onPick={() => pickFile('Tokenizer', setLocalTokenizerPath)}
+      />
+      <FilePickerButton
+        label="Choose Tokenizer Config File"
+        selectedPath={localTokenizerConfigPath}
+        onPick={() => pickFile('Tokenizer Config', setLocalTokenizerConfigPath)}
+      />
 
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
         <Text style={styles.saveButtonText}>💾 Save Model</Text>
@@ -147,55 +129,84 @@ export default function AddModelModal() {
       <TouchableOpacity onPress={() => router.back()}>
         <Text style={styles.cancelText}>Cancel</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
 
+const FilePickerButton = ({
+  label,
+  selectedPath,
+  onPick,
+}: {
+  label: string;
+  selectedPath: string | null;
+  onPick: () => void;
+}) => {
+  return (
+    <TouchableOpacity style={styles.fileButton} onPress={onPick}>
+      <Text style={styles.fileButtonText}>
+        {selectedPath ? `📎 ${selectedPath.split('/').pop()}` : `📂 ${label}`}
+      </Text>
+    </TouchableOpacity>
+  );
+};
+
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     padding: 20,
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
+    flex: 1,
   },
   title: {
     fontSize: 20,
     marginBottom: 16,
     fontWeight: 'bold',
+    color: ColorPalette.primary,
   },
-  sectionTitle: {
+  section: {
     fontSize: 16,
-    marginVertical: 8,
     fontWeight: '600',
+    marginTop: 20,
+    marginBottom: 8,
+    color: ColorPalette.primary,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: ColorPalette.blueLight,
     borderRadius: 6,
     padding: 12,
-    marginBottom: 12,
+    marginBottom: 10,
+    fontSize: 14,
+    color: ColorPalette.primary,
   },
   fileButton: {
     padding: 12,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: ColorPalette.seaBlueDark,
     borderRadius: 6,
-    marginBottom: 10,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: ColorPalette.seaBlueLight,
+    marginBottom: 12,
+  },
+  fileButtonText: {
+    color: ColorPalette.primary,
+    fontWeight: '500',
   },
   saveButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: ColorPalette.primary,
     padding: 14,
     borderRadius: 6,
-    marginTop: 10,
+    marginTop: 20,
   },
   saveButtonText: {
     textAlign: 'center',
     color: '#fff',
     fontWeight: 'bold',
+    fontSize: 16,
   },
   cancelText: {
-    marginTop: 20,
+    marginTop: 18,
     textAlign: 'center',
-    color: '#999',
+    color: ColorPalette.blueDark,
+    fontSize: 14,
   },
 });

@@ -173,7 +173,6 @@ export const useLLMStore = create<LLMStore>((set, get) => ({
       };
 
     for (let i = 1; i <= iterations; i++) {
-      console.log(`Running benchmark iteration ${i}...`);
       set({ tokenCount: 0, firstTokenTime: 0, isGenerating: true });
 
       let runPeakMemory = 0;
