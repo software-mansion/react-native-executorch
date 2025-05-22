@@ -11,7 +11,7 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.5f735b90.css">
-<script src="/react-native-executorch/assets/js/runtime~main.b4b84c62.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.ff047267.js" defer="defer"></script>
 <script src="/react-native-executorch/assets/js/main.c0bad679.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -36,6 +36,7 @@
 <p>For more information, take a look at <a href="/react-native-executorch/docs/fundamentals/loading-models">loading models</a> section.</p>
 <p><strong><code>language</code></strong> - A parameter that specifies the language of the text to be recognized by the OCR.</p>
 <p><strong><code>independentCharacters</code></strong> – A boolean parameter that indicates whether the text in the image consists of a random sequence of characters. If set to true, the algorithm will scan each character individually instead of reading them as continuous text.</p>
+<p><strong><code>preventLoad?</code></strong> - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.</p>
 <h3 class="anchor anchorWithHideOnScrollNavbar_WYt5" id="returns">Returns<a href="#returns" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h3>
 <p>The hook returns an object with the following properties:</p>
 <table><thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>forward</code></td><td><code>(input: string) =&gt; Promise&lt;OCRDetection[]&gt;</code></td><td>A function that accepts an image (url, b64) and returns an array of <code>OCRDetection</code> objects.</td></tr><tr><td><code>error</code></td><td><code>string | null</code></td><td>Contains the error message if the model loading failed.</td></tr><tr><td><code>isGenerating</code></td><td><code>boolean</code></td><td>Indicates whether the model is currently processing an inference.</td></tr><tr><td><code>isReady</code></td><td><code>boolean</code></td><td>Indicates whether the model has successfully loaded and is ready for inference.</td></tr><tr><td><code>downloadProgress</code></td><td><code>number</code></td><td>Represents the download progress as a value between 0 and 1.</td></tr></tbody></table>
