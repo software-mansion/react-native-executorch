@@ -10,21 +10,14 @@ export type ChatSettings = {
   contextWindow: number;
 };
 
-export type DBMessage = {
+export type Message = {
   id: number;
   chatId: number;
   role: 'user' | 'assistant' | 'system';
   content: string;
-  tokensPerSecond: number;
-  timeToFirstToken: number;
-  timestamp?: number;
-};
-
-export type Message = {
-  role: 'user' | 'assistant' | 'system';
-  content: string;
   tokensPerSecond?: number;
   timeToFirstToken?: number;
+  timestamp: number;
 };
 
 export const createChat = async (db: SQLiteDatabase): Promise<number> => {
@@ -39,8 +32,8 @@ export const getAllChats = async (db: SQLiteDatabase): Promise<Chat[]> => {
 export const getChatMessages = async (
   db: SQLiteDatabase,
   chatId: number
-): Promise<DBMessage[]> => {
-  return db.getAllAsync<DBMessage>(
+): Promise<Message[]> => {
+  return db.getAllAsync<Message>(
     `SELECT * FROM messages WHERE chatId = ? ORDER BY id ASC`,
     [chatId]
   );
@@ -48,24 +41,25 @@ export const getChatMessages = async (
 
 export const persistMessage = async (
   db: SQLiteDatabase,
-  chatId: number,
-  message: Message
-): Promise<void> => {
+  message: Omit<Message, 'id' | 'timestamp'>
+): Promise<number> => {
   if (!message.tokensPerSecond || !message.timeToFirstToken) {
     message.tokensPerSecond = 0;
     message.timeToFirstToken = 0;
   }
 
-  await db.runAsync(
+  const result = await db.runAsync(
     `INSERT INTO messages (chatId, role, content, tokensPerSecond, timeToFirstToken) VALUES (?, ?, ?, ?, ?);`,
     [
-      chatId,
+      message.chatId,
       message.role,
       message.content,
       message.tokensPerSecond,
       message.timeToFirstToken,
     ]
   );
+
+  return result.lastInsertRowId;
 };
 
 export const deleteChat = async (
@@ -75,10 +69,10 @@ export const deleteChat = async (
   await db.runAsync(`DELETE FROM chats WHERE id = ?;`, [chatId]);
 };
 
-export async function getChatSettings(
+export const getChatSettings = async (
   db: SQLiteDatabase,
   chatId: number | null
-): Promise<ChatSettings> {
+): Promise<ChatSettings> => {
   const result = await db.getFirstAsync<ChatSettings>(
     'SELECT systemPrompt, contextWindow FROM chatSettings WHERE chatId = ?',
     [chatId]
@@ -97,13 +91,13 @@ export async function getChatSettings(
       contextWindow: 6,
     }
   );
-}
+};
 
-export async function setChatSettings(
+export const setChatSettings = async (
   db: SQLiteDatabase,
   chatId: number,
   settings: ChatSettings
-): Promise<void> {
+): Promise<void> => {
   if (chatId === null) {
     await AsyncStorage.setItem(
       'default_chat_settings',
@@ -126,4 +120,4 @@ export async function setChatSettings(
   `,
     [chatId, settings.systemPrompt, settings.contextWindow]
   );
-}
+};

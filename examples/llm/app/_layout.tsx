@@ -15,6 +15,7 @@ export default function Layout() {
               name="index"
               options={{ title: 'Chat', animation: 'none' }}
             />
+            <Stack.Screen name="benchmark" options={{ title: 'Benchmark' }} />
             <Stack.Screen name="chat/[id]" options={{ animation: 'none' }} />
             <Stack.Screen
               name="chat/[id]/settings"
@@ -32,7 +33,6 @@ export default function Layout() {
                 headerShown: false,
               }}
             />
-            <Stack.Screen name="benchmark" options={{ title: 'Benchmark' }} />
           </Stack>
         </CustomDrawerLayout>
       </SQLiteProvider>

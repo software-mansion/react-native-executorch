@@ -6,11 +6,11 @@ import { useModelStore } from '../../store/modelStore';
 import { useLLMStore } from '../../store/llmStore';
 import ColorPalette from '../../colors';
 
-interface ModelCardProps {
+interface Props {
   model: Model;
 }
 
-const ModelCard: React.FC<ModelCardProps> = ({ model }) => {
+const ModelCard = ({ model }: Props) => {
   const { downloadStates, downloadModel, removeModel } = useModelStore();
   const { model: activeModel } = useLLMStore();
 
@@ -20,21 +20,21 @@ const ModelCard: React.FC<ModelCardProps> = ({ model }) => {
   };
 
   const isDownloading = downloadState.status === 'downloading';
-  const isDownloaded =
-    model.isDownloaded === 1 || downloadState.status === 'downloaded';
   const isLoaded = activeModel?.id === model.id;
 
-  const [hasDownloaded, setHasDownloaded] = useState(isDownloaded);
+  const [isDownloaded, setIsDownloaded] = useState(
+    model.isDownloaded === 1 || downloadState.status === 'downloaded'
+  );
 
   useEffect(() => {
     if (downloadState.status === 'downloaded') {
-      setHasDownloaded(true);
+      setIsDownloaded(true);
     }
   }, [downloadState.status]);
 
   const handlePress = async () => {
     if (isDownloading || isLoaded) return;
-    if (hasDownloaded) {
+    if (isDownloaded) {
       await deleteModel();
     } else {
       await downloadModel(model);
@@ -44,7 +44,7 @@ const ModelCard: React.FC<ModelCardProps> = ({ model }) => {
   const deleteModel = async () => {
     try {
       await removeModel(model.id);
-      setHasDownloaded(false);
+      setIsDownloaded(false);
     } catch (error) {
       console.error('Failed to delete model:', error);
     }
@@ -52,9 +52,9 @@ const ModelCard: React.FC<ModelCardProps> = ({ model }) => {
 
   const getStatusHint = () => {
     if (isDownloading) return null;
-    if (hasDownloaded && isLoaded)
+    if (isDownloaded && isLoaded)
       return <Text style={styles.loadedHint}>Model Loaded</Text>;
-    if (hasDownloaded)
+    if (isDownloaded)
       return <Text style={styles.deleteHint}>Tap to Delete</Text>;
 
     return <Text style={styles.downloadHint}>Tap to Download</Text>;

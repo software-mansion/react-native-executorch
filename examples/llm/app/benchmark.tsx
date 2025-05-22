@@ -25,7 +25,7 @@ const BenchmarkScreen = () => {
   const { runBenchmark, loadModel, db, model: activeModel } = useLLMStore();
   const { downloadedModels: models } = useModelStore();
 
-  const [selectedModel, setSelectedModel] = useState<Model | null>(null);
+  const [selectedModel, setSelectedModel] = useState<Model | null>(activeModel);
   const [benchmarkResult, setBenchmarkResult] =
     useState<BenchmarkResult | null>(null);
   const [benchmarkList, setBenchmarkList] = useState<BenchmarkResult[]>([]);
@@ -39,22 +39,17 @@ const BenchmarkScreen = () => {
   }, [db]);
 
   useEffect(() => {
-    if (activeModel) {
-      setSelectedModel(activeModel);
-    }
-  }, [activeModel]);
-
-  useEffect(() => {
     loadBenchmarks();
   }, [loadBenchmarks]);
 
   const handleRun = async () => {
     if (!selectedModel) return;
     setLoading(true);
-    await loadModel(selectedModel);
+
     const result = await runBenchmark();
     setBenchmarkResult(result);
     await loadBenchmarks();
+
     setLoading(false);
   };
 

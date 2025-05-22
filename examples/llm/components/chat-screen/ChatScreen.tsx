@@ -13,20 +13,19 @@ import { router } from 'expo-router';
 import { useModelStore } from '../../store/modelStore';
 import { useLLMStore } from '../../store/llmStore';
 import { useChatStore } from '../../store/chatStore';
-import { getChatMessages } from '../../database/chatRepository';
-import { Message } from 'react-native-executorch';
+import { type Message } from '../../database/chatRepository';
 import { Model } from '../../database/modelRepository';
 import Messages from './Messages';
 import ChatInputBar from './ChatInputBar';
 import ModelSelectorModal from './ModelSelector';
 import ColorPalette from '../../colors';
 
-interface ChatScreenProps {
+interface Props {
   chatId: number | null;
-  setChat: (chatId: number) => void;
+  messageHistory: Message[];
 }
 
-export default function ChatScreen({ chatId, setChat }: ChatScreenProps) {
+export default function ChatScreen({ chatId, messageHistory }: Props) {
   const inputRef = useRef<TextInput>(null);
   const chatIdRef = useRef<number | null>(chatId);
 
@@ -40,32 +39,16 @@ export default function ChatScreen({ chatId, setChat }: ChatScreenProps) {
     isGenerating,
     sendChatMessage,
     activeChatId,
-    activeChatMessages,
-    setChatId,
+    setActiveChatId,
   } = useLLMStore();
   const { addChat } = useChatStore();
 
   const [userInput, setUserInput] = useState('');
   const [showModelModal, setShowModelModal] = useState(false);
-  const [messageHistory, setMessageHistory] = useState<Message[]>([]);
 
   useEffect(() => {
-    (async () => {
-      if (chatId !== null && db !== null) {
-        const messages = await getChatMessages(db, chatIdRef.current!);
-        setMessageHistory(messages);
-      } else {
-        setMessageHistory([]);
-      }
-    })();
     loadModels();
   }, [chatId, db, loadModels]);
-
-  useEffect(() => {
-    if (activeChatId === chatIdRef.current && activeChatMessages.length > 0) {
-      setMessageHistory(activeChatMessages);
-    }
-  }, [activeChatMessages, activeChatId]);
 
   const handleSelectModel = async (selectedModel: Model) => {
     setShowModelModal(false);
@@ -80,21 +63,18 @@ export default function ChatScreen({ chatId, setChat }: ChatScreenProps) {
     if (!userInput.trim() || isGenerating) return;
 
     if (chatIdRef.current) {
-      setChatId(chatIdRef.current);
+      setActiveChatId(chatIdRef.current);
     } else {
       const newChatId = await addChat();
       chatIdRef.current = newChatId!;
-      setChatId(chatIdRef.current);
-      setChat(newChatId!);
+      setActiveChatId(chatIdRef.current);
       router.replace(`/chat/${newChatId}`);
     }
 
-    const newMessage: Message = { role: 'user', content: userInput };
     inputRef.current?.clear();
     setUserInput('');
-    setMessageHistory((prev) => [...prev, newMessage]);
 
-    await sendChatMessage([...messageHistory, newMessage]);
+    await sendChatMessage(messageHistory, userInput);
   };
 
   return (

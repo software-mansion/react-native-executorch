@@ -2,13 +2,12 @@ import { useFonts } from 'expo-font';
 import ChatScreen from '../components/chat-screen/ChatScreen';
 import { useDefaultHeader } from '../hooks/useDefaultHeader';
 import { useNavigation } from 'expo-router';
-import { useLayoutEffect, useState } from 'react';
+import { useLayoutEffect } from 'react';
 import SettingsHeaderButton from '../components/SettingsHeaderButton';
 import { configureReanimatedLogger } from 'react-native-reanimated';
 
 export default function App() {
   const navigation = useNavigation();
-  const [chatId, setChatId] = useState<number | null>(null);
   useFonts({
     medium: require('../assets/fonts/Aeonik-Medium.otf'),
     regular: require('../assets/fonts/Aeonik-Regular.otf'),
@@ -22,9 +21,9 @@ export default function App() {
   useLayoutEffect(() => {
     navigation.setOptions({
       // eslint-disable-next-line react/no-unstable-nested-components
-      headerRight: () => <SettingsHeaderButton chatId={chatId} />,
+      headerRight: () => <SettingsHeaderButton chatId={null} />,
     });
-  }, [navigation, chatId]);
+  }, [navigation]);
 
-  return <ChatScreen chatId={chatId} setChat={setChatId} />;
+  return <ChatScreen chatId={null} messageHistory={[]} />;
 }

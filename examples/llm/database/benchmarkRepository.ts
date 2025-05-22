@@ -10,10 +10,10 @@ export type BenchmarkResult = {
   peakMemory: number;
 };
 
-export async function insertBenchmark(
+export const insertBenchmark = async (
   db: SQLiteDatabase,
   benchmark: Omit<BenchmarkResult, 'id'>
-): Promise<number> {
+): Promise<number> => {
   const result = await db.runAsync(
     `INSERT INTO benchmarks (
       modelId,
@@ -34,20 +34,20 @@ export async function insertBenchmark(
   );
 
   return result.lastInsertRowId!;
-}
+};
 
-export async function getAllBenchmarks(
+export const getAllBenchmarks = async (
   db: SQLiteDatabase
-): Promise<BenchmarkResult[]> {
+): Promise<BenchmarkResult[]> => {
   const rows = await db.getAllAsync<BenchmarkResult>(
     `SELECT * FROM benchmarks ORDER BY id DESC`
   );
   return rows;
-}
+};
 
-export async function deleteBenchmark(
+export const deleteBenchmark = async (
   db: SQLiteDatabase,
   id: number
-): Promise<void> {
+): Promise<void> => {
   await db.runAsync(`DELETE FROM benchmarks WHERE id = ?`, [id]);
-}
+};
