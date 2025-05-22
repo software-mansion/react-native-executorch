@@ -13,7 +13,7 @@
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
     "react-native": "0.79.2",
-    "react-native-executorch": "^0.3.2"
+    "react-native-executorch": "^0.4.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

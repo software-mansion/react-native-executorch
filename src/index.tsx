@@ -34,9 +34,9 @@ export * from './modules/general/ExecutorchModule';
 export * from './utils/ResourceFetcher';
 
 // types
-export * from './types/object_detection';
+export * from './types/objectDetection';
 export * from './types/ocr';
-export * from './types/image_segmentation';
+export * from './types/imageSegmentation';
 export * from './types/llm';
 export { SpeechToTextLanguage };
 

@@ -1,9 +1,18 @@
 import { useModule } from '../useModule';
 import { ImageSegmentationModule } from '../../modules/computer_vision/ImageSegmentationModule';
+import { ResourceSource } from '../../types/common';
 
 interface Props {
-  modelSource: string | number;
+  modelSource: ResourceSource;
+  preventLoad?: boolean;
 }
 
-export const useImageSegmentation = ({ modelSource }: Props) =>
-  useModule({ module: ImageSegmentationModule, loadArgs: [modelSource] });
+export const useImageSegmentation = ({
+  modelSource,
+  preventLoad = false,
+}: Props) =>
+  useModule({
+    module: ImageSegmentationModule,
+    loadArgs: [modelSource],
+    preventLoad,
+  });

@@ -1,9 +1,18 @@
 import { ExecutorchModule } from '../../modules/general/ExecutorchModule';
+import { ResourceSource } from '../../types/common';
 import { useModule } from '../useModule';
 
 interface Props {
-  modelSource: string | number;
+  modelSource: ResourceSource;
+  preventLoad?: boolean;
 }
 
-export const useExecutorchModule = ({ modelSource }: Props) =>
-  useModule({ module: ExecutorchModule, loadArgs: [modelSource] });
+export const useExecutorchModule = ({
+  modelSource,
+  preventLoad = false,
+}: Props) =>
+  useModule({
+    module: ExecutorchModule,
+    loadArgs: [modelSource],
+    preventLoad,
+  });
