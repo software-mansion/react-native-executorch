@@ -4,7 +4,12 @@ import { StyleTransferModule } from '../../modules/computer_vision/StyleTransfer
 
 interface Props {
   modelSource: ResourceSource;
+  preventLoad?: boolean;
 }
 
-export const useStyleTransfer = ({ modelSource }: Props) =>
-  useModule({ module: StyleTransferModule, loadArgs: [modelSource] });
+export const useStyleTransfer = ({ modelSource, preventLoad = false }: Props) =>
+  useModule({
+    module: StyleTransferModule,
+    loadArgs: [modelSource],
+    preventLoad,
+  });

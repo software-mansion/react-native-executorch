@@ -4,7 +4,15 @@ import { ObjectDetectionModule } from '../../modules/computer_vision/ObjectDetec
 
 interface Props {
   modelSource: ResourceSource;
+  preventLoad?: boolean;
 }
 
-export const useObjectDetection = ({ modelSource }: Props) =>
-  useModule({ module: ObjectDetectionModule, loadArgs: [modelSource] });
+export const useObjectDetection = ({
+  modelSource,
+  preventLoad = false,
+}: Props) =>
+  useModule({
+    module: ObjectDetectionModule,
+    loadArgs: [modelSource],
+    preventLoad,
+  });

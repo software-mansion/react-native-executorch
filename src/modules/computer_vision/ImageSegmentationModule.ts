@@ -1,6 +1,6 @@
 import { BaseModule } from '../BaseModule';
 import { getError } from '../../Error';
-import { DeeplabLabel } from '../../types/image_segmentation';
+import { DeeplabLabel } from '../../types/imageSegmentation';
 import { ResourceSource } from '../../types/common';
 import { ImageSegmentationNativeModule } from '../../native/RnExecutorchModules';
 

@@ -30,6 +30,7 @@ export const useSpeechToText = ({
   overlapSeconds,
   windowSize,
   streamingConfig,
+  preventLoad = false,
 }: {
   modelName: AvailableModels;
   encoderSource?: ResourceSource;
@@ -44,6 +45,7 @@ export const useSpeechToText = ({
   streamingConfig?: ConstructorParameters<
     typeof SpeechToTextController
   >['0']['streamingConfig'];
+  preventLoad?: boolean;
 }): SpeechToTextModule => {
   const [sequence, setSequence] = useState<string>('');
   const [isReady, setIsReady] = useState(false);
@@ -76,8 +78,17 @@ export const useSpeechToText = ({
         tokenizerSource
       );
     };
-    loadModel();
-  }, [model, modelName, encoderSource, decoderSource, tokenizerSource]);
+    if (!preventLoad) {
+      loadModel();
+    }
+  }, [
+    model,
+    modelName,
+    encoderSource,
+    decoderSource,
+    tokenizerSource,
+    preventLoad,
+  ]);
 
   return {
     isReady,

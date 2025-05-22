@@ -15,6 +15,7 @@ export const useOCR = ({
   detectorSource,
   recognizerSources,
   language = 'en',
+  preventLoad = false,
 }: {
   detectorSource: ResourceSource;
   recognizerSources: {
@@ -23,6 +24,7 @@ export const useOCR = ({
     recognizerSmall: ResourceSource;
   };
   language?: OCRLanguage;
+  preventLoad?: boolean;
 }): OCRModule => {
   const [error, setError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -45,9 +47,18 @@ export const useOCR = ({
       await model.loadModel(detectorSource, recognizerSources, language);
     };
 
-    loadModel();
+    if (!preventLoad) {
+      loadModel();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [model, detectorSource, language, JSON.stringify(recognizerSources)]);
+  }, [
+    model,
+    detectorSource,
+    language,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    JSON.stringify(recognizerSources),
+    preventLoad,
+  ]);
 
   return {
     error,

@@ -26,6 +26,8 @@ The `modelSource` parameter expects a location string pointing to the model bina
 
 **`modelSource`** - A string that specifies the location of the model binary.
 
+**`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+
 ### Returns
 
 |       Field        |                            Type                            |                                                                                             Description                                                                                             |

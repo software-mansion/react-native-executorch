@@ -144,6 +144,8 @@ For more information, take a look at [loading models](../fundamentals/loading-mo
 
 **`language`** - A parameter that specifies the language of the text to be recognized by the OCR.
 
+**`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+
 ### Returns
 
 The hook returns an object with the following properties:
