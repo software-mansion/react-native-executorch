@@ -1,5 +1,7 @@
 #include "ImageSegmentation.h"
 
+#include <future>
+
 #include <executorch/extension/tensor/tensor.h>
 
 #include <rnexecutorch/data_processing/ImageProcessing.h>
@@ -20,7 +22,7 @@ ImageSegmentation::ImageSegmentation(
   numModelPixels = modelImageSize.area();
 }
 
-std::unique_ptr<jsi::Object>
+std::shared_ptr<jsi::Object>
 ImageSegmentation::forward(std::string imageSource,
                            std::set<std::string, std::less<>> classesOfInterest,
                            bool resize) {
@@ -50,7 +52,7 @@ ImageSegmentation::preprocess(const std::string &imageSource) {
       inputSize};
 }
 
-std::unique_ptr<jsi::Object> ImageSegmentation::postprocess(
+std::shared_ptr<jsi::Object> ImageSegmentation::postprocess(
     const Tensor &tensor, cv::Size originalSize,
     std::set<std::string, std::less<>> classesOfInterest, bool resize) {
 
@@ -128,16 +130,21 @@ std::unique_ptr<jsi::Object> ImageSegmentation::postprocess(
   return populateDictionary(argmax, buffersToReturn);
 }
 
-std::unique_ptr<jsi::Object> ImageSegmentation::populateDictionary(
+std::shared_ptr<jsi::Object> ImageSegmentation::populateDictionary(
     std::shared_ptr<OwningArrayBuffer> argmax,
     std::shared_ptr<std::unordered_map<std::string_view,
                                        std::shared_ptr<OwningArrayBuffer>>>
         classesToOutput) {
-  std::unique_ptr<jsi::Object> dictPtr;
+  // Synchronize the invoked thread to return when the dict is constructed
+  auto promisePtr = std::make_shared<std::promise<void>>();
+  std::future<void> doneFuture = promisePtr->get_future();
 
-  callInvoker->invokeSync(
-      [argmax, classesToOutput, &dictPtr](jsi::Runtime &runtime) {
-        dictPtr = std::make_unique<jsi::Object>(runtime);
+  log(LOG_LEVEL::Debug, "To sie po prostu w pale nie miesci!");
+
+  std::shared_ptr<jsi::Object> dictPtr = nullptr;
+  callInvoker->invokeAsync(
+      [argmax, classesToOutput, &dictPtr, promisePtr](jsi::Runtime &runtime) {
+        dictPtr = std::make_shared<jsi::Object>(runtime);
         auto argmaxArrayBuffer = jsi::ArrayBuffer(runtime, argmax);
 
         auto int32ArrayCtor =
@@ -160,8 +167,10 @@ std::unique_ptr<jsi::Object> ImageSegmentation::populateDictionary(
               runtime, jsi::String::createFromAscii(runtime, classLabel.data()),
               float32Array);
         }
+        promisePtr->set_value();
       });
 
+  doneFuture.wait();
   return dictPtr;
 }
 

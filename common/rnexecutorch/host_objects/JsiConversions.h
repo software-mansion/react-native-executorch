@@ -70,8 +70,7 @@ getValue<std::set<std::string, std::less<>>>(const jsi::Value &val,
 // return jsi::Value or jsi::Object. For each type being returned
 // we add a function here.
 
-// Identity function for the sake of completeness
-inline jsi::Value getJsiValue(std::unique_ptr<jsi::Object> &&valuePtr,
+inline jsi::Value getJsiValue(std::shared_ptr<jsi::Object> valuePtr,
                               jsi::Runtime &runtime) {
   return std::move(*valuePtr);
 }

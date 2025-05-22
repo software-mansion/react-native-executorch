@@ -4,6 +4,7 @@ import { getImage } from '../utils';
 import {
   useImageSegmentation,
   DEEPLAB_V3_RESNET50,
+  DeeplabLabel,
 } from 'react-native-executorch';
 import {
   Canvas,
@@ -79,14 +80,16 @@ export const ImageSegmentationScreen = ({
   const runForward = async () => {
     if (imageUri) {
       try {
-        const output = await model.forward(imageUri, [], false);
+        const output = await model.forward(imageUri);
         pixels = new Uint8Array(width * height * 4);
 
         for (let x = 0; x < width; x++) {
           for (let y = 0; y < height; y++) {
             for (let i = 0; i < 3; i++) {
               pixels[(x * height + y) * 4 + i] =
-                numberToColor[(output['ARGMAX'] || [])[x * height + y]][i];
+                numberToColor[
+                  (output[DeeplabLabel.ARGMAX] || [])[x * height + y]
+                ][i];
             }
             pixels[(x * height + y) * 4 + 3] = 255;
           }
