@@ -5,8 +5,10 @@ import { ETError, getError } from '../../Error';
 
 export const useTokenizer = ({
   tokenizerSource,
+  preventLoad = false,
 }: {
   tokenizerSource: ResourceSource;
+  preventLoad?: boolean;
 }) => {
   const [error, setError] = useState<null | string>(null);
   const [isReady, setIsReady] = useState(false);
@@ -24,8 +26,10 @@ export const useTokenizer = ({
         setError((err as Error).message);
       }
     };
-    loadModule();
-  }, [tokenizerSource]);
+    if (!preventLoad) {
+      loadModule();
+    }
+  }, [tokenizerSource, preventLoad]);
 
   const stateWrapper = <T extends (...args: any[]) => Promise<any>>(fn: T) => {
     const boundFn = fn.bind(TokenizerModule);

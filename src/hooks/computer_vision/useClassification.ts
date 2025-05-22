@@ -4,6 +4,13 @@ import { useModule } from '../useModule';
 
 export const useClassification = ({
   modelSource,
+  preventLoad = false,
 }: {
   modelSource: ResourceSource;
-}) => useModule({ module: ClassificationModule, loadArgs: [modelSource] });
+  preventLoad?: boolean;
+}) =>
+  useModule({
+    module: ClassificationModule,
+    loadArgs: [modelSource],
+    preventLoad,
+  });

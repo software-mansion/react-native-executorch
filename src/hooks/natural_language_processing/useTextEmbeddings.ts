@@ -5,11 +5,14 @@ import { useModule } from '../useModule';
 export const useTextEmbeddings = ({
   modelSource,
   tokenizerSource,
+  preventLoad = false,
 }: {
   modelSource: ResourceSource;
   tokenizerSource: ResourceSource;
+  preventLoad?: boolean;
 }) =>
   useModule({
     module: TextEmbeddingsModule,
     loadArgs: [modelSource, tokenizerSource],
+    preventLoad,
   });

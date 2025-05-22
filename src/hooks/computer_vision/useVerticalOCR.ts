@@ -16,6 +16,7 @@ export const useVerticalOCR = ({
   recognizerSources,
   language = 'en',
   independentCharacters = false,
+  preventLoad = false,
 }: {
   detectorSources: {
     detectorLarge: ResourceSource;
@@ -27,6 +28,7 @@ export const useVerticalOCR = ({
   };
   language?: OCRLanguage;
   independentCharacters?: boolean;
+  preventLoad?: boolean;
 }): OCRModule => {
   const [error, setError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -54,7 +56,9 @@ export const useVerticalOCR = ({
       );
     };
 
-    loadModel();
+    if (!preventLoad) {
+      loadModel();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     model,
@@ -64,6 +68,7 @@ export const useVerticalOCR = ({
     independentCharacters,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     JSON.stringify(recognizerSources),
+    preventLoad,
   ]);
 
   return {

@@ -15,9 +15,11 @@ export const useModule = <
 >({
   module,
   loadArgs,
+  preventLoad = false,
 }: {
   module: M;
   loadArgs: LoadArgs;
+  preventLoad?: boolean;
 }) => {
   const [error, setError] = useState<null | string>(null);
   const [isReady, setIsReady] = useState(false);
@@ -35,9 +37,11 @@ export const useModule = <
         setError((err as Error).message);
       }
     };
-    loadModule();
+    if (!preventLoad) {
+      loadModule();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [...loadArgs]);
+  }, [...loadArgs, preventLoad]);
 
   const forward = async (...input: ForwardArgs): Promise<ForwardReturn> => {
     if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
