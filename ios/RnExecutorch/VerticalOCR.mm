@@ -1,13 +1,11 @@
 #import "VerticalOCR.h"
-#import "models/ocr/RecognitionHandler.h"
 #import "models/ocr/Recognizer.h"
 #import "models/ocr/VerticalDetector.h"
 #import "models/ocr/utils/CTCLabelConverter.h"
+#import "models/ocr/utils/Constants.h"
 #import "models/ocr/utils/OCRUtils.h"
 #import "models/ocr/utils/RecognizerUtils.h"
 #import "utils/ImageProcessor.h"
-#import <ExecutorchLib/ETModel.h>
-#import <React/RCTBridgeModule.h>
 
 @implementation VerticalOCR {
   VerticalDetector *detectorLarge;
@@ -19,6 +17,13 @@
 
 RCT_EXPORT_MODULE()
 
+- (void)releaseResources {
+  detectorLarge = nil;
+  detectorNarrow = nil;
+  recognizer = nil;
+  converter = nil;
+}
+
 - (void)loadModule:(NSString *)detectorLargeSource
      detectorNarrowSource:(NSString *)detectorNarrowSource
          recognizerSource:(NSString *)recognizerSource
@@ -26,42 +31,37 @@ RCT_EXPORT_MODULE()
     independentCharacters:(BOOL)independentCharacters
                   resolve:(RCTPromiseResolveBlock)resolve
                    reject:(RCTPromiseRejectBlock)reject {
-  detectorLarge = [[VerticalDetector alloc] initWithDetectSingleCharacters:NO];
   converter = [[CTCLabelConverter alloc] initWithCharacters:symbols
                                               separatorList:@{}];
   self->independentCharacters = independentCharacters;
-  [detectorLarge
-       loadModel:[NSURL URLWithString:detectorLargeSource]
-      completion:^(BOOL success, NSNumber *errorCode) {
-        if (!success) {
-          reject(@"init_module_error", @"Failed to initialize detector module",
-                 nil);
-          return;
-        }
-        self->detectorNarrow =
-            [[VerticalDetector alloc] initWithDetectSingleCharacters:YES];
-        [self->detectorNarrow
-             loadModel:[NSURL URLWithString:detectorNarrowSource]
-            completion:^(BOOL success, NSNumber *errorCode) {
-              if (!success) {
-                reject(@"init_module_error",
-                       @"Failed to initialize detector module", nil);
-                return;
-              }
 
-              self->recognizer = [[Recognizer alloc] init];
-              [self->recognizer
-                   loadModel:[NSURL URLWithString:recognizerSource]
-                  completion:^(BOOL success, NSNumber *errorCode) {
-                    if (!success) {
-                      reject(@"init_module_error",
-                             @"Failed to initialize recognizer module", nil);
-                    }
+  detectorLarge = [[VerticalDetector alloc] initWithDetectSingleCharacters:NO];
+  NSNumber *errorCode = [detectorLarge loadModel:detectorLargeSource];
+  if ([errorCode intValue] != 0) {
+    [self releaseResources];
+    reject(@"init_module_error", @"Failed to initialize detector module", nil);
+    return;
+  }
 
-                    resolve(@(YES));
-                  }];
-            }];
-      }];
+  detectorNarrow =
+      [[VerticalDetector alloc] initWithDetectSingleCharacters:YES];
+  errorCode = [detectorNarrow loadModel:detectorNarrowSource];
+  if ([errorCode intValue] != 0) {
+    [self releaseResources];
+    reject(@"init_module_error", @"Failed to initialize detector module", nil);
+    return;
+  }
+
+  recognizer = [[Recognizer alloc] init];
+  errorCode = [recognizer loadModel:recognizerSource];
+  if ([errorCode intValue] != 0) {
+    [self releaseResources];
+    reject(@"init_module_error", @"Failed to initialize recognizer module",
+           nil);
+    return;
+  }
+
+  resolve(@0);
 }
 
 - (void)forward:(NSString *)input

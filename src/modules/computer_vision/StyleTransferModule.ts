@@ -1,12 +1,17 @@
-import { BaseCVModule } from './BaseCVModule';
-import { _StyleTransferModule } from '../../native/RnExecutorchModules';
+import { StyleTransferNativeModule } from '../../native/RnExecutorchModules';
+import { ResourceSource } from '../../types/common';
+import { BaseModule } from '../BaseModule';
 
-export class StyleTransferModule extends BaseCVModule {
-  static module = new _StyleTransferModule();
+export class StyleTransferModule extends BaseModule {
+  protected static override nativeModule = StyleTransferNativeModule;
 
-  static async forward(input: string) {
-    return await (super.forward(input) as ReturnType<
-      _StyleTransferModule['forward']
-    >);
+  static override async load(modelSource: ResourceSource) {
+    return await super.load(modelSource);
+  }
+
+  static override async forward(
+    input: string
+  ): ReturnType<typeof this.nativeModule.forward> {
+    return await this.nativeModule.forward(input);
   }
 }

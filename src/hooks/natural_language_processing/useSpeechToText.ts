@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { SpeechToTextController } from '../../controllers/SpeechToTextController';
 import { ResourceSource } from '../../types/common';
+import { STREAMING_ACTION } from '../../constants/sttDefaults';
+import { AvailableModels, SpeechToTextLanguage } from '../../types/stt';
 
 interface SpeechToTextModule {
   isReady: boolean;
@@ -10,8 +12,14 @@ interface SpeechToTextModule {
   configureStreaming: SpeechToTextController['configureStreaming'];
   error: Error | undefined;
   transcribe: (
-    input: number[]
+    input: number[],
+    audioLanguage?: SpeechToTextLanguage
   ) => ReturnType<SpeechToTextController['transcribe']>;
+  streamingTranscribe: (
+    streamAction: STREAMING_ACTION,
+    input?: number[],
+    audioLanguage?: SpeechToTextLanguage
+  ) => ReturnType<SpeechToTextController['streamingTranscribe']>;
 }
 
 export const useSpeechToText = ({
@@ -23,7 +31,7 @@ export const useSpeechToText = ({
   windowSize,
   streamingConfig,
 }: {
-  modelName: 'moonshine' | 'whisper';
+  modelName: AvailableModels;
   encoderSource?: ResourceSource;
   decoderSource?: ResourceSource;
   tokenizerSource?: ResourceSource;
@@ -43,19 +51,21 @@ export const useSpeechToText = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<Error | undefined>();
 
-  const [model, _] = useState(
+  const model = useMemo(
     () =>
       new SpeechToTextController({
         transcribeCallback: setSequence,
         isReadyCallback: setIsReady,
         isGeneratingCallback: setIsGenerating,
         onErrorCallback: setError,
-        modelDownloadProgessCallback: setDownloadProgress,
-        overlapSeconds: overlapSeconds,
-        windowSize: windowSize,
-        streamingConfig: streamingConfig,
-      })
+        modelDownloadProgressCallback: setDownloadProgress,
+      }),
+    []
   );
+
+  useEffect(() => {
+    model.configureStreaming(overlapSeconds, windowSize, streamingConfig);
+  }, [model, overlapSeconds, windowSize, streamingConfig]);
 
   useEffect(() => {
     const loadModel = async () => {
@@ -76,6 +86,12 @@ export const useSpeechToText = ({
     configureStreaming: model.configureStreaming,
     sequence,
     error,
-    transcribe: (waveform: number[]) => model.transcribe(waveform),
+    transcribe: (waveform: number[], audioLanguage?: SpeechToTextLanguage) =>
+      model.transcribe(waveform, audioLanguage),
+    streamingTranscribe: (
+      streamAction: STREAMING_ACTION,
+      waveform?: number[],
+      audioLanguage?: SpeechToTextLanguage
+    ) => model.streamingTranscribe(streamAction, waveform, audioLanguage),
   };
 };

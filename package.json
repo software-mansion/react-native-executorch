@@ -1,6 +1,6 @@
 {
   "name": "react-native-executorch",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "An easy way to run AI models in react native with ExecuTorch",
   "source": "./src/index.ts",
   "main": "./lib/commonjs/index.js",
@@ -60,22 +60,24 @@
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^17.0.2",
+    "@cspell/eslint-plugin": "^8.18.1",
     "@evilmartians/lefthook": "^1.5.0",
     "@react-native-community/cli": "latest",
-    "@react-native/eslint-config": "^0.73.1",
+    "@react-native/eslint-config": "^0.79.0",
     "@release-it/conventional-changelog": "^5.0.0",
     "@types/jest": "^29.5.5",
     "@types/react": "^18.2.44",
     "commitlint": "^17.0.2",
+    "cspell": "^8.19.2",
     "del-cli": "^5.1.0",
-    "eslint": "^8.51.0",
+    "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.1",
     "jest": "^29.7.0",
     "metro-react-native-babel-preset": "^0.77.0",
     "prettier": "^3.0.3",
-    "react": "18.3.1",
-    "react-native": "^0.76.1",
+    "react": "^19.1.0",
+    "react-native": "^0.79.2",
     "react-native-builder-bob": "^0.30.2",
     "turbo": "^1.10.7",
     "typescript": "^5.2.2"
@@ -120,45 +122,6 @@
       }
     }
   },
-  "eslintConfig": {
-    "parserOptions": {
-      "requireConfigFile": false,
-      "babelOptions": {
-        "presets": [
-          "@babel/preset-react"
-        ]
-      }
-    },
-    "root": true,
-    "extends": [
-      "@react-native",
-      "prettier"
-    ],
-    "rules": {
-      "react/react-in-jsx-scope": "off",
-      "prettier/prettier": [
-        "error",
-        {
-          "quoteProps": "consistent",
-          "singleQuote": true,
-          "tabWidth": 2,
-          "trailingComma": "es5",
-          "useTabs": false
-        }
-      ]
-    }
-  },
-  "eslintIgnore": [
-    "node_modules/",
-    "lib/"
-  ],
-  "prettier": {
-    "quoteProps": "consistent",
-    "singleQuote": true,
-    "tabWidth": 2,
-    "trailingComma": "es5",
-    "useTabs": false
-  },
   "babel": {
     "presets": [
       "module:metro-react-native-babel-preset"
@@ -186,16 +149,17 @@
   },
   "codegenConfig": {
     "name": "RnExecutorchSpec",
-    "type": "all",
+    "type": "modules",
     "jsSrcsDir": "./src/native",
     "android": {
       "javaPackageName": "com.swmansion.rnexecutorch"
     }
   },
   "dependencies": {
-    "expo": "^52.0.37",
-    "expo-asset": "^11.0.3",
-    "expo-file-system": "^18.0.10",
+    "@huggingface/jinja": "^0.5.0",
+    "expo": "^53.0.7",
+    "expo-asset": "~11.1.5",
+    "expo-file-system": "~18.1.10",
     "react-native-live-audio-stream": "^1.1.1"
   }
 }

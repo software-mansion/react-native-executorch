@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # --- Configuration ---
-PROJECT_NAME="ExecutorchLib"  # Replace with your Xcode project name
-SCHEME_NAME="ExecutorchLib"    # Replace with your scheme name
-OUTPUT_FOLDER="output"        # Choose your desired output folder
+PROJECT_NAME="ExecutorchLib" # Replace with your Xcode project name
+SCHEME_NAME="ExecutorchLib"  # Replace with your scheme name
+OUTPUT_FOLDER="output"       # Choose your desired output folder
 
 # --- Derived Variables ---
-BUILD_FOLDER="build"           
+BUILD_FOLDER="build"
 ARCHIVE_PATH_IOS="$BUILD_FOLDER/$SCHEME_NAME-iOS"
 ARCHIVE_PATH_SIMULATOR="$BUILD_FOLDER/$SCHEME_NAME-iOS_Simulator"
 FRAMEWORK_NAME="$SCHEME_NAME.framework"
@@ -42,5 +42,3 @@ xcodebuild -create-xcframework \
   -framework "$ARCHIVE_PATH_IOS.xcarchive/Products/Library/Frameworks/$FRAMEWORK_NAME" \
   -framework "$ARCHIVE_PATH_SIMULATOR.xcarchive/Products/Library/Frameworks/$FRAMEWORK_NAME" \
   -output "$XCFRAMEWORK_PATH"
-
-

@@ -1,5 +1,4 @@
 #import "OCRUtils.h"
-#import "RecognizerUtils.h"
 
 @implementation OCRUtils
 

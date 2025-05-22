@@ -1,40 +1,28 @@
-import {
-  _ImageSegmentationModule,
-  _StyleTransferModule,
-  _ObjectDetectionModule,
-  _ClassificationModule,
-  _ETModule,
-} from '../native/RnExecutorchModules';
-import { fetchResource } from '../utils/fetchResource';
-import { ResourceSource } from '../types/common';
+import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { getError } from '../Error';
+import { ResourceSource } from '../types/common';
 
 export class BaseModule {
-  static module:
-    | _ImageSegmentationModule
-    | _StyleTransferModule
-    | _ObjectDetectionModule
-    | _ClassificationModule
-    | _ETModule;
+  protected static nativeModule: any;
+  static onDownloadProgressCallback: (downloadProgress: number) => void =
+    () => {};
 
-  static onDownloadProgressCallback = (_downloadProgress: number) => {};
-
-  static async load(modelSource: ResourceSource) {
-    if (!modelSource) return;
-
+  static async load(...sources: ResourceSource[]): Promise<void> {
     try {
-      const fileUri = await fetchResource(
-        modelSource,
-        this.onDownloadProgressCallback
+      const paths = await ResourceFetcher.fetchMultipleResources(
+        this.onDownloadProgressCallback,
+        ...sources
       );
-      await this.module.loadModule(fileUri);
-    } catch (e) {
-      throw new Error(getError(e));
+      await this.nativeModule.loadModule(...paths);
+    } catch (error) {
+      throw new Error(getError(error));
     }
   }
 
-  static async forward(..._: any[]): Promise<any> {
-    throw new Error('The forward method is not implemented.');
+  protected static async forward(..._args: any[]): Promise<any> {
+    throw new Error(
+      'forward method is not implemented in the BaseModule class. Please implement it in the derived class.'
+    );
   }
 
   static onDownloadProgress(callback: (downloadProgress: number) => void) {

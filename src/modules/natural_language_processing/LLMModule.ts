@@ -1,62 +1,75 @@
-import { LLM } from '../../native/RnExecutorchModules';
-import { fetchResource } from '../../utils/fetchResource';
-import {
-  DEFAULT_CONTEXT_WINDOW_LENGTH,
-  DEFAULT_MESSAGE_HISTORY,
-  DEFAULT_SYSTEM_PROMPT,
-} from '../../constants/llamaDefaults';
+import { LLMController } from '../../controllers/LLMController';
 import { ResourceSource } from '../../types/common';
+import { ChatConfig, LLMTool, Message, ToolsConfig } from '../../types/llm';
 
 export class LLMModule {
-  static onDownloadProgressCallback = (_downloadProgress: number) => {};
+  static controller: LLMController;
 
-  static async load(
-    modelSource: ResourceSource,
-    tokenizerSource: ResourceSource,
-    systemPrompt = DEFAULT_SYSTEM_PROMPT,
-    messageHistory = DEFAULT_MESSAGE_HISTORY,
-    contextWindowLength = DEFAULT_CONTEXT_WINDOW_LENGTH
-  ) {
-    try {
-      const tokenizerFileUri = await fetchResource(tokenizerSource);
-      const modelFileUri = await fetchResource(
-        modelSource,
-        this.onDownloadProgressCallback
-      );
-
-      await LLM.loadLLM(
-        modelFileUri,
-        tokenizerFileUri,
-        systemPrompt,
-        messageHistory,
-        contextWindowLength
-      );
-    } catch (err) {
-      throw new Error((err as Error).message);
-    }
+  static async load({
+    modelSource,
+    tokenizerSource,
+    tokenizerConfigSource,
+    onDownloadProgressCallback,
+    responseCallback,
+    messageHistoryCallback,
+  }: {
+    modelSource: ResourceSource;
+    tokenizerSource: ResourceSource;
+    tokenizerConfigSource: ResourceSource;
+    onDownloadProgressCallback?: (_downloadProgress: number) => void;
+    responseCallback?: (response: string) => void;
+    messageHistoryCallback?: (messageHistory: Message[]) => void;
+  }) {
+    this.controller = new LLMController({
+      responseCallback: responseCallback,
+      messageHistoryCallback: messageHistoryCallback,
+      onDownloadProgressCallback: onDownloadProgressCallback,
+    });
+    await this.controller.load({
+      modelSource,
+      tokenizerSource,
+      tokenizerConfigSource,
+    });
   }
 
-  static async generate(input: string) {
-    try {
-      await LLM.runInference(input);
-    } catch (err) {
-      throw new Error((err as Error).message);
-    }
+  static configure({
+    chatConfig,
+    toolsConfig,
+  }: {
+    chatConfig?: Partial<ChatConfig>;
+    toolsConfig?: ToolsConfig;
+  }) {
+    this.controller.configure({ chatConfig, toolsConfig });
   }
 
-  static onDownloadProgress(callback: (downloadProgress: number) => void) {
-    this.onDownloadProgressCallback = callback;
+  static async forward(input: string): Promise<string> {
+    await this.controller.forward(input);
+    return this.controller.response;
   }
 
-  static onToken(callback: (data: string | undefined) => void) {
-    return LLM.onToken(callback);
+  static async generate(
+    messages: Message[],
+    tools?: LLMTool[]
+  ): Promise<string> {
+    await this.controller.generate(messages, tools);
+    return this.controller.response;
+  }
+
+  static async sendMessage(message: string): Promise<Message[]> {
+    await this.controller.sendMessage(message);
+    return this.controller.messageHistory;
+  }
+
+  static async deleteMessage(index: number): Promise<Message[]> {
+    await this.controller.deleteMessage(index);
+    return this.controller.messageHistory;
   }
 
   static interrupt() {
-    LLM.interrupt();
+    this.controller.interrupt();
   }
 
   static delete() {
-    LLM.deleteModule();
+    this.controller.delete();
   }
 }

@@ -1,15 +1,12 @@
 import { symbols } from '../constants/ocr/symbols';
 import { ETError, getError } from '../Error';
-import { _VerticalOCRModule } from '../native/RnExecutorchModules';
+import { VerticalOCRNativeModule } from '../native/RnExecutorchModules';
 import { ResourceSource } from '../types/common';
 import { OCRLanguage } from '../types/ocr';
-import {
-  fetchResource,
-  calculateDownloadProgres,
-} from '../utils/fetchResource';
+import { ResourceFetcher } from '../utils/ResourceFetcher';
 
 export class VerticalOCRController {
-  private nativeModule: _VerticalOCRModule;
+  private ocrNativeModule: typeof VerticalOCRNativeModule;
   public isReady: boolean = false;
   public isGenerating: boolean = false;
   public error: string | null = null;
@@ -24,7 +21,7 @@ export class VerticalOCRController {
     isGeneratingCallback = (_isGenerating: boolean) => {},
     errorCallback = (_error: string) => {},
   }) {
-    this.nativeModule = new _VerticalOCRModule();
+    this.ocrNativeModule = VerticalOCRNativeModule;
     this.modelDownloadProgressCallback = modelDownloadProgressCallback;
     this.isReadyCallback = isReadyCallback;
     this.isGeneratingCallback = isGeneratingCallback;
@@ -57,31 +54,19 @@ export class VerticalOCRController {
       this.isReady = false;
       this.isReadyCallback(this.isReady);
 
-      const recognizerPath = independentCharacters
-        ? await fetchResource(
-            recognizerSources.recognizerSmall,
-            calculateDownloadProgres(3, 0, this.modelDownloadProgressCallback)
-          )
-        : await fetchResource(
-            recognizerSources.recognizerLarge,
-            calculateDownloadProgres(3, 0, this.modelDownloadProgressCallback)
-          );
+      const paths = await ResourceFetcher.fetchMultipleResources(
+        this.modelDownloadProgressCallback,
+        detectorSources.detectorLarge,
+        detectorSources.detectorNarrow,
+        independentCharacters
+          ? recognizerSources.recognizerSmall
+          : recognizerSources.recognizerLarge
+      );
 
-      const detectorPaths = {
-        detectorLarge: await fetchResource(
-          detectorSources.detectorLarge,
-          calculateDownloadProgres(3, 1, this.modelDownloadProgressCallback)
-        ),
-        detectorNarrow: await fetchResource(
-          detectorSources.detectorNarrow,
-          calculateDownloadProgres(3, 2, this.modelDownloadProgressCallback)
-        ),
-      };
-
-      await this.nativeModule.loadModule(
-        detectorPaths.detectorLarge,
-        detectorPaths.detectorNarrow,
-        recognizerPath,
+      await this.ocrNativeModule.loadModule(
+        paths[0]!,
+        paths[1]!,
+        paths[2]!,
         symbols[language],
         independentCharacters
       );
@@ -108,7 +93,7 @@ export class VerticalOCRController {
     try {
       this.isGenerating = true;
       this.isGeneratingCallback(this.isGenerating);
-      return await this.nativeModule.forward(input);
+      return await this.ocrNativeModule.forward(input);
     } catch (e) {
       throw new Error(getError(e));
     } finally {
