@@ -1496,6 +1496,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@huggingface/jinja@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "@huggingface/jinja@npm:0.5.0"
+  checksum: 8bb04021f381158d5e358a166f8eec250785c0dc9f70a04b92d0aabddc8583a9f20026c808be59d4926787087399ca8f5a4cc8fc37749be35bea63473af19c53
+  languageName: node
+  linkType: hard
+
 "@isaacs/cliui@npm:^8.0.2":
   version: 8.0.2
   resolution: "@isaacs/cliui@npm:8.0.2"
@@ -3638,7 +3645,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-file-system@npm:~18.1.10, expo-file-system@npm:~18.1.9":
+"expo-file-system@npm:~18.1.10":
   version: 18.1.10
   resolution: "expo-file-system@npm:18.1.10"
   peerDependencies:
@@ -3709,7 +3716,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo@npm:53.0.9, expo@npm:~53.0.8":
+"expo@npm:^53.0.7, expo@npm:~53.0.8":
   version: 53.0.9
   resolution: "expo@npm:53.0.9"
   dependencies:
@@ -4768,7 +4775,7 @@ __metadata:
     react: 19.0.0
     react-native: ^0.79.2
     react-native-audio-api: 0.5.7
-    react-native-executorch: ^0.3.2
+    react-native-executorch: ^0.4.1
     react-native-live-audio-stream: ^1.1.1
     react-native-loading-spinner-overlay: ^3.0.1
     react-native-markdown-display: ^7.0.2
@@ -6306,18 +6313,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-executorch@npm:^0.3.2":
-  version: 0.3.3
-  resolution: "react-native-executorch@npm:0.3.3"
+"react-native-executorch@npm:^0.4.1":
+  version: 0.4.1
+  resolution: "react-native-executorch@npm:0.4.1"
   dependencies:
-    expo: 53.0.9
+    "@huggingface/jinja": ^0.5.0
+    expo: ^53.0.7
     expo-asset: ~11.1.5
-    expo-file-system: ~18.1.9
+    expo-file-system: ~18.1.10
     react-native-live-audio-stream: ^1.1.1
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: cc64a1970649adb021beeb62bcd3aae2074ff3d3cf6b757054fec46a56167a3efc67cdcbeaed458c1ea2bb4400c4ff31b3985e3e49b36dc58bddc224d2be6a57
+  checksum: f48132d33f1057b8d6ae99ef2b43750fe92247c7caf09a003deb3969403f0b4064a8ef2af8460f2d4db933a05aa47fa7ce6a6e6760a637e23a52a12bd1d5859b
   languageName: node
   linkType: hard
 
