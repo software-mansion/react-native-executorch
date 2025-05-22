@@ -45,13 +45,12 @@ getValue<std::vector<std::string>>(const jsi::Value &val,
   return result;
 }
 
-// Set with heterogenerous look-up (adding std::less<> enables querying
-// with std::string_view)
+// C++ set from JS array. Set with heterogenerous look-up (adding std::less<>
+// enables querying with std::string_view).
 template <>
 inline std::set<std::string, std::less<>>
 getValue<std::set<std::string, std::less<>>>(const jsi::Value &val,
                                              jsi::Runtime &runtime) {
-  // C++ set from JS array
 
   jsi::Array array = val.asObject(runtime).asArray(runtime);
   size_t length = array.size(runtime);

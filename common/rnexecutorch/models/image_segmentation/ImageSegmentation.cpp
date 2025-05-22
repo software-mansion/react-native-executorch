@@ -66,7 +66,7 @@ std::shared_ptr<jsi::Object> ImageSegmentation::postprocess(
   for (std::size_t cl = 0; cl < numClasses; ++cl) {
     auto classBuffer =
         std::make_shared<OwningArrayBuffer>(numModelPixels * sizeof(float));
-    resultClasses.emplace_back(classBuffer);
+    resultClasses.push_back(classBuffer);
     std::memcpy(classBuffer->data(), &resultData[cl * numModelPixels],
                 numModelPixels * sizeof(float));
   }
@@ -138,8 +138,6 @@ std::shared_ptr<jsi::Object> ImageSegmentation::populateDictionary(
   // Synchronize the invoked thread to return when the dict is constructed
   auto promisePtr = std::make_shared<std::promise<void>>();
   std::future<void> doneFuture = promisePtr->get_future();
-
-  log(LOG_LEVEL::Debug, "To sie po prostu w pale nie miesci!");
 
   std::shared_ptr<jsi::Object> dictPtr = nullptr;
   callInvoker->invokeAsync(

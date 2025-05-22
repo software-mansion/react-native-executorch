@@ -55,7 +55,8 @@ public:
               try {
                 auto result =
                     std::apply(std::bind_front(FnPtr, model), argsConverted);
-
+                // The result is copied. It should either be quickly copiable,
+                // or passed with a shared_ptr.
                 callInvoker->invokeAsync([promise,
                                           result](jsi::Runtime &runtime) {
                   promise->resolve(
