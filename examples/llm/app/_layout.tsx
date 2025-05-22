@@ -32,6 +32,7 @@ export default function Layout() {
                 headerShown: false,
               }}
             />
+            <Stack.Screen name="benchmark" options={{ title: 'Benchmark' }} />
           </Stack>
         </CustomDrawerLayout>
       </SQLiteProvider>

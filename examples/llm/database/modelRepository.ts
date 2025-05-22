@@ -2,7 +2,7 @@ import { type SQLiteDatabase } from 'expo-sqlite';
 
 export type Model = {
   id: string;
-  source: 'local' | 'remote' | null;
+  source: 'local' | 'remote';
   isDownloaded: number;
   modelPath: string;
   tokenizerPath: string;

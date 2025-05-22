@@ -15,7 +15,7 @@ interface DownloadState {
 }
 
 interface ModelStore {
-  db: SQLiteDatabase;
+  db: SQLiteDatabase | null;
   models: Model[];
   downloadedModels: Model[];
   downloadStates: Record<string, DownloadState>;
@@ -27,7 +27,7 @@ interface ModelStore {
 }
 
 export const useModelStore = create<ModelStore>((set, get) => ({
-  db: {} as SQLiteDatabase,
+  db: null,
   models: [],
   downloadedModels: [],
   downloadStates: {},

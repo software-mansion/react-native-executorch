@@ -1,9 +1,9 @@
 import React, { memo } from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform, Text } from 'react-native';
 import MarkdownComponent from './MarkdownComponent';
 import LlamaIcon from '../../assets/icons/llama_icon.svg';
 import ColorPalette from '../../colors';
-import { Message } from 'react-native-executorch/lib/typescript/types/llm';
+import { Message } from '../../database/chatRepository';
 
 interface MessageItemProps {
   message: Message;
@@ -21,7 +21,15 @@ const MessageItem = memo(({ message }: MessageItemProps) => {
           <LlamaIcon width={24} height={24} />
         </View>
       )}
-      <MarkdownComponent text={message.content} />
+      <View>
+        <MarkdownComponent text={message.content} />
+        {message.role === 'assistant' && (
+          <Text style={styles.messageMeta}>
+            tps: {message.tokensPerSecond?.toFixed(2)} tok/s, ttft:{' '}
+            {message.timeToFirstToken?.toFixed()} ms
+          </Text>
+        )}
+      </View>
     </View>
   );
 });
@@ -47,6 +55,11 @@ const styles = StyleSheet.create({
     backgroundColor: ColorPalette.seaBlueLight,
     alignSelf: 'flex-end',
     alignItems: 'center',
+  },
+  messageMeta: {
+    fontSize: 12,
+    color: ColorPalette.seaBlueDark,
+    marginTop: 4,
   },
   aiMessageIconContainer: {
     backgroundColor: ColorPalette.seaBlueLight,
