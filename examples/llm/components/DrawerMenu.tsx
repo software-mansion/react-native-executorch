@@ -1,12 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, memo } from 'react';
 import { Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
 import { useChatStore } from '../store/chatStore';
+import ColorPalette from '../colors';
 
 const DrawerMenu = ({ onNavigate }: { onNavigate: () => void }) => {
   const router = useRouter();
   const pathname = usePathname();
   const { chats, loadChats } = useChatStore();
+
   useEffect(() => {
     loadChats();
   }, [loadChats]);
@@ -18,7 +20,7 @@ const DrawerMenu = ({ onNavigate }: { onNavigate: () => void }) => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.section}>App</Text>
+      <Section title="App" />
       <DrawerItem
         label="Chat"
         active={pathname === '/'}
@@ -35,14 +37,16 @@ const DrawerMenu = ({ onNavigate }: { onNavigate: () => void }) => {
         onPress={() => navigate('/benchmark')}
       />
 
-      <Text style={styles.section}>Chats</Text>
+      <Section title="Chats" />
       {chats.map((chat) => {
         const path = `/chat/${chat.id}`;
+        const active = pathname === path;
+
         return (
           <DrawerItem
             key={chat.id}
             label={`Chat #${chat.id}`}
-            active={pathname === path}
+            active={active}
             onPress={() => navigate(path)}
           />
         );
@@ -53,24 +57,36 @@ const DrawerMenu = ({ onNavigate }: { onNavigate: () => void }) => {
 
 export default DrawerMenu;
 
-const DrawerItem = ({
-  label,
-  active,
-  onPress,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-}) => {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={[styles.item, active && styles.activeItem]}
-    >
-      <Text style={[styles.label, active && styles.activeLabel]}>{label}</Text>
-    </Pressable>
-  );
-};
+const DrawerItem = memo(
+  ({
+    label,
+    active,
+    onPress,
+  }: {
+    label: string;
+    active: boolean;
+    onPress: () => void;
+  }) => {
+    return (
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [
+          styles.item,
+          active && styles.itemActive,
+          pressed && styles.itemPressed,
+        ]}
+      >
+        <Text style={[styles.label, active && styles.labelActive]}>
+          {label}
+        </Text>
+      </Pressable>
+    );
+  }
+);
+
+const Section = ({ title }: { title: string }) => (
+  <Text style={styles.section}>{title}</Text>
+);
 
 const styles = StyleSheet.create({
   container: {
@@ -79,24 +95,27 @@ const styles = StyleSheet.create({
   section: {
     fontSize: 14,
     fontWeight: 'bold',
-    marginTop: 16,
-    marginBottom: 8,
-    color: '#999',
+    marginTop: 20,
+    marginBottom: 12,
+    color: ColorPalette.primary,
   },
   item: {
     paddingVertical: 12,
-  },
-  activeItem: {
-    backgroundColor: '#eee',
+    paddingHorizontal: 8,
     borderRadius: 6,
+  },
+  itemActive: {
+    backgroundColor: ColorPalette.seaBlueLight,
+  },
+  itemPressed: {
+    backgroundColor: ColorPalette.seaBlueMedium,
   },
   label: {
     fontSize: 16,
-    color: '#333',
-    paddingHorizontal: 4,
+    color: ColorPalette.blueDark,
   },
-  activeLabel: {
-    color: '#000',
+  labelActive: {
+    color: ColorPalette.primary,
     fontWeight: 'bold',
   },
 });

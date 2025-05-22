@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
+  FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  FlatList,
+  StyleSheet,
 } from 'react-native';
 import { useDefaultHeader } from '../hooks/useDefaultHeader';
 import { useLLMStore } from '../store/llmStore';
@@ -15,254 +15,159 @@ import {
   BenchmarkResult,
   getAllBenchmarks,
 } from '../database/benchmarkRepository';
+import ColorPalette from '../colors';
+import BenchmarkItem from '../components/benchmark/BenchmarkItem';
+import BenchmarkResultCard from '../components/benchmark/BenchmarkResultCard';
+import ModelSelectorModal from '../components/chat-screen/ModelSelector';
 
-const BenchmarkScreen: React.FC = () => {
+const BenchmarkScreen = () => {
   useDefaultHeader();
-
-  const { runBenchmark, model: activeModel, loadModel, db } = useLLMStore();
+  const { runBenchmark, loadModel, db, model: activeModel } = useLLMStore();
   const { downloadedModels: models } = useModelStore();
+
   const [selectedModel, setSelectedModel] = useState<Model | null>(null);
   const [benchmarkResult, setBenchmarkResult] =
     useState<BenchmarkResult | null>(null);
   const [benchmarkList, setBenchmarkList] = useState<BenchmarkResult[]>([]);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (activeModel && !selectedModel) {
-      setSelectedModel(activeModel);
-    }
-  }, [activeModel, selectedModel]);
+  const [modelModalVisible, setModelModalVisible] = useState(false);
 
   const loadBenchmarks = useCallback(async () => {
     if (!db) return;
-    const results = await getAllBenchmarks(db);
-    setBenchmarkList(results);
+    const history = await getAllBenchmarks(db);
+    setBenchmarkList(history);
   }, [db]);
 
   useEffect(() => {
+    if (activeModel) {
+      setSelectedModel(activeModel);
+    }
+  }, [activeModel]);
+
+  useEffect(() => {
     loadBenchmarks();
-  }, [db, loadBenchmarks]);
+  }, [loadBenchmarks]);
 
   const handleRun = async () => {
-    if (!selectedModel || !db) return;
-
+    if (!selectedModel) return;
     setLoading(true);
-
     await loadModel(selectedModel);
-
     const result = await runBenchmark();
-
     setBenchmarkResult(result);
-
     await loadBenchmarks();
-
     setLoading(false);
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Benchmark</Text>
+      <View style={styles.headerBox}>
+        <Text style={styles.infoText}>Please select a model to benchmark:</Text>
 
-      <Text style={styles.label}>Select Model:</Text>
-      <View>
-        <FlatList
-          data={models}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingBottom: 12 }}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={async () => {
-                await loadModel(item);
-                setSelectedModel(item);
-              }}
-              style={[
-                styles.modelButton,
-                item.id === selectedModel?.id && styles.modelButtonActive,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.modelButtonText,
-                  item.id === selectedModel?.id && styles.modelButtonTextActive,
-                ]}
-              >
-                {item.id}
-              </Text>
-            </TouchableOpacity>
-          )}
-        />
+        <TouchableOpacity
+          onPress={() => setModelModalVisible(true)}
+          style={styles.modelSelectorButton}
+        >
+          <Text style={styles.modelSelectorButtonText}>
+            {selectedModel ? `Model: ${selectedModel.id}` : 'Select a model'}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={handleRun}
+          style={styles.runButton}
+          disabled={loading || !selectedModel}
+        >
+          <Text style={styles.runButtonText}>
+            {loading ? 'Running...' : 'Run Benchmark'}
+          </Text>
+        </TouchableOpacity>
+
+        {loading && (
+          <ActivityIndicator
+            color={ColorPalette.primary}
+            style={{ marginTop: 12 }}
+          />
+        )}
+
+        {benchmarkResult && <BenchmarkResultCard result={benchmarkResult} />}
       </View>
 
-      <TouchableOpacity onPress={handleRun} style={styles.button}>
-        <Text style={styles.buttonText}>
-          {loading ? 'Running...' : 'Run Benchmark'}
-        </Text>
-      </TouchableOpacity>
+      <Text style={styles.historyHeading}>📊 Benchmark History</Text>
 
-      {loading && (
-        <ActivityIndicator
-          size="small"
-          color="#000"
-          style={{ marginTop: 16 }}
-        />
-      )}
+      <FlatList
+        data={benchmarkList}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => <BenchmarkItem entry={item} />}
+        ListEmptyComponent={
+          <Text style={styles.noDataText}>No benchmarks saved yet.</Text>
+        }
+      />
 
-      {benchmarkResult && <BenchmarkResultCard result={benchmarkResult} />}
-
-      <View style={{ marginTop: 24 }}>
-        <FlatList
-          data={benchmarkList}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => <BenchmarkItem entry={item} />}
-          ListHeaderComponent={
-            <>
-              <Text style={styles.heading}>Benchmark History</Text>
-              {benchmarkList.length === 0 && (
-                <Text style={{ color: '#666' }}>No benchmarks saved yet.</Text>
-              )}
-            </>
-          }
-          contentContainerStyle={{ paddingBottom: 140 }}
-        />
-      </View>
+      <ModelSelectorModal
+        visible={modelModalVisible}
+        models={models}
+        onClose={() => setModelModalVisible(false)}
+        onSelect={async (model) => {
+          setModelModalVisible(false);
+          await loadModel(model);
+          setSelectedModel(model);
+        }}
+      />
     </View>
   );
 };
 
 export default BenchmarkScreen;
 
-const BenchmarkResultCard = ({ result }: { result: BenchmarkResult }) => {
-  const toFixed = (n: number, d = 2) => Number(n).toFixed(d);
-  return (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>Results</Text>
-      <Text style={styles.row}>
-        Total Time:{' '}
-        <Text style={styles.value}>{toFixed(result.totalTime / 1000)} s</Text>
-      </Text>
-      <Text style={styles.row}>
-        Time to First Token:{' '}
-        <Text style={styles.value}>
-          {toFixed(result.timeToFirstToken / 1000)} s
-        </Text>
-      </Text>
-      <Text style={styles.row}>
-        Tokens Generated:{' '}
-        <Text style={styles.value}>{result.tokensGenerated}</Text>
-      </Text>
-      <Text style={styles.row}>
-        Tokens per Second:{' '}
-        <Text style={styles.value}>{toFixed(result.tokensPerSecond)} /s</Text>
-      </Text>
-      <Text style={styles.row}>
-        Peak Memory:{' '}
-        <Text style={styles.value}>{toFixed(result.peakMemory)} GB</Text>
-      </Text>
-    </View>
-  );
-};
-
-const BenchmarkItem = ({ entry }: { entry: BenchmarkResult }) => {
-  const toFixed = (n: number, d = 2) => Number(n).toFixed(d);
-  const msToS = (ms: number) => toFixed(ms / 1000);
-  return (
-    <View style={styles.benchmarkItem}>
-      <Text style={styles.itemModel}>Model: {entry.modelId}</Text>
-      <Text style={styles.itemStat}>
-        TTFT: {toFixed(entry.timeToFirstToken / 1000)} s
-      </Text>
-      <Text style={styles.itemStat}>
-        TPS: {toFixed(entry.tokensPerSecond)} | Tokens: {entry.tokensGenerated}
-      </Text>
-      <Text style={styles.itemStat}>
-        Total Time: {msToS(entry.totalTime)} s
-      </Text>
-      <Text style={styles.itemStat}>
-        Peak Mem: {toFixed(entry.peakMemory)} GB
-      </Text>
-    </View>
-  );
-};
-
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     padding: 16,
-    paddingBottom: 120,
     backgroundColor: '#fff',
   },
-  heading: {
-    fontSize: 20,
-    marginBottom: 10,
-    fontWeight: '600',
+  headerBox: {
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: ColorPalette.seaBlueDark,
   },
-  label: {
-    fontWeight: '600',
+  infoText: {
+    fontSize: 14,
     marginBottom: 8,
+    color: ColorPalette.blueDark,
   },
-  modelButton: {
-    padding: 10,
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 6,
-  },
-  modelButtonActive: {
-    backgroundColor: '#3366FF',
-    borderColor: '#3366FF',
-  },
-  modelButtonText: {
-    color: '#333',
-  },
-  modelButtonTextActive: {
-    color: '#fff',
-  },
-  button: {
-    backgroundColor: '#3366FF',
+  modelSelectorButton: {
+    backgroundColor: ColorPalette.primary,
     padding: 12,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 20,
-    marginTop: 8,
+    borderRadius: 6,
+    marginBottom: 12,
   },
-  buttonText: {
-    color: 'white',
+  modelSelectorButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  runButton: {
+    backgroundColor: ColorPalette.primary,
+    padding: 12,
+    borderRadius: 6,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  runButtonText: {
+    color: '#fff',
     fontWeight: 'bold',
   },
-  card: {
-    marginTop: 24,
-    backgroundColor: '#F9F9F9',
-    padding: 16,
-    borderRadius: 10,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 1 },
-  },
-  cardTitle: {
+  historyHeading: {
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 12,
+    marginTop: 12,
+    marginBottom: 8,
+    color: ColorPalette.primary,
   },
-  row: {
-    fontSize: 14,
-    marginBottom: 6,
-  },
-  value: {
-    fontWeight: 'bold',
-    color: '#222',
-  },
-  benchmarkItem: {
-    backgroundColor: '#F3F3F3',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-  },
-  itemModel: {
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  itemStat: {
-    fontSize: 13,
-    color: '#444',
+  noDataText: {
+    color: ColorPalette.blueDark,
+    textAlign: 'center',
+    marginTop: 16,
   },
 });
