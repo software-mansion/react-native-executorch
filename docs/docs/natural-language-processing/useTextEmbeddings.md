@@ -50,6 +50,8 @@ A string that specifies the location of the model binary. For more information, 
 **`tokenizerSource`**
 A string that specifies the location of the tokenizer JSON file.
 
+**`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+
 ### Returns
 
 | Field              | Type                                   | Description                                                                       |
