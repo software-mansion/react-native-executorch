@@ -11,7 +11,7 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.5f735b90.css">
-<script src="/react-native-executorch/assets/js/runtime~main.b4b84c62.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.ff047267.js" defer="defer"></script>
 <script src="/react-native-executorch/assets/js/main.c0bad679.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -23,6 +23,7 @@
 <h3 class="anchor anchorWithHideOnScrollNavbar_WYt5" id="arguments">Arguments<a href="#arguments" class="hash-link" aria-label="Direct link to Arguments" title="Direct link to Arguments">​</a></h3>
 <p><strong><code>modelSource</code></strong>
 A string that specifies the location of the model binary. For more information, take a look at <a href="/react-native-executorch/docs/fundamentals/loading-models">loading models</a> page.</p>
+<p><strong><code>preventLoad?</code></strong> - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.</p>
 <h3 class="anchor anchorWithHideOnScrollNavbar_WYt5" id="returns">Returns<a href="#returns" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns">​</a></h3>
 <table><thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead><tbody><tr><td><code>forward</code></td><td><code>(input: string) =&gt; Promise&lt;{ [category: string]: number }&gt;</code></td><td>Executes the model&#x27;s forward pass, where <code>input</code> can be a fetchable resource or a Base64-encoded string.</td></tr><tr><td><code>error</code></td><td><code>string | null</code></td><td>Contains the error message if the model failed to load.</td></tr><tr><td><code>isGenerating</code></td><td><code>boolean</code></td><td>Indicates whether the model is currently processing an inference.</td></tr><tr><td><code>isReady</code></td><td><code>boolean</code></td><td>Indicates whether the model has successfully loaded and is ready for inference.</td></tr><tr><td><code>downloadProgress</code></td><td><code>number</code></td><td>Represents the download progress as a value between 0 and 1.</td></tr></tbody></table>
 <h2 class="anchor anchorWithHideOnScrollNavbar_WYt5" id="running-the-model">Running the model<a href="#running-the-model" class="hash-link" aria-label="Direct link to Running the model" title="Direct link to Running the model">​</a></h2>
