@@ -20,7 +20,7 @@ const DrawerMenu = ({ onNavigate }: { onNavigate: () => void }) => {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.section}>App</Text>
       <DrawerItem
-        label="Home"
+        label="Chat"
         active={pathname === '/'}
         onPress={() => navigate('/')}
       />
@@ -28,6 +28,11 @@ const DrawerMenu = ({ onNavigate }: { onNavigate: () => void }) => {
         label="Models"
         active={pathname === '/model-hub'}
         onPress={() => navigate('/model-hub')}
+      />
+      <DrawerItem
+        label="Benchmark"
+        active={pathname === '/benchmark'}
+        onPress={() => navigate('/benchmark')}
       />
 
       <Text style={styles.section}>Chats</Text>

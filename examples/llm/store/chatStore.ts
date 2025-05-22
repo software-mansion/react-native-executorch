@@ -4,7 +4,7 @@ import { Chat, getAllChats, createChat } from '../database/chatRepository';
 
 interface ChatStore {
   chats: Chat[];
-  db: SQLiteDatabase;
+  db: SQLiteDatabase | null;
   setDB: (db: SQLiteDatabase) => void;
   loadChats: () => Promise<void>;
   addChat: () => Promise<number | undefined>;
@@ -13,7 +13,7 @@ interface ChatStore {
 export const useChatStore = create<ChatStore>((set, get) => ({
   chats: [],
   settings: {},
-  db: {} as SQLiteDatabase,
+  db: null,
   setDB: (db) => set({ db }),
   loadChats: async () => {
     const db = get().db;

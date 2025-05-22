@@ -1,6 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SQLiteDatabase } from 'expo-sqlite';
-import { Message } from 'react-native-executorch';
 
 export type Chat = {
   id: number;
@@ -14,8 +13,18 @@ export type ChatSettings = {
 export type DBMessage = {
   id: number;
   chatId: number;
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'system';
   content: string;
+  tokensPerSecond: number;
+  timeToFirstToken: number;
+  timestamp?: number;
+};
+
+export type Message = {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  tokensPerSecond?: number;
+  timeToFirstToken?: number;
 };
 
 export const createChat = async (db: SQLiteDatabase): Promise<number> => {
@@ -30,9 +39,9 @@ export const getAllChats = async (db: SQLiteDatabase): Promise<Chat[]> => {
 export const getChatMessages = async (
   db: SQLiteDatabase,
   chatId: number
-): Promise<Message[]> => {
-  return db.getAllAsync<Message>(
-    `SELECT role, content FROM messages WHERE chatId = ? ORDER BY id ASC`,
+): Promise<DBMessage[]> => {
+  return db.getAllAsync<DBMessage>(
+    `SELECT * FROM messages WHERE chatId = ? ORDER BY id ASC`,
     [chatId]
   );
 };
@@ -42,9 +51,20 @@ export const persistMessage = async (
   chatId: number,
   message: Message
 ): Promise<void> => {
+  if (!message.tokensPerSecond || !message.timeToFirstToken) {
+    message.tokensPerSecond = 0;
+    message.timeToFirstToken = 0;
+  }
+
   await db.runAsync(
-    `INSERT INTO messages (chatId, role, content) VALUES (?, ?, ?);`,
-    [chatId, message.role, message.content]
+    `INSERT INTO messages (chatId, role, content, tokensPerSecond, timeToFirstToken) VALUES (?, ?, ?, ?, ?);`,
+    [
+      chatId,
+      message.role,
+      message.content,
+      message.tokensPerSecond,
+      message.timeToFirstToken,
+    ]
   );
 };
 

@@ -48,10 +48,9 @@ export default function ChatScreen({ chatId, setChat }: ChatScreenProps) {
   const [userInput, setUserInput] = useState('');
   const [showModelModal, setShowModelModal] = useState(false);
   const [messageHistory, setMessageHistory] = useState<Message[]>([]);
-
   useEffect(() => {
     (async () => {
-      if (chatId !== null) {
+      if (chatId !== null && db !== null) {
         const messages = await getChatMessages(db, chatIdRef.current!);
         setMessageHistory(messages);
       } else {
@@ -137,7 +136,11 @@ export default function ChatScreen({ chatId, setChat }: ChatScreenProps) {
           <View style={styles.messagesContainer}>
             <Messages
               chatHistory={messageHistory}
-              llmResponse={activeChatId === chatIdRef.current ? response : ''}
+              llmResponse={
+                activeChatId === chatIdRef.current && chatIdRef.current !== null
+                  ? response
+                  : ''
+              }
               isGenerating={isGenerating}
             />
           </View>
