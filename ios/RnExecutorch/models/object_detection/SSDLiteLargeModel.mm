@@ -1,7 +1,6 @@
 #include "SSDLiteLargeModel.hpp"
 #include "../../utils/ObjectDetectionUtils.hpp"
 #include "ImageProcessor.h"
-#include <vector>
 
 float constexpr iouThreshold = 0.55;
 float constexpr detectionThreshold = 0.7;
@@ -54,7 +53,7 @@ int constexpr modelInputHeight = 320;
   int inputImageWidth = size.width;
   int inputImageHeight = size.height;
   NSArray *modelInput = [self preprocess:input];
-  NSArray *forwardResult = [self forward:modelInput];
+  NSArray *forwardResult = [self forward:@[ modelInput ]];
   NSArray *output =
       [self postprocess:forwardResult
              widthRatio:inputImageWidth / (float)modelInputWidth

@@ -8,13 +8,25 @@
 
 **ExecuTorch** is a novel framework created by Meta that enables running AI models on devices such as mobile phones or microcontrollers. React Native ExecuTorch bridges the gap between React Native and native platform capabilities, allowing developers to run AI models locally on mobile devices with state-of-the-art performance, without requiring deep knowledge of native code or machine learning internals.
 
+**Table of contents:**
+
+- [Compatibility](#compatibility)
+- [Ready-made models 🤖](#readymade-models-)
+- [Documentation 📚](#documentation-)
+- [🦙 Quickstart - Running Llama](#-quickstart---running-llama)
+- [Minimal supported versions](#minimal-supported-versions)
+- [Examples 📲](#examples-)
+- [Warning](#warning)
+- [License](#license)
+- [What's next?](#whats-next)
+
 ## Compatibility
 
 React Native Executorch supports only the [New React Native architecture](https://reactnative.dev/architecture/landing-page).
 
 If your app still runs on the old architecture, please consider upgrading to the New Architecture.
 
-## Readymade models 🤖
+## Ready-made models 🤖
 
 To run any AI model in ExecuTorch, you need to export it to a `.pte` format. If you're interested in experimenting with your own models, we highly encourage you to check out the [Python API](https://pypi.org/project/executorch/). If you prefer focusing on developing your React Native app, we will cover several common use cases. For more details, please refer to the documentation.
 
@@ -43,16 +55,17 @@ Add this to your component file:
 
 ```tsx
 import {
-  LLAMA3_2_3B_QLORA,
-  LLAMA3_2_3B_TOKENIZER,
   useLLM,
+  LLAMA3_2_1B,
+  LLAMA3_2_TOKENIZER_CONFIG,
 } from 'react-native-executorch';
 
 function MyComponent() {
   // Initialize the model 🚀
   const llama = useLLM({
-    modelSource: LLAMA3_2_3B_QLORA,
-    tokenizerSource: LLAMA3_2_3B_TOKENIZER,
+    modelSource: LLAMA3_2_1B,
+    tokenizerSource: LLAMA3_2_TOKENIZER,
+    tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
   });
   // ... rest of your component
 }
@@ -64,11 +77,14 @@ function MyComponent() {
 
 ```tsx
 const handleGenerate = async () => {
-  const prompt = 'The meaning of life is';
+  const chat = [
+    { role: 'system' content: 'You are a helpful assistant' }
+    { role: 'user', content: 'What is the meaning of life?' }
+  ];
 
-  // Generate text based on your desired prompt
-  const response = await llama.generate(prompt);
-  console.log('Llama says:', response);
+  // Chat completion
+  await llm.generate(chat);
+  console.log('Llama says:', llm.response);
 };
 ```
 
@@ -82,11 +98,12 @@ https://github.com/user-attachments/assets/27ab3406-c7f1-4618-a981-6c86b53547ee
 
 We currently host a few example apps demonstrating use cases of our library:
 
+- examples/llm - chat application showcasing use of LLMs
 - examples/speech-to-text - Whisper and Moonshine models ready for transcription tasks
 - examples/computer-vision - computer vision related tasks
-- examples/llama - chat applications showcasing use of LLMs
+- examples/text-embeddings - computing text representations for semantic search
 
-If you would like to run it, navigate to it's project directory, for example `examples/llama` from the repository root and install dependencies with:
+If you would like to run it, navigate to it's project directory, for example `examples/llm` from the repository root and install dependencies with:
 
 ```bash
 yarn

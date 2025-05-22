@@ -1,7 +1,6 @@
 #import "Recognizer.h"
 #import "../../utils/ImageProcessor.h"
 #import "RecognizerUtils.h"
-#import "utils/OCRUtils.h"
 
 /*
  The model used as detector is based on CRNN paper.
@@ -69,7 +68,7 @@
 
 - (NSArray *)runModel:(cv::Mat &)input {
   NSArray *modelInput = [self preprocess:input];
-  NSArray *modelResult = [self forward:modelInput];
+  NSArray *modelResult = [self forward:@[ modelInput ]];
   NSArray *result = [self postprocess:modelResult];
 
   return result;

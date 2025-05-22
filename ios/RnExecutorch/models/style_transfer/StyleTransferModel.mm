@@ -1,6 +1,5 @@
 #import "StyleTransferModel.h"
 #import "../../utils/ImageProcessor.h"
-#import "opencv2/opencv.hpp"
 
 @implementation StyleTransferModel {
   cv::Size originalSize;
@@ -42,7 +41,7 @@
 
 - (cv::Mat)runModel:(cv::Mat &)input {
   NSArray *modelInput = [self preprocess:input];
-  NSArray *result = [self forward:modelInput];
+  NSArray *result = [self forward:@[ modelInput ]];
   input = [self postprocess:result[0]];
 
   return input;

@@ -1,6 +1,5 @@
 ---
 title: useVerticalOCR
-sidebar_position: 5
 ---
 
 :::danger Experimental
@@ -62,7 +61,71 @@ interface RecognizerSources {
   recognizerSmall: string | number;
 }
 
-type OCRLanguage = 'en';
+type OCRLanguage =
+  | 'abq'
+  | 'ady'
+  | 'af'
+  | 'ava'
+  | 'az'
+  | 'be'
+  | 'bg'
+  | 'bs'
+  | 'chSim'
+  | 'che'
+  | 'cs'
+  | 'cy'
+  | 'da'
+  | 'dar'
+  | 'de'
+  | 'en'
+  | 'es'
+  | 'et'
+  | 'fr'
+  | 'ga'
+  | 'hr'
+  | 'hu'
+  | 'id'
+  | 'inh'
+  | 'ic'
+  | 'it'
+  | 'ja'
+  | 'kbd'
+  | 'kn'
+  | 'ko'
+  | 'ku'
+  | 'la'
+  | 'lbe'
+  | 'lez'
+  | 'lt'
+  | 'lv'
+  | 'mi'
+  | 'mn'
+  | 'ms'
+  | 'mt'
+  | 'nl'
+  | 'no'
+  | 'oc'
+  | 'pi'
+  | 'pl'
+  | 'pt'
+  | 'ro'
+  | 'ru'
+  | 'rsCyrillic'
+  | 'rsLatin'
+  | 'sk'
+  | 'sl'
+  | 'sq'
+  | 'sv'
+  | 'sw'
+  | 'tab'
+  | 'te'
+  | 'th'
+  | 'tjk'
+  | 'tl'
+  | 'tr'
+  | 'uk'
+  | 'uz'
+  | 'vi';
 
 interface Point {
   x: number;
@@ -132,7 +195,7 @@ interface OCRDetection {
 ```
 
 The `bbox` property contains information about the bounding box of detected text regions. It is represented as four points, which are corners of detected bounding box.
-The `text` property contains the text recognized withinh detected text region. The `score` represents the confidence score of the recognized text.
+The `text` property contains the text recognized within detected text region. The `score` represents the confidence score of the recognized text.
 
 ## Example
 
@@ -171,32 +234,105 @@ function App() {
 }
 ```
 
+## Supported languages
+
+|      Language      | Code Name  |
+| :----------------: | :--------: |
+|       Abaza        |    abq     |
+|       Adyghe       |    ady     |
+|      Africans      |     af     |
+|        Avar        |    ava     |
+|    Azerbaijani     |     az     |
+|     Belarusian     |     be     |
+|     Bulgarian      |     bg     |
+|      Bosnian       |     bs     |
+| Simplified Chinese |   chSim    |
+|      Chechen       |    che     |
+|       Chech        |     cs     |
+|       Welsh        |     cy     |
+|       Danish       |     da     |
+|       Dargwa       |    dar     |
+|       German       |     de     |
+|      English       |     en     |
+|      Spanish       |     es     |
+|      Estonian      |     et     |
+|       French       |     fr     |
+|       Irish        |     ga     |
+|      Croatian      |     hr     |
+|     Hungarian      |     hu     |
+|     Indonesian     |     id     |
+|       Ingush       |    inh     |
+|     Icelandic      |     ic     |
+|      Italian       |     it     |
+|      Japanese      |     ja     |
+|     Karbadian      |    kbd     |
+|      Kannada       |     kn     |
+|       Korean       |     ko     |
+|      Kurdish       |     ku     |
+|       Latin        |     la     |
+|        Lak         |    lbe     |
+|      Lezghian      |    lez     |
+|     Lithuanian     |     lt     |
+|      Latvian       |     lv     |
+|       Maori        |     mi     |
+|     Mongolian      |     mn     |
+|       Malay        |     ms     |
+|      Maltese       |     mt     |
+|       Dutch        |     nl     |
+|     Norwegian      |     no     |
+|      Occitan       |     oc     |
+|        Pali        |     pi     |
+|       Polish       |     pl     |
+|     Portuguese     |     pt     |
+|      Romanian      |     ro     |
+|      Russian       |     ru     |
+| Serbian (Cyrillic) | rsCyrillic |
+|  Serbian (Latin)   |  rsLatin   |
+|       Slovak       |     sk     |
+|     Slovenian      |     sl     |
+|      Albanian      |     sq     |
+|      Swedish       |     sv     |
+|      Swahili       |     sw     |
+|     Tabassaran     |    tab     |
+|       Telugu       |     te     |
+|        Thai        |     th     |
+|       Tajik        |    tjk     |
+|      Tagalog       |     tl     |
+|      Turkish       |     tr     |
+|     Ukrainian      |     uk     |
+|       Uzbek        |     uz     |
+|     Vietnamese     |     vi     |
+
 ## Supported models
 
 | Model                                                    | Type       |
 | -------------------------------------------------------- | ---------- |
-| [CRAFT_1280](https://github.com/clovaai/CRAFT-pytorch)   | Detector   |
-| [CRAFT_NARROW](https://github.com/clovaai/CRAFT-pytorch) | Detector   |
-| [CRNN_EN_512](https://www.jaided.ai/easyocr/modelhub/)   | Recognizer |
-| [CRNN_EN_64](https://www.jaided.ai/easyocr/modelhub/)    | Recognizer |
+| [CRAFT_1280\*](https://github.com/clovaai/CRAFT-pytorch) | Detector   |
+| [CRAFT_320\*](https://github.com/clovaai/CRAFT-pytorch)  | Detector   |
+| [CRNN_512\*](https://www.jaided.ai/easyocr/modelhub/)    | Recognizer |
+| [CRNN_64\*](https://www.jaided.ai/easyocr/modelhub/)     | Recognizer |
+
+\* - The number following the underscore (\_) indicates the input image width used during model export.
 
 ## Benchmarks
 
 ### Model size
 
-| Model       | XNNPACK [MB] |
-| ----------- | :----------: |
-| CRAFT_1280  |     83.1     |
-| CRAFT_320   |     83.1     |
-| CRNN_EN_512 |     277      |
-| CRNN_EN_64  |     74.3     |
+| Model                 | XNNPACK [MB] |
+| --------------------- | :----------: |
+| Detector (CRAFT_1280) |     83.1     |
+| Detector (CRAFT_320)  |     83.1     |
+| Recognizer (CRNN_512) |  15 - 18\*   |
+| Recognizer (CRNN_64)  |  15 - 16\*   |
+
+\* - The model weights vary depending on the language.
 
 ### Memory usage
 
-| Model                                | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| ------------------------------------ | :--------------------: | :----------------: |
-| CRAFT_1280 + CRAFT_320 + CRNN_EN_512 |          2770          |        3720        |
-| CRAFT_1280 + CRAFT_320 + CRNN_EN_64  |          1770          |        2740        |
+| Model                                                                | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| -------------------------------------------------------------------- | :--------------------: | :----------------: |
+| Detector (CRAFT_1280) + Detector (CRAFT_320) + Recognizer (CRNN_512) |          2770          |        3720        |
+| Detector(CRAFT_1280) + Detector(CRAFT_320) + Recognizer (CRNN_64)    |          1770          |        2740        |
 
 ### Inference time
 
@@ -204,11 +340,11 @@ function App() {
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
 :::
 
-| Model       | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | Samsung Galaxy S21 (XNNPACK) [ms] |
-| ----------- | :--------------------------: | :------------------------------: | :------------------------: | :-------------------------------: | :-------------------------------: |
-| CRAFT_1280  |             5457             |               5833               |             ❌             |               6296                |               14053               |
-| CRAFT_320   |             1351             |               1460               |             ❌             |               1485                |               3101                |
-| CRNN_EN_512 |              39              |               123                |             ❌             |                24                 |                78                 |
-| CRNN_EN_64  |              10              |                33                |             ❌             |                 7                 |                18                 |
+| Model                 | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | Samsung Galaxy S21 (XNNPACK) [ms] |
+| --------------------- | :--------------------------: | :------------------------------: | :------------------------: | :-------------------------------: | :-------------------------------: |
+| Detector (CRAFT_1280) |             5457             |               5833               |             ❌             |               6296                |               14053               |
+| Detector (CRAFT_320)  |             1351             |               1460               |             ❌             |               1485                |               3101                |
+| Recognizer (CRNN_512) |              39              |               123                |             ❌             |                24                 |                78                 |
+| Recognizer (CRNN_64)  |              10              |                33                |             ❌             |                 7                 |                18                 |
 
 ❌ - Insufficient RAM.

@@ -165,3 +165,16 @@ table thead tr {
 button[class*='DocSearch-Button'] {
   margin: 0 !important;
 }
+
+[class*='theme-doc-sidebar-item-category-level-'] {
+  margin-left: 1rem !important;
+  padding-right: 1rem !important;
+}
+
+.theme-doc-sidebar-item-category-level-1 {
+  margin-left: 0rem !important;
+}
+
+.theme-doc-sidebar-item-link-level-1 {
+  margin-left: 0rem !important;
+}

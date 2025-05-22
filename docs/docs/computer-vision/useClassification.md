@@ -1,6 +1,5 @@
 ---
 title: useClassification
-sidebar_position: 1
 ---
 
 Image classification is the process of assigning a label to an image that best describes its contents. For example, when given an image of a puppy, the image classifier should assign the puppy class to that image.
@@ -10,7 +9,7 @@ Usually, the class with the highest probability is the one that is assigned to a
 :::
 
 :::caution
-It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-efficientnet-v2-s). You can also use [constants](https://github.com/software-mansion/react-native-executorch/tree/main/src/constants/modelUrls.ts) shipped with our library
+It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-efficientnet-v2-s). You can also use [constants](https://github.com/software-mansion/react-native-executorch/tree/main/src/constants/modelUrls.ts) shipped with our library.
 :::
 
 ## Reference

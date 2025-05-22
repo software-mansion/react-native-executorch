@@ -1,6 +1,5 @@
 ---
 title: useOCR
-sidebar_position: 4
 ---
 
 Optical character recognition(OCR) is a computer vision technique that detects and recognizes text within the image. It's commonly used to convert different types of documents, such as scanned paper documents, PDF files, or images captured by a digital camera, into editable and searchable data.
@@ -14,7 +13,7 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ```jsx
 import {
   useOCR,
-  CRAFT_800,
+  DETECTOR_CRAFT_800,
   RECOGNIZER_EN_CRNN_512,
   RECOGNIZER_EN_CRNN_256,
   RECOGNIZER_EN_CRNN_128
@@ -22,7 +21,7 @@ import {
 
 function App() {
   const model = useOCR({
-    detectorSource: CRAFT_800,
+    detectorSource: DETECTOR_CRAFT_800,
     recognizerSources: {
       recognizerLarge: RECOGNIZER_EN_CRNN_512,
       recognizerMedium: RECOGNIZER_EN_CRNN_256,
@@ -51,7 +50,71 @@ interface RecognizerSources {
   recognizerSmall: string | number;
 }
 
-type OCRLanguage = 'en';
+type OCRLanguage =
+  | 'abq'
+  | 'ady'
+  | 'af'
+  | 'ava'
+  | 'az'
+  | 'be'
+  | 'bg'
+  | 'bs'
+  | 'chSim'
+  | 'che'
+  | 'cs'
+  | 'cy'
+  | 'da'
+  | 'dar'
+  | 'de'
+  | 'en'
+  | 'es'
+  | 'et'
+  | 'fr'
+  | 'ga'
+  | 'hr'
+  | 'hu'
+  | 'id'
+  | 'inh'
+  | 'ic'
+  | 'it'
+  | 'ja'
+  | 'kbd'
+  | 'kn'
+  | 'ko'
+  | 'ku'
+  | 'la'
+  | 'lbe'
+  | 'lez'
+  | 'lt'
+  | 'lv'
+  | 'mi'
+  | 'mn'
+  | 'ms'
+  | 'mt'
+  | 'nl'
+  | 'no'
+  | 'oc'
+  | 'pi'
+  | 'pl'
+  | 'pt'
+  | 'ro'
+  | 'ru'
+  | 'rsCyrillic'
+  | 'rsLatin'
+  | 'sk'
+  | 'sl'
+  | 'sq'
+  | 'sv'
+  | 'sw'
+  | 'tab'
+  | 'te'
+  | 'th'
+  | 'tjk'
+  | 'tl'
+  | 'tr'
+  | 'uk'
+  | 'uz'
+  | 'vi';
 
 interface Point {
   x: number;
@@ -122,7 +185,7 @@ The `text` property contains the text recognized within detected text region. Th
 ```tsx
 import {
   useOCR,
-  CRAFT_800,
+  DETECTOR_CRAFT_800,
   RECOGNIZER_EN_CRNN_512,
   RECOGNIZER_EN_CRNN_256,
   RECOGNIZER_EN_CRNN_128,
@@ -130,7 +193,7 @@ import {
 
 function App() {
   const model = useOCR({
-    detectorSource: CRAFT_800,
+    detectorSource: DETECTOR_CRAFT_800,
     recognizerSources: {
       recognizerLarge: RECOGNIZER_EN_CRNN_512,
       recognizerMedium: RECOGNIZER_EN_CRNN_256,
@@ -151,31 +214,104 @@ function App() {
 }
 ```
 
+## Supported languages
+
+|      Language      | Code Name  |
+| :----------------: | :--------: |
+|       Abaza        |    abq     |
+|       Adyghe       |    ady     |
+|      Africans      |     af     |
+|        Avar        |    ava     |
+|    Azerbaijani     |     az     |
+|     Belarusian     |     be     |
+|     Bulgarian      |     bg     |
+|      Bosnian       |     bs     |
+| Simplified Chinese |   chSim    |
+|      Chechen       |    che     |
+|       Chech        |     cs     |
+|       Welsh        |     cy     |
+|       Danish       |     da     |
+|       Dargwa       |    dar     |
+|       German       |     de     |
+|      English       |     en     |
+|      Spanish       |     es     |
+|      Estonian      |     et     |
+|       French       |     fr     |
+|       Irish        |     ga     |
+|      Croatian      |     hr     |
+|     Hungarian      |     hu     |
+|     Indonesian     |     id     |
+|       Ingush       |    inh     |
+|     Icelandic      |     ic     |
+|      Italian       |     it     |
+|      Japanese      |     ja     |
+|     Karbadian      |    kbd     |
+|      Kannada       |     kn     |
+|       Korean       |     ko     |
+|      Kurdish       |     ku     |
+|       Latin        |     la     |
+|        Lak         |    lbe     |
+|      Lezghian      |    lez     |
+|     Lithuanian     |     lt     |
+|      Latvian       |     lv     |
+|       Maori        |     mi     |
+|     Mongolian      |     mn     |
+|       Malay        |     ms     |
+|      Maltese       |     mt     |
+|       Dutch        |     nl     |
+|     Norwegian      |     no     |
+|      Occitan       |     oc     |
+|        Pali        |     pi     |
+|       Polish       |     pl     |
+|     Portuguese     |     pt     |
+|      Romanian      |     ro     |
+|      Russian       |     ru     |
+| Serbian (Cyrillic) | rsCyrillic |
+|  Serbian (Latin)   |  rsLatin   |
+|       Slovak       |     sk     |
+|     Slovenian      |     sl     |
+|      Albanian      |     sq     |
+|      Swedish       |     sv     |
+|      Swahili       |     sw     |
+|     Tabassaran     |    tab     |
+|       Telugu       |     te     |
+|        Thai        |     th     |
+|       Tajik        |    tjk     |
+|      Tagalog       |     tl     |
+|      Turkish       |     tr     |
+|     Ukrainian      |     uk     |
+|       Uzbek        |     uz     |
+|     Vietnamese     |     vi     |
+
 ## Supported models
 
-| Model                                                  |    Type    |
-| ------------------------------------------------------ | :--------: |
-| [CRAFT_800](https://github.com/clovaai/CRAFT-pytorch)  |  Detector  |
-| [CRNN_EN_512](https://www.jaided.ai/easyocr/modelhub/) | Recognizer |
-| [CRNN_EN_256](https://www.jaided.ai/easyocr/modelhub/) | Recognizer |
-| [CRNN_EN_128](https://www.jaided.ai/easyocr/modelhub/) | Recognizer |
+| Model                                                   |    Type    |
+| ------------------------------------------------------- | :--------: |
+| [CRAFT_800\*](https://github.com/clovaai/CRAFT-pytorch) |  Detector  |
+| [CRNN_512\*](https://www.jaided.ai/easyocr/modelhub/)   | Recognizer |
+| [CRNN_256\*](https://www.jaided.ai/easyocr/modelhub/)   | Recognizer |
+| [CRNN_128\*](https://www.jaided.ai/easyocr/modelhub/)   | Recognizer |
+
+\* - The number following the underscore (\_) indicates the input image width used during model export.
 
 ## Benchmarks
 
 ### Model size
 
-| Model       | XNNPACK [MB] |
-| ----------- | :----------: |
-| CRAFT_800   |     83.1     |
-| CRNN_EN_512 |     547      |
-| CRNN_EN_256 |     277      |
-| CRNN_EN_128 |     142      |
+| Model                 | XNNPACK [MB] |
+| --------------------- | :----------: |
+| Detector (CRAFT_800)  |     83.1     |
+| Recognizer (CRNN_512) |  15 - 18\*   |
+| Recognizer (CRNN_256) |  16 - 18\*   |
+| Recognizer (CRNN_128) |  17 - 19\*   |
+
+\* - The model weights vary depending on the language.
 
 ### Memory usage
 
-| Model                                               | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| --------------------------------------------------- | :--------------------: | :----------------: |
-| CRAFT_800 + CRNN_EN_512 + CRNN_EN_256 + CRNN_EN_128 |          2100          |        1782        |
+| Model                                                                                        | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| -------------------------------------------------------------------------------------------- | :--------------------: | :----------------: |
+| Detector (CRAFT_800) + Recognizer (CRNN_512) + Recognizer (CRNN_256) + Recognizer (CRNN_128) |          2100          |        1782        |
 
 ### Inference time
 
@@ -183,11 +319,11 @@ function App() {
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
 :::
 
-| Model       | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | Samsung Galaxy S21 (XNNPACK) [ms] |
-| ----------- | :--------------------------: | :------------------------------: | :------------------------: | :-------------------------------: | :-------------------------------: |
-| CRAFT_800   |             2099             |               2227               |             ❌             |               2245                |               7108                |
-| CRNN_EN_512 |              70              |               252                |             ❌             |                54                 |                151                |
-| CRNN_EN_256 |              39              |               123                |             ❌             |                24                 |                78                 |
-| CRNN_EN_128 |              17              |                83                |             ❌             |                14                 |                39                 |
+| Model                 | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | Samsung Galaxy S21 (XNNPACK) [ms] |
+| --------------------- | :--------------------------: | :------------------------------: | :------------------------: | :-------------------------------: | :-------------------------------: |
+| Detector (CRAFT_800)  |             2099             |               2227               |             ❌             |               2245                |               7108                |
+| Recognizer (CRNN_512) |              70              |               252                |             ❌             |                54                 |                151                |
+| Recognizer (CRNN_256) |              39              |               123                |             ❌             |                24                 |                78                 |
+| Recognizer (CRNN_128) |              17              |                83                |             ❌             |                14                 |                39                 |
 
 ❌ - Insufficient RAM.

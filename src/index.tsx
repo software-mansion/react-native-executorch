@@ -1,3 +1,5 @@
+import { SpeechToTextLanguage } from './types/stt';
+
 // hooks
 export * from './hooks/computer_vision/useClassification';
 export * from './hooks/computer_vision/useObjectDetection';
@@ -8,6 +10,8 @@ export * from './hooks/computer_vision/useVerticalOCR';
 
 export * from './hooks/natural_language_processing/useLLM';
 export * from './hooks/natural_language_processing/useSpeechToText';
+export * from './hooks/natural_language_processing/useTextEmbeddings';
+export * from './hooks/natural_language_processing/useTokenizer';
 
 export * from './hooks/general/useExecutorchModule';
 
@@ -21,16 +25,23 @@ export * from './modules/computer_vision/VerticalOCRModule';
 
 export * from './modules/natural_language_processing/LLMModule';
 export * from './modules/natural_language_processing/SpeechToTextModule';
+export * from './modules/natural_language_processing/TextEmbeddingsModule';
+export * from './modules/natural_language_processing/TokenizerModule';
 
 export * from './modules/general/ExecutorchModule';
 
 // utils
-export * from './utils/listDownloadedResources';
+export * from './utils/ResourceFetcher';
 
 // types
 export * from './types/object_detection';
 export * from './types/ocr';
 export * from './types/image_segmentation';
+export * from './types/llm';
+export { SpeechToTextLanguage };
 
 // constants
 export * from './constants/modelUrls';
+export * from './constants/ocr/models';
+export * from './constants/llmDefaults';
+export { STREAMING_ACTION, MODES } from './constants/sttDefaults';

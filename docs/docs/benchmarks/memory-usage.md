@@ -1,6 +1,5 @@
 ---
 title: Memory Usage
-sidebar_position: 2
 ---
 
 ## Classification
@@ -26,16 +25,16 @@ sidebar_position: 2
 
 ## OCR
 
-| Model                                               | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| --------------------------------------------------- | :--------------------: | :----------------: |
-| CRAFT_800 + CRNN_EN_512 + CRNN_EN_256 + CRNN_EN_128 |          2100          |        1782        |
+| Model                                                                                        | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| -------------------------------------------------------------------------------------------- | :--------------------: | :----------------: |
+| Detector (CRAFT_800) + Recognizer (CRNN_512) + Recognizer (CRNN_256) + Recognizer (CRNN_128) |          2100          |        1782        |
 
 ## Vertical OCR
 
-| Model                                | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| ------------------------------------ | :--------------------: | :----------------: |
-| CRAFT_1280 + CRAFT_320 + CRNN_EN_512 |          2770          |        3720        |
-| CRAFT_1280 + CRAFT_320 + CRNN_EN_64  |          1770          |        2740        |
+| Model                                                                | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| -------------------------------------------------------------------- | :--------------------: | :----------------: |
+| Detector (CRAFT_1280) + Detector (CRAFT_320) + Recognizer (CRNN_512) |          2770          |        3720        |
+| Detector(CRAFT_1280) + Detector(CRAFT_320) + Recognizer (CRNN_64)    |          1770          |        2740        |
 
 ## LLMs
 
@@ -54,3 +53,12 @@ sidebar_position: 2
 | -------------- | :--------------------: | :----------------: |
 | WHISPER_TINY   |          900           |        600         |
 | MOONSHINE_TINY |          650           |        560         |
+
+## Text Embeddings
+
+| Model                      | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| -------------------------- | :--------------------: | :----------------: |
+| ALL_MINILM_L6_V2           |          150           |        190         |
+| ALL_MPNET_BASE_V2          |          520           |        470         |
+| MULTI_QA_MINILM_L6_COS_V1  |          160           |        225         |
+| MULTI_QA_MPNET_BASE_DOT_V1 |          540           |        500         |

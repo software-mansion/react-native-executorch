@@ -1,7 +1,5 @@
 #import "BaseModel.h"
-#import "RecognitionHandler.h"
 #import "opencv2/opencv.hpp"
-#import "utils/Constants.h"
 
 @interface Detector : BaseModel
 

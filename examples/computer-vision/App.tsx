@@ -10,6 +10,7 @@ import { ClassificationScreen } from './screens/ClassificationScreen';
 import { ObjectDetectionScreen } from './screens/ObjectDetectionScreen';
 import { OCRScreen } from './screens/OCRScreen';
 import { VerticalOCRScreen } from './screens/VerticalOCRScreen';
+import { ImageSegmentationScreen } from './screens/ImageSegmentationScreen';
 
 enum ModelType {
   STYLE_TRANSFER,
@@ -17,6 +18,7 @@ enum ModelType {
   CLASSIFICATION,
   OCR,
   VERTICAL_OCR,
+  IMAGE_SEGMENTATION,
 }
 
 export default function App() {
@@ -56,6 +58,13 @@ export default function App() {
         return (
           <VerticalOCRScreen imageUri={imageUri} setImageUri={setImageUri} />
         );
+      case ModelType.IMAGE_SEGMENTATION:
+        return (
+          <ImageSegmentationScreen
+            imageUri={imageUri}
+            setImageUri={setImageUri}
+          />
+        );
       default:
         return (
           <StyleTransferScreen imageUri={imageUri} setImageUri={setImageUri} />
@@ -76,6 +85,7 @@ export default function App() {
                 'Classification',
                 'OCR',
                 'Vertical OCR',
+                'Image Segmentation',
               ]}
               onValueChange={(_, selectedIndex) => {
                 handleModeChange(selectedIndex);
