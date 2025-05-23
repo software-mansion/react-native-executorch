@@ -57,6 +57,7 @@ Add this to your component file:
 import {
   useLLM,
   LLAMA3_2_1B,
+  LLAMA3_2_TOKENIZER,
   LLAMA3_2_TOKENIZER_CONFIG,
 } from 'react-native-executorch';
 
@@ -93,8 +94,6 @@ const handleGenerate = async () => {
 The minimal supported version is 17.0 for iOS and Android 13.
 
 ## Examples 📲
-
-https://github.com/user-attachments/assets/27ab3406-c7f1-4618-a981-6c86b53547ee
 
 We currently host a few example apps demonstrating use cases of our library:
 
