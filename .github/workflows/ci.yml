@@ -36,4 +36,6 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Build package
-        run: yarn prepare
+        run: |
+          cd packages/react-native-executorch
+          yarn prepare

@@ -6,14 +6,14 @@ on:
     paths:
       - '.github/workflows/build-ios-llm-example.yml'
       - '*.podspec'
-      - 'examples/llm/ios/**'
-      - 'examples/llm/package.json'
+      - 'apps/llm/ios/**'
+      - 'apps/llm/package.json'
   pull_request:
     paths:
       - '.github/workflows/build-ios-llm-example.yml'
       - '*.podspec'
-      - 'examples/llm/ios/**'
-      - 'examples/llm/package.json'
+      - 'apps/llm/ios/**'
+      - 'apps/llm/package.json'
   workflow_dispatch:
 jobs:
   build:
@@ -29,13 +29,13 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v4
       - name: Install node dependencies
-        working-directory: examples/llm
+        working-directory: apps/llm
         run: yarn
       - name: Install pods
-        working-directory: examples/llm/ios
+        working-directory: apps/llm/ios
         run: pod install
       - name: Build app
-        working-directory: examples/llm/ios
+        working-directory: apps/llm/ios
         run: |
           set -o pipefail && xcodebuild \
             -workspace llm.xcworkspace \
