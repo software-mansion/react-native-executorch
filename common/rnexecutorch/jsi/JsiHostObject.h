@@ -15,9 +15,9 @@
   jsi::Value NAME(jsi::Runtime &runtime, const jsi::Value &thisValue,          \
                   const jsi::Value *args, size_t count)
 
-#define JSI_EXPORT_FUNCTION(CLASS, FUNCTION)                                   \
+#define JSI_EXPORT_FUNCTION(CLASS, FUNCTION, NAME)                             \
   std::make_pair(                                                              \
-      std::string(#FUNCTION),                                                  \
+      NAME,                                                                    \
       static_cast<jsi::Value (JsiHostObject::*)(                               \
           jsi::Runtime &, const jsi::Value &, const jsi::Value *, size_t)>(    \
           &CLASS::FUNCTION))
