@@ -1,1 +1,4 @@
 **/*.mdx
+third-party
+.github
+.yarn

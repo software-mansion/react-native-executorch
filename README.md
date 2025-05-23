@@ -10,15 +10,16 @@
 
 **Table of contents:**
 
-- [Compatibility](#compatibility)
-- [Ready-made models 🤖](#readymade-models-)
-- [Documentation 📚](#documentation-)
-- [🦙 Quickstart - Running Llama](#-quickstart---running-llama)
-- [Minimal supported versions](#minimal-supported-versions)
-- [Examples 📲](#examples-)
-- [Warning](#warning)
-- [License](#license)
-- [What's next?](#whats-next)
+- [🦙 **Quickstart - Running Llama**](#-quickstart---running-llama)
+  - [1️⃣ **Installation**](#1️⃣-installation)
+  - [2️⃣ **Setup \& Initialization**](#2️⃣-setup--initialization)
+  - [3️⃣ **Run the model!**](#3️⃣-run-the-model)
+  - [Minimal supported versions](#minimal-supported-versions)
+  - [Examples 📲](#examples-)
+    - [Warning](#warning)
+  - [License](#license)
+  - [What's next?](#whats-next)
+  - [React Native ExecuTorch is created by Software Mansion](#react-native-executorch-is-created-by-software-mansion)
 
 ## Compatibility
 
@@ -98,12 +99,12 @@ https://github.com/user-attachments/assets/27ab3406-c7f1-4618-a981-6c86b53547ee
 
 We currently host a few example apps demonstrating use cases of our library:
 
-- examples/llm - chat application showcasing use of LLMs
-- examples/speech-to-text - Whisper and Moonshine models ready for transcription tasks
-- examples/computer-vision - computer vision related tasks
-- examples/text-embeddings - computing text representations for semantic search
+- apps/llm - chat application showcasing use of LLMs
+- apps/speech-to-text - Whisper and Moonshine models ready for transcription tasks
+- apps/computer-vision - computer vision related tasks
+- apps/text-embeddings - computing text representations for semantic search
 
-If you would like to run it, navigate to it's project directory, for example `examples/llm` from the repository root and install dependencies with:
+If you would like to run it, navigate to it's project directory, for example `apps/llm` from the repository root and install dependencies with:
 
 ```bash
 yarn

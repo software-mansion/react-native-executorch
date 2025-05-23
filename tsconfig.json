@@ -1,25 +1,9 @@
 {
-  "compilerOptions": {
-    "allowJs": false,
-    "allowUnreachableCode": false,
-    "allowUnusedLabels": false,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "jsx": "react-native",
-    "lib": ["esnext"],
-    "module": "esnext",
-    "moduleResolution": "node",
-    "noFallthroughCasesInSwitch": true,
-    "noImplicitReturns": true,
-    "noStrictGenericChecks": false,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noUncheckedIndexedAccess": true,
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "target": "esnext"
-  },
-  "include": ["src", "babel.config.js", ".eslintrc.js"],
-  "exclude": ["node_modules", "lib", "docs", "example"]
+  "files": [],
+  "references": [
+    { "path": "apps/computer-vision" },
+    { "path": "apps/llm" },
+    { "path": "apps/speech-to-text" },
+    { "path": "packages/react-native-executorch" }
+  ]
 }
