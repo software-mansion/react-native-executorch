@@ -4,14 +4,15 @@
 
 namespace rnexecutorch {
 
+using namespace facebook;
 using ::executorch::extension::Module;
 using ::executorch::runtime::Error;
 
 BaseModel::BaseModel(const std::string &modelSource,
-                     facebook::jsi::Runtime *runtime)
+                     std::shared_ptr<react::CallInvoker> callInvoker)
     : module(std::make_unique<Module>(
           modelSource, Module::LoadMode::MmapUseMlockIgnoreErrors)),
-      runtime(runtime) {
+      callInvoker(callInvoker) {
   Error loadError = module->load();
   if (loadError != Error::Ok) {
     throw std::runtime_error("Couldn't load the model, error: " +

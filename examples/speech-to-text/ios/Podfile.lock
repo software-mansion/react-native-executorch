@@ -43,7 +43,7 @@ PODS:
   - hermes-engine (0.76.9):
     - hermes-engine/Pre-built (= 0.76.9)
   - hermes-engine/Pre-built (0.76.9)
-  - opencv-rne (0.1.0)
+  - opencv-rne (4.11.0)
   - RCT-Folly (2024.10.14.00):
     - boost
     - DoubleConversion
@@ -1326,7 +1326,7 @@ PODS:
     - DoubleConversion
     - glog
     - hermes-engine
-    - opencv-rne (~> 0.1.0)
+    - opencv-rne (~> 4.11.0)
     - RCT-Folly (= 2024.10.14.00)
     - RCTRequired
     - RCTTypeSafety
@@ -1343,6 +1343,7 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
+    - sqlite3
     - Yoga
   - react-native-image-picker (7.2.3):
     - DoubleConversion
@@ -1859,6 +1860,9 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - SocketRocket (0.7.1)
+  - sqlite3 (3.49.1):
+    - sqlite3/common (= 3.49.1)
+  - sqlite3/common (3.49.1)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -1948,6 +1952,7 @@ SPEC REPOS:
   trunk:
     - opencv-rne
     - SocketRocket
+    - sqlite3
 
 EXTERNAL SOURCES:
   boost:
@@ -2125,7 +2130,7 @@ SPEC CHECKSUMS:
   fmt: 01b82d4ca6470831d1cc0852a1af644be019e8f6
   glog: 08b301085f15bcbb6ff8632a8ebaf239aae04e6a
   hermes-engine: 9e868dc7be781364296d6ee2f56d0c1a9ef0bb11
-  opencv-rne: 63e933ae2373fc91351f9a348dc46c3f523c2d3f
+  opencv-rne: 2305807573b6e29c8c87e3416ab096d09047a7a0
   RCT-Folly: ea9d9256ba7f9322ef911169a9f696e5857b9e17
   RCTDeprecation: ebe712bb05077934b16c6bf25228bdec34b64f83
   RCTRequired: ca91e5dd26b64f577b528044c962baf171c6b716
@@ -2191,6 +2196,7 @@ SPEC CHECKSUMS:
   RNReanimated: 2e5069649cbab2c946652d3b97589b2ae0526220
   RNSVG: b889dc9c1948eeea0576a16cc405c91c37a12c19
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
+  sqlite3: fc1400008a9b3525f5914ed715a5d1af0b8f4983
   Yoga: feb4910aba9742cfedc059e2b2902e22ffe9954a
 
 PODFILE CHECKSUM: 8264e1ef5c1c85c206e4efb2c2c7e7b66ab269ed

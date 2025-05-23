@@ -15,8 +15,8 @@ using executorch::extension::TensorPtr;
 using executorch::runtime::Error;
 
 StyleTransfer::StyleTransfer(const std::string &modelSource,
-                             jsi::Runtime *runtime)
-    : BaseModel(modelSource, runtime) {
+                             std::shared_ptr<react::CallInvoker> callInvoker)
+    : BaseModel(modelSource, callInvoker) {
   std::vector<int32_t> modelInputShape = getInputShape()[0];
   modelImageSize = cv::Size(modelInputShape[modelInputShape.size() - 1],
                             modelInputShape[modelInputShape.size() - 2]);

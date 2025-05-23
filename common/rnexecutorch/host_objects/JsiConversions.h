@@ -1,7 +1,9 @@
 #pragma once
 
-#include <jsi/jsi.h>
+#include <set>
 #include <type_traits>
+
+#include <jsi/jsi.h>
 
 namespace rnexecutorch::jsiconversion {
 
@@ -43,19 +45,33 @@ getValue<std::vector<std::string>>(const jsi::Value &val,
   return result;
 }
 
+// C++ set from JS array. Set with heterogenerous look-up (adding std::less<>
+// enables querying with std::string_view).
+template <>
+inline std::set<std::string, std::less<>>
+getValue<std::set<std::string, std::less<>>>(const jsi::Value &val,
+                                             jsi::Runtime &runtime) {
+
+  jsi::Array array = val.asObject(runtime).asArray(runtime);
+  size_t length = array.size(runtime);
+  std::set<std::string, std::less<>> result;
+
+  for (size_t i = 0; i < length; ++i) {
+    jsi::Value element = array.getValueAtIndex(runtime, i);
+    result.insert(getValue<std::string>(element, runtime));
+  }
+  return result;
+}
+
 // Conversion from C++ types to jsi --------------------------------------------
 
 // Implementation functions might return any type, but in a promise we can only
 // return jsi::Value or jsi::Object. For each type being returned
 // we add a function here.
 
-// Identity function for the sake of completeness
-inline jsi::Value getJsiValue(jsi::Value &&value, jsi::Runtime &runtime) {
-  return std::move(value);
-}
-
-inline jsi::Value getJsiValue(jsi::Object &&value, jsi::Runtime &runtime) {
-  return jsi::Value(std::move(value));
+inline jsi::Value getJsiValue(std::shared_ptr<jsi::Object> valuePtr,
+                              jsi::Runtime &runtime) {
+  return std::move(*valuePtr);
 }
 
 inline jsi::Value getJsiValue(const std::string &str, jsi::Runtime &runtime) {

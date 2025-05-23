@@ -47,7 +47,7 @@ PODS:
   - hermes-engine (0.76.9):
     - hermes-engine/Pre-built (= 0.76.9)
   - hermes-engine/Pre-built (0.76.9)
-  - opencv-rne (0.1.0)
+  - opencv-rne (4.11.0)
   - RCT-Folly (2024.10.14.00):
     - boost
     - DoubleConversion
@@ -1330,7 +1330,7 @@ PODS:
     - DoubleConversion
     - glog
     - hermes-engine
-    - opencv-rne (~> 0.1.0)
+    - opencv-rne (~> 4.11.0)
     - RCT-Folly (= 2024.10.14.00)
     - RCTRequired
     - RCTTypeSafety
@@ -1347,6 +1347,7 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
+    - sqlite3
     - Yoga
   - react-native-safe-area-context (4.12.0):
     - DoubleConversion
@@ -1817,6 +1818,9 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - SocketRocket (0.7.1)
+  - sqlite3 (3.49.1):
+    - sqlite3/common (= 3.49.1)
+  - sqlite3/common (3.49.1)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -1904,6 +1908,7 @@ SPEC REPOS:
   trunk:
     - opencv-rne
     - SocketRocket
+    - sqlite3
 
 EXTERNAL SOURCES:
   boost:
@@ -2079,8 +2084,8 @@ SPEC CHECKSUMS:
   fmt: 01b82d4ca6470831d1cc0852a1af644be019e8f6
   glog: 08b301085f15bcbb6ff8632a8ebaf239aae04e6a
   hermes-engine: 9e868dc7be781364296d6ee2f56d0c1a9ef0bb11
-  opencv-rne: 63e933ae2373fc91351f9a348dc46c3f523c2d3f
-  RCT-Folly: 7b4f73a92ad9571b9dbdb05bb30fad927fa971e1
+  opencv-rne: 2305807573b6e29c8c87e3416ab096d09047a7a0
+  RCT-Folly: ea9d9256ba7f9322ef911169a9f696e5857b9e17
   RCTDeprecation: ebe712bb05077934b16c6bf25228bdec34b64f83
   RCTRequired: ca91e5dd26b64f577b528044c962baf171c6b716
   RCTTypeSafety: e7678bd60850ca5a41df9b8dc7154638cb66871f
@@ -2141,7 +2146,8 @@ SPEC CHECKSUMS:
   RNReanimated: b95559eb62609b22b99f6e7f20cb892c20b393dc
   RNSVG: 81d52481cde97ce0dcc81a55b0310723817088d0
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  Yoga: 40f19fff64dce86773bf8b602c7070796c007970
+  sqlite3: fc1400008a9b3525f5914ed715a5d1af0b8f4983
+  Yoga: feb4910aba9742cfedc059e2b2902e22ffe9954a
 
 PODFILE CHECKSUM: 9378e690c7b699685381b113789d682762e327e8
 

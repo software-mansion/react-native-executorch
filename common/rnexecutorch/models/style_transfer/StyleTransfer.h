@@ -17,7 +17,8 @@ using executorch::extension::TensorPtr;
 
 class StyleTransfer : public BaseModel {
 public:
-  StyleTransfer(const std::string &modelSource, jsi::Runtime *runtime);
+  StyleTransfer(const std::string &modelSource,
+                std::shared_ptr<react::CallInvoker> callInvoker);
   std::string forward(std::string imageSource);
 
 private:
