@@ -13,7 +13,7 @@
 - [Compatibility](#compatibility)
 - [Ready-made models 🤖](#ready-made-models-)
 - [Documentation 📚](#documentation-)
-- [Quickstart - Running Llama 🦙](#-quickstart---running-llama)
+- [Quickstart - Running Llama 🦙](#quickstart---running-llama-)
 - [Minimal supported versions](#minimal-supported-versions)
 - [Examples 📲](#examples-)
 - [License](#license)
