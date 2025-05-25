@@ -11,7 +11,7 @@
 **Table of contents:**
 
 - [Compatibility](#compatibility)
-- [Ready-made models 🤖](#readymade-models-)
+- [Ready-made models 🤖](#ready-made-models-)
 - [Documentation 📚](#documentation-)
 - [Quickstart - Running Llama 🦙](#-quickstart---running-llama)
 - [Minimal supported versions](#minimal-supported-versions)
