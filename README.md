@@ -11,12 +11,11 @@
 **Table of contents:**
 
 - [Compatibility](#compatibility)
-- [Ready-made models 🤖](#readymade-models-)
+- [Ready-made models 🤖](#ready-made-models-)
 - [Documentation 📚](#documentation-)
-- [🦙 Quickstart - Running Llama](#-quickstart---running-llama)
+- [Quickstart - Running Llama 🦙](#quickstart---running-llama-)
 - [Minimal supported versions](#minimal-supported-versions)
 - [Examples 📲](#examples-)
-- [Warning](#warning)
 - [License](#license)
 - [What's next?](#whats-next)
 
@@ -35,7 +34,7 @@ To run any AI model in ExecuTorch, you need to export it to a `.pte` format. If 
 Take a look at how our library can help build you your React Native AI features in our docs:  
 https://docs.swmansion.com/react-native-executorch
 
-# 🦙 **Quickstart - Running Llama**
+## **Quickstart - Running Llama** 🦙
 
 **Get started with AI-powered text generation in 3 easy steps!**
 
@@ -46,8 +45,6 @@ https://docs.swmansion.com/react-native-executorch
 yarn add react-native-executorch
 cd ios && pod install && cd ..
 ```
-
----
 
 ### 2️⃣ **Setup & Initialization**
 
@@ -72,8 +69,6 @@ function MyComponent() {
 }
 ```
 
----
-
 ### 3️⃣ **Run the model!**
 
 ```tsx
@@ -91,16 +86,18 @@ const handleGenerate = async () => {
 
 ## Minimal supported versions
 
-The minimal supported version is 17.0 for iOS and Android 13.
+The minimal supported version are: 
+* iOS 17.0
+* Android 13
 
 ## Examples 📲
 
 We currently host a few example apps demonstrating use cases of our library:
 
-- examples/llm - chat application showcasing use of LLMs
-- examples/speech-to-text - Whisper and Moonshine models ready for transcription tasks
-- examples/computer-vision - computer vision related tasks
-- examples/text-embeddings - computing text representations for semantic search
+- `examples/llm` - chat application showcasing use of LLMs
+- `examples/speech-to-text` - Whisper and Moonshine models ready for transcription tasks
+- `examples/computer-vision` - computer vision related tasks
+- `examples/text-embeddings` - computing text representations for semantic search
 
 If you would like to run it, navigate to it's project directory, for example `examples/llm` from the repository root and install dependencies with:
 
@@ -128,7 +125,7 @@ or iOS:
 yarn expo run:ios
 ```
 
-### Warning
+### Warning ⚠️
 
 Running LLMs requires a significant amount of RAM. If you are encountering unexpected app crashes, try to increase the amount of RAM allocated to the emulator.
 
