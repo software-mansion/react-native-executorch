@@ -236,6 +236,22 @@ function App() {
 }
 ```
 
+## Language-Specific Recognizers
+
+Each supported language requires its own set of recognizer models.  
+The built-in constants such as `RECOGNIZER_EN_CRNN_512`, `RECOGNIZER_PL_CRNN_64`, etc., point to specific models trained for a particular language.
+
+> For example:
+>
+> - To recognize **English** text, use:
+>   - `RECOGNIZER_EN_CRNN_512`
+>   - `RECOGNIZER_EN_CRNN_64`
+> - To recognize **Polish** text, use:
+>   - `RECOGNIZER_PL_CRNN_512`
+>   - `RECOGNIZER_PL_CRNN_64`
+
+You need to make sure the recognizer models you pass in `recognizerSources` match the `language` you specify.
+
 ## Supported languages
 
 |      Language      | Code Name  |
