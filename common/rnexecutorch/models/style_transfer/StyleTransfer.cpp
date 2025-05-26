@@ -10,7 +10,6 @@
 
 namespace rnexecutorch {
 using namespace facebook;
-using executorch::extension::Module;
 using executorch::extension::TensorPtr;
 using executorch::runtime::Error;
 
@@ -43,7 +42,7 @@ std::string StyleTransfer::postprocess(const Tensor &tensor,
 std::string StyleTransfer::forward(std::string imageSource) {
   auto [tensor, originalSize] = preprocess(imageSource);
 
-  auto forwardResult = module->forward(tensor);
+  auto forwardResult = forwardET(tensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
         "Failed to forward, error: " +
