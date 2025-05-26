@@ -12,9 +12,9 @@ using ::executorch::runtime::Error;
 
 BaseModel::BaseModel(const std::string &modelSource,
                      std::shared_ptr<react::CallInvoker> callInvoker)
-    : module(std::make_unique<Module>(
-          modelSource, Module::LoadMode::MmapUseMlockIgnoreErrors)),
-      callInvoker(callInvoker) {
+    : callInvoker(callInvoker),
+      module(std::make_unique<Module>(
+          modelSource, Module::LoadMode::MmapUseMlockIgnoreErrors)) {
   Error loadError = module->load();
   if (loadError != Error::Ok) {
     throw std::runtime_error("Couldn't load the model, error: " +
@@ -59,7 +59,7 @@ Result<std::vector<EValue>> BaseModel::forwardET(const EValue &input_value) {
   if (!module) {
     throw std::runtime_error("Forward called on unloaded model");
   }
-  return std::move(module->forward(input_value));
+  return module->forward(input_value);
 }
 
 } // namespace rnexecutorch

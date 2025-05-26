@@ -18,8 +18,6 @@ class RnExecutorchPackage : TurboReactPackage() {
       LLM(reactContext)
     } else if (name == ETModule.NAME) {
       ETModule(reactContext)
-    } else if (name == Classification.NAME) {
-      Classification(reactContext)
     } else if (name == ObjectDetection.NAME) {
       ObjectDetection(reactContext)
     } else if (name == SpeechToText.NAME) {
@@ -55,17 +53,6 @@ class RnExecutorchPackage : TurboReactPackage() {
         ReactModuleInfo(
           ETModule.NAME,
           ETModule.NAME,
-          false, // canOverrideExistingModule
-          false, // needsEagerInit
-          true, // hasConstants
-          false, // isCxxModule
-          true,
-        )
-
-      moduleInfos[Classification.NAME] =
-        ReactModuleInfo(
-          Classification.NAME,
-          Classification.NAME,
           false, // canOverrideExistingModule
           false, // needsEagerInit
           true, // hasConstants

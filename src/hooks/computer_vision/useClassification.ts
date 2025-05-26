@@ -1,9 +1,18 @@
-import { ClassificationModule } from '../../modules/computer_vision/ClassificationModule';
 import { ResourceSource } from '../../types/common';
-import { useModule } from '../useModule';
+import { useNonStaticModule } from '../useNonStaticModule';
+import { ClassificationModule } from '../../modules/computer_vision/ClassificationModule';
+
+interface Props {
+  modelSource: ResourceSource;
+  preventLoad?: boolean;
+}
 
 export const useClassification = ({
   modelSource,
-}: {
-  modelSource: ResourceSource;
-}) => useModule({ module: ClassificationModule, loadArgs: [modelSource] });
+  preventLoad = false,
+}: Props) =>
+  useNonStaticModule({
+    module: ClassificationModule,
+    loadArgs: [modelSource],
+    preventLoad: preventLoad,
+  });
