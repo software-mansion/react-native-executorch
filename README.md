@@ -11,9 +11,9 @@
 **Table of contents:**
 
 - [🦙 **Quickstart - Running Llama**](#-quickstart---running-llama)
-  - [1️⃣ **Installation**](#1️⃣-installation)
-  - [2️⃣ **Setup \& Initialization**](#2️⃣-setup--initialization)
-  - [3️⃣ **Run the model!**](#3️⃣-run-the-model)
+    - [1️⃣ **Installation**](#1️⃣-installation)
+    - [2️⃣ **Setup \& Initialization**](#2️⃣-setup--initialization)
+    - [3️⃣ **Run the model!**](#3️⃣-run-the-model)
   - [Minimal supported versions](#minimal-supported-versions)
   - [Examples 📲](#examples-)
     - [Warning](#warning)

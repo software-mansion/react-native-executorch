@@ -8,7 +8,11 @@ module.exports = {
     },
   },
   root: true,
-  extends: ['@react-native', 'prettier', 'plugin:@cspell/recommended'],
+  extends: [
+    '@react-native',
+    'plugin:@cspell/recommended',
+    'plugin:prettier/recommended',
+  ],
   rules: {
     'react/react-in-jsx-scope': 'off',
     'prettier/prettier': [
@@ -27,6 +31,7 @@ module.exports = {
         customWordListFile: path.resolve(__dirname, '.cspell-wordlist.txt'),
       },
     ],
+    'camelcase': 'error',
   },
   plugins: ['prettier'],
   ignorePatterns: ['node_modules/', 'lib/'],

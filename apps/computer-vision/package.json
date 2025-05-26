@@ -7,7 +7,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "lint": "eslint . --ext .ts,.tsx --fix"
   },
   "peerDependencies": {
     "react-native": "*"
@@ -32,8 +33,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
-    "@types/react": "~19.0.10",
-    "typescript": "^5.3.3"
+    "@types/react": "~19.0.10"
   },
   "private": true
 }

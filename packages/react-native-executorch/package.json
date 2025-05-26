@@ -27,12 +27,10 @@
   ],
   "scripts": {
     "example": "yarn workspace react-native-executorch-example",
-    "test": "jest",
     "typecheck": "tsc",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
-    "prepare": "bob build",
-    "release": "release-it"
+    "prepare": "bob build"
   },
   "keywords": [
     "react-native",
@@ -71,8 +69,7 @@
     "metro-react-native-babel-preset": "^0.77.0",
     "react": "19.0.0",
     "react-native": "0.79.2",
-    "react-native-builder-bob": "^0.30.2",
-    "typescript": "^5.2.2"
+    "react-native-builder-bob": "^0.30.2"
   },
   "resolutions": {
     "@types/react": "^18.2.44"
@@ -81,35 +78,6 @@
     "example"
   ],
   "packageManager": "yarn@4.1.1",
-  "jest": {
-    "preset": "react-native",
-    "modulePathIgnorePatterns": [
-      "<rootDir>/example/node_modules",
-      "<rootDir>/lib/"
-    ]
-  },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ]
-  },
-  "release-it": {
-    "git": {
-      "commitMessage": "chore: release ${version}",
-      "tagName": "v${version}"
-    },
-    "npm": {
-      "publish": true
-    },
-    "github": {
-      "release": true
-    },
-    "plugins": {
-      "@release-it/conventional-changelog": {
-        "preset": "angular"
-      }
-    }
-  },
   "babel": {
     "presets": [
       "module:metro-react-native-babel-preset"
@@ -129,11 +97,6 @@
         }
       ]
     ]
-  },
-  "create-react-native-library": {
-    "type": "module-new",
-    "languages": "kotlin-objc",
-    "version": "0.41.2"
   },
   "codegenConfig": {
     "name": "RnExecutorchSpec",
