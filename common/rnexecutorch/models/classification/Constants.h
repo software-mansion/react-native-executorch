@@ -1,10 +1,14 @@
-package com.swmansion.rnexecutorch.models.classification
+#pragma once
 
-val imagenet1k_v1_labels: Array<String> =
-  arrayOf(
+#include <array>
+#include <string_view>
+
+namespace rnexecutorch {
+inline constexpr std::array<std::string_view, 1000> imagenet1k_v1_labels = {
     "tench, Tinca tinca",
     "goldfish, Carassius auratus",
-    "great white shark, white shark, man-eater, man-eating shark, Carcharodon carcharias",
+    "great white shark, white shark, man-eater, man-eating shark, Carcharodon "
+    "carcharias",
     "tiger shark, Galeocerdo cuvieri",
     "hammerhead, hammerhead shark",
     "electric ray, crampfish, numbfish, torpedo",
@@ -50,7 +54,8 @@ val imagenet1k_v1_labels: Array<String> =
     "Gila monster, Heloderma suspectum",
     "green lizard, Lacerta viridis",
     "African chameleon, Chamaeleo chamaeleon",
-    "Komodo dragon, Komodo lizard, dragon lizard, giant lizard, Varanus komodoensis",
+    "Komodo dragon, Komodo lizard, dragon lizard, giant lizard, Varanus "
+    "komodoensis",
     "African crocodile, Nile crocodile, Crocodylus niloticus",
     "American alligator, Alligator mississipiensis",
     "triceratops",
@@ -105,7 +110,8 @@ val imagenet1k_v1_labels: Array<String> =
     "black swan, Cygnus atratus",
     "tusker",
     "echidna, spiny anteater, anteater",
-    "platypus, duckbill, duckbilled platypus, duck-billed platypus, Ornithorhynchus anatinus",
+    "platypus, duckbill, duckbilled platypus, duck-billed platypus, "
+    "Ornithorhynchus anatinus",
     "wallaby, brush kangaroo",
     "koala, koala bear, kangaroo bear, native bear, Phascolarctos cinereus",
     "wombat",
@@ -123,7 +129,8 @@ val imagenet1k_v1_labels: Array<String> =
     "Dungeness crab, Cancer magister",
     "rock crab, Cancer irroratus",
     "fiddler crab",
-    "king crab, Alaska crab, Alaskan king crab, Alaska king crab, Paralithodes camtschatica",
+    "king crab, Alaska crab, Alaskan king crab, Alaska king crab, Paralithodes "
+    "camtschatica",
     "American lobster, Northern lobster, Maine lobster, Homarus americanus",
     "spiny lobster, langouste, rock lobster, crawfish, crayfish, sea crawfish",
     "crayfish, crawfish, crawdad, crawdaddy",
@@ -149,7 +156,8 @@ val imagenet1k_v1_labels: Array<String> =
     "pelican",
     "king penguin, Aptenodytes patagonica",
     "albatross, mollymawk",
-    "grey whale, gray whale, devilfish, Eschrichtius gibbosus, Eschrichtius robustus",
+    "grey whale, gray whale, devilfish, Eschrichtius gibbosus, Eschrichtius "
+    "robustus",
     "killer whale, killer, orca, grampus, sea wolf, Orcinus orca",
     "dugong, Dugong dugon",
     "sea lion",
@@ -182,7 +190,8 @@ val imagenet1k_v1_labels: Array<String> =
     "Scottish deerhound, deerhound",
     "Weimaraner",
     "Staffordshire bullterrier, Staffordshire bull terrier",
-    "American Staffordshire terrier, Staffordshire terrier, American pit bull terrier, pit bull terrier",
+    "American Staffordshire terrier, Staffordshire terrier, American pit bull "
+    "terrier, pit bull terrier",
     "Bedlington terrier",
     "Border terrier",
     "Kerry blue terrier",
@@ -321,7 +330,8 @@ val imagenet1k_v1_labels: Array<String> =
     "cicada, cicala",
     "leafhopper",
     "lacewing, lacewing fly",
-    "dragonfly, darning needle, devil's darning needle, sewing needle, snake feeder, snake doctor, mosquito hawk, skeeter hawk",
+    "dragonfly, darning needle, devil's darning needle, sewing needle, snake "
+    "feeder, snake doctor, mosquito hawk, skeeter hawk",
     "damselfly",
     "admiral",
     "ringlet, ringlet butterfly",
@@ -351,7 +361,8 @@ val imagenet1k_v1_labels: Array<String> =
     "water buffalo, water ox, Asiatic buffalo, Bubalus bubalis",
     "bison",
     "ram, tup",
-    "bighorn, bighorn sheep, cimarron, Rocky Mountain bighorn, Rocky Mountain sheep, Ovis canadensis",
+    "bighorn, bighorn sheep, cimarron, Rocky Mountain bighorn, Rocky Mountain "
+    "sheep, Ovis canadensis",
     "ibex, Capra ibex",
     "hartebeest",
     "impala, Aepyceros melampus",
@@ -414,7 +425,8 @@ val imagenet1k_v1_labels: Array<String> =
     "analog clock",
     "apiary, bee house",
     "apron",
-    "ashcan, trash can, garbage can, wastebin, ash bin, ash-bin, ashbin, dustbin, trash barrel, trash bin",
+    "ashcan, trash can, garbage can, wastebin, ash bin, ash-bin, ashbin, "
+    "dustbin, trash barrel, trash bin",
     "assault rifle, assault gun",
     "backpack, back pack, knapsack, packsack, rucksack, haversack",
     "bakery, bakeshop, bakehouse",
@@ -438,7 +450,8 @@ val imagenet1k_v1_labels: Array<String> =
     "bathing cap, swimming cap",
     "bath towel",
     "bathtub, bathing tub, bath, tub",
-    "beach wagon, station wagon, wagon, estate car, beach waggon, station waggon, waggon",
+    "beach wagon, station wagon, wagon, estate car, beach waggon, station "
+    "waggon, waggon",
     "beacon, lighthouse, beacon light, pharos",
     "beaker",
     "bearskin, busby, shako",
@@ -482,7 +495,8 @@ val imagenet1k_v1_labels: Array<String> =
     "carpenter's kit, tool kit",
     "carton",
     "car wheel",
-    "cash machine, cash dispenser, automated teller machine, automatic teller machine, automated teller, automatic teller, ATM",
+    "cash machine, cash dispenser, automated teller machine, automatic teller "
+    "machine, automated teller, automatic teller, ATM",
     "cassette",
     "cassette player",
     "castle",
@@ -492,7 +506,8 @@ val imagenet1k_v1_labels: Array<String> =
     "cellular telephone, cellular phone, cellphone, cell, mobile phone",
     "chain",
     "chainlink fence",
-    "chain mail, ring mail, mail, chain armor, chain armour, ring armor, ring armour",
+    "chain mail, ring mail, mail, chain armor, chain armour, ring armor, ring "
+    "armour",
     "chain saw, chainsaw",
     "chest",
     "chiffonier, commode",
@@ -869,7 +884,8 @@ val imagenet1k_v1_labels: Array<String> =
     "tow truck, tow car, wrecker",
     "toyshop",
     "tractor",
-    "trailer truck, tractor trailer, trucking rig, rig, articulated lorry, semi",
+    "trailer truck, tractor trailer, trucking rig, rig, articulated lorry, "
+    "semi",
     "tray",
     "trench coat",
     "tricycle, trike, velocipede",
@@ -988,7 +1004,8 @@ val imagenet1k_v1_labels: Array<String> =
     "scuba diver",
     "rapeseed",
     "daisy",
-    "yellow lady's slipper, yellow lady-slipper, Cypripedium calceolus, Cypripedium parviflorum",
+    "yellow lady's slipper, yellow lady-slipper, Cypripedium calceolus, "
+    "Cypripedium parviflorum",
     "corn",
     "acorn",
     "hip, rose hip, rosehip",
@@ -1001,5 +1018,5 @@ val imagenet1k_v1_labels: Array<String> =
     "hen-of-the-woods, hen of the woods, Polyporus frondosus, Grifola frondosa",
     "bolete",
     "ear, spike, capitulum",
-    "toilet tissue, toilet paper, bathroom tissue",
-  )
+    "toilet tissue, toilet paper, bathroom tissue"};
+} // namespace rnexecutorch

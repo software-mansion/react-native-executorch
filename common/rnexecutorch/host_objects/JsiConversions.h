@@ -2,6 +2,7 @@
 
 #include <set>
 #include <type_traits>
+#include <unordered_map>
 
 #include <jsi/jsi.h>
 
@@ -76,6 +77,17 @@ inline jsi::Value getJsiValue(std::shared_ptr<jsi::Object> valuePtr,
 
 inline jsi::Value getJsiValue(const std::string &str, jsi::Runtime &runtime) {
   return jsi::String::createFromAscii(runtime, str);
+}
+
+inline jsi::Value
+getJsiValue(const std::unordered_map<std::string_view, float> &map,
+            jsi::Runtime &runtime) {
+  jsi::Object mapObj{runtime};
+  for (auto &[k, v] : map) {
+    // The string_view keys must be null-terminated!
+    mapObj.setProperty(runtime, k.data(), v);
+  }
+  return mapObj;
 }
 
 template <typename Model, typename R, typename... Types>
