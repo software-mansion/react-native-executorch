@@ -10,16 +10,14 @@
 
 **Table of contents:**
 
-- [🦙 **Quickstart - Running Llama**](#-quickstart---running-llama)
-    - [1️⃣ **Installation**](#1️⃣-installation)
-    - [2️⃣ **Setup \& Initialization**](#2️⃣-setup--initialization)
-    - [3️⃣ **Run the model!**](#3️⃣-run-the-model)
-  - [Minimal supported versions](#minimal-supported-versions)
-  - [Examples 📲](#examples-)
-    - [Warning](#warning)
-  - [License](#license)
-  - [What's next?](#whats-next)
-  - [React Native ExecuTorch is created by Software Mansion](#react-native-executorch-is-created-by-software-mansion)
+- [Compatibility](#compatibility)
+- [Ready-made models 🤖](#ready-made-models-)
+- [Documentation 📚](#documentation-)
+- [Quickstart - Running Llama 🦙](#quickstart---running-llama-)
+- [Minimal supported versions](#minimal-supported-versions)
+- [Examples 📲](#examples-)
+- [License](#license)
+- [What's next?](#whats-next)
 
 ## Compatibility
 
@@ -36,7 +34,7 @@ To run any AI model in ExecuTorch, you need to export it to a `.pte` format. If 
 Take a look at how our library can help build you your React Native AI features in our docs:  
 https://docs.swmansion.com/react-native-executorch
 
-# 🦙 **Quickstart - Running Llama**
+## **Quickstart - Running Llama** 🦙
 
 **Get started with AI-powered text generation in 3 easy steps!**
 
@@ -48,8 +46,6 @@ yarn add react-native-executorch
 cd ios && pod install && cd ..
 ```
 
----
-
 ### 2️⃣ **Setup & Initialization**
 
 Add this to your component file:
@@ -58,6 +54,7 @@ Add this to your component file:
 import {
   useLLM,
   LLAMA3_2_1B,
+  LLAMA3_2_TOKENIZER,
   LLAMA3_2_TOKENIZER_CONFIG,
 } from 'react-native-executorch';
 
@@ -71,8 +68,6 @@ function MyComponent() {
   // ... rest of your component
 }
 ```
-
----
 
 ### 3️⃣ **Run the model!**
 
@@ -91,18 +86,18 @@ const handleGenerate = async () => {
 
 ## Minimal supported versions
 
-The minimal supported version is 17.0 for iOS and Android 13.
+The minimal supported version are: 
+* iOS 17.0
+* Android 13
 
 ## Examples 📲
 
-https://github.com/user-attachments/assets/27ab3406-c7f1-4618-a981-6c86b53547ee
-
 We currently host a few example apps demonstrating use cases of our library:
 
-- apps/llm - chat application showcasing use of LLMs
-- apps/speech-to-text - Whisper and Moonshine models ready for transcription tasks
-- apps/computer-vision - computer vision related tasks
-- apps/text-embeddings - computing text representations for semantic search
+- `apps/llm` - chat application showcasing use of LLMs
+- `apps/speech-to-text` - Whisper and Moonshine models ready for transcription tasks
+- `apps/computer-vision` - computer vision related tasks
+- `apps/text-embeddings` - computing text representations for semantic search
 
 If you would like to run it, navigate to it's project directory, for example `apps/llm` from the repository root and install dependencies with:
 
@@ -130,7 +125,7 @@ or iOS:
 yarn expo run:ios
 ```
 
-### Warning
+### Warning ⚠️
 
 Running LLMs requires a significant amount of RAM. If you are encountering unexpected app crashes, try to increase the amount of RAM allocated to the emulator.
 
