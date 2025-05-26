@@ -1,10 +1,16 @@
 {
-  "files": [],
-  "references": [
-    { "path": "apps/computer-vision" },
-    { "path": "apps/llm" },
-    { "path": "apps/speech-to-text" },
-    { "path": "apps/text-embeddings" },
-    { "path": "packages/react-native-executorch" }
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "jsx": "react-native",
+    "lib": ["DOM", "ESNext"],
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "target": "ESNext"
+  },
+  "exclude": [
+    "node_modules",
+    "babel.config.js",
+    "metro.config.js",
+    "jest.config.js"
   ]
 }

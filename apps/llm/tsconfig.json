@@ -1,7 +1,13 @@
 {
-  "extends": "expo/tsconfig.base",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
     "strict": true,
+    "allowJs": true,
+    "module": "preserve",
+    "moduleDetection": "force",
+    "moduleResolution": "bundler",
+    "customConditions": ["react-native"],
+    "noEmit": true,
     "paths": {
       "react-native-executorch": ["../../packages/react-native-executorch/src"]
     }
