@@ -21,4 +21,8 @@ export class StyleTransferModule {
       throw new Error(getError(ETError.ModuleNotLoaded));
     return await this.nativeModule.forward(imageSource);
   }
+
+  delete() {
+    this.nativeModule.unload();
+  }
 }
