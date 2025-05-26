@@ -7,6 +7,7 @@
 #include <ReactCommon/CallInvoker.h>
 #include <jsi/jsi.h>
 
+#include <rnexecutorch/TypeConstraints.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/host_objects/ModelHostObject.h>
 
@@ -25,7 +26,7 @@ public:
                     FetchUrlFunc_t fetchDataFromUrl);
 
 private:
-  template <typename ModelT>
+  template <DerivedFromBaseModel ModelT>
   static jsi::Function
   loadModel(jsi::Runtime *jsiRuntime,
             std::shared_ptr<react::CallInvoker> jsCallInvoker,
@@ -53,7 +54,11 @@ private:
             auto modelHostObject = std::make_shared<ModelHostObject<ModelT>>(
                 modelImplementationPtr, jsCallInvoker);
 
-            return jsi::Object::createFromHostObject(runtime, modelHostObject);
+            auto jsiObject =
+                jsi::Object::createFromHostObject(runtime, modelHostObject);
+            jsiObject.setExternalMemoryPressure(
+                runtime, modelImplementationPtr->getMemoryLowerBound());
+            return jsiObject;
           } catch (const std::runtime_error &e) {
             // This catch should be merged with the next one
             // (std::runtime_error inherits from std::exception) HOWEVER react
