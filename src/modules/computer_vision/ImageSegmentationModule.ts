@@ -42,4 +42,8 @@ export class ImageSegmentationModule {
     }
     return enumDict;
   }
+
+  delete() {
+    this.nativeModule.unload();
+  }
 }

@@ -4,6 +4,7 @@ import { ETError, getError } from '../Error';
 interface Module {
   load: (...args: any[]) => Promise<void>;
   forward: (...args: any[]) => Promise<any>;
+  delete: () => void;
 }
 
 interface ModuleConstructor<M extends Module> {
@@ -43,7 +44,12 @@ export const useNonStaticModule = <
           setError((err as Error).message);
         }
       })();
+
+      return () => {
+        model.delete();
+      };
     }
+    return () => {};
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...loadArgs, preventLoad]);
 
