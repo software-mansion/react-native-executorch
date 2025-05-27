@@ -17,7 +17,19 @@ using executorch::runtime::Error;
 StyleTransfer::StyleTransfer(const std::string &modelSource,
                              std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
+  auto input = getInputShape();
+  if (input.size() == 0) {
+    throw std::runtime_error("Model seems to not take any input tensors.");
+  }
   std::vector<int32_t> modelInputShape = getInputShape()[0];
+  if (modelInputShape.size() < 2) {
+    char errorMessage[100];
+    std::snprintf(errorMessage, sizeof(errorMessage),
+                  "Unexpected model input size, expected at least 2 dimentions "
+                  "but got: %zu.",
+                  modelInputShape.size());
+    throw std::runtime_error(errorMessage);
+  }
   modelImageSize = cv::Size(modelInputShape[modelInputShape.size() - 1],
                             modelInputShape[modelInputShape.size() - 2]);
 }
