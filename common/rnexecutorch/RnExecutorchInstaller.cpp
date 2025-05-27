@@ -1,6 +1,7 @@
 #include "RnExecutorchInstaller.h"
 
 #include <rnexecutorch/host_objects/JsiConversions.h>
+#include <rnexecutorch/models/image_segmentation/ImageSegmentation.h>
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
 
 namespace rnexecutorch {
@@ -19,5 +20,10 @@ void RnExecutorchInstaller::injectJSIBindings(
       *jsiRuntime, "loadStyleTransfer",
       RnExecutorchInstaller::loadModel<StyleTransfer>(jsiRuntime, jsCallInvoker,
                                                       "loadStyleTransfer"));
+
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadImageSegmentation",
+      RnExecutorchInstaller::loadModel<ImageSegmentation>(
+          jsiRuntime, jsCallInvoker, "loadImageSegmentation"));
 }
 } // namespace rnexecutorch

@@ -15,9 +15,21 @@ using executorch::extension::TensorPtr;
 using executorch::runtime::Error;
 
 StyleTransfer::StyleTransfer(const std::string &modelSource,
-                             jsi::Runtime *runtime)
-    : BaseModel(modelSource, runtime) {
-  std::vector<int32_t> modelInputShape = getInputShape()[0];
+                             std::shared_ptr<react::CallInvoker> callInvoker)
+    : BaseModel(modelSource, callInvoker) {
+  auto inputTensors = getInputShape();
+  if (inputTensors.size() == 0) {
+    throw std::runtime_error("Model seems to not take any input tensors.");
+  }
+  std::vector<int32_t> modelInputShape = inputTensors[0];
+  if (modelInputShape.size() < 2) {
+    char errorMessage[100];
+    std::snprintf(errorMessage, sizeof(errorMessage),
+                  "Unexpected model input size, expected at least 2 dimentions "
+                  "but got: %zu.",
+                  modelInputShape.size());
+    throw std::runtime_error(errorMessage);
+  }
   modelImageSize = cv::Size(modelInputShape[modelInputShape.size() - 1],
                             modelInputShape[modelInputShape.size() - 2]);
 }
