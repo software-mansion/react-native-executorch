@@ -12609,7 +12609,6 @@ __metadata:
     react: "npm:19.0.0"
     react-native: "npm:0.79.2"
     react-native-builder-bob: "npm:^0.30.2"
-    react-native-live-audio-stream: "npm:^1.1.1"
   peerDependencies:
     react: "*"
     react-native: "*"
