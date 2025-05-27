@@ -279,8 +279,8 @@ export class SpeechToTextController {
 
   // if last chunk is too short combine it with second to last to improve quality
   private validateAndFixLastChunk() {
-    if(this.chunks.length < 2) return;
-    
+    if (this.chunks.length < 2) return;
+
     const lastChunkLength = this.chunks.at(-1)!.length / SECOND;
     const secondToLastChunkLength = this.chunks.at(-2)!.length / SECOND;
     if (lastChunkLength < 5 && secondToLastChunkLength + lastChunkLength < 30) {
