@@ -49,7 +49,7 @@ private:
                 jsiconversion::getValue<std::string>(args[0], runtime);
 
             auto modelImplementationPtr =
-                std::make_shared<ModelT>(source, &runtime);
+                std::make_shared<ModelT>(source, jsCallInvoker);
             auto modelHostObject = std::make_shared<ModelHostObject<ModelT>>(
                 modelImplementationPtr, jsCallInvoker);
 
