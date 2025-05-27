@@ -94,12 +94,12 @@ The minimal supported version are:
 
 We currently host a few example apps demonstrating use cases of our library:
 
-- `examples/llm` - chat application showcasing use of LLMs
-- `examples/speech-to-text` - Whisper and Moonshine models ready for transcription tasks
-- `examples/computer-vision` - computer vision related tasks
-- `examples/text-embeddings` - computing text representations for semantic search
+- `apps/llm` - chat application showcasing use of LLMs
+- `apps/speech-to-text` - Whisper and Moonshine models ready for transcription tasks
+- `apps/computer-vision` - computer vision related tasks
+- `apps/text-embeddings` - computing text representations for semantic search
 
-If you would like to run it, navigate to it's project directory, for example `examples/llm` from the repository root and install dependencies with:
+If you would like to run it, navigate to it's project directory, for example `apps/llm` from the repository root and install dependencies with:
 
 ```bash
 yarn

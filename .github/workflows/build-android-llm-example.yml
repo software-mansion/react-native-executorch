@@ -5,8 +5,8 @@ on:
       - .github/workflows/build-android-llm-example.yml
       - android/**
       - third-party/android/**
-      - examples/llm/package.json
-      - examples/llm/android/**
+      - apps/llm/package.json
+      - apps/llm/android/**
   push:
     branches:
       - main
@@ -14,15 +14,15 @@ on:
       - .github/workflows/build-android-llm-example.yml
       - android/**
       - third-party/android/**
-      - examples/llm/package.json
-      - examples/llm/android/**
+      - apps/llm/package.json
+      - apps/llm/android/**
   workflow_dispatch:
 jobs:
   build:
     if: github.repository == 'software-mansion/react-native-executorch'
     runs-on: ubuntu-latest
     env:
-      WORKING_DIRECTORY: examples/llm
+      WORKING_DIRECTORY: apps/llm
     concurrency:
       group: android-${{ github.ref }}
       cancel-in-progress: true
