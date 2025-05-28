@@ -14,7 +14,7 @@ export const useNonStaticModule = <
   M extends Module,
   LoadArgs extends Parameters<M['load']>,
   ForwardArgs extends any[],
-  ForwardReturn,
+  ForwardReturn extends Awaited<ReturnType<M['forward']>>,
 >({
   module,
   loadArgs,

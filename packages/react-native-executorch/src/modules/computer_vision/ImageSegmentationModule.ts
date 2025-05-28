@@ -21,7 +21,7 @@ export class ImageSegmentationModule {
     imageSource: string,
     classesOfInterest?: DeeplabLabel[],
     resize?: boolean
-  ) {
+  ): promise<{ [key in DeeplabLabel]?: number[] }> {
     if (this.nativeModule == null) {
       throw new Error(getError(ETError.ModuleNotLoaded));
     }

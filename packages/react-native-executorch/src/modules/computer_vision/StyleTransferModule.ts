@@ -16,7 +16,7 @@ export class StyleTransferModule {
     this.nativeModule = global.loadStyleTransfer(paths[0] || '');
   }
 
-  async forward(imageSource: string) {
+  async forward(imageSource: string): Promise<string> {
     if (this.nativeModule == null)
       throw new Error(getError(ETError.ModuleNotLoaded));
     return await this.nativeModule.forward(imageSource);
