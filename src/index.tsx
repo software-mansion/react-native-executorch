@@ -4,7 +4,8 @@ import { ETInstallerNativeModule } from './native/RnExecutorchModules';
 
 // eslint-disable no-var
 declare global {
-  var loadStyleTransfer: (source: string) => Promise<any>;
+  var loadStyleTransfer: (source: string) => any;
+  var loadExecutorchModule: (source: string) => any;
 }
 // eslint-disable no-var
 
@@ -40,6 +41,7 @@ export * from './modules/computer_vision/StyleTransferModule';
 export * from './modules/computer_vision/ImageSegmentationModule';
 export * from './modules/computer_vision/OCRModule';
 export * from './modules/computer_vision/VerticalOCRModule';
+export * from './modules/computer_vision/NewExecutorchModule';
 
 export * from './modules/natural_language_processing/LLMModule';
 export * from './modules/natural_language_processing/SpeechToTextModule';

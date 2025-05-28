@@ -4,8 +4,10 @@ import { getImage } from '../utils';
 import {
   useStyleTransfer,
   STYLE_TRANSFER_CANDY,
+  NewExecutorchModule,
 } from 'react-native-executorch';
 import { View, StyleSheet, Image } from 'react-native';
+import { useEffect } from 'react';
 
 export const StyleTransferScreen = ({
   imageUri,
@@ -17,6 +19,23 @@ export const StyleTransferScreen = ({
   const model = useStyleTransfer({
     modelSource: STYLE_TRANSFER_CANDY,
   });
+
+  useEffect(() => {
+    console.log('asdad');
+    const loadModel = async () => {
+      try {
+        const model = new NewExecutorchModule();
+        await model.load(STYLE_TRANSFER_CANDY);
+        console.log(await model.getInputShape('forward', 0));
+        console.log(await model.methodNames());
+        console.log(await model.isLoaded());
+      } catch (e) {
+        console.error('Error loading model:', e);
+      }
+    };
+
+    loadModel();
+  }, []);
 
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
@@ -30,7 +49,7 @@ export const StyleTransferScreen = ({
     if (imageUri) {
       try {
         const output = await model.forward(imageUri);
-        setImageUri(output);
+        setImageUri(output as string);
       } catch (e) {
         console.error(e);
       }

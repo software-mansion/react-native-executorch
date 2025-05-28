@@ -2,6 +2,7 @@
 
 #include <jsi/jsi.h>
 #include <type_traits>
+#include <unordered_set>
 
 namespace rnexecutorch::jsiconversion {
 
@@ -10,6 +11,11 @@ using namespace facebook;
 // Conversion from jsi to C++ types --------------------------------------------
 
 template <typename T> T getValue(const jsi::Value &val, jsi::Runtime &runtime);
+
+template <>
+inline int getValue<int>(const jsi::Value &val, jsi::Runtime &runtime) {
+  return val.asNumber();
+}
 
 template <>
 inline double getValue<double>(const jsi::Value &val, jsi::Runtime &runtime) {
@@ -56,6 +62,26 @@ inline jsi::Value getJsiValue(jsi::Value &&value, jsi::Runtime &runtime) {
 
 inline jsi::Value getJsiValue(jsi::Object &&value, jsi::Runtime &runtime) {
   return jsi::Value(std::move(value));
+}
+
+inline jsi::Value getJsiValue(const std::vector<int32_t> &vec,
+                              jsi::Runtime &runtime) {
+  jsi::Array array(runtime, vec.size());
+  for (size_t i = 0; i < vec.size(); ++i) {
+    array.setValueAtIndex(runtime, i, jsi::Value(static_cast<int>(vec[i])));
+  }
+  return jsi::Value(runtime, array);
+}
+
+inline jsi::Value getJsiValue(const std::unordered_set<std::string> &uset,
+                              jsi::Runtime &runtime) {
+  jsi::Array array(runtime, uset.size());
+  size_t idx = 0;
+  for (const auto &str : uset) {
+    array.setValueAtIndex(runtime, idx++,
+                          jsi::String::createFromAscii(runtime, str));
+  }
+  return jsi::Value(runtime, array);
 }
 
 inline jsi::Value getJsiValue(const std::string &str, jsi::Runtime &runtime) {

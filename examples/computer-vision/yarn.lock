@@ -1468,19 +1468,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@expo/env@npm:~1.0.2":
-  version: 1.0.2
-  resolution: "@expo/env@npm:1.0.2"
-  dependencies:
-    chalk: ^4.0.0
-    debug: ^4.3.4
-    dotenv: ~16.4.5
-    dotenv-expand: ~11.0.6
-    getenv: ^1.0.0
-  checksum: 1b2f394f75d0cccf73695aae7a22c7f33c12906b05aceb00ce16cffbfaaa88fa8210ab233c8c1dc46ee62c96d7d5345dfb67914e37cb59362beaa40319414944
-  languageName: node
-  linkType: hard
-
 "@expo/fingerprint@npm:0.11.11":
   version: 0.11.11
   resolution: "@expo/fingerprint@npm:0.11.11"
@@ -1733,6 +1720,13 @@ __metadata:
   bin:
     excpretty: build/cli.js
   checksum: 8771b2812f0dfc49f6dab4338c986beaf4cf2ec20ed8fd598be6e3803fcbfc0a337dbb5b4dad9556b85ba2489f63c777735ad2c2ee6f5842ff68b9322e47f6a3
+  languageName: node
+  linkType: hard
+
+"@huggingface/jinja@npm:^0.3.4":
+  version: 0.3.4
+  resolution: "@huggingface/jinja@npm:0.3.4"
+  checksum: 5a2eac0da4522e6a60af0a73cb6bdcca6b0a5e3d4987b40a260a5735da686e13a689e87428ca9945576135a29c4485e14d2f8fc130a89f93fd390c5c3904d224
   languageName: node
   linkType: hard
 
@@ -3494,7 +3488,7 @@ __metadata:
     metro-config: ^0.81.0
     react: 18.3.1
     react-native: 0.76.9
-    react-native-executorch: ^0.3.2
+    react-native-executorch: /Users/jakubchmura/Desktop/SWM_AI/react-native-executorch/react-native-executorch-0.3.1-test2403.tgz
     react-native-image-picker: ^7.2.2
     react-native-loading-spinner-overlay: ^3.0.1
     react-native-reanimated: ~3.16.1
@@ -4136,20 +4130,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-asset@npm:^11.0.3":
-  version: 11.1.1
-  resolution: "expo-asset@npm:11.1.1"
-  dependencies:
-    "@expo/image-utils": ^0.7.1
-    expo-constants: ~17.1.1
-  peerDependencies:
-    expo: "*"
-    react: "*"
-    react-native: "*"
-  checksum: 7d416d49868110086d6b2b10fe594c1b02a1e53775adef9e2f6e0c8e66be5538c11a1db6d9b01b360a02d8fef5936f9fc1e7e91c7f585d6d4fe79df21e4493ef
-  languageName: node
-  linkType: hard
-
 "expo-asset@npm:~11.0.5":
   version: 11.0.5
   resolution: "expo-asset@npm:11.0.5"
@@ -4176,31 +4156,6 @@ __metadata:
     expo: "*"
     react-native: "*"
   checksum: 493e18f8ea2c49efd69aae37b756ede1c37ecc29ac9bd5c23cb2ca88dbc57109c7f915196bcfaab71ceca2141e9a9806a685f8ac787fa206af7f1391be2e09f2
-  languageName: node
-  linkType: hard
-
-"expo-constants@npm:~17.1.1":
-  version: 17.1.1
-  resolution: "expo-constants@npm:17.1.1"
-  dependencies:
-    "@expo/config": ~11.0.1
-    "@expo/env": ~1.0.2
-  peerDependencies:
-    expo: "*"
-    react-native: "*"
-  checksum: 96ee428e9e9d3af3440de4fee164f220f7d20cafbf3917b8c218eb71280474f88ae2b9cc567ec2b75f4d7e71eb3e09e767a5ccd965b126888fa5f7a3004df3ad
-  languageName: node
-  linkType: hard
-
-"expo-file-system@npm:^18.0.10":
-  version: 18.1.3
-  resolution: "expo-file-system@npm:18.1.3"
-  dependencies:
-    web-streams-polyfill: ^3.3.2
-  peerDependencies:
-    expo: "*"
-    react-native: "*"
-  checksum: 46f2e3e6ae6d08ca7c1fb64756883de0bc26fdea1ff88a70dec639d18cdb950d09b687abcfb5d1a39c72dc27dd99bada0e056e92226160dc618b283ab6bb3ccf
   languageName: node
   linkType: hard
 
@@ -7048,18 +7003,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-executorch@npm:^0.3.2":
-  version: 0.3.2
-  resolution: "react-native-executorch@npm:0.3.2"
+"react-native-executorch@file:/Users/jakubchmura/Desktop/SWM_AI/react-native-executorch/react-native-executorch-0.3.1-test2403.tgz::locator=computer-vision%40workspace%3A.":
+  version: 0.3.1
+  resolution: "react-native-executorch@file:/Users/jakubchmura/Desktop/SWM_AI/react-native-executorch/react-native-executorch-0.3.1-test2403.tgz::locator=computer-vision%40workspace%3A."
   dependencies:
+    "@huggingface/jinja": ^0.3.4
     expo: ^52.0.37
-    expo-asset: ^11.0.3
-    expo-file-system: ^18.0.10
+    expo-asset: ~11.0.5
+    expo-file-system: ~18.0.12
     react-native-live-audio-stream: ^1.1.1
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: c5ac5f0739186e05cc5bd5b7d03c9a8709ff037c0704e4cce12a489b20ac3dc572a454088c9cb81828abce755d576e980db1ef55fc64659ca0cfc0962789ab62
+  checksum: f088de1dedc5abff3167551f35b1661f4969a74f2985006ee791a1353d418ee223472359e57d17bb58939ad802d2f082da1516c1da9891c39c52f278bbeee032
   languageName: node
   linkType: hard
 

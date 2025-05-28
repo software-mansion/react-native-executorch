@@ -2,6 +2,7 @@
 
 #include <fmt/core.h>
 #include <rnexecutorch/Log.h>
+#include <unordered_set>
 
 namespace rnexecutorch {
 
@@ -20,24 +21,28 @@ ExecutorchModule::ExecutorchModule(const std::string &modelSource,
   }
 }
 
+std::unordered_set<std::string> ExecutorchModule::methodNames() {
+  auto result = module->method_names();
+  if (!result.ok()) {
+    throw std::runtime_error("Failed to get method_names!");
+  }
+  return result.get();
+}
+
+bool ExecutorchModule::isLoaded() { return module->is_loaded(); }
+
 std::vector<int32_t> ExecutorchModule::getInputShape(std::string method_name,
                                                      int index) {
   auto method_meta = module->method_meta(method_name);
   if (!method_meta.ok()) {
-    throw std::runtime_error(
-        fmt::format("Failed to load method with name {}", method_name));
+    throw std::runtime_error("Failed to load method");
   }
 
-  std::vector<int32_t> input_shape;
   auto input_meta = method_meta->input_tensor_meta(index);
   if (!input_meta.ok()) {
-    throw std::runtime_error(
-        fmt::format("Failed to load forward input {}", index));
+    throw std::runtime_error("Failed to load input for given method");
   }
-
-  for (auto size : input_meta->sizes()) {
-    input_shape.push_back(size);
-  }
-  return input_shape;
+  auto shape = input_meta->sizes();
+  return std::vector<int32_t>(shape.begin(), shape.end());
 }
 } // namespace rnexecutorch

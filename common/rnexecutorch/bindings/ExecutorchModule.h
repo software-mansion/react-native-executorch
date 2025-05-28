@@ -13,6 +13,8 @@ public:
   ExecutorchModule(const std::string &modelSource,
                    facebook::jsi::Runtime *runtime);
   std::vector<int32_t> getInputShape(std::string method_name, int index);
+  std::unordered_set<std::string> methodNames();
+  bool isLoaded();
 
 protected:
   std::unique_ptr<executorch::extension::Module> module;

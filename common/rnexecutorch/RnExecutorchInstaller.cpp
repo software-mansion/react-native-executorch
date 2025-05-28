@@ -1,5 +1,6 @@
 #include "RnExecutorchInstaller.h"
 
+#include <rnexecutorch/bindings/ExecutorchModule.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
 
@@ -19,5 +20,10 @@ void RnExecutorchInstaller::injectJSIBindings(
       *jsiRuntime, "loadStyleTransfer",
       RnExecutorchInstaller::loadModel<StyleTransfer>(jsiRuntime, jsCallInvoker,
                                                       "loadStyleTransfer"));
+
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadExecutorchModule",
+      RnExecutorchInstaller::loadModel<ExecutorchModule>(
+          jsiRuntime, jsCallInvoker, "loadExecutorchModule"));
 }
 } // namespace rnexecutorch
