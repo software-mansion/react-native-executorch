@@ -104,6 +104,12 @@ android {
     buildConfig true
   }
 
+  prefab {
+    "react-native-executorch" {
+      headers "src/main/cpp"
+    }
+  }
+
   compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
 
   defaultConfig {
@@ -114,8 +120,8 @@ android {
           cppFlags "-O2 -frtti -fexceptions -Wall -fstack-protector-all -fopenmp -static-openmp"
           abiFilters (*reactNativeArchitectures())
           arguments "-DANDROID_STL=c++_shared",
-                    "-DREACT_NATIVE_DIR=${toPlatformFileString(reactNativeRootDir.path)}"
-                    "-DBUILD_DIR=${project.buildDir}"
+                    "-DREACT_NATIVE_DIR=${toPlatformFileString(reactNativeRootDir.path)}",
+                    "-DBUILD_DIR=${project.buildDir}",
                     "-DANDROID_TOOLCHAIN=clang"
       }
     }
