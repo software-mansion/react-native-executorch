@@ -110,6 +110,10 @@ android {
     }
   }
 
+  packagingOptions {
+    exclude '**/executorch/**/libexecutorch.so'
+  }
+
   compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
 
   defaultConfig {
