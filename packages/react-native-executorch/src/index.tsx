@@ -1,5 +1,24 @@
 import { SpeechToTextLanguage } from './types/stt';
 
+import { ETInstallerNativeModule } from './native/RnExecutorchModules';
+
+// eslint-disable no-var
+declare global {
+  var loadStyleTransfer: (source: string) => Promise<any>;
+  var loadImageSegmentation: (source: string) => Promise<any>;
+}
+// eslint-disable no-var
+
+if (global.loadStyleTransfer == null) {
+  if (!ETInstallerNativeModule) {
+    throw new Error(
+      `Failed to install react-native-executorch: The native module could not be found.`
+    );
+  }
+
+  ETInstallerNativeModule.install();
+}
+
 // hooks
 export * from './hooks/computer_vision/useClassification';
 export * from './hooks/computer_vision/useObjectDetection';

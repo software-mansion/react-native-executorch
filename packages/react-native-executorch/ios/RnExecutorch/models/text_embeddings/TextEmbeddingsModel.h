@@ -1,4 +1,4 @@
-#import "BaseModel.h"
+#import "../BaseModel.h"
 #import "ExecutorchLib/HuggingFaceTokenizer.h"
 
 @interface TextEmbeddingsModel : BaseModel {

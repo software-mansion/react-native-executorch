@@ -70,7 +70,7 @@ PODS:
   - hermes-engine (0.79.2):
     - hermes-engine/Pre-built (= 0.79.2)
   - hermes-engine/Pre-built (0.79.2)
-  - opencv-rne (0.1.0)
+  - opencv-rne (4.11.0)
   - RCT-Folly (2024.11.18.00):
     - boost
     - DoubleConversion
@@ -1395,11 +1395,11 @@ PODS:
     - React-jsiexecutor
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
-  - react-native-executorch (0.4.2):
+  - react-native-executorch (20250527131314):
     - DoubleConversion
     - glog
     - hermes-engine
-    - opencv-rne (~> 0.1.0)
+    - opencv-rne (~> 4.11.0)
     - RCT-Folly (= 2024.11.18.00)
     - RCTRequired
     - RCTTypeSafety
@@ -1419,6 +1419,7 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
+    - sqlite3
     - Yoga
   - react-native-image-picker (7.2.3):
     - DoubleConversion
@@ -2041,6 +2042,9 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - SocketRocket (0.7.1)
+  - sqlite3 (3.49.2):
+    - sqlite3/common (= 3.49.2)
+  - sqlite3/common (3.49.2)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2134,6 +2138,7 @@ SPEC REPOS:
   trunk:
     - opencv-rne
     - SocketRocket
+    - sqlite3
 
 EXTERNAL SOURCES:
   boost:
@@ -2319,7 +2324,7 @@ SPEC CHECKSUMS:
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
   hermes-engine: 314be5250afa5692b57b4dd1705959e1973a8ebe
-  opencv-rne: 63e933ae2373fc91351f9a348dc46c3f523c2d3f
+  opencv-rne: 2305807573b6e29c8c87e3416ab096d09047a7a0
   RCT-Folly: e78785aa9ba2ed998ea4151e314036f6c49e6d82
   RCTDeprecation: 83ffb90c23ee5cea353bd32008a7bca100908f8c
   RCTRequired: eb7c0aba998009f47a540bec9e9d69a54f68136e
@@ -2351,7 +2356,7 @@ SPEC CHECKSUMS:
   React-logger: 8edfcedc100544791cd82692ca5a574240a16219
   React-Mapbuffer: c3f4b608e4a59dd2f6a416ef4d47a14400194468
   React-microtasksnativemodule: 054f34e9b82f02bd40f09cebd4083828b5b2beb6
-  react-native-executorch: 6939375a7c6c4095724675cfd86a7f9c2efdbaa2
+  react-native-executorch: 4abc1da8235ba6c77f5ebe592b4d7e8724312adf
   react-native-image-picker: 8a3f16000e794f5381a7fe47bb48fd8d06741e47
   react-native-safe-area-context: 562163222d999b79a51577eda2ea8ad2c32b4d06
   react-native-skia: b6cb66e99a953dae6880348c92cfb20a76d90b4f
@@ -2389,6 +2394,7 @@ SPEC CHECKSUMS:
   RNReanimated: afd6a269a47d6f13ba295c46c6c0e14e3cbd0d8a
   RNSVG: 794f269526df9ddc1f79b3d1a202b619df0368e3
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
+  sqlite3: 3c950dc86011117c307eb0b28c4a7bb449dce9f1
   Yoga: c758bfb934100bb4bf9cbaccb52557cee35e8bdf
 
 PODFILE CHECKSUM: 12be54799a0524303b792fe9e93fedb70ce87ef7
