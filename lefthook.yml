@@ -6,7 +6,7 @@ pre-commit:
       run: npx eslint {staged_files}
     types:
       glob: '*.{js,ts,jsx,tsx}'
-      run: npx tsc --noEmit
+      run: yarn typecheck
     format-js:
       glob: '*.{js,ts,jsx,tsx}'
       run: npx prettier --write {staged_files} && git add {staged_files}
