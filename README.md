@@ -1,5 +1,7 @@
 <div align="right">
-  <h1 align="left" style="display:inline-block">React Native ExecuTorch <a href="https://www.producthunt.com/posts/react-native-executorch?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-react&#0045;native&#0045;executorch" target="_blank" rel="noopener noreferrer"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=891872&theme=neutral&t=1742503583297" alt="React Native ExecuTorch - Product Hunt" height="34" align="right" /></a></h1>
+  <h1 align="left" style="display:inline-block">React Native ExecuTorch <a href="https://www.producthunt.com/posts/react-native-executorch?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-react&#0045;native&#0045;executorch" target="_blank" rel="noopener noreferrer">  <a href="https://discord.gg/ZGqqY55qkP">
+    <img src="https://img.shields.io/discord/YOUR_SERVER_ID.svg?label=Join%20Us&logo=discord&style=flat-square&color=7289DA" alt="Join us on Discord"/>
+  </a><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=891872&theme=neutral&t=1742503583297" alt="React Native ExecuTorch - Product Hunt" height="34" align="right" /></a></h1>
 </div>
 
 ![Software Mansion banner](https://github.com/user-attachments/assets/fa2c4735-e75c-4cc1-970d-88905d95e3a4)
@@ -105,15 +107,7 @@ If you would like to run it, navigate to it's project directory, for example `ap
 yarn
 ```
 
-then run:
-
-```bash
-cd ios
-pod install
-cd ..
-```
-
-And finally, if you want to run on Android:
+And then, if you want to run on Android:
 
 ```bash
 yarn expo run:android
