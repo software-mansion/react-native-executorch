@@ -4,10 +4,6 @@
     <a href="https://discord.gg/ZGqqY55qkP">
       <img src="https://img.shields.io/discord/464786597288738816.svg?label=Join%20Us&logo=discord&style=flat-square&color=7289DA" alt="Join us on Discord"/>
     </a>
-    <!-- Product Hunt Badge -->
-    <a href="https://www.producthunt.com/posts/react-native-executorch?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-react&#0045;native&#0045;executorch" target="_blank" rel="noopener noreferrer">  
-      <img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=891872&theme=neutral&t=1742503583297" alt="React Native ExecuTorch - Product Hunt" height="34" align="right" />
-    </a>
   </h1>
 </div>
 
@@ -52,7 +48,8 @@ https://docs.swmansion.com/react-native-executorch
 ```bash
 # Install the package
 yarn add react-native-executorch
-cd ios && pod install && cd ..
+# Depending on the platform choose either ios or android
+yarn expo run:< ios | android >
 ```
 
 ### 2️⃣ **Setup & Initialization**
