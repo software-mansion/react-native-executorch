@@ -69,16 +69,19 @@ public:
                 // breaks proper exception type checking. Remove when the
                 // following change is present in our version:
                 // https://github.com/facebook/react-native/commit/3132cc88dd46f95898a756456bebeeb6c248f20e
-                callInvoker->invokeAsync(
-                    [&e, promise]() { promise->reject(e.what()); });
+                callInvoker->invokeAsync([e = std::move(e), promise]() {
+                  promise->reject(e.what());
+                });
                 return;
               } catch (const jsi::JSError &e) {
-                callInvoker->invokeAsync(
-                    [&e, promise]() { promise->reject(e.what()); });
+                callInvoker->invokeAsync([e = std::move(e), promise]() {
+                  promise->reject(e.what());
+                });
                 return;
               } catch (const std::exception &e) {
-                callInvoker->invokeAsync(
-                    [&e, promise]() { promise->reject(e.what()); });
+                callInvoker->invokeAsync([e = std::move(e), promise]() {
+                  promise->reject(e.what());
+                });
                 return;
               } catch (...) {
                 callInvoker->invokeAsync(
