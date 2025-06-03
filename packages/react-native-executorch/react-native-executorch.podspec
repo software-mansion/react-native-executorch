@@ -48,7 +48,9 @@ Pod::Spec.new do |s|
       "-force_load \"#{et_binaries_path}\"/libkernels_custom_simulator.a", 
       "-force_load \"#{et_binaries_path}\"/libkernels_optimized_simulator.a", 
       "-force_load \"#{et_binaries_path}\"/libkernels_quantized_simulator.a"
-    ].join(' ')
+    ].join(' '),
+
+    'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',
   }
 
   s.pod_target_xcconfig = {
@@ -58,6 +60,7 @@ Pod::Spec.new do |s|
       '"$(PODS_TARGET_SRCROOT)/third-party/include" '+
       '"$(PODS_TARGET_SRCROOT)/common" ',
     "CLANG_CXX_LANGUAGE_STANDARD" => "c++20",
+    'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',
   }
 
   s.ios.vendored_frameworks = "ios/ExecutorchLib.xcframework"
