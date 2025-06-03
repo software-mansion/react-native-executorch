@@ -2,7 +2,7 @@
   <h1 align="left" style="display:inline-block">React Native ExecuTorch 
     <!-- Discord Badge -->
     <a href="https://discord.gg/ZGqqY55qkP">
-      <img src="https://img.shields.io/discord/464786597288738816.svg?label=Join%20Us&logo=discord&style=flat-square&color=7289DA" alt="Join us on Discord"/>
+      <img src="https://img.shields.io/badge/Discord-Join%20Us-00008B?logo=discord&logoColor=white&style=for-the-badge" alt="Join our Discord community">
     </a>
   </h1>
 </div>
