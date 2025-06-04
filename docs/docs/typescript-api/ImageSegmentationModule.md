@@ -14,11 +14,13 @@ import {
 
 const imageUri = 'path/to/image.png';
 
+const module = new ImageSegmentationModule();
+
 // Loading the model
-await ImageSegmentationModule.load(DEEPLAB_V3_RESNET50);
+await module.load(DEEPLAB_V3_RESNET50);
 
 // Running the model
-const outputDict = await ImageSegmentationModule.forward(imageUri);
+const outputDict = await module.forward(imageUri);
 ```
 
 ### Methods
@@ -40,11 +42,11 @@ type ResourceSource = string | number | object;
 
 ## Loading the model
 
-To load the model, use the `load` method. It accepts the `modelSource` which is a string that specifies the location of the model binary. For more information, take a look at [loading models](../fundamentals/loading-models.md) page. This method returns a promise, which can resolve to an error or void.
+To load the model, create a new instance of the module and use the `load` method on it. It accepts the `modelSource` which is a string that specifies the location of the model binary. For more information, take a look at [loading models](../fundamentals/loading-models.md) page. This method returns a promise, which can resolve to an error or void.
 
 ## Running the model
 
-To run the model, you can use the `forward` method. It accepts three arguments: a required image, an optional list of classes, and an optional flag whether to resize the output to the original dimensions.
+To run the model, you can use the `forward` method on the module object. It accepts three arguments: a required image, an optional list of classes, and an optional flag whether to resize the output to the original dimensions.
 
 - The image can be a remote URL, a local file URI, or a base64-encoded image.
 - The `classesOfInterest` list contains classes for which to output the full results. By default the list is empty, and only the most probable classes are returned (essentially an arg max for each pixel). Look at `DeeplabLabel` enum for possible classes.
