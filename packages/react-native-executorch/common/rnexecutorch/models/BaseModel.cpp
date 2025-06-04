@@ -59,7 +59,7 @@ Result<std::vector<EValue>> BaseModel::forwardET(const EValue &input_value) {
   if (!module) {
     throw std::runtime_error("Forward called on unloaded model");
   }
-  return std::move(module->forward(input_value));
+  return module->forward(input_value);
 }
 
 } // namespace rnexecutorch
