@@ -17,7 +17,7 @@ using executorch::runtime::Error;
 StyleTransfer::StyleTransfer(const std::string &modelSource,
                              std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
-  auto inputTensors = getInputShape();
+  auto inputTensors = getAllInputShapes();
   if (inputTensors.size() == 0) {
     throw std::runtime_error("Model seems to not take any input tensors.");
   }
@@ -40,7 +40,7 @@ StyleTransfer::preprocess(const std::string &imageSource) {
   auto originalSize = image.size();
   cv::resize(image, image, modelImageSize);
 
-  return {imageprocessing::getTensorFromMatrix(getInputShape()[0], image),
+  return {imageprocessing::getTensorFromMatrix(getAllInputShapes()[0], image),
           originalSize};
 }
 

@@ -13,7 +13,7 @@ class BaseModel {
 public:
   BaseModel(const std::string &modelSource,
             std::shared_ptr<react::CallInvoker> callInvoker);
-  std::vector<std::vector<int32_t>> getInputShape();
+  std::vector<std::vector<int32_t>> getAllInputShapes();
 
 protected:
   std::unique_ptr<executorch::extension::Module> module;

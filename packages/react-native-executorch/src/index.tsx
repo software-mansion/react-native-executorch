@@ -6,6 +6,7 @@ import { ETInstallerNativeModule } from './native/RnExecutorchModules';
 declare global {
   var loadStyleTransfer: (source: string) => Promise<any>;
   var loadImageSegmentation: (source: string) => Promise<any>;
+  var loadExecutorchModule: (source: string) => any;
 }
 // eslint-disable no-var
 

@@ -20,7 +20,7 @@ BaseModel::BaseModel(const std::string &modelSource,
   }
 }
 
-std::vector<std::vector<int32_t>> BaseModel::getInputShape() {
+std::vector<std::vector<int32_t>> BaseModel::getAllInputShapes() {
   auto method_meta = module->method_meta("forward");
 
   if (!method_meta.ok()) {
