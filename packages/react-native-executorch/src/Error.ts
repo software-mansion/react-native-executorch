@@ -32,6 +32,8 @@ export enum ETError {
   MemoryAllocationFailed = 0x21,
   AccessFailed = 0x22,
   InvalidProgram = 0x23,
+  InvalidExternalData = 0x24,
+  OutOfResources = 0x25,
 
   // Delegate errors
   DelegateInvalidCompatibility = 0x30,

@@ -1,3 +1,5 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
 buildscript {
   ext {
     agp_version = '8.4.2'
@@ -21,19 +23,20 @@ buildscript {
 
 def reactNativeArchitectures() {
   def value = rootProject.getProperties().get("reactNativeArchitectures")
-  return value ? value.split(",") : ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
-}
-
-def isNewArchitectureEnabled() {
-  return rootProject.hasProperty("newArchEnabled") && rootProject.getProperty("newArchEnabled") == "true"
+  // react-native-executorch supports only these architectures. This is due to
+  // Executorch not supporting anything else.
+  def defaultArchitectures = ["x86_64", "arm64-v8a"]
+  if(!value) {
+    return defaultArchitectures
+  }
+  def architectures = value.split(",")
+  return architectures.findAll { it in defaultArchitectures }
 }
 
 apply plugin: "com.android.library"
 apply plugin: "kotlin-android"
+apply plugin: "com.facebook.react"
 
-if (isNewArchitectureEnabled()) {
-  apply plugin: "com.facebook.react"
-}
 
 def getExtOrDefault(name) {
   return rootProject.ext.has(name) ? rootProject.ext.get(name) : project.properties["RnExecutorch_" + name]
@@ -52,6 +55,38 @@ def supportsNamespace() {
   return (major == 7 && minor >= 3) || major >= 8
 }
 
+def safeAppExtGet(prop, fallback) {
+  def appProject = rootProject.allprojects.find { it.plugins.hasPlugin('com.android.application') }
+  appProject?.ext?.has(prop) ? appProject.ext.get(prop) : fallback
+}
+
+def toPlatformFileString(String path) {
+  if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+      path = path.replace(File.separatorChar, '/' as char)
+  }
+  return path
+}
+
+def resolveReactNativeDirectory() {
+  def reactNativeLocation = safeAppExtGet("REACT_NATIVE_NODE_MODULES_DIR", null)
+
+  if (reactNativeLocation !== null) {
+    return file(reactNativeLocation)
+  }
+
+  // Fallback to node resolver for custom directory structures like monorepos.
+  def reactNativePackage = file(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim())
+  if(reactNativePackage.exists()) {
+      return reactNativePackage.parentFile
+  }
+
+  throw new GradleException(
+      "[RnExecutorch] Unable to resolve react-native location in node_modules. You should project extension property (in `app/build.gradle`) `REACT_NATIVE_NODE_MODULES_DIR` with path to react-native."
+  )
+}
+
+def reactNativeRootDir = resolveReactNativeDirectory()
+
 android {
   if (supportsNamespace()) {
     namespace "com.swmansion.rnexecutorch"
@@ -63,12 +98,46 @@ android {
     }
   }
 
+  buildFeatures {
+    prefab true
+    prefabPublishing true
+    buildConfig true
+  }
+
+  prefab {
+    "react-native-executorch" {
+      headers "src/main/cpp"
+    }
+  }
+
+  packagingOptions {
+    excludes = [
+      "**/libexecutorch.so"
+    ]
+  }
+
   compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
 
   defaultConfig {
     minSdkVersion getExtOrIntegerDefault("minSdkVersion")
     targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
-    buildConfigField("boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString())
+    externalNativeBuild {
+        cmake {
+          cppFlags "-O2 -frtti -fexceptions -Wall -fstack-protector-all -fopenmp -static-openmp"
+          abiFilters (*reactNativeArchitectures())
+          arguments "-DANDROID_STL=c++_shared",
+                    "-DREACT_NATIVE_DIR=${toPlatformFileString(reactNativeRootDir.path)}",
+                    "-DBUILD_DIR=${project.buildDir}",
+                    "-DANDROID_TOOLCHAIN=clang"
+      }
+    }
+  }
+
+
+  externalNativeBuild {
+    cmake {
+      path "CMakeLists.txt"
+    }
   }
 
   buildTypes {
@@ -85,6 +154,7 @@ android {
     sourceCompatibility JavaVersion.VERSION_1_8
     targetCompatibility JavaVersion.VERSION_1_8
   }
+
 }
 
 repositories {
@@ -101,7 +171,8 @@ dependencies {
   //noinspection GradleDynamicVersion
   implementation 'com.github.wendykierp:JTransforms:3.1'
   implementation "com.facebook.react:react-android:+"
-  implementation 'org.opencv:opencv:4.10.0'
+  implementation "com.facebook.react:react-native:+"
+  implementation 'com.facebook.fbjni:fbjni:0.6.0'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 	implementation("com.github.software-mansion:react-native-executorch:main-SNAPSHOT")
   implementation 'org.opencv:opencv:4.10.0'
