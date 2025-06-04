@@ -3,8 +3,8 @@ import { BottomBar } from '../components/BottomBar';
 import { getImage } from '../utils';
 import {
   useImageSegmentation,
-  DeeplabLabel,
   DEEPLAB_V3_RESNET50,
+  DeeplabLabel,
 } from 'react-native-executorch';
 import {
   Canvas,
