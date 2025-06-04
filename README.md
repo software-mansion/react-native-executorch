@@ -66,7 +66,7 @@ import {
 
 function MyComponent() {
   // Initialize the model 🚀
-  const llama = useLLM({
+  const llm = useLLM({
     modelSource: LLAMA3_2_1B,
     tokenizerSource: LLAMA3_2_TOKENIZER,
     tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
@@ -80,7 +80,7 @@ function MyComponent() {
 ```tsx
 const handleGenerate = async () => {
   const chat = [
-    { role: 'system' content: 'You are a helpful assistant' }
+    { role: 'system', content: 'You are a helpful assistant' }
     { role: 'user', content: 'What is the meaning of life?' }
   ];
 
