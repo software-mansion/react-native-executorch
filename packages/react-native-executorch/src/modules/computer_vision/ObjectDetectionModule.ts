@@ -1,17 +1,28 @@
-import { ObjectDetectionNativeModule } from '../../native/RnExecutorchModules';
+import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
-import { BaseModule } from '../BaseModule';
+import { Detection } from '../../types/objectDetection';
+import { ETError, getError } from '../../Error';
 
-export class ObjectDetectionModule extends BaseModule {
-  protected static override nativeModule = ObjectDetectionNativeModule;
+export class ObjectDetectionModule {
+  nativeModule: any = null;
 
-  static override async load(modelSource: ResourceSource) {
-    return await super.load(modelSource);
+  async load(
+    modelSource: ResourceSource,
+    onDownloadProgressCallback: (_: number) => void = () => {}
+  ): Promise<void> {
+    const paths = await ResourceFetcher.fetchMultipleResources(
+      onDownloadProgressCallback,
+      modelSource
+    );
+    this.nativeModule = global.loadObjectDetection(paths[0] || '');
   }
 
-  static override async forward(
-    input: string
-  ): ReturnType<typeof this.nativeModule.forward> {
-    return await this.nativeModule.forward(input);
+  async forward(
+    imageSource: string,
+    detectionThreshold: number = 0.7
+  ): Promise<Detection[]> {
+    if (this.nativeModule == null)
+      throw new Error(getError(ETError.ModuleNotLoaded));
+    return await this.nativeModule.forward(imageSource, detectionThreshold);
   }
 }
