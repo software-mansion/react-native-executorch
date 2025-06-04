@@ -15,7 +15,7 @@ ImageSegmentation::ImageSegmentation(
     const std::string &modelSource,
     std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
-  auto inputShapes = getInputShape();
+  auto inputShapes = getAllInputShapes();
   if (inputShapes.size() == 0) {
     throw std::runtime_error("Model seems to not take any input tensors.");
   }
@@ -59,9 +59,9 @@ ImageSegmentation::preprocess(const std::string &imageSource) {
   cv::resize(input, input, modelImageSize);
 
   std::vector<float> inputVector = imageprocessing::colorMatToVector(input);
-  return {
-      executorch::extension::make_tensor_ptr(getInputShape()[0], inputVector),
-      inputSize};
+  return {executorch::extension::make_tensor_ptr(getAllInputShapes()[0],
+                                                 inputVector),
+          inputSize};
 }
 
 std::shared_ptr<jsi::Object> ImageSegmentation::postprocess(

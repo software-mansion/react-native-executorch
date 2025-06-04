@@ -1,5 +1,6 @@
 #include "RnExecutorchInstaller.h"
 
+#include <rnexecutorch/bindings/ExecutorchModule.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/models/classification/Classification.h>
 #include <rnexecutorch/models/image_segmentation/ImageSegmentation.h>
@@ -27,9 +28,13 @@ void RnExecutorchInstaller::injectJSIBindings(
       RnExecutorchInstaller::loadModel<ImageSegmentation>(
           jsiRuntime, jsCallInvoker, "loadImageSegmentation"));
 
-  jsiRuntime->global().setProperty(
-      *jsiRuntime, "loadClassification",
-      RnExecutorchInstaller::loadModel<Classification>(
-          jsiRuntime, jsCallInvoker, "loadClassification"));
-}
+jsiRuntime->global().setProperty(
+        *jsiRuntime, "loadClassification",
+        RnExecutorchInstaller::loadModel<Classification>(
+            jsiRuntime, jsCallInvoker, "loadClassification"));
+            
+            jsiRuntime->global().setProperty(
+            *jsiRuntime, "loadExecutorchModule",
+        RnExecutorchInstaller::loadModel<ExecutorchModule>(
+            jsiRuntime, jsCallInvoker, "loadExecutorchModule"));
 } // namespace rnexecutorch

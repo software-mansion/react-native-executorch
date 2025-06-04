@@ -28,8 +28,8 @@ BaseModel::BaseModel(const std::string &modelSource,
   memorySizeLowerBound = std::filesystem::file_size(modelPath);
 }
 
-std::vector<std::vector<int32_t>> BaseModel::getInputShape() {
-  if (!module) {
+std::vector<std::vector<int32_t>> BaseModel::getAllInputShapes() {
+    if (!module) {
     throw std::runtime_error("getInputShape called on unloaded model");
   }
   auto method_meta = module->method_meta("forward");

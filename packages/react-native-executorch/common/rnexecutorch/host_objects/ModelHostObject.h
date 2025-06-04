@@ -12,6 +12,7 @@
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/jsi/JsiHostObject.h>
 #include <rnexecutorch/jsi/Promise.h>
+#include <rnexecutorch/utils/TypeConstraints.h>
 
 namespace rnexecutorch {
 
@@ -20,12 +21,18 @@ public:
   explicit ModelHostObject(const std::shared_ptr<Model> &model,
                            std::shared_ptr<react::CallInvoker> callInvoker)
       : model(model), callInvoker(callInvoker) {
-    addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                     promiseHostFunction<&Model::forward>,
-                                     "forward"));
     if constexpr (DerivedFromBaseModel<Model>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
+    if constexpr (HasForward<Model>) {
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::forward>,
+                                       "forward"));
+    }
+    if constexpr (HasGetInputShape<Model>) {
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>, promiseHostFunction<&Model::getInputShape>,
+          "getInputShape"));
     }
   }
 
