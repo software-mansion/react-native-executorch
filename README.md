@@ -66,7 +66,7 @@ import {
 
 function MyComponent() {
   // Initialize the model 🚀
-  const llama = useLLM({
+  const llm = useLLM({
     modelSource: LLAMA3_2_1B,
     tokenizerSource: LLAMA3_2_TOKENIZER,
     tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
