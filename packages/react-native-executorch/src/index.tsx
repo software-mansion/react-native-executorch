@@ -8,6 +8,7 @@ declare global {
   var loadImageSegmentation: (source: string) => any;
   var loadClassification: (source: string) => any;
   var loadObjectDetection: (source: string) => any;
+  var loadExecutorchModule: (source: string) => any;
 }
 // eslint-disable no-var
 

@@ -23,6 +23,11 @@ inline double getValue<double>(const jsi::Value &val, jsi::Runtime &runtime) {
 }
 
 template <>
+inline int getValue<int>(const jsi::Value &val, jsi::Runtime &runtime) {
+  return val.asNumber();
+}
+
+template <>
 inline bool getValue<bool>(const jsi::Value &val, jsi::Runtime &runtime) {
   return val.asBool();
 }
@@ -76,6 +81,15 @@ getValue<std::set<std::string, std::less<>>>(const jsi::Value &val,
 inline jsi::Value getJsiValue(std::shared_ptr<jsi::Object> valuePtr,
                               jsi::Runtime &runtime) {
   return std::move(*valuePtr);
+}
+
+inline jsi::Value getJsiValue(const std::vector<int32_t> &vec,
+                              jsi::Runtime &runtime) {
+  jsi::Array array(runtime, vec.size());
+  for (size_t i = 0; i < vec.size(); i++) {
+    array.setValueAtIndex(runtime, i, jsi::Value(static_cast<int>(vec[i])));
+  }
+  return jsi::Value(runtime, array);
 }
 
 inline jsi::Value getJsiValue(const std::string &str, jsi::Runtime &runtime) {

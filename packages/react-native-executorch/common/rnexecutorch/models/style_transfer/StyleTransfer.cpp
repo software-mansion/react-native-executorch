@@ -16,7 +16,7 @@ using executorch::runtime::Error;
 StyleTransfer::StyleTransfer(const std::string &modelSource,
                              std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
-  auto inputShapes = getInputShape();
+  auto inputShapes = getAllInputShapes();
   if (inputShapes.size() == 0) {
     throw std::runtime_error("Model seems to not take any input tensors.");
   }
@@ -43,7 +43,7 @@ std::string StyleTransfer::postprocess(const Tensor &tensor,
 
 std::string StyleTransfer::forward(std::string imageSource) {
   auto [inputTensor, originalSize] =
-      imageprocessing::readImageToTensor(imageSource, getInputShape()[0]);
+      imageprocessing::readImageToTensor(imageSource, getAllInputShapes()[0]);
 
   auto forwardResult = forwardET(inputTensor);
   if (!forwardResult.ok()) {
