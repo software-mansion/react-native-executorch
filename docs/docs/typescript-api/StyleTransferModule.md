@@ -14,11 +14,13 @@ import {
 
 const imageUri = 'path/to/image.png';
 
+const module = new StyleTransferModule();
+
 // Loading the model
-await StyleTransferModule.load(STYLE_TRANSFER_CANDY);
+await module.load(STYLE_TRANSFER_CANDY);
 
 // Running the model
-const generatedImageUrl = await StyleTransferModule.forward(imageUri);
+const generatedImageUrl = await module.forward(imageUri);
 ```
 
 ### Methods
@@ -40,8 +42,8 @@ type ResourceSource = string | number | object;
 
 ## Loading the model
 
-To load the model, use the `load` method. It accepts the `modelSource` which is a string that specifies the location of the model binary. For more information, take a look at [loading models](../fundamentals/loading-models.md) page. This method returns a promise, which can resolve to an error or void.
+To load the model, create a new instance of the module and use the `load` method on it. It accepts the `modelSource` which is a string that specifies the location of the model binary. For more information, take a look at [loading models](../fundamentals/loading-models.md) page. This method returns a promise, which can resolve to an error or void.
 
 ## Running the model
 
-To run the model, you can use the `forward` method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The method returns a promise, which can resolve either to an error or a URL to generated image.
+To run the model, you can use the `forward` method on the module object. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The method returns a promise, which can resolve either to an error or a URL to generated image.
