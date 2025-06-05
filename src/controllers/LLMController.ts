@@ -145,7 +145,8 @@ export class LLMController {
   public delete() {
     if (this._isGenerating) {
       throw new Error(
-        'Model is generating! You cannot delete the model now. You need to interrupt first.'
+        getError(ETError.ModelGenerating) +
+          'You cannot delete the model now. You need to interrupt first.'
       );
     }
     this.onToken?.remove();
@@ -158,6 +159,9 @@ export class LLMController {
   public async forward(input: string) {
     if (!this._isReady) {
       throw new Error(getError(ETError.ModuleNotLoaded));
+    }
+    if (this._isGenerating) {
+      throw new Error(getError(ETError.ModelGenerating));
     }
     try {
       this.responseCallback('');
