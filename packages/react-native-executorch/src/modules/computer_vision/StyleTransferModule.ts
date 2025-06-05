@@ -1,10 +1,9 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
 import { ETError, getError } from '../../Error';
+import { BaseNonStaticModule } from '../BaseNonStaticModule';
 
-export class StyleTransferModule {
-  nativeModule: any = null;
-
+export class StyleTransferModule extends BaseNonStaticModule {
   async load(
     modelSource: ResourceSource,
     onDownloadProgressCallback: (_: number) => void = () => {}
@@ -20,9 +19,5 @@ export class StyleTransferModule {
     if (this.nativeModule == null)
       throw new Error(getError(ETError.ModuleNotLoaded));
     return await this.nativeModule.forward(imageSource);
-  }
-
-  delete() {
-    this.nativeModule.unload();
   }
 }

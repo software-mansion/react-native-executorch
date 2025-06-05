@@ -2,10 +2,9 @@ import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
 import { DeeplabLabel } from '../../types/imageSegmentation';
 import { ETError, getError } from '../../Error';
+import { BaseNonStaticModule } from '../BaseNonStaticModule';
 
-export class ImageSegmentationModule {
-  nativeModule: any = null;
-
+export class ImageSegmentationModule extends BaseNonStaticModule {
   async load(
     modelSource: ResourceSource,
     onDownloadProgressCallback: (_: number) => void = () => {}
@@ -41,9 +40,5 @@ export class ImageSegmentationModule {
       }
     }
     return enumDict;
-  }
-
-  delete() {
-    this.nativeModule.unload();
   }
 }
