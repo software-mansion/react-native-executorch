@@ -25,13 +25,13 @@ Pod::Spec.new do |s|
       '-framework "Metal"', 
       '-framework "MetalPerformanceShaders"', 
       '-framework "MetalPerformanceShadersGraph"', 
-      '-force_load "\"#{et_binaries_path}\"/libbackend_coreml_ios.a"', 
-      '-force_load "\"#{et_binaries_path}\"/libbackend_mps_ios.a"', 
-      '-force_load "\"#{et_binaries_path}\"/libbackend_xnnpack_ios.a"', 
-      '-force_load "\"#{et_binaries_path}\"/libexecutorch_ios.a"', 
-      '-force_load "\"#{et_binaries_path}\"/libkernels_custom_ios.a"', 
-      '-force_load "\"#{et_binaries_path}\"/libkernels_optimized_ios.a"', 
-      '-force_load "\"#{et_binaries_path}\"/libkernels_quantized_ios.a"'
+      "-force_load \"#{et_binaries_path}\"/libbackend_coreml_ios.a", 
+      "-force_load \"#{et_binaries_path}\"/libbackend_mps_ios.a", 
+      "-force_load \"#{et_binaries_path}\"/libbackend_xnnpack_ios.a", 
+      "-force_load \"#{et_binaries_path}\"/libexecutorch_ios.a", 
+      "-force_load \"#{et_binaries_path}\"/libkernels_custom_ios.a", 
+      "-force_load \"#{et_binaries_path}\"/libkernels_optimized_ios.a", 
+      "-force_load \"#{et_binaries_path}\"/libkernels_quantized_ios.a"
     ].join(' '),
       
     "OTHER_LDFLAGS[sdk=iphonesimulator*][arch=*]" => [
