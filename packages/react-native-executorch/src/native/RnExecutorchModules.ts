@@ -6,7 +6,6 @@ import { Spec as VerticalOCRInterface } from './NativeVerticalOCR';
 import { Spec as SpeechToTextInterface } from './NativeSpeechToText';
 import { Spec as TextEmbeddingsInterface } from './NativeTextEmbeddings';
 import { Spec as LLMInterface } from './NativeLLM';
-import { Spec as ClassificationInterface } from './NativeClassification';
 import { Spec as TokenizerInterface } from './NativeTokenizer';
 import { Spec as ETInstallerInterface } from './NativeETInstaller';
 
@@ -35,8 +34,6 @@ const LLMNativeModule: LLMInterface = returnSpecOrThrowLinkingError(
 const ETModuleNativeModule: ETModuleInterface = returnSpecOrThrowLinkingError(
   require('./NativeETModule').default
 );
-const ClassificationNativeModule: ClassificationInterface =
-  returnSpecOrThrowLinkingError(require('./NativeClassification').default);
 const ObjectDetectionNativeModule: ObjectDetectionInterface =
   returnSpecOrThrowLinkingError(require('./NativeObjectDetection').default);
 const SpeechToTextNativeModule: SpeechToTextInterface =
@@ -57,7 +54,6 @@ const ETInstallerNativeModule: ETInstallerInterface =
 export {
   LLMNativeModule,
   ETModuleNativeModule,
-  ClassificationNativeModule,
   ObjectDetectionNativeModule,
   SpeechToTextNativeModule,
   OCRNativeModule,
