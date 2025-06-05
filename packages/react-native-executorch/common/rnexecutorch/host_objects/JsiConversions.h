@@ -4,7 +4,9 @@
 #include <type_traits>
 #include <unordered_map>
 
+#include <executorch/runtime/core/exec_aten/util/scalar_type_util.h>
 #include <jsi/jsi.h>
+#include <rnexecutorch/utils/JsiTensorView.h>
 
 #include <rnexecutorch/models/object_detection/Constants.h>
 #include <rnexecutorch/models/object_detection/Utils.h>
@@ -36,6 +38,93 @@ template <>
 inline std::string getValue<std::string>(const jsi::Value &val,
                                          jsi::Runtime &runtime) {
   return val.getString(runtime).utf8(runtime);
+}
+
+template <>
+inline JsiTensorView getValue<JsiTensorView>(const jsi::Value &val,
+                                             jsi::Runtime &runtime) {
+  jsi::Object obj = val.asObject(runtime);
+  JsiTensorView tensorView;
+
+  int scalarTypeInt =
+      getValue<int>(obj.getProperty(runtime, "scalarType"), runtime);
+  tensorView.scalarType = static_cast<ScalarType>(scalarTypeInt);
+
+  jsi::Value shapeValue = obj.getProperty(runtime, "shape");
+  jsi::Array shapeArray = shapeValue.asObject(runtime).asArray(runtime);
+  size_t shapeDims = shapeArray.size(runtime);
+  tensorView.shape.reserve(shapeDims);
+
+  for (size_t i = 0; i < shapeDims; ++i) {
+    int dim = getValue<int>(shapeArray.getValueAtIndex(runtime, i), runtime);
+    tensorView.shape.push_back(static_cast<int32_t>(dim));
+  }
+
+  // On JS side, TensorPtr objects hold a 'data' property which should be either
+  // an ArrayBuffer or TypedArray
+  jsi::Value dataValue = obj.getProperty(runtime, "data");
+  if (!dataValue.isObject()) {
+    throw jsi::JSError(runtime, "Data must be a typed array or ArrayBuffer");
+  }
+
+  jsi::Object dataObj = dataValue.asObject(runtime);
+
+  // Check if it's an ArrayBuffer or TypedArray
+  if (dataObj.isArrayBuffer(runtime)) {
+    jsi::ArrayBuffer arrayBuffer = dataObj.getArrayBuffer(runtime);
+    tensorView.dataPtr = arrayBuffer.data(runtime);
+
+    // Get the array size in bytes
+    size_t arrayBytes = arrayBuffer.size(runtime);
+    size_t elementBytes =
+        executorch::runtime::elementSize(tensorView.scalarType);
+    tensorView.numel = arrayBytes / elementBytes;
+
+  } else {
+    // Handle typed arrays (Float32Array, Int32Array, etc.)
+    if (dataObj.hasProperty(runtime, "buffer") &&
+        dataObj.hasProperty(runtime, "byteOffset") &&
+        dataObj.hasProperty(runtime, "byteLength") &&
+        dataObj.hasProperty(runtime, "length")) {
+
+      tensorView.numel =
+          getValue<int>(dataObj.getProperty(runtime, "length"), runtime);
+
+      jsi::Value bufferValue = dataObj.getProperty(runtime, "buffer");
+      if (!bufferValue.isObject() ||
+          !bufferValue.asObject(runtime).isArrayBuffer(runtime)) {
+        throw jsi::JSError(runtime,
+                           "TypedArray buffer property must be an ArrayBuffer");
+      }
+
+      jsi::ArrayBuffer arrayBuffer =
+          bufferValue.asObject(runtime).getArrayBuffer(runtime);
+      size_t byteOffset =
+          getValue<int>(dataObj.getProperty(runtime, "byteOffset"), runtime);
+
+      tensorView.dataPtr =
+          static_cast<uint8_t *>(arrayBuffer.data(runtime)) + byteOffset;
+    } else {
+      throw jsi::JSError(runtime, "Data must be an ArrayBuffer or TypedArray");
+    }
+  }
+  return std::move(tensorView);
+}
+
+template <>
+inline std::vector<JsiTensorView>
+getValue<std::vector<JsiTensorView>>(const jsi::Value &val,
+                                     jsi::Runtime &runtime) {
+  jsi::Array array = val.asObject(runtime).asArray(runtime);
+  size_t length = array.size(runtime);
+  std::vector<JsiTensorView> result;
+  result.reserve(length);
+
+  for (size_t i = 0; i < length; ++i) {
+    jsi::Value element = array.getValueAtIndex(runtime, i);
+    result.push_back(getValue<JsiTensorView>(element, runtime));
+  }
+  return result;
 }
 
 template <>
@@ -90,6 +179,10 @@ inline jsi::Value getJsiValue(const std::vector<int32_t> &vec,
     array.setValueAtIndex(runtime, i, jsi::Value(static_cast<int>(vec[i])));
   }
   return jsi::Value(runtime, array);
+}
+
+inline jsi::Value getJsiValue(int val, jsi::Runtime &runtime) {
+  return jsi::Value(runtime, val);
 }
 
 inline jsi::Value getJsiValue(const std::string &str, jsi::Runtime &runtime) {
