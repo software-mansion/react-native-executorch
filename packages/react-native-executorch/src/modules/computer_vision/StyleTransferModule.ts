@@ -20,8 +20,4 @@ export class StyleTransferModule extends BaseNonStaticModule {
       throw new Error(getError(ETError.ModuleNotLoaded));
     return await this.nativeModule.forward(imageSource);
   }
-
-  delete() {
-    this.nativeModule.unload();
-  }
 }

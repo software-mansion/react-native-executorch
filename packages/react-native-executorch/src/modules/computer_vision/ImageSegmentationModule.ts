@@ -41,8 +41,4 @@ export class ImageSegmentationModule extends BaseNonStaticModule {
     }
     return enumDict;
   }
-
-  delete() {
-    this.nativeModule.unload();
-  }
 }
