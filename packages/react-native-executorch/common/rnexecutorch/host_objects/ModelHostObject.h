@@ -104,7 +104,7 @@ public:
 
   JSI_HOST_FUNCTION(unload) {
     try {
-      model->unloadModule();
+      model->unload();
     } catch (const std::runtime_error &e) {
       // This catch should be merged with the next one
       // (std::runtime_error inherits from std::exception) HOWEVER react
