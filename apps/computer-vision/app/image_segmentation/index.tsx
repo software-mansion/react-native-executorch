@@ -1,6 +1,6 @@
 import Spinner from 'react-native-loading-spinner-overlay';
-import { BottomBar } from '../components/BottomBar';
-import { getImage } from '../utils';
+import { BottomBar } from '../../components/BottomBar';
+import { getImage } from '../../utils';
 import {
   useImageSegmentation,
   DEEPLAB_V3_RESNET50,
@@ -58,16 +58,11 @@ const numberToColor: number[][] = [
   [162, 51, 255], // 20 Amethyst
 ];
 
-export const ImageSegmentationScreen = ({
-  imageUri,
-  setImageUri,
-}: {
-  imageUri: string;
-  setImageUri: (imageUri: string) => void;
-}) => {
+export default function ImageSegmentationScreen() {
   const model = useImageSegmentation({
     modelSource: DEEPLAB_V3_RESNET50,
   });
+  const [imageUri, setImageUri] = useState('');
 
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
@@ -132,7 +127,7 @@ export const ImageSegmentationScreen = ({
             source={
               imageUri
                 ? { uri: imageUri }
-                : require('../assets/icons/executorch_logo.png')
+                : require('../../assets/icons/executorch_logo.png')
             }
           />
         </View>
@@ -157,7 +152,7 @@ export const ImageSegmentationScreen = ({
       />
     </>
   );
-};
+}
 
 const styles = StyleSheet.create({
   imageCanvasContainer: {

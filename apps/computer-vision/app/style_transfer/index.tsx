@@ -1,23 +1,18 @@
 import Spinner from 'react-native-loading-spinner-overlay';
-import { BottomBar } from '../components/BottomBar';
-import { getImage } from '../utils';
+import { BottomBar } from '../../components/BottomBar';
+import { getImage } from '../../utils';
 import {
   useStyleTransfer,
   STYLE_TRANSFER_CANDY,
 } from 'react-native-executorch';
 import { View, StyleSheet, Image } from 'react-native';
+import React, { useState } from 'react';
 
-export const StyleTransferScreen = ({
-  imageUri,
-  setImageUri,
-}: {
-  imageUri: string;
-  setImageUri: (imageUri: string) => void;
-}) => {
+export default function StyleTransferScreen() {
   const model = useStyleTransfer({
     modelSource: STYLE_TRANSFER_CANDY,
   });
-
+  const [imageUri, setImageUri] = useState('');
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
     const uri = image?.uri;
@@ -55,7 +50,7 @@ export const StyleTransferScreen = ({
           source={
             imageUri
               ? { uri: imageUri }
-              : require('../assets/icons/executorch_logo.png')
+              : require('../../assets/icons/executorch_logo.png')
           }
         />
       </View>
@@ -65,7 +60,7 @@ export const StyleTransferScreen = ({
       />
     </>
   );
-};
+}
 
 const styles = StyleSheet.create({
   imageContainer: {
