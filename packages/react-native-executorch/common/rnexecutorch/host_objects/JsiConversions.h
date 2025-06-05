@@ -91,7 +91,8 @@ getJsiValue(const std::unordered_map<std::string_view, float> &map,
     mapObj.setProperty(runtime, k.data(), v);
   }
   return mapObj;
-  
+}
+
 inline jsi::Value getJsiValue(const std::vector<Detection> &detections,
                               jsi::Runtime &runtime) {
   jsi::Array array(runtime, detections.size());

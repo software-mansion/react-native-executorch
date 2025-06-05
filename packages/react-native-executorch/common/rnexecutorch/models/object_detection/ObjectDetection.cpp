@@ -77,7 +77,7 @@ std::vector<Detection> ObjectDetection::forward(std::string imageSource,
                                                 double detectionThreshold) {
   auto [tensor, originalSize] = preprocess(imageSource);
 
-  auto forwardResult = module->forward(tensor);
+  auto forwardResult = forwardET(tensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
         "Failed to forward, error: " +
