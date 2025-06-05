@@ -39,7 +39,7 @@ ImageSegmentation::forward(std::string imageSource,
                            bool resize) {
   auto [inputTensor, originalSize] = preprocess(imageSource);
 
-  auto forwardResult = module->forward(inputTensor);
+  auto forwardResult = forwardET(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
         "Failed to forward, error: " +
