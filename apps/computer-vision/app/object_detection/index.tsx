@@ -1,22 +1,17 @@
 import { useState } from 'react';
 import Spinner from 'react-native-loading-spinner-overlay';
-import { BottomBar } from '../components/BottomBar';
-import { getImage } from '../utils';
+import { BottomBar } from '../../components/BottomBar';
+import { getImage } from '../../utils';
 import {
   Detection,
   useObjectDetection,
   SSDLITE_320_MOBILENET_V3_LARGE,
 } from 'react-native-executorch';
 import { View, StyleSheet, Image } from 'react-native';
-import ImageWithBboxes from '../components/ImageWithBboxes';
+import ImageWithBboxes from '../../components/ImageWithBboxes';
 
-export const ObjectDetectionScreen = ({
-  imageUri,
-  setImageUri,
-}: {
-  imageUri: string;
-  setImageUri: (imageUri: string) => void;
-}) => {
+export default function ObjectDetectionScreen() {
+  const [imageUri, setImageUri] = useState('');
   const [results, setResults] = useState<Detection[]>([]);
   const [imageDimensions, setImageDimensions] = useState<{
     width: number;
@@ -68,7 +63,7 @@ export const ObjectDetectionScreen = ({
           {imageUri && imageDimensions?.width && imageDimensions?.height ? (
             <ImageWithBboxes
               imageUri={
-                imageUri || require('../assets/icons/executorch_logo.png')
+                imageUri || require('../../assets/icons/executorch_logo.png')
               }
               imageWidth={imageDimensions.width}
               imageHeight={imageDimensions.height}
@@ -78,7 +73,7 @@ export const ObjectDetectionScreen = ({
             <Image
               style={styles.fullSizeImage}
               resizeMode="contain"
-              source={require('../assets/icons/executorch_logo.png')}
+              source={require('../../assets/icons/executorch_logo.png')}
             />
           )}
         </View>
@@ -89,7 +84,7 @@ export const ObjectDetectionScreen = ({
       />
     </>
   );
-};
+}
 
 const styles = StyleSheet.create({
   imageContainer: {

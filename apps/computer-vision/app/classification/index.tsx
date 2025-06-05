@@ -1,20 +1,15 @@
 import { useState } from 'react';
 import Spinner from 'react-native-loading-spinner-overlay';
-import { BottomBar } from '../components/BottomBar';
-import { getImage } from '../utils';
+import { getImage } from '../../utils';
 import { useClassification, EFFICIENTNET_V2_S } from 'react-native-executorch';
 import { View, StyleSheet, Image, Text, ScrollView } from 'react-native';
+import { BottomBar } from '../../components/BottomBar';
 
-export const ClassificationScreen = ({
-  imageUri,
-  setImageUri,
-}: {
-  imageUri: string;
-  setImageUri: (imageUri: string) => void;
-}) => {
+export default function ClassificationScreen() {
   const [results, setResults] = useState<{ label: string; score: number }[]>(
     []
   );
+  const [imageUri, setImageUri] = useState('');
 
   const model = useClassification({
     modelSource: EFFICIENTNET_V2_S,
@@ -52,7 +47,6 @@ export const ClassificationScreen = ({
       />
     );
   }
-
   return (
     <>
       <View style={styles.imageContainer}>
@@ -62,7 +56,7 @@ export const ClassificationScreen = ({
           source={
             imageUri
               ? { uri: imageUri }
-              : require('../assets/icons/executorch_logo.png')
+              : require('../../assets/icons/executorch_logo.png')
           }
         />
         {results.length > 0 && (
@@ -85,7 +79,7 @@ export const ClassificationScreen = ({
       />
     </>
   );
-};
+}
 
 const styles = StyleSheet.create({
   imageContainer: {

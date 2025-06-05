@@ -7,6 +7,7 @@
     "icon": "./assets/icons/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "scheme": "your-app-scheme",
     "splash": {
       "image": "./assets/icons/splash.png",
       "resizeMode": "contain",
@@ -29,6 +30,6 @@
     "web": {
       "favicon": "./assets/icons/favicon.png"
     },
-    "plugins": ["expo-font"]
+    "plugins": ["expo-font", "expo-router"]
   }
 }
