@@ -1,11 +1,14 @@
 #include "ExecutorchModule.h"
 
+#include <executorch/extension/module/module.h>
 #include <rnexecutorch/Log.h>
 #include <sstream>
 
 namespace rnexecutorch {
 
 using ::executorch::extension::Module;
+using namespace executorch::aten;
+using namespace executorch::extension;
 using ::executorch::runtime::Error;
 using namespace facebook;
 
@@ -20,6 +23,19 @@ ExecutorchModule::ExecutorchModule(
     throw std::runtime_error("Couldn't load the model, error: " +
                              std::to_string(static_cast<uint32_t>(loadError)));
   }
+}
+
+int ExecutorchModule::forward(std::vector<JsiTensorView> tensorViewVec) {
+  auto currTensor = tensorViewVec[0];
+  auto myTensor =
+      make_tensor_ptr(currTensor.shape, currTensor.dataPtr, ScalarType::Float);
+  auto result = module->forward(myTensor);
+  if (!result.ok()) {
+    std::string errorStr = std::to_string(static_cast<int>(result.error()));
+    log(LOG_LEVEL::Debug, errorStr.c_str());
+    throw std::runtime_error("Failed to run forward! Error: " + errorStr);
+  }
+  return 1;
 }
 
 std::vector<int32_t> ExecutorchModule::getInputShape(std::string method_name,
