@@ -8,6 +8,7 @@
 #include <ReactCommon/CallInvoker.h>
 
 #include <rnexecutorch/Log.h>
+#include <rnexecutorch/TypeConstraints.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/jsi/JsiHostObject.h>
 #include <rnexecutorch/jsi/Promise.h>
@@ -22,6 +23,10 @@ public:
     addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                      promiseHostFunction<&Model::forward>,
                                      "forward"));
+    if constexpr (DerivedFromBaseModel<Model>) {
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
+    }
   }
 
   // A generic host function that resolves a promise with a result of a
@@ -95,6 +100,25 @@ public:
         });
 
     return promise;
+  }
+
+  JSI_HOST_FUNCTION(unload) {
+    try {
+      model->unloadModule();
+    } catch (const std::runtime_error &e) {
+      // This catch should be merged with the next one
+      // (std::runtime_error inherits from std::exception) HOWEVER react
+      // native has broken RTTI which breaks proper exception type
+      // checking. Remove when the following change is present in our
+      // version:
+      // https://github.com/facebook/react-native/commit/3132cc88dd46f95898a756456bebeeb6c248f20e
+      throw jsi::JSError(runtime, e.what());
+    } catch (const std::exception &e) {
+      throw jsi::JSError(runtime, e.what());
+    } catch (...) {
+      throw jsi::JSError(runtime, "Unknown error while unloading a model");
+    }
+    return jsi::Value::undefined();
   }
 
 private:
