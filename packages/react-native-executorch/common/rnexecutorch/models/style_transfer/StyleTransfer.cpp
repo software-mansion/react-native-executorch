@@ -16,11 +16,11 @@ using executorch::runtime::Error;
 StyleTransfer::StyleTransfer(const std::string &modelSource,
                              std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
-  auto inputTensors = getInputShape();
-  if (inputTensors.size() == 0) {
+  auto inputShapes = getInputShape();
+  if (inputShapes.size() == 0) {
     throw std::runtime_error("Model seems to not take any input tensors.");
   }
-  std::vector<int32_t> modelInputShape = inputTensors[0];
+  std::vector<int32_t> modelInputShape = inputShapes[0];
   if (modelInputShape.size() < 2) {
     char errorMessage[100];
     std::snprintf(errorMessage, sizeof(errorMessage),

@@ -12,9 +12,9 @@ using ::executorch::runtime::Error;
 
 BaseModel::BaseModel(const std::string &modelSource,
                      std::shared_ptr<react::CallInvoker> callInvoker)
-    : module(std::make_unique<Module>(
-          modelSource, Module::LoadMode::MmapUseMlockIgnoreErrors)),
-      callInvoker(callInvoker) {
+    : callInvoker(callInvoker),
+      module(std::make_unique<Module>(
+          modelSource, Module::LoadMode::MmapUseMlockIgnoreErrors)) {
   Error loadError = module->load();
   if (loadError != Error::Ok) {
     throw std::runtime_error("Couldn't load the model, error: " +

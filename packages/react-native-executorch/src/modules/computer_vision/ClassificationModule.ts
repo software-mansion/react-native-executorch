@@ -1,17 +1,23 @@
-import { ClassificationNativeModule } from '../../native/RnExecutorchModules';
+import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
-import { BaseModule } from '../BaseModule';
+import { ETError, getError } from '../../Error';
+import { BaseNonStaticModule } from '../BaseNonStaticModule';
 
-export class ClassificationModule extends BaseModule {
-  protected static override nativeModule = ClassificationNativeModule;
-
-  static override async load(modelSource: ResourceSource) {
-    await super.load(modelSource);
+export class ClassificationModule extends BaseNonStaticModule {
+  async load(
+    modelSource: ResourceSource,
+    onDownloadProgressCallback: (_: number) => void = () => {}
+  ): Promise<void> {
+    const paths = await ResourceFetcher.fetchMultipleResources(
+      onDownloadProgressCallback,
+      modelSource
+    );
+    this.nativeModule = global.loadClassification(paths[0] || '');
   }
 
-  static override async forward(
-    input: string
-  ): ReturnType<typeof ClassificationNativeModule.forward> {
-    return await this.nativeModule.forward(input);
+  async forward(imageSource: string) {
+    if (this.nativeModule == null)
+      throw new Error(getError(ETError.ModuleNotLoaded));
+    return await this.nativeModule.forward(imageSource);
   }
 }
