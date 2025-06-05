@@ -1,26 +1,47 @@
-import { ETError, getError } from '../../Error';
-import { ETModuleNativeModule } from '../../native/RnExecutorchModules';
+import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
-import { ETInput } from '../../types/common';
-import { getTypeIdentifier } from '../../types/common';
-import { BaseModule } from '../BaseModule';
+
+type TensorBuffer =
+  | Float32Array
+  | Float64Array
+  | Int8Array
+  | Int16Array
+  | Int32Array
+  | Uint8Array
+  | Uint16Array
+  | Uint32Array
+  | BigInt64Array
+  | BigUint64Array;
+
+enum ScalarType {
+  FLOAT16 = 1,
+}
+
+interface TensorPtr {
+  data: TensorBuffer;
+  shape: number[];
+  scalarType: ScalarType;
+}
 
 export class NewExecutorchModule {
-  private nativeModule;
+  nativeModule: any = null;
 
-  constructor(modelSource: ResourceSource) {
-    this.nativeModule = global.loadExecutorchModule(modelSource as string);
+  async load(
+    modelSource: ResourceSource,
+    onDownloadProgressCallback: (_: number) => void = () => {}
+  ): Promise<void> {
+    const paths = await ResourceFetcher.fetchMultipleResources(
+      onDownloadProgressCallback,
+      modelSource
+    );
+    this.nativeModule = global.loadExecutorchModule(paths[0] || '');
   }
 
-  static async forward() {
-    throw Error('Not yet implemented!');
+  async forward(inputTensor: TensorPtr[]): Promise<void> {
+    return await this.nativeModule.forward(inputTensor);
   }
 
-  static async getInputShape(methodName: string, index: number) {
-    this.nativeModule.getInputShape();
-  }
-
-  static async loadForward() {
-    await this.loadMethod('forward');
+  async getInputShape(methodName: string, index: number): Promise<number[]> {
+    return this.nativeModule.getInputShape(methodName, index);
   }
 }
