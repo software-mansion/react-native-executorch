@@ -34,9 +34,9 @@ export const ClassificationScreen = ({
       try {
         const output = await model.forward(imageUri);
         const top10 = Object.entries(output)
-          .sort(([, a], [, b]) => b - a)
+          .sort(([, a], [, b]) => (b as number) - (a as number))
           .slice(0, 10)
-          .map(([label, score]) => ({ label, score }));
+          .map(([label, score]) => ({ label, score: score as number }));
         setResults(top10);
       } catch (e) {
         console.error(e);
