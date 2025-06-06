@@ -11,7 +11,7 @@ namespace rnexecutorch {
 Classification::Classification(const std::string &modelSource,
                                std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
-  auto inputShapes = getInputShape();
+  auto inputShapes = getAllInputShapes();
   if (inputShapes.size() == 0) {
     throw std::runtime_error("Model seems to not take any input tensors.");
   }
@@ -47,7 +47,7 @@ TensorPtr Classification::preprocess(const std::string &imageSource) {
   cv::cvtColor(image, image, cv::COLOR_BGR2RGB);
   cv::resize(image, image, modelImageSize);
 
-  return imageprocessing::getTensorFromMatrix(getInputShape()[0], image);
+  return imageprocessing::getTensorFromMatrix(getAllInputShapes()[0], image);
 }
 
 std::unordered_map<std::string_view, float>
