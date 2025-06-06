@@ -136,7 +136,7 @@ readImageToTensor(const std::string &path,
   if (tensorDim.size() < 2) {
     char errorMessage[100];
     std::snprintf(errorMessage, sizeof(errorMessage),
-                  "Unexpected model input size, expected at least 2 dimentions "
+                  "Unexpected tensor size, expected at least 2 dimentions "
                   "but got: %zu.",
                   tensorDim.size());
     throw std::runtime_error(errorMessage);
