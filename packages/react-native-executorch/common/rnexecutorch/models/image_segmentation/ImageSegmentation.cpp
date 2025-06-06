@@ -53,6 +53,7 @@ ImageSegmentation::forward(std::string imageSource,
 std::pair<TensorPtr, cv::Size>
 ImageSegmentation::preprocess(const std::string &imageSource) {
   cv::Mat input = imageprocessing::readImage(imageSource);
+  cv::cvtColor(input, input, cv::COLOR_BGR2RGB);
   cv::Size inputSize = input.size();
 
   cv::resize(input, input, modelImageSize);
