@@ -72,11 +72,6 @@ inline JsiTensorView getValue<JsiTensorView>(const jsi::Value &val,
     jsi::ArrayBuffer arrayBuffer = dataObj.getArrayBuffer(runtime);
     tensorView.dataPtr = arrayBuffer.data(runtime);
 
-    // Get the array size in bytes
-    size_t arrayBytes = arrayBuffer.size(runtime);
-    size_t elementBytes =
-        executorch::runtime::elementSize(tensorView.scalarType);
-    tensorView.numel = arrayBytes / elementBytes;
   } else {
     // Handle typed arrays (Float32Array, Int32Array, etc.)
     const bool isValidTypedArray = dataObj.hasProperty(runtime, "buffer") &&
@@ -86,9 +81,6 @@ inline JsiTensorView getValue<JsiTensorView>(const jsi::Value &val,
     if (!isValidTypedArray) {
       throw jsi::JSError(runtime, "Data must be an ArrayBuffer or TypedArray");
     }
-    tensorView.numel =
-        getValue<int>(dataObj.getProperty(runtime, "length"), runtime);
-
     jsi::Value bufferValue = dataObj.getProperty(runtime, "buffer");
     if (!bufferValue.isObject() ||
         !bufferValue.asObject(runtime).isArrayBuffer(runtime)) {
