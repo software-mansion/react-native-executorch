@@ -30,7 +30,8 @@ Classification::Classification(const std::string &modelSource,
 
 std::unordered_map<std::string_view, float>
 Classification::forward(std::string imageSource) {
-  auto tensor = preprocess(imageSource);
+  auto tensor =
+      imageprocessing::readImageToTensor(imageSource, getInputShape()[0]).first;
 
   auto forwardResult = forwardET(tensor);
   if (!forwardResult.ok()) {
@@ -40,13 +41,6 @@ Classification::forward(std::string imageSource) {
   }
 
   return postprocess(forwardResult->at(0).toTensor());
-}
-
-TensorPtr Classification::preprocess(const std::string &imageSource) {
-  cv::Mat image = imageprocessing::readImage(imageSource);
-  cv::resize(image, image, modelImageSize);
-
-  return imageprocessing::getTensorFromMatrix(getInputShape()[0], image);
 }
 
 std::unordered_map<std::string_view, float>

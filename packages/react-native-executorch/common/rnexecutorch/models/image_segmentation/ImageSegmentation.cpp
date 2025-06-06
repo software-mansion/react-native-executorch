@@ -37,7 +37,8 @@ std::shared_ptr<jsi::Object>
 ImageSegmentation::forward(std::string imageSource,
                            std::set<std::string, std::less<>> classesOfInterest,
                            bool resize) {
-  auto [inputTensor, originalSize] = preprocess(imageSource);
+  auto [inputTensor, originalSize] =
+      imageprocessing::readImageToTensor(imageSource, getInputShape()[0]);
 
   auto forwardResult = forwardET(inputTensor);
   if (!forwardResult.ok()) {
@@ -48,19 +49,6 @@ ImageSegmentation::forward(std::string imageSource,
 
   return postprocess(forwardResult->at(0).toTensor(), originalSize,
                      classesOfInterest, resize);
-}
-
-std::pair<TensorPtr, cv::Size>
-ImageSegmentation::preprocess(const std::string &imageSource) {
-  cv::Mat input = imageprocessing::readImage(imageSource);
-  cv::Size inputSize = input.size();
-
-  cv::resize(input, input, modelImageSize);
-
-  std::vector<float> inputVector = imageprocessing::colorMatToVector(input);
-  return {
-      executorch::extension::make_tensor_ptr(getInputShape()[0], inputVector),
-      inputSize};
 }
 
 std::shared_ptr<jsi::Object> ImageSegmentation::postprocess(
