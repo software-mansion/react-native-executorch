@@ -6,6 +6,8 @@
 
 #include <executorch/runtime/core/exec_aten/util/scalar_type_util.h>
 #include <jsi/jsi.h>
+#include <rnexecutorch/Log.h>
+#include <rnexecutorch/jsi/OwningArrayBuffer.h>
 #include <rnexecutorch/utils/JsiTensorView.h>
 
 #include <rnexecutorch/models/object_detection/Constants.h>
@@ -108,7 +110,7 @@ inline JsiTensorView getValue<JsiTensorView>(const jsi::Value &val,
       throw jsi::JSError(runtime, "Data must be an ArrayBuffer or TypedArray");
     }
   }
-  return std::move(tensorView);
+  return tensorView;
 }
 
 template <>
@@ -183,6 +185,17 @@ inline jsi::Value getJsiValue(const std::vector<int32_t> &vec,
 
 inline jsi::Value getJsiValue(int val, jsi::Runtime &runtime) {
   return jsi::Value(runtime, val);
+}
+
+inline jsi::Value
+getJsiValue(const std::vector<std::shared_ptr<OwningArrayBuffer>> &vec,
+            jsi::Runtime &runtime) {
+  jsi::Array array(runtime, vec.size());
+  for (size_t i = 0; i < vec.size(); i++) {
+    jsi::ArrayBuffer arrayBuffer(runtime, vec[i]);
+    array.setValueAtIndex(runtime, i, jsi::Value(runtime, arrayBuffer));
+  }
+  return jsi::Value(runtime, array);
 }
 
 inline jsi::Value getJsiValue(const std::string &str, jsi::Runtime &runtime) {
