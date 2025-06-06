@@ -130,7 +130,6 @@ std::pair<TensorPtr, cv::Size>
 readImageToTensor(const std::string &path,
                   const std::vector<int32_t> &tensorDim) {
   cv::Mat input = imageprocessing::readImage(path);
-  cv::cvtColor(input, input, cv::COLOR_BGR2RGB);
   cv::Size imageSize = input.size();
 
   if (tensorDim.size() < 2) {
@@ -145,6 +144,8 @@ readImageToTensor(const std::string &path,
                                  tensorDim[tensorDim.size() - 2]);
 
   cv::resize(input, input, tensorSize);
+
+  cv::cvtColor(input, input, cv::COLOR_BGR2RGB);
 
   return {imageprocessing::getTensorFromMatrix(tensorDim, input), imageSize};
 }

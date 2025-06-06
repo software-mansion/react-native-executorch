@@ -24,6 +24,7 @@ std::vector<float> colorMatToVector(const cv::Mat &mat);
 cv::Mat bufferToColorMat(const std::span<const float> &buffer,
                          cv::Size matSize);
 std::string saveToTempFile(const cv::Mat &image);
+/// @brief Read image in a BGR format to a cv::Mat
 cv::Mat readImage(const std::string &imageURI);
 TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDim,
                               const cv::Mat &mat);
