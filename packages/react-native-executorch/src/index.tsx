@@ -7,16 +7,19 @@ declare global {
   var loadStyleTransfer: (source: string) => any;
   var loadImageSegmentation: (source: string) => any;
   var loadClassification: (source: string) => any;
+  var loadExecutorchModule: (source: string) => any;
 }
 // eslint-disable no-var
-
-if (global.loadStyleTransfer == null) {
+if (
+  global.loadStyleTransfer == null ||
+  global.loadImageSegmentation == null ||
+  global.loadExecutorchModule == null
+) {
   if (!ETInstallerNativeModule) {
     throw new Error(
       `Failed to install react-native-executorch: The native module could not be found.`
     );
   }
-
   ETInstallerNativeModule.install();
 }
 
@@ -34,6 +37,7 @@ export * from './hooks/natural_language_processing/useTextEmbeddings';
 export * from './hooks/natural_language_processing/useTokenizer';
 
 export * from './hooks/general/useExecutorchModule';
+export * from './modules/general/NewExecutorchModule';
 
 // modules
 export * from './modules/computer_vision/ClassificationModule';

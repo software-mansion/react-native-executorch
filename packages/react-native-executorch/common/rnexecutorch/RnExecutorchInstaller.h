@@ -7,9 +7,9 @@
 #include <ReactCommon/CallInvoker.h>
 #include <jsi/jsi.h>
 
-#include <rnexecutorch/TypeConstraints.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/host_objects/ModelHostObject.h>
+#include <rnexecutorch/utils/TypeConstraints.h>
 
 namespace rnexecutorch {
 
@@ -26,7 +26,7 @@ public:
                     FetchUrlFunc_t fetchDataFromUrl);
 
 private:
-  template <DerivedFromBaseModel ModelT>
+  template <UnloadableExternalMemoryAware ModelT>
   static jsi::Function
   loadModel(jsi::Runtime *jsiRuntime,
             std::shared_ptr<react::CallInvoker> jsCallInvoker,
