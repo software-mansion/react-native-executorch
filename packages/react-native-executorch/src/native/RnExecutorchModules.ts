@@ -1,5 +1,4 @@
 import { Platform } from 'react-native';
-import { Spec as ObjectDetectionInterface } from './NativeObjectDetection';
 import { Spec as ETModuleInterface } from './NativeETModule';
 import { Spec as OCRInterface } from './NativeOCR';
 import { Spec as VerticalOCRInterface } from './NativeVerticalOCR';
@@ -34,8 +33,6 @@ const LLMNativeModule: LLMInterface = returnSpecOrThrowLinkingError(
 const ETModuleNativeModule: ETModuleInterface = returnSpecOrThrowLinkingError(
   require('./NativeETModule').default
 );
-const ObjectDetectionNativeModule: ObjectDetectionInterface =
-  returnSpecOrThrowLinkingError(require('./NativeObjectDetection').default);
 const SpeechToTextNativeModule: SpeechToTextInterface =
   returnSpecOrThrowLinkingError(require('./NativeSpeechToText').default);
 const OCRNativeModule: OCRInterface = returnSpecOrThrowLinkingError(
@@ -54,7 +51,6 @@ const ETInstallerNativeModule: ETInstallerInterface =
 export {
   LLMNativeModule,
   ETModuleNativeModule,
-  ObjectDetectionNativeModule,
   SpeechToTextNativeModule,
   OCRNativeModule,
   VerticalOCRNativeModule,

@@ -3,6 +3,7 @@
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/models/classification/Classification.h>
 #include <rnexecutorch/models/image_segmentation/ImageSegmentation.h>
+#include <rnexecutorch/models/object_detection/ObjectDetection.h>
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
 
 namespace rnexecutorch {
@@ -31,5 +32,10 @@ void RnExecutorchInstaller::injectJSIBindings(
       *jsiRuntime, "loadClassification",
       RnExecutorchInstaller::loadModel<Classification>(
           jsiRuntime, jsCallInvoker, "loadClassification"));
+
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadObjectDetection",
+      RnExecutorchInstaller::loadModel<ObjectDetection>(
+          jsiRuntime, jsCallInvoker, "loadObjectDetection"));
 }
 } // namespace rnexecutorch

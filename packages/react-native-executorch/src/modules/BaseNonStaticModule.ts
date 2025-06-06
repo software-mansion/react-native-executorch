@@ -1,6 +1,8 @@
 export class BaseNonStaticModule {
   nativeModule: any = null;
   delete() {
-    this.nativeModule.unload();
+    if (this.nativeModule !== null) {
+      this.nativeModule.unload();
+    }
   }
 }

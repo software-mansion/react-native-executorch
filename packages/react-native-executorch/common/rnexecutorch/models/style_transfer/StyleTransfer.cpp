@@ -36,7 +36,6 @@ StyleTransfer::StyleTransfer(const std::string &modelSource,
 std::pair<TensorPtr, cv::Size>
 StyleTransfer::preprocess(const std::string &imageSource) {
   cv::Mat image = imageprocessing::readImage(imageSource);
-  cv::cvtColor(image, image, cv::COLOR_BGR2RGB);
   auto originalSize = image.size();
   cv::resize(image, image, modelImageSize);
 
