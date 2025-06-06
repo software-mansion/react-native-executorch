@@ -22,4 +22,11 @@ template <typename T>
 concept HasIsLoaded = requires(T t) {
   { &T::isLoaded };
 };
+
+template <typename T>
+concept UnloadableExternalMemoryAware = requires(T t) {
+  { t.unload() } -> std::same_as<void>;
+  { t.getMemoryLowerBound() } -> std::same_as<std::size_t>;
+};
+
 } // namespace rnexecutorch
