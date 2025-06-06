@@ -28,13 +28,14 @@ void RnExecutorchInstaller::injectJSIBindings(
       RnExecutorchInstaller::loadModel<ImageSegmentation>(
           jsiRuntime, jsCallInvoker, "loadImageSegmentation"));
 
-jsiRuntime->global().setProperty(
-        *jsiRuntime, "loadClassification",
-        RnExecutorchInstaller::loadModel<Classification>(
-            jsiRuntime, jsCallInvoker, "loadClassification"));
-            
-            jsiRuntime->global().setProperty(
-            *jsiRuntime, "loadExecutorchModule",
-        RnExecutorchInstaller::loadModel<ExecutorchModule>(
-            jsiRuntime, jsCallInvoker, "loadExecutorchModule"));
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadClassification",
+      RnExecutorchInstaller::loadModel<Classification>(
+          jsiRuntime, jsCallInvoker, "loadClassification"));
+
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadExecutorchModule",
+      RnExecutorchInstaller::loadModel<ExecutorchModule>(
+          jsiRuntime, jsCallInvoker, "loadExecutorchModule"));
+}
 } // namespace rnexecutorch
