@@ -111,20 +111,42 @@ cv::Mat readImage(const std::string &imageURI) {
     throw std::runtime_error("Read image error: invalid argument");
   }
 
-  cv::cvtColor(image, image, cv::COLOR_BGR2RGB);
   return image;
 }
 
-TensorPtr getTensorFromMatrix(const std::vector<int32_t> &sizes,
+TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDim,
                               const cv::Mat &matrix) {
   std::vector<float> inputVector = colorMatToVector(matrix);
-  return executorch::extension::make_tensor_ptr(sizes, inputVector);
+  return executorch::extension::make_tensor_ptr(tensorDim, inputVector);
 }
 
 cv::Mat getMatrixFromTensor(cv::Size size, const Tensor &tensor) {
   auto resultData = static_cast<const float *>(tensor.const_data_ptr());
   return bufferToColorMat(std::span<const float>(resultData, tensor.numel()),
                           size);
+}
+
+std::pair<TensorPtr, cv::Size>
+readImageToTensor(const std::string &path,
+                  const std::vector<int32_t> &tensorDim) {
+  cv::Mat input = imageprocessing::readImage(path);
+  cv::cvtColor(input, input, cv::COLOR_BGR2RGB);
+  cv::Size imageSize = input.size();
+
+  if (tensorDim.size() < 2) {
+    char errorMessage[100];
+    std::snprintf(errorMessage, sizeof(errorMessage),
+                  "Unexpected model input size, expected at least 2 dimentions "
+                  "but got: %zu.",
+                  tensorDim.size());
+    throw std::runtime_error(errorMessage);
+  }
+  cv::Size tensorSize = cv::Size(tensorDim[tensorDim.size() - 1],
+                                 tensorDim[tensorDim.size() - 2]);
+
+  cv::resize(input, input, tensorSize);
+
+  return {imageprocessing::getTensorFromMatrix(tensorDim, input), imageSize};
 }
 } // namespace imageprocessing
 } // namespace rnexecutorch
