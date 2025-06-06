@@ -65,10 +65,6 @@ inline JsiTensorView getValue<JsiTensorView>(const jsi::Value &val,
   // On JS side, TensorPtr objects hold a 'data' property which should be either
   // an ArrayBuffer or TypedArray
   jsi::Value dataValue = obj.getProperty(runtime, "data");
-  if (!dataValue.isObject()) {
-    throw jsi::JSError(runtime, "Data must be a typed array or ArrayBuffer");
-  }
-
   jsi::Object dataObj = dataValue.asObject(runtime);
 
   // Check if it's an ArrayBuffer or TypedArray
