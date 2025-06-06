@@ -77,34 +77,31 @@ inline JsiTensorView getValue<JsiTensorView>(const jsi::Value &val,
     size_t elementBytes =
         executorch::runtime::elementSize(tensorView.scalarType);
     tensorView.numel = arrayBytes / elementBytes;
-
   } else {
     // Handle typed arrays (Float32Array, Int32Array, etc.)
-    if (dataObj.hasProperty(runtime, "buffer") &&
-        dataObj.hasProperty(runtime, "byteOffset") &&
-        dataObj.hasProperty(runtime, "byteLength") &&
+    if (dataObj.hasProperty(runtime, "buffer") ||
+        dataObj.hasProperty(runtime, "byteOffset") ||
+        dataObj.hasProperty(runtime, "byteLength") ||
         dataObj.hasProperty(runtime, "length")) {
-
-      tensorView.numel =
-          getValue<int>(dataObj.getProperty(runtime, "length"), runtime);
-
-      jsi::Value bufferValue = dataObj.getProperty(runtime, "buffer");
-      if (!bufferValue.isObject() ||
-          !bufferValue.asObject(runtime).isArrayBuffer(runtime)) {
-        throw jsi::JSError(runtime,
-                           "TypedArray buffer property must be an ArrayBuffer");
-      }
-
-      jsi::ArrayBuffer arrayBuffer =
-          bufferValue.asObject(runtime).getArrayBuffer(runtime);
-      size_t byteOffset =
-          getValue<int>(dataObj.getProperty(runtime, "byteOffset"), runtime);
-
-      tensorView.dataPtr =
-          static_cast<uint8_t *>(arrayBuffer.data(runtime)) + byteOffset;
-    } else {
       throw jsi::JSError(runtime, "Data must be an ArrayBuffer or TypedArray");
     }
+    tensorView.numel =
+        getValue<int>(dataObj.getProperty(runtime, "length"), runtime);
+
+    jsi::Value bufferValue = dataObj.getProperty(runtime, "buffer");
+    if (!bufferValue.isObject() ||
+        !bufferValue.asObject(runtime).isArrayBuffer(runtime)) {
+      throw jsi::JSError(runtime,
+                         "TypedArray buffer property must be an ArrayBuffer");
+    }
+
+    jsi::ArrayBuffer arrayBuffer =
+        bufferValue.asObject(runtime).getArrayBuffer(runtime);
+    size_t byteOffset =
+        getValue<int>(dataObj.getProperty(runtime, "byteOffset"), runtime);
+
+    tensorView.dataPtr =
+        static_cast<uint8_t *>(arrayBuffer.data(runtime)) + byteOffset;
   }
   return tensorView;
 }
