@@ -53,7 +53,7 @@ std::vector<std::vector<int32_t>> BaseModel::getInputShape() {
 
 std::size_t BaseModel::getMemoryLowerBound() { return memorySizeLowerBound; }
 
-void BaseModel::unloadModule() { module.reset(nullptr); }
+void BaseModel::unload() { module.reset(nullptr); }
 
 Result<std::vector<EValue>> BaseModel::forwardET(const EValue &input_value) {
   if (!module) {

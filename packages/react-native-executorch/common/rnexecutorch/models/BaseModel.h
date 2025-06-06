@@ -17,7 +17,7 @@ public:
             std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<std::vector<int32_t>> getInputShape();
   std::size_t getMemoryLowerBound();
-  void unloadModule();
+  void unload();
 
 protected:
   Result<std::vector<EValue>> forwardET(const EValue &input_value);
