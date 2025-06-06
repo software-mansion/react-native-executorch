@@ -11,7 +11,7 @@ namespace rnexecutorch {
 Classification::Classification(const std::string &modelSource,
                                std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
-  auto inputShapes = getInputShape();
+  auto inputShapes = getAllInputShapes();
   if (inputShapes.size() == 0) {
     throw std::runtime_error("Model seems to not take any input tensors.");
   }
@@ -31,7 +31,7 @@ Classification::Classification(const std::string &modelSource,
 std::unordered_map<std::string_view, float>
 Classification::forward(std::string imageSource) {
   auto inputTensor =
-      imageprocessing::readImageToTensor(imageSource, getInputShape()[0]).first;
+      imageprocessing::readImageToTensor(imageSource, getAllInputShapes()[0]).first;
 
   auto forwardResult = forwardET(inputTensor);
   if (!forwardResult.ok()) {

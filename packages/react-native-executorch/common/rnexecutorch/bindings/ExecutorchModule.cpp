@@ -23,6 +23,14 @@ ExecutorchModule::ExecutorchModule(
     throw std::runtime_error("Couldn't load the model, error: " +
                              std::to_string(static_cast<uint32_t>(loadError)));
   }
+  std::filesystem::path modelPath{modelSource};
+  memorySizeLowerBound = std::filesystem::file_size(modelPath);
+}
+
+void ExecutorchModule::unload() { module.reset(nullptr); }
+
+std::size_t ExecutorchModule::getMemoryLowerBound() {
+  return memorySizeLowerBound;
 }
 
 std::vector<std::shared_ptr<OwningArrayBuffer>>
