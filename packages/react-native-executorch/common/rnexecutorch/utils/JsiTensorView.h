@@ -5,10 +5,9 @@
 using executorch::aten::ScalarType;
 
 namespace rnexecutorch {
-  struct JsiTensorView {
-    void *dataPtr;
-    ScalarType scalarType;
-    std::vector<int32_t> shape;
-    size_t numel;
-  };
+struct JsiTensorView {
+  void *dataPtr;
+  ScalarType scalarType;
+  std::vector<int32_t> shape;
+};
 } // namespace rnexecutorch
