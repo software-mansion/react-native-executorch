@@ -18,7 +18,6 @@ public:
   std::unordered_map<std::string_view, float> forward(std::string imageSource);
 
 private:
-  TensorPtr preprocess(const std::string &imageSource);
   std::unordered_map<std::string_view, float> postprocess(const Tensor &tensor);
 
   cv::Size modelImageSize{0, 0};

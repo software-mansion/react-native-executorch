@@ -1,11 +1,14 @@
 #pragma once
 
-#include <executorch/extension/tensor/tensor.h>
-#include <executorch/extension/tensor/tensor_ptr.h>
-#include <opencv2/opencv.hpp>
+#include <optional>
 #include <span>
 #include <string>
 #include <vector>
+
+#include <executorch/extension/tensor/tensor.h>
+#include <executorch/extension/tensor/tensor_ptr.h>
+
+#include <opencv2/opencv.hpp>
 
 namespace rnexecutorch::imageprocessing {
 using executorch::aten::Tensor;
@@ -22,8 +25,13 @@ cv::Mat bufferToColorMat(const std::span<const float> &buffer,
                          cv::Size matSize);
 std::string saveToTempFile(const cv::Mat &image);
 cv::Mat readImage(const std::string &imageURI);
-TensorPtr getTensorFromMatrix(const std::vector<int32_t> &sizes,
+TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDim,
                               const cv::Mat &mat);
 cv::Mat getMatrixFromTensor(cv::Size size, const Tensor &tensor);
+/// @brief Read image, resize it and copy it to an ET tensor to store it.
+/// @return Returns a tensor pointer and the original size of the image.
+std::pair<TensorPtr, cv::Size>
+readImageToTensor(const std::string &path,
+                  const std::vector<int32_t> &tensorDim);
 
 } // namespace rnexecutorch::imageprocessing

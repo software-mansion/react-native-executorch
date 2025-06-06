@@ -22,7 +22,6 @@ public:
   std::string forward(std::string imageSource);
 
 private:
-  std::pair<TensorPtr, cv::Size> preprocess(const std::string &imageSource);
   std::string postprocess(const Tensor &tensor, cv::Size originalSize);
 
   cv::Size modelImageSize{0, 0};
