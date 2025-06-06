@@ -79,10 +79,11 @@ inline JsiTensorView getValue<JsiTensorView>(const jsi::Value &val,
     tensorView.numel = arrayBytes / elementBytes;
   } else {
     // Handle typed arrays (Float32Array, Int32Array, etc.)
-    if (dataObj.hasProperty(runtime, "buffer") ||
-        dataObj.hasProperty(runtime, "byteOffset") ||
-        dataObj.hasProperty(runtime, "byteLength") ||
-        dataObj.hasProperty(runtime, "length")) {
+    const bool isValidTypedArray = dataObj.hasProperty(runtime, "buffer") &&
+                                   dataObj.hasProperty(runtime, "byteOffset") &&
+                                   dataObj.hasProperty(runtime, "byteLength") &&
+                                   dataObj.hasProperty(runtime, "length");
+    if (!isValidTypedArray) {
       throw jsi::JSError(runtime, "Data must be an ArrayBuffer or TypedArray");
     }
     tensorView.numel =
