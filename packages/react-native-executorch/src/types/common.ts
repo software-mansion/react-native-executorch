@@ -15,3 +15,9 @@ export type ETInput =
   | BigInt64Array
   | Float32Array
   | Float64Array;
+
+export interface Tensor {
+  data: ETInput[];
+  shape: number[];
+  type: ETInput;
+}

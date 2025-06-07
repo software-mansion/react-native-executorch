@@ -1,7 +1,7 @@
 import { ETError, getError } from '../../Error';
 import { ETModuleNativeModule } from '../../native/RnExecutorchModules';
 import { ResourceSource } from '../../types/common';
-import { ETInput } from '../../types/common';
+import { Tensor } from '../../types/common';
 import { getTypeIdentifier } from '../../types/common';
 import { BaseModule } from '../BaseModule';
 
@@ -12,21 +12,32 @@ export class ExecutorchModule extends BaseModule {
     return await super.load(modelSource);
   }
 
-  static override async forward(input: ETInput[] | ETInput, shape: number[][]) {
+  static override async forward(input: Tensor[] | Tensor) {
     if (!Array.isArray(input)) {
       input = [input];
     }
 
     let inputTypeIdentifiers = [];
+    let shape = [];
     let modelInputs = [];
 
     for (let idx = 0; idx < input.length; idx++) {
-      let currentInputTypeIdentifier = getTypeIdentifier(input[idx] as ETInput);
+      const currentInput = input[idx];
+      if (!currentInput || !currentInput.data) {
+        throw new Error('Input tensor is undefined.');
+      }
+      const testingTypeElement = currentInput.data[0];
+      if (testingTypeElement === undefined) {
+        throw new Error('Input tensor is undefined.');
+      }
+
+      let currentInputTypeIdentifier = getTypeIdentifier(testingTypeElement);
       if (currentInputTypeIdentifier === -1) {
         throw new Error(getError(ETError.InvalidArgument));
       }
+      shape.push(currentInput.shape);
       inputTypeIdentifiers.push(currentInputTypeIdentifier);
-      modelInputs.push([...(input[idx] as unknown as number[])]);
+      modelInputs.push([...(currentInput as unknown as number[])]);
     }
 
     try {
