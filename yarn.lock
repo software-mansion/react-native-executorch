@@ -6063,6 +6063,7 @@ __metadata:
     react-native-svg: "npm:15.11.2"
     react-native-svg-transformer: "npm:^1.5.0"
     react-native-wheel-scrollview-picker: "npm:^2.0.6"
+    typescript: "npm:^5.8.3"
   peerDependencies:
     react-native: "*"
   languageName: unknown
@@ -10030,6 +10031,7 @@ __metadata:
     react-native-svg: "npm:15.11.2"
     react-native-svg-transformer: "npm:^1.5.0"
     react-native-wheel-scrollview-picker: "npm:^2.0.6"
+    typescript: "npm:^5.8.3"
   peerDependencies:
     react-native: "*"
   languageName: unknown
@@ -13649,6 +13651,7 @@ __metadata:
     react-native-svg: "npm:15.11.2"
     react-native-svg-transformer: "npm:^1.5.0"
     react-native-wheel-scrollview-picker: "npm:^2.0.6"
+    typescript: "npm:^5.8.3"
   peerDependencies:
     react-native: "*"
   languageName: unknown
@@ -14330,7 +14333,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:~5.8.3":
+"typescript@npm:^5.8.3, typescript@npm:~5.8.3":
   version: 5.8.3
   resolution: "typescript@npm:5.8.3"
   bin:
@@ -14340,7 +14343,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A~5.8.3#optional!builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A^5.8.3#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A~5.8.3#optional!builtin<compat/typescript>":
   version: 5.8.3
   resolution: "typescript@patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5adc0c"
   bin:

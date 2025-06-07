@@ -5,10 +5,7 @@
   "workspaces": {
     "packages": [
       "packages/react-native-executorch",
-      "apps/llm",
-      "apps/computer-vision",
-      "apps/speech-to-text",
-      "apps/text-embeddings"
+      "apps/*"
     ]
   },
   "scripts": {
