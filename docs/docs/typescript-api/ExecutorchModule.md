@@ -21,7 +21,7 @@ await ExecutorchModule.load(STYLE_TRANSFER_CANDY);
 
 // Running the model
 const output = await ExecutorchModule.forward({
-  data: input,
+  data: inputData,
   shape: inputShape,
 });
 ```
