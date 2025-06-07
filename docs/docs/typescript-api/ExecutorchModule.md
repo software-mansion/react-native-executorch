@@ -50,7 +50,7 @@ type ETInput =
   | Float64Array;
 
 export interface Tensor {
-  data: ETInput[];
+  data: ETInput;
   shape: number[];
 }
 ```

@@ -26,12 +26,8 @@ export class ExecutorchModule extends BaseModule {
       if (!currentInput || !currentInput.data) {
         throw new Error('Input tensor is undefined.');
       }
-      const testingTypeElement = currentInput.data[0];
-      if (testingTypeElement === undefined) {
-        throw new Error('Input tensor is undefined.');
-      }
 
-      let currentInputTypeIdentifier = getTypeIdentifier(testingTypeElement);
+      let currentInputTypeIdentifier = getTypeIdentifier(currentInput.data);
       if (currentInputTypeIdentifier === -1) {
         throw new Error(getError(ETError.InvalidArgument));
       }
