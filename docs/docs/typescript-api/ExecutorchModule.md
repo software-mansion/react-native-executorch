@@ -13,14 +13,17 @@ import {
 } from 'react-native-executorch';
 
 // Creating the input array
-const shape = [1, 3, 640, 640];
-const input = new Float32Array(1 * 3 * 640 * 640);
+const inputShape = [1, 3, 640, 640];
+const inputData = new Float32Array(1 * 3 * 640 * 640);
 
 // Loading the model
 await ExecutorchModule.load(STYLE_TRANSFER_CANDY);
 
 // Running the model
-const output = await ExecutorchModule.forward(input, shape);
+const output = await ExecutorchModule.forward({
+  data: input,
+  shape: inputShape,
+});
 ```
 
 ### Methods
