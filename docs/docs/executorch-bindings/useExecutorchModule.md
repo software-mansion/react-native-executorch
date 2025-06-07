@@ -30,25 +30,29 @@ The `modelSource` parameter expects a location string pointing to the model bina
 
 ### Returns
 
-|       Field        |                            Type                            |                                                                                             Description                                                                                             |
-| :----------------: | :--------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-|      `error`       |              <code>string &#124; null</code>               |                                                                       Contains the error message if the model failed to load.                                                                       |
-|   `isGenerating`   |                         `boolean`                          |                                                                  Indicates whether the model is currently processing an inference.                                                                  |
-|     `isReady`      |                         `boolean`                          |                                                           Indicates whether the model has successfully loaded and is ready for inference.                                                           |
-|    `loadMethod`    |          `(methodName: string) => Promise<void>`           |                                                               Loads resources specific to `methodName` into memory before execution.                                                                |
-|   `loadForward`    |                   `() => Promise<void>`                    |                                            Loads resources specific to `forward` method into memory before execution. Uses `loadMethod` under the hood.                                             |
-|     `forward`      | `(input: ETInput, shape: number[]) => Promise<number[][]>` | Executes the model's forward pass, where `input` is a Javascript typed array and `shape` is an array of integers representing input Tensor shape. The output is a Tensor - raw result of inference. |
-| `downloadProgress` |                          `number`                          |                                                                    Represents the download progress as a value between 0 and 1.                                                                     |
+|       Field        |                       Type                       |                                                                                                                                  Description                                                                                                                                  |
+| :----------------: | :----------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|      `error`       |         <code>string &#124; null</code>          |                                                                                                            Contains the error message if the model failed to load.                                                                                                            |
+|   `isGenerating`   |                    `boolean`                     |                                                                                                       Indicates whether the model is currently processing an inference.                                                                                                       |
+|     `isReady`      |                    `boolean`                     |                                                                                                Indicates whether the model has successfully loaded and is ready for inference.                                                                                                |
+|    `loadMethod`    |     `(methodName: string) => Promise<void>`      |                                                                                                    Loads resources specific to `methodName` into memory before execution.                                                                                                     |
+|   `loadForward`    |              `() => Promise<void>`               |                                                                                 Loads resources specific to `forward` method into memory before execution. Uses `loadMethod` under the hood.                                                                                  |
+|     `forward`      | `(input: Tensor[] \| Tensor): Promise<number[]>` | Executes the model's forward pass, where `input` is a `Tensor` or array of tensors `Tensor[]`. Tensor is a compound type consisting of two elements: data and shape. Data is a JavaScript typed array, and shape is an array of integers representing the input tensor shape. |
+| `downloadProgress` |                     `number`                     |                                                                                                         Represents the download progress as a value between 0 and 1.                                                                                                          |
 
 ## ETInput
 
-The `ETInput` type defines the typed arrays that can be used as inputs in the `forward` method:
+The `ETInput` type defines the typed arrays that can be used as data in `Tensor`:
 
 - Int8Array
 - Int32Array
 - BigInt64Array
 - Float32Array
 - Float64Array
+
+## Tensor
+
+The `Tensor` is a complex type that aggregates both data and shape of the tensor passed to the `forward` method.
 
 ## Errors
 
