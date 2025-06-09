@@ -3,6 +3,9 @@
 #include <concepts>
 
 namespace rnexecutorch {
+
+// When i make BaseModel have all of this methods we can then just check from
+// is_base_of instead of doing this for every single method
 template <typename T>
 concept HasForward = requires(T t) {
   { &T::forward };
