@@ -48,8 +48,7 @@ inline JsiTensorView getValue<JsiTensorView>(const jsi::Value &val,
   jsi::Object obj = val.asObject(runtime);
   JsiTensorView tensorView;
 
-  int scalarTypeInt =
-      getValue<int>(obj.getProperty(runtime, "scalarType"), runtime);
+  int scalarTypeInt = obj.getProperty(runtime, "scalarType").asNumber();
   tensorView.scalarType = static_cast<ScalarType>(scalarTypeInt);
 
   jsi::Value shapeValue = obj.getProperty(runtime, "shape");
