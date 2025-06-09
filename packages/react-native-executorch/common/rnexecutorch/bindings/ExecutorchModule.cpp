@@ -1,6 +1,8 @@
 #include "ExecutorchModule.h"
 
 #include <executorch/extension/module/module.h>
+#include <executorch/extension/tensor/tensor.h>
+#include <filesystem>
 #include <rnexecutorch/Log.h>
 #include <sstream>
 

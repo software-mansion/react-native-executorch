@@ -7,8 +7,8 @@
 #include <executorch/runtime/core/exec_aten/util/scalar_type_util.h>
 #include <jsi/jsi.h>
 #include <rnexecutorch/Log.h>
+#include <rnexecutorch/host_objects/JsiTensorView.h>
 #include <rnexecutorch/jsi/OwningArrayBuffer.h>
-#include <rnexecutorch/utils/JsiTensorView.h>
 
 #include <rnexecutorch/models/object_detection/Constants.h>
 #include <rnexecutorch/models/object_detection/Utils.h>

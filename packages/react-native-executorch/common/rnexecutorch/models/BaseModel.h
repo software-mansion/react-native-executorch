@@ -6,8 +6,8 @@
 #include <ReactCommon/CallInvoker.h>
 #include <executorch/extension/module/module.h>
 #include <jsi/jsi.h>
+#include <rnexecutorch/host_objects/JsiTensorView.h>
 #include <rnexecutorch/jsi/OwningArrayBuffer.h>
-#include <rnexecutorch/utils/JsiTensorView.h>
 
 namespace rnexecutorch {
 using namespace facebook;
@@ -25,8 +25,7 @@ public:
   forward(std::vector<JsiTensorView> tensorViewVec);
 
 protected:
-  // TODO: NEED TO CHANGE THE CONCEPT TO MATCH THE EXACT SIGNATURE OF THE SECOND
-  // FORWARD SO ITS NOT AMBIGUOUS
+  // FIXME: this doesn't work
   Result<std::vector<EValue>> forward(const EValue &input_value);
   Result<std::vector<EValue>> forward(const std::vector<EValue> &input_value);
   // If possible, models should not use the JS runtime to keep JSI internals

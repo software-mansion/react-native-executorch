@@ -4,8 +4,8 @@
 
 #include <ReactCommon/CallInvoker.h>
 #include <executorch/extension/module/module.h>
+#include <rnexecutorch/host_objects/JsiTensorView.h>
 #include <rnexecutorch/jsi/OwningArrayBuffer.h>
-#include <rnexecutorch/utils/JsiTensorView.h>
 
 namespace rnexecutorch {
 

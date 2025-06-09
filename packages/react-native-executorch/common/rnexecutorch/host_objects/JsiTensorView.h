@@ -1,7 +1,5 @@
 #pragma once
 
-#include <executorch/extension/tensor/tensor.h>
-
 using executorch::aten::ScalarType;
 
 namespace rnexecutorch {
