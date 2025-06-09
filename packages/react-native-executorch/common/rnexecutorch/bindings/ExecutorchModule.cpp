@@ -47,8 +47,9 @@ ExecutorchModule::forward(std::vector<JsiTensorView> tensorViewVec) {
 
   for (size_t i = 0; i < tensorViewVec.size(); i++) {
     const auto &currTensorView = tensorViewVec[i];
-    auto tensorPtr = make_tensor_ptr(currTensorView.shape,
-                                     currTensorView.dataPtr, ScalarType::Float);
+    auto tensorPtr =
+        make_tensor_ptr(currTensorView.shape, currTensorView.dataPtr,
+                        currTensorView.scalarType);
     tensorPtrs.emplace_back(tensorPtr);
     evalues.emplace_back(*tensorPtr); // Dereference TensorPtr to get Tensor,
                                       // which implicitly converts to EValue
