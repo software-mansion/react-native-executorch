@@ -19,7 +19,7 @@ template <typename Model> class ModelHostObject : public JsiHostObject {
 public:
   explicit ModelHostObject(const std::shared_ptr<Model> &model,
                            std::shared_ptr<react::CallInvoker> callInvoker)
-      : JsiHostObject(), model(model), callInvoker(callInvoker) {
+      : model(model), callInvoker(callInvoker) {
     if constexpr (UnloadableExternalMemoryAware<Model>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
