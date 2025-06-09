@@ -12,6 +12,7 @@
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/jsi/JsiHostObject.h>
 #include <rnexecutorch/jsi/Promise.h>
+#include <rnexecutorch/models/BaseModel.h>
 
 namespace rnexecutorch {
 
@@ -20,21 +21,30 @@ public:
   explicit ModelHostObject(const std::shared_ptr<Model> &model,
                            std::shared_ptr<react::CallInvoker> callInvoker)
       : model(model), callInvoker(callInvoker) {
-    if constexpr (UnloadableExternalMemoryAware<Model>) {
+    if constexpr (DerivedFromOrSameAs<Model, BaseModel>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }
 
-    if constexpr (HasForward<Model>) {
-      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       promiseHostFunction<&Model::forward>,
-                                       "forward"));
+    if constexpr (DerivedFromOrSameAs<Model, BaseModel>) {
+      using ForwardSignature = std::vector<std::shared_ptr<OwningArrayBuffer>> (
+          Model::*)(std::vector<JsiTensorView>);
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>,
+          promiseHostFunction<static_cast<ForwardSignature>(&Model::forward)>,
+          "forward"));
     }
 
-    if constexpr (HasGetInputShape<Model>) {
+    if constexpr (DerivedFromOrSameAs<Model, BaseModel>) {
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>, promiseHostFunction<&Model::getInputShape>,
           "getInputShape"));
+    }
+
+    if constexpr (HasGenerate<Model>) {
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::generate>,
+                                       "generate"));
     }
   }
 

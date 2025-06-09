@@ -22,8 +22,8 @@ public:
   ImageSegmentation(const std::string &modelSource,
                     std::shared_ptr<react::CallInvoker> callInvoker);
   std::shared_ptr<jsi::Object>
-  forward(std::string imageSource,
-          std::set<std::string, std::less<>> classesOfInterest, bool resize);
+  generate(std::string imageSource,
+           std::set<std::string, std::less<>> classesOfInterest, bool resize);
 
 private:
   std::shared_ptr<jsi::Object>

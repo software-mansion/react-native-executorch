@@ -19,7 +19,7 @@ class StyleTransfer : public BaseModel {
 public:
   StyleTransfer(const std::string &modelSource,
                 std::shared_ptr<react::CallInvoker> callInvoker);
-  std::string forward(std::string imageSource);
+  std::string generate(std::string imageSource);
 
 private:
   std::string postprocess(const Tensor &tensor, cv::Size originalSize);

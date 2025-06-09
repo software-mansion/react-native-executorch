@@ -18,6 +18,6 @@ export class ClassificationModule extends BaseNonStaticModule {
   async forward(imageSource: string) {
     if (this.nativeModule == null)
       throw new Error(getError(ETError.ModuleNotLoaded));
-    return await this.nativeModule.forward(imageSource);
+    return await this.nativeModule.generate(imageSource);
   }
 }

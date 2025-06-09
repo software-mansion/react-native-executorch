@@ -41,11 +41,11 @@ std::string StyleTransfer::postprocess(const Tensor &tensor,
   return imageprocessing::saveToTempFile(mat);
 }
 
-std::string StyleTransfer::forward(std::string imageSource) {
-  auto [inputTensor, originalSize] =
+std::string StyleTransfer::generate(std::string imageSource) {
+    auto [inputTensor, originalSize] =
       imageprocessing::readImageToTensor(imageSource, getAllInputShapes()[0]);
 
-  auto forwardResult = forwardET(inputTensor);
+  auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
         "Failed to forward, error: " +

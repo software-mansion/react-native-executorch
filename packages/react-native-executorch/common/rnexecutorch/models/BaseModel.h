@@ -19,13 +19,13 @@ public:
             std::shared_ptr<react::CallInvoker> callInvoker);
   std::size_t getMemoryLowerBound();
   void unload();
+  std::vector<int32_t> getInputShape(std::string method_name, int index);
   std::vector<std::vector<int32_t>>
   getAllInputShapes(std::string methodName = "forward");
   std::vector<std::shared_ptr<OwningArrayBuffer>>
   forward(std::vector<JsiTensorView> tensorViewVec);
 
 protected:
-  // FIXME: this doesn't work
   Result<std::vector<EValue>> forward(const EValue &input_value);
   Result<std::vector<EValue>> forward(const std::vector<EValue> &input_value);
   // If possible, models should not use the JS runtime to keep JSI internals
