@@ -114,10 +114,10 @@ cv::Mat readImage(const std::string &imageURI) {
   return image;
 }
 
-TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDim,
+TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDims,
                               const cv::Mat &matrix) {
   std::vector<float> inputVector = colorMatToVector(matrix);
-  return executorch::extension::make_tensor_ptr(tensorDim, inputVector);
+  return executorch::extension::make_tensor_ptr(tensorDims, inputVector);
 }
 
 cv::Mat getMatrixFromTensor(cv::Size size, const Tensor &tensor) {
@@ -128,26 +128,26 @@ cv::Mat getMatrixFromTensor(cv::Size size, const Tensor &tensor) {
 
 std::pair<TensorPtr, cv::Size>
 readImageToTensor(const std::string &path,
-                  const std::vector<int32_t> &tensorDim) {
+                  const std::vector<int32_t> &tensorDims) {
   cv::Mat input = imageprocessing::readImage(path);
   cv::Size imageSize = input.size();
 
-  if (tensorDim.size() < 2) {
+  if (tensorDims.size() < 2) {
     char errorMessage[100];
     std::snprintf(errorMessage, sizeof(errorMessage),
                   "Unexpected tensor size, expected at least 2 dimentions "
                   "but got: %zu.",
-                  tensorDim.size());
+                  tensorDims.size());
     throw std::runtime_error(errorMessage);
   }
-  cv::Size tensorSize = cv::Size(tensorDim[tensorDim.size() - 1],
-                                 tensorDim[tensorDim.size() - 2]);
+  cv::Size tensorSize = cv::Size(tensorDims[tensorDims.size() - 1],
+                                 tensorDims[tensorDims.size() - 2]);
 
   cv::resize(input, input, tensorSize);
 
   cv::cvtColor(input, input, cv::COLOR_BGR2RGB);
 
-  return {imageprocessing::getTensorFromMatrix(tensorDim, input), imageSize};
+  return {imageprocessing::getTensorFromMatrix(tensorDims, input), imageSize};
 }
 } // namespace imageprocessing
 } // namespace rnexecutorch

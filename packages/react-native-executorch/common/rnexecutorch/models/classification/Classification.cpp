@@ -30,10 +30,10 @@ Classification::Classification(const std::string &modelSource,
 
 std::unordered_map<std::string_view, float>
 Classification::forward(std::string imageSource) {
-  auto tensor =
+  auto inputTensor =
       imageprocessing::readImageToTensor(imageSource, getInputShape()[0]).first;
 
-  auto forwardResult = forwardET(tensor);
+  auto forwardResult = forwardET(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
         "Failed to forward, error: " +

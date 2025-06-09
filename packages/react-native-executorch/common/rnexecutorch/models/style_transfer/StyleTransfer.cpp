@@ -42,10 +42,10 @@ std::string StyleTransfer::postprocess(const Tensor &tensor,
 }
 
 std::string StyleTransfer::forward(std::string imageSource) {
-  auto [tensor, originalSize] =
+  auto [inputTensor, originalSize] =
       imageprocessing::readImageToTensor(imageSource, getInputShape()[0]);
 
-  auto forwardResult = forwardET(tensor);
+  auto forwardResult = forwardET(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
         "Failed to forward, error: " +

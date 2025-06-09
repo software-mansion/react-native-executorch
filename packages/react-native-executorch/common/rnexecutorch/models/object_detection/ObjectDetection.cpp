@@ -67,10 +67,10 @@ ObjectDetection::postprocess(const std::vector<EValue> &tensors,
 
 std::vector<Detection> ObjectDetection::forward(std::string imageSource,
                                                 double detectionThreshold) {
-  auto [tensor, originalSize] =
+  auto [inputTensor, originalSize] =
       imageprocessing::readImageToTensor(imageSource, getInputShape()[0]);
 
-  auto forwardResult = forwardET(tensor);
+  auto forwardResult = forwardET(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
         "Failed to forward, error: " +
