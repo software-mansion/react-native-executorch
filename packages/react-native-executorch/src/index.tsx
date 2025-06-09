@@ -14,7 +14,8 @@ declare global {
 if (
   global.loadStyleTransfer == null ||
   global.loadImageSegmentation == null ||
-  global.loadExecutorchModule == null
+  global.loadExecutorchModule == null ||
+  global.loadClassification == null
 ) {
   if (!ETInstallerNativeModule) {
     throw new Error(
