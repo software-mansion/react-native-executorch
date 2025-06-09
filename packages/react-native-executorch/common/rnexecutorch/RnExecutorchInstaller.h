@@ -26,7 +26,7 @@ public:
                     FetchUrlFunc_t fetchDataFromUrl);
 
 private:
-  template <UnloadableExternalMemoryAware ModelT>
+  template <typename ModelT>
   static jsi::Function
   loadModel(jsi::Runtime *jsiRuntime,
             std::shared_ptr<react::CallInvoker> jsCallInvoker,

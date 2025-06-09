@@ -1,6 +1,5 @@
 #include "RnExecutorchInstaller.h"
 
-#include <rnexecutorch/bindings/ExecutorchModule.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/models/classification/Classification.h>
 #include <rnexecutorch/models/image_segmentation/ImageSegmentation.h>
