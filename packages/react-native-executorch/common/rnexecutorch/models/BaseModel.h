@@ -6,6 +6,8 @@
 #include <ReactCommon/CallInvoker.h>
 #include <executorch/extension/module/module.h>
 #include <jsi/jsi.h>
+#include <rnexecutorch/jsi/OwningArrayBuffer.h>
+#include <rnexecutorch/utils/JsiTensorView.h>
 
 namespace rnexecutorch {
 using namespace facebook;
@@ -17,10 +19,16 @@ public:
             std::shared_ptr<react::CallInvoker> callInvoker);
   std::size_t getMemoryLowerBound();
   void unload();
-  std::vector<std::vector<int32_t>> getAllInputShapes();
+  std::vector<std::vector<int32_t>>
+  getAllInputShapes(std::string methodName = "forward");
+  std::vector<std::shared_ptr<OwningArrayBuffer>>
+  forward(std::vector<JsiTensorView> tensorViewVec);
 
 protected:
-  Result<std::vector<EValue>> forwardET(const EValue &input_value);
+  // TODO: NEED TO CHANGE THE CONCEPT TO MATCH THE EXACT SIGNATURE OF THE SECOND
+  // FORWARD SO ITS NOT AMBIGUOUS
+  Result<std::vector<EValue>> forward(const EValue &input_value);
+  Result<std::vector<EValue>> forward(const std::vector<EValue> &input_value);
   // If possible, models should not use the JS runtime to keep JSI internals
   // away from logic, however, sometimes this would incur too big of a penalty
   // (unnecessary copies instead of working on JS memory). In this case

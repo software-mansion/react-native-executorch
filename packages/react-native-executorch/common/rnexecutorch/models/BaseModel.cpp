@@ -28,14 +28,15 @@ BaseModel::BaseModel(const std::string &modelSource,
   memorySizeLowerBound = std::filesystem::file_size(modelPath);
 }
 
-std::vector<std::vector<int32_t>> BaseModel::getAllInputShapes() {
-    if (!module) {
+std::vector<std::vector<int32_t>>
+BaseModel::getAllInputShapes(std::string methodName) {
+  if (!module) {
     throw std::runtime_error("getInputShape called on unloaded model");
   }
-  auto method_meta = module->method_meta("forward");
+  auto method_meta = module->method_meta(methodName);
 
   if (!method_meta.ok()) {
-    throw std::runtime_error("Failed to load forward");
+    throw std::runtime_error("Failed to load method: " + methodName);
   }
   std::vector<std::vector<int32_t>> output;
   std::size_t numInputs = method_meta->num_inputs();
@@ -43,7 +44,9 @@ std::vector<std::vector<int32_t>> BaseModel::getAllInputShapes() {
   for (std::size_t input = 0; input < numInputs; ++input) {
     auto input_meta = method_meta->input_tensor_meta(input);
     if (!input_meta.ok()) {
-      throw std::runtime_error("Failed to load forward input");
+      throw std::runtime_error(
+          "Failed to load input no: " + std::to_string(input) + " for method " +
+          methodName);
     }
     auto shape = input_meta->sizes();
     output.emplace_back(std::vector<int32_t>(shape.begin(), shape.end()));
@@ -54,12 +57,5 @@ std::vector<std::vector<int32_t>> BaseModel::getAllInputShapes() {
 std::size_t BaseModel::getMemoryLowerBound() { return memorySizeLowerBound; }
 
 void BaseModel::unload() { module.reset(nullptr); }
-
-Result<std::vector<EValue>> BaseModel::forwardET(const EValue &input_value) {
-  if (!module) {
-    throw std::runtime_error("Forward called on unloaded model");
-  }
-  return module->forward(input_value);
-}
 
 } // namespace rnexecutorch
