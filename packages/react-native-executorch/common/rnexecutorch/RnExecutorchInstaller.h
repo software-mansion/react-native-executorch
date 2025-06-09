@@ -7,9 +7,9 @@
 #include <ReactCommon/CallInvoker.h>
 #include <jsi/jsi.h>
 
+#include <rnexecutorch/TypeConcepts.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/host_objects/ModelHostObject.h>
-#include <rnexecutorch/utils/TypeConstraints.h>
 
 namespace rnexecutorch {
 

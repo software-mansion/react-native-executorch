@@ -8,10 +8,10 @@
 #include <ReactCommon/CallInvoker.h>
 
 #include <rnexecutorch/Log.h>
+#include <rnexecutorch/TypeConcepts.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/jsi/JsiHostObject.h>
 #include <rnexecutorch/jsi/Promise.h>
-#include <rnexecutorch/utils/TypeConstraints.h>
 
 namespace rnexecutorch {
 

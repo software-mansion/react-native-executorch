@@ -6,10 +6,9 @@
 
 namespace rnexecutorch {
 
-using ::executorch::extension::Module;
 using namespace executorch::aten;
 using namespace executorch::extension;
-using ::executorch::runtime::Error;
+using namespace executorch::runtime;
 using namespace facebook;
 
 ExecutorchModule::ExecutorchModule(
