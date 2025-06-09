@@ -6,7 +6,6 @@
 
 #include <executorch/runtime/core/exec_aten/util/scalar_type_util.h>
 #include <jsi/jsi.h>
-#include <rnexecutorch/Log.h>
 #include <rnexecutorch/host_objects/JsiTensorView.h>
 #include <rnexecutorch/jsi/OwningArrayBuffer.h>
 
