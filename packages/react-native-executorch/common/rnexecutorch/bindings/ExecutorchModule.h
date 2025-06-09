@@ -9,9 +9,9 @@
 #include <rnexecutorch/jsi/OwningArrayBuffer.h>
 #include <rnexecutorch/utils/JsiTensorView.h>
 
-using namespace facebook;
-
 namespace rnexecutorch {
+
+using namespace facebook;
 
 class ExecutorchModule {
 public:
