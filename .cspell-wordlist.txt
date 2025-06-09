@@ -52,3 +52,5 @@ MPNET
 QINT
 FNUZ
 wordlist
+coreml
+mobilenetv
