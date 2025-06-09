@@ -1,8 +1,9 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
 import { TensorPtr } from '../../types/common';
+import { BaseNonStaticModule } from '../BaseNonStaticModule';
 
-export class NewExecutorchModule {
+export class NewExecutorchModule extends BaseNonStaticModule {
   nativeModule: any = null;
 
   async load(
