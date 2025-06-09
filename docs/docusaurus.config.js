@@ -72,6 +72,11 @@ const config = {
             position: 'right',
           },
           {
+            type: 'docsVersionDropdown',
+            position: 'right',
+            dropdownActiveClassDisabled: true,
+          },
+          {
             'href': 'https://discord.gg/ZGqqY55qkP',
             'position': 'right',
             'className': 'header-discord',
