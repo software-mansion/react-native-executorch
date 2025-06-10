@@ -3,7 +3,6 @@
 #include <filesystem>
 
 #include <executorch/extension/tensor/tensor.h>
-#include <rnexecutorch/Log.h>
 
 namespace rnexecutorch {
 
