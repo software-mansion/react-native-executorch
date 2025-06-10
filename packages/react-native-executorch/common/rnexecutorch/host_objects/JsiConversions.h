@@ -190,15 +190,12 @@ getJsiValue(const std::vector<std::shared_ptr<JSTensorViewOut>> &vec,
   for (size_t i = 0; i < vec.size(); i++) {
     jsi::Object tensorObj(runtime);
 
-    // Convert sizes array
     tensorObj.setProperty(runtime, "shape",
                           getJsiValue(vec[i]->sizes, runtime));
 
-    // Set scalar type
     tensorObj.setProperty(runtime, "scalarType",
                           jsi::Value(static_cast<int>(vec[i]->scalarType)));
 
-    // Set data as ArrayBuffer
     jsi::ArrayBuffer arrayBuffer(runtime, vec[i]->data);
     tensorObj.setProperty(runtime, "data", arrayBuffer);
 
