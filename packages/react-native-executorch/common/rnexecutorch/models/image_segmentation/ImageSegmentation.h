@@ -26,7 +26,6 @@ public:
           std::set<std::string, std::less<>> classesOfInterest, bool resize);
 
 private:
-  std::pair<TensorPtr, cv::Size> preprocess(const std::string &imageSource);
   std::shared_ptr<jsi::Object>
   postprocess(const Tensor &tensor, cv::Size originalSize,
               std::set<std::string, std::less<>> classesOfInterest,

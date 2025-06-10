@@ -33,16 +33,6 @@ StyleTransfer::StyleTransfer(const std::string &modelSource,
                             modelInputShape[modelInputShape.size() - 2]);
 }
 
-std::pair<TensorPtr, cv::Size>
-StyleTransfer::preprocess(const std::string &imageSource) {
-  cv::Mat image = imageprocessing::readImage(imageSource);
-  auto originalSize = image.size();
-  cv::resize(image, image, modelImageSize);
-
-  return {imageprocessing::getTensorFromMatrix(getInputShape()[0], image),
-          originalSize};
-}
-
 std::string StyleTransfer::postprocess(const Tensor &tensor,
                                        cv::Size originalSize) {
   cv::Mat mat = imageprocessing::getMatrixFromTensor(modelImageSize, tensor);
@@ -52,9 +42,10 @@ std::string StyleTransfer::postprocess(const Tensor &tensor,
 }
 
 std::string StyleTransfer::forward(std::string imageSource) {
-  auto [tensor, originalSize] = preprocess(imageSource);
+  auto [inputTensor, originalSize] =
+      imageprocessing::readImageToTensor(imageSource, getInputShape()[0]);
 
-  auto forwardResult = forwardET(tensor);
+  auto forwardResult = forwardET(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
         "Failed to forward, error: " +
