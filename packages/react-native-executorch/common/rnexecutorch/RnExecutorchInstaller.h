@@ -26,7 +26,7 @@ public:
                     FetchUrlFunc_t fetchDataFromUrl);
 
 private:
-  template <typename ModelT>
+  template <DerivedFromOrSameAs<BaseModel> ModelT>
   static jsi::Function
   loadModel(jsi::Runtime *jsiRuntime,
             std::shared_ptr<react::CallInvoker> jsCallInvoker,

@@ -25,7 +25,7 @@ public:
   getAllInputShapes(std::string methodName = "forward");
 
   std::vector<std::shared_ptr<JSTensorViewOut>>
-  forward(std::vector<JSTensorView> tensorViewVec);
+  forwardJS(std::vector<JSTensorView> tensorViewVec);
 
 protected:
   Result<std::vector<EValue>> forward(const EValue &input_value);

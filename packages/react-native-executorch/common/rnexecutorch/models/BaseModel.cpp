@@ -87,7 +87,7 @@ BaseModel::getAllInputShapes(std::string methodName) {
 }
 
 std::vector<std::shared_ptr<JSTensorViewOut>>
-BaseModel::forward(const std::vector<JSTensorView> tensorViewVec) {
+BaseModel::forwardJS(const std::vector<JSTensorView> tensorViewVec) {
   if (!module) {
     throw std::runtime_error("Model not loaded: Cannot perform forward pass");
   }

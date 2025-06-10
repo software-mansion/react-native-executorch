@@ -28,16 +28,9 @@ public:
     }
 
     if constexpr (DerivedFromOrSameAs<Model, BaseModel>) {
-      // constexpr ForwardSignature d = &Model::forward;
-      // using ForwardSignature = std::vector<std::shared_ptr<JSTensorViewOut>>
-      // (
-      //     Model::*d)(const std::vector<JSTensorView>);
-      std::vector<std::shared_ptr<JSTensorViewOut>> (Model::*d)(
-          const std::vector<JSTensorView>) = &Model::forward;
-
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>,
-          &ModelHostObject<Model>::promiseHostFunction<d>, "forward"));
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::forwardJS>,
+                                       "forward"));
     }
 
     if constexpr (DerivedFromOrSameAs<Model, BaseModel>) {
