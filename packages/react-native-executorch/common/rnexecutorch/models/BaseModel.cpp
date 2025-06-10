@@ -86,8 +86,8 @@ BaseModel::getAllInputShapes(std::string methodName) {
   return output;
 }
 
-std::vector<std::shared_ptr<OwningArrayBuffer>>
-BaseModel::forward(std::vector<JsiTensorView> tensorViewVec) {
+std::vector<std::shared_ptr<JSTensorViewOut>>
+BaseModel::forward(const std::vector<JSTensorView> tensorViewVec) {
   if (!module) {
     throw std::runtime_error("Model not loaded: Cannot perform forward pass");
   }
@@ -117,18 +117,20 @@ BaseModel::forward(std::vector<JsiTensorView> tensorViewVec) {
   }
 
   auto &outputs = result.get();
-  std::vector<std::shared_ptr<OwningArrayBuffer>> output;
+  std::vector<std::shared_ptr<JSTensorViewOut>> output;
   output.reserve(outputs.size());
 
-  // Convert ET outputs to a vector of ArrayBuffers which are later
-  // converted to JSI array via JsiConversions.h
+  // Convert ET outputs to a vector of JSTensorViewOut which are later
+  // converted to JSI types via JsiConversions.h
   for (size_t i = 0; i < outputs.size(); i++) {
     auto &outputTensor = outputs[i].toTensor();
-
+    std::vector<int32_t> sizes = getTensorShape(outputTensor);
     size_t bufferSize = outputTensor.numel() * outputTensor.element_size();
     auto buffer = std::make_shared<OwningArrayBuffer>(bufferSize);
     std::memcpy(buffer->data(), outputTensor.const_data_ptr(), bufferSize);
-    output.emplace_back(buffer);
+    auto jsTensor = std::make_shared<JSTensorViewOut>(
+        sizes, outputTensor.scalar_type(), buffer);
+    output.emplace_back(jsTensor);
   }
   return output;
 }
@@ -151,5 +153,16 @@ BaseModel::forward(const std::vector<EValue> &input_evalues) {
 std::size_t BaseModel::getMemoryLowerBound() { return memorySizeLowerBound; }
 
 void BaseModel::unload() { module.reset(nullptr); }
+
+std::vector<int32_t>
+BaseModel::getTensorShape(const executorch::aten::Tensor &tensor) {
+  std::vector<int32_t> tensorShape;
+  auto sizes = tensor.sizes();
+  tensorShape.reserve(sizes.size());
+  for (auto size : sizes) {
+    tensorShape.push_back(static_cast<int32_t>(size));
+  }
+  return tensorShape;
+}
 
 } // namespace rnexecutorch

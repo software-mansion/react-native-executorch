@@ -1,27 +1,9 @@
-import { ResourceFetcher } from '../../utils/ResourceFetcher';
-import { ResourceSource } from '../../types/common';
 import { TensorPtr } from '../../types/common';
 import { BaseNonStaticModule } from '../BaseNonStaticModule';
 
 export class NewExecutorchModule extends BaseNonStaticModule {
-  nativeModule: any = null;
-
-  async load(
-    modelSource: ResourceSource,
-    onDownloadProgressCallback: (_: number) => void = () => {}
-  ): Promise<void> {
-    const paths = await ResourceFetcher.fetchMultipleResources(
-      onDownloadProgressCallback,
-      modelSource
-    );
-    this.nativeModule = global.loadExecutorchModule(paths[0] || '');
-  }
-
   async forward(inputTensor: TensorPtr[]): Promise<ArrayBuffer[]> {
-    return await this.nativeModule.forward(inputTensor);
-  }
-
-  async getInputShape(methodName: string, index: number): Promise<number[]> {
-    return this.nativeModule.getInputShape(methodName, index);
+    // As TypeScript doesn't provide overloading, this method is just a proxy for the users
+    return await this.forwardET(inputTensor);
   }
 }

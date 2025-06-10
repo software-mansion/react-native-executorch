@@ -6,7 +6,8 @@
 #include <ReactCommon/CallInvoker.h>
 #include <executorch/extension/module/module.h>
 #include <jsi/jsi.h>
-#include <rnexecutorch/host_objects/JsiTensorView.h>
+#include <rnexecutorch/host_objects/JSTensorView.h>
+#include <rnexecutorch/host_objects/JSTensorViewOut.h>
 #include <rnexecutorch/jsi/OwningArrayBuffer.h>
 
 namespace rnexecutorch {
@@ -22,8 +23,9 @@ public:
   std::vector<int32_t> getInputShape(std::string method_name, int index);
   std::vector<std::vector<int32_t>>
   getAllInputShapes(std::string methodName = "forward");
-  std::vector<std::shared_ptr<OwningArrayBuffer>>
-  forward(std::vector<JsiTensorView> tensorViewVec);
+
+  std::vector<std::shared_ptr<JSTensorViewOut>>
+  forward(std::vector<JSTensorView> tensorViewVec);
 
 protected:
   Result<std::vector<EValue>> forward(const EValue &input_value);
@@ -37,5 +39,6 @@ protected:
 
 private:
   std::unique_ptr<executorch::extension::Module> module;
+  std::vector<int32_t> getTensorShape(const executorch::aten::Tensor &tensor);
 };
 } // namespace rnexecutorch

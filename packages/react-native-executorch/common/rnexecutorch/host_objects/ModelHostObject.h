@@ -9,6 +9,7 @@
 
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/TypeConcepts.h>
+#include <rnexecutorch/host_objects/JSTensorViewOut.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/jsi/JsiHostObject.h>
 #include <rnexecutorch/jsi/Promise.h>
@@ -27,12 +28,16 @@ public:
     }
 
     if constexpr (DerivedFromOrSameAs<Model, BaseModel>) {
-      using ForwardSignature = std::vector<std::shared_ptr<OwningArrayBuffer>> (
-          Model::*)(std::vector<JsiTensorView>);
+      // constexpr ForwardSignature d = &Model::forward;
+      // using ForwardSignature = std::vector<std::shared_ptr<JSTensorViewOut>>
+      // (
+      //     Model::*d)(const std::vector<JSTensorView>);
+      std::vector<std::shared_ptr<JSTensorViewOut>> (Model::*d)(
+          const std::vector<JSTensorView>) = &Model::forward;
+
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>,
-          promiseHostFunction<static_cast<ForwardSignature>(&Model::forward)>,
-          "forward"));
+          &ModelHostObject<Model>::promiseHostFunction<d>, "forward"));
     }
 
     if constexpr (DerivedFromOrSameAs<Model, BaseModel>) {
