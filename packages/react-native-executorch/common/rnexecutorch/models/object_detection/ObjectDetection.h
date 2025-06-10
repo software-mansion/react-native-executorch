@@ -21,7 +21,6 @@ public:
                                  double detectionThreshold);
 
 private:
-  std::pair<TensorPtr, cv::Size> preprocess(const std::string &imageSource);
   std::vector<Detection> postprocess(const std::vector<EValue> &tensors,
                                      cv::Size originalSize,
                                      double detectionThreshold);

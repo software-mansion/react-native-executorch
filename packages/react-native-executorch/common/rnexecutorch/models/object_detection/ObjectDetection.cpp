@@ -25,16 +25,6 @@ ObjectDetection::ObjectDetection(
                             modelInputShape[modelInputShape.size() - 2]);
 }
 
-std::pair<TensorPtr, cv::Size>
-ObjectDetection::preprocess(const std::string &imageSource) {
-  cv::Mat image = imageprocessing::readImage(imageSource);
-  auto originalSize = image.size();
-  cv::resize(image, image, modelImageSize);
-
-  return {imageprocessing::getTensorFromMatrix(getInputShape()[0], image),
-          originalSize};
-}
-
 std::vector<Detection>
 ObjectDetection::postprocess(const std::vector<EValue> &tensors,
                              cv::Size originalSize, double detectionThreshold) {
@@ -77,9 +67,10 @@ ObjectDetection::postprocess(const std::vector<EValue> &tensors,
 
 std::vector<Detection> ObjectDetection::forward(std::string imageSource,
                                                 double detectionThreshold) {
-  auto [tensor, originalSize] = preprocess(imageSource);
+  auto [inputTensor, originalSize] =
+      imageprocessing::readImageToTensor(imageSource, getInputShape()[0]);
 
-  auto forwardResult = forwardET(tensor);
+  auto forwardResult = forwardET(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
         "Failed to forward, error: " +
