@@ -27,6 +27,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
+          <string>your-app-scheme</string>
           <string>com.anonymous.llm</string>
         </array>
       </dict>
@@ -52,8 +53,10 @@
     <string>Allow $(PRODUCT_NAME) to access your reminders</string>
     <key>NSRemindersUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your reminders</string>
-    <key>NSMicrophoneUsageDescription</key>
-    <string>We need your permission to use the microphone.</string>
+    <key>NSUserActivityTypes</key>
+    <array>
+      <string>$(PRODUCT_BUNDLE_IDENTIFIER).expo.index_route</string>
+    </array>
     <key>UIAppFonts</key>
     <array>
       <string>Aeonik-Regular.otf</string>
