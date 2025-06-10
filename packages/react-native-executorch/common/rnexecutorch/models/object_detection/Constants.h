@@ -1,5 +1,9 @@
-#include "Constants.h"
+#pragma once
 
+#include <string>
+#include <unordered_map>
+
+namespace rnexecutorch {
 const std::unordered_map<int, std::string> cocoLabelsMap = {
     {1, "PERSON"},         {2, "BICYCLE"},       {3, "CAR"},
     {4, "MOTORCYCLE"},     {5, "AIRPLANE"},      {6, "BUS"},
@@ -32,3 +36,4 @@ const std::unordered_map<int, std::string> cocoLabelsMap = {
     {85, "CLOCK"},         {86, "VASE"},         {87, "SCISSORS"},
     {88, "TEDDY_BEAR"},    {89, "HAIR_DRIER"},   {90, "TOOTHBRUSH"},
     {91, "HAIR_BRUSH"}};
+} // namespace rnexecutorch

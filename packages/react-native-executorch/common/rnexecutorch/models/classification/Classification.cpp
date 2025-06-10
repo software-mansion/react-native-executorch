@@ -44,7 +44,6 @@ Classification::forward(std::string imageSource) {
 
 TensorPtr Classification::preprocess(const std::string &imageSource) {
   cv::Mat image = imageprocessing::readImage(imageSource);
-  cv::cvtColor(image, image, cv::COLOR_BGR2RGB);
   cv::resize(image, image, modelImageSize);
 
   return imageprocessing::getTensorFromMatrix(getInputShape()[0], image);

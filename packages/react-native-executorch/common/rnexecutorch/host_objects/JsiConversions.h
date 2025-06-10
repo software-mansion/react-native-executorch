@@ -6,6 +6,9 @@
 
 #include <jsi/jsi.h>
 
+#include <rnexecutorch/models/object_detection/Constants.h>
+#include <rnexecutorch/models/object_detection/Utils.h>
+
 namespace rnexecutorch::jsiconversion {
 
 using namespace facebook;
@@ -88,6 +91,27 @@ getJsiValue(const std::unordered_map<std::string_view, float> &map,
     mapObj.setProperty(runtime, k.data(), v);
   }
   return mapObj;
+}
+
+inline jsi::Value getJsiValue(const std::vector<Detection> &detections,
+                              jsi::Runtime &runtime) {
+  jsi::Array array(runtime, detections.size());
+  for (std::size_t i = 0; i < detections.size(); ++i) {
+    jsi::Object detection(runtime);
+    jsi::Object bbox(runtime);
+    bbox.setProperty(runtime, "x1", detections[i].x1);
+    bbox.setProperty(runtime, "y1", detections[i].y1);
+    bbox.setProperty(runtime, "x2", detections[i].x2);
+    bbox.setProperty(runtime, "y2", detections[i].y2);
+
+    detection.setProperty(runtime, "bbox", bbox);
+    detection.setProperty(runtime, "label",
+                          jsi::String::createFromAscii(
+                              runtime, cocoLabelsMap.at(detections[i].label)));
+    detection.setProperty(runtime, "score", detections[i].score);
+    array.setValueAtIndex(runtime, i, detection);
+  }
+  return array;
 }
 
 template <typename Model, typename R, typename... Types>

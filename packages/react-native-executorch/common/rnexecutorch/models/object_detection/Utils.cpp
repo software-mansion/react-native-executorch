@@ -1,30 +1,7 @@
-#include "ObjectDetectionUtils.hpp"
-#include "Constants.h"
+#include "Utils.h"
 
-NSString *floatLabelToNSString(float label) {
-  int intLabel = static_cast<int>(label);
-  auto it = cocoLabelsMap.find(intLabel);
-  if (it != cocoLabelsMap.end()) {
-    return [NSString stringWithUTF8String:it->second.c_str()];
-  } else {
-    return [NSString stringWithUTF8String:"unknown"];
-  }
-}
-
-NSDictionary *detectionToNSDictionary(const Detection &detection) {
-  return @{
-    @"bbox" : @{
-      @"x1" : @(detection.x1),
-      @"y1" : @(detection.y1),
-      @"x2" : @(detection.x2),
-      @"y2" : @(detection.y2),
-    },
-    @"label" : floatLabelToNSString(detection.label),
-    @"score" : @(detection.score)
-  };
-}
-
-float iou(const Detection &a, const Detection &b) {
+namespace rnexecutorch {
+float intersectionOverUnion(const Detection &a, const Detection &b) {
   float x1 = std::max(a.x1, b.x1);
   float y1 = std::max(a.y1, b.y1);
   float x2 = std::min(a.x2, b.x2);
@@ -36,10 +13,9 @@ float iou(const Detection &a, const Detection &b) {
   float unionArea = areaA + areaB - intersectionArea;
 
   return intersectionArea / unionArea;
-};
+}
 
-std::vector<Detection> nms(std::vector<Detection> detections,
-                           float iouThreshold) {
+std::vector<Detection> nonMaxSuppression(std::vector<Detection> detections) {
   if (detections.empty()) {
     return {};
   }
@@ -70,8 +46,9 @@ std::vector<Detection> nms(std::vector<Detection> detections,
       filteredLabelDetections.push_back(current);
       labelDetections.erase(
           std::remove_if(labelDetections.begin(), labelDetections.end(),
-                         [&](const Detection &other) {
-                           return iou(current, other) > iouThreshold;
+                         [&current](const Detection &other) {
+                           return intersectionOverUnion(current, other) >
+                                  iouThreshold;
                          }),
           labelDetections.end());
     }
@@ -80,3 +57,5 @@ std::vector<Detection> nms(std::vector<Detection> detections,
   }
   return result;
 }
+
+} // namespace rnexecutorch

@@ -111,6 +111,7 @@ cv::Mat readImage(const std::string &imageURI) {
     throw std::runtime_error("Read image error: invalid argument");
   }
 
+  cv::cvtColor(image, image, cv::COLOR_BGR2RGB);
   return image;
 }
 

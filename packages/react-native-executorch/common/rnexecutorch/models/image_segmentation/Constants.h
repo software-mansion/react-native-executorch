@@ -10,4 +10,4 @@ inline constexpr std::array<std::string_view, 21> deeplabv3_resnet50_labels = {
     "COW",        "DININGTABLE", "DOG",     "HORSE", "MOTORBIKE",
     "PERSON",     "POTTEDPLANT", "SHEEP",   "SOFA",  "TRAIN",
     "TVMONITOR"};
-}
+} // namespace rnexecutorch
