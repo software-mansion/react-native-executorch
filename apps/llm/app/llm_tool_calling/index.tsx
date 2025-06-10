@@ -10,8 +10,8 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import SWMIcon from '../assets/icons/swm_icon.svg';
-import SendIcon from '../assets/icons/send_icon.svg';
+import SWMIcon from '../../assets/icons/swm_icon.svg';
+import SendIcon from '../../assets/icons/send_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {
   HAMMER2_1_1_5B,
@@ -20,18 +20,14 @@ import {
   useLLM,
   DEFAULT_SYSTEM_PROMPT,
 } from 'react-native-executorch';
-import PauseIcon from '../assets/icons/pause_icon.svg';
-import ColorPalette from '../colors';
-import Messages from '../components/Messages';
+import PauseIcon from '../../assets/icons/pause_icon.svg';
+import ColorPalette from '../../colors';
+import Messages from '../../components/Messages';
 import * as Brightness from 'expo-brightness';
 import * as Calendar from 'expo-calendar';
-import { executeTool, TOOL_DEFINITIONS_PHONE } from '../utils/tools';
+import { executeTool, TOOL_DEFINITIONS_PHONE } from '../../utils/tools';
 
-export default function LLMToolCallingScreen({
-  setIsGenerating,
-}: {
-  setIsGenerating: React.Dispatch<React.SetStateAction<boolean>>;
-}) {
+export default function LLMToolCallingScreen() {
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
   const textInputRef = useRef<TextInput>(null);
@@ -41,10 +37,6 @@ export default function LLMToolCallingScreen({
     tokenizerSource: HAMMER2_1_TOKENIZER,
     tokenizerConfigSource: HAMMER2_1_TOKENIZER_CONFIG,
   });
-
-  useEffect(() => {
-    setIsGenerating(llm.isGenerating);
-  }, [llm.isGenerating, setIsGenerating]);
 
   const { configure } = llm;
   useEffect(() => {
@@ -108,9 +100,13 @@ export default function LLMToolCallingScreen({
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
         <KeyboardAvoidingView
-          style={styles.keyboardAvoidingView}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'android' ? 30 : 0}
+          style={{
+            ...styles.container,
+            paddingBottom: Platform.OS === 'android' ? 20 : 0,
+          }}
+          collapsable={false}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 40}
         >
           <View style={styles.topContainer}>
             <SWMIcon width={45} height={45} />

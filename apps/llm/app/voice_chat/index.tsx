@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -9,7 +9,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import SWMIcon from '../assets/icons/swm_icon.svg';
+import SWMIcon from '../../assets/icons/swm_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {
   STREAMING_ACTION,
@@ -19,11 +19,11 @@ import {
   QWEN3_TOKENIZER,
   QWEN3_TOKENIZER_CONFIG,
 } from 'react-native-executorch';
-import PauseIcon from '../assets/icons/pause_icon.svg';
-import MicIcon from '../assets/icons/mic_icon.svg';
-import StopIcon from '../assets/icons/stop_icon.svg';
-import ColorPalette from '../colors';
-import Messages from '../components/Messages';
+import PauseIcon from '../../assets/icons/pause_icon.svg';
+import MicIcon from '../../assets/icons/mic_icon.svg';
+import StopIcon from '../../assets/icons/stop_icon.svg';
+import ColorPalette from '../../colors';
+import Messages from '../../components/Messages';
 import LiveAudioStream from 'react-native-live-audio-stream';
 import { Buffer } from 'buffer';
 
@@ -55,11 +55,7 @@ const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
   return float32Array;
 };
 
-export default function VoiceChatScreen({
-  setIsGenerating,
-}: {
-  setIsGenerating: React.Dispatch<React.SetStateAction<boolean>>;
-}) {
+export default function VoiceChatScreen() {
   const [isRecording, setIsRecording] = useState(false);
   const messageRecorded = useRef<boolean>(false);
 
@@ -69,7 +65,7 @@ export default function VoiceChatScreen({
     tokenizerConfigSource: QWEN3_TOKENIZER_CONFIG,
   });
   const speechToText = useSpeechToText({
-    modelName: 'moonshine',
+    modelName: 'whisper',
     windowSize: 3,
     overlapSeconds: 1.2,
   });
@@ -96,10 +92,6 @@ export default function VoiceChatScreen({
       await speechToText.streamingTranscribe(STREAMING_ACTION.START);
     }
   };
-
-  useEffect(() => {
-    setIsGenerating(llm.isGenerating);
-  }, [llm.isGenerating, setIsGenerating]);
 
   return !llm.isReady || !speechToText.isReady ? (
     <Spinner

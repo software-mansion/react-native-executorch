@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icons/icon.png",
     "userInterfaceStyle": "light",
+    "scheme": "your-app-scheme",
     "plugins": [
       [
         "expo-font",
@@ -21,7 +22,8 @@
         {
           "calendarPermission": "The app needs to access your calendar."
         }
-      ]
+      ],
+      "expo-router"
     ],
     "newArchEnabled": true,
     "splash": {
