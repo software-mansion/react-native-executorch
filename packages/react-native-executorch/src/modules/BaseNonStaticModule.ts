@@ -16,7 +16,7 @@ export class BaseNonStaticModule {
     this.nativeModule = global.loadExecutorchModule(paths[0] || '');
   }
 
-  protected async forwardET(inputTensor: TensorPtr[]): Promise<ArrayBuffer[]> {
+  protected async forwardET(inputTensor: TensorPtr[]): Promise<TensorPtr[]> {
     return await this.nativeModule.forward(inputTensor);
   }
 
