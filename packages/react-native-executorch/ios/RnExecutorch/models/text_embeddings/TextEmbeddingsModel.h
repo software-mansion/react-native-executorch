@@ -9,6 +9,7 @@
 - (void)loadTokenizer:(NSString *)tokenizerSource;
 - (NSArray *)preprocess:(NSString *)input;
 - (NSArray *)runModel:(NSString *)input;
+- (NSArray *)runModel:(NSString *)input meanPooling:(bool)meanPooling;
 - (NSArray *)postprocess:(NSArray *)input
            attentionMask:(NSArray *)attentionMask;
 

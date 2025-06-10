@@ -34,10 +34,11 @@ class TextEmbeddings(
 
   override fun forward(
     input: String,
+    meanPooling: Boolean,
     promise: Promise,
   ) {
     try {
-      val output = textEmbeddingsModel.runModel(input)
+      val output = textEmbeddingsModel.runModel(input, meanPooling)
       val writableArray = WritableNativeArray()
       output.forEach { writableArray.pushDouble(it) }
 
