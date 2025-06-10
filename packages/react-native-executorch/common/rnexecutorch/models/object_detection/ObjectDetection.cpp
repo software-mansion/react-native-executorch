@@ -38,8 +38,10 @@ ObjectDetection::preprocess(const std::string &imageSource) {
 std::vector<Detection>
 ObjectDetection::postprocess(const std::vector<EValue> &tensors,
                              cv::Size originalSize, double detectionThreshold) {
-  float widthRatio = originalSize.width / modelImageSize.width;
-  float heightRatio = originalSize.height / modelImageSize.height;
+  float widthRatio =
+      static_cast<float>(originalSize.width) / modelImageSize.width;
+  float heightRatio =
+      static_cast<float>(originalSize.height) / modelImageSize.height;
 
   std::vector<Detection> detections;
   auto bboxTensor = tensors.at(0).toTensor();
