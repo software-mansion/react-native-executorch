@@ -1,5 +1,5 @@
 import { ResourceSource } from '../../types/common';
-import { useModule } from '../useModule';
+import { useNonStaticModule } from '../useNonStaticModule';
 import { ObjectDetectionModule } from '../../modules/computer_vision/ObjectDetectionModule';
 
 interface Props {
@@ -11,8 +11,8 @@ export const useObjectDetection = ({
   modelSource,
   preventLoad = false,
 }: Props) =>
-  useModule({
+  useNonStaticModule({
     module: ObjectDetectionModule,
     loadArgs: [modelSource],
-    preventLoad,
+    preventLoad: preventLoad,
   });
