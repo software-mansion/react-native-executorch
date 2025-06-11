@@ -155,13 +155,8 @@ void BaseModel::unload() { module.reset(nullptr); }
 
 std::vector<int32_t>
 BaseModel::getTensorShape(const executorch::aten::Tensor &tensor) {
-  std::vector<int32_t> tensorShape;
   auto sizes = tensor.sizes();
-  tensorShape.reserve(sizes.size());
-  for (auto size : sizes) {
-    tensorShape.push_back(static_cast<int32_t>(size));
-  }
-  return tensorShape;
+  return std::vector<int32_t>(sizes.begin(), sizes.end());
 }
 
 } // namespace rnexecutorch

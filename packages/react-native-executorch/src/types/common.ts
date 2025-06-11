@@ -55,7 +55,7 @@ export type TensorBuffer =
   | BigUint64Array;
 
 export interface TensorPtr {
-  data: TensorBuffer;
-  shape: number[];
+  dataPtr: TensorBuffer;
+  sizes: number[];
   scalarType: ScalarType;
 }
