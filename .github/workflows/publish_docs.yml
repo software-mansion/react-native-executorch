@@ -1,6 +1,12 @@
 name: Publish to GitHub Pages
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/publish_docs.yml'
+      - 'docs/**'
   workflow_dispatch:
 jobs:
   publish:
