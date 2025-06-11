@@ -49,12 +49,8 @@ std::vector<int32_t> BaseModel::getInputShape(std::string method_name,
         std::to_string(static_cast<int>(input_meta.error())));
   }
 
-  std::vector<int32_t> input_shape;
   auto sizes = input_meta->sizes();
-  input_shape.reserve(sizes.size());
-  for (auto size : sizes) {
-    input_shape.push_back(size);
-  }
+  std::vector<int32_t> input_shape(sizes.begin(), sizes.end());
   return input_shape;
 }
 
