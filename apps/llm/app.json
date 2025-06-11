@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icons/icon.png",
     "userInterfaceStyle": "light",
-    "scheme": "your-app-scheme",
+    "scheme": "rne-llm",
     "plugins": [
       [
         "expo-font",
