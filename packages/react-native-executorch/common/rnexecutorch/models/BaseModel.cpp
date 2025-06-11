@@ -41,7 +41,6 @@ std::vector<int32_t> BaseModel::getInputShape(std::string method_name,
         std::to_string(static_cast<int>(method_meta.error())));
   }
 
-  std::vector<int32_t> input_shape;
   auto input_meta = method_meta->input_tensor_meta(index);
   if (!input_meta.ok()) {
     throw std::runtime_error(
@@ -50,7 +49,10 @@ std::vector<int32_t> BaseModel::getInputShape(std::string method_name,
         std::to_string(static_cast<int>(input_meta.error())));
   }
 
-  for (auto size : input_meta->sizes()) {
+  std::vector<int32_t> input_shape;
+  auto sizes = input_meta->sizes();
+  input_shape.reserve(sizes.size());
+  for (auto size : sizes) {
     input_shape.push_back(size);
   }
   return input_shape;
