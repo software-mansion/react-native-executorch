@@ -14,8 +14,7 @@
 
 - (NSArray *)postprocess:(NSArray *)modelOutput   // [tokens * embedding_dim]
            attentionMask:(NSArray *)attentionMask // [tokens]
-             meanPooling:(bool)meanPooling        // [tokens]
-{
+             meanPooling:(bool)meanPooling {
   NSArray *embeddings = modelOutput;
   if (meanPooling) {
     embeddings = [TextEmbeddingsUtils meanPooling:modelOutput

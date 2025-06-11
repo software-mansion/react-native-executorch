@@ -88,7 +88,7 @@ const dotProduct = (a: number[], b: number[]) =>
 function App() {
   const model = useTextEmbeddings({
     modelSource: ALL_MINILM_L6_V2,
-    tokenizerSource: ALL_MINILM_L6_V2_TOKENIZER
+    tokenizerSource: ALL_MINILM_L6_V2_TOKENIZER,
     meanPooling: true,
   });
 
