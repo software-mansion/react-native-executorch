@@ -21,14 +21,12 @@ using namespace facebook;
 
 template <typename T> T getValue(const jsi::Value &val, jsi::Runtime &runtime);
 
-template <>
-inline double getValue<double>(const jsi::Value &val, jsi::Runtime &runtime) {
-  return val.asNumber();
-}
-
-template <>
-inline int getValue<int>(const jsi::Value &val, jsi::Runtime &runtime) {
-  return val.asNumber();
+template <typename T>
+  requires IsNumeric<T>
+inline T getValue(const jsi::Value &val, jsi::Runtime &runtime) {
+  static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value,
+                "Only integral and floating-point types are supported");
+  return static_cast<T>(val.asNumber());
 }
 
 template <>
