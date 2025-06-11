@@ -8,7 +8,6 @@
 #include <jsi/jsi.h>
 #include <rnexecutorch/host_objects/JSTensorViewIn.h>
 #include <rnexecutorch/host_objects/JSTensorViewOut.h>
-#include <rnexecutorch/jsi/OwningArrayBuffer.h>
 
 namespace rnexecutorch {
 using namespace facebook;
@@ -23,7 +22,6 @@ public:
   std::vector<int32_t> getInputShape(std::string method_name, int index);
   std::vector<std::vector<int32_t>>
   getAllInputShapes(std::string methodName = "forward");
-
   std::vector<std::shared_ptr<JSTensorViewOut>>
   forwardJS(std::vector<JSTensorViewIn> tensorViewVec);
 
@@ -35,9 +33,9 @@ protected:
   // (unnecessary copies instead of working on JS memory). In this case
   // CallInvoker can be used to get jsi::Runtime, and use it in a safe manner.
   std::shared_ptr<react::CallInvoker> callInvoker;
-  std::size_t memorySizeLowerBound{0};
 
 private:
+  std::size_t memorySizeLowerBound{0};
   std::unique_ptr<executorch::extension::Module> module;
   std::vector<int32_t> getTensorShape(const executorch::aten::Tensor &tensor);
 };
