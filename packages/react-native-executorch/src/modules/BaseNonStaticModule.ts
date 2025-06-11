@@ -1,20 +1,14 @@
 import { ResourceSource } from '../types/common';
-import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { TensorPtr } from '../types/common';
 
-export class BaseNonStaticModule {
+export abstract class BaseNonStaticModule {
   nativeModule: any = null;
 
-  async load(
+  abstract load(
     modelSource: ResourceSource,
-    onDownloadProgressCallback: (_: number) => void = () => {}
-  ): Promise<void> {
-    const paths = await ResourceFetcher.fetchMultipleResources(
-      onDownloadProgressCallback,
-      modelSource
-    );
-    this.nativeModule = global.loadExecutorchModule(paths[0] || '');
-  }
+    onDownloadProgressCallback: (_: number) => void,
+    ...args: any[]
+  ): Promise<void>;
 
   protected async forwardET(inputTensor: TensorPtr[]): Promise<TensorPtr[]> {
     return await this.nativeModule.forward(inputTensor);
