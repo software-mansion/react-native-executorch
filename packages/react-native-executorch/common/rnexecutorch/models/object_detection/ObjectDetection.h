@@ -17,8 +17,8 @@ class ObjectDetection : public BaseModel {
 public:
   ObjectDetection(const std::string &modelSource,
                   std::shared_ptr<react::CallInvoker> callInvoker);
-  std::vector<Detection> forward(std::string imageSource,
-                                 double detectionThreshold);
+  std::vector<Detection> generate(std::string imageSource,
+                                  double detectionThreshold);
 
 private:
   std::vector<Detection> postprocess(const std::vector<EValue> &tensors,
