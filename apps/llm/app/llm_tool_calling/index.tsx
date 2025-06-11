@@ -110,7 +110,6 @@ export default function LLMToolCallingScreen() {
         >
           <View style={styles.topContainer}>
             <SWMIcon width={45} height={45} />
-            <Text style={styles.textModelName}>LLM Tool-calling Demo</Text>
           </View>
           {llm.messageHistory.length ? (
             <View style={styles.chatContainer}>
