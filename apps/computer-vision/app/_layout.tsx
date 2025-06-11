@@ -53,18 +53,18 @@ export default function _layout() {
         }}
       />
       <Drawer.Screen
-        name="style_transfer/index"
+        name="ocr_vertical/index"
         options={{
-          drawerLabel: 'Style Transfer',
-          title: 'Style Transfer',
+          drawerLabel: 'OCR Vertical',
+          title: 'Vertical OCR',
           headerTitleStyle: { color: ColorPalette.primary },
         }}
       />
       <Drawer.Screen
-        name="vertical_ocr/index"
+        name="style_transfer/index"
         options={{
-          drawerLabel: 'Vertical OCR',
-          title: 'Vertical OCR',
+          drawerLabel: 'Style Transfer',
+          title: 'Style Transfer',
           headerTitleStyle: { color: ColorPalette.primary },
         }}
       />

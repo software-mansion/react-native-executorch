@@ -37,15 +37,15 @@ export default function Home() {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.navigate('style_transfer/')}
+          onPress={() => router.navigate('ocr_vertical/')}
         >
-          <Text style={styles.buttonText}>Style Transfer</Text>
+          <Text style={styles.buttonText}>OCR Vertical</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.navigate('vertical_ocr/')}
+          onPress={() => router.navigate('style_transfer/')}
         >
-          <Text style={styles.buttonText}>Vertical OCR</Text>
+          <Text style={styles.buttonText}>Style Transfer</Text>
         </TouchableOpacity>
       </View>
     </View>
