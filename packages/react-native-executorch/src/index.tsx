@@ -39,7 +39,6 @@ export * from './hooks/natural_language_processing/useTextEmbeddings';
 export * from './hooks/natural_language_processing/useTokenizer';
 
 export * from './hooks/general/useExecutorchModule';
-export * from './modules/general/NewExecutorchModule';
 
 // modules
 export * from './modules/computer_vision/ClassificationModule';
@@ -48,13 +47,12 @@ export * from './modules/computer_vision/StyleTransferModule';
 export * from './modules/computer_vision/ImageSegmentationModule';
 export * from './modules/computer_vision/OCRModule';
 export * from './modules/computer_vision/VerticalOCRModule';
+export * from './modules/general/ExecutorchModule';
 
 export * from './modules/natural_language_processing/LLMModule';
 export * from './modules/natural_language_processing/SpeechToTextModule';
 export * from './modules/natural_language_processing/TextEmbeddingsModule';
 export * from './modules/natural_language_processing/TokenizerModule';
-
-export * from './modules/general/ExecutorchModule';
 
 // utils
 export * from './utils/ResourceFetcher';
