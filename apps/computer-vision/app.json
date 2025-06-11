@@ -7,7 +7,7 @@
     "icon": "./assets/icons/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "scheme": "your-app-scheme",
+    "scheme": "rne-computer-vision",
     "splash": {
       "image": "./assets/icons/splash.png",
       "resizeMode": "contain",

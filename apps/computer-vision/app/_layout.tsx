@@ -15,7 +15,7 @@ export default function _layout() {
       <Drawer.Screen
         name="index"
         options={{
-          drawerLabel: '  Menu',
+          drawerLabel: 'Menu',
           title: 'Main Menu',
           headerTitleStyle: { color: ColorPalette.primary },
         }}
