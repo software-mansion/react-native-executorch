@@ -25,6 +25,7 @@ import StopIcon from '../../assets/icons/stop_icon.svg';
 import ColorPalette from '../../colors';
 import Messages from '../../components/Messages';
 import LiveAudioStream from 'react-native-live-audio-stream';
+import DeviceInfo from 'react-native-device-info';
 import { Buffer } from 'buffer';
 
 const audioStreamOptions = {
@@ -65,7 +66,7 @@ export default function VoiceChatScreen() {
     tokenizerConfigSource: QWEN3_TOKENIZER_CONFIG,
   });
   const speechToText = useSpeechToText({
-    modelName: 'whisper',
+    modelName: 'moonshine',
     windowSize: 3,
     overlapSeconds: 1.2,
   });
@@ -107,7 +108,7 @@ export default function VoiceChatScreen() {
       >
         <View style={styles.topContainer}>
           <SWMIcon width={45} height={45} />
-          <Text style={styles.textModelName}>Qwen 3 x Whisper</Text>
+          <Text style={styles.textModelName}>Qwen 3 x Moonshine</Text>
         </View>
         {llm.messageHistory.length || speechToText.sequence ? (
           <View style={styles.chatContainer}>
@@ -134,23 +135,33 @@ export default function VoiceChatScreen() {
           </View>
         )}
         <View style={styles.bottomContainer}>
-          {llm.isGenerating ? (
-            <TouchableOpacity onPress={llm.interrupt}>
-              <PauseIcon height={40} width={40} padding={4} margin={8} />
-            </TouchableOpacity>
+          {DeviceInfo.isEmulatorSync() ? (
+            <View style={styles.emulatorBox}>
+              <Text style={[styles.emulatorWarning]}>
+                recording disabled on emulator
+              </Text>
+            </View>
           ) : (
-            <TouchableOpacity
-              style={
-                !isRecording ? styles.recordTouchable : styles.recordingInfo
-              }
-              onPress={handleRecordPress}
-            >
-              {isRecording ? (
-                <StopIcon height={40} width={40} padding={4} margin={8} />
+            <>
+              {llm.isGenerating ? (
+                <TouchableOpacity onPress={llm.interrupt}>
+                  <PauseIcon height={40} width={40} padding={4} margin={8} />
+                </TouchableOpacity>
               ) : (
-                <MicIcon height={40} width={40} padding={4} margin={8} />
+                <TouchableOpacity
+                  style={
+                    !isRecording ? styles.recordTouchable : styles.recordingInfo
+                  }
+                  onPress={handleRecordPress}
+                >
+                  {isRecording ? (
+                    <StopIcon height={40} width={40} padding={4} margin={8} />
+                  ) : (
+                    <MicIcon height={40} width={40} padding={4} margin={8} />
+                  )}
+                </TouchableOpacity>
               )}
-            </TouchableOpacity>
+            </>
           )}
         </View>
       </KeyboardAvoidingView>
@@ -209,5 +220,18 @@ const styles = StyleSheet.create({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  emulatorBox: {
+    padding: 10,
+    margin: 10,
+    borderWidth: 1,
+    borderRadius: 8,
+    borderColor: 'gray',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emulatorWarning: {
+    color: 'gray',
+    fontSize: 16,
   },
 });

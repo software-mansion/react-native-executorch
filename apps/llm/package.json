@@ -29,6 +29,7 @@
     "react": "19.0.0",
     "react-native": "0.79.2",
     "react-native-audio-api": "0.5.7",
+    "react-native-device-info": "^14.0.4",
     "react-native-executorch": "workspace:*",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-live-audio-stream": "^1.1.1",
