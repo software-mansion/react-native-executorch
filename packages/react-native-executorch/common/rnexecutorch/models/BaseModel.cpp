@@ -86,7 +86,7 @@ BaseModel::getAllInputShapes(std::string methodName) {
 }
 
 std::vector<std::shared_ptr<JSTensorViewOut>>
-BaseModel::forwardJS(const std::vector<JSTensorView> tensorViewVec) {
+BaseModel::forwardJS(const std::vector<JSTensorViewIn> tensorViewVec) {
   if (!module) {
     throw std::runtime_error("Model not loaded: Cannot perform forward pass");
   }
@@ -102,7 +102,7 @@ BaseModel::forwardJS(const std::vector<JSTensorView> tensorViewVec) {
   for (size_t i = 0; i < tensorViewVec.size(); i++) {
     const auto &currTensorView = tensorViewVec[i];
     auto tensorPtr =
-        make_tensor_ptr(currTensorView.shape, currTensorView.dataPtr,
+        make_tensor_ptr(currTensorView.sizes, currTensorView.dataPtr,
                         currTensorView.scalarType);
     tensorPtrs.emplace_back(tensorPtr);
     evalues.emplace_back(*tensorPtr); // Dereference TensorPtr to get Tensor,

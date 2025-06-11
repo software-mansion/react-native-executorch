@@ -6,7 +6,7 @@
 #include <ReactCommon/CallInvoker.h>
 #include <executorch/extension/module/module.h>
 #include <jsi/jsi.h>
-#include <rnexecutorch/host_objects/JSTensorView.h>
+#include <rnexecutorch/host_objects/JSTensorViewIn.h>
 #include <rnexecutorch/host_objects/JSTensorViewOut.h>
 #include <rnexecutorch/jsi/OwningArrayBuffer.h>
 
@@ -25,7 +25,7 @@ public:
   getAllInputShapes(std::string methodName = "forward");
 
   std::vector<std::shared_ptr<JSTensorViewOut>>
-  forwardJS(std::vector<JSTensorView> tensorViewVec);
+  forwardJS(std::vector<JSTensorViewIn> tensorViewVec);
 
 protected:
   Result<std::vector<EValue>> forward(const EValue &input_value);

@@ -6,7 +6,7 @@
 
 #include <executorch/runtime/core/exec_aten/util/scalar_type_util.h>
 #include <jsi/jsi.h>
-#include <rnexecutorch/host_objects/JSTensorView.h>
+#include <rnexecutorch/host_objects/JSTensorViewIn.h>
 #include <rnexecutorch/host_objects/JSTensorViewOut.h>
 #include <rnexecutorch/jsi/OwningArrayBuffer.h>
 
@@ -43,27 +43,27 @@ inline std::string getValue<std::string>(const jsi::Value &val,
 }
 
 template <>
-inline JSTensorView getValue<JSTensorView>(const jsi::Value &val,
-                                           jsi::Runtime &runtime) {
+inline JSTensorViewIn getValue<JSTensorViewIn>(const jsi::Value &val,
+                                               jsi::Runtime &runtime) {
   jsi::Object obj = val.asObject(runtime);
-  JSTensorView tensorView;
+  JSTensorViewIn tensorView;
 
   int scalarTypeInt = obj.getProperty(runtime, "scalarType").asNumber();
   tensorView.scalarType = static_cast<ScalarType>(scalarTypeInt);
 
-  jsi::Value shapeValue = obj.getProperty(runtime, "shape");
+  jsi::Value shapeValue = obj.getProperty(runtime, "sizes");
   jsi::Array shapeArray = shapeValue.asObject(runtime).asArray(runtime);
-  size_t shapeDims = shapeArray.size(runtime);
-  tensorView.shape.reserve(shapeDims);
+  size_t numShapeDims = shapeArray.size(runtime);
+  tensorView.sizes.reserve(numShapeDims);
 
-  for (size_t i = 0; i < shapeDims; ++i) {
+  for (size_t i = 0; i < numShapeDims; ++i) {
     int dim = getValue<int>(shapeArray.getValueAtIndex(runtime, i), runtime);
-    tensorView.shape.push_back(static_cast<int32_t>(dim));
+    tensorView.sizes.push_back(static_cast<int32_t>(dim));
   }
 
   // On JS side, TensorPtr objects hold a 'data' property which should be either
   // an ArrayBuffer or TypedArray
-  jsi::Value dataValue = obj.getProperty(runtime, "data");
+  jsi::Value dataValue = obj.getProperty(runtime, "dataPtr");
   jsi::Object dataObj = dataValue.asObject(runtime);
 
   // Check if it's an ArrayBuffer or TypedArray
@@ -99,17 +99,17 @@ inline JSTensorView getValue<JSTensorView>(const jsi::Value &val,
 }
 
 template <>
-inline std::vector<JSTensorView>
-getValue<std::vector<JSTensorView>>(const jsi::Value &val,
-                                    jsi::Runtime &runtime) {
+inline std::vector<JSTensorViewIn>
+getValue<std::vector<JSTensorViewIn>>(const jsi::Value &val,
+                                      jsi::Runtime &runtime) {
   jsi::Array array = val.asObject(runtime).asArray(runtime);
   size_t length = array.size(runtime);
-  std::vector<JSTensorView> result;
+  std::vector<JSTensorViewIn> result;
   result.reserve(length);
 
   for (size_t i = 0; i < length; ++i) {
     jsi::Value element = array.getValueAtIndex(runtime, i);
-    result.push_back(getValue<JSTensorView>(element, runtime));
+    result.push_back(getValue<JSTensorViewIn>(element, runtime));
   }
   return result;
 }
@@ -190,14 +190,14 @@ getJsiValue(const std::vector<std::shared_ptr<JSTensorViewOut>> &vec,
   for (size_t i = 0; i < vec.size(); i++) {
     jsi::Object tensorObj(runtime);
 
-    tensorObj.setProperty(runtime, "shape",
+    tensorObj.setProperty(runtime, "sizes",
                           getJsiValue(vec[i]->sizes, runtime));
 
     tensorObj.setProperty(runtime, "scalarType",
                           jsi::Value(static_cast<int>(vec[i]->scalarType)));
 
-    jsi::ArrayBuffer arrayBuffer(runtime, vec[i]->data);
-    tensorObj.setProperty(runtime, "data", arrayBuffer);
+    jsi::ArrayBuffer arrayBuffer(runtime, vec[i]->dataPtr);
+    tensorObj.setProperty(runtime, "dataPtr", arrayBuffer);
 
     array.setValueAtIndex(runtime, i, tensorObj);
   }

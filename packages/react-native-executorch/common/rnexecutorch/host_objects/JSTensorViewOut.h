@@ -10,13 +10,13 @@ namespace rnexecutorch {
 using executorch::runtime::etensor::ScalarType;
 
 struct JSTensorViewOut {
+  std::shared_ptr<OwningArrayBuffer> dataPtr;
   std::vector<int32_t> sizes;
   ScalarType scalarType;
-  std::shared_ptr<OwningArrayBuffer> data;
 
   JSTensorViewOut(std::vector<int32_t> sizes, ScalarType scalarType,
-                  std::shared_ptr<OwningArrayBuffer> data)
-      : sizes(std::move(sizes)), scalarType(scalarType), data(std::move(data)) {
-  }
+                  std::shared_ptr<OwningArrayBuffer> dataPtr)
+      : sizes(std::move(sizes)), scalarType(scalarType),
+        dataPtr(std::move(dataPtr)) {}
 };
 } // namespace rnexecutorch

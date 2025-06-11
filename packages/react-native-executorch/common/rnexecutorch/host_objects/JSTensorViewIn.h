@@ -4,9 +4,9 @@ namespace rnexecutorch {
 
 using executorch::aten::ScalarType;
 
-struct JSTensorView {
+struct JSTensorViewIn {
   void *dataPtr;
+  std::vector<int32_t> sizes;
   ScalarType scalarType;
-  std::vector<int32_t> shape;
 };
 } // namespace rnexecutorch
