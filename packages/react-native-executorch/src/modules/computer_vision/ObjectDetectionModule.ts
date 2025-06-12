@@ -22,6 +22,6 @@ export class ObjectDetectionModule extends BaseNonStaticModule {
   ): Promise<Detection[]> {
     if (this.nativeModule == null)
       throw new Error(getError(ETError.ModuleNotLoaded));
-    return await this.nativeModule.forward(imageSource, detectionThreshold);
+    return await this.nativeModule.generate(imageSource, detectionThreshold);
   }
 }

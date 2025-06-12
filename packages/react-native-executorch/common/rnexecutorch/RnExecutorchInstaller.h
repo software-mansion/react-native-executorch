@@ -7,7 +7,7 @@
 #include <ReactCommon/CallInvoker.h>
 #include <jsi/jsi.h>
 
-#include <rnexecutorch/TypeConstraints.h>
+#include <rnexecutorch/TypeConcepts.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/host_objects/ModelHostObject.h>
 
@@ -26,7 +26,7 @@ public:
                     FetchUrlFunc_t fetchDataFromUrl);
 
 private:
-  template <DerivedFromBaseModel ModelT>
+  template <DerivedFromOrSameAs<BaseModel> ModelT>
   static jsi::Function
   loadModel(jsi::Runtime *jsiRuntime,
             std::shared_ptr<react::CallInvoker> jsCallInvoker,

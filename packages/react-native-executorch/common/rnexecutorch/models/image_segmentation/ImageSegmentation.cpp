@@ -15,7 +15,7 @@ ImageSegmentation::ImageSegmentation(
     const std::string &modelSource,
     std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
-  auto inputShapes = getInputShape();
+  auto inputShapes = getAllInputShapes();
   if (inputShapes.size() == 0) {
     throw std::runtime_error("Model seems to not take any input tensors.");
   }
@@ -33,14 +33,13 @@ ImageSegmentation::ImageSegmentation(
   numModelPixels = modelImageSize.area();
 }
 
-std::shared_ptr<jsi::Object>
-ImageSegmentation::forward(std::string imageSource,
-                           std::set<std::string, std::less<>> classesOfInterest,
-                           bool resize) {
+std::shared_ptr<jsi::Object> ImageSegmentation::generate(
+    std::string imageSource,
+    std::set<std::string, std::less<>> classesOfInterest, bool resize) {
   auto [inputTensor, originalSize] =
-      imageprocessing::readImageToTensor(imageSource, getInputShape()[0]);
+      imageprocessing::readImageToTensor(imageSource, getAllInputShapes()[0]);
 
-  auto forwardResult = forwardET(inputTensor);
+  auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
         "Failed to forward, error: " +
