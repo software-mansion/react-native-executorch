@@ -148,7 +148,7 @@ export class ResourceFetcher {
 
   private static getFilenameFromUri(uri: string) {
     let cleanUri = uri.replace(/^https?:\/\//, '');
-    cleanUri = cleanUri.split('?')?.[0]?.split('#')?.[0] ?? cleanUri;
+    cleanUri = cleanUri.split('#')?.[0] ?? cleanUri;
     return cleanUri.replace(/[^a-zA-Z0-9._-]/g, '_');
   }
 
