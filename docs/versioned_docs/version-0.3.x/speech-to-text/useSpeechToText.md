@@ -50,7 +50,7 @@ const loadAudio = async (url: string) => {
   ).then(({ uri }) => {
     return audioContext.decodeAudioDataSource(uri);
   });
-  return audioBuffer?.getChannelData(0);
+  return Array.from(audioBuffer?.getChannelData(0));
 };
 
 const audioUrl = ...; // URL with audio to transcribe
@@ -109,26 +109,38 @@ Before running the model's `transcribe` method be sure to obtain waveform of the
 ## Example
 
 ```typescript
-import { Button, Text } from 'react-native';
+import { Button, Text, View } from 'react-native';
 import { useSpeechToText } from 'react-native-executorch';
+import * as FileSystem from 'expo-file-system';
+import { AudioContext } from 'react-native-audio-api';
 
 function App() {
-  const { loadAudio, transcribe, sequence, error } = useSpeechToText({
+  const { transcribe, sequence, error } = useSpeechToText({
     modelName: 'whisper',
   });
 
-  const audioUrl = ...; // URL with audio to transcribe
+  const loadAudio = async (url: string) => {
+    const audioContext = new AudioContext({ sampleRate: 16e3 });
+    const audioBuffer = await FileSystem.downloadAsync(
+      url,
+      FileSystem.documentDirectory + '_tmp_transcribe_audio.mp3'
+    ).then(({ uri }) => {
+      return audioContext.decodeAudioDataSource(uri);
+    });
+    return Array.from(audioBuffer?.getChannelData(0));
+  };
+
+  const audioUrl = '...;' // URL with audio to transcribe
 
   return (
     <View>
       <Button
         onPress={async () => {
-          await loadAudio(audioUrl);
-          await transcribe();
-        }
+          await transcribe(await loadAudio(audioUrl));
+        }}
         title="Transcribe"
       />
-      <Text>{error ? error : sequence}</Text>
+      <Text>{error ? error.message : sequence}</Text>
     </View>
   );
 }
