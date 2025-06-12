@@ -8,18 +8,20 @@
 #include <rnexecutorch/models/ocr/RecognitionHandler.h>
 #include <rnexecutorch/models/ocr/Types.h>
 
-namespace rnexecutorch {
-class OCR {
-public:
-  OCR(std::string detectorSource, std::string recognizerSourceLarge,
-      std::string recognizerSourceMedium, std::string recognizerSourceSmall,
-      std::string symbols, std::shared_ptr<react::CallInvoker> callInvoker);
-  std::vector<OCRDetection> generate(std::string input);
-  void unload();
-  std::size_t getMemoryLowerBound();
+namespace rnexecutorch
+{
+  class OCR
+  {
+  public:
+    OCR(std::string detectorSource, std::string recognizerSourceLarge,
+        std::string recognizerSourceMedium, std::string recognizerSourceSmall,
+        std::string symbols, std::shared_ptr<react::CallInvoker> callInvoker);
+    std::vector<OCRDetection> generate(std::string input);
+    void unload();
+    std::size_t getMemoryLowerBound();
 
-private:
-  RecognitionHandler recognitionHandler;
-  Detector detector;
-};
+  private:
+    RecognitionHandler recognitionHandler;
+    Detector detector;
+  };
 } // namespace rnexecutorch

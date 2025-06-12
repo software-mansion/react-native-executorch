@@ -3,21 +3,24 @@
 #include <array>
 #include <string>
 
-namespace rnexecutorch {
+namespace rnexecutorch
+{
+  struct Point
+  {
+    float x;
+    float y;
+  };
 
-struct Point {
-  float x;
-  float y;
-};
+  struct OCRDetection
+  {
+    std::array<Point, 4> bbox;
+    std::string text;
+    float score;
+  };
 
-struct OCRDetection {
-  std::array<Point, 4> bbox;
-  std::string text;
-  float score;
-};
-
-struct DetectorBBox {
-  std::array<Point, 4> bbox;
-  float angle;
-};
+  struct DetectorBBox
+  {
+    std::array<Point, 4> bbox;
+    float angle;
+  };
 } // namespace rnexecutorch
