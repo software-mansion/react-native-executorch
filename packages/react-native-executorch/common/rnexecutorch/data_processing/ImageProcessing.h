@@ -29,10 +29,18 @@ cv::Mat readImage(const std::string &imageURI);
 TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDims,
                               const cv::Mat &mat);
 cv::Mat getMatrixFromTensor(cv::Size size, const Tensor &tensor);
+cv::Mat resizePadded(cv::Mat inputImage, cv::Size targetSize);
 /// @brief Read image, resize it and copy it to an ET tensor to store it.
+/// @param path Path to the image to be resized. Could be base64, local file or
+/// remote URL
+/// @param tensorDims The dimensions of the result tensor. The two last
+/// dimensions are taken as the image resolution.
+/// @param maintainAspectRatio If set to true the image will be resized to
+/// maintain the original aspect ratio. The rest of the tensor will be filled
+/// padding.
 /// @return Returns a tensor pointer and the original size of the image.
 std::pair<TensorPtr, cv::Size>
 readImageToTensor(const std::string &path,
-                  const std::vector<int32_t> &tensorDims);
-
+                  const std::vector<int32_t> &tensorDims,
+                  bool maintainAspectRatio = false);
 } // namespace rnexecutorch::imageprocessing
