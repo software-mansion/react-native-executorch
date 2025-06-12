@@ -19,9 +19,8 @@
   if (meanPooling) {
     embeddings = [TextEmbeddingsUtils meanPooling:modelOutput
                                     attentionMask:attentionMask];
-
-    embeddings = [TextEmbeddingsUtils normalize:embeddings];
   }
+  embeddings = [TextEmbeddingsUtils normalize:embeddings];
   return embeddings;
 }
 
