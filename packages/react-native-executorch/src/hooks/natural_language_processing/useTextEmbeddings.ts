@@ -5,14 +5,16 @@ import { useModule } from '../useModule';
 export const useTextEmbeddings = ({
   modelSource,
   tokenizerSource,
+  meanPooling,
   preventLoad = false,
 }: {
   modelSource: ResourceSource;
   tokenizerSource: ResourceSource;
+  meanPooling?: boolean;
   preventLoad?: boolean;
 }) =>
   useModule({
     module: TextEmbeddingsModule,
-    loadArgs: [modelSource, tokenizerSource],
+    loadArgs: [modelSource, tokenizerSource, meanPooling],
     preventLoad,
   });

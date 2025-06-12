@@ -41,10 +41,11 @@ RCT_EXPORT_MODULE()
 }
 
 - (void)forward:(NSString *)input
+    meanPooling:(bool)meanPooling
         resolve:(RCTPromiseResolveBlock)resolve
          reject:(RCTPromiseRejectBlock)reject {
   @try {
-    resolve([model runModel:input]);
+    resolve([model runModel:input meanPooling:meanPooling]);
     return;
   } @catch (NSException *exception) {
     NSLog(@"An exception occurred: %@, %@", exception.name, exception.reason);
