@@ -1,8 +1,10 @@
 import { Drawer } from 'expo-router/drawer';
 import ColorPalette from '../colors';
 import React from 'react';
+import { LlmProvider, useLlmContext } from '../contexts/LlmContext';
 
-export default function _layout() {
+function DrawerWithScreens() {
+  const { isGenerating } = useLlmContext();
   return (
     <Drawer
       screenOptions={{
@@ -10,6 +12,7 @@ export default function _layout() {
         drawerInactiveTintColor: '#888',
         headerTintColor: ColorPalette.primary,
         headerTitleStyle: { color: ColorPalette.primary },
+        swipeEnabled: !isGenerating,
       }}
     >
       <Drawer.Screen
@@ -45,5 +48,13 @@ export default function _layout() {
         }}
       />
     </Drawer>
+  );
+}
+
+export default function _layout() {
+  return (
+    <LlmProvider>
+      <DrawerWithScreens />
+    </LlmProvider>
   );
 }

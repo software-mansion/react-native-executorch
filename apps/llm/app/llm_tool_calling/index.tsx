@@ -26,8 +26,10 @@ import Messages from '../../components/Messages';
 import * as Brightness from 'expo-brightness';
 import * as Calendar from 'expo-calendar';
 import { executeTool, TOOL_DEFINITIONS_PHONE } from '../../utils/tools';
+import { useLlmContext } from '../../contexts/LlmContext';
 
 export default function LLMToolCallingScreen() {
+  const { setIsGenerating } = useLlmContext();
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
   const textInputRef = useRef<TextInput>(null);
@@ -37,6 +39,10 @@ export default function LLMToolCallingScreen() {
     tokenizerSource: HAMMER2_1_TOKENIZER,
     tokenizerConfigSource: HAMMER2_1_TOKENIZER_CONFIG,
   });
+
+  useEffect(() => {
+    setIsGenerating(llm.isGenerating);
+  }, [llm.isGenerating, setIsGenerating]);
 
   const { configure } = llm;
   useEffect(() => {
