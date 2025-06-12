@@ -6,7 +6,7 @@ export class TokenizerModule extends BaseModule {
   protected static override nativeModule = TokenizerNativeModule;
 
   static override async load(tokenizerSource: ResourceSource) {
-    await super.load(tokenizerSource);
+    await super.load([tokenizerSource]);
   }
 
   static async decode(

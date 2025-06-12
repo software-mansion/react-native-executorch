@@ -9,7 +9,7 @@ export class TextEmbeddingsModule extends BaseModule {
     modelSource: ResourceSource,
     tokenizerSource: ResourceSource
   ) {
-    await super.load(modelSource, tokenizerSource);
+    await super.load([modelSource, tokenizerSource]);
   }
 
   static override async forward(input: string): Promise<number[]> {
