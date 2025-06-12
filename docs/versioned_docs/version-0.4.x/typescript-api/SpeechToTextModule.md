@@ -19,7 +19,7 @@ const loadAudio = async (url: string) => {
   ).then(({ uri }) => {
     return audioContext.decodeAudioDataSource(uri);
   });
-  return audioBuffer?.getChannelData(0);
+  return Array.from(audioBuffer?.getChannelData(0));
 };
 
 const audioUrl = ...; // URL with audio to transcribe
