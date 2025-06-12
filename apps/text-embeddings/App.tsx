@@ -100,6 +100,14 @@ export default function App() {
     setTopMatches([]);
   };
 
+  const clearList = async () => {
+    if (!model.isReady) return;
+    try {
+      setSentencesWithEmbeddings([]);
+    } catch (error) {
+      console.error('Error clearing the list:', error);
+    }
+  };
   const getModelStatusText = () => {
     if (model.error) {
       return `Oops! Error: ${model.error}`;
@@ -118,18 +126,16 @@ export default function App() {
       >
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <Text style={styles.heading}>Text Embeddings Playground</Text>
-
           <Text style={styles.sectionTitle}>{getModelStatusText()}</Text>
 
           <View style={styles.card}>
-            <Text style={styles.sectionTitle}>Existing Sentences</Text>
+            <Text style={styles.sectionTitle}>List of Existing Sentences</Text>
             {sentencesWithEmbeddings.map((item, index) => (
               <Text key={index} style={styles.sentenceText}>
                 - {item.sentence}
               </Text>
             ))}
           </View>
-
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Try Your Sentence</Text>
             <TextInput
@@ -139,24 +145,80 @@ export default function App() {
               onChangeText={setInputSentence}
               multiline
             />
-
-            <View style={styles.buttonGroup}>
+            <View style={styles.buttonContainer}>
               <TouchableOpacity
                 onPress={checkSimilarities}
-                style={styles.buttonPrimary}
+                style={[
+                  styles.buttonPrimary,
+                  !inputSentence && styles.buttonDisabled,
+                ]}
+                disabled={!inputSentence}
               >
-                <Ionicons name="search" size={16} color="white" />
-                <Text style={styles.buttonText}> Find Similar</Text>
+                <Ionicons
+                  name="search"
+                  size={16}
+                  color={!inputSentence ? 'gray' : 'white'}
+                />
+                <Text
+                  style={[
+                    styles.buttonText,
+                    !inputSentence && styles.buttonTextDisabled,
+                  ]}
+                >
+                  Find Similar
+                </Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                onPress={addToSentences}
-                style={styles.buttonSecondary}
-              >
-                <Ionicons name="add-circle-outline" size={16} color="navy" />
-                <Text style={styles.buttonTextOutline}> Add to List</Text>
-              </TouchableOpacity>
+              <View style={styles.buttonGroup}>
+                <TouchableOpacity
+                  onPress={addToSentences}
+                  style={[
+                    styles.buttonSecondary,
+                    !inputSentence && styles.buttonDisabled,
+                  ]}
+                  disabled={!inputSentence}
+                >
+                  <Ionicons
+                    name="add-circle-outline"
+                    size={16}
+                    color={!inputSentence ? 'gray' : 'navy'}
+                  />
+                  <Text
+                    style={[
+                      styles.buttonTextOutline,
+                      !inputSentence && styles.buttonTextDisabled,
+                    ]}
+                  >
+                    Add to List
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={clearList}
+                  style={[
+                    styles.buttonSecondary,
+                    sentencesWithEmbeddings.length === 0 &&
+                      styles.buttonDisabled,
+                  ]}
+                  disabled={sentencesWithEmbeddings.length === 0}
+                >
+                  <Ionicons
+                    name="close-outline"
+                    size={16}
+                    color={
+                      sentencesWithEmbeddings.length === 0 ? 'gray' : 'navy'
+                    }
+                  />
+                  <Text
+                    style={[
+                      styles.buttonTextOutline,
+                      sentencesWithEmbeddings.length === 0 &&
+                        styles.buttonTextDisabled,
+                    ]}
+                  >
+                    Clear List
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-
             {topMatches.length > 0 && (
               <View style={styles.topMatchesContainer}>
                 <Text style={styles.sectionTitle}>Top Matches</Text>
@@ -220,6 +282,10 @@ const styles = StyleSheet.create({
     minHeight: 40,
     textAlignVertical: 'top',
   },
+  buttonContainer: {
+    width: '100%',
+    gap: 10,
+  },
   buttonGroup: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -245,6 +311,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  buttonDisabled: {
+    backgroundColor: '#f0f0f0',
+    borderColor: '#d3d3d3',
+  },
   buttonText: {
     color: 'white',
     textAlign: 'center',
@@ -254,6 +324,9 @@ const styles = StyleSheet.create({
     color: 'navy',
     textAlign: 'center',
     fontWeight: '500',
+  },
+  buttonTextDisabled: {
+    color: 'gray',
   },
   topMatchesContainer: {
     marginTop: 20,
