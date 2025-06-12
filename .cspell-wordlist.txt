@@ -49,3 +49,5 @@ Lexend
 finetuned
 MINILM
 MPNET
+coreml
+mobilenetv
