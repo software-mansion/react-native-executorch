@@ -37,5 +37,11 @@ void RnExecutorchInstaller::injectJSIBindings(
       *jsiRuntime, "loadObjectDetection",
       RnExecutorchInstaller::loadModel<ObjectDetection>(
           jsiRuntime, jsCallInvoker, "loadObjectDetection"));
+
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadExecutorchModule",
+      RnExecutorchInstaller::loadModel<BaseModel>(jsiRuntime, jsCallInvoker,
+                                                  "loadExecutorchModule"));
 }
+
 } // namespace rnexecutorch

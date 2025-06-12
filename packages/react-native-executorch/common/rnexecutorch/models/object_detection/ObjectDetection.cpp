@@ -8,7 +8,7 @@ ObjectDetection::ObjectDetection(
     const std::string &modelSource,
     std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
-  auto inputTensors = getInputShape();
+  auto inputTensors = getAllInputShapes();
   if (inputTensors.size() == 0) {
     throw std::runtime_error("Model seems to not take any input tensors.");
   }
@@ -65,12 +65,12 @@ ObjectDetection::postprocess(const std::vector<EValue> &tensors,
   return output;
 }
 
-std::vector<Detection> ObjectDetection::forward(std::string imageSource,
-                                                double detectionThreshold) {
+std::vector<Detection> ObjectDetection::generate(std::string imageSource,
+                                                 double detectionThreshold) {
   auto [inputTensor, originalSize] =
-      imageprocessing::readImageToTensor(imageSource, getInputShape()[0]);
+      imageprocessing::readImageToTensor(imageSource, getAllInputShapes()[0]);
 
-  auto forwardResult = forwardET(inputTensor);
+  auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
         "Failed to forward, error: " +

@@ -8,10 +8,12 @@
 #include <ReactCommon/CallInvoker.h>
 
 #include <rnexecutorch/Log.h>
-#include <rnexecutorch/TypeConstraints.h>
+#include <rnexecutorch/TypeConcepts.h>
+#include <rnexecutorch/host_objects/JSTensorViewOut.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/jsi/JsiHostObject.h>
 #include <rnexecutorch/jsi/Promise.h>
+#include <rnexecutorch/models/BaseModel.h>
 
 namespace rnexecutorch {
 
@@ -20,12 +22,27 @@ public:
   explicit ModelHostObject(const std::shared_ptr<Model> &model,
                            std::shared_ptr<react::CallInvoker> callInvoker)
       : model(model), callInvoker(callInvoker) {
-    addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                     promiseHostFunction<&Model::forward>,
-                                     "forward"));
-    if constexpr (DerivedFromBaseModel<Model>) {
+    if constexpr (DerivedFromOrSameAs<Model, BaseModel>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
+    }
+
+    if constexpr (DerivedFromOrSameAs<Model, BaseModel>) {
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::forwardJS>,
+                                       "forward"));
+    }
+
+    if constexpr (DerivedFromOrSameAs<Model, BaseModel>) {
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>, promiseHostFunction<&Model::getInputShape>,
+          "getInputShape"));
+    }
+
+    if constexpr (HasGenerate<Model>) {
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::generate>,
+                                       "generate"));
     }
   }
 

@@ -25,7 +25,7 @@ export class ImageSegmentationModule extends BaseNonStaticModule {
       throw new Error(getError(ETError.ModuleNotLoaded));
     }
 
-    const stringDict = await this.nativeModule.forward(
+    const stringDict = await this.nativeModule.generate(
       imageSource,
       (classesOfInterest || []).map((label) => DeeplabLabel[label]),
       resize || false
