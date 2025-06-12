@@ -10,7 +10,7 @@ namespace rnexecutorch {
 using executorch::aten::Tensor;
 using executorch::extension::TensorPtr;
 
-class Detector : BaseModel {
+class Detector : public BaseModel {
 public:
   Detector(const std::string &modelSource,
            std::shared_ptr<react::CallInvoker> callInvoker);
