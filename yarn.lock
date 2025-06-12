@@ -3789,7 +3789,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-navigation/native@npm:^7.1.6":
+"@react-navigation/native@npm:^7.1.10, @react-navigation/native@npm:^7.1.6":
   version: 7.1.10
   resolution: "@react-navigation/native@npm:7.1.10"
   dependencies:
@@ -5735,6 +5735,7 @@ __metadata:
     "@babel/core": "npm:^7.25.2"
     "@react-native/metro-config": "npm:^0.76.3"
     "@react-navigation/drawer": "npm:^7.4.1"
+    "@react-navigation/native": "npm:^7.1.10"
     "@shopify/react-native-skia": "npm:v2.0.0-next.2"
     "@types/react": "npm:~19.0.10"
     expo: "npm:^53.0.0"
@@ -5746,7 +5747,8 @@ __metadata:
     metro-config: "npm:^0.81.0"
     react: "npm:19.0.0"
     react-native: "npm:0.79.2"
-    react-native-executorch: "npm:0.4.2"
+    react-native-device-info: "npm:^14.0.4"
+    react-native-executorch: "workspace:*"
     react-native-gesture-handler: "npm:~2.24.0"
     react-native-image-picker: "npm:^7.2.2"
     react-native-loading-spinner-overlay: "npm:^3.0.1"
@@ -5755,7 +5757,6 @@ __metadata:
     react-native-screens: "npm:~4.11.1"
     react-native-svg: "npm:15.11.2"
     react-native-svg-transformer: "npm:^1.5.0"
-    react-native-wheel-scrollview-picker: "npm:^2.0.6"
   peerDependencies:
     react-native: "*"
   languageName: unknown
@@ -9692,6 +9693,7 @@ __metadata:
     "@babel/core": "npm:^7.25.2"
     "@react-native/metro-config": "npm:^0.76.3"
     "@react-navigation/drawer": "npm:^7.4.1"
+    "@react-navigation/native": "npm:^7.1.10"
     "@types/react": "npm:~19.0.10"
     expo: "npm:~53.0.8"
     expo-brightness: "npm:~13.1.4"
@@ -9705,6 +9707,7 @@ __metadata:
     react: "npm:19.0.0"
     react-native: "npm:0.79.2"
     react-native-audio-api: "npm:0.5.7"
+    react-native-device-info: "npm:^14.0.4"
     react-native-executorch: "workspace:*"
     react-native-gesture-handler: "npm:~2.24.0"
     react-native-live-audio-stream: "npm:^1.1.1"
@@ -9715,7 +9718,6 @@ __metadata:
     react-native-screens: "npm:~4.11.1"
     react-native-svg: "npm:15.11.2"
     react-native-svg-transformer: "npm:^1.5.0"
-    react-native-wheel-scrollview-picker: "npm:^2.0.6"
   peerDependencies:
     react-native: "*"
   languageName: unknown
@@ -12328,7 +12330,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"react-native-executorch@npm:0.4.2, react-native-executorch@workspace:*, react-native-executorch@workspace:packages/react-native-executorch":
+"react-native-executorch@workspace:*, react-native-executorch@workspace:packages/react-native-executorch":
   version: 0.0.0-use.local
   resolution: "react-native-executorch@workspace:packages/react-native-executorch"
   dependencies:
