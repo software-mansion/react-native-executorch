@@ -14,6 +14,6 @@ concept HasGenerate = requires(T t) {
 };
 
 template <typename T>
-concept IsNumeric = std::is_arithmetic<T>::value;
+concept IsNumeric = std::is_arithmetic_v<T>;
 
 } // namespace rnexecutorch
