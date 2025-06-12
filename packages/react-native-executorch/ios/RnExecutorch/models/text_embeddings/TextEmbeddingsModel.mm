@@ -14,13 +14,21 @@
 
 - (NSArray *)postprocess:(NSArray *)modelOutput   // [tokens * embedding_dim]
            attentionMask:(NSArray *)attentionMask // [tokens]
-{
-  NSArray *embeddings = [TextEmbeddingsUtils meanPooling:modelOutput
-                                           attentionMask:attentionMask];
-  return [TextEmbeddingsUtils normalize:embeddings];
+             meanPooling:(bool)meanPooling {
+  NSArray *embeddings = modelOutput;
+  if (meanPooling) {
+    embeddings = [TextEmbeddingsUtils meanPooling:modelOutput
+                                    attentionMask:attentionMask];
+  }
+  embeddings = [TextEmbeddingsUtils normalize:embeddings];
+  return embeddings;
 }
 
 - (NSArray *)runModel:(NSString *)input {
+  return [self runModel:input meanPooling:true];
+}
+
+- (NSArray *)runModel:(NSString *)input meanPooling:(bool)meanPooling {
   NSArray *modelInput = [self preprocess:input];
 
   NSMutableArray *inputTypes = [NSMutableArray arrayWithObjects:@4, @4, nil];
@@ -34,7 +42,9 @@
   NSArray *modelOutput = [self forward:modelInput
                                 shapes:shapes
                             inputTypes:inputTypes];
-  return [self postprocess:modelOutput[0] attentionMask:modelInput[1]];
+  return [self postprocess:modelOutput[0]
+             attentionMask:modelInput[1]
+               meanPooling:meanPooling];
 }
 
 - (void)loadTokenizer:(NSString *)tokenizerSource {

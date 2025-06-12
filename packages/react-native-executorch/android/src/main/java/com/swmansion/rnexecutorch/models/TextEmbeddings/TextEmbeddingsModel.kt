@@ -24,13 +24,24 @@ class TextEmbeddingsModel(
   fun postprocess(
     modelOutput: FloatArray, // [tokens * embedding_dim]
     attentionMask: LongArray, // [tokens]
+    meanPooling: Boolean,
   ): DoubleArray {
-    val modelOutputDouble = modelOutput.map { it.toDouble() }.toDoubleArray()
-    val embeddings = TextEmbeddingsUtils.meanPooling(modelOutputDouble, attentionMask)
-    return TextEmbeddingsUtils.normalize(embeddings)
+    var embeddings = modelOutput.map { it.toDouble() }.toDoubleArray()
+    if (meanPooling) {
+      embeddings = TextEmbeddingsUtils.meanPooling(embeddings, attentionMask)
+    }
+    embeddings = TextEmbeddingsUtils.normalize(embeddings)
+    return embeddings
   }
 
   override fun runModel(input: String): DoubleArray {
+    return runModel(input, true)
+  }
+
+  fun runModel(
+    input: String,
+    meanPooling: Boolean,
+  ): DoubleArray {
     val modelInput = preprocess(input)
     val inputsIds = modelInput[0]
     val attentionMask = modelInput[1]
@@ -43,6 +54,6 @@ class TextEmbeddingsModel(
 
     val modelOutput = forward(inputIdsEValue, attentionMaskEValue)[0].toTensor().dataAsFloatArray
 
-    return postprocess(modelOutput, attentionMask)
+    return postprocess(modelOutput, attentionMask, meanPooling)
   }
 }
