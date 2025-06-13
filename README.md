@@ -80,7 +80,7 @@ function MyComponent() {
 ```tsx
 const handleGenerate = async () => {
   const chat = [
-    { role: 'system', content: 'You are a helpful assistant' }
+    { role: 'system', content: 'You are a helpful assistant' },
     { role: 'user', content: 'What is the meaning of life?' }
   ];
 

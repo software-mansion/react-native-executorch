@@ -173,7 +173,7 @@ const llm = useLLM({
 
 const handleGenerate = async () => {
   const chat = [
-    { role: 'system' content: 'You are a helpful assistant' },
+    { role: 'system', content: 'You are a helpful assistant' },
     { role: 'user', content: 'Hi!' },
     { role: 'assistant', content: 'Hi!, how can I help you?'},
     { role: 'user', content: 'What is the meaning of life?' },
@@ -230,8 +230,14 @@ const llm = useLLM({
 
 const handleGenerate = async () => {
   const chat = [
-    { role: 'system' content: `You are a helpful assistant. Current time and date: ${new Date().toString()}` }
-    { role: 'user', content: `Hi, what's the weather like in Cracow right now?` }
+    {
+      role: 'system',
+      content: `You are a helpful assistant. Current time and date: ${new Date().toString()}`,
+    },
+    {
+      role: 'user',
+      content: `Hi, what's the weather like in Cracow right now?`,
+    },
   ];
 
   // Chat completion
