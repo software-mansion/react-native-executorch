@@ -3,7 +3,7 @@
 #include <concepts>
 #include <type_traits>
 
-namespace rnexecutorch {
+namespace rnexecutorch::meta {
 
 template <typename T, typename Base>
 concept DerivedFromOrSameAs = std::is_base_of_v<Base, T>;
@@ -16,4 +16,9 @@ concept HasGenerate = requires(T t) {
 template <typename T>
 concept IsNumeric = std::is_arithmetic_v<T>;
 
-} // namespace rnexecutorch
+template <typename T>
+concept ProvidesMemoryLowerBound = requires(T t) {
+  { &T::getMemoryLowerBound };
+};
+
+} // namespace rnexecutorch::meta

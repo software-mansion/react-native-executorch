@@ -8,11 +8,12 @@
 #include <ReactCommon/CallInvoker.h>
 
 #include <rnexecutorch/Log.h>
-#include <rnexecutorch/TypeConcepts.h>
 #include <rnexecutorch/host_objects/JSTensorViewOut.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/jsi/JsiHostObject.h>
 #include <rnexecutorch/jsi/Promise.h>
+#include <rnexecutorch/metaprogramming/FunctionHelpers.h>
+#include <rnexecutorch/metaprogramming/TypeConcepts.h>
 #include <rnexecutorch/models/BaseModel.h>
 
 namespace rnexecutorch {
@@ -22,24 +23,24 @@ public:
   explicit ModelHostObject(const std::shared_ptr<Model> &model,
                            std::shared_ptr<react::CallInvoker> callInvoker)
       : model(model), callInvoker(callInvoker) {
-    if constexpr (DerivedFromOrSameAs<Model, BaseModel>) {
+    if constexpr (meta::DerivedFromOrSameAs<Model, BaseModel>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }
 
-    if constexpr (DerivedFromOrSameAs<Model, BaseModel>) {
+    if constexpr (meta::DerivedFromOrSameAs<Model, BaseModel>) {
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::forwardJS>,
                                        "forward"));
     }
 
-    if constexpr (DerivedFromOrSameAs<Model, BaseModel>) {
+    if constexpr (meta::DerivedFromOrSameAs<Model, BaseModel>) {
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>, promiseHostFunction<&Model::getInputShape>,
           "getInputShape"));
     }
 
-    if constexpr (HasGenerate<Model>) {
+    if constexpr (meta::HasGenerate<Model>) {
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::generate>,
                                        "generate"));
@@ -54,7 +55,7 @@ public:
         runtime, callInvoker,
         [this, count, args, &runtime](std::shared_ptr<Promise> promise) {
           constexpr std::size_t functionArgCount =
-              jsiconversion::getArgumentCount(FnPtr);
+              meta::getArgumentCount(FnPtr);
           if (functionArgCount != count) {
             char errorMessage[100];
             std::snprintf(
@@ -67,7 +68,7 @@ public:
 
           try {
             auto argsConverted =
-                jsiconversion::createArgsTupleFromJsi(FnPtr, args, runtime);
+                meta::createArgsTupleFromJsi(FnPtr, args, runtime);
 
             // We need to dispatch a thread if we want the function to be
             // asynchronous. In this thread all accesses to jsi::Runtime need to
