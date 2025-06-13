@@ -46,13 +46,13 @@ public:
                                        "generate"));
     }
 
-    if constexpr (HasEncode<Model>) {
+    if constexpr (meta::HasEncode<Model>) {
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::encode>,
                                        "encode"));
     }
 
-    if constexpr (HasDecode<Model>) {
+    if constexpr (meta::HasDecode<Model>) {
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::decode>,
                                        "decode"));
