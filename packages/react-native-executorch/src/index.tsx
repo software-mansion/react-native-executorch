@@ -15,7 +15,8 @@ if (
   global.loadStyleTransfer == null ||
   global.loadImageSegmentation == null ||
   global.loadExecutorchModule == null ||
-  global.loadClassification == null
+  global.loadClassification == null ||
+  global.loadObjectDetection == null
 ) {
   if (!ETInstallerNativeModule) {
     throw new Error(
