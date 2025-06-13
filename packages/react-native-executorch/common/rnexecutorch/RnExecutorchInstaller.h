@@ -28,6 +28,8 @@ REGISTER_CONSTRUCTOR(ObjectDetection, std::string,
                      std::shared_ptr<react::CallInvoker>);
 REGISTER_CONSTRUCTOR(BaseModel, std::string,
                      std::shared_ptr<react::CallInvoker>);
+REGISTER_CONSTRUCTOR(ImageEmbeddings, std::string,
+                     std::shared_ptr<react::CallInvoker>);
 
 using namespace facebook;
 
