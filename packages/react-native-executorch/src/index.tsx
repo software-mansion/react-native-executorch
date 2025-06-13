@@ -9,6 +9,7 @@ declare global {
   var loadClassification: (source: string) => any;
   var loadObjectDetection: (source: string) => any;
   var loadExecutorchModule: (source: string) => any;
+  var loadTokenizerModule: (source: string) => any;
 }
 // eslint-disable no-var
 if (
@@ -16,7 +17,8 @@ if (
   global.loadImageSegmentation == null ||
   global.loadExecutorchModule == null ||
   global.loadClassification == null ||
-  global.loadObjectDetection == null
+  global.loadObjectDetection == null ||
+  global.loadTokenizerModule == null
 ) {
   if (!ETInstallerNativeModule) {
     throw new Error(
@@ -54,6 +56,7 @@ export * from './modules/natural_language_processing/LLMModule';
 export * from './modules/natural_language_processing/SpeechToTextModule';
 export * from './modules/natural_language_processing/TextEmbeddingsModule';
 export * from './modules/natural_language_processing/TokenizerModule';
+export * from './modules/natural_language_processing/NewTokenizerModule';
 
 // utils
 export * from './utils/ResourceFetcher';

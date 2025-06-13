@@ -14,6 +14,16 @@ concept HasGenerate = requires(T t) {
 };
 
 template <typename T>
+concept HasEncode = requires(T t) {
+  { &T::encode };
+};
+
+template <typename T>
+concept HasDecode = requires(T t) {
+  { &T::decode };
+};
+
+template <typename T>
 concept IsNumeric = std::is_arithmetic_v<T>;
 
 template <typename T>
