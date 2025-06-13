@@ -42,6 +42,21 @@ inline std::string getValue<std::string>(const jsi::Value &val,
 }
 
 template <>
+inline std::vector<int32_t>
+getValue<std::vector<int32_t>>(const jsi::Value &val, jsi::Runtime &runtime) {
+  jsi::Array array = val.asObject(runtime).asArray(runtime);
+  size_t length = array.size(runtime);
+  std::vector<int32_t> result;
+  result.reserve(length);
+
+  for (size_t i = 0; i < length; ++i) {
+    jsi::Value element = array.getValueAtIndex(runtime, i);
+    result.push_back(getValue<int32_t>(element, runtime));
+  }
+  return result;
+}
+
+template <>
 inline JSTensorViewIn getValue<JSTensorViewIn>(const jsi::Value &val,
                                                jsi::Runtime &runtime) {
   jsi::Object obj = val.asObject(runtime);

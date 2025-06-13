@@ -45,6 +45,18 @@ public:
                                        promiseHostFunction<&Model::generate>,
                                        "generate"));
     }
+
+    if constexpr (meta::HasEncode<Model>) {
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::encode>,
+                                       "encode"));
+    }
+
+    if constexpr (meta::HasDecode<Model>) {
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::decode>,
+                                       "decode"));
+    }
   }
 
   // A generic host function that resolves a promise with a result of a
