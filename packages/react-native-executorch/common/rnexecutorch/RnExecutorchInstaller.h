@@ -7,14 +7,27 @@
 #include <ReactCommon/CallInvoker.h>
 #include <jsi/jsi.h>
 
-#include <rnexecutorch/TypeConcepts.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/host_objects/ModelHostObject.h>
+#include <rnexecutorch/metaprogramming/ConstructorHelpers.h>
+#include <rnexecutorch/metaprogramming/FunctionHelpers.h>
+#include <rnexecutorch/metaprogramming/TypeConcepts.h>
 
 namespace rnexecutorch {
 
 using FetchUrlFunc_t = std::function<std::vector<std::byte>(std::string)>;
 extern FetchUrlFunc_t fetchUrlFunc;
+
+REGISTER_CONSTRUCTOR(StyleTransfer, std::string,
+                     std::shared_ptr<react::CallInvoker>);
+REGISTER_CONSTRUCTOR(ImageSegmentation, std::string,
+                     std::shared_ptr<react::CallInvoker>);
+REGISTER_CONSTRUCTOR(Classification, std::string,
+                     std::shared_ptr<react::CallInvoker>);
+REGISTER_CONSTRUCTOR(ObjectDetection, std::string,
+                     std::shared_ptr<react::CallInvoker>);
+REGISTER_CONSTRUCTOR(BaseModel, std::string,
+                     std::shared_ptr<react::CallInvoker>);
 
 using namespace facebook;
 
@@ -26,7 +39,10 @@ public:
                     FetchUrlFunc_t fetchDataFromUrl);
 
 private:
-  template <DerivedFromOrSameAs<BaseModel> ModelT>
+  template <typename ModelT>
+    requires meta::ValidConstructorTraits<ModelT> &&
+             meta::CallInvokerLastInConstructor<ModelT> &&
+             meta::ProvidesMemoryLowerBound<ModelT>
   static jsi::Function
   loadModel(jsi::Runtime *jsiRuntime,
             std::shared_ptr<react::CallInvoker> jsCallInvoker,
@@ -37,20 +53,24 @@ private:
         0,
         [jsCallInvoker](jsi::Runtime &runtime, const jsi::Value &thisValue,
                         const jsi::Value *args, size_t count) -> jsi::Value {
-          if (count != 1) {
+          constexpr std::size_t expectedCount = std::tuple_size_v<
+              typename meta::ConstructorTraits<ModelT>::arg_types>;
+          // count doesn't account for the JSCallInvoker
+          if (count != expectedCount - 1) {
             char errorMessage[100];
             std::snprintf(
                 errorMessage, sizeof(errorMessage),
-                "Argument count mismatch, was expecting: 1 but got: %zu",
-                count);
+                "Argument count mismatch, was expecting: %zu but got: %zu",
+                expectedCount, count);
             throw jsi::JSError(runtime, errorMessage);
           }
           try {
-            auto source =
-                jsiconversion::getValue<std::string>(args[0], runtime);
+            auto constructorArgs =
+                meta::createConstructorArgsWithCallInvoker<ModelT>(
+                    args, runtime, jsCallInvoker);
 
-            auto modelImplementationPtr =
-                std::make_shared<ModelT>(source, jsCallInvoker);
+            auto modelImplementationPtr = std::make_shared<ModelT>(
+                std::make_from_tuple<ModelT>(constructorArgs));
             auto modelHostObject = std::make_shared<ModelHostObject<ModelT>>(
                 modelImplementationPtr, jsCallInvoker);
 
