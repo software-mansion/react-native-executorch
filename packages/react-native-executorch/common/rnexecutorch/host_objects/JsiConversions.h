@@ -10,7 +10,7 @@
 #include <rnexecutorch/host_objects/JSTensorViewOut.h>
 #include <rnexecutorch/jsi/OwningArrayBuffer.h>
 
-#include <rnexecutorch/TypeConcepts.h>
+#include <rnexecutorch/metaprogramming/TypeConcepts.h>
 #include <rnexecutorch/models/object_detection/Constants.h>
 #include <rnexecutorch/models/object_detection/Utils.h>
 
@@ -23,7 +23,7 @@ using namespace facebook;
 template <typename T> T getValue(const jsi::Value &val, jsi::Runtime &runtime);
 
 template <typename T>
-  requires IsNumeric<T>
+  requires meta::IsNumeric<T>
 inline T getValue(const jsi::Value &val, jsi::Runtime &runtime) {
   static_assert(std::is_integral<T>::value || std::is_floating_point<T>::value,
                 "Only integral and floating-point types are supported");
@@ -237,26 +237,6 @@ inline jsi::Value getJsiValue(const std::vector<Detection> &detections,
     array.setValueAtIndex(runtime, i, detection);
   }
   return array;
-}
-
-template <typename Model, typename R, typename... Types>
-constexpr std::size_t getArgumentCount(R (Model::*f)(Types...)) {
-  return sizeof...(Types);
-}
-
-template <typename... Types, std::size_t... I>
-std::tuple<Types...> fillTupleFromArgs(std::index_sequence<I...>,
-                                       const jsi::Value *args,
-                                       jsi::Runtime &runtime) {
-  return std::make_tuple(getValue<Types>(args[I], runtime)...);
-}
-
-template <typename Model, typename R, typename... Types>
-std::tuple<Types...> createArgsTupleFromJsi(R (Model::*f)(Types...),
-                                            const jsi::Value *args,
-                                            jsi::Runtime &runtime) {
-  return fillTupleFromArgs<Types...>(std::index_sequence_for<Types...>{}, args,
-                                     runtime);
 }
 
 } // namespace rnexecutorch::jsiconversion
