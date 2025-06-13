@@ -41,7 +41,7 @@ struct is_constructible_from_tuple<T, std::tuple<Args...>>
 template <typename T, typename Tuple>
 concept ConstructibleFromTuple = is_constructible_from_tuple<T, Tuple>::value;
 
-template <typename Tuple>
+template <typename NotTuple>
 struct last_element_is_call_invoker : std::false_type {};
 
 template <typename... Args>
@@ -64,6 +64,9 @@ public:
   static constexpr bool value = sizeof...(Args) > 0 && check_last<Args...>();
 };
 
+// HasConstructorTraits<T> could be removed as typename
+// ConstructorTraits<T>::arg_types would still resolve the concept to false if
+// it wouldn't be defined, but we keep it for readability
 template <typename T>
 concept ValidConstructorTraits =
     HasConstructorTraits<T> &&
