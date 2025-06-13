@@ -1,7 +1,5 @@
 #pragma once
 
-#include <unordered_map>
-
 #include <executorch/extension/tensor/tensor_ptr.h>
 #include <executorch/runtime/core/evalue.h>
 #include <opencv2/opencv.hpp>
