@@ -1,7 +1,6 @@
 #include "TokenizerModule.h"
 #include <executorch/extension/module/module.h>
 #include <filesystem>
-#include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/FileUtils.h>
 
 namespace rnexecutorch {

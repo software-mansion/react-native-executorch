@@ -7,6 +7,16 @@ export const getTypeIdentifier = (input: ETInput): number => {
   return -1;
 };
 
+export const getArrayConstructor = (
+  scalarType: ScalarType
+): ((arr: TensorBuffer) => Float32Array) => {
+  if (scalarType === ScalarType.FLOAT)
+    return (arr: TensorBuffer) => new Float32Array(arr as Float32Array);
+  // todo add more types?
+
+  throw Error("We don't handle this type of output array");
+};
+
 export type ResourceSource = string | number | object;
 
 export type ETInput =
