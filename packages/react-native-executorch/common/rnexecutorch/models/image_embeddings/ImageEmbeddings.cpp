@@ -1,11 +1,8 @@
 #include "ImageEmbeddings.h"
 
-#include <cstdint>
 #include <executorch/extension/tensor/tensor.h>
-#include <iostream>
-#include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
-
+#include <rnexecutorch/data_processing/Numerical.h>
 namespace rnexecutorch {
 
 ImageEmbeddings::ImageEmbeddings(
@@ -48,11 +45,19 @@ ImageEmbeddings::generate(std::string imageSource) {
 
   auto &outputTensor = outputs.at(0).toTensor();
   auto sizesRaw = outputTensor.sizes();
-  std::vector<int32_t> sizes =
-      std::vector<int32_t>(sizesRaw.begin(), sizesRaw.end());
+  auto sizes = std::vector<int32_t>(sizesRaw.begin(), sizesRaw.end());
   size_t bufferSize = outputTensor.numel() * outputTensor.element_size();
   auto buffer = std::make_shared<OwningArrayBuffer>(bufferSize);
-  std::memcpy(buffer->data(), outputTensor.const_data_ptr(), bufferSize);
+
+  std::span<const float> outputTensorSpan(
+      static_cast<const float *>(outputTensor.const_data_ptr()),
+      outputTensor.numel());
+  std::vector<float> outputVector(outputTensorSpan.begin(),
+                                  outputTensorSpan.end());
+
+  numerical::normalizeVector(outputVector);
+
+  std::memcpy(buffer->data(), outputVector.data(), bufferSize);
   auto jsTensor = std::make_shared<JSTensorViewOut>(
       sizes, outputTensor.scalar_type(), buffer);
 
