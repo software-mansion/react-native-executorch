@@ -13,7 +13,10 @@ public:
   TokenizerModule(std::string source,
                   std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<int32_t> encode(const std::string s);
-  std::string decode(const std::vector<int32_t> vec);
+  std::string decode(const std::vector<int32_t> vec, bool skipSpecialTokens);
+  std::string idToToken(int32_t tokenId);
+  int32_t tokenToId(const std::string token);
+  size_t getVocabSize();
   int getMemoryLowerBound();
 
 private:

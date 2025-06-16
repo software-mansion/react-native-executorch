@@ -21,12 +21,34 @@ std::vector<int32_t> TokenizerModule::encode(const std::string s) {
   return tokenizer->Encode(s);
 }
 
-std::string TokenizerModule::decode(const std::vector<int32_t> vec) {
+std::string TokenizerModule::decode(const std::vector<int32_t> vec,
+                                    bool skipSpecialTokens) {
   if (!tokenizer) {
     throw std::runtime_error("Decode called on an uninitialized tokenizer!");
   }
-  return tokenizer->Decode(vec);
+  return tokenizer->Decode(vec, skipSpecialTokens);
 }
 
+size_t TokenizerModule::getVocabSize() {
+  if (!tokenizer) {
+    throw std::runtime_error(
+        "getVocabSize called on an uninitialized tokenizer!");
+  }
+  return tokenizer->GetVocabSize();
+}
+
+std::string TokenizerModule::idToToken(int32_t tokenId) {
+  if (!tokenizer) {
+    throw std::runtime_error("idToToken called on an uninitialized tokenizer!");
+  }
+  return tokenizer->IdToToken(tokenId);
+}
+
+int32_t TokenizerModule::tokenToId(const std::string token) {
+  if (!tokenizer) {
+    throw std::runtime_error("tokenToId called on an uninitialized tokenizer!");
+  }
+  return tokenizer->TokenToId(token);
+}
 int TokenizerModule::getMemoryLowerBound() { return memorySizeLowerBound; }
 } // namespace rnexecutorch
