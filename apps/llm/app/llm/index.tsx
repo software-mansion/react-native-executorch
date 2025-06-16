@@ -21,10 +21,8 @@ import {
 import PauseIcon from '../../assets/icons/pause_icon.svg';
 import ColorPalette from '../../colors';
 import Messages from '../../components/Messages';
-import { useLlmContext } from '../../contexts/LlmContext';
 
 export default function LLMScreen() {
-  const { setIsGenerating } = useLlmContext();
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
   const textInputRef = useRef<TextInput>(null);
@@ -34,10 +32,6 @@ export default function LLMScreen() {
     tokenizerSource: LLAMA3_2_TOKENIZER,
     tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
   });
-
-  useEffect(() => {
-    setIsGenerating(llm.isGenerating);
-  }, [llm.isGenerating, setIsGenerating]);
 
   useEffect(() => {
     if (llm.error) {

@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -27,7 +27,6 @@ import Messages from '../../components/Messages';
 import LiveAudioStream from 'react-native-live-audio-stream';
 import DeviceInfo from 'react-native-device-info';
 import { Buffer } from 'buffer';
-import { useLlmContext } from '../../contexts/LlmContext';
 const audioStreamOptions = {
   sampleRate: 16000,
   channels: 1,
@@ -57,7 +56,6 @@ const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
 };
 
 export default function VoiceChatScreen() {
-  const { setIsGenerating } = useLlmContext();
   const [isRecording, setIsRecording] = useState(false);
   const messageRecorded = useRef<boolean>(false);
 
@@ -71,10 +69,6 @@ export default function VoiceChatScreen() {
     windowSize: 3,
     overlapSeconds: 1.2,
   });
-
-  useEffect(() => {
-    setIsGenerating(llm.isGenerating || speechToText.isGenerating);
-  }, [llm.isGenerating, speechToText.isGenerating, setIsGenerating]);
 
   const onChunk = (data: string) => {
     const float32Chunk = float32ArrayFromPCMBinaryBuffer(data);
