@@ -2123,9 +2123,9 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - SocketRocket (0.7.1)
-  - sqlite3 (3.49.2):
-    - sqlite3/common (= 3.49.2)
-  - sqlite3/common (3.49.2)
+  - sqlite3 (3.50.1):
+    - sqlite3/common (= 3.50.1)
+  - sqlite3/common (3.50.1)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2454,7 +2454,7 @@ SPEC CHECKSUMS:
   React-logger: 8edfcedc100544791cd82692ca5a574240a16219
   React-Mapbuffer: c3f4b608e4a59dd2f6a416ef4d47a14400194468
   React-microtasksnativemodule: 054f34e9b82f02bd40f09cebd4083828b5b2beb6
-  react-native-executorch: 53f918e0e3905243cc39d2d1a9df018bcd49c77b
+  react-native-executorch: 9e4c26039a419f8b79c040571e80617c1114ca26
   react-native-image-picker: 8a3f16000e794f5381a7fe47bb48fd8d06741e47
   react-native-safe-area-context: 562163222d999b79a51577eda2ea8ad2c32b4d06
   react-native-skia: b6cb66e99a953dae6880348c92cfb20a76d90b4f
@@ -2495,7 +2495,7 @@ SPEC CHECKSUMS:
   RNScreens: 482e9707f9826230810c92e765751af53826d509
   RNSVG: 794f269526df9ddc1f79b3d1a202b619df0368e3
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  sqlite3: 3c950dc86011117c307eb0b28c4a7bb449dce9f1
+  sqlite3: 1d85290c3321153511f6e900ede7a1608718bbd5
   Yoga: c758bfb934100bb4bf9cbaccb52557cee35e8bdf
 
 PODFILE CHECKSUM: 12be54799a0524303b792fe9e93fedb70ce87ef7

@@ -27,6 +27,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
+          <string>rne-computer-vision</string>
           <string>com.anonymous.computervision</string>
         </array>
       </dict>
