@@ -12504,19 +12504,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-wheel-scrollview-picker@npm:^2.0.6":
-  version: 2.0.9
-  resolution: "react-native-wheel-scrollview-picker@npm:2.0.9"
-  peerDependencies:
-    "@types/react": "*"
-    "@types/react-native": "*"
-    react: "*"
-    react-native: "*"
-    typescript: "*"
-  checksum: 10/7031997a14a831916d1b1efa9485874017a5c8a90fe9ee4dab9076b0c6aa302db4859de403b56b4ccf24ba77edfd29b6e9d2feff8e0bc63ac4d2b4d0a40a600b
-  languageName: node
-  linkType: hard
-
 "react-native@npm:0.79.2":
   version: 0.79.2
   resolution: "react-native@npm:0.79.2"
@@ -13441,7 +13428,6 @@ __metadata:
     react-native-safe-area-context: "npm:5.4.0"
     react-native-svg: "npm:15.11.2"
     react-native-svg-transformer: "npm:^1.5.0"
-    react-native-wheel-scrollview-picker: "npm:^2.0.6"
   peerDependencies:
     react-native: "*"
   languageName: unknown
