@@ -28,6 +28,7 @@
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="your-app-scheme"/>
+        <data android:scheme="rne-llm"/>
       </intent-filter>
     </activity>
   </application>
