@@ -83,7 +83,7 @@ BaseModel::getAllInputShapes(std::string methodName) {
   return output;
 }
 
-std::vector<std::shared_ptr<JSTensorViewOut>>
+std::vector<JSTensorViewOut>
 BaseModel::forwardJS(const std::vector<JSTensorViewIn> tensorViewVec) {
   if (!module) {
     throw std::runtime_error("Model not loaded: Cannot perform forward pass");
@@ -114,7 +114,7 @@ BaseModel::forwardJS(const std::vector<JSTensorViewIn> tensorViewVec) {
   }
 
   auto &outputs = result.get();
-  std::vector<std::shared_ptr<JSTensorViewOut>> output;
+  std::vector<JSTensorViewOut> output;
   output.reserve(outputs.size());
 
   // Convert ET outputs to a vector of JSTensorViewOut which are later
@@ -125,8 +125,7 @@ BaseModel::forwardJS(const std::vector<JSTensorViewIn> tensorViewVec) {
     size_t bufferSize = outputTensor.numel() * outputTensor.element_size();
     auto buffer = std::make_shared<OwningArrayBuffer>(bufferSize);
     std::memcpy(buffer->data(), outputTensor.const_data_ptr(), bufferSize);
-    auto jsTensor = std::make_shared<JSTensorViewOut>(
-        sizes, outputTensor.scalar_type(), buffer);
+    auto jsTensor = JSTensorViewOut(sizes, outputTensor.scalar_type(), buffer);
     output.emplace_back(jsTensor);
   }
   return output;
