@@ -14,14 +14,14 @@ TokenizerModule::TokenizerModule(
   tokenizer = tokenizers::Tokenizer::FromBlobJSON(blob);
 }
 
-std::vector<int32_t> TokenizerModule::encode(const std::string s) {
+std::vector<int32_t> TokenizerModule::encode(std::string s) {
   if (!tokenizer) {
     throw std::runtime_error("Encode called on an uninitialized tokenizer!");
   };
   return tokenizer->Encode(s);
 }
 
-std::string TokenizerModule::decode(const std::vector<int32_t> vec,
+std::string TokenizerModule::decode(std::vector<int32_t> vec,
                                     bool skipSpecialTokens) {
   if (!tokenizer) {
     throw std::runtime_error("Decode called on an uninitialized tokenizer!");
@@ -44,7 +44,7 @@ std::string TokenizerModule::idToToken(int32_t tokenId) {
   return tokenizer->IdToToken(tokenId);
 }
 
-int32_t TokenizerModule::tokenToId(const std::string token) {
+int32_t TokenizerModule::tokenToId(std::string token) {
   if (!tokenizer) {
     throw std::runtime_error("tokenToId called on an uninitialized tokenizer!");
   }
