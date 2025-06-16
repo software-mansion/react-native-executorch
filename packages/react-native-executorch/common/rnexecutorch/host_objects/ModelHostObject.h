@@ -7,7 +7,6 @@
 
 #include <ReactCommon/CallInvoker.h>
 
-#include <rnexecutorch/Log.h>
 #include <rnexecutorch/host_objects/JSTensorViewOut.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/jsi/JsiHostObject.h>
@@ -88,8 +87,8 @@ public:
             std::thread([this, promise,
                          argsConverted = std::move(argsConverted)]() {
               try {
-                auto result =
-                    std::apply(std::bind_front(FnPtr, model), argsConverted);
+                auto result = std::apply(std::bind_front(FnPtr, model),
+                                         std::move(argsConverted));
                 // The result is copied. It should either be quickly copiable,
                 // or passed with a shared_ptr.
                 callInvoker->invokeAsync([promise,
