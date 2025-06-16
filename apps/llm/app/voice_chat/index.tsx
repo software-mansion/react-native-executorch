@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -27,6 +27,8 @@ import Messages from '../../components/Messages';
 import LiveAudioStream from 'react-native-live-audio-stream';
 import DeviceInfo from 'react-native-device-info';
 import { Buffer } from 'buffer';
+import { useIsFocused } from '@react-navigation/native';
+import { GeneratingContext } from '../context';
 const audioStreamOptions = {
   sampleRate: 16000,
   channels: 1,
@@ -55,9 +57,16 @@ const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
   return float32Array;
 };
 
-export default function VoiceChatScreen() {
+export default function VoiceChatScreenWrapper() {
+  const isFocused = useIsFocused();
+
+  return isFocused ? <VoiceChatScreen /> : null;
+}
+
+function VoiceChatScreen() {
   const [isRecording, setIsRecording] = useState(false);
   const messageRecorded = useRef<boolean>(false);
+  const { setGlobalGenerating } = useContext(GeneratingContext);
 
   const llm = useLLM({
     modelSource: QWEN3_0_6B_QUANTIZED,
@@ -69,6 +78,10 @@ export default function VoiceChatScreen() {
     windowSize: 3,
     overlapSeconds: 1.2,
   });
+
+  useEffect(() => {
+    setGlobalGenerating(llm.isGenerating || speechToText.isGenerating);
+  }, [llm.isGenerating, speechToText.isGenerating, setGlobalGenerating]);
 
   const onChunk = (data: string) => {
     const float32Chunk = float32ArrayFromPCMBinaryBuffer(data);

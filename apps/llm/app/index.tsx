@@ -1,75 +1,185 @@
-import { useRouter } from 'expo-router';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useContext, useEffect, useRef, useState } from 'react';
+import {
+  Keyboard,
+  KeyboardAvoidingView,
+  StyleSheet,
+  Text,
+  TextInput,
+  Platform,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
+import SendIcon from '../assets/icons/send_icon.svg';
+import Spinner from 'react-native-loading-spinner-overlay';
+import {
+  LLAMA3_2_1B_QLORA,
+  LLAMA3_2_TOKENIZER,
+  LLAMA3_2_TOKENIZER_CONFIG,
+  useLLM,
+} from 'react-native-executorch';
+import PauseIcon from '../assets/icons/pause_icon.svg';
 import ColorPalette from '../colors';
-import ExecutorchLogo from '../assets/icons/executorch.svg';
+import Messages from '../components/Messages';
+import { useIsFocused } from '@react-navigation/native';
+import { GeneratingContext } from './context';
 
-export default function Home() {
-  const router = useRouter();
+export default function LLMScreenWrapper() {
+  const isFocused = useIsFocused();
 
-  return (
-    <View style={styles.container}>
-      <ExecutorchLogo width={64} height={64} />
-      <Text style={styles.headerText}>Select a demo model</Text>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('llm/')}
-        >
-          <Text style={styles.buttonText}>LLM</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('llm_tool_calling/')}
-        >
-          <Text style={styles.buttonText}>LLM Tool Calling</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('voice_chat/')}
-        >
-          <Text style={styles.buttonText}>Voice Chat</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+  return isFocused ? <LLMScreen /> : null;
+}
+
+function LLMScreen() {
+  const [isTextInputFocused, setIsTextInputFocused] = useState(false);
+  const [userInput, setUserInput] = useState('');
+  const textInputRef = useRef<TextInput>(null);
+  const { setGlobalGenerating } = useContext(GeneratingContext);
+
+  const llm = useLLM({
+    modelSource: LLAMA3_2_1B_QLORA,
+    tokenizerSource: LLAMA3_2_TOKENIZER,
+    tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
+  });
+
+  useEffect(() => {
+    if (llm.error) {
+      console.log('LLM error:', llm.error);
+    }
+  }, [llm.error]);
+
+  useEffect(() => {
+    setGlobalGenerating(llm.isGenerating);
+  }, [llm.isGenerating, setGlobalGenerating]);
+
+  const sendMessage = async () => {
+    setUserInput('');
+    textInputRef.current?.clear();
+    try {
+      await llm.sendMessage(userInput);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  return !llm.isReady ? (
+    <Spinner
+      visible={!llm.isReady}
+      textContent={`Loading the model ${(llm.downloadProgress * 100).toFixed(0)} %`}
+    />
+  ) : (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <KeyboardAvoidingView
+        style={{
+          ...styles.container,
+          paddingBottom: Platform.OS === 'android' ? 20 : 0,
+        }}
+        collapsable={false}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 40}
+      >
+        <View style={styles.container}>
+          {llm.messageHistory.length ? (
+            <View style={styles.chatContainer}>
+              <Messages
+                chatHistory={llm.messageHistory}
+                llmResponse={llm.response}
+                isGenerating={llm.isGenerating}
+                deleteMessage={llm.deleteMessage}
+              />
+            </View>
+          ) : (
+            <View style={styles.helloMessageContainer}>
+              <Text style={styles.helloText}>Hello! 👋</Text>
+              <Text style={styles.bottomHelloText}>
+                What can I help you with?
+              </Text>
+            </View>
+          )}
+
+          <View style={styles.bottomContainer}>
+            <TextInput
+              autoCorrect={false}
+              onFocus={() => setIsTextInputFocused(true)}
+              onBlur={() => setIsTextInputFocused(false)}
+              style={{
+                ...styles.textInput,
+                borderColor: isTextInputFocused
+                  ? ColorPalette.blueDark
+                  : ColorPalette.blueLight,
+              }}
+              placeholder="Your message"
+              placeholderTextColor={'#C1C6E5'}
+              multiline={true}
+              ref={textInputRef}
+              onChangeText={(text: string) => setUserInput(text)}
+            />
+            {userInput && (
+              <TouchableOpacity
+                style={styles.sendChatTouchable}
+                onPress={async () => !llm.isGenerating && (await sendMessage())}
+              >
+                <SendIcon height={24} width={24} padding={4} margin={8} />
+              </TouchableOpacity>
+            )}
+            {llm.isGenerating && (
+              <TouchableOpacity
+                style={styles.sendChatTouchable}
+                onPress={llm.interrupt}
+              >
+                <PauseIcon height={24} width={24} padding={4} margin={8} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 }
 
-export const fontSizes = {
-  xxl: 34,
-  xl: 22,
-  lg: 18,
-  md: 16,
-  sm: 14,
-  xs: 12,
-  xxs: 10,
-};
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  keyboardAvoidingView: { flex: 1 },
+  container: { flex: 1 },
+  chatContainer: { flex: 10, width: '100%' },
+  helloMessageContainer: {
+    flex: 10,
+    width: '100%',
+    alignItems: 'center',
     justifyContent: 'center',
+  },
+  helloText: {
+    fontFamily: 'medium',
+    fontSize: 30,
+    color: ColorPalette.primary,
+  },
+  bottomHelloText: {
+    fontFamily: 'regular',
+    fontSize: 20,
+    lineHeight: 28,
+    color: ColorPalette.primary,
+  },
+  bottomContainer: {
+    height: 100,
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    paddingHorizontal: 16,
   },
-  headerText: {
-    fontSize: fontSizes.lg,
-    color: ColorPalette.strongPrimary,
-    margin: 20,
-  },
-  buttonContainer: {
-    width: '80%',
-    justifyContent: 'space-evenly',
-    marginBottom: 20,
-  },
-  button: {
-    backgroundColor: ColorPalette.strongPrimary,
+  textInput: {
+    flex: 1,
+    borderWidth: 1,
     borderRadius: 8,
-    padding: 10,
-    alignItems: 'center',
-    marginBottom: 10,
+    lineHeight: 19.6,
+    fontFamily: 'regular',
+    fontSize: 14,
+    color: ColorPalette.primary,
+    padding: 16,
   },
-  buttonText: {
-    color: 'white',
-    fontSize: fontSizes.md,
+  sendChatTouchable: {
+    height: '100%',
+    width: 48,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
   },
 });
