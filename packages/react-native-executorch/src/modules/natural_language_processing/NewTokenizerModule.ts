@@ -12,7 +12,6 @@ export class NewTokenizerModule {
       onDownloadProgressCallback,
       modelSource
     );
-    console.log(paths);
     this.nativeModule = global.loadTokenizerModule(paths[0] || '');
   }
 
@@ -20,7 +19,19 @@ export class NewTokenizerModule {
     return await this.nativeModule.encode(s);
   }
 
-  async decode(tokens: number[]) {
-    return await this.nativeModule.decode(tokens);
+  async decode(tokens: number[], skipSpecialTokens: boolean = true) {
+    return await this.nativeModule.decode(tokens, skipSpecialTokens);
+  }
+
+  async getVocabSize(): Promise<number> {
+    return await this.nativeModule.getVocabSize();
+  }
+
+  async idToToken(tokenId: number): Promise<string> {
+    return this.nativeModule.idToToken(tokenId);
+  }
+
+  async tokenToId(token: string): Promise<number> {
+    return await this.nativeModule.tokenToId(token);
   }
 }
