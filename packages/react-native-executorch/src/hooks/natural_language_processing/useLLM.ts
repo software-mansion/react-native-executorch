@@ -46,19 +46,19 @@ export const useLLM = ({
     setDownloadProgress(0);
     setError(null);
 
-    if (!preventLoad) {
+    if (preventLoad) return;
+
+    (async () => {
       try {
-        (async () => {
-          await model.load({
-            modelSource,
-            tokenizerSource,
-            tokenizerConfigSource,
-          });
-        })();
+        await model.load({
+          modelSource,
+          tokenizerSource,
+          tokenizerConfigSource,
+        });
       } catch (e) {
         setError(e);
       }
-    }
+    })();
 
     return () => {
       model.delete();
