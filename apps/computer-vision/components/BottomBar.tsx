@@ -16,7 +16,11 @@ export const BottomBar = ({
         <TouchableOpacity onPress={() => handleCameraPress(false)}>
           <FontAwesome name="photo" size={24} color={ColorPalette.primary} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => handleCameraPress(true)}>
+        <TouchableOpacity
+          onPress={() =>
+            !DeviceInfo.isEmulatorSync() && handleCameraPress(true)
+          }
+        >
           <FontAwesome
             name="camera"
             size={24}
