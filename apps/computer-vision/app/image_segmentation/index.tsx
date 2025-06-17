@@ -14,7 +14,9 @@ import {
   ColorType,
 } from '@shopify/react-native-skia';
 import { View, StyleSheet, Image } from 'react-native';
-import { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
+import { GeneratingContext } from '../../context';
+import ScreenWrapper from '../../screenWrapper';
 
 const width = 224;
 const height = 224;
@@ -62,6 +64,10 @@ export default function ImageSegmentationScreen() {
   const model = useImageSegmentation({
     modelSource: DEEPLAB_V3_RESNET50,
   });
+  const { setGlobalGenerating } = useContext(GeneratingContext);
+  useEffect(() => {
+    setGlobalGenerating(model.isGenerating);
+  }, [model.isGenerating, setGlobalGenerating]);
   const [imageUri, setImageUri] = useState('');
 
   const handleCameraPress = async (isCamera: boolean) => {
@@ -118,7 +124,7 @@ export default function ImageSegmentationScreen() {
   }
 
   return (
-    <>
+    <ScreenWrapper>
       <View style={styles.imageCanvasContainer}>
         <View style={styles.imageContainer}>
           <Image
@@ -150,7 +156,7 @@ export default function ImageSegmentationScreen() {
         handleCameraPress={handleCameraPress}
         runForward={runForward}
       />
-    </>
+    </ScreenWrapper>
   );
 }
 

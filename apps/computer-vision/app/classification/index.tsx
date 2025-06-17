@@ -1,9 +1,11 @@
-import { useState } from 'react';
 import Spinner from 'react-native-loading-spinner-overlay';
 import { getImage } from '../../utils';
 import { useClassification, EFFICIENTNET_V2_S } from 'react-native-executorch';
 import { View, StyleSheet, Image, Text, ScrollView } from 'react-native';
 import { BottomBar } from '../../components/BottomBar';
+import React, { useContext, useEffect, useState } from 'react';
+import { GeneratingContext } from '../../context';
+import ScreenWrapper from '../../screenWrapper';
 
 export default function ClassificationScreen() {
   const [results, setResults] = useState<{ label: string; score: number }[]>(
@@ -14,6 +16,10 @@ export default function ClassificationScreen() {
   const model = useClassification({
     modelSource: EFFICIENTNET_V2_S,
   });
+  const { setGlobalGenerating } = useContext(GeneratingContext);
+  useEffect(() => {
+    setGlobalGenerating(model.isGenerating);
+  }, [model.isGenerating, setGlobalGenerating]);
 
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
@@ -48,7 +54,7 @@ export default function ClassificationScreen() {
     );
   }
   return (
-    <>
+    <ScreenWrapper>
       <View style={styles.imageContainer}>
         <Image
           style={styles.image}
@@ -77,7 +83,7 @@ export default function ClassificationScreen() {
         handleCameraPress={handleCameraPress}
         runForward={runForward}
       />
-    </>
+    </ScreenWrapper>
   );
 }
 
