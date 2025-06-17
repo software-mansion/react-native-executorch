@@ -9,7 +9,6 @@ using namespace facebook;
 
 class TokenizerModule {
 public:
-  std::unique_ptr<tokenizers::Tokenizer> tokenizer;
   TokenizerModule(std::string source,
                   std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<int32_t> encode(std::string s);
@@ -20,6 +19,7 @@ public:
   int getMemoryLowerBound();
 
 private:
+  std::unique_ptr<tokenizers::Tokenizer> tokenizer;
   std::size_t memorySizeLowerBound{0};
 };
 } // namespace rnexecutorch
