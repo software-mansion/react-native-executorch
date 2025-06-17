@@ -152,6 +152,7 @@ export class LLMController {
 
   public setTokenCallback(tokenCallback: (token: string) => void) {
     this.tokenCallback = tokenCallback;
+    this.onToken?.remove();
     this.onToken = this.nativeModule.onToken(this.getNativeOnTokenCallback());
   }
 
