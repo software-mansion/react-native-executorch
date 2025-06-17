@@ -19,7 +19,7 @@ public:
   std::size_t getMemoryLowerBound() const noexcept;
 
 private:
-  void ensureTokenizerLoaded() const;
+  void ensureTokenizerLoaded(const std::string &methodName) const;
   std::unique_ptr<tokenizers::Tokenizer> tokenizer;
   std::size_t memorySizeLowerBound{0};
 };

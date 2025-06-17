@@ -14,36 +14,37 @@ TokenizerModule::TokenizerModule(
   tokenizer = tokenizers::Tokenizer::FromBlobJSON(blob);
 }
 
-void TokenizerModule::ensureTokenizerLoaded() const {
+void TokenizerModule::ensureTokenizerLoaded(
+    const std::string &methodName) const {
   if (!tokenizer) {
     throw std::runtime_error(
-        "A tokenizer function was called on an uninitialized tokenizer!");
+        methodName + " function was called on an uninitialized tokenizer!");
   }
 }
 
 std::vector<int32_t> TokenizerModule::encode(std::string s) const {
-  ensureTokenizerLoaded();
+  ensureTokenizerLoaded("encode");
   return tokenizer->Encode(s);
 }
 
 std::string TokenizerModule::decode(std::vector<int32_t> vec,
                                     bool skipSpecialTokens) const {
-  ensureTokenizerLoaded();
+  ensureTokenizerLoaded("decode");
   return tokenizer->Decode(vec, skipSpecialTokens);
 }
 
 size_t TokenizerModule::getVocabSize() const {
-  ensureTokenizerLoaded();
+  ensureTokenizerLoaded("getVocabSize");
   return tokenizer->GetVocabSize();
 }
 
 std::string TokenizerModule::idToToken(int32_t tokenId) const {
-  ensureTokenizerLoaded();
+  ensureTokenizerLoaded("idToToken");
   return tokenizer->IdToToken(tokenId);
 }
 
 int32_t TokenizerModule::tokenToId(std::string token) const {
-  ensureTokenizerLoaded();
+  ensureTokenizerLoaded("tokenToId");
   return tokenizer->TokenToId(token);
 }
 std::size_t TokenizerModule::getMemoryLowerBound() const noexcept {
