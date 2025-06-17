@@ -20,9 +20,8 @@ export const useTokenizer = ({
     const loadModule = async () => {
       try {
         setIsReady(false);
-        const tokenizer = new TokenizerModule();
-        await tokenizer.load(tokenizerSource, setDownloadProgress);
-        tokenizerModuleRef.current = tokenizer;
+        tokenizerModuleRef.current = new TokenizerModule();
+        tokenizerModuleRef.current.load(tokenizerSource, setDownloadProgress);
         setIsReady(true);
       } catch (err) {
         setError((err as Error).message);
