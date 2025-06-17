@@ -35,6 +35,14 @@ export class LLMModule {
     });
   }
 
+  static setTokenCallback({
+    tokenCallback,
+  }: {
+    tokenCallback: (token: string) => void;
+  }) {
+    this.controller.setTokenCallback(tokenCallback);
+  }
+
   static configure({
     chatConfig,
     toolsConfig,
