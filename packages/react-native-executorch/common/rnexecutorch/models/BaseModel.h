@@ -22,7 +22,7 @@ public:
   std::vector<int32_t> getInputShape(std::string method_name, int index);
   std::vector<std::vector<int32_t>>
   getAllInputShapes(std::string methodName = "forward");
-  std::vector<std::shared_ptr<JSTensorViewOut>>
+  std::vector<JSTensorViewOut>
   forwardJS(std::vector<JSTensorViewIn> tensorViewVec);
 
 protected:

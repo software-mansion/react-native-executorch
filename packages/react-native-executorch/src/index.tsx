@@ -9,13 +9,16 @@ declare global {
   var loadClassification: (source: string) => any;
   var loadObjectDetection: (source: string) => any;
   var loadExecutorchModule: (source: string) => any;
+  var loadTokenizerModule: (source: string) => any;
 }
 // eslint-disable no-var
 if (
   global.loadStyleTransfer == null ||
   global.loadImageSegmentation == null ||
   global.loadExecutorchModule == null ||
-  global.loadClassification == null
+  global.loadClassification == null ||
+  global.loadObjectDetection == null ||
+  global.loadTokenizerModule == null
 ) {
   if (!ETInstallerNativeModule) {
     throw new Error(

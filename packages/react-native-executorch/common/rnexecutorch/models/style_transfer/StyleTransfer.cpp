@@ -1,9 +1,6 @@
 #include "StyleTransfer.h"
 
-#include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
-
-#include <span>
 
 #include <executorch/extension/tensor/tensor.h>
 #include <opencv2/opencv.hpp>
@@ -42,7 +39,7 @@ std::string StyleTransfer::postprocess(const Tensor &tensor,
 }
 
 std::string StyleTransfer::generate(std::string imageSource) {
-    auto [inputTensor, originalSize] =
+  auto [inputTensor, originalSize] =
       imageprocessing::readImageToTensor(imageSource, getAllInputShapes()[0]);
 
   auto forwardResult = BaseModel::forward(inputTensor);
