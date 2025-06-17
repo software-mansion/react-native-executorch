@@ -327,7 +327,10 @@ export class SpeechToTextController {
     this.validateAndFixLastChunk();
 
     for (let chunkId = 0; chunkId < this.chunks.length; chunkId++) {
-      const seq = await this.decodeChunk(this.chunks!.at(chunkId)!);
+      const seq = await this.decodeChunk(
+        this.chunks!.at(chunkId)!,
+        audioLanguage
+      );
       // whole audio is inside one chunk, no processing required
       if (this.chunks.length === 1) {
         this.sequence = seq;
