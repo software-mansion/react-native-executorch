@@ -21,6 +21,6 @@ public:
 private:
   void ensureTokenizerLoaded(const std::string &methodName) const;
   std::unique_ptr<tokenizers::Tokenizer> tokenizer;
-  std::size_t memorySizeLowerBound{0};
+  const std::size_t memorySizeLowerBound{0};
 };
 } // namespace rnexecutorch
