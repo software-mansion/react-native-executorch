@@ -8,7 +8,7 @@ import {
   DrawerContentScrollView,
   DrawerItemList,
 } from '@react-navigation/drawer';
-import { GeneratingContext } from './context';
+import { GeneratingContext } from '../context';
 
 interface CustomDrawerProps extends DrawerContentComponentProps {
   isGenerating: boolean;
@@ -27,7 +27,7 @@ function CustomDrawerContent(props: CustomDrawerProps) {
   );
 }
 
-function DrawerWithScreens() {
+export default function _layout() {
   const [isGenerating, setIsGenerating] = useState(false);
 
   console.log('isGlobalGenerating', isGenerating);
@@ -52,7 +52,7 @@ function DrawerWithScreens() {
         }}
       >
         <Drawer.Screen
-          name="index"
+          name="llm/index"
           options={{
             drawerLabel: 'LLM',
             title: 'LLM',
@@ -75,11 +75,13 @@ function DrawerWithScreens() {
             headerTitleStyle: { color: ColorPalette.primary },
           }}
         />
+        <Drawer.Screen
+          name="index"
+          options={{
+            drawerLabel: () => null,
+          }}
+        />
       </Drawer>
     </GeneratingContext>
   );
-}
-
-export default function _layout() {
-  return <DrawerWithScreens />;
 }

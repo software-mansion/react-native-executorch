@@ -28,7 +28,7 @@ import LiveAudioStream from 'react-native-live-audio-stream';
 import DeviceInfo from 'react-native-device-info';
 import { Buffer } from 'buffer';
 import { useIsFocused } from '@react-navigation/native';
-import { GeneratingContext } from '../context';
+import { GeneratingContext } from '../../context';
 const audioStreamOptions = {
   sampleRate: 16000,
   channels: 1,

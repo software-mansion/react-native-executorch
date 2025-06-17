@@ -2,68 +2,45 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
-  Platform,
   StyleSheet,
   Text,
   TextInput,
+  Platform,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import SWMIcon from '../../assets/icons/swm_icon.svg';
 import SendIcon from '../../assets/icons/send_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {
-  HAMMER2_1_1_5B,
-  HAMMER2_1_TOKENIZER,
-  HAMMER2_1_TOKENIZER_CONFIG,
+  LLAMA3_2_1B_QLORA,
+  LLAMA3_2_TOKENIZER,
+  LLAMA3_2_TOKENIZER_CONFIG,
   useLLM,
-  DEFAULT_SYSTEM_PROMPT,
 } from 'react-native-executorch';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
 import ColorPalette from '../../colors';
 import Messages from '../../components/Messages';
-import * as Brightness from 'expo-brightness';
-import * as Calendar from 'expo-calendar';
-import { executeTool, TOOL_DEFINITIONS_PHONE } from '../../utils/tools';
 import { useIsFocused } from '@react-navigation/native';
 import { GeneratingContext } from '../../context';
 
-export default function LLMToolCallingScreenWrapper() {
+export default function LLMScreenWrapper() {
   const isFocused = useIsFocused();
 
-  return isFocused ? <LLMToolCallingScreen /> : null;
+  return isFocused ? <LLMScreen /> : null;
 }
 
-function LLMToolCallingScreen() {
+function LLMScreen() {
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   const llm = useLLM({
-    modelSource: HAMMER2_1_1_5B,
-    tokenizerSource: HAMMER2_1_TOKENIZER,
-    tokenizerConfigSource: HAMMER2_1_TOKENIZER_CONFIG,
+    modelSource: LLAMA3_2_1B_QLORA,
+    tokenizerSource: LLAMA3_2_TOKENIZER,
+    tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
   });
-
-  useEffect(() => {
-    setGlobalGenerating(llm.isGenerating);
-  }, [llm.isGenerating, setGlobalGenerating]);
-
-  const { configure } = llm;
-  useEffect(() => {
-    configure({
-      chatConfig: {
-        systemPrompt: `${DEFAULT_SYSTEM_PROMPT} Current time and date: ${new Date().toString()}`,
-      },
-      toolsConfig: {
-        tools: TOOL_DEFINITIONS_PHONE,
-        executeToolCallback: executeTool,
-        displayToolCalls: true,
-      },
-    });
-  }, [configure]);
 
   useEffect(() => {
     if (llm.error) {
@@ -71,26 +48,9 @@ function LLMToolCallingScreen() {
     }
   }, [llm.error]);
 
-  // PERMISSIONS
   useEffect(() => {
-    (async () => {
-      const { status } = await Calendar.requestCalendarPermissionsAsync();
-      if (status !== 'granted') {
-        console.log(
-          'No access to calendar! We need this to use app correctly!'
-        );
-      }
-    })();
-
-    (async () => {
-      const { status } = await Brightness.requestPermissionsAsync();
-      if (status !== 'granted') {
-        console.log(
-          'No access to brightness! We need this to use app correctly!'
-        );
-      }
-    })();
-  }, []);
+    setGlobalGenerating(llm.isGenerating);
+  }, [llm.isGenerating, setGlobalGenerating]);
 
   const sendMessage = async () => {
     setUserInput('');
@@ -105,25 +65,20 @@ function LLMToolCallingScreen() {
   return !llm.isReady ? (
     <Spinner
       visible={!llm.isReady}
-      textContent={`Loading the model ${(llm.downloadProgress * 100).toFixed(
-        0
-      )} %`}
+      textContent={`Loading the model ${(llm.downloadProgress * 100).toFixed(0)} %`}
     />
   ) : (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View style={styles.container}>
-        <KeyboardAvoidingView
-          style={{
-            ...styles.container,
-            paddingBottom: Platform.OS === 'android' ? 20 : 0,
-          }}
-          collapsable={false}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 40}
-        >
-          <View style={styles.topContainer}>
-            <SWMIcon width={45} height={45} />
-          </View>
+      <KeyboardAvoidingView
+        style={{
+          ...styles.container,
+          paddingBottom: Platform.OS === 'android' ? 20 : 0,
+        }}
+        collapsable={false}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 40}
+      >
+        <View style={styles.container}>
           {llm.messageHistory.length ? (
             <View style={styles.chatContainer}>
               <Messages
@@ -137,7 +92,7 @@ function LLMToolCallingScreen() {
             <View style={styles.helloMessageContainer}>
               <Text style={styles.helloText}>Hello! 👋</Text>
               <Text style={styles.bottomHelloText}>
-                I can use calendar! Ask me to check it or add an event for you!
+                What can I help you with?
               </Text>
             </View>
           )}
@@ -176,23 +131,16 @@ function LLMToolCallingScreen() {
               </TouchableOpacity>
             )}
           </View>
-        </KeyboardAvoidingView>
-      </View>
+        </View>
+      </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
   keyboardAvoidingView: { flex: 1 },
-  topContainer: {
-    height: 68,
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  container: { flex: 1 },
   chatContainer: { flex: 10, width: '100%' },
-  textModelName: { color: ColorPalette.primary },
   helloMessageContainer: {
     flex: 10,
     width: '100%',
@@ -208,7 +156,6 @@ const styles = StyleSheet.create({
     fontFamily: 'regular',
     fontSize: 20,
     lineHeight: 28,
-    textAlign: 'center',
     color: ColorPalette.primary,
   },
   bottomContainer: {
