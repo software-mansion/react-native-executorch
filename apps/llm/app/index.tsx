@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import ColorPalette from '../colors';
 import ExecutorchLogo from '../assets/icons/executorch.svg';
 
-export default function App() {
+export default function Home() {
   const router = useRouter();
 
   return (
@@ -13,19 +13,19 @@ export default function App() {
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.navigate('app/llm/')}
+          onPress={() => router.navigate('llm/')}
         >
           <Text style={styles.buttonText}>LLM</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.navigate('app/llm_tool_calling/')}
+          onPress={() => router.navigate('llm_tool_calling/')}
         >
           <Text style={styles.buttonText}>LLM Tool Calling</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.navigate('app/voice_chat/')}
+          onPress={() => router.navigate('voice_chat/')}
         >
           <Text style={styles.buttonText}>Voice Chat</Text>
         </TouchableOpacity>
