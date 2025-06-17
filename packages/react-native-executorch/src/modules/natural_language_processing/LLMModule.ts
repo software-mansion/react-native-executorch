@@ -10,6 +10,7 @@ export class LLMModule {
     tokenizerSource,
     tokenizerConfigSource,
     onDownloadProgressCallback,
+    tokenCallback,
     responseCallback,
     messageHistoryCallback,
   }: {
@@ -17,10 +18,12 @@ export class LLMModule {
     tokenizerSource: ResourceSource;
     tokenizerConfigSource: ResourceSource;
     onDownloadProgressCallback?: (_downloadProgress: number) => void;
+    tokenCallback?: (token: string) => void;
     responseCallback?: (response: string) => void;
     messageHistoryCallback?: (messageHistory: Message[]) => void;
   }) {
     this.controller = new LLMController({
+      tokenCallback: tokenCallback,
       responseCallback: responseCallback,
       messageHistoryCallback: messageHistoryCallback,
       onDownloadProgressCallback: onDownloadProgressCallback,

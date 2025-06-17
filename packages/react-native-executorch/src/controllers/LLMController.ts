@@ -27,6 +27,7 @@ export class LLMController {
   private _messageHistory: Message[] = [];
 
   // User callbacks
+  private tokenCallback: (token: string) => void;
   private responseCallback: (response: string) => void;
   private messageHistoryCallback: (messageHistory: Message[]) => void;
   private isReadyCallback: (isReady: boolean) => void;
@@ -36,18 +37,28 @@ export class LLMController {
     | undefined;
 
   constructor({
+    tokenCallback,
     responseCallback,
     messageHistoryCallback,
     isReadyCallback,
     isGeneratingCallback,
     onDownloadProgressCallback,
   }: {
+    tokenCallback?: (token: string) => void;
     responseCallback?: (response: string) => void;
     messageHistoryCallback?: (messageHistory: Message[]) => void;
     isReadyCallback?: (isReady: boolean) => void;
     isGeneratingCallback?: (isGenerating: boolean) => void;
     onDownloadProgressCallback?: (downloadProgress: number) => void;
   }) {
+    if (responseCallback !== undefined) {
+      console.warn(
+        'Passing response callback is deprecated and will be removed in 0.6.0'
+      );
+    }
+    this.tokenCallback = (token) => {
+      tokenCallback?.(token);
+    };
     this.responseCallback = (response) => {
       this._response = response;
       responseCallback?.(response);
@@ -114,16 +125,33 @@ export class LLMController {
 
       await this.nativeModule.loadLLM(modelFileUri, tokenizerFileUri);
       this.isReadyCallback(true);
-      this.onToken = this.nativeModule.onToken((data: string | undefined) => {
-        if (!data) {
-          return;
-        }
-        this.responseCallback(this._response + data);
-      });
+      this.onToken = this.nativeModule.onToken(this.getNativeOnTokenCallback());
     } catch (e) {
       this.isReadyCallback(false);
       throw new Error(getError(e));
     }
+  }
+
+  private getNativeOnTokenCallback() {
+    return (data: string | undefined) => {
+      if (
+        !data ||
+        ('eos_token' in this.tokenizerConfig &&
+          data === this.tokenizerConfig.eos_token) ||
+        ('pad_token' in this.tokenizerConfig &&
+          data === this.tokenizerConfig.pad_token)
+      ) {
+        return;
+      }
+
+      this.tokenCallback(data);
+      this.responseCallback(this._response + data);
+    };
+  }
+
+  public setTokenCallback(tokenCallback: (token: string) => void) {
+    this.tokenCallback = tokenCallback;
+    this.nativeModule.onToken(this.getNativeOnTokenCallback());
   }
 
   public configure({
@@ -137,6 +165,7 @@ export class LLMController {
     this.toolsConfig = toolsConfig;
 
     // reset inner state when loading new configuration
+    this.tokenCallback('');
     this.responseCallback('');
     this.messageHistoryCallback(this.chatConfig.initialMessageHistory);
     this.isGeneratingCallback(false);
@@ -164,6 +193,7 @@ export class LLMController {
       throw new Error(getError(ETError.ModelGenerating));
     }
     try {
+      this.tokenCallback('');
       this.responseCallback('');
       this.isGeneratingCallback(true);
       await this.nativeModule.forward(input);
@@ -200,15 +230,6 @@ export class LLMController {
     );
 
     await this.forward(renderedChat);
-
-    if (!this._response) {
-      return;
-    }
-
-    const cleanedResponse = this._response
-      .replaceAll(this.tokenizerConfig.eos_token, '')
-      .replaceAll(this.tokenizerConfig.pad_token, '');
-    this.responseCallback(cleanedResponse);
   }
 
   public async sendMessage(message: string) {
@@ -225,9 +246,6 @@ export class LLMController {
     await this.generate(messageHistoryWithPrompt, this.toolsConfig?.tools);
 
     if (!this.toolsConfig || this.toolsConfig.displayToolCalls) {
-      this.responseCallback(
-        this._response.replace(this.tokenizerConfig.eos_token, '')
-      );
       this.messageHistoryCallback([
         ...this._messageHistory,
         { content: this._response, role: 'assistant' },

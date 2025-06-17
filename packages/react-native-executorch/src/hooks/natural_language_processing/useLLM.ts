@@ -10,7 +10,7 @@ import {
 import { LLMController } from '../../controllers/LLMController';
 
 /*
-Hook version of LLMController
+Hook version of LLMModule
 */
 export const useLLM = ({
   modelSource,
@@ -23,6 +23,7 @@ export const useLLM = ({
   tokenizerConfigSource: ResourceSource;
   preventLoad?: boolean;
 }): LLMType => {
+  const [token, setToken] = useState<string>('');
   const [response, setResponse] = useState('');
   const [messageHistory, setMessageHistory] = useState<Message[]>([]);
   const [isReady, setIsReady] = useState(false);
@@ -30,16 +31,24 @@ export const useLLM = ({
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [error, setError] = useState<any>(null);
 
+  const tokenCallback = useCallback(
+    (newToken: string) => {
+      setToken(newToken);
+      setResponse((prevResponse) => prevResponse + newToken);
+    },
+    [setToken, setResponse]
+  );
+
   const model = useMemo(
     () =>
       new LLMController({
-        responseCallback: setResponse,
+        tokenCallback: tokenCallback,
         messageHistoryCallback: setMessageHistory,
         isReadyCallback: setIsReady,
         isGeneratingCallback: setIsGenerating,
         onDownloadProgressCallback: setDownloadProgress,
       }),
-    []
+    [tokenCallback]
   );
 
   useEffect(() => {
@@ -96,6 +105,7 @@ export const useLLM = ({
   return {
     messageHistory,
     response,
+    token,
     isReady,
     isGenerating,
     downloadProgress,
