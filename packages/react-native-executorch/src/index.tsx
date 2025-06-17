@@ -56,7 +56,6 @@ export * from './modules/natural_language_processing/LLMModule';
 export * from './modules/natural_language_processing/SpeechToTextModule';
 export * from './modules/natural_language_processing/TextEmbeddingsModule';
 export * from './modules/natural_language_processing/TokenizerModule';
-export * from './modules/natural_language_processing/NewTokenizerModule';
 
 // utils
 export * from './utils/ResourceFetcher';

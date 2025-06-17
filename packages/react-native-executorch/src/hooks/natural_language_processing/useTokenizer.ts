@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { NewTokenizerModule } from '../../modules/natural_language_processing/NewTokenizerModule';
+import { TokenizerModule } from '../../modules/natural_language_processing/TokenizerModule';
 import { ResourceSource } from '../../types/common';
 import { ETError, getError } from '../../Error';
 
@@ -14,13 +14,13 @@ export const useTokenizer = ({
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const tokenizerModuleRef = useRef<NewTokenizerModule | null>(null);
+  const tokenizerModuleRef = useRef<TokenizerModule | null>(null);
 
   useEffect(() => {
     const loadModule = async () => {
       try {
         setIsReady(false);
-        const tokenizer = new NewTokenizerModule();
+        const tokenizer = new TokenizerModule();
         await tokenizer.load(tokenizerSource, setDownloadProgress);
         tokenizerModuleRef.current = tokenizer;
         setIsReady(true);
@@ -53,10 +53,10 @@ export const useTokenizer = ({
     isReady,
     isGenerating,
     downloadProgress,
-    decode: stateWrapper(NewTokenizerModule.prototype.decode),
-    encode: stateWrapper(NewTokenizerModule.prototype.encode),
-    getVocabSize: stateWrapper(NewTokenizerModule.prototype.getVocabSize),
-    idToToken: stateWrapper(NewTokenizerModule.prototype.idToToken),
-    tokenToId: stateWrapper(NewTokenizerModule.prototype.tokenToId),
+    decode: stateWrapper(TokenizerModule.prototype.decode),
+    encode: stateWrapper(TokenizerModule.prototype.encode),
+    getVocabSize: stateWrapper(TokenizerModule.prototype.getVocabSize),
+    idToToken: stateWrapper(TokenizerModule.prototype.idToToken),
+    tokenToId: stateWrapper(TokenizerModule.prototype.tokenToId),
   };
 };

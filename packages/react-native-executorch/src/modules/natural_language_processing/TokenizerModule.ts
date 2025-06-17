@@ -1,34 +1,37 @@
-import { TokenizerNativeModule } from '../../native/RnExecutorchModules';
 import { ResourceSource } from '../../types/common';
-import { BaseModule } from '../BaseModule';
+import { ResourceFetcher } from '../../utils/ResourceFetcher';
 
-export class TokenizerModule extends BaseModule {
-  protected static override nativeModule = TokenizerNativeModule;
+export class TokenizerModule {
+  nativeModule: any;
 
-  static override async load(tokenizerSource: ResourceSource) {
-    await super.load([tokenizerSource]);
+  async load(
+    modelSource: ResourceSource,
+    onDownloadProgressCallback: (_: number) => void = () => {}
+  ): Promise<void> {
+    const paths = await ResourceFetcher.fetchMultipleResources(
+      onDownloadProgressCallback,
+      modelSource
+    );
+    this.nativeModule = global.loadTokenizerModule(paths[0] || '');
   }
 
-  static async decode(
-    input: number[],
-    skipSpecialTokens = false
-  ): Promise<string> {
-    return await this.nativeModule.decode(input, skipSpecialTokens);
+  async encode(s: string) {
+    return await this.nativeModule.encode(s);
   }
 
-  static async encode(input: string): Promise<number[]> {
-    return await this.nativeModule.encode(input);
+  async decode(tokens: number[], skipSpecialTokens: boolean = true) {
+    return await this.nativeModule.decode(tokens, skipSpecialTokens);
   }
 
-  static async getVocabSize(): Promise<number> {
+  async getVocabSize(): Promise<number> {
     return await this.nativeModule.getVocabSize();
   }
 
-  static async idToToken(tokenId: number): Promise<string> {
-    return await this.nativeModule.idToToken(tokenId);
+  async idToToken(tokenId: number): Promise<string> {
+    return this.nativeModule.idToToken(tokenId);
   }
 
-  static async tokenToId(token: string): Promise<number> {
+  async tokenToId(token: string): Promise<number> {
     return await this.nativeModule.tokenToId(token);
   }
 }
