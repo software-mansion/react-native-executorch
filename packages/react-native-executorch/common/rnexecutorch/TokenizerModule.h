@@ -9,8 +9,8 @@ using namespace facebook;
 
 class TokenizerModule {
 public:
-  TokenizerModule(std::string source,
-                  std::shared_ptr<react::CallInvoker> callInvoker);
+  explicit TokenizerModule(std::string source,
+                           std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<int32_t> encode(std::string s) const;
   std::string decode(std::vector<int32_t> vec, bool skipSpecialTokens) const;
   std::string idToToken(int32_t tokenId) const;
