@@ -30,8 +30,6 @@ function CustomDrawerContent(props: CustomDrawerProps) {
 export default function _layout() {
   const [isGenerating, setIsGenerating] = useState(false);
 
-  console.log('isGlobalGenerating', isGenerating);
-
   return (
     <GeneratingContext
       value={{
@@ -79,6 +77,7 @@ export default function _layout() {
           name="index"
           options={{
             drawerLabel: () => null,
+            drawerItemStyle: { display: 'none' },
           }}
         />
       </Drawer>

@@ -9,8 +9,10 @@ import {
   useVerticalOCR,
 } from 'react-native-executorch';
 import { View, StyleSheet, Image, Text, ScrollView } from 'react-native';
-import { useState } from 'react';
 import ImageWithBboxes2 from '../../components/ImageWithOCRBboxes';
+import React, { useContext, useEffect, useState } from 'react';
+import { GeneratingContext } from '../../context';
+import ScreenWrapper from '../../screenWrapper';
 
 export default function VerticalOCRScree() {
   const [imageUri, setImageUri] = useState('');
@@ -31,6 +33,10 @@ export default function VerticalOCRScree() {
     language: 'en',
     independentCharacters: true,
   });
+  const { setGlobalGenerating } = useContext(GeneratingContext);
+  useEffect(() => {
+    setGlobalGenerating(model.isGenerating);
+  }, [model.isGenerating, setGlobalGenerating]);
 
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
@@ -64,7 +70,7 @@ export default function VerticalOCRScree() {
   }
 
   return (
-    <>
+    <ScreenWrapper>
       <View style={styles.container}>
         <View style={styles.imageContainer}>
           {imageUri && imageDimensions?.width && imageDimensions?.height ? (
@@ -102,7 +108,7 @@ export default function VerticalOCRScree() {
         handleCameraPress={handleCameraPress}
         runForward={runForward}
       />
-    </>
+    </ScreenWrapper>
   );
 }
 

@@ -6,12 +6,18 @@ import {
   STYLE_TRANSFER_CANDY,
 } from 'react-native-executorch';
 import { View, StyleSheet, Image } from 'react-native';
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
+import { GeneratingContext } from '../../context';
+import ScreenWrapper from '../../screenWrapper';
 
 export default function StyleTransferScreen() {
   const model = useStyleTransfer({
     modelSource: STYLE_TRANSFER_CANDY,
   });
+  const { setGlobalGenerating } = useContext(GeneratingContext);
+  useEffect(() => {
+    setGlobalGenerating(model.isGenerating);
+  }, [model.isGenerating, setGlobalGenerating]);
   const [imageUri, setImageUri] = useState('');
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
@@ -42,7 +48,7 @@ export default function StyleTransferScreen() {
   }
 
   return (
-    <>
+    <ScreenWrapper>
       <View style={styles.imageContainer}>
         <Image
           style={styles.image}
@@ -58,7 +64,7 @@ export default function StyleTransferScreen() {
         handleCameraPress={handleCameraPress}
         runForward={runForward}
       />
-    </>
+    </ScreenWrapper>
   );
 }
 

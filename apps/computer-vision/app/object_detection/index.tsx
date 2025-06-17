@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import Spinner from 'react-native-loading-spinner-overlay';
 import { BottomBar } from '../../components/BottomBar';
 import { getImage } from '../../utils';
@@ -9,6 +8,9 @@ import {
 } from 'react-native-executorch';
 import { View, StyleSheet, Image } from 'react-native';
 import ImageWithBboxes from '../../components/ImageWithBboxes';
+import React, { useContext, useEffect, useState } from 'react';
+import { GeneratingContext } from '../../context';
+import ScreenWrapper from '../../screenWrapper';
 
 export default function ObjectDetectionScreen() {
   const [imageUri, setImageUri] = useState('');
@@ -21,6 +23,10 @@ export default function ObjectDetectionScreen() {
   const ssdLite = useObjectDetection({
     modelSource: SSDLITE_320_MOBILENET_V3_LARGE,
   });
+  const { setGlobalGenerating } = useContext(GeneratingContext);
+  useEffect(() => {
+    setGlobalGenerating(ssdLite.isGenerating);
+  }, [ssdLite.isGenerating, setGlobalGenerating]);
 
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
@@ -57,7 +63,7 @@ export default function ObjectDetectionScreen() {
   }
 
   return (
-    <>
+    <ScreenWrapper>
       <View style={styles.imageContainer}>
         <View style={styles.image}>
           {imageUri && imageDimensions?.width && imageDimensions?.height ? (
@@ -82,7 +88,7 @@ export default function ObjectDetectionScreen() {
         handleCameraPress={handleCameraPress}
         runForward={runForward}
       />
-    </>
+    </ScreenWrapper>
   );
 }
 
