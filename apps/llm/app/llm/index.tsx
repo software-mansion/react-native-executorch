@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -21,11 +21,20 @@ import {
 import PauseIcon from '../../assets/icons/pause_icon.svg';
 import ColorPalette from '../../colors';
 import Messages from '../../components/Messages';
+import { useIsFocused } from '@react-navigation/native';
+import { GeneratingContext } from '../../context';
 
-export default function LLMScreen() {
+export default function LLMScreenWrapper() {
+  const isFocused = useIsFocused();
+
+  return isFocused ? <LLMScreen /> : null;
+}
+
+function LLMScreen() {
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
   const textInputRef = useRef<TextInput>(null);
+  const { setGlobalGenerating } = useContext(GeneratingContext);
 
   const llm = useLLM({
     modelSource: LLAMA3_2_1B_QLORA,
@@ -38,6 +47,10 @@ export default function LLMScreen() {
       console.log('LLM error:', llm.error);
     }
   }, [llm.error]);
+
+  useEffect(() => {
+    setGlobalGenerating(llm.isGenerating);
+  }, [llm.isGenerating, setGlobalGenerating]);
 
   const sendMessage = async () => {
     setUserInput('');

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -26,17 +26,30 @@ import Messages from '../../components/Messages';
 import * as Brightness from 'expo-brightness';
 import * as Calendar from 'expo-calendar';
 import { executeTool, TOOL_DEFINITIONS_PHONE } from '../../utils/tools';
+import { useIsFocused } from '@react-navigation/native';
+import { GeneratingContext } from '../../context';
 
-export default function LLMToolCallingScreen() {
+export default function LLMToolCallingScreenWrapper() {
+  const isFocused = useIsFocused();
+
+  return isFocused ? <LLMToolCallingScreen /> : null;
+}
+
+function LLMToolCallingScreen() {
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
   const textInputRef = useRef<TextInput>(null);
+  const { setGlobalGenerating } = useContext(GeneratingContext);
 
   const llm = useLLM({
     modelSource: HAMMER2_1_1_5B,
     tokenizerSource: HAMMER2_1_TOKENIZER,
     tokenizerConfigSource: HAMMER2_1_TOKENIZER_CONFIG,
   });
+
+  useEffect(() => {
+    setGlobalGenerating(llm.isGenerating);
+  }, [llm.isGenerating, setGlobalGenerating]);
 
   const { configure } = llm;
   useEffect(() => {
