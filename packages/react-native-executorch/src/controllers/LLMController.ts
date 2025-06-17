@@ -104,6 +104,7 @@ export class LLMController {
     tokenizerConfigSource: ResourceSource;
   }) {
     // reset inner state when loading new model
+    this.tokenCallback('');
     this.responseCallback('');
     this.messageHistoryCallback(this.chatConfig.initialMessageHistory);
     this.isGeneratingCallback(false);
