@@ -22,6 +22,7 @@ export class SpeechToTextController {
   public isReady = false;
   public isGenerating = false;
 
+  private tokenizerModule: TokenizerModule;
   private overlapSeconds!: number;
   private windowSize!: number;
   private chunks: number[][] = [];
@@ -60,6 +61,7 @@ export class SpeechToTextController {
     windowSize?: number;
     streamingConfig?: keyof typeof MODES;
   }) {
+    this.tokenizerModule = new TokenizerModule();
     this.decodedTranscribeCallback = async (seq) =>
       transcribeCallback(await this.tokenIdsToText(seq));
     this.modelDownloadProgressCallback = modelDownloadProgressCallback;
@@ -97,10 +99,9 @@ export class SpeechToTextController {
     this.config = MODEL_CONFIGS[modelName];
 
     try {
-      await TokenizerModule.load(
+      await this.tokenizerModule.load(
         tokenizerSource || this.config.tokenizer.source
       );
-
       [encoderSource, decoderSource] =
         await ResourceFetcher.fetchMultipleResources(
           this.modelDownloadProgressCallback,
@@ -196,10 +197,13 @@ export class SpeechToTextController {
       return [this.config.tokenizer.bos];
     }
     // FIXME: I should use .getTokenId for the BOS as well, should remove it from config
-    const langTokenId = await TokenizerModule.tokenToId(`<|${audioLanguage}|>`);
-    const transcribeTokenId = await TokenizerModule.tokenToId('<|transcribe|>');
+    const langTokenId = await this.tokenizerModule.tokenToId(
+      `<|${audioLanguage}|>`
+    );
+    const transcribeTokenId =
+      await this.tokenizerModule.tokenToId('<|transcribe|>');
     const noTimestampsTokenId =
-      await TokenizerModule.tokenToId('<|notimestamps|>');
+      await this.tokenizerModule.tokenToId('<|notimestamps|>');
     const startingTokenIds = [
       this.config.tokenizer.bos,
       langTokenId,
@@ -294,7 +298,7 @@ export class SpeechToTextController {
 
   private async tokenIdsToText(tokenIds: number[]): Promise<string> {
     try {
-      return TokenizerModule.decode(tokenIds, true);
+      return await this.tokenizerModule.decode(tokenIds, true);
     } catch (e) {
       this.onErrorCallback(
         new Error(`An error has occurred when decoding the token ids: ${e}`)

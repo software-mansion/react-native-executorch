@@ -7,7 +7,7 @@
 
 #include <ReactCommon/CallInvoker.h>
 
-#include <rnexecutorch/Log.h>
+#include <rnexecutorch/TokenizerModule.h>
 #include <rnexecutorch/host_objects/JSTensorViewOut.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/jsi/JsiHostObject.h>
@@ -45,6 +45,31 @@ public:
                                        promiseHostFunction<&Model::generate>,
                                        "generate"));
     }
+
+    if constexpr (meta::HasEncode<Model>) {
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::encode>,
+                                       "encode"));
+    }
+
+    if constexpr (meta::SameAs<Model, TokenizerModule>) {
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::encode>,
+                                       "encode"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::decode>,
+                                       "decode"));
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>, promiseHostFunction<&Model::getVocabSize>,
+          "getVocabSize"));
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::idToToken>,
+                                       "idToToken"));
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::tokenToId>,
+                                       "tokenToId"));
+    }
   }
 
   // A generic host function that resolves a promise with a result of a
@@ -76,8 +101,8 @@ public:
             std::thread([this, promise,
                          argsConverted = std::move(argsConverted)]() {
               try {
-                auto result =
-                    std::apply(std::bind_front(FnPtr, model), argsConverted);
+                auto result = std::apply(std::bind_front(FnPtr, model),
+                                         std::move(argsConverted));
                 // The result is copied. It should either be quickly copiable,
                 // or passed with a shared_ptr.
                 callInvoker->invokeAsync([promise,

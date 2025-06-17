@@ -1,5 +1,6 @@
 #include "RnExecutorchInstaller.h"
 
+#include <rnexecutorch/TokenizerModule.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/models/classification/Classification.h>
 #include <rnexecutorch/models/image_segmentation/ImageSegmentation.h>
@@ -42,6 +43,11 @@ void RnExecutorchInstaller::injectJSIBindings(
       *jsiRuntime, "loadExecutorchModule",
       RnExecutorchInstaller::loadModel<BaseModel>(jsiRuntime, jsCallInvoker,
                                                   "loadExecutorchModule"));
+
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadTokenizerModule",
+      RnExecutorchInstaller::loadModel<TokenizerModule>(
+          jsiRuntime, jsCallInvoker, "loadTokenizerModule"));
 }
 
 } // namespace rnexecutorch
