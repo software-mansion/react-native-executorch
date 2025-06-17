@@ -7,6 +7,7 @@
 
 #include <ReactCommon/CallInvoker.h>
 
+#include <rnexecutorch/TokenizerModule.h>
 #include <rnexecutorch/host_objects/JSTensorViewOut.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/jsi/JsiHostObject.h>
@@ -51,10 +52,23 @@ public:
                                        "encode"));
     }
 
-    if constexpr (meta::HasDecode<Model>) {
+    if constexpr (meta::SameAs<Model, TokenizerModule>) {
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::encode>,
+                                       "encode"));
+
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::decode>,
                                        "decode"));
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>, promiseHostFunction<&Model::getVocabSize>,
+          "getVocabSize"));
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::idToToken>,
+                                       "idToToken"));
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::tokenToId>,
+                                       "tokenToId"));
     }
   }
 

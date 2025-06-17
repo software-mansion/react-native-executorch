@@ -14,6 +14,11 @@ constexpr std::size_t getArgumentCount(R (Model::*f)(Types...)) {
   return sizeof...(Types);
 }
 
+template <typename Model, typename R, typename... Types>
+constexpr std::size_t getArgumentCount(R (Model::*f)(Types...) const) {
+  return sizeof...(Types);
+}
+
 template <typename... Types, std::size_t... I>
 std::tuple<Types...> fillTupleFromArgs(std::index_sequence<I...>,
                                        const jsi::Value *args,
@@ -29,6 +34,14 @@ std::tuple<Types...> fillTupleFromArgs(std::index_sequence<I...>,
 
 template <typename Model, typename R, typename... Types>
 std::tuple<Types...> createArgsTupleFromJsi(R (Model::*f)(Types...),
+                                            const jsi::Value *args,
+                                            jsi::Runtime &runtime) {
+  return fillTupleFromArgs<Types...>(std::index_sequence_for<Types...>{}, args,
+                                     runtime);
+}
+
+template <typename Model, typename R, typename... Types>
+std::tuple<Types...> createArgsTupleFromJsi(R (Model::*f)(Types...) const,
                                             const jsi::Value *args,
                                             jsi::Runtime &runtime) {
   return fillTupleFromArgs<Types...>(std::index_sequence_for<Types...>{}, args,
