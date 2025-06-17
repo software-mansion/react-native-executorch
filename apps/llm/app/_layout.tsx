@@ -1,7 +1,7 @@
 import { Drawer } from 'expo-router/drawer';
 import ColorPalette from '../colors';
 import React, { useState } from 'react';
-import { Text } from 'react-native';
+import { Text, StyleSheet, View } from 'react-native';
 
 import {
   DrawerContentComponentProps,
@@ -21,7 +21,10 @@ function CustomDrawerContent(props: CustomDrawerProps) {
       {!isGenerating ? (
         <DrawerItemList {...otherProps} />
       ) : (
-        <Text>Model is generating. Interrupt before switching model</Text>
+        <View style={styles.centerContent}>
+          <Text style={styles.mainText}>Model is generating...</Text>
+          <Text style={styles.subText}>Interrupt before switching model</Text>
+        </View>
       )}
     </DrawerContentScrollView>
   );
@@ -77,6 +80,7 @@ export default function _layout() {
           name="index"
           options={{
             drawerLabel: () => null,
+            title: 'Main Menu',
             drawerItemStyle: { display: 'none' },
           }}
         />
@@ -84,3 +88,22 @@ export default function _layout() {
     </GeneratingContext>
   );
 }
+
+const styles = StyleSheet.create({
+  centerContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  mainText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: ColorPalette.primary,
+  },
+  subText: {
+    fontSize: 14,
+    color: ColorPalette.strongPrimary,
+  },
+});
