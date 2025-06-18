@@ -1,6 +1,6 @@
 import Spinner from 'react-native-loading-spinner-overlay';
-import { BottomBar } from '../components/BottomBar';
-import { getImage } from '../utils';
+import { BottomBar } from '../../components/BottomBar';
+import { getImage } from '../../utils';
 import {
   useImageSegmentation,
   DEEPLAB_V3_RESNET50,
@@ -14,7 +14,9 @@ import {
   ColorType,
 } from '@shopify/react-native-skia';
 import { View, StyleSheet, Image } from 'react-native';
-import { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
+import { GeneratingContext } from '../../context';
+import ScreenWrapper from '../../ScreenWrapper';
 
 const width = 224;
 const height = 224;
@@ -58,16 +60,15 @@ const numberToColor: number[][] = [
   [162, 51, 255], // 20 Amethyst
 ];
 
-export const ImageSegmentationScreen = ({
-  imageUri,
-  setImageUri,
-}: {
-  imageUri: string;
-  setImageUri: (imageUri: string) => void;
-}) => {
+export default function ImageSegmentationScreen() {
   const model = useImageSegmentation({
     modelSource: DEEPLAB_V3_RESNET50,
   });
+  const { setGlobalGenerating } = useContext(GeneratingContext);
+  useEffect(() => {
+    setGlobalGenerating(model.isGenerating);
+  }, [model.isGenerating, setGlobalGenerating]);
+  const [imageUri, setImageUri] = useState('');
 
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
@@ -123,7 +124,7 @@ export const ImageSegmentationScreen = ({
   }
 
   return (
-    <>
+    <ScreenWrapper>
       <View style={styles.imageCanvasContainer}>
         <View style={styles.imageContainer}>
           <Image
@@ -132,7 +133,7 @@ export const ImageSegmentationScreen = ({
             source={
               imageUri
                 ? { uri: imageUri }
-                : require('../assets/icons/executorch_logo.png')
+                : require('../../assets/icons/executorch_logo.png')
             }
           />
         </View>
@@ -155,9 +156,9 @@ export const ImageSegmentationScreen = ({
         handleCameraPress={handleCameraPress}
         runForward={runForward}
       />
-    </>
+    </ScreenWrapper>
   );
-};
+}
 
 const styles = StyleSheet.create({
   imageCanvasContainer: {

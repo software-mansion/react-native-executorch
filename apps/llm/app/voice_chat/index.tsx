@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -9,7 +9,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import SWMIcon from '../assets/icons/swm_icon.svg';
+import SWMIcon from '../../assets/icons/swm_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {
   STREAMING_ACTION,
@@ -19,14 +19,16 @@ import {
   QWEN3_TOKENIZER,
   QWEN3_TOKENIZER_CONFIG,
 } from 'react-native-executorch';
-import PauseIcon from '../assets/icons/pause_icon.svg';
-import MicIcon from '../assets/icons/mic_icon.svg';
-import StopIcon from '../assets/icons/stop_icon.svg';
-import ColorPalette from '../colors';
-import Messages from '../components/Messages';
+import PauseIcon from '../../assets/icons/pause_icon.svg';
+import MicIcon from '../../assets/icons/mic_icon.svg';
+import StopIcon from '../../assets/icons/stop_icon.svg';
+import ColorPalette from '../../colors';
+import Messages from '../../components/Messages';
 import LiveAudioStream from 'react-native-live-audio-stream';
+import DeviceInfo from 'react-native-device-info';
 import { Buffer } from 'buffer';
-
+import { useIsFocused } from '@react-navigation/native';
+import { GeneratingContext } from '../../context';
 const audioStreamOptions = {
   sampleRate: 16000,
   channels: 1,
@@ -55,13 +57,16 @@ const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
   return float32Array;
 };
 
-export default function VoiceChatScreen({
-  setIsGenerating,
-}: {
-  setIsGenerating: React.Dispatch<React.SetStateAction<boolean>>;
-}) {
+export default function VoiceChatScreenWrapper() {
+  const isFocused = useIsFocused();
+
+  return isFocused ? <VoiceChatScreen /> : null;
+}
+
+function VoiceChatScreen() {
   const [isRecording, setIsRecording] = useState(false);
   const messageRecorded = useRef<boolean>(false);
+  const { setGlobalGenerating } = useContext(GeneratingContext);
 
   const llm = useLLM({
     modelSource: QWEN3_0_6B_QUANTIZED,
@@ -73,6 +78,10 @@ export default function VoiceChatScreen({
     windowSize: 3,
     overlapSeconds: 1.2,
   });
+
+  useEffect(() => {
+    setGlobalGenerating(llm.isGenerating || speechToText.isGenerating);
+  }, [llm.isGenerating, speechToText.isGenerating, setGlobalGenerating]);
 
   const onChunk = (data: string) => {
     const float32Chunk = float32ArrayFromPCMBinaryBuffer(data);
@@ -97,10 +106,6 @@ export default function VoiceChatScreen({
     }
   };
 
-  useEffect(() => {
-    setIsGenerating(llm.isGenerating);
-  }, [llm.isGenerating, setIsGenerating]);
-
   return !llm.isReady || !speechToText.isReady ? (
     <Spinner
       visible={!llm.isReady || !speechToText.isReady}
@@ -115,7 +120,7 @@ export default function VoiceChatScreen({
       >
         <View style={styles.topContainer}>
           <SWMIcon width={45} height={45} />
-          <Text style={styles.textModelName}>Qwen 3 x Whisper</Text>
+          <Text style={styles.textModelName}>Qwen 3 x Moonshine</Text>
         </View>
         {llm.messageHistory.length || speechToText.sequence ? (
           <View style={styles.chatContainer}>
@@ -142,23 +147,33 @@ export default function VoiceChatScreen({
           </View>
         )}
         <View style={styles.bottomContainer}>
-          {llm.isGenerating ? (
-            <TouchableOpacity onPress={llm.interrupt}>
-              <PauseIcon height={40} width={40} padding={4} margin={8} />
-            </TouchableOpacity>
+          {DeviceInfo.isEmulatorSync() ? (
+            <View style={styles.emulatorBox}>
+              <Text style={[styles.emulatorWarning]}>
+                recording disabled on emulator
+              </Text>
+            </View>
           ) : (
-            <TouchableOpacity
-              style={
-                !isRecording ? styles.recordTouchable : styles.recordingInfo
-              }
-              onPress={handleRecordPress}
-            >
-              {isRecording ? (
-                <StopIcon height={40} width={40} padding={4} margin={8} />
+            <>
+              {llm.isGenerating ? (
+                <TouchableOpacity onPress={llm.interrupt}>
+                  <PauseIcon height={40} width={40} padding={4} margin={8} />
+                </TouchableOpacity>
               ) : (
-                <MicIcon height={40} width={40} padding={4} margin={8} />
+                <TouchableOpacity
+                  style={
+                    !isRecording ? styles.recordTouchable : styles.recordingInfo
+                  }
+                  onPress={handleRecordPress}
+                >
+                  {isRecording ? (
+                    <StopIcon height={40} width={40} padding={4} margin={8} />
+                  ) : (
+                    <MicIcon height={40} width={40} padding={4} margin={8} />
+                  )}
+                </TouchableOpacity>
               )}
-            </TouchableOpacity>
+            </>
           )}
         </View>
       </KeyboardAvoidingView>
@@ -217,5 +232,18 @@ const styles = StyleSheet.create({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  emulatorBox: {
+    padding: 10,
+    margin: 10,
+    borderWidth: 1,
+    borderRadius: 8,
+    borderColor: 'gray',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emulatorWarning: {
+    color: 'gray',
+    fontSize: 16,
   },
 });
