@@ -103,6 +103,7 @@ const useLLM: ({
 interface LLMType {
   messageHistory: Message[];
   response: string;
+  token: string;
   isReady: boolean;
   isGenerating: boolean;
   downloadProgress: number;
