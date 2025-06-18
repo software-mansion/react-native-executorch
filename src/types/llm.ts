@@ -1,6 +1,7 @@
 export interface LLMType {
   messageHistory: Message[];
   response: string;
+  token: string;
   isReady: boolean;
   isGenerating: boolean;
   downloadProgress: number;
@@ -46,12 +47,12 @@ export interface ToolsConfig {
   displayToolCalls?: boolean;
 }
 
-export const SPECIAL_TOKENS = [
-  'bos_token',
-  'eos_token',
-  'unk_token',
-  'sep_token',
-  'pad_token',
-  'cls_token',
-  'mask_token',
-];
+export const SPECIAL_TOKENS = {
+  BOS_TOKEN: 'bos_token',
+  EOS_TOKEN: 'eos_token',
+  UNK_TOKEN: 'unk_token',
+  SEP_TOKEN: 'sep_token',
+  PAD_TOKEN: 'pad_token',
+  CLS_TOKEN: 'cls_token',
+  MASK_TOKEN: 'mask_token',
+};

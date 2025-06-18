@@ -10,7 +10,7 @@ import {
 import { LLMController } from '../../controllers/LLMController';
 
 /*
-Hook version of LLMController
+Hook version of LLMModule
 */
 export const useLLM = ({
   modelSource,
@@ -23,23 +23,29 @@ export const useLLM = ({
   tokenizerConfigSource: ResourceSource;
   preventLoad?: boolean;
 }): LLMType => {
-  const [response, setResponse] = useState('');
+  const [token, setToken] = useState<string>('');
+  const [response, setResponse] = useState<string>('');
   const [messageHistory, setMessageHistory] = useState<Message[]>([]);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [error, setError] = useState<any>(null);
 
+  const tokenCallback = useCallback((newToken: string) => {
+    setToken(newToken);
+    setResponse((prevResponse) => prevResponse + newToken);
+  }, []);
+
   const model = useMemo(
     () =>
       new LLMController({
-        responseCallback: setResponse,
+        tokenCallback: tokenCallback,
         messageHistoryCallback: setMessageHistory,
         isReadyCallback: setIsReady,
         isGeneratingCallback: setIsGenerating,
         onDownloadProgressCallback: setDownloadProgress,
       }),
-    []
+    [tokenCallback]
   );
 
   useEffect(() => {
@@ -78,12 +84,18 @@ export const useLLM = ({
   );
 
   const generate = useCallback(
-    (messages: Message[], tools?: LLMTool[]) => model.generate(messages, tools),
+    (messages: Message[], tools?: LLMTool[]) => {
+      setResponse('');
+      return model.generate(messages, tools);
+    },
     [model]
   );
 
   const sendMessage = useCallback(
-    (message: string) => model.sendMessage(message),
+    (message: string) => {
+      setResponse('');
+      return model.sendMessage(message);
+    },
     [model]
   );
 
@@ -96,6 +108,7 @@ export const useLLM = ({
   return {
     messageHistory,
     response,
+    token,
     isReady,
     isGenerating,
     downloadProgress,
