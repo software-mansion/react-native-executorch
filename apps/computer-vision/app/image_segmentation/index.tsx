@@ -16,7 +16,7 @@ import {
 import { View, StyleSheet, Image } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
-import ScreenWrapper from '../../screenWrapper';
+import ScreenWrapper from '../../ScreenWrapper';
 
 const width = 224;
 const height = 224;

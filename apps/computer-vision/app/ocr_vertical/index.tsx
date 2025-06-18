@@ -12,7 +12,7 @@ import { View, StyleSheet, Image, Text, ScrollView } from 'react-native';
 import ImageWithBboxes2 from '../../components/ImageWithOCRBboxes';
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
-import ScreenWrapper from '../../screenWrapper';
+import ScreenWrapper from '../../ScreenWrapper';
 
 export default function VerticalOCRScree() {
   const [imageUri, setImageUri] = useState('');

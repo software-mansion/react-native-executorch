@@ -10,7 +10,7 @@ import { View, StyleSheet, Image } from 'react-native';
 import ImageWithBboxes from '../../components/ImageWithBboxes';
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
-import ScreenWrapper from '../../screenWrapper';
+import ScreenWrapper from '../../ScreenWrapper';
 
 export default function ObjectDetectionScreen() {
   const [imageUri, setImageUri] = useState('');

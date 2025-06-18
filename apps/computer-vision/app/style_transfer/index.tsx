@@ -8,7 +8,7 @@ import {
 import { View, StyleSheet, Image } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
-import ScreenWrapper from '../../screenWrapper';
+import ScreenWrapper from '../../ScreenWrapper';
 
 export default function StyleTransferScreen() {
   const model = useStyleTransfer({

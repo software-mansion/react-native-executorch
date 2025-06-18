@@ -5,7 +5,7 @@ import { View, StyleSheet, Image, Text, ScrollView } from 'react-native';
 import { BottomBar } from '../../components/BottomBar';
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
-import ScreenWrapper from '../../screenWrapper';
+import ScreenWrapper from '../../ScreenWrapper';
 
 export default function ClassificationScreen() {
   const [results, setResults] = useState<{ label: string; score: number }[]>(
