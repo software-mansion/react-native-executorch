@@ -27,7 +27,7 @@ export class LLMController {
   private _messageHistory: Message[] = [];
 
   // User callbacks
-  private tokenCallback: (token: string) => void;
+  private tokenCallback: (token: string | null) => void;
   private responseCallback: (response: string) => void;
   private messageHistoryCallback: (messageHistory: Message[]) => void;
   private isReadyCallback: (isReady: boolean) => void;
@@ -44,7 +44,7 @@ export class LLMController {
     isGeneratingCallback,
     onDownloadProgressCallback,
   }: {
-    tokenCallback?: (token: string) => void;
+    tokenCallback?: (token: string | null) => void;
     responseCallback?: (response: string) => void;
     messageHistoryCallback?: (messageHistory: Message[]) => void;
     isReadyCallback?: (isReady: boolean) => void;
@@ -104,7 +104,7 @@ export class LLMController {
     tokenizerConfigSource: ResourceSource;
   }) {
     // reset inner state when loading new model
-    this.tokenCallback('');
+    this.tokenCallback(null);
     this.responseCallback('');
     this.messageHistoryCallback(this.chatConfig.initialMessageHistory);
     this.isGeneratingCallback(false);
@@ -126,34 +126,28 @@ export class LLMController {
 
       await this.nativeModule.loadLLM(modelFileUri, tokenizerFileUri);
       this.isReadyCallback(true);
-      this.onToken = this.nativeModule.onToken(this.getNativeOnTokenCallback());
+      this.onToken = this.nativeModule.onToken((data: any) => {
+        if (
+          !data ||
+          ('eos_token' in this.tokenizerConfig &&
+            data === this.tokenizerConfig.eos_token) ||
+          ('pad_token' in this.tokenizerConfig &&
+            data === this.tokenizerConfig.pad_token)
+        ) {
+          return;
+        }
+
+        this.tokenCallback(data);
+        this.responseCallback(this._response + data);
+      });
     } catch (e) {
       this.isReadyCallback(false);
       throw new Error(getError(e));
     }
   }
 
-  private getNativeOnTokenCallback() {
-    return (data: string | undefined) => {
-      if (
-        !data ||
-        ('eos_token' in this.tokenizerConfig &&
-          data === this.tokenizerConfig.eos_token) ||
-        ('pad_token' in this.tokenizerConfig &&
-          data === this.tokenizerConfig.pad_token)
-      ) {
-        return;
-      }
-
-      this.tokenCallback(data);
-      this.responseCallback(this._response + data);
-    };
-  }
-
-  public setTokenCallback(tokenCallback: (token: string) => void) {
+  public setTokenCallback(tokenCallback: (token: string | null) => void) {
     this.tokenCallback = tokenCallback;
-    this.onToken?.remove();
-    this.onToken = this.nativeModule.onToken(this.getNativeOnTokenCallback());
   }
 
   public configure({
@@ -167,7 +161,7 @@ export class LLMController {
     this.toolsConfig = toolsConfig;
 
     // reset inner state when loading new configuration
-    this.tokenCallback('');
+    this.tokenCallback(null);
     this.responseCallback('');
     this.messageHistoryCallback(this.chatConfig.initialMessageHistory);
     this.isGeneratingCallback(false);
@@ -195,7 +189,7 @@ export class LLMController {
       throw new Error(getError(ETError.ModelGenerating));
     }
     try {
-      this.tokenCallback('');
+      this.tokenCallback(null);
       this.responseCallback('');
       this.isGeneratingCallback(true);
       await this.nativeModule.forward(input);

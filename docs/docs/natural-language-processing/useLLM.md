@@ -172,7 +172,7 @@ const llm = useLLM({
   tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
 });
 
-const handleGenerate = async () => {
+const handleGenerate = () => {
   const chat = [
     { role: 'system', content: 'You are a helpful assistant' },
     { role: 'user', content: 'Hi!' },
@@ -181,11 +181,11 @@ const handleGenerate = async () => {
   ];
 
   // Chat completion
-  await llm.generate(chat);
-  console.log('Llama says:', llm.response);
+  llm.generate(chat);
 };
 
 return (
+  <Button onPress={handleGenerate} title="Generate!" />
   <Text>{llm.response}</Text>
 )
 ```
@@ -229,7 +229,7 @@ const llm = useLLM({
   tokenizerConfigSource: HAMMER2_1_1_5B_TOKENIZER_CONFIG,
 });
 
-const handleGenerate = async () => {
+const handleGenerate = () => {
   const chat = [
     {
       role: 'system',
@@ -242,11 +242,18 @@ const handleGenerate = async () => {
   ];
 
   // Chat completion
-  await llm.generate(chat, TOOL_DEFINITIONS);
-  console.log('Hammer says:', llm.response);
-
-  // Parse response and call functions accordingly
+  llm.generate(chat, TOOL_DEFINITIONS);
 };
+
+useEffect(() => {
+  // Parse response and call tools accordingly
+  // ...
+},[llm.response])
+
+return (
+  <Button onPress={handleGenerate} title="Generate!" />
+  <Text>{llm.response}</Text>
+)
 ```
 
 ## Managed LLM Chat
@@ -283,9 +290,9 @@ const llm = useLLM({
   tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
 });
 
-const send = async () => {
+const send = () => {
   const message = 'Hi, who are you?';
-  await llm.sendMessage(message);
+  llm.sendMessage(message);
 };
 ```
 
@@ -352,9 +359,9 @@ useEffect(() => {
     });
 }, []);
 
-const send = async () => {
+const send = () => {
   const message = `Hi, what's the weather like in Cracow right now?`;
-  await llm.sendMessage(message);
+  llm.sendMessage(message);
 };
 ```
 

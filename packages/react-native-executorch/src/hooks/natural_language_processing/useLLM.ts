@@ -24,7 +24,7 @@ export const useLLM = ({
   preventLoad?: boolean;
 }): LLMType => {
   const [token, setToken] = useState<string>('');
-  const [response, setResponse] = useState('');
+  const [response, setResponse] = useState<string>('');
   const [messageHistory, setMessageHistory] = useState<Message[]>([]);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -32,7 +32,11 @@ export const useLLM = ({
   const [error, setError] = useState<any>(null);
 
   const tokenCallback = useCallback(
-    (newToken: string) => {
+    (newToken: string | null) => {
+      if (newToken === null) {
+        setResponse('');
+        return;
+      }
       setToken(newToken);
       setResponse((prevResponse) => prevResponse + newToken);
     },
