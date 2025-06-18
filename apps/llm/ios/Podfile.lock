@@ -1,9 +1,9 @@
 PODS:
   - boost (1.84.0)
   - DoubleConversion (1.1.6)
-  - EXConstants (17.1.5):
+  - EXConstants (17.1.6):
     - ExpoModulesCore
-  - Expo (53.0.9):
+  - Expo (53.0.11):
     - DoubleConversion
     - ExpoModulesCore
     - glog
@@ -40,9 +40,13 @@ PODS:
     - ExpoModulesCore
   - ExpoFont (13.3.1):
     - ExpoModulesCore
+  - ExpoHead (5.0.7):
+    - ExpoModulesCore
   - ExpoKeepAwake (14.1.4):
     - ExpoModulesCore
-  - ExpoModulesCore (2.3.13):
+  - ExpoLinking (7.1.5):
+    - ExpoModulesCore
+  - ExpoModulesCore (2.4.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1896,6 +1900,32 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - RNDeviceInfo (14.0.4):
+    - React-Core
+  - RNGestureHandler (2.24.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNLiveAudioStream (1.1.1):
     - React
   - RNReanimated (3.17.5):
@@ -2022,6 +2052,57 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - RNScreens (4.11.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-RCTImage
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - RNScreens/common (= 4.11.1)
+    - Yoga
+  - RNScreens/common (4.11.1):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.11.18.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-RCTImage
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNSVG (15.11.2):
     - DoubleConversion
     - glog
@@ -2072,9 +2153,9 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - SocketRocket (0.7.1)
-  - sqlite3 (3.49.2):
-    - sqlite3/common (= 3.49.2)
-  - sqlite3/common (3.49.2)
+  - sqlite3 (3.50.1):
+    - sqlite3/common (= 3.50.1)
+  - sqlite3/common (3.50.1)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2087,7 +2168,9 @@ DEPENDENCIES:
   - ExpoCalendar (from `../../../node_modules/expo-calendar/ios`)
   - ExpoFileSystem (from `../../../node_modules/expo-file-system/ios`)
   - ExpoFont (from `../../../node_modules/expo-font/ios`)
+  - ExpoHead (from `../../../node_modules/expo-router/ios`)
   - ExpoKeepAwake (from `../../../node_modules/expo-keep-awake/ios`)
+  - ExpoLinking (from `../../../node_modules/expo-linking/ios`)
   - ExpoModulesCore (from `../../../node_modules/expo-modules-core`)
   - fast_float (from `../../../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
   - FBLazyVector (from `../../../node_modules/react-native/Libraries/FBLazyVector`)
@@ -2161,8 +2244,11 @@ DEPENDENCIES:
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../../../node_modules/react-native/ReactCommon`)
   - RNAudioAPI (from `../../../node_modules/react-native-audio-api`)
+  - RNDeviceInfo (from `../../../node_modules/react-native-device-info`)
+  - RNGestureHandler (from `../../../node_modules/react-native-gesture-handler`)
   - RNLiveAudioStream (from `../../../node_modules/react-native-live-audio-stream`)
   - RNReanimated (from `../../../node_modules/react-native-reanimated`)
+  - RNScreens (from `../../../node_modules/react-native-screens`)
   - RNSVG (from `../../../node_modules/react-native-svg`)
   - Yoga (from `../../../node_modules/react-native/ReactCommon/yoga`)
 
@@ -2191,8 +2277,12 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/expo-file-system/ios"
   ExpoFont:
     :path: "../../../node_modules/expo-font/ios"
+  ExpoHead:
+    :path: "../../../node_modules/expo-router/ios"
   ExpoKeepAwake:
     :path: "../../../node_modules/expo-keep-awake/ios"
+  ExpoLinking:
+    :path: "../../../node_modules/expo-linking/ios"
   ExpoModulesCore:
     :path: "../../../node_modules/expo-modules-core"
   fast_float:
@@ -2336,10 +2426,16 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/react-native/ReactCommon"
   RNAudioAPI:
     :path: "../../../node_modules/react-native-audio-api"
+  RNDeviceInfo:
+    :path: "../../../node_modules/react-native-device-info"
+  RNGestureHandler:
+    :path: "../../../node_modules/react-native-gesture-handler"
   RNLiveAudioStream:
     :path: "../../../node_modules/react-native-live-audio-stream"
   RNReanimated:
     :path: "../../../node_modules/react-native-reanimated"
+  RNScreens:
+    :path: "../../../node_modules/react-native-screens"
   RNSVG:
     :path: "../../../node_modules/react-native-svg"
   Yoga:
@@ -2348,15 +2444,17 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
-  EXConstants: a1112af878fddfe6acc0399473ac56a07ced0f47
-  Expo: a9fc723f6c8f673f0e7e036c9021772d3a1a0707
+  EXConstants: 9f310f44bfedba09087042756802040e464323c0
+  Expo: 4e8bda07d30b024b1732f87843a5349a3ecc1316
   ExpoAsset: 3bc9adb7dbbf27ae82c18ca97eb988a3ae7e73b1
   ExpoBrightness: c335c6ccc082d5249a4b38dba5cd9a08aa0bf62b
   ExpoCalendar: f5f94ea8dcd957b1434beb4e1c0da1af063322e6
   ExpoFileSystem: c36eb8155eb2381c83dda7dc210e3eec332368b6
   ExpoFont: abbb91a911eb961652c2b0a22eef801860425ed6
+  ExpoHead: af044f3e9c99e7d8d21bf653b4c2f2ef53a7f082
   ExpoKeepAwake: bf0811570c8da182bfb879169437d4de298376e7
-  ExpoModulesCore: 5d37821c36f3781dcd0ea9a393800c90eaa6259d
+  ExpoLinking: b85ff4eafeae6fc638c6cace60007ae521af0ef4
+  ExpoModulesCore: d431ffe83c8673d02cb38425594a5f5480fd3061
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: 84b955f7b4da8b895faf5946f73748267347c975
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
@@ -2394,7 +2492,7 @@ SPEC CHECKSUMS:
   React-logger: 8edfcedc100544791cd82692ca5a574240a16219
   React-Mapbuffer: c3f4b608e4a59dd2f6a416ef4d47a14400194468
   React-microtasksnativemodule: 054f34e9b82f02bd40f09cebd4083828b5b2beb6
-  react-native-executorch: 4ee7537b9840b13ff8ee178affba1b2c73b5dc2a
+  react-native-executorch: 9e4c26039a419f8b79c040571e80617c1114ca26
   react-native-safe-area-context: 562163222d999b79a51577eda2ea8ad2c32b4d06
   React-NativeModulesApple: 2c4377e139522c3d73f5df582e4f051a838ff25e
   React-oscompat: ef5df1c734f19b8003e149317d041b8ce1f7d29c
@@ -2428,11 +2526,14 @@ SPEC CHECKSUMS:
   ReactCodegen: 7ea266ccd94436294f516247db7402b57b1214af
   ReactCommon: 76d2dc87136d0a667678668b86f0fca0c16fdeb0
   RNAudioAPI: 2e3fd4bf75aa5717791babb30126707504996f09
+  RNDeviceInfo: d863506092aef7e7af3a1c350c913d867d795047
+  RNGestureHandler: 7d0931a61d7ba0259f32db0ba7d0963c3ed15d2b
   RNLiveAudioStream: 93ac2bb6065be9018d0b00157b220f11cebc1513
   RNReanimated: afd6a269a47d6f13ba295c46c6c0e14e3cbd0d8a
+  RNScreens: 482e9707f9826230810c92e765751af53826d509
   RNSVG: 794f269526df9ddc1f79b3d1a202b619df0368e3
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  sqlite3: 3c950dc86011117c307eb0b28c4a7bb449dce9f1
+  sqlite3: 1d85290c3321153511f6e900ede7a1608718bbd5
   Yoga: c758bfb934100bb4bf9cbaccb52557cee35e8bdf
 
 PODFILE CHECKSUM: bba19a069e673f2259009e9d2caab44374fdebcf

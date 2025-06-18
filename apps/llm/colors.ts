@@ -5,6 +5,7 @@ const ColorPalette = {
   seaBlueDark: '#87CCE8',
   blueLight: '#C1C6E5',
   blueDark: '#6676AA',
+  strongPrimary: '#020F3C',
 };
 
 export default ColorPalette;
