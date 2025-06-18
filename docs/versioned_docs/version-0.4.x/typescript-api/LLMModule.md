@@ -99,9 +99,6 @@ To load the model, use the `load` method. It accepts object with following field
 **`tokenCallback`** - Function that will be called on every generated token and receive this token.
 
 **`responseCallback`** - Function that will be called on every generated token and receive entire response, including this token. [**DEPRECATED** - consider using `tokenCallback`]
-**`tokenCallback`** - Function that will be called on every generated token and receive this token.
-
-**`responseCallback`** - Function that will be called on every generated token and receive entire response, including this token. [**DEPRECATED** - consider using `tokenCallback`]
 
 **`messageHistoryCallback`** - Function that will be called on every finished message. Returns entire message history.
 
@@ -121,7 +118,6 @@ If you need raw model, without any wrappers, you can use `forward`. It provides 
 
 ## Listening for generated tokens
 
-To subscribe to the token generation event, you can pass `tokenCallback` or `messageHistoryCallback` functions to constructor. `tokenCallback` is called on every token and contains only the most recent token and `messageHistoryCallback` is called whenever model finishes generation and contains all message history including user's and model's last messages.
 To subscribe to the token generation event, you can pass `tokenCallback` or `messageHistoryCallback` functions to constructor. `tokenCallback` is called on every token and contains only the most recent token and `messageHistoryCallback` is called whenever model finishes generation and contains all message history including user's and model's last messages.
 
 ## Interrupting the model
