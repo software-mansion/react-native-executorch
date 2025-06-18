@@ -27,7 +27,7 @@ export class LLMController {
   private _messageHistory: Message[] = [];
 
   // User callbacks
-  private tokenCallback: (token: string | null) => void;
+  private tokenCallback: (token: string) => void;
   private responseCallback: (response: string) => void;
   private messageHistoryCallback: (messageHistory: Message[]) => void;
   private isReadyCallback: (isReady: boolean) => void;
@@ -44,7 +44,7 @@ export class LLMController {
     isGeneratingCallback,
     onDownloadProgressCallback,
   }: {
-    tokenCallback?: (token: string | null) => void;
+    tokenCallback?: (token: string) => void;
     responseCallback?: (response: string) => void;
     messageHistoryCallback?: (messageHistory: Message[]) => void;
     isReadyCallback?: (isReady: boolean) => void;
@@ -104,7 +104,6 @@ export class LLMController {
     tokenizerConfigSource: ResourceSource;
   }) {
     // reset inner state when loading new model
-    this.tokenCallback(null);
     this.responseCallback('');
     this.messageHistoryCallback(this.chatConfig.initialMessageHistory);
     this.isGeneratingCallback(false);
@@ -146,7 +145,7 @@ export class LLMController {
     }
   }
 
-  public setTokenCallback(tokenCallback: (token: string | null) => void) {
+  public setTokenCallback(tokenCallback: (token: string) => void) {
     this.tokenCallback = tokenCallback;
   }
 
@@ -161,7 +160,6 @@ export class LLMController {
     this.toolsConfig = toolsConfig;
 
     // reset inner state when loading new configuration
-    this.tokenCallback(null);
     this.responseCallback('');
     this.messageHistoryCallback(this.chatConfig.initialMessageHistory);
     this.isGeneratingCallback(false);
@@ -189,7 +187,6 @@ export class LLMController {
       throw new Error(getError(ETError.ModelGenerating));
     }
     try {
-      this.tokenCallback(null);
       this.responseCallback('');
       this.isGeneratingCallback(true);
       await this.nativeModule.forward(input);

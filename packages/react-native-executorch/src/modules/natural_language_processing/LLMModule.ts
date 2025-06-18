@@ -18,7 +18,7 @@ export class LLMModule {
     tokenizerSource: ResourceSource;
     tokenizerConfigSource: ResourceSource;
     onDownloadProgressCallback?: (_downloadProgress: number) => void;
-    tokenCallback?: (token: string | null) => void;
+    tokenCallback?: (token: string) => void;
     responseCallback?: (response: string) => void;
     messageHistoryCallback?: (messageHistory: Message[]) => void;
   }) {
@@ -38,7 +38,7 @@ export class LLMModule {
   static setTokenCallback({
     tokenCallback,
   }: {
-    tokenCallback: (token: string | null) => void;
+    tokenCallback: (token: string) => void;
   }) {
     this.controller.setTokenCallback(tokenCallback);
   }

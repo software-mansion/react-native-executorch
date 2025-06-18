@@ -32,11 +32,7 @@ export const useLLM = ({
   const [error, setError] = useState<any>(null);
 
   const tokenCallback = useCallback(
-    (newToken: string | null) => {
-      if (newToken === null) {
-        setResponse('');
-        return;
-      }
+    (newToken: string) => {
       setToken(newToken);
       setResponse((prevResponse) => prevResponse + newToken);
     },
@@ -91,12 +87,18 @@ export const useLLM = ({
   );
 
   const generate = useCallback(
-    (messages: Message[], tools?: LLMTool[]) => model.generate(messages, tools),
+    (messages: Message[], tools?: LLMTool[]) => {
+      setResponse('');
+      return model.generate(messages, tools);
+    },
     [model]
   );
 
   const sendMessage = useCallback(
-    (message: string) => model.sendMessage(message),
+    (message: string) => {
+      setResponse('');
+      return model.sendMessage(message);
+    },
     [model]
   );
 
