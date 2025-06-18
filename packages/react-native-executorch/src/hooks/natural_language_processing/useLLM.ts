@@ -31,13 +31,10 @@ export const useLLM = ({
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [error, setError] = useState<any>(null);
 
-  const tokenCallback = useCallback(
-    (newToken: string) => {
-      setToken(newToken);
-      setResponse((prevResponse) => prevResponse + newToken);
-    },
-    [setToken, setResponse]
-  );
+  const tokenCallback = useCallback((newToken: string) => {
+    setToken(newToken);
+    setResponse((prevResponse) => prevResponse + newToken);
+  }, []);
 
   const model = useMemo(
     () =>
