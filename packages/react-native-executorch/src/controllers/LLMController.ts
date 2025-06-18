@@ -128,9 +128,9 @@ export class LLMController {
       this.onToken = this.nativeModule.onToken((data: string) => {
         if (
           !data ||
-          ('eos_token' in this.tokenizerConfig &&
+          (SPECIAL_TOKENS.EOS_TOKEN in this.tokenizerConfig &&
             data === this.tokenizerConfig.eos_token) ||
-          ('pad_token' in this.tokenizerConfig &&
+          (SPECIAL_TOKENS.PAD_TOKEN in this.tokenizerConfig &&
             data === this.tokenizerConfig.pad_token)
         ) {
           return;
@@ -284,10 +284,9 @@ export class LLMController {
     const template = new Template(tokenizerConfig.chat_template);
 
     const specialTokens = Object.fromEntries(
-      SPECIAL_TOKENS.filter((key) => key in tokenizerConfig).map((key) => [
-        key,
-        tokenizerConfig[key],
-      ])
+      Object.keys(SPECIAL_TOKENS)
+        .filter((key) => key in tokenizerConfig)
+        .map((key) => [key, tokenizerConfig[key]])
     );
 
     const result = template.render({
