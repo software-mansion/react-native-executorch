@@ -125,7 +125,7 @@ export class LLMController {
 
       await this.nativeModule.loadLLM(modelFileUri, tokenizerFileUri);
       this.isReadyCallback(true);
-      this.onToken = this.nativeModule.onToken((data: any) => {
+      this.onToken = this.nativeModule.onToken((data: string) => {
         if (
           !data ||
           ('eos_token' in this.tokenizerConfig &&

@@ -249,7 +249,7 @@ const handleGenerate = () => {
 useEffect(() => {
   // Parse response and call tools accordingly
   // ...
-},[llm.response])
+}, [llm.response])
 
 return (
   <Button onPress={handleGenerate} title="Generate!" />
