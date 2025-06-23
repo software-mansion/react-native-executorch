@@ -9,12 +9,29 @@ import {
   EncodingType,
   deleteAsync,
   readDirectoryAsync,
+  DownloadResumable,
 } from 'expo-file-system';
 import { Asset } from 'expo-asset';
 import { RNEDirectory } from '../constants/directories';
 import { ResourceSource } from '../types/common';
 
+enum DownloadStatus {
+  ONGOING,
+  PAUSED,
+}
+
+interface DownloadResource {
+  downloadResumable: DownloadResumable;
+  status: DownloadStatus;
+  uri: string;
+  fileUri: string;
+  cacheFileUri: string;
+  next?: ResourceSource;
+}
+
 export class ResourceFetcher {
+  static singleDownloads = new Map<ResourceSource, DownloadResource>(); //map of currently downloading (or paused) files, if the download was started by .fetch() method.
+
   static async fetch(
     source: ResourceSource,
     callback: (downloadProgress: number) => void = () => {}
@@ -52,6 +69,9 @@ export class ResourceFetcher {
     }
 
     // Handle remote file download
+    if (this.singleDownloads.has(source)) {
+      throw new Error('Already downloading this file.');
+    }
     const cacheFileUri = `${cacheDirectory}${filename}`;
     const downloadResumable = createDownloadResumable(
       uri,
@@ -61,11 +81,27 @@ export class ResourceFetcher {
         callback(totalBytesWritten / totalBytesExpectedToWrite);
       }
     );
+    const downloadResource: DownloadResource = {
+      downloadResumable: downloadResumable,
+      status: DownloadStatus.ONGOING,
+      uri: uri,
+      fileUri: fileUri,
+      cacheFileUri: cacheFileUri,
+    };
+    this.singleDownloads.set(source, downloadResource);
     const result = await downloadResumable.downloadAsync();
+    if (
+      !this.singleDownloads.has(source) ||
+      this.singleDownloads.get(source)!.status === DownloadStatus.PAUSED
+    ) {
+      // if canceled or paused during the download
+      return null;
+    }
     if (!result || result.status !== 200) {
       throw new Error(`Failed to fetch resource from '${uri}'`);
     }
     await moveAsync({ from: cacheFileUri, to: fileUri });
+    this.singleDownloads.delete(source);
 
     this.triggerHuggingFaceDownloadCounter(uri);
 
@@ -80,10 +116,10 @@ export class ResourceFetcher {
 
     for (let idx = 0; idx < sources.length; idx++) {
       paths.push(
-        await this.fetch(
+        (await this.fetch(
           sources[idx]!,
           this.calculateDownloadProgress(sources.length, idx, callback)
-        )
+        ))!
       );
     }
 
@@ -98,6 +134,71 @@ export class ResourceFetcher {
         await deleteAsync(fileUri);
       }
     }
+  }
+
+  static async pauseFetching(source: ResourceSource) {
+    if (!this.singleDownloads.has(source)) {
+      throw new Error(
+        "Can't pause the download of this file. The download either has finished, was cancelled or has never been started"
+      );
+    }
+    const resource = this.singleDownloads.get(source)!;
+    switch (resource.status) {
+      case DownloadStatus.PAUSED:
+        throw new Error(
+          "The file download is currently paused. Can't pause the download of the same file twice."
+        );
+      default: {
+        resource.status = DownloadStatus.PAUSED;
+        await resource.downloadResumable.pauseAsync();
+      }
+    }
+  }
+
+  static async resumeFetching(source: ResourceSource) {
+    if (!this.singleDownloads.has(source)) {
+      throw new Error(
+        "Can't resume the download of this file. The download either has finished, was cancelled or has never been started"
+      );
+    }
+    const resource = this.singleDownloads.get(source)!;
+    switch (resource.status) {
+      case DownloadStatus.ONGOING:
+        throw new Error(
+          "The file download is currently ongoing. Can't resume the ongoing download."
+        );
+      default: {
+        resource.status = DownloadStatus.ONGOING;
+        const result = await resource.downloadResumable.resumeAsync();
+        if (
+          !this.singleDownloads.has(source) ||
+          this.singleDownloads.get(source)!.status === DownloadStatus.PAUSED
+        ) {
+          //if canceled or paused after earlier resuming.
+          return null;
+        }
+        if (!result || (result.status !== 200 && result.status !== 206)) {
+          //206 error code means "partial content" - expected after resuming.
+          throw new Error(`Failed to fetch resource from '${resource.uri}'`);
+        }
+        await moveAsync({ from: resource.cacheFileUri, to: resource.fileUri });
+        this.singleDownloads.delete(source);
+        this.triggerHuggingFaceDownloadCounter(resource.uri);
+
+        return this.removeFilePrefix(resource.fileUri);
+      }
+    }
+  }
+
+  static async cancelFetching(source: ResourceSource) {
+    if (!this.singleDownloads.has(source)) {
+      throw new Error(
+        "Can't resume the download of this file. The download either has finished, was cancelled or has never been started"
+      );
+    }
+    const resource = this.singleDownloads.get(source)!;
+    await resource.downloadResumable.cancelAsync();
+    this.singleDownloads.delete(source);
   }
 
   private static calculateDownloadProgress(
