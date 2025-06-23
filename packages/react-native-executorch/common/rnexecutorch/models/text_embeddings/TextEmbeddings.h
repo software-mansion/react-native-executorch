@@ -14,11 +14,11 @@ public:
 
 private:
   std::vector<std::vector<int32_t>> inputShapes;
-  std::pair<std::vector<int32_t>, std::vector<int32_t>>
+  std::pair<std::vector<int64_t>, std::vector<int64_t>>
   preprocess(const std::string &input);
   std::shared_ptr<OwningArrayBuffer>
   postprocess(std::span<const float> modelOutput,
-              std::span<const int32_t> attentionMask, bool useMeanPooling);
+              std::span<const int64_t> attentionMask, bool useMeanPooling);
   std::unique_ptr<TokenizerModule> tokenizer;
 };
 }; // namespace rnexecutorch
