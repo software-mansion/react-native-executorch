@@ -10,13 +10,13 @@ It is recommended to use models provided by us, which are available at our [Hugg
 
 ## Reference
 
-```jsx
+```tsx
 import {
   useOCR,
   DETECTOR_CRAFT_800,
   RECOGNIZER_EN_CRNN_512,
   RECOGNIZER_EN_CRNN_256,
-  RECOGNIZER_EN_CRNN_128
+  RECOGNIZER_EN_CRNN_128,
 } from 'react-native-executorch';
 
 function App() {
@@ -25,18 +25,18 @@ function App() {
     recognizerSources: {
       recognizerLarge: RECOGNIZER_EN_CRNN_512,
       recognizerMedium: RECOGNIZER_EN_CRNN_256,
-      recognizerSmall: RECOGNIZER_EN_CRNN_128
+      recognizerSmall: RECOGNIZER_EN_CRNN_128,
     },
-    language: "en",
+    language: 'en',
   });
 
-  ...
-  for (const ocrDetection of await model.forward("https://url-to-image.jpg")) {
-    console.log("Bounding box: ", ocrDetection.bbox);
-    console.log("Bounding label: ", ocrDetection.text);
-    console.log("Bounding score: ", ocrDetection.score);
+  // ...
+  for (const ocrDetection of await model.forward('https://url-to-image.jpg')) {
+    console.log('Bounding box: ', ocrDetection.bbox);
+    console.log('Bounding label: ', ocrDetection.text);
+    console.log('Bounding score: ', ocrDetection.score);
   }
-  ...
+  // ...
 }
 ```
 

@@ -52,7 +52,7 @@ const loadAudio = async (url: string) => {
   return Array.from(audioBuffer?.getChannelData(0));
 };
 
-const audioUrl = ...; // URL with audio to transcribe
+const audioUrl = 'https://some-audio-url.com/file.mp3'; // URL with audio to transcribe
 const waveform = await loadAudio(audioUrl);
 const transcription = await transcribe(waveform);
 if (error) {
@@ -207,14 +207,14 @@ If you aim to obtain a transcription in other languages than English, in v0.4.0 
 import { SpeechToTextLanguage } from 'react-native-executorch';
 
 // Rest of your code...
-const mySpanishAudio = ...;
+const mySpanishAudio = 'https://some-audio-url.com/spanish-file.mp3';
 await model.transcribe(mySpanishAudio, SpeechToTextLanguage.Spanish);
 // Rest of your code...
 ```
 
 ## Example
 
-```typescript
+```tsx
 import { Button, Text, View } from 'react-native';
 import { useSpeechToText } from 'react-native-executorch';
 import * as FileSystem from 'expo-file-system';
@@ -236,7 +236,7 @@ function App() {
     return Array.from(audioBuffer?.getChannelData(0));
   };
 
-  const audioUrl = '...;' // URL with audio to transcribe
+  const audioUrl = '...;'; // URL with audio to transcribe
 
   return (
     <View>
@@ -254,7 +254,7 @@ function App() {
 
 ### Live data (microphone) transcription
 
-```typescript
+```tsx
 import { STREAMING_ACTION, useSpeechToText } from 'react-native-executorch';
 import LiveAudioStream from 'react-native-live-audio-stream';
 import { useState } from 'react';
@@ -317,24 +317,17 @@ function App() {
     }
   };
 
-  return
+  return (
     <View>
-      <Text>
-        {speechToText.sequence}
-      </Text>
+      <Text>{speechToText.sequence}</Text>
       <TouchableOpacity
-        style={
-          !isRecording ? styles.recordTouchable : styles.recordingInfo
-        }
+        style={!isRecording ? styles.recordTouchable : styles.recordingInfo}
         onPress={handleRecordPress}
       >
-        {isRecording ? (
-          <Text>Stop</Text>
-        ) : (
-          <Text>Record</Text>
-        )}
+        {isRecording ? <Text>Stop</Text> : <Text>Record</Text>}
       </TouchableOpacity>
     </View>
+  );
 }
 ```
 

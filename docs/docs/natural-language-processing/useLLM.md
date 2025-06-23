@@ -166,7 +166,7 @@ You can use functions returned from this hooks in two manners:
 
 To perform chat completion you can use the `generate` function. There is no return value. Instead, the `response` value is updated with each token.
 
-```typescript
+```tsx
 const llm = useLLM({
   modelSource: LLAMA3_2_1B,
   tokenizerSource: LLAMA3_2_TOKENIZER,
@@ -177,7 +177,7 @@ const handleGenerate = () => {
   const chat = [
     { role: 'system', content: 'You are a helpful assistant' },
     { role: 'user', content: 'Hi!' },
-    { role: 'assistant', content: 'Hi!, how can I help you?'},
+    { role: 'assistant', content: 'Hi!, how can I help you?' },
     { role: 'user', content: 'What is the meaning of life?' },
   ];
 
@@ -186,9 +186,11 @@ const handleGenerate = () => {
 };
 
 return (
-  <Button onPress={handleGenerate} title="Generate!" />
-  <Text>{llm.response}</Text>
-)
+  <View>
+    <Button onPress={handleGenerate} title="Generate!" />
+    <Text>{llm.response}</Text>
+  </View>
+);
 ```
 
 ### Interrupting the model
@@ -206,7 +208,7 @@ You'll need to interrupt the model first and wait until `isGenerating` is set to
 
 Sometimes text processing capabilities of LLMs are not enough. That's when you may want to introduce tool calling (also called function calling). It allows model to use external tools to perform its tasks. The tools may be any arbitrary function that you want your model to run. It may retrieve some data from 3rd party API. It may do an action inside an app like pressing buttons or filling forms, or it may use system APIs to interact with your phone (turning on flashlight, adding events to your calendar, changing volume etc.).
 
-```typescript
+```tsx
 const TOOL_DEFINITIONS: LLMTool[] = [
   {
     name: 'get_weather',
@@ -249,12 +251,14 @@ const handleGenerate = () => {
 useEffect(() => {
   // Parse response and call tools accordingly
   // ...
-}, [llm.response])
+}, [llm.response]);
 
 return (
-  <Button onPress={handleGenerate} title="Generate!" />
-  <Text>{llm.response}</Text>
-)
+  <View>
+    <Button onPress={handleGenerate} title="Generate!" />
+    <Text>{llm.response}</Text>
+  </View>
+);
 ```
 
 ## Managed LLM Chat
@@ -284,7 +288,7 @@ To configure model (i.e. change system prompt, load initial conversation history
 
 In order to send a message to the model, one can use the following code:
 
-```typescript
+```tsx
 const llm = useLLM({
   modelSource: LLAMA3_2_1B,
   tokenizerSource: LLAMA3_2_TOKENIZER,
@@ -295,6 +299,8 @@ const send = () => {
   const message = 'Hi, who are you?';
   llm.sendMessage(message);
 };
+
+return <Button onPress={send} title="Generate!" />;
 ```
 
 ### Accessing conversation history
@@ -302,19 +308,19 @@ const send = () => {
 Behind the scenes, tokens are generated one by one, and the `response` property is updated with each token as it’s created.
 If you want to get entire conversation you can use `messageHistory` field:
 
-```typescript
+```tsx
 return (
   <View>
     {llm.messageHistory.map((message) => (
       <Text>{message.content}</Text>
     ))}
   </View>
-)
+);
 ```
 
 ### Tool calling example
 
-```typescript
+```tsx
 const TOOL_DEFINITIONS: LLMTool[] = [
   {
     name: 'get_weather',
@@ -339,31 +345,38 @@ const llm = useLLM({
 });
 
 useEffect(() => {
-    llm.configure({
-      chatConfig: {
-        systemPrompt: `You are helpful assistant. Current time and date: ${new Date().toString()}`,
+  llm.configure({
+    chatConfig: {
+      systemPrompt: `You are helpful assistant. Current time and date: ${new Date().toString()}`,
+    },
+    toolsConfig: {
+      tools: TOOL_DEFINITIONS,
+      executeToolCallback: async (call) => {
+        if (call.toolName === 'get_weather') {
+          console.log('Checking weather!');
+          // perform call to weather API
+          // ...
+          const mockResults = 'Weather is great!';
+          return mockResults;
+        }
+        return null;
       },
-      toolsConfig: {
-        tools: TOOL_DEFINITIONS,
-        executeToolCallback: async (call) => {
-          if (call.toolName == 'get_weather') {
-            console.log('Checking weather!');
-            // perform call to weather API
-            ...
-            const mockResults = 'Weather is great!';
-            return mockResult;
-          }
-          return null;
-        },
-        displayToolCalls: true,
-      },
-    });
+      displayToolCalls: true,
+    },
+  });
 }, []);
 
 const send = () => {
   const message = `Hi, what's the weather like in Cracow right now?`;
   llm.sendMessage(message);
 };
+
+return (
+  <View>
+    <Button onPress={send} title="Generate!" />
+    <Text>{llm.response}</Text>
+  </View>
+);
 ```
 
 ## Available models
