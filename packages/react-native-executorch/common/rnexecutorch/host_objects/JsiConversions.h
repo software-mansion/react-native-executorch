@@ -186,6 +186,12 @@ inline jsi::Value getJsiValue(int val, jsi::Runtime &runtime) {
   return jsi::Value(runtime, val);
 }
 
+inline jsi::Value getJsiValue(const std::shared_ptr<OwningArrayBuffer> &buf,
+                              jsi::Runtime &runtime) {
+  jsi::ArrayBuffer arrayBuffer(runtime, buf);
+  return jsi::Value(runtime, arrayBuffer);
+}
+
 inline jsi::Value
 getJsiValue(const std::vector<std::shared_ptr<OwningArrayBuffer>> &vec,
             jsi::Runtime &runtime) {
