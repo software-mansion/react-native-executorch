@@ -7,6 +7,7 @@
 #include <rnexecutorch/models/image_segmentation/ImageSegmentation.h>
 #include <rnexecutorch/models/object_detection/ObjectDetection.h>
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
+#include <rnexecutorch/models/text_embeddings/TextEmbeddings.h>
 
 namespace rnexecutorch {
 
@@ -54,6 +55,10 @@ void RnExecutorchInstaller::injectJSIBindings(
       *jsiRuntime, "loadImageEmbeddings",
       RnExecutorchInstaller::loadModel<ImageEmbeddings>(
           jsiRuntime, jsCallInvoker, "loadImageEmbeddings"));
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadTextEmbeddings",
+      RnExecutorchInstaller::loadModel<TextEmbeddings>(
+          jsiRuntime, jsCallInvoker, "loadTextEmbeddings"));
 }
 
 } // namespace rnexecutorch
