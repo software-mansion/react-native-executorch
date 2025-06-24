@@ -11,6 +11,7 @@ declare global {
   var loadExecutorchModule: (source: string) => any;
   var loadTokenizerModule: (source: string) => any;
   var loadImageEmbeddings: (source: string) => any;
+  var loadTextEmbeddings: (modelSource: string, tokenizerSource: string) => any;
 }
 // eslint-disable no-var
 if (
@@ -19,7 +20,8 @@ if (
   global.loadExecutorchModule == null ||
   global.loadClassification == null ||
   global.loadObjectDetection == null ||
-  global.loadTokenizerModule == null
+  global.loadTokenizerModule == null ||
+  global.loadTextEmbeddings == null
 ) {
   if (!ETInstallerNativeModule) {
     throw new Error(
