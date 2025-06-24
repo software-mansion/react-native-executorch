@@ -37,28 +37,16 @@ void normalize(std::vector<float> &v) {
   for (float &x : v) {
     sum += x * x;
   }
-  // Preventing division by 0
-  float norm = std::max(std::sqrt(sum), 1e-9f);
+
+  float norm =
+      std::max(std::sqrt(sum), 1e-9f); // Solely for preventing division by 0
   for (float &x : v) {
     x /= norm;
   }
 }
 
-void normalize(std::span<float> span) {
-  auto sum = 0.0f;
-  for (const auto &val : span) {
-    sum += val * val;
-  }
-
-  // Preventing divison by 0
-  float norm = std::max(std::sqrt(sum), 1e-9f);
-  for (auto &val : span) {
-    val /= norm;
-  }
-}
-
 std::vector<float> meanPooling(std::span<const float> modelOutput,
-                               std::span<const int64_t> attnMask) {
+                               std::span<const int32_t> attnMask) {
   auto attnMaskLength = attnMask.size();
   auto embeddingDim = modelOutput.size() / attnMaskLength;
 
@@ -80,4 +68,5 @@ std::vector<float> meanPooling(std::span<const float> modelOutput,
   }
   return result;
 }
+
 } // namespace rnexecutorch::numerical
