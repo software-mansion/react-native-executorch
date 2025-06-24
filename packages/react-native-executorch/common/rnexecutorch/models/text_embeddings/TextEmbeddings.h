@@ -10,7 +10,7 @@ public:
                  const std::string &tokenizerSource,
                  std::shared_ptr<react::CallInvoker> callInvoker);
   std::shared_ptr<OwningArrayBuffer> generate(const std::string input,
-                                              bool useMeanPooling = true);
+                                              bool useMeanPooling);
 
 private:
   std::vector<std::vector<int32_t>> inputShapes;
