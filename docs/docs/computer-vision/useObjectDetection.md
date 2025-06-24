@@ -11,21 +11,24 @@ It is recommended to use models provided by us, which are available at our [Hugg
 
 ## Reference
 
-```jsx
-import { useObjectDetection, SSDLITE_320_MOBILENET_V3_LARGE } from 'react-native-executorch';
+```tsx
+import {
+  useObjectDetection,
+  SSDLITE_320_MOBILENET_V3_LARGE,
+} from 'react-native-executorch';
 
 function App() {
   const ssdlite = useObjectDetection({
     modelSource: SSDLITE_320_MOBILENET_V3_LARGE, // alternatively, you can use require(...)
   });
 
-  ...
-  for (const detection of await ssdlite.forward("https://url-to-image.jpg")) {
-    console.log("Bounding box: ", detection.bbox);
-    console.log("Bounding label: ", detection.label);
-    console.log("Bounding score: ", detection.score);
+  // ...
+  for (const detection of await ssdlite.forward('https://url-to-image.jpg')) {
+    console.log('Bounding box: ', detection.bbox);
+    console.log('Bounding label: ', detection.label);
+    console.log('Bounding score: ', detection.score);
   }
-  ...
+  // ...
 }
 ```
 

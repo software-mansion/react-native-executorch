@@ -7,7 +7,9 @@ There are three different methods available for loading model files, depending o
 **1. Load from React Native assets folder (For Files < 512MB)**
 
 ```typescript
-modelSource: require('../assets/llama3_2.pte');
+useExecutorchModule({
+  modelSource: require('../assets/llama3_2.pte'),
+});
 ```
 
 **2. Load from remote URL:**
@@ -15,7 +17,9 @@ modelSource: require('../assets/llama3_2.pte');
 For files larger than 512MB or when you want to keep size of the app smaller, you can load the model from a remote URL (e.g. HuggingFace).
 
 ```typescript
-modelSource: 'https://.../llama3_2.pte';
+useExecutorchModule({
+  modelSource: 'https://.../llama3_2.pte',
+});
 ```
 
 **3. Load from local file system:**
@@ -23,7 +27,9 @@ modelSource: 'https://.../llama3_2.pte';
 If you prefer to delegate the process of obtaining and loading model and tokenizer files to the user, you can use the following method:
 
 ```typescript
-modelSource: 'file::///var/mobile/.../llama3_2.pte',
+useExecutorchModule({
+  modelSource: 'file::///var/mobile/.../llama3_2.pte',
+});
 ```
 
 :::info

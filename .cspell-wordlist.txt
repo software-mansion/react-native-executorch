@@ -51,3 +51,4 @@ MINILM
 MPNET
 QINT
 FNUZ
+wordlist

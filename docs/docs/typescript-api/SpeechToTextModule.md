@@ -22,11 +22,11 @@ const loadAudio = async (url: string) => {
   return Array.from(audioBuffer?.getChannelData(0));
 };
 
-const audioUrl = ...; // URL with audio to transcribe
+const audioUrl = 'https://some-audio-url.com/file.mp3'; // URL with audio to transcribe
 
 // Loading the model
 const onSequenceUpdate = (sequence) => {
-    console.log(sequence);
+  console.log(sequence);
 };
 await SpeechToTextModule.load('moonshine', onSequenceUpdate);
 
@@ -155,7 +155,7 @@ If you aim to obtain a transcription in other languages than English, in v0.4.0 
 import { SpeechToTextLanguage } from 'react-native-executorch';
 
 // Rest of your code...
-const mySpanishAudio = ...;
+const mySpanishAudio = 'https://some-audio-url.com/spanish-file.mp3';
 await model.transcribe(mySpanishAudio, SpeechToTextLanguage.Spanish);
 // Rest of your code...
 ```

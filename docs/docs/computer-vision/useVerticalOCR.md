@@ -14,7 +14,7 @@ It is recommended to use models provided by us, which are available at our [Hugg
 
 ## Reference
 
-```jsx
+```tsx
 import {
   DETECTOR_CRAFT_1280,
   DETECTOR_CRAFT_320,
@@ -37,13 +37,13 @@ function App() {
     independentCharacters: true,
   });
 
-  ...
-  for (const ocrDetection of await model.forward("https://url-to-image.jpg")) {
-    console.log("Bounding box: ", ocrDetection.bbox);
-    console.log("Bounding label: ", ocrDetection.text);
-    console.log("Bounding score: ", ocrDetection.score);
+  // ...
+  for (const ocrDetection of await model.forward('https://url-to-image.jpg')) {
+    console.log('Bounding box: ', ocrDetection.bbox);
+    console.log('Bounding label: ', ocrDetection.text);
+    console.log('Bounding score: ', ocrDetection.score);
   }
-  ...
+  // ...
 }
 ```
 
