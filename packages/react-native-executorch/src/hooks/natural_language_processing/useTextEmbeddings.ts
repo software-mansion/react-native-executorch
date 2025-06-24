@@ -1,20 +1,20 @@
 import { TextEmbeddingsModule } from '../../modules/natural_language_processing/TextEmbeddingsModule';
 import { ResourceSource } from '../../types/common';
-import { useModule } from '../useModule';
+import { useNonStaticModule } from '../useNonStaticModule';
+
+interface Props {
+  modelSource: ResourceSource;
+  tokenizerSource: ResourceSource;
+  preventLoad?: boolean;
+}
 
 export const useTextEmbeddings = ({
   modelSource,
   tokenizerSource,
-  meanPooling,
   preventLoad = false,
-}: {
-  modelSource: ResourceSource;
-  tokenizerSource: ResourceSource;
-  meanPooling?: boolean;
-  preventLoad?: boolean;
-}) =>
-  useModule({
+}: Props) =>
+  useNonStaticModule({
     module: TextEmbeddingsModule,
-    loadArgs: [modelSource, tokenizerSource, meanPooling],
+    loadArgs: [modelSource, tokenizerSource],
     preventLoad,
   });
