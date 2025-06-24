@@ -236,7 +236,7 @@ function App() {
     return Array.from(audioBuffer?.getChannelData(0));
   };
 
-  const audioUrl = '...;'; // URL with audio to transcribe
+  const audioUrl = 'https://some-audio-url.com/file.mp3'; // URL with audio to transcribe
 
   return (
     <View>
