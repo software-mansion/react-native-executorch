@@ -14,8 +14,7 @@ TextEmbeddings::TextEmbeddings(const std::string &modelSource,
           std::make_unique<TokenizerModule>(tokenizerSource, callInvoker)),
       inputShapes(getAllInputShapes()) {}
 
-std::pair<std::vector<int64_t>, std::vector<int64_t>>
-TextEmbeddings::preprocess(const std::string &input) {
+PreprocessedOutput TextEmbeddings::preprocess(const std::string &input) {
   auto inputIds = tokenizer->encode(input);
   // Tokenizers-cpp return tokens as int32, but text embedding models require
   // int64 as input
@@ -32,17 +31,17 @@ TextEmbeddings::preprocess(const std::string &input) {
     // any other tokens are relevant
     attentionMask.push_back(tok != 0);
   }
-  return {inputIds64, attentionMask};
+  return {.inputIds = inputIds64, .attentionMask = attentionMask};
 }
 
 std::shared_ptr<OwningArrayBuffer>
 TextEmbeddings::generate(const std::string input, bool useMeanPooling) {
   auto preprocessed = preprocess(input);
   auto inputShapes = getAllInputShapes();
-  auto tokenIds = make_tensor_ptr(inputShapes[0], preprocessed.first.data(),
+  auto tokenIds = make_tensor_ptr(inputShapes[0], preprocessed.inputIds.data(),
                                   ScalarType::Long);
-  auto attnMask = make_tensor_ptr(inputShapes[1], preprocessed.second.data(),
-                                  ScalarType::Long);
+  auto attnMask = make_tensor_ptr(
+      inputShapes[1], preprocessed.attentionMask.data(), ScalarType::Long);
   auto forwardResult = BaseModel::forward({tokenIds, attnMask});
   if (!forwardResult.ok()) {
     throw std::runtime_error(
@@ -55,8 +54,8 @@ TextEmbeddings::generate(const std::string input, bool useMeanPooling) {
   auto outputNumel = forwardResultTensor.numel();
 
   std::span<float> modelOutputSpan(static_cast<float *>(dataPtr), outputNumel);
-  std::span<const int64_t> attnMaskSpan(preprocessed.second.data(),
-                                        preprocessed.second.size());
+  std::span<const int64_t> attnMaskSpan(preprocessed.attentionMask.data(),
+                                        preprocessed.attentionMask.size());
 
   return postprocess(modelOutputSpan, attnMaskSpan, useMeanPooling);
 }
