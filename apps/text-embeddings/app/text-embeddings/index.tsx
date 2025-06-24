@@ -13,9 +13,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import {
   useTextEmbeddings,
-  useImageEmbeddings,
-  CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER,
-  CLIP_VIT_BASE_PATCH_32_IMAGE_ENCODER_MODEL,
+  ALL_MINILM_L6_V2,
+  ALL_MINILM_L6_V2_TOKENIZER,
 } from 'react-native-executorch';
 import { useIsFocused } from '@react-navigation/native';
 
@@ -27,14 +26,9 @@ export default function TextEmbeddingsScreenWrapper() {
 
 function TextEmbeddingsScreen() {
   const model = useTextEmbeddings({
-    ...CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER,
-    meanPooling: false,
-  });
-
-  const imageModel = useImageEmbeddings({
-    modelSource: CLIP_VIT_BASE_PATCH_32_IMAGE_ENCODER_MODEL,
-    // we want to load using useFocusEffect to keep compatibility with React Navigation
-    preventLoad: false,
+    modelSource: ALL_MINILM_L6_V2,
+    tokenizerSource: ALL_MINILM_L6_V2_TOKENIZER,
+    meanPooling: true,
   });
 
   const [inputSentence, setInputSentence] = useState('');
@@ -128,7 +122,7 @@ function TextEmbeddingsScreen() {
       return `Oops! Error: ${model.error}`;
     }
     if (!model.isReady) {
-      return `Loading model ${(((model.downloadProgress + imageModel.downloadProgress) / 2) * 100).toFixed(2)}%`;
+      return `Loading model ${(model.downloadProgress * 100).toFixed(2)}%`;
     }
     return model.isGenerating ? 'Generating...' : 'Model is ready';
   };
