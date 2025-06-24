@@ -1,8 +1,6 @@
 #include "TextEmbeddings.h"
 #include <executorch/extension/tensor/tensor_ptr_maker.h>
-#include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/Numerical.h>
-#include <span>
 
 namespace rnexecutorch {
 
