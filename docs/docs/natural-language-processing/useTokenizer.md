@@ -82,7 +82,7 @@ function App() {
     tokenizerSource: ALL_MINILM_L6_V2_TOKENIZER,
   });
 
-  ...
+  // ...
 
   try {
     const text = 'Hello, world!';
@@ -105,6 +105,6 @@ function App() {
     console.error(error);
   }
 
-  ...
+  // ...
 }
 ```

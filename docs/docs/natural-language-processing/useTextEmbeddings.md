@@ -92,24 +92,21 @@ function App() {
     meanPooling: true,
   });
 
-  ...
+  // ...
 
   try {
     const helloWorldEmbedding = await model.forward('Hello World!');
     const goodMorningEmbedding = await model.forward('Good Morning!');
 
     // The embeddings are normalized, so we can use dot product to calculate cosine similarity
-    const similarity = dotProduct(
-      helloWorldEmbedding,
-      goodMorningEmbedding
-    );
+    const similarity = dotProduct(helloWorldEmbedding, goodMorningEmbedding);
 
     console.log(`Cosine similarity: ${similarity}`);
   } catch (error) {
     console.error(error);
   }
 
-  ...
+  // ...
 }
 ```
 

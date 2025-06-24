@@ -65,7 +65,7 @@ function App() {
     modulePath: EFFICIENTNET_V2_S,
   });
 
-  ...
+  // ...
   const imageUri = 'file:///Users/.../cute_puppy.png';
 
   try {
@@ -79,7 +79,7 @@ function App() {
   } catch (error) {
     console.error(error);
   }
-  ...
+  // ...
 }
 ```
 

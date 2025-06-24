@@ -57,20 +57,20 @@ Images from external sources and the generated image are stored in your applicat
 ## Example
 
 ```typescript
-function App(){
-  const model = useStyleTransfer(
-      modelSource: STYLE_TRANSFER_CANDY,
-  );
+function App() {
+  const model = useStyleTransfer({
+    modelSource: STYLE_TRANSFER_CANDY,
+  });
 
-  ...
+  // ...
   const imageUri = 'file::///Users/.../cute_cat.png';
 
-  try{
-      const generatedImageUrl = await model.forward(imageUri)
-  }catch(error){
-      console.error(error)
+  try {
+    const generatedImageUrl = await model.forward(imageUri);
+  } catch (error) {
+    console.error(error);
   }
-  ...
+  // ...
 }
 ```
 
