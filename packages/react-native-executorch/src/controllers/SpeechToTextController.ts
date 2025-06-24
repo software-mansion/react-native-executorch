@@ -103,11 +103,11 @@ export class SpeechToTextController {
         tokenizerSource || this.config.tokenizer.source
       );
       [encoderSource, decoderSource] =
-        await ResourceFetcher.fetchMultipleResources(
+        (await ResourceFetcher.fetchMultipleResources(
           this.modelDownloadProgressCallback,
           encoderSource || this.config.sources.encoder,
           decoderSource || this.config.sources.decoder
-        );
+        ))!;
     } catch (e) {
       this.onErrorCallback(e);
       return;

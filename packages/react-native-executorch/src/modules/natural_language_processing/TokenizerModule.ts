@@ -8,10 +8,10 @@ export class TokenizerModule {
     modelSource: ResourceSource,
     onDownloadProgressCallback: (_: number) => void = () => {}
   ): Promise<void> {
-    const paths = await ResourceFetcher.fetchMultipleResources(
+    const paths = (await ResourceFetcher.fetchMultipleResources(
       onDownloadProgressCallback,
       modelSource
-    );
+    ))!;
     this.nativeModule = global.loadTokenizerModule(paths[0] || '');
   }
 

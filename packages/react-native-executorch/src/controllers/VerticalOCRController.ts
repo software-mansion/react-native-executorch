@@ -54,14 +54,14 @@ export class VerticalOCRController {
       this.isReady = false;
       this.isReadyCallback(this.isReady);
 
-      const paths = await ResourceFetcher.fetchMultipleResources(
+      const paths = (await ResourceFetcher.fetchMultipleResources(
         this.modelDownloadProgressCallback,
         detectorSources.detectorLarge,
         detectorSources.detectorNarrow,
         independentCharacters
           ? recognizerSources.recognizerSmall
           : recognizerSources.recognizerLarge
-      );
+      ))!;
 
       await this.ocrNativeModule.loadModule(
         paths[0]!,
