@@ -3,7 +3,6 @@ import { Spec as OCRInterface } from './NativeOCR';
 import { Spec as VerticalOCRInterface } from './NativeVerticalOCR';
 import { Spec as SpeechToTextInterface } from './NativeSpeechToText';
 import { Spec as LLMInterface } from './NativeLLM';
-import { Spec as TokenizerInterface } from './NativeTokenizer';
 import { Spec as ETInstallerInterface } from './NativeETInstaller';
 
 const LINKING_ERROR =
@@ -35,9 +34,6 @@ const OCRNativeModule: OCRInterface = returnSpecOrThrowLinkingError(
 );
 const VerticalOCRNativeModule: VerticalOCRInterface =
   returnSpecOrThrowLinkingError(require('./NativeVerticalOCR').default);
-const TokenizerNativeModule: TokenizerInterface = returnSpecOrThrowLinkingError(
-  require('./NativeTokenizer').default
-);
 const ETInstallerNativeModule: ETInstallerInterface =
   returnSpecOrThrowLinkingError(require('./NativeETInstaller').default);
 
@@ -46,6 +42,5 @@ export {
   SpeechToTextNativeModule,
   OCRNativeModule,
   VerticalOCRNativeModule,
-  TokenizerNativeModule,
   ETInstallerNativeModule,
 };

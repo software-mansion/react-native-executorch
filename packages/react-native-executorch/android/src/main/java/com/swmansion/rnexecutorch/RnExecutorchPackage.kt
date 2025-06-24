@@ -78,17 +78,6 @@ class RnExecutorchPackage : TurboReactPackage() {
           true,
         )
 
-      moduleInfos[Tokenizer.NAME] =
-        ReactModuleInfo(
-          Tokenizer.NAME,
-          Tokenizer.NAME,
-          false, // canOverrideExistingModule
-          false, // needsEagerInit
-          true, // hasConstants
-          false, // isCxxModule
-          true,
-        )
-
       moduleInfos[ETInstaller.NAME] =
         ReactModuleInfo(
           ETInstaller.NAME,
