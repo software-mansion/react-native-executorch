@@ -57,6 +57,7 @@ const sidebars = {
             'computer-vision/useClassification',
             'computer-vision/useObjectDetection',
             'computer-vision/useStyleTransfer',
+            'computer-vision/useImageEmbeddings',
           ],
         },
         {
@@ -100,6 +101,7 @@ const sidebars = {
             'typescript-api/ClassificationModule',
             'typescript-api/ObjectDetectionModule',
             'typescript-api/StyleTransferModule',
+            'typescript-api/ImageEmbeddingsModule',
           ],
         },
         {
