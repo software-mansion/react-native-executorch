@@ -1,4 +1,3 @@
-#include <cstdint>
 #include <rnexecutorch/TokenizerModule.h>
 #include <rnexecutorch/models/BaseModel.h>
 #include <span>

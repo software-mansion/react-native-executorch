@@ -28,8 +28,6 @@ class RnExecutorchPackage : TurboReactPackage() {
       ETInstaller(reactContext)
     } else if (name == Tokenizer.NAME) {
       Tokenizer(reactContext)
-    } else if (name == TextEmbeddings.NAME) {
-      TextEmbeddings(reactContext)
     } else {
       null
     }
@@ -47,17 +45,6 @@ class RnExecutorchPackage : TurboReactPackage() {
           false, // isCxxModule
           true,
         )
-      moduleInfos[ETModule.NAME] =
-        ReactModuleInfo(
-          ETModule.NAME,
-          ETModule.NAME,
-          false, // canOverrideExistingModule
-          false, // needsEagerInit
-          true, // hasConstants
-          false, // isCxxModule
-          true,
-        )
-
       moduleInfos[SpeechToText.NAME] =
         ReactModuleInfo(
           SpeechToText.NAME,
@@ -109,16 +96,6 @@ class RnExecutorchPackage : TurboReactPackage() {
           false, // canOverrideExistingModule
           false, // needsEagerInit
           true, // hasConstants
-          false, // isCxxModule
-          true,
-        )
-
-      moduleInfos[TextEmbeddings.NAME] =
-        ReactModuleInfo(
-          TextEmbeddings.NAME,
-          TextEmbeddings.NAME,
-          false, // canOverrideExistingModule
-          false, // needsEagerInit
           false, // isCxxModule
           true,
         )
