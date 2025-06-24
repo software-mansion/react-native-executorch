@@ -51,7 +51,7 @@ std::vector<float> meanPooling(std::span<const float> modelOutput,
   auto embeddingDim = modelOutput.size() / attnMaskLength;
 
   float maskSum = 0;
-  for (auto &v : attnMask) {
+  for (const auto &v : attnMask) {
     maskSum += static_cast<float>(v);
   }
   maskSum = std::max(maskSum, 1e-9f);
@@ -62,7 +62,7 @@ std::vector<float> meanPooling(std::span<const float> modelOutput,
     float dimensionSum = 0;
     for (size_t j = 0; j < attnMaskLength; j++) {
       dimensionSum +=
-          (modelOutput[j * embeddingDim + i] * static_cast<float>(attnMask[j]));
+          modelOutput[j * embeddingDim + i] * static_cast<float>(attnMask[j]);
     }
     result.push_back(dimensionSum / maskSum);
   }
