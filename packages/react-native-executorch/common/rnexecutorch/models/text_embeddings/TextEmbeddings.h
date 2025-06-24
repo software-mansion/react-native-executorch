@@ -17,7 +17,7 @@ private:
   std::pair<std::vector<int64_t>, std::vector<int64_t>>
   preprocess(const std::string &input);
   std::shared_ptr<OwningArrayBuffer>
-  postprocess(std::span<const float> modelOutput,
+  postprocess(std::span<float> modelOutput,
               std::span<const int64_t> attentionMask, bool useMeanPooling);
   std::unique_ptr<TokenizerModule> tokenizer;
 };
