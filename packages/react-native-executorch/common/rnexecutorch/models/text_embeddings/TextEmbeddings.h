@@ -1,3 +1,5 @@
+#pragma once
+
 #include <rnexecutorch/TokenizerModule.h>
 #include <rnexecutorch/models/BaseModel.h>
 #include <span>
