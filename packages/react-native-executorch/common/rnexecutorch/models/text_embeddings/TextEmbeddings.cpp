@@ -14,7 +14,7 @@ TextEmbeddings::TextEmbeddings(const std::string &modelSource,
           std::make_unique<TokenizerModule>(tokenizerSource, callInvoker)),
       inputShapes(getAllInputShapes()) {}
 
-PreprocessedOutput TextEmbeddings::preprocess(const std::string &input) {
+TokenIdsWithAttentionMask TextEmbeddings::preprocess(const std::string &input) {
   auto inputIds = tokenizer->encode(input);
   // Tokenizers-cpp return tokens as int32, but text embedding models require
   // int64 as input
