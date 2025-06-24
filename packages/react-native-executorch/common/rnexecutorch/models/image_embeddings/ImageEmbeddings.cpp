@@ -1,7 +1,6 @@
 #include "ImageEmbeddings.h"
 
 #include <executorch/extension/tensor/tensor.h>
-#include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/data_processing/Numerical.h>
 namespace rnexecutorch {
@@ -27,7 +26,8 @@ ImageEmbeddings::ImageEmbeddings(
                             modelInputShape[modelInputShape.size() - 2]);
 }
 
-JSTensorViewOut ImageEmbeddings::generate(std::string imageSource) {
+std::shared_ptr<OwningArrayBuffer>
+ImageEmbeddings::generate(std::string imageSource) {
   auto [inputTensor, originalSize] =
       imageprocessing::readImageToTensor(imageSource, getAllInputShapes()[0]);
 
@@ -44,23 +44,17 @@ JSTensorViewOut ImageEmbeddings::generate(std::string imageSource) {
   }
 
   auto &outputTensor = outputs.at(0).toTensor();
-  auto sizesRaw = outputTensor.sizes();
-  auto sizes = std::vector<int32_t>(sizesRaw.begin(), sizesRaw.end());
-  size_t bufferSize = outputTensor.numel() * outputTensor.element_size();
+  std::span<float> outputTensorSpan(
+      static_cast<float *>(outputTensor.mutable_data_ptr()),
+      outputTensor.numel());
+
+  numerical::normalize(outputTensorSpan);
+
+  size_t bufferSize = outputTensorSpan.size_bytes();
   auto buffer = std::make_shared<OwningArrayBuffer>(bufferSize);
 
-  std::span<const float> outputTensorSpan(
-      static_cast<const float *>(outputTensor.const_data_ptr()),
-      outputTensor.numel());
-  std::vector<float> outputVector(outputTensorSpan.begin(),
-                                  outputTensorSpan.end());
+  std::memcpy(buffer->data(), outputTensorSpan.data(), bufferSize);
 
-  numerical::normalizeVector(outputVector);
-
-  std::memcpy(buffer->data(), outputVector.data(), bufferSize);
-
-  auto jsTensor = JSTensorViewOut(sizes, outputTensor.scalar_type(), buffer);
-
-  return jsTensor;
+  return buffer;
 }
 } // namespace rnexecutorch

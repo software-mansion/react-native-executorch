@@ -60,7 +60,7 @@ A string that specifies the location of the model binary. For more information, 
 
 ## Running the model
 
-To run the model, you can use the `forward` method. It accepts one argument, which is a URI/URL to an image you want to encode. The function returns a promise, which can resolve either to an error or an array of numbers representing the embedding.
+To run the model, you can use the `forward` method. It accepts one argument which is a URI/URL to an image you want to encode. The function returns a promise, which can resolve either to an error or an array of numbers representing the embedding.
 
 :::info
 The returned embedding vector is normalized, meaning that its length is equal to 1. This allows for easier comparison of vectors using cosine similarity, just calculate the dot product of two vectors to get the cosine similarity score.
@@ -92,7 +92,7 @@ try {
 | ------------------------------------------------------------------------------------------ | :------: | :--------: | :------------------: | -------------------------------------------------------------- |
 | [clip-vit-base-patch32-image-encoder](https://huggingface.co/openai/clip-vit-base-patch32) | English  | 224 x 224  |         512          | Trained using contrastive learning for image search use cases. |
 
-**`Image size`** - the size of an image that a models takes as an input. Resize will happen automatically.
+**`Image size`** - the size of an image that the model takes as an input. Resize will happen automatically.
 
 **`Embedding Dimensions`** - the size of the output embedding vector. This is the number of dimensions in the vector representation of the input image.
 
@@ -113,9 +113,9 @@ try {
 ### Inference time
 
 :::warning warning
-Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
+Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization. Performance also heavily depends on image size, because resize is expansive operation, especially on low-end devices.
 :::
 
-| Model                  | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
-| ---------------------- | :--------------------------: | :------------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
-| CLIP_VIT_BASE_PATCH_32 |             TODO             |               TODO               |            TODO            |                265                |           TODO            |
+| Model                  | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] |
+| ---------------------- | :--------------------------: | :------------------------------: | :------------------------: | :-------------------------------: |
+| CLIP_VIT_BASE_PATCH_32 |             104              |               120                |            280             |                265                |

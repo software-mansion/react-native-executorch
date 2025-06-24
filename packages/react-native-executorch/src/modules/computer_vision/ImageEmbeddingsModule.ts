@@ -1,6 +1,5 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
-import { getArrayConstructor, ResourceSource } from '../../types/common';
-import { TensorPtr } from '../../types/common';
+import { ResourceSource } from '../../types/common';
 import { ETError, getError } from '../../Error';
 import { BaseNonStaticModule } from '../BaseNonStaticModule';
 
@@ -16,13 +15,9 @@ export class ImageEmbeddingsModule extends BaseNonStaticModule {
     this.nativeModule = global.loadImageEmbeddings(paths[0] || '');
   }
 
-  async forward(imageSource: string): Promise<number[]> {
+  async forward(imageSource: string): Promise<Float32Array> {
     if (this.nativeModule == null)
       throw new Error(getError(ETError.ModuleNotLoaded));
-    const tensor: TensorPtr = await this.nativeModule.generate(imageSource);
-
-    const resultArray = getArrayConstructor(tensor.scalarType)(tensor.dataPtr);
-
-    return Array.from(resultArray);
+    return new Float32Array(await this.nativeModule.generate(imageSource));
   }
 }

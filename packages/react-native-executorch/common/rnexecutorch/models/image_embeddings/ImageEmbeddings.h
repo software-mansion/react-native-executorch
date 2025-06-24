@@ -14,7 +14,7 @@ class ImageEmbeddings : public BaseModel {
 public:
   ImageEmbeddings(const std::string &modelSource,
                   std::shared_ptr<react::CallInvoker> callInvoker);
-  JSTensorViewOut generate(std::string imageSource);
+  std::shared_ptr<OwningArrayBuffer> generate(std::string imageSource);
 
 private:
   cv::Size modelImageSize{0, 0};

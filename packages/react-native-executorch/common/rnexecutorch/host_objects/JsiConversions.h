@@ -216,19 +216,10 @@ inline jsi::Value getJsiValue(const std::vector<JSTensorViewOut> &vec,
   return jsi::Value(runtime, array);
 }
 
-inline jsi::Value getJsiValue(const JSTensorViewOut &tensor,
+inline jsi::Value getJsiValue(const std::shared_ptr<OwningArrayBuffer> &buf,
                               jsi::Runtime &runtime) {
-  jsi::Object tensorObj(runtime);
-
-  tensorObj.setProperty(runtime, "sizes", getJsiValue(tensor.sizes, runtime));
-
-  tensorObj.setProperty(runtime, "scalarType",
-                        jsi::Value(static_cast<int>(tensor.scalarType)));
-
-  jsi::ArrayBuffer arrayBuffer(runtime, tensor.dataPtr);
-  tensorObj.setProperty(runtime, "dataPtr", arrayBuffer);
-
-  return tensorObj;
+  jsi::ArrayBuffer arrayBuffer(runtime, buf);
+  return jsi::Value(runtime, arrayBuffer);
 }
 
 inline jsi::Value getJsiValue(const std::string &str, jsi::Runtime &runtime) {

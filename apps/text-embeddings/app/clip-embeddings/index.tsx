@@ -131,8 +131,9 @@ function ClipEmbeddingsScreen() {
       return;
 
     try {
-      const inputImageEmbedding = await imageModel.forward(
-        output.assets[0].uri
+      // Array.from to get numbers[]
+      const inputImageEmbedding = Array.from(
+        await imageModel.forward(output.assets[0].uri)
       );
 
       const matches = sentencesWithEmbeddings.map(

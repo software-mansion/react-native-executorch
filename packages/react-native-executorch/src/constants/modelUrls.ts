@@ -188,9 +188,9 @@ export const MULTI_QA_MPNET_BASE_DOT_V1_TOKENIZER =
   'https://huggingface.co/software-mansion/react-native-executorch-multi-qa-mpnet-base-dot-v1/resolve/v0.4.0/tokenizer.json';
 
 export const CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER_MODEL =
-  'https://huggingface.co/software-mansion/react-native-executorch-clip-vit-base-patch32-text-encoder/resolve/main/clip-vit-base-patch32-text-encoder-float32.pte';
+  'https://huggingface.co/software-mansion/react-native-executorch-clip-vit-base-patch32-text-encoder/resolve/v0.5.0/clip-vit-base-patch32-text-encoder-float32.pte';
 export const CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER_TOKENIZER =
-  'https://huggingface.co/software-mansion/react-native-executorch-clip-vit-base-patch32-text-encoder/resolve/main/tokenizer.json';
+  'https://huggingface.co/software-mansion/react-native-executorch-clip-vit-base-patch32-text-encoder/resolve/v0.5.0/tokenizer.json';
 
 export const CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER = {
   modelSource: CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER_MODEL,
