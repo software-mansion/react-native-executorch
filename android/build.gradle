@@ -103,7 +103,7 @@ dependencies {
   implementation "com.facebook.react:react-android:+"
   implementation 'org.opencv:opencv:4.10.0'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-	implementation("com.github.software-mansion:react-native-executorch:main-SNAPSHOT")
+	implementation("com.github.software-mansion:react-native-executorch:v0.4.5")
   implementation 'org.opencv:opencv:4.10.0'
   implementation("com.squareup.okhttp3:okhttp:4.9.2")
 }
