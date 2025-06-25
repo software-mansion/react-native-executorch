@@ -3,6 +3,7 @@
 #include <rnexecutorch/TokenizerModule.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/models/classification/Classification.h>
+#include <rnexecutorch/models/image_embeddings/ImageEmbeddings.h>
 #include <rnexecutorch/models/image_segmentation/ImageSegmentation.h>
 #include <rnexecutorch/models/object_detection/ObjectDetection.h>
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
@@ -48,6 +49,11 @@ void RnExecutorchInstaller::injectJSIBindings(
       *jsiRuntime, "loadTokenizerModule",
       RnExecutorchInstaller::loadModel<TokenizerModule>(
           jsiRuntime, jsCallInvoker, "loadTokenizerModule"));
+
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadImageEmbeddings",
+      RnExecutorchInstaller::loadModel<ImageEmbeddings>(
+          jsiRuntime, jsCallInvoker, "loadImageEmbeddings"));
 }
 
 } // namespace rnexecutorch

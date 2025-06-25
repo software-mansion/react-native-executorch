@@ -10,6 +10,7 @@ declare global {
   var loadObjectDetection: (source: string) => any;
   var loadExecutorchModule: (source: string) => any;
   var loadTokenizerModule: (source: string) => any;
+  var loadImageEmbeddings: (source: string) => any;
 }
 // eslint-disable no-var
 if (
@@ -35,6 +36,7 @@ export * from './hooks/computer_vision/useStyleTransfer';
 export * from './hooks/computer_vision/useImageSegmentation';
 export * from './hooks/computer_vision/useOCR';
 export * from './hooks/computer_vision/useVerticalOCR';
+export * from './hooks/computer_vision/useImageEmbeddings';
 
 export * from './hooks/natural_language_processing/useLLM';
 export * from './hooks/natural_language_processing/useSpeechToText';
@@ -51,6 +53,7 @@ export * from './modules/computer_vision/ImageSegmentationModule';
 export * from './modules/computer_vision/OCRModule';
 export * from './modules/computer_vision/VerticalOCRModule';
 export * from './modules/general/ExecutorchModule';
+export * from './modules/computer_vision/ImageEmbeddingsModule';
 
 export * from './modules/natural_language_processing/LLMModule';
 export * from './modules/natural_language_processing/SpeechToTextModule';

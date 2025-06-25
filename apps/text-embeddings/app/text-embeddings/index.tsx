@@ -16,11 +16,19 @@ import {
   ALL_MINILM_L6_V2,
   ALL_MINILM_L6_V2_TOKENIZER,
 } from 'react-native-executorch';
+import { useIsFocused } from '@react-navigation/native';
 
-export default function App() {
+export default function TextEmbeddingsScreenWrapper() {
+  const isFocused = useIsFocused();
+
+  return isFocused ? <TextEmbeddingsScreen /> : null;
+}
+
+function TextEmbeddingsScreen() {
   const model = useTextEmbeddings({
     modelSource: ALL_MINILM_L6_V2,
     tokenizerSource: ALL_MINILM_L6_V2_TOKENIZER,
+    meanPooling: true,
   });
 
   const [inputSentence, setInputSentence] = useState('');
@@ -108,6 +116,7 @@ export default function App() {
       console.error('Error clearing the list:', error);
     }
   };
+
   const getModelStatusText = () => {
     if (model.error) {
       return `Oops! Error: ${model.error}`;
