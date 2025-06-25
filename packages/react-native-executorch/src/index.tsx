@@ -21,7 +21,8 @@ if (
   global.loadClassification == null ||
   global.loadObjectDetection == null ||
   global.loadTokenizerModule == null ||
-  global.loadTextEmbeddings == null
+  global.loadTextEmbeddings == null ||
+  global.loadImageEmbeddings == null
 ) {
   if (!ETInstallerNativeModule) {
     throw new Error(
