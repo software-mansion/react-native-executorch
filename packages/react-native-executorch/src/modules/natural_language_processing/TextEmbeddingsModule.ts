@@ -1,28 +1,38 @@
-import { TextEmbeddingsNativeModule } from '../../native/RnExecutorchModules';
 import { ResourceSource } from '../../types/common';
-import { BaseModule } from '../BaseModule';
+import { ResourceFetcher } from '../../utils/ResourceFetcher';
+import { BaseNonStaticModule } from '../BaseNonStaticModule';
 
-export class TextEmbeddingsModule extends BaseModule {
-  protected static override nativeModule = TextEmbeddingsNativeModule;
-  private static meanPooling: boolean;
+export class TextEmbeddingsModule extends BaseNonStaticModule {
+  private meanPooling: boolean = true;
 
-  static override async load(
+  async load(
     modelSource: ResourceSource,
     tokenizerSource: ResourceSource,
-    meanPooling?: boolean
-  ) {
+    meanPooling?: boolean,
+    onDownloadProgressCallback: (_: number) => void = () => {}
+  ): Promise<void> {
+    const paths = await ResourceFetcher.fetchMultipleResources(
+      onDownloadProgressCallback,
+      modelSource,
+      tokenizerSource
+    );
+    this.nativeModule = global.loadTextEmbeddings(
+      paths[0] || '',
+      paths[1] || ''
+    );
     if (meanPooling === undefined) {
+      this.meanPooling = true;
       console.warn(
-        "You haven't passed meanPooling flag. It is defaulting to true. If your model doesn't require pooling it may misbehave."
+        "You haven't passed meanPooling flag. It is defaulting to true, if your model doesn't require mean pooling it may return wrong results."
       );
-      meanPooling = true;
+    } else {
+      this.meanPooling = meanPooling;
     }
-
-    await super.load([modelSource, tokenizerSource]);
-    this.meanPooling = meanPooling;
   }
 
-  static override async forward(input: string): Promise<number[]> {
-    return this.nativeModule.forward(input, this.meanPooling);
+  async forward(input: string): Promise<Float32Array> {
+    return new Float32Array(
+      await this.nativeModule.generate(input, this.meanPooling)
+    );
   }
 }

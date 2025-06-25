@@ -38,14 +38,19 @@ function ClipEmbeddingsScreen() {
 
   const [inputSentence, setInputSentence] = useState('');
   const [sentencesWithEmbeddings, setSentencesWithEmbeddings] = useState<
-    { sentence: string; embedding: number[] }[]
+    { sentence: string; embedding: Float32Array }[]
   >([]);
   const [topMatches, setTopMatches] = useState<
     { sentence: string; similarity: number }[]
   >([]);
 
-  const dotProduct = (a: number[], b: number[]) =>
-    a.reduce((sum, val, i) => sum + val * b[i], 0);
+  const dotProduct = (a: Float32Array, b: Float32Array) => {
+    let sum = 0;
+    for (let i = 0; i < a.length; i++) {
+      sum += a[i] * b[i];
+    }
+    return sum;
+  };
 
   useEffect(
     () => {
@@ -60,13 +65,11 @@ function ClipEmbeddingsScreen() {
         ];
 
         try {
-          const embeddings = await Promise.all(
-            sentences.map(async (sentence) => ({
-              sentence,
-              embedding: await model.forward(sentence),
-            }))
-          );
-
+          const embeddings = [];
+          for (const sentence of sentences) {
+            const embedding = await model.forward(sentence);
+            embeddings.push({ sentence, embedding });
+          }
           setSentencesWithEmbeddings(embeddings);
         } catch (error) {
           console.error('Error generating embeddings:', error);
@@ -132,8 +135,8 @@ function ClipEmbeddingsScreen() {
 
     try {
       // Array.from to get numbers[]
-      const inputImageEmbedding = Array.from(
-        await imageModel.forward(output.assets[0].uri)
+      const inputImageEmbedding = await imageModel.forward(
+        output.assets[0].uri
       );
 
       const matches = sentencesWithEmbeddings.map(

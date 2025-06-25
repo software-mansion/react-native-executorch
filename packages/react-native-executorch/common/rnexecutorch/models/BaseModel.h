@@ -33,10 +33,10 @@ protected:
   // (unnecessary copies instead of working on JS memory). In this case
   // CallInvoker can be used to get jsi::Runtime, and use it in a safe manner.
   std::shared_ptr<react::CallInvoker> callInvoker;
+  std::unique_ptr<executorch::extension::Module> module_;
 
 private:
   std::size_t memorySizeLowerBound{0};
-  std::unique_ptr<executorch::extension::Module> module;
   std::vector<int32_t> getTensorShape(const executorch::aten::Tensor &tensor);
 };
 } // namespace rnexecutorch

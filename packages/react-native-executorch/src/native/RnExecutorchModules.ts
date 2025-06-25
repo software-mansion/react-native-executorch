@@ -1,11 +1,8 @@
 import { Platform } from 'react-native';
-import { Spec as ETModuleInterface } from './NativeETModule';
 import { Spec as OCRInterface } from './NativeOCR';
 import { Spec as VerticalOCRInterface } from './NativeVerticalOCR';
 import { Spec as SpeechToTextInterface } from './NativeSpeechToText';
-import { Spec as TextEmbeddingsInterface } from './NativeTextEmbeddings';
 import { Spec as LLMInterface } from './NativeLLM';
-import { Spec as TokenizerInterface } from './NativeTokenizer';
 import { Spec as ETInstallerInterface } from './NativeETInstaller';
 
 const LINKING_ERROR =
@@ -30,9 +27,6 @@ function returnSpecOrThrowLinkingError(spec: any) {
 const LLMNativeModule: LLMInterface = returnSpecOrThrowLinkingError(
   require('./NativeLLM').default
 );
-const ETModuleNativeModule: ETModuleInterface = returnSpecOrThrowLinkingError(
-  require('./NativeETModule').default
-);
 const SpeechToTextNativeModule: SpeechToTextInterface =
   returnSpecOrThrowLinkingError(require('./NativeSpeechToText').default);
 const OCRNativeModule: OCRInterface = returnSpecOrThrowLinkingError(
@@ -40,21 +34,13 @@ const OCRNativeModule: OCRInterface = returnSpecOrThrowLinkingError(
 );
 const VerticalOCRNativeModule: VerticalOCRInterface =
   returnSpecOrThrowLinkingError(require('./NativeVerticalOCR').default);
-const TokenizerNativeModule: TokenizerInterface = returnSpecOrThrowLinkingError(
-  require('./NativeTokenizer').default
-);
-const TextEmbeddingsNativeModule: TextEmbeddingsInterface =
-  returnSpecOrThrowLinkingError(require('./NativeTextEmbeddings').default);
 const ETInstallerNativeModule: ETInstallerInterface =
   returnSpecOrThrowLinkingError(require('./NativeETInstaller').default);
 
 export {
   LLMNativeModule,
-  ETModuleNativeModule,
   SpeechToTextNativeModule,
   OCRNativeModule,
   VerticalOCRNativeModule,
-  TextEmbeddingsNativeModule,
-  TokenizerNativeModule,
   ETInstallerNativeModule,
 };
