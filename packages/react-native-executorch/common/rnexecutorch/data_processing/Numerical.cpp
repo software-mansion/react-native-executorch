@@ -30,8 +30,7 @@ void normalize(std::span<float> span) {
     return;
   }
 
-  // Preventing divison by 0
-  float norm = std::max(std::sqrt(sum), 1e-9f);
+  float norm = std::sqrt(sum);
   for (auto &val : span) {
     val /= norm;
   }
