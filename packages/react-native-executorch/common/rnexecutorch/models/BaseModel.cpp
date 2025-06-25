@@ -13,9 +13,9 @@ using ::executorch::runtime::Error;
 BaseModel::BaseModel(const std::string &modelSource,
                      std::shared_ptr<react::CallInvoker> callInvoker)
     : callInvoker(callInvoker),
-      module(std::make_unique<Module>(
+      module_(std::make_unique<Module>(
           modelSource, Module::LoadMode::MmapUseMlockIgnoreErrors)) {
-  Error loadError = module->load();
+  Error loadError = module_->load();
   if (loadError != Error::Ok) {
     throw std::runtime_error("Failed to load model: Error " +
                              std::to_string(static_cast<int>(loadError)));
@@ -30,11 +30,11 @@ BaseModel::BaseModel(const std::string &modelSource,
 
 std::vector<int32_t> BaseModel::getInputShape(std::string method_name,
                                               int index) {
-  if (!module) {
+  if (!module_) {
     throw std::runtime_error("Model not loaded: Cannot get input shape");
   }
 
-  auto method_meta = module->method_meta(method_name);
+  auto method_meta = module_->method_meta(method_name);
   if (!method_meta.ok()) {
     throw std::runtime_error(
         "Failed to get metadata for method '" + method_name + "': Error " +
@@ -56,11 +56,11 @@ std::vector<int32_t> BaseModel::getInputShape(std::string method_name,
 
 std::vector<std::vector<int32_t>>
 BaseModel::getAllInputShapes(std::string methodName) {
-  if (!module) {
+  if (!module_) {
     throw std::runtime_error("Model not loaded: Cannot get all input shapes");
   }
 
-  auto method_meta = module->method_meta(methodName);
+  auto method_meta = module_->method_meta(methodName);
   if (!method_meta.ok()) {
     throw std::runtime_error(
         "Failed to get metadata for method '" + methodName + "': Error " +
@@ -85,7 +85,7 @@ BaseModel::getAllInputShapes(std::string methodName) {
 
 std::vector<JSTensorViewOut>
 BaseModel::forwardJS(const std::vector<JSTensorViewIn> tensorViewVec) {
-  if (!module) {
+  if (!module_) {
     throw std::runtime_error("Model not loaded: Cannot perform forward pass");
   }
   std::vector<executorch::runtime::EValue> evalues;
@@ -107,7 +107,7 @@ BaseModel::forwardJS(const std::vector<JSTensorViewIn> tensorViewVec) {
                                       // which implicitly converts to EValue
   }
 
-  auto result = module->forward(evalues);
+  auto result = module_->forward(evalues);
   if (!result.ok()) {
     throw std::runtime_error("Forward pass failed: Error " +
                              std::to_string(static_cast<int>(result.error())));
@@ -132,23 +132,23 @@ BaseModel::forwardJS(const std::vector<JSTensorViewIn> tensorViewVec) {
 }
 
 Result<std::vector<EValue>> BaseModel::forward(const EValue &input_evalue) {
-  if (!module) {
+  if (!module_) {
     throw std::runtime_error("Model not loaded: Cannot perform forward pass");
   }
-  return module->forward(input_evalue);
+  return module_->forward(input_evalue);
 }
 
 Result<std::vector<EValue>>
 BaseModel::forward(const std::vector<EValue> &input_evalues) {
-  if (!module) {
+  if (!module_) {
     throw std::runtime_error("Model not loaded: Cannot perform forward pass");
   }
-  return module->forward(input_evalues);
+  return module_->forward(input_evalues);
 }
 
 std::size_t BaseModel::getMemoryLowerBound() { return memorySizeLowerBound; }
 
-void BaseModel::unload() { module.reset(nullptr); }
+void BaseModel::unload() { module_.reset(nullptr); }
 
 std::vector<int32_t>
 BaseModel::getTensorShape(const executorch::aten::Tensor &tensor) {
