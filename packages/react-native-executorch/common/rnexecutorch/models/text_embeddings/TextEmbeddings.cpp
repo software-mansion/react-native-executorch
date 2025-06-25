@@ -1,5 +1,6 @@
 #include "TextEmbeddings.h"
 #include <executorch/extension/tensor/tensor_ptr_maker.h>
+#include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/Numerical.h>
 
 namespace rnexecutorch {
@@ -11,8 +12,7 @@ TextEmbeddings::TextEmbeddings(const std::string &modelSource,
                                std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker),
       tokenizer(
-          std::make_unique<TokenizerModule>(tokenizerSource, callInvoker)),
-      inputShapes(getAllInputShapes()) {}
+          std::make_unique<TokenizerModule>(tokenizerSource, callInvoker)) {}
 
 TokenIdsWithAttentionMask TextEmbeddings::preprocess(const std::string &input) {
   auto inputIds = tokenizer->encode(input);
@@ -37,11 +37,14 @@ TokenIdsWithAttentionMask TextEmbeddings::preprocess(const std::string &input) {
 std::shared_ptr<OwningArrayBuffer>
 TextEmbeddings::generate(const std::string input, bool useMeanPooling) {
   auto preprocessed = preprocess(input);
-  auto inputShapes = getAllInputShapes();
-  auto tokenIds = make_tensor_ptr(inputShapes[0], preprocessed.inputIds.data(),
+  std::vector<int32_t> tokenIdsShape = {
+      1, static_cast<int32_t>(preprocessed.inputIds.size())};
+  std::vector<int32_t> attnMaskShape = {
+      1, static_cast<int32_t>(preprocessed.attentionMask.size())};
+  auto tokenIds = make_tensor_ptr(tokenIdsShape, preprocessed.inputIds.data(),
                                   ScalarType::Long);
   auto attnMask = make_tensor_ptr(
-      inputShapes[1], preprocessed.attentionMask.data(), ScalarType::Long);
+      attnMaskShape, preprocessed.attentionMask.data(), ScalarType::Long);
   auto forwardResult = BaseModel::forward({tokenIds, attnMask});
   if (!forwardResult.ok()) {
     throw std::runtime_error(
