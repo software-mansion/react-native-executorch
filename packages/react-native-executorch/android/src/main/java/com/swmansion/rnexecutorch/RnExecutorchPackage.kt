@@ -16,8 +16,6 @@ class RnExecutorchPackage : TurboReactPackage() {
   ): NativeModule? =
     if (name == LLM.NAME) {
       LLM(reactContext)
-    } else if (name == ETModule.NAME) {
-      ETModule(reactContext)
     } else if (name == SpeechToText.NAME) {
       SpeechToText(reactContext)
     } else if (name == OCR.NAME) {
@@ -26,8 +24,6 @@ class RnExecutorchPackage : TurboReactPackage() {
       VerticalOCR(reactContext)
     } else if (name == ETInstaller.NAME) {
       ETInstaller(reactContext)
-    } else if (name == Tokenizer.NAME) {
-      Tokenizer(reactContext)
     } else {
       null
     }
