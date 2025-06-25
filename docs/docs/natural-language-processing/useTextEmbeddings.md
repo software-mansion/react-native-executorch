@@ -133,6 +133,7 @@ function App() {
 | ALL_MPNET_BASE_V2          |     438      |
 | MULTI_QA_MINILM_L6_COS_V1  |      91      |
 | MULTI_QA_MPNET_BASE_DOT_V1 |     438      |
+| CLIP_TEXT_ENCODER          |     254      |
 
 ### Memory usage
 
@@ -142,6 +143,7 @@ function App() {
 | ALL_MPNET_BASE_V2          |          520           |        470         |
 | MULTI_QA_MINILM_L6_COS_V1  |          160           |        225         |
 | MULTI_QA_MPNET_BASE_DOT_V1 |          540           |        500         |
+| CLIP_TEXT_ENCODER          |          275           |        250         |
 
 ### Inference time
 
@@ -155,3 +157,4 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 | ALL_MPNET_BASE_V2          |             352              |               423                |            478             |             521              |            527            |
 | MULTI_QA_MINILM_L6_COS_V1  |             135              |               166                |            180             |             158              |            165            |
 | MULTI_QA_MPNET_BASE_DOT_V1 |             503              |               598                |            680             |             694              |            743            |
+| CLIP_TEXT_ENCODER          |              35              |                48                |             49             |              40              |             -             |

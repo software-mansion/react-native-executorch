@@ -1,6 +1,7 @@
 #include "Numerical.h"
 
 #include <algorithm>
+#include <cmath>
 #include <numeric>
 
 namespace rnexecutorch::numerical {
@@ -14,6 +15,19 @@ void softmax(std::vector<float> &v) {
   }
   for (float &x : v) {
     x /= sum;
+  }
+}
+
+void normalize(std::span<float> span) {
+  auto sum = 0.0f;
+  for (const auto &val : span) {
+    sum += val * val;
+  }
+
+  // Preventing divison by 0
+  float norm = std::max(std::sqrt(sum), 1e-9f);
+  for (auto &val : span) {
+    val /= norm;
   }
 }
 } // namespace rnexecutorch::numerical
