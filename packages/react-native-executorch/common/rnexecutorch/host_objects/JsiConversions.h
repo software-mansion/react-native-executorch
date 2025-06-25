@@ -222,12 +222,6 @@ inline jsi::Value getJsiValue(const std::vector<JSTensorViewOut> &vec,
   return jsi::Value(runtime, array);
 }
 
-inline jsi::Value getJsiValue(const std::shared_ptr<OwningArrayBuffer> &buf,
-                              jsi::Runtime &runtime) {
-  jsi::ArrayBuffer arrayBuffer(runtime, buf);
-  return jsi::Value(runtime, arrayBuffer);
-}
-
 inline jsi::Value getJsiValue(const std::string &str, jsi::Runtime &runtime) {
   return jsi::String::createFromAscii(runtime, str);
 }

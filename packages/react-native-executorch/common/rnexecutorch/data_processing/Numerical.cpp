@@ -50,7 +50,7 @@ void normalize(std::vector<float> &v) {
 }
 
 std::vector<float> meanPooling(std::span<const float> modelOutput,
-                               std::span<const int32_t> attnMask) {
+                               std::span<const int64_t> attnMask) {
   auto attnMaskLength = attnMask.size();
   auto embeddingDim = modelOutput.size() / attnMaskLength;
 
