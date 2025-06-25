@@ -25,6 +25,11 @@ void normalize(std::span<float> span) {
     sum += val * val;
   }
 
+  // Early return if all values are 0
+  if (sum == 0.0f) {
+    return;
+  }
+
   // Preventing divison by 0
   float norm = std::max(std::sqrt(sum), 1e-9f);
   for (auto &val : span) {

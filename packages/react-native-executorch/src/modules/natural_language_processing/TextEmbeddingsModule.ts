@@ -21,6 +21,7 @@ export class TextEmbeddingsModule extends BaseNonStaticModule {
       paths[1] || ''
     );
     if (meanPooling === undefined) {
+      this.meanPooling = true;
       console.warn(
         "You haven't passed meanPooling flag. It is defaulting to true, if your model doesn't require mean pooling it may return wrong results."
       );
