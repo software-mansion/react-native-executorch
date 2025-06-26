@@ -1,19 +1,28 @@
 #pragma once
 
+#include <memory>
+#include <string>
+
+#include <ReactCommon/CallInvoker.h>
 #include <executorch/runner/runner.h>
+#include <jsi/jsi.h>
 
 namespace rnexecutorch {
-class LLM {
-private:
-  std::unique_ptr<example::Runner> runner;
-  size_t externalMemoryPressure{
-      0}; // TODO: the naming is off, this is just a placeholder
+using namespace facebook;
 
+class LLM {
 public:
-  LLM(const std::string &modelSource, const std::string &tokenizerSource);
-  void generate(std::string input, void *callback);
-  size_t getExternalMemoryPressure(); // TODO: the naming is off, this is just a
-                                      // placeholder
+  LLM(const std::string &modelSource, const std::string &tokenizerSource,
+      std::shared_ptr<react::CallInvoker> callInvoker);
+
+  void generate(std::string input, std::shared_ptr<jsi::Function> callback);
+  void interrupt();
   void unload();
+  std::size_t getMemoryLowerBound();
+
+private:
+  size_t memoryLowerBound;
+  std::unique_ptr<example::Runner> runner;
+  std::shared_ptr<react::CallInvoker> callInvoker;
 };
 } // namespace rnexecutorch
