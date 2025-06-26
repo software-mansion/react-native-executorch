@@ -4,8 +4,8 @@
 #include <string>
 
 #include <ReactCommon/CallInvoker.h>
-#include <executorch/runner/runner.h>
 #include <jsi/jsi.h>
+#include <runner/runner.h>
 
 namespace rnexecutorch {
 using namespace facebook;
