@@ -160,19 +160,37 @@ export class ResourceFetcher {
     if (sources.length === 0) {
       throw new Error('Empty list given as an argument!');
     }
+    const { results: info, totalLength } = await this.getFilesSizes(...sources);
+
     const head: ResourceSourceExtended = {
-      source: sources[0]!,
-      sourceType: await this.getType(sources[0]!),
-      callback: this.calculateDownloadProgress(sources.length, 0, callback),
+      source: info[0]!.source,
+      sourceType: info[0]!.type,
+      callback:
+        info[0]!.type === SourceType.REMOTE_FILE
+          ? this.calculateDownloadProgress(
+              totalLength,
+              info[0]!.previousFilesTotalLength,
+              info[0]!.length,
+              callback
+            )
+          : () => {},
       results: [],
     };
 
     var node = head;
     for (let idx = 1; idx < sources.length; idx++) {
       node.next = {
-        source: sources[idx]!,
-        sourceType: await this.getType(sources[idx]!),
-        callback: this.calculateDownloadProgress(sources.length, idx, callback),
+        source: info[idx]!.source,
+        sourceType: info[idx]!.type,
+        callback:
+          info[idx]!.type === SourceType.REMOTE_FILE
+            ? this.calculateDownloadProgress(
+                totalLength,
+                info[idx]!.previousFilesTotalLength,
+                info[idx]!.length,
+                callback
+              )
+            : () => {},
         results: [],
       };
       node = node.next;
@@ -310,18 +328,21 @@ export class ResourceFetcher {
   }
 
   private static calculateDownloadProgress(
-    numberOfFiles: number,
-    currentFileIndex: number,
+    totalLength: number,
+    previousFilesTotalLength: number,
+    currentFileLength: number,
     setProgress: (downloadProgress: number) => void
   ) {
     return (progress: number) => {
-      if (progress === 1 && currentFileIndex === numberOfFiles - 1) {
+      if (
+        progress === 1 &&
+        previousFilesTotalLength === totalLength - currentFileLength
+      ) {
         setProgress(1);
         return;
       }
-      const contributionPerFile = 1 / numberOfFiles;
-      const baseProgress = contributionPerFile * currentFileIndex;
-      const scaledProgress = progress * contributionPerFile;
+      const baseProgress = previousFilesTotalLength / totalLength;
+      const scaledProgress = progress * (currentFileLength / totalLength);
       const updatedProgress = baseProgress + scaledProgress;
       setProgress(updatedProgress);
     };
@@ -525,5 +546,43 @@ export class ResourceFetcher {
   private static async checkFileExists(fileUri: string) {
     const fileInfo = await getInfoAsync(fileUri);
     return fileInfo.exists;
+  }
+
+  private static async getFilesSizes(...sources: ResourceSource[]) {
+    const results: Array<{
+      source: ResourceSource;
+      type: SourceType;
+      length: number;
+      previousFilesTotalLength: number;
+    }> = [];
+    let totalLength = 0;
+    let previousFilesTotalLength = 0;
+    for (const source of sources) {
+      const type = await this.getType(source);
+      let length = 0;
+
+      if (type === SourceType.REMOTE_FILE && typeof source === 'string') {
+        try {
+          const response = await fetch(source, { method: 'HEAD' });
+          if (!response.ok) {
+            console.warn(
+              `Failed to fetch HEAD for ${source}: ${response.status}`
+            );
+            continue;
+          }
+
+          const contentLength = response.headers.get('content-length');
+          length = contentLength ? parseInt(contentLength, 10) : 0;
+          previousFilesTotalLength = totalLength;
+          totalLength += length;
+        } catch (error) {
+          console.warn(`Error fetching HEAD for ${source}:`, error);
+          continue;
+        }
+      }
+      results.push({ source, type, length, previousFilesTotalLength });
+    }
+
+    return { results, totalLength };
   }
 }
