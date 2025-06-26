@@ -48,13 +48,13 @@ export class OCRController {
       this.isReady = false;
       this.isReadyCallback(false);
 
-      const paths = await ResourceFetcher.fetchMultipleResources(
+      const paths = (await ResourceFetcher.fetchMultipleResources(
         this.modelDownloadProgressCallback,
         detectorSource,
         recognizerSources.recognizerLarge,
         recognizerSources.recognizerMedium,
         recognizerSources.recognizerSmall
-      );
+      ))!;
 
       await this.nativeModule.loadModule(
         paths[0]!,

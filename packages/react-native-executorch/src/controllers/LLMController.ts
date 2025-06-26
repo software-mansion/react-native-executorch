@@ -110,18 +110,18 @@ export class LLMController {
     this.isReadyCallback(false);
 
     try {
-      const tokenizerFileUri = await ResourceFetcher.fetch(tokenizerSource);
-      const tokenizerConfigFileUri = await ResourceFetcher.fetch(
+      const tokenizerFileUri = (await ResourceFetcher.fetch(tokenizerSource))!;
+      const tokenizerConfigFileUri = (await ResourceFetcher.fetch(
         tokenizerConfigSource
-      );
+      ))!;
       this.tokenizerConfig = JSON.parse(
         await readAsStringAsync('file://' + tokenizerConfigFileUri)
       );
 
-      const modelFileUri = await ResourceFetcher.fetch(
+      const modelFileUri = (await ResourceFetcher.fetch(
         modelSource,
         this.onDownloadProgressCallback
-      );
+      ))!;
 
       await this.nativeModule.loadLLM(modelFileUri, tokenizerFileUri);
       this.isReadyCallback(true);
