@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <string>
 #include <tuple>
+#include <type_traits>
 #include <vector>
 
 #include <ReactCommon/CallInvoker.h>
@@ -101,15 +102,28 @@ public:
             std::thread([this, promise,
                          argsConverted = std::move(argsConverted)]() {
               try {
-                auto result = std::apply(std::bind_front(FnPtr, model),
-                                         std::move(argsConverted));
-                // The result is copied. It should either be quickly copiable,
-                // or passed with a shared_ptr.
-                callInvoker->invokeAsync([promise,
-                                          result](jsi::Runtime &runtime) {
-                  promise->resolve(
-                      jsiconversion::getJsiValue(std::move(result), runtime));
-                });
+                if constexpr (std::is_void_v<decltype(std::apply(
+                                  std::bind_front(FnPtr, model),
+                                  argsConverted))>) {
+                  // For void functions, just call the function and resolve with
+                  // undefined
+                  std::apply(std::bind_front(FnPtr, model),
+                             std::move(argsConverted));
+                  callInvoker->invokeAsync([promise](jsi::Runtime &runtime) {
+                    promise->resolve(jsi::Value::undefined());
+                  });
+                } else {
+                  // For non-void functions, capture the result and convert it
+                  auto result = std::apply(std::bind_front(FnPtr, model),
+                                           std::move(argsConverted));
+                  // The result is copied. It should either be quickly copiable,
+                  // or passed with a shared_ptr.
+                  callInvoker->invokeAsync([promise,
+                                            result](jsi::Runtime &runtime) {
+                    promise->resolve(
+                        jsiconversion::getJsiValue(std::move(result), runtime));
+                  });
+                }
               } catch (const std::runtime_error &e) {
                 // This catch should be merged with the next two
                 // (std::runtime_error and jsi::JSError inherits from
