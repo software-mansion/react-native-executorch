@@ -2,6 +2,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <iostream>
+#include <iterator>
 #include <map>
 #include <queue>
 #include <set>
@@ -12,6 +13,7 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
+
 #ifdef __ANDROID__
 #include <android/log.h>
 #endif
@@ -19,45 +21,90 @@
 #include <os/log.h>
 #endif
 
-namespace detail {
-// To allow ADL with custom begin/end
+// Replace using this one
+
+namespace concept_detail {
+// ADL-based begin/end detection with backup to standard begin/end
 using std::begin;
 using std::end;
 
+template <typename T, typename = void>
+struct has_begin_end : std::false_type {};
+
 template <typename T>
-concept is_iterable_impl = requires(T &t) {
-  begin(t) != end(t);                     // begin/end and operator !=
-  ++std::declval<decltype(begin(t)) &>(); // operator ++
-  *begin(t);                              // operator*
+struct has_begin_end<T, std::void_t<decltype(begin(std::declval<T>())),
+                                    decltype(end(std::declval<T>()))>>
+    : std::true_type {};
+
+template <typename T>
+inline constexpr bool has_begin_end_v = has_begin_end<T>::value;
+
+template <typename T, typename = void> struct has_front : std::false_type {};
+
+template <typename T>
+struct has_front<T, std::void_t<decltype(std::declval<T>().front())>>
+    : std::true_type {};
+
+template <typename T, typename = void> struct has_top : std::false_type {};
+
+template <typename T>
+struct has_top<T, std::void_t<decltype(std::declval<T>().top())>>
+    : std::true_type {};
+
+template <typename T, typename = void> struct has_pop : std::false_type {};
+
+template <typename T>
+struct has_pop<T, std::void_t<decltype(std::declval<T>().pop())>>
+    : std::true_type {};
+
+} // namespace concept_detail
+
+namespace log_implementation {
+
+template <typename T>
+concept Iterable = concept_detail::has_begin_end_v<T> && requires(T &t) {
+  ++std::declval<decltype(begin(t)) &>(); // Support for increment
+  *begin(t);                              // Support for dereferencing
 };
-} // namespace detail
 
 template <typename T>
-concept is_iterable = detail::is_iterable_impl<T>;
+concept FrontAccessible = concept_detail::has_front<T>::value;
 
 template <typename T>
-concept is_streamable = requires(std::ostream &os, const T &t) {
+concept TopAccessible = concept_detail::has_top<T>::value;
+
+template <typename T>
+concept Sequencable = concept_detail::has_pop<T>::value &&
+                      (FrontAccessible<T> || TopAccessible<T>);
+
+template <typename T>
+concept Streamable = requires(std::ostream &os, const T &t) {
   { os << t } -> std::convertible_to<std::ostream &>;
 };
 
-namespace rnexecutorch {
+template <typename T>
+  requires Streamable<T>
+void print_element(std::ostream &os, const T &value);
+
+template <typename T, typename U>
+void print_element(std::ostream &os, const std::pair<T, U> &p);
 
 template <typename T>
-  requires is_streamable<T>
-void print_element(std::ostream &os, const T &value) {
-  os << value;
-}
-
-// Forward declarations to guaratee template instantiations
-template <typename T>
-  requires is_iterable<T> && (!is_streamable<T>)
+  requires Iterable<T> && (!Streamable<T>)
 void print_element(std::ostream &os, const T &container);
 
 template <typename T>
-void print_element(std::ostream &os, const std::queue<T> &q);
+  requires Sequencable<T>
+void print_element(std::ostream &os, T container);
 
 template <typename... Args>
 void print_element(std::ostream &os, const std::tuple<Args...> &tpl);
+
+template <typename T>
+  requires Streamable<T>
+void print_element(std::ostream &os, const T &value) {
+  os << value;
+}
 
 template <typename T, typename U>
 void print_element(std::ostream &os, const std::pair<T, U> &p) {
@@ -69,7 +116,7 @@ void print_element(std::ostream &os, const std::pair<T, U> &p) {
 }
 
 template <typename T>
-  requires is_iterable<T> && (!is_streamable<T>)
+  requires Iterable<T> && (!Streamable<T>)
 void print_element(std::ostream &os, const T &container) {
   os << "[";
   auto it = std::begin(container);
@@ -84,17 +131,28 @@ void print_element(std::ostream &os, const T &container) {
 }
 
 template <typename T>
-void print_element(std::ostream &os, const std::queue<T> &q) {
-  std::queue<T> temp = q;
+  requires Sequencable<T>
+void print_element(
+    std::ostream &os,
+    T container) { // pass by value to avoid modifying the original
   os << "[";
-  if (!temp.empty()) {
-    print_element(os, temp.front());
-    temp.pop();
-  }
-  while (!temp.empty()) {
-    os << ", ";
-    print_element(os, temp.front());
-    temp.pop();
+  if (!container.empty()) {
+    if constexpr (FrontAccessible<T>) {
+      print_element(os, container.front());
+    } else if constexpr (TopAccessible<T>) {
+      print_element(os, container.top());
+    }
+    container.pop();
+
+    while (!container.empty()) {
+      os << ", ";
+      if constexpr (FrontAccessible<T>) {
+        print_element(os, container.front());
+      } else if constexpr (TopAccessible<T>) {
+        print_element(os, container.top());
+      }
+      container.pop();
+    }
   }
   os << "]";
 }
@@ -121,7 +179,26 @@ void print_element(std::ostream &os, const std::tuple<Args...> &tpl) {
   os << ">";
 }
 
-enum class LOG_LEVEL { Info, Error, Debug };
+} // namespace log_implementation
+
+namespace rnexecutorch {
+
+/**
+ * @enum LogLevel
+ * @brief Represents various levels of logging severity.
+ *
+ * This `enum class` is used to specify the severity of a log message. This
+ * helps in filtering logs according to their importance and can be crucial for
+ * debugging and monitoring applications.
+ */
+enum class LOG_LEVEL {
+  Info,  /**< Informational messages that highlight the progress of the
+            application. */
+  Error, /**< Error events of considerable importance that will prevent normal
+            program execution. */
+  Debug  /**< Detailed information, typically of interest only when diagnosing
+            problems. */
+};
 
 #ifdef __ANDROID__
 android_LogPriority androidLogLevel(LOG_LEVEL logLevel) {
@@ -138,9 +215,20 @@ android_LogPriority androidLogLevel(LOG_LEVEL logLevel) {
 }
 #endif
 
+/**
+ * @brief Logs given data on a console
+ *
+ * The function takes logging level and arbitrary data type that implements `<<`
+ * operator for `std::ostream` or STL container with such data type.
+ *
+ * @param logLevel logging level - one of `LOG_LEVEL` enum class value: `Info`,
+ * `Error`, and `Debug`.
+ * @param args Data to be logged.
+ * @return Function does not return, only prints to console.
+ */
 template <typename... Args> void log(LOG_LEVEL logLevel, const Args &...args) {
   std::ostringstream oss;
-  (print_element(oss, args),
+  (log_implementation::print_element(oss, args),
    ...); // Fold expression used to handle all arguments
 
   constexpr size_t log_size = 1024;
