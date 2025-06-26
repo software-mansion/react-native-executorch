@@ -16,6 +16,7 @@
 #include <rnexecutorch/metaprogramming/FunctionHelpers.h>
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
 #include <rnexecutorch/models/BaseModel.h>
+#include <rnexecutorch/models/llm/Runner.h>
 
 namespace rnexecutorch {
 
@@ -70,6 +71,24 @@ public:
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::tokenToId>,
                                        "tokenToId"));
+    }
+
+    if constexpr (meta::SameAs<Model, LLM>) {
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::generate>,
+                                       "generate"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::interrupt>,
+                                       "interrupt"));
+
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                              promiseHostFunction<&Model::getMemoryLowerBound>,
+                              "getMemoryLowerBound"));
+
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }
   }
 
