@@ -4,12 +4,14 @@
  * Provides an interface for downloading files either individually (via `ResourceFetcher.fetch()`)
  * or in batch operations (via `ResourceFetcher.fetchMultipleResources()`).
  *
- * Key functionality includes:
+ * Key functionality:
  * - Download control: pause, resume, and cancel operations through:
  *   - Single file: `.pauseFetching()`, `.resumeFetching()`, `.cancelFetching()`
  *   - Multiple files: `.pauseMultipleFetching()`, `.resumeMultipleFetching()`, `.cancelMultipleFetching()`
  * - Downloaded file management:
  *   - `.listDownloadedFiles()`, `.listDownloadedModels()`, `.deleteMultipleResources()`
+ *
+ * Remark: The pausing/resuming/canceling works only for fetching remote resources.
  *
  * Most exported functions accept either:
  * - A single argument of type `ResourceSource` (union type of string, number, or object)
@@ -50,19 +52,28 @@ enum DownloadStatus {
   PAUSED,
 }
 
+enum SourceType {
+  OBJECT,
+  LOCAL_FILE,
+  RELEASE_MODE_FILE,
+  DEV_MODE_FILE,
+  REMOTE_FILE,
+}
+
 interface DownloadResource {
   downloadResumable: DownloadResumable;
   status: DownloadStatus;
-  uri: string;
-  fileUri: string;
-  cacheFileUri: string;
   extendedInfo: ResourceSourceExtended;
 }
 
 interface ResourceSourceExtended {
   source: ResourceSource;
-  callback: (downloadProgress: number) => void;
+  sourceType: SourceType;
+  callback?: (downloadProgress: number) => void;
   results: string[];
+  uri?: string;
+  fileUri?: string;
+  cacheFileUri?: string;
   next?: ResourceSourceExtended;
 }
 
@@ -73,8 +84,10 @@ export class ResourceFetcher {
     source: ResourceSource,
     callback: (downloadProgress: number) => void = () => {}
   ) {
+    const sourceType = await this.getType(source);
     const result = await this.fetchInternal({
       source,
+      sourceType,
       callback,
       results: [],
     });
@@ -88,89 +101,41 @@ export class ResourceFetcher {
     sourceExtended: ResourceSourceExtended
   ): Promise<string[] | null> {
     const source = sourceExtended.source;
-    if (typeof source === 'object') {
-      return this.returnOrStartNext(
-        sourceExtended,
-        await this.handleObject(source)
-      );
-    }
-
-    const uri =
-      typeof source === 'number' ? Asset.fromModule(source).uri : source;
-
-    // Handle local files
-    if (uri.startsWith('file://')) {
-      return this.returnOrStartNext(sourceExtended, this.removeFilePrefix(uri));
-    }
-
-    const filename = this.getFilenameFromUri(uri);
-    const fileUri = `${RNEDirectory}${filename}`;
-
-    if (await this.checkFileExists(fileUri)) {
-      return this.returnOrStartNext(
-        sourceExtended,
-        this.removeFilePrefix(fileUri)
-      );
-    }
-    await this.createDirectoryIfNoExists();
-
-    // Handle local asset files in release mode
-    if (!uri.includes('://')) {
-      const asset = Asset.fromModule(source);
-      const fileUriWithType = `${fileUri}.${asset.type}`;
-      await asset.downloadAsync();
-      if (!asset.localUri) {
-        throw new Error(`Asset local URI is not available for ${source}`);
+    switch (sourceExtended.sourceType) {
+      case SourceType.OBJECT: {
+        return this.returnOrStartNext(
+          sourceExtended,
+          await this.handleObject(source)
+        );
       }
-      await moveAsync({ from: asset.localUri, to: fileUriWithType });
-      return this.returnOrStartNext(
-        sourceExtended,
-        this.removeFilePrefix(fileUriWithType)
-      );
-    }
-
-    // Handle remote file download
-    if (this.downloads.has(source)) {
-      throw new Error('Already downloading this file.');
-    }
-    const cacheFileUri = `${cacheDirectory}${filename}`;
-    const downloadResumable = createDownloadResumable(
-      uri,
-      cacheFileUri,
-      { sessionType: FileSystemSessionType.BACKGROUND },
-      ({ totalBytesWritten, totalBytesExpectedToWrite }) => {
-        sourceExtended.callback(totalBytesWritten / totalBytesExpectedToWrite);
+      case SourceType.LOCAL_FILE: {
+        return this.returnOrStartNext(
+          sourceExtended,
+          this.handleLocalFile(source)
+        );
       }
-    );
-    //create value for the this.download Map
-    const downloadResource: DownloadResource = {
-      downloadResumable: downloadResumable,
-      status: DownloadStatus.ONGOING,
-      uri: uri,
-      fileUri: fileUri,
-      cacheFileUri: cacheFileUri,
-      extendedInfo: sourceExtended,
-    };
-    //add key-value pair to map
-    this.downloads.set(source, downloadResource);
-    const result = await downloadResumable.downloadAsync();
-    if (
-      !this.downloads.has(source) ||
-      this.downloads.get(source)!.status === DownloadStatus.PAUSED
-    ) {
-      // if canceled or paused during the download
-      return null;
+      case SourceType.RELEASE_MODE_FILE: {
+        return this.returnOrStartNext(
+          sourceExtended,
+          await this.handleReleaseModeFile(sourceExtended)
+        );
+      }
+      case SourceType.DEV_MODE_FILE: {
+        const result = await this.handleDevModeFile(sourceExtended);
+        if (result !== null) {
+          return this.returnOrStartNext(sourceExtended, result);
+        }
+        return null;
+      }
+      default: {
+        //case SourceType.REMOTE_FILE
+        const result = await this.handleRemoteFile(sourceExtended);
+        if (result !== null) {
+          return this.returnOrStartNext(sourceExtended, result);
+        }
+        return null;
+      }
     }
-    if (!result || result.status !== 200) {
-      throw new Error(`Failed to fetch resource from '${uri}'`);
-    }
-    await moveAsync({ from: cacheFileUri, to: fileUri });
-    this.downloads.delete(source);
-    this.triggerHuggingFaceDownloadCounter(uri);
-    return this.returnOrStartNext(
-      sourceExtended,
-      this.removeFilePrefix(fileUri)
-    );
   }
 
   //if any download ends successfully this function is called - it checks whether it should trigger next download or return list of paths.
@@ -195,9 +160,9 @@ export class ResourceFetcher {
     if (sources.length === 0) {
       throw new Error('Empty list given as an argument!');
     }
-
     const head: ResourceSourceExtended = {
       source: sources[0]!,
+      sourceType: await this.getType(sources[0]!),
       callback: this.calculateDownloadProgress(sources.length, 0, callback),
       results: [],
     };
@@ -206,6 +171,7 @@ export class ResourceFetcher {
     for (let idx = 1; idx < sources.length; idx++) {
       node.next = {
         source: sources[idx]!,
+        sourceType: await this.getType(sources[idx]!),
         callback: this.calculateDownloadProgress(sources.length, idx, callback),
         results: [],
       };
@@ -250,6 +216,13 @@ export class ResourceFetcher {
       );
     }
     const resource = this.downloads.get(source)!;
+    if (
+      !resource.extendedInfo.fileUri ||
+      !resource.extendedInfo.cacheFileUri ||
+      !resource.extendedInfo.uri
+    ) {
+      throw new Error('Something went wrong. File uri info is not specified!');
+    }
     switch (resource.status) {
       case DownloadStatus.ONGOING:
         throw new Error(
@@ -267,15 +240,20 @@ export class ResourceFetcher {
         }
         if (!result || (result.status !== 200 && result.status !== 206)) {
           //206 error code means "partial content" - expected after resuming.
-          throw new Error(`Failed to fetch resource from '${resource.uri}'`);
+          throw new Error(
+            `Failed to fetch resource from '${resource.extendedInfo.uri}'`
+          );
         }
-        await moveAsync({ from: resource.cacheFileUri, to: resource.fileUri });
+        await moveAsync({
+          from: resource.extendedInfo.cacheFileUri,
+          to: resource.extendedInfo.fileUri,
+        });
         this.downloads.delete(source);
-        this.triggerHuggingFaceDownloadCounter(resource.uri);
+        this.triggerHuggingFaceDownloadCounter(resource.extendedInfo.uri);
 
         return this.returnOrStartNext(
           resource.extendedInfo,
-          this.removeFilePrefix(resource.fileUri)
+          this.removeFilePrefix(resource.extendedInfo.fileUri)
         );
       }
     }
@@ -359,7 +337,28 @@ export class ResourceFetcher {
     return files.filter((file) => file.endsWith('.pte'));
   }
 
-  private static async handleObject(source: object) {
+  private static getType(source: ResourceSource): SourceType {
+    if (typeof source === 'object') {
+      return SourceType.OBJECT;
+    } else if (typeof source === 'number') {
+      const uri = Asset.fromModule(source).uri;
+      if (!uri.includes('://')) {
+        return SourceType.RELEASE_MODE_FILE;
+      }
+      return SourceType.DEV_MODE_FILE;
+    } else {
+      // typeof source == 'string'
+      if (source.startsWith('file:://')) {
+        return SourceType.LOCAL_FILE;
+      }
+      return SourceType.REMOTE_FILE;
+    }
+  }
+
+  private static async handleObject(source: ResourceSource) {
+    if (typeof source !== 'object') {
+      throw new Error('Source is expected to be object!');
+    }
     const jsonString = JSON.stringify(source);
     const digest = this.hashObject(jsonString);
     const filename = `${digest}.json`;
@@ -375,6 +374,109 @@ export class ResourceFetcher {
     });
 
     return this.removeFilePrefix(path);
+  }
+
+  private static handleLocalFile(source: ResourceSource) {
+    if (typeof source !== 'string') {
+      throw new Error('Source is expected to be string.');
+    }
+    return this.removeFilePrefix(source);
+  }
+
+  private static async handleReleaseModeFile(
+    sourceExtended: ResourceSourceExtended
+  ) {
+    const source = sourceExtended.source;
+    if (typeof source !== 'number') {
+      throw new Error('Source is expected to be string.');
+    }
+    const asset = Asset.fromModule(source);
+    const uri = asset.uri;
+    const filename = this.getFilenameFromUri(uri);
+    const fileUri = `${RNEDirectory}${filename}`;
+    const fileUriWithType = `${fileUri}.${asset.type}`;
+    if (await this.checkFileExists(fileUri)) {
+      return this.removeFilePrefix(fileUri);
+    }
+    await this.createDirectoryIfNoExists();
+    await asset.downloadAsync();
+    if (!asset.localUri) {
+      throw new Error(`Asset local URI is not available for ${source}`);
+    }
+    await moveAsync({ from: asset.localUri, to: fileUriWithType });
+    return this.removeFilePrefix(fileUriWithType);
+  }
+
+  private static async handleDevModeFile(
+    sourceExtended: ResourceSourceExtended
+  ) {
+    const source = sourceExtended.source;
+    if (typeof source !== 'number') {
+      throw new Error('Source is expected to be a number.');
+    }
+    sourceExtended.uri = Asset.fromModule(source).uri;
+    return await this.handleRemoteFile(sourceExtended);
+  }
+
+  private static async handleRemoteFile(
+    sourceExtended: ResourceSourceExtended
+  ) {
+    const source = sourceExtended.source;
+    if (typeof source === 'object') {
+      throw new Error('Source is expected to be a string or a number.');
+    }
+    if (this.downloads.has(source)) {
+      throw new Error('Already downloading this file.');
+    }
+    if (typeof source === 'number' && !sourceExtended.uri) {
+      throw new Error('Source Uri is expected to be available here.');
+    }
+    if (typeof source === 'string') {
+      sourceExtended.uri = source;
+    }
+    const uri = sourceExtended.uri!;
+    const filename = this.getFilenameFromUri(uri);
+    sourceExtended.fileUri = `${RNEDirectory}${filename}`;
+    sourceExtended.cacheFileUri = `${cacheDirectory}${filename}`;
+
+    if (await this.checkFileExists(sourceExtended.fileUri)) {
+      return this.removeFilePrefix(sourceExtended.fileUri);
+    }
+
+    const downloadResumable = createDownloadResumable(
+      uri,
+      sourceExtended.cacheFileUri,
+      { sessionType: FileSystemSessionType.BACKGROUND },
+      ({ totalBytesWritten, totalBytesExpectedToWrite }) => {
+        sourceExtended.callback!(totalBytesWritten / totalBytesExpectedToWrite);
+      }
+    );
+    //create value for the this.download Map
+    const downloadResource: DownloadResource = {
+      downloadResumable: downloadResumable,
+      status: DownloadStatus.ONGOING,
+      extendedInfo: sourceExtended,
+    };
+    //add key-value pair to map
+    this.downloads.set(source, downloadResource);
+    const result = await downloadResumable.downloadAsync();
+    if (
+      !this.downloads.has(source) ||
+      this.downloads.get(source)!.status === DownloadStatus.PAUSED
+    ) {
+      // if canceled or paused during the download
+      return null;
+    }
+    if (!result || result.status !== 200) {
+      throw new Error(`Failed to fetch resource from '${source}'`);
+    }
+    await moveAsync({
+      from: sourceExtended.cacheFileUri,
+      to: sourceExtended.fileUri,
+    });
+    this.downloads.delete(source);
+    this.triggerHuggingFaceDownloadCounter(uri);
+    return this.removeFilePrefix(sourceExtended.fileUri);
   }
 
   private static getFilenameFromUri(uri: string) {
