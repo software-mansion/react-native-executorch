@@ -21,37 +21,10 @@
 		5576B4B72CEF9709005027B7 /* ETModel.h in Headers */ = {isa = PBXBuildFile; fileRef = 5576B4B62CEF9705005027B7 /* ETModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5576B4B92CEF970E005027B7 /* ETModel.mm in Sources */ = {isa = PBXBuildFile; fileRef = 5576B4B82CEF970C005027B7 /* ETModel.mm */; };
 		558699BB2D8AD562004180E5 /* re2.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5576B49E2CEF76CC005027B7 /* re2.xcframework */; };
-		55A815F22D9D40680075A106 /* irunner.h in Headers */ = {isa = PBXBuildFile; fileRef = 55A815F12D9D40680075A106 /* irunner.h */; };
 		55DEEA382D05ABBB004422A3 /* InputType.h in Headers */ = {isa = PBXBuildFile; fileRef = 55DEEA372D05ABB4004422A3 /* InputType.h */; };
-		55DEEBF02D8C45960033DBBA /* HuggingFaceTokenizer.h in Headers */ = {isa = PBXBuildFile; fileRef = 55DEEBEF2D8C458F0033DBBA /* HuggingFaceTokenizer.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		55DEEBF22D8C459A0033DBBA /* HuggingFaceTokenizer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 55DEEBF12D8C45990033DBBA /* HuggingFaceTokenizer.mm */; };
-		55EA2C3F2CB90C7A004315B3 /* runner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 55EA2C262CB90C7A004315B3 /* runner.cpp */; };
-		55EA2C402CB90C7A004315B3 /* runner.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C272CB90C7A004315B3 /* runner.h */; };
-		55EA2C412CB90C7A004315B3 /* stats.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C282CB90C7A004315B3 /* stats.h */; };
-		55EA2C422CB90C7A004315B3 /* text_decoder_runner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 55EA2C292CB90C7A004315B3 /* text_decoder_runner.cpp */; };
-		55EA2C432CB90C7A004315B3 /* text_decoder_runner.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C2A2CB90C7A004315B3 /* text_decoder_runner.h */; };
-		55EA2C442CB90C7A004315B3 /* text_prefiller.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 55EA2C2B2CB90C7A004315B3 /* text_prefiller.cpp */; };
-		55EA2C452CB90C7A004315B3 /* text_prefiller.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C2C2CB90C7A004315B3 /* text_prefiller.h */; };
-		55EA2C462CB90C7A004315B3 /* text_token_generator.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C2D2CB90C7A004315B3 /* text_token_generator.h */; };
-		55EA2C472CB90C7A004315B3 /* util.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C2E2CB90C7A004315B3 /* util.h */; };
-		55EA2C482CB90C7A004315B3 /* sampler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 55EA2C302CB90C7A004315B3 /* sampler.cpp */; };
-		55EA2C492CB90C7A004315B3 /* sampler.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C312CB90C7A004315B3 /* sampler.h */; };
-		55EA2C4B2CB90C7A004315B3 /* LLaMARunner.mm in Sources */ = {isa = PBXBuildFile; fileRef = 55EA2C342CB90C7A004315B3 /* LLaMARunner.mm */; };
-		55EA2C4C2CB90C7A004315B3 /* base64.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C362CB90C7A004315B3 /* base64.h */; };
-		55EA2C4D2CB90C7A004315B3 /* bpe_tokenizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 55EA2C372CB90C7A004315B3 /* bpe_tokenizer.cpp */; };
-		55EA2C4E2CB90C7A004315B3 /* bpe_tokenizer.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C382CB90C7A004315B3 /* bpe_tokenizer.h */; };
-		55EA2C4F2CB90C7A004315B3 /* llama_tiktoken.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 55EA2C392CB90C7A004315B3 /* llama_tiktoken.cpp */; };
-		55EA2C502CB90C7A004315B3 /* llama_tiktoken.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C3A2CB90C7A004315B3 /* llama_tiktoken.h */; };
-		55EA2C512CB90C7A004315B3 /* tiktoken.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 55EA2C3B2CB90C7A004315B3 /* tiktoken.cpp */; };
-		55EA2C522CB90C7A004315B3 /* tiktoken.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C3C2CB90C7A004315B3 /* tiktoken.h */; };
-		55EA2C532CB90C7A004315B3 /* tokenizer.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C3D2CB90C7A004315B3 /* tokenizer.h */; };
-		55EA2C542CB90E70004315B3 /* LLaMARunner.h in Headers */ = {isa = PBXBuildFile; fileRef = 55EA2C332CB90C7A004315B3 /* LLaMARunner.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		55EA2C572CB90E7D004315B3 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C562CB90E7D004315B3 /* Accelerate.framework */; };
 		55EA2C592CB90E80004315B3 /* CoreML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C582CB90E80004315B3 /* CoreML.framework */; };
 		55EA2C5B2CB90E85004315B3 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C5A2CB90E85004315B3 /* libsqlite3.tbd */; };
-		8CDA5FC02D68AB25005C1B75 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8CDA5FBE2D68AB0F005C1B75 /* Metal.framework */; };
-		8CDA5FC32D68AB25005C1B75 /* MetalPerformanceShaders.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8CDA5FC12D68AB25005C1B75 /* MetalPerformanceShaders.framework */; };
-		8CDA5FC42D68AB25005C1B75 /* MetalPerformanceShadersGraph.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8CDA5FC22D68AB25005C1B75 /* MetalPerformanceShadersGraph.framework */; };
 		A851C4072CF9F1B600424E93 /* Utils.hpp in Headers */ = {isa = PBXBuildFile; fileRef = A851C4042CF9F1B600424E93 /* Utils.hpp */; };
 /* End PBXBuildFile section */
 
@@ -70,39 +43,11 @@
 		5576B49E2CEF76CC005027B7 /* re2.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = re2.xcframework; path = frameworks/re2.xcframework; sourceTree = "<group>"; };
 		5576B4B62CEF9705005027B7 /* ETModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ETModel.h; sourceTree = "<group>"; };
 		5576B4B82CEF970C005027B7 /* ETModel.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ETModel.mm; sourceTree = "<group>"; };
-		55A815F12D9D40680075A106 /* irunner.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = irunner.h; sourceTree = "<group>"; };
 		55DEEA372D05ABB4004422A3 /* InputType.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InputType.h; sourceTree = "<group>"; };
-		55DEEBEF2D8C458F0033DBBA /* HuggingFaceTokenizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HuggingFaceTokenizer.h; sourceTree = "<group>"; };
-		55DEEBF12D8C45990033DBBA /* HuggingFaceTokenizer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = HuggingFaceTokenizer.mm; sourceTree = "<group>"; };
 		55EA2C1C2CB90C22004315B3 /* ExecutorchLib.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ExecutorchLib.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		55EA2C262CB90C7A004315B3 /* runner.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = runner.cpp; sourceTree = "<group>"; };
-		55EA2C272CB90C7A004315B3 /* runner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = runner.h; sourceTree = "<group>"; };
-		55EA2C282CB90C7A004315B3 /* stats.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stats.h; sourceTree = "<group>"; };
-		55EA2C292CB90C7A004315B3 /* text_decoder_runner.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = text_decoder_runner.cpp; sourceTree = "<group>"; };
-		55EA2C2A2CB90C7A004315B3 /* text_decoder_runner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = text_decoder_runner.h; sourceTree = "<group>"; };
-		55EA2C2B2CB90C7A004315B3 /* text_prefiller.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = text_prefiller.cpp; sourceTree = "<group>"; };
-		55EA2C2C2CB90C7A004315B3 /* text_prefiller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = text_prefiller.h; sourceTree = "<group>"; };
-		55EA2C2D2CB90C7A004315B3 /* text_token_generator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = text_token_generator.h; sourceTree = "<group>"; };
-		55EA2C2E2CB90C7A004315B3 /* util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = util.h; sourceTree = "<group>"; };
-		55EA2C302CB90C7A004315B3 /* sampler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sampler.cpp; sourceTree = "<group>"; };
-		55EA2C312CB90C7A004315B3 /* sampler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sampler.h; sourceTree = "<group>"; };
-		55EA2C332CB90C7A004315B3 /* LLaMARunner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LLaMARunner.h; sourceTree = "<group>"; };
-		55EA2C342CB90C7A004315B3 /* LLaMARunner.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = LLaMARunner.mm; sourceTree = "<group>"; };
-		55EA2C362CB90C7A004315B3 /* base64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = base64.h; sourceTree = "<group>"; };
-		55EA2C372CB90C7A004315B3 /* bpe_tokenizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = bpe_tokenizer.cpp; sourceTree = "<group>"; };
-		55EA2C382CB90C7A004315B3 /* bpe_tokenizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bpe_tokenizer.h; sourceTree = "<group>"; };
-		55EA2C392CB90C7A004315B3 /* llama_tiktoken.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = llama_tiktoken.cpp; sourceTree = "<group>"; };
-		55EA2C3A2CB90C7A004315B3 /* llama_tiktoken.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = llama_tiktoken.h; sourceTree = "<group>"; };
-		55EA2C3B2CB90C7A004315B3 /* tiktoken.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tiktoken.cpp; sourceTree = "<group>"; };
-		55EA2C3C2CB90C7A004315B3 /* tiktoken.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tiktoken.h; sourceTree = "<group>"; };
-		55EA2C3D2CB90C7A004315B3 /* tokenizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tokenizer.h; sourceTree = "<group>"; };
 		55EA2C562CB90E7D004315B3 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		55EA2C582CB90E80004315B3 /* CoreML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreML.framework; path = System/Library/Frameworks/CoreML.framework; sourceTree = SDKROOT; };
 		55EA2C5A2CB90E85004315B3 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
-		8CDA5FBE2D68AB0F005C1B75 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
-		8CDA5FC12D68AB25005C1B75 /* MetalPerformanceShaders.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalPerformanceShaders.framework; path = System/Library/Frameworks/MetalPerformanceShaders.framework; sourceTree = SDKROOT; };
-		8CDA5FC22D68AB25005C1B75 /* MetalPerformanceShadersGraph.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalPerformanceShadersGraph.framework; path = System/Library/Frameworks/MetalPerformanceShadersGraph.framework; sourceTree = SDKROOT; };
-		A84198832D02DF29006D4D5E /* InputType.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InputType.h; sourceTree = "<group>"; };
 		A851C4042CF9F1B600424E93 /* Utils.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Utils.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -154,66 +99,18 @@
 			children = (
 				55DEEA372D05ABB4004422A3 /* InputType.h */,
 				55EA2C352CB90C7A004315B3 /* Exported */,
-				55EA2C2F2CB90C7A004315B3 /* runner */,
-				55EA2C322CB90C7A004315B3 /* sampler */,
-				55EA2C3E2CB90C7A004315B3 /* tokenizer */,
 				A851C4042CF9F1B600424E93 /* Utils.hpp */,
 			);
 			path = ExecutorchLib;
 			sourceTree = "<group>";
 		};
-		55EA2C2F2CB90C7A004315B3 /* runner */ = {
-			isa = PBXGroup;
-			children = (
-				55A815F12D9D40680075A106 /* irunner.h */,
-				55EA2C262CB90C7A004315B3 /* runner.cpp */,
-				55EA2C272CB90C7A004315B3 /* runner.h */,
-				55EA2C282CB90C7A004315B3 /* stats.h */,
-				55EA2C292CB90C7A004315B3 /* text_decoder_runner.cpp */,
-				55EA2C2A2CB90C7A004315B3 /* text_decoder_runner.h */,
-				55EA2C2B2CB90C7A004315B3 /* text_prefiller.cpp */,
-				55EA2C2C2CB90C7A004315B3 /* text_prefiller.h */,
-				55EA2C2D2CB90C7A004315B3 /* text_token_generator.h */,
-				55EA2C2E2CB90C7A004315B3 /* util.h */,
-			);
-			path = runner;
-			sourceTree = "<group>";
-		};
-		55EA2C322CB90C7A004315B3 /* sampler */ = {
-			isa = PBXGroup;
-			children = (
-				55EA2C302CB90C7A004315B3 /* sampler.cpp */,
-				55EA2C312CB90C7A004315B3 /* sampler.h */,
-			);
-			path = sampler;
-			sourceTree = "<group>";
-		};
 		55EA2C352CB90C7A004315B3 /* Exported */ = {
 			isa = PBXGroup;
 			children = (
-				55DEEBF12D8C45990033DBBA /* HuggingFaceTokenizer.mm */,
-				55DEEBEF2D8C458F0033DBBA /* HuggingFaceTokenizer.h */,
 				5576B4B82CEF970C005027B7 /* ETModel.mm */,
 				5576B4B62CEF9705005027B7 /* ETModel.h */,
-				55EA2C332CB90C7A004315B3 /* LLaMARunner.h */,
-				55EA2C342CB90C7A004315B3 /* LLaMARunner.mm */,
 			);
 			path = Exported;
-			sourceTree = "<group>";
-		};
-		55EA2C3E2CB90C7A004315B3 /* tokenizer */ = {
-			isa = PBXGroup;
-			children = (
-				55EA2C362CB90C7A004315B3 /* base64.h */,
-				55EA2C372CB90C7A004315B3 /* bpe_tokenizer.cpp */,
-				55EA2C382CB90C7A004315B3 /* bpe_tokenizer.h */,
-				55EA2C392CB90C7A004315B3 /* llama_tiktoken.cpp */,
-				55EA2C3A2CB90C7A004315B3 /* llama_tiktoken.h */,
-				55EA2C3B2CB90C7A004315B3 /* tiktoken.cpp */,
-				55EA2C3C2CB90C7A004315B3 /* tiktoken.h */,
-				55EA2C3D2CB90C7A004315B3 /* tokenizer.h */,
-			);
-			path = tokenizer;
 			sourceTree = "<group>";
 		};
 		55EA2C552CB90E7D004315B3 /* Frameworks */ = {
@@ -245,24 +142,9 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				55EA2C542CB90E70004315B3 /* LLaMARunner.h in Headers */,
 				5576B4B72CEF9709005027B7 /* ETModel.h in Headers */,
-				55DEEBF02D8C45960033DBBA /* HuggingFaceTokenizer.h in Headers */,
-				55EA2C532CB90C7A004315B3 /* tokenizer.h in Headers */,
 				55DEEA382D05ABBB004422A3 /* InputType.h in Headers */,
-				55EA2C412CB90C7A004315B3 /* stats.h in Headers */,
-				55EA2C4E2CB90C7A004315B3 /* bpe_tokenizer.h in Headers */,
-				55EA2C402CB90C7A004315B3 /* runner.h in Headers */,
-				55A815F22D9D40680075A106 /* irunner.h in Headers */,
-				55EA2C432CB90C7A004315B3 /* text_decoder_runner.h in Headers */,
-				55EA2C492CB90C7A004315B3 /* sampler.h in Headers */,
-				55EA2C4C2CB90C7A004315B3 /* base64.h in Headers */,
-				55EA2C452CB90C7A004315B3 /* text_prefiller.h in Headers */,
-				55EA2C522CB90C7A004315B3 /* tiktoken.h in Headers */,
-				55EA2C502CB90C7A004315B3 /* llama_tiktoken.h in Headers */,
-				55EA2C472CB90C7A004315B3 /* util.h in Headers */,
 				A851C4072CF9F1B600424E93 /* Utils.hpp in Headers */,
-				55EA2C462CB90C7A004315B3 /* text_token_generator.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -361,16 +243,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				55EA2C482CB90C7A004315B3 /* sampler.cpp in Sources */,
-				55EA2C3F2CB90C7A004315B3 /* runner.cpp in Sources */,
-				55EA2C422CB90C7A004315B3 /* text_decoder_runner.cpp in Sources */,
-				55EA2C4D2CB90C7A004315B3 /* bpe_tokenizer.cpp in Sources */,
-				55EA2C4F2CB90C7A004315B3 /* llama_tiktoken.cpp in Sources */,
 				5576B4B92CEF970E005027B7 /* ETModel.mm in Sources */,
-				55EA2C442CB90C7A004315B3 /* text_prefiller.cpp in Sources */,
-				55EA2C512CB90C7A004315B3 /* tiktoken.cpp in Sources */,
-				55DEEBF22D8C459A0033DBBA /* HuggingFaceTokenizer.mm in Sources */,
-				55EA2C4B2CB90C7A004315B3 /* LLaMARunner.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
