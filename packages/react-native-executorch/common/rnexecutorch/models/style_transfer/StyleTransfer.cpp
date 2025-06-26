@@ -5,8 +5,6 @@
 #include <executorch/extension/tensor/tensor.h>
 #include <opencv2/opencv.hpp>
 
-#include "../../Log.h"
-
 namespace rnexecutorch {
 using namespace facebook;
 using executorch::extension::TensorPtr;
@@ -16,12 +14,6 @@ StyleTransfer::StyleTransfer(const std::string &modelSource,
                              std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
   auto inputShapes = getAllInputShapes();
-  auto myVector2 = std::pair<std::vector<int>, std::vector<int>>{
-      std::vector<int>{1, 2, 3}, std::vector<int>{4, 5}};
-  // auto myMap = std::map<int, std::pair<int, float>>{{1, {1, 2}}, {2, {3,
-  // 4}}}; auto myTuple = std::make_tuple(1, 2.5, "hello", 'a'); auto myVector =
-  // std::vector<std::vector<int>>(1000, std::vector<int>(3, 7));
-  log(LOG_LEVEL::Info, "Test tuple: ", myVector2);
   if (inputShapes.size() == 0) {
     throw std::runtime_error("Model seems to not take any input tensors.");
   }
