@@ -17,7 +17,6 @@ LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
   if (loadResult != Error::Ok) {
     throw std::runtime_error("Failed to load LLM runner");
   }
-  // TODO: unify the naming with BaseModel.cpp
   memorySizeLowerBound =
       std::filesystem::file_size(std::filesystem::path(modelSource)) +
       std::filesystem::file_size(std::filesystem::path(tokenizerSource));
