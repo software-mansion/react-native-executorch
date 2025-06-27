@@ -13,9 +13,9 @@ import {
 import SendIcon from '../../assets/icons/send_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {
-  LLAMA3_2_1B_QLORA,
-  LLAMA3_2_TOKENIZER,
-  LLAMA3_2_TOKENIZER_CONFIG,
+  QWEN3_4B_QUANTIZED,
+  QWEN3_TOKENIZER,
+  QWEN3_TOKENIZER_CONFIG,
   useLLM,
 } from 'react-native-executorch';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
@@ -23,6 +23,8 @@ import ColorPalette from '../../colors';
 import Messages from '../../components/Messages';
 import { useIsFocused } from '@react-navigation/native';
 import { GeneratingContext } from '../../context';
+import { Schema } from 'jsonschema';
+import { getStructuredOutputPrompt } from '../../../../packages/react-native-executorch/src/utils/llm';
 
 export default function LLMScreenWrapper() {
   const isFocused = useIsFocused();
@@ -37,20 +39,55 @@ function LLMScreen() {
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   const llm = useLLM({
-    modelSource: LLAMA3_2_1B_QLORA,
-    tokenizerSource: LLAMA3_2_TOKENIZER,
-    tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
+    modelSource: QWEN3_4B_QUANTIZED,
+    tokenizerSource: QWEN3_TOKENIZER,
+    tokenizerConfigSource: QWEN3_TOKENIZER_CONFIG,
   });
+
+  useEffect(() => {
+    setGlobalGenerating(llm.isGenerating);
+  }, [llm.isGenerating, setGlobalGenerating]);
+
+  const { configure } = llm;
+  useEffect(() => {
+    const responseSchema: Schema = {
+      properties: {
+        username: {
+          type: 'string',
+          description: 'Name of user, that is asking a question.',
+        },
+        question: {
+          type: 'string',
+          description: 'Question that user asks.',
+        },
+        bid: {
+          type: 'number',
+          description: 'Amount of money, that user offers.',
+        },
+        currency: {
+          type: 'string',
+          description: 'Currency of offer.',
+        },
+      },
+      required: ['username', 'bid'],
+    };
+    // const responseSchema: z.object() // TODO
+    const formattingInstructions = getStructuredOutputPrompt(responseSchema);
+    const prompt = `Your goal is to parse user's messages and return them in JSON format. Don't respond to user. Simply return JSON with user's question parsed. \n${formattingInstructions}\n /no_think`;
+    console.log('PROMPT:', prompt);
+
+    configure({
+      chatConfig: {
+        systemPrompt: prompt,
+      },
+    });
+  }, [configure]);
 
   useEffect(() => {
     if (llm.error) {
       console.log('LLM error:', llm.error);
     }
   }, [llm.error]);
-
-  useEffect(() => {
-    setGlobalGenerating(llm.isGenerating);
-  }, [llm.isGenerating, setGlobalGenerating]);
 
   const sendMessage = async () => {
     setUserInput('');
@@ -72,7 +109,6 @@ function LLMScreen() {
       <KeyboardAvoidingView
         style={{
           ...styles.container,
-          paddingBottom: Platform.OS === 'android' ? 20 : 0,
         }}
         collapsable={false}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -92,7 +128,8 @@ function LLMScreen() {
             <View style={styles.helloMessageContainer}>
               <Text style={styles.helloText}>Hello! 👋</Text>
               <Text style={styles.bottomHelloText}>
-                What can I help you with?
+                I can parse user's questions! Introduce yourself, ask questions
+                and offer a price for some product.
               </Text>
             </View>
           )}
@@ -108,7 +145,7 @@ function LLMScreen() {
                   ? ColorPalette.blueDark
                   : ColorPalette.blueLight,
               }}
-              placeholder="Your message"
+              placeholder="Your message e.g. I'm John. Is this product damaged? I can give you $100 for this."
               placeholderTextColor={'#C1C6E5'}
               multiline={true}
               ref={textInputRef}
@@ -139,7 +176,7 @@ function LLMScreen() {
 
 const styles = StyleSheet.create({
   keyboardAvoidingView: { flex: 1 },
-  container: { flex: 1 },
+  container: { flex: 1, paddingBottom: Platform.OS === 'android' ? 20 : 0 },
   chatContainer: { flex: 10, width: '100%' },
   helloMessageContainer: {
     flex: 10,

@@ -65,6 +65,7 @@ export * from './modules/natural_language_processing/TokenizerModule';
 
 // utils
 export * from './utils/ResourceFetcher';
+export * from './utils/llm';
 
 // types
 export * from './types/objectDetection';

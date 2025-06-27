@@ -213,6 +213,7 @@ const styles = StyleSheet.create({
     fontFamily: 'regular',
     fontSize: 20,
     lineHeight: 28,
+    textAlign: 'center',
     color: ColorPalette.primary,
   },
   bottomContainer: {
