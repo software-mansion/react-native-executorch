@@ -83,11 +83,6 @@ public:
           "interrupt"));
 
       addFunctions(
-          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                              promiseHostFunction<&Model::getMemoryLowerBound>,
-                              "getMemoryLowerBound"));
-
-      addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }
   }
