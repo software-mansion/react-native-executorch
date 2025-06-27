@@ -28,6 +28,7 @@ class RnExecutorchPackage : TurboReactPackage() {
 
   override fun getReactModuleInfoProvider(): ReactModuleInfoProvider =
     ReactModuleInfoProvider {
+      val moduleInfos: MutableMap<String, ReactModuleInfo> = HashMap()
       moduleInfos[SpeechToText.NAME] =
         ReactModuleInfo(
           SpeechToText.NAME,
