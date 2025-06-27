@@ -16,7 +16,7 @@
 #include <rnexecutorch/metaprogramming/FunctionHelpers.h>
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
 #include <rnexecutorch/models/BaseModel.h>
-#include <rnexecutorch/models/llm/Runner.h>
+#include <rnexecutorch/models/llm/LLM.h>
 
 namespace rnexecutorch {
 

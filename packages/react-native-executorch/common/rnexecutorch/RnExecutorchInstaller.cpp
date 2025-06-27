@@ -5,7 +5,7 @@
 #include <rnexecutorch/models/classification/Classification.h>
 #include <rnexecutorch/models/image_embeddings/ImageEmbeddings.h>
 #include <rnexecutorch/models/image_segmentation/ImageSegmentation.h>
-#include <rnexecutorch/models/llm/Runner.h>
+#include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/object_detection/ObjectDetection.h>
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
 #include <rnexecutorch/models/text_embeddings/TextEmbeddings.h>
