@@ -69,6 +69,14 @@ export default function _layout() {
           }}
         />
         <Drawer.Screen
+          name="llm_structured_output/index"
+          options={{
+            drawerLabel: 'LLM Structured Output',
+            title: 'LLM Structured Output',
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
+        <Drawer.Screen
           name="voice_chat/index"
           options={{
             drawerLabel: 'Voice Chat',
