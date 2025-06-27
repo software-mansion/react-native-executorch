@@ -2,7 +2,6 @@ import { Platform } from 'react-native';
 import { Spec as OCRInterface } from './NativeOCR';
 import { Spec as VerticalOCRInterface } from './NativeVerticalOCR';
 import { Spec as SpeechToTextInterface } from './NativeSpeechToText';
-import { Spec as LLMInterface } from './NativeLLM';
 import { Spec as ETInstallerInterface } from './NativeETInstaller';
 
 const LINKING_ERROR =
@@ -24,9 +23,6 @@ function returnSpecOrThrowLinkingError(spec: any) {
       );
 }
 
-const LLMNativeModule: LLMInterface = returnSpecOrThrowLinkingError(
-  require('./NativeLLM').default
-);
 const SpeechToTextNativeModule: SpeechToTextInterface =
   returnSpecOrThrowLinkingError(require('./NativeSpeechToText').default);
 const OCRNativeModule: OCRInterface = returnSpecOrThrowLinkingError(
@@ -38,7 +34,6 @@ const ETInstallerNativeModule: ETInstallerInterface =
   returnSpecOrThrowLinkingError(require('./NativeETInstaller').default);
 
 export {
-  LLMNativeModule,
   SpeechToTextNativeModule,
   OCRNativeModule,
   VerticalOCRNativeModule,

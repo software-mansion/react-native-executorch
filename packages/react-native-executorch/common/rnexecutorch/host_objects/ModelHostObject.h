@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <string>
 #include <tuple>
+#include <type_traits>
 #include <vector>
 
 #include <ReactCommon/CallInvoker.h>
@@ -15,6 +16,7 @@
 #include <rnexecutorch/metaprogramming/FunctionHelpers.h>
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
 #include <rnexecutorch/models/BaseModel.h>
+#include <rnexecutorch/models/llm/LLM.h>
 
 namespace rnexecutorch {
 
@@ -70,6 +72,60 @@ public:
                                        promiseHostFunction<&Model::tokenToId>,
                                        "tokenToId"));
     }
+
+    if constexpr (meta::SameAs<Model, LLM>) {
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::generate>,
+                                       "generate"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>, synchronousHostFunction<&Model::interrupt>,
+          "interrupt"));
+
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
+    }
+  }
+
+  // A generic host function that runs synchronously, works analogously to the
+  // generic promise host function.
+  template <auto FnPtr> JSI_HOST_FUNCTION(synchronousHostFunction) {
+    constexpr std::size_t functionArgCount = meta::getArgumentCount(FnPtr);
+    if (functionArgCount != count) {
+      char errorMessage[100];
+      std::snprintf(errorMessage, sizeof(errorMessage),
+                    "Argument count mismatch, was expecting: %zu but got: %zu",
+                    functionArgCount, count);
+      throw jsi::JSError(runtime, errorMessage);
+    }
+
+    try {
+      auto argsConverted = meta::createArgsTupleFromJsi(FnPtr, args, runtime);
+
+      if constexpr (std::is_void_v<decltype(std::apply(
+                        std::bind_front(FnPtr, model), argsConverted))>) {
+        // For void functions, just call the function and return undefined
+        std::apply(std::bind_front(FnPtr, model), std::move(argsConverted));
+        return jsi::Value::undefined();
+      } else {
+        // For non-void functions, capture the result and convert it
+        auto result =
+            std::apply(std::bind_front(FnPtr, model), std::move(argsConverted));
+        return jsiconversion::getJsiValue(std::move(result), runtime);
+      }
+    } catch (const std::runtime_error &e) {
+      // This catch should be merged with the next one
+      // (std::runtime_error inherits from std::exception) HOWEVER react
+      // native has broken RTTI which breaks proper exception type
+      // checking. Remove when the following change is present in our
+      // version:
+      // https://github.com/facebook/react-native/commit/3132cc88dd46f95898a756456bebeeb6c248f20e
+      throw jsi::JSError(runtime, e.what());
+    } catch (const std::exception &e) {
+      throw jsi::JSError(runtime, e.what());
+    } catch (...) {
+      throw jsi::JSError(runtime, "Unknown error in synchronous function");
+    }
   }
 
   // A generic host function that resolves a promise with a result of a
@@ -101,15 +157,28 @@ public:
             std::thread([this, promise,
                          argsConverted = std::move(argsConverted)]() {
               try {
-                auto result = std::apply(std::bind_front(FnPtr, model),
-                                         std::move(argsConverted));
-                // The result is copied. It should either be quickly copiable,
-                // or passed with a shared_ptr.
-                callInvoker->invokeAsync([promise,
-                                          result](jsi::Runtime &runtime) {
-                  promise->resolve(
-                      jsiconversion::getJsiValue(std::move(result), runtime));
-                });
+                if constexpr (std::is_void_v<decltype(std::apply(
+                                  std::bind_front(FnPtr, model),
+                                  argsConverted))>) {
+                  // For void functions, just call the function and resolve with
+                  // undefined
+                  std::apply(std::bind_front(FnPtr, model),
+                             std::move(argsConverted));
+                  callInvoker->invokeAsync([promise](jsi::Runtime &runtime) {
+                    promise->resolve(jsi::Value::undefined());
+                  });
+                } else {
+                  // For non-void functions, capture the result and convert it
+                  auto result = std::apply(std::bind_front(FnPtr, model),
+                                           std::move(argsConverted));
+                  // The result is copied. It should either be quickly copiable,
+                  // or passed with a shared_ptr.
+                  callInvoker->invokeAsync([promise,
+                                            result](jsi::Runtime &runtime) {
+                    promise->resolve(
+                        jsiconversion::getJsiValue(std::move(result), runtime));
+                  });
+                }
               } catch (const std::runtime_error &e) {
                 // This catch should be merged with the next two
                 // (std::runtime_error and jsi::JSError inherits from
