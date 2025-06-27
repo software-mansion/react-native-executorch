@@ -14,11 +14,11 @@ import {
 import { parseToolCall } from '../utils/llm';
 
 export class LLMController {
-  private nativeModule: any; // TODO: type this member
+  private nativeModule: any;
   private chatConfig: ChatConfig = DEFAULT_CHAT_CONFIG;
   private toolsConfig: ToolsConfig | undefined;
   private tokenizerConfig: any;
-  private onToken: any; // TODO: type this member
+  private onToken?: (token: string) => void;
   private _response = '';
   private _isReady = false;
   private _isGenerating = false;
@@ -169,7 +169,7 @@ export class LLMController {
           'You cannot delete the model now. You need to interrupt first.'
       );
     }
-    this.onToken = null;
+    this.onToken = () => {};
     this.nativeModule.unload();
     this.isReadyCallback(false);
     this.isGeneratingCallback(false);
