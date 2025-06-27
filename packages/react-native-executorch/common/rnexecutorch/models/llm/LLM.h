@@ -21,7 +21,7 @@ public:
   std::size_t getMemoryLowerBound();
 
 private:
-  size_t memoryLowerBound;
+  size_t memorySizeLowerBound;
   std::unique_ptr<example::Runner> runner;
   std::shared_ptr<react::CallInvoker> callInvoker;
 };
