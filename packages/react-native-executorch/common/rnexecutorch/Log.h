@@ -3,16 +3,10 @@
 #include <cstdio>
 #include <iostream>
 #include <iterator>
-#include <map>
-#include <queue>
-#include <set>
 #include <sstream>
 #include <tuple>
 #include <type_traits>
-#include <unordered_map>
-#include <unordered_set>
 #include <utility>
-#include <vector>
 
 #ifdef __ANDROID__
 #include <android/log.h>
@@ -21,8 +15,7 @@
 #include <os/log.h>
 #endif
 
-// Replace using this one
-
+namespace low_level_log_implementation {
 namespace concept_detail {
 // ADL-based begin/end detection with backup to standard begin/end
 using std::begin;
@@ -59,8 +52,6 @@ struct has_pop<T, std::void_t<decltype(std::declval<T>().pop())>>
 
 } // namespace concept_detail
 
-namespace log_implementation {
-
 template <typename T>
 concept Iterable = concept_detail::has_begin_end_v<T> && requires(T &t) {
   ++std::declval<decltype(begin(t)) &>(); // Support for increment
@@ -84,47 +75,51 @@ concept Streamable = requires(std::ostream &os, const T &t) {
 
 template <typename T>
   requires Streamable<T>
-void print_element(std::ostream &os, const T &value);
+void printElement(std::ostream &os, const T &value);
 
 template <typename T, typename U>
-void print_element(std::ostream &os, const std::pair<T, U> &p);
+void printElement(std::ostream &os, const std::pair<T, U> &p);
 
 template <typename T>
   requires Iterable<T> && (!Streamable<T>)
-void print_element(std::ostream &os, const T &container);
+void printElement(std::ostream &os, const T &container);
 
 template <typename T>
   requires Sequencable<T>
-void print_element(std::ostream &os, T container);
+void printElement(std::ostream &os, T container);
 
 template <typename... Args>
-void print_element(std::ostream &os, const std::tuple<Args...> &tpl);
+void printElement(std::ostream &os, const std::tuple<Args...> &tpl);
+
+void printElement(std::ostream &os, bool value) {
+  os << (value ? "true" : "false");
+}
 
 template <typename T>
   requires Streamable<T>
-void print_element(std::ostream &os, const T &value) {
+void printElement(std::ostream &os, const T &value) {
   os << value;
 }
 
 template <typename T, typename U>
-void print_element(std::ostream &os, const std::pair<T, U> &p) {
+void printElement(std::ostream &os, const std::pair<T, U> &p) {
   os << "(";
-  print_element(os, p.first);
+  printElement(os, p.first);
   os << ", ";
-  print_element(os, p.second);
+  printElement(os, p.second);
   os << ")";
 }
 
 template <typename T>
   requires Iterable<T> && (!Streamable<T>)
-void print_element(std::ostream &os, const T &container) {
+void printElement(std::ostream &os, const T &container) {
   os << "[";
   auto it = std::begin(container);
   if (it != std::end(container)) {
-    print_element(os, *it++);
+    printElement(os, *it++);
     for (; it != std::end(container); ++it) {
       os << ", ";
-      print_element(os, *it);
+      printElement(os, *it);
     }
   }
   os << "]";
@@ -132,33 +127,30 @@ void print_element(std::ostream &os, const T &container) {
 
 template <typename T>
   requires Sequencable<T>
-void print_element(
+void printElement(
     std::ostream &os,
-    T container) { // pass by value to avoid modifying the original
+    T container) { // Pass by value to prevent modifications to the original
   os << "[";
-  if (!container.empty()) {
+
+  bool isFirst = true;
+  while (!container.empty()) {
+    if (!isFirst) {
+      os << ", ";
+    }
     if constexpr (FrontAccessible<T>) {
-      print_element(os, container.front());
+      printElement(os, container.front());
     } else if constexpr (TopAccessible<T>) {
-      print_element(os, container.top());
+      printElement(os, container.top());
     }
     container.pop();
-
-    while (!container.empty()) {
-      os << ", ";
-      if constexpr (FrontAccessible<T>) {
-        print_element(os, container.front());
-      } else if constexpr (TopAccessible<T>) {
-        print_element(os, container.top());
-      }
-      container.pop();
-    }
+    isFirst = false;
   }
+
   os << "]";
 }
 
 template <typename... Args>
-void print_element(std::ostream &os, const std::tuple<Args...> &tpl) {
+void printElement(std::ostream &os, const std::tuple<Args...> &tpl) {
   os << "<";
   std::apply(
       [&os](const auto &...args) {
@@ -168,7 +160,7 @@ void print_element(std::ostream &os, const std::tuple<Args...> &tpl) {
 
         (
             [&] {
-              print_element(os, args);
+              printElement(os, args);
               if (++count < total) {
                 os << ", ";
               }
@@ -179,7 +171,7 @@ void print_element(std::ostream &os, const std::tuple<Args...> &tpl) {
   os << ">";
 }
 
-} // namespace log_implementation
+} // namespace low_level_log_implementation
 
 namespace rnexecutorch {
 
@@ -200,6 +192,8 @@ enum class LOG_LEVEL {
             problems. */
 };
 
+namespace high_level_log_implementation {
+
 #ifdef __ANDROID__
 android_LogPriority androidLogLevel(LOG_LEVEL logLevel) {
   switch (logLevel) {
@@ -213,7 +207,40 @@ android_LogPriority androidLogLevel(LOG_LEVEL logLevel) {
     return ANDROID_LOG_DEFAULT;
   }
 }
+
+void handleAndroidLog(LOG_LEVEL logLevel, const char *buffrer) {
+  __android_log_print(androidLogLevel(logLevel), "RnExecutorch", "%s", buffrer);
+}
 #endif
+
+#ifdef __APPLE__
+void handleIosLog(LOG_LEVEL logLevel, const char *buffer) {
+  switch (logLevel) {
+  case LOG_LEVEL::Info:
+    os_log_info(OS_LOG_DEFAULT, "%{public}s", buffer);
+    return;
+  case LOG_LEVEL::Error:
+    os_log_error(OS_LOG_DEFAULT, "%{public}s", buffer);
+    return;
+  case LOG_LEVEL::Debug:
+    os_log_debug(OS_LOG_DEFAULT, "%{public}s", buffer);
+    return;
+  }
+}
+#endif
+
+std::string getBuffer(std::ostringstream &oss) {
+  constexpr size_t maxLogMessageSize = 1024;
+  const std::string fullMessage = oss.str();
+  bool isMessageLongerThanLimit = fullMessage.size() > maxLogMessageSize;
+  std::string buffer = fullMessage.substr(0, maxLogMessageSize);
+  if (isMessageLongerThanLimit) {
+    buffer += "...";
+  }
+  return buffer;
+}
+
+} // namespace high_level_log_implementation
 
 /**
  * @brief Logs given data on a console
@@ -228,36 +255,19 @@ android_LogPriority androidLogLevel(LOG_LEVEL logLevel) {
  */
 template <typename... Args> void log(LOG_LEVEL logLevel, const Args &...args) {
   std::ostringstream oss;
-  (log_implementation::print_element(oss, args),
+  (low_level_log_implementation::printElement(oss, args),
    ...); // Fold expression used to handle all arguments
 
-  constexpr size_t log_size = 1024;
-  const std::string full_message = oss.str();
-  bool is_message_longer_than_limit = full_message.size() > log_size;
-  std::string buf = full_message.substr(0, log_size);
-  if (is_message_longer_than_limit) {
-    buf += "...";
-  }
-  const auto cbuf = buf.c_str();
+  const auto buffer = high_level_log_implementation::getBuffer(oss);
+  const auto *cStyleBuffer = buffer.c_str();
 
 #ifdef __ANDROID__
-  __android_log_print(androidLogLevel(logLevel), "RnExecutorch", "%s", cbuf);
+  high_level_log_implementation::handleAndroidLog(logLevel, cStyleBuffer);
 #elif defined(__APPLE__)
-  switch (logLevel) {
-  case LOG_LEVEL::Info:
-    os_log_info(OS_LOG_DEFAULT, "%{public}s", cbuf);
-    break;
-  case LOG_LEVEL::Error:
-    os_log_error(OS_LOG_DEFAULT, "%{public}s", cbuf);
-    break;
-  case LOG_LEVEL::Debug:
-    os_log_debug(OS_LOG_DEFAULT, "%{public}s", cbuf);
-    break;
-  }
+  high_level_log_implementation::handleIosLog(logLevel, cStyleBuffer);
 #else
-  std::cout << cbuf
-            << std::endl; // Default log to cout if none of the above platforms
+  // Default log to cout if none of the above platforms
+  std::cout << cStyleBuffer << std::endl;
 #endif
 }
-
 } // namespace rnexecutorch
