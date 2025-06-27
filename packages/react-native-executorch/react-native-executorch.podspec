@@ -32,9 +32,9 @@ Pod::Spec.new do |s|
       "-force_load \"#{et_binaries_path}\"/libkernels_custom_ios.a", 
       "-force_load \"#{et_binaries_path}\"/libkernels_optimized_ios.a", 
       "-force_load \"#{et_binaries_path}\"/libkernels_quantized_ios.a",
-      "-force_load \"$(PODS_TARGET_SRCROOT)/ios/libs/tokenizers-cpp/physical-arm64-release/libtokenizers_cpp.a\"",
-      "-force_load \"$(PODS_TARGET_SRCROOT)/ios/libs/tokenizers-cpp/physical-arm64-release/libsentencepiece.a\"",
-      "-force_load \"$(PODS_TARGET_SRCROOT)/ios/libs/tokenizers-cpp/physical-arm64-release/libtokenizers_c.a\""
+      "$(PODS_TARGET_SRCROOT)/ios/libs/tokenizers-cpp/physical-arm64-release/libtokenizers_cpp.a\"",
+      "$(PODS_TARGET_SRCROOT)/ios/libs/tokenizers-cpp/physical-arm64-release/libsentencepiece.a\"",
+      "$(PODS_TARGET_SRCROOT)/ios/libs/tokenizers-cpp/physical-arm64-release/libtokenizers_c.a\""
     ].join(' '),
       
     "OTHER_LDFLAGS[sdk=iphonesimulator*][arch=*]" => [
@@ -51,9 +51,9 @@ Pod::Spec.new do |s|
       "-force_load \"#{et_binaries_path}\"/libkernels_custom_simulator.a", 
       "-force_load \"#{et_binaries_path}\"/libkernels_optimized_simulator.a", 
       "-force_load \"#{et_binaries_path}\"/libkernels_quantized_simulator.a",
-      "-force_load \"$(PODS_TARGET_SRCROOT)/ios/libs/tokenizers-cpp/simulator-arm64-debug/libtokenizers_cpp.a\"",
-      "-force_load \"$(PODS_TARGET_SRCROOT)/ios/libs/tokenizers-cpp/simulator-arm64-debug/libsentencepiece.a\"",
-      "-force_load \"$(PODS_TARGET_SRCROOT)/ios/libs/tokenizers-cpp/simulator-arm64-debug/libtokenizers_c.a\""
+      "$(PODS_TARGET_SRCROOT)/ios/libs/tokenizers-cpp/simulator-arm64-debug/libtokenizers_cpp.a\"",
+      "$(PODS_TARGET_SRCROOT)/ios/libs/tokenizers-cpp/simulator-arm64-debug/libsentencepiece.a\"",
+      "$(PODS_TARGET_SRCROOT)/ios/libs/tokenizers-cpp/simulator-arm64-debug/libtokenizers_c.a\""
     ].join(' '),
 
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',
