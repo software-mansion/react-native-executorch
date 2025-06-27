@@ -379,6 +379,113 @@ return (
 );
 ```
 
+### Structured output example
+
+```tsx
+const responseSchema: Schema = {
+  properties: {
+    username: {
+      type: 'string',
+      description: 'Name of user, that is asking a question.',
+    },
+    question: {
+      type: 'string',
+      description: 'Question that user asks.',
+    },
+    bid: {
+      type: 'number',
+      description: 'Amount of money, that user offers.',
+    },
+    currency: {
+      type: 'string',
+      description: 'Currency of offer.',
+    },
+  },
+  required: ['username', 'bid'],
+  type: 'object',
+};
+
+// alternatively use Zod
+import * as z from 'zod/v4';
+const responseSchemaWithZod = z.object({
+  username: z
+    .string()
+    .meta({ description: 'Name of user, that is asking a question.' }),
+  question: z.optional(
+    z.string().meta({ description: 'Question that user asks.' })
+  ),
+  bid: z.number().meta({ description: 'Amount of money, that user offers.' }),
+  currency: z.optional(z.string().meta({ description: 'Currency of offer.' })),
+});
+
+const llm = useLLM({
+  modelSource: QWEN3_4B_QUANTIZED,
+  tokenizerSource: QWEN3_TOKENIZER,
+  tokenizerConfigSource: QWEN3_TOKENIZER_CONFIG,
+});
+
+useEffect(() => {
+  const formattingInstructions = getStructuredOutputPrompt(responseSchema);
+  // alternatively pass schema defined with Zod
+  //  const formattingInstructions = getStructuredOutputPrompt(responseSchemaWithZod);
+
+  // Some extra prompting to improve quality of response.
+  const prompt = `Your goal is to parse user's messages and return them in JSON format. Don't respond to user. Simply return JSON with user's question parsed. \n${formattingInstructions}\n /no_think`;
+
+  configure({
+    chatConfig: {
+      systemPrompt: prompt,
+    },
+  });
+}, []);
+
+useEffect(() => {
+  const lastMessage = llm.messageHistory.at(-1);
+  if (!llm.isGenerating && lastMessage?.role === 'assistant') {
+    try {
+      const formattedOutput = fixAndValidateStructuredOutput(
+        lastMessage.content,
+        responseSchemaWithZod
+      );
+      // Zod will allow you to correctly type output
+      const formattedOutputWithZod = fixAndValidateStructuredOutput(
+        lastMessage.content,
+        responseSchema
+      );
+      console.log('Formatted output:', formattedOutput, formattedOutputWithZod);
+    } catch (e) {
+      console.log(
+        "Error parsing output and/or output doesn't match required schema!",
+        e
+      );
+    }
+  }
+}, [llm.messageHistory, llm.isGenerating]);
+
+const send = () => {
+  const message = `I'm John. Is this product damaged? I can give you $100 for this.`;
+  llm.sendMessage(message);
+};
+
+return (
+  <View>
+    <Button onPress={send} title="Generate!" />
+    <Text>{llm.response}</Text>
+  </View>
+);
+```
+
+The response should include JSON:
+
+```json
+{
+  "username": "John",
+  "question": "Is this product damaged?",
+  "bid": 100,
+  "currency": "USD"
+}
+```
+
 ## Available models
 
 | Model Family                                                                             |      Sizes       | Quantized |

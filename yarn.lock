@@ -9628,6 +9628,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jsonrepair@npm:^3.12.0":
+  version: 3.12.0
+  resolution: "jsonrepair@npm:3.12.0"
+  bin:
+    jsonrepair: bin/cli.js
+  checksum: 10/eadbe606a08385cf81dfc9233620826b959d00b6ea69d78fe74a802ed1b6d4000222450617c67e97389003f8f75c02e0fccbf11ba3c8cd0a7cdec1619fb29ce7
+  languageName: node
+  linkType: hard
+
+"jsonschema@npm:^1.5.0":
+  version: 1.5.0
+  resolution: "jsonschema@npm:1.5.0"
+  checksum: 10/46bf49b388ba922073bcb3c8d5e90af9d29fc8303dc866fd440182c88d6b4fd2807679fd39cdefb4113156d104ea47da9c0ff4bbcb0032c9fa29461cb1a92182
+  languageName: node
+  linkType: hard
+
 "jsx-ast-utils@npm:^2.4.1 || ^3.0.0":
   version: 3.3.5
   resolution: "jsx-ast-utils@npm:3.3.5"
@@ -12557,10 +12573,13 @@ __metadata:
     expo-asset: "npm:~11.1.5"
     expo-file-system: "npm:~18.1.10"
     jest: "npm:^29.7.0"
+    jsonrepair: "npm:^3.12.0"
+    jsonschema: "npm:^1.5.0"
     metro-react-native-babel-preset: "npm:^0.77.0"
     react: "npm:19.0.0"
     react-native: "npm:0.79.2"
     react-native-builder-bob: "npm:^0.30.2"
+    zod: "npm:^3.25.0"
   peerDependencies:
     react: "*"
     react-native: "*"
@@ -15023,5 +15042,12 @@ __metadata:
   version: 0.1.0
   resolution: "yocto-queue@npm:0.1.0"
   checksum: 10/f77b3d8d00310def622123df93d4ee654fc6a0096182af8bd60679ddcdfb3474c56c6c7190817c84a2785648cdee9d721c0154eb45698c62176c322fb46fc700
+  languageName: node
+  linkType: hard
+
+"zod@npm:^3.25.0":
+  version: 3.25.67
+  resolution: "zod@npm:3.25.67"
+  checksum: 10/0e35432dcca7f053e63f5dd491a87c78abe0d981817547252c3b6d05f0f58788695d1a69724759c6501dff3fd62929be24c9f314a3625179bee889150f7a61fa
   languageName: node
   linkType: hard
