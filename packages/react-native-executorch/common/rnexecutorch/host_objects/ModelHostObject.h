@@ -101,9 +101,18 @@ public:
 
     try {
       auto argsConverted = meta::createArgsTupleFromJsi(FnPtr, args, runtime);
-      auto result =
-          std::apply(std::bind_front(FnPtr, model), std::move(argsConverted));
-      return jsiconversion::getJsiValue(std::move(result), runtime);
+
+      if constexpr (std::is_void_v<decltype(std::apply(
+                        std::bind_front(FnPtr, model), argsConverted))>) {
+        // For void functions, just call the function and return undefined
+        std::apply(std::bind_front(FnPtr, model), std::move(argsConverted));
+        return jsi::Value::undefined();
+      } else {
+        // For non-void functions, capture the result and convert it
+        auto result =
+            std::apply(std::bind_front(FnPtr, model), std::move(argsConverted));
+        return jsiconversion::getJsiValue(std::move(result), runtime);
+      }
     } catch (const std::runtime_error &e) {
       // This catch should be merged with the next one
       // (std::runtime_error inherits from std::exception) HOWEVER react
