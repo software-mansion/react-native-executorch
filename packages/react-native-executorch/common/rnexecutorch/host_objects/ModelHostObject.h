@@ -78,9 +78,9 @@ public:
                                        promiseHostFunction<&Model::generate>,
                                        "generate"));
 
-      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       promiseHostFunction<&Model::interrupt>,
-                                       "interrupt"));
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>, synchronousHostFunction<&Model::interrupt>,
+          "interrupt"));
 
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
@@ -89,6 +89,38 @@ public:
 
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
+    }
+  }
+
+  // A generic host function that runs synchronously, works analogously to the
+  // generic promise host function.
+  template <auto FnPtr> JSI_HOST_FUNCTION(synchronousHostFunction) {
+    constexpr std::size_t functionArgCount = meta::getArgumentCount(FnPtr);
+    if (functionArgCount != count) {
+      char errorMessage[100];
+      std::snprintf(errorMessage, sizeof(errorMessage),
+                    "Argument count mismatch, was expecting: %zu but got: %zu",
+                    functionArgCount, count);
+      throw jsi::JSError(runtime, errorMessage);
+    }
+
+    try {
+      auto argsConverted = meta::createArgsTupleFromJsi(FnPtr, args, runtime);
+      auto result =
+          std::apply(std::bind_front(FnPtr, model), std::move(argsConverted));
+      return jsiconversion::getJsiValue(std::move(result), runtime);
+    } catch (const std::runtime_error &e) {
+      // This catch should be merged with the next one
+      // (std::runtime_error inherits from std::exception) HOWEVER react
+      // native has broken RTTI which breaks proper exception type
+      // checking. Remove when the following change is present in our
+      // version:
+      // https://github.com/facebook/react-native/commit/3132cc88dd46f95898a756456bebeeb6c248f20e
+      throw jsi::JSError(runtime, e.what());
+    } catch (const std::exception &e) {
+      throw jsi::JSError(runtime, e.what());
+    } catch (...) {
+      throw jsi::JSError(runtime, "Unknown error in synchronous function");
     }
   }
 
