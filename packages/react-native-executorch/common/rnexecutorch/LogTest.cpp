@@ -399,7 +399,7 @@ protected:
   std::string performBufferOperation(const std::string &message,
                                      size_t maxLogMessageSize) {
     oss << message;
-    auto result = getBuffer(oss, maxLogMessageSize);
+    const auto result = getBuffer(oss, maxLogMessageSize);
     clearOutputStream(oss);
     return result;
   }
@@ -448,7 +448,7 @@ class LoggingTest : public ::testing::Test {
 protected:
   template <typename T>
   void testLoggingDoesNotChangeContainer(const T &original) {
-    auto copy = original; // Make a copy of the container
+    const auto copy = original; // Make a copy of the container
     log(LOG_LEVEL::Info, original);
     ASSERT_TRUE(check_if_same_content(original, copy))
         << "Logging modified the content of the container.";
@@ -473,7 +473,7 @@ private:
 };
 
 TEST_F(LoggingTest, LoggingDoesNotChangeSharedPtr) {
-  auto original = std::make_shared<int>(42);
+  const auto original = std::make_shared<int>(42);
   testLoggingDoesNotChangeContainer(original);
 }
 
@@ -486,7 +486,7 @@ TEST_F(LoggingTest, LoggingDoesNotChangeQueue) {
 }
 
 TEST_F(LoggingTest, LoggingDoesNotChangeVector) {
-  std::vector<int> original = {1, 2, 3, 4, 5};
+  const std::vector<int> original = {1, 2, 3, 4, 5};
   testLoggingDoesNotChangeContainer(original);
 }
 
