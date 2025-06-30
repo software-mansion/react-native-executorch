@@ -37,7 +37,7 @@ protected:
   template <typename T>
   void testValueViaRegex(const T &value, const std::string &expectedPattern) {
     printElement(oss, value);
-    std::regex pattern(expectedPattern);
+    const std::regex pattern(expectedPattern);
     EXPECT_TRUE(std::regex_search(oss.str(), pattern))
         << "Expected pattern not found: " << expectedPattern;
     clearOutputStream(oss);
@@ -437,7 +437,7 @@ TEST_F(BufferTest, MessageExactlyAtLimit) {
 TEST_F(BufferTest, MessageLongerThanLimit) {
   // Creating a string longer than the limit
   const std::string message(1050, 'a');
-  const std::string expected = std::string(1024, 'a') + "...";
+  const auto expected = std::string(1024, 'a') + "...";
   const auto result = performBufferOperation(message, 1024);
   validateBuffer(result, expected, 1027);
 }
