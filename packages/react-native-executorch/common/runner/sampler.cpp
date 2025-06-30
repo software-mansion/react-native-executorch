@@ -32,7 +32,6 @@
  * SOFTWARE.
  */
 
-// #include <executorch/extension/llm/sampler/sampler.h>
 #include "sampler.h"
 #include <algorithm>
 
