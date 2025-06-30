@@ -441,7 +441,6 @@ TEST(LoggingTest, LoggingDoesNotChangeSharedPtr) {
   const auto original = std::make_shared<int>(42);
   const auto copy = std::make_shared<int>(*original);
 
-  std::ostringstream oss;
   log(LOG_LEVEL::Info, original);
 
   ASSERT_TRUE(check_if_same_content(original, copy));
@@ -455,7 +454,6 @@ TEST(LoggingTest, LoggingDoesNotChangeQueue) {
 
   const auto copy = original;
 
-  std::ostringstream oss;
   log(LOG_LEVEL::Info, original);
 
   ASSERT_TRUE(check_if_same_content(original, copy));
@@ -466,10 +464,14 @@ TEST(LoggingTest, LoggingDoesNotChangeVector) {
   const std::vector<int> original = {1, 2, 3, 4, 5};
   const auto copy = original;
 
-  std::ostringstream oss;
   log(LOG_LEVEL::Info, original);
 
   ASSERT_TRUE(check_if_same_content(original, copy));
+}
+
+TEST(LoggingTest, LoggingWithNonDefaultLogSize) {
+  const auto testString = std::string(2048, 'a');
+  EXPECT_NO_THROW(log<2048>(LOG_LEVEL::Info, testString));
 }
 
 } // namespace rnexecutorch

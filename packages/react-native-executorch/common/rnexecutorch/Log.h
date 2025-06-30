@@ -394,15 +394,21 @@ std::string getBuffer(std::ostringstream &oss, size_t maxLogMessageSize) {
 
 /**
  * @brief Logs given data on a console
- *
- * The function takes logging level and arbitrary data type that:
- * - Implements << operator for `std::ostream`
+ * @details
+ * The function takes logging level and variety of data types:
+ * - Every data type that implements `operator<<` for `std::ostream`
  * - All STL constainers available in C++20
- * - Smart pointers, variants, optionals
  * - Static arrays
+ * - Smart pointers, `std::variant`, and `std::optional`
  * - `std::tuple` and `std::pair`
  * - `std::error_code` and `std::exception_ptr`
  * - `std::filesystem::path` and `std::filesystem::directory_iterator`
+ *
+ * You can manipulate size of the log message. By default it is set to 1024
+ * characters. To change this, specify the template argument like so:
+ * @code{.cpp}
+ * log<2048>(LOG_LEVEL::Info, longMsg);
+ * @endcode
  *
  * @param logLevel logging level - one of `LOG_LEVEL` enum class value: `Info`,
  * `Error`, and `Debug`.
