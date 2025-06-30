@@ -16,7 +16,7 @@ For more general questions and discussions please visit our Discord server.
 
 ## Found a bug?
 
-Before reporting the issue please check if a similar issue was previously reported, this can be either here or on our Discord server. This will make it much faster for you and us to help you. We prefer you to create issues here on github rather than on Discord as it makes it easier for others to find them later on and makes it easier to include proper context to the problem. When submitting your issue please select a `🐛 Bug` issue template and fill in the required information, this speeds up our responses significantly.
+Before reporting the issue please check **if a similar issue was previously reported** (use the search bar on GitHub under Issues). This will make it much faster for you and us to help you. We prefer you to create issues here on github rather than on Discord as it makes it easier for others to find them later on and makes it easier to include proper context to the problem. When submitting your issue please select a `🐛 Bug` issue template and fill in the required information, this speeds up our responses significantly.
 
 ## Feature request
 
@@ -59,13 +59,14 @@ cd react-native-executorch
 git remote add upstream https://github.com/software-mansion/react-native-executorch.git
 ```
 
-3. Create you develop branch
+3. Create your develop branch
 
 ```
 git checkout -b a-descriptive-name-for-my-changes
 ```
 
-🚨 Do not work on the main branch!
+> [!CAUTION]
+> Do not work on the main branch!
 
 4. Follow installation steps in the [README.md](./README.md)
 

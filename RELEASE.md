@@ -23,6 +23,9 @@ The release process of new minor version consists of the following steps:
 
 After the release branch is created and the version is published to npm we only allow for bug fixes and other critical changes to be included into the release branch. For this purpose we use git `cherry-pick` command.
 
+> [!CAUTION]
+> Those changes should NOT include documentation changes, as they would be released automatically on the PR's merge and before the code changes are live. Instead create a separate PR with doc changes according to the [Docs update](#docs-update) section.
+
 1. Create a PR to the main branch.
 2. Once the PR is merged, `cherry-pick` the commit to the release branch.
 3. Bump version in `package.json` to the new version `v{MAJOR}.{MINOR}.{REVISION}`.
@@ -37,7 +40,8 @@ After the release branch is created and the version is published to npm we only 
 
 ## Docs update
 
-We are using docusaurus with docs versioning. By default when merging PRs with docs changes to the main branch, a github workflow is started to publish the docs. When updating docs the following steps should be considered.
+We are using docusaurus with docs versioning. By default when merging PRs with docs changes to the main branch, a github workflow is started to publish the docs. For this reason those changes should be merged only once the related changes are released.
+When updating docs the following steps should be considered.
 
 1. Update the desired doc pages.
 2. Check if the changes are applicable to past versions, if so make the same updates to the correct files in versioned docs inside `react-native-executorch/docs/versioned_docs/version-{MAJOR}.{MINOR}.x`.
