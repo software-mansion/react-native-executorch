@@ -103,6 +103,11 @@ TEST_F(DirectStreamableElementsPrintTest, HandlesChar) {
   testValueViaComparison('a', "a");
 }
 
+TEST_F(DirectStreamableElementsPrintTest, HandlesCharPointer) {
+  const char *word = "Hello World";
+  testValueViaComparison(word, "Hello World");
+}
+
 TEST_F(DirectStreamableElementsPrintTest, HandlesPoint) {
   constexpr Point point(3, 4);
   testValueViaComparison(point, "Point(3, 4)");
@@ -118,7 +123,7 @@ TEST_F(DirectStreamableElementsPrintTest, HandlesStdPair) {
   testValueViaComparison(emptyPair, "(, )");
 }
 
-// log handles operator<<(&ostream) for std::pair
+// log handles operator<<(&ostream) for std::tuple
 TEST_F(DirectStreamableElementsPrintTest, HandlesStdTuple) {
   const std::tuple<int, std::string, double> tupleOfDifferentTypes = {
       42, "Tuple", 3.14};
