@@ -83,6 +83,9 @@ BaseModel::getAllInputShapes(std::string methodName) {
   return output;
 }
 
+/// @brief This method is a forward wrapper that is created solely to be exposed
+/// to JS. It is not meant to be used within C++. If you want to call forward
+/// from C++ on a BaseModel, please use BaseModel::forward.
 std::vector<JSTensorViewOut>
 BaseModel::forwardJS(const std::vector<JSTensorViewIn> tensorViewVec) {
   if (!module_) {
