@@ -138,9 +138,6 @@ void printElement(std::ostream &os,
 template <typename T, size_t N>
 void printElement(std::ostream &os, T (&array)[N]);
 
-template <typename T, size_t N>
-void printElement(std::ostream &os, T (&array)[N], T *end);
-
 template <typename T>
   requires Fallback<T>
 void printElement(std::ostream &os, const T &value);
@@ -302,17 +299,11 @@ void printElement(std::ostream &os,
   os << "]";
 }
 
-template <typename T, size_t N>
-void printElement(std::ostream &os, T (&array)[N]) {
-  printElement(os, array,
-               array + N); // Utilize the existing two-iterator function
-}
-
 // A special function for C-style arrays deducing size via template
 template <typename T, size_t N>
-void printElement(std::ostream &os, T (&array)[N], T *end) {
+void printElement(std::ostream &os, T (&array)[N]) {
   os << "[";
-  for (size_t i = 0; i < N && &array[i] != end; ++i) {
+  for (size_t i = 0; i < N; ++i) {
     if (i > 0)
       os << ", ";
     printElement(os, array[i]);
