@@ -391,88 +391,106 @@ namespace rnexecutorch {
 
 namespace high_level_log_implementation {
 
-class BufferTest : public ::testing::Test {};
+class BufferTest : public ::testing::Test {
+protected:
+  std::ostringstream oss;
 
-// Test when the message is shorter than the maximum size
+  // Helper to perform the operation and return the result
+  std::string performBufferOperation(const std::string &message,
+                                     size_t maxLogMessageSize) {
+    oss << message;
+    auto result = getBuffer(oss, maxLogMessageSize);
+    clearOutputStream(oss);
+    return result;
+  }
+
+  // Helper to validate the final output
+  void validateBuffer(const std::string &result, const std::string &expected,
+                      size_t expectedSize) {
+    EXPECT_EQ(result, expected);
+    EXPECT_EQ(result.size(), expectedSize);
+    if (result.size() > expected.size()) {
+      EXPECT_EQ(result.substr(expected.size()), "...");
+    }
+  }
+
+private:
+  void clearOutputStream(std::ostringstream &os) {
+    oss.str("");
+    oss.clear();
+  }
+};
+
 TEST_F(BufferTest, MessageShorterThanLimit) {
-  std::ostringstream oss;
-  oss << "Short message";
-  const std::string result = getBuffer(oss, 1024);
-  EXPECT_EQ(result, "Short message");
+  const std::string message = "Short message";
+  auto result = performBufferOperation(message, 20);
+  validateBuffer(result, message, message.size());
 }
 
-// Test when the message is exactly the maximum size
 TEST_F(BufferTest, MessageExactlyAtLimit) {
-  std::ostringstream oss;
-  const std::string message(1024,
-                            'a'); // Create a string with 1024 'a' characters
-  oss << message;
-  const std::string result = getBuffer(oss, 1024);
-  EXPECT_EQ(result, message);
+  // Creating a string with 1024 'a' characters
+  const std::string message(1024, 'a');
+  auto result = performBufferOperation(message, 1024);
+  validateBuffer(result, message, message.size());
 }
 
-// Test when the message is longer than the maximum size
 TEST_F(BufferTest, MessageLongerThanLimit) {
-  std::ostringstream oss;
+  // Creating a string longer than the limit
   const std::string message(1050, 'a');
-  oss << message;
-  const std::string result = getBuffer(oss, 1024);
-  EXPECT_EQ(result.size(),
-            1027); // Expecting 1024 characters plus the ellipsis "..."
-  EXPECT_EQ(result.substr(1024), "...");
+  const std::string expected = std::string(1024, 'a') + "...";
+  auto result = performBufferOperation(message, 1024);
+  validateBuffer(result, expected, 1027);
 }
 
 } // namespace high_level_log_implementation
 
-// == op for smart pointers compare addresses, check content maunally
-template <typename T>
-bool check_if_same_content(const std::shared_ptr<T> &a,
-                           const std::shared_ptr<T> &b) {
-  if (!a || !b) {
-    return a == b;
+class LoggingTest : public ::testing::Test {
+protected:
+  template <typename T>
+  void testLoggingDoesNotChangeContainer(const T &original) {
+    auto copy = original; // Make a copy of the container
+    log(LOG_LEVEL::Info, original);
+    ASSERT_TRUE(check_if_same_content(original, copy))
+        << "Logging modified the content of the container.";
   }
-  return *a == *b;
+
+private:
+  // == op for smart pointers compare addresses, check content maunally
+  template <typename T>
+  bool check_if_same_content(const std::shared_ptr<T> &a,
+                             const std::shared_ptr<T> &b) {
+    if (!a || !b) {
+      return a == b;
+    }
+    return *a == *b;
+  }
+
+  template <typename T>
+  bool check_if_same_content(const T &original, const T &after) {
+    // Requires that T has an equality operator (operator==)
+    return original == after;
+  }
+};
+
+TEST_F(LoggingTest, LoggingDoesNotChangeSharedPtr) {
+  auto original = std::make_shared<int>(42);
+  testLoggingDoesNotChangeContainer(original);
 }
 
-template <typename T>
-bool check_if_same_content(const T &original, const T &after) {
-  // Requires that T has an equality operator (operator==)
-  return original == after;
-}
-
-TEST(LoggingTest, LoggingDoesNotChangeSharedPtr) {
-  const auto original = std::make_shared<int>(42);
-  const auto copy = std::make_shared<int>(*original);
-
-  log(LOG_LEVEL::Info, original);
-
-  ASSERT_TRUE(check_if_same_content(original, copy));
-}
-
-TEST(LoggingTest, LoggingDoesNotChangeQueue) {
+TEST_F(LoggingTest, LoggingDoesNotChangeQueue) {
   std::queue<int> original;
   original.push(1);
   original.push(2);
   original.push(3);
-
-  const auto copy = original;
-
-  log(LOG_LEVEL::Info, original);
-
-  ASSERT_TRUE(check_if_same_content(original, copy));
+  testLoggingDoesNotChangeContainer(original);
 }
 
-// Example test for vectors
-TEST(LoggingTest, LoggingDoesNotChangeVector) {
-  const std::vector<int> original = {1, 2, 3, 4, 5};
-  const auto copy = original;
-
-  log(LOG_LEVEL::Info, original);
-
-  ASSERT_TRUE(check_if_same_content(original, copy));
+TEST_F(LoggingTest, LoggingDoesNotChangeVector) {
+  std::vector<int> original = {1, 2, 3, 4, 5};
+  testLoggingDoesNotChangeContainer(original);
 }
 
-TEST(LoggingTest, LoggingWithNonDefaultLogSize) {
+TEST(LoggingTestTemplateArgument, LoggingWithNonDefaultLogSize) {
   const auto testString = std::string(2048, 'a');
   EXPECT_NO_THROW(log<2048>(LOG_LEVEL::Info, testString));
 }
