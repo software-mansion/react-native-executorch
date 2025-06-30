@@ -36,8 +36,8 @@ const localUri = await ResourceFetcher.fetch(
 
 `Promise<string | null>`
 
-- If the fetch was successful, a promise which resolves to a local file path (without file:// prefix) for the stored resource.
-- If the fetch was interrupted by `pauseFetching` or `cancelFetching`, it returns `null`.
+- If the fetch was successful, it returns a promise which resolves to a local file path (without file:// prefix) for the stored resource.
+- If the fetch was interrupted by `pauseFetching` or `cancelFetching`, it returns a promise which resolves to `null`.
 
 :::info
 If the resource is an object, it will be saved as a JSON file on disk.  
@@ -68,8 +68,8 @@ const uris = await ResourceFetcher.fetchMultipleResources(
 
 `Promise<string[] | null>`:
 
-- If the fetch was successful, A promise which resolves to an array of local file paths for the downloaded/stored resources (without file:// prefix).
-- If the fetch was interrupted by `pauseMultipleFetching` or `cancelMultipleFetching`, it returns `null`.
+- If the fetch was successful, it returns a promise which resolves to an array of local file paths for the downloaded/stored resources (without file:// prefix).
+- If the fetch was interrupted by `pauseMultipleFetching` or `cancelMultipleFetching`, it returns a promise which resolves to `null`.
 
 ## pauseFetching
 
@@ -121,8 +121,8 @@ const resolvedUri = await ResourceFetcher.resumeFetching(
 
 `Promise<string | null>`
 
-- If the fetch was successful, a promise which resolves to a local file path (without file:// prefix) for the stored resource.
-- If the fetch was again interrupted by `pauseFetching` or `cancelFetching`, it returns `null`.
+- If the fetch was successful, it returns a promise which resolves to a local file path (without file:// prefix) for the stored resource.
+- If the fetch was again interrupted by `pauseFetching` or `cancelFetching`, it returns a promise which resolves to `null`.
 
 ## cancelFetching
 
@@ -210,8 +210,8 @@ const resolvedUris = await ResourceFetcher.pauseMultipleFetching(
 
 `Promise<string[] | null>`:
 
-- If the fetch was successful, A promise which resolves to an array of local file paths for the downloaded resources (without file:// prefix).
-- If the fetch was again interrupted by `pauseMultipleFetching` or `cancelMultipleFetching`, it returns null.
+- If the fetch was successful, it returns a promise which resolves to an array of local file paths for the downloaded resources (without file:// prefix).
+- If the fetch was again interrupted by `pauseMultipleFetching` or `cancelMultipleFetching`, it returns a promise which resolves to null.
 
 ## cancelMultipleFetching
 
