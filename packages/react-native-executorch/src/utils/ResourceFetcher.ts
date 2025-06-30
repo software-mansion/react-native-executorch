@@ -9,7 +9,7 @@
  *   - Single file: `.pauseFetching()`, `.resumeFetching()`, `.cancelFetching()`
  *   - Multiple files: `.pauseMultipleFetching()`, `.resumeMultipleFetching()`, `.cancelMultipleFetching()`
  * - Downloaded file management:
- *   - `.listDownloadedFiles()`, `.listDownloadedModels()`, `.deleteMultipleResources()`
+ *   -  `.getFilesTotalSize`, `.listDownloadedFiles()`, `.listDownloadedModels()`, `.deleteMultipleResources()`
  *
  * Remark: The pausing/resuming/canceling works only for fetching remote resources.
  *
@@ -33,54 +33,24 @@
 import {
   cacheDirectory,
   createDownloadResumable,
-  getInfoAsync,
-  makeDirectoryAsync,
   moveAsync,
   FileSystemSessionType,
   writeAsStringAsync,
   EncodingType,
   deleteAsync,
   readDirectoryAsync,
-  DownloadResumable,
 } from 'expo-file-system';
 import { Asset } from 'expo-asset';
 import { RNEDirectory } from '../constants/directories';
 import { ResourceSource } from '../types/common';
-
-const enum HTTP_CODE {
-  OK = 200,
-  PARTIAL_CONTENT = 206,
-}
-
-const enum DownloadStatus {
-  ONGOING,
-  PAUSED,
-}
-
-const enum SourceType {
-  OBJECT,
-  LOCAL_FILE,
-  RELEASE_MODE_FILE,
-  DEV_MODE_FILE,
-  REMOTE_FILE,
-}
-
-interface DownloadResource {
-  downloadResumable: DownloadResumable;
-  status: DownloadStatus;
-  extendedInfo: ResourceSourceExtended;
-}
-
-interface ResourceSourceExtended {
-  source: ResourceSource;
-  sourceType: SourceType;
-  callback?: (downloadProgress: number) => void;
-  results: string[];
-  uri?: string;
-  fileUri?: string;
-  cacheFileUri?: string;
-  next?: ResourceSourceExtended;
-}
+import {
+  ResourceFetcherUtils,
+  HTTP_CODE,
+  DownloadStatus,
+  SourceType,
+  ResourceSourceExtended,
+  DownloadResource,
+} from './ResourceFetcherUtils';
 
 export class ResourceFetcher {
   static downloads = new Map<ResourceSource, DownloadResource>(); //map of currently downloading (or paused) files, if the download was started by .fetch() method.
@@ -89,7 +59,7 @@ export class ResourceFetcher {
     source: ResourceSource,
     callback: (downloadProgress: number) => void = () => {}
   ) {
-    const sourceType = this.getType(source);
+    const sourceType = ResourceFetcherUtils.getType(source);
     const result = await this.fetchInternal({
       source,
       sourceType,
@@ -165,14 +135,15 @@ export class ResourceFetcher {
     if (sources.length === 0) {
       throw new Error('Empty list given as an argument!');
     }
-    const { results: info, totalLength } = await this.getFilesSizes(sources);
+    const { results: info, totalLength } =
+      await ResourceFetcherUtils.getFilesSizes(sources);
 
     const head: ResourceSourceExtended = {
       source: info[0]!.source,
       sourceType: info[0]!.type,
       callback:
         info[0]!.type === SourceType.REMOTE_FILE
-          ? this.calculateDownloadProgress(
+          ? ResourceFetcherUtils.calculateDownloadProgress(
               totalLength,
               info[0]!.previousFilesTotalLength,
               info[0]!.length,
@@ -189,7 +160,7 @@ export class ResourceFetcher {
         sourceType: info[idx]!.type,
         callback:
           info[idx]!.type === SourceType.REMOTE_FILE
-            ? this.calculateDownloadProgress(
+            ? ResourceFetcherUtils.calculateDownloadProgress(
                 totalLength,
                 info[idx]!.previousFilesTotalLength,
                 info[idx]!.length,
@@ -205,9 +176,11 @@ export class ResourceFetcher {
 
   static async deleteMultipleResources(...sources: ResourceSource[]) {
     for (const source of sources) {
-      const filename = this.getFilenameFromUri(source as string);
+      const filename = ResourceFetcherUtils.getFilenameFromUri(
+        source as string
+      );
       const fileUri = `${RNEDirectory}${filename}`;
-      if (await this.checkFileExists(fileUri)) {
+      if (await ResourceFetcherUtils.checkFileExists(fileUri)) {
         await deleteAsync(fileUri);
       }
     }
@@ -276,11 +249,13 @@ export class ResourceFetcher {
           to: resource.extendedInfo.fileUri,
         });
         this.downloads.delete(source);
-        this.triggerHuggingFaceDownloadCounter(resource.extendedInfo.uri);
+        ResourceFetcherUtils.triggerHuggingFaceDownloadCounter(
+          resource.extendedInfo.uri
+        );
 
         return this.returnOrStartNext(
           resource.extendedInfo,
-          this.removeFilePrefix(resource.extendedInfo.fileUri)
+          ResourceFetcherUtils.removeFilePrefix(resource.extendedInfo.fileUri)
         );
       }
     }
@@ -323,27 +298,6 @@ export class ResourceFetcher {
     );
   }
 
-  private static calculateDownloadProgress(
-    totalLength: number,
-    previousFilesTotalLength: number,
-    currentFileLength: number,
-    setProgress: (downloadProgress: number) => void
-  ) {
-    return (progress: number) => {
-      if (
-        progress === 1 &&
-        previousFilesTotalLength === totalLength - currentFileLength
-      ) {
-        setProgress(1);
-        return;
-      }
-      const baseProgress = previousFilesTotalLength / totalLength;
-      const scaledProgress = progress * (currentFileLength / totalLength);
-      const updatedProgress = baseProgress + scaledProgress;
-      setProgress(updatedProgress);
-    };
-  }
-
   static async listDownloadedFiles() {
     const files = await readDirectoryAsync(RNEDirectory);
     return files.map((file) => `${RNEDirectory}${file}`);
@@ -355,25 +309,7 @@ export class ResourceFetcher {
   }
 
   static async getFilesTotalSize(...sources: ResourceSource[]) {
-    return (await this.getFilesSizes(sources)).totalLength;
-  }
-
-  private static getType(source: ResourceSource): SourceType {
-    if (typeof source === 'object') {
-      return SourceType.OBJECT;
-    } else if (typeof source === 'number') {
-      const uri = Asset.fromModule(source).uri;
-      if (!uri.includes('://')) {
-        return SourceType.RELEASE_MODE_FILE;
-      }
-      return SourceType.DEV_MODE_FILE;
-    } else {
-      // typeof source == 'string'
-      if (source.startsWith('file://')) {
-        return SourceType.LOCAL_FILE;
-      }
-      return SourceType.REMOTE_FILE;
-    }
+    return (await ResourceFetcherUtils.getFilesSizes(sources)).totalLength;
   }
 
   private static async handleObject(source: ResourceSource) {
@@ -381,27 +317,27 @@ export class ResourceFetcher {
       throw new Error('Source is expected to be object!');
     }
     const jsonString = JSON.stringify(source);
-    const digest = this.hashObject(jsonString);
+    const digest = ResourceFetcherUtils.hashObject(jsonString);
     const filename = `${digest}.json`;
     const path = `${RNEDirectory}${filename}`;
 
-    if (await this.checkFileExists(path)) {
-      return this.removeFilePrefix(path);
+    if (await ResourceFetcherUtils.checkFileExists(path)) {
+      return ResourceFetcherUtils.removeFilePrefix(path);
     }
 
-    await this.createDirectoryIfNoExists();
+    await ResourceFetcherUtils.createDirectoryIfNoExists();
     await writeAsStringAsync(path, jsonString, {
       encoding: EncodingType.UTF8,
     });
 
-    return this.removeFilePrefix(path);
+    return ResourceFetcherUtils.removeFilePrefix(path);
   }
 
   private static handleLocalFile(source: ResourceSource) {
     if (typeof source !== 'string') {
       throw new Error('Source is expected to be string.');
     }
-    return this.removeFilePrefix(source);
+    return ResourceFetcherUtils.removeFilePrefix(source);
   }
 
   private static async handleReleaseModeFile(
@@ -413,19 +349,19 @@ export class ResourceFetcher {
     }
     const asset = Asset.fromModule(source);
     const uri = asset.uri;
-    const filename = this.getFilenameFromUri(uri);
+    const filename = ResourceFetcherUtils.getFilenameFromUri(uri);
     const fileUri = `${RNEDirectory}${filename}`;
     const fileUriWithType = `${fileUri}.${asset.type}`;
-    if (await this.checkFileExists(fileUri)) {
-      return this.removeFilePrefix(fileUri);
+    if (await ResourceFetcherUtils.checkFileExists(fileUri)) {
+      return ResourceFetcherUtils.removeFilePrefix(fileUri);
     }
-    await this.createDirectoryIfNoExists();
+    await ResourceFetcherUtils.createDirectoryIfNoExists();
     await asset.downloadAsync();
     if (!asset.localUri) {
       throw new Error(`Asset local URI is not available for ${source}`);
     }
     await moveAsync({ from: asset.localUri, to: fileUriWithType });
-    return this.removeFilePrefix(fileUriWithType);
+    return ResourceFetcherUtils.removeFilePrefix(fileUriWithType);
   }
 
   private static async handleDevModeFile(
@@ -456,12 +392,12 @@ export class ResourceFetcher {
       sourceExtended.uri = source;
     }
     const uri = sourceExtended.uri!;
-    const filename = this.getFilenameFromUri(uri);
+    const filename = ResourceFetcherUtils.getFilenameFromUri(uri);
     sourceExtended.fileUri = `${RNEDirectory}${filename}`;
     sourceExtended.cacheFileUri = `${cacheDirectory}${filename}`;
 
-    if (await this.checkFileExists(sourceExtended.fileUri)) {
-      return this.removeFilePrefix(sourceExtended.fileUri);
+    if (await ResourceFetcherUtils.checkFileExists(sourceExtended.fileUri)) {
+      return ResourceFetcherUtils.removeFilePrefix(sourceExtended.fileUri);
     }
 
     const downloadResumable = createDownloadResumable(
@@ -496,93 +432,7 @@ export class ResourceFetcher {
       to: sourceExtended.fileUri,
     });
     this.downloads.delete(source);
-    this.triggerHuggingFaceDownloadCounter(uri);
-    return this.removeFilePrefix(sourceExtended.fileUri);
-  }
-
-  private static getFilenameFromUri(uri: string) {
-    let cleanUri = uri.replace(/^https?:\/\//, '');
-    cleanUri = cleanUri.split('#')?.[0] ?? cleanUri;
-    return cleanUri.replace(/[^a-zA-Z0-9._-]/g, '_');
-  }
-
-  private static removeFilePrefix(uri: string) {
-    return uri.startsWith('file://') ? uri.slice(7) : uri;
-  }
-
-  private static hashObject(jsonString: string) {
-    let hash = 0;
-    for (let i = 0; i < jsonString.length; i++) {
-      // eslint-disable-next-line no-bitwise
-      hash = (hash << 5) - hash + jsonString.charCodeAt(i);
-      // eslint-disable-next-line no-bitwise
-      hash |= 0;
-    }
-    // eslint-disable-next-line no-bitwise
-    return (hash >>> 0).toString();
-  }
-
-  /*
-   * Increments the Hugging Face download counter if the URI points to a Software Mansion Hugging Face repo.
-   * More information: https://huggingface.co/docs/hub/models-download-stats
-   */
-  private static triggerHuggingFaceDownloadCounter(uri: string) {
-    const url = new URL(uri);
-    if (
-      url.host === 'huggingface.co' &&
-      url.pathname.startsWith('/software-mansion/')
-    ) {
-      const baseUrl = `${url.protocol}//${url.host}${url.pathname.split('resolve')[0]}`;
-      fetch(`${baseUrl}resolve/main/config.json`, { method: 'HEAD' });
-    }
-  }
-
-  private static async createDirectoryIfNoExists() {
-    if (!(await this.checkFileExists(RNEDirectory))) {
-      await makeDirectoryAsync(RNEDirectory, { intermediates: true });
-    }
-  }
-
-  private static async checkFileExists(fileUri: string) {
-    const fileInfo = await getInfoAsync(fileUri);
-    return fileInfo.exists;
-  }
-
-  private static async getFilesSizes(sources: ResourceSource[]) {
-    const results: Array<{
-      source: ResourceSource;
-      type: SourceType;
-      length: number;
-      previousFilesTotalLength: number;
-    }> = [];
-    let totalLength = 0;
-    let previousFilesTotalLength = 0;
-    for (const source of sources) {
-      const type = await this.getType(source);
-      let length = 0;
-
-      if (type === SourceType.REMOTE_FILE && typeof source === 'string') {
-        try {
-          const response = await fetch(source, { method: 'HEAD' });
-          if (!response.ok) {
-            console.warn(
-              `Failed to fetch HEAD for ${source}: ${response.status}`
-            );
-            continue;
-          }
-
-          const contentLength = response.headers.get('content-length');
-          length = contentLength ? parseInt(contentLength, 10) : 0;
-          previousFilesTotalLength = totalLength;
-          totalLength += length;
-        } catch (error) {
-          console.warn(`Error fetching HEAD for ${source}:`, error);
-          continue;
-        }
-      }
-      results.push({ source, type, length, previousFilesTotalLength });
-    }
-
-    return { results, totalLength };
+    ResourceFetcherUtils.triggerHuggingFaceDownloadCounter(uri);
+    return ResourceFetcherUtils.removeFilePrefix(sourceExtended.fileUri);
   }
 }
