@@ -2,7 +2,6 @@
 
 #include <executorch/extension/tensor/tensor.h>
 #include <filesystem>
-#include <rnexecutorch/Log.h>
 
 namespace rnexecutorch {
 using namespace facebook;
