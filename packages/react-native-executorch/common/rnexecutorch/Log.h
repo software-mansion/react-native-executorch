@@ -1,12 +1,17 @@
 #pragma once
-#include <cstdarg>
-#include <cstdio>
+#include <exception>
+#include <filesystem>
 #include <iostream>
 #include <iterator>
+#include <memory>
+#include <optional>
 #include <sstream>
+#include <string>
+#include <system_error>
 #include <tuple>
 #include <type_traits>
 #include <utility>
+#include <variant>
 
 #ifdef __ANDROID__
 #include <android/log.h>
@@ -16,6 +21,7 @@
 #endif
 
 namespace low_level_log_implementation {
+using namespace std::string_literals;
 namespace concept_detail {
 // ADL-based begin/end detection with backup to standard begin/end
 using std::begin;
@@ -74,7 +80,28 @@ concept Streamable = requires(std::ostream &os, const T &t) {
 };
 
 template <typename T>
-  requires Streamable<T>
+concept SmartPointer = requires(T a) {
+  *a;
+  { a ? true : false } -> std::convertible_to<bool>;
+} && !std::is_pointer_v<T>; // Ensure that it's not a raw pointer
+
+template <typename T>
+concept WeakPointer = requires(T a) {
+  {
+    a.lock()
+  } -> std::convertible_to<
+      std::shared_ptr<typename T::element_type>>; // Verifies if a.lock() can
+                                                  // convert to std::shared_ptr
+};
+
+template <typename T>
+concept Fallback = !Iterable<T> && !Sequencable<T> && !Streamable<T> &&
+                   !SmartPointer<T> && !WeakPointer<T>;
+
+void printElement(std::ostream &os, bool value);
+
+template <typename T>
+  requires Streamable<T> && (!SmartPointer<T>)
 void printElement(std::ostream &os, const T &value);
 
 template <typename T, typename U>
@@ -91,12 +118,41 @@ void printElement(std::ostream &os, T container);
 template <typename... Args>
 void printElement(std::ostream &os, const std::tuple<Args...> &tpl);
 
+template <SmartPointer SP> void printElement(std::ostream &os, const SP &ptr);
+
+template <WeakPointer WP> void printElement(std::ostream &os, const WP &ptr);
+
+template <typename T>
+void printElement(std::ostream &os, const std::optional<T> &opt);
+
+template <typename... Ts>
+void printElement(std::ostream &os, const std::variant<Ts...> &var);
+
+void printElement(std::ostream &os, const std::exception_ptr &exPtr);
+
+void printElement(std::ostream &os, const std::filesystem::path &path);
+
+void printElement(std::ostream &os,
+                  const std::filesystem::directory_iterator &dir_it);
+
+template <typename T, size_t N>
+void printElement(std::ostream &os, T (&array)[N]);
+
+template <typename T, size_t N>
+void printElement(std::ostream &os, T (&array)[N], T *end);
+
+template <typename T>
+  requires Fallback<T>
+void printElement(std::ostream &os, const T &value);
+
 void printElement(std::ostream &os, bool value) {
   os << (value ? "true" : "false");
 }
 
+void printElement(std::ostream &os, const std::error_code &ec);
+
 template <typename T>
-  requires Streamable<T>
+  requires Streamable<T> && (!SmartPointer<T>)
 void printElement(std::ostream &os, const T &value) {
   os << value;
 }
@@ -171,6 +227,110 @@ void printElement(std::ostream &os, const std::tuple<Args...> &tpl) {
   os << ">";
 }
 
+template <SmartPointer SP> void printElement(std::ostream &os, const SP &ptr) {
+  if (ptr) {
+    printElement(os, *ptr);
+  } else {
+    os << "nullptr";
+  }
+}
+
+template <WeakPointer WP> void printElement(std::ostream &os, const WP &ptr) {
+  auto sp = ptr.lock();
+  if (sp) {
+    printElement(os, *sp);
+  } else {
+    os << "expired";
+  }
+}
+
+template <typename T>
+void printElement(std::ostream &os, const std::optional<T> &opt) {
+  if (opt) {
+    os << "Optional(";
+    printElement(os, *opt);
+    os << ")";
+  } else {
+    os << "nullopt";
+  }
+}
+
+template <typename... Ts>
+void printElement(std::ostream &os, const std::variant<Ts...> &var) {
+  std::visit(
+      [&os](const auto &value) {
+        os << "Variant(";
+        printElement(os, value);
+        os << ")";
+      },
+      var);
+}
+
+void printElement(std::ostream &os, const std::error_code &ec) {
+  os << "ErrorCode(" << ec.value() << ", " << ec.category().name() << ")";
+}
+
+void printElement(std::ostream &os, const std::exception_ptr &exPtr) {
+  if (exPtr) {
+    try {
+      std::rethrow_exception(exPtr);
+    } catch (const std::exception &ex) {
+      os << "ExceptionPtr(\"" << ex.what() << "\")";
+    } catch (...) {
+      os << "ExceptionPtr(non-standard exception)";
+    }
+  } else {
+    os << "nullptr";
+  }
+}
+
+void printElement(std::ostream &os, const std::filesystem::path &path) {
+  os << "Path(" << path << ")";
+}
+
+void printElement(std::ostream &os,
+                  const std::filesystem::directory_iterator &dirIterator) {
+  os << "Directory[";
+  bool first = true;
+  for (const auto &entry : dirIterator) {
+    if (!first) {
+      os << ", ";
+    }
+    os << entry.path().filename(); // Ensuring only filename is captured
+    first = false;
+  }
+  os << "]";
+}
+
+template <typename T, size_t N>
+void printElement(std::ostream &os, T (&array)[N]) {
+  printElement(os, array,
+               array + N); // Utilize the existing two-iterator function
+}
+
+// A special function for C-style arrays deducing size via template
+template <typename T, size_t N>
+void printElement(std::ostream &os, T (&array)[N], T *end) {
+  os << "[";
+  for (size_t i = 0; i < N && &array[i] != end; ++i) {
+    if (i > 0)
+      os << ", ";
+    printElement(os, array[i]);
+  }
+  os << "]";
+}
+
+// Fallback
+template <typename T>
+  requires Fallback<T>
+void printElement(std::ostream &os, const T &value) {
+  const auto *typeName = typeid(T).name();
+  throw std::runtime_error(
+      "Type "s + std::string(typeName) +
+      "neither supports << operator for std::ostream nor is supported "
+      "out-of-the-box in logging functionality."s);
+}
+
 } // namespace low_level_log_implementation
 
 namespace rnexecutorch {
@@ -229,8 +389,7 @@ void handleIosLog(LOG_LEVEL logLevel, const char *buffer) {
 }
 #endif
 
-std::string getBuffer(std::ostringstream &oss) {
-  constexpr size_t maxLogMessageSize = 1024;
+std::string getBuffer(std::ostringstream &oss, size_t maxLogMessageSize) {
   const std::string fullMessage = oss.str();
   bool isMessageLongerThanLimit = fullMessage.size() > maxLogMessageSize;
   std::string buffer = fullMessage.substr(0, maxLogMessageSize);
@@ -245,20 +404,27 @@ std::string getBuffer(std::ostringstream &oss) {
 /**
  * @brief Logs given data on a console
  *
- * The function takes logging level and arbitrary data type that implements `<<`
- * operator for `std::ostream` or STL container with such data type.
+ * The function takes logging level and arbitrary data type that:
+ * - Implements << operator for `std::ostream`
+ * - All STL constainers available in C++20
+ * - Smart pointers, variants, optionals
+ * - Static arrays
+ * - `std::tuple` and `std::pair`
+ * - `std::error_code` and `std::exception_ptr`
+ * - `std::filesystem::path` and `std::filesystem::directory_iterator`
  *
  * @param logLevel logging level - one of `LOG_LEVEL` enum class value: `Info`,
  * `Error`, and `Debug`.
  * @param args Data to be logged.
  * @return Function does not return, only prints to console.
  */
-template <typename... Args> void log(LOG_LEVEL logLevel, const Args &...args) {
+template <size_t MaxLogSize = 1024, typename... Args>
+void log(LOG_LEVEL logLevel, const Args &...args) {
   std::ostringstream oss;
   (low_level_log_implementation::printElement(oss, args),
    ...); // Fold expression used to handle all arguments
 
-  const auto buffer = high_level_log_implementation::getBuffer(oss);
+  const auto buffer = high_level_log_implementation::getBuffer(oss, MaxLogSize);
   const auto *cStyleBuffer = buffer.c_str();
 
 #ifdef __ANDROID__
