@@ -19,6 +19,7 @@ The release process of new minor version consists of the following steps:
 10. Create versioned docs by running from repo root `(cd docs && yarn docusaurus docs:version {MAJOR}.{MINOR}.x)` (the 'x' part is intentional and is not to be substituted).
 11. Create a PR with the updated docs.
 12. Create the release notes on GitHub.
+13. Update README.md with release video, if available.
 
 ## Patch release
 
