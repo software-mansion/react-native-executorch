@@ -16,11 +16,11 @@ For more general questions and discussions please visit our Discord server.
 
 ## Found a bug?
 
-Before reporting the issue please check **if a similar issue was previously reported** (use the search bar on GitHub under Issues). This will make it much faster for you and us to help you. We prefer you to create issues here on github rather than on Discord as it makes it easier for others to find them later on and makes it easier to include proper context to the problem. When submitting your issue please select a `🐛 Bug` issue template and fill in the required information, this speeds up our responses significantly.
+Before reporting the issue please check **if a similar issue was previously reported** (use the search bar on GitHub under Issues). This will make it much faster for you and us to help you. We prefer you to create issues here on GitHub rather than on Discord as it makes it easier for others to find them later on and makes it easier to include proper context to the problem. When submitting your issue please select a `🐛 Bug` issue template and fill in the required information, this speeds up our responses significantly.
 
 ## Feature request
 
-Have an idea or is there a feature you would like to see added? Feel free to create a PR from a fork 😉. Alternatively if you don't have time for that just create a `🚀 Feature request` issue and fill in the necessary information.
+Have an idea or is there a feature you would like to see added? This can be a specific model, an entire model family, a code functionality or anything else you think might be useful. Feel free to create a PR from a fork 😉. Alternatively if you don't have time for that just create a `🚀 Feature request` issue and fill in the necessary information.
 The most important things to include are:
 
 1. What is the motivation behind it? Is it something that is missing but is present in another library? Or maybe you need something more specific for your use case? Or just an idea that popped into your head?
@@ -43,7 +43,7 @@ Found a model you would like to use in your app but it is not currently supplied
 ## Contributing to examples or documentation
 
 Do you have a neat example use case and want to share it with us? You can just drop us a message on Discord server and/or open a PR to `apps` directory here.
-If you found some inconsistencies in our documentation or just something is missing just open a PR with suggested changes (remember to add changes to previous docs versions too).
+If you found some inconsistencies in our documentation or just something is missing just open a PR with suggested changes (remember to add changes to previous docs versions too, e.g `docs/versioned_docs/version-0.3.x`, `docs/versioned_docs/version-0.4.x`).
 
 # Creating a Pull Request
 
