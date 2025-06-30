@@ -69,8 +69,6 @@ class UnsupportedLoggingTest : public ::testing::Test {};
 
 class Point {
 public:
-  int x, y;
-
   constexpr Point(int x, int y) : x(x), y(y) {}
 
   // Overloading the << operator to make Point directly streamable
@@ -78,6 +76,9 @@ public:
     os << "Point(" << pt.x << ", " << pt.y << ")";
     return os;
   }
+
+private:
+  int x, y;
 };
 
 TEST_F(DirectStreamableElementsPrintTest, HandlesIntegers) {
@@ -113,7 +114,7 @@ TEST_F(DirectStreamableElementsPrintTest, HandlesCharPointer) {
 TEST_F(DirectStreamableElementsPrintTest, HandlesComplexNumbers) {
   using namespace std::complex_literals;
   oss << std::fixed << std::setprecision(1);
-  std::complex<double> complexNumber = std::pow(1i, 2);
+  const std::complex<double> complexNumber = std::pow(1i, 2);
   testValueViaComparison(complexNumber, "(-1.0,0.0)");
 }
 
@@ -138,12 +139,12 @@ TEST_F(DirectStreamableElementsPrintTest, HandlesStdTuple) {
       42, "Tuple", 3.14};
   testValueViaComparison(tupleOfDifferentTypes, "<42, Tuple, 3.14>");
 
-  // Testing tuples with all empty or zero-initialized elements
+  // All empty or zero-initialized elements of tuple
   const std::tuple<std::string, int, float> zeroInitializedTuple = {"", 0,
                                                                     0.0f};
   testValueViaComparison(zeroInitializedTuple, "<, 0, 0>");
 
-  // Testing nested tuple
+  // Nested tuple
   const std::tuple<int, std::pair<std::string, bool>, float> nestedTuple = {
       1, {"nested", true}, 2.5};
   testValueViaComparison(nestedTuple, "<1, (nested, true), 2.5>");
@@ -184,21 +185,16 @@ TEST_F(ContainerPrintTest, HandlesUnorderedSet) {
 TEST_F(ContainerPrintTest, HandlesUnorderedMultimap) {
   const std::unordered_multimap<std::string, int> unorderedMultimapStringToInt =
       {{"one", 1}, {"one", 2}, {"two", 2}};
-  // Construct a regex pattern that captures each permutation once.
-  printElement(oss, unorderedMultimapStringToInt);
-  const std::string result =
-      oss.str(); // Store the output of the print in a string
+  std::string pattern = R"(\[\s*)";
+  // construct regex by adding each permutation
+  pattern += R"((?:\(one, 1\),\s*\(one, 2\),\s*\(two, 2\)|)";
+  pattern += R"(\(one, 1\),\s*\(two, 2\),\s*\(one, 2\)|)";
+  pattern += R"(\(one, 2\),\s*\(one, 1\),\s*\(two, 2\)|)";
+  pattern += R"(\(one, 2\),\s*\(two, 2\),\s*\(one, 1\)|)";
+  pattern += R"(\(two, 2\),\s*\(one, 1\),\s*\(one, 2\)|)";
+  pattern += R"(\(two, 2\),\s*\(one, 2\),\s*\(one, 1\))\s*\])";
 
-  // Check against each permutation explicitly
-  bool matchFound = result == "[(one, 1), (one, 2), (two, 2)]" ||
-                    result == "[(one, 1), (two, 2), (one, 2)]" ||
-                    result == "[(one, 2), (one, 1), (two, 2)]" ||
-                    result == "[(one, 2), (two, 2), (one, 1)]" ||
-                    result == "[(two, 2), (one, 1), (one, 2)]" ||
-                    result == "[(two, 2), (one, 2), (one, 1)]";
-
-  EXPECT_TRUE(matchFound)
-      << "Output did not match any of the expected permutations.";
+  testValueViaRegex(unorderedMultimapStringToInt, pattern);
 }
 
 TEST_F(ContainerPrintTest, StackTest) {
@@ -339,7 +335,7 @@ TEST_F(VariantPrintTest, HandlesVariant) {
 TEST_F(ErrorHandlingPrintTest, HandlesErrorCode) {
   const auto errorCodeValue =
       std::make_error_code(std::errc::function_not_supported).value();
-  std::error_code errorCode =
+  const std::error_code errorCode =
       make_error_code(std::errc::function_not_supported);
   testValueViaComparison(
       errorCode, "ErrorCode(" + std::to_string(errorCodeValue) + ", generic)");
@@ -381,7 +377,7 @@ TEST_F(FileSystemPrintTest, HandlesDirectoryIterator) {
 TEST_F(UnsupportedLoggingTest, TestLoggingUnsupportedType) {
   std::ostringstream oss;
   class UnsupportedClass {};
-  auto x = UnsupportedClass();
+  const auto x = UnsupportedClass();
 
   ASSERT_THROW({ printElement(oss, x); }, std::runtime_error);
 }
@@ -425,20 +421,20 @@ TEST_F(BufferTest, MessageLongerThanLimit) {
 
 } // namespace high_level_log_implementation
 
+// == op for smart pointers compare addresses, check content maunally
 template <typename T>
 bool check_if_same_content(const std::shared_ptr<T> &a,
                            const std::shared_ptr<T> &b) {
-  if (!a || !b) {  // Check for null pointers
-    return a == b; // Both should be null to be considered equal
+  if (!a || !b) {
+    return a == b;
   }
-  // Dereference and compare values
   return *a == *b;
 }
 
 template <typename T>
 bool check_if_same_content(const T &original, const T &after) {
-  return original ==
-         after; // Requires that T has an equality operator (operator==)
+  // Requires that T has an equality operator (operator==)
+  return original == after;
 }
 
 TEST(LoggingTest, LoggingDoesNotChangeSharedPtr) {
@@ -457,7 +453,7 @@ TEST(LoggingTest, LoggingDoesNotChangeQueue) {
   original.push(2);
   original.push(3);
 
-  auto copy = original;
+  const auto copy = original;
 
   std::ostringstream oss;
   log(LOG_LEVEL::Info, original);
@@ -468,7 +464,7 @@ TEST(LoggingTest, LoggingDoesNotChangeQueue) {
 // Example test for vectors
 TEST(LoggingTest, LoggingDoesNotChangeVector) {
   const std::vector<int> original = {1, 2, 3, 4, 5};
-  auto copy = original;
+  const auto copy = original;
 
   std::ostringstream oss;
   log(LOG_LEVEL::Info, original);
