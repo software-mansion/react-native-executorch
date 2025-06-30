@@ -24,8 +24,6 @@ namespace low_level_log_implementation {
 
 class TestValue : public ::testing::Test {
 protected:
-  std::ostringstream oss;
-
   template <typename T>
   void testValueViaComparison(const T &value,
                               const std::string &expectedOutput) {
@@ -43,8 +41,13 @@ protected:
     clearOutputStream(oss);
   }
 
+  void setOutputStreamPresicion(std::size_t precision) noexcept {
+    oss << std::fixed << std::setprecision(precision);
+  }
+
 private:
-  void clearOutputStream(std::ostringstream &os) {
+  std::ostringstream oss;
+  void clearOutputStream(std::ostringstream &os) noexcept {
     oss.str("");
     oss.clear();
   }
@@ -70,12 +73,12 @@ class FileSystemPrintTest : public TestValue {};
 
 class UnsupportedLoggingTest : public ::testing::Test {};
 
-class Point {
+class Point final {
 public:
-  constexpr Point(int x, int y) : x(x), y(y) {}
+  explicit constexpr Point(int x, int y) noexcept : x(x), y(y) {}
 
   // Overloading the << operator to make Point directly streamable
-  friend std::ostream &operator<<(std::ostream &os, const Point &pt) {
+  friend std::ostream &operator<<(std::ostream &os, const Point &pt) noexcept {
     os << "Point(" << pt.x << ", " << pt.y << ")";
     return os;
   }
@@ -116,7 +119,8 @@ TEST_F(DirectStreamableElementsPrintTest, HandlesCharPointer) {
 
 TEST_F(DirectStreamableElementsPrintTest, HandlesComplexNumbers) {
   using namespace std::complex_literals;
-  oss << std::fixed << std::setprecision(1);
+  constexpr std::size_t presision = 1;
+  setOutputStreamPresicion(presision);
   const std::complex<double> complexNumber = std::pow(1i, 2);
   testValueViaComparison(complexNumber, "(-1.0,0.0)");
 }
@@ -393,8 +397,6 @@ namespace high_level_log_implementation {
 
 class BufferTest : public ::testing::Test {
 protected:
-  std::ostringstream oss;
-
   // Helper to perform the operation and return the result
   std::string performBufferOperation(const std::string &message,
                                      size_t maxLogMessageSize) {
@@ -415,7 +417,8 @@ protected:
   }
 
 private:
-  void clearOutputStream(std::ostringstream &os) {
+  std::ostringstream oss;
+  void clearOutputStream(std::ostringstream &os) noexcept {
     oss.str("");
     oss.clear();
   }
@@ -458,7 +461,7 @@ private:
   // == op for smart pointers compare addresses, check content maunally
   template <typename T>
   bool check_if_same_content(const std::shared_ptr<T> &a,
-                             const std::shared_ptr<T> &b) {
+                             const std::shared_ptr<T> &b) const noexcept {
     if (!a || !b) {
       return a == b;
     }
@@ -466,7 +469,7 @@ private:
   }
 
   template <typename T>
-  bool check_if_same_content(const T &original, const T &after) {
+  bool check_if_same_content(const T &original, const T &after) const noexcept {
     // Requires that T has an equality operator (operator==)
     return original == after;
   }
