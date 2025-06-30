@@ -17,7 +17,7 @@
  * - A single argument of type `ResourceSource` (union type of string, number, or object)
  * - Multiple `ResourceSource` arguments
  *
- * Methods `.fetch()` and `fetchMultipleResources()` take optional argument as callback thar reports download progress.
+ * Methods `.fetch()` and `fetchMultipleResources()` take optional argument as callback that reports download progress.
  * Methods `.fetch()` and `fetchMultipleResources()` return path or paths to successfully saved files or null if the download was paused or cancelled  (then resume functions can return paths).
  *
  * Technical Implementation:
@@ -47,12 +47,17 @@ import { Asset } from 'expo-asset';
 import { RNEDirectory } from '../constants/directories';
 import { ResourceSource } from '../types/common';
 
-enum DownloadStatus {
+const enum HTTP_CODE {
+  OK = 200,
+  PARTIAL_CONTENT = 206,
+}
+
+const enum DownloadStatus {
   ONGOING,
   PAUSED,
 }
 
-enum SourceType {
+const enum SourceType {
   OBJECT,
   LOCAL_FILE,
   RELEASE_MODE_FILE,
@@ -84,7 +89,7 @@ export class ResourceFetcher {
     source: ResourceSource,
     callback: (downloadProgress: number) => void = () => {}
   ) {
-    const sourceType = await this.getType(source);
+    const sourceType = this.getType(source);
     const result = await this.fetchInternal({
       source,
       sourceType,
@@ -177,7 +182,7 @@ export class ResourceFetcher {
       results: [],
     };
 
-    var node = head;
+    let node = head;
     for (let idx = 1; idx < sources.length; idx++) {
       node.next = {
         source: info[idx]!.source,
@@ -256,7 +261,11 @@ export class ResourceFetcher {
           //if canceled or paused after earlier resuming.
           return null;
         }
-        if (!result || (result.status !== 200 && result.status !== 206)) {
+        if (
+          !result ||
+          (result.status !== HTTP_CODE.OK &&
+            result.status !== HTTP_CODE.PARTIAL_CONTENT)
+        ) {
           //206 error code means "partial content" - expected after resuming.
           throw new Error(
             `Failed to fetch resource from '${resource.extendedInfo.uri}'`
@@ -290,31 +299,16 @@ export class ResourceFetcher {
 
   static async pauseMultipleFetching(...sources: ResourceSource[]) {
     const source = this.findActive(sources);
-    if (source === null) {
-      throw new Error(
-        'None of given sources are currently during downloading process.'
-      );
-    }
     await this.pauseFetching(source);
   }
 
   static async resumeMultipleFetching(...sources: ResourceSource[]) {
     const source = this.findActive(sources);
-    if (source === null) {
-      throw new Error(
-        'None of given sources are currently during downloading process.'
-      );
-    }
     await this.resumeFetching(source);
   }
 
   static async cancelMultipleFetching(...sources: ResourceSource[]) {
     const source = this.findActive(sources);
-    if (source === null) {
-      throw new Error(
-        'None of given sources are currently during downloading process.'
-      );
-    }
     await this.cancelFetching(source);
   }
 
@@ -324,7 +318,9 @@ export class ResourceFetcher {
         return source;
       }
     }
-    return null;
+    throw new Error(
+      'None of given sources are currently during downloading process.'
+    );
   }
 
   private static calculateDownloadProgress(
@@ -369,7 +365,7 @@ export class ResourceFetcher {
       return SourceType.DEV_MODE_FILE;
     } else {
       // typeof source == 'string'
-      if (source.startsWith('file:://')) {
+      if (source.startsWith('file://')) {
         return SourceType.LOCAL_FILE;
       }
       return SourceType.REMOTE_FILE;
@@ -488,7 +484,7 @@ export class ResourceFetcher {
       // if canceled or paused during the download
       return null;
     }
-    if (!result || result.status !== 200) {
+    if (!result || result.status !== HTTP_CODE.OK) {
       throw new Error(`Failed to fetch resource from '${source}'`);
     }
     await moveAsync({
