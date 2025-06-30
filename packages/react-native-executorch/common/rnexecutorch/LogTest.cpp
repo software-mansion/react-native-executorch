@@ -2,6 +2,8 @@
 #include <gtest/gtest.h>
 
 #include <array>
+#include <cmath>
+#include <complex>
 #include <deque>
 #include <forward_list>
 #include <fstream>
@@ -106,6 +108,13 @@ TEST_F(DirectStreamableElementsPrintTest, HandlesChar) {
 TEST_F(DirectStreamableElementsPrintTest, HandlesCharPointer) {
   const char *word = "Hello World";
   testValueViaComparison(word, "Hello World");
+}
+
+TEST_F(DirectStreamableElementsPrintTest, HandlesComplexNumbers) {
+  using namespace std::complex_literals;
+  oss << std::fixed << std::setprecision(1);
+  std::complex<double> complexNumber = std::pow(1i, 2);
+  testValueViaComparison(complexNumber, "(-1.0,0.0)");
 }
 
 TEST_F(DirectStreamableElementsPrintTest, HandlesPoint) {
