@@ -165,7 +165,7 @@ export class ResourceFetcher {
     if (sources.length === 0) {
       throw new Error('Empty list given as an argument!');
     }
-    const { results: info, totalLength } = await this.getFilesSizes(...sources);
+    const { results: info, totalLength } = await this.getFilesSizes(sources);
 
     const head: ResourceSourceExtended = {
       source: info[0]!.source,
@@ -352,6 +352,10 @@ export class ResourceFetcher {
   static async listDownloadedModels() {
     const files = await this.listDownloadedFiles();
     return files.filter((file) => file.endsWith('.pte'));
+  }
+
+  static async getFilesTotalSize(...sources: ResourceSource[]) {
+    return (await this.getFilesSizes(sources)).totalLength;
   }
 
   private static getType(source: ResourceSource): SourceType {
@@ -544,7 +548,7 @@ export class ResourceFetcher {
     return fileInfo.exists;
   }
 
-  private static async getFilesSizes(...sources: ResourceSource[]) {
+  private static async getFilesSizes(sources: ResourceSource[]) {
     const results: Array<{
       source: ResourceSource;
       type: SourceType;
