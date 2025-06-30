@@ -47,8 +47,10 @@ void LLM::interrupt() {
   runner->stop();
 }
 
-std::size_t LLM::getMemoryLowerBound() { return memorySizeLowerBound; }
+std::size_t LLM::getMemoryLowerBound() const noexcept {
+  return memorySizeLowerBound;
+}
 
-void LLM::unload() { runner.reset(nullptr); }
+void LLM::unload() noexcept { runner.reset(nullptr); }
 
 } // namespace rnexecutorch

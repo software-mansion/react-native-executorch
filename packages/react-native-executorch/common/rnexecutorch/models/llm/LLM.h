@@ -12,13 +12,14 @@ using namespace facebook;
 
 class LLM {
 public:
-  LLM(const std::string &modelSource, const std::string &tokenizerSource,
-      std::shared_ptr<react::CallInvoker> callInvoker);
+  explicit LLM(const std::string &modelSource,
+               const std::string &tokenizerSource,
+               std::shared_ptr<react::CallInvoker> callInvoker);
 
   void generate(std::string input, std::shared_ptr<jsi::Function> callback);
   void interrupt();
-  void unload();
-  std::size_t getMemoryLowerBound();
+  void unload() noexcept;
+  std::size_t getMemoryLowerBound() const noexcept;
 
 private:
   size_t memorySizeLowerBound;
