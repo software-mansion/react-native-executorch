@@ -438,7 +438,7 @@ TEST_F(BufferTest, MessageLongerThanLimit) {
   // Creating a string longer than the limit
   const std::string message(1050, 'a');
   const std::string expected = std::string(1024, 'a') + "...";
-  auto result = performBufferOperation(message, 1024);
+  const auto result = performBufferOperation(message, 1024);
   validateBuffer(result, expected, 1027);
 }
 
