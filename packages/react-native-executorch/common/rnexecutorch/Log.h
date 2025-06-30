@@ -409,11 +409,12 @@ std::string getBuffer(std::ostringstream &oss, size_t maxLogMessageSize) {
  * @code{.cpp}
  * log<2048>(LOG_LEVEL::Info, longMsg);
  * @endcode
- *
  * @param logLevel logging level - one of `LOG_LEVEL` enum class value: `Info`,
  * `Error`, and `Debug`.
- * @param args Data to be logged.
- * @return Function does not return, only prints to console.
+ * @tparam args Data to be logged.
+ * @tparam MaxLogSize Maximal size of log in characters.
+ * @par Returns
+ *    Nothing.
  */
 template <size_t MaxLogSize = 1024, typename... Args>
 void log(LOG_LEVEL logLevel, const Args &...args) {
