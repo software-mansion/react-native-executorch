@@ -31,17 +31,20 @@ protected:
                               const std::string &expectedOutput) {
     printElement(oss, value);
     EXPECT_EQ(oss.str(), expectedOutput);
-    oss.str("");
-    oss.clear();
+    clearOutputStream(oss);
   }
 
-  template <typename Container>
-  void testValueViaRegex(const Container &container,
-                         const std::string &expectedPattern) {
-    printElement(oss, container);
+  template <typename T>
+  void testValueViaRegex(const T &value, const std::string &expectedPattern) {
+    printElement(oss, value);
     std::regex pattern(expectedPattern);
     EXPECT_TRUE(std::regex_search(oss.str(), pattern))
         << "Expected pattern not found: " << expectedPattern;
+    clearOutputStream(oss);
+  }
+
+private:
+  void clearOutputStream(std::ostringstream &os) {
     oss.str("");
     oss.clear();
   }
