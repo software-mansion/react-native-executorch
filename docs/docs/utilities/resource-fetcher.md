@@ -262,6 +262,29 @@ await ResourceFetcher.deleteMultipleResources('https://.../llama3_2.pte');
 
 `Promise<void>` – A promise that resolves once all specified resources have been removed.
 
+## getFilesTotalSize
+
+Fetches the info about files size. Works only for remote files.
+
+### Reference
+
+```typescript
+import { ResourceFetcher } from 'react-native-executorch';
+
+const totalSize = await ResourceFetcher.getFilesTotalSize(
+  'https://.../llama3_2.pte',
+  'https://.../qwen3.pte'
+);
+```
+
+### Parameters
+
+- `...sources: ResourceSource[]` - The resource identifiers (URLs).
+
+### Returns
+
+`Promise<number>` – A promise that resolves to combined size of files in bytes.
+
 ## listDownloadedFiles
 
 Lists all the downloaded files used by React Native ExecuTorch.
