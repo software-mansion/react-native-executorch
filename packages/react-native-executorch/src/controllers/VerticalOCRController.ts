@@ -54,7 +54,7 @@ export class VerticalOCRController {
       this.isReady = false;
       this.isReadyCallback(this.isReady);
 
-      const paths = await ResourceFetcher.fetchMultipleResources(
+      const paths = await ResourceFetcher.fetch(
         this.modelDownloadProgressCallback,
         detectorSources.detectorLarge,
         detectorSources.detectorNarrow,

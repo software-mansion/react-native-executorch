@@ -1,24 +1,21 @@
 /**
  * Resource Fetcher
  *
- * Provides an interface for downloading files either individually (via `ResourceFetcher.fetch()`)
- * or in batch operations (via `ResourceFetcher.fetchMultipleResources()`).
+ * Provides an interface for downloading files (via `ResourceFetcher.fetch()`)
  *
  * Key functionality:
  * - Download control: pause, resume, and cancel operations through:
  *   - Single file: `.pauseFetching()`, `.resumeFetching()`, `.cancelFetching()`
- *   - Multiple files: `.pauseMultipleFetching()`, `.resumeMultipleFetching()`, `.cancelMultipleFetching()`
  * - Downloaded file management:
- *   -  `.getFilesTotalSize`, `.listDownloadedFiles()`, `.listDownloadedModels()`, `.deleteMultipleResources()`
+ *   -  `.getFilesTotalSize()`, `.listDownloadedFiles()`, `.listDownloadedModels()`, `.deleteMultipleResources()`
  *
  * Remark: The pausing/resuming/canceling works only for fetching remote resources.
  *
- * Most exported functions accept either:
- * - A single argument of type `ResourceSource` (union type of string, number, or object)
- * - Multiple `ResourceSource` arguments
+ * Most exported functions accept:
+ * - Multiple `ResourceSource` arguments, (union type of string, number or object)
  *
- * Methods `.fetch()` and `fetchMultipleResources()` take optional argument as callback that reports download progress.
- * Methods `.fetch()` and `fetchMultipleResources()` return path or paths to successfully saved files or null if the download was paused or cancelled  (then resume functions can return paths).
+ * Method `.fetch()` takes argument as callback that reports download progress.
+ * Method`.fetch()` returns array of paths to successfully saved files or null if the download was paused or cancelled  (then resume functions can return paths).
  *
  * Technical Implementation:
  * - Maintains a `downloads` Map instance that tracks:
@@ -56,23 +53,52 @@ export class ResourceFetcher {
   static downloads = new Map<ResourceSource, DownloadResource>(); //map of currently downloading (or paused) files, if the download was started by .fetch() method.
 
   static async fetch(
-    source: ResourceSource,
-    callback: (downloadProgress: number) => void = () => {}
+    callback: (downloadProgress: number) => void = () => {},
+    ...sources: ResourceSource[]
   ) {
-    const sourceType = ResourceFetcherUtils.getType(source);
-    const result = await this.fetchInternal({
-      source,
-      sourceType,
-      callback,
-      results: [],
-    });
-    if (result !== null) {
-      return result[0] ?? null;
+    if (sources.length === 0) {
+      throw new Error('Empty list given as an argument!');
     }
-    return null;
+    const { results: info, totalLength } =
+      await ResourceFetcherUtils.getFilesSizes(sources);
+
+    const head: ResourceSourceExtended = {
+      source: info[0]!.source,
+      sourceType: info[0]!.type,
+      callback:
+        info[0]!.type === SourceType.REMOTE_FILE
+          ? ResourceFetcherUtils.calculateDownloadProgress(
+              totalLength,
+              info[0]!.previousFilesTotalLength,
+              info[0]!.length,
+              callback
+            )
+          : () => {},
+      results: [],
+    };
+
+    let node = head;
+    for (let idx = 1; idx < sources.length; idx++) {
+      node.next = {
+        source: info[idx]!.source,
+        sourceType: info[idx]!.type,
+        callback:
+          info[idx]!.type === SourceType.REMOTE_FILE
+            ? ResourceFetcherUtils.calculateDownloadProgress(
+                totalLength,
+                info[idx]!.previousFilesTotalLength,
+                info[idx]!.length,
+                callback
+              )
+            : () => {},
+        results: [],
+      };
+      node = node.next;
+    }
+    return this.singleFetch(head);
   }
 
-  private static async fetchInternal(
+  private static async singleFetch(
     sourceExtended: ResourceSourceExtended
   ): Promise<string[] | null> {
     const source = sourceExtended.source;
@@ -123,75 +149,12 @@ export class ResourceFetcher {
     if (sourceExtended.next) {
       const nextSource = sourceExtended.next;
       nextSource.results.push(...sourceExtended.results);
-      return this.fetchInternal(nextSource);
+      return this.singleFetch(nextSource);
     }
     return sourceExtended.results;
   }
 
-  static async fetchMultipleResources(
-    callback: (downloadProgress: number) => void = () => {},
-    ...sources: ResourceSource[]
-  ) {
-    if (sources.length === 0) {
-      throw new Error('Empty list given as an argument!');
-    }
-    const { results: info, totalLength } =
-      await ResourceFetcherUtils.getFilesSizes(sources);
-
-    const head: ResourceSourceExtended = {
-      source: info[0]!.source,
-      sourceType: info[0]!.type,
-      callback:
-        info[0]!.type === SourceType.REMOTE_FILE
-          ? ResourceFetcherUtils.calculateDownloadProgress(
-              totalLength,
-              info[0]!.previousFilesTotalLength,
-              info[0]!.length,
-              callback
-            )
-          : () => {},
-      results: [],
-    };
-
-    let node = head;
-    for (let idx = 1; idx < sources.length; idx++) {
-      node.next = {
-        source: info[idx]!.source,
-        sourceType: info[idx]!.type,
-        callback:
-          info[idx]!.type === SourceType.REMOTE_FILE
-            ? ResourceFetcherUtils.calculateDownloadProgress(
-                totalLength,
-                info[idx]!.previousFilesTotalLength,
-                info[idx]!.length,
-                callback
-              )
-            : () => {},
-        results: [],
-      };
-      node = node.next;
-    }
-    return this.fetchInternal(head);
-  }
-
-  static async deleteMultipleResources(...sources: ResourceSource[]) {
-    for (const source of sources) {
-      const filename = ResourceFetcherUtils.getFilenameFromUri(
-        source as string
-      );
-      const fileUri = `${RNEDirectory}${filename}`;
-      if (await ResourceFetcherUtils.checkFileExists(fileUri)) {
-        await deleteAsync(fileUri);
-      }
-    }
-  }
-
-  static async pauseFetching(source: ResourceSource) {
-    if (!this.downloads.has(source)) {
-      throw new Error(
-        "Can't pause the download of this file. The download either has finished, was cancelled or has never been started"
-      );
-    }
+  private static async pause(source: ResourceSource) {
     const resource = this.downloads.get(source)!;
     switch (resource.status) {
       case DownloadStatus.PAUSED:
@@ -205,12 +168,7 @@ export class ResourceFetcher {
     }
   }
 
-  static async resumeFetching(source: ResourceSource) {
-    if (!this.downloads.has(source)) {
-      throw new Error(
-        "Can't resume the download of this file. The download either has finished, was cancelled or has never been started"
-      );
-    }
+  private static async resume(source: ResourceSource) {
     const resource = this.downloads.get(source)!;
     if (
       !resource.extendedInfo.fileUri ||
@@ -239,7 +197,6 @@ export class ResourceFetcher {
           (result.status !== HTTP_CODE.OK &&
             result.status !== HTTP_CODE.PARTIAL_CONTENT)
         ) {
-          //206 error code means "partial content" - expected after resuming.
           throw new Error(
             `Failed to fetch resource from '${resource.extendedInfo.uri}'`
           );
@@ -261,30 +218,25 @@ export class ResourceFetcher {
     }
   }
 
-  static async cancelFetching(source: ResourceSource) {
-    if (!this.downloads.has(source)) {
-      throw new Error(
-        "Can't resume the download of this file. The download either has finished, was cancelled or has never been started"
-      );
-    }
+  private static async cancel(source: ResourceSource) {
     const resource = this.downloads.get(source)!;
     await resource.downloadResumable.cancelAsync();
     this.downloads.delete(source);
   }
 
-  static async pauseMultipleFetching(...sources: ResourceSource[]) {
+  static async pauseFetching(...sources: ResourceSource[]) {
     const source = this.findActive(sources);
-    await this.pauseFetching(source);
+    await this.pause(source);
   }
 
-  static async resumeMultipleFetching(...sources: ResourceSource[]) {
+  static async resumeFetching(...sources: ResourceSource[]) {
     const source = this.findActive(sources);
-    await this.resumeFetching(source);
+    await this.resume(source);
   }
 
-  static async cancelMultipleFetching(...sources: ResourceSource[]) {
+  static async cancelFetching(...sources: ResourceSource[]) {
     const source = this.findActive(sources);
-    await this.cancelFetching(source);
+    await this.cancel(source);
   }
 
   private static findActive(sources: ResourceSource[]) {
@@ -306,6 +258,18 @@ export class ResourceFetcher {
   static async listDownloadedModels() {
     const files = await this.listDownloadedFiles();
     return files.filter((file) => file.endsWith('.pte'));
+  }
+
+  static async deleteResources(...sources: ResourceSource[]) {
+    for (const source of sources) {
+      const filename = ResourceFetcherUtils.getFilenameFromUri(
+        source as string
+      );
+      const fileUri = `${RNEDirectory}${filename}`;
+      if (await ResourceFetcherUtils.checkFileExists(fileUri)) {
+        await deleteAsync(fileUri);
+      }
+    }
   }
 
   static async getFilesTotalSize(...sources: ResourceSource[]) {
@@ -386,7 +350,7 @@ export class ResourceFetcher {
       const resource = this.downloads.get(source)!;
       if (resource.status === DownloadStatus.PAUSED) {
         // if the download is paused, `fetch` is treated like `resume`
-        this.resumeFetching(source);
+        this.resume(source);
       }
       // if the download is ongoing, throw error.
       throw new Error('Already downloading this file.');

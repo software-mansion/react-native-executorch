@@ -102,7 +102,7 @@ export class SpeechToTextController {
       await this.tokenizerModule.load(
         tokenizerSource || this.config.tokenizer.source
       );
-      const paths = await ResourceFetcher.fetchMultipleResources(
+      const paths = await ResourceFetcher.fetch(
         this.modelDownloadProgressCallback,
         encoderSource || this.config.sources.encoder,
         decoderSource || this.config.sources.decoder
