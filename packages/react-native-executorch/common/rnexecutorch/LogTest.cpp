@@ -401,7 +401,7 @@ protected:
   std::string performBufferOperation(const std::string &message,
                                      size_t maxLogMessageSize) {
     oss << message;
-    const auto result = getBuffer(oss, maxLogMessageSize);
+    auto result = getBuffer(oss, maxLogMessageSize);
     clearOutputStream(oss);
     return result;
   }
