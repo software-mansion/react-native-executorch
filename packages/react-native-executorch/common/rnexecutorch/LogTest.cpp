@@ -140,6 +140,11 @@ TEST_F(DirectStreamableElementsPrintTest, HandlesStdPair) {
   testValueViaComparison(emptyPair, "(, )");
 }
 
+TEST_F(DirectStreamableElementsPrintTest, handlesStaticArrayOfChars) {
+  constexpr char staticCharArray[] = "prompt tokens:";
+  testValueViaComparison(staticCharArray, "prompt tokens:");
+}
+
 // log handles operator<<(&ostream) for std::tuple
 TEST_F(DirectStreamableElementsPrintTest, HandlesStdTuple) {
   const std::tuple<int, std::string, double> tupleOfDifferentTypes = {

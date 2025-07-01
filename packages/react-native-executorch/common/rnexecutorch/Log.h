@@ -90,6 +90,12 @@ void printElement(std::ostream &os, const T &value);
 template <typename T, typename U>
 void printElement(std::ostream &os, const std::pair<T, U> &p);
 
+template <std::size_t N>
+void printElement(std::ostream &os, const char (&array)[N]);
+
+template <typename T, std::size_t N>
+void printElement(std::ostream &os, T (&array)[N]);
+
 template <typename T>
   requires concepts::Iterable<T> && (!concepts::Streamable<T>)
 void printElement(std::ostream &os, const T &container);
@@ -120,9 +126,6 @@ void printElement(std::ostream &os, const std::filesystem::path &path);
 void printElement(std::ostream &os,
                   const std::filesystem::directory_iterator &dir_it);
 
-template <typename T, std::size_t N>
-void printElement(std::ostream &os, T (&array)[N]);
-
 template <concepts::Fallback UnsupportedArg>
 void printElement(std::ostream &os, const UnsupportedArg &value);
 
@@ -145,6 +148,25 @@ void printElement(std::ostream &os, const std::pair<T, U> &p) {
   os << ", ";
   printElement(os, p.second);
   os << ")";
+}
+
+template <std::size_t N>
+void printElement(std::ostream &os, const char (&array)[N]) {
+  // Treats the input as a string up to length N, without null terminator
+  // consideration
+  os << std::string_view(array, N);
+}
+
+// A special function for C-style arrays deducing size via template
+template <typename T, std::size_t N>
+void printElement(std::ostream &os, T (&array)[N]) {
+  os << "[";
+  for (std::size_t i = 0; i < N; ++i) {
+    if (i > 0)
+      os << ", ";
+    printElement(os, array[i]);
+  }
+  os << "]";
 }
 
 template <typename T>
@@ -285,18 +307,6 @@ void printElement(std::ostream &os,
   os << "]";
 }
 
-// A special function for C-style arrays deducing size via template
-template <typename T, std::size_t N>
-void printElement(std::ostream &os, T (&array)[N]) {
-  os << "[";
-  for (std::size_t i = 0; i < N; ++i) {
-    if (i > 0)
-      os << ", ";
-    printElement(os, array[i]);
-  }
-  os << "]";
-}
-
 // Fallback
 template <concepts::Fallback UnsupportedArg>
 void printElement(std::ostream &os, const UnsupportedArg &value) {
@@ -397,7 +407,7 @@ std::string getBuffer(std::ostringstream &oss, std::size_t maxLogMessageSize) {
  * @endcode
  * @param logLevel logging level - one of `LOG_LEVEL` enum class value: `Info`,
  * `Error`, and `Debug`.
- * @tparam args Data to be logged.
+ * @tparam Args Data to be logged.
  * @tparam MaxLogSize Maximal size of log in characters.
  * @par Returns
  *    Nothing.
