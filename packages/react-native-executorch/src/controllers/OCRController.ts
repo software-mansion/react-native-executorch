@@ -48,14 +48,16 @@ export class OCRController {
       this.isReady = false;
       this.isReadyCallback(false);
 
-      const paths = (await ResourceFetcher.fetchMultipleResources(
+      const paths = await ResourceFetcher.fetchMultipleResources(
         this.modelDownloadProgressCallback,
         detectorSource,
         recognizerSources.recognizerLarge,
         recognizerSources.recognizerMedium,
         recognizerSources.recognizerSmall
-      ))!;
-
+      );
+      if (paths === null) {
+        throw new Error('Download interrupted!');
+      }
       await this.nativeModule.loadModule(
         paths[0]!,
         paths[1]!,

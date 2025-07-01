@@ -102,12 +102,15 @@ export class SpeechToTextController {
       await this.tokenizerModule.load(
         tokenizerSource || this.config.tokenizer.source
       );
-      [encoderSource, decoderSource] =
-        (await ResourceFetcher.fetchMultipleResources(
-          this.modelDownloadProgressCallback,
-          encoderSource || this.config.sources.encoder,
-          decoderSource || this.config.sources.decoder
-        ))!;
+      const paths = await ResourceFetcher.fetchMultipleResources(
+        this.modelDownloadProgressCallback,
+        encoderSource || this.config.sources.encoder,
+        decoderSource || this.config.sources.decoder
+      );
+      if (paths === null) {
+        throw new Error('Download interrupted.');
+      }
+      [encoderSource, decoderSource] = paths;
     } catch (e) {
       this.onErrorCallback(e);
       return;

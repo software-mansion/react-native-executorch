@@ -110,19 +110,26 @@ export class LLMController {
     this.isReadyCallback(false);
 
     try {
-      const tokenizerFileUri = (await ResourceFetcher.fetch(tokenizerSource))!;
-      const tokenizerConfigFileUri = (await ResourceFetcher.fetch(
+      const tokenizerFileUri = await ResourceFetcher.fetch(tokenizerSource);
+      if (tokenizerFileUri === null) {
+        throw new Error('Download interrupted!');
+      }
+      const tokenizerConfigFileUri = await ResourceFetcher.fetch(
         tokenizerConfigSource
-      ))!;
+      );
+      if (tokenizerConfigFileUri === null) {
+        throw new Error('Download interrupted!');
+      }
       this.tokenizerConfig = JSON.parse(
         await readAsStringAsync('file://' + tokenizerConfigFileUri)
       );
-
-      const modelFileUri = (await ResourceFetcher.fetch(
+      const modelFileUri = await ResourceFetcher.fetch(
         modelSource,
         this.onDownloadProgressCallback
-      ))!;
-
+      );
+      if (modelFileUri === null) {
+        throw new Error('Download interrupted!');
+      }
       await this.nativeModule.loadLLM(modelFileUri, tokenizerFileUri);
       this.isReadyCallback(true);
       this.onToken = this.nativeModule.onToken((data: string) => {

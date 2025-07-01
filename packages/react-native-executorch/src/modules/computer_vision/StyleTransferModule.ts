@@ -8,10 +8,13 @@ export class StyleTransferModule extends BaseNonStaticModule {
     modelSource: ResourceSource,
     onDownloadProgressCallback: (_: number) => void = () => {}
   ): Promise<void> {
-    const paths = (await ResourceFetcher.fetchMultipleResources(
+    const paths = await ResourceFetcher.fetchMultipleResources(
       onDownloadProgressCallback,
       modelSource
-    ))!;
+    );
+    if (paths === null) {
+      throw new Error('Download interrupted.');
+    }
     this.nativeModule = global.loadStyleTransfer(paths[0] || '');
   }
 

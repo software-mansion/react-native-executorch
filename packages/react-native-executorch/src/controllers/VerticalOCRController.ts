@@ -54,15 +54,17 @@ export class VerticalOCRController {
       this.isReady = false;
       this.isReadyCallback(this.isReady);
 
-      const paths = (await ResourceFetcher.fetchMultipleResources(
+      const paths = await ResourceFetcher.fetchMultipleResources(
         this.modelDownloadProgressCallback,
         detectorSources.detectorLarge,
         detectorSources.detectorNarrow,
         independentCharacters
           ? recognizerSources.recognizerSmall
           : recognizerSources.recognizerLarge
-      ))!;
-
+      );
+      if (paths === null) {
+        throw new Error('Download interrupted');
+      }
       await this.ocrNativeModule.loadModule(
         paths[0]!,
         paths[1]!,
