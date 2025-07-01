@@ -6,53 +6,14 @@ This module provides functions to download and work with downloaded files stored
 
 ## fetch
 
-Fetches a single resource (remote URL, local file or embedded asset), downloads or stores it locally for use by React Native ExecuTorch.
+Fetches resources (remote URLs, local files or embedded assets), downloads or stores them locally for use by React Native ExecuTorch.
 
 ### Reference
 
 ```typescript
 import { ResourceFetcher } from 'react-native-executorch';
 
-const localUri = await ResourceFetcher.fetch('https://.../llama3_2.pte');
-```
-
-With download progress:
-
-```typescript
-const localUri = await ResourceFetcher.fetch(
-  'https://.../llama3_2.pte',
-  (progress) => {
-    console.log('Download progress:', progress);
-  }
-);
-```
-
-### Parameters
-
-- `source: ResourceSource` - A remote string URI, local file URI, require()-based asset.
-- `callback?: (downloadProgress: number) => void` - Optional callback that reports download progress between 0 and 1.
-
-### Returns
-
-`Promise<string | null>`
-
-- If the fetch was successful, it returns a promise which resolves to a local file path (without file:// prefix) for the stored resource.
-- If the fetch was interrupted by `pauseFetching` or `cancelFetching`, it returns a promise which resolves to `null`.
-
-:::info
-If the resource is an object, it will be saved as a JSON file on disk.  
-:::
-
-## fetchMultipleResources
-
-Fetches multiple resources and combines individual download progress into a single callback.
-
-### Reference
-
-```typescript
-import { ResourceFetcher } from 'react-native-executorch';
-
-const uris = await ResourceFetcher.fetchMultipleResources(
+const uris = await ResourceFetcher.fetch(
   (progress) => console.log('Total progress:', progress),
   'https://.../llama3_2.pte',
   'https://.../qwen3.pte'
@@ -61,7 +22,7 @@ const uris = await ResourceFetcher.fetchMultipleResources(
 
 ### Parameters
 
-- `callback?: (downloadProgress: number) => void` - Optional callback to track progress of all downloads, reported between 0 and 1.
+- `callback: (downloadProgress: number) => void` - Optional callback to track progress of all downloads, reported between 0 and 1.
 - `...sources: ResourceSource[]` - Multiple resources that can be strings, asset references, or objects.
 
 ### Returns
@@ -69,180 +30,119 @@ const uris = await ResourceFetcher.fetchMultipleResources(
 `Promise<string[] | null>`:
 
 - If the fetch was successful, it returns a promise which resolves to an array of local file paths for the downloaded/stored resources (without file:// prefix).
-- If the fetch was interrupted by `pauseMultipleFetching` or `cancelMultipleFetching`, it returns a promise which resolves to `null`.
+- If the fetch was interrupted by `pauseFetching` or `cancelFetching`, it returns a promise which resolves to `null`.
+
+:::info
+If the resource is an object, it will be saved as a JSON file on disk.  
+:::
 
 ## pauseFetching
 
-Pauses an ongoing download of a file.
-
-### Reference
-
-```typescript
-import { ResourceFetcher } from 'react-native-executorch';
-const localUri = await ResourceFetcher.fetch('https://.../llama3_2.pte');
-await ResourceFetcher.pauseFetching('https://.../llama3_2.pte');
-// localUri is now null.
-```
-
-### Parameters
-
-- `source: ResourceSource` - The resource identifier used when calling `fetch`.
-
-:::info
-Pausing/Resuming/Canceling works only for remote URL downloads. If the resource is a local file or embedded asset, fetching cannot be stopped.
-:::
-
-### Returns
-
-`Promise<void>` – A promise that resolves when the download is successfully paused.
-
-## resumeFetching
-
-Resumes a paused download of a file.
-
-### Reference
-
-```typescript
-import { ResourceFetcher } from 'react-native-executorch';
-const localUri = await ResourceFetcher.fetch('https://.../llama3_2.pte');
-await ResourceFetcher.pauseFetching('https://.../llama3_2.pte');
-//  localUri is now  null.
-const resolvedUri = await ResourceFetcher.resumeFetching(
-  'https://.../llama3_2.pte'
-);
-// resolvedUri is the local file path to the stored resource.
-```
-
-### Parameters
-
-- `source: ResourceSource` - The resource identifier used when calling `fetch` and `pauseFetching`.
-
-### Returns
-
-`Promise<string | null>`
-
-- If the fetch was successful, it returns a promise which resolves to a local file path (without file:// prefix) for the stored resource.
-- If the fetch was again interrupted by `pauseFetching` or `cancelFetching`, it returns a promise which resolves to `null`.
-
-## cancelFetching
-
-Cancels an ongoing/paused download of a file.
-
-### Reference
-
-```typescript
-import { ResourceFetcher } from 'react-native-executorch';
-const localUri = await ResourceFetcher.fetch('https://.../llama3_2.pte');
-await ResourceFetcher.cancelFetching('https://.../llama3_2.pte');
-//  localUri is now  null.
-```
-
-### Parameters
-
-- `source: ResourceSource` - The resource identifier used when calling `fetch`.
-
-### Returns
-
-`Promise<void>` – A promise that resolves when the download is successfully cancelled.
-
-## pauseMultipleFetching
-
-Equivalent of `pauseFetching` for `fetchMultipleResources`. It pauses an ongoing download of multiple resources.
+Pauses an ongoing download of files.
 
 ### Reference
 
 ```typescript
 import { ResourceFetcher } from 'react-native-executorch';
 
-const uris = await ResourceFetcher.fetchMultipleResources(
+const uris = ResourceFetcher.fetch(
   (progress) => console.log('Total progress:', progress),
   'https://.../llama3_2.pte',
   'https://.../qwen3.pte'
-);
-await ResourceFetcher.pauseMultipleFetching(
+).then((uris) => {
+  console.log('URI resolved to: ', uris); // since we pause the fetch, uris is resolved to null
+});
+
+await ResourceFetcher.pauseFetching(
   'https://.../llama3_2.pte',
   'https://.../qwen3.pte'
 );
-//now uris is null.
 ```
 
 ### Parameters
 
-- `...sources: ResourceSource[]` - The resource identifiers used when calling `fetchMultipleResources`.
+- `...sources: ResourceSource[]` - The resource identifiers used when calling `fetch`.
 
 ### Returns
 
 `Promise<void>` – A promise that resolves once the download is paused.
 
-## resumeMultipleFetching
+## resumeFetching
 
-Equivalent of `resumeFetching` for `fetchMultipleResources`. It resumes a paused download of multiple resources.
+Resumes a paused download of files.
 
 ### Reference
 
 ```typescript
 import { ResourceFetcher } from 'react-native-executorch';
 
-const uris = await ResourceFetcher.fetchMultipleResources(
+const uris = ResourceFetcher.fetch(
   (progress) => console.log('Total progress:', progress),
   'https://.../llama3_2.pte',
   'https://.../qwen3.pte'
-);
+).then((uris) => {
+  console.log('URI resolved as: ', uris); // since we pause the fetch, uris is resolved to null
+});
 
-await ResourceFetcher.pauseMultipleFetching(
+await ResourceFetcher.pauseFetching(
   'https://.../llama3_2.pte',
   'https://.../qwen3.pte'
 );
-//now uris is null.
 
-const resolvedUris = await ResourceFetcher.pauseMultipleFetching(
+const resolvedUris = await ResourceFetcher.resumeFetching(
   'https://.../llama3_2.pte',
   'https://.../qwen3.pte'
 );
-//now resolvedUris is an array with filepaths to stored resources.
+//resolvedUris is resolved to file paths to fetched resources, unless explicitly paused/cancel again.
 ```
 
 ### Parameters
 
-- `...sources: ResourceSource[]` - The resource identifiers used when calling `fetchMultipleResources`.
+- `...sources: ResourceSource[]` - The resource identifiers used when calling `fetch`.
 
 ### Returns
 
 `Promise<string[] | null>`:
 
 - If the fetch was successful, it returns a promise which resolves to an array of local file paths for the downloaded resources (without file:// prefix).
-- If the fetch was again interrupted by `pauseMultipleFetching` or `cancelMultipleFetching`, it returns a promise which resolves to null.
+- If the fetch was again interrupted by `pauseFetching` or `cancelFetching`, it returns a promise which resolves to null.
 
-## cancelMultipleFetching
+:::info
+The other way to resume paused resources is to simply call `fetch` again. However, `resumeFetching` is faster.
+:::
 
-Equivalent of `cancelFetching` for `fetchMultipleResources`. It cancels an ongoing/paused download of multiple resources.
+## cancelFetching
+
+Cancels an ongoing/paused download of files.
 
 ### Reference
 
 ```typescript
 import { ResourceFetcher } from 'react-native-executorch';
 
-const uris = await ResourceFetcher.fetchMultipleResources(
+const uris = ResourceFetcher.fetch(
   (progress) => console.log('Total progress:', progress),
   'https://.../llama3_2.pte',
   'https://.../qwen3.pte'
-);
-await ResourceFetcher.cancelMultipleFetching(
+).then((uris) => {
+  console.log('URI resolved as: ', uris); // since we cancel the fetch, uris is resolved to null
+});
+
+await ResourceFetcher.cancelFetching(
   'https://.../llama3_2.pte',
   'https://.../qwen3.pte'
 );
-//now uris is null.
 ```
 
 ### Parameters
 
-- `...sources: ResourceSource[]` - The resource identifiers used when calling `fetchMultipleResources`.
+- `...sources: ResourceSource[]` - The resource identifiers used when calling `fetch()`.
 
 ### Returns
 
 `Promise<void>` – A promise that resolves once the download is cancelled.
 
-## deleteMultipleResources
+## deleteResources
 
 Deletes downloaded resources from the local filesystem.
 
@@ -251,7 +151,7 @@ Deletes downloaded resources from the local filesystem.
 ```typescript
 import { ResourceFetcher } from 'react-native-executorch';
 
-await ResourceFetcher.deleteMultipleResources('https://.../llama3_2.pte');
+await ResourceFetcher.deleteResources('https://.../llama3_2.pte');
 ```
 
 ### Parameters

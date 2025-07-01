@@ -7,7 +7,7 @@
  * - Download control: pause, resume, and cancel operations through:
  *   - Single file: `.pauseFetching()`, `.resumeFetching()`, `.cancelFetching()`
  * - Downloaded file management:
- *   -  `.getFilesTotalSize()`, `.listDownloadedFiles()`, `.listDownloadedModels()`, `.deleteMultipleResources()`
+ *   -  `.getFilesTotalSize()`, `.listDownloadedFiles()`, `.listDownloadedModels()`, `.deleteResources()`
  *
  * Remark: The pausing/resuming/canceling works only for fetching remote resources.
  *
