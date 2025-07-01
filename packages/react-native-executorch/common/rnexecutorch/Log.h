@@ -22,6 +22,7 @@
 #endif
 
 namespace low_level_log_implementation {
+
 using namespace std::string_literals;
 
 namespace concepts {
@@ -428,7 +429,8 @@ void log(LOG_LEVEL logLevel, const Args &...args) {
   high_level_log_implementation::handleIosLog(logLevel, cStyleBuffer);
 #else
   // Default log to cout if none of the above platforms
-  std::cout << cStyleBuffer << std::endl;
+  std::cout << cStyleBuffer << '\n';
 #endif
 }
+
 } // namespace rnexecutorch
