@@ -67,39 +67,35 @@ export const PHI_4_MINI_TOKENIZER_CONFIG = `${BASE_URL_PREFIX}-${PHI_4_MINI_MODE
 
 // Classification
 const EFFICIENTNET_V2_S_MODEL_NAME = 'efficientnet-v2-s';
-export const EFFICIENTNET_V2_S =
-  isIOS
-    ? `${BASE_URL_PREFIX}-${EFFICIENTNET_V2_S_MODEL_NAME}/${VERSION_TAG}/coreml/efficientnet_v2_s_coreml_all.pte`
-    : `${BASE_URL_PREFIX}-${EFFICIENTNET_V2_S_MODEL_NAME}/${VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack.pte`;
+export const EFFICIENTNET_V2_S = isIOS
+  ? `${BASE_URL_PREFIX}-${EFFICIENTNET_V2_S_MODEL_NAME}/${VERSION_TAG}/coreml/efficientnet_v2_s_coreml_all.pte`
+  : `${BASE_URL_PREFIX}-${EFFICIENTNET_V2_S_MODEL_NAME}/${VERSION_TAG}/xnnpack/efficientnet_v2_s_xnnpack.pte`;
 
 // Object detection
-const SSDLITE_320_MOBILENET_V3_LARGE_MODEL_NAME = 'ssdlite320-mobilenet-v3-large';
+const SSDLITE_320_MOBILENET_V3_LARGE_MODEL_NAME =
+  'ssdlite320-mobilenet-v3-large';
 export const SSDLITE_320_MOBILENET_V3_LARGE = `${BASE_URL_PREFIX}-${SSDLITE_320_MOBILENET_V3_LARGE_MODEL_NAME}/${VERSION_TAG}/ssdlite320-mobilenetv3-large.pte`;
 
 // Style transfer
 const STYLE_TRANSFER_CANDY_MODEL_NAME = 'style-transfer-candy';
-export const STYLE_TRANSFER_CANDY =
-  isIOS
-    ? `${BASE_URL_PREFIX}-${STYLE_TRANSFER_CANDY_MODEL_NAME}/${VERSION_TAG}/coreml/style_transfer_candy_coreml.pte`
-    : `${BASE_URL_PREFIX}-${STYLE_TRANSFER_CANDY_MODEL_NAME}/${VERSION_TAG}/xnnpack/style_transfer_candy_xnnpack.pte`;
+export const STYLE_TRANSFER_CANDY = isIOS
+  ? `${BASE_URL_PREFIX}-${STYLE_TRANSFER_CANDY_MODEL_NAME}/${VERSION_TAG}/coreml/style_transfer_candy_coreml.pte`
+  : `${BASE_URL_PREFIX}-${STYLE_TRANSFER_CANDY_MODEL_NAME}/${VERSION_TAG}/xnnpack/style_transfer_candy_xnnpack.pte`;
 
 const STYLE_TRANSFER_MOSAIC_MODEL_NAME = 'style-transfer-mosaic';
-export const STYLE_TRANSFER_MOSAIC =
-  isIOS
-    ? `${BASE_URL_PREFIX}-${STYLE_TRANSFER_MOSAIC_MODEL_NAME}/${VERSION_TAG}/coreml/style_transfer_mosaic_coreml.pte`
-    : `${BASE_URL_PREFIX}-${STYLE_TRANSFER_MOSAIC_MODEL_NAME}/${VERSION_TAG}/xnnpack/style_transfer_mosaic_xnnpack.pte`;
+export const STYLE_TRANSFER_MOSAIC = isIOS
+  ? `${BASE_URL_PREFIX}-${STYLE_TRANSFER_MOSAIC_MODEL_NAME}/${VERSION_TAG}/coreml/style_transfer_mosaic_coreml.pte`
+  : `${BASE_URL_PREFIX}-${STYLE_TRANSFER_MOSAIC_MODEL_NAME}/${VERSION_TAG}/xnnpack/style_transfer_mosaic_xnnpack.pte`;
 
 const STYLE_TRANSFER_RAIN_PRINCESS_MODEL_NAME = 'style-transfer-rain-princess';
-export const STYLE_TRANSFER_RAIN_PRINCESS =
-  isIOS
-    ? `${BASE_URL_PREFIX}-${STYLE_TRANSFER_RAIN_PRINCESS_MODEL_NAME}/${VERSION_TAG}/coreml/style_transfer_rain_princess_coreml.pte`
-    : `${BASE_URL_PREFIX}-${STYLE_TRANSFER_RAIN_PRINCESS_MODEL_NAME}/${VERSION_TAG}/xnnpack/style_transfer_rain_princess_xnnpack.pte`;
+export const STYLE_TRANSFER_RAIN_PRINCESS = isIOS
+  ? `${BASE_URL_PREFIX}-${STYLE_TRANSFER_RAIN_PRINCESS_MODEL_NAME}/${VERSION_TAG}/coreml/style_transfer_rain_princess_coreml.pte`
+  : `${BASE_URL_PREFIX}-${STYLE_TRANSFER_RAIN_PRINCESS_MODEL_NAME}/${VERSION_TAG}/xnnpack/style_transfer_rain_princess_xnnpack.pte`;
 
 const STYLE_TRANSFER_UDNIE_MODEL_NAME = 'style-transfer-udnie';
-export const STYLE_TRANSFER_UDNIE =
-  isIOS
-    ? `${BASE_URL_PREFIX}-${STYLE_TRANSFER_UDNIE_MODEL_NAME}/${VERSION_TAG}/coreml/style_transfer_udnie_coreml.pte`
-    : `${BASE_URL_PREFIX}-${STYLE_TRANSFER_UDNIE_MODEL_NAME}/${VERSION_TAG}/xnnpack/style_transfer_udnie_xnnpack.pte`;
+export const STYLE_TRANSFER_UDNIE = isIOS
+  ? `${BASE_URL_PREFIX}-${STYLE_TRANSFER_UDNIE_MODEL_NAME}/${VERSION_TAG}/coreml/style_transfer_udnie_coreml.pte`
+  : `${BASE_URL_PREFIX}-${STYLE_TRANSFER_UDNIE_MODEL_NAME}/${VERSION_TAG}/xnnpack/style_transfer_udnie_xnnpack.pte`;
 
 // S2T
 const MOONSHINE_TINY_MODEL_NAME = 'moonshine-tiny';
@@ -128,9 +124,9 @@ const DEEPLAB_V3_MODEL_NAME = 'deeplab-v3';
 export const DEEPLAB_V3_RESNET50 = `${BASE_URL_PREFIX}-${DEEPLAB_V3_MODEL_NAME}/${VERSION_TAG}/xnnpack/deeplabV3_xnnpack_fp32.pte`;
 
 // Image Embeddings
-const CLIP_VIT_BASE_PATCH_32_IMAGE_ENCODER_MODEL_NAME = 'clip-vit-base-patch32-image-encoder';
-export const CLIP_VIT_BASE_PATCH_32_IMAGE_ENCODER_MODEL =
-  `${BASE_URL_PREFIX}-${CLIP_VIT_BASE_PATCH_32_IMAGE_ENCODER_MODEL_NAME}/${NEXT_DEV_VERSION_TAG}/clip-vit-base-patch32-image-encoder-float32.pte`;
+const CLIP_VIT_BASE_PATCH_32_IMAGE_ENCODER_MODEL_NAME =
+  'clip-vit-base-patch32-image-encoder';
+export const CLIP_VIT_BASE_PATCH_32_IMAGE_ENCODER_MODEL = `${BASE_URL_PREFIX}-${CLIP_VIT_BASE_PATCH_32_IMAGE_ENCODER_MODEL_NAME}/${NEXT_DEV_VERSION_TAG}/clip-vit-base-patch32-image-encoder-float32.pte`;
 
 // Text Embeddings
 const ALL_MINILM_L6_V2_MODEL_NAME = 'all-MiniLM-L6-v2';
@@ -149,11 +145,10 @@ const MULTI_QA_MPNET_BASE_DOT_V1_MODEL_NAME = 'multi-qa-mpnet-base-dot-v1';
 export const MULTI_QA_MPNET_BASE_DOT_V1 = `${BASE_URL_PREFIX}-${MULTI_QA_MPNET_BASE_DOT_V1_MODEL_NAME}/${VERSION_TAG}/multi-qa-mpnet-base-dot-v1_xnnpack.pte`;
 export const MULTI_QA_MPNET_BASE_DOT_V1_TOKENIZER = `${BASE_URL_PREFIX}-${MULTI_QA_MPNET_BASE_DOT_V1_MODEL_NAME}/${VERSION_TAG}/tokenizer.json`;
 
-const CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER_MODEL_NAME = 'clip-vit-base-patch32-text-encoder';
-export const CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER_MODEL =
-  `${BASE_URL_PREFIX}-${CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER_MODEL_NAME}/${NEXT_DEV_VERSION_TAG}/clip-vit-base-patch32-text-encoder-float32.pte`;
-export const CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER_TOKENIZER =
-  `${BASE_URL_PREFIX}-${CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER_MODEL_NAME}/${NEXT_DEV_VERSION_TAG}/tokenizer.json`;
+const CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER_MODEL_NAME =
+  'clip-vit-base-patch32-text-encoder';
+export const CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER_MODEL = `${BASE_URL_PREFIX}-${CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER_MODEL_NAME}/${NEXT_DEV_VERSION_TAG}/clip-vit-base-patch32-text-encoder-float32.pte`;
+export const CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER_TOKENIZER = `${BASE_URL_PREFIX}-${CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER_MODEL_NAME}/${NEXT_DEV_VERSION_TAG}/tokenizer.json`;
 
 export const CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER = {
   modelSource: CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER_MODEL,
