@@ -152,9 +152,10 @@ void printElement(std::ostream &os, const std::pair<T, U> &p) {
 
 template <std::size_t N>
 void printElement(std::ostream &os, const char (&array)[N]) {
-  // Treats the input as a string up to length N, without null terminator
-  // consideration
-  os << std::string_view(array, N);
+  // Treats the input as a string up to length N, drop null termination
+  if (N > 1) {
+    os << std::string_view(array, N - 1);
+  }
 }
 
 // A special function for C-style arrays deducing size via template
