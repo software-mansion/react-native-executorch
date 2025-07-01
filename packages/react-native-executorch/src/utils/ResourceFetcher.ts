@@ -383,6 +383,12 @@ export class ResourceFetcher {
       throw new Error('Source is expected to be a string or a number.');
     }
     if (this.downloads.has(source)) {
+      const resource = this.downloads.get(source)!;
+      if (resource.status === DownloadStatus.PAUSED) {
+        // if the download is paused, `fetch` is treated like `resume`
+        this.resumeFetching(source);
+      }
+      // if the download is ongoing, throw error.
       throw new Error('Already downloading this file.');
     }
     if (typeof source === 'number' && !sourceExtended.uri) {
