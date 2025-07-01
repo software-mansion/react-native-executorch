@@ -23,57 +23,37 @@
 
 namespace low_level_log_implementation {
 using namespace std::string_literals;
-namespace concept_detail {
-// ADL-based begin/end detection with backup to standard begin/end
-using std::begin;
-using std::end;
 
-template <typename T, typename = void>
-struct has_begin_end : std::false_type {};
+namespace concepts {
+template <typename T>
+concept HasBeginEnd = requires(T t) {
+  { std::begin(t) } -> std::convertible_to<decltype(std::begin(t))>;
+  { std::end(t) } -> std::convertible_to<decltype(std::end(t))>;
+};
 
 template <typename T>
-struct has_begin_end<T, std::void_t<decltype(begin(std::declval<T>())),
-                                    decltype(end(std::declval<T>()))>>
-    : std::true_type {};
+concept FrontAccessible = requires(T t) {
+  { t.front() } -> std::convertible_to<decltype(t.front())>;
+};
 
 template <typename T>
-inline constexpr bool has_begin_end_v = has_begin_end<T>::value;
-
-template <typename T, typename = void> struct has_front : std::false_type {};
-
-template <typename T>
-struct has_front<T, std::void_t<decltype(std::declval<T>().front())>>
-    : std::true_type {};
-
-template <typename T, typename = void> struct has_top : std::false_type {};
+concept TopAccessible = requires(T t) {
+  { t.top() } -> std::convertible_to<decltype(t.top())>;
+};
 
 template <typename T>
-struct has_top<T, std::void_t<decltype(std::declval<T>().top())>>
-    : std::true_type {};
-
-template <typename T, typename = void> struct has_pop : std::false_type {};
-
-template <typename T>
-struct has_pop<T, std::void_t<decltype(std::declval<T>().pop())>>
-    : std::true_type {};
-
-} // namespace concept_detail
+concept HasPop = requires(T t) {
+  { t.pop() } -> std::same_as<void>;
+};
 
 template <typename T>
-concept Iterable = concept_detail::has_begin_end_v<T> && requires(T &t) {
+concept Iterable = HasBeginEnd<T> && requires(T &t) {
   ++std::declval<decltype(begin(t)) &>(); // Support for increment
   *begin(t);                              // Support for dereferencing
 };
 
 template <typename T>
-concept FrontAccessible = concept_detail::has_front<T>::value;
-
-template <typename T>
-concept TopAccessible = concept_detail::has_top<T>::value;
-
-template <typename T>
-concept Sequencable = concept_detail::has_pop<T>::value &&
-                      (FrontAccessible<T> || TopAccessible<T>);
+concept Sequencable = HasPop<T> && (FrontAccessible<T> || TopAccessible<T>);
 
 template <typename T>
 concept Streamable = requires(std::ostream &os, const T &t) {
@@ -99,29 +79,33 @@ template <typename T>
 concept Fallback = !Iterable<T> && !Sequencable<T> && !Streamable<T> &&
                    !SmartPointer<T> && !WeakPointer<T>;
 
+} // namespace concepts
+
 void printElement(std::ostream &os, bool value);
 
 template <typename T>
-  requires Streamable<T> && (!SmartPointer<T>)
+  requires concepts::Streamable<T> && (!concepts::SmartPointer<T>)
 void printElement(std::ostream &os, const T &value);
 
 template <typename T, typename U>
 void printElement(std::ostream &os, const std::pair<T, U> &p);
 
 template <typename T>
-  requires Iterable<T> && (!Streamable<T>)
+  requires concepts::Iterable<T> && (!concepts::Streamable<T>)
 void printElement(std::ostream &os, const T &container);
 
 template <typename T>
-  requires Sequencable<T>
+  requires concepts::Sequencable<T>
 void printElement(std::ostream &os, T container);
 
 template <typename... Args>
 void printElement(std::ostream &os, const std::tuple<Args...> &tpl);
 
-template <SmartPointer SP> void printElement(std::ostream &os, const SP &ptr);
+template <concepts::SmartPointer SP>
+void printElement(std::ostream &os, const SP &ptr);
 
-template <WeakPointer WP> void printElement(std::ostream &os, const WP &ptr);
+template <concepts::WeakPointer WP>
+void printElement(std::ostream &os, const WP &ptr);
 
 template <typename T>
 void printElement(std::ostream &os, const std::optional<T> &opt);
@@ -139,9 +123,8 @@ void printElement(std::ostream &os,
 template <typename T, std::size_t N>
 void printElement(std::ostream &os, T (&array)[N]);
 
-template <typename T>
-  requires Fallback<T>
-void printElement(std::ostream &os, const T &value);
+template <concepts::Fallback UnsupportedArg>
+void printElement(std::ostream &os, const UnsupportedArg &value);
 
 void printElement(std::ostream &os, bool value) {
   os << (value ? "true" : "false");
@@ -150,7 +133,7 @@ void printElement(std::ostream &os, bool value) {
 void printElement(std::ostream &os, const std::error_code &ec);
 
 template <typename T>
-  requires Streamable<T> && (!SmartPointer<T>)
+  requires concepts::Streamable<T> && (!concepts::SmartPointer<T>)
 void printElement(std::ostream &os, const T &value) {
   os << value;
 }
@@ -165,7 +148,7 @@ void printElement(std::ostream &os, const std::pair<T, U> &p) {
 }
 
 template <typename T>
-  requires Iterable<T> && (!Streamable<T>)
+  requires concepts::Iterable<T> && (!concepts::Streamable<T>)
 void printElement(std::ostream &os, const T &container) {
   os << "[";
   auto it = std::begin(container);
@@ -180,7 +163,7 @@ void printElement(std::ostream &os, const T &container) {
 }
 
 template <typename T>
-  requires Sequencable<T>
+  requires concepts::Sequencable<T>
 void printElement(
     std::ostream &os,
     T container) { // Pass by value to prevent modifications to the original
@@ -191,9 +174,9 @@ void printElement(
     if (!isFirst) {
       os << ", ";
     }
-    if constexpr (FrontAccessible<T>) {
+    if constexpr (concepts::FrontAccessible<T>) {
       printElement(os, container.front());
-    } else if constexpr (TopAccessible<T>) {
+    } else if constexpr (concepts::TopAccessible<T>) {
       printElement(os, container.top());
     }
     container.pop();
@@ -225,7 +208,8 @@ void printElement(std::ostream &os, const std::tuple<Args...> &tpl) {
   os << ">";
 }
 
-template <SmartPointer SP> void printElement(std::ostream &os, const SP &ptr) {
+template <concepts::SmartPointer SP>
+void printElement(std::ostream &os, const SP &ptr) {
   if (ptr) {
     printElement(os, *ptr);
   } else {
@@ -233,7 +217,8 @@ template <SmartPointer SP> void printElement(std::ostream &os, const SP &ptr) {
   }
 }
 
-template <WeakPointer WP> void printElement(std::ostream &os, const WP &ptr) {
+template <concepts::WeakPointer WP>
+void printElement(std::ostream &os, const WP &ptr) {
   auto sp = ptr.lock();
   if (sp) {
     printElement(os, *sp);
@@ -313,10 +298,9 @@ void printElement(std::ostream &os, T (&array)[N]) {
 }
 
 // Fallback
-template <typename T>
-  requires Fallback<T>
-void printElement(std::ostream &os, const T &value) {
-  const auto *typeName = typeid(T).name();
+template <concepts::Fallback UnsupportedArg>
+void printElement(std::ostream &os, const UnsupportedArg &value) {
+  const auto *typeName = typeid(UnsupportedArg).name();
   throw std::runtime_error(
       "Type "s + std::string(typeName) +
       "neither supports << operator for std::ostream nor is supported "
