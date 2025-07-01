@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 #include <exception>
 #include <filesystem>
 #include <iostream>
@@ -135,7 +136,7 @@ void printElement(std::ostream &os, const std::filesystem::path &path);
 void printElement(std::ostream &os,
                   const std::filesystem::directory_iterator &dir_it);
 
-template <typename T, size_t N>
+template <typename T, std::size_t N>
 void printElement(std::ostream &os, T (&array)[N]);
 
 template <typename T>
@@ -208,8 +209,8 @@ void printElement(std::ostream &os, const std::tuple<Args...> &tpl) {
   std::apply(
       [&os](const auto &...args) {
         // Counter to apply commas correctly
-        size_t count = 0;
-        size_t total = sizeof...(args);
+        std::size_t count = 0;
+        std::size_t total = sizeof...(args);
 
         (
             [&] {
@@ -300,10 +301,10 @@ void printElement(std::ostream &os,
 }
 
 // A special function for C-style arrays deducing size via template
-template <typename T, size_t N>
+template <typename T, std::size_t N>
 void printElement(std::ostream &os, T (&array)[N]) {
   os << "[";
-  for (size_t i = 0; i < N; ++i) {
+  for (std::size_t i = 0; i < N; ++i) {
     if (i > 0)
       os << ", ";
     printElement(os, array[i]);
@@ -334,7 +335,7 @@ namespace rnexecutorch {
  * helps in filtering logs according to their importance and can be crucial for
  * debugging and monitoring applications.
  */
-enum class LOG_LEVEL {
+enum class LOG_LEVEL : uint8_t {
   Info,  /**< Informational messages that highlight the progress of the
             application. */
   Error, /**< Error events of considerable importance that will prevent normal
@@ -380,7 +381,7 @@ void handleIosLog(LOG_LEVEL logLevel, const char *buffer) {
 }
 #endif
 
-std::string getBuffer(std::ostringstream &oss, size_t maxLogMessageSize) {
+std::string getBuffer(std::ostringstream &oss, std::size_t maxLogMessageSize) {
   const std::string fullMessage = oss.str();
   bool isMessageLongerThanLimit = fullMessage.size() > maxLogMessageSize;
   std::string buffer = fullMessage.substr(0, maxLogMessageSize);
@@ -403,6 +404,7 @@ std::string getBuffer(std::ostringstream &oss, size_t maxLogMessageSize) {
  * - `std::tuple` and `std::pair`
  * - `std::error_code` and `std::exception_ptr`
  * - `std::filesystem::path` and `std::filesystem::directory_iterator`
+ * - Every combination for mentioned above like `std::vector<std::set<int>>`
  *
  * You can manipulate size of the log message. By default it is set to 1024
  * characters. To change this, specify the template argument like so:
@@ -416,7 +418,7 @@ std::string getBuffer(std::ostringstream &oss, size_t maxLogMessageSize) {
  * @par Returns
  *    Nothing.
  */
-template <size_t MaxLogSize = 1024, typename... Args>
+template <std::size_t MaxLogSize = 1024, typename... Args>
 void log(LOG_LEVEL logLevel, const Args &...args) {
   std::ostringstream oss;
   (low_level_log_implementation::printElement(oss, args),

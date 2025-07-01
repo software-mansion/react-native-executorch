@@ -399,7 +399,7 @@ class BufferTest : public ::testing::Test {
 protected:
   // Helper to perform the operation and return the result
   std::string performBufferOperation(const std::string &message,
-                                     size_t maxLogMessageSize) {
+                                     std::size_t maxLogMessageSize) {
     oss << message;
     auto result = getBuffer(oss, maxLogMessageSize);
     clearOutputStream(oss);
@@ -408,7 +408,7 @@ protected:
 
   // Helper to validate the final output
   void validateBuffer(const std::string &result, const std::string &expected,
-                      size_t expectedSize) {
+                      std::size_t expectedSize) {
     EXPECT_EQ(result, expected);
     EXPECT_EQ(result.size(), expectedSize);
     if (result.size() > expected.size()) {
