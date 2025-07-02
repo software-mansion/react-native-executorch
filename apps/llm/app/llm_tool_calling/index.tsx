@@ -15,8 +15,6 @@ import SendIcon from '../../assets/icons/send_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {
   HAMMER2_1_1_5B,
-  HAMMER2_1_TOKENIZER,
-  HAMMER2_1_TOKENIZER_CONFIG,
   useLLM,
   DEFAULT_SYSTEM_PROMPT,
 } from 'react-native-executorch';
@@ -41,11 +39,7 @@ function LLMToolCallingScreen() {
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
-  const llm = useLLM({
-    modelSource: HAMMER2_1_1_5B,
-    tokenizerSource: HAMMER2_1_TOKENIZER,
-    tokenizerConfigSource: HAMMER2_1_TOKENIZER_CONFIG,
-  });
+  const llm = useLLM(HAMMER2_1_1_5B);
 
   useEffect(() => {
     setGlobalGenerating(llm.isGenerating);

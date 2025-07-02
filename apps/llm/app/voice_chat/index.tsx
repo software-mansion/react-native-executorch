@@ -16,8 +16,6 @@ import {
   useSpeechToText,
   useLLM,
   QWEN3_0_6B_QUANTIZED,
-  QWEN3_TOKENIZER,
-  QWEN3_TOKENIZER_CONFIG,
 } from 'react-native-executorch';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
 import MicIcon from '../../assets/icons/mic_icon.svg';
@@ -68,11 +66,7 @@ function VoiceChatScreen() {
   const messageRecorded = useRef<boolean>(false);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
-  const llm = useLLM({
-    modelSource: QWEN3_0_6B_QUANTIZED,
-    tokenizerSource: QWEN3_TOKENIZER,
-    tokenizerConfigSource: QWEN3_TOKENIZER_CONFIG,
-  });
+  const llm = useLLM(QWEN3_0_6B_QUANTIZED);
   const speechToText = useSpeechToText({
     modelName: 'moonshine',
     windowSize: 3,

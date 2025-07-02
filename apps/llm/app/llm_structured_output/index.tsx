@@ -13,8 +13,6 @@ import {
 import SendIcon from '../../assets/icons/send_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {
-  QWEN3_TOKENIZER,
-  QWEN3_TOKENIZER_CONFIG,
   useLLM,
   fixAndValidateStructuredOutput,
   getStructuredOutputPrompt,
@@ -75,12 +73,8 @@ function LLMScreen() {
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
-  const llm = useLLM({
-    // try out 4B model it this one struggles with following structured output
-    modelSource: QWEN3_1_7B_QUANTIZED,
-    tokenizerSource: QWEN3_TOKENIZER,
-    tokenizerConfigSource: QWEN3_TOKENIZER_CONFIG,
-  });
+  // try out 4B model it this one struggles with following structured output
+  const llm = useLLM(QWEN3_1_7B_QUANTIZED);
 
   useEffect(() => {
     setGlobalGenerating(llm.isGenerating);
