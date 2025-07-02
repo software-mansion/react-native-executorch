@@ -70,8 +70,6 @@ Pod::Spec.new do |s|
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',
   }
 
-  s.ios.vendored_frameworks = "ios/ExecutorchLib.xcframework"
-
   s.source_files = [
     "ios/**/*.{m,mm,h}",
     "common/**/*.{cpp,c,h,hpp}",
