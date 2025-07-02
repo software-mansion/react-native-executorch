@@ -23,7 +23,7 @@ modelSource: 'https://.../llama3_2.pte';
 If you prefer to delegate the process of obtaining and loading model and tokenizer files to the user, you can use the following method:
 
 ```typescript
-modelSource: 'file::///var/mobile/.../llama3_2.pte',
+modelSource: 'file:///var/mobile/.../llama3_2.pte';
 ```
 
 :::info

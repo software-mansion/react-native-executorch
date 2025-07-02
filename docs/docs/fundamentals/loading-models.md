@@ -28,7 +28,7 @@ If you prefer to delegate the process of obtaining and loading model and tokeniz
 
 ```typescript
 useExecutorchModule({
-  modelSource: 'file::///var/mobile/.../llama3_2.pte',
+  modelSource: 'file:///var/mobile/.../llama3_2.pte',
 });
 ```
 
