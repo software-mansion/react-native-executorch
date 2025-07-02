@@ -426,8 +426,9 @@ void log(LOG_LEVEL logLevel, const Args &...args) {
 
   // Remove the extra space after the last element
   std::string output = oss.str();
-  if (!output.empty())
+  if (!output.empty()) {
     output.pop_back();
+  }
 
   const auto buffer =
       high_level_log_implementation::getBuffer(output, MaxLogSize);
