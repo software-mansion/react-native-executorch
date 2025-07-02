@@ -217,11 +217,14 @@ Error Runner::generate(const std::string &prompt,
   uint64_t cur_token = prefill_res.get();
 
   // print the first token from prefill. No prev_token so use cur_token for it.
-  wrapped_callback(tokenizer_->Decode(
-      std::vector<int32_t>{static_cast<int32_t>(cur_token)}));
+  const std::string cur_decoded =
+      tokenizer_->Decode(std::vector<int32_t>{static_cast<int32_t>(cur_token)});
   RUNNER_ET_LOG(warmup, "RSS after prompt prefill: %f MiB (0 if unsupported)",
                 llm::get_rss_bytes() / 1024.0 / 1024.0);
 
+  if (cur_decoded != "�") {
+    wrapped_callback(cur_decoded);
+  }
   // start the main loop
   prompt_tokens_uint64.push_back(cur_token);
   int64_t num_generated_tokens = ET_UNWRAP(text_token_generator_->generate(

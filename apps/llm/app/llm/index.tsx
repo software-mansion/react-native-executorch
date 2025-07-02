@@ -26,7 +26,6 @@ import { GeneratingContext } from '../../context';
 
 export default function LLMScreenWrapper() {
   const isFocused = useIsFocused();
-
   return isFocused ? <LLMScreen /> : null;
 }
 
