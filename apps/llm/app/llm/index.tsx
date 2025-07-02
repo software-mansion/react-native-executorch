@@ -26,7 +26,6 @@ import { GeneratingContext } from '../../context';
 
 export default function LLMScreenWrapper() {
   const isFocused = useIsFocused();
-
   return isFocused ? <LLMScreen /> : null;
 }
 
@@ -72,7 +71,6 @@ function LLMScreen() {
       <KeyboardAvoidingView
         style={{
           ...styles.container,
-          paddingBottom: Platform.OS === 'android' ? 20 : 0,
         }}
         collapsable={false}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -138,7 +136,10 @@ function LLMScreen() {
 }
 
 const styles = StyleSheet.create({
-  keyboardAvoidingView: { flex: 1 },
+  keyboardAvoidingView: {
+    flex: 1,
+    paddingBottom: Platform.OS === 'android' ? 20 : 0,
+  },
   container: { flex: 1 },
   chatContainer: { flex: 10, width: '100%' },
   helloMessageContainer: {

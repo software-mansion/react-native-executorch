@@ -115,7 +115,6 @@ function LLMToolCallingScreen() {
         <KeyboardAvoidingView
           style={{
             ...styles.container,
-            paddingBottom: Platform.OS === 'android' ? 20 : 0,
           }}
           collapsable={false}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -183,7 +182,7 @@ function LLMToolCallingScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, paddingBottom: Platform.OS === 'android' ? 20 : 0 },
   keyboardAvoidingView: { flex: 1 },
   topContainer: {
     height: 68,
