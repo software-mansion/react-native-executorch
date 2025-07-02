@@ -16,16 +16,19 @@ Pod::Spec.new do |s|
   et_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/ios/libs/executorch', __dir__)
   tokenizers_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/ios/libs/tokenizers-cpp', __dir__)
 
+  s.frameworks = [
+    'CoreML',
+    'Accelerate',
+    'Metal',
+    'MetalPerformanceShaders',
+    'MetalPerformanceShadersGraph'
+  ]
+
   s.user_target_xcconfig = {
     "HEADER_SEARCH_PATHS" => "$(PODS_TARGET_SRCROOT)/third-party/include",
 
-    "OTHER_LDFLAGS[sdk=iphoneos*][arch=*]" => [
+    "OTHER_LDFLAGS[sdk=iphoneos*]" => [
       '$(inherited)', 
-      '-framework "CoreML"', 
-      '-framework "Accelerate"', 
-      '-framework "Metal"', 
-      '-framework "MetalPerformanceShaders"', 
-      '-framework "MetalPerformanceShadersGraph"', 
       "-force_load \"#{et_binaries_path}\"/libbackend_coreml_ios.a", 
       "-force_load \"#{et_binaries_path}\"/libbackend_mps_ios.a", 
       "-force_load \"#{et_binaries_path}\"/libbackend_xnnpack_ios.a", 
@@ -33,18 +36,14 @@ Pod::Spec.new do |s|
       "-force_load \"#{et_binaries_path}\"/libkernels_custom_ios.a", 
       "-force_load \"#{et_binaries_path}\"/libkernels_optimized_ios.a", 
       "-force_load \"#{et_binaries_path}\"/libkernels_quantized_ios.a",
+      "\"#{et_binaries_path}\"/libkernels_portable_ios.a",
       "\"#{tokenizers_binaries_path}/physical-arm64-release/libtokenizers_cpp.a\"",
       "\"#{tokenizers_binaries_path}/physical-arm64-release/libsentencepiece.a\"",
       "\"#{tokenizers_binaries_path}/physical-arm64-release/libtokenizers_c.a\""
     ].join(' '),
       
-    "OTHER_LDFLAGS[sdk=iphonesimulator*][arch=*]" => [
+    "OTHER_LDFLAGS[sdk=iphonesimulator*]" => [
       '$(inherited)', 
-      '-framework "CoreML"', 
-      '-framework "Accelerate"', 
-      '-framework "Metal"', 
-      '-framework "MetalPerformanceShaders"', 
-      '-framework "MetalPerformanceShadersGraph"', 
       "-force_load \"#{et_binaries_path}\"/libbackend_coreml_simulator.a", 
       "-force_load \"#{et_binaries_path}\"/libbackend_mps_simulator.a", 
       "-force_load \"#{et_binaries_path}\"/libbackend_xnnpack_simulator.a", 
@@ -52,6 +51,7 @@ Pod::Spec.new do |s|
       "-force_load \"#{et_binaries_path}\"/libkernels_custom_simulator.a", 
       "-force_load \"#{et_binaries_path}\"/libkernels_optimized_simulator.a", 
       "-force_load \"#{et_binaries_path}\"/libkernels_quantized_simulator.a",
+      "\"#{et_binaries_path}\"/libkernels_portable_simulator.a",
       "\"#{tokenizers_binaries_path}/simulator-arm64-debug/libtokenizers_cpp.a\"",
       "\"#{tokenizers_binaries_path}/simulator-arm64-debug/libsentencepiece.a\"",
       "\"#{tokenizers_binaries_path}/simulator-arm64-debug/libtokenizers_c.a\""
@@ -71,6 +71,7 @@ Pod::Spec.new do |s|
   }
 
   s.ios.vendored_frameworks = "ios/ExecutorchLib.xcframework"
+
   s.source_files = [
     "ios/**/*.{m,mm,h}",
     "common/**/*.{cpp,c,h,hpp}",
