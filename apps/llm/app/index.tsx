@@ -25,6 +25,12 @@ export default function Home() {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
+          onPress={() => router.navigate('llm_structured_output/')}
+        >
+          <Text style={styles.buttonText}>LLM Structured Output</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
           onPress={() => router.navigate('voice_chat/')}
         >
           <Text style={styles.buttonText}>Voice Chat</Text>
