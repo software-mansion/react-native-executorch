@@ -55,7 +55,7 @@ export class OCRController {
         recognizerSources.recognizerMedium,
         recognizerSources.recognizerSmall
       );
-      if (paths === null) {
+      if (paths === null || paths?.length < 4) {
         throw new Error('Download interrupted!');
       }
       await this.nativeModule.loadModule(

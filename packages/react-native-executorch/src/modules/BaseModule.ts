@@ -16,7 +16,7 @@ export class BaseModule {
         this.onDownloadProgressCallback,
         ...sources
       );
-      if (paths === null) {
+      if (paths === null || paths.length < sources.length) {
         throw new Error('Download interrupted.');
       }
       await this.nativeModule.loadModule(...paths, ...loadArgs);

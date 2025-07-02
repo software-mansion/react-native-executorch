@@ -12,7 +12,7 @@ export class ClassificationModule extends BaseNonStaticModule {
       onDownloadProgressCallback,
       modelSource
     );
-    if (paths === null) {
+    if (paths === null || paths.length < 1) {
       throw new Error('Download interrupted.');
     }
     this.nativeModule = global.loadClassification(paths[0] || '');

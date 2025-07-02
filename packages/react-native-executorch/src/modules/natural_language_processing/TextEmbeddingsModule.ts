@@ -16,7 +16,7 @@ export class TextEmbeddingsModule extends BaseNonStaticModule {
       modelSource,
       tokenizerSource
     );
-    if (paths === null) {
+    if (paths === null || paths.length < 2) {
       throw new Error('Download interrupted.');
     }
     this.nativeModule = global.loadTextEmbeddings(

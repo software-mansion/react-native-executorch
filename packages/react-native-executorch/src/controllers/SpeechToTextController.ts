@@ -107,7 +107,7 @@ export class SpeechToTextController {
         encoderSource || this.config.sources.encoder,
         decoderSource || this.config.sources.decoder
       );
-      if (paths === null) {
+      if (paths === null || paths.length < 2) {
         throw new Error('Download interrupted.');
       }
       [encoderSource, decoderSource] = paths;

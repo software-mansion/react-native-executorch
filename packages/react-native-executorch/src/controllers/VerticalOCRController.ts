@@ -62,7 +62,7 @@ export class VerticalOCRController {
           ? recognizerSources.recognizerSmall
           : recognizerSources.recognizerLarge
       );
-      if (paths === null) {
+      if (paths === null || paths.length < 3) {
         throw new Error('Download interrupted');
       }
       await this.ocrNativeModule.loadModule(

@@ -12,7 +12,7 @@ export class TokenizerModule {
       onDownloadProgressCallback,
       modelSource
     );
-    if (paths === null) {
+    if (paths === null || paths.length < 1) {
       throw new Error('Download interrupted.');
     }
     this.nativeModule = global.loadTokenizerModule(paths[0] || '');
