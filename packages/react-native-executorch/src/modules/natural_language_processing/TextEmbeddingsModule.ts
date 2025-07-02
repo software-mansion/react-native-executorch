@@ -11,11 +11,14 @@ export class TextEmbeddingsModule extends BaseNonStaticModule {
     meanPooling?: boolean,
     onDownloadProgressCallback: (_: number) => void = () => {}
   ): Promise<void> {
-    const paths = await ResourceFetcher.fetchMultipleResources(
+    const paths = await ResourceFetcher.fetch(
       onDownloadProgressCallback,
       modelSource,
       tokenizerSource
     );
+    if (paths === null || paths.length < 2) {
+      throw new Error('Download interrupted.');
+    }
     this.nativeModule = global.loadTextEmbeddings(
       paths[0] || '',
       paths[1] || ''
