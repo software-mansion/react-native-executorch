@@ -54,3 +54,4 @@ FNUZ
 wordlist
 coreml
 mobilenetv
+jitpack

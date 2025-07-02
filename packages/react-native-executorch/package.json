@@ -112,6 +112,9 @@
     "@huggingface/jinja": "^0.5.0",
     "expo": "^53.0.7",
     "expo-asset": "~11.1.5",
-    "expo-file-system": "~18.1.10"
+    "expo-file-system": "~18.1.10",
+    "jsonrepair": "^3.12.0",
+    "jsonschema": "^1.5.0",
+    "zod": "^3.25.0"
   }
 }
