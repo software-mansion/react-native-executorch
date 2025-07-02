@@ -53,6 +53,14 @@ public:
     // Token after prefill
     uint64_t cur_token = tokens.back();
     uint64_t prev_token;
+    // cache to keep tokens if they were decoded into illegal character
+    std::vector<int32_t> token_cache;
+    // if first token after prefill was part of multi-token character we need to
+    // add this to cache here
+    if (tokenizer_->Decode(
+            std::vector<int32_t>{static_cast<int32_t>(cur_token)}) == "�") {
+      token_cache.push_back(static_cast<int32_t>(cur_token));
+    }
 
     if (use_kv_cache_) {
       // hard code these to size 1 as kv cache is locked to static size right
@@ -100,16 +108,14 @@ public:
             tokens_managed, {1, static_cast<int>(token_data.size())}));
       }
 
-      // print the token as string, decode it with the Tokenizer object
+      // print the tokens as string, decode it with the Tokenizer object
+      token_cache.push_back(static_cast<int32_t>(cur_token));
+      const std::string cache_decoded = tokenizer_->Decode(token_cache);
 
-      std::string prev_decoded = tokenizer_->Decode(
-          std::vector<int32_t>{static_cast<int32_t>(prev_token)});
-      std::string merged_decoded = tokenizer_->Decode(std::vector<int32_t>{
-          static_cast<int32_t>(prev_token), static_cast<int32_t>(cur_token)});
-
-      std::string new_part = merged_decoded.substr(prev_decoded.size());
-
-      token_callback(new_part);
+      if (cache_decoded != "�" && cache_decoded != " �") {
+        token_callback(cache_decoded);
+        token_cache.clear();
+      }
 
       if (should_stop_) {
         break;
