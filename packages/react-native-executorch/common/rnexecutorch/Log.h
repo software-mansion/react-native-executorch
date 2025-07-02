@@ -377,10 +377,10 @@ void handleIosLog(LOG_LEVEL logLevel, const char *buffer) {
 }
 #endif
 
-std::string getBuffer(std::ostringstream &oss, std::size_t maxLogMessageSize) {
-  const std::string fullMessage = oss.str();
-  bool isMessageLongerThanLimit = fullMessage.size() > maxLogMessageSize;
-  std::string buffer = fullMessage.substr(0, maxLogMessageSize);
+std::string getBuffer(const std::string &logMessage,
+                      std::size_t maxLogMessageSize) {
+  bool isMessageLongerThanLimit = logMessage.size() > maxLogMessageSize;
+  std::string buffer = logMessage.substr(0, maxLogMessageSize);
   if (isMessageLongerThanLimit) {
     buffer += "...";
   }
@@ -417,10 +417,20 @@ std::string getBuffer(std::ostringstream &oss, std::size_t maxLogMessageSize) {
 template <std::size_t MaxLogSize = 1024, typename... Args>
 void log(LOG_LEVEL logLevel, const Args &...args) {
   std::ostringstream oss;
-  (low_level_log_implementation::printElement(oss, args),
-   ...); // Fold expression used to handle all arguments
+  auto space = [&oss](const auto &arg) {
+    low_level_log_implementation::printElement(oss, arg);
+    oss << ' ';
+  };
 
-  const auto buffer = high_level_log_implementation::getBuffer(oss, MaxLogSize);
+  (..., space(args));
+
+  // Remove the extra space after the last element
+  std::string output = oss.str();
+  if (!output.empty())
+    output.pop_back();
+
+  const auto buffer =
+      high_level_log_implementation::getBuffer(output, MaxLogSize);
   const auto *cStyleBuffer = buffer.c_str();
 
 #ifdef __ANDROID__

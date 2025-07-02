@@ -41,7 +41,7 @@ protected:
     clearOutputStream(oss);
   }
 
-  void setOutputStreamPresicion(std::size_t precision) noexcept {
+  void setOutputStreamPresicion(int precision) noexcept {
     oss << std::fixed << std::setprecision(precision);
   }
 
@@ -99,8 +99,9 @@ TEST_F(DirectStreamableElementsPrintTest, HandlesStringViews) {
   testValueViaComparison(std::string_view("Hello World"), "Hello World");
 }
 
-TEST_F(DirectStreamableElementsPrintTest, HandlesFloats) {
-  testValueViaComparison(3.14159, "3.14159");
+TEST_F(DirectStreamableElementsPrintTest, HandlesDoubles) {
+  constexpr double roughlyPi = 3.14159;
+  testValueViaComparison(roughlyPi, "3.14159");
 }
 
 TEST_F(DirectStreamableElementsPrintTest, HandlesBooleans) {
@@ -119,7 +120,7 @@ TEST_F(DirectStreamableElementsPrintTest, HandlesCharPointer) {
 
 TEST_F(DirectStreamableElementsPrintTest, HandlesComplexNumbers) {
   using namespace std::complex_literals;
-  constexpr std::size_t presision = 1;
+  constexpr int presision = 1;
   setOutputStreamPresicion(presision);
   const std::complex<double> complexNumber = std::pow(1i, 2);
   testValueViaComparison(complexNumber, "(-1.0,0.0)");
@@ -402,15 +403,6 @@ namespace high_level_log_implementation {
 
 class BufferTest : public ::testing::Test {
 protected:
-  // Helper to perform the operation and return the result
-  std::string performBufferOperation(const std::string &message,
-                                     std::size_t maxLogMessageSize) {
-    oss << message;
-    auto result = getBuffer(oss, maxLogMessageSize);
-    clearOutputStream(oss);
-    return result;
-  }
-
   // Helper to validate the final output
   void validateBuffer(const std::string &result, const std::string &expected,
                       std::size_t expectedSize) {
@@ -420,34 +412,31 @@ protected:
       EXPECT_EQ(result.substr(expected.size()), "...");
     }
   }
-
-private:
-  std::ostringstream oss;
-  void clearOutputStream(std::ostringstream &os) noexcept {
-    oss.str("");
-    oss.clear();
-  }
 };
 
 TEST_F(BufferTest, MessageShorterThanLimit) {
+  constexpr std::size_t smallLogLimit = 20;
   const std::string message = "Short message";
-  auto result = performBufferOperation(message, 20);
+  auto result = getBuffer(message, smallLogLimit);
   validateBuffer(result, message, message.size());
 }
 
 TEST_F(BufferTest, MessageExactlyAtLimit) {
   // Creating a string with 1024 'a' characters
-  const std::string message(1024, 'a');
-  auto result = performBufferOperation(message, 1024);
+  constexpr std::size_t defaultLogLimit = 1024;
+  const std::string message(defaultLogLimit, 'a');
+  auto result = getBuffer(message, defaultLogLimit);
   validateBuffer(result, message, message.size());
 }
 
 TEST_F(BufferTest, MessageLongerThanLimit) {
+  constexpr std::size_t defaultLogLimit = 1024;
+  constexpr std::size_t sizeAboveLimit = 1050;
   // Creating a string longer than the limit
-  const std::string message(1050, 'a');
-  const auto expected = std::string(1024, 'a') + "...";
-  const auto result = performBufferOperation(message, 1024);
-  validateBuffer(result, expected, 1027);
+  const std::string message(sizeAboveLimit, 'a');
+  const auto expected = std::string(defaultLogLimit, 'a') + "...";
+  const auto result = getBuffer(message, defaultLogLimit);
+  validateBuffer(result, expected, expected.size());
 }
 
 } // namespace high_level_log_implementation
@@ -499,8 +488,9 @@ TEST_F(LoggingTest, LoggingDoesNotChangeVector) {
 }
 
 TEST(LoggingTestTemplateArgument, LoggingWithNonDefaultLogSize) {
-  const auto testString = std::string(2048, 'a');
-  EXPECT_NO_THROW(log<2048>(LOG_LEVEL::Info, testString));
+  constexpr std::size_t sizeBiggerThanDefault = 2048;
+  const auto testString = std::string(sizeBiggerThanDefault, 'a');
+  EXPECT_NO_THROW(log<sizeBiggerThanDefault>(LOG_LEVEL::Info, testString));
 }
 
 } // namespace rnexecutorch
