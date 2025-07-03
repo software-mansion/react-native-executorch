@@ -2,7 +2,6 @@
 
 #include <ReactCommon/CallInvoker.h>
 #include <memory>
-#include <optional>
 #include <rnexecutorch/models/BaseModel.h>
 #include <string>
 
@@ -25,9 +24,6 @@ protected:
   std::shared_ptr<react::CallInvoker> callInvoker;
   std::unique_ptr<BaseModel> encoder_;
   std::unique_ptr<BaseModel> decoder_;
-
-  // Store the encoded result - EValue handles tensor lifetime safely
-  std::optional<EValue> cachedEncoderOutput_;
 
 private:
   size_t memorySizeLowerBound;
