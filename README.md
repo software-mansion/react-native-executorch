@@ -55,7 +55,7 @@ https://docs.swmansion.com/react-native-executorch
 ```bash
 # Install the package
 yarn add react-native-executorch
-# Depending on the platform choose either iOS or Android
+# Depending on the platform, choose either iOS or Android
 yarn expo run:< ios | android >
 ```
 
@@ -112,7 +112,7 @@ If you would like to run demo app, navigate to it's project directory and instal
 yarn
 ```
 
-And depending on the platform choose either iOS or Android:
+Then, depending on the platform, choose either iOS or Android:
 
 ```bash
 yarn expo run:< ios | android >
