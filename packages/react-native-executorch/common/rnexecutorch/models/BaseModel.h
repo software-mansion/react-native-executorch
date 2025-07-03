@@ -26,6 +26,8 @@ public:
   forwardJS(std::vector<JSTensorViewIn> tensorViewVec);
   Result<std::vector<EValue>> forward(const EValue &input_value);
   Result<std::vector<EValue>> forward(const std::vector<EValue> &input_value);
+  Result<std::vector<EValue>> execute(const std::string &methodName,
+                                      const std::vector<EValue> &input_value);
 
 protected:
   // If possible, models should not use the JS runtime to keep JSI internals

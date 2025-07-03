@@ -1,8 +1,7 @@
 #include "BaseModel.h"
 
-#include <filesystem>
-
 #include <executorch/extension/tensor/tensor.h>
+#include <filesystem>
 
 namespace rnexecutorch {
 
@@ -147,6 +146,15 @@ BaseModel::forward(const std::vector<EValue> &input_evalues) {
     throw std::runtime_error("Model not loaded: Cannot perform forward pass");
   }
   return module_->forward(input_evalues);
+}
+
+Result<std::vector<EValue>>
+BaseModel::execute(const std::string &methodName,
+                   const std::vector<EValue> &input_value) {
+  if (!module_) {
+    throw std::runtime_error("Model not loaded, cannot run execute.");
+  }
+  return module_->execute(methodName, input_value);
 }
 
 std::size_t BaseModel::getMemoryLowerBound() { return memorySizeLowerBound; }
