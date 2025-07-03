@@ -164,8 +164,9 @@ template <typename T, std::size_t N>
 void printElement(std::ostream &os, T (&array)[N]) {
   os << "[";
   for (std::size_t i = 0; i < N; ++i) {
-    if (i > 0)
+    if (i > 0) {
       os << ", ";
+    }
     printElement(os, array[i]);
   }
   os << "]";
@@ -379,12 +380,10 @@ void handleIosLog(LOG_LEVEL logLevel, const char *buffer) {
 
 std::string getBuffer(const std::string &logMessage,
                       std::size_t maxLogMessageSize) {
-  bool isMessageLongerThanLimit = logMessage.size() > maxLogMessageSize;
-  std::string buffer = logMessage.substr(0, maxLogMessageSize);
-  if (isMessageLongerThanLimit) {
-    buffer += "...";
+  if (logMessage.size() > maxLogMessageSize) {
+    return logMessage.substr(0, maxLogMessageSize) + "...";
   }
-  return buffer;
+  return logMessage;
 }
 
 } // namespace high_level_log_implementation
