@@ -2,7 +2,6 @@
 
 #include <memory>
 #include <string>
-#include <thread>
 
 #include <ReactCommon/CallInvoker.h>
 #include <jsi/jsi.h>
@@ -35,6 +34,8 @@ REGISTER_CONSTRUCTOR(ImageEmbeddings, std::string,
 REGISTER_CONSTRUCTOR(TextEmbeddings, std::string, std::string,
                      std::shared_ptr<react::CallInvoker>);
 REGISTER_CONSTRUCTOR(LLM, std::string, std::string,
+                     std::shared_ptr<react::CallInvoker>);
+REGISTER_CONSTRUCTOR(Moonshine, std::string, std::string,
                      std::shared_ptr<react::CallInvoker>);
 
 using namespace facebook;
