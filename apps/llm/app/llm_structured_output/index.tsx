@@ -73,7 +73,7 @@ function LLMScreen() {
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
-  // try out 4B model it this one struggles with following structured output
+  // try out 4B model if this one struggles with following structured output
   const llm = useLLM(QWEN3_1_7B_QUANTIZED);
 
   useEffect(() => {
