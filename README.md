@@ -9,7 +9,7 @@
 
 ![Software Mansion banner](https://github.com/user-attachments/assets/fa2c4735-e75c-4cc1-970d-88905d95e3a4)
 
-**React Native ExecuTorch** is a declarative way to run AI models in React Native on device, powered by **ExecuTorch** 🚀. It offers out-of-the-box support for many LLMs, computer vision models, and many many more. Feel free to check them out on our [HuggingFace page](https://huggingface.co/software-mansion).
+**React Native ExecuTorch** is a declarative way to run AI models in React Native on device, powered by **ExecuTorch** :rocket:. It offers out-of-the-box support for many LLMs, computer vision models, and many many more. Feel free to check them out on our [HuggingFace page](https://huggingface.co/software-mansion).
 
 **ExecuTorch** is a novel framework created by Meta that enables running AI models on devices such as mobile phones or microcontrollers. 
 
@@ -50,7 +50,7 @@ https://docs.swmansion.com/react-native-executorch
 
 **Get started with AI-powered text generation in 3 easy steps!**
 
-### 1️⃣ **Installation**
+### :one: **Installation**
 
 ```bash
 # Install the package
@@ -59,7 +59,7 @@ yarn add react-native-executorch
 yarn expo run:< ios | android >
 ```
 
-### 2️⃣ **Setup & Initialization**
+### :two: **Setup & Initialization**
 
 Add this to your component file:
 
@@ -82,7 +82,7 @@ function MyComponent() {
 }
 ```
 
-### 3️⃣ **Run the model!**
+### :three: **Run the model!**
 
 ```tsx
 const handleGenerate = async () => {
