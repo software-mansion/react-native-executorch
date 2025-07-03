@@ -9,4 +9,8 @@ EncoderDecoderBase::EncoderDecoderBase(
       decoder_(std::make_unique<BaseModel>(decoderPath, callInvoker)),
       callInvoker(callInvoker) {}
 
+void EncoderDecoderBase::unload() {
+  encoder_.reset(nullptr);
+  decoder_.reset(nullptr);
+}
 } // namespace rnexecutorch
