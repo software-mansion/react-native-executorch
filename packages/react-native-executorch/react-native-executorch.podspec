@@ -77,7 +77,7 @@ Pod::Spec.new do |s|
   # react-native-skia. The headers are preserved by preserve_paths and 
   # then made available by HEADER_SEARCH_PATHS.
   s.exclude_files = [
-    "common/rnexecutorch/LogTest.cpp",
+    "common/rnexecutorch/tests/*",
     "common/rnexecutorch/jsi/*.{h,hpp}"
   ]
   s.header_mappings_dir = "common/rnexecutorch"

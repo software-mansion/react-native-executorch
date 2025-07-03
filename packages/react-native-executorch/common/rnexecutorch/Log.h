@@ -27,34 +27,36 @@ using namespace std::string_literals;
 
 namespace concepts {
 template <typename T>
-concept HasBeginEnd = requires(T t) {
-  { std::begin(t) } -> std::convertible_to<decltype(std::begin(t))>;
-  { std::end(t) } -> std::convertible_to<decltype(std::end(t))>;
+concept Iterable = requires(const T &t) {
+  { std::begin(t) } -> std::input_or_output_iterator;
+  { std::end(t) } -> std::input_or_output_iterator;
 };
 
 template <typename T>
 concept FrontAccessible = requires(T t) {
-  { t.front() } -> std::convertible_to<decltype(t.front())>;
+  { t.front() };
+  requires !std::is_void_v<decltype(t.front())>;
 };
 
 template <typename T>
 concept TopAccessible = requires(T t) {
-  { t.top() } -> std::convertible_to<decltype(t.top())>;
+  { t.top() };
+  requires !std::is_void_v<decltype(t.top())>;
 };
 
 template <typename T>
 concept HasPop = requires(T t) {
-  { t.pop() } -> std::same_as<void>;
+  { t.pop() };
 };
 
 template <typename T>
-concept Iterable = HasBeginEnd<T> && requires(T &t) {
-  ++std::declval<decltype(begin(t)) &>(); // Support for increment
-  *begin(t);                              // Support for dereferencing
+concept HasEmpty = requires(T t) {
+  { t.empty() } -> std::convertible_to<int>;
 };
 
 template <typename T>
-concept Sequencable = HasPop<T> && (FrontAccessible<T> || TopAccessible<T>);
+concept Sequencable =
+    HasPop<T> && HasEmpty<T> && (FrontAccessible<T> || TopAccessible<T>);
 
 template <typename T>
 concept Streamable = requires(std::ostream &os, const T &t) {
@@ -62,13 +64,13 @@ concept Streamable = requires(std::ostream &os, const T &t) {
 };
 
 template <typename T>
-concept SmartPointer = requires(T a) {
+concept SmartPointer = requires(const T &a) {
   *a;
   { a ? true : false } -> std::convertible_to<bool>;
 } && !std::is_pointer_v<T>; // Ensure that it's not a raw pointer
 
 template <typename T>
-concept WeakPointer = requires(T a) {
+concept WeakPointer = requires(const T &a) {
   {
     a.lock()
   } -> std::convertible_to<
