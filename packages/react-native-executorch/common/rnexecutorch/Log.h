@@ -357,8 +357,8 @@ android_LogPriority androidLogLevel(LOG_LEVEL logLevel) {
   }
 }
 
-void handleAndroidLog(LOG_LEVEL logLevel, const char *buffrer) {
-  __android_log_print(androidLogLevel(logLevel), "RnExecutorch", "%s", buffrer);
+void handleAndroidLog(LOG_LEVEL logLevel, const char *buffer) {
+  __android_log_print(androidLogLevel(logLevel), "RnExecutorch", "%s", buffer);
 }
 #endif
 
