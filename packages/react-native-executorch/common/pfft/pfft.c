@@ -62,8 +62,8 @@
 #endif
 
 #include <assert.h>
-#include <audioapi/libs/pffft/pffft.h>
 #include <math.h>
+#include <pfft/pfft.h>
 #include <stdio.h>
 #include <stdlib.h>
 
