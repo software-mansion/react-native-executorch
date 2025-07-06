@@ -3,67 +3,88 @@
 #include <algorithm>
 #include <cmath>
 #include <numeric>
-#include <span>
 
 namespace rnexecutorch::numerical {
-void softmax(std::vector<float> &v) {
-  float max = *std::max_element(v.begin(), v.end());
+template <typename Container> void softmax(Container &input) {
+  static_assert(std::is_floating_point_v<typename Container::value_type>,
+                "Softmax requires a container with floating-point type.");
 
-  float sum = 0.0f;
-  for (float &x : v) {
-    x = std::exp(x - max);
-    sum += x;
-  }
-  for (float &x : v) {
-    x /= sum;
-  }
-}
+  using ValueType = typename Container::value_type;
 
-void normalize(std::span<float> span) {
-  auto sum = 0.0f;
-  for (const auto &val : span) {
-    sum += val * val;
-  }
-
-  // Early return if all values are 0
-  if (sum == 0.0f) {
+  if (input.empty()) {
     return;
   }
 
-  float norm = std::sqrt(sum);
-  for (auto &val : span) {
-    val /= norm;
+  constexpr auto zeroValueType = static_cast<ValueType>(0);
+  const ValueType maxElement = *std::max_element(
+      std::begin(input), std::end(input)); // for numerical stability
+  std::transform(
+      std::begin(input), std::end(input), std::begin(input),
+      [maxElement](ValueType value) { return std::exp(value - maxElement); });
+
+  const ValueType sum =
+      std::accumulate(std::begin(input), std::end(input), zeroValueType);
+  if (sum == zeroValueType) {
+    return; // Prevent division by zero if all elements are 0 of given type
   }
+
+  std::transform(std::begin(input), std::end(input), std::begin(input),
+                 [sum](ValueType value) { return value / sum; });
 }
 
-void normalize(std::vector<float> &v) {
-  float sum = 0.0f;
-  for (float &x : v) {
-    sum += x * x;
+template void softmax(std::vector<float> &);
+template void softmax(std::vector<double> &);
+template void softmax(std::span<float>);
+template void softmax(std::span<double>);
+
+template <typename Container> void normalize(Container &input) {
+  static_assert(
+      std::is_floating_point_v<typename Container::value_type>,
+      "Standardization requires a container with floating-point type.");
+
+  using ValueType = typename Container::value_type;
+
+  if (input.empty()) {
+    return;
   }
 
-  float norm =
-      std::max(std::sqrt(sum), 1e-9f); // Solely for preventing division by 0
-  for (float &x : v) {
-    x /= norm;
+  constexpr auto zeroValueType = static_cast<ValueType>(0);
+  const ValueType mean =
+      std::accumulate(std::begin(input), std::end(input), zeroValueType) /
+      input.size();
+  const ValueType squaredSum = std::inner_product(
+      std::begin(input), std::end(input), std::begin(input), zeroValueType);
+  const ValueType variance = (squaredSum / input.size()) - (mean * mean);
+  const ValueType standardDeviation = std::sqrt(variance);
+
+  if (standardDeviation == zeroValueType) {
+    return; // Prevent division by zero if all elements are the same
   }
+
+  std::transform(std::begin(input), std::end(input), std::begin(input),
+                 [mean, standardDeviation](ValueType value) {
+                   return (value - mean) / standardDeviation;
+                 });
 }
+
+template void normalize(std::vector<float> &);
+template void normalize(std::vector<double> &);
+template void normalize(std::span<float>);
+template void normalize(std::span<double>);
 
 std::vector<float> meanPooling(std::span<const float> modelOutput,
                                std::span<const int64_t> attnMask) {
   auto attnMaskLength = attnMask.size();
   auto embeddingDim = modelOutput.size() / attnMaskLength;
 
-  float maskSum = 0;
-  for (const auto &v : attnMask) {
-    maskSum += static_cast<float>(v);
-  }
-  maskSum = std::max(maskSum, 1e-9f);
+  float maskSum =
+      std::accumulate(std::begin(attnMask), std::end(attnMask), 0.0F);
+  maskSum = std::max(maskSum, 1e-9F);
 
-  auto result = std::vector<float>();
+  auto result = std::vector<float>{};
   result.reserve(embeddingDim);
   for (size_t i = 0; i < embeddingDim; i++) {
-    float dimensionSum = 0;
+    float dimensionSum = 0.0F;
     for (size_t j = 0; j < attnMaskLength; j++) {
       dimensionSum +=
           modelOutput[j * embeddingDim + i] * static_cast<float>(attnMask[j]);
