@@ -1,11 +1,13 @@
 #include "ReactCommon/CallInvoker.h"
 #include "executorch/extension/tensor/tensor_ptr.h"
+#include "executorch/runtime/core/exec_aten/exec_aten.h"
 #include "rnexecutorch/data_processing/dsp.h"
 #include "rnexecutorch/models/EncoderDecoderBase.h"
 #include <memory>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 namespace rnexecutorch {
 
@@ -44,23 +46,33 @@ void SpeechToText::encode(std::span<float> waveform) {
         "Forward pass failed during encoding, error code: " +
         std::to_string(static_cast<int>(result.error())));
   }
-  encoderOutput = result.get().at(0).toTensor();
+
+  encoderOutput = result.get().at(0);
 }
 
 int64_t SpeechToText::decode(std::vector<int64_t> prevTokens) {
   if (encoderOutput.isNone()) {
     throw std::runtime_error("Empty encodings on decode call, make sure to "
-                             "call encode() prior to decode().");
+                             "call encode() prior to decode()!");
   }
+  auto prevTokensTensorSizes = {1, static_cast<int>(prevTokens.size())};
+  auto prevTokensScalarType =
+      (modelName == "moonshine") ? ScalarType::Long : ScalarType::Int;
 
-  auto prevTokensTensor =
-      make_tensor_ptr({1, static_cast<int32_t>(prevTokens.size())},
-                      prevTokens.data(), ScalarType::Long);
+  auto prevTokensTensor = make_tensor_ptr(
+      prevTokensTensorSizes, prevTokens.data(), prevTokensScalarType);
+  auto prevTokensSizes = prevTokensTensor->sizes();
+
+  auto sizes = encoderOutput.toTensor().sizes();
+  std::vector<int64_t> prevTokensTest = {static_cast<int64_t>(1)};
+  auto prevTokensTestTensor =
+      make_tensor_ptr({1, 1}, prevTokensTest.data(), ScalarType::Long);
 
   auto decoderOutput =
       (modelName == "moonshine")
           ? decoder_->execute("forward_cached",
                               {prevTokensTensor, encoderOutput})
+
           : decoder_->forward({prevTokensTensor, encoderOutput});
 
   if (!decoderOutput.ok()) {
