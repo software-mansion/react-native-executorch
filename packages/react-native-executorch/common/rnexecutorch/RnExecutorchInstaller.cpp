@@ -7,7 +7,6 @@
 #include <rnexecutorch/models/image_segmentation/ImageSegmentation.h>
 #include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/object_detection/ObjectDetection.h>
-#include <rnexecutorch/models/speech_to_text/Moonshine.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
 #include <rnexecutorch/models/text_embeddings/TextEmbeddings.h>
