@@ -2,6 +2,7 @@
 
 #include <executorch/extension/tensor/tensor.h>
 #include <filesystem>
+#include <stdexcept>
 
 namespace rnexecutorch {
 
@@ -131,6 +132,14 @@ BaseModel::forwardJS(const std::vector<JSTensorViewIn> tensorViewVec) {
     output.emplace_back(jsTensor);
   }
   return output;
+}
+
+Result<executorch::runtime::MethodMeta>
+BaseModel::getMethodMeta(const std::string &methodName) {
+  if (!module_) {
+    throw std::runtime_error("Model not loaded: Cannot get method meta!");
+  }
+  return module_->method_meta(methodName);
 }
 
 Result<std::vector<EValue>> BaseModel::forward(const EValue &input_evalue) {

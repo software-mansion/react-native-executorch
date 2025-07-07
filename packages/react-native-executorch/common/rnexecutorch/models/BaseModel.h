@@ -28,6 +28,8 @@ public:
   Result<std::vector<EValue>> forward(const std::vector<EValue> &input_value);
   Result<std::vector<EValue>> execute(const std::string &methodName,
                                       const std::vector<EValue> &input_value);
+  Result<executorch::runtime::MethodMeta>
+  getMethodMeta(const std::string &methodName);
 
 protected:
   // If possible, models should not use the JS runtime to keep JSI internals
