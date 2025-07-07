@@ -64,10 +64,6 @@ int64_t SpeechToText::decode(std::vector<int64_t> prevTokens) {
   auto prevTokensSizes = prevTokensTensor->sizes();
 
   auto sizes = encoderOutput.toTensor().sizes();
-  std::vector<int64_t> prevTokensTest = {static_cast<int64_t>(1)};
-  auto prevTokensTestTensor =
-      make_tensor_ptr({1, 1}, prevTokensTest.data(), ScalarType::Long);
-
   auto decoderOutput =
       (modelName == "moonshine")
           ? decoder_->execute("forward_cached",
