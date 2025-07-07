@@ -75,13 +75,18 @@ Pod::Spec.new do |s|
     "ios/**/*.{m,mm,h}",
     "common/**/*.{cpp,c,h,hpp}",
   ]
+
+  # Exclude file with tests to not introduce gtest dependency.
   # Do not include the headers from common/rnexecutorch/jsi/ as source files. 
   # Xcode/Cocoapods leaks them to other pods that an app also depends on, so if 
   # another pod includes a header with the same name without a path by 
   # #include "Header.h" we get a conflict. Here, headers in jsi/ collide with 
   # react-native-skia. The headers are preserved by preserve_paths and 
   # then made available by HEADER_SEARCH_PATHS.
-  s.exclude_files = "common/rnexecutorch/jsi/*.{h,hpp}"
+  s.exclude_files = [
+    "common/rnexecutorch/tests/*.{cpp}",
+    "common/rnexecutorch/jsi/*.{h,hpp}"
+  ]
   s.header_mappings_dir = "common/rnexecutorch"
   s.header_dir = "rnexecutorch"
   s.preserve_paths = "common/rnexecutorch/jsi/*.{h,hpp}"
