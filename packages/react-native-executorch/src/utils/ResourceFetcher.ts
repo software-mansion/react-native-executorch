@@ -369,6 +369,7 @@ export class ResourceFetcher {
     if (await ResourceFetcherUtils.checkFileExists(sourceExtended.fileUri)) {
       return ResourceFetcherUtils.removeFilePrefix(sourceExtended.fileUri);
     }
+    await ResourceFetcherUtils.createDirectoryIfNoExists();
 
     const downloadResumable = createDownloadResumable(
       uri,

@@ -2454,7 +2454,7 @@ SPEC CHECKSUMS:
   React-logger: 8edfcedc100544791cd82692ca5a574240a16219
   React-Mapbuffer: c3f4b608e4a59dd2f6a416ef4d47a14400194468
   React-microtasksnativemodule: 054f34e9b82f02bd40f09cebd4083828b5b2beb6
-  react-native-executorch: 039d083b638678d321af3c48b6e66edd3903ffb1
+  react-native-executorch: 98a2d5c0fc2290d473db87f2d6f3bf9dc7b77ab1
   react-native-image-picker: 8a3f16000e794f5381a7fe47bb48fd8d06741e47
   react-native-safe-area-context: 562163222d999b79a51577eda2ea8ad2c32b4d06
   react-native-skia: b6cb66e99a953dae6880348c92cfb20a76d90b4f
