@@ -155,4 +155,7 @@ TEST(NumericalTests, NormalizeNearZeroVariance) {
 }
 
 } // namespace rnexecutorch::numerical
+<<<<<<< HEAD
 >>>>>>> 90369ea8 (Improve testing using CMakeLists.txt)
+=======
+>>>>>>> 1027fc20 (Add newlines)
