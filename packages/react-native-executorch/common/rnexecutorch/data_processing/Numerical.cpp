@@ -2,86 +2,67 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <numeric>
 
 namespace rnexecutorch::numerical {
-template <typename Container> void softmax(Container &input) {
-  static_assert(std::is_floating_point_v<typename Container::value_type>,
-                "Softmax requires a container with floating-point type.");
 
-  using ValueType = typename Container::value_type;
+void softmax(std::span<float> input) {
 
   if (input.empty()) {
     return;
   }
 
-  constexpr auto zeroValueType = static_cast<ValueType>(0);
-  const ValueType maxElement = *std::max_element(
+  const auto maxElement = *std::max_element(
       std::begin(input), std::end(input)); // for numerical stability
   std::transform(
       std::begin(input), std::end(input), std::begin(input),
-      [maxElement](ValueType value) { return std::exp(value - maxElement); });
+      [maxElement](float value) { return std::exp(value - maxElement); });
 
-  const ValueType sum =
-      std::accumulate(std::begin(input), std::end(input), zeroValueType);
-  if (sum == zeroValueType) {
-    return; // Prevent division by zero if all elements are 0 of given type
-  }
+  const auto sum = std::accumulate(std::begin(input), std::end(input), 0.0F);
 
+  // sum is at least 1 since exp(max - max) == exp(0) == 1
   std::transform(std::begin(input), std::end(input), std::begin(input),
-                 [sum](ValueType value) { return value / sum; });
+                 [sum](float value) { return value / sum; });
 }
 
-template void softmax(std::vector<float> &);
-template void softmax(std::vector<double> &);
-template void softmax(std::span<float>);
-template void softmax(std::span<double>);
-
-template <typename Container> void normalize(Container &input) {
-  static_assert(
-      std::is_floating_point_v<typename Container::value_type>,
-      "Standardization requires a container with floating-point type.");
-
-  using ValueType = typename Container::value_type;
+void normalize(std::span<float> input) {
 
   if (input.empty()) {
     return;
   }
 
-  constexpr auto zeroValueType = static_cast<ValueType>(0);
-  const ValueType mean =
-      std::accumulate(std::begin(input), std::end(input), zeroValueType) /
-      input.size();
-  const ValueType squaredSum = std::inner_product(
-      std::begin(input), std::end(input), std::begin(input), zeroValueType);
-  const ValueType variance = (squaredSum / input.size()) - (mean * mean);
-  const ValueType standardDeviation = std::sqrt(variance);
+  const auto mean =
+      std::accumulate(std::begin(input), std::end(input), 0.0F) / input.size();
+  const auto squaredSum = std::inner_product(std::begin(input), std::end(input),
+                                             std::begin(input), 0.0F);
+  const auto variance = (squaredSum / input.size()) - (mean * mean);
+  const auto standardDeviation = std::sqrt(variance);
 
-  if (standardDeviation == zeroValueType) {
-    return; // Prevent division by zero if all elements are the same
+  const auto epsilon = std::numeric_limits<float>::epsilon();
+  // If standard deviation is extremely small return zero vector
+  // This prevents dividing by almost zero values
+  if (standardDeviation < epsilon) {
+    std::fill(input.begin(), input.end(), 0.0F);
+    return;
   }
 
   std::transform(std::begin(input), std::end(input), std::begin(input),
-                 [mean, standardDeviation](ValueType value) {
+                 [mean, standardDeviation](float value) {
                    return (value - mean) / standardDeviation;
                  });
 }
-
-template void normalize(std::vector<float> &);
-template void normalize(std::vector<double> &);
-template void normalize(std::span<float>);
-template void normalize(std::span<double>);
 
 std::vector<float> meanPooling(std::span<const float> modelOutput,
                                std::span<const int64_t> attnMask) {
   auto attnMaskLength = attnMask.size();
   auto embeddingDim = modelOutput.size() / attnMaskLength;
 
-  float maskSum =
-      std::accumulate(std::begin(attnMask), std::end(attnMask), 0.0F);
+  auto maskSum = static_cast<float>(std::accumulate(
+      attnMask.begin(), attnMask.end(), static_cast<int64_t>(0)));
   maskSum = std::max(maskSum, 1e-9F);
 
-  auto result = std::vector<float>{};
+  std::vector<float> result{};
   result.reserve(embeddingDim);
   for (size_t i = 0; i < embeddingDim; i++) {
     float dimensionSum = 0.0F;

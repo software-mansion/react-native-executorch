@@ -4,3 +4,9 @@
 [submodule "tokenizers-cpp"]
 	path = third-party/tokenizers-cpp
 	url = https://github.com/software-mansion-labs/tokenizers-cpp
+[submodule "packages/react-native-executorch/third_party/googletest"]
+	path = packages/react-native-executorch/third_party/googletest
+	url = https://github.com/google/googletest.git
+[submodule "packages/react-native-executorch/third-party/googletest"]
+	path = packages/react-native-executorch/third-party/googletest
+	url = https://github.com/google/googletest.git
