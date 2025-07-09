@@ -106,7 +106,7 @@ We currently host a few example [apps](https://github.com/software-mansion/react
 - `computer-vision` - Computer vision related tasks
 - `text-embeddings` - Computing text representations for semantic search
 
-If you would like to run demo app, navigate to it's project directory and install dependencies with:
+If you would like to run demo app, navigate to its project directory and install dependencies with:
 
 ```bash
 yarn
