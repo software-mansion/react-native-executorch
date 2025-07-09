@@ -11,11 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  useTextEmbeddings,
-  ALL_MINILM_L6_V2,
-  ALL_MINILM_L6_V2_TOKENIZER,
-} from 'react-native-executorch';
+import { useTextEmbeddings, ALL_MINILM_L6_V2 } from 'react-native-executorch';
 import { useIsFocused } from '@react-navigation/native';
 
 export default function TextEmbeddingsScreenWrapper() {
@@ -25,11 +21,7 @@ export default function TextEmbeddingsScreenWrapper() {
 }
 
 function TextEmbeddingsScreen() {
-  const model = useTextEmbeddings({
-    modelSource: ALL_MINILM_L6_V2,
-    tokenizerSource: ALL_MINILM_L6_V2_TOKENIZER,
-    meanPooling: true,
-  });
+  const model = useTextEmbeddings(ALL_MINILM_L6_V2);
 
   const [inputSentence, setInputSentence] = useState('');
   const [sentencesWithEmbeddings, setSentencesWithEmbeddings] = useState<
