@@ -12,40 +12,79 @@ void expect_vectors_eq(const std::vector<float> &vector1,
   }
 }
 
-TEST(NumericalTests, SoftmaxBasic) {
+TEST(SoftmaxTests, SoftmaxBasic) {
   std::vector<float> input = {1.0F, 2.0F, 3.0F};
   softmax(input);
   const std::vector<float> expected = {0.09003057f, 0.24472847f, 0.66524095F};
   expect_vectors_eq(input, expected);
 }
 
-TEST(NumericalTests, NormalizeBasic) {
+TEST(SoftmaxTests, SoftmaxWithBigValues) {
+  std::vector<float> input = {100000.0F, 100000.0F, 100000.0F};
+  softmax(input);
+  const std::vector<float> expected = {0.3333333f, 0.3333333f, 0.3333333f};
+  expect_vectors_eq(input, expected);
+}
+
+TEST(NormalizeTests, NormalizeBasic) {
   std::vector<float> input = {1.0F, 2.0F, 3.0F};
   normalize(input);
   const std::vector<float> expected = {-1.22474487f, 0.0F, 1.22474487F};
   expect_vectors_eq(input, expected);
 }
 
-TEST(NumericalTests, MeanPoolingBasic) {
-  // Create vectors to initialize spans
-  const std::vector<float> modelOutputVec = {1.0f, 2.0f, 3.0f,
-                                             4.0f, 5.0f, 6.0f};
-  const std::vector<int64_t> attnMaskVec = {1, 1, 1};
-
-  std::span<const float> modelOutput(modelOutputVec);
-  std::span<const int64_t> attnMask(attnMaskVec);
-
-  const auto result = meanPooling(modelOutput, attnMask);
-  const std::vector<float> expected = {3.0F, 4.0F};
-  expect_vectors_eq(result, expected);
-}
-
-TEST(NumericalTests, NormalizeNearZeroVariance) {
+TEST(NormalizeTests, NormalizeNearZeroVariance) {
   std::vector<float> input = {
       1.0F, 1.0F, 1.0F}; // All elements are the same - zero variance
   normalize(input);
   const std::vector<float> expected = {0.0F, 0.0F, 0.0F};
   expect_vectors_eq(input, expected);
+}
+
+TEST(MeanPoolingTests, MeanPoolingBasic) {
+  // Create vectors to initialize spans
+  const std::vector<float> modelOutputVec = {1.0f, 2.0f, 3.0f,
+                                             4.0f, 5.0f, 6.0f};
+  const std::vector<int64_t> attnMaskVec = {1, 1, 0};
+
+  std::span<const float> modelOutput(modelOutputVec);
+  std::span<const int64_t> attnMask(attnMaskVec);
+
+  const auto result = meanPooling(modelOutput, attnMask);
+  const std::vector<float> expected = {2.0F, 3.0F};
+  expect_vectors_eq(result, expected);
+}
+
+TEST(MeanPoolingTests, MeanPoolingWithZeroAttentionMask) {
+  // Create vectors to initialize spans
+  const std::vector<float> modelOutputVec = {1.0f, 2.0f, 3.0f,
+                                             4.0f, 5.0f, 6.0f};
+  const std::vector<int64_t> attnMaskVec = {0, 0, 0};
+
+  std::span<const float> modelOutput(modelOutputVec);
+  std::span<const int64_t> attnMask(attnMaskVec);
+
+  const auto result = meanPooling(modelOutput, attnMask);
+  const std::vector<float> expected = {0.0F, 0.0F};
+  expect_vectors_eq(result, expected);
+}
+
+TEST(MeanPoolingTests, InvalidDimensionSize) {
+  const std::vector<float> modelOutput = {1.0f, 2.0f, 3.0f, 4.0f};
+  const std::vector<int64_t> attnMask = {1, 1, 1};
+
+  EXPECT_THROW(
+      { rnexecutorch::numerical::meanPooling(modelOutput, attnMask); },
+      std::invalid_argument);
+}
+
+TEST(MeanPoolingTests, EmptyAttentionMask) {
+  const std::vector<float> modelOutput = {1.0f, 2.0f, 3.0f, 4.0f};
+  const std::vector<int64_t> attnMask = {};
+
+  EXPECT_THROW(
+      { rnexecutorch::numerical::meanPooling(modelOutput, attnMask); },
+      std::invalid_argument);
 }
 
 } // namespace rnexecutorch::numerical

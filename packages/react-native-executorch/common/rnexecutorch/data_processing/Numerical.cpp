@@ -4,6 +4,7 @@
 #include <cmath>
 #include <limits>
 #include <numeric>
+#include <string>
 
 namespace rnexecutorch::numerical {
 
@@ -13,17 +14,18 @@ void softmax(std::span<float> input) {
     return;
   }
 
-  const auto maxElement = *std::max_element(
-      std::begin(input), std::end(input)); // for numerical stability
-  std::transform(
-      std::begin(input), std::end(input), std::begin(input),
-      [maxElement](float value) { return std::exp(value - maxElement); });
+  const auto maxElement = *std::ranges::max_element(input);
 
-  const auto sum = std::accumulate(std::begin(input), std::end(input), 0.0F);
+  for (auto &value : input) {
+    value = std::exp(value - maxElement);
+  }
+
+  const auto sum = std::reduce(std::begin(input), std::end(input));
 
   // sum is at least 1 since exp(max - max) == exp(0) == 1
-  std::transform(std::begin(input), std::end(input), std::begin(input),
-                 [sum](float value) { return value / sum; });
+  for (auto &value : input) {
+    value /= sum;
+  }
 }
 
 void normalize(std::span<float> input) {
@@ -33,45 +35,58 @@ void normalize(std::span<float> input) {
   }
 
   const auto mean =
-      std::accumulate(std::begin(input), std::end(input), 0.0F) / input.size();
+      std::reduce(std::begin(input), std::end(input)) / input.size();
   const auto squaredSum = std::inner_product(std::begin(input), std::end(input),
                                              std::begin(input), 0.0F);
   const auto variance = (squaredSum / input.size()) - (mean * mean);
   const auto standardDeviation = std::sqrt(variance);
 
-  const auto epsilon = std::numeric_limits<float>::epsilon();
+  constexpr auto epsilon = std::numeric_limits<float>::epsilon();
   // If standard deviation is extremely small return zero vector
   // This prevents dividing by almost zero values
   if (standardDeviation < epsilon) {
-    std::fill(input.begin(), input.end(), 0.0F);
+    std::ranges::fill(input, 0.0F);
     return;
   }
 
-  std::transform(std::begin(input), std::end(input), std::begin(input),
-                 [mean, standardDeviation](float value) {
-                   return (value - mean) / standardDeviation;
-                 });
+  for (auto &value : input) {
+    value -= mean;
+    value /= standardDeviation;
+  }
 }
 
 std::vector<float> meanPooling(std::span<const float> modelOutput,
                                std::span<const int64_t> attnMask) {
+
+  if (attnMask.empty() || modelOutput.size() % attnMask.size() != 0) {
+    throw std::invalid_argument(
+        "Invalid dimensions for mean pooling, expected model output size to be "
+        "divisable by the size of attention mask but got size: " +
+        std::to_string(modelOutput.size()) + " for model output and size: " +
+        std::to_string(modelOutput.size()) + " for attention mask");
+  }
+
   auto attnMaskLength = attnMask.size();
   auto embeddingDim = modelOutput.size() / attnMaskLength;
 
-  auto maskSum = static_cast<float>(std::accumulate(
-      attnMask.begin(), attnMask.end(), static_cast<int64_t>(0)));
-  maskSum = std::max(maskSum, 1e-9F);
-
-  std::vector<float> result{};
-  result.reserve(embeddingDim);
-  for (size_t i = 0; i < embeddingDim; i++) {
-    float dimensionSum = 0.0F;
-    for (size_t j = 0; j < attnMaskLength; j++) {
-      dimensionSum +=
-          modelOutput[j * embeddingDim + i] * static_cast<float>(attnMask[j]);
-    }
-    result.push_back(dimensionSum / maskSum);
+  auto maskSum = std::reduce(attnMask.begin(), attnMask.end());
+  std::vector<float> result(embeddingDim, 0.0F);
+  if (maskSum == 0LL) {
+    return result;
   }
+
+  for (std::size_t i = 0; i < attnMaskLength; ++i) {
+    if (attnMask[i] != 0LL) {
+      for (std::size_t j = 0; j < embeddingDim; ++j) {
+        result[j] += modelOutput[i * embeddingDim + j];
+      }
+    }
+  }
+
+  for (auto &value : result) {
+    value /= static_cast<float>(maskSum);
+  }
+
   return result;
 }
 
