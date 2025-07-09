@@ -20,12 +20,17 @@ void softmax(std::span<float> input) {
     value = std::exp(value - maxElement);
   }
 
+<<<<<<< HEAD
   const auto sum = std::reduce(input.begin(), input.end());
+=======
+  const auto sum = std::reduce(std::begin(input), std::end(input));
+>>>>>>> ccbf247f (Add more tests and clear implementation)
 
   // sum is at least 1 since exp(max - max) == exp(0) == 1
   for (auto &value : input) {
     value /= sum;
   }
+<<<<<<< HEAD
 }
 
 void normalize(std::span<float> input) {
@@ -39,6 +44,8 @@ void normalize(std::span<float> input) {
   for (auto &value : input) {
     value /= norm;
   }
+=======
+>>>>>>> ccbf247f (Add more tests and clear implementation)
 }
 
 void normalize(std::span<float> input) {
@@ -48,28 +55,29 @@ void normalize(std::span<float> input) {
   }
 
   const auto mean =
-      std::accumulate(std::begin(input), std::end(input), 0.0F) / input.size();
+      std::reduce(std::begin(input), std::end(input)) / input.size();
   const auto squaredSum = std::inner_product(std::begin(input), std::end(input),
                                              std::begin(input), 0.0F);
   const auto variance = (squaredSum / input.size()) - (mean * mean);
   const auto standardDeviation = std::sqrt(variance);
 
-  const auto epsilon = std::numeric_limits<float>::epsilon();
+  constexpr auto epsilon = std::numeric_limits<float>::epsilon();
   // If standard deviation is extremely small return zero vector
   // This prevents dividing by almost zero values
   if (standardDeviation < epsilon) {
-    std::fill(input.begin(), input.end(), 0.0F);
+    std::ranges::fill(input, 0.0F);
     return;
   }
 
-  std::transform(std::begin(input), std::end(input), std::begin(input),
-                 [mean, standardDeviation](float value) {
-                   return (value - mean) / standardDeviation;
-                 });
+  for (auto &value : input) {
+    value -= mean;
+    value /= standardDeviation;
+  }
 }
 
 std::vector<float> meanPooling(std::span<const float> modelOutput,
                                std::span<const int64_t> attnMask) {
+<<<<<<< HEAD
   if (attnMask.empty() || modelOutput.size() % attnMask.size() != 0) {
     throw std::invalid_argument(
         std::format("Invalid dimensions for mean pooling, expected model "
@@ -77,6 +85,15 @@ std::vector<float> meanPooling(std::span<const float> modelOutput,
                     "by the size of attention mask but got size: {} for model "
                     "output and size: {} for attention mask",
                     modelOutput.size(), attnMask.size()));
+=======
+
+  if (attnMask.empty() || modelOutput.size() % attnMask.size() != 0) {
+    throw std::invalid_argument(
+        "Invalid dimensions for mean pooling, expected model output size to be "
+        "divisable by the size of attention mask but got size: " +
+        std::to_string(modelOutput.size()) + " for model output and size: " +
+        std::to_string(modelOutput.size()) + " for attention mask");
+>>>>>>> ccbf247f (Add more tests and clear implementation)
   }
 
   auto attnMaskLength = attnMask.size();
