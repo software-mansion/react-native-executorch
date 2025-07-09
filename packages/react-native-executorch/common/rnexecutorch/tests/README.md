@@ -20,7 +20,7 @@ To run tests navigate to `packages/react-native-executorch` and type:
 ### How to a add new test
 To add new test you need to:
 * Place `*.cpp` file with tests using googletest in this directory.
-* In `CMakeLists.txt`, one level higher in directory hierarchy, add all executables and link them with google test, e.g.:
+* In `CMakeLists.txt`, one level higher in directory hierarchy, add all executables and link them with googletest, e.g.:
     ```
     set(SOURCE_FILES data_processing/Numerical.cpp)
     add_executable(NumericalTests tests/NumericalTest.cpp ${SOURCE_FILES})
