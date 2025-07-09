@@ -48,28 +48,29 @@ void normalize(std::span<float> input) {
   }
 
   const auto mean =
-      std::accumulate(std::begin(input), std::end(input), 0.0F) / input.size();
+      std::reduce(std::begin(input), std::end(input)) / input.size();
   const auto squaredSum = std::inner_product(std::begin(input), std::end(input),
                                              std::begin(input), 0.0F);
   const auto variance = (squaredSum / input.size()) - (mean * mean);
   const auto standardDeviation = std::sqrt(variance);
 
-  const auto epsilon = std::numeric_limits<float>::epsilon();
+  constexpr auto epsilon = std::numeric_limits<float>::epsilon();
   // If standard deviation is extremely small return zero vector
   // This prevents dividing by almost zero values
   if (standardDeviation < epsilon) {
-    std::fill(input.begin(), input.end(), 0.0F);
+    std::ranges::fill(input, 0.0F);
     return;
   }
 
-  std::transform(std::begin(input), std::end(input), std::begin(input),
-                 [mean, standardDeviation](float value) {
-                   return (value - mean) / standardDeviation;
-                 });
+  for (auto &value : input) {
+    value -= mean;
+    value /= standardDeviation;
+  }
 }
 
 std::vector<float> meanPooling(std::span<const float> modelOutput,
                                std::span<const int64_t> attnMask) {
+
   if (attnMask.empty() || modelOutput.size() % attnMask.size() != 0) {
     std::stringstream ss;
     ss << "Invalid dimensions for mean pooling, expected model output size to "
