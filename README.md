@@ -126,7 +126,7 @@ This library is licensed under [The MIT License](./LICENSE).
 
 ## :soon: What's next?
 
-To learn about our upcoming plans and developments, please visit our [discussion page](https://github.com/software-mansion/react-native-executorch/discussions).
+To learn about our upcoming plans and developments, please visit our [milestones](https://github.com/software-mansion/react-native-executorch/milestones).
 
 ## React Native ExecuTorch is created by Software Mansion
 
