@@ -178,7 +178,7 @@ export class SpeechToTextController {
     this.prevSeq = [];
     this.chunks = [];
     // i'm not sure why this was here before, but if this callback calls the native tokenizer
-    // with an emtpy std::vector, then it causes tokenizers-rs to panic :D
+    // with an empty std::vector, then it causes tokenizers-rs to panic :D
     // this.decodedTranscribeCallback([]);
     this.onErrorCallback(undefined);
   }
