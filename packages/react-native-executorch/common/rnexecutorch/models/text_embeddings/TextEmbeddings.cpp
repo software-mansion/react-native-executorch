@@ -34,7 +34,7 @@ TokenIdsWithAttentionMask TextEmbeddings::preprocess(const std::string &input) {
 }
 
 std::shared_ptr<OwningArrayBuffer>
-TextEmbeddings::generate(const std::string input, bool useMeanPooling) {
+TextEmbeddings::generate(const std::string input) {
   auto preprocessed = preprocess(input);
   std::vector<int32_t> tokenIdsShape = {
       1, static_cast<int32_t>(preprocessed.inputIds.size())};
@@ -59,25 +59,17 @@ TextEmbeddings::generate(const std::string input, bool useMeanPooling) {
   std::span<const int64_t> attnMaskSpan(preprocessed.attentionMask.data(),
                                         preprocessed.attentionMask.size());
 
-  return postprocess(modelOutputSpan, attnMaskSpan, useMeanPooling);
+  return postprocess(modelOutputSpan, attnMaskSpan);
 }
 
 std::shared_ptr<OwningArrayBuffer>
 TextEmbeddings::postprocess(std::span<float> modelOutput,
-                            std::span<const int64_t> attnMask,
-                            bool useMeanPooling) {
+                            std::span<const int64_t> attnMask) {
   auto createBuffer = [](const auto &data, size_t size) {
     auto buffer = std::make_shared<OwningArrayBuffer>(size);
     std::memcpy(buffer->data(), data, size);
     return buffer;
   };
-
-  if (useMeanPooling) {
-    auto pooledOutput = numerical::meanPooling(modelOutput, attnMask);
-    numerical::normalize(pooledOutput);
-    return createBuffer(pooledOutput.data(),
-                        pooledOutput.size() * sizeof(float));
-  }
 
   numerical::normalize(modelOutput);
   return createBuffer(modelOutput.data(), modelOutput.size_bytes());
