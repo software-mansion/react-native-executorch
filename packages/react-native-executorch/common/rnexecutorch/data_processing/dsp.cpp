@@ -1,85 +1,65 @@
-#include <cmath>
-#include <complex>
+#include <cstddef>
 #include <math.h>
-#include <memory>
+#include <numeric>
 #include <rnexecutorch/data_processing/FFT.h>
 #include <rnexecutorch/data_processing/dsp.h>
+#include <vector>
+
+extern "C" {
+#include <pfft/pfft.h>
+}
 
 namespace rnexecutorch::dsp {
 
-/// @brief Generates Hann Window coefficients:
-/// https://www.mathworks.com/help/signal/ref/hann.html
-std::vector<float> hann_window(std::size_t size) {
-  std::vector<float> hann(size);
-
-  for (std::size_t i = 0; i < size; i++) {
-    hann[i] = 0.5f * (1.0f - std::cos(2.0f * M_PI * i / (size - 1)));
+std::vector<float> hannWindow(int size) {
+  // https://www.mathworks.com/help/signal/ref/hann.html
+  std::vector<float> window(size);
+  for (int i = 0; i < size; i++) {
+    // window[i] = 0.5f - 0.5f * std::cos(2.0f * M_PI * i / size);
+    window[i] = 0.5f * (1 - std::cos(2 * M_PI * i / size));
   }
-  return hann;
+  return window;
 }
 
-/// @brief Performs Short-Time Fourier Transform (STFT) on audio data to
-/// generate a magnitude spectrogram in dB scale.
-///
-/// @param waveform Input audio waveform
-/// @param fftWindowSize The size of each FFT window (number of samples). Must
-/// be a power of 2.
-/// @param hopSize The number of samples to advance between consecutive windows.
-std::vector<float> stft_magnitude_db(std::span<const float> waveform,
-                                     std::size_t fftWindowSize,
-                                     std::size_t hopSize) {
-  auto window = hann_window(fftWindowSize);
-  return stft_magnitude_db_windowed(waveform, window, hopSize);
-}
+std::vector<float> stftFromWaveform(std::span<float> waveform,
+                                    size_t fftWindowSize, size_t hopSize) {
+  // Create FFT instance
+  rnexecutorch::dsp::FFT fft(fftWindowSize);
+  size_t numFrames = 1 + (waveform.size() - fftWindowSize) / hopSize;
+  int numBins = fftWindowSize / 2;
+  auto hann = hannWindow(fftWindowSize);
+  auto inBuffer = std::vector<float>(fftWindowSize);
+  auto outBuffer = std::vector<std::complex<float>>(fftWindowSize);
 
-/// @brief Performs STFT with a pre-computed window function.
-///
-/// @param waveform Input audio waveform
-/// @param window Pre-computed window function (must be same size as FFT window)
-/// @param hopSize The number of samples to advance between consecutive windows.
-std::vector<float> stft_magnitude_db_windowed(std::span<const float> waveform,
-                                              std::span<const float> window,
-                                              std::size_t hopSize) {
-  std::size_t fftWindowSize = window.size();
-  FFT fftInvoker(fftWindowSize);
-  std::vector<float> output;
+  // Output magnitudes in dB
+  std::vector<float> magnitudes;
+  magnitudes.reserve(numFrames * numBins);
+  const float magnitudeScale = 1.0f / fftWindowSize;
+  const float epsilon = 1e-10f;
 
-  std::size_t beginIdx = 0;
-  std::vector<std::complex<float>> fftOutBuffer(fftWindowSize);
-  std::vector<float> fftInBuffer(fftWindowSize);
+  for (size_t t = 0; t < numFrames; ++t) {
+    size_t offset = t * hopSize;
 
-  while (beginIdx + fftWindowSize <= waveform.size()) {
-    // Apply window function
-    for (std::size_t i = 0; i < fftWindowSize; ++i) {
-      fftInBuffer[i] = waveform[beginIdx + i] * window[i];
+    // Clear the input buffer first
+    std::fill(inBuffer.begin(), inBuffer.end(), 0.0f);
+
+    // Fill frame with windowed signal
+    size_t samplesToRead = std::min(fftWindowSize, waveform.size() - offset);
+    for (size_t i = 0; i < samplesToRead; i++) {
+      inBuffer[i] = waveform[offset + i] * hann[i];
     }
+    // Perform FFT using the FFT class
+    fft.doFFT(inBuffer.data(), outBuffer);
 
-    fftInvoker.doFFT(fftInBuffer.data(), fftOutBuffer);
-
-    // Convert complex output to magnitude in dB
-    // Only use first half of FFT output (real signal symmetry)
-    for (std::size_t i = 0; i < fftWindowSize / 2; ++i) {
-      float magnitude = std::abs(fftOutBuffer[i]);
-      float magnitudeDb = 20.0f * std::log10f(magnitude);
-      output.push_back(magnitudeDb);
+    // Calculate magnitudes in dB (only positive frequencies)
+    for (int i = 0; i < numBins; i++) {
+      float magnitude = std::abs(outBuffer[i]) * magnitudeScale;
+      float magnitude_db = 20.0f * log10f(magnitude + epsilon);
+      magnitudes.push_back(magnitude_db);
     }
-
-    beginIdx += hopSize;
   }
-  return output;
-}
 
-/// @brief Whisper-specific preprocessing function.
-/// This is a functional wrapper around the STFT functionality with Whisper's
-/// default parameters.
-///
-/// @param waveform Input audio waveform
-/// @param fftWindowSize FFT window size (default: 512)
-/// @param hopSize Hop size for STFT (default: 160)
-std::vector<float> whisper_preprocess(std::span<const float> waveform,
-                                      std::size_t fftWindowSize,
-                                      std::size_t hopSize) {
-  return stft_magnitude_db(waveform, fftWindowSize, hopSize);
+  return magnitudes;
 }
 
 } // namespace rnexecutorch::dsp

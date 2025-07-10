@@ -15,13 +15,5 @@ FFT::~FFT() {
 void FFT::doFFT(float *in, std::vector<std::complex<float>> &out) {
   pffft_transform_ordered(pffftSetup_, in, reinterpret_cast<float *>(&out[0]),
                           work_, PFFFT_FORWARD);
-
-  // Scale by 1/size to match the normalization in SFFT.mm
-  float scale = 1.0f / static_cast<float>(size_);
-  float *outPtr = reinterpret_cast<float *>(&out[0]);
-  for (int i = 0; i < size_ * 2; i++) {
-    outPtr[i] *= scale;
-  }
 }
-
 } // namespace rnexecutorch::dsp

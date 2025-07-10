@@ -2,8 +2,10 @@
 
 #include "ReactCommon/CallInvoker.h"
 #include "executorch/runtime/core/evalue.h"
+#include <cstdint>
 #include <memory>
 #include <rnexecutorch/models/EncoderDecoderBase.h>
+#include <rnexecutorch/models/speech_to_text/SpeechToTextStrategy.h>
 #include <span>
 #include <vector>
 
@@ -19,5 +21,8 @@ public:
 private:
   const std::string modelName;
   executorch::runtime::EValue encoderOutput;
+  std::unique_ptr<SpeechToTextStrategy> strategy;
+
+  void initializeStrategy();
 };
 } // namespace rnexecutorch

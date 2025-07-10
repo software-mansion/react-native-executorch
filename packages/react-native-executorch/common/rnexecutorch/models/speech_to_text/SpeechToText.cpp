@@ -1,10 +1,9 @@
 #include "ReactCommon/CallInvoker.h"
-#include "executorch/extension/tensor/tensor_ptr.h"
-#include "executorch/runtime/core/exec_aten/exec_aten.h"
-#include "rnexecutorch/data_processing/dsp.h"
 #include "rnexecutorch/models/EncoderDecoderBase.h"
 #include <memory>
+#include <rnexecutorch/models/speech_to_text/MoonshineStrategy.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
+#include <rnexecutorch/models/speech_to_text/WhisperStrategy.h>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -18,28 +17,24 @@ SpeechToText::SpeechToText(const std::string &encoderPath,
                            const std::string &modelName,
                            std::shared_ptr<react::CallInvoker> callInvoker)
     : EncoderDecoderBase(encoderPath, decoderPath, callInvoker),
-      modelName(modelName) {}
+      modelName(modelName) {
+  initializeStrategy();
+}
+
+void SpeechToText::initializeStrategy() {
+  if (modelName == "whisper") {
+    strategy = std::make_unique<WhisperStrategy>();
+  } else if (modelName == "moonshine") {
+    strategy = std::make_unique<MoonshineStrategy>();
+  } else {
+    throw std::runtime_error("Unsupported model: " + modelName +
+                             ". Only 'whisper' and 'moonshine' are supported.");
+  }
+}
 
 void SpeechToText::encode(std::span<float> waveform) {
-  std::vector<int32_t> inputShape;
-  std::vector<float> preprocessedData; // Storage for preprocessed data
-  std::span<float> modelInput;
+  auto [modelInputTensor, inputShape] = strategy->prepareAudioInput(waveform);
 
-  if (modelName == "whisper") {
-    preprocessedData = dsp::whisper_preprocess(waveform); // Store the data
-    modelInput = preprocessedData; // Now span points to valid data
-    auto numFrames = modelInput.size() / 256;
-    inputShape = {static_cast<int32_t>(numFrames), 256};
-  } else if (modelName == "moonshine") {
-    inputShape = {1, static_cast<int32_t>(waveform.size())};
-    modelInput = waveform; // This is fine - waveform outlives the function
-  } else {
-    throw std::runtime_error("Unsupported model! SpeechToText encode() can "
-                             "only be called on Whisper and Moonshine!");
-  }
-
-  auto modelInputTensor =
-      make_tensor_ptr(inputShape, modelInput.data(), ScalarType::Float);
   auto result = encoder_->forward(modelInputTensor);
   if (!result.ok()) {
     throw std::runtime_error(
@@ -55,20 +50,15 @@ int64_t SpeechToText::decode(std::vector<int64_t> prevTokens) {
     throw std::runtime_error("Empty encodings on decode call, make sure to "
                              "call encode() prior to decode()!");
   }
-  auto prevTokensTensorSizes = {1, static_cast<int>(prevTokens.size())};
-  auto prevTokensScalarType =
-      (modelName == "moonshine") ? ScalarType::Long : ScalarType::Int;
 
-  auto prevTokensTensor = make_tensor_ptr(
-      prevTokensTensorSizes, prevTokens.data(), prevTokensScalarType);
-  auto prevTokensSizes = prevTokensTensor->sizes();
+  auto prevTokensTensor = strategy->prepareTokenInput(prevTokens);
 
-  auto sizes = encoderOutput.toTensor().sizes();
+  auto decoderMethod = strategy->getDecoderMethod();
+  // BE WARE!!!
+  // Moonshine will fail if you pass large tokens i.e. Whisper's BOS/EOS
   auto decoderOutput =
-      (modelName == "moonshine")
-          ? decoder_->execute("forward_cached",
-                              {prevTokensTensor, encoderOutput})
-
+      (decoderMethod == "forward_cached")
+          ? decoder_->execute(decoderMethod, {prevTokensTensor, encoderOutput})
           : decoder_->forward({prevTokensTensor, encoderOutput});
 
   if (!decoderOutput.ok()) {
@@ -78,8 +68,9 @@ int64_t SpeechToText::decode(std::vector<int64_t> prevTokens) {
   }
 
   auto decoderOutputTensor = decoderOutput.get().at(0).toTensor();
-  int innerDim = decoderOutputTensor.size(1);
-  auto *data = decoderOutputTensor.const_data_ptr<int64_t>();
-  return data[innerDim - 1];
+  auto outputSizes = decoderOutputTensor.sizes();
+  std::vector<int32_t> sizesVec(outputSizes.begin(), outputSizes.end());
+  return strategy->extractOutputToken(decoderOutputTensor.const_data_ptr(),
+                                      sizesVec);
 }
 } // namespace rnexecutorch

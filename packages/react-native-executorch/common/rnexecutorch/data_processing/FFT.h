@@ -1,7 +1,9 @@
 #pragma once
+extern "C" {
 
-#include <complex>
 #include <pfft/pfft.h>
+}
+#include <complex>
 #include <vector>
 
 namespace rnexecutorch::dsp {
@@ -12,6 +14,7 @@ public:
   ~FFT();
 
   void doFFT(float *in, std::vector<std::complex<float>> &out);
+  void doInverseFFT(std::vector<std::complex<float>> &in, float *out);
 
 private:
   int size_;
@@ -19,4 +22,5 @@ private:
   PFFFT_Setup *pffftSetup_;
   float *work_;
 };
+
 } // namespace rnexecutorch::dsp
