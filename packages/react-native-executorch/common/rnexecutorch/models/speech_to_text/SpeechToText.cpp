@@ -57,20 +57,19 @@ int64_t SpeechToText::decode(std::vector<int64_t> prevTokens) {
   // BEWARE!!!
   // Moonshine will fail with invalid input if you pass large tokens i.e.
   // Whisper's BOS/EOS
-  auto decoderOutput =
-      (decoderMethod == "forward_cached")
-          ? decoder_->execute(decoderMethod, {prevTokensTensor, encoderOutput})
-          : decoder_->forward({prevTokensTensor, encoderOutput});
+  auto decoderResult =
+      decoder_->execute(decoderMethod, {prevTokensTensor, encoderOutput});
 
-  if (!decoderOutput.ok()) {
+  if (!decoderResult.ok()) {
     throw std::runtime_error(
         "Forward pass failed during decoding, error code: " +
-        std::to_string(static_cast<int>(decoderOutput.error())));
+        std::to_string(static_cast<int>(decoderResult.error())));
   }
 
-  auto decoderOutputTensor = decoderOutput.get().at(0).toTensor();
-  auto outputSizes = decoderOutputTensor.sizes();
-  std::vector<int32_t> sizesVec(outputSizes.begin(), outputSizes.end());
+  auto decoderOutputTensor = decoderResult.get().at(0).toTensor();
+  auto decoderOutputTensorSizes = decoderOutputTensor.sizes();
+  std::vector<int32_t> sizesVec(decoderOutputTensorSizes.begin(),
+                                decoderOutputTensorSizes.end());
   return strategy->extractOutputToken(decoderOutputTensor.const_data_ptr(),
                                       sizesVec);
 }
