@@ -54,8 +54,9 @@ int64_t SpeechToText::decode(std::vector<int64_t> prevTokens) {
   auto prevTokensTensor = strategy->prepareTokenInput(prevTokens);
 
   auto decoderMethod = strategy->getDecoderMethod();
-  // BE WARE!!!
-  // Moonshine will fail if you pass large tokens i.e. Whisper's BOS/EOS
+  // BEWARE!!!
+  // Moonshine will fail with invalid input if you pass large tokens i.e.
+  // Whisper's BOS/EOS
   auto decoderOutput =
       (decoderMethod == "forward_cached")
           ? decoder_->execute(decoderMethod, {prevTokensTensor, encoderOutput})
