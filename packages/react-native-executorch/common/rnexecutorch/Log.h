@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <exception>
 #include <filesystem>
+#include <ios>
 #include <iostream>
 #include <iterator>
 #include <memory>
@@ -84,8 +85,6 @@ concept Fallback = !Iterable<T> && !Sequencable<T> && !Streamable<T> &&
 
 } // namespace concepts
 
-void printElement(std::ostream &os, bool value);
-
 template <typename T>
   requires concepts::Streamable<T> && (!concepts::SmartPointer<T>)
 void printElement(std::ostream &os, const T &value);
@@ -131,10 +130,6 @@ void printElement(std::ostream &os,
 
 template <concepts::Fallback UnsupportedArg>
 void printElement(std::ostream &os, const UnsupportedArg &value);
-
-void printElement(std::ostream &os, bool value) {
-  os << (value ? "true" : "false");
-}
 
 void printElement(std::ostream &os, const std::error_code &ec);
 
@@ -388,6 +383,12 @@ std::string getBuffer(const std::string &logMessage,
   return logMessage;
 }
 
+std::ostringstream createConfiguredOutputStream() {
+  std::ostringstream oss;
+  oss << std::boolalpha;
+  return oss;
+}
+
 } // namespace high_level_log_implementation
 
 /**
@@ -417,7 +418,7 @@ std::string getBuffer(const std::string &logMessage,
  */
 template <std::size_t MaxLogSize = 1024, typename... Args>
 void log(LOG_LEVEL logLevel, const Args &...args) {
-  std::ostringstream oss;
+  auto oss = high_level_log_implementation::createConfiguredOutputStream();
   auto space = [&oss](const auto &arg) {
     low_level_log_implementation::printElement(oss, arg);
     oss << ' ';
