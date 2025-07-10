@@ -71,7 +71,6 @@ TextEmbeddings::postprocess(std::span<float> modelOutput,
     return buffer;
   };
 
-  numerical::normalize(modelOutput);
   return createBuffer(modelOutput.data(), modelOutput.size_bytes());
 }
 
