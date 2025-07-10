@@ -1,13 +1,8 @@
 #include <cstddef>
 #include <math.h>
-#include <numeric>
 #include <rnexecutorch/data_processing/FFT.h>
 #include <rnexecutorch/data_processing/dsp.h>
 #include <vector>
-
-extern "C" {
-#include <pfft/pfft.h>
-}
 
 namespace rnexecutorch::dsp {
 
