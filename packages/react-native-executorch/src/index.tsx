@@ -13,6 +13,11 @@ declare global {
   var loadImageEmbeddings: (source: string) => any;
   var loadTextEmbeddings: (modelSource: string, tokenizerSource: string) => any;
   var loadLLM: (modelSource: string, tokenizerSource: string) => any;
+  var loadSpeechToText: (
+    encoderSource: string,
+    decoderSource: string,
+    modelName: string
+  ) => any;
 }
 // eslint-disable no-var
 if (
@@ -24,7 +29,8 @@ if (
   global.loadTokenizerModule == null ||
   global.loadTextEmbeddings == null ||
   global.loadImageEmbeddings == null ||
-  global.loadLLM == null
+  global.loadLLM == null ||
+  global.loadSpeechToText == null
 ) {
   if (!ETInstallerNativeModule) {
     throw new Error(
@@ -64,6 +70,7 @@ export * from './modules/natural_language_processing/LLMModule';
 export * from './modules/natural_language_processing/SpeechToTextModule';
 export * from './modules/natural_language_processing/TextEmbeddingsModule';
 export * from './modules/natural_language_processing/TokenizerModule';
+export * from './modules/natural_language_processing/NewSpeechToTextModule';
 
 // utils
 export * from './utils/ResourceFetcher';

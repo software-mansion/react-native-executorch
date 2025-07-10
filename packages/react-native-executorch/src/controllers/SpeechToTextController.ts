@@ -7,7 +7,6 @@ import {
   STREAMING_ACTION,
 } from '../constants/sttDefaults';
 import { AvailableModels, ModelConfig } from '../types/stt';
-import { SpeechToTextNativeModule } from '../native/RnExecutorchModules';
 import { TokenizerModule } from '../modules/natural_language_processing/TokenizerModule';
 import { ResourceSource } from '../types/common';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
@@ -16,7 +15,7 @@ import { SpeechToTextLanguage } from '../types/stt';
 import { ETError, getError } from '../Error';
 
 export class SpeechToTextController {
-  private speechToTextNativeModule = SpeechToTextNativeModule;
+  private speechToTextNativeModule: any;
 
   public sequence: number[] = [];
   public isReady = false;
@@ -122,11 +121,12 @@ export class SpeechToTextController {
     }
 
     try {
-      await this.speechToTextNativeModule.loadModule(modelName, [
+      const nativeSpeechToText = await global.loadSpeechToText(
         encoderSource!,
         decoderSource!,
-      ]);
-      this.modelDownloadProgressCallback?.(1);
+        modelName
+      );
+      this.speechToTextNativeModule = nativeSpeechToText;
       this.isReadyCallback(true);
     } catch (e) {
       this.onErrorCallback(e);
@@ -177,7 +177,9 @@ export class SpeechToTextController {
     this.waveform = [];
     this.prevSeq = [];
     this.chunks = [];
-    this.decodedTranscribeCallback([]);
+    // i'm not sure why this was here before, but if this callback calls the native tokenizer
+    // with an emtpy std::vector, then it causes tokenizers-rs to panic :D
+    // this.decodedTranscribeCallback([]);
     this.onErrorCallback(undefined);
   }
 
@@ -221,7 +223,7 @@ export class SpeechToTextController {
     let prevSeqTokenIdx = 0;
     this.prevSeq = this.sequence.slice();
     try {
-      await this.encode(chunk);
+      await this.encode(new Float32Array(chunk));
     } catch (error) {
       this.onErrorCallback(new Error(getError(error) + ' encoding error'));
       return [];
@@ -324,7 +326,6 @@ export class SpeechToTextController {
 
     // Making sure that the error is not set when we get there
     this.isGeneratingCallback(true);
-
     this.resetState();
     this.waveform = waveform;
     this.chunkWaveform();
@@ -452,11 +453,11 @@ export class SpeechToTextController {
     return decodedText;
   }
 
-  public async encode(waveform: number[]) {
+  public async encode(waveform: Float32Array) {
     return await this.speechToTextNativeModule.encode(waveform);
   }
 
-  public async decode(seq: number[], encodings?: number[]) {
-    return await this.speechToTextNativeModule.decode(seq, encodings || []);
+  public async decode(seq: number[]) {
+    return await this.speechToTextNativeModule.decode(seq);
   }
 }
