@@ -5,18 +5,16 @@ import { useNonStaticModule } from '../useNonStaticModule';
 interface Props {
   modelSource: ResourceSource;
   tokenizerSource: ResourceSource;
-  meanPooling?: boolean;
   preventLoad?: boolean;
 }
 
 export const useTextEmbeddings = ({
   modelSource,
   tokenizerSource,
-  meanPooling,
   preventLoad = false,
 }: Props) =>
   useNonStaticModule({
     module: TextEmbeddingsModule,
-    loadArgs: [modelSource, tokenizerSource, meanPooling],
+    loadArgs: [modelSource, tokenizerSource],
     preventLoad,
   });

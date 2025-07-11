@@ -22,11 +22,11 @@ const embedding = await TextEmbeddingsModule.forward('Hello World!');
 
 ### Methods
 
-| Method               | Type                                                                                                   | Description                                                                                                                                                                                                                                                  |
-| -------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `load`               | `(modelSource: ResourceSource, tokenizerSource: ResourceSource, meanPooling?: boolean): Promise<void>` | Loads the model, where `modelSource` is a string that specifies the location of the model binary, `tokenizerSource` is a string that specifies the location of the tokenizer JSON file, and `meanPooling` controls when to perform pooling on model outputs. |
-| `forward`            | `(input: string): Promise<number[]>`                                                                   | Executes the model's forward pass, where `input` is a text that will be embedded.                                                                                                                                                                            |
-| `onDownloadProgress` | `(callback: (downloadProgress: number) => void): any`                                                  | Subscribe to the download progress event.                                                                                                                                                                                                                    |
+| Method               | Type                                                                            | Description                                                                                                                                                                             |
+| -------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `load`               | `(modelSource: ResourceSource, tokenizerSource: ResourceSource): Promise<void>` | Loads the model, where `modelSource` is a string that specifies the location of the model binary, `tokenizerSource` is a string that specifies the location of the tokenizer JSON file. |
+| `forward`            | `(input: string): Promise<number[]>`                                            | Executes the model's forward pass, where `input` is a text that will be embedded.                                                                                                       |
+| `onDownloadProgress` | `(callback: (downloadProgress: number) => void): any`                           | Subscribe to the download progress event.                                                                                                                                               |
 
 <details>
 <summary>Type definitions</summary>
@@ -39,7 +39,7 @@ type ResourceSource = string | number | object;
 
 ## Loading the model
 
-To load the model, use the `load` method. It accepts the `modelSource` which is a string that specifies the location of the model binary, `tokenizerSource` which is a string that specifies the location of the tokenizer JSON file, and optional `meanPooling` flag controls when to perform pooling on model outputs. For more information, take a look at [loading models](../fundamentals/loading-models.md) page. This method returns a promise, which can resolve to an error or void.
+To load the model, use the `load` method. It accepts the `modelSource` which is a string that specifies the location of the model binary, `tokenizerSource` which is a string that specifies the location of the tokenizer JSON file. For more information, take a look at [loading models](../fundamentals/loading-models.md) page. This method returns a promise, which can resolve to an error or void.
 
 ## Running the model
 

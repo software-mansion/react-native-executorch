@@ -27,10 +27,7 @@ export default function ClipEmbeddingsScreenWrapper() {
 }
 
 function ClipEmbeddingsScreen() {
-  const model = useTextEmbeddings({
-    ...CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER,
-    meanPooling: false,
-  });
+  const model = useTextEmbeddings({ ...CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER });
 
   const imageModel = useImageEmbeddings({
     modelSource: CLIP_VIT_BASE_PATCH_32_IMAGE_ENCODER_MODEL,
