@@ -33,7 +33,6 @@ import {
 const model = useTextEmbeddings({
   modelSource: ALL_MINILM_L6_V2,
   tokenizerSource: ALL_MINILM_L6_V2_TOKENIZER,
-  meanPooling: true,
 });
 
 try {
@@ -50,8 +49,6 @@ A string that specifies the location of the model binary. For more information, 
 
 **`tokenizerSource`**
 A string that specifies the location of the tokenizer JSON file.
-
-**`meanPooling?`** - Boolean that controls whether we perform mean pooling on the model output or not. If not set, it will default to true and display warning.
 
 **`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
 
@@ -89,7 +86,6 @@ function App() {
   const model = useTextEmbeddings({
     modelSource: ALL_MINILM_L6_V2,
     tokenizerSource: ALL_MINILM_L6_V2_TOKENIZER,
-    meanPooling: true,
   });
 
   // ...

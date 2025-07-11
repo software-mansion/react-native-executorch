@@ -195,7 +195,6 @@ export const CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER_TOKENIZER =
 export const CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER = {
   modelSource: CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER_MODEL,
   tokenizerSource: CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER_TOKENIZER,
-  meanPooling: false,
 };
 
 // Backward compatibility

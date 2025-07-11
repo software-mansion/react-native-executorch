@@ -28,7 +28,6 @@ function TextEmbeddingsScreen() {
   const model = useTextEmbeddings({
     modelSource: ALL_MINILM_L6_V2,
     tokenizerSource: ALL_MINILM_L6_V2_TOKENIZER,
-    meanPooling: true,
   });
 
   const [inputSentence, setInputSentence] = useState('');
