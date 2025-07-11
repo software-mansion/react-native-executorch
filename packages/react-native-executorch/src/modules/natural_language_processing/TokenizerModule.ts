@@ -20,6 +20,9 @@ export class TokenizerModule {
   }
 
   async decode(tokens: number[], skipSpecialTokens: boolean = true) {
+    if (tokens.length === 0) {
+      return '';
+    }
     return await this.nativeModule.decode(tokens, skipSpecialTokens);
   }
 
