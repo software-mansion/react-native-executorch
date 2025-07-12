@@ -125,9 +125,59 @@ cv::Mat getMatrixFromTensor(cv::Size size, const Tensor &tensor) {
                           size);
 }
 
+cv::Mat resizePadded(cv::Mat inputImage, cv::Size targetSize) {
+  cv::Size inputSize = inputImage.size();
+  const float heightRatio = (float)targetSize.height / inputSize.height;
+  const float widthRatio = (float)targetSize.width / inputSize.width;
+  const float resizeRatio = std::min(heightRatio, widthRatio);
+
+  const int newWidth = inputSize.width * resizeRatio;
+  const int newHeight = inputSize.height * resizeRatio;
+
+  cv::Mat resizedImg;
+  cv::resize(inputImage, resizedImg, cv::Size(newWidth, newHeight), 0, 0,
+             cv::INTER_AREA);
+
+  const int cornerPatchSize =
+      std::max(1, std::min(inputSize.height, inputSize.width) / 30);
+  std::vector<cv::Mat> corners = {
+      inputImage(cv::Rect(0, 0, cornerPatchSize, cornerPatchSize)),
+      inputImage(cv::Rect(inputSize.width - cornerPatchSize, 0, cornerPatchSize,
+                          cornerPatchSize)),
+      inputImage(cv::Rect(0, inputSize.height - cornerPatchSize,
+                          cornerPatchSize, cornerPatchSize)),
+      inputImage(cv::Rect(inputSize.width - cornerPatchSize,
+                          inputSize.height - cornerPatchSize, cornerPatchSize,
+                          cornerPatchSize))};
+
+  cv::Scalar backgroundScalar = cv::mean(corners[0]);
+  for (int i = 1; i < corners.size(); i++) {
+    backgroundScalar += cv::mean(corners[i]);
+  }
+  backgroundScalar /= (double)corners.size();
+
+  backgroundScalar[0] = cvFloor(backgroundScalar[0]);
+  backgroundScalar[1] = cvFloor(backgroundScalar[1]);
+  backgroundScalar[2] = cvFloor(backgroundScalar[2]);
+
+  const int deltaW = targetSize.width - newWidth;
+  const int deltaH = targetSize.height - newHeight;
+  const int top = deltaH / 2;
+  const int bottom = deltaH - top;
+  const int left = deltaW / 2;
+  const int right = deltaW - left;
+
+  cv::Mat centeredImg;
+  cv::copyMakeBorder(resizedImg, centeredImg, top, bottom, left, right,
+                     cv::BORDER_CONSTANT, backgroundScalar);
+
+  return centeredImg;
+}
+
 std::pair<TensorPtr, cv::Size>
 readImageToTensor(const std::string &path,
-                  const std::vector<int32_t> &tensorDims) {
+                  const std::vector<int32_t> &tensorDims,
+                  bool maintainAspectRatio) {
   cv::Mat input = imageprocessing::readImage(path);
   cv::Size imageSize = input.size();
 
@@ -142,7 +192,11 @@ readImageToTensor(const std::string &path,
   cv::Size tensorSize = cv::Size(tensorDims[tensorDims.size() - 1],
                                  tensorDims[tensorDims.size() - 2]);
 
-  cv::resize(input, input, tensorSize);
+  if (maintainAspectRatio) {
+    input = resizePadded(input, tensorSize);
+  } else {
+    cv::resize(input, input, tensorSize);
+  }
 
   cv::cvtColor(input, input, cv::COLOR_BGR2RGB);
 
