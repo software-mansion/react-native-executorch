@@ -192,7 +192,6 @@ inline std::span<T> getTypedArrayAsSpan(const jsi::Value &val,
                                         jsi::Runtime &runtime) {
   jsi::Object obj = val.asObject(runtime);
 
-  // Validate it's a typed array
   const bool isValidTypedArray = obj.hasProperty(runtime, "buffer") &&
                                  obj.hasProperty(runtime, "byteOffset") &&
                                  obj.hasProperty(runtime, "byteLength") &&
@@ -215,7 +214,6 @@ inline std::span<T> getTypedArrayAsSpan(const jsi::Value &val,
       getValue<size_t>(obj.getProperty(runtime, "byteOffset"), runtime);
   size_t length = getValue<size_t>(obj.getProperty(runtime, "length"), runtime);
 
-  // Get pointer to the data
   T *dataPtr = reinterpret_cast<T *>(
       static_cast<uint8_t *>(arrayBuffer.data(runtime)) + byteOffset);
 
