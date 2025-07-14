@@ -163,7 +163,7 @@ export const DEEPLAB_V3_RESNET50 =
   'https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3/resolve/v0.4.0/xnnpack/deeplabV3_xnnpack_fp32.pte';
 
 // Image Embeddings
-export const CLIP_VIT_BASE_PATCH32_VISION_MODEL =
+export const CLIP_VIT_BASE_PATCH32_IMAGE_MODEL =
   'https://huggingface.co/software-mansion/react-native-executorch-clip-vit-base-patch32/resolve/v0.5.0/clip-vit-base-patch32-vision_xnnpack.pte';
 
 // Text Embeddings
@@ -197,8 +197,8 @@ export const CLIP_VIT_BASE_PATCH32_TEXT = {
   tokenizerSource: CLIP_VIT_BASE_PATCH32_TEXT_TOKENIZER,
 };
 
-export const CLIP_VIT_BASE_PATCH32_VISION = {
-  modelSource: CLIP_VIT_BASE_PATCH32_VISION_MODEL,
+export const CLIP_VIT_BASE_PATCH32_IMAGE = {
+  modelSource: CLIP_VIT_BASE_PATCH32_IMAGE_MODEL,
 };
 
 // Backward compatibility
