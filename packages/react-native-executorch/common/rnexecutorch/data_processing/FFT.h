@@ -1,6 +1,5 @@
 #pragma once
 extern "C" {
-
 #include <pfft/pfft.h>
 }
 #include <complex>
