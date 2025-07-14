@@ -19,6 +19,7 @@ import {
 } from 'react-native-executorch';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useIsFocused } from '@react-navigation/native';
+import { dotProduct } from '../../utils/math';
 
 export default function ClipEmbeddingsScreenWrapper() {
   const isFocused = useIsFocused();
@@ -27,7 +28,7 @@ export default function ClipEmbeddingsScreenWrapper() {
 }
 
 function ClipEmbeddingsScreen() {
-  const model = useTextEmbeddings(CLIP_VIT_BASE_PATCH32_TEXT);
+  const textModel = useTextEmbeddings(CLIP_VIT_BASE_PATCH32_TEXT);
   const imageModel = useImageEmbeddings(CLIP_VIT_BASE_PATCH32_VISION);
 
   const [inputSentence, setInputSentence] = useState('');
@@ -38,18 +39,10 @@ function ClipEmbeddingsScreen() {
     { sentence: string; similarity: number }[]
   >([]);
 
-  const dotProduct = (a: Float32Array, b: Float32Array) => {
-    let sum = 0;
-    for (let i = 0; i < a.length; i++) {
-      sum += a[i] * b[i];
-    }
-    return sum;
-  };
-
   useEffect(
     () => {
       const computeEmbeddings = async () => {
-        if (!model.isReady) return;
+        if (!textModel.isReady) return;
 
         const sentences = [
           'The weather is lovely today.',
@@ -61,7 +54,7 @@ function ClipEmbeddingsScreen() {
         try {
           const embeddings = [];
           for (const sentence of sentences) {
-            const embedding = await model.forward(sentence);
+            const embedding = await textModel.forward(sentence);
             embeddings.push({ sentence, embedding });
           }
           setSentencesWithEmbeddings(embeddings);
@@ -73,14 +66,14 @@ function ClipEmbeddingsScreen() {
       computeEmbeddings();
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [model.isReady]
+    [textModel.isReady]
   );
 
   const checkSimilarities = async () => {
-    if (!model.isReady || !inputSentence.trim()) return;
+    if (!textModel.isReady || !inputSentence.trim()) return;
 
     try {
-      const inputEmbedding = await model.forward(inputSentence);
+      const inputEmbedding = await textModel.forward(inputSentence);
       const matches = sentencesWithEmbeddings.map(
         ({ sentence, embedding }) => ({
           sentence,
@@ -95,10 +88,10 @@ function ClipEmbeddingsScreen() {
   };
 
   const addToSentences = async () => {
-    if (!model.isReady || !inputSentence.trim()) return;
+    if (!textModel.isReady || !inputSentence.trim()) return;
 
     try {
-      const embedding = await model.forward(inputSentence);
+      const embedding = await textModel.forward(inputSentence);
       setSentencesWithEmbeddings((prev) => [
         ...prev,
         { sentence: inputSentence, embedding },
@@ -112,7 +105,7 @@ function ClipEmbeddingsScreen() {
   };
 
   const clearList = async () => {
-    if (!model.isReady) return;
+    if (!textModel.isReady) return;
     try {
       setSentencesWithEmbeddings([]);
     } catch (error) {
@@ -146,16 +139,14 @@ function ClipEmbeddingsScreen() {
     }
   };
 
-  const getModelStatusText = () => {
-    if (model.error || imageModel.error) {
-      return `Oops! Error: ${model.error || imageModel.error}`;
+  const getModelStatusText = (model: typeof textModel | typeof imageModel) => {
+    if (model.error) {
+      return `Oops! Error: ${model.error}`;
     }
-    if (!model.isReady || !imageModel.isReady) {
-      return `Loading model ${(((model.downloadProgress + imageModel.downloadProgress) / 2) * 100).toFixed(2)}%`;
+    if (!model.isReady) {
+      return `Loading model ${(model.downloadProgress * 100).toFixed(2)}%`;
     }
-    return model.isGenerating || imageModel.isGenerating
-      ? 'Generating...'
-      : 'Model is ready';
+    return model.isGenerating ? 'Generating...' : 'Model is ready';
   };
 
   return (
@@ -166,8 +157,12 @@ function ClipEmbeddingsScreen() {
       >
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <Text style={styles.heading}>Text Embeddings Playground</Text>
-          <Text style={styles.sectionTitle}>{getModelStatusText()}</Text>
-
+          <Text style={styles.sectionTitle}>
+            Text Model: {getModelStatusText(textModel)}
+          </Text>
+          <Text style={styles.sectionTitle}>
+            Image Model: {getModelStatusText(imageModel)}
+          </Text>
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>List of Existing Sentences</Text>
             {sentencesWithEmbeddings.map((item, index) => (
