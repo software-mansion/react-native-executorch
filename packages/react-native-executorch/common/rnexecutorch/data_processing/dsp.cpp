@@ -6,11 +6,12 @@
 
 namespace rnexecutorch::dsp {
 
+using namespace rnexecutorch::dsp;
+
 std::vector<float> hannWindow(int size) {
   // https://www.mathworks.com/help/signal/ref/hann.html
   std::vector<float> window(size);
   for (int i = 0; i < size; i++) {
-    // window[i] = 0.5f - 0.5f * std::cos(2.0f * M_PI * i / size);
     window[i] = 0.5f * (1 - std::cos(2 * M_PI * i / size));
   }
   return window;
@@ -18,8 +19,9 @@ std::vector<float> hannWindow(int size) {
 
 std::vector<float> stftFromWaveform(std::span<float> waveform,
                                     size_t fftWindowSize, size_t hopSize) {
-  // Create FFT instance
-  rnexecutorch::dsp::FFT fft(fftWindowSize);
+  // Initialize FFT
+  FFT fft(fftWindowSize);
+
   size_t numFrames = 1 + (waveform.size() - fftWindowSize) / hopSize;
   int numBins = fftWindowSize / 2;
   auto hann = hannWindow(fftWindowSize);
