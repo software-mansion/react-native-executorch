@@ -59,12 +59,11 @@ TextEmbeddings::generate(const std::string input) {
   std::span<const int64_t> attnMaskSpan(preprocessed.attentionMask.data(),
                                         preprocessed.attentionMask.size());
 
-  return postprocess(modelOutputSpan, attnMaskSpan);
+  return postprocess(modelOutputSpan);
 }
 
 std::shared_ptr<OwningArrayBuffer>
-TextEmbeddings::postprocess(std::span<float> modelOutput,
-                            std::span<const int64_t> attnMask) {
+TextEmbeddings::postprocess(std::span<float> modelOutput) {
   auto createBuffer = [](const auto &data, size_t size) {
     auto buffer = std::make_shared<OwningArrayBuffer>(size);
     std::memcpy(buffer->data(), data, size);

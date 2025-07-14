@@ -3,6 +3,7 @@
 #include <executorch/extension/tensor/tensor.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/data_processing/Numerical.h>
+
 namespace rnexecutorch {
 
 ImageEmbeddings::ImageEmbeddings(
@@ -31,30 +32,31 @@ ImageEmbeddings::generate(std::string imageSource) {
   auto [inputTensor, originalSize] =
       imageprocessing::readImageToTensor(imageSource, getAllInputShapes()[0]);
 
-  auto result = BaseModel::forward(inputTensor);
-  if (!result.ok()) {
-    throw std::runtime_error("Forward pass failed: Error " +
-                             std::to_string(static_cast<int>(result.error())));
+  auto forwardResult = BaseModel::forward(inputTensor);
+  if (!forwardResult.ok()) {
+    throw std::runtime_error(
+        "Failed to forward, error: " +
+        std::to_string(static_cast<uint32_t>(forwardResult.error())));
   }
 
-  auto &outputs = result.get();
+  auto forwardResultTensor = forwardResult->at(0).toTensor();
+  auto dataPtr = forwardResultTensor.mutable_data_ptr();
+  auto outputNumel = forwardResultTensor.numel();
 
-  if (outputs.size() > 1) {
-    throw std::runtime_error("It returned multiple outputs!");
-  }
+  std::span<float> modelOutputSpan(static_cast<float *>(dataPtr), outputNumel);
 
-  auto &outputTensor = outputs.at(0).toTensor();
-  std::span<float> outputTensorSpan(
-      static_cast<float *>(outputTensor.mutable_data_ptr()),
-      outputTensor.numel());
-
-  numerical::normalize(outputTensorSpan);
-
-  size_t bufferSize = outputTensorSpan.size_bytes();
-  auto buffer = std::make_shared<OwningArrayBuffer>(bufferSize);
-
-  std::memcpy(buffer->data(), outputTensorSpan.data(), bufferSize);
-
-  return buffer;
+  return postprocess(modelOutputSpan);
 }
+
+std::shared_ptr<OwningArrayBuffer>
+ImageEmbeddings::postprocess(std::span<float> modelOutput) {
+  auto createBuffer = [](const auto &data, size_t size) {
+    auto buffer = std::make_shared<OwningArrayBuffer>(size);
+    std::memcpy(buffer->data(), data, size);
+    return buffer;
+  };
+
+  return createBuffer(modelOutput.data(), modelOutput.size_bytes());
+}
+
 } // namespace rnexecutorch

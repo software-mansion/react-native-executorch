@@ -14,8 +14,8 @@ import { Ionicons } from '@expo/vector-icons';
 import {
   useTextEmbeddings,
   useImageEmbeddings,
-  CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER,
-  CLIP_VIT_BASE_PATCH_32_IMAGE_ENCODER_MODEL,
+  CLIP_VIT_BASE_PATCH32_TEXT,
+  CLIP_VIT_BASE_PATCH32_VISION,
 } from 'react-native-executorch';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useIsFocused } from '@react-navigation/native';
@@ -27,11 +27,8 @@ export default function ClipEmbeddingsScreenWrapper() {
 }
 
 function ClipEmbeddingsScreen() {
-  const model = useTextEmbeddings({ ...CLIP_VIT_BASE_PATCH_32_TEXT_ENCODER });
-
-  const imageModel = useImageEmbeddings({
-    modelSource: CLIP_VIT_BASE_PATCH_32_IMAGE_ENCODER_MODEL,
-  });
+  const model = useTextEmbeddings(CLIP_VIT_BASE_PATCH32_TEXT);
+  const imageModel = useImageEmbeddings(CLIP_VIT_BASE_PATCH32_VISION);
 
   const [inputSentence, setInputSentence] = useState('');
   const [sentencesWithEmbeddings, setSentencesWithEmbeddings] = useState<

@@ -5,6 +5,7 @@
 #include <opencv2/opencv.hpp>
 
 #include <rnexecutorch/models/BaseModel.h>
+#include <span>
 
 namespace rnexecutorch {
 using executorch::extension::TensorPtr;
@@ -17,6 +18,8 @@ public:
   std::shared_ptr<OwningArrayBuffer> generate(std::string imageSource);
 
 private:
+  std::shared_ptr<OwningArrayBuffer> postprocess(std::span<float> modelOutput);
+
   cv::Size modelImageSize{0, 0};
 };
 
