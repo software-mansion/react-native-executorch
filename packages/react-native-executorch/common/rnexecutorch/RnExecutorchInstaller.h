@@ -1,7 +1,7 @@
 #pragma once
 
-#include "rnexecutorch/models/speech_to_text/SpeechToText.h"
 #include <memory>
+#include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <string>
 
 #include <ReactCommon/CallInvoker.h>
