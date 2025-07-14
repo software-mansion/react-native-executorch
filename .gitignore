@@ -10,7 +10,7 @@
 jsconfig.json
 
 # clangd
-./clangd
+.clangd/
 
 # Xcode
 #
