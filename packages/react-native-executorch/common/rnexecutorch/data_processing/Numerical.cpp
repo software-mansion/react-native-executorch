@@ -42,29 +42,22 @@ void normalize(std::span<float> input) {
 }
 
 void normalize(std::span<float> input) {
-
   if (input.empty()) {
     return;
   }
 
-  const auto mean =
-      std::reduce(std::begin(input), std::end(input)) / input.size();
   const auto squaredSum = std::inner_product(std::begin(input), std::end(input),
                                              std::begin(input), 0.0F);
-  const auto variance = (squaredSum / input.size()) - (mean * mean);
-  const auto standardDeviation = std::sqrt(variance);
 
   constexpr auto epsilon = std::numeric_limits<float>::epsilon();
-  // If standard deviation is extremely small return zero vector
-  // This prevents dividing by almost zero values
-  if (standardDeviation < epsilon) {
-    std::ranges::fill(input, 0.0F);
+  if (squaredSum < epsilon) {
     return;
   }
 
+  const auto norm = std::sqrt(squaredSum);
+
   for (auto &value : input) {
-    value -= mean;
-    value /= standardDeviation;
+    value /= norm;
   }
 }
 
