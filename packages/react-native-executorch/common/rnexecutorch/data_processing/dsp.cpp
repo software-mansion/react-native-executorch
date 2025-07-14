@@ -2,7 +2,6 @@
 #include <math.h>
 #include <rnexecutorch/data_processing/FFT.h>
 #include <rnexecutorch/data_processing/dsp.h>
-#include <vector>
 
 namespace rnexecutorch::dsp {
 
