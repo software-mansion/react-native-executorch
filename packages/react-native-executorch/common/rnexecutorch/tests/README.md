@@ -6,6 +6,7 @@ To test the native code we use [`googletest`](https://github.com/google/googlete
 
 ### Installation
 <<<<<<< HEAD
+<<<<<<< HEAD
 The googletest is already in repo in `react-native-executorch/third-party/googletest`. Firstly, you need to fetch googletest locally, run from root directory of project:
 * `git submodule update --init --recursive third-party/googletest`
 
@@ -38,6 +39,13 @@ To add new test you need to:
     ```
 =======
 The googletest is already in repo in `packages/react-native-executorch/third-party/googletest`. To build google test navigate to its directory and type the following:
+=======
+The googletest is already in repo in `packages/react-native-executorch/third-party/googletest`. Firstly, you need to fetch googletest locally using:
+* `git submodule init`
+* `git submodule update --remote`
+
+To build google test navigate to its directory and type the following:
+>>>>>>> 26bf0426 (Change z-normalization to norm normalization)
 * `mkdir build && cd build`
 * `cmake ..`
 * `make`
