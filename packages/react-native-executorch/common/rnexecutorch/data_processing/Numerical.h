@@ -23,11 +23,11 @@ void softmax(std::span<float> input);
 
 /**
  * @brief Normalizes the elements of the given float span in-place using the
- * Z-score method.
+ * L2 norm method.
  *
- * This function adjusts the elements in `input` such that their mean is 0 and
- * the standard deviation is 1. The normalization is computed and applied
- * directly in the provided span.
+ * This function scales the input vector such that its L2 norm (Euclidean norm)
+ * becomes 1. If the norm is zero, the result is a zero vector with the same
+ * size as the input.
  *
  * @param input A mutable span of floating-point values representing the data to
  * be normalized.

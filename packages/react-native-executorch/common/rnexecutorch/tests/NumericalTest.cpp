@@ -1,5 +1,6 @@
 #include "../data_processing/Numerical.h"
 #include <gtest/gtest.h>
+#include <limits>
 
 namespace rnexecutorch::numerical {
 
@@ -29,15 +30,17 @@ TEST(SoftmaxTests, SoftmaxWithBigValues) {
 TEST(NormalizeTests, NormalizeBasic) {
   std::vector<float> input = {1.0F, 2.0F, 3.0F};
   normalize(input);
-  const std::vector<float> expected = {-1.22474487f, 0.0F, 1.22474487F};
+  const auto normOfInput = std::sqrtf(14.0F);
+  const std::vector<float> expected = {1.0F / normOfInput, 2.0F / normOfInput,
+                                       3.0F / normOfInput};
   expect_vectors_eq(input, expected);
 }
 
-TEST(NormalizeTests, NormalizeNearZeroVariance) {
-  std::vector<float> input = {
-      1.0F, 1.0F, 1.0F}; // All elements are the same - zero variance
+TEST(NormalizeTests, NormalizationOfExtremelySmallValues) {
+  constexpr auto epsilon = std::numeric_limits<float>::epsilon();
+  std::vector<float> input(3, epsilon);
+  const std::vector<float> expected = input;
   normalize(input);
-  const std::vector<float> expected = {0.0F, 0.0F, 0.0F};
   expect_vectors_eq(input, expected);
 }
 

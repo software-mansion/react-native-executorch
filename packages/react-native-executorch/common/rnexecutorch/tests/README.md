@@ -5,7 +5,11 @@ This guide provide information on how functions are tested, how to install all n
 To test the native code we use [`googletest`](https://github.com/google/googletest). It is a flexible tool for creating unit tests.
 
 ### Installation
-The googletest is already in repo in `packages/react-native-executorch/third-party/googletest`. To build google test navigate to its directory and type the following:
+The googletest is already in repo in `packages/react-native-executorch/third-party/googletest`. Firstly, you need to fetch googletest locally using:
+* `git submodule init`
+* `git submodule update --remote`
+
+To build google test navigate to its directory and type the following:
 * `mkdir build && cd build`
 * `cmake ..`
 * `make`
