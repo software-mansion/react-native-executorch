@@ -45,7 +45,3 @@ To load the model, use the `load` method. It accepts the `modelSource` which is 
 ## Running the model
 
 It accepts one argument, which is a URI/URL to an image you want to encode. The function returns a promise, which can resolve either to an error or an array of numbers representing the embedding.
-
-:::info
-The returned embedding vector is normalized, meaning that its length is equal to 1. This allows for easier comparison of vectors using cosine similarity, just calculate the dot product of two vectors to get the cosine similarity score.
-:::

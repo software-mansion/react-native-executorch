@@ -66,10 +66,6 @@ A string that specifies the location of the tokenizer JSON file.
 
 To run the model, you can use the `forward` method. It accepts one argument, which is a string representing the text you want to embed. The function returns a promise, which can resolve either to an error or an array of numbers representing the embedding.
 
-:::info
-The returned embedding vector is normalized, meaning that its length is equal to 1. This allows for easier comparison of vectors using cosine similarity, just calculate the dot product of two vectors to get the cosine similarity score.
-:::
-
 ## Example
 
 ```typescript
@@ -81,6 +77,13 @@ import {
 
 const dotProduct = (a: number[], b: number[]) =>
   a.reduce((sum, val, i) => sum + val * b[i], 0);
+
+const cosineSimilarity = (a: number[], b: number[]) => {
+  const dot = dotProduct(a, b);
+  const normA = Math.sqrt(dotProduct(a, a));
+  const normB = Math.sqrt(dotProduct(b, b));
+  return dot / (normA * normB);
+};
 
 function App() {
   const model = useTextEmbeddings({
@@ -94,8 +97,10 @@ function App() {
     const helloWorldEmbedding = await model.forward('Hello World!');
     const goodMorningEmbedding = await model.forward('Good Morning!');
 
-    // The embeddings are normalized, so we can use dot product to calculate cosine similarity
-    const similarity = dotProduct(helloWorldEmbedding, goodMorningEmbedding);
+    const similarity = cosineSimilarity(
+      helloWorldEmbedding,
+      goodMorningEmbedding
+    );
 
     console.log(`Cosine similarity: ${similarity}`);
   } catch (error) {
@@ -108,16 +113,21 @@ function App() {
 
 ## Supported models
 
-| Model                                                                                                 | Language | Max Tokens | Embedding Dimensions | Description                                                                                                                                                             |
-| ----------------------------------------------------------------------------------------------------- | :------: | :--------: | :------------------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)                     | English  |    256     |         384          | All-round model tuned for many use-cases. Trained on a large and diverse dataset of over 1 billion training pairs.                                                      |
-| [all-mpnet-base-v2](https://huggingface.co/sentence-transformers/all-mpnet-base-v2)                   | English  |    384     |         768          | All-round model tuned for many use-cases. Trained on a large and diverse dataset of over 1 billion training pairs.                                                      |
-| [multi-qa-MiniLM-L6-cos-v1](https://huggingface.co/sentence-transformers/multi-qa-MiniLM-L6-cos-v1)   | English  |    511     |         384          | This model was tuned for semantic search: Given a query/question, it can find relevant passages. It was trained on a large and diverse set of (question, answer) pairs. |
-| [multi-qa-mpnet-base-dot-v1](https://huggingface.co/sentence-transformers/multi-qa-mpnet-base-dot-v1) | English  |    512     |         768          | This model was tuned for semantic search: Given a query/question, it can find relevant passages. It was trained on a large and diverse set of (question, answer) pairs. |
+| Model                                                                                                 | Language | Max Tokens | Embedding Dimensions | Description                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ----------------------------------------------------------------------------------------------------- | :------: | :--------: | :------------------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)                     | English  |    254     |         384          | All-round model tuned for many use-cases. Trained on a large and diverse dataset of over 1 billion training pairs.                                                                                                                                                                                                                                                                                                            |
+| [all-mpnet-base-v2](https://huggingface.co/sentence-transformers/all-mpnet-base-v2)                   | English  |    382     |         768          | All-round model tuned for many use-cases. Trained on a large and diverse dataset of over 1 billion training pairs.                                                                                                                                                                                                                                                                                                            |
+| [multi-qa-MiniLM-L6-cos-v1](https://huggingface.co/sentence-transformers/multi-qa-MiniLM-L6-cos-v1)   | English  |    509     |         384          | This model was tuned for semantic search: Given a query/question, it can find relevant passages. It was trained on a large and diverse set of (question, answer) pairs.                                                                                                                                                                                                                                                       |
+| [multi-qa-mpnet-base-dot-v1](https://huggingface.co/sentence-transformers/multi-qa-mpnet-base-dot-v1) | English  |    510     |         768          | This model was tuned for semantic search: Given a query/question, it can find relevant passages. It was trained on a large and diverse set of (question, answer) pairs.                                                                                                                                                                                                                                                       |
+| [clip-vit-base-patch32-text](https://huggingface.co/openai/clip-vit-base-patch32)                     | English  |     74     |         512          | CLIP (Contrastive Language-Image Pre-Training) is a neural network trained on a variety of (image, text) pairs. CLIP allows to embed images and text into the same vector space. This allows to find similar images as well as to implement image search. This is the text encoder part of the CLIP model. To embed images checkout [clip-vit-base-patch32-image](../computer-vision/useImageEmbeddings.md#supported-models). |
 
 **`Max Tokens`** - the maximum number of tokens that can be processed by the model. If the input text exceeds this limit, it will be truncated.
 
 **`Embedding Dimensions`** - the size of the output embedding vector. This is the number of dimensions in the vector representation of the input text.
+
+:::info
+For the supported models, the returned embedding vector is normalized, meaning that its length is equal to 1. This allows for easier comparison of vectors using cosine similarity, just calculate the dot product of two vectors to get the cosine similarity score.
+:::
 
 ## Benchmarks
 
@@ -129,7 +139,7 @@ function App() {
 | ALL_MPNET_BASE_V2          |     438      |
 | MULTI_QA_MINILM_L6_COS_V1  |      91      |
 | MULTI_QA_MPNET_BASE_DOT_V1 |     438      |
-| CLIP_TEXT_ENCODER          |     254      |
+| CLIP_VIT_BASE_PATCH32_TEXT |     254      |
 
 ### Memory usage
 
@@ -139,7 +149,7 @@ function App() {
 | ALL_MPNET_BASE_V2          |          520           |        470         |
 | MULTI_QA_MINILM_L6_COS_V1  |          160           |        225         |
 | MULTI_QA_MPNET_BASE_DOT_V1 |          540           |        500         |
-| CLIP_TEXT_ENCODER          |          275           |        250         |
+| CLIP_VIT_BASE_PATCH32_TEXT |          275           |        250         |
 
 ### Inference time
 
@@ -153,4 +163,4 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 | ALL_MPNET_BASE_V2          |             352              |               423                |            478             |             521              |            527            |
 | MULTI_QA_MINILM_L6_COS_V1  |             135              |               166                |            180             |             158              |            165            |
 | MULTI_QA_MPNET_BASE_DOT_V1 |             503              |               598                |            680             |             694              |            743            |
-| CLIP_TEXT_ENCODER          |              35              |                48                |             49             |              40              |             -             |
+| CLIP_VIT_BASE_PATCH32_TEXT |              35              |                48                |             49             |              40              |             -             |
