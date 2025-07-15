@@ -13,6 +13,13 @@ declare global {
   var loadImageEmbeddings: (source: string) => any;
   var loadTextEmbeddings: (modelSource: string, tokenizerSource: string) => any;
   var loadLLM: (modelSource: string, tokenizerSource: string) => any;
+  var loadOCR: (
+    detectorSource: string,
+    recognizerLarge: string,
+    recognizerMedium: string,
+    recognizerSmall: string,
+    symbols: string
+  ) => any;
 }
 // eslint-disable no-var
 if (
@@ -24,7 +31,8 @@ if (
   global.loadTokenizerModule == null ||
   global.loadTextEmbeddings == null ||
   global.loadImageEmbeddings == null ||
-  global.loadLLM == null
+  global.loadLLM == null ||
+  global.loadOCR == null
 ) {
   if (!ETInstallerNativeModule) {
     throw new Error(
