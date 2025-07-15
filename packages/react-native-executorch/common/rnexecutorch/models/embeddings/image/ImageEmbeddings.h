@@ -10,11 +10,11 @@ namespace rnexecutorch {
 using executorch::extension::TensorPtr;
 using executorch::runtime::EValue;
 
-class ImageEmbeddings : public BaseEmbeddings {
+class ImageEmbeddings final : public BaseEmbeddings {
 public:
   ImageEmbeddings(const std::string &modelSource,
                   std::shared_ptr<react::CallInvoker> callInvoker);
-  std::shared_ptr<OwningArrayBuffer> generate(const std::string imageSource);
+  std::shared_ptr<OwningArrayBuffer> generate(std::string imageSource);
 
 private:
   cv::Size modelImageSize{0, 0};

@@ -28,7 +28,7 @@ ImageEmbeddings::ImageEmbeddings(
 }
 
 std::shared_ptr<OwningArrayBuffer>
-ImageEmbeddings::generate(const std::string imageSource) {
+ImageEmbeddings::generate(std::string imageSource) {
   auto [inputTensor, originalSize] =
       imageprocessing::readImageToTensor(imageSource, getAllInputShapes()[0]);
 

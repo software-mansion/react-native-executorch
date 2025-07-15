@@ -10,7 +10,7 @@ struct TokenIdsWithAttentionMask {
   std::vector<int64_t> attentionMask;
 };
 
-class TextEmbeddings : public BaseEmbeddings {
+class TextEmbeddings final : public BaseEmbeddings {
 public:
   TextEmbeddings(const std::string &modelSource,
                  const std::string &tokenizerSource,
