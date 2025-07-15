@@ -87,7 +87,7 @@ BaseModel::getAllInputShapes(std::string methodName) {
 /// to JS. It is not meant to be used within C++. If you want to call forward
 /// from C++ on a BaseModel, please use BaseModel::forward.
 std::vector<JSTensorViewOut>
-BaseModel::forwardJS(const std::vector<JSTensorViewIn> tensorViewVec) {
+BaseModel::forwardJS(std::vector<JSTensorViewIn> tensorViewVec) {
   if (!module_) {
     throw std::runtime_error("Model not loaded: Cannot perform forward pass");
   }
