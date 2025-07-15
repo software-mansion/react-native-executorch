@@ -9,7 +9,7 @@ namespace rnexecutorch {
 ImageEmbeddings::ImageEmbeddings(
     const std::string &modelSource,
     std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker) {
+    : BaseEmbeddings(modelSource, callInvoker) {
   auto inputTensors = getAllInputShapes();
   if (inputTensors.size() == 0) {
     throw std::runtime_error("Model seems to not take any input tensors.");
@@ -28,35 +28,18 @@ ImageEmbeddings::ImageEmbeddings(
 }
 
 std::shared_ptr<OwningArrayBuffer>
-ImageEmbeddings::generate(std::string imageSource) {
+ImageEmbeddings::generate(const std::string imageSource) {
   auto [inputTensor, originalSize] =
       imageprocessing::readImageToTensor(imageSource, getAllInputShapes()[0]);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
-        "Failed to forward, error: " +
+        "Function forward in ImageEmbeddings failed with error code: " +
         std::to_string(static_cast<uint32_t>(forwardResult.error())));
   }
 
-  auto forwardResultTensor = forwardResult->at(0).toTensor();
-  auto dataPtr = forwardResultTensor.mutable_data_ptr();
-  auto outputNumel = forwardResultTensor.numel();
-
-  std::span<float> modelOutputSpan(static_cast<float *>(dataPtr), outputNumel);
-
-  return postprocess(modelOutputSpan);
-}
-
-std::shared_ptr<OwningArrayBuffer>
-ImageEmbeddings::postprocess(std::span<float> modelOutput) {
-  auto createBuffer = [](const auto &data, size_t size) {
-    auto buffer = std::make_shared<OwningArrayBuffer>(size);
-    std::memcpy(buffer->data(), data, size);
-    return buffer;
-  };
-
-  return createBuffer(modelOutput.data(), modelOutput.size_bytes());
+  return BaseEmbeddings::postprocess(forwardResult);
 }
 
 } // namespace rnexecutorch
