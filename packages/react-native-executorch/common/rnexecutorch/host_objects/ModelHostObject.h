@@ -1,13 +1,11 @@
 #pragma once
 
+#include <ReactCommon/CallInvoker.h>
 #include <cstdio>
 #include <string>
 #include <thread>
 #include <tuple>
 #include <type_traits>
-#include <vector>
-
-#include <ReactCommon/CallInvoker.h>
 
 #include <rnexecutorch/TokenizerModule.h>
 #include <rnexecutorch/host_objects/JSTensorViewOut.h>

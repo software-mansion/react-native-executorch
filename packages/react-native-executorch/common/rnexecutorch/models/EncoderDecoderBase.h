@@ -12,13 +12,11 @@ using executorch::runtime::EValue;
 
 class EncoderDecoderBase {
 public:
-  EncoderDecoderBase(const std::string &encoderPath,
-                     const std::string &decoderPath,
-                     std::shared_ptr<react::CallInvoker> callInvoker);
-  size_t getMemoryLowerBound() {
-    return encoder_->getMemoryLowerBound() + decoder_->getMemoryLowerBound();
-  }
-  void unload();
+  explicit EncoderDecoderBase(const std::string &encoderPath,
+                              const std::string &decoderPath,
+                              std::shared_ptr<react::CallInvoker> callInvoker);
+  size_t getMemoryLowerBound() const noexcept;
+  void unload() noexcept;
 
 protected:
   std::shared_ptr<react::CallInvoker> callInvoker;
