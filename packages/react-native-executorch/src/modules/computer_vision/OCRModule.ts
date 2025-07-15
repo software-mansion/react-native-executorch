@@ -19,6 +19,7 @@ export class OCRModule {
       modelDownloadProgressCallback: onDownloadProgressCallback,
     });
 
+<<<<<<< HEAD
     await this.module.loadModel(
       model.detectorSource,
       {
@@ -28,6 +29,9 @@ export class OCRModule {
       },
       model.language
     );
+=======
+    await this.module.load(detectorSource, recognizerSources, language);
+>>>>>>> 51bb4b58 (add not working jsi bindings)
   }
 
   static async forward(input: string) {

@@ -18,6 +18,13 @@ declare global {
     decoderSource: string,
     modelName: string
   ) => any;
+  var loadOCR: (
+    detectorSource: string,
+    recognizerLarge: string,
+    recognizerMedium: string,
+    recognizerSmall: string,
+    symbols: string
+  ) => any;
 }
 // eslint-disable no-var
 if (
@@ -30,7 +37,8 @@ if (
   global.loadTextEmbeddings == null ||
   global.loadImageEmbeddings == null ||
   global.loadLLM == null ||
-  global.loadSpeechToText == null
+  global.loadSpeechToText == null ||
+  global.loadOCR == null
 ) {
   if (!ETInstallerNativeModule) {
     throw new Error(
