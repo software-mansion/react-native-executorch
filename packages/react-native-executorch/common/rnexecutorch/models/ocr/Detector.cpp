@@ -14,7 +14,7 @@ Text Detection) paper. https://arxiv.org/pdf/1904.01941
 Detector::Detector(const std::string &modelSource,
                    std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
-  auto inputShapes = getInputShape();
+  auto inputShapes = getAllInputShapes();
   if (inputShapes.size() == 0) {
     throw std::runtime_error(
         "Detector model seems to not take any input tensors.");
@@ -32,16 +32,16 @@ Detector::Detector(const std::string &modelSource,
                             modelInputShape[modelInputShape.size() - 2]);
 }
 
-std::vector<DetectorBBox> Detector::forward(const std::string &imageSource) {
+std::vector<DetectorBBox> Detector::generate(const std::string &imageSource) {
   /*
    Detector as an input accepts tensor with a shape of [1, 3, 800, 800].
    Due to big influence of resize to quality of recognition the image preserves
    original aspect ratio and the missing parts are filled with padding.
    */
-  auto [inputTensor, originalSize] =
-      imageprocessing::readImageToTensor(imageSource, getInputShape()[0], true);
+  auto [inputTensor, originalSize] = imageprocessing::readImageToTensor(
+      imageSource, getAllInputShapes()[0], true);
 
-  auto forwardResult = forwardET(inputTensor);
+  auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
         "Failed to forward, error: " +
