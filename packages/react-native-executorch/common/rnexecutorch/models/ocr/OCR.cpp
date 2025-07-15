@@ -25,13 +25,12 @@ std::vector<OCRDetection> OCR::generate(std::string input) {
 }
 
 void OCR::unload() {
-  void OCR::unload() {
-    detector.unload();
-    recognitionHandler.unload();
-  }
+  detector.unload();
+  recognitionHandler.unload();
+}
 
-  std::size_t OCR::getMemoryLowerBound() {
-    return detector.getMemoryLowerBound() +
-           recognitionHandler.getMemoryLowerBound();
-  }
+std::size_t OCR::getMemoryLowerBound() {
+  return detector.getMemoryLowerBound() +
+         recognitionHandler.getMemoryLowerBound();
+}
 } // namespace rnexecutorch
