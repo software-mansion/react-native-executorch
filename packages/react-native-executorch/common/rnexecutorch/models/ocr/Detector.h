@@ -14,7 +14,7 @@ class Detector : public BaseModel {
 public:
   Detector(const std::string &modelSource,
            std::shared_ptr<react::CallInvoker> callInvoker);
-  std::vector<DetectorBBox> forward(const std::string &imageSource);
+  std::vector<DetectorBBox> generate(const std::string &imageSource);
 
 private:
   std::vector<DetectorBBox> postprocess(const Tensor &tensor,
