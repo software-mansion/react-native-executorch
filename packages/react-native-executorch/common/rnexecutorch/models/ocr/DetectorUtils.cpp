@@ -8,8 +8,6 @@
 
 namespace rnexecutorch::ocr {
 
-using Point = DetectorBBox::Point;
-
 std::pair<cv::Mat, cv::Mat> interleavedArrayToMats(std::span<const float> data,
                                                    cv::Size size) {
   cv::Mat mat1 = cv::Mat(size.height, size.width, CV_32F);
