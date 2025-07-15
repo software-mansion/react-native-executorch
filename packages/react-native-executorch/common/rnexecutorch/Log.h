@@ -417,14 +417,15 @@ std::ostringstream createConfiguredOutputStream() {
  *    Nothing.
  */
 template <std::size_t MaxLogSize = 1024, typename... Args>
-void log(LOG_LEVEL logLevel, const Args &...args) {
+void log(LOG_LEVEL logLevel, Args &&...args) {
   auto oss = high_level_log_implementation::createConfiguredOutputStream();
-  auto space = [&oss](const auto &arg) {
-    low_level_log_implementation::printElement(oss, arg);
+  auto space = [&oss](auto &&arg) {
+    low_level_log_implementation::printElement(
+        oss, std::forward<decltype(arg)>(arg));
     oss << ' ';
   };
 
-  (..., space(args));
+  (..., space(std::forward<Args>(args)));
 
   // Remove the extra space after the last element
   std::string output = oss.str();
