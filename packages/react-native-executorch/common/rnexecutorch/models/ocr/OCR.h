@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+#include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/ocr/Detector.h>
 #include <rnexecutorch/models/ocr/RecognitionHandler.h>
 #include <rnexecutorch/models/ocr/Types.h>
@@ -13,8 +14,8 @@ public:
   OCR(std::string detectorSource, std::string recognizerSourceLarge,
       std::string recognizerSourceMedium, std::string recognizerSourceSmall,
       std::string symbols, std::shared_ptr<react::CallInvoker> callInvoker);
-  std::vector<OCRDetection> forward(std::string input);
-  void unloadModule();
+  std::vector<OCRDetection> generate(std::string input);
+  void unload();
   std::size_t getMemoryLowerBound();
 
 private:
