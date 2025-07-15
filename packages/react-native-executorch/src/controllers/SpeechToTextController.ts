@@ -14,6 +14,7 @@ import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { longCommonInfPref } from '../utils/stt';
 import { SpeechToTextLanguage } from '../types/stt';
 import { ETError, getError } from '../Error';
+import { Logger } from '../common/Logger';
 
 export class SpeechToTextController {
   private speechToTextNativeModule = SpeechToTextNativeModule;
@@ -146,14 +147,14 @@ export class SpeechToTextController {
       this.overlapSeconds = MODES[streamingConfig].overlapSeconds * SECOND;
     }
     if (streamingConfig && (windowSize || overlapSeconds)) {
-      console.warn(
+      Logger.warn(
         `windowSize and overlapSeconds overrides values from streamingConfig ${streamingConfig}.`
       );
     }
     this.windowSize = (windowSize || 0) * SECOND || this.windowSize;
     this.overlapSeconds = (overlapSeconds || 0) * SECOND || this.overlapSeconds;
     if (2 * this.overlapSeconds + this.windowSize >= 30 * SECOND) {
-      console.warn(
+      Logger.warn(
         `Invalid values for overlapSeconds and/or windowSize provided. Expected windowSize + 2 * overlapSeconds (== ${this.windowSize + 2 * this.overlapSeconds}) <= 30. Setting windowSize to ${30 * SECOND - 2 * this.overlapSeconds}.`
       );
       this.windowSize = 30 * SECOND - 2 * this.overlapSeconds;
