@@ -9,7 +9,7 @@ The googletest is already in repo in `packages/react-native-executorch/third-par
 * `git submodule init`
 * `git submodule update --remote`
 
-To build google test navigate to its directory and type the following:
+To build googletest navigate to its directory and type the following:
 * `mkdir build && cd build`
 * `cmake ..`
 * `make`
