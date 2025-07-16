@@ -12,6 +12,7 @@ import {
   ToolsConfig,
 } from '../types/llm';
 import { parseToolCall } from '../utils/llm';
+import { Logger } from '../common/Logger';
 
 export class LLMController {
   private nativeModule: any;
@@ -50,7 +51,7 @@ export class LLMController {
     onDownloadProgressCallback?: (downloadProgress: number) => void;
   }) {
     if (responseCallback !== undefined) {
-      console.warn(
+      Logger.warn(
         'Passing response callback is deprecated and will be removed in 0.6.0'
       );
     }
@@ -206,7 +207,7 @@ export class LLMController {
       throw new Error(`Empty 'messages' array!`);
     }
     if (messages[0] && messages[0].role !== 'system') {
-      console.warn(
+      Logger.warn(
         `You are not providing system prompt. You can pass it in the first message using { role: 'system', content: YOUR_PROMPT }. Otherwise prompt from your model's chat template will be used.`
       );
     }
