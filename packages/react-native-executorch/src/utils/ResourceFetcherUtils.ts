@@ -10,6 +10,7 @@ import {
 import { RNEDirectory } from '../constants/directories';
 import { ResourceSource } from '../types/common';
 import { Asset } from 'expo-asset';
+import { Logger } from '../common/Logger';
 
 export const enum HTTP_CODE {
   OK = 200,
@@ -82,7 +83,7 @@ export namespace ResourceFetcherUtils {
         try {
           const response = await fetch(source, { method: 'HEAD' });
           if (!response.ok) {
-            console.warn(
+            Logger.warn(
               `Failed to fetch HEAD for ${source}: ${response.status}`
             );
             continue;
@@ -93,7 +94,7 @@ export namespace ResourceFetcherUtils {
           previousFilesTotalLength = totalLength;
           totalLength += length;
         } catch (error) {
-          console.warn(`Error fetching HEAD for ${source}:`, error);
+          Logger.warn(`Error fetching HEAD for ${source}:`, error);
           continue;
         }
       }
