@@ -7,7 +7,7 @@ extern "C" {
 
 namespace rnexecutorch::dsp {
 
-class FFT {
+class FFT final {
 public:
   explicit FFT(int size);
   ~FFT();

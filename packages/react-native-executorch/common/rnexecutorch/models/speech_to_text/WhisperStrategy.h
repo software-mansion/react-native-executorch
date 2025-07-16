@@ -5,11 +5,7 @@
 
 namespace rnexecutorch {
 
-class WhisperStrategy : public SpeechToTextStrategy {
-private:
-  std::vector<float> preprocessedData;
-  std::vector<int32_t> tokens32;
-
+class WhisperStrategy final : public SpeechToTextStrategy {
 public:
   TensorPtr prepareAudioInput(std::span<float> waveform) override;
 
@@ -19,6 +15,10 @@ public:
 
   int64_t extractOutputToken(const void *outputPtr,
                              size_t innerDim) const override;
+
+private:
+  std::vector<float> preprocessedData;
+  std::vector<int32_t> tokens32;
 };
 
 } // namespace rnexecutorch

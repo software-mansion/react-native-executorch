@@ -4,7 +4,7 @@
 
 namespace rnexecutorch {
 
-class MoonshineStrategy : public SpeechToTextStrategy {
+class MoonshineStrategy final : public SpeechToTextStrategy {
 public:
   TensorPtr prepareAudioInput(std::span<float> waveform) override;
 

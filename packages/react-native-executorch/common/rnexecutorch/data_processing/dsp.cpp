@@ -25,7 +25,7 @@ std::vector<float> stftFromWaveform(std::span<float> waveform,
 
   const auto numFrames = 1 + (waveform.size() - fftWindowSize) / hopSize;
   const auto numBins = fftWindowSize / 2;
-  auto hann = hannWindow(fftWindowSize);
+  const auto hann = hannWindow(fftWindowSize);
   auto inBuffer = std::vector<float>(fftWindowSize);
   auto outBuffer = std::vector<std::complex<float>>(fftWindowSize);
 
