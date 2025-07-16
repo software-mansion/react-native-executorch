@@ -1,6 +1,3 @@
-#include "ReactCommon/CallInvoker.h"
-#include "rnexecutorch/models/EncoderDecoderBase.h"
-#include <memory>
 #include <rnexecutorch/models/speech_to_text/MoonshineStrategy.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <rnexecutorch/models/speech_to_text/WhisperStrategy.h>
