@@ -22,10 +22,8 @@ MoonshineStrategy::prepareTokenInput(const std::vector<int64_t> &prevTokens) {
   return make_tensor_ptr(std::move(tensorSizes), prevTokens);
 }
 
-int64_t
-MoonshineStrategy::extractOutputToken(const void *outputPtr,
-                                      const std::vector<int32_t> &sizes) const {
-  const size_t innerDim = sizes.at(1);
+int64_t MoonshineStrategy::extractOutputToken(const void *outputPtr,
+                                              size_t innerDim) const {
   const auto *data = static_cast<const int64_t *>(outputPtr);
   return data[innerDim - 1];
 }

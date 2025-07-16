@@ -66,10 +66,8 @@ int64_t SpeechToText::decode(std::vector<int64_t> prevTokens) {
   }
 
   const auto decoderOutputTensor = decoderResult.get().at(0).toTensor();
-  const auto decoderOutputTensorSizes = decoderOutputTensor.sizes();
-  const std::vector<int32_t> sizesVec(decoderOutputTensorSizes.begin(),
-                                      decoderOutputTensorSizes.end());
+  const auto innerDim = decoderOutputTensor.size(1);
   return strategy->extractOutputToken(decoderOutputTensor.const_data_ptr(),
-                                      sizesVec);
+                                      innerDim);
 }
 } // namespace rnexecutorch

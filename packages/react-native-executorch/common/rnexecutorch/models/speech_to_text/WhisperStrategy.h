@@ -18,7 +18,7 @@ public:
   std::string getDecoderMethod() const override { return "forward"; }
 
   int64_t extractOutputToken(const void *outputPtr,
-                             const std::vector<int32_t> &sizes) const override;
+                             size_t innerDim) const override;
 };
 
 } // namespace rnexecutorch
