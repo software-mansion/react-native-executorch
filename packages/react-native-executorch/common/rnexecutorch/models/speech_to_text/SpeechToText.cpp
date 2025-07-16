@@ -5,7 +5,6 @@
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <rnexecutorch/models/speech_to_text/WhisperStrategy.h>
 #include <stdexcept>
-#include <string>
 
 namespace rnexecutorch {
 

@@ -1,9 +1,11 @@
 #pragma once
 
+#include <cstdint>
 #include <set>
 #include <span>
 #include <type_traits>
 #include <unordered_map>
+#include <vector>
 
 #include <executorch/runtime/core/exec_aten/util/scalar_type_util.h>
 #include <jsi/jsi.h>
@@ -48,21 +50,6 @@ getValue<std::shared_ptr<jsi::Function>>(const jsi::Value &val,
                                          jsi::Runtime &runtime) {
   return std::make_shared<jsi::Function>(
       val.asObject(runtime).asFunction(runtime));
-}
-
-template <>
-inline std::vector<int64_t>
-getValue<std::vector<int64_t>>(const jsi::Value &val, jsi::Runtime &runtime) {
-  jsi::Array array = val.asObject(runtime).asArray(runtime);
-  size_t length = array.size(runtime);
-  std::vector<int64_t> result;
-  result.reserve(length);
-
-  for (size_t i = 0; i < length; ++i) {
-    jsi::Value element = array.getValueAtIndex(runtime, i);
-    result.push_back(getValue<int64_t>(element, runtime));
-  }
-  return result;
 }
 
 template <>
@@ -217,10 +204,38 @@ inline std::span<T> getTypedArrayAsSpan(const jsi::Value &val,
   T *dataPtr = reinterpret_cast<T *>(
       static_cast<uint8_t *>(arrayBuffer.data(runtime)) + byteOffset);
 
-  return std::span<T>(dataPtr, length);
+  return {dataPtr, length};
 }
 
-// Specializations for common typed array types
+template <typename T>
+inline std::vector<T> getArrayAsVector(const jsi::Value &val,
+                                       jsi::Runtime &runtime) {
+  jsi::Array array = val.asObject(runtime).asArray(runtime);
+  const size_t length = array.size(runtime);
+  std::vector<T> result;
+  result.reserve(length);
+
+  for (size_t i = 0; i < length; ++i) {
+    const jsi::Value element = array.getValueAtIndex(runtime, i);
+    result.push_back(getValue<T>(element, runtime));
+  }
+  return result;
+}
+
+// Template specializations for std::vector<T> types
+template <>
+inline std::vector<float> getValue<std::vector<float>>(const jsi::Value &val,
+                                                       jsi::Runtime &runtime) {
+  return getArrayAsVector<float>(val, runtime);
+}
+
+template <>
+inline std::vector<int64_t>
+getValue<std::vector<int64_t>>(const jsi::Value &val, jsi::Runtime &runtime) {
+  return getArrayAsVector<int64_t>(val, runtime);
+}
+
+// Template specializations for std::span<T> types
 template <>
 inline std::span<float> getValue<std::span<float>>(const jsi::Value &val,
                                                    jsi::Runtime &runtime) {
@@ -267,6 +282,12 @@ template <>
 inline std::span<uint8_t> getValue<std::span<uint8_t>>(const jsi::Value &val,
                                                        jsi::Runtime &runtime) {
   return getTypedArrayAsSpan<uint8_t>(val, runtime);
+}
+
+template <>
+inline std::span<int64_t> getValue<std::span<int64_t>>(const jsi::Value &val,
+                                                       jsi::Runtime &runtime) {
+  return getTypedArrayAsSpan<int64_t>(val, runtime);
 }
 
 // Conversion from C++ types to jsi --------------------------------------------

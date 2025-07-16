@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SpeechToTextStrategy.h"
+#include <span>
 #include <vector>
 
 namespace rnexecutorch {

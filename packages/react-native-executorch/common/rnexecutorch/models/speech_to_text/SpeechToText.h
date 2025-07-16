@@ -7,6 +7,7 @@
 #include <rnexecutorch/models/EncoderDecoderBase.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToTextStrategy.h>
 #include <span>
+#include <string>
 #include <vector>
 
 namespace rnexecutorch {
