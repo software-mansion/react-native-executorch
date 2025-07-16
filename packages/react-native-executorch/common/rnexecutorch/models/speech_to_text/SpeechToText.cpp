@@ -6,7 +6,6 @@
 #include <rnexecutorch/models/speech_to_text/WhisperStrategy.h>
 #include <stdexcept>
 #include <string>
-#include <vector>
 
 namespace rnexecutorch {
 
@@ -27,13 +26,13 @@ void SpeechToText::initializeStrategy() {
   } else if (modelName == "moonshine") {
     strategy = std::make_unique<MoonshineStrategy>();
   } else {
-    throw std::runtime_error("Unsupported model: " + modelName +
+    throw std::runtime_error("Unsupported STT model: " + modelName +
                              ". Only 'whisper' and 'moonshine' are supported.");
   }
 }
 
 void SpeechToText::encode(std::span<float> waveform) {
-  auto [modelInputTensor, inputShape] = strategy->prepareAudioInput(waveform);
+  auto modelInputTensor = strategy->prepareAudioInput(waveform);
 
   auto result = encoder_->forward(modelInputTensor);
   if (!result.ok()) {
