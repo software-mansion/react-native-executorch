@@ -21,7 +21,7 @@ std::vector<float> hannWindow(int size) {
 std::vector<float> stftFromWaveform(std::span<float> waveform,
                                     size_t fftWindowSize, size_t hopSize) {
   // Initialize FFT
-  FFT fft(fftWindowSize);
+  FFT fft(static_cast<int>(fftWindowSize));
 
   const auto numFrames = 1 + (waveform.size() - fftWindowSize) / hopSize;
   const auto numBins = fftWindowSize / 2;
