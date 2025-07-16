@@ -77,5 +77,11 @@
                                          RnExecutorchInstaller::loadModel<OCR>(
                                              jsiRuntime, jsCallInvoker, "loadOCR"));
     }
+    jsiRuntime->global().setProperty(*jsiRuntime, "loadLLM",
+                                     RnExecutorchInstaller::loadModel<LLM>(
+                                         jsiRuntime, jsCallInvoker, "loadLLM"));
 
-} // namespace rnexecutorch
+    jsiRuntime->global().setProperty(*jsiRuntime, "loadOCR",
+                                     RnExecutorchInstaller::loadModel<OCR>(
+                                         jsiRuntime, jsCallInvoker, "loadOCR"));
+}
