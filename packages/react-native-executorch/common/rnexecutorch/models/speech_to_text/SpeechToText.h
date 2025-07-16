@@ -12,9 +12,10 @@
 namespace rnexecutorch {
 class SpeechToText : public EncoderDecoderBase {
 public:
-  SpeechToText(const std::string &encoderPath, const std::string &decoderPath,
-               const std::string &modelName,
-               std::shared_ptr<react::CallInvoker> callInvoker);
+  explicit SpeechToText(const std::string &encoderPath,
+                        const std::string &decoderPath,
+                        const std::string &modelName,
+                        std::shared_ptr<react::CallInvoker> callInvoker);
   void encode(std::span<float> waveform);
   int64_t decode(std::vector<int64_t> prevTokens);
 

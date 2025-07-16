@@ -32,9 +32,9 @@ void SpeechToText::initializeStrategy() {
 }
 
 void SpeechToText::encode(std::span<float> waveform) {
-  auto modelInputTensor = strategy->prepareAudioInput(waveform);
+  const auto modelInputTensor = strategy->prepareAudioInput(waveform);
 
-  auto result = encoder_->forward(modelInputTensor);
+  const auto result = encoder_->forward(modelInputTensor);
   if (!result.ok()) {
     throw std::runtime_error(
         "Forward pass failed during encoding, error code: " +
@@ -50,13 +50,13 @@ int64_t SpeechToText::decode(std::vector<int64_t> prevTokens) {
                              "call encode() prior to decode()!");
   }
 
-  auto prevTokensTensor = strategy->prepareTokenInput(prevTokens);
+  const auto prevTokensTensor = strategy->prepareTokenInput(prevTokens);
 
   const auto decoderMethod = strategy->getDecoderMethod();
   // BEWARE!!!
   // Moonshine will fail with invalid input if you pass large tokens i.e.
   // Whisper's BOS/EOS
-  auto decoderResult =
+  const auto decoderResult =
       decoder_->execute(decoderMethod, {prevTokensTensor, encoderOutput});
 
   if (!decoderResult.ok()) {

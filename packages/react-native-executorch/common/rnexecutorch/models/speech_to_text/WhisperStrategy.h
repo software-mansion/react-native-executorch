@@ -7,8 +7,8 @@ namespace rnexecutorch {
 
 class WhisperStrategy : public SpeechToTextStrategy {
 private:
-  mutable std::vector<float> preprocessedData;
-  mutable std::vector<int32_t> tokens32;
+  std::vector<float> preprocessedData;
+  std::vector<int32_t> tokens32;
 
 public:
   TensorPtr prepareAudioInput(std::span<float> waveform) override;
