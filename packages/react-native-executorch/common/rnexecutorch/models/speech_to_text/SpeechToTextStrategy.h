@@ -19,8 +19,9 @@ public:
 
   virtual std::string getDecoderMethod() const = 0;
 
-  virtual int64_t extractOutputToken(const void *outputPtr,
-                                     const std::vector<int32_t> &sizes) = 0;
+  virtual int64_t
+  extractOutputToken(const void *outputPtr,
+                     const std::vector<int32_t> &sizes) const = 0;
 };
 
 } // namespace rnexecutorch

@@ -52,7 +52,7 @@ int64_t SpeechToText::decode(std::vector<int64_t> prevTokens) {
 
   auto prevTokensTensor = strategy->prepareTokenInput(prevTokens);
 
-  auto decoderMethod = strategy->getDecoderMethod();
+  const auto decoderMethod = strategy->getDecoderMethod();
   // BEWARE!!!
   // Moonshine will fail with invalid input if you pass large tokens i.e.
   // Whisper's BOS/EOS
@@ -65,10 +65,10 @@ int64_t SpeechToText::decode(std::vector<int64_t> prevTokens) {
         std::to_string(static_cast<int>(decoderResult.error())));
   }
 
-  auto decoderOutputTensor = decoderResult.get().at(0).toTensor();
-  auto decoderOutputTensorSizes = decoderOutputTensor.sizes();
-  std::vector<int32_t> sizesVec(decoderOutputTensorSizes.begin(),
-                                decoderOutputTensorSizes.end());
+  const auto decoderOutputTensor = decoderResult.get().at(0).toTensor();
+  const auto decoderOutputTensorSizes = decoderOutputTensor.sizes();
+  const std::vector<int32_t> sizesVec(decoderOutputTensorSizes.begin(),
+                                      decoderOutputTensorSizes.end());
   return strategy->extractOutputToken(decoderOutputTensor.const_data_ptr(),
                                       sizesVec);
 }

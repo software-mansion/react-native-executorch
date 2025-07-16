@@ -25,14 +25,15 @@ WhisperStrategy::prepareTokenInput(const std::vector<int64_t> &prevTokens) {
   for (auto token : prevTokens) {
     tokens32.push_back(static_cast<int32_t>(token));
   }
-  std::vector<int32_t> tensorSizes = {1, static_cast<int32_t>(tokens32.size())};
+  auto tensorSizes = {1, static_cast<int32_t>(tokens32.size())};
   return make_tensor_ptr(std::move(tensorSizes), std::move(tokens32));
 }
 
-int64_t WhisperStrategy::extractOutputToken(const void *outputPtr,
-                                            const std::vector<int32_t> &sizes) {
-  size_t innerDim = sizes.at(1);
-  const int32_t *data = static_cast<const int32_t *>(outputPtr);
+int64_t
+WhisperStrategy::extractOutputToken(const void *outputPtr,
+                                    const std::vector<int32_t> &sizes) const {
+  const auto innerDim = sizes.at(1);
+  const auto *data = static_cast<const int32_t *>(outputPtr);
   return static_cast<int64_t>(data[innerDim - 1]);
 }
 
