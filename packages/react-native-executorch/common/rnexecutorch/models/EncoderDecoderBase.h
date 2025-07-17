@@ -27,4 +27,5 @@ protected:
 private:
   size_t memorySizeLowerBound;
 };
+
 } // namespace rnexecutorch
