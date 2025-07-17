@@ -44,7 +44,7 @@ export const useOCR = ({
 
   useEffect(() => {
     const loadModel = async () => {
-      await model.loadModel(detectorSource, recognizerSources, language);
+      await model.load(detectorSource, recognizerSources, language);
     };
 
     if (!preventLoad) {

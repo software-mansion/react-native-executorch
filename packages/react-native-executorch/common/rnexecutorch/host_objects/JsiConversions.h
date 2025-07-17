@@ -13,6 +13,7 @@
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
 #include <rnexecutorch/models/object_detection/Constants.h>
 #include <rnexecutorch/models/object_detection/Utils.h>
+#include <rnexecutorch/models/ocr/Types.h>
 
 namespace rnexecutorch::jsiconversion {
 
@@ -266,4 +267,25 @@ inline jsi::Value getJsiValue(const std::vector<Detection> &detections,
   return array;
 }
 
+inline jsi::Value getJsiValue(const std::vector<float> &vec,
+                              jsi::Runtime &runtime) {
+  jsi::Array array(runtime, vec.size());
+  for (size_t i = 0; i < vec.size(); i++) {
+    array.setValueAtIndex(runtime, i, jsi::Value(static_cast<float>(vec[i])));
+  }
+  return jsi::Value(runtime, array);
+}
+
+inline jsi::Value getJsiValue(const std::vector<OCRDetection> &detections,
+                              jsi::Runtime &runtime) {
+  jsi::Array array(runtime, detections.size());
+  for (std::size_t i = 0; i < detections.size(); ++i) {
+    jsi::Object detection(runtime);
+    jsi::Object bbox(runtime);
+    detection.setProperty(runtime, "text", detections[i].text);
+    detection.setProperty(runtime, "score", detections[i].score);
+    array.setValueAtIndex(runtime, i, detection);
+  }
+  return array;
+}
 } // namespace rnexecutorch::jsiconversion

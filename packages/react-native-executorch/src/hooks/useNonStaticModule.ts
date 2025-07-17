@@ -29,6 +29,7 @@ export const useNonStaticModule = <
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
+  console.log(module);
   const model = useMemo(() => new module(), [module]);
 
   useEffect(() => {

@@ -7,9 +7,9 @@
 #include <rnexecutorch/models/image_segmentation/ImageSegmentation.h>
 #include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/object_detection/ObjectDetection.h>
+#include <rnexecutorch/models/ocr/OCR.h>
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
 #include <rnexecutorch/models/text_embeddings/TextEmbeddings.h>
-
 namespace rnexecutorch {
 
 // This function fetches data from a url address. It is implemented in
@@ -65,6 +65,10 @@ void RnExecutorchInstaller::injectJSIBindings(
   jsiRuntime->global().setProperty(*jsiRuntime, "loadLLM",
                                    RnExecutorchInstaller::loadModel<LLM>(
                                        jsiRuntime, jsCallInvoker, "loadLLM"));
+
+  jsiRuntime->global().setProperty(*jsiRuntime, "loadOCR",
+                                   RnExecutorchInstaller::loadModel<OCR>(
+                                       jsiRuntime, jsCallInvoker, "loadOCR"));
 }
 
 } // namespace rnexecutorch
