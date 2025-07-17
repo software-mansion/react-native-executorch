@@ -1,4 +1,5 @@
 import { useSpeechToText } from 'react-native-executorch';
+import React from 'react';
 import {
   Text,
   View,
