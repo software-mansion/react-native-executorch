@@ -306,4 +306,7 @@ readImageToTensor(const std::string &path,
 } // namespace imageprocessing
 
 } // namespace rnexecutorch
+<<<<<<< HEAD
 >>>>>>> 25d41deb (Add corrections in ImageProcessing module)
+=======
+>>>>>>> fc1c49b6 (Update packages/react-native-executorch/common/rnexecutorch/data_processing/ImageProcessing.cpp)
