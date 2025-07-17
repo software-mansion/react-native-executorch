@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 export class Logger {
   private static readonly PREFIX = '[React Native ExecuTorch]';
 

@@ -38,7 +38,6 @@ module.exports = {
   overrides: [
     {
       files: ['packages/react-native-executorch/src/**/*.{js,jsx,ts,tsx}'],
-      excludedFiles: ['packages/react-native-executorch/src/common/Logger.ts'],
       rules: {
         'no-console': 'warn',
       },
