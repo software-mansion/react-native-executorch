@@ -1,8 +1,8 @@
 #include "BaseModel.h"
 
-#include <filesystem>
-
 #include <executorch/extension/tensor/tensor.h>
+#include <filesystem>
+#include <stdexcept>
 
 namespace rnexecutorch {
 
@@ -83,8 +83,11 @@ BaseModel::getAllInputShapes(std::string methodName) {
   return output;
 }
 
+/// @brief This method is a forward wrapper that is created solely to be exposed
+/// to JS. It is not meant to be used within C++. If you want to call forward
+/// from C++ on a BaseModel, please use BaseModel::forward.
 std::vector<JSTensorViewOut>
-BaseModel::forwardJS(const std::vector<JSTensorViewIn> tensorViewVec) {
+BaseModel::forwardJS(std::vector<JSTensorViewIn> tensorViewVec) {
   if (!module_) {
     throw std::runtime_error("Model not loaded: Cannot perform forward pass");
   }
@@ -131,6 +134,14 @@ BaseModel::forwardJS(const std::vector<JSTensorViewIn> tensorViewVec) {
   return output;
 }
 
+Result<executorch::runtime::MethodMeta>
+BaseModel::getMethodMeta(const std::string &methodName) {
+  if (!module_) {
+    throw std::runtime_error("Model not loaded: Cannot get method meta!");
+  }
+  return module_->method_meta(methodName);
+}
+
 Result<std::vector<EValue>> BaseModel::forward(const EValue &input_evalue) {
   if (!module_) {
     throw std::runtime_error("Model not loaded: Cannot perform forward pass");
@@ -144,6 +155,15 @@ BaseModel::forward(const std::vector<EValue> &input_evalues) {
     throw std::runtime_error("Model not loaded: Cannot perform forward pass");
   }
   return module_->forward(input_evalues);
+}
+
+Result<std::vector<EValue>>
+BaseModel::execute(const std::string &methodName,
+                   const std::vector<EValue> &input_value) {
+  if (!module_) {
+    throw std::runtime_error("Model not loaded, cannot run execute.");
+  }
+  return module_->execute(methodName, input_value);
 }
 
 std::size_t BaseModel::getMemoryLowerBound() { return memorySizeLowerBound; }
