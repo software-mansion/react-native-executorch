@@ -32,15 +32,17 @@ StyleTransfer::StyleTransfer(const std::string &modelSource,
 
 std::string StyleTransfer::postprocess(const Tensor &tensor,
                                        cv::Size originalSize) {
-  cv::Mat mat = imageprocessing::getMatrixFromTensor(modelImageSize, tensor);
+  cv::Mat mat = imageprocessing::convertTensorToMatrix(modelImageSize, tensor);
   cv::resize(mat, mat, originalSize);
 
   return imageprocessing::saveToTempFile(mat);
 }
 
 std::string StyleTransfer::generate(std::string imageSource) {
-  auto [inputTensor, originalSize] =
-      imageprocessing::readImageToTensor(imageSource, getAllInputShapes()[0]);
+  auto imageAsMatrix = imageprocessing::readImageToMatrix(imageSource);
+  auto originalSize = imageAsMatrix.size();
+  auto inputTensor = imageprocessing::covertMatrixToTensor(
+      getAllInputShapes()[0], std::move(imageAsMatrix));
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
