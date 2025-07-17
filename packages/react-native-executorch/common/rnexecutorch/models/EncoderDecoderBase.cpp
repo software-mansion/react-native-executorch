@@ -12,8 +12,10 @@ EncoderDecoderBase::EncoderDecoderBase(
 size_t EncoderDecoderBase::getMemoryLowerBound() const noexcept {
   return encoder_->getMemoryLowerBound() + decoder_->getMemoryLowerBound();
 }
+
 void EncoderDecoderBase::unload() noexcept {
   encoder_.reset(nullptr);
   decoder_.reset(nullptr);
 }
+
 } // namespace rnexecutorch
