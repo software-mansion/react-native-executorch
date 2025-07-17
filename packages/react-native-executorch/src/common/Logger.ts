@@ -1,5 +1,11 @@
+/* eslint-disable no-console */
+
 export class Logger {
   private static readonly PREFIX = '[React Native ExecuTorch]';
+
+  static log(...data: any[]) {
+    console.log(Logger.PREFIX, ...data);
+  }
 
   static debug(...data: any[]) {
     console.debug(Logger.PREFIX, ...data);
