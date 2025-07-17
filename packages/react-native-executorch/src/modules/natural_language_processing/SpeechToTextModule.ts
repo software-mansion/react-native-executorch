@@ -3,7 +3,7 @@ import { SpeechToTextController } from '../../controllers/SpeechToTextController
 import { AvailableModels, SpeechToTextLanguage } from '../../types/stt';
 import { STREAMING_ACTION } from '../../constants/sttDefaults';
 
-export class SpeechToText {
+export class SpeechToTextModule {
   static module: SpeechToTextController;
 
   static onDownloadProgressCallback = (_downloadProgress: number) => {};

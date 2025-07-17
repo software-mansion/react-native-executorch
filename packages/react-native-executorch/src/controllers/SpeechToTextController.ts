@@ -451,11 +451,11 @@ export class SpeechToTextController {
     return decodedText;
   }
 
-  public async encode(waveform: Float32Array) {
+  public async encode(waveform: Float32Array): Promise<null> {
     return await this.speechToTextNativeModule.encode(waveform);
   }
 
-  public async decode(seq: number[]) {
+  public async decode(seq: number[]): Promise<number> {
     return await this.speechToTextNativeModule.decode(seq);
   }
 }
