@@ -66,4 +66,5 @@ int64_t SpeechToText::decode(std::vector<int64_t> prevTokens) {
   return strategy->extractOutputToken(decoderOutputTensor.const_data_ptr(),
                                       innerDim);
 }
+
 } // namespace rnexecutorch
