@@ -43,4 +43,5 @@ private:
   std::size_t memorySizeLowerBound{0};
   std::vector<int32_t> getTensorShape(const executorch::aten::Tensor &tensor);
 };
+
 } // namespace rnexecutorch
