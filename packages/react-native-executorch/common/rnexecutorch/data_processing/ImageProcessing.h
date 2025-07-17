@@ -74,4 +74,7 @@ TensorPtr covertMatrixToTensor(const std::vector<int32_t> &tensorDims,
                                cv::Mat &input);
 
 } // namespace rnexecutorch::imageprocessing
+<<<<<<< HEAD
 >>>>>>> 25d41deb (Add corrections in ImageProcessing module)
+=======
+>>>>>>> 787189c6 (Update packages/react-native-executorch/common/rnexecutorch/data_processing/ImageProcessing.h)
