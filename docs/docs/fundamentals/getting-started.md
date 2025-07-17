@@ -35,7 +35,7 @@ If your app still runs on the old architecture, please consider upgrading to the
 
 ## Installation
 
-Installation is pretty straightforward, just use your favorite package manager..
+Installation is pretty straightforward, just use your favorite package manager.
 
 <Tabs>
   <TabItem value="npm" label="NPM">
