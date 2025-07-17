@@ -17,4 +17,5 @@ void FFT::doFFT(float *in, std::vector<std::complex<float>> &out) {
                           reinterpret_cast<float *>(out.data()), work_,
                           PFFFT_FORWARD);
 }
+
 } // namespace rnexecutorch::dsp
