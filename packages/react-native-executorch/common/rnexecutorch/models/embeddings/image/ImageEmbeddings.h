@@ -4,13 +4,13 @@
 #include <executorch/runtime/core/evalue.h>
 #include <opencv2/opencv.hpp>
 
-#include <rnexecutorch/models/BaseModel.h>
+#include <rnexecutorch/models/embeddings/BaseEmbeddings.h>
 
 namespace rnexecutorch {
 using executorch::extension::TensorPtr;
 using executorch::runtime::EValue;
 
-class ImageEmbeddings : public BaseModel {
+class ImageEmbeddings final : public BaseEmbeddings {
 public:
   ImageEmbeddings(const std::string &modelSource,
                   std::shared_ptr<react::CallInvoker> callInvoker);

@@ -3,13 +3,13 @@
 #include <rnexecutorch/TokenizerModule.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/models/classification/Classification.h>
-#include <rnexecutorch/models/image_embeddings/ImageEmbeddings.h>
+#include <rnexecutorch/models/embeddings/image/ImageEmbeddings.h>
+#include <rnexecutorch/models/embeddings/text/TextEmbeddings.h>
 #include <rnexecutorch/models/image_segmentation/ImageSegmentation.h>
 #include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/object_detection/ObjectDetection.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
-#include <rnexecutorch/models/text_embeddings/TextEmbeddings.h>
 
 namespace rnexecutorch {
 
