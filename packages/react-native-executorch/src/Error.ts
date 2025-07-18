@@ -41,22 +41,22 @@ export enum ETError {
   DelegateInvalidHandle = 0x32,
 }
 
-export const getError = (e: unknown | ETError | Error): string => {
-  if (typeof e === 'number') {
-    if (e in ETError) return ETError[e] as string;
-    return ETError[ETError.UndefinedError] as string;
+export function ensureError(value: unknown): Error {
+  if (value instanceof Error) return value;
+
+  if (value instanceof ETError) return;
+
+  let stringified = '[Unable to stringify the thrown value]';
+  try {
+    stringified = JSON.stringify(value);
+  } catch {
+    // If JSON.stringify fails, try String()                            /
+    try {
+      stringified = String(value);
+    } catch {
+      // Fallback message already set
+    }
   }
-
-  // try to extract number from message (can contain false positives)
-  const error = e as Error;
-  const errorCode = parseInt(error.message, 10);
-  const message = Number.isNaN(errorCode)
-    ? error.message
-    : ' ' + error.message.slice(`${errorCode}`.length).trimStart();
-
-  const ETErrorMessage = (
-    errorCode in ETError ? ETError[errorCode] : ETError[ETError.UndefinedError]
-  ) as string;
-
-  return ETErrorMessage + message;
-};
+  const error = new Error(`Non-error thrown: ${stringified}`);
+  return error;
+}
