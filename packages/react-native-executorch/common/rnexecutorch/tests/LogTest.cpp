@@ -24,6 +24,8 @@ namespace low_level_log_implementation {
 
 class TestValue : public ::testing::Test {
 protected:
+  TestValue() { oss << std::boolalpha; }
+
   template <typename T>
   void testValueViaComparison(const T &value,
                               const std::string &expectedOutput) {
@@ -487,10 +489,22 @@ TEST_F(LoggingTest, LoggingDoesNotChangeVector) {
   testLoggingDoesNotChangeContainer(original);
 }
 
-TEST(LoggingTestTemplateArgument, LoggingWithNonDefaultLogSize) {
+TEST(LogFunctionTest, LoggingBasic) {
+  EXPECT_NO_THROW(log(LOG_LEVEL::Debug, "Test123"));
+}
+
+TEST(LogFunctionTest, LoggingWithNonDefaultLogSize) {
   constexpr std::size_t sizeBiggerThanDefault = 2048;
   const auto testString = std::string(sizeBiggerThanDefault, 'a');
   EXPECT_NO_THROW(log<sizeBiggerThanDefault>(LOG_LEVEL::Info, testString));
+}
+
+TEST(LogFunctionTest, LoggingMoreThatOneElement) {
+  constexpr auto testStringLiteral = "Test123";
+  const auto testVector = std::vector<int>{1, 2, 3, 4};
+  const auto testPair = std::pair<int, double>(1, 2.0);
+  EXPECT_NO_THROW(
+      log(LOG_LEVEL::Debug, testStringLiteral, testVector, testPair));
 }
 
 } // namespace rnexecutorch
