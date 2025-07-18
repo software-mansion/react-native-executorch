@@ -4,6 +4,7 @@ import { Schema, Validator } from 'jsonschema';
 import { jsonrepair } from 'jsonrepair';
 import { DEFAULT_STRUCTURED_OUTPUT_PROMPT } from '../constants/llmDefaults';
 import * as zCore from 'zod/v4/core';
+import { Logger } from '../common/Logger';
 
 export const parseToolCall: (message: string) => ToolCall[] = (
   message: string
@@ -33,7 +34,7 @@ export const parseToolCall: (message: string) => ToolCall[] = (
 
     return results;
   } catch (e) {
-    console.error(e);
+    Logger.error(e);
     return [];
   }
 };

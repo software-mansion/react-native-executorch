@@ -35,7 +35,8 @@ The minimal supported version are:
 * Android 13
 * React Native 76
 
-> :warning: **Warning:** React Native Executorch supports only the [New React Native architecture](https://reactnative.dev/architecture/landing-page).
+> [!IMPORTANT]  
+> React Native Executorch supports only the [New React Native architecture](https://reactnative.dev/architecture/landing-page).
 
 ## :robot: Ready-made models
 
@@ -118,7 +119,8 @@ Then, depending on the platform, choose either iOS or Android:
 yarn expo run:< ios | android >
 ```
 
-> :warning: **Warning:** Running LLMs requires a significant amount of RAM. If you are encountering unexpected app crashes, try to increase the amount of RAM allocated to the emulator.
+> [!WARNING]  
+> Running LLMs requires a significant amount of RAM. If you are encountering unexpected app crashes, try to increase the amount of RAM allocated to the emulator.
 
 ## :balance_scale: License
 

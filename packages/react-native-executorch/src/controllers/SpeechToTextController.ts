@@ -7,16 +7,16 @@ import {
   STREAMING_ACTION,
 } from '../constants/sttDefaults';
 import { AvailableModels, ModelConfig } from '../types/stt';
-import { SpeechToTextNativeModule } from '../native/RnExecutorchModules';
 import { TokenizerModule } from '../modules/natural_language_processing/TokenizerModule';
 import { ResourceSource } from '../types/common';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { longCommonInfPref } from '../utils/stt';
 import { SpeechToTextLanguage } from '../types/stt';
 import { ETError, getError } from '../Error';
+import { Logger } from '../common/Logger';
 
 export class SpeechToTextController {
-  private speechToTextNativeModule = SpeechToTextNativeModule;
+  private speechToTextNativeModule: any;
 
   public sequence: number[] = [];
   public isReady = false;
@@ -125,11 +125,12 @@ export class SpeechToTextController {
     }
 
     try {
-      await this.speechToTextNativeModule.loadModule(modelName, [
+      const nativeSpeechToText = await global.loadSpeechToText(
         encoderSource!,
         decoderSource!,
-      ]);
-      this.modelDownloadProgressCallback?.(1);
+        modelName
+      );
+      this.speechToTextNativeModule = nativeSpeechToText;
       this.isReadyCallback(true);
     } catch (e) {
       this.onErrorCallback(e);
@@ -146,14 +147,14 @@ export class SpeechToTextController {
       this.overlapSeconds = MODES[streamingConfig].overlapSeconds * SECOND;
     }
     if (streamingConfig && (windowSize || overlapSeconds)) {
-      console.warn(
+      Logger.warn(
         `windowSize and overlapSeconds overrides values from streamingConfig ${streamingConfig}.`
       );
     }
     this.windowSize = (windowSize || 0) * SECOND || this.windowSize;
     this.overlapSeconds = (overlapSeconds || 0) * SECOND || this.overlapSeconds;
     if (2 * this.overlapSeconds + this.windowSize >= 30 * SECOND) {
-      console.warn(
+      Logger.warn(
         `Invalid values for overlapSeconds and/or windowSize provided. Expected windowSize + 2 * overlapSeconds (== ${this.windowSize + 2 * this.overlapSeconds}) <= 30. Setting windowSize to ${30 * SECOND - 2 * this.overlapSeconds}.`
       );
       this.windowSize = 30 * SECOND - 2 * this.overlapSeconds;
@@ -224,7 +225,7 @@ export class SpeechToTextController {
     let prevSeqTokenIdx = 0;
     this.prevSeq = this.sequence.slice();
     try {
-      await this.encode(chunk);
+      await this.encode(new Float32Array(chunk));
     } catch (error) {
       this.onErrorCallback(new Error(getError(error) + ' encoding error'));
       return [];
@@ -327,7 +328,6 @@ export class SpeechToTextController {
 
     // Making sure that the error is not set when we get there
     this.isGeneratingCallback(true);
-
     this.resetState();
     this.waveform = waveform;
     this.chunkWaveform();
@@ -455,11 +455,11 @@ export class SpeechToTextController {
     return decodedText;
   }
 
-  public async encode(waveform: number[]) {
+  public async encode(waveform: Float32Array): Promise<null> {
     return await this.speechToTextNativeModule.encode(waveform);
   }
 
-  public async decode(seq: number[], encodings?: number[]) {
-    return await this.speechToTextNativeModule.decode(seq, encodings || []);
+  public async decode(seq: number[]): Promise<number> {
+    return await this.speechToTextNativeModule.decode(seq);
   }
 }

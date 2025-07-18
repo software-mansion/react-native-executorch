@@ -3,7 +3,7 @@ import { SpeechToTextController } from '../../controllers/SpeechToTextController
 import { AvailableModels, SpeechToTextLanguage } from '../../types/stt';
 import { STREAMING_ACTION } from '../../constants/sttDefaults';
 
-export class SpeechToText {
+export class SpeechToTextModule {
   static module: SpeechToTextController;
 
   static onDownloadProgressCallback = (_downloadProgress: number) => {};
@@ -52,12 +52,12 @@ export class SpeechToText {
     );
   }
 
-  static async encode(waveform: number[]) {
+  static async encode(waveform: Float32Array) {
     return await this.module.encode(waveform);
   }
 
-  static async decode(seq: number[], encodings: number[]) {
-    return await this.module.decode(seq, encodings);
+  static async decode(seq: number[]) {
+    return await this.module.decode(seq);
   }
 
   static async transcribe(

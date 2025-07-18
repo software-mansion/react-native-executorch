@@ -24,10 +24,14 @@ public:
   getAllInputShapes(std::string methodName = "forward");
   std::vector<JSTensorViewOut>
   forwardJS(std::vector<JSTensorViewIn> tensorViewVec);
-
-protected:
   Result<std::vector<EValue>> forward(const EValue &input_value);
   Result<std::vector<EValue>> forward(const std::vector<EValue> &input_value);
+  Result<std::vector<EValue>> execute(const std::string &methodName,
+                                      const std::vector<EValue> &input_value);
+  Result<executorch::runtime::MethodMeta>
+  getMethodMeta(const std::string &methodName);
+
+protected:
   // If possible, models should not use the JS runtime to keep JSI internals
   // away from logic, however, sometimes this would incur too big of a penalty
   // (unnecessary copies instead of working on JS memory). In this case
@@ -39,4 +43,5 @@ private:
   std::size_t memorySizeLowerBound{0};
   std::vector<int32_t> getTensorShape(const executorch::aten::Tensor &tensor);
 };
+
 } // namespace rnexecutorch

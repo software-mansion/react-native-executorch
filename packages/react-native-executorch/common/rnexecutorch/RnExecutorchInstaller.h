@@ -1,8 +1,8 @@
 #pragma once
 
 #include <memory>
+#include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <string>
-#include <thread>
 
 #include <ReactCommon/CallInvoker.h>
 #include <jsi/jsi.h>
@@ -35,6 +35,8 @@ REGISTER_CONSTRUCTOR(ImageEmbeddings, std::string,
 REGISTER_CONSTRUCTOR(TextEmbeddings, std::string, std::string,
                      std::shared_ptr<react::CallInvoker>);
 REGISTER_CONSTRUCTOR(LLM, std::string, std::string,
+                     std::shared_ptr<react::CallInvoker>);
+REGISTER_CONSTRUCTOR(SpeechToText, std::string, std::string, std::string,
                      std::shared_ptr<react::CallInvoker>);
 
 using namespace facebook;
