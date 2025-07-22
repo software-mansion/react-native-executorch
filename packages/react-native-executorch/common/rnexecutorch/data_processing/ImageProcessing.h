@@ -29,6 +29,9 @@ cv::Mat readImage(const std::string &imageURI);
 TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDims,
                               const cv::Mat &mat);
 cv::Mat getMatrixFromTensor(cv::Size size, const Tensor &tensor);
+TensorPtr getTensorFromMatrixGray(const std::vector<int32_t> &tensorDims,
+                                  const cv::Mat &matrix);
+std::vector<float> grayMatToVector(const cv::Mat &mat);
 cv::Mat resizePadded(cv::Mat inputImage, cv::Size targetSize);
 /// @brief Read image, resize it and copy it to an ET tensor to store it.
 /// @param path Path to the image to be resized. Could be base64, local file or

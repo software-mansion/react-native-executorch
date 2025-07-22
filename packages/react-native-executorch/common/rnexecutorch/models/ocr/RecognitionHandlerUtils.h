@@ -7,8 +7,8 @@
 #include <rnexecutorch/models/ocr/Types.h>
 
 namespace rnexecutorch::ocr {
-std::tuple<float, int32_t, int32_t>
-calculateResizeRatioAndPaddings(cv::Size size, cv::Size desiredSize);
+PaddingInfo calculateResizeRatioAndPaddings(cv::Size size,
+                                            cv::Size desiredSize);
 void computeRatioAndResize(cv::Mat &img, cv::Size size, int32_t modelHeight);
 cv::Mat cropImage(DetectorBBox box, cv::Mat &image, int32_t modelHeight);
 void adjustContrastGrey(cv::Mat &img, double target);
