@@ -5,6 +5,7 @@
 
 #include <ada/ada.h>
 
+#include <rnexecutorch/Log.h>
 #include <rnexecutorch/RnExecutorchInstaller.h>
 #include <rnexecutorch/data_processing/FileUtils.h>
 #include <rnexecutorch/data_processing/base64.h>
@@ -119,6 +120,30 @@ TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDims,
   return executorch::extension::make_tensor_ptr(tensorDims, inputVector);
 }
 
+TensorPtr getTensorFromMatrixGray(const std::vector<int32_t> &tensorDims,
+                                  const cv::Mat &matrix) {
+  std::vector<float> inputVector = grayMatToVector(matrix);
+  return executorch::extension::make_tensor_ptr(tensorDims, inputVector);
+}
+
+std::vector<float> grayMatToVector(const cv::Mat &mat) {
+  CV_Assert(mat.type() == CV_32F);
+
+  int pixelCount = mat.cols * mat.rows;
+  std::vector<float> v;
+  v.reserve(pixelCount);
+
+  if (mat.isContinuous()) {
+    v.assign((float *)mat.data, (float *)mat.data + pixelCount);
+  } else {
+    for (int i = 0; i < mat.rows; ++i) {
+      v.insert(v.end(), mat.ptr<float>(i), mat.ptr<float>(i) + mat.cols);
+    }
+  }
+
+  return v;
+}
+
 cv::Mat getMatrixFromTensor(cv::Size size, const Tensor &tensor) {
   auto resultData = static_cast<const float *>(tensor.const_data_ptr());
   return bufferToColorMat(std::span<const float>(resultData, tensor.numel()),
@@ -130,10 +155,8 @@ cv::Mat resizePadded(cv::Mat inputImage, cv::Size targetSize) {
   const float heightRatio = (float)targetSize.height / inputSize.height;
   const float widthRatio = (float)targetSize.width / inputSize.width;
   const float resizeRatio = std::min(heightRatio, widthRatio);
-
   const int newWidth = inputSize.width * resizeRatio;
   const int newHeight = inputSize.height * resizeRatio;
-
   cv::Mat resizedImg;
   cv::resize(inputImage, resizedImg, cv::Size(newWidth, newHeight), 0, 0,
              cv::INTER_AREA);
