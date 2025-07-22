@@ -38,6 +38,10 @@ REGISTER_CONSTRUCTOR(LLM, std::string, std::string,
                      std::shared_ptr<react::CallInvoker>);
 REGISTER_CONSTRUCTOR(SpeechToText, std::string, std::string, std::string,
                      std::shared_ptr<react::CallInvoker>);
+REGISTER_CONSTRUCTOR(OCR, std::string, std::string, std::string, std::string,
+                     std::string, std::shared_ptr<react::CallInvoker>);
+REGISTER_CONSTRUCTOR(VerticalOCR, std::string, std::string, std::string,
+                     std::string, bool, std::shared_ptr<react::CallInvoker>);
 
 using namespace facebook;
 
@@ -57,7 +61,6 @@ private:
   loadModel(jsi::Runtime *jsiRuntime,
             std::shared_ptr<react::CallInvoker> jsCallInvoker,
             const std::string &loadFunctionName) {
-
     return jsi::Function::createFromHostFunction(
         *jsiRuntime, jsi::PropNameID::forAscii(*jsiRuntime, loadFunctionName),
         0,
@@ -108,5 +111,4 @@ private:
         });
   }
 };
-
 } // namespace rnexecutorch
