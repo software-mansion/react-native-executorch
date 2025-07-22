@@ -5,9 +5,10 @@
 #include <unordered_set>
 
 #include <rnexecutorch/models/ocr/Constants.h>
-
+#include <rnexecutorch/models/ocr/Types.h>
 namespace rnexecutorch::ocr
 {
+
   std::pair<cv::Mat, cv::Mat> interleavedArrayToMats(std::span<const float> data,
                                                      cv::Size size)
   {
@@ -94,6 +95,132 @@ namespace rnexecutorch::ocr
         cv::RotatedRect minRect = cv::minAreaRect(contours[0]);
         cv::Point2f vertices[4];
         minRect.points(vertices);
+        std::array<Point, 4> points;
+        for (int j = 0; j < 4; j++)
+        {
+          points[j] = {.x = vertices[j].x, .y = vertices[j].y};
+        }
+        detectedBoxes.push_back({.bbox = points, .angle = minRect.angle});
+      }
+    }
+
+    return detectedBoxes;
+  }
+
+  std::vector<DetectorBBox>
+  getDetBoxesFromTextMapVertical(cv::Mat &textMap, cv::Mat &affinityMap,
+                                 float textThreshold, float linkThreshold,
+                                 bool independentCharacters)
+  {
+
+    // Ensure input mats are of the correct type for processing
+    CV_Assert(textMap.type() == CV_32F && affinityMap.type() == CV_32F);
+
+    const int imgH = textMap.rows;
+    const int imgW = textMap.cols;
+
+    // 1. Threshold the text and affinity maps to create binary masks
+    cv::Mat textScore, affinityScore;
+    cv::threshold(textMap, textScore, textThreshold, 1.0, cv::THRESH_BINARY);
+    cv::threshold(affinityMap, affinityScore, linkThreshold, 1.0,
+                  cv::THRESH_BINARY);
+
+    // 2. Combine maps based on whether we are detecting words or single
+    // characters
+    cv::Mat textScoreComb;
+    if (independentCharacters)
+    {
+      // For single characters, subtract affinity to separate adjacent chars
+      textScoreComb = textScore - affinityScore;
+      // Clamp values to be >= 0
+      cv::threshold(textScoreComb, textScoreComb, 0.0, 1.0, cv::THRESH_TOZERO);
+      // Clamp values to be <= 1
+      cv::threshold(textScoreComb, textScoreComb, 1.0, 1.0, cv::THRESH_TRUNC);
+
+      // Perform morphological operations to refine character regions
+      cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
+      cv::erode(textScoreComb, textScoreComb, kernel, cv::Point(-1, -1), 1);
+      cv::dilate(textScoreComb, textScoreComb, kernel, cv::Point(-1, -1), 4);
+    }
+    else
+    {
+      // For words, add affinity to link characters together
+      textScoreComb = textScore + affinityScore;
+      // Clamp values to be >= 0
+      cv::threshold(textScoreComb, textScoreComb, 0.0, 1.0, cv::THRESH_TOZERO);
+      // Clamp values to be <= 1
+      cv::threshold(textScoreComb, textScoreComb, 1.0, 1.0, cv::THRESH_TRUNC);
+
+      // Dilate to connect word components
+      cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
+      cv::dilate(textScoreComb, textScoreComb, kernel, cv::Point(-1, -1), 2);
+    }
+
+    // 3. Find connected components to identify each character/word
+    cv::Mat binaryMat;
+    textScoreComb.convertTo(binaryMat, CV_8UC1);
+
+    cv::Mat labels, stats, centroids;
+    const int nLabels = cv::connectedComponentsWithStats(binaryMat, labels, stats,
+                                                         centroids, 4, CV_32S);
+
+    std::vector<DetectorBBox> detectedBoxes;
+    for (int i = 1; i < nLabels; ++i)
+    { // Start from 1 to skip background
+      const int area = stats.at<int>(i, cv::CC_STAT_AREA);
+      if (area < 20)
+      {
+        continue;
+      }
+
+      const int width = stats.at<int>(i, cv::CC_STAT_WIDTH);
+      const int height = stats.at<int>(i, cv::CC_STAT_HEIGHT);
+
+      // For vertical text (not single chars), height should be greater than width
+      if (!independentCharacters && height < width)
+      {
+        continue;
+      }
+
+      // 4. For each component, create a mask and find its contour
+      cv::Mat mask = (labels == i);
+
+      // Create a segmentation map for the current component
+      cv::Mat segMap = cv::Mat::zeros(textMap.size(), CV_8U);
+      segMap.setTo(255, mask);
+
+      const int x = stats.at<int>(i, cv::CC_STAT_LEFT);
+      const int y = stats.at<int>(i, cv::CC_STAT_TOP);
+      const int w = stats.at<int>(i, cv::CC_STAT_WIDTH);
+      const int h = stats.at<int>(i, cv::CC_STAT_HEIGHT);
+
+      // Dynamically calculate dilation radius to expand the bounding box slightly
+      const int dilationRadius = static_cast<int>(
+          std::sqrt(static_cast<double>(area) / std::max(w, h)) * 2.0);
+      const int sx = std::max(x - dilationRadius, 0);
+      const int ex = std::min(x + w + dilationRadius + 1, imgW);
+      const int sy = std::max(y - dilationRadius, 0);
+      const int ey = std::min(y + h + dilationRadius + 1, imgH);
+
+      // Define a region of interest (ROI) and dilate it
+      cv::Rect roi(sx, sy, ex - sx, ey - sy);
+      cv::Mat kernel = cv::getStructuringElement(
+          cv::MORPH_RECT, cv::Size(1 + dilationRadius, 1 + dilationRadius));
+      cv::Mat roiSegMap = segMap(roi);
+      cv::dilate(roiSegMap, roiSegMap, kernel, cv::Point(-1, -1), 2);
+
+      // 5. Find the minimum area rotated rectangle around the contour
+      std::vector<std::vector<cv::Point>> contours;
+      cv::findContours(segMap, contours, cv::RETR_EXTERNAL,
+                       cv::CHAIN_APPROX_SIMPLE);
+
+      if (!contours.empty())
+      {
+        cv::RotatedRect minRect = cv::minAreaRect(contours[0]);
+
+        cv::Point2f vertices[4];
+        minRect.points(vertices);
+
         std::array<Point, 4> points;
         for (int j = 0; j < 4; j++)
         {
@@ -312,9 +439,9 @@ namespace rnexecutorch::ocr
   {
     Point topLeft, topRight, bottomRight, bottomLeft;
     float minSum = std::numeric_limits<float>::max();
-    float maxSum = std::numeric_limits<float>::min();
+    float maxSum = std::numeric_limits<float>::lowest();
     float minDiff = std::numeric_limits<float>::max();
-    float maxDiff = std::numeric_limits<float>::min();
+    float maxDiff = std::numeric_limits<float>::lowest();
 
     for (const Point pt : points)
     {

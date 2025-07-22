@@ -41,6 +41,8 @@ namespace rnexecutorch
                        std::shared_ptr<react::CallInvoker>);
   REGISTER_CONSTRUCTOR(OCR, std::string, std::string, std::string, std::string,
                        std::string, std::shared_ptr<react::CallInvoker>);
+  REGISTER_CONSTRUCTOR(VerticalOCR, std::string, std::string, std::string,
+                       std::string, bool, std::shared_ptr<react::CallInvoker>);
 
   using namespace facebook;
 
@@ -121,5 +123,4 @@ namespace rnexecutorch
           });
     }
   };
-
 } // namespace rnexecutorch

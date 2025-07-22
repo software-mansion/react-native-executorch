@@ -13,6 +13,8 @@
 #include <rnexecutorch/models/ocr/OCR.h>
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
 #include <rnexecutorch/models/text_embeddings/TextEmbeddings.h>
+#include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
+namespace rnexecutorch
 {
 
     // This function fetches data from a url address. It is implemented in
@@ -21,7 +23,7 @@
     FetchUrlFunc_t fetchUrlFunc;
 
     void RnExecutorchInstaller::injectJSIBindings(
-        jsi::Runtime * jsiRuntime, std::shared_ptr<react::CallInvoker> jsCallInvoker,
+        jsi::Runtime *jsiRuntime, std::shared_ptr<react::CallInvoker> jsCallInvoker,
         FetchUrlFunc_t fetchDataFromUrl)
     {
         fetchUrlFunc = fetchDataFromUrl;
@@ -77,5 +79,15 @@
                                          RnExecutorchInstaller::loadModel<OCR>(
                                              jsiRuntime, jsCallInvoker, "loadOCR"));
     }
+    jsiRuntime->global().setProperty(*jsiRuntime, "loadLLM",
+                                     RnExecutorchInstaller::loadModel<LLM>(
+                                         jsiRuntime, jsCallInvoker, "loadLLM"));
 
+    jsiRuntime->global().setProperty(*jsiRuntime, "loadOCR",
+                                     RnExecutorchInstaller::loadModel<OCR>(
+                                         jsiRuntime, jsCallInvoker, "loadOCR"));
+    jsiRuntime->global().setProperty(
+        *jsiRuntime, "loadVerticalOCR",
+        RnExecutorchInstaller::loadModel<VerticalOCR>(jsiRuntime, jsCallInvoker,
+                                                      "loadVerticalOCR"));
 } // namespace rnexecutorch

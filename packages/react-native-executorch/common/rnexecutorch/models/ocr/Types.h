@@ -5,6 +5,7 @@
 
 namespace rnexecutorch
 {
+
   struct Point
   {
     float x;
@@ -22,5 +23,12 @@ namespace rnexecutorch
   {
     std::array<Point, 4> bbox;
     float angle;
+  };
+
+  struct PaddingInfo
+  {
+    float resizeRatio;
+    int32_t top;
+    int32_t left;
   };
 } // namespace rnexecutorch

@@ -1,47 +1,44 @@
 #include "CTCLabelConverter.h"
+#include <algorithm>
+#include <optional>
+#include <vector>
 
 namespace rnexecutorch::ocr {
-CTCLabelConverter::CTCLabelConverter(const std::string &charset) {
-  characters = {"[blank]"}; // blank character is ignored character. It is the
-                            // character with index 0.
-  for (char c : charset) {
-    characters.emplace_back(1, c); // converts char to string
-  }
-  ignoreIndices = {0};
-}
 
-std::string CTCLabelConverter::decodeSegment(const std::vector<int> &subArray) {
-  std::string text;
-  int lastChar = -1;
+CTCLabelConverter::CTCLabelConverter(const std::string &characters) {
+  character = {"[blank]"}; // blank character is ignored character (index 0).
 
-  for (size_t i = 0; i < subArray.size(); ++i) {
-    int currentChar = subArray[i];
-    bool isRepeated = lastChar == currentChar;
-    bool isIgnored = (ignoreIndices.count(currentChar) > 0);
+  for (size_t i = 0; i < characters.length();) {
+    int char_len = 0;
+    unsigned char first_byte = characters[i];
 
-    if (!isRepeated && !isIgnored) {
-      if (currentChar >= 0 &&
-          currentChar < static_cast<int>(characters.size())) {
-        text += characters[currentChar];
-      }
+    if ((first_byte & 0x80) == 0) { // 0xxxxxxx -> 1-byte character
+      char_len = 1;
+    } else if ((first_byte & 0xE0) == 0xC0) { // 110xxxxx -> 2-byte character
+      char_len = 2;
+    } else if ((first_byte & 0xF0) == 0xE0) { // 1110xxxx -> 3-byte character
+      char_len = 3;
+    } else if ((first_byte & 0xF8) == 0xF0) { // 11110xxx -> 4-byte character
+      char_len = 4;
+    } else {
+      // Invalid UTF-8 start byte, treat as a single byte character to avoid
+      // infinite loop
+      char_len = 1;
     }
-    lastChar = currentChar;
+
+    // Ensure we don't read past the end of the string
+    if (i + char_len <= characters.length()) {
+      character.push_back(characters.substr(i, char_len));
+    }
+    i += char_len;
   }
-  return text;
+
+  ignoreIdx = {0};
 }
 
 std::vector<std::string>
 CTCLabelConverter::decodeGreedy(const std::vector<int> &textIndex,
                                 size_t length) {
-  /*
-  Greedy approach to decoding indices vector returned by Recognizer to text.
-  Ignores repeats.
-  @param `length` currently serve no purpose, however it could be used to
-  "split" decoded text into smaller fragments, each of size 'length',
-  represented as next elements of returned vector. Currently we always pass
-  length = textIndex.size(), therefore the whole text is decoded at once and the
-  returned vector has size one.
-  */
   std::vector<std::string> texts;
   size_t index = 0;
 
@@ -51,7 +48,38 @@ CTCLabelConverter::decodeGreedy(const std::vector<int> &textIndex,
     std::vector<int> subArray(textIndex.begin() + index,
                               textIndex.begin() + index + segmentLength);
 
-    auto text = decodeSegment(subArray);
+    std::string text = "";
+
+    if (!subArray.empty()) {
+      std::optional<int> lastChar;
+
+      std::vector<bool> isNotRepeated;
+      isNotRepeated.push_back(true);
+
+      std::vector<bool> isNotIgnored;
+
+      for (size_t i = 0; i < subArray.size(); ++i) {
+        int currentChar = subArray[i];
+        if (i > 0) {
+          bool isRepeated =
+              lastChar.has_value() && lastChar.value() == currentChar;
+          isNotRepeated.push_back(!isRepeated);
+        }
+        bool ignored = std::find(ignoreIdx.begin(), ignoreIdx.end(),
+                                 currentChar) != ignoreIdx.end();
+        isNotIgnored.push_back(!ignored);
+        lastChar = currentChar;
+      }
+
+      for (size_t j = 0; j < subArray.size(); ++j) {
+        if (isNotRepeated[j] && isNotIgnored[j]) {
+          int charIndex = subArray[j];
+          if (charIndex >= 0 && charIndex < character.size()) {
+            text += character[charIndex];
+          }
+        }
+      }
+    }
 
     texts.push_back(text);
     index += segmentLength;

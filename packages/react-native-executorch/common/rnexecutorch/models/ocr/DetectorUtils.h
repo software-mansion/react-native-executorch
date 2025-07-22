@@ -34,6 +34,11 @@ std::vector<DetectorBBox> getDetBoxesFromTextMap(cv::Mat &textMap,
                                                  float textThreshold,
                                                  float linkThreshold,
                                                  float lowTextThreshold);
+std::vector<DetectorBBox>
+getDetBoxesFromTextMapVertical(cv::Mat &textMap, cv::Mat &affinityMap,
+                               float textThreshold, float linkThreshold,
+                               bool independentCharacters);
+
 void restoreBboxRatio(std::vector<DetectorBBox> &boxes, float restoreRatio);
 /**
  * This method processes a vector of DetectorBBox bounding boxes, each

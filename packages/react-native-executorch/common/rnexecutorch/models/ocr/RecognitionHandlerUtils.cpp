@@ -4,8 +4,8 @@
 #include <rnexecutorch/models/ocr/Constants.h>
 
 namespace rnexecutorch::ocr {
-std::tuple<float, int32_t, int32_t>
-calculateResizeRatioAndPaddings(cv::Size size, cv::Size desiredSize) {
+PaddingInfo calculateResizeRatioAndPaddings(cv::Size size,
+                                            cv::Size desiredSize) {
   float newRatioH = static_cast<float>(desiredSize.height) / size.height;
   float newRatioW = static_cast<float>(desiredSize.width) / size.width;
   float resizeRatio = std::min(newRatioH, newRatioW);
@@ -23,8 +23,9 @@ calculateResizeRatioAndPaddings(cv::Size size, cv::Size desiredSize) {
   float widthRatio = static_cast<float>(size.width) / desiredSize.width;
 
   resizeRatio = std::max(heightRatio, widthRatio);
-  return {resizeRatio, top, left};
+  return PaddingInfo{resizeRatio, top, left};
 }
+
 void computeRatioAndResize(cv::Mat &img, cv::Size size, int32_t modelHeight) {
   double ratio =
       static_cast<double>(size.width) / static_cast<double>(size.height);
@@ -130,12 +131,20 @@ cv::Mat normalizeForRecognizer(cv::Mat &image, int32_t modelHeight,
   if (adjustContrast > 0) {
     adjustContrastGrey(img, adjustContrast);
   }
-  auto desiredWidth = getDesiredWidth(img, isVertical);
+
+  int desiredWidth =
+      (isVertical) ? smallVerticalRecognizerWidth : smallRecognizerWidth;
+
+  if (image.cols >= largeRecognizerWidth) {
+    desiredWidth = largeRecognizerWidth;
+  } else if (image.cols >= mediumRecognizerWidth) {
+    desiredWidth = mediumRecognizerWidth;
+  }
+
   img = imageprocessing::resizePadded(img, cv::Size(desiredWidth, modelHeight));
-  img.convertTo(img, CV_32F, 1.0f / 255.0f); // Scale from 0-255 to [0,1]
-                                             // (float)
-  img -= 0.5f; // Shift to[-0.5, 0.5]
-  img *= 2.0f; // Scale to [-1,1]
+  img.convertTo(img, CV_32F, 1.0f / 255.0f);
+  img -= 0.5f;
+  img *= 2.0f;
   return img;
 }
 } // namespace rnexecutorch::ocr

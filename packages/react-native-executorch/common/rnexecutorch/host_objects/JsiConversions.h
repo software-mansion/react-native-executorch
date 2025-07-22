@@ -451,15 +451,31 @@ namespace rnexecutorch::jsiconversion
   inline jsi::Value getJsiValue(const std::vector<OCRDetection> &detections,
                                 jsi::Runtime &runtime)
   {
-    jsi::Array array(runtime, detections.size());
-    for (std::size_t i = 0; i < detections.size(); ++i)
+    auto jsiDetections = jsi::Array(runtime, detections.size());
+    for (size_t i = 0; i < detections.size(); ++i)
     {
-      jsi::Object detection(runtime);
-      jsi::Object bbox(runtime);
-      detection.setProperty(runtime, "text", detections[i].text);
-      detection.setProperty(runtime, "score", detections[i].score);
-      array.setValueAtIndex(runtime, i, detection);
+      const auto &detection = detections[i];
+
+      auto jsiDetectionObject = jsi::Object(runtime);
+
+      auto jsiBboxArray = jsi::Array(runtime, 4);
+      for (size_t j = 0; j < 4; ++j)
+      {
+        auto jsiPointObject = jsi::Object(runtime);
+        jsiPointObject.setProperty(runtime, "x", detection.bbox[j].x);
+        jsiPointObject.setProperty(runtime, "y", detection.bbox[j].y);
+        jsiBboxArray.setValueAtIndex(runtime, j, jsiPointObject);
+      }
+
+      jsiDetectionObject.setProperty(runtime, "bbox", jsiBboxArray);
+      jsiDetectionObject.setProperty(
+          runtime, "text", jsi::String::createFromUtf8(runtime, detection.text));
+      jsiDetectionObject.setProperty(runtime, "score", detection.score);
+
+      jsiDetections.setValueAtIndex(runtime, i, jsiDetectionObject);
     }
-    return array;
+
+    return jsiDetections;
   }
+
 } // namespace rnexecutorch::jsiconversion

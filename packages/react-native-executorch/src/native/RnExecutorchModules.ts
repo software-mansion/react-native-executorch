@@ -1,6 +1,5 @@
 import { Platform } from 'react-native';
 import { Spec as OCRInterface } from './NativeOCR';
-import { Spec as VerticalOCRInterface } from './NativeVerticalOCR';
 import { Spec as ETInstallerInterface } from './NativeETInstaller';
 
 const LINKING_ERROR =
@@ -25,9 +24,7 @@ function returnSpecOrThrowLinkingError(spec: any) {
 const OCRNativeModule: OCRInterface = returnSpecOrThrowLinkingError(
   require('./NativeOCR').default
 );
-const VerticalOCRNativeModule: VerticalOCRInterface =
-  returnSpecOrThrowLinkingError(require('./NativeVerticalOCR').default);
 const ETInstallerNativeModule: ETInstallerInterface =
   returnSpecOrThrowLinkingError(require('./NativeETInstaller').default);
 
-export { OCRNativeModule, VerticalOCRNativeModule, ETInstallerNativeModule };
+export { OCRNativeModule, ETInstallerNativeModule };

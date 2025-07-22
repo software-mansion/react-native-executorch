@@ -25,6 +25,13 @@ declare global {
     recognizerSmall: string,
     symbols: string
   ) => any;
+  var loadVerticalOCR: (
+    detectorLarge: string,
+    detectorNarrow: string,
+    recognizer: string,
+    symbols: string,
+    independentCharacters?: boolean
+  ) => any;
 }
 // eslint-disable no-var
 if (

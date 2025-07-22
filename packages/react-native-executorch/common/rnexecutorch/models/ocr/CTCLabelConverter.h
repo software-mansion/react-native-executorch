@@ -1,18 +1,19 @@
 #pragma once
 
-#include <unordered_set>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace rnexecutorch::ocr {
-
 class CTCLabelConverter {
+private:
+  std::vector<std::string> character;
+  std::vector<int> ignoreIdx;
+
 public:
-  CTCLabelConverter(const std::string &charset);
+  explicit CTCLabelConverter(const std::string &characters);
+
   std::vector<std::string> decodeGreedy(const std::vector<int> &textIndex,
                                         size_t length);
-
-private:
-  std::string decodeSegment(const std::vector<int> &subArray);
-  std::vector<std::string> characters;
-  std::unordered_set<int> ignoreIndices;
 };
 } // namespace rnexecutorch::ocr
