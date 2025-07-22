@@ -58,7 +58,14 @@ title: Memory Usage
 
 | Model                      | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
 | -------------------------- | :--------------------: | :----------------: |
-| ALL_MINILM_L6_V2           |          150           |        190         |
-| ALL_MPNET_BASE_V2          |          520           |        470         |
-| MULTI_QA_MINILM_L6_COS_V1  |          160           |        225         |
-| MULTI_QA_MPNET_BASE_DOT_V1 |          540           |        500         |
+| ALL_MINILM_L6_V2           |           85           |        100         |
+| ALL_MPNET_BASE_V2          |          390           |        465         |
+| MULTI_QA_MINILM_L6_COS_V1  |          115           |        130         |
+| MULTI_QA_MPNET_BASE_DOT_V1 |          415           |        490         |
+| CLIP_VIT_BASE_PATCH32_TEXT |          195           |        250         |
+
+## Image Embeddings
+
+| Model                       | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| --------------------------- | :--------------------: | :----------------: |
+| CLIP_VIT_BASE_PATCH32_IMAGE |          350           |        340         |

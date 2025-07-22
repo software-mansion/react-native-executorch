@@ -71,3 +71,10 @@ title: Model Size
 | ALL_MPNET_BASE_V2          |     438      |
 | MULTI_QA_MINILM_L6_COS_V1  |      91      |
 | MULTI_QA_MPNET_BASE_DOT_V1 |     438      |
+| CLIP_VIT_BASE_PATCH32_TEXT |     254      |
+
+## Image Embeddings
+
+| Model                       | XNNPACK [MB] |
+| --------------------------- | :----------: |
+| CLIP_VIT_BASE_PATCH32_IMAGE |     352      |

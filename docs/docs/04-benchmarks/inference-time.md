@@ -103,7 +103,22 @@ Average time for decoding one token in sequence of 100 tokens, with encoding con
 
 | Model                      | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) | OnePlus 12 (XNNPACK) [ms] |
 | -------------------------- | :--------------------------: | :------------------------------: | :------------------------: | :--------------------------: | :-----------------------: |
-| ALL_MINILM_L6_V2           |              53              |                69                |             78             |              60              |            65             |
-| ALL_MPNET_BASE_V2          |             352              |               423                |            478             |             521              |            527            |
-| MULTI_QA_MINILM_L6_COS_V1  |             135              |               166                |            180             |             158              |            165            |
-| MULTI_QA_MPNET_BASE_DOT_V1 |             503              |               598                |            680             |             694              |            743            |
+| ALL_MINILM_L6_V2           |              15              |                22                |             23             |              36              |            31             |
+| ALL_MPNET_BASE_V2          |              71              |                96                |            101             |             112              |            105            |
+| MULTI_QA_MINILM_L6_COS_V1  |              15              |                22                |             23             |              36              |            31             |
+| MULTI_QA_MPNET_BASE_DOT_V1 |              71              |                95                |            100             |             112              |            105            |
+| CLIP_VIT_BASE_PATCH32_TEXT |              31              |                47                |             48             |              55              |            49             |
+
+:::info
+Benchmark times for text embeddings are highly dependent on the sentence length. The numbers above are based on a sentence of around 80 tokens. For shorter or longer sentences, inference time may vary accordingly.
+:::
+
+## Image Embeddings
+
+| Model                       | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| --------------------------- | :--------------------------: | :------------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
+| CLIP_VIT_BASE_PATCH32_IMAGE |              48              |                64                |             69             |                65                 |            63             |
+
+:::info
+Image embedding benchmark times are measured using 224×224 pixel images, as required by the model. All input images, whether larger or smaller, are resized to 224×224 before processing. Resizing is typically fast for small images but may be noticeably slower for very large images, which can increase total inference time.
+:::
