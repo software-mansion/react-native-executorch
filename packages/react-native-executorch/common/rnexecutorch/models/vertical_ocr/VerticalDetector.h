@@ -15,10 +15,9 @@ public:
   VerticalDetector(const std::string &modelSource, bool detectSingleCharacters,
                    std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<DetectorBBox> generate(const cv::Mat &inputImage);
-  cv::Size getModelImageSize();
+  cv::Size getModelImageSize() const noexcept;
 
 private:
-  cv::Size modelSize;
   bool detectSingleCharacters;
   std::vector<DetectorBBox> postprocess(const Tensor &tensor);
   cv::Size modelImageSize;

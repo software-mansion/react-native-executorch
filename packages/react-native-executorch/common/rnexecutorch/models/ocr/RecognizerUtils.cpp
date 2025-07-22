@@ -30,18 +30,18 @@ void divideMatrixByRows(cv::Mat &matrix, const std::vector<float> &rowSums) {
 
 std::pair<std::vector<float>, std::vector<int32_t>>
 findMaxValuesIndices(const cv::Mat &mat) {
+  assert(mat.type() == CV_32F);
   std::vector<float> maxValues;
-  std::vector<int> maxIndices;
+  std::vector<int32_t> maxIndices;
   maxValues.reserve(mat.rows);
   maxIndices.reserve(mat.rows);
-  for (int row = 0; row < mat.rows; ++row) {
-    const float *rowPtr = mat.ptr<float>(row);
-    const float *maxIt = std::max_element(rowPtr, rowPtr + mat.cols);
-    float maxVal = *maxIt;           // Max value
-    int32_t maxIdx = maxIt - rowPtr; // Column index
 
-    maxValues.push_back(maxVal);
-    maxIndices.push_back(maxIdx);
+  for (int i = 0; i < mat.rows; ++i) {
+    double maxVal;
+    cv::Point maxLoc;
+    cv::minMaxLoc(mat.row(i), nullptr, &maxVal, nullptr, &maxLoc);
+    maxValues.push_back(static_cast<float>(maxVal));
+    maxIndices.push_back(maxLoc.x);
   }
 
   return {maxValues, maxIndices};
@@ -49,41 +49,28 @@ findMaxValuesIndices(const cv::Mat &mat) {
 
 float confidenceScore(const std::vector<float> &values,
                       const std::vector<int32_t> &indices) {
+  float product = 1.0f;
+  int32_t count = 0;
 
-  //  Filter out values where index is 0 (blank tokens)
-  std::vector<float> filteredValues;
-  for (int32_t i = 0; i < indices.size(); ++i) {
+  for (size_t i = 0; i < indices.size(); ++i) {
     if (indices[i] != 0) {
-      filteredValues.push_back(values[i]);
+      product *= values[i];
+      count++;
     }
   }
 
-  //  If all tokens are blank, return 0
-  if (filteredValues.empty()) {
+  if (count == 0) {
     return 0.0f;
   }
 
-  float product = 1.0f;
-  for (float val : filteredValues) {
-    product *= val;
-  }
-  // Confidence Score is slightly modified geometric mean.
-  // Geometric mean is not sufficient, because for long texts it scores unfairly
-  // low. Reducing the exponent from 1/N -> 2/sqrt(N) makes it less sensitive.
-  const float n = static_cast<float>(filteredValues.size());
+  const float n = static_cast<float>(count);
   const float exponent = 2.0f / std::sqrt(n);
-  const float score = std::pow(product, exponent);
-
-  return score;
+  return std::pow(product, exponent);
 }
 
 cv::Rect extractBoundingBox(const std::array<rnexecutorch::Point, 4> &points) {
-  std::vector<cv::Point2f> points_vector;
-  points_vector.reserve(points.size());
-  for (const auto &p : points) {
-    points_vector.emplace_back(p.x, p.y);
-  }
-  return cv::boundingRect(points_vector);
+  cv::Mat pointsMat(points.size(), 1, CV_32FC2, (void *)points.data());
+  return cv::boundingRect(pointsMat);
 }
 
 cv::Mat cropSingleCharacter(const cv::Mat &img) {

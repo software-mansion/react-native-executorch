@@ -1,10 +1,8 @@
 #pragma once
 
-#include <span>
-
 #include <opencv2/opencv.hpp>
-
 #include <rnexecutorch/models/ocr/Types.h>
+#include <span>
 
 namespace rnexecutorch::ocr {
 std::pair<cv::Mat, cv::Mat> interleavedArrayToMats(std::span<const float> data,

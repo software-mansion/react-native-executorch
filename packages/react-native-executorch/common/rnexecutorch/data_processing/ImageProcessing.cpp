@@ -120,6 +120,13 @@ TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDims,
   return executorch::extension::make_tensor_ptr(tensorDims, inputVector);
 }
 
+TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDims,
+                              const cv::Mat &matrix, cv::Scalar mean,
+                              cv::Scalar variance) {
+  std::vector<float> inputVector = colorMatToVector(matrix, mean, variance);
+  return executorch::extension::make_tensor_ptr(tensorDims, inputVector);
+}
+
 TensorPtr getTensorFromMatrixGray(const std::vector<int32_t> &tensorDims,
                                   const cv::Mat &matrix) {
   std::vector<float> inputVector = grayMatToVector(matrix);

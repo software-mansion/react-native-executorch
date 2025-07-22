@@ -37,16 +37,8 @@ RecognitionHandler::recognize(std::vector<DetectorBBox> bboxesList,
 
   std::vector<OCRDetection> result = {};
 
-  for (auto box : bboxesList) {
-    log(LOG_LEVEL::Info, "Processing bbox with angle: ", box.angle);
+  for (auto &box : bboxesList) {
     auto croppedImage = ocr::cropImage(box, imgGray, ocr::recognizerHeight);
-    log(LOG_LEVEL::Info, "Cropped image size: ", croppedImage.cols,
-        croppedImage.rows);
-
-    log(LOG_LEVEL::Info, "Coordinates before padding:");
-    for (const auto &point : box.bbox) {
-      log(LOG_LEVEL::Info, "Point: (", point.x, ", ", point.y, ")");
-    }
 
     if (croppedImage.empty())
       continue;
@@ -61,9 +53,6 @@ RecognitionHandler::recognize(std::vector<DetectorBBox> bboxesList,
         confidenceScore = rotatedConfidenceScore;
         predictionIndices = rotatedPredictionIndices;
       }
-
-      std::vector<std::string> decodedTexts =
-          converter.decodeGreedy(predictionIndices, predictionIndices.size());
     }
 
     for (auto &point : box.bbox) {

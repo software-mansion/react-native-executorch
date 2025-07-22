@@ -1,10 +1,8 @@
 #pragma once
 
-#include <span>
-
 #include <opencv2/opencv.hpp>
-
 #include <rnexecutorch/models/ocr/Types.h>
+#include <span>
 
 namespace rnexecutorch::ocr {
 PaddingInfo calculateResizeRatioAndPaddings(cv::Size size,

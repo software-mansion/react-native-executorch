@@ -1,12 +1,8 @@
 #include "Detector.h"
-
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/DetectorUtils.h>
-
-const cv::Scalar mean(0.485, 0.456, 0.406);
-const cv::Scalar variance(0.229, 0.224, 0.225);
 
 namespace rnexecutorch {
 
@@ -18,7 +14,6 @@ Text Detection) paper. https://arxiv.org/pdf/1904.01941
 Detector::Detector(const std::string &modelSource,
                    std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
-  log(LOG_LEVEL::Info, "Detector model loaded!");
   auto inputShapes = getAllInputShapes();
   if (inputShapes.size() == 0) {
     throw std::runtime_error(
@@ -26,18 +21,15 @@ Detector::Detector(const std::string &modelSource,
   }
   std::vector<int32_t> modelInputShape = inputShapes[0];
   if (modelInputShape.size() < 2) {
-    char errorMessage[100];
-    std::snprintf(errorMessage, sizeof(errorMessage),
-                  "Unexpected detector model input size, expected at least 2 "
-                  "dimentions but got: %zu.",
-                  modelInputShape.size());
-    throw std::runtime_error(errorMessage);
+    throw std::runtime_error("Unexpected detector model input size, expected "
+                             "at least 2 dimensions but got: " +
+                             std::to_string(modelInputShape.size()) + ".");
   }
   modelImageSize = cv::Size(modelInputShape[modelInputShape.size() - 1],
                             modelInputShape[modelInputShape.size() - 2]);
 }
 
-cv::Size Detector::getModelImageSize() { return modelImageSize; }
+cv::Size Detector::getModelImageSize() const noexcept { return modelImageSize; }
 
 std::vector<DetectorBBox> Detector::generate(const cv::Mat &inputImage) {
   /*
@@ -48,10 +40,8 @@ std::vector<DetectorBBox> Detector::generate(const cv::Mat &inputImage) {
   auto inputShapes = getAllInputShapes();
   cv::Mat resizedInputImage =
       imageprocessing::resizePadded(inputImage, getModelImageSize());
-  std::vector<float> inputVector =
-      imageprocessing::colorMatToVector(resizedInputImage, mean, variance);
-  TensorPtr inputTensor =
-      executorch::extension::make_tensor_ptr(inputShapes[0], inputVector);
+  TensorPtr inputTensor = imageprocessing::getTensorFromMatrix(
+      inputShapes[0], resizedInputImage, ocr::mean, ocr::variance);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
