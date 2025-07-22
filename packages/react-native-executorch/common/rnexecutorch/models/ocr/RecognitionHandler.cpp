@@ -1,4 +1,6 @@
 #include "RecognitionHandler.h"
+#include "RecognitionHandlerUtils.h"
+#include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/RecognitionHandlerUtils.h>
@@ -28,20 +30,29 @@ RecognitionHandler::runModel(cv::Mat image) {
 
 std::vector<OCRDetection>
 RecognitionHandler::recognize(std::vector<DetectorBBox> bboxesList,
-                              cv::Mat imgGray, cv::Size desiredSize) {
-  auto [resizeRatio, top, left] =
+                              cv::Mat &imgGray, cv::Size desiredSize) {
+  PaddingInfo ratioAndPadding =
       ocr::calculateResizeRatioAndPaddings(imgGray.size(), desiredSize);
-  auto resizedImg = imageprocessing::resizePadded(imgGray, desiredSize);
+  imgGray = imageprocessing::resizePadded(imgGray, desiredSize);
 
-  auto result = std::vector<OCRDetection>();
-  result.reserve(bboxesList.size());
+  std::vector<OCRDetection> result = {};
 
   for (auto box : bboxesList) {
-    auto croppedImage = ocr::cropImage(box, resizedImg, ocr::recognizerHeight);
+    log(LOG_LEVEL::Info, "Processing bbox with angle: ", box.angle);
+    auto croppedImage = ocr::cropImage(box, imgGray, ocr::recognizerHeight);
+    log(LOG_LEVEL::Info, "Cropped image size: ", croppedImage.cols,
+        croppedImage.rows);
+
+    log(LOG_LEVEL::Info, "Coordinates before padding:");
+    for (const auto &point : box.bbox) {
+      log(LOG_LEVEL::Info, "Point: (", point.x, ", ", point.y, ")");
+    }
+
     if (croppedImage.empty())
       continue;
-    auto [predictionIndices, confidenceScore] = runModel(croppedImage);
-    std::vector<std::string> decodedTexts;
+    croppedImage = ocr::normalizeForRecognizer(
+        croppedImage, ocr::recognizerHeight, ocr::adjustContrast, false);
+    auto [predictionIndices, confidenceScore] = this->runModel(croppedImage);
     if (confidenceScore < ocr::lowConfidenceThreshold) {
       cv::rotate(croppedImage, croppedImage, cv::ROTATE_180);
       auto [rotatedPredictionIndices, rotatedConfidenceScore] =
@@ -50,15 +61,22 @@ RecognitionHandler::recognize(std::vector<DetectorBBox> bboxesList,
         confidenceScore = rotatedConfidenceScore;
         predictionIndices = rotatedPredictionIndices;
       }
-      decodedTexts =
+
+      std::vector<std::string> decodedTexts =
           converter.decodeGreedy(predictionIndices, predictionIndices.size());
     }
+
     for (auto &point : box.bbox) {
-      point.x = (point.x - left) * resizeRatio;
-      point.y = (point.y - top) * resizeRatio;
+      point.x = (point.x - ratioAndPadding.left) * ratioAndPadding.resizeRatio;
+      point.y = (point.y - ratioAndPadding.top) * ratioAndPadding.resizeRatio;
     }
-    result.emplace_back(box.bbox, decodedTexts[0], confidenceScore);
+
+    result.push_back(
+        {box.bbox,
+         converter.decodeGreedy(predictionIndices, predictionIndices.size())[0],
+         confidenceScore});
   }
+
   return result;
 }
 

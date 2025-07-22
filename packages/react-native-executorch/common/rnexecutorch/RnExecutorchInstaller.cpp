@@ -65,16 +65,10 @@ void RnExecutorchInstaller::injectJSIBindings(
       RnExecutorchInstaller::loadModel<TextEmbeddings>(
           jsiRuntime, jsCallInvoker, "loadTextEmbeddings"));
 
-  jsiRuntime->global().setProperty(*jsiRuntime, "loadLLM",
-                                   RnExecutorchInstaller::loadModel<LLM>(
-                                       jsiRuntime, jsCallInvoker, "loadLLM"));
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadSpeechToText",
       RnExecutorchInstaller::loadModel<SpeechToText>(jsiRuntime, jsCallInvoker,
                                                      "loadSpeechToText"));
-  jsiRuntime->global().setProperty(*jsiRuntime, "loadOCR",
-                                   RnExecutorchInstaller::loadModel<OCR>(
-                                       jsiRuntime, jsCallInvoker, "loadOCR"));
   jsiRuntime->global().setProperty(*jsiRuntime, "loadLLM",
                                    RnExecutorchInstaller::loadModel<LLM>(
                                        jsiRuntime, jsCallInvoker, "loadLLM"));

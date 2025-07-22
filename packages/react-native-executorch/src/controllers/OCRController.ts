@@ -5,7 +5,7 @@ import { OCRLanguage } from '../types/ocr';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
 
 export class OCRController {
-  private nativeModule: any; //typeof OCRNativeModule;
+  private nativeModule: any;
   public isReady: boolean = false;
   public isGenerating: boolean = false;
   public error: string | null = null;
@@ -20,7 +20,6 @@ export class OCRController {
     isGeneratingCallback = (_isGenerating: boolean) => {},
     errorCallback = (_error: string) => {},
   }) {
-    //this.nativeModule = OCRNativeModule;
     this.modelDownloadProgressCallback = modelDownloadProgressCallback;
     this.isReadyCallback = isReadyCallback;
     this.isGeneratingCallback = isGeneratingCallback;
@@ -57,8 +56,6 @@ export class OCRController {
       if (paths === null || paths?.length < 4) {
         throw new Error('Download interrupted!');
       }
-      console.log('fetching ocr finished!', paths[3]);
-      //load OCR from cpp model
       this.nativeModule = global.loadOCR(
         paths[0]!,
         paths[1]!,
@@ -66,14 +63,6 @@ export class OCRController {
         paths[3]!,
         symbols[language]
       );
-      // await this.nativeModule.loadModule(
-      //   paths[0]!,
-      //   paths[1]!,
-      //   paths[2]!,
-      //   paths[3]!,
-      //   symbols[language]
-      // );
-      console.log('loaded ocr finished!,');
       this.isReady = true;
       this.isReadyCallback(this.isReady);
     } catch (e) {
