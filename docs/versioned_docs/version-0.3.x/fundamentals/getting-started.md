@@ -1,5 +1,6 @@
 ---
 title: Getting Started
+slug: /
 sidebar_position: 1
 keywords:
   [
