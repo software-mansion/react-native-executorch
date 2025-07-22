@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-
 #include <opencv2/opencv.hpp>
 
 namespace rnexecutorch::ocr {

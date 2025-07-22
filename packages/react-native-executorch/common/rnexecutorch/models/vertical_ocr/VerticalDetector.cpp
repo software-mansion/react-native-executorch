@@ -7,9 +7,6 @@
 
 #include <executorch/extension/tensor/tensor_ptr.h>
 
-const cv::Scalar mean(0.485, 0.456, 0.406);
-const cv::Scalar variance(0.229, 0.224, 0.225);
-
 namespace rnexecutorch {
 
 /*
@@ -29,28 +26,25 @@ VerticalDetector::VerticalDetector(
   }
   std::vector<int32_t> modelInputShape = inputShapes[0];
   if (modelInputShape.size() < 2) {
-    char errorMessage[100];
-    std::snprintf(errorMessage, sizeof(errorMessage),
-                  "Unexpected detector model input size, expected at least 2 "
-                  "dimentions but got: %zu.",
-                  modelInputShape.size());
-    throw std::runtime_error(errorMessage);
+    throw std::runtime_error("Unexpected detector model input size, expected "
+                             "at least 2 dimensions but got: " +
+                             std::to_string(modelInputShape.size()) + ".");
   }
   modelImageSize = cv::Size(modelInputShape[modelInputShape.size() - 1],
                             modelInputShape[modelInputShape.size() - 2]);
 }
 
-cv::Size VerticalDetector::getModelImageSize() { return modelImageSize; }
+cv::Size VerticalDetector::getModelImageSize() const noexcept {
+  return modelImageSize;
+}
 
 std::vector<DetectorBBox>
 VerticalDetector::generate(const cv::Mat &inputImage) {
   auto inputShapes = getAllInputShapes();
   cv::Mat resizedInputImage =
       imageprocessing::resizePadded(inputImage, getModelImageSize());
-  std::vector<float> inputVector =
-      imageprocessing::colorMatToVector(resizedInputImage, mean, variance);
-  TensorPtr inputTensor =
-      executorch::extension::make_tensor_ptr(inputShapes[0], inputVector);
+  TensorPtr inputTensor = imageprocessing::getTensorFromMatrix(
+      inputShapes[0], resizedInputImage, ocr::mean, ocr::variance);
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(

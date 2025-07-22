@@ -23,10 +23,11 @@ Recognizer::Recognizer(const std::string &modelSource,
                             modelInputShape[modelInputShape.size() - 2]);
 }
 
-std::pair<std::vector<int32_t>, float> Recognizer::generate(cv::Mat greyImage) {
-  std::vector<int32_t> tensorDims = {1, 1, greyImage.rows, greyImage.cols};
+std::pair<std::vector<int32_t>, float>
+Recognizer::generate(const cv::Mat &grayImage) {
+  std::vector<int32_t> tensorDims = getAllInputShapes()[0];
   TensorPtr inputTensor =
-      imageprocessing::getTensorFromMatrixGray(tensorDims, greyImage);
+      imageprocessing::getTensorFromMatrixGray(tensorDims, grayImage);
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
@@ -43,9 +44,7 @@ Recognizer::postprocess(const Tensor &tensor) {
   const int numRows = tensor.numel() / numClasses;
   cv::Mat resultMat(numRows, numClasses, CV_32F,
                     const_cast<float *>(tensor.const_data_ptr<float>()));
-  cv::Mat probabilities = ocr::softmax(resultMat);
-  std::vector<float> predsNorm = ocr::sumProbabilityRows(probabilities);
-  ocr::divideMatrixByRows(probabilities, predsNorm);
+  auto probabilities = ocr::softmax(resultMat);
   auto [maxVal, maxIndices] = ocr::findMaxValuesIndices(probabilities);
 
   float confidence = ocr::confidenceScore(maxVal, maxIndices);

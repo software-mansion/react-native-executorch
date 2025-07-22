@@ -1,11 +1,9 @@
 #include "DetectorUtils.h"
-
 #include <algorithm>
 #include <limits>
-#include <unordered_set>
-
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/Types.h>
+#include <unordered_set>
 namespace rnexecutorch::ocr {
 
 std::pair<cv::Mat, cv::Mat> interleavedArrayToMats(std::span<const float> data,
