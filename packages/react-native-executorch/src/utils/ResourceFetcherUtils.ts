@@ -90,6 +90,10 @@ export namespace ResourceFetcherUtils {
           }
 
           const contentLength = response.headers.get('content-length');
+          if (!contentLength) {
+            Logger.warn(`No content-length header for ${source}`);
+          }
+
           length = contentLength ? parseInt(contentLength, 10) : 0;
           previousFilesTotalLength = totalLength;
           totalLength += length;
@@ -134,6 +138,13 @@ export namespace ResourceFetcherUtils {
         setProgress(1);
         return;
       }
+
+      // Avoid division by zero
+      if (totalLength === 0) {
+        setProgress(0);
+        return;
+      }
+
       const baseProgress = previousFilesTotalLength / totalLength;
       const scaledProgress = progress * (currentFileLength / totalLength);
       const updatedProgress = baseProgress + scaledProgress;
