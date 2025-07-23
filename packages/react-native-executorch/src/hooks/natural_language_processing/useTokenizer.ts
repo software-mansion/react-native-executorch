@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { TokenizerModule } from '../../modules/natural_language_processing/TokenizerModule';
 import { ResourceSource } from '../../types/common';
 import { ETError, getError } from '../../Error';
@@ -14,33 +14,30 @@ export const useTokenizer = ({
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const tokenizerModuleRef = useRef<TokenizerModule | null>(null);
+  const model = useMemo(() => new TokenizerModule(), []);
 
   useEffect(() => {
-    const loadModule = async () => {
+    if (preventLoad) return;
+    (async () => {
+      setDownloadProgress(0);
+      setError(null);
       try {
         setIsReady(false);
-        tokenizerModuleRef.current = new TokenizerModule();
-        tokenizerModuleRef.current.load(tokenizerSource, setDownloadProgress);
+        await model.load(tokenizerSource, setDownloadProgress);
         setIsReady(true);
       } catch (err) {
         setError((err as Error).message);
       }
-    };
-    if (!preventLoad) {
-      loadModule();
-    }
-  }, [tokenizerSource, preventLoad]);
+    })();
+  }, [model, tokenizerSource, preventLoad]);
 
   const stateWrapper = <T extends (...args: any[]) => Promise<any>>(fn: T) => {
-    return async (...args: Parameters<T>): Promise<ReturnType<T>> => {
-      if (!isReady || !tokenizerModuleRef.current)
-        throw new Error(getError(ETError.ModuleNotLoaded));
+    return (...args: Parameters<T>): Promise<ReturnType<T>> => {
+      if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
       if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
-
-      setIsGenerating(true);
       try {
-        return await fn.apply(tokenizerModuleRef.current, args);
+        setIsGenerating(true);
+        return fn.apply(model, args);
       } finally {
         setIsGenerating(false);
       }
