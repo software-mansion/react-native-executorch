@@ -99,18 +99,23 @@ export class SpeechToTextController {
     this.config = MODEL_CONFIGS[modelName];
 
     try {
-      await this.tokenizerModule.load(
+      const tokenizerLoadPromise = this.tokenizerModule.load(
         tokenizerSource || this.config.tokenizer.source
       );
-      const paths = await ResourceFetcher.fetch(
+      const pathsPromise = ResourceFetcher.fetch(
         this.modelDownloadProgressCallback,
         encoderSource || this.config.sources.encoder,
         decoderSource || this.config.sources.decoder
       );
-      if (paths === null || paths.length < 2) {
+      const [_, encoderDecoderResults] = await Promise.all([
+        tokenizerLoadPromise,
+        pathsPromise,
+      ]);
+      encoderSource = encoderDecoderResults?.[0];
+      decoderSource = encoderDecoderResults?.[1];
+      if (!encoderSource || !decoderSource) {
         throw new Error('Download interrupted.');
       }
-      [encoderSource, decoderSource] = paths;
     } catch (e) {
       this.onErrorCallback(e);
       return;
@@ -126,8 +131,8 @@ export class SpeechToTextController {
 
     try {
       const nativeSpeechToText = await global.loadSpeechToText(
-        encoderSource!,
-        decoderSource!,
+        encoderSource,
+        decoderSource,
         modelName
       );
       this.speechToTextNativeModule = nativeSpeechToText;
