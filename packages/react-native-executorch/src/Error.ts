@@ -55,7 +55,7 @@ export const getError = (e: unknown | ETError | Error): string => {
     : ' ' + error.message.slice(`${errorCode}`.length).trimStart();
 
   const ETErrorMessage = (
-    errorCode in ETError ? ETError[errorCode] : ETError[ETError.UndefinedError]
+    errorCode in ETError ? ETError[errorCode] : ''
   ) as string;
 
   return ETErrorMessage + message;
