@@ -507,6 +507,21 @@ TEST(LogFunctionTest, LoggingMoreThatOneElement) {
       log(LOG_LEVEL::Debug, testStringLiteral, testVector, testPair));
 }
 
+TEST(MovingSequencable, MovingSequencableTest) {
+  std::priority_queue<int> q;
+  q.push(1);
+  q.push(2);
+  q.push(3);
+
+  log(LOG_LEVEL::Debug, q);
+  ASSERT_EQ(q.size(), 3);
+  const auto &cq = q;
+  log(LOG_LEVEL::Debug, cq);
+  ASSERT_EQ(cq.size(), 3);
+  log(LOG_LEVEL::Debug, std::move(q));
+  ASSERT_EQ(q.size(), 0);
+}
+
 } // namespace rnexecutorch
 
 int main(int argc, char **argv) {
