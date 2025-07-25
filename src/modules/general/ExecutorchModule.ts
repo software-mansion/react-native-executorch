@@ -17,16 +17,16 @@ export class ExecutorchModule extends BaseModule {
       input = [input];
     }
 
-    let inputTypeIdentifiers = [];
-    let modelInputs = [];
+    const inputTypeIdentifiers: number[] = [];
+    const modelInputs: number[][] = [];
 
-    for (let idx = 0; idx < input.length; idx++) {
-      let currentInputTypeIdentifier = getTypeIdentifier(input[idx] as ETInput);
-      if (currentInputTypeIdentifier === -1) {
+    for (const subInput of input) {
+      const typeIdentifier = getTypeIdentifier(subInput);
+      if (typeIdentifier === -1) {
         throw new Error(getError(ETError.InvalidArgument));
       }
-      inputTypeIdentifiers.push(currentInputTypeIdentifier);
-      modelInputs.push([...(input[idx] as unknown as number[])]);
+      inputTypeIdentifiers.push(typeIdentifier);
+      modelInputs.push(Array.from(subInput, (x: number | BigInt) => Number(x)));
     }
 
     try {
