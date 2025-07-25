@@ -9,11 +9,11 @@
 
 ![Software Mansion banner](https://github.com/user-attachments/assets/fa2c4735-e75c-4cc1-970d-88905d95e3a4)
 
-**React Native ExecuTorch** is a declarative way to run AI models in React Native on device, powered by **ExecuTorch** :rocket:. It offers out-of-the-box support for many LLMs, computer vision models, and many many more. Feel free to check them out on our [HuggingFace page](https://huggingface.co/software-mansion).
+**React Native ExecuTorch** provides a declarative way to run AI models directly on devices using React Native, powered by **ExecuTorch** :rocket:. It supports a wide range of LLMs, computer vision models, and more. Visit our [HuggingFace](https://huggingface.co/software-mansion) page to explore these models.
 
-**ExecuTorch** is a novel framework created by Meta that enables running AI models on devices such as mobile phones or microcontrollers. 
+**ExecuTorch**, developed by Meta, is an innovative framework allowing AI model execution on devices like mobile phones or microcontrollers.
 
-React Native ExecuTorch bridges the gap between React Native and native platform capabilities, allowing developers to run AI models locally on mobile devices with state-of-the-art performance, without requiring deep knowledge of native code or machine learning internals.
+React Native ExecuTorch connects React Native with native capabilities, enabling developers to implement AI models on mobile devices efficiently, without needing extensive expertise in native programming or machine learning basics.
 
 [![npm version](https://img.shields.io/npm/v/react-native-executorch?color=00008B)](https://www.npmjs.com/package/react-native-executorch)
 [![CI](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml/badge.svg)](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml)
@@ -33,18 +33,18 @@ React Native ExecuTorch bridges the gap between React Native and native platform
 The minimal supported version are: 
 * iOS 17.0
 * Android 13
-* React Native 76
+* React Native 0.76
 
 > [!IMPORTANT]  
 > React Native Executorch supports only the [New React Native architecture](https://reactnative.dev/architecture/landing-page).
 
 ## :robot: Ready-made models
 
-To run any AI model in ExecuTorch, you need to export it to a `.pte` format. If you're interested in experimenting with your own models, we highly encourage you to check out the [Python API](https://pypi.org/project/executorch/). If you prefer focusing on developing your React Native app, we will cover several common use cases. For more details, please refer to the documentation.
+Our library has a number of different AI models; a complete list is available in the documentation. If you're interested in running your own model, you need to first export it to the `.pte` format. Instructions on how to do this are available in the [Python API](https://pypi.org/project/executorch/).
 
 ## :books: Documentation
 
-Take a look at how our library can help build you your React Native AI features in our docs:  
+Take a look at how our library can help you build your React Native AI features in our docs:  
 https://docs.swmansion.com/react-native-executorch
 
 ## :llama: **Quickstart - Running Llama**
@@ -132,6 +132,6 @@ To learn about our upcoming plans and developments, please visit our [milestones
 
 ## React Native ExecuTorch is created by Software Mansion
 
-Since 2012 [Software Mansion](https://swmansion.com) is a software agency with experience in building web and mobile apps. We are Core React Native Contributors and experts in dealing with all kinds of React Native issues. We can help you build your next dream product – [Hire us](https://swmansion.com/contact/projects?utm_source=react-native-executorch&utm_medium=readme).
+Since 2012, [Software Mansion](https://swmansion.com) is a software agency with experience in building web and mobile apps. We are Core React Native Contributors and experts in dealing with all kinds of React Native issues. We can help you build your next dream product – [Hire us](https://swmansion.com/contact/projects?utm_source=react-native-executorch&utm_medium=readme).
 
 [![swm](https://logo.swmansion.com/logo?color=white&variant=desktop&width=150&tag=react-native-executorch-github 'Software Mansion')](https://swmansion.com)
