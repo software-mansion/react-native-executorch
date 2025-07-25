@@ -40,7 +40,7 @@ The minimal supported version are:
 
 ## :robot: Ready-made models
 
-Our library has a number of different AI models; a complete list is available in the documentation. If you're interested in running your own model, you need to first export it to the `.pte` format. Instructions on how to do this are available in the [Python API](https://pypi.org/project/executorch/).
+Our library has a number of ready-to-use AI models; a complete list is available in the documentation. If you're interested in running your own AI model, you need to first export it to the `.pte` format. Instructions on how to do this are available in the [Python API](https://pypi.org/project/executorch/).
 
 ## :books: Documentation
 
