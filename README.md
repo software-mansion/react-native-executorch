@@ -9,11 +9,11 @@
 
 ![Software Mansion banner](https://github.com/user-attachments/assets/fa2c4735-e75c-4cc1-970d-88905d95e3a4)
 
-**React Native ExecuTorch** provides a declarative way to run AI models directly on devices using React Native, powered by **ExecuTorch** :rocket:. It supports a wide range of LLMs, computer vision models, and more. Visit our [HuggingFace](https://huggingface.co/software-mansion) page to explore these models.
+**React Native ExecuTorch** provides a declarative way to run AI models directly on devices using React Native, powered by **ExecuTorch** :rocket:. It supports out-of-the-box a wide range of LLMs, computer vision models, and more. Visit our [HuggingFace](https://huggingface.co/software-mansion) page to explore these models.
 
-**ExecuTorch**, developed by Meta, is an innovative framework allowing AI model execution on devices like mobile phones or microcontrollers.
+**ExecuTorch**, developed by Meta, is a novel framework allowing AI model execution on devices like mobile phones or microcontrollers.
 
-React Native ExecuTorch connects React Native with native capabilities, enabling developers to implement AI models on mobile devices efficiently, without needing extensive expertise in native programming or machine learning basics.
+React Native ExecuTorch connects React Native with native capabilities, enabling developers to run local AI models on mobile devices efficiently, without needing extensive expertise in native programming or machine learning basics.
 
 [![npm version](https://img.shields.io/npm/v/react-native-executorch?color=00008B)](https://www.npmjs.com/package/react-native-executorch)
 [![CI](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml/badge.svg)](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml)
