@@ -44,7 +44,7 @@ Our library has a number of ready-to-use AI models; a complete list is available
 
 ## :books: Documentation
 
-Take a look at how our library can help you build your React Native AI features in our docs:  
+Check out how our library can help you build your React Native AI features by visiting our docs:  
 https://docs.swmansion.com/react-native-executorch
 
 ## :llama: **Quickstart - Running Llama**
