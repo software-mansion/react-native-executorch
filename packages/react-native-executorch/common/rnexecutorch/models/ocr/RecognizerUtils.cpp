@@ -78,7 +78,8 @@ cv::Mat cropSingleCharacter(const cv::Mat &img) {
   int histSize = 256;
   float range[] = {0, 256};
   const float *histRange = {range};
-  bool uniform = true, accumulate = false;
+  bool uniform = true;
+  bool accumulate = false;
 
   cv::calcHist(&img, 1, 0, cv::Mat(), histogram, 1, &histSize, &histRange,
                uniform, accumulate);

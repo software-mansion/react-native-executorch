@@ -11,7 +11,7 @@ namespace rnexecutorch {
 
 class RecognitionHandler {
 public:
-  RecognitionHandler(std::string recognizerSourceLarge,
+  explicit RecognitionHandler(std::string recognizerSourceLarge,
                      std::string recognizerSourceMedium,
                      std::string recognizerSourceSmall, std::string symbols,
                      std::shared_ptr<react::CallInvoker> callInvoker);

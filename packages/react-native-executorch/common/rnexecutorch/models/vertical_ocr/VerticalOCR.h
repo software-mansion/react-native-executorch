@@ -17,7 +17,7 @@ namespace rnexecutorch {
 using executorch::aten::Tensor;
 using executorch::extension::TensorPtr;
 
-class VerticalOCR {
+class VerticalOCR final {
 public:
   VerticalOCR(const std::string &detectorLargeSource,
               const std::string &detectorNarrowSource,

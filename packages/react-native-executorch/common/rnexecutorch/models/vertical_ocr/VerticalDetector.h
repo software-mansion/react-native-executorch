@@ -10,9 +10,9 @@ namespace rnexecutorch {
 using executorch::aten::Tensor;
 using executorch::extension::TensorPtr;
 
-class VerticalDetector : public BaseModel {
+class VerticalDetector final : public BaseModel {
 public:
-  VerticalDetector(const std::string &modelSource, bool detectSingleCharacters,
+  explicit VerticalDetector(const std::string &modelSource, bool detectSingleCharacters,
                    std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<DetectorBBox> generate(const cv::Mat &inputImage);
   cv::Size getModelImageSize() const noexcept;

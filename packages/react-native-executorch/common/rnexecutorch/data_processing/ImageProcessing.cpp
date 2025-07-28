@@ -5,7 +5,6 @@
 
 #include <ada/ada.h>
 
-#include <rnexecutorch/Log.h>
 #include <rnexecutorch/RnExecutorchInstaller.h>
 #include <rnexecutorch/data_processing/FileUtils.h>
 #include <rnexecutorch/data_processing/base64.h>
@@ -123,8 +122,7 @@ TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDims,
 TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDims,
                               const cv::Mat &matrix, cv::Scalar mean,
                               cv::Scalar variance) {
-  std::vector<float> inputVector = colorMatToVector(matrix, mean, variance);
-  return executorch::extension::make_tensor_ptr(tensorDims, inputVector);
+  return executorch::extension::make_tensor_ptr(tensorDims, colorMatToVector(matrix, mean, variance));
 }
 
 TensorPtr getTensorFromMatrixGray(const std::vector<int32_t> &tensorDims,
@@ -159,8 +157,8 @@ cv::Mat getMatrixFromTensor(cv::Size size, const Tensor &tensor) {
 
 cv::Mat resizePadded(cv::Mat inputImage, cv::Size targetSize) {
   cv::Size inputSize = inputImage.size();
-  const float heightRatio = (float)targetSize.height / inputSize.height;
-  const float widthRatio = (float)targetSize.width / inputSize.width;
+  const float heightRatio = static_cast<float>(targetSize.height) / inputSize.height;
+  const float widthRatio = static_cast<float>(targetSize.width) / inputSize.width;
   const float resizeRatio = std::min(heightRatio, widthRatio);
   const int newWidth = inputSize.width * resizeRatio;
   const int newHeight = inputSize.height * resizeRatio;
@@ -184,11 +182,13 @@ cv::Mat resizePadded(cv::Mat inputImage, cv::Size targetSize) {
   for (int i = 1; i < corners.size(); i++) {
     backgroundScalar += cv::mean(corners[i]);
   }
-  backgroundScalar /= (double)corners.size();
+  backgroundScalar /= static_cast<double>(corners.size());
 
-  backgroundScalar[0] = cvFloor(backgroundScalar[0]);
-  backgroundScalar[1] = cvFloor(backgroundScalar[1]);
-  backgroundScalar[2] = cvFloor(backgroundScalar[2]);
+  constexpr size_t numChannels = 3;
+#pragma unroll
+  for (size_t i = 0; i < numChannels; ++i) {
+    backgroundScalar[i] = cvFloor(backgroundScalar[i]);
+  }
 
   const int deltaW = targetSize.width - newWidth;
   const int deltaH = targetSize.height - newHeight;
