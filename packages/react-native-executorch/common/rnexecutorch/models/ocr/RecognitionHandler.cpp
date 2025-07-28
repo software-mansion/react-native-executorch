@@ -22,6 +22,7 @@ std::pair<std::vector<int32_t>, float>
 RecognitionHandler::runModel(cv::Mat image) {
   if (image.cols >= ocr::largeRecognizerWidth) {
     return recognizerLarge.generate(image);
+  }
   if (image.cols >= ocr::mediumRecognizerWidth) {
     return recognizerMedium.generate(image);
   }

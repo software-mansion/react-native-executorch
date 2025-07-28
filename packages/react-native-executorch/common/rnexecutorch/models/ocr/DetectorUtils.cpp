@@ -1,6 +1,7 @@
 #include "DetectorUtils.h"
 #include <algorithm>
 #include <limits>
+#include <numeric>
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/Types.h>
 #include <unordered_set>
@@ -224,7 +225,7 @@ void restoreBboxRatio(std::vector<DetectorBBox> &boxes, float restoreRatio) {
   }
 }
 
-float distanceFromPoint(const Point& p1, const Point& p2) {
+float distanceFromPoint(const Point &p1, const Point &p2) {
   const float xDist = (p2.x - p1.x);
   const float yDist = (p2.y - p1.y);
   return std::sqrt(xDist * xDist + yDist * yDist);
@@ -252,7 +253,7 @@ float normalizeAngle(float angle) {
   return angle;
 }
 
-Point midpointBetweenPoint(const Point& p1, const Point& p2) {
+Point midpointBetweenPoint(const Point &p1, const Point &p2) {
   return {.x = std::midpoint(p1.x, p2.x), .y = std::midpoint(p1.y, p2.y)};
 }
 
@@ -402,7 +403,7 @@ std::array<Point, 4> orderPointsClockwise(const std::array<Point, 4> &points) {
   float minDiff = std::numeric_limits<float>::max();
   float maxDiff = std::numeric_limits<float>::lowest();
 
-  for (const auto& pt : points) {
+  for (const auto &pt : points) {
     const float sum = pt.x + pt.y;
     const float diff = pt.y - pt.x;
 
@@ -523,9 +524,10 @@ findClosestBox(const std::vector<DetectorBBox> &boxes,
     boxHeight = minSideLength(bbox);
 
     const float lineDistance =
-        (isVertical
-             ? std::fabs(centerOfProcessedBox.x - (m * centerOfProcessedBox.y + c))
-             : std::fabs(centerOfProcessedBox.y - (m * centerOfProcessedBox.x + c)));
+        (isVertical ? std::fabs(centerOfProcessedBox.x -
+                                (m * centerOfProcessedBox.y + c))
+                    : std::fabs(centerOfProcessedBox.y -
+                                (m * centerOfProcessedBox.x + c)));
 
     if (lineDistance < boxHeight * centerThreshold) {
       idx = i;

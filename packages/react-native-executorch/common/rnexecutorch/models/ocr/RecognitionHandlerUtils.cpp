@@ -8,7 +8,7 @@ PaddingInfo calculateResizeRatioAndPaddings(cv::Size size,
                                             cv::Size desiredSize) {
   const auto newRatioH = static_cast<float>(desiredSize.height) / size.height;
   const auto newRatioW = static_cast<float>(desiredSize.width) / size.width;
-  const auto resizeRatio = std::min(newRatioH, newRatioW);
+  auto resizeRatio = std::min(newRatioH, newRatioW);
 
   const auto newHeight = static_cast<int32_t>(size.height * resizeRatio);
   const auto newWidth = static_cast<int32_t>(size.width * resizeRatio);
