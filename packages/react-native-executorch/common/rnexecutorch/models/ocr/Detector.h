@@ -9,9 +9,9 @@ namespace rnexecutorch {
 using executorch::aten::Tensor;
 using executorch::extension::TensorPtr;
 
-class Detector : public BaseModel {
+class Detector final : public BaseModel {
 public:
-  Detector(const std::string &modelSource,
+  explicit Detector(const std::string &modelSource,
            std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<DetectorBBox> generate(const cv::Mat &inputImage);
   cv::Size getModelImageSize() const noexcept;

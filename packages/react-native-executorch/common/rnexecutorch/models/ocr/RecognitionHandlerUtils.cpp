@@ -6,28 +6,28 @@
 namespace rnexecutorch::ocr {
 PaddingInfo calculateResizeRatioAndPaddings(cv::Size size,
                                             cv::Size desiredSize) {
-  float newRatioH = static_cast<float>(desiredSize.height) / size.height;
-  float newRatioW = static_cast<float>(desiredSize.width) / size.width;
-  float resizeRatio = std::min(newRatioH, newRatioW);
+  const auto newRatioH = static_cast<float>(desiredSize.height) / size.height;
+  const auto newRatioW = static_cast<float>(desiredSize.width) / size.width;
+  const auto resizeRatio = std::min(newRatioH, newRatioW);
 
-  int32_t newHeight = static_cast<int32_t>(size.height * resizeRatio);
-  int32_t newWidth = static_cast<int32_t>(size.width * resizeRatio);
+  const auto newHeight = static_cast<int32_t>(size.height * resizeRatio);
+  const auto newWidth = static_cast<int32_t>(size.width * resizeRatio);
 
-  int32_t deltaH = desiredSize.height - newHeight;
-  int32_t deltaW = desiredSize.width - newWidth;
+  const int32_t deltaH = desiredSize.height - newHeight;
+  const int32_t deltaW = desiredSize.width - newWidth;
 
-  int32_t top = deltaH / 2;
-  int32_t left = deltaW / 2;
+  const int32_t top = deltaH / 2;
+  const int32_t left = deltaW / 2;
 
-  float heightRatio = static_cast<float>(size.height) / desiredSize.height;
-  float widthRatio = static_cast<float>(size.width) / desiredSize.width;
+  const auto heightRatio = static_cast<float>(size.height) / desiredSize.height;
+  const auto widthRatio = static_cast<float>(size.width) / desiredSize.width;
 
   resizeRatio = std::max(heightRatio, widthRatio);
   return PaddingInfo{resizeRatio, top, left};
 }
 
 void computeRatioAndResize(cv::Mat &img, cv::Size size, int32_t modelHeight) {
-  double ratio =
+  auto ratio =
       static_cast<double>(size.width) / static_cast<double>(size.height);
   cv::Size resizedSize;
   if (ratio < 1.0) {
@@ -44,6 +44,7 @@ void computeRatioAndResize(cv::Mat &img, cv::Size size, int32_t modelHeight) {
 cv::Mat cropImage(DetectorBBox box, cv::Mat &image, int32_t modelHeight) {
   // Convert custom points to cv::Point2f
   std::array<cv::Point2f, 4> points;
+#pragma unroll
   for (size_t i = 0; i < 4; ++i) {
     points[i] = cv::Point2f(box.bbox[i].x, box.bbox[i].y);
   }
@@ -66,6 +67,7 @@ cv::Mat cropImage(DetectorBBox box, cv::Mat &image, int32_t modelHeight) {
   cv::transform(rectMat, rectMat, rotationMatrix);
 
   std::vector<cv::Point2f> transformedPoints(4);
+#pragma unroll
   for (int i = 0; i < 4; ++i) {
     cv::Vec2f point = rectMat.at<cv::Vec2f>(i, 0);
     transformedPoints[i] = cv::Point2f(point[0], point[1]);
@@ -91,7 +93,8 @@ cv::Mat cropImage(DetectorBBox box, cv::Mat &image, int32_t modelHeight) {
 }
 
 void adjustContrastGrey(cv::Mat &img, double target) {
-  int32_t high = 0, low = 255;
+  int32_t high = 0;
+  int32_t low = 255;
   for (int32_t i = 0; i < img.rows; i++) {
     for (int32_t j = 0; j < img.cols; j++) {
       int32_t pixel = img.at<uchar>(i, j); // Access pixel
@@ -133,7 +136,7 @@ cv::Mat normalizeForRecognizer(cv::Mat &image, int32_t modelHeight,
   }
 
   int desiredWidth =
-      (isVertical) ? smallVerticalRecognizerWidth : smallRecognizerWidth;
+      isVertical ? smallVerticalRecognizerWidth : smallRecognizerWidth;
 
   if (image.cols >= largeRecognizerWidth) {
     desiredWidth = largeRecognizerWidth;

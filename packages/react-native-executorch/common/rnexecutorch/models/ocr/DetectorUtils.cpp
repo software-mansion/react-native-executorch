@@ -55,8 +55,9 @@ std::vector<DetectorBBox> getDetBoxesFromTextMap(cv::Mat &textMap,
     cv::Mat mask = (labels == i);
     double maxVal;
     cv::minMaxLoc(textMap, nullptr, &maxVal, nullptr, nullptr, mask);
-    if (maxVal < lowTextThreshold)
+    if (maxVal < lowTextThreshold) {
       continue;
+    }
 
     cv::Mat segMap = cv::Mat::zeros(textMap.size(), CV_8U);
     segMap.setTo(255, mask);
@@ -85,6 +86,7 @@ std::vector<DetectorBBox> getDetBoxesFromTextMap(cv::Mat &textMap,
       cv::Point2f vertices[4];
       minRect.points(vertices);
       std::array<Point, 4> points;
+#pragma unroll
       for (int j = 0; j < 4; j++) {
         points[j] = {.x = vertices[j].x, .y = vertices[j].y};
       }
@@ -202,6 +204,7 @@ getDetBoxesFromTextMapVertical(cv::Mat &textMap, cv::Mat &affinityMap,
       minRect.points(vertices);
 
       std::array<Point, 4> points;
+#pragma unroll
       for (int j = 0; j < 4; j++) {
         points[j] = {.x = vertices[j].x, .y = vertices[j].y};
       }
@@ -213,7 +216,7 @@ getDetBoxesFromTextMapVertical(cv::Mat &textMap, cv::Mat &affinityMap,
 }
 
 void restoreBboxRatio(std::vector<DetectorBBox> &boxes, float restoreRatio) {
-  for (DetectorBBox &box : boxes) {
+  for (auto &box : boxes) {
     for (auto &point : box.bbox) {
       point.x *= restoreRatio;
       point.y *= restoreRatio;
@@ -221,18 +224,18 @@ void restoreBboxRatio(std::vector<DetectorBBox> &boxes, float restoreRatio) {
   }
 }
 
-float distanceFromPoint(Point p1, Point p2) {
+float distanceFromPoint(const Point& p1, const Point& p2) {
   const float xDist = (p2.x - p1.x);
   const float yDist = (p2.y - p1.y);
-  return sqrt(xDist * xDist + yDist * yDist);
+  return std::sqrt(xDist * xDist + yDist * yDist);
 }
 
 float maxSideLength(const std::array<Point, 4> &points) {
   float maxSideLength = 0;
   int32_t numOfPoints = points.size();
   for (std::size_t i = 0; i < numOfPoints; i++) {
-    const Point currentPoint = points[i];
-    const Point nextPoint = points[(i + 1) % numOfPoints];
+    const auto currentPoint = points[i];
+    const auto nextPoint = points[(i + 1) % numOfPoints];
 
     const float sideLength = distanceFromPoint(currentPoint, nextPoint);
     if (sideLength > maxSideLength) {
@@ -243,14 +246,14 @@ float maxSideLength(const std::array<Point, 4> &points) {
 }
 
 float normalizeAngle(float angle) {
-  if (angle > 45) {
-    return angle - 90;
+  if (angle > 45.0f) {
+    return angle - 90.0f;
   }
   return angle;
 }
 
-Point midpointBetweenPoint(Point p1, Point p2) {
-  return {.x = (p1.x + p2.x) / 2, .y = (p1.y + p2.y) / 2};
+Point midpointBetweenPoint(const Point& p1, const Point& p2) {
+  return {.x = std::midpoint(p1.x, p2.x), .y = std::midpoint(p1.y, p2.y)};
 }
 
 Point centerOfBox(const std::array<Point, 4> &box) {
@@ -261,6 +264,7 @@ float minSideLength(const std::array<Point, 4> &points) {
   float minSideLength = std::numeric_limits<float>::max();
   std::size_t numOfPoints = points.size();
 
+#pragma unroll
   for (std::size_t i = 0; i < numOfPoints; i++) {
     const Point currentPoint = points[i];
     const Point nextPoint = points[(i + 1) % numOfPoints];
@@ -294,9 +298,10 @@ std::tuple<float, float, bool>
 fitLineToShortestSides(std::array<Point, 4> points) {
   std::array<std::pair<float, float>, 4> sides;
   std::array<Point, 4> midpoints;
+#pragma unroll
   for (std::size_t i = 0; i < 4; i++) {
-    const Point p1 = points[i];
-    const Point p2 = points[(i + 1) % 4];
+    const auto p1 = points[i];
+    const auto p2 = points[(i + 1) % 4];
 
     const float sideLength = distanceFromPoint(p1, p2);
     sides[i] = std::make_pair(sideLength, i);
@@ -308,7 +313,7 @@ fitLineToShortestSides(std::array<Point, 4> points) {
 
   const Point midpoint1 = midpoints[sides[0].second];
   const Point midpoint2 = midpoints[sides[1].second];
-  const float dx = fabs(midpoint2.x - midpoint1.x);
+  const float dx = std::fabs(midpoint2.x - midpoint1.x);
 
   float m, c;
   bool isVertical;
@@ -319,8 +324,9 @@ fitLineToShortestSides(std::array<Point, 4> points) {
   cv::Vec4f line;
 
   if (dx < verticalLineThreshold) {
-    for (auto &pt : cvMidPoints)
+    for (auto &pt : cvMidPoints) {
       std::swap(pt.x, pt.y);
+    }
     cv::fitLine(cvMidPoints, line, cv::DIST_L2, 0, 0.01, 0.01);
     m = line[1] / line[0];
     c = line[3] - m * line[2];
@@ -347,9 +353,9 @@ std::array<Point, 4> rotateBox(const std::array<Point, 4> box, float angle) {
     const float translatedY = point.y - center.y;
 
     const float rotatedX =
-        translatedX * cos(radians) - translatedY * sin(radians);
+        translatedX * std::cos(radians) - translatedY * std::sin(radians);
     const float rotatedY =
-        translatedX * sin(radians) + translatedY * cos(radians);
+        translatedX * std::sin(radians) + translatedY * std::cos(radians);
 
     const Point rotatedPoint = {.x = rotatedX + center.x,
                                 .y = rotatedY + center.y};
@@ -396,7 +402,7 @@ std::array<Point, 4> orderPointsClockwise(const std::array<Point, 4> &points) {
   float minDiff = std::numeric_limits<float>::max();
   float maxDiff = std::numeric_limits<float>::lowest();
 
-  for (const Point pt : points) {
+  for (const auto& pt : points) {
     const float sum = pt.x + pt.y;
     const float diff = pt.y - pt.x;
 
@@ -432,6 +438,7 @@ cvPointsFromPoints(const std::array<Point, 4> &points) {
 
 std::array<Point, 4> pointsFromCvPoints(cv::Point2f cvPoints[4]) {
   std::array<Point, 4> points;
+#pragma unroll
   for (std::size_t i = 0; i < 4; ++i) {
     points[i] = {.x = cvPoints[i].x, .y = cvPoints[i].y};
   }
@@ -517,8 +524,8 @@ findClosestBox(const std::vector<DetectorBBox> &boxes,
 
     const float lineDistance =
         (isVertical
-             ? fabs(centerOfProcessedBox.x - (m * centerOfProcessedBox.y + c))
-             : fabs(centerOfProcessedBox.y - (m * centerOfProcessedBox.x + c)));
+             ? std::fabs(centerOfProcessedBox.x - (m * centerOfProcessedBox.y + c))
+             : std::fabs(centerOfProcessedBox.y - (m * centerOfProcessedBox.x + c)));
 
     if (lineDistance < boxHeight * centerThreshold) {
       idx = i;
@@ -569,8 +576,8 @@ groupTextBoxes(std::vector<DetectorBBox> &boxes, float centerThreshold,
 
   std::vector<DetectorBBox> mergedVec;
   float lineAngle;
-  while (boxes.size() > 0) {
-    DetectorBBox currentBox = boxes[0];
+  while (!boxes.empty()) {
+    auto currentBox = boxes[0];
     float normalizedAngle = normalizeAngle(currentBox.angle);
     boxes.erase(boxes.begin());
     std::unordered_set<std::size_t> ignoredIdxs;
@@ -581,7 +588,7 @@ groupTextBoxes(std::vector<DetectorBBox> &boxes, float centerThreshold,
       auto [slope, intercept, isVertical] =
           fitLineToShortestSides(currentBox.bbox);
 
-      lineAngle = atan(slope) * 180 / M_PI;
+      lineAngle = std::atan(slope) * 180 / M_PI;
       if (isVertical) {
         lineAngle = -90;
       }

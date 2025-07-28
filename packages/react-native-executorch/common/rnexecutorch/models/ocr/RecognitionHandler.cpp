@@ -22,7 +22,7 @@ std::pair<std::vector<int32_t>, float>
 RecognitionHandler::runModel(cv::Mat image) {
   if (image.cols >= ocr::largeRecognizerWidth) {
     return recognizerLarge.generate(image);
-  } else if (image.cols >= ocr::mediumRecognizerWidth) {
+  if (image.cols >= ocr::mediumRecognizerWidth) {
     return recognizerMedium.generate(image);
   }
   return recognizerSmall.generate(image);
@@ -40,8 +40,9 @@ RecognitionHandler::recognize(std::vector<DetectorBBox> bboxesList,
   for (auto &box : bboxesList) {
     auto croppedImage = ocr::cropImage(box, imgGray, ocr::recognizerHeight);
 
-    if (croppedImage.empty())
+    if (croppedImage.empty()) {
       continue;
+    }
     croppedImage = ocr::normalizeForRecognizer(
         croppedImage, ocr::recognizerHeight, ocr::adjustContrast, false);
     auto [predictionIndices, confidenceScore] = this->runModel(croppedImage);

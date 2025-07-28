@@ -20,7 +20,7 @@ VerticalDetector::VerticalDetector(
     : BaseModel(modelSource, callInvoker) {
   this->detectSingleCharacters = detectSingleCharacters;
   auto inputShapes = getAllInputShapes();
-  if (inputShapes.size() == 0) {
+  if (inputShapes.empty()) {
     throw std::runtime_error(
         "Detector model seems to not take any input tensors.");
   }

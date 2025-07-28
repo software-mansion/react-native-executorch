@@ -15,7 +15,7 @@ Detector::Detector(const std::string &modelSource,
                    std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
   auto inputShapes = getAllInputShapes();
-  if (inputShapes.size() == 0) {
+  if (inputShapes.empty()) {
     throw std::runtime_error(
         "Detector model seems to not take any input tensors.");
   }

@@ -12,7 +12,7 @@ Recognizer::Recognizer(const std::string &modelSource,
                        std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
   auto inputShapes = getAllInputShapes();
-  if (inputShapes.size() == 0) {
+  if (inputShapes.empty()) {
     throw std::runtime_error("Recognizer model has no input tensors.");
   }
   std::vector<int32_t> modelInputShape = inputShapes[0];

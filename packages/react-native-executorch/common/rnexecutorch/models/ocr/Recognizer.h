@@ -9,9 +9,9 @@ namespace rnexecutorch {
 using executorch::aten::Tensor;
 using executorch::extension::TensorPtr;
 
-class Recognizer : public BaseModel {
+class Recognizer final : public BaseModel {
 public:
-  Recognizer(const std::string &modelSource,
+  explicit Recognizer(const std::string &modelSource,
              std::shared_ptr<react::CallInvoker> callInvoker);
   std::pair<std::vector<int32_t>, float> generate(const cv::Mat &grayImage);
 
