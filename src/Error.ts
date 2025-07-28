@@ -7,7 +7,7 @@ export enum ETError {
   LanguageNotSupported = 0x69,
   InvalidModelSource = 0xff,
 
-  //SpeechToText errors
+  // SpeechToText errors
   MultilingualConfiguration = 0xa0,
   MissingDataChunk = 0xa1,
   StreamingNotStarted = 0xa2,
@@ -41,20 +41,16 @@ export enum ETError {
 
 export const getError = (e: unknown | ETError | Error): string => {
   if (typeof e === 'number') {
-    if (e in ETError) return ETError[e] as string;
-    return ETError[ETError.UndefinedError] as string;
+    return ETError[e] ?? ETError[ETError.UndefinedError];
   }
 
   // try to extract number from message (can contain false positives)
   const error = e as Error;
   const errorCode = parseInt(error.message, 10);
-  const message = Number.isNaN(errorCode)
-    ? error.message
-    : ' ' + error.message.slice(`${errorCode}`.length).trimStart();
 
-  const ETErrorMessage = (
-    errorCode in ETError ? ETError[errorCode] : ETError[ETError.UndefinedError]
-  ) as string;
+  if (Number.isNaN(errorCode)) {
+    return error.message;
+  }
 
-  return ETErrorMessage + message;
+  return ETError[errorCode] ?? ETError[ETError.UndefinedError];
 };
