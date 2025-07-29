@@ -33,13 +33,11 @@ It is recommended to use models provided by us, which are available at our [Hugg
 You can obtain waveform from audio in any way most suitable to you, however in the snippet below we utilize `react-native-audio-api` library to process a mp3 file.
 
 ```typescript
-import { useSpeechToText } from 'react-native-executorch';
+import { useSpeechToText, MOONSHINE_TINY } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
 import * as FileSystem from 'expo-file-system';
 
-const { transcribe, error } = useSpeechToText({
-  modelName: 'moonshine',
-});
+const { transcribe, error } = useSpeechToText(MOONSHINE_TINY);
 
 const loadAudio = async (url: string) => {
   const audioContext = new AudioContext({ sampleRate: 16e3 });
@@ -216,14 +214,12 @@ await model.transcribe(mySpanishAudio, SpeechToTextLanguage.Spanish);
 
 ```tsx
 import { Button, Text, View } from 'react-native';
-import { useSpeechToText } from 'react-native-executorch';
+import { useSpeechToText, WHISPER_TINY } from 'react-native-executorch';
 import * as FileSystem from 'expo-file-system';
 import { AudioContext } from 'react-native-audio-api';
 
 function App() {
-  const { transcribe, sequence, error } = useSpeechToText({
-    modelName: 'whisper',
-  });
+  const { transcribe, sequence, error } = useSpeechToText(WHISPER_TINY);
 
   const loadAudio = async (url: string) => {
     const audioContext = new AudioContext({ sampleRate: 16e3 });
@@ -255,7 +251,11 @@ function App() {
 ### Live data (microphone) transcription
 
 ```tsx
-import { STREAMING_ACTION, useSpeechToText } from 'react-native-executorch';
+import {
+  STREAMING_ACTION,
+  useSpeechToText,
+  MOONSHINE_TINY,
+} from 'react-native-executorch';
 import LiveAudioStream from 'react-native-live-audio-stream';
 import { useState } from 'react';
 import { Buffer } from 'buffer';
@@ -291,7 +291,7 @@ const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
 function App() {
   const [isRecording, setIsRecording] = useState(false);
   const speechToText = useSpeechToText({
-    modelName: 'moonshine',
+    ...MOONSHINE_TINY,
     windowSize: 3,
     overlapSeconds: 1.2,
   });

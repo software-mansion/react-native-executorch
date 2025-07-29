@@ -11,24 +11,10 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## Reference
 
 ```tsx
-import {
-  useOCR,
-  DETECTOR_CRAFT_800,
-  RECOGNIZER_EN_CRNN_512,
-  RECOGNIZER_EN_CRNN_256,
-  RECOGNIZER_EN_CRNN_128,
-} from 'react-native-executorch';
+import { useOCR, OCR_ENGLISH } from 'react-native-executorch';
 
 function App() {
-  const model = useOCR({
-    detectorSource: DETECTOR_CRAFT_800,
-    recognizerSources: {
-      recognizerLarge: RECOGNIZER_EN_CRNN_512,
-      recognizerMedium: RECOGNIZER_EN_CRNN_256,
-      recognizerSmall: RECOGNIZER_EN_CRNN_128,
-    },
-    language: 'en',
-  });
+  const model = useOCR(OCR_ENGLISH);
 
   // ...
   for (const ocrDetection of await model.forward('https://url-to-image.jpg')) {
@@ -185,24 +171,10 @@ The `text` property contains the text recognized within detected text region. Th
 ## Example
 
 ```tsx
-import {
-  useOCR,
-  DETECTOR_CRAFT_800,
-  RECOGNIZER_EN_CRNN_512,
-  RECOGNIZER_EN_CRNN_256,
-  RECOGNIZER_EN_CRNN_128,
-} from 'react-native-executorch';
+import { useOCR, OCR_ENGLISH } from 'react-native-executorch';
 
 function App() {
-  const model = useOCR({
-    detectorSource: DETECTOR_CRAFT_800,
-    recognizerSources: {
-      recognizerLarge: RECOGNIZER_EN_CRNN_512,
-      recognizerMedium: RECOGNIZER_EN_CRNN_256,
-      recognizerSmall: RECOGNIZER_EN_CRNN_128,
-    },
-    language: 'en',
-  });
+  const model = useOCR(OCR_ENGLISH);
 
   const runModel = async () => {
     const ocrDetections = await model.forward('https://url-to-image.jpg');

@@ -90,4 +90,8 @@ export enum SpeechToTextLanguage {
   Yiddish = 'yi',
 }
 
-export type AvailableModels = 'whisper' | 'moonshine' | 'whisperMultilingual';
+export enum AvailableModels {
+  WHISPER = 'whisper',
+  MOONSHINE = 'moonshine',
+  WHISPER_MULTILINGUAL = 'whisperMultilingual',
+}

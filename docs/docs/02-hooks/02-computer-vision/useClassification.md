@@ -17,9 +17,7 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ```typescript
 import { useClassification, EFFICIENTNET_V2_S } from 'react-native-executorch';
 
-const model = useClassification({
-  modelSource: EFFICIENTNET_V2_S,
-});
+const model = useClassification(EFFICIENTNET_V2_S);
 
 const imageUri = 'file::///Users/.../cute_puppy.png';
 
@@ -61,9 +59,7 @@ Images from external sources are stored in your application's temporary director
 import { useClassification, EFFICIENTNET_V2_S } from 'react-native-executorch';
 
 function App() {
-  const model = useClassification({
-    modulePath: EFFICIENTNET_V2_S,
-  });
+  const model = useClassification(EFFICIENTNET_V2_S);
 
   // ...
   const imageUri = 'file:///Users/.../cute_puppy.png';

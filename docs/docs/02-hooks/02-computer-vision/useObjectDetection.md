@@ -18,9 +18,7 @@ import {
 } from 'react-native-executorch';
 
 function App() {
-  const ssdlite = useObjectDetection({
-    modelSource: SSDLITE_320_MOBILENET_V3_LARGE, // alternatively, you can use require(...)
-  });
+  const ssdlite = useObjectDetection(SSDLITE_320_MOBILENET_V3_LARGE);
 
   // ...
   for (const detection of await ssdlite.forward('https://url-to-image.jpg')) {
@@ -106,9 +104,7 @@ import {
 } from 'react-native-executorch';
 
 function App() {
-  const ssdlite = useObjectDetection({
-    modelSource: SSDLITE_320_MOBILENET_V3_LARGE,
-  });
+  const ssdlite = useObjectDetection(SSDLITE_320_MOBILENET_V3_LARGE);
 
   const runModel = async () => {
     const detections = await ssdlite.forward('https://url-to-image.jpg');

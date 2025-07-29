@@ -25,14 +25,9 @@ We are using [Hugging Face Tokenizers](https://huggingface.co/docs/tokenizers/in
 ## Reference
 
 ```typescript
-import {
-  useTokenizer,
-  ALL_MINILM_L6_V2_TOKENIZER,
-} from 'react-native-executorch';
+import { useTokenizer, ALL_MINILM_L6_V2 } from 'react-native-executorch';
 
-const tokenizer = useTokenizer({
-  tokenizerSource: ALL_MINILM_L6_V2_TOKENIZER,
-});
+const tokenizer = useTokenizer(ALL_MINILM_L6_V2);
 
 const text = 'Hello, world!';
 
@@ -72,15 +67,10 @@ try {
 ## Example
 
 ```typescript
-import {
-  useTokenizer,
-  ALL_MINILM_L6_V2_TOKENIZER,
-} from 'react-native-executorch';
+import { useTokenizer, ALL_MINILM_L6_V2 } from 'react-native-executorch';
 
 function App() {
-  const tokenizer = useTokenizer({
-    tokenizerSource: ALL_MINILM_L6_V2_TOKENIZER,
-  });
+  const tokenizer = useTokenizer(ALL_MINILM_L6_V2);
 
   // ...
 

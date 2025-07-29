@@ -16,9 +16,7 @@ import {
   DEEPLAB_V3_RESNET50,
 } from 'react-native-executorch';
 
-const model = useImageSegmentation({
-  modelSource: DEEPLAB_V3_RESNET50,
-});
+const model = useImageSegmentation(DEEPLAB_V3_RESNET50);
 
 const imageUri = 'file::///Users/.../cute_cat.png';
 
@@ -67,9 +65,7 @@ Setting `resize` to true will make `forward` slower.
 
 ```typescript
 function App() {
-  const model = useImageSegmentation({
-    modelSource: DEEPLAB_V3_RESNET50,
-  });
+  const model = useImageSegmentation(DEEPLAB_V3_RESNET50);
 
   // ...
   const imageUri = 'file::///Users/.../cute_cat.png';
