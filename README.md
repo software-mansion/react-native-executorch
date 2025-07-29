@@ -13,7 +13,7 @@
 
 **ExecuTorch**, developed by Meta, is a novel framework allowing AI model execution on devices like mobile phones or microcontrollers.
 
-React Native ExecuTorch connects React Native with native capabilities, enabling developers to run local AI models on mobile devices efficiently, without needing extensive expertise in native programming or machine learning basics.
+React Native ExecuTorch bridges the gap between React Native and native platform capabilities, enabling developers to efficiently run local AI models on mobile devices. This can be achieved without the need for extensive expertise in native programming or machine learning.
 
 [![npm version](https://img.shields.io/npm/v/react-native-executorch?color=00008B)](https://www.npmjs.com/package/react-native-executorch)
 [![CI](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml/badge.svg)](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml)
