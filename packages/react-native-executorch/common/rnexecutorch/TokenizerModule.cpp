@@ -2,15 +2,16 @@
 #include <executorch/extension/module/module.h>
 #include <filesystem>
 #include <rnexecutorch/data_processing/FileUtils.h>
+#include <stdexcept>
 
 namespace rnexecutorch {
 using namespace facebook;
 
 TokenizerModule::TokenizerModule(
     std::string source, std::shared_ptr<react::CallInvoker> callInvoker)
-    : memorySizeLowerBound(std::filesystem::file_size(source)),
-      tokenizer(tokenizers::Tokenizer::FromBlobJSON(
-          fileutils::loadBytesFromFile(source))) {}
+    : tokenizer(tokenizers::Tokenizer::FromBlobJSON(
+          fileutils::loadBytesFromFile(source))),
+      memorySizeLowerBound(std::filesystem::file_size(source)) {}
 
 void TokenizerModule::ensureTokenizerLoaded(
     const std::string &methodName) const {
