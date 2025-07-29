@@ -14,8 +14,10 @@ export enum ETError {
 
   // ExecuTorch mapped errors
   // Based on: https://github.com/pytorch/executorch/blob/main/runtime/core/error.h
-  // System errors
+  // Status indicating a successful operation
   Ok = 0x00,
+
+  // System errors
   Internal = 0x01,
   InvalidState = 0x02,
   EndOfMethod = 0x03,
@@ -41,22 +43,61 @@ export enum ETError {
   DelegateInvalidHandle = 0x32,
 }
 
-export function ensureError(value: unknown): Error {
-  if (value instanceof Error) return value;
-
-  if (value instanceof ETError) return;
-
-  let stringified = '[Unable to stringify the thrown value]';
-  try {
-    stringified = JSON.stringify(value);
-  } catch {
-    // If JSON.stringify fails, try String()                            /
-    try {
-      stringified = String(value);
-    } catch {
-      // Fallback message already set
-    }
+export const getError = (e: unknown | ETError | Error): string => {
+  if (typeof e === 'number') {
+    if (e in ETError) return ETError[e] as string;
+    return ETError[ETError.UndefinedError] as string;
   }
-  const error = new Error(`Non-error thrown: ${stringified}`);
-  return error;
+
+  // try to extract number from message (can contain false positives)
+  const error = e as Error;
+  const errorCode = parseInt(error.message, 10);
+  const message = Number.isNaN(errorCode)
+    ? error.message
+    : ' ' + error.message.slice(`${errorCode}`.length).trimStart();
+
+  const ETErrorMessage = (
+    errorCode in ETError ? ETError[errorCode] : ETError[ETError.UndefinedError]
+  ) as string;
+
+  return ETErrorMessage + message;
+};
+
+class RNExecutorchError extends Error {
+  code: ETError;
+
+  constructor(code: ETError, message: string) {
+    super(message);
+    this.code = code;
+  }
+
+  static fromError(e: Error): RNExecutorchError {
+    const maybeCode = Number.parseInt(e.message, 10);
+
+    if (!isNaN(maybeCode) && maybeCode in ETError) {
+      return new RNExecutorchError(maybeCode as ETError, e.message);
+    }
+
+    return new RNExecutorchError(ETError.UndefinedError, e.message);
+  }
+}
+
+export function ensureExecutorchError(e: unknown): RNExecutorchError {
+  if (e instanceof RNExecutorchError) {
+    return e;
+  }
+
+  if (e instanceof Error) {
+    return RNExecutorchError.fromError(e);
+  }
+
+  // Handle non-Error types (string, number, object, etc.)
+  const message =
+    typeof e === 'string'
+      ? e
+      : typeof e === 'object'
+        ? JSON.stringify(e)
+        : String(e);
+
+  return new RNExecutorchError(ETError.UndefinedError, message);
 }
