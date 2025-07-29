@@ -24,6 +24,8 @@ namespace low_level_log_implementation {
 
 class TestValue : public ::testing::Test {
 protected:
+  TestValue() { oss << std::boolalpha; }
+
   template <typename T>
   void testValueViaComparison(const T &value,
                               const std::string &expectedOutput) {
@@ -487,10 +489,37 @@ TEST_F(LoggingTest, LoggingDoesNotChangeVector) {
   testLoggingDoesNotChangeContainer(original);
 }
 
-TEST(LoggingTestTemplateArgument, LoggingWithNonDefaultLogSize) {
+TEST(LogFunctionTest, LoggingBasic) {
+  EXPECT_NO_THROW(log(LOG_LEVEL::Debug, "Test123"));
+}
+
+TEST(LogFunctionTest, LoggingWithNonDefaultLogSize) {
   constexpr std::size_t sizeBiggerThanDefault = 2048;
   const auto testString = std::string(sizeBiggerThanDefault, 'a');
   EXPECT_NO_THROW(log<sizeBiggerThanDefault>(LOG_LEVEL::Info, testString));
+}
+
+TEST(LogFunctionTest, LoggingMoreThanOneElement) {
+  constexpr auto testStringLiteral = "Test123";
+  const auto testVector = std::vector<int>{1, 2, 3, 4};
+  const auto testPair = std::pair<int, double>(1, 2.0);
+  EXPECT_NO_THROW(
+      log(LOG_LEVEL::Debug, testStringLiteral, testVector, testPair));
+}
+
+TEST(MovingSequencable, MovingSequencableTest) {
+  std::priority_queue<int> q;
+  q.push(1);
+  q.push(2);
+  q.push(3);
+
+  log(LOG_LEVEL::Debug, q);
+  ASSERT_EQ(q.size(), 3);
+  const auto &cq = q;
+  log(LOG_LEVEL::Debug, cq);
+  ASSERT_EQ(cq.size(), 3);
+  log(LOG_LEVEL::Debug, std::move(q));
+  ASSERT_EQ(q.size(), 0);
 }
 
 } // namespace rnexecutorch
