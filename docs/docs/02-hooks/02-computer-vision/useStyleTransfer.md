@@ -16,9 +16,7 @@ import {
   STYLE_TRANSFER_CANDY,
 } from 'react-native-executorch';
 
-const model = useStyleTransfer({
-  modelSource: STYLE_TRANSFER_CANDY,
-});
+const model = useStyleTransfer(STYLE_TRANSFER_CANDY);
 
 const imageUri = 'file::///Users/.../cute_cat.png';
 
@@ -58,9 +56,7 @@ Images from external sources and the generated image are stored in your applicat
 
 ```typescript
 function App() {
-  const model = useStyleTransfer({
-    modelSource: STYLE_TRANSFER_CANDY,
-  });
+  const model = useStyleTransfer(STYLE_TRANSFER_CANDY);
 
   // ...
   const imageUri = 'file::///Users/.../cute_cat.png';

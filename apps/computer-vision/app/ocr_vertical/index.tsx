@@ -1,13 +1,7 @@
 import Spinner from 'react-native-loading-spinner-overlay';
 import { BottomBar } from '../../components/BottomBar';
 import { getImage } from '../../utils';
-import {
-  DETECTOR_CRAFT_1280,
-  DETECTOR_CRAFT_320,
-  RECOGNIZER_EN_CRNN_512,
-  RECOGNIZER_EN_CRNN_64,
-  useVerticalOCR,
-} from 'react-native-executorch';
+import { useVerticalOCR, VERTICAL_OCR_ENGLISH } from 'react-native-executorch';
 import { View, StyleSheet, Image, Text, ScrollView } from 'react-native';
 import ImageWithBboxes2 from '../../components/ImageWithOCRBboxes';
 import React, { useContext, useEffect, useState } from 'react';
@@ -22,15 +16,7 @@ export default function VerticalOCRScree() {
     height: number;
   }>();
   const model = useVerticalOCR({
-    detectorSources: {
-      detectorLarge: DETECTOR_CRAFT_1280,
-      detectorNarrow: DETECTOR_CRAFT_320,
-    },
-    recognizerSources: {
-      recognizerLarge: RECOGNIZER_EN_CRNN_512,
-      recognizerSmall: RECOGNIZER_EN_CRNN_64,
-    },
-    language: 'en',
+    ...VERTICAL_OCR_ENGLISH,
     independentCharacters: true,
   });
   const { setGlobalGenerating } = useContext(GeneratingContext);

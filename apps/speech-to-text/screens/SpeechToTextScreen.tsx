@@ -1,4 +1,4 @@
-import { useSpeechToText } from 'react-native-executorch';
+import { MOONSHINE_TINY, useSpeechToText } from 'react-native-executorch';
 import React from 'react';
 import {
   Text,
@@ -54,7 +54,7 @@ export const SpeechToTextScreen = () => {
     sequence,
     error,
     transcribe,
-  } = useSpeechToText({ modelName: 'moonshine', streamingConfig: 'balanced' });
+  } = useSpeechToText(MOONSHINE_TINY);
 
   const loadAudio = async (url: string) => {
     const audioContext = new AudioContext({ sampleRate: 16e3 });

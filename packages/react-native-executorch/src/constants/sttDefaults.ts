@@ -1,13 +1,7 @@
 import {
-  MOONSHINE_TINY_ENCODER,
-  MOONSHINE_TINY_DECODER,
-  MOONSHINE_TOKENIZER,
-  WHISPER_TINY_ENCODER,
-  WHISPER_TINY_DECODER,
-  WHISPER_TOKENIZER,
-  WHISPER_TINY_MULTILINGUAL_ENCODER,
-  WHISPER_TINY_MULTILINGUAL_DECODER,
-  WHISPER_TINY_MULTILINGUAL_TOKENIZER,
+  MOONSHINE_TINY,
+  WHISPER_TINY,
+  WHISPER_TINY_MULTILINGUAL,
 } from './modelUrls';
 import { AvailableModels, ModelConfig } from '../types/stt';
 
@@ -17,11 +11,11 @@ export const HAMMING_DIST_THRESHOLD = 1;
 
 const whisperTinyModelConfig = {
   sources: {
-    encoder: WHISPER_TINY_ENCODER,
-    decoder: WHISPER_TINY_DECODER,
+    encoder: WHISPER_TINY.encoderSource,
+    decoder: WHISPER_TINY.decoderSource,
   },
   tokenizer: {
-    source: WHISPER_TOKENIZER,
+    source: WHISPER_TINY.tokenizerSource,
     bos: 50257, // FIXME: this is a placeholder and needs to be changed
     eos: 50256, // FIXME: this is a placeholder and needs to be changed
   },
@@ -30,11 +24,11 @@ const whisperTinyModelConfig = {
 
 const moonshineTinyModelConfig = {
   sources: {
-    encoder: MOONSHINE_TINY_ENCODER,
-    decoder: MOONSHINE_TINY_DECODER,
+    encoder: MOONSHINE_TINY.encoderSource,
+    decoder: MOONSHINE_TINY.decoderSource,
   },
   tokenizer: {
-    source: MOONSHINE_TOKENIZER,
+    source: MOONSHINE_TINY.tokenizerSource,
     bos: 1, // FIXME: this is a placeholder and needs to be changed
     eos: 2, // FIXME: this is a placeholder and needs to be changed
   },
@@ -43,11 +37,11 @@ const moonshineTinyModelConfig = {
 
 const whisperTinyMultilingualModelConfig = {
   sources: {
-    encoder: WHISPER_TINY_MULTILINGUAL_ENCODER,
-    decoder: WHISPER_TINY_MULTILINGUAL_DECODER,
+    encoder: WHISPER_TINY_MULTILINGUAL.encoderSource,
+    decoder: WHISPER_TINY_MULTILINGUAL.decoderSource,
   },
   tokenizer: {
-    source: WHISPER_TINY_MULTILINGUAL_TOKENIZER,
+    source: WHISPER_TINY_MULTILINGUAL.tokenizerSource,
     bos: 50258, // FIXME: this is a placeholder and needs to be changed
     eos: 50257, // FIXME: this is a placeholder and needs to be changed
   },

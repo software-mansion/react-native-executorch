@@ -24,16 +24,9 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## Reference
 
 ```typescript
-import {
-  useTextEmbeddings,
-  ALL_MINILM_L6_V2,
-  ALL_MINILM_L6_V2_TOKENIZER,
-} from 'react-native-executorch';
+import { useTextEmbeddings, ALL_MINILM_L6_V2 } from 'react-native-executorch';
 
-const model = useTextEmbeddings({
-  modelSource: ALL_MINILM_L6_V2,
-  tokenizerSource: ALL_MINILM_L6_V2_TOKENIZER,
-});
+const model = useTextEmbeddings(ALL_MINILM_L6_V2);
 
 try {
   const embedding = await model.forward('Hello World!');
@@ -69,11 +62,7 @@ To run the model, you can use the `forward` method. It accepts one argument, whi
 ## Example
 
 ```typescript
-import {
-  useTextEmbeddings,
-  ALL_MINILM_L6_V2,
-  ALL_MINILM_L6_V2_TOKENIZER,
-} from 'react-native-executorch';
+import { useTextEmbeddings, ALL_MINILM_L6_V2 } from 'react-native-executorch';
 
 const dotProduct = (a: number[], b: number[]) =>
   a.reduce((sum, val, i) => sum + val * b[i], 0);
@@ -86,10 +75,7 @@ const cosineSimilarity = (a: number[], b: number[]) => {
 };
 
 function App() {
-  const model = useTextEmbeddings({
-    modelSource: ALL_MINILM_L6_V2,
-    tokenizerSource: ALL_MINILM_L6_V2_TOKENIZER,
-  });
+  const model = useTextEmbeddings(ALL_MINILM_L6_V2);
 
   // ...
 
@@ -113,12 +99,12 @@ function App() {
 
 ## Supported models
 
-| Model                                                                                                 | Language | Max Tokens | Embedding Dimensions | Description                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| ----------------------------------------------------------------------------------------------------- | :------: | :--------: | :------------------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)                     | English  |    254     |         384          | All-round model tuned for many use-cases. Trained on a large and diverse dataset of over 1 billion training pairs.                                                                                                                                                                                                                                                                                                            |
-| [all-mpnet-base-v2](https://huggingface.co/sentence-transformers/all-mpnet-base-v2)                   | English  |    382     |         768          | All-round model tuned for many use-cases. Trained on a large and diverse dataset of over 1 billion training pairs.                                                                                                                                                                                                                                                                                                            |
-| [multi-qa-MiniLM-L6-cos-v1](https://huggingface.co/sentence-transformers/multi-qa-MiniLM-L6-cos-v1)   | English  |    509     |         384          | This model was tuned for semantic search: Given a query/question, it can find relevant passages. It was trained on a large and diverse set of (question, answer) pairs.                                                                                                                                                                                                                                                       |
-| [multi-qa-mpnet-base-dot-v1](https://huggingface.co/sentence-transformers/multi-qa-mpnet-base-dot-v1) | English  |    510     |         768          | This model was tuned for semantic search: Given a query/question, it can find relevant passages. It was trained on a large and diverse set of (question, answer) pairs.                                                                                                                                                                                                                                                       |
+| Model                                                                                                 | Language | Max Tokens | Embedding Dimensions | Description                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ----------------------------------------------------------------------------------------------------- | :------: | :--------: | :------------------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)                     | English  |    254     |         384          | All-round model tuned for many use-cases. Trained on a large and diverse dataset of over 1 billion training pairs.                                                                                                                                                                                                                                                                                                               |
+| [all-mpnet-base-v2](https://huggingface.co/sentence-transformers/all-mpnet-base-v2)                   | English  |    382     |         768          | All-round model tuned for many use-cases. Trained on a large and diverse dataset of over 1 billion training pairs.                                                                                                                                                                                                                                                                                                               |
+| [multi-qa-MiniLM-L6-cos-v1](https://huggingface.co/sentence-transformers/multi-qa-MiniLM-L6-cos-v1)   | English  |    509     |         384          | This model was tuned for semantic search: Given a query/question, it can find relevant passages. It was trained on a large and diverse set of (question, answer) pairs.                                                                                                                                                                                                                                                          |
+| [multi-qa-mpnet-base-dot-v1](https://huggingface.co/sentence-transformers/multi-qa-mpnet-base-dot-v1) | English  |    510     |         768          | This model was tuned for semantic search: Given a query/question, it can find relevant passages. It was trained on a large and diverse set of (question, answer) pairs.                                                                                                                                                                                                                                                          |
 | [clip-vit-base-patch32-text](https://huggingface.co/openai/clip-vit-base-patch32)                     | English  |     74     |         512          | CLIP (Contrastive Language-Image Pre-Training) is a neural network trained on a variety of (image, text) pairs. CLIP allows to embed images and text into the same vector space. This allows to find similar images as well as to implement image search. This is the text encoder part of the CLIP model. To embed images checkout [clip-vit-base-patch32-image](../02-computer-vision/useImageEmbeddings.md#supported-models). |
 
 **`Max Tokens`** - the maximum number of tokens that can be processed by the model. If the input text exceeds this limit, it will be truncated.

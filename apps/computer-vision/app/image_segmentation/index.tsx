@@ -61,9 +61,7 @@ const numberToColor: number[][] = [
 ];
 
 export default function ImageSegmentationScreen() {
-  const model = useImageSegmentation({
-    modelSource: DEEPLAB_V3_RESNET50,
-  });
+  const model = useImageSegmentation(DEEPLAB_V3_RESNET50);
   const { setGlobalGenerating } = useContext(GeneratingContext);
   useEffect(() => {
     setGlobalGenerating(model.isGenerating);
