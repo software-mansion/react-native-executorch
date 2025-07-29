@@ -1,9 +1,9 @@
 PODS:
   - boost (1.84.0)
   - DoubleConversion (1.1.6)
-  - EXConstants (17.1.5):
+  - EXConstants (17.1.6):
     - ExpoModulesCore
-  - Expo (53.0.9):
+  - Expo (53.0.11):
     - DoubleConversion
     - ExpoModulesCore
     - glog
@@ -38,7 +38,7 @@ PODS:
     - ExpoModulesCore
   - ExpoKeepAwake (14.1.4):
     - ExpoModulesCore
-  - ExpoModulesCore (2.3.13):
+  - ExpoModulesCore (2.4.0):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2094,9 +2094,9 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - SocketRocket (0.7.1)
-  - sqlite3 (3.49.2):
-    - sqlite3/common (= 3.49.2)
-  - sqlite3/common (3.49.2)
+  - sqlite3 (3.50.1):
+    - sqlite3/common (= 3.50.1)
+  - sqlite3/common (3.50.1)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2370,13 +2370,13 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
-  EXConstants: a1112af878fddfe6acc0399473ac56a07ced0f47
-  Expo: a9fc723f6c8f673f0e7e036c9021772d3a1a0707
+  EXConstants: 9f310f44bfedba09087042756802040e464323c0
+  Expo: 4e8bda07d30b024b1732f87843a5349a3ecc1316
   ExpoAsset: 3bc9adb7dbbf27ae82c18ca97eb988a3ae7e73b1
   ExpoFileSystem: c36eb8155eb2381c83dda7dc210e3eec332368b6
   ExpoFont: abbb91a911eb961652c2b0a22eef801860425ed6
   ExpoKeepAwake: bf0811570c8da182bfb879169437d4de298376e7
-  ExpoModulesCore: 5d37821c36f3781dcd0ea9a393800c90eaa6259d
+  ExpoModulesCore: d431ffe83c8673d02cb38425594a5f5480fd3061
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: 84b955f7b4da8b895faf5946f73748267347c975
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
@@ -2414,7 +2414,7 @@ SPEC CHECKSUMS:
   React-logger: 8edfcedc100544791cd82692ca5a574240a16219
   React-Mapbuffer: c3f4b608e4a59dd2f6a416ef4d47a14400194468
   React-microtasksnativemodule: 054f34e9b82f02bd40f09cebd4083828b5b2beb6
-  react-native-executorch: 4ee7537b9840b13ff8ee178affba1b2c73b5dc2a
+  react-native-executorch: 9e4c26039a419f8b79c040571e80617c1114ca26
   react-native-image-picker: 8a3f16000e794f5381a7fe47bb48fd8d06741e47
   react-native-safe-area-context: 562163222d999b79a51577eda2ea8ad2c32b4d06
   React-NativeModulesApple: 2c4377e139522c3d73f5df582e4f051a838ff25e
@@ -2454,7 +2454,7 @@ SPEC CHECKSUMS:
   RNReanimated: afd6a269a47d6f13ba295c46c6c0e14e3cbd0d8a
   RNSVG: 794f269526df9ddc1f79b3d1a202b619df0368e3
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  sqlite3: 3c950dc86011117c307eb0b28c4a7bb449dce9f1
+  sqlite3: 1d85290c3321153511f6e900ede7a1608718bbd5
   Yoga: c758bfb934100bb4bf9cbaccb52557cee35e8bdf
 
 PODFILE CHECKSUM: 279fcab1b2878102b7ff10ce2dee054b43abbcea

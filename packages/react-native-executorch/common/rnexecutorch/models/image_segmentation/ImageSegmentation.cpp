@@ -15,7 +15,7 @@ ImageSegmentation::ImageSegmentation(
     const std::string &modelSource,
     std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
-  auto inputShapes = getInputShape();
+  auto inputShapes = getAllInputShapes();
   if (inputShapes.size() == 0) {
     throw std::runtime_error("Model seems to not take any input tensors.");
   }
@@ -33,13 +33,13 @@ ImageSegmentation::ImageSegmentation(
   numModelPixels = modelImageSize.area();
 }
 
-std::shared_ptr<jsi::Object>
-ImageSegmentation::forward(std::string imageSource,
-                           std::set<std::string, std::less<>> classesOfInterest,
-                           bool resize) {
-  auto [inputTensor, originalSize] = preprocess(imageSource);
+std::shared_ptr<jsi::Object> ImageSegmentation::generate(
+    std::string imageSource,
+    std::set<std::string, std::less<>> classesOfInterest, bool resize) {
+  auto [inputTensor, originalSize] =
+      imageprocessing::readImageToTensor(imageSource, getAllInputShapes()[0]);
 
-  auto forwardResult = forwardET(inputTensor);
+  auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
         "Failed to forward, error: " +
@@ -48,20 +48,6 @@ ImageSegmentation::forward(std::string imageSource,
 
   return postprocess(forwardResult->at(0).toTensor(), originalSize,
                      classesOfInterest, resize);
-}
-
-std::pair<TensorPtr, cv::Size>
-ImageSegmentation::preprocess(const std::string &imageSource) {
-  cv::Mat input = imageprocessing::readImage(imageSource);
-  cv::cvtColor(input, input, cv::COLOR_BGR2RGB);
-  cv::Size inputSize = input.size();
-
-  cv::resize(input, input, modelImageSize);
-
-  std::vector<float> inputVector = imageprocessing::colorMatToVector(input);
-  return {
-      executorch::extension::make_tensor_ptr(getInputShape()[0], inputVector),
-      inputSize};
 }
 
 std::shared_ptr<jsi::Object> ImageSegmentation::postprocess(

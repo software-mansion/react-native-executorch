@@ -15,10 +15,9 @@ class Classification : public BaseModel {
 public:
   Classification(const std::string &modelSource,
                  std::shared_ptr<react::CallInvoker> callInvoker);
-  std::unordered_map<std::string_view, float> forward(std::string imageSource);
+  std::unordered_map<std::string_view, float> generate(std::string imageSource);
 
 private:
-  TensorPtr preprocess(const std::string &imageSource);
   std::unordered_map<std::string_view, float> postprocess(const Tensor &tensor);
 
   cv::Size modelImageSize{0, 0};

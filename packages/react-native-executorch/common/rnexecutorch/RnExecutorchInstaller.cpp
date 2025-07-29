@@ -1,8 +1,14 @@
 #include "RnExecutorchInstaller.h"
 
+#include <rnexecutorch/TokenizerModule.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/models/classification/Classification.h>
+#include <rnexecutorch/models/embeddings/image/ImageEmbeddings.h>
+#include <rnexecutorch/models/embeddings/text/TextEmbeddings.h>
 #include <rnexecutorch/models/image_segmentation/ImageSegmentation.h>
+#include <rnexecutorch/models/llm/LLM.h>
+#include <rnexecutorch/models/object_detection/ObjectDetection.h>
+#include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
 
 namespace rnexecutorch {
@@ -31,5 +37,40 @@ void RnExecutorchInstaller::injectJSIBindings(
       *jsiRuntime, "loadClassification",
       RnExecutorchInstaller::loadModel<Classification>(
           jsiRuntime, jsCallInvoker, "loadClassification"));
+
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadObjectDetection",
+      RnExecutorchInstaller::loadModel<ObjectDetection>(
+          jsiRuntime, jsCallInvoker, "loadObjectDetection"));
+
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadExecutorchModule",
+      RnExecutorchInstaller::loadModel<BaseModel>(jsiRuntime, jsCallInvoker,
+                                                  "loadExecutorchModule"));
+
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadTokenizerModule",
+      RnExecutorchInstaller::loadModel<TokenizerModule>(
+          jsiRuntime, jsCallInvoker, "loadTokenizerModule"));
+
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadImageEmbeddings",
+      RnExecutorchInstaller::loadModel<ImageEmbeddings>(
+          jsiRuntime, jsCallInvoker, "loadImageEmbeddings"));
+
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadTextEmbeddings",
+      RnExecutorchInstaller::loadModel<TextEmbeddings>(
+          jsiRuntime, jsCallInvoker, "loadTextEmbeddings"));
+
+  jsiRuntime->global().setProperty(*jsiRuntime, "loadLLM",
+                                   RnExecutorchInstaller::loadModel<LLM>(
+                                       jsiRuntime, jsCallInvoker, "loadLLM"));
+
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadSpeechToText",
+      RnExecutorchInstaller::loadModel<SpeechToText>(jsiRuntime, jsCallInvoker,
+                                                     "loadSpeechToText"));
 }
+
 } // namespace rnexecutorch

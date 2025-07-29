@@ -1,18 +1,28 @@
-import { TextEmbeddingsNativeModule } from '../../native/RnExecutorchModules';
 import { ResourceSource } from '../../types/common';
-import { BaseModule } from '../BaseModule';
+import { ResourceFetcher } from '../../utils/ResourceFetcher';
+import { BaseNonStaticModule } from '../BaseNonStaticModule';
 
-export class TextEmbeddingsModule extends BaseModule {
-  protected static override nativeModule = TextEmbeddingsNativeModule;
-
-  static override async load(
+export class TextEmbeddingsModule extends BaseNonStaticModule {
+  async load(
     modelSource: ResourceSource,
-    tokenizerSource: ResourceSource
-  ) {
-    await super.load(modelSource, tokenizerSource);
+    tokenizerSource: ResourceSource,
+    onDownloadProgressCallback: (_: number) => void = () => {}
+  ): Promise<void> {
+    const paths = await ResourceFetcher.fetch(
+      onDownloadProgressCallback,
+      modelSource,
+      tokenizerSource
+    );
+    if (paths === null || paths.length < 2) {
+      throw new Error('Download interrupted.');
+    }
+    this.nativeModule = global.loadTextEmbeddings(
+      paths[0] || '',
+      paths[1] || ''
+    );
   }
 
-  static override async forward(input: string): Promise<number[]> {
-    return this.nativeModule.forward(input);
+  async forward(input: string): Promise<Float32Array> {
+    return new Float32Array(await this.nativeModule.generate(input));
   }
 }

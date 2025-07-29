@@ -22,11 +22,10 @@ public:
   ImageSegmentation(const std::string &modelSource,
                     std::shared_ptr<react::CallInvoker> callInvoker);
   std::shared_ptr<jsi::Object>
-  forward(std::string imageSource,
-          std::set<std::string, std::less<>> classesOfInterest, bool resize);
+  generate(std::string imageSource,
+           std::set<std::string, std::less<>> classesOfInterest, bool resize);
 
 private:
-  std::pair<TensorPtr, cv::Size> preprocess(const std::string &imageSource);
   std::shared_ptr<jsi::Object>
   postprocess(const Tensor &tensor, cv::Size originalSize,
               std::set<std::string, std::less<>> classesOfInterest,

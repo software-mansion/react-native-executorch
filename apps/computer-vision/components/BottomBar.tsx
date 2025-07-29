@@ -1,5 +1,6 @@
 import ColorPalette from '../colors';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import DeviceInfo from 'react-native-device-info';
 import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
 
 export const BottomBar = ({
@@ -15,8 +16,16 @@ export const BottomBar = ({
         <TouchableOpacity onPress={() => handleCameraPress(false)}>
           <FontAwesome name="photo" size={24} color={ColorPalette.primary} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => handleCameraPress(true)}>
-          <FontAwesome name="camera" size={24} color={ColorPalette.primary} />
+        <TouchableOpacity
+          onPress={() =>
+            !DeviceInfo.isEmulatorSync() && handleCameraPress(true)
+          }
+        >
+          <FontAwesome
+            name="camera"
+            size={24}
+            color={DeviceInfo.isEmulatorSync() ? '#888' : ColorPalette.primary}
+          />
         </TouchableOpacity>
       </View>
       <TouchableOpacity style={styles.button} onPress={runForward}>

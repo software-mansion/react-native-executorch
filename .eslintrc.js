@@ -12,6 +12,7 @@ module.exports = {
     '@react-native',
     'plugin:@cspell/recommended',
     'plugin:prettier/recommended',
+    'plugin:markdown/recommended-legacy',
   ],
   rules: {
     'react/react-in-jsx-scope': 'off',
@@ -33,6 +34,28 @@ module.exports = {
     ],
     'camelcase': 'error',
   },
-  plugins: ['prettier'],
+  plugins: ['prettier', 'markdown'],
+  overrides: [
+    {
+      files: ['packages/react-native-executorch/src/**/*.{js,jsx,ts,tsx}'],
+      rules: {
+        'no-console': 'warn',
+      },
+    },
+    {
+      files: ['**/*.md'],
+      processor: 'markdown/markdown',
+    },
+    {
+      files: ['**/*.md/*.{ts,tsx}'],
+      rules: {
+        'no-console': 'off',
+        'react-hooks/rules-of-hooks': 'off',
+        'react/jsx-no-undef': 'off',
+        '@typescript-eslint/no-unused-vars': 'warn',
+        'camelcase': 'warn',
+      },
+    },
+  ],
   ignorePatterns: ['node_modules/', 'lib/'],
 };

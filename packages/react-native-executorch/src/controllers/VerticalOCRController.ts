@@ -54,7 +54,7 @@ export class VerticalOCRController {
       this.isReady = false;
       this.isReadyCallback(this.isReady);
 
-      const paths = await ResourceFetcher.fetchMultipleResources(
+      const paths = await ResourceFetcher.fetch(
         this.modelDownloadProgressCallback,
         detectorSources.detectorLarge,
         detectorSources.detectorNarrow,
@@ -62,7 +62,9 @@ export class VerticalOCRController {
           ? recognizerSources.recognizerSmall
           : recognizerSources.recognizerLarge
       );
-
+      if (paths === null || paths.length < 3) {
+        throw new Error('Download interrupted');
+      }
       await this.ocrNativeModule.loadModule(
         paths[0]!,
         paths[1]!,

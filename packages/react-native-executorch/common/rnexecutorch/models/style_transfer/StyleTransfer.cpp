@@ -1,9 +1,6 @@
 #include "StyleTransfer.h"
 
-#include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
-
-#include <span>
 
 #include <executorch/extension/tensor/tensor.h>
 #include <opencv2/opencv.hpp>
@@ -16,7 +13,7 @@ using executorch::runtime::Error;
 StyleTransfer::StyleTransfer(const std::string &modelSource,
                              std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
-  auto inputShapes = getInputShape();
+  auto inputShapes = getAllInputShapes();
   if (inputShapes.size() == 0) {
     throw std::runtime_error("Model seems to not take any input tensors.");
   }
@@ -33,17 +30,6 @@ StyleTransfer::StyleTransfer(const std::string &modelSource,
                             modelInputShape[modelInputShape.size() - 2]);
 }
 
-std::pair<TensorPtr, cv::Size>
-StyleTransfer::preprocess(const std::string &imageSource) {
-  cv::Mat image = imageprocessing::readImage(imageSource);
-  cv::cvtColor(image, image, cv::COLOR_BGR2RGB);
-  auto originalSize = image.size();
-  cv::resize(image, image, modelImageSize);
-
-  return {imageprocessing::getTensorFromMatrix(getInputShape()[0], image),
-          originalSize};
-}
-
 std::string StyleTransfer::postprocess(const Tensor &tensor,
                                        cv::Size originalSize) {
   cv::Mat mat = imageprocessing::getMatrixFromTensor(modelImageSize, tensor);
@@ -52,10 +38,11 @@ std::string StyleTransfer::postprocess(const Tensor &tensor,
   return imageprocessing::saveToTempFile(mat);
 }
 
-std::string StyleTransfer::forward(std::string imageSource) {
-  auto [tensor, originalSize] = preprocess(imageSource);
+std::string StyleTransfer::generate(std::string imageSource) {
+  auto [inputTensor, originalSize] =
+      imageprocessing::readImageToTensor(imageSource, getAllInputShapes()[0]);
 
-  auto forwardResult = forwardET(tensor);
+  auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
         "Failed to forward, error: " +

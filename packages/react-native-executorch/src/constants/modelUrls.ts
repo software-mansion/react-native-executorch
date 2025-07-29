@@ -108,18 +108,44 @@ export const DETECTOR_CRAFT_320 = `${BASE_URL_PREFIX}-detector-craft/${VERSION_T
 // Image segmentation
 export const DEEPLAB_V3_RESNET50 = `${BASE_URL_PREFIX}-deeplab-v3/${VERSION_TAG}/xnnpack/deeplabV3_xnnpack_fp32.pte`;
 
+// Image Embeddings
+export const CLIP_VIT_BASE_PATCH32_IMAGE_MODEL =
+  'https://huggingface.co/software-mansion/react-native-executorch-clip-vit-base-patch32/resolve/v0.5.0/clip-vit-base-patch32-vision_xnnpack.pte';
+
 // Text Embeddings
-export const ALL_MINILM_L6_V2 = `${BASE_URL_PREFIX}-all-MiniLM-L6-v2/${VERSION_TAG}/all-MiniLM-L6-v2_xnnpack.pte`;
-export const ALL_MINILM_L6_V2_TOKENIZER = `${BASE_URL_PREFIX}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`;
+export const ALL_MINILM_L6_V2 =
+  'https://huggingface.co/software-mansion/react-native-executorch-all-MiniLM-L6-v2/resolve/v0.5.0/all-MiniLM-L6-v2_xnnpack.pte';
+export const ALL_MINILM_L6_V2_TOKENIZER =
+  'https://huggingface.co/software-mansion/react-native-executorch-all-MiniLM-L6-v2/resolve/v0.5.0/tokenizer.json';
 
-export const ALL_MPNET_BASE_V2 = `${BASE_URL_PREFIX}-all-mpnet-base-v2/${VERSION_TAG}/all-mpnet-base-v2_xnnpack.pte`;
-export const ALL_MPNET_BASE_V2_TOKENIZER = `${BASE_URL_PREFIX}-all-mpnet-base-v2/${VERSION_TAG}/tokenizer.json`;
+export const ALL_MPNET_BASE_V2 =
+  'https://huggingface.co/software-mansion/react-native-executorch-all-mpnet-base-v2/resolve/v0.5.0/all-mpnet-base-v2_xnnpack.pte';
+export const ALL_MPNET_BASE_V2_TOKENIZER =
+  'https://huggingface.co/software-mansion/react-native-executorch-all-mpnet-base-v2/resolve/v0.5.0/tokenizer.json';
 
-export const MULTI_QA_MINILM_L6_COS_V1 = `${BASE_URL_PREFIX}-multi-qa-MiniLM-L6-cos-v1/${VERSION_TAG}/multi-qa-MiniLM-L6-cos-v1_xnnpack.pte`;
-export const MULTI_QA_MINILM_L6_COS_V1_TOKENIZER = `${BASE_URL_PREFIX}-multi-qa-MiniLM-L6-cos-v1/${VERSION_TAG}/tokenizer.json`;
+export const MULTI_QA_MINILM_L6_COS_V1 =
+  'https://huggingface.co/software-mansion/react-native-executorch-multi-qa-MiniLM-L6-cos-v1/resolve/v0.5.0/multi-qa-MiniLM-L6-cos-v1_xnnpack.pte';
+export const MULTI_QA_MINILM_L6_COS_V1_TOKENIZER =
+  'https://huggingface.co/software-mansion/react-native-executorch-multi-qa-MiniLM-L6-cos-v1/resolve/v0.5.0/tokenizer.json';
 
-export const MULTI_QA_MPNET_BASE_DOT_V1 = `${BASE_URL_PREFIX}-multi-qa-mpnet-base-dot-v1/${VERSION_TAG}/multi-qa-mpnet-base-dot-v1_xnnpack.pte`;
-export const MULTI_QA_MPNET_BASE_DOT_V1_TOKENIZER = `${BASE_URL_PREFIX}-multi-qa-mpnet-base-dot-v1/${VERSION_TAG}/tokenizer.json`;
+export const MULTI_QA_MPNET_BASE_DOT_V1 =
+  'https://huggingface.co/software-mansion/react-native-executorch-multi-qa-mpnet-base-dot-v1/resolve/v0.5.0/multi-qa-mpnet-base-dot-v1_xnnpack.pte';
+export const MULTI_QA_MPNET_BASE_DOT_V1_TOKENIZER =
+  'https://huggingface.co/software-mansion/react-native-executorch-multi-qa-mpnet-base-dot-v1/resolve/v0.5.0/tokenizer.json';
+
+export const CLIP_VIT_BASE_PATCH32_TEXT_MODEL =
+  'https://huggingface.co/software-mansion/react-native-executorch-clip-vit-base-patch32/resolve/v0.5.0/clip-vit-base-patch32-text_xnnpack.pte';
+export const CLIP_VIT_BASE_PATCH32_TEXT_TOKENIZER =
+  'https://huggingface.co/software-mansion/react-native-executorch-clip-vit-base-patch32/resolve/v0.5.0/tokenizer.json';
+
+export const CLIP_VIT_BASE_PATCH32_TEXT = {
+  modelSource: CLIP_VIT_BASE_PATCH32_TEXT_MODEL,
+  tokenizerSource: CLIP_VIT_BASE_PATCH32_TEXT_TOKENIZER,
+};
+
+export const CLIP_VIT_BASE_PATCH32_IMAGE = {
+  modelSource: CLIP_VIT_BASE_PATCH32_IMAGE_MODEL,
+};
 
 // Backward compatibility
 export const LLAMA3_2_3B_URL = LLAMA3_2_3B;

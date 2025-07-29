@@ -7,13 +7,19 @@ export class BaseModule {
   static onDownloadProgressCallback: (downloadProgress: number) => void =
     () => {};
 
-  static async load(...sources: ResourceSource[]): Promise<void> {
+  static async load(
+    sources: ResourceSource[],
+    ...loadArgs: any[] // this can be used in derived classes to pass extra args to load method
+  ): Promise<void> {
     try {
-      const paths = await ResourceFetcher.fetchMultipleResources(
+      const paths = await ResourceFetcher.fetch(
         this.onDownloadProgressCallback,
         ...sources
       );
-      await this.nativeModule.loadModule(...paths);
+      if (paths === null || paths.length < sources.length) {
+        throw new Error('Download interrupted.');
+      }
+      await this.nativeModule.loadModule(...paths, ...loadArgs);
     } catch (error) {
       throw new Error(getError(error));
     }

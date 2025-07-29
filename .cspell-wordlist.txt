@@ -51,3 +51,7 @@ MINILM
 MPNET
 coreml
 mobilenetv
+QINT
+FNUZ
+wordlist
+jitpack

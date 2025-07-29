@@ -16,6 +16,9 @@ pre-commit:
     format-kotlin:
       glob: '*.{kt}'
       run: ktlint -F {staged_files} && git add {staged_files}
+    lint-docs:
+      glob: '*.{md}'
+      run: npx eslint {staged_files}
     format-other:
       glob: '*.{json,yml,watchmanconfig,md,css}'
       run: npx prettier --write {staged_files} && git add {staged_files}

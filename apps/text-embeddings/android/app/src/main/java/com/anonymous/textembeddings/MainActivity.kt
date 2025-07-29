@@ -27,8 +27,8 @@ class MainActivity : ReactActivity() {
    * Returns the instance of the [ReactActivityDelegate]. We use [DefaultReactActivityDelegate]
    * which allows you to enable New Architecture with a single boolean flags [fabricEnabled]
    */
-  override fun createReactActivityDelegate(): ReactActivityDelegate =
-    ReactActivityDelegateWrapper(
+  override fun createReactActivityDelegate(): ReactActivityDelegate {
+    return ReactActivityDelegateWrapper(
       this,
       BuildConfig.IS_NEW_ARCHITECTURE_ENABLED,
       object : DefaultReactActivityDelegate(
@@ -37,6 +37,7 @@ class MainActivity : ReactActivity() {
         fabricEnabled,
       ) {},
     )
+  }
 
   /**
    * Align the back button behavior with Android S

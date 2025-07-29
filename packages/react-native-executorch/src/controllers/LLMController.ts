@@ -1,4 +1,3 @@
-import { EventSubscription } from 'react-native';
 import { ResourceSource } from '../types/common';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { ETError, getError } from '../Error';
@@ -12,21 +11,22 @@ import {
   SPECIAL_TOKENS,
   ToolsConfig,
 } from '../types/llm';
-import { LLMNativeModule } from '../native/RnExecutorchModules';
 import { parseToolCall } from '../utils/llm';
+import { Logger } from '../common/Logger';
 
 export class LLMController {
-  private nativeModule: typeof LLMNativeModule;
+  private nativeModule: any;
   private chatConfig: ChatConfig = DEFAULT_CHAT_CONFIG;
   private toolsConfig: ToolsConfig | undefined;
   private tokenizerConfig: any;
-  private onToken: EventSubscription | null = null;
+  private onToken?: (token: string) => void;
   private _response = '';
   private _isReady = false;
   private _isGenerating = false;
   private _messageHistory: Message[] = [];
 
   // User callbacks
+  private tokenCallback: (token: string) => void;
   private responseCallback: (response: string) => void;
   private messageHistoryCallback: (messageHistory: Message[]) => void;
   private isReadyCallback: (isReady: boolean) => void;
@@ -36,18 +36,28 @@ export class LLMController {
     | undefined;
 
   constructor({
+    tokenCallback,
     responseCallback,
     messageHistoryCallback,
     isReadyCallback,
     isGeneratingCallback,
     onDownloadProgressCallback,
   }: {
+    tokenCallback?: (token: string) => void;
     responseCallback?: (response: string) => void;
     messageHistoryCallback?: (messageHistory: Message[]) => void;
     isReadyCallback?: (isReady: boolean) => void;
     isGeneratingCallback?: (isGenerating: boolean) => void;
     onDownloadProgressCallback?: (downloadProgress: number) => void;
   }) {
+    if (responseCallback !== undefined) {
+      Logger.warn(
+        'Passing response callback is deprecated and will be removed in 0.6.0'
+      );
+    }
+    this.tokenCallback = (token) => {
+      tokenCallback?.(token);
+    };
     this.responseCallback = (response) => {
       this._response = response;
       responseCallback?.(response);
@@ -66,8 +76,6 @@ export class LLMController {
     };
 
     this.onDownloadProgressCallback = onDownloadProgressCallback;
-
-    this.nativeModule = LLMNativeModule;
   }
 
   public get response() {
@@ -99,31 +107,45 @@ export class LLMController {
     this.isReadyCallback(false);
 
     try {
-      const tokenizerFileUri = await ResourceFetcher.fetch(tokenizerSource);
-      const tokenizerConfigFileUri = await ResourceFetcher.fetch(
-        tokenizerConfigSource
+      const paths = await ResourceFetcher.fetch(
+        this.onDownloadProgressCallback,
+        tokenizerSource,
+        tokenizerConfigSource,
+        modelSource
       );
+      if (paths === null || paths?.length < 3) {
+        throw new Error('Download interrupted!');
+      }
+      const tokenizerFileUri = paths[0]!;
+      const tokenizerConfigFileUri = paths[1]!;
+      const modelFileUri = paths[2]!;
       this.tokenizerConfig = JSON.parse(
-        await readAsStringAsync('file://' + tokenizerConfigFileUri)
+        await readAsStringAsync('file://' + tokenizerConfigFileUri!)
       );
-
-      const modelFileUri = await ResourceFetcher.fetch(
-        modelSource,
-        this.onDownloadProgressCallback
-      );
-
-      await this.nativeModule.loadLLM(modelFileUri, tokenizerFileUri);
+      this.nativeModule = global.loadLLM(modelFileUri, tokenizerFileUri);
       this.isReadyCallback(true);
-      this.onToken = this.nativeModule.onToken((data: string | undefined) => {
-        if (!data) {
+      this.onToken = (data: string) => {
+        if (
+          !data ||
+          (SPECIAL_TOKENS.EOS_TOKEN in this.tokenizerConfig &&
+            data === this.tokenizerConfig.eos_token) ||
+          (SPECIAL_TOKENS.PAD_TOKEN in this.tokenizerConfig &&
+            data === this.tokenizerConfig.pad_token)
+        ) {
           return;
         }
+
+        this.tokenCallback(data);
         this.responseCallback(this._response + data);
-      });
+      };
     } catch (e) {
       this.isReadyCallback(false);
       throw new Error(getError(e));
     }
+  }
+
+  public setTokenCallback(tokenCallback: (token: string) => void) {
+    this.tokenCallback = tokenCallback;
   }
 
   public configure({
@@ -149,9 +171,8 @@ export class LLMController {
           'You cannot delete the model now. You need to interrupt first.'
       );
     }
-    this.onToken?.remove();
-    this.onToken = null;
-    this.nativeModule.releaseResources();
+    this.onToken = () => {};
+    this.nativeModule.unload();
     this.isReadyCallback(false);
     this.isGeneratingCallback(false);
   }
@@ -166,7 +187,7 @@ export class LLMController {
     try {
       this.responseCallback('');
       this.isGeneratingCallback(true);
-      await this.nativeModule.forward(input);
+      await this.nativeModule.generate(input, this.onToken);
     } catch (e) {
       throw new Error(getError(e));
     } finally {
@@ -186,7 +207,7 @@ export class LLMController {
       throw new Error(`Empty 'messages' array!`);
     }
     if (messages[0] && messages[0].role !== 'system') {
-      console.warn(
+      Logger.warn(
         `You are not providing system prompt. You can pass it in the first message using { role: 'system', content: YOUR_PROMPT }. Otherwise prompt from your model's chat template will be used.`
       );
     }
@@ -200,15 +221,6 @@ export class LLMController {
     );
 
     await this.forward(renderedChat);
-
-    if (!this._response) {
-      return;
-    }
-
-    const cleanedResponse = this._response
-      .replaceAll(this.tokenizerConfig.eos_token, '')
-      .replaceAll(this.tokenizerConfig.pad_token, '');
-    this.responseCallback(cleanedResponse);
   }
 
   public async sendMessage(message: string) {
@@ -225,9 +237,6 @@ export class LLMController {
     await this.generate(messageHistoryWithPrompt, this.toolsConfig?.tools);
 
     if (!this.toolsConfig || this.toolsConfig.displayToolCalls) {
-      this.responseCallback(
-        this._response.replace(this.tokenizerConfig.eos_token, '')
-      );
       this.messageHistoryCallback([
         ...this._messageHistory,
         { content: this._response, role: 'assistant' },
@@ -273,10 +282,9 @@ export class LLMController {
     const template = new Template(tokenizerConfig.chat_template);
 
     const specialTokens = Object.fromEntries(
-      SPECIAL_TOKENS.filter((key) => key in tokenizerConfig).map((key) => [
-        key,
-        tokenizerConfig[key],
-      ])
+      Object.keys(SPECIAL_TOKENS)
+        .filter((key) => key in tokenizerConfig)
+        .map((key) => [key, tokenizerConfig[key]])
     );
 
     const result = template.render({

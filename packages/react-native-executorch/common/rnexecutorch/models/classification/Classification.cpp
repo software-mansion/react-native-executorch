@@ -11,7 +11,7 @@ namespace rnexecutorch {
 Classification::Classification(const std::string &modelSource,
                                std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
-  auto inputShapes = getInputShape();
+  auto inputShapes = getAllInputShapes();
   if (inputShapes.size() == 0) {
     throw std::runtime_error("Model seems to not take any input tensors.");
   }
@@ -29,10 +29,11 @@ Classification::Classification(const std::string &modelSource,
 }
 
 std::unordered_map<std::string_view, float>
-Classification::forward(std::string imageSource) {
-  auto tensor = preprocess(imageSource);
-
-  auto forwardResult = forwardET(tensor);
+Classification::generate(std::string imageSource) {
+  auto inputTensor =
+      imageprocessing::readImageToTensor(imageSource, getAllInputShapes()[0])
+          .first;
+  auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
         "Failed to forward, error: " +
@@ -40,14 +41,6 @@ Classification::forward(std::string imageSource) {
   }
 
   return postprocess(forwardResult->at(0).toTensor());
-}
-
-TensorPtr Classification::preprocess(const std::string &imageSource) {
-  cv::Mat image = imageprocessing::readImage(imageSource);
-  cv::cvtColor(image, image, cv::COLOR_BGR2RGB);
-  cv::resize(image, image, modelImageSize);
-
-  return imageprocessing::getTensorFromMatrix(getInputShape()[0], image);
 }
 
 std::unordered_map<std::string_view, float>
