@@ -499,7 +499,7 @@ TEST(LogFunctionTest, LoggingWithNonDefaultLogSize) {
   EXPECT_NO_THROW(log<sizeBiggerThanDefault>(LOG_LEVEL::Info, testString));
 }
 
-TEST(LogFunctionTest, LoggingMoreThatOneElement) {
+TEST(LogFunctionTest, LoggingMoreThanOneElement) {
   constexpr auto testStringLiteral = "Test123";
   const auto testVector = std::vector<int>{1, 2, 3, 4};
   const auto testPair = std::pair<int, double>(1, 2.0);
