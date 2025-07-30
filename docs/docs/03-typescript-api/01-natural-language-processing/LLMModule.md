@@ -110,7 +110,7 @@ Then, to load the model, use the `load` method. It accepts an object with the fo
 
 **`tokenizerConfigSource`** - URL to the JSON file which contains the tokenizer config.
 
-**`onDownloadProgressCallback`** - (Optional) Function that will be called on download progress.
+**`onDownloadProgressCallback`** - (Optional) Function called on download progress.
 
 This method returns a promise, which can resolve to an error or void. It only works in managed chat (i.e. when you use `sendMessage`)
 
