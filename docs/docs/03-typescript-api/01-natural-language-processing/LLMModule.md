@@ -35,7 +35,7 @@ await llm.load({
 // Running the model
 await llm.sendMessage('Hello, World!');
 
-// Interrupting the model (to actually interrupt the generation it would have to be called when sendMessage or forward is running)
+// Interrupting the model (to actually interrupt the generation it has to be called when sendMessage or forward is running)
 llm.interrupt();
 
 // Deleting the model from memory
