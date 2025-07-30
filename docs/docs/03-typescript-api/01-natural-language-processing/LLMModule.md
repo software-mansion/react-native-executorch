@@ -116,7 +116,7 @@ This method returns a promise, which can resolve to an error or void. It only wo
 
 ## Listening for download progress
 
-To subscribe to the download progress event, you can pass the `onDownloadProgressCallback` function to the `load` method. This function will be called whenever the download progress changes.
+To subscribe to the download progress event, you can pass the `onDownloadProgressCallback` function to the `load` method. This function is called whenever the download progress changes.
 
 ## Running the model
 
