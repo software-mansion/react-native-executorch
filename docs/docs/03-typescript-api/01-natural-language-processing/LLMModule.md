@@ -98,7 +98,7 @@ To create a new instance of LLMModule, use the constructor with optional callbac
 
 **`tokenCallback`** - (Optional) Function that will be called on every generated token and will receive this token.
 
-**`responseCallback`** - (Optional) Function that will be called on every generated token and receive entire response, including this token. [**DEPRECATED** - consider using `tokenCallback`]
+**`responseCallback`** - (Optional) Function that will be called on every generated token and will receive entire response, including this token. [**DEPRECATED** - consider using `tokenCallback`]
 
 **`messageHistoryCallback`** - (Optional) Function that will be called on every finished message. Returns entire message history.
 
