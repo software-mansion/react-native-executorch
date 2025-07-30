@@ -60,7 +60,6 @@ export const useSpeechToText = ({
         isReadyCallback: setIsReady,
         isGeneratingCallback: setIsGenerating,
         onErrorCallback: setError,
-        modelDownloadProgressCallback: setDownloadProgress,
       }),
     []
   );
@@ -71,12 +70,13 @@ export const useSpeechToText = ({
 
   useEffect(() => {
     const loadModel = async () => {
-      await model.loadModel(
+      await model.load({
         modelName,
         encoderSource,
         decoderSource,
-        tokenizerSource
-      );
+        tokenizerSource,
+        onDownloadProgressCallback: setDownloadProgress,
+      });
     };
     if (!preventLoad) {
       loadModel();
