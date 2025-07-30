@@ -10,7 +10,7 @@ namespace rnexecutorch::numerical {
 
 void softmax(std::span<float> input) {
 
-  if (input.empty()) {
+  if (input.empty()) [[unlikely]] {
     return;
   }
 
@@ -29,7 +29,7 @@ void softmax(std::span<float> input) {
 }
 
 void normalize(std::span<float> input) {
-  if (input.empty()) {
+  if (input.empty()) [[unlikely]] {
     return;
   }
 
@@ -37,7 +37,7 @@ void normalize(std::span<float> input) {
                                              std::begin(input), 0.0F);
 
   constexpr auto epsilon = std::numeric_limits<float>::epsilon();
-  if (squaredSum < epsilon) {
+  if (squaredSum < epsilon) [[unlikely]] {
     return;
   }
 
@@ -51,7 +51,7 @@ void normalize(std::span<float> input) {
 std::vector<float> meanPooling(std::span<const float> modelOutput,
                                std::span<const int64_t> attnMask) {
 
-  if (attnMask.empty() || modelOutput.size() % attnMask.size() != 0) {
+  if (attnMask.empty() || modelOutput.size() % attnMask.size() != 0) [[unlikely]] {
     throw std::invalid_argument(
         "Invalid dimensions for mean pooling, expected model output size to be "
         "divisable by the size of attention mask but got size: " +
@@ -64,7 +64,7 @@ std::vector<float> meanPooling(std::span<const float> modelOutput,
 
   auto maskSum = std::reduce(attnMask.begin(), attnMask.end());
   std::vector<float> result(embeddingDim, 0.0F);
-  if (maskSum == 0LL) {
+  if (maskSum == 0LL) [[unlikely]] {
     return result;
   }
 
