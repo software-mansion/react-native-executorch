@@ -9,7 +9,7 @@
 - [ ] Bug fix (change which fixes an issue)
 - [ ] New feature (change which adds functionality)
 - [ ] Documentation update (improves or adds clarity to existing documentation)
-- [ ] Other (new test cases, code style improvements etc.)
+- [ ] Other (chores, tests, code style improvements etc.)
 
 ### Tested on
 - [ ] iOS
