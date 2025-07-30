@@ -102,7 +102,7 @@ To create a new instance of LLMModule, use the constructor with optional callbac
 
 **`messageHistoryCallback`** - (Optional) Function that will be called on every finished message. Returns the entire message history.
 
-Then, to load the model, use the `load` method. It accepts object with following fields:
+Then, to load the model, use the `load` method. It accepts an object with the following fields:
 
 **`modelSource`** - A string that specifies the location of the model binary.
 
