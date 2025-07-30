@@ -45,7 +45,6 @@ TEST(NormalizeTests, NormalizationOfExtremelySmallValues) {
 }
 
 TEST(MeanPoolingTests, MeanPoolingBasic) {
-  // Create vectors to initialize spans
   const std::vector<float> modelOutputVec = {1.0f, 2.0f, 3.0f,
                                              4.0f, 5.0f, 6.0f};
   const std::vector<int64_t> attnMaskVec = {1, 1, 0};
@@ -59,7 +58,6 @@ TEST(MeanPoolingTests, MeanPoolingBasic) {
 }
 
 TEST(MeanPoolingTests, MeanPoolingWithZeroAttentionMask) {
-  // Create vectors to initialize spans
   const std::vector<float> modelOutputVec = {1.0f, 2.0f, 3.0f,
                                              4.0f, 5.0f, 6.0f};
   const std::vector<int64_t> attnMaskVec = {0, 0, 0};
