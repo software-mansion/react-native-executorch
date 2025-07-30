@@ -96,11 +96,11 @@ type LLMTool = Object;
 
 To create a new instance of LLMModule, use the constructor with optional callbacks:
 
-**`tokenCallback`** - (Optional) Function that will be called on every generated token and will receive this token.
+**`tokenCallback`** - (Optional) A function that will be called on every generated token with that token as its only argument.
 
-**`responseCallback`** - (Optional) Function that will be called on every generated token and will receive entire response, including this token. [**DEPRECATED** - consider using `tokenCallback`]
+**`responseCallback`** - (Optional) A function that will be called on every generated token and receives the entire response, including this token. [**DEPRECATED** - consider using `tokenCallback`]
 
-**`messageHistoryCallback`** - (Optional) Function that will be called on every finished message. Returns the entire message history.
+**`messageHistoryCallback`** - (Optional) Function called on every finished message. Returns the entire message history.
 
 Then, to load the model, use the `load` method. It accepts an object with the following fields:
 
