@@ -128,7 +128,7 @@ If you need raw model, without any wrappers, you can use `forward`. It provides 
 
 ## Listening for generated tokens
 
-To subscribe to the token generation event, you can pass `tokenCallback` or `messageHistoryCallback` functions to the constructor. `tokenCallback` is called on every token and contains only the most recent token and `messageHistoryCallback` is called whenever model finishes generation and contains all message history including user's and model's last messages.
+To subscribe to the token generation event, you can pass `tokenCallback` or `messageHistoryCallback` functions to the constructor. `tokenCallback` is called on every token and contains only the most recent token. `messageHistoryCallback` is called whenever model finishes generation and contains all message history including user's and model's last messages.
 
 ## Interrupting the model
 
