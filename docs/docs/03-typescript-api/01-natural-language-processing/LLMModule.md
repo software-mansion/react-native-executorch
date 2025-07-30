@@ -100,7 +100,7 @@ To create a new instance of LLMModule, use the constructor with optional callbac
 
 **`responseCallback`** - (Optional) A function that will be called on every generated token and receives the entire response, including this token. [**DEPRECATED** - consider using `tokenCallback`]
 
-**`messageHistoryCallback`** - (Optional) Function called on every finished message. Returns the entire message history.
+**`messageHistoryCallback`** - (Optional) A function called on every finished message. Returns the entire message history.
 
 Then, to load the model, use the `load` method. It accepts an object with the following fields:
 
