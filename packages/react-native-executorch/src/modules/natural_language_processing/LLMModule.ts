@@ -9,18 +9,15 @@ export class LLMModule {
     tokenCallback,
     responseCallback,
     messageHistoryCallback,
-    onDownloadProgressCallback,
   }: {
     tokenCallback?: (token: string) => void;
     responseCallback?: (response: string) => void;
     messageHistoryCallback?: (messageHistory: Message[]) => void;
-    onDownloadProgressCallback?: (_downloadProgress: number) => void;
   } = {}) {
     this.controller = new LLMController({
       tokenCallback,
       responseCallback,
       messageHistoryCallback,
-      onDownloadProgressCallback,
     });
   }
 
@@ -28,15 +25,18 @@ export class LLMModule {
     modelSource,
     tokenizerSource,
     tokenizerConfigSource,
+    onDownloadProgressCallback,
   }: {
     modelSource: ResourceSource;
     tokenizerSource: ResourceSource;
     tokenizerConfigSource: ResourceSource;
+    onDownloadProgressCallback?: (_downloadProgress: number) => void;
   }) {
     await this.controller.load({
       modelSource,
       tokenizerSource,
       tokenizerConfigSource,
+      onDownloadProgressCallback,
     });
   }
 

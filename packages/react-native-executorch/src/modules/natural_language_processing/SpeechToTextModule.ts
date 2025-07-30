@@ -8,13 +8,11 @@ export class SpeechToTextModule {
 
   constructor({
     transcribeCallback,
-    modelDownloadProgressCallback,
     overlapSeconds,
     windowSize,
     streamingConfig,
   }: {
-    transcribeCallback: (sequence: string) => void;
-    modelDownloadProgressCallback?: (downloadProgress: number) => void;
+    transcribeCallback?: (sequence: string) => void;
     overlapSeconds?: ConstructorParameters<
       typeof SpeechToTextController
     >['0']['overlapSeconds'];
@@ -24,28 +22,35 @@ export class SpeechToTextModule {
     streamingConfig?: ConstructorParameters<
       typeof SpeechToTextController
     >['0']['streamingConfig'];
-  }) {
+  } = {}) {
     this.module = new SpeechToTextController({
-      transcribeCallback,
-      modelDownloadProgressCallback,
+      transcribeCallback: transcribeCallback || (() => {}),
       overlapSeconds,
       windowSize,
       streamingConfig,
     });
   }
 
-  async load(
-    modelName: AvailableModels,
-    encoderSource?: ResourceSource,
-    decoderSource?: ResourceSource,
-    tokenizerSource?: ResourceSource
-  ) {
-    await this.module.loadModel(
-      (modelName = modelName),
-      (encoderSource = encoderSource),
-      (decoderSource = decoderSource),
-      (tokenizerSource = tokenizerSource)
-    );
+  async load({
+    modelName,
+    encoderSource,
+    decoderSource,
+    tokenizerSource,
+    onDownloadProgressCallback,
+  }: {
+    modelName: AvailableModels;
+    encoderSource?: ResourceSource;
+    decoderSource?: ResourceSource;
+    tokenizerSource?: ResourceSource;
+    onDownloadProgressCallback?: (downloadProgress: number) => void;
+  }) {
+    await this.module.load({
+      modelName,
+      encoderSource,
+      decoderSource,
+      tokenizerSource,
+      onDownloadProgressCallback,
+    });
   }
 
   configureStreaming(
