@@ -31,9 +31,6 @@ export class LLMController {
   private messageHistoryCallback: (messageHistory: Message[]) => void;
   private isReadyCallback: (isReady: boolean) => void;
   private isGeneratingCallback: (isGenerating: boolean) => void;
-  private onDownloadProgressCallback:
-    | ((downloadProgress: number) => void)
-    | undefined;
 
   constructor({
     tokenCallback,
@@ -41,14 +38,12 @@ export class LLMController {
     messageHistoryCallback,
     isReadyCallback,
     isGeneratingCallback,
-    onDownloadProgressCallback,
   }: {
     tokenCallback?: (token: string) => void;
     responseCallback?: (response: string) => void;
     messageHistoryCallback?: (messageHistory: Message[]) => void;
     isReadyCallback?: (isReady: boolean) => void;
     isGeneratingCallback?: (isGenerating: boolean) => void;
-    onDownloadProgressCallback?: (downloadProgress: number) => void;
   }) {
     if (responseCallback !== undefined) {
       Logger.warn(
@@ -74,8 +69,6 @@ export class LLMController {
       this._isGenerating = isGenerating;
       isGeneratingCallback?.(isGenerating);
     };
-
-    this.onDownloadProgressCallback = onDownloadProgressCallback;
   }
 
   public get response() {
@@ -95,10 +88,12 @@ export class LLMController {
     modelSource,
     tokenizerSource,
     tokenizerConfigSource,
+    onDownloadProgressCallback,
   }: {
     modelSource: ResourceSource;
     tokenizerSource: ResourceSource;
     tokenizerConfigSource: ResourceSource;
+    onDownloadProgressCallback?: (downloadProgress: number) => void;
   }) {
     // reset inner state when loading new model
     this.responseCallback('');
@@ -108,7 +103,7 @@ export class LLMController {
 
     try {
       const paths = await ResourceFetcher.fetch(
-        this.onDownloadProgressCallback,
+        onDownloadProgressCallback,
         tokenizerSource,
         tokenizerConfigSource,
         modelSource

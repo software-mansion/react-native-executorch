@@ -43,7 +43,6 @@ export const useLLM = ({
         messageHistoryCallback: setMessageHistory,
         isReadyCallback: setIsReady,
         isGeneratingCallback: setIsGenerating,
-        onDownloadProgressCallback: setDownloadProgress,
       }),
     [tokenCallback]
   );
@@ -60,6 +59,7 @@ export const useLLM = ({
           modelSource,
           tokenizerSource,
           tokenizerConfigSource,
+          onDownloadProgressCallback: setDownloadProgress,
         });
       } catch (e) {
         setError(e);

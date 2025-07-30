@@ -77,7 +77,6 @@ body:
       options:
         - Android
         - iOS
-        - Both Android and iOS
         - Platform agnostic
     validations:
       required: true

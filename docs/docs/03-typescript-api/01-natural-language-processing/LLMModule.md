@@ -18,8 +18,14 @@ const printDownloadProgress = (progress: number) => {
   console.log(progress);
 };
 
+// Creating an instance
+const llm = new LLMModule({
+  tokenCallback: (token) => console.log(token),
+  messageHistoryCallback: (messages) => console.log(messages),
+});
+
 // Loading the model
-await LLMModule.load({
+await llm.load({
   modelSource: LLAMA3_2_1B_QLORA,
   tokenizerSource: LLAMA3_2_TOKENIZER,
   tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
@@ -27,28 +33,29 @@ await LLMModule.load({
 });
 
 // Running the model
-await LLMModule.sendMessage('Hello, World!');
+await llm.sendMessage('Hello, World!');
 
-// Interrupting the model (to actually interrupt the generation it would have to be called when sendMessage or forward is running)
-LLMModule.interrupt();
+// Interrupting the model (to actually interrupt the generation it has to be called when sendMessage or forward is running)
+llm.interrupt();
 
 // Deleting the model from memory
-LLMModule.delete();
+llm.delete();
 ```
 
 ### Methods
 
-| Method             | Type                                                                                                                                                                                                                                                                                                                                                | Description                                                                                                                                                                                                                                                                                                                                                                 |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `load`             | `({  modelSource: ResourceSource, tokenizerSource: ResourceSource, tokenizerConfigSource: ResourceSource, onDownloadProgressCallback?: (downloadProgress: number) => void, tokenCallback?: (token: string) => void, responseCallback?: (response: string) => void, messageHistoryCallback?: (messageHistory: Message[]) => void}) => Promise<void>` | Loads the model. Checkout the [loading the model](#loading-the-model) section for details.                                                                                                                                                                                                                                                                                  |
-| `setTokenCallback` | `{tokenCallback: (token: string) => void}) => void`                                                                                                                                                                                                                                                                                                 | Sets new token callback.                                                                                                                                                                                                                                                                                                                                                    |
-| `generate`         | `(messages: Message[], tools?: LLMTool[]) => Promise<string>`                                                                                                                                                                                                                                                                                       | Runs model to complete chat passed in `messages` argument. It doesn't manage conversation context.                                                                                                                                                                                                                                                                          |
-| `forward`          | `(input: string) => Promise<string>`                                                                                                                                                                                                                                                                                                                | Runs model inference with raw input string. You need to provide entire conversation and prompt (in correct format and with special tokens!) in input string to this method. It doesn't manage conversation context. It is intended for users that need access to the model itself without any wrapper. If you want a simple chat with model the consider using`sendMessage` |
-| `configure`        | `({chatConfig?: Partial<ChatConfig>, toolsConfig?: ToolsConfig}) => void`                                                                                                                                                                                                                                                                           | Configures chat and tool calling. See more details in [configuring the model](#configuring-the-model).                                                                                                                                                                                                                                                                      |
-| `sendMessage`      | `(message: string) => Promise<Message[]>`                                                                                                                                                                                                                                                                                                           | Method to add user message to conversation. After model responds it will call `messageHistoryCallback()`containing both user message and model response. It also returns them.                                                                                                                                                                                              |
-| `deleteMessage`    | `(index: number) => void`                                                                                                                                                                                                                                                                                                                           | Deletes all messages starting with message on `index` position. After deletion it will call `messageHistoryCallback()` containing new history. It also returns it.                                                                                                                                                                                                          |
-| `delete`           | `() => void`                                                                                                                                                                                                                                                                                                                                        | Method to delete the model from memory. Note you cannot delete model while it's generating. You need to interrupt it first and make sure model stopped generation.                                                                                                                                                                                                          |
-| `interrupt`        | `() => void`                                                                                                                                                                                                                                                                                                                                        | Interrupts model generation. It may return one more token after interrupt.                                                                                                                                                                                                                                                                                                  |
+| Method             | Type                                                                                                                                                                                        | Description                                                                                                                                                                                                                                                                                                                                                                 |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `constructor`      | `({tokenCallback?: (token: string) => void, responseCallback?: (response: string) => void, messageHistoryCallback?: (messageHistory: Message[]) => void})`                                  | Creates a new instance of LLMModule with optional callbacks.                                                                                                                                                                                                                                                                                                                |
+| `load`             | `({modelSource: ResourceSource, tokenizerSource: ResourceSource, tokenizerConfigSource: ResourceSource, onDownloadProgressCallback?: (downloadProgress: number) => void}) => Promise<void>` | Loads the model. Checkout the [loading the model](#loading-the-model) section for details.                                                                                                                                                                                                                                                                                  |
+| `setTokenCallback` | `{tokenCallback: (token: string) => void}) => void`                                                                                                                                         | Sets new token callback.                                                                                                                                                                                                                                                                                                                                                    |
+| `generate`         | `(messages: Message[], tools?: LLMTool[]) => Promise<string>`                                                                                                                               | Runs model to complete chat passed in `messages` argument. It doesn't manage conversation context.                                                                                                                                                                                                                                                                          |
+| `forward`          | `(input: string) => Promise<string>`                                                                                                                                                        | Runs model inference with raw input string. You need to provide entire conversation and prompt (in correct format and with special tokens!) in input string to this method. It doesn't manage conversation context. It is intended for users that need access to the model itself without any wrapper. If you want a simple chat with model the consider using`sendMessage` |
+| `configure`        | `({chatConfig?: Partial<ChatConfig>, toolsConfig?: ToolsConfig}) => void`                                                                                                                   | Configures chat and tool calling. See more details in [configuring the model](#configuring-the-model).                                                                                                                                                                                                                                                                      |
+| `sendMessage`      | `(message: string) => Promise<Message[]>`                                                                                                                                                   | Method to add user message to conversation. After model responds it will call `messageHistoryCallback()`containing both user message and model response. It also returns them.                                                                                                                                                                                              |
+| `deleteMessage`    | `(index: number) => void`                                                                                                                                                                   | Deletes all messages starting with message on `index` position. After deletion it will call `messageHistoryCallback()` containing new history. It also returns it.                                                                                                                                                                                                          |
+| `delete`           | `() => void`                                                                                                                                                                                | Method to delete the model from memory. Note you cannot delete model while it's generating. You need to interrupt it first and make sure model stopped generation.                                                                                                                                                                                                          |
+| `interrupt`        | `() => void`                                                                                                                                                                                | Interrupts model generation. It may return one more token after interrupt.                                                                                                                                                                                                                                                                                                  |
 
 <details>
 <summary>Type definitions</summary>
@@ -87,7 +94,15 @@ type LLMTool = Object;
 
 ## Loading the model
 
-To load the model, use the `load` method. It accepts object with following fields:
+To create a new instance of LLMModule, use the constructor with optional callbacks:
+
+**`tokenCallback`** - (Optional) A function that will be called on every generated token with that token as its only argument.
+
+**`responseCallback`** - (Optional) A function that will be called on every generated token and receives the entire response, including this token. [**DEPRECATED** - consider using `tokenCallback`]
+
+**`messageHistoryCallback`** - (Optional) A function called on every finished message. Returns the entire message history.
+
+Then, to load the model, use the `load` method. It accepts an object with the following fields:
 
 **`modelSource`** - A string that specifies the location of the model binary.
 
@@ -95,19 +110,13 @@ To load the model, use the `load` method. It accepts object with following field
 
 **`tokenizerConfigSource`** - URL to the JSON file which contains the tokenizer config.
 
-**`onDownloadProgressCallback`** - Function that will be called on download progress.
-
-**`tokenCallback`** - Function that will be called on every generated token and receive this token.
-
-**`responseCallback`** - Function that will be called on every generated token and receive entire response, including this token. [**DEPRECATED** - consider using `tokenCallback`]
-
-**`messageHistoryCallback`** - Function that will be called on every finished message. Returns entire message history.
+**`onDownloadProgressCallback`** - (Optional) Function called on download progress.
 
 This method returns a promise, which can resolve to an error or void. It only works in managed chat (i.e. when you use `sendMessage`)
 
 ## Listening for download progress
 
-To subscribe to the download progress event, you can pass the `modelDownloadProgressCallback` functions to constructor. This function will be called whenever the download progress changes.
+To subscribe to the download progress event, you can pass the `onDownloadProgressCallback` function to the `load` method. This function is called whenever the download progress changes.
 
 ## Running the model
 
@@ -119,7 +128,7 @@ If you need raw model, without any wrappers, you can use `forward`. It provides 
 
 ## Listening for generated tokens
 
-To subscribe to the token generation event, you can pass `tokenCallback` or `messageHistoryCallback` functions to constructor. `tokenCallback` is called on every token and contains only the most recent token and `messageHistoryCallback` is called whenever model finishes generation and contains all message history including user's and model's last messages.
+To subscribe to the token generation event, you can pass `tokenCallback` or `messageHistoryCallback` functions to the constructor. `tokenCallback` is called on every token and contains only the most recent token. `messageHistoryCallback` is called whenever model finishes generation and contains all message history including user's and model's last messages.
 
 ## Interrupting the model
 
