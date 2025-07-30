@@ -2,7 +2,7 @@
 <!-- Provide a concise and descriptive summary of the changes implemented in this PR. -->
 
 ### Introduces a breaking change?
-- [ ] **Yes** ⚠️
+- [ ] Yes
 - [ ] No
 
 ### Type of change
