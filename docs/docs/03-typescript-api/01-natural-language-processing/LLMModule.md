@@ -96,7 +96,7 @@ type LLMTool = Object;
 
 To create a new instance of LLMModule, use the constructor with optional callbacks:
 
-**`tokenCallback`** - (Optional) Function that will be called on every generated token and receive this token.
+**`tokenCallback`** - (Optional) Function that will be called on every generated token and will receive this token.
 
 **`responseCallback`** - (Optional) Function that will be called on every generated token and receive entire response, including this token. [**DEPRECATED** - consider using `tokenCallback`]
 
