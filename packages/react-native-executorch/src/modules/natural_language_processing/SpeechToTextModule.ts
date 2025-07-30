@@ -4,34 +4,42 @@ import { AvailableModels, SpeechToTextLanguage } from '../../types/stt';
 import { STREAMING_ACTION } from '../../constants/sttDefaults';
 
 export class SpeechToTextModule {
-  static module: SpeechToTextController;
+  private module: SpeechToTextController;
 
-  static onDownloadProgressCallback = (_downloadProgress: number) => {};
-
-  static async load(
-    modelName: AvailableModels,
-    transcribeCallback: (sequence: string) => void,
-    modelDownloadProgressCallback?: (downloadProgress: number) => void,
-    encoderSource?: ResourceSource,
-    decoderSource?: ResourceSource,
-    tokenizerSource?: ResourceSource,
+  constructor({
+    transcribeCallback,
+    modelDownloadProgressCallback,
+    overlapSeconds,
+    windowSize,
+    streamingConfig,
+  }: {
+    transcribeCallback: (sequence: string) => void;
+    modelDownloadProgressCallback?: (downloadProgress: number) => void;
     overlapSeconds?: ConstructorParameters<
       typeof SpeechToTextController
-    >['0']['overlapSeconds'],
+    >['0']['overlapSeconds'];
     windowSize?: ConstructorParameters<
       typeof SpeechToTextController
-    >['0']['windowSize'],
+    >['0']['windowSize'];
     streamingConfig?: ConstructorParameters<
       typeof SpeechToTextController
-    >['0']['streamingConfig']
-  ) {
+    >['0']['streamingConfig'];
+  }) {
     this.module = new SpeechToTextController({
-      transcribeCallback: transcribeCallback,
-      modelDownloadProgressCallback: modelDownloadProgressCallback,
-      overlapSeconds: overlapSeconds,
-      windowSize: windowSize,
-      streamingConfig: streamingConfig,
+      transcribeCallback,
+      modelDownloadProgressCallback,
+      overlapSeconds,
+      windowSize,
+      streamingConfig,
     });
+  }
+
+  async load(
+    modelName: AvailableModels,
+    encoderSource?: ResourceSource,
+    decoderSource?: ResourceSource,
+    tokenizerSource?: ResourceSource
+  ) {
     await this.module.loadModel(
       (modelName = modelName),
       (encoderSource = encoderSource),
@@ -40,34 +48,30 @@ export class SpeechToTextModule {
     );
   }
 
-  static configureStreaming(
+  configureStreaming(
     overlapSeconds: Parameters<SpeechToTextController['configureStreaming']>[0],
     windowSize: Parameters<SpeechToTextController['configureStreaming']>[1],
     streamingConfig: Parameters<SpeechToTextController['configureStreaming']>[2]
   ) {
-    this.module?.configureStreaming(
-      overlapSeconds,
-      windowSize,
-      streamingConfig
-    );
+    this.module.configureStreaming(overlapSeconds, windowSize, streamingConfig);
   }
 
-  static async encode(waveform: Float32Array) {
+  async encode(waveform: Float32Array) {
     return await this.module.encode(waveform);
   }
 
-  static async decode(seq: number[]) {
+  async decode(seq: number[]) {
     return await this.module.decode(seq);
   }
 
-  static async transcribe(
+  async transcribe(
     waveform: number[],
     audioLanguage?: SpeechToTextLanguage
   ): ReturnType<SpeechToTextController['transcribe']> {
     return await this.module.transcribe(waveform, audioLanguage);
   }
 
-  static async streamingTranscribe(
+  async streamingTranscribe(
     streamAction: STREAMING_ACTION,
     waveform?: number[],
     audioLanguage?: SpeechToTextLanguage
