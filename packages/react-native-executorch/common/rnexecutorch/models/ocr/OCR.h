@@ -11,10 +11,11 @@ namespace rnexecutorch {
 class OCR {
 public:
   explicit OCR(std::string detectorSource, std::string recognizerSourceLarge,
-      std::string recognizerSourceMedium, std::string recognizerSourceSmall,
-      std::string symbols, std::shared_ptr<react::CallInvoker> callInvoker);
+               std::string recognizerSourceMedium,
+               std::string recognizerSourceSmall, std::string symbols,
+               std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<OCRDetection> generate(std::string input);
-  std::size_t getMemoryLowerBound();
+  std::size_t getMemoryLowerBound() const noexcept;
 
 private:
   Detector detector;

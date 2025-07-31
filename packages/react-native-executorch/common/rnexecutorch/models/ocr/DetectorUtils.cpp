@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <limits>
 #include <numeric>
+#include <rnexecutorch/Log.h>
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/Types.h>
 #include <unordered_set>
@@ -26,83 +27,206 @@ std::pair<cv::Mat, cv::Mat> interleavedArrayToMats(std::span<const float> data,
   return {mat1, mat2};
 }
 
+void processComponent(const cv::Mat &textMap, const cv::Mat &labels,
+                      const cv::Mat &stats, int i, float lowTextThreshold,
+                      int imgW, int imgH,
+                      std::vector<DetectorBBox> &detectedBoxes) {
+  const int area = stats.at<int>(i, cv::CC_STAT_AREA);
+  // Skip small components as they are likely to be just noise
+  constexpr int minimalAreaThreshold = 10;
+  if (area < minimalAreaThreshold)
+    return;
+
+  cv::Mat mask = (labels == i);
+  double maxVal;
+  cv::minMaxLoc(textMap, nullptr, &maxVal, nullptr, nullptr, mask);
+  // Skip components with low values, as they are likely to be just noise
+  if (maxVal < lowTextThreshold) {
+    return;
+  }
+
+  // Create a segmentation map for the current component.
+  // Background is 0, (black), foreground is 255 (white)
+  constexpr int segmentColor = 255;
+  cv::Mat segMap = cv::Mat::zeros(textMap.size(), CV_8U);
+  segMap.setTo(segmentColor, mask);
+
+  const int x = stats.at<int>(i, cv::CC_STAT_LEFT);
+  const int y = stats.at<int>(i, cv::CC_STAT_TOP);
+  const int w = stats.at<int>(i, cv::CC_STAT_WIDTH);
+  const int h = stats.at<int>(i, cv::CC_STAT_HEIGHT);
+
+  // Dynamically calculate dilation radius to expand the bounding box slightly
+  constexpr int evenMultiplyCoeff = 2; // ensure that dilationRadius is even
+  const int dilationRadius =
+      static_cast<int>(std::sqrt(static_cast<double>(area) / std::max(w, h)) *
+                       evenMultiplyCoeff);
+  // Calculate box coordinates after expansion.
+  const int sx = std::max(x - dilationRadius, 0);
+  const int ex = std::min(x + w + dilationRadius, imgW);
+  const int sy = std::max(y - dilationRadius, 0);
+  const int ey = std::min(y + h + dilationRadius, imgH);
+
+  // Define a region of interest (ROI) and dilate it
+  cv::Rect roi(sx, sy, ex - sx, ey - sy);
+  // Morphological kernels require minimum size of 1x1 (no-op) plus dilation
+  // radius
+  const int morphologicalKernelSize =
+      1 + dilationRadius; // Ensures valid odd-sized kernel,
+                          // notice the fact that dilationRadius is always even.
+  cv::Mat kernel = cv::getStructuringElement(
+      cv::MORPH_RECT,
+      cv::Size(morphologicalKernelSize, morphologicalKernelSize));
+  cv::Mat roiSegMap = segMap(roi);
+  cv::dilate(roiSegMap, roiSegMap, kernel);
+
+  // Find the minimum area rotated rectangle around the contour
+  std::vector<std::vector<cv::Point>> contours;
+  cv::findContours(segMap, contours, cv::RETR_EXTERNAL,
+                   cv::CHAIN_APPROX_SIMPLE);
+  if (!contours.empty()) {
+    cv::RotatedRect minRect = cv::minAreaRect(contours[0]);
+    std::array<cv::Point2f, 4> vertices;
+    minRect.points(vertices.data());
+    std::array<Point, 4> points;
+#pragma unroll
+    for (int j = 0; j < points.size(); j++) {
+      points[j] = {.x = vertices[j].x, .y = vertices[j].y};
+    }
+    detectedBoxes.push_back({.bbox = points, .angle = minRect.angle});
+  }
+}
+
 std::vector<DetectorBBox> getDetBoxesFromTextMap(cv::Mat &textMap,
                                                  cv::Mat &affinityMap,
                                                  float textThreshold,
                                                  float linkThreshold,
                                                  float lowTextThreshold) {
+  // Ensure input mats are of the correct type for processing
+  CV_Assert(textMap.type() == CV_32F && affinityMap.type() == CV_32F);
+
   const int imgH = textMap.rows;
   const int imgW = textMap.cols;
   cv::Mat textScore;
   cv::Mat affinityScore;
-  cv::threshold(textMap, textScore, textThreshold, 1, cv::THRESH_BINARY);
-  cv::threshold(affinityMap, affinityScore, linkThreshold, 1,
+  // 1. Based on maps and threshold values create binary masks
+  constexpr int maxValBinaryMask = 1;
+  cv::threshold(textMap, textScore, textThreshold, maxValBinaryMask,
                 cv::THRESH_BINARY);
+  cv::threshold(affinityMap, affinityScore, linkThreshold, maxValBinaryMask,
+                cv::THRESH_BINARY);
+  // 2. Merge two maps into one using logical OR
   cv::Mat textScoreComb = textScore + affinityScore;
-  cv::threshold(textScoreComb, textScoreComb, 0, 1, cv::THRESH_BINARY);
+  constexpr int threshVal = 0;
+  cv::threshold(textScoreComb, textScoreComb, threshVal, maxValBinaryMask,
+                cv::THRESH_BINARY);
   cv::Mat binaryMat;
   textScoreComb.convertTo(binaryMat, CV_8UC1);
 
+  // 3. Find connected components to identify each box
   cv::Mat labels, stats, centroids;
-  const int nLabels =
-      cv::connectedComponentsWithStats(binaryMat, labels, stats, centroids, 4);
+  constexpr int connectivityType = 4;
+  const int nLabels = cv::connectedComponentsWithStats(
+      binaryMat, labels, stats, centroids, connectivityType);
 
   std::vector<DetectorBBox> detectedBoxes;
+  detectedBoxes.reserve(nLabels); // Pre-allocate memory
+  // 4. Process each component; omit component 0 as it is background
   for (int i = 1; i < nLabels; i++) {
-    const int area = stats.at<int>(i, cv::CC_STAT_AREA);
-    if (area < 10)
-      continue;
-
-    cv::Mat mask = (labels == i);
-    double maxVal;
-    cv::minMaxLoc(textMap, nullptr, &maxVal, nullptr, nullptr, mask);
-    if (maxVal < lowTextThreshold) {
-      continue;
-    }
-
-    cv::Mat segMap = cv::Mat::zeros(textMap.size(), CV_8U);
-    segMap.setTo(255, mask);
-
-    const int x = stats.at<int>(i, cv::CC_STAT_LEFT);
-    const int y = stats.at<int>(i, cv::CC_STAT_TOP);
-    const int w = stats.at<int>(i, cv::CC_STAT_WIDTH);
-    const int h = stats.at<int>(i, cv::CC_STAT_HEIGHT);
-    const int dilationRadius = (int)(sqrt((double)(area / MAX(w, h))) * 2.0);
-    const int sx = MAX(x - dilationRadius, 0);
-    const int ex = MIN(x + w + dilationRadius + 1, imgW);
-    const int sy = MAX(y - dilationRadius, 0);
-    const int ey = MIN(y + h + dilationRadius + 1, imgH);
-
-    cv::Rect roi(sx, sy, ex - sx, ey - sy);
-    cv::Mat kernel = cv::getStructuringElement(
-        cv::MORPH_RECT, cv::Size(1 + dilationRadius, 1 + dilationRadius));
-    cv::Mat roiSegMap = segMap(roi);
-    cv::dilate(roiSegMap, roiSegMap, kernel);
-
-    std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(segMap, contours, cv::RETR_EXTERNAL,
-                     cv::CHAIN_APPROX_SIMPLE);
-    if (!contours.empty()) {
-      cv::RotatedRect minRect = cv::minAreaRect(contours[0]);
-      cv::Point2f vertices[4];
-      minRect.points(vertices);
-      std::array<Point, 4> points;
-#pragma unroll
-      for (int j = 0; j < 4; j++) {
-        points[j] = {.x = vertices[j].x, .y = vertices[j].y};
-      }
-      detectedBoxes.push_back({.bbox = points, .angle = minRect.angle});
-    }
+    processComponent(textMap, labels, stats, i, lowTextThreshold, imgW, imgH,
+                     detectedBoxes);
   }
 
   return detectedBoxes;
+}
+
+void processVerticalComponent(const cv::Mat &textMap, const cv::Mat &labels,
+                              const cv::Mat &stats, int i,
+                              bool independentCharacters, int imgW, int imgH,
+                              std::vector<DetectorBBox> &detectedBoxes) {
+  constexpr int minimalAreaThreshold = 20;
+  const int area = stats.at<int>(i, cv::CC_STAT_AREA);
+  // Skip small components as they are likely to be just noise
+  if (area < minimalAreaThreshold) {
+    return;
+  }
+
+  const int width = stats.at<int>(i, cv::CC_STAT_WIDTH);
+  const int height = stats.at<int>(i, cv::CC_STAT_HEIGHT);
+
+  // For vertical text (not single chars), height should be greater than width
+  if (!independentCharacters && height < width) {
+    return;
+  }
+
+  // For each component, create a mask and find its contour
+  cv::Mat mask = (labels == i);
+
+  // Create a segmentation map for the current component.
+  // Background is 0, (black), foreground is 255 (white)
+  constexpr int segmentColor = 255;
+  cv::Mat segMap = cv::Mat::zeros(textMap.size(), CV_8U);
+  segMap.setTo(segmentColor, mask);
+
+  const int x = stats.at<int>(i, cv::CC_STAT_LEFT);
+  const int y = stats.at<int>(i, cv::CC_STAT_TOP);
+  const int w = stats.at<int>(i, cv::CC_STAT_WIDTH);
+  const int h = stats.at<int>(i, cv::CC_STAT_HEIGHT);
+
+  // Dynamically calculate dilation radius to expand the bounding box slightly
+  constexpr int evenMultiplyCoeff = 2; // ensure that dilationRadius is even
+  const int dilationRadius =
+      static_cast<int>(std::sqrt(static_cast<double>(area) / std::max(w, h)) *
+                       evenMultiplyCoeff);
+  const int sx = std::max(x - dilationRadius, 0);
+  const int ex = std::min(x + w + dilationRadius, imgW);
+  const int sy = std::max(y - dilationRadius, 0);
+  const int ey = std::min(y + h + dilationRadius, imgH);
+
+  // Define a region of interest (ROI) and dilate it
+  cv::Rect roi(sx, sy, ex - sx, ey - sy);
+  // Morphological kernels require minimum size of 1x1 (no-op) plus dilation
+  // radius
+  const int morphologicalKernelSize =
+      1 + dilationRadius; // Ensures valid odd-sized kernel,
+                          // notice the fact that dilationRadius is always even.
+  cv::Mat kernel = cv::getStructuringElement(
+      cv::MORPH_RECT,
+      cv::Size(morphologicalKernelSize, morphologicalKernelSize));
+  cv::Mat roiSegMap = segMap(roi);
+
+  constexpr int iterations =
+      2; // iterations number of times dilation is applied. By default is 1
+  const cv::Size anchor =
+      cv::Point(-1, -1); // anchor position of the anchor within the element;
+                         // default value (-1, -1)
+                         // means that the anchor is at the element center.
+  cv::dilate(roiSegMap, roiSegMap, kernel, anchor, iterations);
+
+  // 5. Find the minimum area rotated rectangle around the contour
+  std::vector<std::vector<cv::Point>> contours;
+  cv::findContours(segMap, contours, cv::RETR_EXTERNAL,
+                   cv::CHAIN_APPROX_SIMPLE);
+
+  if (!contours.empty()) {
+    cv::RotatedRect minRect = cv::minAreaRect(contours[0]);
+
+    cv::Point2f vertices[4];
+    minRect.points(vertices);
+
+    std::array<Point, 4> points;
+#pragma unroll
+    for (int j = 0; j < points.size(); j++) {
+      points[j] = {.x = vertices[j].x, .y = vertices[j].y};
+    }
+    detectedBoxes.push_back({.bbox = points, .angle = minRect.angle});
+  }
 }
 
 std::vector<DetectorBBox>
 getDetBoxesFromTextMapVertical(cv::Mat &textMap, cv::Mat &affinityMap,
                                float textThreshold, float linkThreshold,
                                bool independentCharacters) {
-
   // Ensure input mats are of the correct type for processing
   CV_Assert(textMap.type() == CV_32F && affinityMap.type() == CV_32F);
 
@@ -115,6 +239,17 @@ getDetBoxesFromTextMapVertical(cv::Mat &textMap, cv::Mat &affinityMap,
   cv::threshold(affinityMap, affinityScore, linkThreshold, 1.0,
                 cv::THRESH_BINARY);
 
+  // Prepare values for morphological operations
+  const auto ksize = cv::Size(3, 3); // size of the structuring element
+  cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, ksize);
+  constexpr int erosionIterations =
+      1; // iterations number of times erosion is applied.
+  int dilationIterations;
+  ; // iterations number of times dilation is applied.
+  const auto anchor =
+      cv::Point(-1, -1); // anchor position of the anchor within the element;
+                         // default value (-1, -1)
+                         // means that the anchor is at the element center
   // 2. Combine maps based on whether we are detecting words or single
   // characters
   cv::Mat textScoreComb;
@@ -127,9 +262,11 @@ getDetBoxesFromTextMapVertical(cv::Mat &textMap, cv::Mat &affinityMap,
     cv::threshold(textScoreComb, textScoreComb, 1.0, 1.0, cv::THRESH_TRUNC);
 
     // Perform morphological operations to refine character regions
-    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
-    cv::erode(textScoreComb, textScoreComb, kernel, cv::Point(-1, -1), 1);
-    cv::dilate(textScoreComb, textScoreComb, kernel, cv::Point(-1, -1), 4);
+
+    dilationIterations = 4;
+    cv::erode(textScoreComb, textScoreComb, kernel, anchor, erosionIterations);
+    cv::dilate(textScoreComb, textScoreComb, kernel, anchor,
+               dilationIterations);
   } else {
     // For words, add affinity to link characters together
     textScoreComb = textScore + affinityScore;
@@ -139,8 +276,9 @@ getDetBoxesFromTextMapVertical(cv::Mat &textMap, cv::Mat &affinityMap,
     cv::threshold(textScoreComb, textScoreComb, 1.0, 1.0, cv::THRESH_TRUNC);
 
     // Dilate to connect word components
-    cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
-    cv::dilate(textScoreComb, textScoreComb, kernel, cv::Point(-1, -1), 2);
+    dilationIterations = 2;
+    cv::dilate(textScoreComb, textScoreComb, kernel, anchor,
+               dilationIterations);
   }
 
   // 3. Find connected components to identify each character/word
@@ -148,69 +286,16 @@ getDetBoxesFromTextMapVertical(cv::Mat &textMap, cv::Mat &affinityMap,
   textScoreComb.convertTo(binaryMat, CV_8UC1);
 
   cv::Mat labels, stats, centroids;
-  const int nLabels = cv::connectedComponentsWithStats(binaryMat, labels, stats,
-                                                       centroids, 4, CV_32S);
+  constexpr int connectivityType = 4;
+  const int nLabels = cv::connectedComponentsWithStats(
+      binaryMat, labels, stats, centroids, connectivityType, CV_32S);
 
   std::vector<DetectorBBox> detectedBoxes;
-  for (int i = 1; i < nLabels; ++i) { // Start from 1 to skip background
-    const int area = stats.at<int>(i, cv::CC_STAT_AREA);
-    if (area < 20) {
-      continue;
-    }
-
-    const int width = stats.at<int>(i, cv::CC_STAT_WIDTH);
-    const int height = stats.at<int>(i, cv::CC_STAT_HEIGHT);
-
-    // For vertical text (not single chars), height should be greater than width
-    if (!independentCharacters && height < width) {
-      continue;
-    }
-
-    // 4. For each component, create a mask and find its contour
-    cv::Mat mask = (labels == i);
-
-    // Create a segmentation map for the current component
-    cv::Mat segMap = cv::Mat::zeros(textMap.size(), CV_8U);
-    segMap.setTo(255, mask);
-
-    const int x = stats.at<int>(i, cv::CC_STAT_LEFT);
-    const int y = stats.at<int>(i, cv::CC_STAT_TOP);
-    const int w = stats.at<int>(i, cv::CC_STAT_WIDTH);
-    const int h = stats.at<int>(i, cv::CC_STAT_HEIGHT);
-
-    // Dynamically calculate dilation radius to expand the bounding box slightly
-    const int dilationRadius = static_cast<int>(
-        std::sqrt(static_cast<double>(area) / std::max(w, h)) * 2.0);
-    const int sx = std::max(x - dilationRadius, 0);
-    const int ex = std::min(x + w + dilationRadius + 1, imgW);
-    const int sy = std::max(y - dilationRadius, 0);
-    const int ey = std::min(y + h + dilationRadius + 1, imgH);
-
-    // Define a region of interest (ROI) and dilate it
-    cv::Rect roi(sx, sy, ex - sx, ey - sy);
-    cv::Mat kernel = cv::getStructuringElement(
-        cv::MORPH_RECT, cv::Size(1 + dilationRadius, 1 + dilationRadius));
-    cv::Mat roiSegMap = segMap(roi);
-    cv::dilate(roiSegMap, roiSegMap, kernel, cv::Point(-1, -1), 2);
-
-    // 5. Find the minimum area rotated rectangle around the contour
-    std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(segMap, contours, cv::RETR_EXTERNAL,
-                     cv::CHAIN_APPROX_SIMPLE);
-
-    if (!contours.empty()) {
-      cv::RotatedRect minRect = cv::minAreaRect(contours[0]);
-
-      cv::Point2f vertices[4];
-      minRect.points(vertices);
-
-      std::array<Point, 4> points;
-#pragma unroll
-      for (int j = 0; j < 4; j++) {
-        points[j] = {.x = vertices[j].x, .y = vertices[j].y};
-      }
-      detectedBoxes.push_back({.bbox = points, .angle = minRect.angle});
-    }
+  detectedBoxes.reserve(nLabels);
+  // 4. Process each component; omit component 0 as it is background
+  for (int i = 1; i < nLabels; ++i) {
+    processVerticalComponent(textMap, labels, stats, i, independentCharacters,
+                             imgW, imgH, detectedBoxes);
   }
 
   return detectedBoxes;
@@ -231,21 +316,6 @@ float distanceFromPoint(const Point &p1, const Point &p2) {
   return std::sqrt(xDist * xDist + yDist * yDist);
 }
 
-float maxSideLength(const std::array<Point, 4> &points) {
-  float maxSideLength = 0;
-  int32_t numOfPoints = points.size();
-  for (std::size_t i = 0; i < numOfPoints; i++) {
-    const auto currentPoint = points[i];
-    const auto nextPoint = points[(i + 1) % numOfPoints];
-
-    const float sideLength = distanceFromPoint(currentPoint, nextPoint);
-    if (sideLength > maxSideLength) {
-      maxSideLength = sideLength;
-    }
-  }
-  return maxSideLength;
-}
-
 float normalizeAngle(float angle) {
   if (angle > 45.0f) {
     return angle - 90.0f;
@@ -261,22 +331,31 @@ Point centerOfBox(const std::array<Point, 4> &box) {
   return midpointBetweenPoint(box[0], box[2]);
 }
 
-float minSideLength(const std::array<Point, 4> &points) {
-  float minSideLength = std::numeric_limits<float>::max();
-  std::size_t numOfPoints = points.size();
+// function for both; finding maximal side length and minimal side length
+template <typename Compare>
+float findExtremeSideLength(const std::array<Point, 4> &points, Compare comp) {
+  float extremeLength = distanceFromPoint(points[0], points[1]);
 
 #pragma unroll
-  for (std::size_t i = 0; i < numOfPoints; i++) {
-    const Point currentPoint = points[i];
-    const Point nextPoint = points[(i + 1) % numOfPoints];
-
+  for (std::size_t i = 1; i < points.size(); i++) {
+    const auto &currentPoint = points[i];
+    const auto &nextPoint = points[(i + 1) % points.size()];
     const float sideLength = distanceFromPoint(currentPoint, nextPoint);
-    if (sideLength < minSideLength) {
-      minSideLength = sideLength;
+
+    if (comp(sideLength, extremeLength)) {
+      extremeLength = sideLength;
     }
   }
 
-  return minSideLength;
+  return extremeLength;
+}
+
+float minSideLength(const std::array<Point, 4> &points) {
+  return findExtremeSideLength(points, std::less<float>{});
+}
+
+float maxSideLength(const std::array<Point, 4> &points) {
+  return findExtremeSideLength(points, std::greater<float>{});
 }
 
 /**
@@ -296,13 +375,13 @@ float minSideLength(const std::array<Point, 4> &points) {
  * considered vertical.
  */
 std::tuple<float, float, bool>
-fitLineToShortestSides(std::array<Point, 4> points) {
+fitLineToShortestSides(const std::array<Point, 4> points) {
   std::array<std::pair<float, float>, 4> sides;
   std::array<Point, 4> midpoints;
 #pragma unroll
-  for (std::size_t i = 0; i < 4; i++) {
+  for (std::size_t i = 0; i < midpoints.size(); i++) {
     const auto p1 = points[i];
-    const auto p2 = points[(i + 1) % 4];
+    const auto p2 = points[(i + 1) % midpoints.size()];
 
     const float sideLength = distanceFromPoint(p1, p2);
     sides[i] = std::make_pair(sideLength, i);
@@ -323,26 +402,31 @@ fitLineToShortestSides(std::array<Point, 4> points) {
       cv::Point2f(midpoint1.x, midpoint1.y),
       cv::Point2f(midpoint2.x, midpoint2.y)};
   cv::Vec4f line;
+  // parameteres for fitLine calculation:
+  constexpr int numericalParameter =
+      0; // important only for some types of distances, O means an optimal value
+         // is chosen
+  constexpr double accuracy =
+      0.01; // sufficient accuracy. Value proposed by OPENCV
 
   if (dx < verticalLineThreshold) {
     for (auto &pt : cvMidPoints) {
       std::swap(pt.x, pt.y);
     }
-    cv::fitLine(cvMidPoints, line, cv::DIST_L2, 0, 0.01, 0.01);
-    m = line[1] / line[0];
-    c = line[3] - m * line[2];
+    cv::fitLine(cvMidPoints, line, cv::DIST_L2, numericalParameter, accuracy,
+                accuracy);
     isVertical = true;
   } else {
-    cv::fitLine(cvMidPoints, line, cv::DIST_L2, 0, 0.01, 0.01);
-    m = line[1] / line[0];
-    c = line[3] - m * line[2];
+    cv::fitLine(cvMidPoints, line, cv::DIST_L2, numericalParameter, accuracy,
+                accuracy);
     isVertical = false;
   }
-
+  m = line[1] / line[0];
+  c = line[3] - m * line[2];
   return {m, c, isVertical};
 }
 
-std::array<Point, 4> rotateBox(const std::array<Point, 4> box, float angle) {
+std::array<Point, 4> rotateBox(const std::array<Point, 4> &box, float angle) {
   const Point center = centerOfBox(box);
 
   const float radians = angle * M_PI / 180.0;
@@ -381,7 +465,7 @@ float calculateMinimalDistanceBetweenBox(const std::array<Point, 4> &box1,
 }
 
 /**
- * Orders a set of points in a clockwise direction starting with the top-left
+ * Orders a set of 4 points in a clockwise direction starting with the top-left
  * point.
  *
  * Process:
@@ -440,7 +524,7 @@ cvPointsFromPoints(const std::array<Point, 4> &points) {
 std::array<Point, 4> pointsFromCvPoints(cv::Point2f cvPoints[4]) {
   std::array<Point, 4> points;
 #pragma unroll
-  for (std::size_t i = 0; i < 4; ++i) {
+  for (std::size_t i = 0; i < points.size(); ++i) {
     points[i] = {.x = cvPoints[i].x, .y = cvPoints[i].y};
   }
   return points;
@@ -614,7 +698,7 @@ groupTextBoxes(std::vector<DetectorBBox> &boxes, float centerThreshold,
           candidateBox.bbox, currentBox.bbox);
       const float mergedHeight = minSideLength(currentBox.bbox);
       if (minDistance < distanceThreshold * candidateHeight &&
-          fabs(mergedHeight - candidateHeight) <
+          std::fabs(mergedHeight - candidateHeight) <
               candidateHeight * heightThreshold) {
         currentBox.bbox = mergeRotatedBoxes(currentBox.bbox, candidateBox.bbox);
         boxes.erase(boxes.begin() + candidateIdx);

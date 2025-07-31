@@ -12,12 +12,12 @@ using executorch::extension::TensorPtr;
 class Detector final : public BaseModel {
 public:
   explicit Detector(const std::string &modelSource,
-           std::shared_ptr<react::CallInvoker> callInvoker);
+                    std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<DetectorBBox> generate(const cv::Mat &inputImage);
   cv::Size getModelImageSize() const noexcept;
 
 private:
-  std::vector<DetectorBBox> postprocess(const Tensor &tensor);
+  std::vector<DetectorBBox> postprocess(const Tensor &tensor) const noexcept;
   cv::Size modelImageSize;
 };
 } // namespace rnexecutorch

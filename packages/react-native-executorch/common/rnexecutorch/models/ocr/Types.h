@@ -2,6 +2,7 @@
 
 #include <array>
 #include <string>
+#include <vector>
 
 namespace rnexecutorch {
 
@@ -26,4 +27,12 @@ struct PaddingInfo {
   int32_t top;
   int32_t left;
 };
+
+namespace ocr {
+
+struct MaxValuesAndIndices {
+  std::vector<float> values;
+  std::vector<int32_t> indices;
+};
+} // namespace ocr
 } // namespace rnexecutorch

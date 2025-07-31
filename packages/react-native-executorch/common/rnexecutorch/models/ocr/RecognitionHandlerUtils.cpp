@@ -61,14 +61,15 @@ cv::Mat cropImage(DetectorBBox box, cv::Mat &image, int32_t modelHeight) {
                  cv::INTER_LINEAR);
 
   cv::Mat rectMat(4, 2, CV_32FC2);
-  for (int i = 0; i < 4; ++i) {
+#pragma unroll
+  for (int i = 0; i < rectMat.rows; ++i) {
     rectMat.at<cv::Vec2f>(i, 0) = cv::Vec2f(rectPoints[i].x, rectPoints[i].y);
   }
   cv::transform(rectMat, rectMat, rotationMatrix);
 
   std::vector<cv::Point2f> transformedPoints(4);
 #pragma unroll
-  for (int i = 0; i < 4; ++i) {
+  for (int i = 0; i < transformedPoints.size(); ++i) {
     cv::Vec2f point = rectMat.at<cv::Vec2f>(i, 0);
     transformedPoints[i] = cv::Point2f(point[0], point[1]);
   }
@@ -93,6 +94,10 @@ cv::Mat cropImage(DetectorBBox box, cv::Mat &image, int32_t modelHeight) {
 }
 
 void adjustContrastGrey(cv::Mat &img, double target) {
+  constexpr double minValue = 0.0;   // fully dark
+  constexpr double maxValue = 255.0; // fully bright
+
+  // calculate the brightest and the darkest point from the img
   int32_t high = 0;
   int32_t low = 255;
   for (int32_t i = 0; i < img.rows; i++) {
@@ -102,16 +107,24 @@ void adjustContrastGrey(cv::Mat &img, double target) {
       low = std::min(low, pixel);
     }
   }
-  double contrast = (high - low) / 255.0;
+  double contrast = (high - low) / maxValue;
   if (contrast < target) {
-    double ratio = 200.0 / std::max(10, high - low);
+    constexpr double maxStretchIntensity = 200.0;
+    constexpr int minRangeClamp = 10;
+    // defines how much the contrast will actually stretch. Empirically obtained
+    // formula i guess :)
+    double ratio = maxStretchIntensity / std::max(minRangeClamp, high - low);
     cv::Mat tempImg;
     img.convertTo(tempImg, CV_32F);
-    tempImg -= (low - 25);
+    constexpr int histogramShift = 25;
+    // shift all values by 25
+    tempImg -= (low - histogramShift);
+    // stretch contrast
     tempImg *= ratio;
 
-    cv::threshold(tempImg, tempImg, 255.0, 255.0, cv::THRESH_TRUNC);
-    cv::threshold(tempImg, tempImg, 0.0, 255.0, cv::THRESH_TOZERO);
+    // ensure all values are from 0 to 255
+    cv::threshold(tempImg, tempImg, maxValue, maxValue, cv::THRESH_TRUNC);
+    cv::threshold(tempImg, tempImg, minValue, maxValue, cv::THRESH_TOZERO);
 
     tempImg.convertTo(img, CV_8U);
   }

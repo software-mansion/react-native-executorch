@@ -12,14 +12,15 @@ using executorch::extension::TensorPtr;
 
 class VerticalDetector final : public BaseModel {
 public:
-  explicit VerticalDetector(const std::string &modelSource, bool detectSingleCharacters,
-                   std::shared_ptr<react::CallInvoker> callInvoker);
+  explicit VerticalDetector(const std::string &modelSource,
+                            bool detectSingleCharacters,
+                            std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<DetectorBBox> generate(const cv::Mat &inputImage);
   cv::Size getModelImageSize() const noexcept;
 
 private:
   bool detectSingleCharacters;
-  std::vector<DetectorBBox> postprocess(const Tensor &tensor);
+  std::vector<DetectorBBox> postprocess(const Tensor &tensor) const noexcept;
   cv::Size modelImageSize;
 };
 } // namespace rnexecutorch

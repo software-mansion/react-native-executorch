@@ -10,11 +10,10 @@ cv::Mat softmax(const cv::Mat &inputs);
 
 // for each rows of matrix computes{maxValue, index} pair. Returns a list of
 // maxValues and a list of corresponding indices.
-std::pair<std::vector<float>, std::vector<int32_t>>
-findMaxValuesIndices(const cv::Mat &mat);
+MaxValuesAndIndices findMaxValuesIndices(const cv::Mat &mat);
 std::vector<float> sumProbabilityRows(const cv::Mat &matrix);
 void divideMatrixByRows(cv::Mat &matrix, const std::vector<float> &rowSums);
-cv::Rect extractBoundingBox(const std::array<Point, 4> &points);
+cv::Rect extractBoundingBox(std::array<Point, 4> &points);
 
 // Computes confidence score for given values and indices vectors. Omits blank
 // tokens.

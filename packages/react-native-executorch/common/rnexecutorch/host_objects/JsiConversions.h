@@ -404,6 +404,7 @@ inline jsi::Value getJsiValue(const std::vector<OCRDetection> &detections,
     auto jsiDetectionObject = jsi::Object(runtime);
 
     auto jsiBboxArray = jsi::Array(runtime, 4);
+#pragma unroll
     for (size_t j = 0; j < 4; ++j) {
       auto jsiPointObject = jsi::Object(runtime);
       jsiPointObject.setProperty(runtime, "x", detection.bbox[j].x);

@@ -17,18 +17,19 @@ namespace rnexecutorch {
 using executorch::aten::Tensor;
 using executorch::extension::TensorPtr;
 
-class VerticalOCR final {
+class VerticalOCR {
 public:
-  VerticalOCR(const std::string &detectorLargeSource,
-              const std::string &detectorNarrowSource,
-              const std::string &recognizerSource, const std::string symbols,
-              const bool indpendentCharacters,
-              std::shared_ptr<react::CallInvoker> callInvoker);
+  explicit VerticalOCR(const std::string &detectorLargeSource,
+                       const std::string &detectorNarrowSource,
+                       const std::string &recognizerSource,
+                       const std::string symbols,
+                       const bool indpendentCharacters,
+                       std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<OCRDetection> generate(std::string input);
-  std::size_t getMemoryLowerBound();
+  std::size_t getMemoryLowerBound() const noexcept;
 
 private:
-  OCRDetection _processSingleTextBox(const DetectorBBox &box,
+  OCRDetection _processSingleTextBox(DetectorBBox &box,
                                      const cv::Mat &originalImage,
                                      const cv::Mat &resizedLargeImage,
                                      const PaddingInfo &imagePaddings);

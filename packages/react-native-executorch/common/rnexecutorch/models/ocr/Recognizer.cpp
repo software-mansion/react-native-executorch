@@ -5,8 +5,8 @@
 #include <rnexecutorch/data_processing/Numerical.h>
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/RecognizerUtils.h>
+#include <rnexecutorch/models/ocr/Types.h>
 #include <vector>
-
 namespace rnexecutorch {
 Recognizer::Recognizer(const std::string &modelSource,
                        std::shared_ptr<react::CallInvoker> callInvoker)
@@ -39,14 +39,13 @@ Recognizer::generate(const cv::Mat &grayImage) {
 }
 
 std::pair<std::vector<int32_t>, float>
-Recognizer::postprocess(const Tensor &tensor) {
+Recognizer::postprocess(const Tensor &tensor) const noexcept {
   const int numClasses = tensor.size(2);
   const int numRows = tensor.numel() / numClasses;
   cv::Mat resultMat(numRows, numClasses, CV_32F,
-                    const_cast<float *>(tensor.const_data_ptr<float>()));
+                    tensor.mutable_data_ptr<float>());
   auto probabilities = ocr::softmax(resultMat);
   auto [maxVal, maxIndices] = ocr::findMaxValuesIndices(probabilities);
-
   float confidence = ocr::confidenceScore(maxVal, maxIndices);
   return {maxIndices, confidence};
 }
