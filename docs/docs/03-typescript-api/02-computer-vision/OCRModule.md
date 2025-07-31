@@ -121,11 +121,9 @@ To load the model, use the `load` method. It accepts an object:
 - **`recognizerSmall`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 128 pixels.
 - **`language`** - A parameter that specifies the language of the text to be recognized by the OCR.
 
+**`onDownloadProgressCallback`** - (Optional) Function called on download progress.
+
 For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) section. This method returns a promise, which can resolve to an error or void.
-
-## Listening for download progress
-
-To subscribe to the download progress event, you can use the `onDownloadProgress` method. It accepts a callback function that will be called whenever the download progress changes.
 
 ## Running the model
 
