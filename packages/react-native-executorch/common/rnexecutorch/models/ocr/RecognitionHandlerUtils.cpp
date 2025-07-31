@@ -45,7 +45,7 @@ cv::Mat cropImage(DetectorBBox box, cv::Mat &image, int32_t modelHeight) {
   // Convert custom points to cv::Point2f
   std::array<cv::Point2f, 4> points;
 #pragma unroll
-  for (size_t i = 0; i < 4; ++i) {
+  for (std::size_t i = 0; i < points.size(); ++i) {
     points[i] = cv::Point2f(box.bbox[i].x, box.bbox[i].y);
   }
 
@@ -69,7 +69,7 @@ cv::Mat cropImage(DetectorBBox box, cv::Mat &image, int32_t modelHeight) {
 
   std::vector<cv::Point2f> transformedPoints(4);
 #pragma unroll
-  for (int i = 0; i < transformedPoints.size(); ++i) {
+  for (std::size_t i = 0; i < transformedPoints.size(); ++i) {
     cv::Vec2f point = rectMat.at<cv::Vec2f>(i, 0);
     transformedPoints[i] = cv::Point2f(point[0], point[1]);
   }
@@ -144,7 +144,7 @@ int32_t getDesiredWidth(const cv::Mat &img, bool isVertical) {
 cv::Mat normalizeForRecognizer(cv::Mat &image, int32_t modelHeight,
                                double adjustContrast, bool isVertical) {
   auto img = image.clone();
-  if (adjustContrast > 0) {
+  if (adjustContrast > 0.0) {
     adjustContrastGrey(img, adjustContrast);
   }
 

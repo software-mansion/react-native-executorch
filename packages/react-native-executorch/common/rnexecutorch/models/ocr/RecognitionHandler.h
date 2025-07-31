@@ -11,9 +11,9 @@ namespace rnexecutorch {
 
 class RecognitionHandler final {
 public:
-  explicit RecognitionHandler(std::string recognizerSourceLarge,
-                              std::string recognizerSourceMedium,
-                              std::string recognizerSourceSmall,
+  explicit RecognitionHandler(const std::string &recognizerSourceLarge,
+                              const std::string &recognizerSourceMedium,
+                              const std::string &recognizerSourceSmall,
                               std::string symbols,
                               std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<OCRDetection> recognize(std::vector<DetectorBBox> bboxesList,

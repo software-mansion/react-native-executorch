@@ -3,9 +3,11 @@
 #include <rnexecutorch/models/ocr/Constants.h>
 
 namespace rnexecutorch {
-OCR::OCR(std::string detectorSource, std::string recognizerSourceLarge,
-         std::string recognizerSourceMedium, std::string recognizerSourceSmall,
-         std::string symbols, std::shared_ptr<react::CallInvoker> callInvoker)
+OCR::OCR(const std::string &detectorSource,
+         const std::string &recognizerSourceLarge,
+         const std::string &recognizerSourceMedium,
+         const std::string &recognizerSourceSmall, std::string symbols,
+         std::shared_ptr<react::CallInvoker> callInvoker)
     : detector(detectorSource, callInvoker),
       recognitionHandler(recognizerSourceLarge, recognizerSourceMedium,
                          recognizerSourceSmall, symbols, callInvoker) {}

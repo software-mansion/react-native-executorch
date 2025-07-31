@@ -83,7 +83,8 @@ cv::Mat cropSingleCharacter(const cv::Mat &img) {
                uniform, accumulate);
 
   int midPoint = histSize / 2;
-  double sumLeft = 0.0, sumRight = 0.0;
+  double sumLeft = 0.0;
+  double sumRight = 0.0;
   for (int i = 0; i < midPoint; i++) {
     sumLeft += histogram.at<float>(i);
   }
