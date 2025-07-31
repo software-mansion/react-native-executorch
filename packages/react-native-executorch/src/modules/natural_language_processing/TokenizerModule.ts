@@ -6,7 +6,7 @@ export class TokenizerModule {
 
   async load(
     tokenizer: { tokenizerSource: ResourceSource },
-    onDownloadProgressCallback: (_: number) => void = () => {}
+    onDownloadProgressCallback: (progress: number) => void = () => {}
   ): Promise<void> {
     const paths = await ResourceFetcher.fetch(
       onDownloadProgressCallback,
