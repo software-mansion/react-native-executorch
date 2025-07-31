@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <limits>
 #include <numeric>
-#include <rnexecutorch/Log.h>
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/Types.h>
 #include <unordered_set>
