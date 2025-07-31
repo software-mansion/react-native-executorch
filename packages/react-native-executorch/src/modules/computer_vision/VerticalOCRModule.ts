@@ -12,8 +12,8 @@ export class VerticalOCRModule {
       recognizerLarge: ResourceSource;
       recognizerSmall: ResourceSource;
       language: OCRLanguage;
-      independentCharacters: boolean;
     },
+    independentCharacters: boolean,
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ) {
     this.module = new VerticalOCRController({
@@ -30,7 +30,7 @@ export class VerticalOCRModule {
         recognizerSmall: model.recognizerSmall,
       },
       model.language,
-      model.independentCharacters
+      independentCharacters
     );
   }
 

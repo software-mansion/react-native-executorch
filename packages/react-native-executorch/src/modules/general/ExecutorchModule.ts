@@ -5,12 +5,12 @@ import { ResourceFetcher } from '../../utils/ResourceFetcher';
 
 export class ExecutorchModule extends BaseNonStaticModule {
   async load(
-    model: { modelSource: ResourceSource },
+    modelSource: ResourceSource,
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ): Promise<void> {
     const paths = await ResourceFetcher.fetch(
       onDownloadProgressCallback,
-      model.modelSource
+      modelSource
     );
     if (paths === null || paths.length < 1) {
       throw new Error('Download interrupted.');
