@@ -37,7 +37,7 @@ import { useSpeechToText, MOONSHINE_TINY } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
 import * as FileSystem from 'expo-file-system';
 
-const { transcribe, error } = useSpeechToText(MOONSHINE_TINY);
+const { transcribe, error } = useSpeechToText({ model: MOONSHINE_TINY });
 
 const loadAudio = async (url: string) => {
   const audioContext = new AudioContext({ sampleRate: 16e3 });
@@ -66,26 +66,21 @@ Given that STT models can process audio no longer than 30 seconds, there is a ne
 
 ### Arguments
 
-**`modelName`**
-A literal of `"moonshine" | "whisper" | "whisperMultilingual` which serves as an identifier for which model should be used.
+**`model`** - Object containing the model name, encoder source, decoder source, and tokenizer source.
 
-**`encoderSource?`**
-A string that specifies the location of a .pte file for the encoder. For further information on passing model sources, check out [Loading Models](../../01-fundamentals/02-loading-models.md). Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) for given model.
+- **`modelName`** - A literal of `"moonshine" | "whisper" | "whisperMultilingual` which serves as an identifier for which model should be used.
 
-**`decoderSource?`**
-Analogous to the encoderSource, this takes in a string which is a source for the decoder part of the model. Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) for given model.
+- **`encoderSource?`** - A string that specifies the location of a .pte file for the encoder. For further information on passing model sources, check out [Loading Models](../../01-fundamentals/02-loading-models.md). Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) for given model.
 
-**`tokenizerSource?`**
-A string that specifies the location to the tokenizer for the model. This works just as the encoder and decoder do. Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) for given model.
+- **`decoderSource?`** - Analogous to the encoderSource, this takes in a string which is a source for the decoder part of the model. Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) for given model.
 
-**`overlapSeconds?`**
-Specifies the length of overlap between consecutive audio chunks (expressed in seconds). Overrides `streamingConfig` argument.
+- **`tokenizerSource?`** - A string that specifies the location to the tokenizer for the model. This works just as the encoder and decoder do. Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) for given model.
 
-**`windowSize?`**
-Specifies the size of each audio chunk (expressed in seconds). Overrides `streamingConfig` argument.
+**`overlapSeconds?`** - Specifies the length of overlap between consecutive audio chunks (expressed in seconds). Overrides `streamingConfig` argument.
 
-**`streamingConfig?`**
-Specifies config for both `overlapSeconds` and `windowSize` values. Three options are available: `fast`, `balanced` and `quality`. We discourage using `fast` config with `Whisper` model which while has the lowest latency to first token has the slowest overall speed.
+**`windowSize?`** - Specifies the size of each audio chunk (expressed in seconds). Overrides `streamingConfig` argument.
+
+**`streamingConfig?`** - Specifies config for both `overlapSeconds` and `windowSize` values. Three options are available: `fast`, `balanced` and `quality`. We discourage using `fast` config with `Whisper` model which while has the lowest latency to first token has the slowest overall speed.
 
 **`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
 
@@ -219,7 +214,9 @@ import * as FileSystem from 'expo-file-system';
 import { AudioContext } from 'react-native-audio-api';
 
 function App() {
-  const { transcribe, sequence, error } = useSpeechToText(WHISPER_TINY);
+  const { transcribe, sequence, error } = useSpeechToText({
+    model: WHISPER_TINY,
+  });
 
   const loadAudio = async (url: string) => {
     const audioContext = new AudioContext({ sampleRate: 16e3 });
@@ -291,7 +288,7 @@ const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
 function App() {
   const [isRecording, setIsRecording] = useState(false);
   const speechToText = useSpeechToText({
-    ...MOONSHINE_TINY,
+    model: MOONSHINE_TINY,
     windowSize: 3,
     overlapSeconds: 1.2,
   });

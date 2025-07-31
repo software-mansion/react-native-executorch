@@ -27,7 +27,7 @@ We are using [Hugging Face Tokenizers](https://huggingface.co/docs/tokenizers/in
 ```typescript
 import { useTokenizer, ALL_MINILM_L6_V2 } from 'react-native-executorch';
 
-const tokenizer = useTokenizer(ALL_MINILM_L6_V2);
+const tokenizer = useTokenizer({ tokenizer: ALL_MINILM_L6_V2 });
 
 const text = 'Hello, world!';
 
@@ -46,7 +46,9 @@ try {
 
 ## Arguments
 
-**`tokenizerSource`** - A string that specifies the path or URI of the tokenizer JSON file.
+**`tokenizer`** - Object containing the tokenizer source.
+
+- **`tokenizerSource`** - A string that specifies the location of the tokenizer JSON file.
 
 **`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
 
@@ -70,7 +72,7 @@ try {
 import { useTokenizer, ALL_MINILM_L6_V2 } from 'react-native-executorch';
 
 function App() {
-  const tokenizer = useTokenizer(ALL_MINILM_L6_V2);
+  const tokenizer = useTokenizer({ tokenizer: ALL_MINILM_L6_V2 });
 
   // ...
 

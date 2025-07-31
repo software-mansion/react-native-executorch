@@ -30,7 +30,7 @@ import {
   CLIP_VIT_BASE_PATCH32_IMAGE,
 } from 'react-native-executorch';
 
-const model = useImageEmbeddings(CLIP_VIT_BASE_PATCH32_IMAGE);
+const model = useImageEmbeddings({ model: CLIP_VIT_BASE_PATCH32_IMAGE });
 
 try {
   const imageEmbedding = await model.forward('https://url-to-image.jpg');
@@ -41,8 +41,9 @@ try {
 
 ### Arguments
 
-**`modelSource`**
-A string that specifies the location of the model binary. For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+**`model`** - Object containing the model source.
+
+- **`modelSource`** - A string that specifies the location of the model binary. For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 **`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
 
@@ -88,8 +89,8 @@ try {
 
 ## Supported models
 
-| Model                                                                              | Language | Image size | Embedding Dimensions | Description                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| ---------------------------------------------------------------------------------- | :------: | :--------: | :------------------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Model                                                                              | Language | Image size | Embedding Dimensions | Description                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ---------------------------------------------------------------------------------- | :------: | :--------: | :------------------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [clip-vit-base-patch32-image](https://huggingface.co/openai/clip-vit-base-patch32) | English  | 224 x 224  |         512          | CLIP (Contrastive Language-Image Pre-Training) is a neural network trained on a variety of (image, text) pairs. CLIP allows to embed images and text into the same vector space. This allows to find similar images as well as to implement image search. This is the image encoder part of the CLIP model. To embed text checkout [clip-vit-base-patch32-text](../01-natural-language-processing/useTextEmbeddings.md#supported-models). |
 
 **`Image size`** - the size of an image that the model takes as an input. Resize will happen automatically.

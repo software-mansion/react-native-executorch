@@ -26,7 +26,7 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ```typescript
 import { useTextEmbeddings, ALL_MINILM_L6_V2 } from 'react-native-executorch';
 
-const model = useTextEmbeddings(ALL_MINILM_L6_V2);
+const model = useTextEmbeddings({ model: ALL_MINILM_L6_V2 });
 
 try {
   const embedding = await model.forward('Hello World!');
@@ -37,11 +37,11 @@ try {
 
 ### Arguments
 
-**`modelSource`**
-A string that specifies the location of the model binary. For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+**`model`** - Object containing the model source and tokenizer source.
 
-**`tokenizerSource`**
-A string that specifies the location of the tokenizer JSON file.
+- **`modelSource`** - A string that specifies the location of the model binary. For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+
+- **`tokenizerSource`** - A string that specifies the location of the tokenizer JSON file.
 
 **`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
 
@@ -75,7 +75,7 @@ const cosineSimilarity = (a: number[], b: number[]) => {
 };
 
 function App() {
-  const model = useTextEmbeddings(ALL_MINILM_L6_V2);
+  const model = useTextEmbeddings({ model: ALL_MINILM_L6_V2 });
 
   // ...
 
