@@ -9,7 +9,7 @@
 
 namespace rnexecutorch {
 
-class RecognitionHandler {
+class RecognitionHandler final {
 public:
   explicit RecognitionHandler(std::string recognizerSourceLarge,
                               std::string recognizerSourceMedium,

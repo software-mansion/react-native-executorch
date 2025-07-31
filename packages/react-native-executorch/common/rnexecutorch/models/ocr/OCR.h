@@ -8,7 +8,7 @@
 #include <vector>
 
 namespace rnexecutorch {
-class OCR {
+class OCR final {
 public:
   explicit OCR(std::string detectorSource, std::string recognizerSourceLarge,
                std::string recognizerSourceMedium,
