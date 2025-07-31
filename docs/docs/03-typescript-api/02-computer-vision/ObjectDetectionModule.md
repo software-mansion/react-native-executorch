@@ -61,6 +61,8 @@ To load the model, create a new instance of the module and use the `load` method
 
 - **`modelSource`** - A string that specifies the location of the model binary.
 
+**`onDownloadProgressCallback`** - (Optional) Function called on download progress.
+
 For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page. This method returns a promise, which can resolve to an error or void.
 
 ## Running the model

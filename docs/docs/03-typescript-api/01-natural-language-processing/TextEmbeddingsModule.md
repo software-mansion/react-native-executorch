@@ -48,6 +48,8 @@ To load the model, use the `load` method. It accepts an object:
 - **`modelSource`** - A string that specifies the location of the model binary.
 - **`tokenizerSource`** - A string that specifies the location of the tokenizer JSON file.
 
+**`onDownloadProgressCallback`** - (Optional) Function called on download progress.
+
 For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page. This method returns a promise, which can resolve to an error or void.
 
 ## Running the model

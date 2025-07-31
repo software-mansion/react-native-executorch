@@ -51,7 +51,13 @@ export type ETInput =
 
 ## Loading the model
 
-To load the model, use the `load` method. It accepts the `modelSource` which is a string that specifies the location of the model binary. For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page. This method returns a promise, which can resolve to an error or void.
+To load the model, use the `load` method. It accepts the following arguments:
+
+**`modelSource`** - A string that specifies the location of the model binary.
+
+**`onDownloadProgressCallback`** - (Optional) Function called on download progress.
+
+For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page. This method returns a promise, which can resolve to an error or void.
 
 ## Running the model
 

@@ -134,11 +134,9 @@ To load the model, use the `load` method. It accepts:
 
 **`independentCharacters`** – A boolean parameter that indicates whether the text in the image consists of a random sequence of characters. If set to true, the algorithm will scan each character individually instead of reading them as continuous text.
 
+**`onDownloadProgressCallback`** - (Optional) Function called on download progress.
+
 For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) section. This method returns a promise, which can resolve to an error or void.
-
-## Listening for download progress
-
-To subscribe to the download progress event, you can use the `onDownloadProgress` method. It accepts a callback function that will be called whenever the download progress changes.
 
 ## Running the model
 
