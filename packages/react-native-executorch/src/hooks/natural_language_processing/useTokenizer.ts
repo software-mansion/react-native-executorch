@@ -4,17 +4,17 @@ import { ResourceSource } from '../../types/common';
 import { ETError, getError } from '../../Error';
 
 export const useTokenizer = ({
-  tokenizerSource,
+  tokenizer,
   preventLoad = false,
 }: {
-  tokenizerSource: ResourceSource;
+  tokenizer: { tokenizerSource: ResourceSource };
   preventLoad?: boolean;
 }) => {
   const [error, setError] = useState<null | string>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const model = useMemo(() => new TokenizerModule(), []);
+  const _tokenizer = useMemo(() => new TokenizerModule(), []);
 
   useEffect(() => {
     if (preventLoad) return;
@@ -23,13 +23,13 @@ export const useTokenizer = ({
       setError(null);
       try {
         setIsReady(false);
-        await model.load(tokenizerSource, setDownloadProgress);
+        await _tokenizer.load({ tokenizerSource: tokenizer.tokenizerSource }, setDownloadProgress);
         setIsReady(true);
       } catch (err) {
         setError((err as Error).message);
       }
     })();
-  }, [model, tokenizerSource, preventLoad]);
+  }, [_tokenizer, tokenizer.tokenizerSource, preventLoad]);
 
   const stateWrapper = <T extends (...args: any[]) => Promise<any>>(fn: T) => {
     return (...args: Parameters<T>): Promise<ReturnType<T>> => {
@@ -37,7 +37,7 @@ export const useTokenizer = ({
       if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
       try {
         setIsGenerating(true);
-        return fn.apply(model, args);
+        return fn.apply(_tokenizer, args);
       } finally {
         setIsGenerating(false);
       }

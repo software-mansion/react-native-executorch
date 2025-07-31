@@ -5,12 +5,12 @@ export class TokenizerModule {
   nativeModule: any;
 
   async load(
-    modelSource: ResourceSource,
+    tokenizer: { tokenizerSource: ResourceSource },
     onDownloadProgressCallback: (_: number) => void = () => {}
   ): Promise<void> {
     const paths = await ResourceFetcher.fetch(
       onDownloadProgressCallback,
-      modelSource
+      tokenizer.tokenizerSource
     );
     const path = paths?.[0];
     if (!path) {

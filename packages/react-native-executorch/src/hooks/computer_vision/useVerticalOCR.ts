@@ -12,21 +12,17 @@ interface OCRModule {
 }
 
 export const useVerticalOCR = ({
-  detectorSources,
-  recognizerSources,
-  language = 'en',
+  model,
   independentCharacters = false,
   preventLoad = false,
 }: {
-  detectorSources: {
+  model: {
     detectorLarge: ResourceSource;
     detectorNarrow: ResourceSource;
-  };
-  recognizerSources: {
     recognizerLarge: ResourceSource;
     recognizerSmall: ResourceSource;
+    language: OCRLanguage;
   };
-  language?: OCRLanguage;
   independentCharacters?: boolean;
   preventLoad?: boolean;
 }): OCRModule => {
@@ -35,7 +31,7 @@ export const useVerticalOCR = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
 
-  const model = useMemo(
+  const _model = useMemo(
     () =>
       new VerticalOCRController({
         modelDownloadProgressCallback: setDownloadProgress,
@@ -47,27 +43,30 @@ export const useVerticalOCR = ({
   );
 
   useEffect(() => {
-    const loadModel = async () => {
-      await model.loadModel(
-        detectorSources,
-        recognizerSources,
-        language,
+    if (preventLoad) return;
+
+    (async () => {
+      await _model.loadModel(
+        {
+          detectorLarge: model.detectorLarge,
+          detectorNarrow: model.detectorNarrow,
+        },
+        {
+          recognizerLarge: model.recognizerLarge,
+          recognizerSmall: model.recognizerSmall,
+        },
+        model.language,
         independentCharacters
       );
-    };
-
-    if (!preventLoad) {
-      loadModel();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    })();
   }, [
-    model,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    JSON.stringify(detectorSources),
-    language,
+    _model,
+    model.detectorLarge,
+    model.detectorNarrow,
+    model.recognizerLarge,
+    model.recognizerSmall,
+    model.language,
     independentCharacters,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    JSON.stringify(recognizerSources),
     preventLoad,
   ]);
 
@@ -75,7 +74,7 @@ export const useVerticalOCR = ({
     error,
     isReady,
     isGenerating,
-    forward: model.forward,
+    forward: _model.forward,
     downloadProgress,
   };
 };

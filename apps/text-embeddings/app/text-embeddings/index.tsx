@@ -22,7 +22,7 @@ export default function TextEmbeddingsScreenWrapper() {
 }
 
 function TextEmbeddingsScreen() {
-  const model = useTextEmbeddings(ALL_MINILM_L6_V2);
+  const model = useTextEmbeddings({ model: ALL_MINILM_L6_V2 });
 
   const [inputSentence, setInputSentence] = useState('');
   const [sentencesWithEmbeddings, setSentencesWithEmbeddings] = useState<

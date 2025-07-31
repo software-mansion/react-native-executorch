@@ -16,7 +16,7 @@ export default function VerticalOCRScree() {
     height: number;
   }>();
   const model = useVerticalOCR({
-    ...VERTICAL_OCR_ENGLISH,
+    model: VERTICAL_OCR_ENGLISH,
     independentCharacters: true,
   });
   const { setGlobalGenerating } = useContext(GeneratingContext);

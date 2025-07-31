@@ -28,8 +28,8 @@ export default function ClipEmbeddingsScreenWrapper() {
 }
 
 function ClipEmbeddingsScreen() {
-  const textModel = useTextEmbeddings(CLIP_VIT_BASE_PATCH32_TEXT);
-  const imageModel = useImageEmbeddings(CLIP_VIT_BASE_PATCH32_IMAGE);
+  const textModel = useTextEmbeddings({ model: CLIP_VIT_BASE_PATCH32_TEXT });
+  const imageModel = useImageEmbeddings({ model: CLIP_VIT_BASE_PATCH32_IMAGE });
 
   const [inputSentence, setInputSentence] = useState('');
   const [sentencesWithEmbeddings, setSentencesWithEmbeddings] = useState<

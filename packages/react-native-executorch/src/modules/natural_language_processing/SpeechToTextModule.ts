@@ -31,24 +31,20 @@ export class SpeechToTextModule {
     });
   }
 
-  async load({
-    modelName,
-    encoderSource,
-    decoderSource,
-    tokenizerSource,
-    onDownloadProgressCallback,
-  }: {
-    modelName: AvailableModels;
-    encoderSource?: ResourceSource;
-    decoderSource?: ResourceSource;
-    tokenizerSource?: ResourceSource;
-    onDownloadProgressCallback?: (downloadProgress: number) => void;
-  }) {
+  async load(
+    model: {
+      modelName: AvailableModels;
+      encoderSource?: ResourceSource;
+      decoderSource?: ResourceSource;
+      tokenizerSource?: ResourceSource;
+    },
+    onDownloadProgressCallback: (progress: number) => void = () => {}
+  ) {
     await this.module.load({
-      modelName,
-      encoderSource,
-      decoderSource,
-      tokenizerSource,
+      modelName: model.modelName,
+      encoderSource: model.encoderSource,
+      decoderSource: model.decoderSource,
+      tokenizerSource: model.tokenizerSource,
       onDownloadProgressCallback,
     });
   }

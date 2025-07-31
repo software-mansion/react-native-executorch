@@ -3,16 +3,13 @@ import { ResourceSource } from '../../types/common';
 import { useNonStaticModule } from '../useNonStaticModule';
 
 interface Props {
-  modelSource: ResourceSource;
+  model: { modelSource: ResourceSource };
   preventLoad?: boolean;
 }
 
-export const useExecutorchModule = ({
-  modelSource,
-  preventLoad = false,
-}: Props) =>
+export const useExecutorchModule = ({ model, preventLoad = false }: Props) =>
   useNonStaticModule({
     module: ExecutorchModule,
-    loadArgs: [modelSource],
+    model,
     preventLoad,
   });

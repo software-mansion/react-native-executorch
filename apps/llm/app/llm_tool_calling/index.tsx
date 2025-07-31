@@ -39,7 +39,7 @@ function LLMToolCallingScreen() {
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
-  const llm = useLLM(HAMMER2_1_1_5B_QUANTIZED);
+  const llm = useLLM({ model: HAMMER2_1_1_5B_QUANTIZED });
 
   useEffect(() => {
     setGlobalGenerating(llm.isGenerating);

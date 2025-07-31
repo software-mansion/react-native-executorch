@@ -101,7 +101,7 @@ export class SpeechToTextController {
 
     try {
       const tokenizerLoadPromise = this.tokenizerModule.load(
-        tokenizerSource || this.config.tokenizer.source
+        { tokenizerSource: tokenizerSource || this.config.tokenizer.source }
       );
       const pathsPromise = ResourceFetcher.fetch(
         onDownloadProgressCallback,
@@ -414,7 +414,7 @@ export class SpeechToTextController {
       const chunk = this.waveform.slice(
         0,
         this.windowSize +
-          this.overlapSeconds * (1 + Number(this.seqs.length > 0))
+        this.overlapSeconds * (1 + Number(this.seqs.length > 0))
       );
       this.chunks = [chunk]; //save last chunk for STREAMING_ACTION.STOP
       this.waveform = this.waveform.slice(
@@ -435,9 +435,9 @@ export class SpeechToTextController {
       // pad remaining waveform data with previous chunk to this.windowSize + 2 * this.overlapSeconds
       const chunk = this.chunks.length
         ? [
-            ...this.chunks[0]!.slice(0, this.windowSize),
-            ...this.waveform,
-          ].slice(-this.windowSize - 2 * this.overlapSeconds)
+          ...this.chunks[0]!.slice(0, this.windowSize),
+          ...this.waveform,
+        ].slice(-this.windowSize - 2 * this.overlapSeconds)
         : this.waveform;
 
       this.waveform = [];

@@ -54,7 +54,7 @@ export const SpeechToTextScreen = () => {
     sequence,
     error,
     transcribe,
-  } = useSpeechToText(MOONSHINE_TINY);
+  } = useSpeechToText({ model: MOONSHINE_TINY });
 
   const loadAudio = async (url: string) => {
     const audioContext = new AudioContext({ sampleRate: 16e3 });

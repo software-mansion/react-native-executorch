@@ -11,7 +11,7 @@ import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
 
 export default function StyleTransferScreen() {
-  const model = useStyleTransfer(STYLE_TRANSFER_CANDY);
+  const model = useStyleTransfer({ model: STYLE_TRANSFER_CANDY });
   const { setGlobalGenerating } = useContext(GeneratingContext);
   useEffect(() => {
     setGlobalGenerating(model.isGenerating);
