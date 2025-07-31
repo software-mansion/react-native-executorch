@@ -14,7 +14,7 @@ It is recommended to use models provided by us, which are available at our [Hugg
 import { useOCR, OCR_ENGLISH } from 'react-native-executorch';
 
 function App() {
-  const model = useOCR(OCR_ENGLISH);
+  const model = useOCR({ model: OCR_ENGLISH });
 
   // ...
   for (const ocrDetection of await model.forward('https://url-to-image.jpg')) {
@@ -118,19 +118,17 @@ interface OCRDetection {
 
 ### Arguments
 
-**`detectorSource`** - A string that specifies the location of the detector binary. For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) section.
+**`model`** - Object containing the model source.
 
-**`recognizerSources`** - An object that specifies locations of the recognizers binary files. Each recognizer is composed of three models tailored to process images of varying widths.
-
-- `recognizerLarge` - A string that specifies the location of the recognizer binary file which accepts input images with a width of 512 pixels.
-- `recognizerMedium` - A string that specifies the location of the recognizer binary file which accepts input images with a width of 256 pixels.
-- `recognizerSmall` - A string that specifies the location of the recognizer binary file which accepts input images with a width of 128 pixels.
-
-For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) section.
-
-**`language`** - A parameter that specifies the language of the text to be recognized by the OCR.
+- **`detectorSource`** - A string that specifies the location of the detector binary.
+- **`recognizerLarge`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 512 pixels.
+- **`recognizerMedium`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 256 pixels.
+- **`recognizerSmall`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 128 pixels.
+- **`language`** - A parameter that specifies the language of the text to be recognized by the OCR.
 
 **`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+
+For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) section.
 
 ### Returns
 
@@ -174,7 +172,7 @@ The `text` property contains the text recognized within detected text region. Th
 import { useOCR, OCR_ENGLISH } from 'react-native-executorch';
 
 function App() {
-  const model = useOCR(OCR_ENGLISH);
+  const model = useOCR({ model: OCR_ENGLISH });
 
   const runModel = async () => {
     const ocrDetections = await model.forward('https://url-to-image.jpg');

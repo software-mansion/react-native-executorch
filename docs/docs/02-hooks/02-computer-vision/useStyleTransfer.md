@@ -16,7 +16,7 @@ import {
   STYLE_TRANSFER_CANDY,
 } from 'react-native-executorch';
 
-const model = useStyleTransfer(STYLE_TRANSFER_CANDY);
+const model = useStyleTransfer({ model: STYLE_TRANSFER_CANDY });
 
 const imageUri = 'file::///Users/.../cute_cat.png';
 
@@ -29,8 +29,9 @@ try {
 
 ### Arguments
 
-**`modelSource`**
-A string that specifies the location of the model binary. For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+**`model`** - Object containing the model source.
+
+- **`modelSource`** - A string that specifies the location of the model binary. For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 **`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
 
@@ -56,7 +57,7 @@ Images from external sources and the generated image are stored in your applicat
 
 ```typescript
 function App() {
-  const model = useStyleTransfer(STYLE_TRANSFER_CANDY);
+  const model = useStyleTransfer({ model: STYLE_TRANSFER_CANDY });
 
   // ...
   const imageUri = 'file::///Users/.../cute_cat.png';

@@ -19,7 +19,7 @@ import { useVerticalOCR, VERTICAL_OCR_ENGLISH } from 'react-native-executorch';
 
 function App() {
   const model = useVerticalOCR({
-    ...VERTICAL_OCR_ENGLISH,
+    model: VERTICAL_OCR_ENGLISH,
     independentCharacters: true,
   });
 
@@ -129,25 +129,20 @@ interface OCRDetection {
 
 ### Arguments
 
-**`detectorSources`** - An object that specifies the location of the detectors binary files. Each detector is composed of two models tailored to process images of varying widths.
+**`model`** - Object containing the model source.
 
-- `detectorLarge` - A string that specifies the location of the recognizer binary file which accepts input images with a width of 1280 pixels.
-- `detectorNarrow` - A string that specifies the location of the detector binary file which accepts input images with a width of 320 pixels.
-
-For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) section.
-
-**`recognizerSources`** - An object that specifies the locations of the recognizers binary files. Each recognizer is composed of two models tailored to process images of varying widths.
-
-- `recognizerLarge` - A string that specifies the location of the recognizer binary file which accepts input images with a width of 512 pixels.
-- `recognizerSmall` - A string that specifies the location of the recognizer binary file which accepts input images with a width of 64 pixels.
-
-For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) section.
+- **`detectorLarge`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 1280 pixels.
+- **`detectorNarrow`** - A string that specifies the location of the detector binary file which accepts input images with a width of 320 pixels.
+- **`recognizerLarge`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 512 pixels.
+- **`recognizerSmall`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 64 pixels.
 
 **`language`** - A parameter that specifies the language of the text to be recognized by the OCR.
 
 **`independentCharacters`** – A boolean parameter that indicates whether the text in the image consists of a random sequence of characters. If set to true, the algorithm will scan each character individually instead of reading them as continuous text.
 
 **`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+
+For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) section.
 
 ### Returns
 
@@ -192,7 +187,7 @@ import { useVerticalOCR, VERTICAL_OCR_ENGLISH } from 'react-native-executorch';
 
 function App() {
   const model = useVerticalOCR({
-    ...VERTICAL_OCR_ENGLISH,
+    model: VERTICAL_OCR_ENGLISH,
     independentCharacters: true,
   });
 

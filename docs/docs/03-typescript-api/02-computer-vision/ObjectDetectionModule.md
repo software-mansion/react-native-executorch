@@ -25,11 +25,11 @@ const detections = await module.forward(imageUri);
 
 ### Methods
 
-| Method    | Type                                                                                                     | Description                                                                                                                                                                                |
-| --------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `load`    | `(modelSource: ResourceSource, onDownloadProgressCallback: (_: number) => void () => {}): Promise<void>` | Loads the model, where `modelSource` is a string that specifies the location of the model binary. To track the download progress, supply a callback function `onDownloadProgressCallback`. |
-| `forward` | `(input: string, detectionThreshold: number = 0.7): Promise<Detection[]>`                                | Executes the model's forward pass, where `input` can be a fetchable resource or a Base64-encoded string. `detectionThreshold` can be supplied to alter the sensitivity of the detection.   |
-| `delete`  | `(): void`                                                                                               | Release the memory held by the module. Calling `forward` afterwards is invalid.                                                                                                            |
+| Method    | Type                                                                                                               | Description                                                                                                                                                                                |
+| --------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `load`    | `(model: { modelSource: ResourceSource }, onDownloadProgressCallback?: (progress: number) => void): Promise<void>` | Loads the model, where `modelSource` is a string that specifies the location of the model binary. To track the download progress, supply a callback function `onDownloadProgressCallback`. |
+| `forward` | `(input: string, detectionThreshold: number = 0.7): Promise<Detection[]>`                                          | Executes the model's forward pass, where `input` can be a fetchable resource or a Base64-encoded string. `detectionThreshold` can be supplied to alter the sensitivity of the detection.   |
+| `delete`  | `(): void`                                                                                                         | Release the memory held by the module. Calling `forward` afterwards is invalid.                                                                                                            |
 
 <details>
 <summary>Type definitions</summary>
@@ -55,7 +55,13 @@ interface Detection {
 
 ## Loading the model
 
-To load the model, create a new instance of the module and use the `load` method on it. It accepts the `modelSource` which is a string that specifies the location of the model binary. For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page. This method returns a promise, which can resolve to an error or void.
+To load the model, create a new instance of the module and use the `load` method on it. It accepts an object:
+
+**`model`** - Object containing the model source.
+
+- **`modelSource`** - A string that specifies the location of the model binary.
+
+For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page. This method returns a promise, which can resolve to an error or void.
 
 ## Running the model
 

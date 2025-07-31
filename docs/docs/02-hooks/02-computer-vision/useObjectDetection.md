@@ -18,7 +18,7 @@ import {
 } from 'react-native-executorch';
 
 function App() {
-  const ssdlite = useObjectDetection(SSDLITE_320_MOBILENET_V3_LARGE);
+  const ssdlite = useObjectDetection({ model: SSDLITE_320_MOBILENET_V3_LARGE });
 
   // ...
   for (const detection of await ssdlite.forward('https://url-to-image.jpg')) {
@@ -52,8 +52,10 @@ interface Detection {
 
 ### Arguments
 
-**`modelSource`** - A string that specifies the path to the model file. You can download the model from our [HuggingFace repository](https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large/tree/main).
-For more information on that topic, you can check out the [Loading models](../../01-fundamentals/02-loading-models.md) page.
+**`model`** - Object containing the model source.
+
+- **`modelSource`** - A string that specifies the path to the model file. You can download the model from our [HuggingFace repository](https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large/tree/main).
+  For more information on that topic, you can check out the [Loading models](../../01-fundamentals/02-loading-models.md) page.
 
 **`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
 
@@ -104,7 +106,7 @@ import {
 } from 'react-native-executorch';
 
 function App() {
-  const ssdlite = useObjectDetection(SSDLITE_320_MOBILENET_V3_LARGE);
+  const ssdlite = useObjectDetection({ model: SSDLITE_320_MOBILENET_V3_LARGE });
 
   const runModel = async () => {
     const detections = await ssdlite.forward('https://url-to-image.jpg');

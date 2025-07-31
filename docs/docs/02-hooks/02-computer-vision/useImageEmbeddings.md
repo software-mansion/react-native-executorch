@@ -30,7 +30,7 @@ import {
   CLIP_VIT_BASE_PATCH32_IMAGE,
 } from 'react-native-executorch';
 
-const model = useImageEmbeddings(CLIP_VIT_BASE_PATCH32_IMAGE);
+const model = useImageEmbeddings({ model: CLIP_VIT_BASE_PATCH32_IMAGE });
 
 try {
   const imageEmbedding = await model.forward('https://url-to-image.jpg');
@@ -41,8 +41,9 @@ try {
 
 ### Arguments
 
-**`modelSource`**
-A string that specifies the location of the model binary. For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+**`model`** - Object containing the model source.
+
+- **`modelSource`** - A string that specifies the location of the model binary. For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 **`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
 
