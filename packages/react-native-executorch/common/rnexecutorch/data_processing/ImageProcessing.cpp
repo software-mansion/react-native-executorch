@@ -122,7 +122,8 @@ TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDims,
 TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDims,
                               const cv::Mat &matrix, cv::Scalar mean,
                               cv::Scalar variance) {
-  return executorch::extension::make_tensor_ptr(tensorDims, colorMatToVector(matrix, mean, variance));
+  return executorch::extension::make_tensor_ptr(
+      tensorDims, colorMatToVector(matrix, mean, variance));
 }
 
 TensorPtr getTensorFromMatrixGray(const std::vector<int32_t> &tensorDims,
@@ -139,7 +140,7 @@ std::vector<float> grayMatToVector(const cv::Mat &mat) {
   v.reserve(pixelCount);
 
   if (mat.isContinuous()) {
-    v.assign((float *)mat.data, (float *)mat.data + pixelCount);
+    v.assign(mat.ptr<float>(), mat.ptr<float>() + mat.total());
   } else {
     for (int i = 0; i < mat.rows; ++i) {
       v.insert(v.end(), mat.ptr<float>(i), mat.ptr<float>(i) + mat.cols);
@@ -157,8 +158,10 @@ cv::Mat getMatrixFromTensor(cv::Size size, const Tensor &tensor) {
 
 cv::Mat resizePadded(cv::Mat inputImage, cv::Size targetSize) {
   cv::Size inputSize = inputImage.size();
-  const float heightRatio = static_cast<float>(targetSize.height) / inputSize.height;
-  const float widthRatio = static_cast<float>(targetSize.width) / inputSize.width;
+  const float heightRatio =
+      static_cast<float>(targetSize.height) / inputSize.height;
+  const float widthRatio =
+      static_cast<float>(targetSize.width) / inputSize.width;
   const float resizeRatio = std::min(heightRatio, widthRatio);
   const int newWidth = inputSize.width * resizeRatio;
   const int newHeight = inputSize.height * resizeRatio;
@@ -166,8 +169,17 @@ cv::Mat resizePadded(cv::Mat inputImage, cv::Size targetSize) {
   cv::resize(inputImage, resizedImg, cv::Size(newWidth, newHeight), 0, 0,
              cv::INTER_AREA);
 
-  const int cornerPatchSize =
-      std::max(1, std::min(inputSize.height, inputSize.width) / 30);
+  // We choose the color of the padding based on a mean of colors in the corners
+  // of an image. The cornerPatch is a  section of an image considered as
+  // corner. It should be meaningfull but relatively small in the context of
+  // image size. Our heuristic approach is to take the 1/30 of the smaller
+  // dimension of size of the image. We take no less than 1 pixel.
+  constexpr int minCornerPatchSize = 1;
+  constexpr int cornerPatchFractionSize = 30;
+  int cornerPatchSize =
+      std::min(inputSize.height, inputSize.width) / cornerPatchFractionSize;
+  cornerPatchSize = std::max(minCornerPatchSize, cornerPatchSize);
+
   std::vector<cv::Mat> corners = {
       inputImage(cv::Rect(0, 0, cornerPatchSize, cornerPatchSize)),
       inputImage(cv::Rect(inputSize.width - cornerPatchSize, 0, cornerPatchSize,

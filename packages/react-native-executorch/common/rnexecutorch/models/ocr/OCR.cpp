@@ -26,7 +26,7 @@ std::vector<OCRDetection> OCR::generate(std::string input) {
   return result;
 }
 
-std::size_t OCR::getMemoryLowerBound() {
+std::size_t OCR::getMemoryLowerBound() const noexcept {
   return detector.getMemoryLowerBound() +
          recognitionHandler.getMemoryLowerBound();
 }

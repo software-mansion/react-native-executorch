@@ -28,23 +28,21 @@ void divideMatrixByRows(cv::Mat &matrix, const std::vector<float> &rowSums) {
   }
 }
 
-std::pair<std::vector<float>, std::vector<int32_t>>
-findMaxValuesIndices(const cv::Mat &mat) {
-  assert(mat.type() == CV_32F);
-  std::vector<float> maxValues;
-  std::vector<int32_t> maxIndices;
-  maxValues.reserve(mat.rows);
-  maxIndices.reserve(mat.rows);
+MaxValuesAndIndices findMaxValuesIndices(const cv::Mat &mat) {
+  CV_Assert(mat.type() == CV_32F);
+  MaxValuesAndIndices result{};
+  result.values.reserve(mat.rows);
+  result.indices.reserve(mat.rows);
 
   for (int i = 0; i < mat.rows; ++i) {
     double maxVal;
     cv::Point maxLoc;
     cv::minMaxLoc(mat.row(i), nullptr, &maxVal, nullptr, &maxLoc);
-    maxValues.push_back(static_cast<float>(maxVal));
-    maxIndices.push_back(maxLoc.x);
+    result.values.push_back(static_cast<float>(maxVal));
+    result.indices.push_back(maxLoc.x);
   }
 
-  return {maxValues, maxIndices};
+  return result;
 }
 
 float confidenceScore(const std::vector<float> &values,
@@ -68,8 +66,8 @@ float confidenceScore(const std::vector<float> &values,
   return std::pow(product, exponent);
 }
 
-cv::Rect extractBoundingBox(const std::array<rnexecutorch::Point, 4> &points) {
-  cv::Mat pointsMat(points.size(), 1, CV_32FC2, (void *)points.data());
+cv::Rect extractBoundingBox(std::array<rnexecutorch::Point, 4> &points) {
+  cv::Mat pointsMat(4, 1, CV_32FC2, points.data());
   return cv::boundingRect(pointsMat);
 }
 

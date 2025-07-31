@@ -12,13 +12,14 @@ namespace rnexecutorch {
 class RecognitionHandler {
 public:
   explicit RecognitionHandler(std::string recognizerSourceLarge,
-                     std::string recognizerSourceMedium,
-                     std::string recognizerSourceSmall, std::string symbols,
-                     std::shared_ptr<react::CallInvoker> callInvoker);
+                              std::string recognizerSourceMedium,
+                              std::string recognizerSourceSmall,
+                              std::string symbols,
+                              std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<OCRDetection> recognize(std::vector<DetectorBBox> bboxesList,
                                       cv::Mat &imgGray, cv::Size desiredSize);
-  void unload();
-  std::size_t getMemoryLowerBound();
+  void unload() noexcept;
+  std::size_t getMemoryLowerBound() const noexcept;
 
 private:
   std::pair<std::vector<int32_t>, float> runModel(cv::Mat image);

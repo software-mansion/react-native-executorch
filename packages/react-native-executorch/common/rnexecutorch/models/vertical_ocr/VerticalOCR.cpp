@@ -35,7 +35,7 @@ std::vector<OCRDetection> VerticalOCR::generate(std::string input) {
   std::vector<OCRDetection> predictions;
   predictions.reserve(largeBoxes.size());
 
-  for (const auto &box : largeBoxes) {
+  for (auto &box : largeBoxes) {
     predictions.push_back(
         _processSingleTextBox(box, image, resizedImage, imagePaddings));
   }
@@ -43,14 +43,14 @@ std::vector<OCRDetection> VerticalOCR::generate(std::string input) {
   return predictions;
 }
 
-std::size_t VerticalOCR::getMemoryLowerBound() {
+std::size_t VerticalOCR::getMemoryLowerBound() const noexcept {
   return detectorLarge.getMemoryLowerBound() +
          detectorNarrow.getMemoryLowerBound() +
          recognizer.getMemoryLowerBound();
 }
 
 OCRDetection VerticalOCR::_processSingleTextBox(
-    const DetectorBBox &box, const cv::Mat &originalImage,
+    DetectorBBox &box, const cv::Mat &originalImage,
     const cv::Mat &resizedLargeImage, const PaddingInfo &imagePaddings) {
   cv::Rect boundingBox = ocr::extractBoundingBox(box.bbox);
   cv::Mat croppedLargeBox = resizedLargeImage(boundingBox);

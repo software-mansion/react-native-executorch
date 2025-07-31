@@ -33,7 +33,7 @@ CTCLabelConverter::CTCLabelConverter(const std::string &characters) {
     i += char_len;
   }
 
-  ignoreIdx = {0};
+  ignoreIdx = 0;
 }
 
 std::vector<std::string>
@@ -48,15 +48,17 @@ CTCLabelConverter::decodeGreedy(const std::vector<int> &textIndex,
     std::vector<int> subArray(textIndex.begin() + index,
                               textIndex.begin() + index + segmentLength);
 
-    std::string text = "";
+    std::string text;
 
     if (!subArray.empty()) {
       std::optional<int> lastChar;
 
       std::vector<bool> isNotRepeated;
+      isNotRepeated.reserve(subArray.size());
       isNotRepeated.push_back(true);
 
       std::vector<bool> isNotIgnored;
+      isNotIgnored.reserve(subArray.size());
 
       for (size_t i = 0; i < subArray.size(); ++i) {
         int currentChar = subArray[i];
@@ -65,8 +67,7 @@ CTCLabelConverter::decodeGreedy(const std::vector<int> &textIndex,
               lastChar.has_value() && lastChar.value() == currentChar;
           isNotRepeated.push_back(!isRepeated);
         }
-        bool ignored = std::find(ignoreIdx.begin(), ignoreIdx.end(),
-                                 currentChar) != ignoreIdx.end();
+        bool ignored = currentChar == ignoreIdx;
         isNotIgnored.push_back(!ignored);
         lastChar = currentChar;
       }

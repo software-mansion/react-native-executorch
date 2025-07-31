@@ -71,11 +71,11 @@ RecognitionHandler::recognize(std::vector<DetectorBBox> bboxesList,
   return result;
 }
 
-std::size_t RecognitionHandler::getMemoryLowerBound() {
+std::size_t RecognitionHandler::getMemoryLowerBound() const noexcept {
   return memorySizeLowerBound;
 }
 
-void RecognitionHandler::unload() {
+void RecognitionHandler::unload() noexcept {
   recognizerSmall.unload();
   recognizerMedium.unload();
   recognizerLarge.unload();
