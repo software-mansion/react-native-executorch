@@ -101,11 +101,9 @@ const createOCRObject = (
 ) => {
   return {
     detectorSource: DETECTOR_CRAFT_800_MODEL,
-    recognizerSources: {
-      recognizerLarge,
-      recognizerMedium,
-      recognizerSmall,
-    },
+    recognizerLarge,
+    recognizerMedium,
+    recognizerSmall,
     language,
   };
 };
@@ -116,14 +114,10 @@ const createVerticalOCRObject = (
   language: keyof typeof symbols
 ) => {
   return {
-    detectorSources: {
-      detectorLarge: DETECTOR_CRAFT_1280_MODEL,
-      detectorNarrow: DETECTOR_CRAFT_320_MODEL,
-    },
-    recognizerSources: {
-      recognizerLarge,
-      recognizerSmall,
-    },
+    detectorLarge: DETECTOR_CRAFT_1280_MODEL,
+    detectorNarrow: DETECTOR_CRAFT_320_MODEL,
+    recognizerLarge,
+    recognizerSmall,
     language,
   };
 };

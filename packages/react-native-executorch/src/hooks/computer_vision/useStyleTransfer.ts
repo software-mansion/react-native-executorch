@@ -3,13 +3,13 @@ import { useNonStaticModule } from '../useNonStaticModule';
 import { StyleTransferModule } from '../../modules/computer_vision/StyleTransferModule';
 
 interface Props {
-  modelSource: ResourceSource;
+  model: { modelSource: ResourceSource };
   preventLoad?: boolean;
 }
 
-export const useStyleTransfer = ({ modelSource, preventLoad = false }: Props) =>
+export const useStyleTransfer = ({ model, preventLoad = false }: Props) =>
   useNonStaticModule({
     module: StyleTransferModule,
-    loadArgs: [modelSource],
+    model,
     preventLoad: preventLoad,
   });

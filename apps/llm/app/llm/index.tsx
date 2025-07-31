@@ -30,7 +30,7 @@ function LLMScreen() {
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
-  const llm = useLLM(LLAMA3_2_1B_QLORA);
+  const llm = useLLM({ model: LLAMA3_2_1B_QLORA });
 
   useEffect(() => {
     if (llm.error) {

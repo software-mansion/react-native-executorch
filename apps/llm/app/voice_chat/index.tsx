@@ -67,9 +67,9 @@ function VoiceChatScreen() {
   const messageRecorded = useRef<boolean>(false);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
-  const llm = useLLM(QWEN3_0_6B_QUANTIZED);
+  const llm = useLLM({ model: QWEN3_0_6B_QUANTIZED });
   const speechToText = useSpeechToText({
-    ...MOONSHINE_TINY,
+    model: MOONSHINE_TINY,
     windowSize: 3,
     overlapSeconds: 1.2,
   });

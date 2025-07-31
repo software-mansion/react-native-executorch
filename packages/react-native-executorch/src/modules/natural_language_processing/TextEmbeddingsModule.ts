@@ -4,14 +4,13 @@ import { BaseNonStaticModule } from '../BaseNonStaticModule';
 
 export class TextEmbeddingsModule extends BaseNonStaticModule {
   async load(
-    modelSource: ResourceSource,
-    tokenizerSource: ResourceSource,
-    onDownloadProgressCallback: (_: number) => void = () => {}
+    model: { modelSource: ResourceSource; tokenizerSource: ResourceSource },
+    onDownloadProgressCallback: (progress: number) => void = () => {}
   ): Promise<void> {
     const paths = await ResourceFetcher.fetch(
       onDownloadProgressCallback,
-      modelSource,
-      tokenizerSource
+      model.modelSource,
+      model.tokenizerSource
     );
     if (paths === null || paths.length < 2) {
       throw new Error('Download interrupted.');

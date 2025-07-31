@@ -3,16 +3,13 @@ import { ImageSegmentationModule } from '../../modules/computer_vision/ImageSegm
 import { ResourceSource } from '../../types/common';
 
 interface Props {
-  modelSource: ResourceSource;
+  model: { modelSource: ResourceSource };
   preventLoad?: boolean;
 }
 
-export const useImageSegmentation = ({
-  modelSource,
-  preventLoad = false,
-}: Props) =>
+export const useImageSegmentation = ({ model, preventLoad = false }: Props) =>
   useNonStaticModule({
     module: ImageSegmentationModule,
-    loadArgs: [modelSource],
+    model,
     preventLoad,
   });

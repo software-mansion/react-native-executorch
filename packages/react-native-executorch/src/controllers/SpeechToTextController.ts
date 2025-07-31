@@ -100,9 +100,9 @@ export class SpeechToTextController {
     this.config = MODEL_CONFIGS[modelName];
 
     try {
-      await this.tokenizerModule.load(
-        tokenizerSource || this.config.tokenizer.source
-      );
+      await this.tokenizerModule.load({
+        tokenizerSource: tokenizerSource || this.config.tokenizer.source,
+      });
       const paths = await ResourceFetcher.fetch(
         onDownloadProgressCallback,
         encoderSource || this.config.sources.encoder,

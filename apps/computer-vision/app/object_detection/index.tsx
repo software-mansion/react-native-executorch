@@ -20,7 +20,7 @@ export default function ObjectDetectionScreen() {
     height: number;
   }>();
 
-  const ssdLite = useObjectDetection(SSDLITE_320_MOBILENET_V3_LARGE);
+  const ssdLite = useObjectDetection({ model: SSDLITE_320_MOBILENET_V3_LARGE });
   const { setGlobalGenerating } = useContext(GeneratingContext);
   useEffect(() => {
     setGlobalGenerating(ssdLite.isGenerating);

@@ -16,7 +16,7 @@ export default function OCRScreen() {
     height: number;
   }>();
 
-  const model = useOCR(OCR_ENGLISH);
+  const model = useOCR({ model: OCR_ENGLISH });
   const { setGlobalGenerating } = useContext(GeneratingContext);
   useEffect(() => {
     setGlobalGenerating(model.isGenerating);

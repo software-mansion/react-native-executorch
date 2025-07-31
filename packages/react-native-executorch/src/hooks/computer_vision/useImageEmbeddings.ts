@@ -2,15 +2,14 @@ import { ImageEmbeddingsModule } from '../../modules/computer_vision/ImageEmbedd
 import { ResourceSource } from '../../types/common';
 import { useNonStaticModule } from '../useNonStaticModule';
 
-export const useImageEmbeddings = ({
-  modelSource,
-  preventLoad = false,
-}: {
-  modelSource: ResourceSource;
+interface Props {
+  model: { modelSource: ResourceSource };
   preventLoad?: boolean;
-}) =>
+}
+
+export const useImageEmbeddings = ({ model, preventLoad = false }: Props) =>
   useNonStaticModule({
     module: ImageEmbeddingsModule,
-    loadArgs: [modelSource],
+    model,
     preventLoad,
   });
