@@ -21,9 +21,8 @@ class VerticalOCR final {
 public:
   explicit VerticalOCR(const std::string &detectorLargeSource,
                        const std::string &detectorNarrowSource,
-                       const std::string &recognizerSource,
-                       const std::string symbols,
-                       const bool indpendentCharacters,
+                       const std::string &recognizerSource, std::string symbols,
+                       bool indpendentCharacters,
                        std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<OCRDetection> generate(std::string input);
   std::size_t getMemoryLowerBound() const noexcept;

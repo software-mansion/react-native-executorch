@@ -89,7 +89,7 @@ void processComponent(const cv::Mat &textMap, const cv::Mat &labels,
     minRect.points(vertices.data());
     std::array<Point, 4> points;
 #pragma unroll
-    for (int j = 0; j < points.size(); j++) {
+    for (std::size_t j = 0; j < points.size(); j++) {
       points[j] = {.x = vertices[j].x, .y = vertices[j].y};
     }
     detectedBoxes.push_back({.bbox = points, .angle = minRect.angle});
@@ -215,7 +215,7 @@ void processVerticalComponent(const cv::Mat &textMap, const cv::Mat &labels,
 
     std::array<Point, 4> points;
 #pragma unroll
-    for (int j = 0; j < points.size(); j++) {
+    for (std::size_t j = 0; j < points.size(); j++) {
       points[j] = {.x = vertices[j].x, .y = vertices[j].y};
     }
     detectedBoxes.push_back({.bbox = points, .angle = minRect.angle});
@@ -249,36 +249,26 @@ getDetBoxesFromTextMapVertical(cv::Mat &textMap, cv::Mat &affinityMap,
       cv::Point(-1, -1); // anchor position of the anchor within the element;
                          // default value (-1, -1)
                          // means that the anchor is at the element center
+
   // 2. Combine maps based on whether we are detecting words or single
   // characters
-  cv::Mat textScoreComb;
+  // For single characters, subtract affinity to separate adjacent chars,
+  // otherwise add affinity to link characters together
+  cv::Mat textScoreComb = independentCharacters ? textScore - affinityScore
+                                                : textScore + affinityScore;
+  // Clamp values to be >= 0
+  cv::threshold(textScoreComb, textScoreComb, 0.0, 1.0, cv::THRESH_TOZERO);
+  // Clamp values to be <= 1
+  cv::threshold(textScoreComb, textScoreComb, 1.0, 1.0, cv::THRESH_TRUNC);
+
+  // Perform morphological operations to refine character regions
   if (independentCharacters) {
-    // For single characters, subtract affinity to separate adjacent chars
-    textScoreComb = textScore - affinityScore;
-    // Clamp values to be >= 0
-    cv::threshold(textScoreComb, textScoreComb, 0.0, 1.0, cv::THRESH_TOZERO);
-    // Clamp values to be <= 1
-    cv::threshold(textScoreComb, textScoreComb, 1.0, 1.0, cv::THRESH_TRUNC);
-
-    // Perform morphological operations to refine character regions
-
     dilationIterations = 4;
     cv::erode(textScoreComb, textScoreComb, kernel, anchor, erosionIterations);
-    cv::dilate(textScoreComb, textScoreComb, kernel, anchor,
-               dilationIterations);
   } else {
-    // For words, add affinity to link characters together
-    textScoreComb = textScore + affinityScore;
-    // Clamp values to be >= 0
-    cv::threshold(textScoreComb, textScoreComb, 0.0, 1.0, cv::THRESH_TOZERO);
-    // Clamp values to be <= 1
-    cv::threshold(textScoreComb, textScoreComb, 1.0, 1.0, cv::THRESH_TRUNC);
-
-    // Dilate to connect word components
     dilationIterations = 2;
-    cv::dilate(textScoreComb, textScoreComb, kernel, anchor,
-               dilationIterations);
   }
+  cv::dilate(textScoreComb, textScoreComb, kernel, anchor, dilationIterations);
 
   // 3. Find connected components to identify each character/word
   cv::Mat binaryMat;
@@ -374,7 +364,7 @@ float maxSideLength(const std::array<Point, 4> &points) {
  * considered vertical.
  */
 std::tuple<float, float, bool>
-fitLineToShortestSides(const std::array<Point, 4> points) {
+fitLineToShortestSides(const std::array<Point, 4> &points) {
   std::array<std::pair<float, float>, 4> sides;
   std::array<Point, 4> midpoints;
 #pragma unroll
@@ -412,14 +402,10 @@ fitLineToShortestSides(const std::array<Point, 4> points) {
     for (auto &pt : cvMidPoints) {
       std::swap(pt.x, pt.y);
     }
-    cv::fitLine(cvMidPoints, line, cv::DIST_L2, numericalParameter, accuracy,
-                accuracy);
-    isVertical = true;
-  } else {
-    cv::fitLine(cvMidPoints, line, cv::DIST_L2, numericalParameter, accuracy,
-                accuracy);
-    isVertical = false;
   }
+  cv::fitLine(cvMidPoints, line, cv::DIST_L2, numericalParameter, accuracy,
+              accuracy);
+  isVertical = dx < verticalLineThreshold;
   m = line[1] / line[0];
   c = line[3] - m * line[2];
   return {m, c, isVertical};
@@ -587,7 +573,7 @@ findClosestBox(const std::vector<DetectorBBox> &boxes,
                const std::array<Point, 4> &currentBox, bool isVertical, float m,
                float c, float centerThreshold) {
   float smallestDistance = std::numeric_limits<float>::max();
-  std::size_t idx = -1;
+  ssize_t idx = -1;
   float boxHeight = 0;
   const Point centerOfCurrentBox = centerOfBox(currentBox);
 

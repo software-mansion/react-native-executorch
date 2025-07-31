@@ -5,7 +5,8 @@
 
 namespace rnexecutorch::ocr {
 
-CTCLabelConverter::CTCLabelConverter(const std::string &characters) {
+CTCLabelConverter::CTCLabelConverter(const std::string &characters)
+    : ignoreIdx(0) {
   character = {"[blank]"}; // blank character is ignored character (index 0).
 
   for (size_t i = 0; i < characters.length();) {
@@ -32,8 +33,6 @@ CTCLabelConverter::CTCLabelConverter(const std::string &characters) {
     }
     i += char_len;
   }
-
-  ignoreIdx = 0;
 }
 
 std::vector<std::string>

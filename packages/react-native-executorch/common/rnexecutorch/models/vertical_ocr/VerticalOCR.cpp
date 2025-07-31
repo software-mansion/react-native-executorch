@@ -10,7 +10,7 @@ namespace rnexecutorch {
 VerticalOCR::VerticalOCR(const std::string &detectorLargeSource,
                          const std::string &detectorNarrowSource,
                          const std::string &recognizerSource,
-                         const std::string symbols, const bool independentChars,
+                         std::string symbols, bool independentChars,
                          std::shared_ptr<react::CallInvoker> invoker)
     : detectorLarge(detectorLargeSource, false, invoker),
       detectorNarrow(detectorNarrowSource, true, invoker),
@@ -57,7 +57,7 @@ OCRDetection VerticalOCR::_processSingleTextBox(
   std::vector<DetectorBBox> characterBoxes =
       detectorNarrow.generate(croppedLargeBox);
 
-  std::string text = "";
+  std::string text;
   float confidenceScore = 0.0f;
 
   if (!characterBoxes.empty()) {
