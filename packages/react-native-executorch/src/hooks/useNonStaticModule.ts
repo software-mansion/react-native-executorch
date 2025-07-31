@@ -51,7 +51,7 @@ export const useNonStaticModule = <
     };
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [...Object.values(model), preventLoad]);
+  }, [_model, ...Object.values(model), preventLoad]);
 
   const forward = async (...input: ForwardArgs): Promise<ForwardReturn> => {
     if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
