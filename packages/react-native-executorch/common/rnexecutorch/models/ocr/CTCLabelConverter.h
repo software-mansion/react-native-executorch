@@ -5,7 +5,7 @@
 #include <vector>
 
 namespace rnexecutorch::ocr {
-class CTCLabelConverter {
+class CTCLabelConverter final {
 public:
   explicit CTCLabelConverter(const std::string &characters);
 
