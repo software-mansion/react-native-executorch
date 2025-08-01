@@ -41,7 +41,7 @@ type ResourceSource = string | number | object;
 
 To load the model, use the `load` method. It accepts an object:
 
-**`model`** - Object containing the model source.
+**`model`** - Object containing the model source and tokenizer source.
 
 - **`modelSource`** - A string that specifies the location of the model binary.
 - **`tokenizerSource`** - A string that specifies the location of the tokenizer JSON file.

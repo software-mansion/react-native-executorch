@@ -90,7 +90,7 @@ To create a new instance of LLMModule, use the constructor with optional callbac
 
 Then, to load the model, use the `load` method. It accepts an object with the following fields:
 
-**`model`** - An object with the following fields:
+**`model`** - Object containing the model source, tokenizer source, and tokenizer config source.
 
 - **`modelSource`** - `ResourceSource` specifying the location of the model binary.
 

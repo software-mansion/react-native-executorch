@@ -167,7 +167,7 @@ To create a new instance of SpeechToTextModule, use the constructor with optiona
 
 Then, to load the model, use the `load` method. It accepts an object with the following fields:
 
-**`model`** - Object containing the following fields:
+**`model`** - Object containing the model name, encoder source, decoder source, and tokenizer source.
 
 - **`modelName`** - Identifier for which model to use ('whisper', 'moonshine', or 'whisperMultilingual').
 
