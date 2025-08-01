@@ -5,7 +5,6 @@
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/RecognizerUtils.h>
 #include <rnexecutorch/models/ocr/Types.h>
-#include <vector>
 namespace rnexecutorch {
 Recognizer::Recognizer(const std::string &modelSource,
                        std::shared_ptr<react::CallInvoker> callInvoker)

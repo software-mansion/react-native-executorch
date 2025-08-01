@@ -1,6 +1,5 @@
 #pragma once
 
-#include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/ocr/Detector.h>
 #include <rnexecutorch/models/ocr/RecognitionHandler.h>
 #include <rnexecutorch/models/ocr/Types.h>
