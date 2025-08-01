@@ -52,7 +52,6 @@ export default function OCRScreen() {
     try {
       const output = await model.forward(imageUri);
       setResults(output);
-      console.log(output);
     } catch (e) {
       console.error(e);
     }
