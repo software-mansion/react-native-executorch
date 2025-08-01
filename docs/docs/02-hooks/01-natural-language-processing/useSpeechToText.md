@@ -68,7 +68,7 @@ Given that STT models can process audio no longer than 30 seconds, there is a ne
 
 **`model`** - Object containing the model name, encoder source, decoder source, and tokenizer source.
 
-- **`modelName`** - A literal of `"moonshine" | "whisper" | "whisperMultilingual` which serves as an identifier for which model should be used.
+- **`modelName`** - An enum `AvailableModels` value that serves as an identifier for which model should be used.
 
 - **`encoderSource?`** - A string that specifies the location of a .pte file for the encoder. Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) for given model.
 

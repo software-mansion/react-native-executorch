@@ -129,7 +129,7 @@ interface OCRDetection {
 
 ### Arguments
 
-**`model`** - Object containing the model source.
+**`model`** - Object containing the detectors sources, recognizers sources, and language.
 
 - **`detectorLarge`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 1280 pixels.
 - **`detectorNarrow`** - A string that specifies the location of the detector binary file which accepts input images with a width of 320 pixels.
