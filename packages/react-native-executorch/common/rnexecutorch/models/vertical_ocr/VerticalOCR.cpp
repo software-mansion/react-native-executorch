@@ -52,7 +52,10 @@ OCRDetection VerticalOCR::_processSingleTextBox(
     DetectorBBox &box, const cv::Mat &originalImage,
     const cv::Mat &resizedLargeImage, const PaddingInfo &imagePaddings) {
   cv::Rect boundingBox = ocr::extractBoundingBox(box.bbox);
-  cv::Mat croppedLargeBox = resizedLargeImage(boundingBox);
+  cv::Rect safeRect =
+      boundingBox & cv::Rect(0, 0, resizedLargeImage.cols,
+                             resizedLargeImage.rows); // ensure valid box
+  cv::Mat croppedLargeBox = resizedLargeImage(safeRect);
 
   std::vector<DetectorBBox> characterBoxes =
       detectorNarrow.generate(croppedLargeBox);
