@@ -12465,6 +12465,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-audio-api@npm:0.6.5":
+  version: 0.6.5
+  resolution: "react-native-audio-api@npm:0.6.5"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  bin:
+    setup-rn-audio-api-web: scripts/setup-rn-audio-api-web.js
+  checksum: 10/9bf5b124ff902f359a237bcd3c386a37b354cc6263ce66765c1788c7a8d42c307a133780c8b57ab2f0db530bfed8ac1d3ff8fb55055228854ccebc8da9a595d8
+  languageName: node
+  linkType: hard
+
 "react-native-builder-bob@npm:^0.30.2":
   version: 0.30.3
   resolution: "react-native-builder-bob@npm:0.30.3"
@@ -13652,7 +13664,7 @@ __metadata:
     metro-config: "npm:^0.81.0"
     react: "npm:19.0.0"
     react-native: "npm:0.79.2"
-    react-native-audio-api: "npm:0.5.7"
+    react-native-audio-api: "npm:0.6.5"
     react-native-device-info: "npm:^14.0.4"
     react-native-executorch: "workspace:*"
     react-native-image-picker: "npm:^7.2.2"

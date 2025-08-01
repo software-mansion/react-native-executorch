@@ -34,9 +34,6 @@ export class SpeechToTextController {
 
   // User callbacks
   private decodedTranscribeCallback: (sequence: number[]) => void;
-  private modelDownloadProgressCallback:
-    | ((downloadProgress: number) => void)
-    | undefined;
   private isReadyCallback: (isReady: boolean) => void;
   private isGeneratingCallback: (isGenerating: boolean) => void;
   private onErrorCallback: (error: any) => void;
@@ -44,7 +41,6 @@ export class SpeechToTextController {
 
   constructor({
     transcribeCallback,
-    modelDownloadProgressCallback,
     isReadyCallback,
     isGeneratingCallback,
     onErrorCallback,
@@ -53,7 +49,6 @@ export class SpeechToTextController {
     streamingConfig,
   }: {
     transcribeCallback: (sequence: string) => void;
-    modelDownloadProgressCallback?: (downloadProgress: number) => void;
     isReadyCallback?: (isReady: boolean) => void;
     isGeneratingCallback?: (isGenerating: boolean) => void;
     onErrorCallback?: (error: Error | undefined) => void;
@@ -64,7 +59,6 @@ export class SpeechToTextController {
     this.tokenizerModule = new TokenizerModule();
     this.decodedTranscribeCallback = async (seq) =>
       transcribeCallback(await this.tokenIdsToText(seq));
-    this.modelDownloadProgressCallback = modelDownloadProgressCallback;
     this.isReadyCallback = (isReady) => {
       this.isReady = isReady;
       isReadyCallback?.(isReady);
@@ -88,12 +82,19 @@ export class SpeechToTextController {
     );
   }
 
-  public async loadModel(
-    modelName: AvailableModels,
-    encoderSource?: ResourceSource,
-    decoderSource?: ResourceSource,
-    tokenizerSource?: ResourceSource
-  ) {
+  public async load({
+    modelName,
+    encoderSource,
+    decoderSource,
+    tokenizerSource,
+    onDownloadProgressCallback,
+  }: {
+    modelName: AvailableModels;
+    encoderSource?: ResourceSource;
+    decoderSource?: ResourceSource;
+    tokenizerSource?: ResourceSource;
+    onDownloadProgressCallback?: (downloadProgress: number) => void;
+  }) {
     this.onErrorCallback(undefined);
     this.isReadyCallback(false);
     this.config = MODEL_CONFIGS[modelName];
