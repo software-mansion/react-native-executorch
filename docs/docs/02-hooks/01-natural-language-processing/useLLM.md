@@ -52,13 +52,15 @@ The code snippet above fetches the model from the specified URL, loads it into m
 
 **`model`** - Object containing the model source, tokenizer source, and tokenizer config source.
 
-- **`modelSource`** - `ResourceSource` that specifies the location of the model binary. For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) section.
+- **`modelSource`** - `ResourceSource` that specifies the location of the model binary.
 
 - **`tokenizerSource`** - `ResourceSource` pointing to the JSON file which contains the tokenizer.
 
 - **`tokenizerConfigSource`** - `ResourceSource` pointing to the JSON file which contains the tokenizer config.
 
 **`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+
+For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) section.
 
 ### Returns
 
@@ -93,7 +95,7 @@ const useLLM: ({
   preventLoad?: boolean;
 }) => LLMType;
 
-export interface LLMType {
+interface LLMType {
   messageHistory: Message[];
   response: string;
   token: string;
