@@ -39,7 +39,7 @@ const output = await ExecutorchModule.forward(input, shape);
 ```typescript
 type ResourceSource = string | number | object;
 
-export type ETInput =
+type ETInput =
   | Int8Array
   | Int32Array
   | BigInt64Array

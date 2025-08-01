@@ -70,7 +70,7 @@ Given that STT models can process audio no longer than 30 seconds, there is a ne
 
 - **`modelName`** - A literal of `"moonshine" | "whisper" | "whisperMultilingual` which serves as an identifier for which model should be used.
 
-- **`encoderSource?`** - A string that specifies the location of a .pte file for the encoder. For further information on passing model sources, check out [Loading Models](../../01-fundamentals/02-loading-models.md). Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) for given model.
+- **`encoderSource?`** - A string that specifies the location of a .pte file for the encoder. Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) for given model.
 
 - **`decoderSource?`** - Analogous to the encoderSource, this takes in a string which is a source for the decoder part of the model. Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) for given model.
 
@@ -83,6 +83,8 @@ Given that STT models can process audio no longer than 30 seconds, there is a ne
 **`streamingConfig?`** - Specifies config for both `overlapSeconds` and `windowSize` values. Three options are available: `fast`, `balanced` and `quality`. We discourage using `fast` config with `Whisper` model which while has the lowest latency to first token has the slowest overall speed.
 
 **`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+
+For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 

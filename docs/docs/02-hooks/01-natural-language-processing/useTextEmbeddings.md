@@ -39,11 +39,13 @@ try {
 
 **`model`** - Object containing the model source and tokenizer source.
 
-- **`modelSource`** - A string that specifies the location of the model binary. For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+- **`modelSource`** - A string that specifies the location of the model binary.
 
 - **`tokenizerSource`** - A string that specifies the location of the tokenizer JSON file.
 
 **`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+
+For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
