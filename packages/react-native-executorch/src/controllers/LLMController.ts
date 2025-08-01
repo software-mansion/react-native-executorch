@@ -109,7 +109,7 @@ export class LLMController {
       );
 
       const modelPromise = ResourceFetcher.fetch(
-        this.onDownloadProgressCallback,
+        onDownloadProgressCallback,
         modelSource
       );
 

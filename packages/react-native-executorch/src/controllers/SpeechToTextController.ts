@@ -104,7 +104,7 @@ export class SpeechToTextController {
         tokenizerSource || this.config.tokenizer.source
       );
       const pathsPromise = ResourceFetcher.fetch(
-        this.modelDownloadProgressCallback,
+        onDownloadProgressCallback,
         encoderSource || this.config.sources.encoder,
         decoderSource || this.config.sources.decoder
       );
