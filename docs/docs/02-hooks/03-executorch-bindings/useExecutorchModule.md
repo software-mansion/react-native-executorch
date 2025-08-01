@@ -20,7 +20,9 @@ const executorchModule = useExecutorchModule({
 });
 ```
 
-The `modelSource` parameter expects a location string pointing to the model binary. For more details on how to specify model sources, refer to the [loading models](../../01-fundamentals/02-loading-models.md) documentation.
+The `modelSource` parameter expects a location string pointing to the model binary.
+
+For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Arguments
 

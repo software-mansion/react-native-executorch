@@ -60,7 +60,7 @@ The code snippet above fetches the model from the specified URL, loads it into m
 
 **`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
 
-For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) section.
+For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 

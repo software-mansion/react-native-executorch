@@ -14,9 +14,7 @@ import {
 } from 'react-native-executorch';
 
 // Loading the model
-await TextEmbeddingsModule.load(ALL_MINILM_L6_V2, (progress) =>
-  console.log(progress)
-);
+await TextEmbeddingsModule.load(ALL_MINILM_L6_V2);
 
 // Running the model
 const embedding = await TextEmbeddingsModule.forward('Hello World!');
@@ -50,7 +48,9 @@ To load the model, use the `load` method. It accepts an object:
 
 **`onDownloadProgressCallback`** - (Optional) Function called on download progress.
 
-For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page. This method returns a promise, which can resolve to an error or void.
+This method returns a promise, which can resolve to an error or void.
+
+For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ## Running the model
 

@@ -115,7 +115,7 @@ To load the model, use the `load` method. It accepts an object:
 
 **`model`** - Object containing the model source.
 
-- **`detectorSource`** - A string that specifies the location of the detector binary. For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) section.
+- **`detectorSource`** - A string that specifies the location of the detector binary.
 - **`recognizerLarge`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 512 pixels.
 - **`recognizerMedium`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 256 pixels.
 - **`recognizerSmall`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 128 pixels.
@@ -123,7 +123,9 @@ To load the model, use the `load` method. It accepts an object:
 
 **`onDownloadProgressCallback`** - (Optional) Function called on download progress.
 
-For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) section. This method returns a promise, which can resolve to an error or void.
+This method returns a promise, which can resolve to an error or void.
+
+For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ## Running the model
 

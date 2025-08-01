@@ -55,9 +55,10 @@ interface Detection {
 **`model`** - Object containing the model source.
 
 - **`modelSource`** - A string that specifies the path to the model file. You can download the model from our [HuggingFace repository](https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large/tree/main).
-  For more information on that topic, you can check out the [Loading models](../../01-fundamentals/02-loading-models.md) page.
 
 **`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+
+For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
