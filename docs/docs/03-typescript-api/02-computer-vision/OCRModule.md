@@ -113,7 +113,7 @@ interface OCRDetection {
 
 To load the model, use the `load` method. It accepts an object:
 
-**`model`** - Object containing the detector source, recognizers sources, and language.
+**`model`** - Object containing the detector source, recognizer sources, and language.
 
 - **`detectorSource`** - A string that specifies the location of the detector binary.
 - **`recognizerLarge`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 512 pixels.
