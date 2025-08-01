@@ -151,6 +151,7 @@ export class ResourceFetcher {
       nextSource.results.push(...sourceExtended.results);
       return this.singleFetch(nextSource);
     }
+    sourceExtended.callback!(1);
     return sourceExtended.results;
   }
 
