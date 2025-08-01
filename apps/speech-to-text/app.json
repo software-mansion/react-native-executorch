@@ -17,7 +17,8 @@
       "bundleIdentifier": "com.anonymous.speechtotext",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "This app needs access to your microphone to record audio."
-      }
+      },
+      "appleTeamId": "J5FM626PE2"
     },
     "android": {
       "adaptiveIcon": {

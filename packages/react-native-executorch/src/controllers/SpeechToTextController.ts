@@ -450,9 +450,9 @@ export class SpeechToTextController {
       this.isGeneratingCallback(false);
       this.streaming = false;
     }
-
+    console.log('Streaming transcription finished, sequence:', this.sequence);
     const decodedText = await this.tokenIdsToText(this.sequence);
-
+    console.log('Live transcription result:', decodedText);
     return decodedText;
   }
 
