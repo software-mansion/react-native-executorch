@@ -50,7 +50,9 @@ To load the model, create a new instance of the module and use the `load` method
 
 **`onDownloadProgressCallback`** - (Optional) Function called on download progress.
 
-For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page. This method returns a promise, which can resolve to an error or void.
+This method returns a promise, which can resolve to an error or void.
+
+For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ## Running the model
 

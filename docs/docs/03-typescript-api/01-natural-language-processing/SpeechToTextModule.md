@@ -66,6 +66,12 @@ enum STREAMING_ACTION {
   STOP,
 }
 
+enum AvailableModels {
+  WHISPER = 'whisper',
+  MOONSHINE = 'moonshine',
+  WHISPER_MULTILINGUAL = 'whisperMultilingual',
+}
+
 enum SpeechToTextLanguage {
   Afrikaans = 'af',
   Albanian = 'sq',
@@ -161,7 +167,7 @@ To create a new instance of SpeechToTextModule, use the constructor with optiona
 
 Then, to load the model, use the `load` method. It accepts an object with the following fields:
 
-**`model`** - Object containing the model source.
+**`model`** - Object containing the following fields:
 
 - **`modelName`** - Identifier for which model to use ('whisper', 'moonshine', or 'whisperMultilingual').
 
@@ -173,7 +179,9 @@ Then, to load the model, use the `load` method. It accepts an object with the fo
 
 **`onDownloadProgressCallback`** - (Optional) Function that will be called on download progress.
 
-For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page. This method returns a promise, which can resolve to an error or void.
+This method returns a promise, which can resolve to an error or void.
+
+For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ## Running the model
 

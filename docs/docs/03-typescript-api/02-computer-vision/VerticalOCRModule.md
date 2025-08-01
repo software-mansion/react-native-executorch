@@ -136,7 +136,9 @@ To load the model, use the `load` method. It accepts:
 
 **`onDownloadProgressCallback`** - (Optional) Function called on download progress.
 
-For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) section. This method returns a promise, which can resolve to an error or void.
+This method returns a promise, which can resolve to an error or void.
+
+For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ## Running the model
 
