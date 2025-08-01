@@ -45,7 +45,6 @@ export default function ObjectDetectionScreen() {
     if (imageUri) {
       try {
         const output = await ssdLite.forward(imageUri);
-        console.log(output);
         setResults(output);
       } catch (e) {
         console.error(e);

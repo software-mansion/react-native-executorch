@@ -20,7 +20,7 @@ export class OCRModule {
       modelDownloadProgressCallback: this.onDownloadProgressCallback,
     });
 
-    await this.module.loadModel(detectorSource, recognizerSources, language);
+    await this.module.load(detectorSource, recognizerSources, language);
   }
 
   static async forward(input: string) {

@@ -119,15 +119,107 @@ TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDims,
   return executorch::extension::make_tensor_ptr(tensorDims, inputVector);
 }
 
+TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDims,
+                              const cv::Mat &matrix, cv::Scalar mean,
+                              cv::Scalar variance) {
+  return executorch::extension::make_tensor_ptr(
+      tensorDims, colorMatToVector(matrix, mean, variance));
+}
+
+TensorPtr getTensorFromMatrixGray(const std::vector<int32_t> &tensorDims,
+                                  const cv::Mat &matrix) {
+  std::vector<float> inputVector = grayMatToVector(matrix);
+  return executorch::extension::make_tensor_ptr(tensorDims, inputVector);
+}
+
+std::vector<float> grayMatToVector(const cv::Mat &mat) {
+  CV_Assert(mat.type() == CV_32F);
+
+  int pixelCount = mat.cols * mat.rows;
+  std::vector<float> v;
+  v.reserve(pixelCount);
+
+  if (mat.isContinuous()) {
+    v.assign(mat.ptr<float>(), mat.ptr<float>() + mat.total());
+  } else {
+    for (int i = 0; i < mat.rows; ++i) {
+      v.insert(v.end(), mat.ptr<float>(i), mat.ptr<float>(i) + mat.cols);
+    }
+  }
+
+  return v;
+}
+
 cv::Mat getMatrixFromTensor(cv::Size size, const Tensor &tensor) {
   auto resultData = static_cast<const float *>(tensor.const_data_ptr());
   return bufferToColorMat(std::span<const float>(resultData, tensor.numel()),
                           size);
 }
 
+cv::Mat resizePadded(cv::Mat inputImage, cv::Size targetSize) {
+  cv::Size inputSize = inputImage.size();
+  const float heightRatio =
+      static_cast<float>(targetSize.height) / inputSize.height;
+  const float widthRatio =
+      static_cast<float>(targetSize.width) / inputSize.width;
+  const float resizeRatio = std::min(heightRatio, widthRatio);
+  const int newWidth = inputSize.width * resizeRatio;
+  const int newHeight = inputSize.height * resizeRatio;
+  cv::Mat resizedImg;
+  cv::resize(inputImage, resizedImg, cv::Size(newWidth, newHeight), 0, 0,
+             cv::INTER_AREA);
+
+  // We choose the color of the padding based on a mean of colors in the corners
+  // of an image. The cornerPatch is a  section of an image considered as
+  // corner. It should be meaningfull but relatively small in the context of
+  // image size. Our heuristic approach is to take the 1/30 of the smaller
+  // dimension of size of the image. We take no less than 1 pixel.
+  constexpr int minCornerPatchSize = 1;
+  constexpr int cornerPatchFractionSize = 30;
+  int cornerPatchSize =
+      std::min(inputSize.height, inputSize.width) / cornerPatchFractionSize;
+  cornerPatchSize = std::max(minCornerPatchSize, cornerPatchSize);
+
+  std::vector<cv::Mat> corners = {
+      inputImage(cv::Rect(0, 0, cornerPatchSize, cornerPatchSize)),
+      inputImage(cv::Rect(inputSize.width - cornerPatchSize, 0, cornerPatchSize,
+                          cornerPatchSize)),
+      inputImage(cv::Rect(0, inputSize.height - cornerPatchSize,
+                          cornerPatchSize, cornerPatchSize)),
+      inputImage(cv::Rect(inputSize.width - cornerPatchSize,
+                          inputSize.height - cornerPatchSize, cornerPatchSize,
+                          cornerPatchSize))};
+
+  cv::Scalar backgroundScalar = cv::mean(corners[0]);
+  for (int i = 1; i < corners.size(); i++) {
+    backgroundScalar += cv::mean(corners[i]);
+  }
+  backgroundScalar /= static_cast<double>(corners.size());
+
+  constexpr size_t numChannels = 3;
+#pragma unroll
+  for (size_t i = 0; i < numChannels; ++i) {
+    backgroundScalar[i] = cvFloor(backgroundScalar[i]);
+  }
+
+  const int deltaW = targetSize.width - newWidth;
+  const int deltaH = targetSize.height - newHeight;
+  const int top = deltaH / 2;
+  const int bottom = deltaH - top;
+  const int left = deltaW / 2;
+  const int right = deltaW - left;
+
+  cv::Mat centeredImg;
+  cv::copyMakeBorder(resizedImg, centeredImg, top, bottom, left, right,
+                     cv::BORDER_CONSTANT, backgroundScalar);
+
+  return centeredImg;
+}
+
 std::pair<TensorPtr, cv::Size>
 readImageToTensor(const std::string &path,
-                  const std::vector<int32_t> &tensorDims) {
+                  const std::vector<int32_t> &tensorDims,
+                  bool maintainAspectRatio) {
   cv::Mat input = imageprocessing::readImage(path);
   cv::Size imageSize = input.size();
 
@@ -142,7 +234,11 @@ readImageToTensor(const std::string &path,
   cv::Size tensorSize = cv::Size(tensorDims[tensorDims.size() - 1],
                                  tensorDims[tensorDims.size() - 2]);
 
-  cv::resize(input, input, tensorSize);
+  if (maintainAspectRatio) {
+    input = resizePadded(input, tensorSize);
+  } else {
+    cv::resize(input, input, tensorSize);
+  }
 
   cv::cvtColor(input, input, cv::COLOR_BGR2RGB);
 
