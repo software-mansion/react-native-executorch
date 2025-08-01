@@ -5,12 +5,12 @@ export class TokenizerModule {
   nativeModule: any;
 
   async load(
-    modelSource: ResourceSource,
-    onDownloadProgressCallback: (_: number) => void = () => {}
+    tokenizer: { tokenizerSource: ResourceSource },
+    onDownloadProgressCallback: (progress: number) => void = () => {}
   ): Promise<void> {
     const paths = await ResourceFetcher.fetch(
       onDownloadProgressCallback,
-      modelSource
+      tokenizer.tokenizerSource
     );
     if (paths === null || paths.length < 1) {
       throw new Error('Download interrupted.');

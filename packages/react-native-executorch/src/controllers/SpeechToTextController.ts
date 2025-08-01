@@ -100,9 +100,9 @@ export class SpeechToTextController {
     this.config = MODEL_CONFIGS[modelName];
 
     try {
-      await this.tokenizerModule.load(
-        tokenizerSource || this.config.tokenizer.source
-      );
+      await this.tokenizerModule.load({
+        tokenizerSource: tokenizerSource || this.config.tokenizer.source,
+      });
       const paths = await ResourceFetcher.fetch(
         onDownloadProgressCallback,
         encoderSource || this.config.sources.encoder,
@@ -122,7 +122,7 @@ export class SpeechToTextController {
       // create a separate class for multilingual version of Whisper, since it is the same. We just need
       // the distinction here, in TS, for start tokens and such. If we introduce
       // more versions of Whisper, such as the small one, this should be refactored.
-      modelName = 'whisper';
+      modelName = AvailableModels.WHISPER;
     }
 
     try {

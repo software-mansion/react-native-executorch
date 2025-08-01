@@ -16,9 +16,7 @@ import {
   DEEPLAB_V3_RESNET50,
 } from 'react-native-executorch';
 
-const model = useImageSegmentation({
-  modelSource: DEEPLAB_V3_RESNET50,
-});
+const model = useImageSegmentation({ model: DEEPLAB_V3_RESNET50 });
 
 const imageUri = 'file::///Users/.../cute_cat.png';
 
@@ -31,10 +29,13 @@ try {
 
 ### Arguments
 
-**`modelSource`**
-A string that specifies the location of the model binary. For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+**`model`** - Object containing the model source.
+
+- **`modelSource`** - A string that specifies the location of the model binary.
 
 **`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+
+For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
@@ -67,9 +68,7 @@ Setting `resize` to true will make `forward` slower.
 
 ```typescript
 function App() {
-  const model = useImageSegmentation({
-    modelSource: DEEPLAB_V3_RESNET50,
-  });
+  const model = useImageSegmentation({ model: DEEPLAB_V3_RESNET50 });
 
   // ...
   const imageUri = 'file::///Users/.../cute_cat.png';

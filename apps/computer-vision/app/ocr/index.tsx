@@ -1,13 +1,7 @@
 import Spinner from 'react-native-loading-spinner-overlay';
 import { BottomBar } from '../../components/BottomBar';
 import { getImage } from '../../utils';
-import {
-  DETECTOR_CRAFT_800,
-  RECOGNIZER_EN_CRNN_128,
-  RECOGNIZER_EN_CRNN_256,
-  RECOGNIZER_EN_CRNN_512,
-  useOCR,
-} from 'react-native-executorch';
+import { useOCR, OCR_ENGLISH } from 'react-native-executorch';
 import { View, StyleSheet, Image, Text, ScrollView } from 'react-native';
 import ImageWithBboxes2 from '../../components/ImageWithOCRBboxes';
 import React, { useContext, useEffect, useState } from 'react';
@@ -22,15 +16,7 @@ export default function OCRScreen() {
     height: number;
   }>();
 
-  const model = useOCR({
-    detectorSource: DETECTOR_CRAFT_800,
-    recognizerSources: {
-      recognizerLarge: RECOGNIZER_EN_CRNN_512,
-      recognizerMedium: RECOGNIZER_EN_CRNN_256,
-      recognizerSmall: RECOGNIZER_EN_CRNN_128,
-    },
-    language: 'en',
-  });
+  const model = useOCR({ model: OCR_ENGLISH });
   const { setGlobalGenerating } = useContext(GeneratingContext);
   useEffect(() => {
     setGlobalGenerating(model.isGenerating);

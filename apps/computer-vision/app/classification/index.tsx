@@ -13,9 +13,7 @@ export default function ClassificationScreen() {
   );
   const [imageUri, setImageUri] = useState('');
 
-  const model = useClassification({
-    modelSource: EFFICIENTNET_V2_S,
-  });
+  const model = useClassification({ model: EFFICIENTNET_V2_S });
   const { setGlobalGenerating } = useContext(GeneratingContext);
   useEffect(() => {
     setGlobalGenerating(model.isGenerating);

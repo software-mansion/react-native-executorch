@@ -19,130 +19,130 @@ export const alphabets = {
 };
 
 export const symbols = {
-  //Abaza
+  // Abaza
   abq: alphabets.cyrillic,
-  //Adyghe
+  // Adyghe
   ady: alphabets.cyrillic,
-  //Africans
+  // Africans
   af: alphabets.latin,
-  //Avar
+  // Avar
   ava: alphabets.cyrillic,
-  //Azerbaijani
+  // Azerbaijani
   az: alphabets.latin,
-  //Belarusian
+  // Belarusian
   be: alphabets.cyrillic,
-  //Bulgarian
+  // Bulgarian
   bg: alphabets.cyrillic,
-  //Bosnian
+  // Bosnian
   bs: alphabets.latin,
-  //Simplified Chinese
+  // Simplified Chinese
   chSim: alphabets.zhSim,
-  //Chechen
+  // Chechen
   che: alphabets.cyrillic,
-  //Czech
+  // Czech
   cs: alphabets.latin,
-  //Welsh
+  // Welsh
   cy: alphabets.latin,
-  //Danish
+  // Danish
   da: alphabets.latin,
-  //Dargwa
+  // Dargwa
   dar: alphabets.cyrillic,
-  //German
+  // German
   de: alphabets.latin,
-  //English
+  // English
   en: alphabets.english,
-  //Spanish
+  // Spanish
   es: alphabets.latin,
-  //Estonian
+  // Estonian
   et: alphabets.latin,
-  //French
+  // French
   fr: alphabets.latin,
-  //Irish
+  // Irish
   ga: alphabets.latin,
-  //Croatian
+  // Croatian
   hr: alphabets.latin,
-  //Hungarian
+  // Hungarian
   hu: alphabets.latin,
-  //Indonesian
+  // Indonesian
   id: alphabets.latin,
-  //Ingush
+  // Ingush
   inh: alphabets.cyrillic,
-  //Icelandic
+  // Icelandic
   ic: alphabets.latin,
-  //Italian
+  // Italian
   it: alphabets.latin,
-  //Japanese
+  // Japanese
   ja: alphabets.japanese,
-  //Karbadian
+  // Karbadian
   kbd: alphabets.cyrillic,
-  //Kannada
+  // Kannada
   kn: alphabets.kannada,
-  //Korean
+  // Korean
   ko: alphabets.korean,
-  //Kurdish
+  // Kurdish
   ku: alphabets.latin,
-  //Latin
+  // Latin
   la: alphabets.latin,
-  //Lak
+  // Lak
   lbe: alphabets.cyrillic,
-  //Lezghian
+  // Lezghian
   lez: alphabets.cyrillic,
-  //Lithuanian
+  // Lithuanian
   lt: alphabets.latin,
-  //Latvian
+  // Latvian
   lv: alphabets.latin,
-  //Maori
+  // Maori
   mi: alphabets.latin,
-  //Mongolian
+  // Mongolian
   mn: alphabets.cyrillic,
-  //Malay
+  // Malay
   ms: alphabets.latin,
-  //Maltese
+  // Maltese
   mt: alphabets.latin,
-  //Dutch
+  // Dutch
   nl: alphabets.latin,
-  //Norwegian
+  // Norwegian
   no: alphabets.latin,
-  //Occitan
+  // Occitan
   oc: alphabets.latin,
-  //Pali
+  // Pali
   pi: alphabets.latin,
-  //Polish
+  // Polish
   pl: alphabets.latin,
-  //Portuguese
+  // Portuguese
   pt: alphabets.latin,
-  //Romanian
+  // Romanian
   ro: alphabets.latin,
-  //Russian
+  // Russian
   ru: alphabets.cyrillic,
-  //Serbian (cyrillic)
+  // Serbian (cyrillic)
   rsCyrillic: alphabets.cyrillic,
-  //Serbian (latin)
+  // Serbian (latin)
   rsLatin: alphabets.latin,
-  //Slovak
+  // Slovak
   sk: alphabets.latin,
-  //Slovenian
+  // Slovenian
   sl: alphabets.latin,
-  //Albanian
+  // Albanian
   sq: alphabets.latin,
-  //Swedish
+  // Swedish
   sv: alphabets.latin,
-  //Swahili
+  // Swahili
   sw: alphabets.latin,
-  //Tabassaran
+  // Tabassaran
   tab: alphabets.cyrillic,
-  //Telugu
+  // Telugu
   te: alphabets.telugu,
-  //Tajik
+  // Tajik
   tjk: alphabets.cyrillic,
-  //Tagalog
+  // Tagalog
   tl: alphabets.latin,
-  //Turkish:
+  // Turkish
   tr: alphabets.latin,
-  //Ukrainian
+  // Ukrainian
   uk: alphabets.cyrillic,
-  //Uzbek
+  // Uzbek
   uz: alphabets.latin,
-  //Vietnamese
+  // Vietnamese
   vi: alphabets.latin,
 };

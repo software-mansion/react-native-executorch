@@ -5,37 +5,36 @@ import { OCRLanguage } from '../../types/ocr';
 export class VerticalOCRModule {
   static module: VerticalOCRController;
 
-  static onDownloadProgressCallback = (_downloadProgress: number) => {};
-
   static async load(
-    detectorSources: {
+    model: {
       detectorLarge: ResourceSource;
       detectorNarrow: ResourceSource;
-    },
-    recognizerSources: {
       recognizerLarge: ResourceSource;
       recognizerSmall: ResourceSource;
+      language: OCRLanguage;
     },
-    language: OCRLanguage = 'en',
-    independentCharacters: boolean = false
+    independentCharacters: boolean,
+    onDownloadProgressCallback: (progress: number) => void = () => {}
   ) {
     this.module = new VerticalOCRController({
-      modelDownloadProgressCallback: this.onDownloadProgressCallback,
+      modelDownloadProgressCallback: onDownloadProgressCallback,
     });
 
     await this.module.loadModel(
-      detectorSources,
-      recognizerSources,
-      language,
+      {
+        detectorLarge: model.detectorLarge,
+        detectorNarrow: model.detectorNarrow,
+      },
+      {
+        recognizerLarge: model.recognizerLarge,
+        recognizerSmall: model.recognizerSmall,
+      },
+      model.language,
       independentCharacters
     );
   }
 
   static async forward(input: string) {
     return await this.module.forward(input);
-  }
-
-  static onDownloadProgress(callback: (downloadProgress: number) => void) {
-    this.onDownloadProgressCallback = callback;
   }
 }

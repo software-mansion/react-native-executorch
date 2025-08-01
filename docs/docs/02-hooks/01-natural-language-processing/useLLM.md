@@ -39,18 +39,9 @@ Given computational constraints, our architecture is designed to support only on
 In order to load a model into the app, you need to run the following code:
 
 ```typescript
-import {
-  useLLM,
-  LLAMA3_2_1B,
-  LLAMA3_2_TOKENIZER,
-  LLAMA3_2_TOKENIZER_CONFIG,
-} from 'react-native-executorch';
+import { useLLM, LLAMA3_2_1B } from 'react-native-executorch';
 
-const llm = useLLM({
-  modelSource: LLAMA3_2_1B,
-  tokenizerSource: LLAMA3_2_TOKENIZER,
-  tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
-});
+const llm = useLLM({ model: LLAMA3_2_1B });
 ```
 
 <br/>
@@ -59,13 +50,17 @@ The code snippet above fetches the model from the specified URL, loads it into m
 
 ### Arguments
 
-**`modelSource`** - `ResourceSource` that specifies the location of the model binary. For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) section.
+**`model`** - Object containing the model source, tokenizer source, and tokenizer config source.
 
-**`tokenizerSource`** - `ResourceSource` pointing to the JSON file which contains the tokenizer.
+- **`modelSource`** - `ResourceSource` that specifies the location of the model binary.
 
-**`tokenizerConfigSource`** - `ResourceSource` pointing to the JSON file which contains the tokenizer config.
+- **`tokenizerSource`** - `ResourceSource` pointing to the JSON file which contains the tokenizer.
+
+- **`tokenizerConfigSource`** - `ResourceSource` pointing to the JSON file which contains the tokenizer config.
 
 **`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+
+For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
@@ -89,14 +84,14 @@ The code snippet above fetches the model from the specified URL, loads it into m
 
 ```typescript
 const useLLM: ({
-  modelSource,
-  tokenizerSource,
-  tokenizerConfigSource,
-  preventLoad = false,
+  model,
+  preventLoad,
 }: {
-  modelSource: ResourceSource;
-  tokenizerSource: ResourceSource;
-  tokenizerConfigSource: ResourceSource;
+  model: {
+    modelSource: ResourceSource;
+    tokenizerSource: ResourceSource;
+    tokenizerConfigSource: ResourceSource;
+  };
   preventLoad?: boolean;
 }) => LLMType;
 
@@ -167,11 +162,7 @@ You can use functions returned from this hooks in two manners:
 To perform chat completion you can use the `generate` function. There is no return value. Instead, the `response` value is updated with each token.
 
 ```tsx
-const llm = useLLM({
-  modelSource: LLAMA3_2_1B,
-  tokenizerSource: LLAMA3_2_TOKENIZER,
-  tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
-});
+const llm = useLLM({ model: LLAMA3_2_1B });
 
 const handleGenerate = () => {
   const chat = [
@@ -226,11 +217,7 @@ const TOOL_DEFINITIONS: LLMTool[] = [
   },
 ];
 
-const llm = useLLM({
-  modelSource: HAMMER2_1_1_5B,
-  tokenizerSource: HAMMER2_1_1_5B_TOKENIZER,
-  tokenizerConfigSource: HAMMER2_1_1_5B_TOKENIZER_CONFIG,
-});
+const llm = useLLM({ model: HAMMER2_1_1_5B });
 
 const handleGenerate = () => {
   const chat = [
@@ -289,11 +276,7 @@ To configure model (i.e. change system prompt, load initial conversation history
 In order to send a message to the model, one can use the following code:
 
 ```tsx
-const llm = useLLM({
-  modelSource: LLAMA3_2_1B,
-  tokenizerSource: LLAMA3_2_TOKENIZER,
-  tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
-});
+const llm = useLLM({ model: LLAMA3_2_1B });
 
 const send = () => {
   const message = 'Hi, who are you?';
@@ -338,11 +321,7 @@ const TOOL_DEFINITIONS: LLMTool[] = [
   },
 ];
 
-const llm = useLLM({
-  modelSource: HAMMER2_1_1_5B,
-  tokenizerSource: HAMMER2_1_1_5B_TOKENIZER,
-  tokenizerConfigSource: HAMMER2_1_1_5B_TOKENIZER_CONFIG,
-});
+const llm = useLLM({ model: HAMMER2_1_1_5B });
 
 useEffect(() => {
   llm.configure({
@@ -418,11 +397,7 @@ const responseSchemaWithZod = z.object({
   currency: z.optional(z.string().meta({ description: 'Currency of offer.' })),
 });
 
-const llm = useLLM({
-  modelSource: QWEN3_4B_QUANTIZED,
-  tokenizerSource: QWEN3_TOKENIZER,
-  tokenizerConfigSource: QWEN3_TOKENIZER_CONFIG,
-});
+const llm = useLLM({ model: QWEN3_4B_QUANTIZED });
 
 useEffect(() => {
   const formattingInstructions = getStructuredOutputPrompt(responseSchema);

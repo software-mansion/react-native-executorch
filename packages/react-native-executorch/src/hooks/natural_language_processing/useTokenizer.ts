@@ -1,27 +1,29 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { TokenizerModule } from '../../modules/natural_language_processing/TokenizerModule';
 import { ResourceSource } from '../../types/common';
 import { ETError, getError } from '../../Error';
 
 export const useTokenizer = ({
-  tokenizerSource,
+  tokenizer,
   preventLoad = false,
 }: {
-  tokenizerSource: ResourceSource;
+  tokenizer: { tokenizerSource: ResourceSource };
   preventLoad?: boolean;
 }) => {
   const [error, setError] = useState<null | string>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const tokenizerModuleRef = useRef<TokenizerModule | null>(null);
+  const _tokenizer = useMemo(() => new TokenizerModule(), []);
 
   useEffect(() => {
     const loadModule = async () => {
       try {
         setIsReady(false);
-        tokenizerModuleRef.current = new TokenizerModule();
-        tokenizerModuleRef.current.load(tokenizerSource, setDownloadProgress);
+        _tokenizer.load(
+          { tokenizerSource: tokenizer.tokenizerSource },
+          setDownloadProgress
+        );
         setIsReady(true);
       } catch (err) {
         setError((err as Error).message);
@@ -30,17 +32,15 @@ export const useTokenizer = ({
     if (!preventLoad) {
       loadModule();
     }
-  }, [tokenizerSource, preventLoad]);
+  }, [_tokenizer, tokenizer.tokenizerSource, preventLoad]);
 
   const stateWrapper = <T extends (...args: any[]) => Promise<any>>(fn: T) => {
     return async (...args: Parameters<T>): Promise<ReturnType<T>> => {
-      if (!isReady || !tokenizerModuleRef.current)
-        throw new Error(getError(ETError.ModuleNotLoaded));
+      if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
       if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
-
-      setIsGenerating(true);
       try {
-        return await fn.apply(tokenizerModuleRef.current, args);
+        setIsGenerating(true);
+        return await fn.apply(_tokenizer, args);
       } finally {
         setIsGenerating(false);
       }
