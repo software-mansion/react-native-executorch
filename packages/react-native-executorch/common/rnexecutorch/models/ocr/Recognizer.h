@@ -3,6 +3,9 @@
 #include <executorch/extension/tensor/tensor_ptr.h>
 #include <opencv2/opencv.hpp>
 #include <rnexecutorch/models/BaseModel.h>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace rnexecutorch {
 using executorch::aten::Tensor;
