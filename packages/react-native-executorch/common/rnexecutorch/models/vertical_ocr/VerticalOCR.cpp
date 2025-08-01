@@ -3,7 +3,6 @@
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/data_processing/Numerical.h>
 #include <rnexecutorch/models/ocr/Types.h>
-#include <vector>
 
 namespace rnexecutorch {
 
@@ -68,8 +67,7 @@ OCRDetection VerticalOCR::_processSingleTextBox(
     const int boxHeight = static_cast<int>(box.bbox[2].y - box.bbox[0].y);
     cv::Size narrowRecognizerSize = detectorNarrow.getModelImageSize();
     PaddingInfo paddingsBox = ocr::calculateResizeRatioAndPaddings(
-        cv::Size(boxWidth, boxHeight),
-        cv::Size(narrowRecognizerSize.width, narrowRecognizerSize.height));
+        cv::Size(boxWidth, boxHeight), narrowRecognizerSize);
 
     if (independentCharacters) {
       // Strategy 1: Recognize each character individually

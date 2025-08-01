@@ -537,10 +537,10 @@ std::array<Point, 4> mergeRotatedBoxes(std::array<Point, 4> &box1,
 
   cv::RotatedRect minAreaRect = cv::minAreaRect(hullPoints);
 
-  cv::Point2f rectPoints[4];
-  minAreaRect.points(rectPoints);
+  std::array<cv::Point2f, 4> rectPoints;
+  minAreaRect.points(rectPoints.data());
 
-  return pointsFromCvPoints(rectPoints);
+  return pointsFromCvPoints(rectPoints.data());
 }
 
 /**

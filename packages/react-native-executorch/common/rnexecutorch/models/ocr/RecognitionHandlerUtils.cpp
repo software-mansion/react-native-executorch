@@ -81,7 +81,7 @@ cv::Mat cropImage(DetectorBBox box, cv::Mat &image, int32_t modelHeight) {
   boundingBox = boundingBox & validRegion; // OpenCV's built-in intersection
 
   if (boundingBox.empty()) {
-    return cv::Mat(); // Early exit if no valid crop
+    return {}; // Early exit if no valid crop
   }
 
   cv::Mat croppedImage = rotatedImage(boundingBox).clone();

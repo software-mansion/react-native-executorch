@@ -116,12 +116,11 @@ cv::Mat cropSingleCharacter(const cv::Mat &img) {
     const double cx = centroids.at<double>(i, 0);
     const double cy = centroids.at<double>(i, 1);
 
-    if (minX < cx && cx < maxX && minY < cy && cy < maxY &&
-        area > ocr::singleCharacterMinSize) {
-      if (selectedComponent == -1 ||
-          area > stats.at<int>(selectedComponent, cv::CC_STAT_AREA)) {
-        selectedComponent = i;
-      }
+    if ((minX < cx && cx < maxX && minY < cy && cy < maxY &&
+         area > ocr::singleCharacterMinSize) &&
+        (selectedComponent == -1 ||
+         area > stats.at<int>(selectedComponent, cv::CC_STAT_AREA))) {
+      selectedComponent = i;
     }
   }
 
