@@ -10,7 +10,6 @@
 #include <rnexecutorch/models/ocr/RecognizerUtils.h>
 #include <rnexecutorch/models/vertical_ocr/VerticalDetector.h>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 namespace rnexecutorch {

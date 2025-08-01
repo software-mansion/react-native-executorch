@@ -1,9 +1,10 @@
 #pragma once
 
+#include <array>
 #include <opencv2/opencv.hpp>
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/Types.h>
-#include <span>
+#include <vector>
 
 namespace rnexecutorch::ocr {
 cv::Mat softmax(const cv::Mat &inputs);

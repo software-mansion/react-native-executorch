@@ -82,14 +82,12 @@ VerticalDetector::postprocess(const Tensor &tensor) const noexcept {
 
   ocr::restoreBboxRatio(bBoxesList, ocr::restoreRatioVertical);
 
-  if (this->detectSingleCharacters) {
-    return bBoxesList;
+  if (!this->detectSingleCharacters) {
+    bBoxesList = ocr::groupTextBoxes(
+        bBoxesList, ocr::centerThreshold, ocr::distanceThreshold,
+        ocr::heightThreshold, ocr::minSideThreshold, ocr::maxSideThreshold,
+        ocr::maxWidth);
   }
-
-  bBoxesList = ocr::groupTextBoxes(bBoxesList, ocr::centerThreshold,
-                                   ocr::distanceThreshold, ocr::heightThreshold,
-                                   ocr::minSideThreshold, ocr::maxSideThreshold,
-                                   ocr::maxWidth);
 
   return bBoxesList;
 }

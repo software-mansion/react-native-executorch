@@ -1,7 +1,6 @@
 #include "CTCLabelConverter.h"
 #include <algorithm>
 #include <optional>
-#include <vector>
 
 namespace rnexecutorch::ocr {
 
