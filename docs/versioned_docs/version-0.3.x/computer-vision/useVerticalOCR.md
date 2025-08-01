@@ -10,7 +10,7 @@ The `useVerticalOCR` hook is currently in an experimental phase. We appreciate f
 Optical Character Recognition (OCR) is a computer vision technique used to detect and recognize text within images. It is commonly utilized to convert a variety of documents, such as scanned paper documents, PDF files, or images captured by a digital camera, into editable and searchable data. Traditionally, OCR technology has been optimized for recognizing horizontal text, and integrating support for vertical text recognition often requires significant additional effort from developers. To simplify this, we introduce `useVerticalOCR`, a tool designed to abstract the complexities of vertical text OCR, enabling seamless integration into your applications.
 
 :::caution
-It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/v0.3.4/src/constants/modelUrls.ts#L51) shipped with our library.
+It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/v0.3.4/src/constants/modelUrls.ts) shipped with our library.
 :::
 
 ## Reference
@@ -132,7 +132,7 @@ interface OCRDetection {
 ```
 
 The `bbox` property contains information about the bounding box of detected text regions. It is represented as four points, which are corners of detected bounding box.
-The `text` property contains the text recognized withinh detected text region. The `score` represents the confidence score of the recognized text.
+The `text` property contains the text recognized within detected text region. The `score` represents the confidence score of the recognized text.
 
 ## Example
 
