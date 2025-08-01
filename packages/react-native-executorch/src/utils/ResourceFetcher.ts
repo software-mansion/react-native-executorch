@@ -376,6 +376,11 @@ export class ResourceFetcher {
       sourceExtended.cacheFileUri,
       { sessionType: FileSystemSessionType.BACKGROUND },
       ({ totalBytesWritten, totalBytesExpectedToWrite }) => {
+        if (totalBytesExpectedToWrite === -1) {
+          // If totalBytesExpectedToWrite is -1, it means the server does not provide content length.
+          sourceExtended.callback!(0);
+          return;
+        }
         sourceExtended.callback!(totalBytesWritten / totalBytesExpectedToWrite);
       }
     );

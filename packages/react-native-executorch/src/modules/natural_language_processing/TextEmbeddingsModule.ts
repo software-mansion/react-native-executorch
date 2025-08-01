@@ -8,18 +8,21 @@ export class TextEmbeddingsModule extends BaseNonStaticModule {
     tokenizerSource: ResourceSource,
     onDownloadProgressCallback: (_: number) => void = () => {}
   ): Promise<void> {
-    const paths = await ResourceFetcher.fetch(
+    const modelPromise = ResourceFetcher.fetch(
       onDownloadProgressCallback,
-      modelSource,
-      tokenizerSource
+      modelSource
     );
-    if (paths === null || paths.length < 2) {
+    const tokenizerPromise = ResourceFetcher.fetch(undefined, tokenizerSource);
+    const [modelResult, tokenizerResult] = await Promise.all([
+      modelPromise,
+      tokenizerPromise,
+    ]);
+    const modelPath = modelResult?.[0];
+    const tokenizerPath = tokenizerResult?.[0];
+    if (!modelPath || !tokenizerPath) {
       throw new Error('Download interrupted.');
     }
-    this.nativeModule = global.loadTextEmbeddings(
-      paths[0] || '',
-      paths[1] || ''
-    );
+    this.nativeModule = global.loadTextEmbeddings(modelPath, tokenizerPath);
   }
 
   async forward(input: string): Promise<Float32Array> {
