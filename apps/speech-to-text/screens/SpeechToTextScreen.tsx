@@ -28,8 +28,7 @@ const BUFFER_LENGTH = SAMPLE_RATE * AUDIO_LENGTH_SECONDS;
 export const SpeechToTextScreen = () => {
   const model = useSpeechToText({
     model: MOONSHINE_TINY,
-    windowSize: 3,
-    overlapSeconds: 1.2,
+    streamingConfig: 'fast',
   });
 
   const recorder = useMemo(
@@ -64,12 +63,9 @@ export const SpeechToTextScreen = () => {
       iosOptions: ['allowBluetooth', 'defaultToSpeaker'],
     });
 
-    console.log('Recording started');
-
     recorder.onAudioReady(async ({ buffer }) => {
       const buffor = buffer.getChannelData(0);
       const bufforArray = Array.from(buffor);
-      console.log(bufforArray.length, 'samples recorded');
       model.streamingTranscribe(STREAMING_ACTION.DATA, bufforArray);
     });
 
@@ -83,7 +79,7 @@ export const SpeechToTextScreen = () => {
   };
 
   const getModelStatus = () => {
-    if (model.error) return `Error: ${model.error}`;
+    if (model.error) return `${model.error}`;
     if (model.isGenerating) return 'Transcribing...';
     if (model.isReady) return 'Ready to transcribe';
     return `Loading model: ${(100 * model.downloadProgress).toFixed(2)}%`;
@@ -127,14 +123,14 @@ export const SpeechToTextScreen = () => {
         {model.isGenerating ? (
           <TouchableOpacity
             onPress={handleStopTranscribeFromMicrophone}
-            style={styles.liveTranscriptionButton}
+            style={[styles.liveTranscriptionButton, styles.backgroundRed]}
           >
             <Text style={styles.buttonText}> Stop Live Transcription</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
             onPress={handleStartTranscribeFromMicrophone}
-            style={styles.liveTranscriptionButton}
+            style={[styles.liveTranscriptionButton, styles.backgroundBlue]}
           >
             <Text style={styles.buttonText}> Start Live Transcription</Text>
           </TouchableOpacity>
@@ -196,11 +192,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   liveTranscriptionButton: {
-    backgroundColor: '#0f186e',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
     borderRadius: 8,
     marginTop: 12,
+  },
+  backgroundRed: {
+    backgroundColor: 'red',
+  },
+  backgroundBlue: {
+    backgroundColor: '#0f186e',
   },
 });

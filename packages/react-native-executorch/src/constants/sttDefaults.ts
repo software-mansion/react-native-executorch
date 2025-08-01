@@ -58,7 +58,7 @@ export const MODEL_CONFIGS: {
 
 export const MODES = {
   fast: {
-    windowSize: 5,
+    windowSize: 3,
     overlapSeconds: 1.2,
   },
   balanced: {

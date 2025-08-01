@@ -16,6 +16,7 @@ import { ETError, getError } from '../Error';
 import { Logger } from '../common/Logger';
 
 export class SpeechToTextController {
+  private seqTmp: number[] = [];
   private speechToTextNativeModule: any;
 
   public sequence: number[] = [];
@@ -223,7 +224,6 @@ export class SpeechToTextController {
     audioLanguage?: SpeechToTextLanguage
   ): Promise<number[]> {
     const seq = await this.getStartingTokenIds(audioLanguage);
-    let prevSeqTokenIdx = 0;
     this.prevSeq = this.sequence.slice();
     try {
       await this.encode(new Float32Array(chunk));
@@ -240,15 +240,56 @@ export class SpeechToTextController {
         return [...seq, this.config.tokenizer.eos];
       }
       seq.push(lastToken);
-      if (
-        this.seqs.length > 0 &&
-        seq.length < this.seqs.at(-1)!.length &&
-        seq.length % 3 !== 0
-      ) {
-        this.prevSeq.push(this.seqs.at(-1)![prevSeqTokenIdx++]!);
-        this.decodedTranscribeCallback(this.prevSeq);
+      if (this.seqs.length == 0) {
+        this.decodedTranscribeCallback(seq);
+      } else if (seq.length > 3 + NUM_TOKENS_TO_TRIM) {
+        if (this.seqs.length == 1) {
+          this.seqTmp = this.seqs.at(-1)!.slice();
+          const idx = longCommonInfPref(
+            this.seqs.at(-1)!,
+            seq.slice(NUM_TOKENS_TO_TRIM),
+            1
+          );
+          const abc = this.seqs
+            .at(-1)!
+            .slice(0, idx)
+            .concat(seq.slice(NUM_TOKENS_TO_TRIM));
+          this.decodedTranscribeCallback(this.sequence.concat(abc));
+        } else {
+          this.seqTmp = this.seqs.at(-1)!.slice();
+          const idx = longCommonInfPref(
+            this.seqs.at(-1)!,
+            seq.slice(NUM_TOKENS_TO_TRIM),
+            1
+          );
+          const abc = this.seqs
+            .at(-1)!
+            .slice(0, idx)
+            .concat(seq.slice(NUM_TOKENS_TO_TRIM));
+          const idx2 = longCommonInfPref(
+            this.seqs.at(-2)!,
+            this.seqs.at(-1)!,
+            1
+          );
+          const tmpSeq = this.seqs.at(-2)!.slice(0, idx2).concat(abc);
+          this.decodedTranscribeCallback(this.sequence.concat(tmpSeq));
+        }
       }
+      // if (
+      //   this.seqs.length > 0 &&
+      //   seq.length < this.seqs.at(-1)!.length &&
+      //   seq.length % 3 !== 0
+      // ) {
+      //   this.prevSeq.push(this.seqs.at(-1)![prevSeqTokenIdx++]!);
+      //   this.decodedTranscribeCallback(this.prevSeq);
+      // }
     }
+    console.log(this.sequence);
+    console.log(this.seqs);
+
+    // this logs are just for eslint to not complain about unused variables
+    console.log(this.seqTmp);
+    console.log(this.prevSeq);
     return seq;
   }
 
@@ -259,7 +300,7 @@ export class SpeechToTextController {
       HAMMING_DIST_THRESHOLD
     );
     this.sequence = [...this.sequence, ...seqs.at(-2)!.slice(0, maxInd)];
-    this.decodedTranscribeCallback(this.sequence);
+    // this.decodedTranscribeCallback(this.sequence);
     return this.sequence.slice();
   }
 
