@@ -87,7 +87,7 @@ function App() {
 
 | Model                                                                                                           | Number of classes | Class list                                                                                                                                                                    |
 | --------------------------------------------------------------------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [efficientnet_v2_s](https://pytorch.org/vision/0.20/models/generated/torchvision.models.efficientnet_v2_s.html) | 1000              | [ImageNet1k_v1](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/common/rnexecutorch/models/classification/Constants.h) |
+| [efficientnet_v2_s](https://pytorch.org/vision/stable/models/generated/torchvision.models.efficientnet_v2_s.html) | 1000              | [ImageNet1k_v1](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/common/rnexecutorch/models/classification/Constants.h) |
 
 ## Benchmarks
 

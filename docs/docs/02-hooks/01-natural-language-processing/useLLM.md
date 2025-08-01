@@ -24,7 +24,7 @@ description: "Learn how to use LLMs in your React Native applications with React
 React Native ExecuTorch supports a variety of LLMs (checkout our [HuggingFace repository](https://huggingface.co/software-mansion) for model already converted to ExecuTorch format) including Llama 3.2. Before getting started, you’ll need to obtain the .pte binary—a serialized model, the tokenizer and tokenizer config JSON files. There are various ways to accomplish this:
 
 - For your convenience, it's best if you use models exported by us, you can get them from our [HuggingFace repository](https://huggingface.co/software-mansion). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
-- Follow the official [tutorial](https://github.com/pytorch/executorch/blob/fe20be98c/examples/demo-apps/android/LlamaDemo/docs/delegates/xnnpack_README.md) made by ExecuTorch team to build the model and tokenizer yourself.
+- Follow the official [tutorial](https://github.com/pytorch/executorch/blob/release/0.7/examples/demo-apps/android/LlamaDemo/docs/delegates/xnnpack_README.md) made by ExecuTorch team to build the model and tokenizer yourself.
 
 :::danger
 Lower-end devices might not be able to fit LLMs into memory. We recommend using quantized models to reduce the memory footprint.
@@ -80,7 +80,7 @@ The code snippet above fetches the model from the specified URL, loads it into m
 | `downloadProgress` | `number`                                                                    | Represents the download progress as a value between 0 and 1, indicating the extent of the model file retrieval.                                 |
 | `error`            | <code>string &#124; null</code>                                             | Contains the error message if the model failed to load.                                                                                         |
 | `configure`        | `({ chatConfig?: Partial<ChatConfig>, toolsConfig?: ToolsConfig }) => void` | Configures chat and tool calling. See more details in [configuring the model](#configuring-the-model).                                          |
-| `sendMessage`      | `(message: string, tools?: LLMTool[]) => Promise<void>`                     | Function to add user message to conversation. After model responds, `messageHistory` will be updated with both user message and model response. |
+| `sendMessage`      | `(message: string) => Promise<void>`                                        | Function to add user message to conversation. After model responds, `messageHistory` will be updated with both user message and model response. |
 | `deleteMessage`    | `(index: number) => void`                                                   | Deletes all messages starting with message on `index` position. After deletion `messageHistory` will be updated.                                |
 | `messageHistory`   | `Message[]`                                                                 | History containing all messages in conversation. This field is updated after model responds to `sendMessage`.                                   |
 

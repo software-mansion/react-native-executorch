@@ -52,7 +52,7 @@ The `ETInput` type defines the typed arrays that can be used as inputs in the `f
 
 ## Errors
 
-All functions provided by the `useExecutorchModule` hook are asynchronous and may throw an error. The `ETError` enum includes errors [defined by the ExecuTorch team](https://github.com/pytorch/executorch/blob/main/runtime/core/error.h) and additional errors specified by our library.
+All functions provided by the `useExecutorchModule` hook are asynchronous and may throw an error. The `ETError` enum includes errors [defined by the ExecuTorch team](https://github.com/pytorch/executorch/blob/release/0.7/runtime/core/error.h) and additional errors specified by our library.
 
 ## Performing inference
 

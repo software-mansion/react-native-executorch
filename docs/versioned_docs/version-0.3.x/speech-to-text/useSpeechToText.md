@@ -26,7 +26,7 @@ Currently, we do not support direct microphone input streaming to the model. Ins
 :::
 
 :::caution
-It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-moonshine-tiny). You can also use [constants](https://github.com/software-mansion/react-native-executorch/tree/main/src/constants/modelUrls.ts) shipped with our library
+It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-moonshine-tiny). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/v0.3.4/src/constants/modelUrls.ts) shipped with our library
 :::
 
 ## Reference
@@ -73,13 +73,13 @@ Given that STT models can process audio no longer than 30 seconds, there is a ne
 A literal of `"moonshine" | "whisper"` which serves as an identifier for which model should be used.
 
 **`encoderSource?`**
-A string that specifies the location of a .pte file for the encoder. For further information on passing model sources, check out [Loading Models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models). Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/main/src/constants/modelUrls.ts) for given model.
+A string that specifies the location of a .pte file for the encoder. For further information on passing model sources, check out [Loading Models](../fundamentals/loading-models.md). Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/v0.3.4/src/constants/modelUrls.ts) for given model.
 
 **`decoderSource?`**
-Analogous to the encoderSource, this takes in a string which is a source for the decoder part of the model. Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/main/src/constants/modelUrls.ts) for given model.
+Analogous to the encoderSource, this takes in a string which is a source for the decoder part of the model. Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/v0.3.4/src/constants/modelUrls.ts) for given model.
 
 **`tokenizerSource?`**
-A string that specifies the location to the tokenizer for the model. This works just as the encoder and decoder do. Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/main/src/constants/modelUrls.ts) for given model.
+A string that specifies the location to the tokenizer for the model. This works just as the encoder and decoder do. Defaults to [constants](https://github.com/software-mansion/react-native-executorch/blob/v0.3.4/src/constants/modelUrls.ts) for given model.
 
 **`overlapSeconds?`**
 Specifies the length of overlap between consecutive audio chunks (expressed in seconds). Overrides `streamingConfig` argument.
