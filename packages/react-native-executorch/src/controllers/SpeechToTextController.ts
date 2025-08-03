@@ -17,6 +17,8 @@ import { Logger } from '../common/Logger';
 
 export class SpeechToTextController {
   private seqTmp: number[] = [];
+  private idx = 0;
+  private currentSeq: number[] = [];
   private speechToTextNativeModule: any;
 
   public sequence: number[] = [];
@@ -240,56 +242,37 @@ export class SpeechToTextController {
         return [...seq, this.config.tokenizer.eos];
       }
       seq.push(lastToken);
-      if (this.seqs.length == 0) {
-        this.decodedTranscribeCallback(seq);
-      } else if (seq.length > 3 + NUM_TOKENS_TO_TRIM) {
-        if (this.seqs.length == 1) {
-          this.seqTmp = this.seqs.at(-1)!.slice();
+      if (this.seqs.length === 0) {
+        this.currentSeq.push(lastToken);
+        await this.decodedTranscribeCallback(this.currentSeq);
+      } else {
+        if (seq.length > 3 + NUM_TOKENS_TO_TRIM) {
+          const lastSeqLen = this.seqs.at(-1)!.length;
           const idx = longCommonInfPref(
-            this.seqs.at(-1)!,
+            this.currentSeq.slice(-lastSeqLen),
             seq.slice(NUM_TOKENS_TO_TRIM),
             1
           );
-          const abc = this.seqs
-            .at(-1)!
-            .slice(0, idx)
-            .concat(seq.slice(NUM_TOKENS_TO_TRIM));
-          this.decodedTranscribeCallback(this.sequence.concat(abc));
-        } else {
-          this.seqTmp = this.seqs.at(-1)!.slice();
-          const idx = longCommonInfPref(
-            this.seqs.at(-1)!,
-            seq.slice(NUM_TOKENS_TO_TRIM),
-            1
+          const tmpSeq = this.currentSeq.slice(0, idx - lastSeqLen);
+          await this.decodedTranscribeCallback(
+            tmpSeq.concat(seq.slice(NUM_TOKENS_TO_TRIM))
           );
-          const abc = this.seqs
-            .at(-1)!
-            .slice(0, idx)
-            .concat(seq.slice(NUM_TOKENS_TO_TRIM));
-          const idx2 = longCommonInfPref(
-            this.seqs.at(-2)!,
-            this.seqs.at(-1)!,
-            1
-          );
-          const tmpSeq = this.seqs.at(-2)!.slice(0, idx2).concat(abc);
-          this.decodedTranscribeCallback(this.sequence.concat(tmpSeq));
         }
       }
-      // if (
-      //   this.seqs.length > 0 &&
-      //   seq.length < this.seqs.at(-1)!.length &&
-      //   seq.length % 3 !== 0
-      // ) {
-      //   this.prevSeq.push(this.seqs.at(-1)![prevSeqTokenIdx++]!);
-      //   this.decodedTranscribeCallback(this.prevSeq);
-      // }
     }
-    console.log(this.sequence);
-    console.log(this.seqs);
-
-    // this logs are just for eslint to not complain about unused variables
-    console.log(this.seqTmp);
-    console.log(this.prevSeq);
+    if (this.seqs.length == 0) {
+      return seq;
+    }
+    const lastSeqLen = this.seqs.at(-1)!.length;
+    const idx = longCommonInfPref(
+      this.currentSeq.slice(-lastSeqLen),
+      seq.slice(NUM_TOKENS_TO_TRIM, -NUM_TOKENS_TO_TRIM),
+      1
+    );
+    const tmpSeq = this.currentSeq.slice(0, idx - lastSeqLen);
+    this.currentSeq = tmpSeq.concat(
+      seq.slice(NUM_TOKENS_TO_TRIM, -NUM_TOKENS_TO_TRIM)
+    );
     return seq;
   }
 
@@ -300,7 +283,7 @@ export class SpeechToTextController {
       HAMMING_DIST_THRESHOLD
     );
     this.sequence = [...this.sequence, ...seqs.at(-2)!.slice(0, maxInd)];
-    // this.decodedTranscribeCallback(this.sequence);
+    await this.decodedTranscribeCallback(this.sequence);
     return this.sequence.slice();
   }
 
@@ -462,7 +445,7 @@ export class SpeechToTextController {
       if (this.seqs.length < 2) continue;
 
       await this.trimSequences(audioLanguage);
-      await this.handleOverlaps(this.seqs);
+      // await this.handleOverlaps(this.seqs);
     }
 
     // got final package, process all remaining waveform data
@@ -491,9 +474,7 @@ export class SpeechToTextController {
       this.isGeneratingCallback(false);
       this.streaming = false;
     }
-    console.log('Streaming transcription finished, sequence:', this.sequence);
     const decodedText = await this.tokenIdsToText(this.sequence);
-    console.log('Live transcription result:', decodedText);
     return decodedText;
   }
 

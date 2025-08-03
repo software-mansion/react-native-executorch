@@ -28,7 +28,9 @@ const BUFFER_LENGTH = SAMPLE_RATE * AUDIO_LENGTH_SECONDS;
 export const SpeechToTextScreen = () => {
   const model = useSpeechToText({
     model: MOONSHINE_TINY,
-    streamingConfig: 'fast',
+    streamingConfig: 'balanced',
+    windowSize: 3,
+    overlapSeconds: 1.2,
   });
 
   const recorder = useMemo(
@@ -50,7 +52,16 @@ export const SpeechToTextScreen = () => {
       await audioContext.decodeAudioDataSource(uri)
     ).getChannelData(0);
     const audioArray = Array.from(audioBuffer);
-    await model.transcribe(audioArray);
+    await model.streamingTranscribe(STREAMING_ACTION.START);
+    for (let i = 0; i < audioArray.length / SAMPLE_RATE; i++) {
+      await model.streamingTranscribe(
+        STREAMING_ACTION.DATA,
+        audioArray.slice(i * SAMPLE_RATE, (i + 1) * SAMPLE_RATE)
+      );
+    }
+    await model.streamingTranscribe(STREAMING_ACTION.STOP);
+
+    // await model.transcribe(audioArray);
   };
 
   const handleStartTranscribeFromMicrophone = async () => {
