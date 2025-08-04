@@ -87,7 +87,7 @@ function App() {
 
 | Model                                                                                                                          | Number of classes | Class list                                                                                                                                            |
 | ------------------------------------------------------------------------------------------------------------------------------ | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [deeplabv3_resnet50](https://pytorch.org/vision/0.20/models/generated/torchvision.models.segmentation.deeplabv3_resnet50.html) | 21                | [DeeplabLabel](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts) |
+| [deeplabv3_resnet50](https://pytorch.org/vision/stable/models/generated/torchvision.models.segmentation.deeplabv3_resnet50.html) | 21                | [DeeplabLabel](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts) |
 
 ## Benchmarks
 
