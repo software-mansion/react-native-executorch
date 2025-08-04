@@ -12,10 +12,11 @@ export class TokenizerModule {
       onDownloadProgressCallback,
       modelSource
     );
-    if (paths === null || paths.length < 1) {
+    const path = paths?.[0];
+    if (!path) {
       throw new Error('Download interrupted.');
     }
-    this.nativeModule = global.loadTokenizerModule(paths[0] || '');
+    this.nativeModule = global.loadTokenizerModule(path);
   }
 
   async encode(s: string) {

@@ -31,9 +31,6 @@ export class LLMController {
   private messageHistoryCallback: (messageHistory: Message[]) => void;
   private isReadyCallback: (isReady: boolean) => void;
   private isGeneratingCallback: (isGenerating: boolean) => void;
-  private onDownloadProgressCallback:
-    | ((downloadProgress: number) => void)
-    | undefined;
 
   constructor({
     tokenCallback,
@@ -41,14 +38,12 @@ export class LLMController {
     messageHistoryCallback,
     isReadyCallback,
     isGeneratingCallback,
-    onDownloadProgressCallback,
   }: {
     tokenCallback?: (token: string) => void;
     responseCallback?: (response: string) => void;
     messageHistoryCallback?: (messageHistory: Message[]) => void;
     isReadyCallback?: (isReady: boolean) => void;
     isGeneratingCallback?: (isGenerating: boolean) => void;
-    onDownloadProgressCallback?: (downloadProgress: number) => void;
   }) {
     if (responseCallback !== undefined) {
       Logger.warn(
@@ -74,8 +69,6 @@ export class LLMController {
       this._isGenerating = isGenerating;
       isGeneratingCallback?.(isGenerating);
     };
-
-    this.onDownloadProgressCallback = onDownloadProgressCallback;
   }
 
   public get response() {
@@ -95,10 +88,12 @@ export class LLMController {
     modelSource,
     tokenizerSource,
     tokenizerConfigSource,
+    onDownloadProgressCallback,
   }: {
     modelSource: ResourceSource;
     tokenizerSource: ResourceSource;
     tokenizerConfigSource: ResourceSource;
+    onDownloadProgressCallback?: (downloadProgress: number) => void;
   }) {
     // reset inner state when loading new model
     this.responseCallback('');
@@ -107,22 +102,34 @@ export class LLMController {
     this.isReadyCallback(false);
 
     try {
-      const paths = await ResourceFetcher.fetch(
-        this.onDownloadProgressCallback,
+      const tokenizersPromise = ResourceFetcher.fetch(
+        undefined,
         tokenizerSource,
-        tokenizerConfigSource,
+        tokenizerConfigSource
+      );
+
+      const modelPromise = ResourceFetcher.fetch(
+        onDownloadProgressCallback,
         modelSource
       );
-      if (paths === null || paths?.length < 3) {
+
+      const [tokenizersResults, modelResult] = await Promise.all([
+        tokenizersPromise,
+        modelPromise,
+      ]);
+
+      const tokenizerPath = tokenizersResults?.[0];
+      const tokenizerConfigPath = tokenizersResults?.[1];
+      const modelPath = modelResult?.[0];
+
+      if (!tokenizerPath || !tokenizerConfigPath || !modelPath) {
         throw new Error('Download interrupted!');
       }
-      const tokenizerFileUri = paths[0]!;
-      const tokenizerConfigFileUri = paths[1]!;
-      const modelFileUri = paths[2]!;
+
       this.tokenizerConfig = JSON.parse(
-        await readAsStringAsync('file://' + tokenizerConfigFileUri!)
+        await readAsStringAsync('file://' + tokenizerConfigPath!)
       );
-      this.nativeModule = global.loadLLM(modelFileUri, tokenizerFileUri);
+      this.nativeModule = global.loadLLM(modelPath, tokenizerPath);
       this.isReadyCallback(true);
       this.onToken = (data: string) => {
         if (
