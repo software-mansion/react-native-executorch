@@ -136,7 +136,7 @@ const inputTensor = {
 
 ### Performing inference
 
-After passing input to the forward function, you'll receive an array of TensorPtr objects. Each TensorPtr contains its data as an ArrayBuffer field. Since ArrayBuffer represents raw binary data, you'll need to interpret it according to the tensor's underlying data type (e.g., creating a Float32Array view for float32 tensors, Int32Array for int32 tensors, etc.).
+After passing input to the forward function, you'll receive an array of TensorPtr objects. Each TensorPtr contains its `dataPtr` as an ArrayBuffer. Since ArrayBuffer represents raw binary data, you'll need to interpret it according to the tensor's underlying data type (e.g., creating a Float32Array view for float32 tensors, Int32Array for int32 tensors, etc.).
 
 ```typescript
 try {
