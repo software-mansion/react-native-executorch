@@ -23,7 +23,10 @@ export const useTokenizer = ({
       setError(null);
       try {
         setIsReady(false);
-        await _tokenizer.load({ tokenizerSource: tokenizer.tokenizerSource }, setDownloadProgress);
+        await _tokenizer.load(
+          { tokenizerSource: tokenizer.tokenizerSource },
+          setDownloadProgress
+        );
         setIsReady(true);
       } catch (err) {
         setError((err as Error).message);
