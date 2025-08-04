@@ -295,16 +295,13 @@ void restoreBboxRatio(std::vector<DetectorBBox> &boxes, float restoreRatio) {
 }
 
 float distanceFromPoint(const Point &p1, const Point &p2) {
-  const float xDist = (p2.x - p1.x);
-  const float yDist = (p2.y - p1.y);
+  const float xDist = p2.x - p1.x;
+  const float yDist = p2.y - p1.y;
   return std::sqrt(xDist * xDist + yDist * yDist);
 }
 
 float normalizeAngle(float angle) {
-  if (angle > 45.0f) {
-    return angle - 90.0f;
-  }
-  return angle;
+  return (angle > 45.0f) ? (angle - 90.0f) : angle;
 }
 
 Point midpointBetweenPoint(const Point &p1, const Point &p2) {
@@ -393,14 +390,14 @@ fitLineToShortestSides(const std::array<Point, 4> &points) {
   constexpr double accuracy =
       0.01; // sufficient accuracy. Value proposed by OPENCV
 
-  if (dx < verticalLineThreshold) {
+  isVertical = dx < verticalLineThreshold;
+  if (isVertical) {
     for (auto &pt : cvMidPoints) {
       std::swap(pt.x, pt.y);
     }
   }
   cv::fitLine(cvMidPoints, line, cv::DIST_L2, numericalParameter, accuracy,
               accuracy);
-  isVertical = dx < verticalLineThreshold;
   m = line[1] / line[0];
   c = line[3] - m * line[2];
   return {m, c, isVertical};
@@ -570,10 +567,10 @@ findClosestBox(const std::vector<DetectorBBox> &boxes,
     boxHeight = minSideLength(bbox);
 
     const float lineDistance =
-        (isVertical ? std::fabs(centerOfProcessedBox.x -
-                                (m * centerOfProcessedBox.y + c))
-                    : std::fabs(centerOfProcessedBox.y -
-                                (m * centerOfProcessedBox.x + c)));
+        isVertical ? std::fabs(centerOfProcessedBox.x -
+                               (m * centerOfProcessedBox.y + c))
+                   : std::fabs(centerOfProcessedBox.y -
+                               (m * centerOfProcessedBox.x + c));
 
     if (lineDistance < boxHeight * centerThreshold) {
       idx = i;
@@ -586,6 +583,9 @@ findClosestBox(const std::vector<DetectorBBox> &boxes,
 }
 
 std::vector<DetectorBBox>
+// We accept only boxes "larger" than minSideThreshold x maxSideThreshold.
+// By larger we mean, shorter side must be bigger than minSideThreshold,
+// and longer side must be bigger than maxSideThreshold.
 removeSmallBoxesFromArray(const std::vector<DetectorBBox> &boxes,
                           float minSideThreshold, float maxSideThreshold) {
   std::vector<DetectorBBox> filteredBoxes;
@@ -602,13 +602,9 @@ removeSmallBoxesFromArray(const std::vector<DetectorBBox> &boxes,
 }
 
 static float minimumYFromBox(const std::array<Point, 4> &box) {
-  float minY = std::numeric_limits<float>::max();
-  for (const auto &pt : box) {
-    if (pt.y < minY) {
-      minY = pt.y;
-    }
-  }
-  return minY;
+  return std::ranges::min_element(box,
+                                  [](Point a, Point b) { return a.y < b.y; })
+      ->y;
 }
 
 std::vector<DetectorBBox>
@@ -643,9 +639,9 @@ groupTextBoxes(std::vector<DetectorBBox> &boxes, float centerThreshold,
       auto closestBoxInfo =
           findClosestBox(boxes, ignoredIdxs, currentBox.bbox, isVertical, slope,
                          intercept, centerThreshold);
-      if (!closestBoxInfo)
+      if (!closestBoxInfo) {
         break;
-
+      }
       std::size_t candidateIdx = closestBoxInfo.value().first;
       DetectorBBox candidateBox = boxes[candidateIdx];
       const float candidateHeight = closestBoxInfo.value().second;
