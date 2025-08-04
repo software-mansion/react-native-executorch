@@ -14,13 +14,14 @@ import {
 
 const imageUri = 'path/to/image.png';
 
-const module = new StyleTransferModule();
+// Creating an instance
+const styleTransferModule = new StyleTransferModule();
 
 // Loading the model
-await module.load(STYLE_TRANSFER_CANDY);
+await styleTransferModule.load(STYLE_TRANSFER_CANDY);
 
 // Running the model
-const generatedImageUrl = await module.forward(imageUri);
+const generatedImageUrl = await styleTransferModule.forward(imageUri);
 ```
 
 ### Methods

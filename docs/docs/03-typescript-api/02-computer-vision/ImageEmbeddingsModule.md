@@ -9,14 +9,17 @@ TypeScript API implementation of the [useImageEmbeddings](../../02-hooks/02-comp
 ```typescript
 import {
   ImageEmbeddingsModule,
-  CLIP_VIT_BASE_PATCH_32_IMAGE_ENCODER,
+  CLIP_VIT_BASE_PATCH32_IMAGE,
 } from 'react-native-executorch';
 
+// Creating an instance
+const imageEmbeddingsModule = new ImageEmbeddingsModule();
+
 // Loading the model
-await ImageEmbeddingsModule.load(CLIP_VIT_BASE_PATCH_32_IMAGE_ENCODER);
+await imageEmbeddingsModule.load(CLIP_VIT_BASE_PATCH32_IMAGE);
 
 // Running the model
-const embedding = await ImageEmbeddingsModule.forward(
+const embedding = await imageEmbeddingsModule.forward(
   'https://url-to-image.jpg'
 );
 ```

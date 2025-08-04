@@ -14,13 +14,14 @@ import {
 
 const imageUri = 'path/to/image.png';
 
-const module = new ObjectDetectionModule();
+// Creating an instance
+const objectDetectionModule = new ObjectDetectionModule();
 
 // Loading the model
-await module.load(SSDLITE_320_MOBILENET_V3_LARGE);
+await objectDetectionModule.load(SSDLITE_320_MOBILENET_V3_LARGE);
 
 // Running the model
-const detections = await module.forward(imageUri);
+const detections = await objectDetectionModule.forward(imageUri);
 ```
 
 ### Methods

@@ -7,15 +7,21 @@ TypeScript API implementation of the [useVerticalOCR](../../02-hooks/02-computer
 ## Reference
 
 ```typescript
-import { useVerticalOCR, VERTICAL_OCR_ENGLISH } from 'react-native-executorch';
+import {
+  VerticalOCRModule,
+  VERTICAL_OCR_ENGLISH,
+} from 'react-native-executorch';
 
 const imageUri = 'path/to/image.png';
 
+// Creating an instance
+const verticalOCRModule = new VerticalOCRModule();
+
 // Loading the model
-await VerticalOCRModule.load(VERTICAL_OCR_ENGLISH, true);
+await verticalOCRModule.load(VERTICAL_OCR_ENGLISH);
 
 // Running the model
-const ocrDetections = await VerticalOCRModule.forward(imageUri);
+const detections = await verticalOCRModule.forward(imageUri);
 ```
 
 ### Methods

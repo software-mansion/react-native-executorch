@@ -10,11 +10,14 @@ TypeScript API implementation of the [useOCR](../../02-hooks/02-computer-vision/
 import { OCRModule, OCR_ENGLISH } from 'react-native-executorch';
 const imageUri = 'path/to/image.png';
 
+// Creating an instance
+const ocrModule = new OCRModule();
+
 // Loading the model
-await OCRModule.load(OCR_ENGLISH);
+await ocrModule.load(OCR_ENGLISH);
 
 // Running the model
-const ocrDetections = await OCRModule.forward(imageUri);
+const detections = await ocrModule.forward(imageUri);
 ```
 
 ### Methods

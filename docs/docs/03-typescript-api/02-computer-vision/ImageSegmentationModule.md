@@ -14,13 +14,14 @@ import {
 
 const imageUri = 'path/to/image.png';
 
-const module = new ImageSegmentationModule();
+// Creating an instance
+const imageSegmentationModule = new ImageSegmentationModule();
 
 // Loading the model
-await module.load(DEEPLAB_V3_RESNET50);
+await imageSegmentationModule.load(DEEPLAB_V3_RESNET50);
 
 // Running the model
-const outputDict = await module.forward(imageUri);
+const outputDict = await imageSegmentationModule.forward(imageUri);
 ```
 
 ### Methods

@@ -14,13 +14,14 @@ import {
 
 const imageUri = 'path/to/image.png';
 
-const module = new ClassificationModule();
+// Creating an instance
+const classificationModule = new ClassificationModule();
 
 // Loading the model
-await module.load(EFFICIENTNET_V2_S);
+await classificationModule.load(EFFICIENTNET_V2_S);
 
 // Running the model
-const classesWithProbabilities = await module.forward(imageUri);
+const classesWithProbabilities = await classificationModule.forward(imageUri);
 ```
 
 ### Methods

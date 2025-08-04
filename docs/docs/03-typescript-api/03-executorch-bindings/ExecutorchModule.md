@@ -16,11 +16,14 @@ import {
 const shape = [1, 3, 640, 640];
 const input = new Float32Array(1 * 3 * 640 * 640);
 
+// Creating an instance
+const executorchModule = new ExecutorchModule();
+
 // Loading the model
-await ExecutorchModule.load(STYLE_TRANSFER_CANDY);
+await executorchModule.load(STYLE_TRANSFER_CANDY);
 
 // Running the model
-const output = await ExecutorchModule.forward(input, shape);
+const output = await executorchModule.forward(input, shape);
 ```
 
 ### Methods
