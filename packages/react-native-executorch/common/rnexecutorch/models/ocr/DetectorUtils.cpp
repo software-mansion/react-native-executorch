@@ -107,7 +107,7 @@ void getBoxFromContour(cv::Mat &segMap,
   cv::findContours(segMap, contours, cv::RETR_EXTERNAL,
                    cv::CHAIN_APPROX_SIMPLE);
   if (!contours.empty()) {
-    detectedBoxes.emplace_back(std::move(constructBBox(contours[0])));
+    detectedBoxes.emplace_back(constructBBox(contours[0]));
   }
 }
 
@@ -419,9 +419,8 @@ std::array<Point, 4> rotateBox(const std::array<Point, 4> &box, float angle) {
     const float rotatedY =
         translatedX * std::sin(radians) + translatedY * std::cos(radians);
 
-    const Point rotatedPoint = {.x = rotatedX + center.x,
+    rotatedPoints[i] = {.x = rotatedX + center.x,
                                 .y = rotatedY + center.y};
-    rotatedPoints[i] = rotatedPoint;
   }
 
   return rotatedPoints;
@@ -433,9 +432,7 @@ float calculateMinimalDistanceBetweenBox(const std::array<Point, 4> &box1,
   for (const Point &corner1 : box1) {
     for (const Point &corner2 : box2) {
       const float distance = distanceFromPoint(corner1, corner2);
-      if (distance < minDistance) {
-        minDistance = distance;
-      }
+      minDistance = std::min(distance, minDistance);
     }
   }
   return minDistance;
