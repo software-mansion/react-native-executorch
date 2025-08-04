@@ -148,14 +148,7 @@ cv::Mat normalizeForRecognizer(cv::Mat &image, int32_t modelHeight,
     adjustContrastGrey(img, adjustContrast);
   }
 
-  int desiredWidth =
-      isVertical ? smallVerticalRecognizerWidth : smallRecognizerWidth;
-
-  if (image.cols >= largeRecognizerWidth) {
-    desiredWidth = largeRecognizerWidth;
-  } else if (image.cols >= mediumRecognizerWidth) {
-    desiredWidth = mediumRecognizerWidth;
-  }
+  int32_t desiredWidth = getDesiredWidth(image, isVertical);
 
   img = imageprocessing::resizePadded(img, cv::Size(desiredWidth, modelHeight));
   img.convertTo(img, CV_32F, 1.0f / 255.0f);
