@@ -2,7 +2,7 @@
 title: useExecutorchModule
 ---
 
-ExecuTorch bindings provide streamlined interface to access the [Module API](https://pytorch.org/executorch/stable/extension-module.html) directly from Javascript.
+useExecutorchModule provides React Native bindings to the ExecuTorch [Module API](https://pytorch.org/executorch/stable/extension-module.html) directly from JavaScript.
 
 :::caution
 These bindings are primarily intended for custom model integration where no dedicated hook exists. If you are considering using a provided model, first verify whether a dedicated hook is available. Dedicated hooks simplify the implementation process by managing necessary pre and post-processing automatically. Utilizing these can save you effort and reduce complexity, ensuring you do not implement additional handling that is already covered.
@@ -32,33 +32,74 @@ For more information on loading resources, take a look at [loading models](../..
 
 ### Returns
 
-|       Field        |                            Type                            |                                                                                             Description                                                                                             |
-| :----------------: | :--------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-|      `error`       |              <code>string &#124; null</code>               |                                                                       Contains the error message if the model failed to load.                                                                       |
-|   `isGenerating`   |                         `boolean`                          |                                                                  Indicates whether the model is currently processing an inference.                                                                  |
-|     `isReady`      |                         `boolean`                          |                                                           Indicates whether the model has successfully loaded and is ready for inference.                                                           |
-|    `loadMethod`    |          `(methodName: string) => Promise<void>`           |                                                               Loads resources specific to `methodName` into memory before execution.                                                                |
-|   `loadForward`    |                   `() => Promise<void>`                    |                                            Loads resources specific to `forward` method into memory before execution. Uses `loadMethod` under the hood.                                             |
-|     `forward`      | `(input: ETInput, shape: number[]) => Promise<number[][]>` | Executes the model's forward pass, where `input` is a Javascript typed array and `shape` is an array of integers representing input Tensor shape. The output is a Tensor - raw result of inference. |
-| `downloadProgress` |                          `number`                          |                                                                    Represents the download progress as a value between 0 and 1.                                                                     |
+|       Field        |                      Type                      |                                                                         Description                                                                         |
+| :----------------: | :--------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|      `error`       |        <code>string &#124; null</code>         |                                                   Contains the error message if the model failed to load.                                                   |
+|   `isGenerating`   |                   `boolean`                    |                                              Indicates whether the model is currently processing an inference.                                              |
+|     `isReady`      |                   `boolean`                    |                                       Indicates whether the model has successfully loaded and is ready for inference.                                       |
+|     `forward`      | `(input: TensorPtr[]) => Promise<TensorPtr[]>` | Executes the model's forward pass, where `input` is an array of TensorPtr objects. If the inference is successful, an array of tensor pointers is returned. |
+| `downloadProgress` |                    `number`                    |                                                Represents the download progress as a value between 0 and 1.                                                 |
 
-## ETInput
+## TensorPtr
 
-The `ETInput` type defines the typed arrays that can be used as inputs in the `forward` method:
+TensorPtr is a JS representation of the underlying tensor, which is then passed to the model. You can read more about creating tensors [here](https://docs.pytorch.org/executorch/stable/extension-tensor.html). On JS side, the TensorPtr holds the following information:
 
-- Int8Array
-- Int32Array
-- BigInt64Array
-- Float32Array
-- Float64Array
+<details>
+<summary>Type definitions</summary>
 
-## Errors
+```typescript
+interface TensorPtr {
+  dataPtr: TensorBuffer;
+  sizes: number[];
+  scalarType: ScalarType;
+}
 
-All functions provided by the `useExecutorchModule` hook are asynchronous and may throw an error. The `ETError` enum includes errors [defined by the ExecuTorch team](https://github.com/pytorch/executorch/blob/release/0.7/runtime/core/error.h) and additional errors specified by our library.
+type TensorBuffer =
+  | ArrayBuffer
+  | Float32Array
+  | Float64Array
+  | Int8Array
+  | Int16Array
+  | Int32Array
+  | Uint8Array
+  | Uint16Array
+  | Uint32Array
+  | BigInt64Array
+  | BigUint64Array;
 
-## Performing inference
+enum ScalarType {
+  BYTE = 0,
+  CHAR = 1,
+  SHORT = 2,
+  INT = 3,
+  LONG = 4,
+  HALF = 5,
+  FLOAT = 6,
+  DOUBLE = 7,
+  BOOL = 11,
+  QINT8 = 12,
+  QUINT8 = 13,
+  QINT32 = 14,
+  QUINT4X2 = 16,
+  QUINT2X4 = 17,
+  BITS16 = 22,
+  FLOAT8E5M2 = 23,
+  FLOAT8E4M3FN = 24,
+  FLOAT8E5M2FNUZ = 25,
+  FLOAT8E4M3FNUZ = 26,
+  UINT16 = 27,
+  UINT32 = 28,
+  UINT64 = 29,
+}
+```
 
-To run model with ExecuTorch Bindings it's essential to specify the shape of the input tensor. However, there's no need to explicitly define the input type, as it will automatically be inferred from the array you pass to `forward` method. However you will still need to explicitly provide shape for the tensor. Outputs from the model, such as classification probabilities, are returned in raw format.
+</details>
+
+`dataPtr` - Represents a data buffer that will be used to create a tensor on the native side. This can be either an `ArrayBuffer` or a `TypedArray`. If your model takes in a datatype which is not covered by any of the `TypedArray` types, just pass an `ArrayBuffer` here.
+
+`sizes` - Represents a shape of a given tensor, i.e. for a 640x640 RGB image with a batch size of 1, you would need to pass `[1, 3, 640, 640]` here.
+
+`scalarType` - An enum resembling the ExecuTorch's `ScalarType`. For example, if your model was exported with float32 as an input, you will need to pass `ScalarType.FLOAT` here.
 
 ## End to end example
 
@@ -72,6 +113,7 @@ First, import the necessary functions from the `react-native-executorch` package
 import {
   useExecutorchModule,
   STYLE_TRANSFER_CANDY,
+  ScalarType,
 } from 'react-native-executorch';
 
 // Initialize the executorch module with the predefined style transfer model.
@@ -82,22 +124,26 @@ const executorchModule = useExecutorchModule({
 
 ### Setting up input parameters
 
-To prepare the input for the model, define the shape of the input tensor. This shape depends on the model's requirements. For the `STYLE_TRANSFER_CANDY` model, we need a tensor of shape `[1, 3, 640, 640]`, corresponding to a batch size of 1, 3 color channels (RGB), and dimensions of 640x640 pixels.
+To prepare the model input, define the tensor shape according to your model's requirements (defined by the model export process). For example, the STYLE_TRANSFER_CANDY model expects a tensor with shape `[1, 3, 640, 640]` — representing a batch size of 1, 3 color channels (RGB), and 640×640 pixel dimensions.
 
 ```typescript
-const shape = [1, 3, 640, 640];
-// Create a Float32Array to hold the pixel data of the image,
-// which should be preprocessed according to the model's specific needs.
-const input = new Float32Array(1 * 3 * 640 * 640); // fill this array with your image data
+const inputTensor = {
+  dataPtr: new Float32Array(1 * 3 * 640 * 640), // or other TypedArray / ArrayBuffer
+  sizes: [1, 3, 640, 640],
+  scalarType: ScalarType.FLOAT,
+};
 ```
 
 ### Performing inference
 
+After passing input to the forward function, you'll receive an array of TensorPtr objects. Each TensorPtr contains its data as an ArrayBuffer field. Since ArrayBuffer represents raw binary data, you'll need to interpret it according to the tensor's underlying data type (e.g., creating a Float32Array view for float32 tensors, Int32Array for int32 tensors, etc.).
+
 ```typescript
 try {
   // Perform the forward operation and receive the stylized image output.
-  const output = await executorchModule.forward(input, shape);
-  console.log('Stylization successful. Output Shape:', output.length);
+  const output = await executorchModule.forward([inputTensor]);
+  // Interpret the output ArrayBuffer
+  // foo(output[0].dataPtr);
 } catch (error) {
   // Log any errors that occur during the forward pass.
   console.error('Error during model execution:', error);
