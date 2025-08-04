@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <limits>
 #include <numeric>
+#include <rnexecutorch/data_processing/Numerical.h>
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/Types.h>
 #include <unordered_set>
@@ -649,8 +650,8 @@ groupTextBoxes(std::vector<DetectorBBox> &boxes, float centerThreshold,
       DetectorBBox candidateBox = boxes[candidateIdx];
       const float candidateHeight = closestBoxInfo.value().second;
 
-      if ((candidateBox.angle == 90 && !isVertical) ||
-          (candidateBox.angle == 0 && isVertical)) {
+      if ((numerical::fpEqual(candidateBox.angle, 90.0f) && !isVertical) ||
+          (numerical::fpEqual(candidateBox.angle, 0.0f) && isVertical)) {
         candidateBox.bbox = rotateBox(candidateBox.bbox, normalizedAngle);
       }
 
