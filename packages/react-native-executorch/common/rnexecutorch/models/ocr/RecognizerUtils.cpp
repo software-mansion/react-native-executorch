@@ -74,7 +74,7 @@ cv::Rect extractBoundingBox(std::array<rnexecutorch::Point, 4> &points) {
 cv::Mat cropSingleCharacter(const cv::Mat &img) {
   cv::Mat histogram;
   int histSize = 256;
-  float range[] = {0, 256};
+  float range[] = {0.0f, 256.0f};
   const float *histRange = {range};
   bool uniform = true;
   bool accumulate = false;

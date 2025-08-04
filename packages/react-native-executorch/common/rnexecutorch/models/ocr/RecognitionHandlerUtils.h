@@ -10,6 +10,6 @@ void computeRatioAndResize(cv::Mat &img, cv::Size size, int32_t modelHeight);
 cv::Mat cropImage(DetectorBBox box, cv::Mat &image, int32_t modelHeight);
 void adjustContrastGrey(cv::Mat &img, double target);
 cv::Mat normalizeForRecognizer(cv::Mat &image, int32_t modelHeight,
-                               double adjustContrast = 0,
+                               double adjustContrast = 0.0,
                                bool isVertical = false);
 } // namespace rnexecutorch::ocr

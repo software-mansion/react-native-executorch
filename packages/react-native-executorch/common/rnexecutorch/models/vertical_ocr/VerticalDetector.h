@@ -20,7 +20,7 @@ public:
 
 private:
   bool detectSingleCharacters;
-  std::vector<DetectorBBox> postprocess(const Tensor &tensor) const noexcept;
+  std::vector<DetectorBBox> postprocess(const Tensor &tensor) const;
   cv::Size modelImageSize;
 };
 } // namespace rnexecutorch

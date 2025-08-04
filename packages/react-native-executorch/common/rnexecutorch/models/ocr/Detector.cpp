@@ -52,8 +52,7 @@ std::vector<DetectorBBox> Detector::generate(const cv::Mat &inputImage) {
   return postprocess(forwardResult->at(0).toTensor());
 }
 
-std::vector<DetectorBBox>
-Detector::postprocess(const Tensor &tensor) const noexcept {
+std::vector<DetectorBBox> Detector::postprocess(const Tensor &tensor) const {
   /*
    The output of the model consists of two matrices (heat maps):
    1. ScoreText(Score map) - The probability of a region containing character.

@@ -414,7 +414,7 @@ fitLineToShortestSides(const std::array<Point, 4> &points) {
 std::array<Point, 4> rotateBox(const std::array<Point, 4> &box, float angle) {
   const Point center = centerOfBox(box);
 
-  const float radians = angle * M_PI / 180.0;
+  const float radians = angle * M_PI / 180.0f;
 
   std::array<Point, 4> rotatedPoints;
   for (std::size_t i = 0; i < box.size(); ++i) {
@@ -574,7 +574,7 @@ findClosestBox(const std::vector<DetectorBBox> &boxes,
                float c, float centerThreshold) {
   float smallestDistance = std::numeric_limits<float>::max();
   ssize_t idx = -1;
-  float boxHeight = 0;
+  float boxHeight = 0.0f;
   const Point centerOfCurrentBox = centerOfBox(currentBox);
 
   for (std::size_t i = 0; i < boxes.size(); i++) {
@@ -659,11 +659,10 @@ groupTextBoxes(std::vector<DetectorBBox> &boxes, float centerThreshold,
       auto [slope, intercept, isVertical] =
           fitLineToShortestSides(currentBox.bbox);
 
-      lineAngle = std::atan(slope) * 180 / M_PI;
+      lineAngle = std::atan(slope) * 180.0f / M_PI;
       if (isVertical) {
-        lineAngle = -90;
+        lineAngle = -90.0f;
       }
-
       auto closestBoxInfo =
           findClosestBox(boxes, ignoredIdxs, currentBox.bbox, isVertical, slope,
                          intercept, centerThreshold);
@@ -716,7 +715,7 @@ groupTextBoxes(std::vector<DetectorBBox> &boxes, float centerThreshold,
   orderedSortedBoxes.reserve(mergedVec.size());
   for (DetectorBBox bbox : mergedVec) {
     bbox.bbox = orderPointsClockwise(bbox.bbox);
-    orderedSortedBoxes.push_back(bbox);
+    orderedSortedBoxes.push_back(std::move(bbox));
   }
 
   return orderedSortedBoxes;

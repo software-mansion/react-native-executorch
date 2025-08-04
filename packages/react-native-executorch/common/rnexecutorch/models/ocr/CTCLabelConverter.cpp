@@ -5,11 +5,11 @@
 namespace rnexecutorch::ocr {
 
 CTCLabelConverter::CTCLabelConverter(const std::string &characters)
-    : ignoreIdx(0) {
-  character = {"[blank]"}; // blank character is ignored character (index 0).
-
+    : ignoreIdx(0),
+      character({"[blank]"}) // blank character is ignored character (index 0).
+{
   for (size_t i = 0; i < characters.length();) {
-    int char_len = 0;
+    size_t char_len = 0;
     unsigned char first_byte = characters[i];
 
     if ((first_byte & 0x80) == 0) { // 0xxxxxxx -> 1-byte character
@@ -72,8 +72,8 @@ CTCLabelConverter::decodeGreedy(const std::vector<int> &textIndex,
 
       for (size_t j = 0; j < subArray.size(); ++j) {
         if (isNotRepeated[j] && isNotIgnored[j]) {
-          int charIndex = subArray[j];
-          if (charIndex >= 0 && charIndex < character.size()) {
+          auto charIndex = static_cast<size_t>(subArray[j]);
+          if (charIndex >= 0u && charIndex < character.size()) {
             text += character[charIndex];
           }
         }

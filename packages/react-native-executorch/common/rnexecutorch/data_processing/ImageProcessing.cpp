@@ -115,8 +115,8 @@ cv::Mat readImage(const std::string &imageURI) {
 
 TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDims,
                               const cv::Mat &matrix) {
-  std::vector<float> inputVector = colorMatToVector(matrix);
-  return executorch::extension::make_tensor_ptr(tensorDims, inputVector);
+  return executorch::extension::make_tensor_ptr(tensorDims,
+                                                colorMatToVector(matrix));
 }
 
 TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDims,
@@ -128,8 +128,8 @@ TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDims,
 
 TensorPtr getTensorFromMatrixGray(const std::vector<int32_t> &tensorDims,
                                   const cv::Mat &matrix) {
-  std::vector<float> inputVector = grayMatToVector(matrix);
-  return executorch::extension::make_tensor_ptr(tensorDims, inputVector);
+  return executorch::extension::make_tensor_ptr(tensorDims,
+                                                grayMatToVector(matrix));
 }
 
 std::vector<float> grayMatToVector(const cv::Mat &mat) {
@@ -191,7 +191,7 @@ cv::Mat resizePadded(cv::Mat inputImage, cv::Size targetSize) {
                           cornerPatchSize))};
 
   cv::Scalar backgroundScalar = cv::mean(corners[0]);
-  for (int i = 1; i < corners.size(); i++) {
+  for (size_t i = 1; i < corners.size(); i++) {
     backgroundScalar += cv::mean(corners[i]);
   }
   backgroundScalar /= static_cast<double>(corners.size());

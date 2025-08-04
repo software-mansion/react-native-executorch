@@ -54,7 +54,7 @@ VerticalDetector::generate(const cv::Mat &inputImage) {
 }
 
 std::vector<DetectorBBox>
-VerticalDetector::postprocess(const Tensor &tensor) const noexcept {
+VerticalDetector::postprocess(const Tensor &tensor) const {
   /*
    The output of the model consists of two matrices (heat maps):
    1. ScoreText(Score map) - The probability of a region containing character.

@@ -19,7 +19,7 @@ public:
 
 private:
   std::pair<std::vector<int32_t>, float>
-  postprocess(const Tensor &tensor) const noexcept;
+  postprocess(const Tensor &tensor) const;
 
   cv::Size modelImageSize;
 };

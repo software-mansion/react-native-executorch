@@ -37,7 +37,7 @@ Recognizer::generate(const cv::Mat &grayImage) {
 }
 
 std::pair<std::vector<int32_t>, float>
-Recognizer::postprocess(const Tensor &tensor) const noexcept {
+Recognizer::postprocess(const Tensor &tensor) const {
   const int numClasses = tensor.size(2);
   const int numRows = tensor.numel() / numClasses;
   cv::Mat resultMat(numRows, numClasses, CV_32F,
