@@ -32,10 +32,7 @@ const stt = new SpeechToTextModule({
 });
 
 // Loading the model
-await stt.load({
-  model: MOONSHINE_TINY,
-  onDownloadProgressCallback: (progress) => console.log(progress),
-});
+await stt.load(MOONSHINE_TINY, (progress) => console.log(progress));
 
 // Loading the audio and running the model
 const waveform = await loadAudio(audioUrl);
