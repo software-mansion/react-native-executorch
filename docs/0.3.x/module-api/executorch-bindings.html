@@ -11,7 +11,7 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.c52e728e.css">
-<script src="/react-native-executorch/assets/js/runtime~main.41870441.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.6197485a.js" defer="defer"></script>
 <script src="/react-native-executorch/assets/js/main.e2a62449.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -35,7 +35,7 @@
 <li>Float64Array</li>
 </ul>
 <h2 class="anchor anchorWithHideOnScrollNavbar_WYt5" id="errors">Errors<a href="#errors" class="hash-link" aria-label="Direct link to Errors" title="Direct link to Errors">​</a></h2>
-<p>All functions provided by the <code>useExecutorchModule</code> hook are asynchronous and may throw an error. The <code>ETError</code> enum includes errors <a href="https://github.com/pytorch/executorch/blob/main/runtime/core/error.h" target="_blank" rel="noopener noreferrer">defined by the ExecuTorch team</a> and additional errors specified by our library.</p>
+<p>All functions provided by the <code>useExecutorchModule</code> hook are asynchronous and may throw an error. The <code>ETError</code> enum includes errors <a href="https://github.com/pytorch/executorch/blob/release/0.7/runtime/core/error.h" target="_blank" rel="noopener noreferrer">defined by the ExecuTorch team</a> and additional errors specified by our library.</p>
 <h2 class="anchor anchorWithHideOnScrollNavbar_WYt5" id="performing-inference">Performing inference<a href="#performing-inference" class="hash-link" aria-label="Direct link to Performing inference" title="Direct link to Performing inference">​</a></h2>
 <p>To run model with ExecuTorch Bindings it&#x27;s essential to specify the shape of the input tensor. However, there&#x27;s no need to explicitly define the input type, as it will automatically be inferred from the array you pass to <code>forward</code> method. However you will still need to explicitly provide shape for the tensor. Outputs from the model, such as classification probabilities, are returned in raw format.</p>
 <h2 class="anchor anchorWithHideOnScrollNavbar_WYt5" id="end-to-end-example">End to end example<a href="#end-to-end-example" class="hash-link" aria-label="Direct link to End to end example" title="Direct link to End to end example">​</a></h2>
