@@ -31,7 +31,7 @@ export const useVerticalOCR = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
 
-  const _model = useMemo(
+  const controllerInstance = useMemo(
     () =>
       new VerticalOCRController({
         modelDownloadProgressCallback: setDownloadProgress,
@@ -46,7 +46,7 @@ export const useVerticalOCR = ({
     if (preventLoad) return;
 
     (async () => {
-      await _model.loadModel(
+      await controllerInstance.loadModel(
         {
           detectorLarge: model.detectorLarge,
           detectorNarrow: model.detectorNarrow,
@@ -60,7 +60,7 @@ export const useVerticalOCR = ({
       );
     })();
   }, [
-    _model,
+    controllerInstance,
     model.detectorLarge,
     model.detectorNarrow,
     model.recognizerLarge,
@@ -74,7 +74,7 @@ export const useVerticalOCR = ({
     error,
     isReady,
     isGenerating,
-    forward: _model.forward,
+    forward: controllerInstance.forward,
     downloadProgress,
   };
 };

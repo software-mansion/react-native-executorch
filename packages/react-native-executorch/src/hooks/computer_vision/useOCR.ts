@@ -29,7 +29,7 @@ export const useOCR = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
 
-  const _model = useMemo(
+  const controllerInstance = useMemo(
     () =>
       new OCRController({
         modelDownloadProgressCallback: setDownloadProgress,
@@ -42,7 +42,7 @@ export const useOCR = ({
 
   useEffect(() => {
     const loadModel = async () => {
-      await _model.loadModel(
+      await controllerInstance.loadModel(
         model.detectorSource,
         {
           recognizerLarge: model.recognizerLarge,
@@ -57,7 +57,7 @@ export const useOCR = ({
       loadModel();
     }
   }, [
-    _model,
+    controllerInstance,
     model.detectorSource,
     model.recognizerLarge,
     model.recognizerMedium,
@@ -70,7 +70,7 @@ export const useOCR = ({
     error,
     isReady,
     isGenerating,
-    forward: _model.forward,
+    forward: controllerInstance.forward,
     downloadProgress,
   };
 };

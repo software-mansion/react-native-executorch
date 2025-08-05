@@ -52,7 +52,7 @@ export const useSpeechToText = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<Error | undefined>();
 
-  const _model = useMemo(
+  const controllerInstance = useMemo(
     () =>
       new SpeechToTextController({
         transcribeCallback: setSequence,
@@ -64,12 +64,16 @@ export const useSpeechToText = ({
   );
 
   useEffect(() => {
-    _model.configureStreaming(overlapSeconds, windowSize, streamingConfig);
-  }, [_model, overlapSeconds, windowSize, streamingConfig]);
+    controllerInstance.configureStreaming(
+      overlapSeconds,
+      windowSize,
+      streamingConfig
+    );
+  }, [controllerInstance, overlapSeconds, windowSize, streamingConfig]);
 
   useEffect(() => {
     const loadModel = async () => {
-      await _model.load({
+      await controllerInstance.load({
         modelName: model.modelName,
         encoderSource: model.encoderSource,
         decoderSource: model.decoderSource,
@@ -81,7 +85,7 @@ export const useSpeechToText = ({
       loadModel();
     }
   }, [
-    _model,
+    controllerInstance,
     model.modelName,
     model.encoderSource,
     model.decoderSource,
@@ -93,15 +97,20 @@ export const useSpeechToText = ({
     isReady,
     isGenerating,
     downloadProgress,
-    configureStreaming: _model.configureStreaming,
+    configureStreaming: controllerInstance.configureStreaming,
     sequence,
     error,
     transcribe: (waveform: number[], audioLanguage?: SpeechToTextLanguage) =>
-      _model.transcribe(waveform, audioLanguage),
+      controllerInstance.transcribe(waveform, audioLanguage),
     streamingTranscribe: (
       streamAction: STREAMING_ACTION,
       waveform?: number[],
       audioLanguage?: SpeechToTextLanguage
-    ) => _model.streamingTranscribe(streamAction, waveform, audioLanguage),
+    ) =>
+      controllerInstance.streamingTranscribe(
+        streamAction,
+        waveform,
+        audioLanguage
+      ),
   };
 };

@@ -36,7 +36,7 @@ export const useLLM = ({
     setResponse((prevResponse) => prevResponse + newToken);
   }, []);
 
-  const _model = useMemo(
+  const controllerInstance = useMemo(
     () =>
       new LLMController({
         tokenCallback: tokenCallback,
@@ -55,8 +55,10 @@ export const useLLM = ({
 
     (async () => {
       try {
-        await _model.load({
-          ...model,
+        await controllerInstance.load({
+          modelSource: model.modelSource,
+          tokenizerSource: model.tokenizerSource,
+          tokenizerConfigSource: model.tokenizerConfigSource,
           onDownloadProgressCallback: setDownloadProgress,
         });
       } catch (e) {
@@ -65,10 +67,10 @@ export const useLLM = ({
     })();
 
     return () => {
-      _model.delete();
+      controllerInstance.delete();
     };
   }, [
-    _model,
+    controllerInstance,
     model.modelSource,
     model.tokenizerSource,
     model.tokenizerConfigSource,
@@ -83,32 +85,35 @@ export const useLLM = ({
     }: {
       chatConfig?: Partial<ChatConfig>;
       toolsConfig?: ToolsConfig;
-    }) => _model.configure({ chatConfig, toolsConfig }),
-    [_model]
+    }) => controllerInstance.configure({ chatConfig, toolsConfig }),
+    [controllerInstance]
   );
 
   const generate = useCallback(
     (messages: Message[], tools?: LLMTool[]) => {
       setResponse('');
-      return _model.generate(messages, tools);
+      return controllerInstance.generate(messages, tools);
     },
-    [_model]
+    [controllerInstance]
   );
 
   const sendMessage = useCallback(
     (message: string) => {
       setResponse('');
-      return _model.sendMessage(message);
+      return controllerInstance.sendMessage(message);
     },
-    [_model]
+    [controllerInstance]
   );
 
   const deleteMessage = useCallback(
-    (index: number) => _model.deleteMessage(index),
-    [_model]
+    (index: number) => controllerInstance.deleteMessage(index),
+    [controllerInstance]
   );
 
-  const interrupt = useCallback(() => _model.interrupt(), [_model]);
+  const interrupt = useCallback(
+    () => controllerInstance.interrupt(),
+    [controllerInstance]
+  );
 
   return {
     messageHistory,
