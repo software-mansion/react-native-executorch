@@ -87,7 +87,7 @@ const handleGenerate = async () => {
   ];
 
   // Chat completion
-  llm.generate(chat);
+  await llm.generate(chat);
   console.log('Llama says:', llm.response);
 };
 ```
