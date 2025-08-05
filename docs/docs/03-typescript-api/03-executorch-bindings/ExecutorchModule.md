@@ -16,25 +16,22 @@ import {
 const shape = [1, 3, 640, 640];
 const input = new Float32Array(1 * 3 * 640 * 640);
 
-// Creating an instance
-const executorchModule = new ExecutorchModule();
-
 // Loading the model
-await executorchModule.load(STYLE_TRANSFER_CANDY);
+await ExecutorchModule.load(STYLE_TRANSFER_CANDY);
 
 // Running the model
-const output = await executorchModule.forward(input, shape);
+const output = await ExecutorchModule.forward(input, shape);
 ```
 
 ### Methods
 
-| Method               | Type                                                                                                    | Description                                                                                                                                                                                         |
-| -------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `load`               | `(modelSource: ResourceSource, onDownloadProgressCallback?: (progress: number) => void): Promise<void>` | Loads the model, where `modelSource` is a string that specifies the location of the model binary.                                                                                                   |
-| `forward`            | `(input: ETInput, shape: number[]): Promise<number[]>`                                                  | Executes the model's forward pass, where `input` is a JavaScript typed array and `shape` is an array of integers representing input Tensor shape. The output is a Tensor - raw result of inference. |
-| `loadMethod`         | `(methodName: string): Promise<void>`                                                                   | Loads resources specific to `methodName` into memory before execution.                                                                                                                              |
-| `loadForward`        | `(): Promise<void>`                                                                                     | Loads resources specific to `forward` method into memory before execution. Uses `loadMethod` under the hood.                                                                                        |
-| `onDownloadProgress` | `(callback: (downloadProgress: number) => void): any`                                                   | Subscribe to the download progress event.                                                                                                                                                           |
+| Method               | Type                                                   | Description                                                                                                                                                                                         |
+| -------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `load`               | `(modelSource: ResourceSource): Promise<void>`         | Loads the model, where `modelSource` is a string that specifies the location of the model binary.                                                                                                   |
+| `forward`            | `(input: ETInput, shape: number[]): Promise<number[]>` | Executes the model's forward pass, where `input` is a JavaScript typed array and `shape` is an array of integers representing input Tensor shape. The output is a Tensor - raw result of inference. |
+| `loadMethod`         | `(methodName: string): Promise<void>`                  | Loads resources specific to `methodName` into memory before execution.                                                                                                                              |
+| `loadForward`        | `(): Promise<void>`                                    | Loads resources specific to `forward` method into memory before execution. Uses `loadMethod` under the hood.                                                                                        |
+| `onDownloadProgress` | `(callback: (downloadProgress: number) => void): any`  | Subscribe to the download progress event.                                                                                                                                                           |
 
 <details>
 <summary>Type definitions</summary>
@@ -42,7 +39,7 @@ const output = await executorchModule.forward(input, shape);
 ```typescript
 type ResourceSource = string | number | object;
 
-type ETInput =
+export type ETInput =
   | Int8Array
   | Int32Array
   | BigInt64Array
@@ -54,15 +51,7 @@ type ETInput =
 
 ## Loading the model
 
-To load the model, use the `load` method. It accepts the following arguments:
-
-**`modelSource`** - A string that specifies the location of the model binary.
-
-**`onDownloadProgressCallback`** - (Optional) Function called on download progress.
-
-This method returns a promise, which can resolve to an error or void.
-
-For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+To load the model, use the `load` method. It accepts the `modelSource` which is a string that specifies the location of the model binary. For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page. This method returns a promise, which can resolve to an error or void.
 
 ## Running the model
 
