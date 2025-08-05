@@ -3,16 +3,13 @@ import { useNonStaticModule } from '../useNonStaticModule';
 import { ClassificationModule } from '../../modules/computer_vision/ClassificationModule';
 
 interface Props {
-  modelSource: ResourceSource;
+  model: { modelSource: ResourceSource };
   preventLoad?: boolean;
 }
 
-export const useClassification = ({
-  modelSource,
-  preventLoad = false,
-}: Props) =>
+export const useClassification = ({ model, preventLoad = false }: Props) =>
   useNonStaticModule({
     module: ClassificationModule,
-    loadArgs: [modelSource],
+    model,
     preventLoad: preventLoad,
   });

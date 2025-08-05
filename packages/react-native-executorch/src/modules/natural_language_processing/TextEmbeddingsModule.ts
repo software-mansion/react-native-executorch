@@ -4,15 +4,17 @@ import { BaseNonStaticModule } from '../BaseNonStaticModule';
 
 export class TextEmbeddingsModule extends BaseNonStaticModule {
   async load(
-    modelSource: ResourceSource,
-    tokenizerSource: ResourceSource,
-    onDownloadProgressCallback: (_: number) => void = () => {}
+    model: { modelSource: ResourceSource; tokenizerSource: ResourceSource },
+    onDownloadProgressCallback: (progress: number) => void = () => {}
   ): Promise<void> {
     const modelPromise = ResourceFetcher.fetch(
       onDownloadProgressCallback,
-      modelSource
+      model.modelSource
     );
-    const tokenizerPromise = ResourceFetcher.fetch(undefined, tokenizerSource);
+    const tokenizerPromise = ResourceFetcher.fetch(
+      undefined,
+      model.tokenizerSource
+    );
     const [modelResult, tokenizerResult] = await Promise.all([
       modelPromise,
       tokenizerPromise,

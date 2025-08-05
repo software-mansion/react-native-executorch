@@ -21,21 +21,16 @@ export class LLMModule {
     });
   }
 
-  async load({
-    modelSource,
-    tokenizerSource,
-    tokenizerConfigSource,
-    onDownloadProgressCallback,
-  }: {
-    modelSource: ResourceSource;
-    tokenizerSource: ResourceSource;
-    tokenizerConfigSource: ResourceSource;
-    onDownloadProgressCallback?: (_downloadProgress: number) => void;
-  }) {
+  async load(
+    model: {
+      modelSource: ResourceSource;
+      tokenizerSource: ResourceSource;
+      tokenizerConfigSource: ResourceSource;
+    },
+    onDownloadProgressCallback: (progress: number) => void = () => {}
+  ) {
     await this.controller.load({
-      modelSource,
-      tokenizerSource,
-      tokenizerConfigSource,
+      ...model,
       onDownloadProgressCallback,
     });
   }

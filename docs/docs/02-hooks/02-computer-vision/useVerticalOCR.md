@@ -15,25 +15,11 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## Reference
 
 ```tsx
-import {
-  DETECTOR_CRAFT_1280,
-  DETECTOR_CRAFT_320,
-  RECOGNIZER_EN_CRNN_512,
-  RECOGNIZER_EN_CRNN_64,
-  useVerticalOCR,
-} from 'react-native-executorch';
+import { useVerticalOCR, VERTICAL_OCR_ENGLISH } from 'react-native-executorch';
 
 function App() {
   const model = useVerticalOCR({
-    detectorSources: {
-      detectorLarge: DETECTOR_CRAFT_1280,
-      detectorNarrow: DETECTOR_CRAFT_320,
-    },
-    recognizerSources: {
-      recognizerLarge: RECOGNIZER_EN_CRNN_512,
-      recognizerSmall: RECOGNIZER_EN_CRNN_64,
-    },
-    language: 'en',
+    model: VERTICAL_OCR_ENGLISH,
     independentCharacters: true,
   });
 
@@ -143,25 +129,20 @@ interface OCRDetection {
 
 ### Arguments
 
-**`detectorSources`** - An object that specifies the location of the detectors binary files. Each detector is composed of two models tailored to process images of varying widths.
+**`model`** - Object containing the detector sources, recognizer sources, and language.
 
-- `detectorLarge` - A string that specifies the location of the recognizer binary file which accepts input images with a width of 1280 pixels.
-- `detectorNarrow` - A string that specifies the location of the detector binary file which accepts input images with a width of 320 pixels.
-
-For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) section.
-
-**`recognizerSources`** - An object that specifies the locations of the recognizers binary files. Each recognizer is composed of two models tailored to process images of varying widths.
-
-- `recognizerLarge` - A string that specifies the location of the recognizer binary file which accepts input images with a width of 512 pixels.
-- `recognizerSmall` - A string that specifies the location of the recognizer binary file which accepts input images with a width of 64 pixels.
-
-For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) section.
+- **`detectorLarge`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 1280 pixels.
+- **`detectorNarrow`** - A string that specifies the location of the detector binary file which accepts input images with a width of 320 pixels.
+- **`recognizerLarge`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 512 pixels.
+- **`recognizerSmall`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 64 pixels.
 
 **`language`** - A parameter that specifies the language of the text to be recognized by the OCR.
 
 **`independentCharacters`** – A boolean parameter that indicates whether the text in the image consists of a random sequence of characters. If set to true, the algorithm will scan each character individually instead of reading them as continuous text.
 
 **`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+
+For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
@@ -202,25 +183,11 @@ The `text` property contains the text recognized within detected text region. Th
 ## Example
 
 ```tsx
-import {
-  DETECTOR_CRAFT_1280,
-  DETECTOR_CRAFT_320,
-  RECOGNIZER_EN_CRNN_512,
-  RECOGNIZER_EN_CRNN_64,
-  useVerticalOCR,
-} from 'react-native-executorch';
+import { useVerticalOCR, VERTICAL_OCR_ENGLISH } from 'react-native-executorch';
 
 function App() {
   const model = useVerticalOCR({
-    detectorSources: {
-      detectorLarge: DETECTOR_CRAFT_1280,
-      detectorNarrow: DETECTOR_CRAFT_320,
-    },
-    recognizerSources: {
-      recognizerLarge: RECOGNIZER_EN_CRNN_512,
-      recognizerSmall: RECOGNIZER_EN_CRNN_64,
-    },
-    language: 'en',
+    model: VERTICAL_OCR_ENGLISH,
     independentCharacters: true,
   });
 

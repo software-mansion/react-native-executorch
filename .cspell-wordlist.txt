@@ -53,3 +53,5 @@ QINT
 FNUZ
 wordlist
 jitpack
+coreml
+mobilenetv

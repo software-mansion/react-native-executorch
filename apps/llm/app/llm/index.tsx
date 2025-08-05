@@ -12,12 +12,7 @@ import {
 } from 'react-native';
 import SendIcon from '../../assets/icons/send_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
-import {
-  LLAMA3_2_1B_QLORA,
-  LLAMA3_2_TOKENIZER,
-  LLAMA3_2_TOKENIZER_CONFIG,
-  useLLM,
-} from 'react-native-executorch';
+import { useLLM, LLAMA3_2_1B_QLORA } from 'react-native-executorch';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
 import ColorPalette from '../../colors';
 import Messages from '../../components/Messages';
@@ -35,11 +30,7 @@ function LLMScreen() {
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
-  const llm = useLLM({
-    modelSource: LLAMA3_2_1B_QLORA,
-    tokenizerSource: LLAMA3_2_TOKENIZER,
-    tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
-  });
+  const llm = useLLM({ model: LLAMA3_2_1B_QLORA });
 
   useEffect(() => {
     if (llm.error) {

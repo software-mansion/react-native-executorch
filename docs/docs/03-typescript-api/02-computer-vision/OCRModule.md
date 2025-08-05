@@ -7,48 +7,31 @@ TypeScript API implementation of the [useOCR](../../02-hooks/02-computer-vision/
 ## Reference
 
 ```typescript
-import {
-  OCRModule,
-  DETECTOR_CRAFT_800,
-  RECOGNIZER_EN_CRNN_512,
-  RECOGNIZER_EN_CRNN_256,
-  RECOGNIZER_EN_CRNN_128,
-} from 'react-native-executorch';
+import { OCRModule, OCR_ENGLISH } from 'react-native-executorch';
 const imageUri = 'path/to/image.png';
 
+// Creating an instance
+const ocrModule = new OCRModule();
+
 // Loading the model
-await OCRModule.load({
-  detectorSource: DETECTOR_CRAFT_800,
-  recognizerSources: {
-    recognizerLarge: RECOGNIZER_EN_CRNN_512,
-    recognizerMedium: RECOGNIZER_EN_CRNN_256,
-    recognizerSmall: RECOGNIZER_EN_CRNN_128,
-  },
-  language: 'en',
-});
+await ocrModule.load(OCR_ENGLISH);
 
 // Running the model
-const ocrDetections = await OCRModule.forward(imageUri);
+const detections = await ocrModule.forward(imageUri);
 ```
 
 ### Methods
 
-| Method               | Type                                                                                                   | Description                                                                                              |
-| -------------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| `load`               | `(detectorSource: string, recognizerSources: RecognizerSources, language: OCRLanguage): Promise<void>` | Loads the detector and recognizers, which sources are represented by `RecognizerSources`.                |
-| `forward`            | `(input: string): Promise<OCRDetections[]>`                                                            | Executes the model's forward pass, where `input` can be a fetchable resource or a Base64-encoded string. |
-| `onDownloadProgress` | `(callback: (downloadProgress: number) => void): any`                                                  | Subscribe to the download progress event.                                                                |
+| Method               | Type                                                                                                                                                                                                                                             | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `load`               | `(model: { detectorSource: ResourceSource; recognizerLarge: ResourceSource; recognizerMedium: ResourceSource; recognizerSmall: ResourceSource; language: OCRLanguage }, onDownloadProgressCallback?: (progress: number) => void): Promise<void>` | Loads the model, where `detectorSource` is a string that specifies the location of the detector binary, `recognizerLarge` is a string that specifies the location of the recognizer binary file which accepts input images with a width of 512 pixels, `recognizerMedium` is a string that specifies the location of the recognizer binary file which accepts input images with a width of 256 pixels, `recognizerSmall` is a string that specifies the location of the recognizer binary file which accepts input images with a width of 128 pixels, and `language` is a parameter that specifies the language of the text to be recognized by the OCR. |
+| `forward`            | `(input: string): Promise<OCRDetections[]>`                                                                                                                                                                                                      | Executes the model's forward pass, where `input` can be a fetchable resource or a Base64-encoded string.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `onDownloadProgress` | `(callback: (downloadProgress: number) => void): any`                                                                                                                                                                                            | Subscribe to the download progress event.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 
 <details>
 <summary>Type definitions</summary>
 
 ```typescript
-interface RecognizerSources {
-  recognizerLarge: string | number;
-  recognizerMedium: string | number;
-  recognizerSmall: string | number;
-}
-
 type OCRLanguage =
   | 'abq'
   | 'ady'
@@ -131,25 +114,21 @@ interface OCRDetection {
 
 ## Loading the model
 
-To load the model, use the `load` method. It accepts:
+To load the model, use the `load` method. It accepts an object:
 
-**`detectorSource`** - A string that specifies the location of the detector binary. For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) section.
+**`model`** - Object containing the detector source, recognizer sources, and language.
 
-**`recognizerSources`** - An object that specifies locations of the recognizers binary files. Each recognizer is composed of three models tailored to process images of varying widths.
+- **`detectorSource`** - A string that specifies the location of the detector binary.
+- **`recognizerLarge`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 512 pixels.
+- **`recognizerMedium`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 256 pixels.
+- **`recognizerSmall`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 128 pixels.
+- **`language`** - A parameter that specifies the language of the text to be recognized by the OCR.
 
-- `recognizerLarge` - A string that specifies the location of the recognizer binary file which accepts input images with a width of 512 pixels.
-- `recognizerMedium` - A string that specifies the location of the recognizer binary file which accepts input images with a width of 256 pixels.
-- `recognizerSmall` - A string that specifies the location of the recognizer binary file which accepts input images with a width of 128 pixels.
-
-For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) section.
-
-**`language`** - A parameter that specifies the language of the text to be recognized by the OCR.
+**`onDownloadProgressCallback`** - (Optional) Function called on download progress.
 
 This method returns a promise, which can resolve to an error or void.
 
-## Listening for download progress
-
-To subscribe to the download progress event, you can use the `onDownloadProgress` method. It accepts a callback function that will be called whenever the download progress changes.
+For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ## Running the model
 

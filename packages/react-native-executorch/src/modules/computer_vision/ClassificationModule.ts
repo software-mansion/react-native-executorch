@@ -5,12 +5,12 @@ import { BaseNonStaticModule } from '../BaseNonStaticModule';
 
 export class ClassificationModule extends BaseNonStaticModule {
   async load(
-    modelSource: ResourceSource,
-    onDownloadProgressCallback: (_: number) => void = () => {}
+    model: { modelSource: ResourceSource },
+    onDownloadProgressCallback: (progress: number) => void = () => {}
   ): Promise<void> {
     const paths = await ResourceFetcher.fetch(
       onDownloadProgressCallback,
-      modelSource
+      model.modelSource
     );
     if (paths === null || paths.length < 1) {
       throw new Error('Download interrupted.');

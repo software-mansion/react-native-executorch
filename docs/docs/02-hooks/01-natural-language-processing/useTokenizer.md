@@ -25,14 +25,9 @@ We are using [Hugging Face Tokenizers](https://huggingface.co/docs/tokenizers/in
 ## Reference
 
 ```typescript
-import {
-  useTokenizer,
-  ALL_MINILM_L6_V2_TOKENIZER,
-} from 'react-native-executorch';
+import { useTokenizer, ALL_MINILM_L6_V2 } from 'react-native-executorch';
 
-const tokenizer = useTokenizer({
-  tokenizerSource: ALL_MINILM_L6_V2_TOKENIZER,
-});
+const tokenizer = useTokenizer({ tokenizer: ALL_MINILM_L6_V2 });
 
 const text = 'Hello, world!';
 
@@ -51,9 +46,13 @@ try {
 
 ## Arguments
 
-**`tokenizerSource`** - A string that specifies the path or URI of the tokenizer JSON file.
+**`tokenizer`** - Object containing the tokenizer source.
+
+- **`tokenizerSource`** - A string that specifies the location of the tokenizer JSON file.
 
 **`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+
+For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
@@ -72,15 +71,10 @@ try {
 ## Example
 
 ```typescript
-import {
-  useTokenizer,
-  ALL_MINILM_L6_V2_TOKENIZER,
-} from 'react-native-executorch';
+import { useTokenizer, ALL_MINILM_L6_V2 } from 'react-native-executorch';
 
 function App() {
-  const tokenizer = useTokenizer({
-    tokenizerSource: ALL_MINILM_L6_V2_TOKENIZER,
-  });
+  const tokenizer = useTokenizer({ tokenizer: ALL_MINILM_L6_V2 });
 
   // ...
 

@@ -24,16 +24,9 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## Reference
 
 ```typescript
-import {
-  useTextEmbeddings,
-  ALL_MINILM_L6_V2,
-  ALL_MINILM_L6_V2_TOKENIZER,
-} from 'react-native-executorch';
+import { useTextEmbeddings, ALL_MINILM_L6_V2 } from 'react-native-executorch';
 
-const model = useTextEmbeddings({
-  modelSource: ALL_MINILM_L6_V2,
-  tokenizerSource: ALL_MINILM_L6_V2_TOKENIZER,
-});
+const model = useTextEmbeddings({ model: ALL_MINILM_L6_V2 });
 
 try {
   const embedding = await model.forward('Hello World!');
@@ -44,13 +37,15 @@ try {
 
 ### Arguments
 
-**`modelSource`**
-A string that specifies the location of the model binary. For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+**`model`** - Object containing the model source and tokenizer source.
 
-**`tokenizerSource`**
-A string that specifies the location of the tokenizer JSON file.
+- **`modelSource`** - A string that specifies the location of the model binary.
+
+- **`tokenizerSource`** - A string that specifies the location of the tokenizer JSON file.
 
 **`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+
+For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
@@ -69,11 +64,7 @@ To run the model, you can use the `forward` method. It accepts one argument, whi
 ## Example
 
 ```typescript
-import {
-  useTextEmbeddings,
-  ALL_MINILM_L6_V2,
-  ALL_MINILM_L6_V2_TOKENIZER,
-} from 'react-native-executorch';
+import { useTextEmbeddings, ALL_MINILM_L6_V2 } from 'react-native-executorch';
 
 const dotProduct = (a: number[], b: number[]) =>
   a.reduce((sum, val, i) => sum + val * b[i], 0);
@@ -86,10 +77,7 @@ const cosineSimilarity = (a: number[], b: number[]) => {
 };
 
 function App() {
-  const model = useTextEmbeddings({
-    modelSource: ALL_MINILM_L6_V2,
-    tokenizerSource: ALL_MINILM_L6_V2_TOKENIZER,
-  });
+  const model = useTextEmbeddings({ model: ALL_MINILM_L6_V2 });
 
   // ...
 

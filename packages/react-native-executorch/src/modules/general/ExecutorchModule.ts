@@ -6,7 +6,7 @@ import { ResourceFetcher } from '../../utils/ResourceFetcher';
 export class ExecutorchModule extends BaseNonStaticModule {
   async load(
     modelSource: ResourceSource,
-    onDownloadProgressCallback: (_: number) => void = () => {}
+    onDownloadProgressCallback: (progress: number) => void = () => {}
   ): Promise<void> {
     const paths = await ResourceFetcher.fetch(
       onDownloadProgressCallback,
