@@ -10,7 +10,10 @@ const DETECTOR_CRAFT_320_MODEL = `${URL_PREFIX}-detector-craft/${VERSION_TAG}/xn
 
 type RecognizerSize = 64 | 128 | 256 | 512;
 
-const createHFRecognizerDownloadUrl = (alphabet: keyof typeof alphabets, size: RecognizerSize) =>
+const createHFRecognizerDownloadUrl = (
+  alphabet: keyof typeof alphabets,
+  size: RecognizerSize
+) =>
   `${URL_PREFIX}-recognizer-crnn.en/${VERSION_TAG}/xnnpack/${alphabet}/xnnpack_crnn_${alphabet}_${size}.pte`;
 
 const RECOGNIZER_ENGLISH_CRNN_512 = createHFRecognizerDownloadUrl(
