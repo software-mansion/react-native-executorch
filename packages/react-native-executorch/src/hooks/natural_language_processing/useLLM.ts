@@ -56,9 +56,7 @@ export const useLLM = ({
     (async () => {
       try {
         await _model.load({
-          modelSource: model.modelSource,
-          tokenizerSource: model.tokenizerSource,
-          tokenizerConfigSource: model.tokenizerConfigSource,
+          ...model,
           onDownloadProgressCallback: setDownloadProgress,
         });
       } catch (e) {

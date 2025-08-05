@@ -1,4 +1,4 @@
-import { symbols } from './symbols';
+import { alphabets, symbols } from './symbols';
 
 const URL_PREFIX =
   'https://huggingface.co/software-mansion/react-native-executorch';
@@ -8,7 +8,9 @@ const DETECTOR_CRAFT_1280_MODEL = `${URL_PREFIX}-detector-craft/${VERSION_TAG}/x
 const DETECTOR_CRAFT_800_MODEL = `${URL_PREFIX}-detector-craft/${VERSION_TAG}/xnnpack/xnnpack_craft_800.pte`;
 const DETECTOR_CRAFT_320_MODEL = `${URL_PREFIX}-detector-craft/${VERSION_TAG}/xnnpack/xnnpack_craft_320.pte`;
 
-const createHFRecognizerDownloadUrl = (alphabet: string, size: number) =>
+type RecognizerSize = 64 | 128 | 256 | 512;
+
+const createHFRecognizerDownloadUrl = (alphabet: keyof typeof alphabets, size: RecognizerSize) =>
   `${URL_PREFIX}-recognizer-crnn.en/${VERSION_TAG}/xnnpack/${alphabet}/xnnpack_crnn_${alphabet}_${size}.pte`;
 
 const RECOGNIZER_ENGLISH_CRNN_512 = createHFRecognizerDownloadUrl(
@@ -71,10 +73,10 @@ const RECOGNIZER_TELUGU_CRNN_256 = createHFRecognizerDownloadUrl('telugu', 256);
 const RECOGNIZER_TELUGU_CRNN_128 = createHFRecognizerDownloadUrl('telugu', 128);
 const RECOGNIZER_TELUGU_CRNN_64 = createHFRecognizerDownloadUrl('telugu', 64);
 
-const RECOGNIZER_ZH_SIM_CRNN_512 = createHFRecognizerDownloadUrl('zh-sim', 512);
-const RECOGNIZER_ZH_SIM_CRNN_256 = createHFRecognizerDownloadUrl('zh-sim', 256);
-const RECOGNIZER_ZH_SIM_CRNN_128 = createHFRecognizerDownloadUrl('zh-sim', 128);
-const RECOGNIZER_ZH_SIM_CRNN_64 = createHFRecognizerDownloadUrl('zh-sim', 64);
+const RECOGNIZER_ZH_SIM_CRNN_512 = createHFRecognizerDownloadUrl('zhSim', 512);
+const RECOGNIZER_ZH_SIM_CRNN_256 = createHFRecognizerDownloadUrl('zhSim', 256);
+const RECOGNIZER_ZH_SIM_CRNN_128 = createHFRecognizerDownloadUrl('zhSim', 128);
+const RECOGNIZER_ZH_SIM_CRNN_64 = createHFRecognizerDownloadUrl('zhSim', 64);
 
 const RECOGNIZER_CYRILLIC_CRNN_512 = createHFRecognizerDownloadUrl(
   'cyrillic',
