@@ -9,25 +9,28 @@ TypeScript API implementation of the [useImageEmbeddings](../../02-hooks/02-comp
 ```typescript
 import {
   ImageEmbeddingsModule,
-  CLIP_VIT_BASE_PATCH_32_IMAGE_ENCODER,
+  CLIP_VIT_BASE_PATCH32_IMAGE,
 } from 'react-native-executorch';
 
+// Creating an instance
+const imageEmbeddingsModule = new ImageEmbeddingsModule();
+
 // Loading the model
-await ImageEmbeddingsModule.load(CLIP_VIT_BASE_PATCH_32_IMAGE_ENCODER);
+await imageEmbeddingsModule.load(CLIP_VIT_BASE_PATCH32_IMAGE);
 
 // Running the model
-const embedding = await ImageEmbeddingsModule.forward(
+const embedding = await imageEmbeddingsModule.forward(
   'https://url-to-image.jpg'
 );
 ```
 
 ### Methods
 
-| Method               | Type                                                  | Description                                                                                       |
-| -------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `load`               | `(modelSource: ResourceSource): Promise<void>`        | Loads the model, where `modelSource` is a string that specifies the location of the model binary. |
-| `forward`            | `(input: string): Promise<number[]>`                  | Executes the model's forward pass, where `input` is a URI/URL to image that will be embedded.     |
-| `onDownloadProgress` | `(callback: (downloadProgress: number) => void): any` | Subscribe to the download progress event.                                                         |
+| Method               | Type                                                                                                               | Description                                                                                       |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| `load`               | `(model: { modelSource: ResourceSource }, onDownloadProgressCallback?: (progress: number) => void): Promise<void>` | Loads the model, where `modelSource` is a string that specifies the location of the model binary. |
+| `forward`            | `(input: string): Promise<number[]>`                                                                               | Executes the model's forward pass, where `input` is a URI/URL to image that will be embedded.     |
+| `onDownloadProgress` | `(callback: (downloadProgress: number) => void): any`                                                              | Subscribe to the download progress event.                                                         |
 
 <details>
 <summary>Type definitions</summary>
@@ -40,7 +43,17 @@ type ResourceSource = string | number | object;
 
 ## Loading the model
 
-To load the model, use the `load` method. It accepts the `modelSource` which is a string that specifies the location of the model binary. For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page. This method returns a promise, which can resolve to an error or void.
+To load the model, use the `load` method. It accepts an object:
+
+**`model`** - Object containing the model source.
+
+- **`modelSource`** - A string that specifies the location of the model binary.
+
+**`onDownloadProgressCallback`** - (Optional) Function called on download progress.
+
+This method returns a promise, which can resolve to an error or void.
+
+For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ## Running the model
 

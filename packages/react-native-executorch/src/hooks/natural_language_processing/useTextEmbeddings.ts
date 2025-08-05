@@ -3,18 +3,16 @@ import { ResourceSource } from '../../types/common';
 import { useNonStaticModule } from '../useNonStaticModule';
 
 interface Props {
-  modelSource: ResourceSource;
-  tokenizerSource: ResourceSource;
+  model: {
+    modelSource: ResourceSource;
+    tokenizerSource: ResourceSource;
+  };
   preventLoad?: boolean;
 }
 
-export const useTextEmbeddings = ({
-  modelSource,
-  tokenizerSource,
-  preventLoad = false,
-}: Props) =>
+export const useTextEmbeddings = ({ model, preventLoad = false }: Props) =>
   useNonStaticModule({
     module: TextEmbeddingsModule,
-    loadArgs: [modelSource, tokenizerSource],
+    model,
     preventLoad,
   });

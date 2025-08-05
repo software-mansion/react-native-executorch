@@ -14,20 +14,21 @@ import {
 
 const imageUri = 'path/to/image.png';
 
-const module = new ImageSegmentationModule();
+// Creating an instance
+const imageSegmentationModule = new ImageSegmentationModule();
 
 // Loading the model
-await module.load(DEEPLAB_V3_RESNET50);
+await imageSegmentationModule.load(DEEPLAB_V3_RESNET50);
 
 // Running the model
-const outputDict = await module.forward(imageUri);
+const outputDict = await imageSegmentationModule.forward(imageUri);
 ```
 
 ### Methods
 
 | Method    | Type                                                                                                                   | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | --------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `load`    | `(modelSource: ResourceSource, onDownloadProgressCallback: (_: number) => void () => {}): Promise<void>`               | Loads the model, where `modelSource` is a string that specifies the location of the model binary. To track the download progress, supply a callback function `onDownloadProgressCallback`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `load`    | `(model: { modelSource: ResourceSource }, onDownloadProgressCallback?: (progress: number) => void): Promise<void>`     | Loads the model, where `modelSource` is a string that specifies the location of the model binary. To track the download progress, supply a callback function `onDownloadProgressCallback`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | `forward` | `(input: string, classesOfInterest?: DeeplabLabel[], resize?: boolean) => Promise<{[key in DeeplabLabel]?: number[]}>` | Executes the model's forward pass, where : <br/> \* `input` can be a fetchable resource or a Base64-encoded string. <br/> \* `classesOfInterest` is an optional list of `DeeplabLabel` used to indicate additional arrays of probabilities to output (see section "Running the model"). The default is an empty list. <br/> \* `resize` is an optional boolean to indicate whether the output should be resized to the original image dimensions, or left in the size of the model (see section "Running the model"). The default is `false`. <br/> <br/> The return is a dictionary containing: <br/> \* for the key `DeeplabLabel.ARGMAX` an array of integers corresponding to the most probable class for each pixel <br/> \* an array of floats for each class from `classesOfInterest` corresponding to the probabilities for this class. |
 | `delete`  | `(): void`                                                                                                             | Release the memory held by the module. Calling `forward` afterwards is invalid.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
@@ -42,7 +43,17 @@ type ResourceSource = string | number | object;
 
 ## Loading the model
 
-To load the model, create a new instance of the module and use the `load` method on it. It accepts the `modelSource` which is a string that specifies the location of the model binary. For more information, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page. This method returns a promise, which can resolve to an error or void.
+To load the model, create a new instance of the module and use the `load` method on it. It accepts an object:
+
+**`model`** - Object containing the model source.
+
+- **`modelSource`** - A string that specifies the location of the model binary.
+
+**`onDownloadProgressCallback`** - (Optional) Function called on download progress.
+
+This method returns a promise, which can resolve to an error or void.
+
+For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ## Running the model
 

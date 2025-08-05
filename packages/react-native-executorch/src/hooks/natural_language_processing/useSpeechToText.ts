@@ -23,19 +23,18 @@ interface SpeechToTextModule {
 }
 
 export const useSpeechToText = ({
-  modelName,
-  encoderSource,
-  decoderSource,
-  tokenizerSource,
+  model,
   overlapSeconds,
   windowSize,
   streamingConfig,
   preventLoad = false,
 }: {
-  modelName: AvailableModels;
-  encoderSource?: ResourceSource;
-  decoderSource?: ResourceSource;
-  tokenizerSource?: ResourceSource;
+  model: {
+    modelName: AvailableModels;
+    encoderSource: ResourceSource;
+    decoderSource: ResourceSource;
+    tokenizerSource: ResourceSource;
+  };
   overlapSeconds?: ConstructorParameters<
     typeof SpeechToTextController
   >['0']['overlapSeconds'];
@@ -53,7 +52,7 @@ export const useSpeechToText = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<Error | undefined>();
 
-  const model = useMemo(
+  const controllerInstance = useMemo(
     () =>
       new SpeechToTextController({
         transcribeCallback: setSequence,
@@ -65,16 +64,20 @@ export const useSpeechToText = ({
   );
 
   useEffect(() => {
-    model.configureStreaming(overlapSeconds, windowSize, streamingConfig);
-  }, [model, overlapSeconds, windowSize, streamingConfig]);
+    controllerInstance.configureStreaming(
+      overlapSeconds,
+      windowSize,
+      streamingConfig
+    );
+  }, [controllerInstance, overlapSeconds, windowSize, streamingConfig]);
 
   useEffect(() => {
     const loadModel = async () => {
-      await model.load({
-        modelName,
-        encoderSource,
-        decoderSource,
-        tokenizerSource,
+      await controllerInstance.load({
+        modelName: model.modelName,
+        encoderSource: model.encoderSource,
+        decoderSource: model.decoderSource,
+        tokenizerSource: model.tokenizerSource,
         onDownloadProgressCallback: setDownloadProgress,
       });
     };
@@ -82,11 +85,11 @@ export const useSpeechToText = ({
       loadModel();
     }
   }, [
-    model,
-    modelName,
-    encoderSource,
-    decoderSource,
-    tokenizerSource,
+    controllerInstance,
+    model.modelName,
+    model.encoderSource,
+    model.decoderSource,
+    model.tokenizerSource,
     preventLoad,
   ]);
 
@@ -94,15 +97,20 @@ export const useSpeechToText = ({
     isReady,
     isGenerating,
     downloadProgress,
-    configureStreaming: model.configureStreaming,
+    configureStreaming: controllerInstance.configureStreaming,
     sequence,
     error,
     transcribe: (waveform: number[], audioLanguage?: SpeechToTextLanguage) =>
-      model.transcribe(waveform, audioLanguage),
+      controllerInstance.transcribe(waveform, audioLanguage),
     streamingTranscribe: (
       streamAction: STREAMING_ACTION,
       waveform?: number[],
       audioLanguage?: SpeechToTextLanguage
-    ) => model.streamingTranscribe(streamAction, waveform, audioLanguage),
+    ) =>
+      controllerInstance.streamingTranscribe(
+        streamAction,
+        waveform,
+        audioLanguage
+      ),
   };
 };

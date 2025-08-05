@@ -18,47 +18,47 @@ export const useNonStaticModule = <
   ForwardReturn extends Awaited<ReturnType<M['forward']>>,
 >({
   module,
-  loadArgs,
+  model,
   preventLoad = false,
 }: {
   module: ModuleConstructor<M>;
-  loadArgs: LoadArgs;
+  model: LoadArgs[0];
   preventLoad?: boolean;
 }) => {
   const [error, setError] = useState<null | string>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const model = useMemo(() => new module(), [module]);
+  const moduleInstance = useMemo(() => new module(), [module]);
 
   useEffect(() => {
-    if (!preventLoad) {
-      (async () => {
-        setDownloadProgress(0);
-        setError(null);
-        try {
-          setIsReady(false);
-          await model.load(...loadArgs, setDownloadProgress);
-          setIsReady(true);
-        } catch (err) {
-          setError((err as Error).message);
-        }
-      })();
+    if (preventLoad) return;
 
-      return () => {
-        model.delete();
-      };
-    }
-    return () => {};
+    (async () => {
+      setDownloadProgress(0);
+      setError(null);
+      try {
+        setIsReady(false);
+        await moduleInstance.load(model, setDownloadProgress);
+        setIsReady(true);
+      } catch (err) {
+        setError((err as Error).message);
+      }
+    })();
+
+    return () => {
+      moduleInstance.delete();
+    };
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [...loadArgs, preventLoad]);
+  }, [moduleInstance, ...Object.values(model), preventLoad]);
 
   const forward = async (...input: ForwardArgs): Promise<ForwardReturn> => {
     if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
     if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
     try {
       setIsGenerating(true);
-      return await model.forward(...input);
+      return await moduleInstance.forward(...input);
     } finally {
       setIsGenerating(false);
     }

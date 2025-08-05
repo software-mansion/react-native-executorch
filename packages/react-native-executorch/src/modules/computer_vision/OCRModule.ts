@@ -5,29 +5,32 @@ import { OCRLanguage } from '../../types/ocr';
 export class OCRModule {
   static module: OCRController;
 
-  static onDownloadProgressCallback = (_downloadProgress: number) => {};
-
   static async load(
-    detectorSource: ResourceSource,
-    recognizerSources: {
+    model: {
+      detectorSource: ResourceSource;
       recognizerLarge: ResourceSource;
       recognizerMedium: ResourceSource;
       recognizerSmall: ResourceSource;
+      language: OCRLanguage;
     },
-    language: OCRLanguage = 'en'
+    onDownloadProgressCallback: (progress: number) => void = () => {}
   ) {
     this.module = new OCRController({
-      modelDownloadProgressCallback: this.onDownloadProgressCallback,
+      modelDownloadProgressCallback: onDownloadProgressCallback,
     });
 
-    await this.module.loadModel(detectorSource, recognizerSources, language);
+    await this.module.loadModel(
+      model.detectorSource,
+      {
+        recognizerLarge: model.recognizerLarge,
+        recognizerMedium: model.recognizerMedium,
+        recognizerSmall: model.recognizerSmall,
+      },
+      model.language
+    );
   }
 
   static async forward(input: string) {
     return await this.module.forward(input);
-  }
-
-  static onDownloadProgress(callback: (downloadProgress: number) => void) {
-    this.onDownloadProgressCallback = callback;
   }
 }

@@ -13,14 +13,14 @@ import { LLMController } from '../../controllers/LLMController';
 Hook version of LLMModule
 */
 export const useLLM = ({
-  modelSource,
-  tokenizerSource,
-  tokenizerConfigSource,
+  model,
   preventLoad = false,
 }: {
-  modelSource: ResourceSource;
-  tokenizerSource: ResourceSource;
-  tokenizerConfigSource: ResourceSource;
+  model: {
+    modelSource: ResourceSource;
+    tokenizerSource: ResourceSource;
+    tokenizerConfigSource: ResourceSource;
+  };
   preventLoad?: boolean;
 }): LLMType => {
   const [token, setToken] = useState<string>('');
@@ -36,7 +36,7 @@ export const useLLM = ({
     setResponse((prevResponse) => prevResponse + newToken);
   }, []);
 
-  const model = useMemo(
+  const controllerInstance = useMemo(
     () =>
       new LLMController({
         tokenCallback: tokenCallback,
@@ -55,10 +55,10 @@ export const useLLM = ({
 
     (async () => {
       try {
-        await model.load({
-          modelSource,
-          tokenizerSource,
-          tokenizerConfigSource,
+        await controllerInstance.load({
+          modelSource: model.modelSource,
+          tokenizerSource: model.tokenizerSource,
+          tokenizerConfigSource: model.tokenizerConfigSource,
           onDownloadProgressCallback: setDownloadProgress,
         });
       } catch (e) {
@@ -67,9 +67,15 @@ export const useLLM = ({
     })();
 
     return () => {
-      model.delete();
+      controllerInstance.delete();
     };
-  }, [modelSource, tokenizerSource, tokenizerConfigSource, preventLoad, model]);
+  }, [
+    controllerInstance,
+    model.modelSource,
+    model.tokenizerSource,
+    model.tokenizerConfigSource,
+    preventLoad,
+  ]);
 
   // memoization of returned functions
   const configure = useCallback(
@@ -79,31 +85,35 @@ export const useLLM = ({
     }: {
       chatConfig?: Partial<ChatConfig>;
       toolsConfig?: ToolsConfig;
-    }) => model.configure({ chatConfig, toolsConfig }),
-    [model]
+    }) => controllerInstance.configure({ chatConfig, toolsConfig }),
+    [controllerInstance]
   );
 
   const generate = useCallback(
     (messages: Message[], tools?: LLMTool[]) => {
       setResponse('');
-      return model.generate(messages, tools);
+      return controllerInstance.generate(messages, tools);
     },
-    [model]
+    [controllerInstance]
   );
 
   const sendMessage = useCallback(
     (message: string) => {
       setResponse('');
-      return model.sendMessage(message);
+      return controllerInstance.sendMessage(message);
     },
-    [model]
+    [controllerInstance]
   );
 
   const deleteMessage = useCallback(
-    (index: number) => model.deleteMessage(index),
-    [model]
+    (index: number) => controllerInstance.deleteMessage(index),
+    [controllerInstance]
   );
-  const interrupt = useCallback(() => model.interrupt(), [model]);
+
+  const interrupt = useCallback(
+    () => controllerInstance.interrupt(),
+    [controllerInstance]
+  );
 
   return {
     messageHistory,

@@ -13,6 +13,6 @@ export const useExecutorchModule = ({
 }: Props) =>
   useNonStaticModule({
     module: ExecutorchModule,
-    loadArgs: [modelSource],
+    model: { modelSource },
     preventLoad,
   });
