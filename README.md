@@ -68,17 +68,11 @@ Add this to your component file:
 import {
   useLLM,
   LLAMA3_2_1B,
-  LLAMA3_2_TOKENIZER,
-  LLAMA3_2_TOKENIZER_CONFIG,
 } from 'react-native-executorch';
 
 function MyComponent() {
   // Initialize the model 🚀
-  const llm = useLLM({
-    modelSource: LLAMA3_2_1B,
-    tokenizerSource: LLAMA3_2_TOKENIZER,
-    tokenizerConfigSource: LLAMA3_2_TOKENIZER_CONFIG,
-  });
+  const llm = useLLM({ model: LLAMA3_2_1B });
   // ... rest of your component
 }
 ```
