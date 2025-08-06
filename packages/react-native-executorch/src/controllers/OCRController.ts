@@ -9,18 +9,15 @@ export class OCRController {
   public isReady: boolean = false;
   public isGenerating: boolean = false;
   public error: string | null = null;
-  private modelDownloadProgressCallback: (downloadProgress: number) => void;
   private isReadyCallback: (isReady: boolean) => void;
   private isGeneratingCallback: (isGenerating: boolean) => void;
   private errorCallback: (error: string) => void;
 
   constructor({
-    modelDownloadProgressCallback = (_downloadProgress: number) => {},
     isReadyCallback = (_isReady: boolean) => {},
     isGeneratingCallback = (_isGenerating: boolean) => {},
     errorCallback = (_error: string) => {},
-  }) {
-    this.modelDownloadProgressCallback = modelDownloadProgressCallback;
+  } = {}) {
     this.isReadyCallback = isReadyCallback;
     this.isGeneratingCallback = isGeneratingCallback;
     this.errorCallback = errorCallback;
@@ -33,8 +30,10 @@ export class OCRController {
       recognizerMedium: ResourceSource;
       recognizerSmall: ResourceSource;
     },
-    language: OCRLanguage
+    language: OCRLanguage,
+    onDownloadProgressCallback?: (downloadProgress: number) => void
   ) => {
+    console.log('VOCR LOADING CONTROLLER!');
     try {
       if (!detectorSource || Object.keys(recognizerSources).length !== 3)
         return;
@@ -47,7 +46,7 @@ export class OCRController {
       this.isReadyCallback(false);
 
       const paths = await ResourceFetcher.fetch(
-        this.modelDownloadProgressCallback,
+        onDownloadProgressCallback,
         detectorSource,
         recognizerSources.recognizerLarge,
         recognizerSources.recognizerMedium,

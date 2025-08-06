@@ -77,8 +77,8 @@ export default function OCRScreen() {
           <View style={styles.results}>
             <Text style={styles.resultHeader}>Results</Text>
             <ScrollView style={styles.resultsList}>
-              {results.map(({ text, score }) => (
-                <View key={text} style={styles.resultRecord}>
+              {results.map(({ text, score }, index) => (
+                <View key={index} style={styles.resultRecord}>
                   <Text style={styles.resultLabel}>{text}</Text>
                   <Text>{score.toFixed(3)}</Text>
                 </View>
