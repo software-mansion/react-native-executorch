@@ -8,11 +8,12 @@
 #include <unordered_set>
 namespace rnexecutorch::ocr {
 
-std::vector<cv::Point2f>
+std::array<cv::Point2f, 4>
 cvPointsFromPoints(const std::array<Point, 4> &points) {
-  std::vector<cv::Point2f> cvPoints;
-  for (const Point &point : points) {
-    cvPoints.emplace_back(point.x, point.y);
+  std::array<cv::Point2f, 4> cvPoints;
+#pragma unroll
+  for (std::size_t i = 0; i < cvPoints.size(); ++i) {
+    cvPoints[i] = cv::Point2f(points[i].x, points[i].y);
   }
   return cvPoints;
 }
@@ -33,8 +34,8 @@ std::pair<cv::Mat, cv::Mat> interleavedArrayToMats(std::span<const float> data,
 
   for (std::size_t i = 0; i < data.size(); i++) {
     const float value = data[i];
-    const int x = (i / 2) % size.width;
-    const int y = (i / 2) / size.width;
+    const int32_t x = (i / 2) % size.width;
+    const int32_t y = (i / 2) / size.width;
 
     if (i % 2 == 0) {
       mat1.at<float>(y, x) = value;
@@ -47,41 +48,41 @@ std::pair<cv::Mat, cv::Mat> interleavedArrayToMats(std::span<const float> data,
 
 // Create a segmentation map for the current component.
 // Background is 0, (black), foreground is 255 (white)
-cv::Mat createSegmentMap(cv::Mat &mask, cv::Size mapSize,
-                         const int segmentColor = 255) {
+cv::Mat createSegmentMap(const cv::Mat &mask, cv::Size mapSize,
+                         const int32_t segmentColor = 255) {
   cv::Mat segMap = cv::Mat::zeros(mapSize, CV_8U);
   segMap.setTo(segmentColor, mask);
   return segMap;
 }
 
 void morphologicalOperations(
-    const cv::Mat &segMap, const cv::Mat &stats, int i, int area, int imgW,
-    int imgH,
-    int iterations = 1, // iterations number of times dilation is  applied.
+    const cv::Mat &segMap, const cv::Mat &stats, int32_t i, int32_t area,
+    int32_t imgW, int32_t imgH,
+    int32_t iterations = 1, // iterations number of times dilation is  applied.
     cv::Size anchor =
         cv::Point(-1, -1) // anchor position of the anchor within the element;
                           // default means that the anchor is at the center.
 ) {
-  const int x = stats.at<int>(i, cv::CC_STAT_LEFT);
-  const int y = stats.at<int>(i, cv::CC_STAT_TOP);
-  const int w = stats.at<int>(i, cv::CC_STAT_WIDTH);
-  const int h = stats.at<int>(i, cv::CC_STAT_HEIGHT);
+  const int32_t x = stats.at<int32_t>(i, cv::CC_STAT_LEFT);
+  const int32_t y = stats.at<int32_t>(i, cv::CC_STAT_TOP);
+  const int32_t w = stats.at<int32_t>(i, cv::CC_STAT_WIDTH);
+  const int32_t h = stats.at<int32_t>(i, cv::CC_STAT_HEIGHT);
 
   // Dynamically calculate dilation radius to expand the bounding box slightly
-  constexpr int evenMultiplyCoeff = 2; // ensure that dilationRadius is even
-  const int dilationRadius =
-      static_cast<int>(std::sqrt(static_cast<double>(area) / std::max(w, h)) *
-                       evenMultiplyCoeff);
-  const int sx = std::max(x - dilationRadius, 0);
-  const int ex = std::min(x + w + dilationRadius, imgW);
-  const int sy = std::max(y - dilationRadius, 0);
-  const int ey = std::min(y + h + dilationRadius, imgH);
+  constexpr int32_t evenMultiplyCoeff = 2; // ensure that dilationRadius is even
+  const int32_t dilationRadius = static_cast<int32_t>(
+      std::sqrt(static_cast<double>(area) / std::max(w, h)) *
+      evenMultiplyCoeff);
+  const int32_t sx = std::max(x - dilationRadius, 0);
+  const int32_t ex = std::min(x + w + dilationRadius, imgW);
+  const int32_t sy = std::max(y - dilationRadius, 0);
+  const int32_t ey = std::min(y + h + dilationRadius, imgH);
 
   // Define a region of interest (ROI) and dilate it
   cv::Rect roi(sx, sy, ex - sx, ey - sy);
   // Morphological kernels require minimum size of 1x1 (no-op) plus dilation
   // radius
-  const int morphologicalKernelSize =
+  const int32_t morphologicalKernelSize =
       1 + dilationRadius; // Ensures valid odd-sized kernel,
                           // notice the fact that dilationRadius is always even.
   cv::Mat kernel = cv::getStructuringElement(
@@ -91,7 +92,7 @@ void morphologicalOperations(
   cv::dilate(roiSegMap, roiSegMap, kernel, anchor, iterations);
 }
 
-DetectorBBox constructBBox(std::vector<cv::Point> contour) {
+DetectorBBox constructBBox(const std::vector<cv::Point> contour) {
   cv::RotatedRect minRect = cv::minAreaRect(contour);
 
   cv::Point2f vertices[4];
@@ -115,11 +116,11 @@ void getBoxFromContour(cv::Mat &segMap,
 // VerticalOCR and standard OCR. param isVertical specifies which OCR uses it.
 // param lowTextThreshold is used only by standard OCR.
 void processComponent(const cv::Mat &textMap, const cv::Mat &labels,
-                      const cv::Mat &stats, int i, int imgW, int imgH,
-                      std::vector<DetectorBBox> &detectedBoxes, bool isVertical,
-                      int minimalAreaThreshold, int dilationIter,
-                      float lowTextThreshold = 0.0) {
-  const int area = stats.at<int>(i, cv::CC_STAT_AREA);
+                      const cv::Mat &stats, int32_t i, int32_t imgW,
+                      int32_t imgH, std::vector<DetectorBBox> &detectedBoxes,
+                      bool isVertical, int32_t minimalAreaThreshold,
+                      int32_t dilationIter, float lowTextThreshold = 0.0) {
+  const int32_t area = stats.at<int32_t>(i, cv::CC_STAT_AREA);
   // Skip small components as they are likely to be just noise
   if (area < minimalAreaThreshold) {
     return;
@@ -156,8 +157,8 @@ std::vector<DetectorBBox> getDetBoxesFromTextMap(cv::Mat &textMap,
   // Ensure input mats are of the correct type for processing
   CV_Assert(textMap.type() == CV_32F && affinityMap.type() == CV_32F);
 
-  const int imgH = textMap.rows;
-  const int imgW = textMap.cols;
+  const int32_t imgH = textMap.rows;
+  const int32_t imgW = textMap.cols;
   cv::Mat textScore;
   cv::Mat affinityScore;
 
@@ -178,8 +179,8 @@ std::vector<DetectorBBox> getDetBoxesFromTextMap(cv::Mat &textMap,
 
   // 3. Find connected components to identify each box
   cv::Mat labels, stats, centroids;
-  constexpr int connectivityType = 4;
-  const int nLabels = cv::connectedComponentsWithStats(
+  constexpr int32_t connectivityType = 4;
+  const int32_t nLabels = cv::connectedComponentsWithStats(
       binaryMat, labels, stats, centroids, connectivityType);
 
   std::vector<DetectorBBox> detectedBoxes;
@@ -187,12 +188,12 @@ std::vector<DetectorBBox> getDetBoxesFromTextMap(cv::Mat &textMap,
 
   // number of dilation iterations performed in some
   // morphological operations on a component later on.
-  constexpr int dilationIter = 1;
+  constexpr int32_t dilationIter = 1;
   // minimal accepted area of component
-  constexpr int minimalAreaThreshold = 10;
+  constexpr int32_t minimalAreaThreshold = 10;
 
   // 4. Process each component; omit component 0 as it is background
-  for (int i = 1; i < nLabels; i++) {
+  for (int32_t i = 1; i < nLabels; i++) {
     processComponent(textMap, labels, stats, i, imgW, imgH, detectedBoxes,
                      false, minimalAreaThreshold, dilationIter,
                      lowTextThreshold);
@@ -208,8 +209,8 @@ getDetBoxesFromTextMapVertical(cv::Mat &textMap, cv::Mat &affinityMap,
   // Ensure input mats are of the correct type for processing
   CV_Assert(textMap.type() == CV_32F && affinityMap.type() == CV_32F);
 
-  const int imgH = textMap.rows;
-  const int imgW = textMap.cols;
+  const int32_t imgH = textMap.rows;
+  const int32_t imgW = textMap.cols;
   cv::Mat textScore;
   cv::Mat affinityScore;
 
@@ -221,12 +222,14 @@ getDetBoxesFromTextMapVertical(cv::Mat &textMap, cv::Mat &affinityMap,
                 cv::THRESH_BINARY);
 
   // Prepare values for morphological operations
-  const auto ksize = cv::Size(3, 3); // size of the structuring element
-  cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, ksize);
-  constexpr int erosionIterations =
-      1; // iterations number of times erosion is applied.
-  int dilationIterations;
-  ; // iterations number of times dilation is applied.
+  const auto kSize = cv::Size(3, 3); // size of the structuring element
+  cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, kSize);
+
+  // iterations number of times erosion is applied.
+  constexpr int32_t erosionIterations = 1;
+
+  // iterations number of times dilation is applied.
+  int32_t dilationIterations;
   const auto anchor =
       cv::Point(-1, -1); // anchor position of the anchor within the element;
                          // default value (-1, -1)
@@ -257,8 +260,8 @@ getDetBoxesFromTextMapVertical(cv::Mat &textMap, cv::Mat &affinityMap,
   textScoreComb.convertTo(binaryMat, CV_8UC1);
 
   cv::Mat labels, stats, centroids;
-  constexpr int connectivityType = 4;
-  const int nLabels = cv::connectedComponentsWithStats(
+  constexpr int32_t connectivityType = 4;
+  const int32_t nLabels = cv::connectedComponentsWithStats(
       binaryMat, labels, stats, centroids, connectivityType);
 
   std::vector<DetectorBBox> detectedBoxes;
@@ -266,14 +269,14 @@ getDetBoxesFromTextMapVertical(cv::Mat &textMap, cv::Mat &affinityMap,
 
   // number of dilation iterations performed in some
   // morphological operations on a component later on.
-  constexpr int dilationIter = 2;
+  constexpr int32_t dilationIter = 2;
   // minimal accepted area of component
-  constexpr int minimalAreaThreshold = 20;
+  constexpr int32_t minimalAreaThreshold = 20;
 
   // 4. Process each component; omit component 0 as it is background
-  for (int i = 1; i < nLabels; ++i) {
-    const int width = stats.at<int>(i, cv::CC_STAT_WIDTH);
-    const int height = stats.at<int>(i, cv::CC_STAT_HEIGHT);
+  for (int32_t i = 1; i < nLabels; ++i) {
+    const int32_t width = stats.at<int32_t>(i, cv::CC_STAT_WIDTH);
+    const int32_t height = stats.at<int32_t>(i, cv::CC_STAT_HEIGHT);
     // For vertical text (not single chars), height should be greater than width
     if (!independentCharacters && height < width) {
       continue;
@@ -374,7 +377,7 @@ fitLineToShortestSides(const std::array<Point, 4> &points) {
   }
 
   // Sort the sides by length ascending
-  std::sort(sides.begin(), sides.end());
+  std::ranges::sort(sides);
 
   const Point midpoint1 = midpoints[sides[0].second];
   const Point midpoint2 = midpoints[sides[1].second];
@@ -383,12 +386,12 @@ fitLineToShortestSides(const std::array<Point, 4> &points) {
   float m, c;
   bool isVertical;
 
-  std::vector<cv::Point2f> cvMidPoints = {
+  std::array<cv::Point2f, 2> cvMidPoints = {
       cv::Point2f(midpoint1.x, midpoint1.y),
       cv::Point2f(midpoint2.x, midpoint2.y)};
   cv::Vec4f line;
   // parameteres for fitLine calculation:
-  constexpr int numericalParameter =
+  constexpr int32_t numericalParameter =
       0; // important only for some types of distances, O means an optimal value
          // is chosen
   constexpr double accuracy =
@@ -494,18 +497,18 @@ std::array<Point, 4> mergeRotatedBoxes(std::array<Point, 4> &box1,
   box1 = orderPointsClockwise(box1);
   box2 = orderPointsClockwise(box2);
 
-  std::vector<cv::Point2f> points1 = cvPointsFromPoints(box1);
-  std::vector<cv::Point2f> points2 = cvPointsFromPoints(box2);
+  auto points1 = cvPointsFromPoints(box1);
+  auto points2 = cvPointsFromPoints(box2);
 
-  std::vector<cv::Point2f> allPoints;
-  allPoints.insert(allPoints.end(), points1.begin(), points1.end());
-  allPoints.insert(allPoints.end(), points2.begin(), points2.end());
+  std::array<cv::Point2f, points1.size() + points2.size()> allPoints;
+  std::copy(points1.begin(), points1.end(), allPoints.begin());
+  std::copy(points2.begin(), points2.end(), allPoints.begin() + points1.size());
 
-  std::vector<int> hullIndices;
+  std::vector<int32_t> hullIndices;
   cv::convexHull(allPoints, hullIndices, false);
 
   std::vector<cv::Point2f> hullPoints;
-  for (int idx : hullIndices) {
+  for (int32_t idx : hullIndices) {
     hullPoints.push_back(allPoints[idx]);
   }
 
@@ -617,18 +620,19 @@ groupTextBoxes(std::vector<DetectorBBox> &boxes, float centerThreshold,
                int32_t minSideThreshold, int32_t maxSideThreshold,
                int32_t maxWidth) {
   // Sort boxes descending by maximum side length
-  std::sort(boxes.begin(), boxes.end(),
-            [](const DetectorBBox &lhs, const DetectorBBox &rhs) {
-              return maxSideLength(lhs.bbox) > maxSideLength(rhs.bbox);
-            });
+  std::ranges::sort(boxes,
+                    [](const DetectorBBox &lhs, const DetectorBBox &rhs) {
+                      return maxSideLength(lhs.bbox) > maxSideLength(rhs.bbox);
+                    });
 
   std::vector<DetectorBBox> mergedVec;
   float lineAngle;
+  std::unordered_set<std::size_t> ignoredIdxs;
   while (!boxes.empty()) {
     auto currentBox = boxes[0];
     float normalizedAngle = normalizeAngle(currentBox.angle);
     boxes.erase(boxes.begin());
-    std::unordered_set<std::size_t> ignoredIdxs;
+    ignoredIdxs.clear();
 
     while (true) {
       // Find all aligned boxes and merge them until max_size is reached or no
@@ -643,12 +647,11 @@ groupTextBoxes(std::vector<DetectorBBox> &boxes, float centerThreshold,
       auto closestBoxInfo =
           findClosestBox(boxes, ignoredIdxs, currentBox.bbox, isVertical, slope,
                          intercept, centerThreshold);
-      if (!closestBoxInfo) {
+      if (!closestBoxInfo.has_value()) {
         break;
       }
-      std::size_t candidateIdx = closestBoxInfo.value().first;
+      const auto [candidateIdx, candidateHeight] = closestBoxInfo.value();
       DetectorBBox candidateBox = boxes[candidateIdx];
-      const float candidateHeight = closestBoxInfo.value().second;
 
       if ((numerical::fpEqual(candidateBox.angle, 90.0f) && !isVertical) ||
           (numerical::fpEqual(candidateBox.angle, 0.0f) && isVertical)) {
@@ -671,7 +674,6 @@ groupTextBoxes(std::vector<DetectorBBox> &boxes, float centerThreshold,
         ignoredIdxs.insert(candidateIdx);
       }
     }
-
     mergedVec.emplace_back(currentBox.bbox, lineAngle);
   }
 
@@ -679,14 +681,13 @@ groupTextBoxes(std::vector<DetectorBBox> &boxes, float centerThreshold,
   mergedVec =
       removeSmallBoxesFromArray(mergedVec, minSideThreshold, maxSideThreshold);
 
-  std::sort(mergedVec.begin(), mergedVec.end(),
-            [](const auto &obj1, const auto &obj2) {
-              const auto &coords1 = obj1.bbox;
-              const auto &coords2 = obj2.bbox;
-              const float minY1 = minimumYFromBox(coords1);
-              const float minY2 = minimumYFromBox(coords2);
-              return minY1 < minY2;
-            });
+  std::ranges::sort(mergedVec, [](const auto &obj1, const auto &obj2) {
+    const auto &coords1 = obj1.bbox;
+    const auto &coords2 = obj2.bbox;
+    const float minY1 = minimumYFromBox(coords1);
+    const float minY2 = minimumYFromBox(coords2);
+    return minY1 < minY2;
+  });
 
   std::vector<DetectorBBox> orderedSortedBoxes;
   orderedSortedBoxes.reserve(mergedVec.size());

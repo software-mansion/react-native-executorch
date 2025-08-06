@@ -166,8 +166,10 @@ OCRDetection VerticalOCR::_processSingleTextBox(
   float confidenceScore = 0.0;
   if (!characterBoxes.empty()) {
     // Prepare information useful for proper boxes shifting and image cropping.
-    const int boxWidth = static_cast<int>(box.bbox[2].x - box.bbox[0].x);
-    const int boxHeight = static_cast<int>(box.bbox[2].y - box.bbox[0].y);
+    const int32_t boxWidth =
+        static_cast<int32_t>(box.bbox[2].x - box.bbox[0].x);
+    const int32_t boxHeight =
+        static_cast<int32_t>(box.bbox[2].y - box.bbox[0].y);
     cv::Size narrowRecognizerSize = detectorNarrow.getModelImageSize();
     PaddingInfo paddingsBox = ocr::calculateResizeRatioAndPaddings(
         cv::Size(boxWidth, boxHeight), narrowRecognizerSize);

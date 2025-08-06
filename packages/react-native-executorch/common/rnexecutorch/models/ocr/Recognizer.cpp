@@ -77,8 +77,8 @@ Recognizer::postprocess(const Tensor &tensor) const {
     Each value of returned tensor corresponds to how probable it is, that a
    certain character occurs on  a certain spot.
   */
-  const int numClasses = tensor.size(2);
-  const int numRows = tensor.numel() / numClasses;
+  const int32_t numClasses = tensor.size(2);
+  const int32_t numRows = tensor.numel() / numClasses;
 
   // Create a matrix from result data.
   cv::Mat resultMat(numRows, numClasses, CV_32F,

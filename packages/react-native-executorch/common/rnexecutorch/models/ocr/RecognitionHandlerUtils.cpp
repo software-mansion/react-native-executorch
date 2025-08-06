@@ -31,9 +31,8 @@ void computeRatioAndResize(cv::Mat &img, cv::Size size, int32_t modelHeight) {
       static_cast<double>(size.width) / static_cast<double>(size.height);
   cv::Size resizedSize;
   if (ratio < 1.0) {
-    ratio = 1.0 / ratio;
     resizedSize =
-        cv::Size(modelHeight, static_cast<int32_t>(modelHeight * ratio));
+        cv::Size(modelHeight, static_cast<int32_t>(modelHeight / ratio));
   } else {
     resizedSize =
         cv::Size(static_cast<int32_t>(modelHeight * ratio), modelHeight);
@@ -62,7 +61,7 @@ cv::Mat cropImage(DetectorBBox box, cv::Mat &image, int32_t modelHeight) {
 
   cv::Mat rectMat(4, 2, CV_32FC2);
 #pragma unroll
-  for (int i = 0; i < rectMat.rows; ++i) {
+  for (int32_t i = 0; i < rectMat.rows; ++i) {
     rectMat.at<cv::Vec2f>(i, 0) = cv::Vec2f(rectPoints[i].x, rectPoints[i].y);
   }
   cv::transform(rectMat, rectMat, rotationMatrix);
@@ -98,25 +97,22 @@ void adjustContrastGrey(cv::Mat &img, double target) {
   constexpr double maxValue = 255.0; // fully bright
 
   // calculate the brightest and the darkest point from the img
-  int32_t high = 0;
-  int32_t low = 255;
-  for (int32_t i = 0; i < img.rows; i++) {
-    for (int32_t j = 0; j < img.cols; j++) {
-      int32_t pixel = img.at<uchar>(i, j); // Access pixel
-      high = std::max(high, pixel);
-      low = std::min(low, pixel);
-    }
-  }
+  double highDouble;
+  double lowDouble;
+  cv::minMaxLoc(img, &lowDouble, &highDouble);
+  auto low = static_cast<int32_t>(lowDouble);
+  auto high = static_cast<int32_t>(highDouble);
+
   double contrast = (high - low) / maxValue;
   if (contrast < target) {
     constexpr double maxStretchIntensity = 200.0;
-    constexpr int minRangeClamp = 10;
+    constexpr int32_t minRangeClamp = 10;
     // defines how much the contrast will actually stretch. Empirically obtained
     // formula i guess :)
     double ratio = maxStretchIntensity / std::max(minRangeClamp, high - low);
     cv::Mat tempImg;
     img.convertTo(tempImg, CV_32F);
-    constexpr int histogramShift = 25;
+    constexpr int32_t histogramShift = 25;
     // shift all values by 25
     tempImg -= (low - histogramShift);
     // stretch contrast
@@ -141,7 +137,7 @@ int32_t getDesiredWidth(const cv::Mat &img, bool isVertical) {
   return isVertical ? smallVerticalRecognizerWidth : smallRecognizerWidth;
 }
 
-cv::Mat normalizeForRecognizer(cv::Mat &image, int32_t modelHeight,
+cv::Mat normalizeForRecognizer(const cv::Mat &image, int32_t modelHeight,
                                double adjustContrast, bool isVertical) {
   auto img = image.clone();
   if (adjustContrast > 0.0) {

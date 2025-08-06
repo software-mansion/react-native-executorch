@@ -66,7 +66,7 @@ void adjustContrastGrey(cv::Mat &img, double target);
  *   - Adjusted contrast (if requested)
  *   - Normalized float32 values in [-1, 1] range
  */
-cv::Mat normalizeForRecognizer(cv::Mat &image, int32_t modelHeight,
+cv::Mat normalizeForRecognizer(const cv::Mat &image, int32_t modelHeight,
                                double adjustContrast = 0.0,
                                bool isVertical = false);
 } // namespace rnexecutorch::ocr

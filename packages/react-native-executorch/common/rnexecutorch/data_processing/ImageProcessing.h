@@ -38,7 +38,7 @@ std::vector<float> grayMatToVector(const cv::Mat &mat);
  * aspect ratio, adding padding if needed. Padding color is derived from the
  * image's corner pixels for seamless blending.
  */
-cv::Mat resizePadded(cv::Mat inputImage, cv::Size targetSize);
+cv::Mat resizePadded(const cv::Mat inputImage, cv::Size targetSize);
 /// @brief Read image, resize it and copy it to an ET tensor to store it.
 /// @param path Path to the image to be resized. Could be base64, local file or
 /// remote URL

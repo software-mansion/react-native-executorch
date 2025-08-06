@@ -134,19 +134,15 @@ TensorPtr getTensorFromMatrixGray(const std::vector<int32_t> &tensorDims,
 
 std::vector<float> grayMatToVector(const cv::Mat &mat) {
   CV_Assert(mat.type() == CV_32F);
-
-  int pixelCount = mat.cols * mat.rows;
-  std::vector<float> v;
-  v.reserve(pixelCount);
-
   if (mat.isContinuous()) {
-    v.assign(mat.ptr<float>(), mat.ptr<float>() + mat.total());
-  } else {
-    for (int i = 0; i < mat.rows; ++i) {
-      v.insert(v.end(), mat.ptr<float>(i), mat.ptr<float>(i) + mat.cols);
-    }
+    return {mat.ptr<float>(), mat.ptr<float>() + mat.total()};
   }
 
+  std::vector<float> v;
+  v.reserve(mat.total());
+  for (int i = 0; i < mat.rows; ++i) {
+    v.insert(v.end(), mat.ptr<float>(i), mat.ptr<float>(i) + mat.cols);
+  }
   return v;
 }
 
@@ -156,7 +152,7 @@ cv::Mat getMatrixFromTensor(cv::Size size, const Tensor &tensor) {
                           size);
 }
 
-cv::Mat resizePadded(cv::Mat inputImage, cv::Size targetSize) {
+cv::Mat resizePadded(const cv::Mat inputImage, cv::Size targetSize) {
   cv::Size inputSize = inputImage.size();
   const float heightRatio =
       static_cast<float>(targetSize.height) / inputSize.height;
@@ -180,7 +176,7 @@ cv::Mat resizePadded(cv::Mat inputImage, cv::Size targetSize) {
       std::min(inputSize.height, inputSize.width) / cornerPatchFractionSize;
   cornerPatchSize = std::max(minCornerPatchSize, cornerPatchSize);
 
-  std::vector<cv::Mat> corners = {
+  const std::array<cv::Mat, 4> corners = {
       inputImage(cv::Rect(0, 0, cornerPatchSize, cornerPatchSize)),
       inputImage(cv::Rect(inputSize.width - cornerPatchSize, 0, cornerPatchSize,
                           cornerPatchSize)),
@@ -191,6 +187,7 @@ cv::Mat resizePadded(cv::Mat inputImage, cv::Size targetSize) {
                           cornerPatchSize))};
 
   cv::Scalar backgroundScalar = cv::mean(corners[0]);
+#pragma unroll
   for (size_t i = 1; i < corners.size(); i++) {
     backgroundScalar += cv::mean(corners[i]);
   }

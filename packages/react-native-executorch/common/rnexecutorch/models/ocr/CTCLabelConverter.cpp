@@ -57,7 +57,7 @@ CTCLabelConverter::CTCLabelConverter(const std::string &characters)
 }
 
 std::vector<std::string>
-CTCLabelConverter::decodeGreedy(const std::vector<int> &textIndex,
+CTCLabelConverter::decodeGreedy(const std::vector<int32_t> &textIndex,
                                 size_t length) {
   std::vector<std::string> texts;
   size_t index = 0;
@@ -65,44 +65,28 @@ CTCLabelConverter::decodeGreedy(const std::vector<int> &textIndex,
   while (index < textIndex.size()) {
     size_t segmentLength = std::min(length, textIndex.size() - index);
 
-    std::vector<int> subArray(textIndex.begin() + index,
-                              textIndex.begin() + index + segmentLength);
+    std::vector<int32_t> subArray(textIndex.begin() + index,
+                                  textIndex.begin() + index + segmentLength);
 
     std::string text;
 
     if (!subArray.empty()) {
-      std::optional<int> lastChar;
-
-      std::vector<bool> isNotRepeated;
-      isNotRepeated.reserve(subArray.size());
-      isNotRepeated.push_back(true);
-
-      std::vector<bool> isNotIgnored;
-      isNotIgnored.reserve(subArray.size());
-
-      for (size_t i = 0; i < subArray.size(); ++i) {
-        int currentChar = subArray[i];
-        if (i > 0) {
-          bool isRepeated =
-              lastChar.has_value() && lastChar.value() == currentChar;
-          isNotRepeated.push_back(!isRepeated);
-        }
-        bool ignored = currentChar == ignoreIdx;
-        isNotIgnored.push_back(!ignored);
+      std::optional<int32_t> lastChar;
+      for (int32_t currentChar : subArray) {
+        bool isRepeated =
+            lastChar.has_value() && lastChar.value() == currentChar;
+        bool isIgnored = currentChar == ignoreIdx;
         lastChar = currentChar;
-      }
 
-      for (size_t j = 0; j < subArray.size(); ++j) {
-        if (isNotRepeated[j] && isNotIgnored[j]) {
-          auto charIndex = static_cast<size_t>(subArray[j]);
-          if (charIndex >= 0u && charIndex < character.size()) {
-            text += character[charIndex];
-          }
+        if (currentChar >= 0 &&
+            currentChar < static_cast<int32_t>(character.size()) &&
+            !isRepeated && !isIgnored) {
+          text += character[currentChar];
         }
       }
     }
 
-    texts.push_back(text);
+    texts.push_back(std::move(text));
     index += segmentLength;
 
     if (segmentLength < length) {

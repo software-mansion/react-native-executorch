@@ -16,14 +16,14 @@ cv::Mat softmax(const cv::Mat &inputs) {
 std::vector<float> sumProbabilityRows(const cv::Mat &matrix) {
   std::vector<float> sums;
   sums.reserve(matrix.rows);
-  for (int i = 0; i < matrix.rows; ++i) {
+  for (int32_t i = 0; i < matrix.rows; ++i) {
     sums.push_back(cv::sum(matrix.row(i))[0]);
   }
   return sums;
 }
 
 void divideMatrixByRows(cv::Mat &matrix, const std::vector<float> &rowSums) {
-  for (int i = 0; i < matrix.rows; ++i) {
+  for (int32_t i = 0; i < matrix.rows; ++i) {
     matrix.row(i) /= rowSums[i];
   }
 }
@@ -34,7 +34,7 @@ MaxValuesAndIndices findMaxValuesIndices(const cv::Mat &mat) {
   result.values.reserve(mat.rows);
   result.indices.reserve(mat.rows);
 
-  for (int i = 0; i < mat.rows; ++i) {
+  for (int32_t i = 0; i < mat.rows; ++i) {
     double maxVal;
     cv::Point maxLoc;
     cv::minMaxLoc(mat.row(i), nullptr, &maxVal, nullptr, &maxLoc);
@@ -74,7 +74,7 @@ cv::Rect extractBoundingBox(std::array<rnexecutorch::Point, 4> &points) {
 cv::Mat characterBitMask(const cv::Mat &img) {
   // 1. Determine if character is darker/lighter than background.
   cv::Mat histogram;
-  int histSize = 256;
+  int32_t histSize = 256;
   float range[] = {0.0f, 256.0f};
   const float *histRange = {range};
   bool uniform = true;
@@ -84,16 +84,16 @@ cv::Mat characterBitMask(const cv::Mat &img) {
                uniform, accumulate);
 
   // Compare sum of darker (left half) vs brighter (right half) pixels.
-  int midPoint = histSize / 2;
+  const int32_t midPoint = histSize / 2;
   double sumLeft = 0.0;
   double sumRight = 0.0;
-  for (int i = 0; i < midPoint; i++) {
+  for (int32_t i = 0; i < midPoint; i++) {
     sumLeft += histogram.at<float>(i);
   }
-  for (int i = midPoint; i < histSize; i++) {
+  for (int32_t i = midPoint; i < histSize; i++) {
     sumRight += histogram.at<float>(i);
   }
-  const int thresholdType =
+  const int32_t thresholdType =
       (sumLeft < sumRight) ? cv::THRESH_BINARY_INV : cv::THRESH_BINARY;
 
   // 2. Binarize using Otsu's method (auto threshold).
@@ -102,20 +102,20 @@ cv::Mat characterBitMask(const cv::Mat &img) {
 
   // 3. Find the largest connected component near the center.
   cv::Mat labels, stats, centroids;
-  const int numLabels = cv::connectedComponentsWithStats(thresh, labels, stats,
-                                                         centroids, 8, CV_32S);
+  const int32_t numLabels = cv::connectedComponentsWithStats(
+      thresh, labels, stats, centroids, 8, CV_32S);
 
-  const int height = thresh.rows;
-  const int width = thresh.cols;
-  const int minX = ocr::singleCharacterCenterThreshold * width;
-  const int maxX = (1 - ocr::singleCharacterCenterThreshold) * width;
-  const int minY = ocr::singleCharacterCenterThreshold * height;
-  const int maxY = (1 - ocr::singleCharacterCenterThreshold) * height;
+  const int32_t height = thresh.rows;
+  const int32_t width = thresh.cols;
+  const int32_t minX = ocr::singleCharacterCenterThreshold * width;
+  const int32_t maxX = (1 - ocr::singleCharacterCenterThreshold) * width;
+  const int32_t minY = ocr::singleCharacterCenterThreshold * height;
+  const int32_t maxY = (1 - ocr::singleCharacterCenterThreshold) * height;
 
-  int selectedComponent = -1;
+  int32_t selectedComponent = -1;
 
-  for (int i = 1; i < numLabels; i++) { // Skip background (label 0)
-    const int area = stats.at<int>(i, cv::CC_STAT_AREA);
+  for (int32_t i = 1; i < numLabels; i++) { // Skip background (label 0)
+    const int32_t area = stats.at<int32_t>(i, cv::CC_STAT_AREA);
     const double cx = centroids.at<double>(i, 0);
     const double cy = centroids.at<double>(i, 1);
 
@@ -123,16 +123,19 @@ cv::Mat characterBitMask(const cv::Mat &img) {
          cy < maxY &&                           // check if centered
          area > ocr::singleCharacterMinSize) && // check if large enough
         (selectedComponent == -1 ||
-         area > stats.at<int>(selectedComponent, cv::CC_STAT_AREA))) {
+         area > stats.at<int32_t>(selectedComponent, cv::CC_STAT_AREA))) {
       selectedComponent = i;
     }
   }
   // 4. Extract the character and invert to white-on-black.
-  cv::Mat mask = (selectedComponent != -1)
-                     ? (labels == selectedComponent)
-                     : cv::Mat::zeros(img.size(), CV_8UC1);
-  cv::Mat resultImage = cv::Mat::zeros(img.size(), img.type());
-  img.copyTo(resultImage, mask);
+  cv::Mat resultImage;
+  cv::Mat mask;
+  if (selectedComponent != -1) {
+    mask = (labels == selectedComponent);
+    img.copyTo(resultImage, mask);
+  } else {
+    resultImage = cv::Mat::zeros(img.size(), img.type());
+  }
 
   cv::bitwise_not(resultImage, resultImage);
 
@@ -176,7 +179,7 @@ cropImageWithBoundingBox(const cv::Mat &img,
 
   cv::Rect rect = cv::boundingRect(points);
   rect &= cv::Rect(0, 0, img.cols, img.rows);
-  if (rect.width == 0 || rect.height == 0) {
+  if (rect.empty()) {
     return cv::Mat();
   }
   auto croppedImage = img(rect).clone();

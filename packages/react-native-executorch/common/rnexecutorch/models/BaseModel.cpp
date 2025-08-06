@@ -29,7 +29,7 @@ BaseModel::BaseModel(const std::string &modelSource,
 }
 
 std::vector<int32_t> BaseModel::getInputShape(std::string method_name,
-                                              int index) {
+                                              int32_t index) {
   if (!module_) {
     throw std::runtime_error("Model not loaded: Cannot get input shape");
   }

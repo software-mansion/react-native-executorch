@@ -19,7 +19,7 @@ public:
             std::shared_ptr<react::CallInvoker> callInvoker);
   std::size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
-  std::vector<int32_t> getInputShape(std::string method_name, int index);
+  std::vector<int32_t> getInputShape(std::string method_name, int32_t index);
   std::vector<std::vector<int32_t>>
   getAllInputShapes(std::string methodName = "forward");
   std::vector<JSTensorViewOut>

@@ -108,10 +108,10 @@ RecognitionHandler::recognize(std::vector<DetectorBBox> bboxesList,
       Decoding is obtained by greedy approach.
       For more info see CTCLabelConverter.cpp file.
     */
-    result.push_back(
-        {box.bbox,
-         converter.decodeGreedy(predictionIndices, predictionIndices.size())[0],
-         confidenceScore});
+    result.emplace_back(
+        box.bbox,
+        converter.decodeGreedy(predictionIndices, predictionIndices.size())[0],
+        confidenceScore);
   }
 
   return result;
