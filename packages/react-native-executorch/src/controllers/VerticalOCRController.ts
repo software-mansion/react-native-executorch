@@ -99,4 +99,16 @@ export class VerticalOCRController {
       this.isGeneratingCallback(this.isGenerating);
     }
   };
+
+  public delete() {
+    if (this.isGenerating) {
+      throw new Error(
+        getError(ETError.ModelGenerating) +
+          'You cannot delete the model now. You need to interrupt first.'
+      );
+    }
+    this.ocrNativeModule.unload();
+    this.isReadyCallback(false);
+    this.isGeneratingCallback(false);
+  }
 }

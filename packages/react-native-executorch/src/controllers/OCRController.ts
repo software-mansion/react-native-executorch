@@ -33,7 +33,6 @@ export class OCRController {
     language: OCRLanguage,
     onDownloadProgressCallback?: (downloadProgress: number) => void
   ) => {
-    console.log('VOCR LOADING CONTROLLER!');
     try {
       if (!detectorSource || Object.keys(recognizerSources).length !== 3)
         return;
@@ -92,4 +91,16 @@ export class OCRController {
       this.isGeneratingCallback(this.isGenerating);
     }
   };
+
+  public delete() {
+    if (this.isGenerating) {
+      throw new Error(
+        getError(ETError.ModelGenerating) +
+          'You cannot delete the model now. You need to interrupt first.'
+      );
+    }
+    this.nativeModule.unload();
+    this.isReadyCallback(false);
+    this.isGeneratingCallback(false);
+  }
 }
