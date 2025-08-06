@@ -71,7 +71,8 @@ cv::Rect extractBoundingBox(std::array<rnexecutorch::Point, 4> &points) {
   return cv::boundingRect(pointsMat);
 }
 
-cv::Mat cropSingleCharacter(const cv::Mat &img) {
+cv::Mat characterBitMask(const cv::Mat &img) {
+  // 1. Determine if character is darker/lighter than background.
   cv::Mat histogram;
   int histSize = 256;
   float range[] = {0.0f, 256.0f};
@@ -82,6 +83,7 @@ cv::Mat cropSingleCharacter(const cv::Mat &img) {
   cv::calcHist(&img, 1, 0, cv::Mat(), histogram, 1, &histSize, &histRange,
                uniform, accumulate);
 
+  // Compare sum of darker (left half) vs brighter (right half) pixels.
   int midPoint = histSize / 2;
   double sumLeft = 0.0;
   double sumRight = 0.0;
@@ -91,13 +93,14 @@ cv::Mat cropSingleCharacter(const cv::Mat &img) {
   for (int i = midPoint; i < histSize; i++) {
     sumRight += histogram.at<float>(i);
   }
-
   const int thresholdType =
       (sumLeft < sumRight) ? cv::THRESH_BINARY_INV : cv::THRESH_BINARY;
 
+  // 2. Binarize using Otsu's method (auto threshold).
   cv::Mat thresh;
   cv::threshold(img, thresh, 0, 255, thresholdType + cv::THRESH_OTSU);
 
+  // 3. Find the largest connected component near the center.
   cv::Mat labels, stats, centroids;
   const int numLabels = cv::connectedComponentsWithStats(thresh, labels, stats,
                                                          centroids, 8, CV_32S);
@@ -111,24 +114,23 @@ cv::Mat cropSingleCharacter(const cv::Mat &img) {
 
   int selectedComponent = -1;
 
-  for (int i = 1; i < numLabels; i++) {
+  for (int i = 1; i < numLabels; i++) { // Skip background (label 0)
     const int area = stats.at<int>(i, cv::CC_STAT_AREA);
     const double cx = centroids.at<double>(i, 0);
     const double cy = centroids.at<double>(i, 1);
 
-    if ((minX < cx && cx < maxX && minY < cy && cy < maxY &&
-         area > ocr::singleCharacterMinSize) &&
+    if ((minX < cx && cx < maxX && minY < cy &&
+         cy < maxY &&                           // check if centered
+         area > ocr::singleCharacterMinSize) && // check if large enough
         (selectedComponent == -1 ||
          area > stats.at<int>(selectedComponent, cv::CC_STAT_AREA))) {
       selectedComponent = i;
     }
   }
-
-  cv::Mat mask = cv::Mat::zeros(img.size(), CV_8UC1);
-  if (selectedComponent != -1) {
-    mask = (labels == selectedComponent);
-  }
-
+  // 4. Extract the character and invert to white-on-black.
+  cv::Mat mask = (selectedComponent != -1)
+                     ? (labels == selectedComponent)
+                     : cv::Mat::zeros(img.size(), CV_8UC1);
   cv::Mat resultImage = cv::Mat::zeros(img.size(), img.type());
   img.copyTo(resultImage, mask);
 
@@ -177,13 +179,22 @@ cropImageWithBoundingBox(const cv::Mat &img,
   if (rect.width == 0 || rect.height == 0) {
     return cv::Mat();
   }
-  cv::Mat croppedImage = img(rect).clone();
+  auto croppedImage = img(rect).clone();
+  return croppedImage;
+}
 
-  cv::cvtColor(croppedImage, croppedImage, cv::COLOR_BGR2GRAY);
-  cv::resize(croppedImage, croppedImage,
+cv::Mat
+prepareForRecognition(const cv::Mat &originalImage,
+                      const std::array<rnexecutorch::Point, 4> &bbox,
+                      const std::array<rnexecutorch::Point, 4> &originalBbox,
+                      const rnexecutorch::PaddingInfo &paddings,
+                      const rnexecutorch::PaddingInfo &originalPaddings) {
+  auto croppedChar = cropImageWithBoundingBox(originalImage, bbox, originalBbox,
+                                              paddings, originalPaddings);
+  cv::cvtColor(croppedChar, croppedChar, cv::COLOR_BGR2GRAY);
+  cv::resize(croppedChar, croppedChar,
              cv::Size(ocr::smallVerticalRecognizerWidth, ocr::recognizerHeight),
              0, 0, cv::INTER_AREA);
-
-  return croppedImage;
+  return croppedChar;
 }
 } // namespace rnexecutorch::ocr

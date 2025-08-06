@@ -33,6 +33,11 @@ cv::Mat getMatrixFromTensor(cv::Size size, const Tensor &tensor);
 TensorPtr getTensorFromMatrixGray(const std::vector<int32_t> &tensorDims,
                                   const cv::Mat &matrix);
 std::vector<float> grayMatToVector(const cv::Mat &mat);
+/**
+ * @brief Resizes an image to fit within target dimensions while preserving
+ * aspect ratio, adding padding if needed. Padding color is derived from the
+ * image's corner pixels for seamless blending.
+ */
 cv::Mat resizePadded(cv::Mat inputImage, cv::Size targetSize);
 /// @brief Read image, resize it and copy it to an ET tensor to store it.
 /// @param path Path to the image to be resized. Could be base64, local file or

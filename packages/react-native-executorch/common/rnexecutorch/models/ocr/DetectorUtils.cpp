@@ -285,6 +285,10 @@ getDetBoxesFromTextMapVertical(cv::Mat &textMap, cv::Mat &affinityMap,
   return detectedBoxes;
 }
 
+float calculateRestoreRatio(int32_t currentSize, int32_t desiredSize) {
+  return desiredSize / static_cast<float>(currentSize);
+}
+
 void restoreBboxRatio(std::vector<DetectorBBox> &boxes, float restoreRatio) {
   for (auto &box : boxes) {
     for (auto &point : box.bbox) {
@@ -419,8 +423,7 @@ std::array<Point, 4> rotateBox(const std::array<Point, 4> &box, float angle) {
     const float rotatedY =
         translatedX * std::sin(radians) + translatedY * std::cos(radians);
 
-    rotatedPoints[i] = {.x = rotatedX + center.x,
-                                .y = rotatedY + center.y};
+    rotatedPoints[i] = {.x = rotatedX + center.x, .y = rotatedY + center.y};
   }
 
   return rotatedPoints;
@@ -579,10 +582,14 @@ findClosestBox(const std::vector<DetectorBBox> &boxes,
                    : std::nullopt;
 }
 
+/**
+ * Filters out boxes that are smaller than the specified thresholds.
+ * A box is kept only if:
+ *   - Its shorter side is **greater than** `minSideThreshold`, **and**
+ *   - Its longer side is **greater than** `maxSideThreshold`.
+ * Otherwise, the box is excluded from the result.
+ */
 std::vector<DetectorBBox>
-// We accept only boxes "larger" than minSideThreshold x maxSideThreshold.
-// By larger we mean, shorter side must be bigger than minSideThreshold,
-// and longer side must be bigger than maxSideThreshold.
 removeSmallBoxesFromArray(const std::vector<DetectorBBox> &boxes,
                           float minSideThreshold, float maxSideThreshold) {
   std::vector<DetectorBBox> filteredBoxes;

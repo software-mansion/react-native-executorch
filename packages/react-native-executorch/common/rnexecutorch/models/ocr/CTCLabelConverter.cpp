@@ -4,6 +4,28 @@
 
 namespace rnexecutorch::ocr {
 
+/*
+  CTC (Connectionist Temporal Classification) Label Converter
+  is used for decoding the returned list of indices by Recognizer into
+  actual characters.
+  For each Recognizer there is an 1:1 correspondence between
+  an index and a character. CTC Label Converter operates on this
+  mapping. Symbol corresponding to the first index is a [blank]
+  character, meaning "no character to decode here".
+  The decoder ignores [blank] char.
+
+  The current strategy used for decoding is greedy approach
+  which iterates through the list of indices and process
+  each index using following steps:
+    1. Ignore if idx == 0
+    2. Ignore if idx is the same as last idx
+    3. decode idx -> char and append it to returned text.
+
+  Note that ignoring repeated indices, does not mean decoding
+  won't handle repeated letters in a word, since in most cases
+  actual chars are already seperated by blank tokens.
+*/
+
 CTCLabelConverter::CTCLabelConverter(const std::string &characters)
     : ignoreIdx(0),
       character({"[blank]"}) // blank character is ignored character (index 0).

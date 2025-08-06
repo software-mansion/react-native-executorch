@@ -10,6 +10,7 @@
 #include <rnexecutorch/models/ocr/RecognizerUtils.h>
 #include <rnexecutorch/models/vertical_ocr/VerticalDetector.h>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace rnexecutorch {
@@ -27,6 +28,15 @@ public:
   std::size_t getMemoryLowerBound() const noexcept;
 
 private:
+  std::pair<std::string, float> _handleIndependentCharacters(
+      const DetectorBBox &box, const cv::Mat &originalImage,
+      const std::vector<DetectorBBox> &characterBoxes,
+      const PaddingInfo &paddingsBox, const PaddingInfo &imagePaddings);
+  std::pair<std::string, float>
+  _handleJointCharacters(const DetectorBBox &box, const cv::Mat &originalImage,
+                         const std::vector<DetectorBBox> &characterBoxes,
+                         const PaddingInfo &paddingsBox,
+                         const PaddingInfo &imagePaddings);
   OCRDetection _processSingleTextBox(DetectorBBox &box,
                                      const cv::Mat &originalImage,
                                      const cv::Mat &resizedLargeImage,

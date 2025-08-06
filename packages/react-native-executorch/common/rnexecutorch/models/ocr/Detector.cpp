@@ -2,12 +2,13 @@
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/DetectorUtils.h>
-
 namespace rnexecutorch {
 
 /*
-The model used as detector is based on CRAFT (Character Region Awareness for
-Text Detection) paper. https://arxiv.org/pdf/1904.01941
+ Detector is a model responsible for recognizing the areas where text is
+ located. It returns the list of bounding boxes. The model used as detector is
+ based on CRAFT (Character Region Awareness for Text Detection) paper.
+ https://arxiv.org/pdf/1904.01941
 */
 
 Detector::Detector(const std::string &modelSource,
@@ -32,7 +33,9 @@ cv::Size Detector::getModelImageSize() const noexcept { return modelImageSize; }
 
 std::vector<DetectorBBox> Detector::generate(const cv::Mat &inputImage) {
   /*
-   Detector as an input accepts tensor with a shape of [1, 3, 800, 800].
+   Detector as an input accepts tensor with a shape of [1, 3, H, H].
+   where H is a constant for model. In our supported models it is currently
+   either H=800 or H=1280.
    Due to big influence of resize to quality of recognition the image preserves
    original aspect ratio and the missing parts are filled with padding.
    */
@@ -41,7 +44,7 @@ std::vector<DetectorBBox> Detector::generate(const cv::Mat &inputImage) {
       imageprocessing::resizePadded(inputImage, getModelImageSize());
   TensorPtr inputTensor = imageprocessing::getTensorFromMatrix(
       inputShapes[0], resizedInputImage, ocr::mean, ocr::variance);
-
+  // Run model
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
@@ -58,9 +61,7 @@ std::vector<DetectorBBox> Detector::postprocess(const Tensor &tensor) const {
    1. ScoreText(Score map) - The probability of a region containing character.
    2. ScoreAffinity(Affinity map) - affinity between characters, used to to
    group each character into a single instance (sequence) Both matrices are
-   H/2xW/2.
-
-   The result of this step is a list of bounding boxes that contain text.
+   H/2xW/2 (400x400 or 640x640).
    */
   std::span<const float> tensorData(tensor.const_data_ptr<float>(),
                                     tensor.numel());
@@ -71,12 +72,35 @@ std::vector<DetectorBBox> Detector::postprocess(const Tensor &tensor) const {
   auto [scoreTextMat, scoreAffinityMat] = ocr::interleavedArrayToMats(
       tensorData,
       cv::Size(modelImageSize.width / 2, modelImageSize.height / 2));
+
+  /*
+   Heatmaps are then converted into list of bounding boxes.
+   Too see how it is achieved see the description of this function in
+   the DetectorUtils.h source file and the implementation in the
+   DetectorUtils.cpp.
+  */
   std::vector<DetectorBBox> bBoxesList = ocr::getDetBoxesFromTextMap(
       scoreTextMat, scoreAffinityMat, ocr::textThreshold, ocr::linkThreshold,
       ocr::lowTextThreshold);
 
-  ocr::restoreBboxRatio(bBoxesList, ocr::restoreRatio);
+  /*
+   Bounding boxes are at first corresponding to the 400x400 size or 640x640.
+   RecognitionHandler in the later part of processing works on images of size
+   1280x1280. To match this difference we has to scale  by the proper factor
+   (3.2 or 2.0).
+  */
 
+  const float restoreRatio =
+      ocr::calculateRestoreRatio(scoreTextMat.rows, ocr::recognizerImageSize);
+  ocr::restoreBboxRatio(bBoxesList, restoreRatio);
+  /*
+   Since every bounding box is processed separately by Recognition models, we'd
+   like to reduce the number of boxes. Also, grouping nearby boxes means we
+   process many words / full line at once. It is not only faster but also easier
+   for Recognizer models than recognition of single characters. To understand
+   how the grouping works, see the description in DetectorUtils.h source file
+   and the implementation in the .cpp file.
+  */
   bBoxesList = ocr::groupTextBoxes(bBoxesList, ocr::centerThreshold,
                                    ocr::distanceThreshold, ocr::heightThreshold,
                                    ocr::minSideThreshold, ocr::maxSideThreshold,

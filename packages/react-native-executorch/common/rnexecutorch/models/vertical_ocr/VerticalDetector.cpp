@@ -9,8 +9,25 @@
 namespace rnexecutorch {
 
 /*
-The model used as detector is based on CRAFT (Character Region Awareness for
-Text Detection) paper. https://arxiv.org/pdf/1904.01941
+ Vertical Detector is an sligtly modified Detector tuned for detecting Vertical
+ text. For more details about standard detector, refer to the file
+ ocr/Detector.cpp.
+
+  In Vertical OCR pipeline we make use of Detector two times:
+
+  1. Large Detector -- The differences between Detector used in standard OCR and
+ Large Detector used in Vertical OCR is: a) To obtain detected boxes from heeat
+ maps it utilizes `getDetBoxesFromTextMapVertical()` function rather than
+ 'getDetBoxesFromTextMap()`. Other than that, refer to the standard OCR
+ Detector.
+
+  2. Narrow Detector -- it is designed to detect a single characters bounding
+ boxes. `getDetBoxesFromTextMapVertical()` function acts differently for Narrow
+ Detector and different textThreshold Value is passed. Additionally, the
+ grouping of detected boxes is completely omited.
+
+  Vertical Detector pipeline differentiate the Large Detector and Narrow
+ Detector based on `detectSingleCharacters` flag passed to the constructor.
 */
 
 VerticalDetector::VerticalDetector(
@@ -44,6 +61,7 @@ VerticalDetector::generate(const cv::Mat &inputImage) {
       imageprocessing::resizePadded(inputImage, getModelImageSize());
   TensorPtr inputTensor = imageprocessing::getTensorFromMatrix(
       inputShapes[0], resizedInputImage, ocr::mean, ocr::variance);
+  // Run model
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
@@ -79,9 +97,11 @@ VerticalDetector::postprocess(const Tensor &tensor) const {
   std::vector<DetectorBBox> bBoxesList = ocr::getDetBoxesFromTextMapVertical(
       scoreTextMat, scoreAffinityMat, txtThreshold, ocr::linkThreshold,
       this->detectSingleCharacters);
+  const float restoreRatio =
+      ocr::calculateRestoreRatio(scoreTextMat.rows, ocr::recognizerImageSize);
+  ocr::restoreBboxRatio(bBoxesList, restoreRatio);
 
-  ocr::restoreBboxRatio(bBoxesList, ocr::restoreRatioVertical);
-
+  // if this is Narrow Detector, do not group boxes.
   if (!this->detectSingleCharacters) {
     bBoxesList = ocr::groupTextBoxes(
         bBoxesList, ocr::centerThreshold, ocr::distanceThreshold,

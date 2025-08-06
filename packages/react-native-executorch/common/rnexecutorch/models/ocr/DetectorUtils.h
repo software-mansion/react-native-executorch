@@ -37,6 +37,8 @@ getDetBoxesFromTextMapVertical(cv::Mat &textMap, cv::Mat &affinityMap,
                                float textThreshold, float linkThreshold,
                                bool independentCharacters);
 
+float calculateRestoreRatio(int32_t currentSize, int32_t desiredSize);
+
 void restoreBboxRatio(std::vector<DetectorBBox> &boxes, float restoreRatio);
 /**
  * This method processes a vector of DetectorBBox bounding boxes, each
@@ -67,8 +69,7 @@ void restoreBboxRatio(std::vector<DetectorBBox> &boxes, float restoreRatio);
  * 1. Sort initial boxes based on their maximum side length.
  * 2. Sequentially merge boxes considering alignment, proximity, and size
  * compatibility.
- * 3. Post-processing to remove any boxes that are too small or exceed max side
- * criteria.
+ * 3. Post-processing to remove any boxes that are too small.
  * 4. Sort the final array of boxes by their vertical positions.
  */
 std::vector<DetectorBBox>
