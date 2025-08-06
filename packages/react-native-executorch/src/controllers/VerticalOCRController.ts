@@ -9,24 +9,21 @@ export class VerticalOCRController {
   public isReady: boolean = false;
   public isGenerating: boolean = false;
   public error: string | null = null;
-  private modelDownloadProgressCallback: (downloadProgress: number) => void;
   private isReadyCallback: (isReady: boolean) => void;
   private isGeneratingCallback: (isGenerating: boolean) => void;
   private errorCallback: (error: string) => void;
 
   constructor({
-    modelDownloadProgressCallback = (_downloadProgress: number) => {},
     isReadyCallback = (_isReady: boolean) => {},
     isGeneratingCallback = (_isGenerating: boolean) => {},
     errorCallback = (_error: string) => {},
-  }) {
-    this.modelDownloadProgressCallback = modelDownloadProgressCallback;
+  } = {}) {
     this.isReadyCallback = isReadyCallback;
     this.isGeneratingCallback = isGeneratingCallback;
     this.errorCallback = errorCallback;
   }
 
-  public loadModel = async (
+  public load = async (
     detectorSources: {
       detectorLarge: ResourceSource;
       detectorNarrow: ResourceSource;
@@ -36,7 +33,8 @@ export class VerticalOCRController {
       recognizerSmall: ResourceSource;
     },
     language: OCRLanguage,
-    independentCharacters: boolean
+    independentCharacters: boolean,
+    onDownloadProgressCallback: (downloadProgress: number) => void
   ) => {
     try {
       if (
@@ -53,7 +51,7 @@ export class VerticalOCRController {
       this.isReadyCallback(this.isReady);
 
       const paths = await ResourceFetcher.fetch(
-        this.modelDownloadProgressCallback,
+        onDownloadProgressCallback,
         detectorSources.detectorLarge,
         detectorSources.detectorNarrow,
         independentCharacters

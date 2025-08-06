@@ -34,7 +34,6 @@ export const useVerticalOCR = ({
   const controllerInstance = useMemo(
     () =>
       new VerticalOCRController({
-        modelDownloadProgressCallback: setDownloadProgress,
         isReadyCallback: setIsReady,
         isGeneratingCallback: setIsGenerating,
         errorCallback: setError,
@@ -46,7 +45,7 @@ export const useVerticalOCR = ({
     if (preventLoad) return;
 
     (async () => {
-      await controllerInstance.loadModel(
+      await controllerInstance.load(
         {
           detectorLarge: model.detectorLarge,
           detectorNarrow: model.detectorNarrow,
@@ -56,7 +55,8 @@ export const useVerticalOCR = ({
           recognizerSmall: model.recognizerSmall,
         },
         model.language,
-        independentCharacters
+        independentCharacters,
+        setDownloadProgress
       );
     })();
   }, [
