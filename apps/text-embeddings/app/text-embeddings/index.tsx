@@ -11,12 +11,9 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  useTextEmbeddings,
-  ALL_MINILM_L6_V2,
-  ALL_MINILM_L6_V2_TOKENIZER,
-} from 'react-native-executorch';
+import { useTextEmbeddings, ALL_MINILM_L6_V2 } from 'react-native-executorch';
 import { useIsFocused } from '@react-navigation/native';
+import { dotProduct } from '../../utils/math';
 
 export default function TextEmbeddingsScreenWrapper() {
   const isFocused = useIsFocused();
@@ -25,11 +22,7 @@ export default function TextEmbeddingsScreenWrapper() {
 }
 
 function TextEmbeddingsScreen() {
-  const model = useTextEmbeddings({
-    modelSource: ALL_MINILM_L6_V2,
-    tokenizerSource: ALL_MINILM_L6_V2_TOKENIZER,
-    meanPooling: true,
-  });
+  const model = useTextEmbeddings({ model: ALL_MINILM_L6_V2 });
 
   const [inputSentence, setInputSentence] = useState('');
   const [sentencesWithEmbeddings, setSentencesWithEmbeddings] = useState<
@@ -38,14 +31,6 @@ function TextEmbeddingsScreen() {
   const [topMatches, setTopMatches] = useState<
     { sentence: string; similarity: number }[]
   >([]);
-
-  const dotProduct = (a: Float32Array, b: Float32Array) => {
-    let sum = 0;
-    for (let i = 0; i < a.length; i++) {
-      sum += a[i] * b[i];
-    }
-    return sum;
-  };
 
   useEffect(
     () => {

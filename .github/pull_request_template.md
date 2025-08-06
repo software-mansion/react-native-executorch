@@ -2,12 +2,17 @@
 
 <!-- Provide a concise and descriptive summary of the changes implemented in this PR. -->
 
+### Introduces a breaking change?
+
+- [ ] Yes
+- [ ] No
+
 ### Type of change
 
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] Bug fix (change which fixes an issue)
+- [ ] New feature (change which adds functionality)
 - [ ] Documentation update (improves or adds clarity to existing documentation)
+- [ ] Other (chores, tests, code style improvements etc.)
 
 ### Tested on
 

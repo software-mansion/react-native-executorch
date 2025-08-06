@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <exception>
 #include <filesystem>
+#include <ios>
 #include <iostream>
 #include <iterator>
 #include <memory>
@@ -50,13 +51,28 @@ concept HasPop = requires(T t) {
 };
 
 template <typename T>
-concept HasEmpty = requires(T t) {
-  { t.empty() } -> std::convertible_to<int>;
+concept HasEmpty = requires(const T &t) {
+  { t.empty() } -> std::same_as<bool>;
 };
 
+// These two below are needed apart from TopAccessible and FrontAccessible
+// to guarantee that correct templated is matched
 template <typename T>
-concept Sequencable =
-    HasPop<T> && HasEmpty<T> && (FrontAccessible<T> || TopAccessible<T>);
+concept ReadOnlySequencableFront = requires(const T &t) {
+  { t.front() } -> std::same_as<const typename T::value_type &>;
+} && HasEmpty<T> && !Iterable<T>;
+
+template <typename T>
+concept ReadOnlySequencableTop = requires(const T &t) {
+  { t.top() } -> std::same_as<const typename T::value_type &>;
+} && HasEmpty<T> && !Iterable<T>;
+
+template <typename T>
+concept ReadOnlySequencable =
+    ReadOnlySequencableFront<T> || ReadOnlySequencableTop<T>;
+
+template <typename T>
+concept MutableSequencable = ReadOnlySequencable<T> && HasPop<T>;
 
 template <typename T>
 concept Streamable = requires(std::ostream &os, const T &t) {
@@ -79,12 +95,11 @@ concept WeakPointer = requires(const T &a) {
 };
 
 template <typename T>
-concept Fallback = !Iterable<T> && !Sequencable<T> && !Streamable<T> &&
-                   !SmartPointer<T> && !WeakPointer<T>;
+concept Fallback =
+    !Iterable<T> && !Streamable<T> && !SmartPointer<T> && !WeakPointer<T> &&
+    !ReadOnlySequencable<T> && !MutableSequencable<T>;
 
 } // namespace concepts
-
-void printElement(std::ostream &os, bool value);
 
 template <typename T>
   requires concepts::Streamable<T> && (!concepts::SmartPointer<T>)
@@ -103,9 +118,15 @@ template <typename T>
   requires concepts::Iterable<T> && (!concepts::Streamable<T>)
 void printElement(std::ostream &os, const T &container);
 
+template <typename T> void printSequencable(std::ostream &os, T &&container);
+
 template <typename T>
-  requires concepts::Sequencable<T>
-void printElement(std::ostream &os, T container);
+  requires concepts::ReadOnlySequencable<T>
+void printElement(std::ostream &os, const T &container);
+
+template <typename T>
+  requires concepts::MutableSequencable<T>
+void printElement(std::ostream &os, T &&container);
 
 template <typename... Args>
 void printElement(std::ostream &os, const std::tuple<Args...> &tpl);
@@ -131,10 +152,6 @@ void printElement(std::ostream &os,
 
 template <concepts::Fallback UnsupportedArg>
 void printElement(std::ostream &os, const UnsupportedArg &value);
-
-void printElement(std::ostream &os, bool value) {
-  os << (value ? "true" : "false");
-}
 
 void printElement(std::ostream &os, const std::error_code &ec);
 
@@ -189,28 +206,44 @@ void printElement(std::ostream &os, const T &container) {
   os << "]";
 }
 
-template <typename T>
-  requires concepts::Sequencable<T>
-void printElement(
-    std::ostream &os,
-    T container) { // Pass by value to prevent modifications to the original
+template <typename T> void printSequencable(std::ostream &os, T &&container) {
   os << "[";
-
   bool isFirst = true;
-  while (!container.empty()) {
+
+  auto printElementLambda = [&isFirst, &os](auto &&element) {
     if (!isFirst) {
       os << ", ";
     }
+    low_level_log_implementation::printElement(
+        os, std::forward<decltype(element)>(element));
+    isFirst = false;
+  };
+
+  while (!container.empty()) {
     if constexpr (concepts::FrontAccessible<T>) {
-      printElement(os, container.front());
+      printElementLambda(container.front());
     } else if constexpr (concepts::TopAccessible<T>) {
-      printElement(os, container.top());
+      printElementLambda(container.top());
     }
     container.pop();
-    isFirst = false;
   }
 
   os << "]";
+}
+
+template <typename T>
+  requires concepts::ReadOnlySequencable<T>
+void printElement(std::ostream &os, const T &container) {
+  T tempContainer = container; // Make a copy to preserve original container
+  printSequencable(
+      os, std::move(tempContainer)); // Use std::move since tempContainer won't
+                                     // be used again
+}
+
+template <typename T>
+  requires concepts::MutableSequencable<T>
+void printElement(std::ostream &os, T &&container) {
+  printSequencable(os, std::forward<T>(container));
 }
 
 template <typename... Args>
@@ -388,6 +421,12 @@ std::string getBuffer(const std::string &logMessage,
   return logMessage;
 }
 
+std::ostringstream createConfiguredOutputStream() {
+  std::ostringstream oss;
+  oss << std::boolalpha;
+  return oss;
+}
+
 } // namespace high_level_log_implementation
 
 /**
@@ -416,14 +455,15 @@ std::string getBuffer(const std::string &logMessage,
  *    Nothing.
  */
 template <std::size_t MaxLogSize = 1024, typename... Args>
-void log(LOG_LEVEL logLevel, const Args &...args) {
-  std::ostringstream oss;
-  auto space = [&oss](const auto &arg) {
-    low_level_log_implementation::printElement(oss, arg);
+void log(LOG_LEVEL logLevel, Args &&...args) {
+  auto oss = high_level_log_implementation::createConfiguredOutputStream();
+  auto space = [&oss](auto &&arg) {
+    low_level_log_implementation::printElement(
+        oss, std::forward<decltype(arg)>(arg));
     oss << ' ';
   };
 
-  (..., space(args));
+  (..., space(std::forward<Args>(args)));
 
   // Remove the extra space after the last element
   std::string output = oss.str();

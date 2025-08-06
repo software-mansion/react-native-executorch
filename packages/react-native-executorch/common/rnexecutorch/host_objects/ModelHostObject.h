@@ -1,13 +1,12 @@
 #pragma once
 
-#include <cstdio>
+#include <ReactCommon/CallInvoker.h>
 #include <string>
+#include <thread>
 #include <tuple>
 #include <type_traits>
-#include <vector>
 
-#include <ReactCommon/CallInvoker.h>
-
+#include <memory.h>
 #include <rnexecutorch/TokenizerModule.h>
 #include <rnexecutorch/host_objects/JSTensorViewOut.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
@@ -52,6 +51,12 @@ public:
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::encode>,
                                        "encode"));
+    }
+
+    if constexpr (meta::HasDecode<Model>) {
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::decode>,
+                                       "decode"));
     }
 
     if constexpr (meta::SameAs<Model, TokenizerModule>) {

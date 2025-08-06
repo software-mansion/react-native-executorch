@@ -14,9 +14,7 @@ class RnExecutorchPackage : TurboReactPackage() {
     name: String,
     reactContext: ReactApplicationContext,
   ): NativeModule? =
-    if (name == SpeechToText.NAME) {
-      SpeechToText(reactContext)
-    } else if (name == OCR.NAME) {
+    if (name == OCR.NAME) {
       OCR(reactContext)
     } else if (name == VerticalOCR.NAME) {
       VerticalOCR(reactContext)
@@ -29,17 +27,6 @@ class RnExecutorchPackage : TurboReactPackage() {
   override fun getReactModuleInfoProvider(): ReactModuleInfoProvider =
     ReactModuleInfoProvider {
       val moduleInfos: MutableMap<String, ReactModuleInfo> = HashMap()
-      moduleInfos[SpeechToText.NAME] =
-        ReactModuleInfo(
-          SpeechToText.NAME,
-          SpeechToText.NAME,
-          false, // canOverrideExistingModule
-          false, // needsEagerInit
-          true, // hasConstants
-          false, // isCxxModule
-          true,
-        )
-
       moduleInfos[OCR.NAME] =
         ReactModuleInfo(
           OCR.NAME,

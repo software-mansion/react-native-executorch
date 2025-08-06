@@ -5,7 +5,7 @@ title: useImageSegmentation
 Semantic image segmentation, akin to image classification, tries to assign the content of the image to one of the predefined classes. However, in case of segmentation this classification is done on a per-pixel basis, so as the result the model provides an image-sized array of scores for each of the classes. You can then use this information to detect objects on a per-pixel basis. React Native ExecuTorch offers a dedicated hook `useImageSegmentation` for this task.
 
 :::caution
-It is recommended to use models provided by us which are available at our [Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-style-transfer-candy), you can also use [constants](https://github.com/software-mansion/react-native-executorch/tree/main/src/constants/modelUrls.ts) shipped with our library.
+It is recommended to use models provided by us which are available at our [Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-style-transfer-candy), you can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/release/0.4/src/constants/modelUrls.ts) shipped with our library.
 :::
 
 ## Reference
@@ -51,7 +51,7 @@ A string that specifies the location of the model binary. For more information, 
 To run the model, you can use the `forward` method. It accepts three arguments: a required image, an optional list of classes, and an optional flag whether to resize the output to the original dimensions.
 
 - The image can be a remote URL, a local file URI, or a base64-encoded image.
-- The `classesOfInterest` list contains classes for which to output the full results. By default the list is empty, and only the most probable classes are returned (essentially an arg max for each pixel). Look at [`DeeplabLabel`](http://github.com/software-mansion/react-native-executorch/blob/main/src/types/image_segmentation.ts) enum for possible classes.
+- The `classesOfInterest` list contains classes for which to output the full results. By default the list is empty, and only the most probable classes are returned (essentially an arg max for each pixel). Look at [`DeeplabLabel`](http://github.com/software-mansion/react-native-executorch/blob/release/0.4/src/types/imageSegmentation.ts) enum for possible classes.
 - The `resize` flag says whether the output will be rescaled back to the size of the image you put in. The default is `false`. The model runs inference on a scaled (probably smaller) version of your image (224x224 for `DEEPLAB_V3_RESNET50`). If you choose to resize, the output will be `number[]` of size `width * height` of your original image.
 
 :::caution
@@ -87,7 +87,7 @@ function App(){
 
 | Model                                                                                                                          | Number of classes | Class list                                                                                                           |
 | ------------------------------------------------------------------------------------------------------------------------------ | ----------------- | -------------------------------------------------------------------------------------------------------------------- |
-| [deeplabv3_resnet50](https://pytorch.org/vision/0.20/models/generated/torchvision.models.segmentation.deeplabv3_resnet50.html) | 21                | [DeeplabLabel](http://github.com/software-mansion/react-native-executorch/blob/main/src/types/image_segmentation.ts) |
+| [deeplabv3_resnet50](https://pytorch.org/vision/stable/models/generated/torchvision.models.segmentation.deeplabv3_resnet50.html) | 21                | [DeeplabLabel](http://github.com/software-mansion/react-native-executorch/blob/release/0.4/src/types/imageSegmentation.ts) |
 
 ## Benchmarks
 

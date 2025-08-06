@@ -37,6 +37,12 @@ module.exports = {
   plugins: ['prettier', 'markdown'],
   overrides: [
     {
+      files: ['packages/react-native-executorch/src/**/*.{js,jsx,ts,tsx}'],
+      rules: {
+        'no-console': 'warn',
+      },
+    },
+    {
       files: ['**/*.md'],
       processor: 'markdown/markdown',
     },

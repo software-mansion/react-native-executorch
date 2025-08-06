@@ -48,4 +48,5 @@ int32_t TokenizerModule::tokenToId(std::string token) const {
 std::size_t TokenizerModule::getMemoryLowerBound() const noexcept {
   return memorySizeLowerBound;
 }
+
 } // namespace rnexecutorch

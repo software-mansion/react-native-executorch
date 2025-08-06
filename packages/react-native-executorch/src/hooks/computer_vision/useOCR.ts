@@ -12,18 +12,16 @@ interface OCRModule {
 }
 
 export const useOCR = ({
-  detectorSource,
-  recognizerSources,
-  language = 'en',
+  model,
   preventLoad = false,
 }: {
-  detectorSource: ResourceSource;
-  recognizerSources: {
+  model: {
+    detectorSource: ResourceSource;
     recognizerLarge: ResourceSource;
     recognizerMedium: ResourceSource;
     recognizerSmall: ResourceSource;
+    language: OCRLanguage;
   };
-  language?: OCRLanguage;
   preventLoad?: boolean;
 }): OCRModule => {
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +29,7 @@ export const useOCR = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
 
-  const model = useMemo(
+  const controllerInstance = useMemo(
     () =>
       new OCRController({
         modelDownloadProgressCallback: setDownloadProgress,
@@ -44,19 +42,27 @@ export const useOCR = ({
 
   useEffect(() => {
     const loadModel = async () => {
-      await model.loadModel(detectorSource, recognizerSources, language);
+      await controllerInstance.loadModel(
+        model.detectorSource,
+        {
+          recognizerLarge: model.recognizerLarge,
+          recognizerMedium: model.recognizerMedium,
+          recognizerSmall: model.recognizerSmall,
+        },
+        model.language
+      );
     };
 
     if (!preventLoad) {
       loadModel();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    model,
-    detectorSource,
-    language,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    JSON.stringify(recognizerSources),
+    controllerInstance,
+    model.detectorSource,
+    model.recognizerLarge,
+    model.recognizerMedium,
+    model.recognizerSmall,
+    model.language,
     preventLoad,
   ]);
 
@@ -64,7 +70,7 @@ export const useOCR = ({
     error,
     isReady,
     isGenerating,
-    forward: model.forward,
+    forward: controllerInstance.forward,
     downloadProgress,
   };
 };

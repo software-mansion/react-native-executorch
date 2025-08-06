@@ -13,8 +13,6 @@ import {
 import SendIcon from '../../assets/icons/send_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {
-  QWEN3_TOKENIZER,
-  QWEN3_TOKENIZER_CONFIG,
   useLLM,
   fixAndValidateStructuredOutput,
   getStructuredOutputPrompt,
@@ -75,12 +73,7 @@ function LLMScreen() {
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
-  const llm = useLLM({
-    // try out 4B model it this one struggles with following structured output
-    modelSource: QWEN3_1_7B_QUANTIZED,
-    tokenizerSource: QWEN3_TOKENIZER,
-    tokenizerConfigSource: QWEN3_TOKENIZER_CONFIG,
-  });
+  const llm = useLLM({ model: QWEN3_1_7B_QUANTIZED }); // try out 4B model if 1.7B struggles with following structured output
 
   useEffect(() => {
     setGlobalGenerating(llm.isGenerating);
@@ -89,10 +82,6 @@ function LLMScreen() {
   const { configure } = llm;
   useEffect(() => {
     const formattingInstructions = getStructuredOutputPrompt(responseSchema);
-    // const formattingInstructionsWithZod = getStructuredOutputPrompt(
-    //   responseSchemaWithZod
-    // );
-
     const prompt = `Your goal is to parse user's messages and return them in JSON format. Don't respond to user. Simply return JSON with user's question parsed. \n${formattingInstructions}\n /no_think`;
 
     configure({

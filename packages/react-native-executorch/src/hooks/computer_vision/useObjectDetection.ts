@@ -3,16 +3,13 @@ import { useNonStaticModule } from '../useNonStaticModule';
 import { ObjectDetectionModule } from '../../modules/computer_vision/ObjectDetectionModule';
 
 interface Props {
-  modelSource: ResourceSource;
+  model: { modelSource: ResourceSource };
   preventLoad?: boolean;
 }
 
-export const useObjectDetection = ({
-  modelSource,
-  preventLoad = false,
-}: Props) =>
+export const useObjectDetection = ({ model, preventLoad = false }: Props) =>
   useNonStaticModule({
     module: ObjectDetectionModule,
-    loadArgs: [modelSource],
+    model,
     preventLoad: preventLoad,
   });

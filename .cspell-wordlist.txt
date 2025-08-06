@@ -56,3 +56,5 @@ jitpack
 googletest
 ctest
 gtest
+coreml
+mobilenetv

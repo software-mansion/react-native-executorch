@@ -7,16 +7,16 @@ import {
   STREAMING_ACTION,
 } from '../constants/sttDefaults';
 import { AvailableModels, ModelConfig } from '../types/stt';
-import { SpeechToTextNativeModule } from '../native/RnExecutorchModules';
 import { TokenizerModule } from '../modules/natural_language_processing/TokenizerModule';
 import { ResourceSource } from '../types/common';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { longCommonInfPref } from '../utils/stt';
 import { SpeechToTextLanguage } from '../types/stt';
 import { ETError, getError } from '../Error';
+import { Logger } from '../common/Logger';
 
 export class SpeechToTextController {
-  private speechToTextNativeModule = SpeechToTextNativeModule;
+  private speechToTextNativeModule: any;
 
   public sequence: number[] = [];
   public isReady = false;
@@ -34,9 +34,6 @@ export class SpeechToTextController {
 
   // User callbacks
   private decodedTranscribeCallback: (sequence: number[]) => void;
-  private modelDownloadProgressCallback:
-    | ((downloadProgress: number) => void)
-    | undefined;
   private isReadyCallback: (isReady: boolean) => void;
   private isGeneratingCallback: (isGenerating: boolean) => void;
   private onErrorCallback: (error: any) => void;
@@ -44,7 +41,6 @@ export class SpeechToTextController {
 
   constructor({
     transcribeCallback,
-    modelDownloadProgressCallback,
     isReadyCallback,
     isGeneratingCallback,
     onErrorCallback,
@@ -53,7 +49,6 @@ export class SpeechToTextController {
     streamingConfig,
   }: {
     transcribeCallback: (sequence: string) => void;
-    modelDownloadProgressCallback?: (downloadProgress: number) => void;
     isReadyCallback?: (isReady: boolean) => void;
     isGeneratingCallback?: (isGenerating: boolean) => void;
     onErrorCallback?: (error: Error | undefined) => void;
@@ -64,7 +59,6 @@ export class SpeechToTextController {
     this.tokenizerModule = new TokenizerModule();
     this.decodedTranscribeCallback = async (seq) =>
       transcribeCallback(await this.tokenIdsToText(seq));
-    this.modelDownloadProgressCallback = modelDownloadProgressCallback;
     this.isReadyCallback = (isReady) => {
       this.isReady = isReady;
       isReadyCallback?.(isReady);
@@ -88,29 +82,41 @@ export class SpeechToTextController {
     );
   }
 
-  public async loadModel(
-    modelName: AvailableModels,
-    encoderSource?: ResourceSource,
-    decoderSource?: ResourceSource,
-    tokenizerSource?: ResourceSource
-  ) {
+  public async load({
+    modelName,
+    encoderSource,
+    decoderSource,
+    tokenizerSource,
+    onDownloadProgressCallback,
+  }: {
+    modelName: AvailableModels;
+    encoderSource?: ResourceSource;
+    decoderSource?: ResourceSource;
+    tokenizerSource?: ResourceSource;
+    onDownloadProgressCallback?: (downloadProgress: number) => void;
+  }) {
     this.onErrorCallback(undefined);
     this.isReadyCallback(false);
     this.config = MODEL_CONFIGS[modelName];
 
     try {
-      await this.tokenizerModule.load(
-        tokenizerSource || this.config.tokenizer.source
-      );
-      const paths = await ResourceFetcher.fetch(
-        this.modelDownloadProgressCallback,
+      const tokenizerLoadPromise = this.tokenizerModule.load({
+        tokenizerSource: tokenizerSource || this.config.tokenizer.source,
+      });
+      const pathsPromise = ResourceFetcher.fetch(
+        onDownloadProgressCallback,
         encoderSource || this.config.sources.encoder,
         decoderSource || this.config.sources.decoder
       );
-      if (paths === null || paths.length < 2) {
+      const [_, encoderDecoderResults] = await Promise.all([
+        tokenizerLoadPromise,
+        pathsPromise,
+      ]);
+      encoderSource = encoderDecoderResults?.[0];
+      decoderSource = encoderDecoderResults?.[1];
+      if (!encoderSource || !decoderSource) {
         throw new Error('Download interrupted.');
       }
-      [encoderSource, decoderSource] = paths;
     } catch (e) {
       this.onErrorCallback(e);
       return;
@@ -121,15 +127,16 @@ export class SpeechToTextController {
       // create a separate class for multilingual version of Whisper, since it is the same. We just need
       // the distinction here, in TS, for start tokens and such. If we introduce
       // more versions of Whisper, such as the small one, this should be refactored.
-      modelName = 'whisper';
+      modelName = AvailableModels.WHISPER;
     }
 
     try {
-      await this.speechToTextNativeModule.loadModule(modelName, [
-        encoderSource!,
-        decoderSource!,
-      ]);
-      this.modelDownloadProgressCallback?.(1);
+      const nativeSpeechToText = await global.loadSpeechToText(
+        encoderSource,
+        decoderSource,
+        modelName
+      );
+      this.speechToTextNativeModule = nativeSpeechToText;
       this.isReadyCallback(true);
     } catch (e) {
       this.onErrorCallback(e);
@@ -146,14 +153,14 @@ export class SpeechToTextController {
       this.overlapSeconds = MODES[streamingConfig].overlapSeconds * SECOND;
     }
     if (streamingConfig && (windowSize || overlapSeconds)) {
-      console.warn(
+      Logger.warn(
         `windowSize and overlapSeconds overrides values from streamingConfig ${streamingConfig}.`
       );
     }
     this.windowSize = (windowSize || 0) * SECOND || this.windowSize;
     this.overlapSeconds = (overlapSeconds || 0) * SECOND || this.overlapSeconds;
     if (2 * this.overlapSeconds + this.windowSize >= 30 * SECOND) {
-      console.warn(
+      Logger.warn(
         `Invalid values for overlapSeconds and/or windowSize provided. Expected windowSize + 2 * overlapSeconds (== ${this.windowSize + 2 * this.overlapSeconds}) <= 30. Setting windowSize to ${30 * SECOND - 2 * this.overlapSeconds}.`
       );
       this.windowSize = 30 * SECOND - 2 * this.overlapSeconds;
@@ -224,7 +231,7 @@ export class SpeechToTextController {
     let prevSeqTokenIdx = 0;
     this.prevSeq = this.sequence.slice();
     try {
-      await this.encode(chunk);
+      await this.encode(new Float32Array(chunk));
     } catch (error) {
       this.onErrorCallback(new Error(getError(error) + ' encoding error'));
       return [];
@@ -327,7 +334,6 @@ export class SpeechToTextController {
 
     // Making sure that the error is not set when we get there
     this.isGeneratingCallback(true);
-
     this.resetState();
     this.waveform = waveform;
     this.chunkWaveform();
@@ -455,11 +461,11 @@ export class SpeechToTextController {
     return decodedText;
   }
 
-  public async encode(waveform: number[]) {
+  public async encode(waveform: Float32Array): Promise<null> {
     return await this.speechToTextNativeModule.encode(waveform);
   }
 
-  public async decode(seq: number[], encodings?: number[]) {
-    return await this.speechToTextNativeModule.decode(seq, encodings || []);
+  public async decode(seq: number[]): Promise<number> {
+    return await this.speechToTextNativeModule.decode(seq);
   }
 }

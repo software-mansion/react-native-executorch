@@ -5,17 +5,18 @@ export class TokenizerModule {
   nativeModule: any;
 
   async load(
-    modelSource: ResourceSource,
-    onDownloadProgressCallback: (_: number) => void = () => {}
+    tokenizer: { tokenizerSource: ResourceSource },
+    onDownloadProgressCallback: (progress: number) => void = () => {}
   ): Promise<void> {
     const paths = await ResourceFetcher.fetch(
       onDownloadProgressCallback,
-      modelSource
+      tokenizer.tokenizerSource
     );
-    if (paths === null || paths.length < 1) {
+    const path = paths?.[0];
+    if (!path) {
       throw new Error('Download interrupted.');
     }
-    this.nativeModule = global.loadTokenizerModule(paths[0] || '');
+    this.nativeModule = global.loadTokenizerModule(path);
   }
 
   async encode(s: string) {
@@ -23,6 +24,9 @@ export class TokenizerModule {
   }
 
   async decode(tokens: number[], skipSpecialTokens: boolean = true) {
+    if (tokens.length === 0) {
+      return '';
+    }
     return await this.nativeModule.decode(tokens, skipSpecialTokens);
   }
 

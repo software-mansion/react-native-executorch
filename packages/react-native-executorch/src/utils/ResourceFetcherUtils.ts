@@ -10,6 +10,7 @@ import {
 import { RNEDirectory } from '../constants/directories';
 import { ResourceSource } from '../types/common';
 import { Asset } from 'expo-asset';
+import { Logger } from '../common/Logger';
 
 export const enum HTTP_CODE {
   OK = 200,
@@ -82,18 +83,22 @@ export namespace ResourceFetcherUtils {
         try {
           const response = await fetch(source, { method: 'HEAD' });
           if (!response.ok) {
-            console.warn(
+            Logger.warn(
               `Failed to fetch HEAD for ${source}: ${response.status}`
             );
             continue;
           }
 
           const contentLength = response.headers.get('content-length');
+          if (!contentLength) {
+            Logger.warn(`No content-length header for ${source}`);
+          }
+
           length = contentLength ? parseInt(contentLength, 10) : 0;
           previousFilesTotalLength = totalLength;
           totalLength += length;
         } catch (error) {
-          console.warn(`Error fetching HEAD for ${source}:`, error);
+          Logger.warn(`Error fetching HEAD for ${source}:`, error);
           continue;
         }
       }
@@ -133,6 +138,13 @@ export namespace ResourceFetcherUtils {
         setProgress(1);
         return;
       }
+
+      // Avoid division by zero
+      if (totalLength === 0) {
+        setProgress(0);
+        return;
+      }
+
       const baseProgress = previousFilesTotalLength / totalLength;
       const scaledProgress = progress * (currentFileLength / totalLength);
       const updatedProgress = baseProgress + scaledProgress;

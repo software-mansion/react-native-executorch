@@ -169,7 +169,6 @@ dependencies {
   // For < 0.71, this will be from the local maven repo
   // For > 0.71, this will be replaced by `com.facebook.react:react-android:$version` by react gradle plugin
   //noinspection GradleDynamicVersion
-  implementation 'com.github.wendykierp:JTransforms:3.1'
   implementation "com.facebook.react:react-android:+"
   implementation "com.facebook.react:react-native:+"
   implementation 'com.facebook.fbjni:fbjni:0.6.0'

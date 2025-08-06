@@ -3285,9 +3285,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swmansion/t-rex-ui@npm:1.0.0":
-  version: 1.0.0
-  resolution: "@swmansion/t-rex-ui@npm:1.0.0"
+"@swmansion/t-rex-ui@npm:1.0.1":
+  version: 1.0.1
+  resolution: "@swmansion/t-rex-ui@npm:1.0.1"
   dependencies:
     "@docusaurus/core": "npm:3.7.0"
     "@docusaurus/module-type-aliases": "npm:3.7.0"
@@ -3299,7 +3299,7 @@ __metadata:
     "@mui/material": ">=5.0.0"
     react: "*"
     react-dom: "*"
-  checksum: 10/d6934588d9b275d890c45eee5b8d10ac18e0226c9ddbee601be5f8506780cfc4eed9ab7e28f33db8516ed71d1ad057e747e108556228281bdd9ad0031870e43b
+  checksum: 10/06ad05125e6ee66243e3125b8576c9cad0fbef25bce6b08d1f0353c99ee031aa27a3b90a34bfc6f6de970edaca1f785a58dcc0c8ce309b41eae04c7c2fa223cc
   languageName: node
   linkType: hard
 
@@ -4586,17 +4586,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001669":
-  version: 1.0.30001669
-  resolution: "caniuse-lite@npm:1.0.30001669"
-  checksum: 10/cd0b481bb997703cb7651e55666b4aa4e7b4ecf9784796e2393179a15e55c71a6abc6ff865c922bbd3bbfa4a4bf0530d8da13989b97ff8c7850c8a5bd4e00491
-  languageName: node
-  linkType: hard
-
-"caniuse-lite@npm:^1.0.30001702, caniuse-lite@npm:^1.0.30001716":
-  version: 1.0.30001718
-  resolution: "caniuse-lite@npm:1.0.30001718"
-  checksum: 10/e172a4c156f743cc947e659f353ad9edb045725cc109a02cc792dcbf98569356ebfa4bb4356e3febf87427aab0951c34c1ee5630629334f25ae6f76de7d86fd0
+"caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001669, caniuse-lite@npm:^1.0.30001702, caniuse-lite@npm:^1.0.30001716":
+  version: 1.0.30001727
+  resolution: "caniuse-lite@npm:1.0.30001727"
+  checksum: 10/6155a4141332c337d6317325bea58a09036a65f45bd9bd834ec38978b40c27d214baa04d25b21a5661664f3fbd00cb830e2bdb7eee8df09970bdd98a71f4dabf
   languageName: node
   linkType: hard
 
@@ -5606,7 +5599,7 @@ __metadata:
     "@docusaurus/preset-classic": "npm:3.7.0"
     "@docusaurus/tsconfig": "npm:3.7.0"
     "@mdx-js/react": "npm:^3.0.0"
-    "@swmansion/t-rex-ui": "npm:1.0.0"
+    "@swmansion/t-rex-ui": "npm:1.0.1"
     clsx: "npm:^2.1.0"
     prism-react-renderer: "npm:^2.1.0"
     react: "npm:^18.2.0"

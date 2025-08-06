@@ -3,39 +3,31 @@ import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { BaseNonStaticModule } from '../BaseNonStaticModule';
 
 export class TextEmbeddingsModule extends BaseNonStaticModule {
-  private meanPooling: boolean = true;
-
   async load(
-    modelSource: ResourceSource,
-    tokenizerSource: ResourceSource,
-    meanPooling?: boolean,
-    onDownloadProgressCallback: (_: number) => void = () => {}
+    model: { modelSource: ResourceSource; tokenizerSource: ResourceSource },
+    onDownloadProgressCallback: (progress: number) => void = () => {}
   ): Promise<void> {
-    const paths = await ResourceFetcher.fetch(
+    const modelPromise = ResourceFetcher.fetch(
       onDownloadProgressCallback,
-      modelSource,
-      tokenizerSource
+      model.modelSource
     );
-    if (paths === null || paths.length < 2) {
+    const tokenizerPromise = ResourceFetcher.fetch(
+      undefined,
+      model.tokenizerSource
+    );
+    const [modelResult, tokenizerResult] = await Promise.all([
+      modelPromise,
+      tokenizerPromise,
+    ]);
+    const modelPath = modelResult?.[0];
+    const tokenizerPath = tokenizerResult?.[0];
+    if (!modelPath || !tokenizerPath) {
       throw new Error('Download interrupted.');
     }
-    this.nativeModule = global.loadTextEmbeddings(
-      paths[0] || '',
-      paths[1] || ''
-    );
-    if (meanPooling === undefined) {
-      this.meanPooling = true;
-      console.warn(
-        "You haven't passed meanPooling flag. It is defaulting to true, if your model doesn't require mean pooling it may return wrong results."
-      );
-    } else {
-      this.meanPooling = meanPooling;
-    }
+    this.nativeModule = global.loadTextEmbeddings(modelPath, tokenizerPath);
   }
 
   async forward(input: string): Promise<Float32Array> {
-    return new Float32Array(
-      await this.nativeModule.generate(input, this.meanPooling)
-    );
+    return new Float32Array(await this.nativeModule.generate(input));
   }
 }
