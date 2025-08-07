@@ -1,325 +1,268 @@
-import { MOONSHINE_TINY, useSpeechToText } from 'react-native-executorch';
-import React from 'react';
+import React, { useMemo, useRef } from 'react';
 import {
   Text,
   View,
   StyleSheet,
   SafeAreaView,
   TouchableOpacity,
-  PermissionsAndroid,
+  ScrollView,
+  TextInput,
+  KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import LiveAudioStream from 'react-native-live-audio-stream';
-import SWMIcon from '../assets/swm_icon.svg';
-import { useRef, useState } from 'react';
-import { Buffer } from 'buffer';
-import DeviceInfo from 'react-native-device-info';
-import InputPrompt from '../components/TextInputModal';
+import {
+  STREAMING_ACTION,
+  useSpeechToText,
+  WHISPER_TINY,
+} from 'react-native-executorch';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import {
+  AudioManager,
+  AudioRecorder,
+  AudioContext,
+} from 'react-native-audio-api';
 import * as FileSystem from 'expo-file-system';
-import { AudioContext } from 'react-native-audio-api';
+import SWMIcon from '../assets/swm_icon.svg';
 
-const audioStreamOptions = {
-  sampleRate: 16000,
-  channels: 1,
-  bitsPerSample: 16,
-  audioSource: 1,
-  bufferSize: 16000,
-};
-
-const startStreamingAudio = (options: any, onChunk: (data: string) => void) => {
-  LiveAudioStream.init(options);
-  LiveAudioStream.on('data', onChunk);
-  LiveAudioStream.start();
-};
-
-const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
-  const b64DecodedChunk = Buffer.from(b64EncodedBuffer, 'base64');
-  const int16Array = new Int16Array(b64DecodedChunk.buffer);
-
-  const float32Array = new Float32Array(int16Array.length);
-  for (let i = 0; i < int16Array.length; i++) {
-    float32Array[i] = Math.max(
-      -1,
-      Math.min(1, (int16Array[i] / audioStreamOptions.bufferSize) * 8)
-    );
-  }
-  return float32Array;
-};
+const SAMPLE_RATE = 16000;
+const AUDIO_LENGTH_SECONDS = 1;
+const BUFFER_LENGTH = SAMPLE_RATE * AUDIO_LENGTH_SECONDS;
 
 export const SpeechToTextScreen = () => {
-  const {
-    isGenerating,
-    isReady,
-    downloadProgress,
-    sequence,
-    error,
-    transcribe,
-  } = useSpeechToText({ model: MOONSHINE_TINY });
+  const model = useSpeechToText({
+    model: WHISPER_TINY,
+    windowSize: 3,
+    overlapSeconds: 1.2,
+  });
 
-  const loadAudio = async (url: string) => {
-    const audioContext = new AudioContext({ sampleRate: 16e3 });
-    const audioBuffer = await FileSystem.downloadAsync(
-      url,
-      FileSystem.documentDirectory + '_tmp_transcribe_audio.mp3'
-    ).then(({ uri }) => {
-      return audioContext.decodeAudioDataSource(uri);
+  const [audioURL, setAudioURL] = React.useState('');
+  const [liveTranscribing, setLiveTranscribing] = React.useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const recorder = useMemo(
+    () =>
+      new AudioRecorder({
+        sampleRate: SAMPLE_RATE,
+        bufferLengthInSamples: BUFFER_LENGTH,
+      }),
+    []
+  );
+
+  const handleTranscribeFromURL = async () => {
+    if (!audioURL.trim()) {
+      console.warn('Please provide a valid audio file URL');
+      return;
+    }
+
+    const { uri } = await FileSystem.downloadAsync(
+      audioURL,
+      FileSystem.cacheDirectory + 'audio_file.mp3'
+    );
+
+    const audioContext = new AudioContext({ sampleRate: SAMPLE_RATE });
+    const audioBuffer = (
+      await audioContext.decodeAudioDataSource(uri)
+    ).getChannelData(0);
+    const audioArray = Array.from(audioBuffer);
+    await model.transcribe(audioArray);
+  };
+
+  const handleStartTranscribeFromMicrophone = async () => {
+    setLiveTranscribing(true);
+
+    await model.streamingTranscribe(STREAMING_ACTION.START);
+    console.log('Live transcription started');
+
+    AudioManager.setAudioSessionOptions({
+      iosCategory: 'playAndRecord',
+      iosMode: 'spokenAudio',
+      iosOptions: ['allowBluetooth', 'defaultToSpeaker'],
     });
-    return Array.from(audioBuffer?.getChannelData(0));
+
+    recorder.onAudioReady(async ({ buffer }) => {
+      const buffor = buffer.getChannelData(0);
+      const bufforArray = Array.from(buffor);
+      model.streamingTranscribe(STREAMING_ACTION.DATA, bufforArray);
+    });
+
+    recorder.start();
   };
 
-  const [isRecording, setIsRecording] = useState(false);
-  const [audioUrl, setAudioUrl] = useState('');
-  const audioBuffer = useRef<number[]>([]);
-  const [modalVisible, setModalVisible] = useState(false);
-
-  const onChunk = (data: string) => {
-    const float32Chunk = float32ArrayFromPCMBinaryBuffer(data);
-    audioBuffer.current?.push(...float32Chunk);
+  const handleStopTranscribeFromMicrophone = async () => {
+    recorder.stop();
+    await model.streamingTranscribe(STREAMING_ACTION.STOP);
+    console.log('Live transcription stopped');
+    setLiveTranscribing(false);
   };
 
-  const handleRecordPress = async () => {
-    if (Platform.OS === 'android') {
-      const permission = await PermissionsAndroid.check(
-        PermissionsAndroid.PERMISSIONS.RECORD_AUDIO
-      );
-      if (!permission) {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO
-        );
-        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Microphone permission denied');
-          return;
-        }
-      }
-    }
-
-    if (isRecording) {
-      LiveAudioStream.stop();
-      setIsRecording(false);
-      await transcribe(audioBuffer.current);
-      audioBuffer.current = [];
-    } else {
-      setIsRecording(true);
-      startStreamingAudio(audioStreamOptions, onChunk);
-    }
+  const getModelStatus = () => {
+    if (model.error) return `${model.error}`;
+    if (model.isGenerating) return 'Transcribing...';
+    if (model.isReady) return 'Ready to transcribe';
+    return `Loading model: ${(100 * model.downloadProgress).toFixed(2)}%`;
   };
 
-  const buttonDisabled =
-    modalVisible || isGenerating || !isReady || isRecording;
-  const recordingButtonDisabled =
-    modalVisible || !isReady || DeviceInfo.isEmulatorSync();
+  const readyToTranscribe = !model.isGenerating && model.isReady;
 
   return (
-    <>
-      <SafeAreaView style={styles.mainContainer}>
-        <View style={styles.topContainer}>
-          <SWMIcon width={80} height={80} />
-          <Text style={styles.topContainerText}>
-            {'React Native ExecuTorch'}
-          </Text>
-          <Text style={styles.topContainerText}>{'Speech to Text demo'}</Text>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={20}
+      >
+        <View style={styles.header}>
+          <SWMIcon width={60} height={60} />
+          <Text style={styles.headerText}>React Native ExecuTorch</Text>
+          <Text style={styles.headerText}>Speech to Text</Text>
         </View>
-        {downloadProgress !== 1 ? (
-          <View style={styles.transcriptionContainer}>
-            <Text style={[styles.transcriptionText, styles.textGreyCenter]}>
-              {`Downloading model: ${(Number(downloadProgress.toFixed(4)) * 100).toFixed(2)}%`}
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.transcriptionContainer}>
-            <Text
-              style={
-                sequence
-                  ? styles.transcriptionText
-                  : [styles.transcriptionText, styles.textGreyCenter]
-              }
-            >
-              {sequence ||
-                (isGenerating && 'Transcribing...') ||
-                'Start transcription...'}
-            </Text>
-          </View>
-        )}
-        {error && (
-          <Text
-            style={[styles.transcriptionText, styles.redText]}
-          >{`${error}`}</Text>
-        )}
-        <InputPrompt
-          modalVisible={modalVisible}
-          setModalVisible={async (visible: boolean) => {
-            setModalVisible(visible);
-            if (audioUrl) {
-              const loadedAudio = await loadAudio(audioUrl);
-              await transcribe(loadedAudio);
+
+        <View style={styles.statusContainer}>
+          <Text>Model: {WHISPER_TINY.modelName}</Text>
+          <Text>Status: {getModelStatus()}</Text>
+        </View>
+
+        <View style={styles.transcriptionContainer}>
+          <Text style={styles.transcriptionLabel}>Transcription</Text>
+          <ScrollView
+            ref={scrollViewRef}
+            style={styles.transcriptionScrollContainer}
+            onContentSizeChange={() =>
+              scrollViewRef.current?.scrollToEnd({ animated: true })
             }
-          }}
-          onChangeText={setAudioUrl}
-          value={audioUrl}
-        />
-        <View style={styles.iconsContainer}>
-          <View
-            style={[
-              styles.recordingButtonWrapper,
-              buttonDisabled && styles.borderGrey,
-            ]}
           >
+            <Text>{model.sequence}</Text>
+          </ScrollView>
+        </View>
+
+        <View style={styles.inputContainer}>
+          <View style={styles.urlTranscriptionContainer}>
+            <TextInput
+              placeholder="Audio file URL to transcribe"
+              style={styles.urlTranscriptionInput}
+              value={audioURL}
+              onChangeText={setAudioURL}
+            />
             <TouchableOpacity
-              disabled={buttonDisabled}
+              disabled={!readyToTranscribe}
+              onPress={handleTranscribeFromURL}
               style={[
-                styles.recordingButton,
-                buttonDisabled && styles.backgroundGrey,
+                styles.urlTranscriptionButton,
+                { opacity: readyToTranscribe ? 1 : 0.5 },
               ]}
-              onPress={async () => {
-                if (!audioUrl) {
-                  setModalVisible(true);
-                } else {
-                  const loadedAudio = await loadAudio(audioUrl);
-                  await transcribe(loadedAudio);
-                }
-              }}
             >
-              <Text style={[styles.recordingButtonText, styles.font13]}>
-                TRANSCRIBE FROM URL
-              </Text>
+              <Text style={styles.buttonText}>Start</Text>
             </TouchableOpacity>
           </View>
-        </View>
-        <View style={styles.iconsContainer}>
-          <View
-            style={[
-              styles.recordingButtonWrapper,
-              recordingButtonDisabled && styles.borderGrey,
-              isRecording && styles.borderRed,
-            ]}
-          >
+
+          {liveTranscribing ? (
             <TouchableOpacity
-              disabled={recordingButtonDisabled || isGenerating}
-              style={[
-                styles.recordingButton,
-                recordingButtonDisabled && styles.backgroundGrey,
-                isRecording && styles.backgroundRed,
-              ]}
-              onPress={handleRecordPress}
+              onPress={handleStopTranscribeFromMicrophone}
+              style={[styles.liveTranscriptionButton, styles.backgroundRed]}
             >
-              <Text style={styles.recordingButtonText}>
-                {isRecording ? 'STOP RECORDING' : 'START RECORDING'}
-              </Text>
-              {DeviceInfo.isEmulatorSync() && (
-                <Text
-                  style={[styles.recordingButtonText, styles.emulatorWarning]}
-                >
-                  recording does not work on emulator
-                </Text>
-              )}
+              <FontAwesome name="microphone-slash" size={22} color="white" />
+              <Text style={styles.buttonText}> Stop Live Transcription</Text>
             </TouchableOpacity>
-          </View>
+          ) : (
+            <TouchableOpacity
+              disabled={!readyToTranscribe}
+              onPress={handleStartTranscribeFromMicrophone}
+              style={[
+                styles.liveTranscriptionButton,
+                styles.backgroundBlue,
+                { opacity: readyToTranscribe ? 1 : 0.5 },
+              ]}
+            >
+              <FontAwesome name="microphone" size={22} color="white" />
+              <Text style={styles.buttonText}> Start Live Transcription</Text>
+            </TouchableOpacity>
+          )}
         </View>
-      </SafeAreaView>
-    </>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  textInput: {
-    height: 40,
-    margin: 12,
-    borderWidth: 1,
-    padding: 10,
-    width: '75%',
-    borderRadius: 20,
-  },
-  imageContainer: {
-    flex: 6,
-    width: '100%',
-    padding: 16,
-  },
-  image: {
+  container: {
     flex: 1,
-    borderRadius: 8,
-    width: '100%',
-  },
-  mainContainer: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
     backgroundColor: 'white',
+    margin: 16,
   },
-  recordingButtonWrapper: {
+  keyboardAvoidingView: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 2,
-    borderWidth: 3,
-    borderColor: '#001A72',
-    borderRadius: 50,
-  },
-  recordingButton: {
-    paddingVertical: 20,
-    backgroundColor: '#001A72',
-    justifyContent: 'center',
-    alignItems: 'center',
     width: '100%',
-    borderRadius: 40,
   },
-  topContainer: {
-    marginTop: 80,
-    flex: 1,
-    justifyContent: 'center',
+  header: {
     alignItems: 'center',
   },
-  topContainerText: {
-    height: 35,
-    fontSize: 30,
-    marginTop: 5,
-    color: '#001A72',
-    fontWeight: '600',
+  headerText: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#0f186e',
+  },
+  statusContainer: {
+    marginTop: 12,
+    alignItems: 'center',
   },
   transcriptionContainer: {
-    flex: 5,
-    paddingTop: 80,
-    width: '90%',
+    flex: 1,
+    width: '100%',
+    marginVertical: 12,
   },
-  transcriptionText: {
-    fontSize: 13,
-    fontWeight: '600',
+  transcriptionLabel: {
+    marginLeft: 12,
+    marginBottom: 4,
+    color: '#0f186e',
   },
-  iconsContainer: {
-    flex: 2,
+  transcriptionScrollContainer: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#0f186e',
+    padding: 12,
+  },
+  inputContainer: {
+    marginBottom: 12,
+  },
+  urlTranscriptionContainer: {
+    width: '100%',
     flexDirection: 'row',
+  },
+  urlTranscriptionInput: {
+    flex: 1,
+    padding: 12,
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
+    borderWidth: 1,
+    borderColor: '#0f186e',
+    borderRightWidth: 0,
+  },
+  urlTranscriptionButton: {
+    backgroundColor: '#0f186e',
     justifyContent: 'center',
     alignItems: 'center',
-    width: '60%',
+    padding: 12,
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
   },
-  recordingButtonText: {
+  buttonText: {
     color: 'white',
     fontWeight: '600',
   },
-  textGreyCenter: {
-    color: 'gray',
-    textAlign: 'center',
-  },
-  redText: {
-    color: 'red',
-  },
-  borderGrey: {
-    borderColor: 'grey',
-  },
-  backgroundGrey: {
-    backgroundColor: 'grey',
-  },
-  font13: {
-    fontSize: 13,
-  },
-  borderRed: {
-    borderColor: 'rgb(240, 63, 50)',
+  liveTranscriptionButton: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 12,
+    marginTop: 12,
+    gap: 8,
   },
   backgroundRed: {
-    backgroundColor: 'rgb(240, 63, 50)',
+    backgroundColor: 'red',
   },
-  emulatorWarning: {
-    color: 'rgb(254, 148, 141)',
-    fontSize: 11,
+  backgroundBlue: {
+    backgroundColor: '#0f186e',
   },
 });
