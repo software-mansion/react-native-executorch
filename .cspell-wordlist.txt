@@ -55,3 +55,4 @@ wordlist
 jitpack
 coreml
 mobilenetv
+buffor

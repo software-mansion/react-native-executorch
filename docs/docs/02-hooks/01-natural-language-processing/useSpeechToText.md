@@ -250,84 +250,80 @@ function App() {
 ### Live data (microphone) transcription
 
 ```tsx
+import React, { useMemo } from 'react';
+import { Text, TouchableOpacity, View } from 'react-native';
 import {
   STREAMING_ACTION,
   useSpeechToText,
-  MOONSHINE_TINY,
+  WHISPER_TINY,
 } from 'react-native-executorch';
-import LiveAudioStream from 'react-native-live-audio-stream';
-import { useState } from 'react';
-import { Buffer } from 'buffer';
+import { AudioManager, AudioRecorder } from 'react-native-audio-api';
 
-const audioStreamOptions = {
-  sampleRate: 16000,
-  channels: 1,
-  bitsPerSample: 16,
-  audioSource: 1,
-  bufferSize: 16000,
-};
+const SAMPLE_RATE = 16000;
+const AUDIO_LENGTH_SECONDS = 1;
+const BUFFER_LENGTH = SAMPLE_RATE * AUDIO_LENGTH_SECONDS;
 
-const startStreamingAudio = (options: any, onChunk: (data: string) => void) => {
-  LiveAudioStream.init(options);
-  LiveAudioStream.on('data', onChunk);
-  LiveAudioStream.start();
-};
-
-const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
-  const b64DecodedChunk = Buffer.from(b64EncodedBuffer, 'base64');
-  const int16Array = new Int16Array(b64DecodedChunk.buffer);
-
-  const float32Array = new Float32Array(int16Array.length);
-  for (let i = 0; i < int16Array.length; i++) {
-    float32Array[i] = Math.max(
-      -1,
-      Math.min(1, (int16Array[i] / audioStreamOptions.bufferSize) * 8)
-    );
-  }
-  return float32Array;
-};
-
-function App() {
-  const [isRecording, setIsRecording] = useState(false);
-  const speechToText = useSpeechToText({
-    model: MOONSHINE_TINY,
+export const SpeechToTextStreaming = () => {
+  const model = useSpeechToText({
+    model: WHISPER_TINY,
     windowSize: 3,
     overlapSeconds: 1.2,
   });
 
-  const onChunk = (data: string) => {
-    const float32Chunk = float32ArrayFromPCMBinaryBuffer(data);
-    speechToText.streamingTranscribe(
-      STREAMING_ACTION.DATA,
-      Array.from(float32Chunk)
-    );
+  const [liveTranscribing, setLiveTranscribing] = React.useState(false);
+
+  const recorder = useMemo(
+    () =>
+      new AudioRecorder({
+        sampleRate: SAMPLE_RATE,
+        bufferLengthInSamples: BUFFER_LENGTH,
+      }),
+    []
+  );
+
+  const handleStartTranscribeFromMicrophone = async () => {
+    setLiveTranscribing(true);
+
+    await model.streamingTranscribe(STREAMING_ACTION.START);
+    console.log('Live transcription started');
+
+    AudioManager.setAudioSessionOptions({
+      iosCategory: 'playAndRecord',
+      iosMode: 'spokenAudio',
+      iosOptions: ['allowBluetooth', 'defaultToSpeaker'],
+    });
+
+    recorder.onAudioReady(async ({ buffer }) => {
+      const buffor = buffer.getChannelData(0);
+      const bufforArray = Array.from(buffor);
+      model.streamingTranscribe(STREAMING_ACTION.DATA, bufforArray);
+    });
+
+    recorder.start();
   };
 
-  const handleRecordPress = async () => {
-    if (isRecording) {
-      setIsRecording(false);
-      LiveAudioStream.stop();
-      messageRecorded.current = true;
-      await speechToText.streamingTranscribe(STREAMING_ACTION.STOP);
-    } else {
-      setIsRecording(true);
-      startStreamingAudio(audioStreamOptions, onChunk);
-      await speechToText.streamingTranscribe(STREAMING_ACTION.START);
-    }
+  const handleStopTranscribeFromMicrophone = async () => {
+    recorder.stop();
+    await model.streamingTranscribe(STREAMING_ACTION.STOP);
+    console.log('Live transcription stopped');
+    setLiveTranscribing(false);
   };
 
   return (
-    <View>
-      <Text>{speechToText.sequence}</Text>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text>{model.sequence}</Text>
       <TouchableOpacity
-        style={!isRecording ? styles.recordTouchable : styles.recordingInfo}
-        onPress={handleRecordPress}
+        onPress={
+          liveTranscribing
+            ? handleStopTranscribeFromMicrophone
+            : handleStartTranscribeFromMicrophone
+        }
       >
-        {isRecording ? <Text>Stop</Text> : <Text>Record</Text>}
+        <Text>{liveTranscribing ? 'Stop' : 'Start'}</Text>
       </TouchableOpacity>
     </View>
   );
-}
+};
 ```
 
 ## Supported models
