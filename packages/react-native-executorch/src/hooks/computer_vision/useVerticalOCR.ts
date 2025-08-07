@@ -59,6 +59,10 @@ export const useVerticalOCR = ({
         setDownloadProgress
       );
     })();
+
+    return () => {
+      controllerInstance.delete();
+    };
   }, [
     controllerInstance,
     model.detectorLarge,

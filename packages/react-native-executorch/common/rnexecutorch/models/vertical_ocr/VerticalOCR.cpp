@@ -193,4 +193,10 @@ OCRDetection VerticalOCR::_processSingleTextBox(
 
   return {finalBbox, text, confidenceScore};
 }
+
+void VerticalOCR::unload() noexcept {
+  detectorLarge.unload();
+  detectorNarrow.unload();
+  recognizer.unload();
+}
 } // namespace rnexecutorch

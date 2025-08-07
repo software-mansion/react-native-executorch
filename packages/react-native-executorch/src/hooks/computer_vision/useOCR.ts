@@ -40,7 +40,9 @@ export const useOCR = ({
   );
 
   useEffect(() => {
-    const loadModel = async () => {
+    if (preventLoad) return;
+
+    (async () => {
       await controllerInstance.load(
         model.detectorSource,
         {
@@ -51,11 +53,11 @@ export const useOCR = ({
         model.language,
         setDownloadProgress
       );
-    };
+    })();
 
-    if (!preventLoad) {
-      loadModel();
-    }
+    return () => {
+      controllerInstance.delete();
+    };
   }, [
     controllerInstance,
     model.detectorSource,

@@ -62,4 +62,8 @@ std::size_t OCR::getMemoryLowerBound() const noexcept {
          recognitionHandler.getMemoryLowerBound();
 }
 
+void OCR::unload() noexcept {
+  detector.unload();
+  recognitionHandler.unload();
+}
 } // namespace rnexecutorch

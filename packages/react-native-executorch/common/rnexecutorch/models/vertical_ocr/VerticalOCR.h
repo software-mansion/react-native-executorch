@@ -26,6 +26,7 @@ public:
                        std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<OCRDetection> generate(std::string input);
   std::size_t getMemoryLowerBound() const noexcept;
+  void unload() noexcept;
 
 private:
   std::pair<std::string, float> _handleIndependentCharacters(

@@ -33,4 +33,8 @@ export class OCRModule {
   async forward(input: string) {
     return await this.controller.forward(input);
   }
+
+  delete() {
+    this.controller.delete();
+  }
 }
