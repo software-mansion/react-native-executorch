@@ -56,3 +56,4 @@ jitpack
 coreml
 mobilenetv
 buffor
+flac

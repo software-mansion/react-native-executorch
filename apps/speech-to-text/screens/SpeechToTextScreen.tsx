@@ -170,7 +170,7 @@ export const SpeechToTextScreen = () => {
                 onPress={handleTranscribeFromURL}
                 style={[
                   styles.urlTranscriptionButton,
-                  { opacity: readyToTranscribe ? 1 : 0.5 },
+                  !readyToTranscribe && styles.disabled,
                 ]}
               >
                 <Text style={styles.buttonText}>Start</Text>
@@ -192,7 +192,7 @@ export const SpeechToTextScreen = () => {
                 style={[
                   styles.liveTranscriptionButton,
                   styles.backgroundBlue,
-                  { opacity: recordingButtonDisabled ? 0.5 : 1 },
+                  recordingButtonDisabled && styles.disabled,
                 ]}
               >
                 <FontAwesome name="microphone" size={20} color="white" />
@@ -293,5 +293,8 @@ const styles = StyleSheet.create({
   },
   backgroundBlue: {
     backgroundColor: '#0f186e',
+  },
+  disabled: {
+    opacity: 0.5,
   },
 });
