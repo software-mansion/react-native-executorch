@@ -1421,30 +1421,6 @@ PODS:
     - ReactCommon/turbomodule/core
     - sqlite3
     - Yoga
-  - react-native-image-picker (7.2.3):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.11.18.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-hermes
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-renderercss
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - react-native-safe-area-context (5.4.0):
     - DoubleConversion
     - glog
@@ -1842,7 +1818,7 @@ PODS:
     - React-logger (= 0.79.2)
     - React-perflogger (= 0.79.2)
     - React-utils (= 0.79.2)
-  - RNAudioAPI (0.5.7):
+  - RNAudioAPI (0.6.5):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1865,9 +1841,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNAudioAPI/audioapi (= 0.5.7)
+    - RNAudioAPI/audioapi (= 0.6.5)
     - Yoga
-  - RNAudioAPI/audioapi (0.5.7):
+  - RNAudioAPI/audioapi (0.6.5):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1890,9 +1866,9 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNAudioAPI/audioapi/ios (= 0.5.7)
+    - RNAudioAPI/audioapi/ios (= 0.6.5)
     - Yoga
-  - RNAudioAPI/audioapi/ios (0.5.7):
+  - RNAudioAPI/audioapi/ios (0.6.5):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1918,8 +1894,6 @@ PODS:
     - Yoga
   - RNDeviceInfo (14.0.4):
     - React-Core
-  - RNLiveAudioStream (1.1.1):
-    - React
   - RNReanimated (3.17.5):
     - DoubleConversion
     - glog
@@ -2148,7 +2122,6 @@ DEPENDENCIES:
   - React-Mapbuffer (from `../../../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../../../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
   - react-native-executorch (from `../../../node_modules/react-native-executorch`)
-  - react-native-image-picker (from `../../../node_modules/react-native-image-picker`)
   - react-native-safe-area-context (from `../../../node_modules/react-native-safe-area-context`)
   - React-NativeModulesApple (from `../../../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-oscompat (from `../../../node_modules/react-native/ReactCommon/oscompat`)
@@ -2181,9 +2154,8 @@ DEPENDENCIES:
   - ReactAppDependencyProvider (from `build/generated/ios`)
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../../../node_modules/react-native/ReactCommon`)
-  - RNAudioAPI (from `../../../node_modules/react-native-audio-api`)
+  - RNAudioAPI (from `../node_modules/react-native-audio-api`)
   - RNDeviceInfo (from `../../../node_modules/react-native-device-info`)
-  - RNLiveAudioStream (from `../../../node_modules/react-native-live-audio-stream`)
   - RNReanimated (from `../../../node_modules/react-native-reanimated`)
   - RNSVG (from `../../../node_modules/react-native-svg`)
   - Yoga (from `../../../node_modules/react-native/ReactCommon/yoga`)
@@ -2288,8 +2260,6 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
   react-native-executorch:
     :path: "../../../node_modules/react-native-executorch"
-  react-native-image-picker:
-    :path: "../../../node_modules/react-native-image-picker"
   react-native-safe-area-context:
     :path: "../../../node_modules/react-native-safe-area-context"
   React-NativeModulesApple:
@@ -2355,11 +2325,9 @@ EXTERNAL SOURCES:
   ReactCommon:
     :path: "../../../node_modules/react-native/ReactCommon"
   RNAudioAPI:
-    :path: "../../../node_modules/react-native-audio-api"
+    :path: "../node_modules/react-native-audio-api"
   RNDeviceInfo:
     :path: "../../../node_modules/react-native-device-info"
-  RNLiveAudioStream:
-    :path: "../../../node_modules/react-native-live-audio-stream"
   RNReanimated:
     :path: "../../../node_modules/react-native-reanimated"
   RNSVG:
@@ -2414,8 +2382,7 @@ SPEC CHECKSUMS:
   React-logger: 8edfcedc100544791cd82692ca5a574240a16219
   React-Mapbuffer: c3f4b608e4a59dd2f6a416ef4d47a14400194468
   React-microtasksnativemodule: 054f34e9b82f02bd40f09cebd4083828b5b2beb6
-  react-native-executorch: 9e4c26039a419f8b79c040571e80617c1114ca26
-  react-native-image-picker: 8a3f16000e794f5381a7fe47bb48fd8d06741e47
+  react-native-executorch: c18d209e226f0530a9ee88f1d60ce5837d4800ee
   react-native-safe-area-context: 562163222d999b79a51577eda2ea8ad2c32b4d06
   React-NativeModulesApple: 2c4377e139522c3d73f5df582e4f051a838ff25e
   React-oscompat: ef5df1c734f19b8003e149317d041b8ce1f7d29c
@@ -2448,9 +2415,8 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: 04d5eb15eb46be6720e17a4a7fa92940a776e584
   ReactCodegen: 7ea266ccd94436294f516247db7402b57b1214af
   ReactCommon: 76d2dc87136d0a667678668b86f0fca0c16fdeb0
-  RNAudioAPI: 2e3fd4bf75aa5717791babb30126707504996f09
+  RNAudioAPI: 31d5be92e97cfdcba9524b6f056c5460c1112c00
   RNDeviceInfo: d863506092aef7e7af3a1c350c913d867d795047
-  RNLiveAudioStream: 93ac2bb6065be9018d0b00157b220f11cebc1513
   RNReanimated: afd6a269a47d6f13ba295c46c6c0e14e3cbd0d8a
   RNSVG: 794f269526df9ddc1f79b3d1a202b619df0368e3
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
