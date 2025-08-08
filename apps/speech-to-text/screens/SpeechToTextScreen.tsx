@@ -3,13 +3,13 @@ import {
   Text,
   View,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   ScrollView,
   TextInput,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
   STREAMING_ACTION,
   useSpeechToText,
@@ -23,6 +23,9 @@ import {
 } from 'react-native-audio-api';
 import * as FileSystem from 'expo-file-system';
 import SWMIcon from '../assets/swm_icon.svg';
+import DeviceInfo from 'react-native-device-info';
+
+const isSimulator = DeviceInfo.isEmulatorSync();
 
 const SAMPLE_RATE = 16000;
 const AUDIO_LENGTH_SECONDS = 1;
@@ -56,22 +59,32 @@ export const SpeechToTextScreen = () => {
 
     const { uri } = await FileSystem.downloadAsync(
       audioURL,
-      FileSystem.cacheDirectory + 'audio_file.mp3'
+      FileSystem.cacheDirectory + 'audio_file'
     );
 
     const audioContext = new AudioContext({ sampleRate: SAMPLE_RATE });
-    const audioBuffer = (
-      await audioContext.decodeAudioDataSource(uri)
-    ).getChannelData(0);
-    const audioArray = Array.from(audioBuffer);
-    await model.transcribe(audioArray);
+
+    try {
+      const decodedAudioData = await audioContext.decodeAudioDataSource(uri);
+      const audioBuffer = decodedAudioData.getChannelData(0);
+      const audioArray = Array.from(audioBuffer);
+      await model.transcribe(audioArray);
+    } catch (error) {
+      console.error('Error decoding audio data', error);
+      console.warn('Note: Supported file formats: mp3, wav, flac');
+      return;
+    }
   };
 
   const handleStartTranscribeFromMicrophone = async () => {
     setLiveTranscribing(true);
 
-    await model.streamingTranscribe(STREAMING_ACTION.START);
-    console.log('Live transcription started');
+    try {
+      await model.streamingTranscribe(STREAMING_ACTION.START);
+      console.log('Live transcription started');
+    } catch (error) {
+      console.error('Error starting live transcription:', error);
+    }
 
     AudioManager.setAudioSessionOptions({
       iosCategory: 'playAndRecord',
@@ -82,7 +95,11 @@ export const SpeechToTextScreen = () => {
     recorder.onAudioReady(async ({ buffer }) => {
       const buffor = buffer.getChannelData(0);
       const bufforArray = Array.from(buffor);
-      model.streamingTranscribe(STREAMING_ACTION.DATA, bufforArray);
+      try {
+        model.streamingTranscribe(STREAMING_ACTION.DATA, bufforArray);
+      } catch (error) {
+        console.error('Error during live transcription:', error);
+      }
     });
 
     recorder.start();
@@ -90,8 +107,12 @@ export const SpeechToTextScreen = () => {
 
   const handleStopTranscribeFromMicrophone = async () => {
     recorder.stop();
-    await model.streamingTranscribe(STREAMING_ACTION.STOP);
-    console.log('Live transcription stopped');
+    try {
+      await model.streamingTranscribe(STREAMING_ACTION.STOP);
+      console.log('Live transcription stopped');
+    } catch (error) {
+      console.error('Error stopping transcription:', error);
+    }
     setLiveTranscribing(false);
   };
 
@@ -103,83 +124,89 @@ export const SpeechToTextScreen = () => {
   };
 
   const readyToTranscribe = !model.isGenerating && model.isReady;
+  const recordingButtonDisabled = isSimulator || !readyToTranscribe;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={20}
-      >
-        <View style={styles.header}>
-          <SWMIcon width={60} height={60} />
-          <Text style={styles.headerText}>React Native ExecuTorch</Text>
-          <Text style={styles.headerText}>Speech to Text</Text>
-        </View>
-
-        <View style={styles.statusContainer}>
-          <Text>Model: {WHISPER_TINY.modelName}</Text>
-          <Text>Status: {getModelStatus()}</Text>
-        </View>
-
-        <View style={styles.transcriptionContainer}>
-          <Text style={styles.transcriptionLabel}>Transcription</Text>
-          <ScrollView
-            ref={scrollViewRef}
-            style={styles.transcriptionScrollContainer}
-            onContentSizeChange={() =>
-              scrollViewRef.current?.scrollToEnd({ animated: true })
-            }
-          >
-            <Text>{model.sequence}</Text>
-          </ScrollView>
-        </View>
-
-        <View style={styles.inputContainer}>
-          <View style={styles.urlTranscriptionContainer}>
-            <TextInput
-              placeholder="Audio file URL to transcribe"
-              style={styles.urlTranscriptionInput}
-              value={audioURL}
-              onChangeText={setAudioURL}
-            />
-            <TouchableOpacity
-              disabled={!readyToTranscribe}
-              onPress={handleTranscribeFromURL}
-              style={[
-                styles.urlTranscriptionButton,
-                { opacity: readyToTranscribe ? 1 : 0.5 },
-              ]}
-            >
-              <Text style={styles.buttonText}>Start</Text>
-            </TouchableOpacity>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container}>
+        <KeyboardAvoidingView
+          style={styles.keyboardAvoidingView}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <View style={styles.header}>
+            <SWMIcon width={60} height={60} />
+            <Text style={styles.headerText}>React Native ExecuTorch</Text>
+            <Text style={styles.headerText}>Speech to Text</Text>
           </View>
 
-          {liveTranscribing ? (
-            <TouchableOpacity
-              onPress={handleStopTranscribeFromMicrophone}
-              style={[styles.liveTranscriptionButton, styles.backgroundRed]}
+          <View style={styles.statusContainer}>
+            <Text>Model: {WHISPER_TINY.modelName}</Text>
+            <Text>Status: {getModelStatus()}</Text>
+          </View>
+
+          <View style={styles.transcriptionContainer}>
+            <Text style={styles.transcriptionLabel}>Transcription</Text>
+            <ScrollView
+              ref={scrollViewRef}
+              style={styles.transcriptionScrollContainer}
+              onContentSizeChange={() =>
+                scrollViewRef.current?.scrollToEnd({ animated: true })
+              }
             >
-              <FontAwesome name="microphone-slash" size={22} color="white" />
-              <Text style={styles.buttonText}> Stop Live Transcription</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              disabled={!readyToTranscribe}
-              onPress={handleStartTranscribeFromMicrophone}
-              style={[
-                styles.liveTranscriptionButton,
-                styles.backgroundBlue,
-                { opacity: readyToTranscribe ? 1 : 0.5 },
-              ]}
-            >
-              <FontAwesome name="microphone" size={22} color="white" />
-              <Text style={styles.buttonText}> Start Live Transcription</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+              <Text>{model.sequence}</Text>
+            </ScrollView>
+          </View>
+
+          <View style={styles.inputContainer}>
+            <View style={styles.urlTranscriptionContainer}>
+              <TextInput
+                placeholder="Audio file URL to transcribe"
+                style={styles.urlTranscriptionInput}
+                value={audioURL}
+                onChangeText={setAudioURL}
+              />
+              <TouchableOpacity
+                disabled={!readyToTranscribe}
+                onPress={handleTranscribeFromURL}
+                style={[
+                  styles.urlTranscriptionButton,
+                  { opacity: readyToTranscribe ? 1 : 0.5 },
+                ]}
+              >
+                <Text style={styles.buttonText}>Start</Text>
+              </TouchableOpacity>
+            </View>
+
+            {liveTranscribing ? (
+              <TouchableOpacity
+                onPress={handleStopTranscribeFromMicrophone}
+                style={[styles.liveTranscriptionButton, styles.backgroundRed]}
+              >
+                <FontAwesome name="microphone-slash" size={22} color="white" />
+                <Text style={styles.buttonText}> Stop Live Transcription</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                disabled={recordingButtonDisabled}
+                onPress={handleStartTranscribeFromMicrophone}
+                style={[
+                  styles.liveTranscriptionButton,
+                  styles.backgroundBlue,
+                  { opacity: recordingButtonDisabled ? 0.5 : 1 },
+                ]}
+              >
+                <FontAwesome name="microphone" size={20} color="white" />
+                <Text style={styles.buttonText}>
+                  {isSimulator
+                    ? 'Recording is not available on Simulator'
+                    : 'Start Live Transcription'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 };
 
@@ -188,7 +215,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     backgroundColor: 'white',
-    margin: 16,
+    paddingHorizontal: 16,
   },
   keyboardAvoidingView: {
     flex: 1,
@@ -249,6 +276,8 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'white',
     fontWeight: '600',
+    letterSpacing: -0.5,
+    fontSize: 16,
   },
   liveTranscriptionButton: {
     flexDirection: 'row',
