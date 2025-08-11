@@ -309,11 +309,11 @@ void printElement(std::ostream &os, const std::variant<Ts...> &var) {
       var);
 }
 
-void printElement(std::ostream &os, const std::error_code &ec) {
+inline void printElement(std::ostream &os, const std::error_code &ec) {
   os << "ErrorCode(" << ec.value() << ", " << ec.category().name() << ")";
 }
 
-void printElement(std::ostream &os, const std::exception_ptr &exPtr) {
+inline void printElement(std::ostream &os, const std::exception_ptr &exPtr) {
   if (exPtr) {
     try {
       std::rethrow_exception(exPtr);
@@ -327,12 +327,13 @@ void printElement(std::ostream &os, const std::exception_ptr &exPtr) {
   }
 }
 
-void printElement(std::ostream &os, const std::filesystem::path &path) {
+inline void printElement(std::ostream &os, const std::filesystem::path &path) {
   os << "Path(" << path << ")";
 }
 
-void printElement(std::ostream &os,
-                  const std::filesystem::directory_iterator &dirIterator) {
+inline void
+printElement(std::ostream &os,
+             const std::filesystem::directory_iterator &dirIterator) {
   os << "Directory[";
   bool first = true;
   for (const auto &entry : dirIterator) {
@@ -379,7 +380,7 @@ enum class LOG_LEVEL : uint8_t {
 namespace high_level_log_implementation {
 
 #ifdef __ANDROID__
-android_LogPriority androidLogLevel(LOG_LEVEL logLevel) {
+inline android_LogPriority androidLogLevel(LOG_LEVEL logLevel) {
   switch (logLevel) {
   case LOG_LEVEL::Info:
     return ANDROID_LOG_INFO;
@@ -392,13 +393,13 @@ android_LogPriority androidLogLevel(LOG_LEVEL logLevel) {
   }
 }
 
-void handleAndroidLog(LOG_LEVEL logLevel, const char *buffer) {
+inline void handleAndroidLog(LOG_LEVEL logLevel, const char *buffer) {
   __android_log_print(androidLogLevel(logLevel), "RnExecutorch", "%s", buffer);
 }
 #endif
 
 #ifdef __APPLE__
-void handleIosLog(LOG_LEVEL logLevel, const char *buffer) {
+inline void handleIosLog(LOG_LEVEL logLevel, const char *buffer) {
   switch (logLevel) {
   case LOG_LEVEL::Info:
     os_log_info(OS_LOG_DEFAULT, "%{public}s", buffer);
@@ -413,15 +414,15 @@ void handleIosLog(LOG_LEVEL logLevel, const char *buffer) {
 }
 #endif
 
-std::string getBuffer(const std::string &logMessage,
-                      std::size_t maxLogMessageSize) {
+inline std::string getBuffer(const std::string &logMessage,
+                             std::size_t maxLogMessageSize) {
   if (logMessage.size() > maxLogMessageSize) {
     return logMessage.substr(0, maxLogMessageSize) + "...";
   }
   return logMessage;
 }
 
-std::ostringstream createConfiguredOutputStream() {
+inline std::ostringstream createConfiguredOutputStream() {
   std::ostringstream oss;
   oss << std::boolalpha;
   return oss;
