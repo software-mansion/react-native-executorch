@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useRef } from 'react';
 import {
   Text,
   View,
@@ -42,13 +42,11 @@ export const SpeechToTextScreen = () => {
   const [liveTranscribing, setLiveTranscribing] = React.useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const recorder = useMemo(
-    () =>
-      new AudioRecorder({
-        sampleRate: SAMPLE_RATE,
-        bufferLengthInSamples: BUFFER_LENGTH,
-      }),
-    []
+  const recorder = useRef(
+    new AudioRecorder({
+      sampleRate: SAMPLE_RATE,
+      bufferLengthInSamples: BUFFER_LENGTH,
+    })
   );
 
   const handleTranscribeFromURL = async () => {
@@ -92,7 +90,7 @@ export const SpeechToTextScreen = () => {
       iosOptions: ['allowBluetooth', 'defaultToSpeaker'],
     });
 
-    recorder.onAudioReady(async ({ buffer }) => {
+    recorder.current.onAudioReady(async ({ buffer }) => {
       const bufferArray = Array.from(buffer.getChannelData(0));
       try {
         model.streamingTranscribe(STREAMING_ACTION.DATA, bufferArray);
@@ -101,11 +99,11 @@ export const SpeechToTextScreen = () => {
       }
     });
 
-    recorder.start();
+    recorder.current.start();
   };
 
   const handleStopTranscribeFromMicrophone = async () => {
-    recorder.stop();
+    recorder.current.stop();
     try {
       await model.streamingTranscribe(STREAMING_ACTION.STOP);
       console.log('Live transcription stopped');

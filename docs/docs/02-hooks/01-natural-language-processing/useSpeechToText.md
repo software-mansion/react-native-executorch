@@ -250,7 +250,7 @@ function App() {
 ### Live data (microphone) transcription
 
 ```tsx
-import React, { useMemo } from 'react';
+import React, { useRef } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import {
   STREAMING_ACTION,
@@ -272,13 +272,11 @@ export const SpeechToTextStreaming = () => {
 
   const [liveTranscribing, setLiveTranscribing] = React.useState(false);
 
-  const recorder = useMemo(
-    () =>
-      new AudioRecorder({
-        sampleRate: SAMPLE_RATE,
-        bufferLengthInSamples: BUFFER_LENGTH,
-      }),
-    []
+  const recorder = useRef(
+    new AudioRecorder({
+      sampleRate: SAMPLE_RATE,
+      bufferLengthInSamples: BUFFER_LENGTH,
+    })
   );
 
   const handleStartTranscribeFromMicrophone = async () => {
@@ -293,16 +291,16 @@ export const SpeechToTextStreaming = () => {
       iosOptions: ['allowBluetooth', 'defaultToSpeaker'],
     });
 
-    recorder.onAudioReady(async ({ buffer }) => {
+    recorder.current.onAudioReady(async ({ buffer }) => {
       const bufferArray = Array.from(buffer.getChannelData(0));
       model.streamingTranscribe(STREAMING_ACTION.DATA, bufferArray);
     });
 
-    recorder.start();
+    recorder.current.start();
   };
 
   const handleStopTranscribeFromMicrophone = async () => {
-    recorder.stop();
+    recorder.current.stop();
     await model.streamingTranscribe(STREAMING_ACTION.STOP);
     console.log('Live transcription stopped');
     setLiveTranscribing(false);
