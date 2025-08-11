@@ -20,7 +20,7 @@ void softmax(std::span<float> input) {
     value = std::exp(value - maxElement);
   }
 
-  const auto sum = std::reduce(input.begin(), input.end());
+  const auto sum = std::reduce(input.cbegin(), input.cend());
 
   // sum is at least 1 since exp(max - max) == exp(0) == 1
   for (auto &value : input) {
@@ -33,8 +33,8 @@ void normalize(std::span<float> input) {
     return;
   }
 
-  const auto squaredSum = std::inner_product(input.begin(), input.end(),
-                                             input.begin(), 0.0F);
+  const auto squaredSum = std::inner_product(input.cbegin(), input.cend(),
+                                             input.cbegin(), 0.0F);
 
   constexpr auto epsilon = std::numeric_limits<float>::epsilon();
   if (squaredSum < epsilon) {
@@ -62,7 +62,7 @@ std::vector<float> meanPooling(std::span<const float> modelOutput,
   auto attnMaskLength = attnMask.size();
   auto embeddingDim = modelOutput.size() / attnMaskLength;
 
-  auto maskSum = std::reduce(attnMask.begin(), attnMask.end());
+  auto maskSum = std::reduce(attnMask.cbegin(), attnMask.cend());
   std::vector<float> result(embeddingDim, 0.0F);
   if (maskSum == 0LL) {
     return result;
