@@ -55,5 +55,4 @@ wordlist
 jitpack
 coreml
 mobilenetv
-buffor
 flac

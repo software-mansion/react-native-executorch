@@ -294,9 +294,8 @@ export const SpeechToTextStreaming = () => {
     });
 
     recorder.onAudioReady(async ({ buffer }) => {
-      const buffor = buffer.getChannelData(0);
-      const bufforArray = Array.from(buffor);
-      model.streamingTranscribe(STREAMING_ACTION.DATA, bufforArray);
+      const bufferArray = Array.from(buffer.getChannelData(0));
+      model.streamingTranscribe(STREAMING_ACTION.DATA, bufferArray);
     });
 
     recorder.start();

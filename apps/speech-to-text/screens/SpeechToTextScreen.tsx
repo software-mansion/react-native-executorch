@@ -93,10 +93,9 @@ export const SpeechToTextScreen = () => {
     });
 
     recorder.onAudioReady(async ({ buffer }) => {
-      const buffor = buffer.getChannelData(0);
-      const bufforArray = Array.from(buffor);
+      const bufferArray = Array.from(buffer.getChannelData(0));
       try {
-        model.streamingTranscribe(STREAMING_ACTION.DATA, bufforArray);
+        model.streamingTranscribe(STREAMING_ACTION.DATA, bufferArray);
       } catch (error) {
         console.error('Error during live transcription:', error);
       }
