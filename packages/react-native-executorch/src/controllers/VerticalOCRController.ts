@@ -104,7 +104,7 @@ export class VerticalOCRController {
     if (this.isGenerating) {
       throw new Error(
         getError(ETError.ModelGenerating) +
-          'You cannot delete the model now. You need to interrupt first.'
+          'You cannot delete the model. You must wait until the generating is finished.'
       );
     }
     this.ocrNativeModule.unload();

@@ -8,6 +8,7 @@ export class OCRModule {
   constructor() {
     this.controller = new OCRController();
   }
+
   async load(
     model: {
       detectorSource: ResourceSource;

@@ -45,7 +45,8 @@ if (
   global.loadImageEmbeddings == null ||
   global.loadLLM == null ||
   global.loadSpeechToText == null ||
-  global.loadOCR == null
+  global.loadOCR == null ||
+  global.loadVerticalOCR == null
 ) {
   if (!ETInstallerNativeModule) {
     throw new Error(

@@ -8,6 +8,7 @@ export class VerticalOCRModule {
   constructor() {
     this.controller = new VerticalOCRController();
   }
+
   async load(
     model: {
       detectorLarge: ResourceSource;
