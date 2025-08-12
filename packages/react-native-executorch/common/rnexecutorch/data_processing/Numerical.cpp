@@ -56,7 +56,7 @@ std::vector<float> meanPooling(std::span<const float> modelOutput,
         "Invalid dimensions for mean pooling, expected model output size to be "
         "divisable by the size of attention mask but got size: " +
         std::to_string(modelOutput.size()) + " for model output and size: " +
-        std::to_string(modelOutput.size()) + " for attention mask");
+        std::to_string(attnMask.size()) + " for attention mask");
   }
 
   auto attnMaskLength = attnMask.size();
