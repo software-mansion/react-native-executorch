@@ -5,6 +5,7 @@
 
 #include <ada/ada.h>
 
+#include <rnexecutorch/Log.h>
 #include <rnexecutorch/RnExecutorchInstaller.h>
 #include <rnexecutorch/data_processing/FileUtils.h>
 #include <rnexecutorch/data_processing/base64.h>
