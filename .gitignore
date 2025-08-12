@@ -11,6 +11,10 @@ jsconfig.json
 
 # clangd
 .clangd/
+.clangd
+.cache/
+compile_commands.json
+compile_flags.txt
 
 # Xcode
 #
