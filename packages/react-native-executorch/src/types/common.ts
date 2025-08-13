@@ -1,12 +1,5 @@
 export type ResourceSource = string | number | object;
 
-export type ETInput =
-  | Int8Array
-  | Int32Array
-  | BigInt64Array
-  | Float32Array
-  | Float64Array;
-
 export enum ScalarType {
   BYTE = 0,
   CHAR = 1,
