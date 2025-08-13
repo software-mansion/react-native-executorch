@@ -2,15 +2,8 @@
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/DetectorUtils.h>
+
 namespace rnexecutorch {
-
-/*
- Detector is a model responsible for recognizing the areas where text is
- located. It returns the list of bounding boxes. The model used as detector is
- based on CRAFT (Character Region Awareness for Text Detection) paper.
- https://arxiv.org/pdf/1904.01941
-*/
-
 Detector::Detector(const std::string &modelSource,
                    std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
@@ -31,7 +24,7 @@ Detector::Detector(const std::string &modelSource,
 
 cv::Size Detector::getModelImageSize() const noexcept { return modelImageSize; }
 
-std::vector<DetectorBBox> Detector::generate(const cv::Mat &inputImage) {
+std::vector<ocr::DetectorBBox> Detector::generate(const cv::Mat &inputImage) {
   /*
    Detector as an input accepts tensor with a shape of [1, 3, H, H].
    where H is a constant for model. In our supported models it is currently
@@ -55,7 +48,8 @@ std::vector<DetectorBBox> Detector::generate(const cv::Mat &inputImage) {
   return postprocess(forwardResult->at(0).toTensor());
 }
 
-std::vector<DetectorBBox> Detector::postprocess(const Tensor &tensor) const {
+std::vector<ocr::DetectorBBox>
+Detector::postprocess(const Tensor &tensor) const {
   /*
    The output of the model consists of two matrices (heat maps):
    1. ScoreText(Score map) - The probability of a region containing character.
@@ -79,7 +73,7 @@ std::vector<DetectorBBox> Detector::postprocess(const Tensor &tensor) const {
    the DetectorUtils.h source file and the implementation in the
    DetectorUtils.cpp.
   */
-  std::vector<DetectorBBox> bBoxesList = ocr::getDetBoxesFromTextMap(
+  std::vector<ocr::DetectorBBox> bBoxesList = ocr::getDetBoxesFromTextMap(
       scoreTextMat, scoreAffinityMat, ocr::textThreshold, ocr::linkThreshold,
       ocr::lowTextThreshold);
 

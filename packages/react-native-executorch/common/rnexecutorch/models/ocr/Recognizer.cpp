@@ -5,18 +5,8 @@
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/RecognizerUtils.h>
 #include <rnexecutorch/models/ocr/Types.h>
+
 namespace rnexecutorch {
-
-/*
- Recognizer is a model responsible for interpreting detected text regions
- into characters/words.
-
- The model used as Recognizer is based on CRNN paper.
- https://arxiv.org/pdf/1507.05717
-
- It returns the list of predicted indices and a confidence value.
-*/
-
 Recognizer::Recognizer(const std::string &modelSource,
                        std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {

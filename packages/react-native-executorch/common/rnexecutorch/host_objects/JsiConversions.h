@@ -386,15 +386,6 @@ inline jsi::Value getJsiValue(const std::vector<Detection> &detections,
   return array;
 }
 
-inline jsi::Value getJsiValue(const std::vector<float> &vec,
-                              jsi::Runtime &runtime) {
-  jsi::Array array(runtime, vec.size());
-  for (size_t i = 0; i < vec.size(); i++) {
-    array.setValueAtIndex(runtime, i, jsi::Value(static_cast<float>(vec[i])));
-  }
-  return jsi::Value(runtime, array);
-}
-
 inline jsi::Value getJsiValue(const std::vector<OCRDetection> &detections,
                               jsi::Runtime &runtime) {
   auto jsiDetections = jsi::Array(runtime, detections.size());

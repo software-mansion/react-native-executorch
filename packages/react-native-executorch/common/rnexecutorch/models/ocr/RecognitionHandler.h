@@ -8,6 +8,12 @@
 #include <vector>
 
 namespace rnexecutorch {
+/*
+ Recogntion Handler is responsible for:
+ 1. Preparing the image to be processed by Recognition Model.
+ 2. Deciding which Recogntion Model is used for each detected bounding box.
+ 3. Returning the list of tuples (box, text, confidence) to the OCR class.
+*/
 
 class RecognitionHandler final {
 public:
@@ -16,7 +22,7 @@ public:
                               const std::string &recognizerSourceSmall,
                               std::string symbols,
                               std::shared_ptr<react::CallInvoker> callInvoker);
-  std::vector<OCRDetection> recognize(std::vector<DetectorBBox> bboxesList,
+  std::vector<OCRDetection> recognize(std::vector<ocr::DetectorBBox> bboxesList,
                                       cv::Mat &imgGray, cv::Size desiredSize);
   void unload() noexcept;
   std::size_t getMemoryLowerBound() const noexcept;

@@ -14,10 +14,10 @@ std::vector<float> meanPooling(std::span<const float> modelOutput,
  * @brief Checks if two floating-point numbers are considered equal.
  */
 template <typename T>
-bool fpEqual(T a, T b,
+bool isClose(T a, T b,
              T atol = std::numeric_limits<T>::epsilon() * static_cast<T>(10));
 
-extern template bool fpEqual<float>(float, float, float);
-extern template bool fpEqual<double>(double, double, double);
+extern template bool isClose<float>(float, float, float);
+extern template bool isClose<double>(double, double, double);
 
 } // namespace rnexecutorch::numerical

@@ -14,6 +14,29 @@
 #include <vector>
 
 namespace rnexecutorch {
+
+/*
+  Vertical OCR is OCR designed to handle vertical texts.
+  Vertical OCR pipeline consists of:
+  1. Large Detector -- detects regions where text is located.
+     Almost identical to the Detector in standard OCR.
+     The result of this phase is a list of bounding boxes.
+  Each detected box is then processed individually through the following steps:
+    2. Narrow Detector -- designed for detecting where single characters
+       are located.
+    There are two different strategies used for vertical recognition:
+      Strategy 1 "Independent Characters":
+        Treating each character region found  by Narrow Detector
+        as compeletely independent.
+        3. Each character is forwarded to Small Recognizer (64 x 64).
+      Strategy 2 "Joint Characters":
+        The bounding boxes found by Narrow Detector are
+        horizontally merged to create one wide image.
+        3. One wide image is forwarded to Large Recognzer (512 x 64).
+    Vertical OCR differentiate between those two strategies based on
+    `independentChars` flag passed to the constructor.
+*/
+
 using executorch::aten::Tensor;
 using executorch::extension::TensorPtr;
 
@@ -30,18 +53,20 @@ public:
 
 private:
   std::pair<std::string, float> _handleIndependentCharacters(
-      const DetectorBBox &box, const cv::Mat &originalImage,
-      const std::vector<DetectorBBox> &characterBoxes,
-      const PaddingInfo &paddingsBox, const PaddingInfo &imagePaddings);
+      const ocr::DetectorBBox &box, const cv::Mat &originalImage,
+      const std::vector<ocr::DetectorBBox> &characterBoxes,
+      const ocr::PaddingInfo &paddingsBox,
+      const ocr::PaddingInfo &imagePaddings);
   std::pair<std::string, float>
-  _handleJointCharacters(const DetectorBBox &box, const cv::Mat &originalImage,
-                         const std::vector<DetectorBBox> &characterBoxes,
-                         const PaddingInfo &paddingsBox,
-                         const PaddingInfo &imagePaddings);
-  OCRDetection _processSingleTextBox(DetectorBBox &box,
+  _handleJointCharacters(const ocr::DetectorBBox &box,
+                         const cv::Mat &originalImage,
+                         const std::vector<ocr::DetectorBBox> &characterBoxes,
+                         const ocr::PaddingInfo &paddingsBox,
+                         const ocr::PaddingInfo &imagePaddings);
+  OCRDetection _processSingleTextBox(ocr::DetectorBBox &box,
                                      const cv::Mat &originalImage,
                                      const cv::Mat &resizedLargeImage,
-                                     const PaddingInfo &imagePaddings);
+                                     const ocr::PaddingInfo &imagePaddings);
   VerticalDetector detectorLarge;
   VerticalDetector detectorNarrow;
   Recognizer recognizer;

@@ -3,18 +3,6 @@
 #include <rnexecutorch/models/ocr/Constants.h>
 
 namespace rnexecutorch {
-
-/*
- The OCR consists of two phases:
- 1. Detection - detecting text regions in the image, the result of this phase
- is a list of bounding boxes.
- 2. Recognition - recognizing the text in the bounding boxes, the result is a
- list of strings and corresponding boxes & confidence scores.
-
- Recognition uses three models, each model is resposible for recognizing text
- of different sizes (e.g. large - 512x64, medium - 256x64, small - 128x64).
-*/
-
 OCR::OCR(const std::string &detectorSource,
          const std::string &recognizerSourceLarge,
          const std::string &recognizerSourceMedium,
@@ -35,7 +23,7 @@ std::vector<OCRDetection> OCR::generate(std::string input) {
    with text. They are corresponding to the image of size 1280x1280, which
    which is a size later used by Recognition Handler.
   */
-  std::vector<DetectorBBox> bboxesList = detector.generate(image);
+  std::vector<ocr::DetectorBBox> bboxesList = detector.generate(image);
 
   /*
    Recognition always works on the grayscale images, therefore the change is

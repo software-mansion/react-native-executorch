@@ -5,14 +5,6 @@
 #include <rnexecutorch/models/ocr/RecognitionHandlerUtils.h>
 
 namespace rnexecutorch {
-
-/*
- Recogntion Handler is responsible for:
- 1. Preparing the image to be processed by Recognition Model.
- 2. Deciding which Recogntion Model is used for each detected bounding box.
- 3. Returning the list of tuples (box, text, confidence) to the OCR class.
-*/
-
 RecognitionHandler::RecognitionHandler(
     const std::string &recognizerSourceLarge,
     const std::string &recognizerSourceMedium,
@@ -43,14 +35,14 @@ RecognitionHandler::runModel(cv::Mat image) {
 }
 
 std::vector<OCRDetection>
-RecognitionHandler::recognize(std::vector<DetectorBBox> bboxesList,
+RecognitionHandler::recognize(std::vector<ocr::DetectorBBox> bboxesList,
                               cv::Mat &imgGray, cv::Size desiredSize) {
   /*
    Recognition Handler as an arguments accepts bboxesList corresponding to size
    1280x1280, which is desiredSize. imgGray has to be resized (without lose of
    w/h ratio by using padding) to match this size.
   */
-  PaddingInfo ratioAndPadding =
+  ocr::PaddingInfo ratioAndPadding =
       ocr::calculateResizeRatioAndPaddings(imgGray.size(), desiredSize);
   imgGray = imageprocessing::resizePadded(imgGray, desiredSize);
 

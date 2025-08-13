@@ -26,7 +26,7 @@ void normalize(std::span<float> span) {
   }
 
   // Early return if all values are 0
-  if (fpEqual(sum, 0.0f)) {
+  if (isClose(sum, 0.0f)) {
     return;
   }
 
@@ -73,11 +73,11 @@ std::vector<float> meanPooling(std::span<const float> modelOutput,
   return result;
 }
 
-template <typename T> bool fpEqual(T a, T b, T atol) {
+template <typename T> bool isClose(T a, T b, T atol) {
   return std::abs(a - b) <= atol;
 }
 
-template bool fpEqual<float>(float, float, float);
-template bool fpEqual<double>(double, double, double);
+template bool isClose<float>(float, float, float);
+template bool isClose<double>(double, double, double);
 
 } // namespace rnexecutorch::numerical

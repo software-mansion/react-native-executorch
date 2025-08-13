@@ -28,9 +28,9 @@ void divideMatrixByRows(cv::Mat &matrix, const std::vector<float> &rowSums) {
   }
 }
 
-MaxValuesAndIndices findMaxValuesIndices(const cv::Mat &mat) {
+ValuesAndIndices findMaxValuesIndices(const cv::Mat &mat) {
   CV_Assert(mat.type() == CV_32F);
-  MaxValuesAndIndices result{};
+  ValuesAndIndices result{};
   result.values.reserve(mat.rows);
   result.indices.reserve(mat.rows);
 
@@ -66,7 +66,7 @@ float confidenceScore(const std::vector<float> &values,
   return std::pow(product, exponent);
 }
 
-cv::Rect extractBoundingBox(std::array<rnexecutorch::Point, 4> &points) {
+cv::Rect extractBoundingBox(std::array<Point, 4> &points) {
   cv::Mat pointsMat(4, 1, CV_32FC2, points.data());
   return cv::boundingRect(pointsMat);
 }
@@ -142,22 +142,21 @@ cv::Mat characterBitMask(const cv::Mat &img) {
   return resultImage;
 }
 
-cv::Mat
-cropImageWithBoundingBox(const cv::Mat &img,
-                         const std::array<rnexecutorch::Point, 4> &bbox,
-                         const std::array<rnexecutorch::Point, 4> &originalBbox,
-                         const rnexecutorch::PaddingInfo &paddings,
-                         const rnexecutorch::PaddingInfo &originalPaddings) {
+cv::Mat cropImageWithBoundingBox(const cv::Mat &img,
+                                 const std::array<Point, 4> &bbox,
+                                 const std::array<Point, 4> &originalBbox,
+                                 const PaddingInfo &paddings,
+                                 const PaddingInfo &originalPaddings) {
   if (originalBbox.empty()) {
     throw std::runtime_error("Original bounding box cannot be empty.");
   }
-  const rnexecutorch::Point topLeft = originalBbox[0];
+  const Point topLeft = originalBbox[0];
 
   std::vector<cv::Point2f> points;
   points.reserve(bbox.size());
 
   for (const auto &point : bbox) {
-    rnexecutorch::Point transformedPoint = point;
+    Point transformedPoint = point;
 
     transformedPoint.x -= paddings.left;
     transformedPoint.y -= paddings.top;
@@ -186,12 +185,11 @@ cropImageWithBoundingBox(const cv::Mat &img,
   return croppedImage;
 }
 
-cv::Mat
-prepareForRecognition(const cv::Mat &originalImage,
-                      const std::array<rnexecutorch::Point, 4> &bbox,
-                      const std::array<rnexecutorch::Point, 4> &originalBbox,
-                      const rnexecutorch::PaddingInfo &paddings,
-                      const rnexecutorch::PaddingInfo &originalPaddings) {
+cv::Mat prepareForRecognition(const cv::Mat &originalImage,
+                              const std::array<Point, 4> &bbox,
+                              const std::array<Point, 4> &originalBbox,
+                              const PaddingInfo &paddings,
+                              const PaddingInfo &originalPaddings) {
   auto croppedChar = cropImageWithBoundingBox(originalImage, bbox, originalBbox,
                                               paddings, originalPaddings);
   cv::cvtColor(croppedChar, croppedChar, cv::COLOR_BGR2GRAY);

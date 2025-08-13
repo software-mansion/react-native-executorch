@@ -6,8 +6,8 @@
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/Types.h>
 #include <unordered_set>
-namespace rnexecutorch::ocr {
 
+namespace rnexecutorch::ocr {
 std::array<cv::Point2f, 4>
 cvPointsFromPoints(const std::array<Point, 4> &points) {
   std::array<cv::Point2f, 4> cvPoints;
@@ -92,13 +92,14 @@ void morphologicalOperations(
   cv::dilate(roiSegMap, roiSegMap, kernel, anchor, iterations);
 }
 
-DetectorBBox constructBBox(const std::vector<cv::Point> contour) {
+DetectorBBox
+extractMinAreaBBoxFromContour(const std::vector<cv::Point> contour) {
   cv::RotatedRect minRect = cv::minAreaRect(contour);
 
-  cv::Point2f vertices[4];
-  minRect.points(vertices);
+  std::array<cv::Point2f, 4> vertices;
+  minRect.points(vertices.data());
 
-  std::array<Point, 4> points = pointsFromCvPoints(vertices);
+  std::array<Point, 4> points = pointsFromCvPoints(vertices.data());
   return {.bbox = points, .angle = minRect.angle};
 }
 
@@ -108,7 +109,7 @@ void getBoxFromContour(cv::Mat &segMap,
   cv::findContours(segMap, contours, cv::RETR_EXTERNAL,
                    cv::CHAIN_APPROX_SIMPLE);
   if (!contours.empty()) {
-    detectedBoxes.emplace_back(constructBBox(contours[0]));
+    detectedBoxes.emplace_back(extractMinAreaBBoxFromContour(contours[0]));
   }
 }
 
@@ -653,8 +654,8 @@ groupTextBoxes(std::vector<DetectorBBox> &boxes, float centerThreshold,
       const auto [candidateIdx, candidateHeight] = closestBoxInfo.value();
       DetectorBBox candidateBox = boxes[candidateIdx];
 
-      if ((numerical::fpEqual(candidateBox.angle, 90.0f) && !isVertical) ||
-          (numerical::fpEqual(candidateBox.angle, 0.0f) && isVertical)) {
+      if ((numerical::isClose(candidateBox.angle, 90.0f) && !isVertical) ||
+          (numerical::isClose(candidateBox.angle, 0.0f) && isVertical)) {
         candidateBox.bbox = rotateBox(candidateBox.bbox, normalizedAngle);
       }
 
