@@ -179,7 +179,7 @@ cv::Mat cropImageWithBoundingBox(const cv::Mat &img,
   cv::Rect rect = cv::boundingRect(points);
   rect &= cv::Rect(0, 0, img.cols, img.rows);
   if (rect.empty()) {
-    return cv::Mat();
+    return {};
   }
   auto croppedImage = img(rect).clone();
   return croppedImage;

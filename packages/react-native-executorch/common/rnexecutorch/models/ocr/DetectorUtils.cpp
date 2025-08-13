@@ -29,8 +29,8 @@ std::array<Point, 4> pointsFromCvPoints(cv::Point2f cvPoints[4]) {
 
 std::pair<cv::Mat, cv::Mat> interleavedArrayToMats(std::span<const float> data,
                                                    cv::Size size) {
-  cv::Mat mat1 = cv::Mat(size.height, size.width, CV_32F);
-  cv::Mat mat2 = cv::Mat(size.height, size.width, CV_32F);
+  cv::Mat mat1 = cv::Mat(size, CV_32F);
+  cv::Mat mat2 = cv::Mat(size, CV_32F);
 
   for (std::size_t i = 0; i < data.size(); i++) {
     const float value = data[i];
@@ -305,7 +305,7 @@ void restoreBboxRatio(std::vector<DetectorBBox> &boxes, float restoreRatio) {
 float distanceFromPoint(const Point &p1, const Point &p2) {
   const float xDist = p2.x - p1.x;
   const float yDist = p2.y - p1.y;
-  return std::sqrt(xDist * xDist + yDist * yDist);
+  return std::hypot(xDist, yDist);
 }
 
 float normalizeAngle(float angle) {

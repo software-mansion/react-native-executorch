@@ -23,7 +23,7 @@ PaddingInfo calculateResizeRatioAndPaddings(cv::Size size,
   const auto widthRatio = static_cast<float>(size.width) / desiredSize.width;
 
   resizeRatio = std::max(heightRatio, widthRatio);
-  return PaddingInfo{resizeRatio, top, left};
+  return {resizeRatio, top, left};
 }
 
 void computeRatioAndResize(cv::Mat &img, cv::Size size, int32_t modelHeight) {
