@@ -18,37 +18,40 @@ Pod::Spec.new do |s|
   s.user_target_xcconfig = {
     "HEADER_SEARCH_PATHS" => "$(PODS_TARGET_SRCROOT)/third-party/include",
 
-    "OTHER_LDFLAGS[sdk=iphoneos*][arch=*]" => [
-      '$(inherited)',
-      '-framework "CoreML"',
-      '-framework "Accelerate"',
-      '-framework "Metal"',
-      '-framework "MetalPerformanceShaders"',
-      '-framework "MetalPerformanceShadersGraph"',
-      "-force_load \"#{et_binaries_path}\"/libbackend_coreml_ios.a",
-      "-force_load \"#{et_binaries_path}\"/libbackend_mps_ios.a",
-      "-force_load \"#{et_binaries_path}\"/libbackend_xnnpack_ios.a",
-      "-force_load \"#{et_binaries_path}\"/libexecutorch_ios.a",
-      "-force_load \"#{et_binaries_path}\"/libkernels_custom_ios.a",
-      "-force_load \"#{et_binaries_path}\"/libkernels_optimized_ios.a",
-      "-force_load \"#{et_binaries_path}\"/libkernels_quantized_ios.a"
-    ].join(' '),
+    # FIXME: The code below links the static libraries built from ExecuTorch against out library.
+    # Please uncomment it once the ExecuTorchLib is no longer required.
 
-    "OTHER_LDFLAGS[sdk=iphonesimulator*][arch=*]" => [
-      '$(inherited)',
-      '-framework "CoreML"',
-      '-framework "Accelerate"',
-      '-framework "Metal"',
-      '-framework "MetalPerformanceShaders"',
-      '-framework "MetalPerformanceShadersGraph"',
-      "-force_load \"#{et_binaries_path}\"/libbackend_coreml_simulator.a",
-      "-force_load \"#{et_binaries_path}\"/libbackend_mps_simulator.a",
-      "-force_load \"#{et_binaries_path}\"/libbackend_xnnpack_simulator.a",
-      "-force_load \"#{et_binaries_path}\"/libexecutorch_simulator.a",
-      "-force_load \"#{et_binaries_path}\"/libkernels_custom_simulator.a",
-      "-force_load \"#{et_binaries_path}\"/libkernels_optimized_simulator.a",
-      "-force_load \"#{et_binaries_path}\"/libkernels_quantized_simulator.a"
-    ].join(' '),
+    # "OTHER_LDFLAGS[sdk=iphoneos*][arch=*]" => [
+    #  '$(inherited)',
+    #  '-framework "CoreML"',
+    #  '-framework "Accelerate"',
+    #  '-framework "Metal"',
+    #  '-framework "MetalPerformanceShaders"',
+    #  '-framework "MetalPerformanceShadersGraph"',
+    #  "-force_load \"#{et_binaries_path}\"/libbackend_coreml_ios.a",
+    #  "-force_load \"#{et_binaries_path}\"/libbackend_mps_ios.a",
+    #  "-force_load \"#{et_binaries_path}\"/libbackend_xnnpack_ios.a",
+    #  "-force_load \"#{et_binaries_path}\"/libexecutorch_ios.a",
+    #  "-force_load \"#{et_binaries_path}\"/libkernels_custom_ios.a",
+    #  "-force_load \"#{et_binaries_path}\"/libkernels_optimized_ios.a",
+    #  "-force_load \"#{et_binaries_path}\"/libkernels_quantized_ios.a"
+    # ].join(' '),
+
+    # "OTHER_LDFLAGS[sdk=iphonesimulator*][arch=*]" => [
+    #  '$(inherited)',
+    #  '-framework "CoreML"',
+    #  '-framework "Accelerate"',
+    #  '-framework "Metal"',
+    #  '-framework "MetalPerformanceShaders"',
+    #  '-framework "MetalPerformanceShadersGraph"',
+    #  "-force_load \"#{et_binaries_path}\"/libbackend_coreml_simulator.a",
+    #  "-force_load \"#{et_binaries_path}\"/libbackend_mps_simulator.a",
+    #  "-force_load \"#{et_binaries_path}\"/libbackend_xnnpack_simulator.a",
+    #  "-force_load \"#{et_binaries_path}\"/libexecutorch_simulator.a",
+    #  "-force_load \"#{et_binaries_path}\"/libkernels_custom_simulator.a",
+    #  "-force_load \"#{et_binaries_path}\"/libkernels_optimized_simulator.a",
+    #  "-force_load \"#{et_binaries_path}\"/libkernels_quantized_simulator.a"
+    # ].join(' '),
 
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',
   }
