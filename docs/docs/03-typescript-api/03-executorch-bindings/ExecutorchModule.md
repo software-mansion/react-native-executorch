@@ -1,6 +1,5 @@
 ---
 title: ExecuTorchModule
-sidebar_position: 2
 ---
 
 ExecuTorchModule provides TypeScript bindings for the underlying ExecuTorch [Module API](https://pytorch.org/executorch/stable/extension-module.html).
@@ -25,8 +24,10 @@ const inputTensor = {
   scalarType: ScalarType.FLOAT,
 };
 
-// Loading the model
+// Creating an instance
 const model = new ExecutorchModule();
+
+// Loading the model
 await model.load(STYLE_TRANSFER_CANDY);
 
 // Running the forward method
