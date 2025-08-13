@@ -1,8 +1,8 @@
 ---
-title: ExecuTorchModule
+title: ExecutorchModule
 ---
 
-ExecuTorchModule provides TypeScript bindings for the underlying ExecuTorch [Module API](https://pytorch.org/executorch/stable/extension-module.html).
+ExecutorchModule provides TypeScript bindings for the underlying ExecuTorch [Module API](https://pytorch.org/executorch/stable/extension-module.html).
 
 :::tip
 For React applications, consider using the [`useExecutorchModule`](../../02-hooks/03-executorch-bindings/useExecutorchModule.md) hook instead, which provides automatic state management, loading progress tracking, and cleanup on unmount.
