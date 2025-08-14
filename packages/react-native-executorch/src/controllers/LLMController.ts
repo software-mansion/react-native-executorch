@@ -1,3 +1,4 @@
+import { EventSubscription } from 'react-native';
 import { ResourceSource } from '../types/common';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { ETError, getError } from '../Error';
@@ -11,15 +12,16 @@ import {
   SPECIAL_TOKENS,
   ToolsConfig,
 } from '../types/llm';
+import { LLMNativeModule } from '../native/RnExecutorchModules';
 import { parseToolCall } from '../utils/llm';
 import { Logger } from '../common/Logger';
 
 export class LLMController {
-  private nativeModule: any;
+  private nativeModule: typeof LLMNativeModule;
   private chatConfig: ChatConfig = DEFAULT_CHAT_CONFIG;
   private toolsConfig: ToolsConfig | undefined;
   private tokenizerConfig: any;
-  private onToken?: (token: string) => void;
+  private onToken: EventSubscription | null = null;
   private _response = '';
   private _isReady = false;
   private _isGenerating = false;
@@ -69,6 +71,7 @@ export class LLMController {
       this._isGenerating = isGenerating;
       isGeneratingCallback?.(isGenerating);
     };
+    this.nativeModule = LLMNativeModule;
   }
 
   public get response() {
@@ -129,9 +132,10 @@ export class LLMController {
       this.tokenizerConfig = JSON.parse(
         await readAsStringAsync('file://' + tokenizerConfigPath!)
       );
-      this.nativeModule = global.loadLLM(modelPath, tokenizerPath);
+
+      await this.nativeModule.loadLLM(modelPath, tokenizerPath);
       this.isReadyCallback(true);
-      this.onToken = (data: string) => {
+      this.onToken = this.nativeModule.onToken((data: string) => {
         if (
           !data ||
           (SPECIAL_TOKENS.EOS_TOKEN in this.tokenizerConfig &&
@@ -144,7 +148,7 @@ export class LLMController {
 
         this.tokenCallback(data);
         this.responseCallback(this._response + data);
-      };
+      });
     } catch (e) {
       this.isReadyCallback(false);
       throw new Error(getError(e));
@@ -178,8 +182,9 @@ export class LLMController {
           'You cannot delete the model now. You need to interrupt first.'
       );
     }
-    this.onToken = () => {};
-    this.nativeModule.unload();
+    this.onToken?.remove();
+    this.onToken = null;
+    this.nativeModule.releaseResources();
     this.isReadyCallback(false);
     this.isGeneratingCallback(false);
   }
@@ -194,7 +199,7 @@ export class LLMController {
     try {
       this.responseCallback('');
       this.isGeneratingCallback(true);
-      await this.nativeModule.generate(input, this.onToken);
+      await this.nativeModule.forward(input);
     } catch (e) {
       throw new Error(getError(e));
     } finally {

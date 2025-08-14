@@ -1,11 +1,6 @@
 #pragma once
 
 #include <ReactCommon/CallInvoker.h>
-#include <string>
-#include <thread>
-#include <tuple>
-#include <type_traits>
-
 #include <memory.h>
 #include <rnexecutorch/TokenizerModule.h>
 #include <rnexecutorch/host_objects/JSTensorViewOut.h>
@@ -15,9 +10,12 @@
 #include <rnexecutorch/metaprogramming/FunctionHelpers.h>
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
 #include <rnexecutorch/models/BaseModel.h>
-#include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/ocr/OCR.h>
 #include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
+#include <string>
+#include <thread>
+#include <tuple>
+#include <type_traits>
 
 namespace rnexecutorch {
 
@@ -79,20 +77,6 @@ public:
                                        promiseHostFunction<&Model::tokenToId>,
                                        "tokenToId"));
     }
-
-    if constexpr (meta::SameAs<Model, LLM>) {
-      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       promiseHostFunction<&Model::generate>,
-                                       "generate"));
-
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>, synchronousHostFunction<&Model::interrupt>,
-          "interrupt"));
-
-      addFunctions(
-          JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
-    }
-
     if constexpr (meta::SameAs<Model, OCR>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
@@ -145,9 +129,6 @@ public:
     }
   }
 
-  // A generic host function that resolves a promise with a result of a
-  // function. JSI arguments are converted to the types provided in the function
-  // signature, and the return value is converted back to JSI before resolving.
   template <auto FnPtr> JSI_HOST_FUNCTION(promiseHostFunction) {
     auto promise = Promise::createPromise(
         runtime, callInvoker,
