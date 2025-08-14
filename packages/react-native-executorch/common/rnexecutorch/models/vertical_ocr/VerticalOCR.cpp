@@ -70,11 +70,9 @@ std::pair<std::string, float> VerticalOCR::_handleIndependentCharacters(
 
     /*
      To make Recognition simpler, we convert cropped character image
-     to a bit mask with wite character and black background.
+     to a bit mask with white character and black background.
     */
     croppedChar = ocr::characterBitMask(croppedChar);
-
-    // Final modification needed for Recognizer
     croppedChar = ocr::normalizeForRecognizer(croppedChar,
                                               ocr::recognizerHeight, 0.0, true);
 
@@ -113,7 +111,6 @@ std::pair<std::string, float> VerticalOCR::_handleJointCharacters(
 
   cv::Mat mergedCharacters;
   cv::hconcat(croppedCharacters, mergedCharacters);
-  // Resize and prepare merged image for Recognizer
   mergedCharacters = imageprocessing::resizePadded(
       mergedCharacters,
       cv::Size(ocr::largeRecognizerWidth, ocr::recognizerHeight));

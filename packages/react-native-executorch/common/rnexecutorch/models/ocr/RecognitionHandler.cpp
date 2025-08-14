@@ -20,11 +20,8 @@ RecognitionHandler::RecognitionHandler(
 
 std::pair<std::vector<int32_t>, float>
 RecognitionHandler::runModel(cv::Mat image) {
-  /*
-   Based on the width of image, Recognition Handler
-   decides which model to use.
-   Note that height of image is always equal to 64.
-  */
+
+  // Note that the height of an  image is always equal to 64.
   if (image.cols >= ocr::largeRecognizerWidth) {
     return recognizerLarge.generate(image);
   }
@@ -34,78 +31,67 @@ RecognitionHandler::runModel(cv::Mat image) {
   return recognizerSmall.generate(image);
 }
 
+void RecognitionHandler::processBBox(std::vector<OCRDetection> &boxList,
+                                     ocr::DetectorBBox &box, cv::Mat &imgGray,
+                                     ocr::PaddingInfo ratioAndPadding) {
+
+  /*
+    Resize the cropped image to have height = 64 (height accepted by
+    Recognizer).
+  */
+  auto croppedImage = ocr::cropImage(box, imgGray, ocr::recognizerHeight);
+
+  if (croppedImage.empty()) {
+    return;
+  }
+
+  /*
+    Cropped image is resized into the closest of on of three:
+    128x64, 256x64, 512x64.
+  */
+  croppedImage = ocr::normalizeForRecognizer(
+      croppedImage, ocr::recognizerHeight, ocr::adjustContrast, false);
+
+  auto [predictionIndices, confidenceScore] = this->runModel(croppedImage);
+  if (confidenceScore < ocr::lowConfidenceThreshold) {
+    cv::rotate(croppedImage, croppedImage, cv::ROTATE_180);
+    auto [rotatedPredictionIndices, rotatedConfidenceScore] =
+        runModel(croppedImage);
+    if (rotatedConfidenceScore > confidenceScore) {
+      confidenceScore = rotatedConfidenceScore;
+      predictionIndices = rotatedPredictionIndices;
+    }
+  }
+  /*
+    Since the boxes were corresponding to the image resized to 1280x1280,
+    we want to return the boxes shifted and rescaled to match the original
+    image dimensions.
+  */
+  for (auto &point : box.bbox) {
+    point.x = (point.x - ratioAndPadding.left) * ratioAndPadding.resizeRatio;
+    point.y = (point.y - ratioAndPadding.top) * ratioAndPadding.resizeRatio;
+  }
+  boxList.emplace_back(
+      box.bbox,
+      converter.decodeGreedy(predictionIndices, predictionIndices.size())[0],
+      confidenceScore);
+}
+
 std::vector<OCRDetection>
 RecognitionHandler::recognize(std::vector<ocr::DetectorBBox> bboxesList,
                               cv::Mat &imgGray, cv::Size desiredSize) {
   /*
-   Recognition Handler as an arguments accepts bboxesList corresponding to size
-   1280x1280, which is desiredSize. imgGray has to be resized (without lose of
-   w/h ratio by using padding) to match this size.
+   Recognition Handler accepts bboxesList corresponding to size
+   1280x1280, which is desiredSize.
   */
   ocr::PaddingInfo ratioAndPadding =
       ocr::calculateResizeRatioAndPaddings(imgGray.size(), desiredSize);
   imgGray = imageprocessing::resizePadded(imgGray, desiredSize);
 
   std::vector<OCRDetection> result = {};
-  // Process each individual bounding box
   for (auto &box : bboxesList) {
-
-    /*
-     Crop the full image to contain only the part of the bounding box.
-     It also resizes the cropped image to have height = 64 (height accepted by
-     Recognizer).
-    */
-    auto croppedImage = ocr::cropImage(box, imgGray, ocr::recognizerHeight);
-
-    if (croppedImage.empty()) {
-      continue;
-    }
-
-    /*
-     Perform the normalization of cropped image for the Recognizer Models.
-     In this step, cropped image is resized into the closest of on of three:
-     128x64, 256x64, 512x64.
-    */
-    croppedImage = ocr::normalizeForRecognizer(
-        croppedImage, ocr::recognizerHeight, ocr::adjustContrast, false);
-
-    // Run model
-    auto [predictionIndices, confidenceScore] = this->runModel(croppedImage);
-    /*
-     If the confidence score is relatively low, it may be caused by the fact
-     that the text is inverted upside down (180 degree rotation).
-     We try to flip the cropped image and run the model again.
-     We return the better of two results.
-    */
-    if (confidenceScore < ocr::lowConfidenceThreshold) {
-      cv::rotate(croppedImage, croppedImage, cv::ROTATE_180);
-      auto [rotatedPredictionIndices, rotatedConfidenceScore] =
-          runModel(croppedImage);
-      if (rotatedConfidenceScore > confidenceScore) {
-        confidenceScore = rotatedConfidenceScore;
-        predictionIndices = rotatedPredictionIndices;
-      }
-    }
-    /*
-     Since the boxes were corresponding to the image resized to 1280x1280,
-     we want to return the boxes shifted and rescaled to match the original
-     image dimensions.
-    */
-    for (auto &point : box.bbox) {
-      point.x = (point.x - ratioAndPadding.left) * ratioAndPadding.resizeRatio;
-      point.y = (point.y - ratioAndPadding.top) * ratioAndPadding.resizeRatio;
-    }
-    /*
-      In the last step we perform the actual decoding.
-      Decoding is obtained by greedy approach.
-      For more info see CTCLabelConverter.cpp file.
-    */
-    result.emplace_back(
-        box.bbox,
-        converter.decodeGreedy(predictionIndices, predictionIndices.size())[0],
-        confidenceScore);
+    processBBox(result, box, imgGray, ratioAndPadding);
   }
-
   return result;
 }
 

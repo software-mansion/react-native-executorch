@@ -38,7 +38,6 @@ VerticalDetector::generate(const cv::Mat &inputImage) {
       imageprocessing::resizePadded(inputImage, getModelImageSize());
   TensorPtr inputTensor = imageprocessing::getTensorFromMatrix(
       inputShapes[0], resizedInputImage, ocr::mean, ocr::variance);
-  // Run model
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(

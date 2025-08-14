@@ -29,6 +29,8 @@ public:
 
 private:
   std::pair<std::vector<int32_t>, float> runModel(cv::Mat image);
+  void processBBox(std::vector<OCRDetection> &boxList, ocr::DetectorBBox &box,
+                   cv::Mat &imgGray, ocr::PaddingInfo ratioAndPadding);
   std::size_t memorySizeLowerBound{0};
   ocr::CTCLabelConverter converter;
   Recognizer recognizerLarge;

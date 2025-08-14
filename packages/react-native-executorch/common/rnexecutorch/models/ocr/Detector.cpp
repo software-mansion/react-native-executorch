@@ -37,7 +37,6 @@ std::vector<ocr::DetectorBBox> Detector::generate(const cv::Mat &inputImage) {
       imageprocessing::resizePadded(inputImage, getModelImageSize());
   TensorPtr inputTensor = imageprocessing::getTensorFromMatrix(
       inputShapes[0], resizedInputImage, ocr::mean, ocr::variance);
-  // Run model
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
@@ -83,7 +82,6 @@ Detector::postprocess(const Tensor &tensor) const {
    1280x1280. To match this difference we has to scale  by the proper factor
    (3.2 or 2.0).
   */
-
   const float restoreRatio =
       ocr::calculateRestoreRatio(scoreTextMat.rows, ocr::recognizerImageSize);
   ocr::restoreBboxRatio(bBoxesList, restoreRatio);
@@ -91,9 +89,7 @@ Detector::postprocess(const Tensor &tensor) const {
    Since every bounding box is processed separately by Recognition models, we'd
    like to reduce the number of boxes. Also, grouping nearby boxes means we
    process many words / full line at once. It is not only faster but also easier
-   for Recognizer models than recognition of single characters. To understand
-   how the grouping works, see the description in DetectorUtils.h source file
-   and the implementation in the .cpp file.
+   for Recognizer models than recognition of single characters.
   */
   bBoxesList = ocr::groupTextBoxes(bBoxesList, ocr::centerThreshold,
                                    ocr::distanceThreshold, ocr::heightThreshold,

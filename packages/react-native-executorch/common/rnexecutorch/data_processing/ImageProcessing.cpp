@@ -164,12 +164,6 @@ cv::Mat resizePadded(const cv::Mat inputImage, cv::Size targetSize) {
   cv::Mat resizedImg;
   cv::resize(inputImage, resizedImg, cv::Size(newWidth, newHeight), 0, 0,
              cv::INTER_AREA);
-
-  // We choose the color of the padding based on a mean of colors in the corners
-  // of an image. The cornerPatch is a  section of an image considered as
-  // corner. It should be meaningfull but relatively small in the context of
-  // image size. Our heuristic approach is to take the 1/30 of the smaller
-  // dimension of size of the image. We take no less than 1 pixel.
   constexpr int minCornerPatchSize = 1;
   constexpr int cornerPatchFractionSize = 30;
   int cornerPatchSize =
@@ -186,6 +180,8 @@ cv::Mat resizePadded(const cv::Mat inputImage, cv::Size targetSize) {
                           inputSize.height - cornerPatchSize, cornerPatchSize,
                           cornerPatchSize))};
 
+  // We choose the color of the padding based on a mean of colors in the corners
+  // of an image.
   cv::Scalar backgroundScalar = cv::mean(corners[0]);
 #pragma unroll
   for (size_t i = 1; i < corners.size(); i++) {

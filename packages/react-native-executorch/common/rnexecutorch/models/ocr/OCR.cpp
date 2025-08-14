@@ -21,14 +21,9 @@ std::vector<OCRDetection> OCR::generate(std::string input) {
   /*
    1. Detection process returns the list of bounding boxes containing areas
    with text. They are corresponding to the image of size 1280x1280, which
-   which is a size later used by Recognition Handler.
+   is a size later used by Recognition Handler.
   */
   std::vector<ocr::DetectorBBox> bboxesList = detector.generate(image);
-
-  /*
-   Recognition always works on the grayscale images, therefore the change is
-   needed.
-  */
   cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
 
   /*

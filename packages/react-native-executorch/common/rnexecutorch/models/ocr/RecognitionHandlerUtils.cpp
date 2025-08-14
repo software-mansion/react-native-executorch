@@ -80,7 +80,7 @@ cv::Mat cropImage(DetectorBBox box, cv::Mat &image, int32_t modelHeight) {
   boundingBox = boundingBox & validRegion; // OpenCV's built-in intersection
 
   if (boundingBox.empty()) {
-    return {}; // Early exit if no valid crop
+    return {};
   }
 
   cv::Mat croppedImage = rotatedImage(boundingBox).clone();
@@ -93,32 +93,30 @@ cv::Mat cropImage(DetectorBBox box, cv::Mat &image, int32_t modelHeight) {
 }
 
 void adjustContrastGrey(cv::Mat &img, double target) {
-  constexpr double minValue = 0.0;   // fully dark
-  constexpr double maxValue = 255.0; // fully bright
+  constexpr double minValue = 0.0;
+  constexpr double maxValue = 255.0;
 
   // calculate the brightest and the darkest point from the img
   double highDouble;
   double lowDouble;
   cv::minMaxLoc(img, &lowDouble, &highDouble);
-  auto low = static_cast<int32_t>(lowDouble);
-  auto high = static_cast<int32_t>(highDouble);
+  const auto low = static_cast<int32_t>(lowDouble);
+  const auto high = static_cast<int32_t>(highDouble);
 
-  double contrast = (high - low) / maxValue;
+  double contrast = (highDouble - lowDouble) / maxValue;
   if (contrast < target) {
     constexpr double maxStretchIntensity = 200.0;
     constexpr int32_t minRangeClamp = 10;
-    // defines how much the contrast will actually stretch. Empirically obtained
-    // formula i guess :)
+    // Defines how much the contrast will actually stretch.
+    // Formula obtained empirically.
     double ratio = maxStretchIntensity / std::max(minRangeClamp, high - low);
     cv::Mat tempImg;
     img.convertTo(tempImg, CV_32F);
     constexpr int32_t histogramShift = 25;
-    // shift all values by 25
+
     tempImg -= (low - histogramShift);
-    // stretch contrast
     tempImg *= ratio;
 
-    // ensure all values are from 0 to 255
     cv::threshold(tempImg, tempImg, maxValue, maxValue, cv::THRESH_TRUNC);
     cv::threshold(tempImg, tempImg, minValue, maxValue, cv::THRESH_TOZERO);
 

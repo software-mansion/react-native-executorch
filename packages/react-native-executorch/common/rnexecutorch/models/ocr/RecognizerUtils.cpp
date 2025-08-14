@@ -113,7 +113,7 @@ cv::Mat characterBitMask(const cv::Mat &img) {
   const int32_t maxY = (1 - ocr::singleCharacterCenterThreshold) * height;
 
   int32_t selectedComponent = -1;
-
+  int32_t maxArea = -1;
   for (int32_t i = 1; i < numLabels; i++) { // Skip background (label 0)
     const int32_t area = stats.at<int32_t>(i, cv::CC_STAT_AREA);
     const double cx = centroids.at<double>(i, 0);
@@ -122,9 +122,9 @@ cv::Mat characterBitMask(const cv::Mat &img) {
     if ((minX < cx && cx < maxX && minY < cy &&
          cy < maxY &&                           // check if centered
          area > ocr::singleCharacterMinSize) && // check if large enough
-        (selectedComponent == -1 ||
-         area > stats.at<int32_t>(selectedComponent, cv::CC_STAT_AREA))) {
+        area > maxArea) {
       selectedComponent = i;
+      maxArea = area;
     }
   }
   // 4. Extract the character and invert to white-on-black.

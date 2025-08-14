@@ -25,7 +25,6 @@ void normalize(std::span<float> span) {
     sum += val * val;
   }
 
-  // Early return if all values are 0
   if (isClose(sum, 0.0f)) {
     return;
   }
