@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "rootDir": "src",
-    "outDir": "lib",
+    "tsBuildInfoFile": "./lib/typescript/tsconfig.tsbuildinfo",
     "composite": true,
     "allowJs": false,
     "allowUnreachableCode": false,
