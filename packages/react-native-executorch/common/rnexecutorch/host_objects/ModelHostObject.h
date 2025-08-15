@@ -16,6 +16,8 @@
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
 #include <rnexecutorch/models/BaseModel.h>
 #include <rnexecutorch/models/llm/LLM.h>
+#include <rnexecutorch/models/ocr/OCR.h>
+#include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
 
 namespace rnexecutorch {
 
@@ -87,6 +89,16 @@ public:
           ModelHostObject<Model>, synchronousHostFunction<&Model::interrupt>,
           "interrupt"));
 
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
+    }
+
+    if constexpr (meta::SameAs<Model, OCR>) {
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
+    }
+
+    if constexpr (meta::SameAs<Model, VerticalOCR>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }

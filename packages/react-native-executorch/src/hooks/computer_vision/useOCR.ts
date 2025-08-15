@@ -32,7 +32,6 @@ export const useOCR = ({
   const controllerInstance = useMemo(
     () =>
       new OCRController({
-        modelDownloadProgressCallback: setDownloadProgress,
         isReadyCallback: setIsReady,
         isGeneratingCallback: setIsGenerating,
         errorCallback: setError,
@@ -41,21 +40,24 @@ export const useOCR = ({
   );
 
   useEffect(() => {
-    const loadModel = async () => {
-      await controllerInstance.loadModel(
+    if (preventLoad) return;
+
+    (async () => {
+      await controllerInstance.load(
         model.detectorSource,
         {
           recognizerLarge: model.recognizerLarge,
           recognizerMedium: model.recognizerMedium,
           recognizerSmall: model.recognizerSmall,
         },
-        model.language
+        model.language,
+        setDownloadProgress
       );
-    };
+    })();
 
-    if (!preventLoad) {
-      loadModel();
-    }
+    return () => {
+      controllerInstance.delete();
+    };
   }, [
     controllerInstance,
     model.detectorSource,
