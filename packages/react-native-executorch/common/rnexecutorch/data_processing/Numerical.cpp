@@ -25,8 +25,7 @@ void normalize(std::span<float> span) {
     sum += val * val;
   }
 
-  // Early return if all values are 0
-  if (sum == 0.0f) {
+  if (isClose(sum, 0.0f)) {
     return;
   }
 
@@ -72,5 +71,12 @@ std::vector<float> meanPooling(std::span<const float> modelOutput,
   }
   return result;
 }
+
+template <typename T> bool isClose(T a, T b, T atol) {
+  return std::abs(a - b) <= atol;
+}
+
+template bool isClose<float>(float, float, float);
+template bool isClose<double>(double, double, double);
 
 } // namespace rnexecutorch::numerical

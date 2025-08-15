@@ -16,6 +16,7 @@
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
 #include <rnexecutorch/models/object_detection/Constants.h>
 #include <rnexecutorch/models/object_detection/Utils.h>
+#include <rnexecutorch/models/ocr/Types.h>
 
 namespace rnexecutorch::jsiconversion {
 
@@ -95,7 +96,6 @@ inline JSTensorViewIn getValue<JSTensorViewIn>(const jsi::Value &val,
   if (dataObj.isArrayBuffer(runtime)) {
     jsi::ArrayBuffer arrayBuffer = dataObj.getArrayBuffer(runtime);
     tensorView.dataPtr = arrayBuffer.data(runtime);
-
   } else {
     // Handle typed arrays (Float32Array, Int32Array, etc.)
     const bool isValidTypedArray = dataObj.hasProperty(runtime, "buffer") &&
@@ -384,6 +384,34 @@ inline jsi::Value getJsiValue(const std::vector<Detection> &detections,
     array.setValueAtIndex(runtime, i, detection);
   }
   return array;
+}
+
+inline jsi::Value getJsiValue(const std::vector<OCRDetection> &detections,
+                              jsi::Runtime &runtime) {
+  auto jsiDetections = jsi::Array(runtime, detections.size());
+  for (size_t i = 0; i < detections.size(); ++i) {
+    const auto &detection = detections[i];
+
+    auto jsiDetectionObject = jsi::Object(runtime);
+
+    auto jsiBboxArray = jsi::Array(runtime, 4);
+#pragma unroll
+    for (size_t j = 0; j < 4u; ++j) {
+      auto jsiPointObject = jsi::Object(runtime);
+      jsiPointObject.setProperty(runtime, "x", detection.bbox[j].x);
+      jsiPointObject.setProperty(runtime, "y", detection.bbox[j].y);
+      jsiBboxArray.setValueAtIndex(runtime, j, jsiPointObject);
+    }
+
+    jsiDetectionObject.setProperty(runtime, "bbox", jsiBboxArray);
+    jsiDetectionObject.setProperty(
+        runtime, "text", jsi::String::createFromUtf8(runtime, detection.text));
+    jsiDetectionObject.setProperty(runtime, "score", detection.score);
+
+    jsiDetections.setValueAtIndex(runtime, i, jsiDetectionObject);
+  }
+
+  return jsiDetections;
 }
 
 } // namespace rnexecutorch::jsiconversion

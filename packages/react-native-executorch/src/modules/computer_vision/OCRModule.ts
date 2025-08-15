@@ -3,9 +3,13 @@ import { ResourceSource } from '../../types/common';
 import { OCRLanguage } from '../../types/ocr';
 
 export class OCRModule {
-  static module: OCRController;
+  private controller: OCRController;
 
-  static async load(
+  constructor() {
+    this.controller = new OCRController();
+  }
+
+  async load(
     model: {
       detectorSource: ResourceSource;
       recognizerLarge: ResourceSource;
@@ -15,22 +19,23 @@ export class OCRModule {
     },
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ) {
-    this.module = new OCRController({
-      modelDownloadProgressCallback: onDownloadProgressCallback,
-    });
-
-    await this.module.loadModel(
+    await this.controller.load(
       model.detectorSource,
       {
         recognizerLarge: model.recognizerLarge,
         recognizerMedium: model.recognizerMedium,
         recognizerSmall: model.recognizerSmall,
       },
-      model.language
+      model.language,
+      onDownloadProgressCallback
     );
   }
 
-  static async forward(input: string) {
-    return await this.module.forward(input);
+  async forward(input: string) {
+    return await this.controller.forward(input);
+  }
+
+  delete() {
+    this.controller.delete();
   }
 }

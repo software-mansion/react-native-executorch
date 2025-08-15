@@ -3,9 +3,13 @@ import { ResourceSource } from '../../types/common';
 import { OCRLanguage } from '../../types/ocr';
 
 export class VerticalOCRModule {
-  static module: VerticalOCRController;
+  private controller: VerticalOCRController;
 
-  static async load(
+  constructor() {
+    this.controller = new VerticalOCRController();
+  }
+
+  async load(
     model: {
       detectorLarge: ResourceSource;
       detectorNarrow: ResourceSource;
@@ -16,11 +20,7 @@ export class VerticalOCRModule {
     independentCharacters: boolean,
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ) {
-    this.module = new VerticalOCRController({
-      modelDownloadProgressCallback: onDownloadProgressCallback,
-    });
-
-    await this.module.loadModel(
+    await this.controller.load(
       {
         detectorLarge: model.detectorLarge,
         detectorNarrow: model.detectorNarrow,
@@ -30,11 +30,16 @@ export class VerticalOCRModule {
         recognizerSmall: model.recognizerSmall,
       },
       model.language,
-      independentCharacters
+      independentCharacters,
+      onDownloadProgressCallback
     );
   }
 
-  static async forward(input: string) {
-    return await this.module.forward(input);
+  async forward(input: string) {
+    return await this.controller.forward(input);
+  }
+
+  delete() {
+    this.controller.delete();
   }
 }
