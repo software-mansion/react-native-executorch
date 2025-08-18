@@ -68,7 +68,7 @@ function LLMScreen() {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 40}
       >
         <View style={styles.container}>
-          {llm.messageHistory.length ? (
+          {/* {llm.messageHistory.length ? (
             <View style={styles.chatContainer}>
               <Messages
                 chatHistory={llm.messageHistory}
@@ -84,7 +84,13 @@ function LLMScreen() {
                 What can I help you with?
               </Text>
             </View>
-          )}
+          )} */}
+          <View style={styles.helloMessageContainer}>
+            <Text style={styles.helloText}>Hello! 👋</Text>
+            <Text style={styles.bottomHelloText}>
+              What can I help you with?
+            </Text>
+          </View>
 
           <View style={styles.bottomContainer}>
             <TextInput

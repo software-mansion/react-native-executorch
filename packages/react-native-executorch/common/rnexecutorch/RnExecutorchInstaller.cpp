@@ -1,5 +1,7 @@
 #include "RnExecutorchInstaller.h"
 
+#include <rnexecutorch/GlobalThreadPool.h>
+#include <rnexecutorch/Log.h>
 #include <rnexecutorch/TokenizerModule.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/models/classification/Classification.h>
@@ -112,6 +114,12 @@ void RnExecutorchInstaller::injectJSIBindings(
       ->_unsafe_reset_threadpool(num_of_cores);
   log(LOG_LEVEL::Info, "Configuring xnnpack for ", num_of_cores, " threads");
 #endif
+
+  ThreadConfig config;
+  config.pinToPerformanceCores = true;
+  config.priority = Priority::HIGH;
+  config.namePrefix = "NativeWorker";
+  GlobalThreadPool::initialize(2, config);
 }
 
 } // namespace rnexecutorch

@@ -103,66 +103,66 @@ concept Fallback =
 
 template <typename T>
   requires concepts::Streamable<T> && (!concepts::SmartPointer<T>)
-void printElement(std::ostream &os, const T &value);
+inline void printElement(std::ostream &os, const T &value);
 
 template <typename T, typename U>
-void printElement(std::ostream &os, const std::pair<T, U> &p);
+inline void printElement(std::ostream &os, const std::pair<T, U> &p);
 
 template <std::size_t N>
-void printElement(std::ostream &os, const char (&array)[N]);
+inline void printElement(std::ostream &os, const char (&array)[N]);
 
 template <typename T, std::size_t N>
-void printElement(std::ostream &os, T (&array)[N]);
+inline void printElement(std::ostream &os, T (&array)[N]);
 
 template <typename T>
   requires concepts::Iterable<T> && (!concepts::Streamable<T>)
-void printElement(std::ostream &os, const T &container);
+inline void printElement(std::ostream &os, const T &container);
 
 template <typename T> void printSequencable(std::ostream &os, T &&container);
 
 template <typename T>
   requires concepts::ReadOnlySequencable<T>
-void printElement(std::ostream &os, const T &container);
+inline void printElement(std::ostream &os, const T &container);
 
 template <typename T>
   requires concepts::MutableSequencable<T>
-void printElement(std::ostream &os, T &&container);
+inline void printElement(std::ostream &os, T &&container);
 
 template <typename... Args>
-void printElement(std::ostream &os, const std::tuple<Args...> &tpl);
+inline void printElement(std::ostream &os, const std::tuple<Args...> &tpl);
 
 template <concepts::SmartPointer SP>
-void printElement(std::ostream &os, const SP &ptr);
+inline void printElement(std::ostream &os, const SP &ptr);
 
 template <concepts::WeakPointer WP>
-void printElement(std::ostream &os, const WP &ptr);
+inline void printElement(std::ostream &os, const WP &ptr);
 
 template <typename T>
-void printElement(std::ostream &os, const std::optional<T> &opt);
+inline void printElement(std::ostream &os, const std::optional<T> &opt);
 
 template <typename... Ts>
-void printElement(std::ostream &os, const std::variant<Ts...> &var);
+inline void printElement(std::ostream &os, const std::variant<Ts...> &var);
 
-void printElement(std::ostream &os, const std::exception_ptr &exPtr);
+inline void printElement(std::ostream &os, const std::exception_ptr &exPtr);
 
-void printElement(std::ostream &os, const std::filesystem::path &path);
+inline void printElement(std::ostream &os, const std::filesystem::path &path);
 
-void printElement(std::ostream &os,
-                  const std::filesystem::directory_iterator &dir_it);
+inline void printElement(std::ostream &os,
+                         const std::filesystem::directory_iterator &dir_it);
 
 template <concepts::Fallback UnsupportedArg>
-void printElement(std::ostream &os, const UnsupportedArg &value);
+inline void printElement(std::ostream &os, const UnsupportedArg &value);
 
-void printElement(std::ostream &os, const std::error_code &ec);
+inline void printElement(std::ostream &os, const std::error_code &ec);
 
 template <typename T>
   requires concepts::Streamable<T> && (!concepts::SmartPointer<T>)
-void printElement(std::ostream &os, const T &value) {
+inline void printElement(std::ostream &os, const T &value) {
   os << value;
 }
 
 template <typename T, typename U>
-void printElement(std::ostream &os, const std::pair<T, U> &p) {
+inline void printElement(std::ostream &os, const std::pair<T, U> &p) {
   os << "(";
   printElement(os, p.first);
   os << ", ";
@@ -171,7 +171,7 @@ void printElement(std::ostream &os, const std::pair<T, U> &p) {
 }
 
 template <std::size_t N>
-void printElement(std::ostream &os, const char (&array)[N]) {
+inline void printElement(std::ostream &os, const char (&array)[N]) {
   // Treats the input as a string up to length N, drop null termination
   if (N > 1) {
     os << std::string_view(array, N - 1);
@@ -180,7 +180,7 @@ void printElement(std::ostream &os, const char (&array)[N]) {
 
 // A special function for C-style arrays deducing size via template
 template <typename T, std::size_t N>
-void printElement(std::ostream &os, T (&array)[N]) {
+inline void printElement(std::ostream &os, T (&array)[N]) {
   os << "[";
   for (std::size_t i = 0; i < N; ++i) {
     if (i > 0) {
@@ -193,7 +193,7 @@ void printElement(std::ostream &os, T (&array)[N]) {
 
 template <typename T>
   requires concepts::Iterable<T> && (!concepts::Streamable<T>)
-void printElement(std::ostream &os, const T &container) {
+inline void printElement(std::ostream &os, const T &container) {
   os << "[";
   auto it = std::begin(container);
   if (it != std::end(container)) {
@@ -206,7 +206,8 @@ void printElement(std::ostream &os, const T &container) {
   os << "]";
 }
 
-template <typename T> void printSequencable(std::ostream &os, T &&container) {
+template <typename T>
+inline void printSequencable(std::ostream &os, T &&container) {
   os << "[";
   bool isFirst = true;
 
@@ -233,7 +234,7 @@ template <typename T> void printSequencable(std::ostream &os, T &&container) {
 
 template <typename T>
   requires concepts::ReadOnlySequencable<T>
-void printElement(std::ostream &os, const T &container) {
+inline void printElement(std::ostream &os, const T &container) {
   T tempContainer = container; // Make a copy to preserve original container
   printSequencable(
       os, std::move(tempContainer)); // Use std::move since tempContainer won't
@@ -242,12 +243,12 @@ void printElement(std::ostream &os, const T &container) {
 
 template <typename T>
   requires concepts::MutableSequencable<T>
-void printElement(std::ostream &os, T &&container) {
+inline void printElement(std::ostream &os, T &&container) {
   printSequencable(os, std::forward<T>(container));
 }
 
 template <typename... Args>
-void printElement(std::ostream &os, const std::tuple<Args...> &tpl) {
+inline void printElement(std::ostream &os, const std::tuple<Args...> &tpl) {
   os << "<";
   std::apply(
       [&os](const auto &...args) {
@@ -269,7 +270,7 @@ void printElement(std::ostream &os, const std::tuple<Args...> &tpl) {
 }
 
 template <concepts::SmartPointer SP>
-void printElement(std::ostream &os, const SP &ptr) {
+inline void printElement(std::ostream &os, const SP &ptr) {
   if (ptr) {
     printElement(os, *ptr);
   } else {
@@ -278,7 +279,7 @@ void printElement(std::ostream &os, const SP &ptr) {
 }
 
 template <concepts::WeakPointer WP>
-void printElement(std::ostream &os, const WP &ptr) {
+inline void printElement(std::ostream &os, const WP &ptr) {
   auto sp = ptr.lock();
   if (sp) {
     printElement(os, *sp);
@@ -288,7 +289,7 @@ void printElement(std::ostream &os, const WP &ptr) {
 }
 
 template <typename T>
-void printElement(std::ostream &os, const std::optional<T> &opt) {
+inline void printElement(std::ostream &os, const std::optional<T> &opt) {
   if (opt) {
     os << "Optional(";
     printElement(os, *opt);
@@ -299,7 +300,7 @@ void printElement(std::ostream &os, const std::optional<T> &opt) {
 }
 
 template <typename... Ts>
-void printElement(std::ostream &os, const std::variant<Ts...> &var) {
+inline void printElement(std::ostream &os, const std::variant<Ts...> &var) {
   std::visit(
       [&os](const auto &value) {
         os << "Variant(";
@@ -348,7 +349,7 @@ printElement(std::ostream &os,
 
 // Fallback
 template <concepts::Fallback UnsupportedArg>
-void printElement(std::ostream &os, const UnsupportedArg &value) {
+inline void printElement(std::ostream &os, const UnsupportedArg &value) {
   const auto *typeName = typeid(UnsupportedArg).name();
   throw std::runtime_error(
       "Type "s + std::string(typeName) +
