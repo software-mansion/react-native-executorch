@@ -316,20 +316,35 @@ You need to make sure the recognizer models you pass in `recognizerSources` matc
 
 | Model                                                                | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
 | -------------------------------------------------------------------- | :--------------------: | :----------------: |
-| Detector (CRAFT_1280) + Detector (CRAFT_320) + Recognizer (CRNN_512) |          2770          |        3720        |
-| Detector(CRAFT_1280) + Detector(CRAFT_320) + Recognizer (CRNN_64)    |          1770          |        2740        |
+| Detector (CRAFT_1280) + Detector (CRAFT_320) + Recognizer (CRNN_512) |          2172          |        2214        |
+| Detector(CRAFT_1280) + Detector(CRAFT_320) + Recognizer (CRNN_64)    |          1774          |        1705        |
 
 ### Inference time
+
+**Image Used for Benchmarking:**
+
+| ![Alt text](../../../static/img/sales-vertical.jpeg) | ![Alt text](../../../static/img/sales-vertical-boxes.png) |
+| ---------------------------------------------------- | --------------------------------------------------------- |
+| Original Image                                       | Image with detected Text Boxes                            |
 
 :::warning warning
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
 :::
 
-| Model                 | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | Samsung Galaxy S21 (XNNPACK) [ms] |
-| --------------------- | :--------------------------: | :------------------------------: | :------------------------: | :-------------------------------: | :-------------------------------: |
-| Detector (CRAFT_1280) |             5457             |               5833               |             ❌             |               6296                |               14053               |
-| Detector (CRAFT_320)  |             1351             |               1460               |             ❌             |               1485                |               3101                |
-| Recognizer (CRNN_512) |              39              |               123                |             ❌             |                24                 |                78                 |
-| Recognizer (CRNN_64)  |              10              |                33                |             ❌             |                 7                 |                18                 |
+**Time measurements:**
+
+| Metric                                                                     | iPhone 14 Pro Max <br /> [ms] | iPhone 16 Pro <br /> [ms] | iPhone SE 3 | Samsung Galaxy S24 <br /> [ms] | OnePlus 12 <br /> [ms] |
+| -------------------------------------------------------------------------- | ----------------------------- | ------------------------- | ----------- | ------------------------------ | ---------------------- |
+| **Total Inference Time**                                                   | 9350 / 9620                   | 8572 / 8621               | ❌          | 13737 / 10570                  | 13436 / 9848           |
+| **Detector (CRAFT_1250)**                                                  | 4895                          | 4756                      | ❌          | 5574                           | 5016                   |
+| **Detector (CRAFT_320)**                                                   |                               |                           |             |                                |                        |
+| ├─ Average Time                                                            | 1247                          | 1206                      | ❌          | 1350                           | 1356                   |
+| ├─ Total Time (3 runs)                                                     | 3741                          | 3617                      | ❌          | 4050                           | 4069                   |
+| **Recognizer (CRNN_64)** <br /> (_With Flag `independentChars == true`_)   |                               |                           |             |                                |                        |
+| ├─ Average Time                                                            | 31                            | 9                         | ❌          | 195                            | 207                    |
+| ├─ Total Time (21 runs)                                                    | 649                           | 191                       | ❌          | 4092                           | 4339                   |
+| **Recognizer (CRNN_512)** <br /> (_With Flag `independentChars == false`_) |                               |                           |             |                                |                        |
+| ├─ Average Time                                                            | 306                           | 80                        | ❌          | 308                            | 250                    |
+| ├─ Total Time (3 runs)                                                     | 919                           | 240                       | ❌          | 925                            | 751                    |
 
 ❌ - Insufficient RAM.

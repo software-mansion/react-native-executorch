@@ -8,8 +8,10 @@
 #include <rnexecutorch/models/image_segmentation/ImageSegmentation.h>
 #include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/object_detection/ObjectDetection.h>
+#include <rnexecutorch/models/ocr/OCR.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
+#include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
 
 namespace rnexecutorch {
 
@@ -63,14 +65,20 @@ void RnExecutorchInstaller::injectJSIBindings(
       RnExecutorchInstaller::loadModel<TextEmbeddings>(
           jsiRuntime, jsCallInvoker, "loadTextEmbeddings"));
 
-  jsiRuntime->global().setProperty(*jsiRuntime, "loadLLM",
-                                   RnExecutorchInstaller::loadModel<LLM>(
-                                       jsiRuntime, jsCallInvoker, "loadLLM"));
-
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadSpeechToText",
       RnExecutorchInstaller::loadModel<SpeechToText>(jsiRuntime, jsCallInvoker,
                                                      "loadSpeechToText"));
-}
+  jsiRuntime->global().setProperty(*jsiRuntime, "loadLLM",
+                                   RnExecutorchInstaller::loadModel<LLM>(
+                                       jsiRuntime, jsCallInvoker, "loadLLM"));
 
+  jsiRuntime->global().setProperty(*jsiRuntime, "loadOCR",
+                                   RnExecutorchInstaller::loadModel<OCR>(
+                                       jsiRuntime, jsCallInvoker, "loadOCR"));
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadVerticalOCR",
+      RnExecutorchInstaller::loadModel<VerticalOCR>(jsiRuntime, jsCallInvoker,
+                                                    "loadVerticalOCR"));
+}
 } // namespace rnexecutorch
