@@ -12,7 +12,6 @@ declare global {
   var loadTokenizerModule: (source: string) => any;
   var loadImageEmbeddings: (source: string) => any;
   var loadTextEmbeddings: (modelSource: string, tokenizerSource: string) => any;
-  var loadLLM: (modelSource: string, tokenizerSource: string) => any;
   var loadSpeechToText: (
     encoderSource: string,
     decoderSource: string,
@@ -43,10 +42,10 @@ if (
   global.loadTokenizerModule == null ||
   global.loadTextEmbeddings == null ||
   global.loadImageEmbeddings == null ||
-  global.loadLLM == null ||
   global.loadSpeechToText == null ||
   global.loadOCR == null ||
-  global.loadVerticalOCR == null
+  global.loadVerticalOCR == null ||
+  global.loadImageEmbeddings == null
 ) {
   if (!ETInstallerNativeModule) {
     throw new Error(
