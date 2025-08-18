@@ -2,6 +2,7 @@
 
 #include <executorch/extension/tensor/tensor.h>
 #include <filesystem>
+#include <rnexecutorch/Log.h>
 
 namespace rnexecutorch::models::llm {
 using namespace facebook;
@@ -30,12 +31,15 @@ void LLM::generate(std::string input, std::shared_ptr<jsi::Function> callback) {
 
   // Create a native callback that will invoke the JS callback on the JS thread
   auto nativeCallback = [this, callback](const std::string &token) {
-    callInvoker->invokeAsync([callback, token](jsi::Runtime &runtime) {
-      callback->call(runtime, jsi::String::createFromUtf8(runtime, token));
-    });
+    log(LOG_LEVEL::Error, token);
+
+    //     callInvoker->invokeAsync([callback, token](jsi::Runtime &runtime) {
+    //       callback->call(runtime, jsi::String::createFromUtf8(runtime,
+    //       token));
+    //     });
   };
 
-  auto error = runner->generate(input, nativeCallback, {}, false);
+  auto error = runner->generate(input, {}, {}, false);
   if (error != executorch::runtime::Error::Ok) {
     throw std::runtime_error("Failed to generate text, error code: " +
                              std::to_string(static_cast<int>(error)));
