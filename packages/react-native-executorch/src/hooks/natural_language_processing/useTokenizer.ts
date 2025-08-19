@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { TokenizerModule } from '../../modules/natural_language_processing/TokenizerModule';
 import { ResourceSource } from '../../types/common';
 import { ETError, getError } from '../../Error';
@@ -14,7 +14,7 @@ export const useTokenizer = ({
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const _tokenizer = useMemo(() => new TokenizerModule(), []);
+  const [_tokenizer] = useState(() => new TokenizerModule());
 
   useEffect(() => {
     if (preventLoad) return;

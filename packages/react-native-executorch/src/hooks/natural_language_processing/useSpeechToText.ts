@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SpeechToTextController } from '../../controllers/SpeechToTextController';
 import { ResourceSource } from '../../types/common';
 import { STREAMING_ACTION } from '../../constants/sttDefaults';
@@ -52,15 +52,14 @@ export const useSpeechToText = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<Error | undefined>();
 
-  const controllerInstance = useMemo(
+  const [controllerInstance] = useState(
     () =>
       new SpeechToTextController({
         transcribeCallback: setSequence,
         isReadyCallback: setIsReady,
         isGeneratingCallback: setIsGenerating,
         onErrorCallback: setError,
-      }),
-    []
+      })
   );
 
   useEffect(() => {

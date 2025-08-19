@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ResourceSource } from '../../types/common';
 import { OCRDetection, OCRLanguage } from '../../types/ocr';
 import { VerticalOCRController } from '../../controllers/VerticalOCRController';
@@ -31,14 +31,13 @@ export const useVerticalOCR = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
 
-  const controllerInstance = useMemo(
+  const [controllerInstance] = useState(
     () =>
       new VerticalOCRController({
         isReadyCallback: setIsReady,
         isGeneratingCallback: setIsGenerating,
         errorCallback: setError,
-      }),
-    []
+      })
   );
 
   useEffect(() => {
