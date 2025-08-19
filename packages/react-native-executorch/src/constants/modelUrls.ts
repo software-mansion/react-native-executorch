@@ -3,8 +3,10 @@ import { AvailableModels } from '../types/stt';
 
 const URL_PREFIX =
   'https://huggingface.co/software-mansion/react-native-executorch';
-const VERSION_TAG = 'resolve/v0.4.0';
-const NEXT_VERSION_TAG = 'resolve/v0.5.0';
+const VERSION_TAG = 'resolve/v0.5.0';
+// @ts-ignore
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const NEXT_VERSION_TAG = 'resolve/v0.6.0';
 
 // LLMs
 
@@ -347,23 +349,23 @@ export const DEEPLAB_V3_RESNET50 = {
 };
 
 // Image Embeddings
-const CLIP_VIT_BASE_PATCH32_IMAGE_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/clip-vit-base-patch32-vision_xnnpack.pte`;
+const CLIP_VIT_BASE_PATCH32_IMAGE_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${VERSION_TAG}/clip-vit-base-patch32-vision_xnnpack.pte`;
 
 export const CLIP_VIT_BASE_PATCH32_IMAGE = {
   modelSource: CLIP_VIT_BASE_PATCH32_IMAGE_MODEL,
 };
 
 // Text Embeddings
-const ALL_MINILM_L6_V2_MODEL = `${URL_PREFIX}-all-MiniLM-L6-v2/${NEXT_VERSION_TAG}/all-MiniLM-L6-v2_xnnpack.pte`;
-const ALL_MINILM_L6_V2_TOKENIZER = `${URL_PREFIX}-all-MiniLM-L6-v2/${NEXT_VERSION_TAG}/tokenizer.json`;
-const ALL_MPNET_BASE_V2_MODEL = `${URL_PREFIX}-all-mpnet-base-v2/${NEXT_VERSION_TAG}/all-mpnet-base-v2_xnnpack.pte`;
-const ALL_MPNET_BASE_V2_TOKENIZER = `${URL_PREFIX}-all-mpnet-base-v2/${NEXT_VERSION_TAG}/tokenizer.json`;
-const MULTI_QA_MINILM_L6_COS_V1_MODEL = `${URL_PREFIX}-multi-qa-MiniLM-L6-cos-v1/${NEXT_VERSION_TAG}/multi-qa-MiniLM-L6-cos-v1_xnnpack.pte`;
-const MULTI_QA_MINILM_L6_COS_V1_TOKENIZER = `${URL_PREFIX}-multi-qa-MiniLM-L6-cos-v1/${NEXT_VERSION_TAG}/tokenizer.json`;
-const MULTI_QA_MPNET_BASE_DOT_V1_MODEL = `${URL_PREFIX}-multi-qa-mpnet-base-dot-v1/${NEXT_VERSION_TAG}/multi-qa-mpnet-base-dot-v1_xnnpack.pte`;
-const MULTI_QA_MPNET_BASE_DOT_V1_TOKENIZER = `${URL_PREFIX}-multi-qa-mpnet-base-dot-v1/${NEXT_VERSION_TAG}/tokenizer.json`;
-const CLIP_VIT_BASE_PATCH32_TEXT_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/clip-vit-base-patch32-text_xnnpack.pte`;
-const CLIP_VIT_BASE_PATCH32_TEXT_TOKENIZER = `${URL_PREFIX}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/tokenizer.json`;
+const ALL_MINILM_L6_V2_MODEL = `${URL_PREFIX}-all-MiniLM-L6-v2/${VERSION_TAG}/all-MiniLM-L6-v2_xnnpack.pte`;
+const ALL_MINILM_L6_V2_TOKENIZER = `${URL_PREFIX}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`;
+const ALL_MPNET_BASE_V2_MODEL = `${URL_PREFIX}-all-mpnet-base-v2/${VERSION_TAG}/all-mpnet-base-v2_xnnpack.pte`;
+const ALL_MPNET_BASE_V2_TOKENIZER = `${URL_PREFIX}-all-mpnet-base-v2/${VERSION_TAG}/tokenizer.json`;
+const MULTI_QA_MINILM_L6_COS_V1_MODEL = `${URL_PREFIX}-multi-qa-MiniLM-L6-cos-v1/${VERSION_TAG}/multi-qa-MiniLM-L6-cos-v1_xnnpack.pte`;
+const MULTI_QA_MINILM_L6_COS_V1_TOKENIZER = `${URL_PREFIX}-multi-qa-MiniLM-L6-cos-v1/${VERSION_TAG}/tokenizer.json`;
+const MULTI_QA_MPNET_BASE_DOT_V1_MODEL = `${URL_PREFIX}-multi-qa-mpnet-base-dot-v1/${VERSION_TAG}/multi-qa-mpnet-base-dot-v1_xnnpack.pte`;
+const MULTI_QA_MPNET_BASE_DOT_V1_TOKENIZER = `${URL_PREFIX}-multi-qa-mpnet-base-dot-v1/${VERSION_TAG}/tokenizer.json`;
+const CLIP_VIT_BASE_PATCH32_TEXT_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${VERSION_TAG}/clip-vit-base-patch32-text_xnnpack.pte`;
+const CLIP_VIT_BASE_PATCH32_TEXT_TOKENIZER = `${URL_PREFIX}-clip-vit-base-patch32/${VERSION_TAG}/tokenizer.json`;
 
 export const ALL_MINILM_L6_V2 = {
   modelSource: ALL_MINILM_L6_V2_MODEL,
