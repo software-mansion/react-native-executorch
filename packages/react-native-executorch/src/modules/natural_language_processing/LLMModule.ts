@@ -3,39 +3,39 @@ import { ResourceSource } from '../../types/common';
 import { ChatConfig, LLMTool, Message, ToolsConfig } from '../../types/llm';
 
 export class LLMModule {
-  private controller: LLMController;
+  static controller: LLMController;
 
-  constructor({
+  static async load({
+    modelSource,
+    tokenizerSource,
+    tokenizerConfigSource,
+    onDownloadProgressCallback,
     tokenCallback,
     responseCallback,
     messageHistoryCallback,
   }: {
+    modelSource: ResourceSource;
+    tokenizerSource: ResourceSource;
+    tokenizerConfigSource: ResourceSource;
+    onDownloadProgressCallback?: (_downloadProgress: number) => void;
     tokenCallback?: (token: string) => void;
     responseCallback?: (response: string) => void;
     messageHistoryCallback?: (messageHistory: Message[]) => void;
-  } = {}) {
+  }) {
     this.controller = new LLMController({
-      tokenCallback,
-      responseCallback,
-      messageHistoryCallback,
+      tokenCallback: tokenCallback,
+      responseCallback: responseCallback,
+      messageHistoryCallback: messageHistoryCallback,
     });
-  }
-
-  async load(
-    model: {
-      modelSource: ResourceSource;
-      tokenizerSource: ResourceSource;
-      tokenizerConfigSource: ResourceSource;
-    },
-    onDownloadProgressCallback: (progress: number) => void = () => {}
-  ) {
     await this.controller.load({
-      ...model,
+      modelSource,
+      tokenizerSource,
+      tokenizerConfigSource,
       onDownloadProgressCallback,
     });
   }
 
-  setTokenCallback({
+  static setTokenCallback({
     tokenCallback,
   }: {
     tokenCallback: (token: string) => void;
@@ -43,7 +43,7 @@ export class LLMModule {
     this.controller.setTokenCallback(tokenCallback);
   }
 
-  configure({
+  static configure({
     chatConfig,
     toolsConfig,
   }: {
@@ -53,31 +53,34 @@ export class LLMModule {
     this.controller.configure({ chatConfig, toolsConfig });
   }
 
-  async forward(input: string): Promise<string> {
+  static async forward(input: string): Promise<string> {
     await this.controller.forward(input);
     return this.controller.response;
   }
 
-  async generate(messages: Message[], tools?: LLMTool[]): Promise<string> {
+  static async generate(
+    messages: Message[],
+    tools?: LLMTool[]
+  ): Promise<string> {
     await this.controller.generate(messages, tools);
     return this.controller.response;
   }
 
-  async sendMessage(message: string): Promise<Message[]> {
+  static async sendMessage(message: string): Promise<Message[]> {
     await this.controller.sendMessage(message);
     return this.controller.messageHistory;
   }
 
-  deleteMessage(index: number): Message[] {
-    this.controller.deleteMessage(index);
+  static async deleteMessage(index: number): Promise<Message[]> {
+    await this.controller.deleteMessage(index);
     return this.controller.messageHistory;
   }
 
-  interrupt() {
+  static interrupt() {
     this.controller.interrupt();
   }
 
-  delete() {
+  static delete() {
     this.controller.delete();
   }
 }
