@@ -174,7 +174,7 @@ const llm = useLLM({
 });
 
 const handleGenerate = () => {
-  const chat = [
+  const chat: Message[] = [
     { role: 'system', content: 'You are a helpful assistant' },
     { role: 'user', content: 'Hi!' },
     { role: 'assistant', content: 'Hi!, how can I help you?'},
@@ -231,7 +231,7 @@ const llm = useLLM({
 });
 
 const handleGenerate = () => {
-  const chat = [
+  const chat: Message[] = [
     {
       role: 'system',
       content: `You are a helpful assistant. Current time and date: ${new Date().toString()}`,
