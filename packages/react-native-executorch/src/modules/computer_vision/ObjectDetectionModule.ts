@@ -2,9 +2,9 @@ import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
 import { Detection } from '../../types/objectDetection';
 import { ETError, getError } from '../../Error';
-import { BaseNonStaticModule } from '../BaseNonStaticModule';
+import { BaseModule } from '../BaseModule';
 
-export class ObjectDetectionModule extends BaseNonStaticModule {
+export class ObjectDetectionModule extends BaseModule {
   async load(
     model: { modelSource: ResourceSource },
     onDownloadProgressCallback: (progress: number) => void = () => {}
