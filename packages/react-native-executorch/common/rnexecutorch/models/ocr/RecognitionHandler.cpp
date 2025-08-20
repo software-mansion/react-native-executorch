@@ -22,10 +22,10 @@ std::pair<std::vector<int32_t>, float>
 RecognitionHandler::runModel(cv::Mat image) {
 
   // Note that the height of an  image is always equal to 64.
-  if (image.cols >= ocr::largeRecognizerWidth) {
+  if (image.cols >= ocr::LARGE_RECOGNIZER_WIDTH) {
     return recognizerLarge.generate(image);
   }
-  if (image.cols >= ocr::mediumRecognizerWidth) {
+  if (image.cols >= ocr::MEDIUM_RECOGNIZER_WIDTH) {
     return recognizerMedium.generate(image);
   }
   return recognizerSmall.generate(image);
@@ -39,7 +39,7 @@ void RecognitionHandler::processBBox(std::vector<OCRDetection> &boxList,
     Resize the cropped image to have height = 64 (height accepted by
     Recognizer).
   */
-  auto croppedImage = ocr::cropImage(box, imgGray, ocr::recognizerHeight);
+  auto croppedImage = ocr::cropImage(box, imgGray, ocr::RECOGNIZER_HEIGHT);
 
   if (croppedImage.empty()) {
     return;
@@ -50,10 +50,10 @@ void RecognitionHandler::processBBox(std::vector<OCRDetection> &boxList,
     128x64, 256x64, 512x64.
   */
   croppedImage = ocr::normalizeForRecognizer(
-      croppedImage, ocr::recognizerHeight, ocr::adjustContrast, false);
+      croppedImage, ocr::RECOGNIZER_HEIGHT, ocr::ADJUST_CONTRAST, false);
 
   auto [predictionIndices, confidenceScore] = this->runModel(croppedImage);
-  if (confidenceScore < ocr::lowConfidenceThreshold) {
+  if (confidenceScore < ocr::LOW_CONFIDENCE_THRESHOLD) {
     cv::rotate(croppedImage, croppedImage, cv::ROTATE_180);
     auto [rotatedPredictionIndices, rotatedConfidenceScore] =
         runModel(croppedImage);

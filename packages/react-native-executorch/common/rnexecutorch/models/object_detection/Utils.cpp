@@ -1,4 +1,5 @@
 #include "Utils.h"
+#include "Constants.h"
 
 namespace rnexecutorch {
 float intersectionOverUnion(const Detection &a, const Detection &b) {
@@ -48,7 +49,7 @@ std::vector<Detection> nonMaxSuppression(std::vector<Detection> detections) {
           std::remove_if(labelDetections.begin(), labelDetections.end(),
                          [&current](const Detection &other) {
                            return intersectionOverUnion(current, other) >
-                                  iouThreshold;
+                                  IOU_THRESHOLD;
                          }),
           labelDetections.end());
     }

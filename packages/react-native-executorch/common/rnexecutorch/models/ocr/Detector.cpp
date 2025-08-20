@@ -36,7 +36,7 @@ std::vector<ocr::DetectorBBox> Detector::generate(const cv::Mat &inputImage) {
   cv::Mat resizedInputImage =
       imageprocessing::resizePadded(inputImage, getModelImageSize());
   TensorPtr inputTensor = imageprocessing::getTensorFromMatrix(
-      inputShapes[0], resizedInputImage, ocr::mean, ocr::variance);
+      inputShapes[0], resizedInputImage, ocr::MEAN, ocr::VARIANCE);
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
@@ -73,8 +73,8 @@ Detector::postprocess(const Tensor &tensor) const {
    DetectorUtils.cpp.
   */
   std::vector<ocr::DetectorBBox> bBoxesList = ocr::getDetBoxesFromTextMap(
-      scoreTextMat, scoreAffinityMat, ocr::textThreshold, ocr::linkThreshold,
-      ocr::lowTextThreshold);
+      scoreTextMat, scoreAffinityMat, ocr::TEXT_THRESHOLD, ocr::LINK_THRESHOLD,
+      ocr::LOW_TEXT_THRESHOLD);
 
   /*
    Bounding boxes are at first corresponding to the 400x400 size or 640x640.
@@ -83,7 +83,7 @@ Detector::postprocess(const Tensor &tensor) const {
    (3.2 or 2.0).
   */
   const float restoreRatio =
-      ocr::calculateRestoreRatio(scoreTextMat.rows, ocr::recognizerImageSize);
+      ocr::calculateRestoreRatio(scoreTextMat.rows, ocr::RECOGNIZER_IMAGE_SIZE);
   ocr::restoreBboxRatio(bBoxesList, restoreRatio);
   /*
    Since every bounding box is processed separately by Recognition models, we'd
@@ -91,10 +91,10 @@ Detector::postprocess(const Tensor &tensor) const {
    process many words / full line at once. It is not only faster but also easier
    for Recognizer models than recognition of single characters.
   */
-  bBoxesList = ocr::groupTextBoxes(bBoxesList, ocr::centerThreshold,
-                                   ocr::distanceThreshold, ocr::heightThreshold,
-                                   ocr::minSideThreshold, ocr::maxSideThreshold,
-                                   ocr::maxWidth);
+  bBoxesList = ocr::groupTextBoxes(
+      bBoxesList, ocr::CENTER_THRESHOLD, ocr::DISTANCE_THRESHOLD,
+      ocr::HEIGHT_THRESHOLD, ocr::MIN_SIDE_THRESHOLD, ocr::MAX_SIDE_THRESHOLD,
+      ocr::MAX_WIDTH);
 
   return bBoxesList;
 }

@@ -12,7 +12,7 @@ struct Detection {
   float score;
 };
 
-inline constexpr float iouThreshold = 0.55;
+inline constexpr float IOU_THRESHOLD = 0.55;
 
 float intersectionOverUnion(const Detection &a, const Detection &b);
 std::vector<Detection> nonMaxSuppression(std::vector<Detection> detections);

@@ -49,13 +49,13 @@ Classification::postprocess(const Tensor &tensor) {
       static_cast<const float *>(tensor.const_data_ptr()), tensor.numel());
   std::vector<float> resultVec(resultData.begin(), resultData.end());
 
-  if (resultVec.size() != imagenet1k_v1_labels.size()) {
+  if (resultVec.size() != IMAGENET1K_V1_LABELS.size()) {
     char errorMessage[100];
     std::snprintf(
         errorMessage, sizeof(errorMessage),
         "Unexpected classification output size, was expecting: %zu classes "
         "but got: %zu classes",
-        imagenet1k_v1_labels.size(), resultVec.size());
+        IMAGENET1K_V1_LABELS.size(), resultVec.size());
     throw std::runtime_error(errorMessage);
   }
 
@@ -63,7 +63,7 @@ Classification::postprocess(const Tensor &tensor) {
 
   std::unordered_map<std::string_view, float> probs;
   for (std::size_t cl = 0; cl < resultVec.size(); ++cl) {
-    probs[imagenet1k_v1_labels[cl]] = resultVec[cl];
+    probs[IMAGENET1K_V1_LABELS[cl]] = resultVec[cl];
   }
 
   return probs;
