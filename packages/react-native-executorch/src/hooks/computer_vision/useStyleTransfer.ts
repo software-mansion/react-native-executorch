@@ -1,5 +1,5 @@
 import { ResourceSource } from '../../types/common';
-import { useNonStaticModule } from '../useNonStaticModule';
+import { useModule } from '../useModule';
 import { StyleTransferModule } from '../../modules/computer_vision/StyleTransferModule';
 
 interface Props {
@@ -8,7 +8,7 @@ interface Props {
 }
 
 export const useStyleTransfer = ({ model, preventLoad = false }: Props) =>
-  useNonStaticModule({
+  useModule({
     module: StyleTransferModule,
     model,
     preventLoad: preventLoad,

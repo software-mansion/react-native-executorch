@@ -1,6 +1,6 @@
 import { TextEmbeddingsModule } from '../../modules/natural_language_processing/TextEmbeddingsModule';
 import { ResourceSource } from '../../types/common';
-import { useNonStaticModule } from '../useNonStaticModule';
+import { useModule } from '../useModule';
 
 interface Props {
   model: {
@@ -11,7 +11,7 @@ interface Props {
 }
 
 export const useTextEmbeddings = ({ model, preventLoad = false }: Props) =>
-  useNonStaticModule({
+  useModule({
     module: TextEmbeddingsModule,
     model,
     preventLoad,

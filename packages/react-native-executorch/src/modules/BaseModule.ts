@@ -1,37 +1,26 @@
-import { ResourceFetcher } from '../utils/ResourceFetcher';
-import { getError } from '../Error';
 import { ResourceSource } from '../types/common';
+import { TensorPtr } from '../types/common';
 
-export class BaseModule {
-  protected static nativeModule: any;
-  static onDownloadProgressCallback: (downloadProgress: number) => void =
-    () => {};
+export abstract class BaseModule {
+  nativeModule: any = null;
 
-  static async load(
-    sources: ResourceSource[],
-    ...loadArgs: any[] // this can be used in derived classes to pass extra args to load method
-  ): Promise<void> {
-    try {
-      const paths = await ResourceFetcher.fetch(
-        this.onDownloadProgressCallback,
-        ...sources
-      );
-      if (paths === null || paths.length < sources.length) {
-        throw new Error('Download interrupted.');
-      }
-      await this.nativeModule.loadModule(...paths, ...loadArgs);
-    } catch (error) {
-      throw new Error(getError(error));
+  abstract load(
+    modelSource: ResourceSource,
+    onDownloadProgressCallback: (_: number) => void,
+    ...args: any[]
+  ): Promise<void>;
+
+  protected async forwardET(inputTensor: TensorPtr[]): Promise<TensorPtr[]> {
+    return await this.nativeModule.forward(inputTensor);
+  }
+
+  async getInputShape(methodName: string, index: number): Promise<number[]> {
+    return this.nativeModule.getInputShape(methodName, index);
+  }
+
+  delete() {
+    if (this.nativeModule !== null) {
+      this.nativeModule.unload();
     }
-  }
-
-  protected static async forward(..._args: any[]): Promise<any> {
-    throw new Error(
-      'forward method is not implemented in the BaseModule class. Please implement it in the derived class.'
-    );
-  }
-
-  static onDownloadProgress(callback: (downloadProgress: number) => void) {
-    this.onDownloadProgressCallback = callback;
   }
 }
