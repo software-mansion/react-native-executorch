@@ -24,8 +24,11 @@ Pod::Spec.new do |s|
     'MetalPerformanceShadersGraph'
   ]
 
+  pthreadpool_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/executorch/backends/xnnpack/third-party/pthreadpool', __dir__)
+  cpuinfo_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/executorch/backends/xnnpack/third-party/cpuinfo', __dir__)
+
   s.user_target_xcconfig = {
-    "HEADER_SEARCH_PATHS" => "$(PODS_TARGET_SRCROOT)/third-party/include",
+    "HEADER_SEARCH_PATHS" => "$(PODS_TARGET_SRCROOT)/third-party/include $(PODS_TARGET_SRCROOT)/../../third-party/executorch/backends/xnnpack/third-party/pthreadpool/include $(PODS_TARGET_SRCROOT)/../../third-party/executorch/backends/xnnpack/third-party/cpuinfo/include",
 
     "OTHER_LDFLAGS[sdk=iphoneos*]" => [
       '$(inherited)',
@@ -39,7 +42,9 @@ Pod::Spec.new do |s|
       "-force_load \"#{et_binaries_path}\"/libthreadpool_ios.a",
       "\"#{tokenizers_binaries_path}/physical-arm64-release/libtokenizers_cpp.a\"",
       "\"#{tokenizers_binaries_path}/physical-arm64-release/libsentencepiece.a\"",
-      "\"#{tokenizers_binaries_path}/physical-arm64-release/libtokenizers_c.a\""
+      "\"#{tokenizers_binaries_path}/physical-arm64-release/libtokenizers_c.a\"",
+      "\"#{pthreadpool_binaries_path}/build-ios-arm64/libpthreadpool.a\"",
+      "\"#{cpuinfo_binaries_path}/build-ios-arm64/libcpuinfo.a\""
     ].join(' '),
 
     "OTHER_LDFLAGS[sdk=iphonesimulator*]" => [
@@ -54,7 +59,9 @@ Pod::Spec.new do |s|
       "-force_load \"#{et_binaries_path}\"/libthreadpool_simulator.a",
       "\"#{tokenizers_binaries_path}/simulator-arm64-debug/libtokenizers_cpp.a\"",
       "\"#{tokenizers_binaries_path}/simulator-arm64-debug/libsentencepiece.a\"",
-      "\"#{tokenizers_binaries_path}/simulator-arm64-debug/libtokenizers_c.a\""
+      "\"#{tokenizers_binaries_path}/simulator-arm64-debug/libtokenizers_c.a\"",
+      "\"#{pthreadpool_binaries_path}/build-ios-arm64/libpthreadpool.a\"",
+      "\"#{cpuinfo_binaries_path}/build-ios-arm64/libcpuinfo.a\""
     ].join(' '),
 
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',
@@ -65,7 +72,9 @@ Pod::Spec.new do |s|
     "HEADER_SEARCH_PATHS" =>
       '"$(PODS_TARGET_SRCROOT)/ios" '+
       '"$(PODS_TARGET_SRCROOT)/third-party/include" '+
-      '"$(PODS_TARGET_SRCROOT)/common" ',
+      '"$(PODS_TARGET_SRCROOT)/common" '+
+      '"$(PODS_TARGET_SRCROOT)/third-party/executorch/backends/xnnpack/third-party/pthreadpool/include" '+
+      '"$(PODS_TARGET_SRCROOT)/third-party/executorch/backends/xnnpack/third-party/cpuinfo/include" ',
     "CLANG_CXX_LANGUAGE_STANDARD" => "c++20",
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',
   }

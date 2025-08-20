@@ -4,6 +4,7 @@
 #include "HighPerformanceThreadPool.h"
 #include <memory>
 #include <mutex>
+#include <rnexecutorch/Log.h>
 
 class GlobalThreadPool {
 private:
@@ -22,7 +23,8 @@ public:
         numThreads = std::min(numThreads, size_t(4)); // Cap at 4 for mobile
       }
 
-      LOGI("Initializing global thread pool with %zu threads", numThreads);
+      log(rnexecutorch::LOG_LEVEL::Info,
+          "Initializing global thread pool with ", numThreads, " threads");
       instance =
           std::make_unique<HighPerformanceThreadPool>(numThreads, config);
     });
