@@ -33,6 +33,18 @@ set(RN_VERSION_LINK_LIBRARIES
 )
 
 # Dependencies:
+# ------- pthreadpool -------
+add_library(pthreadpool SHARED IMPORTED)
+set_target_properties(pthreadpool PROPERTIES
+                      IMPORTED_LOCATION "${LIBS_DIR}/pthreadpool/${ANDROID_ABI}/libpthreadpool.so"
+                      INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../third-party/executorch/backends/xnnpack/third-party/pthreadpool/include")
+
+# ------- cpuinfo -------
+add_library(cpuinfo SHARED IMPORTED)
+set_target_properties(cpuinfo PROPERTIES
+                      IMPORTED_LOCATION "${LIBS_DIR}/cpuinfo/${ANDROID_ABI}/libcpuinfo.so"
+                      INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../third-party/executorch/backends/xnnpack/third-party/cpuinfo/include")
+
 # ------- Executorch -------
 
 add_library(executorch SHARED IMPORTED)
@@ -70,4 +82,6 @@ target_link_libraries(
   ${OPENCV_LIBS}
   ${OPENCV_THIRD_PARTY_LIBS}
   executorch
+  pthreadpool
+  cpuinfo
 )
