@@ -58,3 +58,4 @@ ctest
 gtest
 coreml
 mobilenetv
+flac

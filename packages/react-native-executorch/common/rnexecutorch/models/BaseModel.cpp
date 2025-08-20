@@ -29,7 +29,7 @@ BaseModel::BaseModel(const std::string &modelSource,
 }
 
 std::vector<int32_t> BaseModel::getInputShape(std::string method_name,
-                                              int index) {
+                                              int32_t index) {
   if (!module_) {
     throw std::runtime_error("Model not loaded: Cannot get input shape");
   }
@@ -166,9 +166,11 @@ BaseModel::execute(const std::string &methodName,
   return module_->execute(methodName, input_value);
 }
 
-std::size_t BaseModel::getMemoryLowerBound() { return memorySizeLowerBound; }
+std::size_t BaseModel::getMemoryLowerBound() const noexcept {
+  return memorySizeLowerBound;
+}
 
-void BaseModel::unload() { module_.reset(nullptr); }
+void BaseModel::unload() noexcept { module_.reset(nullptr); }
 
 std::vector<int32_t>
 BaseModel::getTensorShape(const executorch::aten::Tensor &tensor) {

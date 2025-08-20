@@ -14,10 +14,8 @@ class RnExecutorchPackage : TurboReactPackage() {
     name: String,
     reactContext: ReactApplicationContext,
   ): NativeModule? =
-    if (name == OCR.NAME) {
-      OCR(reactContext)
-    } else if (name == VerticalOCR.NAME) {
-      VerticalOCR(reactContext)
+    if (name == LLM.NAME) {
+      LLM(reactContext)
     } else if (name == ETInstaller.NAME) {
       ETInstaller(reactContext)
     } else {
@@ -27,28 +25,16 @@ class RnExecutorchPackage : TurboReactPackage() {
   override fun getReactModuleInfoProvider(): ReactModuleInfoProvider =
     ReactModuleInfoProvider {
       val moduleInfos: MutableMap<String, ReactModuleInfo> = HashMap()
-      moduleInfos[OCR.NAME] =
+      moduleInfos[LLM.NAME] =
         ReactModuleInfo(
-          OCR.NAME,
-          OCR.NAME,
+          LLM.NAME,
+          LLM.NAME,
           false, // canOverrideExistingModule
           false, // needsEagerInit
           true, // hasConstants
           false, // isCxxModule
           true,
         )
-
-      moduleInfos[VerticalOCR.NAME] =
-        ReactModuleInfo(
-          VerticalOCR.NAME,
-          VerticalOCR.NAME,
-          false, // canOverrideExistingModule
-          false, // needsEagerInit
-          true, // hasConstants
-          false, // isCxxModule
-          true,
-        )
-
       moduleInfos[ETInstaller.NAME] =
         ReactModuleInfo(
           ETInstaller.NAME,

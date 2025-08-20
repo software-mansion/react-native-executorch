@@ -83,4 +83,11 @@ std::vector<float> meanPooling(std::span<const float> modelOutput,
   return result;
 }
 
+template <typename T> bool isClose(T a, T b, T atol) {
+  return std::abs(a - b) <= atol;
+}
+
+template bool isClose<float>(float, float, float);
+template bool isClose<double>(double, double, double);
+
 } // namespace rnexecutorch::numerical

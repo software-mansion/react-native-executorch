@@ -1,34 +1,29 @@
 import { symbols } from '../constants/ocr/symbols';
 import { ETError, getError } from '../Error';
-import { VerticalOCRNativeModule } from '../native/RnExecutorchModules';
 import { ResourceSource } from '../types/common';
 import { OCRLanguage } from '../types/ocr';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
 
 export class VerticalOCRController {
-  private ocrNativeModule: typeof VerticalOCRNativeModule;
+  private ocrNativeModule: any;
   public isReady: boolean = false;
   public isGenerating: boolean = false;
   public error: string | null = null;
-  private modelDownloadProgressCallback: (downloadProgress: number) => void;
   private isReadyCallback: (isReady: boolean) => void;
   private isGeneratingCallback: (isGenerating: boolean) => void;
   private errorCallback: (error: string) => void;
 
   constructor({
-    modelDownloadProgressCallback = (_downloadProgress: number) => {},
     isReadyCallback = (_isReady: boolean) => {},
     isGeneratingCallback = (_isGenerating: boolean) => {},
     errorCallback = (_error: string) => {},
-  }) {
-    this.ocrNativeModule = VerticalOCRNativeModule;
-    this.modelDownloadProgressCallback = modelDownloadProgressCallback;
+  } = {}) {
     this.isReadyCallback = isReadyCallback;
     this.isGeneratingCallback = isGeneratingCallback;
     this.errorCallback = errorCallback;
   }
 
-  public loadModel = async (
+  public load = async (
     detectorSources: {
       detectorLarge: ResourceSource;
       detectorNarrow: ResourceSource;
@@ -38,7 +33,8 @@ export class VerticalOCRController {
       recognizerSmall: ResourceSource;
     },
     language: OCRLanguage,
-    independentCharacters: boolean
+    independentCharacters: boolean,
+    onDownloadProgressCallback: (downloadProgress: number) => void
   ) => {
     try {
       if (
@@ -55,7 +51,7 @@ export class VerticalOCRController {
       this.isReadyCallback(this.isReady);
 
       const paths = await ResourceFetcher.fetch(
-        this.modelDownloadProgressCallback,
+        onDownloadProgressCallback,
         detectorSources.detectorLarge,
         detectorSources.detectorNarrow,
         independentCharacters
@@ -65,7 +61,7 @@ export class VerticalOCRController {
       if (paths === null || paths.length < 3) {
         throw new Error('Download interrupted');
       }
-      await this.ocrNativeModule.loadModule(
+      this.ocrNativeModule = global.loadVerticalOCR(
         paths[0]!,
         paths[1]!,
         paths[2]!,
@@ -95,7 +91,7 @@ export class VerticalOCRController {
     try {
       this.isGenerating = true;
       this.isGeneratingCallback(this.isGenerating);
-      return await this.ocrNativeModule.forward(input);
+      return await this.ocrNativeModule.generate(input);
     } catch (e) {
       throw new Error(getError(e));
     } finally {
@@ -103,4 +99,16 @@ export class VerticalOCRController {
       this.isGeneratingCallback(this.isGenerating);
     }
   };
+
+  public delete() {
+    if (this.isGenerating) {
+      throw new Error(
+        getError(ETError.ModelGenerating) +
+          'You cannot delete the model. You must wait until the generating is finished.'
+      );
+    }
+    this.ocrNativeModule.unload();
+    this.isReadyCallback(false);
+    this.isGeneratingCallback(false);
+  }
 }
