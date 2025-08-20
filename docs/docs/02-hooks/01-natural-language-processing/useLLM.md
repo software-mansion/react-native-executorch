@@ -165,7 +165,7 @@ To perform chat completion you can use the `generate` function. There is no retu
 const llm = useLLM({ model: LLAMA3_2_1B });
 
 const handleGenerate = () => {
-  const chat = [
+  const chat: Message[] = [
     { role: 'system', content: 'You are a helpful assistant' },
     { role: 'user', content: 'Hi!' },
     { role: 'assistant', content: 'Hi!, how can I help you?' },
@@ -220,7 +220,7 @@ const TOOL_DEFINITIONS: LLMTool[] = [
 const llm = useLLM({ model: HAMMER2_1_1_5B });
 
 const handleGenerate = () => {
-  const chat = [
+  const chat: Message[] = [
     {
       role: 'system',
       content: `You are a helpful assistant. Current time and date: ${new Date().toString()}`,
@@ -361,6 +361,8 @@ return (
 ### Structured output example
 
 ```tsx
+import { Schema } from 'jsonschema';
+
 const responseSchema: Schema = {
   properties: {
     username: {
@@ -407,7 +409,7 @@ useEffect(() => {
   // Some extra prompting to improve quality of response.
   const prompt = `Your goal is to parse user's messages and return them in JSON format. Don't respond to user. Simply return JSON with user's question parsed. \n${formattingInstructions}\n /no_think`;
 
-  configure({
+  llm.configure({
     chatConfig: {
       systemPrompt: prompt,
     },
