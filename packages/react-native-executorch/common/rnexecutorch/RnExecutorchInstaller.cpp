@@ -116,9 +116,6 @@ void RnExecutorchInstaller::injectJSIBindings(
 #endif
 
   ThreadConfig config;
-  config.pinToPerformanceCores = true;
-  config.priority = Priority::HIGH;
-  config.namePrefix = "NativeWorker";
   GlobalThreadPool::initialize(2, config);
 }
 

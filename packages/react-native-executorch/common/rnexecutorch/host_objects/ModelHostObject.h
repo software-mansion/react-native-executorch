@@ -32,64 +32,6 @@
 #include <unistd.h>
 
 namespace rnexecutorch {
-inline void setThreadPriorityRealtime(int priority) {
-  pthread_t thread = pthread_self();
-
-  sched_param sch_params;
-  sch_params.sched_priority = priority;
-
-  if (pthread_setschedparam(thread, SCHED_FIFO, &sch_params)) {
-    log(LOG_LEVEL::Error, "Failed to set thread priority: ", priority);
-  } else {
-    log(LOG_LEVEL::Error, "Thread priority set to: ", priority);
-  }
-}
-inline int getThreadPriority() {
-  pthread_t thread = pthread_self();
-  int policy;
-  sched_param param;
-
-  if (pthread_getschedparam(thread, &policy, &param) == 0) {
-    return param.sched_priority;
-  } else {
-    // handle error
-    return -1;
-  }
-}
-inline int getThreadAffinity() {
-  pthread_t thread = pthread_self();
-  pid_t tid = syscall(SYS_gettid);
-  cpu_set_t mask;
-  CPU_ZERO(&mask);
-  sched_param param;
-  int err = sched_getaffinity(tid, sizeof(mask), &mask);
-  if (err == 0) {
-    log(LOG_LEVEL::Error, "Thread %d CPU affinity: ", tid);
-    for (int i = 0; i < CPU_SETSIZE; i++) {
-      if (CPU_ISSET(i, &mask)) {
-        log(LOG_LEVEL::Error, "CPU: ", i);
-      }
-    }
-    return param.sched_priority;
-  } else {
-    log(LOG_LEVEL::Error, "Thread CPU affinity ERROR: ", tid, err, errno);
-
-    // handle error
-    return -1;
-  }
-}
-inline void setCurrentThreadAffinityToCPU(int cpu_id) {
-  pid_t tid = syscall(SYS_gettid);
-  cpu_set_t set;
-  CPU_ZERO(&set);
-  CPU_SET(cpu_id, &set);
-
-  if (sched_setaffinity(tid, sizeof(set), &set) == 0) {
-    log(LOG_LEVEL::Error, "Thread %d bound to CPU %d\n", tid, cpu_id);
-  } else {
-    log(LOG_LEVEL::Error, "sched_setaffinity failed");
-  }
-}
 
 template <typename Model> class ModelHostObject : public JsiHostObject {
 public:
@@ -268,69 +210,60 @@ public:
             // We need to dispatch a thread if we want the function to be
             // asynchronous. In this thread all accesses to jsi::Runtime need to
             // be done via the callInvoker.
-            // GlobalThreadPool::detach([]{
-            //   log(LOG_LEVEL::Error, "Calling from thread pool");
-            // });
-            GlobalThreadPool::detach([this, promise,
-                                      argsConverted =
-                                          std::move(argsConverted)]() {
-              // nice(-10);
-              // setThreadPriorityRealtime(-10);
-              // log(LOG_LEVEL::Error, "process id secondary", getpid());
-              // log(LOG_LEVEL::Error, "prio2:", getThreadPriority());
-              // getThreadAffinity();
-              // setCurrentThreadAffinityToCPU(7);
-              // getThreadAffinity();
-              try {
-                if constexpr (std::is_void_v<decltype(std::apply(
-                                  std::bind_front(FnPtr, model),
-                                  argsConverted))>) {
-                  // For void functions, just call the function and resolve with
-                  // undefined
-                  std::apply(std::bind_front(FnPtr, model),
-                             std::move(argsConverted));
-                  callInvoker->invokeAsync([promise](jsi::Runtime &runtime) {
-                    promise->resolve(jsi::Value::undefined());
-                  });
-                } else {
-                  // For non-void functions, capture the result and convert it
-                  auto result = std::apply(std::bind_front(FnPtr, model),
-                                           std::move(argsConverted));
-                  // The result is copied. It should either be quickly copiable,
-                  // or passed with a shared_ptr.
-                  callInvoker->invokeAsync(
-                      [promise, result](jsi::Runtime &runtime) {
-                        promise->resolve(jsi_conversion::getJsiValue(
-                            std::move(result), runtime));
-                      });
-                }
-              } catch (const std::runtime_error &e) {
-                // This catch should be merged with the next two
-                // (std::runtime_error and jsi::JSError inherits from
-                // std::exception) HOWEVER react native has broken RTTI which
-                // breaks proper exception type checking. Remove when the
-                // following change is present in our version:
-                // https://github.com/facebook/react-native/commit/3132cc88dd46f95898a756456bebeeb6c248f20e
-                callInvoker->invokeAsync([e = std::move(e), promise]() {
-                  promise->reject(e.what());
+            GlobalThreadPool::detach(
+                [this, promise, argsConverted = std::move(argsConverted)]() {
+                  try {
+                    if constexpr (std::is_void_v<decltype(std::apply(
+                                      std::bind_front(FnPtr, model),
+                                      argsConverted))>) {
+                      // For void functions, just call the function and resolve
+                      // with undefined
+                      std::apply(std::bind_front(FnPtr, model),
+                                 std::move(argsConverted));
+                      callInvoker->invokeAsync(
+                          [promise](jsi::Runtime &runtime) {
+                            promise->resolve(jsi::Value::undefined());
+                          });
+                    } else {
+                      // For non-void functions, capture the result and convert
+                      // it
+                      auto result = std::apply(std::bind_front(FnPtr, model),
+                                               std::move(argsConverted));
+                      // The result is copied. It should either be quickly
+                      // copiable, or passed with a shared_ptr.
+                      callInvoker->invokeAsync(
+                          [promise, result](jsi::Runtime &runtime) {
+                            promise->resolve(jsi_conversion::getJsiValue(
+                                std::move(result), runtime));
+                          });
+                    }
+                  } catch (const std::runtime_error &e) {
+                    // This catch should be merged with the next two
+                    // (std::runtime_error and jsi::JSError inherits from
+                    // std::exception) HOWEVER react native has broken RTTI
+                    // which breaks proper exception type checking. Remove when
+                    // the following change is present in our version:
+                    // https://github.com/facebook/react-native/commit/3132cc88dd46f95898a756456bebeeb6c248f20e
+                    callInvoker->invokeAsync([e = std::move(e), promise]() {
+                      promise->reject(e.what());
+                    });
+                    return;
+                  } catch (const jsi::JSError &e) {
+                    callInvoker->invokeAsync([e = std::move(e), promise]() {
+                      promise->reject(e.what());
+                    });
+                    return;
+                  } catch (const std::exception &e) {
+                    callInvoker->invokeAsync([e = std::move(e), promise]() {
+                      promise->reject(e.what());
+                    });
+                    return;
+                  } catch (...) {
+                    callInvoker->invokeAsync(
+                        [promise]() { promise->reject("Unknown error"); });
+                    return;
+                  }
                 });
-                return;
-              } catch (const jsi::JSError &e) {
-                callInvoker->invokeAsync([e = std::move(e), promise]() {
-                  promise->reject(e.what());
-                });
-                return;
-              } catch (const std::exception &e) {
-                callInvoker->invokeAsync([e = std::move(e), promise]() {
-                  promise->reject(e.what());
-                });
-                return;
-              } catch (...) {
-                callInvoker->invokeAsync(
-                    [promise]() { promise->reject("Unknown error"); });
-                return;
-              }
-            });
             // }).detach();
           } catch (...) {
             promise->reject("Couldn't parse JS arguments in a native function");

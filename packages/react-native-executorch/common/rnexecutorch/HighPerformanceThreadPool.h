@@ -2,7 +2,6 @@
 #pragma once
 
 #include <algorithm>
-#include <android/log.h>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -18,21 +17,25 @@
 #include <sched.h>
 #include <sys/resource.h>
 #include <thread>
-#include <unistd.h>
 #include <vector>
 
-#define LOG_TAG "HPThreadPool"
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
-#define LOGW(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)
-#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+#ifdef __APPLE__
+#include <mach/mach.h>
+#include <pthread.h>
+#include <sys/syscall.h>
+#include <unistd.h>
+#endif
+
+#ifdef __ANDROID__
+#include <sys/types.h>
+#include <unistd.h>
+#endif
+
 enum class Priority { LOW, NORMAL, HIGH, REALTIME };
 
 struct ThreadConfig {
   bool pinToPerformanceCores{true};
-  Priority priority{Priority::HIGH};
-  size_t stackSize{8 * 1024 * 1024};             // 8MB default
-  std::optional<std::vector<int>> specificCores; // Pin to specific cores
-  std::string namePrefix{"HPWorker"};
+  std::string namePrefix{"RN_ET_Worker"};
 };
 
 class HighPerformanceThreadPool {
@@ -75,11 +78,8 @@ private:
     std::chrono::steady_clock::time_point enqueueTime;
 
     bool operator<(const WorkItem &other) const {
-      // Higher priority first, then earlier enqueue time
-      if (priority != other.priority) {
-        return priority < other.priority;
-      }
-      return enqueueTime > other.enqueueTime;
+      return priority != other.priority ? priority < other.priority
+                                        : enqueueTime > other.enqueueTime;
     }
   };
 
@@ -148,38 +148,65 @@ private:
     for (const auto &core : cores) {
       if (core.maxFreq >= threshold) {
         performanceCores.push_back(core.id);
-        log(rnexecutorch::LOG_LEVEL::Error, "Performance core: %d (%.2f GHz)",
-            core.id, core.maxFreq / 1000000.0);
+        log(rnexecutorch::LOG_LEVEL::Error, "Performance core:", core.id, "(",
+            core.maxFreq / 1000000.0, " GHz)");
       } else {
         efficiencyCores.push_back(core.id);
-        log(rnexecutorch::LOG_LEVEL::Error, "Efficiency core: %d (%.2f GHz)",
-            core.id, core.maxFreq / 1000000.0);
+        log(rnexecutorch::LOG_LEVEL::Error, "Efficiency core:", core.id, "(",
+            core.maxFreq / 1000000.0, " GHz)");
       }
     }
+  }
+
+  inline uint64_t getCurrentThreadId() {
+#ifdef __ANDROID__
+    return gettid();
+#elif defined(__APPLE__)
+    // Option 1: pthread_threadid_np (recommended)
+    uint64_t tid;
+    pthread_threadid_np(pthread_self(), &tid);
+    return tid;
+
+    // Option 2: syscall (deprecated but works)
+    // return syscall(SYS_thread_selfid);
+
+    // Option 3: Mach thread ID
+    // return mach_thread_self();
+
+    // Option 4: pthread_self as number (not unique across processes)
+    // return (uint64_t)pthread_self();
+#else
+    return -1;
+#endif
+  }
+
+  inline void setCurrentThreadName(const std::string &name) {
+#ifdef __ANDROID__
+    pthread_setname_np(pthread_self(), name.c_str());
+#elif defined(__APPLE__)
+    pthread_setname_np(name.c_str()); // Note: no thread parameter on iOS
+#endif
   }
 
   void configureThread(int workerIndex) {
     // Set thread name
     std::string threadName = config.namePrefix + std::to_string(workerIndex);
-    pthread_setname_np(pthread_self(), threadName.c_str());
+    setCurrentThreadName(threadName.c_str());
 
-    // Configure CPU affinity
-    if (config.specificCores.has_value()) {
-      // Pin to specific cores provided by user
-      setCPUAffinity(config.specificCores.value());
-    } else if (config.pinToPerformanceCores && !performanceCores.empty()) {
-      // Pin to performance cores
+    // Pin to performance cores
+    if (config.pinToPerformanceCores && !performanceCores.empty()) {
       setCPUAffinity(performanceCores);
     }
 
     // Set thread priority
-    setThreadPriority(config.priority);
+    setThreadPriority();
 
-    log(rnexecutorch::LOG_LEVEL::Error, "Worker %d configured: %s", workerIndex,
-        threadName.c_str());
+    log(rnexecutorch::LOG_LEVEL::Error, "Worker ", workerIndex,
+        " configured: ", threadName.c_str());
   }
 
   void setCPUAffinity(const std::vector<int> &cores) {
+#ifdef __ANDROID__
     if (cores.empty()) {
       log(rnexecutorch::LOG_LEVEL::Error,
           "No cores specified for affinity setting");
@@ -190,8 +217,8 @@ private:
     int maxCores = std::thread::hardware_concurrency();
     for (int core : cores) {
       if (core < 0 || core >= maxCores) {
-        log(rnexecutorch::LOG_LEVEL::Error, "Invalid core index %d (max: %d)",
-            core, maxCores - 1);
+        log(rnexecutorch::LOG_LEVEL::Error, "Invalid core index ", core,
+            " (max: ", maxCores - 1, ")");
         return;
       }
     }
@@ -203,62 +230,24 @@ private:
       CPU_SET(core, &cpuset);
     }
 
-    // Use sched_setaffinity for Android compatibility
-    pid_t tid = gettid();
+    pid_t tid = getCurrentThreadId();
     log(rnexecutorch::LOG_LEVEL::Info, "Thread id ", tid);
     if (sched_setaffinity(tid, sizeof(cpuset), &cpuset) == 0) {
-      std::string coreList;
-      for (size_t i = 0; i < cores.size(); ++i) {
-        coreList += std::to_string(cores[i]);
-        if (i < cores.size() - 1)
-          coreList += ",";
-      }
-      log(rnexecutorch::LOG_LEVEL::Info, "Thread pinned to cores: %s",
-          coreList.c_str());
+      log(rnexecutorch::LOG_LEVEL::Info, "Thread pinned to cores: ", cores);
     } else {
       log(rnexecutorch::LOG_LEVEL::Error,
-          "Failed to set CPU affinity (error: %d). Continuing without "
-          "affinity.",
-          errno);
+          "Failed to set CPU affinity (error: ", errno,
+          "). Continuing without affinity.");
     }
+#endif
   }
 
-  void setThreadPriority(Priority priority) {
-    int nice_value = 0;
-    int sched_policy = SCHED_OTHER;
-    int sched_priority = 0;
-
-    switch (priority) {
-    case Priority::LOW:
-      nice_value = 10;
-      break;
-    case Priority::NORMAL:
-      nice_value = 0;
-      break;
-    case Priority::HIGH:
-      nice_value = -10;
-      sched_policy = SCHED_FIFO;
-      sched_priority = sched_get_priority_min(SCHED_FIFO);
-      break;
-    case Priority::REALTIME:
-      nice_value = -20;
-      sched_policy = SCHED_FIFO;
-      sched_priority = sched_get_priority_max(SCHED_FIFO) - 1;
-      break;
-    }
-
-    // Try to set real-time scheduling
-    if (sched_policy != SCHED_OTHER) {
-      struct sched_param param;
-      param.sched_priority = sched_priority;
-      if (pthread_setschedparam(pthread_self(), sched_policy, &param) != 0) {
-        log(rnexecutorch::LOG_LEVEL::Error,
-            "Failed to set real-time scheduling, falling back to nice value");
-      }
-      return;
-    }
+  void setThreadPriority() {
+    // pthread_setschedparam doesn't work on android because permissions reasons
+    // and in general does not provide visible improvements on iOS
 
     // Set nice value as fallback or additional priority boost
+    const int nice_value = 0;
     if (setpriority(PRIO_PROCESS, 0, nice_value) != 0) {
       log(rnexecutorch::LOG_LEVEL::Error, "Failed to set nice value");
     } else {
@@ -300,7 +289,7 @@ private:
         item.task->execute();
         stats.tasksCompleted++;
       } catch (const std::exception &e) {
-        LOGE("Task failed: %s", e.what());
+        log(rnexecutorch::LOG_LEVEL::Error, "Task failed: ", e.what());
         stats.tasksFailed++;
       }
 
@@ -315,7 +304,8 @@ private:
       totalTasksProcessed++;
     }
 
-    LOGI("Worker %d shutting down", workerIndex);
+    log(rnexecutorch::LOG_LEVEL::Error, "Worker ", workerIndex,
+        " shutting down");
   }
 
 public:
@@ -335,8 +325,8 @@ public:
       workers.emplace_back(&HighPerformanceThreadPool::workerThread, this, i);
     }
 
-    log(rnexecutorch::LOG_LEVEL::Error,
-        "Thread pool initialized with %zu workers", numThreads);
+    log(rnexecutorch::LOG_LEVEL::Error, "Thread pool initialized with ",
+        numThreads, " workers ", numThreads);
   }
 
   ~HighPerformanceThreadPool() { shutdown(); }
@@ -408,16 +398,6 @@ public:
         worker.join();
       }
     }
-
-    LOGI("Thread pool shut down. Stats: completed=%llu, failed=%llu, "
-         "avg_wait=%.1fms, avg_exec=%.1fms",
-         stats.tasksCompleted.load(), stats.tasksFailed.load(),
-         stats.tasksCompleted > 0
-             ? (double)stats.totalWaitTimeMs / stats.tasksCompleted
-             : 0,
-         stats.tasksCompleted > 0
-             ? (double)stats.totalExecutionTimeMs / stats.tasksCompleted
-             : 0);
   }
 
   // Get pool statistics
