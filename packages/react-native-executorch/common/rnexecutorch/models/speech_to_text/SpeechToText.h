@@ -18,7 +18,7 @@ public:
                         const std::string &modelName,
                         std::shared_ptr<react::CallInvoker> callInvoker);
   void encode(std::span<float> waveform);
-  int64_t decode(std::vector<int64_t> prevTokens);
+  std::shared_ptr<OwningArrayBuffer> decode(std::vector<int64_t> prevTokens);
 
 private:
   const std::string modelName;

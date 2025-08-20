@@ -14,8 +14,8 @@ public:
 
   std::string getDecoderMethod() const override { return "forward_cached"; }
 
-  int64_t extractOutputToken(const void *outputPtr,
-                             size_t innerDim) const override;
+  std::shared_ptr<OwningArrayBuffer> extractOutputToken(
+      const executorch::aten::Tensor &decoderOutputTensor) const override;
 };
 
 } // namespace rnexecutorch

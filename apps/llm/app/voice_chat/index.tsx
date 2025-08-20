@@ -12,11 +12,10 @@ import {
 import SWMIcon from '../../assets/icons/swm_icon.svg';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {
-  STREAMING_ACTION,
   useSpeechToText,
   useLLM,
   QWEN3_0_6B_QUANTIZED,
-  MOONSHINE_TINY,
+  WHISPER_TINY_EN,
 } from 'react-native-executorch';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
 import MicIcon from '../../assets/icons/mic_icon.svg';
@@ -69,9 +68,7 @@ function VoiceChatScreen() {
 
   const llm = useLLM({ model: QWEN3_0_6B_QUANTIZED });
   const speechToText = useSpeechToText({
-    model: MOONSHINE_TINY,
-    windowSize: 3,
-    overlapSeconds: 1.2,
+    model: WHISPER_TINY_EN,
   });
 
   useEffect(() => {
@@ -80,10 +77,7 @@ function VoiceChatScreen() {
 
   const onChunk = (data: string) => {
     const float32Chunk = float32ArrayFromPCMBinaryBuffer(data);
-    speechToText.streamingTranscribe(
-      STREAMING_ACTION.DATA,
-      Array.from(float32Chunk)
-    );
+    speechToText.streamInsert(Array.from(float32Chunk));
   };
 
   const handleRecordPress = async () => {
@@ -91,13 +85,12 @@ function VoiceChatScreen() {
       setIsRecording(false);
       LiveAudioStream.stop();
       messageRecorded.current = true;
-      await llm.sendMessage(
-        await speechToText.streamingTranscribe(STREAMING_ACTION.STOP)
-      );
+      speechToText.streamStop();
     } else {
       setIsRecording(true);
       startStreamingAudio(audioStreamOptions, onChunk);
-      await speechToText.streamingTranscribe(STREAMING_ACTION.START);
+      const transcription = await speechToText.stream();
+      await llm.sendMessage(transcription);
     }
   };
 
@@ -117,14 +110,17 @@ function VoiceChatScreen() {
           <SWMIcon width={45} height={45} />
           <Text style={styles.textModelName}>Qwen 3 x Moonshine</Text>
         </View>
-        {llm.messageHistory.length || speechToText.sequence ? (
+        {llm.messageHistory.length || speechToText.commitedTranscription ? (
           <View style={styles.chatContainer}>
             <Messages
               chatHistory={
                 speechToText.isGenerating
                   ? [
                       ...llm.messageHistory,
-                      { role: 'user', content: speechToText.sequence },
+                      {
+                        role: 'user',
+                        content: speechToText.commitedTranscription,
+                      },
                     ]
                   : llm.messageHistory
               }

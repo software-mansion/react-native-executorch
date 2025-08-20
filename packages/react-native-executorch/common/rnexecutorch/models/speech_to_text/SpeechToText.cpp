@@ -40,7 +40,8 @@ void SpeechToText::encode(std::span<float> waveform) {
   encoderOutput = result.get().at(0);
 }
 
-int64_t SpeechToText::decode(std::vector<int64_t> prevTokens) {
+std::shared_ptr<OwningArrayBuffer>
+SpeechToText::decode(std::vector<int64_t> prevTokens) {
   if (encoderOutput.isNone()) {
     throw std::runtime_error("Empty encodings on decode call, make sure to "
                              "call encode() prior to decode()!");
@@ -63,8 +64,7 @@ int64_t SpeechToText::decode(std::vector<int64_t> prevTokens) {
 
   const auto decoderOutputTensor = decoderResult.get().at(0).toTensor();
   const auto innerDim = decoderOutputTensor.size(1);
-  return strategy->extractOutputToken(decoderOutputTensor.const_data_ptr(),
-                                      innerDim);
+  return strategy->extractOutputToken(decoderOutputTensor);
 }
 
 } // namespace rnexecutorch

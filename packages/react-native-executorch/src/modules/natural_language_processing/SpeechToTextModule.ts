@@ -1,86 +1,98 @@
-import { ResourceSource } from '../../types/common';
-import { SpeechToTextController } from '../../controllers/SpeechToTextController';
-import { AvailableModels, SpeechToTextLanguage } from '../../types/stt';
-import { STREAMING_ACTION } from '../../constants/sttDefaults';
+import { DecodingOptions, SpeechToTextModelConfig } from '../../types/stt';
+import { ASR } from '../../utils/SpeechToTextModule/ASR';
+import { OnlineASRProcessor } from '../../utils/SpeechToTextModule/OnlineProcessor';
 
 export class SpeechToTextModule {
-  private module: SpeechToTextController;
+  private modelConfig!: SpeechToTextModelConfig;
+  private asr: ASR = new ASR();
 
-  constructor({
-    transcribeCallback,
-    overlapSeconds,
-    windowSize,
-    streamingConfig,
-  }: {
-    transcribeCallback?: (sequence: string) => void;
-    overlapSeconds?: ConstructorParameters<
-      typeof SpeechToTextController
-    >['0']['overlapSeconds'];
-    windowSize?: ConstructorParameters<
-      typeof SpeechToTextController
-    >['0']['windowSize'];
-    streamingConfig?: ConstructorParameters<
-      typeof SpeechToTextController
-    >['0']['streamingConfig'];
-  } = {}) {
-    this.module = new SpeechToTextController({
-      transcribeCallback: transcribeCallback || (() => {}),
-      overlapSeconds,
-      windowSize,
-      streamingConfig,
-    });
-  }
+  public processor: OnlineASRProcessor = new OnlineASRProcessor(this.asr);
+  private isStreaming = false;
+  private readyToProcess = false;
+  private minAudioSamples: number = 1 * 16000; // 1 second
 
   async load(
-    model: {
-      modelName: AvailableModels;
-      encoderSource?: ResourceSource;
-      decoderSource?: ResourceSource;
-      tokenizerSource?: ResourceSource;
-    },
+    model: SpeechToTextModelConfig,
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ) {
-    await this.module.load({
-      modelName: model.modelName,
-      encoderSource: model.encoderSource,
-      decoderSource: model.decoderSource,
-      tokenizerSource: model.tokenizerSource,
-      onDownloadProgressCallback,
-    });
+    this.modelConfig = model;
+    return this.asr.load(model, onDownloadProgressCallback);
   }
 
-  configureStreaming(
-    overlapSeconds: Parameters<SpeechToTextController['configureStreaming']>[0],
-    windowSize: Parameters<SpeechToTextController['configureStreaming']>[1],
-    streamingConfig: Parameters<SpeechToTextController['configureStreaming']>[2]
-  ) {
-    this.module.configureStreaming(overlapSeconds, windowSize, streamingConfig);
+  async encode(waveform: Float32Array): Promise<void> {
+    return this.asr.encode(waveform);
   }
 
-  async encode(waveform: Float32Array) {
-    return await this.module.encode(waveform);
-  }
-
-  async decode(seq: number[]) {
-    return await this.module.decode(seq);
+  async decode(tokens: number[]): Promise<Float32Array> {
+    return this.asr.decode(tokens);
   }
 
   async transcribe(
     waveform: number[],
-    audioLanguage?: SpeechToTextLanguage
-  ): ReturnType<SpeechToTextController['transcribe']> {
-    return await this.module.transcribe(waveform, audioLanguage);
+    options: DecodingOptions = {}
+  ): Promise<string> {
+    this.validateOptions(options);
+
+    const segments = await this.asr.transcribe(waveform, options);
+
+    let transcription = '';
+    for (const segment of segments) {
+      for (const word of segment.words) {
+        transcription += ` ${word.word}`;
+      }
+    }
+
+    return transcription;
   }
 
-  async streamingTranscribe(
-    streamAction: STREAMING_ACTION,
-    waveform?: number[],
-    audioLanguage?: SpeechToTextLanguage
-  ): ReturnType<SpeechToTextController['streamingTranscribe']> {
-    return await this.module.streamingTranscribe(
-      streamAction,
-      waveform,
-      audioLanguage
-    );
+  async *stream(options: DecodingOptions = {}) {
+    if (this.isStreaming) {
+      throw new Error('Streaming is already in progress');
+    }
+    this.validateOptions(options);
+    this.resetStreamState();
+
+    this.isStreaming = true;
+    while (this.isStreaming) {
+      if (
+        !this.readyToProcess ||
+        this.processor.audioBuffer.length < this.minAudioSamples
+      ) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        continue;
+      }
+
+      const { commited, nonCommited } =
+        await this.processor.processIter(options);
+      yield { commited, nonCommited };
+      this.readyToProcess = false;
+    }
+
+    const { commited } = await this.processor.finish();
+    yield { commited, nonCommited: '' };
+  }
+
+  streamStop() {
+    this.isStreaming = false;
+  }
+
+  streamInsert(waveform: number[]) {
+    this.processor.insertAudioChunk(waveform);
+    this.readyToProcess = true;
+  }
+
+  private validateOptions(options: DecodingOptions) {
+    if (!this.modelConfig.isMultilingual && options.language) {
+      throw new Error('Model is not multilingual, cannot set language');
+    }
+    if (this.modelConfig.isMultilingual && !options.language) {
+      throw new Error('Model is multilingual, provide a language');
+    }
+  }
+
+  private resetStreamState() {
+    this.isStreaming = false;
+    this.readyToProcess = false;
+    this.processor = new OnlineASRProcessor(this.asr);
   }
 }

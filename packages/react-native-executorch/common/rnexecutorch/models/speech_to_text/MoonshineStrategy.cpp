@@ -22,10 +22,20 @@ MoonshineStrategy::prepareTokenInput(const std::vector<int64_t> &prevTokens) {
   return make_tensor_ptr(std::move(tensorSizes), prevTokens);
 }
 
-int64_t MoonshineStrategy::extractOutputToken(const void *outputPtr,
-                                              size_t innerDim) const {
-  const auto *data = static_cast<const int64_t *>(outputPtr);
-  return data[innerDim - 1];
+std::shared_ptr<OwningArrayBuffer> MoonshineStrategy::extractOutputToken(
+    const executorch::aten::Tensor &decoderOutputTensor) const {
+  const auto innerDim = decoderOutputTensor.size(1);
+  auto dataPtr =
+      static_cast<const float *>(decoderOutputTensor.const_data_ptr()) +
+      (innerDim - 1);
+
+  std::span<const float> modelOutput(dataPtr, 1);
+  auto createBuffer = [](const auto &data, size_t size) {
+    auto buffer = std::make_shared<OwningArrayBuffer>(size);
+    std::memcpy(buffer->data(), data, size);
+    return buffer;
+  };
+  return createBuffer(modelOutput.data(), modelOutput.size_bytes());
 }
 
 } // namespace rnexecutorch
