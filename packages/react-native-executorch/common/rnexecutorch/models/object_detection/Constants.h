@@ -4,6 +4,8 @@
 #include <unordered_map>
 
 namespace rnexecutorch {
+inline constexpr float IOU_THRESHOLD = 0.55;
+
 inline const std::unordered_map<int, std::string> COCO_LABELS_MAP = {
     {1, "PERSON"},         {2, "BICYCLE"},       {3, "CAR"},
     {4, "MOTORCYCLE"},     {5, "AIRPLANE"},      {6, "BUS"},
