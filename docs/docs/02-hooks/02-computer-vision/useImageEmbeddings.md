@@ -51,13 +51,13 @@ For more information on loading resources, take a look at [loading models](../..
 
 ### Returns
 
-| Field              | Type                                            | Description                                                                                   |
-| ------------------ | ----------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `forward`          | `(input: imageSource) => Promise<Float32Array>` | Executes the model's forward pass, where `input` is a URI/URL to image that will be embedded. |
-| `error`            | <code>string &#124; null</code>                 | Contains the error message if the model failed to load.                                       |
-| `isGenerating`     | `boolean`                                       | Indicates whether the model is currently processing an inference.                             |
-| `isReady`          | `boolean`                                       | Indicates whether the model has successfully loaded and is ready for inference.               |
-| `downloadProgress` | `number`                                        | Represents the download progress as a value between 0 and 1.                                  |
+| Field              | Type                                             | Description                                                                                         |
+| ------------------ | ------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| `forward`          | `(imageSource: string) => Promise<Float32Array>` | Executes the model's forward pass, where `imageSource` is a URI/URL to image that will be embedded. |
+| `error`            | <code>string &#124; null</code>                  | Contains the error message if the model failed to load.                                             |
+| `isGenerating`     | `boolean`                                        | Indicates whether the model is currently processing an inference.                                   |
+| `isReady`          | `boolean`                                        | Indicates whether the model has successfully loaded and is ready for inference.                     |
+| `downloadProgress` | `number`                                         | Represents the download progress as a value between 0 and 1.                                        |
 
 ## Running the model
 
