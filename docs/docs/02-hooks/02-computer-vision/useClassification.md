@@ -40,13 +40,13 @@ For more information on loading resources, take a look at [loading models](../..
 
 ### Returns
 
-| Field              | Type                                                         | Description                                                                                              |
-| ------------------ | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| `forward`          | `(input: string) => Promise<{ [category: string]: number }>` | Executes the model's forward pass, where `input` can be a fetchable resource or a Base64-encoded string. |
-| `error`            | <code>string &#124; null</code>                              | Contains the error message if the model failed to load.                                                  |
-| `isGenerating`     | `boolean`                                                    | Indicates whether the model is currently processing an inference.                                        |
-| `isReady`          | `boolean`                                                    | Indicates whether the model has successfully loaded and is ready for inference.                          |
-| `downloadProgress` | `number`                                                     | Represents the download progress as a value between 0 and 1.                                             |
+| Field              | Type                                                               | Description                                                                                                    |
+| ------------------ | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| `forward`          | `(imageSource: string) => Promise<{ [category: string]: number }>` | Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string. |
+| `error`            | <code>string &#124; null</code>                                    | Contains the error message if the model failed to load.                                                        |
+| `isGenerating`     | `boolean`                                                          | Indicates whether the model is currently processing an inference.                                              |
+| `isReady`          | `boolean`                                                          | Indicates whether the model has successfully loaded and is ready for inference.                                |
+| `downloadProgress` | `number`                                                           | Represents the download progress as a value between 0 and 1.                                                   |
 
 ## Running the model
 
@@ -84,8 +84,8 @@ function App() {
 
 ## Supported models
 
-| Model                                                                                                           | Number of classes | Class list                                                                                                                                                                    |
-| --------------------------------------------------------------------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Model                                                                                                             | Number of classes | Class list                                                                                                                                                                    |
+| ----------------------------------------------------------------------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [efficientnet_v2_s](https://pytorch.org/vision/stable/models/generated/torchvision.models.efficientnet_v2_s.html) | 1000              | [ImageNet1k_v1](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/common/rnexecutorch/models/classification/Constants.h) |
 
 ## Benchmarks

@@ -26,11 +26,11 @@ const embedding = await imageEmbeddingsModule.forward(
 
 ### Methods
 
-| Method               | Type                                                                                                               | Description                                                                                       |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
-| `load`               | `(model: { modelSource: ResourceSource }, onDownloadProgressCallback?: (progress: number) => void): Promise<void>` | Loads the model, where `modelSource` is a string that specifies the location of the model binary. |
-| `forward`            | `(input: string): Promise<number[]>`                                                                               | Executes the model's forward pass, where `input` is a URI/URL to image that will be embedded.     |
-| `onDownloadProgress` | `(callback: (downloadProgress: number) => void): any`                                                              | Subscribe to the download progress event.                                                         |
+| Method               | Type                                                                                                               | Description                                                                                         |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| `load`               | `(model: { modelSource: ResourceSource }, onDownloadProgressCallback?: (progress: number) => void): Promise<void>` | Loads the model, where `modelSource` is a string that specifies the location of the model binary.   |
+| `forward`            | `(imageSource: string): Promise<Float32Array>`                                                                     | Executes the model's forward pass, where `imageSource` is a URI/URL to image that will be embedded. |
+| `onDownloadProgress` | `(callback: (downloadProgress: number) => void): any`                                                              | Subscribe to the download progress event.                                                           |
 
 <details>
 <summary>Type definitions</summary>
