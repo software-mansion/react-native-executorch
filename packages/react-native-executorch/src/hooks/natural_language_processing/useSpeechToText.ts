@@ -28,7 +28,6 @@ export const useSpeechToText = ({
         setIsReady(false);
         await modelInstance.load(
           {
-            type: model.type,
             isMultilingual: model.isMultilingual,
             encoderSource: model.encoderSource,
             decoderSource: model.decoderSource,
@@ -43,7 +42,6 @@ export const useSpeechToText = ({
     })();
   }, [
     modelInstance,
-    model.type,
     model.isMultilingual,
     model.encoderSource,
     model.decoderSource,

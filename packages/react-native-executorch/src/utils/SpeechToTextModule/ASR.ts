@@ -46,7 +46,7 @@ export class ASR {
     this.nativeModule = await global.loadSpeechToText(
       encoderSource,
       decoderSource,
-      model.type
+      'whisper'
     );
 
     this.startOfTranscriptToken = await this.tokenizerModule.tokenToId(

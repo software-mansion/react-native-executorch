@@ -1,5 +1,4 @@
 import { Platform } from 'react-native';
-import { SpeechToTextModelType } from '../types/stt';
 
 const URL_PREFIX =
   'https://huggingface.co/software-mansion/react-native-executorch';
@@ -308,9 +307,6 @@ export const STYLE_TRANSFER_UDNIE = {
 };
 
 // S2T
-// const MOONSHINE_TINY_DECODER_MODEL = `${URL_PREFIX}-moonshine-tiny/${VERSION_TAG}/xnnpack/moonshine_tiny_xnnpack_decoder.pte`;
-// const MOONSHINE_TINY_ENCODER_MODEL = `${URL_PREFIX}-moonshine-tiny/${VERSION_TAG}/xnnpack/moonshine_tiny_xnnpack_encoder.pte`;
-// const MOONSHINE_TOKENIZER = `${URL_PREFIX}-moonshine-tiny/${VERSION_TAG}/moonshine_tiny_tokenizer.json`;
 const WHISPER_TINY_EN_TOKENIZER = `${URL_PREFIX}-whisper-tiny.en/${NEXT_VERSION_TAG}/tokenizer.json`;
 const WHISPER_TINY_EN_ENCODER = `${URL_PREFIX}-whisper-tiny.en/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_en_encoder_xnnpack.pte`;
 const WHISPER_TINY_EN_DECODER = `${URL_PREFIX}-whisper-tiny.en/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_en_decoder_xnnpack.pte`;
@@ -335,16 +331,7 @@ const WHISPER_SMALL_TOKENIZER = `${URL_PREFIX}-whisper-small/${NEXT_VERSION_TAG}
 const WHISPER_SMALL_ENCODER_MODEL = `${URL_PREFIX}-whisper-small/${NEXT_VERSION_TAG}/xnnpack/whisper_small_encoder_xnnpack.pte`;
 const WHISPER_SMALL_DECODER_MODEL = `${URL_PREFIX}-whisper-small/${NEXT_VERSION_TAG}/xnnpack/whisper_small_decoder_xnnpack.pte`;
 
-// export const MOONSHINE_TINY: SpeechToTextModelConfig = {
-//   type: 'moonshine',
-//   isMultilingual: false,
-//   decoderSource: MOONSHINE_TINY_DECODER_MODEL,
-//   encoderSource: MOONSHINE_TINY_ENCODER_MODEL,
-//   tokenizerSource: MOONSHINE_TOKENIZER,
-// };
-
 export const WHISPER_TINY_EN = {
-  type: 'whisper' as SpeechToTextModelType,
   isMultilingual: false,
   encoderSource: WHISPER_TINY_EN_ENCODER,
   decoderSource: WHISPER_TINY_EN_DECODER,
@@ -352,7 +339,6 @@ export const WHISPER_TINY_EN = {
 };
 
 export const WHISPER_BASE_EN = {
-  type: 'whisper' as SpeechToTextModelType,
   isMultilingual: false,
   encoderSource: WHISPER_BASE_EN_ENCODER,
   decoderSource: WHISPER_BASE_EN_DECODER,
@@ -360,7 +346,6 @@ export const WHISPER_BASE_EN = {
 };
 
 export const WHISPER_SMALL_EN = {
-  type: 'whisper' as SpeechToTextModelType,
   isMultilingual: false,
   encoderSource: WHISPER_SMALL_EN_ENCODER,
   decoderSource: WHISPER_SMALL_EN_DECODER,
@@ -368,7 +353,6 @@ export const WHISPER_SMALL_EN = {
 };
 
 export const WHISPER_TINY = {
-  type: 'whisper' as SpeechToTextModelType,
   isMultilingual: true,
   encoderSource: WHISPER_TINY_ENCODER_MODEL,
   decoderSource: WHISPER_TINY_DECODER_MODEL,
@@ -376,7 +360,6 @@ export const WHISPER_TINY = {
 };
 
 export const WHISPER_BASE = {
-  type: 'whisper' as SpeechToTextModelType,
   isMultilingual: true,
   encoderSource: WHISPER_BASE_ENCODER_MODEL,
   decoderSource: WHISPER_BASE_DECODER_MODEL,
@@ -384,7 +367,6 @@ export const WHISPER_BASE = {
 };
 
 export const WHISPER_SMALL = {
-  type: 'whisper' as SpeechToTextModelType,
   isMultilingual: true,
   encoderSource: WHISPER_SMALL_ENCODER_MODEL,
   decoderSource: WHISPER_SMALL_DECODER_MODEL,

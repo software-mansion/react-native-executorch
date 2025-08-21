@@ -94,11 +94,7 @@ export interface DecodingOptions {
   language?: SpeechToTextLanguage;
 }
 
-// export type SpeechToTextModelType = 'whisper' | 'moonshine';
-export type SpeechToTextModelType = 'whisper';
-
 export interface SpeechToTextModelConfig {
-  type: SpeechToTextModelType;
   isMultilingual: boolean;
   encoderSource: ResourceSource;
   decoderSource: ResourceSource;
