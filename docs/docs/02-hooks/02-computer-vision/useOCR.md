@@ -134,13 +134,13 @@ For more information on loading resources, take a look at [loading models](../..
 
 The hook returns an object with the following properties:
 
-| Field              | Type                                         | Description                                                                                 |
-| ------------------ | -------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `forward`          | `(input: string) => Promise<OCRDetection[]>` | A function that accepts an image (url, b64) and returns an array of `OCRDetection` objects. |
-| `error`            | <code>string &#124; null</code>              | Contains the error message if the model loading failed.                                     |
-| `isGenerating`     | `boolean`                                    | Indicates whether the model is currently processing an inference.                           |
-| `isReady`          | `boolean`                                    | Indicates whether the model has successfully loaded and is ready for inference.             |
-| `downloadProgress` | `number`                                     | Represents the download progress as a value between 0 and 1.                                |
+| Field              | Type                                               | Description                                                                                 |
+| ------------------ | -------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `forward`          | `(imageSource: string) => Promise<OCRDetection[]>` | A function that accepts an image (url, b64) and returns an array of `OCRDetection` objects. |
+| `error`            | <code>string &#124; null</code>                    | Contains the error message if the model loading failed.                                     |
+| `isGenerating`     | `boolean`                                          | Indicates whether the model is currently processing an inference.                           |
+| `isReady`          | `boolean`                                          | Indicates whether the model has successfully loaded and is ready for inference.             |
+| `downloadProgress` | `number`                                           | Represents the download progress as a value between 0 and 1.                                |
 
 ## Running the model
 

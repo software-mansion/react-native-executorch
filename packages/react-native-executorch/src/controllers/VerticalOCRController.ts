@@ -80,7 +80,7 @@ export class VerticalOCRController {
     }
   };
 
-  public forward = async (input: string) => {
+  public forward = async (imageSource: string) => {
     if (!this.isReady) {
       throw new Error(getError(ETError.ModuleNotLoaded));
     }
@@ -91,7 +91,7 @@ export class VerticalOCRController {
     try {
       this.isGenerating = true;
       this.isGeneratingCallback(this.isGenerating);
-      return await this.ocrNativeModule.generate(input);
+      return await this.ocrNativeModule.generate(imageSource);
     } catch (e) {
       throw new Error(getError(e));
     } finally {
