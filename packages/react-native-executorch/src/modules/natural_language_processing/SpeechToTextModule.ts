@@ -62,14 +62,14 @@ export class SpeechToTextModule {
         continue;
       }
 
-      const { commited, nonCommited } =
+      const { committed, nonCommitted } =
         await this.processor.processIter(options);
-      yield { commited, nonCommited };
+      yield { committed, nonCommitted };
       this.readyToProcess = false;
     }
 
-    const { commited } = await this.processor.finish();
-    yield { commited, nonCommited: '' };
+    const { committed } = await this.processor.finish();
+    yield { committed, nonCommitted: '' };
   }
 
   streamStop() {

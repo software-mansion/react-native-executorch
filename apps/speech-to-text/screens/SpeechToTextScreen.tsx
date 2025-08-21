@@ -136,8 +136,8 @@ export const SpeechToTextScreen = () => {
               <Text>
                 {transcription !== ''
                   ? transcription
-                  : model.commitedTranscription +
-                    model.nonCommitedTranscription}
+                  : model.committedTranscription +
+                    model.nonCommittedTranscription}
               </Text>
             </ScrollView>
           </View>

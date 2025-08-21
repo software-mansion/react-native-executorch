@@ -16,8 +16,9 @@ export const useSpeechToText = ({
   const [downloadProgress, setDownloadProgress] = useState(0);
 
   const [modelInstance] = useState(() => new SpeechToTextModule());
-  const [commitedTranscription, setCommitedTranscription] = useState('');
-  const [nonCommitedTranscription, setNonCommitedTranscription] = useState('');
+  const [committedTranscription, setCommittedTranscription] = useState('');
+  const [nonCommittedTranscription, setNonCommittedTranscription] =
+    useState('');
 
   useEffect(() => {
     if (preventLoad) return;
@@ -69,14 +70,14 @@ export const useSpeechToText = ({
     if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
     if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
     setIsGenerating(true);
-    setCommitedTranscription('');
-    setNonCommitedTranscription('');
+    setCommittedTranscription('');
+    setNonCommittedTranscription('');
     let transcription = '';
     try {
-      for await (const { commited, nonCommited } of modelInstance.stream()) {
-        setCommitedTranscription((prev) => prev + commited);
-        setNonCommitedTranscription(nonCommited);
-        transcription += commited;
+      for await (const { committed, nonCommitted } of modelInstance.stream()) {
+        setCommittedTranscription((prev) => prev + committed);
+        setNonCommittedTranscription(nonCommitted);
+        transcription += committed;
       }
     } finally {
       setIsGenerating(false);
@@ -99,8 +100,8 @@ export const useSpeechToText = ({
     isReady,
     isGenerating,
     downloadProgress,
-    commitedTranscription,
-    nonCommitedTranscription,
+    committedTranscription,
+    nonCommittedTranscription,
     encode: stateWrapper(SpeechToTextModule.prototype.encode),
     decode: stateWrapper(SpeechToTextModule.prototype.decode),
     transcribe: stateWrapper(SpeechToTextModule.prototype.transcribe),

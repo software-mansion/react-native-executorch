@@ -11,7 +11,7 @@ export class OnlineASRProcessor {
   public audioBuffer: number[] = [];
   private transcriptBuffer: HypothesisBuffer = new HypothesisBuffer();
   private bufferTimeOffset: number = 0;
-  private commited: WordTuple[] = [];
+  private committed: WordTuple[] = [];
 
   constructor(asr: ASR) {
     this.asr = asr;
@@ -26,28 +26,28 @@ export class OnlineASRProcessor {
     const tsw = this.asr.tsWords(res);
     this.transcriptBuffer.insert(tsw, this.bufferTimeOffset);
     const o = this.transcriptBuffer.flush();
-    this.commited.push(...o);
+    this.committed.push(...o);
 
     const s = 15;
     if (this.audioBuffer.length / this.samplingRate > s) {
       this.chunkCompletedSegment(res);
     }
 
-    const commited = this.toFlush(o)[2];
-    const nonCommited = this.transcriptBuffer
+    const committed = this.toFlush(o)[2];
+    const nonCommitted = this.transcriptBuffer
       .complete()
       .map((x) => x[2])
       .join('');
-    return { commited, nonCommited };
+    return { committed, nonCommitted };
   }
 
   chunkCompletedSegment(res: Segment[]) {
-    if (this.commited.length === 0) {
+    if (this.committed.length === 0) {
       return;
     }
 
     const ends = this.asr.segmentsEndTs(res);
-    const t = this.commited.at(-1)![1];
+    const t = this.committed.at(-1)![1];
 
     if (ends.length > 1) {
       let e = ends.at(-2)! + this.bufferTimeOffset;
@@ -63,7 +63,7 @@ export class OnlineASRProcessor {
   }
 
   chunkAt(time: number) {
-    this.transcriptBuffer.popCommited(time);
+    this.transcriptBuffer.popCommitted(time);
     const cutSeconds = time - this.bufferTimeOffset;
     this.audioBuffer = this.audioBuffer.slice(
       Math.floor(cutSeconds * this.samplingRate)
@@ -75,7 +75,7 @@ export class OnlineASRProcessor {
     const o = this.transcriptBuffer.complete();
     const f = this.toFlush(o);
     this.bufferTimeOffset += this.audioBuffer.length / this.samplingRate;
-    return { commited: f[2] };
+    return { committed: f[2] };
   }
 
   private toFlush(words: WordTuple[]): [number | null, number | null, string] {

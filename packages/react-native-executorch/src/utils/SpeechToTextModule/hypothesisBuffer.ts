@@ -3,12 +3,12 @@
 import { WordTuple } from '../../types/stt';
 
 export class HypothesisBuffer {
-  private commitedInBuffer: WordTuple[] = [];
+  private committedInBuffer: WordTuple[] = [];
   private buffer: WordTuple[] = [];
   private new: WordTuple[] = [];
 
-  public lastCommitedTime: number = 0;
-  public lastCommitedWord: string | null = null;
+  public lastCommittedTime: number = 0;
+  public lastCommittedWord: string | null = null;
 
   insert(newWords: WordTuple[], offset: number) {
     const newWordsOffset: WordTuple[] = newWords.map(([a, b, t]) => [
@@ -17,20 +17,20 @@ export class HypothesisBuffer {
       t,
     ]);
     this.new = newWordsOffset.filter(
-      ([a, _b, _t]) => a > this.lastCommitedTime - 0.5
+      ([a, _b, _t]) => a > this.lastCommittedTime - 0.5
     );
 
     if (this.new.length > 0) {
       const [a, _b, _t] = this.new[0]!;
       if (
-        Math.abs(a - this.lastCommitedTime) < 1 &&
-        this.commitedInBuffer.length > 0
+        Math.abs(a - this.lastCommittedTime) < 1 &&
+        this.committedInBuffer.length > 0
       ) {
-        const cn = this.commitedInBuffer.length;
+        const cn = this.committedInBuffer.length;
         const nn = this.new.length;
 
         for (let i = 1; i <= Math.min(cn, nn, 5); i++) {
-          const c = this.commitedInBuffer
+          const c = this.committedInBuffer
             .slice(-i)
             .map((w) => w[2])
             .join(' ');
@@ -56,19 +56,19 @@ export class HypothesisBuffer {
         break;
       }
       commit.push(this.new[0]!);
-      this.lastCommitedWord = this.new[0]![2];
-      this.lastCommitedTime = this.new[0]![1];
+      this.lastCommittedWord = this.new[0]![2];
+      this.lastCommittedTime = this.new[0]![1];
       this.buffer.shift();
       this.new.shift();
     }
     this.buffer = this.new;
     this.new = [];
-    this.commitedInBuffer.push(...commit);
+    this.committedInBuffer.push(...commit);
     return commit;
   }
 
-  popCommited(time: number) {
-    this.commitedInBuffer = this.commitedInBuffer.filter(
+  popCommitted(time: number) {
+    this.committedInBuffer = this.committedInBuffer.filter(
       ([_a, b, _t]) => b > time
     );
   }

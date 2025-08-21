@@ -110,7 +110,7 @@ function VoiceChatScreen() {
           <SWMIcon width={45} height={45} />
           <Text style={styles.textModelName}>Qwen 3 x Moonshine</Text>
         </View>
-        {llm.messageHistory.length || speechToText.commitedTranscription ? (
+        {llm.messageHistory.length || speechToText.committedTranscription ? (
           <View style={styles.chatContainer}>
             <Messages
               chatHistory={
@@ -119,7 +119,7 @@ function VoiceChatScreen() {
                       ...llm.messageHistory,
                       {
                         role: 'user',
-                        content: speechToText.commitedTranscription,
+                        content: speechToText.committedTranscription,
                       },
                     ]
                   : llm.messageHistory
