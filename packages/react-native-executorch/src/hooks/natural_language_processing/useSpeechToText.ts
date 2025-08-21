@@ -1,116 +1,111 @@
-import { useEffect, useMemo, useState } from 'react';
-import { SpeechToTextController } from '../../controllers/SpeechToTextController';
-import { ResourceSource } from '../../types/common';
-import { STREAMING_ACTION } from '../../constants/sttDefaults';
-import { AvailableModels, SpeechToTextLanguage } from '../../types/stt';
-
-interface SpeechToTextModule {
-  isReady: boolean;
-  isGenerating: boolean;
-  sequence: string;
-  downloadProgress: number;
-  configureStreaming: SpeechToTextController['configureStreaming'];
-  error: Error | undefined;
-  transcribe: (
-    input: number[],
-    audioLanguage?: SpeechToTextLanguage
-  ) => ReturnType<SpeechToTextController['transcribe']>;
-  streamingTranscribe: (
-    streamAction: STREAMING_ACTION,
-    input?: number[],
-    audioLanguage?: SpeechToTextLanguage
-  ) => ReturnType<SpeechToTextController['streamingTranscribe']>;
-}
+import { useEffect, useCallback, useState } from 'react';
+import { ETError, getError } from '../../Error';
+import { SpeechToTextModule } from '../../modules/natural_language_processing/SpeechToTextModule';
+import { SpeechToTextModelConfig } from '../../types/stt';
 
 export const useSpeechToText = ({
   model,
-  overlapSeconds,
-  windowSize,
-  streamingConfig,
   preventLoad = false,
 }: {
-  model: {
-    modelName: AvailableModels;
-    encoderSource: ResourceSource;
-    decoderSource: ResourceSource;
-    tokenizerSource: ResourceSource;
-  };
-  overlapSeconds?: ConstructorParameters<
-    typeof SpeechToTextController
-  >['0']['overlapSeconds'];
-  windowSize?: ConstructorParameters<
-    typeof SpeechToTextController
-  >['0']['windowSize'];
-  streamingConfig?: ConstructorParameters<
-    typeof SpeechToTextController
-  >['0']['streamingConfig'];
+  model: SpeechToTextModelConfig;
   preventLoad?: boolean;
-}): SpeechToTextModule => {
-  const [sequence, setSequence] = useState<string>('');
+}) => {
+  const [error, setError] = useState<null | string>(null);
   const [isReady, setIsReady] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [error, setError] = useState<Error | undefined>();
+  const [downloadProgress, setDownloadProgress] = useState(0);
 
-  const controllerInstance = useMemo(
-    () =>
-      new SpeechToTextController({
-        transcribeCallback: setSequence,
-        isReadyCallback: setIsReady,
-        isGeneratingCallback: setIsGenerating,
-        onErrorCallback: setError,
-      }),
-    []
-  );
+  const [modelInstance] = useState(() => new SpeechToTextModule());
+  const [committedTranscription, setCommittedTranscription] = useState('');
+  const [nonCommittedTranscription, setNonCommittedTranscription] =
+    useState('');
 
   useEffect(() => {
-    controllerInstance.configureStreaming(
-      overlapSeconds,
-      windowSize,
-      streamingConfig
-    );
-  }, [controllerInstance, overlapSeconds, windowSize, streamingConfig]);
-
-  useEffect(() => {
-    const loadModel = async () => {
-      await controllerInstance.load({
-        modelName: model.modelName,
-        encoderSource: model.encoderSource,
-        decoderSource: model.decoderSource,
-        tokenizerSource: model.tokenizerSource,
-        onDownloadProgressCallback: setDownloadProgress,
-      });
-    };
-    if (!preventLoad) {
-      loadModel();
-    }
+    if (preventLoad) return;
+    (async () => {
+      setDownloadProgress(0);
+      setError(null);
+      try {
+        setIsReady(false);
+        await modelInstance.load(
+          {
+            isMultilingual: model.isMultilingual,
+            encoderSource: model.encoderSource,
+            decoderSource: model.decoderSource,
+            tokenizerSource: model.tokenizerSource,
+          },
+          setDownloadProgress
+        );
+        setIsReady(true);
+      } catch (err) {
+        setError((err as Error).message);
+      }
+    })();
   }, [
-    controllerInstance,
-    model.modelName,
+    modelInstance,
+    model.isMultilingual,
     model.encoderSource,
     model.decoderSource,
     model.tokenizerSource,
     preventLoad,
   ]);
 
+  const stateWrapper = useCallback(
+    <T extends (...args: any[]) => Promise<any>>(fn: T) =>
+      async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
+        if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
+        if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
+        setIsGenerating(true);
+        try {
+          return await fn.apply(modelInstance, args);
+        } finally {
+          setIsGenerating(false);
+        }
+      },
+    [isReady, isGenerating, modelInstance]
+  );
+
+  const stream = useCallback(async () => {
+    if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
+    if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
+    setIsGenerating(true);
+    setCommittedTranscription('');
+    setNonCommittedTranscription('');
+    let transcription = '';
+    try {
+      for await (const { committed, nonCommitted } of modelInstance.stream()) {
+        setCommittedTranscription((prev) => prev + committed);
+        setNonCommittedTranscription(nonCommitted);
+        transcription += committed;
+      }
+    } finally {
+      setIsGenerating(false);
+    }
+    return transcription;
+  }, [isReady, isGenerating, modelInstance]);
+
+  const wrapper = useCallback(
+    <T extends (...args: any[]) => any>(fn: T) => {
+      return (...args: Parameters<T>): ReturnType<T> => {
+        if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
+        return fn.apply(modelInstance, args);
+      };
+    },
+    [isReady, modelInstance]
+  );
+
   return {
+    error,
     isReady,
     isGenerating,
     downloadProgress,
-    configureStreaming: controllerInstance.configureStreaming,
-    sequence,
-    error,
-    transcribe: (waveform: number[], audioLanguage?: SpeechToTextLanguage) =>
-      controllerInstance.transcribe(waveform, audioLanguage),
-    streamingTranscribe: (
-      streamAction: STREAMING_ACTION,
-      waveform?: number[],
-      audioLanguage?: SpeechToTextLanguage
-    ) =>
-      controllerInstance.streamingTranscribe(
-        streamAction,
-        waveform,
-        audioLanguage
-      ),
+    committedTranscription,
+    nonCommittedTranscription,
+    encode: stateWrapper(SpeechToTextModule.prototype.encode),
+    decode: stateWrapper(SpeechToTextModule.prototype.decode),
+    transcribe: stateWrapper(SpeechToTextModule.prototype.transcribe),
+    stream,
+    streamStop: wrapper(SpeechToTextModule.prototype.streamStop),
+    streamInsert: wrapper(SpeechToTextModule.prototype.streamInsert),
   };
 };

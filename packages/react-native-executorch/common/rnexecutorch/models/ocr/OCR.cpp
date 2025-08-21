@@ -35,7 +35,7 @@ std::vector<OCRDetection> OCR::generate(std::string input) {
   */
   std::vector<OCRDetection> result = recognitionHandler.recognize(
       bboxesList, image,
-      cv::Size(ocr::recognizerImageSize, ocr::recognizerImageSize));
+      cv::Size(ocr::RECOGNIZER_IMAGE_SIZE, ocr::RECOGNIZER_IMAGE_SIZE));
 
   return result;
 }

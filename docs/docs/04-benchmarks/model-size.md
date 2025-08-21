@@ -58,10 +58,14 @@ title: Model Size
 
 ## Speech to text
 
-| Model          | XNNPACK [MB] |
-| -------------- | :----------: |
-| WHISPER_TINY   |    231.0     |
-| MOONSHINE_TINY |    148.9     |
+| Model            | XNNPACK [MB] |
+| ---------------- | :----------: |
+| WHISPER_TINY_EN  |     151      |
+| WHISPER_TINY     |     151      |
+| WHISPER_BASE_EN  |    290.6     |
+| WHISPER_BASE     |    290.6     |
+| WHISPER_SMALL_EN |     968      |
+| WHISPER_SMALL    |     968      |
 
 ## Text Embeddings
 

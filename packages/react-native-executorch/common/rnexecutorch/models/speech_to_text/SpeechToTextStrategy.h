@@ -1,6 +1,7 @@
 #pragma once
 
 #include "executorch/extension/tensor/tensor_ptr.h"
+#include <rnexecutorch/host_objects/JSTensorViewOut.h>
 #include <span>
 #include <vector>
 
@@ -19,8 +20,8 @@ public:
 
   virtual std::string getDecoderMethod() const = 0;
 
-  virtual int64_t extractOutputToken(const void *outputPtr,
-                                     size_t innerDim) const = 0;
+  virtual std::shared_ptr<OwningArrayBuffer> extractOutputToken(
+      const executorch::aten::Tensor &decoderOutputTensor) const = 0;
 };
 
 } // namespace rnexecutorch

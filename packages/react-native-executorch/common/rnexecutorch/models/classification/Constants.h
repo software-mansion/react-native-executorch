@@ -4,7 +4,7 @@
 #include <string_view>
 
 namespace rnexecutorch {
-inline constexpr std::array<std::string_view, 1000> imagenet1k_v1_labels = {
+inline constexpr std::array<std::string_view, 1000> IMAGENET1K_V1_LABELS = {
     "tench, Tinca tinca",
     "goldfish, Carassius auratus",
     "great white shark, white shark, man-eater, man-eating shark, Carcharodon "
