@@ -2,7 +2,7 @@ import { alphabets, symbols } from './symbols';
 
 const URL_PREFIX =
   'https://huggingface.co/software-mansion/react-native-executorch';
-const VERSION_TAG = 'resolve/v0.4.0';
+const VERSION_TAG = 'resolve/v0.5.0';
 
 const DETECTOR_CRAFT_1280_MODEL = `${URL_PREFIX}-detector-craft/${VERSION_TAG}/xnnpack/xnnpack_craft_1280.pte`;
 const DETECTOR_CRAFT_800_MODEL = `${URL_PREFIX}-detector-craft/${VERSION_TAG}/xnnpack/xnnpack_craft_800.pte`;
