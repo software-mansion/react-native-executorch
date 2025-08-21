@@ -24,7 +24,7 @@ export class ASR {
   private endOfTextToken!: number;
   private timestampBeginToken!: number;
 
-  async load(
+  public async load(
     model: SpeechToTextModelConfig,
     onDownloadProgressCallback: (progress: number) => void
   ) {
@@ -56,7 +56,9 @@ export class ASR {
     this.timestampBeginToken = await this.tokenizerModule.tokenToId('<|0.00|>');
   }
 
-  async getInitialSequence(options: DecodingOptions): Promise<number[]> {
+  private async getInitialSequence(
+    options: DecodingOptions
+  ): Promise<number[]> {
     const initialSequence: number[] = [this.startOfTranscriptToken];
     if (options.language) {
       const languageToken = await this.tokenizerModule.tokenToId(
@@ -70,7 +72,7 @@ export class ASR {
     return initialSequence;
   }
 
-  async generate(
+  private async generate(
     audio: number[],
     temperature: number,
     options: DecodingOptions
@@ -106,14 +108,14 @@ export class ASR {
     };
   }
 
-  softmaxWithTemperature(logits: number[], temperature = 1.0) {
+  private softmaxWithTemperature(logits: number[], temperature = 1.0) {
     const max = Math.max(...logits);
     const exps = logits.map((logit) => Math.exp((logit - max) / temperature));
     const sum = exps.reduce((a, b) => a + b, 0);
     return exps.map((exp) => exp / sum);
   }
 
-  sampleFromDistribution(probs: number[]): number {
+  private sampleFromDistribution(probs: number[]): number {
     const r = Math.random();
     let cumulative = 0;
     for (let i = 0; i < probs.length; i++) {
@@ -125,7 +127,10 @@ export class ASR {
     return probs.length - 1;
   }
 
-  async generateWithFallback(audio: number[], options: DecodingOptions) {
+  private async generateWithFallback(
+    audio: number[],
+    options: DecodingOptions
+  ) {
     const temperatures = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0];
     let generatedTokens: number[] = [];
 
@@ -135,13 +140,13 @@ export class ASR {
       const scores = result.scores;
 
       const seqLen = tokens.length;
-      const cumLogprob = scores.reduce(
+      const cumLogProb = scores.reduce(
         (acc, score) => acc + Math.log(score),
         0
       );
-      const avgLogprob = cumLogprob / seqLen;
+      const avgLogProb = cumLogProb / seqLen;
 
-      if (avgLogprob >= -1.0) {
+      if (avgLogProb >= -1.0) {
         generatedTokens = tokens;
         break;
       }
@@ -150,7 +155,7 @@ export class ASR {
     return this.calculateWordLevelTimestamps(generatedTokens, audio);
   }
 
-  async calculateWordLevelTimestamps(
+  private async calculateWordLevelTimestamps(
     generatedTokens: number[],
     audio: number[]
   ): Promise<Segment[]> {
@@ -210,7 +215,7 @@ export class ASR {
     return segments;
   }
 
-  async estimateWordTimestampsLinear(
+  private async estimateWordTimestampsLinear(
     tokens: number[],
     start: number,
     end: number
@@ -274,7 +279,7 @@ export class ASR {
     return allSegments;
   }
 
-  tsWords(segments: Segment[]): WordTuple[] {
+  public tsWords(segments: Segment[]): WordTuple[] {
     const o: WordTuple[] = [];
     for (const segment of segments) {
       for (const word of segment.words) {
@@ -284,15 +289,15 @@ export class ASR {
     return o;
   }
 
-  segmentsEndTs(res: Segment[]) {
+  public segmentsEndTs(res: Segment[]) {
     return res.map((segment) => segment.words.at(-1)!.end);
   }
 
-  async encode(waveform: Float32Array): Promise<void> {
+  public async encode(waveform: Float32Array): Promise<void> {
     await this.nativeModule.encode(waveform);
   }
 
-  async decode(tokens: number[]): Promise<Float32Array> {
+  public async decode(tokens: number[]): Promise<Float32Array> {
     return new Float32Array(await this.nativeModule.decode(tokens));
   }
 }

@@ -6,12 +6,12 @@ export class SpeechToTextModule {
   private modelConfig!: SpeechToTextModelConfig;
   private asr: ASR = new ASR();
 
-  public processor: OnlineASRProcessor = new OnlineASRProcessor(this.asr);
+  private processor: OnlineASRProcessor = new OnlineASRProcessor(this.asr);
   private isStreaming = false;
   private readyToProcess = false;
   private minAudioSamples: number = 1 * 16000; // 1 second
 
-  async load(
+  public async load(
     model: SpeechToTextModelConfig,
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ) {
@@ -19,15 +19,15 @@ export class SpeechToTextModule {
     return this.asr.load(model, onDownloadProgressCallback);
   }
 
-  async encode(waveform: Float32Array): Promise<void> {
+  public async encode(waveform: Float32Array): Promise<void> {
     return this.asr.encode(waveform);
   }
 
-  async decode(tokens: number[]): Promise<Float32Array> {
+  public async decode(tokens: number[]): Promise<Float32Array> {
     return this.asr.decode(tokens);
   }
 
-  async transcribe(
+  public async transcribe(
     waveform: number[],
     options: DecodingOptions = {}
   ): Promise<string> {
@@ -42,10 +42,10 @@ export class SpeechToTextModule {
       }
     }
 
-    return transcription;
+    return transcription.trim();
   }
 
-  async *stream(options: DecodingOptions = {}) {
+  public async *stream(options: DecodingOptions = {}) {
     if (this.isStreaming) {
       throw new Error('Streaming is already in progress');
     }
@@ -72,11 +72,11 @@ export class SpeechToTextModule {
     yield { committed, nonCommitted: '' };
   }
 
-  streamStop() {
+  public streamStop() {
     this.isStreaming = false;
   }
 
-  streamInsert(waveform: number[]) {
+  public streamInsert(waveform: number[]) {
     this.processor.insertAudioChunk(waveform);
     this.readyToProcess = true;
   }

@@ -51,8 +51,8 @@ export const useSpeechToText = ({
   ]);
 
   const stateWrapper = useCallback(
-    <T extends (...args: any[]) => any>(fn: T) => {
-      return (...args: Parameters<T>): ReturnType<T> => {
+    <T extends (...args: any[]) => any>(fn: T) =>
+      (...args: Parameters<T>): ReturnType<T> => {
         if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
         if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
         setIsGenerating(true);
@@ -61,8 +61,7 @@ export const useSpeechToText = ({
         } finally {
           setIsGenerating(false);
         }
-      };
-    },
+      },
     [isReady, isGenerating, modelInstance]
   );
 

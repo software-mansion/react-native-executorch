@@ -7,10 +7,10 @@ export class HypothesisBuffer {
   private buffer: WordTuple[] = [];
   private new: WordTuple[] = [];
 
-  public lastCommittedTime: number = 0;
+  private lastCommittedTime: number = 0;
   public lastCommittedWord: string | null = null;
 
-  insert(newWords: WordTuple[], offset: number) {
+  public insert(newWords: WordTuple[], offset: number) {
     const newWordsOffset: WordTuple[] = newWords.map(([a, b, t]) => [
       a + offset,
       b + offset,
@@ -49,7 +49,7 @@ export class HypothesisBuffer {
     }
   }
 
-  flush(): WordTuple[] {
+  public flush(): WordTuple[] {
     const commit: WordTuple[] = [];
     while (this.new.length > 0 && this.buffer.length > 0) {
       if (this.new[0]![2] !== this.buffer[0]![2]) {
@@ -67,13 +67,13 @@ export class HypothesisBuffer {
     return commit;
   }
 
-  popCommitted(time: number) {
+  public popCommitted(time: number) {
     this.committedInBuffer = this.committedInBuffer.filter(
       ([_a, b, _t]) => b > time
     );
   }
 
-  complete(): WordTuple[] {
+  public complete(): WordTuple[] {
     return this.buffer;
   }
 }

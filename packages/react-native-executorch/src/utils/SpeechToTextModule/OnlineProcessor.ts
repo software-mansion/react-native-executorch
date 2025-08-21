@@ -17,11 +17,11 @@ export class OnlineASRProcessor {
     this.asr = asr;
   }
 
-  insertAudioChunk(audio: number[]) {
+  public insertAudioChunk(audio: number[]) {
     this.audioBuffer.push(...audio);
   }
 
-  async processIter(options: DecodingOptions) {
+  public async processIter(options: DecodingOptions) {
     const res = await this.asr.transcribe(this.audioBuffer, options);
     const tsw = this.asr.tsWords(res);
     this.transcriptBuffer.insert(tsw, this.bufferTimeOffset);
@@ -41,7 +41,7 @@ export class OnlineASRProcessor {
     return { committed, nonCommitted };
   }
 
-  chunkCompletedSegment(res: Segment[]) {
+  private chunkCompletedSegment(res: Segment[]) {
     if (this.committed.length === 0) {
       return;
     }
@@ -62,7 +62,7 @@ export class OnlineASRProcessor {
     }
   }
 
-  chunkAt(time: number) {
+  private chunkAt(time: number) {
     this.transcriptBuffer.popCommitted(time);
     const cutSeconds = time - this.bufferTimeOffset;
     this.audioBuffer = this.audioBuffer.slice(
@@ -71,7 +71,7 @@ export class OnlineASRProcessor {
     this.bufferTimeOffset = time;
   }
 
-  async finish() {
+  public async finish() {
     const o = this.transcriptBuffer.complete();
     const f = this.toFlush(o);
     this.bufferTimeOffset += this.audioBuffer.length / this.samplingRate;
