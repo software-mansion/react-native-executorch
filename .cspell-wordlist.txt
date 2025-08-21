@@ -59,4 +59,5 @@ flac
 startoftranscript
 endoftext
 softmax
+logit
 logits
