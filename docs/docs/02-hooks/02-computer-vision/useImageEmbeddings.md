@@ -51,13 +51,13 @@ For more information on loading resources, take a look at [loading models](../..
 
 ### Returns
 
-| Field              | Type                                        | Description                                                                                   |
-| ------------------ | ------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `forward`          | `(input: imageSource) => Promise<number[]>` | Executes the model's forward pass, where `input` is a URI/URL to image that will be embedded. |
-| `error`            | <code>string &#124; null</code>             | Contains the error message if the model failed to load.                                       |
-| `isGenerating`     | `boolean`                                   | Indicates whether the model is currently processing an inference.                             |
-| `isReady`          | `boolean`                                   | Indicates whether the model has successfully loaded and is ready for inference.               |
-| `downloadProgress` | `number`                                    | Represents the download progress as a value between 0 and 1.                                  |
+| Field              | Type                                            | Description                                                                                   |
+| ------------------ | ----------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `forward`          | `(input: imageSource) => Promise<Float32Array>` | Executes the model's forward pass, where `input` is a URI/URL to image that will be embedded. |
+| `error`            | <code>string &#124; null</code>                 | Contains the error message if the model failed to load.                                       |
+| `isGenerating`     | `boolean`                                       | Indicates whether the model is currently processing an inference.                             |
+| `isReady`          | `boolean`                                       | Indicates whether the model has successfully loaded and is ready for inference.               |
+| `downloadProgress` | `number`                                        | Represents the download progress as a value between 0 and 1.                                  |
 
 ## Running the model
 
@@ -66,10 +66,10 @@ To run the model, you can use the `forward` method. It accepts one argument whic
 ## Example
 
 ```typescript
-const dotProduct = (a: number[], b: number[]) =>
+const dotProduct = (a: Float32Array, b: Float32Array) =>
   a.reduce((sum, val, i) => sum + val * b[i], 0);
 
-const cosineSimilarity = (a: number[], b: number[]) => {
+const cosineSimilarity = (a: Float32Array, b: Float32Array) => {
   const dot = dotProduct(a, b);
   const normA = Math.sqrt(dotProduct(a, a));
   const normB = Math.sqrt(dotProduct(b, b));
