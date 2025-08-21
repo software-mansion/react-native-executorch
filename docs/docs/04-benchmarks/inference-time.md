@@ -62,8 +62,6 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 
 ❌ - Insufficient RAM.
 
-## Speech to text
-
 ### Streaming mode
 
 Notice than for `Whisper` model which has to take as an input 30 seconds audio chunks (for shorter audio it is automatically padded with silence to 30 seconds) `fast` mode has the lowest latency (time from starting transcription to first token returned, caused by streaming algorithm), but the slowest speed. That's why for the lowest latency and the fastest transcription we suggest using `Moonshine` model, if you still want to proceed with `Whisper` use preferably the `balanced` mode.
