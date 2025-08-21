@@ -26,11 +26,11 @@ const detections = await objectDetectionModule.forward(imageUri);
 
 ### Methods
 
-| Method    | Type                                                                                                               | Description                                                                                                                                                                                |
-| --------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `load`    | `(model: { modelSource: ResourceSource }, onDownloadProgressCallback?: (progress: number) => void): Promise<void>` | Loads the model, where `modelSource` is a string that specifies the location of the model binary. To track the download progress, supply a callback function `onDownloadProgressCallback`. |
-| `forward` | `(input: string, detectionThreshold: number = 0.7): Promise<Detection[]>`                                          | Executes the model's forward pass, where `input` can be a fetchable resource or a Base64-encoded string. `detectionThreshold` can be supplied to alter the sensitivity of the detection.   |
-| `delete`  | `(): void`                                                                                                         | Release the memory held by the module. Calling `forward` afterwards is invalid.                                                                                                            |
+| Method    | Type                                                                                                               | Description                                                                                                                                                                                    |
+| --------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `load`    | `(model: { modelSource: ResourceSource }, onDownloadProgressCallback?: (progress: number) => void): Promise<void>` | Loads the model, where `modelSource` is a string that specifies the location of the model binary. To track the download progress, supply a callback function `onDownloadProgressCallback`.     |
+| `forward` | `(imageSource: string, detectionThreshold: number = 0.7): Promise<Detection[]>`                                    | Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string. `detectionThreshold` can be supplied to alter the sensitivity of the detection. |
+| `delete`  | `(): void`                                                                                                         | Release the memory held by the module. Calling `forward` afterwards is invalid.                                                                                                                |
 
 <details>
 <summary>Type definitions</summary>
