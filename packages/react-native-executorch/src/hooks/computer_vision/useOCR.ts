@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ResourceSource } from '../../types/common';
 import { OCRDetection, OCRLanguage } from '../../types/ocr';
 import { OCRController } from '../../controllers/OCRController';
@@ -29,14 +29,13 @@ export const useOCR = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
 
-  const controllerInstance = useMemo(
+  const [controllerInstance] = useState(
     () =>
       new OCRController({
         isReadyCallback: setIsReady,
         isGeneratingCallback: setIsGenerating,
         errorCallback: setError,
-      }),
-    []
+      })
   );
 
   useEffect(() => {
