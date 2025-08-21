@@ -1,97 +1,102 @@
-export interface ModelConfig {
-  sources: {
-    encoder: string;
-    decoder: string;
-  };
-  tokenizer: {
-    source: string;
-    bos: number;
-    eos: number;
-  };
+import { ResourceSource } from './common';
+
+export type WordTuple = [number, number, string];
+
+export interface WordObject {
+  start: number;
+  end: number;
+  word: string;
+}
+
+export interface Segment {
+  words: WordObject[];
+}
+
+// Languages supported by whisper (not whisper.en)
+export type SpeechToTextLanguage =
+  | 'af'
+  | 'sq'
+  | 'ar'
+  | 'hy'
+  | 'az'
+  | 'eu'
+  | 'be'
+  | 'bn'
+  | 'bs'
+  | 'bg'
+  | 'my'
+  | 'ca'
+  | 'zh'
+  | 'hr'
+  | 'cs'
+  | 'da'
+  | 'nl'
+  | 'et'
+  | 'en'
+  | 'fi'
+  | 'fr'
+  | 'gl'
+  | 'ka'
+  | 'de'
+  | 'el'
+  | 'gu'
+  | 'ht'
+  | 'he'
+  | 'hi'
+  | 'hu'
+  | 'is'
+  | 'id'
+  | 'it'
+  | 'ja'
+  | 'kn'
+  | 'kk'
+  | 'km'
+  | 'ko'
+  | 'lo'
+  | 'lv'
+  | 'lt'
+  | 'mk'
+  | 'mg'
+  | 'ms'
+  | 'ml'
+  | 'mt'
+  | 'mr'
+  | 'ne'
+  | 'no'
+  | 'fa'
+  | 'pl'
+  | 'pt'
+  | 'pa'
+  | 'ro'
+  | 'ru'
+  | 'sr'
+  | 'si'
+  | 'sk'
+  | 'sl'
+  | 'es'
+  | 'su'
+  | 'sw'
+  | 'sv'
+  | 'tl'
+  | 'tg'
+  | 'ta'
+  | 'te'
+  | 'th'
+  | 'tr'
+  | 'uk'
+  | 'ur'
+  | 'uz'
+  | 'vi'
+  | 'cy'
+  | 'yi';
+
+export interface DecodingOptions {
+  language?: SpeechToTextLanguage;
+}
+
+export interface SpeechToTextModelConfig {
   isMultilingual: boolean;
-}
-
-// Those languages are supported just by whisper multilingual
-export enum SpeechToTextLanguage {
-  Afrikaans = 'af',
-  Albanian = 'sq',
-  Arabic = 'ar',
-  Armenian = 'hy',
-  Azerbaijani = 'az',
-  Basque = 'eu',
-  Belarusian = 'be',
-  Bengali = 'bn',
-  Bosnian = 'bs',
-  Bulgarian = 'bg',
-  Burmese = 'my',
-  Catalan = 'ca',
-  Chinese = 'zh',
-  Croatian = 'hr',
-  Czech = 'cs',
-  Danish = 'da',
-  Dutch = 'nl',
-  Estonian = 'et',
-  English = 'en',
-  Finnish = 'fi',
-  French = 'fr',
-  Galician = 'gl',
-  Georgian = 'ka',
-  German = 'de',
-  Greek = 'el',
-  Gujarati = 'gu',
-  HaitianCreole = 'ht',
-  Hebrew = 'he',
-  Hindi = 'hi',
-  Hungarian = 'hu',
-  Icelandic = 'is',
-  Indonesian = 'id',
-  Italian = 'it',
-  Japanese = 'ja',
-  Kannada = 'kn',
-  Kazakh = 'kk',
-  Khmer = 'km',
-  Korean = 'ko',
-  Lao = 'lo',
-  Latvian = 'lv',
-  Lithuanian = 'lt',
-  Macedonian = 'mk',
-  Malagasy = 'mg',
-  Malay = 'ms',
-  Malayalam = 'ml',
-  Maltese = 'mt',
-  Marathi = 'mr',
-  Nepali = 'ne',
-  Norwegian = 'no',
-  Persian = 'fa',
-  Polish = 'pl',
-  Portuguese = 'pt',
-  Punjabi = 'pa',
-  Romanian = 'ro',
-  Russian = 'ru',
-  Serbian = 'sr',
-  Sinhala = 'si',
-  Slovak = 'sk',
-  Slovenian = 'sl',
-  Spanish = 'es',
-  Sundanese = 'su',
-  Swahili = 'sw',
-  Swedish = 'sv',
-  Tagalog = 'tl',
-  Tajik = 'tg',
-  Tamil = 'ta',
-  Telugu = 'te',
-  Thai = 'th',
-  Turkish = 'tr',
-  Ukrainian = 'uk',
-  Urdu = 'ur',
-  Uzbek = 'uz',
-  Vietnamese = 'vi',
-  Welsh = 'cy',
-  Yiddish = 'yi',
-}
-
-export enum AvailableModels {
-  WHISPER = 'whisper',
-  MOONSHINE = 'moonshine',
-  WHISPER_MULTILINGUAL = 'whisperMultilingual',
+  encoderSource: ResourceSource;
+  decoderSource: ResourceSource;
+  tokenizerSource: ResourceSource;
 }

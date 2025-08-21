@@ -7,144 +7,125 @@ TypeScript API implementation of the [useSpeechToText](../../02-hooks/01-natural
 ## Reference
 
 ```typescript
-import { SpeechToTextModule, MOONSHINE_TINY } from 'react-native-executorch';
-import { AudioContext } from 'react-native-audio-api';
-import * as FileSystem from 'expo-file-system';
+import { SpeechToTextModule, WHISPER_TINY_EN } from 'react-native-executorch';
 
-const loadAudio = async (url: string) => {
-  const audioContext = new AudioContext({ sampleRate: 16e3 });
-  const audioBuffer = await FileSystem.downloadAsync(
-    url,
-    FileSystem.documentDirectory + '_tmp_transcribe_audio.mp3'
-  ).then(({ uri }) => {
-    return audioContext.decodeAudioDataSource(uri);
-  });
-  return audioBuffer?.getChannelData(0);
-};
-
-const audioUrl = 'https://some-audio-url.com/file.mp3'; // URL with audio to transcribe
-
-// Creating an instance
-const stt = new SpeechToTextModule({
-  transcribeCallback: (sequence) => {
-    console.log(sequence);
-  },
+const model = new SpeechToTextModule();
+await model.load(WHISPER_TINY_EN, (progress) => {
+  console.log(progress);
 });
 
-// Loading the model
-await stt.load(MOONSHINE_TINY, (progress) => console.log(progress));
-
-// Loading the audio and running the model
-const waveform = await loadAudio(audioUrl);
-const transcribedText = await stt.transcribe(waveform);
+await model.transcribe(waveform);
 ```
 
 ### Methods
 
-| Method                | Type                                                                                                                                                                                                                | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `constructor`         | `({transcribeCallback?: (sequence: string) => void, overlapSeconds?: number, windowSize?: number, streamingConfig?: 'fast' \| 'balanced' \| 'quality'})`                                                            | Creates a new instance of SpeechToTextModule with an optional transcription callback and streaming configuration.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `load`                | `(model: { modelName: AvailableModels; encoderSource?: ResourceSource; decoderSource?: ResourceSource; tokenizerSource?: ResourceSource }, onDownloadProgressCallback?: (progress: number) => void): Promise<void>` | Loads the model specified with `modelName`, where `encoderSource`, `decoderSource`, `tokenizerSource` are strings specifying the location of the binaries for the models. `onDownloadProgressCallback` allows you to monitor the current progress of the model download                                                                                                                                                                                                                                                                                                                                                                                                               |
-| `transcribe`          | `(waveform: number[], audioLanguage?: SpeechToTextLanguage): Promise<string>`                                                                                                                                       | Starts a transcription process for a given input array, which should be a waveform at 16kHz. Resolves a promise with the output transcription when the model is finished. For multilingual models, you have to specify the audioLanguage flag, which is the language of the spoken language in the audio.                                                                                                                                                                                                                                                                                                                                                                             |
-| `streamingTranscribe` | `(streamingAction: STREAMING_ACTION, waveform?: number[], audioLanguage?: SpeechToTextLanguage) => Promise<string>`                                                                                                 | This allows for running transcription process on-line, which means where the whole audio is not known beforehand i.e. when transcribing from a live microphone feed. `streamingAction` defines the type of package sent to the model: <ul><li>`START` - initializes the process, allows for optional `waveform` data</li><li>`DATA` - this package should contain consecutive audio data chunks sampled in 16k Hz</li><li>`STOP` - the last data chunk for this transcription, ends the transcription process and flushes internal buffers</li></ul> Each call returns most recent transcription. Returns error when called when module is in use (i.e. processing `transcribe` call) |
-| `encode`              | `(waveform: number[]) => Promise<null>`                                                                                                                                                                             | Runs the encoding part of the model. It doesn't return the encodings. Instead, it stores the result internally, reducing data transfer overhead.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `decode`              | `(tokens: number[]) => Promise<number>`                                                                                                                                                                             | Runs the decoder of the model. Returns a single token representing the next token in the output. It uses internal cached encodings from the most recent `encode` call, meaning that you have to call `encode` prior to decoding.                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `configureStreaming`  | `(overlapSeconds?: number, windowSize?: number, streamingConfig?: 'fast' \| 'balanced' \| 'quality') => void`                                                                                                       | Configures options for the streaming algorithm: <ul><li>`overlapSeconds` determines how much adjacent audio chunks overlap (increasing it slows down transcription, decreases probability of weird wording at the chunks intersection, setting it larger than 3 seconds is generally discouraged), </li><li>`windowSize` describes size of the audio chunks (increasing it speeds up the end to end transcription time, but increases latency for the first token to be returned),</li><li> `streamingConfig` predefined configs for `windowSize` and `overlapSeconds` values.</li></ul> Keep `windowSize + 2 * overlapSeconds <= 30`.                                                |
+| Method         | Type                                                                                                       | Description                                                                                                                                                                  |
+| -------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `load`         | `(model: SpeechToTextModelConfig, onDownloadProgressCallback?: (progress: number) => void): Promise<void>` | Loads the model specified by the config object. `onDownloadProgressCallback` allows you to monitor the current progress of the model download.                               |
+| `encode`       | `(waveform: Float32Array): Promise<void>`                                                                  | Runs the encoding part of the model on the provided waveform. Stores the result internally.                                                                                  |
+| `decode`       | `(tokens: number[]): Promise<Float32Array>`                                                                | Runs the decoder of the model. Returns the decoded waveform as a Float32Array.                                                                                               |
+| `transcribe`   | `(waveform: number[], options?: DecodingOptions): Promise<string>`                                         | Starts a transcription process for a given input array (16kHz waveform). For multilingual models, specify the language in `options`. Returns the transcription as a string.  |
+| `stream`       | `(options?: DecodingOptions): AsyncGenerator<{ committed: string; nonCommitted: string }>`                 | Starts a streaming transcription session. Yields objects with `committed` and `nonCommitted` transcriptions. Use with `streamInsert` and `streamStop` to control the stream. |
+| `streamStop`   | `(): void`                                                                                                 | Stops the current streaming transcription session.                                                                                                                           |
+| `streamInsert` | `(waveform: number[]): void`                                                                               | Inserts a new audio chunk into the streaming transcription session.                                                                                                          |
+
+:::info
+
+- `committed` contains the latest part of the transcription that is finalized and will not change. To obtain the full transcription during streaming, concatenate all the `committed` values yielded over time. Useful for displaying stable results during streaming.
+- `nonCommitted` contains the part of the transcription that is still being processed and may change. Useful for displaying live, partial results during streaming.
+  :::
 
 <details>
 <summary>Type definitions</summary>
 
 ```typescript
-type ResourceSource = string | number | object;
+// Languages supported by whisper (Multilingual)
+type SpeechToTextLanguage =
+  | 'af'
+  | 'sq'
+  | 'ar'
+  | 'hy'
+  | 'az'
+  | 'eu'
+  | 'be'
+  | 'bn'
+  | 'bs'
+  | 'bg'
+  | 'my'
+  | 'ca'
+  | 'zh'
+  | 'hr'
+  | 'cs'
+  | 'da'
+  | 'nl'
+  | 'et'
+  | 'en'
+  | 'fi'
+  | 'fr'
+  | 'gl'
+  | 'ka'
+  | 'de'
+  | 'el'
+  | 'gu'
+  | 'ht'
+  | 'he'
+  | 'hi'
+  | 'hu'
+  | 'is'
+  | 'id'
+  | 'it'
+  | 'ja'
+  | 'kn'
+  | 'kk'
+  | 'km'
+  | 'ko'
+  | 'lo'
+  | 'lv'
+  | 'lt'
+  | 'mk'
+  | 'mg'
+  | 'ms'
+  | 'ml'
+  | 'mt'
+  | 'mr'
+  | 'ne'
+  | 'no'
+  | 'fa'
+  | 'pl'
+  | 'pt'
+  | 'pa'
+  | 'ro'
+  | 'ru'
+  | 'sr'
+  | 'si'
+  | 'sk'
+  | 'sl'
+  | 'es'
+  | 'su'
+  | 'sw'
+  | 'sv'
+  | 'tl'
+  | 'tg'
+  | 'ta'
+  | 'te'
+  | 'th'
+  | 'tr'
+  | 'uk'
+  | 'ur'
+  | 'uz'
+  | 'vi'
+  | 'cy'
+  | 'yi';
 
-enum STREAMING_ACTION {
-  START,
-  DATA,
-  STOP,
+interface DecodingOptions {
+  language?: SpeechToTextLanguage;
 }
 
-enum AvailableModels {
-  WHISPER = 'whisper',
-  MOONSHINE = 'moonshine',
-  WHISPER_MULTILINGUAL = 'whisperMultilingual',
-}
-
-enum SpeechToTextLanguage {
-  Afrikaans = 'af',
-  Albanian = 'sq',
-  Arabic = 'ar',
-  Armenian = 'hy',
-  Azerbaijani = 'az',
-  Basque = 'eu',
-  Belarusian = 'be',
-  Bengali = 'bn',
-  Bosnian = 'bs',
-  Bulgarian = 'bg',
-  Burmese = 'my',
-  Catalan = 'ca',
-  Chinese = 'zh',
-  Croatian = 'hr',
-  Czech = 'cs',
-  Danish = 'da',
-  Dutch = 'nl',
-  Estonian = 'et',
-  English = 'en',
-  Finnish = 'fi',
-  French = 'fr',
-  Galician = 'gl',
-  Georgian = 'ka',
-  German = 'de',
-  Greek = 'el',
-  Gujarati = 'gu',
-  HaitianCreole = 'ht',
-  Hebrew = 'he',
-  Hindi = 'hi',
-  Hungarian = 'hu',
-  Icelandic = 'is',
-  Indonesian = 'id',
-  Italian = 'it',
-  Japanese = 'ja',
-  Kannada = 'kn',
-  Kazakh = 'kk',
-  Khmer = 'km',
-  Korean = 'ko',
-  Lao = 'lo',
-  Latvian = 'lv',
-  Lithuanian = 'lt',
-  Macedonian = 'mk',
-  Malagasy = 'mg',
-  Malay = 'ms',
-  Malayalam = 'ml',
-  Maltese = 'mt',
-  Marathi = 'mr',
-  Nepali = 'ne',
-  Norwegian = 'no',
-  Persian = 'fa',
-  Polish = 'pl',
-  Portuguese = 'pt',
-  Punjabi = 'pa',
-  Romanian = 'ro',
-  Russian = 'ru',
-  Serbian = 'sr',
-  Sinhala = 'si',
-  Slovak = 'sk',
-  Slovenian = 'sl',
-  Spanish = 'es',
-  Sundanese = 'su',
-  Swahili = 'sw',
-  Swedish = 'sv',
-  Tagalog = 'tl',
-  Tajik = 'tg',
-  Tamil = 'ta',
-  Telugu = 'te',
-  Thai = 'th',
-  Turkish = 'tr',
-  Ukrainian = 'uk',
-  Urdu = 'ur',
-  Uzbek = 'uz',
-  Vietnamese = 'vi',
-  Welsh = 'cy',
-  Yiddish = 'yi',
+interface SpeechToTextModelConfig {
+  isMultilingual: boolean;
+  encoderSource: ResourceSource;
+  decoderSource: ResourceSource;
+  tokenizerSource: ResourceSource;
 }
 ```
 
@@ -152,27 +133,17 @@ enum SpeechToTextLanguage {
 
 ## Loading the model
 
-To create a new instance of SpeechToTextModule, use the constructor with optional parameters:
+Create an instance of SpeechToTextModule and use the `load` method. It accepts an object with the following fields:
 
-**`transcribeCallback`** - (Optional) Function that will be called with transcription results.
+**`model`** - Object containing:
 
-**`overlapSeconds`** - (Optional) Determines how much adjacent audio chunks overlap.
+- **`isMultilingual`** - A boolean flag indicating whether the model supports multiple languages.
 
-**`windowSize`** - (Optional) Describes size of the audio chunks.
+- **`encoderSource`** - A string that specifies the location of a `.pte` file for the encoder.
 
-**`streamingConfig`** - (Optional) Predefined configs for streaming ('fast', 'balanced', or 'quality').
+- **`decoderSource`** - A string that specifies the location of a `.pte` file for the decoder.
 
-Then, to load the model, use the `load` method. It accepts an object with the following fields:
-
-**`model`** - Object containing the model name, encoder source, decoder source, and tokenizer source.
-
-- **`modelName`** - Identifier for which model to use ('whisper', 'moonshine', or 'whisperMultilingual').
-
-- **`encoderSource`** - (Optional) String that specifies the location of the encoder binary.
-
-- **`decoderSource`** - (Optional) String that specifies the location of the decoder binary.
-
-- **`tokenizerSource`** - (Optional) String that specifies the location of the tokenizer.
+- **`tokenizerSource`** - A string that specifies the location to the tokenizer for the model.
 
 **`onDownloadProgressCallback`** - (Optional) Function that will be called on download progress.
 
@@ -186,17 +157,97 @@ To run the model, you can use the `transcribe` method. It accepts one argument, 
 
 ### Multilingual transcription
 
-If you aim to obtain a transcription in other languages than English, in v0.4.0 we introduced a new model - `whisperMultilingual`, a multilingual version of Whisper. To obtain the output text in your desired language, make sure pass `audioLanguage` to `transcribe`. You should not pass this flag if you're using a non-multilingual model. For example:
+If you aim to obtain a transcription in other languages than English, use the multilingual version of whisper. To obtain the output text in your desired language, pass the `DecodingOptions` object with the `language` field set to your desired language code.
 
 ```typescript
-import { SpeechToTextLanguage } from 'react-native-executorch';
+import { SpeechToTextModule, WHISPER_TINY } from 'react-native-executorch';
 
-// Rest of your code...
-const mySpanishAudio = 'https://some-audio-url.com/spanish-file.mp3';
-await stt.transcribe(mySpanishAudio, SpeechToTextLanguage.Spanish);
-// Rest of your code...
+const model = new SpeechToTextModule();
+await model.load(WHISPER_TINY, (progress) => {
+  console.log(progress);
+});
+
+const transcription = await model.transcribe(spanishAudio, { language: 'es' });
 ```
 
-## Obtaining the input
+## Example
 
-You need to parse audio to waveform in 16kHz, you can do that in any way most suitable to you. In the snippet at the top of the page we provide an example using `react-native-audio-api`. Once you have the waveform simply pass it as the only argument to `transcribe` method.
+### Transcription
+
+```tsx
+import { SpeechToTextModule, WHISPER_TINY_EN } from 'react-native-executorch';
+import { AudioContext } from 'react-native-audio-api';
+import * as FileSystem from 'expo-file-system';
+
+// Load the model
+const model = new SpeechToTextModule();
+
+// Download the audio file
+const { uri } = await FileSystem.downloadAsync(
+  'https://some-audio-url.com/file.mp3',
+  FileSystem.cacheDirectory + 'audio_file'
+);
+
+// Decode the audio data
+const audioContext = new AudioContext({ sampleRate: 16000 });
+const decodedAudioData = await audioContext.decodeAudioDataSource(uri);
+const audioBuffer = decodedAudioData.getChannelData(0);
+const audioArray = Array.from(audioBuffer);
+
+// Transcribe the audio
+try {
+  const transcription = await model.transcribe(audioArray);
+  console.log(transcription);
+} catch (error) {
+  console.error('Error during audio transcription', error);
+}
+```
+
+### Streaming Transcription
+
+```tsx
+import { SpeechToTextModule, WHISPER_TINY_EN } from 'react-native-executorch';
+import { AudioManager, AudioRecorder } from 'react-native-audio-api';
+
+// Load the model
+const model = new SpeechToTextModule();
+await model.load(WHISPER_TINY_EN, (progress) => {
+  console.log(progress);
+});
+
+// Configure audio session
+AudioManager.setAudioSessionOptions({
+  iosCategory: 'playAndRecord',
+  iosMode: 'spokenAudio',
+  iosOptions: ['allowBluetooth', 'defaultToSpeaker'],
+});
+AudioManager.requestRecordingPermissions();
+
+// Initialize audio recorder
+const recorder = new AudioRecorder({
+  sampleRate: 16000,
+  bufferLengthInSamples: 1600,
+});
+recorder.onAudioReady(async ({ buffer }) => {
+  const bufferArray = Array.from(buffer.getChannelData(0));
+  // Insert the audio into the streaming transcription
+  model.streamInsert(bufferArray);
+});
+recorder.start();
+
+// Start streaming transcription
+try {
+  let transcription = '';
+  for await (const { committed, nonCommitted } of model.stream()) {
+    console.log('Streaming transcription:', { committed, nonCommitted });
+    transcription += committed;
+  }
+  console.log('Final transcription:', transcription);
+} catch (error) {
+  console.error('Error during streaming transcription:', error);
+}
+
+// Stop streaming transcription
+model.streamStop();
+recorder.stop();
+```

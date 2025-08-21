@@ -1,4 +1,3 @@
-#include <rnexecutorch/models/speech_to_text/MoonshineStrategy.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <rnexecutorch/models/speech_to_text/WhisperStrategy.h>
 #include <stdexcept>
@@ -19,11 +18,9 @@ SpeechToText::SpeechToText(const std::string &encoderPath,
 void SpeechToText::initializeStrategy() {
   if (modelName == "whisper") {
     strategy = std::make_unique<WhisperStrategy>();
-  } else if (modelName == "moonshine") {
-    strategy = std::make_unique<MoonshineStrategy>();
   } else {
     throw std::runtime_error("Unsupported STT model: " + modelName +
-                             ". Only 'whisper' and 'moonshine' are supported.");
+                             ". Only 'whisper' is supported.");
   }
 }
 
@@ -40,7 +37,8 @@ void SpeechToText::encode(std::span<float> waveform) {
   encoderOutput = result.get().at(0);
 }
 
-int64_t SpeechToText::decode(std::vector<int64_t> prevTokens) {
+std::shared_ptr<OwningArrayBuffer>
+SpeechToText::decode(std::vector<int64_t> prevTokens) {
   if (encoderOutput.isNone()) {
     throw std::runtime_error("Empty encodings on decode call, make sure to "
                              "call encode() prior to decode()!");
@@ -49,9 +47,6 @@ int64_t SpeechToText::decode(std::vector<int64_t> prevTokens) {
   const auto prevTokensTensor = strategy->prepareTokenInput(prevTokens);
 
   const auto decoderMethod = strategy->getDecoderMethod();
-  // BEWARE!!!
-  // Moonshine will fail with invalid input if you pass large tokens i.e.
-  // Whisper's BOS/EOS
   const auto decoderResult =
       decoder_->execute(decoderMethod, {prevTokensTensor, encoderOutput});
 
@@ -63,8 +58,7 @@ int64_t SpeechToText::decode(std::vector<int64_t> prevTokens) {
 
   const auto decoderOutputTensor = decoderResult.get().at(0).toTensor();
   const auto innerDim = decoderOutputTensor.size(1);
-  return strategy->extractOutputToken(decoderOutputTensor.const_data_ptr(),
-                                      innerDim);
+  return strategy->extractOutputToken(decoderOutputTensor);
 }
 
 } // namespace rnexecutorch
