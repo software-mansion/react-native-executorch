@@ -51,13 +51,13 @@ export const useSpeechToText = ({
   ]);
 
   const stateWrapper = useCallback(
-    <T extends (...args: any[]) => any>(fn: T) =>
-      (...args: Parameters<T>): ReturnType<T> => {
+    <T extends (...args: any[]) => Promise<any>>(fn: T) =>
+      async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
         if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
         if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
         setIsGenerating(true);
         try {
-          return fn.apply(modelInstance, args);
+          return await fn.apply(modelInstance, args);
         } finally {
           setIsGenerating(false);
         }

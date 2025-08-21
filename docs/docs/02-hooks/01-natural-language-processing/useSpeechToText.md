@@ -276,6 +276,7 @@ function App() {
       iosMode: 'spokenAudio',
       iosOptions: ['allowBluetooth', 'defaultToSpeaker'],
     });
+    AudioManager.requestRecordingPermissions();
   }, []);
 
   const handleStartStreamingTranscribe = async () => {

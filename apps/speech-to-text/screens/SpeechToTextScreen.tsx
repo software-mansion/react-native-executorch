@@ -47,6 +47,7 @@ export const SpeechToTextScreen = () => {
       iosMode: 'spokenAudio',
       iosOptions: ['allowBluetooth', 'defaultToSpeaker'],
     });
+    AudioManager.requestRecordingPermissions();
   }, []);
 
   const handleTranscribeFromURL = async () => {
