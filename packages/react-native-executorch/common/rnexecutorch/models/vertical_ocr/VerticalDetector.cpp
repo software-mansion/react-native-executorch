@@ -37,7 +37,7 @@ VerticalDetector::generate(const cv::Mat &inputImage) {
   cv::Mat resizedInputImage =
       imageprocessing::resizePadded(inputImage, getModelImageSize());
   TensorPtr inputTensor = imageprocessing::getTensorFromMatrix(
-      inputShapes[0], resizedInputImage, ocr::mean, ocr::variance);
+      inputShapes[0], resizedInputImage, ocr::MEAN, ocr::VARIANCE);
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
@@ -68,22 +68,22 @@ VerticalDetector::postprocess(const Tensor &tensor) const {
       tensorData,
       cv::Size(modelImageSize.width / 2, modelImageSize.height / 2));
   float txtThreshold = this->detectSingleCharacters
-                           ? ocr::textThreshold
-                           : ocr::textThresholdVertical;
+                           ? ocr::TEXT_THRESHOLD
+                           : ocr::TEXT_THRESHOLD_VERTICAL;
   std::vector<ocr::DetectorBBox> bBoxesList =
       ocr::getDetBoxesFromTextMapVertical(scoreTextMat, scoreAffinityMat,
-                                          txtThreshold, ocr::linkThreshold,
+                                          txtThreshold, ocr::LINK_THRESHOLD,
                                           this->detectSingleCharacters);
   const float restoreRatio =
-      ocr::calculateRestoreRatio(scoreTextMat.rows, ocr::recognizerImageSize);
+      ocr::calculateRestoreRatio(scoreTextMat.rows, ocr::RECOGNIZER_IMAGE_SIZE);
   ocr::restoreBboxRatio(bBoxesList, restoreRatio);
 
   // if this is Narrow Detector, do not group boxes.
   if (!this->detectSingleCharacters) {
     bBoxesList = ocr::groupTextBoxes(
-        bBoxesList, ocr::centerThreshold, ocr::distanceThreshold,
-        ocr::heightThreshold, ocr::minSideThreshold, ocr::maxSideThreshold,
-        ocr::maxWidth);
+        bBoxesList, ocr::CENTER_THRESHOLD, ocr::DISTANCE_THRESHOLD,
+        ocr::HEIGHT_THRESHOLD, ocr::MIN_SIDE_THRESHOLD, ocr::MAX_SIDE_THRESHOLD,
+        ocr::MAX_WIDTH);
   }
 
   return bBoxesList;

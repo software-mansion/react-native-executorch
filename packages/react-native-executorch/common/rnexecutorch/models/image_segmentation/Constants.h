@@ -4,7 +4,7 @@
 #include <string_view>
 
 namespace rnexecutorch {
-inline constexpr std::array<std::string_view, 21> deeplabv3_resnet50_labels = {
+inline constexpr std::array<std::string_view, 21> DEEPLABV3_RESNET50_LABELS = {
     "BACKGROUND", "AEROPLANE",   "BICYCLE", "BIRD",  "BOAT",
     "BOTTLE",     "BUS",         "CAR",     "CAT",   "CHAIR",
     "COW",        "DININGTABLE", "DOG",     "HORSE", "MOTORBIKE",
