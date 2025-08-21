@@ -73,8 +73,8 @@ std::pair<std::string, float> VerticalOCR::_handleIndependentCharacters(
      to a bit mask with white character and black background.
     */
     croppedChar = ocr::characterBitMask(croppedChar);
-    croppedChar = ocr::normalizeForRecognizer(croppedChar,
-                                              ocr::recognizerHeight, 0.0, true);
+    croppedChar = ocr::normalizeForRecognizer(
+        croppedChar, ocr::RECOGNIZER_HEIGHT, 0.0, true);
 
     const auto &[predIndex, score] = recognizer.generate(croppedChar);
     if (!predIndex.empty()) {
@@ -100,7 +100,7 @@ std::pair<std::string, float> VerticalOCR::_handleJointCharacters(
      Prepare for Recognition by following steps:
      1. Crop image to the character bounding box,
      2. Convert Image to gray.
-     3. Resize it to [smallVerticalRecognizerWidth x recognizerHeight] (64 x
+     3. Resize it to [SMALL_VERTICAL_RECOGNIZER_WIDTH x RECOGNIZER_HEIGHT] (64 x
      64). The same height is required for horizontal concatenation of single
      characters into one image.
     */
@@ -113,9 +113,9 @@ std::pair<std::string, float> VerticalOCR::_handleJointCharacters(
   cv::hconcat(croppedCharacters, mergedCharacters);
   mergedCharacters = imageprocessing::resizePadded(
       mergedCharacters,
-      cv::Size(ocr::largeRecognizerWidth, ocr::recognizerHeight));
+      cv::Size(ocr::LARGE_RECOGNIZER_WIDTH, ocr::RECOGNIZER_HEIGHT));
   mergedCharacters = ocr::normalizeForRecognizer(
-      mergedCharacters, ocr::recognizerHeight, 0.0, false);
+      mergedCharacters, ocr::RECOGNIZER_HEIGHT, 0.0, false);
 
   const auto &[predIndex, confidenceScore] =
       recognizer.generate(mergedCharacters);

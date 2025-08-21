@@ -369,9 +369,10 @@ inline jsi::Value getJsiValue(const std::vector<Detection> &detections,
     bbox.setProperty(runtime, "y2", detections[i].y2);
 
     detection.setProperty(runtime, "bbox", bbox);
-    detection.setProperty(runtime, "label",
-                          jsi::String::createFromAscii(
-                              runtime, cocoLabelsMap.at(detections[i].label)));
+    detection.setProperty(
+        runtime, "label",
+        jsi::String::createFromAscii(runtime,
+                                     COCO_LABELS_MAP.at(detections[i].label)));
     detection.setProperty(runtime, "score", detections[i].score);
     array.setValueAtIndex(runtime, i, detection);
   }

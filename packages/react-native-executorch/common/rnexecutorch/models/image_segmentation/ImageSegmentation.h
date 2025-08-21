@@ -36,7 +36,7 @@ private:
                                          std::shared_ptr<OwningArrayBuffer>>>
           classesToOutput);
 
-  static constexpr std::size_t numClasses{deeplabv3_resnet50_labels.size()};
+  static constexpr std::size_t numClasses{DEEPLABV3_RESNET50_LABELS.size()};
   cv::Size modelImageSize;
   std::size_t numModelPixels;
 };

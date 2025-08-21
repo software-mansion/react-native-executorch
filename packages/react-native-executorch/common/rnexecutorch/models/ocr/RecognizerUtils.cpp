@@ -107,10 +107,10 @@ cv::Mat characterBitMask(const cv::Mat &img) {
 
   const int32_t height = thresh.rows;
   const int32_t width = thresh.cols;
-  const int32_t minX = ocr::singleCharacterCenterThreshold * width;
-  const int32_t maxX = (1 - ocr::singleCharacterCenterThreshold) * width;
-  const int32_t minY = ocr::singleCharacterCenterThreshold * height;
-  const int32_t maxY = (1 - ocr::singleCharacterCenterThreshold) * height;
+  const int32_t minX = ocr::SINGLE_CHARACTER_CENTER_THRESHOLD * width;
+  const int32_t maxX = (1 - ocr::SINGLE_CHARACTER_CENTER_THRESHOLD) * width;
+  const int32_t minY = ocr::SINGLE_CHARACTER_CENTER_THRESHOLD * height;
+  const int32_t maxY = (1 - ocr::SINGLE_CHARACTER_CENTER_THRESHOLD) * height;
 
   int32_t selectedComponent = -1;
   int32_t maxArea = -1;
@@ -120,8 +120,8 @@ cv::Mat characterBitMask(const cv::Mat &img) {
     const double cy = centroids.at<double>(i, 1);
 
     if ((minX < cx && cx < maxX && minY < cy &&
-         cy < maxY &&                           // check if centered
-         area > ocr::singleCharacterMinSize) && // check if large enough
+         cy < maxY &&                              // check if centered
+         area > ocr::SINGLE_CHARACTER_MIN_SIZE) && // check if large enough
         area > maxArea) {
       selectedComponent = i;
       maxArea = area;
@@ -193,9 +193,10 @@ cv::Mat prepareForRecognition(const cv::Mat &originalImage,
   auto croppedChar = cropImageWithBoundingBox(originalImage, bbox, originalBbox,
                                               paddings, originalPaddings);
   cv::cvtColor(croppedChar, croppedChar, cv::COLOR_BGR2GRAY);
-  cv::resize(croppedChar, croppedChar,
-             cv::Size(ocr::smallVerticalRecognizerWidth, ocr::recognizerHeight),
-             0, 0, cv::INTER_AREA);
+  cv::resize(
+      croppedChar, croppedChar,
+      cv::Size(ocr::SMALL_VERTICAL_RECOGNIZER_WIDTH, ocr::RECOGNIZER_HEIGHT), 0,
+      0, cv::INTER_AREA);
   return croppedChar;
 }
 } // namespace rnexecutorch::ocr

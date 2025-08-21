@@ -101,8 +101,8 @@ std::shared_ptr<jsi::Object> ImageSegmentation::postprocess(
   auto buffersToReturn = std::make_shared<std::unordered_map<
       std::string_view, std::shared_ptr<OwningArrayBuffer>>>();
   for (std::size_t cl = 0; cl < numClasses; ++cl) {
-    if (classesOfInterest.contains(deeplabv3_resnet50_labels[cl])) {
-      (*buffersToReturn)[deeplabv3_resnet50_labels[cl]] = resultClasses[cl];
+    if (classesOfInterest.contains(DEEPLABV3_RESNET50_LABELS[cl])) {
+      (*buffersToReturn)[DEEPLABV3_RESNET50_LABELS[cl]] = resultClasses[cl];
     }
   }
 
