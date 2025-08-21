@@ -24,7 +24,7 @@ const StartScreen = () => {
         <div className={styles.lowerHeading}>
           <div className={styles.buttonContainer}>
             <HomepageButton
-              href="/react-native-executorch/docs/fundamentals/getting-started"
+              href="/react-native-executorch/docs"
               title="Get started"
             />
           </div>
