@@ -13,7 +13,7 @@ OCR::OCR(const std::string &detectorSource,
                          recognizerSourceSmall, symbols, callInvoker) {}
 
 std::vector<OCRDetection> OCR::generate(std::string input) {
-  cv::Mat image = imageprocessing::readImage(input);
+  cv::Mat image = image_processing::readImage(input);
   if (image.empty()) {
     throw std::runtime_error("Failed to load image from path: " + input);
   }

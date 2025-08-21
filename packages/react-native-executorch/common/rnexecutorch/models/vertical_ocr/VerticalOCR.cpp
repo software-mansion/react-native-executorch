@@ -17,7 +17,7 @@ VerticalOCR::VerticalOCR(const std::string &detectorLargeSource,
       independentCharacters(independentChars), callInvoker(invoker) {}
 
 std::vector<OCRDetection> VerticalOCR::generate(std::string input) {
-  cv::Mat image = imageprocessing::readImage(input);
+  cv::Mat image = image_processing::readImage(input);
   if (image.empty()) {
     throw std::runtime_error("Failed to load image from path: " + input);
   }
@@ -26,7 +26,7 @@ std::vector<OCRDetection> VerticalOCR::generate(std::string input) {
 
   cv::Size largeDetectorSize = detectorLarge.getModelImageSize();
   cv::Mat resizedImage =
-      imageprocessing::resizePadded(image, largeDetectorSize);
+      image_processing::resizePadded(image, largeDetectorSize);
   ocr::PaddingInfo imagePaddings =
       ocr::calculateResizeRatioAndPaddings(image.size(), largeDetectorSize);
 
@@ -111,7 +111,7 @@ std::pair<std::string, float> VerticalOCR::_handleJointCharacters(
 
   cv::Mat mergedCharacters;
   cv::hconcat(croppedCharacters, mergedCharacters);
-  mergedCharacters = imageprocessing::resizePadded(
+  mergedCharacters = image_processing::resizePadded(
       mergedCharacters,
       cv::Size(ocr::LARGE_RECOGNIZER_WIDTH, ocr::RECOGNIZER_HEIGHT));
   mergedCharacters = ocr::normalizeForRecognizer(

@@ -35,7 +35,7 @@ Recognizer::generate(const cv::Mat &grayImage) {
   */
   std::vector<int32_t> tensorDims = getAllInputShapes()[0];
   TensorPtr inputTensor =
-      imageprocessing::getTensorFromMatrixGray(tensorDims, grayImage);
+      image_processing::getTensorFromMatrixGray(tensorDims, grayImage);
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(

@@ -87,7 +87,7 @@ std::tuple<Types...> fillConstructorTupleFromArgs(
     if constexpr (I == lastIndex) {
       return jsCallInvoker;
     } else {
-      return jsiconversion::getValue<Types>(args[I], runtime);
+      return jsi_conversion::getValue<Types>(args[I], runtime);
     }
   }()...);
 }

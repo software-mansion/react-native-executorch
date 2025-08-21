@@ -31,7 +31,7 @@ Classification::Classification(const std::string &modelSource,
 std::unordered_map<std::string_view, float>
 Classification::generate(std::string imageSource) {
   auto inputTensor =
-      imageprocessing::readImageToTensor(imageSource, getAllInputShapes()[0])
+      image_processing::readImageToTensor(imageSource, getAllInputShapes()[0])
           .first;
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {

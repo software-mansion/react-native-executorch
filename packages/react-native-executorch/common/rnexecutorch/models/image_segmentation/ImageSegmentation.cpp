@@ -37,7 +37,7 @@ std::shared_ptr<jsi::Object> ImageSegmentation::generate(
     std::string imageSource,
     std::set<std::string, std::less<>> classesOfInterest, bool resize) {
   auto [inputTensor, originalSize] =
-      imageprocessing::readImageToTensor(imageSource, getAllInputShapes()[0]);
+      image_processing::readImageToTensor(imageSource, getAllInputShapes()[0]);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {

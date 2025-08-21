@@ -144,7 +144,8 @@ cv::Mat normalizeForRecognizer(const cv::Mat &image, int32_t modelHeight,
 
   int32_t desiredWidth = getDesiredWidth(image, isVertical);
 
-  img = imageprocessing::resizePadded(img, cv::Size(desiredWidth, modelHeight));
+  img =
+      image_processing::resizePadded(img, cv::Size(desiredWidth, modelHeight));
   img.convertTo(img, CV_32F, 1.0f / 255.0f);
   img -= 0.5f;
   img *= 2.0f;

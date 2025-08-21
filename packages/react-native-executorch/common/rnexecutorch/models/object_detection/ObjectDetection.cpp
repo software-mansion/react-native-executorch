@@ -68,7 +68,7 @@ ObjectDetection::postprocess(const std::vector<EValue> &tensors,
 std::vector<Detection> ObjectDetection::generate(std::string imageSource,
                                                  double detectionThreshold) {
   auto [inputTensor, originalSize] =
-      imageprocessing::readImageToTensor(imageSource, getAllInputShapes()[0]);
+      image_processing::readImageToTensor(imageSource, getAllInputShapes()[0]);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {

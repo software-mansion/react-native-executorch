@@ -34,8 +34,8 @@ std::vector<ocr::DetectorBBox> Detector::generate(const cv::Mat &inputImage) {
    */
   auto inputShapes = getAllInputShapes();
   cv::Mat resizedInputImage =
-      imageprocessing::resizePadded(inputImage, getModelImageSize());
-  TensorPtr inputTensor = imageprocessing::getTensorFromMatrix(
+      image_processing::resizePadded(inputImage, getModelImageSize());
+  TensorPtr inputTensor = image_processing::getTensorFromMatrix(
       inputShapes[0], resizedInputImage, ocr::MEAN, ocr::VARIANCE);
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {

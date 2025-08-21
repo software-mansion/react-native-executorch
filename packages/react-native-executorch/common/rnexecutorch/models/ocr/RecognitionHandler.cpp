@@ -86,7 +86,7 @@ RecognitionHandler::recognize(std::vector<ocr::DetectorBBox> bboxesList,
   */
   ocr::PaddingInfo ratioAndPadding =
       ocr::calculateResizeRatioAndPaddings(imgGray.size(), desiredSize);
-  imgGray = imageprocessing::resizePadded(imgGray, desiredSize);
+  imgGray = image_processing::resizePadded(imgGray, desiredSize);
 
   std::vector<OCRDetection> result = {};
   for (auto &box : bboxesList) {

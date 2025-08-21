@@ -18,7 +18,7 @@
 #include <rnexecutorch/models/object_detection/Utils.h>
 #include <rnexecutorch/models/ocr/Types.h>
 
-namespace rnexecutorch::jsiconversion {
+namespace rnexecutorch::jsi_conversion {
 
 using namespace facebook;
 
@@ -407,4 +407,4 @@ inline jsi::Value getJsiValue(const std::vector<OCRDetection> &detections,
   return jsiDetections;
 }
 
-} // namespace rnexecutorch::jsiconversion
+} // namespace rnexecutorch::jsi_conversion

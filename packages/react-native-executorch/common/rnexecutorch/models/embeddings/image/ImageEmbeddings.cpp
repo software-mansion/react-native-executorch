@@ -30,7 +30,7 @@ ImageEmbeddings::ImageEmbeddings(
 std::shared_ptr<OwningArrayBuffer>
 ImageEmbeddings::generate(std::string imageSource) {
   auto [inputTensor, originalSize] =
-      imageprocessing::readImageToTensor(imageSource, getAllInputShapes()[0]);
+      image_processing::readImageToTensor(imageSource, getAllInputShapes()[0]);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {

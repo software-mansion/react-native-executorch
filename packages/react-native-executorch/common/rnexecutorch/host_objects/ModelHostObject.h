@@ -112,7 +112,7 @@ public:
         // For non-void functions, capture the result and convert it
         auto result =
             std::apply(std::bind_front(FnPtr, model), std::move(argsConverted));
-        return jsiconversion::getJsiValue(std::move(result), runtime);
+        return jsi_conversion::getJsiValue(std::move(result), runtime);
       }
     } catch (const std::runtime_error &e) {
       // This catch should be merged with the next one
@@ -171,11 +171,11 @@ public:
                                            std::move(argsConverted));
                   // The result is copied. It should either be quickly copiable,
                   // or passed with a shared_ptr.
-                  callInvoker->invokeAsync([promise,
-                                            result](jsi::Runtime &runtime) {
-                    promise->resolve(
-                        jsiconversion::getJsiValue(std::move(result), runtime));
-                  });
+                  callInvoker->invokeAsync(
+                      [promise, result](jsi::Runtime &runtime) {
+                        promise->resolve(jsi_conversion::getJsiValue(
+                            std::move(result), runtime));
+                      });
                 }
               } catch (const std::runtime_error &e) {
                 // This catch should be merged with the next two
