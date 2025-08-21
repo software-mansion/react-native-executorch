@@ -1,4 +1,3 @@
-#include <rnexecutorch/models/speech_to_text/MoonshineStrategy.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <rnexecutorch/models/speech_to_text/WhisperStrategy.h>
 #include <stdexcept>
@@ -19,11 +18,9 @@ SpeechToText::SpeechToText(const std::string &encoderPath,
 void SpeechToText::initializeStrategy() {
   if (modelName == "whisper") {
     strategy = std::make_unique<WhisperStrategy>();
-  } else if (modelName == "moonshine") {
-    strategy = std::make_unique<MoonshineStrategy>();
   } else {
     throw std::runtime_error("Unsupported STT model: " + modelName +
-                             ". Only 'whisper' and 'moonshine' are supported.");
+                             ". Only 'whisper' is supported.");
   }
 }
 
@@ -50,9 +47,6 @@ SpeechToText::decode(std::vector<int64_t> prevTokens) {
   const auto prevTokensTensor = strategy->prepareTokenInput(prevTokens);
 
   const auto decoderMethod = strategy->getDecoderMethod();
-  // BEWARE!!!
-  // Moonshine will fail with invalid input if you pass large tokens i.e.
-  // Whisper's BOS/EOS
   const auto decoderResult =
       decoder_->execute(decoderMethod, {prevTokensTensor, encoderOutput});
 
