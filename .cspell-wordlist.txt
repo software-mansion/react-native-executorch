@@ -56,3 +56,8 @@ jitpack
 coreml
 mobilenetv
 flac
+startoftranscript
+endoftext
+softmax
+logit
+logits
