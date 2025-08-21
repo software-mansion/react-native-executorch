@@ -221,6 +221,7 @@ AudioManager.setAudioSessionOptions({
   iosMode: 'spokenAudio',
   iosOptions: ['allowBluetooth', 'defaultToSpeaker'],
 });
+AudioManager.requestRecordingPermissions();
 
 // Initialize audio recorder
 const recorder = new AudioRecorder({
