@@ -1,5 +1,6 @@
 #include "RnExecutorchInstaller.h"
 
+#include <rnexecutorch/Log.h>
 #include <rnexecutorch/TokenizerModule.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/models/classification/Classification.h>
@@ -12,6 +13,10 @@
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
 #include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
+#ifdef __ANDROID__
+#include <executorch/extension/threadpool/cpuinfo_utils.h>
+#include <executorch/extension/threadpool/threadpool.h>
+#endif
 
 namespace rnexecutorch {
 
@@ -65,10 +70,6 @@ void RnExecutorchInstaller::injectJSIBindings(
       RnExecutorchInstaller::loadModel<TextEmbeddings>(
           jsiRuntime, jsCallInvoker, "loadTextEmbeddings"));
 
-  jsiRuntime->global().setProperty(
-      *jsiRuntime, "loadSpeechToText",
-      RnExecutorchInstaller::loadModel<SpeechToText>(jsiRuntime, jsCallInvoker,
-                                                     "loadSpeechToText"));
   jsiRuntime->global().setProperty(*jsiRuntime, "loadLLM",
                                    RnExecutorchInstaller::loadModel<LLM>(
                                        jsiRuntime, jsCallInvoker, "loadLLM"));
@@ -80,5 +81,19 @@ void RnExecutorchInstaller::injectJSIBindings(
       *jsiRuntime, "loadVerticalOCR",
       RnExecutorchInstaller::loadModel<VerticalOCR>(jsiRuntime, jsCallInvoker,
                                                     "loadVerticalOCR"));
+
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadSpeechToText",
+      RnExecutorchInstaller::loadModel<SpeechToText>(jsiRuntime, jsCallInvoker,
+                                                     "loadSpeechToText"));
+
+#ifdef __ANDROID__
+  auto num_of_cores =
+      ::executorch::extension::cpuinfo::get_num_performant_cores();
+  ::executorch::extension::threadpool::get_threadpool()
+      ->_unsafe_reset_threadpool(num_of_cores);
+  log(LOG_LEVEL::Info, "Configuring xnnpack for ", num_of_cores, "threads");
+#endif
 }
+
 } // namespace rnexecutorch

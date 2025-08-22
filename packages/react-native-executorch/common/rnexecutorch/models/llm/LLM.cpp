@@ -16,13 +16,6 @@ LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
     : runner(std::make_unique<example::Runner>(modelSource, tokenizerSource)),
       callInvoker(callInvoker) {
 
-  auto num_of_cores =
-      ::executorch::extension::cpuinfo::get_num_performant_cores();
-  log(LOG_LEVEL::Error, "num_of_cores", num_of_cores);
-
-  log(LOG_LEVEL::Error, "_unsafe_reset_threadpool",
-      ::executorch::extension::threadpool::get_threadpool()
-          ->_unsafe_reset_threadpool(num_of_cores));
   auto loadResult = runner->load();
   if (loadResult != Error::Ok) {
     throw std::runtime_error("Failed to load LLM runner, error code: " +

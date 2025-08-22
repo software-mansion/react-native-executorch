@@ -25,7 +25,7 @@ def reactNativeArchitectures() {
   def value = rootProject.getProperties().get("reactNativeArchitectures")
   // react-native-executorch supports only these architectures. This is due to
   // Executorch not supporting anything else.
-  def defaultArchitectures = ["x86_64", "arm64-v8a"]
+  def defaultArchitectures = ["arm64-v8a"]
   if(!value) {
     return defaultArchitectures
   }
@@ -110,12 +110,6 @@ android {
     }
   }
 
-  packagingOptions {
-    excludes = [
-      "**/libexecutorch.so"
-    ]
-  }
-
   compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
 
   defaultConfig {
@@ -173,7 +167,7 @@ dependencies {
   implementation "com.facebook.react:react-native:+"
   implementation 'com.facebook.fbjni:fbjni:0.6.0'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-	implementation("com.github.software-mansion:react-native-executorch:main-SNAPSHOT")
+  implementation files('libs/classes.jar')
   implementation 'org.opencv:opencv:4.10.0'
   implementation("com.squareup.okhttp3:okhttp:4.9.2")
 }
