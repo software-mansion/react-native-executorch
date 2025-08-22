@@ -72,7 +72,7 @@ export class OCRController {
     }
   };
 
-  public forward = async (input: string) => {
+  public forward = async (imageSource: string) => {
     if (!this.isReady) {
       throw new Error(getError(ETError.ModuleNotLoaded));
     }
@@ -83,7 +83,7 @@ export class OCRController {
     try {
       this.isGenerating = true;
       this.isGeneratingCallback(this.isGenerating);
-      return await this.nativeModule.generate(input);
+      return await this.nativeModule.generate(imageSource);
     } catch (e) {
       throw new Error(getError(e));
     } finally {

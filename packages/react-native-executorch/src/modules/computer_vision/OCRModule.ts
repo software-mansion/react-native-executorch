@@ -31,8 +31,8 @@ export class OCRModule {
     );
   }
 
-  async forward(input: string) {
-    return await this.controller.forward(input);
+  async forward(imageSource: string) {
+    return await this.controller.forward(imageSource);
   }
 
   delete() {
