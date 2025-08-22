@@ -1,7 +1,7 @@
 #include "Detector.h"
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/ocr/Constants.h>
-#include <rnexecutorch/models/ocr/DetectorUtils.h>
+#include <rnexecutorch/models/ocr/utils/DetectorUtils.h>
 
 namespace rnexecutorch::models::ocr {
 Detector::Detector(const std::string &modelSource,
@@ -68,9 +68,6 @@ Detector::postprocess(const Tensor &tensor) const {
 
   /*
    Heatmaps are then converted into list of bounding boxes.
-   Too see how it is achieved see the description of this function in
-   the DetectorUtils.h source file and the implementation in the
-   DetectorUtils.cpp.
   */
   std::vector<types::DetectorBBox> bBoxesList = utils::getDetBoxesFromTextMap(
       scoreTextMat, scoreAffinityMat, constants::TEXT_THRESHOLD,

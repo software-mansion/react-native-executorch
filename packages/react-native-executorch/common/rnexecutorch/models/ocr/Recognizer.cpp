@@ -3,8 +3,8 @@
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/data_processing/Numerical.h>
 #include <rnexecutorch/models/ocr/Constants.h>
-#include <rnexecutorch/models/ocr/RecognizerUtils.h>
 #include <rnexecutorch/models/ocr/Types.h>
+#include <rnexecutorch/models/ocr/utils/RecognizerUtils.h>
 
 namespace rnexecutorch::models::ocr {
 Recognizer::Recognizer(const std::string &modelSource,

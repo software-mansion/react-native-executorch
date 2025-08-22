@@ -1,8 +1,7 @@
 #include "RecognitionHandler.h"
-#include "RecognitionHandlerUtils.h"
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/ocr/Constants.h>
-#include <rnexecutorch/models/ocr/RecognitionHandlerUtils.h>
+#include <rnexecutorch/models/ocr/utils/RecognitionHandlerUtils.h>
 
 namespace rnexecutorch::models::ocr {
 RecognitionHandler::RecognitionHandler(

@@ -2,7 +2,7 @@
 
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/ocr/Constants.h>
-#include <rnexecutorch/models/ocr/DetectorUtils.h>
+#include <rnexecutorch/models/ocr/utils/DetectorUtils.h>
 
 #include <executorch/extension/tensor/tensor_ptr.h>
 

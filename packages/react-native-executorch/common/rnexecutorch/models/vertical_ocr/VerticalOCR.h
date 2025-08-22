@@ -9,10 +9,10 @@
 #include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
 #include <rnexecutorch/models/BaseModel.h>
 #include <rnexecutorch/models/ocr/CTCLabelConverter.h>
-#include <rnexecutorch/models/ocr/DetectorUtils.h>
-#include <rnexecutorch/models/ocr/RecognitionHandlerUtils.h>
 #include <rnexecutorch/models/ocr/Recognizer.h>
-#include <rnexecutorch/models/ocr/RecognizerUtils.h>
+#include <rnexecutorch/models/ocr/utils/DetectorUtils.h>
+#include <rnexecutorch/models/ocr/utils/RecognitionHandlerUtils.h>
+#include <rnexecutorch/models/ocr/utils/RecognizerUtils.h>
 #include <rnexecutorch/models/vertical_ocr/VerticalDetector.h>
 
 namespace rnexecutorch {
