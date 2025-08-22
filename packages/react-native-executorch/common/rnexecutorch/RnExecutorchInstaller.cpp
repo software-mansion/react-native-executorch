@@ -6,6 +6,7 @@
 #include <rnexecutorch/models/embeddings/image/ImageEmbeddings.h>
 #include <rnexecutorch/models/embeddings/text/TextEmbeddings.h>
 #include <rnexecutorch/models/image_segmentation/ImageSegmentation.h>
+#include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/object_detection/ObjectDetection.h>
 #include <rnexecutorch/models/ocr/OCR.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
@@ -58,14 +59,19 @@ void RnExecutorchInstaller::injectJSIBindings(
       *jsiRuntime, "loadImageEmbeddings",
       RnExecutorchInstaller::loadModel<ImageEmbeddings>(
           jsiRuntime, jsCallInvoker, "loadImageEmbeddings"));
+
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadTextEmbeddings",
       RnExecutorchInstaller::loadModel<TextEmbeddings>(
           jsiRuntime, jsCallInvoker, "loadTextEmbeddings"));
+
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadSpeechToText",
       RnExecutorchInstaller::loadModel<SpeechToText>(jsiRuntime, jsCallInvoker,
                                                      "loadSpeechToText"));
+  jsiRuntime->global().setProperty(*jsiRuntime, "loadLLM",
+                                   RnExecutorchInstaller::loadModel<LLM>(
+                                       jsiRuntime, jsCallInvoker, "loadLLM"));
 
   jsiRuntime->global().setProperty(*jsiRuntime, "loadOCR",
                                    RnExecutorchInstaller::loadModel<OCR>(

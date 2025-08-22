@@ -1,5 +1,6 @@
 #include "ImageProcessing.h"
 
+#include <chrono>
 #include <filesystem>
 
 #include <ada/ada.h>
