@@ -7,9 +7,9 @@
 #include <rnexecutorch/models/ocr/Types.h>
 #include <unordered_set>
 
-namespace rnexecutorch::ocr {
+namespace rnexecutorch::models::ocr::utils {
 std::array<cv::Point2f, 4>
-cvPointsFromPoints(const std::array<Point, 4> &points) {
+cvPointsFromPoints(const std::array<types::Point, 4> &points) {
   std::array<cv::Point2f, 4> cvPoints;
 #pragma unroll
   for (std::size_t i = 0; i < cvPoints.size(); ++i) {
@@ -18,8 +18,8 @@ cvPointsFromPoints(const std::array<Point, 4> &points) {
   return cvPoints;
 }
 
-std::array<Point, 4> pointsFromCvPoints(cv::Point2f cvPoints[4]) {
-  std::array<Point, 4> points;
+std::array<types::Point, 4> pointsFromCvPoints(cv::Point2f cvPoints[4]) {
+  std::array<types::Point, 4> points;
 #pragma unroll
   for (std::size_t i = 0; i < points.size(); ++i) {
     points[i] = {.x = cvPoints[i].x, .y = cvPoints[i].y};
@@ -92,19 +92,19 @@ void morphologicalOperations(
   cv::dilate(roiSegMap, roiSegMap, kernel, anchor, iterations);
 }
 
-DetectorBBox
+types::DetectorBBox
 extractMinAreaBBoxFromContour(const std::vector<cv::Point> contour) {
   cv::RotatedRect minRect = cv::minAreaRect(contour);
 
   std::array<cv::Point2f, 4> vertices;
   minRect.points(vertices.data());
 
-  std::array<Point, 4> points = pointsFromCvPoints(vertices.data());
+  std::array<types::Point, 4> points = pointsFromCvPoints(vertices.data());
   return {.bbox = points, .angle = minRect.angle};
 }
 
 void getBoxFromContour(cv::Mat &segMap,
-                       std::vector<DetectorBBox> &detectedBoxes) {
+                       std::vector<types::DetectorBBox> &detectedBoxes) {
   std::vector<std::vector<cv::Point>> contours;
   cv::findContours(segMap, contours, cv::RETR_EXTERNAL,
                    cv::CHAIN_APPROX_SIMPLE);
@@ -118,7 +118,8 @@ void getBoxFromContour(cv::Mat &segMap,
 // param lowTextThreshold is used only by standard OCR.
 void processComponent(const cv::Mat &textMap, const cv::Mat &labels,
                       const cv::Mat &stats, int32_t i, int32_t imgW,
-                      int32_t imgH, std::vector<DetectorBBox> &detectedBoxes,
+                      int32_t imgH,
+                      std::vector<types::DetectorBBox> &detectedBoxes,
                       bool isVertical, int32_t minimalAreaThreshold,
                       int32_t dilationIter, float lowTextThreshold = 0.0) {
   const int32_t area = stats.at<int32_t>(i, cv::CC_STAT_AREA);
@@ -150,11 +151,10 @@ void processComponent(const cv::Mat &textMap, const cv::Mat &labels,
   getBoxFromContour(segMap, detectedBoxes);
 }
 
-std::vector<DetectorBBox> getDetBoxesFromTextMap(cv::Mat &textMap,
-                                                 cv::Mat &affinityMap,
-                                                 float textThreshold,
-                                                 float linkThreshold,
-                                                 float lowTextThreshold) {
+std::vector<types::DetectorBBox>
+getDetBoxesFromTextMap(cv::Mat &textMap, cv::Mat &affinityMap,
+                       float textThreshold, float linkThreshold,
+                       float lowTextThreshold) {
   // Ensure input mats are of the correct type for processing
   CV_Assert(textMap.type() == CV_32F && affinityMap.type() == CV_32F);
 
@@ -184,7 +184,7 @@ std::vector<DetectorBBox> getDetBoxesFromTextMap(cv::Mat &textMap,
   const int32_t nLabels = cv::connectedComponentsWithStats(
       binaryMat, labels, stats, centroids, connectivityType);
 
-  std::vector<DetectorBBox> detectedBoxes;
+  std::vector<types::DetectorBBox> detectedBoxes;
   detectedBoxes.reserve(nLabels); // Pre-allocate memory
 
   // number of dilation iterations performed in some
@@ -203,7 +203,7 @@ std::vector<DetectorBBox> getDetBoxesFromTextMap(cv::Mat &textMap,
   return detectedBoxes;
 }
 
-std::vector<DetectorBBox>
+std::vector<types::DetectorBBox>
 getDetBoxesFromTextMapVertical(cv::Mat &textMap, cv::Mat &affinityMap,
                                float textThreshold, float linkThreshold,
                                bool independentCharacters) {
@@ -265,7 +265,7 @@ getDetBoxesFromTextMapVertical(cv::Mat &textMap, cv::Mat &affinityMap,
   const int32_t nLabels = cv::connectedComponentsWithStats(
       binaryMat, labels, stats, centroids, connectivityType);
 
-  std::vector<DetectorBBox> detectedBoxes;
+  std::vector<types::DetectorBBox> detectedBoxes;
   detectedBoxes.reserve(nLabels);
 
   // number of dilation iterations performed in some
@@ -293,7 +293,8 @@ float calculateRestoreRatio(int32_t currentSize, int32_t desiredSize) {
   return desiredSize / static_cast<float>(currentSize);
 }
 
-void restoreBboxRatio(std::vector<DetectorBBox> &boxes, float restoreRatio) {
+void restoreBboxRatio(std::vector<types::DetectorBBox> &boxes,
+                      float restoreRatio) {
   for (auto &box : boxes) {
     for (auto &point : box.bbox) {
       point.x *= restoreRatio;
@@ -302,7 +303,7 @@ void restoreBboxRatio(std::vector<DetectorBBox> &boxes, float restoreRatio) {
   }
 }
 
-float distanceFromPoint(const Point &p1, const Point &p2) {
+float distanceFromPoint(const types::Point &p1, const types::Point &p2) {
   const float xDist = p2.x - p1.x;
   const float yDist = p2.y - p1.y;
   return std::hypot(xDist, yDist);
@@ -312,17 +313,19 @@ float normalizeAngle(float angle) {
   return (angle > 45.0f) ? (angle - 90.0f) : angle;
 }
 
-Point midpointBetweenPoint(const Point &p1, const Point &p2) {
+types::Point midpointBetweenPoint(const types::Point &p1,
+                                  const types::Point &p2) {
   return {.x = std::midpoint(p1.x, p2.x), .y = std::midpoint(p1.y, p2.y)};
 }
 
-Point centerOfBox(const std::array<Point, 4> &box) {
+types::Point centerOfBox(const std::array<types::Point, 4> &box) {
   return midpointBetweenPoint(box[0], box[2]);
 }
 
 // function for both; finding maximal side length and minimal side length
 template <typename Compare>
-float findExtremeSideLength(const std::array<Point, 4> &points, Compare comp) {
+float findExtremeSideLength(const std::array<types::Point, 4> &points,
+                            Compare comp) {
   float extremeLength = distanceFromPoint(points[0], points[1]);
 
 #pragma unroll
@@ -339,11 +342,11 @@ float findExtremeSideLength(const std::array<Point, 4> &points, Compare comp) {
   return extremeLength;
 }
 
-float minSideLength(const std::array<Point, 4> &points) {
+float minSideLength(const std::array<types::Point, 4> &points) {
   return findExtremeSideLength(points, std::less<float>{});
 }
 
-float maxSideLength(const std::array<Point, 4> &points) {
+float maxSideLength(const std::array<types::Point, 4> &points) {
   return findExtremeSideLength(points, std::greater<float>{});
 }
 
@@ -364,9 +367,9 @@ float maxSideLength(const std::array<Point, 4> &points) {
  * considered vertical.
  */
 std::tuple<float, float, bool>
-fitLineToShortestSides(const std::array<Point, 4> &points) {
+fitLineToShortestSides(const std::array<types::Point, 4> &points) {
   std::array<std::pair<float, float>, 4> sides;
-  std::array<Point, 4> midpoints;
+  std::array<types::Point, 4> midpoints;
 #pragma unroll
   for (std::size_t i = 0; i < midpoints.size(); i++) {
     const auto p1 = points[i];
@@ -380,8 +383,8 @@ fitLineToShortestSides(const std::array<Point, 4> &points) {
   // Sort the sides by length ascending
   std::ranges::sort(sides);
 
-  const Point midpoint1 = midpoints[sides[0].second];
-  const Point midpoint2 = midpoints[sides[1].second];
+  const types::Point midpoint1 = midpoints[sides[0].second];
+  const types::Point midpoint2 = midpoints[sides[1].second];
   const float dx = std::fabs(midpoint2.x - midpoint1.x);
 
   float m, c;
@@ -398,7 +401,7 @@ fitLineToShortestSides(const std::array<Point, 4> &points) {
   constexpr double accuracy =
       0.01; // sufficient accuracy. Value proposed by OPENCV
 
-  isVertical = dx < VERTICAL_LINE_THRESHOLD;
+  isVertical = dx < constants::VERTICAL_LINE_THRESHOLD;
   if (isVertical) {
     for (auto &pt : cvMidPoints) {
       std::swap(pt.x, pt.y);
@@ -411,14 +414,15 @@ fitLineToShortestSides(const std::array<Point, 4> &points) {
   return {m, c, isVertical};
 }
 
-std::array<Point, 4> rotateBox(const std::array<Point, 4> &box, float angle) {
-  const Point center = centerOfBox(box);
+std::array<types::Point, 4> rotateBox(const std::array<types::Point, 4> &box,
+                                      float angle) {
+  const types::Point center = centerOfBox(box);
 
   const float radians = angle * M_PI / 180.0f;
 
-  std::array<Point, 4> rotatedPoints;
+  std::array<types::Point, 4> rotatedPoints;
   for (std::size_t i = 0; i < box.size(); ++i) {
-    const Point &point = box[i];
+    const types::Point &point = box[i];
     const float translatedX = point.x - center.x;
     const float translatedY = point.y - center.y;
 
@@ -433,11 +437,12 @@ std::array<Point, 4> rotateBox(const std::array<Point, 4> &box, float angle) {
   return rotatedPoints;
 }
 
-float calculateMinimalDistanceBetweenBox(const std::array<Point, 4> &box1,
-                                         const std::array<Point, 4> &box2) {
+float calculateMinimalDistanceBetweenBox(
+    const std::array<types::Point, 4> &box1,
+    const std::array<types::Point, 4> &box2) {
   float minDistance = std::numeric_limits<float>::max();
-  for (const Point &corner1 : box1) {
-    for (const Point &corner2 : box2) {
+  for (const types::Point &corner1 : box1) {
+    for (const types::Point &corner2 : box2) {
       const float distance = distanceFromPoint(corner1, corner2);
       minDistance = std::min(distance, minDistance);
     }
@@ -461,8 +466,9 @@ float calculateMinimalDistanceBetweenBox(const std::array<Point, 4> &box1,
  * 4. The points are ordered starting from the top-left in a clockwise manner:
  * top-left, top-right, bottom-right, bottom-left.
  */
-std::array<Point, 4> orderPointsClockwise(const std::array<Point, 4> &points) {
-  Point topLeft, topRight, bottomRight, bottomLeft;
+std::array<types::Point, 4>
+orderPointsClockwise(const std::array<types::Point, 4> &points) {
+  types::Point topLeft, topRight, bottomRight, bottomLeft;
   float minSum = std::numeric_limits<float>::max();
   float maxSum = std::numeric_limits<float>::lowest();
   float minDiff = std::numeric_limits<float>::max();
@@ -493,8 +499,9 @@ std::array<Point, 4> orderPointsClockwise(const std::array<Point, 4> &points) {
   return {topLeft, topRight, bottomRight, bottomLeft};
 }
 
-std::array<Point, 4> mergeRotatedBoxes(std::array<Point, 4> &box1,
-                                       std::array<Point, 4> &box2) {
+std::array<types::Point, 4>
+mergeRotatedBoxes(std::array<types::Point, 4> &box1,
+                  std::array<types::Point, 4> &box2) {
   box1 = orderPointsClockwise(box1);
   box2 = orderPointsClockwise(box2);
 
@@ -546,21 +553,21 @@ std::array<Point, 4> mergeRotatedBoxes(std::array<Point, 4> &box1,
  * If no suitable box is found the optional is null.
  */
 std::optional<std::pair<std::size_t, float>>
-findClosestBox(const std::vector<DetectorBBox> &boxes,
+findClosestBox(const std::vector<types::DetectorBBox> &boxes,
                const std::unordered_set<std::size_t> &ignoredIdxs,
-               const std::array<Point, 4> &currentBox, bool isVertical, float m,
-               float c, float centerThreshold) {
+               const std::array<types::Point, 4> &currentBox, bool isVertical,
+               float m, float c, float centerThreshold) {
   float smallestDistance = std::numeric_limits<float>::max();
   ssize_t idx = -1;
   float boxHeight = 0.0f;
-  const Point centerOfCurrentBox = centerOfBox(currentBox);
+  const types::Point centerOfCurrentBox = centerOfBox(currentBox);
 
   for (std::size_t i = 0; i < boxes.size(); i++) {
     if (ignoredIdxs.contains(i)) {
       continue;
     }
-    std::array<Point, 4> bbox = boxes[i].bbox;
-    const Point centerOfProcessedBox = centerOfBox(bbox);
+    std::array<types::Point, 4> bbox = boxes[i].bbox;
+    const types::Point centerOfProcessedBox = centerOfBox(bbox);
     const float distanceBetweenCenters =
         distanceFromPoint(centerOfCurrentBox, centerOfProcessedBox);
 
@@ -593,10 +600,10 @@ findClosestBox(const std::vector<DetectorBBox> &boxes,
  *   - Its longer side is **greater than** `maxSideThreshold`.
  * Otherwise, the box is excluded from the result.
  */
-std::vector<DetectorBBox>
-removeSmallBoxesFromArray(const std::vector<DetectorBBox> &boxes,
+std::vector<types::DetectorBBox>
+removeSmallBoxesFromArray(const std::vector<types::DetectorBBox> &boxes,
                           float minSideThreshold, float maxSideThreshold) {
-  std::vector<DetectorBBox> filteredBoxes;
+  std::vector<types::DetectorBBox> filteredBoxes;
 
   for (const auto &box : boxes) {
     const float maxSide = maxSideLength(box.bbox);
@@ -609,24 +616,24 @@ removeSmallBoxesFromArray(const std::vector<DetectorBBox> &boxes,
   return filteredBoxes;
 }
 
-static float minimumYFromBox(const std::array<Point, 4> &box) {
-  return std::ranges::min_element(box,
-                                  [](Point a, Point b) { return a.y < b.y; })
+static float minimumYFromBox(const std::array<types::Point, 4> &box) {
+  return std::ranges::min_element(
+             box, [](types::Point a, types::Point b) { return a.y < b.y; })
       ->y;
 }
 
-std::vector<DetectorBBox>
-groupTextBoxes(std::vector<DetectorBBox> &boxes, float centerThreshold,
+std::vector<types::DetectorBBox>
+groupTextBoxes(std::vector<types::DetectorBBox> &boxes, float centerThreshold,
                float distanceThreshold, float heightThreshold,
                int32_t minSideThreshold, int32_t maxSideThreshold,
                int32_t maxWidth) {
   // Sort boxes descending by maximum side length
-  std::ranges::sort(boxes,
-                    [](const DetectorBBox &lhs, const DetectorBBox &rhs) {
-                      return maxSideLength(lhs.bbox) > maxSideLength(rhs.bbox);
-                    });
+  std::ranges::sort(boxes, [](const types::DetectorBBox &lhs,
+                              const types::DetectorBBox &rhs) {
+    return maxSideLength(lhs.bbox) > maxSideLength(rhs.bbox);
+  });
 
-  std::vector<DetectorBBox> mergedVec;
+  std::vector<types::DetectorBBox> mergedVec;
   float lineAngle;
   std::unordered_set<std::size_t> ignoredIdxs;
   while (!boxes.empty()) {
@@ -652,7 +659,7 @@ groupTextBoxes(std::vector<DetectorBBox> &boxes, float centerThreshold,
         break;
       }
       const auto [candidateIdx, candidateHeight] = closestBoxInfo.value();
-      DetectorBBox candidateBox = boxes[candidateIdx];
+      types::DetectorBBox candidateBox = boxes[candidateIdx];
 
       if ((numerical::isClose(candidateBox.angle, 90.0f) && !isVertical) ||
           (numerical::isClose(candidateBox.angle, 0.0f) && isVertical)) {
@@ -690,9 +697,9 @@ groupTextBoxes(std::vector<DetectorBBox> &boxes, float centerThreshold,
     return minY1 < minY2;
   });
 
-  std::vector<DetectorBBox> orderedSortedBoxes;
+  std::vector<types::DetectorBBox> orderedSortedBoxes;
   orderedSortedBoxes.reserve(mergedVec.size());
-  for (DetectorBBox bbox : mergedVec) {
+  for (types::DetectorBBox bbox : mergedVec) {
     bbox.bbox = orderPointsClockwise(bbox.bbox);
     orderedSortedBoxes.push_back(std::move(bbox));
   }
@@ -700,4 +707,4 @@ groupTextBoxes(std::vector<DetectorBBox> &boxes, float centerThreshold,
   return orderedSortedBoxes;
 }
 
-} // namespace rnexecutorch::ocr
+} // namespace rnexecutorch::models::ocr::utils

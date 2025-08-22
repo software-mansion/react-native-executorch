@@ -2,7 +2,7 @@
 #include "rnexecutorch/data_processing/dsp.h"
 #include <rnexecutorch/models/speech_to_text/WhisperStrategy.h>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::speech_to_text {
 
 using namespace ::executorch::extension;
 using namespace ::executorch::aten;
@@ -35,4 +35,4 @@ int64_t WhisperStrategy::extractOutputToken(const void *outputPtr,
   return static_cast<int64_t>(data[innerDim - 1]);
 }
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::speech_to_text

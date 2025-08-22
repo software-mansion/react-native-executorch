@@ -6,7 +6,7 @@
 #include <rnexecutorch/models/ocr/Types.h>
 #include <vector>
 
-namespace rnexecutorch::ocr {
+namespace rnexecutorch::models::ocr::utils {
 /**
  * @brief Computes per row softmax funcion.
  * Formula: softmax(x_i) = exp(x_i - max(x)) / sum(exp(x_j - max(x))) for each
@@ -18,10 +18,10 @@ cv::Mat softmax(const cv::Mat &inputs);
  * @brief For each row of matrix computes {maxValue, index} pair. Returns a list
  * of maxValues and a list of corresponding indices.
  */
-ValuesAndIndices findMaxValuesIndices(const cv::Mat &mat);
+types::ValuesAndIndices findMaxValuesIndices(const cv::Mat &mat);
 std::vector<float> sumProbabilityRows(const cv::Mat &matrix);
 void divideMatrixByRows(cv::Mat &matrix, const std::vector<float> &rowSums);
-cv::Rect extractBoundingBox(std::array<Point, 4> &points);
+cv::Rect extractBoundingBox(std::array<types::Point, 4> &points);
 
 /**
  * @brief Computes confidence score for given values and indices vectors.
@@ -43,11 +43,12 @@ cv::Mat characterBitMask(const cv::Mat &img);
  * with internal bounding box and padding.
  * It does so to preserve the best possible image quality.
  */
-cv::Mat cropImageWithBoundingBox(const cv::Mat &img,
-                                 const std::array<Point, 4> &bbox,
-                                 const std::array<Point, 4> &originalBbox,
-                                 const PaddingInfo &paddings,
-                                 const PaddingInfo &originalPaddings);
+cv::Mat
+cropImageWithBoundingBox(const cv::Mat &img,
+                         const std::array<types::Point, 4> &bbox,
+                         const std::array<types::Point, 4> &originalBbox,
+                         const types::PaddingInfo &paddings,
+                         const types::PaddingInfo &originalPaddings);
 
 /**
  * @brief Perform cropping, resizing and convert to grayscale to prepare image
@@ -63,8 +64,8 @@ cv::Mat cropImageWithBoundingBox(const cv::Mat &img,
  */
 
 cv::Mat prepareForRecognition(const cv::Mat &originalImage,
-                              const std::array<Point, 4> &bbox,
-                              const std::array<Point, 4> &originalBbox,
-                              const PaddingInfo &paddings,
-                              const PaddingInfo &originalPaddings);
-} // namespace rnexecutorch::ocr
+                              const std::array<types::Point, 4> &bbox,
+                              const std::array<types::Point, 4> &originalBbox,
+                              const types::PaddingInfo &paddings,
+                              const types::PaddingInfo &originalPaddings);
+} // namespace rnexecutorch::models::ocr::utils

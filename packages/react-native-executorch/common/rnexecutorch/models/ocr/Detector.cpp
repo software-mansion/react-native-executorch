@@ -3,7 +3,7 @@
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/DetectorUtils.h>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::ocr {
 Detector::Detector(const std::string &modelSource,
                    std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
@@ -24,7 +24,7 @@ Detector::Detector(const std::string &modelSource,
 
 cv::Size Detector::getModelImageSize() const noexcept { return modelImageSize; }
 
-std::vector<ocr::DetectorBBox> Detector::generate(const cv::Mat &inputImage) {
+std::vector<types::DetectorBBox> Detector::generate(const cv::Mat &inputImage) {
   /*
    Detector as an input accepts tensor with a shape of [1, 3, H, H].
    where H is a constant for model. In our supported models it is currently
@@ -36,7 +36,7 @@ std::vector<ocr::DetectorBBox> Detector::generate(const cv::Mat &inputImage) {
   cv::Mat resizedInputImage =
       image_processing::resizePadded(inputImage, getModelImageSize());
   TensorPtr inputTensor = image_processing::getTensorFromMatrix(
-      inputShapes[0], resizedInputImage, ocr::MEAN, ocr::VARIANCE);
+      inputShapes[0], resizedInputImage, constants::MEAN, constants::VARIANCE);
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
@@ -47,7 +47,7 @@ std::vector<ocr::DetectorBBox> Detector::generate(const cv::Mat &inputImage) {
   return postprocess(forwardResult->at(0).toTensor());
 }
 
-std::vector<ocr::DetectorBBox>
+std::vector<types::DetectorBBox>
 Detector::postprocess(const Tensor &tensor) const {
   /*
    The output of the model consists of two matrices (heat maps):
@@ -62,7 +62,7 @@ Detector::postprocess(const Tensor &tensor) const {
    The output of the model is a matrix half the size of the input image
    containing two channels representing the heatmaps.
    */
-  auto [scoreTextMat, scoreAffinityMat] = ocr::interleavedArrayToMats(
+  auto [scoreTextMat, scoreAffinityMat] = utils::interleavedArrayToMats(
       tensorData,
       cv::Size(modelImageSize.width / 2, modelImageSize.height / 2));
 
@@ -72,9 +72,9 @@ Detector::postprocess(const Tensor &tensor) const {
    the DetectorUtils.h source file and the implementation in the
    DetectorUtils.cpp.
   */
-  std::vector<ocr::DetectorBBox> bBoxesList = ocr::getDetBoxesFromTextMap(
-      scoreTextMat, scoreAffinityMat, ocr::TEXT_THRESHOLD, ocr::LINK_THRESHOLD,
-      ocr::LOW_TEXT_THRESHOLD);
+  std::vector<types::DetectorBBox> bBoxesList = utils::getDetBoxesFromTextMap(
+      scoreTextMat, scoreAffinityMat, constants::TEXT_THRESHOLD,
+      constants::LINK_THRESHOLD, constants::LOW_TEXT_THRESHOLD);
 
   /*
    Bounding boxes are at first corresponding to the 400x400 size or 640x640.
@@ -82,21 +82,21 @@ Detector::postprocess(const Tensor &tensor) const {
    1280x1280. To match this difference we has to scale  by the proper factor
    (3.2 or 2.0).
   */
-  const float restoreRatio =
-      ocr::calculateRestoreRatio(scoreTextMat.rows, ocr::RECOGNIZER_IMAGE_SIZE);
-  ocr::restoreBboxRatio(bBoxesList, restoreRatio);
+  const float restoreRatio = utils::calculateRestoreRatio(
+      scoreTextMat.rows, constants::RECOGNIZER_IMAGE_SIZE);
+  utils::restoreBboxRatio(bBoxesList, restoreRatio);
   /*
    Since every bounding box is processed separately by Recognition models, we'd
    like to reduce the number of boxes. Also, grouping nearby boxes means we
    process many words / full line at once. It is not only faster but also easier
    for Recognizer models than recognition of single characters.
   */
-  bBoxesList = ocr::groupTextBoxes(
-      bBoxesList, ocr::CENTER_THRESHOLD, ocr::DISTANCE_THRESHOLD,
-      ocr::HEIGHT_THRESHOLD, ocr::MIN_SIDE_THRESHOLD, ocr::MAX_SIDE_THRESHOLD,
-      ocr::MAX_WIDTH);
+  bBoxesList = utils::groupTextBoxes(
+      bBoxesList, constants::CENTER_THRESHOLD, constants::DISTANCE_THRESHOLD,
+      constants::HEIGHT_THRESHOLD, constants::MIN_SIDE_THRESHOLD,
+      constants::MAX_SIDE_THRESHOLD, constants::MAX_WIDTH);
 
   return bBoxesList;
 }
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::ocr

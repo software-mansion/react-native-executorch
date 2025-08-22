@@ -3,7 +3,7 @@
 #include <executorch/extension/tensor/tensor_ptr_maker.h>
 #include <executorch/runtime/core/portable_type/scalar_type.h>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::speech_to_text {
 
 using namespace ::executorch::extension;
 using namespace ::executorch::aten;
@@ -28,4 +28,4 @@ int64_t MoonshineStrategy::extractOutputToken(const void *outputPtr,
   return data[innerDim - 1];
 }
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::speech_to_text

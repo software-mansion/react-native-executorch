@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <opencv2/opencv.hpp>
 
-namespace rnexecutorch::ocr {
+namespace rnexecutorch::models::ocr::constants {
 
 inline constexpr float TEXT_THRESHOLD = 0.4;
 inline constexpr float TEXT_THRESHOLD_VERTICAL = 0.3;
@@ -31,4 +31,4 @@ inline constexpr int32_t VERTICAL_LINE_THRESHOLD = 20;
 inline const cv::Scalar MEAN(0.485, 0.456, 0.406);
 inline const cv::Scalar VARIANCE(0.229, 0.224, 0.225);
 
-} // namespace rnexecutorch::ocr
+} // namespace rnexecutorch::models::ocr::constants

@@ -5,7 +5,7 @@
 #include <executorch/extension/tensor/tensor.h>
 #include <opencv2/opencv.hpp>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::style_transfer {
 using namespace facebook;
 using executorch::extension::TensorPtr;
 using executorch::runtime::Error;
@@ -52,4 +52,4 @@ std::string StyleTransfer::generate(std::string imageSource) {
   return postprocess(forwardResult->at(0).toTensor(), originalSize);
 }
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::style_transfer

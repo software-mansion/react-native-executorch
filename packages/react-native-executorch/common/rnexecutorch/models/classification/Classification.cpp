@@ -6,7 +6,7 @@
 #include <rnexecutorch/data_processing/Numerical.h>
 #include <rnexecutorch/models/classification/Constants.h>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::classification {
 
 Classification::Classification(const std::string &modelSource,
                                std::shared_ptr<react::CallInvoker> callInvoker)
@@ -49,13 +49,13 @@ Classification::postprocess(const Tensor &tensor) {
       static_cast<const float *>(tensor.const_data_ptr()), tensor.numel());
   std::vector<float> resultVec(resultData.begin(), resultData.end());
 
-  if (resultVec.size() != IMAGENET1K_V1_LABELS.size()) {
+  if (resultVec.size() != constants::IMAGENET1K_V1_LABELS.size()) {
     char errorMessage[100];
     std::snprintf(
         errorMessage, sizeof(errorMessage),
         "Unexpected classification output size, was expecting: %zu classes "
         "but got: %zu classes",
-        IMAGENET1K_V1_LABELS.size(), resultVec.size());
+        constants::IMAGENET1K_V1_LABELS.size(), resultVec.size());
     throw std::runtime_error(errorMessage);
   }
 
@@ -63,10 +63,10 @@ Classification::postprocess(const Tensor &tensor) {
 
   std::unordered_map<std::string_view, float> probs;
   for (std::size_t cl = 0; cl < resultVec.size(); ++cl) {
-    probs[IMAGENET1K_V1_LABELS[cl]] = resultVec[cl];
+    probs[constants::IMAGENET1K_V1_LABELS[cl]] = resultVec[cl];
   }
 
   return probs;
 }
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::classification

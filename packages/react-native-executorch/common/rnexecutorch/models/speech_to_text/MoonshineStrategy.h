@@ -4,7 +4,7 @@
 #include <span>
 #include <vector>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::speech_to_text {
 
 class MoonshineStrategy final : public SpeechToTextStrategy {
 public:
@@ -18,4 +18,4 @@ public:
                              size_t innerDim) const override;
 };
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::speech_to_text

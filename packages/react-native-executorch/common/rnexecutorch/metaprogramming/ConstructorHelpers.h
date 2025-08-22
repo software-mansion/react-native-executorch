@@ -118,12 +118,14 @@ auto createConstructorArgsWithCallInvoker(
 
 } // namespace meta
 
-// A helper macro to create ConstructorTraits for a class. The variadic pack
-// ("...") should list the types of the constructor arguments.
-// A class declaration is added so that we don't need to include the class
-// definition.
+/**
+ * @brief A helper macro to create ConstructorTraits for a class. The variadic
+ * pack
+ * ("...") should list the types of the constructor arguments.
+ * @note The Class must be fully declared or forward-declared before this macro
+ * is invoked
+ */
 #define REGISTER_CONSTRUCTOR(Class, ...)                                       \
-  class Class;                                                                 \
   template <> struct meta::ConstructorTraits<Class> {                          \
     using arg_types = std::tuple<__VA_ARGS__>;                                 \
   }

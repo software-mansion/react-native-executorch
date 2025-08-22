@@ -3,7 +3,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::object_detection::constants {
 inline constexpr float IOU_THRESHOLD = 0.55;
 
 inline const std::unordered_map<int, std::string> COCO_LABELS_MAP = {
@@ -38,4 +38,4 @@ inline const std::unordered_map<int, std::string> COCO_LABELS_MAP = {
     {85, "CLOCK"},         {86, "VASE"},         {87, "SCISSORS"},
     {88, "TEDDY_BEAR"},    {89, "HAIR_DRIER"},   {90, "TOOTHBRUSH"},
     {91, "HAIR_BRUSH"}};
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::object_detection::constants

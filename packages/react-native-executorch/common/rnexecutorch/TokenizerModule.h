@@ -1,9 +1,9 @@
 #pragma once
 
+#include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
 #include <ReactCommon/CallInvoker.h>
 #include <string>
 #include <tokenizers-cpp/tokenizers_cpp.h>
-
 namespace rnexecutorch {
 using namespace facebook;
 
@@ -23,4 +23,7 @@ private:
   std::unique_ptr<tokenizers::Tokenizer> tokenizer;
   const std::size_t memorySizeLowerBound{0};
 };
+
+REGISTER_CONSTRUCTOR(TokenizerModule, std::string,
+                     std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

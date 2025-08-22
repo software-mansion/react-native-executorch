@@ -2,7 +2,7 @@
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/ocr/Constants.h>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::ocr {
 OCR::OCR(const std::string &detectorSource,
          const std::string &recognizerSourceLarge,
          const std::string &recognizerSourceMedium,
@@ -12,7 +12,7 @@ OCR::OCR(const std::string &detectorSource,
       recognitionHandler(recognizerSourceLarge, recognizerSourceMedium,
                          recognizerSourceSmall, symbols, callInvoker) {}
 
-std::vector<OCRDetection> OCR::generate(std::string input) {
+std::vector<types::OCRDetection> OCR::generate(std::string input) {
   cv::Mat image = image_processing::readImage(input);
   if (image.empty()) {
     throw std::runtime_error("Failed to load image from path: " + input);
@@ -23,7 +23,7 @@ std::vector<OCRDetection> OCR::generate(std::string input) {
    with text. They are corresponding to the image of size 1280x1280, which
    is a size later used by Recognition Handler.
   */
-  std::vector<ocr::DetectorBBox> bboxesList = detector.generate(image);
+  std::vector<types::DetectorBBox> bboxesList = detector.generate(image);
   cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
 
   /*
@@ -33,9 +33,10 @@ std::vector<OCRDetection> OCR::generate(std::string input) {
     - coordinates of bounding box corresponding to the original image size
     - confidence score
   */
-  std::vector<OCRDetection> result = recognitionHandler.recognize(
-      bboxesList, image,
-      cv::Size(ocr::RECOGNIZER_IMAGE_SIZE, ocr::RECOGNIZER_IMAGE_SIZE));
+  std::vector<types::OCRDetection> result =
+      recognitionHandler.recognize(bboxesList, image,
+                                   cv::Size(constants::RECOGNIZER_IMAGE_SIZE,
+                                            constants::RECOGNIZER_IMAGE_SIZE));
 
   return result;
 }
@@ -49,4 +50,4 @@ void OCR::unload() noexcept {
   detector.unload();
   recognitionHandler.unload();
 }
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::ocr

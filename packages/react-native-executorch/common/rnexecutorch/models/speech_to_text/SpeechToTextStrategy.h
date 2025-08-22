@@ -4,7 +4,7 @@
 #include <span>
 #include <vector>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::speech_to_text {
 
 using TensorPtr = ::executorch::extension::TensorPtr;
 
@@ -23,4 +23,4 @@ public:
                                      size_t innerDim) const = 0;
 };
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::speech_to_text

@@ -24,18 +24,18 @@ public:
   explicit ModelHostObject(const std::shared_ptr<Model> &model,
                            std::shared_ptr<react::CallInvoker> callInvoker)
       : model(model), callInvoker(callInvoker) {
-    if constexpr (meta::DerivedFromOrSameAs<Model, BaseModel>) {
+    if constexpr (meta::DerivedFromOrSameAs<Model, models::BaseModel>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }
 
-    if constexpr (meta::DerivedFromOrSameAs<Model, BaseModel>) {
+    if constexpr (meta::DerivedFromOrSameAs<Model, models::BaseModel>) {
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::forwardJS>,
                                        "forward"));
     }
 
-    if constexpr (meta::DerivedFromOrSameAs<Model, BaseModel>) {
+    if constexpr (meta::DerivedFromOrSameAs<Model, models::BaseModel>) {
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>, promiseHostFunction<&Model::getInputShape>,
           "getInputShape"));
@@ -77,12 +77,12 @@ public:
                                        promiseHostFunction<&Model::tokenToId>,
                                        "tokenToId"));
     }
-    if constexpr (meta::SameAs<Model, OCR>) {
+    if constexpr (meta::SameAs<Model, models::ocr::OCR>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }
 
-    if constexpr (meta::SameAs<Model, VerticalOCR>) {
+    if constexpr (meta::SameAs<Model, models::ocr::VerticalOCR>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }

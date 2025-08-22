@@ -2,7 +2,7 @@
 
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::object_detection {
 
 ObjectDetection::ObjectDetection(
     const std::string &modelSource,
@@ -25,7 +25,7 @@ ObjectDetection::ObjectDetection(
                             modelInputShape[modelInputShape.size() - 2]);
 }
 
-std::vector<Detection>
+std::vector<types::Detection>
 ObjectDetection::postprocess(const std::vector<EValue> &tensors,
                              cv::Size originalSize, double detectionThreshold) {
   float widthRatio =
@@ -33,7 +33,7 @@ ObjectDetection::postprocess(const std::vector<EValue> &tensors,
   float heightRatio =
       static_cast<float>(originalSize.height) / modelImageSize.height;
 
-  std::vector<Detection> detections;
+  std::vector<types::Detection> detections;
   auto bboxTensor = tensors.at(0).toTensor();
   std::span<const float> bboxes(
       static_cast<const float *>(bboxTensor.const_data_ptr()),
@@ -61,12 +61,12 @@ ObjectDetection::postprocess(const std::vector<EValue> &tensors,
                             scores[i]);
   }
 
-  std::vector<Detection> output = nonMaxSuppression(detections);
+  std::vector<types::Detection> output = utils::nonMaxSuppression(detections);
   return output;
 }
 
-std::vector<Detection> ObjectDetection::generate(std::string imageSource,
-                                                 double detectionThreshold) {
+std::vector<types::Detection>
+ObjectDetection::generate(std::string imageSource, double detectionThreshold) {
   auto [inputTensor, originalSize] =
       image_processing::readImageToTensor(imageSource, getAllInputShapes()[0]);
 
@@ -79,4 +79,4 @@ std::vector<Detection> ObjectDetection::generate(std::string imageSource,
 
   return postprocess(forwardResult.get(), originalSize, detectionThreshold);
 }
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::object_detection

@@ -4,13 +4,16 @@
 #include "executorch/runtime/core/evalue.h"
 #include <cstdint>
 #include <memory>
-#include <rnexecutorch/models/EncoderDecoderBase.h>
-#include <rnexecutorch/models/speech_to_text/SpeechToTextStrategy.h>
 #include <span>
 #include <string>
 #include <vector>
 
+#include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
+#include <rnexecutorch/models/EncoderDecoderBase.h>
+#include <rnexecutorch/models/speech_to_text/SpeechToTextStrategy.h>
+
 namespace rnexecutorch {
+namespace models::speech_to_text {
 class SpeechToText : public EncoderDecoderBase {
 public:
   explicit SpeechToText(const std::string &encoderPath,
@@ -27,5 +30,9 @@ private:
 
   void initializeStrategy();
 };
+} // namespace models::speech_to_text
 
+REGISTER_CONSTRUCTOR(models::speech_to_text::SpeechToText, std::string,
+                     std::string, std::string,
+                     std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

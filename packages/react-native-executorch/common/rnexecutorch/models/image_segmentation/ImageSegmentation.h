@@ -7,11 +7,13 @@
 #include <jsi/jsi.h>
 #include <opencv2/opencv.hpp>
 
+#include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
 #include <rnexecutorch/jsi/OwningArrayBuffer.h>
 #include <rnexecutorch/models/BaseModel.h>
 #include <rnexecutorch/models/image_segmentation/Constants.h>
 
 namespace rnexecutorch {
+namespace models::image_segmentation {
 using namespace facebook;
 
 using executorch::aten::Tensor;
@@ -36,8 +38,13 @@ private:
                                          std::shared_ptr<OwningArrayBuffer>>>
           classesToOutput);
 
-  static constexpr std::size_t numClasses{DEEPLABV3_RESNET50_LABELS.size()};
+  static constexpr std::size_t numClasses{
+      constants::DEEPLABV3_RESNET50_LABELS.size()};
   cv::Size modelImageSize;
   std::size_t numModelPixels;
 };
+} // namespace models::image_segmentation
+
+REGISTER_CONSTRUCTOR(models::image_segmentation::ImageSegmentation, std::string,
+                     std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

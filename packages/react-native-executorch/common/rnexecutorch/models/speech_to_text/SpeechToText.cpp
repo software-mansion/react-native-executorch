@@ -3,7 +3,7 @@
 #include <rnexecutorch/models/speech_to_text/WhisperStrategy.h>
 #include <stdexcept>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::speech_to_text {
 
 using namespace ::executorch::extension;
 
@@ -67,4 +67,4 @@ int64_t SpeechToText::decode(std::vector<int64_t> prevTokens) {
                                       innerDim);
 }
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::speech_to_text
