@@ -93,6 +93,12 @@ export * from './types/objectDetection';
 export * from './types/ocr';
 export * from './types/imageSegmentation';
 export * from './types/llm';
+export * from './types/common';
+export {
+  SpeechToTextLanguage,
+  SpeechToTextModelConfig,
+  DecodingOptions,
+} from './types/stt';
 
 // constants
 export * from './constants/modelUrls';
