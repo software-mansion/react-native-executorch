@@ -1,6 +1,6 @@
 {
   "name": "react-native-executorch",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "An easy way to run AI models in React Native with ExecuTorch",
   "source": "./src/index.ts",
   "main": "./lib/module/index.js",
@@ -34,7 +34,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
-    "prepare": "bob build"
+    "prepare": "bob build",
+    "prepack": "cp ../../README.md ./README.md",
+    "postpack": "rm ./README.md"
   },
   "keywords": [
     "react-native",
