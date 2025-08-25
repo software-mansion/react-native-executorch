@@ -53,6 +53,10 @@ QINT
 FNUZ
 wordlist
 jitpack
+googletest
+ctest
+gtest
+rnexecutorch
 coreml
 mobilenetv
 flac
