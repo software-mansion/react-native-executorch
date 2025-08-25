@@ -1,6 +1,5 @@
 #include "RnExecutorchInstaller.h"
 
-#include <rnexecutorch/Log.h>
 #include <rnexecutorch/TokenizerModule.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/models/classification/Classification.h>
@@ -14,10 +13,10 @@
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
 #include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
 
-#ifdef defined(__ANDROID__) && defined(__aarch64__)
-#include <algorithm>
+#if defined(__ANDROID__) && defined(__aarch64__)
 #include <executorch/extension/threadpool/cpuinfo_utils.h>
 #include <executorch/extension/threadpool/threadpool.h>
+#include <rnexecutorch/Log.h>
 #endif
 
 namespace rnexecutorch {
@@ -89,12 +88,16 @@ void RnExecutorchInstaller::injectJSIBindings(
       RnExecutorchInstaller::loadModel<SpeechToText>(jsiRuntime, jsCallInvoker,
                                                      "loadSpeechToText"));
 
-#ifdef defined(__ANDROID__) && defined(__aarch64__)
-  auto num_of_cores = std::min(
-      ::executorch::extension::cpuinfo::get_num_performant_cores(), 3u);
+#if defined(__ANDROID__) && defined(__aarch64__)
+  auto num_of_perf_cores =
+      ::executorch::extension::cpuinfo::get_num_performant_cores();
+  log(LOG_LEVEL::Info,
+      std::format("Detected {} performant cores", num_of_perf_cores));
+  auto num_of_cores = static_cast<uint32_t>(num_of_perf_cores / 2) + 1;
   ::executorch::extension::threadpool::get_threadpool()
       ->_unsafe_reset_threadpool(num_of_cores);
-  log(LOG_LEVEL::Info, "Configuring xnnpack for ", num_of_cores, "threads");
+  log(LOG_LEVEL::Info,
+      std::format("Configuring xnnpack for {} threads", num_of_cores));
 #endif
 }
 

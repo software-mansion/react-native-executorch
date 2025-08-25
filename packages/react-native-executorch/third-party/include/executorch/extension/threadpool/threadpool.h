@@ -7,7 +7,7 @@
  */
 
 #pragma once
-#ifdef defined(__ANDROID__) && defined(__aarch64__)
+#if defined(__ANDROID__) && defined(__aarch64__)
 
 #include <functional>
 #include <memory>
