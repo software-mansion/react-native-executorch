@@ -1,9 +1,9 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
 import { ETError, getError } from '../../Error';
-import { BaseNonStaticModule } from '../BaseNonStaticModule';
+import { BaseModule } from '../BaseModule';
 
-export class ImageEmbeddingsModule extends BaseNonStaticModule {
+export class ImageEmbeddingsModule extends BaseModule {
   async load(
     model: { modelSource: ResourceSource },
     onDownloadProgressCallback: (progress: number) => void = () => {}

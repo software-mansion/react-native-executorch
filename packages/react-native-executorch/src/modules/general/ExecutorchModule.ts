@@ -1,9 +1,9 @@
 import { TensorPtr } from '../../types/common';
-import { BaseNonStaticModule } from '../BaseNonStaticModule';
+import { BaseModule } from '../BaseModule';
 import { ResourceSource } from '../../types/common';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 
-export class ExecutorchModule extends BaseNonStaticModule {
+export class ExecutorchModule extends BaseModule {
   async load(
     modelSource: ResourceSource,
     onDownloadProgressCallback: (progress: number) => void = () => {}
