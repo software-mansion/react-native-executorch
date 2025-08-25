@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Text,
   View,
@@ -10,11 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import {
-  STREAMING_ACTION,
-  useSpeechToText,
-  WHISPER_TINY,
-} from 'react-native-executorch';
+import { useSpeechToText, WHISPER_TINY_EN } from 'react-native-executorch';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {
   AudioManager,
@@ -27,27 +23,32 @@ import DeviceInfo from 'react-native-device-info';
 
 const isSimulator = DeviceInfo.isEmulatorSync();
 
-const SAMPLE_RATE = 16000;
-const AUDIO_LENGTH_SECONDS = 1;
-const BUFFER_LENGTH = SAMPLE_RATE * AUDIO_LENGTH_SECONDS;
-
 export const SpeechToTextScreen = () => {
   const model = useSpeechToText({
-    model: WHISPER_TINY,
-    windowSize: 3,
-    overlapSeconds: 1.2,
+    model: WHISPER_TINY_EN,
   });
 
-  const [audioURL, setAudioURL] = React.useState('');
-  const [liveTranscribing, setLiveTranscribing] = React.useState(false);
+  const [transcription, setTranscription] = useState('');
+  const [audioURL, setAudioURL] = useState('');
+  const [liveTranscribing, setLiveTranscribing] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const recorder = useRef(
-    new AudioRecorder({
-      sampleRate: SAMPLE_RATE,
-      bufferLengthInSamples: BUFFER_LENGTH,
-    })
+  const [recorder] = useState(
+    () =>
+      new AudioRecorder({
+        sampleRate: 16000,
+        bufferLengthInSamples: 1600,
+      })
   );
+
+  useEffect(() => {
+    AudioManager.setAudioSessionOptions({
+      iosCategory: 'playAndRecord',
+      iosMode: 'spokenAudio',
+      iosOptions: ['allowBluetooth', 'defaultToSpeaker'],
+    });
+    AudioManager.requestRecordingPermissions();
+  }, []);
 
   const handleTranscribeFromURL = async () => {
     if (!audioURL.trim()) {
@@ -60,13 +61,13 @@ export const SpeechToTextScreen = () => {
       FileSystem.cacheDirectory + 'audio_file'
     );
 
-    const audioContext = new AudioContext({ sampleRate: SAMPLE_RATE });
+    const audioContext = new AudioContext({ sampleRate: 16000 });
 
     try {
       const decodedAudioData = await audioContext.decodeAudioDataSource(uri);
       const audioBuffer = decodedAudioData.getChannelData(0);
       const audioArray = Array.from(audioBuffer);
-      await model.transcribe(audioArray);
+      setTranscription(await model.transcribe(audioArray));
     } catch (error) {
       console.error('Error decoding audio data', error);
       console.warn('Note: Supported file formats: mp3, wav, flac');
@@ -76,40 +77,24 @@ export const SpeechToTextScreen = () => {
 
   const handleStartTranscribeFromMicrophone = async () => {
     setLiveTranscribing(true);
+    setTranscription('');
+    recorder.onAudioReady(async ({ buffer }) => {
+      const bufferArray = Array.from(buffer.getChannelData(0));
+      model.streamInsert(bufferArray);
+    });
+    recorder.start();
 
     try {
-      await model.streamingTranscribe(STREAMING_ACTION.START);
-      console.log('Live transcription started');
+      await model.stream();
     } catch (error) {
-      console.error('Error starting live transcription:', error);
+      console.error('Error during live transcription:', error);
     }
-
-    AudioManager.setAudioSessionOptions({
-      iosCategory: 'playAndRecord',
-      iosMode: 'spokenAudio',
-      iosOptions: ['allowBluetooth', 'defaultToSpeaker'],
-    });
-
-    recorder.current.onAudioReady(async ({ buffer }) => {
-      const bufferArray = Array.from(buffer.getChannelData(0));
-      try {
-        model.streamingTranscribe(STREAMING_ACTION.DATA, bufferArray);
-      } catch (error) {
-        console.error('Error during live transcription:', error);
-      }
-    });
-
-    recorder.current.start();
   };
 
   const handleStopTranscribeFromMicrophone = async () => {
-    recorder.current.stop();
-    try {
-      await model.streamingTranscribe(STREAMING_ACTION.STOP);
-      console.log('Live transcription stopped');
-    } catch (error) {
-      console.error('Error stopping transcription:', error);
-    }
+    recorder.stop();
+    model.streamStop();
+    console.log('Live transcription stopped');
     setLiveTranscribing(false);
   };
 
@@ -137,7 +122,6 @@ export const SpeechToTextScreen = () => {
           </View>
 
           <View style={styles.statusContainer}>
-            <Text>Model: {WHISPER_TINY.modelName}</Text>
             <Text>Status: {getModelStatus()}</Text>
           </View>
 
@@ -150,7 +134,12 @@ export const SpeechToTextScreen = () => {
                 scrollViewRef.current?.scrollToEnd({ animated: true })
               }
             >
-              <Text>{model.sequence}</Text>
+              <Text>
+                {transcription !== ''
+                  ? transcription
+                  : model.committedTranscription +
+                    model.nonCommittedTranscription}
+              </Text>
             </ScrollView>
           </View>
 

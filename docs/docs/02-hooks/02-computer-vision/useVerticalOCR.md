@@ -135,8 +135,7 @@ interface OCRDetection {
 - **`detectorNarrow`** - A string that specifies the location of the detector binary file which accepts input images with a width of 320 pixels.
 - **`recognizerLarge`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 512 pixels.
 - **`recognizerSmall`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 64 pixels.
-
-**`language`** - A parameter that specifies the language of the text to be recognized by the OCR.
+- **`language`** - A parameter that specifies the language of the text to be recognized by the OCR.
 
 **`independentCharacters`** – A boolean parameter that indicates whether the text in the image consists of a random sequence of characters. If set to true, the algorithm will scan each character individually instead of reading them as continuous text.
 

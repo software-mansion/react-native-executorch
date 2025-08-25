@@ -1,10 +1,8 @@
 import { Platform } from 'react-native';
-import { AvailableModels } from '../types/stt';
 
 const URL_PREFIX =
   'https://huggingface.co/software-mansion/react-native-executorch';
-const VERSION_TAG = 'resolve/v0.4.0';
-const NEXT_VERSION_TAG = 'resolve/v0.5.0';
+const VERSION_TAG = 'resolve/v0.5.0';
 
 // LLMs
 
@@ -308,35 +306,70 @@ export const STYLE_TRANSFER_UDNIE = {
 };
 
 // S2T
-const MOONSHINE_TINY_DECODER_MODEL = `${URL_PREFIX}-moonshine-tiny/${VERSION_TAG}/xnnpack/moonshine_tiny_xnnpack_decoder.pte`;
-const MOONSHINE_TINY_ENCODER_MODEL = `${URL_PREFIX}-moonshine-tiny/${VERSION_TAG}/xnnpack/moonshine_tiny_xnnpack_encoder.pte`;
-const MOONSHINE_TOKENIZER = `${URL_PREFIX}-moonshine-tiny/${VERSION_TAG}/moonshine_tiny_tokenizer.json`;
-const WHISPER_TOKENIZER = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/whisper_tokenizer.json`;
-const WHISPER_TINY_DECODER_MODEL = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/xnnpack/whisper_tiny_en_xnnpack_decoder.pte`;
-const WHISPER_TINY_ENCODER_MODEL = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/xnnpack/whisper_tiny_en_xnnpack_encoder.pte`;
-const WHISPER_TINY_MULTILINGUAL_ENCODER_MODEL = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/xnnpack/xnnpack_whisper_encoder.pte`;
-const WHISPER_TINY_MULTILINGUAL_DECODER_MODEL = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/xnnpack/xnnpack_whisper_decoder.pte`;
-const WHISPER_TINY_MULTILINGUAL_TOKENIZER = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_TINY_EN_TOKENIZER = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_TINY_EN_ENCODER = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/xnnpack/whisper_tiny_en_encoder_xnnpack.pte`;
+const WHISPER_TINY_EN_DECODER = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/xnnpack/whisper_tiny_en_decoder_xnnpack.pte`;
 
-export const MOONSHINE_TINY = {
-  modelName: AvailableModels.MOONSHINE,
-  decoderSource: MOONSHINE_TINY_DECODER_MODEL,
-  encoderSource: MOONSHINE_TINY_ENCODER_MODEL,
-  tokenizerSource: MOONSHINE_TOKENIZER,
+const WHISPER_BASE_EN_TOKENIZER = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_BASE_EN_ENCODER = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/xnnpack/whisper_base_en_encoder_xnnpack.pte`;
+const WHISPER_BASE_EN_DECODER = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/xnnpack/whisper_base_en_decoder_xnnpack.pte`;
+
+const WHISPER_SMALL_EN_TOKENIZER = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_SMALL_EN_ENCODER = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/xnnpack/whisper_small_en_encoder_xnnpack.pte`;
+const WHISPER_SMALL_EN_DECODER = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/xnnpack/whisper_small_en_decoder_xnnpack.pte`;
+
+const WHISPER_TINY_TOKENIZER = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_TINY_ENCODER_MODEL = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/xnnpack/whisper_tiny_encoder_xnnpack.pte`;
+const WHISPER_TINY_DECODER_MODEL = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/xnnpack/whisper_tiny_decoder_xnnpack.pte`;
+
+const WHISPER_BASE_TOKENIZER = `${URL_PREFIX}-whisper-base/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_BASE_ENCODER_MODEL = `${URL_PREFIX}-whisper-base/${VERSION_TAG}/xnnpack/whisper_base_encoder_xnnpack.pte`;
+const WHISPER_BASE_DECODER_MODEL = `${URL_PREFIX}-whisper-base/${VERSION_TAG}/xnnpack/whisper_base_decoder_xnnpack.pte`;
+
+const WHISPER_SMALL_TOKENIZER = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_SMALL_ENCODER_MODEL = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/xnnpack/whisper_small_encoder_xnnpack.pte`;
+const WHISPER_SMALL_DECODER_MODEL = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/xnnpack/whisper_small_decoder_xnnpack.pte`;
+
+export const WHISPER_TINY_EN = {
+  isMultilingual: false,
+  encoderSource: WHISPER_TINY_EN_ENCODER,
+  decoderSource: WHISPER_TINY_EN_DECODER,
+  tokenizerSource: WHISPER_TINY_EN_TOKENIZER,
+};
+
+export const WHISPER_BASE_EN = {
+  isMultilingual: false,
+  encoderSource: WHISPER_BASE_EN_ENCODER,
+  decoderSource: WHISPER_BASE_EN_DECODER,
+  tokenizerSource: WHISPER_BASE_EN_TOKENIZER,
+};
+
+export const WHISPER_SMALL_EN = {
+  isMultilingual: false,
+  encoderSource: WHISPER_SMALL_EN_ENCODER,
+  decoderSource: WHISPER_SMALL_EN_DECODER,
+  tokenizerSource: WHISPER_SMALL_EN_TOKENIZER,
 };
 
 export const WHISPER_TINY = {
-  modelName: AvailableModels.WHISPER,
-  decoderSource: WHISPER_TINY_DECODER_MODEL,
+  isMultilingual: true,
   encoderSource: WHISPER_TINY_ENCODER_MODEL,
-  tokenizerSource: WHISPER_TOKENIZER,
+  decoderSource: WHISPER_TINY_DECODER_MODEL,
+  tokenizerSource: WHISPER_TINY_TOKENIZER,
 };
 
-export const WHISPER_TINY_MULTILINGUAL = {
-  modelName: AvailableModels.WHISPER_MULTILINGUAL,
-  decoderSource: WHISPER_TINY_MULTILINGUAL_DECODER_MODEL,
-  encoderSource: WHISPER_TINY_MULTILINGUAL_ENCODER_MODEL,
-  tokenizerSource: WHISPER_TINY_MULTILINGUAL_TOKENIZER,
+export const WHISPER_BASE = {
+  isMultilingual: true,
+  encoderSource: WHISPER_BASE_ENCODER_MODEL,
+  decoderSource: WHISPER_BASE_DECODER_MODEL,
+  tokenizerSource: WHISPER_BASE_TOKENIZER,
+};
+
+export const WHISPER_SMALL = {
+  isMultilingual: true,
+  encoderSource: WHISPER_SMALL_ENCODER_MODEL,
+  decoderSource: WHISPER_SMALL_DECODER_MODEL,
+  tokenizerSource: WHISPER_SMALL_TOKENIZER,
 };
 
 // Image segmentation
@@ -347,23 +380,23 @@ export const DEEPLAB_V3_RESNET50 = {
 };
 
 // Image Embeddings
-const CLIP_VIT_BASE_PATCH32_IMAGE_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/clip-vit-base-patch32-vision_xnnpack.pte`;
+const CLIP_VIT_BASE_PATCH32_IMAGE_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${VERSION_TAG}/clip-vit-base-patch32-vision_xnnpack.pte`;
 
 export const CLIP_VIT_BASE_PATCH32_IMAGE = {
   modelSource: CLIP_VIT_BASE_PATCH32_IMAGE_MODEL,
 };
 
 // Text Embeddings
-const ALL_MINILM_L6_V2_MODEL = `${URL_PREFIX}-all-MiniLM-L6-v2/${NEXT_VERSION_TAG}/all-MiniLM-L6-v2_xnnpack.pte`;
-const ALL_MINILM_L6_V2_TOKENIZER = `${URL_PREFIX}-all-MiniLM-L6-v2/${NEXT_VERSION_TAG}/tokenizer.json`;
-const ALL_MPNET_BASE_V2_MODEL = `${URL_PREFIX}-all-mpnet-base-v2/${NEXT_VERSION_TAG}/all-mpnet-base-v2_xnnpack.pte`;
-const ALL_MPNET_BASE_V2_TOKENIZER = `${URL_PREFIX}-all-mpnet-base-v2/${NEXT_VERSION_TAG}/tokenizer.json`;
-const MULTI_QA_MINILM_L6_COS_V1_MODEL = `${URL_PREFIX}-multi-qa-MiniLM-L6-cos-v1/${NEXT_VERSION_TAG}/multi-qa-MiniLM-L6-cos-v1_xnnpack.pte`;
-const MULTI_QA_MINILM_L6_COS_V1_TOKENIZER = `${URL_PREFIX}-multi-qa-MiniLM-L6-cos-v1/${NEXT_VERSION_TAG}/tokenizer.json`;
-const MULTI_QA_MPNET_BASE_DOT_V1_MODEL = `${URL_PREFIX}-multi-qa-mpnet-base-dot-v1/${NEXT_VERSION_TAG}/multi-qa-mpnet-base-dot-v1_xnnpack.pte`;
-const MULTI_QA_MPNET_BASE_DOT_V1_TOKENIZER = `${URL_PREFIX}-multi-qa-mpnet-base-dot-v1/${NEXT_VERSION_TAG}/tokenizer.json`;
-const CLIP_VIT_BASE_PATCH32_TEXT_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/clip-vit-base-patch32-text_xnnpack.pte`;
-const CLIP_VIT_BASE_PATCH32_TEXT_TOKENIZER = `${URL_PREFIX}-clip-vit-base-patch32/${NEXT_VERSION_TAG}/tokenizer.json`;
+const ALL_MINILM_L6_V2_MODEL = `${URL_PREFIX}-all-MiniLM-L6-v2/${VERSION_TAG}/all-MiniLM-L6-v2_xnnpack.pte`;
+const ALL_MINILM_L6_V2_TOKENIZER = `${URL_PREFIX}-all-MiniLM-L6-v2/${VERSION_TAG}/tokenizer.json`;
+const ALL_MPNET_BASE_V2_MODEL = `${URL_PREFIX}-all-mpnet-base-v2/${VERSION_TAG}/all-mpnet-base-v2_xnnpack.pte`;
+const ALL_MPNET_BASE_V2_TOKENIZER = `${URL_PREFIX}-all-mpnet-base-v2/${VERSION_TAG}/tokenizer.json`;
+const MULTI_QA_MINILM_L6_COS_V1_MODEL = `${URL_PREFIX}-multi-qa-MiniLM-L6-cos-v1/${VERSION_TAG}/multi-qa-MiniLM-L6-cos-v1_xnnpack.pte`;
+const MULTI_QA_MINILM_L6_COS_V1_TOKENIZER = `${URL_PREFIX}-multi-qa-MiniLM-L6-cos-v1/${VERSION_TAG}/tokenizer.json`;
+const MULTI_QA_MPNET_BASE_DOT_V1_MODEL = `${URL_PREFIX}-multi-qa-mpnet-base-dot-v1/${VERSION_TAG}/multi-qa-mpnet-base-dot-v1_xnnpack.pte`;
+const MULTI_QA_MPNET_BASE_DOT_V1_TOKENIZER = `${URL_PREFIX}-multi-qa-mpnet-base-dot-v1/${VERSION_TAG}/tokenizer.json`;
+const CLIP_VIT_BASE_PATCH32_TEXT_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${VERSION_TAG}/clip-vit-base-patch32-text_xnnpack.pte`;
+const CLIP_VIT_BASE_PATCH32_TEXT_TOKENIZER = `${URL_PREFIX}-clip-vit-base-patch32/${VERSION_TAG}/tokenizer.json`;
 
 export const ALL_MINILM_L6_V2 = {
   modelSource: ALL_MINILM_L6_V2_MODEL,

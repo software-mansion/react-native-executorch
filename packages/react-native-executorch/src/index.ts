@@ -1,5 +1,3 @@
-import { SpeechToTextLanguage } from './types/stt';
-
 import { ETInstallerNativeModule } from './native/RnExecutorchModules';
 
 // eslint-disable no-var
@@ -95,14 +93,14 @@ export * from './types/objectDetection';
 export * from './types/ocr';
 export * from './types/imageSegmentation';
 export * from './types/llm';
-export { SpeechToTextLanguage };
+export * from './types/common';
+export {
+  SpeechToTextLanguage,
+  SpeechToTextModelConfig,
+  DecodingOptions,
+} from './types/stt';
 
 // constants
 export * from './constants/modelUrls';
 export * from './constants/ocr/models';
 export * from './constants/llmDefaults';
-export {
-  STREAMING_ACTION,
-  MODES,
-  AvailableModels,
-} from './constants/sttDefaults';

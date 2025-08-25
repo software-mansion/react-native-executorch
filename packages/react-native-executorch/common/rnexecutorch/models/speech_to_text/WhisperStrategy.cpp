@@ -29,10 +29,22 @@ WhisperStrategy::prepareTokenInput(const std::vector<int64_t> &prevTokens) {
   return make_tensor_ptr(std::move(tensorSizes), std::move(tokens32));
 }
 
-int64_t WhisperStrategy::extractOutputToken(const void *outputPtr,
-                                            size_t innerDim) const {
-  const auto *data = static_cast<const int32_t *>(outputPtr);
-  return static_cast<int64_t>(data[innerDim - 1]);
+std::shared_ptr<OwningArrayBuffer> WhisperStrategy::extractOutputToken(
+    const executorch::aten::Tensor &decoderOutputTensor) const {
+  const auto innerDim = decoderOutputTensor.size(1);
+  const auto dictSize = decoderOutputTensor.size(2);
+  auto outputNumel = decoderOutputTensor.numel();
+  auto dataPtr =
+      static_cast<const float *>(decoderOutputTensor.const_data_ptr()) +
+      (innerDim - 1) * dictSize;
+
+  std::span<const float> modelOutput(dataPtr, outputNumel / innerDim);
+  auto createBuffer = [](const auto &data, size_t size) {
+    auto buffer = std::make_shared<OwningArrayBuffer>(size);
+    std::memcpy(buffer->data(), data, size);
+    return buffer;
+  };
+  return createBuffer(modelOutput.data(), modelOutput.size_bytes());
 }
 
 } // namespace rnexecutorch::models::speech_to_text
