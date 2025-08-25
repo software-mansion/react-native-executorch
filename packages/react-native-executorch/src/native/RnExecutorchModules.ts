@@ -1,5 +1,4 @@
 import { Platform } from 'react-native';
-import { Spec as LLMInterface } from './NativeLLM';
 import { Spec as ETInstallerInterface } from './NativeETInstaller';
 
 const LINKING_ERROR =
@@ -23,8 +22,5 @@ function returnSpecOrThrowLinkingError(spec: any) {
 
 const ETInstallerNativeModule: ETInstallerInterface =
   returnSpecOrThrowLinkingError(require('./NativeETInstaller').default);
-const LLMNativeModule: LLMInterface = returnSpecOrThrowLinkingError(
-  require('./NativeLLM').default
-);
 
-export { LLMNativeModule, ETInstallerNativeModule };
+export { ETInstallerNativeModule };

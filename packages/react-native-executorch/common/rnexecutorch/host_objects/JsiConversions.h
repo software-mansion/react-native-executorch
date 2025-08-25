@@ -46,6 +46,14 @@ inline std::string getValue<std::string>(const jsi::Value &val,
 }
 
 template <>
+inline std::shared_ptr<jsi::Function>
+getValue<std::shared_ptr<jsi::Function>>(const jsi::Value &val,
+                                         jsi::Runtime &runtime) {
+  return std::make_shared<jsi::Function>(
+      val.asObject(runtime).asFunction(runtime));
+}
+
+template <>
 inline std::vector<int32_t>
 getValue<std::vector<int32_t>>(const jsi::Value &val, jsi::Runtime &runtime) {
   jsi::Array array = val.asObject(runtime).asArray(runtime);

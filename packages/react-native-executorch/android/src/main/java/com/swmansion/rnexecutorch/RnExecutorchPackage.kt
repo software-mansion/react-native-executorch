@@ -14,9 +14,7 @@ class RnExecutorchPackage : TurboReactPackage() {
     name: String,
     reactContext: ReactApplicationContext,
   ): NativeModule? =
-    if (name == LLM.NAME) {
-      LLM(reactContext)
-    } else if (name == ETInstaller.NAME) {
+    if (name == ETInstaller.NAME) {
       ETInstaller(reactContext)
     } else {
       null
@@ -25,16 +23,6 @@ class RnExecutorchPackage : TurboReactPackage() {
   override fun getReactModuleInfoProvider(): ReactModuleInfoProvider =
     ReactModuleInfoProvider {
       val moduleInfos: MutableMap<String, ReactModuleInfo> = HashMap()
-      moduleInfos[LLM.NAME] =
-        ReactModuleInfo(
-          LLM.NAME,
-          LLM.NAME,
-          false, // canOverrideExistingModule
-          false, // needsEagerInit
-          true, // hasConstants
-          false, // isCxxModule
-          true,
-        )
       moduleInfos[ETInstaller.NAME] =
         ReactModuleInfo(
           ETInstaller.NAME,
