@@ -75,7 +75,7 @@ TEST(MeanPoolingTests, InvalidDimensionSize) {
   const std::vector<int64_t> attnMask = {1, 1, 1};
 
   EXPECT_THROW(
-      { rnexecutorch::numerical::meanPooling(modelOutput, attnMask); },
+      { meanPooling(modelOutput, attnMask); },
       std::invalid_argument);
 }
 
@@ -84,7 +84,7 @@ TEST(MeanPoolingTests, EmptyAttentionMask) {
   const std::vector<int64_t> attnMask = {};
 
   EXPECT_THROW(
-      { rnexecutorch::numerical::meanPooling(modelOutput, attnMask); },
+      { meanPooling(modelOutput, attnMask); },
       std::invalid_argument);
 }
 

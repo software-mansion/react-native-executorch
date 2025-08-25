@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <format>
 #include <limits>
 #include <numeric>
 #include <string>
@@ -53,10 +54,9 @@ std::vector<float> meanPooling(std::span<const float> modelOutput,
 
   if (attnMask.empty() || modelOutput.size() % attnMask.size() != 0) {
     throw std::invalid_argument(
-        "Invalid dimensions for mean pooling, expected model output size to be "
-        "divisable by the size of attention mask but got size: " +
-        std::to_string(modelOutput.size()) + " for model output and size: " +
-        std::to_string(attnMask.size()) + " for attention mask");
+        std::format("Invalid dimensions for mean pooling, expected model output size to be "
+        "divisible by the size of attention mask but got size: {} for model output and size: "
+        "{} for attention mask"), modelOutput.size(), attnMask.size());
   }
 
   auto attnMaskLength = attnMask.size();
