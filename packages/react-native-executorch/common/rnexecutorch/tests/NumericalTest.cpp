@@ -16,14 +16,14 @@ void expect_vectors_eq(const std::vector<float> &vector1,
 TEST(SoftmaxTests, SoftmaxBasic) {
   std::vector<float> input = {1.0F, 2.0F, 3.0F};
   softmax(input);
-  const std::vector<float> expected = {0.09003057f, 0.24472847f, 0.66524095F};
+  const std::vector<float> expected = {0.09003057F, 0.24472847F, 0.66524095F};
   expect_vectors_eq(input, expected);
 }
 
 TEST(SoftmaxTests, SoftmaxWithBigValues) {
   std::vector<float> input = {100000.0F, 100000.0F, 100000.0F};
   softmax(input);
-  const std::vector<float> expected = {0.3333333f, 0.3333333f, 0.3333333f};
+  const std::vector<float> expected = {0.3333333F, 0.3333333F, 0.3333333F};
   expect_vectors_eq(input, expected);
 }
 
@@ -45,8 +45,8 @@ TEST(NormalizeTests, NormalizationOfExtremelySmallValues) {
 }
 
 TEST(MeanPoolingTests, MeanPoolingBasic) {
-  const std::vector<float> modelOutputVec = {1.0f, 2.0f, 3.0f,
-                                             4.0f, 5.0f, 6.0f};
+  const std::vector<float> modelOutputVec = {1.0F, 2.0F, 3.0F,
+                                             4.0F, 5.0F, 6.0F};
   const std::vector<int64_t> attnMaskVec = {1, 1, 0};
 
   std::span<const float> modelOutput(modelOutputVec);
@@ -58,8 +58,8 @@ TEST(MeanPoolingTests, MeanPoolingBasic) {
 }
 
 TEST(MeanPoolingTests, MeanPoolingWithZeroAttentionMask) {
-  const std::vector<float> modelOutputVec = {1.0f, 2.0f, 3.0f,
-                                             4.0f, 5.0f, 6.0f};
+  const std::vector<float> modelOutputVec = {1.0F, 2.0F, 3.0F,
+                                             4.0F, 5.0F, 6.0F};
   const std::vector<int64_t> attnMaskVec = {0, 0, 0};
 
   std::span<const float> modelOutput(modelOutputVec);
@@ -71,7 +71,7 @@ TEST(MeanPoolingTests, MeanPoolingWithZeroAttentionMask) {
 }
 
 TEST(MeanPoolingTests, InvalidDimensionSize) {
-  const std::vector<float> modelOutput = {1.0f, 2.0f, 3.0f, 4.0f};
+  const std::vector<float> modelOutput = {1.0F, 2.0F, 3.0F, 4.0F};
   const std::vector<int64_t> attnMask = {1, 1, 1};
 
   EXPECT_THROW(
@@ -80,7 +80,7 @@ TEST(MeanPoolingTests, InvalidDimensionSize) {
 }
 
 TEST(MeanPoolingTests, EmptyAttentionMask) {
-  const std::vector<float> modelOutput = {1.0f, 2.0f, 3.0f, 4.0f};
+  const std::vector<float> modelOutput = {1.0F, 2.0F, 3.0F, 4.0F};
   const std::vector<int64_t> attnMask = {};
 
   EXPECT_THROW(
