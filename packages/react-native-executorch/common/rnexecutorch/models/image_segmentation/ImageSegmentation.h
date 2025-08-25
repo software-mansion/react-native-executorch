@@ -39,7 +39,7 @@ private:
           classesToOutput);
 
   static constexpr std::size_t numClasses{
-      constants::DEEPLABV3_RESNET50_LABELS.size()};
+      constants::kDeeplabV3Resnet50Labels.size()};
   cv::Size modelImageSize;
   std::size_t numModelPixels;
 };

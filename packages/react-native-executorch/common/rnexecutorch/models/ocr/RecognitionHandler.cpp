@@ -21,10 +21,10 @@ std::pair<std::vector<int32_t>, float>
 RecognitionHandler::runModel(cv::Mat image) {
 
   // Note that the height of an  image is always equal to 64.
-  if (image.cols >= constants::LARGE_RECOGNIZER_WIDTH) {
+  if (image.cols >= constants::kLargeRecognizerWidth) {
     return recognizerLarge.generate(image);
   }
-  if (image.cols >= constants::MEDIUM_RECOGNIZER_WIDTH) {
+  if (image.cols >= constants::kMediumRecognizerWidth) {
     return recognizerMedium.generate(image);
   }
   return recognizerSmall.generate(image);
@@ -39,7 +39,7 @@ void RecognitionHandler::processBBox(std::vector<types::OCRDetection> &boxList,
     Recognizer).
   */
   auto croppedImage =
-      utils::cropImage(box, imgGray, constants::RECOGNIZER_HEIGHT);
+      utils::cropImage(box, imgGray, constants::kRecognizerHeight);
 
   if (croppedImage.empty()) {
     return;
@@ -50,11 +50,11 @@ void RecognitionHandler::processBBox(std::vector<types::OCRDetection> &boxList,
     128x64, 256x64, 512x64.
   */
   croppedImage =
-      utils::normalizeForRecognizer(croppedImage, constants::RECOGNIZER_HEIGHT,
-                                    constants::ADJUST_CONTRAST, false);
+      utils::normalizeForRecognizer(croppedImage, constants::kRecognizerHeight,
+                                    constants::kAdjustContrast, false);
 
   auto [predictionIndices, confidenceScore] = this->runModel(croppedImage);
-  if (confidenceScore < constants::LOW_CONFIDENCE_THRESHOLD) {
+  if (confidenceScore < constants::kLowConfidenceThreshold) {
     cv::rotate(croppedImage, croppedImage, cv::ROTATE_180);
     auto [rotatedPredictionIndices, rotatedConfidenceScore] =
         runModel(croppedImage);

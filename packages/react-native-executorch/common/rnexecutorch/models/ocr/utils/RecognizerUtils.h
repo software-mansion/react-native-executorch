@@ -57,7 +57,7 @@ cropImageWithBoundingBox(const cv::Mat &img,
  * Prepare for Recognition by following steps:
  * 1. Crop image to the character bounding box,
  * 2. Convert Image to gray.
- * 3. Resize it to [SMALL_VERTICAL_RECOGNIZER_WIDTH x RECOGNIZER_HEIGHT] (64 x
+ * 3. Resize it to [kSmallVerticalRecognizerWidth x kRecognizerHeight] (64 x
  * 64).
  *
  * @details it utilizes cropImageWithBoundingBox to perform specific cropping.

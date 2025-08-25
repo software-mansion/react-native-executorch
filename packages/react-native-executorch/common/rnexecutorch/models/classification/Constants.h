@@ -4,7 +4,7 @@
 #include <string_view>
 
 namespace rnexecutorch::models::classification::constants {
-inline constexpr std::array<std::string_view, 1000> IMAGENET1K_V1_LABELS = {
+inline constexpr std::array<std::string_view, 1000> kImagenet1kV1Labels = {
     "tench, Tinca tinca",
     "goldfish, Carassius auratus",
     "great white shark, white shark, man-eater, man-eating shark, Carcharodon "

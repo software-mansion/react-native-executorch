@@ -401,7 +401,7 @@ fitLineToShortestSides(const std::array<types::Point, 4> &points) {
   constexpr double accuracy =
       0.01; // sufficient accuracy. Value proposed by OPENCV
 
-  isVertical = dx < constants::VERTICAL_LINE_THRESHOLD;
+  isVertical = dx < constants::kVerticalLineThreshold;
   if (isVertical) {
     for (auto &pt : cvMidPoints) {
       std::swap(pt.x, pt.y);

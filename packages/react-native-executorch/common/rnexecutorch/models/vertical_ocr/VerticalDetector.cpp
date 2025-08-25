@@ -37,7 +37,8 @@ VerticalDetector::generate(const cv::Mat &inputImage) {
   cv::Mat resizedInputImage =
       image_processing::resizePadded(inputImage, getModelImageSize());
   TensorPtr inputTensor = image_processing::getTensorFromMatrix(
-      inputShapes[0], resizedInputImage, constants::MEAN, constants::VARIANCE);
+      inputShapes[0], resizedInputImage, constants::kMean,
+      constants::kVariance);
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
@@ -68,22 +69,22 @@ VerticalDetector::postprocess(const Tensor &tensor) const {
       tensorData,
       cv::Size(modelImageSize.width / 2, modelImageSize.height / 2));
   float txtThreshold = this->detectSingleCharacters
-                           ? constants::TEXT_THRESHOLD
-                           : constants::TEXT_THRESHOLD_VERTICAL;
+                           ? constants::kTextThreshold
+                           : constants::kTextThresholdVertical;
   std::vector<types::DetectorBBox> bBoxesList =
       utils::getDetBoxesFromTextMapVertical(
           scoreTextMat, scoreAffinityMat, txtThreshold,
-          constants::LINK_THRESHOLD, this->detectSingleCharacters);
+          constants::kLinkThreshold, this->detectSingleCharacters);
   const float restoreRatio = utils::calculateRestoreRatio(
-      scoreTextMat.rows, constants::RECOGNIZER_IMAGE_SIZE);
+      scoreTextMat.rows, constants::kRecognizerImageSize);
   utils::restoreBboxRatio(bBoxesList, restoreRatio);
 
   // if this is Narrow Detector, do not group boxes.
   if (!this->detectSingleCharacters) {
     bBoxesList = utils::groupTextBoxes(
-        bBoxesList, constants::CENTER_THRESHOLD, constants::DISTANCE_THRESHOLD,
-        constants::HEIGHT_THRESHOLD, constants::MIN_SIDE_THRESHOLD,
-        constants::MAX_SIDE_THRESHOLD, constants::MAX_WIDTH);
+        bBoxesList, constants::kCenterThreshold, constants::kDistanceThreshold,
+        constants::kHeightThreshold, constants::kMinSideThreshold,
+        constants::kMaxSideThreshold, constants::kMaxWidth);
   }
 
   return bBoxesList;

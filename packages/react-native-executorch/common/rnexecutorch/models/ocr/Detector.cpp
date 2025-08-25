@@ -36,7 +36,8 @@ std::vector<types::DetectorBBox> Detector::generate(const cv::Mat &inputImage) {
   cv::Mat resizedInputImage =
       image_processing::resizePadded(inputImage, getModelImageSize());
   TensorPtr inputTensor = image_processing::getTensorFromMatrix(
-      inputShapes[0], resizedInputImage, constants::MEAN, constants::VARIANCE);
+      inputShapes[0], resizedInputImage, constants::kMean,
+      constants::kVariance);
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
@@ -70,8 +71,8 @@ Detector::postprocess(const Tensor &tensor) const {
    Heatmaps are then converted into list of bounding boxes.
   */
   std::vector<types::DetectorBBox> bBoxesList = utils::getDetBoxesFromTextMap(
-      scoreTextMat, scoreAffinityMat, constants::TEXT_THRESHOLD,
-      constants::LINK_THRESHOLD, constants::LOW_TEXT_THRESHOLD);
+      scoreTextMat, scoreAffinityMat, constants::kTextThreshold,
+      constants::kLinkThreshold, constants::kLowTextThreshold);
 
   /*
    Bounding boxes are at first corresponding to the 400x400 size or 640x640.
@@ -80,7 +81,7 @@ Detector::postprocess(const Tensor &tensor) const {
    (3.2 or 2.0).
   */
   const float restoreRatio = utils::calculateRestoreRatio(
-      scoreTextMat.rows, constants::RECOGNIZER_IMAGE_SIZE);
+      scoreTextMat.rows, constants::kRecognizerImageSize);
   utils::restoreBboxRatio(bBoxesList, restoreRatio);
   /*
    Since every bounding box is processed separately by Recognition models, we'd
@@ -89,9 +90,9 @@ Detector::postprocess(const Tensor &tensor) const {
    for Recognizer models than recognition of single characters.
   */
   bBoxesList = utils::groupTextBoxes(
-      bBoxesList, constants::CENTER_THRESHOLD, constants::DISTANCE_THRESHOLD,
-      constants::HEIGHT_THRESHOLD, constants::MIN_SIDE_THRESHOLD,
-      constants::MAX_SIDE_THRESHOLD, constants::MAX_WIDTH);
+      bBoxesList, constants::kCenterThreshold, constants::kDistanceThreshold,
+      constants::kHeightThreshold, constants::kMinSideThreshold,
+      constants::kMaxSideThreshold, constants::kMaxWidth);
 
   return bBoxesList;
 }

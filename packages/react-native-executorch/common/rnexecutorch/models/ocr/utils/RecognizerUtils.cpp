@@ -107,12 +107,11 @@ cv::Mat characterBitMask(const cv::Mat &img) {
 
   const int32_t height = thresh.rows;
   const int32_t width = thresh.cols;
-  const int32_t minX = constants::SINGLE_CHARACTER_CENTER_THRESHOLD * width;
-  const int32_t maxX =
-      (1 - constants::SINGLE_CHARACTER_CENTER_THRESHOLD) * width;
-  const int32_t minY = constants::SINGLE_CHARACTER_CENTER_THRESHOLD * height;
+  const int32_t minX = constants::kSingleCharacterCenterThreshold * width;
+  const int32_t maxX = (1 - constants::kSingleCharacterCenterThreshold) * width;
+  const int32_t minY = constants::kSingleCharacterCenterThreshold * height;
   const int32_t maxY =
-      (1 - constants::SINGLE_CHARACTER_CENTER_THRESHOLD) * height;
+      (1 - constants::kSingleCharacterCenterThreshold) * height;
 
   int32_t selectedComponent = -1;
   int32_t maxArea = -1;
@@ -122,9 +121,8 @@ cv::Mat characterBitMask(const cv::Mat &img) {
     const double cy = centroids.at<double>(i, 1);
 
     if ((minX < cx && cx < maxX && minY < cy &&
-         cy < maxY && // check if centered
-         area >
-             constants::SINGLE_CHARACTER_MIN_SIZE) && // check if large enough
+         cy < maxY &&                                  // check if centered
+         area > constants::kSingleCharacterMinSize) && // check if large enough
         area > maxArea) {
       selectedComponent = i;
       maxArea = area;
@@ -198,8 +196,8 @@ cv::Mat prepareForRecognition(const cv::Mat &originalImage,
                                               paddings, originalPaddings);
   cv::cvtColor(croppedChar, croppedChar, cv::COLOR_BGR2GRAY);
   cv::resize(croppedChar, croppedChar,
-             cv::Size(constants::SMALL_VERTICAL_RECOGNIZER_WIDTH,
-                      constants::RECOGNIZER_HEIGHT),
+             cv::Size(constants::kSmallVerticalRecognizerWidth,
+                      constants::kRecognizerHeight),
              0, 0, cv::INTER_AREA);
   return croppedChar;
 }

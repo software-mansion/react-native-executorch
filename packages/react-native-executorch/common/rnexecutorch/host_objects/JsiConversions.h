@@ -373,7 +373,7 @@ inline jsi::Value getJsiValue(
     detection.setProperty(
         runtime, "label",
         jsi::String::createFromAscii(
-            runtime, models::object_detection::constants::COCO_LABELS_MAP.at(
+            runtime, models::object_detection::constants::kCocoLablesMap.at(
                          detections[i].label)));
     detection.setProperty(runtime, "score", detections[i].score);
     array.setValueAtIndex(runtime, i, detection);

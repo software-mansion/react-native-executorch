@@ -127,14 +127,14 @@ void adjustContrastGrey(cv::Mat &img, double target) {
 
 int32_t getDesiredWidth(const cv::Mat &img, bool isVertical) {
 
-  if (img.cols >= constants::LARGE_RECOGNIZER_WIDTH) {
-    return constants::LARGE_RECOGNIZER_WIDTH;
+  if (img.cols >= constants::kLargeRecognizerWidth) {
+    return constants::kLargeRecognizerWidth;
   }
-  if (img.cols >= constants::MEDIUM_RECOGNIZER_WIDTH) {
-    return constants::MEDIUM_RECOGNIZER_WIDTH;
+  if (img.cols >= constants::kMediumRecognizerWidth) {
+    return constants::kMediumRecognizerWidth;
   }
-  return isVertical ? constants::SMALL_VERTICAL_RECOGNIZER_WIDTH
-                    : constants::SMALL_RECOGNIZER_WIDTH;
+  return isVertical ? constants::kSmallVerticalRecognizerWidth
+                    : constants::kSmallRecognizerWidth;
 }
 
 cv::Mat normalizeForRecognizer(const cv::Mat &image, int32_t modelHeight,
