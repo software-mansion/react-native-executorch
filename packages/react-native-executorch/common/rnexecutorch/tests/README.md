@@ -6,10 +6,12 @@ To test the native code we use [`googletest`](https://github.com/google/googlete
 
 ### Installation
 The googletest is already in repo in `react-native-executorch/third-party/googletest`. Firstly, you need to fetch googletest locally, run from root directory of project:
-* `git submodule update --init --recursive react-native-executorch/third-party/googletest`
+* `git submodule update --init --recursive third-party/googletest`
 
 ### Build Test Files
-To run tests navigate to `packages/react-native-executorch/common/rnexecutorch/tests` and type:
+To run tests navigate tests directory namely:
+* `cd packages/react-native-executorch/common/rnexecutorch/tests` 
+and then type:
 * `mkdir build && cd build`
 * `cmake ..`
 * `make`
