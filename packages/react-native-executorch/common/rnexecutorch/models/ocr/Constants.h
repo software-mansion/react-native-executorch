@@ -28,7 +28,14 @@ inline constexpr int32_t kSingleCharacterMinSize = 70;
 inline constexpr int32_t kRecognizerImageSize = 1280;
 inline constexpr int32_t kVerticalLineThreshold = 20;
 
-inline const cv::Scalar kMean(0.485, 0.456, 0.406);
-inline const cv::Scalar kVariance(0.229, 0.224, 0.225);
+/*
+ Mean and variance values for image normalization were used in EASYOCR pipeline
+ (see
+ https://github.com/JaidedAI/EasyOCR/blob/c4f3cd7225efd4f85451bd8b4a7646ae9a092420/easyocr/imgproc.py#L20)
+ but they originate from ImageNet dataset and they are widely use in
+ ComputerVision preprocessing.
+*/
+inline const cv::Scalar kNormalizationMean(0.485, 0.456, 0.406);
+inline const cv::Scalar kNormalizationVariance(0.229, 0.224, 0.225);
 
 } // namespace rnexecutorch::models::ocr::constants
