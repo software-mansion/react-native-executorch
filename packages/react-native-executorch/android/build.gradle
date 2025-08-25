@@ -25,7 +25,7 @@ def reactNativeArchitectures() {
   def value = rootProject.getProperties().get("reactNativeArchitectures")
   // react-native-executorch supports only these architectures. This is due to
   // Executorch not supporting anything else.
-  def defaultArchitectures = ["arm64-v8a"]
+  def defaultArchitectures = ["x86_64", "arm64-v8a"]
   if(!value) {
     return defaultArchitectures
   }

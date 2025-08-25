@@ -13,7 +13,9 @@
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
 #include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
-#ifdef __ANDROID__
+
+#ifdef defined(__ANDROID__) && defined(__aarch64__)
+#include <algorithm>
 #include <executorch/extension/threadpool/cpuinfo_utils.h>
 #include <executorch/extension/threadpool/threadpool.h>
 #endif
@@ -87,9 +89,9 @@ void RnExecutorchInstaller::injectJSIBindings(
       RnExecutorchInstaller::loadModel<SpeechToText>(jsiRuntime, jsCallInvoker,
                                                      "loadSpeechToText"));
 
-#ifdef __ANDROID__
-  auto num_of_cores =
-      ::executorch::extension::cpuinfo::get_num_performant_cores();
+#ifdef defined(__ANDROID__) && defined(__aarch64__)
+  auto num_of_cores = std::min(
+      ::executorch::extension::cpuinfo::get_num_performant_cores(), 3u);
   ::executorch::extension::threadpool::get_threadpool()
       ->_unsafe_reset_threadpool(num_of_cores);
   log(LOG_LEVEL::Info, "Configuring xnnpack for ", num_of_cores, "threads");
