@@ -23,7 +23,7 @@ std::vector<float> convertColorMatToVector(const cv::Mat &mat) {
 
 std::vector<float> convertColorMatToVector(const cv::Mat &mat, cv::Scalar mean,
                                            cv::Scalar variance) {
-  constexpr auto numChannels = 3;
+  constexpr size_t numChannels = 3;
   constexpr auto maxPixelValueFloat = 255.0F;
 
   int pixelCount = mat.cols * mat.rows;
@@ -31,7 +31,7 @@ std::vector<float> convertColorMatToVector(const cv::Mat &mat, cv::Scalar mean,
 
 // rescale to pixels values in matrix
 #pragma unroll
-  for (int i = 0; i < numChannels; ++i) {
+  for (size_t i = 0; i < numChannels; ++i) {
     mean[i] *= maxPixelValueFloat;
     variance[i] *= maxPixelValueFloat;
   }
