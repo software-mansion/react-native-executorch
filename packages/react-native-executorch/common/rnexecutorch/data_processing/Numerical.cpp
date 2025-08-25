@@ -21,7 +21,7 @@ void softmax(std::span<float> input) {
     value = std::exp(value - maxElement);
   }
 
-  const auto sum = std::reduce(input.cbegin(), input.cend());
+  const auto sum = std::reduce(input.begin(), input.end());
 
   // sum is at least 1 since exp(max - max) == exp(0) == 1
   for (auto &value : input) {
@@ -34,8 +34,8 @@ void normalize(std::span<float> input) {
     return;
   }
 
-  const auto squaredSum = std::inner_product(input.cbegin(), input.cend(),
-                                             input.cbegin(), 0.0F);
+  const auto squaredSum =
+      std::inner_product(input.begin(), input.end(), input.begin(), 0.0F);
 
   constexpr auto epsilon = std::numeric_limits<float>::epsilon();
   if (squaredSum < epsilon) {
@@ -54,15 +54,17 @@ std::vector<float> meanPooling(std::span<const float> modelOutput,
 
   if (attnMask.empty() || modelOutput.size() % attnMask.size() != 0) {
     throw std::invalid_argument(
-        std::format("Invalid dimensions for mean pooling, expected model output size to be "
-        "divisible by the size of attention mask but got size: {} for model output and size: "
-        "{} for attention mask"), modelOutput.size(), attnMask.size());
+        std::format("Invalid dimensions for mean pooling, expected model "
+                    "output size to be divisible "
+                    "by the size of attention mask but got size: {} for model "
+                    "output and size: {} for attention mask",
+                    modelOutput.size(), attnMask.size()));
   }
 
   auto attnMaskLength = attnMask.size();
   auto embeddingDim = modelOutput.size() / attnMaskLength;
 
-  auto maskSum = std::reduce(attnMask.cbegin(), attnMask.cend());
+  auto maskSum = std::reduce(attnMask.begin(), attnMask.end());
   std::vector<float> result(embeddingDim, 0.0F);
   if (maskSum == 0LL) {
     return result;
