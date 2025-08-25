@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::ocr {
 /*
  Recogntion Handler is responsible for:
  1. Preparing the image to be processed by Recognition Model.
@@ -22,19 +22,21 @@ public:
                               const std::string &recognizerSourceSmall,
                               std::string symbols,
                               std::shared_ptr<react::CallInvoker> callInvoker);
-  std::vector<OCRDetection> recognize(std::vector<ocr::DetectorBBox> bboxesList,
-                                      cv::Mat &imgGray, cv::Size desiredSize);
+  std::vector<types::OCRDetection>
+  recognize(std::vector<types::DetectorBBox> bboxesList, cv::Mat &imgGray,
+            cv::Size desiredSize);
   void unload() noexcept;
   std::size_t getMemoryLowerBound() const noexcept;
 
 private:
   std::pair<std::vector<int32_t>, float> runModel(cv::Mat image);
-  void processBBox(std::vector<OCRDetection> &boxList, ocr::DetectorBBox &box,
-                   cv::Mat &imgGray, ocr::PaddingInfo ratioAndPadding);
+  void processBBox(std::vector<types::OCRDetection> &boxList,
+                   types::DetectorBBox &box, cv::Mat &imgGray,
+                   types::PaddingInfo ratioAndPadding);
   std::size_t memorySizeLowerBound{0};
-  ocr::CTCLabelConverter converter;
+  CTCLabelConverter converter;
   Recognizer recognizerLarge;
   Recognizer recognizerMedium;
   Recognizer recognizerSmall;
 };
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::ocr

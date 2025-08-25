@@ -4,7 +4,7 @@
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/data_processing/Numerical.h>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::embeddings {
 
 ImageEmbeddings::ImageEmbeddings(
     const std::string &modelSource,
@@ -30,7 +30,7 @@ ImageEmbeddings::ImageEmbeddings(
 std::shared_ptr<OwningArrayBuffer>
 ImageEmbeddings::generate(std::string imageSource) {
   auto [inputTensor, originalSize] =
-      imageprocessing::readImageToTensor(imageSource, getAllInputShapes()[0]);
+      image_processing::readImageToTensor(imageSource, getAllInputShapes()[0]);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
@@ -42,4 +42,4 @@ ImageEmbeddings::generate(std::string imageSource) {
   return BaseEmbeddings::postprocess(forwardResult);
 }
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::embeddings

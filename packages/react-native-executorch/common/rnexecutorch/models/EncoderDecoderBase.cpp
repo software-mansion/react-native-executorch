@@ -1,6 +1,6 @@
 #include <rnexecutorch/models/EncoderDecoderBase.h>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models {
 
 EncoderDecoderBase::EncoderDecoderBase(
     const std::string &encoderPath, const std::string &decoderPath,
@@ -18,4 +18,4 @@ void EncoderDecoderBase::unload() noexcept {
   decoder_.reset(nullptr);
 }
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models

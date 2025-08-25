@@ -2,7 +2,7 @@
 
 #include <rnexecutorch/models/BaseModel.h>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::embeddings {
 
 class BaseEmbeddings : public BaseModel {
 public:
@@ -14,4 +14,4 @@ protected:
   postprocess(const Result<std::vector<EValue>> &forwardResult);
 };
 
-}; // namespace rnexecutorch
+}; // namespace rnexecutorch::models::embeddings

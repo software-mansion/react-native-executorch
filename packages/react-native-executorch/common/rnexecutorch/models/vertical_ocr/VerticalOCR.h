@@ -2,18 +2,21 @@
 
 #include <executorch/extension/tensor/tensor_ptr.h>
 #include <opencv2/opencv.hpp>
-#include <rnexecutorch/models/BaseModel.h>
-#include <rnexecutorch/models/ocr/CTCLabelConverter.h>
-#include <rnexecutorch/models/ocr/DetectorUtils.h>
-#include <rnexecutorch/models/ocr/RecognitionHandlerUtils.h>
-#include <rnexecutorch/models/ocr/Recognizer.h>
-#include <rnexecutorch/models/ocr/RecognizerUtils.h>
-#include <rnexecutorch/models/vertical_ocr/VerticalDetector.h>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
+#include <rnexecutorch/models/BaseModel.h>
+#include <rnexecutorch/models/ocr/CTCLabelConverter.h>
+#include <rnexecutorch/models/ocr/Recognizer.h>
+#include <rnexecutorch/models/ocr/utils/DetectorUtils.h>
+#include <rnexecutorch/models/ocr/utils/RecognitionHandlerUtils.h>
+#include <rnexecutorch/models/ocr/utils/RecognizerUtils.h>
+#include <rnexecutorch/models/vertical_ocr/VerticalDetector.h>
+
 namespace rnexecutorch {
+namespace models::ocr {
 
 /*
   Vertical OCR is OCR designed to handle vertical texts.
@@ -47,32 +50,36 @@ public:
                        const std::string &recognizerSource, std::string symbols,
                        bool indpendentCharacters,
                        std::shared_ptr<react::CallInvoker> callInvoker);
-  std::vector<OCRDetection> generate(std::string input);
+  std::vector<types::OCRDetection> generate(std::string input);
   std::size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
 
 private:
   std::pair<std::string, float> _handleIndependentCharacters(
-      const ocr::DetectorBBox &box, const cv::Mat &originalImage,
-      const std::vector<ocr::DetectorBBox> &characterBoxes,
-      const ocr::PaddingInfo &paddingsBox,
-      const ocr::PaddingInfo &imagePaddings);
+      const types::DetectorBBox &box, const cv::Mat &originalImage,
+      const std::vector<types::DetectorBBox> &characterBoxes,
+      const types::PaddingInfo &paddingsBox,
+      const types::PaddingInfo &imagePaddings);
   std::pair<std::string, float>
-  _handleJointCharacters(const ocr::DetectorBBox &box,
+  _handleJointCharacters(const types::DetectorBBox &box,
                          const cv::Mat &originalImage,
-                         const std::vector<ocr::DetectorBBox> &characterBoxes,
-                         const ocr::PaddingInfo &paddingsBox,
-                         const ocr::PaddingInfo &imagePaddings);
-  OCRDetection _processSingleTextBox(ocr::DetectorBBox &box,
-                                     const cv::Mat &originalImage,
-                                     const cv::Mat &resizedLargeImage,
-                                     const ocr::PaddingInfo &imagePaddings);
+                         const std::vector<types::DetectorBBox> &characterBoxes,
+                         const types::PaddingInfo &paddingsBox,
+                         const types::PaddingInfo &imagePaddings);
+  types::OCRDetection
+  _processSingleTextBox(types::DetectorBBox &box, const cv::Mat &originalImage,
+                        const cv::Mat &resizedLargeImage,
+                        const types::PaddingInfo &imagePaddings);
   VerticalDetector detectorLarge;
   VerticalDetector detectorNarrow;
   Recognizer recognizer;
-  ocr::CTCLabelConverter converter;
+  CTCLabelConverter converter;
   bool independentCharacters;
   std::shared_ptr<react::CallInvoker> callInvoker;
 };
+} // namespace models::ocr
 
+REGISTER_CONSTRUCTOR(models::ocr::VerticalOCR, std::string, std::string,
+                     std::string, std::string, bool,
+                     std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

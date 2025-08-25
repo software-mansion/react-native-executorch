@@ -5,7 +5,7 @@
 #include <span>
 #include <vector>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::speech_to_text {
 
 using TensorPtr = ::executorch::extension::TensorPtr;
 
@@ -24,4 +24,4 @@ public:
       const executorch::aten::Tensor &decoderOutputTensor) const = 0;
 };
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::speech_to_text

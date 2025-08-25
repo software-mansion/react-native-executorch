@@ -2,7 +2,7 @@
 #include <executorch/extension/tensor/tensor_ptr_maker.h>
 #include <rnexecutorch/data_processing/Numerical.h>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::embeddings {
 
 using namespace executorch::extension;
 
@@ -58,4 +58,4 @@ TextEmbeddings::generate(const std::string input) {
   return BaseEmbeddings::postprocess(forwardResult);
 }
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::embeddings

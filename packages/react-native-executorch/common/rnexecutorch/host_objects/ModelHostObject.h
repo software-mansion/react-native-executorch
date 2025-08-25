@@ -24,18 +24,18 @@ public:
   explicit ModelHostObject(const std::shared_ptr<Model> &model,
                            std::shared_ptr<react::CallInvoker> callInvoker)
       : model(model), callInvoker(callInvoker) {
-    if constexpr (meta::DerivedFromOrSameAs<Model, BaseModel>) {
+    if constexpr (meta::DerivedFromOrSameAs<Model, models::BaseModel>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }
 
-    if constexpr (meta::DerivedFromOrSameAs<Model, BaseModel>) {
+    if constexpr (meta::DerivedFromOrSameAs<Model, models::BaseModel>) {
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::forwardJS>,
                                        "forward"));
     }
 
-    if constexpr (meta::DerivedFromOrSameAs<Model, BaseModel>) {
+    if constexpr (meta::DerivedFromOrSameAs<Model, models::BaseModel>) {
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>, promiseHostFunction<&Model::getInputShape>,
           "getInputShape"));
@@ -77,12 +77,12 @@ public:
                                        promiseHostFunction<&Model::tokenToId>,
                                        "tokenToId"));
     }
-    if constexpr (meta::SameAs<Model, OCR>) {
+    if constexpr (meta::SameAs<Model, models::ocr::OCR>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }
 
-    if constexpr (meta::SameAs<Model, VerticalOCR>) {
+    if constexpr (meta::SameAs<Model, models::ocr::VerticalOCR>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }
@@ -112,7 +112,7 @@ public:
         // For non-void functions, capture the result and convert it
         auto result =
             std::apply(std::bind_front(FnPtr, model), std::move(argsConverted));
-        return jsiconversion::getJsiValue(std::move(result), runtime);
+        return jsi_conversion::getJsiValue(std::move(result), runtime);
       }
     } catch (const std::runtime_error &e) {
       // This catch should be merged with the next one
@@ -171,11 +171,11 @@ public:
                                            std::move(argsConverted));
                   // The result is copied. It should either be quickly copiable,
                   // or passed with a shared_ptr.
-                  callInvoker->invokeAsync([promise,
-                                            result](jsi::Runtime &runtime) {
-                    promise->resolve(
-                        jsiconversion::getJsiValue(std::move(result), runtime));
-                  });
+                  callInvoker->invokeAsync(
+                      [promise, result](jsi::Runtime &runtime) {
+                        promise->resolve(jsi_conversion::getJsiValue(
+                            std::move(result), runtime));
+                      });
                 }
               } catch (const std::runtime_error &e) {
                 // This catch should be merged with the next two

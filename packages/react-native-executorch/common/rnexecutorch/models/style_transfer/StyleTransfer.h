@@ -8,9 +8,11 @@
 #include <jsi/jsi.h>
 #include <opencv2/opencv.hpp>
 
+#include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
 #include <rnexecutorch/models/BaseModel.h>
 
 namespace rnexecutorch {
+namespace models::style_transfer {
 using namespace facebook;
 using executorch::aten::Tensor;
 using executorch::extension::TensorPtr;
@@ -26,4 +28,8 @@ private:
 
   cv::Size modelImageSize{0, 0};
 };
+} // namespace models::style_transfer
+
+REGISTER_CONSTRUCTOR(models::style_transfer::StyleTransfer, std::string,
+                     std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

@@ -3,7 +3,7 @@
 #include <opencv2/opencv.hpp>
 #include <rnexecutorch/models/ocr/Types.h>
 
-namespace rnexecutorch::ocr {
+namespace rnexecutorch::models::ocr::utils {
 /**
  * @brief Calculates the resize ratio and padding offsets needed to fit an image
  *  into a target size while maintaining aspect ratio.
@@ -12,8 +12,8 @@ namespace rnexecutorch::ocr {
  * @return Struct containing the scaling factor and top/left padding amounts for
  * centering the image.
  */
-PaddingInfo calculateResizeRatioAndPaddings(cv::Size size,
-                                            cv::Size desiredSize);
+types::PaddingInfo calculateResizeRatioAndPaddings(cv::Size size,
+                                                   cv::Size desiredSize);
 /**
  * @brief Resizes an image proportionally to match a target height while
  * maintaining aspect ratio.
@@ -41,7 +41,7 @@ void computeRatioAndResize(cv::Mat &img, cv::Size size, int32_t modelHeight);
  * @param modelHeight Target height for output (width scales proportionally)
  * @return Cropped, aligned and resized image region (empty if invalid box)
  */
-cv::Mat cropImage(DetectorBBox box, cv::Mat &image, int32_t modelHeight);
+cv::Mat cropImage(types::DetectorBBox box, cv::Mat &image, int32_t modelHeight);
 void adjustContrastGrey(cv::Mat &img, double target);
 /**
  * @brief Prepares an image for recognition models by standardizing size,
@@ -69,4 +69,4 @@ void adjustContrastGrey(cv::Mat &img, double target);
 cv::Mat normalizeForRecognizer(const cv::Mat &image, int32_t modelHeight,
                                double adjustContrast = 0.0,
                                bool isVertical = false);
-} // namespace rnexecutorch::ocr
+} // namespace rnexecutorch::models::ocr::utils

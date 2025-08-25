@@ -1,17 +1,11 @@
 #pragma once
 
+#include "Types.h"
 #include <vector>
 
-namespace rnexecutorch {
-struct Detection {
-  float x1;
-  float y1;
-  float x2;
-  float y2;
-  int label;
-  float score;
-};
-
-float intersectionOverUnion(const Detection &a, const Detection &b);
-std::vector<Detection> nonMaxSuppression(std::vector<Detection> detections);
-} // namespace rnexecutorch
+namespace rnexecutorch::models::object_detection::utils {
+float intersectionOverUnion(const types::Detection &a,
+                            const types::Detection &b);
+std::vector<types::Detection>
+nonMaxSuppression(std::vector<types::Detection> detections);
+} // namespace rnexecutorch::models::object_detection::utils

@@ -3,10 +3,10 @@
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/data_processing/Numerical.h>
 #include <rnexecutorch/models/ocr/Constants.h>
-#include <rnexecutorch/models/ocr/RecognizerUtils.h>
 #include <rnexecutorch/models/ocr/Types.h>
+#include <rnexecutorch/models/ocr/utils/RecognizerUtils.h>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::ocr {
 Recognizer::Recognizer(const std::string &modelSource,
                        std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
@@ -35,7 +35,7 @@ Recognizer::generate(const cv::Mat &grayImage) {
   */
   std::vector<int32_t> tensorDims = getAllInputShapes()[0];
   TensorPtr inputTensor =
-      imageprocessing::getTensorFromMatrixGray(tensorDims, grayImage);
+      image_processing::getTensorFromMatrixGray(tensorDims, grayImage);
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
@@ -72,9 +72,9 @@ Recognizer::postprocess(const Tensor &tensor) const {
   cv::Mat resultMat(numRows, alphabetSize, CV_32F,
                     tensor.mutable_data_ptr<float>());
 
-  auto probabilities = ocr::softmax(resultMat);
-  auto [maxVal, maxIndices] = ocr::findMaxValuesIndices(probabilities);
-  float confidence = ocr::confidenceScore(maxVal, maxIndices);
+  auto probabilities = utils::softmax(resultMat);
+  auto [maxVal, maxIndices] = utils::findMaxValuesIndices(probabilities);
+  float confidence = utils::confidenceScore(maxVal, maxIndices);
   return {maxIndices, confidence};
 }
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::ocr

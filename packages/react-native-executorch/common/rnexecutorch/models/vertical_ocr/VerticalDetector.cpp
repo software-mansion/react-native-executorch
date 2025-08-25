@@ -2,11 +2,11 @@
 
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/ocr/Constants.h>
-#include <rnexecutorch/models/ocr/DetectorUtils.h>
+#include <rnexecutorch/models/ocr/utils/DetectorUtils.h>
 
 #include <executorch/extension/tensor/tensor_ptr.h>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::ocr {
 VerticalDetector::VerticalDetector(
     const std::string &modelSource, bool detectSingleCharacters,
     std::shared_ptr<react::CallInvoker> callInvoker)
@@ -31,13 +31,14 @@ cv::Size VerticalDetector::getModelImageSize() const noexcept {
   return modelImageSize;
 }
 
-std::vector<ocr::DetectorBBox>
+std::vector<types::DetectorBBox>
 VerticalDetector::generate(const cv::Mat &inputImage) {
   auto inputShapes = getAllInputShapes();
   cv::Mat resizedInputImage =
-      imageprocessing::resizePadded(inputImage, getModelImageSize());
-  TensorPtr inputTensor = imageprocessing::getTensorFromMatrix(
-      inputShapes[0], resizedInputImage, ocr::MEAN, ocr::VARIANCE);
+      image_processing::resizePadded(inputImage, getModelImageSize());
+  TensorPtr inputTensor = image_processing::getTensorFromMatrix(
+      inputShapes[0], resizedInputImage, constants::kNormalizationMean,
+      constants::kNormalizationVariance);
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
@@ -47,7 +48,7 @@ VerticalDetector::generate(const cv::Mat &inputImage) {
   return postprocess(forwardResult->at(0).toTensor());
 }
 
-std::vector<ocr::DetectorBBox>
+std::vector<types::DetectorBBox>
 VerticalDetector::postprocess(const Tensor &tensor) const {
   /*
    The output of the model consists of two matrices (heat maps):
@@ -64,29 +65,29 @@ VerticalDetector::postprocess(const Tensor &tensor) const {
    The output of the model is a matrix half the size of the input image
    containing two channels representing the heatmaps.
    */
-  auto [scoreTextMat, scoreAffinityMat] = ocr::interleavedArrayToMats(
+  auto [scoreTextMat, scoreAffinityMat] = utils::interleavedArrayToMats(
       tensorData,
       cv::Size(modelImageSize.width / 2, modelImageSize.height / 2));
   float txtThreshold = this->detectSingleCharacters
-                           ? ocr::TEXT_THRESHOLD
-                           : ocr::TEXT_THRESHOLD_VERTICAL;
-  std::vector<ocr::DetectorBBox> bBoxesList =
-      ocr::getDetBoxesFromTextMapVertical(scoreTextMat, scoreAffinityMat,
-                                          txtThreshold, ocr::LINK_THRESHOLD,
-                                          this->detectSingleCharacters);
-  const float restoreRatio =
-      ocr::calculateRestoreRatio(scoreTextMat.rows, ocr::RECOGNIZER_IMAGE_SIZE);
-  ocr::restoreBboxRatio(bBoxesList, restoreRatio);
+                           ? constants::kTextThreshold
+                           : constants::kTextThresholdVertical;
+  std::vector<types::DetectorBBox> bBoxesList =
+      utils::getDetBoxesFromTextMapVertical(
+          scoreTextMat, scoreAffinityMat, txtThreshold,
+          constants::kLinkThreshold, this->detectSingleCharacters);
+  const float restoreRatio = utils::calculateRestoreRatio(
+      scoreTextMat.rows, constants::kRecognizerImageSize);
+  utils::restoreBboxRatio(bBoxesList, restoreRatio);
 
   // if this is Narrow Detector, do not group boxes.
   if (!this->detectSingleCharacters) {
-    bBoxesList = ocr::groupTextBoxes(
-        bBoxesList, ocr::CENTER_THRESHOLD, ocr::DISTANCE_THRESHOLD,
-        ocr::HEIGHT_THRESHOLD, ocr::MIN_SIDE_THRESHOLD, ocr::MAX_SIDE_THRESHOLD,
-        ocr::MAX_WIDTH);
+    bBoxesList = utils::groupTextBoxes(
+        bBoxesList, constants::kCenterThreshold, constants::kDistanceThreshold,
+        constants::kHeightThreshold, constants::kMinSideThreshold,
+        constants::kMaxSideThreshold, constants::kMaxWidth);
   }
 
   return bBoxesList;
 }
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::ocr

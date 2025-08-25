@@ -1,10 +1,9 @@
 #include "RecognitionHandler.h"
-#include "RecognitionHandlerUtils.h"
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/ocr/Constants.h>
-#include <rnexecutorch/models/ocr/RecognitionHandlerUtils.h>
+#include <rnexecutorch/models/ocr/utils/RecognitionHandlerUtils.h>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::ocr {
 RecognitionHandler::RecognitionHandler(
     const std::string &recognizerSourceLarge,
     const std::string &recognizerSourceMedium,
@@ -22,24 +21,25 @@ std::pair<std::vector<int32_t>, float>
 RecognitionHandler::runModel(cv::Mat image) {
 
   // Note that the height of an  image is always equal to 64.
-  if (image.cols >= ocr::LARGE_RECOGNIZER_WIDTH) {
+  if (image.cols >= constants::kLargeRecognizerWidth) {
     return recognizerLarge.generate(image);
   }
-  if (image.cols >= ocr::MEDIUM_RECOGNIZER_WIDTH) {
+  if (image.cols >= constants::kMediumRecognizerWidth) {
     return recognizerMedium.generate(image);
   }
   return recognizerSmall.generate(image);
 }
 
-void RecognitionHandler::processBBox(std::vector<OCRDetection> &boxList,
-                                     ocr::DetectorBBox &box, cv::Mat &imgGray,
-                                     ocr::PaddingInfo ratioAndPadding) {
+void RecognitionHandler::processBBox(std::vector<types::OCRDetection> &boxList,
+                                     types::DetectorBBox &box, cv::Mat &imgGray,
+                                     types::PaddingInfo ratioAndPadding) {
 
   /*
     Resize the cropped image to have height = 64 (height accepted by
     Recognizer).
   */
-  auto croppedImage = ocr::cropImage(box, imgGray, ocr::RECOGNIZER_HEIGHT);
+  auto croppedImage =
+      utils::cropImage(box, imgGray, constants::kRecognizerHeight);
 
   if (croppedImage.empty()) {
     return;
@@ -49,11 +49,12 @@ void RecognitionHandler::processBBox(std::vector<OCRDetection> &boxList,
     Cropped image is resized into the closest of on of three:
     128x64, 256x64, 512x64.
   */
-  croppedImage = ocr::normalizeForRecognizer(
-      croppedImage, ocr::RECOGNIZER_HEIGHT, ocr::ADJUST_CONTRAST, false);
+  croppedImage =
+      utils::normalizeForRecognizer(croppedImage, constants::kRecognizerHeight,
+                                    constants::kAdjustContrast, false);
 
   auto [predictionIndices, confidenceScore] = this->runModel(croppedImage);
-  if (confidenceScore < ocr::LOW_CONFIDENCE_THRESHOLD) {
+  if (confidenceScore < constants::kLowConfidenceThreshold) {
     cv::rotate(croppedImage, croppedImage, cv::ROTATE_180);
     auto [rotatedPredictionIndices, rotatedConfidenceScore] =
         runModel(croppedImage);
@@ -77,18 +78,18 @@ void RecognitionHandler::processBBox(std::vector<OCRDetection> &boxList,
       confidenceScore);
 }
 
-std::vector<OCRDetection>
-RecognitionHandler::recognize(std::vector<ocr::DetectorBBox> bboxesList,
+std::vector<types::OCRDetection>
+RecognitionHandler::recognize(std::vector<types::DetectorBBox> bboxesList,
                               cv::Mat &imgGray, cv::Size desiredSize) {
   /*
    Recognition Handler accepts bboxesList corresponding to size
    1280x1280, which is desiredSize.
   */
-  ocr::PaddingInfo ratioAndPadding =
-      ocr::calculateResizeRatioAndPaddings(imgGray.size(), desiredSize);
-  imgGray = imageprocessing::resizePadded(imgGray, desiredSize);
+  types::PaddingInfo ratioAndPadding =
+      utils::calculateResizeRatioAndPaddings(imgGray.size(), desiredSize);
+  imgGray = image_processing::resizePadded(imgGray, desiredSize);
 
-  std::vector<OCRDetection> result = {};
+  std::vector<types::OCRDetection> result = {};
   for (auto &box : bboxesList) {
     processBBox(result, box, imgGray, ratioAndPadding);
   }
@@ -104,4 +105,4 @@ void RecognitionHandler::unload() noexcept {
   recognizerMedium.unload();
   recognizerLarge.unload();
 }
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::ocr

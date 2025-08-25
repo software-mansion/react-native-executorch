@@ -1,8 +1,9 @@
 #include "Utils.h"
 #include "Constants.h"
 
-namespace rnexecutorch {
-float intersectionOverUnion(const Detection &a, const Detection &b) {
+namespace rnexecutorch::models::object_detection::utils {
+float intersectionOverUnion(const types::Detection &a,
+                            const types::Detection &b) {
   float x1 = std::max(a.x1, b.x1);
   float y1 = std::max(a.y1, b.y1);
   float x2 = std::min(a.x2, b.x2);
@@ -16,40 +17,41 @@ float intersectionOverUnion(const Detection &a, const Detection &b) {
   return intersectionArea / unionArea;
 }
 
-std::vector<Detection> nonMaxSuppression(std::vector<Detection> detections) {
+std::vector<types::Detection>
+nonMaxSuppression(std::vector<types::Detection> detections) {
   if (detections.empty()) {
     return {};
   }
 
   // Sort by label, then by score
   std::sort(detections.begin(), detections.end(),
-            [](const Detection &a, const Detection &b) {
+            [](const types::Detection &a, const types::Detection &b) {
               if (a.label == b.label) {
                 return a.score > b.score;
               }
               return a.label < b.label;
             });
 
-  std::vector<Detection> result;
+  std::vector<types::Detection> result;
   // Apply NMS for each label
   for (size_t i = 0; i < detections.size();) {
     float currentLabel = detections[i].label;
 
-    std::vector<Detection> labelDetections;
+    std::vector<types::Detection> labelDetections;
     while (i < detections.size() && detections[i].label == currentLabel) {
       labelDetections.push_back(detections[i]);
       ++i;
     }
 
-    std::vector<Detection> filteredLabelDetections;
+    std::vector<types::Detection> filteredLabelDetections;
     while (!labelDetections.empty()) {
-      Detection current = labelDetections.front();
+      types::Detection current = labelDetections.front();
       filteredLabelDetections.push_back(current);
       labelDetections.erase(
           std::remove_if(labelDetections.begin(), labelDetections.end(),
-                         [&current](const Detection &other) {
+                         [&current](const types::Detection &other) {
                            return intersectionOverUnion(current, other) >
-                                  IOU_THRESHOLD;
+                                  constants::IOU_THRESHOLD;
                          }),
           labelDetections.end());
     }
@@ -59,4 +61,4 @@ std::vector<Detection> nonMaxSuppression(std::vector<Detection> detections) {
   return result;
 }
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::object_detection::utils

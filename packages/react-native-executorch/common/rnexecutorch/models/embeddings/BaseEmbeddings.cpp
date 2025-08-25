@@ -2,7 +2,7 @@
 
 #include <span>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::embeddings {
 
 BaseEmbeddings::BaseEmbeddings(const std::string &modelSource,
                                std::shared_ptr<react::CallInvoker> callInvoker)
@@ -24,4 +24,4 @@ BaseEmbeddings::postprocess(const Result<std::vector<EValue>> &forwardResult) {
   return createBuffer(modelOutput.data(), modelOutput.size_bytes());
 }
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::embeddings

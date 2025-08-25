@@ -5,7 +5,7 @@
 #include <fstream>
 #include <string>
 
-namespace rnexecutorch::fileutils {
+namespace rnexecutorch::file_utils {
 
 inline std::string getTimeID() {
   return std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -27,4 +27,4 @@ inline std::string loadBytesFromFile(const std::string &path) {
   return data;
 };
 
-} // namespace rnexecutorch::fileutils
+} // namespace rnexecutorch::file_utils

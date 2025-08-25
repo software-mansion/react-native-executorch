@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <optional>
 
-namespace rnexecutorch::ocr {
+namespace rnexecutorch::models::ocr {
 CTCLabelConverter::CTCLabelConverter(const std::string &characters)
     : ignoreIdx(0),
       character({"[blank]"}) // blank character is ignored character (index 0).
@@ -85,4 +85,4 @@ CTCLabelConverter::decodeGreedy(const std::vector<int32_t> &textIndex,
 
   return texts;
 }
-} // namespace rnexecutorch::ocr
+} // namespace rnexecutorch::models::ocr

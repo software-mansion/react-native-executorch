@@ -4,7 +4,7 @@
 #include <filesystem>
 #include <stdexcept>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models {
 
 using namespace facebook;
 using namespace executorch::extension;
@@ -178,4 +178,4 @@ BaseModel::getTensorShape(const executorch::aten::Tensor &tensor) {
   return std::vector<int32_t>(sizes.begin(), sizes.end());
 }
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models

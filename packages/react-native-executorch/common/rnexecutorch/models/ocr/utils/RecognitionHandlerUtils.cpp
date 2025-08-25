@@ -3,9 +3,9 @@
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/ocr/Constants.h>
 
-namespace rnexecutorch::ocr {
-PaddingInfo calculateResizeRatioAndPaddings(cv::Size size,
-                                            cv::Size desiredSize) {
+namespace rnexecutorch::models::ocr::utils {
+types::PaddingInfo calculateResizeRatioAndPaddings(cv::Size size,
+                                                   cv::Size desiredSize) {
   const auto newRatioH = static_cast<float>(desiredSize.height) / size.height;
   const auto newRatioW = static_cast<float>(desiredSize.width) / size.width;
   auto resizeRatio = std::min(newRatioH, newRatioW);
@@ -40,7 +40,8 @@ void computeRatioAndResize(cv::Mat &img, cv::Size size, int32_t modelHeight) {
   cv::resize(img, img, resizedSize, 0.0, 0.0, cv::INTER_LANCZOS4);
 }
 
-cv::Mat cropImage(DetectorBBox box, cv::Mat &image, int32_t modelHeight) {
+cv::Mat cropImage(types::DetectorBBox box, cv::Mat &image,
+                  int32_t modelHeight) {
   // Convert custom points to cv::Point2f
   std::array<cv::Point2f, 4> points;
 #pragma unroll
@@ -126,13 +127,14 @@ void adjustContrastGrey(cv::Mat &img, double target) {
 
 int32_t getDesiredWidth(const cv::Mat &img, bool isVertical) {
 
-  if (img.cols >= LARGE_RECOGNIZER_WIDTH) {
-    return LARGE_RECOGNIZER_WIDTH;
+  if (img.cols >= constants::kLargeRecognizerWidth) {
+    return constants::kLargeRecognizerWidth;
   }
-  if (img.cols >= MEDIUM_RECOGNIZER_WIDTH) {
-    return MEDIUM_RECOGNIZER_WIDTH;
+  if (img.cols >= constants::kMediumRecognizerWidth) {
+    return constants::kMediumRecognizerWidth;
   }
-  return isVertical ? SMALL_VERTICAL_RECOGNIZER_WIDTH : SMALL_RECOGNIZER_WIDTH;
+  return isVertical ? constants::kSmallVerticalRecognizerWidth
+                    : constants::kSmallRecognizerWidth;
 }
 
 cv::Mat normalizeForRecognizer(const cv::Mat &image, int32_t modelHeight,
@@ -144,10 +146,11 @@ cv::Mat normalizeForRecognizer(const cv::Mat &image, int32_t modelHeight,
 
   int32_t desiredWidth = getDesiredWidth(image, isVertical);
 
-  img = imageprocessing::resizePadded(img, cv::Size(desiredWidth, modelHeight));
+  img =
+      image_processing::resizePadded(img, cv::Size(desiredWidth, modelHeight));
   img.convertTo(img, CV_32F, 1.0f / 255.0f);
   img -= 0.5f;
   img *= 2.0f;
   return img;
 }
-} // namespace rnexecutorch::ocr
+} // namespace rnexecutorch::models::ocr::utils

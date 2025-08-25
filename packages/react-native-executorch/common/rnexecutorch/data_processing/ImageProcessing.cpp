@@ -14,7 +14,7 @@ namespace rnexecutorch {
 // to this variable. It's done to not handle SSL intricacies manually, as it is
 // done automagically in ObjC++/Kotlin.
 extern FetchUrlFunc_t fetchUrlFunc;
-namespace imageprocessing {
+namespace image_processing {
 std::vector<float> colorMatToVector(const cv::Mat &mat) {
   return colorMatToVector(mat, cv::Scalar(0.0, 0.0, 0.0),
                           cv::Scalar(1.0, 1.0, 1.0));
@@ -62,7 +62,7 @@ cv::Mat bufferToColorMat(const std::span<const float> &buffer,
 }
 
 std::string saveToTempFile(const cv::Mat &image) {
-  std::string filename = "rn_executorch_" + fileutils::getTimeID() + ".png";
+  std::string filename = "rn_executorch_" + file_utils::getTimeID() + ".png";
 
   std::filesystem::path tempDir = std::filesystem::temp_directory_path();
   std::filesystem::path filePath = tempDir / filename;
@@ -212,7 +212,7 @@ std::pair<TensorPtr, cv::Size>
 readImageToTensor(const std::string &path,
                   const std::vector<int32_t> &tensorDims,
                   bool maintainAspectRatio) {
-  cv::Mat input = imageprocessing::readImage(path);
+  cv::Mat input = image_processing::readImage(path);
   cv::Size imageSize = input.size();
 
   if (tensorDims.size() < 2) {
@@ -234,7 +234,7 @@ readImageToTensor(const std::string &path,
 
   cv::cvtColor(input, input, cv::COLOR_BGR2RGB);
 
-  return {imageprocessing::getTensorFromMatrix(tensorDims, input), imageSize};
+  return {image_processing::getTensorFromMatrix(tensorDims, input), imageSize};
 }
-} // namespace imageprocessing
+} // namespace image_processing
 } // namespace rnexecutorch
