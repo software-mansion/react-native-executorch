@@ -37,8 +37,8 @@ void normalize(std::span<float> input) {
   const auto squaredSum =
       std::inner_product(input.begin(), input.end(), input.begin(), 0.0F);
 
-  constexpr auto epsilon = std::numeric_limits<float>::epsilon();
-  if (squaredSum < epsilon) {
+  constexpr auto kEpsilon = std::numeric_limits<float>::epsilon();
+  if (squaredSum < kEpsilon) {
     return;
   }
 
