@@ -2,7 +2,7 @@
 This guide provide information on how functions are tested, how to install all needed dependencies and how to run tests.
 
 ### Used Tools
-To test the native code we use [`googletest`](https://github.com/google/googletest). It is a flexible tool for creating unit tests.
+To test the native code we use [`googletest`](https://github.com/google/googletest). It's a flexible tool for creating unit tests.
 
 ### Installation
 The googletest is already in repo in `react-native-executorch/third-party/googletest`. Firstly, you need to fetch googletest locally, run from root directory of project:
@@ -20,7 +20,7 @@ and then type:
 To run tests use the following command in `packages/react-native-executorch/common/rnexecutorch/tests/build`:
 * `ctest --verbose`
 
-Every time you updated the source code, you need to recompile the test files using `cmake .. && make`
+Every time you updated the source code, you need to recompile the test files using: `cmake .. && make`.
 
 ### How to a add new test
 To add new test you need to:
@@ -31,7 +31,7 @@ To add new test you need to:
     add_executable(NumericalTests tests/NumericalTest.cpp ${SOURCE_FILES})
     target_link_libraries(NumericalTests gtest gtest_main)
     ```
-and add test execution, e.g.:
+* Add test execution, e.g.:
     ```
     add_test(NAME NumericalTests COMMAND NumericalTests)
     ```
