@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { ETError, getError } from '../Error';
 
 interface Module {
@@ -29,7 +29,7 @@ export const useNonStaticModule = <
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const moduleInstance = useMemo(() => new module(), [module]);
+  const [moduleInstance] = useState(() => new module());
 
   useEffect(() => {
     if (preventLoad) return;

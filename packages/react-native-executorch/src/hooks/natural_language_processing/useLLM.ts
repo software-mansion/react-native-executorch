@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ResourceSource } from '../../types/common';
 import {
   ChatConfig,
@@ -36,15 +36,14 @@ export const useLLM = ({
     setResponse((prevResponse) => prevResponse + newToken);
   }, []);
 
-  const controllerInstance = useMemo(
+  const [controllerInstance] = useState(
     () =>
       new LLMController({
         tokenCallback: tokenCallback,
         messageHistoryCallback: setMessageHistory,
         isReadyCallback: setIsReady,
         isGeneratingCallback: setIsGenerating,
-      }),
-    [tokenCallback]
+      })
   );
 
   useEffect(() => {
