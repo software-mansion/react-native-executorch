@@ -68,6 +68,7 @@ Add this to your component file:
 import {
   useLLM,
   LLAMA3_2_1B,
+  Message
 } from 'react-native-executorch';
 
 function MyComponent() {
@@ -81,7 +82,7 @@ function MyComponent() {
 
 ```tsx
 const handleGenerate = async () => {
-  const chat = [
+  const chat: Message[] = [
     { role: 'system', content: 'You are a helpful assistant' },
     { role: 'user', content: 'What is the meaning of life?' }
   ];

@@ -49,6 +49,8 @@
 	<string>The app needs to access your calendar.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>The app needs to access your calendar.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs access to your microphone to record audio.</string>
 	<key>NSRemindersFullAccessUsageDescription</key>
 	<string>Allow $(PRODUCT_NAME) to access your reminders</string>
 	<key>NSRemindersUsageDescription</key>
