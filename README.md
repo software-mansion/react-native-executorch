@@ -43,7 +43,7 @@ The minimal supported version are:
 
 React Native ExecuTorch is powering [Private Mind](https://github.com/software-mansion-labs/private-mind), a privacy-first mobile AI app available on [App Store](https://apps.apple.com/gb/app/private-mind/id6746713439) and [Google Play](https://play.google.com/store/apps/details?id=com.swmansion.privatemind).
 
-<img width="400" height="400" alt="promo" src="https://github.com/user-attachments/assets/3e09b329-8da0-427e-89cb-1b4ff3234fec" />
+<img width="400" height="400" alt="Private Mind" src="https://github.com/user-attachments/assets/3e09b329-8da0-427e-89cb-1b4ff3234fec" />
 
 ## :robot: Ready-made models
 
