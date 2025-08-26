@@ -111,7 +111,7 @@ getValue<std::set<std::string, std::less<>>>(const jsi::Value &val,
 
   for (size_t i = 0; i < length; ++i) {
     jsi::Value element = array.getValueAtIndex(runtime, i);
-    result.emplace(getValue<std::string>(element, runtime));
+    result.insert(getValue<std::string>(element, runtime));
   }
   return result;
 }
@@ -160,7 +160,7 @@ inline std::vector<T> getArrayAsVector(const jsi::Value &val,
 
   for (size_t i = 0; i < length; ++i) {
     const jsi::Value element = array.getValueAtIndex(runtime, i);
-    result.emplace_back(getValue<T>(element, runtime));
+    result.push_back(getValue<T>(element, runtime));
   }
   return result;
 }
