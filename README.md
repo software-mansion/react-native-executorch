@@ -21,6 +21,7 @@ React Native ExecuTorch bridges the gap between React Native and native platform
 **Table of contents:**
 
 - [:yin_yang: Supported versions](#yin_yang-supported-versions)
+- [:earth_africa: Real-World Example](#earth_africa-real-world-example)
 - [:robot: Ready-made models](#robot-ready-made-models)
 - [:books: Documentation](#books-documentation)
 - [:llama: Quickstart - Running Llama](#llama-quickstart---running-llama)
@@ -37,6 +38,12 @@ The minimal supported version are:
 
 > [!IMPORTANT]  
 > React Native Executorch supports only the [New React Native architecture](https://reactnative.dev/architecture/landing-page).
+
+## :earth_africa: Real-World Example
+
+React Native ExecuTorch is powering [Private Mind](https://github.com/software-mansion-labs/private-mind), a privacy-first mobile AI app available on [App Store](https://apps.apple.com/gb/app/private-mind/id6746713439) and [Google Play](https://play.google.com/store/apps/details?id=com.swmansion.privatemind).
+
+<img width="400" height="400" alt="promo" src="https://github.com/user-attachments/assets/3e09b329-8da0-427e-89cb-1b4ff3234fec" />
 
 ## :robot: Ready-made models
 
