@@ -14,7 +14,7 @@ export const useTokenizer = ({
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const [_tokenizer] = useState(() => new TokenizerModule());
+  const [tokenizerInstance] = useState(() => new TokenizerModule());
 
   useEffect(() => {
     if (preventLoad) return;
@@ -23,7 +23,7 @@ export const useTokenizer = ({
       setError(null);
       try {
         setIsReady(false);
-        await _tokenizer.load(
+        await tokenizerInstance.load(
           { tokenizerSource: tokenizer.tokenizerSource },
           setDownloadProgress
         );
@@ -32,7 +32,7 @@ export const useTokenizer = ({
         setError((err as Error).message);
       }
     })();
-  }, [_tokenizer, tokenizer.tokenizerSource, preventLoad]);
+  }, [tokenizerInstance, tokenizer.tokenizerSource, preventLoad]);
 
   const stateWrapper = <T extends (...args: any[]) => Promise<any>>(fn: T) => {
     return (...args: Parameters<T>): Promise<ReturnType<T>> => {
@@ -40,7 +40,7 @@ export const useTokenizer = ({
       if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
       try {
         setIsGenerating(true);
-        return fn.apply(_tokenizer, args);
+        return fn.apply(tokenizerInstance, args);
       } finally {
         setIsGenerating(false);
       }
