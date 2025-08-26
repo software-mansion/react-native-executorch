@@ -1,5 +1,6 @@
 #pragma once
 
+#include <format>
 #include <ReactCommon/CallInvoker.h>
 #include <memory.h>
 #include <rnexecutorch/TokenizerModule.h>
@@ -93,10 +94,10 @@ public:
   template <auto FnPtr> JSI_HOST_FUNCTION(synchronousHostFunction) {
     constexpr std::size_t functionArgCount = meta::getArgumentCount(FnPtr);
     if (functionArgCount != count) {
-      char errorMessage[100];
-      std::snprintf(errorMessage, sizeof(errorMessage),
-                    "Argument count mismatch, was expecting: %zu but got: %zu",
-                    functionArgCount, count);
+      const auto errorMessage = std::format(
+          "Argument count mismatch, was expecting: {} but got: {}", 
+          functionArgCount, count
+      );
       throw jsi::JSError(runtime, errorMessage);
     }
 
@@ -136,10 +137,8 @@ public:
           constexpr std::size_t functionArgCount =
               meta::getArgumentCount(FnPtr);
           if (functionArgCount != count) {
-            char errorMessage[100];
-            std::snprintf(
-                errorMessage, sizeof(errorMessage),
-                "Argument count mismatch, was expecting: %zu but got: %zu",
+            const auto errorMessage = std::format(
+                "Argument count mismatch, was expecting: {} but got: {}",
                 functionArgCount, count);
             promise->reject(errorMessage);
             return;
