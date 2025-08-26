@@ -1,6 +1,9 @@
 #include "../data_processing/Numerical.h"
 #include <gtest/gtest.h>
 #include <limits>
+#include <span>
+#include <stdexcept>
+#include <vector>
 
 namespace rnexecutorch::numerical {
 
