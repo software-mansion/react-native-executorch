@@ -34,15 +34,15 @@ void normalize(std::span<float> input) {
     return;
   }
 
-  const auto squaredSum =
+  const auto sumOfSquares =
       std::inner_product(input.begin(), input.end(), input.begin(), 0.0F);
 
   constexpr auto kEpsilon = std::numeric_limits<float>::epsilon();
-  if (squaredSum < kEpsilon) {
+  if (sumOfSquares < kEpsilon) {
     return;
   }
 
-  const auto norm = std::sqrt(squaredSum);
+  const auto norm = std::sqrt(sumOfSquares);
 
   for (auto &value : input) {
     value /= norm;
