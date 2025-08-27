@@ -30,6 +30,11 @@ TEST(SoftmaxTests, SoftmaxWithBigValues) {
   expect_vectors_eq(input, expected);
 }
 
+TEST(SoftmaxTests, SoftmaxOfEmptyVector) {
+  std::vector<float> emptyVector{};
+  EXPECT_NO_THROW(softmax(emptyVector));
+}
+
 TEST(NormalizeTests, NormalizeBasic) {
   std::vector<float> input = {1.0F, 2.0F, 3.0F};
   normalize(input);
@@ -51,6 +56,11 @@ TEST(NormalizeTests, NormalizationOfExtremelySmallValues) {
 TEST(NormalizeTests, NormalizationOfZeroVector) {
   std::vector<float> zeroVector(3, 0.0F);
   EXPECT_NO_THROW(normalize(zeroVector));
+}
+
+TEST(NormalizeTests, NormalizationOfEmptyVector) {
+  std::vector<float> emptyVector{};
+  EXPECT_NO_THROW(normalize(emptyVector));
 }
 
 TEST(MeanPoolingTests, MeanPoolingBasic) {
