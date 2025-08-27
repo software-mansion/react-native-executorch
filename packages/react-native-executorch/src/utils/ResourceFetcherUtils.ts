@@ -81,8 +81,10 @@ export namespace ResourceFetcherUtils {
       try {
         if (type === SourceType.REMOTE_FILE && typeof source === 'string') {
           const response = await fetch(source, { method: 'HEAD' });
-          if (!response) {
-            Logger.warn(`Failed to fetch HEAD for ${source}: ${response}`);
+          if (!response.ok) {
+            Logger.warn(
+              `Failed to fetch HEAD for ${source}: ${response.status}`
+            );
             continue;
           }
 
