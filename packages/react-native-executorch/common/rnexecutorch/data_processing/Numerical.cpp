@@ -39,7 +39,7 @@ void normalize(std::span<float> input) {
 
   constexpr auto kEpsilon = 1.0e-15f;
 
-  const auto norm = std::sqrt(sumOfSquares + kEpsilon);
+  const auto norm = std::sqrt(sumOfSquares) + kEpsilon;
 
   for (auto &value : input) {
     value /= norm;
