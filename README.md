@@ -21,10 +21,11 @@ React Native ExecuTorch bridges the gap between React Native and native platform
 **Table of contents:**
 
 - [:yin_yang: Supported versions](#yin_yang-supported-versions)
-- [:robot: Ready-made models](#robot-ready-made-models)
 - [:books: Documentation](#books-documentation)
+- [:earth_africa: Real-World Example](#earth_africa-real-world-example)
 - [:llama: Quickstart - Running Llama](#llama-quickstart---running-llama)
-- [:calling: Examples](#calling-examples)
+- [:calling: Demo apps](#calling-demo-apps)
+- [:robot: Ready-made models](#robot-ready-made-models)
 - [:balance_scale: License](#balance_scale-license)
 - [:soon: What's next?](#soon-whats-next)
 
@@ -38,14 +39,16 @@ The minimal supported version are:
 > [!IMPORTANT]  
 > React Native Executorch supports only the [New React Native architecture](https://reactnative.dev/architecture/landing-page).
 
-## :robot: Ready-made models
-
-Our library has a number of ready-to-use AI models; a complete list is available in the documentation. If you're interested in running your own AI model, you need to first export it to the `.pte` format. Instructions on how to do this are available in the [Python API](https://pypi.org/project/executorch/).
-
 ## :books: Documentation
 
 Check out how our library can help you build your React Native AI features by visiting our docs:  
 https://docs.swmansion.com/react-native-executorch
+
+## :earth_africa: Real-World Example
+
+React Native ExecuTorch is powering [Private Mind](https://github.com/software-mansion-labs/private-mind), a privacy-first mobile AI app available on [App Store](https://apps.apple.com/gb/app/private-mind/id6746713439) and [Google Play](https://play.google.com/store/apps/details?id=com.swmansion.privatemind).
+
+<img width="2720" height="1085" alt="Private Mind promo" src="https://github.com/user-attachments/assets/b12296fe-19ac-48fc-9726-da9242700346" />
 
 ## :llama: **Quickstart - Running Llama**
 
@@ -93,7 +96,7 @@ const handleGenerate = async () => {
 };
 ```
 
-## :calling: Examples
+## :calling: Demo apps
 
 We currently host a few example [apps](https://github.com/software-mansion/react-native-executorch/tree/main/apps) demonstrating use cases of our library:
 
@@ -116,6 +119,10 @@ yarn expo run:< ios | android >
 
 > [!WARNING]  
 > Running LLMs requires a significant amount of RAM. If you are encountering unexpected app crashes, try to increase the amount of RAM allocated to the emulator.
+
+## :robot: Ready-made models
+
+Our library has a number of ready-to-use AI models; a complete list is available in the documentation. If you're interested in running your own AI model, you need to first export it to the `.pte` format. Instructions on how to do this are available in the [Python API](https://pypi.org/project/executorch/).
 
 ## :balance_scale: License
 
