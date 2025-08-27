@@ -37,12 +37,9 @@ void normalize(std::span<float> input) {
   const auto sumOfSquares =
       std::inner_product(input.begin(), input.end(), input.begin(), 0.0F);
 
-  constexpr auto kEpsilon = std::numeric_limits<float>::epsilon();
-  if (sumOfSquares < kEpsilon) {
-    return;
-  }
+  constexpr auto kEpsilon = 1.0e-15f;
 
-  const auto norm = std::sqrt(sumOfSquares);
+  const auto norm = std::sqrt(sumOfSquares + kEpsilon);
 
   for (auto &value : input) {
     value /= norm;
