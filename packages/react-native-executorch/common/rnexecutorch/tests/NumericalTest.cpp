@@ -9,7 +9,7 @@ namespace rnexecutorch::numerical {
 
 // Helper function to check if two float vectors are approximately equal
 void expect_vectors_eq(const std::vector<float> &vector1,
-                       const std::vector<float> &vector2, float atol = 1e-6F) {
+                       const std::vector<float> &vector2, float atol = 1.0e-6F) {
   ASSERT_EQ(vector1.size(), vector2.size());
   for (size_t i = 0; i < vector1.size(); i++) {
     EXPECT_NEAR(vector1[i], vector2[i], atol);
