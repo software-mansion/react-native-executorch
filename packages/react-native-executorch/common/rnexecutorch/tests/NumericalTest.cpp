@@ -42,9 +42,15 @@ TEST(NormalizeTests, NormalizeBasic) {
 TEST(NormalizeTests, NormalizationOfExtremelySmallValues) {
   constexpr auto epsilon = std::numeric_limits<float>::epsilon();
   std::vector<float> input(3, epsilon);
-  const std::vector<float> expected = input;
+  const auto normOfInput = std::sqrtf(3.0F);
+  const std::vector<float> expected(3, 1.0F / normOfInput);
   normalize(input);
   expect_vectors_eq(input, expected);
+}
+
+TEST(NormalizeTests, NormalizationOfZeroVector) {
+  std::vector<float> zeroVector(3, 0.0F);
+  EXPECT_NO_THROW(normalize(zeroVector));
 }
 
 TEST(MeanPoolingTests, MeanPoolingBasic) {
