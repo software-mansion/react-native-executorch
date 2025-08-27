@@ -42,7 +42,7 @@ set_target_properties(executorch PROPERTIES
                       IMPORTED_LOCATION "${LIBS_DIR}/executorch/${ANDROID_ABI}/libexecutorch.so")
 
                       
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+if(ANDROID_ABI STREQUAL "arm64-v8a")
   target_compile_definitions(react-native-executorch PRIVATE ARCH_ARM64)
 
   # ------- pthreadpool -------
