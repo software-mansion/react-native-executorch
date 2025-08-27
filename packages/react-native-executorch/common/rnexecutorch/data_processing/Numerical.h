@@ -12,10 +12,6 @@ namespace rnexecutorch::numerical {
 /**
  * @brief Applies the softmax function in-place to a sequence of numbers.
  *
- * This function computes the softmax of each element in the `input` span. The
- * softmax transformation is applied directly in the span passed, modifying its
- * contents.
- *
  * @param input A mutable span of floating-point numbers. After the function
  * returns, `input` contains the softmax probabilities.
  */
