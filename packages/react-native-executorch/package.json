@@ -12,7 +12,6 @@
     "lib",
     "android",
     "ios",
-    "!ios/libs",
     "cpp",
     "common",
     "*.podspec",

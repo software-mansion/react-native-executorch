@@ -34,6 +34,8 @@ REGISTER_CONSTRUCTOR(ImageEmbeddings, std::string,
                      std::shared_ptr<react::CallInvoker>);
 REGISTER_CONSTRUCTOR(TextEmbeddings, std::string, std::string,
                      std::shared_ptr<react::CallInvoker>);
+REGISTER_CONSTRUCTOR(LLM, std::string, std::string,
+                     std::shared_ptr<react::CallInvoker>);
 REGISTER_CONSTRUCTOR(SpeechToText, std::string, std::string, std::string,
                      std::shared_ptr<react::CallInvoker>);
 REGISTER_CONSTRUCTOR(OCR, std::string, std::string, std::string, std::string,
