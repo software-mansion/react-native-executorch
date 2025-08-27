@@ -10,7 +10,6 @@
 namespace rnexecutorch::numerical {
 
 void softmax(std::span<float> input) {
-
   if (input.empty()) {
     return;
   }
@@ -30,10 +29,6 @@ void softmax(std::span<float> input) {
 }
 
 void normalize(std::span<float> input) {
-  if (input.empty()) {
-    return;
-  }
-
   const auto sumOfSquares =
       std::inner_product(input.begin(), input.end(), input.begin(), 0.0F);
 
@@ -48,7 +43,6 @@ void normalize(std::span<float> input) {
 
 std::vector<float> meanPooling(std::span<const float> modelOutput,
                                std::span<const int64_t> attnMask) {
-
   if (attnMask.empty() || modelOutput.size() % attnMask.size() != 0) {
     throw std::invalid_argument(
         std::format("Invalid dimensions for mean pooling, expected model "
