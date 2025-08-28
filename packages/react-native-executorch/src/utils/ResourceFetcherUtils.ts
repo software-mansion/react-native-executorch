@@ -53,17 +53,16 @@ export namespace ResourceFetcherUtils {
       return SourceType.OBJECT;
     } else if (typeof source === 'number') {
       const uri = Asset.fromModule(source).uri;
-      if (!uri.includes('://')) {
-        return SourceType.RELEASE_MODE_FILE;
+      if (uri.startsWith('http')) {
+        return SourceType.DEV_MODE_FILE;
       }
-      return SourceType.DEV_MODE_FILE;
-    } else {
-      // typeof source == 'string'
-      if (source.startsWith('file://')) {
-        return SourceType.LOCAL_FILE;
-      }
-      return SourceType.REMOTE_FILE;
+      return SourceType.RELEASE_MODE_FILE;
     }
+    // typeof source == 'string'
+    if (source.startsWith('file://')) {
+      return SourceType.LOCAL_FILE;
+    }
+    return SourceType.REMOTE_FILE;
   }
 
   export async function getFilesSizes(sources: ResourceSource[]) {
