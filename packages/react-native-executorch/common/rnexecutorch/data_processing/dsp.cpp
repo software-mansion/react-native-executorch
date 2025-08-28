@@ -11,7 +11,7 @@ namespace rnexecutorch::dsp {
 
 using std::numbers::pi_v;
 
-std::vector<float> hannWindow(size_t size) {
+static std::vector<float> hannWindow(size_t size) {
   // https://www.mathworks.com/help/signal/ref/hann.html
   std::vector<float> window(size);
   for (size_t i = 0; i < size; i++) {
