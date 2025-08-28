@@ -55,16 +55,14 @@ export namespace ResourceFetcherUtils {
       const uri = Asset.fromModule(source).uri;
       if (uri.startsWith('http')) {
         return SourceType.DEV_MODE_FILE;
-      } else {
-        return SourceType.RELEASE_MODE_FILE;
       }
-    } else {
-      // typeof source == 'string'
-      if (source.startsWith('file://')) {
-        return SourceType.LOCAL_FILE;
-      }
-      return SourceType.REMOTE_FILE;
+      return SourceType.RELEASE_MODE_FILE;
     }
+    // typeof source == 'string'
+    if (source.startsWith('file://')) {
+      return SourceType.LOCAL_FILE;
+    }
+    return SourceType.REMOTE_FILE;
   }
 
   export async function getFilesSizes(sources: ResourceSource[]) {
