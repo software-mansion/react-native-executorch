@@ -22,7 +22,7 @@ To run tests use the following command in `packages/react-native-executorch/comm
 
 Every time you updated the source code, you need to recompile the test files using: `cmake .. && make`.
 
-### How to a add new test
+### How to add a new test
 To add new test you need to:
 * Place `*.cpp` file with tests using googletest in this directory.
 * In `CMakeLists.txt`, add all executables and link them with googletest, e.g.:
