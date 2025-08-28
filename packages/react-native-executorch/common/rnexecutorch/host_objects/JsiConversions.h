@@ -43,6 +43,13 @@ inline std::string getValue<std::string>(const jsi::Value &val,
   return val.getString(runtime).utf8(runtime);
 }
 
+inline std::shared_ptr<jsi::Function>
+getValue<std::shared_ptr<jsi::Function>>(const jsi::Value &val,
+                                         jsi::Runtime &runtime) {
+  return std::make_shared<jsi::Function>(
+      val.asObject(runtime).asFunction(runtime));
+}
+
 template <>
 inline JSTensorViewIn getValue<JSTensorViewIn>(const jsi::Value &val,
                                                jsi::Runtime &runtime) {

@@ -78,9 +78,8 @@ export namespace ResourceFetcherUtils {
     for (const source of sources) {
       const type = await ResourceFetcherUtils.getType(source);
       let length = 0;
-
-      if (type === SourceType.REMOTE_FILE && typeof source === 'string') {
-        try {
+      try {
+        if (type === SourceType.REMOTE_FILE && typeof source === 'string') {
           const response = await fetch(source, { method: 'HEAD' });
           if (!response.ok) {
             Logger.warn(
@@ -97,14 +96,14 @@ export namespace ResourceFetcherUtils {
           length = contentLength ? parseInt(contentLength, 10) : 0;
           previousFilesTotalLength = totalLength;
           totalLength += length;
-        } catch (error) {
-          Logger.warn(`Error fetching HEAD for ${source}:`, error);
-          continue;
         }
+      } catch (error) {
+        Logger.warn(`Error fetching HEAD for ${source}:`, error);
+        continue;
+      } finally {
+        results.push({ source, type, length, previousFilesTotalLength });
       }
-      results.push({ source, type, length, previousFilesTotalLength });
     }
-
     return { results, totalLength };
   }
 
