@@ -43,6 +43,7 @@ inline std::string getValue<std::string>(const jsi::Value &val,
   return val.getString(runtime).utf8(runtime);
 }
 
+template <>
 inline std::shared_ptr<jsi::Function>
 getValue<std::shared_ptr<jsi::Function>>(const jsi::Value &val,
                                          jsi::Runtime &runtime) {
