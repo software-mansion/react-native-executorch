@@ -20,7 +20,7 @@ inline std::string loadBytesFromFile(const std::string &path) {
   }
   std::string data;
   fs.seekg(0, std::ios::end);
-  size_t size = static_cast<size_t>(fs.tellg());
+  auto size = static_cast<size_t>(fs.tellg());
   fs.seekg(0, std::ios::beg);
   data.resize(size);
   fs.read(data.data(), size);
