@@ -217,10 +217,10 @@ export class ASR {
 
   private async estimateWordTimestampsLinear(
     tokens: number[],
-    start: number,
-    end: number
+    timestampStart: number,
+    timestampEnd: number
   ): Promise<WordObject[]> {
-    const duration = (end - start) * this.timePrecision;
+    const duration = (timestampEnd - timestampStart) * this.timePrecision;
     const segmentText = (
       (await this.tokenizerModule.decode(tokens)) as string
     ).trim();
@@ -235,7 +235,7 @@ export class ASR {
 
     const wordObjects: WordObject[] = [];
     const startTimeOffset =
-      (start - this.timestampBeginToken) * this.timePrecision;
+      (timestampStart - this.timestampBeginToken) * this.timePrecision;
 
     let prevCharNum = 0;
     for (let j = 0; j < words.length; j++) {
