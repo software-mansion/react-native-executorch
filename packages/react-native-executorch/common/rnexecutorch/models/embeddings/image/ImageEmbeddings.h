@@ -4,9 +4,11 @@
 #include <executorch/runtime/core/evalue.h>
 #include <opencv2/opencv.hpp>
 
+#include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
 #include <rnexecutorch/models/embeddings/BaseEmbeddings.h>
 
 namespace rnexecutorch {
+namespace models::embeddings {
 using executorch::extension::TensorPtr;
 using executorch::runtime::EValue;
 
@@ -19,5 +21,8 @@ public:
 private:
   cv::Size modelImageSize{0, 0};
 };
+} // namespace models::embeddings
 
+REGISTER_CONSTRUCTOR(models::embeddings::ImageEmbeddings, std::string,
+                     std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

@@ -10,7 +10,7 @@ TokenizerModule::TokenizerModule(
     std::string source, std::shared_ptr<react::CallInvoker> callInvoker)
     : memorySizeLowerBound(std::filesystem::file_size(source)),
       tokenizer(tokenizers::Tokenizer::FromBlobJSON(
-          fileutils::loadBytesFromFile(source))) {}
+          file_utils::loadBytesFromFile(source))) {}
 
 void TokenizerModule::ensureTokenizerLoaded(
     const std::string &methodName) const {

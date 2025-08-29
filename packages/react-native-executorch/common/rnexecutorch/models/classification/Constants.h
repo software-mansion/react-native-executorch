@@ -3,8 +3,8 @@
 #include <array>
 #include <string_view>
 
-namespace rnexecutorch {
-inline constexpr std::array<std::string_view, 1000> IMAGENET1K_V1_LABELS = {
+namespace rnexecutorch::models::classification::constants {
+inline constexpr std::array<std::string_view, 1000> kImagenet1kV1Labels = {
     "tench, Tinca tinca",
     "goldfish, Carassius auratus",
     "great white shark, white shark, man-eater, man-eating shark, Carcharodon "
@@ -1019,4 +1019,4 @@ inline constexpr std::array<std::string_view, 1000> IMAGENET1K_V1_LABELS = {
     "bolete",
     "ear, spike, capitulum",
     "toilet tissue, toilet paper, bathroom tissue"};
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::classification::constants

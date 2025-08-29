@@ -1,12 +1,15 @@
 #pragma once
 
-#include <rnexecutorch/models/ocr/Detector.h>
-#include <rnexecutorch/models/ocr/RecognitionHandler.h>
-#include <rnexecutorch/models/ocr/Types.h>
 #include <string>
 #include <vector>
 
+#include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
+#include <rnexecutorch/models/ocr/Detector.h>
+#include <rnexecutorch/models/ocr/RecognitionHandler.h>
+#include <rnexecutorch/models/ocr/Types.h>
+
 namespace rnexecutorch {
+namespace models::ocr {
 /*
  The OCR consists of two phases:
  1. Detection - detecting text regions in the image, the result of this phase
@@ -25,7 +28,7 @@ public:
                const std::string &recognizerSourceMedium,
                const std::string &recognizerSourceSmall, std::string symbols,
                std::shared_ptr<react::CallInvoker> callInvoker);
-  std::vector<OCRDetection> generate(std::string input);
+  std::vector<types::OCRDetection> generate(std::string input);
   std::size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
 
@@ -33,4 +36,9 @@ private:
   Detector detector;
   RecognitionHandler recognitionHandler;
 };
+} // namespace models::ocr
+
+REGISTER_CONSTRUCTOR(models::ocr::OCR, std::string, std::string, std::string,
+                     std::string, std::string,
+                     std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch
