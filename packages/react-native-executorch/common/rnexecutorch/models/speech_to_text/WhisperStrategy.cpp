@@ -2,7 +2,7 @@
 #include "rnexecutorch/data_processing/dsp.h"
 #include <rnexecutorch/models/speech_to_text/WhisperStrategy.h>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::speech_to_text {
 
 using namespace ::executorch::extension;
 using namespace ::executorch::aten;
@@ -47,4 +47,4 @@ std::shared_ptr<OwningArrayBuffer> WhisperStrategy::extractOutputToken(
   return createBuffer(modelOutput.data(), modelOutput.size_bytes());
 }
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::speech_to_text

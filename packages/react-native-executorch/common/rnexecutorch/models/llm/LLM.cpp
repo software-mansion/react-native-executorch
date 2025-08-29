@@ -3,7 +3,7 @@
 #include <executorch/extension/tensor/tensor.h>
 #include <filesystem>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::llm {
 using namespace facebook;
 using executorch::extension::TensorPtr;
 using executorch::runtime::Error;
@@ -55,4 +55,4 @@ std::size_t LLM::getMemoryLowerBound() const noexcept {
 
 void LLM::unload() noexcept { runner.reset(nullptr); }
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::llm

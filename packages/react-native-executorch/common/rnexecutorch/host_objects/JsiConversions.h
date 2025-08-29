@@ -15,10 +15,10 @@
 
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
 #include <rnexecutorch/models/object_detection/Constants.h>
-#include <rnexecutorch/models/object_detection/Utils.h>
+#include <rnexecutorch/models/object_detection/Types.h>
 #include <rnexecutorch/models/ocr/Types.h>
 
-namespace rnexecutorch::jsiconversion {
+namespace rnexecutorch::jsi_conversion {
 
 using namespace facebook;
 
@@ -365,8 +365,9 @@ getJsiValue(const std::unordered_map<std::string_view, float> &map,
   return mapObj;
 }
 
-inline jsi::Value getJsiValue(const std::vector<Detection> &detections,
-                              jsi::Runtime &runtime) {
+inline jsi::Value getJsiValue(
+    const std::vector<models::object_detection::types::Detection> &detections,
+    jsi::Runtime &runtime) {
   jsi::Array array(runtime, detections.size());
   for (std::size_t i = 0; i < detections.size(); ++i) {
     jsi::Object detection(runtime);
@@ -379,16 +380,18 @@ inline jsi::Value getJsiValue(const std::vector<Detection> &detections,
     detection.setProperty(runtime, "bbox", bbox);
     detection.setProperty(
         runtime, "label",
-        jsi::String::createFromAscii(runtime,
-                                     COCO_LABELS_MAP.at(detections[i].label)));
+        jsi::String::createFromAscii(
+            runtime, models::object_detection::constants::kCocoLablesMap.at(
+                         detections[i].label)));
     detection.setProperty(runtime, "score", detections[i].score);
     array.setValueAtIndex(runtime, i, detection);
   }
   return array;
 }
 
-inline jsi::Value getJsiValue(const std::vector<OCRDetection> &detections,
-                              jsi::Runtime &runtime) {
+inline jsi::Value
+getJsiValue(const std::vector<models::ocr::types::OCRDetection> &detections,
+            jsi::Runtime &runtime) {
   auto jsiDetections = jsi::Array(runtime, detections.size());
   for (size_t i = 0; i < detections.size(); ++i) {
     const auto &detection = detections[i];
@@ -415,4 +418,4 @@ inline jsi::Value getJsiValue(const std::vector<OCRDetection> &detections,
   return jsiDetections;
 }
 
-} // namespace rnexecutorch::jsiconversion
+} // namespace rnexecutorch::jsi_conversion

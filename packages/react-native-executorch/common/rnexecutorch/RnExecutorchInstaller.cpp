@@ -34,28 +34,30 @@ void RnExecutorchInstaller::injectJSIBindings(
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadStyleTransfer",
-      RnExecutorchInstaller::loadModel<StyleTransfer>(jsiRuntime, jsCallInvoker,
-                                                      "loadStyleTransfer"));
+      RnExecutorchInstaller::loadModel<models::style_transfer::StyleTransfer>(
+          jsiRuntime, jsCallInvoker, "loadStyleTransfer"));
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadImageSegmentation",
-      RnExecutorchInstaller::loadModel<ImageSegmentation>(
+      RnExecutorchInstaller::loadModel<
+          models::image_segmentation::ImageSegmentation>(
           jsiRuntime, jsCallInvoker, "loadImageSegmentation"));
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadClassification",
-      RnExecutorchInstaller::loadModel<Classification>(
+      RnExecutorchInstaller::loadModel<models::classification::Classification>(
           jsiRuntime, jsCallInvoker, "loadClassification"));
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadObjectDetection",
-      RnExecutorchInstaller::loadModel<ObjectDetection>(
-          jsiRuntime, jsCallInvoker, "loadObjectDetection"));
+      RnExecutorchInstaller::loadModel<
+          models::object_detection::ObjectDetection>(jsiRuntime, jsCallInvoker,
+                                                     "loadObjectDetection"));
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadExecutorchModule",
-      RnExecutorchInstaller::loadModel<BaseModel>(jsiRuntime, jsCallInvoker,
-                                                  "loadExecutorchModule"));
+      RnExecutorchInstaller::loadModel<models::BaseModel>(
+          jsiRuntime, jsCallInvoker, "loadExecutorchModule"));
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadTokenizerModule",
@@ -64,30 +66,32 @@ void RnExecutorchInstaller::injectJSIBindings(
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadImageEmbeddings",
-      RnExecutorchInstaller::loadModel<ImageEmbeddings>(
+      RnExecutorchInstaller::loadModel<models::embeddings::ImageEmbeddings>(
           jsiRuntime, jsCallInvoker, "loadImageEmbeddings"));
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadTextEmbeddings",
-      RnExecutorchInstaller::loadModel<TextEmbeddings>(
+      RnExecutorchInstaller::loadModel<models::embeddings::TextEmbeddings>(
           jsiRuntime, jsCallInvoker, "loadTextEmbeddings"));
 
-  jsiRuntime->global().setProperty(*jsiRuntime, "loadLLM",
-                                   RnExecutorchInstaller::loadModel<LLM>(
-                                       jsiRuntime, jsCallInvoker, "loadLLM"));
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadLLM",
+      RnExecutorchInstaller::loadModel<models::llm::LLM>(
+          jsiRuntime, jsCallInvoker, "loadLLM"));
 
-  jsiRuntime->global().setProperty(*jsiRuntime, "loadOCR",
-                                   RnExecutorchInstaller::loadModel<OCR>(
-                                       jsiRuntime, jsCallInvoker, "loadOCR"));
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadOCR",
+      RnExecutorchInstaller::loadModel<models::ocr::OCR>(
+          jsiRuntime, jsCallInvoker, "loadOCR"));
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadVerticalOCR",
-      RnExecutorchInstaller::loadModel<VerticalOCR>(jsiRuntime, jsCallInvoker,
-                                                    "loadVerticalOCR"));
+      RnExecutorchInstaller::loadModel<models::ocr::VerticalOCR>(
+          jsiRuntime, jsCallInvoker, "loadVerticalOCR"));
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadSpeechToText",
-      RnExecutorchInstaller::loadModel<SpeechToText>(jsiRuntime, jsCallInvoker,
-                                                     "loadSpeechToText"));
+      RnExecutorchInstaller::loadModel<models::speech_to_text::SpeechToText>(
+          jsiRuntime, jsCallInvoker, "loadSpeechToText"));
 
 #if defined(__ANDROID__) && defined(__aarch64__)
   auto num_of_perf_cores =

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <string>
 
 #include <ReactCommon/CallInvoker.h>
@@ -17,32 +16,6 @@ namespace rnexecutorch {
 
 using FetchUrlFunc_t = std::function<std::vector<std::byte>(std::string)>;
 extern FetchUrlFunc_t fetchUrlFunc;
-
-REGISTER_CONSTRUCTOR(StyleTransfer, std::string,
-                     std::shared_ptr<react::CallInvoker>);
-REGISTER_CONSTRUCTOR(ImageSegmentation, std::string,
-                     std::shared_ptr<react::CallInvoker>);
-REGISTER_CONSTRUCTOR(Classification, std::string,
-                     std::shared_ptr<react::CallInvoker>);
-REGISTER_CONSTRUCTOR(ObjectDetection, std::string,
-                     std::shared_ptr<react::CallInvoker>);
-REGISTER_CONSTRUCTOR(BaseModel, std::string,
-                     std::shared_ptr<react::CallInvoker>);
-REGISTER_CONSTRUCTOR(TokenizerModule, std::string,
-                     std::shared_ptr<react::CallInvoker>);
-REGISTER_CONSTRUCTOR(ImageEmbeddings, std::string,
-                     std::shared_ptr<react::CallInvoker>);
-REGISTER_CONSTRUCTOR(TextEmbeddings, std::string, std::string,
-                     std::shared_ptr<react::CallInvoker>);
-REGISTER_CONSTRUCTOR(LLM, std::string, std::string,
-                     std::shared_ptr<react::CallInvoker>);
-REGISTER_CONSTRUCTOR(SpeechToText, std::string, std::string, std::string,
-                     std::shared_ptr<react::CallInvoker>);
-REGISTER_CONSTRUCTOR(OCR, std::string, std::string, std::string, std::string,
-                     std::string, std::shared_ptr<react::CallInvoker>);
-REGISTER_CONSTRUCTOR(VerticalOCR, std::string, std::string, std::string,
-                     std::string, bool, std::shared_ptr<react::CallInvoker>);
-
 using namespace facebook;
 
 class RnExecutorchInstaller {

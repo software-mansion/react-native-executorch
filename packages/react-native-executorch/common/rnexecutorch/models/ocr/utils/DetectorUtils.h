@@ -4,7 +4,7 @@
 #include <rnexecutorch/models/ocr/Types.h>
 #include <span>
 
-namespace rnexecutorch::ocr {
+namespace rnexecutorch::models::ocr::utils {
 std::pair<cv::Mat, cv::Mat> interleavedArrayToMats(std::span<const float> data,
                                                    cv::Size size);
 /**
@@ -27,19 +27,20 @@ std::pair<cv::Mat, cv::Mat> interleavedArrayToMats(std::span<const float> data,
  * detected text box.
  *  - "angle": a float representing the rotation angle of the box.
  */
-std::vector<DetectorBBox> getDetBoxesFromTextMap(cv::Mat &textMap,
-                                                 cv::Mat &affinityMap,
-                                                 float textThreshold,
-                                                 float linkThreshold,
-                                                 float lowTextThreshold);
-std::vector<DetectorBBox>
+std::vector<types::DetectorBBox> getDetBoxesFromTextMap(cv::Mat &textMap,
+                                                        cv::Mat &affinityMap,
+                                                        float textThreshold,
+                                                        float linkThreshold,
+                                                        float lowTextThreshold);
+std::vector<types::DetectorBBox>
 getDetBoxesFromTextMapVertical(cv::Mat &textMap, cv::Mat &affinityMap,
                                float textThreshold, float linkThreshold,
                                bool independentCharacters);
 
 float calculateRestoreRatio(int32_t currentSize, int32_t desiredSize);
 
-void restoreBboxRatio(std::vector<DetectorBBox> &boxes, float restoreRatio);
+void restoreBboxRatio(std::vector<types::DetectorBBox> &boxes,
+                      float restoreRatio);
 /**
  * This method processes a vector of DetectorBBox bounding boxes, each
  * containing details about individual text boxes, and attempts to group and
@@ -72,9 +73,9 @@ void restoreBboxRatio(std::vector<DetectorBBox> &boxes, float restoreRatio);
  * 3. Post-processing to remove any boxes that are too small.
  * 4. Sort the final array of boxes by their vertical positions.
  */
-std::vector<DetectorBBox>
-groupTextBoxes(std::vector<DetectorBBox> &boxes, float centerThreshold,
+std::vector<types::DetectorBBox>
+groupTextBoxes(std::vector<types::DetectorBBox> &boxes, float centerThreshold,
                float distanceThreshold, float heightThreshold,
                int32_t minSideThreshold, int32_t maxSideThreshold,
                int32_t maxWidth);
-} // namespace rnexecutorch::ocr
+} // namespace rnexecutorch::models::ocr::utils
