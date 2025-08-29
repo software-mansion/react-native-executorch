@@ -45,7 +45,7 @@ using FlatbufferDataSegment =
 #endif
 
 namespace executorch {
-namespace runtime {
+namespace ET_RUNTIME_NAMESPACE {
 namespace internal {
 
 /**
@@ -76,8 +76,8 @@ public:
    * tensor-specific metadata.
    */
   ET_NODISCARD
-  Result<const TensorLayout>
-  get_metadata(ET_UNUSED const char *key) const override {
+  Result<const TensorLayout> get_tensor_layout(
+      ET_UNUSED executorch::aten::string_view key) const override {
     return Error::NotImplemented;
   }
 
@@ -89,12 +89,13 @@ public:
    * @return error if the key is not present or data cannot be loaded.
    */
   ET_NODISCARD
-  Result<FreeableBuffer> get_data(const char *key) const override;
+  Result<FreeableBuffer>
+  get_data(executorch::aten::string_view key) const override;
 
   /**
    * The PteDataMap currently does not implement load_into.
    */
-  ET_NODISCARD Error load_data_into(ET_UNUSED const char *key,
+  ET_NODISCARD Error load_data_into(ET_UNUSED executorch::aten::string_view key,
                                     ET_UNUSED void *buffer,
                                     ET_UNUSED size_t size) const override {
     return Error::NotImplemented;
@@ -103,12 +104,12 @@ public:
   /**
    * @returns The number of keys in the map.
    */
-  ET_NODISCARD Result<size_t> get_num_keys() const override;
+  ET_NODISCARD Result<uint32_t> get_num_keys() const override;
 
   /**
    * @returns The key at the specified index, error if index out of bounds.
    */
-  ET_NODISCARD Result<const char *> get_key(size_t index) const override;
+  ET_NODISCARD Result<const char *> get_key(uint32_t index) const override;
 
   // Moveable, to be compatible with Result.
   PteDataMap(PteDataMap &&) noexcept = default;
@@ -140,5 +141,5 @@ private:
 };
 
 } // namespace internal
-} // namespace runtime
+} // namespace ET_RUNTIME_NAMESPACE
 } // namespace executorch
