@@ -2,9 +2,9 @@ import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
 import { DeeplabLabel } from '../../types/imageSegmentation';
 import { ETError, getError } from '../../Error';
-import { BaseNonStaticModule } from '../BaseNonStaticModule';
+import { BaseModule } from '../BaseModule';
 
-export class ImageSegmentationModule extends BaseNonStaticModule {
+export class ImageSegmentationModule extends BaseModule {
   async load(
     model: { modelSource: ResourceSource },
     onDownloadProgressCallback: (progress: number) => void = () => {}
