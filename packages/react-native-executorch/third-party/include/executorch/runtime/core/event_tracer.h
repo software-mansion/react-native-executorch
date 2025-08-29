@@ -26,10 +26,14 @@ typedef int32_t ChainID;
 /// Represents the debug handle that is generally associated with each
 /// op executed in the runtime.
 typedef uint32_t DebugHandle;
+// Represents the delegate debug id that is generally associated with each
+// delegate event.
+typedef int32_t DelegateDebugIntId;
 
 /// Default id's for chain id and debug handle.
 constexpr ChainID kUnsetChainId = -1;
 constexpr DebugHandle kUnsetDebugHandle = 0;
+constexpr DelegateDebugIntId kUnsetDelegateDebugIntId = -1;
 // Default bundled input index to indicate that it hasn't been set yet.
 constexpr int kUnsetBundledInputIndex = -1;
 
@@ -96,13 +100,14 @@ public:
    *         - False if the event does not match or is unknown.
    *         - An error code if an error occurs during filtering.
    */
-  virtual Result<bool> filter(char *name, DebugHandle delegate_debug_index);
+  virtual Result<bool> filter(const char *name,
+                              DelegateDebugIntId delegate_debug_index) = 0;
 
   /**
    * Virtual destructor for the EventTracerFilterBase class.
    * Ensures proper cleanup of derived class objects.
    */
-  virtual ~EventTracerFilterBase();
+  virtual ~EventTracerFilterBase() = default;
 };
 
 /**
@@ -122,6 +127,11 @@ enum class EventTracerProfilingLevel {
  * started. This is used to uniquely identify that profiling event and will be
  * required to be passed into the end_profiling call to signal that the event
  * identified by this struct has completed.
+ *
+ * TODO(gasoonjia): Now this struct is mix-used for both delegate and
+ *non-delegate events. In the future we should separate them into two different
+ *structs: EventTracerEntry for non-delegate events holding DebugHandle, and
+ *DelegateEventTracerEntry for delegate events holding DelegateDebugIntId.
  **/
 struct EventTracerEntry {
   /// An event id to uniquely identify this event that was generated during a
@@ -207,7 +217,7 @@ public:
    */
   virtual EventTracerEntry
   start_profiling_delegate(const char *name,
-                           DebugHandle delegate_debug_index) = 0;
+                           DelegateDebugIntId delegate_debug_index) = 0;
 
   /**
    * Signal the end of the delegate profiling event contained in
@@ -253,7 +263,7 @@ public:
    * @param[in] metadata_len Length of the metadata buffer.
    */
   virtual void log_profiling_delegate(const char *name,
-                                      DebugHandle delegate_debug_index,
+                                      DelegateDebugIntId delegate_debug_index,
                                       et_timestamp_t start_time,
                                       et_timestamp_t end_time,
                                       const void *metadata = nullptr,
@@ -299,9 +309,12 @@ public:
    * @param[in] evalue The value to be logged.
    * @param[in] evalue_type Indicates what type of output this is logging e.g.
    * an intermediate output, program output etc.
+   * @return A Result<bool> indicating the status of the logging operation.
+   *         - True if the evalue output was successfully logged.
+   *         - An error code if an error occurs during logging.
    */
-  virtual void log_evalue(const EValue &evalue,
-                          LoggedEValueType evalue_type) = 0;
+  virtual Result<bool> log_evalue(const EValue &evalue,
+                                  LoggedEValueType evalue_type) = 0;
 
   /**
    * Log an intermediate tensor output from a delegate.
@@ -324,7 +337,7 @@ public:
    */
   virtual Result<bool>
   log_intermediate_output_delegate(const char *name,
-                                   DebugHandle delegate_debug_index,
+                                   DelegateDebugIntId delegate_debug_index,
                                    const executorch::aten::Tensor &output) = 0;
 
   /**
@@ -348,7 +361,7 @@ public:
    *         - An error code if an error occurs during logging.
    */
   virtual Result<bool> log_intermediate_output_delegate(
-      const char *name, DebugHandle delegate_debug_index,
+      const char *name, DelegateDebugIntId delegate_debug_index,
       const ArrayRef<executorch::aten::Tensor> output) = 0;
 
   /**
@@ -372,7 +385,7 @@ public:
    */
   virtual Result<bool>
   log_intermediate_output_delegate(const char *name,
-                                   DebugHandle delegate_debug_index,
+                                   DelegateDebugIntId delegate_debug_index,
                                    const int &output) = 0;
 
   /**
@@ -396,7 +409,7 @@ public:
    */
   virtual Result<bool>
   log_intermediate_output_delegate(const char *name,
-                                   DebugHandle delegate_debug_index,
+                                   DelegateDebugIntId delegate_debug_index,
                                    const bool &output) = 0;
 
   /**
@@ -420,8 +433,14 @@ public:
    */
   virtual Result<bool>
   log_intermediate_output_delegate(const char *name,
-                                   DebugHandle delegate_debug_index,
+                                   DelegateDebugIntId delegate_debug_index,
                                    const double &output) = 0;
+
+  /**
+   * Set the filter of event tracer for delegation intermediate outputs.
+   */
+  virtual void set_delegation_intermediate_output_filter(
+      EventTracerFilterBase *event_tracer_filter) = 0;
 
   /**
    * Helper function to set the chain id ands debug handle. Users have two
@@ -496,12 +515,6 @@ public:
   }
 
   /**
-   * Set the filter of event tracer for delegation intermediate outputs.
-   */
-  void set_delegation_intermediate_output_filter(
-      EventTracerFilterBase *event_tracer_filter);
-
-  /**
    * Return the current level of event tracer profiling.
    */
   EventTracerProfilingLevel event_tracer_profiling_level() {
@@ -554,12 +567,14 @@ using ::executorch::runtime::AllocatorID;
 using ::executorch::runtime::ChainID;
 using ::executorch::runtime::DebugHandle;
 using ::executorch::runtime::DelegateDebugIdType;
+using ::executorch::runtime::DelegateDebugIntId;
 using ::executorch::runtime::EventTracer;
 using ::executorch::runtime::EventTracerDebugLogLevel;
 using ::executorch::runtime::EventTracerEntry;
 using ::executorch::runtime::kUnsetBundledInputIndex;
 using ::executorch::runtime::kUnsetChainId;
 using ::executorch::runtime::kUnsetDebugHandle;
+using ::executorch::runtime::kUnsetDelegateDebugIntId;
 using ::executorch::runtime::LoggedEValueType;
 } // namespace executor
 } // namespace torch
