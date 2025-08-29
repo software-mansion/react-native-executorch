@@ -1,7 +1,7 @@
 #pragma once
 
-#include <format>
 #include <ReactCommon/CallInvoker.h>
+#include <sstream>
 #include <string>
 #include <thread>
 #include <tuple>
@@ -110,10 +110,10 @@ public:
   template <auto FnPtr> JSI_HOST_FUNCTION(synchronousHostFunction) {
     constexpr std::size_t functionArgCount = meta::getArgumentCount(FnPtr);
     if (functionArgCount != count) {
-      const auto errorMessage = std::format(
-          "Argument count mismatch, was expecting: {} but got: {}", 
-          functionArgCount, count
-      );
+      std::stringstream ss;
+      ss << "Argument count mismatch, was expecting: " << functionArgCount
+         << " but got: " << count;
+      const auto errorMessage = ss.str();
       throw jsi::JSError(runtime, errorMessage);
     }
 
@@ -156,9 +156,10 @@ public:
           constexpr std::size_t functionArgCount =
               meta::getArgumentCount(FnPtr);
           if (functionArgCount != count) {
-            const auto errorMessage = std::format(
-                "Argument count mismatch, was expecting: {} but got: {}",
-                functionArgCount, count);
+            std::stringstream ss;
+            ss << "Argument count mismatch, was expecting: " << functionArgCount
+               << " but got: " << count;
+            const auto errorMessage = ss.str();
             promise->reject(errorMessage);
             return;
           }

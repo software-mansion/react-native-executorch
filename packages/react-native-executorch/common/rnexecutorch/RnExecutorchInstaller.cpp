@@ -16,7 +16,6 @@
 #if defined(__ANDROID__) && defined(__aarch64__)
 #include <executorch/extension/threadpool/cpuinfo_utils.h>
 #include <executorch/extension/threadpool/threadpool.h>
-#include <format>
 #include <rnexecutorch/Log.h>
 #endif
 
@@ -96,8 +95,7 @@ void RnExecutorchInstaller::injectJSIBindings(
 #if defined(__ANDROID__) && defined(__aarch64__)
   auto num_of_perf_cores =
       ::executorch::extension::cpuinfo::get_num_performant_cores();
-  log(LOG_LEVEL::Info,
-      std::format("Detected {} performant cores", num_of_perf_cores));
+  log(LOG_LEVEL::Info, "Detected ", num_of_perf_cores, " performant cores");
   // setting num_of_cores to floor(num_of_perf_cores / 2) + 1) because depending
   // on cpu arch as when possible we want to leave at least 2 performant cores
   // for other tasks (setting more actually results in drop of performance). For
@@ -107,8 +105,7 @@ void RnExecutorchInstaller::injectJSIBindings(
   auto num_of_cores = static_cast<uint32_t>(num_of_perf_cores / 2) + 1;
   ::executorch::extension::threadpool::get_threadpool()
       ->_unsafe_reset_threadpool(num_of_cores);
-  log(LOG_LEVEL::Info,
-      std::format("Configuring xnnpack for {} threads", num_of_cores));
+  log(LOG_LEVEL::Info, "Configuring xnnpack for ", num_of_cores, " threads", );
 #endif
 }
 
