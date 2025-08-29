@@ -9,7 +9,7 @@
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/models/image_segmentation/Constants.h>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::image_segmentation {
 
 ImageSegmentation::ImageSegmentation(
     const std::string &modelSource,
@@ -37,7 +37,7 @@ std::shared_ptr<jsi::Object> ImageSegmentation::generate(
     std::string imageSource,
     std::set<std::string, std::less<>> classesOfInterest, bool resize) {
   auto [inputTensor, originalSize] =
-      imageprocessing::readImageToTensor(imageSource, getAllInputShapes()[0]);
+      image_processing::readImageToTensor(imageSource, getAllInputShapes()[0]);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
@@ -101,8 +101,9 @@ std::shared_ptr<jsi::Object> ImageSegmentation::postprocess(
   auto buffersToReturn = std::make_shared<std::unordered_map<
       std::string_view, std::shared_ptr<OwningArrayBuffer>>>();
   for (std::size_t cl = 0; cl < numClasses; ++cl) {
-    if (classesOfInterest.contains(DEEPLABV3_RESNET50_LABELS[cl])) {
-      (*buffersToReturn)[DEEPLABV3_RESNET50_LABELS[cl]] = resultClasses[cl];
+    if (classesOfInterest.contains(constants::kDeeplabV3Resnet50Labels[cl])) {
+      (*buffersToReturn)[constants::kDeeplabV3Resnet50Labels[cl]] =
+          resultClasses[cl];
     }
   }
 
@@ -170,4 +171,4 @@ std::shared_ptr<jsi::Object> ImageSegmentation::populateDictionary(
   return dictPtr;
 }
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::image_segmentation

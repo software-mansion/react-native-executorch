@@ -1,6 +1,6 @@
 #include "RecognizerUtils.h"
 
-namespace rnexecutorch::ocr {
+namespace rnexecutorch::models::ocr::utils {
 cv::Mat softmax(const cv::Mat &inputs) {
   cv::Mat maxVal;
   cv::reduce(inputs, maxVal, 1, cv::REDUCE_MAX, CV_32F);
@@ -28,9 +28,9 @@ void divideMatrixByRows(cv::Mat &matrix, const std::vector<float> &rowSums) {
   }
 }
 
-ValuesAndIndices findMaxValuesIndices(const cv::Mat &mat) {
+types::ValuesAndIndices findMaxValuesIndices(const cv::Mat &mat) {
   CV_Assert(mat.type() == CV_32F);
-  ValuesAndIndices result{};
+  types::ValuesAndIndices result{};
   result.values.reserve(mat.rows);
   result.indices.reserve(mat.rows);
 
@@ -66,7 +66,7 @@ float confidenceScore(const std::vector<float> &values,
   return std::pow(product, exponent);
 }
 
-cv::Rect extractBoundingBox(std::array<Point, 4> &points) {
+cv::Rect extractBoundingBox(std::array<types::Point, 4> &points) {
   cv::Mat pointsMat(4, 1, CV_32FC2, points.data());
   return cv::boundingRect(pointsMat);
 }
@@ -107,10 +107,11 @@ cv::Mat characterBitMask(const cv::Mat &img) {
 
   const int32_t height = thresh.rows;
   const int32_t width = thresh.cols;
-  const int32_t minX = ocr::SINGLE_CHARACTER_CENTER_THRESHOLD * width;
-  const int32_t maxX = (1 - ocr::SINGLE_CHARACTER_CENTER_THRESHOLD) * width;
-  const int32_t minY = ocr::SINGLE_CHARACTER_CENTER_THRESHOLD * height;
-  const int32_t maxY = (1 - ocr::SINGLE_CHARACTER_CENTER_THRESHOLD) * height;
+  const int32_t minX = constants::kSingleCharacterCenterThreshold * width;
+  const int32_t maxX = (1 - constants::kSingleCharacterCenterThreshold) * width;
+  const int32_t minY = constants::kSingleCharacterCenterThreshold * height;
+  const int32_t maxY =
+      (1 - constants::kSingleCharacterCenterThreshold) * height;
 
   int32_t selectedComponent = -1;
   int32_t maxArea = -1;
@@ -120,8 +121,8 @@ cv::Mat characterBitMask(const cv::Mat &img) {
     const double cy = centroids.at<double>(i, 1);
 
     if ((minX < cx && cx < maxX && minY < cy &&
-         cy < maxY &&                              // check if centered
-         area > ocr::SINGLE_CHARACTER_MIN_SIZE) && // check if large enough
+         cy < maxY &&                                  // check if centered
+         area > constants::kSingleCharacterMinSize) && // check if large enough
         area > maxArea) {
       selectedComponent = i;
       maxArea = area;
@@ -142,21 +143,22 @@ cv::Mat characterBitMask(const cv::Mat &img) {
   return resultImage;
 }
 
-cv::Mat cropImageWithBoundingBox(const cv::Mat &img,
-                                 const std::array<Point, 4> &bbox,
-                                 const std::array<Point, 4> &originalBbox,
-                                 const PaddingInfo &paddings,
-                                 const PaddingInfo &originalPaddings) {
+cv::Mat
+cropImageWithBoundingBox(const cv::Mat &img,
+                         const std::array<types::Point, 4> &bbox,
+                         const std::array<types::Point, 4> &originalBbox,
+                         const types::PaddingInfo &paddings,
+                         const types::PaddingInfo &originalPaddings) {
   if (originalBbox.empty()) {
     throw std::runtime_error("Original bounding box cannot be empty.");
   }
-  const Point topLeft = originalBbox[0];
+  const types::Point topLeft = originalBbox[0];
 
   std::vector<cv::Point2f> points;
   points.reserve(bbox.size());
 
   for (const auto &point : bbox) {
-    Point transformedPoint = point;
+    types::Point transformedPoint = point;
 
     transformedPoint.x -= paddings.left;
     transformedPoint.y -= paddings.top;
@@ -186,17 +188,17 @@ cv::Mat cropImageWithBoundingBox(const cv::Mat &img,
 }
 
 cv::Mat prepareForRecognition(const cv::Mat &originalImage,
-                              const std::array<Point, 4> &bbox,
-                              const std::array<Point, 4> &originalBbox,
-                              const PaddingInfo &paddings,
-                              const PaddingInfo &originalPaddings) {
+                              const std::array<types::Point, 4> &bbox,
+                              const std::array<types::Point, 4> &originalBbox,
+                              const types::PaddingInfo &paddings,
+                              const types::PaddingInfo &originalPaddings) {
   auto croppedChar = cropImageWithBoundingBox(originalImage, bbox, originalBbox,
                                               paddings, originalPaddings);
   cv::cvtColor(croppedChar, croppedChar, cv::COLOR_BGR2GRAY);
-  cv::resize(
-      croppedChar, croppedChar,
-      cv::Size(ocr::SMALL_VERTICAL_RECOGNIZER_WIDTH, ocr::RECOGNIZER_HEIGHT), 0,
-      0, cv::INTER_AREA);
+  cv::resize(croppedChar, croppedChar,
+             cv::Size(constants::kSmallVerticalRecognizerWidth,
+                      constants::kRecognizerHeight),
+             0, 0, cv::INTER_AREA);
   return croppedChar;
 }
-} // namespace rnexecutorch::ocr
+} // namespace rnexecutorch::models::ocr::utils

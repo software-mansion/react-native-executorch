@@ -4,7 +4,7 @@
 #include <span>
 #include <vector>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::speech_to_text {
 
 class WhisperStrategy final : public SpeechToTextStrategy {
 public:
@@ -22,4 +22,4 @@ private:
   std::vector<int32_t> tokens32;
 };
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::speech_to_text

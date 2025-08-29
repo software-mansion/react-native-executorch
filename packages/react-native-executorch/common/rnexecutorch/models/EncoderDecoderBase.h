@@ -5,7 +5,7 @@
 #include <rnexecutorch/models/BaseModel.h>
 #include <string>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models {
 
 using namespace facebook;
 using executorch::aten::Tensor;
@@ -28,4 +28,4 @@ private:
   size_t memorySizeLowerBound;
 };
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models

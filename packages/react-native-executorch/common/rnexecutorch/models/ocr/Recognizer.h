@@ -7,7 +7,7 @@
 #include <utility>
 #include <vector>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::ocr {
 /*
  Recognizer is a model responsible for interpreting detected text regions
  into characters/words.
@@ -33,4 +33,4 @@ private:
 
   cv::Size modelImageSize;
 };
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::ocr

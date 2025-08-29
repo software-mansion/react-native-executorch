@@ -6,7 +6,7 @@
 #include <rnexecutorch/models/BaseModel.h>
 #include <rnexecutorch/models/ocr/Types.h>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::ocr {
 
 /*
  Vertical Detector is an sligtly modified Detector tuned for detecting Vertical
@@ -38,12 +38,12 @@ public:
   explicit VerticalDetector(const std::string &modelSource,
                             bool detectSingleCharacters,
                             std::shared_ptr<react::CallInvoker> callInvoker);
-  std::vector<ocr::DetectorBBox> generate(const cv::Mat &inputImage);
+  std::vector<types::DetectorBBox> generate(const cv::Mat &inputImage);
   cv::Size getModelImageSize() const noexcept;
 
 private:
   bool detectSingleCharacters;
-  std::vector<ocr::DetectorBBox> postprocess(const Tensor &tensor) const;
+  std::vector<types::DetectorBBox> postprocess(const Tensor &tensor) const;
   cv::Size modelImageSize;
 };
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::ocr

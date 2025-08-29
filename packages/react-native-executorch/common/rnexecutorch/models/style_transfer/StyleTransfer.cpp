@@ -5,7 +5,7 @@
 #include <executorch/extension/tensor/tensor.h>
 #include <opencv2/opencv.hpp>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::style_transfer {
 using namespace facebook;
 using executorch::extension::TensorPtr;
 using executorch::runtime::Error;
@@ -32,15 +32,15 @@ StyleTransfer::StyleTransfer(const std::string &modelSource,
 
 std::string StyleTransfer::postprocess(const Tensor &tensor,
                                        cv::Size originalSize) {
-  cv::Mat mat = imageprocessing::getMatrixFromTensor(modelImageSize, tensor);
+  cv::Mat mat = image_processing::getMatrixFromTensor(modelImageSize, tensor);
   cv::resize(mat, mat, originalSize);
 
-  return imageprocessing::saveToTempFile(mat);
+  return image_processing::saveToTempFile(mat);
 }
 
 std::string StyleTransfer::generate(std::string imageSource) {
   auto [inputTensor, originalSize] =
-      imageprocessing::readImageToTensor(imageSource, getAllInputShapes()[0]);
+      image_processing::readImageToTensor(imageSource, getAllInputShapes()[0]);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
@@ -52,4 +52,4 @@ std::string StyleTransfer::generate(std::string imageSource) {
   return postprocess(forwardResult->at(0).toTensor(), originalSize);
 }
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::style_transfer

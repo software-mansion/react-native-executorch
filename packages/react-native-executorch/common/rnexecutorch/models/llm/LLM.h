@@ -3,11 +3,13 @@
 #include <memory>
 #include <string>
 
+#include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
 #include <ReactCommon/CallInvoker.h>
 #include <jsi/jsi.h>
 #include <runner/runner.h>
 
 namespace rnexecutorch {
+namespace models::llm {
 using namespace facebook;
 
 class LLM {
@@ -26,4 +28,8 @@ private:
   std::unique_ptr<example::Runner> runner;
   std::shared_ptr<react::CallInvoker> callInvoker;
 };
+} // namespace models::llm
+
+REGISTER_CONSTRUCTOR(models::llm::LLM, std::string, std::string,
+                     std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch
