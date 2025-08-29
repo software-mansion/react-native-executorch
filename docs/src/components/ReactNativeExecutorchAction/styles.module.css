@@ -1,0 +1,141 @@
+.featuresContainer {
+  display: flex;
+  flex-direction: column;
+  margin-top: 7.5rem;
+  gap: 5rem;
+  /* max-width: 750px; */
+}
+
+.introduction {
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.title {
+  font-size: var(--swm-h2-font-size);
+}
+
+.downloadInnerContainer {
+  display: flex;
+  margin: auto;
+  width: 80%;
+  justify-content: space-around;
+}
+
+.appStore {
+  width: 40%;
+  height: 120px;
+  margin-top: 20px;
+}
+
+.playStore {
+  width: 50%;
+  height: 180px;
+}
+
+.listItem {
+  margin-left: 3rem;
+}
+
+.innerContainer {
+  display: flex;
+  flex-direction: row;
+  margin-top: -3rem;
+}
+
+.imageOuterContainer {
+  width: fit-content;
+  margin-left: 2rem;
+  margin-top: 0rem;
+}
+
+.imageInnerContainer {
+  width: 16rem;
+  border-radius: 22.5%;
+  overflow: hidden;
+  aspect-ratio: 1;
+  margin: auto;
+  background-color: white;
+}
+
+@media (max-width: 996px) {
+  .appStore {
+    height: 100px;
+    margin-top: 20px;
+  }
+  .playStore {
+    height: 150px;
+  }
+  .imageOuterContainer {
+    margin-left: 1.5rem;
+  }
+  .imageInnerContainer {
+    width: 12rem;
+  }
+  .featuresContainer {
+    margin-top: 2.5rem;
+  }
+  .listItem {
+    margin-left: 0.5rem;
+  }
+  .downloadInnerContainer {
+    flex-direction: column;
+  }
+  .appStore {
+    width: 88%;
+    height: 120px;
+    align-self: center;
+  }
+  .playStore {
+    margin-top: -4rem;
+    width: 100%;
+    height: 180px;
+  }
+}
+
+@media (max-width: 768px) {
+  .featuresContainer {
+    margin-bottom: 0.5rem;
+    gap: 0;
+  }
+  .introduction {
+    font-size: 20px;
+  }
+  .title {
+    margin-bottom: 1.5rem;
+  }
+  .downloadInnerContainer {
+    flex-direction: row;
+    margin-top: 0.5rem;
+  }
+  .appStore {
+    width: 40%;
+    height: 120px;
+    align-self: center;
+    margin-top: -18px;
+  }
+  .playStore {
+    margin-top: 0rem;
+    width: 50%;
+    height: 180px;
+  }
+  .imageOuterContainer {
+    margin: auto;
+    margin-top: 1rem;
+  }
+  .innerContainer {
+    display: flex;
+    flex-direction: column;
+    margin-top: 0rem;
+  }
+  .imageInnerContainer {
+    width: 18rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .title {
+    margin-bottom: 1.5rem;
+    font-size: 24px;
+  }
+}

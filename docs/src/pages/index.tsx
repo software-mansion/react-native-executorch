@@ -8,12 +8,13 @@ import ExecuTorchIntroduction from '../components/ExecuTorchIntroduction';
 import ReactNativeExecuTorchFeatures from '@site/src/components/ReactNativeExecuTorchFeatures';
 import { HireUsSection } from '@swmansion/t-rex-ui';
 import FooterBackground from '../components/FooterBackground';
+import ReactNativeExecutorchAction from '../components/ReactNativeExecutorchAction';
 
 const Home = () => {
   return (
     <Layout
-      title="React Native ExecuTorch"
-      description="Declarative way to run AI models in React Native on device, powered by ExecuTorch."
+      title="React Native ExecuTorch – On-device AI & LLM toolkit for React Native"
+      description="React Native ExecuTorch lets you run LLMs and AI models locally on device in React Native. Build privacy-first, fast, and offline-ready apps with ease."
     >
       <Head>
         <meta
@@ -29,6 +30,7 @@ const Home = () => {
         <div className={styles.container}>
           <ExecuTorchIntroduction />
           <ReactNativeExecuTorchFeatures />
+          <ReactNativeExecutorchAction />
           <div className={styles.hireUsSection}>
             <HireUsSection
               href="https://swmansion.com/contact/projects?utm_source=react-native-executorch&utm_medium=docs"
