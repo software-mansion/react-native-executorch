@@ -7,7 +7,7 @@ interface OCRModule {
   error: string | null;
   isReady: boolean;
   isGenerating: boolean;
-  forward: (input: string) => Promise<OCRDetection[]>;
+  forward: (imageSource: string) => Promise<OCRDetection[]>;
   downloadProgress: number;
 }
 
