@@ -30,9 +30,9 @@ Classification::Classification(const std::string &modelSource,
 
 std::unordered_map<std::string_view, float>
 Classification::generate(std::string imageSource) {
-  auto inputTensor =
-      image_processing::readImageToTensor(imageSource, getAllInputShapes()[0])
-          .first;
+  auto imageAsMatrix = imageprocessing::readImageToMatrix(imageSource);
+  auto inputTensor = imageprocessing::covertMatrixToTensor(
+      getAllInputShapes()[0], std::move(imageAsMatrix));
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
