@@ -1,12 +1,9 @@
 #pragma once
 
-<<<<<<< HEAD
 #include <executorch/extension/tensor/tensor.h>
 #include <executorch/extension/tensor/tensor_ptr.h>
 #include <opencv2/opencv.hpp>
 #include <optional>
-=======
->>>>>>> 25d41deb (Add corrections in ImageProcessing module)
 #include <span>
 #include <string>
 #include <vector>
@@ -31,7 +28,6 @@ cv::Mat covertBufferToColorMat(const std::span<const float> &buffer,
 std::string saveToTempFile(const cv::Mat &image);
 
 /// @brief Read image in a BGR format to a cv::Mat
-<<<<<<< HEAD
 cv::Mat readImage(const std::string &imageURI);
 TensorPtr getTensorFromMatrix(const std::vector<int32_t> &tensorDims,
                               const cv::Mat &mat);
@@ -62,7 +58,6 @@ readImageToTensor(const std::string &path,
                   const std::vector<int32_t> &tensorDims,
                   bool maintainAspectRatio = false);
 } // namespace rnexecutorch::image_processing
-=======
 cv::Mat readImageToMatrix(const std::string &imageURI);
 
 /// @brief Create an OpenCV matrix based on a tensor content
@@ -74,7 +69,3 @@ TensorPtr covertMatrixToTensor(const std::vector<int32_t> &tensorDims,
                                cv::Mat &input);
 
 } // namespace rnexecutorch::imageprocessing
-<<<<<<< HEAD
->>>>>>> 25d41deb (Add corrections in ImageProcessing module)
-=======
->>>>>>> 787189c6 (Update packages/react-native-executorch/common/rnexecutorch/data_processing/ImageProcessing.h)

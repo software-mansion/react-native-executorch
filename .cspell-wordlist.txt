@@ -54,8 +54,6 @@ FNUZ
 wordlist
 jitpack
 googletest
-<<<<<<< HEAD
-<<<<<<< HEAD
 ctest
 gtest
 rnexecutorch
@@ -68,10 +66,3 @@ softmax
 logit
 logits
 probs
-=======
-ctest
->>>>>>> 90369ea8 (Improve testing using CMakeLists.txt)
-=======
-ctest
-gtest
->>>>>>> ccbf247f (Add more tests and clear implementation)
