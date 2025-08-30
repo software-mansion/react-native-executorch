@@ -36,10 +36,10 @@ ImageSegmentation::ImageSegmentation(
 std::shared_ptr<jsi::Object> ImageSegmentation::generate(
     std::string imageSource,
     std::set<std::string, std::less<>> classesOfInterest, bool resize) {
-  auto imageAsMatrix = imageprocessing::readImageToMatrix(imageSource);
+  auto imageAsMatrix = image_processing::readImageToMatrix(imageSource);
   auto originalSize = imageAsMatrix.size();
-  auto inputTensor = imageprocessing::covertMatrixToTensor(
-      getAllInputShapes()[0], std::move(imageAsMatrix));
+  auto inputTensor = image_processing::covertMatrixToTensor(
+      getAllInputShapes()[0], imageAsMatrix);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {

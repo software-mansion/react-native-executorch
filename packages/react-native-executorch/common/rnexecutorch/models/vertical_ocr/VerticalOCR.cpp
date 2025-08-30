@@ -17,7 +17,7 @@ VerticalOCR::VerticalOCR(const std::string &detectorLargeSource,
       independentCharacters(independentChars), callInvoker(invoker) {}
 
 std::vector<types::OCRDetection> VerticalOCR::generate(std::string input) {
-  cv::Mat image = image_processing::readImage(input);
+  cv::Mat image = image_processing::readImageToMatrix(input);
   if (image.empty()) {
     throw std::runtime_error("Failed to load image from path: " + input);
   }
