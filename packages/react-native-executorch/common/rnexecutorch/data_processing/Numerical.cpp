@@ -41,26 +41,6 @@ void normalize(std::span<float> input) {
   }
 }
 
-void normalize(std::span<float> input) {
-  if (input.empty()) {
-    return;
-  }
-
-  const auto squaredSum = std::inner_product(std::begin(input), std::end(input),
-                                             std::begin(input), 0.0F);
-
-  constexpr auto epsilon = std::numeric_limits<float>::epsilon();
-  if (squaredSum < epsilon) {
-    return;
-  }
-
-  const auto norm = std::sqrt(squaredSum);
-
-  for (auto &value : input) {
-    value /= norm;
-  }
-}
-
 std::vector<float> meanPooling(std::span<const float> modelOutput,
                                std::span<const int64_t> attnMask) {
 

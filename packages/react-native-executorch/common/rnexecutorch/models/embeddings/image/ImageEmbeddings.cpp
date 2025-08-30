@@ -29,14 +29,9 @@ ImageEmbeddings::ImageEmbeddings(
 
 std::shared_ptr<OwningArrayBuffer>
 ImageEmbeddings::generate(std::string imageSource) {
-<<<<<<< HEAD:packages/react-native-executorch/common/rnexecutorch/models/embeddings/image/ImageEmbeddings.cpp
-  auto [inputTensor, originalSize] =
-      image_processing::readImageToTensor(imageSource, getAllInputShapes()[0]);
-=======
   auto imageAsMatrix = imageprocessing::readImageToMatrix(imageSource);
   auto inputTensor = imageprocessing::covertMatrixToTensor(
       getAllInputShapes()[0], std::move(imageAsMatrix));
->>>>>>> 25d41deb (Add corrections in ImageProcessing module):packages/react-native-executorch/common/rnexecutorch/models/image_embeddings/ImageEmbeddings.cpp
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
