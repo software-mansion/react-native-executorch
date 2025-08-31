@@ -108,7 +108,7 @@ function VoiceChatScreen() {
       >
         <View style={styles.topContainer}>
           <SWMIcon width={45} height={45} />
-          <Text style={styles.textModelName}>Qwen 3 x Moonshine</Text>
+          <Text style={styles.textModelName}>Qwen 3 x Whisper</Text>
         </View>
         {llm.messageHistory.length || speechToText.committedTranscription ? (
           <View style={styles.chatContainer}>
