@@ -101,7 +101,7 @@ const handleGenerate = async () => {
 We currently host a few example [apps](https://github.com/software-mansion/react-native-executorch/tree/main/apps) demonstrating use cases of our library:
 
 - `llm` - Chat application showcasing use of LLMs
-- `speech-to-text` - Whisper and Moonshine models ready for transcription tasks
+- `speech-to-text` - Whisper model ready for transcription tasks
 - `computer-vision` - Computer vision related tasks
 - `text-embeddings` - Computing text representations for semantic search
 
