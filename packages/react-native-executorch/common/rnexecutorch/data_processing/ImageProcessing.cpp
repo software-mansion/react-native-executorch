@@ -116,12 +116,6 @@ static cv::Mat handleRemoteFile(const std::string &imageURI) {
                       cv::IMREAD_COLOR);
 }
 
-static TensorPtr covertMatrixToTensorRaw(const std::vector<int32_t> &tensorDims,
-                                         const cv::Mat &matrix) {
-  std::vector<float> inputVector = convertColorMatToVector(matrix);
-  return executorch::extension::make_tensor_ptr(tensorDims, inputVector);
-}
-
 cv::Mat readImageToMatrix(const std::string &imageURI) {
   cv::Mat image;
 
@@ -198,7 +192,26 @@ TensorPtr covertMatrixToTensor(const std::vector<int32_t> &tensorDims,
   cv::resize(input, input, tensorSize);
   cv::cvtColor(input, input, cv::COLOR_BGR2RGB);
 
-  return covertMatrixToTensorRaw(tensorDims, input);
+  return getTensorFromMatrix(tensorDims, input);
+}
+
+static cv::Scalar
+computeBackgroundScalar(const std::array<cv::Mat, 4> &corners) {
+  // We choose the color of the padding based on a mean of colors in the
+  // corners of an image.
+  cv::Scalar backgroundScalar = cv::mean(corners[0]);
+#pragma unroll
+  for (size_t i = 1; i < corners.size(); i++) {
+    backgroundScalar += cv::mean(corners[i]);
+  }
+  backgroundScalar /= static_cast<double>(corners.size());
+
+  constexpr size_t kNumChannels = 3;
+#pragma unroll
+  for (size_t i = 0; i < kNumChannels; ++i) {
+    backgroundScalar[i] = cvFloor(backgroundScalar[i]);
+  }
+  return backgroundScalar;
 }
 
 cv::Mat resizePadded(const cv::Mat inputImage, cv::Size targetSize) {
@@ -229,20 +242,7 @@ cv::Mat resizePadded(const cv::Mat inputImage, cv::Size targetSize) {
                           inputSize.height - cornerPatchSize, cornerPatchSize,
                           cornerPatchSize))};
 
-  // We choose the color of the padding based on a mean of colors in the
-  // corners of an image.
-  cv::Scalar backgroundScalar = cv::mean(corners[0]);
-#pragma unroll
-  for (size_t i = 1; i < corners.size(); i++) {
-    backgroundScalar += cv::mean(corners[i]);
-  }
-  backgroundScalar /= static_cast<double>(corners.size());
-
-  constexpr size_t kNumChannels = 3;
-#pragma unroll
-  for (size_t i = 0; i < kNumChannels; ++i) {
-    backgroundScalar[i] = cvFloor(backgroundScalar[i]);
-  }
+  cv::Scalar backgroundScalar = computeBackgroundScalar(corners);
 
   const int deltaW = targetSize.width - newWidth;
   const int deltaH = targetSize.height - newHeight;
