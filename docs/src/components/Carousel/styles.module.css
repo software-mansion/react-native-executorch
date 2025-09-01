@@ -20,6 +20,10 @@
   cursor: pointer;
 }
 
+.imageContainer {
+  height: 14rem;
+}
+
 .prevButton:hover {
   background-color: #1d4ed8;
 }

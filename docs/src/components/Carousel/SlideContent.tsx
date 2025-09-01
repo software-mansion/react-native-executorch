@@ -14,11 +14,13 @@ export const SlideContent = ({
     <a href={slide.link}>
       <div className={styles.slideContainer}>
         {slide.imageUrl && (
-          <img
-            src={slide.imageUrl}
-            alt={slide.title}
-            className={styles.image}
-          />
+          <div className={styles.imageContainer}>
+            <img
+              src={slide.imageUrl}
+              alt={slide.title}
+              className={styles.image}
+            />
+          </div>
         )}
         <div className={styles.overlay}>
           <div className={styles.content}>

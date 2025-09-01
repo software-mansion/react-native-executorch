@@ -63,10 +63,10 @@ export const Carousel = ({ ...props }) => {
             768: { slidesPerView: 2 },
             1280: { slidesPerView: 3 },
           }}
-          autoplay={{
-            delay: 4000,
-            disableOnInteraction: false,
-          }}
+          // autoplay={{
+          //   delay: 4000,
+          //   disableOnInteraction: false,
+          // }}
           loop={true}
           className={styles.swiper}
           {...props}
