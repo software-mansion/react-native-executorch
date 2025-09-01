@@ -76,16 +76,18 @@ static cv::Mat convertBufferToColorMat(std::span<const float> buffer,
 }
 
 std::string saveToTempFile(const cv::Mat &image) {
-  std::string filename = "rn_executorch_" + file_utils::getTimeID() + ".png";
+  const auto filename = std::string("rn_executorch_")
+                            .append(file_utils::getTimeID())
+                            .append(".png");
 
-  fs::path tempDir = fs::temp_directory_path();
-  fs::path filePath = tempDir / filename;
+  const fs::path tempDir = fs::temp_directory_path();
+  const fs::path filePath = tempDir / filename;
 
   if (!cv::imwrite(filePath.string(), image)) {
     throw std::runtime_error("Failed to save the image: " + filePath.string());
   }
 
-  return "file://" + filePath.string();
+  return std::string("file://").append(filePath.string());
 }
 
 static cv::Mat handleBase64Data(const std::string &imageURI) {
