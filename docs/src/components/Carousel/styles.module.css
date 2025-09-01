@@ -80,9 +80,10 @@
 }
 
 .slideTitle {
-  font-size: 20px;
+  font-size: 16px;
   margin-bottom: 1rem;
 }
+
 [data-theme='light'] .slideTitle {
   font-size: 20px;
   margin-bottom: 1rem;
@@ -121,6 +122,16 @@
   .imageContainer {
     height: 10rem;
   }
+}
+
+.swiper :global(.swiper-pagination-bullet) {
+  background-color: #6b7280;
+  opacity: 0.5;
+}
+
+.swiper :global(.swiper-pagination-bullet-active) {
+  background-color: #2563eb;
+  opacity: 1;
 }
 
 @media (max-width: 768px) {
