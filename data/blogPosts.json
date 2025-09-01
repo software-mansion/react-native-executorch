@@ -1,0 +1,56 @@
+[
+  {
+    "id": 1,
+    "title": "Introducing React Native ExecuTorch",
+    "link": "https://blog.swmansion.com/introducing-react-native-executorch-2bdb87592884",
+    "imageUrl": "https://miro.medium.com/v2/resize:fit:1400/format:webp/1*tuy5VQscaHXQr2o3Ee4rlA.png"
+  },
+  {
+    "id": 2,
+    "title": "Bringing Native AI To Your Mobile Apps With ExecuTorch",
+    "link": "http://blog.swmansion.com/bringing-native-ai-to-your-mobile-apps-with-executorch-part-ii-android-29431b6b9f7f",
+    "imageUrl": "https://miro.medium.com/v2/resize:fit:1400/format:webp/1*7R1KI51nJu0VH6cyzKWl0A.png"
+  },
+  {
+    "id": 3,
+    "title": "Exporting AI Models On Android With XNNpack And ExecuTorch",
+    "link": "https://blog.swmansion.com/exporting-ai-models-on-android-with-xnnpack-and-executorch-3e70cff51c59",
+    "imageUrl": "https://miro.medium.com/v2/resize:fit:1400/format:webp/1*X2r5VtXT4N-kPkO3l3bIRg.jpeg"
+  },
+  {
+    "id": 4,
+    "title": "A Year In Review 2024 At Software Mansion Multimedia AI Teams",
+    "link": "https://blog.swmansion.com/a-year-in-review-2024-at-software-mansion-multimedia-ai-teams-cb02881b1cb7",
+    "imageUrl": "https://miro.medium.com/v2/resize:fit:1400/format:webp/1*oXfbudWHJZEcyvNY27D6qA.png"
+  },
+  {
+    "id": 5,
+    "title": "Bringing EasyOCR To React Native ExecuTorch",
+    "link": "https://blog.swmansion.com/bringing-easyocr-to-react-native-executorch-2401c09c2d0c",
+    "imageUrl": "https://miro.medium.com/v2/resize:fit:1400/format:webp/1*_cemUci-bZ1_DmlK6ovVUw.png"
+  },
+  {
+    "id": 6,
+    "title": "React Native ExecuTorch Release v0.4.0",
+    "link": "https://blog.swmansion.com/react-native-executorch-release-v0-4-0-262d4013ac10",
+    "imageUrl": "https://miro.medium.com/v2/resize:fit:1400/format:webp/1*HdXtQG2oXZv3uo5HxCbwlQ.png"
+  },
+  {
+    "id": 7,
+    "title": "Introducing React Native Rag",
+    "link": "https://blog.swmansion.com/introducing-react-native-rag-fbb62efa4991",
+    "imageUrl": "https://miro.medium.com/v2/resize:fit:1400/format:webp/1*PpRHgQNZXcTr6_5nmht7tw.png"
+  },
+  {
+    "id": 8,
+    "title": "Top 6 Local AI Models For Maximum Privacy And Offline Capabilities",
+    "link": "https://blog.swmansion.com/top-6-local-ai-models-for-maximum-privacy-and-offline-capabilities-888160243a94",
+    "imageUrl": "https://miro.medium.com/v2/resize:fit:1400/format:webp/1*jWMkuYR6wynFqQ4C_dkBcw.png"
+  },
+  {
+    "id": 9,
+    "title": "Retrieval Augmented Generation Explained",
+    "link": "https://blog.swmansion.com/retrieval-augmented-generation-explained-840cbd744c99",
+    "imageUrl": "https://miro.medium.com/v2/resize:fit:1400/format:webp/1*QH0IpDRt38G5wI2wXkc61w.png"
+  }
+]
