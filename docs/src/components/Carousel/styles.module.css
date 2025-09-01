@@ -1,0 +1,147 @@
+.container {
+  display: flex;
+  flex-direction: row;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.prevButton {
+  margin: auto;
+  margin-right: 2rem;
+  width: 48px;
+  height: 48px;
+  background-color: #2563eb;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+}
+
+.imageContainer {
+  height: 14rem;
+}
+
+.prevButton:hover {
+  background-color: #1d4ed8;
+}
+
+.nextButton {
+  margin: auto;
+  margin-left: 2rem;
+  width: 48px;
+  height: 48px;
+  background-color: #2563eb;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+}
+
+.nextButton:hover {
+  background-color: #1d4ed8;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+}
+
+.slideContainer {
+  position: relative;
+  height: 100%;
+}
+
+.overlay {
+  display: flex;
+  align-items: center;
+}
+
+.title {
+  font-size: var(--swm-h2-font-size);
+}
+
+.titleContainer {
+  padding-bottom: 3rem;
+}
+
+.content {
+  color: white;
+}
+
+.swiper {
+  height: fit-content;
+  width: 100%;
+}
+
+.slideTitle {
+  font-size: 16px;
+  margin-bottom: 1rem;
+}
+
+[data-theme='light'] .slideTitle {
+  font-size: 20px;
+  margin-bottom: 1rem;
+  color: var(--swm-navy-light-100);
+}
+
+.description {
+  margin-bottom: 1.5rem;
+}
+
+.link {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background-color: #2563eb;
+  color: white;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: background-color 0.15s ease-in-out;
+  text-decoration: none;
+}
+
+.link:hover {
+  background-color: #1d4ed8;
+}
+
+.image {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 996px) {
+  .slideTitle {
+    font-size: 20px;
+  }
+  .imageContainer {
+    height: 10rem;
+  }
+}
+
+.swiper :global(.swiper-pagination-bullet) {
+  background-color: #6b7280;
+  opacity: 0.5;
+}
+
+.swiper :global(.swiper-pagination-bullet-active) {
+  background-color: #2563eb;
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .nextButton {
+    display: none;
+  }
+  .prevButton {
+    display: none;
+  }
+  .imageContainer {
+    height: 14rem;
+  }
+}
