@@ -21,7 +21,7 @@ namespace fs = std::filesystem;
 static std::vector<float> convertColorMatToVector(const cv::Mat &mat,
                                                   cv::Scalar mean,
                                                   cv::Scalar variance) {
-  constexpr auto kNumChannels = 3;
+  constexpr size_t kNumChannels = 3;
   constexpr auto kMaxPixelValueFloat = 255.0F;
 
   int pixelCount = mat.cols * mat.rows;
