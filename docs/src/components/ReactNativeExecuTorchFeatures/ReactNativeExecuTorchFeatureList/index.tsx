@@ -13,7 +13,7 @@ const items = [
   },
   {
     title: 'model variety',
-    body: 'We support a wide variety of models including LLms, such as Qwen 3, Llama 3.2, Smollm2 and Hammer 21, as well as Clip for image embedding, Whisper for ASR and selection of computer vision models.',
+    body: 'We support a wide variety of models including LLMs, such as Qwen 3, Llama 3.2, SmolLM2 and Hammer 21, as well as Clip for image embedding, Whisper for ASR and selection of computer vision models.',
   },
   {
     title: 'developer friendly',

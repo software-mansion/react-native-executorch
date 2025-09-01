@@ -3,7 +3,6 @@
   flex-direction: column;
   margin-top: 7.5rem;
   gap: 5rem;
-  /* max-width: 750px; */
 }
 
 .introduction {
@@ -129,7 +128,7 @@
     margin-top: 0rem;
   }
   .imageInnerContainer {
-    width: 18rem;
+    max-width: 50%;
   }
 }
 

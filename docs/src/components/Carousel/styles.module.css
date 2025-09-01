@@ -80,8 +80,13 @@
 }
 
 .slideTitle {
-  font-size: 24px;
+  font-size: 20px;
   margin-bottom: 1rem;
+}
+[data-theme='light'] .slideTitle {
+  font-size: 20px;
+  margin-bottom: 1rem;
+  color: var(--swm-navy-light-100);
 }
 
 .description {
@@ -113,6 +118,9 @@
   .slideTitle {
     font-size: 20px;
   }
+  .imageContainer {
+    height: 10rem;
+  }
 }
 
 @media (max-width: 768px) {
@@ -121,5 +129,8 @@
   }
   .prevButton {
     display: none;
+  }
+  .imageContainer {
+    height: 14rem;
   }
 }

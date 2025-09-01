@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from './styles.module.css';
 
-const ExecuTorchIntroduction = () => {
+const ReactNativeExecuTorchIntroduction = () => {
   return (
     <div className={styles.introductionContainer}>
       <h2 className={styles.title}>What is React Native ExecuTorch?</h2>
@@ -18,4 +18,4 @@ const ExecuTorchIntroduction = () => {
   );
 };
 
-export default ExecuTorchIntroduction;
+export default ReactNativeExecuTorchIntroduction;

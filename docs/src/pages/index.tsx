@@ -4,7 +4,7 @@ import Head from '@docusaurus/Head';
 import styles from './styles.module.css';
 import HomepageStartScreen from '@site/src/components/Hero/StartScreen';
 import WaveTop from '@site/src/components/Wave/WaveTop';
-import ExecuTorchIntroduction from '../components/ExecuTorchIntroduction';
+import ReactNativeExecuTorchIntroduction from '../components/ReactNativeExecuTorchIntroduction';
 import ReactNativeExecuTorchFeatures from '@site/src/components/ReactNativeExecuTorchFeatures';
 import { HireUsSection } from '@swmansion/t-rex-ui';
 import FooterBackground from '../components/FooterBackground';
@@ -29,7 +29,7 @@ const Home = () => {
       <div className={styles.linearGradient}>
         <WaveTop />
         <div className={styles.container}>
-          <ExecuTorchIntroduction />
+          <ReactNativeExecuTorchIntroduction />
           <ReactNativeExecuTorchFeatures />
           <ReactNativeExecutorchAction />
           <Carousel />
