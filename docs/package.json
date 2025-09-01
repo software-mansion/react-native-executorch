@@ -28,8 +28,7 @@
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.7.0",
-    "@docusaurus/tsconfig": "3.7.0",
-    "@types/react-slick": "^0"
+    "@docusaurus/tsconfig": "3.7.0"
   },
   "browserslist": {
     "production": [

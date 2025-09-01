@@ -3657,15 +3657,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-slick@npm:^0":
-  version: 0.23.13
-  resolution: "@types/react-slick@npm:0.23.13"
-  dependencies:
-    "@types/react": "npm:*"
-  checksum: 10/3e363220dd7efb7eb9d60aec80588365ddffb366cc75307b86ce83d84e6664d9a66edc9d796cc0b4f87bfd217fa912d4005a00c2a87c41b36fbe4412ae7a15a7
-  languageName: node
-  linkType: hard
-
 "@types/react@npm:*":
   version: 18.3.11
   resolution: "@types/react@npm:18.3.11"
@@ -5609,7 +5600,6 @@ __metadata:
     "@docusaurus/tsconfig": "npm:3.7.0"
     "@mdx-js/react": "npm:^3.0.0"
     "@swmansion/t-rex-ui": "npm:1.0.1"
-    "@types/react-slick": "npm:^0"
     clsx: "npm:^2.1.0"
     prism-react-renderer: "npm:^2.1.0"
     react: "npm:^18.2.0"
