@@ -36,10 +36,6 @@
   background-color: #2563eb;
   color: white;
   border-radius: 50%;
-  box-shadow:
-    0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  transition: background-color 0.15s ease-in-out;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -66,11 +62,25 @@
   align-items: center;
 }
 
+.title {
+  font-size: var(--swm-h2-font-size);
+}
+
+.titleContainer {
+  padding-bottom: 3rem;
+}
+
 .content {
   color: white;
 }
 
-.title {
+.swiper {
+  height: fit-content;
+  width: 100%;
+}
+
+.slideTitle {
+  font-size: 24px;
   margin-bottom: 1rem;
 }
 
@@ -97,6 +107,12 @@
   height: 100%;
   width: 100%;
   object-fit: cover;
+}
+
+@media (max-width: 996px) {
+  .slideTitle {
+    font-size: 20px;
+  }
 }
 
 @media (max-width: 768px) {
