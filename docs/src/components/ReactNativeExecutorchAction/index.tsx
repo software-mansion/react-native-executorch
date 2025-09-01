@@ -39,7 +39,7 @@ const ReactNativeExecutorchAction = () => {
           <div style={{ display: 'flex', width: '100%' }}>
             <div className={styles.downloadInnerContainer}>
               <div className={styles.appStore}>
-                <a href="https://apps.apple.com/pl/app/private-mind/id6746713439">
+                <a href="https://apps.apple.com/us/app/private-mind/id6746713439">
                   <AppStore height={'80px'} width={''} />
                 </a>
               </div>
