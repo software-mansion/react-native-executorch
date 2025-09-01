@@ -34,7 +34,7 @@ const ReactNativeExecutorchAction = () => {
         </div>
         <div className={styles.imageOuterContainer}>
           <div className={styles.imageInnerContainer}>
-            <PrivateMind height="" width="" />
+            <PrivateMind height="100%" width="100%" />
           </div>
           <div style={{ display: 'flex', width: '100%' }}>
             <div className={styles.downloadInnerContainer}>

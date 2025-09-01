@@ -9,6 +9,7 @@ import ReactNativeExecuTorchFeatures from '@site/src/components/ReactNativeExecu
 import { HireUsSection } from '@swmansion/t-rex-ui';
 import FooterBackground from '../components/FooterBackground';
 import ReactNativeExecutorchAction from '../components/ReactNativeExecutorchAction';
+import { Carousel } from '../components/Carousel';
 
 const Home = () => {
   return (
@@ -31,6 +32,7 @@ const Home = () => {
           <ExecuTorchIntroduction />
           <ReactNativeExecuTorchFeatures />
           <ReactNativeExecutorchAction />
+          <Carousel />
           <div className={styles.hireUsSection}>
             <HireUsSection
               href="https://swmansion.com/contact/projects?utm_source=react-native-executorch&utm_medium=docs"
