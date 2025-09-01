@@ -34,9 +34,11 @@ cv::Mat readImageToMatrix(const std::string &imageURI);
 /// @brief Create an OpenCV matrix based on a tensor content
 cv::Mat convertTensorToMatrix(cv::Size size, const Tensor &tensor);
 
-/// @brief Create a tensor based on an OpenCV matrix content. Please mind that
-/// for performance reasons matrix is passed by mutable reference
-TensorPtr covertMatrixToTensor(const std::vector<int32_t> &tensorDims,
-                               cv::Mat &input);
+cv::Size getSizeOfImageFromTensorDims(const std::vector<int32_t> &tensorDims);
+
+/// @brief Resize and convert color of an image passed as matrix
+/// to fit tensor requirements
+void adaptImageForTensor(const std::vector<int32_t> &tensorDims,
+                         cv::Mat &input);
 
 } // namespace rnexecutorch::image_processing

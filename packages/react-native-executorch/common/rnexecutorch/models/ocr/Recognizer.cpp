@@ -15,11 +15,8 @@ Recognizer::Recognizer(const std::string &modelSource,
     throw std::runtime_error("Recognizer model has no input tensors.");
   }
   std::vector<int32_t> modelInputShape = inputShapes[0];
-  if (modelInputShape.size() < 2) {
-    throw std::runtime_error("Unexpected Recognizer model input shape.");
-  }
-  modelImageSize = cv::Size(modelInputShape[modelInputShape.size() - 1],
-                            modelInputShape[modelInputShape.size() - 2]);
+  modelImageSize =
+      image_processing::getSizeOfImageFromTensorDims(modelInputShape);
 }
 
 std::pair<std::vector<int32_t>, float>

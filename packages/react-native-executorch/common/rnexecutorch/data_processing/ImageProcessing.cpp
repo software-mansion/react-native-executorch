@@ -175,7 +175,7 @@ cv::Mat convertTensorToMatrix(cv::Size size, const Tensor &tensor) {
       std::span<const float>(resultData, tensor.numel()), size);
 }
 
-static cv::Size getTensorSize(const std::vector<int32_t> &tensorDims) {
+cv::Size getSizeOfImageFromTensorDims(const std::vector<int32_t> &tensorDims) {
   if (tensorDims.size() < 2) {
     throw std::runtime_error(
         "Unexpected tensor size, expected at least 2 dimentions but got: " +
@@ -185,14 +185,11 @@ static cv::Size getTensorSize(const std::vector<int32_t> &tensorDims) {
   return {tensorDims[tensorDims.size() - 1], tensorDims[tensorDims.size() - 2]};
 }
 
-TensorPtr covertMatrixToTensor(const std::vector<int32_t> &tensorDims,
-                               cv::Mat &input) {
-
-  cv::Size tensorSize = getTensorSize(tensorDims);
+void adaptImageForTensor(const std::vector<int32_t> &tensorDims,
+                         cv::Mat &input) {
+  cv::Size tensorSize = getSizeOfImageFromTensorDims(tensorDims);
   cv::resize(input, input, tensorSize);
   cv::cvtColor(input, input, cv::COLOR_BGR2RGB);
-
-  return getTensorFromMatrix(tensorDims, input);
 }
 
 static cv::Scalar

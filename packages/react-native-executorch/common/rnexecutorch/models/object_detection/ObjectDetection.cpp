@@ -13,16 +13,8 @@ ObjectDetection::ObjectDetection(
     throw std::runtime_error("Model seems to not take any input tensors.");
   }
   std::vector<int32_t> modelInputShape = inputTensors[0];
-  if (modelInputShape.size() < 2) {
-    char errorMessage[100];
-    std::snprintf(errorMessage, sizeof(errorMessage),
-                  "Unexpected model input size, expected at least 2 dimentions "
-                  "but got: %zu.",
-                  modelInputShape.size());
-    throw std::runtime_error(errorMessage);
-  }
-  modelImageSize = cv::Size(modelInputShape[modelInputShape.size() - 1],
-                            modelInputShape[modelInputShape.size() - 2]);
+  modelImageSize =
+      image_processing::getSizeOfImageFromTensorDims(modelInputShape);
 }
 
 std::vector<types::Detection>
@@ -69,8 +61,10 @@ std::vector<types::Detection>
 ObjectDetection::generate(std::string imageSource, double detectionThreshold) {
   auto imageAsMatrix = image_processing::readImageToMatrix(imageSource);
   auto originalSize = imageAsMatrix.size();
-  auto inputTensor = image_processing::covertMatrixToTensor(
-      getAllInputShapes()[0], imageAsMatrix);
+  const auto tensorDims = getAllInputShapes()[0];
+  image_processing::adaptImageForTensor(tensorDims, imageAsMatrix);
+  auto inputTensor =
+      image_processing::getTensorFromMatrix(tensorDims, imageAsMatrix);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
