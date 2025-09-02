@@ -43,7 +43,6 @@ void normalize(std::span<float> input) {
 
 std::vector<float> meanPooling(std::span<const float> modelOutput,
                                std::span<const int64_t> attnMask) {
-
   if (attnMask.empty() || modelOutput.size() % attnMask.size() != 0) {
     std::stringstream ss;
     ss << "Invalid dimensions for mean pooling, expected model output size to "
