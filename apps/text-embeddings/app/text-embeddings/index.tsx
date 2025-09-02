@@ -22,7 +22,14 @@ export default function TextEmbeddingsScreenWrapper() {
 }
 
 function TextEmbeddingsScreen() {
-  const model = useTextEmbeddings({ model: ALL_MINILM_L6_V2 });
+  const model = useTextEmbeddings({
+    model: {
+      tokenizerSource:
+        'https://huggingface.co/aszymanska/bk-sdm-tiny-vpred/resolve/main/tokenizer/tokenizer.json',
+      modelSource:
+        'https://huggingface.co/aszymanska/bk-sdm-tiny-vpred/resolve/main/text_encoder/model.pte',
+    },
+  });
 
   const [inputSentence, setInputSentence] = useState('');
   const [sentencesWithEmbeddings, setSentencesWithEmbeddings] = useState<
@@ -37,16 +44,14 @@ function TextEmbeddingsScreen() {
       const computeEmbeddings = async () => {
         if (!model.isReady) return;
 
-        const sentences = [
-          'The weather is lovely today.',
-          "It's so sunny outside!",
-          'He drove to the stadium.',
-        ];
+        const sentences = ['a castle'];
 
         try {
           const embeddings = [];
           for (const sentence of sentences) {
             const embedding = await model.forward(sentence);
+            console.log(sentence, embedding.length);
+            console.log(embedding.slice(0, 5), embedding.slice(-5));
             embeddings.push({ sentence, embedding });
           }
 
