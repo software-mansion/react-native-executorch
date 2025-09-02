@@ -55,9 +55,8 @@ void RnExecutorchInstaller::injectJSIBindings(
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadObjectDetection",
-      RnExecutorchInstaller::loadModel<
-          models::object_detection::ObjectDetection>(jsiRuntime, jsCallInvoker,
-                                                     "loadObjectDetection"));
+      RnExecutorchInstaller::loadModel<models::object_detection::ObjectDetection>(
+          jsiRuntime, jsCallInvoker, "loadObjectDetection"));
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadExecutorchModule",

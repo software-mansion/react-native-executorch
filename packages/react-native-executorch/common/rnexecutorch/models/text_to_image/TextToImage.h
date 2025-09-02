@@ -33,9 +33,9 @@ public:
     const std::string &decoderSource,
     int imageSize,
     std::shared_ptr<react::CallInvoker> callInvoker);
- void generate(std::string input, int numSteps);
- size_t getMemoryLowerBound() const noexcept;
- void unload() noexcept;
+  void generate(std::string input, int numSteps);
+  size_t getMemoryLowerBound() const noexcept;
+  void unload() noexcept;
 
 protected:
   std::shared_ptr<react::CallInvoker> callInvoker;
@@ -46,9 +46,13 @@ protected:
 private:
   int modelImageSize;
   size_t memorySizeLowerBound;
+
+  float guidanceScale = 7.5;
+  int batchSize = 1;
 };
 } // namespace models::text_to_image
 
-REGISTER_CONSTRUCTOR(models::text_to_image::TextToImage, std::string, std::string, std::string, std::string, std::string, int,
+REGISTER_CONSTRUCTOR(models::text_to_image::TextToImage,
+                     std::string, std::string, std::string, std::string, std::string, int,
                      std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch
