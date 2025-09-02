@@ -11,6 +11,14 @@ declare global {
   var loadImageEmbeddings: (source: string) => any;
   var loadTextEmbeddings: (modelSource: string, tokenizerSource: string) => any;
   var loadLLM: (modelSource: string, tokenizerSource: string) => any;
+  var loadTextToImage: (
+    tokenizerSource: string,
+    schedulerSource: string,
+    encoderSource: string,
+    transformerSource: string,
+    decoderSource: string,
+    imageSize: number
+  ) => any;
   var loadSpeechToText: (
     encoderSource: string,
     decoderSource: string,
@@ -35,6 +43,7 @@ declare global {
 if (
   global.loadStyleTransfer == null ||
   global.loadImageSegmentation == null ||
+  global.loadTextToImage == null ||
   global.loadExecutorchModule == null ||
   global.loadClassification == null ||
   global.loadObjectDetection == null ||
@@ -68,6 +77,8 @@ export * from './hooks/natural_language_processing/useSpeechToText';
 export * from './hooks/natural_language_processing/useTextEmbeddings';
 export * from './hooks/natural_language_processing/useTokenizer';
 
+export * from './hooks/image_generation/useTextToImage';
+
 export * from './hooks/general/useExecutorchModule';
 
 // modules
@@ -84,6 +95,8 @@ export * from './modules/natural_language_processing/LLMModule';
 export * from './modules/natural_language_processing/SpeechToTextModule';
 export * from './modules/natural_language_processing/TextEmbeddingsModule';
 export * from './modules/natural_language_processing/TokenizerModule';
+
+export * from './modules/image_generation/TextToImageModule';
 
 // utils
 export * from './utils/ResourceFetcher';

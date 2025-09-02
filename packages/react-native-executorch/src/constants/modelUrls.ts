@@ -422,3 +422,18 @@ export const CLIP_VIT_BASE_PATCH32_TEXT = {
   modelSource: CLIP_VIT_BASE_PATCH32_TEXT_MODEL,
   tokenizerSource: CLIP_VIT_BASE_PATCH32_TEXT_TOKENIZER,
 };
+
+// Image generation
+export const BK_SDM_TINY_VPRED = {
+  schedulerSource:
+    'https://huggingface.co/aszymanska/bk-sdm-tiny-vpred/resolve/main/scheduler/scheduler_config.json',
+  tokenizerSource:
+    'https://huggingface.co/aszymanska/bk-sdm-tiny-vpred/resolve/main/tokenizer/tokenizer.json',
+  encoderSource:
+    'https://huggingface.co/aszymanska/bk-sdm-tiny-vpred/resolve/main/text_encoder/model.pte',
+  transformerSource:
+    'https://huggingface.co/aszymanska/bk-sdm-tiny-vpred/resolve/main/unet/model.pte',
+  decoderSource:
+    'https://huggingface.co/aszymanska/bk-sdm-tiny-vpred/resolve/main/vae/model.pte',
+  imageSize: 512,
+};
