@@ -1,13 +1,12 @@
 #pragma once
 
 #include <array>
-#include <string_view>
+#include <string>
 
 namespace rnexecutorch::models::text_to_image::constants {
-inline constexpr std::array<std::string_view, 21> kDeeplabV3Resnet50Labels = {
-    "BACKGROUND", "AEROPLANE",   "BICYCLE", "BIRD",  "BOAT",
-    "BOTTLE",     "BUS",         "CAR",     "CAT",   "CHAIR",
-    "COW",        "DININGTABLE", "DOG",     "HORSE", "MOTORBIKE",
-    "PERSON",     "POTTEDPLANT", "SHEEP",   "SOFA",  "TRAIN",
-    "TVMONITOR"};
+
+inline constexpr std::string kBosToken = "<|startoftext|>";
+
 } // namespace rnexecutorch::models::text_to_image::constants
+
+// export this "<|startoftext|>" as kBosToken

@@ -3,6 +3,8 @@
 #include <future>
 #include <memory>
 #include <string>
+#include <cmath>
+#include <random>
 
 #include <executorch/extension/tensor/tensor.h>
 
@@ -12,6 +14,7 @@
 #include <rnexecutorch/models/text_to_image/Constants.h>
 #include <rnexecutorch/models/embeddings/text/TextEmbeddings.h>
 #include <rnexecutorch/Log.h>
+#include <rnexecutorch/models/text_to_image/Constants.h>
 #include <ReactCommon/CallInvoker.h>
 #include <rnexecutorch/models/BaseModel.h>
 
@@ -32,14 +35,52 @@ TextToImage::TextToImage(
 void TextToImage::generate(std::string input, int numSteps) {
   log(LOG_LEVEL::Info, "Prompt:", input);
   std::shared_ptr<OwningArrayBuffer> embeddings = encoder->generate(input);
-  float* data = reinterpret_cast<float*>(embeddings->data());
-  int n = embeddings->size() / sizeof(data[0]);
-  log(LOG_LEVEL::Info, "Embeddings:", n, "\n", data[0], data[1], data[2], "...", data[n-3], data[n-2], data[n-1]);
+  float* logData = reinterpret_cast<float*>(embeddings->data());
+  int n = embeddings->size() / sizeof(logData[0]);
+  log(LOG_LEVEL::Info, "Embeddings:", n, "\n", logData[0], logData[1], logData[2], "...", logData[n-3], logData[n-2], logData[n-1]);
 
-  std::shared_ptr<OwningArrayBuffer> uncond_embeddings = encoder->generate("<|startoftext|>");
-  data = reinterpret_cast<float*>(uncond_embeddings->data());
-  n = uncond_embeddings->size() / sizeof(data[0]);
-  log(LOG_LEVEL::Info, "Uncond embeddings:", n, "\n", data[0], data[1], data[2], "...", data[n-3], data[n-2], data[n-1]);
+  std::shared_ptr<OwningArrayBuffer> uncondEmbeddings = encoder->generate(constants::kBosToken);
+  logData = reinterpret_cast<float*>(uncondEmbeddings->data());
+  n = uncondEmbeddings->size() / sizeof(logData[0]);
+  log(LOG_LEVEL::Info, "Uncond embeddings:", n, "\n", logData[0], logData[1], logData[2], "...", logData[n-3], logData[n-2], logData[n-1]);
+
+
+  size_t concatSize = embeddings->size() + uncondEmbeddings->size();
+  auto concatEmbeddings = std::make_shared<rnexecutorch::OwningArrayBuffer>(concatSize);
+  std::memcpy(concatEmbeddings->data(), uncondEmbeddings->data(),
+              uncondEmbeddings->size());
+  std::memcpy(concatEmbeddings->data() + uncondEmbeddings->size(),
+              embeddings->data(), embeddings->size());
+
+  float* concatData = reinterpret_cast<float*>(concatEmbeddings->data());
+  n = concatSize / sizeof(concatData[0]);
+  log(LOG_LEVEL::Info, "Text embeddings:", n, "\n", concatData[0],
+      concatData[1], concatData[2], "...", concatData[n - 3],
+      concatData[n - 2], concatData[n - 1]);
+
+
+  // const inChannels = 4;
+  // const latent_height = Math.floor(this.height / 8);
+  // const latent_width = Math.floor(this.width / 8);
+  int numChannels = 4;
+  int latentWidth = std::floor(modelImageSize / 8);
+
+  // const shape = [BATCH_SIZE, inChannels, latent_height, latent_width];
+  // let latentsTensor = randomNormalTensor(shape);
+
+  int latentSize = numChannels * batchSize * latentWidth * latentWidth;
+  auto buffer = std::make_shared<OwningArrayBuffer>(latentSize * sizeof(float));
+  float* data = reinterpret_cast<float*>(buffer->data());
+
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::normal_distribution<float> dist(0.0, 1.0);
+  for (int i = 0; i < latentSize; i++) {
+    data[i] = dist(gen);
+  }
+
+  // this.scheduler.set_timesteps(numInferenceSteps);
+  // const timesteps = this.scheduler.timesteps;
 }
 
 size_t TextToImage::getMemoryLowerBound() const noexcept {
