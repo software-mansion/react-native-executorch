@@ -105,7 +105,7 @@ void RnExecutorchInstaller::injectJSIBindings(
   auto num_of_cores = static_cast<uint32_t>(num_of_perf_cores / 2) + 1;
   ::executorch::extension::threadpool::get_threadpool()
       ->_unsafe_reset_threadpool(num_of_cores);
-  log(LOG_LEVEL::Info, "Configuring xnnpack for ", num_of_cores, " threads", );
+  log(LOG_LEVEL::Info, "Configuring xnnpack for ", num_of_cores, " threads");
 #endif
 }
 
