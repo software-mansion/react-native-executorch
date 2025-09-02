@@ -53,8 +53,6 @@ void normalize(std::vector<float> &v) {
 
 std::vector<float> meanPooling(std::span<const float> modelOutput,
                                std::span<const int64_t> attnMask) {
-<<<<<<< HEAD
-=======
   if (attnMask.empty() || modelOutput.size() % attnMask.size() != 0) {
     std::stringstream ss;
     ss << "Invalid dimensions for mean pooling, expected model output size to "
@@ -65,7 +63,6 @@ std::vector<float> meanPooling(std::span<const float> modelOutput,
     throw std::invalid_argument(ss.str());
   }
 
->>>>>>> b31c32ff (Remove `std::format` from c++ code to support _LIBCPP_STD_VER < 20 (#571))
   auto attnMaskLength = attnMask.size();
   auto embeddingDim = modelOutput.size() / attnMaskLength;
 
