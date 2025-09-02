@@ -68,4 +68,6 @@ private:
   std::vector<Word>
   estimateWordLevelTimestampsLinear(std::span<const int32_t> tokens,
                                     int32_t start, int32_t end) const;
+
+  float getCompressionRatio(const std::string &text) const;
 };

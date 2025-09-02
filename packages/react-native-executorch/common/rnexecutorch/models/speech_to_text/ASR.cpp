@@ -3,6 +3,7 @@
 #include "ASR.h"
 #include "executorch/extension/tensor/tensor_ptr.h"
 #include "rnexecutorch/data_processing/dsp.h"
+#include "rnexecutorch/data_processing/gzip.h"
 
 ASR::ASR(const std::string &encoderSource, const std::string &decoderSource,
          const std::string &tokenizerSource,
@@ -91,6 +92,12 @@ std::vector<float> ASR::softmaxWithTemperature(std::span<const float> logits,
   return exps;
 }
 
+float ASR::getCompressionRatio(const std::string &text) const {
+  std::string compressed = gzip::deflate(text);
+  return static_cast<float>(text.size()) /
+         static_cast<float>(compressed.size());
+}
+
 std::vector<Segment>
 ASR::generateWithFallback(std::span<const float> waveform,
                           const DecodingOptions &options) const {
@@ -104,9 +111,11 @@ ASR::generateWithFallback(std::span<const float> waveform,
         scores.begin(), scores.end(), 0.0f, std::plus<>(),
         [](float s) { return std::log(std::max(s, 1e-9f)); });
 
-    float avgLogProb = cumLogProb / tokens.size();
+    float avgLogProb = cumLogProb / (tokens.size() + 1);
+    std::string text = this->tokenizer->decode(tokens, true);
+    float compressionRatio = this->getCompressionRatio(text);
 
-    if (avgLogProb >= -1.0f) {
+    if (avgLogProb >= -1.0f && compressionRatio < 2.4f) {
       bestTokens = tokens;
       break;
     }

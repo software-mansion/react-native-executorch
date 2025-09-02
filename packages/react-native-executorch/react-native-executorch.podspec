@@ -76,6 +76,8 @@ Pod::Spec.new do |s|
     "common/**/*.{cpp,c,h,hpp}",
   ]
 
+  s.libraries = "z"
+
   # Exclude file with tests to not introduce gtest dependency.
   # Do not include the headers from common/rnexecutorch/jsi/ as source files. 
   # Xcode/Cocoapods leaks them to other pods that an app also depends on, so if 
