@@ -30,7 +30,16 @@ TextToImage::TextToImage(
     modelImageSize(imageSize) {}
 
 void TextToImage::generate(std::string input, int numSteps) {
-  log(LOG_LEVEL::Info, "Input cpp:", input);
+  log(LOG_LEVEL::Info, "Prompt:", input);
+  std::shared_ptr<OwningArrayBuffer> embeddings = encoder->generate(input);
+  float* data = reinterpret_cast<float*>(embeddings->data());
+  int n = embeddings->size() / sizeof(data[0]);
+  log(LOG_LEVEL::Info, "Embeddings:", n, "\n", data[0], data[1], data[2], "...", data[n-3], data[n-2], data[n-1]);
+
+  std::shared_ptr<OwningArrayBuffer> uncond_embeddings = encoder->generate("<|startoftext|>");
+  data = reinterpret_cast<float*>(uncond_embeddings->data());
+  n = uncond_embeddings->size() / sizeof(data[0]);
+  log(LOG_LEVEL::Info, "Uncond embeddings:", n, "\n", data[0], data[1], data[2], "...", data[n-3], data[n-2], data[n-1]);
 }
 
 size_t TextToImage::getMemoryLowerBound() const noexcept {
