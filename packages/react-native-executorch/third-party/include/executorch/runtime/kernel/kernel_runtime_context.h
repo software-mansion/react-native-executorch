@@ -15,7 +15,7 @@
 #include <executorch/runtime/platform/compiler.h>
 
 namespace executorch {
-namespace runtime {
+namespace ET_RUNTIME_NAMESPACE {
 
 /**
  * Runtime state and functionality for kernel implementations.
@@ -98,7 +98,7 @@ private:
   Error failure_state_ = Error::Ok;
 };
 
-} // namespace runtime
+} // namespace ET_RUNTIME_NAMESPACE
 } // namespace executorch
 
 // TODO(T197294990): Remove these deprecated aliases once all users have moved
@@ -106,15 +106,15 @@ private:
 namespace torch {
 namespace executor {
 /// DEPRECATED: Use ::executorch::runtime::KernelRuntimeContext instead.
-using ::executorch::runtime::KernelRuntimeContext;
+using ::executorch::ET_RUNTIME_NAMESPACE::KernelRuntimeContext;
 /// DEPRECATED: Use ::executorch::runtime::KernelRuntimeContext instead.
-using RuntimeContext = ::executorch::runtime::KernelRuntimeContext;
+using RuntimeContext = ::executorch::ET_RUNTIME_NAMESPACE::KernelRuntimeContext;
 } // namespace executor
 } // namespace torch
 namespace executorch {
 namespace aten {
 /// DEPRECATED: Use ::executorch::runtime::KernelRuntimeContext instead.
-using RuntimeContext = ::executorch::runtime::KernelRuntimeContext;
+using RuntimeContext = ::executorch::ET_RUNTIME_NAMESPACE::KernelRuntimeContext;
 } // namespace aten
 } // namespace executorch
 // DEPRECATED: The executorch::aten:: namespace is deprecated. Use
