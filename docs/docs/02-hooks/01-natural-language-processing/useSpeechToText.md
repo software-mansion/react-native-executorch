@@ -80,8 +80,8 @@ For more information on loading resources, take a look at [loading models](../..
 | --------------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `transcribe`                | `(waveform: number[], options?: DecodingOptions \| undefined) => Promise<string>` | Starts a transcription process for a given input array, which should be a waveform at 16kHz. The second argument is an options object, e.g. `{ language: 'es' }` for multilingual models. Resolves a promise with the output transcription when the model is finished. |
 | `stream`                    | `() => Promise<string>`                                                           | Starts a streaming transcription process. Use in combination with `streamInsert` to feed audio chunks and `streamStop` to end the stream. Updates `committedTranscription` and `nonCommittedTranscription` as transcription progresses.                                |
-| `streamInsert`              | `(waveform: number[]) => void`                                                    | Inserts a chunk of audio data (sampled at 16kHz) into the ongoing streaming transcription. Call this repeatedly as new audio data becomes available.                                                                                                                   |
-| `streamStop`                | `() => void`                                                                      | Stops the ongoing streaming transcription process.                                                                                                                                                                                                                     |
+| `streamInsert`              | `(waveform: number[]) => Promise<void>`                                           | Inserts a chunk of audio data (sampled at 16kHz) into the ongoing streaming transcription. Call this repeatedly as new audio data becomes available.                                                                                                                   |
+| `streamStop`                | `() => Promise<void>`                                                             | Stops the ongoing streaming transcription process.                                                                                                                                                                                                                     |
 | `encode`                    | `(waveform: Float32Array) => Promise<void>`                                       | Runs the encoding part of the model on the provided waveform. Stores the result internally.                                                                                                                                                                            |
 | `decode`                    | `(tokens: number[]) => Promise<Float32Array>`                                     | Runs the decoder of the model. Returns the decoded waveform as a Float32Array.                                                                                                                                                                                         |
 | `committedTranscription`    | `string`                                                                          | Contains the part of the transcription that is finalized and will not change. Useful for displaying stable results during streaming.                                                                                                                                   |
@@ -282,7 +282,7 @@ function App() {
   const handleStartStreamingTranscribe = async () => {
     recorder.onAudioReady(async ({ buffer }) => {
       const bufferArray = Array.from(buffer.getChannelData(0));
-      model.streamInsert(bufferArray);
+      await model.streamInsert(bufferArray);
     });
     recorder.start();
 
@@ -295,7 +295,7 @@ function App() {
 
   const handleStopStreamingTranscribe = async () => {
     recorder.stop();
-    model.streamStop();
+    await model.streamStop();
   };
 
   return (

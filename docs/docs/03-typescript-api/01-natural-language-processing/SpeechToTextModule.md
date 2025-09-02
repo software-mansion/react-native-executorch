@@ -26,8 +26,8 @@ await model.transcribe(waveform);
 | `decode`       | `(tokens: number[]): Promise<Float32Array>`                                                                | Runs the decoder of the model. Returns the decoded waveform as a Float32Array.                                                                                               |
 | `transcribe`   | `(waveform: number[], options?: DecodingOptions): Promise<string>`                                         | Starts a transcription process for a given input array (16kHz waveform). For multilingual models, specify the language in `options`. Returns the transcription as a string.  |
 | `stream`       | `(options?: DecodingOptions): AsyncGenerator<{ committed: string; nonCommitted: string }>`                 | Starts a streaming transcription session. Yields objects with `committed` and `nonCommitted` transcriptions. Use with `streamInsert` and `streamStop` to control the stream. |
-| `streamStop`   | `(): void`                                                                                                 | Stops the current streaming transcription session.                                                                                                                           |
-| `streamInsert` | `(waveform: number[]): void`                                                                               | Inserts a new audio chunk into the streaming transcription session.                                                                                                          |
+| `streamStop`   | `(): Promise<void>`                                                                                        | Stops the current streaming transcription session.                                                                                                                           |
+| `streamInsert` | `(waveform: number[]): Promise<void>`                                                                      | Inserts a new audio chunk into the streaming transcription session.                                                                                                          |
 
 :::info
 
@@ -231,7 +231,7 @@ const recorder = new AudioRecorder({
 recorder.onAudioReady(async ({ buffer }) => {
   const bufferArray = Array.from(buffer.getChannelData(0));
   // Insert the audio into the streaming transcription
-  model.streamInsert(bufferArray);
+  await model.streamInsert(bufferArray);
 });
 recorder.start();
 
@@ -248,6 +248,6 @@ try {
 }
 
 // Stop streaming transcription
-model.streamStop();
+await model.streamStop();
 recorder.stop();
 ```
