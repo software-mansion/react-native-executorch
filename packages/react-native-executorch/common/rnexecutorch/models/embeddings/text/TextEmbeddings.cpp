@@ -16,7 +16,6 @@ TextEmbeddings::TextEmbeddings(const std::string &modelSource,
 
 TokenIdsWithAttentionMask TextEmbeddings::preprocess(const std::string &input) {
   auto inputIds = tokenizer->encode(input);
-  log(LOG_LEVEL::Info, "Tokens ", inputIds.size(), inputIds[0], inputIds[1], inputIds[2]);
   // Tokenizers-cpp return tokens as int32, but text embedding models require
   // int64 as input
   std::vector<int64_t> inputIds64;
@@ -24,7 +23,6 @@ TokenIdsWithAttentionMask TextEmbeddings::preprocess(const std::string &input) {
   for (const auto &tok : inputIds) {
     inputIds64.push_back(static_cast<int64_t>(tok));
   }
-  log(LOG_LEVEL::Info, "Tokens64 ", inputIds64.size(), inputIds64[0], inputIds64[1], inputIds64[2]);
 
   std::vector<int64_t> attentionMask;
   attentionMask.reserve(inputIds.size());
@@ -51,7 +49,6 @@ TextEmbeddings::generate(const std::string input) {
       attnMaskShape, preprocessed.attentionMask.data(), ScalarType::Long);
 
   auto forwardResult = BaseModel::forward({tokenIds, attnMask});
-  // log(LOG_LEVEL::Info, "Embedding ", forwardResult.size(), forwardResult[0], forwardResult[1], forwardResult[2]);
   if (!forwardResult.ok()) {
     throw std::runtime_error(
         "Function forward in TextEmbeddings failed with error code: " +
