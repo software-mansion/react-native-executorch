@@ -5,16 +5,13 @@
 #include "rnexecutorch/data_processing/dsp.h"
 #include "rnexecutorch/data_processing/gzip.h"
 
-ASR::ASR(const std::string &encoderSource, const std::string &decoderSource,
-         const std::string &tokenizerSource,
-         std::shared_ptr<react::CallInvoker> callInvoker)
-    : EncoderDecoderBase(encoderSource, decoderSource, callInvoker),
-      tokenizer(
-          std::make_unique<TokenizerModule>(tokenizerSource, callInvoker)),
+ASR::ASR(const models::BaseModel &encoder, const models::BaseModel &decoder,
+         const TokenizerModule &tokenizer)
+    : encoder(encoder), decoder(decoder), tokenizer(tokenizer),
       startOfTranscriptionToken(
-          this->tokenizer->tokenToId("<|startoftranscript|>")),
-      endOfTranscriptionToken(this->tokenizer->tokenToId("<|endoftext|>")),
-      timestampBeginToken(this->tokenizer->tokenToId("<|0.00|>")) {}
+          this->tokenizer.tokenToId("<|startoftranscript|>")),
+      endOfTranscriptionToken(this->tokenizer.tokenToId("<|endoftext|>")),
+      timestampBeginToken(this->tokenizer.tokenToId("<|0.00|>")) {}
 
 std::vector<int32_t>
 ASR::getInitialSequence(const DecodingOptions &options) const {
@@ -23,8 +20,8 @@ ASR::getInitialSequence(const DecodingOptions &options) const {
 
   if (options.language.has_value()) {
     int32_t langToken =
-        tokenizer->tokenToId("<|" + options.language.value() + "|>");
-    int32_t taskToken = tokenizer->tokenToId("<|transcribe|>");
+        this->tokenizer.tokenToId("<|" + options.language.value() + "|>");
+    int32_t taskToken = this->tokenizer.tokenToId("<|transcribe|>");
     seq.push_back(langToken);
     seq.push_back(taskToken);
   }
@@ -34,9 +31,9 @@ ASR::getInitialSequence(const DecodingOptions &options) const {
   return seq;
 }
 
-std::pair<std::vector<int32_t>, std::vector<float>>
-ASR::generate(std::span<const float> waveform, float temperature,
-              const DecodingOptions &options) const {
+GenerationResult ASR::generate(std::span<const float> waveform,
+                               float temperature,
+                               const DecodingOptions &options) const {
   std::vector<float> encoderOutput = this->encode(waveform);
 
   std::vector<int32_t> sequenceIds = this->getInitialSequence(options);
@@ -112,7 +109,7 @@ ASR::generateWithFallback(std::span<const float> waveform,
         [](float s) { return std::log(std::max(s, 1e-9f)); });
 
     float avgLogProb = cumLogProb / (tokens.size() + 1);
-    std::string text = this->tokenizer->decode(tokens, true);
+    std::string text = this->tokenizer.decode(tokens, true);
     float compressionRatio = this->getCompressionRatio(text);
 
     if (avgLogProb >= -1.0f && compressionRatio < 2.4f) {
@@ -175,7 +172,7 @@ std::vector<Word>
 ASR::estimateWordLevelTimestampsLinear(std::span<const int32_t> tokens,
                                        int32_t start, int32_t end) const {
   const std::vector<int32_t> tokensVec(tokens.begin(), tokens.end());
-  std::string segmentText = this->tokenizer->decode(tokensVec, true);
+  std::string segmentText = this->tokenizer.decode(tokensVec, true);
   std::istringstream iss(segmentText);
   std::vector<std::string> wordsStr;
   std::string word;
@@ -247,7 +244,7 @@ std::vector<float> ASR::encode(std::span<const float> waveform) const {
 
   const auto modelInputTensor = executorch::extension::make_tensor_ptr(
       std::move(inputShape), std::move(preprocessedData));
-  const auto encoderResult = this->encoder_->forward(modelInputTensor);
+  const auto encoderResult = this->encoder.forward(modelInputTensor);
 
   if (!encoderResult.ok()) {
     throw std::runtime_error(
@@ -258,8 +255,7 @@ std::vector<float> ASR::encode(std::span<const float> waveform) const {
   const auto decoderOutputTensor = encoderResult.get().at(0).toTensor();
   const int32_t outputNumel = decoderOutputTensor.numel();
 
-  const float *const dataPtr =
-      static_cast<const float *>(decoderOutputTensor.const_data_ptr());
+  const float *const dataPtr = decoderOutputTensor.const_data_ptr<float>();
   std::span<const float> encoderOutputSpan(dataPtr, outputNumel);
 
   std::vector<float> encoderOutput(encoderOutputSpan.begin(),
@@ -284,7 +280,7 @@ std::vector<float> ASR::decode(std::span<const int32_t> tokens,
       std::move(encShape), std::move(encVec));
 
   const auto decoderResult =
-      this->decoder_->forward({tokenTensor, encoderTensor});
+      this->decoder.forward({tokenTensor, encoderTensor});
 
   if (!decoderResult.ok()) {
     throw std::runtime_error(
@@ -299,8 +295,7 @@ std::vector<float> ASR::decode(std::span<const int32_t> tokens,
   const size_t dictSize = logitsTensor.size(2);
 
   const float *const dataPtr =
-      static_cast<const float *>(logitsTensor.const_data_ptr()) +
-      (innerDim - 1) * dictSize;
+      logitsTensor.const_data_ptr<float>() + (innerDim - 1) * dictSize;
   std::span<const float> logitsSpan(dataPtr, outputNumel / innerDim);
 
   return std::vector<float>(logitsSpan.begin(), logitsSpan.end());

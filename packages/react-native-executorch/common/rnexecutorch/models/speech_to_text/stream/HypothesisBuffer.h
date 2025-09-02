@@ -1,9 +1,8 @@
 #pragma once
 
-#include "Word.h"
 #include <span>
-#include <string>
-#include <vector>
+
+#include "rnexecutorch/models/speech_to_text/types/Word.h"
 
 class HypothesisBuffer {
 public:
@@ -12,9 +11,9 @@ public:
   void popCommitted(float time);
   std::vector<Word> complete() const;
 
+private:
   float lastCommittedTime = 0.0f;
 
-private:
   std::vector<Word> committedInBuffer;
   std::vector<Word> buffer;
   std::vector<Word> fresh;

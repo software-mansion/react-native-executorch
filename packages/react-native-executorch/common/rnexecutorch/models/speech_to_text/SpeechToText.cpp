@@ -1,9 +1,6 @@
-#include <chrono>
-#include <stdexcept>
 #include <thread>
 
 #include "SpeechToText.h"
-#include "rnexecutorch/Log.h"
 
 namespace rnexecutorch::models::speech_to_text {
 
@@ -13,28 +10,33 @@ SpeechToText::SpeechToText(const std::string &encoderSource,
                            const std::string &decoderSource,
                            const std::string &tokenizerSource,
                            std::shared_ptr<react::CallInvoker> callInvoker)
-    : callInvoker(callInvoker),
-      ASR(encoderSource, decoderSource, tokenizerSource, callInvoker),
-      processor(OnlineASRProcessor(this)), isStreaming(false),
-      readyToProcess(false) {}
+    : callInvoker(std::move(callInvoker)),
+      encoder(std::make_unique<BaseModel>(encoderSource, this->callInvoker)),
+      decoder(std::make_unique<BaseModel>(decoderSource, this->callInvoker)),
+      tokenizer(std::make_unique<TokenizerModule>(tokenizerSource,
+                                                  this->callInvoker)),
+      asr(std::make_unique<ASR>(*this->encoder, *this->decoder,
+                                *this->tokenizer)),
+      processor(std::make_unique<OnlineASRProcessor>(*this->asr)),
+      isStreaming(false), readyToProcess(false) {}
 
 std::shared_ptr<OwningArrayBuffer>
-SpeechToText::encode(std::vector<float> waveform) {
-  std::vector<float> encoderOutput = ASR::encode(waveform);
+SpeechToText::encode(std::vector<float> waveform) const {
+  std::vector<float> encoderOutput = this->asr->encode(waveform);
   return this->makeOwningBuffer(encoderOutput);
 }
 
 std::shared_ptr<OwningArrayBuffer>
 SpeechToText::decode(std::vector<int32_t> tokens,
-                     std::vector<float> encoderOutput) {
-  std::vector<float> decoderOutput = ASR::decode(tokens, encoderOutput);
+                     std::vector<float> encoderOutput) const {
+  std::vector<float> decoderOutput = this->asr->decode(tokens, encoderOutput);
   return this->makeOwningBuffer(decoderOutput);
 }
 
 std::string SpeechToText::transcribe(std::vector<float> waveform,
-                                     std::string languageOption) {
+                                     std::string languageOption) const {
   std::vector<Segment> segments =
-      ASR::transcribe(waveform, DecodingOptions(languageOption));
+      this->asr->transcribe(waveform, DecodingOptions(languageOption));
   std::string transcription;
   for (auto &segment : segments) {
     for (auto &word : segment.words) {
@@ -44,13 +46,19 @@ std::string SpeechToText::transcribe(std::vector<float> waveform,
   return transcription;
 }
 
+size_t SpeechToText::getMemoryLowerBound() const noexcept {
+  return this->encoder->getMemoryLowerBound() +
+         this->decoder->getMemoryLowerBound() +
+         this->tokenizer->getMemoryLowerBound();
+}
+
 std::shared_ptr<OwningArrayBuffer>
-SpeechToText::makeOwningBuffer(std::span<const float> vectorView) {
-  auto owniningArrayBuffer =
+SpeechToText::makeOwningBuffer(std::span<const float> vectorView) const {
+  auto owningArrayBuffer =
       std::make_shared<OwningArrayBuffer>(vectorView.size_bytes());
-  std::memcpy(owniningArrayBuffer->data(), vectorView.data(),
+  std::memcpy(owningArrayBuffer->data(), vectorView.data(),
               vectorView.size_bytes());
-  return owniningArrayBuffer;
+  return owningArrayBuffer;
 }
 
 void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
@@ -75,17 +83,17 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
   this->isStreaming = true;
   while (this->isStreaming) {
     if (!this->readyToProcess ||
-        this->processor.audioBuffer.size() < SpeechToText::minAudioSamples) {
+        this->processor->audioBuffer.size() < SpeechToText::minAudioSamples) {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
       continue;
     }
     ProcessResult res =
-        this->processor.processIter(DecodingOptions(languageOption));
+        this->processor->processIter(DecodingOptions(languageOption));
     nativeCallback(res.committed, res.nonCommitted, false);
     this->readyToProcess = false;
   }
 
-  std::string committed = this->processor.finish();
+  std::string committed = this->processor->finish();
   nativeCallback(committed, "", true);
 }
 
@@ -95,14 +103,14 @@ void SpeechToText::streamInsert(std::vector<float> waveform) {
   if (!this->isStreaming) {
     throw std::runtime_error("Streaming is not started");
   }
-  this->processor.insertAudioChunk(waveform);
+  this->processor->insertAudioChunk(waveform);
   this->readyToProcess = true;
 }
 
 void SpeechToText::resetStreamState() {
   this->isStreaming = false;
   this->readyToProcess = false;
-  this->processor = OnlineASRProcessor(this);
+  this->processor = std::make_unique<OnlineASRProcessor>(*this->asr);
 }
 
 } // namespace rnexecutorch::models::speech_to_text

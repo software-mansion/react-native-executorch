@@ -1,6 +1,4 @@
 #include "HypothesisBuffer.h"
-#include <algorithm>
-#include <cmath>
 
 void HypothesisBuffer::insert(std::span<const Word> newWords, float offset) {
   std::vector<Word> newWordsOffset;

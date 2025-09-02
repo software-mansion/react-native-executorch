@@ -1,15 +1,13 @@
 #include "OnlineASRProcessor.h"
-#include <algorithm>
-#include <sstream>
 
-OnlineASRProcessor::OnlineASRProcessor(ASR *asr) : asr(asr) {}
+OnlineASRProcessor::OnlineASRProcessor(ASR &asr) : asr(asr) {}
 
 void OnlineASRProcessor::insertAudioChunk(std::span<const float> audio) {
   audioBuffer.insert(audioBuffer.end(), audio.begin(), audio.end());
 }
 
 ProcessResult OnlineASRProcessor::processIter(const DecodingOptions &options) {
-  std::vector<Segment> res = asr->transcribe(audioBuffer, options);
+  std::vector<Segment> res = asr.transcribe(audioBuffer, options);
 
   std::vector<Word> tsw;
   for (const auto &segment : res) {

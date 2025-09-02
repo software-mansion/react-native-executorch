@@ -1,14 +1,7 @@
 #pragma once
 
-#include <memory>
-#include <span>
-#include <string>
-#include <vector>
-
-#include "ASR.h"
-#include "DecodingOptions.h"
-#include "HypothesisBuffer.h"
-#include "Segment.h"
+#include "rnexecutorch/models/speech_to_text/asr/ASR.h"
+#include "rnexecutorch/models/speech_to_text/stream/HypothesisBuffer.h"
 
 struct ProcessResult {
   std::string committed;
@@ -17,7 +10,7 @@ struct ProcessResult {
 
 class OnlineASRProcessor {
 public:
-  explicit OnlineASRProcessor(ASR *asr);
+  explicit OnlineASRProcessor(ASR &asr);
 
   void insertAudioChunk(std::span<const float> audio);
   ProcessResult processIter(const DecodingOptions &options);
@@ -26,7 +19,7 @@ public:
   std::vector<float> audioBuffer;
 
 private:
-  ASR *asr;
+  ASR &asr;
   constexpr static int samplingRate = 16000;
 
   HypothesisBuffer transcriptBuffer;
