@@ -17,10 +17,10 @@ public:
                         const std::string &tokenizerSource,
                         std::shared_ptr<react::CallInvoker> callInvoker);
 
-  std::shared_ptr<OwningArrayBuffer> encode(std::vector<float> waveform) const;
+  std::shared_ptr<OwningArrayBuffer> encode(std::span<float> waveform) const;
   std::shared_ptr<OwningArrayBuffer>
-  decode(std::vector<int32_t> tokens, std::vector<float> encoderOutput) const;
-  std::string transcribe(std::vector<float> waveform,
+  decode(std::span<int32_t> tokens, std::span<float> encoderOutput) const;
+  std::string transcribe(std::span<float> waveform,
                          std::string languageOption) const;
 
   size_t getMemoryLowerBound() const noexcept;
@@ -29,7 +29,7 @@ public:
   void stream(std::shared_ptr<jsi::Function> callback,
               std::string languageOption);
   void streamStop();
-  void streamInsert(std::vector<float> waveform);
+  void streamInsert(std::span<float> waveform);
 
 private:
   std::unique_ptr<BaseModel> encoder;

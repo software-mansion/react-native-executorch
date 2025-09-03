@@ -21,19 +21,19 @@ SpeechToText::SpeechToText(const std::string &encoderSource,
       isStreaming(false), readyToProcess(false) {}
 
 std::shared_ptr<OwningArrayBuffer>
-SpeechToText::encode(std::vector<float> waveform) const {
+SpeechToText::encode(std::span<float> waveform) const {
   std::vector<float> encoderOutput = this->asr->encode(waveform);
   return this->makeOwningBuffer(encoderOutput);
 }
 
 std::shared_ptr<OwningArrayBuffer>
-SpeechToText::decode(std::vector<int32_t> tokens,
-                     std::vector<float> encoderOutput) const {
+SpeechToText::decode(std::span<int32_t> tokens,
+                     std::span<float> encoderOutput) const {
   std::vector<float> decoderOutput = this->asr->decode(tokens, encoderOutput);
   return this->makeOwningBuffer(decoderOutput);
 }
 
-std::string SpeechToText::transcribe(std::vector<float> waveform,
+std::string SpeechToText::transcribe(std::span<float> waveform,
                                      std::string languageOption) const {
   std::vector<Segment> segments =
       this->asr->transcribe(waveform, DecodingOptions(languageOption));
@@ -99,7 +99,7 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
 
 void SpeechToText::streamStop() { this->isStreaming = false; }
 
-void SpeechToText::streamInsert(std::vector<float> waveform) {
+void SpeechToText::streamInsert(std::span<float> waveform) {
   if (!this->isStreaming) {
     throw std::runtime_error("Streaming is not started");
   }
