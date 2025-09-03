@@ -45,13 +45,13 @@ GenerationResult ASR::generate(std::span<const float> waveform,
   while (sequenceIds.size() <= ASR::kMaxDecodeLength) {
     std::vector<float> logits = this->decode(sequenceIds, encoderOutput);
     std::vector<float> probs = this->softmaxWithTemperature(
-        logits, (temperature == 0 ? 1.0f : temperature));
+        logits, (temperature == 0.0f ? 1.0f : temperature));
 
     int32_t nextId;
     float nextProb;
 
     if (temperature == 0.0f) {
-      auto maxIt = std::max_element(probs.begin(), probs.end());
+      auto maxIt = std::ranges::max_element(probs);
       nextId = static_cast<int32_t>(std::distance(probs.begin(), maxIt));
       nextProb = *maxIt;
     } else {
@@ -76,17 +76,18 @@ GenerationResult ASR::generate(std::span<const float> waveform,
 
 std::vector<float> ASR::softmaxWithTemperature(std::span<const float> logits,
                                                float temperature) const {
-  const float maxLogit = *std::max_element(logits.begin(), logits.end());
+  const float maxLogit = *std::ranges::max_element(logits);
 
   std::vector<float> exps(logits.size());
-  std::transform(logits.begin(), logits.end(), exps.begin(), [=](float logit) {
-    return std::exp((logit - maxLogit) / temperature);
-  });
+  std::ranges::transform(logits, exps.begin(),
+                         [maxLogit, temperature](float logit) {
+                           return std::exp((logit - maxLogit) / temperature);
+                         });
 
-  const float sumExp = std::accumulate(exps.begin(), exps.end(), 0.0f);
+  const float sumExp = std::reduce(exps.begin(), exps.end());
 
-  std::transform(exps.begin(), exps.end(), exps.begin(),
-                 [=](float value) { return value / sumExp; });
+  std::ranges::transform(exps, exps.begin(),
+                         [sumExp](float value) { return value / sumExp; });
 
   return exps;
 }
@@ -100,10 +101,10 @@ float ASR::getCompressionRatio(const std::string &text) const {
 std::vector<Segment>
 ASR::generateWithFallback(std::span<const float> waveform,
                           const DecodingOptions &options) const {
-  std::vector<float> temps = {0.0f, 0.2f, 0.4f, 0.6f, 0.8f, 1.0f};
+  std::vector<float> temperatures = {0.0f, 0.2f, 0.4f, 0.6f, 0.8f, 1.0f};
   std::vector<int32_t> bestTokens;
 
-  for (float t : temps) {
+  for (auto t : temperatures) {
     auto [tokens, scores] = this->generate(waveform, t, options);
 
     float cumLogProb = std::transform_reduce(
@@ -126,6 +127,12 @@ ASR::generateWithFallback(std::span<const float> waveform,
 std::vector<Segment>
 ASR::calculateWordLevelTimestamps(std::span<const int32_t> generatedTokens,
                                   const std::span<const float> waveform) const {
+  if (generatedTokens.size() < 2 ||
+      generatedTokens[generatedTokens.size() - 1] !=
+          this->endOfTranscriptionToken ||
+      generatedTokens[generatedTokens.size() - 2] < this->timestampBeginToken) {
+    return {};
+  }
   std::vector<Segment> segments;
   std::vector<int32_t> tokens;
   int32_t prevTimestamp = this->timestampBeginToken;
@@ -140,7 +147,7 @@ ASR::calculateWordLevelTimestamps(std::span<const int32_t> generatedTokens,
       int32_t end = generatedTokens[i - 1];
       auto words = this->estimateWordLevelTimestampsLinear(tokens, start, end);
       if (words.size()) {
-        segments.push_back({words, 0.0});
+        segments.emplace_back(words, 0.0);
       }
       tokens.clear();
       prevTimestamp = generatedTokens[i];
@@ -152,7 +159,7 @@ ASR::calculateWordLevelTimestamps(std::span<const int32_t> generatedTokens,
   auto words = this->estimateWordLevelTimestampsLinear(tokens, start, end);
 
   if (words.size()) {
-    segments.emplace_back(Segment{words, 0.0});
+    segments.emplace_back(words, 0.0);
   }
 
   float scalingFactor =
@@ -179,23 +186,26 @@ ASR::estimateWordLevelTimestampsLinear(std::span<const int32_t> tokens,
   std::vector<std::string> wordsStr;
   std::string word;
   while (iss >> word) {
-    wordsStr.push_back(" " + word);
+    wordsStr.emplace_back(" ");
+    wordsStr.back().append(word);
   }
 
   int32_t numChars = 0;
-  for (auto &w : wordsStr)
+  for (auto &w : wordsStr) {
     numChars += static_cast<int32_t>(w.size());
+  }
 
   float duration = (end - start) * ASR::kTimePrecision;
   float timePerChar = duration / std::max(1, numChars);
   float startOffset = (start - timestampBeginToken) * ASR::kTimePrecision;
 
   std::vector<Word> wordObjs;
+  wordObjs.reserve(wordsStr.size());
   int32_t prevCharCount = 0;
   for (auto &w : wordsStr) {
     float wStart = startOffset + prevCharCount * timePerChar;
     float wEnd = wStart + timePerChar * w.size();
-    wordObjs.push_back({w, wStart, wEnd});
+    wordObjs.emplace_back(w, wStart, wEnd);
     prevCharCount += w.size();
   }
 
@@ -209,15 +219,20 @@ std::vector<Segment> ASR::transcribe(std::span<const float> waveform,
 
   while (seek * ASR::kSamplingRate < waveform.size()) {
     int32_t start = seek * ASR::kSamplingRate;
-    int32_t end = std::min<int32_t>(
-        (seek + ASR::kChunkSize) * ASR::kSamplingRate, waveform.size());
+    auto end = std::min<int32_t>((seek + ASR::kChunkSize) * ASR::kSamplingRate,
+                                 waveform.size());
     std::span<const float> chunk = waveform.subspan(start, end - start);
 
     if (chunk.size() < ASR::kMinChunkSamples) {
       break;
     }
 
-    auto segments = this->generateWithFallback(chunk, options);
+    std::vector<Segment> segments = this->generateWithFallback(chunk, options);
+
+    if (segments.empty()) {
+      seek += ASR::kChunkSize;
+      continue;
+    }
 
     for (auto &seg : segments) {
       for (auto &w : seg.words) {
@@ -226,8 +241,9 @@ std::vector<Segment> ASR::transcribe(std::span<const float> waveform,
       }
     }
 
-    results.insert(results.end(), segments.begin(), segments.end());
     seek = static_cast<int>(segments.back().words.back().end);
+    results.insert(results.end(), std::make_move_iterator(segments.begin()),
+                   std::make_move_iterator(segments.end()));
   }
 
   return results;
@@ -240,7 +256,8 @@ std::vector<float> ASR::encode(std::span<const float> waveform) const {
 
   const std::vector<float> preprocessedData =
       dsp::stftFromWaveform(waveform, fftWindowSize, stftHopLength);
-  const int32_t numFrames = preprocessedData.size() / innerDim;
+  const auto numFrames =
+      static_cast<int32_t>(preprocessedData.size()) / innerDim;
   const std::vector<int32_t> inputShape = {static_cast<int32_t>(numFrames),
                                            innerDim};
 
@@ -258,12 +275,7 @@ std::vector<float> ASR::encode(std::span<const float> waveform) const {
   const int32_t outputNumel = decoderOutputTensor.numel();
 
   const float *const dataPtr = decoderOutputTensor.const_data_ptr<float>();
-  std::span<const float> encoderOutputSpan(dataPtr, outputNumel);
-
-  std::vector<float> encoderOutput(encoderOutputSpan.begin(),
-                                   encoderOutputSpan.end());
-
-  return encoderOutput;
+  return std::vector<float>(dataPtr, dataPtr + outputNumel);
 }
 
 std::vector<float> ASR::decode(std::span<const int32_t> tokens,
@@ -274,7 +286,7 @@ std::vector<float> ASR::decode(std::span<const int32_t> tokens,
   auto tokenTensor = executorch::extension::make_tensor_ptr(
       std::move(tokenShape), std::move(tokenVec));
 
-  const int32_t encoderOutputSize = encoderOutput.size();
+  const auto encoderOutputSize = static_cast<int32_t>(encoderOutput.size());
   const std::vector<int32_t> encShape = {1, ASR::kNumFrames,
                                          encoderOutputSize / ASR::kNumFrames};
   std::vector<float> encVec(encoderOutput.begin(), encoderOutput.end());
@@ -298,9 +310,8 @@ std::vector<float> ASR::decode(std::span<const int32_t> tokens,
 
   const float *const dataPtr =
       logitsTensor.const_data_ptr<float>() + (innerDim - 1) * dictSize;
-  std::span<const float> logitsSpan(dataPtr, outputNumel / innerDim);
 
-  return std::vector<float>(logitsSpan.begin(), logitsSpan.end());
+  return std::vector<float>(dataPtr, dataPtr + outputNumel / innerDim);
 }
 
 } // namespace rnexecutorch::models::speech_to_text::asr

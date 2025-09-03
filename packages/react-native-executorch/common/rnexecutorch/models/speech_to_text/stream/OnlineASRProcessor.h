@@ -30,8 +30,7 @@ private:
   void chunkCompletedSegment(std::span<const Segment> res);
   void chunkAt(float time);
 
-  std::tuple<float, float, std::string>
-  toFlush(std::span<const Word> words) const;
+  std::string toFlush(const std::deque<Word> &words) const;
 };
 
 } // namespace rnexecutorch::models::speech_to_text::stream

@@ -23,7 +23,8 @@ std::string deflate(const std::string &input) {
   std::string out;
   out.reserve(input.size() / 2 + kReservePad);
 
-  strm.next_in = reinterpret_cast<Bytef *>(const_cast<char *>(input.data()));
+  strm.next_in = reinterpret_cast<z_const Bytef *>(
+      const_cast<z_const char *>(input.data()));
   strm.avail_in = static_cast<uInt>(input.size());
 
   std::vector<unsigned char> buf(kChunkSize);

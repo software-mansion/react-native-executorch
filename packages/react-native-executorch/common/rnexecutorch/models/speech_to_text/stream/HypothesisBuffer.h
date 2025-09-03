@@ -1,5 +1,6 @@
 #pragma once
 
+#include <deque>
 #include <span>
 
 #include "rnexecutorch/models/speech_to_text/types/Word.h"
@@ -11,16 +12,16 @@ using namespace types;
 class HypothesisBuffer {
 public:
   void insert(std::span<const Word> newWords, float offset);
-  std::vector<Word> flush();
+  std::deque<Word> flush();
   void popCommitted(float time);
-  std::vector<Word> complete() const;
+  std::deque<Word> complete() const;
 
 private:
   float lastCommittedTime = 0.0f;
 
-  std::vector<Word> committedInBuffer;
-  std::vector<Word> buffer;
-  std::vector<Word> fresh;
+  std::deque<Word> committedInBuffer;
+  std::deque<Word> buffer;
+  std::deque<Word> fresh;
 };
 
 } // namespace rnexecutorch::models::speech_to_text::stream
