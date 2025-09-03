@@ -15,7 +15,7 @@ declare global {
     tokenizerSource: string,
     schedulerSource: string,
     encoderSource: string,
-    transformerSource: string,
+    unetSource: string,
     decoderSource: string,
     imageSize: number
   ) => any;

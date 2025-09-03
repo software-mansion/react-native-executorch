@@ -8,7 +8,7 @@ export class TextToImageModule extends BaseModule {
       tokenizerSource: ResourceSource;
       schedulerSource: ResourceSource;
       encoderSource: ResourceSource;
-      transformerSource: ResourceSource;
+      unetSource: ResourceSource;
       decoderSource: ResourceSource;
       imageSize: number;
     },
@@ -26,9 +26,9 @@ export class TextToImageModule extends BaseModule {
       onDownloadProgressCallback,
       model.encoderSource
     );
-    const transformerPromise = ResourceFetcher.fetch(
+    const unetPromise = ResourceFetcher.fetch(
       onDownloadProgressCallback,
-      model.transformerSource
+      model.unetSource
     );
     const decoderPromise = ResourceFetcher.fetch(
       onDownloadProgressCallback,
@@ -38,25 +38,25 @@ export class TextToImageModule extends BaseModule {
       tokenizerResult,
       schedulerResult,
       encoderResult,
-      transformerResult,
+      unetResult,
       decoderResult,
     ] = await Promise.all([
       tokenizerPromise,
       schedulerPromise,
       encoderPromise,
-      transformerPromise,
+      unetPromise,
       decoderPromise,
     ]);
     const tokenizerPath = tokenizerResult?.[0];
     const schedulerPath = schedulerResult?.[0];
     const encoderPath = encoderResult?.[0];
-    const transformerPath = transformerResult?.[0];
+    const unetPath = unetResult?.[0];
     const decoderPath = decoderResult?.[0];
     if (
       !tokenizerPath ||
       !schedulerPath ||
       !encoderPath ||
-      !transformerPath ||
+      !unetPath ||
       !decoderPath
     ) {
       throw new Error('Download interrupted.');
@@ -65,7 +65,7 @@ export class TextToImageModule extends BaseModule {
       tokenizerPath,
       schedulerPath,
       encoderPath,
-      transformerPath,
+      unetPath,
       decoderPath,
       model.imageSize
     );
