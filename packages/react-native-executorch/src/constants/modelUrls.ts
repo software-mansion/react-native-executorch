@@ -431,7 +431,7 @@ export const BK_SDM_TINY_VPRED = {
     'https://huggingface.co/aszymanska/bk-sdm-tiny-vpred/resolve/main/tokenizer/tokenizer.json',
   encoderSource:
     'https://huggingface.co/aszymanska/bk-sdm-tiny-vpred/resolve/main/text_encoder/model.pte',
-  transformerSource:
+  unetSource:
     'https://huggingface.co/aszymanska/bk-sdm-tiny-vpred/resolve/main/unet/model.pte',
   decoderSource:
     'https://huggingface.co/aszymanska/bk-sdm-tiny-vpred/resolve/main/vae/model.pte',

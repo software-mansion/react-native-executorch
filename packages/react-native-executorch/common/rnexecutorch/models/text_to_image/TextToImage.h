@@ -14,6 +14,7 @@
 #include <rnexecutorch/models/BaseModel.h>
 #include <rnexecutorch/models/text_to_image/Constants.h>
 #include <rnexecutorch/models/text_to_image/Scheduler.h>
+#include <rnexecutorch/models/text_to_image/UNet.h>
 #include <rnexecutorch/models/embeddings/text/TextEmbeddings.h>
 #include <ReactCommon/CallInvoker.h>
 
@@ -30,7 +31,7 @@ public:
     const std::string &tokenizerSource,
     const std::string &schedulerSource,
     const std::string &encoderSource,
-    const std::string &transformerSource,
+    const std::string &unetSource,
     const std::string &decoderSource,
     int imageSize,
     std::shared_ptr<react::CallInvoker> callInvoker);
@@ -42,7 +43,7 @@ protected:
   std::shared_ptr<react::CallInvoker> callInvoker;
   std::unique_ptr<Scheduler> scheduler;
   std::unique_ptr<embeddings::TextEmbeddings> encoder;
-  std::unique_ptr<BaseModel> transformer;
+  std::unique_ptr<UNet> unet;
   std::unique_ptr<BaseModel> decoder;
 
 private:
