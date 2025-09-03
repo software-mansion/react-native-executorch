@@ -1,6 +1,12 @@
 #pragma once
 
 #include <ReactCommon/CallInvoker.h>
+#include <sstream>
+#include <string>
+#include <thread>
+#include <tuple>
+#include <type_traits>
+
 #include <memory.h>
 #include <rnexecutorch/TokenizerModule.h>
 #include <rnexecutorch/host_objects/JSTensorViewOut.h>
@@ -10,12 +16,9 @@
 #include <rnexecutorch/metaprogramming/FunctionHelpers.h>
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
 #include <rnexecutorch/models/BaseModel.h>
+#include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/ocr/OCR.h>
 #include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
-#include <string>
-#include <thread>
-#include <tuple>
-#include <type_traits>
 
 namespace rnexecutorch {
 
@@ -24,18 +27,18 @@ public:
   explicit ModelHostObject(const std::shared_ptr<Model> &model,
                            std::shared_ptr<react::CallInvoker> callInvoker)
       : model(model), callInvoker(callInvoker) {
-    if constexpr (meta::DerivedFromOrSameAs<Model, BaseModel>) {
+    if constexpr (meta::DerivedFromOrSameAs<Model, models::BaseModel>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }
 
-    if constexpr (meta::DerivedFromOrSameAs<Model, BaseModel>) {
+    if constexpr (meta::DerivedFromOrSameAs<Model, models::BaseModel>) {
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::forwardJS>,
                                        "forward"));
     }
 
-    if constexpr (meta::DerivedFromOrSameAs<Model, BaseModel>) {
+    if constexpr (meta::DerivedFromOrSameAs<Model, models::BaseModel>) {
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>, promiseHostFunction<&Model::getInputShape>,
           "getInputShape"));
@@ -77,12 +80,26 @@ public:
                                        promiseHostFunction<&Model::tokenToId>,
                                        "tokenToId"));
     }
-    if constexpr (meta::SameAs<Model, OCR>) {
+
+    if constexpr (meta::SameAs<Model, models::llm::LLM>) {
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::generate>,
+                                       "generate"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>, synchronousHostFunction<&Model::interrupt>,
+          "interrupt"));
+
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }
 
-    if constexpr (meta::SameAs<Model, VerticalOCR>) {
+    if constexpr (meta::SameAs<Model, models::ocr::OCR>) {
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
+    }
+
+    if constexpr (meta::SameAs<Model, models::ocr::VerticalOCR>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }
@@ -93,10 +110,10 @@ public:
   template <auto FnPtr> JSI_HOST_FUNCTION(synchronousHostFunction) {
     constexpr std::size_t functionArgCount = meta::getArgumentCount(FnPtr);
     if (functionArgCount != count) {
-      char errorMessage[100];
-      std::snprintf(errorMessage, sizeof(errorMessage),
-                    "Argument count mismatch, was expecting: %zu but got: %zu",
-                    functionArgCount, count);
+      std::stringstream ss;
+      ss << "Argument count mismatch, was expecting: " << functionArgCount
+         << " but got: " << count;
+      const auto errorMessage = ss.str();
       throw jsi::JSError(runtime, errorMessage);
     }
 
@@ -112,7 +129,7 @@ public:
         // For non-void functions, capture the result and convert it
         auto result =
             std::apply(std::bind_front(FnPtr, model), std::move(argsConverted));
-        return jsiconversion::getJsiValue(std::move(result), runtime);
+        return jsi_conversion::getJsiValue(std::move(result), runtime);
       }
     } catch (const std::runtime_error &e) {
       // This catch should be merged with the next one
@@ -129,6 +146,9 @@ public:
     }
   }
 
+  // A generic host function that resolves a promise with a result of a
+  // function. JSI arguments are converted to the types provided in the function
+  // signature, and the return value is converted back to JSI before resolving.
   template <auto FnPtr> JSI_HOST_FUNCTION(promiseHostFunction) {
     auto promise = Promise::createPromise(
         runtime, callInvoker,
@@ -136,11 +156,10 @@ public:
           constexpr std::size_t functionArgCount =
               meta::getArgumentCount(FnPtr);
           if (functionArgCount != count) {
-            char errorMessage[100];
-            std::snprintf(
-                errorMessage, sizeof(errorMessage),
-                "Argument count mismatch, was expecting: %zu but got: %zu",
-                functionArgCount, count);
+            std::stringstream ss;
+            ss << "Argument count mismatch, was expecting: " << functionArgCount
+               << " but got: " << count;
+            const auto errorMessage = ss.str();
             promise->reject(errorMessage);
             return;
           }
@@ -171,11 +190,11 @@ public:
                                            std::move(argsConverted));
                   // The result is copied. It should either be quickly copiable,
                   // or passed with a shared_ptr.
-                  callInvoker->invokeAsync([promise,
-                                            result](jsi::Runtime &runtime) {
-                    promise->resolve(
-                        jsiconversion::getJsiValue(std::move(result), runtime));
-                  });
+                  callInvoker->invokeAsync(
+                      [promise, result](jsi::Runtime &runtime) {
+                        promise->resolve(jsi_conversion::getJsiValue(
+                            std::move(result), runtime));
+                      });
                 }
               } catch (const std::runtime_error &e) {
                 // This catch should be merged with the next two

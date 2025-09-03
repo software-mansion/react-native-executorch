@@ -23,7 +23,7 @@ template <typename... Types, std::size_t... I>
 std::tuple<Types...> fillTupleFromArgs(std::index_sequence<I...>,
                                        const jsi::Value *args,
                                        jsi::Runtime &runtime) {
-  return std::make_tuple(jsiconversion::getValue<Types>(args[I], runtime)...);
+  return std::make_tuple(jsi_conversion::getValue<Types>(args[I], runtime)...);
 }
 
 /**

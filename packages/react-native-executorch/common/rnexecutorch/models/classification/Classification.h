@@ -5,9 +5,11 @@
 #include <executorch/extension/tensor/tensor_ptr.h>
 #include <opencv2/opencv.hpp>
 
+#include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
 #include <rnexecutorch/models/BaseModel.h>
 
 namespace rnexecutorch {
+namespace models::classification {
 using executorch::aten::Tensor;
 using executorch::extension::TensorPtr;
 
@@ -22,5 +24,8 @@ private:
 
   cv::Size modelImageSize{0, 0};
 };
+} // namespace models::classification
 
+REGISTER_CONSTRUCTOR(models::classification::Classification, std::string,
+                     std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch
