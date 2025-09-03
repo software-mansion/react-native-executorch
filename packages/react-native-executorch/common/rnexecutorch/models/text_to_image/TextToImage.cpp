@@ -12,6 +12,7 @@
 #include <rnexecutorch/data_processing/Numerical.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/models/text_to_image/Constants.h>
+#include <rnexecutorch/models/text_to_image/Scheduler.h>
 #include <rnexecutorch/models/embeddings/text/TextEmbeddings.h>
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/models/text_to_image/Constants.h>
@@ -29,10 +30,11 @@ TextToImage::TextToImage(
   int imageSize,
   std::shared_ptr<react::CallInvoker> callInvoker)
   : callInvoker(callInvoker),
+    scheduler(std::make_unique<Scheduler>(schedulerSource, callInvoker)),
     encoder(std::make_unique<embeddings::TextEmbeddings>(encoderSource, tokenizerSource, callInvoker)),
     modelImageSize(imageSize) {}
 
-void TextToImage::generate(std::string input, int numSteps) {
+void TextToImage::generate(std::string input, int numInferenceSteps) {
   log(LOG_LEVEL::Info, "Prompt:", input);
   std::shared_ptr<OwningArrayBuffer> embeddings = encoder->generate(input);
   float* logData = reinterpret_cast<float*>(embeddings->data());
@@ -58,16 +60,8 @@ void TextToImage::generate(std::string input, int numSteps) {
       concatData[1], concatData[2], "...", concatData[n - 3],
       concatData[n - 2], concatData[n - 1]);
 
-
-  // const inChannels = 4;
-  // const latent_height = Math.floor(this.height / 8);
-  // const latent_width = Math.floor(this.width / 8);
   int numChannels = 4;
   int latentWidth = std::floor(modelImageSize / 8);
-
-  // const shape = [BATCH_SIZE, inChannels, latent_height, latent_width];
-  // let latentsTensor = randomNormalTensor(shape);
-
   int latentSize = numChannels * batchSize * latentWidth * latentWidth;
   auto buffer = std::make_shared<OwningArrayBuffer>(latentSize * sizeof(float));
   float* data = reinterpret_cast<float*>(buffer->data());
@@ -79,8 +73,12 @@ void TextToImage::generate(std::string input, int numSteps) {
     data[i] = dist(gen);
   }
 
-  // this.scheduler.set_timesteps(numInferenceSteps);
-  // const timesteps = this.scheduler.timesteps;
+  scheduler->setTimesteps(numInferenceSteps);
+  std::vector<int> timesteps = scheduler->timesteps;
+  // log(LOG_LEVEL::Info, "Timesteps:");
+  // for (auto t : timesteps) {
+  //   log(LOG_LEVEL::Info, t);
+  // }
 }
 
 size_t TextToImage::getMemoryLowerBound() const noexcept {

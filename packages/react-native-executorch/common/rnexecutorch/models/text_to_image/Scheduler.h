@@ -5,23 +5,23 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <stdexcept>
 #include <map>
 #include <cmath>
 
-// !!!
-#define TensorPtr int
 namespace rnexecutorch {
 namespace models::text_to_image {
 
 using namespace facebook;
+// using executorch::aten::Tensor;
 // using executorch::extension::TensorPtr;
 
 class Scheduler {
 public:
   explicit Scheduler(std::string source,
-                           std::shared_ptr<react::CallInvoker> callInvoker);
+                    std::shared_ptr<react::CallInvoker> callInvoker);
   void setTimesteps(int numInferenceSteps);
-  void step(TensorPtr model_output, int timestep, TensorPtr sample);
+  std::vector<float> step(const std::vector<float> & sample, const std::vector<float> & noise, int timestep);
 
   std::vector<int> timesteps;
 
@@ -34,16 +34,16 @@ private:
   std::vector<float> betas;
   std::vector<float> alphas;
   std::vector<float> alphasCumprod;
+  std::vector<float> curSample;
+  std::vector<std::vector<float>> ets;
   float finalAlphaCumprod{1.0f};
   float initNoiseSigma{1.0f};
 
   int counter{0};
-  TensorPtr curSample{0}; // nullptr
-  std::vector<TensorPtr> ets;
   int numInferenceSteps{-1};
   std::vector<int> _timesteps;
 
-  void getPrevSample(TensorPtr sample, int timestep, int prevTimestep, TensorPtr modelOutput);
+  std::vector<float> getPrevSample(const std::vector<float> & sample, const std::vector<float> noise, int timestep, int prevTimestep);
 };
 } // namespace models::text_to_image
 

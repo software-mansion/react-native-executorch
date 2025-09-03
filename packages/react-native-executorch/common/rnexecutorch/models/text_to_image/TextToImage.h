@@ -13,6 +13,7 @@
 #include <rnexecutorch/jsi/OwningArrayBuffer.h>
 #include <rnexecutorch/models/BaseModel.h>
 #include <rnexecutorch/models/text_to_image/Constants.h>
+#include <rnexecutorch/models/text_to_image/Scheduler.h>
 #include <rnexecutorch/models/embeddings/text/TextEmbeddings.h>
 #include <ReactCommon/CallInvoker.h>
 
@@ -33,12 +34,13 @@ public:
     const std::string &decoderSource,
     int imageSize,
     std::shared_ptr<react::CallInvoker> callInvoker);
-  void generate(std::string input, int numSteps);
+  void generate(std::string input, int numInferenceSteps); // return std::shared_ptr<OwningArrayBuffer>
   size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
 
 protected:
   std::shared_ptr<react::CallInvoker> callInvoker;
+  std::unique_ptr<Scheduler> scheduler;
   std::unique_ptr<embeddings::TextEmbeddings> encoder;
   std::unique_ptr<BaseModel> transformer;
   std::unique_ptr<BaseModel> decoder;
