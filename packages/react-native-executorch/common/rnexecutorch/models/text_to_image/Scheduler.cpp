@@ -141,7 +141,6 @@ std::vector<float> Scheduler::getPrevSample(const std::vector<float> & sample, c
 // executorch out: Result<std::vector<EValue>>
 //       auto forwardResultTensor = forwardResult->at(0).toTensor();
 //       auto dataPtr = forwardResultTensor.const_data_ptr();
-// model out: std::shared_ptr<OwningArrayBuffer>
 
 // component in: std::vector<EValue>[]
 //    make_tensor_ptr(shape, data, ScalarType::Long)

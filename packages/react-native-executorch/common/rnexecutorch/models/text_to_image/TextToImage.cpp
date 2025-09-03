@@ -13,6 +13,7 @@
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/models/text_to_image/Constants.h>
 #include <rnexecutorch/models/text_to_image/Scheduler.h>
+#include <rnexecutorch/models/text_to_image/UNet.h>
 #include <rnexecutorch/models/embeddings/text/TextEmbeddings.h>
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/models/text_to_image/Constants.h>
@@ -25,13 +26,14 @@ TextToImage::TextToImage(
   const std::string &tokenizerSource,
   const std::string &schedulerSource,
   const std::string &encoderSource,
-  const std::string &transformerSource,
+  const std::string &unetSource,
   const std::string &decoderSource,
   int imageSize,
   std::shared_ptr<react::CallInvoker> callInvoker)
   : callInvoker(callInvoker),
     scheduler(std::make_unique<Scheduler>(schedulerSource, callInvoker)),
     encoder(std::make_unique<embeddings::TextEmbeddings>(encoderSource, tokenizerSource, callInvoker)),
+    unet(std::make_unique<UNet>(unetSource, callInvoker)),
     modelImageSize(imageSize) {}
 
 void TextToImage::generate(std::string input, int numInferenceSteps) {
