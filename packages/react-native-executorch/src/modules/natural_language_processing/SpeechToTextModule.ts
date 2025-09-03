@@ -1,3 +1,4 @@
+import { Logger } from '../../common/Logger';
 import { DecodingOptions, SpeechToTextModelConfig } from '../../types/stt';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 
@@ -37,24 +38,51 @@ export class SpeechToTextModule {
     );
   }
 
-  public async encode(waveform: number[]): Promise<Float32Array> {
+  public async encode(
+    waveform: Float32Array | number[]
+  ): Promise<Float32Array> {
+    if (Array.isArray(waveform)) {
+      Logger.info(
+        'Passing waveform as number[] is deprecated, use Float32Array instead'
+      );
+      waveform = new Float32Array(waveform);
+    }
     return new Float32Array(await this.nativeModule.encode(waveform));
   }
 
   public async decode(
-    tokens: number[],
-    encoderOutput: number[]
+    tokens: Int32Array | number[],
+    encoderOutput: Float32Array | number[]
   ): Promise<Int32Array> {
+    if (Array.isArray(tokens)) {
+      Logger.info(
+        'Passing tokens as number[] is deprecated, use Int32Array instead'
+      );
+      tokens = new Int32Array(tokens);
+    }
+    if (Array.isArray(encoderOutput)) {
+      Logger.info(
+        'Passing encoderOutput as number[] is deprecated, use Float32Array instead'
+      );
+      encoderOutput = new Float32Array(encoderOutput);
+    }
     return new Int32Array(
       await this.nativeModule.decode(tokens, encoderOutput)
     );
   }
 
   public async transcribe(
-    waveform: number[],
+    waveform: Float32Array | number[],
     options: DecodingOptions = {}
   ): Promise<string> {
     this.validateOptions(options);
+
+    if (Array.isArray(waveform)) {
+      Logger.info(
+        'Passing waveform as number[] is deprecated, use Float32Array instead'
+      );
+      waveform = new Float32Array(waveform);
+    }
 
     return this.nativeModule.transcribe(waveform, options.language || '');
   }
@@ -109,7 +137,13 @@ export class SpeechToTextModule {
     }
   }
 
-  public async streamInsert(waveform: number[]): Promise<void> {
+  public async streamInsert(waveform: Float32Array | number[]): Promise<void> {
+    if (Array.isArray(waveform)) {
+      Logger.info(
+        'Passing waveform as number[] is deprecated, use Float32Array instead'
+      );
+      waveform = new Float32Array(waveform);
+    }
     return this.nativeModule.streamInsert(waveform);
   }
 
