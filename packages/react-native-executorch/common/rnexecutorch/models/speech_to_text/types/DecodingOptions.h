@@ -3,6 +3,8 @@
 #include <optional>
 #include <string>
 
+namespace rnexecutorch::models::speech_to_text::types {
+
 struct DecodingOptions {
   explicit DecodingOptions(const std::string &language)
       : language(language.empty() ? std::nullopt
@@ -10,3 +12,5 @@ struct DecodingOptions {
 
   const std::optional<std::string> language;
 };
+
+} // namespace rnexecutorch::models::speech_to_text::types

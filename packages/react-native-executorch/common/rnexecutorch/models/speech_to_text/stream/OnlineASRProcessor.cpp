@@ -1,5 +1,7 @@
 #include "OnlineASRProcessor.h"
 
+namespace rnexecutorch::models::speech_to_text::stream {
+
 OnlineASRProcessor::OnlineASRProcessor(ASR &asr) : asr(asr) {}
 
 void OnlineASRProcessor::insertAudioChunk(std::span<const float> audio) {
@@ -92,3 +94,5 @@ OnlineASRProcessor::toFlush(std::span<const Word> words) const {
   float e = words.empty() ? -1.0f : words.back().end;
   return {b, e, oss.str()};
 }
+
+} // namespace rnexecutorch::models::speech_to_text::stream

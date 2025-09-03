@@ -1,14 +1,12 @@
 #pragma once
 
-#include <vector>
-
-#include "Word.h"
+#include <string>
 
 namespace rnexecutorch::models::speech_to_text::types {
 
-struct Segment {
-  std::vector<Word> words;
-  float noSpeechProbability;
+struct ProcessResult {
+  std::string committed;
+  std::string nonCommitted;
 };
 
 } // namespace rnexecutorch::models::speech_to_text::types

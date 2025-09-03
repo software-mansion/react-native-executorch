@@ -1,5 +1,7 @@
 #include "HypothesisBuffer.h"
 
+namespace rnexecutorch::models::speech_to_text::stream {
+
 void HypothesisBuffer::insert(std::span<const Word> newWords, float offset) {
   std::vector<Word> newWordsOffset;
   newWordsOffset.reserve(newWords.size());
@@ -75,3 +77,5 @@ void HypothesisBuffer::popCommitted(float time) {
 }
 
 std::vector<Word> HypothesisBuffer::complete() const { return buffer; }
+
+} // namespace rnexecutorch::models::speech_to_text::stream

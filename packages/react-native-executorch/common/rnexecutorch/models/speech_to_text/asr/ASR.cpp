@@ -5,6 +5,8 @@
 #include "rnexecutorch/data_processing/dsp.h"
 #include "rnexecutorch/data_processing/gzip.h"
 
+namespace rnexecutorch::models::speech_to_text::asr {
+
 ASR::ASR(const models::BaseModel &encoder, const models::BaseModel &decoder,
          const TokenizerModule &tokenizer)
     : encoder(encoder), decoder(decoder), tokenizer(tokenizer),
@@ -300,3 +302,5 @@ std::vector<float> ASR::decode(std::span<const int32_t> tokens,
 
   return std::vector<float>(logitsSpan.begin(), logitsSpan.end());
 }
+
+} // namespace rnexecutorch::models::speech_to_text::asr

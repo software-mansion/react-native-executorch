@@ -2,11 +2,12 @@
 
 #include "rnexecutorch/models/speech_to_text/asr/ASR.h"
 #include "rnexecutorch/models/speech_to_text/stream/HypothesisBuffer.h"
+#include "rnexecutorch/models/speech_to_text/types/ProcessResult.h"
 
-struct ProcessResult {
-  std::string committed;
-  std::string nonCommitted;
-};
+namespace rnexecutorch::models::speech_to_text::stream {
+
+using namespace asr;
+using namespace types;
 
 class OnlineASRProcessor {
 public:
@@ -32,3 +33,5 @@ private:
   std::tuple<float, float, std::string>
   toFlush(std::span<const Word> words) const;
 };
+
+} // namespace rnexecutorch::models::speech_to_text::stream

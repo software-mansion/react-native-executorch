@@ -6,7 +6,9 @@
 #include "rnexecutorch/models/speech_to_text/types/GenerationResult.h"
 #include "rnexecutorch/models/speech_to_text/types/Segment.h"
 
-using namespace rnexecutorch;
+namespace rnexecutorch::models::speech_to_text::asr {
+
+using namespace types;
 
 class ASR {
 public:
@@ -57,3 +59,5 @@ private:
                                     int32_t start, int32_t end) const;
   float getCompressionRatio(const std::string &text) const;
 };
+
+} // namespace rnexecutorch::models::speech_to_text::asr

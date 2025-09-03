@@ -4,6 +4,10 @@
 
 #include "rnexecutorch/models/speech_to_text/types/Word.h"
 
+namespace rnexecutorch::models::speech_to_text::stream {
+
+using namespace types;
+
 class HypothesisBuffer {
 public:
   void insert(std::span<const Word> newWords, float offset);
@@ -18,3 +22,5 @@ private:
   std::vector<Word> buffer;
   std::vector<Word> fresh;
 };
+
+} // namespace rnexecutorch::models::speech_to_text::stream

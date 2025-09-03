@@ -6,6 +6,10 @@ namespace rnexecutorch {
 
 namespace models::speech_to_text {
 
+using namespace asr;
+using namespace types;
+using namespace stream;
+
 class SpeechToText {
 public:
   explicit SpeechToText(const std::string &encoderSource,
