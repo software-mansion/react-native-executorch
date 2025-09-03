@@ -20,7 +20,7 @@ const Home = () => {
       <Head>
         <meta
           name="keywords"
-          content="react native ai, react native llm, react native qwen, on-device ai, mobile ai, mobile machine learning, on-device inference, edge ai, llama, llm, whisper, ocr, moonshine, speech to text, qwen"
+          content="react native ai, react native llm, react native qwen, on-device ai, mobile ai, mobile machine learning, on-device inference, edge ai, llama, llm, whisper, ocr, speech to text, qwen"
         />
       </Head>
       <div className={styles.container}>
