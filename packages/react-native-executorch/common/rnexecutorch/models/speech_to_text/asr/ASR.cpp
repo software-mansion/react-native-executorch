@@ -42,7 +42,7 @@ GenerationResult ASR::generate(std::span<const float> waveform,
   const size_t initialSequenceLenght = sequenceIds.size();
   std::vector<float> scores;
 
-  while (sequenceIds.size() <= ASR::maxDecodeLength) {
+  while (sequenceIds.size() <= ASR::kMaxDecodeLength) {
     std::vector<float> logits = this->decode(sequenceIds, encoderOutput);
     std::vector<float> probs = this->softmaxWithTemperature(
         logits, (temperature == 0 ? 1.0f : temperature));
@@ -156,8 +156,8 @@ ASR::calculateWordLevelTimestamps(std::span<const int32_t> generatedTokens,
   }
 
   float scalingFactor =
-      static_cast<float>(waveform.size()) / ASR::samplingRate /
-      ((end - this->timestampBeginToken) * ASR::timePrecision);
+      static_cast<float>(waveform.size()) / ASR::kSamplingRate /
+      ((end - this->timestampBeginToken) * ASR::kTimePrecision);
   if (scalingFactor < 1.0f) {
     for (auto &seg : segments) {
       for (auto &w : seg.words) {
@@ -186,12 +186,12 @@ ASR::estimateWordLevelTimestampsLinear(std::span<const int32_t> tokens,
   for (auto &w : wordsStr)
     numChars += static_cast<int32_t>(w.size());
 
-  float duration = (end - start) * ASR::timePrecision;
+  float duration = (end - start) * ASR::kTimePrecision;
   float timePerChar = duration / std::max(1, numChars);
-  float startOffset = (start - timestampBeginToken) * ASR::timePrecision;
+  float startOffset = (start - timestampBeginToken) * ASR::kTimePrecision;
 
   std::vector<Word> wordObjs;
-  int prevCharCount = 0;
+  int32_t prevCharCount = 0;
   for (auto &w : wordsStr) {
     float wStart = startOffset + prevCharCount * timePerChar;
     float wEnd = wStart + timePerChar * w.size();
@@ -207,13 +207,13 @@ std::vector<Segment> ASR::transcribe(std::span<const float> waveform,
   int32_t seek = 0;
   std::vector<Segment> results;
 
-  while (seek * ASR::samplingRate < waveform.size()) {
-    int32_t start = seek * ASR::samplingRate;
-    int32_t end = std::min<int32_t>((seek + ASR::chunkSize) * ASR::samplingRate,
-                                    waveform.size());
+  while (seek * ASR::kSamplingRate < waveform.size()) {
+    int32_t start = seek * ASR::kSamplingRate;
+    int32_t end = std::min<int32_t>(
+        (seek + ASR::kChunkSize) * ASR::kSamplingRate, waveform.size());
     std::span<const float> chunk = waveform.subspan(start, end - start);
 
-    if (chunk.size() < ASR::minChunkSamples) {
+    if (chunk.size() < ASR::kMinChunkSamples) {
       break;
     }
 
@@ -275,8 +275,8 @@ std::vector<float> ASR::decode(std::span<const int32_t> tokens,
       std::move(tokenShape), std::move(tokenVec));
 
   const int32_t encoderOutputSize = encoderOutput.size();
-  const std::vector<int32_t> encShape = {1, ASR::numFrames,
-                                         encoderOutputSize / ASR::numFrames};
+  const std::vector<int32_t> encShape = {1, ASR::kNumFrames,
+                                         encoderOutputSize / ASR::kNumFrames};
   std::vector<float> encVec(encoderOutput.begin(), encoderOutput.end());
   auto encoderTensor = executorch::extension::make_tensor_ptr(
       std::move(encShape), std::move(encVec));

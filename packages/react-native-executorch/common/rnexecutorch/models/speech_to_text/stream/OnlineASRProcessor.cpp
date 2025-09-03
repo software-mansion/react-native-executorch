@@ -22,8 +22,9 @@ ProcessResult OnlineASRProcessor::processIter(const DecodingOptions &options) {
   std::vector<Word> flushed = transcriptBuffer.flush();
   committed.insert(committed.end(), flushed.begin(), flushed.end());
 
-  constexpr int chunkThresholdSec = 15;
-  if (static_cast<float>(audioBuffer.size()) / samplingRate >
+  constexpr int32_t chunkThresholdSec = 15;
+  if (static_cast<float>(audioBuffer.size()) /
+          OnlineASRProcessor::kSamplingRate >
       chunkThresholdSec) {
     chunkCompletedSegment(res);
   }
@@ -64,7 +65,8 @@ void OnlineASRProcessor::chunkAt(float time) {
   transcriptBuffer.popCommitted(time);
 
   float cutSeconds = time - bufferTimeOffset;
-  size_t startIndex = static_cast<size_t>(cutSeconds * samplingRate);
+  size_t startIndex =
+      static_cast<size_t>(cutSeconds * OnlineASRProcessor::kSamplingRate);
 
   if (startIndex < audioBuffer.size()) {
     audioBuffer.erase(audioBuffer.begin(), audioBuffer.begin() + startIndex);
@@ -78,8 +80,8 @@ void OnlineASRProcessor::chunkAt(float time) {
 std::string OnlineASRProcessor::finish() {
   std::vector<Word> o = transcriptBuffer.complete();
   auto [b, e, committedText] = toFlush(o);
-  this->bufferTimeOffset +=
-      static_cast<float>(audioBuffer.size()) / samplingRate;
+  this->bufferTimeOffset += static_cast<float>(audioBuffer.size()) /
+                            OnlineASRProcessor::kSamplingRate;
   return committedText;
 }
 

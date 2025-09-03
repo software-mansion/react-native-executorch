@@ -21,7 +21,7 @@ public:
 
 private:
   ASR &asr;
-  constexpr static int samplingRate = 16000;
+  constexpr static int32_t kSamplingRate = 16000;
 
   HypothesisBuffer transcriptBuffer;
   float bufferTimeOffset = 0.0f;

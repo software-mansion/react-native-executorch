@@ -31,17 +31,17 @@ private:
   const int32_t timestampBeginToken;
 
   // Time precision used by Whisper timestamps: each token spans 0.02 seconds
-  constexpr static float timePrecision = 0.02f;
+  constexpr static float kTimePrecision = 0.02f;
   // The maximum number of tokens the decoder can generate per chunk
-  constexpr static int32_t maxDecodeLength = 128;
+  constexpr static int32_t kMaxDecodeLength = 128;
   // Maximum duration of each audio chunk to process (in seconds)
-  constexpr static int32_t chunkSize = 30;
+  constexpr static int32_t kChunkSize = 30;
   // Sampling rate expected by Whisper and the model's audio pipeline (16 kHz)
-  constexpr static int32_t samplingRate = 16000;
+  constexpr static int32_t kSamplingRate = 16000;
   // Minimum allowed chunk length before processing (in audio samples)
-  constexpr static int32_t minChunkSamples = 1 * 16000;
+  constexpr static int32_t kMinChunkSamples = 1 * 16000;
   // Number of mel frames output by the encoder (derived from input spectrogram)
-  constexpr static int32_t numFrames = 1500;
+  constexpr static int32_t kNumFrames = 1500;
 
   std::vector<int32_t> getInitialSequence(const DecodingOptions &options) const;
   GenerationResult generate(std::span<const float> waveform, float temperature,

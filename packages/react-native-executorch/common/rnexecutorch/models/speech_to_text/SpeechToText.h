@@ -46,7 +46,7 @@ private:
   bool isStreaming;
   bool readyToProcess;
 
-  constexpr static int32_t minAudioSamples = 1 * 16000;
+  constexpr static int32_t kMinAudioSamples = 16000; // 1 second
 
   void resetStreamState();
 };
