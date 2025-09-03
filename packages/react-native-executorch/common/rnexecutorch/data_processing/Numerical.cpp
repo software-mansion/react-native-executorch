@@ -2,8 +2,11 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <numeric>
 #include <span>
+#include <sstream>
+#include <string>
 
 namespace rnexecutorch::numerical {
 void softmax(std::vector<float> &v) {
@@ -50,6 +53,16 @@ void normalize(std::vector<float> &v) {
 
 std::vector<float> meanPooling(std::span<const float> modelOutput,
                                std::span<const int64_t> attnMask) {
+  if (attnMask.empty() || modelOutput.size() % attnMask.size() != 0) {
+    std::stringstream ss;
+    ss << "Invalid dimensions for mean pooling, expected model output size to "
+          "be divisible "
+       << "by the size of attention mask but got size: " << modelOutput.size()
+       << " for model output and size: " << attnMask.size()
+       << " for attention mask";
+    throw std::invalid_argument(ss.str());
+  }
+
   auto attnMaskLength = attnMask.size();
   auto embeddingDim = modelOutput.size() / attnMaskLength;
 

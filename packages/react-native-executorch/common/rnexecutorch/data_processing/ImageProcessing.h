@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-namespace rnexecutorch::imageprocessing {
+namespace rnexecutorch::image_processing {
 using executorch::aten::Tensor;
 using executorch::extension::TensorPtr;
 
@@ -52,4 +52,4 @@ std::pair<TensorPtr, cv::Size>
 readImageToTensor(const std::string &path,
                   const std::vector<int32_t> &tensorDims,
                   bool maintainAspectRatio = false);
-} // namespace rnexecutorch::imageprocessing
+} // namespace rnexecutorch::image_processing
