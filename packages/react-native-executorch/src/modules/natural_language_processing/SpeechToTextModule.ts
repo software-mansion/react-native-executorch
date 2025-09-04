@@ -53,7 +53,7 @@ export class SpeechToTextModule {
   public async decode(
     tokens: Int32Array | number[],
     encoderOutput: Float32Array | number[]
-  ): Promise<Int32Array> {
+  ): Promise<Float32Array> {
     if (Array.isArray(tokens)) {
       Logger.info(
         'Passing tokens as number[] is deprecated, use Int32Array instead'
@@ -66,7 +66,7 @@ export class SpeechToTextModule {
       );
       encoderOutput = new Float32Array(encoderOutput);
     }
-    return new Int32Array(
+    return new Float32Array(
       await this.nativeModule.decode(tokens, encoderOutput)
     );
   }

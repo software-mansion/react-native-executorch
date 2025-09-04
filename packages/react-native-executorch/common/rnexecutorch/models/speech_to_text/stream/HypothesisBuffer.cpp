@@ -65,8 +65,7 @@ std::deque<Word> HypothesisBuffer::flush() {
     this->fresh.pop_front();
   }
 
-  this->buffer = this->fresh;
-  this->fresh.clear();
+  this->buffer = std::move(this->fresh);
   this->committedInBuffer.insert(this->committedInBuffer.end(), commit.begin(),
                                  commit.end());
   return commit;
