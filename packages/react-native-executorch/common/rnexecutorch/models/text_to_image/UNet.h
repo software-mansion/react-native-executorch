@@ -13,12 +13,15 @@ struct UNetInput {
 class UNet final : public BaseModel {
 public:
   UNet(const std::string &modelSource,
+      int batchSize, int modelImageSize, int numChannels,
         std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<float> generate(const std::vector<float> & latents,
                               int timestep, const std::vector<float> & embeddings);
 
 private:
-  // std::vector<std::vector<int32_t>> inputShapes;
+  int batchSize;
+  int modelImageSize;
+  int numChannels;
 };
 } // namespace models::text_to_image
 
