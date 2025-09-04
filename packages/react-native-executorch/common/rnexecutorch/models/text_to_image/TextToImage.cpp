@@ -7,6 +7,7 @@
 #include <random>
 
 #include <executorch/extension/tensor/tensor.h>
+#include <executorch/extension/tensor/tensor_ptr_maker.h>
 
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/data_processing/Numerical.h>
@@ -33,7 +34,7 @@ TextToImage::TextToImage(
   : callInvoker(callInvoker),
     scheduler(std::make_unique<Scheduler>(schedulerSource, callInvoker)),
     encoder(std::make_unique<embeddings::TextEmbeddings>(encoderSource, tokenizerSource, callInvoker)),
-    unet(std::make_unique<UNet>(unetSource, callInvoker)),
+    unet(std::make_unique<UNet>(unetSource, batchSize, imageSize, numChannels, callInvoker)),
     modelImageSize(imageSize) {}
 
 void TextToImage::generate(std::string input, int numInferenceSteps) {
@@ -48,48 +49,73 @@ void TextToImage::generate(std::string input, int numInferenceSteps) {
   n = uncondEmbeddings->size() / sizeof(logData[0]);
   log(LOG_LEVEL::Info, "Uncond embeddings:", n, "\n", logData[0], logData[1], logData[2], "...", logData[n-3], logData[n-2], logData[n-1]);
 
+  float* uncondData = reinterpret_cast<float*>(uncondEmbeddings->data());
+  int uncondN = uncondEmbeddings->size() / sizeof(float);
+  
+  float* condData = reinterpret_cast<float*>(embeddings->data());
+  int condN = embeddings->size() / sizeof(float);
+  
+  std::vector<float> embeddingsConcat;
+  embeddingsConcat.reserve(uncondN + condN);
+  
+  embeddingsConcat.insert(embeddingsConcat.end(), uncondData, uncondData + uncondN);
+  embeddingsConcat.insert(embeddingsConcat.end(), condData, condData + condN);
 
-  size_t concatSize = embeddings->size() + uncondEmbeddings->size();
-  auto concatEmbeddings = std::make_shared<rnexecutorch::OwningArrayBuffer>(concatSize);
-  std::memcpy(concatEmbeddings->data(), uncondEmbeddings->data(),
-              uncondEmbeddings->size());
-  std::memcpy(concatEmbeddings->data() + uncondEmbeddings->size(),
-              embeddings->data(), embeddings->size());
+  log(LOG_LEVEL::Info, "Text embeddings:", n, "\n", embeddingsConcat[0],
+      embeddingsConcat[1], embeddingsConcat[2], "...", embeddingsConcat[n - 3],
+      embeddingsConcat[n - 2], embeddingsConcat[n - 1]);
 
-  float* concatData = reinterpret_cast<float*>(concatEmbeddings->data());
-  n = concatSize / sizeof(concatData[0]);
-  log(LOG_LEVEL::Info, "Text embeddings:", n, "\n", concatData[0],
-      concatData[1], concatData[2], "...", concatData[n - 3],
-      concatData[n - 2], concatData[n - 1]);
-
-  int numChannels = 4;
-  int latentWidth = std::floor(modelImageSize / 8);
-  int latentSize = numChannels * batchSize * latentWidth * latentWidth;
-  auto buffer = std::make_shared<OwningArrayBuffer>(latentSize * sizeof(float));
-  float* data = reinterpret_cast<float*>(buffer->data());
-
-  std::random_device rd;
-  std::mt19937 gen(rd());
-  std::normal_distribution<float> dist(0.0, 1.0);
-  for (int i = 0; i < latentSize; i++) {
-    data[i] = dist(gen);
+  int latentsWidth = std::floor(modelImageSize / 8);
+  int latentsSize = numChannels * batchSize * latentsWidth * latentsWidth;
+  std::vector<float> latents(latentsSize);
+  for (int i = 0; i < latentsSize; i+=2) {
+    latents[i] = 0.5;
+    if (i+1 < latentsSize) { // !!
+      latents[i+1] = -0.5;
+    }
   }
+  // std::random_device rd;
+  // std::mt19937 gen(rd());
+  // std::normal_distribution<float> dist(0.0, 1.0);
+  // for (auto & val : latents) {
+  //   val = dist(gen);
+  // }
 
   scheduler->setTimesteps(numInferenceSteps);
   std::vector<int> timesteps = scheduler->timesteps;
-  // log(LOG_LEVEL::Info, "Timesteps:");
-  // for (auto t : timesteps) {
-  //   log(LOG_LEVEL::Info, t);
-  // }
+
+  for (auto t : timesteps) {
+    log(LOG_LEVEL::Info, "t =", t);
+    std::vector<float> latentsConcat;
+    latentsConcat.insert(latentsConcat.end(), latents.begin(), latents.end());
+    latentsConcat.insert(latentsConcat.end(), latents.begin(), latents.end());
+
+    std::vector<float> noisePred = unet->generate(latentsConcat, t, embeddingsConcat);
+    int noiseSize = static_cast<int>(noisePred.size() / 2);
+    log(LOG_LEVEL::Info, "NoisePred:", noisePred.size(), "\n", noisePred[0],
+      noisePred[1], noisePred[2], "...", noisePred[noisePred.size() - 3],
+      noisePred[noisePred.size() - 2], noisePred[noisePred.size() - 1]);
+    std::vector<float> noiseUncond(noisePred.begin(), noisePred.begin() + noiseSize);
+    std::vector<float> noiseText(noisePred.begin() + noiseSize, noisePred.end());
+    std::vector<float> noise(noiseUncond);
+    for (int i = 0; i < noiseSize; i++) {
+      noise[i] = noiseUncond[i] * (1 - guidanceScale) + noiseText[i] * guidanceScale;
+    }
+    log(LOG_LEVEL::Info, "Noise:", noise.size(), "\n", noise[0],
+      noise[1], noise[2], "...", noise[noise.size() - 3],
+      noise[noise.size() - 2], noise[noise.size() - 1]);
+    // latents = scheduler.step(noise, t, latents); // order of arguments!!
+    break;
+  }
 }
 
 size_t TextToImage::getMemoryLowerBound() const noexcept {
-  return encoder->getMemoryLowerBound(); // + transformer->getMemoryLowerBound() + decoder->getMemoryLowerBound();
+  return encoder->getMemoryLowerBound() + unet->getMemoryLowerBound(); // + decoder->getMemoryLowerBound();
 }
 
 void TextToImage::unload() noexcept {
   encoder.reset(nullptr);
-  // transformer.reset(nullptr);
+  unet.reset(nullptr);
   // decoder.reset(nullptr);
 }
 

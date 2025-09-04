@@ -9,13 +9,18 @@ namespace rnexecutorch::models::text_to_image {
 using namespace executorch::extension;
 
 UNet::UNet(const std::string &modelSource,
+            int batchSize, int modelImageSize, int numChannels,
             std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker) {}
+    : BaseModel(modelSource, callInvoker),
+    batchSize(batchSize), modelImageSize(modelImageSize), numChannels(numChannels) {}
 
 std::vector<float> UNet::generate(const std::vector<float> & latents, int timestep, const std::vector<float> & embeddings) {
-  std::vector<int32_t> latentsShape = {1, static_cast<int32_t>(latents.size())};
+  int latentsImageSize = std::floor(modelImageSize / 8);
+  std::vector<int32_t> latentsShape = {2, numChannels, latentsImageSize, latentsImageSize};
   std::vector<int32_t> timestepShape = {1};
-  std::vector<int32_t> embeddingsShape = {1, static_cast<int32_t>(embeddings.size())};
+  std::vector<int32_t> embeddingsShape = {2, 77, 768};
+  log(LOG_LEVEL::Info, latentsShape[1], timestepShape[0], embeddingsShape[1]);
+
   std::vector<uint8_t> latentsBytes(
     reinterpret_cast<const uint8_t*>(latents.data()),
     reinterpret_cast<const uint8_t*>(latents.data()) + latents.size() * sizeof(float));
@@ -31,9 +36,11 @@ std::vector<float> UNet::generate(const std::vector<float> & latents, int timest
   auto latentsTensor = make_tensor_ptr(latentsShape, latentsBytes, ScalarType::Float);
   auto timestepTensor = make_tensor_ptr(timestepShape, timestepBytes, ScalarType::Long);
   auto embeddingsTensor = make_tensor_ptr(embeddingsShape, embeddingsBytes, ScalarType::Float);
+  log(LOG_LEVEL::Info, latentsTensor->sizes(), timestepTensor->sizes(), embeddingsTensor->sizes());
 
   auto forwardResult = BaseModel::forward({latentsTensor, timestepTensor, embeddingsTensor});
   if (!forwardResult.ok()) {
+    log(LOG_LEVEL::Info, "Error:", forwardResult.error());
     throw std::runtime_error(
         "Function forward in UNet failed with error code: " +
         std::to_string(static_cast<uint32_t>(forwardResult.error())));

@@ -39,19 +39,19 @@ public:
   size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
 
-protected:
+private:
+  size_t memorySizeLowerBound;
+
+  float guidanceScale = 7.5;
+  int batchSize = 1;
+  int modelImageSize;
+  int numChannels = 4;
+
   std::shared_ptr<react::CallInvoker> callInvoker;
   std::unique_ptr<Scheduler> scheduler;
   std::unique_ptr<embeddings::TextEmbeddings> encoder;
   std::unique_ptr<UNet> unet;
   std::unique_ptr<BaseModel> decoder;
-
-private:
-  int modelImageSize;
-  size_t memorySizeLowerBound;
-
-  float guidanceScale = 7.5;
-  int batchSize = 1;
 };
 } // namespace models::text_to_image
 

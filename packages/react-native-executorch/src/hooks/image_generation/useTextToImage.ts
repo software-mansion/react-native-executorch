@@ -3,7 +3,14 @@ import { TextToImageModule } from '../../modules/image_generation/TextToImageMod
 import { ResourceSource } from '../../types/common';
 
 interface Props {
-  model: { tokenizerSource: ResourceSource; encoderSource: ResourceSource };
+  model: {
+    tokenizerSource: ResourceSource;
+    schedulerSource: ResourceSource;
+    encoderSource: ResourceSource;
+    unetSource: ResourceSource;
+    decoderSource: ResourceSource;
+    imageSize: number;
+  };
   preventLoad?: boolean;
 }
 
