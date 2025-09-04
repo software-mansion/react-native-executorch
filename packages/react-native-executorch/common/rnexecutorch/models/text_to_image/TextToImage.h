@@ -15,6 +15,7 @@
 #include <rnexecutorch/models/text_to_image/Constants.h>
 #include <rnexecutorch/models/text_to_image/Scheduler.h>
 #include <rnexecutorch/models/text_to_image/UNet.h>
+#include <rnexecutorch/models/text_to_image/Decoder.h>
 #include <rnexecutorch/models/embeddings/text/TextEmbeddings.h>
 #include <ReactCommon/CallInvoker.h>
 
@@ -42,16 +43,16 @@ public:
 private:
   size_t memorySizeLowerBound;
 
-  float guidanceScale = 7.5;
-  int batchSize = 1;
   int modelImageSize;
   int numChannels = 4;
+  float guidanceScale = 7.5;
+  float latentsScale = 0.18215;
 
   std::shared_ptr<react::CallInvoker> callInvoker;
   std::unique_ptr<Scheduler> scheduler;
   std::unique_ptr<embeddings::TextEmbeddings> encoder;
   std::unique_ptr<UNet> unet;
-  std::unique_ptr<BaseModel> decoder;
+  std::unique_ptr<Decoder> decoder;
 };
 } // namespace models::text_to_image
 
