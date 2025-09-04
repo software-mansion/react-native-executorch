@@ -9,10 +9,10 @@ namespace rnexecutorch::models::text_to_image {
 using namespace executorch::extension;
 
 UNet::UNet(const std::string &modelSource,
-            int batchSize, int modelImageSize, int numChannels,
+            int modelImageSize, int numChannels,
             std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker),
-    batchSize(batchSize), modelImageSize(modelImageSize), numChannels(numChannels) {}
+    modelImageSize(modelImageSize), numChannels(numChannels) {}
 
 std::vector<float> UNet::generate(const std::vector<float> & latents, int timestep, const std::vector<float> & embeddings) {
   int latentsImageSize = std::floor(modelImageSize / 8);

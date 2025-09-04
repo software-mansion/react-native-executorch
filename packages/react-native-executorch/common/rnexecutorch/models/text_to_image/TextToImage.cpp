@@ -32,10 +32,11 @@ TextToImage::TextToImage(
   int imageSize,
   std::shared_ptr<react::CallInvoker> callInvoker)
   : callInvoker(callInvoker),
+    modelImageSize(imageSize),
     scheduler(std::make_unique<Scheduler>(schedulerSource, callInvoker)),
     encoder(std::make_unique<embeddings::TextEmbeddings>(encoderSource, tokenizerSource, callInvoker)),
-    unet(std::make_unique<UNet>(unetSource, batchSize, imageSize, numChannels, callInvoker)),
-    modelImageSize(imageSize) {}
+    unet(std::make_unique<UNet>(unetSource, imageSize, numChannels, callInvoker)),
+    decoder(std::make_unique<Decoder>(decoderSource, imageSize, numChannels, callInvoker)) {}
 
 void TextToImage::generate(std::string input, int numInferenceSteps) {
   log(LOG_LEVEL::Info, "Prompt:", input);
@@ -66,7 +67,7 @@ void TextToImage::generate(std::string input, int numInferenceSteps) {
       embeddingsConcat[n - 2], embeddingsConcat[n - 1]);
 
   int latentsWidth = std::floor(modelImageSize / 8);
-  int latentsSize = numChannels * batchSize * latentsWidth * latentsWidth;
+  int latentsSize = numChannels * latentsWidth * latentsWidth;
   std::vector<float> latents(latentsSize);
   for (int i = 0; i < latentsSize; i+=2) {
     latents[i] = 0.5;
@@ -104,19 +105,29 @@ void TextToImage::generate(std::string input, int numInferenceSteps) {
     log(LOG_LEVEL::Info, "Noise:", noise.size(), "\n", noise[0],
       noise[1], noise[2], "...", noise[noise.size() - 3],
       noise[noise.size() - 2], noise[noise.size() - 1]);
-    // latents = scheduler.step(noise, t, latents); // order of arguments!!
+    latents = scheduler->step(latents, noise, t);
+    log(LOG_LEVEL::Info, "Latents:", latents.size(), "\n", latents[0],
+      latents[1], latents[2], "...", latents[latents.size() - 3],
+      latents[latents.size() - 2], latents[latents.size() - 1]);
     break;
   }
+  for (auto &val: latents) {
+    val /= latentsScale;
+  }
+  std::vector<float> result = decoder->generate(latents);
+  log(LOG_LEVEL::Info, "Decoded:", result.size(), "\n", result[0],
+    result[1], result[2], "...", result[result.size() - 3],
+    result[result.size() - 2], result[result.size() - 1]);
 }
 
 size_t TextToImage::getMemoryLowerBound() const noexcept {
-  return encoder->getMemoryLowerBound() + unet->getMemoryLowerBound(); // + decoder->getMemoryLowerBound();
+  return encoder->getMemoryLowerBound() + unet->getMemoryLowerBound() + decoder->getMemoryLowerBound();
 }
 
 void TextToImage::unload() noexcept {
   encoder.reset(nullptr);
   unet.reset(nullptr);
-  // decoder.reset(nullptr);
+  decoder.reset(nullptr);
 }
 
 } // namespace rnexecutorch::models::text_to_image

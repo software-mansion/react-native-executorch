@@ -6,13 +6,12 @@
 namespace rnexecutorch {
 namespace models::text_to_image {
 
-class UNet : public BaseModel {
+class Decoder : public BaseModel {
 public:
-  UNet(const std::string &modelSource,
+  Decoder(const std::string &modelSource,
         int modelImageSize, int numChannels,
         std::shared_ptr<react::CallInvoker> callInvoker);
-  std::vector<float> generate(const std::vector<float> & latents,
-                              int timestep, const std::vector<float> & embeddings);
+  std::vector<float> generate(const std::vector<float> & input);
 
 private:
   int modelImageSize;
@@ -20,6 +19,6 @@ private:
 };
 } // namespace models::text_to_image
 
-REGISTER_CONSTRUCTOR(models::text_to_image::UNet, std::string, int, int,
+REGISTER_CONSTRUCTOR(models::text_to_image::Decoder, std::string, int, int,
                      std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch
