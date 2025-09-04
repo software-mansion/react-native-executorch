@@ -39,7 +39,7 @@ std::string SpeechToText::transcribe(std::span<float> waveform,
       this->asr->transcribe(waveform, DecodingOptions(languageOption));
   std::string transcription;
 
-  int32_t transcriptionLength = 0;
+  size_t transcriptionLength = 0;
   for (auto &segment : segments) {
     for (auto &word : segment.words) {
       transcriptionLength += word.content.size();

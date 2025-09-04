@@ -275,7 +275,7 @@ std::vector<float> ASR::encode(std::span<const float> waveform) const {
   const int32_t outputNumel = decoderOutputTensor.numel();
 
   const float *const dataPtr = decoderOutputTensor.const_data_ptr<float>();
-  return std::vector<float>(dataPtr, dataPtr + outputNumel);
+  return {dataPtr, dataPtr + outputNumel};
 }
 
 std::vector<float> ASR::decode(std::span<const int32_t> tokens,
@@ -311,7 +311,7 @@ std::vector<float> ASR::decode(std::span<const int32_t> tokens,
   const float *const dataPtr =
       logitsTensor.const_data_ptr<float>() + (innerDim - 1) * dictSize;
 
-  return std::vector<float>(dataPtr, dataPtr + outputNumel / innerDim);
+  return {dataPtr, dataPtr + outputNumel / innerDim};
 }
 
 } // namespace rnexecutorch::models::speech_to_text::asr
