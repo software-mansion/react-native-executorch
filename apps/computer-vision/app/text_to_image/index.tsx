@@ -1,5 +1,5 @@
 import Spinner from 'react-native-loading-spinner-overlay';
-import { useTextToImage, BK_SDM_TINY_VPRED } from 'react-native-executorch';
+import { useTextToImage, BK_SDM_TINY_VPRED_256 } from 'react-native-executorch';
 import {
   View,
   StyleSheet,
@@ -39,8 +39,8 @@ function rgbaToBase64(imageData: Uint8Array): string {
 }
 
 export default function TextToImageScreen() {
-  const model = useTextToImage({ model: BK_SDM_TINY_VPRED });
-  imageSize = BK_SDM_TINY_VPRED.imageSize;
+  const model = useTextToImage({ model: BK_SDM_TINY_VPRED_256 });
+  imageSize = BK_SDM_TINY_VPRED_256.imageSize;
   const { setGlobalGenerating } = useContext(GeneratingContext);
   const [prompt, setPrompt] = useState('');
   const [imageUri, setImageUri] = useState<string>('');
@@ -78,14 +78,19 @@ export default function TextToImageScreen() {
         onChangeText={setPrompt}
         editable={!model.isGenerating}
       />
-      {imageUri && (
-        <View style={styles.imageContainer}>
+      <View style={styles.imageContainer}>
+        {imageUri ? (
           <Image
             style={styles.image}
             source={{ uri: `data:image/png;base64,${imageUri}` }}
           />
-        </View>
-      )}
+        ) : (
+          <Image
+            style={styles.image}
+            source={require('../../assets/icons/executorch_logo.png')}
+          />
+        )}
+      </View>
       <Pressable
         style={[
           styles.button,

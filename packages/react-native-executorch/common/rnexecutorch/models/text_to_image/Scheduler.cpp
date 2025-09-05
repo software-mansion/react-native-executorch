@@ -1,15 +1,15 @@
 #include "Scheduler.h"
+
 #include <executorch/extension/module/module.h>
 #include <filesystem>
 #include <rnexecutorch/data_processing/FileUtils.h>
-#include <rnexecutorch/Log.h>
 
 namespace rnexecutorch::models::text_to_image {
 using namespace facebook;
 
-Scheduler::Scheduler(
-    std::string source, std::shared_ptr<react::CallInvoker> callInvoker) {
-  // Should be set based on the scheduler config
+Scheduler::Scheduler(std::string source,
+                     std::shared_ptr<react::CallInvoker> callInvoker) {
+  // Parameters from scheduler config
   betaStart = 0.00085;
   betaEnd = 0.012;
   numTrainTimesteps = 1000;
@@ -61,8 +61,9 @@ void Scheduler::setTimesteps(int numInferenceSteps) {
   std::reverse(timesteps.begin(), timesteps.end());
 }
 
-std::vector<float> Scheduler::step(const std::vector<float> & sample, const std::vector<float> & noise, int timestep) {
-  // log(LOG_LEVEL::Info, "step");
+std::vector<float> Scheduler::step(const std::vector<float> &sample,
+                                   const std::vector<float> &noise,
+                                   int timestep) {
   if (numInferenceSteps < 0) {
     throw "Number of inference steps is not set. Call `set_timesteps` first.";
   }
@@ -100,7 +101,9 @@ std::vector<float> Scheduler::step(const std::vector<float> & sample, const std:
     }
   } else {
     for (int i = 0; i < noiseSize; i++) {
-      etsOutput[i] = (ets[3][i] * 55 - ets[2][i] * 59 + ets[1][i] * 37 - ets[0][i] * 9) / 24;
+      etsOutput[i] =
+          (ets[3][i] * 55 - ets[2][i] * 59 + ets[1][i] * 37 - ets[0][i] * 9) /
+          24;
     }
   }
 
@@ -108,10 +111,12 @@ std::vector<float> Scheduler::step(const std::vector<float> & sample, const std:
   return getPrevSample(sampleCopy, etsOutput, timestep, timestepPrev);
 }
 
-std::vector<float> Scheduler::getPrevSample(const std::vector<float> & sample, const std::vector<float> noise, int timestep, int timestepPrev) {
-  // log(LOG_LEVEL::Info, "getPrevSample");
+std::vector<float> Scheduler::getPrevSample(const std::vector<float> &sample,
+                                            const std::vector<float> noise,
+                                            int timestep, int timestepPrev) {
   float alpha = alphasCumprod[timestep];
-  float alphaPrev = timestepPrev >= 0 ? alphasCumprod[timestepPrev] : finalAlphaCumprod;
+  float alphaPrev =
+      timestepPrev >= 0 ? alphasCumprod[timestepPrev] : finalAlphaCumprod;
   float beta = 1 - alpha;
   float betaPrev = 1 - alphaPrev;
 
@@ -119,7 +124,9 @@ std::vector<float> Scheduler::getPrevSample(const std::vector<float> & sample, c
   float betaSqrt = std::sqrt(beta);
 
   int noiseSize = static_cast<int>(noise.size());
-  float noiseCoeff = (alphaPrev - alpha) / (alpha * std::sqrt(betaPrev) + std::sqrt(alpha * beta * alphaPrev));
+  float noiseCoeff =
+      (alphaPrev - alpha) /
+      (alpha * std::sqrt(betaPrev) + std::sqrt(alpha * beta * alphaPrev));
   std::vector<float> noiseTerm(noiseSize);
   for (int i = 0; i < noiseSize; i++) {
     noiseTerm[i] = (noise[i] * alphaSqrt + sample[i] * betaSqrt) * noiseCoeff;
@@ -134,20 +141,4 @@ std::vector<float> Scheduler::getPrevSample(const std::vector<float> & sample, c
   return samplePrev;
 }
 
-} // namespace rnexecutorch
-
-
-// executorch in: std::vector<float>
-// executorch out: Result<std::vector<EValue>>
-//       auto forwardResultTensor = forwardResult->at(0).toTensor();
-//       auto dataPtr = forwardResultTensor.const_data_ptr();
-
-// component in: std::vector<EValue>[]
-//    make_tensor_ptr(shape, data, ScalarType::Long)
-// component out: std::vector<EValue>
-// component postprocess: Result<std::vector<EValue>> -> std::vector<EValue>
-
-// Result<std::vector<EValue>> -- (postprocess) --> OwningArrayBuffer
-
-// OwningArrayBuffer: data, size
-// Tensor: size, dim, numel, sizes, const_data_ptr
+} // namespace rnexecutorch::models::text_to_image
