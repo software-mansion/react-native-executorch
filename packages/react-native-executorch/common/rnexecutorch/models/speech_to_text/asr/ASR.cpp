@@ -256,7 +256,7 @@ std::vector<float> ASR::encode(std::span<const float> waveform) const {
       dsp::stftFromWaveform(waveform, fftWindowSize, stftHopLength);
   const auto numFrames =
       static_cast<int32_t>(preprocessedData.size()) / innerDim;
-  std::vector<int32_t> inputShape = {static_cast<int32_t>(numFrames), innerDim};
+  std::vector<int32_t> inputShape = {numFrames, innerDim};
 
   const auto modelInputTensor = executorch::extension::make_tensor_ptr(
       std::move(inputShape), std::move(preprocessedData));
@@ -265,7 +265,7 @@ std::vector<float> ASR::encode(std::span<const float> waveform) const {
   if (!encoderResult.ok()) {
     throw std::runtime_error(
         "Forward pass failed during encoding, error code: " +
-        std::to_string(static_cast<int>(encoderResult.error())));
+        std::to_string(static_cast<int32_t>(encoderResult.error())));
   }
 
   const auto decoderOutputTensor = encoderResult.get().at(0).toTensor();
@@ -275,19 +275,17 @@ std::vector<float> ASR::encode(std::span<const float> waveform) const {
   return {dataPtr, dataPtr + outputNumel};
 }
 
-std::vector<float> ASR::decode(std::span<const int32_t> tokens,
-                               std::span<const float> encoderOutput) const {
+std::vector<float> ASR::decode(std::span<int32_t> tokens,
+                               std::span<float> encoderOutput) const {
   std::vector<int32_t> tokenShape = {1, static_cast<int32_t>(tokens.size())};
-  std::vector<int32_t> tokenVec(tokens.begin(), tokens.end());
   auto tokenTensor = executorch::extension::make_tensor_ptr(
-      std::move(tokenShape), std::move(tokenVec));
+      std::move(tokenShape), tokens.data(), ScalarType::Int);
 
   const auto encoderOutputSize = static_cast<int32_t>(encoderOutput.size());
   std::vector<int32_t> encShape = {1, ASR::kNumFrames,
                                    encoderOutputSize / ASR::kNumFrames};
-  std::vector<float> encVec(encoderOutput.begin(), encoderOutput.end());
   auto encoderTensor = executorch::extension::make_tensor_ptr(
-      std::move(encShape), std::move(encVec));
+      std::move(encShape), encoderOutput.data(), ScalarType::Float);
 
   const auto decoderResult =
       this->decoder.forward({tokenTensor, encoderTensor});
@@ -295,7 +293,7 @@ std::vector<float> ASR::decode(std::span<const int32_t> tokens,
   if (!decoderResult.ok()) {
     throw std::runtime_error(
         "Forward pass failed during decoding, error code: " +
-        std::to_string(static_cast<int>(decoderResult.error())));
+        std::to_string(static_cast<int32_t>(decoderResult.error())));
   }
 
   const auto logitsTensor = decoderResult.get().at(0).toTensor();

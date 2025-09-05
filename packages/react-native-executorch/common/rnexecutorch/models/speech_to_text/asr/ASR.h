@@ -18,8 +18,8 @@ public:
   std::vector<Segment> transcribe(std::span<const float> waveform,
                                   const DecodingOptions &options) const;
   std::vector<float> encode(std::span<const float> waveform) const;
-  std::vector<float> decode(std::span<const int32_t> tokens,
-                            std::span<const float> encoderOutput) const;
+  std::vector<float> decode(std::span<int32_t> tokens,
+                            std::span<float> encoderOutput) const;
 
 private:
   const models::BaseModel &encoder;

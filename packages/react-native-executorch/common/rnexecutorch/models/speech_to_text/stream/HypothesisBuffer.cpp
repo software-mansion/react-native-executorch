@@ -3,16 +3,11 @@
 namespace rnexecutorch::models::speech_to_text::stream {
 
 void HypothesisBuffer::insert(std::span<const Word> newWords, float offset) {
-  std::vector<Word> newWordsOffset;
-  newWordsOffset.reserve(newWords.size());
-  for (const auto &w : newWords) {
-    newWordsOffset.emplace_back(w.content, w.start + offset, w.end + offset);
-  }
-
   this->fresh.clear();
-  for (const auto &w : newWordsOffset) {
-    if (w.start > lastCommittedTime - 0.5f) {
-      this->fresh.emplace_back(w);
+  for (const auto &word : newWords) {
+    const float newStart = word.start + offset;
+    if (newStart > lastCommittedTime - 0.5f) {
+      this->fresh.emplace_back(word.content, newStart, word.end + offset);
     }
   }
 
