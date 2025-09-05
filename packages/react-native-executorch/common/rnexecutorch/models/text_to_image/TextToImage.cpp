@@ -9,16 +9,9 @@
 #include <executorch/extension/tensor/tensor.h>
 #include <executorch/extension/tensor/tensor_ptr_maker.h>
 
-#include <ReactCommon/CallInvoker.h>
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
-#include <rnexecutorch/data_processing/Numerical.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
-#include <rnexecutorch/models/BaseModel.h>
-#include <rnexecutorch/models/embeddings/text/TextEmbeddings.h>
-#include <rnexecutorch/models/text_to_image/Constants.h>
-#include <rnexecutorch/models/text_to_image/Scheduler.h>
-#include <rnexecutorch/models/text_to_image/UNet.h>
 
 namespace rnexecutorch::models::text_to_image {
 
@@ -39,19 +32,9 @@ TextToImage::TextToImage(const std::string &tokenizerSource,
 
 std::shared_ptr<OwningArrayBuffer>
 TextToImage::generate(std::string input, int numInferenceSteps) {
-  log(LOG_LEVEL::Info, "Prompt:", input);
   std::shared_ptr<OwningArrayBuffer> embeddings = encoder->generate(input);
-  float *logData = reinterpret_cast<float *>(embeddings->data());
-  int n = embeddings->size() / sizeof(logData[0]);
-  log(LOG_LEVEL::Info, "Embeddings:", n, "\n", logData[0], logData[1],
-      logData[2], "...", logData[n - 3], logData[n - 2], logData[n - 1]);
-
   std::shared_ptr<OwningArrayBuffer> uncondEmbeddings =
       encoder->generate(constants::kBosToken);
-  logData = reinterpret_cast<float *>(uncondEmbeddings->data());
-  n = uncondEmbeddings->size() / sizeof(logData[0]);
-  log(LOG_LEVEL::Info, "Uncond embeddings:", n, "\n", logData[0], logData[1],
-      logData[2], "...", logData[n - 3], logData[n - 2], logData[n - 1]);
 
   float *uncondData = reinterpret_cast<float *>(uncondEmbeddings->data());
   int uncondN = uncondEmbeddings->size() / sizeof(float);
@@ -61,46 +44,33 @@ TextToImage::generate(std::string input, int numInferenceSteps) {
 
   std::vector<float> embeddingsConcat;
   embeddingsConcat.reserve(uncondN + condN);
-
   embeddingsConcat.insert(embeddingsConcat.end(), uncondData,
                           uncondData + uncondN);
   embeddingsConcat.insert(embeddingsConcat.end(), condData, condData + condN);
 
-  log(LOG_LEVEL::Info, "Text embeddings:", n, "\n", embeddingsConcat[0],
-      embeddingsConcat[1], embeddingsConcat[2], "...", embeddingsConcat[n - 3],
-      embeddingsConcat[n - 2], embeddingsConcat[n - 1]);
-
   int latentsWidth = std::floor(modelImageSize / 8);
   int latentsSize = numChannels * latentsWidth * latentsWidth;
   std::vector<float> latents(latentsSize);
-  for (int i = 0; i < latentsSize; i += 2) {
-    latents[i] = 0.5;
-    if (i + 1 < latentsSize) { // !!
-      latents[i + 1] = -0.5;
-    }
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::normal_distribution<float> dist(0.0, 1.0);
+  for (auto &val : latents) {
+    val = dist(gen);
   }
-  // std::random_device rd;
-  // std::mt19937 gen(rd());
-  // std::normal_distribution<float> dist(0.0, 1.0);
-  // for (auto & val : latents) {
-  //   val = dist(gen);
-  // }
 
   scheduler->setTimesteps(numInferenceSteps);
   std::vector<int> timesteps = scheduler->timesteps;
 
-  for (auto t : timesteps) {
-    log(LOG_LEVEL::Info, "t =", t);
+  for (int t = 0; t < numInferenceSteps + 1; t++) {
+    log(LOG_LEVEL::Info, "Step", t, "/", numInferenceSteps);
     std::vector<float> latentsConcat;
     latentsConcat.insert(latentsConcat.end(), latents.begin(), latents.end());
     latentsConcat.insert(latentsConcat.end(), latents.begin(), latents.end());
 
     std::vector<float> noisePred =
-        unet->generate(latentsConcat, t, embeddingsConcat);
+        unet->generate(latentsConcat, timesteps[t], embeddingsConcat);
+
     int noiseSize = static_cast<int>(noisePred.size() / 2);
-    log(LOG_LEVEL::Info, "NoisePred:", noisePred.size(), "\n", noisePred[0],
-        noisePred[1], noisePred[2], "...", noisePred[noisePred.size() - 3],
-        noisePred[noisePred.size() - 2], noisePred[noisePred.size() - 1]);
     std::vector<float> noiseUncond(noisePred.begin(),
                                    noisePred.begin() + noiseSize);
     std::vector<float> noiseText(noisePred.begin() + noiseSize,
@@ -110,31 +80,16 @@ TextToImage::generate(std::string input, int numInferenceSteps) {
       noise[i] =
           noiseUncond[i] * (1 - guidanceScale) + noiseText[i] * guidanceScale;
     }
-    log(LOG_LEVEL::Info, "Noise:", noise.size(), "\n", noise[0], noise[1],
-        noise[2], "...", noise[noise.size() - 3], noise[noise.size() - 2],
-        noise[noise.size() - 1]);
-    latents = scheduler->step(latents, noise, t);
-    log(LOG_LEVEL::Info, "Latents:", latents.size(), "\n", latents[0],
-        latents[1], latents[2], "...", latents[latents.size() - 3],
-        latents[latents.size() - 2], latents[latents.size() - 1]);
-    // break;
+    latents = scheduler->step(latents, noise, timesteps[t]);
   }
+
   for (auto &val : latents) {
     val /= latentsScale;
   }
-  std::vector<float> output = decoder->generate(latents);
-  log(LOG_LEVEL::Info, "Decoded:", output.size(), "\n", output[0], output[1],
-      output[2], "...", output[output.size() - 3], output[output.size() - 2],
-      output[output.size() - 1]);
 
+  std::vector<float> output = decoder->generate(latents);
   return postprocess(output);
 }
-
-// std::shared_ptr<OwningArrayBuffer> TextToImage::generate(std::string input,
-// int numInferenceSteps) {
-//   std::vector<float> output(3 * 512 * 512, 0.25);
-//   return postprocess(output);
-// }
 
 std::shared_ptr<OwningArrayBuffer>
 TextToImage::postprocess(const std::vector<float> &output) {
@@ -155,9 +110,6 @@ TextToImage::postprocess(const std::vector<float> &output) {
     }
   }
   int imageDataSize = static_cast<int>(imageData.size());
-  log(LOG_LEVEL::Info, "Raw image:", imageDataSize, "\n", imageData[0],
-      imageData[1], imageData[2], "...", imageData[imageDataSize - 3],
-      imageData[imageDataSize - 2], imageData[imageDataSize - 1]);
   std::span<float> modelOutput(static_cast<float *>(imageData.data()),
                                imageData.size());
 
