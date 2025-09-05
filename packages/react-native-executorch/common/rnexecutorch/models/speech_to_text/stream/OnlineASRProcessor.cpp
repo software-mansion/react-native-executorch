@@ -61,7 +61,7 @@ void OnlineASRProcessor::chunkCompletedSegment(std::span<const Segment> res) {
 void OnlineASRProcessor::chunkAt(float time) {
   this->transcriptBuffer.popCommitted(time);
 
-  float cutSeconds = time - this->bufferTimeOffset;
+  const float cutSeconds = time - this->bufferTimeOffset;
   auto startIndex =
       static_cast<size_t>(cutSeconds * OnlineASRProcessor::kSamplingRate);
 
@@ -85,7 +85,7 @@ std::string OnlineASRProcessor::finish() {
 std::string OnlineASRProcessor::toFlush(const std::deque<Word> &words) const {
   std::string text;
   text.reserve(std::accumulate(
-      words.begin(), words.end(), 0,
+      words.cbegin(), words.cend(), 0,
       [](size_t sum, const Word &w) { return sum + w.content.size(); }));
   for (const auto &word : words) {
     text.append(word.content);

@@ -37,9 +37,7 @@ void HypothesisBuffer::insert(std::span<const Word> newWords, float offset) {
         }
 
         if (c == tail) {
-          for (size_t j = 0; j < i; ++j) {
-            this->fresh.pop_front();
-          }
+          this->fresh.erase(this->fresh.begin(), this->fresh.begin() + i);
           break;
         }
       }

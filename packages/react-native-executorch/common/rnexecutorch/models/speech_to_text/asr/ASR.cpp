@@ -69,8 +69,8 @@ GenerationResult ASR::generate(std::span<const float> waveform,
     }
   }
 
-  return {std::vector<int32_t>(sequenceIds.begin() + initialSequenceLenght,
-                               sequenceIds.end()),
+  return {std::vector<int32_t>(sequenceIds.cbegin() + initialSequenceLenght,
+                               sequenceIds.cend()),
           scores};
 }
 
@@ -84,7 +84,7 @@ std::vector<float> ASR::softmaxWithTemperature(std::span<const float> logits,
                            return std::exp((logit - maxLogit) / temperature);
                          });
 
-  const float sumExp = std::reduce(exps.begin(), exps.end());
+  const float sumExp = std::reduce(exps.cbegin(), exps.cend());
 
   std::ranges::transform(exps, exps.begin(),
                          [sumExp](float value) { return value / sumExp; });
@@ -200,11 +200,12 @@ ASR::estimateWordLevelTimestampsLinear(std::span<const int32_t> tokens,
   std::vector<Word> wordObjs;
   wordObjs.reserve(wordsStr.size());
   int32_t prevCharCount = 0;
-  for (const auto &w : wordsStr) {
+  for (auto &w : wordsStr) {
+    const auto wSize = static_cast<int32_t>(w.size());
     const float wStart = startOffset + prevCharCount * timePerChar;
-    const float wEnd = wStart + timePerChar * w.size();
-    wordObjs.emplace_back(w, wStart, wEnd);
-    prevCharCount += w.size();
+    const float wEnd = wStart + timePerChar * wSize;
+    prevCharCount += wSize;
+    wordObjs.emplace_back(std::move(w), wStart, wEnd);
   }
 
   return wordObjs;
