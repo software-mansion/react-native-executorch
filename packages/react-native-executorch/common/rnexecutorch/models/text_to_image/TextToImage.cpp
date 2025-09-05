@@ -1,65 +1,69 @@
 #include "TextToImage.h"
 
+#include <cmath>
 #include <future>
 #include <memory>
-#include <string>
-#include <cmath>
 #include <random>
+#include <string>
 
 #include <executorch/extension/tensor/tensor.h>
 #include <executorch/extension/tensor/tensor_ptr_maker.h>
 
+#include <ReactCommon/CallInvoker.h>
+#include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/data_processing/Numerical.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
+#include <rnexecutorch/models/BaseModel.h>
+#include <rnexecutorch/models/embeddings/text/TextEmbeddings.h>
 #include <rnexecutorch/models/text_to_image/Constants.h>
 #include <rnexecutorch/models/text_to_image/Scheduler.h>
 #include <rnexecutorch/models/text_to_image/UNet.h>
-#include <rnexecutorch/models/embeddings/text/TextEmbeddings.h>
-#include <rnexecutorch/Log.h>
-#include <rnexecutorch/models/text_to_image/Constants.h>
-#include <ReactCommon/CallInvoker.h>
-#include <rnexecutorch/models/BaseModel.h>
 
 namespace rnexecutorch::models::text_to_image {
 
-TextToImage::TextToImage(
-  const std::string &tokenizerSource,
-  const std::string &schedulerSource,
-  const std::string &encoderSource,
-  const std::string &unetSource,
-  const std::string &decoderSource,
-  int imageSize,
-  std::shared_ptr<react::CallInvoker> callInvoker)
-  : callInvoker(callInvoker),
-    modelImageSize(imageSize),
-    scheduler(std::make_unique<Scheduler>(schedulerSource, callInvoker)),
-    encoder(std::make_unique<embeddings::TextEmbeddings>(encoderSource, tokenizerSource, callInvoker)),
-    unet(std::make_unique<UNet>(unetSource, imageSize, numChannels, callInvoker)),
-    decoder(std::make_unique<Decoder>(decoderSource, imageSize, numChannels, callInvoker)) {}
+TextToImage::TextToImage(const std::string &tokenizerSource,
+                         const std::string &schedulerSource,
+                         const std::string &encoderSource,
+                         const std::string &unetSource,
+                         const std::string &decoderSource, int imageSize,
+                         std::shared_ptr<react::CallInvoker> callInvoker)
+    : callInvoker(callInvoker), modelImageSize(imageSize),
+      scheduler(std::make_unique<Scheduler>(schedulerSource, callInvoker)),
+      encoder(std::make_unique<embeddings::TextEmbeddings>(
+          encoderSource, tokenizerSource, callInvoker)),
+      unet(std::make_unique<UNet>(unetSource, imageSize, numChannels,
+                                  callInvoker)),
+      decoder(std::make_unique<Decoder>(decoderSource, imageSize, numChannels,
+                                        callInvoker)) {}
 
-void TextToImage::generate(std::string input, int numInferenceSteps) {
+std::shared_ptr<OwningArrayBuffer>
+TextToImage::generate(std::string input, int numInferenceSteps) {
   log(LOG_LEVEL::Info, "Prompt:", input);
   std::shared_ptr<OwningArrayBuffer> embeddings = encoder->generate(input);
-  float* logData = reinterpret_cast<float*>(embeddings->data());
+  float *logData = reinterpret_cast<float *>(embeddings->data());
   int n = embeddings->size() / sizeof(logData[0]);
-  log(LOG_LEVEL::Info, "Embeddings:", n, "\n", logData[0], logData[1], logData[2], "...", logData[n-3], logData[n-2], logData[n-1]);
+  log(LOG_LEVEL::Info, "Embeddings:", n, "\n", logData[0], logData[1],
+      logData[2], "...", logData[n - 3], logData[n - 2], logData[n - 1]);
 
-  std::shared_ptr<OwningArrayBuffer> uncondEmbeddings = encoder->generate(constants::kBosToken);
-  logData = reinterpret_cast<float*>(uncondEmbeddings->data());
+  std::shared_ptr<OwningArrayBuffer> uncondEmbeddings =
+      encoder->generate(constants::kBosToken);
+  logData = reinterpret_cast<float *>(uncondEmbeddings->data());
   n = uncondEmbeddings->size() / sizeof(logData[0]);
-  log(LOG_LEVEL::Info, "Uncond embeddings:", n, "\n", logData[0], logData[1], logData[2], "...", logData[n-3], logData[n-2], logData[n-1]);
+  log(LOG_LEVEL::Info, "Uncond embeddings:", n, "\n", logData[0], logData[1],
+      logData[2], "...", logData[n - 3], logData[n - 2], logData[n - 1]);
 
-  float* uncondData = reinterpret_cast<float*>(uncondEmbeddings->data());
+  float *uncondData = reinterpret_cast<float *>(uncondEmbeddings->data());
   int uncondN = uncondEmbeddings->size() / sizeof(float);
-  
-  float* condData = reinterpret_cast<float*>(embeddings->data());
+
+  float *condData = reinterpret_cast<float *>(embeddings->data());
   int condN = embeddings->size() / sizeof(float);
-  
+
   std::vector<float> embeddingsConcat;
   embeddingsConcat.reserve(uncondN + condN);
-  
-  embeddingsConcat.insert(embeddingsConcat.end(), uncondData, uncondData + uncondN);
+
+  embeddingsConcat.insert(embeddingsConcat.end(), uncondData,
+                          uncondData + uncondN);
   embeddingsConcat.insert(embeddingsConcat.end(), condData, condData + condN);
 
   log(LOG_LEVEL::Info, "Text embeddings:", n, "\n", embeddingsConcat[0],
@@ -69,10 +73,10 @@ void TextToImage::generate(std::string input, int numInferenceSteps) {
   int latentsWidth = std::floor(modelImageSize / 8);
   int latentsSize = numChannels * latentsWidth * latentsWidth;
   std::vector<float> latents(latentsSize);
-  for (int i = 0; i < latentsSize; i+=2) {
+  for (int i = 0; i < latentsSize; i += 2) {
     latents[i] = 0.5;
-    if (i+1 < latentsSize) { // !!
-      latents[i+1] = -0.5;
+    if (i + 1 < latentsSize) { // !!
+      latents[i + 1] = -0.5;
     }
   }
   // std::random_device rd;
@@ -91,37 +95,83 @@ void TextToImage::generate(std::string input, int numInferenceSteps) {
     latentsConcat.insert(latentsConcat.end(), latents.begin(), latents.end());
     latentsConcat.insert(latentsConcat.end(), latents.begin(), latents.end());
 
-    std::vector<float> noisePred = unet->generate(latentsConcat, t, embeddingsConcat);
+    std::vector<float> noisePred =
+        unet->generate(latentsConcat, t, embeddingsConcat);
     int noiseSize = static_cast<int>(noisePred.size() / 2);
     log(LOG_LEVEL::Info, "NoisePred:", noisePred.size(), "\n", noisePred[0],
-      noisePred[1], noisePred[2], "...", noisePred[noisePred.size() - 3],
-      noisePred[noisePred.size() - 2], noisePred[noisePred.size() - 1]);
-    std::vector<float> noiseUncond(noisePred.begin(), noisePred.begin() + noiseSize);
-    std::vector<float> noiseText(noisePred.begin() + noiseSize, noisePred.end());
+        noisePred[1], noisePred[2], "...", noisePred[noisePred.size() - 3],
+        noisePred[noisePred.size() - 2], noisePred[noisePred.size() - 1]);
+    std::vector<float> noiseUncond(noisePred.begin(),
+                                   noisePred.begin() + noiseSize);
+    std::vector<float> noiseText(noisePred.begin() + noiseSize,
+                                 noisePred.end());
     std::vector<float> noise(noiseUncond);
     for (int i = 0; i < noiseSize; i++) {
-      noise[i] = noiseUncond[i] * (1 - guidanceScale) + noiseText[i] * guidanceScale;
+      noise[i] =
+          noiseUncond[i] * (1 - guidanceScale) + noiseText[i] * guidanceScale;
     }
-    log(LOG_LEVEL::Info, "Noise:", noise.size(), "\n", noise[0],
-      noise[1], noise[2], "...", noise[noise.size() - 3],
-      noise[noise.size() - 2], noise[noise.size() - 1]);
+    log(LOG_LEVEL::Info, "Noise:", noise.size(), "\n", noise[0], noise[1],
+        noise[2], "...", noise[noise.size() - 3], noise[noise.size() - 2],
+        noise[noise.size() - 1]);
     latents = scheduler->step(latents, noise, t);
     log(LOG_LEVEL::Info, "Latents:", latents.size(), "\n", latents[0],
-      latents[1], latents[2], "...", latents[latents.size() - 3],
-      latents[latents.size() - 2], latents[latents.size() - 1]);
-    break;
+        latents[1], latents[2], "...", latents[latents.size() - 3],
+        latents[latents.size() - 2], latents[latents.size() - 1]);
+    // break;
   }
-  for (auto &val: latents) {
+  for (auto &val : latents) {
     val /= latentsScale;
   }
-  std::vector<float> result = decoder->generate(latents);
-  log(LOG_LEVEL::Info, "Decoded:", result.size(), "\n", result[0],
-    result[1], result[2], "...", result[result.size() - 3],
-    result[result.size() - 2], result[result.size() - 1]);
+  std::vector<float> output = decoder->generate(latents);
+  log(LOG_LEVEL::Info, "Decoded:", output.size(), "\n", output[0], output[1],
+      output[2], "...", output[output.size() - 3], output[output.size() - 2],
+      output[output.size() - 1]);
+
+  return postprocess(output);
+}
+
+// std::shared_ptr<OwningArrayBuffer> TextToImage::generate(std::string input,
+// int numInferenceSteps) {
+//   std::vector<float> output(3 * 512 * 512, 0.25);
+//   return postprocess(output);
+// }
+
+std::shared_ptr<OwningArrayBuffer>
+TextToImage::postprocess(const std::vector<float> &output) {
+  std::vector<float> imageData(output.size());
+  int X = 3, Y = modelImageSize, Z = modelImageSize;
+  for (int x = 0; x < X; x++) {
+    for (int y = 0; y < Y; y++) {
+      for (int z = 0; z < Z; z++) {
+        int idx = x * Y * Z + y * Z + z;
+        int newIdx = y * Z * X + z * X + x;
+
+        auto val = output[idx];
+        val = val / 2 + 0.5;
+        val = std::min(std::max(val, 0.0f), 1.0f);
+        val *= 255;
+        imageData[newIdx] = val;
+      }
+    }
+  }
+  int imageDataSize = static_cast<int>(imageData.size());
+  log(LOG_LEVEL::Info, "Raw image:", imageDataSize, "\n", imageData[0],
+      imageData[1], imageData[2], "...", imageData[imageDataSize - 3],
+      imageData[imageDataSize - 2], imageData[imageDataSize - 1]);
+  std::span<float> modelOutput(static_cast<float *>(imageData.data()),
+                               imageData.size());
+
+  auto createBuffer = [](const auto &data, size_t size) {
+    auto buffer = std::make_shared<OwningArrayBuffer>(size);
+    std::memcpy(buffer->data(), data, size);
+    return buffer;
+  };
+  return createBuffer(modelOutput.data(), modelOutput.size_bytes());
 }
 
 size_t TextToImage::getMemoryLowerBound() const noexcept {
-  return encoder->getMemoryLowerBound() + unet->getMemoryLowerBound() + decoder->getMemoryLowerBound();
+  return encoder->getMemoryLowerBound() + unet->getMemoryLowerBound() +
+         decoder->getMemoryLowerBound();
 }
 
 void TextToImage::unload() noexcept {

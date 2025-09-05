@@ -53,6 +53,14 @@ export default function _layout() {
         }}
       >
         <Drawer.Screen
+          name="text_to_image/index"
+          options={{
+            drawerLabel: 'Image Generation',
+            title: 'Image Generation',
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
+        <Drawer.Screen
           name="classification/index"
           options={{
             drawerLabel: 'Classification',
