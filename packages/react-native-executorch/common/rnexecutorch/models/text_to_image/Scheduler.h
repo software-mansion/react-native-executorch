@@ -2,26 +2,22 @@
 
 #include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
 #include <ReactCommon/CallInvoker.h>
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
-#include <stdexcept>
-#include <map>
-#include <cmath>
 
 namespace rnexecutorch {
 namespace models::text_to_image {
 
 using namespace facebook;
-// using executorch::aten::Tensor;
-// using executorch::extension::TensorPtr;
 
 class Scheduler {
 public:
   explicit Scheduler(std::string source,
-                    std::shared_ptr<react::CallInvoker> callInvoker);
+                     std::shared_ptr<react::CallInvoker> callInvoker);
   void setTimesteps(int numInferenceSteps);
-  std::vector<float> step(const std::vector<float> & sample, const std::vector<float> & noise, int timestep);
+  std::vector<float> step(const std::vector<float> &sample,
+                          const std::vector<float> &noise, int timestep);
 
   std::vector<int> timesteps;
 
@@ -43,7 +39,9 @@ private:
   int numInferenceSteps{-1};
   std::vector<int> _timesteps;
 
-  std::vector<float> getPrevSample(const std::vector<float> & sample, const std::vector<float> noise, int timestep, int prevTimestep);
+  std::vector<float> getPrevSample(const std::vector<float> &sample,
+                                   const std::vector<float> noise, int timestep,
+                                   int prevTimestep);
 };
 } // namespace models::text_to_image
 
