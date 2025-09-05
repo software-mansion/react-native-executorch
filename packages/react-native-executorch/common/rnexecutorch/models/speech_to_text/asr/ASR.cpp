@@ -2,6 +2,7 @@
 
 #include "ASR.h"
 #include "executorch/extension/tensor/tensor_ptr.h"
+#include "rnexecutorch/data_processing/Numerical.h"
 #include "rnexecutorch/data_processing/dsp.h"
 #include "rnexecutorch/data_processing/gzip.h"
 
@@ -44,12 +45,22 @@ GenerationResult ASR::generate(std::span<const float> waveform,
 
   while (sequenceIds.size() <= ASR::kMaxDecodeLength) {
     std::vector<float> logits = this->decode(sequenceIds, encoderOutput);
-    std::vector<float> probs = this->softmaxWithTemperature(
-        logits, (temperature == 0.0f ? 1.0f : temperature));
+
+    // intentionally comparing float to float
+    // temperatures are predefined, so this is safe
+    if (temperature == 0.0f) {
+      numerical::softmax(logits);
+    } else {
+      numerical::softmaxWithTemperature(logits, temperature);
+    }
+
+    const std::vector<float> &probs = logits;
 
     int32_t nextId;
     float nextProb;
 
+    // intentionally comparing float to float
+    // temperatures are predefined, so this is safe
     if (temperature == 0.0f) {
       auto maxIt = std::ranges::max_element(probs);
       nextId = static_cast<int32_t>(std::distance(probs.begin(), maxIt));
@@ -72,24 +83,6 @@ GenerationResult ASR::generate(std::span<const float> waveform,
   return {std::vector<int32_t>(sequenceIds.cbegin() + initialSequenceLenght,
                                sequenceIds.cend()),
           scores};
-}
-
-std::vector<float> ASR::softmaxWithTemperature(std::span<const float> logits,
-                                               float temperature) const {
-  const float maxLogit = *std::ranges::max_element(logits);
-
-  std::vector<float> exps(logits.size());
-  std::ranges::transform(logits, exps.begin(),
-                         [maxLogit, temperature](float logit) {
-                           return std::exp((logit - maxLogit) / temperature);
-                         });
-
-  const float sumExp = std::reduce(exps.cbegin(), exps.cend());
-
-  std::ranges::transform(exps, exps.begin(),
-                         [sumExp](float value) { return value / sumExp; });
-
-  return exps;
 }
 
 float ASR::getCompressionRatio(const std::string &text) const {

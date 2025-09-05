@@ -46,8 +46,6 @@ private:
   std::vector<int32_t> getInitialSequence(const DecodingOptions &options) const;
   GenerationResult generate(std::span<const float> waveform, float temperature,
                             const DecodingOptions &options) const;
-  std::vector<float> softmaxWithTemperature(std::span<const float> logits,
-                                            float temperature) const;
   std::vector<Segment>
   generateWithFallback(std::span<const float> waveform,
                        const DecodingOptions &options) const;

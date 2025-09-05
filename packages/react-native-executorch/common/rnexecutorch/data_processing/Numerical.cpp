@@ -28,6 +28,30 @@ void softmax(std::span<float> input) {
   }
 }
 
+void softmaxWithTemperature(std::span<float> input, float temperature) {
+  if (input.empty()) {
+    return;
+  }
+
+  if (temperature <= 0.0F) {
+    throw std::invalid_argument(
+        "Temperature must be greater than 0 for softmax with temperature.");
+  }
+
+  const auto maxElement = *std::ranges::max_element(input);
+
+  for (auto &value : input) {
+    value = std::exp((value - maxElement) / temperature);
+  }
+
+  const auto sum = std::reduce(input.begin(), input.end());
+
+  // sum is at least 1 since exp(max - max) == exp(0) == 1
+  for (auto &value : input) {
+    value /= sum;
+  }
+}
+
 void normalize(std::span<float> input) {
   const auto sumOfSquares =
       std::inner_product(input.begin(), input.end(), input.begin(), 0.0F);
