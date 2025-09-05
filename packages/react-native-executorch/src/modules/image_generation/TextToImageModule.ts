@@ -72,10 +72,6 @@ export class TextToImageModule extends BaseModule {
   }
 
   async forward(input: string, numSteps: number): Promise<Float32Array> {
-    console.log('Input:', input);
-    const output = await this.nativeModule.generate(input, numSteps);
-    console.log('Output:', output);
-    return new Float32Array();
-    // return new Float32Array(await this.nativeModule.generate(input));
+    return new Float32Array(await this.nativeModule.generate(input, numSteps));
   }
 }
