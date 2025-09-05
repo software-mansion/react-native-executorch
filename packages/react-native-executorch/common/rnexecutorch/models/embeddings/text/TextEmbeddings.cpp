@@ -1,6 +1,7 @@
 #include "TextEmbeddings.h"
 #include <executorch/extension/tensor/tensor_ptr_maker.h>
 #include <rnexecutorch/data_processing/Numerical.h>
+#include <rnexecutorch/Log.h>
 
 namespace rnexecutorch::models::embeddings {
 
@@ -48,7 +49,6 @@ TextEmbeddings::generate(const std::string input) {
       attnMaskShape, preprocessed.attentionMask.data(), ScalarType::Long);
 
   auto forwardResult = BaseModel::forward({tokenIds, attnMask});
-
   if (!forwardResult.ok()) {
     throw std::runtime_error(
         "Function forward in TextEmbeddings failed with error code: " +

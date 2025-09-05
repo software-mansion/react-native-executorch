@@ -47,6 +47,12 @@ export default function Home() {
         >
           <Text style={styles.buttonText}>Style Transfer</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.navigate('text_to_image/')}
+        >
+          <Text style={styles.buttonText}>Image Generation</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
