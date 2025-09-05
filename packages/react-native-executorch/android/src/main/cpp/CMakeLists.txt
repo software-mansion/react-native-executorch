@@ -41,20 +41,20 @@ add_library(executorch SHARED IMPORTED)
 set_target_properties(executorch PROPERTIES
                       IMPORTED_LOCATION "${LIBS_DIR}/executorch/${ANDROID_ABI}/libexecutorch.so")
 
-                      
+
 if(ANDROID_ABI STREQUAL "arm64-v8a")
   target_compile_definitions(react-native-executorch PRIVATE ARCH_ARM64)
 
   # ------- pthreadpool -------
   add_library(pthreadpool SHARED IMPORTED)
-  
+
   set_target_properties(pthreadpool PROPERTIES
                         IMPORTED_LOCATION "${LIBS_DIR}/pthreadpool/${ANDROID_ABI}/libpthreadpool.so"
                         INTERFACE_INCLUDE_DIRECTORIES "${LIBS_DIR}/../../include/pthreadpool/")
-  
+
   # ------- cpuinfo -------
   add_library(cpuinfo SHARED IMPORTED)
-  
+
   set_target_properties(cpuinfo PROPERTIES
                         IMPORTED_LOCATION "${LIBS_DIR}/cpuinfo/${ANDROID_ABI}/libcpuinfo.so"
                         INTERFACE_INCLUDE_DIRECTORIES "${LIBS_DIR}/../../include/cpuinfo/")
@@ -66,7 +66,7 @@ endif()
 
 # ------- OpenCV -------
 
-set(OPENCV_LIBS 
+set(OPENCV_LIBS
   "${LIBS_DIR}/opencv/${ANDROID_ABI}/libopencv_core.a"
   "${LIBS_DIR}/opencv/${ANDROID_ABI}/libopencv_features2d.a"
   "${LIBS_DIR}/opencv/${ANDROID_ABI}/libopencv_highgui.a"
@@ -85,14 +85,27 @@ elseif(ANDROID_ABI STREQUAL "x86_64")
   set(OPENCV_THIRD_PARTY_LIBS "")
 endif()
 
+# ------- tokenizers-cpp -------
+
+set(TOKENIZERS_LIBS
+  "${LIBS_DIR}/tokenizers-cpp/${ANDROID_ABI}/libtokenizers_c.a"
+  "${LIBS_DIR}/tokenizers-cpp/${ANDROID_ABI}/libtokenizers_cpp.a"
+)
+
+set(TOKENIZERS_THIRD_PARTY_LIBS
+  "${LIBS_DIR}/sentencepiece/${ANDROID_ABI}/libsentencepiece.a"
+)
+
 # --------------
 
 target_link_libraries(
-  react-native-executorch 
-  ${LINK_LIBRARIES} 
+  react-native-executorch
+  ${LINK_LIBRARIES}
   ${RN_VERSION_LINK_LIBRARIES}
   ${OPENCV_LIBS}
   ${OPENCV_THIRD_PARTY_LIBS}
+  ${TOKENIZERS_LIBS}
+  ${TOKENIZERS_THIRD_PARTY_LIBS}
   executorch
   ${EXECUTORCH_LIBS}
 )
