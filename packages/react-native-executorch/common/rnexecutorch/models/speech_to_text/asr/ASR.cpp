@@ -107,16 +107,16 @@ ASR::generateWithFallback(std::span<const float> waveform,
   for (auto t : temperatures) {
     auto [tokens, scores] = this->generate(waveform, t, options);
 
-    float cumLogProb = std::transform_reduce(
+    const float cumLogProb = std::transform_reduce(
         scores.begin(), scores.end(), 0.0f, std::plus<>(),
         [](float s) { return std::log(std::max(s, 1e-9f)); });
 
-    float avgLogProb = cumLogProb / (tokens.size() + 1);
-    std::string text = this->tokenizer.decode(tokens, true);
-    float compressionRatio = this->getCompressionRatio(text);
+    const float avgLogProb = cumLogProb / static_cast<float>(tokens.size() + 1);
+    const std::string text = this->tokenizer.decode(tokens, true);
+    const float compressionRatio = this->getCompressionRatio(text);
 
     if (avgLogProb >= -1.0f && compressionRatio < 2.4f) {
-      bestTokens = tokens;
+      bestTokens = std::move(tokens);
       break;
     }
   }
@@ -143,23 +143,23 @@ ASR::calculateWordLevelTimestamps(std::span<const int32_t> generatedTokens,
     }
     if (i > 0 && generatedTokens[i - 1] >= this->timestampBeginToken &&
         generatedTokens[i] >= this->timestampBeginToken) {
-      int32_t start = prevTimestamp;
-      int32_t end = generatedTokens[i - 1];
+      const int32_t start = prevTimestamp;
+      const int32_t end = generatedTokens[i - 1];
       auto words = this->estimateWordLevelTimestampsLinear(tokens, start, end);
       if (words.size()) {
-        segments.emplace_back(words, 0.0);
+        segments.emplace_back(std::move(words), 0.0);
       }
       tokens.clear();
       prevTimestamp = generatedTokens[i];
     }
   }
 
-  int32_t start = prevTimestamp;
-  int32_t end = generatedTokens[generatedTokens.size() - 2];
+  const int32_t start = prevTimestamp;
+  const int32_t end = generatedTokens[generatedTokens.size() - 2];
   auto words = this->estimateWordLevelTimestampsLinear(tokens, start, end);
 
   if (words.size()) {
-    segments.emplace_back(words, 0.0);
+    segments.emplace_back(std::move(words), 0.0);
   }
 
   float scalingFactor =
@@ -181,7 +181,7 @@ std::vector<Word>
 ASR::estimateWordLevelTimestampsLinear(std::span<const int32_t> tokens,
                                        int32_t start, int32_t end) const {
   const std::vector<int32_t> tokensVec(tokens.begin(), tokens.end());
-  std::string segmentText = this->tokenizer.decode(tokensVec, true);
+  const std::string segmentText = this->tokenizer.decode(tokensVec, true);
   std::istringstream iss(segmentText);
   std::vector<std::string> wordsStr;
   std::string word;
@@ -190,21 +190,20 @@ ASR::estimateWordLevelTimestampsLinear(std::span<const int32_t> tokens,
     wordsStr.back().append(word);
   }
 
-  int32_t numChars = 0;
-  for (auto &w : wordsStr) {
-    numChars += static_cast<int32_t>(w.size());
+  size_t numChars = 0;
+  for (const auto &w : wordsStr) {
+    numChars += w.size();
   }
-
-  float duration = (end - start) * ASR::kTimePrecision;
-  float timePerChar = duration / std::max(1, numChars);
-  float startOffset = (start - timestampBeginToken) * ASR::kTimePrecision;
+  const float duration = (end - start) * ASR::kTimePrecision;
+  const float timePerChar = duration / std::max<float>(1, numChars);
+  const float startOffset = (start - timestampBeginToken) * ASR::kTimePrecision;
 
   std::vector<Word> wordObjs;
   wordObjs.reserve(wordsStr.size());
   int32_t prevCharCount = 0;
-  for (auto &w : wordsStr) {
-    float wStart = startOffset + prevCharCount * timePerChar;
-    float wEnd = wStart + timePerChar * w.size();
+  for (const auto &w : wordsStr) {
+    const float wStart = startOffset + prevCharCount * timePerChar;
+    const float wEnd = wStart + timePerChar * w.size();
     wordObjs.emplace_back(w, wStart, wEnd);
     prevCharCount += w.size();
   }
@@ -219,11 +218,11 @@ std::vector<Segment> ASR::transcribe(std::span<const float> waveform,
 
   while (seek * ASR::kSamplingRate < waveform.size()) {
     int32_t start = seek * ASR::kSamplingRate;
-    auto end = std::min<int32_t>((seek + ASR::kChunkSize) * ASR::kSamplingRate,
-                                 waveform.size());
+    const auto end = std::min<int32_t>(
+        (seek + ASR::kChunkSize) * ASR::kSamplingRate, waveform.size());
     std::span<const float> chunk = waveform.subspan(start, end - start);
 
-    if (chunk.size() < ASR::kMinChunkSamples) {
+    if (std::cmp_less(chunk.size(), ASR::kMinChunkSamples)) {
       break;
     }
 
@@ -241,7 +240,7 @@ std::vector<Segment> ASR::transcribe(std::span<const float> waveform,
       }
     }
 
-    seek = static_cast<int>(segments.back().words.back().end);
+    seek = static_cast<int32_t>(segments.back().words.back().end);
     results.insert(results.end(), std::make_move_iterator(segments.begin()),
                    std::make_move_iterator(segments.end()));
   }

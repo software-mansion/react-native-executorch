@@ -12,20 +12,20 @@ void HypothesisBuffer::insert(std::span<const Word> newWords, float offset) {
   this->fresh.clear();
   for (const auto &w : newWordsOffset) {
     if (w.start > lastCommittedTime - 0.5f) {
-      this->fresh.push_back(w);
+      this->fresh.emplace_back(w);
     }
   }
 
   if (!this->fresh.empty() && !this->committedInBuffer.empty()) {
-    float a = this->fresh.front().start;
+    const float a = this->fresh.front().start;
     if (std::fabs(a - lastCommittedTime) < 1.0f) {
-      size_t cn = this->committedInBuffer.size();
-      size_t nn = this->fresh.size();
+      const size_t cn = this->committedInBuffer.size();
+      const size_t nn = this->fresh.size();
       const std::size_t maxCheck = std::min<std::size_t>({cn, nn, 5});
       for (size_t i = 1; i <= maxCheck; i++) {
         std::string c;
-        for (auto it = this->committedInBuffer.end() - i;
-             it != this->committedInBuffer.end(); ++it) {
+        for (auto it = this->committedInBuffer.cend() - i;
+             it != this->committedInBuffer.cend(); ++it) {
           if (!c.empty()) {
             c += ' ';
           }
@@ -33,7 +33,7 @@ void HypothesisBuffer::insert(std::span<const Word> newWords, float offset) {
         }
 
         std::string tail;
-        auto it = this->fresh.begin();
+        auto it = this->fresh.cbegin();
         for (size_t k = 0; k < i; k++, it++) {
           if (!tail.empty()) {
             tail += ' ';
@@ -66,6 +66,7 @@ std::deque<Word> HypothesisBuffer::flush() {
   }
 
   this->buffer = std::move(this->fresh);
+  this->fresh.clear();
   this->committedInBuffer.insert(this->committedInBuffer.end(), commit.begin(),
                                  commit.end());
   return commit;

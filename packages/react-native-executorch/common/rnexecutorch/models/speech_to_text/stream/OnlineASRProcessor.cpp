@@ -44,7 +44,7 @@ void OnlineASRProcessor::chunkCompletedSegment(std::span<const Segment> res) {
     return seg.words.back().end;
   });
 
-  float t = this->committed.back().end;
+  const float t = this->committed.back().end;
 
   if (ends.size() > 1) {
     float e = ends[ends.size() - 2] + this->bufferTimeOffset;
