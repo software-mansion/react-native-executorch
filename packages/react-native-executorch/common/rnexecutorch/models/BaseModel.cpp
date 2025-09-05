@@ -142,7 +142,8 @@ BaseModel::getMethodMeta(const std::string &methodName) {
   return module_->method_meta(methodName);
 }
 
-Result<std::vector<EValue>> BaseModel::forward(const EValue &input_evalue) {
+Result<std::vector<EValue>>
+BaseModel::forward(const EValue &input_evalue) const {
   if (!module_) {
     throw std::runtime_error("Model not loaded: Cannot perform forward pass");
   }
@@ -150,7 +151,7 @@ Result<std::vector<EValue>> BaseModel::forward(const EValue &input_evalue) {
 }
 
 Result<std::vector<EValue>>
-BaseModel::forward(const std::vector<EValue> &input_evalues) {
+BaseModel::forward(const std::vector<EValue> &input_evalues) const {
   if (!module_) {
     throw std::runtime_error("Model not loaded: Cannot perform forward pass");
   }

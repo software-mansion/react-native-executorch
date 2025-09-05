@@ -26,8 +26,9 @@ public:
   getAllInputShapes(std::string methodName = "forward");
   std::vector<JSTensorViewOut>
   forwardJS(std::vector<JSTensorViewIn> tensorViewVec);
-  Result<std::vector<EValue>> forward(const EValue &input_value);
-  Result<std::vector<EValue>> forward(const std::vector<EValue> &input_value);
+  Result<std::vector<EValue>> forward(const EValue &input_value) const;
+  Result<std::vector<EValue>>
+  forward(const std::vector<EValue> &input_value) const;
   Result<std::vector<EValue>> execute(const std::string &methodName,
                                       const std::vector<EValue> &input_value);
   Result<executorch::runtime::MethodMeta>

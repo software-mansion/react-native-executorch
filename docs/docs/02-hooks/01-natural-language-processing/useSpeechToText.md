@@ -44,10 +44,9 @@ const { uri } = await FileSystem.downloadAsync(
 const audioContext = new AudioContext({ sampleRate: 16000 });
 const decodedAudioData = await audioContext.decodeAudioDataSource(uri);
 const audioBuffer = decodedAudioData.getChannelData(0);
-const audioArray = Array.from(audioBuffer);
 
 try {
-  const transcription = await model.transcribe(audioArray);
+  const transcription = await model.transcribe(audioBuffer);
   console.log(transcription);
 } catch (error) {
   console.error('Error during audio transcription', error);
@@ -76,20 +75,20 @@ For more information on loading resources, take a look at [loading models](../..
 
 ### Returns
 
-| Field                       | Type                                                                              | Description                                                                                                                                                                                                                                                            |
-| --------------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `transcribe`                | `(waveform: number[], options?: DecodingOptions \| undefined) => Promise<string>` | Starts a transcription process for a given input array, which should be a waveform at 16kHz. The second argument is an options object, e.g. `{ language: 'es' }` for multilingual models. Resolves a promise with the output transcription when the model is finished. |
-| `stream`                    | `() => Promise<string>`                                                           | Starts a streaming transcription process. Use in combination with `streamInsert` to feed audio chunks and `streamStop` to end the stream. Updates `committedTranscription` and `nonCommittedTranscription` as transcription progresses.                                |
-| `streamInsert`              | `(waveform: number[]) => void`                                                    | Inserts a chunk of audio data (sampled at 16kHz) into the ongoing streaming transcription. Call this repeatedly as new audio data becomes available.                                                                                                                   |
-| `streamStop`                | `() => void`                                                                      | Stops the ongoing streaming transcription process.                                                                                                                                                                                                                     |
-| `encode`                    | `(waveform: Float32Array) => Promise<void>`                                       | Runs the encoding part of the model on the provided waveform. Stores the result internally.                                                                                                                                                                            |
-| `decode`                    | `(tokens: number[]) => Promise<Float32Array>`                                     | Runs the decoder of the model. Returns the decoded waveform as a Float32Array.                                                                                                                                                                                         |
-| `committedTranscription`    | `string`                                                                          | Contains the part of the transcription that is finalized and will not change. Useful for displaying stable results during streaming.                                                                                                                                   |
-| `nonCommittedTranscription` | `string`                                                                          | Contains the part of the transcription that is still being processed and may change. Useful for displaying live, partial results during streaming.                                                                                                                     |
-| `error`                     | `string \| null`                                                                  | Contains the error message if the model failed to load.                                                                                                                                                                                                                |
-| `isGenerating`              | `boolean`                                                                         | Indicates whether the model is currently processing an inference.                                                                                                                                                                                                      |
-| `isReady`                   | `boolean`                                                                         | Indicates whether the model has successfully loaded and is ready for inference.                                                                                                                                                                                        |
-| `downloadProgress`          | `number`                                                                          | Tracks the progress of the model download process.                                                                                                                                                                                                                     |
+| Field                       | Type                                                                                                 | Description                                                                                                                                                                                                                                                                                              |
+| --------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `transcribe`                | `(waveform: Float32Array \| number[], options?: DecodingOptions \| undefined) => Promise<string>`    | Starts a transcription process for a given input array, which should be a waveform at 16kHz. The second argument is an options object, e.g. `{ language: 'es' }` for multilingual models. Resolves a promise with the output transcription when the model is finished. Passing `number[]` is deprecated. |
+| `stream`                    | `() => Promise<string>`                                                                              | Starts a streaming transcription process. Use in combination with `streamInsert` to feed audio chunks and `streamStop` to end the stream. Updates `committedTranscription` and `nonCommittedTranscription` as transcription progresses.                                                                  |
+| `streamInsert`              | `(waveform: Float32Array \| number[]) => Promise<void>`                                              | Inserts a chunk of audio data (sampled at 16kHz) into the ongoing streaming transcription. Call this repeatedly as new audio data becomes available. Passing `number[]` is deprecated.                                                                                                                   |
+| `streamStop`                | `() => Promise<void>`                                                                                | Stops the ongoing streaming transcription process.                                                                                                                                                                                                                                                       |
+| `encode`                    | `(waveform: Float32Array \| number[]) => Promise<Float32Array>`                                      | Runs the encoding part of the model on the provided waveform. Passing `number[]` is deprecated.                                                                                                                                                                                                          |
+| `decode`                    | `(tokens: number[] \| Int32Array, encoderOutput: Float32Array \| number[]) => Promise<Float32Array>` | Runs the decoder of the model. Passing `number[]` is deprecated.                                                                                                                                                                                                                                         |
+| `committedTranscription`    | `string`                                                                                             | Contains the part of the transcription that is finalized and will not change. Useful for displaying stable results during streaming.                                                                                                                                                                     |
+| `nonCommittedTranscription` | `string`                                                                                             | Contains the part of the transcription that is still being processed and may change. Useful for displaying live, partial results during streaming.                                                                                                                                                       |
+| `error`                     | `string \| null`                                                                                     | Contains the error message if the model failed to load.                                                                                                                                                                                                                                                  |
+| `isGenerating`              | `boolean`                                                                                            | Indicates whether the model is currently processing an inference.                                                                                                                                                                                                                                        |
+| `isReady`                   | `boolean`                                                                                            | Indicates whether the model has successfully loaded and is ready for inference.                                                                                                                                                                                                                          |
+| `downloadProgress`          | `number`                                                                                             | Tracks the progress of the model download process.                                                                                                                                                                                                                                                       |
 
 <details>
 <summary>Type definitions</summary>
@@ -231,7 +230,7 @@ function App() {
     const decodedAudioData = await audioContext.decodeAudioDataSource(uri);
     const audioBuffer = decodedAudioData.getChannelData(0);
 
-    return Array.from(audioBuffer);
+    return audioBuffer;
   };
 
   const handleTranscribe = async () => {
@@ -281,8 +280,7 @@ function App() {
 
   const handleStartStreamingTranscribe = async () => {
     recorder.onAudioReady(async ({ buffer }) => {
-      const bufferArray = Array.from(buffer.getChannelData(0));
-      model.streamInsert(bufferArray);
+      await model.streamInsert(buffer.getChannelData(0));
     });
     recorder.start();
 
@@ -295,7 +293,7 @@ function App() {
 
   const handleStopStreamingTranscribe = async () => {
     recorder.stop();
-    model.streamStop();
+    await model.streamStop();
   };
 
   return (

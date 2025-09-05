@@ -62,6 +62,30 @@ public:
                                        "decode"));
     }
 
+    if constexpr (meta::HasTranscribe<Model>) {
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::transcribe>,
+                                       "transcribe"));
+    }
+
+    if constexpr (meta::HasStream<Model>) {
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::stream>,
+                                       "stream"));
+    }
+
+    if constexpr (meta::HasStreamInsert<Model>) {
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>, promiseHostFunction<&Model::streamInsert>,
+          "streamInsert"));
+    }
+
+    if constexpr (meta::HasStreamStop<Model>) {
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::streamStop>,
+                                       "streamStop"));
+    }
+
     if constexpr (meta::SameAs<Model, TokenizerModule>) {
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::encode>,
