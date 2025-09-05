@@ -9,10 +9,9 @@ namespace {
 constexpr int32_t kGzipWrapper = 16;     // gzip header/trailer
 constexpr int32_t kMemLevel = 8;         // memory level
 constexpr size_t kChunkSize = 16 * 1024; // 16 KiB stream buffer
-constexpr size_t kReservePad = 20;       // gzip header + trailer
 } // namespace
 
-std::string deflate(const std::string &input) {
+size_t deflateSize(const std::string &input) {
   z_stream strm{};
   if (::deflateInit2(&strm, Z_DEFAULT_COMPRESSION, Z_DEFLATED,
                      MAX_WBITS + kGzipWrapper, kMemLevel,
@@ -20,8 +19,7 @@ std::string deflate(const std::string &input) {
     throw std::runtime_error("deflateInit2 failed");
   }
 
-  std::string out;
-  out.reserve(input.size() / 2 + kReservePad);
+  size_t outSize = 0;
 
   strm.next_in = reinterpret_cast<z_const Bytef *>(
       const_cast<z_const char *>(input.data()));
@@ -39,12 +37,11 @@ std::string deflate(const std::string &input) {
       throw std::runtime_error("deflate stream error");
     }
 
-    std::size_t have = buf.size() - strm.avail_out;
-    out.append(reinterpret_cast<char *>(buf.data()), have);
+    outSize += buf.size() - strm.avail_out;
   } while (ret != Z_STREAM_END);
 
   ::deflateEnd(&strm);
-  return out;
+  return outSize;
 }
 
 } // namespace rnexecutorch::gzip

@@ -93,9 +93,8 @@ std::vector<float> ASR::softmaxWithTemperature(std::span<const float> logits,
 }
 
 float ASR::getCompressionRatio(const std::string &text) const {
-  std::string compressed = gzip::deflate(text);
-  return static_cast<float>(text.size()) /
-         static_cast<float>(compressed.size());
+  size_t compressedSize = gzip::deflateSize(text);
+  return static_cast<float>(text.size()) / static_cast<float>(compressedSize);
 }
 
 std::vector<Segment>
