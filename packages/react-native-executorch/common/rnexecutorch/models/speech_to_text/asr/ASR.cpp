@@ -254,12 +254,11 @@ std::vector<float> ASR::encode(std::span<const float> waveform) const {
   constexpr int32_t stftHopLength = 160;
   constexpr int32_t innerDim = 256;
 
-  const std::vector<float> preprocessedData =
+  std::vector<float> preprocessedData =
       dsp::stftFromWaveform(waveform, fftWindowSize, stftHopLength);
   const auto numFrames =
       static_cast<int32_t>(preprocessedData.size()) / innerDim;
-  const std::vector<int32_t> inputShape = {static_cast<int32_t>(numFrames),
-                                           innerDim};
+  std::vector<int32_t> inputShape = {static_cast<int32_t>(numFrames), innerDim};
 
   const auto modelInputTensor = executorch::extension::make_tensor_ptr(
       std::move(inputShape), std::move(preprocessedData));
@@ -280,15 +279,14 @@ std::vector<float> ASR::encode(std::span<const float> waveform) const {
 
 std::vector<float> ASR::decode(std::span<const int32_t> tokens,
                                std::span<const float> encoderOutput) const {
-  const std::vector<int32_t> tokenShape = {1,
-                                           static_cast<int32_t>(tokens.size())};
+  std::vector<int32_t> tokenShape = {1, static_cast<int32_t>(tokens.size())};
   std::vector<int32_t> tokenVec(tokens.begin(), tokens.end());
   auto tokenTensor = executorch::extension::make_tensor_ptr(
       std::move(tokenShape), std::move(tokenVec));
 
   const auto encoderOutputSize = static_cast<int32_t>(encoderOutput.size());
-  const std::vector<int32_t> encShape = {1, ASR::kNumFrames,
-                                         encoderOutputSize / ASR::kNumFrames};
+  std::vector<int32_t> encShape = {1, ASR::kNumFrames,
+                                   encoderOutputSize / ASR::kNumFrames};
   std::vector<float> encVec(encoderOutput.begin(), encoderOutput.end());
   auto encoderTensor = executorch::extension::make_tensor_ptr(
       std::move(encShape), std::move(encVec));
