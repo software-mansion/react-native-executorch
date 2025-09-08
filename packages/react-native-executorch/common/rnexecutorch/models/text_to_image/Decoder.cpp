@@ -13,6 +13,7 @@ Decoder::Decoder(const std::string &modelSource, int32_t modelImageSize,
       numChannels(numChannels) {}
 
 std::vector<float> Decoder::generate(const std::vector<float> &input) {
+  // Divide by 8 to account for the 3 down-sampling layers in the VAE model.
   int32_t latentsImageSize = std::floor(modelImageSize / 8);
   std::vector<int32_t> inputShape = {1, numChannels, latentsImageSize,
                                      latentsImageSize};
