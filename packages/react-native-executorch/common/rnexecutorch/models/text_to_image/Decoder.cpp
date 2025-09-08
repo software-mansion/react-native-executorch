@@ -6,14 +6,14 @@ namespace rnexecutorch::models::text_to_image {
 
 using namespace executorch::extension;
 
-Decoder::Decoder(const std::string &modelSource, int modelImageSize,
-                 int numChannels,
+Decoder::Decoder(const std::string &modelSource, int32_t modelImageSize,
+                 int32_t numChannels,
                  std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker), modelImageSize(modelImageSize),
       numChannels(numChannels) {}
 
 std::vector<float> Decoder::generate(const std::vector<float> &input) {
-  int latentsImageSize = std::floor(modelImageSize / 8);
+  int32_t latentsImageSize = std::floor(modelImageSize / 8);
   std::vector<int32_t> inputShape = {1, numChannels, latentsImageSize,
                                      latentsImageSize};
 
@@ -32,9 +32,7 @@ std::vector<float> Decoder::generate(const std::vector<float> &input) {
   }
 
   auto forwardResultTensor = forwardResult->at(0).toTensor();
-  auto dataPtr =
-      static_cast<const float *>(forwardResultTensor.const_data_ptr());
-  int dataSize = forwardResultTensor.numel();
-  return std::vector<float>(dataPtr, dataPtr + dataSize);
+  const auto *dataPtr = forwardResultTensor.const_data_ptr<float>();
+  return {dataPtr, dataPtr + forwardResultTensor.numel()};
 }
 } // namespace rnexecutorch::models::text_to_image

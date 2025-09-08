@@ -31,10 +31,10 @@ public:
   TextToImage(const std::string &tokenizerSource,
               const std::string &schedulerSource,
               const std::string &encoderSource, const std::string &unetSource,
-              const std::string &decoderSource, int imageSize,
+              const std::string &decoderSource, int32_t imageSize,
               std::shared_ptr<react::CallInvoker> callInvoker);
   std::shared_ptr<OwningArrayBuffer> generate(std::string input,
-                                              int numInferenceSteps);
+                                              size_t numInferenceSteps);
   size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
 
@@ -43,10 +43,10 @@ private:
   postprocess(const std::vector<float> &output);
   size_t memorySizeLowerBound;
 
-  int modelImageSize;
-  int numChannels = 4;
-  float guidanceScale = 7.5;
-  float latentsScale = 0.18215;
+  int32_t modelImageSize;
+  static constexpr int32_t numChannels = 4;
+  static constexpr float guidanceScale = 7.5;
+  static constexpr float latentsScale = 0.18215;
 
   std::shared_ptr<react::CallInvoker> callInvoker;
   std::unique_ptr<Scheduler> scheduler;
@@ -57,6 +57,6 @@ private:
 } // namespace models::text_to_image
 
 REGISTER_CONSTRUCTOR(models::text_to_image::TextToImage, std::string,
-                     std::string, std::string, std::string, std::string, int,
-                     std::shared_ptr<react::CallInvoker>);
+                     std::string, std::string, std::string, std::string,
+                     int32_t, std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch
