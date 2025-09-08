@@ -6,15 +6,15 @@ namespace rnexecutorch::models::text_to_image {
 
 using namespace executorch::extension;
 
-UNet::UNet(const std::string &modelSource, int modelImageSize, int numChannels,
-           std::shared_ptr<react::CallInvoker> callInvoker)
+UNet::UNet(const std::string &modelSource, int32_t modelImageSize,
+           int32_t numChannels, std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker), modelImageSize(modelImageSize),
       numChannels(numChannels) {}
 
 std::vector<float> UNet::generate(const std::vector<float> &latents,
-                                  int timestep,
+                                  int32_t timestep,
                                   const std::vector<float> &embeddings) {
-  int latentsImageSize = std::floor(modelImageSize / 8);
+  int32_t latentsImageSize = std::floor(modelImageSize / 8);
   std::vector<int32_t> latentsShape = {2, numChannels, latentsImageSize,
                                        latentsImageSize};
   std::vector<int32_t> timestepShape = {1};
@@ -50,9 +50,7 @@ std::vector<float> UNet::generate(const std::vector<float> &latents,
   }
 
   auto forwardResultTensor = forwardResult->at(0).toTensor();
-  auto dataPtr =
-      static_cast<const float *>(forwardResultTensor.const_data_ptr());
-  int dataSize = forwardResultTensor.numel();
-  return std::vector<float>(dataPtr, dataPtr + dataSize);
+  const auto *dataPtr = forwardResultTensor.const_data_ptr<float>();
+  return {dataPtr, dataPtr + forwardResultTensor.numel()};
 }
 } // namespace rnexecutorch::models::text_to_image
