@@ -15,9 +15,9 @@ SpeechToText::SpeechToText(const std::string &encoderSource,
       decoder(std::make_unique<BaseModel>(decoderSource, this->callInvoker)),
       tokenizer(std::make_unique<TokenizerModule>(tokenizerSource,
                                                   this->callInvoker)),
-      asr(std::make_unique<ASR>(*this->encoder, *this->decoder,
-                                *this->tokenizer)),
-      processor(std::make_unique<OnlineASRProcessor>(*this->asr)),
+      asr(std::make_unique<ASR>(this->encoder.get(), this->decoder.get(),
+                                this->tokenizer.get())),
+      processor(std::make_unique<OnlineASRProcessor>(this->asr.get())),
       isStreaming(false), readyToProcess(false) {}
 
 std::shared_ptr<OwningArrayBuffer>
@@ -119,7 +119,7 @@ void SpeechToText::streamInsert(std::span<float> waveform) {
 void SpeechToText::resetStreamState() {
   this->isStreaming = false;
   this->readyToProcess = false;
-  this->processor = std::make_unique<OnlineASRProcessor>(*this->asr);
+  this->processor = std::make_unique<OnlineASRProcessor>(this->asr.get());
 }
 
 } // namespace rnexecutorch::models::speech_to_text

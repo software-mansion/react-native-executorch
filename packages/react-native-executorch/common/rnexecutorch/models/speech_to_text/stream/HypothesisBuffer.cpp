@@ -53,9 +53,12 @@ std::deque<Word> HypothesisBuffer::flush() {
       break;
     }
     commit.push_back(this->fresh.front());
-    lastCommittedTime = this->fresh.front().end;
     this->buffer.pop_front();
     this->fresh.pop_front();
+  }
+
+  if (!commit.empty()) {
+    lastCommittedTime = commit.back().end;
   }
 
   this->buffer = std::move(this->fresh);

@@ -12,9 +12,9 @@ using namespace types;
 
 class ASR {
 public:
-  explicit ASR(const models::BaseModel &encoder,
-               const models::BaseModel &decoder,
-               const TokenizerModule &tokenizer);
+  explicit ASR(const models::BaseModel *encoder,
+               const models::BaseModel *decoder,
+               const TokenizerModule *tokenizer);
   std::vector<Segment> transcribe(std::span<const float> waveform,
                                   const DecodingOptions &options) const;
   std::vector<float> encode(std::span<const float> waveform) const;
@@ -22,13 +22,13 @@ public:
                             std::span<float> encoderOutput) const;
 
 private:
-  const models::BaseModel &encoder;
-  const models::BaseModel &decoder;
-  const TokenizerModule &tokenizer;
+  const models::BaseModel *encoder;
+  const models::BaseModel *decoder;
+  const TokenizerModule *tokenizer;
 
-  const int32_t startOfTranscriptionToken;
-  const int32_t endOfTranscriptionToken;
-  const int32_t timestampBeginToken;
+  int32_t startOfTranscriptionToken;
+  int32_t endOfTranscriptionToken;
+  int32_t timestampBeginToken;
 
   // Time precision used by Whisper timestamps: each token spans 0.02 seconds
   constexpr static float kTimePrecision = 0.02f;

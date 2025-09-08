@@ -4,14 +4,14 @@
 
 namespace rnexecutorch::models::speech_to_text::stream {
 
-OnlineASRProcessor::OnlineASRProcessor(ASR &asr) : asr(asr) {}
+OnlineASRProcessor::OnlineASRProcessor(const ASR *asr) : asr(asr) {}
 
 void OnlineASRProcessor::insertAudioChunk(std::span<const float> audio) {
   audioBuffer.insert(audioBuffer.end(), audio.begin(), audio.end());
 }
 
 ProcessResult OnlineASRProcessor::processIter(const DecodingOptions &options) {
-  std::vector<Segment> res = asr.transcribe(audioBuffer, options);
+  std::vector<Segment> res = asr->transcribe(audioBuffer, options);
 
   std::vector<Word> tsw;
   for (const auto &segment : res) {
@@ -20,8 +20,8 @@ ProcessResult OnlineASRProcessor::processIter(const DecodingOptions &options) {
     }
   }
 
-  this->transcriptBuffer.insert(tsw, this->bufferTimeOffset);
-  std::deque<Word> flushed = this->transcriptBuffer.flush();
+  this->hypothesisBuffer.insert(tsw, this->bufferTimeOffset);
+  std::deque<Word> flushed = this->hypothesisBuffer.flush();
   this->committed.insert(this->committed.end(), flushed.begin(), flushed.end());
 
   constexpr int32_t chunkThresholdSec = 15;
@@ -31,7 +31,7 @@ ProcessResult OnlineASRProcessor::processIter(const DecodingOptions &options) {
     chunkCompletedSegment(res);
   }
 
-  std::deque<Word> nonCommittedWords = this->transcriptBuffer.complete();
+  std::deque<Word> nonCommittedWords = this->hypothesisBuffer.complete();
   return {this->toFlush(flushed), this->toFlush(nonCommittedWords)};
 }
 
@@ -59,7 +59,7 @@ void OnlineASRProcessor::chunkCompletedSegment(std::span<const Segment> res) {
 }
 
 void OnlineASRProcessor::chunkAt(float time) {
-  this->transcriptBuffer.popCommitted(time);
+  this->hypothesisBuffer.popCommitted(time);
 
   const float cutSeconds = time - this->bufferTimeOffset;
   auto startIndex =
@@ -75,8 +75,8 @@ void OnlineASRProcessor::chunkAt(float time) {
 }
 
 std::string OnlineASRProcessor::finish() {
-  const std::deque<Word> o = this->transcriptBuffer.complete();
-  std::string committedText = this->toFlush(o);
+  const std::deque<Word> buffer = this->hypothesisBuffer.complete();
+  std::string committedText = this->toFlush(buffer);
   this->bufferTimeOffset += static_cast<float>(audioBuffer.size()) /
                             OnlineASRProcessor::kSamplingRate;
   return committedText;

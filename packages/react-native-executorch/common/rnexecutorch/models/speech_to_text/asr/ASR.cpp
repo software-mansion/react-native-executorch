@@ -8,13 +8,13 @@
 
 namespace rnexecutorch::models::speech_to_text::asr {
 
-ASR::ASR(const models::BaseModel &encoder, const models::BaseModel &decoder,
-         const TokenizerModule &tokenizer)
+ASR::ASR(const models::BaseModel *encoder, const models::BaseModel *decoder,
+         const TokenizerModule *tokenizer)
     : encoder(encoder), decoder(decoder), tokenizer(tokenizer),
       startOfTranscriptionToken(
-          this->tokenizer.tokenToId("<|startoftranscript|>")),
-      endOfTranscriptionToken(this->tokenizer.tokenToId("<|endoftext|>")),
-      timestampBeginToken(this->tokenizer.tokenToId("<|0.00|>")) {}
+          this->tokenizer->tokenToId("<|startoftranscript|>")),
+      endOfTranscriptionToken(this->tokenizer->tokenToId("<|endoftext|>")),
+      timestampBeginToken(this->tokenizer->tokenToId("<|0.00|>")) {}
 
 std::vector<int32_t>
 ASR::getInitialSequence(const DecodingOptions &options) const {
@@ -23,8 +23,8 @@ ASR::getInitialSequence(const DecodingOptions &options) const {
 
   if (options.language.has_value()) {
     int32_t langToken =
-        this->tokenizer.tokenToId("<|" + options.language.value() + "|>");
-    int32_t taskToken = this->tokenizer.tokenToId("<|transcribe|>");
+        this->tokenizer->tokenToId("<|" + options.language.value() + "|>");
+    int32_t taskToken = this->tokenizer->tokenToId("<|transcribe|>");
     seq.push_back(langToken);
     seq.push_back(taskToken);
   }
@@ -43,7 +43,7 @@ GenerationResult ASR::generate(std::span<const float> waveform,
   const size_t initialSequenceLenght = sequenceIds.size();
   std::vector<float> scores;
 
-  while (sequenceIds.size() <= ASR::kMaxDecodeLength) {
+  while (std::cmp_less_equal(sequenceIds.size(), ASR::kMaxDecodeLength)) {
     std::vector<float> logits = this->decode(sequenceIds, encoderOutput);
 
     // intentionally comparing float to float
@@ -80,9 +80,9 @@ GenerationResult ASR::generate(std::span<const float> waveform,
     }
   }
 
-  return {std::vector<int32_t>(sequenceIds.cbegin() + initialSequenceLenght,
-                               sequenceIds.cend()),
-          scores};
+  return {.tokens = std::vector<int32_t>(
+              sequenceIds.cbegin() + initialSequenceLenght, sequenceIds.cend()),
+          .scores = scores};
 }
 
 float ASR::getCompressionRatio(const std::string &text) const {
@@ -104,7 +104,7 @@ ASR::generateWithFallback(std::span<const float> waveform,
         [](float s) { return std::log(std::max(s, 1e-9f)); });
 
     const float avgLogProb = cumLogProb / static_cast<float>(tokens.size() + 1);
-    const std::string text = this->tokenizer.decode(tokens, true);
+    const std::string text = this->tokenizer->decode(tokens, true);
     const float compressionRatio = this->getCompressionRatio(text);
 
     if (avgLogProb >= -1.0f && compressionRatio < 2.4f) {
@@ -119,17 +119,18 @@ ASR::generateWithFallback(std::span<const float> waveform,
 std::vector<Segment>
 ASR::calculateWordLevelTimestamps(std::span<const int32_t> generatedTokens,
                                   const std::span<const float> waveform) const {
-  if (generatedTokens.size() < 2 ||
-      generatedTokens[generatedTokens.size() - 1] !=
+  const size_t generatedTokensSize = generatedTokens.size();
+  if (generatedTokensSize < 2 ||
+      generatedTokens[generatedTokensSize - 1] !=
           this->endOfTranscriptionToken ||
-      generatedTokens[generatedTokens.size() - 2] < this->timestampBeginToken) {
+      generatedTokens[generatedTokensSize - 2] < this->timestampBeginToken) {
     return {};
   }
   std::vector<Segment> segments;
   std::vector<int32_t> tokens;
   int32_t prevTimestamp = this->timestampBeginToken;
 
-  for (size_t i = 0; i < generatedTokens.size(); i++) {
+  for (size_t i = 0; i < generatedTokensSize; i++) {
     if (generatedTokens[i] < this->timestampBeginToken) {
       tokens.push_back(generatedTokens[i]);
     }
@@ -147,7 +148,7 @@ ASR::calculateWordLevelTimestamps(std::span<const int32_t> generatedTokens,
   }
 
   const int32_t start = prevTimestamp;
-  const int32_t end = generatedTokens[generatedTokens.size() - 2];
+  const int32_t end = generatedTokens[generatedTokensSize - 2];
   auto words = this->estimateWordLevelTimestampsLinear(tokens, start, end);
 
   if (words.size()) {
@@ -155,8 +156,9 @@ ASR::calculateWordLevelTimestamps(std::span<const int32_t> generatedTokens,
   }
 
   float scalingFactor =
-      static_cast<float>(waveform.size()) / ASR::kSamplingRate /
-      ((end - this->timestampBeginToken) * ASR::kTimePrecision);
+      static_cast<float>(waveform.size()) /
+      (ASR::kSamplingRate * (end - this->timestampBeginToken) *
+       ASR::kTimePrecision);
   if (scalingFactor < 1.0f) {
     for (auto &seg : segments) {
       for (auto &w : seg.words) {
@@ -173,7 +175,7 @@ std::vector<Word>
 ASR::estimateWordLevelTimestampsLinear(std::span<const int32_t> tokens,
                                        int32_t start, int32_t end) const {
   const std::vector<int32_t> tokensVec(tokens.begin(), tokens.end());
-  const std::string segmentText = this->tokenizer.decode(tokensVec, true);
+  const std::string segmentText = this->tokenizer->decode(tokensVec, true);
   std::istringstream iss(segmentText);
   std::vector<std::string> wordsStr;
   std::string word;
@@ -209,7 +211,7 @@ std::vector<Segment> ASR::transcribe(std::span<const float> waveform,
   int32_t seek = 0;
   std::vector<Segment> results;
 
-  while (seek * ASR::kSamplingRate < waveform.size()) {
+  while (std::cmp_less(seek * ASR::kSamplingRate, waveform.size())) {
     int32_t start = seek * ASR::kSamplingRate;
     const auto end = std::min<int32_t>(
         (seek + ASR::kChunkSize) * ASR::kSamplingRate, waveform.size());
@@ -254,7 +256,7 @@ std::vector<float> ASR::encode(std::span<const float> waveform) const {
 
   const auto modelInputTensor = executorch::extension::make_tensor_ptr(
       std::move(inputShape), std::move(preprocessedData));
-  const auto encoderResult = this->encoder.forward(modelInputTensor);
+  const auto encoderResult = this->encoder->forward(modelInputTensor);
 
   if (!encoderResult.ok()) {
     throw std::runtime_error(
@@ -282,7 +284,7 @@ std::vector<float> ASR::decode(std::span<int32_t> tokens,
       std::move(encShape), encoderOutput.data(), ScalarType::Float);
 
   const auto decoderResult =
-      this->decoder.forward({tokenTensor, encoderTensor});
+      this->decoder->forward({tokenTensor, encoderTensor});
 
   if (!decoderResult.ok()) {
     throw std::runtime_error(

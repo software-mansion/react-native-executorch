@@ -11,7 +11,7 @@ using namespace types;
 
 class OnlineASRProcessor {
 public:
-  explicit OnlineASRProcessor(ASR &asr);
+  explicit OnlineASRProcessor(const ASR *asr);
 
   void insertAudioChunk(std::span<const float> audio);
   ProcessResult processIter(const DecodingOptions &options);
@@ -20,10 +20,10 @@ public:
   std::vector<float> audioBuffer;
 
 private:
-  ASR &asr;
+  const ASR *asr;
   constexpr static int32_t kSamplingRate = 16000;
 
-  HypothesisBuffer transcriptBuffer;
+  HypothesisBuffer hypothesisBuffer;
   float bufferTimeOffset = 0.0f;
   std::vector<Word> committed;
 
