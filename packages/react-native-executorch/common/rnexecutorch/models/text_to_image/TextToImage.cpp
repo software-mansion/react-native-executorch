@@ -17,13 +17,17 @@
 namespace rnexecutorch::models::text_to_image {
 
 TextToImage::TextToImage(const std::string &tokenizerSource,
-                         const std::string &schedulerSource,
+                         float schedulerBetaStart, float schedulerBetaEnd,
+                         int32_t schedulerNumTrainTimesteps,
+                         int32_t schedulerStepsOffset,
                          const std::string &encoderSource,
                          const std::string &unetSource,
                          const std::string &decoderSource, int32_t imageSize,
                          std::shared_ptr<react::CallInvoker> callInvoker)
     : modelImageSize(imageSize), callInvoker(callInvoker),
-      scheduler(std::make_unique<Scheduler>(schedulerSource, callInvoker)),
+      scheduler(std::make_unique<Scheduler>(
+          schedulerBetaStart, schedulerBetaEnd, schedulerNumTrainTimesteps,
+          schedulerStepsOffset, callInvoker)),
       encoder(std::make_unique<embeddings::TextEmbeddings>(
           encoderSource, tokenizerSource, callInvoker)),
       unet(std::make_unique<UNet>(unetSource, imageSize, numChannels,
@@ -100,6 +104,7 @@ TextToImage::postprocess(const std::vector<float> &output) {
   size_t X = 3;
   size_t Y = modelImageSize;
   size_t Z = modelImageSize;
+  // TODO export inside of the model
   for (size_t x = 0; x < X; x++) {
     for (size_t y = 0; y < Y; y++) {
       for (size_t z = 0; z < Z; z++) {

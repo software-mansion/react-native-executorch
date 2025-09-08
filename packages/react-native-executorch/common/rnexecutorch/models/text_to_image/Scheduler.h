@@ -13,7 +13,8 @@ using namespace facebook;
 
 class Scheduler {
 public:
-  explicit Scheduler(std::string source,
+  explicit Scheduler(float betaStart, float betaEnd, int32_t numTrainTimesteps,
+                     int32_t stepsOfset,
                      std::shared_ptr<react::CallInvoker> callInvoker);
   void setTimesteps(int32_t numInferenceSteps);
   std::vector<float> step(const std::vector<float> &sample,
@@ -45,6 +46,6 @@ private:
 };
 } // namespace models::text_to_image
 
-REGISTER_CONSTRUCTOR(models::text_to_image::Scheduler, std::string,
-                     std::shared_ptr<react::CallInvoker>);
+REGISTER_CONSTRUCTOR(models::text_to_image::Scheduler, float, float, int32_t,
+                     int32_t, std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

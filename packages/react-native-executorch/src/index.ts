@@ -13,7 +13,10 @@ declare global {
   var loadLLM: (modelSource: string, tokenizerSource: string) => any;
   var loadTextToImage: (
     tokenizerSource: string,
-    schedulerSource: string,
+    schedulerBetaStart: number,
+    schedulerBetaEnd: number,
+    schedulerNumTrainTimesteps: number,
+    schedulerStepsOffset: number,
     encoderSource: string,
     unetSource: string,
     decoderSource: string,
