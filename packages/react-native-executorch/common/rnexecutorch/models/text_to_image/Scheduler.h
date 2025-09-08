@@ -15,17 +15,17 @@ class Scheduler {
 public:
   explicit Scheduler(std::string source,
                      std::shared_ptr<react::CallInvoker> callInvoker);
-  void setTimesteps(int numInferenceSteps);
+  void setTimesteps(int32_t numInferenceSteps);
   std::vector<float> step(const std::vector<float> &sample,
-                          const std::vector<float> &noise, int timestep);
+                          const std::vector<float> &noise, int32_t timestep);
 
-  std::vector<int> timesteps;
+  std::vector<int32_t> timesteps;
 
 private:
   float betaStart;
   float betaEnd;
-  int numTrainTimesteps;
-  int stepsOffset;
+  int32_t numTrainTimesteps;
+  int32_t stepsOffset;
 
   std::vector<float> betas;
   std::vector<float> alphas;
@@ -35,13 +35,13 @@ private:
   float finalAlphaCumprod{1.0f};
   float initNoiseSigma{1.0f};
 
-  int counter{0};
-  int numInferenceSteps{-1};
-  std::vector<int> _timesteps;
+  int32_t counter{0};
+  int32_t numInferenceSteps{-1};
+  std::vector<int32_t> _timesteps;
 
   std::vector<float> getPrevSample(const std::vector<float> &sample,
-                                   const std::vector<float> noise, int timestep,
-                                   int prevTimestep);
+                                   const std::vector<float> noise,
+                                   int32_t timestep, int32_t prevTimestep);
 };
 } // namespace models::text_to_image
 

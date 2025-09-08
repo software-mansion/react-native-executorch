@@ -1,3 +1,6 @@
+// The implementation of the PNDMScheduler class from the diffusers library:
+// https://github.com/huggingface/diffusers/blob/main/src/diffusers/schedulers/scheduling_pndm.py#L166
+
 #include "Scheduler.h"
 
 #include <executorch/extension/module/module.h>
@@ -8,20 +11,18 @@ namespace rnexecutorch::models::text_to_image {
 using namespace facebook;
 
 Scheduler::Scheduler(std::string source,
-                     std::shared_ptr<react::CallInvoker> callInvoker) {
-  // Parameters from scheduler config
-  betaStart = 0.00085;
-  betaEnd = 0.012;
-  numTrainTimesteps = 1000;
-  stepsOffset = 1;
+                     std::shared_ptr<react::CallInvoker> callInvoker)
+    : betaStart(0.00085), betaEnd(0.012), numTrainTimesteps(1000),
+      stepsOffset(1) {
+  // TODO Set the parameters based on the scheduler config
 
   betas.reserve(numTrainTimesteps);
-  float start = std::sqrt(betaStart);
-  float end = std::sqrt(betaEnd);
-  float step = (end - start) / (numTrainTimesteps - 1);
+  const float start = std::sqrt(betaStart);
+  const float end = std::sqrt(betaEnd);
+  const float step = (end - start) / (numTrainTimesteps - 1);
 
-  for (int i = 0; i < numTrainTimesteps; i++) {
-    float value = start + step * i;
+  for (int32_t i = 0; i < numTrainTimesteps; i++) {
+    const float value = start + step * i;
     betas.push_back(value * value);
   }
 
@@ -42,28 +43,31 @@ Scheduler::Scheduler(std::string source,
   }
 }
 
-void Scheduler::setTimesteps(int numInferenceSteps) {
+void Scheduler::setTimesteps(
+    int32_t numInferenceSteps) { // TODO reset timesteps if called again
   this->numInferenceSteps = numInferenceSteps;
 
   float stepRatio = static_cast<float>(numTrainTimesteps) / numInferenceSteps;
-  for (int i = 0; i < numInferenceSteps; i++) {
-    int timestep = static_cast<int>(std::round(i * stepRatio)) + stepsOffset;
+  for (int32_t i = 0; i < numInferenceSteps; i++) {
+    const auto timestep =
+        static_cast<int32_t>(std::round(i * stepRatio)) + stepsOffset;
     _timesteps.push_back(timestep);
   }
 
-  if (_timesteps.size() >= 2) {
+  if (_timesteps.size() < 2) { // TODO use numInfSteps
+    timesteps = {1};
+    return;
+  } else {
     timesteps.insert(timesteps.end(), _timesteps.begin(), _timesteps.end() - 1);
     timesteps.push_back(_timesteps[_timesteps.size() - 2]);
     timesteps.push_back(_timesteps[_timesteps.size() - 1]);
-  } else {
-    timesteps = {1};
   }
   std::reverse(timesteps.begin(), timesteps.end());
 }
 
 std::vector<float> Scheduler::step(const std::vector<float> &sample,
                                    const std::vector<float> &noise,
-                                   int timestep) {
+                                   int32_t timestep) {
   if (numInferenceSteps < 0) {
     throw "Number of inference steps is not set. Call `set_timesteps` first.";
   }
@@ -79,28 +83,28 @@ std::vector<float> Scheduler::step(const std::vector<float> &sample,
     timestep += numTrainTimesteps / numInferenceSteps;
   }
 
-  int noiseSize = static_cast<int>(noise.size());
+  size_t noiseSize = noise.size();
   std::vector<float> etsOutput(noiseSize);
   std::vector<float> sampleCopy(sample);
   if (ets.size() == 1 && counter == 0) {
     etsOutput = noise;
     curSample = sample;
   } else if (ets.size() == 1 && counter == 1) {
-    for (int i = 0; i < noiseSize; i++) {
+    for (size_t i = 0; i < noiseSize; i++) {
       etsOutput[i] = (noise[i] + ets[0][i]) / 2;
     }
-    std::swap(sampleCopy, curSample);
+    sampleCopy = std::move(curSample);
     curSample.clear();
   } else if (ets.size() == 2) {
-    for (int i = 0; i < noiseSize; i++) {
+    for (size_t i = 0; i < noiseSize; i++) {
       etsOutput[i] = (ets[1][i] * 3 - ets[0][i]) / 2;
     }
   } else if (ets.size() == 3) {
-    for (int i = 0; i < noiseSize; i++) {
+    for (size_t i = 0; i < noiseSize; i++) {
       etsOutput[i] = ((ets[2][i] * 23 - ets[1][i] * 16) + ets[0][i] * 5) / 12;
     }
   } else {
-    for (int i = 0; i < noiseSize; i++) {
+    for (size_t i = 0; i < noiseSize; i++) {
       etsOutput[i] =
           (ets[3][i] * 55 - ets[2][i] * 59 + ets[1][i] * 37 - ets[0][i] * 9) /
           24;
@@ -113,28 +117,29 @@ std::vector<float> Scheduler::step(const std::vector<float> &sample,
 
 std::vector<float> Scheduler::getPrevSample(const std::vector<float> &sample,
                                             const std::vector<float> noise,
-                                            int timestep, int timestepPrev) {
-  float alpha = alphasCumprod[timestep];
-  float alphaPrev =
+                                            int32_t timestep,
+                                            int32_t timestepPrev) {
+  const float alpha = alphasCumprod[timestep];
+  const float alphaPrev =
       timestepPrev >= 0 ? alphasCumprod[timestepPrev] : finalAlphaCumprod;
-  float beta = 1 - alpha;
-  float betaPrev = 1 - alphaPrev;
+  const float beta = 1 - alpha;
+  const float betaPrev = 1 - alphaPrev;
 
-  float alphaSqrt = std::sqrt(alpha);
-  float betaSqrt = std::sqrt(beta);
+  const float alphaSqrt = std::sqrt(alpha);
+  const float betaSqrt = std::sqrt(beta);
 
-  int noiseSize = static_cast<int>(noise.size());
-  float noiseCoeff =
+  size_t noiseSize = noise.size();
+  const float noiseCoeff =
       (alphaPrev - alpha) /
       (alpha * std::sqrt(betaPrev) + std::sqrt(alpha * beta * alphaPrev));
   std::vector<float> noiseTerm(noiseSize);
-  for (int i = 0; i < noiseSize; i++) {
+  for (size_t i = 0; i < noiseSize; i++) {
     noiseTerm[i] = (noise[i] * alphaSqrt + sample[i] * betaSqrt) * noiseCoeff;
   }
 
-  float sampleCoeff = std::sqrt(alphaPrev / alpha);
+  const float sampleCoeff = std::sqrt(alphaPrev / alpha);
   std::vector<float> samplePrev(noiseSize);
-  for (int i = 0; i < noiseSize; i++) {
+  for (size_t i = 0; i < noiseSize; i++) {
     samplePrev[i] = sample[i] * sampleCoeff - noiseTerm[i];
   }
 

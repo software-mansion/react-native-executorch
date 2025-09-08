@@ -1,5 +1,6 @@
 #include "TextToImage.h"
 
+#include <algorithm>
 #include <cmath>
 #include <future>
 #include <memory>
@@ -19,9 +20,9 @@ TextToImage::TextToImage(const std::string &tokenizerSource,
                          const std::string &schedulerSource,
                          const std::string &encoderSource,
                          const std::string &unetSource,
-                         const std::string &decoderSource, int imageSize,
+                         const std::string &decoderSource, int32_t imageSize,
                          std::shared_ptr<react::CallInvoker> callInvoker)
-    : callInvoker(callInvoker), modelImageSize(imageSize),
+    : modelImageSize(imageSize), callInvoker(callInvoker),
       scheduler(std::make_unique<Scheduler>(schedulerSource, callInvoker)),
       encoder(std::make_unique<embeddings::TextEmbeddings>(
           encoderSource, tokenizerSource, callInvoker)),
@@ -31,16 +32,16 @@ TextToImage::TextToImage(const std::string &tokenizerSource,
                                         callInvoker)) {}
 
 std::shared_ptr<OwningArrayBuffer>
-TextToImage::generate(std::string input, int numInferenceSteps) {
+TextToImage::generate(std::string input, size_t numInferenceSteps) {
   std::shared_ptr<OwningArrayBuffer> embeddings = encoder->generate(input);
   std::shared_ptr<OwningArrayBuffer> uncondEmbeddings =
-      encoder->generate(constants::kBosToken);
+      encoder->generate(std::string(constants::kBosToken));
 
-  float *uncondData = reinterpret_cast<float *>(uncondEmbeddings->data());
-  int uncondN = uncondEmbeddings->size() / sizeof(float);
+  auto *uncondData = reinterpret_cast<float *>(uncondEmbeddings->data());
+  size_t uncondN = uncondEmbeddings->size() / sizeof(float);
 
-  float *condData = reinterpret_cast<float *>(embeddings->data());
-  int condN = embeddings->size() / sizeof(float);
+  auto *condData = reinterpret_cast<float *>(embeddings->data());
+  size_t condN = embeddings->size() / sizeof(float);
 
   std::vector<float> embeddingsConcat;
   embeddingsConcat.reserve(uncondN + condN);
@@ -48,8 +49,9 @@ TextToImage::generate(std::string input, int numInferenceSteps) {
                           uncondData + uncondN);
   embeddingsConcat.insert(embeddingsConcat.end(), condData, condData + condN);
 
-  int latentsWidth = std::floor(modelImageSize / 8);
-  int latentsSize = numChannels * latentsWidth * latentsWidth;
+  // Divide by 8 to account for the 3 down-sampling layers in the VAE model.
+  int32_t latentsWidth = std::floor(modelImageSize / 8);
+  int32_t latentsSize = numChannels * latentsWidth * latentsWidth;
   std::vector<float> latents(latentsSize);
   std::random_device rd;
   std::mt19937 gen(rd());
@@ -59,24 +61,25 @@ TextToImage::generate(std::string input, int numInferenceSteps) {
   }
 
   scheduler->setTimesteps(numInferenceSteps);
-  std::vector<int> timesteps = scheduler->timesteps;
+  std::vector<int32_t> timesteps = scheduler->timesteps;
 
-  for (int t = 0; t < numInferenceSteps + 1; t++) {
-    log(LOG_LEVEL::Info, "Step", t, "/", numInferenceSteps);
+  for (size_t t = 0; t < numInferenceSteps + 1; t++) {
+    log(LOG_LEVEL::Debug, "Step", t, "/", numInferenceSteps);
     std::vector<float> latentsConcat;
+    latentsConcat.reserve(2 * latentsSize);
     latentsConcat.insert(latentsConcat.end(), latents.begin(), latents.end());
     latentsConcat.insert(latentsConcat.end(), latents.begin(), latents.end());
 
     std::vector<float> noisePred =
         unet->generate(latentsConcat, timesteps[t], embeddingsConcat);
 
-    int noiseSize = static_cast<int>(noisePred.size() / 2);
+    int32_t noiseSize = static_cast<int32_t>(noisePred.size() / 2);
     std::vector<float> noiseUncond(noisePred.begin(),
                                    noisePred.begin() + noiseSize);
     std::vector<float> noiseText(noisePred.begin() + noiseSize,
                                  noisePred.end());
     std::vector<float> noise(noiseUncond);
-    for (int i = 0; i < noiseSize; i++) {
+    for (int32_t i = 0; i < noiseSize; i++) {
       noise[i] =
           noiseUncond[i] * (1 - guidanceScale) + noiseText[i] * guidanceScale;
     }
@@ -94,25 +97,27 @@ TextToImage::generate(std::string input, int numInferenceSteps) {
 std::shared_ptr<OwningArrayBuffer>
 TextToImage::postprocess(const std::vector<float> &output) {
   std::vector<float> imageData(output.size());
-  int X = 3, Y = modelImageSize, Z = modelImageSize;
-  for (int x = 0; x < X; x++) {
-    for (int y = 0; y < Y; y++) {
-      for (int z = 0; z < Z; z++) {
-        int idx = x * Y * Z + y * Z + z;
-        int newIdx = y * Z * X + z * X + x;
+  size_t X = 3;
+  size_t Y = modelImageSize;
+  size_t Z = modelImageSize;
+  for (size_t x = 0; x < X; x++) {
+    for (size_t y = 0; y < Y; y++) {
+      for (size_t z = 0; z < Z; z++) {
+        // Rearrange pixel channels to follow RGB order
+        size_t idx = x * Y * Z + y * Z + z;
+        size_t newIdx = y * Z * X + z * X + x;
 
         auto val = output[idx];
         val = val / 2 + 0.5;
-        val = std::min(std::max(val, 0.0f), 1.0f);
+        val = std::clamp(val, 0.0f, 1.0f);
         val *= 255;
         imageData[newIdx] = val;
       }
     }
   }
-  int imageDataSize = static_cast<int>(imageData.size());
   std::span<float> modelOutput(static_cast<float *>(imageData.data()),
                                imageData.size());
-
+  // Replace with a function when #584 implemented
   auto createBuffer = [](const auto &data, size_t size) {
     auto buffer = std::make_shared<OwningArrayBuffer>(size);
     std::memcpy(buffer->data(), data, size);

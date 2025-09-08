@@ -71,13 +71,12 @@ export * from './hooks/computer_vision/useImageSegmentation';
 export * from './hooks/computer_vision/useOCR';
 export * from './hooks/computer_vision/useVerticalOCR';
 export * from './hooks/computer_vision/useImageEmbeddings';
+export * from './hooks/computer_vision/useTextToImage';
 
 export * from './hooks/natural_language_processing/useLLM';
 export * from './hooks/natural_language_processing/useSpeechToText';
 export * from './hooks/natural_language_processing/useTextEmbeddings';
 export * from './hooks/natural_language_processing/useTokenizer';
-
-export * from './hooks/image_generation/useTextToImage';
 
 export * from './hooks/general/useExecutorchModule';
 
@@ -88,15 +87,15 @@ export * from './modules/computer_vision/StyleTransferModule';
 export * from './modules/computer_vision/ImageSegmentationModule';
 export * from './modules/computer_vision/OCRModule';
 export * from './modules/computer_vision/VerticalOCRModule';
-export * from './modules/general/ExecutorchModule';
 export * from './modules/computer_vision/ImageEmbeddingsModule';
+export * from './modules/computer_vision/TextToImageModule';
 
 export * from './modules/natural_language_processing/LLMModule';
 export * from './modules/natural_language_processing/SpeechToTextModule';
 export * from './modules/natural_language_processing/TextEmbeddingsModule';
 export * from './modules/natural_language_processing/TokenizerModule';
 
-export * from './modules/image_generation/TextToImageModule';
+export * from './modules/general/ExecutorchModule';
 
 // utils
 export * from './utils/ResourceFetcher';
