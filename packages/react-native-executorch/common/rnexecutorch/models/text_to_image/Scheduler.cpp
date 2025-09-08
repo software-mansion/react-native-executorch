@@ -1,5 +1,5 @@
 // The implementation of the PNDMScheduler class from the diffusers library:
-// https://github.com/huggingface/diffusers/blob/main/src/diffusers/schedulers/scheduling_pndm.py#L166
+// https://github.com/huggingface/diffusers/blob/main/src/diffusers/schedulers/scheduling_pndm.py
 
 #include "Scheduler.h"
 
@@ -10,12 +10,11 @@
 namespace rnexecutorch::models::text_to_image {
 using namespace facebook;
 
-Scheduler::Scheduler(std::string source,
+Scheduler::Scheduler(float betaStart, float betaEnd, int32_t numTrainTimesteps,
+                     int32_t stepsOffset,
                      std::shared_ptr<react::CallInvoker> callInvoker)
-    : betaStart(0.00085), betaEnd(0.012), numTrainTimesteps(1000),
-      stepsOffset(1) {
-  // TODO Set the parameters based on the scheduler config
-
+    : betaStart(betaStart), betaEnd(betaEnd),
+      numTrainTimesteps(numTrainTimesteps), stepsOffset(stepsOffset) {
   betas.reserve(numTrainTimesteps);
   const float start = std::sqrt(betaStart);
   const float end = std::sqrt(betaEnd);
@@ -62,7 +61,7 @@ void Scheduler::setTimesteps(
     timesteps.push_back(_timesteps[_timesteps.size() - 2]);
     timesteps.push_back(_timesteps[_timesteps.size() - 1]);
   }
-  std::reverse(timesteps.begin(), timesteps.end());
+  std::ranges::reverse(timesteps);
 }
 
 std::vector<float> Scheduler::step(const std::vector<float> &sample,
