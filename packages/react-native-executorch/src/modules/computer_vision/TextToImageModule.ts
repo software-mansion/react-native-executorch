@@ -61,9 +61,16 @@ export class TextToImageModule extends BaseModule {
     ) {
       throw new Error('Download interrupted.');
     }
+
+    const response = await fetch('file://' + schedulerPath);
+    const schedulerConfig = await response.json();
+
     this.nativeModule = global.loadTextToImage(
       tokenizerPath,
-      schedulerPath,
+      schedulerConfig.beta_start,
+      schedulerConfig.beta_end,
+      schedulerConfig.num_train_timesteps,
+      schedulerConfig.steps_offset,
       encoderPath,
       unetPath,
       decoderPath,
