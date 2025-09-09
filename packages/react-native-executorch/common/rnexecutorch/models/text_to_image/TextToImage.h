@@ -46,8 +46,8 @@ private:
 
   int32_t modelImageSize;
   static constexpr int32_t numChannels = 4;
-  static constexpr float guidanceScale = 7.5;
-  static constexpr float latentsScale = 0.18215;
+  static constexpr float guidanceScale = 7.5f;
+  static constexpr float latentsScale = 0.18215f;
 
   std::shared_ptr<react::CallInvoker> callInvoker;
   std::unique_ptr<Scheduler> scheduler;
