@@ -37,24 +37,24 @@ TextToImage::TextToImage(const std::string &tokenizerSource,
 
 std::shared_ptr<OwningArrayBuffer>
 TextToImage::generate(std::string input, size_t numInferenceSteps) {
-  std::shared_ptr<OwningArrayBuffer> embeddings = encoder->generate(input);
+  std::shared_ptr<OwningArrayBuffer> textEmbeddings = encoder->generate(input);
   std::shared_ptr<OwningArrayBuffer> uncondEmbeddings =
       encoder->generate(std::string(constants::kBosToken));
 
-  auto *uncondData = reinterpret_cast<float *>(uncondEmbeddings->data());
-  size_t uncondN = uncondEmbeddings->size() / sizeof(float);
-
-  auto *condData = reinterpret_cast<float *>(embeddings->data());
-  size_t condN = embeddings->size() / sizeof(float);
+  size_t embeddingsSize = textEmbeddings->size() / sizeof(float);
+  auto *textEmbeddingsPtr = reinterpret_cast<float *>(textEmbeddings->data());
+  auto *uncondEmbeddingsPtr =
+      reinterpret_cast<float *>(uncondEmbeddings->data());
 
   std::vector<float> embeddingsConcat;
-  embeddingsConcat.reserve(uncondN + condN);
-  embeddingsConcat.insert(embeddingsConcat.end(), uncondData,
-                          uncondData + uncondN);
-  embeddingsConcat.insert(embeddingsConcat.end(), condData, condData + condN);
+  embeddingsConcat.reserve(embeddingsSize * 2);
+  embeddingsConcat.insert(embeddingsConcat.end(), uncondEmbeddingsPtr,
+                          uncondEmbeddingsPtr + embeddingsSize);
+  embeddingsConcat.insert(embeddingsConcat.end(), textEmbeddingsPtr,
+                          textEmbeddingsPtr + embeddingsSize);
 
-  // Divide by 8 to account for the 3 down-sampling layers in the VAE model.
-  int32_t latentsWidth = std::floor(modelImageSize / 8);
+  constexpr int32_t latentDownsample = 8;
+  int32_t latentsWidth = std::floor(modelImageSize / latentDownsample);
   int32_t latentsSize = numChannels * latentsWidth * latentsWidth;
   std::vector<float> latents(latentsSize);
   std::random_device rd;
