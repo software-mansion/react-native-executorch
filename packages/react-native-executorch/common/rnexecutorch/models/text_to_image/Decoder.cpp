@@ -19,12 +19,8 @@ std::vector<float> Decoder::generate(const std::vector<float> &input) {
   std::vector<int32_t> inputShape = {1, numChannels, latentsImageSize,
                                      latentsImageSize};
 
-  std::vector<uint8_t> inputBytes(
-      reinterpret_cast<const uint8_t *>(input.data()),
-      reinterpret_cast<const uint8_t *>(input.data()) +
-          input.size() * sizeof(float));
-
-  auto inputTensor = make_tensor_ptr(inputShape, inputBytes, ScalarType::Float);
+  auto inputTensor =
+    make_tensor_ptr(inputShape, (void*)input.data(), ScalarType::Float);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
