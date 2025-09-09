@@ -92,6 +92,7 @@ std::vector<float> Scheduler::step(const std::vector<float> &sample,
   size_t noiseSize = noise.size();
   std::vector<float> etsOutput(noiseSize);
   std::vector<float> sampleCopy(sample);
+
   // Coefficients come from the linear multistep method
   // (see: https://en.wikipedia.org/wiki/Linear_multistep_method)
   if (ets.size() == 1 && counter == 0) {
@@ -124,7 +125,7 @@ std::vector<float> Scheduler::step(const std::vector<float> &sample,
 }
 
 std::vector<float> Scheduler::getPrevSample(const std::vector<float> &sample,
-                                            const std::vector<float> noise,
+                                            const std::vector<float> &noise,
                                             int32_t timestep,
                                             int32_t timestepPrev) {
   const float alpha = alphasCumprod[timestep];
