@@ -43,11 +43,11 @@ Scheduler::Scheduler(float betaStart, float betaEnd, int32_t numTrainTimesteps,
 }
 
 void Scheduler::setTimesteps(
-    int32_t numInferenceSteps) { // TODO reset timesteps if called again
+    size_t numInferenceSteps) { // TODO reset timesteps if called again
   this->numInferenceSteps = numInferenceSteps;
 
   float stepRatio = static_cast<float>(numTrainTimesteps) / numInferenceSteps;
-  for (int32_t i = 0; i < numInferenceSteps; i++) {
+  for (size_t i = 0; i < numInferenceSteps; i++) {
     const auto timestep =
         static_cast<int32_t>(std::round(i * stepRatio)) + stepsOffset;
     _timesteps.push_back(timestep);
@@ -67,11 +67,13 @@ void Scheduler::setTimesteps(
 std::vector<float> Scheduler::step(const std::vector<float> &sample,
                                    const std::vector<float> &noise,
                                    int32_t timestep) {
-  if (numInferenceSteps < 0) {
+  if (!numInferenceSteps) {
     throw "Number of inference steps is not set. Call `set_timesteps` first.";
   }
 
-  float timestepPrev = timestep - numTrainTimesteps / numInferenceSteps;
+  float numStepsRatio =
+      static_cast<float>(numTrainTimesteps) / numInferenceSteps;
+  float timestepPrev = timestep - numStepsRatio;
   if (counter != 1) {
     if (ets.size() > 3) {
       ets = std::vector<std::vector<float>>(ets.end() - 3, ets.end());
@@ -79,7 +81,7 @@ std::vector<float> Scheduler::step(const std::vector<float> &sample,
     ets.push_back(noise);
   } else {
     timestepPrev = timestep;
-    timestep += numTrainTimesteps / numInferenceSteps;
+    timestep += numStepsRatio;
   }
 
   size_t noiseSize = noise.size();
@@ -124,16 +126,14 @@ std::vector<float> Scheduler::getPrevSample(const std::vector<float> &sample,
   const float beta = 1 - alpha;
   const float betaPrev = 1 - alphaPrev;
 
-  const float alphaSqrt = std::sqrt(alpha);
-  const float betaSqrt = std::sqrt(beta);
-
   size_t noiseSize = noise.size();
   const float noiseCoeff =
       (alphaPrev - alpha) /
       (alpha * std::sqrt(betaPrev) + std::sqrt(alpha * beta * alphaPrev));
   std::vector<float> noiseTerm(noiseSize);
   for (size_t i = 0; i < noiseSize; i++) {
-    noiseTerm[i] = (noise[i] * alphaSqrt + sample[i] * betaSqrt) * noiseCoeff;
+    noiseTerm[i] = (noise[i] * std::sqrt(alpha) + sample[i] * std::sqrt(beta)) *
+                   noiseCoeff;
   }
 
   const float sampleCoeff = std::sqrt(alphaPrev / alpha);

@@ -77,15 +77,11 @@ TextToImage::generate(std::string input, size_t numInferenceSteps) {
     std::vector<float> noisePred =
         unet->generate(latentsConcat, timesteps[t], embeddingsConcat);
 
-    int32_t noiseSize = static_cast<int32_t>(noisePred.size() / 2);
-    std::vector<float> noiseUncond(noisePred.begin(),
-                                   noisePred.begin() + noiseSize);
-    std::vector<float> noiseText(noisePred.begin() + noiseSize,
-                                 noisePred.end());
-    std::vector<float> noise(noiseUncond);
-    for (int32_t i = 0; i < noiseSize; i++) {
-      noise[i] =
-          noiseUncond[i] * (1 - guidanceScale) + noiseText[i] * guidanceScale;
+    size_t noiseSize = noisePred.size() / 2;
+    std::vector<float> noise(noiseSize);
+    for (size_t i = 0; i < noiseSize; i++) {
+      noise[i] = noisePred[i] * (1 - guidanceScale) +
+                 noisePred[noiseSize + i] * guidanceScale;
     }
     latents = scheduler->step(latents, noise, timesteps[t]);
   }
