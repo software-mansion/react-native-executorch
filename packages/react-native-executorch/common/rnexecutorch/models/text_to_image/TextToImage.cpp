@@ -5,6 +5,7 @@
 #include <future>
 #include <memory>
 #include <random>
+#include <span>
 #include <string>
 
 #include <executorch/extension/tensor/tensor.h>

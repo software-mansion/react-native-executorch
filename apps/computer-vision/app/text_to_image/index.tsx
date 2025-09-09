@@ -11,50 +11,35 @@ import {
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ColorPalette from '../../colors';
-import { Buffer } from 'buffer';
-import { PNG } from 'pngjs/browser';
+import { arrayToRgba, rgbaToBase64 } from './utils';
 
-let imageSize: number = 512;
-
-function arrayToRgba(data: Float32Array): Uint8Array {
-  const imageData = new Uint8Array(imageSize * imageSize * 4);
-  for (let i = 0; i < imageSize * imageSize; i++) {
-    imageData[i * 4 + 0] = data[i * 3 + 0];
-    imageData[i * 4 + 1] = data[i * 3 + 1];
-    imageData[i * 4 + 2] = data[i * 3 + 2];
-    imageData[i * 4 + 3] = 255;
-  }
-  return imageData;
-}
-
-function rgbaToBase64(imageData: Uint8Array): string {
-  if (!imageData.length) {
-    return '';
-  }
-  const png = new PNG({ width: imageSize, height: imageSize });
-  png.data = Buffer.from(imageData);
-  const pngBuffer = PNG.sync.write(png, { colorType: 6 });
-  const pngString = pngBuffer.toString('base64');
-  return pngString;
-}
+type InputState =
+  | { kind: 'prompt'; value: string }
+  | { kind: 'image'; uri: string };
 
 export default function TextToImageScreen() {
+  const numSteps = 5;
+  const imageSize = BK_SDM_TINY_VPRED_256.imageSize;
   const model = useTextToImage({ model: BK_SDM_TINY_VPRED_256 });
-  imageSize = BK_SDM_TINY_VPRED_256.imageSize;
+
   const { setGlobalGenerating } = useContext(GeneratingContext);
-  const [prompt, setPrompt] = useState('');
-  const [imageUri, setImageUri] = useState<string>('');
+
+  const [inputState, setInputState] = useState<InputState>({
+    kind: 'prompt',
+    value: '',
+  });
 
   useEffect(() => {
     setGlobalGenerating(model.isGenerating);
   }, [model.isGenerating, setGlobalGenerating]);
 
   const runForward = async () => {
-    if (!prompt.trim()) return;
+    if (inputState.kind !== 'prompt' || !inputState.value.trim()) return;
     try {
-      const output = await model.forward(prompt, 5);
-      const newUri = rgbaToBase64(arrayToRgba(output));
-      setImageUri(newUri);
+      const output = await model.forward(inputState.value, numSteps);
+      const rgbaData = arrayToRgba(output, imageSize);
+      const newUri = rgbaToBase64(rgbaData, imageSize);
+      setInputState({ kind: 'image', uri: newUri });
     } catch (e) {
       console.error(e);
     }
@@ -74,15 +59,15 @@ export default function TextToImageScreen() {
       <TextInput
         style={styles.input}
         placeholder="Enter your prompt..."
-        value={prompt}
-        onChangeText={setPrompt}
+        value={inputState.kind === 'prompt' ? inputState.value : ''}
+        onChangeText={(text) => setInputState({ kind: 'prompt', value: text })}
         editable={!model.isGenerating}
       />
       <View style={styles.imageContainer}>
-        {imageUri ? (
+        {inputState.kind === 'image' ? (
           <Image
             style={styles.image}
-            source={{ uri: `data:image/png;base64,${imageUri}` }}
+            source={{ uri: `data:image/png;base64,${inputState.uri}` }}
           />
         ) : (
           <Image
