@@ -1,5 +1,6 @@
-// The implementation of the PNDMScheduler class from the diffusers library:
-// https://github.com/huggingface/diffusers/blob/main/src/diffusers/schedulers/scheduling_pndm.py
+// The implementation of the PNDMScheduler class from the diffusers library
+// (see:
+// https://github.com/huggingface/diffusers/blob/main/src/diffusers/schedulers/scheduling_pndm.py)
 
 #include "Scheduler.h"
 
@@ -15,11 +16,12 @@ Scheduler::Scheduler(float betaStart, float betaEnd, int32_t numTrainTimesteps,
                      std::shared_ptr<react::CallInvoker> callInvoker)
     : betaStart(betaStart), betaEnd(betaEnd),
       numTrainTimesteps(numTrainTimesteps), stepsOffset(stepsOffset) {
-  betas.reserve(numTrainTimesteps);
   const float start = std::sqrt(betaStart);
   const float end = std::sqrt(betaEnd);
   const float step = (end - start) / (numTrainTimesteps - 1);
 
+  // betas[t] — amount of noise injected at timestep t
+  betas.reserve(numTrainTimesteps);
   for (int32_t i = 0; i < numTrainTimesteps; i++) {
     const float value = start + step * i;
     betas.push_back(value * value);
@@ -27,40 +29,43 @@ Scheduler::Scheduler(float betaStart, float betaEnd, int32_t numTrainTimesteps,
 
   alphas.reserve(numTrainTimesteps);
   for (auto beta : betas) {
-    alphas.push_back(1.0 - beta);
+    alphas.push_back(1.0f - beta);
   }
 
+  // alphasCumprod[t] — fraction of the signal remaining after t steps
   alphasCumprod.reserve(numTrainTimesteps);
-  float runningProduct = 1.0;
-  for (auto alphaVal : alphas) {
-    runningProduct *= alphaVal;
+  float runningProduct = 1.0f;
+  for (auto alpha : alphas) {
+    runningProduct *= alpha;
     alphasCumprod.push_back(runningProduct);
   }
 
+  // finalAlphaCumprod — signal at the first training step (highest
+  // signal-to-noise ratio) used as reference at the end of diffusion process
   if (!alphasCumprod.empty()) {
     finalAlphaCumprod = alphasCumprod[0];
   }
 }
 
-void Scheduler::setTimesteps(
-    size_t numInferenceSteps) { // TODO reset timesteps if called again
+void Scheduler::setTimesteps(size_t numInferenceSteps) {
   this->numInferenceSteps = numInferenceSteps;
-
-  float stepRatio = static_cast<float>(numTrainTimesteps) / numInferenceSteps;
-  for (size_t i = 0; i < numInferenceSteps; i++) {
-    const auto timestep =
-        static_cast<int32_t>(std::round(i * stepRatio)) + stepsOffset;
-    _timesteps.push_back(timestep);
-  }
-
-  if (_timesteps.size() < 2) { // TODO use numInfSteps
+  if (numInferenceSteps < 2) {
     timesteps = {1};
     return;
-  } else {
-    timesteps.insert(timesteps.end(), _timesteps.begin(), _timesteps.end() - 1);
-    timesteps.push_back(_timesteps[_timesteps.size() - 2]);
-    timesteps.push_back(_timesteps[_timesteps.size() - 1]);
   }
+
+  timesteps.clear();
+  timesteps.reserve(numInferenceSteps + 1);
+
+  float numStepsRatio =
+      static_cast<float>(numTrainTimesteps) / numInferenceSteps;
+  for (size_t i = 0; i < numInferenceSteps; i++) {
+    const auto timestep =
+        static_cast<int32_t>(std::round(i * numStepsRatio)) + stepsOffset;
+    timesteps.push_back(timestep);
+  }
+  // Duplicate the timestep to provide enough points for the solver
+  timesteps.insert(timesteps.end() - 1, timesteps[numInferenceSteps - 2]);
   std::ranges::reverse(timesteps);
 }
 
@@ -87,6 +92,8 @@ std::vector<float> Scheduler::step(const std::vector<float> &sample,
   size_t noiseSize = noise.size();
   std::vector<float> etsOutput(noiseSize);
   std::vector<float> sampleCopy(sample);
+  // Coefficients come from the linear multistep method
+  // (see: https://en.wikipedia.org/wiki/Linear_multistep_method)
   if (ets.size() == 1 && counter == 0) {
     etsOutput = noise;
     curSample = sample;
