@@ -10,9 +10,8 @@ class UNet : public BaseModel {
 public:
   UNet(const std::string &modelSource, int32_t modelImageSize,
        int32_t numChannels, std::shared_ptr<react::CallInvoker> callInvoker);
-  std::vector<float> generate(const std::vector<float> &latents,
-                              int32_t timestep,
-                              const std::vector<float> &embeddings);
+  std::vector<float> generate(std::vector<float> &latents, int32_t timestep,
+                              std::vector<float> &embeddings);
 
 private:
   int32_t modelImageSize;
