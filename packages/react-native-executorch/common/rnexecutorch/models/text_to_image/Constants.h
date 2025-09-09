@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <string_view>
 
 namespace rnexecutorch::models::text_to_image::constants {
 
