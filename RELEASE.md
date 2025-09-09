@@ -4,22 +4,16 @@
 
 The release process of new minor version consists of the following steps:
 
-1. Merge all tickets tracked in a release tracker (i.e. [#356](https://github.com/software-mansion/react-native-executorch/issues/356)) into `main` branch.
-2. Bump version in `package.json` to the new version `v{MAJOR}.{MINOR}.0`.
-3. Update version tags in `packages/react-native-executorch/src/constants/modelUrls.ts` to point to the proper `MINOR` version and update tags on [🤗 huggingface](https://huggingface.co/software-mansion).
-4. Update jitpack version inside `build.gradle` to point to the correct version tag
-   ```
-     implementation("com.github.software-mansion:react-native-executorch:v{MAJOR}.{MINOR}.{REVISION}")
-   ```
-5. Commit with a message 'Release v{MAJOR}.{MINOR}.0'. (We want to keep the latest `MINOR` version on the `main` branch.)
-6. Create a new branch release branch `release/{MAJOR}.{MINOR}`and push it to the remote.
-7. Stability tests are performed on the release branch and all fixes to the new-found issues are pushed into the main branch and cherry-picked into the release branch. This allows for further development on the main branch without interfering with the release process.
-8. Once all tests are passed, tag the release branch with proper version tag `v{MAJOR}.{MINOR}.0` and run `npm publish`.
-9. Ensure [jitpack](https://jitpack.io/#software-mansion/react-native-executorch) triggers build properly.
-10. Create versioned docs by running from repo root `(cd docs && yarn docusaurus docs:version {MAJOR}.{MINOR}.x)` (the 'x' part is intentional and is not to be substituted).
-11. Create a PR with the updated docs.
-12. Create the release notes on GitHub.
-13. Update README.md with release video, if available.
+1. Bump version in `package.json` to the new version `v{MAJOR}.{MINOR}.0`.
+2. Update version tags in `packages/react-native-executorch/src/constants/modelUrls.ts` to point to the proper `MINOR` version and update tags on [🤗 huggingface](https://huggingface.co/software-mansion).
+3. Commit with a message 'Release v{MAJOR}.{MINOR}.0'. (We want to keep the latest `MINOR` version on the `main` branch.)
+4. Create a new branch release branch `release/{MAJOR}.{MINOR}`and push it to the remote.
+5. Stability tests are performed on the release branch and all fixes to the new-found issues are pushed into the main branch and cherry-picked into the release branch. This allows for further development on the main branch without interfering with the release process.
+6. Once all tests are passed, tag the release branch with proper version tag `v{MAJOR}.{MINOR}.0` and run `npm publish`.
+7. Create versioned docs by running from repo root `(cd docs && yarn docusaurus docs:version {MAJOR}.{MINOR}.x)` (the 'x' part is intentional and is not to be substituted).
+8. Create a PR with the updated docs.
+9. Create the release notes on GitHub.
+10. Update README.md with release video, if available.
 
 ## Patch release
 
@@ -31,14 +25,9 @@ After the release branch is created and the version is published to npm we only 
 1. Create a PR to the main branch.
 2. Once the PR is merged, `cherry-pick` the commit to the release branch.
 3. Bump version in `package.json` to the new version `v{MAJOR}.{MINOR}.{REVISION}`.
-   Update jitpack version inside `build.gradle` to point to the correct version tag
-   ```
-     implementation("com.github.software-mansion:react-native-executorch:v{MAJOR}.{MINOR}.{REVISION}")
-   ```
    Commit with a message 'Release v{MAJOR}.{MINOR}.0'.
 4. Tag release branch with proper version tag `v{MAJOR}.{MINOR}.{REVISION}` and run `npm publish`.
-5. Ensure [jitpack](https://jitpack.io/#software-mansion/react-native-executorch) triggers build properly.
-6. Create release notes on GitHub.
+5. Create release notes on GitHub.
 
 ## Docs update
 
