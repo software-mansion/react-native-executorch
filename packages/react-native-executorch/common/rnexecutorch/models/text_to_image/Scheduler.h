@@ -40,7 +40,7 @@ private:
   size_t numInferenceSteps{0};
 
   std::vector<float> getPrevSample(const std::vector<float> &sample,
-                                   const std::vector<float> noise,
+                                   const std::vector<float> &noise,
                                    int32_t timestep, int32_t prevTimestep);
 };
 } // namespace models::text_to_image
