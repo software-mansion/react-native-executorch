@@ -27,6 +27,26 @@ concept HasDecode = requires(T t) {
 };
 
 template <typename T>
+concept HasTranscribe = requires(T t) {
+  { &T::transcribe };
+};
+
+template <typename T>
+concept HasStream = requires(T t) {
+  { &T::stream };
+};
+
+template <typename T>
+concept HasStreamInsert = requires(T t) {
+  { &T::streamInsert };
+};
+
+template <typename T>
+concept HasStreamStop = requires(T t) {
+  { &T::streamStop };
+};
+
+template <typename T>
 concept IsNumeric = std::is_arithmetic_v<T>;
 
 template <typename T>

@@ -95,4 +95,5 @@ target_link_libraries(
   ${OPENCV_THIRD_PARTY_LIBS}
   executorch
   ${EXECUTORCH_LIBS}
+  z
 )

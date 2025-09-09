@@ -77,7 +77,7 @@ function VoiceChatScreen() {
 
   const onChunk = (data: string) => {
     const float32Chunk = float32ArrayFromPCMBinaryBuffer(data);
-    speechToText.streamInsert(Array.from(float32Chunk));
+    speechToText.streamInsert(float32Chunk);
   };
 
   const handleRecordPress = async () => {
