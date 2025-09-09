@@ -38,7 +38,6 @@ private:
 
   int32_t counter{0};
   size_t numInferenceSteps{0};
-  std::vector<int32_t> _timesteps;
 
   std::vector<float> getPrevSample(const std::vector<float> &sample,
                                    const std::vector<float> noise,
