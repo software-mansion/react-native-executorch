@@ -3,6 +3,9 @@ import { ResourceSource } from '../../types/common';
 import { BaseModule } from '../BaseModule';
 
 export class TextToImageModule extends BaseModule {
+  private downloadProgress = 0;
+  private readonly numComponents = 4;
+
   async load(
     model: {
       tokenizerSource: ResourceSource;
@@ -14,24 +17,31 @@ export class TextToImageModule extends BaseModule {
     },
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ): Promise<void> {
+    const onTotalDownloadProgressCallback = (progress: number) => {
+      this.downloadProgress += progress;
+      onDownloadProgressCallback(
+        this.downloadProgress / (100 * this.numComponents)
+      );
+    };
+
     const tokenizerPromise = ResourceFetcher.fetch(
       undefined,
       model.tokenizerSource
     );
     const schedulerPromise = ResourceFetcher.fetch(
-      onDownloadProgressCallback,
+      onTotalDownloadProgressCallback,
       model.schedulerSource
     );
     const encoderPromise = ResourceFetcher.fetch(
-      onDownloadProgressCallback,
+      onTotalDownloadProgressCallback,
       model.encoderSource
     );
     const unetPromise = ResourceFetcher.fetch(
-      onDownloadProgressCallback,
+      onTotalDownloadProgressCallback,
       model.unetSource
     );
     const decoderPromise = ResourceFetcher.fetch(
-      onDownloadProgressCallback,
+      onTotalDownloadProgressCallback,
       model.decoderSource
     );
     const [
