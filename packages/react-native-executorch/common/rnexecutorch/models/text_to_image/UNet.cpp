@@ -14,7 +14,8 @@ UNet::UNet(const std::string &modelSource, int32_t modelImageSize,
 std::vector<float> UNet::generate(const std::vector<float> &latents,
                                   int32_t timestep,
                                   const std::vector<float> &embeddings) {
-  int32_t latentsImageSize = std::floor(modelImageSize / 8);
+  constexpr int32_t latentDownsample = 8;
+  int32_t latentsImageSize = std::floor(modelImageSize / latentDownsample);
   std::vector<int32_t> latentsShape = {2, numChannels, latentsImageSize,
                                        latentsImageSize};
   std::vector<int32_t> timestepShape = {1};
