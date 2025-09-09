@@ -18,6 +18,22 @@ namespace rnexecutorch::numerical {
 void softmax(std::span<float> input);
 
 /**
+ * @brief Applies the softmax function with temperature scaling in-place to a
+ * sequence of numbers.
+ *
+ * The temperature parameter controls the "sharpness" of the resulting
+ * probability distribution. A temperature of 1.0 means no scaling, while lower
+ * values make the distribution sharper (more peaked), and higher values make it
+ * softer (more uniform).
+ *
+ * @param input A mutable span of floating-point numbers. After the function
+ * returns, `input` contains the softmax probabilities.
+ * @param temperature A positive float value used to scale the logits before
+ * applying softmax. Must be greater than 0.
+ */
+void softmaxWithTemperature(std::span<float> input, float temperature);
+
+/**
  * @brief Normalizes the elements of the given float span in-place using the
  * L2 norm method.
  *
