@@ -11,36 +11,25 @@ UNet::UNet(const std::string &modelSource, int32_t modelImageSize,
     : BaseModel(modelSource, callInvoker), modelImageSize(modelImageSize),
       numChannels(numChannels) {}
 
-std::vector<float> UNet::generate(const std::vector<float> &latents,
-                                  int32_t timestep,
-                                  const std::vector<float> &embeddings) {
+std::vector<float> UNet::generate(std::vector<float> &latents, int32_t timestep,
+                                  std::vector<float> &embeddings) {
   constexpr int32_t latentDownsample = 8;
-  int32_t latentsImageSize = std::floor(modelImageSize / latentDownsample);
+  const int32_t latentsImageSize =
+      std::floor(modelImageSize / latentDownsample);
   std::vector<int32_t> latentsShape = {2, numChannels, latentsImageSize,
                                        latentsImageSize};
   std::vector<int32_t> timestepShape = {1};
   std::vector<int32_t> embeddingsShape = {2, 77, 768};
 
-  std::vector<uint8_t> latentsBytes(
-      reinterpret_cast<const uint8_t *>(latents.data()),
-      reinterpret_cast<const uint8_t *>(latents.data()) +
-          latents.size() * sizeof(float));
-
-  std::vector<uint8_t> timestepBytes(
-      reinterpret_cast<const uint8_t *>(&timestep),
-      reinterpret_cast<const uint8_t *>(&timestep) + sizeof(int64_t));
-
-  std::vector<uint8_t> embeddingsBytes(
-      reinterpret_cast<const uint8_t *>(embeddings.data()),
-      reinterpret_cast<const uint8_t *>(embeddings.data()) +
-          embeddings.size() * sizeof(float));
+  // TODO change after reexporting the model
+  std::vector<int64_t> timestepData = {static_cast<int64_t>(timestep)};
+  auto timestepTensor =
+      make_tensor_ptr(timestepShape, timestepData.data(), ScalarType::Long);
 
   auto latentsTensor =
-      make_tensor_ptr(latentsShape, latentsBytes, ScalarType::Float);
-  auto timestepTensor =
-      make_tensor_ptr(timestepShape, timestepBytes, ScalarType::Long);
+      make_tensor_ptr(latentsShape, latents.data(), ScalarType::Float);
   auto embeddingsTensor =
-      make_tensor_ptr(embeddingsShape, embeddingsBytes, ScalarType::Float);
+      make_tensor_ptr(embeddingsShape, embeddings.data(), ScalarType::Float);
 
   auto forwardResult =
       BaseModel::forward({latentsTensor, timestepTensor, embeddingsTensor});

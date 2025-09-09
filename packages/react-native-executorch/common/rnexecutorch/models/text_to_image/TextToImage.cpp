@@ -37,21 +37,21 @@ TextToImage::TextToImage(const std::string &tokenizerSource,
 
 std::shared_ptr<OwningArrayBuffer>
 TextToImage::generate(std::string input, size_t numInferenceSteps) {
-  std::shared_ptr<OwningArrayBuffer> textEmbeddings = encoder->generate(input);
-  std::shared_ptr<OwningArrayBuffer> uncondEmbeddings =
+  std::shared_ptr<OwningArrayBuffer> embeddingsText = encoder->generate(input);
+  std::shared_ptr<OwningArrayBuffer> embeddingsUncond =
       encoder->generate(std::string(constants::kBosToken));
 
-  size_t embeddingsSize = textEmbeddings->size() / sizeof(float);
-  auto *textEmbeddingsPtr = reinterpret_cast<float *>(textEmbeddings->data());
-  auto *uncondEmbeddingsPtr =
-      reinterpret_cast<float *>(uncondEmbeddings->data());
+  size_t embeddingsSize = embeddingsText->size() / sizeof(float);
+  auto *embeddingsTextPtr = reinterpret_cast<float *>(embeddingsText->data());
+  auto *embeddingsUncondPtr =
+      reinterpret_cast<float *>(embeddingsUncond->data());
 
   std::vector<float> embeddingsConcat;
   embeddingsConcat.reserve(embeddingsSize * 2);
-  embeddingsConcat.insert(embeddingsConcat.end(), uncondEmbeddingsPtr,
-                          uncondEmbeddingsPtr + embeddingsSize);
-  embeddingsConcat.insert(embeddingsConcat.end(), textEmbeddingsPtr,
-                          textEmbeddingsPtr + embeddingsSize);
+  embeddingsConcat.insert(embeddingsConcat.end(), embeddingsUncondPtr,
+                          embeddingsUncondPtr + embeddingsSize);
+  embeddingsConcat.insert(embeddingsConcat.end(), embeddingsTextPtr,
+                          embeddingsTextPtr + embeddingsSize);
 
   constexpr int32_t latentDownsample = 8;
   int32_t latentsWidth = std::floor(modelImageSize / latentDownsample);
@@ -78,10 +78,14 @@ TextToImage::generate(std::string input, size_t numInferenceSteps) {
         unet->generate(latentsConcat, timesteps[t], embeddingsConcat);
 
     size_t noiseSize = noisePred.size() / 2;
+    std::span<const float> noisePredSpan{noisePred};
+    std::span<const float> noiseUncond = noisePredSpan.subspan(0, noiseSize);
+    std::span<const float> noiseText =
+        noisePredSpan.subspan(noiseSize, noiseSize);
     std::vector<float> noise(noiseSize);
-    for (size_t i = 0; i < noiseSize; i++) {
-      noise[i] = noisePred[i] * (1 - guidanceScale) +
-                 noisePred[noiseSize + i] * guidanceScale;
+    for (int i = 0; i < noiseSize; i++) {
+      noise[i] =
+          noiseUncond[i] * (1 - guidanceScale) + noiseText[i] * guidanceScale;
     }
     latents = scheduler->step(latents, noise, timesteps[t]);
   }
