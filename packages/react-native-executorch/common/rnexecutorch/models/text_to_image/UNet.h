@@ -8,7 +8,7 @@ namespace models::text_to_image {
 
 class UNet : public BaseModel {
 public:
-  UNet(const std::string &modelSource, int32_t modelImageSize,
+  explicit UNet(const std::string &modelSource, int32_t modelImageSize,
        int32_t numChannels, std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<float> generate(std::vector<float> &latents, int32_t timestep,
                               std::vector<float> &embeddings) const;
