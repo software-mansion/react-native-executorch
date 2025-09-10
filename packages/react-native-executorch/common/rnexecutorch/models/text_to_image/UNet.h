@@ -6,7 +6,7 @@
 namespace rnexecutorch {
 namespace models::text_to_image {
 
-class UNet : public BaseModel {
+class UNet final : public BaseModel {
 public:
   explicit UNet(const std::string &modelSource, int32_t modelImageSize,
        int32_t numChannels, std::shared_ptr<react::CallInvoker> callInvoker);
