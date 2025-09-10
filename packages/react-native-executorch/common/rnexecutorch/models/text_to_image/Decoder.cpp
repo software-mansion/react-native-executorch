@@ -20,7 +20,7 @@ std::vector<float> Decoder::generate(const std::vector<float> &input) {
                                      latentsImageSize};
 
   auto inputTensor =
-    make_tensor_ptr(inputShape, (void*)input.data(), ScalarType::Float);
+    make_tensor_ptr(inputShape, input.data(), ScalarType::Float);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
