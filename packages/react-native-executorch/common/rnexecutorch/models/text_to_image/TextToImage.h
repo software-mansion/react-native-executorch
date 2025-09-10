@@ -26,7 +26,7 @@ using namespace facebook;
 using executorch::aten::Tensor;
 using executorch::extension::TensorPtr;
 
-class TextToImage {
+class TextToImage final {
 public:
   TextToImage(const std::string &tokenizerSource, float schedulerBetaStart,
               float schedulerBetaEnd, int32_t schedulerNumTrainTimesteps,
