@@ -7,7 +7,6 @@
 #include <filesystem>
 #include <rnexecutorch/data_processing/FileUtils.h>
 
-#include <rnexecutorch/Log.h>
 
 namespace rnexecutorch::models::text_to_image {
 using namespace facebook;
