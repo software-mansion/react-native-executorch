@@ -1,19 +1,11 @@
 #include "TextToImage.h"
 
-#include <algorithm>
 #include <cmath>
-#include <future>
-#include <memory>
 #include <random>
 #include <span>
 #include <string>
 
-#include <executorch/extension/tensor/tensor.h>
-#include <executorch/extension/tensor/tensor_ptr_maker.h>
-
 #include <rnexecutorch/Log.h>
-#include <rnexecutorch/data_processing/ImageProcessing.h>
-#include <rnexecutorch/host_objects/JsiConversions.h>
 
 namespace rnexecutorch::models::text_to_image {
 
@@ -100,7 +92,7 @@ TextToImage::generate(std::string input, size_t numInferenceSteps) {
 }
 
 std::shared_ptr<OwningArrayBuffer>
-TextToImage::postprocess(const std::vector<float> &output) {
+TextToImage::postprocess(const std::vector<float> &output) const {
   std::span<const float> modelOutput(static_cast<const float *>(output.data()),
                                      output.size());
   // Replace with a function when #584 implemented
