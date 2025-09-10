@@ -11,7 +11,7 @@ namespace models::text_to_image {
 
 using namespace facebook;
 
-class Scheduler {
+class Scheduler final {
 public:
   explicit Scheduler(float betaStart, float betaEnd, int32_t numTrainTimesteps,
                      int32_t stepsOfset,
