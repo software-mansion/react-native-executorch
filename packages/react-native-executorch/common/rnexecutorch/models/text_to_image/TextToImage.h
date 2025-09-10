@@ -28,7 +28,7 @@ using executorch::extension::TensorPtr;
 
 class TextToImage final {
 public:
-  TextToImage(const std::string &tokenizerSource, float schedulerBetaStart,
+  explicit TextToImage(const std::string &tokenizerSource, float schedulerBetaStart,
               float schedulerBetaEnd, int32_t schedulerNumTrainTimesteps,
               int32_t schedulerStepsOffset, const std::string &encoderSource,
               const std::string &unetSource, const std::string &decoderSource,
