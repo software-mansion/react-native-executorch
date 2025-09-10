@@ -1,17 +1,5 @@
 import { ResourceSource } from './common';
 
-export type WordTuple = [number, number, string];
-
-export interface WordObject {
-  start: number;
-  end: number;
-  word: string;
-}
-
-export interface Segment {
-  words: WordObject[];
-}
-
 // Languages supported by whisper (not whisper.en)
 export type SpeechToTextLanguage =
   | 'af'

@@ -22,38 +22,10 @@ import MicIcon from '../../assets/icons/mic_icon.svg';
 import StopIcon from '../../assets/icons/stop_icon.svg';
 import ColorPalette from '../../colors';
 import Messages from '../../components/Messages';
-import LiveAudioStream from 'react-native-live-audio-stream';
+import { AudioManager, AudioRecorder } from 'react-native-audio-api';
 import DeviceInfo from 'react-native-device-info';
-import { Buffer } from 'buffer';
 import { useIsFocused } from '@react-navigation/native';
 import { GeneratingContext } from '../../context';
-const audioStreamOptions = {
-  sampleRate: 16000,
-  channels: 1,
-  bitsPerSample: 16,
-  audioSource: 1,
-  bufferSize: 16000,
-};
-
-const startStreamingAudio = (options: any, onChunk: (data: string) => void) => {
-  LiveAudioStream.init(options);
-  LiveAudioStream.on('data', onChunk);
-  LiveAudioStream.start();
-};
-
-const float32ArrayFromPCMBinaryBuffer = (b64EncodedBuffer: string) => {
-  const b64DecodedChunk = Buffer.from(b64EncodedBuffer, 'base64');
-  const int16Array = new Int16Array(b64DecodedChunk.buffer);
-
-  const float32Array = new Float32Array(int16Array.length);
-  for (let i = 0; i < int16Array.length; i++) {
-    float32Array[i] = Math.max(
-      -1,
-      Math.min(1, (int16Array[i] / audioStreamOptions.bufferSize) * 8)
-    );
-  }
-  return float32Array;
-};
 
 export default function VoiceChatScreenWrapper() {
   const isFocused = useIsFocused();
@@ -63,6 +35,13 @@ export default function VoiceChatScreenWrapper() {
 
 function VoiceChatScreen() {
   const [isRecording, setIsRecording] = useState(false);
+  const [recorder] = useState(
+    () =>
+      new AudioRecorder({
+        sampleRate: 16000,
+        bufferLengthInSamples: 1600,
+      })
+  );
   const messageRecorded = useRef<boolean>(false);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
@@ -75,20 +54,27 @@ function VoiceChatScreen() {
     setGlobalGenerating(llm.isGenerating || speechToText.isGenerating);
   }, [llm.isGenerating, speechToText.isGenerating, setGlobalGenerating]);
 
-  const onChunk = (data: string) => {
-    const float32Chunk = float32ArrayFromPCMBinaryBuffer(data);
-    speechToText.streamInsert(Array.from(float32Chunk));
-  };
+  useEffect(() => {
+    AudioManager.setAudioSessionOptions({
+      iosCategory: 'playAndRecord',
+      iosMode: 'spokenAudio',
+      iosOptions: ['allowBluetooth', 'defaultToSpeaker'],
+    });
+    AudioManager.requestRecordingPermissions();
+  }, []);
 
   const handleRecordPress = async () => {
     if (isRecording) {
       setIsRecording(false);
-      LiveAudioStream.stop();
+      recorder.stop();
       messageRecorded.current = true;
-      speechToText.streamStop();
+      await speechToText.streamStop();
     } else {
       setIsRecording(true);
-      startStreamingAudio(audioStreamOptions, onChunk);
+      recorder.onAudioReady(async ({ buffer }) => {
+        await speechToText.streamInsert(buffer.getChannelData(0));
+      });
+      recorder.start();
       const transcription = await speechToText.stream();
       await llm.sendMessage(transcription);
     }

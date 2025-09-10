@@ -108,4 +108,5 @@ target_link_libraries(
   ${TOKENIZERS_THIRD_PARTY_LIBS}
   executorch
   ${EXECUTORCH_LIBS}
+  z
 )
