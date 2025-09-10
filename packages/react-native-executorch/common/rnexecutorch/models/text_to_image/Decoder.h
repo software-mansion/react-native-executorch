@@ -8,7 +8,7 @@ namespace models::text_to_image {
 
 class Decoder : public BaseModel {
 public:
-  Decoder(const std::string &modelSource, int32_t modelImageSize,
+  explicit Decoder(const std::string &modelSource, int32_t modelImageSize,
           int32_t numChannels, std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<float> generate(const std::vector<float> &input);
 
