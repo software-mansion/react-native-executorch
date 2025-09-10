@@ -84,7 +84,7 @@ TextToImage::generate(std::string input, size_t numInferenceSteps) {
     std::span<const float> noiseText =
         noisePredSpan.subspan(noiseSize, noiseSize);
     std::vector<float> noise(noiseSize);
-    for (int i = 0; i < noiseSize; i++) {
+    for (size_t i = 0; i < noiseSize; i++) {
       noise[i] =
           noiseUncond[i] * (1 - guidanceScale) + noiseText[i] * guidanceScale;
     }
