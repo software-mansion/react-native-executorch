@@ -12,7 +12,7 @@ Decoder::Decoder(const std::string &modelSource, int32_t modelImageSize,
     : BaseModel(modelSource, callInvoker), modelImageSize(modelImageSize),
       numChannels(numChannels) {}
 
-std::vector<float> Decoder::generate(const std::vector<float> &input) {
+std::vector<float> Decoder::generate(std::vector<float> &input) {
   constexpr int32_t latentDownsample = 8;
   const int32_t latentsImageSize =
       std::floor(modelImageSize / latentDownsample);
@@ -20,7 +20,7 @@ std::vector<float> Decoder::generate(const std::vector<float> &input) {
                                      latentsImageSize};
 
   auto inputTensor =
-    make_tensor_ptr(inputShape, input.data(), ScalarType::Float);
+      make_tensor_ptr(inputShape, input.data(), ScalarType::Float);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
