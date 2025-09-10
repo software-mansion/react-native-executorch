@@ -31,12 +31,11 @@ private:
   std::vector<float> betas;
   std::vector<float> alphas;
   std::vector<float> alphasCumprod;
-  std::vector<float> curSample;
+  std::vector<float> tempFirstSample;
   std::vector<std::vector<float>> ets;
   float finalAlphaCumprod{1.0f};
   float initNoiseSigma{1.0f};
 
-  int32_t counter{0};
   size_t numInferenceSteps{0};
 
   std::vector<float> getPrevSample(const std::vector<float> &sample,
