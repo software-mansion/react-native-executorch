@@ -9,7 +9,7 @@
 #include <string>
 
 namespace rnexecutorch::numerical {
-void softmax(std::vector<float> &v) {
+void softmax(std::span<float> v) {
   float max = *std::max_element(v.begin(), v.end());
 
   float sum = 0.0f;
@@ -22,32 +22,40 @@ void softmax(std::vector<float> &v) {
   }
 }
 
-void normalize(std::span<float> span) {
-  auto sum = 0.0f;
-  for (const auto &val : span) {
-    sum += val * val;
-  }
-
-  if (isClose(sum, 0.0f)) {
+void softmaxWithTemperature(std::span<float> input, float temperature) {
+  if (input.empty()) {
     return;
   }
 
-  float norm = std::sqrt(sum);
-  for (auto &val : span) {
-    val /= norm;
+  if (temperature <= 0.0F) {
+    throw std::invalid_argument(
+        "Temperature must be greater than 0 for softmax with temperature.");
+  }
+
+  const auto maxElement = *std::ranges::max_element(input);
+
+  for (auto &value : input) {
+    value = std::exp((value - maxElement) / temperature);
+  }
+
+  const auto sum = std::reduce(input.begin(), input.end());
+
+  // sum is at least 1 since exp(max - max) == exp(0) == 1
+  for (auto &value : input) {
+    value /= sum;
   }
 }
 
-void normalize(std::vector<float> &v) {
-  float sum = 0.0f;
-  for (float &x : v) {
-    sum += x * x;
-  }
+void normalize(std::span<float> input) {
+  const auto sumOfSquares =
+      std::inner_product(input.begin(), input.end(), input.begin(), 0.0F);
 
-  float norm =
-      std::max(std::sqrt(sum), 1e-9f); // Solely for preventing division by 0
-  for (float &x : v) {
-    x /= norm;
+  constexpr auto kEpsilon = 1.0e-15F;
+
+  const auto norm = std::sqrt(sumOfSquares) + kEpsilon;
+
+  for (auto &value : input) {
+    value /= norm;
   }
 }
 
