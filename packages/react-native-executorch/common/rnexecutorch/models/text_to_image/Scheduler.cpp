@@ -1,12 +1,13 @@
 // The implementation of the PNDMScheduler class from the diffusers library
-// (see:
-// https://github.com/huggingface/diffusers/blob/main/src/diffusers/schedulers/scheduling_pndm.py)
+// https://github.com/huggingface/diffusers/blob/main/src/diffusers/schedulers/scheduling_pndm.py
 
 #include "Scheduler.h"
 
 #include <executorch/extension/module/module.h>
 #include <filesystem>
 #include <rnexecutorch/data_processing/FileUtils.h>
+
+#include <rnexecutorch/Log.h>
 
 namespace rnexecutorch::models::text_to_image {
 using namespace facebook;
@@ -49,6 +50,8 @@ Scheduler::Scheduler(float betaStart, float betaEnd, int32_t numTrainTimesteps,
 
 void Scheduler::setTimesteps(size_t numInferenceSteps) {
   this->numInferenceSteps = numInferenceSteps;
+  ets.clear();
+
   if (numInferenceSteps < 2) {
     timesteps = {1};
     return;
@@ -76,35 +79,35 @@ std::vector<float> Scheduler::step(const std::vector<float> &sample,
     throw "Number of inference steps is not set. Call `set_timesteps` first.";
   }
 
+  size_t noiseSize = noise.size();
+  std::vector<float> etsOutput(noiseSize);
   float numStepsRatio =
       static_cast<float>(numTrainTimesteps) / numInferenceSteps;
   float timestepPrev = timestep - numStepsRatio;
-  if (counter != 1) {
-    if (ets.size() > 3) {
-      ets = std::vector<std::vector<float>>(ets.end() - 3, ets.end());
-    }
+
+  if (ets.empty()) {
     ets.push_back(noise);
-  } else {
-    timestepPrev = timestep;
-    timestep += numStepsRatio;
+    etsOutput = noise;
+    tempFirstSample = sample;
+    return getPrevSample(sample, etsOutput, timestep, timestepPrev);
   }
 
-  size_t noiseSize = noise.size();
-  std::vector<float> etsOutput(noiseSize);
-  std::vector<float> sampleCopy(sample);
-
-  // Coefficients come from the linear multistep method
-  // (see: https://en.wikipedia.org/wiki/Linear_multistep_method)
-  if (ets.size() == 1 && counter == 0) {
-    etsOutput = noise;
-    curSample = sample;
-  } else if (ets.size() == 1 && counter == 1) {
+  // Use the previous sample as the estimate requires at least 2 points
+  if (ets.size() == 1 && !tempFirstSample.empty()) {
     for (size_t i = 0; i < noiseSize; i++) {
       etsOutput[i] = (noise[i] + ets[0][i]) / 2;
     }
-    sampleCopy = std::move(curSample);
-    curSample.clear();
-  } else if (ets.size() == 2) {
+    auto prevSample = getPrevSample(std::move(tempFirstSample), etsOutput,
+                                    timestep + numStepsRatio, timestep);
+    tempFirstSample.clear();
+    return prevSample;
+  }
+
+  // Coefficients come from the linear multistep method
+  // https://en.wikipedia.org/wiki/Linear_multistep_method
+  ets.push_back(noise);
+
+  if (ets.size() == 2) {
     for (size_t i = 0; i < noiseSize; i++) {
       etsOutput[i] = (ets[1][i] * 3 - ets[0][i]) / 2;
     }
@@ -113,15 +116,14 @@ std::vector<float> Scheduler::step(const std::vector<float> &sample,
       etsOutput[i] = ((ets[2][i] * 23 - ets[1][i] * 16) + ets[0][i] * 5) / 12;
     }
   } else {
+    ets = std::vector<std::vector<float>>(ets.end() - 4, ets.end());
     for (size_t i = 0; i < noiseSize; i++) {
       etsOutput[i] =
           (ets[3][i] * 55 - ets[2][i] * 59 + ets[1][i] * 37 - ets[0][i] * 9) /
           24;
     }
   }
-
-  ++counter;
-  return getPrevSample(sampleCopy, etsOutput, timestep, timestepPrev);
+  return getPrevSample(sample, etsOutput, timestep, timestepPrev);
 }
 
 std::vector<float> Scheduler::getPrevSample(const std::vector<float> &sample,
