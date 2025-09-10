@@ -3,11 +3,6 @@
 
 #include "Scheduler.h"
 
-#include <executorch/extension/module/module.h>
-#include <filesystem>
-#include <rnexecutorch/data_processing/FileUtils.h>
-
-
 namespace rnexecutorch::models::text_to_image {
 using namespace facebook;
 
@@ -75,7 +70,8 @@ std::vector<float> Scheduler::step(const std::vector<float> &sample,
                                    const std::vector<float> &noise,
                                    int32_t timestep) {
   if (!numInferenceSteps) {
-    throw std::runtime_error("Number of inference steps is not set. Call `set_timesteps` first.");
+    throw std::runtime_error(
+        "Number of inference steps is not set. Call `set_timesteps` first.");
   }
 
   size_t noiseSize = noise.size();
@@ -128,7 +124,7 @@ std::vector<float> Scheduler::step(const std::vector<float> &sample,
 std::vector<float> Scheduler::getPrevSample(const std::vector<float> &sample,
                                             const std::vector<float> &noise,
                                             int32_t timestep,
-                                            int32_t timestepPrev) {
+                                            int32_t timestepPrev) const {
   const float alpha = alphasCumprod[timestep];
   const float alphaPrev =
       timestepPrev >= 0 ? alphasCumprod[timestepPrev] : finalAlphaCumprod;
