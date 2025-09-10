@@ -41,7 +41,7 @@ public:
 
 private:
   std::shared_ptr<OwningArrayBuffer>
-  postprocess(const std::vector<float> &output);
+  postprocess(const std::vector<float> &output) const;
   size_t memorySizeLowerBound;
 
   int32_t modelImageSize;
