@@ -35,7 +35,13 @@ export default function VoiceChatScreenWrapper() {
 
 function VoiceChatScreen() {
   const [isRecording, setIsRecording] = useState(false);
-  const recorderRef = useRef<AudioRecorder | null>(null);
+  const [recorder] = useState(
+    () =>
+      new AudioRecorder({
+        sampleRate: 16000,
+        bufferLengthInSamples: 1600,
+      })
+  );
   const messageRecorded = useRef<boolean>(false);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
@@ -60,21 +66,15 @@ function VoiceChatScreen() {
   const handleRecordPress = async () => {
     if (isRecording) {
       setIsRecording(false);
-      recorderRef.current?.stop();
+      recorder.stop();
       messageRecorded.current = true;
       await speechToText.streamStop();
     } else {
       setIsRecording(true);
-      if (!recorderRef.current) {
-        recorderRef.current = new AudioRecorder({
-          sampleRate: 16000,
-          bufferLengthInSamples: 1600,
-        });
-      }
-      recorderRef.current.onAudioReady(async ({ buffer }) => {
+      recorder.onAudioReady(async ({ buffer }) => {
         await speechToText.streamInsert(buffer.getChannelData(0));
       });
-      recorderRef.current.start();
+      recorder.start();
       const transcription = await speechToText.stream();
       await llm.sendMessage(transcription);
     }
