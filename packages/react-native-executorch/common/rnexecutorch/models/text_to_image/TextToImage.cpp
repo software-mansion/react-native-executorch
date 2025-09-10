@@ -101,28 +101,8 @@ TextToImage::generate(std::string input, size_t numInferenceSteps) {
 
 std::shared_ptr<OwningArrayBuffer>
 TextToImage::postprocess(const std::vector<float> &output) {
-  std::vector<float> imageData(output.size());
-  size_t X = 3;
-  size_t Y = modelImageSize;
-  size_t Z = modelImageSize;
-  // TODO export inside of the model
-  for (size_t x = 0; x < X; x++) {
-    for (size_t y = 0; y < Y; y++) {
-      for (size_t z = 0; z < Z; z++) {
-        // Rearrange pixel channels to follow RGB order
-        size_t idx = x * Y * Z + y * Z + z;
-        size_t newIdx = y * Z * X + z * X + x;
-
-        auto val = output[idx];
-        val = val / 2 + 0.5;
-        val = std::clamp(val, 0.0f, 1.0f);
-        val *= 255;
-        imageData[newIdx] = val;
-      }
-    }
-  }
-  std::span<float> modelOutput(static_cast<float *>(imageData.data()),
-                               imageData.size());
+  std::span<const float> modelOutput(static_cast<const float *>(output.data()),
+                                     output.size());
   // Replace with a function when #584 implemented
   auto createBuffer = [](const auto &data, size_t size) {
     auto buffer = std::make_shared<OwningArrayBuffer>(size);
