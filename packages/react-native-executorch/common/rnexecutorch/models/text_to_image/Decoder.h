@@ -1,11 +1,13 @@
 #pragma once
 
-#include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
-#include <rnexecutorch/models/BaseModel.h>
-
 #include <memory>
 #include <string>
 #include <vector>
+
+#include <ReactCommon/CallInvoker.h>
+
+#include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
+#include <rnexecutorch/models/BaseModel.h>
 
 namespace rnexecutorch {
 namespace models::text_to_image {

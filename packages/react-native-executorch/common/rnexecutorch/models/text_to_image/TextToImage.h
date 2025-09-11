@@ -1,5 +1,11 @@
 #pragma once
 
+#include <memory>
+#include <string>
+#include <vector>
+
+#include <ReactCommon/CallInvoker.h>
+
 #include <rnexecutorch/jsi/OwningArrayBuffer.h>
 #include <rnexecutorch/metaprogramming/ConstructorHelpers.h>
 
