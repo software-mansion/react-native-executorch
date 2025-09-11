@@ -3,6 +3,10 @@
 #include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
 #include <rnexecutorch/models/BaseModel.h>
 
+#include <memory>
+#include <string>
+#include <vector>
+
 namespace rnexecutorch {
 namespace models::text_to_image {
 
