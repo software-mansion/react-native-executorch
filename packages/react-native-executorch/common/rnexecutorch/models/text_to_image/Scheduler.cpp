@@ -133,16 +133,12 @@ std::vector<float> Scheduler::getPrevSample(const std::vector<float> &sample,
   const float noiseCoeff =
       (alphaPrev - alpha) /
       (alpha * std::sqrt(betaPrev) + std::sqrt(alpha * beta * alphaPrev));
-  std::vector<float> noiseTerm(noiseSize);
-  for (size_t i = 0; i < noiseSize; i++) {
-    noiseTerm[i] = (noise[i] * std::sqrt(alpha) + sample[i] * std::sqrt(beta)) *
-                   noiseCoeff;
-  }
-
   const float sampleCoeff = std::sqrt(alphaPrev / alpha);
   std::vector<float> samplePrev(noiseSize);
   for (size_t i = 0; i < noiseSize; i++) {
-    samplePrev[i] = sample[i] * sampleCoeff - noiseTerm[i];
+    const float noiseTerm = (noise[i] * std::sqrt(alpha) + sample[i] * std::sqrt(beta)) *
+                   noiseCoeff;
+    samplePrev[i] = sample[i] * sampleCoeff - noiseTerm;
   }
 
   return samplePrev;
