@@ -16,21 +16,22 @@ import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ColorPalette from '../../colors';
 import { arrayToRgba, rgbaToBase64 } from './utils';
+import ProgressBar from '../../components/ProgressBar';
 
 type InputState =
   | { kind: 'prompt'; value: string }
   | { kind: 'image'; uri: string };
 
 export default function TextToImageScreen() {
-  const [stepIdx, setStepIdx] = useState<number>(0);
+  const [inferenceStepIdx, setInferenceStepIdx] = useState<number>(0);
   const [imageTitle, setImageTitle] = useState<string | null>(null);
 
-  const numSteps = 5;
+  const numSteps = 15;
   const imageSize = BK_SDM_TINY_VPRED_256.imageSize;
   const model = useTextToImage({
     model: BK_SDM_TINY_VPRED_256,
     inferenceCallback: (x) => {
-      setStepIdx(x);
+      setInferenceStepIdx(x);
     },
   });
 
@@ -61,7 +62,7 @@ export default function TextToImageScreen() {
       console.error(e);
       setImageTitle(null);
     } finally {
-      setStepIdx(0);
+      setInferenceStepIdx(0);
     }
   };
 
@@ -85,8 +86,10 @@ export default function TextToImageScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 40}
         >
-          <View style={styles.imageContainer}>
+          <View style={styles.titleContainer}>
             {imageTitle && <Text style={styles.titleText}>{imageTitle}</Text>}
+          </View>
+          <View style={styles.imageContainer}>
             {inputState.kind === 'image' ? (
               <Image
                 style={styles.image}
@@ -132,10 +135,9 @@ export default function TextToImageScreen() {
       <View style={styles.titleContainer}>
         {imageTitle && <Text style={styles.titleText}>{imageTitle}</Text>}
       </View>
-      <View style={styles.textContainer}>
-        <Text>
-          Generating {stepIdx}/{numSteps}
-        </Text>
+      <View style={styles.progressContainer}>
+        <Text style={styles.text}>Generating...</Text>
+        <ProgressBar numSteps={numSteps} currentStep={inferenceStepIdx} />
       </View>
       <View style={styles.bottomContainer}>
         <TouchableOpacity
@@ -158,11 +160,6 @@ const styles = StyleSheet.create({
   titleContainer: {
     alignItems: 'center',
     marginTop: 20,
-  },
-  textContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   bottomContainer: {
     width: '100%',
@@ -200,6 +197,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     textAlign: 'center',
   },
+  text: {
+    fontSize: 16,
+  },
   input: {
     width: '100%',
     height: 50,
@@ -209,5 +209,10 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 10,
     fontSize: 16,
+  },
+  progressContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
