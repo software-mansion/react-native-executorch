@@ -38,9 +38,8 @@ export class SpeechToTextModule {
     );
   }
 
-  public unload(): void {
+  public delete(): void {
     this.nativeModule.unload();
-    this.nativeModule = null;
   }
 
   public async encode(
