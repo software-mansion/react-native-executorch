@@ -109,7 +109,7 @@ std::vector<float> Scheduler::step(const std::vector<float> &sample,
       etsOutput[i] = ((ets[2][i] * 23 - ets[1][i] * 16) + ets[0][i] * 5) / 12;
     }
   } else {
-    ets = std::vector<std::vector<float>>(ets.end() - 4, ets.end());
+    ets.assign(ets.end() - 4, ets.end());
     for (size_t i = 0; i < noiseSize; i++) {
       etsOutput[i] =
           (ets[3][i] * 55 - ets[2][i] * 59 + ets[1][i] * 37 - ets[0][i] * 9) /
