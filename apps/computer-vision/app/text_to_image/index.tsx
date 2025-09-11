@@ -33,10 +33,13 @@ export default function TextToImageScreen() {
     setGlobalGenerating(model.isGenerating);
   }, [model.isGenerating, setGlobalGenerating]);
 
-  const runForward = async () => {
+  const runGenerate = async () => {
     if (inputState.kind !== 'prompt' || !inputState.value.trim()) return;
     try {
-      const output = await model.forward(inputState.value, numSteps);
+      const output = await model.generate(inputState.value, numSteps);
+      if (!output.length) {
+        return;
+      }
       const rgbaData = arrayToRgba(output, imageSize);
       const newUri = rgbaToBase64(rgbaData, imageSize);
       setInputState({ kind: 'image', uri: newUri });
@@ -76,16 +79,25 @@ export default function TextToImageScreen() {
           />
         )}
       </View>
-      <Pressable
-        style={[
-          styles.button,
-          (!model.isReady || model.isGenerating) && styles.buttonDisabled,
-        ]}
-        onPress={runForward}
-        disabled={!model.isReady || model.isGenerating}
-      >
-        <Text style={styles.buttonText}>Generate</Text>
-      </Pressable>
+      <View style={styles.buttonContainer}>
+        <Pressable
+          style={[
+            styles.button,
+            (!model.isReady || model.isGenerating) && styles.buttonDisabled,
+          ]}
+          onPress={runGenerate}
+          disabled={!model.isReady || model.isGenerating}
+        >
+          <Text style={styles.buttonText}>Generate</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.button, !model.isGenerating && styles.buttonDisabled]}
+          onPress={() => model.interrupt()}
+          disabled={!model.isGenerating}
+        >
+          <Text style={styles.buttonText}>Interrupt</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -94,17 +106,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     width: '100%',
     padding: 20,
+  },
+  buttonContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    padding: 20,
+    gap: 20,
   },
   button: {
     backgroundColor: ColorPalette.strongPrimary,
     borderRadius: 8,
-    padding: 10,
     alignItems: 'center',
-    marginBottom: 10,
-    width: '60%',
+    padding: 10,
   },
   buttonDisabled: {
     opacity: 0.6,

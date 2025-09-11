@@ -60,7 +60,11 @@ TextToImage::generate(std::string input, size_t numInferenceSteps) {
   std::vector<int32_t> timesteps = scheduler->timesteps;
 
   for (size_t t = 0; t < numInferenceSteps + 1; t++) {
-    log(LOG_LEVEL::Debug, "Step: ", t, "/", numInferenceSteps);
+    if (interrupted) {
+      interrupted = false;
+      return postprocess({});
+    }
+    log(LOG_LEVEL::Debug, "Step:", t, "/", numInferenceSteps);
     std::vector<float> latentsConcat;
     latentsConcat.reserve(2 * latentsSize);
     latentsConcat.insert(latentsConcat.end(), latents.begin(), latents.end());
@@ -100,6 +104,8 @@ TextToImage::postprocess(const std::vector<float> &output) const {
   };
   return createBuffer(output.data(), output.size() * sizeof(float));
 }
+
+void TextToImage::interrupt() { interrupted = true; }
 
 size_t TextToImage::getMemoryLowerBound() const noexcept {
   return encoder->getMemoryLowerBound() + unet->getMemoryLowerBound() +
