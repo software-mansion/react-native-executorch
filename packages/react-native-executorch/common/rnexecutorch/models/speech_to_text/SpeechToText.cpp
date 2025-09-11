@@ -20,6 +20,12 @@ SpeechToText::SpeechToText(const std::string &encoderSource,
       processor(std::make_unique<OnlineASRProcessor>(this->asr.get())),
       isStreaming(false), readyToProcess(false) {}
 
+void SpeechToText::unload() noexcept {
+  this->encoder.reset(nullptr);
+  this->decoder.reset(nullptr);
+  this->tokenizer.reset(nullptr);
+}
+
 std::shared_ptr<OwningArrayBuffer>
 SpeechToText::encode(std::span<float> waveform) const {
   std::vector<float> encoderOutput = this->asr->encode(waveform);

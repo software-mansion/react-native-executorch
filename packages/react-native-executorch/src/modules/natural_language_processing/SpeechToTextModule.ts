@@ -38,6 +38,11 @@ export class SpeechToTextModule {
     );
   }
 
+  public unload(): void {
+    this.nativeModule.unload();
+    this.nativeModule = null;
+  }
+
   public async encode(
     waveform: Float32Array | number[]
   ): Promise<Float32Array> {
@@ -137,18 +142,18 @@ export class SpeechToTextModule {
     }
   }
 
-  public async streamInsert(waveform: Float32Array | number[]): Promise<void> {
+  public streamInsert(waveform: Float32Array | number[]): void {
     if (Array.isArray(waveform)) {
       Logger.info(
         'Passing waveform as number[] is deprecated, use Float32Array instead'
       );
       waveform = new Float32Array(waveform);
     }
-    return this.nativeModule.streamInsert(waveform);
+    this.nativeModule.streamInsert(waveform);
   }
 
-  public async streamStop(): Promise<void> {
-    return this.nativeModule.streamStop();
+  public streamStop(): void {
+    this.nativeModule.streamStop();
   }
 
   private validateOptions(options: DecodingOptions) {

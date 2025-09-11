@@ -22,12 +22,13 @@ await model.transcribe(waveform);
 | Method         | Type                                                                                                       | Description                                                                                                                                                                                                   |
 | -------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `load`         | `(model: SpeechToTextModelConfig, onDownloadProgressCallback?: (progress: number) => void): Promise<void>` | Loads the model specified by the config object. `onDownloadProgressCallback` allows you to monitor the current progress of the model download.                                                                |
+| `unload`       | `(): void`                                                                                                 | Unloads the model from memory.                                                                                                                                                                                |
 | `encode`       | `(waveform: Float32Array \| number[]): Promise<Float32Array>`                                              | Runs the encoding part of the model on the provided waveform. Returns the encoded waveform as a Float32Array. Passing `number[]` is deprecated.                                                               |
 | `decode`       | `(tokens: number[] \| Int32Array, encoderOutput: Float32Array \| number[]): Promise<Float32Array>`         | Runs the decoder of the model. Passing `number[]` is deprecated.                                                                                                                                              |
 | `transcribe`   | `(waveform: Float32Array \| number[], options?: DecodingOptions): Promise<string>`                         | Starts a transcription process for a given input array (16kHz waveform). For multilingual models, specify the language in `options`. Returns the transcription as a string. Passing `number[]` is deprecated. |
 | `stream`       | `(options?: DecodingOptions): AsyncGenerator<{ committed: string; nonCommitted: string }>`                 | Starts a streaming transcription session. Yields objects with `committed` and `nonCommitted` transcriptions. Use with `streamInsert` and `streamStop` to control the stream.                                  |
-| `streamStop`   | `(): Promise<void>`                                                                                        | Stops the current streaming transcription session.                                                                                                                                                            |
-| `streamInsert` | `(waveform: Float32Array \| number[]): Promise<void>`                                                      | Inserts a new audio chunk into the streaming transcription session. Passing `number[]` is deprecated.                                                                                                         |
+| `streamStop`   | `(): void`                                                                                                 | Stops the current streaming transcription session.                                                                                                                                                            |
+| `streamInsert` | `(waveform: Float32Array \| number[]): void`                                                               | Inserts a new audio chunk into the streaming transcription session. Passing `number[]` is deprecated.                                                                                                         |
 
 :::info
 
@@ -227,9 +228,9 @@ const recorder = new AudioRecorder({
   sampleRate: 16000,
   bufferLengthInSamples: 1600,
 });
-recorder.onAudioReady(async ({ buffer }) => {
+recorder.onAudioReady(({ buffer }) => {
   // Insert the audio into the streaming transcription
-  await model.streamInsert(buffer.getChannelData(0));
+  model.streamInsert(buffer.getChannelData(0));
 });
 recorder.start();
 
@@ -246,6 +247,6 @@ try {
 }
 
 // Stop streaming transcription
-await model.streamStop();
+model.streamStop();
 recorder.stop();
 ```

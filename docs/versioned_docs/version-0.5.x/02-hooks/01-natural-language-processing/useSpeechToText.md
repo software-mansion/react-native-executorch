@@ -79,8 +79,8 @@ For more information on loading resources, take a look at [loading models](../..
 | --------------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `transcribe`                | `(waveform: Float32Array \| number[], options?: DecodingOptions \| undefined) => Promise<string>`    | Starts a transcription process for a given input array, which should be a waveform at 16kHz. The second argument is an options object, e.g. `{ language: 'es' }` for multilingual models. Resolves a promise with the output transcription when the model is finished. Passing `number[]` is deprecated. |
 | `stream`                    | `() => Promise<string>`                                                                              | Starts a streaming transcription process. Use in combination with `streamInsert` to feed audio chunks and `streamStop` to end the stream. Updates `committedTranscription` and `nonCommittedTranscription` as transcription progresses.                                                                  |
-| `streamInsert`              | `(waveform: Float32Array \| number[]) => Promise<void>`                                              | Inserts a chunk of audio data (sampled at 16kHz) into the ongoing streaming transcription. Call this repeatedly as new audio data becomes available. Passing `number[]` is deprecated.                                                                                                                   |
-| `streamStop`                | `() => Promise<void>`                                                                                | Stops the ongoing streaming transcription process.                                                                                                                                                                                                                                                       |
+| `streamInsert`              | `(waveform: Float32Array \| number[]) => void`                                                       | Inserts a chunk of audio data (sampled at 16kHz) into the ongoing streaming transcription. Call this repeatedly as new audio data becomes available. Passing `number[]` is deprecated.                                                                                                                   |
+| `streamStop`                | `() => void`                                                                                         | Stops the ongoing streaming transcription process.                                                                                                                                                                                                                                                       |
 | `encode`                    | `(waveform: Float32Array \| number[]) => Promise<Float32Array>`                                      | Runs the encoding part of the model on the provided waveform. Passing `number[]` is deprecated.                                                                                                                                                                                                          |
 | `decode`                    | `(tokens: number[] \| Int32Array, encoderOutput: Float32Array \| number[]) => Promise<Float32Array>` | Runs the decoder of the model. Passing `number[]` is deprecated.                                                                                                                                                                                                                                         |
 | `committedTranscription`    | `string`                                                                                             | Contains the part of the transcription that is finalized and will not change. Useful for displaying stable results during streaming.                                                                                                                                                                     |
@@ -89,6 +89,7 @@ For more information on loading resources, take a look at [loading models](../..
 | `isGenerating`              | `boolean`                                                                                            | Indicates whether the model is currently processing an inference.                                                                                                                                                                                                                                        |
 | `isReady`                   | `boolean`                                                                                            | Indicates whether the model has successfully loaded and is ready for inference.                                                                                                                                                                                                                          |
 | `downloadProgress`          | `number`                                                                                             | Tracks the progress of the model download process.                                                                                                                                                                                                                                                       |
+| `unload`                    | `() => void`                                                                                         | Unloads the model from memory.                                                                                                                                                                                                                                                                           |
 
 <details>
 <summary>Type definitions</summary>
@@ -279,7 +280,7 @@ function App() {
   }, []);
 
   const handleStartStreamingTranscribe = async () => {
-    recorder.onAudioReady(async ({ buffer }) => {
+    recorder.onAudioReady(({ buffer }) => {
       model.streamInsert(buffer.getChannelData(0));
     });
     recorder.start();
@@ -291,7 +292,7 @@ function App() {
     }
   };
 
-  const handleStopStreamingTranscribe = async () => {
+  const handleStopStreamingTranscribe = () => {
     recorder.stop();
     model.streamStop();
   };
