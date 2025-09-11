@@ -67,7 +67,7 @@ void Scheduler::setTimesteps(size_t numInferenceSteps) {
 std::vector<float> Scheduler::step(const std::vector<float> &sample,
                                    const std::vector<float> &noise,
                                    int32_t timestep) {
-  if (!numInferenceSteps) {
+  if (numInferenceSteps == 0) {
     throw std::runtime_error(
         "Number of inference steps is not set. Call `set_timesteps` first.");
   }
