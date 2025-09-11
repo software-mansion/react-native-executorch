@@ -14,6 +14,7 @@ interface TextToImageType {
 
 export const useTextToImage = ({
   model,
+  inferenceCallback,
   preventLoad = false,
 }: {
   model: {
@@ -23,8 +24,8 @@ export const useTextToImage = ({
     unetSource: ResourceSource;
     decoderSource: ResourceSource;
     imageSize: number;
-    setDownloadProgress?: (progress: number) => void;
   };
+  inferenceCallback?: (stepIdx: number) => void;
   preventLoad?: boolean;
 }): TextToImageType => {
   const [isReady, setIsReady] = useState(false);
@@ -32,7 +33,7 @@ export const useTextToImage = ({
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
-  const [module] = useState(() => new TextToImageModule());
+  const [module] = useState(() => new TextToImageModule(inferenceCallback));
 
   useEffect(() => {
     if (preventLoad) return;
