@@ -15,22 +15,20 @@ Scheduler::Scheduler(float betaStart, float betaEnd, int32_t numTrainTimesteps,
   const float end = std::sqrt(betaEnd);
   const float step = (end - start) / (numTrainTimesteps - 1);
 
-  // betas[t] — amount of noise injected at timestep t
-  betas.reserve(numTrainTimesteps);
-  for (int32_t i = 0; i < numTrainTimesteps; i++) {
-    const float value = start + step * i;
-    betas.push_back(value * value);
-  }
-
+  float runningProduct = 1.0f;
   alphas.reserve(numTrainTimesteps);
-  for (auto beta : betas) {
-    alphas.push_back(1.0f - beta);
-  }
-
   // alphasCumprod[t] — fraction of the signal remaining after t steps
   alphasCumprod.reserve(numTrainTimesteps);
-  float runningProduct = 1.0f;
-  for (auto alpha : alphas) {
+  // betas[t] — amount of noise injected at timestep t
+  betas.reserve(numTrainTimesteps);
+  for (int32_t i = 0; i < numTrainTimesteps; ++i) {
+    const float value = start + step * i;
+    const float beta = value * value;
+    betas.push_back(beta);
+    
+    const float alpha = 1.0f - beta;
+    alphas.push_back(alpha);
+    
     runningProduct *= alpha;
     alphasCumprod.push_back(runningProduct);
   }
