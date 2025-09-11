@@ -2,6 +2,9 @@ import { Buffer } from 'buffer';
 import { PNG } from 'pngjs/browser';
 
 export function arrayToRgba(data: Float32Array, imageSize: number): Uint8Array {
+  if (!data.length) {
+    return new Uint8Array(0);
+  }
   const imagePixelCount = imageSize * imageSize;
   const imageData = new Uint8Array(imagePixelCount * 4);
   for (let i = 0; i < imagePixelCount; i++) {

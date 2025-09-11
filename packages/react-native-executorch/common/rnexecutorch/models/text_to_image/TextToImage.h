@@ -31,18 +31,20 @@ public:
                        std::shared_ptr<react::CallInvoker> callInvoker);
   std::shared_ptr<OwningArrayBuffer> generate(std::string input,
                                               size_t numInferenceSteps);
+  void interrupt();
   size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
 
 private:
   std::shared_ptr<OwningArrayBuffer>
   postprocess(const std::vector<float> &output) const;
-  size_t memorySizeLowerBound;
 
+  size_t memorySizeLowerBound;
   int32_t modelImageSize;
   static constexpr int32_t numChannels = 4;
   static constexpr float guidanceScale = 7.5f;
   static constexpr float latentsScale = 0.18215f;
+  bool interrupted = false;
 
   std::shared_ptr<react::CallInvoker> callInvoker;
   std::unique_ptr<Scheduler> scheduler;
