@@ -3,14 +3,16 @@
 
 #include "Scheduler.h"
 
+#include <algorithm>
+#include <cmath>
+
 namespace rnexecutorch::models::text_to_image {
 using namespace facebook;
 
 Scheduler::Scheduler(float betaStart, float betaEnd, int32_t numTrainTimesteps,
                      int32_t stepsOffset,
                      std::shared_ptr<react::CallInvoker> callInvoker)
-    : betaStart(betaStart), betaEnd(betaEnd),
-      numTrainTimesteps(numTrainTimesteps), stepsOffset(stepsOffset) {
+    : numTrainTimesteps(numTrainTimesteps), stepsOffset(stepsOffset) {
   const float start = std::sqrt(betaStart);
   const float end = std::sqrt(betaEnd);
   const float step = (end - start) / (numTrainTimesteps - 1);
@@ -25,10 +27,10 @@ Scheduler::Scheduler(float betaStart, float betaEnd, int32_t numTrainTimesteps,
     const float value = start + step * i;
     const float beta = value * value;
     betas.push_back(beta);
-    
+
     const float alpha = 1.0f - beta;
     alphas.push_back(alpha);
-    
+
     runningProduct *= alpha;
     alphasCumprod.push_back(runningProduct);
   }

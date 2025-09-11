@@ -1,5 +1,7 @@
 #include "Decoder.h"
 
+#include <cmath>
+
 #include <executorch/extension/tensor/tensor_ptr_maker.h>
 
 namespace rnexecutorch::models::text_to_image {

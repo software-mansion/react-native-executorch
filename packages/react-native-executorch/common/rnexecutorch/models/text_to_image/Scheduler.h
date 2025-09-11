@@ -1,8 +1,11 @@
 #pragma once
 
-#include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
-#include <string>
+#include <memory>
 #include <vector>
+
+#include <ReactCommon/CallInvoker.h>
+
+#include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
 
 namespace rnexecutorch {
 namespace models::text_to_image {
@@ -21,8 +24,6 @@ public:
   std::vector<int32_t> timesteps;
 
 private:
-  float betaStart;
-  float betaEnd;
   int32_t numTrainTimesteps;
   int32_t stepsOffset;
 
