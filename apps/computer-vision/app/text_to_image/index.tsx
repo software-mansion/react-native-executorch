@@ -22,10 +22,17 @@ type InputState =
   | { kind: 'image'; uri: string };
 
 export default function TextToImageScreen() {
+  const [stepIdx, setStepIdx] = useState<number>(0);
+  const [imageTitle, setImageTitle] = useState<string | null>(null);
+
   const numSteps = 5;
   const imageSize = BK_SDM_TINY_VPRED_256.imageSize;
-  const model = useTextToImage({ model: BK_SDM_TINY_VPRED_256 });
-  const [imageTitle, setImageTitle] = useState<string | null>(null);
+  const model = useTextToImage({
+    model: BK_SDM_TINY_VPRED_256,
+    inferenceCallback: (x) => {
+      setStepIdx(x);
+    },
+  });
 
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
@@ -53,6 +60,8 @@ export default function TextToImageScreen() {
     } catch (e) {
       console.error(e);
       setImageTitle(null);
+    } finally {
+      setStepIdx(0);
     }
   };
 
@@ -93,7 +102,7 @@ export default function TextToImageScreen() {
           <View style={styles.bottomContainer}>
             <TextInput
               style={styles.input}
-              placeholder="Enter your prompt..."
+              placeholder="Enter prompt..."
               value={inputState.kind === 'prompt' ? inputState.value : ''}
               onChangeText={(text) => {
                 setInputState({ kind: 'prompt', value: text });
@@ -124,7 +133,9 @@ export default function TextToImageScreen() {
         {imageTitle && <Text style={styles.titleText}>{imageTitle}</Text>}
       </View>
       <View style={styles.textContainer}>
-        <Text>Generating...</Text>
+        <Text>
+          Generating {stepIdx}/{numSteps}
+        </Text>
       </View>
       <View style={styles.bottomContainer}>
         <TouchableOpacity

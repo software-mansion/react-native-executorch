@@ -28,7 +28,8 @@ TextToImage::TextToImage(const std::string &tokenizerSource,
                                         callInvoker)) {}
 
 std::shared_ptr<OwningArrayBuffer>
-TextToImage::generate(std::string input, size_t numInferenceSteps) {
+TextToImage::generate(std::string input, size_t numInferenceSteps,
+                      std::shared_ptr<jsi::Function> callback) {
   std::shared_ptr<OwningArrayBuffer> embeddingsText = encoder->generate(input);
   std::shared_ptr<OwningArrayBuffer> embeddingsUncond =
       encoder->generate(std::string(constants::kBosToken));
@@ -59,6 +60,11 @@ TextToImage::generate(std::string input, size_t numInferenceSteps) {
   scheduler->setTimesteps(numInferenceSteps);
   std::vector<int32_t> timesteps = scheduler->timesteps;
 
+  auto nativeCallback = [this, callback](size_t stepIdx) {
+    this->callInvoker->invokeAsync([callback, stepIdx](jsi::Runtime &runtime) {
+      callback->call(runtime, jsi::Value(static_cast<int32_t>(stepIdx)));
+    });
+  };
   for (size_t t = 0; t < numInferenceSteps + 1; t++) {
     if (interrupted) {
       interrupted = false;
@@ -84,6 +90,8 @@ TextToImage::generate(std::string input, size_t numInferenceSteps) {
           noiseUncond[i] * (1 - guidanceScale) + noiseText[i] * guidanceScale;
     }
     latents = scheduler->step(latents, noise, timesteps[t]);
+
+    nativeCallback(t);
   }
 
   for (auto &val : latents) {

@@ -5,6 +5,14 @@ import { BaseModule } from '../BaseModule';
 export class TextToImageModule extends BaseModule {
   private downloadProgress = 0;
   private readonly numComponents = 4;
+  private inferenceCallback: (stepIdx: number) => void;
+
+  constructor(inferenceCallback?: (stepIdx: number) => void) {
+    super();
+    this.inferenceCallback = (stepIdx: number) => {
+      inferenceCallback?.(stepIdx);
+    };
+  }
 
   async load(
     model: {
@@ -89,7 +97,11 @@ export class TextToImageModule extends BaseModule {
   }
 
   async forward(input: string, numSteps: number = 5): Promise<Float32Array> {
-    const output = await this.nativeModule.generate(input, numSteps);
+    const output = await this.nativeModule.generate(
+      input,
+      numSteps,
+      this.inferenceCallback
+    );
     return new Float32Array(output);
   }
 

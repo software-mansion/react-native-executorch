@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <ReactCommon/CallInvoker.h>
+#include <jsi/jsi.h>
 
 #include <rnexecutorch/jsi/OwningArrayBuffer.h>
 #include <rnexecutorch/metaprogramming/ConstructorHelpers.h>
@@ -29,8 +30,9 @@ public:
                        const std::string &unetSource,
                        const std::string &decoderSource, int32_t imageSize,
                        std::shared_ptr<react::CallInvoker> callInvoker);
-  std::shared_ptr<OwningArrayBuffer> generate(std::string input,
-                                              size_t numInferenceSteps);
+  std::shared_ptr<OwningArrayBuffer>
+  generate(std::string input, size_t numInferenceSteps,
+           std::shared_ptr<jsi::Function> callback);
   void interrupt();
   size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
