@@ -3,10 +3,14 @@ import { useTextToImage, BK_SDM_TINY_VPRED_256 } from 'react-native-executorch';
 import {
   View,
   StyleSheet,
-  Pressable,
   Text,
   Image,
   TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
@@ -21,6 +25,7 @@ export default function TextToImageScreen() {
   const numSteps = 5;
   const imageSize = BK_SDM_TINY_VPRED_256.imageSize;
   const model = useTextToImage({ model: BK_SDM_TINY_VPRED_256 });
+  const [imageTitle, setImageTitle] = useState<string | null>(null);
 
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
@@ -33,11 +38,13 @@ export default function TextToImageScreen() {
     setGlobalGenerating(model.isGenerating);
   }, [model.isGenerating, setGlobalGenerating]);
 
-  const runGenerate = async () => {
+  const runForward = async () => {
     if (inputState.kind !== 'prompt' || !inputState.value.trim()) return;
+    setImageTitle(inputState.value);
     try {
       const output = await model.generate(inputState.value, numSteps);
       if (!output.length) {
+        setImageTitle(null);
         return;
       }
       const rgbaData = arrayToRgba(output, imageSize);
@@ -45,6 +52,7 @@ export default function TextToImageScreen() {
       setInputState({ kind: 'image', uri: newUri });
     } catch (e) {
       console.error(e);
+      setImageTitle(null);
     }
   };
 
@@ -57,99 +65,136 @@ export default function TextToImageScreen() {
     );
   }
 
+  if (!model.isGenerating) {
+    return (
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <KeyboardAvoidingView
+          style={{
+            ...styles.container,
+          }}
+          collapsable={false}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 40}
+        >
+          <View style={styles.imageContainer}>
+            {imageTitle && <Text style={styles.titleText}>{imageTitle}</Text>}
+            {inputState.kind === 'image' ? (
+              <Image
+                style={styles.image}
+                source={{ uri: `data:image/png;base64,${inputState.uri}` }}
+              />
+            ) : (
+              <Image
+                style={styles.image}
+                source={require('../../assets/icons/executorch_logo.png')}
+              />
+            )}
+          </View>
+          <View style={styles.bottomContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your prompt..."
+              value={inputState.kind === 'prompt' ? inputState.value : ''}
+              onChangeText={(text) => {
+                setInputState({ kind: 'prompt', value: text });
+                setImageTitle(null);
+              }}
+              editable={!model.isGenerating}
+            />
+            <TouchableOpacity
+              style={styles.button}
+              onPress={runForward}
+              disabled={!model.isReady}
+            >
+              <Text style={styles.buttonText}>Run model</Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter your prompt..."
-        value={inputState.kind === 'prompt' ? inputState.value : ''}
-        onChangeText={(text) => setInputState({ kind: 'prompt', value: text })}
-        editable={!model.isGenerating}
-      />
-      <View style={styles.imageContainer}>
-        {inputState.kind === 'image' ? (
-          <Image
-            style={styles.image}
-            source={{ uri: `data:image/png;base64,${inputState.uri}` }}
-          />
-        ) : (
-          <Image
-            style={styles.image}
-            source={require('../../assets/icons/executorch_logo.png')}
-          />
-        )}
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 40}
+    >
+      <View style={styles.titleContainer}>
+        {imageTitle && <Text style={styles.titleText}>{imageTitle}</Text>}
       </View>
-      <View style={styles.buttonContainer}>
-        <Pressable
-          style={[
-            styles.button,
-            (!model.isReady || model.isGenerating) && styles.buttonDisabled,
-          ]}
-          onPress={runGenerate}
-          disabled={!model.isReady || model.isGenerating}
-        >
-          <Text style={styles.buttonText}>Generate</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.button, !model.isGenerating && styles.buttonDisabled]}
+      <View style={styles.textContainer}>
+        <Text>Generating...</Text>
+      </View>
+      <View style={styles.bottomContainer}>
+        <TouchableOpacity
+          style={styles.button}
           onPress={() => model.interrupt()}
-          disabled={!model.isGenerating}
         >
-          <Text style={styles.buttonText}>Interrupt</Text>
-        </Pressable>
+          <Text style={styles.buttonText}>Stop model</Text>
+        </TouchableOpacity>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
     width: '100%',
     padding: 20,
   },
-  buttonContainer: {
+  titleContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  textContainer: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'center',
-    width: '100%',
-    padding: 20,
-    gap: 20,
-  },
-  button: {
-    backgroundColor: ColorPalette.strongPrimary,
-    borderRadius: 8,
     alignItems: 'center',
-    padding: 10,
   },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 18,
+  bottomContainer: {
+    width: '100%',
+    gap: 15,
+    alignItems: 'center',
+    padding: 16,
   },
   imageContainer: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  button: {
+    width: '100%',
+    height: 50,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 4,
-    padding: 4,
+    backgroundColor: ColorPalette.primary,
+    borderRadius: 8,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
   },
   image: {
     width: 256,
     height: 256,
-    marginVertical: 50,
+    marginVertical: 30,
     resizeMode: 'contain',
+  },
+  titleText: {
+    color: ColorPalette.primary,
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    textAlign: 'center',
   },
   input: {
     width: '100%',
+    height: 50,
     borderColor: '#ccc',
     borderWidth: 1,
-    borderRadius: 6,
+    borderRadius: 8,
     padding: 10,
     marginBottom: 10,
     fontSize: 16,
