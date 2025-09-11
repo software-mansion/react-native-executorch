@@ -88,7 +88,12 @@ export class TextToImageModule extends BaseModule {
     );
   }
 
-  async forward(input: string, numSteps: number): Promise<Float32Array> {
-    return new Float32Array(await this.nativeModule.generate(input, numSteps));
+  async forward(input: string, numSteps: number = 5): Promise<Float32Array> {
+    const output = await this.nativeModule.generate(input, numSteps);
+    return new Float32Array(output);
+  }
+
+  public interrupt(): void {
+    this.nativeModule.interrupt();
   }
 }
