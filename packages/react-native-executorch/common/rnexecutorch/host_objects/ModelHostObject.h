@@ -19,6 +19,7 @@
 #include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/ocr/OCR.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
+#include <rnexecutorch/models/text_to_image/TextToImage.h>
 #include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
 
 namespace rnexecutorch {
@@ -115,6 +116,12 @@ public:
 
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
+    }
+
+    if constexpr (meta::SameAs<Model, models::text_to_image::TextToImage>) {
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>, synchronousHostFunction<&Model::interrupt>,
+          "interrupt"));
     }
 
     if constexpr (meta::SameAs<Model, models::ocr::OCR>) {
