@@ -92,15 +92,13 @@ TextToImage::generate(std::string input, size_t numInferenceSteps) {
 
 std::shared_ptr<OwningArrayBuffer>
 TextToImage::postprocess(const std::vector<float> &output) const {
-  std::span<const float> modelOutput(static_cast<const float *>(output.data()),
-                                     output.size());
   // Replace with a function when #584 implemented
   auto createBuffer = [](const auto &data, size_t size) {
     auto buffer = std::make_shared<OwningArrayBuffer>(size);
     std::memcpy(buffer->data(), data, size);
     return buffer;
   };
-  return createBuffer(modelOutput.data(), modelOutput.size_bytes());
+  return createBuffer(output.data(), output.size() * sizeof(float));
 }
 
 size_t TextToImage::getMemoryLowerBound() const noexcept {
