@@ -104,13 +104,23 @@ TextToImage::generate(std::string input, size_t numInferenceSteps,
 
 std::shared_ptr<OwningArrayBuffer>
 TextToImage::postprocess(const std::vector<float> &output) const {
+  // Convert RGB to RGBA
+  int32_t imagePixelCount = modelImageSize * modelImageSize;
+  std::vector<uint8_t> outputRgb(imagePixelCount * 4);
+  for (int32_t i = 0; i < imagePixelCount; i++) {
+    outputRgb[i * 4 + 0] = output[i * 3 + 0];
+    outputRgb[i * 4 + 1] = output[i * 3 + 1];
+    outputRgb[i * 4 + 2] = output[i * 3 + 2];
+    outputRgb[i * 4 + 3] = 255;
+  }
+
   // Replace with a function when #584 implemented
   auto createBuffer = [](const auto &data, size_t size) {
     auto buffer = std::make_shared<OwningArrayBuffer>(size);
     std::memcpy(buffer->data(), data, size);
     return buffer;
   };
-  return createBuffer(output.data(), output.size() * sizeof(float));
+  return createBuffer(outputRgb.data(), outputRgb.size() * sizeof(float));
 }
 
 void TextToImage::interrupt() { interrupted = true; }

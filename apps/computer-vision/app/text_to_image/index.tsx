@@ -15,7 +15,6 @@ import {
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ColorPalette from '../../colors';
-import { arrayToRgba, rgbaToBase64 } from './utils';
 import ProgressBar from '../../components/ProgressBar';
 
 type InputState =
@@ -27,7 +26,6 @@ export default function TextToImageScreen() {
   const [imageTitle, setImageTitle] = useState<string | null>(null);
 
   const numSteps = 15;
-  const imageSize = BK_SDM_TINY_VPRED_256.imageSize;
   const model = useTextToImage({
     model: BK_SDM_TINY_VPRED_256,
     inferenceCallback: (x) => {
@@ -55,9 +53,7 @@ export default function TextToImageScreen() {
         setImageTitle(null);
         return;
       }
-      const rgbaData = arrayToRgba(output, imageSize);
-      const newUri = rgbaToBase64(rgbaData, imageSize);
-      setInputState({ kind: 'image', uri: newUri });
+      setInputState({ kind: 'image', uri: output });
     } catch (e) {
       console.error(e);
       setImageTitle(null);

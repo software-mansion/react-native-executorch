@@ -8,7 +8,7 @@ interface TextToImageType {
   isGenerating: boolean;
   downloadProgress: number;
   error: string | null;
-  generate: (input: string, numSteps?: number) => Promise<Float32Array>;
+  generate: (input: string, numSteps?: number) => Promise<string>;
   interrupt: () => void;
 }
 
@@ -58,7 +58,7 @@ export const useTextToImage = ({
   const generate = async (
     input: string,
     numSteps?: number
-  ): Promise<Float32Array> => {
+  ): Promise<string> => {
     if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
     if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
     try {
