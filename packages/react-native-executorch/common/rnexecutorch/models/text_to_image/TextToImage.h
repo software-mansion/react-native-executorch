@@ -10,9 +10,8 @@
 #include <rnexecutorch/jsi/OwningArrayBuffer.h>
 #include <rnexecutorch/metaprogramming/ConstructorHelpers.h>
 
-#include <rnexecutorch/models/embeddings/text/TextEmbeddings.h>
-#include <rnexecutorch/models/text_to_image/Constants.h>
 #include <rnexecutorch/models/text_to_image/Decoder.h>
+#include <rnexecutorch/models/text_to_image/Encoder.h>
 #include <rnexecutorch/models/text_to_image/Scheduler.h>
 #include <rnexecutorch/models/text_to_image/UNet.h>
 
@@ -50,7 +49,7 @@ private:
 
   std::shared_ptr<react::CallInvoker> callInvoker;
   std::unique_ptr<Scheduler> scheduler;
-  std::unique_ptr<embeddings::TextEmbeddings> encoder;
+  std::unique_ptr<Encoder> encoder;
   std::unique_ptr<UNet> unet;
   std::unique_ptr<Decoder> decoder;
 };
