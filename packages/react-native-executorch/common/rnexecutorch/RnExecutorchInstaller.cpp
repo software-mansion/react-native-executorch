@@ -6,6 +6,7 @@
 #include <rnexecutorch/models/embeddings/image/ImageEmbeddings.h>
 #include <rnexecutorch/models/embeddings/text/TextEmbeddings.h>
 #include <rnexecutorch/models/image_segmentation/ImageSegmentation.h>
+#include <rnexecutorch/models/text_to_image/TextToImage.h>
 #include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/object_detection/ObjectDetection.h>
 #include <rnexecutorch/models/ocr/OCR.h>
@@ -43,15 +44,19 @@ void RnExecutorchInstaller::injectJSIBindings(
           jsiRuntime, jsCallInvoker, "loadImageSegmentation"));
 
   jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadTextToImage",
+      RnExecutorchInstaller::loadModel<models::text_to_image::TextToImage>(
+          jsiRuntime, jsCallInvoker, "loadTextToImage"));
+
+  jsiRuntime->global().setProperty(
       *jsiRuntime, "loadClassification",
       RnExecutorchInstaller::loadModel<models::classification::Classification>(
           jsiRuntime, jsCallInvoker, "loadClassification"));
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadObjectDetection",
-      RnExecutorchInstaller::loadModel<
-          models::object_detection::ObjectDetection>(jsiRuntime, jsCallInvoker,
-                                                     "loadObjectDetection"));
+      RnExecutorchInstaller::loadModel<models::object_detection::ObjectDetection>(
+          jsiRuntime, jsCallInvoker, "loadObjectDetection"));
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadExecutorchModule",
