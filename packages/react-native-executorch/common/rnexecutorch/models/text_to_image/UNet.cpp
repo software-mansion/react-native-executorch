@@ -8,26 +8,29 @@ using namespace executorch::extension;
 
 UNet::UNet(const std::string &modelSource, int32_t modelImageSize,
            int32_t numChannels, std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker), modelImageSize(modelImageSize),
-      numChannels(numChannels) {}
+    : BaseModel(modelSource, callInvoker), numChannels(numChannels) {
+  constexpr int32_t latentDownsample = 8;
+  latentsSize = std::floor(modelImageSize / latentDownsample);
+}
 
 std::vector<float> UNet::generate(std::vector<float> &latents, int32_t timestep,
-                                  std::vector<float> &embeddings) {
-  constexpr int32_t latentDownsample = 8;
-  const int32_t latentsImageSize =
-      std::floor(modelImageSize / latentDownsample);
-  std::vector<int32_t> latentsShape = {2, numChannels, latentsImageSize,
-                                       latentsImageSize};
+                                  std::vector<float> &embeddings) const {
+  std::vector<float> latentsConcat;
+  latentsConcat.reserve(2 * latentsSize);
+  latentsConcat.insert(latentsConcat.end(), latents.begin(), latents.end());
+  latentsConcat.insert(latentsConcat.end(), latents.begin(), latents.end());
+
+  std::vector<int32_t> latentsShape = {2, numChannels, latentsSize,
+                                       latentsSize};
   std::vector<int32_t> timestepShape = {1};
   std::vector<int32_t> embeddingsShape = {2, 77, 768};
 
-  // TODO change after reexporting the model
   std::vector<int64_t> timestepData = {static_cast<int64_t>(timestep)};
   auto timestepTensor =
       make_tensor_ptr(timestepShape, timestepData.data(), ScalarType::Long);
 
   auto latentsTensor =
-      make_tensor_ptr(latentsShape, latents.data(), ScalarType::Float);
+      make_tensor_ptr(latentsShape, latentsConcat.data(), ScalarType::Float);
   auto embeddingsTensor =
       make_tensor_ptr(embeddingsShape, embeddings.data(), ScalarType::Float);
 
