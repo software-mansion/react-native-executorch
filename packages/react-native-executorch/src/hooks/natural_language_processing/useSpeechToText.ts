@@ -101,7 +101,6 @@ export const useSpeechToText = ({
     downloadProgress,
     committedTranscription,
     nonCommittedTranscription,
-    delete: wrapper(SpeechToTextModule.prototype.delete),
     encode: stateWrapper(SpeechToTextModule.prototype.encode),
     decode: stateWrapper(SpeechToTextModule.prototype.decode),
     transcribe: stateWrapper(SpeechToTextModule.prototype.transcribe),
