@@ -14,7 +14,7 @@ Decoder::Decoder(const std::string &modelSource, int32_t modelImageSize,
     : BaseModel(modelSource, callInvoker), modelImageSize(modelImageSize),
       numChannels(numChannels) {}
 
-std::vector<float> Decoder::generate(std::vector<float> &input) {
+std::vector<float> Decoder::generate(std::vector<float> &input) const {
   constexpr int32_t latentDownsample = 8;
   const int32_t latentsImageSize =
       std::floor(modelImageSize / latentDownsample);
