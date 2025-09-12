@@ -5,6 +5,7 @@
 #include <span>
 
 #include <rnexecutorch/Log.h>
+#include <rnexecutorch/models/text_to_image/Constants.h>
 
 namespace rnexecutorch::models::text_to_image {
 
@@ -20,8 +21,8 @@ TextToImage::TextToImage(const std::string &tokenizerSource,
       scheduler(std::make_unique<Scheduler>(
           schedulerBetaStart, schedulerBetaEnd, schedulerNumTrainTimesteps,
           schedulerStepsOffset, callInvoker)),
-      encoder(std::make_unique<embeddings::TextEmbeddings>(
-          encoderSource, tokenizerSource, callInvoker)),
+      encoder(std::make_unique<Encoder>(tokenizerSource, encoderSource,
+                                        callInvoker)),
       unet(std::make_unique<UNet>(unetSource, imageSize, numChannels,
                                   callInvoker)),
       decoder(std::make_unique<Decoder>(decoderSource, imageSize, numChannels,
@@ -30,21 +31,7 @@ TextToImage::TextToImage(const std::string &tokenizerSource,
 std::shared_ptr<OwningArrayBuffer>
 TextToImage::generate(std::string input, size_t numInferenceSteps,
                       std::shared_ptr<jsi::Function> callback) {
-  std::shared_ptr<OwningArrayBuffer> embeddingsText = encoder->generate(input);
-  std::shared_ptr<OwningArrayBuffer> embeddingsUncond =
-      encoder->generate(std::string(constants::kBosToken));
-
-  size_t embeddingsSize = embeddingsText->size() / sizeof(float);
-  auto *embeddingsTextPtr = reinterpret_cast<float *>(embeddingsText->data());
-  auto *embeddingsUncondPtr =
-      reinterpret_cast<float *>(embeddingsUncond->data());
-
-  std::vector<float> embeddingsConcat;
-  embeddingsConcat.reserve(embeddingsSize * 2);
-  embeddingsConcat.insert(embeddingsConcat.end(), embeddingsUncondPtr,
-                          embeddingsUncondPtr + embeddingsSize);
-  embeddingsConcat.insert(embeddingsConcat.end(), embeddingsTextPtr,
-                          embeddingsTextPtr + embeddingsSize);
+  std::vector<float> embeddings = encoder->generate(input);
 
   constexpr int32_t latentDownsample = 8;
   int32_t latentsSize = std::floor(modelImageSize / latentDownsample);
@@ -73,7 +60,7 @@ TextToImage::generate(std::string input, size_t numInferenceSteps,
     log(LOG_LEVEL::Debug, "Step:", t, "/", numInferenceSteps);
 
     std::vector<float> noisePred =
-        unet->generate(latents, timesteps[t], embeddingsConcat);
+        unet->generate(latents, timesteps[t], embeddings);
 
     size_t noiseSize = noisePred.size() / 2;
     std::span<const float> noisePredSpan{noisePred};
@@ -127,9 +114,9 @@ size_t TextToImage::getMemoryLowerBound() const noexcept {
 }
 
 void TextToImage::unload() noexcept {
-  encoder.reset(nullptr);
-  unet.reset(nullptr);
-  decoder.reset(nullptr);
+  encoder->unload();
+  unet->unload();
+  decoder->unload();
 }
 
 } // namespace rnexecutorch::models::text_to_image
