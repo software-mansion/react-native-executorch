@@ -20,6 +20,11 @@ SpeechToText::SpeechToText(const std::string &encoderSource,
       processor(std::make_unique<OnlineASRProcessor>(this->asr.get())),
       isStreaming(false), readyToProcess(false) {}
 
+void SpeechToText::unload() noexcept {
+  this->encoder->unload();
+  this->decoder->unload();
+}
+
 std::shared_ptr<OwningArrayBuffer>
 SpeechToText::encode(std::span<float> waveform) const {
   std::vector<float> encoderOutput = this->asr->encode(waveform);
@@ -57,8 +62,7 @@ std::string SpeechToText::transcribe(std::span<float> waveform,
 
 size_t SpeechToText::getMemoryLowerBound() const noexcept {
   return this->encoder->getMemoryLowerBound() +
-         this->decoder->getMemoryLowerBound() +
-         this->tokenizer->getMemoryLowerBound();
+         this->decoder->getMemoryLowerBound();
 }
 
 std::shared_ptr<OwningArrayBuffer>

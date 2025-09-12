@@ -18,6 +18,7 @@
 #include <rnexecutorch/models/BaseModel.h>
 #include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/ocr/OCR.h>
+#include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
 
 namespace rnexecutorch {
@@ -62,28 +63,26 @@ public:
                                        "decode"));
     }
 
-    if constexpr (meta::HasTranscribe<Model>) {
+    if constexpr (meta::SameAs<Model, models::speech_to_text::SpeechToText>) {
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       synchronousHostFunction<&Model::unload>,
+                                       "unload"));
+
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::transcribe>,
                                        "transcribe"));
-    }
 
-    if constexpr (meta::HasStream<Model>) {
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::stream>,
                                        "stream"));
-    }
 
-    if constexpr (meta::HasStreamInsert<Model>) {
       addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>, promiseHostFunction<&Model::streamInsert>,
+          ModelHostObject<Model>, synchronousHostFunction<&Model::streamInsert>,
           "streamInsert"));
-    }
 
-    if constexpr (meta::HasStreamStop<Model>) {
-      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       promiseHostFunction<&Model::streamStop>,
-                                       "streamStop"));
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>, synchronousHostFunction<&Model::streamStop>,
+          "streamStop"));
     }
 
     if constexpr (meta::SameAs<Model, TokenizerModule>) {

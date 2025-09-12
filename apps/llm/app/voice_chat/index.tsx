@@ -68,11 +68,11 @@ function VoiceChatScreen() {
       setIsRecording(false);
       recorder.stop();
       messageRecorded.current = true;
-      await speechToText.streamStop();
+      speechToText.streamStop();
     } else {
       setIsRecording(true);
-      recorder.onAudioReady(async ({ buffer }) => {
-        await speechToText.streamInsert(buffer.getChannelData(0));
+      recorder.onAudioReady(({ buffer }) => {
+        speechToText.streamInsert(buffer.getChannelData(0));
       });
       recorder.start();
       const transcription = await speechToText.stream();
