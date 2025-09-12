@@ -17,6 +17,7 @@ public:
                         const std::string &tokenizerSource,
                         std::shared_ptr<react::CallInvoker> callInvoker);
 
+  void unload() noexcept;
   std::shared_ptr<OwningArrayBuffer> encode(std::span<float> waveform) const;
   std::shared_ptr<OwningArrayBuffer>
   decode(std::span<int32_t> tokens, std::span<float> encoderOutput) const;

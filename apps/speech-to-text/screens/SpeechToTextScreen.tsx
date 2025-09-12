@@ -77,8 +77,8 @@ export const SpeechToTextScreen = () => {
   const handleStartTranscribeFromMicrophone = async () => {
     setLiveTranscribing(true);
     setTranscription('');
-    recorder.onAudioReady(async ({ buffer }) => {
-      await model.streamInsert(buffer.getChannelData(0));
+    recorder.onAudioReady(({ buffer }) => {
+      model.streamInsert(buffer.getChannelData(0));
     });
     recorder.start();
 
@@ -89,9 +89,9 @@ export const SpeechToTextScreen = () => {
     }
   };
 
-  const handleStopTranscribeFromMicrophone = async () => {
+  const handleStopTranscribeFromMicrophone = () => {
     recorder.stop();
-    await model.streamStop();
+    model.streamStop();
     console.log('Live transcription stopped');
     setLiveTranscribing(false);
   };
