@@ -1,10 +1,13 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
 import { BaseModule } from '../BaseModule';
+import { Buffer } from 'buffer';
+import { PNG } from 'pngjs/browser';
 
 export class TextToImageModule extends BaseModule {
   private downloadProgress = 0;
   private readonly numComponents = 4;
+  private imageSize = 512;
   private inferenceCallback: (stepIdx: number) => void;
 
   constructor(inferenceCallback?: (stepIdx: number) => void) {
@@ -25,6 +28,7 @@ export class TextToImageModule extends BaseModule {
     },
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ): Promise<void> {
+    this.imageSize = model.imageSize;
     const onTotalDownloadProgressCallback = (progress: number) => {
       this.downloadProgress += progress;
       onDownloadProgressCallback(
@@ -96,13 +100,18 @@ export class TextToImageModule extends BaseModule {
     );
   }
 
-  async forward(input: string, numSteps: number = 5): Promise<Float32Array> {
+  async forward(input: string, numSteps: number = 5): Promise<string> {
     const output = await this.nativeModule.generate(
       input,
       numSteps,
       this.inferenceCallback
     );
-    return new Float32Array(output);
+    const outputArray = new Uint8Array(output);
+    const png = new PNG({ width: this.imageSize, height: this.imageSize });
+    png.data = Buffer.from(outputArray);
+    const pngBuffer = PNG.sync.write(png, { colorType: 6 });
+    const pngString = pngBuffer.toString('base64');
+    return pngString;
   }
 
   public interrupt(): void {
