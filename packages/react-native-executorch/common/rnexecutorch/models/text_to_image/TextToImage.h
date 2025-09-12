@@ -32,7 +32,7 @@ public:
   std::shared_ptr<OwningArrayBuffer>
   generate(std::string input, size_t numInferenceSteps,
            std::shared_ptr<jsi::Function> callback);
-  void interrupt();
+  void interrupt() noexcept;
   size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
 
