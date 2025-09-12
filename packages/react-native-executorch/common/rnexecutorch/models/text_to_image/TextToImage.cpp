@@ -97,7 +97,7 @@ TextToImage::postprocess(const std::vector<float> &output) const {
     outputRgb[i * 4 + 3] = 255;
   }
 
-  // Replace with a function when #584 implemented
+  // TODO: Replace with a function when #584 implemented
   auto createBuffer = [](const auto &data, size_t size) {
     auto buffer = std::make_shared<OwningArrayBuffer>(size);
     std::memcpy(buffer->data(), data, size);
@@ -106,7 +106,7 @@ TextToImage::postprocess(const std::vector<float> &output) const {
   return createBuffer(outputRgb.data(), outputRgb.size() * sizeof(float));
 }
 
-void TextToImage::interrupt() { interrupted = true; }
+void TextToImage::interrupt() noexcept { interrupted = true; }
 
 size_t TextToImage::getMemoryLowerBound() const noexcept {
   return encoder->getMemoryLowerBound() + unet->getMemoryLowerBound() +

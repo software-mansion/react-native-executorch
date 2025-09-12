@@ -20,6 +20,7 @@ std::vector<float> Encoder::generate(std::string input) {
   std::shared_ptr<OwningArrayBuffer> embeddingsUncond =
       encoder->generate(std::string(constants::kBosToken));
 
+  assert(embeddingsText->size() == embeddingsUncond->size());
   size_t embeddingsSize = embeddingsText->size() / sizeof(float);
   auto *embeddingsTextPtr = reinterpret_cast<float *>(embeddingsText->data());
   auto *embeddingsUncondPtr =
