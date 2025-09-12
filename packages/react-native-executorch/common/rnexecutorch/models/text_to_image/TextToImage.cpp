@@ -47,9 +47,9 @@ TextToImage::generate(std::string input, size_t numInferenceSteps,
                           embeddingsTextPtr + embeddingsSize);
 
   constexpr int32_t latentDownsample = 8;
-  int32_t latentsWidth = std::floor(modelImageSize / latentDownsample);
-  int32_t latentsSize = numChannels * latentsWidth * latentsWidth;
-  std::vector<float> latents(latentsSize);
+  int32_t latentsSize = std::floor(modelImageSize / latentDownsample);
+  int32_t latentsImageSize = numChannels * latentsSize * latentsSize;
+  std::vector<float> latents(latentsImageSize);
   std::random_device rd;
   std::mt19937 gen(rd());
   std::normal_distribution<float> dist(0.0, 1.0);
@@ -71,13 +71,9 @@ TextToImage::generate(std::string input, size_t numInferenceSteps,
       return postprocess({});
     }
     log(LOG_LEVEL::Debug, "Step:", t, "/", numInferenceSteps);
-    std::vector<float> latentsConcat;
-    latentsConcat.reserve(2 * latentsSize);
-    latentsConcat.insert(latentsConcat.end(), latents.begin(), latents.end());
-    latentsConcat.insert(latentsConcat.end(), latents.begin(), latents.end());
 
     std::vector<float> noisePred =
-        unet->generate(latentsConcat, timesteps[t], embeddingsConcat);
+        unet->generate(latents, timesteps[t], embeddingsConcat);
 
     size_t noiseSize = noisePred.size() / 2;
     std::span<const float> noisePredSpan{noisePred};
