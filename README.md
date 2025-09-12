@@ -122,7 +122,7 @@ yarn expo run:< ios | android >
 
 ## :robot: Ready-made models
 
-Our library has a number of ready-to-use AI models; a complete list is available in the documentation. If you're interested in running your own AI model, you need to first export it to the `.pte` format. Instructions on how to do this are available in the [Python API](https://docs.pytorch.org/executorch/stable/using-executorch-export.html) or [optimum-executorch README](https://github.com/huggingface/optimum-executorch?tab=readme-ov-file#option-2-export-and-load-separately).
+Our library has a number of ready-to-use AI models; a complete list is available in the documentation. If you're interested in running your own AI model, you need to first export it to the `.pte` format. Instructions on how to do this are available in the [Python API](https://docs.pytorch.org/executorch/stable/using-executorch-export.html) and [optimum-executorch README](https://github.com/huggingface/optimum-executorch?tab=readme-ov-file#option-2-export-and-load-separately).
 
 ## :balance_scale: License
 
