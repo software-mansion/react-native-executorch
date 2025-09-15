@@ -5,8 +5,6 @@ import { Buffer } from 'buffer';
 import { PNG } from 'pngjs/browser';
 
 export class TextToImageModule extends BaseModule {
-  private downloadProgress = 0;
-  private readonly numComponents = 4;
   private imageSize = 512;
   private inferenceCallback: (stepIdx: number) => void;
 
@@ -29,51 +27,21 @@ export class TextToImageModule extends BaseModule {
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ): Promise<void> {
     this.imageSize = model.imageSize;
-    const onTotalDownloadProgressCallback = (progress: number) => {
-      this.downloadProgress += progress;
-      onDownloadProgressCallback(
-        this.downloadProgress / (100 * this.numComponents)
-      );
-    };
 
-    const tokenizerPromise = ResourceFetcher.fetch(
-      undefined,
-      model.tokenizerSource
-    );
-    const schedulerPromise = ResourceFetcher.fetch(
-      onTotalDownloadProgressCallback,
-      model.schedulerSource
-    );
-    const encoderPromise = ResourceFetcher.fetch(
-      onTotalDownloadProgressCallback,
-      model.encoderSource
-    );
-    const unetPromise = ResourceFetcher.fetch(
-      onTotalDownloadProgressCallback,
-      model.unetSource
-    );
-    const decoderPromise = ResourceFetcher.fetch(
-      onTotalDownloadProgressCallback,
+    const results = await ResourceFetcher.fetch(
+      onDownloadProgressCallback,
+      model.tokenizerSource,
+      model.schedulerSource,
+      model.encoderSource,
+      model.unetSource,
       model.decoderSource
     );
-    const [
-      tokenizerResult,
-      schedulerResult,
-      encoderResult,
-      unetResult,
-      decoderResult,
-    ] = await Promise.all([
-      tokenizerPromise,
-      schedulerPromise,
-      encoderPromise,
-      unetPromise,
-      decoderPromise,
-    ]);
-    const tokenizerPath = tokenizerResult?.[0];
-    const schedulerPath = schedulerResult?.[0];
-    const encoderPath = encoderResult?.[0];
-    const unetPath = unetResult?.[0];
-    const decoderPath = decoderResult?.[0];
+    if (!results) {
+      throw new Error('Failed to fetch one or more resources.');
+    }
+    const [tokenizerPath, schedulerPath, encoderPath, unetPath, decoderPath] =
+      results;
+
     if (
       !tokenizerPath ||
       !schedulerPath ||
