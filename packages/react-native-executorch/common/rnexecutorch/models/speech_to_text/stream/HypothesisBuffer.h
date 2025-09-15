@@ -7,21 +7,19 @@
 
 namespace rnexecutorch::models::speech_to_text::stream {
 
-using namespace types;
-
 class HypothesisBuffer {
 public:
-  void insert(std::span<const Word> newWords, float offset);
-  std::deque<Word> flush();
+  void insert(std::span<const types::Word> newWords, float offset);
+  std::deque<types::Word> flush();
   void popCommitted(float time);
-  std::deque<Word> complete() const;
+  std::deque<types::Word> complete() const;
 
 private:
   float lastCommittedTime = 0.0f;
 
-  std::deque<Word> committedInBuffer;
-  std::deque<Word> buffer;
-  std::deque<Word> fresh;
+  std::deque<types::Word> committedInBuffer;
+  std::deque<types::Word> buffer;
+  std::deque<types::Word> fresh;
 };
 
 } // namespace rnexecutorch::models::speech_to_text::stream

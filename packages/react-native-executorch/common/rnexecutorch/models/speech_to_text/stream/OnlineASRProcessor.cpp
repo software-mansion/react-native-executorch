@@ -4,6 +4,9 @@
 
 namespace rnexecutorch::models::speech_to_text::stream {
 
+using namespace asr;
+using namespace types;
+
 OnlineASRProcessor::OnlineASRProcessor(const ASR *asr) : asr(asr) {}
 
 void OnlineASRProcessor::insertAudioChunk(std::span<const float> audio) {
