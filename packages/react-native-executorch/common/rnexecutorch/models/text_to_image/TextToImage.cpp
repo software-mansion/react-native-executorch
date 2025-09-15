@@ -10,12 +10,12 @@
 namespace rnexecutorch::models::text_to_image {
 
 TextToImage::TextToImage(const std::string &tokenizerSource,
-                         float schedulerBetaStart, float schedulerBetaEnd,
-                         int32_t schedulerNumTrainTimesteps,
-                         int32_t schedulerStepsOffset,
                          const std::string &encoderSource,
                          const std::string &unetSource,
-                         const std::string &decoderSource, int32_t imageSize,
+                         const std::string &decoderSource,
+                         float schedulerBetaStart, float schedulerBetaEnd,
+                         int32_t schedulerNumTrainTimesteps,
+                         int32_t schedulerStepsOffset, int32_t imageSize,
                          std::shared_ptr<react::CallInvoker> callInvoker)
     : modelImageSize(imageSize), callInvoker(callInvoker),
       scheduler(std::make_unique<Scheduler>(
