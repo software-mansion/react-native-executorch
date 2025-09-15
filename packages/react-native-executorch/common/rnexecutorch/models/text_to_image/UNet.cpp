@@ -25,10 +25,8 @@ std::vector<float> UNet::generate(std::vector<float> &latents, int32_t timestep,
   std::vector<int32_t> timestepShape = {1};
   std::vector<int32_t> embeddingsShape = {2, 77, 768};
 
-  std::vector<int64_t> timestepData = {static_cast<int64_t>(timestep)};
   auto timestepTensor =
-      make_tensor_ptr(timestepShape, timestepData.data(), ScalarType::Long);
-
+      make_tensor_ptr<int64_t>({static_cast<int64_t>(timestep)});
   auto latentsTensor =
       make_tensor_ptr(latentsShape, latentsConcat.data(), ScalarType::Float);
   auto embeddingsTensor =

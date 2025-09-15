@@ -8,7 +8,6 @@
 #include <jsi/jsi.h>
 
 #include <rnexecutorch/jsi/OwningArrayBuffer.h>
-#include <rnexecutorch/metaprogramming/ConstructorHelpers.h>
 
 #include <rnexecutorch/models/embeddings/text/TextEmbeddings.h>
 
@@ -30,7 +29,4 @@ private:
   std::unique_ptr<embeddings::TextEmbeddings> encoder;
 };
 } // namespace models::text_to_image
-
-REGISTER_CONSTRUCTOR(models::text_to_image::Encoder, std::string, std::string,
-                     std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch
