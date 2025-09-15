@@ -1,10 +1,14 @@
 // GlobalThreadPool.h
 #pragma once
 
-#include "HighPerformanceThreadPool.h"
+#include <executorch/extension/threadpool/cpuinfo_utils.h>
 #include <memory>
 #include <mutex>
 #include <rnexecutorch/Log.h>
+#include <rnexecutorch/threads/HighPerformanceThreadPool.h>
+
+namespace rnexecutorch {
+namespace threads {
 
 class GlobalThreadPool {
 private:
@@ -14,17 +18,16 @@ private:
   GlobalThreadPool() = delete;
 
 public:
-  // Initialize the global thread pool (call once at app startup)
-  static void initialize(size_t numThreads = 0, ThreadConfig config = {}) {
+  static void initialize(uint32_t numThreads = 0, ThreadConfig config = {}) {
     std::call_once(initFlag, [&numThreads, config]() {
       // Auto-detect optimal thread count if not specified
       if (numThreads == 0) {
-        numThreads = std::thread::hardware_concurrency();
-        numThreads = std::min(numThreads, size_t(4)); // Cap at 4 for mobile
+        numThreads =
+            ::executorch::extension::cpuinfo::get_num_performant_cores();
       }
 
-      log(rnexecutorch::LOG_LEVEL::Info,
-          "Initializing global thread pool with ", numThreads, " threads");
+      log(rnexecutorch::LOG_LEVEL::Info, "Initializing global thread pool with",
+          numThreads, "threads");
       instance =
           std::make_unique<HighPerformanceThreadPool>(numThreads, config);
     });
@@ -33,7 +36,6 @@ public:
   // Get the global thread pool instance
   static HighPerformanceThreadPool &get() {
     if (!instance) {
-      // Auto-initialize with defaults if not already initialized
       initialize();
     }
     return *instance;
@@ -71,12 +73,5 @@ public:
   }
 };
 
-// Static member definitions
-// std::unique_ptr<HighPerformanceThreadPool> GlobalThreadPool::instance;
-// std::once_flag GlobalThreadPool::initFlag;
-
-// Convenience macros for even simpler usage
-#define ASYNC_TASK(...) GlobalThreadPool::async(__VA_ARGS__)
-#define ASYNC_HIGH(...) GlobalThreadPool::async_high_priority(__VA_ARGS__)
-#define ASYNC_DETACH(...) GlobalThreadPool::detach(__VA_ARGS__)
-#define ASYNC_WAIT(...) GlobalThreadPool::execute(__VA_ARGS__)
+} // namespace threads
+} // namespace rnexecutorch

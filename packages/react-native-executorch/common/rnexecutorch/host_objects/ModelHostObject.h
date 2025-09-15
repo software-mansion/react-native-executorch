@@ -7,11 +7,7 @@
 #include <tuple>
 #include <type_traits>
 
-#include <cerrno>
 #include <memory.h>
-#include <pthread.h>
-#include <rnexecutorch/GlobalThreadPool.h>
-#include <rnexecutorch/Log.h>
 #include <rnexecutorch/TokenizerModule.h>
 #include <rnexecutorch/host_objects/JSTensorViewOut.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
@@ -23,11 +19,7 @@
 #include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/ocr/OCR.h>
 #include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
-
-#include <sched.h>
-#include <sys/syscall.h>
-#include <sys/types.h> // For pid_t
-#include <unistd.h>
+#include <rnexecutorch/threads/GlobalThreadPool.h>
 
 namespace rnexecutorch {
 
@@ -204,7 +196,7 @@ public:
             // We need to dispatch a thread if we want the function to be
             // asynchronous. In this thread all accesses to jsi::Runtime need to
             // be done via the callInvoker.
-            GlobalThreadPool::detach(
+            threads::GlobalThreadPool::detach(
                 [this, promise, argsConverted = std::move(argsConverted)]() {
                   try {
                     if constexpr (std::is_void_v<decltype(std::apply(
@@ -258,7 +250,6 @@ public:
                     return;
                   }
                 });
-            // }).detach();
           } catch (...) {
             promise->reject("Couldn't parse JS arguments in a native function");
           }

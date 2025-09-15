@@ -1,10 +1,7 @@
 #include "LLM.h"
 
 #include <executorch/extension/tensor/tensor.h>
-#include <executorch/extension/threadpool/cpuinfo_utils.h>
-#include <executorch/extension/threadpool/threadpool.h>
 #include <filesystem>
-#include <rnexecutorch/Log.h>
 
 namespace rnexecutorch::models::llm {
 using namespace facebook;

@@ -7,13 +7,12 @@
  */
 
 #pragma once
-#if defined(__ANDROID__) && defined(__aarch64__)
 
 #include <functional>
 #include <memory>
 #include <mutex>
 
-#include <pthreadpool.h>
+#include <pthreadpool/pthreadpool.h>
 
 namespace executorch::extension::threadpool {
 
@@ -91,4 +90,3 @@ using ::executorch::extension::threadpool::get_pthreadpool; // DEPRECATED
 using ::executorch::extension::threadpool::get_threadpool;  // DEPRECATED
 using ::executorch::extension::threadpool::ThreadPool;      // DEPRECATED
 } // namespace torch::executorch::threadpool
-#endif
