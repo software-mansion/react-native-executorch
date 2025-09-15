@@ -22,12 +22,12 @@ using namespace facebook;
 class TextToImage final {
 public:
   explicit TextToImage(const std::string &tokenizerSource,
-                       float schedulerBetaStart, float schedulerBetaEnd,
-                       int32_t schedulerNumTrainTimesteps,
-                       int32_t schedulerStepsOffset,
                        const std::string &encoderSource,
                        const std::string &unetSource,
-                       const std::string &decoderSource, int32_t imageSize,
+                       const std::string &decoderSource,
+                       float schedulerBetaStart, float schedulerBetaEnd,
+                       int32_t schedulerNumTrainTimesteps,
+                       int32_t schedulerStepsOffset, int32_t imageSize,
                        std::shared_ptr<react::CallInvoker> callInvoker);
   std::shared_ptr<OwningArrayBuffer>
   generate(std::string input, size_t numInferenceSteps,
@@ -55,7 +55,8 @@ private:
 };
 } // namespace models::text_to_image
 
-REGISTER_CONSTRUCTOR(models::text_to_image::TextToImage, std::string, float,
-                     float, int32_t, int32_t, std::string, std::string,
-                     std::string, int32_t, std::shared_ptr<react::CallInvoker>);
+REGISTER_CONSTRUCTOR(models::text_to_image::TextToImage, std::string,
+                     std::string, std::string, std::string, float, float,
+                     int32_t, int32_t, int32_t,
+                     std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

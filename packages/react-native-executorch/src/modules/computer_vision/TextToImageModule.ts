@@ -57,13 +57,13 @@ export class TextToImageModule extends BaseModule {
 
     this.nativeModule = global.loadTextToImage(
       tokenizerPath,
+      encoderPath,
+      unetPath,
+      decoderPath,
       schedulerConfig.beta_start,
       schedulerConfig.beta_end,
       schedulerConfig.num_train_timesteps,
       schedulerConfig.steps_offset,
-      encoderPath,
-      unetPath,
-      decoderPath,
       model.imageSize
     );
   }
