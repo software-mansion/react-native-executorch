@@ -22,7 +22,6 @@ std::vector<float> UNet::generate(std::vector<float> &latents, int32_t timestep,
 
   std::vector<int32_t> latentsShape = {2, numChannels, latentsSize,
                                        latentsSize};
-  std::vector<int32_t> timestepShape = {1};
   std::vector<int32_t> embeddingsShape = {2, 77, 768};
 
   auto timestepTensor =
