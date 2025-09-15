@@ -6,10 +6,6 @@ namespace rnexecutorch {
 
 namespace models::speech_to_text {
 
-using namespace asr;
-using namespace types;
-using namespace stream;
-
 class SpeechToText {
 public:
   explicit SpeechToText(const std::string &encoderSource,
@@ -35,14 +31,14 @@ private:
   std::unique_ptr<BaseModel> encoder;
   std::unique_ptr<BaseModel> decoder;
   std::unique_ptr<TokenizerModule> tokenizer;
-  std::unique_ptr<ASR> asr;
+  std::unique_ptr<asr::ASR> asr;
 
   std::shared_ptr<OwningArrayBuffer>
   makeOwningBuffer(std::span<const float> vectorView) const;
 
   // Stream
   std::shared_ptr<react::CallInvoker> callInvoker;
-  std::unique_ptr<OnlineASRProcessor> processor;
+  std::unique_ptr<stream::OnlineASRProcessor> processor;
   bool isStreaming;
   bool readyToProcess;
 

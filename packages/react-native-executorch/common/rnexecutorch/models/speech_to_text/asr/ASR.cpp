@@ -1,4 +1,5 @@
 #include <random>
+#include <sstream>
 
 #include "ASR.h"
 #include "executorch/extension/tensor/tensor_ptr.h"
@@ -7,6 +8,8 @@
 #include "rnexecutorch/data_processing/gzip.h"
 
 namespace rnexecutorch::models::speech_to_text::asr {
+
+using namespace types;
 
 ASR::ASR(const models::BaseModel *encoder, const models::BaseModel *decoder,
          const TokenizerModule *tokenizer)
