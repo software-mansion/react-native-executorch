@@ -5,8 +5,6 @@
 
 #include <ReactCommon/CallInvoker.h>
 
-#include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
-
 namespace rnexecutorch {
 namespace models::text_to_image {
 
@@ -43,7 +41,4 @@ private:
                                    int32_t prevTimestep) const;
 };
 } // namespace models::text_to_image
-
-REGISTER_CONSTRUCTOR(models::text_to_image::Scheduler, float, float, int32_t,
-                     int32_t, std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

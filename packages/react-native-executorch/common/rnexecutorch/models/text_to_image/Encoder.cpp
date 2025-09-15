@@ -39,6 +39,6 @@ size_t Encoder::getMemoryLowerBound() const noexcept {
   return encoder->getMemoryLowerBound();
 }
 
-void Encoder::unload() noexcept { encoder.reset(nullptr); }
+void Encoder::unload() noexcept { encoder->unload(); }
 
 } // namespace rnexecutorch::models::text_to_image

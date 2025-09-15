@@ -89,12 +89,12 @@ std::shared_ptr<OwningArrayBuffer>
 TextToImage::postprocess(const std::vector<float> &output) const {
   // Convert RGB to RGBA
   int32_t imagePixelCount = modelImageSize * modelImageSize;
-  std::vector<uint8_t> outputRgb(imagePixelCount * 4);
+  std::vector<uint8_t> outputRgba(imagePixelCount * 4);
   for (int32_t i = 0; i < imagePixelCount; i++) {
-    outputRgb[i * 4 + 0] = output[i * 3 + 0];
-    outputRgb[i * 4 + 1] = output[i * 3 + 1];
-    outputRgb[i * 4 + 2] = output[i * 3 + 2];
-    outputRgb[i * 4 + 3] = 255;
+    outputRgba[i * 4 + 0] = output[i * 3 + 0];
+    outputRgba[i * 4 + 1] = output[i * 3 + 1];
+    outputRgba[i * 4 + 2] = output[i * 3 + 2];
+    outputRgba[i * 4 + 3] = 255;
   }
 
   // TODO: Replace with a function when #584 implemented
@@ -103,7 +103,7 @@ TextToImage::postprocess(const std::vector<float> &output) const {
     std::memcpy(buffer->data(), data, size);
     return buffer;
   };
-  return createBuffer(outputRgb.data(), outputRgb.size() * sizeof(float));
+  return createBuffer(outputRgba.data(), outputRgba.size() * sizeof(float));
 }
 
 void TextToImage::interrupt() noexcept { interrupted = true; }
