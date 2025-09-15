@@ -32,6 +32,8 @@ set(RN_VERSION_LINK_LIBRARIES
   ReactAndroid::reactnative
 )
 
+# Dependencies:
+
 # ------- Executorch -------
 
 add_library(executorch SHARED IMPORTED)

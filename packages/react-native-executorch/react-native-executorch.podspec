@@ -24,8 +24,8 @@ Pod::Spec.new do |s|
     'MetalPerformanceShadersGraph'
   ]
 
-  pthreadpool_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/executorch/backends/xnnpack/third-party/pthreadpool', __dir__)
-  cpuinfo_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/executorch/backends/xnnpack/third-party/cpuinfo', __dir__)
+  pthreadpool_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/ios/libs/pthreadpool', __dir__)
+  cpuinfo_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/ios/libs/cpuinfo', __dir__)
 
   s.user_target_xcconfig = {
     "HEADER_SEARCH_PATHS" => "$(PODS_TARGET_SRCROOT)/third-party/include $(PODS_TARGET_SRCROOT)/../../third-party/executorch/backends/xnnpack/third-party/pthreadpool/include $(PODS_TARGET_SRCROOT)/../../third-party/executorch/backends/xnnpack/third-party/cpuinfo/include",
@@ -43,8 +43,8 @@ Pod::Spec.new do |s|
       "\"#{tokenizers_binaries_path}/physical-arm64-release/libtokenizers_cpp.a\"",
       "\"#{tokenizers_binaries_path}/physical-arm64-release/libsentencepiece.a\"",
       "\"#{tokenizers_binaries_path}/physical-arm64-release/libtokenizers_c.a\"",
-      "\"#{pthreadpool_binaries_path}/build-ios-arm64/libpthreadpool.a\"",
-      "\"#{cpuinfo_binaries_path}/build-ios-arm64/libcpuinfo.a\""
+      "\"#{pthreadpool_binaries_path}/physical-arm64-release/libpthreadpool.a\"",
+      "\"#{cpuinfo_binaries_path}/libcpuinfo.a\""
     ].join(' '),
 
     "OTHER_LDFLAGS[sdk=iphonesimulator*]" => [
@@ -60,8 +60,8 @@ Pod::Spec.new do |s|
       "\"#{tokenizers_binaries_path}/simulator-arm64-debug/libtokenizers_cpp.a\"",
       "\"#{tokenizers_binaries_path}/simulator-arm64-debug/libsentencepiece.a\"",
       "\"#{tokenizers_binaries_path}/simulator-arm64-debug/libtokenizers_c.a\"",
-      "\"#{pthreadpool_binaries_path}/build-ios-arm64/libpthreadpool.a\"",
-      "\"#{cpuinfo_binaries_path}/build-ios-arm64/libcpuinfo.a\""
+      "\"#{pthreadpool_binaries_path}/simulator-arm64-debug/libpthreadpool.a\"",
+      "\"#{cpuinfo_binaries_path}/libcpuinfo.a\""
     ].join(' '),
 
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',

@@ -85,12 +85,6 @@ function LLMScreen() {
               </Text>
             </View>
           )}
-          {/* <View style={styles.helloMessageContainer}>
-            <Text style={styles.helloText}>Hello! 👋</Text>
-            <Text style={styles.bottomHelloText}>
-              What can I help you with?
-            </Text>
-          </View> */}
 
           <View style={styles.bottomContainer}>
             <TextInput

@@ -5,6 +5,7 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <executorch/extension/threadpool/cpuinfo_utils.h>
 #include <fstream>
 #include <functional>
 #include <future>
@@ -17,19 +18,19 @@
 #include <sched.h>
 #include <sys/resource.h>
 #include <thread>
+#include <unistd.h>
 #include <vector>
 
 #ifdef __APPLE__
-#include <mach/mach.h>
-#include <pthread.h>
 #include <sys/syscall.h>
-#include <unistd.h>
 #endif
 
 #ifdef __ANDROID__
 #include <sys/types.h>
-#include <unistd.h>
 #endif
+
+namespace rnexecutorch {
+namespace threads {
 
 enum class Priority { LOW, NORMAL, HIGH, REALTIME };
 
@@ -92,31 +93,27 @@ private:
   std::atomic<size_t> activeWorkers{0};
   std::atomic<size_t> totalTasksProcessed{0};
 
+#ifdef __ANDROID__
   // Performance cores
   std::vector<int> performanceCores;
   std::vector<int> efficiencyCores;
+#endif
 
   // Configuration
   ThreadConfig config;
 
-  // Statistics
-  struct Stats {
-    std::atomic<uint64_t> tasksCompleted{0};
-    std::atomic<uint64_t> tasksFailed{0};
-    std::atomic<uint64_t> totalWaitTimeMs{0};
-    std::atomic<uint64_t> totalExecutionTimeMs{0};
-  } stats;
-
 private:
   void detectCPUTopology() {
+#ifdef __ANDROID__
     struct CoreInfo {
       int id;
       long maxFreq;
     };
 
     std::vector<CoreInfo> cores;
+    const auto numOfCores = std::thread::hardware_concurrency();
 
-    for (int i = 0; i < 32; i++) { // Check up to 32 cores
+    for (int i = 0; i < numOfCores; i++) {
       std::string path = "/sys/devices/system/cpu/cpu" + std::to_string(i) +
                          "/cpufreq/cpuinfo_max_freq";
       std::ifstream file(path);
@@ -130,7 +127,7 @@ private:
     }
 
     if (cores.empty()) {
-      log(rnexecutorch::LOG_LEVEL::Error, "Could not detect CPU topology");
+      log(LOG_LEVEL::Debug, "Could not detect CPU topology");
       return;
     }
 
@@ -141,102 +138,72 @@ private:
               });
 
     // Classify cores
-    long highestFreq = cores[0].maxFreq;
-    long lowestFreq = cores.back().maxFreq;
-    long threshold = lowestFreq + (highestFreq - lowestFreq) * 0.6;
+    const auto numOfPerfCores =
+        ::executorch::extension::cpuinfo::get_num_performant_cores();
 
-    for (const auto &core : cores) {
-      if (core.maxFreq >= threshold) {
+    for (int i = 0; i < cores.size(); ++i) {
+      if (i < numOfPerfCores) {
         performanceCores.push_back(core.id);
-        log(rnexecutorch::LOG_LEVEL::Error, "Performance core:", core.id, "(",
-            core.maxFreq / 1000000.0, " GHz)");
+        log(LOG_LEVEL::Debug, "Performance core:", core.id, "(",
+            core.maxFreq / 1000000.0, "GHz)");
       } else {
         efficiencyCores.push_back(core.id);
-        log(rnexecutorch::LOG_LEVEL::Error, "Efficiency core:", core.id, "(",
-            core.maxFreq / 1000000.0, " GHz)");
+        log(LOG_LEVEL::Debug, "Efficiency core:", core.id, "(",
+            core.maxFreq / 1000000.0, "GHz)");
       }
     }
-  }
-
-  inline uint64_t getCurrentThreadId() {
-#ifdef __ANDROID__
-    return gettid();
-#elif defined(__APPLE__)
-    // Option 1: pthread_threadid_np (recommended)
-    uint64_t tid;
-    pthread_threadid_np(pthread_self(), &tid);
-    return tid;
-
-    // Option 2: syscall (deprecated but works)
-    // return syscall(SYS_thread_selfid);
-
-    // Option 3: Mach thread ID
-    // return mach_thread_self();
-
-    // Option 4: pthread_self as number (not unique across processes)
-    // return (uint64_t)pthread_self();
-#else
-    return -1;
 #endif
   }
+
+#ifdef __ANDROID__
+  inline uint64_t getCurrentThreadId() { return gettid(); }
+#endif
 
   inline void setCurrentThreadName(const std::string &name) {
 #ifdef __ANDROID__
     pthread_setname_np(pthread_self(), name.c_str());
 #elif defined(__APPLE__)
-    pthread_setname_np(name.c_str()); // Note: no thread parameter on iOS
+    pthread_setname_np(name.c_str());
 #endif
   }
 
   void configureThread(int workerIndex) {
-    // Set thread name
     std::string threadName = config.namePrefix + std::to_string(workerIndex);
     setCurrentThreadName(threadName.c_str());
 
-    // Pin to performance cores
+#ifdef __ANDROID__
     if (config.pinToPerformanceCores && !performanceCores.empty()) {
-      setCPUAffinity(performanceCores);
+      setCPUAffinity();
     }
+#endif
 
-    // Set thread priority
     setThreadPriority();
 
-    log(rnexecutorch::LOG_LEVEL::Error, "Worker ", workerIndex,
-        " configured: ", threadName.c_str());
+    log(LOG_LEVEL::Debug, "Worker", workerIndex,
+        "configured:", threadName.c_str());
   }
 
-  void setCPUAffinity(const std::vector<int> &cores) {
+  void setCPUAffinity() {
+    // AFAIK it is not possible on iOS
 #ifdef __ANDROID__
-    if (cores.empty()) {
-      log(rnexecutorch::LOG_LEVEL::Error,
-          "No cores specified for affinity setting");
+    if (performanceCores.empty()) {
+      log(LOG_LEVEL::Error, "No cores specified for affinity setting");
       return;
-    }
-
-    // Validate core indices first
-    int maxCores = std::thread::hardware_concurrency();
-    for (int core : cores) {
-      if (core < 0 || core >= maxCores) {
-        log(rnexecutorch::LOG_LEVEL::Error, "Invalid core index ", core,
-            " (max: ", maxCores - 1, ")");
-        return;
-      }
     }
 
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
 
-    for (int core : cores) {
+    for (int core : performanceCores) {
       CPU_SET(core, &cpuset);
     }
 
     pid_t tid = getCurrentThreadId();
-    log(rnexecutorch::LOG_LEVEL::Info, "Thread id ", tid);
+    log(LOG_LEVEL::Debug, "Thread id", tid);
     if (sched_setaffinity(tid, sizeof(cpuset), &cpuset) == 0) {
-      log(rnexecutorch::LOG_LEVEL::Info, "Thread pinned to cores: ", cores);
+      log(LOG_LEVEL::Debug, "Thread pinned to cores:", performanceCores);
     } else {
-      log(rnexecutorch::LOG_LEVEL::Error,
-          "Failed to set CPU affinity (error: ", errno,
+      log(LOG_LEVEL::Debug, "Failed to set CPU affinity (error:", errno,
           "). Continuing without affinity.");
     }
 #endif
@@ -249,10 +216,34 @@ private:
     // Set nice value as fallback or additional priority boost
     const int nice_value = 0;
     if (setpriority(PRIO_PROCESS, 0, nice_value) != 0) {
-      log(rnexecutorch::LOG_LEVEL::Error, "Failed to set nice value");
+      log(LOG_LEVEL::Debug, "Failed to set nice value");
     } else {
-      log(rnexecutorch::LOG_LEVEL::Error, "Set nice value", nice_value);
+      log(LOG_LEVEL::Debug, "Set nice value", nice_value);
     }
+  }
+
+  void processTask(const WorkItem &item) {
+    activeWorkers++;
+
+    auto startTime = std::chrono::steady_clock::now();
+    auto waitTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+                        startTime - item.enqueueTime)
+                        .count();
+
+    try {
+      item.task->execute();
+    } catch (const std::exception &e) {
+      log(LOG_LEVEL::Error, "Task failed:", e.what());
+      throw;
+    }
+
+    auto endTime = std::chrono::steady_clock::now();
+    auto executionTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+                             endTime - startTime)
+                             .count();
+
+    activeWorkers--;
+    totalTasksProcessed++;
   }
 
   void workerThread(int workerIndex) {
@@ -276,36 +267,10 @@ private:
         }
       }
 
-      // Process task
-      activeWorkers++;
-
-      auto startTime = std::chrono::steady_clock::now();
-      auto waitTime = std::chrono::duration_cast<std::chrono::milliseconds>(
-                          startTime - item.enqueueTime)
-                          .count();
-      stats.totalWaitTimeMs += waitTime;
-
-      try {
-        item.task->execute();
-        stats.tasksCompleted++;
-      } catch (const std::exception &e) {
-        log(rnexecutorch::LOG_LEVEL::Error, "Task failed: ", e.what());
-        stats.tasksFailed++;
-      }
-
-      auto endTime = std::chrono::steady_clock::now();
-      auto executionTime =
-          std::chrono::duration_cast<std::chrono::milliseconds>(endTime -
-                                                                startTime)
-              .count();
-      stats.totalExecutionTimeMs += executionTime;
-
-      activeWorkers--;
-      totalTasksProcessed++;
+      processTask(item);
     }
 
-    log(rnexecutorch::LOG_LEVEL::Error, "Worker ", workerIndex,
-        " shutting down");
+    log(LOG_LEVEL::Debug, "Worker", workerIndex, "shutting down");
   }
 
 public:
@@ -313,20 +278,17 @@ public:
                                      ThreadConfig cfg = ThreadConfig())
       : config(std::move(cfg)) {
 
+#ifdef __ANDROID__
     detectCPUTopology();
+    numThreads = std::min(numThreads, performanceCores.size());
+#endif
 
-    // Limit threads for CPU-bound tasks
-    numThreads = std::min(
-        numThreads,
-        size_t(performanceCores.empty() ? 4 : performanceCores.size()));
-
-    // Create worker threads
     for (size_t i = 0; i < numThreads; i++) {
       workers.emplace_back(&HighPerformanceThreadPool::workerThread, this, i);
     }
 
-    log(rnexecutorch::LOG_LEVEL::Error, "Thread pool initialized with ",
-        numThreads, " workers ", numThreads);
+    log(LOG_LEVEL::Debug, "Thread pool initialized with", numThreads,
+        "workers.");
   }
 
   ~HighPerformanceThreadPool() { shutdown(); }
@@ -399,36 +361,7 @@ public:
       }
     }
   }
-
-  // Get pool statistics
-  struct PoolStats {
-    size_t queueSize;
-    size_t activeWorkers;
-    size_t totalWorkers;
-    uint64_t tasksCompleted;
-    uint64_t tasksFailed;
-    double avgWaitTimeMs;
-    double avgExecutionTimeMs;
-  };
-
-  PoolStats getStats() const {
-    std::lock_guard<std::mutex> lock(const_cast<std::mutex &>(queueMutex));
-
-    PoolStats poolStats;
-    poolStats.queueSize = taskQueue.size();
-    poolStats.activeWorkers = activeWorkers.load();
-    poolStats.totalWorkers = workers.size();
-    poolStats.tasksCompleted = stats.tasksCompleted.load();
-    poolStats.tasksFailed = stats.tasksFailed.load();
-    poolStats.avgWaitTimeMs =
-        poolStats.tasksCompleted > 0
-            ? (double)stats.totalWaitTimeMs / poolStats.tasksCompleted
-            : 0;
-    poolStats.avgExecutionTimeMs =
-        poolStats.tasksCompleted > 0
-            ? (double)stats.totalExecutionTimeMs / poolStats.tasksCompleted
-            : 0;
-
-    return poolStats;
-  }
 };
+
+} // namespace threads
+} // namespace rnexecutorch
