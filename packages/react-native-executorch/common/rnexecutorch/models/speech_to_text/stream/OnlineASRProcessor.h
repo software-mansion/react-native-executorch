@@ -6,31 +6,28 @@
 
 namespace rnexecutorch::models::speech_to_text::stream {
 
-using namespace asr;
-using namespace types;
-
 class OnlineASRProcessor {
 public:
-  explicit OnlineASRProcessor(const ASR *asr);
+  explicit OnlineASRProcessor(const asr::ASR *asr);
 
   void insertAudioChunk(std::span<const float> audio);
-  ProcessResult processIter(const DecodingOptions &options);
+  types::ProcessResult processIter(const types::DecodingOptions &options);
   std::string finish();
 
   std::vector<float> audioBuffer;
 
 private:
-  const ASR *asr;
+  const asr::ASR *asr;
   constexpr static int32_t kSamplingRate = 16000;
 
   HypothesisBuffer hypothesisBuffer;
   float bufferTimeOffset = 0.0f;
-  std::vector<Word> committed;
+  std::vector<types::Word> committed;
 
-  void chunkCompletedSegment(std::span<const Segment> res);
+  void chunkCompletedSegment(std::span<const types::Segment> res);
   void chunkAt(float time);
 
-  std::string toFlush(const std::deque<Word> &words) const;
+  std::string toFlush(const std::deque<types::Word> &words) const;
 };
 
 } // namespace rnexecutorch::models::speech_to_text::stream
