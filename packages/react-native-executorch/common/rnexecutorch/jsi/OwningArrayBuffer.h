@@ -24,7 +24,7 @@ public:
    * @param size Size of the buffer in bytes.
    */
   OwningArrayBuffer(const size_t size) : size_(size) {
-    data_ = new uint8_t[size];
+    data_ = new uint8_t[size_];
   }
   /**
    * @param data Pointer to the source data.
