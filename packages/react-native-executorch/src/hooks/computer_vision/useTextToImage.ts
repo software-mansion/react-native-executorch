@@ -8,13 +8,16 @@ interface TextToImageType {
   isGenerating: boolean;
   downloadProgress: number;
   error: string | null;
-  generate: (input: string, numSteps?: number) => Promise<string>;
+  generate: (
+    input: string,
+    imageSize?: number,
+    numSteps?: number
+  ) => Promise<string>;
   interrupt: () => void;
 }
 
 export const useTextToImage = ({
   model,
-  imageSize,
   inferenceCallback,
   preventLoad = false,
 }: {
@@ -25,7 +28,6 @@ export const useTextToImage = ({
     unetSource: ResourceSource;
     decoderSource: ResourceSource;
   };
-  imageSize: number;
   inferenceCallback?: (stepIdx: number) => void;
   preventLoad?: boolean;
 }): TextToImageType => {
@@ -34,9 +36,7 @@ export const useTextToImage = ({
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
-  const [module] = useState(
-    () => new TextToImageModule(imageSize, inferenceCallback)
-  );
+  const [module] = useState(() => new TextToImageModule(inferenceCallback));
 
   useEffect(() => {
     if (preventLoad) return;
@@ -56,17 +56,18 @@ export const useTextToImage = ({
     return () => {
       module.delete();
     };
-  }, [module, model, imageSize, preventLoad]);
+  }, [module, model, preventLoad]);
 
   const generate = async (
     input: string,
+    imageSize?: number,
     numSteps?: number
   ): Promise<string> => {
     if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
     if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
     try {
       setIsGenerating(true);
-      return await module.forward(input, numSteps);
+      return await module.forward(input, imageSize, numSteps);
     } finally {
       setIsGenerating(false);
     }

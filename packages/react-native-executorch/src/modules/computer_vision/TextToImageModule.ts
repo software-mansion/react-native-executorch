@@ -5,15 +5,10 @@ import { Buffer } from 'buffer';
 import { PNG } from 'pngjs/browser';
 
 export class TextToImageModule extends BaseModule {
-  private imageSize = 512;
   private inferenceCallback: (stepIdx: number) => void;
 
-  constructor(
-    imageSize: number,
-    inferenceCallback?: (stepIdx: number) => void
-  ) {
+  constructor(inferenceCallback?: (stepIdx: number) => void) {
     super();
-    this.imageSize = imageSize;
     this.inferenceCallback = (stepIdx: number) => {
       inferenceCallback?.(stepIdx);
     };
@@ -64,19 +59,23 @@ export class TextToImageModule extends BaseModule {
       schedulerConfig.beta_start,
       schedulerConfig.beta_end,
       schedulerConfig.num_train_timesteps,
-      schedulerConfig.steps_offset,
-      this.imageSize
+      schedulerConfig.steps_offset
     );
   }
 
-  async forward(input: string, numSteps: number = 5): Promise<string> {
+  async forward(
+    input: string,
+    imageSize: number = 512,
+    numSteps: number = 5
+  ): Promise<string> {
     const output = await this.nativeModule.generate(
       input,
+      imageSize,
       numSteps,
       this.inferenceCallback
     );
     const outputArray = new Uint8Array(output);
-    const png = new PNG({ width: this.imageSize, height: this.imageSize });
+    const png = new PNG({ width: imageSize, height: imageSize });
     png.data = Buffer.from(outputArray);
     const pngBuffer = PNG.sync.write(png, { colorType: 6 });
     const pngString = pngBuffer.toString('base64');

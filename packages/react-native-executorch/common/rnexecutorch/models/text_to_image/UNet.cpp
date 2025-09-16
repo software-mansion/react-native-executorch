@@ -6,22 +6,19 @@ namespace rnexecutorch::models::text_to_image {
 
 using namespace executorch::extension;
 
-UNet::UNet(const std::string &modelSource, int32_t modelImageSize,
-           int32_t numChannels, std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker), numChannels(numChannels) {
-  constexpr int32_t latentDownsample = 8;
-  latentsSize = std::floor(modelImageSize / latentDownsample);
-}
+UNet::UNet(const std::string &modelSource,
+           std::shared_ptr<react::CallInvoker> callInvoker)
+    : BaseModel(modelSource, callInvoker) {}
 
 std::vector<float> UNet::generate(std::vector<float> &latents, int32_t timestep,
                                   std::vector<float> &embeddings) const {
   std::vector<float> latentsConcat;
-  latentsConcat.reserve(2 * latentsSize);
+  latentsConcat.reserve(2 * latentImageSize);
   latentsConcat.insert(latentsConcat.end(), latents.begin(), latents.end());
   latentsConcat.insert(latentsConcat.end(), latents.begin(), latents.end());
 
-  std::vector<int32_t> latentsShape = {2, numChannels, latentsSize,
-                                       latentsSize};
+  std::vector<int32_t> latentsShape = {2, numChannels, latentImageSize,
+                                       latentImageSize};
   std::vector<int32_t> embeddingsShape = {2, 77, 768};
 
   auto timestepTensor =

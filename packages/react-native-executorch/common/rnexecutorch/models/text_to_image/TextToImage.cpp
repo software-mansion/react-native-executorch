@@ -15,26 +15,36 @@ TextToImage::TextToImage(const std::string &tokenizerSource,
                          const std::string &decoderSource,
                          float schedulerBetaStart, float schedulerBetaEnd,
                          int32_t schedulerNumTrainTimesteps,
-                         int32_t schedulerStepsOffset, int32_t imageSize,
+                         int32_t schedulerStepsOffset,
                          std::shared_ptr<react::CallInvoker> callInvoker)
-    : modelImageSize(imageSize), callInvoker(callInvoker),
+    : callInvoker(callInvoker),
       scheduler(std::make_unique<Scheduler>(
           schedulerBetaStart, schedulerBetaEnd, schedulerNumTrainTimesteps,
           schedulerStepsOffset, callInvoker)),
       encoder(std::make_unique<Encoder>(tokenizerSource, encoderSource,
                                         callInvoker)),
-      unet(std::make_unique<UNet>(unetSource, imageSize, numChannels,
-                                  callInvoker)),
-      decoder(std::make_unique<Decoder>(decoderSource, imageSize, numChannels,
-                                        callInvoker)) {}
+      unet(std::make_unique<UNet>(unetSource, callInvoker)),
+      decoder(std::make_unique<Decoder>(decoderSource, callInvoker)) {}
 
+void TextToImage::setImageSize(int32_t imageSize) {
+  if (imageSize % 32 != 0) {
+    throw std::runtime_error("Image size must be a multiple of 32.");
+  }
+  this->imageSize = imageSize;
+  constexpr int32_t latentDownsample = 8;
+  latentImageSize = std::floor(imageSize / latentDownsample);
+  unet->latentImageSize = latentImageSize;
+  decoder->latentImageSize = latentImageSize;
+}
 std::shared_ptr<OwningArrayBuffer>
-TextToImage::generate(std::string input, size_t numInferenceSteps,
+TextToImage::generate(std::string input, int32_t imageSize,
+                      size_t numInferenceSteps,
                       std::shared_ptr<jsi::Function> callback) {
+  setImageSize(imageSize);
   std::vector<float> embeddings = encoder->generate(input);
 
   constexpr int32_t latentDownsample = 8;
-  int32_t latentsSize = std::floor(modelImageSize / latentDownsample);
+  int32_t latentsSize = std::floor(imageSize / latentDownsample);
   int32_t latentsImageSize = numChannels * latentsSize * latentsSize;
   std::vector<float> latents(latentsImageSize);
   std::random_device rd;
@@ -88,7 +98,7 @@ TextToImage::generate(std::string input, size_t numInferenceSteps,
 std::shared_ptr<OwningArrayBuffer>
 TextToImage::postprocess(const std::vector<float> &output) const {
   // Convert RGB to RGBA
-  int32_t imagePixelCount = modelImageSize * modelImageSize;
+  int32_t imagePixelCount = imageSize * imageSize;
   std::vector<uint8_t> outputRgba(imagePixelCount * 4);
   for (int32_t i = 0; i < imagePixelCount; i++) {
     outputRgba[i * 4 + 0] = output[i * 3 + 0];
