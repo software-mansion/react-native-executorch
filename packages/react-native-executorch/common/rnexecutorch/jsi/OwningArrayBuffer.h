@@ -1,7 +1,7 @@
 #pragma once
 
 #include <jsi/jsi.h>
-#include <span>
+#include <vector>
 
 namespace rnexecutorch {
 
