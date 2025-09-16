@@ -5,8 +5,7 @@
 
 #include <ReactCommon/CallInvoker.h>
 
-namespace rnexecutorch {
-namespace models::text_to_image {
+namespace rnexecutorch::models::text_to_image {
 
 using namespace facebook;
 
@@ -40,5 +39,4 @@ private:
                                    int32_t timestep,
                                    int32_t prevTimestep) const;
 };
-} // namespace models::text_to_image
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::text_to_image
