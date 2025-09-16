@@ -8,8 +8,12 @@ export class TextToImageModule extends BaseModule {
   private imageSize = 512;
   private inferenceCallback: (stepIdx: number) => void;
 
-  constructor(inferenceCallback?: (stepIdx: number) => void) {
+  constructor(
+    imageSize: number,
+    inferenceCallback?: (stepIdx: number) => void
+  ) {
     super();
+    this.imageSize = imageSize;
     this.inferenceCallback = (stepIdx: number) => {
       inferenceCallback?.(stepIdx);
     };
@@ -22,12 +26,9 @@ export class TextToImageModule extends BaseModule {
       encoderSource: ResourceSource;
       unetSource: ResourceSource;
       decoderSource: ResourceSource;
-      imageSize: number;
     },
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ): Promise<void> {
-    this.imageSize = model.imageSize;
-
     const results = await ResourceFetcher.fetch(
       onDownloadProgressCallback,
       model.tokenizerSource,
@@ -64,7 +65,7 @@ export class TextToImageModule extends BaseModule {
       schedulerConfig.beta_end,
       schedulerConfig.num_train_timesteps,
       schedulerConfig.steps_offset,
-      model.imageSize
+      this.imageSize
     );
   }
 
