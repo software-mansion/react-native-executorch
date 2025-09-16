@@ -20,12 +20,19 @@ using namespace facebook;
  */
 class OwningArrayBuffer : public jsi::MutableBuffer {
 public:
+  /**
+   * @param size Size of the buffer in bytes.
+   */
   OwningArrayBuffer(const size_t size) : size_(size) {
     data_ = new uint8_t[size];
   }
+  /**
+   * @param data Pointer to the source data.
+   * @param size Size of the data in bytes.
+   */
   OwningArrayBuffer(const auto &data, size_t size) : size_(size) {
-    data_ = new uint8_t[size];
-    std::memcpy(data_, data, size);
+    data_ = new uint8_t[size_];
+    std::memcpy(data_, data, size_);
   }
   template <typename T>
   OwningArrayBuffer(const std::vector<T> &vec) : size_(vec.size() * sizeof(T)) {

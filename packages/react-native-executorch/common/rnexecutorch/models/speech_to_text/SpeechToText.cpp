@@ -31,16 +31,14 @@ void SpeechToText::unload() noexcept {
 std::shared_ptr<OwningArrayBuffer>
 SpeechToText::encode(std::span<float> waveform) const {
   std::vector<float> encoderOutput = this->asr->encode(waveform);
-  auto buffer = std::make_shared<OwningArrayBuffer>(encoderOutput);
-  return buffer;
+  return std::make_shared<OwningArrayBuffer>(encoderOutput);
 }
 
 std::shared_ptr<OwningArrayBuffer>
 SpeechToText::decode(std::span<int32_t> tokens,
                      std::span<float> encoderOutput) const {
   std::vector<float> decoderOutput = this->asr->decode(tokens, encoderOutput);
-  auto buffer = std::make_shared<OwningArrayBuffer>(decoderOutput);
-  return buffer;
+  return std::make_shared<OwningArrayBuffer>(decoderOutput);
 }
 
 std::string SpeechToText::transcribe(std::span<float> waveform,
