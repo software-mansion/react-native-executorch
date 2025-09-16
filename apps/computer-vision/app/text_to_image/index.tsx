@@ -1,5 +1,5 @@
 import Spinner from 'react-native-loading-spinner-overlay';
-import { useTextToImage, BK_SDM_TINY_VPRED_256 } from 'react-native-executorch';
+import { useTextToImage, BK_SDM_TINY_VPRED } from 'react-native-executorch';
 import {
   View,
   StyleSheet,
@@ -24,10 +24,12 @@ type InputState =
 export default function TextToImageScreen() {
   const [inferenceStepIdx, setInferenceStepIdx] = useState<number>(0);
   const [imageTitle, setImageTitle] = useState<string | null>(null);
+  const [numSteps, setNumSteps] = useState<number>(10);
 
-  const numSteps = 15;
+  const imageSize = 360;
   const model = useTextToImage({
-    model: BK_SDM_TINY_VPRED_256,
+    model: BK_SDM_TINY_VPRED,
+    imageSize: imageSize,
     inferenceCallback: (x) => {
       setInferenceStepIdx(x);
     },
@@ -62,6 +64,9 @@ export default function TextToImageScreen() {
     }
   };
 
+  const decreaseSteps = () => setNumSteps((prev) => Math.max(5, prev - 5));
+  const increaseSteps = () => setNumSteps((prev) => Math.min(50, prev + 5));
+
   if (!model.isReady) {
     return (
       <Spinner
@@ -75,9 +80,7 @@ export default function TextToImageScreen() {
     return (
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView
-          style={{
-            ...styles.container,
-          }}
+          style={styles.container}
           collapsable={false}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 40}
@@ -109,6 +112,23 @@ export default function TextToImageScreen() {
               }}
               editable={!model.isGenerating}
             />
+            <View style={styles.stepsPanel}>
+              <Text style={styles.text}>Steps: {numSteps}</Text>
+              <View style={styles.stepsButtons}>
+                <TouchableOpacity
+                  style={[styles.button, styles.stepsButton]}
+                  onPress={decreaseSteps}
+                >
+                  <Text style={styles.buttonText}>-</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.button, styles.stepsButton]}
+                  onPress={increaseSteps}
+                >
+                  <Text style={styles.buttonText}>+</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
             <TouchableOpacity
               style={styles.button}
               onPress={runForward}
@@ -210,5 +230,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  stepsPanel: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  stepsButtons: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  stepsButton: {
+    width: 40,
+    height: 40,
   },
 });
