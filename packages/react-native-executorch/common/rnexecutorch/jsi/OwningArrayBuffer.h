@@ -1,6 +1,7 @@
 #pragma once
 
 #include <jsi/jsi.h>
+#include <span>
 
 namespace rnexecutorch {
 
@@ -21,6 +22,15 @@ class OwningArrayBuffer : public jsi::MutableBuffer {
 public:
   OwningArrayBuffer(const size_t size) : size_(size) {
     data_ = new uint8_t[size];
+  }
+  OwningArrayBuffer(const auto &data, size_t size) : size_(size) {
+    data_ = new uint8_t[size];
+    std::memcpy(data_, data, size);
+  }
+  template <typename T>
+  OwningArrayBuffer(const std::vector<T> &vec) : size_(vec.size() * sizeof(T)) {
+    data_ = new uint8_t[size_];
+    std::memcpy(data_, vec.data(), size_);
   }
   ~OwningArrayBuffer() override { delete[] data_; }
 

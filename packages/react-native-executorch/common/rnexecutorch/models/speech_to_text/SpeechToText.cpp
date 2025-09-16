@@ -31,14 +31,16 @@ void SpeechToText::unload() noexcept {
 std::shared_ptr<OwningArrayBuffer>
 SpeechToText::encode(std::span<float> waveform) const {
   std::vector<float> encoderOutput = this->asr->encode(waveform);
-  return this->makeOwningBuffer(encoderOutput);
+  auto buffer = std::make_shared<OwningArrayBuffer>(encoderOutput);
+  return buffer;
 }
 
 std::shared_ptr<OwningArrayBuffer>
 SpeechToText::decode(std::span<int32_t> tokens,
                      std::span<float> encoderOutput) const {
   std::vector<float> decoderOutput = this->asr->decode(tokens, encoderOutput);
-  return this->makeOwningBuffer(decoderOutput);
+  auto buffer = std::make_shared<OwningArrayBuffer>(decoderOutput);
+  return buffer;
 }
 
 std::string SpeechToText::transcribe(std::span<float> waveform,
@@ -66,15 +68,6 @@ std::string SpeechToText::transcribe(std::span<float> waveform,
 size_t SpeechToText::getMemoryLowerBound() const noexcept {
   return this->encoder->getMemoryLowerBound() +
          this->decoder->getMemoryLowerBound();
-}
-
-std::shared_ptr<OwningArrayBuffer>
-SpeechToText::makeOwningBuffer(std::span<const float> vectorView) const {
-  auto owningArrayBuffer =
-      std::make_shared<OwningArrayBuffer>(vectorView.size_bytes());
-  std::memcpy(owningArrayBuffer->data(), vectorView.data(),
-              vectorView.size_bytes());
-  return owningArrayBuffer;
 }
 
 void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
