@@ -1,5 +1,3 @@
-import Spinner from 'react-native-loading-spinner-overlay';
-import { useTextToImage, BK_SDM_TINY_VPRED } from 'react-native-executorch';
 import {
   View,
   StyleSheet,
@@ -13,6 +11,8 @@ import {
   Keyboard,
 } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
+import Spinner from 'react-native-loading-spinner-overlay';
+import { useTextToImage, BK_SDM_TINY_VPRED } from 'react-native-executorch';
 import { GeneratingContext } from '../../context';
 import ColorPalette from '../../colors';
 import ProgressBar from '../../components/ProgressBar';
@@ -25,14 +25,12 @@ export default function TextToImageScreen() {
   const [inferenceStepIdx, setInferenceStepIdx] = useState<number>(0);
   const [imageTitle, setImageTitle] = useState<string | null>(null);
   const [numSteps, setNumSteps] = useState<number>(10);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
-  const imageSize = 360;
+  const imageSize = 352;
   const model = useTextToImage({
     model: BK_SDM_TINY_VPRED,
-    imageSize: imageSize,
-    inferenceCallback: (x) => {
-      setInferenceStepIdx(x);
-    },
+    inferenceCallback: (x) => setInferenceStepIdx(x),
   });
 
   const { setGlobalGenerating } = useContext(GeneratingContext);
@@ -46,11 +44,28 @@ export default function TextToImageScreen() {
     setGlobalGenerating(model.isGenerating);
   }, [model.isGenerating, setGlobalGenerating]);
 
+  useEffect(() => {
+    const onKeyboardShow = Keyboard.addListener('keyboardDidShow', () =>
+      setKeyboardVisible(true)
+    );
+    const onKeyboardHide = Keyboard.addListener('keyboardDidHide', () =>
+      setKeyboardVisible(false)
+    );
+    return () => {
+      onKeyboardShow.remove();
+      onKeyboardHide.remove();
+    };
+  }, []);
+
   const runForward = async () => {
     if (inputState.kind !== 'prompt' || !inputState.value.trim()) return;
     setImageTitle(inputState.value);
     try {
-      const output = await model.generate(inputState.value, numSteps);
+      const output = await model.generate(
+        inputState.value,
+        imageSize,
+        numSteps
+      );
       if (!output.length) {
         setImageTitle(null);
         return;
@@ -88,6 +103,7 @@ export default function TextToImageScreen() {
           <View style={styles.titleContainer}>
             {imageTitle && <Text style={styles.titleText}>{imageTitle}</Text>}
           </View>
+
           <View style={styles.imageContainer}>
             {inputState.kind === 'image' ? (
               <Image
@@ -101,6 +117,7 @@ export default function TextToImageScreen() {
               />
             )}
           </View>
+
           <View style={styles.bottomContainer}>
             <TextInput
               style={styles.input}
@@ -112,23 +129,25 @@ export default function TextToImageScreen() {
               }}
               editable={!model.isGenerating}
             />
-            <View style={styles.stepsPanel}>
-              <Text style={styles.text}>Steps: {numSteps}</Text>
-              <View style={styles.stepsButtons}>
-                <TouchableOpacity
-                  style={[styles.button, styles.stepsButton]}
-                  onPress={decreaseSteps}
-                >
-                  <Text style={styles.buttonText}>-</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.button, styles.stepsButton]}
-                  onPress={increaseSteps}
-                >
-                  <Text style={styles.buttonText}>+</Text>
-                </TouchableOpacity>
+            {!keyboardVisible && (
+              <View style={styles.stepsContainer}>
+                <Text style={styles.text}>Steps: {numSteps}</Text>
+                <View style={styles.stepsButtons}>
+                  <TouchableOpacity
+                    style={[styles.button, styles.stepsButton]}
+                    onPress={decreaseSteps}
+                  >
+                    <Text style={styles.buttonText}>-</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.button, styles.stepsButton]}
+                    onPress={increaseSteps}
+                  >
+                    <Text style={styles.buttonText}>+</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
+            )}
             <TouchableOpacity
               style={styles.button}
               onPress={runForward}
@@ -173,21 +192,14 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: 20,
   },
-  titleContainer: {
-    alignItems: 'center',
-    marginTop: 20,
-  },
+  titleContainer: { alignItems: 'center', marginTop: 20 },
   bottomContainer: {
     width: '100%',
     gap: 15,
     alignItems: 'center',
     padding: 16,
   },
-  imageContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  imageContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   button: {
     width: '100%',
     height: 50,
@@ -196,10 +208,7 @@ const styles = StyleSheet.create({
     backgroundColor: ColorPalette.primary,
     borderRadius: 8,
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
+  buttonText: { color: '#fff', fontSize: 16 },
   image: {
     width: 256,
     height: 256,
@@ -213,9 +222,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     textAlign: 'center',
   },
-  text: {
-    fontSize: 16,
-  },
+  text: { fontSize: 16 },
   input: {
     width: '100%',
     height: 50,
@@ -231,7 +238,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  stepsPanel: {
+  stepsContainer: {
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between',

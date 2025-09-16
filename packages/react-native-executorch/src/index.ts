@@ -19,8 +19,7 @@ declare global {
     schedulerBetaStart: number,
     schedulerBetaEnd: number,
     schedulerNumTrainTimesteps: number,
-    schedulerStepsOffset: number,
-    imageSize: number
+    schedulerStepsOffset: number
   ) => any;
   var loadSpeechToText: (
     encoderSource: string,

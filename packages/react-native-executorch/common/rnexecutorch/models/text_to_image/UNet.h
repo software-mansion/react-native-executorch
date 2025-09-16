@@ -7,20 +7,18 @@
 #include <ReactCommon/CallInvoker.h>
 #include <rnexecutorch/models/BaseModel.h>
 
-namespace rnexecutorch {
-namespace models::text_to_image {
+namespace rnexecutorch::models::text_to_image {
 
 class UNet final : public BaseModel {
 public:
-  explicit UNet(const std::string &modelSource, int32_t modelImageSize,
-                int32_t numChannels,
+  explicit UNet(const std::string &modelSource,
                 std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<float> generate(std::vector<float> &latents, int32_t timestep,
                               std::vector<float> &embeddings) const;
 
+  int32_t latentImageSize;
+
 private:
-  int32_t numChannels;
-  int32_t latentsSize;
+  static constexpr int32_t numChannels = 4;
 };
-} // namespace models::text_to_image
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::text_to_image

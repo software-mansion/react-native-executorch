@@ -8,19 +8,13 @@ namespace rnexecutorch::models::text_to_image {
 
 using namespace executorch::extension;
 
-Decoder::Decoder(const std::string &modelSource, int32_t modelImageSize,
-                 int32_t numChannels,
+Decoder::Decoder(const std::string &modelSource,
                  std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker), modelImageSize(modelImageSize),
-      numChannels(numChannels) {}
+    : BaseModel(modelSource, callInvoker) {}
 
 std::vector<float> Decoder::generate(std::vector<float> &input) const {
-  constexpr int32_t latentDownsample = 8;
-  const int32_t latentsImageSize =
-      std::floor(modelImageSize / latentDownsample);
-  std::vector<int32_t> inputShape = {1, numChannels, latentsImageSize,
-                                     latentsImageSize};
-
+  std::vector<int32_t> inputShape = {1, numChannels, latentImageSize,
+                                     latentImageSize};
   auto inputTensor =
       make_tensor_ptr(inputShape, input.data(), ScalarType::Float);
 
