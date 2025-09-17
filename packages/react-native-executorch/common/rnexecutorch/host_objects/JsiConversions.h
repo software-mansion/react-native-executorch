@@ -17,6 +17,7 @@
 #include <rnexecutorch/models/object_detection/Constants.h>
 #include <rnexecutorch/models/object_detection/Types.h>
 #include <rnexecutorch/models/ocr/Types.h>
+#include <rnexecutorch/models/voice_activity_detection/Types.h>
 
 namespace rnexecutorch::jsi_conversion {
 
@@ -66,7 +67,8 @@ inline JSTensorViewIn getValue<JSTensorViewIn>(const jsi::Value &val,
   tensorView.sizes.reserve(numShapeDims);
 
   for (size_t i = 0; i < numShapeDims; ++i) {
-    int32_t dim = getValue<int32_t>(shapeArray.getValueAtIndex(runtime, i), runtime);
+    int32_t dim =
+        getValue<int32_t>(shapeArray.getValueAtIndex(runtime, i), runtime);
     tensorView.sizes.push_back(dim);
   }
 
@@ -173,23 +175,24 @@ inline std::vector<T> getArrayAsVector(const jsi::Value &val,
   return result;
 }
 
-
 // Template specializations for std::vector<T> types
 template <>
-inline std::vector<JSTensorViewIn> getValue<std::vector<JSTensorViewIn>>(const jsi::Value &val,
-                                                       jsi::Runtime &runtime) {
+inline std::vector<JSTensorViewIn>
+getValue<std::vector<JSTensorViewIn>>(const jsi::Value &val,
+                                      jsi::Runtime &runtime) {
   return getArrayAsVector<JSTensorViewIn>(val, runtime);
 }
 
 template <>
-inline std::vector<std::string> getValue<std::vector<std::string>>(const jsi::Value &val,
-                                                       jsi::Runtime &runtime) {
+inline std::vector<std::string>
+getValue<std::vector<std::string>>(const jsi::Value &val,
+                                   jsi::Runtime &runtime) {
   return getArrayAsVector<std::string>(val, runtime);
 }
 
 template <>
-inline std::vector<int32_t> getValue<std::vector<int32_t>>(const jsi::Value &val,
-                                                       jsi::Runtime &runtime) {
+inline std::vector<int32_t>
+getValue<std::vector<int32_t>>(const jsi::Value &val, jsi::Runtime &runtime) {
   return getArrayAsVector<int32_t>(val, runtime);
 }
 
@@ -386,6 +389,21 @@ getJsiValue(const std::vector<models::ocr::types::OCRDetection> &detections,
   }
 
   return jsiDetections;
+}
+
+inline jsi::Value
+getJsiValue(const std::vector<models::voice_activity_detection::types::Segment>
+                &speechSegments,
+            jsi::Runtime &runtime) {
+  auto jsiSegments = jsi::Array(runtime, speechSegments.size());
+  for (size_t i = 0; i < speechSegments.size(); i++) {
+    const auto &[start, end] = speechSegments[i];
+    auto jsiSegmentObject = jsi::Object(runtime);
+    jsiSegmentObject.setProperty(runtime, "start", start);
+    jsiSegmentObject.setProperty(runtime, "end", end);
+    jsiSegments.setValueAtIndex(runtime, i, jsiSegmentObject);
+  }
+  return jsiSegments;
 }
 
 } // namespace rnexecutorch::jsi_conversion
