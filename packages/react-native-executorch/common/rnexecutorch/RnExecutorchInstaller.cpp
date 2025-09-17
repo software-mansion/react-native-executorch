@@ -6,15 +6,22 @@
 #include <rnexecutorch/models/embeddings/image/ImageEmbeddings.h>
 #include <rnexecutorch/models/embeddings/text/TextEmbeddings.h>
 #include <rnexecutorch/models/image_segmentation/ImageSegmentation.h>
-#include <rnexecutorch/models/text_to_image/TextToImage.h>
 #include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/object_detection/ObjectDetection.h>
 #include <rnexecutorch/models/ocr/OCR.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
+#include <rnexecutorch/models/text_to_image/TextToImage.h>
 #include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
+#include <rnexecutorch/models/voice_activity_detection/VoiceActivityDetection.h>
 #include <rnexecutorch/threads/GlobalThreadPool.h>
 #include <rnexecutorch/threads/utils/ThreadUtils.h>
+
+#if defined(__ANDROID__) && defined(__aarch64__)
+#include <executorch/extension/threadpool/cpuinfo_utils.h>
+#include <executorch/extension/threadpool/threadpool.h>
+#include <rnexecutorch/Log.h>
+#endif
 
 namespace rnexecutorch {
 
@@ -51,8 +58,9 @@ void RnExecutorchInstaller::injectJSIBindings(
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadObjectDetection",
-      RnExecutorchInstaller::loadModel<models::object_detection::ObjectDetection>(
-          jsiRuntime, jsCallInvoker, "loadObjectDetection"));
+      RnExecutorchInstaller::loadModel<
+          models::object_detection::ObjectDetection>(jsiRuntime, jsCallInvoker,
+                                                     "loadObjectDetection"));
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadExecutorchModule",
@@ -92,9 +100,30 @@ void RnExecutorchInstaller::injectJSIBindings(
       *jsiRuntime, "loadSpeechToText",
       RnExecutorchInstaller::loadModel<models::speech_to_text::SpeechToText>(
           jsiRuntime, jsCallInvoker, "loadSpeechToText"));
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadVAD",
+      RnExecutorchInstaller::loadModel<
+          models::voice_activity_detection::VoiceActivityDetection>(
+          jsiRuntime, jsCallInvoker, "loadVAD"));
 
   threads::utils::unsafeSetupThreadPool();
   threads::GlobalThreadPool::initialize();
+
+#if defined(__ANDROID__) && defined(__aarch64__)
+  auto num_of_perf_cores =
+      ::executorch::extension::cpuinfo::get_num_performant_cores();
+  log(LOG_LEVEL::Info, "Detected ", num_of_perf_cores, " performant cores");
+  // setting num_of_cores to floor(num_of_perf_cores / 2) + 1) because depending
+  // on cpu arch as when possible we want to leave at least 2 performant cores
+  // for other tasks (setting more actually results in drop of performance). For
+  // older devices (i.e. samsung s22) resolves to 3 cores, and for newer ones
+  // (like OnePlus 12) resolves to 4, which when benchamrked gives highest
+  // throughput.
+  auto num_of_cores = static_cast<uint32_t>(num_of_perf_cores / 2) + 1;
+  ::executorch::extension::threadpool::get_threadpool()
+      ->_unsafe_reset_threadpool(num_of_cores);
+  log(LOG_LEVEL::Info, "Configuring xnnpack for ", num_of_cores, " threads");
+#endif
 }
 
 } // namespace rnexecutorch
