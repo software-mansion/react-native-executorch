@@ -162,7 +162,7 @@ table thead tr {
 }
 
 [class*='details'] + p {
-  margin-top: 15px;
+  margin-top: 1rem;
 }
 
 [class*='theme-doc-sidebar-item-category-level-'] {
