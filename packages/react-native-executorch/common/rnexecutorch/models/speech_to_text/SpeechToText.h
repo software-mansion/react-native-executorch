@@ -34,9 +34,6 @@ private:
   std::unique_ptr<TokenizerModule> tokenizer;
   std::unique_ptr<asr::ASR> asr;
 
-  std::shared_ptr<OwningArrayBuffer>
-  makeOwningBuffer(std::span<const float> vectorView) const;
-
   // Stream
   std::shared_ptr<react::CallInvoker> callInvoker;
   std::unique_ptr<stream::OnlineASRProcessor> processor;
