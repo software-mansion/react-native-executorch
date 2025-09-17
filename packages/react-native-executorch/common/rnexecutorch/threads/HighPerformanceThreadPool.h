@@ -5,21 +5,22 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
-#include <executorch/extension/threadpool/cpuinfo_utils.h>
 #include <fstream>
 #include <functional>
 #include <future>
 #include <memory>
 #include <mutex>
-#include <optional>
 #include <pthread.h>
 #include <queue>
-#include <rnexecutorch/Log.h>
+#include <ranges>
 #include <sched.h>
 #include <sys/resource.h>
 #include <thread>
 #include <unistd.h>
 #include <vector>
+
+#include <executorch/extension/threadpool/cpuinfo_utils.h>
+#include <rnexecutorch/Log.h>
 
 #ifdef __APPLE__
 #include <sys/syscall.h>
@@ -29,8 +30,7 @@
 #include <sys/types.h>
 #endif
 
-namespace rnexecutorch {
-namespace threads {
+namespace rnexecutorch::threads {
 
 enum class Priority { LOW, NORMAL, HIGH, REALTIME };
 
@@ -41,6 +41,93 @@ struct ThreadConfig {
 
 class HighPerformanceThreadPool {
 public:
+  explicit HighPerformanceThreadPool(size_t numThreads = 1,
+                                     ThreadConfig cfg = ThreadConfig())
+      : config(std::move(cfg)) {
+
+#ifdef __ANDROID__
+    detectCPUTopology();
+    numThreads = std::min(numThreads, performanceCores.size());
+#endif
+
+    for (size_t i = 0; i < numThreads; i++) {
+      workers.emplace_back(&HighPerformanceThreadPool::workerThread, this, i);
+    }
+
+    log(LOG_LEVEL::Debug, "Thread pool initialized with", numThreads,
+        "workers.");
+  }
+
+  ~HighPerformanceThreadPool() { shutdown(); }
+
+  // Submit a task and get a future for the result
+  template <typename Func, typename... Args>
+  auto submit(Func &&func, Args &&...args)
+      -> std::future<decltype(func(args...))> {
+    return submitWithPriority(Priority::NORMAL, std::forward<Func>(func),
+                              std::forward<Args>(args)...);
+  }
+
+  // Submit a task with specific priority
+  template <typename Func, typename... Args>
+  auto submitWithPriority(Priority priority, Func &&func, Args &&...args)
+      -> std::future<decltype(func(args...))> {
+
+    using ReturnType = decltype(func(args...));
+
+    // Create a packaged task
+    auto boundFunc =
+        std::bind(std::forward<Func>(func), std::forward<Args>(args)...);
+    auto task = std::make_unique<Task<decltype(boundFunc), ReturnType>>(
+        std::move(boundFunc));
+    auto future = task->getFuture();
+
+    // Add to queue
+    {
+      std::scoped_lock lock(queueMutex);
+
+      if (!running) {
+        throw std::runtime_error("Thread pool is shutting down");
+      }
+
+      WorkItem item(std::move(task), priority,
+                    std::chrono::steady_clock::now());
+
+      taskQueue.push(std::move(item));
+    }
+
+    condition.notify_one();
+    return future;
+  }
+
+  // Execute a task and wait for result
+  template <typename Func, typename... Args>
+  auto execute(Func &&func, Args &&...args) -> decltype(func(args...)) {
+    auto future = submit(std::forward<Func>(func), std::forward<Args>(args)...);
+    return future.get();
+  }
+
+  // Fire and forget task
+  template <typename Func, typename... Args>
+  void submitDetached(Func &&func, Args &&...args) {
+    submit(std::forward<Func>(func), std::forward<Args>(args)...);
+    // Future is destroyed, task still runs
+  }
+
+  void shutdown() {
+    if (!running.exchange(false)) {
+      return;
+    }
+
+    condition.notify_all();
+
+    for (auto &worker : workers) {
+      if (worker.joinable()) {
+        worker.join();
+      }
+    }
+  }
+
 private:
   // Task wrapper that can hold any callable
   class ITask {
@@ -50,10 +137,6 @@ private:
   };
 
   template <typename Func, typename Result> class Task : public ITask {
-  private:
-    Func func;
-    std::promise<Result> promise;
-
   public:
     Task(Func &&f) : func(std::forward<Func>(f)) {}
 
@@ -71,17 +154,29 @@ private:
     }
 
     std::future<Result> getFuture() { return promise.get_future(); }
+
+  private:
+    Func func;
+    std::promise<Result> promise;
   };
 
-  struct WorkItem {
+  class WorkItem {
+  public:
+    WorkItem() {}
+    WorkItem(std::unique_ptr<ITask> task, Priority priority,
+             std::chrono::steady_clock::time_point enqueueTime)
+        : task(std::move(task)), priority(priority), enqueueTime(enqueueTime) {}
+
     std::unique_ptr<ITask> task;
-    Priority priority;
-    std::chrono::steady_clock::time_point enqueueTime;
 
     bool operator<(const WorkItem &other) const {
       return priority != other.priority ? priority < other.priority
                                         : enqueueTime > other.enqueueTime;
     }
+
+  private:
+    Priority priority;
+    std::chrono::steady_clock::time_point enqueueTime;
   };
 
   // Thread pool state
@@ -95,30 +190,30 @@ private:
 
 #ifdef __ANDROID__
   // Performance cores
-  std::vector<int> performanceCores;
-  std::vector<int> efficiencyCores;
+  std::vector<int32_t> performanceCores;
+  std::vector<int32_t> efficiencyCores;
 #endif
 
   // Configuration
   ThreadConfig config;
 
-private:
   void detectCPUTopology() {
 #ifdef __ANDROID__
     struct CoreInfo {
-      int id;
-      long maxFreq;
+      int32_t id;
+      int64_t maxFreq;
     };
 
     std::vector<CoreInfo> cores;
     const auto numOfCores = std::thread::hardware_concurrency();
 
-    for (int i = 0; i < numOfCores; i++) {
+    for (int i = 0; std::cmp_less(i, numOfCores); ++i) {
       std::string path = "/sys/devices/system/cpu/cpu" + std::to_string(i) +
                          "/cpufreq/cpuinfo_max_freq";
       std::ifstream file(path);
-      if (!file.good())
+      if (!file.good()) {
         break;
+      }
 
       CoreInfo info;
       info.id = i;
@@ -132,24 +227,24 @@ private:
     }
 
     // Sort by frequency
-    std::sort(cores.begin(), cores.end(),
-              [](const CoreInfo &a, const CoreInfo &b) {
-                return a.maxFreq > b.maxFreq;
-              });
+    std::ranges::sort(cores, [](const CoreInfo &a, const CoreInfo &b) {
+      return a.maxFreq > b.maxFreq;
+    });
 
     // Classify cores
     const auto numOfPerfCores =
         ::executorch::extension::cpuinfo::get_num_performant_cores();
 
+    constexpr float kKiloToGigaRatio = 1e6;
     for (int i = 0; i < cores.size(); ++i) {
       if (i < numOfPerfCores) {
-        performanceCores.push_back(core.id);
-        log(LOG_LEVEL::Debug, "Performance core:", core.id, "(",
-            core.maxFreq / 1000000.0, "GHz)");
+        performanceCores.push_back(cores[i].id);
+        log(LOG_LEVEL::Debug, "Performance core:", cores[i].id, "(",
+            cores[i].maxFreq / kKiloToGigaRatio, "GHz)");
       } else {
-        efficiencyCores.push_back(core.id);
-        log(LOG_LEVEL::Debug, "Efficiency core:", core.id, "(",
-            core.maxFreq / 1000000.0, "GHz)");
+        efficiencyCores.push_back(cores[i].id);
+        log(LOG_LEVEL::Debug, "Efficiency core:", cores[i].id, "(",
+            cores[i].maxFreq / kKiloToGigaRatio, "GHz)");
       }
     }
 #endif
@@ -167,7 +262,7 @@ private:
 #endif
   }
 
-  void configureThread(int workerIndex) {
+  void configureThread(uint32_t workerIndex) {
     std::string threadName = config.namePrefix + std::to_string(workerIndex);
     setCurrentThreadName(threadName.c_str());
 
@@ -214,7 +309,7 @@ private:
     // and in general does not provide visible improvements on iOS
 
     // Set nice value as fallback or additional priority boost
-    const int nice_value = 0;
+    constexpr int nice_value = 0;
     if (setpriority(PRIO_PROCESS, 0, nice_value) != 0) {
       log(LOG_LEVEL::Debug, "Failed to set nice value");
     } else {
@@ -225,22 +320,13 @@ private:
   void processTask(const WorkItem &item) {
     activeWorkers++;
 
-    auto startTime = std::chrono::steady_clock::now();
-    auto waitTime = std::chrono::duration_cast<std::chrono::milliseconds>(
-                        startTime - item.enqueueTime)
-                        .count();
-
     try {
       item.task->execute();
     } catch (const std::exception &e) {
       log(LOG_LEVEL::Error, "Task failed:", e.what());
+      activeWorkers--;
       throw;
     }
-
-    auto endTime = std::chrono::steady_clock::now();
-    auto executionTime = std::chrono::duration_cast<std::chrono::milliseconds>(
-                             endTime - startTime)
-                             .count();
 
     activeWorkers--;
     totalTasksProcessed++;
@@ -256,8 +342,9 @@ private:
         std::unique_lock<std::mutex> lock(queueMutex);
         condition.wait(lock, [this] { return !taskQueue.empty() || !running; });
 
-        if (!running && taskQueue.empty())
+        if (!running && taskQueue.empty()) {
           break;
+        }
 
         if (!taskQueue.empty()) {
           item = std::move(const_cast<WorkItem &>(taskQueue.top()));
@@ -272,96 +359,6 @@ private:
 
     log(LOG_LEVEL::Debug, "Worker", workerIndex, "shutting down");
   }
-
-public:
-  explicit HighPerformanceThreadPool(size_t numThreads = 1,
-                                     ThreadConfig cfg = ThreadConfig())
-      : config(std::move(cfg)) {
-
-#ifdef __ANDROID__
-    detectCPUTopology();
-    numThreads = std::min(numThreads, performanceCores.size());
-#endif
-
-    for (size_t i = 0; i < numThreads; i++) {
-      workers.emplace_back(&HighPerformanceThreadPool::workerThread, this, i);
-    }
-
-    log(LOG_LEVEL::Debug, "Thread pool initialized with", numThreads,
-        "workers.");
-  }
-
-  ~HighPerformanceThreadPool() { shutdown(); }
-
-  // Submit a task and get a future for the result
-  template <typename Func, typename... Args>
-  auto submit(Func &&func, Args &&...args)
-      -> std::future<decltype(func(args...))> {
-    return submitWithPriority(Priority::NORMAL, std::forward<Func>(func),
-                              std::forward<Args>(args)...);
-  }
-
-  // Submit a task with specific priority
-  template <typename Func, typename... Args>
-  auto submitWithPriority(Priority priority, Func &&func, Args &&...args)
-      -> std::future<decltype(func(args...))> {
-
-    using ReturnType = decltype(func(args...));
-
-    // Create a packaged task
-    auto boundFunc =
-        std::bind(std::forward<Func>(func), std::forward<Args>(args)...);
-    auto task = std::make_unique<Task<decltype(boundFunc), ReturnType>>(
-        std::move(boundFunc));
-    auto future = task->getFuture();
-
-    // Add to queue
-    {
-      std::lock_guard<std::mutex> lock(queueMutex);
-
-      if (!running) {
-        throw std::runtime_error("Thread pool is shutting down");
-      }
-
-      WorkItem item;
-      item.task = std::move(task);
-      item.priority = priority;
-      item.enqueueTime = std::chrono::steady_clock::now();
-
-      taskQueue.push(std::move(item));
-    }
-
-    condition.notify_one();
-    return future;
-  }
-
-  // Execute a task and wait for result
-  template <typename Func, typename... Args>
-  auto execute(Func &&func, Args &&...args) -> decltype(func(args...)) {
-    auto future = submit(std::forward<Func>(func), std::forward<Args>(args)...);
-    return future.get();
-  }
-
-  // Fire and forget task
-  template <typename Func, typename... Args>
-  void submitDetached(Func &&func, Args &&...args) {
-    submit(std::forward<Func>(func), std::forward<Args>(args)...);
-    // Future is destroyed, task still runs
-  }
-
-  void shutdown() {
-    if (!running.exchange(false))
-      return;
-
-    condition.notify_all();
-
-    for (auto &worker : workers) {
-      if (worker.joinable()) {
-        worker.join();
-      }
-    }
-  }
 };
 
-} // namespace threads
-} // namespace rnexecutorch
+} // namespace rnexecutorch::threads

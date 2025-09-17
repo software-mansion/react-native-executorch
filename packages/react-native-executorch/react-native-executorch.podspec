@@ -28,7 +28,7 @@ Pod::Spec.new do |s|
   cpuinfo_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/ios/libs/cpuinfo', __dir__)
 
   s.user_target_xcconfig = {
-    "HEADER_SEARCH_PATHS" => "$(PODS_TARGET_SRCROOT)/third-party/include $(PODS_TARGET_SRCROOT)/../../third-party/executorch/backends/xnnpack/third-party/pthreadpool/include $(PODS_TARGET_SRCROOT)/../../third-party/executorch/backends/xnnpack/third-party/cpuinfo/include",
+    "HEADER_SEARCH_PATHS" => "$(PODS_TARGET_SRCROOT)/third-party/include",
 
     "OTHER_LDFLAGS[sdk=iphoneos*]" => [
       '$(inherited)',
