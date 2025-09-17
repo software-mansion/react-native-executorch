@@ -162,7 +162,7 @@ private:
 
   class WorkItem {
   public:
-    WorkItem() {}
+    WorkItem() = default;
     WorkItem(std::unique_ptr<ITask> task, Priority priority,
              std::chrono::steady_clock::time_point enqueueTime)
         : task(std::move(task)), priority(priority), enqueueTime(enqueueTime) {}
@@ -207,7 +207,7 @@ private:
     std::vector<CoreInfo> cores;
     const auto numOfCores = std::thread::hardware_concurrency();
 
-    for (int i = 0; std::cmp_less(i, numOfCores); ++i) {
+    for (int32_t i = 0; std::cmp_less(i, numOfCores); ++i) {
       std::string path = "/sys/devices/system/cpu/cpu" + std::to_string(i) +
                          "/cpufreq/cpuinfo_max_freq";
       std::ifstream file(path);
@@ -236,7 +236,7 @@ private:
         ::executorch::extension::cpuinfo::get_num_performant_cores();
 
     constexpr float kKiloToGigaRatio = 1e6;
-    for (int i = 0; i < cores.size(); ++i) {
+    for (int32_t i = 0; i < cores.size(); ++i) {
       if (i < numOfPerfCores) {
         performanceCores.push_back(cores[i].id);
         log(LOG_LEVEL::Debug, "Performance core:", cores[i].id, "(",
@@ -289,7 +289,7 @@ private:
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
 
-    for (int core : performanceCores) {
+    for (int32_t core : performanceCores) {
       CPU_SET(core, &cpuset);
     }
 
