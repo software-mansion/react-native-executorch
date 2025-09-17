@@ -30,10 +30,6 @@ React Native ExecuTorch supports a variety of LLMs (checkout our [HuggingFace re
 Lower-end devices might not be able to fit LLMs into memory. We recommend using quantized models to reduce the memory footprint.
 :::
 
-:::caution
-Given computational constraints, our architecture is designed to support only one instance of the model runner at the time. Consequently, this means you can have only one active component leveraging `useLLM` concurrently.
-:::
-
 ## Initializing
 
 In order to load a model into the app, you need to run the following code:
