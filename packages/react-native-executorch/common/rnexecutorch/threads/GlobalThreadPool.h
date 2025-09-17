@@ -4,41 +4,40 @@
 #include <executorch/extension/threadpool/cpuinfo_utils.h>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/threads/HighPerformanceThreadPool.h>
 
-namespace rnexecutorch {
-namespace threads {
+namespace rnexecutorch::threads {
 
 class GlobalThreadPool {
-private:
-  inline static std::unique_ptr<HighPerformanceThreadPool> instance;
-  inline static std::once_flag initFlag;
-
-  GlobalThreadPool() = delete;
-
 public:
-  static void initialize(uint32_t numThreads = 0, ThreadConfig config = {}) {
+  GlobalThreadPool() = delete;
+  GlobalThreadPool(const GlobalThreadPool &) = delete;
+  GlobalThreadPool &operator=(const GlobalThreadPool &) = delete;
+  GlobalThreadPool(GlobalThreadPool &&) = delete;
+  GlobalThreadPool &operator=(GlobalThreadPool &&) = delete;
+
+  static HighPerformanceThreadPool &get() {
+    if (!instance) {
+      initialize();
+    }
+    return *instance;
+  }
+
+  static void initialize(std::optional<uint32_t> numThreads = std::nullopt,
+                         ThreadConfig config = {}) {
     std::call_once(initFlag, [&numThreads, config]() {
-      // Auto-detect optimal thread count if not specified
-      if (numThreads == 0) {
+      if (!numThreads) {
         numThreads =
             ::executorch::extension::cpuinfo::get_num_performant_cores();
       }
 
       log(rnexecutorch::LOG_LEVEL::Info, "Initializing global thread pool with",
           numThreads, "threads");
-      instance =
-          std::make_unique<HighPerformanceThreadPool>(numThreads, config);
+      instance = std::make_unique<HighPerformanceThreadPool>(numThreads.value(),
+                                                             config);
     });
-  }
-
-  // Get the global thread pool instance
-  static HighPerformanceThreadPool &get() {
-    if (!instance) {
-      initialize();
-    }
-    return *instance;
   }
 
   // Convenience methods that mirror std::thread interface
@@ -71,7 +70,10 @@ public:
       instance.reset();
     }
   }
+
+private:
+  inline static std::unique_ptr<HighPerformanceThreadPool> instance;
+  inline static std::once_flag initFlag;
 };
 
-} // namespace threads
-} // namespace rnexecutorch
+} // namespace rnexecutorch::threads

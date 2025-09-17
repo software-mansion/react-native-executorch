@@ -1,6 +1,5 @@
 #include "RnExecutorchInstaller.h"
 
-#include <rnexecutorch/Log.h>
 #include <rnexecutorch/TokenizerModule.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/models/classification/Classification.h>
@@ -15,7 +14,7 @@
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
 #include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
 #include <rnexecutorch/threads/GlobalThreadPool.h>
-#include <rnexecutorch/threads/ThreadUtils.h>
+#include <rnexecutorch/threads/utils/ThreadUtils.h>
 
 namespace rnexecutorch {
 
@@ -94,7 +93,7 @@ void RnExecutorchInstaller::injectJSIBindings(
       RnExecutorchInstaller::loadModel<models::speech_to_text::SpeechToText>(
           jsiRuntime, jsCallInvoker, "loadSpeechToText"));
 
-  threads::ThreadUtils::unsafeSetupThreadPool();
+  threads::utils::unsafeSetupThreadPool();
   threads::GlobalThreadPool::initialize();
 }
 
