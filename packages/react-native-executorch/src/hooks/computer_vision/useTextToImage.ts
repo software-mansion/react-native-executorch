@@ -11,7 +11,8 @@ interface TextToImageType {
   generate: (
     input: string,
     imageSize?: number,
-    numSteps?: number
+    numSteps?: number,
+    seed?: number
   ) => Promise<string>;
   interrupt: () => void;
 }
@@ -61,13 +62,14 @@ export const useTextToImage = ({
   const generate = async (
     input: string,
     imageSize?: number,
-    numSteps?: number
+    numSteps?: number,
+    seed?: number
   ): Promise<string> => {
     if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
     if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
     try {
       setIsGenerating(true);
-      return await module.forward(input, imageSize, numSteps);
+      return await module.forward(input, imageSize, numSteps, seed);
     } finally {
       setIsGenerating(false);
     }

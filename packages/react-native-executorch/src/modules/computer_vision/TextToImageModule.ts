@@ -66,12 +66,14 @@ export class TextToImageModule extends BaseModule {
   async forward(
     input: string,
     imageSize: number = 512,
-    numSteps: number = 5
+    numSteps: number = 5,
+    seed?: number
   ): Promise<string> {
     const output = await this.nativeModule.generate(
       input,
       imageSize,
       numSteps,
+      seed ? seed : -1,
       this.inferenceCallback
     );
     const outputArray = new Uint8Array(output);
