@@ -23,13 +23,13 @@ const image = await textToImageModule.forward(input);
 
 ### Methods
 
-| Method        | Type                                                                                                                                                                                                                                                        | Description                                                                                                                                                                                                                                                                                                                                                                 |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `constructor` | `(inferenceCallback?: (stepIdx: number) => void)`                                                                                                                                                                                                           | Creates a new instance of TextToImageModule with optional callback on inference step.                                                                                                                                                                                                                                                                                       |
-| `load`        | `(model: {tokenizerSource: ResourceSource; schedulerSource: ResourceSource; encoderSource: ResourceSource; unetSource: ResourceSource; decoderSource: ResourceSource; }, onDownloadProgressCallback: (progress: number) => void = () => {}): Promise<void>` | Loads the model.                                                                                                                                                                                                                                                                                                                                                            |
-| `forward`     | `(input: string) => Promise<string>`                                                                                                                                                                                                                        | Runs model inference with raw input string. You need to provide entire conversation and prompt (in correct format and with special tokens!) in input string to this method. It doesn't manage conversation context. It is intended for users that need access to the model itself without any wrapper. If you want a simple chat with model the consider using`sendMessage` |
-| `delete`      | `() => void`                                                                                                                                                                                                                                                | Method to delete the model from memory. Note you cannot delete model while it's generating. You need to interrupt it first and make sure model stopped generation.                                                                                                                                                                                                          |
-| `interrupt`   | `() => void`                                                                                                                                                                                                                                                | Interrupts model generation. It may return one more token after interrupt.                                                                                                                                                                                                                                                                                                  |
+| Method        | Type                                                                                                                                                                                                                                            | Description                                                                                                                                                                                                   |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `constructor` | `(inferenceCallback?: (stepIdx: number) => void)`                                                                                                                                                                                               | Creates a new instance of TextToImageModule with optional callback on inference step.                                                                                                                         |
+| `load`        | `(model: {tokenizerSource: ResourceSource; schedulerSource: ResourceSource; encoderSource: ResourceSource; unetSource: ResourceSource; decoderSource: ResourceSource;}, onDownloadProgressCallback: (progress: number) => void): Promise<void>` | Loads the model.                                                                                                                                                                                              |
+| `forward`     | `(input: string, imageSize: number, numSteps: number) => Promise<string>`                                                                                                                                                                       | Runs the model to generate an image described by `input`, performing `numSteps` denoising steps. The resulting image, with dimensions `imageSize`×`imageSize` pixels, is returned as a base64-encoded string. |
+| `delete`      | `() => void`                                                                                                                                                                                                                                    | Deletes the model from memory. Note you cannot delete model while it's generating. You need to interrupt it first and make sure model stopped generation.                                                     |
+| `interrupt`   | `() => void`                                                                                                                                                                                                                                    | Interrupts model generation. The model is stopped in the nearest step.                                                                                                                                        |
 
 <details>
 <summary>Type definitions</summary>
@@ -46,7 +46,15 @@ To load the model, use the `load` method. It accepts an object:
 
 **`model`** - Object containing the model source.
 
-- **`modelSource`** - A string that specifies the location of the model binary.
+- **`schedulerSource`** - A string that specifies the location of the scheduler config.
+
+- **`tokenizerSource`** - A string that specifies the location of the tokenizer config.
+
+- **`encoderSource`** - A string that specifies the location of the text encoder binary.
+
+- **`unetSource`** - A string that specifies the location of the U-Net binary.
+
+- **`decoderSource`** - A string that specifies the location of the VAE decoder binary.
 
 **`onDownloadProgressCallback`** - (Optional) Function called on download progress.
 
@@ -56,11 +64,11 @@ For more information on loading resources, take a look at [loading models](../..
 
 ## Running the model
 
-It accepts one argument, which is a URI/URL to an image you want to encode. The function returns a promise, which can resolve either to an error or an array of numbers representing the embedding.
+To run the model, you can use the `forward` method. It accepts three arguments: a text prompt describing the requested image, a size of the image in pixels, and a number of denoising steps.
 
-## Listening for generated tokens
+## Listening for inference steps
 
-To subscribe to the token generation event, you can pass `tokenCallback` or `messageHistoryCallback` functions to the constructor. `tokenCallback` is called on every token and contains only the most recent token. `messageHistoryCallback` is called whenever model finishes generation and contains all message history including user's and model's last messages.
+To monitor the progress of image generation, you can pass an `inferenceCallback` function to the constructor. The callback is invoked at each denoising step (for a total of `numSteps + 1` times), yielding the current step index that can be used, for example, to display a progress bar.
 
 ## Deleting the model from memory
 
