@@ -63,6 +63,8 @@ To run the model, you can use the `forward` method. It accepts four arguments: a
 
 The image size must fall within the range from 128 to 512 unless specified differently, and be a multiple of 32 due to the architecture of the U-Net and VAE models.
 
+The seed should be a positive integer.
+
 :::warning
 Larger imageSize values require significantly more memory to run the model.
 :::
