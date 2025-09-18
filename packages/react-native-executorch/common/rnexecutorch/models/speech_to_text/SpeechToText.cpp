@@ -85,8 +85,6 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
         });
   };
 
-  this->resetStreamState();
-
   this->isStreaming = true;
   while (this->isStreaming) {
     if (!this->readyToProcess ||
@@ -102,14 +100,13 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
 
   std::string committed = this->processor->finish();
   nativeCallback(committed, "", true);
+
+  this->resetStreamState();
 }
 
 void SpeechToText::streamStop() { this->isStreaming = false; }
 
 void SpeechToText::streamInsert(std::span<float> waveform) {
-  if (!this->isStreaming) {
-    throw std::runtime_error("Streaming is not started");
-  }
   this->processor->insertAudioChunk(waveform);
   this->readyToProcess = true;
 }
