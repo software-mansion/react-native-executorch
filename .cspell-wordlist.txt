@@ -71,3 +71,5 @@ Unet
 VPRED
 timesteps
 Timesteps
+denoises
+denoise
