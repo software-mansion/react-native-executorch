@@ -4,10 +4,14 @@
 #include <random>
 #include <span>
 
+#include <executorch/extension/tensor/tensor.h>
+
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/models/text_to_image/Constants.h>
 
 namespace rnexecutorch::models::text_to_image {
+
+using namespace executorch::extension;
 
 TextToImage::TextToImage(const std::string &tokenizerSource,
                          const std::string &encoderSource,
@@ -36,19 +40,32 @@ void TextToImage::setImageSize(int32_t imageSize) {
   unet->latentImageSize = latentImageSize;
   decoder->latentImageSize = latentImageSize;
 }
+
+void TextToImage::setSeed(int32_t &seed) {
+  // Seed argument is provided
+  if (seed >= 0) {
+    return;
+  }
+  std::random_device rd;
+  seed = rd();
+}
+
 std::shared_ptr<OwningArrayBuffer>
 TextToImage::generate(std::string input, int32_t imageSize,
-                      size_t numInferenceSteps,
+                      size_t numInferenceSteps, int32_t seed,
                       std::shared_ptr<jsi::Function> callback) {
   setImageSize(imageSize);
+  setSeed(seed);
+
   std::vector<float> embeddings = encoder->generate(input);
+  std::vector<int32_t> embeddingsShape = {2, 77, 768};
+  auto embeddingsTensor =
+      make_tensor_ptr(embeddingsShape, embeddings.data(), ScalarType::Float);
 
   constexpr int32_t latentDownsample = 8;
-  int32_t latentsSize = std::floor(imageSize / latentDownsample);
-  int32_t latentsImageSize = numChannels * latentsSize * latentsSize;
-  std::vector<float> latents(latentsImageSize);
-  std::random_device rd;
-  std::mt19937 gen(rd());
+  int32_t latentsSize = numChannels * latentImageSize * latentImageSize;
+  std::vector<float> latents(latentsSize);
+  std::mt19937 gen(seed);
   std::normal_distribution<float> dist(0.0, 1.0);
   for (auto &val : latents) {
     val = dist(gen);
@@ -66,7 +83,7 @@ TextToImage::generate(std::string input, int32_t imageSize,
     log(LOG_LEVEL::Debug, "Step:", t, "/", numInferenceSteps);
 
     std::vector<float> noisePred =
-        unet->generate(latents, timesteps[t], embeddings);
+        unet->generate(latents, timesteps[t], embeddingsTensor);
 
     size_t noiseSize = noisePred.size() / 2;
     std::span<const float> noisePredSpan{noisePred};
@@ -106,14 +123,7 @@ TextToImage::postprocess(const std::vector<float> &output) const {
     outputRgba[i * 4 + 2] = output[i * 3 + 2];
     outputRgba[i * 4 + 3] = 255;
   }
-
-  // TODO: Replace with a function when #584 implemented
-  auto createBuffer = [](const auto &data, size_t size) {
-    auto buffer = std::make_shared<OwningArrayBuffer>(size);
-    std::memcpy(buffer->data(), data, size);
-    return buffer;
-  };
-  return createBuffer(outputRgba.data(), outputRgba.size() * sizeof(float));
+  return std::make_shared<OwningArrayBuffer>(outputRgba);
 }
 
 void TextToImage::interrupt() noexcept { interrupted = true; }

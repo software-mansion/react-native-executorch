@@ -31,13 +31,14 @@ public:
                        std::shared_ptr<react::CallInvoker> callInvoker);
   std::shared_ptr<OwningArrayBuffer>
   generate(std::string input, int32_t imageSize, size_t numInferenceSteps,
-           std::shared_ptr<jsi::Function> callback);
+           int32_t seed, std::shared_ptr<jsi::Function> callback);
   void interrupt() noexcept;
   size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
 
 private:
   void setImageSize(int32_t imageSize);
+  void setSeed(int32_t &seed);
   std::shared_ptr<OwningArrayBuffer>
   postprocess(const std::vector<float> &output) const;
 
