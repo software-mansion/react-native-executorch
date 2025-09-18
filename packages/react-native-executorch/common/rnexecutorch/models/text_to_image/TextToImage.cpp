@@ -62,11 +62,7 @@ TextToImage::generate(std::string input, int32_t imageSize,
       callback->call(runtime, jsi::Value(static_cast<int32_t>(stepIdx)));
     });
   };
-  for (size_t t = 0; t < numInferenceSteps + 1; t++) {
-    if (interrupted) {
-      interrupted = false;
-      return postprocess({});
-    }
+  for (size_t t = 0; t < numInferenceSteps + 1 && !interrupted; t++) {
     log(LOG_LEVEL::Debug, "Step:", t, "/", numInferenceSteps);
 
     std::vector<float> noisePred =
@@ -85,6 +81,10 @@ TextToImage::generate(std::string input, int32_t imageSize,
     latents = scheduler->step(latents, noise, timesteps[t]);
 
     nativeCallback(t);
+  }
+  if (interrupted) {
+    interrupted = false;
+    return std::make_shared<OwningArrayBuffer>(0);
   }
 
   for (auto &val : latents) {
