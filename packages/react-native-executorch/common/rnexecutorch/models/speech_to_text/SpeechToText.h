@@ -28,6 +28,7 @@ public:
   void streamInsert(std::span<float> waveform);
 
 private:
+  std::shared_ptr<react::CallInvoker> callInvoker;
   std::unique_ptr<BaseModel> encoder;
   std::unique_ptr<BaseModel> decoder;
   std::unique_ptr<TokenizerModule> tokenizer;
@@ -37,7 +38,6 @@ private:
   makeOwningBuffer(std::span<const float> vectorView) const;
 
   // Stream
-  std::shared_ptr<react::CallInvoker> callInvoker;
   std::unique_ptr<stream::OnlineASRProcessor> processor;
   bool isStreaming;
   bool readyToProcess;
