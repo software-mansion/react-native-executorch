@@ -29,13 +29,13 @@ public:
   void streamInsert(std::span<float> waveform);
 
 private:
+  std::shared_ptr<react::CallInvoker> callInvoker;
   std::unique_ptr<BaseModel> encoder;
   std::unique_ptr<BaseModel> decoder;
   std::unique_ptr<TokenizerModule> tokenizer;
   std::unique_ptr<asr::ASR> asr;
 
   // Stream
-  std::shared_ptr<react::CallInvoker> callInvoker;
   std::unique_ptr<stream::OnlineASRProcessor> processor;
   bool isStreaming;
   bool readyToProcess;
