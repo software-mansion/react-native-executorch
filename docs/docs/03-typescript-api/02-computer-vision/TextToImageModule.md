@@ -68,6 +68,8 @@ To run the model, you can use the `forward` method. It accepts four arguments: a
 
 The image size must fall within the range from 128 to 512 unless specified differently, and be a multiple of 32 due to the architecture of the U-Net and VAE models.
 
+The seed value should be a positive integer.
+
 ## Listening for inference steps
 
 To monitor the progress of image generation, you can pass an `inferenceCallback` function to the constructor. The callback is invoked at each denoising step (for a total of `numSteps + 1` times), yielding the current step index that can be used, for example, to display a progress bar.
