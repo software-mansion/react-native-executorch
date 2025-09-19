@@ -15,9 +15,9 @@ It is recommended to use models provided by us which are available at our Huggin
 ## Reference
 
 ```typescript
-import { useTextToImage, BK_SDM_TINY_VPRED } from 'react-native-executorch';
+import { useTextToImage, BK_SDM_TINY_VPRED_256 } from 'react-native-executorch';
 
-const model = useTextToImage({ model: BK_SDM_TINY_VPRED });
+const model = useTextToImage({ model: BK_SDM_TINY_VPRED_256 });
 
 const input = 'a castle';
 
@@ -61,9 +61,7 @@ For more information on loading resources, take a look at [loading models](../..
 
 To run the model, you can use the `forward` method. It accepts four arguments: a text prompt describing the requested image, a size of the image in pixels, a number of denoising steps, and an optional seed value, which enables reproducibility of the results.
 
-The image size must fall within the range from 128 to 512 unless specified differently, and be a multiple of 32 due to the architecture of the U-Net and VAE models.
-
-The seed should be a positive integer.
+The image size must be a multiple of 32 due to the architecture of the U-Net and VAE models. The seed should be a positive integer.
 
 :::warning
 Larger imageSize values require significantly more memory to run the model.
@@ -72,10 +70,10 @@ Larger imageSize values require significantly more memory to run the model.
 ## Example
 
 ```tsx
-import { useTextToImage, BK_SDM_TINY_VPRED } from 'react-native-executorch';
+import { useTextToImage, BK_SDM_TINY_VPRED_256 } from 'react-native-executorch';
 
 function App() {
-  const model = useTextToImage({ model: BK_SDM_TINY_VPRED });
+  const model = useTextToImage({ model: BK_SDM_TINY_VPRED_256 });
 
   //...
   const input = 'a medieval castle by the sea shore';
@@ -104,26 +102,25 @@ function App() {
 | ------------------------------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | [bk-sdm-tiny-vpred](https://huggingface.co/vivym/bk-sdm-tiny-vpred) | 0.5            | BK-SDM (Block-removed Knowledge-distilled Stable Diffusion Model) is a compressed version of Stable Diffusion v1.4 with several residual and attention blocks removed. The BK-SDM-Tiny is a v-prediction variant of the model, obtained through further block removal, built around a 0.33B-parameter U-Net. |
 
-|
-
 ## Benchmarks
 
 :::info
-The number following the underscore (\_) specifies that the model is exported with a static image size. This helps optimize memory usage by allocating only as much as needed. In contrast, models exported with dynamic shapes allocate memory up to the maximum allowed image dimensions, which can be less efficient. This setting has no effect on the actual model size, only on how memory is allocated at runtime.
+The number following the underscore (\_) indicates that the model supports generating image with dimensions ranging from 128 pixels up to that value. This setting doesn’t affect the model’s file size - it only determines how memory is allocated at runtime, based on the maximum allowed image size.
 :::
 
 ### Model size
 
-| Model             | Text encoder (XNNPACK) [MB] | UNet (XNNPACK) [MB] | VAE decoder (XNNPACK) [MB] |
-| ----------------- | --------------------------- | ------------------- | -------------------------- |
-| BK_SDM_TINY_VPRED | 492                         | 1290                | 198                        |
+| Model                 | Text encoder (XNNPACK) [MB] | UNet (XNNPACK) [MB] | VAE decoder (XNNPACK) [MB] |
+| --------------------- | --------------------------- | ------------------- | -------------------------- |
+| BK_SDM_TINY_VPRED_256 | 492                         | 1290                | 198                        |
+| BK_SDM_TINY_VPRED_512 | 492                         | 1290                | 198                        |
 
 ### Memory usage
 
 | Model                 | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
 | --------------------- | ---------------------- | ------------------ |
 | BK_SDM_TINY_VPRED_256 | 2900                   | 2800               |
-| BK_SDM_TINY_VPRED     | 6700                   | 6560               |
+| BK_SDM_TINY_VPRED_512 | 6700                   | 6560               |
 
 ### Inference time
 

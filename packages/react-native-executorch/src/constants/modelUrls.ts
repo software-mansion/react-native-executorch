@@ -424,7 +424,7 @@ export const CLIP_VIT_BASE_PATCH32_TEXT = {
 };
 
 // Image generation
-export const BK_SDM_TINY_VPRED = {
+export const BK_SDM_TINY_VPRED_512 = {
   schedulerSource:
     'https://huggingface.co/aszymanska/bk-sdm-tiny-vpred/resolve/main/scheduler/scheduler_config.json',
   tokenizerSource:
