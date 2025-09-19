@@ -1,4 +1,4 @@
-import Spinner from 'react-native-loading-spinner-overlay';
+import Spinner from '../../components/Spinner';
 import { BottomBar } from '../../components/BottomBar';
 import { getImage } from '../../utils';
 import { useVerticalOCR, VERTICAL_OCR_ENGLISH } from 'react-native-executorch';

@@ -11,13 +11,13 @@ import {
   View,
 } from 'react-native';
 import SendIcon from '../../assets/icons/send_icon.svg';
-import Spinner from 'react-native-loading-spinner-overlay';
 import { useLLM, LLAMA3_2_1B_SPINQUANT } from 'react-native-executorch';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
 import ColorPalette from '../../colors';
 import Messages from '../../components/Messages';
 import { useIsFocused } from '@react-navigation/native';
 import { GeneratingContext } from '../../context';
+import Spinner from '../../components/Spinner';
 
 export default function LLMScreenWrapper() {
   const isFocused = useIsFocused();
