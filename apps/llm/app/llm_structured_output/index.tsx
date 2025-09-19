@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import SendIcon from '../../assets/icons/send_icon.svg';
-import Spinner from 'react-native-loading-spinner-overlay';
+import Spinner from '../../components/Spinner';
 import {
   useLLM,
   fixAndValidateStructuredOutput,
@@ -224,6 +224,7 @@ const styles = StyleSheet.create({
     color: ColorPalette.primary,
   },
   bottomHelloText: {
+    padding: 20,
     fontFamily: 'regular',
     fontSize: 20,
     lineHeight: 28,
