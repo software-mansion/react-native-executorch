@@ -38,7 +38,8 @@ public:
   explicit VerticalDetector(const std::string &modelSource,
                             bool detectSingleCharacters,
                             std::shared_ptr<react::CallInvoker> callInvoker);
-  std::vector<types::DetectorBBox> generate(const cv::Mat &inputImage);
+  [[nodiscard("Registered non-void function")]] std::vector<types::DetectorBBox>
+  generate(const cv::Mat &inputImage);
   cv::Size getModelImageSize() const noexcept;
 
 private:
