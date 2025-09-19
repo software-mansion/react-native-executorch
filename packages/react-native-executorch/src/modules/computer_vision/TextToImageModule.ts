@@ -77,6 +77,9 @@ export class TextToImageModule extends BaseModule {
       this.inferenceCallback
     );
     const outputArray = new Uint8Array(output);
+    if (!outputArray.length) {
+      return '';
+    }
     const png = new PNG({ width: imageSize, height: imageSize });
     png.data = Buffer.from(outputArray);
     const pngBuffer = PNG.sync.write(png, { colorType: 6 });

@@ -3,12 +3,8 @@ import {
   StyleSheet,
   Text,
   Image,
-  TextInput,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableWithoutFeedback,
   Keyboard,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import Spinner from 'react-native-loading-spinner-overlay';
@@ -16,15 +12,14 @@ import { useTextToImage, BK_SDM_TINY_VPRED } from 'react-native-executorch';
 import { GeneratingContext } from '../../context';
 import ColorPalette from '../../colors';
 import ProgressBar from '../../components/ProgressBar';
-
-type InputState =
-  | { kind: 'prompt'; value: string }
-  | { kind: 'image'; uri: string };
+import { BottomBarWithTextInput } from '../../components/BottomBarWithTextInput';
 
 export default function TextToImageScreen() {
   const [inferenceStepIdx, setInferenceStepIdx] = useState<number>(0);
   const [imageTitle, setImageTitle] = useState<string | null>(null);
-  const [numSteps, setNumSteps] = useState<number>(10);
+  const [image, setImage] = useState<string | null>(null);
+  const [steps, setSteps] = useState<number>(10);
+  const [showTextInput, setShowTextInput] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   const imageSize = 352;
@@ -35,42 +30,37 @@ export default function TextToImageScreen() {
 
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
-  const [inputState, setInputState] = useState<InputState>({
-    kind: 'prompt',
-    value: '',
-  });
-
   useEffect(() => {
     setGlobalGenerating(model.isGenerating);
   }, [model.isGenerating, setGlobalGenerating]);
 
   useEffect(() => {
-    const onKeyboardShow = Keyboard.addListener('keyboardDidShow', () =>
-      setKeyboardVisible(true)
-    );
-    const onKeyboardHide = Keyboard.addListener('keyboardDidHide', () =>
-      setKeyboardVisible(false)
-    );
+    const showSub = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
     return () => {
-      onKeyboardShow.remove();
-      onKeyboardHide.remove();
+      showSub.remove();
+      hideSub.remove();
     };
   }, []);
 
-  const runForward = async () => {
-    if (inputState.kind !== 'prompt' || !inputState.value.trim()) return;
-    setImageTitle(inputState.value);
+  const runForward = async (input: string, numSteps: number) => {
+    if (!input || !input.trim()) return;
+    setImageTitle(input);
+    setSteps(numSteps);
     try {
-      const output = await model.generate(
-        inputState.value,
-        imageSize,
-        numSteps
-      );
+      const output = await model.generate(input, imageSize, steps);
+      console.log('Is output?', !!output);
+      console.log(output);
       if (!output.length) {
+        console.log('interrupted');
         setImageTitle(null);
         return;
       }
-      setInputState({ kind: 'image', uri: output });
+      setImage(output);
     } catch (e) {
       console.error(e);
       setImageTitle(null);
@@ -78,9 +68,6 @@ export default function TextToImageScreen() {
       setInferenceStepIdx(0);
     }
   };
-
-  const decreaseSteps = () => setNumSteps((prev) => Math.max(5, prev - 5));
-  const increaseSteps = () => setNumSteps((prev) => Math.min(50, prev + 5));
 
   if (!model.isReady) {
     return (
@@ -91,24 +78,31 @@ export default function TextToImageScreen() {
     );
   }
 
-  if (!model.isGenerating) {
-    return (
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <KeyboardAvoidingView
-          style={styles.container}
-          collapsable={false}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 40}
-        >
-          <View style={styles.titleContainer}>
-            {imageTitle && <Text style={styles.titleText}>{imageTitle}</Text>}
-          </View>
+  return (
+    <TouchableWithoutFeedback
+      onPress={() => {
+        Keyboard.dismiss();
+        setShowTextInput(false);
+      }}
+    >
+      <View style={styles.container}>
+        {keyboardVisible && <View style={styles.overlay} />}
 
+        <View style={styles.titleContainer}>
+          {imageTitle && <Text style={styles.titleText}>{imageTitle}</Text>}
+        </View>
+
+        {model.isGenerating ? (
+          <View style={styles.progressContainer}>
+            <Text style={styles.text}>Generating...</Text>
+            <ProgressBar numSteps={steps} currentStep={inferenceStepIdx} />
+          </View>
+        ) : (
           <View style={styles.imageContainer}>
-            {inputState.kind === 'image' ? (
+            {image?.length ? (
               <Image
                 style={styles.image}
-                source={{ uri: `data:image/png;base64,${inputState.uri}` }}
+                source={{ uri: `data:image/png;base64,${image}` }}
               />
             ) : (
               <Image
@@ -117,72 +111,21 @@ export default function TextToImageScreen() {
               />
             )}
           </View>
+        )}
 
-          <View style={styles.bottomContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter prompt..."
-              value={inputState.kind === 'prompt' ? inputState.value : ''}
-              onChangeText={(text) => {
-                setInputState({ kind: 'prompt', value: text });
-                setImageTitle(null);
-              }}
-              editable={!model.isGenerating}
-            />
-            {!keyboardVisible && (
-              <View style={styles.stepsContainer}>
-                <Text style={styles.text}>Steps: {numSteps}</Text>
-                <View style={styles.stepsButtons}>
-                  <TouchableOpacity
-                    style={[styles.button, styles.stepsButton]}
-                    onPress={decreaseSteps}
-                  >
-                    <Text style={styles.buttonText}>-</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.button, styles.stepsButton]}
-                    onPress={increaseSteps}
-                  >
-                    <Text style={styles.buttonText}>+</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-            <TouchableOpacity
-              style={styles.button}
-              onPress={runForward}
-              disabled={!model.isReady}
-            >
-              <Text style={styles.buttonText}>Run model</Text>
-            </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
-      </TouchableWithoutFeedback>
-    );
-  }
-
-  return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 40}
-    >
-      <View style={styles.titleContainer}>
-        {imageTitle && <Text style={styles.titleText}>{imageTitle}</Text>}
+        <View style={styles.bottomContainer}>
+          <BottomBarWithTextInput
+            runModel={runForward}
+            stopModel={model.interrupt}
+            isGenerating={model.isGenerating}
+            isReady={model.isReady}
+            showTextInput={showTextInput}
+            setShowTextInput={setShowTextInput}
+            keyboardVisible={keyboardVisible}
+          />
+        </View>
       </View>
-      <View style={styles.progressContainer}>
-        <Text style={styles.text}>Generating...</Text>
-        <ProgressBar numSteps={numSteps} currentStep={inferenceStepIdx} />
-      </View>
-      <View style={styles.bottomContainer}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => model.interrupt()}
-        >
-          <Text style={styles.buttonText}>Stop model</Text>
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -190,30 +133,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     width: '100%',
-    padding: 20,
-  },
-  titleContainer: { alignItems: 'center', marginTop: 20 },
-  bottomContainer: {
-    width: '100%',
-    gap: 15,
     alignItems: 'center',
-    padding: 16,
   },
-  imageContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  button: {
-    width: '100%',
-    height: 50,
-    justifyContent: 'center',
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    zIndex: 5,
+  },
+  titleContainer: {
     alignItems: 'center',
-    backgroundColor: ColorPalette.primary,
-    borderRadius: 8,
-  },
-  buttonText: { color: '#fff', fontSize: 16 },
-  image: {
-    width: 256,
-    height: 256,
-    marginVertical: 30,
-    resizeMode: 'contain',
+    marginTop: 20,
   },
   titleText: {
     color: ColorPalette.primary,
@@ -222,34 +151,34 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     textAlign: 'center',
   },
-  text: { fontSize: 16 },
-  input: {
-    width: '100%',
-    height: 50,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 10,
+  text: {
     fontSize: 16,
+    color: '#000',
+  },
+  imageContainer: {
+    flex: 1,
+    position: 'absolute',
+    top: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  image: {
+    width: 256,
+    height: 256,
+    marginVertical: 30,
+    resizeMode: 'contain',
   },
   progressContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  stepsContainer: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  stepsButtons: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  stepsButton: {
-    width: 40,
-    height: 40,
+  bottomContainer: {
+    flex: 1,
+    width: '90%',
+    position: 'absolute',
+    bottom: 0,
+    marginBottom: 25,
+    zIndex: 10,
   },
 });
