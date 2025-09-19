@@ -17,7 +17,9 @@ class Classification : public BaseModel {
 public:
   Classification(const std::string &modelSource,
                  std::shared_ptr<react::CallInvoker> callInvoker);
-  std::unordered_map<std::string_view, float> generate(std::string imageSource);
+  [[nodiscard("Registered non-void function")]] std::unordered_map<
+      std::string_view, float>
+  generate(std::string imageSource);
 
 private:
   std::unordered_map<std::string_view, float> postprocess(const Tensor &tensor);
