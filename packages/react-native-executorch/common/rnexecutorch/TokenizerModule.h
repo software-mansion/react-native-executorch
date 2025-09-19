@@ -11,11 +11,16 @@ class TokenizerModule {
 public:
   explicit TokenizerModule(std::string source,
                            std::shared_ptr<react::CallInvoker> callInvoker);
-  std::vector<int32_t> encode(std::string s) const;
-  std::string decode(std::vector<int32_t> vec, bool skipSpecialTokens) const;
-  std::string idToToken(int32_t tokenId) const;
-  int32_t tokenToId(std::string token) const;
-  std::size_t getVocabSize() const;
+  [[nodiscard("Registered non-void function")]] std::vector<int32_t>
+  encode(std::string s) const;
+  [[nodiscard("Registered non-void function")]] std::string
+  decode(std::vector<int32_t> vec, bool skipSpecialTokens) const;
+  [[nodiscard("Registered non-void function")]] std::string
+  idToToken(int32_t tokenId) const;
+  [[nodiscard("Registered non-void function")]] int32_t
+  tokenToId(std::string token) const;
+  [[nodiscard("Registered non-void function")]] std::size_t
+  getVocabSize() const;
   std::size_t getMemoryLowerBound() const noexcept;
 
 private:
