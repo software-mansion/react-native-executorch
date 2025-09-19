@@ -7,7 +7,10 @@ TypeScript API implementation of the [useTextToImage](../../02-hooks/02-computer
 ## Reference
 
 ```typescript
-import { TextToImageModule, BK_SDM_TINY_VPRED } from 'react-native-executorch';
+import {
+  TextToImageModule,
+  BK_SDM_TINY_VPRED_256,
+} from 'react-native-executorch';
 
 const input = 'a castle';
 
@@ -15,7 +18,7 @@ const input = 'a castle';
 const textToImageModule = new TextToImageModule();
 
 // Loading the model
-await textToImageModule.load(BK_SDM_TINY_VPRED);
+await textToImageModule.load(BK_SDM_TINY_VPRED_256);
 
 // Running the model
 const image = await textToImageModule.forward(input);

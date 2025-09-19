@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import Spinner from 'react-native-loading-spinner-overlay';
-import { useTextToImage, BK_SDM_TINY_VPRED } from 'react-native-executorch';
+import { useTextToImage, BK_SDM_TINY_VPRED_256 } from 'react-native-executorch';
 import { GeneratingContext } from '../../context';
 import ColorPalette from '../../colors';
 import ProgressBar from '../../components/ProgressBar';
@@ -22,9 +22,9 @@ export default function TextToImageScreen() {
   const [showTextInput, setShowTextInput] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
-  const imageSize = 352;
+  const imageSize = 224;
   const model = useTextToImage({
-    model: BK_SDM_TINY_VPRED,
+    model: BK_SDM_TINY_VPRED_256,
     inferenceCallback: (x) => setInferenceStepIdx(x),
   });
 
@@ -53,10 +53,7 @@ export default function TextToImageScreen() {
     setSteps(numSteps);
     try {
       const output = await model.generate(input, imageSize, steps);
-      console.log('Is output?', !!output);
-      console.log(output);
       if (!output.length) {
-        console.log('interrupted');
         setImageTitle(null);
         return;
       }
