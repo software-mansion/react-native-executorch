@@ -1,4 +1,4 @@
-import Spinner from 'react-native-loading-spinner-overlay';
+import Spinner from '../../components/Spinner';
 import { getImage } from '../../utils';
 import { useClassification, EFFICIENTNET_V2_S } from 'react-native-executorch';
 import { View, StyleSheet, Image, Text, ScrollView } from 'react-native';
