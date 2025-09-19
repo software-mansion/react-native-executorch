@@ -31,15 +31,11 @@ public:
     if constexpr (meta::DerivedFromOrSameAs<Model, models::BaseModel>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
-    }
 
-    if constexpr (meta::DerivedFromOrSameAs<Model, models::BaseModel>) {
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::forwardJS>,
                                        "forward"));
-    }
 
-    if constexpr (meta::DerivedFromOrSameAs<Model, models::BaseModel>) {
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>, promiseHostFunction<&Model::getInputShape>,
           "getInputShape"));
@@ -86,13 +82,6 @@ public:
     }
 
     if constexpr (meta::SameAs<Model, TokenizerModule>) {
-      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       promiseHostFunction<&Model::encode>,
-                                       "encode"));
-
-      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       promiseHostFunction<&Model::decode>,
-                                       "decode"));
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>, promiseHostFunction<&Model::getVocabSize>,
           "getVocabSize"));
@@ -105,10 +94,6 @@ public:
     }
 
     if constexpr (meta::SameAs<Model, models::llm::LLM>) {
-      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       promiseHostFunction<&Model::generate>,
-                                       "generate"));
-
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>, synchronousHostFunction<&Model::interrupt>,
           "interrupt"));
