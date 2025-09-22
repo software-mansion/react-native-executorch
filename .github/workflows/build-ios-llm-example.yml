@@ -41,12 +41,39 @@ jobs:
         run: |
           npm install -g @expo/cli
           echo "$(npm prefix -g)/bin" >> $GITHUB_PATH
+      - name: Cache Expo prebuild
+        uses: actions/cache@v4
+        with:
+          path: apps/llm/ios
+          key: ${{ runner.os }}-expo-ios-${{ hashFiles('apps/llm/app.json', 'apps/llm/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-expo-ios-
       - name: Generate native iOS project
         working-directory: apps/llm
-        run: npx expo prebuild --platform ios --no-install
+        run: |
+          if [ ! -d "ios" ]; then
+            npx expo prebuild --platform ios --no-install
+          else
+            echo "iOS project exists, skipping prebuild"
+          fi
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: |
+            apps/llm/ios/Pods
+            ~/Library/Caches/CocoaPods
+            ~/.cocoapods
+          key: ${{ runner.os }}-pods-${{ hashFiles('apps/llm/ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
       - name: Install CocoaPods dependencies
         working-directory: apps/llm/ios
-        run: pod install
+        run: |
+          if [ ! -d "Pods" ]; then
+            pod install
+          else
+            echo "Pods directory exists, skipping install"
+          fi
       - name: Build app
         working-directory: apps/llm/ios
         run: |
@@ -57,4 +84,7 @@ jobs:
             -configuration Debug \
             -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
             build \
-            CODE_SIGNING_ALLOWED=NO | xcbeautify
+            CODE_SIGNING_ALLOWED=NO \
+            -jobs $(sysctl -n hw.ncpu) \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            ONLY_ACTIVE_ARCH=YES | xcbeautify
