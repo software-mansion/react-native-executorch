@@ -82,3 +82,9 @@ title: Model Size
 | Model                       | XNNPACK [MB] |
 | --------------------------- | :----------: |
 | CLIP_VIT_BASE_PATCH32_IMAGE |     352      |
+
+## Text to Image
+
+| Model             | Text encoder (XNNPACK) [MB] | UNet (XNNPACK) [MB] | VAE decoder (XNNPACK) [MB] |
+| ----------------- | --------------------------- | ------------------- | -------------------------- |
+| BK_SDM_TINY_VPRED | 492                         | 1290                | 198                        |

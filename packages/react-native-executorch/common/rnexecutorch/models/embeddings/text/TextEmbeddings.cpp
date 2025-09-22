@@ -48,7 +48,6 @@ TextEmbeddings::generate(const std::string input) {
       attnMaskShape, preprocessed.attentionMask.data(), ScalarType::Long);
 
   auto forwardResult = BaseModel::forward({tokenIds, attnMask});
-
   if (!forwardResult.ok()) {
     throw std::runtime_error(
         "Function forward in TextEmbeddings failed with error code: " +
