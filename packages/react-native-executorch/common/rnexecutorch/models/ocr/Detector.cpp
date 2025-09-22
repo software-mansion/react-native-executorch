@@ -13,13 +13,8 @@ Detector::Detector(const std::string &modelSource,
         "Detector model seems to not take any input tensors.");
   }
   std::vector<int32_t> modelInputShape = inputShapes[0];
-  if (modelInputShape.size() < 2) {
-    throw std::runtime_error("Unexpected detector model input size, expected "
-                             "at least 2 dimensions but got: " +
-                             std::to_string(modelInputShape.size()) + ".");
-  }
-  modelImageSize = cv::Size(modelInputShape[modelInputShape.size() - 1],
-                            modelInputShape[modelInputShape.size() - 2]);
+  modelImageSize =
+      image_processing::getSizeOfImageFromTensorDims(modelInputShape);
 }
 
 cv::Size Detector::getModelImageSize() const noexcept { return modelImageSize; }
