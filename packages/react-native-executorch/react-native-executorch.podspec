@@ -72,9 +72,7 @@ Pod::Spec.new do |s|
     "HEADER_SEARCH_PATHS" =>
       '"$(PODS_TARGET_SRCROOT)/ios" '+
       '"$(PODS_TARGET_SRCROOT)/third-party/include" '+
-      '"$(PODS_TARGET_SRCROOT)/common" '+
-      '"$(PODS_TARGET_SRCROOT)/third-party/executorch/backends/xnnpack/third-party/pthreadpool/include" '+
-      '"$(PODS_TARGET_SRCROOT)/third-party/executorch/backends/xnnpack/third-party/cpuinfo/include" ',
+      '"$(PODS_TARGET_SRCROOT)/common" ',
     "CLANG_CXX_LANGUAGE_STANDARD" => "c++20",
     'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'x86_64',
   }
