@@ -6,14 +6,14 @@ on:
     paths:
       - '.github/workflows/build-ios-llm-example.yml'
       - '*.podspec'
-      - 'apps/llm/ios/**'
-      - 'apps/llm/package.json'
+      - 'apps/llm/**'
+      - 'packages/react-native-executorch/**'
   pull_request:
     paths:
       - '.github/workflows/build-ios-llm-example.yml'
       - '*.podspec'
-      - 'apps/llm/ios/**'
-      - 'apps/llm/package.json'
+      - 'apps/llm/**'
+      - 'packages/react-native-executorch/**'
   workflow_dispatch:
 jobs:
   build:
@@ -28,12 +28,20 @@ jobs:
           xcode-version: latest-stable
       - name: Check out Git repository
         uses: actions/checkout@v4
-      - name: Install node dependencies
+        with:
+          submodules: recursive
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'yarn'
+      - name: Install root dependencies
+        run: yarn install --immutable
+      - name: Install Expo CLI
+        run: npm install -g @expo/cli
+      - name: Generate native iOS project
         working-directory: apps/llm
-        run: yarn
-      - name: Install pods
-        working-directory: apps/llm/ios
-        run: pod install
+        run: expo run:ios --no-build-cache --no-install
       - name: Build app
         working-directory: apps/llm/ios
         run: |
