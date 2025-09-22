@@ -54,7 +54,6 @@ export default function TextToImageScreen() {
     try {
       const output = await model.generate(input, imageSize, steps);
       if (!output.length) {
-        setImageTitle(null);
         return;
       }
       setImage(output);
