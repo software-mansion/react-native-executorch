@@ -43,7 +43,10 @@ jobs:
           echo "$(npm prefix -g)/bin" >> $GITHUB_PATH
       - name: Generate native iOS project
         working-directory: apps/llm
-        run: npx expo run:ios --no-build-cache --no-install
+        run: npx expo prebuild --platform ios --no-install
+      - name: Install CocoaPods dependencies
+        working-directory: apps/llm/ios
+        run: pod install
       - name: Build app
         working-directory: apps/llm/ios
         run: |
