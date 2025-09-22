@@ -49,11 +49,13 @@ export default function TextToImageScreen() {
 
   const runForward = async (input: string, numSteps: number) => {
     if (!input || !input.trim()) return;
+    const prevImageTitle = imageTitle;
     setImageTitle(input);
     setSteps(numSteps);
     try {
       const output = await model.generate(input, imageSize, steps);
       if (!output.length) {
+        setImageTitle(prevImageTitle);
         return;
       }
       setImage(output);
@@ -66,6 +68,7 @@ export default function TextToImageScreen() {
   };
 
   if (!model.isReady) {
+    // TODO: Update when #614 merged
     return (
       <Spinner
         visible={!model.isReady}

@@ -425,27 +425,17 @@ export const CLIP_VIT_BASE_PATCH32_TEXT = {
 
 // Image generation
 export const BK_SDM_TINY_VPRED_512 = {
-  schedulerSource:
-    'https://huggingface.co/aszymanska/bk-sdm-tiny-vpred/resolve/main/scheduler/scheduler_config.json',
-  tokenizerSource:
-    'https://huggingface.co/aszymanska/bk-sdm-tiny-vpred/resolve/main/tokenizer/tokenizer.json',
-  encoderSource:
-    'https://huggingface.co/aszymanska/bk-sdm-tiny-vpred/resolve/main/text_encoder/model.pte',
-  unetSource:
-    'https://huggingface.co/aszymanska/bk-sdm-tiny-vpred/resolve/main/unet/model.pte',
-  decoderSource:
-    'https://huggingface.co/aszymanska/bk-sdm-tiny-vpred/resolve/main/vae/model.pte',
+  schedulerSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/scheduler/scheduler_config.json`,
+  tokenizerSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/tokenizer/tokenizer.json`,
+  encoderSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/text_encoder/model.pte`,
+  unetSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/unet/model.pte`,
+  decoderSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/vae/model.pte`,
 };
 
 export const BK_SDM_TINY_VPRED_256 = {
-  schedulerSource:
-    'https://huggingface.co/aszymanska/bk-sdm-tiny-vpred/resolve/main/scheduler/scheduler_config.json',
-  tokenizerSource:
-    'https://huggingface.co/aszymanska/bk-sdm-tiny-vpred/resolve/main/tokenizer/tokenizer.json',
-  encoderSource:
-    'https://huggingface.co/aszymanska/bk-sdm-tiny-vpred/resolve/main/text_encoder/model.pte',
-  unetSource:
-    'https://huggingface.co/aszymanska/bk-sdm-tiny-vpred/resolve/main/unet/model.256.pte',
-  decoderSource:
-    'https://huggingface.co/aszymanska/bk-sdm-tiny-vpred/resolve/main/vae/model.256.pte',
+  schedulerSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/scheduler/scheduler_config.json`,
+  tokenizerSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/tokenizer/tokenizer.json`,
+  encoderSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/text_encoder/model.pte`,
+  unetSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/unet/model.256.pte`,
+  decoderSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/vae/model.256.pte`,
 };
