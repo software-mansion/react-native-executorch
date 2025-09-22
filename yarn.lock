@@ -4228,6 +4228,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/pngjs@npm:^6.0.5":
+  version: 6.0.5
+  resolution: "@types/pngjs@npm:6.0.5"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10/132fce25817d47a784ed48aa678332521b0f7e6edbaa76f3fa4e9ca1228078788ae712f99ad4d1a324d9ba0b14829958677eabf3ebef1fb6e120816f433f0cd8
+  languageName: node
+  linkType: hard
+
 "@types/prop-types@npm:*":
   version: 15.7.14
   resolution: "@types/prop-types@npm:15.7.14"
@@ -5836,6 +5845,7 @@ __metadata:
     "@react-navigation/drawer": "npm:^7.4.1"
     "@react-navigation/native": "npm:^7.1.10"
     "@shopify/react-native-skia": "npm:v2.0.0-next.2"
+    "@types/pngjs": "npm:^6.0.5"
     "@types/react": "npm:~19.0.10"
     expo: "npm:^53.0.0"
     expo-constants: "npm:~17.1.6"
