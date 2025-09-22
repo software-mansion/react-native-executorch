@@ -99,25 +99,6 @@ set(TOKENIZERS_THIRD_PARTY_LIBS
 
 # --------------
 
-
-if (ReactAndroid_VERSION_MINOR GREATER_EQUAL 80)
-  include("${REACT_NATIVE_DIR}/ReactCommon/cmake-utils/react-native-flags.cmake")
-  target_compile_reactnative_options(react-native-executorch PRIVATE)
-  # The compiler options above specify -Wall, which is failing for us given we have a lot of warnings
-  target_compile_options(react-native-executorch PRIVATE -Wno-error)
-else()
-  target_compile_options(
-    react-native-executorch
-    PRIVATE
-    -O2
-    -frtti
-    -fexceptions
-    -fstack-protector-all
-)
-endif()
-
-# Set C-specific compile options for C files
-set_source_files_properties(${COMMON_C_SOURCES} PROPERTIES COMPILE_OPTIONS "-std=c17")
 target_link_options(react-native-executorch PRIVATE -fopenmp -static-openmp)
 
 target_link_libraries(
