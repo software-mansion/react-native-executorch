@@ -38,10 +38,12 @@ jobs:
       - name: Install root dependencies
         run: yarn install --immutable
       - name: Install Expo CLI
-        run: npm install -g @expo/cli
+        run: |
+          npm install -g @expo/cli
+          echo "$(npm prefix -g)/bin" >> $GITHUB_PATH
       - name: Generate native iOS project
         working-directory: apps/llm
-        run: expo run:ios --no-build-cache --no-install
+        run: npx expo run:ios --no-build-cache --no-install
       - name: Build app
         working-directory: apps/llm/ios
         run: |
