@@ -3,7 +3,9 @@ project(RnExecutorch)
 
 set (CMAKE_VERBOSE_MAKEFILE ON)
 set (CMAKE_CXX_STANDARD 20)
+set (CMAKE_C_STANDARD 17)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include("${REACT_NATIVE_DIR}/ReactAndroid/cmake-utils/folly-flags.cmake")
 add_compile_options(${folly_FLAGS})
 
