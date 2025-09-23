@@ -7,7 +7,7 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
-import Spinner from 'react-native-loading-spinner-overlay';
+import Spinner from '../../components/Spinner';
 import { useTextToImage, BK_SDM_TINY_VPRED_256 } from 'react-native-executorch';
 import { GeneratingContext } from '../../context';
 import ColorPalette from '../../colors';
