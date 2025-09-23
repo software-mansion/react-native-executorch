@@ -1,7 +1,9 @@
 #include "LLM.h"
 
+#include <atomic>
 #include <executorch/extension/tensor/tensor.h>
 #include <filesystem>
+#include <rnexecutorch/threads/GlobalThreadPool.h>
 
 namespace rnexecutorch::models::llm {
 using namespace facebook;
@@ -41,7 +43,23 @@ void LLM::generate(std::string input, std::shared_ptr<jsi::Function> callback) {
                              std::to_string(static_cast<int>(error)));
   }
 }
+// // Sequence counter to maintain callback order if needed
+//   auto sequenceCounter = std::make_shared<std::atomic<uint64_t>>(0);
 
+//   // Create a native callback that uses the thread pool for JS callback
+//   execution auto nativeCallback = [this, callback, sequenceCounter](const
+//   std::string &token) {
+//     // Get current sequence number
+//     uint64_t currentSeq = sequenceCounter->fetch_add(1);
+
+//     // Submit callback execution to thread pool
+//     threads::GlobalThreadPool::detach([this, callback, token, currentSeq]() {
+//       // Execute the JS callback via callInvoker on the JS thread
+//       callInvoker->invokeAsync([callback, token](jsi::Runtime &runtime) {
+//         callback->call(runtime, jsi::String::createFromUtf8(runtime, token));
+//       });
+//     });
+//   };
 void LLM::interrupt() {
   if (!runner || !runner->is_loaded()) {
     throw std::runtime_error("Can't interrupt a model that's not loaded!");

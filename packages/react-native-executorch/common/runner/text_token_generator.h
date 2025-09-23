@@ -11,6 +11,7 @@
 
 #include "stats.h"
 #include "text_decoder_runner.h"
+#include <chrono>
 #include <executorch/extension/tensor/tensor.h>
 #include <iostream>
 #include <tokenizers-cpp/tokenizers_cpp.h>
@@ -27,7 +28,7 @@ public:
                      Stats *stats)
       : tokenizer_(tokenizer), text_decoder_runner_(text_decoder_runner),
         eos_ids_(std::move(eos_ids)), use_kv_cache_(use_kv_cache),
-        stats_(stats) {}
+        stats_(stats), timestamp_(std::chrono::high_resolution_clock::now()) {}
 
   /**
    * Token generation loop.
@@ -109,9 +110,14 @@ public:
       token_cache.push_back(static_cast<int32_t>(cur_token));
       const std::string cache_decoded = tokenizer_->Decode(token_cache);
 
-      if (cache_decoded != "�" && cache_decoded != " �") {
+      if (!cache_decoded.ends_with("�") && !cache_decoded.ends_with(" �") &&
+          (token_cache.size() > 10 ||
+           std::chrono::duration_cast<std::chrono::milliseconds>(
+               std::chrono::high_resolution_clock::now() - timestamp_) >
+               interval_)) {
         token_callback(cache_decoded);
         token_cache.clear();
+        timestamp_ = std::chrono::high_resolution_clock::now();
       }
 
       if (should_stop_) {
@@ -138,6 +144,8 @@ private:
   TextDecoderRunner *text_decoder_runner_;
   std::unique_ptr<std::unordered_set<uint64_t>> eos_ids_;
   bool use_kv_cache_;
+  std::chrono::milliseconds interval_{120};
+  std::chrono::high_resolution_clock::time_point timestamp_;
 
   // state machine
   bool should_stop_ = false;
