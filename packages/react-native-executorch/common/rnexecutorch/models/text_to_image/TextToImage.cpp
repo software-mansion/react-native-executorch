@@ -62,7 +62,6 @@ TextToImage::generate(std::string input, int32_t imageSize,
   auto embeddingsTensor =
       make_tensor_ptr(embeddingsShape, embeddings.data(), ScalarType::Float);
 
-  constexpr int32_t latentDownsample = 8;
   int32_t latentsSize = numChannels * latentImageSize * latentImageSize;
   std::vector<float> latents(latentsSize);
   std::mt19937 gen(seed);
