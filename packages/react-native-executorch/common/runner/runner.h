@@ -45,6 +45,8 @@ public:
   ::executorch::runtime::Error warmup(const std::string &prompt);
   void stop();
 
+  ::executorch::extension::llm::Stats stats_;
+
 private:
   float temperature_;
   bool shouldStop_{false};
@@ -61,7 +63,6 @@ private:
       text_token_generator_;
 
   // stats
-  ::executorch::extension::llm::Stats stats_;
 };
 
 } // namespace example

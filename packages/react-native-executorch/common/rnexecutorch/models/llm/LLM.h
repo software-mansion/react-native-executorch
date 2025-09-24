@@ -21,7 +21,8 @@ public:
   void generate(std::string input, std::shared_ptr<jsi::Function> callback);
   void interrupt();
   void unload() noexcept;
-  std::size_t getMemoryLowerBound() const noexcept;
+  size_t getGeneratedTokenCount() const noexcept;
+  size_t getMemoryLowerBound() const noexcept;
 
 private:
   size_t memorySizeLowerBound;
