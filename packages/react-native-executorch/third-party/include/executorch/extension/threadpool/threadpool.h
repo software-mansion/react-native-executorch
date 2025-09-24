@@ -13,7 +13,7 @@
 #include <memory>
 #include <mutex>
 
-#include <pthreadpool.h>
+#include <pthreadpool/pthreadpool.h>
 
 namespace executorch::extension::threadpool {
 

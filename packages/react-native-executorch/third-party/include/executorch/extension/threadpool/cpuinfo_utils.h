@@ -9,7 +9,7 @@
 #pragma once
 #if defined(__ANDROID__) && defined(__aarch64__)
 
-#include <cpuinfo.h>
+#include <cpuinfo/cpuinfo.h>
 
 namespace executorch::extension::cpuinfo {
 
