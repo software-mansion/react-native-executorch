@@ -49,15 +49,13 @@ if(ANDROID_ABI STREQUAL "arm64-v8a")
   add_library(pthreadpool SHARED IMPORTED)
 
   set_target_properties(pthreadpool PROPERTIES
-                        IMPORTED_LOCATION "${LIBS_DIR}/pthreadpool/${ANDROID_ABI}/libpthreadpool.so"
-                        INTERFACE_INCLUDE_DIRECTORIES "${LIBS_DIR}/../../include/pthreadpool/")
+                        IMPORTED_LOCATION "${LIBS_DIR}/pthreadpool/${ANDROID_ABI}/libpthreadpool.so")
 
   # ------- cpuinfo -------
   add_library(cpuinfo SHARED IMPORTED)
 
   set_target_properties(cpuinfo PROPERTIES
-                        IMPORTED_LOCATION "${LIBS_DIR}/cpuinfo/${ANDROID_ABI}/libcpuinfo.so"
-                        INTERFACE_INCLUDE_DIRECTORIES "${LIBS_DIR}/../../include/cpuinfo/")
+                        IMPORTED_LOCATION "${LIBS_DIR}/cpuinfo/${ANDROID_ABI}/libcpuinfo.so")
   set(EXECUTORCH_LIBS
     "pthreadpool"
     "cpuinfo"
