@@ -40,6 +40,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@types/pngjs": "^6.0.5",
     "@types/react": "~19.0.10"
   },
   "private": true

@@ -14,4 +14,7 @@ set(COMMON_CPP_DIR "${CMAKE_SOURCE_DIR}/../common")
 set(LIBS_DIR "${CMAKE_SOURCE_DIR}/../third-party/android/libs")
 set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}/../third-party/include")
 
+# Treat third-party headers as system headers to suppress deprecation warnings
+include_directories(SYSTEM "${INCLUDE_DIR}")
+
 add_subdirectory("${ANDROID_CPP_DIR}")

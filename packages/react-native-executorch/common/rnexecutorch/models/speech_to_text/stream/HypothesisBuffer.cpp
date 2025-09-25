@@ -2,6 +2,8 @@
 
 namespace rnexecutorch::models::speech_to_text::stream {
 
+using namespace types;
+
 void HypothesisBuffer::insert(std::span<const Word> newWords, float offset) {
   this->fresh.clear();
   for (const auto &word : newWords) {

@@ -19,7 +19,7 @@ namespace executorch {
 namespace extension {
 namespace llm {
 
-class ET_EXPERIMENTAL TextTokenGenerator {
+class TextTokenGenerator {
 public:
   TextTokenGenerator(tokenizers::Tokenizer *tokenizer,
                      TextDecoderRunner *text_decoder_runner, bool use_kv_cache,
@@ -52,7 +52,6 @@ public:
 
     // Token after prefill
     uint64_t cur_token = tokens.back();
-    uint64_t prev_token;
     // cache to keep tokens if they were decoded into illegal character
     std::vector<int32_t> token_cache;
     // if first token after prefill was part of multi-token character we need to
@@ -88,8 +87,6 @@ public:
 
       ET_CHECK_OK_OR_RETURN_ERROR(logits_res.error());
       executorch::aten::Tensor &logits_tensor = logits_res.get();
-
-      prev_token = cur_token;
 
       stats_->on_sampling_begin();
       cur_token = text_decoder_runner_->logits_to_token(logits_tensor);

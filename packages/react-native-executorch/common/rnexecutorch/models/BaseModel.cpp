@@ -126,8 +126,8 @@ BaseModel::forwardJS(std::vector<JSTensorViewIn> tensorViewVec) {
     auto &outputTensor = outputs[i].toTensor();
     std::vector<int32_t> sizes = getTensorShape(outputTensor);
     size_t bufferSize = outputTensor.numel() * outputTensor.element_size();
-    auto buffer = std::make_shared<OwningArrayBuffer>(bufferSize);
-    std::memcpy(buffer->data(), outputTensor.const_data_ptr(), bufferSize);
+    auto buffer = std::make_shared<OwningArrayBuffer>(
+        outputTensor.const_data_ptr(), bufferSize);
     auto jsTensor = JSTensorViewOut(sizes, outputTensor.scalar_type(), buffer);
     output.emplace_back(jsTensor);
   }

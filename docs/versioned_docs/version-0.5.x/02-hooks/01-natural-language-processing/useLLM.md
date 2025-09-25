@@ -31,7 +31,7 @@ Lower-end devices might not be able to fit LLMs into memory. We recommend using 
 :::
 
 :::caution
-Given computational constraints, our architecture is designed to support only one instance of the model runner at the time. Consequently, this means you can have only one active component leveraging `useLLM` concurrently.
+Up to version 0.5.3, our architecture was designed to support only one instance of the model runner at a time. As a consequence, only one active component could leverage `useLLM` concurrently. Starting with version 0.5.3, this limitation has been removed
 :::
 
 ## Initializing
