@@ -63,7 +63,7 @@ To run the model, you can use the `forward` method on the module object. It acce
 - The `classesOfInterest` list contains classes for which to output the full results. By default the list is empty, and only the most probable classes are returned (essentially an arg max for each pixel). Look at `DeeplabLabel` enum for possible classes.
 - The `resize` flag says whether the output will be rescaled back to the size of the image you put in. The default is `false`. The model runs inference on a scaled (probably smaller) version of your image (224x224 for the `DEEPLAB_V3_RESNET50`). If you choose to resize, the output will be `number[]` of size `width * height` of your original image.
 
-:::caution
+:::warning
 Setting `resize` to true will make `forward` slower.
 :::
 
