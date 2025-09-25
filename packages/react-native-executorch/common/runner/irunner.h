@@ -21,7 +21,7 @@ namespace executorch {
 namespace extension {
 namespace llm {
 
-class ET_EXPERIMENTAL IRunner {
+class IRunner {
 public:
   virtual ~IRunner() = default;
 

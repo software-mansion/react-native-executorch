@@ -39,7 +39,6 @@ std::string loadBytesFromFile(const std::string &path) {
 
 namespace {
 static constexpr auto kEnableDynamicShape = "enable_dynamic_shape";
-static constexpr auto kBosId = "get_bos_id";
 static constexpr auto kEosIds = "get_eos_ids";
 static constexpr auto kMaxSeqLen = "get_max_seq_len";
 static constexpr auto kMaxContextLen = "get_max_context_len";
@@ -175,10 +174,7 @@ Error Runner::generate(const std::string &prompt,
   stats_.inference_start_ms = llm::time_in_ms();
   shouldStop_ = false;
 
-  // Set the sequence length to the max seq length if not provided
-  int32_t seq_len = (seq_len > 0 && seq_len <= metadata_.at(kMaxSeqLen))
-                        ? seq_len
-                        : metadata_.at(kMaxSeqLen);
+  int32_t seq_len = metadata_.at(kMaxSeqLen);
 
   std::vector<int32_t> prompt_tokens = tokenizer_->Encode(prompt);
   std::vector<uint64_t> prompt_tokens_uint64(prompt_tokens.begin(),
