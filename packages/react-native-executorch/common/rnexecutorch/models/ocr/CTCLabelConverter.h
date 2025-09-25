@@ -23,7 +23,7 @@ public:
                                         size_t length);
 
 private:
-  std::vector<std::string> character;
   int32_t ignoreIdx;
+  std::vector<std::string> character;
 };
 } // namespace rnexecutorch::models::ocr
