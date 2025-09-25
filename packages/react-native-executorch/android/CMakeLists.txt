@@ -13,7 +13,7 @@ if(ReactAndroid_VERSION_MINOR GREATER_EQUAL 80)
   include("${REACT_NATIVE_DIR}/ReactCommon/cmake-utils/react-native-flags.cmake")
   target_compile_reactnative_options(react-native-executorch PRIVATE)
 else()
-  string(APPEND CMAKE_CXX_FLAGS " -fexceptions -frtti -std=c++${CMAKE_CXX_STANDARD} -Wall")
+  string(APPEND CMAKE_CXX_FLAGS " -O2 -fstack-protector-all -fexceptions -frtti -std=c++${CMAKE_CXX_STANDARD} -Wall")
 endif()
 
 string(APPEND CMAKE_CXX_FLAGS " -DRCT_NEW_ARCH_ENABLED")
