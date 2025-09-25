@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 
 namespace rnexecutorch::models::voice_activity_detection::types {
 

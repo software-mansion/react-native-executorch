@@ -1,5 +1,4 @@
 #include "VoiceActivityDetection.h"
-#include "rnexecutorch/models/voice_activity_detection/Constants.h"
 #include "rnexecutorch/models/voice_activity_detection/Utils.h"
 
 #include <algorithm>
@@ -19,16 +18,9 @@ VoiceActivityDetection::VoiceActivityDetection(
     std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {}
 
-std::vector<types::Segment>
-VoiceActivityDetection::generate(std::span<float> waveform) const {
-  auto stridedInput = preprocess(waveform);
-}
-
 std::vector<std::array<float, kPaddedWindowSize>>
 VoiceActivityDetection::preprocess(std::span<float> waveform) const {
-  // change to auto if possible lol
-  std::array<float, kWindowSize> kHammingWindowArray =
-      utils::generateHammingWindow();
+  auto kHammingWindowArray = utils::generateHammingWindow();
 
   const size_t numFrames = (waveform.size() - kWindowSize) / kHopLength;
 
@@ -37,14 +29,25 @@ VoiceActivityDetection::preprocess(std::span<float> waveform) const {
 
   constexpr size_t totalPadding = kPaddedWindowSize - kWindowSize;
   constexpr size_t leftPadding = totalPadding / 2;
+  constexpr size_t rightPadding = totalPadding - leftPadding;
   for (size_t i = 0; i < numFrames; i++) {
 
-    auto windowView = waveform.subspan(i, kWindowSize);
+    auto windowView = waveform.subspan(i * kHopLength, kWindowSize);
     std::ranges::copy(windowView, frameBuffer[i].begin() + leftPadding);
+    auto frameView =
+        std::span{frameBuffer[i].data() + leftPadding, kWindowSize};
+    const float sum = std::accumulate(frameView.begin(), frameView.end(), 0.0f);
+    const float mean = sum / kWindowSize;
+    std::ranges::transform(frameView, frameView.begin(),
+                           [mean](float value) { return value - mean; });
 
-    std::ranges::transform(
-        frameBuffer[i] | std::views::drop(leftPadding), kHammingWindowArray,
-        frameBuffer[i].begin() + leftPadding, std::multiplies{});
+    // apply pre-emphasis filter
+    for (auto j = frameView.size() - 1; j > 0; --j) {
+      frameView[j] -= kPreemphasisCoeff * frameView[j - 1];
+    }
+    // apply hamming window to reduce spectral leakage
+    std::ranges::transform(frameView, kHammingWindowArray, frameView.begin(),
+                           std::multiplies{});
   }
   return frameBuffer;
 }
@@ -55,6 +58,7 @@ VoiceActivityDetection::generate(std::span<float> waveform) const {
   auto windowedInput = preprocess(waveform);
   auto [chunksNumber, remainder] = std::div(
       static_cast<int>(windowedInput.size()), static_cast<int>(kModelInputMax));
+  std::vector<float> scores(windowedInput.size());
   auto lastChunkSize = remainder;
   if (remainder < kModelInputMin) {
     auto paddingSize = kModelInputMin - remainder;
@@ -64,10 +68,8 @@ VoiceActivityDetection::generate(std::span<float> waveform) const {
   }
   TensorPtr inputTensor;
   size_t startIdx = 0;
-  std::span<std::array<float, kPaddedWindowSize>> chunk;
-  std::vector<float> scores(waveform.size());
 
-  for (size_t i = 0; i < chunksNumber - 1; i += 1) {
+  for (size_t i = 0; i < chunksNumber; i += 1) {
     std::span<std::array<float, kPaddedWindowSize>> chunk(
         windowedInput.data() + kModelInputMax * i, kModelInputMax);
     inputTensor = executorch::extension::from_blob(
@@ -84,10 +86,10 @@ VoiceActivityDetection::generate(std::span<float> waveform) const {
         tensor, tensor.size(2), tensor.size(1), scores, startIdx);
   }
 
-  std::span<std::array<float, kPaddedWindowSize>> chunk(
+  std::span<std::array<float, kPaddedWindowSize>> lastChunk(
       windowedInput.data() + kModelInputMax * chunksNumber, lastChunkSize);
   inputTensor = executorch::extension::from_blob(
-      chunk.data(), {kModelInputMax, kPaddedWindowSize},
+      lastChunk.data(), {kModelInputMax, kPaddedWindowSize},
       executorch::aten::ScalarType::Float);
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
@@ -98,14 +100,12 @@ VoiceActivityDetection::generate(std::span<float> waveform) const {
   auto tensor = forwardResult->at(0).toTensor();
   startIdx = utils::getNonSpeechClassProbabilites(tensor, tensor.size(2),
                                                   remainder, scores, startIdx);
-
   return postprocess(scores, kSpeechThreshold);
 }
 
 std::vector<types::Segment>
 VoiceActivityDetection::postprocess(const std::vector<float> &scores,
-                                    const float threshold) const {
-  // SCORES = [1 - SCORES]
+                                    float threshold) const {
   bool triggered = false;
   std::vector<types::Segment> speechSegments{};
   ssize_t startSegment = -1;
@@ -128,7 +128,7 @@ VoiceActivityDetection::postprocess(const std::vector<float> &scores,
         potentialStart = -1;
       }
     } else { // triggered
-      if (score >= threshold) {
+      if (score < threshold) {
         if (potentialEnd == -1) {
           potentialEnd = i;
         } else if (i - potentialEnd >= kMinSilenceDuration) {
@@ -142,9 +142,15 @@ VoiceActivityDetection::postprocess(const std::vector<float> &scores,
       }
     }
   }
+  if (triggered) {
+    endSegment = scores.size();
+    speechSegments.emplace_back(startSegment, endSegment);
+  }
 
   for (auto &[start, end] : speechSegments) {
-    start = std::max(start - kSpeechPad, 0UL) * kHopLength;
+    // std::max(start-kSpeedchPad, 0) might be underflow that is why we use ?
+    // operator.
+    start = (start > kSpeechPad ? start - kSpeechPad : 0) * kHopLength;
     end = std::min(end + kSpeechPad, scores.size()) * kHopLength;
   }
   return speechSegments;

@@ -408,8 +408,8 @@ getJsiValue(const std::vector<models::voice_activity_detection::types::Segment>
   for (size_t i = 0; i < speechSegments.size(); i++) {
     const auto &[start, end] = speechSegments[i];
     auto jsiSegmentObject = jsi::Object(runtime);
-    jsiSegmentObject.setProperty(runtime, "start", start);
-    jsiSegmentObject.setProperty(runtime, "end", end);
+    jsiSegmentObject.setProperty(runtime, "start", static_cast<int>(start));
+    jsiSegmentObject.setProperty(runtime, "end", static_cast<int>(end));
     jsiSegments.setValueAtIndex(runtime, i, jsiSegmentObject);
   }
   return jsiSegments;
