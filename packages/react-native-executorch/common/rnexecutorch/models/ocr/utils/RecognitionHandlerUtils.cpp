@@ -60,16 +60,19 @@ cv::Mat cropImage(types::DetectorBBox box, cv::Mat &image,
   cv::warpAffine(image, rotatedImage, rotationMatrix, image.size(),
                  cv::INTER_LINEAR);
 
-  cv::Mat rectMat(4, 2, CV_32FC2);
+  constexpr int32_t rows = 4;
+  constexpr int32_t cols = 2;
+  cv::Mat rectMat(rows, cols, CV_32FC2);
 #pragma unroll
-  for (int32_t i = 0; i < rectMat.rows; ++i) {
+  for (int32_t i = 0; i < rows; ++i) {
     rectMat.at<cv::Vec2f>(i, 0) = cv::Vec2f(rectPoints[i].x, rectPoints[i].y);
   }
   cv::transform(rectMat, rectMat, rotationMatrix);
 
-  std::vector<cv::Point2f> transformedPoints(4);
+  constexpr size_t transformedPointsSize = 4;
+  std::vector<cv::Point2f> transformedPoints(transformedPointsSize);
 #pragma unroll
-  for (std::size_t i = 0; i < transformedPoints.size(); ++i) {
+  for (std::size_t i = 0; i < transformedPointsSize; ++i) {
     cv::Vec2f point = rectMat.at<cv::Vec2f>(i, 0);
     transformedPoints[i] = cv::Point2f(point[0], point[1]);
   }

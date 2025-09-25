@@ -17,7 +17,7 @@ namespace executorch {
 namespace extension {
 namespace llm {
 
-class ET_EXPERIMENTAL TextPrefiller {
+class TextPrefiller {
 public:
   TextPrefiller(TextDecoderRunner *text_decoder_runner, bool use_kv_cache_,
                 bool enable_parallel_prefill);

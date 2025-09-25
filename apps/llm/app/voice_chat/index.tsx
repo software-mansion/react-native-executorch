@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import SWMIcon from '../../assets/icons/swm_icon.svg';
-import Spinner from 'react-native-loading-spinner-overlay';
+import Spinner from '../../components/Spinner';
 import {
   useSpeechToText,
   useLLM,

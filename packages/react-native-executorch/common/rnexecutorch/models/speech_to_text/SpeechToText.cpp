@@ -5,6 +5,9 @@
 namespace rnexecutorch::models::speech_to_text {
 
 using namespace ::executorch::extension;
+using namespace asr;
+using namespace types;
+using namespace stream;
 
 SpeechToText::SpeechToText(const std::string &encoderSource,
                            const std::string &decoderSource,
@@ -28,14 +31,14 @@ void SpeechToText::unload() noexcept {
 std::shared_ptr<OwningArrayBuffer>
 SpeechToText::encode(std::span<float> waveform) const {
   std::vector<float> encoderOutput = this->asr->encode(waveform);
-  return this->makeOwningBuffer(encoderOutput);
+  return std::make_shared<OwningArrayBuffer>(encoderOutput);
 }
 
 std::shared_ptr<OwningArrayBuffer>
 SpeechToText::decode(std::span<int32_t> tokens,
                      std::span<float> encoderOutput) const {
   std::vector<float> decoderOutput = this->asr->decode(tokens, encoderOutput);
-  return this->makeOwningBuffer(decoderOutput);
+  return std::make_shared<OwningArrayBuffer>(decoderOutput);
 }
 
 std::string SpeechToText::transcribe(std::span<float> waveform,
@@ -65,15 +68,6 @@ size_t SpeechToText::getMemoryLowerBound() const noexcept {
          this->decoder->getMemoryLowerBound();
 }
 
-std::shared_ptr<OwningArrayBuffer>
-SpeechToText::makeOwningBuffer(std::span<const float> vectorView) const {
-  auto owningArrayBuffer =
-      std::make_shared<OwningArrayBuffer>(vectorView.size_bytes());
-  std::memcpy(owningArrayBuffer->data(), vectorView.data(),
-              vectorView.size_bytes());
-  return owningArrayBuffer;
-}
-
 void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
                           std::string languageOption) {
   if (this->isStreaming) {
@@ -91,8 +85,6 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
         });
   };
 
-  this->resetStreamState();
-
   this->isStreaming = true;
   while (this->isStreaming) {
     if (!this->readyToProcess ||
@@ -108,14 +100,13 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
 
   std::string committed = this->processor->finish();
   nativeCallback(committed, "", true);
+
+  this->resetStreamState();
 }
 
 void SpeechToText::streamStop() { this->isStreaming = false; }
 
 void SpeechToText::streamInsert(std::span<float> waveform) {
-  if (!this->isStreaming) {
-    throw std::runtime_error("Streaming is not started");
-  }
   this->processor->insertAudioChunk(waveform);
   this->readyToProcess = true;
 }

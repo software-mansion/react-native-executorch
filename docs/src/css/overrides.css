@@ -161,9 +161,8 @@ table thead tr {
   }
 }
 
-/* TODO: Remove after @swmansion-t-rex-ui 0.0.10 patch */
-button[class*='DocSearch-Button'] {
-  margin: 0 !important;
+[class*='details'] + p {
+  margin-top: 1rem;
 }
 
 [class*='theme-doc-sidebar-item-category-level-'] {

@@ -20,7 +20,7 @@ namespace executorch {
 namespace extension {
 namespace llm {
 
-class ET_EXPERIMENTAL TextDecoderRunner {
+class TextDecoderRunner {
 public:
   TextDecoderRunner(Module *module, bool use_kv_cache, int32_t vocab_size,
                     float temperature);

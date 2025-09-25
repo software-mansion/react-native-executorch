@@ -8,15 +8,14 @@
 
 namespace rnexecutorch::models::speech_to_text::asr {
 
-using namespace types;
-
 class ASR {
 public:
   explicit ASR(const models::BaseModel *encoder,
                const models::BaseModel *decoder,
                const TokenizerModule *tokenizer);
-  std::vector<Segment> transcribe(std::span<const float> waveform,
-                                  const DecodingOptions &options) const;
+  std::vector<types::Segment>
+  transcribe(std::span<const float> waveform,
+             const types::DecodingOptions &options) const;
   std::vector<float> encode(std::span<const float> waveform) const;
   std::vector<float> decode(std::span<int32_t> tokens,
                             std::span<float> encoderOutput) const;
@@ -43,16 +42,18 @@ private:
   // Number of mel frames output by the encoder (derived from input spectrogram)
   constexpr static int32_t kNumFrames = 1500;
 
-  std::vector<int32_t> getInitialSequence(const DecodingOptions &options) const;
-  GenerationResult generate(std::span<const float> waveform, float temperature,
-                            const DecodingOptions &options) const;
-  std::vector<Segment>
+  std::vector<int32_t>
+  getInitialSequence(const types::DecodingOptions &options) const;
+  types::GenerationResult generate(std::span<const float> waveform,
+                                   float temperature,
+                                   const types::DecodingOptions &options) const;
+  std::vector<types::Segment>
   generateWithFallback(std::span<const float> waveform,
-                       const DecodingOptions &options) const;
-  std::vector<Segment>
+                       const types::DecodingOptions &options) const;
+  std::vector<types::Segment>
   calculateWordLevelTimestamps(std::span<const int32_t> tokens,
                                std::span<const float> waveform) const;
-  std::vector<Word>
+  std::vector<types::Word>
   estimateWordLevelTimestampsLinear(std::span<const int32_t> tokens,
                                     int32_t start, int32_t end) const;
   float getCompressionRatio(const std::string &text) const;
