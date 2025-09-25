@@ -1,9 +1,12 @@
 #include "Utils.h"
 
-namespace rnexecutorch::models::voice_activity_detection::utils {
+#include <numbers>
+#include <numeric>
 
-const std::array<float, constants::kWindowSize>
-generateHammingWindow() noexcept {
+namespace rnexecutorch::models::voice_activity_detection::utils {
+using namespace constants;
+
+const std::array<float, kWindowSize> generateHammingWindow() noexcept {
   constexpr size_t size = static_cast<size_t>(constants::kWindowSize);
   std::array<float, size> window;
   for (size_t i = 0; i < size; ++i) {
@@ -16,10 +19,9 @@ generateHammingWindow() noexcept {
 
 size_t getNonSpeechClassProbabilites(const executorch::aten::Tensor &tensor,
                                      size_t numClass, size_t size,
-                                     std::vector<float> resultVector,
+                                     std::vector<float> &resultVector,
                                      size_t startIdx) {
   auto rawData = static_cast<const float *>(tensor.const_data_ptr());
-  std::vector<float> scores(size);
   for (size_t i = 0; i < size; i++) {
     resultVector[startIdx + i] = rawData[numClass * i];
   }

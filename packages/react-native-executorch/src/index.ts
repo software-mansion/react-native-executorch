@@ -9,6 +9,7 @@ declare global {
   var loadExecutorchModule: (source: string) => any;
   var loadTokenizerModule: (source: string) => any;
   var loadImageEmbeddings: (source: string) => any;
+  var loadVAD: (source: string) => any;
   var loadTextEmbeddings: (modelSource: string, tokenizerSource: string) => any;
   var loadLLM: (modelSource: string, tokenizerSource: string) => any;
   var loadSpeechToText: (
@@ -41,6 +42,7 @@ if (
   global.loadTokenizerModule == null ||
   global.loadTextEmbeddings == null ||
   global.loadImageEmbeddings == null ||
+  global.loadVAD == null ||
   global.loadLLM == null ||
   global.loadSpeechToText == null ||
   global.loadOCR == null ||
@@ -67,6 +69,7 @@ export * from './hooks/natural_language_processing/useLLM';
 export * from './hooks/natural_language_processing/useSpeechToText';
 export * from './hooks/natural_language_processing/useTextEmbeddings';
 export * from './hooks/natural_language_processing/useTokenizer';
+export * from './hooks/natural_language_processing/useVAD';
 
 export * from './hooks/general/useExecutorchModule';
 
@@ -84,6 +87,7 @@ export * from './modules/natural_language_processing/LLMModule';
 export * from './modules/natural_language_processing/SpeechToTextModule';
 export * from './modules/natural_language_processing/TextEmbeddingsModule';
 export * from './modules/natural_language_processing/TokenizerModule';
+export * from './modules/natural_language_processing/VADModule';
 
 // utils
 export * from './utils/ResourceFetcher';
@@ -94,6 +98,7 @@ export * from './types/objectDetection';
 export * from './types/ocr';
 export * from './types/imageSegmentation';
 export * from './types/llm';
+export * from './types/vad';
 export * from './types/common';
 export {
   SpeechToTextLanguage,
