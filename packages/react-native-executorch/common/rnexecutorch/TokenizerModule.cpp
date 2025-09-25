@@ -8,9 +8,9 @@ using namespace facebook;
 
 TokenizerModule::TokenizerModule(
     std::string source, std::shared_ptr<react::CallInvoker> callInvoker)
-    : memorySizeLowerBound(std::filesystem::file_size(source)),
-      tokenizer(tokenizers::Tokenizer::FromBlobJSON(
-          file_utils::loadBytesFromFile(source))) {}
+    : tokenizer(tokenizers::Tokenizer::FromBlobJSON(
+          file_utils::loadBytesFromFile(source))),
+      memorySizeLowerBound(std::filesystem::file_size(source)) {}
 
 void TokenizerModule::ensureTokenizerLoaded(
     const std::string &methodName) const {

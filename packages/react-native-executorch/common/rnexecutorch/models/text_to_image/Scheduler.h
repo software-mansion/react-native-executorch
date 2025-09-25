@@ -30,7 +30,6 @@ private:
   std::vector<float> tempFirstSample;
   std::vector<std::vector<float>> ets;
   float finalAlphaCumprod{1.0f};
-  float initNoiseSigma{1.0f};
 
   size_t numInferenceSteps{0};
 

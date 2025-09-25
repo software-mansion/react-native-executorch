@@ -26,12 +26,12 @@ namespace extension {
 namespace llm {
 // A simple llama2 sampler.
 
-template <typename T> struct ET_EXPERIMENTAL ProbIndex {
+template <typename T> struct ProbIndex {
   T prob;
   int32_t index;
 }; // struct used when sorting probabilities during top-p sampling
 
-class ET_EXPERIMENTAL Sampler {
+class Sampler {
 public:
   Sampler(int32_t vocab_size, float temperature, float topp,
           unsigned long long rng_seed);
