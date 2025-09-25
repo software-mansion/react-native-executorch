@@ -30,7 +30,7 @@ React Native ExecuTorch supports a variety of LLMs (checkout our [HuggingFace re
 Lower-end devices might not be able to fit LLMs into memory. We recommend using quantized models to reduce the memory footprint.
 :::
 
-:::caution
+:::warning
 Up to version 0.5.3, our architecture was designed to support only one instance of the model runner at a time. As a consequence, only one active component could leverage `useLLM` concurrently. Starting with version 0.5.3, this limitation has been removed
 :::
 
@@ -190,7 +190,7 @@ Sometimes, you might want to stop the model while it’s generating. To do this,
 
 There are also cases when you need to check if tokens are being generated, such as to conditionally render a stop button. We’ve made this easy with the `isGenerating` property.
 
-:::caution
+:::warning
 If you try to dismount the component using this hook while generation is still going on, it will result in crash.
 You'll need to interrupt the model first and wait until `isGenerating` is set to false.
 :::

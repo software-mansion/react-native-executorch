@@ -2,7 +2,7 @@
 title: Inference Time
 ---
 
-:::warning warning
+:::warning
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
 :::
 
@@ -29,23 +29,23 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 
 ## OCR
 
-| Model                 | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | Samsung Galaxy S21 (XNNPACK) [ms] |
-| --------------------- | :--------------------------: | :------------------------------: | :------------------------: | :-------------------------------: | :-------------------------------: |
-| Detector (CRAFT_800)  |             2099             |               2227               |             ❌             |               2245                |               7108                |
-| Recognizer (CRNN_512) |              70              |               252                |             ❌             |                54                 |                151                |
-| Recognizer (CRNN_256) |              39              |               123                |             ❌             |                24                 |                78                 |
-| Recognizer (CRNN_128) |              17              |                83                |             ❌             |                14                 |                39                 |
+| Model                 | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) | Samsung Galaxy S24 (XNNPACK) [ms] | Samsung Galaxy S21 (XNNPACK) [ms] |
+| --------------------- | :--------------------------: | :------------------------------: | :-------------------: | :-------------------------------: | :-------------------------------: |
+| Detector (CRAFT_800)  |             2099             |               2227               |          ❌           |               2245                |               7108                |
+| Recognizer (CRNN_512) |              70              |               252                |          ❌           |                54                 |                151                |
+| Recognizer (CRNN_256) |              39              |               123                |          ❌           |                24                 |                78                 |
+| Recognizer (CRNN_128) |              17              |                83                |          ❌           |                14                 |                39                 |
 
 ❌ - Insufficient RAM.
 
 ## Vertical OCR
 
-| Model                 | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | Samsung Galaxy S21 (XNNPACK) [ms] |
-| --------------------- | :--------------------------: | :------------------------------: | :------------------------: | :-------------------------------: | :-------------------------------: |
-| Detector (CRAFT_1280) |             5457             |               5833               |             ❌             |               6296                |               14053               |
-| Detector (CRAFT_320)  |             1351             |               1460               |             ❌             |               1485                |               3101                |
-| Recognizer (CRNN_512) |              39              |               123                |             ❌             |                24                 |                78                 |
-| Recognizer (CRNN_64)  |              10              |                33                |             ❌             |                 7                 |                18                 |
+| Model                 | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) | Samsung Galaxy S24 (XNNPACK) [ms] | Samsung Galaxy S21 (XNNPACK) [ms] |
+| --------------------- | :--------------------------: | :------------------------------: | :-------------------: | :-------------------------------: | :-------------------------------: |
+| Detector (CRAFT_1280) |             5457             |               5833               |          ❌           |               6296                |               14053               |
+| Detector (CRAFT_320)  |             1351             |               1460               |          ❌           |               1485                |               3101                |
+| Recognizer (CRNN_512) |              39              |               123                |          ❌           |                24                 |                78                 |
+| Recognizer (CRNN_64)  |              10              |                33                |          ❌           |                 7                 |                18                 |
 
 ❌ - Insufficient RAM.
 
@@ -66,27 +66,27 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 
 Notice than for `Whisper` model which has to take as an input 30 seconds audio chunks (for shorter audio it is automatically padded with silence to 30 seconds) `fast` mode has the lowest latency (time from starting transcription to first token returned, caused by streaming algorithm), but the slowest speed. If you believe that this might be a problem for you, prefer `balanced` mode instead.
 
-| Model (mode)              | iPhone 16 Pro (XNNPACK) [latency \| tokens/s] | iPhone 14 Pro (XNNPACK) [latency \| tokens/s] | iPhone SE 3 (XNNPACK) [latency \| tokens/s] | Samsung Galaxy S24 (XNNPACK) [latency \| tokens/s] | OnePlus 12 (XNNPACK) [latency \| tokens/s] |
-| ------------------------- | :-------------------------------------------: | :-------------------------------------------: | :-----------------------------------------: | :------------------------------------------------: | :----------------------------------------: |
-| Whisper-tiny (fast)       |                2.8s \| 5.5t/s                 |                3.7s \| 4.4t/s                 |               4.4s \| 3.4t/s                |                   5.5s \| 3.1t/s                   |               5.3s \| 3.8t/s               |
-| Whisper-tiny (balanced)   |                5.6s \| 7.9t/s                 |                7.0s \| 6.3t/s                 |               8.3s \| 5.0t/s                |                   8.4s \| 6.7t/s                   |               7.7s \| 7.2t/s               |
-| Whisper-tiny (quality)    |                10.3s \| 8.3t/s                |                12.6s \| 6.8t/s                |               7.8s \| 8.9t/s                |                  13.5s \| 7.1t/s                   |              12.9s \| 7.5t/s               |
+| Model (mode)            | iPhone 16 Pro (XNNPACK) [latency \| tokens/s] | iPhone 14 Pro (XNNPACK) [latency \| tokens/s] | iPhone SE 3 (XNNPACK) [latency \| tokens/s] | Samsung Galaxy S24 (XNNPACK) [latency \| tokens/s] | OnePlus 12 (XNNPACK) [latency \| tokens/s] |
+| ----------------------- | :-------------------------------------------: | :-------------------------------------------: | :-----------------------------------------: | :------------------------------------------------: | :----------------------------------------: |
+| Whisper-tiny (fast)     |                2.8s \| 5.5t/s                 |                3.7s \| 4.4t/s                 |               4.4s \| 3.4t/s                |                   5.5s \| 3.1t/s                   |               5.3s \| 3.8t/s               |
+| Whisper-tiny (balanced) |                5.6s \| 7.9t/s                 |                7.0s \| 6.3t/s                 |               8.3s \| 5.0t/s                |                   8.4s \| 6.7t/s                   |               7.7s \| 7.2t/s               |
+| Whisper-tiny (quality)  |                10.3s \| 8.3t/s                |                12.6s \| 6.8t/s                |               7.8s \| 8.9t/s                |                  13.5s \| 7.1t/s                   |              12.9s \| 7.5t/s               |
 
 ### Encoding
 
 Average time for encoding audio of given length over 10 runs. For `Whisper` model we only list 30 sec audio chunks since `Whisper` does not accept other lengths (for shorter audio the audio needs to be padded to 30sec with silence).
 
-| Model                | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
-| -------------------- | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
-| Whisper-tiny (30s)   |             1034             |             1344             |            1269            |               2916                |           2143            |
+| Model              | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| ------------------ | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
+| Whisper-tiny (30s) |             1034             |             1344             |            1269            |               2916                |           2143            |
 
 ### Decoding
 
-Average time for decoding one token in sequence of 100 tokens, with encoding context is obtained from audio of noted length.
+Average time for decoding one token in sequence of 100 tokens, with encoding context obtained from audio of noted length.
 
-| Model                | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
-| -------------------- | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
-| Whisper-tiny (30s)   |            128.03            |            113.65            |           141.63           |               89.08               |           84.49           |
+| Model              | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| ------------------ | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
+| Whisper-tiny (30s) |            128.03            |            113.65            |           141.63           |               89.08               |           84.49           |
 
 ## Text Embeddings
 
@@ -111,3 +111,13 @@ Benchmark times for text embeddings are highly dependent on the sentence length.
 :::info
 Image embedding benchmark times are measured using 224×224 pixel images, as required by the model. All input images, whether larger or smaller, are resized to 224×224 before processing. Resizing is typically fast for small images but may be noticeably slower for very large images, which can increase total inference time.
 :::
+
+## Image Segmentation
+
+:::warning
+Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
+:::
+
+| Model             | iPhone 16 Pro (Core ML) [ms] | iPhone 14 Pro Max (Core ML) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] |
+| ----------------- | ---------------------------- | -------------------------------- | --------------------------------- |
+| DEELABV3_RESNET50 | 1000                         | 670                              | 700                               |
