@@ -2,7 +2,7 @@
 title: Inference Time
 ---
 
-:::warning warning
+:::warning
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
 :::
 
@@ -29,23 +29,23 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 
 ## OCR
 
-| Model                 | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | Samsung Galaxy S21 (XNNPACK) [ms] |
-| --------------------- | :--------------------------: | :------------------------------: | :------------------------: | :-------------------------------: | :-------------------------------: |
-| Detector (CRAFT_800)  |             2099             |               2227               |             ❌             |               2245                |               7108                |
-| Recognizer (CRNN_512) |              70              |               252                |             ❌             |                54                 |                151                |
-| Recognizer (CRNN_256) |              39              |               123                |             ❌             |                24                 |                78                 |
-| Recognizer (CRNN_128) |              17              |                83                |             ❌             |                14                 |                39                 |
+| Model                 | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) | Samsung Galaxy S24 (XNNPACK) [ms] | Samsung Galaxy S21 (XNNPACK) [ms] |
+| --------------------- | :--------------------------: | :------------------------------: | :-------------------: | :-------------------------------: | :-------------------------------: |
+| Detector (CRAFT_800)  |             2099             |               2227               |          ❌           |               2245                |               7108                |
+| Recognizer (CRNN_512) |              70              |               252                |          ❌           |                54                 |                151                |
+| Recognizer (CRNN_256) |              39              |               123                |          ❌           |                24                 |                78                 |
+| Recognizer (CRNN_128) |              17              |                83                |          ❌           |                14                 |                39                 |
 
 ❌ - Insufficient RAM.
 
 ## Vertical OCR
 
-| Model                 | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | Samsung Galaxy S21 (XNNPACK) [ms] |
-| --------------------- | :--------------------------: | :------------------------------: | :------------------------: | :-------------------------------: | :-------------------------------: |
-| Detector (CRAFT_1280) |             5457             |               5833               |             ❌             |               6296                |               14053               |
-| Detector (CRAFT_320)  |             1351             |               1460               |             ❌             |               1485                |               3101                |
-| Recognizer (CRNN_512) |              39              |               123                |             ❌             |                24                 |                78                 |
-| Recognizer (CRNN_64)  |              10              |                33                |             ❌             |                 7                 |                18                 |
+| Model                 | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) | Samsung Galaxy S24 (XNNPACK) [ms] | Samsung Galaxy S21 (XNNPACK) [ms] |
+| --------------------- | :--------------------------: | :------------------------------: | :-------------------: | :-------------------------------: | :-------------------------------: |
+| Detector (CRAFT_1280) |             5457             |               5833               |          ❌           |               6296                |               14053               |
+| Detector (CRAFT_320)  |             1351             |               1460               |          ❌           |               1485                |               3101                |
+| Recognizer (CRNN_512) |              39              |               123                |          ❌           |                24                 |                78                 |
+| Recognizer (CRNN_64)  |              10              |                33                |          ❌           |                 7                 |                18                 |
 
 ❌ - Insufficient RAM.
 
@@ -82,7 +82,7 @@ Average time for encoding audio of given length over 10 runs. For `Whisper` mode
 
 ### Decoding
 
-Average time for decoding one token in sequence of 100 tokens, with encoding context is obtained from audio of noted length.
+Average time for decoding one token in sequence of 100 tokens, with encoding context obtained from audio of noted length.
 
 | Model              | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
 | ------------------ | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
@@ -112,7 +112,17 @@ Benchmark times for text embeddings are highly dependent on the sentence length.
 Image embedding benchmark times are measured using 224×224 pixel images, as required by the model. All input images, whether larger or smaller, are resized to 224×224 before processing. Resizing is typically fast for small images but may be noticeably slower for very large images, which can increase total inference time.
 :::
 
-## Text to Image
+## Image Segmentation
+
+:::warning
+Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
+:::
+
+| Model             | iPhone 16 Pro (Core ML) [ms] | iPhone 14 Pro Max (Core ML) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] |
+| ----------------- | ---------------------------- | -------------------------------- | --------------------------------- |
+| DEELABV3_RESNET50 | 1000                         | 670                              | 700                               |
+
+## Text to image
 
 Average time for generating one image of size 256×256 in 10 inference steps.
 

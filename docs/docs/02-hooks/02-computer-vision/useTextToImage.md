@@ -9,7 +9,7 @@ Text-to-image is a process of generating images directly from a description in n
 <!-- Update links after uploading the model to Swm HuggingFace -->
 
 :::warning
-It is recommended to use models provided by us which are available at our Hugging Face repository, you can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
+It is recommended to use models provided by us which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/text-to-image-68d0edf50ae6d20b5f9076cd), you can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
 :::
 
 ## Reference

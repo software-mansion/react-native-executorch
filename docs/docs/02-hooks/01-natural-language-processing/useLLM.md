@@ -195,7 +195,7 @@ Sometimes, you might want to stop the model while it’s generating. To do this,
 
 There are also cases when you need to check if tokens are being generated, such as to conditionally render a stop button. We’ve made this easy with the `isGenerating` property.
 
-:::caution
+:::warning
 If you try to dismount the component using this hook while generation is still going on, it will result in crash.
 You'll need to interrupt the model first and wait until `isGenerating` is set to false.
 :::
