@@ -6,6 +6,9 @@ export interface LLMType {
   isGenerating: boolean;
   downloadProgress: number;
   error: string | null;
+  getGeneratedTokenCount: () => number;
+  setTimeInterval: (timeInterval: number) => void;
+  setCountInterval: (countInterval: number) => void;
   configure: ({
     chatConfig,
     toolsConfig,

@@ -23,6 +23,8 @@ public:
   void unload() noexcept;
   size_t getGeneratedTokenCount() const noexcept;
   size_t getMemoryLowerBound() const noexcept;
+  void setCountInterval(size_t countInterval);
+  void setTimeInterval(size_t timeInterval);
 
 private:
   size_t memorySizeLowerBound;

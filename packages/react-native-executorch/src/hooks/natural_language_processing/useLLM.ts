@@ -114,6 +114,22 @@ export const useLLM = ({
     [controllerInstance]
   );
 
+  const getGeneratedTokenCount = useCallback(
+    () => controllerInstance.getGeneratedTokenCount(),
+    [controllerInstance]
+  );
+
+  const setCountInterval = useCallback(
+    (countInterval: number) =>
+      controllerInstance.setCountInterval(countInterval),
+    [controllerInstance]
+  );
+
+  const setTimeInterval = useCallback(
+    (timeInterval: number) => controllerInstance.setTimeInterval(timeInterval),
+    [controllerInstance]
+  );
+
   return {
     messageHistory,
     response,
@@ -122,6 +138,9 @@ export const useLLM = ({
     isGenerating,
     downloadProgress,
     error,
+    getGeneratedTokenCount: getGeneratedTokenCount,
+    setTimeInterval: setTimeInterval,
+    setCountInterval: setCountInterval,
     configure: configure,
     generate: generate,
     sendMessage: sendMessage,

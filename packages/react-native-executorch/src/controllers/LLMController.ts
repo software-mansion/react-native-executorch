@@ -132,13 +132,23 @@ export class LLMController {
       this.nativeModule = global.loadLLM(modelPath, tokenizerPath);
       this.isReadyCallback(true);
       this.onToken = (data: string) => {
+        if (!data) {
+          return;
+        }
+
         if (
-          !data ||
-          (SPECIAL_TOKENS.EOS_TOKEN in this.tokenizerConfig &&
-            data === this.tokenizerConfig.eos_token) ||
-          (SPECIAL_TOKENS.PAD_TOKEN in this.tokenizerConfig &&
-            data === this.tokenizerConfig.pad_token)
+          SPECIAL_TOKENS.EOS_TOKEN in this.tokenizerConfig &&
+          data.indexOf(this.tokenizerConfig.eos_token) >= 0
         ) {
+          data = data.replaceAll(this.tokenizerConfig.eos_token, '');
+        }
+        if (
+          SPECIAL_TOKENS.PAD_TOKEN in this.tokenizerConfig &&
+          data.indexOf(this.tokenizerConfig.pad_token) >= 0
+        ) {
+          data = data.replaceAll(this.tokenizerConfig.pad_token, '');
+        }
+        if (data.length === 0) {
           return;
         }
 
@@ -204,6 +214,11 @@ export class LLMController {
 
   public interrupt() {
     this.nativeModule.interrupt();
+  }
+
+  public getGeneratedTokenCount(): number {
+    console.log('kappa', this.nativeModule);
+    return this.nativeModule.getGeneratedTokenCount();
   }
 
   public async generate(messages: Message[], tools?: LLMTool[]) {
@@ -301,5 +316,13 @@ export class LLMController {
       ...specialTokens,
     });
     return result;
+  }
+
+  public setCountInterval(countInteval: number) {
+    this.nativeModule.setCountInterval(countInteval);
+  }
+
+  public setTimeInterval(timeInteval: number) {
+    this.nativeModule.setTimeInterval(timeInteval);
   }
 }

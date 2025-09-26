@@ -271,4 +271,13 @@ void Runner::stop() {
     ET_LOG(Error, "Token generator is not loaded, cannot stop");
   }
 }
+
+void Runner::set_count_interval(size_t count_interval) {
+  text_token_generator_->set_count_interval(count_interval);
+}
+
+void Runner::set_time_interval(size_t time_interval) {
+  text_token_generator_->set_time_interval(time_interval);
+}
+
 } // namespace example

@@ -43,6 +43,8 @@ public:
                stats_callback = {},
            bool echo = true, bool warming = false);
   ::executorch::runtime::Error warmup(const std::string &prompt);
+  void set_count_interval(size_t count_interval);
+  void set_time_interval(size_t time_interval);
   void stop();
 
   ::executorch::extension::llm::Stats stats_;
@@ -61,8 +63,6 @@ private:
   std::unique_ptr<::executorch::extension::llm::TextPrefiller> text_prefiller_;
   std::unique_ptr<::executorch::extension::llm::TextTokenGenerator>
       text_token_generator_;
-
-  // stats
 };
 
 } // namespace example
