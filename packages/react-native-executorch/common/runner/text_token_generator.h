@@ -55,12 +55,8 @@ public:
     uint64_t cur_token = tokens.back();
     // cache to keep tokens if they were decoded into illegal character
     std::vector<int32_t> token_cache;
-    // if first token after prefill was part of multi-token character we need to
-    // add this to cache here
-    if (tokenizer_->Decode(
-            std::vector<int32_t>{static_cast<int32_t>(cur_token)}) == "�") {
-      token_cache.push_back(static_cast<int32_t>(cur_token));
-    }
+    // add first token after prefill to cache here
+    token_cache.push_back(static_cast<int32_t>(cur_token));
 
     if (use_kv_cache_) {
       // hard code these to size 1 as kv cache is locked to static size right
