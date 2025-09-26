@@ -51,6 +51,9 @@
       "bundleIdentifier": "com.anonymous.llm",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "This app needs access to your microphone to record audio."
+      },
+      "entitlements": {
+        "com.apple.developer.kernel.increased-memory-limit": true
       }
     },
     "android": {

@@ -87,6 +87,8 @@ lib/
 # React Native Codegen
 ios/generated
 android/generated
+apps/*/ios/
+apps/*/android/
 
 # custom
 *.tgz
