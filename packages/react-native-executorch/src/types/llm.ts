@@ -7,8 +7,6 @@ export interface LLMType {
   downloadProgress: number;
   error: string | null;
   getGeneratedTokenCount: () => number;
-  setTimeInterval: (timeInterval: number) => void;
-  setCountInterval: (countInterval: number) => void;
   configure: ({
     chatConfig,
     toolsConfig,
@@ -48,6 +46,11 @@ export interface ToolsConfig {
   tools: LLMTool[];
   executeToolCallback: (call: ToolCall) => Promise<string | null>;
   displayToolCalls?: boolean;
+}
+
+export interface GenerationConfig {
+  outputTokenBatchSize?: number;
+  batchTimeInterval?: number;
 }
 
 export const SPECIAL_TOKENS = {

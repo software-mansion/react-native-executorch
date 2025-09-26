@@ -6,6 +6,7 @@ import { DEFAULT_CHAT_CONFIG } from '../constants/llmDefaults';
 import { readAsStringAsync } from 'expo-file-system';
 import {
   ChatConfig,
+  GenerationConfig,
   LLMTool,
   Message,
   SPECIAL_TOKENS,
@@ -168,12 +169,21 @@ export class LLMController {
   public configure({
     chatConfig,
     toolsConfig,
+    generationConfig,
   }: {
     chatConfig?: Partial<ChatConfig>;
     toolsConfig?: ToolsConfig;
+    generationConfig?: GenerationConfig;
   }) {
     this.chatConfig = { ...DEFAULT_CHAT_CONFIG, ...chatConfig };
     this.toolsConfig = toolsConfig;
+
+    if (generationConfig?.outputTokenBatchSize) {
+      this.nativeModule.setCountInterval(generationConfig.outputTokenBatchSize);
+    }
+    if (generationConfig?.batchTimeInterval) {
+      this.nativeModule.setTimeInterval(generationConfig.batchTimeInterval);
+    }
 
     // reset inner state when loading new configuration
     this.responseCallback('');
@@ -217,7 +227,6 @@ export class LLMController {
   }
 
   public getGeneratedTokenCount(): number {
-    console.log('kappa', this.nativeModule);
     return this.nativeModule.getGeneratedTokenCount();
   }
 
@@ -316,13 +325,5 @@ export class LLMController {
       ...specialTokens,
     });
     return result;
-  }
-
-  public setCountInterval(countInteval: number) {
-    this.nativeModule.setCountInterval(countInteval);
-  }
-
-  public setTimeInterval(timeInteval: number) {
-    this.nativeModule.setTimeInterval(timeInteval);
   }
 }

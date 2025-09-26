@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ResourceSource } from '../../types/common';
 import {
   ChatConfig,
+  GenerationConfig,
   LLMTool,
   LLMType,
   Message,
@@ -81,10 +82,17 @@ export const useLLM = ({
     ({
       chatConfig,
       toolsConfig,
+      generationConfig,
     }: {
       chatConfig?: Partial<ChatConfig>;
       toolsConfig?: ToolsConfig;
-    }) => controllerInstance.configure({ chatConfig, toolsConfig }),
+      generationConfig?: GenerationConfig;
+    }) =>
+      controllerInstance.configure({
+        chatConfig,
+        toolsConfig,
+        generationConfig,
+      }),
     [controllerInstance]
   );
 
@@ -119,17 +127,6 @@ export const useLLM = ({
     [controllerInstance]
   );
 
-  const setCountInterval = useCallback(
-    (countInterval: number) =>
-      controllerInstance.setCountInterval(countInterval),
-    [controllerInstance]
-  );
-
-  const setTimeInterval = useCallback(
-    (timeInterval: number) => controllerInstance.setTimeInterval(timeInterval),
-    [controllerInstance]
-  );
-
   return {
     messageHistory,
     response,
@@ -139,8 +136,6 @@ export const useLLM = ({
     downloadProgress,
     error,
     getGeneratedTokenCount: getGeneratedTokenCount,
-    setTimeInterval: setTimeInterval,
-    setCountInterval: setCountInterval,
     configure: configure,
     generate: generate,
     sendMessage: sendMessage,
