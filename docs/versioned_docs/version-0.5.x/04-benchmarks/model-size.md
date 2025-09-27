@@ -82,3 +82,9 @@ title: Model Size
 | Model                       | XNNPACK [MB] |
 | --------------------------- | :----------: |
 | CLIP_VIT_BASE_PATCH32_IMAGE |     352      |
+
+## Image Segmentation
+
+| Model             | XNNPACK [MB] |
+| ----------------- | ------------ |
+| DEELABV3_RESNET50 | 168          |
