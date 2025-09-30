@@ -1,9 +1,19 @@
 .introductionContainer {
-  max-width: 996px;
+  max-width: 1280px;
   display: flex;
   flex-direction: column;
   margin-bottom: -8rem;
   gap: 4rem;
+}
+
+@media (max-width: 1280px) {
+  .introductionContainer {
+    max-width: 996px;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: -8rem;
+    gap: 4rem;
+  }
 }
 
 .introduction {

@@ -36,16 +36,26 @@ const ReactNativeExecutorchAction = () => {
           <div className={styles.imageInnerContainer}>
             <PrivateMind height="100%" width="100%" />
           </div>
-          <div style={{ display: 'flex', width: '100%' }}>
+          <div className={styles.downloadOuterContainer}>
             <div className={styles.downloadInnerContainer}>
               <div className={styles.appStore}>
-                <a href="https://apps.apple.com/app/private-mind/id6746713439">
-                  <AppStore height={'80px'} width={''} />
+                <a
+                  href="https://apps.apple.com/app/private-mind/id6746713439"
+                  className={styles.storeLink}
+                >
+                  <AppStore height={''} width={''} />
                 </a>
               </div>
               <div className={styles.playStore}>
-                <a href="https://play.google.com/store/apps/details?id=com.swmansion.privatemind">
-                  <PlayStore height={'120px'} width={''} />
+                <a
+                  href="https://play.google.com/store/apps/details?id=com.swmansion.privatemind"
+                  className={styles.storeLink}
+                >
+                  <PlayStore
+                    height={''}
+                    width={''}
+                    className={styles.payStoreSvg}
+                  />
                 </a>
               </div>
             </div>
