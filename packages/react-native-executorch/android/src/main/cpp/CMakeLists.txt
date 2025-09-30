@@ -1,11 +1,12 @@
 cmake_minimum_required(VERSION 3.13)
 
 file(GLOB_RECURSE ANDROID_CPP_SOURCES CONFIGURE_DEPENDS "${ANDROID_CPP_DIR}/*.cpp")
-file(GLOB_RECURSE COMMON_CPP_SOURCES CONFIGURE_DEPENDS "${COMMON_CPP_DIR}/*.cpp" "${COMMON_CPP_DIR}/*.c")
+file(GLOB_RECURSE COMMON_CPP_SOURCES CONFIGURE_DEPENDS "${COMMON_CPP_DIR}/*.cpp")
+file(GLOB_RECURSE COMMON_C_SOURCES CONFIGURE_DEPENDS "${COMMON_CPP_DIR}/*.c")
 file(GLOB_RECURSE TEST_CPP_SOURCES "${COMMON_CPP_DIR}/rnexecutorch/tests/*.cpp")
 list(REMOVE_ITEM COMMON_CPP_SOURCES ${TEST_CPP_SOURCES})
 
-add_library(react-native-executorch SHARED ${ANDROID_CPP_SOURCES} ${COMMON_CPP_SOURCES})
+add_library(react-native-executorch SHARED ${ANDROID_CPP_SOURCES} ${COMMON_CPP_SOURCES} ${COMMON_C_SOURCES})
 
 find_package(ReactAndroid REQUIRED CONFIG)
 find_package(fbjni REQUIRED CONFIG)
@@ -95,6 +96,8 @@ set(TOKENIZERS_THIRD_PARTY_LIBS
 )
 
 # --------------
+
+target_link_options(react-native-executorch PRIVATE -fopenmp -static-openmp)
 
 target_link_libraries(
   react-native-executorch
