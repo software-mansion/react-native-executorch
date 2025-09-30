@@ -89,7 +89,7 @@ VoiceActivityDetection::generate(std::span<float> waveform) const {
   std::span<std::array<float, kPaddedWindowSize>> lastChunk(
       windowedInput.data() + kModelInputMax * chunksNumber, lastChunkSize);
   inputTensor = executorch::extension::from_blob(
-      lastChunk.data(), {kModelInputMax, kPaddedWindowSize},
+      lastChunk.data(), {lastChunkSize, kPaddedWindowSize},
       executorch::aten::ScalarType::Float);
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
