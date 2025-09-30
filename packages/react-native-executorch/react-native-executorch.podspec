@@ -16,14 +16,6 @@ Pod::Spec.new do |s|
   et_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/ios/libs/executorch', __dir__)
   tokenizers_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/ios/libs/tokenizers-cpp', __dir__)
 
-  s.frameworks = [
-    'CoreML',
-    'Accelerate',
-    'Metal',
-    'MetalPerformanceShaders',
-    'MetalPerformanceShadersGraph'
-  ]
-
   pthreadpool_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/ios/libs/pthreadpool', __dir__)
   cpuinfo_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/ios/libs/cpuinfo', __dir__)
 
@@ -32,14 +24,6 @@ Pod::Spec.new do |s|
 
     "OTHER_LDFLAGS[sdk=iphoneos*]" => [
       '$(inherited)',
-      "-force_load \"#{et_binaries_path}\"/libbackend_coreml_ios.a",
-      "-force_load \"#{et_binaries_path}\"/libbackend_mps_ios.a",
-      "-force_load \"#{et_binaries_path}\"/libbackend_xnnpack_ios.a",
-      "-force_load \"#{et_binaries_path}\"/libexecutorch_ios.a",
-      "-force_load \"#{et_binaries_path}\"/libkernels_custom_ios.a",
-      "-force_load \"#{et_binaries_path}\"/libkernels_optimized_ios.a",
-      "-force_load \"#{et_binaries_path}\"/libkernels_quantized_ios.a",
-      "-force_load \"#{et_binaries_path}\"/libthreadpool_ios.a",
       "\"#{tokenizers_binaries_path}/physical-arm64-release/libtokenizers_cpp.a\"",
       "\"#{tokenizers_binaries_path}/physical-arm64-release/libsentencepiece.a\"",
       "\"#{tokenizers_binaries_path}/physical-arm64-release/libtokenizers_c.a\"",
@@ -49,14 +33,6 @@ Pod::Spec.new do |s|
 
     "OTHER_LDFLAGS[sdk=iphonesimulator*]" => [
       '$(inherited)',
-      "-force_load \"#{et_binaries_path}\"/libbackend_coreml_simulator.a",
-      "-force_load \"#{et_binaries_path}\"/libbackend_mps_simulator.a",
-      "-force_load \"#{et_binaries_path}\"/libbackend_xnnpack_simulator.a",
-      "-force_load \"#{et_binaries_path}\"/libexecutorch_simulator.a",
-      "-force_load \"#{et_binaries_path}\"/libkernels_custom_simulator.a",
-      "-force_load \"#{et_binaries_path}\"/libkernels_optimized_simulator.a",
-      "-force_load \"#{et_binaries_path}\"/libkernels_quantized_simulator.a",
-      "-force_load \"#{et_binaries_path}\"/libthreadpool_simulator.a",
       "\"#{tokenizers_binaries_path}/simulator-arm64-debug/libtokenizers_cpp.a\"",
       "\"#{tokenizers_binaries_path}/simulator-arm64-debug/libsentencepiece.a\"",
       "\"#{tokenizers_binaries_path}/simulator-arm64-debug/libtokenizers_c.a\"",
@@ -83,7 +59,7 @@ Pod::Spec.new do |s|
   ]
 
   s.libraries = "z"
-
+  s.ios.vendored_frameworks = "third-party/ios/ExecutorchLib.xcframework"
   # Exclude file with tests to not introduce gtest dependency.
   # Do not include the headers from common/rnexecutorch/jsi/ as source files.
   # Xcode/Cocoapods leaks them to other pods that an app also depends on, so if
@@ -100,7 +76,6 @@ Pod::Spec.new do |s|
   s.preserve_paths = "common/rnexecutorch/jsi/*.{h,hpp}"
 
   s.dependency "opencv-rne", "~> 4.11.0"
-  s.dependency "sqlite3"
 
   install_modules_dependencies(s)
 end
