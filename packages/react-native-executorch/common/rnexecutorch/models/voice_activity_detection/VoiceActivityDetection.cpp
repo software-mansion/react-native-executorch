@@ -1,4 +1,5 @@
 #include "VoiceActivityDetection.h"
+#include "rnexecutorch/data_processing/dsp.h"
 #include "rnexecutorch/models/voice_activity_detection/Utils.h"
 
 #include <algorithm>
@@ -10,6 +11,7 @@
 
 namespace rnexecutorch::models::voice_activity_detection {
 using namespace constants;
+namespace ranges = std::ranges;
 using executorch::aten::Tensor;
 using executorch::extension::TensorPtr;
 
@@ -20,7 +22,7 @@ VoiceActivityDetection::VoiceActivityDetection(
 
 std::vector<std::array<float, kPaddedWindowSize>>
 VoiceActivityDetection::preprocess(std::span<float> waveform) const {
-  auto kHammingWindowArray = utils::generateHammingWindow();
+  auto kHammingWindowArray = dsp::hannWindow(kWindowSize);
 
   const size_t numFrames = (waveform.size() - kWindowSize) / kHopLength;
 
@@ -29,25 +31,24 @@ VoiceActivityDetection::preprocess(std::span<float> waveform) const {
 
   constexpr size_t totalPadding = kPaddedWindowSize - kWindowSize;
   constexpr size_t leftPadding = totalPadding / 2;
-  constexpr size_t rightPadding = totalPadding - leftPadding;
   for (size_t i = 0; i < numFrames; i++) {
 
     auto windowView = waveform.subspan(i * kHopLength, kWindowSize);
-    std::ranges::copy(windowView, frameBuffer[i].begin() + leftPadding);
+    ranges::copy(windowView, frameBuffer[i].begin() + leftPadding);
     auto frameView =
         std::span{frameBuffer[i].data() + leftPadding, kWindowSize};
-    const float sum = std::accumulate(frameView.begin(), frameView.end(), 0.0f);
+    const float sum = std::reduce(frameView.begin(), frameView.end(), 0.0f);
     const float mean = sum / kWindowSize;
-    std::ranges::transform(frameView, frameView.begin(),
-                           [mean](float value) { return value - mean; });
+    ranges::transform(frameView, frameView.begin(),
+                      [mean](float value) { return value - mean; });
 
     // apply pre-emphasis filter
     for (auto j = frameView.size() - 1; j > 0; --j) {
       frameView[j] -= kPreemphasisCoeff * frameView[j - 1];
     }
     // apply hamming window to reduce spectral leakage
-    std::ranges::transform(frameView, kHammingWindowArray, frameView.begin(),
-                           std::multiplies{});
+    ranges::transform(frameView, kHammingWindowArray, frameView.begin(),
+                      std::multiplies{});
   }
   return frameBuffer;
 }
@@ -69,7 +70,7 @@ VoiceActivityDetection::generate(std::span<float> waveform) const {
   TensorPtr inputTensor;
   size_t startIdx = 0;
 
-  for (size_t i = 0; i < chunksNumber; i += 1) {
+  for (size_t i = 0; i < chunksNumber; i++) {
     std::span<std::array<float, kPaddedWindowSize>> chunk(
         windowedInput.data() + kModelInputMax * i, kModelInputMax);
     inputTensor = executorch::extension::from_blob(
@@ -153,6 +154,7 @@ VoiceActivityDetection::postprocess(const std::vector<float> &scores,
     start = (start > kSpeechPad ? start - kSpeechPad : 0) * kHopLength;
     end = std::min(end + kSpeechPad, scores.size()) * kHopLength;
   }
+
   return speechSegments;
 }
 

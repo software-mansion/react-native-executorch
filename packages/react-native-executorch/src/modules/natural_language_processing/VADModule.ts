@@ -19,7 +19,7 @@ export class VADModule extends BaseModule {
     this.nativeModule = global.loadVAD(paths[0] || '');
   }
 
-  async forward(waveform: Float32Array | number[]): Promise<Segment[]> {
+  async forward(waveform: Float32Array): Promise<Segment[]> {
     if (this.nativeModule == null)
       throw new Error(getError(ETError.ModuleNotLoaded));
     return await this.nativeModule.generate(waveform);
