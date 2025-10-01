@@ -83,6 +83,13 @@ elseif(ANDROID_ABI STREQUAL "x86_64")
   set(OPENCV_THIRD_PARTY_LIBS "")
 endif()
 
+# ------- tokenizers-cpp -------
+
+set(TOKENIZERS_LIBS
+  "${LIBS_DIR}/tokenizers-cpp/${ANDROID_ABI}/libtokenizers_c.a"
+  "${LIBS_DIR}/tokenizers-cpp/${ANDROID_ABI}/libtokenizers_cpp.a"
+  "${LIBS_DIR}/tokenizers-cpp/${ANDROID_ABI}/libsentencepiece.a"
+)
 # --------------
 
 target_link_libraries(
