@@ -1,7 +1,9 @@
 #include "LLM.h"
 
+#include <atomic>
 #include <executorch/extension/tensor/tensor.h>
 #include <filesystem>
+#include <rnexecutorch/threads/GlobalThreadPool.h>
 
 namespace rnexecutorch::models::llm {
 using namespace facebook;
@@ -49,8 +51,29 @@ void LLM::interrupt() {
   runner->stop();
 }
 
-std::size_t LLM::getMemoryLowerBound() const noexcept {
+size_t LLM::getGeneratedTokenCount() const noexcept {
+  if (!runner || !runner->is_loaded()) {
+    return 0;
+  }
+  return runner->stats_.num_generated_tokens;
+}
+
+size_t LLM::getMemoryLowerBound() const noexcept {
   return memorySizeLowerBound;
+}
+
+void LLM::setCountInterval(size_t countInterval) {
+  if (!runner || !runner->is_loaded()) {
+    throw std::runtime_error("Can't configure a model that's not loaded!");
+  }
+  runner->set_count_interval(countInterval);
+}
+
+void LLM::setTimeInterval(size_t timeInterval) {
+  if (!runner || !runner->is_loaded()) {
+    throw std::runtime_error("Can't configure a model that's not loaded!");
+  }
+  runner->set_time_interval(timeInterval);
 }
 
 void LLM::unload() noexcept { runner.reset(nullptr); }

@@ -11,6 +11,7 @@
 
 #include "stats.h"
 #include "text_decoder_runner.h"
+#include <chrono>
 #include <executorch/extension/tensor/tensor.h>
 #include <iostream>
 #include <tokenizers-cpp/tokenizers_cpp.h>
@@ -27,7 +28,7 @@ public:
                      Stats *stats)
       : tokenizer_(tokenizer), text_decoder_runner_(text_decoder_runner),
         eos_ids_(std::move(eos_ids)), use_kv_cache_(use_kv_cache),
-        stats_(stats) {}
+        stats_(stats), timestamp_(std::chrono::high_resolution_clock::now()) {}
 
   /**
    * Token generation loop.
@@ -55,12 +56,8 @@ public:
     uint64_t prev_token;
     // cache to keep tokens if they were decoded into illegal character
     std::vector<int32_t> token_cache;
-    // if first token after prefill was part of multi-token character we need to
-    // add this to cache here
-    if (tokenizer_->Decode(
-            std::vector<int32_t>{static_cast<int32_t>(cur_token)}) == "�") {
-      token_cache.push_back(static_cast<int32_t>(cur_token));
-    }
+    // add first token after prefill to cache here
+    token_cache.push_back(static_cast<int32_t>(cur_token));
 
     if (use_kv_cache_) {
       // hard code these to size 1 as kv cache is locked to static size right
@@ -79,7 +76,7 @@ public:
         from_blob(&pos, {1}, executorch::aten::ScalarType::Long);
 
     should_stop_ = false;
-
+    timestamp_ = std::chrono::high_resolution_clock::now();
     // Generate our tokens
     while (pos < seq_len - 1) {
       // Run the model
@@ -112,9 +109,19 @@ public:
       token_cache.push_back(static_cast<int32_t>(cur_token));
       const std::string cache_decoded = tokenizer_->Decode(token_cache);
 
-      if (cache_decoded != "�" && cache_decoded != " �") {
+      const auto timeIntervalElapsed =
+          std::chrono::duration_cast<std::chrono::milliseconds>(
+              std::chrono::high_resolution_clock::now() - timestamp_) >
+          time_interval_;
+      const auto countIntervalElapsed = token_cache.size() > count_interval_;
+      const auto eos_reached = eos_ids_->contains(cur_token);
+
+      if (!cache_decoded.ends_with("�") &&
+          (countIntervalElapsed || timeIntervalElapsed || should_stop_ ||
+           eos_reached)) {
         token_callback(cache_decoded);
         token_cache.clear();
+        timestamp_ = std::chrono::high_resolution_clock::now();
       }
 
       if (should_stop_) {
@@ -122,7 +129,7 @@ public:
       }
 
       // data-dependent terminating condition: we have n_eos_ number of EOS
-      if (eos_ids_->find(cur_token) != eos_ids_->end()) {
+      if (eos_reached) {
         printf("\n");
         ET_LOG(Info, "\nReached to the end of generation");
         break;
@@ -136,11 +143,22 @@ public:
    */
   inline void stop() { should_stop_ = true; }
 
+  void set_count_interval(size_t count_interval) {
+    count_interval_ = count_interval;
+  }
+
+  void set_time_interval(size_t time_interval) {
+    time_interval_ = std::chrono::milliseconds(time_interval);
+  }
+
 private:
   tokenizers::Tokenizer *tokenizer_;
   TextDecoderRunner *text_decoder_runner_;
   std::unique_ptr<std::unordered_set<uint64_t>> eos_ids_;
   bool use_kv_cache_;
+  size_t count_interval_{10};
+  std::chrono::milliseconds time_interval_{120};
+  std::chrono::high_resolution_clock::time_point timestamp_;
 
   // state machine
   bool should_stop_ = false;

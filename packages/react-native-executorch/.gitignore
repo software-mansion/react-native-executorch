@@ -1,1 +1,3 @@
 *.tsbuildinfo
+
+third-party/ios/ExecutorchLib/output

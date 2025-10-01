@@ -62,3 +62,17 @@ softmax
 logit
 logits
 probs
+unet
+Unet
+VPRED
+timesteps
+Timesteps
+denoises
+denoise
+denoising
+threadpool
+chrono
+setpriority
+errno
+ifdef
+elif

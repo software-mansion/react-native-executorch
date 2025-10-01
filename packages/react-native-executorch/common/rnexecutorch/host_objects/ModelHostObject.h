@@ -19,6 +19,7 @@
 #include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/ocr/OCR.h>
 #include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
+#include <rnexecutorch/threads/GlobalThreadPool.h>
 
 namespace rnexecutorch {
 
@@ -114,6 +115,19 @@ public:
           ModelHostObject<Model>, synchronousHostFunction<&Model::interrupt>,
           "interrupt"));
 
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>,
+          synchronousHostFunction<&Model::getGeneratedTokenCount>,
+          "getGeneratedTokenCount"));
+
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                              synchronousHostFunction<&Model::setCountInterval>,
+                              "setCountInterval"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>,
+          synchronousHostFunction<&Model::setTimeInterval>, "setTimeInterval"));
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }
@@ -195,58 +209,60 @@ public:
             // We need to dispatch a thread if we want the function to be
             // asynchronous. In this thread all accesses to jsi::Runtime need to
             // be done via the callInvoker.
-            std::thread([this, promise,
-                         argsConverted = std::move(argsConverted)]() {
-              try {
-                if constexpr (std::is_void_v<decltype(std::apply(
-                                  std::bind_front(FnPtr, model),
-                                  argsConverted))>) {
-                  // For void functions, just call the function and resolve with
-                  // undefined
-                  std::apply(std::bind_front(FnPtr, model),
-                             std::move(argsConverted));
-                  callInvoker->invokeAsync([promise](jsi::Runtime &runtime) {
-                    promise->resolve(jsi::Value::undefined());
-                  });
-                } else {
-                  // For non-void functions, capture the result and convert it
-                  auto result = std::apply(std::bind_front(FnPtr, model),
-                                           std::move(argsConverted));
-                  // The result is copied. It should either be quickly copiable,
-                  // or passed with a shared_ptr.
-                  callInvoker->invokeAsync(
-                      [promise, result](jsi::Runtime &runtime) {
-                        promise->resolve(jsi_conversion::getJsiValue(
-                            std::move(result), runtime));
-                      });
-                }
-              } catch (const std::runtime_error &e) {
-                // This catch should be merged with the next two
-                // (std::runtime_error and jsi::JSError inherits from
-                // std::exception) HOWEVER react native has broken RTTI which
-                // breaks proper exception type checking. Remove when the
-                // following change is present in our version:
-                // https://github.com/facebook/react-native/commit/3132cc88dd46f95898a756456bebeeb6c248f20e
-                callInvoker->invokeAsync([e = std::move(e), promise]() {
-                  promise->reject(e.what());
+            threads::GlobalThreadPool::detach(
+                [this, promise, argsConverted = std::move(argsConverted)]() {
+                  try {
+                    if constexpr (std::is_void_v<decltype(std::apply(
+                                      std::bind_front(FnPtr, model),
+                                      argsConverted))>) {
+                      // For void functions, just call the function and resolve
+                      // with undefined
+                      std::apply(std::bind_front(FnPtr, model),
+                                 std::move(argsConverted));
+                      callInvoker->invokeAsync(
+                          [promise](jsi::Runtime &runtime) {
+                            promise->resolve(jsi::Value::undefined());
+                          });
+                    } else {
+                      // For non-void functions, capture the result and convert
+                      // it
+                      auto result = std::apply(std::bind_front(FnPtr, model),
+                                               std::move(argsConverted));
+                      // The result is copied. It should either be quickly
+                      // copiable, or passed with a shared_ptr.
+                      callInvoker->invokeAsync(
+                          [promise, result](jsi::Runtime &runtime) {
+                            promise->resolve(jsi_conversion::getJsiValue(
+                                std::move(result), runtime));
+                          });
+                    }
+                  } catch (const std::runtime_error &e) {
+                    // This catch should be merged with the next two
+                    // (std::runtime_error and jsi::JSError inherits from
+                    // std::exception) HOWEVER react native has broken RTTI
+                    // which breaks proper exception type checking. Remove when
+                    // the following change is present in our version:
+                    // https://github.com/facebook/react-native/commit/3132cc88dd46f95898a756456bebeeb6c248f20e
+                    callInvoker->invokeAsync([e = std::move(e), promise]() {
+                      promise->reject(e.what());
+                    });
+                    return;
+                  } catch (const jsi::JSError &e) {
+                    callInvoker->invokeAsync([e = std::move(e), promise]() {
+                      promise->reject(e.what());
+                    });
+                    return;
+                  } catch (const std::exception &e) {
+                    callInvoker->invokeAsync([e = std::move(e), promise]() {
+                      promise->reject(e.what());
+                    });
+                    return;
+                  } catch (...) {
+                    callInvoker->invokeAsync(
+                        [promise]() { promise->reject("Unknown error"); });
+                    return;
+                  }
                 });
-                return;
-              } catch (const jsi::JSError &e) {
-                callInvoker->invokeAsync([e = std::move(e), promise]() {
-                  promise->reject(e.what());
-                });
-                return;
-              } catch (const std::exception &e) {
-                callInvoker->invokeAsync([e = std::move(e), promise]() {
-                  promise->reject(e.what());
-                });
-                return;
-              } catch (...) {
-                callInvoker->invokeAsync(
-                    [promise]() { promise->reject("Unknown error"); });
-                return;
-              }
-            }).detach();
           } catch (...) {
             promise->reject("Couldn't parse JS arguments in a native function");
           }
