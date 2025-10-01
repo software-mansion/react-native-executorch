@@ -6,6 +6,7 @@ import { DEFAULT_CHAT_CONFIG } from '../constants/llmDefaults';
 import { readAsStringAsync } from 'expo-file-system';
 import {
   ChatConfig,
+  GenerationConfig,
   LLMTool,
   Message,
   SPECIAL_TOKENS,
@@ -132,13 +133,23 @@ export class LLMController {
       this.nativeModule = global.loadLLM(modelPath, tokenizerPath);
       this.isReadyCallback(true);
       this.onToken = (data: string) => {
+        if (!data) {
+          return;
+        }
+
         if (
-          !data ||
-          (SPECIAL_TOKENS.EOS_TOKEN in this.tokenizerConfig &&
-            data === this.tokenizerConfig.eos_token) ||
-          (SPECIAL_TOKENS.PAD_TOKEN in this.tokenizerConfig &&
-            data === this.tokenizerConfig.pad_token)
+          SPECIAL_TOKENS.EOS_TOKEN in this.tokenizerConfig &&
+          data.indexOf(this.tokenizerConfig.eos_token) >= 0
         ) {
+          data = data.replaceAll(this.tokenizerConfig.eos_token, '');
+        }
+        if (
+          SPECIAL_TOKENS.PAD_TOKEN in this.tokenizerConfig &&
+          data.indexOf(this.tokenizerConfig.pad_token) >= 0
+        ) {
+          data = data.replaceAll(this.tokenizerConfig.pad_token, '');
+        }
+        if (data.length === 0) {
           return;
         }
 
@@ -158,12 +169,21 @@ export class LLMController {
   public configure({
     chatConfig,
     toolsConfig,
+    generationConfig,
   }: {
     chatConfig?: Partial<ChatConfig>;
     toolsConfig?: ToolsConfig;
+    generationConfig?: GenerationConfig;
   }) {
     this.chatConfig = { ...DEFAULT_CHAT_CONFIG, ...chatConfig };
     this.toolsConfig = toolsConfig;
+
+    if (generationConfig?.outputTokenBatchSize) {
+      this.nativeModule.setCountInterval(generationConfig.outputTokenBatchSize);
+    }
+    if (generationConfig?.batchTimeInterval) {
+      this.nativeModule.setTimeInterval(generationConfig.batchTimeInterval);
+    }
 
     // reset inner state when loading new configuration
     this.responseCallback('');
@@ -204,6 +224,10 @@ export class LLMController {
 
   public interrupt() {
     this.nativeModule.interrupt();
+  }
+
+  public getGeneratedTokenCount(): number {
+    return this.nativeModule.getGeneratedTokenCount();
   }
 
   public async generate(messages: Message[], tools?: LLMTool[]) {
