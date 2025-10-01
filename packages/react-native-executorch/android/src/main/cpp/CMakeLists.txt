@@ -89,12 +89,8 @@ endif()
 set(TOKENIZERS_LIBS
   "${LIBS_DIR}/tokenizers-cpp/${ANDROID_ABI}/libtokenizers_c.a"
   "${LIBS_DIR}/tokenizers-cpp/${ANDROID_ABI}/libtokenizers_cpp.a"
+  "${LIBS_DIR}/tokenizers-cpp/${ANDROID_ABI}/libsentencepiece.a"
 )
-
-set(TOKENIZERS_THIRD_PARTY_LIBS
-  "${LIBS_DIR}/sentencepiece/${ANDROID_ABI}/libsentencepiece.a"
-)
-
 # --------------
 
 target_link_options(react-native-executorch PRIVATE -fopenmp -static-openmp)
