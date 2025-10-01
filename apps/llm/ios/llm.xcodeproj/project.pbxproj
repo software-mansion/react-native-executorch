@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0064517258769CC2AD16763F /* libPods-llm.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FCA4A9AE0011869427989B32 /* libPods-llm.a */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		17A36B91F59AA249EC3CBA5B /* libPods-llm.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B3B9A534BAF75106A33CD15 /* libPods-llm.a */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
 		5BF945B85D1D224F6EA71C77 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B79E360E00239D910BF9B38D /* PrivacyInfo.xcprivacy */; };
 		9A387428F0214E9D9C1DC3F5 /* Aeonik-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = F866B7979FB94C8797EE2E3D /* Aeonik-Regular.otf */; };
@@ -22,7 +23,13 @@
 		13B07F961A680F5B00A75B9A /* llm.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = llm.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = llm/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = llm/Info.plist; sourceTree = "<group>"; };
+<<<<<<< HEAD
 		56D7DF5DF56EAD2FAE3ADDBF /* Pods-llm.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-llm.debug.xcconfig"; path = "Target Support Files/Pods-llm/Pods-llm.debug.xcconfig"; sourceTree = "<group>"; };
+=======
+		1C13F4C8CCA7B641EDCEA802 /* Pods-llm.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-llm.release.xcconfig"; path = "Target Support Files/Pods-llm/Pods-llm.release.xcconfig"; sourceTree = "<group>"; };
+		5B3B9A534BAF75106A33CD15 /* libPods-llm.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-llm.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		88496D8737DE09B515354EED /* Pods-llm.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-llm.debug.xcconfig"; path = "Target Support Files/Pods-llm/Pods-llm.debug.xcconfig"; sourceTree = "<group>"; };
+>>>>>>> e204ff30 (feat(ios): Migrate executorch to prebuilt XCFramework (#629))
 		8CD8BF58A368F789F1E7DF50 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-llm/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = llm/SplashScreen.storyboard; sourceTree = "<group>"; };
 		B79E360E00239D910BF9B38D /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = llm/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -31,7 +38,6 @@
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = llm/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* llm-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "llm-Bridging-Header.h"; path = "llm/llm-Bridging-Header.h"; sourceTree = "<group>"; };
-		F5CE0775ADE5923FA417B603 /* libPods-llm.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-llm.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F866B7979FB94C8797EE2E3D /* Aeonik-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Aeonik-Regular.otf"; path = "../assets/fonts/Aeonik-Regular.otf"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -40,7 +46,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+<<<<<<< HEAD
 				0064517258769CC2AD16763F /* libPods-llm.a in Frameworks */,
+=======
+				17A36B91F59AA249EC3CBA5B /* libPods-llm.a in Frameworks */,
+>>>>>>> e204ff30 (feat(ios): Migrate executorch to prebuilt XCFramework (#629))
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -90,7 +100,11 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
+<<<<<<< HEAD
 				FCA4A9AE0011869427989B32 /* libPods-llm.a */,
+=======
+				5B3B9A534BAF75106A33CD15 /* libPods-llm.a */,
+>>>>>>> e204ff30 (feat(ios): Migrate executorch to prebuilt XCFramework (#629))
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -98,8 +112,8 @@
 		3014A6CAF64EC97E4003A2A3 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				4F489A14802F01369BFDDEFD /* Pods-llm.debug.xcconfig */,
-				63C842393C3838DA2ECEFC7C /* Pods-llm.release.xcconfig */,
+				88496D8737DE09B515354EED /* Pods-llm.debug.xcconfig */,
+				1C13F4C8CCA7B641EDCEA802 /* Pods-llm.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -160,14 +174,23 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "llm" */;
 			buildPhases = (
+<<<<<<< HEAD
 				DE51561DFA0B7F5BB664350B /* [CP] Check Pods Manifest.lock */,
+=======
+				D84A76355ECD908C8FB22A4F /* [CP] Check Pods Manifest.lock */,
+>>>>>>> e204ff30 (feat(ios): Migrate executorch to prebuilt XCFramework (#629))
 				281D8603161F8B331E2BA335 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
+<<<<<<< HEAD
 				96ABF7A87CEE57D5C4479DBC /* [CP] Embed Pods Frameworks */,
 				E0CDBD4D0993974173A0E9FD /* [CP] Copy Pods Resources */,
+=======
+				A2B57F542CA8F59AACC145C9 /* [CP] Embed Pods Frameworks */,
+				DDB198386A53904071F2DCB8 /* [CP] Copy Pods Resources */,
+>>>>>>> e204ff30 (feat(ios): Migrate executorch to prebuilt XCFramework (#629))
 			);
 			buildRules = (
 			);
@@ -260,25 +283,51 @@
 			shellPath = /bin/sh;
 			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-llm/expo-configure-project.sh\"\n";
 		};
+<<<<<<< HEAD
 		96ABF7A87CEE57D5C4479DBC /* [CP] Embed Pods Frameworks */ = {
+=======
+		A2B57F542CA8F59AACC145C9 /* [CP] Embed Pods Frameworks */ = {
+>>>>>>> e204ff30 (feat(ios): Migrate executorch to prebuilt XCFramework (#629))
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-llm/Pods-llm-frameworks.sh",
+<<<<<<< HEAD
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
+=======
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/RNAudioAPI/libavcodec.framework/libavcodec",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/RNAudioAPI/libavformat.framework/libavformat",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/RNAudioAPI/libavutil.framework/libavutil",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/RNAudioAPI/libswresample.framework/libswresample",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/react-native-executorch/ExecutorchLib.framework/ExecutorchLib",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/libavcodec.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/libavformat.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/libavutil.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/libswresample.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ExecutorchLib.framework",
+>>>>>>> e204ff30 (feat(ios): Migrate executorch to prebuilt XCFramework (#629))
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-llm/Pods-llm-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
+<<<<<<< HEAD
 		DE51561DFA0B7F5BB664350B /* [CP] Check Pods Manifest.lock */ = {
+=======
+		D84A76355ECD908C8FB22A4F /* [CP] Check Pods Manifest.lock */ = {
+>>>>>>> e204ff30 (feat(ios): Migrate executorch to prebuilt XCFramework (#629))
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -300,52 +349,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		281D8603161F8B331E2BA335 /* [Expo] Configure project */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "[Expo] Configure project";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-llm/expo-configure-project.sh\"\n";
-		};
-		62055444ECB4CA2743E68CDC /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-llm/Pods-llm-frameworks.sh",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/RNAudioAPI/libavcodec.framework/libavcodec",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/RNAudioAPI/libavformat.framework/libavformat",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/RNAudioAPI/libavutil.framework/libavutil",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/RNAudioAPI/libswresample.framework/libswresample",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/libavcodec.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/libavformat.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/libavutil.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/libswresample.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-llm/Pods-llm-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
+		DDB198386A53904071F2DCB8 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -398,7 +402,11 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
+<<<<<<< HEAD
 			baseConfigurationReference = 56D7DF5DF56EAD2FAE3ADDBF /* Pods-llm.debug.xcconfig */;
+=======
+			baseConfigurationReference = 88496D8737DE09B515354EED /* Pods-llm.debug.xcconfig */;
+>>>>>>> e204ff30 (feat(ios): Migrate executorch to prebuilt XCFramework (#629))
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -435,7 +443,11 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
+<<<<<<< HEAD
 			baseConfigurationReference = EA4529BE680FEB0AB7539557 /* Pods-llm.release.xcconfig */;
+=======
+			baseConfigurationReference = 1C13F4C8CCA7B641EDCEA802 /* Pods-llm.release.xcconfig */;
+>>>>>>> e204ff30 (feat(ios): Migrate executorch to prebuilt XCFramework (#629))
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;

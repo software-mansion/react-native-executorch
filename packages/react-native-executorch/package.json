@@ -17,6 +17,8 @@
     "*.podspec",
     "third-party/include",
     "third-party",
+    "!third-party/ios/ExecutorchLib",
+    "!ios/libs/executorch",
     "!ios/build",
     "!android/build",
     "!android/gradle",

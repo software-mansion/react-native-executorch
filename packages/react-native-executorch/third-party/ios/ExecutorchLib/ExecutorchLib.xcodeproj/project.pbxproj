@@ -1,0 +1,487 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0E4A7F472D67549100D8DCBA /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E4A7F442D67549100D8DCBA /* Metal.framework */; };
+		0E4A7F482D67549100D8DCBA /* MetalPerformanceShaders.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E4A7F452D67549100D8DCBA /* MetalPerformanceShaders.framework */; };
+		0E4A7F492D67549100D8DCBA /* MetalPerformanceShadersGraph.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E4A7F462D67549100D8DCBA /* MetalPerformanceShadersGraph.framework */; };
+		5576B4B92CEF970E005027B7 /* ETModel.mm in Sources */ = {isa = PBXBuildFile; fileRef = 5576B4B82CEF970C005027B7 /* ETModel.mm */; };
+		55EA2C572CB90E7D004315B3 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C562CB90E7D004315B3 /* Accelerate.framework */; };
+		55EA2C592CB90E80004315B3 /* CoreML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C582CB90E80004315B3 /* CoreML.framework */; };
+		55EA2C5B2CB90E85004315B3 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C5A2CB90E85004315B3 /* libsqlite3.tbd */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0E4A7F442D67549100D8DCBA /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
+		0E4A7F452D67549100D8DCBA /* MetalPerformanceShaders.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalPerformanceShaders.framework; path = System/Library/Frameworks/MetalPerformanceShaders.framework; sourceTree = SDKROOT; };
+		0E4A7F462D67549100D8DCBA /* MetalPerformanceShadersGraph.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalPerformanceShadersGraph.framework; path = System/Library/Frameworks/MetalPerformanceShadersGraph.framework; sourceTree = SDKROOT; };
+		5576B4B62CEF9705005027B7 /* ETModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ETModel.h; sourceTree = "<group>"; };
+		5576B4B82CEF970C005027B7 /* ETModel.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ETModel.mm; sourceTree = "<group>"; };
+		55EA2C1C2CB90C22004315B3 /* ExecutorchLib.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ExecutorchLib.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		55EA2C562CB90E7D004315B3 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
+		55EA2C582CB90E80004315B3 /* CoreML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreML.framework; path = System/Library/Frameworks/CoreML.framework; sourceTree = SDKROOT; };
+		55EA2C5A2CB90E85004315B3 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		55EA2C192CB90C22004315B3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0E4A7F472D67549100D8DCBA /* Metal.framework in Frameworks */,
+				0E4A7F482D67549100D8DCBA /* MetalPerformanceShaders.framework in Frameworks */,
+				0E4A7F492D67549100D8DCBA /* MetalPerformanceShadersGraph.framework in Frameworks */,
+				55EA2C5B2CB90E85004315B3 /* libsqlite3.tbd in Frameworks */,
+				55EA2C592CB90E80004315B3 /* CoreML.framework in Frameworks */,
+				55EA2C572CB90E7D004315B3 /* Accelerate.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		55EA2C122CB90C22004315B3 = {
+			isa = PBXGroup;
+			children = (
+				55EA2C1E2CB90C22004315B3 /* ExecutorchLib */,
+				55EA2C1D2CB90C22004315B3 /* Products */,
+				55EA2C552CB90E7D004315B3 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		55EA2C1D2CB90C22004315B3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				55EA2C1C2CB90C22004315B3 /* ExecutorchLib.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		55EA2C1E2CB90C22004315B3 /* ExecutorchLib */ = {
+			isa = PBXGroup;
+			children = (
+				55EA2C352CB90C7A004315B3 /* Exported */,
+			);
+			path = ExecutorchLib;
+			sourceTree = "<group>";
+		};
+		55EA2C352CB90C7A004315B3 /* Exported */ = {
+			isa = PBXGroup;
+			children = (
+				5576B4B82CEF970C005027B7 /* ETModel.mm */,
+				5576B4B62CEF9705005027B7 /* ETModel.h */,
+			);
+			path = Exported;
+			sourceTree = "<group>";
+		};
+		55EA2C552CB90E7D004315B3 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0E4A7F442D67549100D8DCBA /* Metal.framework */,
+				0E4A7F452D67549100D8DCBA /* MetalPerformanceShaders.framework */,
+				0E4A7F462D67549100D8DCBA /* MetalPerformanceShadersGraph.framework */,
+				55EA2C5A2CB90E85004315B3 /* libsqlite3.tbd */,
+				55EA2C582CB90E80004315B3 /* CoreML.framework */,
+				55EA2C562CB90E7D004315B3 /* Accelerate.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		55EA2C1B2CB90C22004315B3 /* ExecutorchLib */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 55EA2C232CB90C22004315B3 /* Build configuration list for PBXNativeTarget "ExecutorchLib" */;
+			buildPhases = (
+				55EA2C182CB90C22004315B3 /* Sources */,
+				55EA2C192CB90C22004315B3 /* Frameworks */,
+				55EA2C1A2CB90C22004315B3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ExecutorchLib;
+			packageProductDependencies = (
+			);
+			productName = ExecutorchLib;
+			productReference = 55EA2C1C2CB90C22004315B3 /* ExecutorchLib.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		55EA2C132CB90C22004315B3 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1540;
+				TargetAttributes = {
+					55EA2C1B2CB90C22004315B3 = {
+						CreatedOnToolsVersion = 15.4;
+					};
+				};
+			};
+			buildConfigurationList = 55EA2C162CB90C22004315B3 /* Build configuration list for PBXProject "ExecutorchLib" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 55EA2C122CB90C22004315B3;
+			packageReferences = (
+			);
+			productRefGroup = 55EA2C1D2CB90C22004315B3 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				55EA2C1B2CB90C22004315B3 /* ExecutorchLib */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		55EA2C1A2CB90C22004315B3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		55EA2C182CB90C22004315B3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5576B4B92CEF970E005027B7 /* ETModel.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		55EA2C212CB90C22004315B3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		55EA2C222CB90C22004315B3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		55EA2C242CB90C22004315B3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALLOW_TARGET_PLATFORM_SPECIALIZATION = NO;
+				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = B357MU264T;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				EXCLUDED_ARCHS = x86_64;
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(TEMP_DIR)/cmake/include",
+				);
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(TEMP_DIR)/cmake/lib",
+				);
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
+					"$(inherited)",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libkernels_optimized_ios.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libkernels_custom_ios.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libkernels_quantized_ios.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libbackend_xnnpack_ios.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libbackend_coreml_ios.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libbackend_mps_ios.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libexecutorch_ios.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libthreadpool_ios.a",
+				);
+				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = (
+					"$(inherited)",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libkernels_optimized_simulator.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libkernels_custom_simulator.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libkernels_quantized_simulator.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libbackend_xnnpack_simulator.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libbackend_coreml_simulator.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libbackend_mps_simulator.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libexecutorch_simulator.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libthreadpool_simulator.a",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.swmansion.Executorch;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		55EA2C252CB90C22004315B3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALLOW_TARGET_PLATFORM_SPECIALIZATION = NO;
+				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = B357MU264T;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				EXCLUDED_ARCHS = x86_64;
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(TEMP_DIR)/cmake/include",
+				);
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(TEMP_DIR)/cmake/lib",
+				);
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
+					"$(inherited)",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libkernels_optimized_ios.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libkernels_custom_ios.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libkernels_quantized_ios.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libbackend_xnnpack_ios.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libbackend_coreml_ios.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libbackend_mps_ios.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libexecutorch_ios.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libthreadpool_ios.a",
+				);
+				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = (
+					"$(inherited)",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libkernels_optimized_simulator.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libkernels_custom_simulator.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libkernels_quantized_simulator.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libbackend_xnnpack_simulator.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libbackend_coreml_simulator.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libbackend_mps_simulator.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libexecutorch_simulator.a",
+					"-force_load",
+					"$(PROJECT_DIR)/../../../ios/libs/executorch/libthreadpool_simulator.a",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.swmansion.Executorch;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		55EA2C162CB90C22004315B3 /* Build configuration list for PBXProject "ExecutorchLib" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				55EA2C212CB90C22004315B3 /* Debug */,
+				55EA2C222CB90C22004315B3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		55EA2C232CB90C22004315B3 /* Build configuration list for PBXNativeTarget "ExecutorchLib" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				55EA2C242CB90C22004315B3 /* Debug */,
+				55EA2C252CB90C22004315B3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 55EA2C132CB90C22004315B3 /* Project object */;
+}
