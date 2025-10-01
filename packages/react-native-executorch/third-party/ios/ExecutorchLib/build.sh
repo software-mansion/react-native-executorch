@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# Builds ExecutorchLib.xcframework for iOS and iOS Simulator
+#
+# This script:
+# 1. Cleans previous builds
+# 2. Archives the framework for iOS device (arm64)
+# 3. Archives the framework for iOS Simulator (arm64)
+# 4. Combines both archives into a single .xcframework
+#
+# Output: ./output/ExecutorchLib.xcframework
+#
+# Usage: ./build.sh
+
 # --- Configuration ---
 PROJECT_NAME="ExecutorchLib" # Replace with your Xcode project name
 SCHEME_NAME="ExecutorchLib"  # Replace with your scheme name

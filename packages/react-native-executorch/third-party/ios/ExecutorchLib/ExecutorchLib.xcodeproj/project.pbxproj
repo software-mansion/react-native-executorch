@@ -10,7 +10,6 @@
 		0E4A7F472D67549100D8DCBA /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E4A7F442D67549100D8DCBA /* Metal.framework */; };
 		0E4A7F482D67549100D8DCBA /* MetalPerformanceShaders.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E4A7F452D67549100D8DCBA /* MetalPerformanceShaders.framework */; };
 		0E4A7F492D67549100D8DCBA /* MetalPerformanceShadersGraph.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E4A7F462D67549100D8DCBA /* MetalPerformanceShadersGraph.framework */; };
-		5576B4B72CEF9709005027B7 /* ETModel.h in Headers */ = {isa = PBXBuildFile; fileRef = 5576B4B62CEF9705005027B7 /* ETModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5576B4B92CEF970E005027B7 /* ETModel.mm in Sources */ = {isa = PBXBuildFile; fileRef = 5576B4B82CEF970C005027B7 /* ETModel.mm */; };
 		55EA2C572CB90E7D004315B3 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C562CB90E7D004315B3 /* Accelerate.framework */; };
 		55EA2C592CB90E80004315B3 /* CoreML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA2C582CB90E80004315B3 /* CoreML.framework */; };
@@ -95,23 +94,11 @@
 		};
 /* End PBXGroup section */
 
-/* Begin PBXHeadersBuildPhase section */
-		55EA2C172CB90C22004315B3 /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				5576B4B72CEF9709005027B7 /* ETModel.h in Headers */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXHeadersBuildPhase section */
-
 /* Begin PBXNativeTarget section */
 		55EA2C1B2CB90C22004315B3 /* ExecutorchLib */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 55EA2C232CB90C22004315B3 /* Build configuration list for PBXNativeTarget "ExecutorchLib" */;
 			buildPhases = (
-				55EA2C172CB90C22004315B3 /* Headers */,
 				55EA2C182CB90C22004315B3 /* Sources */,
 				55EA2C192CB90C22004315B3 /* Frameworks */,
 				55EA2C1A2CB90C22004315B3 /* Resources */,
