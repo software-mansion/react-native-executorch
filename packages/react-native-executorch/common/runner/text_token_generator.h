@@ -111,9 +111,9 @@ public:
               std::chrono::high_resolution_clock::now() - timestamp_) >
           time_interval_;
       const auto countIntervalElapsed = token_cache.size() > count_interval_;
-      const auto eos_reached = eos_ids_->find(cur_token) != eos_ids_->end();
+      const auto eos_reached = eos_ids_->contains(cur_token);
 
-      if (!cache_decoded.ends_with("�") && !cache_decoded.ends_with(" �") &&
+      if (!cache_decoded.ends_with("�") &&
           (countIntervalElapsed || timeIntervalElapsed || should_stop_ ||
            eos_reached)) {
         token_callback(cache_decoded);
