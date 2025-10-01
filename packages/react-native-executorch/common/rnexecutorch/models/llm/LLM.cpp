@@ -63,10 +63,16 @@ size_t LLM::getMemoryLowerBound() const noexcept {
 }
 
 void LLM::setCountInterval(size_t countInterval) {
+  if (!runner || !runner->is_loaded()) {
+    throw std::runtime_error("Can't configure a model that's not loaded!");
+  }
   runner->set_count_interval(countInterval);
 }
 
 void LLM::setTimeInterval(size_t timeInterval) {
+  if (!runner || !runner->is_loaded()) {
+    throw std::runtime_error("Can't configure a model that's not loaded!");
+  }
   runner->set_time_interval(timeInterval);
 }
 
