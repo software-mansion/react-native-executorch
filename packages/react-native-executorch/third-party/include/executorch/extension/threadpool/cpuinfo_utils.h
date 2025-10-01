@@ -7,7 +7,6 @@
  */
 
 #pragma once
-#if defined(__ANDROID__) && defined(__aarch64__)
 
 #include <cpuinfo/cpuinfo.h>
 
@@ -23,4 +22,3 @@ namespace torch::executorch::cpuinfo { // DEPRECATED
 // the namespace `torch::executorch` instead of `torch::executor`.
 using ::executorch::extension::cpuinfo::get_num_performant_cores; // DEPRECATED
 } // namespace torch::executorch::cpuinfo
-#endif

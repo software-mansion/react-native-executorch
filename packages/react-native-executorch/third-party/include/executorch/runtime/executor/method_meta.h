@@ -20,7 +20,11 @@ struct ExecutionPlan;
 } // namespace executorch_flatbuffer
 
 namespace executorch {
-namespace runtime {
+namespace ET_RUNTIME_NAMESPACE {
+namespace testing {
+// Provides test access to private Program methods.
+class TensorInfoTestFriend;
+} // namespace testing
 
 /**
  * Metadata about a specific tensor of an ExecuTorch Program.
@@ -62,13 +66,20 @@ public:
    */
   size_t nbytes() const;
 
+  /**
+   * Returns the fully qualified name of the Tensor might be empty if the tensor
+   * is nameless.
+   */
+  std::string_view name() const;
+
 private:
   // Let MethodMeta create TensorInfo.
   friend class MethodMeta;
+  friend class testing::TensorInfoTestFriend;
 
   TensorInfo(Span<const int32_t> sizes, Span<const uint8_t> dim_order,
              executorch::aten::ScalarType scalar_type,
-             const bool is_memory_planned);
+             const bool is_memory_planned, std::string_view name);
 
   /**
    * The sizes of the tensor.
@@ -85,6 +96,9 @@ private:
    * TensorInfo.
    */
   Span<const uint8_t> dim_order_;
+
+  /// The fully qualified name of the Tensor.
+  std::string_view name_;
 
   /// The scalar type of the tensor.
   executorch::aten::ScalarType scalar_type_;
@@ -169,6 +183,21 @@ public:
   Result<TensorInfo> output_tensor_meta(size_t index) const;
 
   /**
+   * Get the number of attribute tensors in this method.
+   *
+   * @returns The number of attribute tensors.
+   */
+  size_t num_attributes() const;
+
+  /**
+   * Get metadata about the specified attribute tensor.
+   *
+   * @param[in] index The index of the attribute tensor to look up.
+   * @returns The metadata on success, or an error on failure.
+   */
+  Result<TensorInfo> attribute_tensor_meta(size_t index) const;
+
+  /**
    * Get the number of memory-planned buffers this method requires.
    *
    * @returns The number of memory-planned buffers.
@@ -238,14 +267,14 @@ private:
   const executorch_flatbuffer::ExecutionPlan *s_plan_;
 };
 
-} // namespace runtime
+} // namespace ET_RUNTIME_NAMESPACE
 } // namespace executorch
 
 namespace torch {
 namespace executor {
 // TODO(T197294990): Remove these deprecated aliases once all users have moved
 // to the new `::executorch` namespaces.
-using ::executorch::runtime::MethodMeta;
-using ::executorch::runtime::TensorInfo;
+using ::executorch::ET_RUNTIME_NAMESPACE::MethodMeta;
+using ::executorch::ET_RUNTIME_NAMESPACE::TensorInfo;
 } // namespace executor
 } // namespace torch
