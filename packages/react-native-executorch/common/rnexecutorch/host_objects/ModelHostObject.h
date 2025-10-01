@@ -115,6 +115,19 @@ public:
           ModelHostObject<Model>, synchronousHostFunction<&Model::interrupt>,
           "interrupt"));
 
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>,
+          synchronousHostFunction<&Model::getGeneratedTokenCount>,
+          "getGeneratedTokenCount"));
+
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                              synchronousHostFunction<&Model::setCountInterval>,
+                              "setCountInterval"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>,
+          synchronousHostFunction<&Model::setTimeInterval>, "setTimeInterval"));
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }
