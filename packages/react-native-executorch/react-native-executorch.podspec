@@ -13,11 +13,10 @@ Pod::Spec.new do |s|
   s.platforms    = { :ios => min_ios_version_supported }
   s.source       = { :git => "https://github.com/software-mansion/react-native-executorch.git", :tag => "#{s.version}" }
 
-  et_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/libs/executorch', __dir__)
   tokenizers_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/libs/tokenizers-cpp', __dir__)
 
-  pthreadpool_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/ios/libs/pthreadpool', __dir__)
-  cpuinfo_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/ios/libs/cpuinfo', __dir__)
+  pthreadpool_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/libs/pthreadpool', __dir__)
+  cpuinfo_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/libs/cpuinfo', __dir__)
 
   s.user_target_xcconfig = {
     "HEADER_SEARCH_PATHS" => "$(PODS_TARGET_SRCROOT)/third-party/include",
