@@ -23,9 +23,7 @@ public:
   /**
    * @param size Size of the buffer in bytes.
    */
-  OwningArrayBuffer(size_t size) : size_(size) {
-    data_ = new uint8_t[size_];
-  }
+  OwningArrayBuffer(size_t size) : size_(size) { data_ = new uint8_t[size_]; }
   /**
    * @param data Pointer to the source data.
    * @param size Size of the data in bytes.
