@@ -59,11 +59,7 @@ jobs:
       - name: Install CocoaPods dependencies
         working-directory: apps/llm/ios
         run: |
-          if [ ! -d "Pods" ]; then
-            pod install
-          else
-            echo "Pods directory exists, skipping install"
-          fi
+          pod install
       - name: Build app
         working-directory: apps/llm/ios
         run: |
