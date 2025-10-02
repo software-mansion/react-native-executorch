@@ -109,6 +109,7 @@ interface LLMType {
     toolsConfig?: ToolsConfig;
     generationConfig?: GenerationConfig;
   }) => void;
+  getGeneratedTokenCount: () => number;
   generate: (messages: Message[], tools?: LLMTool[]) => Promise<void>;
   sendMessage: (message: string) => Promise<void>;
   deleteMessage: (index: number) => void;
@@ -129,6 +130,11 @@ interface ChatConfig {
   systemPrompt: string;
 }
 
+interface GenerationConfig {
+  outputTokenBatchSize: number;
+  batchTimeInterval: number;
+}
+
 // tool calling
 interface ToolsConfig {
   tools: LLMTool[];
@@ -139,11 +145,6 @@ interface ToolsConfig {
 interface ToolCall {
   toolName: string;
   arguments: Object;
-}
-
-interface GenerationConfig {
-  outputTokenBatchSize: number;
-  batchTimeInterval: number;
 }
 
 type LLMTool = Object;
