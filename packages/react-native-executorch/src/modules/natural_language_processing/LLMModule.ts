@@ -85,6 +85,10 @@ export class LLMModule {
     this.controller.interrupt();
   }
 
+  getGeneratedTokenCount() {
+    return this.controller.getGeneratedTokenCount();
+  }
+
   delete() {
     this.controller.delete();
   }
