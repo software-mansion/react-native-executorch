@@ -6,7 +6,6 @@ export interface LLMType {
   isGenerating: boolean;
   downloadProgress: number;
   error: string | null;
-  getGeneratedTokenCount: () => number;
   configure: ({
     chatConfig,
     toolsConfig,
@@ -16,6 +15,7 @@ export interface LLMType {
     toolsConfig?: ToolsConfig;
     generationConfig?: GenerationConfig;
   }) => void;
+  getGeneratedTokenCount: () => number;
   generate: (messages: Message[], tools?: LLMTool[]) => Promise<void>;
   sendMessage: (message: string) => Promise<void>;
   deleteMessage: (index: number) => void;
