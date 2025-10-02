@@ -62,16 +62,16 @@ interface ChatConfig {
   systemPrompt: string;
 }
 
+interface GenerationConfig {
+  outputTokenBatchSize: number;
+  batchTimeInterval: number;
+}
+
 // tool calling
 interface ToolsConfig {
   tools: LLMTool[];
   executeToolCallback: (call: ToolCall) => Promise<string | null>;
   displayToolCalls?: boolean;
-}
-
-interface GenerationConfig {
-  outputTokenBatchSize: number;
-  batchTimeInterval: number;
 }
 
 interface ToolCall {
