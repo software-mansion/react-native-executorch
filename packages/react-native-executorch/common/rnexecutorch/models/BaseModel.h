@@ -23,7 +23,7 @@ public:
   void unload() noexcept;
   std::vector<int32_t> getInputShape(std::string method_name, int32_t index);
   std::vector<std::vector<int32_t>>
-  getAllInputShapes(std::string methodName = "forward");
+  getAllInputShapes(std::string methodName = "forward") const;
   std::vector<JSTensorViewOut>
   forwardJS(std::vector<JSTensorViewIn> tensorViewVec);
   Result<std::vector<EValue>> forward(const EValue &input_value) const;

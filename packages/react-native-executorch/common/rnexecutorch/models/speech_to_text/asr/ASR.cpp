@@ -4,8 +4,8 @@
 #include "ASR.h"
 #include "executorch/extension/tensor/tensor_ptr.h"
 #include "rnexecutorch/data_processing/Numerical.h"
-#include "rnexecutorch/data_processing/dsp.h"
 #include "rnexecutorch/data_processing/gzip.h"
+#include <rnexecutorch/Log.h>
 
 namespace rnexecutorch::models::speech_to_text::asr {
 
@@ -37,8 +37,7 @@ ASR::getInitialSequence(const DecodingOptions &options) const {
   return seq;
 }
 
-GenerationResult ASR::generate(std::span<const float> waveform,
-                               float temperature,
+GenerationResult ASR::generate(std::span<float> waveform, float temperature,
                                const DecodingOptions &options) const {
   std::vector<float> encoderOutput = this->encode(waveform);
 
@@ -94,7 +93,7 @@ float ASR::getCompressionRatio(const std::string &text) const {
 }
 
 std::vector<Segment>
-ASR::generateWithFallback(std::span<const float> waveform,
+ASR::generateWithFallback(std::span<float> waveform,
                           const DecodingOptions &options) const {
   std::vector<float> temperatures = {0.0f, 0.2f, 0.4f, 0.6f, 0.8f, 1.0f};
   std::vector<int32_t> bestTokens;
@@ -209,7 +208,7 @@ ASR::estimateWordLevelTimestampsLinear(std::span<const int32_t> tokens,
   return wordObjs;
 }
 
-std::vector<Segment> ASR::transcribe(std::span<const float> waveform,
+std::vector<Segment> ASR::transcribe(std::span<float> waveform,
                                      const DecodingOptions &options) const {
   int32_t seek = 0;
   std::vector<Segment> results;
@@ -218,7 +217,7 @@ std::vector<Segment> ASR::transcribe(std::span<const float> waveform,
     int32_t start = seek * ASR::kSamplingRate;
     const auto end = std::min<int32_t>(
         (seek + ASR::kChunkSize) * ASR::kSamplingRate, waveform.size());
-    std::span<const float> chunk = waveform.subspan(start, end - start);
+    auto chunk = waveform.subspan(start, end - start);
 
     if (std::cmp_less(chunk.size(), ASR::kMinChunkSamples)) {
       break;
@@ -246,19 +245,12 @@ std::vector<Segment> ASR::transcribe(std::span<const float> waveform,
   return results;
 }
 
-std::vector<float> ASR::encode(std::span<const float> waveform) const {
-  constexpr int32_t fftWindowSize = 512;
-  constexpr int32_t stftHopLength = 160;
-  constexpr int32_t innerDim = 256;
-
-  std::vector<float> preprocessedData =
-      dsp::stftFromWaveform(waveform, fftWindowSize, stftHopLength);
-  const auto numFrames =
-      static_cast<int32_t>(preprocessedData.size()) / innerDim;
-  std::vector<int32_t> inputShape = {numFrames, innerDim};
+std::vector<float> ASR::encode(std::span<float> waveform) const {
+  auto inputShape = {static_cast<int32_t>(waveform.size())};
 
   const auto modelInputTensor = executorch::extension::make_tensor_ptr(
-      std::move(inputShape), std::move(preprocessedData));
+      std::move(inputShape), waveform.data(),
+      executorch::runtime::etensor::ScalarType::Float);
   const auto encoderResult = this->encoder->forward(modelInputTensor);
 
   if (!encoderResult.ok()) {
@@ -268,7 +260,7 @@ std::vector<float> ASR::encode(std::span<const float> waveform) const {
   }
 
   const auto decoderOutputTensor = encoderResult.get().at(0).toTensor();
-  const int32_t outputNumel = decoderOutputTensor.numel();
+  const auto outputNumel = decoderOutputTensor.numel();
 
   const float *const dataPtr = decoderOutputTensor.const_data_ptr<float>();
   return {dataPtr, dataPtr + outputNumel};
@@ -277,12 +269,18 @@ std::vector<float> ASR::encode(std::span<const float> waveform) const {
 std::vector<float> ASR::decode(std::span<int32_t> tokens,
                                std::span<float> encoderOutput) const {
   std::vector<int32_t> tokenShape = {1, static_cast<int32_t>(tokens.size())};
+  auto tokensLong = std::vector<int64_t>(tokens.begin(), tokens.end());
+
   auto tokenTensor = executorch::extension::make_tensor_ptr(
-      std::move(tokenShape), tokens.data(), ScalarType::Int);
+      tokenShape, tokensLong.data(), ScalarType::Long);
 
   const auto encoderOutputSize = static_cast<int32_t>(encoderOutput.size());
   std::vector<int32_t> encShape = {1, ASR::kNumFrames,
                                    encoderOutputSize / ASR::kNumFrames};
+  log(LOG_LEVEL::Debug, encShape);
+  log(LOG_LEVEL::Debug, tokenShape);
+  log(LOG_LEVEL::Debug, this->encoder->getAllInputShapes());
+  log(LOG_LEVEL::Debug, this->decoder->getAllInputShapes());
   auto encoderTensor = executorch::extension::make_tensor_ptr(
       std::move(encShape), encoderOutput.data(), ScalarType::Float);
 

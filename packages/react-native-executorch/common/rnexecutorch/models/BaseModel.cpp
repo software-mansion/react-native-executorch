@@ -55,7 +55,7 @@ std::vector<int32_t> BaseModel::getInputShape(std::string method_name,
 }
 
 std::vector<std::vector<int32_t>>
-BaseModel::getAllInputShapes(std::string methodName) {
+BaseModel::getAllInputShapes(std::string methodName) const {
   if (!module_) {
     throw std::runtime_error("Model not loaded: Cannot get all input shapes");
   }
