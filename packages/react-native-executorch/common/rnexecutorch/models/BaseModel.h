@@ -21,18 +21,20 @@ public:
             std::shared_ptr<react::CallInvoker> callInvoker);
   std::size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
-  std::vector<int32_t> getInputShape(std::string method_name, int32_t index);
+  std::vector<int32_t> getInputShape(std::string method_name,
+                                     int32_t index) const;
   std::vector<std::vector<int32_t>>
   getAllInputShapes(std::string methodName = "forward") const;
   std::vector<JSTensorViewOut>
-  forwardJS(std::vector<JSTensorViewIn> tensorViewVec);
+  forwardJS(std::vector<JSTensorViewIn> tensorViewVec) const;
   Result<std::vector<EValue>> forward(const EValue &input_value) const;
   Result<std::vector<EValue>>
   forward(const std::vector<EValue> &input_value) const;
-  Result<std::vector<EValue>> execute(const std::string &methodName,
-                                      const std::vector<EValue> &input_value);
+  Result<std::vector<EValue>>
+  execute(const std::string &methodName,
+          const std::vector<EValue> &input_value) const;
   Result<executorch::runtime::MethodMeta>
-  getMethodMeta(const std::string &methodName);
+  getMethodMeta(const std::string &methodName) const;
 
 protected:
   // If possible, models should not use the JS runtime to keep JSI internals
@@ -44,7 +46,8 @@ protected:
 
 private:
   std::size_t memorySizeLowerBound{0};
-  std::vector<int32_t> getTensorShape(const executorch::aten::Tensor &tensor);
+  std::vector<int32_t>
+  getTensorShape(const executorch::aten::Tensor &tensor) const;
 };
 } // namespace models
 
