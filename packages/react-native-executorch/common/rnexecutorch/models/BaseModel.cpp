@@ -29,7 +29,7 @@ BaseModel::BaseModel(const std::string &modelSource,
 }
 
 std::vector<int32_t> BaseModel::getInputShape(std::string method_name,
-                                              int32_t index) {
+                                              int32_t index) const {
   if (!module_) {
     throw std::runtime_error("Model not loaded: Cannot get input shape");
   }
@@ -87,7 +87,7 @@ BaseModel::getAllInputShapes(std::string methodName) const {
 /// to JS. It is not meant to be used within C++. If you want to call forward
 /// from C++ on a BaseModel, please use BaseModel::forward.
 std::vector<JSTensorViewOut>
-BaseModel::forwardJS(std::vector<JSTensorViewIn> tensorViewVec) {
+BaseModel::forwardJS(std::vector<JSTensorViewIn> tensorViewVec) const {
   if (!module_) {
     throw std::runtime_error("Model not loaded: Cannot perform forward pass");
   }
@@ -135,7 +135,7 @@ BaseModel::forwardJS(std::vector<JSTensorViewIn> tensorViewVec) {
 }
 
 Result<executorch::runtime::MethodMeta>
-BaseModel::getMethodMeta(const std::string &methodName) {
+BaseModel::getMethodMeta(const std::string &methodName) const {
   if (!module_) {
     throw std::runtime_error("Model not loaded: Cannot get method meta!");
   }
@@ -160,7 +160,7 @@ BaseModel::forward(const std::vector<EValue> &input_evalues) const {
 
 Result<std::vector<EValue>>
 BaseModel::execute(const std::string &methodName,
-                   const std::vector<EValue> &input_value) {
+                   const std::vector<EValue> &input_value) const {
   if (!module_) {
     throw std::runtime_error("Model not loaded, cannot run execute.");
   }
@@ -174,7 +174,7 @@ std::size_t BaseModel::getMemoryLowerBound() const noexcept {
 void BaseModel::unload() noexcept { module_.reset(nullptr); }
 
 std::vector<int32_t>
-BaseModel::getTensorShape(const executorch::aten::Tensor &tensor) {
+BaseModel::getTensorShape(const executorch::aten::Tensor &tensor) const {
   auto sizes = tensor.sizes();
   return std::vector<int32_t>(sizes.begin(), sizes.end());
 }
