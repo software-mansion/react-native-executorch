@@ -5,7 +5,6 @@
 #include "executorch/extension/tensor/tensor_ptr.h"
 #include "rnexecutorch/data_processing/Numerical.h"
 #include "rnexecutorch/data_processing/gzip.h"
-#include <rnexecutorch/Log.h>
 
 namespace rnexecutorch::models::speech_to_text::asr {
 
@@ -277,10 +276,6 @@ std::vector<float> ASR::decode(std::span<int32_t> tokens,
   const auto encoderOutputSize = static_cast<int32_t>(encoderOutput.size());
   std::vector<int32_t> encShape = {1, ASR::kNumFrames,
                                    encoderOutputSize / ASR::kNumFrames};
-  log(LOG_LEVEL::Debug, encShape);
-  log(LOG_LEVEL::Debug, tokenShape);
-  log(LOG_LEVEL::Debug, this->encoder->getAllInputShapes());
-  log(LOG_LEVEL::Debug, this->decoder->getAllInputShapes());
   auto encoderTensor = executorch::extension::make_tensor_ptr(
       std::move(encShape), encoderOutput.data(), ScalarType::Float);
 
