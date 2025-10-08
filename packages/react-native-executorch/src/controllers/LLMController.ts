@@ -1,4 +1,3 @@
-import { EventSubscription } from 'react-native';
 import { ResourceSource } from '../types/common';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { ETError, getError } from '../Error';
@@ -7,21 +6,21 @@ import { DEFAULT_CHAT_CONFIG } from '../constants/llmDefaults';
 import { readAsStringAsync } from 'expo-file-system';
 import {
   ChatConfig,
+  GenerationConfig,
   LLMTool,
   Message,
   SPECIAL_TOKENS,
   ToolsConfig,
 } from '../types/llm';
-import { LLMNativeModule } from '../native/RnExecutorchModules';
 import { parseToolCall } from '../utils/llm';
 import { Logger } from '../common/Logger';
 
 export class LLMController {
-  private nativeModule: typeof LLMNativeModule;
+  private nativeModule: any;
   private chatConfig: ChatConfig = DEFAULT_CHAT_CONFIG;
   private toolsConfig: ToolsConfig | undefined;
   private tokenizerConfig: any;
-  private onToken: EventSubscription | null = null;
+  private onToken?: (token: string) => void;
   private _response = '';
   private _isReady = false;
   private _isGenerating = false;
@@ -71,7 +70,6 @@ export class LLMController {
       this._isGenerating = isGenerating;
       isGeneratingCallback?.(isGenerating);
     };
-    this.nativeModule = LLMNativeModule;
   }
 
   public get response() {
@@ -132,23 +130,32 @@ export class LLMController {
       this.tokenizerConfig = JSON.parse(
         await readAsStringAsync('file://' + tokenizerConfigPath!)
       );
-
-      await this.nativeModule.loadLLM(modelPath, tokenizerPath);
+      this.nativeModule = global.loadLLM(modelPath, tokenizerPath);
       this.isReadyCallback(true);
-      this.onToken = this.nativeModule.onToken((data: string) => {
+      this.onToken = (data: string) => {
+        if (!data) {
+          return;
+        }
+
         if (
-          !data ||
-          (SPECIAL_TOKENS.EOS_TOKEN in this.tokenizerConfig &&
-            data === this.tokenizerConfig.eos_token) ||
-          (SPECIAL_TOKENS.PAD_TOKEN in this.tokenizerConfig &&
-            data === this.tokenizerConfig.pad_token)
+          SPECIAL_TOKENS.EOS_TOKEN in this.tokenizerConfig &&
+          data.indexOf(this.tokenizerConfig.eos_token) >= 0
         ) {
+          data = data.replaceAll(this.tokenizerConfig.eos_token, '');
+        }
+        if (
+          SPECIAL_TOKENS.PAD_TOKEN in this.tokenizerConfig &&
+          data.indexOf(this.tokenizerConfig.pad_token) >= 0
+        ) {
+          data = data.replaceAll(this.tokenizerConfig.pad_token, '');
+        }
+        if (data.length === 0) {
           return;
         }
 
         this.tokenCallback(data);
         this.responseCallback(this._response + data);
-      });
+      };
     } catch (e) {
       this.isReadyCallback(false);
       throw new Error(getError(e));
@@ -162,12 +169,21 @@ export class LLMController {
   public configure({
     chatConfig,
     toolsConfig,
+    generationConfig,
   }: {
     chatConfig?: Partial<ChatConfig>;
     toolsConfig?: ToolsConfig;
+    generationConfig?: GenerationConfig;
   }) {
     this.chatConfig = { ...DEFAULT_CHAT_CONFIG, ...chatConfig };
     this.toolsConfig = toolsConfig;
+
+    if (generationConfig?.outputTokenBatchSize) {
+      this.nativeModule.setCountInterval(generationConfig.outputTokenBatchSize);
+    }
+    if (generationConfig?.batchTimeInterval) {
+      this.nativeModule.setTimeInterval(generationConfig.batchTimeInterval);
+    }
 
     // reset inner state when loading new configuration
     this.responseCallback('');
@@ -182,9 +198,8 @@ export class LLMController {
           'You cannot delete the model now. You need to interrupt first.'
       );
     }
-    this.onToken?.remove();
-    this.onToken = null;
-    this.nativeModule.releaseResources();
+    this.onToken = () => {};
+    this.nativeModule.unload();
     this.isReadyCallback(false);
     this.isGeneratingCallback(false);
   }
@@ -199,7 +214,7 @@ export class LLMController {
     try {
       this.responseCallback('');
       this.isGeneratingCallback(true);
-      await this.nativeModule.forward(input);
+      await this.nativeModule.generate(input, this.onToken);
     } catch (e) {
       throw new Error(getError(e));
     } finally {
@@ -209,6 +224,10 @@ export class LLMController {
 
   public interrupt() {
     this.nativeModule.interrupt();
+  }
+
+  public getGeneratedTokenCount(): number {
+    return this.nativeModule.getGeneratedTokenCount();
   }
 
   public async generate(messages: Message[], tools?: LLMTool[]) {

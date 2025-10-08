@@ -5,7 +5,8 @@
 
 namespace rnexecutorch::dsp {
 
-std::vector<float> stftFromWaveform(std::span<float> waveform,
+
+std::vector<float> stftFromWaveform(std::span<const float> waveform,
                                     size_t fftWindowSize, size_t hopSize);
 
 } // namespace rnexecutorch::dsp

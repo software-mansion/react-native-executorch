@@ -10,6 +10,17 @@ declare global {
   var loadTokenizerModule: (source: string) => any;
   var loadImageEmbeddings: (source: string) => any;
   var loadTextEmbeddings: (modelSource: string, tokenizerSource: string) => any;
+  var loadLLM: (modelSource: string, tokenizerSource: string) => any;
+  var loadTextToImage: (
+    tokenizerSource: string,
+    encoderSource: string,
+    unetSource: string,
+    decoderSource: string,
+    schedulerBetaStart: number,
+    schedulerBetaEnd: number,
+    schedulerNumTrainTimesteps: number,
+    schedulerStepsOffset: number
+  ) => any;
   var loadSpeechToText: (
     encoderSource: string,
     decoderSource: string,
@@ -34,16 +45,17 @@ declare global {
 if (
   global.loadStyleTransfer == null ||
   global.loadImageSegmentation == null ||
+  global.loadTextToImage == null ||
   global.loadExecutorchModule == null ||
   global.loadClassification == null ||
   global.loadObjectDetection == null ||
   global.loadTokenizerModule == null ||
   global.loadTextEmbeddings == null ||
   global.loadImageEmbeddings == null ||
+  global.loadLLM == null ||
   global.loadSpeechToText == null ||
   global.loadOCR == null ||
-  global.loadVerticalOCR == null ||
-  global.loadImageEmbeddings == null
+  global.loadVerticalOCR == null
 ) {
   if (!ETInstallerNativeModule) {
     throw new Error(
@@ -61,6 +73,7 @@ export * from './hooks/computer_vision/useImageSegmentation';
 export * from './hooks/computer_vision/useOCR';
 export * from './hooks/computer_vision/useVerticalOCR';
 export * from './hooks/computer_vision/useImageEmbeddings';
+export * from './hooks/computer_vision/useTextToImage';
 
 export * from './hooks/natural_language_processing/useLLM';
 export * from './hooks/natural_language_processing/useSpeechToText';
@@ -76,13 +89,15 @@ export * from './modules/computer_vision/StyleTransferModule';
 export * from './modules/computer_vision/ImageSegmentationModule';
 export * from './modules/computer_vision/OCRModule';
 export * from './modules/computer_vision/VerticalOCRModule';
-export * from './modules/general/ExecutorchModule';
 export * from './modules/computer_vision/ImageEmbeddingsModule';
+export * from './modules/computer_vision/TextToImageModule';
 
 export * from './modules/natural_language_processing/LLMModule';
 export * from './modules/natural_language_processing/SpeechToTextModule';
 export * from './modules/natural_language_processing/TextEmbeddingsModule';
 export * from './modules/natural_language_processing/TokenizerModule';
+
+export * from './modules/general/ExecutorchModule';
 
 // utils
 export * from './utils/ResourceFetcher';

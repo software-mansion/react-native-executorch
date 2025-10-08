@@ -117,7 +117,6 @@ android {
     targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
     externalNativeBuild {
         cmake {
-          cppFlags "-O2 -frtti -fexceptions -Wall -fstack-protector-all -fopenmp -static-openmp"
           abiFilters (*reactNativeArchitectures())
           arguments "-DANDROID_STL=c++_shared",
                     "-DREACT_NATIVE_DIR=${toPlatformFileString(reactNativeRootDir.path)}",
@@ -168,5 +167,6 @@ dependencies {
   implementation 'com.facebook.fbjni:fbjni:0.6.0'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation files('libs/classes.jar')
+  implementation 'org.opencv:opencv:4.10.0'
   implementation("com.squareup.okhttp3:okhttp:4.9.2")
 }

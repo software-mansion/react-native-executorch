@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+#include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
 #include <ReactCommon/CallInvoker.h>
 #include <executorch/extension/module/module.h>
 #include <jsi/jsi.h>
@@ -10,6 +11,7 @@
 #include <rnexecutorch/host_objects/JSTensorViewOut.h>
 
 namespace rnexecutorch {
+namespace models {
 using namespace facebook;
 using executorch::runtime::EValue;
 using executorch::runtime::Result;
@@ -24,8 +26,9 @@ public:
   getAllInputShapes(std::string methodName = "forward");
   std::vector<JSTensorViewOut>
   forwardJS(std::vector<JSTensorViewIn> tensorViewVec);
-  Result<std::vector<EValue>> forward(const EValue &input_value);
-  Result<std::vector<EValue>> forward(const std::vector<EValue> &input_value);
+  Result<std::vector<EValue>> forward(const EValue &input_value) const;
+  Result<std::vector<EValue>>
+  forward(const std::vector<EValue> &input_value) const;
   Result<std::vector<EValue>> execute(const std::string &methodName,
                                       const std::vector<EValue> &input_value);
   Result<executorch::runtime::MethodMeta>
@@ -43,5 +46,8 @@ private:
   std::size_t memorySizeLowerBound{0};
   std::vector<int32_t> getTensorShape(const executorch::aten::Tensor &tensor);
 };
+} // namespace models
 
+REGISTER_CONSTRUCTOR(models::BaseModel, std::string,
+                     std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

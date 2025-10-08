@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		55D6EA8C2D0987D2009BA408 /* ExecutorchLib.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 55D6EA8B2D0987D2009BA408 /* ExecutorchLib.xcframework */; };
 		8C9A9BD02DB0CE800027DD32 /* ImageSegmentation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C9A9BCA2DB0CE800027DD32 /* ImageSegmentation.cpp */; };
 		8C9A9BD12DB0CE800027DD32 /* RuntimeLifecycleMonitor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C9A9BC72DB0CE800027DD32 /* RuntimeLifecycleMonitor.cpp */; };
 		8C9A9BD22DB0CE800027DD32 /* JsiHostObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8C9A9BC22DB0CE800027DD32 /* JsiHostObject.cpp */; };
@@ -43,30 +42,9 @@
 		8C9A9BCD2DB0CE800027DD32 /* RnExecutorchInstaller.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RnExecutorchInstaller.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		550986902CEF541900FECBB8 /* Exceptions for "RnExecutorch" folder in "Copy Files" phase from "RnExecutorch" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			buildPhase = 550986872CEF541900FECBB8 /* CopyFiles */;
-			membershipExceptions = (
-				LLM.h,
-			);
-		};
-		552754CC2D394AC9006B38A2 /* Exceptions for "RnExecutorch" folder in "Compile Sources" phase from "RnExecutorch" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			buildPhase = 550986852CEF541900FECBB8 /* Sources */;
-			membershipExceptions = (
-				models/ocr/utils/DetectorUtils.h,
-			);
-		};
-/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		5509868B2CEF541900FECBB8 /* RnExecutorch */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				552754CC2D394AC9006B38A2 /* Exceptions for "RnExecutorch" folder in "Compile Sources" phase from "RnExecutorch" target */,
-				550986902CEF541900FECBB8 /* Exceptions for "RnExecutorch" folder in "Copy Files" phase from "RnExecutorch" target */,
-			);
 			path = RnExecutorch;
 			sourceTree = "<group>";
 		};
@@ -77,7 +55,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				55D6EA8C2D0987D2009BA408 /* ExecutorchLib.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

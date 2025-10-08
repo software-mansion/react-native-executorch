@@ -5,7 +5,7 @@
 #include <rnexecutorch/models/BaseModel.h>
 #include <rnexecutorch/models/ocr/Types.h>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::ocr {
 /*
  Detector is a model responsible for recognizing the areas where text is
  located. It returns the list of bounding boxes. The model used as detector is
@@ -20,11 +20,11 @@ class Detector final : public BaseModel {
 public:
   explicit Detector(const std::string &modelSource,
                     std::shared_ptr<react::CallInvoker> callInvoker);
-  std::vector<ocr::DetectorBBox> generate(const cv::Mat &inputImage);
+  std::vector<types::DetectorBBox> generate(const cv::Mat &inputImage);
   cv::Size getModelImageSize() const noexcept;
 
 private:
-  std::vector<ocr::DetectorBBox> postprocess(const Tensor &tensor) const;
+  std::vector<types::DetectorBBox> postprocess(const Tensor &tensor) const;
   cv::Size modelImageSize;
 };
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::ocr

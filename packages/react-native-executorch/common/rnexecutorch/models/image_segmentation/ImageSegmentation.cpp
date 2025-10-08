@@ -9,7 +9,7 @@
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/models/image_segmentation/Constants.h>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::image_segmentation {
 
 ImageSegmentation::ImageSegmentation(
     const std::string &modelSource,
@@ -37,7 +37,7 @@ std::shared_ptr<jsi::Object> ImageSegmentation::generate(
     std::string imageSource,
     std::set<std::string, std::less<>> classesOfInterest, bool resize) {
   auto [inputTensor, originalSize] =
-      imageprocessing::readImageToTensor(imageSource, getAllInputShapes()[0]);
+      image_processing::readImageToTensor(imageSource, getAllInputShapes()[0]);
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
@@ -62,11 +62,9 @@ std::shared_ptr<jsi::Object> ImageSegmentation::postprocess(
   std::vector<std::shared_ptr<OwningArrayBuffer>> resultClasses;
   resultClasses.reserve(numClasses);
   for (std::size_t cl = 0; cl < numClasses; ++cl) {
-    auto classBuffer =
-        std::make_shared<OwningArrayBuffer>(numModelPixels * sizeof(float));
+    auto classBuffer = std::make_shared<OwningArrayBuffer>(
+        &resultData[cl * numModelPixels], numModelPixels * sizeof(float));
     resultClasses.push_back(classBuffer);
-    std::memcpy(classBuffer->data(), &resultData[cl * numModelPixels],
-                numModelPixels * sizeof(float));
   }
 
   // Apply softmax per each pixel across all classes
@@ -101,8 +99,9 @@ std::shared_ptr<jsi::Object> ImageSegmentation::postprocess(
   auto buffersToReturn = std::make_shared<std::unordered_map<
       std::string_view, std::shared_ptr<OwningArrayBuffer>>>();
   for (std::size_t cl = 0; cl < numClasses; ++cl) {
-    if (classesOfInterest.contains(DEEPLABV3_RESNET50_LABELS[cl])) {
-      (*buffersToReturn)[DEEPLABV3_RESNET50_LABELS[cl]] = resultClasses[cl];
+    if (classesOfInterest.contains(constants::kDeeplabV3Resnet50Labels[cl])) {
+      (*buffersToReturn)[constants::kDeeplabV3Resnet50Labels[cl]] =
+          resultClasses[cl];
     }
   }
 
@@ -111,18 +110,14 @@ std::shared_ptr<jsi::Object> ImageSegmentation::postprocess(
     cv::Mat argmaxMat(modelImageSize, CV_32SC1, argmax->data());
     cv::resize(argmaxMat, argmaxMat, originalSize, 0, 0,
                cv::InterpolationFlags::INTER_NEAREST);
-    argmax = std::make_shared<OwningArrayBuffer>(originalSize.area() *
-                                                 sizeof(int32_t));
-    std::memcpy(argmax->data(), argmaxMat.data,
-                originalSize.area() * sizeof(int32_t));
+    argmax = std::make_shared<OwningArrayBuffer>(
+        argmaxMat.data, originalSize.area() * sizeof(int32_t));
 
     for (auto &[label, arrayBuffer] : *buffersToReturn) {
       cv::Mat classMat(modelImageSize, CV_32FC1, arrayBuffer->data());
       cv::resize(classMat, classMat, originalSize);
-      arrayBuffer = std::make_shared<OwningArrayBuffer>(originalSize.area() *
-                                                        sizeof(float));
-      std::memcpy(arrayBuffer->data(), classMat.data,
-                  originalSize.area() * sizeof(float));
+      arrayBuffer = std::make_shared<OwningArrayBuffer>(
+          classMat.data, originalSize.area() * sizeof(float));
     }
   }
   return populateDictionary(argmax, buffersToReturn);
@@ -170,4 +165,4 @@ std::shared_ptr<jsi::Object> ImageSegmentation::populateDictionary(
   return dictPtr;
 }
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::image_segmentation

@@ -9,10 +9,13 @@ export interface LLMType {
   configure: ({
     chatConfig,
     toolsConfig,
+    generationConfig,
   }: {
     chatConfig?: Partial<ChatConfig>;
     toolsConfig?: ToolsConfig;
+    generationConfig?: GenerationConfig;
   }) => void;
+  getGeneratedTokenCount: () => number;
   generate: (messages: Message[], tools?: LLMTool[]) => Promise<void>;
   sendMessage: (message: string) => Promise<void>;
   deleteMessage: (index: number) => void;
@@ -45,6 +48,11 @@ export interface ToolsConfig {
   tools: LLMTool[];
   executeToolCallback: (call: ToolCall) => Promise<string | null>;
   displayToolCalls?: boolean;
+}
+
+export interface GenerationConfig {
+  outputTokenBatchSize?: number;
+  batchTimeInterval?: number;
 }
 
 export const SPECIAL_TOKENS = {

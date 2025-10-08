@@ -68,3 +68,10 @@ title: Memory Usage
 | Model                       | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
 | --------------------------- | :--------------------: | :----------------: |
 | CLIP_VIT_BASE_PATCH32_IMAGE |          350           |        340         |
+
+## Text to Image
+
+| Model                 | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| --------------------- | ---------------------- | ------------------ |
+| BK_SDM_TINY_VPRED_256 | 2900                   | 2800               |
+| BK_SDM_TINY_VPRED     | 6700                   | 6560               |

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ResourceSource } from '../../types/common';
 import {
   ChatConfig,
+  GenerationConfig,
   LLMTool,
   LLMType,
   Message,
@@ -81,10 +82,17 @@ export const useLLM = ({
     ({
       chatConfig,
       toolsConfig,
+      generationConfig,
     }: {
       chatConfig?: Partial<ChatConfig>;
       toolsConfig?: ToolsConfig;
-    }) => controllerInstance.configure({ chatConfig, toolsConfig }),
+      generationConfig?: GenerationConfig;
+    }) =>
+      controllerInstance.configure({
+        chatConfig,
+        toolsConfig,
+        generationConfig,
+      }),
     [controllerInstance]
   );
 
@@ -114,6 +122,11 @@ export const useLLM = ({
     [controllerInstance]
   );
 
+  const getGeneratedTokenCount = useCallback(
+    () => controllerInstance.getGeneratedTokenCount(),
+    [controllerInstance]
+  );
+
   return {
     messageHistory,
     response,
@@ -122,6 +135,7 @@ export const useLLM = ({
     isGenerating,
     downloadProgress,
     error,
+    getGeneratedTokenCount: getGeneratedTokenCount,
     configure: configure,
     generate: generate,
     sendMessage: sendMessage,

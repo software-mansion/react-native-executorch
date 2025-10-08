@@ -6,11 +6,15 @@
 #include <rnexecutorch/models/embeddings/image/ImageEmbeddings.h>
 #include <rnexecutorch/models/embeddings/text/TextEmbeddings.h>
 #include <rnexecutorch/models/image_segmentation/ImageSegmentation.h>
+#include <rnexecutorch/models/text_to_image/TextToImage.h>
+#include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/object_detection/ObjectDetection.h>
 #include <rnexecutorch/models/ocr/OCR.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
 #include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
+#include <rnexecutorch/threads/GlobalThreadPool.h>
+#include <rnexecutorch/threads/utils/ThreadUtils.h>
 
 namespace rnexecutorch {
 
@@ -26,28 +30,34 @@ void RnExecutorchInstaller::injectJSIBindings(
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadStyleTransfer",
-      RnExecutorchInstaller::loadModel<StyleTransfer>(jsiRuntime, jsCallInvoker,
-                                                      "loadStyleTransfer"));
+      RnExecutorchInstaller::loadModel<models::style_transfer::StyleTransfer>(
+          jsiRuntime, jsCallInvoker, "loadStyleTransfer"));
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadImageSegmentation",
-      RnExecutorchInstaller::loadModel<ImageSegmentation>(
+      RnExecutorchInstaller::loadModel<
+          models::image_segmentation::ImageSegmentation>(
           jsiRuntime, jsCallInvoker, "loadImageSegmentation"));
 
   jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadTextToImage",
+      RnExecutorchInstaller::loadModel<models::text_to_image::TextToImage>(
+          jsiRuntime, jsCallInvoker, "loadTextToImage"));
+
+  jsiRuntime->global().setProperty(
       *jsiRuntime, "loadClassification",
-      RnExecutorchInstaller::loadModel<Classification>(
+      RnExecutorchInstaller::loadModel<models::classification::Classification>(
           jsiRuntime, jsCallInvoker, "loadClassification"));
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadObjectDetection",
-      RnExecutorchInstaller::loadModel<ObjectDetection>(
+      RnExecutorchInstaller::loadModel<models::object_detection::ObjectDetection>(
           jsiRuntime, jsCallInvoker, "loadObjectDetection"));
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadExecutorchModule",
-      RnExecutorchInstaller::loadModel<BaseModel>(jsiRuntime, jsCallInvoker,
-                                                  "loadExecutorchModule"));
+      RnExecutorchInstaller::loadModel<models::BaseModel>(
+          jsiRuntime, jsCallInvoker, "loadExecutorchModule"));
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadTokenizerModule",
@@ -56,23 +66,35 @@ void RnExecutorchInstaller::injectJSIBindings(
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadImageEmbeddings",
-      RnExecutorchInstaller::loadModel<ImageEmbeddings>(
+      RnExecutorchInstaller::loadModel<models::embeddings::ImageEmbeddings>(
           jsiRuntime, jsCallInvoker, "loadImageEmbeddings"));
+
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadTextEmbeddings",
-      RnExecutorchInstaller::loadModel<TextEmbeddings>(
+      RnExecutorchInstaller::loadModel<models::embeddings::TextEmbeddings>(
           jsiRuntime, jsCallInvoker, "loadTextEmbeddings"));
-  jsiRuntime->global().setProperty(
-      *jsiRuntime, "loadSpeechToText",
-      RnExecutorchInstaller::loadModel<SpeechToText>(jsiRuntime, jsCallInvoker,
-                                                     "loadSpeechToText"));
 
-  jsiRuntime->global().setProperty(*jsiRuntime, "loadOCR",
-                                   RnExecutorchInstaller::loadModel<OCR>(
-                                       jsiRuntime, jsCallInvoker, "loadOCR"));
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadLLM",
+      RnExecutorchInstaller::loadModel<models::llm::LLM>(
+          jsiRuntime, jsCallInvoker, "loadLLM"));
+
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadOCR",
+      RnExecutorchInstaller::loadModel<models::ocr::OCR>(
+          jsiRuntime, jsCallInvoker, "loadOCR"));
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadVerticalOCR",
-      RnExecutorchInstaller::loadModel<VerticalOCR>(jsiRuntime, jsCallInvoker,
-                                                    "loadVerticalOCR"));
+      RnExecutorchInstaller::loadModel<models::ocr::VerticalOCR>(
+          jsiRuntime, jsCallInvoker, "loadVerticalOCR"));
+
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadSpeechToText",
+      RnExecutorchInstaller::loadModel<models::speech_to_text::SpeechToText>(
+          jsiRuntime, jsCallInvoker, "loadSpeechToText"));
+
+  threads::utils::unsafeSetupThreadPool();
+  threads::GlobalThreadPool::initialize();
 }
+
 } // namespace rnexecutorch

@@ -66,8 +66,7 @@ export const SpeechToTextScreen = () => {
     try {
       const decodedAudioData = await audioContext.decodeAudioDataSource(uri);
       const audioBuffer = decodedAudioData.getChannelData(0);
-      const audioArray = Array.from(audioBuffer);
-      setTranscription(await model.transcribe(audioArray));
+      setTranscription(await model.transcribe(audioBuffer));
     } catch (error) {
       console.error('Error decoding audio data', error);
       console.warn('Note: Supported file formats: mp3, wav, flac');
@@ -78,9 +77,8 @@ export const SpeechToTextScreen = () => {
   const handleStartTranscribeFromMicrophone = async () => {
     setLiveTranscribing(true);
     setTranscription('');
-    recorder.onAudioReady(async ({ buffer }) => {
-      const bufferArray = Array.from(buffer.getChannelData(0));
-      model.streamInsert(bufferArray);
+    recorder.onAudioReady(({ buffer }) => {
+      model.streamInsert(buffer.getChannelData(0));
     });
     recorder.start();
 
@@ -91,7 +89,7 @@ export const SpeechToTextScreen = () => {
     }
   };
 
-  const handleStopTranscribeFromMicrophone = async () => {
+  const handleStopTranscribeFromMicrophone = () => {
     recorder.stop();
     model.streamStop();
     console.log('Live transcription stopped');

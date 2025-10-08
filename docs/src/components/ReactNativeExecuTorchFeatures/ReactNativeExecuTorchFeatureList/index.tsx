@@ -12,6 +12,10 @@ const items = [
     body: "The on-device computing nature of React Native ExecuTorch means you don't have to worry about cloud infrastructure. This approach reduces server costs and minimizes latency.",
   },
   {
+    title: 'model variety',
+    body: 'We support a wide variety of models, including LLMs, such as Qwen 3, Llama 3.2, SmolLM 2, and Hammer 2.1, as well as CLIP for image embedding, Whisper for ASR, and a selection of computer vision models.',
+  },
+  {
     title: 'developer friendly',
     body: "There's no need for deep AI expertise, we handle the complexities of AI models on the native side, making it simple for developers to use these models in React Native.",
   },

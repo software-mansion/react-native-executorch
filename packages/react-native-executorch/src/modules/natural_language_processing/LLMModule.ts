@@ -1,6 +1,12 @@
 import { LLMController } from '../../controllers/LLMController';
 import { ResourceSource } from '../../types/common';
-import { ChatConfig, LLMTool, Message, ToolsConfig } from '../../types/llm';
+import {
+  ChatConfig,
+  GenerationConfig,
+  LLMTool,
+  Message,
+  ToolsConfig,
+} from '../../types/llm';
 
 export class LLMModule {
   private controller: LLMController;
@@ -46,11 +52,13 @@ export class LLMModule {
   configure({
     chatConfig,
     toolsConfig,
+    generationConfig,
   }: {
     chatConfig?: Partial<ChatConfig>;
     toolsConfig?: ToolsConfig;
+    generationConfig?: GenerationConfig;
   }) {
-    this.controller.configure({ chatConfig, toolsConfig });
+    this.controller.configure({ chatConfig, toolsConfig, generationConfig });
   }
 
   async forward(input: string): Promise<string> {
@@ -75,6 +83,10 @@ export class LLMModule {
 
   interrupt() {
     this.controller.interrupt();
+  }
+
+  getGeneratedTokenCount() {
+    return this.controller.getGeneratedTokenCount();
   }
 
   delete() {

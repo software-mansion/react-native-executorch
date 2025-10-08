@@ -2,7 +2,7 @@
 #include <executorch/extension/tensor/tensor_ptr_maker.h>
 #include <rnexecutorch/data_processing/Numerical.h>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models::embeddings {
 
 using namespace executorch::extension;
 
@@ -48,7 +48,6 @@ TextEmbeddings::generate(const std::string input) {
       attnMaskShape, preprocessed.attentionMask.data(), ScalarType::Long);
 
   auto forwardResult = BaseModel::forward({tokenIds, attnMask});
-
   if (!forwardResult.ok()) {
     throw std::runtime_error(
         "Function forward in TextEmbeddings failed with error code: " +
@@ -58,4 +57,4 @@ TextEmbeddings::generate(const std::string input) {
   return BaseEmbeddings::postprocess(forwardResult);
 }
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::embeddings

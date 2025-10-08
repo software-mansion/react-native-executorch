@@ -1,64 +1,120 @@
-#include <rnexecutorch/models/speech_to_text/SpeechToText.h>
-#include <rnexecutorch/models/speech_to_text/WhisperStrategy.h>
-#include <stdexcept>
+#include <thread>
 
-namespace rnexecutorch {
+#include "SpeechToText.h"
+
+namespace rnexecutorch::models::speech_to_text {
 
 using namespace ::executorch::extension;
+using namespace asr;
+using namespace types;
+using namespace stream;
 
-SpeechToText::SpeechToText(const std::string &encoderPath,
-                           const std::string &decoderPath,
-                           const std::string &modelName,
+SpeechToText::SpeechToText(const std::string &encoderSource,
+                           const std::string &decoderSource,
+                           const std::string &tokenizerSource,
                            std::shared_ptr<react::CallInvoker> callInvoker)
-    : EncoderDecoderBase(encoderPath, decoderPath, callInvoker),
-      modelName(modelName) {
-  initializeStrategy();
-}
+    : callInvoker(std::move(callInvoker)),
+      encoder(std::make_unique<BaseModel>(encoderSource, this->callInvoker)),
+      decoder(std::make_unique<BaseModel>(decoderSource, this->callInvoker)),
+      tokenizer(std::make_unique<TokenizerModule>(tokenizerSource,
+                                                  this->callInvoker)),
+      asr(std::make_unique<ASR>(this->encoder.get(), this->decoder.get(),
+                                this->tokenizer.get())),
+      processor(std::make_unique<OnlineASRProcessor>(this->asr.get())),
+      isStreaming(false), readyToProcess(false) {}
 
-void SpeechToText::initializeStrategy() {
-  if (modelName == "whisper") {
-    strategy = std::make_unique<WhisperStrategy>();
-  } else {
-    throw std::runtime_error("Unsupported STT model: " + modelName +
-                             ". Only 'whisper' is supported.");
-  }
-}
-
-void SpeechToText::encode(std::span<float> waveform) {
-  const auto modelInputTensor = strategy->prepareAudioInput(waveform);
-
-  const auto result = encoder_->forward(modelInputTensor);
-  if (!result.ok()) {
-    throw std::runtime_error(
-        "Forward pass failed during encoding, error code: " +
-        std::to_string(static_cast<int>(result.error())));
-  }
-
-  encoderOutput = result.get().at(0);
+void SpeechToText::unload() noexcept {
+  this->encoder->unload();
+  this->decoder->unload();
 }
 
 std::shared_ptr<OwningArrayBuffer>
-SpeechToText::decode(std::vector<int64_t> prevTokens) {
-  if (encoderOutput.isNone()) {
-    throw std::runtime_error("Empty encodings on decode call, make sure to "
-                             "call encode() prior to decode()!");
-  }
-
-  const auto prevTokensTensor = strategy->prepareTokenInput(prevTokens);
-
-  const auto decoderMethod = strategy->getDecoderMethod();
-  const auto decoderResult =
-      decoder_->execute(decoderMethod, {prevTokensTensor, encoderOutput});
-
-  if (!decoderResult.ok()) {
-    throw std::runtime_error(
-        "Forward pass failed during decoding, error code: " +
-        std::to_string(static_cast<int>(decoderResult.error())));
-  }
-
-  const auto decoderOutputTensor = decoderResult.get().at(0).toTensor();
-  const auto innerDim = decoderOutputTensor.size(1);
-  return strategy->extractOutputToken(decoderOutputTensor);
+SpeechToText::encode(std::span<float> waveform) const {
+  std::vector<float> encoderOutput = this->asr->encode(waveform);
+  return std::make_shared<OwningArrayBuffer>(encoderOutput);
 }
 
-} // namespace rnexecutorch
+std::shared_ptr<OwningArrayBuffer>
+SpeechToText::decode(std::span<int32_t> tokens,
+                     std::span<float> encoderOutput) const {
+  std::vector<float> decoderOutput = this->asr->decode(tokens, encoderOutput);
+  return std::make_shared<OwningArrayBuffer>(decoderOutput);
+}
+
+std::string SpeechToText::transcribe(std::span<float> waveform,
+                                     std::string languageOption) const {
+  std::vector<Segment> segments =
+      this->asr->transcribe(waveform, DecodingOptions(languageOption));
+  std::string transcription;
+
+  size_t transcriptionLength = 0;
+  for (auto &segment : segments) {
+    for (auto &word : segment.words) {
+      transcriptionLength += word.content.size();
+    }
+  }
+  transcription.reserve(transcriptionLength);
+
+  for (auto &segment : segments) {
+    for (auto &word : segment.words) {
+      transcription += word.content;
+    }
+  }
+  return transcription;
+}
+
+size_t SpeechToText::getMemoryLowerBound() const noexcept {
+  return this->encoder->getMemoryLowerBound() +
+         this->decoder->getMemoryLowerBound();
+}
+
+void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
+                          std::string languageOption) {
+  if (this->isStreaming) {
+    throw std::runtime_error("Streaming is already in progress");
+  }
+
+  auto nativeCallback = [this, callback](const std::string &committed,
+                                         const std::string &nonCommitted,
+                                         bool isDone) {
+    this->callInvoker->invokeAsync(
+        [callback, committed, nonCommitted, isDone](jsi::Runtime &rt) {
+          callback->call(rt, jsi::String::createFromUtf8(rt, committed),
+                         jsi::String::createFromUtf8(rt, nonCommitted),
+                         jsi::Value(isDone));
+        });
+  };
+
+  this->isStreaming = true;
+  while (this->isStreaming) {
+    if (!this->readyToProcess ||
+        this->processor->audioBuffer.size() < SpeechToText::kMinAudioSamples) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      continue;
+    }
+    ProcessResult res =
+        this->processor->processIter(DecodingOptions(languageOption));
+    nativeCallback(res.committed, res.nonCommitted, false);
+    this->readyToProcess = false;
+  }
+
+  std::string committed = this->processor->finish();
+  nativeCallback(committed, "", true);
+
+  this->resetStreamState();
+}
+
+void SpeechToText::streamStop() { this->isStreaming = false; }
+
+void SpeechToText::streamInsert(std::span<float> waveform) {
+  this->processor->insertAudioChunk(waveform);
+  this->readyToProcess = true;
+}
+
+void SpeechToText::resetStreamState() {
+  this->isStreaming = false;
+  this->readyToProcess = false;
+  this->processor = std::make_unique<OnlineASRProcessor>(this->asr.get());
+}
+
+} // namespace rnexecutorch::models::speech_to_text

@@ -4,21 +4,23 @@ import Head from '@docusaurus/Head';
 import styles from './styles.module.css';
 import HomepageStartScreen from '@site/src/components/Hero/StartScreen';
 import WaveTop from '@site/src/components/Wave/WaveTop';
-import ExecuTorchIntroduction from '../components/ExecuTorchIntroduction';
+import ReactNativeExecuTorchIntroduction from '../components/ReactNativeExecuTorchIntroduction';
 import ReactNativeExecuTorchFeatures from '@site/src/components/ReactNativeExecuTorchFeatures';
 import { HireUsSection } from '@swmansion/t-rex-ui';
 import FooterBackground from '../components/FooterBackground';
+import ReactNativeExecutorchAction from '../components/ReactNativeExecutorchAction';
+import { Carousel } from '../components/Carousel';
 
 const Home = () => {
   return (
     <Layout
-      title="React Native ExecuTorch"
-      description="Declarative way to run AI models in React Native on device, powered by ExecuTorch."
+      title="React Native ExecuTorch – On-device AI & LLM toolkit for React Native"
+      description="React Native ExecuTorch lets you run LLMs and AI models locally on device in React Native. Build privacy-first, fast, and offline-ready apps with ease."
     >
       <Head>
         <meta
           name="keywords"
-          content="react native ai, react native llm, react native qwen, on-device ai, mobile ai, mobile machine learning, on-device inference, edge ai, llama, llm, whisper, ocr, moonshine, speech to text, qwen"
+          content="react native ai, react native llm, react native qwen, on-device ai, mobile ai, mobile machine learning, on-device inference, edge ai, llama, llm, whisper, ocr, speech to text, qwen"
         />
       </Head>
       <div className={styles.container}>
@@ -27,8 +29,10 @@ const Home = () => {
       <div className={styles.linearGradient}>
         <WaveTop />
         <div className={styles.container}>
-          <ExecuTorchIntroduction />
+          <ReactNativeExecuTorchIntroduction />
           <ReactNativeExecuTorchFeatures />
+          <ReactNativeExecutorchAction />
+          <Carousel />
           <div className={styles.hireUsSection}>
             <HireUsSection
               href="https://swmansion.com/contact/projects?utm_source=react-native-executorch&utm_medium=docs"

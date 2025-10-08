@@ -4,7 +4,7 @@
 #include <filesystem>
 #include <stdexcept>
 
-namespace rnexecutorch {
+namespace rnexecutorch::models {
 
 using namespace facebook;
 using namespace executorch::extension;
@@ -126,8 +126,8 @@ BaseModel::forwardJS(std::vector<JSTensorViewIn> tensorViewVec) {
     auto &outputTensor = outputs[i].toTensor();
     std::vector<int32_t> sizes = getTensorShape(outputTensor);
     size_t bufferSize = outputTensor.numel() * outputTensor.element_size();
-    auto buffer = std::make_shared<OwningArrayBuffer>(bufferSize);
-    std::memcpy(buffer->data(), outputTensor.const_data_ptr(), bufferSize);
+    auto buffer = std::make_shared<OwningArrayBuffer>(
+        outputTensor.const_data_ptr(), bufferSize);
     auto jsTensor = JSTensorViewOut(sizes, outputTensor.scalar_type(), buffer);
     output.emplace_back(jsTensor);
   }
@@ -142,7 +142,8 @@ BaseModel::getMethodMeta(const std::string &methodName) {
   return module_->method_meta(methodName);
 }
 
-Result<std::vector<EValue>> BaseModel::forward(const EValue &input_evalue) {
+Result<std::vector<EValue>>
+BaseModel::forward(const EValue &input_evalue) const {
   if (!module_) {
     throw std::runtime_error("Model not loaded: Cannot perform forward pass");
   }
@@ -150,7 +151,7 @@ Result<std::vector<EValue>> BaseModel::forward(const EValue &input_evalue) {
 }
 
 Result<std::vector<EValue>>
-BaseModel::forward(const std::vector<EValue> &input_evalues) {
+BaseModel::forward(const std::vector<EValue> &input_evalues) const {
   if (!module_) {
     throw std::runtime_error("Model not loaded: Cannot perform forward pass");
   }
@@ -178,4 +179,4 @@ BaseModel::getTensorShape(const executorch::aten::Tensor &tensor) {
   return std::vector<int32_t>(sizes.begin(), sizes.end());
 }
 
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models

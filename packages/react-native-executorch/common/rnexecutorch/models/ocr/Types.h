@@ -4,9 +4,7 @@
 #include <string>
 #include <vector>
 
-namespace rnexecutorch {
-namespace ocr {
-
+namespace rnexecutorch::models::ocr::types {
 struct Point {
   float x;
   float y;
@@ -27,11 +25,11 @@ struct PaddingInfo {
   int32_t top;
   int32_t left;
 };
-} // namespace ocr
 
 struct OCRDetection {
-  std::array<ocr::Point, 4> bbox;
+  std::array<types::Point, 4> bbox;
   std::string text;
   float score;
 };
-} // namespace rnexecutorch
+
+} // namespace rnexecutorch::models::ocr::types

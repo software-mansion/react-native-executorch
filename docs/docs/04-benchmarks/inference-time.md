@@ -64,38 +64,29 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 
 ### Streaming mode
 
-Notice than for `Whisper` model which has to take as an input 30 seconds audio chunks (for shorter audio it is automatically padded with silence to 30 seconds) `fast` mode has the lowest latency (time from starting transcription to first token returned, caused by streaming algorithm), but the slowest speed. That's why for the lowest latency and the fastest transcription we suggest using `Moonshine` model, if you still want to proceed with `Whisper` use preferably the `balanced` mode.
+Notice than for `Whisper` model which has to take as an input 30 seconds audio chunks (for shorter audio it is automatically padded with silence to 30 seconds) `fast` mode has the lowest latency (time from starting transcription to first token returned, caused by streaming algorithm), but the slowest speed. If you believe that this might be a problem for you, prefer `balanced` mode instead.
 
-| Model (mode)              | iPhone 16 Pro (XNNPACK) [latency \| tokens/s] | iPhone 14 Pro (XNNPACK) [latency \| tokens/s] | iPhone SE 3 (XNNPACK) [latency \| tokens/s] | Samsung Galaxy S24 (XNNPACK) [latency \| tokens/s] | OnePlus 12 (XNNPACK) [latency \| tokens/s] |
-| ------------------------- | :-------------------------------------------: | :-------------------------------------------: | :-----------------------------------------: | :------------------------------------------------: | :----------------------------------------: |
-| Moonshine-tiny (fast)     |                0.8s \| 19.0t/s                |                1.5s \| 11.3t/s                |               1.5s \| 10.4t/s               |                   2.0s \| 8.8t/s                   |              1.6s \| 12.5t/s               |
-| Moonshine-tiny (balanced) |                2.0s \| 20.0t/s                |                3.2s \| 12.4t/s                |               3.7s \| 10.4t/s               |                  4.6s \| 11.2t/s                   |              3.4s \| 14.6t/s               |
-| Moonshine-tiny (quality)  |                4.3s \| 16.8t/s                |                6.6s \| 10.8t/s                |               8.0s \| 8.9t/s                |                  7.7s \| 11.1t/s                   |              6.8s \| 13.1t/s               |
-| Whisper-tiny (fast)       |                2.8s \| 5.5t/s                 |                3.7s \| 4.4t/s                 |               4.4s \| 3.4t/s                |                   5.5s \| 3.1t/s                   |               5.3s \| 3.8t/s               |
-| Whisper-tiny (balanced)   |                5.6s \| 7.9t/s                 |                7.0s \| 6.3t/s                 |               8.3s \| 5.0t/s                |                   8.4s \| 6.7t/s                   |               7.7s \| 7.2t/s               |
-| Whisper-tiny (quality)    |                10.3s \| 8.3t/s                |                12.6s \| 6.8t/s                |               7.8s \| 8.9t/s                |                  13.5s \| 7.1t/s                   |              12.9s \| 7.5t/s               |
+| Model (mode)            | iPhone 16 Pro (XNNPACK) [latency \| tokens/s] | iPhone 14 Pro (XNNPACK) [latency \| tokens/s] | iPhone SE 3 (XNNPACK) [latency \| tokens/s] | Samsung Galaxy S24 (XNNPACK) [latency \| tokens/s] | OnePlus 12 (XNNPACK) [latency \| tokens/s] |
+| ----------------------- | :-------------------------------------------: | :-------------------------------------------: | :-----------------------------------------: | :------------------------------------------------: | :----------------------------------------: |
+| Whisper-tiny (fast)     |                2.8s \| 5.5t/s                 |                3.7s \| 4.4t/s                 |               4.4s \| 3.4t/s                |                   5.5s \| 3.1t/s                   |               5.3s \| 3.8t/s               |
+| Whisper-tiny (balanced) |                5.6s \| 7.9t/s                 |                7.0s \| 6.3t/s                 |               8.3s \| 5.0t/s                |                   8.4s \| 6.7t/s                   |               7.7s \| 7.2t/s               |
+| Whisper-tiny (quality)  |                10.3s \| 8.3t/s                |                12.6s \| 6.8t/s                |               7.8s \| 8.9t/s                |                  13.5s \| 7.1t/s                   |              12.9s \| 7.5t/s               |
 
 ### Encoding
 
 Average time for encoding audio of given length over 10 runs. For `Whisper` model we only list 30 sec audio chunks since `Whisper` does not accept other lengths (for shorter audio the audio needs to be padded to 30sec with silence).
 
-| Model                | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
-| -------------------- | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
-| Moonshine-tiny (5s)  |              99              |              95              |            115             |                284                |            277            |
-| Moonshine-tiny (10s) |             178              |             177              |            204             |                555                |            528            |
-| Moonshine-tiny (30s) |             580              |             576              |            689             |               1726                |           1617            |
-| Whisper-tiny (30s)   |             1034             |             1344             |            1269            |               2916                |           2143            |
+| Model              | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| ------------------ | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
+| Whisper-tiny (30s) |             1034             |             1344             |            1269            |               2916                |           2143            |
 
 ### Decoding
 
 Average time for decoding one token in sequence of 100 tokens, with encoding context is obtained from audio of noted length.
 
-| Model                | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
-| -------------------- | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
-| Moonshine-tiny (5s)  |            48.98             |            47.98             |           46.86            |               36.70               |           29.03           |
-| Moonshine-tiny (10s) |            54.24             |            51.74             |           55.07            |               46.31               |           32.41           |
-| Moonshine-tiny (30s) |            76.38             |            76.19             |           87.37            |               65.61               |           45.04           |
-| Whisper-tiny (30s)   |            128.03            |            113.65            |           141.63           |               89.08               |           84.49           |
+| Model              | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| ------------------ | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
+| Whisper-tiny (30s) |            128.03            |            113.65            |           141.63           |               89.08               |           84.49           |
 
 ## Text Embeddings
 
@@ -120,3 +111,11 @@ Benchmark times for text embeddings are highly dependent on the sentence length.
 :::info
 Image embedding benchmark times are measured using 224×224 pixel images, as required by the model. All input images, whether larger or smaller, are resized to 224×224 before processing. Resizing is typically fast for small images but may be noticeably slower for very large images, which can increase total inference time.
 :::
+
+## Text to Image
+
+Average time for generating one image of size 256×256 in 10 inference steps.
+
+| Model                 | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| --------------------- | :--------------------------: | :------------------------------: | :-------------------: | :-------------------------------: | :-----------------------: |
+| BK_SDM_TINY_VPRED_256 |            19100             |              25000               |          ❌           |                ❌                 |           23100           |

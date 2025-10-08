@@ -29,6 +29,7 @@
  */
 import {
   cacheDirectory,
+  copyAsync,
   createDownloadResumable,
   moveAsync,
   FileSystemSessionType,
@@ -38,6 +39,7 @@ import {
   readDirectoryAsync,
 } from 'expo-file-system';
 import { Asset } from 'expo-asset';
+import { Platform } from 'react-native';
 import { RNEDirectory } from '../constants/directories';
 import { ResourceSource } from '../types/common';
 import {
@@ -61,7 +63,6 @@ export class ResourceFetcher {
     }
     const { results: info, totalLength } =
       await ResourceFetcherUtils.getFilesSizes(sources);
-
     const head: ResourceSourceExtended = {
       source: info[0]!.source,
       sourceType: info[0]!.type,
@@ -316,16 +317,17 @@ export class ResourceFetcher {
     const uri = asset.uri;
     const filename = ResourceFetcherUtils.getFilenameFromUri(uri);
     const fileUri = `${RNEDirectory}${filename}`;
-    const fileUriWithType = `${fileUri}.${asset.type}`;
+    // On Android, file uri does not contain file extension, so we add it manually
+    const fileUriWithType =
+      Platform.OS === 'android' ? `${fileUri}.${asset.type}` : fileUri;
     if (await ResourceFetcherUtils.checkFileExists(fileUri)) {
       return ResourceFetcherUtils.removeFilePrefix(fileUri);
     }
     await ResourceFetcherUtils.createDirectoryIfNoExists();
-    await asset.downloadAsync();
-    if (!asset.localUri) {
-      throw new Error(`Asset local URI is not available for ${source}`);
-    }
-    await moveAsync({ from: asset.localUri, to: fileUriWithType });
+    await copyAsync({
+      from: asset.uri,
+      to: fileUriWithType,
+    });
     return ResourceFetcherUtils.removeFilePrefix(fileUriWithType);
   }
 

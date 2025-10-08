@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-namespace rnexecutorch::ocr {
+namespace rnexecutorch::models::ocr {
 /*
  CTC (Connectionist Temporal Classification) Label Converter
  is used for decoding the returned list of indices by Recognizer into
@@ -23,7 +23,7 @@ public:
                                         size_t length);
 
 private:
-  std::vector<std::string> character;
   int32_t ignoreIdx;
+  std::vector<std::string> character;
 };
-} // namespace rnexecutorch::ocr
+} // namespace rnexecutorch::models::ocr

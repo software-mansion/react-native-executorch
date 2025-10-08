@@ -1,0 +1,194 @@
+.featuresContainer {
+  display: flex;
+  flex-direction: column;
+  margin-top: 7.5rem;
+  gap: 5rem;
+}
+
+.introduction {
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.title {
+  font-size: var(--swm-h2-font-size);
+}
+
+.downloadInnerContainer {
+  display: flex;
+  margin: auto;
+  width: 80%;
+  justify-content: space-around;
+}
+
+.appStore {
+  width: 40%;
+  height: 120px;
+  margin-top: 7.5px;
+}
+
+.playStore {
+  width: 50%;
+  height: 180px;
+}
+
+.listItem {
+  margin-left: 3rem;
+}
+
+.storeLink {
+  display: block;
+}
+
+.innerContainer {
+  display: flex;
+  flex-direction: row;
+  margin-top: -3rem;
+  width: 100%;
+}
+
+.imageOuterContainer {
+  width: fit-content;
+  margin-left: 2rem;
+  margin-top: -4.5rem;
+}
+
+.imageInnerContainer {
+  margin-top: -40rem;
+  background-color: white;
+  margin: auto;
+  border-radius: 22.5%;
+  overflow: hidden;
+  aspect-ratio: 1;
+  width: 25vw;
+  max-width: 18rem;
+  min-width: 14rem;
+}
+
+.downloadOuterContainer {
+  display: flex;
+  width: 100%;
+  max-width: 350px;
+}
+
+.payStoreSvg {
+  scale: 1.035;
+}
+
+@media (max-width: 2000px) {
+  .imageOuterContainer {
+    width: fit-content;
+    margin-left: 2rem;
+    margin-top: 0rem;
+  }
+}
+@media (max-width: 1280px) {
+  .imageInnerContainer {
+    width: 16rem;
+  }
+  .appStore {
+    height: 100px;
+    margin-top: 7.5px;
+  }
+}
+
+@media (max-width: 996px) {
+  .appStore {
+    height: 100px;
+    margin-top: 20px;
+  }
+  .playStore {
+    height: 150px;
+  }
+  .imageOuterContainer {
+    margin-left: 1.5rem;
+  }
+  .imageInnerContainer {
+    width: 12rem;
+  }
+  .featuresContainer {
+    margin-top: 2.5rem;
+  }
+  .listItem {
+    margin-left: 0.5rem;
+  }
+  .downloadInnerContainer {
+    flex-direction: column;
+  }
+  .downloadOuterContainer {
+    display: flex;
+    width: 100%;
+    max-width: 350px;
+  }
+  .appStore {
+    width: 88%;
+    height: 120px;
+    align-self: center;
+  }
+  .playStore {
+    margin-top: -4rem;
+    width: 100%;
+    height: 180px;
+  }
+  .payStoreSvg {
+    scale: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .payStoreSvg {
+    scale: 1.29;
+  }
+  .downloadOuterContainer {
+    display: flex;
+    width: 65vw;
+    max-width: 350px;
+  }
+  .featuresContainer {
+    margin-bottom: 0.5rem;
+    gap: 0;
+  }
+  .introduction {
+    font-size: 20px;
+  }
+  .title {
+    margin-bottom: 1.5rem;
+  }
+  .downloadInnerContainer {
+    flex-direction: row;
+    margin-top: 0.5rem;
+    column-gap: 1.5rem;
+  }
+  .appStore {
+    width: 50%;
+    margin-left: auto;
+    height: auto;
+    align-self: center;
+    margin-top: 0px;
+  }
+  .playStore {
+    margin-right: auto;
+    margin-top: 0rem;
+    width: 50%;
+    height: auto;
+  }
+  .imageOuterContainer {
+    margin: auto;
+    margin-top: 1rem;
+  }
+  .innerContainer {
+    display: flex;
+    flex-direction: column;
+    margin-top: 0rem;
+  }
+  .imageInnerContainer {
+    max-width: 50%;
+  }
+}
+
+@media (max-width: 420px) {
+  .title {
+    margin-bottom: 1.5rem;
+    font-size: 24px;
+  }
+}

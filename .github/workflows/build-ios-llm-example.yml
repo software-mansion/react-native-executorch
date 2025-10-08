@@ -6,14 +6,14 @@ on:
     paths:
       - '.github/workflows/build-ios-llm-example.yml'
       - '*.podspec'
-      - 'apps/llm/ios/**'
-      - 'apps/llm/package.json'
+      - 'apps/llm/**'
+      - 'packages/react-native-executorch/**'
   pull_request:
     paths:
       - '.github/workflows/build-ios-llm-example.yml'
       - '*.podspec'
-      - 'apps/llm/ios/**'
-      - 'apps/llm/package.json'
+      - 'apps/llm/**'
+      - 'packages/react-native-executorch/**'
   workflow_dispatch:
 jobs:
   build:
@@ -28,12 +28,38 @@ jobs:
           xcode-version: latest-stable
       - name: Check out Git repository
         uses: actions/checkout@v4
-      - name: Install node dependencies
+        with:
+          submodules: recursive
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'yarn'
+      - name: Install root dependencies
+        run: yarn install --immutable
+      - name: Install Expo CLI
+        run: |
+          npm install -g @expo/cli
+          echo "$(npm prefix -g)/bin" >> $GITHUB_PATH
+      - name: Cache Expo prebuild
+        uses: actions/cache@v4
+        with:
+          path: apps/llm/ios
+          key: ${{ runner.os }}-expo-ios-${{ hashFiles('apps/llm/app.json', 'apps/llm/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-expo-ios-
+      - name: Generate native iOS project
         working-directory: apps/llm
-        run: yarn
-      - name: Install pods
+        run: |
+          if [ ! -d "ios" ]; then
+            npx expo prebuild --platform ios --no-install
+          else
+            echo "iOS project exists, skipping prebuild"
+          fi
+      - name: Install CocoaPods dependencies
         working-directory: apps/llm/ios
-        run: pod install
+        run: |
+          pod install
       - name: Build app
         working-directory: apps/llm/ios
         run: |
@@ -44,4 +70,7 @@ jobs:
             -configuration Debug \
             -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
             build \
-            CODE_SIGNING_ALLOWED=NO | xcbeautify
+            CODE_SIGNING_ALLOWED=NO \
+            -jobs $(sysctl -n hw.ncpu) \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            ONLY_ACTIVE_ARCH=YES | xcbeautify

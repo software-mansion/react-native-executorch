@@ -23,7 +23,22 @@
           "calendarPermission": "The app needs to access your calendar."
         }
       ],
-      "expo-router"
+      "expo-router",
+      [
+        "react-native-audio-api",
+        {
+          "iosBackgroundMode": true,
+          "iosMicrophonePermission": "This app requires access to the microphone to record audio.",
+          "androidPermissions": [
+            "android.permission.MODIFY_AUDIO_SETTINGS",
+            "android.permission.FOREGROUND_SERVICE",
+            "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+            "android.permission.RECORD_AUDIO"
+          ],
+          "androidForegroundService": true,
+          "androidFSTypes": ["mediaPlayback"]
+        }
+      ]
     ],
     "newArchEnabled": true,
     "splash": {
@@ -36,6 +51,9 @@
       "bundleIdentifier": "com.anonymous.llm",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "This app needs access to your microphone to record audio."
+      },
+      "entitlements": {
+        "com.apple.developer.kernel.increased-memory-limit": true
       }
     },
     "android": {
@@ -43,7 +61,11 @@
         "foregroundImage": "./assets/icons/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.llm"
+      "package": "com.anonymous.llm",
+      "permissions": [
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR"
+      ]
     },
     "web": {
       "favicon": "./assets/icons/favicon.png"
