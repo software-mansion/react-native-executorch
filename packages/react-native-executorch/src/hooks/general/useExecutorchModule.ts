@@ -13,6 +13,6 @@ export const useExecutorchModule = ({
 }: Props) =>
   useModule({
     module: ExecutorchModule,
-    model: { modelSource },
+    model: modelSource,
     preventLoad,
   });
