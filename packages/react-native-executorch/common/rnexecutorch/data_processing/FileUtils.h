@@ -25,6 +25,6 @@ inline std::string loadBytesFromFile(const std::string &path) {
   data.resize(size);
   fs.read(data.data(), size);
   return data;
-};
+}
 
 } // namespace rnexecutorch::file_utils
