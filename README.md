@@ -9,6 +9,15 @@
 
 ![Software Mansion banner](https://github.com/user-attachments/assets/fa2c4735-e75c-4cc1-970d-88905d95e3a4)
 
+<p align="center">
+  <a href="https://github.com/software-mansion/react-native-executorch/blob/release/0.5/README.md">English</a>
+  <a href="https://github.com/software-mansion/react-native-executorch/blob/release/0.5/readmes/README_es.md">Español</a>
+  <a href="https://github.com/software-mansion/react-native-executorch/blob/release/0.5/readmes/README_fr.md">Français</a>
+  <a href="https://github.com/software-mansion/react-native-executorch/blob/release/0.5/readmes/README_cn.md">简体中文</a>
+  <a href="https://github.com/software-mansion/react-native-executorch/blob/release/0.5/readmes/README_pt.md">Português</a>
+  <a href="https://github.com/software-mansion/react-native-executorch/blob/release/0.5/readmes/README_in.md">हिंदी</a>
+</p>
+
 **React Native ExecuTorch** provides a declarative way to run AI models on-device using React Native, powered by **ExecuTorch** :rocket:. It offers out-of-the-box support for a wide range of LLMs, computer vision models, and more. Visit our [HuggingFace](https://huggingface.co/software-mansion) page to explore these models.
 
 **ExecuTorch**, developed by Meta, is a novel framework allowing AI model execution on devices like mobile phones or microcontrollers.
@@ -21,10 +30,11 @@ React Native ExecuTorch bridges the gap between React Native and native platform
 **Table of contents:**
 
 - [:yin_yang: Supported versions](#yin_yang-supported-versions)
-- [:robot: Ready-made models](#robot-ready-made-models)
 - [:books: Documentation](#books-documentation)
+- [:earth_africa: Real-World Example](#earth_africa-real-world-example)
 - [:llama: Quickstart - Running Llama](#llama-quickstart---running-llama)
-- [:calling: Examples](#calling-examples)
+- [:calling: Demo apps](#calling-demo-apps)
+- [:robot: Ready-made models](#robot-ready-made-models)
 - [:balance_scale: License](#balance_scale-license)
 - [:soon: What's next?](#soon-whats-next)
 
@@ -38,14 +48,16 @@ The minimal supported version are:
 > [!IMPORTANT]  
 > React Native Executorch supports only the [New React Native architecture](https://reactnative.dev/architecture/landing-page).
 
-## :robot: Ready-made models
-
-Our library has a number of ready-to-use AI models; a complete list is available in the documentation. If you're interested in running your own AI model, you need to first export it to the `.pte` format. Instructions on how to do this are available in the [Python API](https://pypi.org/project/executorch/).
-
 ## :books: Documentation
 
 Check out how our library can help you build your React Native AI features by visiting our docs:  
 https://docs.swmansion.com/react-native-executorch
+
+## :earth_africa: Real-World Example
+
+React Native ExecuTorch is powering [Private Mind](https://github.com/software-mansion-labs/private-mind), a privacy-first mobile AI app available on [App Store](https://apps.apple.com/gb/app/private-mind/id6746713439) and [Google Play](https://play.google.com/store/apps/details?id=com.swmansion.privatemind).
+
+<img width="2720" height="1085" alt="Private Mind promo" src="https://github.com/user-attachments/assets/b12296fe-19ac-48fc-9726-da9242700346" />
 
 ## :llama: **Quickstart - Running Llama**
 
@@ -93,12 +105,12 @@ const handleGenerate = async () => {
 };
 ```
 
-## :calling: Examples
+## :calling: Demo apps
 
 We currently host a few example [apps](https://github.com/software-mansion/react-native-executorch/tree/main/apps) demonstrating use cases of our library:
 
 - `llm` - Chat application showcasing use of LLMs
-- `speech-to-text` - Whisper and Moonshine models ready for transcription tasks
+- `speech-to-text` - Whisper model ready for transcription tasks
 - `computer-vision` - Computer vision related tasks
 - `text-embeddings` - Computing text representations for semantic search
 
@@ -116,6 +128,10 @@ yarn expo run:< ios | android >
 
 > [!WARNING]  
 > Running LLMs requires a significant amount of RAM. If you are encountering unexpected app crashes, try to increase the amount of RAM allocated to the emulator.
+
+## :robot: Ready-made models
+
+Our library has a number of ready-to-use AI models; a complete list is available in the documentation. If you're interested in running your own AI model, you need to first export it to the `.pte` format. Instructions on how to do this are available in the [Python API](https://docs.pytorch.org/executorch/stable/using-executorch-export.html) and [optimum-executorch README](https://github.com/huggingface/optimum-executorch?tab=readme-ov-file#option-2-export-and-load-separately).
 
 ## :balance_scale: License
 
