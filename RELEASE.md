@@ -14,6 +14,7 @@ The release process of new minor version consists of the following steps:
 8. Create a PR with the updated docs.
 9. Create the release notes on GitHub.
 10. Update README.md with release video, if available.
+11. Update README.md links to release branch.
 
 ## Patch release
 
