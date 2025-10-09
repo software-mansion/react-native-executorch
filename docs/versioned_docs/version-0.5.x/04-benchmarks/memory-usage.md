@@ -68,3 +68,13 @@ title: Memory Usage
 | Model                       | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
 | --------------------------- | :--------------------: | :----------------: |
 | CLIP_VIT_BASE_PATCH32_IMAGE |          350           |        340         |
+
+## Image Segmentation
+
+:::warning
+Data presented in the following sections is based on inference with non-resized output. When resize is enabled, expect higher memory usage and inference time with higher resolutions.
+:::
+
+| Model             | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| ----------------- | ---------------------- | ------------------ |
+| DEELABV3_RESNET50 | 930                    | 660                |
