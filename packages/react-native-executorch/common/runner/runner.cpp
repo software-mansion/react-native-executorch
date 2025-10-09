@@ -83,7 +83,7 @@ Error Runner::load() {
   ET_CHECK_OK_OR_RETURN_ERROR(module_->load_method("forward"));
   // load tokenizer.
 
-  auto blob = loadBytesFromFile(tokenizer_path_);
+  auto blob = rnexecutorch::file_utils::loadBytesFromFile(tokenizer_path_);
   tokenizer_ = tokenizers::Tokenizer::FromBlobJSON(blob);
 
   ET_LOG(Info, "Reading metadata from model");
