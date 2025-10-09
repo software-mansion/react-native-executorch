@@ -62,7 +62,7 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 
 ❌ - Insufficient RAM.
 
-### Streaming mode
+## Streaming mode
 
 Notice than for `Whisper` model which has to take as an input 30 seconds audio chunks (for shorter audio it is automatically padded with silence to 30 seconds) `fast` mode has the lowest latency (time from starting transcription to first token returned, caused by streaming algorithm), but the slowest speed. If you believe that this might be a problem for you, prefer `balanced` mode instead.
 
@@ -119,3 +119,13 @@ Average time for generating one image of size 256×256 in 10 inference steps.
 | Model                 | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
 | --------------------- | :--------------------------: | :------------------------------: | :-------------------: | :-------------------------------: | :-----------------------: |
 | BK_SDM_TINY_VPRED_256 |            19100             |              25000               |          ❌           |                ❌                 |           23100           |
+
+## Voice Activity Detection (VAD)
+
+Average time for processing 60s audio.
+
+<!-- TODO: MEASURE INFERENCE TIME FOR SAMSUNG GALAXY S24 WHEN POSSIBLE -->
+
+| Model    | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| -------- | :--------------------------: | :------------------------------: | :------------------------: | :-----------------------: |
+| FSMN_VAD |             151              |               171                |            180             |            109            |

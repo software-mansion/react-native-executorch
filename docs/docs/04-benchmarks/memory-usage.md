@@ -75,3 +75,9 @@ title: Memory Usage
 | --------------------- | ---------------------- | ------------------ |
 | BK_SDM_TINY_VPRED_256 | 2900                   | 2800               |
 | BK_SDM_TINY_VPRED     | 6700                   | 6560               |
+
+## Voice Activity Detection (VAD)
+
+| Model    | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| -------- | :--------------------: | :----------------: |
+| FSMN_VAD |           97           |        45,9        |
