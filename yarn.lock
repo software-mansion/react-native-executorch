@@ -12317,6 +12317,9 @@ __metadata:
     typescript: "npm:~5.8.3"
     zod: "npm:^3.25.0"
   peerDependencies:
+    expo: "*"
+    expo-asset: "*"
+    expo-file-system: "*"
     react: "*"
     react-native: "*"
   languageName: unknown
