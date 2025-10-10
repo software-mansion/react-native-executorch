@@ -4,9 +4,9 @@ const URL_PREFIX =
   'https://huggingface.co/software-mansion/react-native-executorch';
 const VERSION_TAG = 'resolve/v0.5.0';
 
-const DETECTOR_CRAFT_1280_MODEL = `${URL_PREFIX}-detector-craft/${VERSION_TAG}/xnnpack/xnnpack_craft_1280.pte`;
-const DETECTOR_CRAFT_800_MODEL = `${URL_PREFIX}-detector-craft/${VERSION_TAG}/xnnpack/xnnpack_craft_800.pte`;
-const DETECTOR_CRAFT_320_MODEL = `${URL_PREFIX}-detector-craft/${VERSION_TAG}/xnnpack/xnnpack_craft_320.pte`;
+const DETECTOR_CRAFT_1280_MODEL = `${URL_PREFIX}-detector-craft/${VERSION_TAG}/xnnpack_quantized/xnnpack_craft_1280_quantized.pte`;
+const DETECTOR_CRAFT_800_MODEL = `${URL_PREFIX}-detector-craft/${VERSION_TAG}/xnnpack_quantized/xnnpack_craft_800_quantized.pte`;
+const DETECTOR_CRAFT_320_MODEL = `${URL_PREFIX}-detector-craft/${VERSION_TAG}/xnnpack_quantized/xnnpack_craft_320_quantized.pte`;
 
 type RecognizerSize = 64 | 128 | 256 | 512;
 
