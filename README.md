@@ -34,11 +34,11 @@ React Native ExecuTorch bridges the gap between React Native and native platform
 <summary><strong> :blue_book: Table of Contents </strong></summary>
 
 - [:yin_yang: Supported Versions](#yin_yang-supported-versions)
-- [:books: Documentation](#books-documentation)
 - [:earth_africa: Real-world Example](#earth_africa-real-world-example)
 - [:llama: Quickstart - Running Llama](#llama-quickstart---running-llama)
 - [:calling: Demo Apps](#calling-demo-apps)
 - [:robot: Ready-made Models](#robot-ready-made-models)
+- [:books: Documentation](#books-documentation)
 - [:balance_scale: License](#balance_scale-license)
 - [:soon: What's Next?](#soon-whats-next)
 
@@ -53,11 +53,6 @@ The minimal supported version are:
 
 > [!IMPORTANT]  
 > React Native ExecuTorch supports only the [New React Native architecture](https://reactnative.dev/architecture/landing-page).
-
-## :books: Documentation
-
-Check out how our library can help you build your React Native AI features by visiting our docs:  
-https://docs.swmansion.com/react-native-executorch
 
 ## :earth_africa: Real-world Example
 
@@ -138,6 +133,11 @@ yarn expo run:< ios | android >
 ## :robot: Ready-made Models
 
 Our library has a number of ready-to-use AI models; a complete list is available in the documentation. If you're interested in running your own AI model, you need to first export it to the `.pte` format. Instructions on how to do this are available in the [Python API](https://docs.pytorch.org/executorch/stable/using-executorch-export.html) and [optimum-executorch README](https://github.com/huggingface/optimum-executorch?tab=readme-ov-file#option-2-export-and-load-separately).
+
+## :books: Documentation
+
+Check out how our library can help you build your React Native AI features by visiting our docs:  
+https://docs.swmansion.com/react-native-executorch
 
 ## :balance_scale: License
 
