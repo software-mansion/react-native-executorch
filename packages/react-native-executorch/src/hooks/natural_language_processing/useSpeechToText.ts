@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useState } from 'react';
 import { ETError, getError } from '../../Error';
 import { SpeechToTextModule } from '../../modules/natural_language_processing/SpeechToTextModule';
-import { SpeechToTextModelConfig } from '../../types/stt';
+import { DecodingOptions, SpeechToTextModelConfig } from '../../types/stt';
 
 export const useSpeechToText = ({
   model,
@@ -65,24 +65,29 @@ export const useSpeechToText = ({
     [isReady, isGenerating, modelInstance]
   );
 
-  const stream = useCallback(async () => {
-    if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
-    if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
-    setIsGenerating(true);
-    setCommittedTranscription('');
-    setNonCommittedTranscription('');
-    let transcription = '';
-    try {
-      for await (const { committed, nonCommitted } of modelInstance.stream()) {
-        setCommittedTranscription((prev) => prev + committed);
-        setNonCommittedTranscription(nonCommitted);
-        transcription += committed;
+  const stream = useCallback(
+    async (options?: DecodingOptions) => {
+      if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
+      if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
+      setIsGenerating(true);
+      setCommittedTranscription('');
+      setNonCommittedTranscription('');
+      let transcription = '';
+      try {
+        for await (const { committed, nonCommitted } of modelInstance.stream(
+          options
+        )) {
+          setCommittedTranscription((prev) => prev + committed);
+          setNonCommittedTranscription(nonCommitted);
+          transcription += committed;
+        }
+      } finally {
+        setIsGenerating(false);
       }
-    } finally {
-      setIsGenerating(false);
-    }
-    return transcription;
-  }, [isReady, isGenerating, modelInstance]);
+      return transcription;
+    },
+    [isReady, isGenerating, modelInstance]
+  );
 
   const wrapper = useCallback(
     <T extends (...args: any[]) => any>(fn: T) => {
