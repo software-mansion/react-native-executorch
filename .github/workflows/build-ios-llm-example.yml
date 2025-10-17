@@ -56,24 +56,10 @@ jobs:
           else
             echo "iOS project exists, skipping prebuild"
           fi
-      - name: Cache CocoaPods
-        uses: actions/cache@v4
-        with:
-          path: |
-            apps/llm/ios/Pods
-            ~/Library/Caches/CocoaPods
-            ~/.cocoapods
-          key: ${{ runner.os }}-pods-${{ hashFiles('apps/llm/ios/Podfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pods-
       - name: Install CocoaPods dependencies
         working-directory: apps/llm/ios
         run: |
-          if [ ! -d "Pods" ]; then
-            pod install
-          else
-            echo "Pods directory exists, skipping install"
-          fi
+          pod install
       - name: Build app
         working-directory: apps/llm/ios
         run: |
