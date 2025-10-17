@@ -7,6 +7,11 @@ export class SpeechToTextModule {
 
   private modelConfig!: SpeechToTextModelConfig;
 
+  private textDecoder = new TextDecoder('utf-8', {
+    fatal: false,
+    ignoreBOM: true,
+  });
+
   public async load(
     model: SpeechToTextModelConfig,
     onDownloadProgressCallback: (progress: number) => void = () => {}
@@ -83,8 +88,11 @@ export class SpeechToTextModule {
       );
       waveform = new Float32Array(waveform);
     }
-
-    return this.nativeModule.transcribe(waveform, options.language || '');
+    const transcriptionBytes = await this.nativeModule.transcribe(
+      waveform,
+      options.language || ''
+    );
+    return this.textDecoder.decode(new Uint8Array(transcriptionBytes));
   }
 
   public async *stream(
@@ -105,8 +113,13 @@ export class SpeechToTextModule {
     (async () => {
       try {
         await this.nativeModule.stream(
-          (committed: string, nonCommitted: string, isDone: boolean) => {
-            queue.push({ committed, nonCommitted });
+          (committed: number[], nonCommitted: number[], isDone: boolean) => {
+            queue.push({
+              committed: this.textDecoder.decode(new Uint8Array(committed)),
+              nonCommitted: this.textDecoder.decode(
+                new Uint8Array(nonCommitted)
+              ),
+            });
             if (isDone) {
               finished = true;
             }

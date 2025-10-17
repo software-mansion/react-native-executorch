@@ -36,8 +36,8 @@ SpeechToText::decode(std::span<int32_t> tokens,
   return this->makeOwningBuffer(decoderOutput);
 }
 
-std::string SpeechToText::transcribe(std::span<float> waveform,
-                                     std::string languageOption) const {
+std::vector<char> SpeechToText::transcribe(std::span<float> waveform,
+                                           std::string languageOption) const {
   std::vector<Segment> segments =
       this->asr->transcribe(waveform, DecodingOptions(languageOption));
   std::string transcription;
@@ -55,7 +55,8 @@ std::string SpeechToText::transcribe(std::span<float> waveform,
       transcription += word.content;
     }
   }
-  return transcription;
+
+  return {transcription.begin(), transcription.end()};
 }
 
 size_t SpeechToText::getMemoryLowerBound() const noexcept {
@@ -79,16 +80,17 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
     throw std::runtime_error("Streaming is already in progress");
   }
 
-  auto nativeCallback = [this, callback](const std::string &committed,
-                                         const std::string &nonCommitted,
-                                         bool isDone) {
-    this->callInvoker->invokeAsync(
-        [callback, committed, nonCommitted, isDone](jsi::Runtime &rt) {
-          callback->call(rt, jsi::String::createFromUtf8(rt, committed),
-                         jsi::String::createFromUtf8(rt, nonCommitted),
-                         jsi::Value(isDone));
+  auto nativeCallback =
+      [this, callback](const std::vector<char> &committedVec,
+                       const std::vector<char> &nonCommittedVec, bool isDone) {
+        this->callInvoker->invokeAsync([callback, committedVec, nonCommittedVec,
+                                        isDone](jsi::Runtime &rt) {
+          callback->call(
+              rt, rnexecutorch::jsi_conversion::getJsiValue(committedVec, rt),
+              rnexecutorch::jsi_conversion::getJsiValue(nonCommittedVec, rt),
+              jsi::Value(isDone));
         });
-  };
+      };
 
   this->isStreaming = true;
   while (this->isStreaming) {
@@ -99,12 +101,15 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
     }
     ProcessResult res =
         this->processor->processIter(DecodingOptions(languageOption));
-    nativeCallback(res.committed, res.nonCommitted, false);
+
+    nativeCallback({res.committed.begin(), res.committed.end()},
+                   {res.nonCommitted.begin(), res.nonCommitted.end()}, false);
     this->readyToProcess = false;
   }
 
   std::string committed = this->processor->finish();
-  nativeCallback(committed, "", true);
+
+  nativeCallback({committed.begin(), committed.end()}, {}, true);
 
   this->resetStreamState();
 }
