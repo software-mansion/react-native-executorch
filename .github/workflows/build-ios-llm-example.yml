@@ -59,7 +59,7 @@ jobs:
       - name: Install CocoaPods dependencies
         working-directory: apps/llm/ios
         run: |
-            pod install
+          pod install
       - name: Build app
         working-directory: apps/llm/ios
         run: |
