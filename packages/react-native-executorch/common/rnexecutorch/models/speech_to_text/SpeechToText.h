@@ -1,6 +1,9 @@
 #pragma once
 
 #include "rnexecutorch/models/speech_to_text/stream/OnlineASRProcessor.h"
+#include <span>
+#include <string>
+#include <vector>
 
 namespace rnexecutorch {
 
@@ -17,8 +20,8 @@ public:
   std::shared_ptr<OwningArrayBuffer> encode(std::span<float> waveform) const;
   std::shared_ptr<OwningArrayBuffer>
   decode(std::span<int32_t> tokens, std::span<float> encoderOutput) const;
-  std::string transcribe(std::span<float> waveform,
-                         std::string languageOption) const;
+  std::vector<char> transcribe(std::span<float> waveform,
+                               std::string languageOption) const;
 
   size_t getMemoryLowerBound() const noexcept;
 
