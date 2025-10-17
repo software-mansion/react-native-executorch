@@ -66,7 +66,8 @@ inline JSTensorViewIn getValue<JSTensorViewIn>(const jsi::Value &val,
   tensorView.sizes.reserve(numShapeDims);
 
   for (size_t i = 0; i < numShapeDims; ++i) {
-    int32_t dim = getValue<int32_t>(shapeArray.getValueAtIndex(runtime, i), runtime);
+    int32_t dim =
+        getValue<int32_t>(shapeArray.getValueAtIndex(runtime, i), runtime);
     tensorView.sizes.push_back(dim);
   }
 
@@ -173,23 +174,24 @@ inline std::vector<T> getArrayAsVector(const jsi::Value &val,
   return result;
 }
 
-
 // Template specializations for std::vector<T> types
 template <>
-inline std::vector<JSTensorViewIn> getValue<std::vector<JSTensorViewIn>>(const jsi::Value &val,
-                                                       jsi::Runtime &runtime) {
+inline std::vector<JSTensorViewIn>
+getValue<std::vector<JSTensorViewIn>>(const jsi::Value &val,
+                                      jsi::Runtime &runtime) {
   return getArrayAsVector<JSTensorViewIn>(val, runtime);
 }
 
 template <>
-inline std::vector<std::string> getValue<std::vector<std::string>>(const jsi::Value &val,
-                                                       jsi::Runtime &runtime) {
+inline std::vector<std::string>
+getValue<std::vector<std::string>>(const jsi::Value &val,
+                                   jsi::Runtime &runtime) {
   return getArrayAsVector<std::string>(val, runtime);
 }
 
 template <>
-inline std::vector<int32_t> getValue<std::vector<int32_t>>(const jsi::Value &val,
-                                                       jsi::Runtime &runtime) {
+inline std::vector<int32_t>
+getValue<std::vector<int32_t>>(const jsi::Value &val, jsi::Runtime &runtime) {
   return getArrayAsVector<int32_t>(val, runtime);
 }
 
@@ -276,6 +278,15 @@ inline jsi::Value getJsiValue(const std::vector<int32_t> &vec,
   jsi::Array array(runtime, vec.size());
   for (size_t i = 0; i < vec.size(); i++) {
     array.setValueAtIndex(runtime, i, jsi::Value(static_cast<int>(vec[i])));
+  }
+  return {runtime, array};
+}
+
+inline jsi::Value getJsiValue(const std::vector<char> &vec,
+                              jsi::Runtime &runtime) {
+  jsi::Array array(runtime, vec.size());
+  for (size_t i = 0; i < vec.size(); i++) {
+    array.setValueAtIndex(runtime, i, jsi::Value(vec[i]));
   }
   return {runtime, array};
 }
