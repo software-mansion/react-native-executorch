@@ -14,6 +14,7 @@
 #include <ctime>
 #include <fstream>
 #include <iostream>
+#include <rnexecutorch/data_processing/FileUtils.h>
 
 namespace example {
 
@@ -22,20 +23,6 @@ using ::executorch::runtime::Error;
 using ::executorch::runtime::Result;
 
 namespace llm = ::executorch::extension::llm;
-
-std::string loadBytesFromFile(const std::string &path) {
-  std::ifstream fs(path, std::ios::in | std::ios::binary);
-  if (fs.fail()) {
-    throw std::runtime_error("Failed to open tokenizer file");
-  }
-  std::string data;
-  fs.seekg(0, std::ios::end);
-  size_t size = static_cast<size_t>(fs.tellg());
-  fs.seekg(0, std::ios::beg);
-  data.resize(size);
-  fs.read(data.data(), size);
-  return data;
-}
 
 namespace {
 static constexpr auto kEnableDynamicShape = "enable_dynamic_shape";
