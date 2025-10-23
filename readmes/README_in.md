@@ -1,10 +1,13 @@
-<div align="right">
-  <h1 align="left" style="display:inline-block">React Native ExecuTorch 
-    <!-- Discord Badge -->
-    <a href="https://discord.gg/ZGqqY55qkP">
-      <img src="https://img.shields.io/badge/Discord-Join%20Us-00008B?logo=discord&logoColor=white&style=for-the-badge" alt="Join our Discord community">
-    </a>
+<div align="center">
+  <h1 align="center" style="display:inline-block">React Native ExecuTorch 
   </h1>
+</div>
+
+<div align="center">
+  <a href="https://github.com/software-mansion/react-native-executorch/graphs/contributors"><img src="https://img.shields.io/github/contributors/software-mansion/react-native-executorch?style=for-the-badge&color=00008B" alt="GitHub - Contributors"></a>
+  <a href="https://github.com/software-mansion/react-native-executorch/stargazers"><img src="https://img.shields.io/github/stars/software-mansion/react-native-executorch?style=for-the-badge&color=00008B" alt="GitHub - Stars"></a>
+  <a href="https://discord.gg/ZGqqY55qkP"><img src="https://img.shields.io/badge/Discord-Join%20Us-00008B?logo=discord&logoColor=white&style=for-the-badge" alt="Join our Discord community"></a>
+  <a href="https://docs.swmansion.com/react-native-executorch/"><img src="https://img.shields.io/badge/Documentation-00008B?logo=googledocs&logoColor=white&style=for-the-badge" alt="Documentation"></a>
 </div>
 
 ![Software Mansion banner](https://github.com/user-attachments/assets/fa2c4735-e75c-4cc1-970d-88905d95e3a4)
@@ -27,31 +30,30 @@ React Native ExecuTorch, React Native और नेटिव प्लेटफ�
 [![npm version](https://img.shields.io/npm/v/react-native-executorch?color=00008B)](https://www.npmjs.com/package/react-native-executorch)
 [![CI](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml/badge.svg)](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml)
 
-**विषय सूची:**
+<details>
+<summary><strong> :blue_book: विषय सूची </strong></summary>
 
 - [:yin_yang: समर्थित संस्करण](#yin_yang-supported-versions)
-- [:books: दस्तावेज़](#books-documentation)
 - [:earth_africa: वास्तविक दुनिया का उदाहरण](#earth_africa-real-world-example)
 - [:llama: त्वरित शुरुआत - ललामा चलाना](#llama-quickstart---running-llama)
 - [:calling: डेमो ऐप्स](#calling-demo-apps)
 - [:robot: तैयार-निर्मित मॉडल](#robot-ready-made-models)
+- [:books: दस्तावेज़](#books-documentation)
 - [:balance_scale: लाइसेंस](#balance_scale-license)
 - [:soon: आगे क्या?](#soon-whats-next)
+
+</details>
 
 ## :yin_yang: समर्थित संस्करण
 
 न्यूनतम समर्थित संस्करण हैं:
-* iOS 17.0
-* Android 13
-* React Native 0.76
+
+- iOS 17.0
+- Android 13
+- React Native 0.76
 
 > [!IMPORTANT]  
-> React Native Executorch केवल [नई React Native आर्किटेक्चर](https://reactnative.dev/architecture/landing-page) का समर्थन करता है।
-
-## :books: दस्तावेज़
-
-देखें कि हमारी लाइब्रेरी कैसे आपकी React Native AI विशेषताएँ बनाने में सहायता कर सकती है, हमारे डॉक्स पर जाकर:  
-https://docs.swmansion.com/react-native-executorch
+> React Native ExecuTorch केवल [नई React Native आर्किटेक्चर](https://reactnative.dev/architecture/landing-page) का समर्थन करता है।
 
 ## :earth_africa: वास्तविक दुनिया का उदाहरण
 
@@ -77,11 +79,7 @@ yarn expo run:< ios | android >
 अपने घटक फाइल में यह जोड़ें:
 
 ```tsx
-import {
-  useLLM,
-  LLAMA3_2_1B,
-  Message
-} from 'react-native-executorch';
+import { useLLM, LLAMA3_2_1B, Message } from 'react-native-executorch';
 
 function MyComponent() {
   // मॉडल को प्रारंभ करें 🚀
@@ -96,7 +94,7 @@ function MyComponent() {
 const handleGenerate = async () => {
   const chat: Message[] = [
     { role: 'system', content: 'You are a helpful assistant' },
-    { role: 'user', content: 'What is the meaning of life?' }
+    { role: 'user', content: 'What is the meaning of life?' },
   ];
 
   // चैट पूर्णता
@@ -132,6 +130,11 @@ yarn expo run:< ios | android >
 ## :robot: तैयार-निर्मित मॉडल
 
 हमारी लाइब्रेरी में कई तैयार उपयोग के लिए AI मॉडल्स हैं; पूर्ण सूची दस्तावेज़ में उपलब्ध है। यदि आप अपना AI मॉडल चलाने में रुचि रखते हैं, तो पहले आपको इसे `.pte` फॉर्मेट में निर्यात करना होगा। इसे करने के निर्देश [Python API](https://docs.pytorch.org/executorch/stable/using-executorch-export.html) और [optimum-executorch README](https://github.com/huggingface/optimum-executorch?tab=readme-ov-file#option-2-export-and-load-separately) में उपलब्ध हैं।
+
+## :books: दस्तावेज़
+
+देखें कि हमारी लाइब्रेरी कैसे आपकी React Native AI विशेषताएँ बनाने में सहायता कर सकती है, हमारे डॉक्स पर जाकर:  
+https://docs.swmansion.com/react-native-executorch
 
 ## :balance_scale: लाइसेंस
 
