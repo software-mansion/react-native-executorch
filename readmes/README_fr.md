@@ -57,7 +57,7 @@ Les versions minimales supportées sont :
 
 ## :earth_africa: Exemple du monde réel
 
-React Native ExecuTorch alimente [Private Mind](https://github.com/software-mansion-labs/private-mind), une appli AI mobile axée sur la confidentialité, disponible sur [App Store](https://apps.apple.com/gb/app/private-mind/id6746713439) et [Google Play](https://play.google.com/store/apps/details?id=com.swmansion.privatemind).
+React Native ExecuTorch alimente [Private Mind](https://privatemind.swmansion.com/), une appli AI mobile axée sur la confidentialité, disponible sur [App Store](https://apps.apple.com/gb/app/private-mind/id6746713439) et [Google Play](https://play.google.com/store/apps/details?id=com.swmansion.privatemind).
 
 <img width="2720" height="1085" alt="Promo Private Mind" src="https://github.com/user-attachments/assets/b12296fe-19ac-48fc-9726-da9242700346" />
 

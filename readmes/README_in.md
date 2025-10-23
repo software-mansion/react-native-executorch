@@ -57,7 +57,7 @@ React Native ExecuTorch, React Native और नेटिव प्लेटफ�
 
 ## :earth_africa: वास्तविक दुनिया का उदाहरण
 
-React Native ExecuTorch को [Private Mind](https://github.com/software-mansion-labs/private-mind) का समर्थन प्राप्त है, जो एक गोपनीयता-पहले मोबाइल AI ऐप है जो [App Store](https://apps.apple.com/gb/app/private-mind/id6746713439) और [Google Play](https://play.google.com/store/apps/details?id=com.swmansion.privatemind) पर उपलब्ध है।
+React Native ExecuTorch को [Private Mind](https://privatemind.swmansion.com/) का समर्थन प्राप्त है, जो एक गोपनीयता-पहले मोबाइल AI ऐप है जो [App Store](https://apps.apple.com/gb/app/private-mind/id6746713439) और [Google Play](https://play.google.com/store/apps/details?id=com.swmansion.privatemind) पर उपलब्ध है।
 
 <img width="2720" height="1085" alt="Private Mind promo" src="https://github.com/user-attachments/assets/b12296fe-19ac-48fc-9726-da9242700346" />
 
