@@ -8,13 +8,14 @@ namespace rnexecutorch::models {
 
 using namespace facebook;
 using namespace executorch::extension;
+using ::executorch::extension::module::Module;
 using ::executorch::runtime::Error;
 
 BaseModel::BaseModel(const std::string &modelSource,
-                     std::shared_ptr<react::CallInvoker> callInvoker)
+                     std::shared_ptr<react::CallInvoker> callInvoker,
+                     Module::LoadMode loadMode)
     : callInvoker(callInvoker),
-      module_(std::make_unique<Module>(
-          modelSource, Module::LoadMode::MmapUseMlockIgnoreErrors)) {
+      module_(std::make_unique<Module>(modelSource, loadMode)) {
   Error loadError = module_->load();
   if (loadError != Error::Ok) {
     throw std::runtime_error("Failed to load model: Error " +

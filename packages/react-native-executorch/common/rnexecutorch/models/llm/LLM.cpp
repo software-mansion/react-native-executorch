@@ -8,21 +8,34 @@
 namespace rnexecutorch::models::llm {
 using namespace facebook;
 using executorch::extension::TensorPtr;
+using executorch::extension::module::Module;
 using executorch::runtime::Error;
 
 LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
          std::shared_ptr<react::CallInvoker> callInvoker)
-    : runner(std::make_unique<example::Runner>(modelSource, tokenizerSource)),
-      callInvoker(callInvoker) {
-
+    : BaseModel(modelSource, callInvoker, Module::LoadMode::File),
+      runner(std::make_unique<example::Runner>(module_.get(), modelSource,
+                                               tokenizerSource)) {
   auto loadResult = runner->load();
   if (loadResult != Error::Ok) {
     throw std::runtime_error("Failed to load LLM runner, error code: " +
                              std::to_string(static_cast<int>(loadResult)));
   }
+
   memorySizeLowerBound =
       std::filesystem::file_size(std::filesystem::path(modelSource)) +
       std::filesystem::file_size(std::filesystem::path(tokenizerSource));
+
+  // Determine the input mode
+  auto tokensTensorShape = getInputShape("forward", 0);
+  auto positionsTensorShape = getInputShape("forward", 1);
+  if (tokensTensorShape.size() != 2 || positionsTensorShape.size() != 1) {
+    throw std::runtime_error("Unsupported LLM input format");
+  }
+  if (positionsTensorShape[0] != 1 &&
+      tokensTensorShape[1] == positionsTensorShape[0]) {
+    runner->set_extended_input_mode(true);
+  }
 }
 
 void LLM::generate(std::string input, std::shared_ptr<jsi::Function> callback) {
