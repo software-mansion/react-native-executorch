@@ -284,7 +284,7 @@ export class LLMController {
     const template = new Template(tokenizerConfig.chat_template);
 
     const specialTokens = Object.fromEntries(
-      Object.keys(SPECIAL_TOKENS)
+      Object.values(SPECIAL_TOKENS)
         .filter((key) => key in tokenizerConfig)
         .map((key) => [key, tokenizerConfig[key]])
     );
