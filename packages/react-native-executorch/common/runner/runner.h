@@ -46,6 +46,7 @@ public:
   void set_extended_input_mode(bool extend_position_input) noexcept;
   void set_count_interval(size_t count_interval);
   void set_time_interval(size_t time_interval);
+  void set_eos_ids(std::span<uint64_t> eos_ids);
   void stop();
 
   ::executorch::extension::llm::Stats stats_;

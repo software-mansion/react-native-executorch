@@ -89,11 +89,13 @@ export class LLMController {
     modelSource,
     tokenizerSource,
     tokenizerConfigSource,
+    generationConfigSource,
     onDownloadProgressCallback,
   }: {
     modelSource: ResourceSource;
     tokenizerSource: ResourceSource;
     tokenizerConfigSource: ResourceSource;
+    generationConfigSource?: ResourceSource;
     onDownloadProgressCallback?: (downloadProgress: number) => void;
   }) {
     // reset inner state when loading new model
@@ -114,16 +116,28 @@ export class LLMController {
         modelSource
       );
 
-      const [tokenizersResults, modelResult] = await Promise.all([
-        tokenizersPromise,
-        modelPromise,
-      ]);
+      const generationConfigPromise = generationConfigSource
+        ? ResourceFetcher.fetch(undefined, generationConfigSource)
+        : Promise.resolve(undefined);
+
+      const [tokenizersResults, modelResult, generationConfigResult] =
+        await Promise.all([
+          tokenizersPromise,
+          modelPromise,
+          generationConfigPromise,
+        ]);
 
       const tokenizerPath = tokenizersResults?.[0];
       const tokenizerConfigPath = tokenizersResults?.[1];
+      const generationConfigPath = generationConfigResult?.[0];
       const modelPath = modelResult?.[0];
 
-      if (!tokenizerPath || !tokenizerConfigPath || !modelPath) {
+      if (
+        !tokenizerPath ||
+        !tokenizerConfigPath ||
+        !modelPath ||
+        (generationConfigSource && !generationConfigPath)
+      ) {
         throw new Error('Download interrupted!');
       }
 
@@ -156,6 +170,14 @@ export class LLMController {
         this.tokenCallback(data);
         this.responseCallback(this._response + data);
       };
+
+      if (generationConfigPath) {
+        const generationConfig = JSON.parse(
+          await readAsStringAsync('file://' + generationConfigPath!)
+        );
+
+        this.configure({ generationConfig });
+      }
     } catch (e) {
       this.isReadyCallback(false);
       throw new Error(getError(e));
@@ -183,6 +205,13 @@ export class LLMController {
     }
     if (generationConfig?.batchTimeInterval) {
       this.nativeModule.setTimeInterval(generationConfig.batchTimeInterval);
+    }
+    if (generationConfig?.eos_token_ids) {
+      // Its advisable to strict to 64-bit integers since token IDs could theoretically overflow 32 bit integers
+      const eosIds64 = new BigUint64Array(
+        generationConfig.eos_token_ids.map((id) => BigInt(id))
+      );
+      this.nativeModule.setEosIds(eosIds64);
     }
 
     // reset inner state when loading new configuration
@@ -324,6 +353,7 @@ export class LLMController {
       ...templateFlags,
       ...specialTokens,
     });
+
     return result;
   }
 }

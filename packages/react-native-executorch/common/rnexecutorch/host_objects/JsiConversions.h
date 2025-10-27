@@ -262,6 +262,12 @@ inline std::span<int64_t> getValue<std::span<int64_t>>(const jsi::Value &val,
   return getTypedArrayAsSpan<int64_t>(val, runtime);
 }
 
+template <>
+inline std::span<uint64_t>
+getValue<std::span<uint64_t>>(const jsi::Value &val, jsi::Runtime &runtime) {
+  return getTypedArrayAsSpan<uint64_t>(val, runtime);
+}
+
 // Conversion from C++ types to jsi --------------------------------------------
 
 // Implementation functions might return any type, but in a promise we can only

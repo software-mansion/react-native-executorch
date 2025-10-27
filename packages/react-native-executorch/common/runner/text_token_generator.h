@@ -14,6 +14,7 @@
 #include <chrono>
 #include <executorch/extension/tensor/tensor.h>
 #include <iostream>
+#include <span>
 #include <tokenizers-cpp/tokenizers_cpp.h>
 
 namespace executorch {
@@ -146,6 +147,11 @@ public:
 
   void set_time_interval(size_t time_interval) {
     time_interval_ = std::chrono::milliseconds(time_interval);
+  }
+
+  void set_eos_ids(std::span<uint64_t> eos_ids) {
+    eos_ids_->clear();
+    eos_ids_->insert(eos_ids.begin(), eos_ids.end());
   }
 
 private:

@@ -53,6 +53,7 @@ export interface ToolsConfig {
 export interface GenerationConfig {
   outputTokenBatchSize?: number;
   batchTimeInterval?: number;
+  eos_token_ids?: number[];
 }
 
 export const SPECIAL_TOKENS = {

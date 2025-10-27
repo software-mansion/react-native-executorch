@@ -90,6 +90,13 @@ void LLM::setTimeInterval(size_t timeInterval) {
   runner->set_time_interval(timeInterval);
 }
 
+void LLM::setEosIds(std::span<uint64_t> eosIds) {
+  if (!runner || !runner->is_loaded()) {
+    throw std::runtime_error("Can't configure a model that's not loaded!");
+  }
+  runner->set_eos_ids(eosIds);
+}
+
 void LLM::unload() noexcept { runner.reset(nullptr); }
 
 } // namespace rnexecutorch::models::llm

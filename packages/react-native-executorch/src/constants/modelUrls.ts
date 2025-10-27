@@ -254,6 +254,22 @@ export const PHI_4_MINI_4B_QUANTIZED = {
   tokenizerConfigSource: PHI_4_MINI_TOKENIZER_CONFIG,
 };
 
+// GEMMA 3
+const GEMMA_3_270M_IT_ROOT = `${URL_PREFIX}-gemma-3/${VERSION_TAG}/gemma-3-270m-it/`;
+const GEMMA_3_270M_IT_MODEL = GEMMA_3_270M_IT_ROOT + 'gemma3_270m_it.pte';
+const GEMMA_3_270M_IT_TOKENIZER = GEMMA_3_270M_IT_ROOT + 'tokenizer.json';
+const GEMMA_3_270M_IT_TOKENIZER_CONFIG =
+  GEMMA_3_270M_IT_ROOT + 'tokenizer_config.json';
+const GEMMA_3_270M_IT_GENERATION_CONFIG =
+  GEMMA_3_270M_IT_ROOT + 'generation_config.json';
+
+export const GEMMA_3_270M_IT = {
+  modelSource: GEMMA_3_270M_IT_MODEL,
+  tokenizerSource: GEMMA_3_270M_IT_TOKENIZER,
+  tokenizerConfigSource: GEMMA_3_270M_IT_TOKENIZER_CONFIG,
+  generationConfigSource: GEMMA_3_270M_IT_GENERATION_CONFIG,
+};
+
 // Classification
 const EFFICIENTNET_V2_S_MODEL =
   Platform.OS === `ios`

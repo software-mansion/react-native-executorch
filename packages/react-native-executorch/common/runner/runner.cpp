@@ -39,6 +39,7 @@ std::string loadBytesFromFile(const std::string &path) {
 
 namespace {
 static constexpr auto kEnableDynamicShape = "enable_dynamic_shape";
+static constexpr auto kEosId = "get_eos_id";
 static constexpr auto kEosIds = "get_eos_ids";
 static constexpr auto kMaxSeqLen = "get_max_seq_len";
 static constexpr auto kMaxContextLen = "get_max_context_len";
@@ -95,14 +96,20 @@ Error Runner::load() {
     }
     ET_LOG(Info, "Metadata: %s = %" PRId64, method_name.c_str(), value);
   }
-  if (method_names.count(kEosIds)) {
+
+  // LLMs typically define either get_eos_id() or get_eos_ids() method
+  std::string eos_id_method_name = method_names.count(kEosIds)  ? kEosIds
+                                   : method_names.count(kEosId) ? kEosId
+                                                                : "";
+  if (!eos_id_method_name.empty()) {
     eos_ids->clear();
-    for (const auto &eos_id : ET_UNWRAP(module_->execute(kEosIds))) {
+    for (const auto &eos_id : ET_UNWRAP(module_->execute(eos_id_method_name))) {
       auto value = eos_id.toScalar().to<int64_t>();
       eos_ids->emplace(value);
       ET_LOG(Info, "eos_id = %" PRId64, value);
     }
   }
+
   text_decoder_runner_ = std::make_unique<llm::TextDecoderRunner>(
       module_, metadata_.at(kUseKVCache), metadata_.at(kVocabSize),
       temperature_);
@@ -268,6 +275,10 @@ void Runner::set_count_interval(size_t count_interval) {
 
 void Runner::set_time_interval(size_t time_interval) {
   text_token_generator_->set_time_interval(time_interval);
+}
+
+void Runner::set_eos_ids(std::span<uint64_t> eos_ids) {
+  text_token_generator_->set_eos_ids(eos_ids);
 }
 
 } // namespace example

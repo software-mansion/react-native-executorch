@@ -21,6 +21,7 @@ export const useLLM = ({
     modelSource: ResourceSource;
     tokenizerSource: ResourceSource;
     tokenizerConfigSource: ResourceSource;
+    generationConfigSource?: ResourceSource;
   };
   preventLoad?: boolean;
 }): LLMType => {
@@ -59,6 +60,7 @@ export const useLLM = ({
           modelSource: model.modelSource,
           tokenizerSource: model.tokenizerSource,
           tokenizerConfigSource: model.tokenizerConfigSource,
+          generationConfigSource: model.generationConfigSource,
           onDownloadProgressCallback: setDownloadProgress,
         });
       } catch (e) {
@@ -74,6 +76,7 @@ export const useLLM = ({
     model.modelSource,
     model.tokenizerSource,
     model.tokenizerConfigSource,
+    model.generationConfigSource,
     preventLoad,
   ]);
 

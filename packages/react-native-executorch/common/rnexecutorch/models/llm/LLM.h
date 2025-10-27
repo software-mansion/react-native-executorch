@@ -25,6 +25,7 @@ public:
   size_t getMemoryLowerBound() const noexcept;
   void setCountInterval(size_t countInterval);
   void setTimeInterval(size_t timeInterval);
+  void setEosIds(std::span<uint64_t> eosIds);
 
 private:
   std::unique_ptr<example::Runner> runner;
