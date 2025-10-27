@@ -47,29 +47,17 @@ static constexpr auto kUseKVCache = "use_kv_cache";
 static constexpr auto kUseSDPAWithKVCache = "use_sdpa_with_kv_cache";
 } // namespace
 
-Runner::Runner(const std::string &model_path, const std::string &tokenizer_path,
-               const float temperature,
+Runner::Runner(Module *module, const std::string &tokenizer_path,
+               const bool extended_input_mode, const float temperature,
                std::optional<const std::string> data_path)
-    // NOTE: we observed ~2x loading performance increase on iPhone 15
-    // and a ~5% improvement on Galaxy S22 by switching to
-    // FileDataLoader instead of MmapDataLoader + UseMlockIgnoreErrors.
-    : temperature_(temperature), tokenizer_path_(tokenizer_path),
-      metadata_({
-          {kEnableDynamicShape, false},
-          {kMaxSeqLen, 128},
-          {kMaxContextLen, 128},
-          {kUseKVCache, true},
-          {kUseSDPAWithKVCache, false},
-      }) {
-  if (data_path.has_value()) {
-    module_ = std::make_unique<Module>(model_path, data_path.value(),
-                                       Module::LoadMode::File);
-  } else {
-    module_ = std::make_unique<Module>(model_path, Module::LoadMode::File);
-  }
-  ET_LOG(Info, "Creating LLaMa runner: model_path=%s, tokenizer_path=%s",
-         model_path.c_str(), tokenizer_path.c_str());
-}
+    : module_(module), temperature_(temperature),
+      tokenizer_path_(tokenizer_path), metadata_({
+                                           {kEnableDynamicShape, false},
+                                           {kMaxSeqLen, 128},
+                                           {kMaxContextLen, 128},
+                                           {kUseKVCache, true},
+                                           {kUseSDPAWithKVCache, false},
+                                       }) {}
 
 bool Runner::is_loaded() const {
   return module_->is_loaded() && tokenizer_ && text_decoder_runner_ &&
@@ -116,7 +104,7 @@ Error Runner::load() {
     }
   }
   text_decoder_runner_ = std::make_unique<llm::TextDecoderRunner>(
-      module_.get(), metadata_.at(kUseKVCache), metadata_.at(kVocabSize),
+      module_, metadata_.at(kUseKVCache), metadata_.at(kVocabSize),
       temperature_);
   text_prefiller_ = std::make_unique<llm::TextPrefiller>(
       text_decoder_runner_.get(), metadata_.at(kUseKVCache),
@@ -206,7 +194,8 @@ Error Runner::generate(const std::string &prompt,
     wrapped_callback(prompt);
   }
   int64_t pos = 0;
-  auto prefill_res = text_prefiller_->prefill(prompt_tokens_uint64, pos);
+  auto prefill_res = text_prefiller_->prefill(prompt_tokens_uint64, pos,
+                                              extend_position_input_);
   stats_.first_token_ms = llm::time_in_ms();
   stats_.prompt_eval_end_ms = llm::time_in_ms();
   ET_CHECK_OK_OR_RETURN_ERROR(prefill_res.error());
@@ -267,6 +256,10 @@ void Runner::stop() {
   } else {
     ET_LOG(Error, "Token generator is not loaded, cannot stop");
   }
+}
+
+void Runner::set_extended_input_mode(bool extend_position_input) noexcept {
+  extend_position_input_ = extend_position_input;
 }
 
 void Runner::set_count_interval(size_t count_interval) {

@@ -3,16 +3,16 @@
 #include <memory>
 #include <string>
 
-#include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
 #include <ReactCommon/CallInvoker.h>
 #include <jsi/jsi.h>
+#include <rnexecutorch/models/BaseModel.h>
 #include <runner/runner.h>
 
 namespace rnexecutorch {
 namespace models::llm {
 using namespace facebook;
 
-class LLM {
+class LLM : public BaseModel {
 public:
   explicit LLM(const std::string &modelSource,
                const std::string &tokenizerSource,
@@ -27,9 +27,13 @@ public:
   void setTimeInterval(size_t timeInterval);
 
 private:
-  size_t memorySizeLowerBound;
   std::unique_ptr<example::Runner> runner;
-  std::shared_ptr<react::CallInvoker> callInvoker;
+
+  // A typical input for parallel processing in exported LLM model consists of 2
+  // tensors of shapes [1, N] and [1], where N is the number of tokens. Hovewer,
+  // some exported models require inputs of shapes [1, N] and [N], which needs
+  // to be marked before using LLM runner.
+  bool extended_input_mode_ = false;
 };
 } // namespace models::llm
 

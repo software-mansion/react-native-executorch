@@ -10,6 +10,7 @@
 // LLM.
 
 #include "text_prefiller.h"
+#include <numeric>
 
 namespace executorch {
 namespace extension {
@@ -21,8 +22,8 @@ TextPrefiller::TextPrefiller(TextDecoderRunner *text_decoder_runner,
       enable_parallel_prefill_(enable_parallel_prefill) {}
 
 ::executorch::runtime::Result<uint64_t>
-TextPrefiller::prefill(std::vector<uint64_t> &prompt_tokens,
-                       int64_t &start_pos) {
+TextPrefiller::prefill(std::vector<uint64_t> &prompt_tokens, int64_t &start_pos,
+                       bool extend_position_input) {
   ET_CHECK_MSG(!prompt_tokens.empty(), "Prompt cannot be null");
   if (!text_decoder_runner_->is_method_loaded()) {
     ET_CHECK_OK_OR_RETURN_ERROR(text_decoder_runner_->load());
@@ -38,8 +39,21 @@ TextPrefiller::prefill(std::vector<uint64_t> &prompt_tokens,
     auto tokens = from_blob(prompt_tokens.data(), {1, num_prompt_tokens},
                             executorch::aten::ScalarType::Long);
 
-    auto start_pos_tensor =
-        from_blob(&start_pos, {1}, executorch::aten::ScalarType::Long);
+    std::unique_ptr<std::vector<int64_t>> extended_start_pos = nullptr;
+    if (extend_position_input) {
+      extended_start_pos =
+          std::make_unique<std::vector<int64_t>>(num_prompt_tokens);
+
+      // Fill the starting positions with values from [start_pos, start_pos +
+      // num_prompt_tokens)
+      std::iota(extended_start_pos->begin(), extended_start_pos->end(),
+                start_pos);
+    }
+
+    auto start_pos_tensor = from_blob(
+        extend_position_input ? extended_start_pos->data() : &start_pos,
+        {extend_position_input ? num_prompt_tokens : 1},
+        executorch::aten::ScalarType::Long);
 
     auto outputs_res = text_decoder_runner_->step(tokens, start_pos_tensor);
 

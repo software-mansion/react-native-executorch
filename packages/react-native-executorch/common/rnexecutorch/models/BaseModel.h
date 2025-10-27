@@ -13,12 +13,16 @@
 namespace rnexecutorch {
 namespace models {
 using namespace facebook;
+using executorch::extension::module::Module;
 using executorch::runtime::EValue;
 using executorch::runtime::Result;
+
 class BaseModel {
 public:
-  BaseModel(const std::string &modelSource,
-            std::shared_ptr<react::CallInvoker> callInvoker);
+  BaseModel(
+      const std::string &modelSource,
+      std::shared_ptr<react::CallInvoker> callInvoker,
+      Module::LoadMode loadMode = Module::LoadMode::MmapUseMlockIgnoreErrors);
   std::size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
   std::vector<int32_t> getInputShape(std::string method_name, int32_t index);
@@ -42,8 +46,9 @@ protected:
   std::shared_ptr<react::CallInvoker> callInvoker;
   std::unique_ptr<executorch::extension::Module> module_;
 
-private:
   std::size_t memorySizeLowerBound{0};
+
+private:
   std::vector<int32_t> getTensorShape(const executorch::aten::Tensor &tensor);
 };
 } // namespace models

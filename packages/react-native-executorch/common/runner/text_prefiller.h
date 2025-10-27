@@ -30,7 +30,8 @@ public:
    * @return The next token of the LLM Module after prefill.
    */
   ::executorch::runtime::Result<uint64_t>
-  prefill(std::vector<uint64_t> &prompt_tokens, int64_t &start_pos);
+  prefill(std::vector<uint64_t> &prompt_tokens, int64_t &start_pos,
+          bool extend_position_input = false);
 
 private:
   TextDecoderRunner *text_decoder_runner_;

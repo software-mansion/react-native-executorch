@@ -29,9 +29,9 @@ namespace example {
 
 class Runner : public executorch::extension::llm::IRunner {
 public:
-  explicit Runner(const std::string &model_path,
+  explicit Runner(::executorch::extension::Module *module,
                   const std::string &tokenizer_path,
-                  const float temperature = 0.8f,
+                  bool extended_input_mode = false, float temperature = 0.8f,
                   std::optional<const std::string> data_path = std::nullopt);
 
   bool is_loaded() const;
@@ -43,6 +43,7 @@ public:
                stats_callback = {},
            bool echo = true, bool warming = false);
   ::executorch::runtime::Error warmup(const std::string &prompt);
+  void set_extended_input_mode(bool extend_position_input) noexcept;
   void set_count_interval(size_t count_interval);
   void set_time_interval(size_t time_interval);
   void stop();
@@ -51,10 +52,13 @@ public:
 
 private:
   float temperature_;
+  bool extend_position_input_{false};
   bool shouldStop_{false};
 
-  // model
-  std::unique_ptr<::executorch::extension::Module> module_;
+  // Main model
+  ::executorch::extension::Module *module_;
+
+  // Subcomponents
   std::string tokenizer_path_;
   std::unique_ptr<tokenizers::Tokenizer> tokenizer_;
   std::unordered_map<std::string, int64_t> metadata_;
