@@ -29,13 +29,10 @@ namespace example {
 
 class Runner : public executorch::extension::llm::IRunner {
 public:
-  explicit Runner(
-      ::executorch::extension::Module *module,
-      const std::string &model_path, // TODO: consider removing this arg since
-                                     // it is only used for debug purposes
-      const std::string &tokenizer_path, const bool extended_input_mode = false,
-      const float temperature = 0.8f,
-      std::optional<const std::string> data_path = std::nullopt);
+  explicit Runner(::executorch::extension::Module *module,
+                  const std::string &tokenizer_path,
+                  bool extended_input_mode = false, float temperature = 0.8f,
+                  std::optional<const std::string> data_path = std::nullopt);
 
   bool is_loaded() const;
   ::executorch::runtime::Error load();
@@ -46,7 +43,7 @@ public:
                stats_callback = {},
            bool echo = true, bool warming = false);
   ::executorch::runtime::Error warmup(const std::string &prompt);
-  void set_extended_input_mode(bool extend_position_input);
+  void set_extended_input_mode(bool extend_position_input) noexcept;
   void set_count_interval(size_t count_interval);
   void set_time_interval(size_t time_interval);
   void stop();

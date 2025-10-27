@@ -47,8 +47,7 @@ static constexpr auto kUseKVCache = "use_kv_cache";
 static constexpr auto kUseSDPAWithKVCache = "use_sdpa_with_kv_cache";
 } // namespace
 
-Runner::Runner(Module *module, const std::string &model_path,
-               const std::string &tokenizer_path,
+Runner::Runner(Module *module, const std::string &tokenizer_path,
                const bool extended_input_mode, const float temperature,
                std::optional<const std::string> data_path)
     : module_(module), temperature_(temperature),
@@ -58,10 +57,7 @@ Runner::Runner(Module *module, const std::string &model_path,
                                            {kMaxContextLen, 128},
                                            {kUseKVCache, true},
                                            {kUseSDPAWithKVCache, false},
-                                       }) {
-  ET_LOG(Info, "Creating LLM runner: model_path=%s, tokenizer_path=%s",
-         model_path.c_str(), tokenizer_path.c_str());
-}
+                                       }) {}
 
 bool Runner::is_loaded() const {
   return module_->is_loaded() && tokenizer_ && text_decoder_runner_ &&
@@ -262,7 +258,7 @@ void Runner::stop() {
   }
 }
 
-void Runner::set_extended_input_mode(bool extend_position_input) {
+void Runner::set_extended_input_mode(bool extend_position_input) noexcept {
   extend_position_input_ = extend_position_input;
 }
 
