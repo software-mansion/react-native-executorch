@@ -33,6 +33,7 @@ public:
             ::executorch::extension::cpuinfo::get_num_performant_cores();
       }
 
+      numThreads = std::max(numThreads.value(), 2u);
       log(rnexecutorch::LOG_LEVEL::Info, "Initializing global thread pool with",
           numThreads, "threads");
       instance = std::make_unique<HighPerformanceThreadPool>(numThreads.value(),
