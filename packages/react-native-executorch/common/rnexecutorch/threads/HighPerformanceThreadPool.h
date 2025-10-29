@@ -47,7 +47,7 @@ public:
 
 #ifdef __ANDROID__
     detectCPUTopology();
-    numThreads = std::min(numThreads, performanceCores.size());
+    numThreads = std::max(std::min(numThreads, performanceCores.size()), 2lu);
 #endif
 
     for (size_t i = 0; i < numThreads; i++) {
