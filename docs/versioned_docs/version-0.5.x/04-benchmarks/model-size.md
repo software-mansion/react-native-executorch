@@ -27,7 +27,7 @@ title: Model Size
 
 | Model                 | XNNPACK [MB] |
 | --------------------- | :----------: |
-| Detector (CRAFT_800)  |     83.1     |
+| Detector (CRAFT_800)  |     19.8     |
 | Recognizer (CRNN_512) |  15 - 18\*   |
 | Recognizer (CRNN_256) |  16 - 18\*   |
 | Recognizer (CRNN_128) |  17 - 19\*   |
@@ -38,8 +38,8 @@ title: Model Size
 
 | Model                    | XNNPACK [MB] |
 | ------------------------ | :----------: |
-| Detector (CRAFT_1280)    |     83.1     |
-| Detector (CRAFT_320)     |     83.1     |
+| Detector (CRAFT_1280)    |     19.8     |
+| Detector (CRAFT_320)     |     19.8     |
 | Recognizer (CRNN_EN_512) |  15 - 18\*   |
 | Recognizer (CRNN_EN_64)  |  15 - 16\*   |
 
@@ -82,3 +82,9 @@ title: Model Size
 | Model                       | XNNPACK [MB] |
 | --------------------------- | :----------: |
 | CLIP_VIT_BASE_PATCH32_IMAGE |     352      |
+
+## Text to Image
+
+| Model             | Text encoder (XNNPACK) [MB] | UNet (XNNPACK) [MB] | VAE decoder (XNNPACK) [MB] |
+| ----------------- | --------------------------- | ------------------- | -------------------------- |
+| BK_SDM_TINY_VPRED | 492                         | 1290                | 198                        |
