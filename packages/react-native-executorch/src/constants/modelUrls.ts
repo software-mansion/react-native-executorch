@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 const URL_PREFIX =
   'https://huggingface.co/software-mansion/react-native-executorch';
 const VERSION_TAG = 'resolve/v0.5.0';
+const NEXT_VERSION_TAG = 'resolve/v0.6.0';
 
 // LLMs
 
@@ -438,4 +439,11 @@ export const BK_SDM_TINY_VPRED_256 = {
   encoderSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/text_encoder/model.pte`,
   unetSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/unet/model.256.pte`,
   decoderSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/vae/model.256.pte`,
+};
+
+// Voice Activity Detection
+const FSMN_VAD_MODEL = `${URL_PREFIX}-fsmn-vad/${NEXT_VERSION_TAG}/xnnpack/fsmn-vad_xnnpack.pte`;
+
+export const FSMN_VAD = {
+  modelSource: FSMN_VAD_MODEL,
 };
