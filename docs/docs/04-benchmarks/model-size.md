@@ -25,23 +25,23 @@ title: Model Size
 
 ## OCR
 
-| Model                 | XNNPACK [MB] |
-| --------------------- | :----------: |
-| Detector (CRAFT_800)  |     19.8     |
-| Recognizer (CRNN_512) |  15 - 18\*   |
-| Recognizer (CRNN_256) |  16 - 18\*   |
-| Recognizer (CRNN_128) |  17 - 19\*   |
+| Model                          | XNNPACK [MB] |
+| ------------------------------ | :----------: |
+| Detector (CRAFT_800_QUANTIZED) |     19.8     |
+| Recognizer (CRNN_512)          |  15 - 18\*   |
+| Recognizer (CRNN_256)          |  16 - 18\*   |
+| Recognizer (CRNN_128)          |  17 - 19\*   |
 
 \* - The model weights vary depending on the language.
 
 ## Vertical OCR
 
-| Model                    | XNNPACK [MB] |
-| ------------------------ | :----------: |
-| Detector (CRAFT_1280)    |     19.8     |
-| Detector (CRAFT_320)     |     19.8     |
-| Recognizer (CRNN_EN_512) |  15 - 18\*   |
-| Recognizer (CRNN_EN_64)  |  15 - 16\*   |
+| Model                           | XNNPACK [MB] |
+| ------------------------------- | :----------: |
+| Detector (CRAFT_1280_QUANTIZED) |     19.8     |
+| Detector (CRAFT_320_QUANTIZED)  |     19.8     |
+| Recognizer (CRNN_EN_512)        |  15 - 18\*   |
+| Recognizer (CRNN_EN_64)         |  15 - 16\*   |
 
 \* - The model weights vary depending on the language.
 
