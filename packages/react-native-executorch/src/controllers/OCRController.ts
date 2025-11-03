@@ -96,7 +96,7 @@ export class OCRController {
     if (this.isGenerating) {
       throw new Error(
         getError(ETError.ModelGenerating) +
-          'You cannot delete the model. You must wait until the generating is finished.'
+          ', You cannot delete the model. You must wait until the generating is finished.'
       );
     }
     this.nativeModule.unload();
