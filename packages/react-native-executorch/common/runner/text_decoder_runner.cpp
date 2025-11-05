@@ -22,10 +22,11 @@ namespace llm {
 // and a ~5% improvement on Galaxy S22 by switching to
 // FileDataLoader instead of MmapDataLoader + UseMlockIgnoreErrors.
 TextDecoderRunner::TextDecoderRunner(Module *module, bool use_kv_cache,
-                                     int32_t vocab_size, float temperature)
+                                     int32_t vocab_size, float temperature,
+                                     SamplerTypes sampler)
     : module_(module),
       sampler_(std::make_unique<Sampler>(
-          vocab_size, temperature, kTopp,
+          vocab_size, temperature, sampler, kTopp,
           static_cast<unsigned long long>(std::time(nullptr)))),
       use_kv_cache_(use_kv_cache) {}
 

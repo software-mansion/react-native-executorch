@@ -49,8 +49,9 @@ static constexpr auto kUseSDPAWithKVCache = "use_sdpa_with_kv_cache";
 
 Runner::Runner(Module *module, const std::string &tokenizer_path,
                const bool extended_input_mode, const float temperature,
+               executorch::extension::llm::SamplerTypes sampler,
                std::optional<const std::string> data_path)
-    : module_(module), temperature_(temperature),
+    : module_(module), temperature_(temperature), sampler_(sampler),
       tokenizer_path_(tokenizer_path), metadata_({
                                            {kEnableDynamicShape, false},
                                            {kMaxSeqLen, 128},
@@ -105,7 +106,7 @@ Error Runner::load() {
   }
   text_decoder_runner_ = std::make_unique<llm::TextDecoderRunner>(
       module_, metadata_.at(kUseKVCache), metadata_.at(kVocabSize),
-      temperature_);
+      temperature_, sampler_);
   text_prefiller_ = std::make_unique<llm::TextPrefiller>(
       text_decoder_runner_.get(), metadata_.at(kUseKVCache),
       metadata_.at(kEnableDynamicShape));
@@ -269,5 +270,7 @@ void Runner::set_count_interval(size_t count_interval) {
 void Runner::set_time_interval(size_t time_interval) {
   text_token_generator_->set_time_interval(time_interval);
 }
+
+void Runner::set_temperature(float temperature) { temperature_ = temperature; }
 
 } // namespace example

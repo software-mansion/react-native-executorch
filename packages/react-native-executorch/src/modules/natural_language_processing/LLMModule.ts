@@ -1,3 +1,4 @@
+import Samplers from '../../constants/samplers';
 import { LLMController } from '../../controllers/LLMController';
 import { ResourceSource } from '../../types/common';
 import {
@@ -15,15 +16,21 @@ export class LLMModule {
     tokenCallback,
     responseCallback,
     messageHistoryCallback,
+    temperature = 0.8,
+    sampler = Samplers.minP,
   }: {
     tokenCallback?: (token: string) => void;
     responseCallback?: (response: string) => void;
     messageHistoryCallback?: (messageHistory: Message[]) => void;
+    temperature?: number;
+    sampler?: Samplers;
   } = {}) {
     this.controller = new LLMController({
       tokenCallback,
       responseCallback,
       messageHistoryCallback,
+      temperature,
+      sampler,
     });
   }
 

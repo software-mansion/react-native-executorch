@@ -10,7 +10,12 @@ declare global {
   var loadTokenizerModule: (source: string) => any;
   var loadImageEmbeddings: (source: string) => any;
   var loadTextEmbeddings: (modelSource: string, tokenizerSource: string) => any;
-  var loadLLM: (modelSource: string, tokenizerSource: string) => any;
+  var loadLLM: (
+    modelSource: string,
+    tokenizerSource: string,
+    temperature: number,
+    sampler: number
+  ) => any;
   var loadTextToImage: (
     tokenizerSource: string,
     encoderSource: string,

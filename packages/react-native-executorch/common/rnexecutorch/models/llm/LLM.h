@@ -15,7 +15,8 @@ using namespace facebook;
 class LLM : public BaseModel {
 public:
   explicit LLM(const std::string &modelSource,
-               const std::string &tokenizerSource,
+               const std::string &tokenizerSource, float temperature,
+               int sampler, // Sampler is passed as INT due to JSI limitations
                std::shared_ptr<react::CallInvoker> callInvoker);
 
   void generate(std::string input, std::shared_ptr<jsi::Function> callback);
@@ -25,6 +26,7 @@ public:
   size_t getMemoryLowerBound() const noexcept;
   void setCountInterval(size_t countInterval);
   void setTimeInterval(size_t timeInterval);
+  void setTemperature(float temperature);
 
 private:
   std::unique_ptr<example::Runner> runner;
@@ -37,6 +39,10 @@ private:
 };
 } // namespace models::llm
 
-REGISTER_CONSTRUCTOR(models::llm::LLM, std::string, std::string,
+// TODO: uncommnet when tested :-D
+// REGISTER_CONSTRUCTOR(models::llm::LLM, std::string, std::string,
+//                      std::shared_ptr<react::CallInvoker>);
+
+REGISTER_CONSTRUCTOR(models::llm::LLM, std::string, std::string, float, int,
                      std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

@@ -14,6 +14,7 @@ import {
 } from '../types/llm';
 import { parseToolCall } from '../utils/llm';
 import { Logger } from '../common/Logger';
+import Samplers from '../constants/samplers';
 
 export class LLMController {
   private nativeModule: any;
@@ -25,6 +26,8 @@ export class LLMController {
   private _isReady = false;
   private _isGenerating = false;
   private _messageHistory: Message[] = [];
+  private _temperature: number = 0.8;
+  private _sampler: Samplers = Samplers.minP;
 
   // User callbacks
   private tokenCallback: (token: string) => void;
@@ -39,12 +42,16 @@ export class LLMController {
     messageHistoryCallback,
     isReadyCallback,
     isGeneratingCallback,
+    temperature,
+    sampler,
   }: {
     tokenCallback?: (token: string) => void;
     responseCallback?: (response: string) => void;
     messageHistoryCallback?: (messageHistory: Message[]) => void;
     isReadyCallback?: (isReady: boolean) => void;
     isGeneratingCallback?: (isGenerating: boolean) => void;
+    temperature?: number;
+    sampler?: Samplers;
   }) {
     if (responseCallback !== undefined) {
       Logger.warn(
@@ -70,6 +77,8 @@ export class LLMController {
       this._isGenerating = isGenerating;
       isGeneratingCallback?.(isGenerating);
     };
+    if (temperature) this._temperature = temperature;
+    if (sampler) this._sampler = sampler;
   }
 
   public get response() {
@@ -130,7 +139,12 @@ export class LLMController {
       this.tokenizerConfig = JSON.parse(
         await readAsStringAsync('file://' + tokenizerConfigPath!)
       );
-      this.nativeModule = global.loadLLM(modelPath, tokenizerPath);
+      this.nativeModule = global.loadLLM(
+        modelPath,
+        tokenizerPath,
+        this._temperature,
+        this._sampler
+      );
       this.isReadyCallback(true);
       this.onToken = (data: string) => {
         if (!data) {

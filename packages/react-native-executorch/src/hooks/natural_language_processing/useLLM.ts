@@ -9,13 +9,15 @@ import {
   ToolsConfig,
 } from '../../types/llm';
 import { LLMController } from '../../controllers/LLMController';
-
+import Samplers from '../../constants/samplers';
 /*
 Hook version of LLMModule
 */
 export const useLLM = ({
   model,
   preventLoad = false,
+  temperature = 0.8,
+  sampler = Samplers.minP,
 }: {
   model: {
     modelSource: ResourceSource;
@@ -23,6 +25,8 @@ export const useLLM = ({
     tokenizerConfigSource: ResourceSource;
   };
   preventLoad?: boolean;
+  temperature?: number;
+  sampler?: Samplers;
 }): LLMType => {
   const [token, setToken] = useState<string>('');
   const [response, setResponse] = useState<string>('');
@@ -44,6 +48,8 @@ export const useLLM = ({
         messageHistoryCallback: setMessageHistory,
         isReadyCallback: setIsReady,
         isGeneratingCallback: setIsGenerating,
+        temperature: temperature,
+        sampler: sampler,
       })
   );
 
