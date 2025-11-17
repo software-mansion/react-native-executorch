@@ -148,9 +148,9 @@ function App() {
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
 :::
 
-| Model                      | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) | OnePlus 12 (XNNPACK) [ms] |
-| -------------------------- | :--------------------------: | :------------------------------: | :------------------------: | :--------------------------: | :-----------------------: |
-| ALL_MINILM_L6_V2           |              53              |                69                |             78             |              60              |            65             |
-| ALL_MPNET_BASE_V2          |             352              |               423                |            478             |             521              |            527            |
-| MULTI_QA_MINILM_L6_COS_V1  |             135              |               166                |            180             |             158              |            165            |
-| MULTI_QA_MPNET_BASE_DOT_V1 |             503              |               598                |            680             |             694              |            743            |
+| Model                      | iPhone 17 Pro (XNNPACK) [ms] | iPhone 16 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| -------------------------- | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
+| ALL_MINILM_L6_V2           |              50              |              58              |             84             |                58                 |            58             |
+| ALL_MPNET_BASE_V2          |             352              |             428              |            879             |                483                |            517            |
+| MULTI_QA_MINILM_L6_COS_V1  |             133              |             161              |            269             |                151                |            155            |
+| MULTI_QA_MPNET_BASE_DOT_V1 |             502              |             796              |            1216            |                915                |            713            |

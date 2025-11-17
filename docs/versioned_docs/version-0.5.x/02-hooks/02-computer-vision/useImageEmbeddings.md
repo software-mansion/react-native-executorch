@@ -91,9 +91,9 @@ try {
 
 ## Supported models
 
-| Model                                                                              | Language | Image size | Embedding Dimensions | Description                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| Model                                                                              | Language | Image size | Embedding dimensions | Description                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | ---------------------------------------------------------------------------------- | :------: | :--------: | :------------------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [clip-vit-base-patch32-image](https://huggingface.co/openai/clip-vit-base-patch32) | English  | 224 x 224  |         512          | CLIP (Contrastive Language-Image Pre-Training) is a neural network trained on a variety of (image, text) pairs. CLIP allows to embed images and text into the same vector space. This allows to find similar images as well as to implement image search. This is the image encoder part of the CLIP model. To embed text checkout [clip-vit-base-patch32-text](../01-natural-language-processing/useTextEmbeddings.md#supported-models). |
+| [clip-vit-base-patch32-image](https://huggingface.co/openai/clip-vit-base-patch32) | English  |  224×224   |         512          | CLIP (Contrastive Language-Image Pre-Training) is a neural network trained on a variety of (image, text) pairs. CLIP allows to embed images and text into the same vector space. This allows to find similar images as well as to implement image search. This is the image encoder part of the CLIP model. To embed text checkout [clip-vit-base-patch32-text](../01-natural-language-processing/useTextEmbeddings.md#supported-models). |
 
 **`Image size`** - the size of an image that the model takes as an input. Resize will happen automatically.
 
@@ -123,9 +123,9 @@ For the supported models, the returned embedding vector is normalized, meaning t
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization. Performance also heavily depends on image size, because resize is expansive operation, especially on low-end devices.
 :::
 
-| Model                       | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
-| --------------------------- | :--------------------------: | :------------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
-| CLIP_VIT_BASE_PATCH32_IMAGE |              48              |                64                |             69             |                65                 |            63             |
+| Model                       | iPhone 17 Pro (XNNPACK) [ms] | iPhone 16 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| --------------------------- | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
+| CLIP_VIT_BASE_PATCH32_IMAGE |              70              |              70              |             90             |                66                 |            58             |
 
 :::info
 Image embedding benchmark times are measured using 224×224 pixel images, as required by the model. All input images, whether larger or smaller, are resized to 224×224 before processing. Resizing is typically fast for small images but may be noticeably slower for very large images, which can increase total inference time.
