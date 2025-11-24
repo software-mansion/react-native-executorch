@@ -51,7 +51,7 @@ void LLM::generate(std::string input, std::shared_ptr<jsi::Function> callback) {
     });
   };
 
-  auto error = runner->generate(input, nativeCallback, {}, false);
+  auto error = runner->generate(input, {false}, nativeCallback, {});
   if (error != executorch::runtime::Error::Ok) {
     throw std::runtime_error("Failed to generate text, error code: " +
                              std::to_string(static_cast<int>(error)));

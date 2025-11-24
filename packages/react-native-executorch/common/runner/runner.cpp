@@ -103,12 +103,13 @@ Error Runner::load() {
       ET_LOG(Info, "eos_id = %" PRId64, value);
     }
   }
-  text_decoder_runner_ = std::make_unique<llm::TextDecoderRunner>(
-      module_, metadata_.at(kUseKVCache), metadata_.at(kVocabSize),
-      temperature_);
+
+  io_manager_ = std::make_unique<llm::IOManager>(*module_);
+  text_decoder_runner_ =
+      std::make_unique<llm::TextDecoderRunner>(module_, io_manager_.get());
   text_prefiller_ = std::make_unique<llm::TextPrefiller>(
       text_decoder_runner_.get(), metadata_.at(kUseKVCache),
-      metadata_.at(kEnableDynamicShape));
+      metadata_.at(kEnableDynamicShape), metadata_.at(kMaxSeqLen));
 
   text_token_generator_ = std::make_unique<llm::TextTokenGenerator>(
       tokenizer_.get(), text_decoder_runner_.get(), metadata_.at(kUseKVCache),
@@ -126,9 +127,9 @@ Error Runner::load() {
   }
 
 Error Runner::generate(const std::string &prompt,
+                       const llm::GenerationConfig &generation_config,
                        std::function<void(const std::string &)> token_callback,
-                       std::function<void(const llm::Stats &)> stats_callback,
-                       bool echo, bool warmup) {
+                       std::function<void(const llm::Stats &)> stats_callback) {
   // Prepare the inputs.
   // Use ones-initialized inputs.
   ET_CHECK_MSG(!prompt.empty(), "Prompt cannot be null");
@@ -138,17 +139,18 @@ Error Runner::generate(const std::string &prompt,
     stats_.model_load_end_ms = llm::time_in_ms();
   }
 
-  if (warmup) {
+  if (generation_config.warming) {
     ET_LOG(Info, "Doing a warmup run...");
   }
 
-  RUNNER_ET_LOG(warmup, "RSS after loading model: %f MiB (0 if unsupported)",
+  RUNNER_ET_LOG(generation_config.warming,
+                "RSS after loading model: %f MiB (0 if unsupported)",
                 llm::get_rss_bytes() / 1024.0 / 1024.0);
 
   // Wrap the token_callback with print function
   std::function<void(const std::string &)> wrapped_callback =
-      [token_callback, warmup](const std::string &piece) {
-        if (!warmup) {
+      [token_callback, &generation_config](const std::string &piece) {
+        if (!generation_config.warming) {
           llm::safe_printf(piece.c_str());
           fflush(stdout);
         }
@@ -190,12 +192,11 @@ Error Runner::generate(const std::string &prompt,
   // after the prompt. After that we will enter generate loop.
 
   // print prompts
-  if (echo) {
+  if (generation_config.echo) {
     wrapped_callback(prompt);
   }
   int64_t pos = 0;
-  auto prefill_res = text_prefiller_->prefill(prompt_tokens_uint64, pos,
-                                              extend_position_input_);
+  auto prefill_res = text_prefiller_->prefill(prompt_tokens_uint64, pos);
   stats_.first_token_ms = llm::time_in_ms();
   stats_.prompt_eval_end_ms = llm::time_in_ms();
   ET_CHECK_OK_OR_RETURN_ERROR(prefill_res.error());
@@ -204,30 +205,33 @@ Error Runner::generate(const std::string &prompt,
   // print the first token from prefill. No prev_token so use cur_token for it.
   const std::string cur_decoded =
       tokenizer_->Decode(std::vector<int32_t>{static_cast<int32_t>(cur_token)});
-  RUNNER_ET_LOG(warmup, "RSS after prompt prefill: %f MiB (0 if unsupported)",
+  RUNNER_ET_LOG(generation_config.warming,
+                "RSS after prompt prefill: %f MiB (0 if unsupported)",
                 llm::get_rss_bytes() / 1024.0 / 1024.0);
 
   // start the main loop
   prompt_tokens_uint64.push_back(cur_token);
   int64_t num_generated_tokens = ET_UNWRAP(text_token_generator_->generate(
-      prompt_tokens_uint64, num_prompt_tokens, seq_len, wrapped_callback));
+      prompt_tokens_uint64, num_prompt_tokens, seq_len, 0.F, wrapped_callback));
 
   stats_.inference_end_ms = llm::time_in_ms();
-  if (!warmup) {
+  if (!generation_config.warming) {
     printf("\n");
   }
   RUNNER_ET_LOG(
-      warmup, "RSS after finishing text generation: %f MiB (0 if unsupported)",
+      generation_config.warming,
+      "RSS after finishing text generation: %f MiB (0 if unsupported)",
       llm::get_rss_bytes() / 1024.0 / 1024.0);
 
   if (num_prompt_tokens + num_generated_tokens == seq_len) {
-    RUNNER_ET_LOG(warmup, "Sequence length (%i tokens) reached!", seq_len);
+    RUNNER_ET_LOG(generation_config.warming,
+                  "Sequence length (%i tokens) reached!", seq_len);
   }
 
   stats_.num_prompt_tokens = num_prompt_tokens;
   stats_.num_generated_tokens = num_generated_tokens;
 
-  if (warmup) {
+  if (generation_config.warming) {
     ET_LOG(Info, "Warmup run finished!");
   } else {
     // Do not print report during warmup
@@ -241,11 +245,9 @@ Error Runner::generate(const std::string &prompt,
 }
 
 Error Runner::warmup(const std::string &prompt) {
-  Error err = generate(prompt,
+  Error err = generate(prompt, {false, -1, true},
                        /*token_callback=*/nullptr,
-                       /*stats_callbak=*/nullptr,
-                       /*echo=*/false,
-                       /*warmup=*/true);
+                       /*stats_callbak=*/nullptr);
   stats_.reset();
   return err;
 }
@@ -258,16 +260,22 @@ void Runner::stop() {
   }
 }
 
+void Runner::reset() {
+  /*
+    TODO: implement it
+  */
+}
+
 void Runner::set_extended_input_mode(bool extend_position_input) noexcept {
   extend_position_input_ = extend_position_input;
 }
 
 void Runner::set_count_interval(size_t count_interval) {
-  text_token_generator_->set_count_interval(count_interval);
+  // text_token_generator_->set_count_interval(count_interval);
 }
 
 void Runner::set_time_interval(size_t time_interval) {
-  text_token_generator_->set_time_interval(time_interval);
+  // text_token_generator_->set_time_interval(time_interval);
 }
 
 } // namespace example

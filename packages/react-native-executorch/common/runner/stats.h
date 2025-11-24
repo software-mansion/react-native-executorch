@@ -18,7 +18,7 @@ namespace executorch {
 namespace extension {
 namespace llm {
 
-struct Stats {
+struct ET_EXPERIMENTAL Stats {
   // Scaling factor for timestamps - in this case, we use ms.
   const long SCALING_FACTOR_UNITS_PER_SECOND = 1000;
   // Time stamps for the different stages of the execution
@@ -81,8 +81,6 @@ struct Stats {
 private:
   long aggregate_sampling_timer_start_timestamp = 0;
 };
-
-static constexpr auto kTopp = 0.9f;
 
 inline std::string stats_to_json_string(const Stats &stats) {
   std::stringstream ss;
@@ -157,7 +155,6 @@ namespace executorch {
 namespace llm {
 // TODO(T197294990): Remove these deprecated aliases once all users have moved
 // to the new `::executorch` namespaces.
-using ::executorch::extension::llm::kTopp;
 using ::executorch::extension::llm::print_report;
 using ::executorch::extension::llm::Stats;
 } // namespace llm
