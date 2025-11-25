@@ -6,6 +6,7 @@
 #include <rnexecutorch/threads/GlobalThreadPool.h>
 
 namespace rnexecutorch::models::llm {
+namespace llm = ::executorch::extension::llm;
 namespace fs = std::filesystem;
 using namespace facebook;
 using executorch::extension::TensorPtr;
@@ -51,6 +52,7 @@ void LLM::generate(std::string input, std::shared_ptr<jsi::Function> callback) {
     });
   };
 
+  auto config = llm::GenerationConfig{.echo = false, .warming = false};
   auto error = runner->generate(input, {false}, nativeCallback, {});
   if (error != executorch::runtime::Error::Ok) {
     throw std::runtime_error("Failed to generate text, error code: " +

@@ -11,6 +11,7 @@
 
 #include "stats.h"
 #include "text_decoder_runner.h"
+#include "util.h"
 #include <executorch/extension/tensor/tensor.h>
 #include <tokenizers-cpp/tokenizers_cpp.h>
 
@@ -26,7 +27,7 @@ public:
                      Stats *stats)
       : tokenizer_(tokenizer), text_decoder_runner_(text_decoder_runner),
         eos_ids_(std::move(eos_ids)), use_kv_cache_(use_kv_cache),
-        stats_(stats) {}
+        stats_(stats), timestamp_(std::chrono::high_resolution_clock::now()) {}
 
   virtual ~TextTokenGenerator() = default;
 
@@ -59,6 +60,11 @@ public:
     uint64_t cur_token = tokens.back();
     uint64_t prev_token;
 
+    // cache to keep tokens if they were decoded into illegal character
+    std::vector<int32_t> token_cache;
+    // add first token after prefill to cache here
+    token_cache.push_back(static_cast<int32_t>(cur_token));
+
     if (use_kv_cache_) {
       // hard code these to size 1 as kv cache is locked to static size right
       // now.
@@ -74,6 +80,7 @@ public:
                                     executorch::aten::ScalarType::Long);
 
     should_stop_ = false;
+    timestamp_ = std::chrono::high_resolution_clock::now();
 
     // Generate our tokens
     while (pos < start_pos + max_new_tokens) {
@@ -103,8 +110,25 @@ public:
             tokens_managed, {1, static_cast<int>(token_data.size())}));
       }
 
+      token_cache.push_back(static_cast<int32_t>(cur_token));
+
       // print the token as string, decode it with the Tokenizer object
-      token_callback(tokenizer_->Decode(token_data));
+      const std::string cache_decoded = tokenizer_->Decode(token_cache);
+
+      const auto timeIntervalElapsed =
+          std::chrono::duration_cast<std::chrono::milliseconds>(
+              std::chrono::high_resolution_clock::now() - timestamp_) >
+          time_interval_;
+      const auto countIntervalElapsed = token_cache.size() > count_interval_;
+      const auto eos_reached = eos_ids_->contains(cur_token);
+
+      if (!cache_decoded.ends_with("�") &&
+          (countIntervalElapsed || timeIntervalElapsed || should_stop_ ||
+           eos_reached)) {
+        token_callback(cache_decoded);
+        token_cache.clear();
+        timestamp_ = std::chrono::high_resolution_clock::now();
+      }
 
       if (should_stop_) {
         break;
@@ -142,6 +166,14 @@ public:
     return text_decoder_runner_->is_method_loaded();
   }
 
+  void set_count_interval(size_t count_interval) {
+    count_interval_ = count_interval;
+  }
+
+  void set_time_interval(size_t time_interval) {
+    time_interval_ = std::chrono::milliseconds(time_interval);
+  }
+
 private:
   /**
    * Note: TextTokenGenerator does not own the tokenizer_ and
@@ -156,6 +188,9 @@ private:
 
   // state machine
   bool should_stop_ = false;
+  size_t count_interval_{10};
+  std::chrono::milliseconds time_interval_{120};
+  std::chrono::high_resolution_clock::time_point timestamp_;
 
   // stats
   Stats *stats_;

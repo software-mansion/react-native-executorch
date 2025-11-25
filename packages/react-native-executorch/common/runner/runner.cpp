@@ -4,6 +4,7 @@
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ * @lint-ignore-every CLANGTIDY facebook-hte-Deprecated
  */
 
 // A simple llama2 runner that includes preprocessing and post processing logic.
@@ -20,8 +21,6 @@ namespace example {
 using ::executorch::extension::Module;
 using ::executorch::runtime::Error;
 using ::executorch::runtime::Result;
-
-namespace llm = ::executorch::extension::llm;
 
 std::string loadBytesFromFile(const std::string &path) {
   std::ifstream fs(path, std::ios::in | std::ios::binary);
@@ -48,8 +47,7 @@ static constexpr auto kUseSDPAWithKVCache = "use_sdpa_with_kv_cache";
 } // namespace
 
 Runner::Runner(Module *module, const std::string &tokenizer_path,
-               const bool extended_input_mode, const float temperature,
-               std::optional<const std::string> data_path)
+               const bool extended_input_mode, const float temperature)
     : module_(module), temperature_(temperature),
       tokenizer_path_(tokenizer_path), metadata_({
                                            {kEnableDynamicShape, false},
@@ -68,9 +66,10 @@ Error Runner::load() {
   if (is_loaded()) {
     return Error::Ok;
   }
-  ET_CHECK_OK_OR_RETURN_ERROR(module_->load_method("forward"));
-  // load tokenizer.
 
+  ET_CHECK_OK_OR_RETURN_ERROR(module_->load_method("forward"));
+
+  // Load tokenizer.
   auto blob = loadBytesFromFile(tokenizer_path_);
   tokenizer_ = tokenizers::Tokenizer::FromBlobJSON(blob);
 
@@ -79,9 +78,9 @@ Error Runner::load() {
   auto eos_ids = std::make_unique<std::unordered_set<uint64_t>>();
   metadata_[kVocabSize] = tokenizer_->GetVocabSize();
 
+  // Load model metadata
   const auto method_names =
       ET_UNWRAP(module_->method_names(), "Failed reading method names");
-
   for (auto &pair : metadata_) {
     const auto &method_name = pair.first;
     auto &value = pair.second;
@@ -90,11 +89,13 @@ Error Runner::load() {
                   .toScalar()
                   .to<decltype(metadata_)::mapped_type>();
     } else {
-      ET_LOG(Info, "Methond %s not found, using the default value %" PRId64,
+      ET_LOG(Info, "Method %s not found, using the default value %" PRId64,
              method_name.c_str(), value);
     }
     ET_LOG(Info, "Metadata: %s = %" PRId64, method_name.c_str(), value);
   }
+
+  // Load EOS token ids
   if (method_names.count(kEosIds)) {
     eos_ids->clear();
     for (const auto &eos_id : ET_UNWRAP(module_->execute(kEosIds))) {
@@ -127,7 +128,7 @@ Error Runner::load() {
   }
 
 Error Runner::generate(const std::string &prompt,
-                       const llm::GenerationConfig &generation_config,
+                       const llm::GenerationConfig &config,
                        std::function<void(const std::string &)> token_callback,
                        std::function<void(const llm::Stats &)> stats_callback) {
   // Prepare the inputs.
@@ -139,18 +140,18 @@ Error Runner::generate(const std::string &prompt,
     stats_.model_load_end_ms = llm::time_in_ms();
   }
 
-  if (generation_config.warming) {
+  if (config.warming) {
     ET_LOG(Info, "Doing a warmup run...");
   }
 
-  RUNNER_ET_LOG(generation_config.warming,
+  RUNNER_ET_LOG(config.warming,
                 "RSS after loading model: %f MiB (0 if unsupported)",
                 llm::get_rss_bytes() / 1024.0 / 1024.0);
 
   // Wrap the token_callback with print function
   std::function<void(const std::string &)> wrapped_callback =
-      [token_callback, &generation_config](const std::string &piece) {
-        if (!generation_config.warming) {
+      [token_callback, &config](const std::string &piece) {
+        if (!config.warming) {
           llm::safe_printf(piece.c_str());
           fflush(stdout);
         }
@@ -164,7 +165,8 @@ Error Runner::generate(const std::string &prompt,
   stats_.inference_start_ms = llm::time_in_ms();
   shouldStop_ = false;
 
-  int32_t seq_len = metadata_.at(kMaxSeqLen);
+  int32_t max_seq_len = metadata_.at(kMaxSeqLen);
+  int64_t max_context_len = metadata_.at(kMaxContextLen) - pos_;
 
   std::vector<int32_t> prompt_tokens = tokenizer_->Encode(prompt);
   std::vector<uint64_t> prompt_tokens_uint64(prompt_tokens.begin(),
@@ -173,30 +175,36 @@ Error Runner::generate(const std::string &prompt,
   // encode the (string) prompt into tokens sequence
   int num_prompt_tokens = prompt_tokens.size();
 
-  if (num_prompt_tokens < 1) {
-    ET_LOG(Error,
-           "num_prompt_tokens %d < 1, expected at least 1 token to be passed "
-           "to generate()!",
-           num_prompt_tokens);
-    return Error::InvalidArgument;
-  } else if (num_prompt_tokens >= seq_len) {
-    ET_LOG(Error,
-           "num_prompt_tokens %d >= seq_len %d, Sequence length exceeded - "
-           "please increase the seq_len value passed to generate()!",
-           num_prompt_tokens, seq_len);
-    return Error::InvalidArgument;
-  }
+  ET_CHECK_OR_RETURN_ERROR(num_prompt_tokens >= 1, InvalidArgument,
+                           "Expected at least 1 prompt token");
+  ET_CHECK_OR_RETURN_ERROR(num_prompt_tokens < max_seq_len, InvalidArgument,
+                           "num_prompt_tokens %d >= max_context_len %" PRId64
+                           ", Max seq length exceeded - please increase max "
+                           "seq len value in your export script",
+                           num_prompt_tokens, max_seq_len);
+
+  // Determine max_new_tokens using the GenerationConfig's resolve method,
+  // then subtract pos_ for max_new_tokens.
+  int32_t max_new_tokens = resolve_max_new_tokens(
+      num_prompt_tokens, max_seq_len, static_cast<int32_t>(max_context_len));
+
+  ET_LOG(Info,
+         "Max new tokens resolved: %d, given pos_ %" PRId64
+         ", num_prompt_tokens %zu, max_context_len %" PRId64,
+         max_new_tokens, pos_, prompt_tokens.size(), max_context_len);
+  ET_CHECK_OR_RETURN_ERROR(max_new_tokens > 0, InvalidArgument,
+                           "Max new tokens %d is less than or equal to 0",
+                           max_new_tokens);
 
   // Prefill first
   // Here feed all tokens to the model and get the next predicted token
   // after the prompt. After that we will enter generate loop.
 
   // print prompts
-  if (generation_config.echo) {
+  if (config.echo) {
     wrapped_callback(prompt);
   }
-  int64_t pos = 0;
-  auto prefill_res = text_prefiller_->prefill(prompt_tokens_uint64, pos);
+  auto prefill_res = text_prefiller_->prefill(prompt_tokens_uint64, pos_);
   stats_.first_token_ms = llm::time_in_ms();
   stats_.prompt_eval_end_ms = llm::time_in_ms();
   ET_CHECK_OK_OR_RETURN_ERROR(prefill_res.error());
@@ -205,33 +213,37 @@ Error Runner::generate(const std::string &prompt,
   // print the first token from prefill. No prev_token so use cur_token for it.
   const std::string cur_decoded =
       tokenizer_->Decode(std::vector<int32_t>{static_cast<int32_t>(cur_token)});
-  RUNNER_ET_LOG(generation_config.warming,
+  RUNNER_ET_LOG(config.warming,
                 "RSS after prompt prefill: %f MiB (0 if unsupported)",
                 llm::get_rss_bytes() / 1024.0 / 1024.0);
 
   // start the main loop
   prompt_tokens_uint64.push_back(cur_token);
   int64_t num_generated_tokens = ET_UNWRAP(text_token_generator_->generate(
-      prompt_tokens_uint64, num_prompt_tokens, seq_len, 0.F, wrapped_callback));
+      prompt_tokens_uint64, pos_, max_new_tokens - 1,
+      temperature_ == -1.0F ? config.temperature
+                            : temperature_, // NOTE: it was always 0.F before
+      wrapped_callback));
+
+  pos_ += num_generated_tokens;
 
   stats_.inference_end_ms = llm::time_in_ms();
-  if (!generation_config.warming) {
+  if (!config.warming) {
     printf("\n");
   }
   RUNNER_ET_LOG(
-      generation_config.warming,
+      config.warming,
       "RSS after finishing text generation: %f MiB (0 if unsupported)",
       llm::get_rss_bytes() / 1024.0 / 1024.0);
 
-  if (num_prompt_tokens + num_generated_tokens == seq_len) {
-    RUNNER_ET_LOG(generation_config.warming,
-                  "Sequence length (%i tokens) reached!", seq_len);
+  if (num_generated_tokens == max_new_tokens) {
+    RUNNER_ET_LOG(config.warming, "Max new tokens %i reached!", max_new_tokens);
   }
 
   stats_.num_prompt_tokens = num_prompt_tokens;
   stats_.num_generated_tokens = num_generated_tokens;
 
-  if (generation_config.warming) {
+  if (config.warming) {
     ET_LOG(Info, "Warmup run finished!");
   } else {
     // Do not print report during warmup
@@ -245,10 +257,17 @@ Error Runner::generate(const std::string &prompt,
 }
 
 Error Runner::warmup(const std::string &prompt) {
-  Error err = generate(prompt, {false, -1, true},
+  // Create a GenerationConfig for warmup
+  llm::GenerationConfig config{.echo = false, .warming = true};
+
+  // Call generate with the warmup config
+  Error err = generate(prompt, config,
                        /*token_callback=*/nullptr,
                        /*stats_callbak=*/nullptr);
-  stats_.reset();
+
+  // Reset stats after warmup
+  reset();
+
   return err;
 }
 
@@ -261,9 +280,8 @@ void Runner::stop() {
 }
 
 void Runner::reset() {
-  /*
-    TODO: implement it
-  */
+  stats_.reset();
+  pos_ = 0;
 }
 
 void Runner::set_extended_input_mode(bool extend_position_input) noexcept {
@@ -271,11 +289,37 @@ void Runner::set_extended_input_mode(bool extend_position_input) noexcept {
 }
 
 void Runner::set_count_interval(size_t count_interval) {
-  // text_token_generator_->set_count_interval(count_interval);
+  text_token_generator_->set_count_interval(count_interval);
 }
 
 void Runner::set_time_interval(size_t time_interval) {
-  // text_token_generator_->set_time_interval(time_interval);
+  text_token_generator_->set_time_interval(time_interval);
+}
+
+int32_t Runner::resolve_max_new_tokens(int32_t num_prompt_tokens,
+                                       int32_t max_seq_len,
+                                       int32_t max_context_len,
+                                       int32_t max_new_tokens) const {
+  int32_t result;
+
+  if (max_seq_len == -1 && max_new_tokens == -1) {
+    // Both are -1, use max context len minus prompt tokens
+    result = max_context_len - num_prompt_tokens;
+  } else if (max_seq_len == -1 && max_new_tokens != -1) {
+    // Only max_new_tokens is specified
+    result = std::min(max_new_tokens, max_context_len - num_prompt_tokens);
+  } else if (max_seq_len != -1 && max_new_tokens == -1) {
+    // Only seq_len is specified
+    result = std::min(max_seq_len, max_context_len) - num_prompt_tokens;
+  } else {
+    // Both are specified
+    result =
+        std::min(std::min(max_seq_len, max_context_len) - num_prompt_tokens,
+                 max_new_tokens);
+  }
+
+  // Ensure result is not negative
+  return std::max(0, result);
 }
 
 } // namespace example
