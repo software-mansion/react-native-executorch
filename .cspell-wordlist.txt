@@ -80,3 +80,6 @@ setpriority
 errno
 ifdef
 elif
+FSMN
+fsmn 
+subarray
