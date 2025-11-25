@@ -31,6 +31,9 @@ const decodedAudioData = await audioContext.decodeAudioDataSource(uri);
 const audioBuffer = decodedAudioData.getChannelData(0);
 
 try {
+  // NOTE: to obtain segments in seconds, you need to divide
+  // start / end of the segment by the sampling rate (16k)
+
   const speechSegments = await model.forward(audioBuffer);
   console.log(speechSegments);
 } catch (error) {
