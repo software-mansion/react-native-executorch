@@ -184,10 +184,15 @@ export class LLMController {
     if (generationConfig?.batchTimeInterval) {
       this.nativeModule.setTimeInterval(generationConfig.batchTimeInterval);
     }
-    if (generationConfig?.temperature !== undefined) {
+    if (generationConfig?.temperature) {
       this.nativeModule.setTemperature(generationConfig.temperature);
     }
-    if (generationConfig?.topp !== undefined) {
+    if (generationConfig?.topp) {
+      if (generationConfig.topp < 0 || generationConfig.topp > 1) {
+        throw new Error(
+          getError(ETError.InvalidConfig) + 'TopP has to be in range [0, 1].'
+        );
+      }
       this.nativeModule.setTopp(generationConfig.topp);
     }
 

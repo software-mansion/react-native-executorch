@@ -63,6 +63,8 @@ interface ChatConfig {
 }
 
 interface GenerationConfig {
+  temperature: number;
+  topp: number;
   outputTokenBatchSize: number;
   batchTimeInterval: number;
 }
@@ -155,11 +157,15 @@ To configure model (i.e. change system prompt, load initial conversation history
 
 - **`displayToolCalls`** - If set to true, JSON tool calls will be displayed in chat. If false, only answers will be displayed.
 
-**`generationConfig`** - Object configuring generation settings, currently only output token batching.
+**`generationConfig`** - Object configuring generation settings.
 
 - **`outputTokenBatchSize`** - Soft upper limit on the number of tokens in each token batch (in certain cases there can be more tokens in given batch, i.e. when the batch would end with special emoji join character).
 
 - **`batchTimeInterval`** - Upper limit on the time interval between consecutive token batches.
+
+- **`temperature`** - Scales output logits by the inverse of temperature. Controls the randomness / creativity of text generation.
+
+- **`topp`** - Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
 
 ## Deleting the model from memory
 
