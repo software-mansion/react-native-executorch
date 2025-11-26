@@ -131,10 +131,10 @@ interface ChatConfig {
 }
 
 interface GenerationConfig {
-  temperature: number;
-  topp: number;
-  outputTokenBatchSize: number;
-  batchTimeInterval: number;
+  temperature?: number;
+  topp?: number;
+  outputTokenBatchSize?: number;
+  batchTimeInterval?: number;
 }
 
 // tool calling
