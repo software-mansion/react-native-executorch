@@ -12,11 +12,10 @@ using executorch::extension::module::Module;
 using executorch::runtime::Error;
 
 LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
-         float temperature, float topp,
          std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker, Module::LoadMode::File),
       runner(std::make_unique<example::Runner>(module_.get(), tokenizerSource,
-                                               false, temperature, topp)) {
+                                               false)) {
   auto loadResult = runner->load();
   if (loadResult != Error::Ok) {
     throw std::runtime_error("Failed to load LLM runner, error code: " +
@@ -90,6 +89,19 @@ void LLM::setTimeInterval(size_t timeInterval) {
   runner->set_time_interval(timeInterval);
 }
 
+void LLM::setTemperature(float temperature) {
+  if (!runner || !runner->is_loaded()) {
+    throw std::runtime_error("Can't configure a model that's not loaded!");
+  }
+  runner->set_temperature(temperature);
+};
+
+void LLM::setTopp(float topp) {
+  if (!runner || !runner->is_loaded()) {
+    throw std::runtime_error("Can't configure a model that's not loaded!");
+  }
+  runner->set_topp(topp);
+}
 void LLM::unload() noexcept { runner.reset(nullptr); }
 
 } // namespace rnexecutorch::models::llm

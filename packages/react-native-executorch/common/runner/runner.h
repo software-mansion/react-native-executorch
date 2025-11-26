@@ -47,6 +47,9 @@ public:
   void set_extended_input_mode(bool extend_position_input) noexcept;
   void set_count_interval(size_t count_interval);
   void set_time_interval(size_t time_interval);
+  void set_temperature(float temperature) noexcept;
+  void set_topp(float topp) noexcept;
+
   void stop();
 
   ::executorch::extension::llm::Stats stats_;

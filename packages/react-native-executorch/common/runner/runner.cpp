@@ -271,4 +271,18 @@ void Runner::set_time_interval(size_t time_interval) {
   text_token_generator_->set_time_interval(time_interval);
 }
 
+void Runner::set_temperature(float temperature) noexcept {
+  temperature_ = temperature;
+  if (text_decoder_runner_) {
+    text_decoder_runner_->set_temperature(temperature);
+  }
+}
+
+void Runner::set_topp(float topp) noexcept {
+  topp_ = topp;
+  if (text_decoder_runner_) {
+    text_decoder_runner_->set_topp(topp);
+  }
+}
+
 } // namespace example

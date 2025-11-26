@@ -183,6 +183,11 @@ template <typename T> int32_t Sampler::sample(T *logits) {
   return next;
 }
 
+void Sampler::set_topp(float topp) { topp_ = topp; }
+void Sampler::set_temperature(float temperature) {
+  inv_temperature_ = static_cast<bool>(temperature) ? 1.0f / temperature : 0;
+}
+
 template int32_t Sampler::sample<float>(float *logits);
 template int32_t
 Sampler::sample<executorch::aten::Half>(executorch::aten::Half *logits);

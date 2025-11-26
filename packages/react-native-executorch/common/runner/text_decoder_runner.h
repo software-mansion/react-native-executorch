@@ -53,6 +53,11 @@ public:
     return module_->is_method_loaded("forward");
   }
 
+  virtual void set_temperature(float temperature) {
+    sampler_->set_temperature(temperature);
+  }
+
+  virtual void set_topp(float topp) { sampler_->set_topp(topp); }
   inline void stop() { should_stop_ = true; }
 
   /**

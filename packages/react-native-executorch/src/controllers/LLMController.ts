@@ -184,6 +184,12 @@ export class LLMController {
     if (generationConfig?.batchTimeInterval) {
       this.nativeModule.setTimeInterval(generationConfig.batchTimeInterval);
     }
+    if (generationConfig?.temperature !== undefined) {
+      this.nativeModule.setTemperature(generationConfig.temperature);
+    }
+    if (generationConfig?.topp !== undefined) {
+      this.nativeModule.setTopp(generationConfig.topp);
+    }
 
     // reset inner state when loading new configuration
     this.responseCallback('');
