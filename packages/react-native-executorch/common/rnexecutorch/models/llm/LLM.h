@@ -16,7 +16,7 @@ class LLM : public BaseModel {
 public:
   explicit LLM(const std::string &modelSource,
                const std::string &tokenizerSource, float temperature,
-               std::shared_ptr<react::CallInvoker> callInvoker);
+               float topp, std::shared_ptr<react::CallInvoker> callInvoker);
 
   void generate(std::string input, std::shared_ptr<jsi::Function> callback);
   void interrupt();

@@ -32,6 +32,7 @@ public:
   explicit Runner(::executorch::extension::Module *module,
                   const std::string &tokenizer_path,
                   bool extended_input_mode = false, float temperature = 0.8f,
+                  float topp = 0.9f,
                   std::optional<const std::string> data_path = std::nullopt);
 
   bool is_loaded() const;
@@ -52,6 +53,7 @@ public:
 
 private:
   float temperature_;
+  float topp_;
   bool extend_position_input_{false};
   bool shouldStop_{false};
 

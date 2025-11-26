@@ -1,6 +1,5 @@
 #include "LLM.h"
 
-#include <atomic>
 #include <executorch/extension/tensor/tensor.h>
 #include <filesystem>
 #include <rnexecutorch/threads/GlobalThreadPool.h>
@@ -13,10 +12,11 @@ using executorch::extension::module::Module;
 using executorch::runtime::Error;
 
 LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
-         float temperature, std::shared_ptr<react::CallInvoker> callInvoker)
+         float temperature, float topp,
+         std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker, Module::LoadMode::File),
       runner(std::make_unique<example::Runner>(module_.get(), tokenizerSource,
-                                               false, temperature)) {
+                                               false, temperature, topp)) {
   auto loadResult = runner->load();
   if (loadResult != Error::Ok) {
     throw std::runtime_error("Failed to load LLM runner, error code: " +

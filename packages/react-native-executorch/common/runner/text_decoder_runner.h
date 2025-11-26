@@ -22,8 +22,8 @@ namespace llm {
 
 class TextDecoderRunner {
 public:
-  TextDecoderRunner(Module *module, bool use_kv_cache, int32_t vocab_size,
-                    float temperature);
+  TextDecoderRunner(Module *module, bool use_kv_cache, float topp,
+                    int32_t vocab_size, float temperature);
 
   virtual ~TextDecoderRunner() = default;
 
