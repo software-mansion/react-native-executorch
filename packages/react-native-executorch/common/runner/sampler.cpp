@@ -183,8 +183,8 @@ template <typename T> int32_t Sampler::sample(T *logits) {
   return next;
 }
 
-void Sampler::set_topp(float topp) { topp_ = topp; }
-void Sampler::set_temperature(float temperature) {
+void Sampler::set_topp(float topp) noexcept { topp_ = topp; }
+void Sampler::set_temperature(float temperature) noexcept {
   inv_temperature_ = static_cast<bool>(temperature) ? 1.0f / temperature : 0;
 }
 
