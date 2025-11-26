@@ -121,7 +121,8 @@ android {
           arguments "-DANDROID_STL=c++_shared",
                     "-DREACT_NATIVE_DIR=${toPlatformFileString(reactNativeRootDir.path)}",
                     "-DBUILD_DIR=${project.buildDir}",
-                    "-DANDROID_TOOLCHAIN=clang"
+                    "-DANDROID_TOOLCHAIN=clang",
+                    "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
       }
     }
   }
