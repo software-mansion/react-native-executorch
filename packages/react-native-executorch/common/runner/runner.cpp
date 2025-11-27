@@ -47,15 +47,15 @@ static constexpr auto kUseSDPAWithKVCache = "use_sdpa_with_kv_cache";
 } // namespace
 
 Runner::Runner(Module *module, const std::string &tokenizer_path,
-               const bool extended_input_mode, const float temperature)
-    : module_(module), temperature_(temperature),
-      tokenizer_path_(tokenizer_path), metadata_({
-                                           {kEnableDynamicShape, false},
-                                           {kMaxSeqLen, 128},
-                                           {kMaxContextLen, 128},
-                                           {kUseKVCache, true},
-                                           {kUseSDPAWithKVCache, false},
-                                       }) {}
+               const llm::GenerationConfig &config)
+    : module_(module), config_(config), tokenizer_path_(tokenizer_path),
+      metadata_({
+          {kEnableDynamicShape, false},
+          {kMaxSeqLen, 128},
+          {kMaxContextLen, 128},
+          {kUseKVCache, true},
+          {kUseSDPAWithKVCache, false},
+      }) {}
 
 bool Runner::is_loaded() const {
   return module_->is_loaded() && tokenizer_ && text_decoder_runner_ &&
@@ -105,15 +105,33 @@ Error Runner::load() {
     }
   }
 
+  // Determine missing config values
+  // If user does not directly specify configuration parameters such as
+  // max_seq_len (i.e. leaves them as default values), they are determined by
+  // reading the exported model's methods.
+  if (config_.max_seq_len < 0)
+    config_.max_seq_len = static_cast<int32_t>(metadata_.at(kMaxSeqLen));
+  if (config_.max_context_length < 0)
+    config_.max_context_length =
+        static_cast<int32_t>(metadata_.at(kMaxContextLen));
+  if (config_.max_new_tokens < 0)
+    config_.max_new_tokens =
+        std::min(config_.max_seq_len, config_.max_context_length);
+  if (config_.enable_dynamic_shape)
+    config_.enable_dynamic_shape =
+        static_cast<bool>(metadata_.at(kEnableDynamicShape));
+  if (config_.enable_kv_cache)
+    config_.enable_kv_cache = static_cast<bool>(metadata_.at(kUseKVCache));
+
   io_manager_ = std::make_unique<llm::IOManager>(*module_);
   text_decoder_runner_ =
       std::make_unique<llm::TextDecoderRunner>(module_, io_manager_.get());
   text_prefiller_ = std::make_unique<llm::TextPrefiller>(
-      text_decoder_runner_.get(), metadata_.at(kUseKVCache),
-      metadata_.at(kEnableDynamicShape), metadata_.at(kMaxSeqLen));
+      text_decoder_runner_.get(), config_.enable_kv_cache,
+      config_.enable_dynamic_shape, config_.max_seq_len);
 
   text_token_generator_ = std::make_unique<llm::TextTokenGenerator>(
-      tokenizer_.get(), text_decoder_runner_.get(), metadata_.at(kUseKVCache),
+      tokenizer_.get(), text_decoder_runner_.get(), config_.enable_kv_cache,
       std::move(eos_ids), &stats_);
 
   return Error::Ok;
@@ -128,7 +146,7 @@ Error Runner::load() {
   }
 
 Error Runner::generate(const std::string &prompt,
-                       const llm::GenerationConfig &config,
+                       const llm::GenerationConfig &generation_config,
                        std::function<void(const std::string &)> token_callback,
                        std::function<void(const llm::Stats &)> stats_callback) {
   // Prepare the inputs.
@@ -140,18 +158,18 @@ Error Runner::generate(const std::string &prompt,
     stats_.model_load_end_ms = llm::time_in_ms();
   }
 
-  if (config.warming) {
+  if (generation_config.warming) {
     ET_LOG(Info, "Doing a warmup run...");
   }
 
-  RUNNER_ET_LOG(config.warming,
+  RUNNER_ET_LOG(generation_config.warming,
                 "RSS after loading model: %f MiB (0 if unsupported)",
                 llm::get_rss_bytes() / 1024.0 / 1024.0);
 
   // Wrap the token_callback with print function
   std::function<void(const std::string &)> wrapped_callback =
-      [token_callback, &config](const std::string &piece) {
-        if (!config.warming) {
+      [token_callback, &generation_config](const std::string &piece) {
+        if (!generation_config.warming) {
           llm::safe_printf(piece.c_str());
           fflush(stdout);
         }
@@ -165,8 +183,22 @@ Error Runner::generate(const std::string &prompt,
   stats_.inference_start_ms = llm::time_in_ms();
   shouldStop_ = false;
 
-  int32_t max_seq_len = metadata_.at(kMaxSeqLen);
-  int64_t max_context_len = metadata_.at(kMaxContextLen) - pos_;
+  // Override main config fields with given generation config if specified
+  int32_t max_seq_len = generation_config.max_seq_len >= 0
+                            ? generation_config.max_seq_len
+                            : config_.max_seq_len;
+  int32_t max_context_length = generation_config.max_context_length >= 0
+                                   ? generation_config.max_context_length
+                                   : config_.max_context_length;
+  int32_t new_tokens_limit = generation_config.max_new_tokens >= 0
+                                 ? generation_config.max_new_tokens
+                                 : config_.max_new_tokens;
+  float temperature = generation_config.temperature > -1.F &&
+                              generation_config.temperature < 1.F
+                          ? generation_config.temperature
+                          : config_.temperature;
+
+  int64_t context_len_left = static_cast<int64_t>(max_context_length) - pos_;
 
   std::vector<int32_t> prompt_tokens = tokenizer_->Encode(prompt);
   std::vector<uint64_t> prompt_tokens_uint64(prompt_tokens.begin(),
@@ -186,12 +218,13 @@ Error Runner::generate(const std::string &prompt,
   // Determine max_new_tokens using the GenerationConfig's resolve method,
   // then subtract pos_ for max_new_tokens.
   int32_t max_new_tokens = resolve_max_new_tokens(
-      num_prompt_tokens, max_seq_len, static_cast<int32_t>(max_context_len));
+      num_prompt_tokens, max_seq_len, static_cast<int32_t>(context_len_left),
+      new_tokens_limit);
 
   ET_LOG(Info,
          "Max new tokens resolved: %d, given pos_ %" PRId64
          ", num_prompt_tokens %zu, max_context_len %" PRId64,
-         max_new_tokens, pos_, prompt_tokens.size(), max_context_len);
+         max_new_tokens, pos_, prompt_tokens.size(), max_context_length);
   ET_CHECK_OR_RETURN_ERROR(max_new_tokens > 0, InvalidArgument,
                            "Max new tokens %d is less than or equal to 0",
                            max_new_tokens);
@@ -201,7 +234,7 @@ Error Runner::generate(const std::string &prompt,
   // after the prompt. After that we will enter generate loop.
 
   // print prompts
-  if (config.echo) {
+  if (generation_config.echo) {
     wrapped_callback(prompt);
   }
   auto prefill_res = text_prefiller_->prefill(prompt_tokens_uint64, pos_);
@@ -213,37 +246,36 @@ Error Runner::generate(const std::string &prompt,
   // print the first token from prefill. No prev_token so use cur_token for it.
   const std::string cur_decoded =
       tokenizer_->Decode(std::vector<int32_t>{static_cast<int32_t>(cur_token)});
-  RUNNER_ET_LOG(config.warming,
+  RUNNER_ET_LOG(generation_config.warming,
                 "RSS after prompt prefill: %f MiB (0 if unsupported)",
                 llm::get_rss_bytes() / 1024.0 / 1024.0);
 
   // start the main loop
   prompt_tokens_uint64.push_back(cur_token);
   int64_t num_generated_tokens = ET_UNWRAP(text_token_generator_->generate(
-      prompt_tokens_uint64, pos_, max_new_tokens - 1,
-      temperature_ == -1.0F ? config.temperature
-                            : temperature_, // NOTE: it was always 0.F before
+      prompt_tokens_uint64, pos_, max_new_tokens - 1, temperature,
       wrapped_callback));
 
   pos_ += num_generated_tokens;
 
   stats_.inference_end_ms = llm::time_in_ms();
-  if (!config.warming) {
+  if (!generation_config.warming) {
     printf("\n");
   }
   RUNNER_ET_LOG(
-      config.warming,
+      generation_config.warming,
       "RSS after finishing text generation: %f MiB (0 if unsupported)",
       llm::get_rss_bytes() / 1024.0 / 1024.0);
 
   if (num_generated_tokens == max_new_tokens) {
-    RUNNER_ET_LOG(config.warming, "Max new tokens %i reached!", max_new_tokens);
+    RUNNER_ET_LOG(generation_config.warming, "Max new tokens %i reached!",
+                  max_new_tokens);
   }
 
   stats_.num_prompt_tokens = num_prompt_tokens;
   stats_.num_generated_tokens = num_generated_tokens;
 
-  if (config.warming) {
+  if (generation_config.warming) {
     ET_LOG(Info, "Warmup run finished!");
   } else {
     // Do not print report during warmup
@@ -282,10 +314,6 @@ void Runner::stop() {
 void Runner::reset() {
   stats_.reset();
   pos_ = 0;
-}
-
-void Runner::set_extended_input_mode(bool extend_position_input) noexcept {
-  extend_position_input_ = extend_position_input;
 }
 
 void Runner::set_count_interval(size_t count_interval) {

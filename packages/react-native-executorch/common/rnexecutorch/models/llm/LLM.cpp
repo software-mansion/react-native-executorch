@@ -26,20 +26,9 @@ LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
 
   memorySizeLowerBound = fs::file_size(fs::path(modelSource)) +
                          fs::file_size(fs::path(tokenizerSource));
-
-  // Determine the input mode
-  auto inputShapes = getAllInputShapes("forward");
-  auto &tokensTensorShape = inputShapes[0];
-  auto &positionsTensorShape = inputShapes[1];
-  if (tokensTensorShape.size() != 2 || positionsTensorShape.size() != 1) {
-    throw std::runtime_error("Unsupported LLM input format");
-  }
-  if (positionsTensorShape[0] != 1 &&
-      tokensTensorShape[1] == positionsTensorShape[0]) {
-    runner->set_extended_input_mode(true);
-  }
 }
 
+// TODO: add a way to manipulate the generation config with params
 void LLM::generate(std::string input, std::shared_ptr<jsi::Function> callback) {
   if (!runner || !runner->is_loaded()) {
     throw std::runtime_error("Runner is not loaded");
@@ -53,7 +42,7 @@ void LLM::generate(std::string input, std::shared_ptr<jsi::Function> callback) {
   };
 
   auto config = llm::GenerationConfig{.echo = false, .warming = false};
-  auto error = runner->generate(input, {false}, nativeCallback, {});
+  auto error = runner->generate(input, config, nativeCallback, {});
   if (error != executorch::runtime::Error::Ok) {
     throw std::runtime_error("Failed to generate text, error code: " +
                              std::to_string(static_cast<int>(error)));

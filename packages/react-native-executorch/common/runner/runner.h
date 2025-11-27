@@ -33,18 +33,19 @@ class Runner : public llm::IRunner {
 public:
   explicit Runner(::executorch::extension::Module *module,
                   const std::string &tokenizer_path,
-                  bool extended_input_mode = false, float temperature = 0.8f);
+                  const llm::GenerationConfig &config = {
+                      .temperature = 0.8F}); // The main config
 
   bool is_loaded() const override;
   ::executorch::runtime::Error load() override;
   ::executorch::runtime::Error generate(
       const std::string &prompt,
-      const executorch::extension::llm::GenerationConfig &generation_config =
-          {},
+      const llm::GenerationConfig &generation_config =
+          {}, // An extra config which temporarily overrides previous model
+              // settings
       std::function<void(const std::string &)> token_callback = {},
       std::function<void(const llm::Stats &)> stats_callback = {}) override;
   ::executorch::runtime::Error warmup(const std::string &prompt);
-  void set_extended_input_mode(bool extend_position_input) noexcept;
   void set_count_interval(size_t count_interval);
   void set_time_interval(size_t time_interval);
   void stop() override;
@@ -58,10 +59,12 @@ private:
                                  int32_t max_context_len,
                                  int32_t max_new_tokens = -1) const;
 
-  // Hyperparameters
-  float temperature_;
+  // Main config
+  llm::GenerationConfig config_;
+
+  // Flow control
   bool shouldStop_{false};
-  bool extend_position_input_{false};
+  int64_t pos_ = 0; // The position in KV cache of the input, starting from 0.
 
   // Main model
   ::executorch::extension::Module *module_;
@@ -74,9 +77,6 @@ private:
   std::unique_ptr<llm::TextDecoderRunner> text_decoder_runner_;
   std::unique_ptr<llm::TextPrefiller> text_prefiller_;
   std::unique_ptr<llm::TextTokenGenerator> text_token_generator_;
-
-  // Helper variables
-  int64_t pos_ = 0; // The position in KV cache of the input, starting from 0.
 };
 
 } // namespace example

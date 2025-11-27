@@ -27,67 +27,40 @@ namespace llm {
 // alphabetic order
 struct GenerationConfig {
   // Whether to echo the input prompt in the output
-  bool echo = true;
+  bool echo = false;
+
+  // Whether this is a warmup run (affects perf benchmarking)
+  bool warming = false;
 
   // Maximum number of new tokens to generate
   // If the max_context_len metadata that's serialized in the .pte file exists,
   // then the number of prompt tokens + max_new_tokens won't exceed
   // max_context_len. If this field is -1, it means we will rely on
-  // max_context_len metadata and seq_len value. Check resolve_max_new_tokens
-  // for details.
+  // max_context_len metadata and seq_len value.
   int32_t max_new_tokens = -1;
-
-  // Whether this is a warmup run (affects perf benchmarking)
-  bool warming = false;
 
   // Maximum number of total tokens
   // If the .pte file contains the max_context_len metadata, it will override
   // this value if it's smaller. If this field is -1, we will use the
-  // max_context_len metadata directly. Check resolve_max_new_tokens for
-  // details.
-  int32_t seq_len = -1;
+  // max_context_len metadata directly.
+  int32_t max_seq_len = -1;
+
+  // Maximum context length
+  // If the .pte file contains the max_context_len metadata, it will override
+  // this value if it's smaller. If this field is -1, we will use the
+  // max_context_len metadata directly.
+  int32_t max_context_length = -1;
 
   // Temperature for sampling (higher = more random)
-  float temperature = 0.8f;
+  float temperature = -1.F;
 
-  // Number of eos and bos to add to the prompt
-  int32_t num_bos = 0;
-  int32_t num_eos = 0;
+  // Enable dynamic input shapes (if implemented) or not
+  // Impacts the prefill phase and causes TextPrefiller to pass all the tokens
+  // at once if set to true.
+  bool enable_dynamic_shape = true;
 
-  /**
-   * Resolve the maximum number of new tokens to generate based on constraints.
-   *
-   * This method calculates the maximum number of new tokens that can be
-   * generated considering both seq_len and max_new_tokens constraints, as well
-   * as the model's maximum context length and the number of tokens in the
-   * prompt.
-   *
-   * @param max_context_len The maximum context length supported by the model
-   * @param num_prompt_tokens The number of tokens in the input prompt
-   * @return The resolved maximum number of new tokens to generate
-   */
-  int32_t resolve_max_new_tokens(int32_t max_context_len,
-                                 int32_t num_prompt_tokens) const {
-    int32_t result;
-
-    if (seq_len == -1 && max_new_tokens == -1) {
-      // Both are -1, use max context len minus prompt tokens
-      result = max_context_len - num_prompt_tokens;
-    } else if (seq_len == -1 && max_new_tokens != -1) {
-      // Only max_new_tokens is specified
-      result = std::min(max_new_tokens, max_context_len - num_prompt_tokens);
-    } else if (seq_len != -1 && max_new_tokens == -1) {
-      // Only seq_len is specified
-      result = std::min(seq_len, max_context_len) - num_prompt_tokens;
-    } else {
-      // Both are specified
-      result = std::min(std::min(seq_len, max_context_len) - num_prompt_tokens,
-                        max_new_tokens);
-    }
-
-    // Ensure result is not negative
-    return std::max(0, result);
-  }
+  // Use KV_CACHE implementation (if implemented) or not
+  bool enable_kv_cache = true;
 };
 
 // Base interface for LLM runners
