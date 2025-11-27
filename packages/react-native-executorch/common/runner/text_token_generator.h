@@ -38,16 +38,12 @@ public:
    * @param start_pos The start position of the new tokens, based on how many
    * prompt tokens is prefilled.
    * @param max_new_tokens Maximum number of new tokens to generate.
-   * @param temperature controls the randomness of predictions by scaling the
-   * logits before applying softmax. A higher temperature results in more
-   * random predictions, while a lower temperature results in more deterministic
-   * predictions.
    * @param token_callback what to do after a token is generated.
    * @return how many tokens are generated.
    */
   inline ::executorch::runtime::Result<int64_t> generate(
       std::vector<uint64_t> tokens, int64_t start_pos, int32_t max_new_tokens,
-      float temperature = 0.0f,
+      float temperature, float topp,
       const std::function<void(const std::string &)> &token_callback = {}) {
     ET_CHECK_MSG(!tokens.empty(),
                  "Token generation loop shouldn't take empty tokens");
@@ -93,8 +89,8 @@ public:
       prev_token = cur_token;
 
       stats_->on_sampling_begin();
-      cur_token =
-          text_decoder_runner_->logits_to_token(logits_tensor, temperature);
+      cur_token = text_decoder_runner_->logits_to_token(logits_tensor,
+                                                        temperature, topp);
       stats_->on_sampling_end();
 
       pos++;

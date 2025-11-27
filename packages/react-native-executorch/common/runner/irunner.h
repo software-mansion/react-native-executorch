@@ -23,8 +23,7 @@ namespace executorch {
 namespace extension {
 namespace llm {
 
-// Configuration struct for generation parameters, fields should be sorted in
-// alphabetic order
+// Configuration struct for generation parameters
 struct GenerationConfig {
   // Whether to echo the input prompt in the output
   bool echo = false;
@@ -53,6 +52,11 @@ struct GenerationConfig {
 
   // Temperature for sampling (higher = more random)
   float temperature = -1.F;
+
+  // Top-p (nucleus sampling) – limits next token selection to the smallest set
+  // whose cumulative probability exceeds topp. Range: 0.0 to 1.0. Lower values
+  // = more deterministic, higher = more diverse generations.
+  float topp = -1.F;
 
   // Enable dynamic input shapes (if implemented) or not
   // Impacts the prefill phase and causes TextPrefiller to pass all the tokens

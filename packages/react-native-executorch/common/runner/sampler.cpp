@@ -122,13 +122,13 @@ int32_t Sampler::sample_topp(T *probabilities, float coin) {
 Sampler::Sampler(int vocab_size, float temperature, float topp,
                  unsigned long long rng_seed)
     : vocab_size_(vocab_size),
-      inv_temperature_(static_cast<bool>(temperature) ? 1.0f / temperature : 0),
+      inv_temperature_((temperature != 0.0f) ? (1.0f / temperature) : 0.0f),
       topp_(topp), rng_state_(rng_seed) {}
 
-Sampler::Sampler(int vocab_size, float temperature)
+Sampler::Sampler(int vocab_size, float temperature, float topp)
     : vocab_size_(vocab_size),
-      inv_temperature_(static_cast<bool>(temperature) ? 1.0f / temperature : 0),
-      topp_(kTopp), rng_state_(std::time(nullptr)) {}
+      inv_temperature_((temperature != 0.0f) ? (1.0f / temperature) : 0.0f),
+      topp_(topp), rng_state_(std::time(nullptr)) {}
 
 template <typename T> static void softmax(T *x, int size) {
   // find max value (for numerical stability)

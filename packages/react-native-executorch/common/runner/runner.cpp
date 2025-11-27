@@ -124,8 +124,8 @@ Error Runner::load() {
     config_.enable_kv_cache = static_cast<bool>(metadata_.at(kUseKVCache));
 
   io_manager_ = std::make_unique<llm::IOManager>(*module_);
-  text_decoder_runner_ =
-      std::make_unique<llm::TextDecoderRunner>(module_, io_manager_.get());
+  text_decoder_runner_ = std::make_unique<llm::TextDecoderRunner>(
+      module_, io_manager_.get(), config_.temperature, config_.topp);
   text_prefiller_ = std::make_unique<llm::TextPrefiller>(
       text_decoder_runner_.get(), config_.enable_kv_cache,
       config_.enable_dynamic_shape, config_.max_seq_len);
@@ -193,10 +193,11 @@ Error Runner::generate(const std::string &prompt,
   int32_t new_tokens_limit = generation_config.max_new_tokens >= 0
                                  ? generation_config.max_new_tokens
                                  : config_.max_new_tokens;
-  float temperature = generation_config.temperature > -1.F &&
-                              generation_config.temperature < 1.F
+  float temperature = generation_config.temperature >= 0.F
                           ? generation_config.temperature
                           : config_.temperature;
+  float topp =
+      generation_config.topp >= 0.F ? generation_config.topp : config_.topp;
 
   int64_t context_len_left = static_cast<int64_t>(max_context_length) - pos_;
 
@@ -253,7 +254,7 @@ Error Runner::generate(const std::string &prompt,
   // start the main loop
   prompt_tokens_uint64.push_back(cur_token);
   int64_t num_generated_tokens = ET_UNWRAP(text_token_generator_->generate(
-      prompt_tokens_uint64, pos_, max_new_tokens - 1, temperature,
+      prompt_tokens_uint64, pos_, max_new_tokens - 1, temperature, topp,
       wrapped_callback));
 
   pos_ += num_generated_tokens;
@@ -322,6 +323,20 @@ void Runner::set_count_interval(size_t count_interval) {
 
 void Runner::set_time_interval(size_t time_interval) {
   text_token_generator_->set_time_interval(time_interval);
+}
+
+void Runner::set_temperature(float temperature) noexcept {
+  config_.temperature = temperature;
+  if (text_decoder_runner_) {
+    text_decoder_runner_->set_temperature(temperature);
+  }
+}
+
+void Runner::set_topp(float topp) noexcept {
+  config_.topp = topp;
+  if (text_decoder_runner_) {
+    text_decoder_runner_->set_topp(topp);
+  }
 }
 
 int32_t Runner::resolve_max_new_tokens(int32_t num_prompt_tokens,

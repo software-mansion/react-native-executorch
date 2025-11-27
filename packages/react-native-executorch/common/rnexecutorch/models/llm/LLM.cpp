@@ -1,6 +1,5 @@
 #include "LLM.h"
 
-#include <atomic>
 #include <executorch/extension/tensor/tensor.h>
 #include <filesystem>
 #include <rnexecutorch/threads/GlobalThreadPool.h>
@@ -81,6 +80,19 @@ void LLM::setTimeInterval(size_t timeInterval) {
   runner->set_time_interval(timeInterval);
 }
 
+void LLM::setTemperature(float temperature) {
+  if (!runner || !runner->is_loaded()) {
+    throw std::runtime_error("Can't configure a model that's not loaded!");
+  }
+  runner->set_temperature(temperature);
+};
+
+void LLM::setTopp(float topp) {
+  if (!runner || !runner->is_loaded()) {
+    throw std::runtime_error("Can't configure a model that's not loaded!");
+  }
+  runner->set_topp(topp);
+}
 void LLM::unload() noexcept { runner.reset(nullptr); }
 
 } // namespace rnexecutorch::models::llm

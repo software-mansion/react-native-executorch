@@ -19,7 +19,8 @@ namespace llm {
 
 class ET_EXPERIMENTAL TextDecoderRunner {
 public:
-  explicit TextDecoderRunner(Module *module, IOManager *io_manager);
+  explicit TextDecoderRunner(Module *module, IOManager *io_manager,
+                             float temperature = 0.8F, float topp = 0.9F);
 
   virtual ~TextDecoderRunner() = default;
 
@@ -49,6 +50,12 @@ public:
     return module_->is_method_loaded("forward");
   }
 
+  virtual void set_temperature(float temperature) noexcept {
+    temperature_ = temperature;
+  }
+
+  virtual void set_topp(float topp) noexcept { topp_ = topp; }
+
   inline void stop() { should_stop_ = true; }
 
   /**
@@ -59,8 +66,11 @@ public:
    * @return The next token.
    */
   inline int32_t logits_to_token(const executorch::aten::Tensor &logits_tensor,
-                                 const float temperature = 0.0f) {
+                                 float temperature = -1.F, float topp = -1.F) {
     int32_t result = 0;
+
+    temperature = temperature < 0.F ? temperature_ : temperature;
+    topp = topp < 0.F ? topp_ : topp;
 
     // Create a minimal context for error handling in ET_SWITCH
     struct {
@@ -82,7 +92,7 @@ public:
             logits += (num_tokens - 1) * vocab_size;
           }
           // @lint-ignore CLANGTIDY facebook-hte-Deprecated
-          Sampler sampler(vocab_size, temperature);
+          Sampler sampler(vocab_size, temperature, topp);
           result = sampler.sample(logits);
         });
     return result;
@@ -99,6 +109,8 @@ protected:
   Module *module_;
   IOManager *io_manager_;
   bool should_stop_{false};
+  float temperature_;
+  float topp_;
 };
 
 } // namespace llm

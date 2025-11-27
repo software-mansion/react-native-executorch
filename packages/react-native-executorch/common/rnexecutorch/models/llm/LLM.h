@@ -24,6 +24,8 @@ public:
   size_t getGeneratedTokenCount() const noexcept;
   size_t getMemoryLowerBound() const noexcept;
   void setCountInterval(size_t countInterval);
+  void setTemperature(float temperature);
+  void setTopp(float topp);
   void setTimeInterval(size_t timeInterval);
 
 private:

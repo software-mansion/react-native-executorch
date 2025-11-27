@@ -34,7 +34,7 @@ public:
   explicit Runner(::executorch::extension::Module *module,
                   const std::string &tokenizer_path,
                   const llm::GenerationConfig &config = {
-                      .temperature = 0.8F}); // The main config
+                      .temperature = 0.8F, .topp = 0.9F}); // The main config
 
   bool is_loaded() const override;
   ::executorch::runtime::Error load() override;
@@ -48,6 +48,9 @@ public:
   ::executorch::runtime::Error warmup(const std::string &prompt);
   void set_count_interval(size_t count_interval);
   void set_time_interval(size_t time_interval);
+  void set_temperature(float temperature) noexcept;
+  void set_topp(float topp) noexcept;
+
   void stop() override;
   void reset() override;
 

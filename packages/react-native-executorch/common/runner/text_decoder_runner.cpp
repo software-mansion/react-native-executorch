@@ -21,8 +21,10 @@ namespace llm {
 // NOTE: we observed ~2x loading performance increase on iPhone 15
 // and a ~5% improvement on Galaxy S22 by switching to
 // FileDataLoader instead of MmapDataLoader + UseMlockIgnoreErrors.
-TextDecoderRunner::TextDecoderRunner(Module *module, IOManager *io_manager)
-    : module_(module), io_manager_(io_manager) {}
+TextDecoderRunner::TextDecoderRunner(Module *module, IOManager *io_manager,
+                                     float temperature, float topp)
+    : module_(module), io_manager_(io_manager), temperature_(temperature),
+      topp_(topp) {}
 
 // This function is functional, meaning it shouldn't modify any state of the
 // input. It should be safe to call multiple times with the same inputs. The
