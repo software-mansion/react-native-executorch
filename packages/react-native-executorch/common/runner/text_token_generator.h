@@ -53,7 +53,7 @@ public:
                  "Token generation loop shouldn't take empty tokens");
     int64_t pos = start_pos; // position in the sequence
 
-    std::vector<int32_t> token_data; // allocate space for the tokens
+    std::vector<uint64_t> token_data; // allocate space for the tokens
     std::vector<executorch::aten::SizesType> token_shape;
 
     // Token after prefill
@@ -68,10 +68,10 @@ public:
     if (use_kv_cache_) {
       // hard code these to size 1 as kv cache is locked to static size right
       // now.
-      token_data = {static_cast<int32_t>(cur_token)};
+      token_data = {cur_token};
       token_shape = {1, 1};
     } else {
-      token_data = std::vector<int32_t>(tokens.begin(), tokens.end());
+      token_data = tokens;
       token_shape = {1, static_cast<int>(tokens.size())};
     }
 
@@ -102,10 +102,10 @@ public:
       if (use_kv_cache_) {
         // update the token tensor. token_data will not be empty.
         // NOLINTNEXTLINE(facebook-hte-LocalUncheckedArrayBounds)
-        token_data[0] = static_cast<int32_t>(cur_token);
+        token_data[0] = cur_token;
       } else {
         // push it to the back
-        token_data.push_back(static_cast<int32_t>(cur_token));
+        token_data.push_back(cur_token);
         ET_CHECK_OK_OR_RETURN_ERROR(resize_tensor_ptr(
             tokens_managed, {1, static_cast<int>(token_data.size())}));
       }
