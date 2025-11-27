@@ -22,8 +22,8 @@ namespace llm {
 
 class TextDecoderRunner {
 public:
-  TextDecoderRunner(Module *module, bool use_kv_cache, int32_t vocab_size,
-                    float temperature);
+  TextDecoderRunner(Module *module, bool use_kv_cache, float topp,
+                    int32_t vocab_size, float temperature);
 
   virtual ~TextDecoderRunner() = default;
 
@@ -53,6 +53,11 @@ public:
     return module_->is_method_loaded("forward");
   }
 
+  virtual void set_temperature(float temperature) noexcept {
+    sampler_->set_temperature(temperature);
+  }
+
+  virtual void set_topp(float topp) noexcept { sampler_->set_topp(topp); }
   inline void stop() { should_stop_ = true; }
 
   /**

@@ -37,6 +37,8 @@ public:
           unsigned long long rng_seed);
 
   template <typename T> int32_t sample(T *logits);
+  void set_temperature(float temperature) noexcept;
+  void set_topp(float topp) noexcept;
 
 private:
   template <typename T> int32_t sample_topp(T *probabilities, float coin);

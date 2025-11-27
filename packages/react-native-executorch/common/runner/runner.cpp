@@ -48,9 +48,10 @@ static constexpr auto kUseSDPAWithKVCache = "use_sdpa_with_kv_cache";
 } // namespace
 
 Runner::Runner(Module *module, const std::string &tokenizer_path,
-               const bool extended_input_mode, const float temperature,
+               const bool extended_input_mode, float temperature, float topp,
+
                std::optional<const std::string> data_path)
-    : module_(module), temperature_(temperature),
+    : temperature_(temperature), topp_(topp), module_(module),
       tokenizer_path_(tokenizer_path), metadata_({
                                            {kEnableDynamicShape, false},
                                            {kMaxSeqLen, 128},
@@ -104,7 +105,7 @@ Error Runner::load() {
     }
   }
   text_decoder_runner_ = std::make_unique<llm::TextDecoderRunner>(
-      module_, metadata_.at(kUseKVCache), metadata_.at(kVocabSize),
+      module_, metadata_.at(kUseKVCache), topp_, metadata_.at(kVocabSize),
       temperature_);
   text_prefiller_ = std::make_unique<llm::TextPrefiller>(
       text_decoder_runner_.get(), metadata_.at(kUseKVCache),
@@ -268,6 +269,20 @@ void Runner::set_count_interval(size_t count_interval) {
 
 void Runner::set_time_interval(size_t time_interval) {
   text_token_generator_->set_time_interval(time_interval);
+}
+
+void Runner::set_temperature(float temperature) noexcept {
+  temperature_ = temperature;
+  if (text_decoder_runner_) {
+    text_decoder_runner_->set_temperature(temperature);
+  }
+}
+
+void Runner::set_topp(float topp) noexcept {
+  topp_ = topp;
+  if (text_decoder_runner_) {
+    text_decoder_runner_->set_topp(topp);
+  }
 }
 
 } // namespace example

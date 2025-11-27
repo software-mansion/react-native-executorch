@@ -5,6 +5,7 @@ export enum ETError {
   FileWriteFailed = 0x67,
   ModelGenerating = 0x68,
   LanguageNotSupported = 0x69,
+  InvalidConfig = 0x70,
   InvalidModelSource = 0xff,
 
   // SpeechToText errors
