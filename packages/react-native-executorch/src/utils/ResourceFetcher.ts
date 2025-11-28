@@ -27,7 +27,27 @@
  *   - Implements linked list behavior via the `.next` attribute
  *   - Automatically processes subsequent downloads when `.next` contains a valid resource
  */
-import {
+import type * as FileSystemTypes from 'expo-file-system';
+
+export function importLegacyExpoFSModules() {
+  let FileSystem: typeof FileSystemTypes;
+
+  try {
+    const expoPkg = require('expo/package.json');
+    const sdkVersion = expoPkg.version.split('.')[0];
+
+    if (Number(sdkVersion) > 53) {
+      FileSystem = require('expo-file-system');
+    } else {
+      FileSystem = require('expo-file-system/legacy');
+    }
+  } catch (e) {
+    throw new Error('Expo must be installed to use react-native-executorch');
+  }
+  return FileSystem;
+}
+
+const {
   cacheDirectory,
   copyAsync,
   createDownloadResumable,
@@ -37,7 +57,8 @@ import {
   EncodingType,
   deleteAsync,
   readDirectoryAsync,
-} from 'expo-file-system';
+} = importLegacyExpoFSModules();
+
 import { Asset } from 'expo-asset';
 import { Platform } from 'react-native';
 import { RNEDirectory } from '../constants/directories';
