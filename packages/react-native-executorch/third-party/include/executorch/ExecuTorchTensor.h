@@ -69,8 +69,7 @@ typedef NS_ENUM(uint8_t, ExecuTorchShapeDynamism) {
  * @return An NSInteger indicating the size in bytes.
  */
 FOUNDATION_EXPORT
-__attribute__((deprecated("This API is experimental."))) NSInteger
-ExecuTorchSizeOfDataType(ExecuTorchDataType dataType)
+NSInteger ExecuTorchSizeOfDataType(ExecuTorchDataType dataType)
     NS_SWIFT_NAME(size(ofDataType:));
 
 /**
@@ -81,7 +80,7 @@ ExecuTorchSizeOfDataType(ExecuTorchDataType dataType)
  * @return An NSInteger equal to the product of the sizes of all dimensions.
  */
 FOUNDATION_EXPORT
-__attribute__((deprecated("This API is experimental."))) NSInteger
+NSInteger
 ExecuTorchElementCountOfShape(NSArray<NSNumber *> *shape) NS_REFINED_FOR_SWIFT;
 
 /**
@@ -91,7 +90,7 @@ ExecuTorchElementCountOfShape(NSArray<NSNumber *> *shape) NS_REFINED_FOR_SWIFT;
  * initializers and utility methods to work with tensor data.
  */
 NS_SWIFT_NAME(AnyTensor)
-__attribute__((deprecated("This API is experimental.")))
+__attribute__((objc_subclassing_restricted))
 @interface ExecuTorchTensor : NSObject<NSCopying>
 
 /**

@@ -10,11 +10,8 @@
 
 #pragma once
 
+#include "io_manager.h"
 #include "sampler.h"
-#include <executorch/extension/module/module.h>
-#include <executorch/extension/tensor/tensor.h>
-#include <executorch/runtime/platform/compiler.h>
-#include <functional>
 
 namespace executorch {
 namespace extension {
@@ -22,8 +19,8 @@ namespace llm {
 
 class TextDecoderRunner {
 public:
-  TextDecoderRunner(Module *module, bool use_kv_cache, int32_t vocab_size,
-                    float temperature);
+  explicit TextDecoderRunner(Module *module, IOManager *io_manager,
+                             float temperature = 0.8F, float topp = 0.9F);
 
   virtual ~TextDecoderRunner() = default;
 
@@ -35,7 +32,7 @@ public:
    * @return The output of the LLM Module. This will be a tensor of logits.
    */
   virtual ::executorch::runtime::Result<executorch::aten::Tensor>
-  step(TensorPtr &input, TensorPtr &start_pos);
+  step(TensorPtr &input, int64_t start_pos);
 
   /**
    * Load the Module for text decode purpose.
@@ -53,43 +50,67 @@ public:
     return module_->is_method_loaded("forward");
   }
 
+  virtual void set_temperature(float temperature) noexcept {
+    temperature_ = temperature;
+  }
+
+  virtual void set_topp(float topp) noexcept { topp_ = topp; }
+
   inline void stop() { should_stop_ = true; }
 
   /**
    * Sample the next token from the logits tensor.
    * @param logits_tensor The logits tensor.
+   * @param temperature The temperature parameter used to control randomness in
+   * sampling.
    * @return The next token.
    */
-  inline int32_t
-  logits_to_token(const executorch::aten::Tensor &logits_tensor) {
+  inline int32_t logits_to_token(const executorch::aten::Tensor &logits_tensor,
+                                 float temperature = -1.F, float topp = -1.F) {
     int32_t result = 0;
-    ET_SWITCH_THREE_TYPES(Float, Half, BFloat16, logits_tensor.scalar_type(),
-                          unused, "logits_to_token", CTYPE, [&]() {
-                            // If the logit_tensor rank is 3, the shape is
-                            // [batch, seq_length, vocab_size], get the last
-                            // logits, sample and return. Else the model outputs
-                            // the last logit, directly sample and return.
-                            auto *logits =
-                                logits_tensor.mutable_data_ptr<CTYPE>();
-                            if (logits_tensor.dim() == 3) {
-                              auto num_tokens = logits_tensor.size(1);
-                              auto vocab_size = logits_tensor.size(2);
-                              auto *logits_last = logits;
-                              logits_last += (num_tokens - 1) * vocab_size;
-                              result = sampler_->sample(logits_last);
-                            } else {
-                              result = sampler_->sample(logits);
-                            }
-                          });
+
+    temperature = temperature < 0.F ? temperature_ : temperature;
+    topp = topp < 0.F ? topp_ : topp;
+
+    // Create a minimal context for error handling in ET_SWITCH
+    struct {
+      [[noreturn]] void fail(torch::executor::Error /* error */) {
+        ET_CHECK_MSG(false, "Unsupported dtype in logits_to_token");
+      }
+    } ctx;
+
+    ET_SWITCH_FOUR_TYPES(
+        Float, Half, BFloat16, UInt16, logits_tensor.scalar_type(), ctx,
+        "logits_to_token", CTYPE, [&]() {
+          // If the logit_tensor rank is 3, the shape is [batch, seq_length,
+          // vocab_size], get the last logits, sample and return. Else the model
+          // outputs the last logit, directly sample and return.
+          auto *logits = logits_tensor.mutable_data_ptr<CTYPE>();
+          ssize_t vocab_size = logits_tensor.size(logits_tensor.dim() - 1);
+          if (logits_tensor.dim() == 3) {
+            auto num_tokens = logits_tensor.size(1);
+            logits += (num_tokens - 1) * vocab_size;
+          }
+          // @lint-ignore CLANGTIDY facebook-hte-Deprecated
+          Sampler sampler(vocab_size, temperature, topp);
+          result = sampler.sample(logits);
+        });
     return result;
   }
 
 protected:
-  // TODO: use shared_ptr for module
+  /**
+   * Note: TextDecoderRunner does not own the Module or IOManager instance. It
+   * is expected that the outer class (likely Runner) manages the lifecycle of
+   * them. This means that the responsibility for creating, maintaining, and
+   * destroying the Module lies outside of TextDecoderRunner. Ensure that the
+   * Module remains valid for the duration of TextDecoderRunner's usage.
+   */
   Module *module_;
-  std::unique_ptr<Sampler> sampler_;
-  bool use_kv_cache_;
+  IOManager *io_manager_;
   bool should_stop_{false};
+  float temperature_;
+  float topp_;
 };
 
 } // namespace llm

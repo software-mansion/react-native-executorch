@@ -1,10 +1,13 @@
-<div align="right">
-  <h1 align="left" style="display:inline-block">React Native ExecuTorch 
-    <!-- Discord Badge -->
-    <a href="https://discord.gg/ZGqqY55qkP">
-      <img src="https://img.shields.io/badge/Discord-Rejoignez%20Nous-00008B?logo=discord&logoColor=white&style=for-the-badge" alt="Rejoignez notre communauté Discord">
-    </a>
+<div align="center">
+  <h1 align="center" style="display:inline-block">React Native ExecuTorch 
   </h1>
+</div>
+
+<div align="center">
+  <a href="https://github.com/software-mansion/react-native-executorch/graphs/contributors"><img src="https://img.shields.io/github/contributors/software-mansion/react-native-executorch?style=for-the-badge&color=00008B" alt="GitHub - Contributors"></a>
+  <a href="https://github.com/software-mansion/react-native-executorch/stargazers"><img src="https://img.shields.io/github/stars/software-mansion/react-native-executorch?style=for-the-badge&color=00008B" alt="GitHub - Stars"></a>
+  <a href="https://discord.gg/ZGqqY55qkP"><img src="https://img.shields.io/badge/Discord-Rejoignez%20nous-00008B?logo=discord&logoColor=white&style=for-the-badge" alt="Join our Discord community"></a>
+  <a href="https://docs.swmansion.com/react-native-executorch/"><img src="https://img.shields.io/badge/Documentation-00008B?logo=googledocs&logoColor=white&style=for-the-badge" alt="Documentation"></a>
 </div>
 
 ![Bannière Software Mansion](https://github.com/user-attachments/assets/fa2c4735-e75c-4cc1-970d-88905d95e3a4)
@@ -27,35 +30,34 @@ React Native ExecuTorch comble le fossé entre React Native et les capacités na
 [![version npm](https://img.shields.io/npm/v/react-native-executorch?color=00008B)](https://www.npmjs.com/package/react-native-executorch)
 [![CI](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml/badge.svg)](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml)
 
-**Table des matières :**
+<details>
+<summary><strong> :blue_book: Table des matières </strong></summary>
 
 - [:yin_yang: Versions supportées](#yin_yang-versions-support%C3%A9es)
-- [:books: Documentation](#books-documentation)
 - [:earth_africa: Exemple du monde réel](#earth_africa-exemple-du-monde-r%C3%A9el)
 - [:llama: Démarrage rapide - Exécution de Llama](#llama-d%C3%A9marrage-rapide---ex%C3%A9cution-de-llama)
 - [:calling: Applications de démonstration](#calling-applications-de-d%C3%A9monstration)
 - [:robot: Modèles prêts à l'emploi](#robot-mod%C3%A8les-pr%C3%AAts-%C3%A0-l'emploi)
+- [:books: Documentation](#books-documentation)
 - [:balance_scale: Licence](#balance_scale-licence)
 - [:soon: Quelle est la suite ?](#soon-quelle-est-la-suite)
 
+</details>
+
 ## :yin_yang: Versions supportées
 
-Les versions minimales supportées sont : 
-* iOS 17.0
-* Android 13
-* React Native 0.76
+Les versions minimales supportées sont :
+
+- iOS 17.0
+- Android 13
+- React Native 0.76
 
 > [!IMPORTANT]  
-> React Native Executorch ne supporte que la [nouvelle architecture React Native](https://reactnative.dev/architecture/landing-page).
-
-## :books: Documentation
-
-Découvrez comment notre bibliothèque peut vous aider à construire vos fonctionnalités AI avec React Native en visitant notre documentation :  
-https://docs.swmansion.com/react-native-executorch
+> React Native ExecuTorch ne supporte que la [nouvelle architecture React Native](https://reactnative.dev/architecture/landing-page).
 
 ## :earth_africa: Exemple du monde réel
 
-React Native ExecuTorch alimente [Private Mind](https://github.com/software-mansion-labs/private-mind), une appli AI mobile axée sur la confidentialité, disponible sur [App Store](https://apps.apple.com/gb/app/private-mind/id6746713439) et [Google Play](https://play.google.com/store/apps/details?id=com.swmansion.privatemind).
+React Native ExecuTorch alimente [Private Mind](https://privatemind.swmansion.com/), une appli AI mobile axée sur la confidentialité, disponible sur [App Store](https://apps.apple.com/gb/app/private-mind/id6746713439) et [Google Play](https://play.google.com/store/apps/details?id=com.swmansion.privatemind).
 
 <img width="2720" height="1085" alt="Promo Private Mind" src="https://github.com/user-attachments/assets/b12296fe-19ac-48fc-9726-da9242700346" />
 
@@ -77,11 +79,7 @@ yarn expo run:< ios | android >
 Ajoutez ceci à votre fichier de composant :
 
 ```tsx
-import {
-  useLLM,
-  LLAMA3_2_1B,
-  Message
-} from 'react-native-executorch';
+import { useLLM, LLAMA3_2_1B, Message } from 'react-native-executorch';
 
 function MyComponent() {
   // Initialisez le modèle 🚀
@@ -95,8 +93,8 @@ function MyComponent() {
 ```tsx
 const handleGenerate = async () => {
   const chat: Message[] = [
-    { role: 'system', content: "You are a helpful assistant" },
-    { role: 'user', content: 'What is the meaning of life?' }
+    { role: 'system', content: 'You are a helpful assistant' },
+    { role: 'user', content: 'What is the meaning of life?' },
   ];
 
   // Complétion de chat
@@ -132,6 +130,11 @@ yarn expo run:< ios | android >
 ## :robot: Modèles prêts à l'emploi
 
 Notre bibliothèque contient un certain nombre de modèles AI prêts à l'emploi ; une liste complète est disponible dans la documentation. Si vous êtes intéressé à exécuter votre propre modèle AI, vous devez d'abord l'exporter au format `.pte`. Les instructions sur la façon de faire cela sont disponibles dans [l'API Python](https://docs.pytorch.org/executorch/stable/using-executorch-export.html) et le [README optimum-executorch](https://github.com/huggingface/optimum-executorch?tab=readme-ov-file#option-2-export-and-load-separately).
+
+## :books: Documentation
+
+Découvrez comment notre bibliothèque peut vous aider à construire vos fonctionnalités AI avec React Native en visitant notre documentation :  
+https://docs.swmansion.com/react-native-executorch
 
 ## :balance_scale: Licence
 

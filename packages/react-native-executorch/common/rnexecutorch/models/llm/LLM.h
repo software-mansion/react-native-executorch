@@ -24,16 +24,12 @@ public:
   size_t getGeneratedTokenCount() const noexcept;
   size_t getMemoryLowerBound() const noexcept;
   void setCountInterval(size_t countInterval);
+  void setTemperature(float temperature);
+  void setTopp(float topp);
   void setTimeInterval(size_t timeInterval);
 
 private:
   std::unique_ptr<example::Runner> runner;
-
-  // A typical input for parallel processing in exported LLM model consists of 2
-  // tensors of shapes [1, N] and [1], where N is the number of tokens. Hovewer,
-  // some exported models require inputs of shapes [1, N] and [N], which needs
-  // to be marked before using LLM runner.
-  bool extended_input_mode_ = false;
 };
 } // namespace models::llm
 

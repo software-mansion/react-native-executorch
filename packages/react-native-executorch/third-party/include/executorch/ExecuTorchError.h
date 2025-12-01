@@ -57,8 +57,8 @@ typedef NS_ERROR_ENUM(ExecuTorchErrorDomain, ExecuTorchErrorCode){
  * @return An NSString containing the error description.
  */
 FOUNDATION_EXPORT
-__attribute__((deprecated("This API is experimental."))) NSString *
-ExecuTorchErrorDescription(ExecuTorchErrorCode code)
+NS_RETURNS_RETAINED
+NSString *ExecuTorchErrorDescription(ExecuTorchErrorCode code)
     NS_SWIFT_NAME(ErrorDescription(_:));
 
 /**
@@ -70,8 +70,8 @@ ExecuTorchErrorDescription(ExecuTorchErrorCode code)
  */
 FOUNDATION_EXPORT
 NS_RETURNS_RETAINED
-__attribute__((deprecated("This API is experimental."))) NSError *
-ExecuTorchErrorWithCode(ExecuTorchErrorCode code) NS_SWIFT_NAME(Error(code:));
+NSError *ExecuTorchErrorWithCode(ExecuTorchErrorCode code)
+    NS_SWIFT_NAME(Error(code:));
 
 /**
  * Create an NSError in the ExecuTorch domain for the given code.
@@ -83,9 +83,8 @@ ExecuTorchErrorWithCode(ExecuTorchErrorCode code) NS_SWIFT_NAME(Error(code:));
  */
 FOUNDATION_EXPORT
 NS_RETURNS_RETAINED
-__attribute__((deprecated("This API is experimental."))) NSError *
-ExecuTorchErrorWithCodeAndDescription(ExecuTorchErrorCode code,
-                                      NSString *__nullable description)
+NSError *ExecuTorchErrorWithCodeAndDescription(ExecuTorchErrorCode code,
+                                               NSString *__nullable description)
     NS_SWIFT_NAME(Error(code:description:));
 
 NS_ASSUME_NONNULL_END

@@ -88,3 +88,9 @@ title: Model Size
 | Model             | Text encoder (XNNPACK) [MB] | UNet (XNNPACK) [MB] | VAE decoder (XNNPACK) [MB] |
 | ----------------- | --------------------------- | ------------------- | -------------------------- |
 | BK_SDM_TINY_VPRED | 492                         | 1290                | 198                        |
+
+## Voice Activity Detection (VAD)
+
+| Model    | XNNPACK [MB] |
+| -------- | :----------: |
+| FSMN_VAD |     1.83     |

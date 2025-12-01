@@ -1,10 +1,13 @@
-<div align="right">
-  <h1 align="left" style="display:inline-block">React Native ExecuTorch 
-    <!-- Discord Badge -->
-    <a href="https://discord.gg/ZGqqY55qkP">
-      <img src="https://img.shields.io/badge/Discord-Join%20Us-00008B?logo=discord&logoColor=white&style=for-the-badge" alt="Join our Discord community">
-    </a>
+<div align="center">
+  <h1 align="center" style="display:inline-block">React Native ExecuTorch 
   </h1>
+</div>
+
+<div align="center">
+  <a href="https://github.com/software-mansion/react-native-executorch/graphs/contributors"><img src="https://img.shields.io/github/contributors/software-mansion/react-native-executorch?style=for-the-badge&color=00008B" alt="GitHub - Contributors"></a>
+  <a href="https://github.com/software-mansion/react-native-executorch/stargazers"><img src="https://img.shields.io/github/stars/software-mansion/react-native-executorch?style=for-the-badge&color=00008B" alt="GitHub - Stars"></a>
+  <a href="https://discord.gg/ZGqqY55qkP"><img src="https://img.shields.io/badge/Discord-加入我们-00008B?logo=discord&logoColor=white&style=for-the-badge" alt="Join our Discord community"></a>
+  <a href="https://docs.swmansion.com/react-native-executorch/"><img src="https://img.shields.io/badge/文档-00008B?logo=googledocs&logoColor=white&style=for-the-badge" alt="Documentation"></a>
 </div>
 
 ![Software Mansion banner](https://github.com/user-attachments/assets/fa2c4735-e75c-4cc1-970d-88905d95e3a4)
@@ -27,35 +30,34 @@ React Native ExecuTorch 架起了 React Native 和原生平台功能之间的桥
 [![npm version](https://img.shields.io/npm/v/react-native-executorch?color=00008B)](https://www.npmjs.com/package/react-native-executorch)
 [![CI](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml/badge.svg)](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml)
 
-**目录:**
+<details>
+<summary><strong> :blue_book: 目录 </strong></summary>
 
 - [:yin_yang: 支持的版本](#yin_yang-supported-versions)
-- [:books: 文档](#books-documentation)
 - [:earth_africa: 实际案例](#earth_africa-real-world-example)
 - [:llama: 快速入门 - 运行 Llama](#llama-quickstart---running-llama)
 - [:calling: 示例应用](#calling-demo-apps)
 - [:robot: 现成模型](#robot-ready-made-models)
+- [:books: 文档](#books-documentation)
 - [:balance_scale: 许可证](#balance_scale-license)
 - [:soon: 接下来是什么？](#soon-whats-next)
 
+</details>
+
 ## :yin_yang: 支持的版本
 
-最低支持版本为： 
-* iOS 17.0
-* Android 13
-* React Native 0.76
+最低支持版本为：
+
+- iOS 17.0
+- Android 13
+- React Native 0.76
 
 > [!IMPORTANT]  
-> React Native Executorch 仅支持 [New React Native architecture](https://reactnative.dev/architecture/landing-page)。
-
-## :books: 文档
-
-查看我们的文档，了解我们的库如何帮助您构建 React Native AI 功能：  
-https://docs.swmansion.com/react-native-executorch
+> React Native ExecuTorch 仅支持 [New React Native architecture](https://reactnative.dev/architecture/landing-page)。
 
 ## :earth_africa: 实际案例
 
-React Native ExecuTorch 为 [Private Mind](https://github.com/software-mansion-labs/private-mind) 提供了动力，这是一款以隐私优先的移动 AI 应用程序，可在 [App Store](https://apps.apple.com/gb/app/private-mind/id6746713439) 和 [Google Play](https://play.google.com/store/apps/details?id=com.swmansion.privatemind) 上获得。
+React Native ExecuTorch 为 [Private Mind](https://privatemind.swmansion.com/) 提供了动力，这是一款以隐私优先的移动 AI 应用程序，可在 [App Store](https://apps.apple.com/gb/app/private-mind/id6746713439) 和 [Google Play](https://play.google.com/store/apps/details?id=com.swmansion.privatemind) 上获得。
 
 <img width="2720" height="1085" alt="Private Mind promo" src="https://github.com/user-attachments/assets/b12296fe-19ac-48fc-9726-da9242700346" />
 
@@ -77,11 +79,7 @@ yarn expo run:< ios | android >
 将此添加到您的组件文件中：
 
 ```tsx
-import {
-  useLLM,
-  LLAMA3_2_1B,
-  Message
-} from 'react-native-executorch';
+import { useLLM, LLAMA3_2_1B, Message } from 'react-native-executorch';
 
 function MyComponent() {
   // 初始化模型 🚀
@@ -96,7 +94,7 @@ function MyComponent() {
 const handleGenerate = async () => {
   const chat: Message[] = [
     { role: 'system', content: 'You are a helpful assistant' },
-    { role: 'user', content: 'What is the meaning of life?' }
+    { role: 'user', content: 'What is the meaning of life?' },
   ];
 
   // 聊天生成
@@ -132,6 +130,11 @@ yarn expo run:< ios | android >
 ## :robot: 现成模型
 
 我们的库中有许多现成可用的 AI 模型；完整列表可在文档中查看。如果您有兴趣运行自己的 AI 模型，首先需要将其导出为 `.pte` 格式。关于如何执行此操作的说明可在 [Python API](https://docs.pytorch.org/executorch/stable/using-executorch-export.html) 和 [optimum-executorch 说明](https://github.com/huggingface/optimum-executorch?tab=readme-ov-file#option-2-export-and-load-separately) 中获取。
+
+## :books: 文档
+
+查看我们的文档，了解我们的库如何帮助您构建 React Native AI 功能：  
+https://docs.swmansion.com/react-native-executorch
 
 ## :balance_scale: 许可证
 
