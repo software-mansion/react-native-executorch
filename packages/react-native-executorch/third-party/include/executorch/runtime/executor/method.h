@@ -226,7 +226,7 @@ public:
    * @retval non-Ok step failed
    * @retval Error::EndOfMethod method finished executing successfully
    */
-  ET_EXPERIMENTAL ET_NODISCARD Error step();
+  ET_NODISCARD Error step();
 
   /// DEPRECATED: Use `step()` instead.
   ET_DEPRECATED ET_NODISCARD Error experimental_step();
@@ -240,7 +240,7 @@ public:
    *     the end of the Method. This means it is not possible to recover a
    *     Method that failed mid-execution.
    */
-  ET_EXPERIMENTAL ET_NODISCARD Error reset_execution();
+  ET_NODISCARD Error reset_execution();
 
   /// DEPRECATED: Use `reset_execution()` instead.
   ET_DEPRECATED ET_NODISCARD Error experimental_reset_execution();

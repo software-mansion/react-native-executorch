@@ -47,8 +47,6 @@ public:
    * provides a safer way to select a subset of threads, from threadpool, to run
    * the model on.
    */
-  [[deprecated("This API is experimental and may change without notice. "
-               "Consider using UseNThreadsThreadPoolGuard")]]
   bool _unsafe_reset_threadpool(uint32_t num_threads);
 
   /**

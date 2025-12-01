@@ -259,7 +259,7 @@ public:
    *
    * @returns The number of instructions.
    */
-  ET_EXPERIMENTAL size_t num_instructions() const;
+  size_t num_instructions() const;
 
   /**
    * DEPRECATED: Use num_memory_planned_buffers() instead.

@@ -23,7 +23,7 @@ namespace llm {
  * Derived classes must implement the virtual methods to provide specific IO
  * management functionality.
  */
-class ET_EXPERIMENTAL IOManager {
+class IOManager {
 public:
   /**
    * @brief Construct an IOManager bound to a Module.

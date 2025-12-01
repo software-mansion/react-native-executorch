@@ -44,7 +44,7 @@ namespace executorch {
 namespace extension {
 namespace llm {
 
-ET_EXPERIMENTAL void inline safe_printf(const char *piece) {
+void inline safe_printf(const char *piece) {
   // piece might be a raw byte token, and we only want to print printable chars
   // or whitespace because some of the other bytes can be various control codes,
   // backspace, etc.
@@ -66,7 +66,7 @@ ET_EXPERIMENTAL void inline safe_printf(const char *piece) {
 // ----------------------------------------------------------------------------
 // utilities: time
 
-ET_EXPERIMENTAL long inline time_in_ms() {
+long inline time_in_ms() {
   // return time in milliseconds, for benchmarking the model speed
   struct timespec time;
   // The `timespec_get` function is for windows time access. Some AOSP OS does
@@ -86,7 +86,7 @@ ET_EXPERIMENTAL long inline time_in_ms() {
 // RSS: Resident Set Size, the amount of memory currently in the RAM for this
 // process. These values are approximate, and are only used for logging
 // purposes.
-ET_EXPERIMENTAL size_t inline get_rss_bytes() {
+size_t inline get_rss_bytes() {
 #if defined(__linux__) || defined(__ANDROID__) || defined(__unix__)
   struct rusage r_usage;
   if (getrusage(RUSAGE_SELF, &r_usage) == 0) {

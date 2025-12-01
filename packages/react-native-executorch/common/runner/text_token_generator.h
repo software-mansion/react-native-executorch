@@ -19,7 +19,7 @@ namespace executorch {
 namespace extension {
 namespace llm {
 
-class ET_EXPERIMENTAL TextTokenGenerator {
+class TextTokenGenerator {
 public:
   TextTokenGenerator(::tokenizers::Tokenizer *tokenizer,
                      TextDecoderRunner *text_decoder_runner, bool use_kv_cache,
@@ -27,7 +27,7 @@ public:
                      Stats *stats)
       : tokenizer_(tokenizer), text_decoder_runner_(text_decoder_runner),
         eos_ids_(std::move(eos_ids)), use_kv_cache_(use_kv_cache),
-        stats_(stats), timestamp_(std::chrono::high_resolution_clock::now()) {}
+        timestamp_(std::chrono::high_resolution_clock::now()), stats_(stats) {}
 
   virtual ~TextTokenGenerator() = default;
 
@@ -54,7 +54,7 @@ public:
 
     // Token after prefill
     uint64_t cur_token = tokens.back();
-    uint64_t prev_token;
+    [[maybe_unused]] uint64_t prev_token;
 
     // cache to keep tokens if they were decoded into illegal character
     std::vector<int32_t> token_cache;

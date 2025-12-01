@@ -48,7 +48,7 @@ static constexpr auto kUseSDPAWithKVCache = "use_sdpa_with_kv_cache";
 
 Runner::Runner(Module *module, const std::string &tokenizer_path,
                const llm::GenerationConfig &config)
-    : module_(module), config_(config), tokenizer_path_(tokenizer_path),
+    : config_(config), module_(module), tokenizer_path_(tokenizer_path),
       metadata_({
           {kEnableDynamicShape, false},
           {kMaxSeqLen, 128},
@@ -211,7 +211,7 @@ Error Runner::generate(const std::string &prompt,
   ET_CHECK_OR_RETURN_ERROR(num_prompt_tokens >= 1, InvalidArgument,
                            "Expected at least 1 prompt token");
   ET_CHECK_OR_RETURN_ERROR(num_prompt_tokens < max_seq_len, InvalidArgument,
-                           "num_prompt_tokens %d >= max_context_len %" PRId64
+                           "num_prompt_tokens %d >= max_context_len %" PRId32
                            ", Max seq length exceeded - please increase max "
                            "seq len value in your export script",
                            num_prompt_tokens, max_seq_len);
@@ -225,7 +225,8 @@ Error Runner::generate(const std::string &prompt,
   ET_LOG(Info,
          "Max new tokens resolved: %d, given pos_ %" PRId64
          ", num_prompt_tokens %zu, max_context_len %" PRId64,
-         max_new_tokens, pos_, prompt_tokens.size(), max_context_length);
+         max_new_tokens, pos_, prompt_tokens.size(),
+         static_cast<int64_t>(max_context_length));
   ET_CHECK_OR_RETURN_ERROR(max_new_tokens > 0, InvalidArgument,
                            "Max new tokens %d is less than or equal to 0",
                            max_new_tokens);

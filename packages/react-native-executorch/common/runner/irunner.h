@@ -68,7 +68,7 @@ struct GenerationConfig {
 };
 
 // Base interface for LLM runners
-class ET_EXPERIMENTAL IRunner {
+class IRunner {
 public:
   virtual ~IRunner() = default;
 

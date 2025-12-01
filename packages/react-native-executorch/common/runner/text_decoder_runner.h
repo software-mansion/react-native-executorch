@@ -17,7 +17,7 @@ namespace executorch {
 namespace extension {
 namespace llm {
 
-class ET_EXPERIMENTAL TextDecoderRunner {
+class TextDecoderRunner {
 public:
   explicit TextDecoderRunner(Module *module, IOManager *io_manager,
                              float temperature = 0.8F, float topp = 0.9F);
