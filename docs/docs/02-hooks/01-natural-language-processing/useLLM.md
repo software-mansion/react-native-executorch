@@ -202,6 +202,10 @@ If you try to dismount the component using this hook while generation is still g
 You'll need to interrupt the model first and wait until `isGenerating` is set to false.
 :::
 
+### Reasoning
+
+Some models ship with a built-in "reasoning" or "thinking" mode, but this is model-specific, not a feature of our library. If the model you're using supports disabling reasoning, follow the instructions provided by the model authors. For example, Qwen 3 lets you disable reasoning by adding the `/no_think` suffix to your prompts - [source](https://qwenlm.github.io/blog/qwen3/#advanced-usages).
+
 ### Tool calling
 
 Sometimes text processing capabilities of LLMs are not enough. That's when you may want to introduce tool calling (also called function calling). It allows model to use external tools to perform its tasks. The tools may be any arbitrary function that you want your model to run. It may retrieve some data from 3rd party API. It may do an action inside an app like pressing buttons or filling forms, or it may use system APIs to interact with your phone (turning on flashlight, adding events to your calendar, changing volume etc.).
