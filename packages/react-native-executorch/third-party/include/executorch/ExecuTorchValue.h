@@ -22,12 +22,6 @@ typedef NS_ENUM(uint32_t, ExecuTorchValueTag) {
   ExecuTorchValueTagDouble,
   ExecuTorchValueTagInteger,
   ExecuTorchValueTagBoolean,
-  ExecuTorchValueTagBooleanList,
-  ExecuTorchValueTagDoubleList,
-  ExecuTorchValueTagIntegerList,
-  ExecuTorchValueTagTensorList,
-  ExecuTorchValueTagScalarList,
-  ExecuTorchValueTagOptionalTensorList,
 } NS_SWIFT_NAME(ValueTag);
 
 typedef NSNumber *
@@ -49,7 +43,7 @@ typedef float
  * a tensor or a scalar. The value’s type is indicated by its tag.
  */
 NS_SWIFT_NAME(Value)
-__attribute__((deprecated("This API is experimental.")))
+__attribute__((objc_subclassing_restricted))
 @interface ExecuTorchValue : NSObject<NSCopying>
 
 /**

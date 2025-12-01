@@ -20,6 +20,7 @@
 #include <executorch/runtime/core/named_data_map.h>
 #include <executorch/runtime/core/span.h>
 #include <executorch/runtime/executor/memory_manager.h>
+#include <executorch/runtime/executor/merged_data_map.h>
 #include <executorch/runtime/executor/method_meta.h>
 #include <executorch/runtime/platform/compiler.h>
 
@@ -47,7 +48,7 @@ class Program;
 class BackendDelegate;
 struct Chain;
 class KernelRuntimeContext;
-using OpFunction = void (*)(KernelRuntimeContext &, EValue **);
+using OpFunction = void (*)(KernelRuntimeContext &, Span<EValue *>);
 /// A list of pointers into the master values table that together compose the
 /// argument list for a single instruction
 using InstructionArgs = Span<EValue *>;
@@ -69,17 +70,22 @@ public:
         temp_allocator_(rhs.temp_allocator_),
         serialization_plan_(rhs.serialization_plan_),
         event_tracer_(rhs.event_tracer_), n_value_(rhs.n_value_),
-        values_(rhs.values_), n_delegate_(rhs.n_delegate_),
-        delegates_(rhs.delegates_), n_chains_(rhs.n_chains_),
-        chains_(rhs.chains_), external_constants_(rhs.external_constants_),
+        values_(rhs.values_), input_set_(rhs.input_set_),
+        n_delegate_(rhs.n_delegate_), delegates_(rhs.delegates_),
+        n_chains_(rhs.n_chains_), chains_(rhs.chains_),
+        merged_data_map_(std::move(rhs.merged_data_map_)),
+        external_constants_(rhs.external_constants_),
         n_external_constants_(rhs.n_external_constants_),
         init_state_(rhs.init_state_) {
     // Required: clear out fields that the dtor looks at, so that we don't free
     // anything twice.
     rhs.n_value_ = 0;
     rhs.values_ = nullptr;
+    rhs.input_set_ = nullptr;
     rhs.n_delegate_ = 0;
     rhs.delegates_ = nullptr;
+
+    rhs.merged_data_map_ = nullptr;
     rhs.n_external_constants_ = 0;
     rhs.external_constants_ = nullptr;
 
@@ -172,6 +178,9 @@ public:
   ET_NODISCARD Error get_outputs(EValue *output_evalues, size_t length);
 
   /**
+   * DEPRECATED: Use MethodMeta instead to access metadata, and set_input to
+   * update Method inputs.
+   *
    * Copies the method's inputs into the provided array.
    *
    * WARNING: The input contains shallow copies of internal tensor inputs.
@@ -185,7 +194,8 @@ public:
    *
    * @returns Error::Ok on success, non-Ok on failure.
    */
-  ET_NODISCARD Error get_inputs(EValue *input_evalues, size_t length);
+  ET_DEPRECATED ET_NODISCARD Error get_inputs(EValue *input_evalues,
+                                              size_t length);
 
   /**
    *
@@ -216,7 +226,7 @@ public:
    * @retval non-Ok step failed
    * @retval Error::EndOfMethod method finished executing successfully
    */
-  ET_EXPERIMENTAL ET_NODISCARD Error step();
+  ET_NODISCARD Error step();
 
   /// DEPRECATED: Use `step()` instead.
   ET_DEPRECATED ET_NODISCARD Error experimental_step();
@@ -230,7 +240,7 @@ public:
    *     the end of the Method. This means it is not possible to recover a
    *     Method that failed mid-execution.
    */
-  ET_EXPERIMENTAL ET_NODISCARD Error reset_execution();
+  ET_NODISCARD Error reset_execution();
 
   /// DEPRECATED: Use `reset_execution()` instead.
   ET_DEPRECATED ET_NODISCARD Error experimental_reset_execution();
@@ -297,7 +307,8 @@ private:
       : step_state_(), program_(program), memory_manager_(memory_manager),
         temp_allocator_(temp_allocator), serialization_plan_(nullptr),
         event_tracer_(event_tracer), n_value_(0), values_(nullptr),
-        n_delegate_(0), delegates_(nullptr), n_chains_(0), chains_(nullptr),
+        input_set_(nullptr), n_delegate_(0), delegates_(nullptr), n_chains_(0),
+        chains_(nullptr), merged_data_map_(nullptr),
         external_constants_(nullptr), n_external_constants_(0),
         init_state_(InitializationState::Uninitialized) {}
 
@@ -337,6 +348,7 @@ private:
 
   size_t n_value_;
   EValue *values_;
+  bool *input_set_;
 
   size_t n_delegate_;
   BackendDelegate *delegates_;
@@ -344,6 +356,7 @@ private:
   size_t n_chains_;
   Chain *chains_;
 
+  internal::MergedDataMap *merged_data_map_;
   NamedData *external_constants_;
   size_t n_external_constants_ = 0;
 

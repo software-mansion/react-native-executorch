@@ -27,38 +27,47 @@
 
 namespace example {
 
-class Runner : public executorch::extension::llm::IRunner {
+namespace llm = ::executorch::extension::llm;
+
+class Runner : public llm::IRunner {
 public:
   explicit Runner(::executorch::extension::Module *module,
                   const std::string &tokenizer_path,
-                  bool extended_input_mode = false, float temperature = 0.8f,
-                  float topp = 0.9f,
-                  std::optional<const std::string> data_path = std::nullopt);
+                  const llm::GenerationConfig &config = {
+                      .temperature = 0.8F, .topp = 0.9F}); // The main config
 
-  bool is_loaded() const;
-  ::executorch::runtime::Error load();
-  ::executorch::runtime::Error
-  generate(const std::string &prompt,
-           std::function<void(const std::string &)> token_callback = {},
-           std::function<void(const ::executorch::extension::llm::Stats &)>
-               stats_callback = {},
-           bool echo = true, bool warming = false);
+  bool is_loaded() const override;
+  ::executorch::runtime::Error load() override;
+  ::executorch::runtime::Error generate(
+      const std::string &prompt,
+      const llm::GenerationConfig &generation_config =
+          {}, // An extra config which temporarily overrides previous model
+              // settings
+      std::function<void(const std::string &)> token_callback = {},
+      std::function<void(const llm::Stats &)> stats_callback = {}) override;
   ::executorch::runtime::Error warmup(const std::string &prompt);
-  void set_extended_input_mode(bool extend_position_input) noexcept;
   void set_count_interval(size_t count_interval);
   void set_time_interval(size_t time_interval);
   void set_temperature(float temperature) noexcept;
   void set_topp(float topp) noexcept;
 
-  void stop();
+  void stop() override;
+  void reset() override;
 
-  ::executorch::extension::llm::Stats stats_;
+  llm::Stats stats_;
 
 private:
-  float temperature_;
-  float topp_;
-  bool extend_position_input_{false};
+  // Helper functions
+  int32_t resolve_max_new_tokens(int32_t num_prompt_tokens, int32_t max_seq_len,
+                                 int32_t max_context_len,
+                                 int32_t max_new_tokens = -1) const;
+
+  // Main config
+  llm::GenerationConfig config_;
+
+  // Flow control
   bool shouldStop_{false};
+  int64_t pos_ = 0; // The position in KV cache of the input, starting from 0.
 
   // Main model
   ::executorch::extension::Module *module_;
@@ -67,11 +76,10 @@ private:
   std::string tokenizer_path_;
   std::unique_ptr<tokenizers::Tokenizer> tokenizer_;
   std::unordered_map<std::string, int64_t> metadata_;
-  std::unique_ptr<::executorch::extension::llm::TextDecoderRunner>
-      text_decoder_runner_;
-  std::unique_ptr<::executorch::extension::llm::TextPrefiller> text_prefiller_;
-  std::unique_ptr<::executorch::extension::llm::TextTokenGenerator>
-      text_token_generator_;
+  std::unique_ptr<llm::IOManager> io_manager_;
+  std::unique_ptr<llm::TextDecoderRunner> text_decoder_runner_;
+  std::unique_ptr<llm::TextPrefiller> text_prefiller_;
+  std::unique_ptr<llm::TextTokenGenerator> text_token_generator_;
 };
 
 } // namespace example
