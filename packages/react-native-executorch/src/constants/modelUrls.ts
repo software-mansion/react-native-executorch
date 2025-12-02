@@ -311,6 +311,9 @@ const WHISPER_TINY_EN_TOKENIZER = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/
 const WHISPER_TINY_EN_ENCODER = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/xnnpack/whisper_tiny_en_encoder_xnnpack.pte`;
 const WHISPER_TINY_EN_DECODER = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/xnnpack/whisper_tiny_en_decoder_xnnpack.pte`;
 
+const WHISPER_TINY_EN_ENCODER_QUANTIZED = `${URL_PREFIX}-whisper-tiny-quantized.en/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_quantized_en_encoder_xnnpack.pte`;
+const WHISPER_TINY_EN_DECODER_QUANTIZED = `${URL_PREFIX}-whisper-tiny-quantized.en/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_quantized_en_decoder_xnnpack.pte`;
+
 const WHISPER_BASE_EN_TOKENIZER = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/tokenizer.json`;
 const WHISPER_BASE_EN_ENCODER = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/xnnpack/whisper_base_en_encoder_xnnpack.pte`;
 const WHISPER_BASE_EN_DECODER = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/xnnpack/whisper_base_en_decoder_xnnpack.pte`;
@@ -335,6 +338,13 @@ export const WHISPER_TINY_EN = {
   isMultilingual: false,
   encoderSource: WHISPER_TINY_EN_ENCODER,
   decoderSource: WHISPER_TINY_EN_DECODER,
+  tokenizerSource: WHISPER_TINY_EN_TOKENIZER,
+};
+
+export const WHISPER_TINY_EN_QUANTIZED = {
+  isMultilingual: false,
+  encoderSource: WHISPER_TINY_EN_ENCODER_QUANTIZED,
+  decoderSource: WHISPER_TINY_EN_DECODER_QUANTIZED,
   tokenizerSource: WHISPER_TINY_EN_TOKENIZER,
 };
 
