@@ -4,6 +4,7 @@
 #include <executorch/extension/threadpool/cpuinfo_utils.h>
 #include <memory>
 #include <mutex>
+#include <opencv2/opencv.hpp>
 #include <optional>
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/threads/HighPerformanceThreadPool.h>
@@ -38,6 +39,7 @@ public:
           numThreads, "threads");
       instance = std::make_unique<HighPerformanceThreadPool>(numThreads.value(),
                                                              config);
+      cv::setNumThreads(0);
     });
   }
 
