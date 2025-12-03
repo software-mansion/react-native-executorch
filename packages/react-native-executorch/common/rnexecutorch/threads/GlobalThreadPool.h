@@ -4,6 +4,7 @@
 #include <executorch/extension/threadpool/cpuinfo_utils.h>
 #include <memory>
 #include <mutex>
+#include <opencv2/opencv.hpp>
 #include <optional>
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/threads/HighPerformanceThreadPool.h>
@@ -38,6 +39,9 @@ public:
           numThreads, "threads");
       instance = std::make_unique<HighPerformanceThreadPool>(numThreads.value(),
                                                              config);
+      // Disable OpenCV's internal threading to prevent it from overriding our
+      // thread pool configuration, which would cause degraded performance
+      cv::setNumThreads(0);
     });
   }
 
