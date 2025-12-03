@@ -39,6 +39,8 @@ public:
           numThreads, "threads");
       instance = std::make_unique<HighPerformanceThreadPool>(numThreads.value(),
                                                              config);
+      // Disable OpenCV's internal threading to prevent it from overriding our
+      // thread pool configuration, which would cause degraded performance
       cv::setNumThreads(0);
     });
   }
