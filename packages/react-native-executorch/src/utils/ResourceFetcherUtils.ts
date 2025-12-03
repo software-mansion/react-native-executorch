@@ -1,16 +1,14 @@
-/**
- * @internal
- */
-
-import {
-  DownloadResumable,
-  getInfoAsync,
-  makeDirectoryAsync,
-} from 'expo-file-system';
+import type * as FileSystemTypes from 'expo-file-system';
 import { RNEDirectory } from '../constants/directories';
 import { ResourceSource } from '../types/common';
 import { Asset } from 'expo-asset';
 import { Logger } from '../common/Logger';
+import { importLegacyExpoFSModules } from './ResourceFetcher';
+
+/**
+ * @internal
+ */
+const { getInfoAsync, makeDirectoryAsync } = importLegacyExpoFSModules();
 
 export const enum HTTP_CODE {
   OK = 200,
@@ -42,7 +40,7 @@ export interface ResourceSourceExtended {
 }
 
 export interface DownloadResource {
-  downloadResumable: DownloadResumable;
+  downloadResumable: FileSystemTypes.DownloadResumable;
   status: DownloadStatus;
   extendedInfo: ResourceSourceExtended;
 }
@@ -75,7 +73,7 @@ export namespace ResourceFetcherUtils {
     let totalLength = 0;
     let previousFilesTotalLength = 0;
     for (const source of sources) {
-      const type = await ResourceFetcherUtils.getType(source);
+      const type = ResourceFetcherUtils.getType(source);
       let length = 0;
       try {
         if (type === SourceType.REMOTE_FILE && typeof source === 'string') {
