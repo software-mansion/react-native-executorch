@@ -6,7 +6,6 @@
 #include <array>
 #include <functional>
 #include <numeric>
-#include <ranges>
 #include <vector>
 
 namespace rnexecutorch::models::voice_activity_detection {

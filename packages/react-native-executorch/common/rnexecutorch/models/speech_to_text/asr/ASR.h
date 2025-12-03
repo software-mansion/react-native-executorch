@@ -14,9 +14,9 @@ public:
                const models::BaseModel *decoder,
                const TokenizerModule *tokenizer);
   std::vector<types::Segment>
-  transcribe(std::span<const float> waveform,
+  transcribe(std::span<float> waveform,
              const types::DecodingOptions &options) const;
-  std::vector<float> encode(std::span<const float> waveform) const;
+  std::vector<float> encode(std::span<float> waveform) const;
   std::vector<float> decode(std::span<int32_t> tokens,
                             std::span<float> encoderOutput) const;
 
@@ -44,11 +44,10 @@ private:
 
   std::vector<int32_t>
   getInitialSequence(const types::DecodingOptions &options) const;
-  types::GenerationResult generate(std::span<const float> waveform,
-                                   float temperature,
+  types::GenerationResult generate(std::span<float> waveform, float temperature,
                                    const types::DecodingOptions &options) const;
   std::vector<types::Segment>
-  generateWithFallback(std::span<const float> waveform,
+  generateWithFallback(std::span<float> waveform,
                        const types::DecodingOptions &options) const;
   std::vector<types::Segment>
   calculateWordLevelTimestamps(std::span<const int32_t> tokens,
