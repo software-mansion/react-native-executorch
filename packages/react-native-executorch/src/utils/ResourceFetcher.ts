@@ -37,9 +37,9 @@ export function importLegacyExpoFSModules() {
     const sdkVersion = expoPkg.version.split('.')[0];
 
     if (Number(sdkVersion) > 53) {
-      FileSystem = require('expo-file-system');
-    } else {
       FileSystem = require('expo-file-system/legacy');
+    } else {
+      FileSystem = require('expo-file-system');
     }
   } catch (e) {
     throw new Error('Expo must be installed to use react-native-executorch');
