@@ -28,27 +28,28 @@ F0NPredictor::F0NPredictor(const std::string &modelSource,
   }
 }
 
-Result<std::vector<EValue>> F0NPredictor::generate(const std::string &method,
-                                                   int32_t duration,
-                                                   std::span<float> en,
-                                                   std::span<float> s) {
+Result<std::vector<EValue>> F0NPredictor::generate(
+    const std::string &method, const Configuration &inputConfig,
+    std::span<int64_t> indices, std::span<float> dur, std::span<float> ref_hs) {
   // Perform input shape checks
   // s vector should be half of a voice reference vector size
-  if (s.size() != constants::kVoiceRefSize / 2) {
+  if (ref_hs.size() != constants::kVoiceRefHalfSize) {
     rnexecutorch::log(rnexecutorch::LOG_LEVEL::Error,
-                      "Unexpected S vector length: expected ",
-                      constants::kVoiceRefSize / 2, " but got ", s.size());
+                      "Unexpected voice ref length: expected ",
+                      constants::kVoiceRefHalfSize, " but got ", ref_hs.size());
     throw std::runtime_error("[Kokoro::F0NPredictor] Invalid input shape");
   }
 
   // Convert input data to ExecuTorch tensors
-  auto enTensor =
-      make_tensor_ptr({1, 640, duration}, en.data(), ScalarType::Float);
-  auto sTensor = make_tensor_ptr({1, constants::kVoiceRefSize / 2}, s.data(),
-                                 ScalarType::Float);
+  auto indicesTensor =
+      make_tensor_ptr({inputConfig.duration}, indices.data(), ScalarType::Long);
+  auto durTensor = make_tensor_ptr({1, inputConfig.noTokens, 640},
+                                   indices.data(), ScalarType::Float);
+  auto voiceRefTensor = make_tensor_ptr({1, constants::kVoiceRefHalfSize},
+                                        ref_hs.data(), ScalarType::Float);
 
   // Execute the appropriate "forward_xyz" method, based on given method name
-  auto results = execute(method, {enTensor, sTensor});
+  auto results = execute(method, {indicesTensor, durTensor, voiceRefTensor});
 
   if (!results.ok()) {
     throw std::runtime_error(
@@ -56,7 +57,7 @@ Result<std::vector<EValue>> F0NPredictor::generate(const std::string &method,
         ", error: " + std::to_string(static_cast<uint32_t>(results.error())));
   }
 
-  // [F0_pred, N_pred]
+  // [F0_pred, N_pred, en, pred_alg_trn]
   return results;
 }
 

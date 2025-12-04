@@ -31,7 +31,7 @@ Decoder::Decoder(const std::string &modelSource,
 Result<std::vector<EValue>>
 Decoder::generate(const std::string &method, int32_t duration,
                   std::span<float> asr, std::span<float> f0Pred,
-                  std::span<float> nPred, std::span<float> ref_hs) {
+                  std::span<float> nPred, std::span<float> ref_ls) {
   // Perform input shape checks
   // Both F0 and N vectors should be twice as long as duration
   if (f0Pred.size() != 2 * duration) {
@@ -47,10 +47,10 @@ Decoder::generate(const std::string &method, int32_t duration,
     throw std::runtime_error("[Kokoro::Decoder] Invalid input shape");
   }
   // ref_hs should be a half of a voice reference vector
-  if (ref_hs.size() != constants::kVoiceRefSize / 2) {
+  if (ref_ls.size() != constants::kVoiceRefHalfSize) {
     rnexecutorch::log(rnexecutorch::LOG_LEVEL::Error,
                       "Unexpected voice ref length: expected ",
-                      constants::kVoiceRefSize / 2, " but got ", ref_hs.size());
+                      constants::kVoiceRefHalfSize, " but got ", ref_ls.size());
     throw std::runtime_error("[Kokoro::Decoder] Invalid input shape");
   }
 
@@ -61,11 +61,12 @@ Decoder::generate(const std::string &method, int32_t duration,
       make_tensor_ptr({1, 2 * duration}, f0Pred.data(), ScalarType::Float);
   auto nTensor =
       make_tensor_ptr({1, 2 * duration}, nPred.data(), ScalarType::Float);
-  auto refHsTensor = make_tensor_ptr({1, constants::kVoiceRefSize / 2},
-                                     ref_hs.data(), ScalarType::Float);
+  auto voiceRefTensor = make_tensor_ptr({1, constants::kVoiceRefHalfSize},
+                                        ref_ls.data(), ScalarType::Float);
 
   // Execute the appropriate "forward_xyz" method, based on given method name
-  auto results = execute(method, {asrTensor, f0Tensor, nTensor, refHsTensor});
+  auto results =
+      execute(method, {asrTensor, f0Tensor, nTensor, voiceRefTensor});
 
   if (!results.ok()) {
     throw std::runtime_error(
