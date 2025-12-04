@@ -2,8 +2,8 @@ import { Platform } from 'react-native';
 
 const URL_PREFIX =
   'https://huggingface.co/software-mansion/react-native-executorch';
-const VERSION_TAG = 'resolve/v0.5.0';
-const NEXT_VERSION_TAG = 'resolve/v0.6.0';
+const VERSION_TAG = 'resolve/v0.6.0';
+// const NEXT_VERSION_TAG = 'resolve/v0.7.0';
 
 // LLMs
 
@@ -307,32 +307,32 @@ export const STYLE_TRANSFER_UDNIE = {
 };
 
 // S2T
-const WHISPER_TINY_EN_TOKENIZER = `${URL_PREFIX}-whisper-tiny.en/${NEXT_VERSION_TAG}/tokenizer.json`;
-const WHISPER_TINY_EN_ENCODER = `${URL_PREFIX}-whisper-tiny.en/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_en_encoder_xnnpack.pte`;
-const WHISPER_TINY_EN_DECODER = `${URL_PREFIX}-whisper-tiny.en/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_en_decoder_xnnpack.pte`;
+const WHISPER_TINY_EN_TOKENIZER = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_TINY_EN_ENCODER = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/xnnpack/whisper_tiny_en_encoder_xnnpack.pte`;
+const WHISPER_TINY_EN_DECODER = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/xnnpack/whisper_tiny_en_decoder_xnnpack.pte`;
 
-const WHISPER_TINY_EN_ENCODER_QUANTIZED = `${URL_PREFIX}-whisper-tiny-quantized.en/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_quantized_en_encoder_xnnpack.pte`;
-const WHISPER_TINY_EN_DECODER_QUANTIZED = `${URL_PREFIX}-whisper-tiny-quantized.en/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_quantized_en_decoder_xnnpack.pte`;
+const WHISPER_TINY_EN_ENCODER_QUANTIZED = `${URL_PREFIX}-whisper-tiny-quantized.en/${VERSION_TAG}/xnnpack/whisper_tiny_quantized_en_encoder_xnnpack.pte`;
+const WHISPER_TINY_EN_DECODER_QUANTIZED = `${URL_PREFIX}-whisper-tiny-quantized.en/${VERSION_TAG}/xnnpack/whisper_tiny_quantized_en_decoder_xnnpack.pte`;
 
-const WHISPER_BASE_EN_TOKENIZER = `${URL_PREFIX}-whisper-base.en/${NEXT_VERSION_TAG}/tokenizer.json`;
-const WHISPER_BASE_EN_ENCODER = `${URL_PREFIX}-whisper-base.en/${NEXT_VERSION_TAG}/xnnpack/whisper_base_en_encoder_xnnpack.pte`;
-const WHISPER_BASE_EN_DECODER = `${URL_PREFIX}-whisper-base.en/${NEXT_VERSION_TAG}/xnnpack/whisper_base_en_decoder_xnnpack.pte`;
+const WHISPER_BASE_EN_TOKENIZER = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_BASE_EN_ENCODER = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/xnnpack/whisper_base_en_encoder_xnnpack.pte`;
+const WHISPER_BASE_EN_DECODER = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/xnnpack/whisper_base_en_decoder_xnnpack.pte`;
 
-const WHISPER_SMALL_EN_TOKENIZER = `${URL_PREFIX}-whisper-small.en/${NEXT_VERSION_TAG}/tokenizer.json`;
-const WHISPER_SMALL_EN_ENCODER = `${URL_PREFIX}-whisper-small.en/${NEXT_VERSION_TAG}/xnnpack/whisper_small_en_encoder_xnnpack.pte`;
-const WHISPER_SMALL_EN_DECODER = `${URL_PREFIX}-whisper-small.en/${NEXT_VERSION_TAG}/xnnpack/whisper_small_en_decoder_xnnpack.pte`;
+const WHISPER_SMALL_EN_TOKENIZER = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_SMALL_EN_ENCODER = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/xnnpack/whisper_small_en_encoder_xnnpack.pte`;
+const WHISPER_SMALL_EN_DECODER = `${URL_PREFIX}-whisper-small.en/${VERSION_TAG}/xnnpack/whisper_small_en_decoder_xnnpack.pte`;
 
-const WHISPER_TINY_TOKENIZER = `${URL_PREFIX}-whisper-tiny/${NEXT_VERSION_TAG}/tokenizer.json`;
-const WHISPER_TINY_ENCODER_MODEL = `${URL_PREFIX}-whisper-tiny/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_encoder_xnnpack.pte`;
-const WHISPER_TINY_DECODER_MODEL = `${URL_PREFIX}-whisper-tiny/${NEXT_VERSION_TAG}/xnnpack/whisper_tiny_decoder_xnnpack.pte`;
+const WHISPER_TINY_TOKENIZER = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_TINY_ENCODER_MODEL = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/xnnpack/whisper_tiny_encoder_xnnpack.pte`;
+const WHISPER_TINY_DECODER_MODEL = `${URL_PREFIX}-whisper-tiny/${VERSION_TAG}/xnnpack/whisper_tiny_decoder_xnnpack.pte`;
 
-const WHISPER_BASE_TOKENIZER = `${URL_PREFIX}-whisper-base/${NEXT_VERSION_TAG}/tokenizer.json`;
-const WHISPER_BASE_ENCODER_MODEL = `${URL_PREFIX}-whisper-base/${NEXT_VERSION_TAG}/xnnpack/whisper_base_encoder_xnnpack.pte`;
-const WHISPER_BASE_DECODER_MODEL = `${URL_PREFIX}-whisper-base/${NEXT_VERSION_TAG}/xnnpack/whisper_base_decoder_xnnpack.pte`;
+const WHISPER_BASE_TOKENIZER = `${URL_PREFIX}-whisper-base/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_BASE_ENCODER_MODEL = `${URL_PREFIX}-whisper-base/${VERSION_TAG}/xnnpack/whisper_base_encoder_xnnpack.pte`;
+const WHISPER_BASE_DECODER_MODEL = `${URL_PREFIX}-whisper-base/${VERSION_TAG}/xnnpack/whisper_base_decoder_xnnpack.pte`;
 
-const WHISPER_SMALL_TOKENIZER = `${URL_PREFIX}-whisper-small/${NEXT_VERSION_TAG}/tokenizer.json`;
-const WHISPER_SMALL_ENCODER_MODEL = `${URL_PREFIX}-whisper-small/${NEXT_VERSION_TAG}/xnnpack/whisper_small_encoder_xnnpack.pte`;
-const WHISPER_SMALL_DECODER_MODEL = `${URL_PREFIX}-whisper-small/${NEXT_VERSION_TAG}/xnnpack/whisper_small_decoder_xnnpack.pte`;
+const WHISPER_SMALL_TOKENIZER = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/tokenizer.json`;
+const WHISPER_SMALL_ENCODER_MODEL = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/xnnpack/whisper_small_encoder_xnnpack.pte`;
+const WHISPER_SMALL_DECODER_MODEL = `${URL_PREFIX}-whisper-small/${VERSION_TAG}/xnnpack/whisper_small_decoder_xnnpack.pte`;
 
 export const WHISPER_TINY_EN = {
   isMultilingual: false,
@@ -452,7 +452,7 @@ export const BK_SDM_TINY_VPRED_256 = {
 };
 
 // Voice Activity Detection
-const FSMN_VAD_MODEL = `${URL_PREFIX}-fsmn-vad/${NEXT_VERSION_TAG}/xnnpack/fsmn-vad_xnnpack.pte`;
+const FSMN_VAD_MODEL = `${URL_PREFIX}-fsmn-vad/${VERSION_TAG}/xnnpack/fsmn-vad_xnnpack.pte`;
 
 export const FSMN_VAD = {
   modelSource: FSMN_VAD_MODEL,
