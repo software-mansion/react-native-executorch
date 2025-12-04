@@ -20,7 +20,7 @@ public:
                                        int32_t duration, std::span<float> asr,
                                        std::span<float> f0Pred,
                                        std::span<float> nPred,
-                                       std::span<float> ref_hs);
+                                       std::span<float> ref_ls);
 };
 } // namespace models::text_to_speech::kokoro
 

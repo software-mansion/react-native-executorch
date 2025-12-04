@@ -17,8 +17,10 @@ public:
                std::shared_ptr<react::CallInvoker> callInvoker);
 
   Result<std::vector<EValue>> generate(const std::string &method,
-                                       int32_t duration, std::span<float> en,
-                                       std::span<float> s);
+                                       const Configuration &inputConfig,
+                                       std::span<int64_t> indices,
+                                       std::span<float> dur,
+                                       std::span<float> ref_hs);
 };
 } // namespace models::text_to_speech::kokoro
 

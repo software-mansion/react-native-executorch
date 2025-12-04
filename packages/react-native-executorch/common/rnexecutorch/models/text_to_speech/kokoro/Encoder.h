@@ -17,8 +17,10 @@ public:
           std::shared_ptr<react::CallInvoker> callInvoker);
 
   Result<std::vector<EValue>> generate(const std::string &method,
+                                       const Configuration &inputConfig,
                                        std::span<int64_t> tokens,
-                                       std::span<int64_t> textMask);
+                                       std::span<int64_t> textMask,
+                                       std::span<float> pred_aln_trg);
 };
 } // namespace models::text_to_speech::kokoro
 
