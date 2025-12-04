@@ -2,8 +2,8 @@ import { Platform } from 'react-native';
 
 const URL_PREFIX =
   'https://huggingface.co/software-mansion/react-native-executorch';
-const VERSION_TAG = 'resolve/v0.5.0';
-const NEXT_VERSION_TAG = 'resolve/v0.6.0';
+const VERSION_TAG = 'resolve/v0.6.0';
+const NEXT_VERSION_TAG = 'resolve/v0.7.0';
 
 // LLMs
 
