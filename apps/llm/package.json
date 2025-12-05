@@ -14,7 +14,7 @@
     "@react-native/metro-config": "^0.76.3",
     "@react-navigation/drawer": "^7.3.9",
     "@react-navigation/native": "^7.1.6",
-    "expo": "^54.0.0",
+    "expo": "^54.0.27",
     "expo-brightness": "~14.0.8",
     "expo-calendar": "~15.0.8",
     "expo-constants": "~18.0.11",

@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@react-navigation/drawer": "^7.3.9",
-    "expo": "^54.0.0",
+    "expo": "^54.0.27",
     "expo-constants": "~18.0.11",
     "expo-linking": "~8.0.10",
     "expo-router": "~6.0.17",

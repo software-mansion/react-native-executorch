@@ -15,7 +15,7 @@
     "@react-navigation/drawer": "^7.3.9",
     "@react-navigation/native": "^7.1.6",
     "@shopify/react-native-skia": "2.2.12",
-    "expo": "^54.0.0",
+    "expo": "^54.0.27",
     "expo-constants": "~18.0.11",
     "expo-font": "~14.0.10",
     "expo-linking": "~8.0.10",

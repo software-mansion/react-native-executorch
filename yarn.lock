@@ -6207,7 +6207,7 @@ __metadata:
     "@shopify/react-native-skia": "npm:2.2.12"
     "@types/pngjs": "npm:^6.0.5"
     "@types/react": "npm:~19.1.10"
-    expo: "npm:^54.0.0"
+    expo: "npm:^54.0.27"
     expo-constants: "npm:~18.0.11"
     expo-font: "npm:~14.0.10"
     expo-linking: "npm:~8.0.10"
@@ -7831,7 +7831,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo@npm:^54.0.0":
+"expo@npm:^54.0.0, expo@npm:^54.0.27":
   version: 54.0.27
   resolution: "expo@npm:54.0.27"
   dependencies:
@@ -10261,7 +10261,7 @@ __metadata:
     "@react-navigation/drawer": "npm:^7.3.9"
     "@react-navigation/native": "npm:^7.1.6"
     "@types/react": "npm:~19.1.10"
-    expo: "npm:^54.0.0"
+    expo: "npm:^54.0.27"
     expo-brightness: "npm:~14.0.8"
     expo-calendar: "npm:~15.0.8"
     expo-constants: "npm:~18.0.11"
@@ -14083,7 +14083,7 @@ __metadata:
     "@react-native/metro-config": "npm:^0.76.3"
     "@types/react": "npm:~19.1.10"
     buffer: "npm:^6.0.3"
-    expo: "npm:^54.0.0"
+    expo: "npm:^54.0.27"
     expo-font: "npm:~14.0.10"
     expo-status-bar: "npm:~3.0.9"
     metro-config: "npm:^0.81.0"
@@ -14545,7 +14545,7 @@ __metadata:
     "@babel/core": "npm:^7.25.2"
     "@react-navigation/drawer": "npm:^7.3.9"
     "@types/react": "npm:~19.1.10"
-    expo: "npm:^54.0.0"
+    expo: "npm:^54.0.27"
     expo-constants: "npm:~18.0.11"
     expo-linking: "npm:~8.0.10"
     expo-router: "npm:~6.0.17"
