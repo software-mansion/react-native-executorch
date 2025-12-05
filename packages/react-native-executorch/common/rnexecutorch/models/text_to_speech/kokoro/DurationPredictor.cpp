@@ -34,7 +34,7 @@ DurationPredictor::DurationPredictor(
 
 Result<std::vector<EValue>> DurationPredictor::generate(
     const std::string &method, const Configuration &inputConfig,
-    std::span<int64_t> tokens, std::span<int64_t> textMask,
+    std::span<Token> tokens, std::span<int64_t> textMask,
     std::span<float> ref_hs, float speed) {
   // Perform input shape checks
   // Since every bit in text mask corresponds to exactly one of the tokens, both

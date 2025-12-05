@@ -30,7 +30,7 @@ Encoder::Encoder(const std::string &modelSource,
 
 Result<std::vector<EValue>> Encoder::generate(const std::string &method,
                                               const Configuration &inputConfig,
-                                              std::span<int64_t> tokens,
+                                              std::span<Token> tokens,
                                               std::span<int64_t> textMask,
                                               std::span<float> pred_aln_trg) {
   // Perform input shape checks

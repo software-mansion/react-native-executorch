@@ -20,7 +20,7 @@ public:
 
   Result<std::vector<EValue>>
   generate(const std::string &method, const Configuration &inputConfig,
-           std::span<int64_t> tokens, std::span<int64_t> textMask,
+           std::span<Token> tokens, std::span<int64_t> textMask,
            std::span<float> ref_hs, float speed = 1.F);
 
 private:
