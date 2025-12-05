@@ -65,25 +65,25 @@
     "registry": "https://registry.npmjs.org/"
   },
   "peerDependencies": {
-    "expo": "*",
-    "expo-asset": "*",
-    "expo-file-system": "*",
+    "expo": ">=54.0.0",
+    "expo-asset": "^12.0.0",
+    "expo-file-system": "^19.0.0",
     "react": "*",
     "react-native": "*"
   },
   "devDependencies": {
     "@react-native-community/cli": "latest",
     "@types/jest": "^29.5.5",
-    "@types/react": "^18.2.44",
-    "expo": "^53.0.7",
-    "expo-asset": "~11.1.5",
-    "expo-file-system": "~18.1.10",
+    "@types/react": "~19.1.10",
+    "expo": "^54.0.0",
+    "expo-asset": "12.0.11",
+    "expo-file-system": "^19.0.20",
     "jest": "^29.7.0",
     "metro-react-native-babel-preset": "^0.77.0",
-    "react": "19.0.0",
-    "react-native": "0.79.2",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
     "react-native-builder-bob": "^0.40.12",
-    "typescript": "~5.8.3"
+    "typescript": "~5.9.2"
   },
   "resolutions": {
     "@types/react": "^18.2.44"

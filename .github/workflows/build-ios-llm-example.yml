@@ -46,8 +46,6 @@ jobs:
         with:
           path: apps/llm/ios
           key: ${{ runner.os }}-expo-ios-${{ hashFiles('apps/llm/app.json', 'apps/llm/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-expo-ios-
       - name: Generate native iOS project
         working-directory: apps/llm
         run: |
