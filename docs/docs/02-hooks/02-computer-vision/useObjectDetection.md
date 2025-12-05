@@ -139,7 +139,7 @@ function App() {
 
 | Model                          | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
 | ------------------------------ | :--------------------: | :----------------: |
-| SSDLITE_320_MOBILENET_V3_LARGE |           90           |         90         |
+| SSDLITE_320_MOBILENET_V3_LARGE |          164           |        132         |
 
 ### Inference time
 
@@ -147,6 +147,6 @@ function App() {
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
 :::
 
-| Model                          | iPhone 16 Pro (XNNPACK) [ms] | iPhone 13 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| Model                          | iPhone 17 Pro (XNNPACK) [ms] | iPhone 16 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
 | ------------------------------ | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
-| SSDLITE_320_MOBILENET_V3_LARGE |             190              |             260              |            280             |                100                |            90             |
+| SSDLITE_320_MOBILENET_V3_LARGE |              71              |              74              |            257             |                115                |            109            |

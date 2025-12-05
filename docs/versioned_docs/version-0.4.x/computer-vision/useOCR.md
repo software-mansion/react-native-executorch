@@ -321,11 +321,9 @@ function App() {
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
 :::
 
-| Model                 | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | Samsung Galaxy S21 (XNNPACK) [ms] |
-| --------------------- | :--------------------------: | :------------------------------: | :------------------------: | :-------------------------------: | :-------------------------------: |
-| Detector (CRAFT_800)  |             2099             |               2227               |             ❌             |               2245                |               7108                |
-| Recognizer (CRNN_512) |              70              |               252                |             ❌             |                54                 |                151                |
-| Recognizer (CRNN_256) |              39              |               123                |             ❌             |                24                 |                78                 |
-| Recognizer (CRNN_128) |              17              |                83                |             ❌             |                14                 |                39                 |
-
-❌ - Insufficient RAM.
+| Model                          | iPhone 17 Pro (XNNPACK) [ms] | iPhone 16 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| ------------------------------ | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
+| Detector (CRAFT_800_QUANTIZED) |             779              |             897              |            1276            |                553                |            586            |
+| Recognizer (CRNN_512)          |              77              |              74              |            244             |                56                 |            57             |
+| Recognizer (CRNN_256)          |              35              |              37              |            120             |                28                 |            30             |
+| Recognizer (CRNN_128)          |              18              |              19              |             60             |                14                 |            16             |

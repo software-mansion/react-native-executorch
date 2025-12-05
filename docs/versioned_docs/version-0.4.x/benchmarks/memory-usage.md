@@ -25,16 +25,16 @@ title: Memory Usage
 
 ## OCR
 
-| Model                                                                                        | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| -------------------------------------------------------------------------------------------- | :--------------------: | :----------------: |
-| Detector (CRAFT_800) + Recognizer (CRNN_512) + Recognizer (CRNN_256) + Recognizer (CRNN_128) |          2100          |        1782        |
+| Model                                                                                                  | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| ------------------------------------------------------------------------------------------------------ | :--------------------: | :----------------: |
+| Detector (CRAFT_800_QUANTIZED) + Recognizer (CRNN_512) + Recognizer (CRNN_256) + Recognizer (CRNN_128) |          1400          |        1320        |
 
 ## Vertical OCR
 
-| Model                                                                | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| -------------------------------------------------------------------- | :--------------------: | :----------------: |
-| Detector (CRAFT_1280) + Detector (CRAFT_320) + Recognizer (CRNN_512) |          2770          |        3720        |
-| Detector(CRAFT_1280) + Detector(CRAFT_320) + Recognizer (CRNN_64)    |          1770          |        2740        |
+| Model                                                                                    | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| ---------------------------------------------------------------------------------------- | :--------------------: | :----------------: |
+| Detector (CRAFT_1280_QUANTIZED) + Detector (CRAFT_320_QUANTIZED) + Recognizer (CRNN_512) |          1540          |        1470        |
+| Detector(CRAFT_1280) + Detector(CRAFT_320) + Recognizer (CRNN_64)                        |          1070          |        1000        |
 
 ## LLMs
 

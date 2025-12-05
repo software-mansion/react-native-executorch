@@ -288,20 +288,20 @@ You need to make sure the recognizer models you pass in `recognizerSources` matc
 
 ### Model size
 
-| Model                 | XNNPACK [MB] |
-| --------------------- | :----------: |
-| Detector (CRAFT_800)  |     83.1     |
-| Recognizer (CRNN_512) |  15 - 18\*   |
-| Recognizer (CRNN_256) |  16 - 18\*   |
-| Recognizer (CRNN_128) |  17 - 19\*   |
+| Model                          | XNNPACK [MB] |
+| ------------------------------ | :----------: |
+| Detector (CRAFT_800_QUANTIZED) |     19.8     |
+| Recognizer (CRNN_512)          |  15 - 18\*   |
+| Recognizer (CRNN_256)          |  16 - 18\*   |
+| Recognizer (CRNN_128)          |  17 - 19\*   |
 
 \* - The model weights vary depending on the language.
 
 ### Memory usage
 
-| Model                                                                                        | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| -------------------------------------------------------------------------------------------- | :--------------------: | :----------------: |
-| Detector (CRAFT_800) + Recognizer (CRNN_512) + Recognizer (CRNN_256) + Recognizer (CRNN_128) |          1600          |        1700        |
+| Model                                                                                                  | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| ------------------------------------------------------------------------------------------------------ | :--------------------: | :----------------: |
+| Detector (CRAFT_800_QUANTIZED) + Recognizer (CRNN_512) + Recognizer (CRNN_256) + Recognizer (CRNN_128) |          1400          |        1320        |
 
 ### Inference time
 
@@ -317,18 +317,16 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 
 **Time measurements:**
 
-| Metric                    | iPhone 14 Pro Max <br /> [ms] | iPhone 16 Pro <br /> [ms] | iPhone SE 3 | Samsung Galaxy S24 <br /> [ms] | OnePlus 12 <br /> [ms] |
-| ------------------------- | ----------------------------- | ------------------------- | ----------- | ------------------------------ | ---------------------- |
-| **Total Inference Time**  | 4330                          | 2537                      | ❌          | 6648                           | 5993                   |
-| **Detector (CRAFT_800)**  | 1945                          | 1809                      | ❌          | 2080                           | 1961                   |
-| **Recognizer (CRNN_512)** |                               |                           |             |                                |                        |
-| ├─ Average Time           | 273                           | 76                        | ❌          | 289                            | 252                    |
-| ├─ Total Time (3 runs)    | 820                           | 229                       | ❌          | 867                            | 756                    |
-| **Recognizer (CRNN_256)** |                               |                           |             |                                |                        |
-| ├─ Average Time           | 137                           | 39                        | ❌          | 260                            | 229                    |
-| ├─ Total Time (7 runs)    | 958                           | 271                       | ❌          | 1818                           | 1601                   |
-| **Recognizer (CRNN_128)** |                               |                           |             |                                |                        |
-| ├─ Average Time           | 68                            | 18                        | ❌          | 239                            | 214                    |
-| ├─ Total Time (7 runs)    | 478                           | 124                       | ❌          | 1673                           | 1498                   |
-
-❌ - Insufficient RAM.
+| Metric                             | iPhone 17 Pro <br /> [ms] | iPhone 16 Pro <br /> [ms] | iPhone SE 3 | Samsung Galaxy S24 <br /> [ms] | OnePlus 12 <br /> [ms] |
+| ---------------------------------- | ------------------------- | ------------------------- | ----------- | ------------------------------ | ---------------------- |
+| **Total Inference Time**           | 652                       | 600                       | 2855        | 1092                           | 1034                   |
+| **Detector (CRAFT_800_QUANTIZED)** | 220                       | 221                       | 1740        | 521                            | 492                    |
+| **Recognizer (CRNN_512)**          |                           |                           |             |                                |                        |
+| ├─ Average Time                    | 45                        | 38                        | 110         | 40                             | 38                     |
+| ├─ Total Time (3 runs)             | 135                       | 114                       | 330         | 120                            | 114                    |
+| **Recognizer (CRNN_256)**          |                           |                           |             |                                |                        |
+| ├─ Average Time                    | 21                        | 18                        | 54          | 20                             | 19                     |
+| ├─ Total Time (7 runs)             | 147                       | 126                       | 378         | 140                            | 133                    |
+| **Recognizer (CRNN_128)**          |                           |                           |             |                                |                        |
+| ├─ Average Time                    | 11                        | 9                         | 27          | 10                             | 10                     |
+| ├─ Total Time (7 runs)             | 77                        | 63                        | 189         | 70                             | 70                     |

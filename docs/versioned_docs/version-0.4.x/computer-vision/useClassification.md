@@ -85,8 +85,8 @@ function App() {
 
 ## Supported models
 
-| Model                                                                                                           | Number of classes | Class list                                                                                                                                                                 |
-| --------------------------------------------------------------------------------------------------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Model                                                                                                             | Number of classes | Class list                                                                                                                                                                        |
+| ----------------------------------------------------------------------------------------------------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [efficientnet_v2_s](https://pytorch.org/vision/stable/models/generated/torchvision.models.efficientnet_v2_s.html) | 1000              | [ImageNet1k_v1](https://github.com/software-mansion/react-native-executorch/blob/release/0.4/android/src/main/java/com/swmansion/rnexecutorch/models/classification/Constants.kt) |
 
 ## Benchmarks
@@ -109,6 +109,6 @@ function App() {
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
 :::
 
-| Model             | iPhone 16 Pro (Core ML) [ms] | iPhone 13 Pro (Core ML) [ms] | iPhone SE 3 (Core ML) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| Model             | iPhone 17 Pro (Core ML) [ms] | iPhone 16 Pro (Core ML) [ms] | iPhone SE 3 (Core ML) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
 | ----------------- | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
-| EFFICIENTNET_V2_S |             100              |             120              |            130             |                180                |            170            |
+| EFFICIENTNET_V2_S |             150              |             161              |            227             |                196                |            214            |

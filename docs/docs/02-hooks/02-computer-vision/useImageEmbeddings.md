@@ -123,9 +123,9 @@ For the supported models, the returned embedding vector is normalized, meaning t
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization. Performance also heavily depends on image size, because resize is expansive operation, especially on low-end devices.
 :::
 
-| Model                       | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
-| --------------------------- | :--------------------------: | :------------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
-| CLIP_VIT_BASE_PATCH32_IMAGE |              48              |                64                |             69             |                65                 |            63             |
+| Model                       | iPhone 17 Pro (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| --------------------------- | :--------------------------: | :-----------------------: |
+| CLIP_VIT_BASE_PATCH32_IMAGE |              18              |            55             |
 
 :::info
 Image embedding benchmark times are measured using 224×224 pixel images, as required by the model. All input images, whether larger or smaller, are resized to 224×224 before processing. Resizing is typically fast for small images but may be noticeably slower for very large images, which can increase total inference time.
