@@ -134,13 +134,13 @@ For more information on loading resources, take a look at [loading models](../..
 
 The hook returns an object with the following properties:
 
-| Field              | Type                                         | Description                                                                                 |
-| ------------------ | -------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `forward`          | `(input: string) => Promise<OCRDetection[]>` | A function that accepts an image (url, b64) and returns an array of `OCRDetection` objects. |
-| `error`            | <code>string &#124; null</code>              | Contains the error message if the model loading failed.                                     |
-| `isGenerating`     | `boolean`                                    | Indicates whether the model is currently processing an inference.                           |
-| `isReady`          | `boolean`                                    | Indicates whether the model has successfully loaded and is ready for inference.             |
-| `downloadProgress` | `number`                                     | Represents the download progress as a value between 0 and 1.                                |
+| Field              | Type                                               | Description                                                                                 |
+| ------------------ | -------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `forward`          | `(imageSource: string) => Promise<OCRDetection[]>` | A function that accepts an image (url, b64) and returns an array of `OCRDetection` objects. |
+| `error`            | <code>string &#124; null</code>                    | Contains the error message if the model loading failed.                                     |
+| `isGenerating`     | `boolean`                                          | Indicates whether the model is currently processing an inference.                           |
+| `isReady`          | `boolean`                                          | Indicates whether the model has successfully loaded and is ready for inference.             |
+| `downloadProgress` | `number`                                           | Represents the download progress as a value between 0 and 1.                                |
 
 ## Running the model
 
@@ -288,20 +288,20 @@ You need to make sure the recognizer models you pass in `recognizerSources` matc
 
 ### Model size
 
-| Model                 | XNNPACK [MB] |
-| --------------------- | :----------: |
-| Detector (CRAFT_800)  |     83.1     |
-| Recognizer (CRNN_512) |  15 - 18\*   |
-| Recognizer (CRNN_256) |  16 - 18\*   |
-| Recognizer (CRNN_128) |  17 - 19\*   |
+| Model                          | XNNPACK [MB] |
+| ------------------------------ | :----------: |
+| Detector (CRAFT_800_QUANTIZED) |     19.8     |
+| Recognizer (CRNN_512)          |  15 - 18\*   |
+| Recognizer (CRNN_256)          |  16 - 18\*   |
+| Recognizer (CRNN_128)          |  17 - 19\*   |
 
 \* - The model weights vary depending on the language.
 
 ### Memory usage
 
-| Model                                                                                        | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| -------------------------------------------------------------------------------------------- | :--------------------: | :----------------: |
-| Detector (CRAFT_800) + Recognizer (CRNN_512) + Recognizer (CRNN_256) + Recognizer (CRNN_128) |          1600          |        1700        |
+| Model                                                                                                  | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| ------------------------------------------------------------------------------------------------------ | :--------------------: | :----------------: |
+| Detector (CRAFT_800_QUANTIZED) + Recognizer (CRNN_512) + Recognizer (CRNN_256) + Recognizer (CRNN_128) |          1400          |        1320        |
 
 ### Inference time
 
@@ -317,18 +317,16 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 
 **Time measurements:**
 
-| Metric                    | iPhone 14 Pro Max <br /> [ms] | iPhone 16 Pro <br /> [ms] | iPhone SE 3 | Samsung Galaxy S24 <br /> [ms] | OnePlus 12 <br /> [ms] |
-| ------------------------- | ----------------------------- | ------------------------- | ----------- | ------------------------------ | ---------------------- |
-| **Total Inference Time**  | 4330                          | 2537                      | ❌          | 6648                           | 5993                   |
-| **Detector (CRAFT_800)**  | 1945                          | 1809                      | ❌          | 2080                           | 1961                   |
-| **Recognizer (CRNN_512)** |                               |                           |             |                                |                        |
-| ├─ Average Time           | 273                           | 76                        | ❌          | 289                            | 252                    |
-| ├─ Total Time (3 runs)    | 820                           | 229                       | ❌          | 867                            | 756                    |
-| **Recognizer (CRNN_256)** |                               |                           |             |                                |                        |
-| ├─ Average Time           | 137                           | 39                        | ❌          | 260                            | 229                    |
-| ├─ Total Time (7 runs)    | 958                           | 271                       | ❌          | 1818                           | 1601                   |
-| **Recognizer (CRNN_128)** |                               |                           |             |                                |                        |
-| ├─ Average Time           | 68                            | 18                        | ❌          | 239                            | 214                    |
-| ├─ Total Time (7 runs)    | 478                           | 124                       | ❌          | 1673                           | 1498                   |
-
-❌ - Insufficient RAM.
+| Metric                             | iPhone 17 Pro <br /> [ms] | iPhone 16 Pro <br /> [ms] | iPhone SE 3 | Samsung Galaxy S24 <br /> [ms] | OnePlus 12 <br /> [ms] |
+| ---------------------------------- | ------------------------- | ------------------------- | ----------- | ------------------------------ | ---------------------- |
+| **Total Inference Time**           | 1160                      | 1144                      | 1498        | 1567                           | 1160                   |
+| **Detector (CRAFT_800_QUANTIZED)** | 669                       | 649                       | 825         | 541                            | 474                    |
+| **Recognizer (CRNN_512)**          |                           |                           |             |                                |                        |
+| ├─ Average Time                    | 48                        | 47                        | 60          | 91                             | 72                     |
+| ├─ Total Time (3 runs)             | 144                       | 141                       | 180         | 273                            | 216                    |
+| **Recognizer (CRNN_256)**          |                           |                           |             |                                |                        |
+| ├─ Average Time                    | 22                        | 22                        | 29          | 51                             | 30                     |
+| ├─ Total Time (7 runs)             | 154                       | 154                       | 203         | 357                            | 210                    |
+| **Recognizer (CRNN_128)**          |                           |                           |             |                                |                        |
+| ├─ Average Time                    | 11                        | 11                        | 14          | 28                             | 17                     |
+| ├─ Total Time (7 runs)             | 77                        | 77                        | 98          | 196                            | 119                    |
