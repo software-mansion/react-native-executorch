@@ -41,6 +41,11 @@ jobs:
         run: |
           npm install -g @expo/cli
           echo "$(npm prefix -g)/bin" >> $GITHUB_PATH
+      - name: Cache Expo prebuild
+        uses: actions/cache@v4
+        with:
+          path: apps/llm/ios
+          key: ${{ runner.os }}-expo-ios-${{ hashFiles('apps/llm/app.json', 'apps/llm/package.json') }}
       - name: Generate native iOS project
         working-directory: apps/llm
         run: |
