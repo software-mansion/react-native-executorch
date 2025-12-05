@@ -16,11 +16,10 @@ public:
   Decoder(const std::string &modelSource,
           std::shared_ptr<react::CallInvoker> callInvoker);
 
-  Result<std::vector<EValue>> generate(const std::string &method,
-                                       int32_t duration, std::span<float> asr,
-                                       std::span<float> f0Pred,
-                                       std::span<float> nPred,
-                                       std::span<float> ref_ls);
+  Result<std::vector<EValue>>
+  generate(const std::string &method, const Configuration &inputConfig,
+           std::span<float> asr, std::span<float> f0Pred,
+           std::span<float> nPred, std::span<float> ref_ls);
 };
 } // namespace models::text_to_speech::kokoro
 

@@ -18,7 +18,7 @@ public:
 
   Result<std::vector<EValue>> generate(const std::string &method,
                                        const Configuration &inputConfig,
-                                       std::span<int64_t> tokens,
+                                       std::span<Token> tokens,
                                        std::span<int64_t> textMask,
                                        std::span<float> pred_aln_trg);
 };

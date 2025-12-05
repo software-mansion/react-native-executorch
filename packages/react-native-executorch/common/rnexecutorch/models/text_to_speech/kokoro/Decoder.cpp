@@ -29,21 +29,21 @@ Decoder::Decoder(const std::string &modelSource,
 }
 
 Result<std::vector<EValue>>
-Decoder::generate(const std::string &method, int32_t duration,
+Decoder::generate(const std::string &method, const Configuration &inputConfig,
                   std::span<float> asr, std::span<float> f0Pred,
                   std::span<float> nPred, std::span<float> ref_ls) {
   // Perform input shape checks
   // Both F0 and N vectors should be twice as long as duration
-  if (f0Pred.size() != 2 * duration) {
+  if (f0Pred.size() != 2 * inputConfig.duration) {
     rnexecutorch::log(rnexecutorch::LOG_LEVEL::Error,
-                      "Unexpected F0 vector length: expected ", 2 * duration,
-                      " but got ", f0Pred.size());
+                      "Unexpected F0 vector length: expected ",
+                      2 * inputConfig.duration, " but got ", f0Pred.size());
     throw std::runtime_error("[Kokoro::Decoder] Invalid input shape");
   }
-  if (nPred.size() != 2 * duration) {
+  if (nPred.size() != 2 * inputConfig.duration) {
     rnexecutorch::log(rnexecutorch::LOG_LEVEL::Error,
-                      "Unexpected N vector length: expected ", 2 * duration,
-                      " but got ", nPred.size());
+                      "Unexpected N vector length: expected ",
+                      2 * inputConfig.duration, " but got ", nPred.size());
     throw std::runtime_error("[Kokoro::Decoder] Invalid input shape");
   }
   // ref_hs should be a half of a voice reference vector
@@ -55,12 +55,12 @@ Decoder::generate(const std::string &method, int32_t duration,
   }
 
   // Convert input data to ExecuTorch tensors
-  auto asrTensor =
-      make_tensor_ptr({1, 512, duration}, asr.data(), ScalarType::Float);
-  auto f0Tensor =
-      make_tensor_ptr({1, 2 * duration}, f0Pred.data(), ScalarType::Float);
-  auto nTensor =
-      make_tensor_ptr({1, 2 * duration}, nPred.data(), ScalarType::Float);
+  auto asrTensor = make_tensor_ptr({1, 512, inputConfig.duration}, asr.data(),
+                                   ScalarType::Float);
+  auto f0Tensor = make_tensor_ptr({1, 2 * inputConfig.duration}, f0Pred.data(),
+                                  ScalarType::Float);
+  auto nTensor = make_tensor_ptr({1, 2 * inputConfig.duration}, nPred.data(),
+                                 ScalarType::Float);
   auto voiceRefTensor = make_tensor_ptr({1, constants::kVoiceRefHalfSize},
                                         ref_ls.data(), ScalarType::Float);
 
