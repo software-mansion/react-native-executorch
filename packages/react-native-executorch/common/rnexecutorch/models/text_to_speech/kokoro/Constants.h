@@ -16,6 +16,10 @@ inline constexpr int32_t kVoiceRefSize =
     256; // Always a fixed size, regardless of number of input tokens
 inline constexpr int32_t kVoiceRefHalfSize = kVoiceRefSize / 2;
 
+// Duration mappings
+// This corresponds to a number of elements in resulting audio vector per each duration point
+inline constexpr int32_t kTicksPerDuration = 600;
+
 // Phoneme to token mappings
 inline constexpr int32_t kVocabSize = 178;
 inline const std::unordered_map<char32_t, Token> kVocab = {
