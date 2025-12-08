@@ -5,7 +5,6 @@
 #include <executorch/extension/tensor/tensor.h>
 
 #include "Constants.h"
-#include <rnexecutorch/metaprogramming/ConstructorHelpers.h>
 #include <rnexecutorch/models/BaseModel.h>
 
 namespace rnexecutorch {
@@ -23,7 +22,4 @@ public:
                                        std::span<float> ref_hs);
 };
 } // namespace models::text_to_speech::kokoro
-
-REGISTER_CONSTRUCTOR(models::text_to_speech::kokoro::F0NPredictor, std::string,
-                     std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

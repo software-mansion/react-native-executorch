@@ -159,6 +159,14 @@ Kokoro::generate(const std::u32string &phonemes,
   return result;
 }
 
+std::size_t Kokoro::getMemoryLowerBound() const noexcept {
+  return durationPredictor_.getMemoryLowerBound() +
+         f0nPredictor_.getMemoryLowerBound() +
+         encoder_.getMemoryLowerBound() +
+         decoder_.getMemoryLowerBound() +
+         sizeof(voice_);
+}
+
 std::vector<Token> Kokoro::toTokens(const std::u32string &phonemes,
                                     const Configuration &config) const {
   // Number of tokens to populate, excluding first and last pad token

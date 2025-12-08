@@ -8,6 +8,7 @@
 #include "DurationPredictor.h"
 #include "Encoder.h"
 #include "F0NPredictor.h"
+#include <rnexecutorch/metaprogramming/ConstructorHelpers.h>
 
 namespace rnexecutorch {
 namespace models::text_to_speech::kokoro {
@@ -21,6 +22,8 @@ public:
          std::shared_ptr<react::CallInvoker> callInvoker);
 
   std::vector<float> generate(const std::u32string &phonemes, float speed = 1.F);
+
+  std::size_t getMemoryLowerBound() const noexcept;
 
 private:
   // Helper functions - loading voice array
@@ -47,6 +50,9 @@ private:
              constants::kLargeInput.noTokens>
       voice_;
 };
-
 } // namespace models::text_to_speech::kokoro
+
+REGISTER_CONSTRUCTOR(models::text_to_speech::kokoro::Kokoro, 
+                     std::string, std::string, std::string, std::string, std::string,
+                     std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

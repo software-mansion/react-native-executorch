@@ -306,6 +306,24 @@ export const STYLE_TRANSFER_UDNIE = {
   modelSource: STYLE_TRANSFER_UDNIE_MODEL,
 };
 
+// T2S
+const KOKORO_EN_DURATION_PREDICTOR = `${URL_PREFIX}-kokoro/${NEXT_VERSION_TAG}/xnnpack/duration_predictor.pte`;
+const KOKORO_EN_F0N_PREDICTOR = `${URL_PREFIX}-kokoro/${NEXT_VERSION_TAG}/xnnpack/f0n_predictor.pte`;
+const KOKORO_EN_TEXT_ENCODER = `${URL_PREFIX}-kokoro/${NEXT_VERSION_TAG}/xnnpack/text_encoder.pte`;
+const KOKORO_EN_TEXT_DECODER = `${URL_PREFIX}-kokoro/${NEXT_VERSION_TAG}/xnnpack/text_decoder.pte`;
+
+const KOKORO_VOICE_PREFIX = `${URL_PREFIX}-kokoro/${NEXT_VERSION_TAG}/voices`;
+const KOKORO_VOICE_AF_HEART = `${KOKORO_VOICE_PREFIX}/af_heart.bin`;
+
+// TODO: reorganize this to allow selecting a voice
+export const KOKORO_EN = {
+  durationPredictorSource: KOKORO_EN_DURATION_PREDICTOR,
+  f0nPredictorSource: KOKORO_EN_F0N_PREDICTOR,
+  textEncoderSource: KOKORO_EN_TEXT_ENCODER,
+  textDecoderSource: KOKORO_EN_TEXT_DECODER,
+  voice: KOKORO_VOICE_AF_HEART,
+};
+
 // S2T
 const WHISPER_TINY_EN_TOKENIZER = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/tokenizer.json`;
 const WHISPER_TINY_EN_ENCODER = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/xnnpack/whisper_tiny_en_encoder_xnnpack.pte`;

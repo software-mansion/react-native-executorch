@@ -27,6 +27,13 @@ declare global {
     decoderSource: string,
     modelName: string
   ) => any;
+  var loadTextToSpeechKokoro: (
+    durationPredictorSource: string,
+    f0nPredictorSource: string,
+    textEncoderSource: string,
+    textDecoderSource: string,
+    voice: string
+  ) => any;
   var loadOCR: (
     detectorSource: string,
     recognizer: string,
@@ -53,6 +60,7 @@ if (
   global.loadVAD == null ||
   global.loadLLM == null ||
   global.loadSpeechToText == null ||
+  global.loadTextToSpeechKokoro == null ||
   global.loadOCR == null ||
   global.loadVerticalOCR == null
 ) {
@@ -76,6 +84,7 @@ export * from './hooks/computer_vision/useTextToImage';
 
 export * from './hooks/natural_language_processing/useLLM';
 export * from './hooks/natural_language_processing/useSpeechToText';
+export * from './hooks/natural_language_processing/useTextToSpeech';
 export * from './hooks/natural_language_processing/useTextEmbeddings';
 export * from './hooks/natural_language_processing/useTokenizer';
 export * from './hooks/natural_language_processing/useVAD';
