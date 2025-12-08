@@ -5,7 +5,6 @@
 #include <executorch/extension/tensor/tensor.h>
 
 #include "Constants.h"
-#include <rnexecutorch/metaprogramming/ConstructorHelpers.h>
 #include <rnexecutorch/models/BaseModel.h>
 
 namespace rnexecutorch {
@@ -30,7 +29,4 @@ private:
   void scaleDurationsUp(Tensor &durations, int32_t targetDuration) const;
 };
 } // namespace models::text_to_speech::kokoro
-
-REGISTER_CONSTRUCTOR(models::text_to_speech::kokoro::DurationPredictor,
-                     std::string, std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

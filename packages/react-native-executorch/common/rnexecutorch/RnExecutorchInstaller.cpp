@@ -10,6 +10,7 @@
 #include <rnexecutorch/models/object_detection/ObjectDetection.h>
 #include <rnexecutorch/models/ocr/OCR.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
+#include <rnexecutorch/models/text_to_speech/TextToSpeech.h>
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
 #include <rnexecutorch/models/text_to_image/TextToImage.h>
 #include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
@@ -100,6 +101,10 @@ void RnExecutorchInstaller::injectJSIBindings(
       *jsiRuntime, "loadSpeechToText",
       RnExecutorchInstaller::loadModel<models::speech_to_text::SpeechToText>(
           jsiRuntime, jsCallInvoker, "loadSpeechToText"));
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadTextToSpeechKokoro",
+      RnExecutorchInstaller::loadModel<models::text_to_speech::kokoro::Kokoro>(
+          jsiRuntime, jsCallInvoker, "loadTextToSpeechKokoro"));
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadVAD",
       RnExecutorchInstaller::loadModel<
