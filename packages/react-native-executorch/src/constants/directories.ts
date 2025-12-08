@@ -1,5 +1,3 @@
-import { importLegacyExpoFSModules } from '../utils/ResourceFetcher';
-
-const { documentDirectory } = importLegacyExpoFSModules();
+import { documentDirectory } from 'expo-file-system/legacy';
 
 export const RNEDirectory = `${documentDirectory}react-native-executorch/`;
