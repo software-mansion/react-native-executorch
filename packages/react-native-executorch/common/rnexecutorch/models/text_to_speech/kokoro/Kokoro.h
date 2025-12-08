@@ -20,15 +20,15 @@ public:
          const std::string &voiceSource,
          std::shared_ptr<react::CallInvoker> callInvoker);
 
-  void generate(const std::u32string &phonemes, float speed = 1.F);
+  std::vector<float> generate(const std::u32string &phonemes, float speed = 1.F);
 
 private:
   // Helper functions - loading voice array
   void loadSingleVoice(const std::string &voiceSource);
 
   // Helper functions - generate specialization for given input size
-  void generate(const std::u32string &phonemes,
-                const Configuration &configuration, float speed = 1.F);
+  std::vector<float> generate(const std::u32string &phonemes,
+                              const Configuration &configuration, float speed = 1.F);
 
   // Helper functions - phonemes to tokens mapping
   std::vector<Token> toTokens(const std::u32string &phonemes,
