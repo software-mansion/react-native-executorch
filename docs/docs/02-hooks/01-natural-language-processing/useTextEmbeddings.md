@@ -133,11 +133,11 @@ For the supported models, the returned embedding vector is normalized, meaning t
 
 | Model                      | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
 | -------------------------- | :--------------------: | :----------------: |
-| ALL_MINILM_L6_V2           |           85           |        100         |
-| ALL_MPNET_BASE_V2          |          390           |        465         |
-| MULTI_QA_MINILM_L6_COS_V1  |          115           |        130         |
-| MULTI_QA_MPNET_BASE_DOT_V1 |          415           |        490         |
-| CLIP_VIT_BASE_PATCH32_TEXT |          195           |        250         |
+| ALL_MINILM_L6_V2           |           95           |        110         |
+| ALL_MPNET_BASE_V2          |          405           |        455         |
+| MULTI_QA_MINILM_L6_COS_V1  |          120           |        140         |
+| MULTI_QA_MPNET_BASE_DOT_V1 |          435           |        455         |
+| CLIP_VIT_BASE_PATCH32_TEXT |          200           |        280         |
 
 ### Inference time
 
@@ -145,13 +145,13 @@ For the supported models, the returned embedding vector is normalized, meaning t
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
 :::
 
-| Model                      | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) | OnePlus 12 (XNNPACK) [ms] |
-| -------------------------- | :--------------------------: | :------------------------------: | :------------------------: | :--------------------------: | :-----------------------: |
-| ALL_MINILM_L6_V2           |              15              |                22                |             23             |              36              |            31             |
-| ALL_MPNET_BASE_V2          |              71              |                96                |            101             |             112              |            105            |
-| MULTI_QA_MINILM_L6_COS_V1  |              15              |                22                |             23             |              36              |            31             |
-| MULTI_QA_MPNET_BASE_DOT_V1 |              71              |                95                |            100             |             112              |            105            |
-| CLIP_VIT_BASE_PATCH32_TEXT |              31              |                47                |             48             |              55              |            49             |
+| Model                      | iPhone 17 Pro (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| -------------------------- | :--------------------------: | :-----------------------: |
+| ALL_MINILM_L6_V2           |              7               |            21             |
+| ALL_MPNET_BASE_V2          |              24              |            90             |
+| MULTI_QA_MINILM_L6_COS_V1  |              7               |            19             |
+| MULTI_QA_MPNET_BASE_DOT_V1 |              24              |            88             |
+| CLIP_VIT_BASE_PATCH32_TEXT |              14              |            39             |
 
 :::info
 Benchmark times for text embeddings are highly dependent on the sentence length. The numbers above are based on a sentence of around 80 tokens. For shorter or longer sentences, inference time may vary accordingly.
