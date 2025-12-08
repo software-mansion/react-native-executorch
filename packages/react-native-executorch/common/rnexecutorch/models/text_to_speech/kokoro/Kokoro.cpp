@@ -95,16 +95,18 @@ void Kokoro::generate(const std::u32string &phonemes,
 
   // Inference 1 - DurationPredictor
   // The resulting duration vector is already scalled at this point
-  auto result = durationPredictor_.generate(method, config, std::span(tokens),
-                                            std::span(textMask), ref_hs, speed);
-  auto predDur = result->at(0).toTensor();
-  auto d = result->at(1).toTensor();
+  auto durationPrediction = durationPredictor_.generate(method, config, std::span(tokens),
+                                                        std::span(textMask), ref_hs, speed);
+  auto predDur = durationPrediction->at(0).toTensor();
+  auto d = durationPrediction->at(1).toTensor();
 
   // Create indices tensor by repetitions according to durations vector
   std::vector<int64_t> indices(config.noTokens);
   std::iota(indices.begin(), indices.end(), 0);
-  // std::vector<int64_t> indicesRepeated =
-  // rnexecutorch::sequential::repeatInterleave()
+  std::vector<int64_t> indicesRepeated = rnexecutorch::sequential::repeatInterleave(
+    std::span<const int64_t>(indices),
+    std::span<const int64_t>(reinterpret_cast<const int64_t*>(predDur.const_data_ptr()), predDur.numel())
+  );
 }
 
 std::vector<Token> Kokoro::toTokens(const std::u32string &phonemes,
