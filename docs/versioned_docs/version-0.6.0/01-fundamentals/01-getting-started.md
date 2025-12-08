@@ -1,6 +1,5 @@
 ---
 title: Getting Started
-slug: /
 keywords:
   [
     react native,
@@ -36,7 +35,7 @@ If your app still runs on the old architecture, please consider upgrading to the
 
 ## Installation
 
-Installation is pretty straightforward, just use your favorite package manager. We use React Native Audio API as a peer dependency to make it possible to load audio for Speech To Text.
+Installation is pretty straightforward, just use your favorite package manager.
 
 <Tabs>
   <TabItem value="npm" label="NPM">
@@ -47,7 +46,7 @@ Installation is pretty straightforward, just use your favorite package manager. 
 
   </TabItem>
   <TabItem value="pnpm" label="PNPM">
-    
+
     ```
     pnpm install react-native-executorch
     ```
