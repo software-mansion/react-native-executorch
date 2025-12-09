@@ -18,7 +18,7 @@ public:
   Result<std::vector<EValue>> generate(const std::string &method,
                                        const Configuration &inputConfig,
                                        std::span<Token> tokens,
-                                       std::span<int64_t> textMask,
+                                       std::span<bool> textMask,
                                        std::span<float> pred_aln_trg);
 };
 } // namespace models::text_to_speech::kokoro

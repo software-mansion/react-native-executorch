@@ -21,17 +21,19 @@ public:
          const std::string &voiceSource,
          std::shared_ptr<react::CallInvoker> callInvoker);
 
-  std::vector<float> generate(const std::u32string &phonemes, float speed = 1.F);
+  std::vector<float> generate(std::u32string phonemes, float speed = 1.F);
 
   std::size_t getMemoryLowerBound() const noexcept;
+  void unload() noexcept;
 
 private:
   // Helper functions - loading voice array
   void loadSingleVoice(const std::string &voiceSource);
 
   // Helper functions - generate specialization for given input size
-  std::vector<float> generate(const std::u32string &phonemes,
-                              const Configuration &configuration, float speed = 1.F);
+  std::vector<float> generateForConfig(const std::u32string &phonemes,
+                                       const Configuration &config,
+                                       float speed = 1.F);
 
   // Helper functions - phonemes to tokens mapping
   std::vector<Token> toTokens(const std::u32string &phonemes,
@@ -52,7 +54,7 @@ private:
 };
 } // namespace models::text_to_speech::kokoro
 
-REGISTER_CONSTRUCTOR(models::text_to_speech::kokoro::Kokoro, 
-                     std::string, std::string, std::string, std::string, std::string,
+REGISTER_CONSTRUCTOR(models::text_to_speech::kokoro::Kokoro, std::string,
+                     std::string, std::string, std::string, std::string,
                      std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

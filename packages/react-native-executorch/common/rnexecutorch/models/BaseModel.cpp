@@ -2,6 +2,7 @@
 
 #include <executorch/extension/tensor/tensor.h>
 #include <filesystem>
+#include <iostream>
 #include <stdexcept>
 
 namespace rnexecutorch::models {

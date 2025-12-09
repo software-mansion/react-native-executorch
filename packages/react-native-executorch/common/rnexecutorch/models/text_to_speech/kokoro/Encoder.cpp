@@ -10,20 +10,16 @@ using ::executorch::extension::TensorPtr;
 Encoder::Encoder(const std::string &modelSource,
                  std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
-  auto inputTensors = getAllInputShapes();
+  std::string testMethod =
+      "forward_" + std::to_string(constants::kSmallInput.noTokens);
+  auto inputTensors = getAllInputShapes(testMethod);
 
   // Perform checks to validate model's compatibility with native code
-  if (inputTensors.size() == 0) {
-    throw std::runtime_error(
-        "[Kokoro::Encoder] Model seems to not take any input tensors.");
-  }
-  std::vector<int32_t> modelInputShape = inputTensors[0];
-  if (modelInputShape.size() < 3) {
-    rnexecutorch::log(
-        rnexecutorch::LOG_LEVEL::Error,
-        "Unexpected model input size, expected at least 3 dimentions "
-        "but got: ",
-        modelInputShape.size());
+  if (inputTensors.size() < 3) {
+    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Error,
+                      "Unexpected model input size, expected 3 tensors "
+                      "but got: ",
+                      inputTensors.size());
     throw std::runtime_error("[Kokoro::Encoder] Incompatible model");
   }
 }
@@ -31,7 +27,7 @@ Encoder::Encoder(const std::string &modelSource,
 Result<std::vector<EValue>> Encoder::generate(const std::string &method,
                                               const Configuration &inputConfig,
                                               std::span<Token> tokens,
-                                              std::span<int64_t> textMask,
+                                              std::span<bool> textMask,
                                               std::span<float> pred_aln_trg) {
   // Perform input shape checks
   // Since every bit in text mask corresponds to exactly one of the tokens, both
@@ -49,7 +45,7 @@ Result<std::vector<EValue>> Encoder::generate(const std::string &method,
                                       tokens.data(), ScalarType::Long);
   auto textMaskTensor =
       make_tensor_ptr({1, static_cast<int32_t>(textMask.size())},
-                      textMask.data(), ScalarType::Long);
+                      textMask.data(), ScalarType::Bool);
   auto predAlnTrgTensor =
       make_tensor_ptr({1, noTokens, inputConfig.duration}, pred_aln_trg.data(),
                       ScalarType::Float);

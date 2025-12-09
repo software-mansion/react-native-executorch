@@ -20,6 +20,7 @@
 #include <rnexecutorch/models/ocr/OCR.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <rnexecutorch/models/text_to_image/TextToImage.h>
+#include <rnexecutorch/models/text_to_speech/TextToSpeech.h>
 #include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
 #include <rnexecutorch/threads/GlobalThreadPool.h>
 
@@ -153,6 +154,11 @@ public:
     }
 
     if constexpr (meta::SameAs<Model, models::ocr::VerticalOCR>) {
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
+    }
+
+    if constexpr (meta::SameAs<Model, models::text_to_speech::kokoro::Kokoro>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }

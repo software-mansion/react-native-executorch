@@ -17,20 +17,21 @@ export class TextToSpeechModule extends BaseModule {
 
     const paths = await ResourceFetcher.fetch(
       onDownloadProgressCallback,
-      Object.values(model)
+      ...Object.values(model)
     );
 
     // Select the text to speech model based on the input URL
-    if (anySourceKey.includes('kokoro')) {
+    const uri = (model as any)[anySourceKey];
+    if (uri.includes('kokoro')) {
       if (paths === null || paths.length < 5) {
         throw new Error('Download interrupted.');
       }
       this.nativeModule = global.loadTextToSpeechKokoro(
-        paths[0] || '',
-        paths[1] || '',
-        paths[2] || '',
-        paths[3] || '',
-        paths[4] || ''
+        paths[0]!,
+        paths[1]!,
+        paths[2]!,
+        paths[3]!,
+        paths[4]!
       );
     }
     // ... more models? ...

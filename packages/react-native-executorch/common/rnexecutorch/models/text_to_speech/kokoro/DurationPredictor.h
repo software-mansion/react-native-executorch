@@ -19,14 +19,14 @@ public:
 
   Result<std::vector<EValue>>
   generate(const std::string &method, const Configuration &inputConfig,
-           std::span<Token> tokens, std::span<int64_t> textMask,
+           std::span<Token> tokens, std::span<bool> textMask,
            std::span<float> ref_hs, float speed = 1.F);
 
 private:
   // Helper functions - duration scalling
   // Performs integer scaling on the durations tensor to ensure the sum of
   // durations matches the given target duration
-  void scaleDurationsUp(Tensor &durations, int32_t targetDuration) const;
+  void scaleDurations(Tensor &durations, int32_t targetDuration) const;
 };
 } // namespace models::text_to_speech::kokoro
 } // namespace rnexecutorch

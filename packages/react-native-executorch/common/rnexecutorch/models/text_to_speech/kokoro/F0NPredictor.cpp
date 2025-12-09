@@ -10,20 +10,16 @@ using ::executorch::extension::TensorPtr;
 F0NPredictor::F0NPredictor(const std::string &modelSource,
                            std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
-  auto inputTensors = getAllInputShapes();
+  std::string testMethod =
+      "forward_" + std::to_string(constants::kSmallInput.noTokens);
+  auto inputTensors = getAllInputShapes(testMethod);
 
   // Perform checks to validate model's compatibility with native code
-  if (inputTensors.size() == 0) {
-    throw std::runtime_error(
-        "[Kokoro::F0NPredictor] Model seems to not take any input tensors.");
-  }
-  std::vector<int32_t> modelInputShape = inputTensors[0];
-  if (modelInputShape.size() < 2) {
-    rnexecutorch::log(
-        rnexecutorch::LOG_LEVEL::Error,
-        "Unexpected model input size, expected at least 2 dimentions "
-        "but got: ",
-        modelInputShape.size());
+  if (inputTensors.size() < 2) {
+    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Error,
+                      "Unexpected model input size, expected 2 tensors "
+                      "but got: ",
+                      inputTensors.size());
     throw std::runtime_error("[Kokoro::F0NPredictor] Incompatible model");
   }
 }
@@ -43,8 +39,8 @@ Result<std::vector<EValue>> F0NPredictor::generate(
   // Convert input data to ExecuTorch tensors
   auto indicesTensor =
       make_tensor_ptr({inputConfig.duration}, indices.data(), ScalarType::Long);
-  auto durTensor = make_tensor_ptr({1, inputConfig.noTokens, 640},
-                                   indices.data(), ScalarType::Float);
+  auto durTensor = make_tensor_ptr({1, inputConfig.noTokens, 640}, dur.data(),
+                                   ScalarType::Float);
   auto voiceRefTensor = make_tensor_ptr({1, constants::kVoiceRefHalfSize},
                                         ref_hs.data(), ScalarType::Float);
 
