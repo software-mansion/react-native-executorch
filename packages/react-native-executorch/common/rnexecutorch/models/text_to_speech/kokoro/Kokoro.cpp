@@ -131,6 +131,7 @@ std::vector<float> Kokoro::generateForConfig(const std::u32string &phonemes,
   while (lb < rb) {
     auto mb = (lb + rb) / 2;
     float *col = reinterpret_cast<float *>(en.data_ptr()) + 640 * mb;
+    // TODO: doesn't really work in current form
     bool onlyZeros = std::all_of(col, col + config.duration,
                                  [](float x) -> bool { return x == 0.F; });
 
