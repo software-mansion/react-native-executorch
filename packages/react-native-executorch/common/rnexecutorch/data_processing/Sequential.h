@@ -34,7 +34,8 @@ std::vector<T> repeatInterleave(std::span<const T> data,
     throw std::invalid_argument(
         "repeatInterleave(): repetitions vector must be the same size as data,"
         " expected " +
-        data.size() + " but got " + repetitions.size());
+        std::to_string(data.size()) + " but got " +
+        std::to_string(repetitions.size()));
   }
 
   IType totalReps = std::accumulate(repetitions.begin(), repetitions.end(),

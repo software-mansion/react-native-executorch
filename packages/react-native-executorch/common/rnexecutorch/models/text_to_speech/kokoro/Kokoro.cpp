@@ -55,8 +55,7 @@ void Kokoro::loadSingleVoice(const std::string &voiceSource) {
   }
 }
 
-std::vector<float>
-Kokoro::generate(const std::u32string &phonemes, float speed) {
+std::vector<float> Kokoro::generate(std::u32string phonemes, float speed) {
   // Select the appropriate method according to input size
   // Since Kokoro requires padding with single zeros at both ends,
   // the effective input size is phonemes.size() + 2.
@@ -69,12 +68,12 @@ Kokoro::generate(const std::u32string &phonemes, float speed) {
       : inputSize <= constants::kMediumInput.noTokens ? constants::kMediumInput
                                                       : constants::kLargeInput;
 
-  return generate(phonemes, config, speed);
+  return generateForConfig(phonemes, config, speed);
 }
 
-std::vector<float>
-Kokoro::generate(const std::u32string &phonemes,
-                 const Configuration &config, float speed) {
+std::vector<float> Kokoro::generateForConfig(const std::u32string &phonemes,
+                                             const Configuration &config,
+                                             float speed) {
   // Determine the appropriate method for given input configuration
   std::string method = "forward_" + std::to_string(config.noTokens);
 
@@ -90,33 +89,38 @@ Kokoro::generate(const std::u32string &phonemes,
 
   // Initialize text mask
   // Exlude all the paddings apart from first and last one.
-  std::vector<int64_t> textMask(config.noTokens, 1);
-  std::fill(
-      std::find(textMask.begin() + 1, textMask.end(), constants::kPadToken) + 1,
-      textMask.end(), 0);
+  int32_t inputLength =
+      std::min(static_cast<int32_t>(phonemes.size()) + 2, config.noTokens);
+  std::vector<uint8_t> textMask(config.noTokens, false);
+  std::fill(textMask.begin(), textMask.begin() + inputLength, true);
 
   // Inference 1 - DurationPredictor
   // The resulting duration vector is already scalled at this point
-  auto durationPrediction = durationPredictor_.generate(method, config, std::span(tokens),
-                                                        std::span(textMask), ref_hs, speed);
+  auto durationPrediction = durationPredictor_.generate(
+      method, config, std::span(tokens),
+      std::span(reinterpret_cast<bool *>(textMask.data()), textMask.size()),
+      ref_hs, speed);
   auto predDur = durationPrediction->at(0).toTensor();
   auto d = durationPrediction->at(1).toTensor();
 
   // Create indices tensor by repetitions according to durations vector
   std::vector<int64_t> indices(config.noTokens);
   std::iota(indices.begin(), indices.end(), 0LL);
-  std::vector<int64_t> indicesRepeated = rnexecutorch::sequential::repeatInterleave(
-    std::span<const int64_t>(indices),
-    std::span<const int64_t>(reinterpret_cast<const int64_t*>(predDur.const_data_ptr()), predDur.numel())
-  );
+  std::vector<int64_t> indicesRepeated =
+      rnexecutorch::sequential::repeatInterleave(
+          std::span<const int64_t>(indices),
+          std::span<const int64_t>(
+              reinterpret_cast<const int64_t *>(predDur.const_data_ptr()),
+              predDur.numel()));
 
   // Inference 2 - F0NPredictor
-  auto f0nPrediction = f0nPredictor_.generate(method, config, std::span(indicesRepeated),
-                                              std::span<float>(reinterpret_cast<float*>(d.data_ptr()), d.numel()),
-                                              ref_hs);
+  auto f0nPrediction = f0nPredictor_.generate(
+      method, config, std::span(indicesRepeated),
+      std::span<float>(reinterpret_cast<float *>(d.data_ptr()), d.numel()),
+      ref_hs);
   auto F0_pred = f0nPrediction->at(0).toTensor();
   auto N_pred = f0nPrediction->at(1).toTensor();
-  auto en = f0nPrediction->at(2).toTensor();  // [1, 640, duration]
+  auto en = f0nPrediction->at(2).toTensor(); // [1, 640, duration]
   auto pred_aln_trg = f0nPrediction->at(3).toTensor();
 
   // Calculate the efficient duration based on F0NPredictor results
@@ -126,45 +130,60 @@ Kokoro::generate(const std::u32string &phonemes,
   int32_t lb = 0, rb = config.duration;
   while (lb < rb) {
     auto mb = (lb + rb) / 2;
-    float* col = reinterpret_cast<float*>(en.data_ptr()) + 640 * mb;
-    bool onlyZeros = std::all_of(col, col + config.duration, 
+    float *col = reinterpret_cast<float *>(en.data_ptr()) + 640 * mb;
+    bool onlyZeros = std::all_of(col, col + config.duration,
                                  [](float x) -> bool { return x == 0.F; });
 
-    if (onlyZeros) rb = mb;       // Switch left
-    else           lb = mb + 1;   // Switch right
+    if (onlyZeros)
+      rb = mb; // Switch left
+    else
+      lb = mb + 1; // Switch right
   }
-  int32_t effectiveDuration = std::min(rb, config.duration);
+  int32_t effectiveDuration = std::min(rb, config.duration - 1);
 
   // We can further adjust the effective duration to remove some postfix noise
   effectiveDuration *= 0.95F;
 
   // Inference 3 - Encoder
-  auto encoding = encoder_.generate(method, config, std::span(tokens), std::span(textMask), 
-                                    std::span<float>(reinterpret_cast<float*>(pred_aln_trg.data_ptr()), pred_aln_trg.numel()));
+  auto encoding = encoder_.generate(
+      method, config, std::span(tokens),
+      std::span(reinterpret_cast<bool *>(textMask.data()), textMask.size()),
+      std::span<float>(reinterpret_cast<float *>(pred_aln_trg.data_ptr()),
+                       pred_aln_trg.numel()));
   auto asr = encoding->at(0).toTensor();
 
   // Inference 4 - Decoder
-  auto decoding = decoder_.generate(method, config, 
-                                    std::span<float>(reinterpret_cast<float*>(asr.data_ptr()), asr.numel()), 
-                                    std::span<float>(reinterpret_cast<float*>(F0_pred.data_ptr()), F0_pred.numel()),
-                                    std::span<float>(reinterpret_cast<float*>(N_pred.data_ptr()), N_pred.numel()),
-                                    ref_ls);
+  auto decoding = decoder_.generate(
+      method, config,
+      std::span<float>(reinterpret_cast<float *>(asr.data_ptr()), asr.numel()),
+      std::span<float>(reinterpret_cast<float *>(F0_pred.data_ptr()),
+                       F0_pred.numel()),
+      std::span<float>(reinterpret_cast<float *>(N_pred.data_ptr()),
+                       N_pred.numel()),
+      ref_ls);
   auto audio = decoding->at(0).toTensor();
 
   // Cut the resulting audio vector according to the effective duration
   int32_t effLength = constants::kTicksPerDuration * effectiveDuration;
-  std::vector<float> result(reinterpret_cast<float*>(audio.data_ptr()), 
-                            reinterpret_cast<float*>(audio.data_ptr()) + effLength);
+  std::vector<float> result(reinterpret_cast<float *>(audio.data_ptr()),
+                            reinterpret_cast<float *>(audio.data_ptr()) +
+                                effLength);
+  std::vector<float> first100(result.begin(), result.begin() + 100);
 
   return result;
 }
 
 std::size_t Kokoro::getMemoryLowerBound() const noexcept {
   return durationPredictor_.getMemoryLowerBound() +
-         f0nPredictor_.getMemoryLowerBound() +
-         encoder_.getMemoryLowerBound() +
-         decoder_.getMemoryLowerBound() +
-         sizeof(voice_);
+         f0nPredictor_.getMemoryLowerBound() + encoder_.getMemoryLowerBound() +
+         decoder_.getMemoryLowerBound() + sizeof(voice_);
+}
+
+void Kokoro::unload() noexcept {
+  durationPredictor_.unload();
+  f0nPredictor_.unload();
+  encoder_.unload();
+  decoder_.unload();
 }
 
 std::vector<Token> Kokoro::toTokens(const std::u32string &phonemes,

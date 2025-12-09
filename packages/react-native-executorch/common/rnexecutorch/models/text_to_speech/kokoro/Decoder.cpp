@@ -10,20 +10,16 @@ using ::executorch::extension::TensorPtr;
 Decoder::Decoder(const std::string &modelSource,
                  std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
-  auto inputTensors = getAllInputShapes();
+  std::string testMethod =
+      "forward_" + std::to_string(constants::kSmallInput.noTokens);
+  auto inputTensors = getAllInputShapes(testMethod);
 
   // Perform checks to validate model's compatibility with native code
-  if (inputTensors.size() == 0) {
-    throw std::runtime_error(
-        "[Kokoro::Decoder] Model seems to not take any input tensors.");
-  }
-  std::vector<int32_t> modelInputShape = inputTensors[0];
-  if (modelInputShape.size() < 4) {
-    rnexecutorch::log(
-        rnexecutorch::LOG_LEVEL::Error,
-        "Unexpected model input size, expected at least 4 dimentions "
-        "but got: ",
-        modelInputShape.size());
+  if (inputTensors.size() < 4) {
+    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Error,
+                      "Unexpected model input size, expected 4 tensors "
+                      "but got: ",
+                      inputTensors.size());
     throw std::runtime_error("[Kokoro::Decoder] Incompatible model");
   }
 }
