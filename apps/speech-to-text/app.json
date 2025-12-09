@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.speechtotext",
+      "bundleIdentifier": "com.swmansion.speechtotext",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "This app needs access to your microphone to record audio."
       }
@@ -24,7 +24,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.speechtotext"
+      "package": "com.swmansion.speechtotext"
     },
     "web": {
       "favicon": "./assets/favicon.png"

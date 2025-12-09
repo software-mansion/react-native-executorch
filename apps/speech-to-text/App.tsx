@@ -1,6 +1,6 @@
 import React from 'react';
-import { SpeechToTextScreen } from './screens/SpeechToTextScreen';
+import { TextToSpeechScreen } from './screens/TextToSpeechScreen';
 
 export default function App() {
-  return <SpeechToTextScreen />;
+  return <TextToSpeechScreen />;
 }
