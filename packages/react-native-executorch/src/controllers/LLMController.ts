@@ -1,8 +1,5 @@
 import { ResourceSource } from '../types/common';
-import {
-  importLegacyExpoFSModules,
-  ResourceFetcher,
-} from '../utils/ResourceFetcher';
+import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { ETError, getError } from '../Error';
 import { Template } from '@huggingface/jinja';
 import { DEFAULT_CHAT_CONFIG } from '../constants/llmDefaults';
@@ -16,7 +13,7 @@ import {
 } from '../types/llm';
 import { parseToolCall } from '../utils/llm';
 import { Logger } from '../common/Logger';
-const { readAsStringAsync } = importLegacyExpoFSModules();
+import { readAsStringAsync } from 'expo-file-system/legacy';
 
 export class LLMController {
   private nativeModule: any;

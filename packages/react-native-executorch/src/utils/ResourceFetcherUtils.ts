@@ -1,14 +1,16 @@
-import type * as FileSystemTypes from 'expo-file-system';
 import { RNEDirectory } from '../constants/directories';
 import { ResourceSource } from '../types/common';
 import { Asset } from 'expo-asset';
 import { Logger } from '../common/Logger';
-import { importLegacyExpoFSModules } from './ResourceFetcher';
 
 /**
  * @internal
  */
-const { getInfoAsync, makeDirectoryAsync } = importLegacyExpoFSModules();
+import {
+  getInfoAsync,
+  makeDirectoryAsync,
+  type DownloadResumable,
+} from 'expo-file-system/legacy';
 
 export const enum HTTP_CODE {
   OK = 200,
@@ -40,7 +42,7 @@ export interface ResourceSourceExtended {
 }
 
 export interface DownloadResource {
-  downloadResumable: FileSystemTypes.DownloadResumable;
+  downloadResumable: DownloadResumable;
   status: DownloadStatus;
   extendedInfo: ResourceSourceExtended;
 }
