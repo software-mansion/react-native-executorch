@@ -1,5 +1,5 @@
 <div align="center">
-  <h1 align="center" style="display:inline-block">React Native ExecuTorch 
+  <h1 align="center" style="display:inline-block">React Native ExecuTorch
   </h1>
 </div>
 
@@ -46,12 +46,12 @@ React Native ExecuTorch bridges the gap between React Native and native platform
 
 ## :yin_yang: Supported Versions
 
-The minimal supported version are: 
+The minimal supported version are:
 * iOS 17.0
 * Android 13
-* React Native 0.76
+* React Native 0.81
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > React Native ExecuTorch supports only the [New React Native architecture](https://reactnative.dev/architecture/landing-page).
 
 ## :earth_africa: Real-world Example
@@ -127,7 +127,7 @@ Then, depending on the platform, choose either iOS or Android:
 yarn expo run:< ios | android >
 ```
 
-> [!WARNING]  
+> [!WARNING]
 > Running LLMs requires a significant amount of RAM. If you are encountering unexpected app crashes, try to increase the amount of RAM allocated to the emulator.
 
 ## :robot: Ready-made Models
@@ -136,7 +136,7 @@ Our library has a number of ready-to-use AI models; a complete list is available
 
 ## :books: Documentation
 
-Check out how our library can help you build your React Native AI features by visiting our docs:  
+Check out how our library can help you build your React Native AI features by visiting our docs:
 https://docs.swmansion.com/react-native-executorch
 
 ## :balance_scale: License
