@@ -314,27 +314,29 @@ function App() {
 
 ## Supported models
 
-| Model                                                              |   Language   |
-| ------------------------------------------------------------------ | :----------: |
-| [whisper-tiny.en](https://huggingface.co/openai/whisper-tiny.en)   |   English    |
-| [whisper-tiny](https://huggingface.co/openai/whisper-tiny)         | Multilingual |
-| [whisper-base.en](https://huggingface.co/openai/whisper-base.en)   |   English    |
-| [whisper-base](https://huggingface.co/openai/whisper-base)         | Multilingual |
-| [whisper-small.en](https://huggingface.co/openai/whisper-small.en) |   English    |
-| [whisper-small](https://huggingface.co/openai/whisper-small)       | Multilingual |
+| Model                                                                        |   Language   |
+| ---------------------------------------------------------------------------- | :----------: |
+| [whisper-tiny.en](https://huggingface.co/openai/whisper-tiny.en)             |   English    |
+| [whisper-tiny.en (quantized)](https://huggingface.co/openai/whisper-tiny.en) |   English    |
+| [whisper-tiny](https://huggingface.co/openai/whisper-tiny)                   | Multilingual |
+| [whisper-base.en](https://huggingface.co/openai/whisper-base.en)             |   English    |
+| [whisper-base](https://huggingface.co/openai/whisper-base)                   | Multilingual |
+| [whisper-small.en](https://huggingface.co/openai/whisper-small.en)           |   English    |
+| [whisper-small](https://huggingface.co/openai/whisper-small)                 | Multilingual |
 
 ## Benchmarks
 
 ### Model size
 
-| Model            | XNNPACK [MB] |
-| ---------------- | :----------: |
-| WHISPER_TINY_EN  |     151      |
-| WHISPER_TINY     |     151      |
-| WHISPER_BASE_EN  |    290.6     |
-| WHISPER_BASE     |    290.6     |
-| WHISPER_SMALL_EN |     968      |
-| WHISPER_SMALL    |     968      |
+| Model                     | XNNPACK [MB] |
+| ------------------------- | :----------: |
+| WHISPER_TINY_EN           |     151      |
+| WHISPER_TINY_EN_QUANTIZED |      45      |
+| WHISPER_TINY              |     151      |
+| WHISPER_BASE_EN           |    290.6     |
+| WHISPER_BASE              |    290.6     |
+| WHISPER_SMALL_EN          |     968      |
+| WHISPER_SMALL             |     968      |
 
 ### Memory usage
 
