@@ -9,7 +9,11 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { useTextToSpeech, KOKORO_EN } from 'react-native-executorch';
+import {
+  KOKORO_EN,
+  KOKORO_VOICE_AM_ADAM,
+  useTextToSpeech,
+} from 'react-native-executorch';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {
   AudioManager,
@@ -17,8 +21,6 @@ import {
   AudioBuffer,
 } from 'react-native-audio-api';
 import SWMIcon from '../assets/swm_icon.svg';
-
-const SAMPLE_PHONEMES = 'həlˈO wˈɜɹld!';
 
 /**
  * Converts an audio vector (Float32Array) to an AudioBuffer for playback
@@ -44,6 +46,7 @@ const createAudioBufferFromVector = (
 export const TextToSpeechScreen = () => {
   const model = useTextToSpeech({
     model: KOKORO_EN,
+    voice: KOKORO_VOICE_AM_ADAM,
   });
 
   const [inputText, setInputText] = useState('');
@@ -58,11 +61,17 @@ export const TextToSpeechScreen = () => {
   }, []);
 
   const handlePlayAudio = async () => {
+    if (!inputText.trim()) {
+      return;
+    }
+
     setIsPlaying(true);
 
     try {
-      // const audioVector = await model.forward(inputText, 1.0);
-      const audioVector = await model.forward(SAMPLE_PHONEMES, 1.0);
+      const audioVector = await model.forward({
+        text: inputText,
+        speed: 1.0,
+      });
       const audioBuffer = createAudioBufferFromVector(audioVector);
 
       const audioContext = new AudioContext({ sampleRate: 24000 });

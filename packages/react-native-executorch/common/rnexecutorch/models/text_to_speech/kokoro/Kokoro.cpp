@@ -9,7 +9,9 @@
 namespace rnexecutorch {
 namespace models::text_to_speech::kokoro {
 
-Kokoro::Kokoro(const std::string &durationPredictorSource,
+Kokoro::Kokoro(const std::string &taggerDataSource,
+               const std::string &phonemizerDataSource,
+               const std::string &durationPredictorSource,
                const std::string &f0nPredictorSource,
                const std::string &encoderSource,
                const std::string &decoderSource, const std::string &voiceSource,
@@ -17,7 +19,9 @@ Kokoro::Kokoro(const std::string &durationPredictorSource,
     : durationPredictor_(durationPredictorSource, callInvoker),
       f0nPredictor_(f0nPredictorSource, callInvoker),
       encoder_(encoderSource, callInvoker),
-      decoder_(decoderSource, callInvoker) {
+      decoder_(decoderSource, callInvoker),
+      phonemizer_(phonemis::Lang::EN_US, taggerDataSource,
+                  phonemizerDataSource) {
   // Populate the voice array by reading given file
   loadSingleVoice(voiceSource);
 }
@@ -55,7 +59,10 @@ void Kokoro::loadSingleVoice(const std::string &voiceSource) {
   }
 }
 
-std::vector<float> Kokoro::generate(std::u32string phonemes, float speed) {
+std::vector<float> Kokoro::generate(std::string text, float speed) {
+  // G2P (Grapheme to Phoneme) conversion
+  auto phonemes = phonemizer_.process(text);
+
   // Select the appropriate method according to input size
   // Since Kokoro requires padding with single zeros at both ends,
   // the effective input size is phonemes.size() + 2.

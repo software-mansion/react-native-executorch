@@ -8,6 +8,7 @@
 #include "DurationPredictor.h"
 #include "Encoder.h"
 #include "F0NPredictor.h"
+#include <phonemis/pipeline.h>
 #include <rnexecutorch/metaprogramming/ConstructorHelpers.h>
 
 namespace rnexecutorch {
@@ -15,13 +16,15 @@ namespace models::text_to_speech::kokoro {
 
 class Kokoro {
 public:
-  Kokoro(const std::string &durationPredictorSource,
+  Kokoro(const std::string &taggerDataSource,
+         const std::string &phonemizerDataSource,
+         const std::string &durationPredictorSource,
          const std::string &f0nPredictorSource,
          const std::string &encoderSource, const std::string &decoderSource,
          const std::string &voiceSource,
          std::shared_ptr<react::CallInvoker> callInvoker);
 
-  std::vector<float> generate(std::u32string phonemes, float speed = 1.F);
+  std::vector<float> generate(std::string text, float speed = 1.F);
 
   std::size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
@@ -51,10 +54,14 @@ private:
   std::array<std::array<float, constants::kVoiceRefSize>,
              constants::kLargeInput.noTokens>
       voice_;
+
+  // Phonemizer pipeline
+  phonemis::Pipeline phonemizer_;
 };
 } // namespace models::text_to_speech::kokoro
 
 REGISTER_CONSTRUCTOR(models::text_to_speech::kokoro::Kokoro, std::string,
                      std::string, std::string, std::string, std::string,
+                     std::string, std::string,
                      std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch
