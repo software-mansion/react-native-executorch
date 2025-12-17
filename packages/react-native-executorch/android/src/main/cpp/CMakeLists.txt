@@ -91,6 +91,13 @@ set(TOKENIZERS_LIBS
   "${LIBS_DIR}/tokenizers-cpp/${ANDROID_ABI}/libtokenizers_cpp.a"
   "${LIBS_DIR}/tokenizers-cpp/${ANDROID_ABI}/libsentencepiece.a"
 )
+
+# ------- phonemis -------
+
+set(PHONEMIS_LIBS
+  "${LIBS_DIR}/phonemis/${ANDROID_ABI}/libphonemis.a"
+)
+
 # --------------
 
 target_link_options(react-native-executorch PRIVATE -fopenmp -static-openmp)
@@ -103,6 +110,7 @@ target_link_libraries(
   ${OPENCV_THIRD_PARTY_LIBS}
   ${TOKENIZERS_LIBS}
   ${TOKENIZERS_THIRD_PARTY_LIBS}
+  ${PHONEMIS_LIBS}
   executorch
   ${EXECUTORCH_LIBS}
   z

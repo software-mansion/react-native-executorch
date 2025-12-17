@@ -1,9 +1,9 @@
 import { Platform } from 'react-native';
 
-const URL_PREFIX =
+export const URL_PREFIX =
   'https://huggingface.co/software-mansion/react-native-executorch';
-const VERSION_TAG = 'resolve/v0.6.0';
-// const NEXT_VERSION_TAG = 'resolve/v0.7.0';
+export const VERSION_TAG = 'resolve/v0.6.0';
+export const NEXT_VERSION_TAG = 'resolve/v0.7.0';
 
 // LLMs
 
@@ -304,24 +304,6 @@ export const STYLE_TRANSFER_RAIN_PRINCESS = {
 
 export const STYLE_TRANSFER_UDNIE = {
   modelSource: STYLE_TRANSFER_UDNIE_MODEL,
-};
-
-// T2S
-const KOKORO_EN_DURATION_PREDICTOR = `${URL_PREFIX}-kokoro/${NEXT_VERSION_TAG}/xnnpack/duration_predictor.pte`;
-const KOKORO_EN_F0N_PREDICTOR = `${URL_PREFIX}-kokoro/${NEXT_VERSION_TAG}/xnnpack/f0n_predictor.pte`;
-const KOKORO_EN_TEXT_ENCODER = `${URL_PREFIX}-kokoro/${NEXT_VERSION_TAG}/xnnpack/text_encoder.pte`;
-const KOKORO_EN_TEXT_DECODER = `${URL_PREFIX}-kokoro/${NEXT_VERSION_TAG}/xnnpack/text_decoder.pte`;
-
-const KOKORO_VOICE_PREFIX = `${URL_PREFIX}-kokoro/${NEXT_VERSION_TAG}/voices`;
-const KOKORO_VOICE_AF_HEART = `${KOKORO_VOICE_PREFIX}/af_heart.bin`;
-
-// TODO: reorganize this to allow selecting a voice
-export const KOKORO_EN = {
-  durationPredictorSource: KOKORO_EN_DURATION_PREDICTOR,
-  f0nPredictorSource: KOKORO_EN_F0N_PREDICTOR,
-  textEncoderSource: KOKORO_EN_TEXT_ENCODER,
-  textDecoderSource: KOKORO_EN_TEXT_DECODER,
-  voice: KOKORO_VOICE_AF_HEART,
 };
 
 // S2T

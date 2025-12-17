@@ -28,6 +28,8 @@ declare global {
     modelName: string
   ) => any;
   var loadTextToSpeechKokoro: (
+    taggerData: string,
+    phonemizerData: string,
     durationPredictorSource: string,
     f0nPredictorSource: string,
     textEncoderSource: string,
@@ -129,4 +131,6 @@ export {
 // constants
 export * from './constants/modelUrls';
 export * from './constants/ocr/models';
+export * from './constants/tts/models';
+export * from './constants/tts/voices';
 export * from './constants/llmDefaults';
