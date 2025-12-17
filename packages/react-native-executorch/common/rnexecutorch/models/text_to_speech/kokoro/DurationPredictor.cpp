@@ -1,8 +1,10 @@
 #include "DurationPredictor.h"
+#include <algorithm>
 #include <cmath>
 #include <numeric>
 #include <queue>
 #include <rnexecutorch/Log.h>
+#include <rnexecutorch/data_processing/Sequential.h>
 
 namespace rnexecutorch::models::text_to_speech::kokoro {
 
@@ -28,7 +30,7 @@ DurationPredictor::DurationPredictor(
   }
 }
 
-Result<std::vector<EValue>>
+std::tuple<Tensor, std::vector<int64_t>, int32_t>
 DurationPredictor::generate(const std::string &method,
                             const Configuration &inputConfig,
                             std::span<Token> tokens, std::span<bool> textMask,
@@ -69,12 +71,37 @@ DurationPredictor::generate(const std::string &method,
         ", error: " + std::to_string(static_cast<uint32_t>(results.error())));
   }
 
-  // Scale output durations to match the value from model's config
+  // Unpack the result
   auto predDur = results->at(0).toTensor();
+  auto d = results->at(1).toTensor();
+
+  // Scale output durations to match the value from model's config
   scaleDurations(predDur, inputConfig.duration);
 
-  // [pred_dur, d]
-  return results;
+  // Create indices tensor by repetitions according to durations vector
+  std::vector<int64_t> idxs(inputConfig.noTokens);
+  std::iota(idxs.begin(), idxs.end(), 0LL);
+  std::vector<int64_t> indices = rnexecutorch::sequential::repeatInterleave(
+      std::span<const int64_t>(idxs),
+      std::span<const int64_t>(predDur.const_data_ptr<int64_t>(),
+                               predDur.numel()));
+
+  // Calculate the effective duration
+  // Note that we lower effective duration even further, to remove
+  // some of the side-effects at the end of the audio.
+  int32_t originalLength =
+      std::distance(tokens.begin(),
+                    std::find(tokens.begin() + 1, tokens.end(), 0)) +
+      1;
+  int32_t effDuration = std::distance(
+      indices.begin(),
+      std::lower_bound(indices.begin(), indices.end(), originalLength));
+
+  if (effDuration < inputConfig.duration)
+    effDuration *= 0.95;
+
+  return std::make_tuple(std::move(d), std::move(indices),
+                         std::move(effDuration));
 }
 
 void DurationPredictor::scaleDurations(Tensor &durations,

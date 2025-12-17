@@ -96,79 +96,38 @@ std::vector<float> Kokoro::generateForConfig(const std::u32string &phonemes,
 
   // Inference 1 - DurationPredictor
   // The resulting duration vector is already scalled at this point
-  auto durationPrediction = durationPredictor_.generate(
+  auto [d, indices, effectiveDuration] = durationPredictor_.generate(
       method, config, std::span(tokens),
       std::span(reinterpret_cast<bool *>(textMask.data()), textMask.size()),
       ref_hs, speed);
-  auto predDur = durationPrediction->at(0).toTensor();
-  auto d = durationPrediction->at(1).toTensor();
-
-  // Create indices tensor by repetitions according to durations vector
-  std::vector<int64_t> indices(config.noTokens);
-  std::iota(indices.begin(), indices.end(), 0LL);
-  std::vector<int64_t> indicesRepeated =
-      rnexecutorch::sequential::repeatInterleave(
-          std::span<const int64_t>(indices),
-          std::span<const int64_t>(
-              reinterpret_cast<const int64_t *>(predDur.const_data_ptr()),
-              predDur.numel()));
 
   // Inference 2 - F0NPredictor
   auto f0nPrediction = f0nPredictor_.generate(
-      method, config, std::span(indicesRepeated),
-      std::span<float>(reinterpret_cast<float *>(d.data_ptr()), d.numel()),
-      ref_hs);
+      method, config, std::span(indices),
+      std::span<float>(d.data_ptr<float>(), d.numel()), ref_hs);
   auto F0_pred = f0nPrediction->at(0).toTensor();
   auto N_pred = f0nPrediction->at(1).toTensor();
   auto en = f0nPrediction->at(2).toTensor(); // [1, 640, duration]
   auto pred_aln_trg = f0nPrediction->at(3).toTensor();
 
-  // Calculate the efficient duration based on F0NPredictor results
-  // The first column to contain only zeros in the `en` tensor indicates the end
-  // of the results, and therefore the effective duration.
-  // We use a bin search to find the first zeroed column.
-  int32_t lb = 0, rb = config.duration;
-  while (lb < rb) {
-    auto mb = (lb + rb) / 2;
-    float *col = reinterpret_cast<float *>(en.data_ptr()) + 640 * mb;
-    // TODO: doesn't really work in current form
-    bool onlyZeros = std::all_of(col, col + config.duration,
-                                 [](float x) -> bool { return x == 0.F; });
-
-    if (onlyZeros)
-      rb = mb; // Switch left
-    else
-      lb = mb + 1; // Switch right
-  }
-  int32_t effectiveDuration = std::min(rb, config.duration - 1);
-
-  // We can further adjust the effective duration to remove some postfix noise
-  effectiveDuration *= 0.95F;
-
   // Inference 3 - Encoder
   auto encoding = encoder_.generate(
       method, config, std::span(tokens),
       std::span(reinterpret_cast<bool *>(textMask.data()), textMask.size()),
-      std::span<float>(reinterpret_cast<float *>(pred_aln_trg.data_ptr()),
-                       pred_aln_trg.numel()));
+      std::span<float>(pred_aln_trg.data_ptr<float>(), pred_aln_trg.numel()));
   auto asr = encoding->at(0).toTensor();
 
   // Inference 4 - Decoder
   auto decoding = decoder_.generate(
-      method, config,
-      std::span<float>(reinterpret_cast<float *>(asr.data_ptr()), asr.numel()),
-      std::span<float>(reinterpret_cast<float *>(F0_pred.data_ptr()),
-                       F0_pred.numel()),
-      std::span<float>(reinterpret_cast<float *>(N_pred.data_ptr()),
-                       N_pred.numel()),
-      ref_ls);
+      method, config, std::span<float>(asr.data_ptr<float>(), asr.numel()),
+      std::span<float>(F0_pred.data_ptr<float>(), F0_pred.numel()),
+      std::span<float>(N_pred.data_ptr<float>(), N_pred.numel()), ref_ls);
   auto audio = decoding->at(0).toTensor();
 
   // Cut the resulting audio vector according to the effective duration
   int32_t effLength = constants::kTicksPerDuration * effectiveDuration;
-  std::vector<float> result(reinterpret_cast<float *>(audio.data_ptr()),
-                            reinterpret_cast<float *>(audio.data_ptr()) +
-                                effLength);
+  std::vector<float> result(audio.data_ptr<float>(),
+                            audio.data_ptr<float>() + effLength);
   std::vector<float> first100(result.begin(), result.begin() + 100);
 
   return result;

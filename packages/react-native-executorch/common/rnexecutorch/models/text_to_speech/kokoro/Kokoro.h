@@ -27,15 +27,15 @@ public:
   void unload() noexcept;
 
 private:
-  // Helper functions - loading voice array
+  // Helper function - loading voice array
   void loadSingleVoice(const std::string &voiceSource);
 
-  // Helper functions - generate specialization for given input size
+  // Helper function - generate specialization for given input size
   std::vector<float> generateForConfig(const std::u32string &phonemes,
                                        const Configuration &config,
                                        float speed = 1.F);
 
-  // Helper functions - phonemes to tokens mapping
+  // Helper function - phonemes to tokens mapping
   std::vector<Token> toTokens(const std::u32string &phonemes,
                               const Configuration &config) const;
 
