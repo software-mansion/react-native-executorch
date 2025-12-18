@@ -11,7 +11,7 @@ import {
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
   KOKORO_EN,
-  KOKORO_VOICE_AM_ADAM,
+  KOKORO_VOICE_AF_HEART,
   useTextToSpeech,
 } from 'react-native-executorch';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -46,7 +46,7 @@ const createAudioBufferFromVector = (
 export const TextToSpeechScreen = () => {
   const model = useTextToSpeech({
     model: KOKORO_EN,
-    voice: KOKORO_VOICE_AM_ADAM,
+    voice: KOKORO_VOICE_AF_HEART,
   });
 
   const [inputText, setInputText] = useState('');
