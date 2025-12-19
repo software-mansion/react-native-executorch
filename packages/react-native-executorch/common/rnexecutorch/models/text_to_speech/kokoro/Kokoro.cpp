@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <fstream>
 #include <numeric>
+#include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/Sequential.h>
 #include <stdexcept>
 
