@@ -6,8 +6,19 @@
 
 namespace phonemis::phonemizer::constants {
 
+// Control constants & hyperparameters
+// Determine the behavior of the phonemization algorithms.
+inline constexpr int32_t kMaxSyllabeLength =
+    6; // See the fallback phonemization mechanism
+inline constexpr int32_t kVowelSyllabePenalty =
+    2; // See the fallback phonemization mechanism
+
 // Alphabet-related constants
 namespace alphabet {
+inline const std::string kVowels = "aeiouy"; // Written vowels
+inline const std::string kConsosants =
+    "bcdfghjklmnpqrstvwxz"; // Written consosants
+
 // Acceptable number suffixes
 // Cause numbers to be converted into ordinal instead of cardinal representation
 inline const std::unordered_set<std::string> kOrdinalSuffixes = {"st", "nd",
@@ -25,6 +36,9 @@ inline const std::unordered_map<char, std::string> kSymbols = {{'%', "percent"},
 inline const std::unordered_set<char> kPunctations = {';', ':', ',', '.', '!',
                                                       '?', '-', '"', '\''};
 
+inline const std::unordered_set<char> kNonQuotePunctations = {
+    ';', ':', ',', '.', '!', '?', '-', '\''};
+
 // Acceptable currencies (with spoken text representation)
 // Maps currency signatures to it's spoken representation for both main and
 // fractional units
@@ -36,7 +50,9 @@ inline const std::unordered_map<char32_t, std::pair<std::string, std::string>>
 
 // Language (spoken) constants
 namespace language {
-inline const std::u32string kConsonants = U"bdfhjklmnpstvwzðŋɡɹɾʃʒʤʧθ";
+inline const std::u32string kVowels = U"AIOQWYaiuæɑɒɔəɛɜɪʊʌᵻ"; // Spoken vowels
+inline const std::u32string kConsonants =
+    U"bdfhjklmnpstvwzðŋɡɹɾʃʒʤʧθ"; // Spoken consosants
 inline const std::u32string kUSTaus = U"AIOWYiuæɑəɛɪɹʊʌ";
 } // namespace language
 
@@ -44,8 +60,6 @@ inline const std::u32string kUSTaus = U"AIOWYiuæɑəɛɪɹʊʌ";
 namespace stress {
 inline constexpr char32_t kPrimary = '\'';
 inline constexpr char32_t kSecondary = ',';
-
-inline const std::u32string kVowels = U"AIOQWYaiuæɑɒɔəɛɜɪʊʌᵻ";
 } // namespace stress
 
 } // namespace phonemis::phonemizer::constants
