@@ -6,6 +6,10 @@
 #include "Types.h"
 
 namespace rnexecutorch::models::text_to_speech::kokoro::constants {
+// Hyperparameters which determine the behavior of the model & algorithms.
+inline constexpr float kAudioSilenceThreshold = 0.01F;
+inline constexpr int32_t kAudioCroppingSteps = 20;
+
 // Model input sizes - input tokens & max (expected) durations
 inline constexpr Configuration kSmallInput = {.noTokens = 16, .duration = 64};
 inline constexpr Configuration kMediumInput = {.noTokens = 64, .duration = 164};
@@ -20,6 +24,9 @@ inline constexpr int32_t kVoiceRefHalfSize = kVoiceRefSize / 2;
 // This corresponds to a number of elements in resulting audio vector per each
 // duration point.
 inline constexpr int32_t kTicksPerDuration = 600;
+inline constexpr int32_t kSamplesPerSecond =
+    16000; // Corresponds to audio frequency
+inline constexpr int32_t kSamplesPerMilisecond = kSamplesPerSecond / 1000;
 
 // Phoneme to token mappings
 inline constexpr int32_t kVocabSize = 178;

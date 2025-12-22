@@ -39,7 +39,7 @@ private:
                                        float speed = 1.F);
 
   // Helper function - phonemes to tokens mapping
-  std::vector<Token> toTokens(const std::u32string &phonemes,
+  std::vector<Token> tokenize(const std::u32string &phonemes,
                               const Configuration &config) const;
 
   // Kokoro submodules

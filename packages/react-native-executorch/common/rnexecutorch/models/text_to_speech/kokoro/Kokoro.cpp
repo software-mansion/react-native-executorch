@@ -1,9 +1,9 @@
 #include "Kokoro.h"
+#include "Utils.h"
 
 #include <algorithm>
 #include <fstream>
 #include <numeric>
-#include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/Sequential.h>
 #include <stdexcept>
 
@@ -86,7 +86,7 @@ std::vector<float> Kokoro::generateForConfig(const std::u32string &phonemes,
   std::string method = "forward_" + std::to_string(config.noTokens);
 
   // Map phonemes to tokens
-  auto tokens = toTokens(phonemes, config);
+  auto tokens = tokenize(phonemes, config);
 
   // Select the appropriate voice vector
   auto voiceId = std::clamp(static_cast<int32_t>(phonemes.size()) - 1, 0,
@@ -130,13 +130,16 @@ std::vector<float> Kokoro::generateForConfig(const std::u32string &phonemes,
       method, config, std::span<float>(asr.data_ptr<float>(), asr.numel()),
       std::span<float>(F0_pred.data_ptr<float>(), F0_pred.numel()),
       std::span<float>(N_pred.data_ptr<float>(), N_pred.numel()), ref_ls);
-  auto audio = decoding->at(0).toTensor();
+  auto audioTensor = decoding->at(0).toTensor();
 
   // Cut the resulting audio vector according to the effective duration
   int32_t effLength = constants::kTicksPerDuration * effectiveDuration;
-  std::vector<float> result(audio.data_ptr<float>(),
-                            audio.data_ptr<float>() + effLength);
-  std::vector<float> first100(result.begin(), result.begin() + 100);
+  auto audio =
+      std::span<const float>(audioTensor.const_data_ptr<float>(), effLength);
+  auto croppedAudio =
+      utils::stripAudio(audio, constants::kSamplesPerMilisecond * 50);
+
+  std::vector<float> result(croppedAudio.begin(), croppedAudio.end());
 
   return result;
 }
@@ -154,7 +157,7 @@ void Kokoro::unload() noexcept {
   decoder_.unload();
 }
 
-std::vector<Token> Kokoro::toTokens(const std::u32string &phonemes,
+std::vector<Token> Kokoro::tokenize(const std::u32string &phonemes,
                                     const Configuration &config) const {
   // Number of tokens to populate, excluding first and last pad token
   auto effNoTokens =
