@@ -7,8 +7,7 @@
 #include <rnexecutorch/data_processing/Sequential.h>
 #include <stdexcept>
 
-namespace rnexecutorch {
-namespace models::text_to_speech::kokoro {
+namespace rnexecutorch::models::text_to_speech::kokoro {
 
 Kokoro::Kokoro(int language, const std::string &taggerDataSource,
                const std::string &phonemizerDataSource,
@@ -24,10 +23,10 @@ Kokoro::Kokoro(int language, const std::string &taggerDataSource,
       phonemizer_(static_cast<phonemis::Lang>(language), taggerDataSource,
                   phonemizerDataSource) {
   // Populate the voice array by reading given file
-  loadSingleVoice(voiceSource);
+  loadVoice(voiceSource);
 }
 
-void Kokoro::loadSingleVoice(const std::string &voiceSource) {
+void Kokoro::loadVoice(const std::string &voiceSource) {
   constexpr size_t rows = static_cast<size_t>(constants::kLargeInput.noTokens);
   constexpr size_t cols = static_cast<size_t>(constants::kVoiceRefSize); // 256
   const size_t expectedCount = rows * cols;
@@ -86,7 +85,7 @@ std::vector<float> Kokoro::generateForConfig(const std::u32string &phonemes,
   std::string method = "forward_" + std::to_string(config.noTokens);
 
   // Map phonemes to tokens
-  auto tokens = tokenize(phonemes, config);
+  auto tokens = utils::tokenize(phonemes, {config.noTokens});
 
   // Select the appropriate voice vector
   auto voiceId = std::clamp(static_cast<int32_t>(phonemes.size()) - 1, 0,
@@ -157,30 +156,4 @@ void Kokoro::unload() noexcept {
   decoder_.unload();
 }
 
-std::vector<Token> Kokoro::tokenize(const std::u32string &phonemes,
-                                    const Configuration &config) const {
-  // Number of tokens to populate, excluding first and last pad token
-  auto effNoTokens =
-      std::min(config.noTokens - 2, static_cast<int32_t>(phonemes.size()));
-
-  // Note that we populate tokens[1:noTokens - 1], since first and last tokens
-  // are zeros (padding). Input could contain unrecognized tokens, and that's
-  // why we use partition() at the end.
-  std::vector<Token> tokens(config.noTokens, constants::kPadToken);
-  std::transform(phonemes.begin(), phonemes.begin() + effNoTokens,
-                 tokens.begin() + 1, [](char32_t p) -> Token {
-                   return constants::kVocab.contains(p)
-                              ? constants::kVocab.at(p)
-                              : constants::kInvalidToken;
-                 });
-  auto validSeqEnd = std::partition(
-      tokens.begin() + 1, tokens.begin() + effNoTokens + 1,
-      [](Token t) -> bool { return t != constants::kInvalidToken; });
-  std::fill(validSeqEnd, tokens.begin() + effNoTokens + 1,
-            constants::kPadToken);
-
-  return tokens;
-}
-
-} // namespace models::text_to_speech::kokoro
-} // namespace rnexecutorch
+} // namespace rnexecutorch::models::text_to_speech::kokoro

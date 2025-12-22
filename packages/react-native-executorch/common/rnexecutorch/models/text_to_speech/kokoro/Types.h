@@ -12,7 +12,7 @@ struct Configuration {
 };
 
 // Type definitions - model input tokens
-// TODO: It's possible to switch to int32_t after reexporting models with
+// TODO: It's possible to switch to int32_t after reexporting the models with
 // dtype=torch.int
 using Token = int64_t;
 

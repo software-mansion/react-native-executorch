@@ -31,16 +31,12 @@ public:
 
 private:
   // Helper function - loading voice array
-  void loadSingleVoice(const std::string &voiceSource);
+  void loadVoice(const std::string &voiceSource);
 
   // Helper function - generate specialization for given input size
   std::vector<float> generateForConfig(const std::u32string &phonemes,
                                        const Configuration &config,
                                        float speed = 1.F);
-
-  // Helper function - phonemes to tokens mapping
-  std::vector<Token> tokenize(const std::u32string &phonemes,
-                              const Configuration &config) const;
 
   // Kokoro submodules
   DurationPredictor durationPredictor_;
