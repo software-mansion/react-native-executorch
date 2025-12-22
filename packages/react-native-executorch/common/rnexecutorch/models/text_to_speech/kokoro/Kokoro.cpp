@@ -10,7 +10,7 @@
 namespace rnexecutorch {
 namespace models::text_to_speech::kokoro {
 
-Kokoro::Kokoro(const std::string &taggerDataSource,
+Kokoro::Kokoro(int language, const std::string &taggerDataSource,
                const std::string &phonemizerDataSource,
                const std::string &durationPredictorSource,
                const std::string &f0nPredictorSource,
@@ -21,7 +21,7 @@ Kokoro::Kokoro(const std::string &taggerDataSource,
       f0nPredictor_(f0nPredictorSource, callInvoker),
       encoder_(encoderSource, callInvoker),
       decoder_(decoderSource, callInvoker),
-      phonemizer_(phonemis::Lang::EN_US, taggerDataSource,
+      phonemizer_(static_cast<phonemis::Lang>(language), taggerDataSource,
                   phonemizerDataSource) {
   // Populate the voice array by reading given file
   loadSingleVoice(voiceSource);

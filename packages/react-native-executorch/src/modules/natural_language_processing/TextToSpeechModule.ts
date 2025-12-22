@@ -8,6 +8,7 @@ export class TextToSpeechModule extends BaseModule {
     config: TextToSpeechConfig,
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ): Promise<void> {
+    // TODO: this check is pretty dubious and should be replaced with something better.
     const anySourceKey = Object.keys(config.model).find((key) =>
       key.includes('Source')
     );
@@ -56,6 +57,7 @@ export class TextToSpeechModule extends BaseModule {
     const phonemizerPaths = paths.slice(5, 7);
 
     this.nativeModule = global.loadTextToSpeechKokoro(
+      voice.language,
       phonemizerPaths[0]!,
       phonemizerPaths[1]!,
       modelPaths[0]!,

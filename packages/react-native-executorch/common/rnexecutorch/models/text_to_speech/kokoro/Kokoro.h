@@ -16,7 +16,7 @@ namespace models::text_to_speech::kokoro {
 
 class Kokoro {
 public:
-  Kokoro(const std::string &taggerDataSource,
+  Kokoro(int language, const std::string &taggerDataSource,
          const std::string &phonemizerDataSource,
          const std::string &durationPredictorSource,
          const std::string &f0nPredictorSource,
@@ -60,7 +60,7 @@ private:
 };
 } // namespace models::text_to_speech::kokoro
 
-REGISTER_CONSTRUCTOR(models::text_to_speech::kokoro::Kokoro, std::string,
+REGISTER_CONSTRUCTOR(models::text_to_speech::kokoro::Kokoro, int, std::string,
                      std::string, std::string, std::string, std::string,
                      std::string, std::string,
                      std::shared_ptr<react::CallInvoker>);

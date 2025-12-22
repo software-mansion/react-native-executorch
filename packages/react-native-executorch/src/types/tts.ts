@@ -1,7 +1,11 @@
 import { ResourceSource } from './common';
 
 // List all the languages available in TTS models
-export type TextToSpeechLanguage = 'en_gb' | 'en_us';
+// The values should match the one used within the native side.
+export enum TextToSpeechLanguage {
+  EN_US = 0,
+  EN_GB = 1,
+}
 
 // Voice configuration
 // So far in Kokoro, each voice is directly associated with a language.
