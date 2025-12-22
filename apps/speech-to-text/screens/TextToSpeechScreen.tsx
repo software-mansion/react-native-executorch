@@ -51,6 +51,7 @@ export const TextToSpeechScreen = () => {
 
   const [inputText, setInputText] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
+  const [readyToGenerate, setReadyToGenerate] = useState(false);
 
   useEffect(() => {
     AudioManager.setAudioSessionOptions({
@@ -59,6 +60,10 @@ export const TextToSpeechScreen = () => {
       iosOptions: ['defaultToSpeaker'],
     });
   }, []);
+
+  useEffect(() => {
+    setReadyToGenerate(!model.isGenerating && model.isReady && !isPlaying);
+  }, [model.isGenerating, model.isReady, isPlaying]);
 
   const handlePlayAudio = async () => {
     if (!inputText.trim()) {
@@ -97,8 +102,6 @@ export const TextToSpeechScreen = () => {
     if (model.isReady) return 'Ready to synthesize';
     return `Loading model: ${(100 * model.downloadProgress).toFixed(2)}%`;
   };
-
-  const readyToGenerate = !model.isGenerating && model.isReady && !isPlaying;
 
   return (
     <SafeAreaProvider>
