@@ -16,8 +16,7 @@ float normalize(float sample) {
 // Returns an index corresponding to the first (or last - if reverse=true)
 // non-quiet part of an audio.
 // Utilizes a moving average controled by hyperparameters from Constants.h.
-template <bool reverse = false>
-size_t findAudioBound(std::span<const float> audio) {
+template <bool reverse> size_t findAudioBound(std::span<const float> audio) {
   if (audio.empty())
     return 0;
 
@@ -54,6 +53,37 @@ std::span<const float> stripAudio(std::span<const float> audio, size_t margin) {
   rbound = std::min(rbound + margin, audio.size() - 1);
 
   return audio.subspan(lbound, rbound >= lbound ? rbound - lbound + 1 : 0);
+}
+
+std::vector<Token> tokenize(const std::u32string &phonemes,
+                            std::optional<size_t> expectedSize) {
+  if (expectedSize.has_value() && expectedSize.value() < 2)
+    throw std::invalid_argument(
+        "expected number of tokens cannot be lower than 2");
+
+  // Number of tokens to populate, with and without edge pad tokens
+  size_t lengthWithPadding =
+      expectedSize.has_value() ? expectedSize.value() : phonemes.size() + 2;
+  size_t lengthWithoutPadding = lengthWithPadding - 2;
+  size_t effNoTokens = std::min(lengthWithoutPadding, phonemes.size());
+
+  // Note that we populate tokens[1:noTokens - 1], since first and last tokens
+  // are zeros (padding). Input could contain unrecognized tokens, and that's
+  // why we use partition() at the end.
+  std::vector<Token> tokens(lengthWithPadding, constants::kPadToken);
+  std::transform(phonemes.begin(), phonemes.begin() + effNoTokens,
+                 tokens.begin() + 1, [](char32_t p) -> Token {
+                   return constants::kVocab.contains(p)
+                              ? constants::kVocab.at(p)
+                              : constants::kInvalidToken;
+                 });
+  auto validSeqEnd = std::partition(
+      tokens.begin() + 1, tokens.begin() + effNoTokens + 1,
+      [](Token t) -> bool { return t != constants::kInvalidToken; });
+  std::fill(validSeqEnd, tokens.begin() + effNoTokens + 1,
+            constants::kPadToken);
+
+  return tokens;
 }
 
 } // namespace rnexecutorch::models::text_to_speech::kokoro::utils

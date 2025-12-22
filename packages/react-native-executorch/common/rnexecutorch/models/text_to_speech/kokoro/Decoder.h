@@ -7,8 +7,7 @@
 #include "Constants.h"
 #include <rnexecutorch/models/BaseModel.h>
 
-namespace rnexecutorch {
-namespace models::text_to_speech::kokoro {
+namespace rnexecutorch::models::text_to_speech::kokoro {
 
 class Decoder : public BaseModel {
 public:
@@ -20,5 +19,5 @@ public:
            std::span<float> asr, std::span<float> f0Pred,
            std::span<float> nPred, std::span<float> ref_ls);
 };
-} // namespace models::text_to_speech::kokoro
-} // namespace rnexecutorch
+
+} // namespace rnexecutorch::models::text_to_speech::kokoro

@@ -8,8 +8,7 @@
 #include "Constants.h"
 #include <rnexecutorch/models/BaseModel.h>
 
-namespace rnexecutorch {
-namespace models::text_to_speech::kokoro {
+namespace rnexecutorch::models::text_to_speech::kokoro {
 
 using executorch::aten::Tensor;
 
@@ -37,5 +36,5 @@ private:
   int32_t calculateEffectiveDuration(const Tensor &d,
                                      const std::vector<int64_t> &indices) const;
 };
-} // namespace models::text_to_speech::kokoro
-} // namespace rnexecutorch
+
+} // namespace rnexecutorch::models::text_to_speech::kokoro
