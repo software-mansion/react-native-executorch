@@ -17,7 +17,8 @@ inline constexpr int32_t kVoiceRefSize =
 inline constexpr int32_t kVoiceRefHalfSize = kVoiceRefSize / 2;
 
 // Duration mappings
-// This corresponds to a number of elements in resulting audio vector per each duration point
+// This corresponds to a number of elements in resulting audio vector per each
+// duration point
 inline constexpr int32_t kTicksPerDuration = 600;
 
 // Phoneme to token mappings
@@ -45,7 +46,7 @@ inline const std::unordered_map<char32_t, Token> kVocab = {
     {U'ʊ', 135},     {U'ʋ', 136}, {U'ʌ', 138}, {U'ɣ', 139}, {U'ɤ', 140},
     {U'χ', 142},     {U'ʎ', 143}, {U'ʒ', 147}, {U'ʔ', 148}, {U'ˈ', 156},
     {U'ˌ', 157},     {U'ː', 158}, {U'ʰ', 162}, {U'ʲ', 164}, {U'↓', 169},
-    {U'→', 171},     {U'↗', 172}, {U'↘', 173}, {U'ᵿ', 177}};
+    {U'→', 171},     {U'↗', 172}, {U'↘', 173}, {U'ᵻ', 177}};
 
 // Special tokens
 inline constexpr Token kInvalidToken = -1;
