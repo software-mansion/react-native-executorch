@@ -18,7 +18,7 @@ inline constexpr int32_t kVoiceRefHalfSize = kVoiceRefSize / 2;
 
 // Duration mappings
 // This corresponds to a number of elements in resulting audio vector per each
-// duration point
+// duration point.
 inline constexpr int32_t kTicksPerDuration = 600;
 
 // Phoneme to token mappings
