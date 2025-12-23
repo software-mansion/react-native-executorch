@@ -18,7 +18,7 @@ std::span<const float> stripAudio(std::span<const float> audio,
 // Tokenizes given phoneme string.
 // Each phoneme corresponds to exactly one token, with 2 additional pad
 // tokens added at both ends.
-// If extecped number of tokens provided, eventually expands the token vector
+// If extecped number of tokens is provided, eventually expands the token vector
 // with pad tokens to match given length.
 std::vector<Token> tokenize(const std::u32string &phonemes,
                             std::optional<size_t> expectedSize = std::nullopt);
