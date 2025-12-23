@@ -48,7 +48,7 @@ private:
   // There is a separate voice vector for each of the possible numbers of input
   // tokens.
   std::array<std::array<float, constants::kVoiceRefSize>,
-             constants::kLargeInput.noTokens>
+             constants::kInputLarge.noTokens>
       voice_;
 
   // Phonemizer pipeline

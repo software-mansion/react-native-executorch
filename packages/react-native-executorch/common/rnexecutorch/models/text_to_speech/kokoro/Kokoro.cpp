@@ -27,7 +27,7 @@ Kokoro::Kokoro(int language, const std::string &taggerDataSource,
 }
 
 void Kokoro::loadVoice(const std::string &voiceSource) {
-  constexpr size_t rows = static_cast<size_t>(constants::kLargeInput.noTokens);
+  constexpr size_t rows = static_cast<size_t>(constants::kInputLarge.noTokens);
   constexpr size_t cols = static_cast<size_t>(constants::kVoiceRefSize); // 256
   const size_t expectedCount = rows * cols;
   const std::streamsize expectedBytes =
@@ -71,9 +71,9 @@ std::vector<float> Kokoro::generate(std::string text, float speed) {
   //       to process inputs of any length
   auto inputSize = phonemes.size() + 2;
   const auto &config =
-      inputSize <= constants::kSmallInput.noTokens    ? constants::kSmallInput
-      : inputSize <= constants::kMediumInput.noTokens ? constants::kMediumInput
-                                                      : constants::kLargeInput;
+      inputSize <= constants::kInputSmall.noTokens    ? constants::kInputSmall
+      : inputSize <= constants::kInputMedium.noTokens ? constants::kInputMedium
+                                                      : constants::kInputLarge;
 
   return generateForConfig(phonemes, config, speed);
 }
