@@ -114,7 +114,7 @@ std::vector<float> Kokoro::generateForConfig(const std::u32string &phonemes,
       std::span<float>(d.data_ptr<float>(), d.numel()), ref_hs);
   auto F0_pred = f0nPrediction->at(0).toTensor();
   auto N_pred = f0nPrediction->at(1).toTensor();
-  auto en = f0nPrediction->at(2).toTensor(); // [1, 640, duration]
+  auto en = f0nPrediction->at(2).toTensor();
   auto pred_aln_trg = f0nPrediction->at(3).toTensor();
 
   // Inference 3 - Encoder

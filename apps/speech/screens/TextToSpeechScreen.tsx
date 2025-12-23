@@ -86,6 +86,7 @@ export const TextToSpeechScreen = () => {
 
       source.onEnded = () => {
         setIsPlaying(false);
+        setReadyToGenerate(true);
         audioContext.close();
       };
 

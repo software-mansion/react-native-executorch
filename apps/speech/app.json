@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "speech-to-text",
-    "slug": "speech-to-text",
+    "name": "speech",
+    "slug": "speech",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.swmansion.speechtotext",
+      "bundleIdentifier": "com.anonymous.speech",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "This app needs access to your microphone to record audio."
       }
@@ -24,7 +24,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.swmansion.speechtotext"
+      "package": "com.anonymous.speech"
     },
     "web": {
       "favicon": "./assets/favicon.png"

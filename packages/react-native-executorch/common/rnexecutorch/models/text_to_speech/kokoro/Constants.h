@@ -24,9 +24,9 @@ inline constexpr int32_t kVoiceRefHalfSize = kVoiceRefSize / 2;
 // This corresponds to a number of elements in resulting audio vector per each
 // duration point.
 inline constexpr int32_t kTicksPerDuration = 600;
-inline constexpr int32_t kSamplesPerSecond =
-    16000; // Corresponds to audio frequency
-inline constexpr int32_t kSamplesPerMilisecond = kSamplesPerSecond / 1000;
+inline constexpr int32_t kSamplingRate =
+    24000; // Corresponds to Kokoro's model audio frequency
+inline constexpr int32_t kSamplesPerMilisecond = kSamplingRate / 1000;
 
 // Phoneme to token mappings
 inline constexpr int32_t kVocabSize = 178;
