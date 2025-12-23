@@ -11,9 +11,9 @@ inline constexpr float kAudioSilenceThreshold = 0.01F;
 inline constexpr int32_t kAudioCroppingSteps = 20;
 
 // Model input sizes - input tokens & max (expected) durations
-inline constexpr Configuration kSmallInput = {.noTokens = 16, .duration = 64};
-inline constexpr Configuration kMediumInput = {.noTokens = 64, .duration = 164};
-inline constexpr Configuration kLargeInput = {.noTokens = 256, .duration = 556};
+inline constexpr Configuration kInputSmall = {.noTokens = 32, .duration = 92};
+inline constexpr Configuration kInputMedium = {.noTokens = 64, .duration = 164};
+inline constexpr Configuration kInputLarge = {.noTokens = 128, .duration = 296};
 
 // Model input sizes - voice reference vector
 inline constexpr int32_t kVoiceRefSize =
