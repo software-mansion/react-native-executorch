@@ -1,4 +1,5 @@
 #include "Kokoro.h"
+#include "Partitioner.h"
 #include "Utils.h"
 
 #include <algorithm>
@@ -6,6 +7,8 @@
 #include <numeric>
 #include <rnexecutorch/data_processing/Sequential.h>
 #include <stdexcept>
+
+#include <chrono>
 
 namespace rnexecutorch::models::text_to_speech::kokoro {
 
@@ -60,22 +63,45 @@ void Kokoro::loadVoice(const std::string &voiceSource) {
 }
 
 std::vector<float> Kokoro::generate(std::string text, float speed) {
+  if (text.size() > constants::kMaxTextSize) {
+    throw std::invalid_argument("Kokoro: maximum input text size exceeded");
+  }
+
   // G2P (Grapheme to Phoneme) conversion
   auto phonemes = phonemizer_.process(text);
 
-  // Select the appropriate method according to input size
-  // Since Kokoro requires padding with single zeros at both ends,
-  // the effective input size is phonemes.size() + 2.
-  // TODO: replace with a partition algorithm, which would divide input
-  //       into smaller parts, therefore speeding up the processing and allowing
-  //       to process inputs of any length
-  auto inputSize = phonemes.size() + 2;
-  const auto &config =
-      inputSize <= constants::kInputSmall.noTokens    ? constants::kInputSmall
-      : inputSize <= constants::kInputMedium.noTokens ? constants::kInputMedium
-                                                      : constants::kInputLarge;
+  // Divide the phonemes string intro substrings.
+  // Affects the further calculations only in case of string size
+  // exceeding the biggest model's input.
+  auto subsentences =
+      partitioner::divide<partitioner::Strategy::TOTAL_TIME>(phonemes);
 
-  return generateForConfig(phonemes, config, speed);
+  std::vector<float> audio = {};
+  for (const auto &subsentence : subsentences) {
+    size_t inputSize = subsentence.size() + 2;
+    const auto &config = inputSize <= constants::kInputSmall.noTokens
+                             ? constants::kInputSmall
+                         : inputSize <= constants::kInputMedium.noTokens
+                             ? constants::kInputMedium
+                             : constants::kInputLarge;
+
+    auto audioPart = generateForConfig(subsentence, config, speed);
+
+    // Calculate a pause between the sentences
+    char32_t lastPhoneme = subsentence.back();
+    size_t pauseMs = constants::kPauseValues.contains(lastPhoneme)
+                         ? constants::kPauseValues.at(lastPhoneme)
+                         : 0;
+    std::vector<float> pause(pauseMs * constants::kSamplesPerMilisecond, 0.F);
+
+    // Add audio part and pause to the main audio vector
+    audio.insert(audio.end(), std::make_move_iterator(audioPart.begin()),
+                 std::make_move_iterator(audioPart.end()));
+    audio.insert(audio.end(), std::make_move_iterator(pause.begin()),
+                 std::make_move_iterator(pause.end()));
+  }
+
+  return audio;
 }
 
 std::vector<float> Kokoro::generateForConfig(const std::u32string &phonemes,

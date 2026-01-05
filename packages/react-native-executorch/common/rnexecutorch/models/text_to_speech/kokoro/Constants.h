@@ -2,13 +2,19 @@
 
 #include <cstdint>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "Types.h"
 
 namespace rnexecutorch::models::text_to_speech::kokoro::constants {
 // Hyperparameters which determine the behavior of the model & algorithms.
-inline constexpr float kAudioSilenceThreshold = 0.01F;
+inline constexpr size_t kMaxTextSize =
+    2048; // An input which exceedes this value causes an exception to be thrown
 inline constexpr int32_t kAudioCroppingSteps = 20;
+inline constexpr float kAudioSilenceThreshold = 0.01F;
+inline const std::unordered_map<char32_t, int32_t> kPauseValues = {
+    {U'.', 250}, {U'?', 350}, {'!', 180},  {';', 300},
+    {U'…', 500}, {U',', 125}, {U':', 175}, {U'-', 120}}; // [ms]
 
 // Model input sizes - input tokens & max (expected) durations
 inline constexpr Configuration kInputSmall = {.noTokens = 32, .duration = 92};
@@ -27,6 +33,11 @@ inline constexpr int32_t kTicksPerDuration = 600;
 inline constexpr int32_t kSamplingRate =
     24000; // Corresponds to Kokoro's model audio frequency
 inline constexpr int32_t kSamplesPerMilisecond = kSamplingRate / 1000;
+
+// Special phonemes
+inline const std::unordered_set<char32_t> kEndOfSentencePhonemes = {
+    U'.', U'?', U'!', U';', U'…'};
+inline const std::unordered_set<char32_t> kPausePhonemes = {U',', U':', U'-'};
 
 // Phoneme to token mappings
 inline constexpr int32_t kVocabSize = 178;

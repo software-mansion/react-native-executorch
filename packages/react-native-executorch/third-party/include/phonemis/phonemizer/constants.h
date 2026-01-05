@@ -58,8 +58,8 @@ inline const std::u32string kUSTaus = U"AIOWYiuæɑəɛɪɹʊʌ";
 
 // Stress calculation constants
 namespace stress {
-inline constexpr char32_t kPrimary = '\'';
-inline constexpr char32_t kSecondary = ',';
+inline constexpr char32_t kPrimary = U'ˈ';
+inline constexpr char32_t kSecondary = U'ˌ';
 } // namespace stress
 
 } // namespace phonemis::phonemizer::constants
