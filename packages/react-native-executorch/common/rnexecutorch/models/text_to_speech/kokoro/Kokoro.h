@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -24,7 +25,13 @@ public:
          const std::string &voiceSource,
          std::shared_ptr<react::CallInvoker> callInvoker);
 
+  // Processes the entire text at once, before sending back to the JS side.
   std::vector<float> generate(std::string text, float speed = 1.F);
+
+  // Processes text in chunks, sending each chunk individualy to the JS side
+  // with asynchronous callbacks.
+  void stream(std::string text, float speed,
+              std::shared_ptr<jsi::Function> callback);
 
   std::size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
@@ -36,7 +43,10 @@ private:
   // Helper function - generate specialization for given input size
   std::vector<float> generateForConfig(const std::u32string &phonemes,
                                        const Configuration &config,
-                                       float speed = 1.F);
+                                       float speed);
+
+  // JS callback handle
+  std::shared_ptr<react::CallInvoker> callInvoker_;
 
   // Kokoro submodules
   DurationPredictor durationPredictor_;

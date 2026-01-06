@@ -19,10 +19,11 @@ Kokoro::Kokoro(int language, const std::string &taggerDataSource,
                const std::string &encoderSource,
                const std::string &decoderSource, const std::string &voiceSource,
                std::shared_ptr<react::CallInvoker> callInvoker)
-    : durationPredictor_(durationPredictorSource, callInvoker),
-      f0nPredictor_(f0nPredictorSource, callInvoker),
-      encoder_(encoderSource, callInvoker),
-      decoder_(decoderSource, callInvoker),
+    : callInvoker_(std::move(callInvoker)),
+      durationPredictor_(durationPredictorSource, callInvoker_),
+      f0nPredictor_(f0nPredictorSource, callInvoker_),
+      encoder_(encoderSource, callInvoker_),
+      decoder_(decoderSource, callInvoker_),
       phonemizer_(static_cast<phonemis::Lang>(language), taggerDataSource,
                   phonemizerDataSource) {
   // Populate the voice array by reading given file
@@ -104,6 +105,60 @@ std::vector<float> Kokoro::generate(std::string text, float speed) {
   return audio;
 }
 
+void Kokoro::stream(std::string text, float speed,
+                    std::shared_ptr<jsi::Function> callback) {
+  if (text.size() > constants::kMaxTextSize) {
+    throw std::invalid_argument("Kokoro: maximum input text size exceeded");
+  }
+
+  // Build a full callback function
+  auto nativeCallback = [this, callback](const std::vector<float> &audioVec) {
+    this->callInvoker_->invokeAsync([callback, audioVec](jsi::Runtime &rt) {
+      callback->call(rt,
+                     rnexecutorch::jsi_conversion::getJsiValue(audioVec, rt));
+    });
+  };
+
+  // G2P (Grapheme to Phoneme) conversion
+  auto phonemes = phonemizer_.process(text);
+
+  // Divide the phonemes string intro substrings.
+  // Use specialized implementation to minimize the latency between the
+  // sentences.
+  auto subsentences =
+      partitioner::divide<partitioner::Strategy::LATENCY>(phonemes);
+
+  // We follow the implementation of generate() method, but
+  // instead of accumulating results in a vector, we push them
+  // back to the JS side with the callback.
+  for (size_t i = 0; i < subsentences.size(); i++) {
+    const auto &subsentence = subsentences[i];
+
+    size_t inputSize = subsentence.size() + 2;
+    const auto &config = inputSize <= constants::kInputSmall.noTokens
+                             ? constants::kInputSmall
+                         : inputSize <= constants::kInputMedium.noTokens
+                             ? constants::kInputMedium
+                             : constants::kInputLarge;
+
+    auto audioPart = generateForConfig(subsentence, config, speed);
+
+    // Calculate a pause between the sentences
+    char32_t lastPhoneme = subsentence.back();
+    size_t pauseMs = constants::kPauseValues.contains(lastPhoneme)
+                         ? constants::kPauseValues.at(lastPhoneme)
+                         : 0;
+    std::vector<float> pause(pauseMs * constants::kSamplesPerMilisecond, 0.F);
+
+    // Add the pause to the audio vector
+    audioPart.insert(audioPart.end(), std::make_move_iterator(pause.begin()),
+                     std::make_move_iterator(pause.end()));
+
+    // Push the audio right away to the JS side
+    nativeCallback(audioPart);
+  }
+}
+
 std::vector<float> Kokoro::generateForConfig(const std::u32string &phonemes,
                                              const Configuration &config,
                                              float speed) {
@@ -172,7 +227,7 @@ std::vector<float> Kokoro::generateForConfig(const std::u32string &phonemes,
 std::size_t Kokoro::getMemoryLowerBound() const noexcept {
   return durationPredictor_.getMemoryLowerBound() +
          f0nPredictor_.getMemoryLowerBound() + encoder_.getMemoryLowerBound() +
-         decoder_.getMemoryLowerBound() + sizeof(voice_);
+         decoder_.getMemoryLowerBound() + sizeof(voice_) + sizeof(phonemizer_);
 }
 
 void Kokoro::unload() noexcept {
