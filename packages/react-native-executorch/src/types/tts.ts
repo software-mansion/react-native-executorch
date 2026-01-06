@@ -35,3 +35,9 @@ export interface TextToSpeechInput {
   text: string;
   speed?: number;
 }
+
+export interface TextToSpeechStreamingInput extends TextToSpeechInput {
+  onBegin?: () => void | Promise<void>;
+  onNext?: (audio: Float32Array) => void | Promise<void>;
+  onEnd?: () => void | Promise<void>;
+}

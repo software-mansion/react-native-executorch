@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Text,
   View,
@@ -30,9 +30,11 @@ import SWMIcon from '../assets/swm_icon.svg';
  */
 const createAudioBufferFromVector = (
   audioVector: Float32Array,
+  audioContext: AudioContext | null = null,
   sampleRate: number = 24000
 ): AudioBuffer => {
-  const audioContext = new AudioContext({ sampleRate });
+  if (audioContext == null) audioContext = new AudioContext({ sampleRate });
+
   const audioBuffer = audioContext.createBuffer(
     1,
     audioVector.length,
@@ -40,6 +42,7 @@ const createAudioBufferFromVector = (
   );
   const channelData = audioBuffer.getChannelData(0);
   channelData.set(audioVector);
+
   return audioBuffer;
 };
 
@@ -53,12 +56,24 @@ export const TextToSpeechScreen = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [readyToGenerate, setReadyToGenerate] = useState(false);
 
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const sourceRef = useRef<any>(null);
+
   useEffect(() => {
     AudioManager.setAudioSessionOptions({
       iosCategory: 'playback',
       iosMode: 'spokenAudio',
       iosOptions: ['defaultToSpeaker'],
     });
+
+    // Initialize context once
+    audioContextRef.current = new AudioContext({ sampleRate: 24000 });
+    audioContextRef.current.suspend();
+
+    return () => {
+      audioContextRef.current?.close();
+      audioContextRef.current = null;
+    };
   }, []);
 
   useEffect(() => {
@@ -73,24 +88,43 @@ export const TextToSpeechScreen = () => {
     setIsPlaying(true);
 
     try {
-      const audioVector = await model.forward({
-        text: inputText,
-        speed: 1.0,
-      });
-      const audioBuffer = createAudioBufferFromVector(audioVector);
+      const audioContext = audioContextRef.current;
+      if (!audioContext) return;
 
-      const audioContext = new AudioContext({ sampleRate: 24000 });
-      const source = audioContext.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(audioContext.destination);
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
 
-      source.onEnded = () => {
-        setIsPlaying(false);
-        setReadyToGenerate(true);
-        audioContext.close();
+      const onNext = async (audioVec: Float32Array) => {
+        return new Promise<void>((resolve) => {
+          const audioBuffer = createAudioBufferFromVector(
+            audioVec,
+            audioContext,
+            24000
+          );
+
+          const source = (sourceRef.current =
+            audioContext.createBufferSource());
+          source.buffer = audioBuffer;
+          source.connect(audioContext.destination);
+
+          source.onEnded = () => resolve();
+
+          source.start();
+        });
       };
 
-      source.start();
+      const onEnd = async () => {
+        setIsPlaying(false);
+        setReadyToGenerate(true);
+        await audioContext.suspend();
+      };
+
+      await model.stream({
+        text: inputText,
+        onNext,
+        onEnd,
+      });
     } catch (error) {
       console.error('Error generating or playing audio:', error);
       setIsPlaying(false);

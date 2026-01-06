@@ -1,7 +1,12 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ETError, getError } from '../../Error';
 import { BaseModule } from '../BaseModule';
-import { KokoroConfig, TextToSpeechConfig, VoiceConfig } from '../../types/tts';
+import {
+  KokoroConfig,
+  TextToSpeechConfig,
+  TextToSpeechStreamingInput,
+  VoiceConfig,
+} from '../../types/tts';
 
 export class TextToSpeechModule extends BaseModule {
   async load(
@@ -68,9 +73,35 @@ export class TextToSpeechModule extends BaseModule {
     );
   }
 
-  async forward(text: string, speed: number) {
+  public async forward(text: string, speed: number = 1.0) {
     if (this.nativeModule == null)
       throw new Error(getError(ETError.ModuleNotLoaded));
     return await this.nativeModule.generate(text, speed);
+  }
+
+  public async stream({
+    text,
+    onBegin,
+    onNext,
+    onEnd,
+    speed,
+  }: TextToSpeechStreamingInput) {
+    let queue = Promise.resolve();
+
+    onBegin?.();
+
+    try {
+      await this.nativeModule.stream(text, speed, (audio: number[]) => {
+        queue = queue.then(() =>
+          Promise.resolve(onNext?.(new Float32Array(audio)))
+        );
+      });
+
+      await queue;
+    } catch (e) {
+      throw e;
+    } finally {
+      onEnd?.();
+    }
   }
 }

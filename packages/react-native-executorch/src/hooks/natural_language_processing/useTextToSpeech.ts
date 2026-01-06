@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import { TextToSpeechModule } from '../../modules/natural_language_processing/TextToSpeechModule';
-import { TextToSpeechConfig, TextToSpeechInput } from '../../types/tts';
+import {
+  TextToSpeechConfig,
+  TextToSpeechInput,
+  TextToSpeechStreamingInput,
+} from '../../types/tts';
 import { ETError, getError } from '../../Error';
 
 interface Props extends TextToSpeechConfig {
@@ -50,11 +54,26 @@ export const useTextToSpeech = ({
     }
   };
 
+  const stream = async (input: TextToSpeechStreamingInput) => {
+    if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
+    if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
+    try {
+      setIsGenerating(true);
+      await moduleInstance.stream({
+        ...input,
+        speed: input.speed ?? 1.0,
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return {
     error,
     isReady,
     isGenerating,
     forward,
+    stream,
     downloadProgress,
   };
 };
