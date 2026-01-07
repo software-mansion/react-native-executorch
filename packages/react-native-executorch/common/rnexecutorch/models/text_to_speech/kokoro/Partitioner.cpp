@@ -3,42 +3,76 @@
 #include <algorithm>
 #include <functional>
 #include <queue>
+#include <stdexcept>
 
-namespace rnexecutorch::models::text_to_speech::kokoro::partitioner {
+namespace rnexecutorch::models::text_to_speech::kokoro {
 
-namespace {
 // Custom infinity definition
-constexpr Cost INF = 1e5;
+constexpr Partitioner::Cost INF = 1e5;
 
-// Predefined costs
-// Affect the algorithm behavior in selecting break points and
-// therefore partitioning the strings.
-static Cost smallModelCost = 10;
-static Cost mediumModelCost = 7;
-static Cost largeModelCost = 10;
-static Cost eosPenalty = 0;   // End of sentence penalty
-static Cost pausePenalty = 3; // Pause (phonemes like ',') penalty
-static Cost whitePenalty = 8; // Division on white character penalty
+template <>
+std::vector<std::u32string>
+Partitioner::divide<Partitioner::Strategy::TOTAL_TIME>(
+    const std::u32string &phonemes) {
+  // Update the small model cost back to normal
+  modelCosts_.at("small") = 4;
 
-// Helper function - cost estimation (by string size)
-Cost cost(size_t stringSize) {
-  size_t effSize = stringSize + 2;
-  return effSize <= constants::kInputSmall.noTokens    ? smallModelCost
-         : effSize <= constants::kInputMedium.noTokens ? mediumModelCost
-         : effSize <= constants::kInputLarge.noTokens  ? largeModelCost
-                                                       : INF;
+  return divide(phonemes, [](Cost a, Cost b) { return a + b; });
 }
 
-// Helper function - cost estimation (by string)
-Cost cost(const std::u32string &phonemes) { return cost(phonemes.size()); }
+template <>
+std::vector<std::u32string> Partitioner::divide<Partitioner::Strategy::LATENCY>(
+    const std::u32string &phonemes) {
+  // In streaming mode, we particularly want to avoid using
+  // small model, since it might introduce a bigger latency
+  // if followed by the large model.
+  modelCosts_.at("small") = INF;
+
+  if (phonemes.size() <= constants::kInputMedium.noTokens - 2)
+    return {phonemes};
+
+  // Try to start with a medium-sized model, which is relatively quick
+  // and does not introduce that much of a latency.
+  int32_t lastEos = -1;
+  for (int i = 0; i < constants::kInputMedium.noTokens - 2; i++) {
+    bool isFollowedByEos =
+        constants::kEndOfSentencePhonemes.contains(phonemes[i + 1]);
+    if (constants::kEndOfSentencePhonemes.contains(phonemes[i]) &&
+        !isFollowedByEos)
+      lastEos = i;
+  }
+
+  if (!fixedModel_.has_value() &&
+      lastEos > constants::kInputSmall.noTokens - 2) {
+    std::vector<std::u32string> result = {phonemes.substr(0, lastEos + 1)};
+    auto rest =
+        divide(phonemes.substr(lastEos + 1, phonemes.size() - lastEos - 1),
+               [](Cost a, Cost b) { return a + b; });
+    result.insert(result.end(), std::make_move_iterator(rest.begin()),
+                  std::make_move_iterator(rest.end()));
+    return result;
+  }
+
+  return divide(phonemes, [](Cost a, Cost b) { return a + b; });
+}
+
+void Partitioner::setFixedModel(const std::string &modelLabel) {
+  if (!constants::kInputs.contains(modelLabel))
+    throw std::invalid_argument("Partitioner: invalid fixed model label");
+
+  fixedModel_ = {modelLabel};
+}
+
+void Partitioner::resetOptions() { fixedModel_ = std::nullopt; }
 
 // Helper function - partitioning
 // A template which is controled by concrete operator instead of
 // an abstract Strategy argument.
 // Utilizes dynamic programming approach for finding the
 // optimal solution.
-std::vector<std::u32string> divide(const std::u32string &phonemes,
-                                   const std::function<Cost(Cost, Cost)> &op) {
+std::vector<std::u32string>
+Partitioner::divide(const std::u32string &phonemes,
+                    const std::function<Cost(Cost, Cost)> &op) {
   // DP array
   // (cost, prev_breakpoint_idx) pairs
   std::vector<std::pair<Cost, int32_t>> mem(phonemes.size(), {INF, -1});
@@ -101,50 +135,37 @@ std::vector<std::u32string> divide(const std::u32string &phonemes,
 
   return result;
 }
-} // namespace
 
-template <>
-std::vector<std::u32string>
-divide<Strategy::TOTAL_TIME>(const std::u32string &phonemes) {
-  // Update the small model cost back to normal
-  smallModelCost = 4;
+// Helper function - cost estimation (by string size)
+Partitioner::Cost Partitioner::cost(size_t stringSize) {
+  size_t effSize = stringSize + 2;
 
-  return divide(phonemes, [](Cost a, Cost b) { return a + b; });
-}
+  // If fixed model is set, we are limited to using only one of the models.
+  std::string activeModel =
+      fixedModel_.has_value()                       ? fixedModel_.value()
+      : effSize <= constants::kInputSmall.noTokens  ? "small"
+      : effSize <= constants::kInputMedium.noTokens ? "medium"
+                                                    : "large";
 
-template <>
-std::vector<std::u32string>
-divide<Strategy::LATENCY>(const std::u32string &phonemes) {
-  // In streaming mode, we particularly want to avoid using
-  // small model, since it might introduce a bigger latency
-  // if followed by the large model.
-  smallModelCost = 10;
+  const Configuration &modelConfig = constants::kInputs.at(activeModel);
+  Cost baseCost =
+      effSize <= modelConfig.noTokens ? modelCosts_.at(activeModel) : INF;
 
-  if (phonemes.size() <= constants::kInputMedium.noTokens - 2)
-    return {phonemes};
-
-  // Try to start with a medium-sized model, which is relatively quick
-  // and does not introduce that much of a latency.
-  int32_t lastEos = -1;
-  for (int i = 0; i < constants::kInputMedium.noTokens - 2; i++) {
-    bool isFollowedByEos =
-        constants::kEndOfSentencePhonemes.contains(phonemes[i + 1]);
-    if (constants::kEndOfSentencePhonemes.contains(phonemes[i]) &&
-        !isFollowedByEos)
-      lastEos = i;
+  // Scale the cost according to sentence length / input proportion.
+  // The idea is to penalize creating sentences much shorter than
+  // corresponding input length.
+  if (effSize < modelConfig.noTokens) {
+    baseCost += baseCost * (modelConfig.noTokens - effSize) *
+                (modelConfig.noTokens - effSize) /
+                (modelConfig.noTokens * modelConfig.noTokens);
   }
 
-  if (lastEos > constants::kInputSmall.noTokens - 2) {
-    std::vector<std::u32string> result = {phonemes.substr(0, lastEos + 1)};
-    auto rest =
-        divide(phonemes.substr(lastEos + 1, phonemes.size() - lastEos - 1),
-               [](Cost a, Cost b) { return a + b; });
-    result.insert(result.end(), std::make_move_iterator(rest.begin()),
-                  std::make_move_iterator(rest.end()));
-    return result;
-  }
-
-  return divide(phonemes, [](Cost a, Cost b) { return a + b; });
+  return baseCost;
 }
 
-} // namespace rnexecutorch::models::text_to_speech::kokoro::partitioner
+// Helper function - cost estimation (by string)
+Partitioner::Cost Partitioner::cost(const std::u32string &phonemes) {
+  return cost(phonemes.size());
+}
+
+} // namespace rnexecutorch::models::text_to_speech::kokoro

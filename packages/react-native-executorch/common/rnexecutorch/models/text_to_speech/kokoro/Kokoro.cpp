@@ -1,5 +1,4 @@
 #include "Kokoro.h"
-#include "Partitioner.h"
 #include "Utils.h"
 
 #include <algorithm>
@@ -75,16 +74,12 @@ std::vector<float> Kokoro::generate(std::string text, float speed) {
   // Affects the further calculations only in case of string size
   // exceeding the biggest model's input.
   auto subsentences =
-      partitioner::divide<partitioner::Strategy::TOTAL_TIME>(phonemes);
+      partitioner_.divide<Partitioner::Strategy::TOTAL_TIME>(phonemes);
 
   std::vector<float> audio = {};
   for (const auto &subsentence : subsentences) {
     size_t inputSize = subsentence.size() + 2;
-    const auto &config = inputSize <= constants::kInputSmall.noTokens
-                             ? constants::kInputSmall
-                         : inputSize <= constants::kInputMedium.noTokens
-                             ? constants::kInputMedium
-                             : constants::kInputLarge;
+    const auto &config = selectConfig(inputSize);
 
     auto audioPart = generateForConfig(subsentence, config, speed);
 
@@ -92,7 +87,7 @@ std::vector<float> Kokoro::generate(std::string text, float speed) {
     char32_t lastPhoneme = subsentence.back();
     size_t pauseMs = constants::kPauseValues.contains(lastPhoneme)
                          ? constants::kPauseValues.at(lastPhoneme)
-                         : 0;
+                         : constants::kDefaultPause;
     std::vector<float> pause(pauseMs * constants::kSamplesPerMilisecond, 0.F);
 
     // Add audio part and pause to the main audio vector
@@ -126,20 +121,14 @@ void Kokoro::stream(std::string text, float speed,
   // Use specialized implementation to minimize the latency between the
   // sentences.
   auto subsentences =
-      partitioner::divide<partitioner::Strategy::LATENCY>(phonemes);
+      partitioner_.divide<Partitioner::Strategy::LATENCY>(phonemes);
 
   // We follow the implementation of generate() method, but
   // instead of accumulating results in a vector, we push them
   // back to the JS side with the callback.
-  for (size_t i = 0; i < subsentences.size(); i++) {
-    const auto &subsentence = subsentences[i];
-
+  for (const auto &subsentence : subsentences) {
     size_t inputSize = subsentence.size() + 2;
-    const auto &config = inputSize <= constants::kInputSmall.noTokens
-                             ? constants::kInputSmall
-                         : inputSize <= constants::kInputMedium.noTokens
-                             ? constants::kInputMedium
-                             : constants::kInputLarge;
+    const auto &config = selectConfig(inputSize);
 
     auto audioPart = generateForConfig(subsentence, config, speed);
 
@@ -147,7 +136,7 @@ void Kokoro::stream(std::string text, float speed,
     char32_t lastPhoneme = subsentence.back();
     size_t pauseMs = constants::kPauseValues.contains(lastPhoneme)
                          ? constants::kPauseValues.at(lastPhoneme)
-                         : 0;
+                         : constants::kDefaultPause;
     std::vector<float> pause(pauseMs * constants::kSamplesPerMilisecond, 0.F);
 
     // Add the pause to the audio vector
@@ -224,6 +213,16 @@ std::vector<float> Kokoro::generateForConfig(const std::u32string &phonemes,
   return result;
 }
 
+const Configuration &Kokoro::selectConfig(size_t inputSize) const {
+  std::string modelLabel =
+      fixedModel_.has_value()                         ? fixedModel_.value()
+      : inputSize <= constants::kInputSmall.noTokens  ? "small"
+      : inputSize <= constants::kInputMedium.noTokens ? "medium"
+                                                      : "large";
+
+  return constants::kInputs.at(modelLabel);
+}
+
 std::size_t Kokoro::getMemoryLowerBound() const noexcept {
   return durationPredictor_.getMemoryLowerBound() +
          f0nPredictor_.getMemoryLowerBound() + encoder_.getMemoryLowerBound() +
@@ -235,6 +234,11 @@ void Kokoro::unload() noexcept {
   f0nPredictor_.unload();
   encoder_.unload();
   decoder_.unload();
+}
+
+void Kokoro::setFixedModel(std::string modelLabel) {
+  partitioner_.setFixedModel(modelLabel);
+  fixedModel_ = {modelLabel};
 }
 
 } // namespace rnexecutorch::models::text_to_speech::kokoro

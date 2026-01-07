@@ -50,6 +50,12 @@ export const TextToSpeechScreen = () => {
   const model = useTextToSpeech({
     model: KOKORO_EN,
     voice: KOKORO_VOICE_AF_HEART,
+    options: {
+      // This allows to minimize the memory usage by utilizing only one of the models.
+      // However, it either increases the latency (in case of the largest model) or
+      // decreases the quality of the results (in case of the smaller models).
+      // fixedModel: "large"
+    },
   });
 
   const [inputText, setInputText] = useState('');
@@ -61,7 +67,7 @@ export const TextToSpeechScreen = () => {
 
   useEffect(() => {
     AudioManager.setAudioSessionOptions({
-      iosCategory: 'playback',
+      iosCategory: 'playAndRecord',
       iosMode: 'spokenAudio',
       iosOptions: ['defaultToSpeaker'],
     });

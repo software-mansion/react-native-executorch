@@ -9,11 +9,10 @@ import {
 } from '../../types/tts';
 
 export class TextToSpeechModule extends BaseModule {
-  async load(
+  public async load(
     config: TextToSpeechConfig,
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ): Promise<void> {
-    // TODO: this check is pretty dubious and should be replaced with something better.
     const anySourceKey = Object.keys(config.model).find((key) =>
       key.includes('Source')
     );
@@ -22,12 +21,14 @@ export class TextToSpeechModule extends BaseModule {
     }
 
     // Select the text to speech model based on the input URL
+    // TODO: this check is pretty dubious and should be replaced with something better.
     const uri = (config.model as any)[anySourceKey];
     if (uri.includes('kokoro')) {
       await this.loadKokoro(
         config.model,
         config.voice!,
-        onDownloadProgressCallback
+        onDownloadProgressCallback,
+        config.options
       );
     }
     // ... more models? ...
@@ -37,7 +38,8 @@ export class TextToSpeechModule extends BaseModule {
   private async loadKokoro(
     model: KokoroConfig,
     voice: VoiceConfig,
-    onDownloadProgressCallback: (progress: number) => void
+    onDownloadProgressCallback: (progress: number) => void,
+    options?: any
   ): Promise<void> {
     if (!voice.extra || !voice.extra.tagger || !voice.extra.lexicon) {
       throw new Error(
@@ -71,6 +73,18 @@ export class TextToSpeechModule extends BaseModule {
       modelPaths[3]!,
       voiceDataPath!
     );
+
+    // Handle extra options
+    if (options && 'fixedModel' in options) {
+      const allowedModels = ['small', 'medium', 'large'];
+      const fixedModelValue = options.fixedModel;
+      if (!allowedModels.includes(fixedModelValue)) {
+        throw new Error(
+          `Invalid fixedModel value: ${fixedModelValue}. Allowed values are: ${allowedModels.join(', ')}.`
+        );
+      }
+      this.nativeModule.setFixedModel(fixedModelValue);
+    }
   }
 
   public async forward(text: string, speed: number = 1.0) {

@@ -29,6 +29,7 @@ export interface KokoroConfig {
 export interface TextToSpeechConfig {
   model: KokoroConfig; // ... add other model types in the future
   voice?: VoiceConfig;
+  options?: any; // A completely optional model-specific configuration
 }
 
 export interface TextToSpeechInput {

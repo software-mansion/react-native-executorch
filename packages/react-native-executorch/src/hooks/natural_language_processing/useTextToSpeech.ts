@@ -14,6 +14,7 @@ interface Props extends TextToSpeechConfig {
 export const useTextToSpeech = ({
   model,
   voice,
+  options,
   preventLoad = false,
 }: Props) => {
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +32,10 @@ export const useTextToSpeech = ({
       setError(null);
       try {
         setIsReady(false);
-        await moduleInstance.load({ model, voice }, setDownloadProgress);
+        await moduleInstance.load(
+          { model, voice, options },
+          setDownloadProgress
+        );
         setIsReady(true);
       } catch (err) {
         setError((err as Error).message);
@@ -41,7 +45,7 @@ export const useTextToSpeech = ({
     return () => {
       moduleInstance.delete();
     };
-  }, [moduleInstance, model, voice, preventLoad]);
+  }, [moduleInstance, model, voice, options, preventLoad]);
 
   const forward = async (input: TextToSpeechInput) => {
     if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));

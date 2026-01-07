@@ -9,6 +9,7 @@
 #include "DurationPredictor.h"
 #include "Encoder.h"
 #include "F0NPredictor.h"
+#include "Partitioner.h"
 #include <phonemis/pipeline.h>
 #include <rnexecutorch/metaprogramming/ConstructorHelpers.h>
 
@@ -36,9 +37,16 @@ public:
   std::size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
 
+  // Extra options setters
+  void setFixedModel(std::string modelLabel);
+
 private:
   // Helper function - loading voice array
   void loadVoice(const std::string &voiceSource);
+
+  // Helper function - selecting the appropriate input config for given input
+  // size
+  const Configuration &selectConfig(size_t inputSize) const;
 
   // Helper function - generate specialization for given input size
   std::vector<float> generateForConfig(const std::u32string &phonemes,
@@ -48,7 +56,8 @@ private:
   // JS callback handle
   std::shared_ptr<react::CallInvoker> callInvoker_;
 
-  // Kokoro submodules
+  // Submodules
+  Partitioner partitioner_; // Not a part of the original Kokoro inference
   DurationPredictor durationPredictor_;
   F0NPredictor f0nPredictor_;
   Encoder encoder_;
@@ -63,6 +72,9 @@ private:
 
   // Phonemizer pipeline
   phonemis::Pipeline phonemizer_;
+
+  // Extra options
+  std::optional<std::string> fixedModel_;
 };
 } // namespace models::text_to_speech::kokoro
 
