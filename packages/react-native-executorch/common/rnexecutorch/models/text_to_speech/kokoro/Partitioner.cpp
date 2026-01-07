@@ -26,7 +26,7 @@ std::vector<std::u32string> Partitioner::divide<Partitioner::Strategy::LATENCY>(
   // In streaming mode, we particularly want to avoid using
   // small model, since it might introduce a bigger latency
   // if followed by the large model.
-  modelCosts_.at("small") = INF;
+  modelCosts_.at("small") = 1000;
 
   if (phonemes.size() <= constants::kInputMedium.noTokens - 2)
     return {phonemes};
@@ -114,7 +114,9 @@ Partitioner::divide(const std::u32string &phonemes,
     char32_t phoneme = phonemes[i];
     if (constants::kEndOfSentencePhonemes.contains(phoneme))
       eosPoints.push_back(i);
-    else if (constants::kPausePhonemes.contains(phoneme))
+    else if (constants::kPausePhonemes.contains(phoneme) &&
+             (phoneme != U'-' ||
+              i < phonemes.size() - 1 && phonemes[i + 1] == U' '))
       pausePoints.push_back(i);
     else if (phoneme < 256 && std::isspace(static_cast<char>(phoneme)))
       whitePoints.push_back(i);

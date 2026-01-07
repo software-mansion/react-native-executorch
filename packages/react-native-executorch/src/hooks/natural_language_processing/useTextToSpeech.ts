@@ -24,6 +24,9 @@ export const useTextToSpeech = ({
 
   const [moduleInstance] = useState(() => new TextToSpeechModule());
 
+  // Stabilize options to prevent unnecessary reloads when new object references are passed
+  const optionsJson = JSON.stringify(options);
+
   useEffect(() => {
     if (preventLoad) return;
 
@@ -33,7 +36,11 @@ export const useTextToSpeech = ({
       try {
         setIsReady(false);
         await moduleInstance.load(
-          { model, voice, options },
+          {
+            model,
+            voice,
+            options,
+          },
           setDownloadProgress
         );
         setIsReady(true);
@@ -45,7 +52,18 @@ export const useTextToSpeech = ({
     return () => {
       moduleInstance.delete();
     };
-  }, [moduleInstance, model, voice, options, preventLoad]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    moduleInstance,
+    model.durationPredictorSource,
+    model.f0nPredictorSource,
+    model.textEncoderSource,
+    model.textDecoderSource,
+    voice?.data,
+    voice?.extra,
+    optionsJson,
+    preventLoad,
+  ]);
 
   const forward = async (input: TextToSpeechInput) => {
     if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));

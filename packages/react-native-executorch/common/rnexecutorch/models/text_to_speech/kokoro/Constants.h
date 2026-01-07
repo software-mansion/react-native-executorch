@@ -14,7 +14,7 @@ inline constexpr int32_t kAudioCroppingSteps = 20;
 inline constexpr float kAudioSilenceThreshold = 0.01F;
 inline const std::unordered_map<char32_t, int32_t> kPauseValues = {
     {U'.', 250}, {U'?', 350}, {'!', 180},  {';', 300},
-    {U'…', 500}, {U',', 125}, {U':', 175}, {U'-', 120}}; // [ms]
+    {U'…', 500}, {U',', 125}, {U':', 175}, {U'-', 175}}; // [ms]
 inline constexpr int32_t kDefaultPause = 5;              // [ms]
 
 // Model input sizes - input tokens & max (expected) durations

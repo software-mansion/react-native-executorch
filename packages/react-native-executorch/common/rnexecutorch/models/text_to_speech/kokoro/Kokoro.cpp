@@ -8,6 +8,7 @@
 #include <stdexcept>
 
 #include <chrono>
+#include <rnexecutorch/Log.h>
 
 namespace rnexecutorch::models::text_to_speech::kokoro {
 
