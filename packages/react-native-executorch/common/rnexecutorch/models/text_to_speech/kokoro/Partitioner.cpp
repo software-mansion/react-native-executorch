@@ -31,23 +31,36 @@ std::vector<std::u32string> Partitioner::divide<Partitioner::Strategy::LATENCY>(
   if (phonemes.size() <= constants::kInputMedium.noTokens - 2)
     return {phonemes};
 
-  // Try to start with a medium-sized model, which is relatively quick
-  // and does not introduce that much of a latency.
-  int32_t lastEos = -1;
-  for (int i = 0; i < constants::kInputMedium.noTokens - 2; i++) {
-    bool isFollowedByEos =
-        constants::kEndOfSentencePhonemes.contains(phonemes[i + 1]);
-    if (constants::kEndOfSentencePhonemes.contains(phonemes[i]) &&
-        !isFollowedByEos)
-      lastEos = i;
-  }
+  // Try to start with a medium-sized model
+  auto begPart = phonemes.substr(0, constants::kInputMedium.noTokens - 2);
+  auto lastEosIt =
+      std::find_if(begPart.rbegin(), begPart.rend(), [](char32_t c) {
+        return constants::kEndOfSentencePhonemes.contains(c);
+      });
+  auto lastPauseIt =
+      std::find_if(begPart.rbegin(), begPart.rend(), [](char32_t c) {
+        return constants::kPausePhonemes.contains(c);
+      });
+  int32_t lastEos = lastEosIt != begPart.rend()
+                        ? static_cast<int32_t>(std::distance(
+                              begPart.begin(), lastEosIt.base())) -
+                              1
+                        : -1;
+  int32_t lastPause = lastPauseIt != begPart.rend()
+                          ? static_cast<int32_t>(std::distance(
+                                begPart.begin(), lastPauseIt.base())) -
+                                1
+                          : -1;
 
   if (!fixedModel_.has_value() &&
-      lastEos > constants::kInputSmall.noTokens - 2) {
-    std::vector<std::u32string> result = {phonemes.substr(0, lastEos + 1)};
-    auto rest =
-        divide(phonemes.substr(lastEos + 1, phonemes.size() - lastEos - 1),
-               [](Cost a, Cost b) { return a + b; });
+      std::max(lastEos, lastPause) > constants::kInputSmall.noTokens - 2) {
+    int32_t breakpoint =
+        lastEos > constants::kInputSmall.noTokens - 2 ? lastEos : lastPause;
+
+    std::vector<std::u32string> result = {phonemes.substr(0, breakpoint + 1)};
+    auto rest = divide(
+        phonemes.substr(breakpoint + 1, phonemes.size() - breakpoint - 1),
+        [](Cost a, Cost b) { return a + b; });
     result.insert(result.end(), std::make_move_iterator(rest.begin()),
                   std::make_move_iterator(rest.end()));
     return result;
@@ -114,9 +127,7 @@ Partitioner::divide(const std::u32string &phonemes,
     char32_t phoneme = phonemes[i];
     if (constants::kEndOfSentencePhonemes.contains(phoneme))
       eosPoints.push_back(i);
-    else if (constants::kPausePhonemes.contains(phoneme) &&
-             (phoneme != U'-' ||
-              i < phonemes.size() - 1 && phonemes[i + 1] == U' '))
+    else if (constants::kPausePhonemes.contains(phoneme))
       pausePoints.push_back(i);
     else if (phoneme < 256 && std::isspace(static_cast<char>(phoneme)))
       whitePoints.push_back(i);
