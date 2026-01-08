@@ -4,10 +4,11 @@ import { TextToSpeechScreen } from './screens/TextToSpeechScreen';
 import { SpeechToTextScreen } from './screens/SpeechToTextScreen';
 import ColorPalette from './colors';
 import ExecutorchLogo from './assets/executorch.svg';
+import { Quiz } from './screens/Quiz';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<
-    'menu' | 'speech-to-text' | 'text-to-speech'
+    'menu' | 'speech-to-text' | 'text-to-speech' | 'quiz'
   >('menu');
 
   if (currentScreen === 'text-to-speech') {
@@ -16,6 +17,10 @@ export default function App() {
 
   if (currentScreen === 'speech-to-text') {
     return <SpeechToTextScreen />;
+  }
+
+  if (currentScreen === 'quiz') {
+    return <Quiz />;
   }
 
   return (
@@ -34,6 +39,12 @@ export default function App() {
           onPress={() => setCurrentScreen('text-to-speech')}
         >
           <Text style={styles.buttonText}>Text to Speech</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => setCurrentScreen('quiz')}
+        >
+          <Text style={styles.buttonText}>Text to Speech - Quiz</Text>
         </TouchableOpacity>
       </View>
     </View>
