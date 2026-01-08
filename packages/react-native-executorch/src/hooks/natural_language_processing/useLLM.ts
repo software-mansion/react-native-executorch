@@ -30,7 +30,7 @@ export const useLLM = ({
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const [error, setError] = useState<any>(null);
+  const [error, setError] = useState<null | string>(null);
 
   const tokenCallback = useCallback((newToken: string) => {
     setToken(newToken);
@@ -62,7 +62,7 @@ export const useLLM = ({
           onDownloadProgressCallback: setDownloadProgress,
         });
       } catch (e) {
-        setError(e);
+        setError((e as Error).message);
       }
     })();
 
