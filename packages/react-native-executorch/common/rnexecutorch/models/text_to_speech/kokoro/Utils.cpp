@@ -17,8 +17,9 @@ float normalize(float sample) {
 // non-quiet part of an audio.
 // Utilizes a moving average controled by hyperparameters from Constants.h.
 template <bool reverse> size_t findAudioBound(std::span<const float> audio) {
-  if (audio.empty())
+  if (audio.empty()) {
     return 0;
+  }
 
   size_t length = audio.size();
 
@@ -29,14 +30,16 @@ template <bool reverse> size_t findAudioBound(std::span<const float> audio) {
   while (count < length) {
     count++;
     sum += normalize(audio[i]);
-    if (count > constants::kAudioCroppingSteps)
+    if (count > constants::kAudioCroppingSteps) {
       sum -= normalize(audio[reverse ? i + constants::kAudioCroppingSteps
                                      : i - constants::kAudioCroppingSteps]);
+    }
 
     if (count >= constants::kAudioCroppingSteps &&
         sum / constants::kAudioCroppingSteps >=
-            constants::kAudioSilenceThreshold)
+            constants::kAudioSilenceThreshold) {
       return i;
+    }
 
     i = reverse ? i - 1 : i + 1;
   }
@@ -49,7 +52,7 @@ std::span<const float> stripAudio(std::span<const float> audio, size_t margin) {
   auto lbound = findAudioBound<false>(audio);
   auto rbound = findAudioBound<true>(audio);
 
-  lbound = lbound > margin ? lbound - margin : 0;
+  lbound = std::max(lbound - margin, size_t(0));
   rbound = std::min(rbound + margin, audio.size() - 1);
 
   return audio.subspan(lbound, rbound >= lbound ? rbound - lbound + 1 : 0);
@@ -57,9 +60,10 @@ std::span<const float> stripAudio(std::span<const float> audio, size_t margin) {
 
 std::vector<Token> tokenize(const std::u32string &phonemes,
                             std::optional<size_t> expectedSize) {
-  if (expectedSize.has_value() && expectedSize.value() < 2)
+  if (expectedSize.has_value() && expectedSize.value() < 2) {
     throw std::invalid_argument(
         "expected number of tokens cannot be lower than 2");
+  }
 
   // Number of tokens to populate, with and without edge pad tokens
   size_t lengthWithPadding =
@@ -68,8 +72,8 @@ std::vector<Token> tokenize(const std::u32string &phonemes,
   size_t effNoTokens = std::min(lengthWithoutPadding, phonemes.size());
 
   // Note that we populate tokens[1:noTokens - 1], since first and last tokens
-  // are zeros (padding). Input could contain unrecognized tokens, and that's
-  // why we use partition() at the end.
+  // are zeros (padding). Input could still contain unrecognized tokens, and
+  // that's why we use partition() at the end.
   std::vector<Token> tokens(lengthWithPadding, constants::kPadToken);
   std::transform(phonemes.begin(), phonemes.begin() + effNoTokens,
                  tokens.begin() + 1, [](char32_t p) -> Token {

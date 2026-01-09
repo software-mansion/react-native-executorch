@@ -1,5 +1,6 @@
 #include "F0NPredictor.h"
 #include <rnexecutorch/Log.h>
+#include <rnexecutorch/metaprogramming/ContainerHelpers.h>
 
 namespace rnexecutorch::models::text_to_speech::kokoro {
 
@@ -15,13 +16,7 @@ F0NPredictor::F0NPredictor(const std::string &modelSource,
   auto inputTensors = getAllInputShapes(testMethod);
 
   // Perform checks to validate model's compatibility with native code
-  if (inputTensors.size() < 2) {
-    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Error,
-                      "Unexpected model input size, expected 2 tensors "
-                      "but got: ",
-                      inputTensors.size());
-    throw std::runtime_error("[Kokoro::F0NPredictor] Incompatible model");
-  }
+  CHECK_SIZE(inputTensors, 3);
 }
 
 Result<std::vector<EValue>> F0NPredictor::generate(
@@ -29,12 +24,7 @@ Result<std::vector<EValue>> F0NPredictor::generate(
     std::span<int64_t> indices, std::span<float> dur, std::span<float> ref_hs) {
   // Perform input shape checks
   // s vector should be half of a voice reference vector size
-  if (ref_hs.size() != constants::kVoiceRefHalfSize) {
-    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Error,
-                      "Unexpected voice ref length: expected ",
-                      constants::kVoiceRefHalfSize, " but got ", ref_hs.size());
-    throw std::runtime_error("[Kokoro::F0NPredictor] Invalid input shape");
-  }
+  CHECK_SIZE(ref_hs, constants::kVoiceRefHalfSize);
 
   // Convert input data to ExecuTorch tensors
   auto indicesTensor =

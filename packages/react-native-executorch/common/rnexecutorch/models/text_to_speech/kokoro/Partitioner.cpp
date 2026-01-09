@@ -28,8 +28,9 @@ std::vector<std::u32string> Partitioner::divide<Partitioner::Strategy::LATENCY>(
   // if followed by the large model.
   modelCosts_.at("small") = 1000;
 
-  if (phonemes.size() <= constants::kInputMedium.noTokens - 2)
+  if (phonemes.size() <= constants::kInputMedium.noTokens - 2) {
     return {phonemes};
+  }
 
   // Try to start with a medium-sized model
   auto begPart = phonemes.substr(0, constants::kInputMedium.noTokens - 2);
@@ -106,8 +107,9 @@ Partitioner::divide(const std::u32string &phonemes,
     for (auto *q : {&eosPoints, &pausePoints, &whitePoints}) {
       // First, clear the queus from useless entries (out of even largest model
       // bounds).
-      while (!q->empty() && q->front() < i - constants::kInputLarge.noTokens)
+      while (!q->empty() && q->front() < i - constants::kInputLarge.noTokens) {
         q->pop_front();
+      }
 
       // Now iterate through the reimaining positions.
       Cost penalty = q == &eosPoints     ? eosPenalty
@@ -125,12 +127,13 @@ Partitioner::divide(const std::u32string &phonemes,
 
     // Add current phoneme to the appropriate queue.
     char32_t phoneme = phonemes[i];
-    if (constants::kEndOfSentencePhonemes.contains(phoneme))
+    if (constants::kEndOfSentencePhonemes.contains(phoneme)) {
       eosPoints.push_back(i);
-    else if (constants::kPausePhonemes.contains(phoneme))
+    } else if (constants::kPausePhonemes.contains(phoneme)) {
       pausePoints.push_back(i);
-    else if (phoneme < 256 && std::isspace(static_cast<char>(phoneme)))
+    } else if (phoneme < 256 && std::isspace(static_cast<char>(phoneme))) {
       whitePoints.push_back(i);
+    }
   }
 
   std::vector<std::u32string> result = {};
@@ -144,7 +147,7 @@ Partitioner::divide(const std::u32string &phonemes,
     end = mem[end].second;
   }
 
-  std::reverse(result.begin(), result.end());
+  std::ranges::reverse(result);
 
   return result;
 }

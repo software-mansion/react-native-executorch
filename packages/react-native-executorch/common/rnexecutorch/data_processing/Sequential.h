@@ -38,12 +38,11 @@ std::vector<T> repeatInterleave(std::span<const T> data,
         std::to_string(repetitions.size()));
   }
 
-  IType totalReps = std::accumulate(repetitions.begin(), repetitions.end(),
-                                    static_cast<IType>(0));
+  IType totalReps = std::reduce(repetitions.begin(), repetitions.end());
   std::vector<T> result(totalReps);
 
   IType filled = 0;
-  for (int i = 0; i < data.size(); ++i) {
+  for (size_t i = 0; i < data.size(); i++) {
     std::fill_n(result.begin() + filled, repetitions[i], data[i]);
     filled += repetitions[i];
   }

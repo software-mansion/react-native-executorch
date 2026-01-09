@@ -1,5 +1,6 @@
 #include "Decoder.h"
 #include <rnexecutorch/Log.h>
+#include <rnexecutorch/metaprogramming/ContainerHelpers.h>
 
 namespace rnexecutorch::models::text_to_speech::kokoro {
 
@@ -15,13 +16,7 @@ Decoder::Decoder(const std::string &modelSource,
   auto inputTensors = getAllInputShapes(testMethod);
 
   // Perform checks to validate model's compatibility with native code
-  if (inputTensors.size() < 4) {
-    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Error,
-                      "Unexpected model input size, expected 4 tensors "
-                      "but got: ",
-                      inputTensors.size());
-    throw std::runtime_error("[Kokoro::Decoder] Incompatible model");
-  }
+  CHECK_SIZE(inputTensors, 4);
 }
 
 Result<std::vector<EValue>>
@@ -30,25 +25,9 @@ Decoder::generate(const std::string &method, const Configuration &inputConfig,
                   std::span<float> nPred, std::span<float> ref_ls) {
   // Perform input shape checks
   // Both F0 and N vectors should be twice as long as duration
-  if (f0Pred.size() != 2 * inputConfig.duration) {
-    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Error,
-                      "Unexpected F0 vector length: expected ",
-                      2 * inputConfig.duration, " but got ", f0Pred.size());
-    throw std::runtime_error("[Kokoro::Decoder] Invalid input shape");
-  }
-  if (nPred.size() != 2 * inputConfig.duration) {
-    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Error,
-                      "Unexpected N vector length: expected ",
-                      2 * inputConfig.duration, " but got ", nPred.size());
-    throw std::runtime_error("[Kokoro::Decoder] Invalid input shape");
-  }
-  // ref_hs should be a half of a voice reference vector
-  if (ref_ls.size() != constants::kVoiceRefHalfSize) {
-    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Error,
-                      "Unexpected voice ref length: expected ",
-                      constants::kVoiceRefHalfSize, " but got ", ref_ls.size());
-    throw std::runtime_error("[Kokoro::Decoder] Invalid input shape");
-  }
+  CHECK_SIZE(f0Pred, 2 * inputConfig.duration);
+  CHECK_SIZE(nPred, 2 * inputConfig.duration);
+  CHECK_SIZE(ref_ls, constants::kVoiceRefHalfSize);
 
   // Convert input data to ExecuTorch tensors
   auto asrTensor = make_tensor_ptr({1, 512, inputConfig.duration}, asr.data(),

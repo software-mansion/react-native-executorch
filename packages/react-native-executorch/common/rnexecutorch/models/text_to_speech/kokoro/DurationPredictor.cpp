@@ -5,6 +5,7 @@
 #include <queue>
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/Sequential.h>
+#include <rnexecutorch/metaprogramming/ContainerHelpers.h>
 
 namespace rnexecutorch::models::text_to_speech::kokoro {
 
@@ -21,13 +22,7 @@ DurationPredictor::DurationPredictor(
   auto inputTensors = getAllInputShapes(testMethod);
 
   // Perform checks to validate model's compatibility with native code
-  if (inputTensors.size() < 4) {
-    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Error,
-                      "Unexpected model input size, expected  4 tensors "
-                      "but got: ",
-                      inputTensors.size());
-    throw std::runtime_error("[Kokoro::DurationPredictor] Incompatible model");
-  }
+  CHECK_SIZE(inputTensors, 4);
 }
 
 std::tuple<Tensor, std::vector<int64_t>, int32_t>
@@ -38,18 +33,8 @@ DurationPredictor::generate(const std::string &method,
   // Perform input shape checks
   // Since every bit in text mask corresponds to exactly one of the tokens, both
   // vectors should be the same length
-  if (tokens.size() != textMask.size()) {
-    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Error,
-                      "Unexpected text mask length: expected ", tokens.size(),
-                      " but got ", textMask.size());
-    throw std::runtime_error("[Kokoro::DurationPredictor] Invalid input shape");
-  }
-  if (ref_hs.size() != constants::kVoiceRefHalfSize) {
-    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Error,
-                      "Unexpected voice ref length: expected ",
-                      constants::kVoiceRefHalfSize, " but got ", ref_hs.size());
-    throw std::runtime_error("[Kokoro::DurationPredictor] Invalid input shape");
-  }
+  CHECK_SIZE(tokens, textMask.size());
+  CHECK_SIZE(ref_hs, constants::kVoiceRefHalfSize);
 
   // Convert input data to ExecuTorch tensors
   auto tokensTensor = make_tensor_ptr({1, static_cast<int32_t>(tokens.size())},
@@ -121,7 +106,7 @@ void DurationPredictor::scaleDurations(Tensor &durations,
 
   int32_t nTokens = shape[0];
   int64_t *durationsPtr = durations.data_ptr<int64_t>();
-  int64_t totalDur = std::accumulate(durationsPtr, durationsPtr + nTokens, 0LL);
+  int64_t totalDur = std::reduce(durationsPtr, durationsPtr + nTokens);
 
   float scaleFactor = static_cast<float>(targetDuration) / totalDur;
   bool shrinking = scaleFactor < 1.F;
@@ -142,7 +127,7 @@ void DurationPredictor::scaleDurations(Tensor &durations,
     scaledSum += durationsPtr[i];
 
     // Keeps the entries sorted by the remainders
-    remainders.push({remainder, i});
+    remainders.emplace(remainder, i);
   }
 
   // The initial processing scales durations to at least (targetDuration -

@@ -1,7 +1,10 @@
 #pragma once
 
+#include <memory>
 #include <span>
+#include <string>
 #include <tuple>
+#include <vector>
 
 #include <executorch/extension/tensor/tensor.h>
 
