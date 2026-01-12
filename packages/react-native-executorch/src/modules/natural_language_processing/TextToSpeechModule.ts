@@ -3,6 +3,7 @@ import { ETError, getError } from '../../Error';
 import { BaseModule } from '../BaseModule';
 import {
   KokoroConfig,
+  KokoroOptions,
   TextToSpeechConfig,
   TextToSpeechStreamingInput,
   VoiceConfig,
@@ -21,12 +22,12 @@ export class TextToSpeechModule extends BaseModule {
     }
 
     // Select the text to speech model based on it's fixed identifier
-    if (config.model.type == 'kokoro') {
+    if (config.model.type === 'kokoro') {
       await this.loadKokoro(
         config.model,
-        config.voice!,
+        config.voice,
         onDownloadProgressCallback,
-        config.options
+        config.options as KokoroOptions
       );
     }
     // ... more models? ...
@@ -37,23 +38,18 @@ export class TextToSpeechModule extends BaseModule {
     model: KokoroConfig,
     voice: VoiceConfig,
     onDownloadProgressCallback: (progress: number) => void,
-    options?: any
+    options?: KokoroOptions
   ): Promise<void> {
-    if (!voice.extra || !voice.extra.tagger || !voice.extra.lexicon) {
+    if (
+      !voice.extra ||
+      !voice.extra.taggerSource ||
+      !voice.extra.lexiconSource
+    ) {
       throw new Error(
-        'Kokoro: voice config is missing required extra fields: tagger and/or lexicon.'
+        'Kokoro: voice config is missing required extra fields: taggerSource and/or lexiconSource.'
       );
     }
 
-    console.log('[rnExecutorch] Pobierane zasoby:', {
-      durationPredictorSource: model.durationPredictorSource,
-      f0nPredictorSource: model.f0nPredictorSource,
-      textEncoderSource: model.textEncoderSource,
-      textDecoderSource: model.textDecoderSource,
-      voiceSource: voice.voiceSource,
-      tagger: voice.extra!.tagger,
-      lexicon: voice.extra!.lexicon,
-    });
     const paths = await ResourceFetcher.fetch(
       onDownloadProgressCallback,
       model.durationPredictorSource,
@@ -61,8 +57,8 @@ export class TextToSpeechModule extends BaseModule {
       model.textEncoderSource,
       model.textDecoderSource,
       voice.voiceSource,
-      voice.extra!.tagger,
-      voice.extra!.lexicon
+      voice.extra.taggerSource,
+      voice.extra.lexiconSource
     );
 
     if (paths === null || paths.length !== 7 || paths.some((p) => p == null)) {
@@ -72,10 +68,6 @@ export class TextToSpeechModule extends BaseModule {
     const modelPaths = paths.slice(0, 4) as [string, string, string, string];
     const voiceDataPath = paths[4] as string;
     const phonemizerPaths = paths.slice(5, 7) as [string, string];
-
-    console.log('[rnExecutorch] model paths: ', modelPaths);
-    console.log('[rnExecutorch] phonemizer paths: ', phonemizerPaths);
-    console.log('[rnExecutorch] voice paths: ', voiceDataPath);
 
     this.nativeModule = global.loadTextToSpeechKokoro(
       voice.lang,
@@ -89,15 +81,8 @@ export class TextToSpeechModule extends BaseModule {
     );
 
     // Handle extra options
-    if (options && 'fixedModel' in options) {
-      const allowedModels = ['small', 'medium', 'large'];
-      const fixedModelValue = options.fixedModel;
-      if (!allowedModels.includes(fixedModelValue)) {
-        throw new Error(
-          `Invalid fixedModel value: ${fixedModelValue}. Allowed values are: ${allowedModels.join(', ')}.`
-        );
-      }
-      this.nativeModule.setFixedModel(fixedModelValue);
+    if (options && options.fixedModel) {
+      this.nativeModule.setFixedModel(options.fixedModel);
     }
   }
 
@@ -107,29 +92,45 @@ export class TextToSpeechModule extends BaseModule {
     return await this.nativeModule.generate(text, speed);
   }
 
-  public async stream({
-    text,
-    onBegin,
-    onNext,
-    onEnd,
-    speed,
-  }: TextToSpeechStreamingInput) {
-    let queue = Promise.resolve();
+  public async *stream({ text, speed }: TextToSpeechStreamingInput) {
+    // Stores computed audio segments
+    const queue: Float32Array[] = [];
 
-    onBegin?.();
+    let waiter: (() => void) | null = null;
+    let finished = false;
+    let error: unknown;
 
-    try {
-      await this.nativeModule.stream(text, speed, (audio: number[]) => {
-        queue = queue.then(() =>
-          Promise.resolve(onNext?.(new Float32Array(audio)))
-        );
-      });
+    const wake = () => {
+      waiter?.();
+      waiter = null;
+    };
 
-      await queue;
-    } catch (e) {
-      throw e;
-    } finally {
-      onEnd?.();
+    (async () => {
+      try {
+        await this.nativeModule.stream(text, speed, (audio: number[]) => {
+          queue.push(new Float32Array(audio));
+          wake();
+        });
+        finished = true;
+        wake();
+      } catch (e) {
+        error = e;
+        finished = true;
+        wake();
+      }
+    })();
+
+    while (true) {
+      if (queue.length > 0) {
+        yield queue.shift()!;
+        if (finished && queue.length === 0) {
+          return;
+        }
+        continue;
+      }
+      if (error) throw error;
+      if (finished) return;
+      await new Promise<void>((r) => (waiter = r));
     }
   }
 }

@@ -1,4 +1,4 @@
-import { URL_PREFIX, NEXT_VERSION_TAG } from '../modelUrls';
+import { URL_PREFIX, NEXT_VERSION_TAG } from '../versions';
 
 // Text to speech (tts) - Kokoro model(s)
 const KOKORO_EN_DURATION_PREDICTOR = `${URL_PREFIX}-kokoro/${NEXT_VERSION_TAG}/xnnpack/duration_predictor.pte`;

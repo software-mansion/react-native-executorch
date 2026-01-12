@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { TextToSpeechModule } from '../../modules/natural_language_processing/TextToSpeechModule';
 import {
   TextToSpeechConfig,
@@ -76,19 +76,28 @@ export const useTextToSpeech = ({
     }
   };
 
-  const stream = async (input: TextToSpeechStreamingInput) => {
-    if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
-    if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
-    try {
+  const stream = useCallback(
+    async (input: TextToSpeechStreamingInput) => {
+      if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
+      if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
       setIsGenerating(true);
-      await moduleInstance.stream({
-        ...input,
-        speed: input.speed ?? 1.0,
-      });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
+      try {
+        await input.onBegin?.();
+        for await (const audio of moduleInstance.stream({
+          text: input.text,
+          speed: input.speed ?? 1.0,
+        })) {
+          if (input.onNext) {
+            await input.onNext(audio);
+          }
+        }
+      } finally {
+        await input.onEnd?.();
+        setIsGenerating(false);
+      }
+    },
+    [isReady, isGenerating, moduleInstance]
+  );
 
   return {
     error,
