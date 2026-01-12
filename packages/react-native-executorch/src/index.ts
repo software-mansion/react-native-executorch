@@ -28,7 +28,7 @@ declare global {
     modelName: string
   ) => any;
   var loadTextToSpeechKokoro: (
-    language: number,
+    lang: string,
     taggerData: string,
     phonemizerData: string,
     durationPredictorSource: string,

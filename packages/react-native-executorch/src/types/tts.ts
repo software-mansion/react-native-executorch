@@ -1,42 +1,71 @@
 import { ResourceSource } from './common';
 
-// List all the languages available in TTS models
-// The values should match the one used within the native side.
-export enum TextToSpeechLanguage {
-  EN_US = 0,
-  EN_GB = 1,
-}
+// List all the languages available in TTS models (as lang shorthands)
+export type TextToSpeechLanguage =
+  | 'en-us' // American English
+  | 'en-gb'; // British English
 
-// Voice configuration
-// So far in Kokoro, each voice is directly associated with a language.
-// The 'data' field corresponds to (usually) binary file with voice tensor.
+/**
+ * Voice configuration
+ *
+ * So far in Kokoro, each voice is directly associated with a language.
+ *
+ * @property {TextToSpeechLanguage} lang - speaker's language
+ * @property {ResourceSource} voiceSource - a source to a binary file with voice embedding
+ * @property {Record<string, unknown>} [extra] - an optional extra sources or properties related to specyfic voice
+ */
 export interface VoiceConfig {
-  language: TextToSpeechLanguage;
-  data: ResourceSource;
+  lang: TextToSpeechLanguage;
+  voiceSource: ResourceSource;
   extra?: Record<string, unknown>;
 }
 
-// Individual model configurations
-// - Kokoro Configuration (including Phonemis tagger resource)
+/**
+ * Kokoro model configuration.
+ * Only the core Kokoro model sources, as phonemizer sources are included in voice configuration.
+ */
 export interface KokoroConfig {
+  type: 'kokoro';
   durationPredictorSource: ResourceSource;
   f0nPredictorSource: ResourceSource;
   textEncoderSource: ResourceSource;
   textDecoderSource: ResourceSource;
 }
 
-// Model + voice configurations
+/**
+ * General Text to Speech module configuration
+ *
+ * @property {KokoroConfig} model - a selected T2S model
+ * @property {VoiceConfig} voice - a selected speaker's voice
+ * @property {any} [options] - a completely optional model-specific configuration
+ */
 export interface TextToSpeechConfig {
   model: KokoroConfig; // ... add other model types in the future
-  voice?: VoiceConfig;
-  options?: any; // A completely optional model-specific configuration
+  voice: VoiceConfig;
+  options?: any;
 }
 
+/**
+ * Text to Speech module input definition
+ *
+ * @property {string} text - a text to be spoken
+ * @property {number} [speed] - optional speed argument - the higher it is, the faster the speach becomes
+ */
 export interface TextToSpeechInput {
   text: string;
   speed?: number;
 }
 
+/**
+ * Text to Speech streaming input definition
+ *
+ * Streaming mode in T2S is synchronized by passing specyfic callbacks
+ * executed at given moments of the streaming.
+ * Actions such as playing the audio should happen within the onNext callback.
+ * @property {() => void | Promise<void>} [onBegin] - Called when streaming begins
+ * @property {(audio: Float32Array) => void | Promise<void>} [onNext] - Called after each audio chunk gets calculated.
+ * @property {() => void | Promise<void>} [onEnd] - Called when streaming ends
+ */
 export interface TextToSpeechStreamingInput extends TextToSpeechInput {
   onBegin?: () => void | Promise<void>;
   onNext?: (audio: Float32Array) => void | Promise<void>;

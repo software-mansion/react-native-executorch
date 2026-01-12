@@ -3,16 +3,12 @@
 
 #include <algorithm>
 #include <fstream>
-#include <numeric>
 #include <rnexecutorch/data_processing/Sequential.h>
 #include <stdexcept>
 
-#include <chrono>
-#include <rnexecutorch/Log.h>
-
 namespace rnexecutorch::models::text_to_speech::kokoro {
 
-Kokoro::Kokoro(int language, const std::string &taggerDataSource,
+Kokoro::Kokoro(const std::string &lang, const std::string &taggerDataSource,
                const std::string &phonemizerDataSource,
                const std::string &durationPredictorSource,
                const std::string &f0nPredictorSource,
@@ -24,8 +20,10 @@ Kokoro::Kokoro(int language, const std::string &taggerDataSource,
       f0nPredictor_(f0nPredictorSource, callInvoker_),
       encoder_(encoderSource, callInvoker_),
       decoder_(decoderSource, callInvoker_),
-      phonemizer_(static_cast<phonemis::Lang>(language), taggerDataSource,
-                  phonemizerDataSource) {
+      phonemizer_(lang == "en-us"   ? phonemis::Lang::EN_US
+                  : lang == "en-gb" ? phonemis::Lang::EN_GB
+                                    : phonemis::Lang::DEFAULT,
+                  taggerDataSource, phonemizerDataSource) {
   // Populate the voice array by reading given file
   loadVoice(voiceSource);
 }
@@ -79,6 +77,8 @@ std::vector<float> Kokoro::generate(std::string text, float speed) {
 
   std::vector<float> audio = {};
   for (const auto &subsentence : subsentences) {
+    // Kokoro requires padding the input with single zeros at both ends.
+    // This effectively increases the input size by 2.
     size_t inputSize = subsentence.size() + 2;
     const auto &config = selectConfig(inputSize);
 
@@ -128,6 +128,8 @@ void Kokoro::stream(std::string text, float speed,
   // instead of accumulating results in a vector, we push them
   // back to the JS side with the callback.
   for (const auto &subsentence : subsentences) {
+    // Kokoro requires padding the input with single zeros at both ends.
+    // This effectively increases the input size by 2.
     size_t inputSize = subsentence.size() + 2;
     const auto &config = selectConfig(inputSize);
 
@@ -153,10 +155,10 @@ std::vector<float> Kokoro::generateForConfig(const std::u32string &phonemes,
                                              const Configuration &config,
                                              float speed) {
   // Determine the appropriate method for given input configuration
-  std::string method = "forward_" + std::to_string(config.noTokens);
+  const std::string method = "forward_" + std::to_string(config.noTokens);
 
   // Map phonemes to tokens
-  auto tokens = utils::tokenize(phonemes, {config.noTokens});
+  const auto tokens = utils::tokenize(phonemes, {config.noTokens});
 
   // Select the appropriate voice vector
   auto voiceId = std::clamp(static_cast<int32_t>(phonemes.size()) - 1, 0,
@@ -182,7 +184,7 @@ std::vector<float> Kokoro::generateForConfig(const std::u32string &phonemes,
   // Inference 2 - F0NPredictor
   auto f0nPrediction = f0nPredictor_.generate(
       method, config, std::span(indices),
-      std::span<float>(d.data_ptr<float>(), d.numel()), ref_hs);
+      std::span<float>(d.mutable_data_ptr<float>(), d.numel()), ref_hs);
   auto F0_pred = f0nPrediction->at(0).toTensor();
   auto N_pred = f0nPrediction->at(1).toTensor();
   auto en = f0nPrediction->at(2).toTensor();
@@ -192,14 +194,17 @@ std::vector<float> Kokoro::generateForConfig(const std::u32string &phonemes,
   auto encoding = encoder_.generate(
       method, config, std::span(tokens),
       std::span(reinterpret_cast<bool *>(textMask.data()), textMask.size()),
-      std::span<float>(pred_aln_trg.data_ptr<float>(), pred_aln_trg.numel()));
+      std::span<float>(pred_aln_trg.mutable_data_ptr<float>(),
+                       pred_aln_trg.numel()));
   auto asr = encoding->at(0).toTensor();
 
   // Inference 4 - Decoder
   auto decoding = decoder_.generate(
-      method, config, std::span<float>(asr.data_ptr<float>(), asr.numel()),
-      std::span<float>(F0_pred.data_ptr<float>(), F0_pred.numel()),
-      std::span<float>(N_pred.data_ptr<float>(), N_pred.numel()), ref_ls);
+      method, config,
+      std::span<float>(asr.mutable_data_ptr<float>(), asr.numel()),
+      std::span<float>(F0_pred.mutable_data_ptr<float>(), F0_pred.numel()),
+      std::span<float>(N_pred.mutable_data_ptr<float>(), N_pred.numel()),
+      ref_ls);
   auto audioTensor = decoding->at(0).toTensor();
 
   // Cut the resulting audio vector according to the effective duration

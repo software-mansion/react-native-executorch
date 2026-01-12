@@ -88,3 +88,6 @@ kokoro
 phonemizer
 phonemizers
 phonemis
+Español
+Français
+Português

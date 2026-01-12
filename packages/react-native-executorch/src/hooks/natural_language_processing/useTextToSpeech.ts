@@ -59,7 +59,7 @@ export const useTextToSpeech = ({
     model.f0nPredictorSource,
     model.textEncoderSource,
     model.textDecoderSource,
-    voice?.data,
+    voice?.voiceSource,
     voice?.extra,
     optionsJson,
     preventLoad,

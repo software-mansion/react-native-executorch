@@ -20,10 +20,28 @@ public:
   explicit DurationPredictor(const std::string &modelSource,
                              std::shared_ptr<react::CallInvoker> callInvoker);
 
-  // Returns a tuple (d, indices, effectiveDuration)
+  /**
+   * Generates approximated durations and corresponding indices for the input
+   * tokens.
+   *
+   * @param method      The method name to execute (e.g., "forward_32" for 32
+   * input token setup).
+   * @param inputConfig The configuration specifying input sizes (number of
+   * tokens) and durations.
+   * @param tokens      The input token sequence.
+   * @param textMask    A boolean mask indicating which tokens are valid.
+   * @param ref_hs      Reference speaker embedding (upper segment of the voice
+   * vector).
+   * @param speed       Speed factor for synthesis (default: 1.0).
+   * @return            Tuple containing:
+   *                    d - Tensor: predicted durations for each token,
+   *                    indices  - std::vector<int64_t>: repeated token indices,
+   *                    effDuration  - int32_t: effective duration after
+   * post-processing.
+   */
   std::tuple<Tensor, std::vector<int64_t>, int32_t>
   generate(const std::string &method, const Configuration &inputConfig,
-           std::span<Token> tokens, std::span<bool> textMask,
+           std::span<const Token> tokens, std::span<bool> textMask,
            std::span<float> ref_hs, float speed = 1.F);
 
 private:

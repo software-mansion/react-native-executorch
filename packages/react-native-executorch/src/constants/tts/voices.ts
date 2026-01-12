@@ -1,4 +1,3 @@
-import { TextToSpeechLanguage } from '../../types/tts';
 import { URL_PREFIX, NEXT_VERSION_TAG } from '../modelUrls';
 
 // Kokoro voices - phonemizers
@@ -19,42 +18,42 @@ const EN_GB_RESOURCES = {
 // Kokoro voices
 const KOKORO_VOICE_PREFIX = `${URL_PREFIX}-kokoro/${NEXT_VERSION_TAG}/voices`;
 export const KOKORO_VOICE_AF_HEART = {
-  language: TextToSpeechLanguage.EN_US,
-  data: `${KOKORO_VOICE_PREFIX}/af_heart.bin`,
+  lang: 'en-us' as const,
+  voiceSource: `${KOKORO_VOICE_PREFIX}/af_heart.bin`,
   extra: EN_US_RESOURCES,
 };
 export const KOKORO_VOICE_AF_RIVER = {
-  language: TextToSpeechLanguage.EN_US,
-  data: `${KOKORO_VOICE_PREFIX}/af_river.bin`,
+  lang: 'en-us' as const,
+  voiceSource: `${KOKORO_VOICE_PREFIX}/af_river.bin`,
   extra: EN_US_RESOURCES,
 };
 export const KOKORO_VOICE_AF_SARAH = {
-  language: TextToSpeechLanguage.EN_US,
-  data: `${KOKORO_VOICE_PREFIX}/af_sarah.bin`,
+  lang: 'en-us' as const,
+  voiceSource: `${KOKORO_VOICE_PREFIX}/af_sarah.bin`,
   extra: EN_US_RESOURCES,
 };
 export const KOKORO_VOICE_AM_ADAM = {
-  language: TextToSpeechLanguage.EN_US,
-  data: `${KOKORO_VOICE_PREFIX}/am_adam.bin`,
+  lang: 'en-us' as const,
+  voiceSource: `${KOKORO_VOICE_PREFIX}/am_adam.bin`,
   extra: EN_US_RESOURCES,
 };
 export const KOKORO_VOICE_AM_MICHAEL = {
-  language: TextToSpeechLanguage.EN_US,
-  data: `${KOKORO_VOICE_PREFIX}/am_michael.bin`,
+  lang: 'en-us' as const,
+  voiceSource: `${KOKORO_VOICE_PREFIX}/am_michael.bin`,
   extra: EN_US_RESOURCES,
 };
 export const KOKORO_VOICE_AM_SANTA = {
-  language: TextToSpeechLanguage.EN_US,
-  data: `${KOKORO_VOICE_PREFIX}/am_santa.bin`,
+  lang: 'en-us' as const,
+  voiceSource: `${KOKORO_VOICE_PREFIX}/am_santa.bin`,
   extra: EN_US_RESOURCES,
 };
 export const KOKORO_VOICE_BF_EMMA = {
-  language: TextToSpeechLanguage.EN_GB,
-  data: `${KOKORO_VOICE_PREFIX}/bf_emma.bin`,
+  lang: 'en-gb' as const,
+  voiceSource: `${KOKORO_VOICE_PREFIX}/bf_emma.bin`,
   extra: EN_GB_RESOURCES,
 };
 export const KOKORO_VOICE_BM_DANIEL = {
-  language: TextToSpeechLanguage.EN_GB,
-  data: `${KOKORO_VOICE_PREFIX}/bm_daniel.bin`,
+  lang: 'en-gb' as const,
+  voiceSource: `${KOKORO_VOICE_PREFIX}/bm_daniel.bin`,
   extra: EN_GB_RESOURCES,
 };

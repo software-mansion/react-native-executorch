@@ -20,10 +20,8 @@ export class TextToSpeechModule extends BaseModule {
       throw new Error('No model source provided.');
     }
 
-    // Select the text to speech model based on the input URL
-    // TODO: this check is pretty dubious and should be replaced with something better.
-    const uri = (config.model as any)[anySourceKey];
-    if (uri.includes('kokoro')) {
+    // Select the text to speech model based on it's fixed identifier
+    if (config.model.type == 'kokoro') {
       await this.loadKokoro(
         config.model,
         config.voice!,
@@ -47,31 +45,47 @@ export class TextToSpeechModule extends BaseModule {
       );
     }
 
+    console.log('[rnExecutorch] Pobierane zasoby:', {
+      durationPredictorSource: model.durationPredictorSource,
+      f0nPredictorSource: model.f0nPredictorSource,
+      textEncoderSource: model.textEncoderSource,
+      textDecoderSource: model.textDecoderSource,
+      voiceSource: voice.voiceSource,
+      tagger: voice.extra!.tagger,
+      lexicon: voice.extra!.lexicon,
+    });
     const paths = await ResourceFetcher.fetch(
       onDownloadProgressCallback,
-      ...Object.values(model),
-      voice.data,
+      model.durationPredictorSource,
+      model.f0nPredictorSource,
+      model.textEncoderSource,
+      model.textDecoderSource,
+      voice.voiceSource,
       voice.extra!.tagger,
       voice.extra!.lexicon
     );
 
-    if (paths === null || paths.length < 7) {
-      throw new Error('Download interrupted.');
+    if (paths === null || paths.length !== 7 || paths.some((p) => p == null)) {
+      throw new Error('Download interrupted or missing resource.');
     }
 
-    const modelPaths = paths.slice(0, 4);
-    const voiceDataPath = paths[4];
-    const phonemizerPaths = paths.slice(5, 7);
+    const modelPaths = paths.slice(0, 4) as [string, string, string, string];
+    const voiceDataPath = paths[4] as string;
+    const phonemizerPaths = paths.slice(5, 7) as [string, string];
+
+    console.log('[rnExecutorch] model paths: ', modelPaths);
+    console.log('[rnExecutorch] phonemizer paths: ', phonemizerPaths);
+    console.log('[rnExecutorch] voice paths: ', voiceDataPath);
 
     this.nativeModule = global.loadTextToSpeechKokoro(
-      voice.language,
-      phonemizerPaths[0]!,
-      phonemizerPaths[1]!,
-      modelPaths[0]!,
-      modelPaths[1]!,
-      modelPaths[2]!,
-      modelPaths[3]!,
-      voiceDataPath!
+      voice.lang,
+      phonemizerPaths[0],
+      phonemizerPaths[1],
+      modelPaths[0],
+      modelPaths[1],
+      modelPaths[2],
+      modelPaths[3],
+      voiceDataPath
     );
 
     // Handle extra options

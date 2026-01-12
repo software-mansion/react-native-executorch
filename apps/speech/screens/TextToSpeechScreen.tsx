@@ -19,6 +19,7 @@ import {
   AudioManager,
   AudioContext,
   AudioBuffer,
+  AudioBufferSourceNode,
 } from 'react-native-audio-api';
 import SWMIcon from '../assets/swm_icon.svg';
 
@@ -63,7 +64,7 @@ export const TextToSpeechScreen = () => {
   const [readyToGenerate, setReadyToGenerate] = useState(false);
 
   const audioContextRef = useRef<AudioContext | null>(null);
-  const sourceRef = useRef<any>(null);
+  const sourceRef = useRef<AudioBufferSourceNode>(null);
 
   useEffect(() => {
     AudioManager.setAudioSessionOptions({
@@ -72,7 +73,6 @@ export const TextToSpeechScreen = () => {
       iosOptions: ['defaultToSpeaker'],
     });
 
-    // Initialize context once
     audioContextRef.current = new AudioContext({ sampleRate: 24000 });
     audioContextRef.current.suspend();
 
@@ -122,7 +122,6 @@ export const TextToSpeechScreen = () => {
 
       const onEnd = async () => {
         setIsPlaying(false);
-        setReadyToGenerate(true);
         await audioContext.suspend();
       };
 

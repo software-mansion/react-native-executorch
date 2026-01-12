@@ -17,19 +17,18 @@ DurationPredictor::DurationPredictor(
     const std::string &modelSource,
     std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
-  std::string testMethod =
+  const std::string testMethod =
       "forward_" + std::to_string(constants::kInputSmall.noTokens);
-  auto inputTensors = getAllInputShapes(testMethod);
+  const auto inputTensors = getAllInputShapes(testMethod);
 
   // Perform checks to validate model's compatibility with native code
   CHECK_SIZE(inputTensors, 4);
 }
 
-std::tuple<Tensor, std::vector<int64_t>, int32_t>
-DurationPredictor::generate(const std::string &method,
-                            const Configuration &inputConfig,
-                            std::span<Token> tokens, std::span<bool> textMask,
-                            std::span<float> ref_hs, float speed) {
+std::tuple<Tensor, std::vector<int64_t>, int32_t> DurationPredictor::generate(
+    const std::string &method, const Configuration &inputConfig,
+    std::span<const Token> tokens, std::span<bool> textMask,
+    std::span<float> ref_hs, float speed) {
   // Perform input shape checks
   // Since every bit in text mask corresponds to exactly one of the tokens, both
   // vectors should be the same length
@@ -37,8 +36,9 @@ DurationPredictor::generate(const std::string &method,
   CHECK_SIZE(ref_hs, constants::kVoiceRefHalfSize);
 
   // Convert input data to ExecuTorch tensors
-  auto tokensTensor = make_tensor_ptr({1, static_cast<int32_t>(tokens.size())},
-                                      tokens.data(), ScalarType::Long);
+  auto tokensTensor =
+      make_tensor_ptr({1, static_cast<int32_t>(tokens.size())},
+                      const_cast<Token *>(tokens.data()), ScalarType::Long);
   auto textMaskTensor =
       make_tensor_ptr({1, static_cast<int32_t>(textMask.size())},
                       textMask.data(), ScalarType::Bool);
@@ -82,9 +82,18 @@ DurationPredictor::generate(const std::string &method,
       indices.begin(),
       std::lower_bound(indices.begin(), indices.end(), originalLength));
 
+  // It's not necessary, but we observed a positive effect in removing
+  // anomalies (due to the extended padding of the input vector) in
+  // the resulting audio vector.
   if (effDuration < inputConfig.duration)
     effDuration *= 0.95;
 
+  /**
+   * Returns:
+   *   - d: tensor containing the predicted durations for each token.
+   *   - indices: vector of repeated token indices according to durations.
+   *   - effDuration: an effective duration after post-processing.
+   */
   return std::make_tuple(std::move(d), std::move(indices),
                          std::move(effDuration));
 }
@@ -105,7 +114,7 @@ void DurationPredictor::scaleDurations(Tensor &durations,
   }
 
   int32_t nTokens = shape[0];
-  int64_t *durationsPtr = durations.data_ptr<int64_t>();
+  int64_t *durationsPtr = durations.mutable_data_ptr<int64_t>();
   int64_t totalDur = std::reduce(durationsPtr, durationsPtr + nTokens);
 
   float scaleFactor = static_cast<float>(targetDuration) / totalDur;

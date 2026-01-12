@@ -11,9 +11,9 @@ using ::executorch::extension::TensorPtr;
 F0NPredictor::F0NPredictor(const std::string &modelSource,
                            std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
-  std::string testMethod =
+  const std::string testMethod =
       "forward_" + std::to_string(constants::kInputSmall.noTokens);
-  auto inputTensors = getAllInputShapes(testMethod);
+  const auto inputTensors = getAllInputShapes(testMethod);
 
   // Perform checks to validate model's compatibility with native code
   CHECK_SIZE(inputTensors, 3);
@@ -43,7 +43,8 @@ Result<std::vector<EValue>> F0NPredictor::generate(
         ", error: " + std::to_string(static_cast<uint32_t>(results.error())));
   }
 
-  // [F0_pred, N_pred, en, pred_alg_trn]
+  // Returns F0 prediction, N prediction, and related features (en,
+  // pred_aln_trg)
   return results;
 }
 

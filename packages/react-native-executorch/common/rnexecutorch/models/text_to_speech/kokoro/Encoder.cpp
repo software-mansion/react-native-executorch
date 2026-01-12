@@ -11,9 +11,9 @@ using ::executorch::extension::TensorPtr;
 Encoder::Encoder(const std::string &modelSource,
                  std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
-  std::string testMethod =
+  const std::string testMethod =
       "forward_" + std::to_string(constants::kInputSmall.noTokens);
-  auto inputTensors = getAllInputShapes(testMethod);
+  const auto inputTensors = getAllInputShapes(testMethod);
 
   // Perform checks to validate model's compatibility with native code
   CHECK_SIZE(inputTensors, 3);
@@ -21,7 +21,7 @@ Encoder::Encoder(const std::string &modelSource,
 
 Result<std::vector<EValue>> Encoder::generate(const std::string &method,
                                               const Configuration &inputConfig,
-                                              std::span<Token> tokens,
+                                              std::span<const Token> tokens,
                                               std::span<bool> textMask,
                                               std::span<float> pred_aln_trg) {
   // Perform input shape checks
@@ -31,8 +31,9 @@ Result<std::vector<EValue>> Encoder::generate(const std::string &method,
 
   // Convert input data to ExecuTorch tensors
   int32_t noTokens = static_cast<int32_t>(tokens.size());
-  auto tokensTensor = make_tensor_ptr({1, static_cast<int32_t>(tokens.size())},
-                                      tokens.data(), ScalarType::Long);
+  auto tokensTensor =
+      make_tensor_ptr({1, static_cast<int32_t>(tokens.size())},
+                      const_cast<Token *>(tokens.data()), ScalarType::Long);
   auto textMaskTensor =
       make_tensor_ptr({1, static_cast<int32_t>(textMask.size())},
                       textMask.data(), ScalarType::Bool);
@@ -50,7 +51,7 @@ Result<std::vector<EValue>> Encoder::generate(const std::string &method,
         ", error: " + std::to_string(static_cast<uint32_t>(results.error())));
   }
 
-  // [asr]
+  // Returns a single tensor with ASR (Acoustic State Representation) features.
   return results;
 }
 
