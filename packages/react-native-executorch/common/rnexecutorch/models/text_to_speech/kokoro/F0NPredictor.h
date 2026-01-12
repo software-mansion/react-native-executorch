@@ -14,8 +14,8 @@ namespace rnexecutorch::models::text_to_speech::kokoro {
 
 class F0NPredictor : public BaseModel {
 public:
-  F0NPredictor(const std::string &modelSource,
-               std::shared_ptr<react::CallInvoker> callInvoker);
+  explicit F0NPredictor(const std::string &modelSource,
+                        std::shared_ptr<react::CallInvoker> callInvoker);
 
   Result<std::vector<EValue>> generate(const std::string &method,
                                        const Configuration &inputConfig,

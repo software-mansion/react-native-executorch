@@ -14,8 +14,8 @@ namespace rnexecutorch::models::text_to_speech::kokoro {
 
 class Decoder : public BaseModel {
 public:
-  Decoder(const std::string &modelSource,
-          std::shared_ptr<react::CallInvoker> callInvoker);
+  explicit Decoder(const std::string &modelSource,
+                   std::shared_ptr<react::CallInvoker> callInvoker);
 
   Result<std::vector<EValue>>
   generate(const std::string &method, const Configuration &inputConfig,

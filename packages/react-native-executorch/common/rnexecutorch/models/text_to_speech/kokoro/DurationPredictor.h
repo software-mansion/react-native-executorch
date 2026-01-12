@@ -17,8 +17,8 @@ using executorch::aten::Tensor;
 
 class DurationPredictor : public BaseModel {
 public:
-  DurationPredictor(const std::string &modelSource,
-                    std::shared_ptr<react::CallInvoker> callInvoker);
+  explicit DurationPredictor(const std::string &modelSource,
+                             std::shared_ptr<react::CallInvoker> callInvoker);
 
   // Returns a tuple (d, indices, effectiveDuration)
   std::tuple<Tensor, std::vector<int64_t>, int32_t>
