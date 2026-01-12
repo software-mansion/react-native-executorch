@@ -1,4 +1,6 @@
 #include "TokenizerModule.h"
+#include "Error.h"
+#include "ErrorCodes.h"
 #include <executorch/extension/module/module.h>
 #include <filesystem>
 #include <rnexecutorch/data_processing/FileUtils.h>
@@ -15,7 +17,8 @@ TokenizerModule::TokenizerModule(
 void TokenizerModule::ensureTokenizerLoaded(
     const std::string &methodName) const {
   if (!tokenizer) {
-    throw std::runtime_error(
+    throw RnExecutorchError(
+        RnExecutorchInternalError::ModuleNotLoaded,
         methodName + " function was called on an uninitialized tokenizer!");
   }
 }

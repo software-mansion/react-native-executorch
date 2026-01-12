@@ -2,7 +2,7 @@
 
 #include <executorch/extension/tensor/tensor.h>
 #include <filesystem>
-#include <stdexcept>
+#include <rnexecutorch/Error.h>
 
 namespace rnexecutorch::models {
 
@@ -18,8 +18,7 @@ BaseModel::BaseModel(const std::string &modelSource,
       module_(std::make_unique<Module>(modelSource, loadMode)) {
   Error loadError = module_->load();
   if (loadError != Error::Ok) {
-    throw std::runtime_error("Failed to load model: Error " +
-                             std::to_string(static_cast<int>(loadError)));
+    throw RnExecutorchError(loadError, "Failed to load model");
   }
   // We use the size of the model .pte file as the lower bound for the memory
   // occupied by the ET module. This is not the whole size however, the module
@@ -32,22 +31,23 @@ BaseModel::BaseModel(const std::string &modelSource,
 std::vector<int32_t> BaseModel::getInputShape(std::string method_name,
                                               int32_t index) const {
   if (!module_) {
-    throw std::runtime_error("Model not loaded: Cannot get input shape");
+    throw RnExecutorchError(RnExecutorchInternalError::ModuleNotLoaded,
+                            "Model not loaded: Cannot get input shape");
   }
 
   auto method_meta = module_->method_meta(method_name);
   if (!method_meta.ok()) {
-    throw std::runtime_error(
-        "Failed to get metadata for method '" + method_name + "': Error " +
-        std::to_string(static_cast<int>(method_meta.error())));
+    throw RnExecutorchError(method_meta.error(),
+                            "Failed to get metadata for method '" +
+                                method_name + "'");
   }
 
   auto input_meta = method_meta->input_tensor_meta(index);
   if (!input_meta.ok()) {
-    throw std::runtime_error(
+    throw RnExecutorchError(
+        input_meta.error(),
         "Failed to get metadata for input tensor at index " +
-        std::to_string(index) + " in method '" + method_name + "': Error " +
-        std::to_string(static_cast<int>(input_meta.error())));
+            std::to_string(index) + " in method '" + method_name + "'");
   }
 
   auto sizes = input_meta->sizes();
@@ -58,14 +58,15 @@ std::vector<int32_t> BaseModel::getInputShape(std::string method_name,
 std::vector<std::vector<int32_t>>
 BaseModel::getAllInputShapes(std::string methodName) const {
   if (!module_) {
-    throw std::runtime_error("Model not loaded: Cannot get all input shapes");
+    throw RnExecutorchError(RnExecutorchInternalError::ModuleNotLoaded,
+                            "Model not loaded: Cannot get all input shapes");
   }
 
   auto method_meta = module_->method_meta(methodName);
   if (!method_meta.ok()) {
-    throw std::runtime_error(
-        "Failed to get metadata for method '" + methodName + "': Error " +
-        std::to_string(static_cast<int>(method_meta.error())));
+    throw RnExecutorchError(method_meta.error(),
+                            "Failed to get metadata for method '" + methodName +
+                                "'");
   }
   std::vector<std::vector<int32_t>> output;
   std::size_t numInputs = method_meta->num_inputs();
@@ -73,10 +74,10 @@ BaseModel::getAllInputShapes(std::string methodName) const {
   for (std::size_t input = 0; input < numInputs; ++input) {
     auto input_meta = method_meta->input_tensor_meta(input);
     if (!input_meta.ok()) {
-      throw std::runtime_error(
+      throw RnExecutorchError(
+          input_meta.error(),
           "Failed to get metadata for input tensor at index " +
-          std::to_string(input) + " in method '" + methodName + "': Error " +
-          std::to_string(static_cast<int>(input_meta.error())));
+              std::to_string(input) + " in method '" + methodName + "'");
     }
     auto shape = input_meta->sizes();
     output.emplace_back(std::vector<int32_t>(shape.begin(), shape.end()));
@@ -90,7 +91,8 @@ BaseModel::getAllInputShapes(std::string methodName) const {
 std::vector<JSTensorViewOut>
 BaseModel::forwardJS(std::vector<JSTensorViewIn> tensorViewVec) const {
   if (!module_) {
-    throw std::runtime_error("Model not loaded: Cannot perform forward pass");
+    throw RnExecutorchError(RnExecutorchInternalError::ModuleNotLoaded,
+                            "Model not loaded: Cannot perform forward pass");
   }
   std::vector<executorch::runtime::EValue> evalues;
   evalues.reserve(tensorViewVec.size());
@@ -113,8 +115,9 @@ BaseModel::forwardJS(std::vector<JSTensorViewIn> tensorViewVec) const {
 
   auto result = module_->forward(evalues);
   if (!result.ok()) {
-    throw std::runtime_error("Forward pass failed: Error " +
-                             std::to_string(static_cast<int>(result.error())));
+    throw RnExecutorchError(result.error(),
+                            "The model's forward function did not succeed. "
+                            "Ensure the model input is correct.");
   }
 
   auto &outputs = result.get();
@@ -138,7 +141,8 @@ BaseModel::forwardJS(std::vector<JSTensorViewIn> tensorViewVec) const {
 Result<executorch::runtime::MethodMeta>
 BaseModel::getMethodMeta(const std::string &methodName) const {
   if (!module_) {
-    throw std::runtime_error("Model not loaded: Cannot get method meta!");
+    throw RnExecutorchError(RnExecutorchInternalError::ModuleNotLoaded,
+                            "Model not loaded: Cannot get method meta");
   }
   return module_->method_meta(methodName);
 }
@@ -146,7 +150,8 @@ BaseModel::getMethodMeta(const std::string &methodName) const {
 Result<std::vector<EValue>>
 BaseModel::forward(const EValue &input_evalue) const {
   if (!module_) {
-    throw std::runtime_error("Model not loaded: Cannot perform forward pass");
+    throw RnExecutorchError(RnExecutorchInternalError::ModuleNotLoaded,
+                            "Model not loaded: Cannot perform forward pass");
   }
   return module_->forward(input_evalue);
 }
@@ -154,7 +159,8 @@ BaseModel::forward(const EValue &input_evalue) const {
 Result<std::vector<EValue>>
 BaseModel::forward(const std::vector<EValue> &input_evalues) const {
   if (!module_) {
-    throw std::runtime_error("Model not loaded: Cannot perform forward pass");
+    throw RnExecutorchError(RnExecutorchInternalError::ModuleNotLoaded,
+                            "Model not loaded: Cannot perform forward pass");
   }
   return module_->forward(input_evalues);
 }
@@ -163,7 +169,8 @@ Result<std::vector<EValue>>
 BaseModel::execute(const std::string &methodName,
                    const std::vector<EValue> &input_value) const {
   if (!module_) {
-    throw std::runtime_error("Model not loaded, cannot run execute.");
+    throw RnExecutorchError(RnExecutorchInternalError::ModuleNotLoaded,
+                            "Model not loaded, cannot run execute");
   }
   return module_->execute(methodName, input_value);
 }

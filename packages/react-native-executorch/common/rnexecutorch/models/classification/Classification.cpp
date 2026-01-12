@@ -2,6 +2,8 @@
 
 #include <future>
 
+#include <rnexecutorch/Error.h>
+#include <rnexecutorch/ErrorCodes.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/data_processing/Numerical.h>
 #include <rnexecutorch/models/classification/Constants.h>
@@ -13,7 +15,8 @@ Classification::Classification(const std::string &modelSource,
     : BaseModel(modelSource, callInvoker) {
   auto inputShapes = getAllInputShapes();
   if (inputShapes.size() == 0) {
-    throw std::runtime_error("Model seems to not take any input tensors.");
+    throw RnExecutorchError(RnExecutorchInternalError::UnexpectedNumInputs,
+                            "Model seems to not take any input tensors.");
   }
   std::vector<int32_t> modelInputShape = inputShapes[0];
   if (modelInputShape.size() < 2) {
@@ -22,7 +25,8 @@ Classification::Classification(const std::string &modelSource,
                   "Unexpected model input size, expected at least 2 dimentions "
                   "but got: %zu.",
                   modelInputShape.size());
-    throw std::runtime_error(errorMessage);
+    throw RnExecutorchError(RnExecutorchInternalError::WrongDimensions,
+                            errorMessage);
   }
   modelImageSize = cv::Size(modelInputShape[modelInputShape.size() - 1],
                             modelInputShape[modelInputShape.size() - 2]);
@@ -35,11 +39,10 @@ Classification::generate(std::string imageSource) {
           .first;
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
-    throw std::runtime_error(
-        "Failed to forward, error: " +
-        std::to_string(static_cast<uint32_t>(forwardResult.error())));
+    throw RnExecutorchError(forwardResult.error(),
+                            "The model's forward function did not succeed. "
+                            "Ensure the model input is correct.");
   }
-
   return postprocess(forwardResult->at(0).toTensor());
 }
 
@@ -56,7 +59,8 @@ Classification::postprocess(const Tensor &tensor) {
         "Unexpected classification output size, was expecting: %zu classes "
         "but got: %zu classes",
         constants::kImagenet1kV1Labels.size(), resultVec.size());
-    throw std::runtime_error(errorMessage);
+    throw RnExecutorchError(RnExecutorchInternalError::InvalidModelOutput,
+                            errorMessage);
   }
 
   numerical::softmax(resultVec);

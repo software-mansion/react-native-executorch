@@ -1,5 +1,7 @@
 #include "OCR.h"
 #include "Constants.h"
+#include <rnexecutorch/Error.h>
+#include <rnexecutorch/ErrorCodes.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/ocr/Constants.h>
 
@@ -13,7 +15,8 @@ OCR::OCR(const std::string &detectorSource, const std::string &recognizerSource,
 std::vector<types::OCRDetection> OCR::generate(std::string input) {
   cv::Mat image = image_processing::readImage(input);
   if (image.empty()) {
-    throw std::runtime_error("Failed to load image from path: " + input);
+    throw RnExecutorchError(RnExecutorchInternalError::FileReadFailed,
+                            "Failed to load image from path: " + input);
   }
 
   /*

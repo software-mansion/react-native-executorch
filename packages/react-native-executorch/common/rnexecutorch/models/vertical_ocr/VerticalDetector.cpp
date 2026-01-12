@@ -1,5 +1,6 @@
 #include "VerticalDetector.h"
 
+#include <rnexecutorch/Error.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/utils/DetectorUtils.h>
@@ -11,7 +12,7 @@ namespace rnexecutorch::models::ocr {
 VerticalDetector::VerticalDetector(
     const std::string &modelSource,
     std::shared_ptr<react::CallInvoker> callInvoker)
-    : Detector(modelSource, callInvoker) {}
+    : Detector(modelSource, callInvoker) {};
 
 std::vector<types::DetectorBBox>
 VerticalDetector::generate(const cv::Mat &inputImage, int32_t inputWidth) {
@@ -35,9 +36,9 @@ VerticalDetector::generate(const cv::Mat &inputImage, int32_t inputWidth) {
   auto forwardResult = BaseModel::execute(methodName, {inputTensor});
 
   if (!forwardResult.ok()) {
-    throw std::runtime_error(
-        "Failed to " + methodName + " error: " +
-        std::to_string(static_cast<uint32_t>(forwardResult.error())));
+    throw RnExecutorchError(forwardResult.error(),
+                            "The model's forward function did not succeed. "
+                            "Ensure the model input is correct.");
   }
   return postprocess(forwardResult->at(0).toTensor(),
                      calculateModelImageSize(inputWidth),

@@ -1,4 +1,6 @@
 #include "RecognizerUtils.h"
+#include <rnexecutorch/Error.h>
+#include <rnexecutorch/ErrorCodes.h>
 
 namespace rnexecutorch::models::ocr::utils {
 cv::Mat softmax(const cv::Mat &inputs) {
@@ -150,7 +152,8 @@ cropImageWithBoundingBox(const cv::Mat &img,
                          const types::PaddingInfo &paddings,
                          const types::PaddingInfo &originalPaddings) {
   if (originalBbox.empty()) {
-    throw std::runtime_error("Original bounding box cannot be empty.");
+    throw RnExecutorchError(RnExecutorchInternalError::UndefinedError,
+                            "Original bounding box cannot be empty.");
   }
   const types::Point topLeft = originalBbox[0];
 

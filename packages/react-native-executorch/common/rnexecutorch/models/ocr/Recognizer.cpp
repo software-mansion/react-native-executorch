@@ -1,6 +1,7 @@
 #include "Recognizer.h"
 #include "Constants.h"
 #include <numeric>
+#include <rnexecutorch/Error.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/data_processing/Numerical.h>
 #include <rnexecutorch/models/ocr/Constants.h>
@@ -31,17 +32,17 @@ Recognizer::generate(const cv::Mat &grayImage, int32_t inputWidth) {
   std::string method_name = "forward_" + std::to_string(inputWidth);
   auto shapes = getAllInputShapes(method_name);
   if (shapes.empty()) {
-    throw std::runtime_error("Recognizer model: Input shapes for  " +
-                             method_name + " not found");
+    throw RnExecutorchError(RnExecutorchInternalError::UnexpectedNumInputs,
+                            "OCR method takes no inputs: " + method_name);
   }
   std::vector<int32_t> tensorDims = shapes[0];
   TensorPtr inputTensor =
       image_processing::getTensorFromMatrixGray(tensorDims, grayImage);
   auto forwardResult = BaseModel::execute(method_name, {inputTensor});
   if (!forwardResult.ok()) {
-    throw std::runtime_error(
-        "Failed to forward in Recognizer, error: " +
-        std::to_string(static_cast<uint32_t>(forwardResult.error())));
+    throw RnExecutorchError(forwardResult.error(),
+                            "The model's forward function did not succeed. "
+                            "Ensure the model input is correct.");
   }
 
   return postprocess(forwardResult->at(0).toTensor());

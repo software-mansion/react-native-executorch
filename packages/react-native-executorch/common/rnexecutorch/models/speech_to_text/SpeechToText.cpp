@@ -1,6 +1,8 @@
 #include <thread>
 
 #include "SpeechToText.h"
+#include <rnexecutorch/Error.h>
+#include <rnexecutorch/ErrorCodes.h>
 
 namespace rnexecutorch::models::speech_to_text {
 
@@ -72,7 +74,8 @@ size_t SpeechToText::getMemoryLowerBound() const noexcept {
 void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
                           std::string languageOption) {
   if (this->isStreaming) {
-    throw std::runtime_error("Streaming is already in progress");
+    throw RnExecutorchError(RnExecutorchInternalError::StreamingInProgress,
+                            "Streaming is already in progress!");
   }
 
   auto nativeCallback =

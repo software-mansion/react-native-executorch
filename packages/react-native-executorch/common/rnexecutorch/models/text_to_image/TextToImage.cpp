@@ -9,6 +9,9 @@
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/models/text_to_image/Constants.h>
 
+#include <rnexecutorch/Error.h>
+#include <rnexecutorch/ErrorCodes.h>
+
 namespace rnexecutorch::models::text_to_image {
 
 using namespace executorch::extension;
@@ -32,7 +35,8 @@ TextToImage::TextToImage(const std::string &tokenizerSource,
 
 void TextToImage::setImageSize(int32_t imageSize) {
   if (imageSize % 32 != 0) {
-    throw std::runtime_error("Image size must be a multiple of 32.");
+    throw RnExecutorchError(RnExecutorchInternalError::InvalidConfig,
+                            "Image size must be a multiple of 32.");
   }
   this->imageSize = imageSize;
   constexpr int32_t latentDownsample = 8;
