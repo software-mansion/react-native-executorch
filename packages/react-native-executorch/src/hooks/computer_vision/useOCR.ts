@@ -17,9 +17,7 @@ export const useOCR = ({
 }: {
   model: {
     detectorSource: ResourceSource;
-    recognizerLarge: ResourceSource;
-    recognizerMedium: ResourceSource;
-    recognizerSmall: ResourceSource;
+    recognizer: ResourceSource;
     language: OCRLanguage;
   };
   preventLoad?: boolean;
@@ -44,11 +42,7 @@ export const useOCR = ({
     (async () => {
       await controllerInstance.load(
         model.detectorSource,
-        {
-          recognizerLarge: model.recognizerLarge,
-          recognizerMedium: model.recognizerMedium,
-          recognizerSmall: model.recognizerSmall,
-        },
+        model.recognizer,
         model.language,
         setDownloadProgress
       );
@@ -60,9 +54,7 @@ export const useOCR = ({
   }, [
     controllerInstance,
     model.detectorSource,
-    model.recognizerLarge,
-    model.recognizerMedium,
-    model.recognizerSmall,
+    model.recognizer,
     model.language,
     preventLoad,
   ]);

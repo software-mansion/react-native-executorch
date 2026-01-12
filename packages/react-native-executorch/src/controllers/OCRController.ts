@@ -25,17 +25,12 @@ export class OCRController {
 
   public load = async (
     detectorSource: ResourceSource,
-    recognizerSources: {
-      recognizerLarge: ResourceSource;
-      recognizerMedium: ResourceSource;
-      recognizerSmall: ResourceSource;
-    },
+    recognizer: ResourceSource,
     language: OCRLanguage,
     onDownloadProgressCallback?: (downloadProgress: number) => void
   ) => {
     try {
-      if (!detectorSource || Object.keys(recognizerSources).length !== 3)
-        return;
+      if (!detectorSource || !recognizer) return;
 
       if (!symbols[language]) {
         throw new Error(getError(ETError.LanguageNotSupported));
@@ -47,18 +42,14 @@ export class OCRController {
       const paths = await ResourceFetcher.fetch(
         onDownloadProgressCallback,
         detectorSource,
-        recognizerSources.recognizerLarge,
-        recognizerSources.recognizerMedium,
-        recognizerSources.recognizerSmall
+        recognizer
       );
-      if (paths === null || paths?.length < 4) {
+      if (paths === null || paths.length < 2) {
         throw new Error('Download interrupted!');
       }
       this.nativeModule = global.loadOCR(
         paths[0]!,
         paths[1]!,
-        paths[2]!,
-        paths[3]!,
         symbols[language]
       );
       this.isReady = true;
