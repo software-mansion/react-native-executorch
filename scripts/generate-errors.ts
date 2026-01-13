@@ -6,9 +6,62 @@ import * as path from 'path';
 
 const REPO_ROOT = path.join(__dirname, '..');
 
+function extractComments(): Map<string, string> {
+  const configPath = path.join(__dirname, 'errors.config.ts');
+  const content = fs.readFileSync(configPath, 'utf-8');
+  const comments = new Map<string, string>();
+
+  // Match JSDoc comments followed by error name
+  const commentPattern = /\/\*\*?\s*([\s\S]*?)\s*\*\/\s*(\w+):/g;
+  let match;
+
+  while ((match = commentPattern.exec(content)) !== null) {
+    const commentText = match[1]
+      .split('\n')
+      .map((line) => line.replace(/^\s*\*\s?/, '').trim())
+      .filter((line) => line.length > 0)
+      .join('\n   * ');
+    const errorName = match[2];
+    comments.set(errorName, commentText);
+  }
+
+  return comments;
+}
+
 function generateCppEnum() {
+  const comments = extractComments();
+
+  // Filter out ExecuTorch mapped errors (0x00-0x32) for C++
+  const execuTorchErrorCodes = new Set([
+    'Ok',
+    'Internal',
+    'InvalidState',
+    'EndOfMethod',
+    'NotSupported',
+    'NotImplemented',
+    'InvalidArgument',
+    'InvalidType',
+    'OperatorMissing',
+    'NotFound',
+    'MemoryAllocationFailed',
+    'AccessFailed',
+    'InvalidProgram',
+    'InvalidExternalData',
+    'OutOfResources',
+    'DelegateInvalidCompatibility',
+    'DelegateMemoryAllocationFailed',
+    'DelegateInvalidHandle',
+  ]);
+
   const entries = Object.entries(errorDefinitions)
-    .map(([name, code]) => `  ${name} = ${code},`)
+    .filter(([name]) => !execuTorchErrorCodes.has(name))
+    .map(([name, code]) => {
+      const comment = comments.get(name);
+      if (comment) {
+        return `  /**\n   * ${comment}\n   */\n  ${name} = ${code},`;
+      }
+      return `  ${name} = ${code},`;
+    })
     .join('\n');
 
   const cpp = `#pragma once
@@ -36,8 +89,15 @@ ${entries}
 }
 
 function generateTypeScriptEnum() {
+  const comments = extractComments();
   const entries = Object.entries(errorDefinitions)
-    .map(([name, code]) => `  ${name} = ${code},`)
+    .map(([name, code]) => {
+      const comment = comments.get(name);
+      if (comment) {
+        return `  /**\n   * ${comment}\n   */\n  ${name} = ${code},`;
+      }
+      return `  ${name} = ${code},`;
+    })
     .join('\n');
 
   const ts = `// Auto-generated from scripts/errors.config.ts

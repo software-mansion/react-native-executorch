@@ -1,4 +1,3 @@
-import { parse } from '@huggingface/jinja';
 import { symbols } from '../constants/ocr/symbols';
 import { ETErrorCode } from '../errors/ErrorCodes';
 import { ExecutorchError, parseUnknownError } from '../errors/errorUtils';

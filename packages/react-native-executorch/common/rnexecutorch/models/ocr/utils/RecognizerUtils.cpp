@@ -152,7 +152,7 @@ cropImageWithBoundingBox(const cv::Mat &img,
                          const types::PaddingInfo &paddings,
                          const types::PaddingInfo &originalPaddings) {
   if (originalBbox.empty()) {
-    throw RnExecutorchError(RnExecutorchInternalError::UndefinedError,
+    throw RnExecutorchError(RnExecutorchInternalError::UnknownError,
                             "Original bounding box cannot be empty.");
   }
   const types::Point topLeft = originalBbox[0];
