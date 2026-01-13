@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ETError, getError } from '../Error';
+import { ETErrorCode } from '../errors/ErrorCodes';
+import { ExecutorchError, parseUnknownError } from '../errors/errorUtils';
 
 interface Module {
   load: (...args: any[]) => Promise<void>;
@@ -42,7 +43,7 @@ export const useModule = <
         await moduleInstance.load(model, setDownloadProgress);
         setIsReady(true);
       } catch (err) {
-        setError((err as Error).message);
+        setError(parseUnknownError(err).message);
       }
     })();
 
@@ -54,8 +55,16 @@ export const useModule = <
   }, [moduleInstance, ...Object.values(model), preventLoad]);
 
   const forward = async (...input: ForwardArgs): Promise<ForwardReturn> => {
-    if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
-    if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
+    if (!isReady)
+      throw new ExecutorchError(
+        ETErrorCode.ModuleNotLoaded,
+        'The model is currently not loaded. Please load the model before calling forward().'
+      );
+    if (isGenerating)
+      throw new ExecutorchError(
+        ETErrorCode.ModelGenerating,
+        'The model is currently generating. Please wait until previous model run is complete.'
+      );
     try {
       setIsGenerating(true);
       return await moduleInstance.forward(...input);

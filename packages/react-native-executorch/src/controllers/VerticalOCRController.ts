@@ -1,5 +1,6 @@
 import { symbols } from '../constants/ocr/symbols';
-import { ETError, getError } from '../Error';
+import { ETErrorCode } from '../errors/ErrorCodes';
+import { ExecutorchError, parseUnknownError } from '../errors/errorUtils';
 import { ResourceSource } from '../types/common';
 import { OCRLanguage } from '../types/ocr';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
@@ -14,9 +15,9 @@ export class VerticalOCRController {
   private errorCallback: (error: string) => void;
 
   constructor({
-    isReadyCallback = (_isReady: boolean) => {},
-    isGeneratingCallback = (_isGenerating: boolean) => {},
-    errorCallback = (_error: string) => {},
+    isReadyCallback = (_isReady: boolean) => { },
+    isGeneratingCallback = (_isGenerating: boolean) => { },
+    errorCallback = (_error: string) => { },
   } = {}) {
     this.isReadyCallback = isReadyCallback;
     this.isGeneratingCallback = isGeneratingCallback;
@@ -34,7 +35,10 @@ export class VerticalOCRController {
       if (!detectorSource || !recognizerSource) return;
 
       if (!symbols[language]) {
-        throw new Error(getError(ETError.LanguageNotSupported));
+        throw new ExecutorchError(
+          ETErrorCode.LanguageNotSupported,
+          'The provided language for OCR is not supported. Please try using other language.'
+        );
       }
 
       this.isReady = false;
@@ -46,7 +50,10 @@ export class VerticalOCRController {
         recognizerSource
       );
       if (paths === null || paths.length < 2) {
-        throw new Error('Download interrupted');
+        throw new ExecutorchError(
+          ETErrorCode.DownloadInterrupted,
+          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+        );
       }
       this.ocrNativeModule = global.loadVerticalOCR(
         paths[0]!,
@@ -59,19 +66,26 @@ export class VerticalOCRController {
       this.isReadyCallback(this.isReady);
     } catch (e) {
       if (this.errorCallback) {
-        this.errorCallback(getError(e));
+        // NOTE: maybe we should set the error to an actual error instead of string?
+        this.errorCallback(parseUnknownError(e).message);
       } else {
-        throw new Error(getError(e));
+        throw parseUnknownError(e);
       }
     }
   };
 
   public forward = async (imageSource: string) => {
     if (!this.isReady) {
-      throw new Error(getError(ETError.ModuleNotLoaded));
+      throw new ExecutorchError(
+        ETErrorCode.ModuleNotLoaded,
+        'The model is currently not loaded. Please load the model before calling forward().'
+      );
     }
     if (this.isGenerating) {
-      throw new Error(getError(ETError.ModelGenerating));
+      throw new ExecutorchError(
+        ETErrorCode.ModelGenerating,
+        'The model is currently generating. Please wait until previous model run is complete.'
+      );
     }
 
     try {
@@ -79,7 +93,7 @@ export class VerticalOCRController {
       this.isGeneratingCallback(this.isGenerating);
       return await this.ocrNativeModule.generate(imageSource);
     } catch (e) {
-      throw new Error(getError(e));
+      throw parseUnknownError(e);
     } finally {
       this.isGenerating = false;
       this.isGeneratingCallback(this.isGenerating);
@@ -88,9 +102,9 @@ export class VerticalOCRController {
 
   public delete() {
     if (this.isGenerating) {
-      throw new Error(
-        getError(ETError.ModelGenerating) +
-          'You cannot delete the model. You must wait until the generating is finished.'
+      throw new ExecutorchError(
+        ETErrorCode.ModelGenerating,
+        'The model is currently generating. Please wait until previous model run is complete.'
       );
     }
     this.ocrNativeModule.unload();

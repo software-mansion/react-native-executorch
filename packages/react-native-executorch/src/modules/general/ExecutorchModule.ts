@@ -2,6 +2,8 @@ import { TensorPtr } from '../../types/common';
 import { BaseModule } from '../BaseModule';
 import { ResourceSource } from '../../types/common';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
+import { ETErrorCode } from '../../errors/ErrorCodes';
+import { ExecutorchError } from '../../errors/errorUtils';
 
 export class ExecutorchModule extends BaseModule {
   async load(
@@ -13,7 +15,10 @@ export class ExecutorchModule extends BaseModule {
       modelSource
     );
     if (paths === null || paths.length < 1) {
-      throw new Error('Download interrupted.');
+      throw new ExecutorchError(
+        ETErrorCode.DownloadInterrupted,
+        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+      );
     }
     this.nativeModule = global.loadExecutorchModule(paths[0] || '');
   }

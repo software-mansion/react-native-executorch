@@ -9,6 +9,7 @@ import {
   ToolsConfig,
 } from '../../types/llm';
 import { LLMController } from '../../controllers/LLMController';
+import { parseUnknownError } from '../../errors/errorUtils';
 
 /*
 Hook version of LLMModule
@@ -62,7 +63,7 @@ export const useLLM = ({
           onDownloadProgressCallback: setDownloadProgress,
         });
       } catch (e) {
-        setError((e as Error).message);
+        setError(parseUnknownError(e).message);
       }
     })();
 

@@ -13,11 +13,16 @@ export const errorDefinitions = {
   UnexpectedNumInputs: 0x61,
   ThreadPoolError: 0x71,
   FileReadFailed: 0x72,
+  InvalidModelOutput: 0x73,
+  WrongDimensions: 0x74,
+  InvalidUserInput: 0x75,
+  DownloadInterrupted: 0x76,
 
   // SpeechToText errors
   MultilingualConfiguration: 0xa0,
   MissingDataChunk: 0xa1,
   StreamingNotStarted: 0xa2,
+  StreamingInProgress: 0xa3,
 
   // ExecuTorch mapped errors
   // Based on: https://github.com/pytorch/executorch/blob/main/runtime/core/error.h

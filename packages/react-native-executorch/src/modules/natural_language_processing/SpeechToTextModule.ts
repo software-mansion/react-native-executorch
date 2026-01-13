@@ -1,6 +1,8 @@
 import { Logger } from '../../common/Logger';
 import { DecodingOptions, SpeechToTextModelConfig } from '../../types/stt';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
+import { ETErrorCode } from '../../errors/ErrorCodes';
+import { ExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
 export class SpeechToTextModule {
   private nativeModule: any;
@@ -34,7 +36,10 @@ export class SpeechToTextModule {
     const encoderSource = encoderDecoderResults?.[0];
     const decoderSource = encoderDecoderResults?.[1];
     if (!encoderSource || !decoderSource || !tokenizerSources) {
-      throw new Error('Download interrupted.');
+      throw new ExecutorchError(
+        ETErrorCode.DownloadInterrupted,
+        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+      );
     }
     this.nativeModule = await global.loadSpeechToText(
       encoderSource,
@@ -148,7 +153,7 @@ export class SpeechToTextModule {
         }
         continue;
       }
-      if (error) throw error;
+      if (error) throw parseUnknownError(error);
       if (finished) return;
       await new Promise<void>((r) => (waiter = r));
     }
@@ -170,10 +175,16 @@ export class SpeechToTextModule {
 
   private validateOptions(options: DecodingOptions) {
     if (!this.modelConfig.isMultilingual && options.language) {
-      throw new Error('Model is not multilingual, cannot set language');
+      throw new ExecutorchError(
+        ETErrorCode.InvalidConfig,
+        'Model is not multilingual, cannot set language'
+      );
     }
     if (this.modelConfig.isMultilingual && !options.language) {
-      throw new Error('Model is multilingual, provide a language');
+      throw new ExecutorchError(
+        ETErrorCode.InvalidConfig,
+        'Model is multilingual, provide a language'
+      );
     }
   }
 }

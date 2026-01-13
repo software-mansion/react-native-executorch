@@ -3,6 +3,8 @@ import { ResourceSource } from '../../types/common';
 import { BaseModule } from '../BaseModule';
 import { Buffer } from 'buffer';
 import { PNG } from 'pngjs/browser';
+import { ETErrorCode } from '../../errors/ErrorCodes';
+import { ExecutorchError } from '../../errors/errorUtils';
 
 export class TextToImageModule extends BaseModule {
   private inferenceCallback: (stepIdx: number) => void;
@@ -33,7 +35,10 @@ export class TextToImageModule extends BaseModule {
       model.decoderSource
     );
     if (!results) {
-      throw new Error('Failed to fetch one or more resources.');
+      throw new ExecutorchError(
+        ETErrorCode.DownloadInterrupted,
+        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+      );
     }
     const [tokenizerPath, schedulerPath, encoderPath, unetPath, decoderPath] =
       results;
@@ -45,7 +50,10 @@ export class TextToImageModule extends BaseModule {
       !unetPath ||
       !decoderPath
     ) {
-      throw new Error('Download interrupted.');
+      throw new ExecutorchError(
+        ETErrorCode.DownloadInterrupted,
+        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+      );
     }
 
     const response = await fetch('file://' + schedulerPath);

@@ -1,5 +1,7 @@
 import { ResourceSource } from '../../types/common';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
+import { ExecutorchError } from '../../errors/errorUtils';
+import { ETErrorCode } from '../../errors/ErrorCodes';
 
 export class TokenizerModule {
   nativeModule: any;
@@ -14,7 +16,10 @@ export class TokenizerModule {
     );
     const path = paths?.[0];
     if (!path) {
-      throw new Error('Download interrupted.');
+      throw new ExecutorchError(
+        ETErrorCode.DownloadInterrupted,
+        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+      );
     }
     this.nativeModule = global.loadTokenizerModule(path);
   }

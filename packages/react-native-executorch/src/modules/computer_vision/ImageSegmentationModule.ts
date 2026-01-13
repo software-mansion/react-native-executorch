@@ -1,7 +1,8 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
 import { DeeplabLabel } from '../../types/imageSegmentation';
-import { ETError, getError } from '../../Error';
+import { ETErrorCode } from '../../errors/ErrorCodes';
+import { ExecutorchError } from '../../errors/errorUtils';
 import { BaseModule } from '../BaseModule';
 
 export class ImageSegmentationModule extends BaseModule {
@@ -14,7 +15,10 @@ export class ImageSegmentationModule extends BaseModule {
       model.modelSource
     );
     if (paths === null || paths.length < 1) {
-      throw new Error('Download interrupted.');
+      throw new ExecutorchError(
+        ETErrorCode.DownloadInterrupted,
+        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+      );
     }
     this.nativeModule = global.loadImageSegmentation(paths[0] || '');
   }
@@ -25,7 +29,10 @@ export class ImageSegmentationModule extends BaseModule {
     resize?: boolean
   ): Promise<{ [key in DeeplabLabel]?: number[] }> {
     if (this.nativeModule == null) {
-      throw new Error(getError(ETError.ModuleNotLoaded));
+      throw new ExecutorchError(
+        ETErrorCode.ModuleNotLoaded,
+        'The model is currently not loaded. Please load the model before calling forward().'
+      );
     }
 
     const stringDict = await this.nativeModule.generate(

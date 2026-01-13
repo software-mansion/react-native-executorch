@@ -1,5 +1,7 @@
+import { parse } from '@huggingface/jinja';
 import { symbols } from '../constants/ocr/symbols';
-import { ETError, getError } from '../Error';
+import { ETErrorCode } from '../errors/ErrorCodes';
+import { ExecutorchError, parseUnknownError } from '../errors/errorUtils';
 import { ResourceSource } from '../types/common';
 import { OCRLanguage } from '../types/ocr';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
@@ -33,7 +35,10 @@ export class OCRController {
       if (!detectorSource || !recognizerSource) return;
 
       if (!symbols[language]) {
-        throw new Error(getError(ETError.LanguageNotSupported));
+        throw new ExecutorchError(
+          ETErrorCode.LanguageNotSupported,
+          'The provided language for OCR is not supported. Please try using other language.'
+        );
       }
 
       this.isReady = false;
@@ -56,19 +61,26 @@ export class OCRController {
       this.isReadyCallback(this.isReady);
     } catch (e) {
       if (this.errorCallback) {
-        this.errorCallback(getError(e));
+        // NOTE: maybe we should set the error to an actual error instead of string?
+        this.errorCallback(parseUnknownError(e).message);
       } else {
-        throw new Error(getError(e));
+        throw parseUnknownError(e);
       }
     }
   };
 
   public forward = async (imageSource: string) => {
     if (!this.isReady) {
-      throw new Error(getError(ETError.ModuleNotLoaded));
+      throw new ExecutorchError(
+        ETErrorCode.ModuleNotLoaded,
+        'The model is currently not loaded. Please load the model before calling forward().'
+      );
     }
     if (this.isGenerating) {
-      throw new Error(getError(ETError.ModelGenerating));
+      throw new ExecutorchError(
+        ETErrorCode.ModelGenerating,
+        'The model is currently generating. Please wait until previous model run is complete.'
+      );
     }
 
     try {
@@ -76,7 +88,7 @@ export class OCRController {
       this.isGeneratingCallback(this.isGenerating);
       return await this.nativeModule.generate(imageSource);
     } catch (e) {
-      throw new Error(getError(e));
+      throw parseUnknownError(e);
     } finally {
       this.isGenerating = false;
       this.isGeneratingCallback(this.isGenerating);
@@ -85,9 +97,9 @@ export class OCRController {
 
   public delete() {
     if (this.isGenerating) {
-      throw new Error(
-        getError(ETError.ModelGenerating) +
-          ', You cannot delete the model. You must wait until the generating is finished.'
+      throw new ExecutorchError(
+        ETErrorCode.ModelGenerating,
+        'The model is currently generating. Please wait until previous model run is complete.'
       );
     }
     this.nativeModule.unload();

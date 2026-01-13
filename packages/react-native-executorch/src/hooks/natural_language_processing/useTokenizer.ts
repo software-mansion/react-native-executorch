@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { TokenizerModule } from '../../modules/natural_language_processing/TokenizerModule';
 import { ResourceSource } from '../../types/common';
-import { ETError, getError } from '../../Error';
+import { ETErrorCode } from '../../errors/ErrorCodes';
+import { ExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
 export const useTokenizer = ({
   tokenizer,
@@ -29,15 +30,23 @@ export const useTokenizer = ({
         );
         setIsReady(true);
       } catch (err) {
-        setError((err as Error).message);
+        setError(parseUnknownError(err).message);
       }
     })();
   }, [tokenizerInstance, tokenizer.tokenizerSource, preventLoad]);
 
   const stateWrapper = <T extends (...args: any[]) => Promise<any>>(fn: T) => {
     return (...args: Parameters<T>): Promise<ReturnType<T>> => {
-      if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
-      if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
+      if (!isReady)
+        throw new ExecutorchError(
+          ETErrorCode.ModuleNotLoaded,
+          'The model is currently not loaded. Please load the model before calling this function.'
+        );
+      if (isGenerating)
+        throw new ExecutorchError(
+          ETErrorCode.ModelGenerating,
+          'The model is currently generating. Please wait until previous model run is complete.'
+        );
       try {
         setIsGenerating(true);
         return fn.apply(tokenizerInstance, args);

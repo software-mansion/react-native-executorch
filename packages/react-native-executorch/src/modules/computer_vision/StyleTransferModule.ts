@@ -1,6 +1,7 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
-import { ETError, getError } from '../../Error';
+import { ETErrorCode } from '../../errors/ErrorCodes';
+import { ExecutorchError } from '../../errors/errorUtils';
 import { BaseModule } from '../BaseModule';
 
 export class StyleTransferModule extends BaseModule {
@@ -13,14 +14,20 @@ export class StyleTransferModule extends BaseModule {
       model.modelSource
     );
     if (paths === null || paths.length < 1) {
-      throw new Error('Download interrupted.');
+      throw new ExecutorchError(
+        ETErrorCode.DownloadInterrupted,
+        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+      );
     }
     this.nativeModule = global.loadStyleTransfer(paths[0] || '');
   }
 
   async forward(imageSource: string): Promise<string> {
     if (this.nativeModule == null)
-      throw new Error(getError(ETError.ModuleNotLoaded));
+      throw new ExecutorchError(
+        ETErrorCode.ModuleNotLoaded,
+        'The model is currently not loaded. Please load the model before calling forward().'
+      );
     return await this.nativeModule.generate(imageSource);
   }
 }
