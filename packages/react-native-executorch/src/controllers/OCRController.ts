@@ -9,7 +9,7 @@ export class OCRController {
   private nativeModule: any;
   public isReady: boolean = false;
   public isGenerating: boolean = false;
-  public error: string | null = null;
+  public error: ExecutorchError | null = null;
   private isReadyCallback: (isReady: boolean) => void;
   private isGeneratingCallback: (isGenerating: boolean) => void;
   private errorCallback: (error: ExecutorchError) => void;
