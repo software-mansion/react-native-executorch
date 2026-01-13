@@ -5,6 +5,10 @@
 
 namespace phonemis::preprocessor {
 
+// Normalizes the text by replacing all foreign characters
+// to latin-only phrases.
+std::string normalize_unicode(const std::string &text);
+
 // Divides a monolit text into multiple sentences.
 // A sentence always ends with a end of sentence character (defined in
 // constants.h).
