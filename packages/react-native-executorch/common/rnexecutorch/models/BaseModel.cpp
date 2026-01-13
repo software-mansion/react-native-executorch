@@ -31,7 +31,7 @@ BaseModel::BaseModel(const std::string &modelSource,
 std::vector<int32_t> BaseModel::getInputShape(std::string method_name,
                                               int32_t index) const {
   if (!module_) {
-    throw RnExecutorchError(RnExecutorchInternalError::ModuleNotLoaded,
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Model not loaded: Cannot get input shape");
   }
 
@@ -58,7 +58,7 @@ std::vector<int32_t> BaseModel::getInputShape(std::string method_name,
 std::vector<std::vector<int32_t>>
 BaseModel::getAllInputShapes(std::string methodName) const {
   if (!module_) {
-    throw RnExecutorchError(RnExecutorchInternalError::ModuleNotLoaded,
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Model not loaded: Cannot get all input shapes");
   }
 
@@ -91,7 +91,7 @@ BaseModel::getAllInputShapes(std::string methodName) const {
 std::vector<JSTensorViewOut>
 BaseModel::forwardJS(std::vector<JSTensorViewIn> tensorViewVec) const {
   if (!module_) {
-    throw RnExecutorchError(RnExecutorchInternalError::ModuleNotLoaded,
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Model not loaded: Cannot perform forward pass");
   }
   std::vector<executorch::runtime::EValue> evalues;
@@ -141,7 +141,7 @@ BaseModel::forwardJS(std::vector<JSTensorViewIn> tensorViewVec) const {
 Result<executorch::runtime::MethodMeta>
 BaseModel::getMethodMeta(const std::string &methodName) const {
   if (!module_) {
-    throw RnExecutorchError(RnExecutorchInternalError::ModuleNotLoaded,
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Model not loaded: Cannot get method meta");
   }
   return module_->method_meta(methodName);
@@ -150,7 +150,7 @@ BaseModel::getMethodMeta(const std::string &methodName) const {
 Result<std::vector<EValue>>
 BaseModel::forward(const EValue &input_evalue) const {
   if (!module_) {
-    throw RnExecutorchError(RnExecutorchInternalError::ModuleNotLoaded,
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Model not loaded: Cannot perform forward pass");
   }
   return module_->forward(input_evalue);
@@ -159,7 +159,7 @@ BaseModel::forward(const EValue &input_evalue) const {
 Result<std::vector<EValue>>
 BaseModel::forward(const std::vector<EValue> &input_evalues) const {
   if (!module_) {
-    throw RnExecutorchError(RnExecutorchInternalError::ModuleNotLoaded,
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Model not loaded: Cannot perform forward pass");
   }
   return module_->forward(input_evalues);
@@ -169,7 +169,7 @@ Result<std::vector<EValue>>
 BaseModel::execute(const std::string &methodName,
                    const std::vector<EValue> &input_value) const {
   if (!module_) {
-    throw RnExecutorchError(RnExecutorchInternalError::ModuleNotLoaded,
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Model not loaded, cannot run execute");
   }
   return module_->execute(methodName, input_value);

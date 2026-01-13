@@ -18,7 +18,7 @@ inline std::string getTimeID() {
 inline std::string loadBytesFromFile(const std::string &path) {
   std::ifstream fs(path, std::ios::in | std::ios::binary);
   if (fs.fail()) {
-    throw RnExecutorchError(RnExecutorchInternalError::FileReadFailed,
+    throw RnExecutorchError(RnExecutorchErrorCode::FileReadFailed,
                             "Failed to open tokenizer file!");
   }
   std::string data;

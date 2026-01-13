@@ -1,6 +1,6 @@
 import { symbols } from '../constants/ocr/symbols';
-import { ETErrorCode } from '../errors/ErrorCodes';
-import { ExecutorchError, parseUnknownError } from '../errors/errorUtils';
+import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
+import { RnExecutorchError, parseUnknownError } from '../errors/errorUtils';
 import { ResourceSource } from '../types/common';
 import { OCRLanguage } from '../types/ocr';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
@@ -9,15 +9,15 @@ export class OCRController {
   private nativeModule: any;
   public isReady: boolean = false;
   public isGenerating: boolean = false;
-  public error: ExecutorchError | null = null;
+  public error: RnExecutorchError | null = null;
   private isReadyCallback: (isReady: boolean) => void;
   private isGeneratingCallback: (isGenerating: boolean) => void;
-  private errorCallback: (error: ExecutorchError) => void;
+  private errorCallback: (error: RnExecutorchError) => void;
 
   constructor({
     isReadyCallback = (_isReady: boolean) => {},
     isGeneratingCallback = (_isGenerating: boolean) => {},
-    errorCallback = (_error: ExecutorchError) => {},
+    errorCallback = (_error: RnExecutorchError) => {},
   } = {}) {
     this.isReadyCallback = isReadyCallback;
     this.isGeneratingCallback = isGeneratingCallback;
@@ -34,8 +34,8 @@ export class OCRController {
       if (!detectorSource || !recognizerSource) return;
 
       if (!symbols[language]) {
-        throw new ExecutorchError(
-          ETErrorCode.LanguageNotSupported,
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.LanguageNotSupported,
           'The provided language for OCR is not supported. Please try using other language.'
         );
       }
@@ -69,14 +69,14 @@ export class OCRController {
 
   public forward = async (imageSource: string) => {
     if (!this.isReady) {
-      throw new ExecutorchError(
-        ETErrorCode.ModuleNotLoaded,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
         'The model is currently not loaded. Please load the model before calling forward().'
       );
     }
     if (this.isGenerating) {
-      throw new ExecutorchError(
-        ETErrorCode.ModelGenerating,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelGenerating,
         'The model is currently generating. Please wait until previous model run is complete.'
       );
     }
@@ -95,8 +95,8 @@ export class OCRController {
 
   public delete() {
     if (this.isGenerating) {
-      throw new ExecutorchError(
-        ETErrorCode.ModelGenerating,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelGenerating,
         'The model is currently generating. Please wait until previous model run is complete.'
       );
     }

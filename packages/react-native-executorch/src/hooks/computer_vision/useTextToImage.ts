@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ExecutorchError, parseUnknownError } from '../../errors/errorUtils';
-import { ETErrorCode } from '../../errors/ErrorCodes';
+import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
+import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { ResourceSource } from '../../types/common';
 import { TextToImageModule } from '../../modules/computer_vision/TextToImageModule';
 
@@ -8,7 +8,7 @@ interface TextToImageType {
   isReady: boolean;
   isGenerating: boolean;
   downloadProgress: number;
-  error: ExecutorchError | null;
+  error: RnExecutorchError | null;
   generate: (
     input: string,
     imageSize?: number,
@@ -36,7 +36,7 @@ export const useTextToImage = ({
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const [error, setError] = useState<ExecutorchError | null>(null);
+  const [error, setError] = useState<RnExecutorchError | null>(null);
 
   const [module] = useState(() => new TextToImageModule(inferenceCallback));
 
@@ -67,13 +67,13 @@ export const useTextToImage = ({
     seed?: number
   ): Promise<string> => {
     if (!isReady)
-      throw new ExecutorchError(
-        ETErrorCode.ModuleNotLoaded,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
         'The model is currently not loaded. Please load the model before calling forward().'
       );
     if (isGenerating)
-      throw new ExecutorchError(
-        ETErrorCode.ModelGenerating,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelGenerating,
         'The model is currently generating. Please wait until previous model run is complete.'
       );
     try {

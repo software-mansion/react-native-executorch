@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { TokenizerModule } from '../../modules/natural_language_processing/TokenizerModule';
 import { ResourceSource } from '../../types/common';
-import { ETErrorCode } from '../../errors/ErrorCodes';
-import { ExecutorchError, parseUnknownError } from '../../errors/errorUtils';
+import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
+import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
 export const useTokenizer = ({
   tokenizer,
@@ -11,7 +11,7 @@ export const useTokenizer = ({
   tokenizer: { tokenizerSource: ResourceSource };
   preventLoad?: boolean;
 }) => {
-  const [error, setError] = useState<null | ExecutorchError>(null);
+  const [error, setError] = useState<null | RnExecutorchError>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
@@ -38,13 +38,13 @@ export const useTokenizer = ({
   const stateWrapper = <T extends (...args: any[]) => Promise<any>>(fn: T) => {
     return (...args: Parameters<T>): Promise<ReturnType<T>> => {
       if (!isReady)
-        throw new ExecutorchError(
-          ETErrorCode.ModuleNotLoaded,
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModuleNotLoaded,
           'The model is currently not loaded. Please load the model before calling this function.'
         );
       if (isGenerating)
-        throw new ExecutorchError(
-          ETErrorCode.ModelGenerating,
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModelGenerating,
           'The model is currently generating. Please wait until previous model run is complete.'
         );
       try {

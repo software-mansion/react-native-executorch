@@ -3,8 +3,8 @@ import { ResourceSource } from '../../types/common';
 import { BaseModule } from '../BaseModule';
 import { Buffer } from 'buffer';
 import { PNG } from 'pngjs/browser';
-import { ETErrorCode } from '../../errors/ErrorCodes';
-import { ExecutorchError } from '../../errors/errorUtils';
+import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
+import { RnExecutorchError } from '../../errors/errorUtils';
 
 export class TextToImageModule extends BaseModule {
   private inferenceCallback: (stepIdx: number) => void;
@@ -35,8 +35,8 @@ export class TextToImageModule extends BaseModule {
       model.decoderSource
     );
     if (!results) {
-      throw new ExecutorchError(
-        ETErrorCode.DownloadInterrupted,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.DownloadInterrupted,
         'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
       );
     }
@@ -50,8 +50,8 @@ export class TextToImageModule extends BaseModule {
       !unetPath ||
       !decoderPath
     ) {
-      throw new ExecutorchError(
-        ETErrorCode.DownloadInterrupted,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.DownloadInterrupted,
         'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
       );
     }

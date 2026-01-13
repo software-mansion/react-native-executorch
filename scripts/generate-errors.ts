@@ -73,7 +73,7 @@ function generateCppEnum() {
 
 namespace rnexecutorch {
 
-enum class RnExecutorchInternalError : int32_t {
+enum class RnExecutorchErrorCode : int32_t {
 ${entries}
 };
 
@@ -103,7 +103,7 @@ function generateTypeScriptEnum() {
   const ts = `// Auto-generated from scripts/errors.config.ts
 // DO NOT EDIT MANUALLY - Run 'yarn codegen:errors' to regenerate
 
-export enum ETErrorCode {
+export enum RnExecutorchErrorCode {
 ${entries}
 }
 `;

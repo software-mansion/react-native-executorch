@@ -1,8 +1,8 @@
 import { ResourceSource } from '../../types/common';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { BaseModule } from '../BaseModule';
-import { ETErrorCode } from '../../errors/ErrorCodes';
-import { ExecutorchError } from '../../errors/errorUtils';
+import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
+import { RnExecutorchError } from '../../errors/errorUtils';
 
 export class TextEmbeddingsModule extends BaseModule {
   async load(
@@ -24,8 +24,8 @@ export class TextEmbeddingsModule extends BaseModule {
     const modelPath = modelResult?.[0];
     const tokenizerPath = tokenizerResult?.[0];
     if (!modelPath || !tokenizerPath) {
-      throw new ExecutorchError(
-        ETErrorCode.DownloadInterrupted,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.DownloadInterrupted,
         'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
       );
     }

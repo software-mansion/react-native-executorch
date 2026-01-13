@@ -88,7 +88,7 @@ public:
       std::scoped_lock lock(queueMutex);
 
       if (!running) {
-        throw RnExecutorchError(RnExecutorchInternalError::ThreadPoolError,
+        throw RnExecutorchError(RnExecutorchErrorCode::ThreadPoolError,
                                 "Thread pool is shutting down");
       }
 

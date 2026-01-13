@@ -32,7 +32,7 @@ Recognizer::generate(const cv::Mat &grayImage, int32_t inputWidth) {
   std::string method_name = "forward_" + std::to_string(inputWidth);
   auto shapes = getAllInputShapes(method_name);
   if (shapes.empty()) {
-    throw RnExecutorchError(RnExecutorchInternalError::UnexpectedNumInputs,
+    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
                             "OCR method takes no inputs: " + method_name);
   }
   std::vector<int32_t> tensorDims = shapes[0];

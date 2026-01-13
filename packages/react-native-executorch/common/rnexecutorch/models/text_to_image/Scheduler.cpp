@@ -73,7 +73,7 @@ std::vector<float> Scheduler::step(const std::vector<float> &sample,
                                    int32_t timestep) {
   if (numInferenceSteps == 0) {
     throw RnExecutorchError(
-        RnExecutorchInternalError::InvalidConfig,
+        RnExecutorchErrorCode::InvalidConfig,
         "Number of inference steps is not set. Call `set_timesteps` first.");
   }
 

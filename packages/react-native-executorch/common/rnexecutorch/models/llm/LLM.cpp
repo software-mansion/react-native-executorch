@@ -30,7 +30,7 @@ LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
 // TODO: add a way to manipulate the generation config with params
 void LLM::generate(std::string input, std::shared_ptr<jsi::Function> callback) {
   if (!runner || !runner->is_loaded()) {
-    throw RnExecutorchError(RnExecutorchInternalError::ModuleNotLoaded,
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Runner is not loaded");
   }
 
@@ -50,7 +50,7 @@ void LLM::generate(std::string input, std::shared_ptr<jsi::Function> callback) {
 
 void LLM::interrupt() {
   if (!runner || !runner->is_loaded()) {
-    throw RnExecutorchError(RnExecutorchInternalError::ModuleNotLoaded,
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Can't interrupt a model that's not loaded");
   }
   runner->stop();
@@ -69,7 +69,7 @@ size_t LLM::getMemoryLowerBound() const noexcept {
 
 void LLM::setCountInterval(size_t countInterval) {
   if (!runner || !runner->is_loaded()) {
-    throw RnExecutorchError(RnExecutorchInternalError::ModuleNotLoaded,
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Can't configure a model that's not loaded");
   }
   runner->set_count_interval(countInterval);
@@ -77,7 +77,7 @@ void LLM::setCountInterval(size_t countInterval) {
 
 void LLM::setTimeInterval(size_t timeInterval) {
   if (!runner || !runner->is_loaded()) {
-    throw RnExecutorchError(RnExecutorchInternalError::ModuleNotLoaded,
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Can't configure a model that's not loaded");
   }
   runner->set_time_interval(timeInterval);
@@ -85,7 +85,7 @@ void LLM::setTimeInterval(size_t timeInterval) {
 
 void LLM::setTemperature(float temperature) {
   if (!runner || !runner->is_loaded()) {
-    throw RnExecutorchError(RnExecutorchInternalError::ModuleNotLoaded,
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Can't configure a model that's not loaded");
   }
   runner->set_temperature(temperature);
@@ -93,7 +93,7 @@ void LLM::setTemperature(float temperature) {
 
 void LLM::setTopp(float topp) {
   if (!runner || !runner->is_loaded()) {
-    throw RnExecutorchError(RnExecutorchInternalError::ModuleNotLoaded,
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Can't configure a model that's not loaded");
   }
   runner->set_topp(topp);

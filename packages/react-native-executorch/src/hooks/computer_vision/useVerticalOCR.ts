@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { ResourceSource } from '../../types/common';
 import { OCRDetection, OCRLanguage } from '../../types/ocr';
 import { VerticalOCRController } from '../../controllers/VerticalOCRController';
-import { ExecutorchError } from '../../errors/errorUtils';
+import { RnExecutorchError } from '../../errors/errorUtils';
 
 interface OCRModule {
-  error: ExecutorchError | null;
+  error: RnExecutorchError | null;
   isReady: boolean;
   isGenerating: boolean;
   forward: (imageSource: string) => Promise<OCRDetection[]>;
@@ -25,7 +25,7 @@ export const useVerticalOCR = ({
   independentCharacters?: boolean;
   preventLoad?: boolean;
 }): OCRModule => {
-  const [error, setError] = useState<ExecutorchError | null>(null);
+  const [error, setError] = useState<RnExecutorchError | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);

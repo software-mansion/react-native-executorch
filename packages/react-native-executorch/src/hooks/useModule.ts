@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ETErrorCode } from '../errors/ErrorCodes';
-import { ExecutorchError, parseUnknownError } from '../errors/errorUtils';
+import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
+import { RnExecutorchError, parseUnknownError } from '../errors/errorUtils';
 
 interface Module {
   load: (...args: any[]) => Promise<void>;
@@ -26,7 +26,7 @@ export const useModule = <
   model: LoadArgs[0];
   preventLoad?: boolean;
 }) => {
-  const [error, setError] = useState<null | ExecutorchError>(null);
+  const [error, setError] = useState<null | RnExecutorchError>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
@@ -56,13 +56,13 @@ export const useModule = <
 
   const forward = async (...input: ForwardArgs): Promise<ForwardReturn> => {
     if (!isReady)
-      throw new ExecutorchError(
-        ETErrorCode.ModuleNotLoaded,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
         'The model is currently not loaded. Please load the model before calling forward().'
       );
     if (isGenerating)
-      throw new ExecutorchError(
-        ETErrorCode.ModelGenerating,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelGenerating,
         'The model is currently generating. Please wait until previous model run is complete.'
       );
     try {

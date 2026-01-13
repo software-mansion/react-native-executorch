@@ -51,8 +51,8 @@ import {
   ResourceSourceExtended,
   DownloadResource,
 } from './ResourceFetcherUtils';
-import { ETErrorCode } from '../errors/ErrorCodes';
-import { ExecutorchError } from '../errors/errorUtils';
+import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
+import { RnExecutorchError } from '../errors/errorUtils';
 
 export class ResourceFetcher {
   static downloads = new Map<ResourceSource, DownloadResource>(); //map of currently downloading (or paused) files, if the download was started by .fetch() method.
@@ -62,8 +62,8 @@ export class ResourceFetcher {
     ...sources: ResourceSource[]
   ) {
     if (sources.length === 0) {
-      throw new ExecutorchError(
-        ETErrorCode.InvalidUserInput,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidUserInput,
         'Empty list given as an argument'
       );
     }
@@ -166,8 +166,8 @@ export class ResourceFetcher {
     const resource = this.downloads.get(source)!;
     switch (resource.status) {
       case DownloadStatus.PAUSED:
-        throw new ExecutorchError(
-          ETErrorCode.ResourceFetcherAlreadyPaused,
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ResourceFetcherAlreadyPaused,
           "The file download is currently paused. Can't pause the download of the same file twice."
         );
       default: {
@@ -184,15 +184,15 @@ export class ResourceFetcher {
       !resource.extendedInfo.cacheFileUri ||
       !resource.extendedInfo.uri
     ) {
-      throw new ExecutorchError(
-        ETErrorCode.ResourceFetcherMissingUri,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ResourceFetcherMissingUri,
         'Something went wrong. File uri info is not specified'
       );
     }
     switch (resource.status) {
       case DownloadStatus.ONGOING:
-        throw new ExecutorchError(
-          ETErrorCode.ResourceFetcherAlreadyOngoing,
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ResourceFetcherAlreadyOngoing,
           "The file download is currently ongoing. Can't resume the ongoing download."
         );
       default: {
@@ -210,8 +210,8 @@ export class ResourceFetcher {
           (result.status !== HTTP_CODE.OK &&
             result.status !== HTTP_CODE.PARTIAL_CONTENT)
         ) {
-          throw new ExecutorchError(
-            ETErrorCode.ResourceFetcherDownloadFailed,
+          throw new RnExecutorchError(
+            RnExecutorchErrorCode.ResourceFetcherDownloadFailed,
             `Failed to fetch resource from '${resource.extendedInfo.uri}, context: ${result}'`
           );
         }
@@ -259,8 +259,8 @@ export class ResourceFetcher {
         return source;
       }
     }
-    throw new ExecutorchError(
-      ETErrorCode.ResourceFetcherNotActive,
+    throw new RnExecutorchError(
+      RnExecutorchErrorCode.ResourceFetcherNotActive,
       'None of given sources are currently during downloading process.'
     );
   }
@@ -293,8 +293,8 @@ export class ResourceFetcher {
 
   private static async handleObject(source: ResourceSource) {
     if (typeof source !== 'object') {
-      throw new ExecutorchError(
-        ETErrorCode.InvalidModelSource,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidModelSource,
         'Source is expected to be object'
       );
     }
@@ -317,8 +317,8 @@ export class ResourceFetcher {
 
   private static handleLocalFile(source: ResourceSource) {
     if (typeof source !== 'string') {
-      throw new ExecutorchError(
-        ETErrorCode.InvalidModelSource,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidModelSource,
         'Source is expected to be string'
       );
     }
@@ -330,8 +330,8 @@ export class ResourceFetcher {
   ) {
     const source = sourceExtended.source;
     if (typeof source !== 'number') {
-      throw new ExecutorchError(
-        ETErrorCode.InvalidModelSource,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidModelSource,
         'Source is expected to be number'
       );
     }
@@ -358,8 +358,8 @@ export class ResourceFetcher {
   ) {
     const source = sourceExtended.source;
     if (typeof source !== 'number') {
-      throw new ExecutorchError(
-        ETErrorCode.InvalidModelSource,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidModelSource,
         'Source is expected to be a number'
       );
     }
@@ -372,8 +372,8 @@ export class ResourceFetcher {
   ) {
     const source = sourceExtended.source;
     if (typeof source === 'object') {
-      throw new ExecutorchError(
-        ETErrorCode.InvalidModelSource,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidModelSource,
         'Source is expected to be a string or a number'
       );
     }
@@ -384,14 +384,14 @@ export class ResourceFetcher {
         this.resume(source);
       }
       // if the download is ongoing, throw error.
-      throw new ExecutorchError(
-        ETErrorCode.ResourceFetcherDownloadInProgress,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ResourceFetcherDownloadInProgress,
         'Already downloading this file'
       );
     }
     if (typeof source === 'number' && !sourceExtended.uri) {
-      throw new ExecutorchError(
-        ETErrorCode.ResourceFetcherMissingUri,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ResourceFetcherMissingUri,
         'Source Uri is expected to be available here'
       );
     }
@@ -438,8 +438,8 @@ export class ResourceFetcher {
       return null;
     }
     if (!result || result.status !== HTTP_CODE.OK) {
-      throw new ExecutorchError(
-        ETErrorCode.ResourceFetcherDownloadFailed,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ResourceFetcherDownloadFailed,
         `Failed to fetch resource from '${source}, context: ${result}'`
       );
     }

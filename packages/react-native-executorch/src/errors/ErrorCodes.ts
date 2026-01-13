@@ -1,7 +1,7 @@
 // Auto-generated from scripts/errors.config.ts
 // DO NOT EDIT MANUALLY - Run 'yarn codegen:errors' to regenerate
 
-export enum ETErrorCode {
+export enum RnExecutorchErrorCode {
   /**
    * An umbrella-error that is thrown usually when something unexpected happens, for example a 3rd-party library error.
    */

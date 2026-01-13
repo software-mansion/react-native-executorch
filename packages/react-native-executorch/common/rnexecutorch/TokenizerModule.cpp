@@ -18,7 +18,7 @@ void TokenizerModule::ensureTokenizerLoaded(
     const std::string &methodName) const {
   if (!tokenizer) {
     throw RnExecutorchError(
-        RnExecutorchInternalError::ModuleNotLoaded,
+        RnExecutorchErrorCode::ModuleNotLoaded,
         methodName + " function was called on an uninitialized tokenizer!");
   }
 }

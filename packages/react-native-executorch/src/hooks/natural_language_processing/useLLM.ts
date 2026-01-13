@@ -9,7 +9,7 @@ import {
   ToolsConfig,
 } from '../../types/llm';
 import { LLMController } from '../../controllers/LLMController';
-import { ExecutorchError, parseUnknownError } from '../../errors/errorUtils';
+import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
 /*
 Hook version of LLMModule
@@ -31,7 +31,7 @@ export const useLLM = ({
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const [error, setError] = useState<null | ExecutorchError>(null);
+  const [error, setError] = useState<null | RnExecutorchError>(null);
 
   const tokenCallback = useCallback((newToken: string) => {
     setToken(newToken);

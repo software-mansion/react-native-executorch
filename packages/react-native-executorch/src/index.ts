@@ -136,5 +136,5 @@ export * from './constants/tts/models';
 export * from './constants/tts/voices';
 export * from './constants/llmDefaults';
 
-export { ExecutorchError } from './errors/errorUtils';
-export { ETErrorCode } from './errors/ErrorCodes';
+export { RnExecutorchError } from './errors/errorUtils';
+export { RnExecutorchErrorCode } from './errors/ErrorCodes';

@@ -10,7 +10,7 @@
 namespace rnexecutorch {
 
 using ErrorVariant =
-    std::variant<RnExecutorchInternalError, executorch::runtime::Error>;
+    std::variant<RnExecutorchErrorCode, executorch::runtime::Error>;
 
 class RnExecutorchError : public std::runtime_error {
 public:
@@ -25,11 +25,11 @@ public:
         errorCode);
   }
 
-  bool isInternalError() const noexcept {
-    return std::holds_alternative<RnExecutorchInternalError>(errorCode);
+  bool isRnExecutorchError() const noexcept {
+    return std::holds_alternative<RnExecutorchErrorCode>(errorCode);
   }
 
-  bool isExecuTorchError() const noexcept {
+  bool isExecuTorchRuntimeError() const noexcept {
     return std::holds_alternative<executorch::runtime::Error>(errorCode);
   }
 };

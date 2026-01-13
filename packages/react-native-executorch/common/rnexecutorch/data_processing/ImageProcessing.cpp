@@ -68,7 +68,7 @@ std::string saveToTempFile(const cv::Mat &image) {
   std::filesystem::path filePath = tempDir / filename;
 
   if (!cv::imwrite(filePath.string(), image)) {
-    throw RnExecutorchError(RnExecutorchInternalError::FileWriteFailed,
+    throw RnExecutorchError(RnExecutorchErrorCode::FileWriteFailed,
                             "Failed to save the image: " + filePath.string());
   }
 
@@ -87,7 +87,7 @@ cv::Mat readImage(const std::string &imageURI) {
       ++segmentIndex;
     }
     if (segmentIndex != 1) {
-      throw RnExecutorchError(RnExecutorchInternalError::FileReadFailed,
+      throw RnExecutorchError(RnExecutorchErrorCode::FileReadFailed,
                               "Read image error: invalid base64 URI");
     }
     auto data = base64_decode(stringData);
@@ -104,12 +104,12 @@ cv::Mat readImage(const std::string &imageURI) {
         cv::Mat(1, imageData.size(), CV_8UC1, (void *)imageData.data()),
         cv::IMREAD_COLOR);
   } else {
-    throw RnExecutorchError(RnExecutorchInternalError::FileReadFailed,
+    throw RnExecutorchError(RnExecutorchErrorCode::FileReadFailed,
                             "Read image error: unknown protocol");
   }
 
   if (image.empty()) {
-    throw RnExecutorchError(RnExecutorchInternalError::FileReadFailed,
+    throw RnExecutorchError(RnExecutorchErrorCode::FileReadFailed,
                             "Read image error: invalid argument");
   }
 
@@ -225,7 +225,7 @@ readImageToTensor(const std::string &path,
                   "Unexpected tensor size, expected at least 2 dimentions "
                   "but got: %zu.",
                   tensorDims.size());
-    throw RnExecutorchError(RnExecutorchInternalError::UnexpectedNumInputs,
+    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
                             errorMessage);
   }
   cv::Size tensorSize = cv::Size(tensorDims[tensorDims.size() - 1],

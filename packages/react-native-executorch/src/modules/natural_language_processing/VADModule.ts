@@ -2,8 +2,8 @@ import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
 import { Segment } from '../../types/vad';
 import { BaseModule } from '../BaseModule';
-import { ETErrorCode } from '../../errors/ErrorCodes';
-import { ExecutorchError } from '../../errors/errorUtils';
+import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
+import { RnExecutorchError } from '../../errors/errorUtils';
 
 export class VADModule extends BaseModule {
   async load(
@@ -15,8 +15,8 @@ export class VADModule extends BaseModule {
       model.modelSource
     );
     if (paths === null || paths.length < 1) {
-      throw new ExecutorchError(
-        ETErrorCode.DownloadInterrupted,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.DownloadInterrupted,
         'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
       );
     }
@@ -25,8 +25,8 @@ export class VADModule extends BaseModule {
 
   async forward(waveform: Float32Array): Promise<Segment[]> {
     if (this.nativeModule == null)
-      throw new ExecutorchError(
-        ETErrorCode.ModuleNotLoaded,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
         'The model is currently not loaded. Please load the model before calling forward().'
       );
     return await this.nativeModule.generate(waveform);

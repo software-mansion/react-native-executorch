@@ -35,7 +35,7 @@ TextToImage::TextToImage(const std::string &tokenizerSource,
 
 void TextToImage::setImageSize(int32_t imageSize) {
   if (imageSize % 32 != 0) {
-    throw RnExecutorchError(RnExecutorchInternalError::InvalidConfig,
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig,
                             "Image size must be a multiple of 32.");
   }
   this->imageSize = imageSize;

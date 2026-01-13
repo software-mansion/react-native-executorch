@@ -74,7 +74,7 @@ size_t SpeechToText::getMemoryLowerBound() const noexcept {
 void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
                           std::string languageOption) {
   if (this->isStreaming) {
-    throw RnExecutorchError(RnExecutorchInternalError::StreamingInProgress,
+    throw RnExecutorchError(RnExecutorchErrorCode::StreamingInProgress,
                             "Streaming is already in progress!");
   }
 

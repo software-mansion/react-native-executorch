@@ -1,8 +1,8 @@
 import { Logger } from '../../common/Logger';
 import { DecodingOptions, SpeechToTextModelConfig } from '../../types/stt';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
-import { ETErrorCode } from '../../errors/ErrorCodes';
-import { ExecutorchError, parseUnknownError } from '../../errors/errorUtils';
+import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
+import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
 export class SpeechToTextModule {
   private nativeModule: any;
@@ -36,8 +36,8 @@ export class SpeechToTextModule {
     const encoderSource = encoderDecoderResults?.[0];
     const decoderSource = encoderDecoderResults?.[1];
     if (!encoderSource || !decoderSource || !tokenizerSources) {
-      throw new ExecutorchError(
-        ETErrorCode.DownloadInterrupted,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.DownloadInterrupted,
         'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
       );
     }
@@ -175,14 +175,14 @@ export class SpeechToTextModule {
 
   private validateOptions(options: DecodingOptions) {
     if (!this.modelConfig.isMultilingual && options.language) {
-      throw new ExecutorchError(
-        ETErrorCode.InvalidConfig,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidConfig,
         'Model is not multilingual, cannot set language'
       );
     }
     if (this.modelConfig.isMultilingual && !options.language) {
-      throw new ExecutorchError(
-        ETErrorCode.InvalidConfig,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidConfig,
         'Model is multilingual, provide a language'
       );
     }

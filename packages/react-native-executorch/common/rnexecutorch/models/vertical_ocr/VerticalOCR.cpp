@@ -19,7 +19,7 @@ VerticalOCR::VerticalOCR(const std::string &detectorSource,
 std::vector<types::OCRDetection> VerticalOCR::generate(std::string input) {
   cv::Mat image = image_processing::readImage(input);
   if (image.empty()) {
-    throw RnExecutorchError(RnExecutorchInternalError::FileReadFailed,
+    throw RnExecutorchError(RnExecutorchErrorCode::FileReadFailed,
                             "Failed to load image from path: " + input);
   }
   // 1. Large Detector

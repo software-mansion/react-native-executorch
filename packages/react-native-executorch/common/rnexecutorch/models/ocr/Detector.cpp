@@ -5,8 +5,8 @@
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/utils/DetectorUtils.h>
-#include <stdexcept>
 #include <string>
+
 namespace rnexecutorch::models::ocr {
 Detector::Detector(const std::string &modelSource,
                    std::shared_ptr<react::CallInvoker> callInvoker)
@@ -16,9 +16,13 @@ Detector::Detector(const std::string &modelSource,
     std::string methodName = "forward_" + std::to_string(input_size);
     auto inputShapes = getAllInputShapes(methodName);
     if (inputShapes[0].size() < 2) {
-      throw RnExecutorchError(RnExecutorchInternalError::UnexpectedNumInputs,
-                              "Unexpected input dimensions for OCR method: " +
-                                  methodName);
+      char errorMessage[150];
+      std::snprintf(errorMessage, sizeof(errorMessage),
+                    "Unexpected detector model input size for method: %s, "
+                    "expected at least 2 dimensions but got: %zu.",
+                    methodName.c_str(), inputShapes[0].size());
+      throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
+                              errorMessage);
     }
   }
 }

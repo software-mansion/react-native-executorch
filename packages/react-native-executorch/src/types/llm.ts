@@ -1,4 +1,4 @@
-import { ExecutorchError } from '../errors/errorUtils';
+import { RnExecutorchError } from '../errors/errorUtils';
 
 export interface LLMType {
   messageHistory: Message[];
@@ -7,7 +7,7 @@ export interface LLMType {
   isReady: boolean;
   isGenerating: boolean;
   downloadProgress: number;
-  error: ExecutorchError | null;
+  error: RnExecutorchError | null;
   configure: ({
     chatConfig,
     toolsConfig,

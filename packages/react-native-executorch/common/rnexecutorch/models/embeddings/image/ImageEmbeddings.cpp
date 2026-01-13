@@ -14,7 +14,7 @@ ImageEmbeddings::ImageEmbeddings(
     : BaseEmbeddings(modelSource, callInvoker) {
   auto inputTensors = getAllInputShapes();
   if (inputTensors.size() == 0) {
-    throw RnExecutorchError(RnExecutorchInternalError::UnexpectedNumInputs,
+    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
                             "Model seems to not take any input tensors.");
   }
   std::vector<int32_t> modelInputShape = inputTensors[0];
@@ -24,7 +24,7 @@ ImageEmbeddings::ImageEmbeddings(
                   "Unexpected model input size, expected at least 2 dimentions "
                   "but got: %zu.",
                   modelInputShape.size());
-    throw RnExecutorchError(RnExecutorchInternalError::WrongDimensions,
+    throw RnExecutorchError(RnExecutorchErrorCode::WrongDimensions,
                             errorMessage);
   }
   modelImageSize = cv::Size(modelInputShape[modelInputShape.size() - 1],

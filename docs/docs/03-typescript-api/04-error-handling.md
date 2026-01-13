@@ -4,7 +4,7 @@ title: Error handling
 
 ## Overview
 
-In order to handle different types of errors, you can use `instanceof` with our exported class `ExecutorchError` and its `code` property. This allows you to check what exactly went wrong and act accordingly.
+In order to handle different types of errors, you can use `instanceof` with our exported class `RnExecutorchError` and its `code` property. This allows you to check what exactly went wrong and act accordingly.
 
 This example uses the `LLMModule`, and then tries to change its `generationConfig`. As the topp param has to be a value between 0 and 1 (inclusive), the `.configure()` method will throw an error with a code InvalidConfig.
 
@@ -12,8 +12,8 @@ This example uses the `LLMModule`, and then tries to change its `generationConfi
 import {
   LLMModule,
   LLAMA3_2_1B_QLORA,
-  ExecutorchError,
-  ETErrorCode,
+  RnExecutorchError,
+  RnExecutorchErrorCode,
 } from 'react-native-executorch';
 
 const llm = new LLMModule({
@@ -28,8 +28,8 @@ try {
   await llm.configure({ topp: 1.5 }); // This will throw InvalidConfig error
 } catch (err) {
   if (
-    err instanceof ExecutorchError &&
-    err.code === ETErrorCode.InvalidConfig
+    err instanceof RnExecutorchError &&
+    err.code === RnExecutorchErrorCode.InvalidConfig
   ) {
     console.error('Invalid configuration:', err.message);
     // Handle the invalid config - set default values
@@ -43,11 +43,11 @@ try {
 try {
   await llm.sendMessage('Hello, World!');
 } catch (err) {
-  if (err instanceof ExecutorchError) {
-    if (err.code === ETErrorCode.ModuleNotLoaded) {
+  if (err instanceof RnExecutorchError) {
+    if (err.code === RnExecutorchErrorCode.ModuleNotLoaded) {
       console.error('Model not loaded:', err.message);
       // Load the model first
-    } else if (err.code === ETErrorCode.ModelGenerating) {
+    } else if (err.code === RnExecutorchErrorCode.ModelGenerating) {
       console.error('Model is already generating:', err.message);
       // Wait for current generation to complete
     } else {
@@ -68,7 +68,7 @@ llm.delete();
 
 ## Reference
 
-All errors in React Native ExecuTorch inherit from `ExecutorchError` and include a `code` property from the `ETErrorCode` enum. Below is a comprehensive list of all possible errors, organized by category.
+All errors in React Native ExecuTorch inherit from `RnExecutorchError` and include a `code` property from the `RnExecutorchErrorCode` enum. Below is a comprehensive list of all possible errors, organized by category.
 
 ### Module State Errors
 

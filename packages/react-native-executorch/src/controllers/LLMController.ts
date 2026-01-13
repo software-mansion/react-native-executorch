@@ -13,8 +13,8 @@ import {
 import { parseToolCall } from '../utils/llm';
 import { Logger } from '../common/Logger';
 import { readAsStringAsync } from 'expo-file-system/legacy';
-import { ExecutorchError, parseUnknownError } from '../errors/errorUtils';
-import { ETErrorCode } from '../errors/ErrorCodes';
+import { RnExecutorchError, parseUnknownError } from '../errors/errorUtils';
+import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 
 export class LLMController {
   private nativeModule: any;
@@ -125,8 +125,8 @@ export class LLMController {
       const modelPath = modelResult?.[0];
 
       if (!tokenizerPath || !tokenizerConfigPath || !modelPath) {
-        throw new ExecutorchError(
-          ETErrorCode.DownloadInterrupted,
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.DownloadInterrupted,
           'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
         );
       }
@@ -193,8 +193,8 @@ export class LLMController {
     }
     if (generationConfig?.topp) {
       if (generationConfig.topp < 0 || generationConfig.topp > 1) {
-        throw new ExecutorchError(
-          ETErrorCode.InvalidConfig,
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.InvalidConfig,
           'Top P has to be in range [0, 1]'
         );
       }
@@ -209,8 +209,8 @@ export class LLMController {
 
   public delete() {
     if (this._isGenerating) {
-      throw new ExecutorchError(
-        ETErrorCode.ModelGenerating,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelGenerating,
         'You cannot delete the model now. You need ot interrupt it first.'
       );
     }
@@ -222,14 +222,14 @@ export class LLMController {
 
   public async forward(input: string) {
     if (!this._isReady) {
-      throw new ExecutorchError(
-        ETErrorCode.ModuleNotLoaded,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
         'The model is currently not loaded. Please load the model before calling forward().'
       );
     }
     if (this._isGenerating) {
-      throw new ExecutorchError(
-        ETErrorCode.ModelGenerating,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelGenerating,
         'The model is currently generating. Please wait until previous model run is complete.'
       );
     }
@@ -254,14 +254,14 @@ export class LLMController {
 
   public async generate(messages: Message[], tools?: LLMTool[]) {
     if (!this._isReady) {
-      throw new ExecutorchError(
-        ETErrorCode.ModuleNotLoaded,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
         'The model is currently not loaded. Please load the model before calling generate().'
       );
     }
     if (messages.length === 0) {
-      throw new ExecutorchError(
-        ETErrorCode.InvalidUserInput,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidUserInput,
         'Messages array is empty!'
       );
     }
@@ -336,8 +336,8 @@ export class LLMController {
     templateFlags?: Object
   ): string {
     if (!tokenizerConfig.chat_template) {
-      throw new ExecutorchError(
-        ETErrorCode.InvalidConfig,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidConfig,
         "Tokenizer config doesn't include chat_template"
       );
     }

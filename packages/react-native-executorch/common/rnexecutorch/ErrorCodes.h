@@ -7,7 +7,7 @@
 
 namespace rnexecutorch {
 
-enum class RnExecutorchInternalError : int32_t {
+enum class RnExecutorchErrorCode : int32_t {
   /**
    * An umbrella-error that is thrown usually when something unexpected happens,
    * for example a 3rd-party library error.

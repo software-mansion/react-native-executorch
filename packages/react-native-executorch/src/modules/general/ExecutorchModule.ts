@@ -2,8 +2,8 @@ import { TensorPtr } from '../../types/common';
 import { BaseModule } from '../BaseModule';
 import { ResourceSource } from '../../types/common';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
-import { ETErrorCode } from '../../errors/ErrorCodes';
-import { ExecutorchError } from '../../errors/errorUtils';
+import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
+import { RnExecutorchError } from '../../errors/errorUtils';
 
 export class ExecutorchModule extends BaseModule {
   async load(
@@ -15,8 +15,8 @@ export class ExecutorchModule extends BaseModule {
       modelSource
     );
     if (paths === null || paths.length < 1) {
-      throw new ExecutorchError(
-        ETErrorCode.DownloadInterrupted,
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.DownloadInterrupted,
         'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
       );
     }

@@ -38,7 +38,7 @@ void softmaxWithTemperature(std::span<float> input, float temperature) {
 
   if (temperature <= 0.0F) {
     throw RnExecutorchError(
-        RnExecutorchInternalError::InvalidConfig,
+        RnExecutorchErrorCode::InvalidConfig,
         "Temperature must be greater than 0 for softmax with temperature!");
   }
 
@@ -78,7 +78,7 @@ std::vector<float> meanPooling(std::span<const float> modelOutput,
        << "by the size of attention mask but got size: " << modelOutput.size()
        << " for model output and size: " << attnMask.size()
        << " for attention mask";
-    throw RnExecutorchError(RnExecutorchInternalError::InvalidConfig, ss.str());
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig, ss.str());
   }
 
   auto attnMaskLength = attnMask.size();

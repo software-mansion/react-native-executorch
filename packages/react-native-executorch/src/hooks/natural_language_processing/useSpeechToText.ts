@@ -1,8 +1,8 @@
 import { useEffect, useCallback, useState } from 'react';
 import { SpeechToTextModule } from '../../modules/natural_language_processing/SpeechToTextModule';
 import { DecodingOptions, SpeechToTextModelConfig } from '../../types/stt';
-import { ETErrorCode } from '../../errors/ErrorCodes';
-import { ExecutorchError, parseUnknownError } from '../../errors/errorUtils';
+import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
+import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
 export const useSpeechToText = ({
   model,
@@ -11,7 +11,7 @@ export const useSpeechToText = ({
   model: SpeechToTextModelConfig;
   preventLoad?: boolean;
 }) => {
-  const [error, setError] = useState<null | ExecutorchError>(null);
+  const [error, setError] = useState<null | RnExecutorchError>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
@@ -55,13 +55,13 @@ export const useSpeechToText = ({
     <T extends (...args: any[]) => Promise<any>>(fn: T) =>
       async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
         if (!isReady)
-          throw new ExecutorchError(
-            ETErrorCode.ModuleNotLoaded,
+          throw new RnExecutorchError(
+            RnExecutorchErrorCode.ModuleNotLoaded,
             'The model is currently not loaded. Please load the model before calling this function.'
           );
         if (isGenerating)
-          throw new ExecutorchError(
-            ETErrorCode.ModelGenerating,
+          throw new RnExecutorchError(
+            RnExecutorchErrorCode.ModelGenerating,
             'The model is currently generating. Please wait until previous model run is complete.'
           );
         setIsGenerating(true);
@@ -77,13 +77,13 @@ export const useSpeechToText = ({
   const stream = useCallback(
     async (options?: DecodingOptions) => {
       if (!isReady)
-        throw new ExecutorchError(
-          ETErrorCode.ModuleNotLoaded,
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModuleNotLoaded,
           'The model is currently not loaded. Please load the model before calling this function.'
         );
       if (isGenerating)
-        throw new ExecutorchError(
-          ETErrorCode.ModelGenerating,
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModelGenerating,
           'The model is currently generating. Please wait until previous model run is complete.'
         );
       setIsGenerating(true);
@@ -110,8 +110,8 @@ export const useSpeechToText = ({
     <T extends (...args: any[]) => any>(fn: T) => {
       return (...args: Parameters<T>): ReturnType<T> => {
         if (!isReady)
-          throw new ExecutorchError(
-            ETErrorCode.ModuleNotLoaded,
+          throw new RnExecutorchError(
+            RnExecutorchErrorCode.ModuleNotLoaded,
             'The model is currently not loaded. Please load the model before calling this function.'
           );
         return fn.apply(modelInstance, args);
