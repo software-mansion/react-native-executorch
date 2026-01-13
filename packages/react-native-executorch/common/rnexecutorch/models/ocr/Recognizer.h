@@ -25,12 +25,11 @@ class Recognizer final : public BaseModel {
 public:
   explicit Recognizer(const std::string &modelSource,
                       std::shared_ptr<react::CallInvoker> callInvoker);
-  std::pair<std::vector<int32_t>, float> generate(const cv::Mat &grayImage);
+  std::pair<std::vector<int32_t>, float> generate(const cv::Mat &grayImage,
+                                                  int inputWidth);
 
 private:
   std::pair<std::vector<int32_t>, float>
   postprocess(const Tensor &tensor) const;
-
-  cv::Size modelImageSize;
 };
 } // namespace rnexecutorch::models::ocr

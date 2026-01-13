@@ -3,14 +3,10 @@
 #include <rnexecutorch/models/ocr/Constants.h>
 
 namespace rnexecutorch::models::ocr {
-OCR::OCR(const std::string &detectorSource,
-         const std::string &recognizerSourceLarge,
-         const std::string &recognizerSourceMedium,
-         const std::string &recognizerSourceSmall, std::string symbols,
-         std::shared_ptr<react::CallInvoker> callInvoker)
+OCR::OCR(const std::string &detectorSource, const std::string &recognizerSource,
+         std::string symbols, std::shared_ptr<react::CallInvoker> callInvoker)
     : detector(detectorSource, callInvoker),
-      recognitionHandler(recognizerSourceLarge, recognizerSourceMedium,
-                         recognizerSourceSmall, symbols, callInvoker) {}
+      recognitionHandler(recognizerSource, symbols, callInvoker) {}
 
 std::vector<types::OCRDetection> OCR::generate(std::string input) {
   cv::Mat image = image_processing::readImage(input);

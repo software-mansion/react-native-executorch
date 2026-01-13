@@ -5,25 +5,15 @@
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/Types.h>
 #include <rnexecutorch/models/ocr/utils/RecognizerUtils.h>
+#include <string>
 
 namespace rnexecutorch::models::ocr {
 Recognizer::Recognizer(const std::string &modelSource,
                        std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker) {
-  auto inputShapes = getAllInputShapes();
-  if (inputShapes.empty()) {
-    throw std::runtime_error("Recognizer model has no input tensors.");
-  }
-  std::vector<int32_t> modelInputShape = inputShapes[0];
-  if (modelInputShape.size() < 2) {
-    throw std::runtime_error("Unexpected Recognizer model input shape.");
-  }
-  modelImageSize = cv::Size(modelInputShape[modelInputShape.size() - 1],
-                            modelInputShape[modelInputShape.size() - 2]);
-}
+    : BaseModel(modelSource, callInvoker) {}
 
 std::pair<std::vector<int32_t>, float>
-Recognizer::generate(const cv::Mat &grayImage) {
+Recognizer::generate(const cv::Mat &grayImage, int inputWidth) {
   /*
    In our pipeline we use three types of Recognizer, each designated to
    handle different image sizes:
@@ -33,10 +23,16 @@ Recognizer::generate(const cv::Mat &grayImage) {
    The `generate` function as an argument accepts an image in grayscale
    already resized to the expected size.
   */
-  std::vector<int32_t> tensorDims = getAllInputShapes()[0];
+  std::string method_name = "forward_" + std::to_string(inputWidth);
+  auto shapes = getAllInputShapes(method_name);
+  if (shapes.empty()) {
+    throw std::runtime_error(
+        "Recognizer model has no input tensors for method " + method_name);
+  }
+  std::vector<int32_t> tensorDims = shapes[0];
   TensorPtr inputTensor =
       image_processing::getTensorFromMatrixGray(tensorDims, grayImage);
-  auto forwardResult = BaseModel::forward(inputTensor);
+  auto forwardResult = BaseModel::execute(method_name, {inputTensor});
   if (!forwardResult.ok()) {
     throw std::runtime_error(
         "Failed to forward in Recognizer, error: " +

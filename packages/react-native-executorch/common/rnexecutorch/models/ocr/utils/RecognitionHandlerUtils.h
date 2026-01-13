@@ -43,6 +43,16 @@ void computeRatioAndResize(cv::Mat &img, cv::Size size, int32_t modelHeight);
  */
 cv::Mat cropImage(types::DetectorBBox box, cv::Mat &image, int32_t modelHeight);
 void adjustContrastGrey(cv::Mat &img, double target);
+
+/**
+ * @biref Calculates input size for image
+ *Calculates input size for image
+ *
+ *
+ *
+ */
+int32_t getDesiredWidth(const cv::Mat &img, bool isVertical);
+
 /**
  * @brief Prepares an image for recognition models by standardizing size,
  * contrast, and pixel values.
