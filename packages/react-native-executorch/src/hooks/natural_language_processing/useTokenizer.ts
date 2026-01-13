@@ -11,7 +11,7 @@ export const useTokenizer = ({
   tokenizer: { tokenizerSource: ResourceSource };
   preventLoad?: boolean;
 }) => {
-  const [error, setError] = useState<null | string>(null);
+  const [error, setError] = useState<null | ExecutorchError>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
@@ -30,7 +30,7 @@ export const useTokenizer = ({
         );
         setIsReady(true);
       } catch (err) {
-        setError(parseUnknownError(err).message);
+        setError(parseUnknownError(err));
       }
     })();
   }, [tokenizerInstance, tokenizer.tokenizerSource, preventLoad]);

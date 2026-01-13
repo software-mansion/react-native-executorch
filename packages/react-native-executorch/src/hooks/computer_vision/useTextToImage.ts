@@ -8,7 +8,7 @@ interface TextToImageType {
   isReady: boolean;
   isGenerating: boolean;
   downloadProgress: number;
-  error: string | null;
+  error: ExecutorchError | null;
   generate: (
     input: string,
     imageSize?: number,
@@ -36,7 +36,7 @@ export const useTextToImage = ({
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ExecutorchError | null>(null);
 
   const [module] = useState(() => new TextToImageModule(inferenceCallback));
 
@@ -51,7 +51,7 @@ export const useTextToImage = ({
         await module.load(model, setDownloadProgress);
         setIsReady(true);
       } catch (err) {
-        setError(parseUnknownError(err).message);
+        setError(parseUnknownError(err));
       }
     })();
 

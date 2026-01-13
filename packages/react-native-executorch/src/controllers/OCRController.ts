@@ -12,12 +12,12 @@ export class OCRController {
   public error: string | null = null;
   private isReadyCallback: (isReady: boolean) => void;
   private isGeneratingCallback: (isGenerating: boolean) => void;
-  private errorCallback: (error: string) => void;
+  private errorCallback: (error: ExecutorchError) => void;
 
   constructor({
     isReadyCallback = (_isReady: boolean) => {},
     isGeneratingCallback = (_isGenerating: boolean) => {},
-    errorCallback = (_error: string) => {},
+    errorCallback = (_error: ExecutorchError) => {},
   } = {}) {
     this.isReadyCallback = isReadyCallback;
     this.isGeneratingCallback = isGeneratingCallback;
@@ -60,8 +60,7 @@ export class OCRController {
       this.isReadyCallback(this.isReady);
     } catch (e) {
       if (this.errorCallback) {
-        // NOTE: maybe we should set the error to an actual error instead of string?
-        this.errorCallback(parseUnknownError(e).message);
+        this.errorCallback(parseUnknownError(e));
       } else {
         throw parseUnknownError(e);
       }

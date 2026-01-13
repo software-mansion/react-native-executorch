@@ -26,7 +26,7 @@ export const useModule = <
   model: LoadArgs[0];
   preventLoad?: boolean;
 }) => {
-  const [error, setError] = useState<null | string>(null);
+  const [error, setError] = useState<null | ExecutorchError>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
@@ -43,7 +43,7 @@ export const useModule = <
         await moduleInstance.load(model, setDownloadProgress);
         setIsReady(true);
       } catch (err) {
-        setError(parseUnknownError(err).message);
+        setError(parseUnknownError(err));
       }
     })();
 
