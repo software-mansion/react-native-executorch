@@ -43,7 +43,7 @@ export class VerticalOCRController {
       const paths = await ResourceFetcher.fetch(
         onDownloadProgressCallback,
         detectorSource,
-        independentCharacters ? recognizer : recognizer
+        recognizer
       );
       if (paths === null || paths.length < 2) {
         throw new Error('Download interrupted');

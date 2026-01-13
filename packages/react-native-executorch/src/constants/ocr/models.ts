@@ -1,20 +1,11 @@
 import { alphabets, symbols } from './symbols';
 
-// const URL_PREFIX =
-//   'https://huggingface.co/software-mansion/react-native-executorch';
-// const VERSION_TAG = 'resolve/v0.5.0';
+import { VERSION_TAG, URL_PREFIX } from '../modelUrls';
 
-// const DETECTOR_CRAFT_1280_MODEL = `${URL_PREFIX}-detector-craft/${VERSION_TAG}/xnnpack_quantized/xnnpack_craft_1280_quantized.pte`;
-// const DETECTOR_CRAFT_800_MODEL = `${URL_PREFIX}-detector-craft/${VERSION_TAG}/xnnpack_quantized/xnnpack_craft_800_quantized.pte`;
-// const DETECTOR_CRAFT_320_MODEL = `${URL_PREFIX}-detector-craft/${VERSION_TAG}/xnnpack_quantized/xnnpack_craft_320_quantized.pte`;
-
-// const DETECTOR_CRAFT_MODEL = `${URL_PREFIX}-detector-craft/${VERSION_TAG}/xnnpack_quantized/xnnpack_craft_1280_quantized.pte`;
-
-const DETECTOR_CRAFT_MODEL = `http://192.168.83.124:3000/xnnpack_craft_quantized.pte`;
+const DETECTOR_CRAFT_MODEL = `${URL_PREFIX}-detector-craft/${VERSION_TAG}/xnnpack_quantized/xnnpack_craft_quantized.pte`;
 
 const createHFRecognizerDownloadUrl = (alphabet: keyof typeof alphabets) =>
-  `http://192.168.83.124:3000/xnnpack_crnn_${alphabet}.pte`;
-// `${URL_PREFIX}-recognizer-crnn.en/${VERSION_TAG}/xnnpack/${alphabet}/xnnpack_crnn_${alphabet}_${size}.pte`;
+  `${URL_PREFIX}-recognizer-crnn.en/${VERSION_TAG}/xnnpack/${alphabet}/xnnpack_crnn_${alphabet}.pte`;
 
 const RECOGNIZER_ENGLISH_CRNN = createHFRecognizerDownloadUrl('english');
 const RECOGNIZER_LATIN_CRNN = createHFRecognizerDownloadUrl('latin');

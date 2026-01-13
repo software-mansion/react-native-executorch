@@ -20,11 +20,11 @@ class Detector final : public BaseModel {
 public:
   explicit Detector(const std::string &modelSource,
                     std::shared_ptr<react::CallInvoker> callInvoker);
-  std::vector<types::DetectorBBox> generate(const cv::Mat &inputImage);
-  cv::Size getModelImageSize() const noexcept;
+  std::vector<types::DetectorBBox> generate(const cv::Mat &inputImage,
+                                            const int inputWidth);
 
 private:
-  std::vector<types::DetectorBBox> postprocess(const Tensor &tensor) const;
-  cv::Size modelImageSize;
+  std::vector<types::DetectorBBox>
+  postprocess(const Tensor &tensor, const cv::Size &modelInputSize) const;
 };
 } // namespace rnexecutorch::models::ocr

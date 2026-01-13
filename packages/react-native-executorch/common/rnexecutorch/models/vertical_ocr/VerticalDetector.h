@@ -38,12 +38,21 @@ public:
   explicit VerticalDetector(const std::string &modelSource,
                             bool detectSingleCharacters,
                             std::shared_ptr<react::CallInvoker> callInvoker);
-  std::vector<types::DetectorBBox> generate(const cv::Mat &inputImage);
-  cv::Size getModelImageSize() const noexcept;
+  std::vector<types::DetectorBBox> generate(const cv::Mat &inputImage,
+                                            const int inputWidth,
+                                            bool detectSingleCharacters);
+
+  cv::Size getModelImageSize(int inputWidth) const noexcept;
 
 private:
   bool detectSingleCharacters;
-  std::vector<types::DetectorBBox> postprocess(const Tensor &tensor) const;
-  cv::Size modelImageSize;
+  std::vector<types::DetectorBBox>
+  postprocess(const Tensor &tensor, const cv::Size &modelInputSize,
+              bool detectSingleCharacters) const;
+  cv::Size calculateImageSizeForWidth(const int methoInputWidth);
+
+  cv::Size modelSmallImageSize;
+  cv::Size modelMediumImageSize;
+  cv::Size modelLargeImageSize;
 };
 } // namespace rnexecutorch::models::ocr

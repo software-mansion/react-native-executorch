@@ -27,6 +27,9 @@ inline constexpr int32_t kMaxWidth =
 inline constexpr int32_t kSingleCharacterMinSize = 70;
 inline constexpr int32_t kRecognizerImageSize = 1280;
 inline constexpr int32_t kVerticalLineThreshold = 20;
+inline constexpr int32_t kSmallDetectorWidth = 320;
+inline constexpr int32_t kMediumDetectorWidth = 800;
+inline constexpr int32_t kLargeDetectorWidth = 1280;
 
 /*
  Mean and variance values for image normalization were used in EASYOCR pipeline

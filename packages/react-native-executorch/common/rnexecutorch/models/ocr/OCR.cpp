@@ -1,4 +1,5 @@
 #include "OCR.h"
+#include "Constants.h"
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/ocr/Constants.h>
 
@@ -19,7 +20,8 @@ std::vector<types::OCRDetection> OCR::generate(std::string input) {
    with text. They are corresponding to the image of size 1280x1280, which
    is a size later used by Recognition Handler.
   */
-  std::vector<types::DetectorBBox> bboxesList = detector.generate(image);
+  std::vector<types::DetectorBBox> bboxesList =
+      detector.generate(image, constants::kMediumDetectorWidth);
   cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
 
   /*

@@ -45,8 +45,7 @@ using executorch::extension::TensorPtr;
 
 class VerticalOCR final {
 public:
-  explicit VerticalOCR(const std::string &detectorLargeSource,
-                       const std::string &detectorNarrowSource,
+  explicit VerticalOCR(const std::string &detectorSource,
                        const std::string &recognizerSource, std::string symbols,
                        bool indpendentCharacters,
                        std::shared_ptr<react::CallInvoker> callInvoker);
@@ -60,6 +59,7 @@ private:
       const std::vector<types::DetectorBBox> &characterBoxes,
       const types::PaddingInfo &paddingsBox,
       const types::PaddingInfo &imagePaddings);
+
   std::pair<std::string, float>
   _handleJointCharacters(const types::DetectorBBox &box,
                          const cv::Mat &originalImage,
@@ -70,8 +70,8 @@ private:
   _processSingleTextBox(types::DetectorBBox &box, const cv::Mat &originalImage,
                         const cv::Mat &resizedLargeImage,
                         const types::PaddingInfo &imagePaddings);
-  VerticalDetector detectorLarge;
-  VerticalDetector detectorNarrow;
+
+  VerticalDetector detector;
   Recognizer recognizer;
   CTCLabelConverter converter;
   bool independentCharacters;
@@ -80,6 +80,5 @@ private:
 } // namespace models::ocr
 
 REGISTER_CONSTRUCTOR(models::ocr::VerticalOCR, std::string, std::string,
-                     std::string, std::string, bool,
-                     std::shared_ptr<react::CallInvoker>);
+                     std::string, bool, std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch
