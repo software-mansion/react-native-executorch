@@ -18,7 +18,7 @@ export const useVerticalOCR = ({
 }: {
   model: {
     detectorSource: ResourceSource;
-    recognizer: ResourceSource;
+    recognizerSource: ResourceSource;
     language: OCRLanguage;
   };
   independentCharacters?: boolean;
@@ -44,7 +44,7 @@ export const useVerticalOCR = ({
     (async () => {
       await controllerInstance.load(
         model.detectorSource,
-        model.recognizer,
+        model.recognizerSource,
         model.language,
         independentCharacters,
         setDownloadProgress
@@ -57,7 +57,7 @@ export const useVerticalOCR = ({
   }, [
     controllerInstance,
     model.detectorSource,
-    model.recognizer,
+    model.recognizerSource,
     model.language,
     independentCharacters,
     preventLoad,

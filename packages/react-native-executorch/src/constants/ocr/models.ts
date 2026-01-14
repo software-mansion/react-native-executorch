@@ -17,23 +17,23 @@ const RECOGNIZER_ZH_SIM_CRNN = createHFRecognizerDownloadUrl('zh_sim');
 const RECOGNIZER_CYRILLIC_CRNN = createHFRecognizerDownloadUrl('cyrillic');
 
 const createOCRObject = (
-  recognizer: string,
+  recognizerSource: string,
   language: keyof typeof symbols
 ) => {
   return {
     detectorSource: DETECTOR_CRAFT_MODEL,
-    recognizer,
+    recognizerSource,
     language,
   };
 };
 
 const createVerticalOCRObject = (
-  recognizer: string,
+  recognizerSource: string,
   language: keyof typeof symbols
 ) => {
   return {
     detectorSource: DETECTOR_CRAFT_MODEL,
-    recognizer,
+    recognizerSource,
     language,
   };
 };

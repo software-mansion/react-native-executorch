@@ -25,12 +25,12 @@ export class OCRController {
 
   public load = async (
     detectorSource: ResourceSource,
-    recognizer: ResourceSource,
+    recognizerSource: ResourceSource,
     language: OCRLanguage,
     onDownloadProgressCallback?: (downloadProgress: number) => void
   ) => {
     try {
-      if (!detectorSource || !recognizer) return;
+      if (!detectorSource || !recognizerSource) return;
 
       if (!symbols[language]) {
         throw new Error(getError(ETError.LanguageNotSupported));
@@ -42,7 +42,7 @@ export class OCRController {
       const paths = await ResourceFetcher.fetch(
         onDownloadProgressCallback,
         detectorSource,
-        recognizer
+        recognizerSource
       );
       if (paths === null || paths.length < 2) {
         throw new Error('Download interrupted!');
