@@ -17,8 +17,9 @@ namespace models::ocr {
  2. Recognition - recognizing the text in the bounding boxes, the result is a
  list of strings and corresponding boxes & confidence scores.
 
- Recognition uses three models, each model is resposible for recognizing text
- of different sizes (e.g. large - 512x64, medium - 256x64, small - 128x64).
+ Recognition uses one model with three methods, each method is resposible for
+ recognizing text of different sizes (e.g. large - 512x64, medium - 256x64,
+ small - 128x64).
 */
 
 class OCR final {

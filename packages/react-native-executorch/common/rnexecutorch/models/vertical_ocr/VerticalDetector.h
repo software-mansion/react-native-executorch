@@ -1,8 +1,8 @@
 #pragma once
 
+#include <cstdint>
 #include <executorch/extension/tensor/tensor_ptr.h>
 #include <opencv2/opencv.hpp>
-
 #include <rnexecutorch/models/BaseModel.h>
 #include <rnexecutorch/models/ocr/Types.h>
 
@@ -15,16 +15,17 @@ namespace rnexecutorch::models::ocr {
 
   In Vertical OCR pipeline we make use of Detector two times:
 
-  1. Large Detector -- The differences between Detector used in standard OCR and
- Large Detector used in Vertical OCR is: a) To obtain detected boxes from heeat
- maps it utilizes `getDetBoxesFromTextMapVertical()` function rather than
+  1. Large Detector through forward_1280 method -- The differences between
+ Detector used in standard OCR and Large Detector used in Vertical OCR is: a) To
+ obtain detected boxes from heeat maps it utilizes
+ `getDetBoxesFromTextMapVertical()` function rather than
  'getDetBoxesFromTextMap()`. Other than that, refer to the standard OCR
  Detector.
 
-  2. Narrow Detector -- it is designed to detect a single characters bounding
- boxes. `getDetBoxesFromTextMapVertical()` function acts differently for Narrow
- Detector and different textThreshold Value is passed. Additionally, the
- grouping of detected boxes is completely omited.
+  2. Narrow Detector throguh forward_320 method -- it is designed to detect a
+ single characters bounding boxes. `getDetBoxesFromTextMapVertical()` function
+ acts differently for Narrow Detector and different textThreshold Value is
+ passed. Additionally, the grouping of detected boxes is completely omited.
 
   Vertical Detector pipeline differentiate the Large Detector and Narrow
  Detector based on `detectSingleCharacters` flag passed to the constructor.
@@ -36,16 +37,14 @@ using executorch::extension::TensorPtr;
 class VerticalDetector final : public BaseModel {
 public:
   explicit VerticalDetector(const std::string &modelSource,
-                            bool detectSingleCharacters,
                             std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<types::DetectorBBox> generate(const cv::Mat &inputImage,
-                                            const int inputWidth,
+                                            int32_t inputWidth,
                                             bool detectSingleCharacters);
 
   cv::Size getModelImageSize(int inputWidth) const noexcept;
 
 private:
-  bool detectSingleCharacters;
   std::vector<types::DetectorBBox>
   postprocess(const Tensor &tensor, const cv::Size &modelInputSize,
               bool detectSingleCharacters) const;

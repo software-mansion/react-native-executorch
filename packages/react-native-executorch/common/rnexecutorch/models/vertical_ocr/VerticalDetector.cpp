@@ -9,20 +9,19 @@
 
 namespace rnexecutorch::models::ocr {
 VerticalDetector::VerticalDetector(
-    const std::string &modelSource, bool detectSingleCharacters,
+    const std::string &modelSource,
     std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
-  this->detectSingleCharacters = detectSingleCharacters;
-  modelSmallImageSize =
+  this->modelSmallImageSize =
       calculateImageSizeForWidth(constants::kSmallDetectorWidth);
-  modelMediumImageSize =
+  this->modelMediumImageSize =
       calculateImageSizeForWidth(constants::kMediumDetectorWidth);
-  modelLargeImageSize =
+  this->modelLargeImageSize =
       calculateImageSizeForWidth(constants::kLargeDetectorWidth);
 }
 
 std::vector<types::DetectorBBox>
-VerticalDetector::generate(const cv::Mat &inputImage, const int inputWidth,
+VerticalDetector::generate(const cv::Mat &inputImage, int32_t inputWidth,
                            bool detectSingleCharacters) {
 
   std::string methodName = "forward_" + std::to_string(inputWidth);

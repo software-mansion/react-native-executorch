@@ -11,9 +11,9 @@ VerticalOCR::VerticalOCR(const std::string &detectorSource,
                          const std::string &recognizerSource,
                          std::string symbols, bool independentChars,
                          std::shared_ptr<react::CallInvoker> invoker)
-    : detector(detectorSource, true, invoker),
-      recognizer(recognizerSource, invoker), converter(symbols),
-      independentCharacters(independentChars), callInvoker(invoker) {}
+    : detector(detectorSource, invoker), recognizer(recognizerSource, invoker),
+      converter(symbols), independentCharacters(independentChars),
+      callInvoker(invoker) {}
 
 std::vector<types::OCRDetection> VerticalOCR::generate(std::string input) {
   cv::Mat image = image_processing::readImage(input);

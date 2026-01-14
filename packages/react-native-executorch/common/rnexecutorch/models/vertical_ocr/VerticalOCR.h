@@ -21,22 +21,20 @@ namespace models::ocr {
 /*
   Vertical OCR is OCR designed to handle vertical texts.
   Vertical OCR pipeline consists of:
-  1. Large Detector -- detects regions where text is located.
+  1. Detector using forward_1280 method-- detects regions where text is located.
      Almost identical to the Detector in standard OCR.
      The result of this phase is a list of bounding boxes.
   Each detected box is then processed individually through the following steps:
-    2. Narrow Detector -- designed for detecting where single characters
-       are located.
-    There are two different strategies used for vertical recognition:
-      Strategy 1 "Independent Characters":
-        Treating each character region found  by Narrow Detector
-        as compeletely independent.
-        3. Each character is forwarded to Small Recognizer (64 x 64).
+    2. Detector using forward_320 method -- designed for detecting where single
+  characters are located. There are two different strategies used for vertical
+  recognition: Strategy 1 "Independent Characters": Treating each character
+  region found  by Narrow Detector as compeletely independent.
+        3. Each character is forwarded to Recognizer with input size 64 x 64.
       Strategy 2 "Joint Characters":
         The bounding boxes found by Narrow Detector are
         horizontally merged to create one wide image.
-        3. One wide image is forwarded to Large Recognzer (512 x 64).
-    Vertical OCR differentiate between those two strategies based on
+        3. One wide image is forwarded to  Recognzer with input width of 512
+  x 64. Vertical OCR differentiate between those two strategies based on
     `independentChars` flag passed to the constructor.
 */
 

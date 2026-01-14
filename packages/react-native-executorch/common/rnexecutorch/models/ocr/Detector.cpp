@@ -10,10 +10,10 @@ Detector::Detector(const std::string &modelSource,
     : BaseModel(modelSource, callInvoker) {}
 
 std::vector<types::DetectorBBox> Detector::generate(const cv::Mat &inputImage,
-                                                    const int inputWidth) {
+                                                    int32_t inputWidth) {
   /*
    Detector as an input accepts tensor with a shape of [1, 3, H, H].
-   where H is a constant for model. In our supported models it is currently
+   where H is a constant for model. In our supported model it is currently
    either H=800 or H=1280.
    Due to big influence of resize to quality of recognition the image preserves
    original aspect ratio and the missing parts are filled with padding.
@@ -23,15 +23,15 @@ std::vector<types::DetectorBBox> Detector::generate(const cv::Mat &inputImage,
 
   auto inputShapes = getAllInputShapes(methodName);
   if (inputShapes.empty()) {
-    throw std::runtime_error("Detector model has no input shape for method: " +
+    throw std::runtime_error("Detector model: invalid method name " +
                              methodName);
   }
 
   std::vector<int32_t> modelInputShape = inputShapes[0];
 
   if (modelInputShape.size() < 2) {
-    throw std::runtime_error(
-        "Unexpected detector model input size for method: " + methodName);
+    throw std::runtime_error("Detector model: invalid method name: " +
+                             methodName);
   }
 
   cv::Size modelInputSize =

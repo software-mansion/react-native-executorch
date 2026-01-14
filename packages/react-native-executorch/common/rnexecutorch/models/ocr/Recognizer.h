@@ -26,7 +26,7 @@ public:
   explicit Recognizer(const std::string &modelSource,
                       std::shared_ptr<react::CallInvoker> callInvoker);
   std::pair<std::vector<int32_t>, float> generate(const cv::Mat &grayImage,
-                                                  int inputWidth);
+                                                  int32_t inputWidth);
 
 private:
   std::pair<std::vector<int32_t>, float>

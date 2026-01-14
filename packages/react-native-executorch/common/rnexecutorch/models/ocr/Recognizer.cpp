@@ -13,7 +13,7 @@ Recognizer::Recognizer(const std::string &modelSource,
     : BaseModel(modelSource, callInvoker) {}
 
 std::pair<std::vector<int32_t>, float>
-Recognizer::generate(const cv::Mat &grayImage, int inputWidth) {
+Recognizer::generate(const cv::Mat &grayImage, int32_t inputWidth) {
   /*
    In our pipeline we use three types of Recognizer, each designated to
    handle different image sizes:
@@ -26,8 +26,8 @@ Recognizer::generate(const cv::Mat &grayImage, int inputWidth) {
   std::string method_name = "forward_" + std::to_string(inputWidth);
   auto shapes = getAllInputShapes(method_name);
   if (shapes.empty()) {
-    throw std::runtime_error(
-        "Recognizer model has no input tensors for method " + method_name);
+    throw std::runtime_error("Recognizer model: invalid method name " +
+                             method_name);
   }
   std::vector<int32_t> tensorDims = shapes[0];
   TensorPtr inputTensor =
