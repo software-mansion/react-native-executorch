@@ -4,6 +4,7 @@
 #include <executorch/extension/tensor/tensor_ptr.h>
 #include <opencv2/opencv.hpp>
 #include <rnexecutorch/models/BaseModel.h>
+#include <rnexecutorch/models/ocr/Detector.h>
 #include <rnexecutorch/models/ocr/Types.h>
 
 namespace rnexecutorch::models::ocr {
@@ -34,24 +35,17 @@ namespace rnexecutorch::models::ocr {
 using executorch::aten::Tensor;
 using executorch::extension::TensorPtr;
 
-class VerticalDetector final : public BaseModel {
+class VerticalDetector final : public Detector {
 public:
   explicit VerticalDetector(const std::string &modelSource,
                             std::shared_ptr<react::CallInvoker> callInvoker);
-  std::vector<types::DetectorBBox> generate(const cv::Mat &inputImage,
-                                            int32_t inputWidth,
-                                            bool detectSingleCharacters);
 
-  cv::Size getModelImageSize(int inputWidth) const noexcept;
+  std::vector<types::DetectorBBox> generate(const cv::Mat &inputImage,
+                                            int32_t inputWidth) override;
 
 private:
   std::vector<types::DetectorBBox>
   postprocess(const Tensor &tensor, const cv::Size &modelInputSize,
               bool detectSingleCharacters) const;
-  cv::Size calculateImageSizeForWidth(const int methoInputWidth);
-
-  cv::Size modelSmallImageSize;
-  cv::Size modelMediumImageSize;
-  cv::Size modelLargeImageSize;
 };
 } // namespace rnexecutorch::models::ocr

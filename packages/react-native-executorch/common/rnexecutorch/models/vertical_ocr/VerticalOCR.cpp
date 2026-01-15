@@ -22,10 +22,10 @@ std::vector<types::OCRDetection> VerticalOCR::generate(std::string input) {
   }
   // 1. Large Detector
   std::vector<types::DetectorBBox> largeBoxes =
-      detector.generate(image, constants::kLargeDetectorWidth, false);
+      detector.generate(image, constants::kLargeDetectorWidth);
 
   cv::Size largeDetectorSize =
-      detector.getModelImageSize(constants::kLargeDetectorWidth);
+      detector.calculateModelImageSize(constants::kLargeDetectorWidth);
   cv::Mat resizedImage =
       image_processing::resizePadded(image, largeDetectorSize);
   types::PaddingInfo imagePaddings =
@@ -138,7 +138,7 @@ types::OCRDetection VerticalOCR::_processSingleTextBox(
 
   // 2. Narrow Detector - detects single characters
   std::vector<types::DetectorBBox> characterBoxes =
-      detector.generate(croppedLargeBox, constants::kSmallDetectorWidth, true);
+      detector.generate(croppedLargeBox, constants::kSmallDetectorWidth);
 
   std::string text;
   float confidenceScore = 0.0;
@@ -149,7 +149,7 @@ types::OCRDetection VerticalOCR::_processSingleTextBox(
     const int32_t boxHeight =
         static_cast<int32_t>(box.bbox[2].y - box.bbox[0].y);
     cv::Size narrowRecognizerSize =
-        detector.getModelImageSize(constants::kSmallDetectorWidth);
+        detector.calculateModelImageSize(constants::kSmallDetectorWidth);
     types::PaddingInfo paddingsBox = utils::calculateResizeRatioAndPaddings(
         cv::Size(boxWidth, boxHeight), narrowRecognizerSize);
 

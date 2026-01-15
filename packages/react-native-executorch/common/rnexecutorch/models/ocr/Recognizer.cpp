@@ -1,9 +1,11 @@
 #include "Recognizer.h"
+#include "Constants.h"
 #include <numeric>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/data_processing/Numerical.h>
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/Types.h>
+#include <rnexecutorch/models/ocr/utils/DetectorUtils.h>
 #include <rnexecutorch/models/ocr/utils/RecognizerUtils.h>
 #include <string>
 
@@ -23,11 +25,14 @@ Recognizer::generate(const cv::Mat &grayImage, int32_t inputWidth) {
    The `generate` function as an argument accepts an image in grayscale
    already resized to the expected size.
   */
+  utils::validateInputWidth(inputWidth, constants::kRecognizerInputWidths,
+                            "Recognizer");
+
   std::string method_name = "forward_" + std::to_string(inputWidth);
   auto shapes = getAllInputShapes(method_name);
   if (shapes.empty()) {
-    throw std::runtime_error("Recognizer model: invalid method name " +
-                             method_name);
+    throw std::runtime_error("Recognizer model: Input shapes for  " +
+                             method_name " not found");
   }
   std::vector<int32_t> tensorDims = shapes[0];
   TensorPtr inputTensor =

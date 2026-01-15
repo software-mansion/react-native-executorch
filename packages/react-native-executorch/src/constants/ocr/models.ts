@@ -1,6 +1,6 @@
 import { alphabets, symbols } from './symbols';
 
-import { VERSION_TAG, URL_PREFIX } from '../modelUrls';
+import { VERSION_TAG, URL_PREFIX } from '../versions';
 
 const DETECTOR_CRAFT_MODEL = `${URL_PREFIX}-detector-craft/${VERSION_TAG}/xnnpack_quantized/xnnpack_craft_quantized.pte`;
 

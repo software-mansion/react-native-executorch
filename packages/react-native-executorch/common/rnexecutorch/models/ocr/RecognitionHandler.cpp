@@ -5,7 +5,7 @@
 
 namespace rnexecutorch::models::ocr {
 RecognitionHandler::RecognitionHandler(
-    const std::string &recognizerSource, std::string symbols,
+    const std::string &recognizerSource, const std::string &symbols,
     std::shared_ptr<react::CallInvoker> callInvoker)
     : converter(symbols), recognizer(recognizerSource, callInvoker) {
   memorySizeLowerBound = recognizer.getMemoryLowerBound();

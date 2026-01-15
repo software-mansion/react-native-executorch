@@ -1,7 +1,9 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <opencv2/opencv.hpp>
+#include <vector>
 
 namespace rnexecutorch::models::ocr::constants {
 
@@ -30,6 +32,11 @@ inline constexpr int32_t kVerticalLineThreshold = 20;
 inline constexpr int32_t kSmallDetectorWidth = 320;
 inline constexpr int32_t kMediumDetectorWidth = 800;
 inline constexpr int32_t kLargeDetectorWidth = 1280;
+inline constexpr std::array<int32_t, 3> kDetectorInputWidths = {
+    kSmallDetectorWidth, kMediumDetectorWidth, kLargeDetectorWidth};
+inline constexpr std::array<int32_t, 4> kRecognizerInputWidths = {
+    kSmallVerticalRecognizerWidth, kSmallRecognizerWidth,
+    kMediumRecognizerWidth, kLargeRecognizerWidth};
 
 /*
  Mean and variance values for image normalization were used in EASYOCR pipeline

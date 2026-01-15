@@ -18,7 +18,7 @@ namespace rnexecutorch::models::ocr {
 class RecognitionHandler final {
 public:
   explicit RecognitionHandler(const std::string &recognizer,
-                              std::string symbols,
+                              const std::string &symbols,
                               std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<types::OCRDetection>
   recognize(std::vector<types::DetectorBBox> bboxesList, cv::Mat &imgGray,

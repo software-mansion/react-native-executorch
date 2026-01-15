@@ -17,15 +17,20 @@ namespace rnexecutorch::models::ocr {
 using executorch::aten::Tensor;
 using executorch::extension::TensorPtr;
 
-class Detector final : public BaseModel {
+class Detector : public BaseModel {
 public:
   explicit Detector(const std::string &modelSource,
                     std::shared_ptr<react::CallInvoker> callInvoker);
-  std::vector<types::DetectorBBox> generate(const cv::Mat &inputImage,
-                                            int32_t inputWidth);
+  virtual std::vector<types::DetectorBBox> generate(const cv::Mat &inputImage,
+                                                    int32_t inputWidth);
 
-private:
-  std::vector<types::DetectorBBox>
-  postprocess(const Tensor &tensor, const cv::Size &modelInputSize) const;
+  cv::Size calculateModelImageSize(int32_t methodInputWidth);
+
+protected:
+  TensorPtr runInference(const cv::Mat &inputImage, int32_t inputWidth,
+                         const std::string &detectorName);
+
+  std::vector<types::DetectorBBox> postprocess(const Tensor &tensor,
+                                               const cv::Size &modelInputSize);
 };
 } // namespace rnexecutorch::models::ocr

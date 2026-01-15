@@ -11,36 +11,37 @@ namespace rnexecutorch::models::ocr {
 VerticalDetector::VerticalDetector(
     const std::string &modelSource,
     std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker) {
-  this->modelSmallImageSize =
-      calculateImageSizeForWidth(constants::kSmallDetectorWidth);
-  this->modelMediumImageSize =
-      calculateImageSizeForWidth(constants::kMediumDetectorWidth);
-  this->modelLargeImageSize =
-      calculateImageSizeForWidth(constants::kLargeDetectorWidth);
-}
+    : Detector(modelSource, callInvoker) {}
 
 std::vector<types::DetectorBBox>
-VerticalDetector::generate(const cv::Mat &inputImage, int32_t inputWidth,
-                           bool detectSingleCharacters) {
+VerticalDetector::generate(const cv::Mat &inputImage, int32_t inputWidth) {
+
+  bool detectSingleCharacters =
+      !(inputWidth >= constants::kMediumDetectorWidth);
+
+  utils::validateInputWidth(inputWidth, constants::kDetectorInputWidths,
+                            "VerticalDetector");
 
   std::string methodName = "forward_" + std::to_string(inputWidth);
-
   auto inputShapes = getAllInputShapes(methodName);
 
+  cv::Size modelInputSize = calculateModelImageSize(inputWidth);
+
   cv::Mat resizedInputImage =
-      image_processing::resizePadded(inputImage, getModelImageSize(inputWidth));
+      image_processing::resizePadded(inputImage, modelInputSize);
   TensorPtr inputTensor = image_processing::getTensorFromMatrix(
       inputShapes[0], resizedInputImage, constants::kNormalizationMean,
       constants::kNormalizationVariance);
   auto forwardResult = BaseModel::execute(methodName, {inputTensor});
+
   if (!forwardResult.ok()) {
     throw std::runtime_error(
-        "Failed to forward, error: " +
+        "Failed to " + methodName + " error: " +
         std::to_string(static_cast<uint32_t>(forwardResult.error())));
   }
   return postprocess(forwardResult->at(0).toTensor(),
-                     getModelImageSize(inputWidth), detectSingleCharacters);
+                     calculateModelImageSize(inputWidth),
+                     detectSingleCharacters);
 }
 
 std::vector<types::DetectorBBox>
@@ -85,47 +86,6 @@ VerticalDetector::postprocess(const Tensor &tensor,
   }
 
   return bBoxesList;
-}
-
-cv::Size
-VerticalDetector::calculateImageSizeForWidth(const int methoInputWidth) {
-
-  std::string methodName = "forward_" + std::to_string(methoInputWidth);
-
-  auto inputShapes = getAllInputShapes(methodName);
-
-  if (inputShapes.empty()) {
-    throw std::runtime_error("Detector model has no input shape for method: " +
-                             methodName);
-  }
-  std::vector<int32_t> modelInputShape = inputShapes[0];
-
-  if (modelInputShape.size() < 2) {
-    throw std::runtime_error("Unexpected detector model input size, expected "
-                             "at least 2 dimensions but got: " +
-                             std::to_string(modelInputShape.size()) + ".");
-  }
-
-  cv::Size modelInputSize =
-      cv::Size(modelInputShape[modelInputShape.size() - 1],
-               modelInputShape[modelInputShape.size() - 2]);
-  return modelInputSize;
-}
-
-cv::Size VerticalDetector::getModelImageSize(int inputWidth) const noexcept {
-  switch (inputWidth) {
-  case constants::kSmallDetectorWidth:
-    return modelSmallImageSize;
-    break;
-  case constants::kMediumDetectorWidth:
-    return modelMediumImageSize;
-    break;
-  case constants::kLargeDetectorWidth:
-    return modelLargeImageSize;
-    break;
-  default:
-    return modelMediumImageSize;
-  }
 }
 
 } // namespace rnexecutorch::models::ocr
