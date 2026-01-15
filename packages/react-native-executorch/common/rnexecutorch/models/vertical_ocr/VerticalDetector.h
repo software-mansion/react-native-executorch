@@ -22,7 +22,7 @@ namespace rnexecutorch::models::ocr {
  'getDetBoxesFromTextMap()`. Other than that, refer to the standard OCR
  Detector.
 
-  2. Narrow Detector throguh forward_320 method -- it is designed to detect a
+  2. Narrow Detector through forward_320 method -- it is designed to detect a
  single characters bounding boxes. `getDetBoxesFromTextMapVertical()` function
  acts differently for Narrow Detector and different textThreshold Value is
  passed. Additionally, the grouping of detected boxes is completely omited.
