@@ -58,7 +58,7 @@ const createAudioBufferFromVector = (
   return audioBuffer;
 };
 
-export const Quiz = () => {
+export const Quiz = ({ onBack }: { onBack: () => void }) => {
   // --- Hooks & State ---
   const model = useTextToSpeech({
     model: KOKORO_EN,
@@ -119,7 +119,10 @@ export const Quiz = () => {
   // --- TTS Function ---
   const speak = useCallback(
     async (text: string) => {
-      if (!text.trim() || !model.isReady) return;
+      if (!text.trim() || !model.isReady) {
+        setIsSpeaking(false);
+        return;
+      }
 
       // Stop previous audio if any
       if (currentSourceRef.current) {
@@ -170,13 +173,14 @@ export const Quiz = () => {
       autoSpeakRef.current = true;
       return;
     }
+    setIsSpeaking(true);
     const t = setTimeout(() => speak(currentQ.q), 500);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex, model.isReady]);
 
   const handleAnswer = async (index: number) => {
-    if (selectedAnswer !== null) return; // Prevent double taps
+    if (selectedAnswer !== null || isSpeaking) return; // Prevent double taps or clicks while reading
 
     setSelectedAnswer(index);
     const correct = index === currentQ.c;
@@ -258,6 +262,9 @@ export const Quiz = () => {
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
+          <TouchableOpacity onPress={onBack} style={styles.backButton}>
+            <FontAwesome name="chevron-left" size={20} color="#0f186e" />
+          </TouchableOpacity>
           <SWMIcon width={40} height={40} />
           <Text style={styles.headerText}>Text to Speech - Quiz</Text>
         </View>
@@ -288,7 +295,7 @@ export const Quiz = () => {
                       key={idx}
                       style={[styles.baseOption, getButtonColor(idx)]}
                       onPress={() => handleAnswer(idx)}
-                      disabled={selectedAnswer !== null}
+                      disabled={selectedAnswer !== null || isSpeaking}
                     >
                       <Text style={styles.optionText}>{opt}</Text>
                     </TouchableOpacity>
@@ -373,6 +380,10 @@ const styles = StyleSheet.create({
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+    position: 'relative',
+  },
+  backButton: {
+    paddingRight: 15,
   },
   headerText: {
     fontSize: 20,

@@ -12,7 +12,7 @@ export type TextToSpeechLanguage =
  *
  * @property {TextToSpeechLanguage} lang - speaker's language
  * @property {ResourceSource} voiceSource - a source to a binary file with voice embedding
- * @property {Record<string, unknown>} [extra] - an optional extra sources or properties related to specific voice
+ * @property {KokoroVoiceExtras} [extra] - an optional extra sources or properties related to specific voice
  */
 export interface VoiceConfig {
   lang: TextToSpeechLanguage;

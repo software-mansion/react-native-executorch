@@ -11,16 +11,18 @@ export default function App() {
     'menu' | 'speech-to-text' | 'text-to-speech' | 'quiz'
   >('menu');
 
+  const goToMenu = () => setCurrentScreen('menu');
+
   if (currentScreen === 'text-to-speech') {
-    return <TextToSpeechScreen />;
+    return <TextToSpeechScreen onBack={goToMenu} />;
   }
 
   if (currentScreen === 'speech-to-text') {
-    return <SpeechToTextScreen />;
+    return <SpeechToTextScreen onBack={goToMenu} />;
   }
 
   if (currentScreen === 'quiz') {
-    return <Quiz />;
+    return <Quiz onBack={goToMenu} />;
   }
 
   return (

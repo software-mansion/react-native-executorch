@@ -123,10 +123,10 @@ void DurationPredictor::scaleDurations(Tensor &durations,
   // We need to scale partial durations (integers) corresponding to each token
   // in a way that they all sum up to target duration, while keeping the balance
   // between the values.
-  std::priority_queue<std::pair<float, int>>
+  std::priority_queue<std::pair<float, uint32_t>>
       remainders; // Sorted by the first value
   int64_t scaledSum = 0;
-  for (int i = 0; i < nTokens; i++) {
+  for (uint32_t i = 0; i < nTokens; i++) {
     float scaled = scaleFactor * durationsPtr[i];
     float remainder =
         shrinking ? std::ceil(scaled) - scaled : scaled - std::floor(scaled);
@@ -143,7 +143,7 @@ void DurationPredictor::scaleDurations(Tensor &durations,
   // nTokens) - the next part is to round the remaining values sorted by their
   // remainders size.
   int32_t diff = std::abs(targetDuration - scaledSum);
-  for (int i = 0; i < diff; i++) {
+  for (uint32_t i = 0; i < diff; i++) {
     auto [remainder, idx] = remainders.top();
     durationsPtr[idx] += shrinking ? -1 : 1;
     remainders.pop();

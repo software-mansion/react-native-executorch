@@ -47,7 +47,7 @@ const createAudioBufferFromVector = (
   return audioBuffer;
 };
 
-export const TextToSpeechScreen = () => {
+export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
   const model = useTextToSpeech({
     model: KOKORO_EN,
     voice: KOKORO_VOICE_AF_HEART,
@@ -151,6 +151,9 @@ export const TextToSpeechScreen = () => {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           <View style={styles.header}>
+            <TouchableOpacity style={styles.backButton} onPress={onBack}>
+              <FontAwesome name="chevron-left" size={20} color="#0f186e" />
+            </TouchableOpacity>
             <SWMIcon width={60} height={60} />
             <Text style={styles.headerText}>React Native ExecuTorch</Text>
             <Text style={styles.headerText}>Text to Speech</Text>
@@ -208,6 +211,15 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
+    position: 'relative',
+    width: '100%',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 0,
+    top: 10,
+    padding: 10,
+    zIndex: 1,
   },
   headerText: {
     fontSize: 22,

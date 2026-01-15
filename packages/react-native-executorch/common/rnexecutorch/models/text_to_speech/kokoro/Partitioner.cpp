@@ -8,12 +8,14 @@
 namespace rnexecutorch::models::text_to_speech::kokoro {
 
 // Custom infinity definition
-constexpr Partitioner::Cost INF = 1e7;
+constexpr Partitioner::Cost INF = 1e8;
 
 template <>
 std::vector<std::u32string>
 Partitioner::divide<Partitioner::Strategy::TOTAL_TIME>(
     const std::u32string &phonemes) {
+  modelCosts_.at("small") = 40;
+
   return divide(
       phonemes,
       [this](size_t rangeBeg, size_t rangeSize) {
@@ -25,6 +27,10 @@ Partitioner::divide<Partitioner::Strategy::TOTAL_TIME>(
 template <>
 std::vector<std::u32string> Partitioner::divide<Partitioner::Strategy::LATENCY>(
     const std::u32string &phonemes) {
+  // Avoid using a small model, since it usually introduces lags on weaker
+  // devices.
+  modelCosts_.at("small") = 200;
+
   if (phonemes.size() <= constants::kInputMedium.noTokens - 2) {
     return {phonemes};
   }
@@ -139,7 +145,10 @@ Partitioner::Cost Partitioner::cost(size_t stringSize) {
                                                     : "large";
 
   const Configuration &modelConfig = constants::kInputs.at(activeModel);
-  return effSize <= modelConfig.noTokens ? modelCosts_.at(activeModel) : INF;
+  Cost baseCost =
+      effSize <= modelConfig.noTokens ? modelCosts_.at(activeModel) : INF;
+
+  return effSize < modelConfig.noTokens / 2 - 1 ? 2 * baseCost : baseCost;
 }
 
 // Helper function - cost estimation (by string)

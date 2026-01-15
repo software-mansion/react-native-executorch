@@ -1,6 +1,5 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ETError, getError } from '../../Error';
-import { BaseModule } from '../BaseModule';
 import {
   KokoroConfig,
   KokoroOptions,
@@ -9,7 +8,9 @@ import {
   VoiceConfig,
 } from '../../types/tts';
 
-export class TextToSpeechModule extends BaseModule {
+export class TextToSpeechModule {
+  nativeModule: any = null;
+
   public async load(
     config: TextToSpeechConfig,
     onDownloadProgressCallback: (progress: number) => void = () => {}
@@ -131,6 +132,12 @@ export class TextToSpeechModule extends BaseModule {
       if (error) throw error;
       if (finished) return;
       await new Promise<void>((r) => (waiter = r));
+    }
+  }
+
+  delete() {
+    if (this.nativeModule !== null) {
+      this.nativeModule.unload();
     }
   }
 }
