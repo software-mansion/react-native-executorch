@@ -6,7 +6,8 @@ const ReactNativeExecuTorchIntroduction = () => {
     <div className={styles.introductionContainer}>
       <h2 className={styles.title}>What is React Native ExecuTorch?</h2>
       <p className={styles.introduction}>
-        React Native ExecuTorch brings Meta’s ExecuTorch AI framework into the
+        React Native ExecuTorch brings Meta’s{' '}
+        <a href="https://executorch.ai">ExecuTorch</a> AI framework into the
         React Native ecosystem, enabling developers to run AI models and LLMs
         locally, directly on mobile devices. It provides a declarative API for
         on-device inference, allowing you to use local AI models without relying

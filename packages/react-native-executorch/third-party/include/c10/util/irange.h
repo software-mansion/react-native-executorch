@@ -22,7 +22,7 @@ struct integer_iterator {
   using pointer = I *;
   using reference = I &;
 
-  explicit constexpr integer_iterator(I value) : value(value) {}
+  explicit constexpr integer_iterator(I val) : value(val) {}
 
   constexpr I operator*() const { return value; }
 

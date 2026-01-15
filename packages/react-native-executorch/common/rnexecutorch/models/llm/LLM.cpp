@@ -1,30 +1,33 @@
 #include "LLM.h"
 
-#include <atomic>
 #include <executorch/extension/tensor/tensor.h>
 #include <filesystem>
 #include <rnexecutorch/threads/GlobalThreadPool.h>
 
 namespace rnexecutorch::models::llm {
+namespace llm = ::executorch::extension::llm;
+namespace fs = std::filesystem;
 using namespace facebook;
 using executorch::extension::TensorPtr;
+using executorch::extension::module::Module;
 using executorch::runtime::Error;
 
 LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
          std::shared_ptr<react::CallInvoker> callInvoker)
-    : runner(std::make_unique<example::Runner>(modelSource, tokenizerSource)),
-      callInvoker(callInvoker) {
-
+    : BaseModel(modelSource, callInvoker, Module::LoadMode::File),
+      runner(
+          std::make_unique<example::Runner>(module_.get(), tokenizerSource)) {
   auto loadResult = runner->load();
   if (loadResult != Error::Ok) {
     throw std::runtime_error("Failed to load LLM runner, error code: " +
                              std::to_string(static_cast<int>(loadResult)));
   }
-  memorySizeLowerBound =
-      std::filesystem::file_size(std::filesystem::path(modelSource)) +
-      std::filesystem::file_size(std::filesystem::path(tokenizerSource));
+
+  memorySizeLowerBound = fs::file_size(fs::path(modelSource)) +
+                         fs::file_size(fs::path(tokenizerSource));
 }
 
+// TODO: add a way to manipulate the generation config with params
 void LLM::generate(std::string input, std::shared_ptr<jsi::Function> callback) {
   if (!runner || !runner->is_loaded()) {
     throw std::runtime_error("Runner is not loaded");
@@ -37,7 +40,8 @@ void LLM::generate(std::string input, std::shared_ptr<jsi::Function> callback) {
     });
   };
 
-  auto error = runner->generate(input, nativeCallback, {}, false);
+  auto config = llm::GenerationConfig{.echo = false, .warming = false};
+  auto error = runner->generate(input, config, nativeCallback, {});
   if (error != executorch::runtime::Error::Ok) {
     throw std::runtime_error("Failed to generate text, error code: " +
                              std::to_string(static_cast<int>(error)));
@@ -76,6 +80,19 @@ void LLM::setTimeInterval(size_t timeInterval) {
   runner->set_time_interval(timeInterval);
 }
 
+void LLM::setTemperature(float temperature) {
+  if (!runner || !runner->is_loaded()) {
+    throw std::runtime_error("Can't configure a model that's not loaded!");
+  }
+  runner->set_temperature(temperature);
+};
+
+void LLM::setTopp(float topp) {
+  if (!runner || !runner->is_loaded()) {
+    throw std::runtime_error("Can't configure a model that's not loaded!");
+  }
+  runner->set_topp(topp);
+}
 void LLM::unload() noexcept { runner.reset(nullptr); }
 
 } // namespace rnexecutorch::models::llm

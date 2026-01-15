@@ -1,16 +1,16 @@
-/**
- * @internal
- */
-
-import {
-  DownloadResumable,
-  getInfoAsync,
-  makeDirectoryAsync,
-} from 'expo-file-system';
 import { RNEDirectory } from '../constants/directories';
 import { ResourceSource } from '../types/common';
 import { Asset } from 'expo-asset';
 import { Logger } from '../common/Logger';
+
+/**
+ * @internal
+ */
+import {
+  getInfoAsync,
+  makeDirectoryAsync,
+  type DownloadResumable,
+} from 'expo-file-system/legacy';
 
 export const enum HTTP_CODE {
   OK = 200,
@@ -75,7 +75,7 @@ export namespace ResourceFetcherUtils {
     let totalLength = 0;
     let previousFilesTotalLength = 0;
     for (const source of sources) {
-      const type = await ResourceFetcherUtils.getType(source);
+      const type = ResourceFetcherUtils.getType(source);
       let length = 0;
       try {
         if (type === SourceType.REMOTE_FILE && typeof source === 'string') {

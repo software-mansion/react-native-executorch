@@ -17,6 +17,7 @@
 #include <rnexecutorch/models/object_detection/Constants.h>
 #include <rnexecutorch/models/object_detection/Types.h>
 #include <rnexecutorch/models/ocr/Types.h>
+#include <rnexecutorch/models/voice_activity_detection/Types.h>
 
 namespace rnexecutorch::jsi_conversion {
 
@@ -397,6 +398,21 @@ getJsiValue(const std::vector<models::ocr::types::OCRDetection> &detections,
   }
 
   return jsiDetections;
+}
+
+inline jsi::Value
+getJsiValue(const std::vector<models::voice_activity_detection::types::Segment>
+                &speechSegments,
+            jsi::Runtime &runtime) {
+  auto jsiSegments = jsi::Array(runtime, speechSegments.size());
+  for (size_t i = 0; i < speechSegments.size(); i++) {
+    const auto &[start, end] = speechSegments[i];
+    auto jsiSegmentObject = jsi::Object(runtime);
+    jsiSegmentObject.setProperty(runtime, "start", static_cast<int>(start));
+    jsiSegmentObject.setProperty(runtime, "end", static_cast<int>(end));
+    jsiSegments.setValueAtIndex(runtime, i, jsiSegmentObject);
+  }
+  return jsiSegments;
 }
 
 } // namespace rnexecutorch::jsi_conversion
