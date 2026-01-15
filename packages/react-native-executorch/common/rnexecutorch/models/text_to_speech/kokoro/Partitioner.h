@@ -20,7 +20,7 @@ public:
   };
 
   // Cost definition
-  using Cost = int32_t;
+  using Cost = int64_t;
 
   // Partition function
   // Performs a division of the input phoneme string according to
@@ -34,8 +34,10 @@ public:
 
 private:
   // Helper function - partitioning
-  std::vector<std::u32string> divide(const std::u32string &phonemes,
-                                     const std::function<Cost(Cost, Cost)> &op);
+  std::vector<std::u32string>
+  divide(const std::u32string &phonemes,
+         const std::function<Cost(size_t, size_t)> &costFn,
+         const std::function<Cost(Cost, Cost)> &op);
   // Helper function - cost estimation (by string size)
   Cost cost(size_t stringSize);
   // Helper function - cost estimation (by string)
@@ -48,7 +50,7 @@ private:
       {"small", 40}, {"medium", 70}, {"large", 100}};
   Cost eosPenalty = 0;
   Cost pausePenalty = 30;
-  Cost whitePenalty = 80;
+  Cost whitePenalty = 10000;
 
   // Extra settings
   std::optional<std::string> fixedModel_ = std::nullopt;

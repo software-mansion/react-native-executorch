@@ -8,66 +8,39 @@
 namespace rnexecutorch::models::text_to_speech::kokoro {
 
 // Custom infinity definition
-constexpr Partitioner::Cost INF = 1e5;
+constexpr Partitioner::Cost INF = 1e7;
 
 template <>
 std::vector<std::u32string>
 Partitioner::divide<Partitioner::Strategy::TOTAL_TIME>(
     const std::u32string &phonemes) {
-  // Update the small model cost back to normal
-  modelCosts_.at("small") = 4;
-
-  return divide(phonemes, [](Cost a, Cost b) { return a + b; });
+  return divide(
+      phonemes,
+      [this](size_t rangeBeg, size_t rangeSize) {
+        return this->cost(rangeSize);
+      },
+      [](Cost a, Cost b) { return a + b; });
 }
 
 template <>
 std::vector<std::u32string> Partitioner::divide<Partitioner::Strategy::LATENCY>(
     const std::u32string &phonemes) {
-  // In streaming mode, we particularly want to avoid using
-  // small model, since it might introduce a bigger latency
-  // if followed by the large model.
-  modelCosts_.at("small") = 1000;
-
   if (phonemes.size() <= constants::kInputMedium.noTokens - 2) {
     return {phonemes};
   }
 
-  // Try to start with a medium-sized model
-  auto begPart = phonemes.substr(0, constants::kInputMedium.noTokens - 2);
-  auto lastEosIt =
-      std::find_if(begPart.rbegin(), begPart.rend(), [](char32_t c) {
-        return constants::kEndOfSentencePhonemes.contains(c);
-      });
-  auto lastPauseIt =
-      std::find_if(begPart.rbegin(), begPart.rend(), [](char32_t c) {
-        return constants::kPausePhonemes.contains(c);
-      });
-  int32_t lastEos = lastEosIt != begPart.rend()
-                        ? static_cast<int32_t>(std::distance(
-                              begPart.begin(), lastEosIt.base())) -
-                              1
-                        : -1;
-  int32_t lastPause = lastPauseIt != begPart.rend()
-                          ? static_cast<int32_t>(std::distance(
-                                begPart.begin(), lastPauseIt.base())) -
-                                1
-                          : -1;
-
-  if (!fixedModel_.has_value() &&
-      std::max(lastEos, lastPause) > constants::kInputSmall.noTokens - 2) {
-    int32_t breakpoint =
-        lastEos > constants::kInputSmall.noTokens - 2 ? lastEos : lastPause;
-
-    std::vector<std::u32string> result = {phonemes.substr(0, breakpoint + 1)};
-    auto rest = divide(
-        phonemes.substr(breakpoint + 1, phonemes.size() - breakpoint - 1),
-        [](Cost a, Cost b) { return a + b; });
-    result.insert(result.end(), std::make_move_iterator(rest.begin()),
-                  std::make_move_iterator(rest.end()));
-    return result;
-  }
-
-  return divide(phonemes, [](Cost a, Cost b) { return a + b; });
+  return divide(
+      phonemes,
+      [this](size_t rangeBeg, size_t rangeSize) {
+        Cost c = this->cost(rangeSize);
+        // We want to penalize putting long inputs at the beginning of the
+        // processing. Note that it usually takes longer to play out the audio
+        // instead of process it, so long fragments near the end do not afffect
+        // the latency.
+        return std::max(c,
+                        c * 128 / std::max(2, static_cast<int32_t>(rangeBeg)));
+      },
+      [](Cost a, Cost b) { return a + b; });
 }
 
 void Partitioner::setFixedModel(const std::string &modelLabel) {
@@ -86,6 +59,7 @@ void Partitioner::resetOptions() { fixedModel_ = std::nullopt; }
 // optimal solution.
 std::vector<std::u32string>
 Partitioner::divide(const std::u32string &phonemes,
+                    const std::function<Cost(size_t, size_t)> &costFn,
                     const std::function<Cost(Cost, Cost)> &op) {
   // DP array
   // (cost, prev_breakpoint_idx) pairs
@@ -100,7 +74,7 @@ Partitioner::divide(const std::u32string &phonemes,
     // We assume that phonemes[i] is the last character of currently analyzed
     // substring. First, estimate for the entire substring without further
     // division.
-    estimation = cost(i + 1);
+    estimation = costFn(0, i + 1);
 
     // Now, try to divide into 2 substring and utilize already calculated values
     // for left-side substring.
@@ -117,7 +91,8 @@ Partitioner::divide(const std::u32string &phonemes,
                                          : whitePenalty;
       for (int32_t breakIdx : (*q)) {
         Cost newEstimation =
-            op(mem[breakIdx].first, cost(i - breakIdx)) + penalty;
+            op(mem[breakIdx].first, costFn(breakIdx + 1, i - breakIdx)) +
+            penalty;
         if (newEstimation < estimation && breakIdx > 0) {
           estimation = newEstimation;
           prevBreakIdx = breakIdx;
@@ -164,19 +139,7 @@ Partitioner::Cost Partitioner::cost(size_t stringSize) {
                                                     : "large";
 
   const Configuration &modelConfig = constants::kInputs.at(activeModel);
-  Cost baseCost =
-      effSize <= modelConfig.noTokens ? modelCosts_.at(activeModel) : INF;
-
-  // Scale the cost according to sentence length / input proportion.
-  // The idea is to penalize creating sentences much shorter than
-  // corresponding input length.
-  if (effSize < modelConfig.noTokens) {
-    baseCost += baseCost * (modelConfig.noTokens - effSize) *
-                (modelConfig.noTokens - effSize) /
-                (modelConfig.noTokens * modelConfig.noTokens);
-  }
-
-  return baseCost;
+  return effSize <= modelConfig.noTokens ? modelCosts_.at(activeModel) : INF;
 }
 
 // Helper function - cost estimation (by string)

@@ -82,6 +82,7 @@ std::vector<float> Kokoro::generate(std::string text, float speed) {
     size_t inputSize = subsentence.size() + 2;
     const auto &config = selectConfig(inputSize);
 
+    // Generate an audio vector with the Kokoro model
     auto audioPart = generateForConfig(subsentence, config, speed);
 
     // Calculate a pause between the sentences
@@ -127,13 +128,24 @@ void Kokoro::stream(std::string text, float speed,
   // We follow the implementation of generate() method, but
   // instead of accumulating results in a vector, we push them
   // back to the JS side with the callback.
-  for (const auto &subsentence : subsentences) {
+  for (size_t i = 0; i < subsentences.size(); i++) {
+    const auto &subsentence = subsentences[i];
     // Kokoro requires padding the input with single zeros at both ends.
     // This effectively increases the input size by 2.
     size_t inputSize = subsentence.size() + 2;
     const auto &config = selectConfig(inputSize);
 
-    auto audioPart = generateForConfig(subsentence, config, speed);
+    // Determine the silent padding duration to be stripped from the edges of
+    // the generated audio. If a chunk ends with a space or follows one that
+    // did, it indicates a word boundary split – we use a shorter padding (20ms)
+    // to ensure natural speech flow. Otherwise, we use 50ms for standard
+    // pauses.
+    bool endsWithSpace = (subsentence.back() == U' ');
+    bool prevEndsWithSpace = (i > 0 && subsentences[i - 1].back() == U' ');
+    size_t paddingMs = endsWithSpace || prevEndsWithSpace ? 15 : 50; // [ms]
+
+    // Generate an audio vector with the Kokoro model
+    auto audioPart = generateForConfig(subsentence, config, speed, paddingMs);
 
     // Calculate a pause between the sentences
     char32_t lastPhoneme = subsentence.back();
@@ -153,7 +165,7 @@ void Kokoro::stream(std::string text, float speed,
 
 std::vector<float> Kokoro::generateForConfig(const std::u32string &phonemes,
                                              const Configuration &config,
-                                             float speed) {
+                                             float speed, size_t paddingMs) {
   // Determine the appropriate method for given input configuration
   const std::string method = "forward_" + std::to_string(config.noTokens);
 
@@ -187,7 +199,7 @@ std::vector<float> Kokoro::generateForConfig(const std::u32string &phonemes,
       std::span<float>(d.mutable_data_ptr<float>(), d.numel()), ref_hs);
   auto F0_pred = f0nPrediction->at(0).toTensor();
   auto N_pred = f0nPrediction->at(1).toTensor();
-  auto en = f0nPrediction->at(2).toTensor();
+  // auto en = f0nPrediction->at(2).toTensor();
   auto pred_aln_trg = f0nPrediction->at(3).toTensor();
 
   // Inference 3 - Encoder
@@ -212,7 +224,7 @@ std::vector<float> Kokoro::generateForConfig(const std::u32string &phonemes,
   auto audio =
       std::span<const float>(audioTensor.const_data_ptr<float>(), effLength);
   auto croppedAudio =
-      utils::stripAudio(audio, constants::kSamplesPerMilisecond * 50);
+      utils::stripAudio(audio, paddingMs * constants::kSamplesPerMilisecond);
 
   std::vector<float> result(croppedAudio.begin(), croppedAudio.end());
 

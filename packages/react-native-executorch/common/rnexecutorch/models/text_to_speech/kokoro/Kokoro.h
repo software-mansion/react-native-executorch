@@ -51,8 +51,8 @@ private:
 
   // Helper function - generate specialization for given input size
   std::vector<float> generateForConfig(const std::u32string &phonemes,
-                                       const Configuration &config,
-                                       float speed);
+                                       const Configuration &config, float speed,
+                                       size_t paddingMs = 50);
 
   // JS callback handle
   std::shared_ptr<react::CallInvoker> callInvoker_;
