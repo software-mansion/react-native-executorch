@@ -1,0 +1,118 @@
+name: NPM publish
+
+on:
+  schedule:
+    - cron: '01 00 * * *' # Every day at 00:01 UTC
+  workflow_dispatch:
+    inputs:
+      latest-build:
+        description: 'Whether to publish as a latest build'
+        required: true
+        type: boolean
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: 'npm-executorch-package-build'
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.repository == 'software-mansion/react-native-executorch'
+    runs-on: ubuntu-latest
+    environment: deployment
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      EXECUTORCH_DIR: packages/react-native-executorch
+      EXECUTORCH_VERSION: PLACEHOLDER
+      PACKAGE_NAME: PLACEHOLDER
+      TAG: PLACEHOLDER
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'yarn'
+          registry-url: https://registry.npmjs.org/
+
+      - name: Update NPM
+        run: npm install -g npm@latest
+
+      - name: Determine version
+        working-directory: ${{ env.EXECUTORCH_DIR }}
+        run: |
+          VERSION=$(jq -r .version package.json)
+          echo "EXECUTORCH_VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Assert EXECUTORCH_VERSION
+        if: ${{ env.EXECUTORCH_VERSION == 'PLACEHOLDER' }}
+        run: exit 1 # this should never happen
+
+      - name: Install monorepo dependencies
+        run: yarn install --immutable
+
+      - name: Set tag
+        run: |
+          if [[ "${{ inputs.latest-build }}" != "true" ]]; then
+            echo "TAG=executorch-nightly" >> $GITHUB_ENV
+          else
+            echo "TAG=latest" >> $GITHUB_ENV
+          fi
+
+      - name: Assert tag
+        if: ${{ env.TAG == 'PLACEHOLDER' }}
+        run: exit 1 # this should never happen
+
+      - name: Build package
+        id: build
+        working-directory: ${{ env.EXECUTORCH_DIR }}
+        run: |
+          if [[ "${{ inputs.latest-build }}" != "true" ]]; then
+            ./scripts/create-package.sh generate_nightly_version
+          else
+            ./scripts/create-package.sh
+          fi
+
+      - name: Check if any node_modules were packed
+        id: check_node_modules
+        working-directory: ${{ env.EXECUTORCH_DIR }}
+        run: >-
+          ! grep --silent -E "node_modules/.+" build.log
+
+      - name: Show build log
+        working-directory: ${{ env.EXECUTORCH_DIR }}
+        if: failure() && steps.build.outcome == 'failure'
+        run: cat build.log
+
+      - name: Show packed node_modules
+        working-directory: ${{ env.EXECUTORCH_DIR }}
+        if: failure() && steps.node_modules.outcome == 'failure'
+        run: >-
+          ! grep -E "node_modules/.+" build.log
+
+      - name: Add package name to env
+        working-directory: ${{ env.EXECUTORCH_DIR }}
+        run: echo "PACKAGE_NAME=$(ls -l | egrep -o "react-native-executorch-(.*)(=?\.tgz)")" >> $GITHUB_ENV
+
+      - name: Assert package name
+        if: ${{ env.PACKAGE_NAME == 'PLACEHOLDER' }}
+        run: exit 1 # this should never happen
+
+      - name: Upload package to GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.PACKAGE_NAME }}
+          path: ${{ env.EXECUTORCH_DIR }}/${{ env.PACKAGE_NAME }}
+
+      - name: Move package to monorepo root
+        run: mv ${{ env.EXECUTORCH_DIR }}/${{ env.PACKAGE_NAME }} .
+
+      - name: Publish package to npm
+        run: npm publish $PACKAGE_NAME --tag ${{ env.TAG }} --provenance

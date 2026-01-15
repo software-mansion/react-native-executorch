@@ -3,7 +3,6 @@ import { ResourceFetcher } from '../utils/ResourceFetcher';
 import { ETError, getError } from '../Error';
 import { Template } from '@huggingface/jinja';
 import { DEFAULT_CHAT_CONFIG } from '../constants/llmDefaults';
-import { readAsStringAsync } from 'expo-file-system';
 import {
   ChatConfig,
   GenerationConfig,
@@ -14,6 +13,7 @@ import {
 } from '../types/llm';
 import { parseToolCall } from '../utils/llm';
 import { Logger } from '../common/Logger';
+import { readAsStringAsync } from 'expo-file-system/legacy';
 
 export class LLMController {
   private nativeModule: any;
@@ -184,6 +184,17 @@ export class LLMController {
     if (generationConfig?.batchTimeInterval) {
       this.nativeModule.setTimeInterval(generationConfig.batchTimeInterval);
     }
+    if (generationConfig?.temperature) {
+      this.nativeModule.setTemperature(generationConfig.temperature);
+    }
+    if (generationConfig?.topp) {
+      if (generationConfig.topp < 0 || generationConfig.topp > 1) {
+        throw new Error(
+          getError(ETError.InvalidConfig) + 'TopP has to be in range [0, 1].'
+        );
+      }
+      this.nativeModule.setTopp(generationConfig.topp);
+    }
 
     // reset inner state when loading new configuration
     this.responseCallback('');
@@ -313,7 +324,7 @@ export class LLMController {
     const template = new Template(tokenizerConfig.chat_template);
 
     const specialTokens = Object.fromEntries(
-      Object.keys(SPECIAL_TOKENS)
+      Object.values(SPECIAL_TOKENS)
         .filter((key) => key in tokenizerConfig)
         .map((key) => [key, tokenizerConfig[key]])
     );

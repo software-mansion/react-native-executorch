@@ -13,27 +13,32 @@
 namespace rnexecutorch {
 namespace models {
 using namespace facebook;
+using executorch::extension::module::Module;
 using executorch::runtime::EValue;
 using executorch::runtime::Result;
+
 class BaseModel {
 public:
-  BaseModel(const std::string &modelSource,
-            std::shared_ptr<react::CallInvoker> callInvoker);
+  BaseModel(
+      const std::string &modelSource,
+      std::shared_ptr<react::CallInvoker> callInvoker,
+      Module::LoadMode loadMode = Module::LoadMode::MmapUseMlockIgnoreErrors);
   std::size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
   [[nodiscard("Registered non-void function")]] std::vector<int32_t>
-  getInputShape(std::string method_name, int32_t index);
+  getInputShape(std::string method_name, int32_t index) const;
   std::vector<std::vector<int32_t>>
-  getAllInputShapes(std::string methodName = "forward");
+  getAllInputShapes(std::string methodName = "forward") const;
   [[nodiscard("Registered non-void function")]] std::vector<JSTensorViewOut>
-  forwardJS(std::vector<JSTensorViewIn> tensorViewVec);
+  forwardJS(std::vector<JSTensorViewIn> tensorViewVec) const;
   Result<std::vector<EValue>> forward(const EValue &input_value) const;
   Result<std::vector<EValue>>
   forward(const std::vector<EValue> &input_value) const;
-  Result<std::vector<EValue>> execute(const std::string &methodName,
-                                      const std::vector<EValue> &input_value);
+  Result<std::vector<EValue>>
+  execute(const std::string &methodName,
+          const std::vector<EValue> &input_value) const;
   Result<executorch::runtime::MethodMeta>
-  getMethodMeta(const std::string &methodName);
+  getMethodMeta(const std::string &methodName) const;
 
 protected:
   // If possible, models should not use the JS runtime to keep JSI internals
@@ -43,9 +48,11 @@ protected:
   std::shared_ptr<react::CallInvoker> callInvoker;
   std::unique_ptr<executorch::extension::Module> module_;
 
-private:
   std::size_t memorySizeLowerBound{0};
-  std::vector<int32_t> getTensorShape(const executorch::aten::Tensor &tensor);
+
+private:
+  std::vector<int32_t>
+  getTensorShape(const executorch::aten::Tensor &tensor) const;
 };
 } // namespace models
 

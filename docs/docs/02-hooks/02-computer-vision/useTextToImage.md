@@ -124,9 +124,9 @@ The number following the underscore (\_) indicates that the model supports gener
 
 ### Inference time
 
-| Model                 | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
-| --------------------- | :--------------------------: | :------------------------------: | :-------------------: | :-------------------------------: | :-----------------------: |
-| BK_SDM_TINY_VPRED_256 |            19100             |              25000               |          ❌           |                ❌                 |           23100           |
+| Model                 | iPhone 17 Pro (XNNPACK) [ms] | iPhone 16 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| --------------------- | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
+| BK_SDM_TINY_VPRED_256 |            21184             |            21021             |             ❌             |               18834               |           16617           |
 
 :::info
 Text-to-image benchmark times are measured generating 256×256 images in 10 inference steps.

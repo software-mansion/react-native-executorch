@@ -76,10 +76,10 @@ const RECOGNIZER_TELUGU_CRNN_256 = createHFRecognizerDownloadUrl('telugu', 256);
 const RECOGNIZER_TELUGU_CRNN_128 = createHFRecognizerDownloadUrl('telugu', 128);
 const RECOGNIZER_TELUGU_CRNN_64 = createHFRecognizerDownloadUrl('telugu', 64);
 
-const RECOGNIZER_ZH_SIM_CRNN_512 = createHFRecognizerDownloadUrl('zhSim', 512);
-const RECOGNIZER_ZH_SIM_CRNN_256 = createHFRecognizerDownloadUrl('zhSim', 256);
-const RECOGNIZER_ZH_SIM_CRNN_128 = createHFRecognizerDownloadUrl('zhSim', 128);
-const RECOGNIZER_ZH_SIM_CRNN_64 = createHFRecognizerDownloadUrl('zhSim', 64);
+const RECOGNIZER_ZH_SIM_CRNN_512 = createHFRecognizerDownloadUrl('zh_sim', 512);
+const RECOGNIZER_ZH_SIM_CRNN_256 = createHFRecognizerDownloadUrl('zh_sim', 256);
+const RECOGNIZER_ZH_SIM_CRNN_128 = createHFRecognizerDownloadUrl('zh_sim', 128);
+const RECOGNIZER_ZH_SIM_CRNN_64 = createHFRecognizerDownloadUrl('zh_sim', 64);
 
 const RECOGNIZER_CYRILLIC_CRNN_512 = createHFRecognizerDownloadUrl(
   'cyrillic',

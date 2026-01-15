@@ -36,6 +36,8 @@ public:
   Sampler(int32_t vocab_size, float temperature, float topp,
           unsigned long long rng_seed);
 
+  Sampler(int32_t vocab_size, float temperature, float topp);
+
   template <typename T> int32_t sample(T *logits);
 
 private:

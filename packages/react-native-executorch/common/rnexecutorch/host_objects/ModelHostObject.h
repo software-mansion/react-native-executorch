@@ -113,6 +113,15 @@ public:
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>,
           synchronousHostFunction<&Model::setTimeInterval>, "setTimeInterval"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>,
+          synchronousHostFunction<&Model::setTemperature>, "setTemperature"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       synchronousHostFunction<&Model::setTopp>,
+                                       "setTopp"));
+
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }
