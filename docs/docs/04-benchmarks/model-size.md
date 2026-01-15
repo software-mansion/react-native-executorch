@@ -25,23 +25,23 @@ title: Model Size
 
 ## OCR
 
-| Model                 | XNNPACK [MB] |
-| --------------------- | :----------: |
-| Detector (CRAFT_800)  |     83.1     |
-| Recognizer (CRNN_512) |  15 - 18\*   |
-| Recognizer (CRNN_256) |  16 - 18\*   |
-| Recognizer (CRNN_128) |  17 - 19\*   |
+| Model                          | XNNPACK [MB] |
+| ------------------------------ | :----------: |
+| Detector (CRAFT_800_QUANTIZED) |     19.8     |
+| Recognizer (CRNN_512)          |  15 - 18\*   |
+| Recognizer (CRNN_256)          |  16 - 18\*   |
+| Recognizer (CRNN_128)          |  17 - 19\*   |
 
 \* - The model weights vary depending on the language.
 
 ## Vertical OCR
 
-| Model                    | XNNPACK [MB] |
-| ------------------------ | :----------: |
-| Detector (CRAFT_1280)    |     83.1     |
-| Detector (CRAFT_320)     |     83.1     |
-| Recognizer (CRNN_EN_512) |  15 - 18\*   |
-| Recognizer (CRNN_EN_64)  |  15 - 16\*   |
+| Model                           | XNNPACK [MB] |
+| ------------------------------- | :----------: |
+| Detector (CRAFT_1280_QUANTIZED) |     19.8     |
+| Detector (CRAFT_320_QUANTIZED)  |     19.8     |
+| Recognizer (CRNN_EN_512)        |  15 - 18\*   |
+| Recognizer (CRNN_EN_64)         |  15 - 16\*   |
 
 \* - The model weights vary depending on the language.
 
@@ -94,3 +94,9 @@ title: Model Size
 | Model             | Text encoder (XNNPACK) [MB] | UNet (XNNPACK) [MB] | VAE decoder (XNNPACK) [MB] |
 | ----------------- | --------------------------- | ------------------- | -------------------------- |
 | BK_SDM_TINY_VPRED | 492                         | 1290                | 198                        |
+
+## Voice Activity Detection (VAD)
+
+| Model    | XNNPACK [MB] |
+| -------- | :----------: |
+| FSMN_VAD |     1.83     |

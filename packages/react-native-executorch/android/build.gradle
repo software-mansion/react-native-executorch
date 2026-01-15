@@ -121,7 +121,8 @@ android {
           arguments "-DANDROID_STL=c++_shared",
                     "-DREACT_NATIVE_DIR=${toPlatformFileString(reactNativeRootDir.path)}",
                     "-DBUILD_DIR=${project.buildDir}",
-                    "-DANDROID_TOOLCHAIN=clang"
+                    "-DANDROID_TOOLCHAIN=clang",
+                    "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
       }
     }
   }
@@ -167,6 +168,5 @@ dependencies {
   implementation 'com.facebook.fbjni:fbjni:0.6.0'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation files('libs/classes.jar')
-  implementation 'org.opencv:opencv:4.10.0'
   implementation("com.squareup.okhttp3:okhttp:4.9.2")
 }

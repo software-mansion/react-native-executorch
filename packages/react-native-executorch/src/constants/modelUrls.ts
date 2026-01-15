@@ -2,7 +2,8 @@ import { Platform } from 'react-native';
 
 const URL_PREFIX =
   'https://huggingface.co/software-mansion/react-native-executorch';
-const VERSION_TAG = 'resolve/v0.5.0';
+const VERSION_TAG = 'resolve/v0.6.0';
+// const NEXT_VERSION_TAG = 'resolve/v0.7.0';
 
 // LLMs
 
@@ -310,6 +311,9 @@ const WHISPER_TINY_EN_TOKENIZER = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/
 const WHISPER_TINY_EN_ENCODER = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/xnnpack/whisper_tiny_en_encoder_xnnpack.pte`;
 const WHISPER_TINY_EN_DECODER = `${URL_PREFIX}-whisper-tiny.en/${VERSION_TAG}/xnnpack/whisper_tiny_en_decoder_xnnpack.pte`;
 
+const WHISPER_TINY_EN_ENCODER_QUANTIZED = `${URL_PREFIX}-whisper-tiny-quantized.en/${VERSION_TAG}/xnnpack/whisper_tiny_quantized_en_encoder_xnnpack.pte`;
+const WHISPER_TINY_EN_DECODER_QUANTIZED = `${URL_PREFIX}-whisper-tiny-quantized.en/${VERSION_TAG}/xnnpack/whisper_tiny_quantized_en_decoder_xnnpack.pte`;
+
 const WHISPER_BASE_EN_TOKENIZER = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/tokenizer.json`;
 const WHISPER_BASE_EN_ENCODER = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/xnnpack/whisper_base_en_encoder_xnnpack.pte`;
 const WHISPER_BASE_EN_DECODER = `${URL_PREFIX}-whisper-base.en/${VERSION_TAG}/xnnpack/whisper_base_en_decoder_xnnpack.pte`;
@@ -334,6 +338,13 @@ export const WHISPER_TINY_EN = {
   isMultilingual: false,
   encoderSource: WHISPER_TINY_EN_ENCODER,
   decoderSource: WHISPER_TINY_EN_DECODER,
+  tokenizerSource: WHISPER_TINY_EN_TOKENIZER,
+};
+
+export const WHISPER_TINY_EN_QUANTIZED = {
+  isMultilingual: false,
+  encoderSource: WHISPER_TINY_EN_ENCODER_QUANTIZED,
+  decoderSource: WHISPER_TINY_EN_DECODER_QUANTIZED,
   tokenizerSource: WHISPER_TINY_EN_TOKENIZER,
 };
 
@@ -438,4 +449,11 @@ export const BK_SDM_TINY_VPRED_256 = {
   encoderSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/text_encoder/model.pte`,
   unetSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/unet/model.256.pte`,
   decoderSource: `${URL_PREFIX}-bk-sdm-tiny/${VERSION_TAG}/vae/model.256.pte`,
+};
+
+// Voice Activity Detection
+const FSMN_VAD_MODEL = `${URL_PREFIX}-fsmn-vad/${VERSION_TAG}/xnnpack/fsmn-vad_xnnpack.pte`;
+
+export const FSMN_VAD = {
+  modelSource: FSMN_VAD_MODEL,
 };

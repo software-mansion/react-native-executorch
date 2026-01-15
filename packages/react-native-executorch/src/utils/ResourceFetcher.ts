@@ -27,6 +27,7 @@
  *   - Implements linked list behavior via the `.next` attribute
  *   - Automatically processes subsequent downloads when `.next` contains a valid resource
  */
+
 import {
   cacheDirectory,
   copyAsync,
@@ -37,7 +38,7 @@ import {
   EncodingType,
   deleteAsync,
   readDirectoryAsync,
-} from 'expo-file-system';
+} from 'expo-file-system/legacy';
 import { Asset } from 'expo-asset';
 import { Platform } from 'react-native';
 import { RNEDirectory } from '../constants/directories';

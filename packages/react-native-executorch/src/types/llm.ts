@@ -51,6 +51,8 @@ export interface ToolsConfig {
 }
 
 export interface GenerationConfig {
+  temperature?: number;
+  topp?: number;
   outputTokenBatchSize?: number;
   batchTimeInterval?: number;
 }

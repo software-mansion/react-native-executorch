@@ -8,50 +8,52 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 
 ## Classification
 
-| Model             | iPhone 16 Pro (Core ML) [ms] | iPhone 13 Pro (Core ML) [ms] | iPhone SE 3 (Core ML) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| Model             | iPhone 17 Pro (Core ML) [ms] | iPhone 16 Pro (Core ML) [ms] | iPhone SE 3 (Core ML) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
 | ----------------- | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
-| EFFICIENTNET_V2_S |             100              |             120              |            130             |                180                |            170            |
+| EFFICIENTNET_V2_S |             150              |             161              |            227             |                196                |            214            |
 
 ## Object Detection
 
-| Model                          | iPhone 16 Pro (XNNPACK) [ms] | iPhone 13 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| Model                          | iPhone 17 Pro (XNNPACK) [ms] | iPhone 16 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
 | ------------------------------ | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
-| SSDLITE_320_MOBILENET_V3_LARGE |             190              |             260              |            280             |                100                |            90             |
+| SSDLITE_320_MOBILENET_V3_LARGE |             261              |             279              |            414             |                125                |            115            |
 
 ## Style Transfer
 
-| Model                        | iPhone 16 Pro (Core ML) [ms] | iPhone 13 Pro (Core ML) [ms] | iPhone SE 3 (Core ML) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| Model                        | iPhone 17 Pro (Core ML) [ms] | iPhone 16 Pro (Core ML) [ms] | iPhone SE 3 (Core ML) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
 | ---------------------------- | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
-| STYLE_TRANSFER_CANDY         |             450              |             600              |            750             |               1650                |           1800            |
-| STYLE_TRANSFER_MOSAIC        |             450              |             600              |            750             |               1650                |           1800            |
-| STYLE_TRANSFER_UDNIE         |             450              |             600              |            750             |               1650                |           1800            |
-| STYLE_TRANSFER_RAIN_PRINCESS |             450              |             600              |            750             |               1650                |           1800            |
+| STYLE_TRANSFER_CANDY         |             1565             |             1675             |            2325            |               1750                |           1620            |
+| STYLE_TRANSFER_MOSAIC        |             1565             |             1675             |            2325            |               1750                |           1620            |
+| STYLE_TRANSFER_UDNIE         |             1565             |             1675             |            2325            |               1750                |           1620            |
+| STYLE_TRANSFER_RAIN_PRINCESS |             1565             |             1675             |            2325            |               1750                |           1620            |
 
 ## OCR
 
-| Model                 | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | Samsung Galaxy S21 (XNNPACK) [ms] |
-| --------------------- | :--------------------------: | :------------------------------: | :------------------------: | :-------------------------------: | :-------------------------------: |
-| Detector (CRAFT_800)  |             2099             |               2227               |             ❌             |               2245                |               7108                |
-| Recognizer (CRNN_512) |              70              |               252                |             ❌             |                54                 |                151                |
-| Recognizer (CRNN_256) |              39              |               123                |             ❌             |                24                 |                78                 |
-| Recognizer (CRNN_128) |              17              |                83                |             ❌             |                14                 |                39                 |
+Notice that the recognizer models were executed between 3 and 7 times during a single recognition.
+The values below represent the averages across all runs for the benchmark image.
 
-❌ - Insufficient RAM.
+| Model                          | iPhone 17 Pro (XNNPACK) [ms] | iPhone 16 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| ------------------------------ | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
+| Detector (CRAFT_800_QUANTIZED) |             779              |             897              |            1276            |                553                |            586            |
+| Recognizer (CRNN_512)          |              77              |              74              |            244             |                56                 |            57             |
+| Recognizer (CRNN_256)          |              35              |              37              |            120             |                28                 |            30             |
+| Recognizer (CRNN_128)          |              18              |              19              |             60             |                14                 |            16             |
 
 ## Vertical OCR
 
-| Model                 | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | Samsung Galaxy S21 (XNNPACK) [ms] |
-| --------------------- | :--------------------------: | :------------------------------: | :------------------------: | :-------------------------------: | :-------------------------------: |
-| Detector (CRAFT_1280) |             5457             |               5833               |             ❌             |               6296                |               14053               |
-| Detector (CRAFT_320)  |             1351             |               1460               |             ❌             |               1485                |               3101                |
-| Recognizer (CRNN_512) |              39              |               123                |             ❌             |                24                 |                78                 |
-| Recognizer (CRNN_64)  |              10              |                33                |             ❌             |                 7                 |                18                 |
+Notice that the recognizer models, as well as detector CRAFT_320 model, were executed between 4 and 21 times during a single recognition.
+The values below represent the averages across all runs for the benchmark image.
 
-❌ - Insufficient RAM.
+| Model                           | iPhone 17 Pro (XNNPACK) [ms] | iPhone 16 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| ------------------------------- | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
+| Detector (CRAFT_1280_QUANTIZED) |             1918             |             2304             |            3371            |               1391                |           1445            |
+| Detector (CRAFT_320_QUANTIZED)  |             473              |             563              |            813             |                361                |            382            |
+| Recognizer (CRNN_512)           |              78              |              83              |            310             |                59                 |            57             |
+| Recognizer (CRNN_64)            |              9               |              9               |             38             |                 8                 |             7             |
 
 ## LLMs
 
-| Model                 | iPhone 16 Pro (XNNPACK) [tokens/s] | iPhone 13 Pro (XNNPACK) [tokens/s] | iPhone SE 3 (XNNPACK) [tokens/s] | Samsung Galaxy S24 (XNNPACK) [tokens/s] | OnePlus 12 (XNNPACK) [tokens/s] |
+| Model                 | iPhone 17 Pro (XNNPACK) [tokens/s] | iPhone 16 Pro (XNNPACK) [tokens/s] | iPhone SE 3 (XNNPACK) [tokens/s] | Samsung Galaxy S24 (XNNPACK) [tokens/s] | OnePlus 12 (XNNPACK) [tokens/s] |
 | --------------------- | :--------------------------------: | :--------------------------------: | :------------------------------: | :-------------------------------------: | :-----------------------------: |
 | LLAMA3_2_1B           |                16.1                |                11.4                |                ❌                |                  15.6                   |              19.3               |
 | LLAMA3_2_1B_SPINQUANT |                40.6                |                16.7                |               16.5               |                  40.3                   |              48.2               |
@@ -68,7 +70,7 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 
 Notice than for `Whisper` model which has to take as an input 30 seconds audio chunks (for shorter audio it is automatically padded with silence to 30 seconds) `fast` mode has the lowest latency (time from starting transcription to first token returned, caused by streaming algorithm), but the slowest speed. That's why for the lowest latency and the fastest transcription we suggest using `Moonshine` model, if you still want to proceed with `Whisper` use preferably the `balanced` mode.
 
-| Model (mode)              | iPhone 16 Pro (XNNPACK) [latency \| tokens/s] | iPhone 14 Pro (XNNPACK) [latency \| tokens/s] | iPhone SE 3 (XNNPACK) [latency \| tokens/s] | Samsung Galaxy S24 (XNNPACK) [latency \| tokens/s] | OnePlus 12 (XNNPACK) [latency \| tokens/s] |
+| Model (mode)              | iPhone 17 Pro (XNNPACK) [latency \| tokens/s] | iPhone 16 Pro (XNNPACK) [latency \| tokens/s] | iPhone SE 3 (XNNPACK) [latency \| tokens/s] | Samsung Galaxy S24 (XNNPACK) [latency \| tokens/s] | OnePlus 12 (XNNPACK) [latency \| tokens/s] |
 | ------------------------- | :-------------------------------------------: | :-------------------------------------------: | :-----------------------------------------: | :------------------------------------------------: | :----------------------------------------: |
 | Moonshine-tiny (fast)     |                0.8s \| 19.0t/s                |                1.5s \| 11.3t/s                |               1.5s \| 10.4t/s               |                   2.0s \| 8.8t/s                   |              1.6s \| 12.5t/s               |
 | Moonshine-tiny (balanced) |                2.0s \| 20.0t/s                |                3.2s \| 12.4t/s                |               3.7s \| 10.4t/s               |                  4.6s \| 11.2t/s                   |              3.4s \| 14.6t/s               |
@@ -81,7 +83,7 @@ Notice than for `Whisper` model which has to take as an input 30 seconds audio c
 
 Average time for encoding audio of given length over 10 runs. For `Whisper` model we only list 30 sec audio chunks since `Whisper` does not accept other lengths (for shorter audio the audio needs to be padded to 30sec with silence).
 
-| Model                | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| Model                | iPhone 17 Pro (XNNPACK) [ms] | iPhone 16 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
 | -------------------- | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
 | Moonshine-tiny (5s)  |              99              |              95              |            115             |                284                |            277            |
 | Moonshine-tiny (10s) |             178              |             177              |            204             |                555                |            528            |
@@ -92,7 +94,7 @@ Average time for encoding audio of given length over 10 runs. For `Whisper` mode
 
 Average time for decoding one token in sequence of 100 tokens, with encoding context obtained from audio of noted length.
 
-| Model                | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| Model                | iPhone 17 Pro (XNNPACK) [ms] | iPhone 16 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
 | -------------------- | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
 | Moonshine-tiny (5s)  |            48.98             |            47.98             |           46.86            |               36.70               |           29.03           |
 | Moonshine-tiny (10s) |            54.24             |            51.74             |           55.07            |               46.31               |           32.41           |
@@ -101,9 +103,9 @@ Average time for decoding one token in sequence of 100 tokens, with encoding con
 
 ## Text Embeddings
 
-| Model                      | iPhone 16 Pro (XNNPACK) [ms] | iPhone 14 Pro Max (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) | OnePlus 12 (XNNPACK) [ms] |
-| -------------------------- | :--------------------------: | :------------------------------: | :------------------------: | :--------------------------: | :-----------------------: |
-| ALL_MINILM_L6_V2           |              53              |                69                |             78             |              60              |            65             |
-| ALL_MPNET_BASE_V2          |             352              |               423                |            478             |             521              |            527            |
-| MULTI_QA_MINILM_L6_COS_V1  |             135              |               166                |            180             |             158              |            165            |
-| MULTI_QA_MPNET_BASE_DOT_V1 |             503              |               598                |            680             |             694              |            743            |
+| Model                      | iPhone 17 Pro (XNNPACK) [ms] | iPhone 16 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| -------------------------- | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
+| ALL_MINILM_L6_V2           |              50              |              58              |             84             |                58                 |            58             |
+| ALL_MPNET_BASE_V2          |             352              |             428              |            879             |                483                |            517            |
+| MULTI_QA_MINILM_L6_COS_V1  |             133              |             161              |            269             |                151                |            155            |
+| MULTI_QA_MPNET_BASE_DOT_V1 |             502              |             796              |            1216            |                915                |            713            |
