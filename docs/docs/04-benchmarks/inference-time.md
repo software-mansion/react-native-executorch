@@ -2,7 +2,7 @@
 title: Inference Time
 ---
 
-:::warning warning
+:::warning
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
 :::
 
@@ -106,7 +106,17 @@ Benchmark times for text embeddings are highly dependent on the sentence length.
 Image embedding benchmark times are measured using 224×224 pixel images, as required by the model. All input images, whether larger or smaller, are resized to 224×224 before processing. Resizing is typically fast for small images but may be noticeably slower for very large images, which can increase total inference time.
 :::
 
-## Text to Image
+## Image Segmentation
+
+:::warning
+Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
+:::
+
+| Model             | iPhone 16 Pro (Core ML) [ms] | iPhone 14 Pro Max (Core ML) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] |
+| ----------------- | ---------------------------- | -------------------------------- | --------------------------------- |
+| DEELABV3_RESNET50 | 1000                         | 670                              | 700                               |
+
+## Text to image
 
 | Model                 | iPhone 17 Pro (XNNPACK) [ms] | iPhone 16 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
 | --------------------- | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |

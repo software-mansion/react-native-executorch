@@ -92,7 +92,7 @@ Average time for encoding audio of given length over 10 runs. For `Whisper` mode
 
 ### Decoding
 
-Average time for decoding one token in sequence of 100 tokens, with encoding context is obtained from audio of noted length.
+Average time for decoding one token in sequence of 100 tokens, with encoding context obtained from audio of noted length.
 
 | Model                | iPhone 17 Pro (XNNPACK) [ms] | iPhone 16 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
 | -------------------- | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |

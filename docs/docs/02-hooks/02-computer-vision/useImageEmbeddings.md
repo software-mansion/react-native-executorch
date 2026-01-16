@@ -18,8 +18,8 @@ description: "Learn how to use image embeddings models in your React Native appl
 
 Image Embedding is the process of converting an image into a numerical representation. This representation can be used for tasks, such as classification, clustering and (using contrastive learning like e.g. CLIP model) image search.
 
-:::caution
-It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-clip-vit-base-patch32). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
+:::warning
+It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/image-embeddings-68d0eda599a9d37caaaf1ad0). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
 :::
 
 ## Reference
@@ -119,7 +119,7 @@ For the supported models, the returned embedding vector is normalized, meaning t
 
 ### Inference time
 
-:::warning warning
+:::warning
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization. Performance also heavily depends on image size, because resize is expansive operation, especially on low-end devices.
 :::
 

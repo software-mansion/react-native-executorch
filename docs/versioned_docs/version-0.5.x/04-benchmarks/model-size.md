@@ -83,6 +83,12 @@ title: Model Size
 | --------------------------- | :----------: |
 | CLIP_VIT_BASE_PATCH32_IMAGE |     352      |
 
+## Image Segmentation
+
+| Model             | XNNPACK [MB] |
+| ----------------- | ------------ |
+| DEELABV3_RESNET50 | 168          |
+
 ## Text to Image
 
 | Model             | Text encoder (XNNPACK) [MB] | UNet (XNNPACK) [MB] | VAE decoder (XNNPACK) [MB] |
