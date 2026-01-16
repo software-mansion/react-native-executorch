@@ -32,7 +32,7 @@ Recognizer::generate(const cv::Mat &grayImage, int32_t inputWidth) {
   auto shapes = getAllInputShapes(method_name);
   if (shapes.empty()) {
     throw std::runtime_error("Recognizer model: Input shapes for  " +
-                             method_name " not found");
+                             method_name + " not found");
   }
   std::vector<int32_t> tensorDims = shapes[0];
   TensorPtr inputTensor =
