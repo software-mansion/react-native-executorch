@@ -21,8 +21,9 @@ class Detector : public BaseModel {
 public:
   explicit Detector(const std::string &modelSource,
                     std::shared_ptr<react::CallInvoker> callInvoker);
-  virtual std::vector<types::DetectorBBox> generate(const cv::Mat &inputImage,
-                                                    int32_t inputWidth);
+  [[nodiscard("Registered non-void function")]] 
+  virtual std::vector<types::DetectorBBox> 
+  generate(const cv::Mat &inputImage, int32_t inputWidth);
 
   cv::Size calculateModelImageSize(int32_t methodInputWidth);
 

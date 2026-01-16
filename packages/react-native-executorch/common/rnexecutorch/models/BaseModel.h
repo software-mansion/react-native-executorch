@@ -25,11 +25,11 @@ public:
       Module::LoadMode loadMode = Module::LoadMode::MmapUseMlockIgnoreErrors);
   std::size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
-  std::vector<int32_t> getInputShape(std::string method_name,
-                                     int32_t index) const;
+  [[nodiscard("Registered non-void function")]] std::vector<int32_t>
+  getInputShape(std::string method_name, int32_t index) const;
   std::vector<std::vector<int32_t>>
   getAllInputShapes(std::string methodName = "forward") const;
-  std::vector<JSTensorViewOut>
+  [[nodiscard("Registered non-void function")]] std::vector<JSTensorViewOut>
   forwardJS(std::vector<JSTensorViewIn> tensorViewVec) const;
   Result<std::vector<EValue>> forward(const EValue &input_value) const;
   Result<std::vector<EValue>>

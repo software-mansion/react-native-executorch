@@ -27,7 +27,8 @@ public:
   explicit OCR(const std::string &detectorSource,
                const std::string &recognizerSource, const std::string &symbols,
                std::shared_ptr<react::CallInvoker> callInvoker);
-  std::vector<types::OCRDetection> generate(std::string input);
+  [[nodiscard("Registered non-void function")]] std::vector<types::OCRDetection>
+  generate(std::string input);
   std::size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
 

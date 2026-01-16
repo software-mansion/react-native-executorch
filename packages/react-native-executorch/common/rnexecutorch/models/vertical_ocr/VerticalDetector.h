@@ -39,7 +39,6 @@ class VerticalDetector final : public Detector {
 public:
   explicit VerticalDetector(const std::string &modelSource,
                             std::shared_ptr<react::CallInvoker> callInvoker);
-
   std::vector<types::DetectorBBox> generate(const cv::Mat &inputImage,
                                             int32_t inputWidth) override;
 

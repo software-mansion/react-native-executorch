@@ -25,6 +25,7 @@ class Recognizer final : public BaseModel {
 public:
   explicit Recognizer(const std::string &modelSource,
                       std::shared_ptr<react::CallInvoker> callInvoker);
+  [[nodiscard("Registered non-void function")]] 
   std::pair<std::vector<int32_t>, float> generate(const cv::Mat &grayImage,
                                                   int32_t inputWidth);
 

@@ -16,7 +16,9 @@ class ImageEmbeddings final : public BaseEmbeddings {
 public:
   ImageEmbeddings(const std::string &modelSource,
                   std::shared_ptr<react::CallInvoker> callInvoker);
-  std::shared_ptr<OwningArrayBuffer> generate(std::string imageSource);
+  [[nodiscard(
+      "Registered non-void function")]] std::shared_ptr<OwningArrayBuffer>
+  generate(std::string imageSource);
 
 private:
   cv::Size modelImageSize{0, 0};
