@@ -1,4 +1,5 @@
 #include "Decoder.h"
+#include <rnexecutorch/Error.h>
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/metaprogramming/ContainerHelpers.h>
 
@@ -44,9 +45,9 @@ Decoder::generate(const std::string &method, const Configuration &inputConfig,
       execute(method, {asrTensor, f0Tensor, nTensor, voiceRefTensor});
 
   if (!results.ok()) {
-    throw std::runtime_error(
-        "[Kokoro::Decoder] Failed to execute method " + method +
-        ", error: " + std::to_string(static_cast<uint32_t>(results.error())));
+    throw RnExecutorchError(results.error(),
+                            "The model's forward function did not succeed. "
+                            "Ensure the model input is correct.");
   }
 
   // Returns a single [audio] vector, which contains the

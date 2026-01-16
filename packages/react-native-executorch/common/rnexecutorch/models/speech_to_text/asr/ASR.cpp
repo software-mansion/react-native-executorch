@@ -5,6 +5,7 @@
 #include "executorch/extension/tensor/tensor_ptr.h"
 #include "rnexecutorch/data_processing/Numerical.h"
 #include "rnexecutorch/data_processing/gzip.h"
+#include <rnexecutorch/Error.h>
 
 namespace rnexecutorch::models::speech_to_text::asr {
 
@@ -253,9 +254,9 @@ std::vector<float> ASR::encode(std::span<float> waveform) const {
   const auto encoderResult = this->encoder->forward(modelInputTensor);
 
   if (!encoderResult.ok()) {
-    throw std::runtime_error(
-        "Forward pass failed during encoding, error code: " +
-        std::to_string(static_cast<int32_t>(encoderResult.error())));
+    throw RnExecutorchError(encoderResult.error(),
+                            "The model's forward function did not succeed. "
+                            "Ensure the model input is correct.");
   }
 
   const auto decoderOutputTensor = encoderResult.get().at(0).toTensor();
@@ -283,9 +284,9 @@ std::vector<float> ASR::decode(std::span<int32_t> tokens,
       this->decoder->forward({tokenTensor, encoderTensor});
 
   if (!decoderResult.ok()) {
-    throw std::runtime_error(
-        "Forward pass failed during decoding, error code: " +
-        std::to_string(static_cast<int32_t>(decoderResult.error())));
+    throw RnExecutorchError(decoderResult.error(),
+                            "The model's forward function did not succeed. "
+                            "Ensure the model input is correct.");
   }
 
   const auto logitsTensor = decoderResult.get().at(0).toTensor();

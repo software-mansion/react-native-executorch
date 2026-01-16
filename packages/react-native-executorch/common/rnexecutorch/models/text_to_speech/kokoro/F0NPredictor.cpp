@@ -1,4 +1,5 @@
 #include "F0NPredictor.h"
+#include <rnexecutorch/Error.h>
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/metaprogramming/ContainerHelpers.h>
 
@@ -38,9 +39,9 @@ Result<std::vector<EValue>> F0NPredictor::generate(
   auto results = execute(method, {indicesTensor, durTensor, voiceRefTensor});
 
   if (!results.ok()) {
-    throw std::runtime_error(
-        "[Kokoro::DurationPredictor] Failed to execute method " + method +
-        ", error: " + std::to_string(static_cast<uint32_t>(results.error())));
+    throw RnExecutorchError(results.error(),
+                            "The model's forward function did not succeed. "
+                            "Ensure the model input is correct.");
   }
 
   // Returns F0 prediction, N prediction, and related features (en,

@@ -1,6 +1,8 @@
 import { ResourceSource } from '../../types/common';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { BaseModule } from '../BaseModule';
+import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
+import { RnExecutorchError } from '../../errors/errorUtils';
 
 export class TextEmbeddingsModule extends BaseModule {
   async load(
@@ -22,7 +24,10 @@ export class TextEmbeddingsModule extends BaseModule {
     const modelPath = modelResult?.[0];
     const tokenizerPath = tokenizerResult?.[0];
     if (!modelPath || !tokenizerPath) {
-      throw new Error('Download interrupted.');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.DownloadInterrupted,
+        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+      );
     }
     this.nativeModule = global.loadTextEmbeddings(modelPath, tokenizerPath);
   }

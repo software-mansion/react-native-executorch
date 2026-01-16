@@ -1,4 +1,6 @@
 #include "UNet.h"
+#include <rnexecutorch/Error.h>
+#include <rnexecutorch/ErrorCodes.h>
 
 namespace rnexecutorch::models::text_to_image {
 
@@ -26,9 +28,9 @@ std::vector<float> UNet::generate(std::vector<float> &latents, int32_t timestep,
   auto forwardResult =
       BaseModel::forward({latentsTensor, timestepTensor, embeddingsTensor});
   if (!forwardResult.ok()) {
-    throw std::runtime_error(
-        "Function forward in UNet failed with error code: " +
-        std::to_string(static_cast<uint32_t>(forwardResult.error())));
+    throw RnExecutorchError(forwardResult.error(),
+                            "The model's forward function did not succeed. "
+                            "Ensure the model input is correct.");
   }
 
   auto forwardResultTensor = forwardResult->at(0).toTensor();

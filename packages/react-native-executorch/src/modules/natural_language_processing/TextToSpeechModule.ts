@@ -1,5 +1,6 @@
+import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
+import { RnExecutorchError } from '../../errors/errorUtils';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
-import { ETError, getError } from '../../Error';
 import {
   KokoroConfig,
   KokoroOptions,
@@ -19,7 +20,10 @@ export class TextToSpeechModule {
       key.includes('Source')
     );
     if (anySourceKey === undefined) {
-      throw new Error('No model source provided.');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidModelSource,
+        'No model source provided.'
+      );
     }
 
     // Select the text to speech model based on it's fixed identifier
@@ -46,7 +50,8 @@ export class TextToSpeechModule {
       !voice.extra.taggerSource ||
       !voice.extra.lexiconSource
     ) {
-      throw new Error(
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidConfig,
         'Kokoro: voice config is missing required extra fields: taggerSource and/or lexiconSource.'
       );
     }
@@ -63,7 +68,10 @@ export class TextToSpeechModule {
     );
 
     if (paths === null || paths.length !== 7 || paths.some((p) => p == null)) {
-      throw new Error('Download interrupted or missing resource.');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.DownloadInterrupted,
+        'Download interrupted or missing resource.'
+      );
     }
 
     const modelPaths = paths.slice(0, 4) as [string, string, string, string];
@@ -89,7 +97,10 @@ export class TextToSpeechModule {
 
   public async forward(text: string, speed: number = 1.0) {
     if (this.nativeModule == null)
-      throw new Error(getError(ETError.ModuleNotLoaded));
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        'The model is currently not loaded. Please load the model before calling forward().'
+      );
     return await this.nativeModule.generate(text, speed);
   }
 

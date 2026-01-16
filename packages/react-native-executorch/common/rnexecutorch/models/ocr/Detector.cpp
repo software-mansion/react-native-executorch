@@ -1,11 +1,12 @@
 #include "Detector.h"
 #include "Constants.h"
 #include <cstdint>
+#include <rnexecutorch/Error.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/utils/DetectorUtils.h>
-#include <stdexcept>
 #include <string>
+
 namespace rnexecutorch::models::ocr {
 Detector::Detector(const std::string &modelSource,
                    std::shared_ptr<react::CallInvoker> callInvoker)
@@ -15,11 +16,12 @@ Detector::Detector(const std::string &modelSource,
     std::string methodName = "forward_" + std::to_string(input_size);
     auto inputShapes = getAllInputShapes(methodName);
     if (inputShapes[0].size() < 2) {
-      throw std::runtime_error(
-          "Unexpected detector model input size for method:" + methodName +
-          ", expected "
-          "at least 2 dimensions but got: " +
-          std::to_string(inputShapes[0].size()) + ".");
+      std::string errorMessage =
+          "Unexpected detector model input size for method: " + methodName +
+          "expected at least 2 dimensions but got: ." +
+          std::to_string(inputShapes[0].size());
+      throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
+                              errorMessage);
     }
   }
 }
@@ -50,9 +52,9 @@ std::vector<types::DetectorBBox> Detector::generate(const cv::Mat &inputImage,
   auto forwardResult = BaseModel::execute(methodName, {inputTensor});
 
   if (!forwardResult.ok()) {
-    throw std::runtime_error(
-        "Failed to " + methodName + " error: " +
-        std::to_string(static_cast<uint32_t>(forwardResult.error())));
+    throw RnExecutorchError(forwardResult.error(),
+                            "The model's forward function did not succeed. "
+                            "Ensure the model input is correct.");
   }
 
   return postprocess(forwardResult->at(0).toTensor(), modelInputSize);

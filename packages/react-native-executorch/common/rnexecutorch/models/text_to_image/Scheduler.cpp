@@ -5,6 +5,8 @@
 
 #include <algorithm>
 #include <cmath>
+#include <rnexecutorch/Error.h>
+#include <rnexecutorch/ErrorCodes.h>
 
 namespace rnexecutorch::models::text_to_image {
 using namespace facebook;
@@ -70,7 +72,8 @@ std::vector<float> Scheduler::step(const std::vector<float> &sample,
                                    const std::vector<float> &noise,
                                    int32_t timestep) {
   if (numInferenceSteps == 0) {
-    throw std::runtime_error(
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::InvalidConfig,
         "Number of inference steps is not set. Call `set_timesteps` first.");
   }
 

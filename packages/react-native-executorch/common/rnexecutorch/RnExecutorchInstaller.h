@@ -1,11 +1,10 @@
-#pragma once
-
 #include <memory>
 #include <string>
 
 #include <ReactCommon/CallInvoker.h>
 #include <jsi/jsi.h>
 
+#include <rnexecutorch/Error.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/host_objects/ModelHostObject.h>
 #include <rnexecutorch/metaprogramming/ConstructorHelpers.h>
@@ -65,6 +64,14 @@ private:
             jsiObject.setExternalMemoryPressure(
                 runtime, modelImplementationPtr->getMemoryLowerBound());
             return jsiObject;
+          } catch (const rnexecutorch::RnExecutorchError &e) {
+            jsi::Object errorData(runtime);
+            errorData.setProperty(runtime, "code", e.getNumericCode());
+            errorData.setProperty(
+                runtime, "message",
+                jsi::String::createFromUtf8(runtime, e.what()));
+            throw jsi::JSError(runtime,
+                               jsi::Value(runtime, std::move(errorData)));
           } catch (const std::runtime_error &e) {
             // This catch should be merged with the next one
             // (std::runtime_error inherits from std::exception) HOWEVER react

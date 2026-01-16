@@ -5,7 +5,8 @@ import {
   TextToSpeechInput,
   TextToSpeechStreamingInput,
 } from '../../types/tts';
-import { ETError, getError } from '../../Error';
+import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
+import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
 interface Props extends TextToSpeechConfig {
   preventLoad?: boolean;
@@ -17,7 +18,7 @@ export const useTextToSpeech = ({
   options,
   preventLoad = false,
 }: Props) => {
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<RnExecutorchError | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
@@ -45,7 +46,7 @@ export const useTextToSpeech = ({
         );
         setIsReady(true);
       } catch (err) {
-        setError((err as Error).message);
+        setError(parseUnknownError(err));
       }
     })();
 
@@ -66,8 +67,16 @@ export const useTextToSpeech = ({
   ]);
 
   const forward = async (input: TextToSpeechInput) => {
-    if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
-    if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
+    if (!isReady)
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        'The model is currently not loaded. Please load the model before calling forward().'
+      );
+    if (isGenerating)
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelGenerating,
+        'The model is currently generating. Please wait until previous model run is complete.'
+      );
     try {
       setIsGenerating(true);
       return await moduleInstance.forward(input.text, input.speed ?? 1.0);
@@ -78,8 +87,16 @@ export const useTextToSpeech = ({
 
   const stream = useCallback(
     async (input: TextToSpeechStreamingInput) => {
-      if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
-      if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
+      if (!isReady)
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModuleNotLoaded,
+          'The model is currently not loaded. Please load the model before calling stream().'
+        );
+      if (isGenerating)
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModelGenerating,
+          'The model is currently generating. Please wait until previous model run is complete.'
+        );
       setIsGenerating(true);
       try {
         await input.onBegin?.();

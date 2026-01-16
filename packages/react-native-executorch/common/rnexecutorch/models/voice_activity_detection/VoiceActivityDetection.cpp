@@ -1,6 +1,8 @@
 #include "VoiceActivityDetection.h"
 #include "rnexecutorch/data_processing/dsp.h"
 #include "rnexecutorch/models/voice_activity_detection/Utils.h"
+#include <rnexecutorch/Error.h>
+#include <rnexecutorch/ErrorCodes.h>
 
 #include <algorithm>
 #include <array>
@@ -77,9 +79,9 @@ VoiceActivityDetection::generate(std::span<float> waveform) const {
         executorch::aten::ScalarType::Float);
     auto forwardResult = BaseModel::forward(inputTensor);
     if (!forwardResult.ok()) {
-      throw std::runtime_error(
-          "Failed to forward, error: " +
-          std::to_string(static_cast<uint32_t>(forwardResult.error())));
+      throw RnExecutorchError(forwardResult.error(),
+                              "The model's forward function did not succeed. "
+                              "Ensure the model input is correct.");
     }
     auto tensor = forwardResult->at(0).toTensor();
     startIdx = utils::getNonSpeechClassProbabilites(
@@ -93,9 +95,9 @@ VoiceActivityDetection::generate(std::span<float> waveform) const {
       executorch::aten::ScalarType::Float);
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
-    throw std::runtime_error(
-        "Failed to forward, error: " +
-        std::to_string(static_cast<uint32_t>(forwardResult.error())));
+    throw RnExecutorchError(forwardResult.error(),
+                            "The model's forward function did not succeed. "
+                            "Ensure the model input is correct.");
   }
   auto tensor = forwardResult->at(0).toTensor();
   startIdx = utils::getNonSpeechClassProbabilites(tensor, tensor.size(2),

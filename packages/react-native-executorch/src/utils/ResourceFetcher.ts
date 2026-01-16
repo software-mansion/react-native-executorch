@@ -51,6 +51,8 @@ import {
   ResourceSourceExtended,
   DownloadResource,
 } from './ResourceFetcherUtils';
+import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
+import { RnExecutorchError } from '../errors/errorUtils';
 
 export class ResourceFetcher {
   static downloads = new Map<ResourceSource, DownloadResource>(); //map of currently downloading (or paused) files, if the download was started by .fetch() method.
@@ -60,7 +62,10 @@ export class ResourceFetcher {
     ...sources: ResourceSource[]
   ) {
     if (sources.length === 0) {
-      throw new Error('Empty list given as an argument!');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidUserInput,
+        'Empty list given as an argument'
+      );
     }
     const { results: info, totalLength } =
       await ResourceFetcherUtils.getFilesSizes(sources);
@@ -161,7 +166,8 @@ export class ResourceFetcher {
     const resource = this.downloads.get(source)!;
     switch (resource.status) {
       case DownloadStatus.PAUSED:
-        throw new Error(
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ResourceFetcherAlreadyPaused,
           "The file download is currently paused. Can't pause the download of the same file twice."
         );
       default: {
@@ -178,11 +184,15 @@ export class ResourceFetcher {
       !resource.extendedInfo.cacheFileUri ||
       !resource.extendedInfo.uri
     ) {
-      throw new Error('Something went wrong. File uri info is not specified!');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ResourceFetcherMissingUri,
+        'Something went wrong. File uri info is not specified'
+      );
     }
     switch (resource.status) {
       case DownloadStatus.ONGOING:
-        throw new Error(
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ResourceFetcherAlreadyOngoing,
           "The file download is currently ongoing. Can't resume the ongoing download."
         );
       default: {
@@ -200,8 +210,9 @@ export class ResourceFetcher {
           (result.status !== HTTP_CODE.OK &&
             result.status !== HTTP_CODE.PARTIAL_CONTENT)
         ) {
-          throw new Error(
-            `Failed to fetch resource from '${resource.extendedInfo.uri}'`
+          throw new RnExecutorchError(
+            RnExecutorchErrorCode.ResourceFetcherDownloadFailed,
+            `Failed to fetch resource from '${resource.extendedInfo.uri}, context: ${result}'`
           );
         }
         await moveAsync({
@@ -248,7 +259,8 @@ export class ResourceFetcher {
         return source;
       }
     }
-    throw new Error(
+    throw new RnExecutorchError(
+      RnExecutorchErrorCode.ResourceFetcherNotActive,
       'None of given sources are currently during downloading process.'
     );
   }
@@ -281,7 +293,10 @@ export class ResourceFetcher {
 
   private static async handleObject(source: ResourceSource) {
     if (typeof source !== 'object') {
-      throw new Error('Source is expected to be object!');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidModelSource,
+        'Source is expected to be object'
+      );
     }
     const jsonString = JSON.stringify(source);
     const digest = ResourceFetcherUtils.hashObject(jsonString);
@@ -302,7 +317,10 @@ export class ResourceFetcher {
 
   private static handleLocalFile(source: ResourceSource) {
     if (typeof source !== 'string') {
-      throw new Error('Source is expected to be string.');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidModelSource,
+        'Source is expected to be string'
+      );
     }
     return ResourceFetcherUtils.removeFilePrefix(source);
   }
@@ -312,7 +330,10 @@ export class ResourceFetcher {
   ) {
     const source = sourceExtended.source;
     if (typeof source !== 'number') {
-      throw new Error('Source is expected to be string.');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidModelSource,
+        'Source is expected to be number'
+      );
     }
     const asset = Asset.fromModule(source);
     const uri = asset.uri;
@@ -337,7 +358,10 @@ export class ResourceFetcher {
   ) {
     const source = sourceExtended.source;
     if (typeof source !== 'number') {
-      throw new Error('Source is expected to be a number.');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidModelSource,
+        'Source is expected to be a number'
+      );
     }
     sourceExtended.uri = Asset.fromModule(source).uri;
     return await this.handleRemoteFile(sourceExtended);
@@ -348,7 +372,10 @@ export class ResourceFetcher {
   ) {
     const source = sourceExtended.source;
     if (typeof source === 'object') {
-      throw new Error('Source is expected to be a string or a number.');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidModelSource,
+        'Source is expected to be a string or a number'
+      );
     }
     if (this.downloads.has(source)) {
       const resource = this.downloads.get(source)!;
@@ -357,10 +384,16 @@ export class ResourceFetcher {
         this.resume(source);
       }
       // if the download is ongoing, throw error.
-      throw new Error('Already downloading this file.');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ResourceFetcherDownloadInProgress,
+        'Already downloading this file'
+      );
     }
     if (typeof source === 'number' && !sourceExtended.uri) {
-      throw new Error('Source Uri is expected to be available here.');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ResourceFetcherMissingUri,
+        'Source Uri is expected to be available here'
+      );
     }
     if (typeof source === 'string') {
       sourceExtended.uri = source;
@@ -405,7 +438,10 @@ export class ResourceFetcher {
       return null;
     }
     if (!result || result.status !== HTTP_CODE.OK) {
-      throw new Error(`Failed to fetch resource from '${source}'`);
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ResourceFetcherDownloadFailed,
+        `Failed to fetch resource from '${source}, context: ${result}'`
+      );
     }
     await moveAsync({
       from: sourceExtended.cacheFileUri,

@@ -2,6 +2,8 @@
 #include <zlib.h>
 
 #include "gzip.h"
+#include <rnexecutorch/Error.h>
+#include <rnexecutorch/ErrorCodes.h>
 
 namespace rnexecutorch::gzip {
 
@@ -16,7 +18,8 @@ size_t deflateSize(const std::string &input) {
   if (::deflateInit2(&strm, Z_DEFAULT_COMPRESSION, Z_DEFLATED,
                      MAX_WBITS + kGzipWrapper, kMemLevel,
                      Z_DEFAULT_STRATEGY) != Z_OK) {
-    throw std::runtime_error("deflateInit2 failed");
+    throw RnExecutorchError(RnExecutorchErrorCode::UnknownError,
+                            "deflateInit2 failed");
   }
 
   size_t outSize = 0;
@@ -34,7 +37,8 @@ size_t deflateSize(const std::string &input) {
     ret = ::deflate(&strm, strm.avail_in ? Z_NO_FLUSH : Z_FINISH);
     if (ret == Z_STREAM_ERROR) {
       ::deflateEnd(&strm);
-      throw std::runtime_error("deflate stream error");
+      throw RnExecutorchError(RnExecutorchErrorCode::UnknownError,
+                              "deflate stream error");
     }
 
     outSize += buf.size() - strm.avail_out;

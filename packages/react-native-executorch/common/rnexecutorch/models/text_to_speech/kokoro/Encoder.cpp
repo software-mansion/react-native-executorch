@@ -1,4 +1,5 @@
 #include "Encoder.h"
+#include <rnexecutorch/Error.h>
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/metaprogramming/ContainerHelpers.h>
 
@@ -46,9 +47,9 @@ Result<std::vector<EValue>> Encoder::generate(const std::string &method,
       execute(method, {tokensTensor, textMaskTensor, predAlnTrgTensor});
 
   if (!results.ok()) {
-    throw std::runtime_error(
-        "[Kokoro::Encoder] Failed to execute method " + method +
-        ", error: " + std::to_string(static_cast<uint32_t>(results.error())));
+    throw RnExecutorchError(results.error(),
+                            "The model's forward function did not succeed. "
+                            "Ensure the model input is correct.");
   }
 
   // Returns a single tensor with ASR (Acoustic State Representation) features.
