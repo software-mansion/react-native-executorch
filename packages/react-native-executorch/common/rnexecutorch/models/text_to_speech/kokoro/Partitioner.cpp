@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <functional>
 #include <queue>
-#include <stdexcept>
+#include <rnexecutorch/Error.h>
 
 namespace rnexecutorch::models::text_to_speech::kokoro {
 
@@ -51,7 +51,9 @@ std::vector<std::u32string> Partitioner::divide<Partitioner::Strategy::LATENCY>(
 
 void Partitioner::setFixedModel(const std::string &modelLabel) {
   if (!constants::kInputs.contains(modelLabel))
-    throw std::invalid_argument("Partitioner: invalid fixed model label");
+    throw rnexecutorch::RnExecutorchError(
+        rnexecutorch::RnExecutorchErrorCode::InvalidConfig,
+        "Partitioner: invalid fixed model label");
 
   fixedModel_ = {modelLabel};
 }
