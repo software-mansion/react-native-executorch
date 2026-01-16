@@ -10,7 +10,6 @@ namespace rnexecutorch::dsp {
 
 using std::numbers::pi_v;
 
-namespace { 
 std::vector<float> hannWindow(size_t size) { 
   std::vector<float> window(size); 
   for (size_t i = 0; i < size; i++) { 
@@ -18,6 +17,5 @@ std::vector<float> hannWindow(size_t size) {
   } 
   return window; 
 } 
-} // namespace
 
 } // namespace rnexecutorch::dsp
