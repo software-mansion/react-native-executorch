@@ -15,9 +15,9 @@ export class VerticalOCRController {
   private errorCallback: (error: RnExecutorchError) => void;
 
   constructor({
-    isReadyCallback = (_isReady: boolean) => { },
-    isGeneratingCallback = (_isGenerating: boolean) => { },
-    errorCallback = (_error: RnExecutorchError) => { },
+    isReadyCallback = (_isReady: boolean) => {},
+    isGeneratingCallback = (_isGenerating: boolean) => {},
+    errorCallback = (_error: RnExecutorchError) => {},
   } = {}) {
     this.isReadyCallback = isReadyCallback;
     this.isGeneratingCallback = isGeneratingCallback;

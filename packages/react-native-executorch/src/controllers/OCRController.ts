@@ -49,7 +49,10 @@ export class OCRController {
         recognizerSource
       );
       if (paths === null || paths.length < 2) {
-        throw new Error('Download interrupted!');
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.DownloadInterrupted,
+          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+        );
       }
       this.nativeModule = global.loadOCR(
         paths[0]!,

@@ -1,6 +1,14 @@
+import {
+  RnExecutorchError,
+  RnExecutorchErrorCode,
+} from 'react-native-executorch';
+
 export const dotProduct = (a: Float32Array, b: Float32Array) => {
   if (a.length !== b.length) {
-    throw new Error('Vectors must be of the same length');
+    throw new RnExecutorchError(
+      RnExecutorchErrorCode.WrongDimensions,
+      `dotProduct needs both vector to have the same length: got a: ${a.length}, b: ${b.length}`
+    );
   }
 
   let sum = 0;
