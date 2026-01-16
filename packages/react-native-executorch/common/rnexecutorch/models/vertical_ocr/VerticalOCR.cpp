@@ -2,19 +2,18 @@
 #include <future>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/data_processing/Numerical.h>
+#include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/Types.h>
 #include <tuple>
 
 namespace rnexecutorch::models::ocr {
-VerticalOCR::VerticalOCR(const std::string &detectorLargeSource,
-                         const std::string &detectorNarrowSource,
+VerticalOCR::VerticalOCR(const std::string &detectorSource,
                          const std::string &recognizerSource,
                          std::string symbols, bool independentChars,
                          std::shared_ptr<react::CallInvoker> invoker)
-    : detectorLarge(detectorLargeSource, false, invoker),
-      detectorNarrow(detectorNarrowSource, true, invoker),
-      recognizer(recognizerSource, invoker), converter(symbols),
-      independentCharacters(independentChars), callInvoker(invoker) {}
+    : detector(detectorSource, invoker), recognizer(recognizerSource, invoker),
+      converter(symbols), independentCharacters(independentChars),
+      callInvoker(invoker) {}
 
 std::vector<types::OCRDetection> VerticalOCR::generate(std::string input) {
   cv::Mat image = image_processing::readImage(input);
@@ -22,9 +21,11 @@ std::vector<types::OCRDetection> VerticalOCR::generate(std::string input) {
     throw std::runtime_error("Failed to load image from path: " + input);
   }
   // 1. Large Detector
-  std::vector<types::DetectorBBox> largeBoxes = detectorLarge.generate(image);
+  std::vector<types::DetectorBBox> largeBoxes =
+      detector.generate(image, constants::kLargeDetectorWidth);
 
-  cv::Size largeDetectorSize = detectorLarge.getModelImageSize();
+  cv::Size largeDetectorSize =
+      detector.calculateModelImageSize(constants::kLargeDetectorWidth);
   cv::Mat resizedImage =
       image_processing::resizePadded(image, largeDetectorSize);
   types::PaddingInfo imagePaddings =
@@ -42,9 +43,7 @@ std::vector<types::OCRDetection> VerticalOCR::generate(std::string input) {
 }
 
 std::size_t VerticalOCR::getMemoryLowerBound() const noexcept {
-  return detectorLarge.getMemoryLowerBound() +
-         detectorNarrow.getMemoryLowerBound() +
-         recognizer.getMemoryLowerBound();
+  return detector.getMemoryLowerBound() + recognizer.getMemoryLowerBound();
 }
 
 // Strategy 1: Recognize each character individually
@@ -76,7 +75,8 @@ std::pair<std::string, float> VerticalOCR::_handleIndependentCharacters(
     croppedChar = utils::normalizeForRecognizer(
         croppedChar, constants::kRecognizerHeight, 0.0, true);
 
-    const auto &[predIndex, score] = recognizer.generate(croppedChar);
+    const auto &[predIndex, score] =
+        recognizer.generate(croppedChar, constants::kRecognizerHeight);
     if (!predIndex.empty()) {
       text += converter.decodeGreedy(predIndex, predIndex.size())[0];
     }
@@ -118,7 +118,7 @@ std::pair<std::string, float> VerticalOCR::_handleJointCharacters(
       mergedCharacters, constants::kRecognizerHeight, 0.0, false);
 
   const auto &[predIndex, confidenceScore] =
-      recognizer.generate(mergedCharacters);
+      recognizer.generate(mergedCharacters, constants::kLargeRecognizerWidth);
   if (!predIndex.empty()) {
     text = converter.decodeGreedy(predIndex, predIndex.size())[0];
   }
@@ -138,7 +138,7 @@ types::OCRDetection VerticalOCR::_processSingleTextBox(
 
   // 2. Narrow Detector - detects single characters
   std::vector<types::DetectorBBox> characterBoxes =
-      detectorNarrow.generate(croppedLargeBox);
+      detector.generate(croppedLargeBox, constants::kSmallDetectorWidth);
 
   std::string text;
   float confidenceScore = 0.0;
@@ -148,7 +148,8 @@ types::OCRDetection VerticalOCR::_processSingleTextBox(
         static_cast<int32_t>(box.bbox[2].x - box.bbox[0].x);
     const int32_t boxHeight =
         static_cast<int32_t>(box.bbox[2].y - box.bbox[0].y);
-    cv::Size narrowRecognizerSize = detectorNarrow.getModelImageSize();
+    cv::Size narrowRecognizerSize =
+        detector.calculateModelImageSize(constants::kSmallDetectorWidth);
     types::PaddingInfo paddingsBox = utils::calculateResizeRatioAndPaddings(
         cv::Size(boxWidth, boxHeight), narrowRecognizerSize);
 
@@ -173,8 +174,7 @@ types::OCRDetection VerticalOCR::_processSingleTextBox(
 }
 
 void VerticalOCR::unload() noexcept {
-  detectorLarge.unload();
-  detectorNarrow.unload();
+  detector.unload();
   recognizer.unload();
 }
 } // namespace rnexecutorch::models::ocr

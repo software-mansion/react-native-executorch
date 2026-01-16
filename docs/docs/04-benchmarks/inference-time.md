@@ -32,24 +32,26 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 Notice that the recognizer models were executed between 3 and 7 times during a single recognition.
 The values below represent the averages across all runs for the benchmark image.
 
-| Model                          | iPhone 17 Pro (XNNPACK) [ms] | iPhone 16 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
-| ------------------------------ | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
-| Detector (CRAFT_800_QUANTIZED) |             220              |             221              |            1740            |                521                |            492            |
-| Recognizer (CRNN_512)          |              45              |              38              |            110             |                40                 |            38             |
-| Recognizer (CRNN_256)          |              21              |              18              |             54             |                20                 |            19             |
-| Recognizer (CRNN_128)          |              11              |              9               |             27             |                10                 |            10             |
+| Model                           | iPhone 17 Pro [ms] | iPhone 16 Pro [ms] | iPhone SE 3 | Samsung Galaxy S24 [ms] | OnePlus 12 [ms] |
+| ------------------------------- | ------------------ | ------------------ | ----------- | ----------------------- | --------------- |
+| **Total Inference Time**        | 652                | 600                | 2855        | 1092                    | 1034            |
+| Detector (CRAFT) `forward_800`  | 220                | 221                | 1740        | 521                     | 492             |
+| Recognizer (CRNN) `forward_512` | 45                 | 38                 | 110         | 40                      | 38              |
+| Recognizer (CRNN) `forward_256` | 21                 | 18                 | 54          | 20                      | 19              |
+| Recognizer (CRNN) `forward_128` | 11                 | 9                  | 27          | 10                      | 10              |
 
 ## Vertical OCR
 
-Notice that the recognizer models, as well as detector CRAFT_320 model, were executed between 4 and 21 times during a single recognition.
+Notice that the recognizer models, as well as detector's `forward_320` method, were executed between 4 and 21 times during a single recognition.
 The values below represent the averages across all runs for the benchmark image.
 
-| Model                           | iPhone 17 Pro (XNNPACK) [ms] | iPhone 16 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
-| ------------------------------- | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
-| Detector (CRAFT_1280_QUANTIZED) |             501              |             507              |            4317            |               1405                |           1275            |
-| Detector (CRAFT_320_QUANTIZED)  |             125              |             121              |            1060            |                338                |            299            |
-| Recognizer (CRNN_512)           |              46              |              42              |            109             |                47                 |            37             |
-| Recognizer (CRNN_64)            |              5               |              6               |             14             |                 7                 |             6             |
+| Model                           | iPhone 17 Pro <br /> [ms] | iPhone 16 Pro <br /> [ms] | iPhone SE 3 | Samsung Galaxy S24 <br /> [ms] | OnePlus 12 <br /> [ms] |
+| ------------------------------- | ------------------------- | ------------------------- | ----------- | ------------------------------ | ---------------------- |
+| **Total Inference Time**        | 1104                      | 1113                      | 8840        | 2845                           | 2640                   |
+| Detector (CRAFT) `forward_1280` | 501                       | 507                       | 4317        | 1405                           | 1275                   |
+| Detector (CRAFT) `forward_320`  | 125                       | 121                       | 1060        | 338                            | 299                    |
+| Recognizer (CRNN) `forward_512` | 46                        | 42                        | 109         | 47                             | 37                     |
+| Recognizer (CRNN) `forward_64`  | 5                         | 6                         | 14          | 7                              | 6                      |
 
 ## LLMs
 

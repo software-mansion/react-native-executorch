@@ -30,12 +30,6 @@ function App() {
 <summary>Type definitions</summary>
 
 ```typescript
-interface RecognizerSources {
-  recognizerLarge: string | number;
-  recognizerMedium: string | number;
-  recognizerSmall: string | number;
-}
-
 type OCRLanguage =
   | 'abq'
   | 'ady'
@@ -121,9 +115,7 @@ interface OCRDetection {
 **`model`** - Object containing the detector source, recognizer sources, and language.
 
 - **`detectorSource`** - A string that specifies the location of the detector binary.
-- **`recognizerLarge`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 512 pixels.
-- **`recognizerMedium`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 256 pixels.
-- **`recognizerSmall`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 128 pixels.
+- **`recognizerSource`** - A string that specifies the location of the recognizer binary.
 - **`language`** - A parameter that specifies the language of the text to be recognized by the OCR.
 
 **`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
@@ -186,23 +178,18 @@ function App() {
 }
 ```
 
-## Language-Specific Recognizers
+## Alphabet-Specific Recognizers
 
-Each supported language requires its own set of recognizer models.  
-The built-in constants such as `RECOGNIZER_EN_CRNN_512`, `RECOGNIZER_PL_CRNN_256`, etc., point to specific models trained for a particular language.
+Each supported alphabet requires its own recognizer model. The built-in constants, such as `RECOGNIZER_LATIN_CRNN` or `RECOGNIZER_CYRILLIC_CRNN`, point to specific models trained for a particular alphabet.
 
 > For example:
 >
-> - To recognize **English** text, use:
->   - `RECOGNIZER_EN_CRNN_512`
->   - `RECOGNIZER_EN_CRNN_256`
->   - `RECOGNIZER_EN_CRNN_128`
-> - To recognize **Polish** text, use:
->   - `RECOGNIZER_PL_CRNN_512`
->   - `RECOGNIZER_PL_CRNN_256`
->   - `RECOGNIZER_PL_CRNN_128`
+> - To recognize text in languages using the **Latin** alphabet (like Polish, or German), use:
+>   - `RECOGNIZER_LATIN_CRNN`
+> - To recognize text in languages using the **Cyrillic** alphabet (like Russian or Ukrainian), use:
+>   - `RECOGNIZER_CYRILLIC_CRNN`
 
-You need to make sure the recognizer models you pass in `recognizerSources` match the `language` you specify.
+You need to make sure the recognizer model you pass in `recognizerSource` matches the alphabet of the `language` you specify.
 
 ## Supported languages
 
@@ -275,33 +262,27 @@ You need to make sure the recognizer models you pass in `recognizerSources` matc
 
 ## Supported models
 
-| Model                                                   |    Type    |
-| ------------------------------------------------------- | :--------: |
-| [CRAFT_800\*](https://github.com/clovaai/CRAFT-pytorch) |  Detector  |
-| [CRNN_512\*](https://www.jaided.ai/easyocr/modelhub/)   | Recognizer |
-| [CRNN_256\*](https://www.jaided.ai/easyocr/modelhub/)   | Recognizer |
-| [CRNN_128\*](https://www.jaided.ai/easyocr/modelhub/)   | Recognizer |
-
-\* - The number following the underscore (\_) indicates the input image width used during model export.
+| Model                                             |    Type    |
+| ------------------------------------------------- | :--------: |
+| [CRAFT](https://github.com/clovaai/CRAFT-pytorch) |  Detector  |
+| [CRNN](https://www.jaided.ai/easyocr/modelhub/)   | Recognizer |
 
 ## Benchmarks
 
 ### Model size
 
-| Model                          | XNNPACK [MB] |
-| ------------------------------ | :----------: |
-| Detector (CRAFT_800_QUANTIZED) |     19.8     |
-| Recognizer (CRNN_512)          |  15 - 18\*   |
-| Recognizer (CRNN_256)          |  16 - 18\*   |
-| Recognizer (CRNN_128)          |  17 - 19\*   |
+| Model                      | XNNPACK [MB]  |
+| -------------------------- | :-----------: |
+| Detector (CRAFT_QUANTIZED) |     20.9      |
+| Recognizer (CRNN)          | 18.5 - 25.2\* |
 
 \* - The model weights vary depending on the language.
 
 ### Memory usage
 
-| Model                                                                                                  | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| ------------------------------------------------------------------------------------------------------ | :--------------------: | :----------------: |
-| Detector (CRAFT_800_QUANTIZED) + Recognizer (CRNN_512) + Recognizer (CRNN_256) + Recognizer (CRNN_128) |          1400          |        1320        |
+| Model                                | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| ------------------------------------ | :--------------------: | :----------------: |
+| Detector (CRAFT) + Recognizer (CRNN) |          1400          |        1320        |
 
 ### Inference time
 
@@ -317,16 +298,13 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 
 **Time measurements:**
 
-| Metric                             | iPhone 17 Pro <br /> [ms] | iPhone 16 Pro <br /> [ms] | iPhone SE 3 | Samsung Galaxy S24 <br /> [ms] | OnePlus 12 <br /> [ms] |
-| ---------------------------------- | ------------------------- | ------------------------- | ----------- | ------------------------------ | ---------------------- |
-| **Total Inference Time**           | 652                       | 600                       | 2855        | 1092                           | 1034                   |
-| **Detector (CRAFT_800_QUANTIZED)** | 220                       | 221                       | 1740        | 521                            | 492                    |
-| **Recognizer (CRNN_512)**          |                           |                           |             |                                |                        |
-| ├─ Average Time                    | 45                        | 38                        | 110         | 40                             | 38                     |
-| ├─ Total Time (3 runs)             | 135                       | 114                       | 330         | 120                            | 114                    |
-| **Recognizer (CRNN_256)**          |                           |                           |             |                                |                        |
-| ├─ Average Time                    | 21                        | 18                        | 54          | 20                             | 19                     |
-| ├─ Total Time (7 runs)             | 147                       | 126                       | 378         | 140                            | 133                    |
-| **Recognizer (CRNN_128)**          |                           |                           |             |                                |                        |
-| ├─ Average Time                    | 11                        | 9                         | 27          | 10                             | 10                     |
-| ├─ Total Time (7 runs)             | 77                        | 63                        | 189         | 70                             | 70                     |
+Notice that the recognizer models were executed between 3 and 7 times during a single recognition.
+The values below represent the averages across all runs for the benchmark image.
+
+| Model                           | iPhone 17 Pro [ms] | iPhone 16 Pro [ms] | iPhone SE 3 | Samsung Galaxy S24 [ms] | OnePlus 12 [ms] |
+| ------------------------------- | ------------------ | ------------------ | ----------- | ----------------------- | --------------- |
+| **Total Inference Time**        | 652                | 600                | 2855        | 1092                    | 1034            |
+| Detector (CRAFT) `forward_800`  | 220                | 221                | 1740        | 521                     | 492             |
+| Recognizer (CRNN) `forward_512` | 45                 | 38                 | 110         | 40                      | 38              |
+| Recognizer (CRNN) `forward_256` | 21                 | 18                 | 54          | 20                      | 19              |
+| Recognizer (CRNN) `forward_128` | 11                 | 9                  | 27          | 10                      | 10              |

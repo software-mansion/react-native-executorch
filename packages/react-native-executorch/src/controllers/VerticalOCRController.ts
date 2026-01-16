@@ -24,24 +24,14 @@ export class VerticalOCRController {
   }
 
   public load = async (
-    detectorSources: {
-      detectorLarge: ResourceSource;
-      detectorNarrow: ResourceSource;
-    },
-    recognizerSources: {
-      recognizerLarge: ResourceSource;
-      recognizerSmall: ResourceSource;
-    },
+    detectorSource: ResourceSource,
+    recognizerSource: ResourceSource,
     language: OCRLanguage,
     independentCharacters: boolean,
     onDownloadProgressCallback: (downloadProgress: number) => void
   ) => {
     try {
-      if (
-        Object.keys(detectorSources).length !== 2 ||
-        Object.keys(recognizerSources).length !== 2
-      )
-        return;
+      if (!detectorSource || !recognizerSource) return;
 
       if (!symbols[language]) {
         throw new Error(getError(ETError.LanguageNotSupported));
@@ -52,19 +42,15 @@ export class VerticalOCRController {
 
       const paths = await ResourceFetcher.fetch(
         onDownloadProgressCallback,
-        detectorSources.detectorLarge,
-        detectorSources.detectorNarrow,
-        independentCharacters
-          ? recognizerSources.recognizerSmall
-          : recognizerSources.recognizerLarge
+        detectorSource,
+        recognizerSource
       );
-      if (paths === null || paths.length < 3) {
+      if (paths === null || paths.length < 2) {
         throw new Error('Download interrupted');
       }
       this.ocrNativeModule = global.loadVerticalOCR(
         paths[0]!,
         paths[1]!,
-        paths[2]!,
         symbols[language],
         independentCharacters
       );

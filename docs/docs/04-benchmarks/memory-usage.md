@@ -29,16 +29,15 @@ All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12 (A
 
 ## OCR
 
-| Model                                                                                                  | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| ------------------------------------------------------------------------------------------------------ | :--------------------: | :----------------: |
-| Detector (CRAFT_800_QUANTIZED) + Recognizer (CRNN_512) + Recognizer (CRNN_256) + Recognizer (CRNN_128) |          1400          |        1320        |
+| Model                                | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| ------------------------------------ | :--------------------: | :----------------: |
+| Detector (CRAFT) + Recognizer (CRNN) |          1400          |        1320        |
 
 ## Vertical OCR
 
-| Model                                                                                    | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| ---------------------------------------------------------------------------------------- | :--------------------: | :----------------: |
-| Detector (CRAFT_1280_QUANTIZED) + Detector (CRAFT_320_QUANTIZED) + Recognizer (CRNN_512) |          1540          |        1470        |
-| Detector(CRAFT_1280_QUANTIZED) + Detector(CRAFT_320_QUANTIZED) + Recognizer (CRNN_64)    |          1070          |        1000        |
+| Model                                | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| ------------------------------------ | :--------------------: | :----------------: |
+| Detector (CRAFT) + Recognizer (CRNN) |       1000-1600        |     1000-1500      |
 
 ## LLMs
 

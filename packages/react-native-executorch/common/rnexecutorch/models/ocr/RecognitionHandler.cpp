@@ -5,29 +5,18 @@
 
 namespace rnexecutorch::models::ocr {
 RecognitionHandler::RecognitionHandler(
-    const std::string &recognizerSourceLarge,
-    const std::string &recognizerSourceMedium,
-    const std::string &recognizerSourceSmall, std::string symbols,
+    const std::string &recognizerSource, const std::string &symbols,
     std::shared_ptr<react::CallInvoker> callInvoker)
-    : converter(symbols), recognizerLarge(recognizerSourceLarge, callInvoker),
-      recognizerMedium(recognizerSourceMedium, callInvoker),
-      recognizerSmall(recognizerSourceSmall, callInvoker) {
-  memorySizeLowerBound = recognizerSmall.getMemoryLowerBound() +
-                         recognizerMedium.getMemoryLowerBound() +
-                         recognizerLarge.getMemoryLowerBound();
+    : converter(symbols), recognizer(recognizerSource, callInvoker) {
+  memorySizeLowerBound = recognizer.getMemoryLowerBound();
 }
 
 std::pair<std::vector<int32_t>, float>
 RecognitionHandler::runModel(cv::Mat image) {
 
   // Note that the height of an  image is always equal to 64.
-  if (image.cols >= constants::kLargeRecognizerWidth) {
-    return recognizerLarge.generate(image);
-  }
-  if (image.cols >= constants::kMediumRecognizerWidth) {
-    return recognizerMedium.generate(image);
-  }
-  return recognizerSmall.generate(image);
+  int32_t desiredWidth = utils::getDesiredWidth(image, false);
+  return recognizer.generate(image, desiredWidth);
 }
 
 void RecognitionHandler::processBBox(std::vector<types::OCRDetection> &boxList,
@@ -100,9 +89,5 @@ std::size_t RecognitionHandler::getMemoryLowerBound() const noexcept {
   return memorySizeLowerBound;
 }
 
-void RecognitionHandler::unload() noexcept {
-  recognizerSmall.unload();
-  recognizerMedium.unload();
-  recognizerLarge.unload();
-}
+void RecognitionHandler::unload() noexcept { recognizer.unload(); }
 } // namespace rnexecutorch::models::ocr
