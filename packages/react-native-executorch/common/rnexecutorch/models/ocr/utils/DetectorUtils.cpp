@@ -707,4 +707,21 @@ groupTextBoxes(std::vector<types::DetectorBBox> &boxes, float centerThreshold,
   return orderedSortedBoxes;
 }
 
+void validateInputWidth(int32_t inputWidth, std::span<const int32_t> constants,
+                        std::string modelName) {
+  auto it = std::ranges::find(constants, inputWidth);
+
+  if (it == constants.end()) {
+    std::string allowed;
+    for (size_t i = 0; i < constants.size(); ++i) {
+      allowed +=
+          std::to_string(constants[i]) + (i < constants.size() - 1 ? ", " : "");
+    }
+
+    throw std::runtime_error("Unexpected input width for " + modelName +
+                             "! Expected [" + allowed + "] but got " +
+                             std::to_string(inputWidth) + ".");
+  }
+}
+
 } // namespace rnexecutorch::models::ocr::utils

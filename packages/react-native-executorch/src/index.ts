@@ -29,14 +29,11 @@ declare global {
   ) => any;
   var loadOCR: (
     detectorSource: string,
-    recognizerLarge: string,
-    recognizerMedium: string,
-    recognizerSmall: string,
+    recognizer: string,
     symbols: string
   ) => any;
   var loadVerticalOCR: (
-    detectorLarge: string,
-    detectorNarrow: string,
+    detectorSource: string,
     recognizer: string,
     symbols: string,
     independentCharacters?: boolean

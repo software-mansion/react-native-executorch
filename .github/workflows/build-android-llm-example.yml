@@ -23,6 +23,13 @@ jobs:
       group: android-${{ github.ref }}
       cancel-in-progress: true
     steps:
+      - name: Free Disk Space (Manual)
+        run: |
+              sudo rm -rf /usr/share/dotnet
+              sudo rm -rf /opt/ghc
+              sudo rm -rf /opt/hostedtoolcache/CodeQL
+              sudo docker system prune -af
+    
       - name: Check out Git repository
         uses: actions/checkout@v4
         with:

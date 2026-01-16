@@ -12,20 +12,14 @@ export class OCRModule {
   async load(
     model: {
       detectorSource: ResourceSource;
-      recognizerLarge: ResourceSource;
-      recognizerMedium: ResourceSource;
-      recognizerSmall: ResourceSource;
+      recognizerSource: ResourceSource;
       language: OCRLanguage;
     },
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ) {
     await this.controller.load(
       model.detectorSource,
-      {
-        recognizerLarge: model.recognizerLarge,
-        recognizerMedium: model.recognizerMedium,
-        recognizerSmall: model.recognizerSmall,
-      },
+      model.recognizerSource,
       model.language,
       onDownloadProgressCallback
     );

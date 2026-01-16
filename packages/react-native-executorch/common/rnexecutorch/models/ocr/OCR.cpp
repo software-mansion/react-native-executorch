@@ -1,16 +1,14 @@
 #include "OCR.h"
+#include "Constants.h"
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/ocr/Constants.h>
 
 namespace rnexecutorch::models::ocr {
-OCR::OCR(const std::string &detectorSource,
-         const std::string &recognizerSourceLarge,
-         const std::string &recognizerSourceMedium,
-         const std::string &recognizerSourceSmall, std::string symbols,
+OCR::OCR(const std::string &detectorSource, const std::string &recognizerSource,
+         const std::string &symbols,
          std::shared_ptr<react::CallInvoker> callInvoker)
     : detector(detectorSource, callInvoker),
-      recognitionHandler(recognizerSourceLarge, recognizerSourceMedium,
-                         recognizerSourceSmall, symbols, callInvoker) {}
+      recognitionHandler(recognizerSource, symbols, callInvoker) {}
 
 std::vector<types::OCRDetection> OCR::generate(std::string input) {
   cv::Mat image = image_processing::readImage(input);
@@ -23,7 +21,8 @@ std::vector<types::OCRDetection> OCR::generate(std::string input) {
    with text. They are corresponding to the image of size 1280x1280, which
    is a size later used by Recognition Handler.
   */
-  std::vector<types::DetectorBBox> bboxesList = detector.generate(image);
+  std::vector<types::DetectorBBox> bboxesList =
+      detector.generate(image, constants::kMediumDetectorWidth);
   cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
 
   /*
