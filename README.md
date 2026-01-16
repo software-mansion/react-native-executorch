@@ -10,20 +10,7 @@
   <a href="https://docs.swmansion.com/react-native-executorch/"><img src="https://img.shields.io/badge/Documentation-00008B?logo=googledocs&logoColor=white&style=for-the-badge" alt="Documentation"></a>
 </div>
 
-<p align="center">
-  <img
-    src="https://github.com/user-attachments/assets/5a9996b2-e7d2-45f4-8ea9-745408d6ba32"
-    width="100%"
-    alt="React Native Executorch by Software Mansion"
-  />
-  <a href="https://stateofreactnative.com/">
-    <img
-      src="https://github.com/user-attachments/assets/9bc9fd52-d10d-4376-a585-661195640b86"
-      alt="State of React Native Survey"
-      width="100%"
-    />
-  </a>
-</p>
+![Software Mansion banner](https://github.com/user-attachments/assets/fa2c4735-e75c-4cc1-970d-88905d95e3a4)
 
 <p align="center">
   <a href="https://github.com/software-mansion/react-native-executorch/blob/main/README.md">English</a>
