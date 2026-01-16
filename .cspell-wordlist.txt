@@ -84,3 +84,10 @@ FSMN
 fsmn
 subarray
 topp
+kokoro
+phonemizer
+phonemizers
+phonemis
+Español
+Français
+Português

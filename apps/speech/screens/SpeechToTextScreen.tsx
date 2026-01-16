@@ -23,7 +23,7 @@ import DeviceInfo from 'react-native-device-info';
 
 const isSimulator = DeviceInfo.isEmulatorSync();
 
-export const SpeechToTextScreen = () => {
+export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   const model = useSpeechToText({
     model: WHISPER_TINY_EN,
   });
@@ -114,6 +114,9 @@ export const SpeechToTextScreen = () => {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           <View style={styles.header}>
+            <TouchableOpacity style={styles.backButton} onPress={onBack}>
+              <FontAwesome name="chevron-left" size={20} color="#0f186e" />
+            </TouchableOpacity>
             <SWMIcon width={60} height={60} />
             <Text style={styles.headerText}>React Native ExecuTorch</Text>
             <Text style={styles.headerText}>Speech to Text</Text>
@@ -207,6 +210,15 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
+    position: 'relative',
+    width: '100%',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 0,
+    top: 10,
+    padding: 10,
+    zIndex: 1,
   },
   headerText: {
     fontSize: 22,
