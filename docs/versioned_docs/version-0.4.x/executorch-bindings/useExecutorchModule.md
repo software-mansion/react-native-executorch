@@ -30,15 +30,13 @@ The `modelSource` parameter expects a location string pointing to the model bina
 
 ### Returns
 
-|       Field        |                            Type                            |                                                                                             Description                                                                                             |
-| :----------------: | :--------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-|      `error`       |              <code>string &#124; null</code>               |                                                                       Contains the error message if the model failed to load.                                                                       |
-|   `isGenerating`   |                         `boolean`                          |                                                                  Indicates whether the model is currently processing an inference.                                                                  |
-|     `isReady`      |                         `boolean`                          |                                                           Indicates whether the model has successfully loaded and is ready for inference.                                                           |
-|    `loadMethod`    |          `(methodName: string) => Promise<void>`           |                                                               Loads resources specific to `methodName` into memory before execution.                                                                |
-|   `loadForward`    |                   `() => Promise<void>`                    |                                            Loads resources specific to `forward` method into memory before execution. Uses `loadMethod` under the hood.                                             |
-|     `forward`      | `(input: ETInput, shape: number[]) => Promise<number[][]>` | Executes the model's forward pass, where `input` is a Javascript typed array and `shape` is an array of integers representing input Tensor shape. The output is a Tensor - raw result of inference. |
-| `downloadProgress` |                          `number`                          |                                                                    Represents the download progress as a value between 0 and 1.                                                                     |
+|       Field        |                                 Type                                 |                                                                                                              Description                                                                                                              |
+| :----------------: | :------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|      `error`       |                   <code>string &#124; null</code>                    |                                                                                        Contains the error message if the model failed to load.                                                                                        |
+|   `isGenerating`   |                              `boolean`                               |                                                                                   Indicates whether the model is currently processing an inference.                                                                                   |
+|     `isReady`      |                              `boolean`                               |                                                                            Indicates whether the model has successfully loaded and is ready for inference.                                                                            |
+|     `forward`      | `(input: ETInput[] \| ETInput, shape: number[][]): Promise<unknown>` | Executes the model's forward pass, where `input` is a Javascript typed array or an array of them, and `shape` is an array of arrays of integers representing input Tensors' shapes. The output is a Tensor - raw result of inference. |
+| `downloadProgress` |                               `number`                               |                                                                                     Represents the download progress as a value between 0 and 1.                                                                                      |
 
 ## ETInput
 
@@ -56,7 +54,7 @@ All functions provided by the `useExecutorchModule` hook are asynchronous and ma
 
 ## Performing inference
 
-To run model with ExecuTorch Bindings it's essential to specify the shape of the input tensor. However, there's no need to explicitly define the input type, as it will automatically be inferred from the array you pass to `forward` method. However you will still need to explicitly provide shape for the tensor. Outputs from the model, such as classification probabilities, are returned in raw format.
+To run the model with ExecuTorch Bindings, it's essential to specify the shape of the input tensor(s). The `forward` method accepts an `input` (a typed array or an array of typed arrays) and a `shape` (an array of arrays of numbers). Each inner array in `shape` corresponds to the shape of a tensor in the `input`. Outputs from the model, such as classification probabilities, are returned in raw format.
 
 ## End to end example
 
@@ -73,7 +71,7 @@ import {
 } from 'react-native-executorch';
 
 // Initialize the executorch module with the predefined style transfer model.
-const executorchModule = useExecutorchModule({
+const { isReady, forward } = useExecutorchModule({
   modelSource: STYLE_TRANSFER_CANDY,
 });
 ```
@@ -83,7 +81,8 @@ const executorchModule = useExecutorchModule({
 To prepare the input for the model, define the shape of the input tensor. This shape depends on the model's requirements. For the `STYLE_TRANSFER_CANDY` model, we need a tensor of shape `[1, 3, 640, 640]`, corresponding to a batch size of 1, 3 color channels (RGB), and dimensions of 640x640 pixels.
 
 ```typescript
-const shape = [1, 3, 640, 640];
+// This shape is for a single input tensor.
+const shape = [[1, 3, 640, 640]];
 // Create a Float32Array to hold the pixel data of the image,
 // which should be preprocessed according to the model's specific needs.
 const input = new Float32Array(1 * 3 * 640 * 640); // fill this array with your image data
@@ -92,13 +91,15 @@ const input = new Float32Array(1 * 3 * 640 * 640); // fill this array with your 
 ### Performing inference
 
 ```typescript
-try {
-  // Perform the forward operation and receive the stylized image output.
-  const output = await executorchModule.forward(input, shape);
-  console.log('Stylization successful. Output Shape:', output.length);
-} catch (error) {
-  // Log any errors that occur during the forward pass.
-  console.error('Error during model execution:', error);
+if (isReady) {
+  try {
+    // Perform the forward operation and receive the stylized image output.
+    const output = await forward(input, shape);
+    console.log('Stylization successful. Output:', output);
+  } catch (error) {
+    // Log any errors that occur during the forward pass.
+    console.error('Error during model execution:', error);
+  }
 }
 ```
 
