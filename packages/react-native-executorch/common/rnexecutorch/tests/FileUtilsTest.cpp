@@ -3,6 +3,9 @@
 #include <gtest/gtest.h>
 #include <iostream>
 
+#include <rnexecutorch/Error.h>
+#include <rnexecutorch/ErrorCodes.h>
+
 namespace rnexecutorch::file_utils {
 class FileIOTest : public ::testing::Test {
 protected:
@@ -26,6 +29,6 @@ TEST_F(FileIOTest, LoadBytesFromFileSuccessfully) {
 
 TEST_F(FileIOTest, LoadBytesFromFileFailOnNonExistentFile) {
   EXPECT_THROW(
-      { loadBytesFromFile("non_existent_file.txt"); }, std::runtime_error);
+      { loadBytesFromFile("non_existent_file.txt"); }, RnExecutorchError);
 }
 } // namespace rnexecutorch::file_utils
