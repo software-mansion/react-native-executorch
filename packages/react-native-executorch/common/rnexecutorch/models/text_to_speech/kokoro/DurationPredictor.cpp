@@ -3,6 +3,7 @@
 #include <cmath>
 #include <numeric>
 #include <queue>
+#include <rnexecutorch/Error.h>
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/Sequential.h>
 #include <rnexecutorch/metaprogramming/ContainerHelpers.h>
@@ -51,9 +52,9 @@ std::tuple<Tensor, std::vector<int64_t>, int32_t> DurationPredictor::generate(
       method, {tokensTensor, textMaskTensor, voiceRefTensor, speedTensor});
 
   if (!results.ok()) {
-    throw std::runtime_error(
-        "[Kokoro::DurationPredictor] Failed to execute method " + method +
-        ", error: " + std::to_string(static_cast<uint32_t>(results.error())));
+    throw RnExecutorchError(results.error(),
+                            "The model's forward function did not succeed. "
+                            "Ensure the model input is correct.");
   }
 
   // Unpack the result
@@ -103,13 +104,15 @@ void DurationPredictor::scaleDurations(Tensor &durations,
   // We expect durations tensor to be a Long tensor of a shape [1, n_tokens]
   if (durations.dtype() != ScalarType::Long &&
       durations.dtype() != ScalarType::Int) {
-    throw std::runtime_error(
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::InvalidModelOutput,
         "[Kokoro::DurationPredictor] Attempted to scale a non-integer tensor");
   }
 
   auto shape = durations.sizes();
   if (shape.size() != 1) {
-    throw std::runtime_error(
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::InvalidModelOutput,
         "[Kokoro::DurationPredictor] Attempted to scale an ill-shaped tensor");
   }
 

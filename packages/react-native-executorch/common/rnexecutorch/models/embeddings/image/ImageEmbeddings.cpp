@@ -1,6 +1,8 @@
 #include "ImageEmbeddings.h"
 
 #include <executorch/extension/tensor/tensor.h>
+#include <rnexecutorch/Error.h>
+#include <rnexecutorch/ErrorCodes.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/data_processing/Numerical.h>
 
@@ -12,7 +14,8 @@ ImageEmbeddings::ImageEmbeddings(
     : BaseEmbeddings(modelSource, callInvoker) {
   auto inputTensors = getAllInputShapes();
   if (inputTensors.size() == 0) {
-    throw std::runtime_error("Model seems to not take any input tensors.");
+    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
+                            "Model seems to not take any input tensors.");
   }
   std::vector<int32_t> modelInputShape = inputTensors[0];
   if (modelInputShape.size() < 2) {
@@ -21,7 +24,8 @@ ImageEmbeddings::ImageEmbeddings(
                   "Unexpected model input size, expected at least 2 dimentions "
                   "but got: %zu.",
                   modelInputShape.size());
-    throw std::runtime_error(errorMessage);
+    throw RnExecutorchError(RnExecutorchErrorCode::WrongDimensions,
+                            errorMessage);
   }
   modelImageSize = cv::Size(modelInputShape[modelInputShape.size() - 1],
                             modelInputShape[modelInputShape.size() - 2]);
@@ -33,10 +37,12 @@ ImageEmbeddings::generate(std::string imageSource) {
       image_processing::readImageToTensor(imageSource, getAllInputShapes()[0]);
 
   auto forwardResult = BaseModel::forward(inputTensor);
+
   if (!forwardResult.ok()) {
-    throw std::runtime_error(
-        "Function forward in ImageEmbeddings failed with error code: " +
-        std::to_string(static_cast<uint32_t>(forwardResult.error())));
+    throw RnExecutorchError(
+        forwardResult.error(),
+        "The model's forward function did not succeed. Ensure the model input "
+        "is correct.");
   }
 
   return BaseEmbeddings::postprocess(forwardResult);

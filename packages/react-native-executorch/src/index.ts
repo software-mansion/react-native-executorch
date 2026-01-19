@@ -135,3 +135,6 @@ export * from './constants/ocr/models';
 export * from './constants/tts/models';
 export * from './constants/tts/voices';
 export * from './constants/llmDefaults';
+
+export { RnExecutorchError } from './errors/errorUtils';
+export { RnExecutorchErrorCode } from './errors/ErrorCodes';

@@ -27,6 +27,7 @@ public:
   Promise &operator=(const Promise &) = delete;
 
   void resolve(jsi::Value &&result);
+  void reject(jsi::Value &&result);
   void reject(std::string error);
 
   /**

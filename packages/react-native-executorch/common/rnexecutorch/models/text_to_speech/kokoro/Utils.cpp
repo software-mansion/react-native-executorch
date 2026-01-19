@@ -2,6 +2,7 @@
 #include "Constants.h"
 #include <algorithm>
 #include <cmath>
+#include <rnexecutorch/Error.h>
 
 namespace rnexecutorch::models::text_to_speech::kokoro::utils {
 
@@ -61,7 +62,8 @@ std::span<const float> stripAudio(std::span<const float> audio, size_t margin) {
 std::vector<Token> tokenize(const std::u32string &phonemes,
                             std::optional<size_t> expectedSize) {
   if (expectedSize.has_value() && expectedSize.value() < 2) {
-    throw std::invalid_argument(
+    throw rnexecutorch::RnExecutorchError(
+        rnexecutorch::RnExecutorchErrorCode::InvalidUserInput,
         "expected number of tokens cannot be lower than 2");
   }
 

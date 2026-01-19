@@ -1,5 +1,6 @@
 import { symbols } from '../constants/ocr/symbols';
-import { ETError, getError } from '../Error';
+import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
+import { RnExecutorchError, parseUnknownError } from '../errors/errorUtils';
 import { ResourceSource } from '../types/common';
 import { OCRLanguage } from '../types/ocr';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
@@ -8,15 +9,15 @@ export class OCRController {
   private nativeModule: any;
   public isReady: boolean = false;
   public isGenerating: boolean = false;
-  public error: string | null = null;
+  public error: RnExecutorchError | null = null;
   private isReadyCallback: (isReady: boolean) => void;
   private isGeneratingCallback: (isGenerating: boolean) => void;
-  private errorCallback: (error: string) => void;
+  private errorCallback: (error: RnExecutorchError) => void;
 
   constructor({
     isReadyCallback = (_isReady: boolean) => {},
     isGeneratingCallback = (_isGenerating: boolean) => {},
-    errorCallback = (_error: string) => {},
+    errorCallback = (_error: RnExecutorchError) => {},
   } = {}) {
     this.isReadyCallback = isReadyCallback;
     this.isGeneratingCallback = isGeneratingCallback;
@@ -33,7 +34,10 @@ export class OCRController {
       if (!detectorSource || !recognizerSource) return;
 
       if (!symbols[language]) {
-        throw new Error(getError(ETError.LanguageNotSupported));
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.LanguageNotSupported,
+          'The provided language for OCR is not supported. Please try using other language.'
+        );
       }
 
       this.isReady = false;
@@ -45,7 +49,10 @@ export class OCRController {
         recognizerSource
       );
       if (paths === null || paths.length < 2) {
-        throw new Error('Download interrupted!');
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.DownloadInterrupted,
+          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+        );
       }
       this.nativeModule = global.loadOCR(
         paths[0]!,
@@ -56,19 +63,25 @@ export class OCRController {
       this.isReadyCallback(this.isReady);
     } catch (e) {
       if (this.errorCallback) {
-        this.errorCallback(getError(e));
+        this.errorCallback(parseUnknownError(e));
       } else {
-        throw new Error(getError(e));
+        throw parseUnknownError(e);
       }
     }
   };
 
   public forward = async (imageSource: string) => {
     if (!this.isReady) {
-      throw new Error(getError(ETError.ModuleNotLoaded));
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        'The model is currently not loaded. Please load the model before calling forward().'
+      );
     }
     if (this.isGenerating) {
-      throw new Error(getError(ETError.ModelGenerating));
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelGenerating,
+        'The model is currently generating. Please wait until previous model run is complete.'
+      );
     }
 
     try {
@@ -76,7 +89,7 @@ export class OCRController {
       this.isGeneratingCallback(this.isGenerating);
       return await this.nativeModule.generate(imageSource);
     } catch (e) {
-      throw new Error(getError(e));
+      throw parseUnknownError(e);
     } finally {
       this.isGenerating = false;
       this.isGeneratingCallback(this.isGenerating);
@@ -85,9 +98,9 @@ export class OCRController {
 
   public delete() {
     if (this.isGenerating) {
-      throw new Error(
-        getError(ETError.ModelGenerating) +
-          ', You cannot delete the model. You must wait until the generating is finished.'
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelGenerating,
+        'The model is currently generating. Please wait until previous model run is complete.'
       );
     }
     this.nativeModule.unload();

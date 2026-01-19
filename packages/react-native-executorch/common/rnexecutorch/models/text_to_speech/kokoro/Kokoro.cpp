@@ -3,8 +3,8 @@
 
 #include <algorithm>
 #include <fstream>
+#include <rnexecutorch/Error.h>
 #include <rnexecutorch/data_processing/Sequential.h>
-#include <stdexcept>
 
 namespace rnexecutorch::models::text_to_speech::kokoro {
 
@@ -37,8 +37,9 @@ void Kokoro::loadVoice(const std::string &voiceSource) {
 
   std::ifstream in(voiceSource, std::ios::binary);
   if (!in) {
-    throw std::runtime_error("[Kokoro::loadSingleVoice]: cannot open file: " +
-                             voiceSource);
+    throw RnExecutorchError(RnExecutorchErrorCode::FileReadFailed,
+                            "[Kokoro::loadSingleVoice]: cannot open file: " +
+                                voiceSource);
   }
 
   // Check the file size
@@ -46,24 +47,27 @@ void Kokoro::loadVoice(const std::string &voiceSource) {
   const std::streamsize fileSize = in.tellg();
   in.seekg(0, std::ios::beg);
   if (fileSize < expectedBytes) {
-    throw std::runtime_error(
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::FileReadFailed,
         "[Kokoro::loadSingleVoice]: file too small: expected at least " +
-        std::to_string(expectedBytes) + " bytes, got " +
-        std::to_string(fileSize));
+            std::to_string(expectedBytes) + " bytes, got " +
+            std::to_string(fileSize));
   }
 
   // Read [rows, 1, cols] as contiguous floats directly into voice_
   // ([rows][cols])
   if (!in.read(reinterpret_cast<char *>(voice_.data()->data()),
                expectedBytes)) {
-    throw std::runtime_error(
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::FileReadFailed,
         "[Kokoro::loadSingleVoice]: failed to read voice weights");
   }
 }
 
 std::vector<float> Kokoro::generate(std::string text, float speed) {
   if (text.size() > constants::kMaxTextSize) {
-    throw std::invalid_argument("Kokoro: maximum input text size exceeded");
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            "Kokoro: maximum input text size exceeded");
   }
 
   // G2P (Grapheme to Phoneme) conversion
@@ -105,7 +109,8 @@ std::vector<float> Kokoro::generate(std::string text, float speed) {
 void Kokoro::stream(std::string text, float speed,
                     std::shared_ptr<jsi::Function> callback) {
   if (text.size() > constants::kMaxTextSize) {
-    throw std::invalid_argument("Kokoro: maximum input text size exceeded");
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            "Kokoro: maximum input text size exceeded");
   }
 
   // Build a full callback function
