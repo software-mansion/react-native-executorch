@@ -75,7 +75,7 @@ If you plan on using your models via require() instead of fetching them from a u
 
 This allows us to use binaries, such as exported models or tokenizers for LLMs.
 
-:::caution
+:::warning
 When using Expo, please note that you need to use a custom development build of your app, not the standard Expo Go app. This is because we rely on native modules, which Expo Go doesn’t support.
 :::
 
