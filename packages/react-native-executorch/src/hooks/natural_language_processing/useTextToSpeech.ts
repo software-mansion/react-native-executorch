@@ -15,7 +15,6 @@ interface Props extends TextToSpeechConfig {
 export const useTextToSpeech = ({
   model,
   voice,
-  options,
   preventLoad = false,
 }: Props) => {
   const [error, setError] = useState<RnExecutorchError | null>(null);
@@ -24,9 +23,6 @@ export const useTextToSpeech = ({
   const [downloadProgress, setDownloadProgress] = useState(0);
 
   const [moduleInstance] = useState(() => new TextToSpeechModule());
-
-  // Stabilize options to prevent unnecessary reloads when new object references are passed
-  const optionsJson = JSON.stringify(options);
 
   useEffect(() => {
     if (preventLoad) return;
@@ -40,7 +36,6 @@ export const useTextToSpeech = ({
           {
             model,
             voice,
-            options,
           },
           setDownloadProgress
         );
@@ -57,12 +52,9 @@ export const useTextToSpeech = ({
   }, [
     moduleInstance,
     model.durationPredictorSource,
-    model.f0nPredictorSource,
-    model.textEncoderSource,
-    model.textDecoderSource,
+    model.synthesizerSource,
     voice?.voiceSource,
     voice?.extra,
-    optionsJson,
     preventLoad,
   ]);
 

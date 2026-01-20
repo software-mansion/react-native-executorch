@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
-  KOKORO_EN,
+  KOKORO_MEDIUM,
   KOKORO_VOICE_AF_HEART,
   useTextToSpeech,
 } from 'react-native-executorch';
@@ -49,14 +49,8 @@ const createAudioBufferFromVector = (
 
 export const TextToSpeechScreen = ({ onBack }: { onBack: () => void }) => {
   const model = useTextToSpeech({
-    model: KOKORO_EN,
+    model: KOKORO_MEDIUM,
     voice: KOKORO_VOICE_AF_HEART,
-    options: {
-      // This allows to minimize the memory usage by utilizing only one of the models.
-      // However, it either increases the latency (in case of the largest model) or
-      // decreases the quality of the results (in case of the smaller models).
-      // fixedModel: "large"
-    },
   });
 
   const [inputText, setInputText] = useState('');
