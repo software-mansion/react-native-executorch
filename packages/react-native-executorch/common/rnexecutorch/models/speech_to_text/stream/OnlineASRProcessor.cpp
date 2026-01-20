@@ -77,23 +77,27 @@ void OnlineASRProcessor::chunkAt(float time) {
   this->bufferTimeOffset = time;
 }
 
-std::string OnlineASRProcessor::finish() {
-  const std::deque<Word> buffer = this->hypothesisBuffer.complete();
-  std::string committedText = this->toFlush(buffer);
+std::vector<Word> OnlineASRProcessor::finish() {
+  std::deque<Word> bufferDeq = this->hypothesisBuffer.complete();
+  std::vector<Word> buffer(std::make_move_iterator(bufferDeq.begin()),
+                           std::make_move_iterator(bufferDeq.end()));
+
+  // std::string committedText = this->toFlush(buffer);
   this->bufferTimeOffset += static_cast<float>(audioBuffer.size()) /
                             OnlineASRProcessor::kSamplingRate;
-  return committedText;
+  return buffer;
 }
 
-std::string OnlineASRProcessor::toFlush(const std::deque<Word> &words) const {
-  std::string text;
-  text.reserve(std::accumulate(
-      words.cbegin(), words.cend(), 0,
-      [](size_t sum, const Word &w) { return sum + w.content.size(); }));
-  for (const auto &word : words) {
-    text.append(word.content);
-  }
-  return text;
-}
+// std::string OnlineASRProcessor::toFlush(const std::deque<Word> &words) const
+// {
+//   std::string text;
+//   text.reserve(std::accumulate(
+//       words.cbegin(), words.cend(), 0,
+//       [](size_t sum, const Word &w) { return sum + w.content.size(); }));
+//   for (const auto &word : words) {
+//     text.append(word.content);
+//   }
+//   return text;
+// }
 
 } // namespace rnexecutorch::models::speech_to_text::stream

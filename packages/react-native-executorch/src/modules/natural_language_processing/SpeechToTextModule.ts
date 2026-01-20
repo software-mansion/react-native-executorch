@@ -10,13 +10,9 @@ import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
  */
 export class SpeechToTextModule {
   private nativeModule: any;
-
   private modelConfig!: SpeechToTextModelConfig;
 
-  private textDecoder = new TextDecoder('utf-8', {
-    fatal: false,
-    ignoreBOM: true,
-  });
+  // 2. TextDecoder is removed as C++ now returns JS objects directly
 
   /**
    * Loads the model specified by the config object.
@@ -105,13 +101,14 @@ export class SpeechToTextModule {
   public async transcribe(
     waveform: Float32Array,
     options: DecodingOptions = {}
-  ): Promise<string> {
+  ): Promise<Word[]> {
     this.validateOptions(options);
     const transcriptionBytes = await this.nativeModule.transcribe(
       waveform,
       options.language || ''
     );
-    return this.textDecoder.decode(new Uint8Array(transcriptionBytes));
+
+    return transcriptionBytes;
   }
 
   /**
@@ -128,10 +125,10 @@ export class SpeechToTextModule {
    */
   public async *stream(
     options: DecodingOptions = {}
-  ): AsyncGenerator<{ committed: string; nonCommitted: string }> {
+  ): AsyncGenerator<{ committed: Word[]; nonCommitted: Word[] }> {
     this.validateOptions(options);
 
-    const queue: { committed: string; nonCommitted: string }[] = [];
+    const queue: { committed: Word[]; nonCommitted: Word[] }[] = [];
     let waiter: (() => void) | null = null;
     let finished = false;
     let error: unknown;
@@ -144,12 +141,11 @@ export class SpeechToTextModule {
     (async () => {
       try {
         await this.nativeModule.stream(
-          (committed: number[], nonCommitted: number[], isDone: boolean) => {
+          // Callback now receives arrays of objects directly
+          (committed: Word[], nonCommitted: Word[], isDone: boolean) => {
             queue.push({
-              committed: this.textDecoder.decode(new Uint8Array(committed)),
-              nonCommitted: this.textDecoder.decode(
-                new Uint8Array(nonCommitted)
-              ),
+              committed,
+              nonCommitted,
             });
             if (isDone) {
               finished = true;
