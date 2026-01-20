@@ -2,7 +2,7 @@
 title: Inference Time
 ---
 
-:::warning warning
+:::warning
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
 :::
 

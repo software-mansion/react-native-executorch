@@ -6,7 +6,7 @@ Object detection is a computer vision technique that identifies and locates obje
 `useObjectDetection` is a hook that allows you to seamlessly integrate object detection into your React Native applications.
 
 :::caution
-It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
+It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/object-detection-68d0ea936cd0906843cbba7d). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
 :::
 
 ## Reference
@@ -143,7 +143,7 @@ function App() {
 
 ### Inference time
 
-:::warning warning
+:::warning
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
 :::
 
