@@ -1,4 +1,5 @@
 #include "Synthesizer.h"
+#include <rnexecutorch/Error.h>
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/metaprogramming/ContainerHelpers.h>
 
@@ -58,10 +59,11 @@ Result<std::vector<EValue>> Synthesizer::generate(std::span<const Token> tokens,
       {tokensTensor, textMaskTensor, indicesTensor, durTensor, voiceRefTensor});
 
   if (!results.ok()) {
-    throw std::runtime_error(
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::InvalidModelOutput,
         "[Kokoro::Synthesizer] Failed to execute method forward"
         ", error: " +
-        std::to_string(static_cast<uint32_t>(results.error())));
+            std::to_string(static_cast<uint32_t>(results.error())));
   }
 
   // Returns a single [audio] vector, which contains the

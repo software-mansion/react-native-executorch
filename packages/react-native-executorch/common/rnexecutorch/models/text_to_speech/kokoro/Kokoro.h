@@ -33,7 +33,7 @@ public:
               std::shared_ptr<jsi::Function> callback);
 
   // Stops the streaming process
-  void streamStop();
+  void streamStop() noexcept;
 
   std::size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;

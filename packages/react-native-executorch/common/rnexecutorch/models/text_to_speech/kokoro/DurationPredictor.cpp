@@ -19,7 +19,8 @@ DurationPredictor::DurationPredictor(
     : BaseModel(modelSource, callInvoker), context_(modelContext) {
   auto availableMethods = module_->method_names();
   if (!availableMethods.ok()) {
-    throw std::runtime_error(
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::UnknownError,
         "[Kokoro::DurationPredictor] Unable to read model's methods");
   }
 
@@ -37,7 +38,7 @@ DurationPredictor::DurationPredictor(
       // Obtain the maximum number of tokens supported by the method
       size_t inputSize = inputTensors[0][1];
 
-      forwardMethods_.push_back({name, inputSize});
+      forwardMethods_.emplace_back(name, inputSize);
     }
   }
 
@@ -64,10 +65,11 @@ DurationPredictor::generate(std::span<const Token> tokens,
       forwardMethods_.begin(), forwardMethods_.end(),
       [inputSize](const auto &entry) { return entry.second >= inputSize; });
   if (it == forwardMethods_.end()) {
-    throw std::runtime_error(
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::WrongDimensions,
         "[Kokoro::DurationPredictor] No appropriate forward method to"
         "handle input of size " +
-        std::to_string(inputSize));
+            std::to_string(inputSize));
   }
   auto selectedMethod = it->first;
 

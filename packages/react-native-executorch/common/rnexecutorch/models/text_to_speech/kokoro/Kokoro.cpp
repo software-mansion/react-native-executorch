@@ -28,7 +28,8 @@ Kokoro::Kokoro(const std::string &lang, const std::string &taggerDataSource,
 
   // Read model limits & check compatibility
   if (durationPredictor_.getTokensLimit() != synthesizer_.getTokensLimit()) {
-    throw std::runtime_error(
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::WrongDimensions,
         "[Kokoro] incompatible DurationPredictor & Synthesizer models");
   }
 
@@ -142,8 +143,9 @@ void Kokoro::stream(std::string text, float speed,
   // instead of accumulating results in a vector, we push them
   // back to the JS side with the callback.
   for (size_t i = 0; i < subsentences.size(); i++) {
-    if (!isStreaming_)
+    if (!isStreaming_) {
       break;
+    }
 
     const auto &subsentence = subsentences[i];
 
@@ -178,12 +180,13 @@ void Kokoro::stream(std::string text, float speed,
   isStreaming_ = false;
 }
 
-void Kokoro::streamStop() { isStreaming_ = false; }
+void Kokoro::streamStop() noexcept { isStreaming_ = false; }
 
 std::vector<float> Kokoro::synthesize(const std::u32string &phonemes,
                                       float speed, size_t paddingMs) {
-  if (phonemes.empty())
+  if (phonemes.empty()) {
     return {};
+  }
 
   // Clamp the input to not go beyond number of input token limits
   // Note that 2 tokens are always reserved for pre- and post-fix padding,
