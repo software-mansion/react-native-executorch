@@ -18,6 +18,7 @@
 #include <rnexecutorch/models/object_detection/Constants.h>
 #include <rnexecutorch/models/object_detection/Types.h>
 #include <rnexecutorch/models/ocr/Types.h>
+#include <rnexecutorch/models/speech_to_text/types/Word.h>
 #include <rnexecutorch/models/voice_activity_detection/Types.h>
 
 namespace rnexecutorch::jsi_conversion {
