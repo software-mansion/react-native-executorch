@@ -63,6 +63,20 @@ getValue<std::shared_ptr<jsi::Function>>(const jsi::Value &val,
 }
 
 template <>
+inline getValue<Word>(const jsi::Value &val, jsi::Runtime &runtime) {
+  jsi::Array jsiArr(rt, words.size());
+  for (size_t i = 0; i < words.size(); ++i) {
+    jsi::Object obj(rt);
+    obj.setProperty(rt, "word",
+                    jsi::String::createFromUtf8(rt, words[i].content));
+    obj.setProperty(rt, "start", static_cast<double>(words[i].start));
+    obj.setProperty(rt, "end", static_cast<double>(words[i].end));
+    jsiArr.setValueAtIndex(rt, i, obj);
+  }
+  return jsiArr;
+};
+
+template <>
 inline JSTensorViewIn getValue<JSTensorViewIn>(const jsi::Value &val,
                                                jsi::Runtime &runtime) {
   jsi::Object obj = val.asObject(runtime);
@@ -216,6 +230,12 @@ template <>
 inline std::vector<int64_t>
 getValue<std::vector<int64_t>>(const jsi::Value &val, jsi::Runtime &runtime) {
   return getArrayAsVector<int64_t>(val, runtime);
+}
+
+template <>
+inline std::vector<Word> getValue<std::vector<Word>>(const jsi::Value &val,
+                                                     jsi::Runtime &runtime) {
+  return getArrayAsVector<Word>(val, runtime);
 }
 
 // Template specializations for std::span<T> types

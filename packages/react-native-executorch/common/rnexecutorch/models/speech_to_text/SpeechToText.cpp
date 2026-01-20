@@ -66,10 +66,91 @@ std::vector<char> SpeechToText::transcribe(std::span<float> waveform,
   return {transcription.begin(), transcription.end()};
 }
 
+std::vector<Word> SpeechToText::transcribe(std::span<float> waveform,
+                                           std::string languageOption) const {
+  std::vector<Segment> segments =
+      this->asr->transcribe(waveform, DecodingOptions(languageOption));
+  std::vector<Word> transcription;
+
+  size_t transcriptionLength = 0;
+  for (auto &segment : segments) {
+    transcriptionLength += segment.words.size();
+  }
+
+  transcription.reserve(segments.size());
+
+  for (auto &segment : segments) {
+    for (auto &word : segment.words) {
+      transcription.push_back(word);
+    }
+  }
+
+  auto wordsToJsi = [](jsi::Runtime &rt,
+                       const std::vector<Word> &words) -> jsi::Value {
+    jsi::Array jsiArr(rt, words.size());
+    for (size_t i = 0; i < words.size(); ++i) {
+      jsi::Object obj(rt);
+      obj.setProperty(rt, "word",
+                      jsi::String::createFromUtf8(rt, words[i].content));
+      obj.setProperty(rt, "start", static_cast<double>(words[i].start));
+      obj.setProperty(rt, "end", static_cast<double>(words[i].end));
+      jsiArr.setValueAtIndex(rt, i, obj);
+    }
+    return jsiArr;
+  };
+
+  return transcription;
+}
+
 size_t SpeechToText::getMemoryLowerBound() const noexcept {
   return this->encoder->getMemoryLowerBound() +
          this->decoder->getMemoryLowerBound();
 }
+
+// void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
+//                           std::string languageOption) {
+//   if (this->isStreaming) {
+//     throw RnExecutorchError(RnExecutorchErrorCode::StreamingInProgress,
+//                             "Streaming is already in progress!");
+//   }
+
+//   auto nativeCallback =
+//       [this, callback](const std::vector<char> &committedVec,
+//                        const std::vector<char> &nonCommittedVec, bool isDone)
+//                        {
+//         this->callInvoker->invokeAsync([callback, committedVec,
+//         nonCommittedVec,
+//                                         isDone](jsi::Runtime &rt) {
+//           callback->call(
+//               rt, rnexecutorch::jsi_conversion::getJsiValue(committedVec,
+//               rt), rnexecutorch::jsi_conversion::getJsiValue(nonCommittedVec,
+//               rt), jsi::Value(isDone));
+//         });
+//       };
+
+//   this->isStreaming = true;
+//   while (this->isStreaming) {
+//     if (!this->readyToProcess ||
+//         this->processor->audioBuffer.size() < SpeechToText::kMinAudioSamples)
+//         {
+//       std::this_thread::sleep_for(std::chrono::milliseconds(100));
+//       continue;
+//     }
+//     ProcessResult res =
+//         this->processor->processIter(DecodingOptions(languageOption));
+
+//     nativeCallback({res.committed.begin(), res.committed.end()},
+//                    {res.nonCommitted.begin(), res.nonCommitted.end()},
+//                    false);
+//     this->readyToProcess = false;
+//   }
+
+//   std::string committed = this->processor->finish();
+
+//   nativeCallback({committed.begin(), committed.end()}, {}, true);
+
+//   this->resetStreamState();
+// }
 
 void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
                           std::string languageOption) {
@@ -78,17 +159,33 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
                             "Streaming is already in progress!");
   }
 
-  auto nativeCallback =
-      [this, callback](const std::vector<char> &committedVec,
-                       const std::vector<char> &nonCommittedVec, bool isDone) {
-        this->callInvoker->invokeAsync([callback, committedVec, nonCommittedVec,
-                                        isDone](jsi::Runtime &rt) {
-          callback->call(
-              rt, rnexecutorch::jsi_conversion::getJsiValue(committedVec, rt),
-              rnexecutorch::jsi_conversion::getJsiValue(nonCommittedVec, rt),
-              jsi::Value(isDone));
-        });
-      };
+  auto wordsToJsi = [](jsi::Runtime &rt,
+                       const std::vector<Word> &words) -> jsi::Value {
+    jsi::Array jsiArr(rt, words.size());
+    for (size_t i = 0; i < words.size(); ++i) {
+      jsi::Object obj(rt);
+      obj.setProperty(rt, "word",
+                      jsi::String::createFromUtf8(rt, words[i].content));
+      obj.setProperty(rt, "start", static_cast<double>(words[i].start));
+      obj.setProperty(rt, "end", static_cast<double>(words[i].end));
+      jsiArr.setValueAtIndex(rt, i, obj);
+    }
+    return jsiArr;
+  };
+
+  auto nativeCallback = [this, callback,
+                         wordsToJsi](const std::vector<Word> &committedVec,
+                                     const std::vector<Word> &nonCommittedVec,
+                                     bool isDone) {
+    this->callInvoker->invokeAsync([callback, committedVec, nonCommittedVec,
+                                    isDone, wordsToJsi](jsi::Runtime &rt) {
+      jsi::Value committedJsi = wordsToJsi(rt, committedVec);
+      jsi::Value nonCommittedJsi = wordsToJsi(rt, nonCommittedVec);
+
+      callback->call(rt, std::move(committedJsi), std::move(nonCommittedJsi),
+                     jsi::Value(isDone));
+    });
+  };
 
   this->isStreaming = true;
   while (this->isStreaming) {
@@ -100,14 +197,14 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
     ProcessResult res =
         this->processor->processIter(DecodingOptions(languageOption));
 
-    nativeCallback({res.committed.begin(), res.committed.end()},
-                   {res.nonCommitted.begin(), res.nonCommitted.end()}, false);
+    nativeCallback(res.committed, res.nonCommitted, false);
     this->readyToProcess = false;
   }
 
-  std::string committed = this->processor->finish();
+  // finish() now returns std::vector<Word>
+  std::vector<Word> committed = this->processor->finish();
 
-  nativeCallback({committed.begin(), committed.end()}, {}, true);
+  nativeCallback(committed, {}, true);
 
   this->resetStreamState();
 }
