@@ -26,6 +26,8 @@
 #include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
 #include <rnexecutorch/threads/GlobalThreadPool.h>
 
+using rnexecutorch::models::speech_to_text::types::Word;
+
 namespace rnexecutorch {
 
 template <typename Model> class ModelHostObject : public JsiHostObject {

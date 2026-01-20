@@ -35,7 +35,11 @@ ProcessResult OnlineASRProcessor::processIter(const DecodingOptions &options) {
   }
 
   std::deque<Word> nonCommittedWords = this->hypothesisBuffer.complete();
-  return {this->toFlush(flushed), this->toFlush(nonCommittedWords)};
+  // return {this->toFlush(flushed), this->toFlush(nonCommittedWords)};
+  return {std::vector<Word>(std::make_move_iterator(flushed.begin()),
+                           std::make_move_iterator(flushed.end())), 
+                           std::vector<Word>(std::make_move_iterator(nonCommittedWords.begin()),
+                           std::make_move_iterator(nonCommittedWords.end()))};
 }
 
 void OnlineASRProcessor::chunkCompletedSegment(std::span<const Segment> res) {
