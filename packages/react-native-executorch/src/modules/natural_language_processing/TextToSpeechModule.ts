@@ -52,7 +52,7 @@ export class TextToSpeechModule {
       voice.extra.lexiconSource
     );
 
-    if (paths === null || paths.length !== 7 || paths.some((p) => p == null)) {
+    if (paths === null || paths.length !== 5 || paths.some((p) => p == null)) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.DownloadInterrupted,
         'Download interrupted or missing resource.'

@@ -154,7 +154,6 @@ void DurationPredictor::scaleDurations(Tensor &durations, size_t nTokens,
         "[Kokoro::DurationPredictor] Attempted to scale an ill-shaped tensor");
   }
 
-  int32_t nTokens = shape[0];
   int64_t *durationsPtr = durations.mutable_data_ptr<int64_t>();
   int64_t totalDur = std::reduce(durationsPtr, durationsPtr + nTokens);
 

@@ -27,13 +27,13 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ```typescript
 import {
   useTextToSpeech,
-  KOKORO_EN,
+  KOKORO_MEDIUM,
   KOKORO_VOICE_AF_HEART,
 } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
 
 const model = useTextToSpeech({
-  model: KOKORO_EN,
+  model: KOKORO_MEDIUM,
   voice: KOKORO_VOICE_AF_HEART,
 });
 
@@ -55,11 +55,9 @@ const handleSpeech = async (text: string) => {
 
 ### Arguments
 
-**`model`** (`KokoroConfig`) - Object specifying the source files for the Kokoro TTS model (duration, f0n, encoder, decoder).
+**`model`** (`KokoroConfig`) - Object specifying the source files for the Kokoro TTS model (duration predictor, synthesizer).
 
 **`voice`** (`VoiceConfig`) - Object specifying the voice data and phonemizer assets (tagger and lexicon).
-
-**`options?`** (`KokoroOptions`) - Additional settings such as `fixedModel`, affecting the underlying algorithms and models.
 
 **`preventLoad?`** - Boolean that can prevent automatic model loading after running the hook.
 
@@ -67,32 +65,31 @@ For more information on loading resources, take a look at [loading models](../..
 
 ### Returns
 
-| Field              | Type                                                       | Description                                                                                                                                                                          |
-| ------------------ | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `forward`          | `(text: string, speed?: number) => Promise<Float32Array>`  | Synthesizes a full text into speech. Returns a promise resolving to the full audio waveform as a `Float32Array`.                                                                     |
-| `stream`           | `(input: TextToSpeechHookStreamingInput) => Promise<void>` | Starts a streaming synthesis session. Takes a text input and callbacks to handle audio chunks as they are generated. Ideal for reducing the "time to first audio" for long sentences |
-| `delete`           | `() => void`                                               | Unloads the model from memory.                                                                                                                                                       |
-| `error`            | `string \| null`                                           | Contains the error message if the model failed to load or synthesis failed.                                                                                                          |
-| `isGenerating`     | `boolean`                                                  | Indicates whether the model is currently processing a synthesis.                                                                                                                     |
-| `isReady`          | `boolean`                                                  | Indicates whether the model has successfully loaded and is ready for synthesis.                                                                                                      |
-| `downloadProgress` | `number`                                                   | Tracks the progress of the model and voice assets download process.                                                                                                                  |
+| Field              | Type                                                      | Description                                                                                                                                                                          |
+| ------------------ | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `forward`          | `(text: string, speed?: number) => Promise<Float32Array>` | Synthesizes a full text into speech. Returns a promise resolving to the full audio waveform as a `Float32Array`.                                                                     |
+| `stream`           | `(input: TextToSpeechStreamingInput) => Promise<void>`    | Starts a streaming synthesis session. Takes a text input and callbacks to handle audio chunks as they are generated. Ideal for reducing the "time to first audio" for long sentences |
+| `delete`           | `() => void`                                              | Unloads the model from memory.                                                                                                                                                       |
+| `error`            | `string \| null`                                          | Contains the error message if the model failed to load or synthesis failed.                                                                                                          |
+| `isGenerating`     | `boolean`                                                 | Indicates whether the model is currently processing a synthesis.                                                                                                                     |
+| `isReady`          | `boolean`                                                 | Indicates whether the model has successfully loaded and is ready for synthesis.                                                                                                      |
+| `downloadProgress` | `number`                                                  | Tracks the progress of the model and voice assets download process.                                                                                                                  |
 
 <details>
 <summary>Type definitions</summary>
 
 ```typescript
-interface TextToSpeechHookStreamingInput {
+interface TextToSpeechStreamingInput {
   text: string;
   speed?: number;
-  onNext: (chunk: Float32Array) => Promise<void> | void;
+  onBegin?: () => void | Promise<void>;
+  onNext?: (chunk: Float32Array) => Promise<void> | void;
   onEnd?: () => Promise<void> | void;
 }
 
 interface KokoroConfig {
   durationSource: ResourceSource;
-  f0nSource: ResourceSource;
-  encoderSource: ResourceSource;
-  decoderSource: ResourceSource;
+  synthesizerSource: ResourceSource;
 }
 
 interface VoiceConfig {
@@ -126,7 +123,7 @@ Since it processes the entire text at once, it might take a significant amount o
 ```typescript
 import {
   TextToSpeechModule,
-  KOKORO_EN,
+  KOKORO_MEDIUM,
   KOKORO_VOICE_AF_HEART,
 } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
@@ -136,7 +133,7 @@ const audioContext = new AudioContext({ sampleRate: 24000 });
 
 try {
   await tts.load({
-    model: KOKORO_EN,
+    model: KOKORO_MEDIUM,
     voice: KOKORO_VOICE_AF_HEART,
   });
 
@@ -160,7 +157,7 @@ try {
 ```typescript
 import {
   TextToSpeechModule,
-  KOKORO_EN,
+  KOKORO_MEDIUM,
   KOKORO_VOICE_AF_HEART,
 } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
@@ -168,7 +165,7 @@ import { AudioContext } from 'react-native-audio-api';
 const tts = new TextToSpeechModule();
 const audioContext = new AudioContext({ sampleRate: 24000 });
 
-await tts.load({ model: KOKORO_EN, voice: KOKORO_VOICE_AF_HEART });
+await tts.load({ model: KOKORO_MEDIUM, voice: KOKORO_VOICE_AF_HEART });
 
 try {
   for await (const chunk of tts.stream({
@@ -191,3 +188,29 @@ try {
   console.error('Streaming failed:', error);
 }
 ```
+
+## Supported models
+
+| Model                                               | Language |
+| --------------------------------------------------- | :------: |
+| [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) | English  |
+
+## Benchmarks
+
+### Model size
+
+| Model         | XNNPACK [MB] |
+| ------------- | :----------: |
+| KOKORO_SMALL  |    329.6     |
+| KOKORO_MEDIUM |    334.4     |
+
+### Memory usage
+
+| Model         | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| ------------- | :--------------------: | :----------------: |
+| KOKORO_SMALL  |          820           |        820         |
+| KOKORO_MEDIUM |          1140          |        1100        |
+
+:::info
+The reported memory usage values include the memory footprint of the Phonemis package, which is used for phonemizing input text. Currently, this can range from 100 to 150 MB depending on the device.
+:::

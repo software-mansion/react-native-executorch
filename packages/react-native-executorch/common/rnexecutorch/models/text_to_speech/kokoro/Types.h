@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
 namespace rnexecutorch::models::text_to_speech::kokoro {

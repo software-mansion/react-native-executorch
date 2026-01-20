@@ -9,14 +9,14 @@ TypeScript API implementation of the [useTextToSpeech](../../02-hooks/01-natural
 ```typescript
 import {
   TextToSpeechModule,
-  KOKORO_EN,
+  KOKORO_MEDIUM,
   KOKORO_VOICE_AF_HEART,
 } from 'react-native-executorch';
 
 const model = new TextToSpeechModule();
 await model.load(
   {
-    model: KOKORO_EN,
+    model: KOKORO_MEDIUM,
     voice: KOKORO_VOICE_AF_HEART,
   },
   (progress) => {
@@ -43,12 +43,14 @@ await model.forward(text, 1.0);
 interface TextToSpeechConfig {
   model: KokoroConfig;
   voice: VoiceConfig;
-  options?: KokoroOptions;
 }
 
 interface TextToSpeechStreamingInput {
   text: string;
-  speed: number;
+  speed?: number;
+  onBegin?: () => void | Promise<void>;
+  onNext?: (chunk: Float32Array) => Promise<void> | void;
+  onEnd?: () => Promise<void> | void;
 }
 ```
 
@@ -60,9 +62,8 @@ To initialize the module, create an instance and call the `load` method with a c
 
 **`config`** - Object containing:
 
-- **`model`** (`KokoroConfig`): Specifies the source files for the Kokoro TTS model (duration, f0n, encoder, decoder).
+- **`model`** (`KokoroConfig`): Specifies the source files for the Kokoro TTS model (duration predictor, synthesizer).
 - **`voice`** (`VoiceConfig`): Specifies the voice data and additional phonemizer assets (tagger and lexicon). Each voice is associated with a concrete speech language.
-- **`options`** (Optional `KokoroOptions`): Additional settings such as `fixedModel`, affecting the underlying algorithms and models.
 
 **`onDownloadProgressCallback`** - (Optional) A callback function to track the download progress of the model and voice assets.
 
@@ -88,7 +89,7 @@ Since it processes the entire text at once, it might take a significant amount o
 ```typescript
 import {
   TextToSpeechModule,
-  KOKORO_EN,
+  KOKORO_MEDIUM,
   KOKORO_VOICE_AF_HEART,
 } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
@@ -98,7 +99,7 @@ const audioContext = new AudioContext({ sampleRate: 24000 });
 
 try {
   await tts.load({
-    model: KOKORO_EN,
+    model: KOKORO_MEDIUM,
     voice: KOKORO_VOICE_AF_HEART,
   });
 
@@ -122,7 +123,7 @@ try {
 ```typescript
 import {
   TextToSpeechModule,
-  KOKORO_EN,
+  KOKORO_MEDIUM,
   KOKORO_VOICE_AF_HEART,
 } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
@@ -130,7 +131,7 @@ import { AudioContext } from 'react-native-audio-api';
 const tts = new TextToSpeechModule();
 const audioContext = new AudioContext({ sampleRate: 24000 });
 
-await tts.load({ model: KOKORO_EN, voice: KOKORO_VOICE_AF_HEART });
+await tts.load({ model: KOKORO_MEDIUM, voice: KOKORO_VOICE_AF_HEART });
 
 try {
   for await (const chunk of tts.stream({
