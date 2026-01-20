@@ -2,7 +2,6 @@ import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ETError, getError } from '../../Error';
 import {
   KokoroConfig,
-  KokoroOptions,
   TextToSpeechConfig,
   TextToSpeechStreamingInput,
   VoiceConfig,
@@ -15,20 +14,12 @@ export class TextToSpeechModule {
     config: TextToSpeechConfig,
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ): Promise<void> {
-    const anySourceKey = Object.keys(config.model).find((key) =>
-      key.includes('Source')
-    );
-    if (anySourceKey === undefined) {
-      throw new Error('No model source provided.');
-    }
-
     // Select the text to speech model based on it's fixed identifier
     if (config.model.type === 'kokoro') {
       await this.loadKokoro(
         config.model,
         config.voice,
-        onDownloadProgressCallback,
-        config.options as KokoroOptions
+        onDownloadProgressCallback
       );
     }
     // ... more models? ...
@@ -38,8 +29,7 @@ export class TextToSpeechModule {
   private async loadKokoro(
     model: KokoroConfig,
     voice: VoiceConfig,
-    onDownloadProgressCallback: (progress: number) => void,
-    options?: KokoroOptions
+    onDownloadProgressCallback: (progress: number) => void
   ): Promise<void> {
     if (
       !voice.extra ||
@@ -54,21 +44,19 @@ export class TextToSpeechModule {
     const paths = await ResourceFetcher.fetch(
       onDownloadProgressCallback,
       model.durationPredictorSource,
-      model.f0nPredictorSource,
-      model.textEncoderSource,
-      model.textDecoderSource,
+      model.synthesizerSource,
       voice.voiceSource,
       voice.extra.taggerSource,
       voice.extra.lexiconSource
     );
 
-    if (paths === null || paths.length !== 7 || paths.some((p) => p == null)) {
+    if (paths === null || paths.length !== 5 || paths.some((p) => p == null)) {
       throw new Error('Download interrupted or missing resource.');
     }
 
-    const modelPaths = paths.slice(0, 4) as [string, string, string, string];
-    const voiceDataPath = paths[4] as string;
-    const phonemizerPaths = paths.slice(5, 7) as [string, string];
+    const modelPaths = paths.slice(0, 2) as [string, string, string, string];
+    const voiceDataPath = paths[2] as string;
+    const phonemizerPaths = paths.slice(3, 5) as [string, string];
 
     this.nativeModule = global.loadTextToSpeechKokoro(
       voice.lang,
@@ -76,15 +64,8 @@ export class TextToSpeechModule {
       phonemizerPaths[1],
       modelPaths[0],
       modelPaths[1],
-      modelPaths[2],
-      modelPaths[3],
       voiceDataPath
     );
-
-    // Handle extra options
-    if (options && options.fixedModel) {
-      this.nativeModule.setFixedModel(options.fixedModel);
-    }
   }
 
   public async forward(text: string, speed: number = 1.0) {

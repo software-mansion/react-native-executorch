@@ -1,16 +1,19 @@
 #include "Utils.h"
 #include "Constants.h"
+#include "Params.h"
 #include <algorithm>
 #include <cmath>
 
 namespace rnexecutorch::models::text_to_speech::kokoro::utils {
+
+using namespace params::cropping;
 
 // Helper functions
 namespace {
 // Normalizes an audio sample
 float normalize(float sample) {
   float v = std::abs(sample);
-  return v >= constants::kAudioSilenceThreshold ? v : 0.F;
+  return v >= kAudioSilenceThreshold ? v : 0.F;
 }
 
 // Returns an index corresponding to the first (or last - if reverse=true)
@@ -30,14 +33,13 @@ template <bool reverse> size_t findAudioBound(std::span<const float> audio) {
   while (count < length) {
     count++;
     sum += normalize(audio[i]);
-    if (count > constants::kAudioCroppingSteps) {
-      sum -= normalize(audio[reverse ? i + constants::kAudioCroppingSteps
-                                     : i - constants::kAudioCroppingSteps]);
+    if (count > kAudioCroppingSteps) {
+      sum -= normalize(
+          audio[reverse ? i + kAudioCroppingSteps : i - kAudioCroppingSteps]);
     }
 
-    if (count >= constants::kAudioCroppingSteps &&
-        sum / constants::kAudioCroppingSteps >=
-            constants::kAudioSilenceThreshold) {
+    if (count >= kAudioCroppingSteps &&
+        sum / kAudioCroppingSteps >= kAudioSilenceThreshold) {
       return i;
     }
 

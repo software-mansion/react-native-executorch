@@ -6,10 +6,14 @@
 #include <string>
 #include <vector>
 
+#include "Types.h"
+
 namespace rnexecutorch::models::text_to_speech::kokoro {
 
 class Partitioner {
 public:
+  Partitioner(const Context &modelContext) : context_(modelContext) {}
+
   // Partition strategy
   // Defines how to divide phoneme string into substrings, by minimizing
   // one of the selected properties.
@@ -28,32 +32,27 @@ public:
   template <Strategy strategy>
   std::vector<std::u32string> divide(const std::u32string &phonemes);
 
-  // Extra options setters
-  void setFixedModel(const std::string &modelLabel);
-  void resetOptions();
-
 private:
-  // Helper function - partitioning
+  /**
+   * Helper function - partitioning
+   *
+   * @param phonemes phoneme string to be partitioned
+   * @param costFn a custom cost function which takes:
+   *               1. starting cost (cost of the previous range or 0 if not
+   * present)
+   *               2. range begin
+   *               3. previous breakpoint (-1 if not present)
+   *               4. current breakpoint (-1 if not present)
+   *               5. range end (exclusive)
+   */
   std::vector<std::u32string>
   divide(const std::u32string &phonemes,
-         const std::function<Cost(size_t, size_t)> &costFn,
-         const std::function<Cost(Cost, Cost)> &op);
-  // Helper function - cost estimation (by string size)
-  Cost cost(size_t stringSize);
-  // Helper function - cost estimation (by string)
-  Cost cost(const std::u32string &phonemes);
+         const std::function<Cost(Cost, int32_t, int32_t, int32_t, int32_t)>
+             &costFn);
 
-  // Predefined costs
-  // Affect the algorithm behavior in selecting break points and
-  // therefore partitioning the strings.
-  std::unordered_map<std::string, Cost> modelCosts_ = {
-      {"small", 40}, {"medium", 70}, {"large", 100}};
-  Cost eosPenalty = 0;
-  Cost pausePenalty = 30;
-  Cost whitePenalty = 10000;
-
-  // Extra settings
-  std::optional<std::string> fixedModel_ = std::nullopt;
+  // Shared model context
+  // A const reference to singleton in Kokoro.
+  const Context &context_;
 };
 
 } // namespace rnexecutorch::models::text_to_speech::kokoro
