@@ -124,6 +124,10 @@ export class TextToSpeechModule {
     }
   }
 
+  public streamStop(): void {
+    this.nativeModule.streamStop();
+  }
+
   delete() {
     if (this.nativeModule !== null) {
       this.nativeModule.unload();

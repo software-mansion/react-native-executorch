@@ -32,6 +32,9 @@ public:
   void stream(std::string text, float speed,
               std::shared_ptr<jsi::Function> callback);
 
+  // Stops the streaming process
+  void streamStop();
+
   std::size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
 
@@ -61,6 +64,9 @@ private:
   std::array<std::array<float, constants::kVoiceRefSize>,
              constants::kMaxInputTokens>
       voice_;
+
+  // Extra control variables
+  bool isStreaming_ = false;
 };
 } // namespace models::text_to_speech::kokoro
 

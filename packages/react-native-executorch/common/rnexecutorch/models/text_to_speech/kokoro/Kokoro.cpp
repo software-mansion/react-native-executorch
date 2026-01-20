@@ -118,11 +118,16 @@ void Kokoro::stream(std::string text, float speed,
 
   // Build a full callback function
   auto nativeCallback = [this, callback](const std::vector<float> &audioVec) {
-    this->callInvoker_->invokeAsync([callback, audioVec](jsi::Runtime &rt) {
-      callback->call(rt,
-                     rnexecutorch::jsi_conversion::getJsiValue(audioVec, rt));
-    });
+    if (this->isStreaming_) {
+      this->callInvoker_->invokeAsync([callback, audioVec](jsi::Runtime &rt) {
+        callback->call(rt,
+                       rnexecutorch::jsi_conversion::getJsiValue(audioVec, rt));
+      });
+    }
   };
+
+  // Mark the beginning of the streaming process
+  isStreaming_ = true;
 
   // G2P (Grapheme to Phoneme) conversion
   auto phonemes = phonemizer_.process(text);
@@ -137,6 +142,9 @@ void Kokoro::stream(std::string text, float speed,
   // instead of accumulating results in a vector, we push them
   // back to the JS side with the callback.
   for (size_t i = 0; i < subsentences.size(); i++) {
+    if (!isStreaming_)
+      break;
+
     const auto &subsentence = subsentences[i];
 
     // Determine the silent padding duration to be stripped from the edges of
@@ -165,7 +173,12 @@ void Kokoro::stream(std::string text, float speed,
     // Push the audio right away to the JS side
     nativeCallback(audioPart);
   }
+
+  // Mark the end of the streaming process
+  isStreaming_ = false;
 }
+
+void Kokoro::streamStop() { isStreaming_ = false; }
 
 std::vector<float> Kokoro::synthesize(const std::u32string &phonemes,
                                       float speed, size_t paddingMs) {

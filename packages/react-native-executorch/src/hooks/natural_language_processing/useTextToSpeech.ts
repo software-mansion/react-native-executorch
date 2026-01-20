@@ -114,6 +114,7 @@ export const useTextToSpeech = ({
     isGenerating,
     forward,
     stream,
+    streamStop: moduleInstance.streamStop,
     downloadProgress,
   };
 };

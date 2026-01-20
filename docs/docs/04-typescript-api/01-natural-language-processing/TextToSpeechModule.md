@@ -29,12 +29,13 @@ await model.forward(text, 1.0);
 
 ### Methods
 
-| Method    | Type                                                                                                   | Description                                                                                                                               |
-| --------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `load`    | `(config: TextToSpeechConfig, onDownloadProgressCallback?: (progress: number) => void): Promise<void>` | Loads the model and voice assets specified by the config object. `onDownloadProgressCallback` allows you to monitor the current progress. |
-| `delete`  | `(): void`                                                                                             | Unloads the model from memory.                                                                                                            |
-| `forward` | `(text: string, speed?: number): Promise<Float32Array>`                                                | Synthesizes the provided text into speech. Returns a promise that resolves to the full audio waveform as a `Float32Array`.                |
-| `stream`  | `(input: TextToSpeechStreamingInput): AsyncGenerator<Float32Array>`                                    | Starts a streaming synthesis session. Yields audio chunks as they are generated.                                                          |
+| Method       | Type                                                                                                   | Description                                                                                                                               |
+| ------------ | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `load`       | `(config: TextToSpeechConfig, onDownloadProgressCallback?: (progress: number) => void): Promise<void>` | Loads the model and voice assets specified by the config object. `onDownloadProgressCallback` allows you to monitor the current progress. |
+| `delete`     | `(): void`                                                                                             | Unloads the model from memory.                                                                                                            |
+| `forward`    | `(text: string, speed?: number): Promise<Float32Array>`                                                | Synthesizes the provided text into speech. Returns a promise that resolves to the full audio waveform as a `Float32Array`.                |
+| `stream`     | `(input: TextToSpeechStreamingInput): AsyncGenerator<Float32Array>`                                    | Starts a streaming synthesis session. Yields audio chunks as they are generated.                                                          |
+| `streamStop` | `(): void`                                                                                             | Stops the streaming process if there is any ongoing.                                                                                      |
 
 <details>
 <summary>Type definitions</summary>
