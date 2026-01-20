@@ -43,28 +43,28 @@ SpeechToText::decode(std::span<uint64_t> tokens,
   return std::make_shared<OwningArrayBuffer>(decoderOutput);
 }
 
-std::vector<char> SpeechToText::transcribe(std::span<float> waveform,
-                                           std::string languageOption) const {
-  std::vector<Segment> segments =
-      this->asr->transcribe(waveform, DecodingOptions(languageOption));
-  std::string transcription;
+// std::vector<char> SpeechToText::transcribe(std::span<float> waveform,
+//                                            std::string languageOption) const {
+//   std::vector<Segment> segments =
+//       this->asr->transcribe(waveform, DecodingOptions(languageOption));
+//   std::string transcription;
 
-  size_t transcriptionLength = 0;
-  for (auto &segment : segments) {
-    for (auto &word : segment.words) {
-      transcriptionLength += word.content.size();
-    }
-  }
-  transcription.reserve(transcriptionLength);
+//   size_t transcriptionLength = 0;
+//   for (auto &segment : segments) {
+//     for (auto &word : segment.words) {
+//       transcriptionLength += word.content.size();
+//     }
+//   }
+//   transcription.reserve(transcriptionLength);
 
-  for (auto &segment : segments) {
-    for (auto &word : segment.words) {
-      transcription += word.content;
-    }
-  }
+//   for (auto &segment : segments) {
+//     for (auto &word : segment.words) {
+//       transcription += word.content;
+//     }
+//   }
 
-  return {transcription.begin(), transcription.end()};
-}
+//   return {transcription.begin(), transcription.end()};
+// }
 
 std::vector<Word> SpeechToText::transcribe(std::span<float> waveform,
                                            std::string languageOption) const {
