@@ -75,6 +75,11 @@ public:
                                        promiseHostFunction<&Model::transcribe>,
                                        "transcribe"));
 
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                              promiseHostFunction<&Model::transcribeStringOnly>,
+                              "transcribeStringOnly"));
+
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::stream>,
                                        "stream"));

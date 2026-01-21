@@ -12,7 +12,10 @@ export class SpeechToTextModule {
   private nativeModule: any;
   private modelConfig!: SpeechToTextModelConfig;
 
-  // 2. TextDecoder is removed as C++ now returns JS objects directly
+  private textDecoder = new TextDecoder('utf-8', {
+    fatal: false,
+    ignoreBOM: true,
+  });
 
   /**
    * Loads the model specified by the config object.
@@ -101,7 +104,7 @@ export class SpeechToTextModule {
   public async transcribe(
     waveform: Float32Array,
     options: DecodingOptions = {}
-  ): Promise<Word[]> {
+  ): Promise<string | Word[]> {
     this.validateOptions(options);
     const transcriptionBytes = await this.nativeModule.transcribe(
       waveform,
@@ -125,10 +128,21 @@ export class SpeechToTextModule {
    */
   public async *stream(
     options: DecodingOptions = {}
-  ): AsyncGenerator<{ committed: Word[]; nonCommitted: Word[] }> {
+  ): AsyncGenerator<{
+    committed: string | Word[];
+    nonCommitted: string | Word[];
+  }> {
+    console.log('[4] Module: Entered stream method');
     this.validateOptions(options);
 
-    const queue: { committed: Word[]; nonCommitted: Word[] }[] = [];
+    // Ensure we strictly default to false
+    const enableTimestamps = options.enableTimestamps === true;
+
+    const queue: {
+      committed: string | Word[];
+      nonCommitted: string | Word[];
+    }[] = [];
+
     let waiter: (() => void) | null = null;
     let finished = false;
     let error: unknown;
@@ -140,20 +154,34 @@ export class SpeechToTextModule {
 
     (async () => {
       try {
-        await this.nativeModule.stream(
-          // Callback now receives arrays of objects directly
-          (committed: Word[], nonCommitted: Word[], isDone: boolean) => {
-            queue.push({
-              committed,
-              nonCommitted,
-            });
-            if (isDone) {
-              finished = true;
+        const callback = (
+          committed: any,
+          nonCommitted: any,
+          isDone: boolean
+        ) => {
+          if (!enableTimestamps) {
+            try {
+              queue.push({
+                committed: this.textDecoder.decode(new Uint8Array(committed)),
+                nonCommitted: this.textDecoder.decode(
+                  new Uint8Array(nonCommitted)
+                ),
+              });
+            } catch (err) {
+              console.error('[Stream Decode Error]', err);
             }
-            wake();
-          },
-          options.language || ''
-        );
+          } else {
+            queue.push({ committed, nonCommitted });
+          }
+
+          if (isDone) finished = true;
+          wake();
+        };
+
+        const language = options.language || '';
+
+        await this.nativeModule.stream(callback, language, enableTimestamps);
+
         finished = true;
         wake();
       } catch (e) {

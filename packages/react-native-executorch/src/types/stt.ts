@@ -195,6 +195,7 @@ export type SpeechToTextLanguage =
  */
 export interface DecodingOptions {
   language?: SpeechToTextLanguage;
+  enableTimestamps?: boolean;
 }
 
 /**
