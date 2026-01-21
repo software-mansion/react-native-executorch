@@ -326,7 +326,6 @@ inline jsi::Value getJsiValue(const Word &word, jsi::Runtime &runtime) {
 inline jsi::Value getJsiValue(const std::vector<Word> &vec, jsi::Runtime &runtime) {
   jsi::Array array(runtime, vec.size());
   for (size_t i = 0; i < vec.size(); ++i) {
-    // Convert each Word using the helper above and place in array
     array.setValueAtIndex(runtime, i, getJsiValue(vec[i], runtime));
   }
   return {runtime, array};

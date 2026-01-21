@@ -26,7 +26,6 @@ export const useSpeechToText = ({
 
   const [modelInstance] = useState(() => new SpeechToTextModule());
 
-  // FIX 1: Allow state to be either string or Word[]
   const [committedTranscription, setCommittedTranscription] = useState<
     string | Word[]
   >('');
@@ -82,12 +81,6 @@ export const useSpeechToText = ({
 
   const stream = useCallback(
     async (options?: DecodingOptions & { enableTimestamps?: boolean }) => {
-      console.log(
-        '[2] Hook: Stream called. Ready:',
-        isReady,
-        'Generating:',
-        isGenerating
-      );
       if (!isReady)
         throw new RnExecutorchError(
           RnExecutorchErrorCode.ModuleNotLoaded,
@@ -101,7 +94,6 @@ export const useSpeechToText = ({
 
       setIsGenerating(true);
 
-      // FIX 2: Reset based on the mode requested
       const enableTimestamps = options?.enableTimestamps ?? false;
       setCommittedTranscription(enableTimestamps ? [] : '');
       setNonCommittedTranscription(enableTimestamps ? [] : '');
@@ -109,18 +101,13 @@ export const useSpeechToText = ({
       let fullResult: string | Word[] = enableTimestamps ? [] : '';
 
       try {
-        console.log('[3] Hook: Calling modelInstance.stream()');
-        // @ts-ignore - Typescript struggles with the dual generator return type, but logic is safe
         for await (const { committed, nonCommitted } of modelInstance.stream(
           options
         )) {
           console.log(committed, nonCommitted);
-          // FIX 3: Dynamic Merging Logic
           if (typeof committed === 'string') {
-            // --- STRING MODE ---
             if (committed.length > 0) {
               setCommittedTranscription((prev) => {
-                // Safety check: if prev was somehow an array, reset it or cast to string
                 const prevStr = typeof prev === 'string' ? prev : '';
                 return prevStr + committed;
               });
@@ -128,7 +115,6 @@ export const useSpeechToText = ({
             }
             setNonCommittedTranscription(nonCommitted as string);
           } else {
-            // --- WORD[] MODE ---
             const committedWords = committed as Word[];
             const nonCommittedWords = nonCommitted as Word[];
 

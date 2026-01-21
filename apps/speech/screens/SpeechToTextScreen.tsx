@@ -87,8 +87,6 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
       const decodedAudioData = await audioContext.decodeAudioDataSource(uri);
       const audioBuffer = decodedAudioData.getChannelData(0);
 
-      // CHANGE 4: Pass the toggle flag to transcribe
-      // TypeScript will infer the return type based on the flag
       if (enableTimestamps) {
         const result = await model.transcribe(audioBuffer, {
           enableTimestamps: enableTimestamps
@@ -243,7 +241,6 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
 };
 
 const styles = StyleSheet.create({
-  // ... existing styles ...
   container: {
     flex: 1,
     alignItems: 'center',
@@ -275,7 +272,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     alignItems: 'center',
   },
-  // New style for the toggle
   toggleContainer: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -20,13 +20,10 @@
 #include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/ocr/OCR.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
-#include <rnexecutorch/models/speech_to_text/types/Word.h>
 #include <rnexecutorch/models/text_to_image/TextToImage.h>
 #include <rnexecutorch/models/text_to_speech/TextToSpeech.h>
 #include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
 #include <rnexecutorch/threads/GlobalThreadPool.h>
-
-using rnexecutorch::models::speech_to_text::types::Word;
 
 namespace rnexecutorch {
 

@@ -12,7 +12,6 @@ public:
 
   void insertAudioChunk(std::span<const float> audio);
   types::ProcessResult processIter(const types::DecodingOptions &options);
-  // std::string finish();
   std::vector<Word> finish();
 
   std::vector<float> audioBuffer;
@@ -27,8 +26,6 @@ private:
 
   void chunkCompletedSegment(std::span<const types::Segment> res);
   void chunkAt(float time);
-
-  // std::string toFlush(const std::deque<types::Word> &words) const;
 };
 
 } // namespace rnexecutorch::models::speech_to_text::stream
