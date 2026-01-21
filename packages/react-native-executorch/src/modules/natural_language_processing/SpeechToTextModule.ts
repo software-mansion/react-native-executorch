@@ -95,11 +95,13 @@ export class SpeechToTextModule {
     options?: DecodingOptions & { enableTimestamps: true }
   ): Promise<Word[]>;
 
+  // eslint-disable-next-line no-dupe-class-members
   public async transcribe(
     waveform: Float32Array | number[],
     options?: DecodingOptions & { enableTimestamps?: false | undefined }
   ): Promise<string>;
 
+  // eslint-disable-next-line no-dupe-class-members
   public async transcribe(
     waveform: Float32Array | number[],
     options: DecodingOptions = {}
@@ -131,10 +133,12 @@ export class SpeechToTextModule {
     options: DecodingOptions & { enableTimestamps: true }
   ): AsyncGenerator<{ committed: Word[]; nonCommitted: Word[] }>;
 
+  // eslint-disable-next-line no-dupe-class-members
   public stream(
     options?: DecodingOptions & { enableTimestamps?: false | undefined }
   ): AsyncGenerator<{ committed: string; nonCommitted: string }>;
 
+  // eslint-disable-next-line no-dupe-class-members
   public async *stream(options: DecodingOptions = {}): AsyncGenerator<{
     committed: string | Word[];
     nonCommitted: string | Word[];
@@ -173,7 +177,7 @@ export class SpeechToTextModule {
                 ),
               });
             } catch (err) {
-              console.error('[Stream Decode Error]', err);
+              Logger.error('[Stream Decode Error]', err);
             }
           } else {
             queue.push({ committed, nonCommitted });
