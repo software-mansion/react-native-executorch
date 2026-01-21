@@ -89,7 +89,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
 
       if (enableTimestamps) {
         const result = await model.transcribe(audioBuffer, {
-          enableTimestamps: enableTimestamps
+          enableTimestamps: enableTimestamps,
         });
         setTranscription(result);
       }
