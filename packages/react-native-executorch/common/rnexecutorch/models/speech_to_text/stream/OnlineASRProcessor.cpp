@@ -34,12 +34,14 @@ ProcessResult OnlineASRProcessor::processIter(const DecodingOptions &options) {
     chunkCompletedSegment(res);
   }
 
+  auto move_to_vector = [](auto& container) {
+      return std::vector<Word>(std::make_move_iterator(container.begin()),
+                              std::make_move_iterator(container.end()));
+  };
+
   std::deque<Word> nonCommittedWords = this->hypothesisBuffer.complete();
-  // return {this->toFlush(flushed), this->toFlush(nonCommittedWords)};
-  return {std::vector<Word>(std::make_move_iterator(flushed.begin()),
-                           std::make_move_iterator(flushed.end())), 
-                           std::vector<Word>(std::make_move_iterator(nonCommittedWords.begin()),
-                           std::make_move_iterator(nonCommittedWords.end()))};
+
+  return { move_to_vector(flushed), move_to_vector(nonCommittedWords) };
 }
 
 void OnlineASRProcessor::chunkCompletedSegment(std::span<const Segment> res) {
@@ -86,22 +88,9 @@ std::vector<Word> OnlineASRProcessor::finish() {
   std::vector<Word> buffer(std::make_move_iterator(bufferDeq.begin()),
                            std::make_move_iterator(bufferDeq.end()));
 
-  // std::string committedText = this->toFlush(buffer);
   this->bufferTimeOffset += static_cast<float>(audioBuffer.size()) /
                             OnlineASRProcessor::kSamplingRate;
   return buffer;
 }
-
-// std::string OnlineASRProcessor::toFlush(const std::deque<Word> &words) const
-// {
-//   std::string text;
-//   text.reserve(std::accumulate(
-//       words.cbegin(), words.cend(), 0,
-//       [](size_t sum, const Word &w) { return sum + w.content.size(); }));
-//   for (const auto &word : words) {
-//     text.append(word.content);
-//   }
-//   return text;
-// }
 
 } // namespace rnexecutorch::models::speech_to_text::stream
