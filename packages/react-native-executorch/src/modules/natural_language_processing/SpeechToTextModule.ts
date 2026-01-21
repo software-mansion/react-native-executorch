@@ -132,10 +132,8 @@ export class SpeechToTextModule {
     committed: string | Word[];
     nonCommitted: string | Word[];
   }> {
-    console.log('[4] Module: Entered stream method');
     this.validateOptions(options);
 
-    // Ensure we strictly default to false
     const enableTimestamps = options.enableTimestamps === true;
 
     const queue: {

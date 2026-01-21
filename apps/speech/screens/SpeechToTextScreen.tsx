@@ -8,7 +8,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
-  Switch, // Import Switch
+  Switch,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -33,10 +33,8 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     model: WHISPER_TINY_EN,
   });
 
-  // CHANGE 1: State can now be string OR Word[]
   const [transcription, setTranscription] = useState<string | Word[]>('');
 
-  // CHANGE 2: Add toggle for timestamps
   const [enableTimestamps, setEnableTimestamps] = useState(false);
 
   const [audioURL, setAudioURL] = useState('');
@@ -76,7 +74,6 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   }
 
   const handleTranscribeFromURL = async () => {
-    console.log('[1] UI: Button Pressed. Calling model.stream()...');
     if (!audioURL.trim()) {
       console.warn('Please provide a valid audio file URL');
       return;
@@ -94,12 +91,12 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
       // TypeScript will infer the return type based on the flag
       if (enableTimestamps) {
         const result = await model.transcribe(audioBuffer, {
-          enableTimestamps: true,
+          enableTimestamps: true
         });
         setTranscription(result);
       } else {
         const result = await model.transcribe(audioBuffer, {
-          enableTimestamps: false,
+          enableTimestamps: false
         });
         setTranscription(result);
       }
@@ -112,7 +109,6 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
 
   const handleStartTranscribeFromMicrophone = async () => {
     setLiveTranscribing(true);
-    // Reset based on mode
     setTranscription(enableTimestamps ? [] : '');
 
     recorder.onAudioReady(({ buffer }) => {
@@ -121,12 +117,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     recorder.start();
 
     try {
-      // CHANGE 5: Pass the toggle flag to stream
-      if (enableTimestamps) {
-        await model.stream({ enableTimestamps: true });
-      } else {
-        await model.stream({ enableTimestamps: false });
-      }
+      await model.stream({ enableTimestamps: enableTimestamps });
     } catch (error) {
       console.error('Error during live transcription:', error);
     }
@@ -149,11 +140,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   const readyToTranscribe = !model.isGenerating && model.isReady;
   const recordingButtonDisabled = isSimulator || !readyToTranscribe;
 
-  // CHANGE 6: Logic to choose what text to display
-  // We use getText() on everything so it converts Arrays to Strings before concatenation
-  const hasResult = Array.isArray(transcription)
-    ? transcription.length > 0
-    : transcription.length > 0;
+  const hasResult = transcription.length > 0;
 
   const displayedText = hasResult
     ? getText(transcription)
