@@ -135,9 +135,7 @@ export class SpeechToTextModule {
     options?: DecodingOptions & { enableTimestamps?: false | undefined }
   ): AsyncGenerator<{ committed: string; nonCommitted: string }>;
 
-  public async *stream(
-    options: DecodingOptions = {}
-  ): AsyncGenerator<{
+  public async *stream(options: DecodingOptions = {}): AsyncGenerator<{
     committed: string | Word[];
     nonCommitted: string | Word[];
   }> {
