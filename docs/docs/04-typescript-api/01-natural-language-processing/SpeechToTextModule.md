@@ -19,7 +19,13 @@ await model.load(WHISPER_TINY_EN, (progress) => {
   console.log(progress);
 });
 
-await model.transcribe(waveform);
+// Standard transcription (returns string)
+const text = await model.transcribe(waveform);
+
+// Transcription with timestamps (returns Word[])
+const textWithTimestamps = await model.transcribe(waveform, {
+  enableTimestamps: true,
+});
 ```
 
 ### Methods
@@ -70,6 +76,15 @@ await model.load(WHISPER_TINY, (progress) => {
 const transcription = await model.transcribe(spanishAudio, { language: 'es' });
 ```
 
+### Timestamps
+
+To get word-level timestamps, set `enableTimestamps` to `true`.
+
+```typescript
+const words = await model.transcribe(audioBuffer, { enableTimestamps: true });
+// words: [{ word: "Hello", start: 0.0, end: 0.5 }, ...]
+```
+
 ## Example
 
 ### Transcription
@@ -95,8 +110,13 @@ const audioBuffer = decodedAudioData.getChannelData(0);
 
 // Transcribe the audio
 try {
-  const transcription = await model.transcribe(audioBuffer);
-  console.log(transcription);
+  // Option 1: Text only
+  const text = await model.transcribe(audioBuffer);
+  console.log('Text:', text);
+
+  // Option 2: With timestamps
+  const words = await model.transcribe(audioBuffer, { enableTimestamps: true });
+  console.log('Words:', words);
 } catch (error) {
   console.error('Error during audio transcription', error);
 }
@@ -136,6 +156,7 @@ recorder.start();
 // Start streaming transcription
 try {
   let transcription = '';
+  // Note: Pass { enableTimestamps: true } here to get Word[] objects instead
   for await (const { committed, nonCommitted } of model.stream()) {
     console.log('Streaming transcription:', { committed, nonCommitted });
     transcription += committed;

@@ -83,6 +83,7 @@ Please note, that both [`transcribe`](../../06-api-reference/interfaces/SpeechTo
 
 To get more details please read: [`SpeechToTextType` API Reference](../../06-api-reference/interfaces/SpeechToTextType.md).
 
+
 ## Running the model
 
 Before running the model's [`transcribe`](../../06-api-reference/interfaces/SpeechToTextType.md#transcribe) method, make sure to extract the audio waveform you want to transcribe. You'll need to handle this step yourself, ensuring the audio is sampled at 16 kHz. Once you have the waveform, pass it as an argument to the transcribe method. The method returns a promise that resolves to the generated transcription on success, or an error if inference fails.
@@ -101,12 +102,25 @@ const model = useSpeechToText({
 const transcription = await model.transcribe(spanishAudio, { language: 'es' });
 ```
 
+### Timestamps
+
+You can obtain word-level timestamps by setting `enableTimestamps: true` in the options. This changes the return type from a string to an array of `Word` objects.
+
+```typescript
+const words = await model.transcribe(audioBuffer, { enableTimestamps: true });
+// words: [{ word: "Hello", start: 0.0, end: 0.4 }, ...]
+```
+
 ## Example
 
 ```tsx
 import React, { useState } from 'react';
-import { Button, Text } from 'react-native';
-import { useSpeechToText, WHISPER_TINY_EN } from 'react-native-executorch';
+import { Button, Text, View } from 'react-native';
+import {
+  useSpeechToText,
+  WHISPER_TINY_EN,
+  Word,
+} from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
 import * as FileSystem from 'expo-file-system';
 
@@ -115,7 +129,7 @@ function App() {
     model: WHISPER_TINY_EN,
   });
 
-  const [transcription, setTranscription] = useState('');
+  const [transcription, setTranscription] = useState<string | Word[]>('');
 
   const loadAudio = async () => {
     const { uri } = await FileSystem.downloadAsync(
@@ -132,14 +146,38 @@ function App() {
 
   const handleTranscribe = async () => {
     const audio = await loadAudio();
-    await model.transcribe(audio);
+    // Default text transcription
+    const result = await model.transcribe(audio);
+    setTranscription(result);
+  };
+
+  const handleTranscribeWithTimestamps = async () => {
+    const audio = await loadAudio();
+    // Transcription with timestamps
+    const result = await model.transcribe(audio, { enableTimestamps: true });
+    setTranscription(result);
+  };
+
+  const renderContent = () => {
+    if (typeof transcription === 'string') {
+      return <Text>{transcription}</Text>;
+    }
+    return transcription.map((w, i) => (
+      <Text key={i}>
+        {w.word} ({w.start.toFixed(2)}s)
+      </Text>
+    ));
   };
 
   return (
-    <>
-      <Text>{transcription}</Text>
-      <Button onPress={handleTranscribe} title="Transcribe" />
-    </>
+    <View>
+      {renderContent()}
+      <Button onPress={handleTranscribe} title="Transcribe (Text)" />
+      <Button
+        onPress={handleTranscribeWithTimestamps}
+        title="Transcribe (Timestamps)"
+      />
+    </View>
   );
 }
 ```
@@ -148,7 +186,7 @@ function App() {
 
 ```tsx
 import React, { useEffect, useState } from 'react';
-import { Text, Button } from 'react-native';
+import { Text, Button, View } from 'react-native';
 import { useSpeechToText, WHISPER_TINY_EN } from 'react-native-executorch';
 import { AudioManager, AudioRecorder } from 'react-native-audio-api';
 import * as FileSystem from 'expo-file-system';
@@ -182,6 +220,7 @@ function App() {
     recorder.start();
 
     try {
+      // Pass { enableTimestamps: true } here if you want Word[] updates
       await model.stream();
     } catch (error) {
       console.error('Error during streaming transcription:', error);
@@ -193,18 +232,24 @@ function App() {
     model.streamStop();
   };
 
+  // Helper to safely render mixed types
+  const getText = (data: string | any[]) => {
+    if (typeof data === 'string') return data;
+    return data.map((w) => w.word).join('');
+  };
+
   return (
-    <>
+    <View>
       <Text>
-        {model.committedTranscription}
-        {model.nonCommittedTranscription}
+        {getText(model.committedTranscription)}
+        {getText(model.nonCommittedTranscription)}
       </Text>
       <Button
         onPress={handleStartStreamingTranscribe}
         title="Start Streaming"
       />
       <Button onPress={handleStopStreamingTranscribe} title="Stop Streaming" />
-    </>
+    </View>
   );
 }
 ```
