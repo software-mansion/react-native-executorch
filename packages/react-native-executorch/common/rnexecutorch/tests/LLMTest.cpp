@@ -46,7 +46,6 @@ TEST_F(LLMTest, GetMemoryLowerBound) {
   size_t memoryBound = model.getMemoryLowerBound();
   // Should be at least the size of the model file
   EXPECT_GT(memoryBound, 0);
-  std::cout << "Memory lower bound: " << memoryBound << " bytes" << std::endl;
 }
 
 TEST_F(LLMTest, GetGeneratedTokenCountInitiallyZero) {
@@ -112,7 +111,6 @@ TEST_F(LLMTest, GenerateProducesOutput) {
       formatChatML(SYSTEM_PROMPT, "Repeat exactly this: `naszponcilem testy`");
   std::string output = model.generate(prompt, nullptr);
   EXPECT_FALSE(output.empty());
-  std::cout << "Generated: " << output << std::endl;
 }
 
 TEST_F(LLMTest, GenerateUpdatesTokenCount) {
@@ -122,8 +120,6 @@ TEST_F(LLMTest, GenerateUpdatesTokenCount) {
       formatChatML(SYSTEM_PROMPT, "Repeat exactly this: 'naszponcilem testy'");
   model.generate(prompt, nullptr);
   EXPECT_GT(model.getGeneratedTokenCount(), 0);
-  std::cout << "Generated tokens: " << model.getGeneratedTokenCount()
-            << std::endl;
 }
 
 TEST_F(LLMTest, GenerateThrowsWhenUnloaded) {
