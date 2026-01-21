@@ -70,6 +70,16 @@ set(S2T_SOURCES
   ${RNEXECUTORCH_DIR}/models/speech_to_text/stream/HypothesisBuffer.cpp
   ${RNEXECUTORCH_DIR}/models/speech_to_text/stream/OnlineASRProcessor.cpp
 )
+set(RUNNER_SOURCES
+  ${COMMON_DIR}/runner/runner.cpp
+  ${COMMON_DIR}/runner/text_prefiller.cpp
+  ${COMMON_DIR}/runner/text_decoder_runner.cpp
+  ${COMMON_DIR}/runner/sampler.cpp
+  ${COMMON_DIR}/runner/arange_util.cpp
+)
+set(LLM_SOURCES
+  ${RNEXECUTORCH_DIR}/models/llm/LLM.cpp
+)
 
 # Stubs for mocking JSI/React Native symbols
 set(JSI_STUBS ${CMAKE_SOURCE_DIR}/stubs/jsi_stubs.cpp)
@@ -166,6 +176,12 @@ add_executable(SpeechToTextTests SpeechToTextTest.cpp
   ${DSP_SOURCES}
   ${JSI_STUBS}
 )
+add_executable(LLMTests LLMTest.cpp
+  ${LLM_SOURCES}
+  ${RUNNER_SOURCES}
+  ${BASEMODEL_SOURCES}
+  ${JSI_STUBS}
+)
 
 # Libraries linking
 target_link_libraries(NumericalTests gtest gtest_main)
@@ -252,6 +268,14 @@ target_link_libraries(SpeechToTextTests
   gtest_main
   log
 )
+target_link_libraries(LLMTests
+  PRIVATE
+  ${ANDROID_THIRD_PARTY}/executorch/${ANDROID_ABI}/libexecutorch.so
+  ${TOKENIZERS_LIBS}
+  gtest
+  gtest_main
+  log
+)
 
 # Add 16kB page size
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-z,max-page-size=16384")
@@ -270,3 +294,4 @@ add_test(NAME StyleTransferTests COMMAND StyleTransferTests)
 add_test(NAME VADTests COMMAND VADTests)
 add_test(NAME TokenizerModuleTests COMMAND TokenizerModuleTests)
 add_test(NAME SpeechToTextTests COMMAND SpeechToTextTests)
+add_test(NAME LLMTests COMMAND LLMTests)

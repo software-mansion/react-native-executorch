@@ -35,7 +35,7 @@ make
 
 adb shell "mkdir -p $DEVICE_TEST_DIR"
 
-TEST_EXECUTABLES=("NumericalTests" "LogTests" "BaseModelTests" "ClassificationTests" "ObjectDetectionTests" "ImageEmbeddingsTests" "TextEmbeddingsTests" "StyleTransferTests" "VADTests" "TokenizerModuleTests" "SpeechToTextTests")
+TEST_EXECUTABLES=("NumericalTests" "LogTests" "BaseModelTests" "ClassificationTests" "ObjectDetectionTests" "ImageEmbeddingsTests" "TextEmbeddingsTests" "StyleTransferTests" "VADTests" "TokenizerModuleTests" "SpeechToTextTests" "LLMTests")
 
 # push test executables to device
 echo "Pushing test executables to device..."
@@ -62,6 +62,8 @@ wget -q https://huggingface.co/software-mansion/react-native-executorch-fsmn-vad
 wget -q https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/main/xnnpack/whisper_tiny_en_encoder_xnnpack.pte
 wget -q https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/main/xnnpack/whisper_tiny_en_decoder_xnnpack.pte
 wget -q -O whisper_tokenizer.json https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/v0.6.0/tokenizer.json
+wget -q https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.6.0/smolLm-2-135M/quantized/smolLm2_135M_8da4w.pte
+wget -q -O smollm_tokenizer.json https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.6.0/tokenizer.json
 
 echo "Pushing models to device..."
 adb push "style_transfer_candy_xnnpack.pte" "$DEVICE_TEST_DIR/" >/dev/null
@@ -75,6 +77,8 @@ adb push "fsmn-vad_xnnpack.pte" "$DEVICE_TEST_DIR/" >/dev/null
 adb push "whisper_tiny_en_encoder_xnnpack.pte" "$DEVICE_TEST_DIR/" >/dev/null
 adb push "whisper_tiny_en_decoder_xnnpack.pte" "$DEVICE_TEST_DIR/" >/dev/null
 adb push "whisper_tokenizer.json" "$DEVICE_TEST_DIR/" >/dev/null
+adb push "smolLm2_135M_8da4w.pte" "$DEVICE_TEST_DIR/" >/dev/null
+adb push "smollm_tokenizer.json" "$DEVICE_TEST_DIR/" >/dev/null
 
 # push shared libraries needed by BaseModelTests
 echo "Pushing shared libraries to device..."
