@@ -24,6 +24,8 @@ It is recommended to use models provided by us, which are available at our [Hugg
 
 ## Reference
 
+You can play the generated waveform in any way most suitable to you; however, in the snippet below we utilize the react-native-audio-api library to play synthesized speech.
+
 ```typescript
 import {
   useTextToSpeech,
@@ -70,8 +72,7 @@ For more information on loading resources, take a look at [loading models](../..
 | `forward`          | `(text: string, speed?: number) => Promise<Float32Array>` | Synthesizes a full text into speech. Returns a promise resolving to the full audio waveform as a `Float32Array`.                                                                     |
 | `stream`           | `(input: TextToSpeechStreamingInput) => Promise<void>`    | Starts a streaming synthesis session. Takes a text input and callbacks to handle audio chunks as they are generated. Ideal for reducing the "time to first audio" for long sentences |
 | `streamStop`       | `(): void`                                                | Stops the streaming process if there is any ongoing.                                                                                                                                 |
-| `delete`           | `() => void`                                              | Unloads the model from memory.                                                                                                                                                       |
-| `error`            | `string \| null`                                          | Contains the error message if the model failed to load or synthesis failed.                                                                                                          |
+| `error`            | `RnExecutorchError \| null`                               | Contains the error message if the model failed to load or synthesis failed.                                                                                                          |
 | `isGenerating`     | `boolean`                                                 | Indicates whether the model is currently processing a synthesis.                                                                                                                     |
 | `isReady`          | `boolean`                                                 | Indicates whether the model has successfully loaded and is ready for synthesis.                                                                                                      |
 | `downloadProgress` | `number`                                                  | Tracks the progress of the model and voice assets download process.                                                                                                                  |
@@ -121,80 +122,99 @@ Since it processes the entire text at once, it might take a significant amount o
 
 ### Speech Synthesis
 
-```typescript
+```tsx
+import React from 'react';
+import { Button, View } from 'react-native';
 import {
-  TextToSpeechModule,
+  useTextToSpeech,
   KOKORO_MEDIUM,
   KOKORO_VOICE_AF_HEART,
 } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
 
-const tts = new TextToSpeechModule();
-const audioContext = new AudioContext({ sampleRate: 24000 });
-
-try {
-  await tts.load({
+export default function App() {
+  const tts = useTextToSpeech({
     model: KOKORO_MEDIUM,
     voice: KOKORO_VOICE_AF_HEART,
   });
 
-  const waveform = await tts.forward('Hello from ExecuTorch!', 1.0);
+  const generateAudio = async () => {
+    const audioData = await tts.forward({
+      text: 'Hello world! This is a sample text.',
+    });
 
-  // Create audio buffer and play
-  const audioBuffer = audioContext.createBuffer(1, waveform.length, 24000);
-  audioBuffer.getChannelData(0).set(waveform);
+    // Playback example
+    const ctx = new AudioContext({ sampleRate: 24000 });
+    const buffer = ctx.createBuffer(1, audioData.length, 24000);
+    buffer.getChannelData(0).set(audioData);
 
-  const source = audioContext.createBufferSource();
-  source.buffer = audioBuffer;
-  source.connect(audioContext.destination);
-  source.start();
-} catch (error) {
-  console.error('Text-to-speech failed:', error);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.start();
+  };
+
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Button title="Speak" onPress={generateAudio} disabled={!tts.isReady} />
+    </View>
+  );
 }
 ```
 
 ### Streaming Synthesis
 
-```typescript
+```tsx
+import React, { useRef } from 'react';
+import { Button, View } from 'react-native';
 import {
-  TextToSpeechModule,
+  useTextToSpeech,
   KOKORO_MEDIUM,
   KOKORO_VOICE_AF_HEART,
 } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
 
-const tts = new TextToSpeechModule();
-const audioContext = new AudioContext({ sampleRate: 24000 });
+export default function App() {
+  const tts = useTextToSpeech({
+    model: KOKORO_MEDIUM,
+    voice: KOKORO_VOICE_AF_HEART,
+  });
 
-await tts.load({ model: KOKORO_MEDIUM, voice: KOKORO_VOICE_AF_HEART });
+  const contextRef = useRef(new AudioContext({ sampleRate: 24000 }));
 
-try {
-  for await (const chunk of tts.stream({
-    text: 'This is a streaming test, with a sample input.',
-    speed: 1.0,
-  })) {
-    // Play each chunk sequentially
-    await new Promise<void>((resolve) => {
-      const audioBuffer = audioContext.createBuffer(1, chunk.length, 24000);
-      audioBuffer.getChannelData(0).set(chunk);
+  const generateStream = async () => {
+    const ctx = contextRef.current;
 
-      const source = audioContext.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(audioContext.destination);
-      source.onEnded = () => resolve();
-      source.start();
+    await tts.stream({
+      text: "This is a longer text, which is being streamed chunk by chunk. Let's see how it works!",
+      onNext: async (chunk) => {
+        return new Promise((resolve) => {
+          const buffer = ctx.createBuffer(1, chunk.length, 24000);
+          buffer.getChannelData(0).set(chunk);
+
+          const source = ctx.createBufferSource();
+          source.buffer = buffer;
+          source.connect(ctx.destination);
+          source.onEnded = () => resolve();
+          source.start();
+        });
+      },
     });
-  }
-} catch (error) {
-  console.error('Streaming failed:', error);
+  };
+
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Button title="Stream" onPress={generateStream} disabled={!tts.isReady} />
+    </View>
+  );
 }
 ```
 
 ## Supported models
 
-| Model                                               | Language |
-| --------------------------------------------------- | :------: |
-| [Kokoro](https://huggingface.co/hexgrad/Kokoro-82M) | English  |
+| Model                                                                            | Language |
+| -------------------------------------------------------------------------------- | :------: |
+| [Kokoro](https://huggingface.co/software-mansion/react-native-executorch-kokoro) | English  |
 
 ## Benchmarks
 
