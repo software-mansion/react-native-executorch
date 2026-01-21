@@ -155,7 +155,7 @@ export const useSpeechToText = ({
         if (!isReady)
           throw new RnExecutorchError(
             RnExecutorchErrorCode.ModuleNotLoaded,
-            'Model not loaded'
+            'The model is currently not loaded. Please load the model before calling this function.'
           );
         return fn.apply(modelInstance, args);
       };
