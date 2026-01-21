@@ -87,12 +87,10 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
       const decodedAudioData = await audioContext.decodeAudioDataSource(uri);
       const audioBuffer = decodedAudioData.getChannelData(0);
 
-      if (enableTimestamps) {
-        const result = await model.transcribe(audioBuffer, {
-          enableTimestamps: enableTimestamps,
-        });
-        setTranscription(result);
-      }
+      const result = await model.transcribe(audioBuffer, {
+        enableTimestamps: enableTimestamps as any,
+      });
+      setTranscription(result);
     } catch (error) {
       console.error('Error decoding audio data', error);
       console.warn('Note: Supported file formats: mp3, wav, flac');
