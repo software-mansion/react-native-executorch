@@ -64,12 +64,12 @@ export const useSpeechToText = ({
         if (!isReady)
           throw new RnExecutorchError(
             RnExecutorchErrorCode.ModuleNotLoaded,
-            'The model is currently not loaded.'
+            'The model is currently not loaded. Please load the model before calling this function.'
           );
         if (isGenerating)
           throw new RnExecutorchError(
             RnExecutorchErrorCode.ModelGenerating,
-            'The model is currently generating.'
+            'The model is currently generating. Please wait until previous model run is complete.'
           );
         setIsGenerating(true);
         try {
@@ -86,12 +86,12 @@ export const useSpeechToText = ({
       if (!isReady)
         throw new RnExecutorchError(
           RnExecutorchErrorCode.ModuleNotLoaded,
-          'Model not loaded'
+          'The model is currently not loaded. Please load the model before calling this function.'
         );
       if (isGenerating)
         throw new RnExecutorchError(
           RnExecutorchErrorCode.ModelGenerating,
-          'Model is generating'
+          'The model is currently generating. Please wait until previous model run is complete.'
         );
 
       setIsGenerating(true);
