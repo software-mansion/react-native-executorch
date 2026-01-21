@@ -54,7 +54,14 @@ export const useSpeechToText = ({
         setError(parseUnknownError(err));
       }
     })();
-  }, [modelInstance, model, preventLoad]);
+  }, [
+    modelInstance,
+    model.isMultilingual,
+    model.encoderSource,
+    model.decoderSource,
+    model.tokenizerSource,
+    preventLoad,
+  ]);
 
   const stateWrapper = useCallback(
     <T extends (...args: any[]) => Promise<any>>(fn: T) =>
