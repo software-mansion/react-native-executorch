@@ -91,12 +91,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
       // TypeScript will infer the return type based on the flag
       if (enableTimestamps) {
         const result = await model.transcribe(audioBuffer, {
-          enableTimestamps: true
-        });
-        setTranscription(result);
-      } else {
-        const result = await model.transcribe(audioBuffer, {
-          enableTimestamps: false
+          enableTimestamps: enableTimestamps
         });
         setTranscription(result);
       }
@@ -167,18 +162,17 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
             <Text>Status: {getModelStatus()}</Text>
           </View>
 
-          {/* CHANGE 7: Add UI for the Toggle */}
           <View style={styles.toggleContainer}>
             <Text style={styles.toggleLabel}>Enable Timestamps</Text>
             <Switch
               value={enableTimestamps}
               onValueChange={(val) => {
                 setEnableTimestamps(val);
-                setTranscription(val ? [] : ''); // Reset transcription on toggle
+                setTranscription(val ? [] : '');
               }}
               trackColor={{ false: '#767577', true: '#0f186e' }}
               thumbColor={enableTimestamps ? '#fff' : '#f4f3f4'}
-              disabled={model.isGenerating} // Disable changing mode while running
+              disabled={model.isGenerating}
             />
           </View>
 
