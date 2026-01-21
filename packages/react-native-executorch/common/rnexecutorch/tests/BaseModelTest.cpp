@@ -38,7 +38,7 @@ TEST(BaseModelGetInputShapeTests, InvalidMethodThrows) {
 TEST(BaseModelGetInputShapeTests, ValidMethodInvalidIndexThrows) {
   BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
   EXPECT_THROW(
-      model.getInputShape("forward", std::numeric_limits<int32_t>::max()),
+      model.getInputShape("forward", std::numeric_limits<int32_t>::min()),
       RnExecutorchError);
 }
 

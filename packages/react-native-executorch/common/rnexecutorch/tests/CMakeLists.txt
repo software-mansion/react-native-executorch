@@ -53,6 +53,23 @@ set(OBJECT_DETECTION_SOURCES
 set(IMAGE_PROCESSING_SOURCES ${RNEXECUTORCH_DIR}/data_processing/ImageProcessing.cpp)
 set(BASE64_SOURCES ${RNEXECUTORCH_DIR}/data_processing/base64.cpp)
 set(ADA_SOURCES ${COMMON_DIR}/ada/ada.cpp)
+set(BASE_EMBEDDINGS_SOURCES ${RNEXECUTORCH_DIR}/models/embeddings/BaseEmbeddings.cpp)
+set(IMAGE_EMBEDDINGS_SOURCES ${RNEXECUTORCH_DIR}/models/embeddings/image/ImageEmbeddings.cpp)
+set(TEXT_EMBEDDINGS_SOURCES ${RNEXECUTORCH_DIR}/models/embeddings/text/TextEmbeddings.cpp)
+set(TOKENIZER_SOURCES ${RNEXECUTORCH_DIR}/TokenizerModule.cpp)
+set(STYLE_TRANSFER_SOURCES ${RNEXECUTORCH_DIR}/models/style_transfer/StyleTransfer.cpp)
+set(VAD_SOURCES
+  ${RNEXECUTORCH_DIR}/models/voice_activity_detection/VoiceActivityDetection.cpp
+  ${RNEXECUTORCH_DIR}/models/voice_activity_detection/Utils.cpp
+)
+set(DSP_SOURCES ${RNEXECUTORCH_DIR}/data_processing/dsp.cpp)
+set(GZIP_SOURCES ${RNEXECUTORCH_DIR}/data_processing/gzip.cpp)
+set(S2T_SOURCES
+  ${RNEXECUTORCH_DIR}/models/speech_to_text/SpeechToText.cpp
+  ${RNEXECUTORCH_DIR}/models/speech_to_text/asr/ASR.cpp
+  ${RNEXECUTORCH_DIR}/models/speech_to_text/stream/HypothesisBuffer.cpp
+  ${RNEXECUTORCH_DIR}/models/speech_to_text/stream/OnlineASRProcessor.cpp
+)
 
 # Stubs for mocking JSI/React Native symbols
 set(JSI_STUBS ${CMAKE_SOURCE_DIR}/stubs/jsi_stubs.cpp)
@@ -72,6 +89,14 @@ set(OPENCV_LIBS
 )
 set(OPENCV_THIRD_PARTY_DIR "${ANDROID_THIRD_PARTY}/opencv-third-party/${ANDROID_ABI}")
 file(GLOB OPENCV_THIRD_PARTY_LIBS "${OPENCV_THIRD_PARTY_DIR}/*.a")
+
+# Tokenizers-cpp (static libraries)
+set(TOKENIZERS_LIBS_DIR "${ANDROID_THIRD_PARTY}/tokenizers-cpp/${ANDROID_ABI}")
+set(TOKENIZERS_LIBS
+  ${TOKENIZERS_LIBS_DIR}/libtokenizers_cpp.a
+  ${TOKENIZERS_LIBS_DIR}/libtokenizers_c.a
+  ${TOKENIZERS_LIBS_DIR}/libsentencepiece.a
+)
 
 # Executables for the tests
 add_executable(NumericalTests NumericalTest.cpp ${NUMERICAL_SOURCES})
@@ -93,6 +118,52 @@ add_executable(ObjectDetectionTests ObjectDetectionTest.cpp
   ${NUMERICAL_SOURCES}
   ${BASE64_SOURCES}
   ${ADA_SOURCES}
+  ${JSI_STUBS}
+)
+add_executable(ImageEmbeddingsTests ImageEmbeddingsTest.cpp
+  ${IMAGE_EMBEDDINGS_SOURCES}
+  ${BASE_EMBEDDINGS_SOURCES}
+  ${BASEMODEL_SOURCES}
+  ${IMAGE_PROCESSING_SOURCES}
+  ${NUMERICAL_SOURCES}
+  ${BASE64_SOURCES}
+  ${ADA_SOURCES}
+  ${JSI_STUBS}
+)
+add_executable(TextEmbeddingsTests TextEmbeddingsTest.cpp
+  ${TEXT_EMBEDDINGS_SOURCES}
+  ${BASE_EMBEDDINGS_SOURCES}
+  ${BASEMODEL_SOURCES}
+  ${TOKENIZER_SOURCES}
+  ${NUMERICAL_SOURCES}
+  ${JSI_STUBS}
+)
+add_executable(StyleTransferTests StyleTransferTest.cpp
+  ${STYLE_TRANSFER_SOURCES}
+  ${BASEMODEL_SOURCES}
+  ${IMAGE_PROCESSING_SOURCES}
+  ${NUMERICAL_SOURCES}
+  ${BASE64_SOURCES}
+  ${ADA_SOURCES}
+  ${JSI_STUBS}
+)
+add_executable(VADTests VoiceActivityDetectionTest.cpp
+  ${VAD_SOURCES}
+  ${BASEMODEL_SOURCES}
+  ${DSP_SOURCES}
+  ${JSI_STUBS}
+)
+add_executable(TokenizerModuleTests TokenizerModuleTest.cpp
+  ${TOKENIZER_SOURCES}
+  ${JSI_STUBS}
+)
+add_executable(SpeechToTextTests SpeechToTextTest.cpp
+  ${S2T_SOURCES}
+  ${BASEMODEL_SOURCES}
+  ${TOKENIZER_SOURCES}
+  ${NUMERICAL_SOURCES}
+  ${GZIP_SOURCES}
+  ${DSP_SOURCES}
   ${JSI_STUBS}
 )
 
@@ -128,6 +199,59 @@ target_link_libraries(ObjectDetectionTests
   gtest_main
   log
 )
+target_link_options(ImageEmbeddingsTests PRIVATE -fopenmp -static-openmp)
+target_link_libraries(ImageEmbeddingsTests
+  PRIVATE
+  ${ANDROID_THIRD_PARTY}/executorch/${ANDROID_ABI}/libexecutorch.so
+  ${OPENCV_LIBS}
+  ${OPENCV_THIRD_PARTY_LIBS}
+  z
+  gtest
+  gtest_main
+  log
+)
+target_link_libraries(TextEmbeddingsTests
+  PRIVATE
+  ${ANDROID_THIRD_PARTY}/executorch/${ANDROID_ABI}/libexecutorch.so
+  ${TOKENIZERS_LIBS}
+  gtest
+  gtest_main
+  log
+)
+target_link_options(StyleTransferTests PRIVATE -fopenmp -static-openmp)
+target_link_libraries(StyleTransferTests
+  PRIVATE
+  ${ANDROID_THIRD_PARTY}/executorch/${ANDROID_ABI}/libexecutorch.so
+  ${OPENCV_LIBS}
+  ${OPENCV_THIRD_PARTY_LIBS}
+  z
+  gtest
+  gtest_main
+  log
+)
+target_link_libraries(VADTests
+  PRIVATE
+  ${ANDROID_THIRD_PARTY}/executorch/${ANDROID_ABI}/libexecutorch.so
+  gtest
+  gtest_main
+  log
+)
+target_link_libraries(TokenizerModuleTests
+  PRIVATE
+  ${TOKENIZERS_LIBS}
+  gtest
+  gtest_main
+  log
+)
+target_link_libraries(SpeechToTextTests
+  PRIVATE
+  ${ANDROID_THIRD_PARTY}/executorch/${ANDROID_ABI}/libexecutorch.so
+  ${TOKENIZERS_LIBS}
+  z
+  gtest
+  gtest_main
+  log
+)
 
 # Add 16kB page size
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-z,max-page-size=16384")
@@ -140,3 +264,9 @@ add_test(NAME LogTests COMMAND LogTests)
 add_test(NAME BaseModelTests COMMAND BaseModelTests)
 add_test(NAME ClassificationTests COMMAND ClassificationTests)
 add_test(NAME ObjectDetectionTests COMMAND ObjectDetectionTests)
+add_test(NAME ImageEmbeddingsTests COMMAND ImageEmbeddingsTests)
+add_test(NAME TextEmbeddingsTests COMMAND TextEmbeddingsTests)
+add_test(NAME StyleTransferTests COMMAND StyleTransferTests)
+add_test(NAME VADTests COMMAND VADTests)
+add_test(NAME TokenizerModuleTests COMMAND TokenizerModuleTests)
+add_test(NAME SpeechToTextTests COMMAND SpeechToTextTests)
