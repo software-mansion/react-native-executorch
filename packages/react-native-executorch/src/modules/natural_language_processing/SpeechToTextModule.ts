@@ -4,7 +4,6 @@ import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
-// 1. Define the Word interface matching your C++ JSI object structure
 export interface Word {
   word: string;
   start: number;
@@ -142,10 +141,8 @@ export class SpeechToTextModule {
     committed: string | Word[];
     nonCommitted: string | Word[];
   }> {
-    console.log('[4] Module: Entered stream method');
     this.validateOptions(options);
 
-    // Ensure we strictly default to false
     const enableTimestamps = options.enableTimestamps === true;
 
     const queue: {

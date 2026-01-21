@@ -69,15 +69,11 @@ template <>
 inline Word getValue<Word>(const jsi::Value &val, jsi::Runtime &runtime) {
   jsi::Object obj = val.asObject(runtime);
   
-  // 1. Extract the string "word" using the existing string helper
   std::string content = getValue<std::string>(obj.getProperty(runtime, "word"), runtime);
   
-  // 2. Extract start/end times
-  // We use .asNumber() directly as these are primitives
   double start = obj.getProperty(runtime, "start").asNumber();
   double end = obj.getProperty(runtime, "end").asNumber();
 
-  // 3. Construct and return the C++ Word struct
   return Word{
       .content = std::move(content),
       .start = static_cast<float>(start),
