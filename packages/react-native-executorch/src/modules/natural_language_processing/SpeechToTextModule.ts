@@ -166,7 +166,7 @@ export class SpeechToTextModule {
                 ),
               });
             } catch (err) {
-              console.error('[Stream Decode Error]', err);
+              Logger.error('[Stream Decode Error]', err);
             }
           } else {
             queue.push({ committed, nonCommitted });

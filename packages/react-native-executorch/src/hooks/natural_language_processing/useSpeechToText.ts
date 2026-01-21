@@ -108,11 +108,17 @@ export const useSpeechToText = ({
       let fullResult: string | Word[] = enableTimestamps ? [] : '';
 
       try {
-        for await (const { committed, nonCommitted } of modelInstance.stream(
-          options
-        )) {
-          console.log(committed, nonCommitted);
+        const streamGen = modelInstance.stream(
+          options as any
+        ) as AsyncGenerator<{
+          committed: string | Word[];
+          nonCommitted: string | Word[];
+        }>;
+
+        for await (const { committed, nonCommitted } of streamGen) {
           if (typeof committed === 'string') {
+            const nc = nonCommitted as unknown as string;
+
             if (committed.length > 0) {
               setCommittedTranscription((prev) => {
                 const prevStr = typeof prev === 'string' ? prev : '';
@@ -120,12 +126,12 @@ export const useSpeechToText = ({
               });
               (fullResult as string) += committed;
             }
-            setNonCommittedTranscription(nonCommitted as string);
+            setNonCommittedTranscription(nc);
           } else {
             const committedWords = committed as Word[];
             const nonCommittedWords = nonCommitted as Word[];
 
-            if (committedWords.length > 0) {
+            if (committedWords && committedWords.length > 0) {
               setCommittedTranscription((prev) => {
                 const prevArr = Array.isArray(prev) ? prev : [];
                 return [...prevArr, ...committedWords];
@@ -166,7 +172,9 @@ export const useSpeechToText = ({
     nonCommittedTranscription,
     encode: stateWrapper(SpeechToTextModule.prototype.encode),
     decode: stateWrapper(SpeechToTextModule.prototype.decode),
-    transcribe: stateWrapper(SpeechToTextModule.prototype.transcribe),
+    transcribe: stateWrapper(
+      SpeechToTextModule.prototype.transcribe
+    ) as SpeechToTextModule['transcribe'],
     stream,
     streamStop: wrapper(SpeechToTextModule.prototype.streamStop),
     streamInsert: wrapper(SpeechToTextModule.prototype.streamInsert),
