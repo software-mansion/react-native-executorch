@@ -76,16 +76,14 @@
   transition:
     background-color 0.3s,
     color 0.3s;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 a.hireUsButtonLink:hover {
   text-decoration: none !important;
-}
-
-.hireUsButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 @media (max-width: 768px) {
@@ -102,24 +100,6 @@ a.hireUsButtonLink:hover {
   margin: 0 0 2px 0;
 }
 
-.hireUsButton svg {
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.arrow {
-  transition: left 0.3s;
-}
-
-.arrow {
-  left: 8px;
-}
-
-.hireUsButton:hover .arrow {
-  left: 16px;
-}
-
 .arrow {
   position: relative;
   display: flex;
@@ -132,7 +112,7 @@ a.hireUsButtonLink:hover {
   left: 8px;
 }
 
-.homepageButton:hover .arrow {
+.hireUsButton:hover .arrow {
   left: 16px;
 }
 
