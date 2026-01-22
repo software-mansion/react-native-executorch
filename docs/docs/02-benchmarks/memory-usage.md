@@ -63,6 +63,10 @@ All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12 (A
 | KOKORO_SMALL  |          820           |        820         |
 | KOKORO_MEDIUM |          1140          |        1100        |
 
+:::info
+The reported memory usage values include the memory footprint of the Phonemis package, which is used for phonemizing input text. Currently, this can range from 100 to 150 MB depending on the device.
+:::
+
 ## Text Embeddings
 
 | Model                      | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |

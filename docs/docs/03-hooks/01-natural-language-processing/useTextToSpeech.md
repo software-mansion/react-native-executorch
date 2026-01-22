@@ -215,23 +215,3 @@ export default function App() {
 | Model                                                                            | Language |
 | -------------------------------------------------------------------------------- | :------: |
 | [Kokoro](https://huggingface.co/software-mansion/react-native-executorch-kokoro) | English  |
-
-## Benchmarks
-
-### Model size
-
-| Model         | XNNPACK [MB] |
-| ------------- | :----------: |
-| KOKORO_SMALL  |    329.6     |
-| KOKORO_MEDIUM |    334.4     |
-
-### Memory usage
-
-| Model         | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| ------------- | :--------------------: | :----------------: |
-| KOKORO_SMALL  |          820           |        820         |
-| KOKORO_MEDIUM |          1140          |        1100        |
-
-:::info
-The reported memory usage values include the memory footprint of the Phonemis package, which is used for phonemizing input text. Currently, this can range from 100 to 150 MB depending on the device.
-:::

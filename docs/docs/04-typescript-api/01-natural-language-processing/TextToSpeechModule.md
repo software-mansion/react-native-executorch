@@ -2,7 +2,7 @@
 title: TextToSpeechModule
 ---
 
-TypeScript API implementation of the [useTextToSpeech](../../02-hooks/01-natural-language-processing/useTextToSpeech.md) hook.
+TypeScript API implementation of the [useTextToSpeech](../../03-hooks/01-natural-language-processing/useTextToSpeech.md) hook.
 
 ## Reference
 
