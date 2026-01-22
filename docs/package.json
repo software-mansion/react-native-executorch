@@ -5,7 +5,8 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
-    "build": "docusaurus build",
+    "build": "docusaurus build && npm run postbuild",
+    "postbuild": "node scripts/postbuild.mjs",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
@@ -25,6 +26,7 @@
     "@emotion/styled": "^11.14.1",
     "@mdx-js/react": "^3.0.0",
     "@mui/material": "^7.3.7",
+    "@signalwire/docusaurus-plugin-llms-txt": "^1.2.2",
     "@swmansion/t-rex-ui": "^1.2.1",
     "clsx": "^2.1.0",
     "copy-text-to-clipboard": "^3.2.2",
