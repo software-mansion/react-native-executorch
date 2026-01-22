@@ -61,9 +61,10 @@ DurationPredictor::generate(std::span<const Token> tokens,
   CHECK_SIZE(ref_hs, constants::kVoiceRefHalfSize);
 
   // Select appropriate forward method
-  auto it = std::find_if(
-      forwardMethods_.begin(), forwardMethods_.end(),
-      [inputSize](const auto &entry) { return entry.second >= inputSize; });
+  auto it =
+      std::ranges::find_if(forwardMethods_, [inputSize](const auto &entry) {
+        return entry.second >= inputSize;
+      });
   if (it == forwardMethods_.end()) {
     throw RnExecutorchError(
         RnExecutorchErrorCode::WrongDimensions,
