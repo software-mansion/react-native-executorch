@@ -18,7 +18,10 @@
 #include <rnexecutorch/models/object_detection/Constants.h>
 #include <rnexecutorch/models/object_detection/Types.h>
 #include <rnexecutorch/models/ocr/Types.h>
+#include <rnexecutorch/models/speech_to_text/types/Word.h>
 #include <rnexecutorch/models/voice_activity_detection/Types.h>
+
+using rnexecutorch::models::speech_to_text::types::Word;
 
 namespace rnexecutorch::jsi_conversion {
 
@@ -60,6 +63,22 @@ getValue<std::shared_ptr<jsi::Function>>(const jsi::Value &val,
                                          jsi::Runtime &runtime) {
   return std::make_shared<jsi::Function>(
       val.asObject(runtime).asFunction(runtime));
+}
+
+template <>
+inline Word getValue<Word>(const jsi::Value &val, jsi::Runtime &runtime) {
+  jsi::Object obj = val.asObject(runtime);
+  
+  std::string content = getValue<std::string>(obj.getProperty(runtime, "word"), runtime);
+  
+  double start = obj.getProperty(runtime, "start").asNumber();
+  double end = obj.getProperty(runtime, "end").asNumber();
+
+  return Word{
+      .content = std::move(content),
+      .start = static_cast<float>(start),
+      .end = static_cast<float>(end)
+  };
 }
 
 template <>
@@ -218,6 +237,12 @@ getValue<std::vector<int64_t>>(const jsi::Value &val, jsi::Runtime &runtime) {
   return getArrayAsVector<int64_t>(val, runtime);
 }
 
+template <>
+inline std::vector<Word> getValue<std::vector<Word>>(const jsi::Value &val,
+                                                     jsi::Runtime &runtime) {
+  return getArrayAsVector<Word>(val, runtime);
+}
+
 // Template specializations for std::span<T> types
 template <>
 inline std::span<float> getValue<std::span<float>>(const jsi::Value &val,
@@ -282,6 +307,22 @@ inline std::span<int64_t> getValue<std::span<int64_t>>(const jsi::Value &val,
 inline jsi::Value getJsiValue(std::shared_ptr<jsi::Object> valuePtr,
                               jsi::Runtime &runtime) {
   return std::move(*valuePtr);
+}
+
+inline jsi::Value getJsiValue(const Word &word, jsi::Runtime &runtime) {
+  jsi::Object obj(runtime);
+  obj.setProperty(runtime, "word", jsi::String::createFromUtf8(runtime, word.content));
+  obj.setProperty(runtime, "start", static_cast<double>(word.start));
+  obj.setProperty(runtime, "end", static_cast<double>(word.end));
+  return obj;
+}
+
+inline jsi::Value getJsiValue(const std::vector<Word> &vec, jsi::Runtime &runtime) {
+  jsi::Array array(runtime, vec.size());
+  for (size_t i = 0; i < vec.size(); ++i) {
+    array.setValueAtIndex(runtime, i, getJsiValue(vec[i], runtime));
+  }
+  return {runtime, array};
 }
 
 inline jsi::Value getJsiValue(const std::vector<int32_t> &vec,

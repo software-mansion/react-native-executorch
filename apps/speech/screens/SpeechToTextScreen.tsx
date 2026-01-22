@@ -8,9 +8,14 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Switch,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { useSpeechToText, WHISPER_TINY_EN } from 'react-native-executorch';
+import {
+  useSpeechToText,
+  WHISPER_TINY_EN,
+  Word,
+} from 'react-native-executorch';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {
   AudioManager,
@@ -28,7 +33,10 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     model: WHISPER_TINY_EN,
   });
 
-  const [transcription, setTranscription] = useState('');
+  const [transcription, setTranscription] = useState<string | Word[]>('');
+
+  const [enableTimestamps, setEnableTimestamps] = useState(false);
+
   const [audioURL, setAudioURL] = useState('');
   const [liveTranscribing, setLiveTranscribing] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -50,6 +58,15 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     AudioManager.requestRecordingPermissions();
   }, []);
 
+  const getText = (data: string | Word[] | undefined) => {
+    if (!data) return '';
+    if (typeof data === 'string') return data;
+
+    return data
+      .map((w) => `${w.word} (${w.start.toFixed(2)}s - ${w.end.toFixed(2)}s)\n`)
+      .join('');
+  };
+
   const handleTranscribeFromURL = async () => {
     if (!audioURL.trim()) {
       console.warn('Please provide a valid audio file URL');
@@ -66,7 +83,11 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     try {
       const decodedAudioData = await audioContext.decodeAudioDataSource(uri);
       const audioBuffer = decodedAudioData.getChannelData(0);
-      setTranscription(await model.transcribe(audioBuffer));
+
+      const result = await model.transcribe(audioBuffer, {
+        enableTimestamps: enableTimestamps as any,
+      });
+      setTranscription(result);
     } catch (error) {
       console.error('Error decoding audio data', error);
       console.warn('Note: Supported file formats: mp3, wav, flac');
@@ -76,14 +97,15 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
 
   const handleStartTranscribeFromMicrophone = async () => {
     setLiveTranscribing(true);
-    setTranscription('');
+    setTranscription(enableTimestamps ? [] : '');
+
     recorder.onAudioReady(({ buffer }) => {
       model.streamInsert(buffer.getChannelData(0));
     });
     recorder.start();
 
     try {
-      await model.stream();
+      await model.stream({ enableTimestamps: enableTimestamps });
     } catch (error) {
       console.error('Error during live transcription:', error);
     }
@@ -106,6 +128,13 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   const readyToTranscribe = !model.isGenerating && model.isReady;
   const recordingButtonDisabled = isSimulator || !readyToTranscribe;
 
+  const hasResult = transcription.length > 0;
+
+  const displayedText = hasResult
+    ? getText(transcription)
+    : getText(model.committedTranscription) +
+      getText(model.nonCommittedTranscription);
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
@@ -126,6 +155,20 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
             <Text>Status: {getModelStatus()}</Text>
           </View>
 
+          <View style={styles.toggleContainer}>
+            <Text style={styles.toggleLabel}>Enable Timestamps</Text>
+            <Switch
+              value={enableTimestamps}
+              onValueChange={(val) => {
+                setEnableTimestamps(val);
+                setTranscription(val ? [] : '');
+              }}
+              trackColor={{ false: '#767577', true: '#0f186e' }}
+              thumbColor={enableTimestamps ? '#fff' : '#f4f3f4'}
+              disabled={model.isGenerating}
+            />
+          </View>
+
           <View style={styles.transcriptionContainer}>
             <Text style={styles.transcriptionLabel}>Transcription</Text>
             <ScrollView
@@ -135,12 +178,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
                 scrollViewRef.current?.scrollToEnd({ animated: true })
               }
             >
-              <Text>
-                {transcription !== ''
-                  ? transcription
-                  : model.committedTranscription +
-                    model.nonCommittedTranscription}
-              </Text>
+              <Text>{displayedText}</Text>
             </ScrollView>
           </View>
 
@@ -228,6 +266,17 @@ const styles = StyleSheet.create({
   statusContainer: {
     marginTop: 12,
     alignItems: 'center',
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 5,
+  },
+  toggleLabel: {
+    fontSize: 16,
+    marginRight: 10,
+    color: '#0f186e',
   },
   transcriptionContainer: {
     flex: 1,

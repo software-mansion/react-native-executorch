@@ -14,21 +14,27 @@ await model.load(WHISPER_TINY_EN, (progress) => {
   console.log(progress);
 });
 
-await model.transcribe(waveform);
+// Standard transcription (returns string)
+const text = await model.transcribe(waveform);
+
+// Transcription with timestamps (returns Word[])
+const textWithTimestamps = await model.transcribe(waveform, {
+  enableTimestamps: true,
+});
 ```
 
 ### Methods
 
-| Method         | Type                                                                                                       | Description                                                                                                                                                                                                   |
-| -------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `load`         | `(model: SpeechToTextModelConfig, onDownloadProgressCallback?: (progress: number) => void): Promise<void>` | Loads the model specified by the config object. `onDownloadProgressCallback` allows you to monitor the current progress of the model download.                                                                |
-| `delete`       | `(): void`                                                                                                 | Unloads the model from memory.                                                                                                                                                                                |
-| `encode`       | `(waveform: Float32Array \| number[]): Promise<Float32Array>`                                              | Runs the encoding part of the model on the provided waveform. Returns the encoded waveform as a Float32Array. Passing `number[]` is deprecated.                                                               |
-| `decode`       | `(tokens: number[] \| Int32Array, encoderOutput: Float32Array \| number[]): Promise<Float32Array>`         | Runs the decoder of the model. Passing `number[]` is deprecated.                                                                                                                                              |
-| `transcribe`   | `(waveform: Float32Array \| number[], options?: DecodingOptions): Promise<string>`                         | Starts a transcription process for a given input array (16kHz waveform). For multilingual models, specify the language in `options`. Returns the transcription as a string. Passing `number[]` is deprecated. |
-| `stream`       | `(options?: DecodingOptions): AsyncGenerator<{ committed: string; nonCommitted: string }>`                 | Starts a streaming transcription session. Yields objects with `committed` and `nonCommitted` transcriptions. Use with `streamInsert` and `streamStop` to control the stream.                                  |
-| `streamStop`   | `(): void`                                                                                                 | Stops the current streaming transcription session.                                                                                                                                                            |
-| `streamInsert` | `(waveform: Float32Array \| number[]): void`                                                               | Inserts a new audio chunk into the streaming transcription session. Passing `number[]` is deprecated.                                                                                                         |
+| Method         | Type                                                                                                       | Description                                                                                                                                                                                                                                                                                         |
+| -------------- | ---------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `load`         | `(model: SpeechToTextModelConfig, onDownloadProgressCallback?: (progress: number) => void): Promise<void>` | Loads the model specified by the config object. `onDownloadProgressCallback` allows you to monitor the current progress of the model download.                                                                                                                                                      |
+| `delete`       | `(): void`                                                                                                 | Unloads the model from memory.                                                                                                                                                                                                                                                                      |
+| `encode`       | `(waveform: Float32Array \| number[]): Promise<Float32Array>`                                              | Runs the encoding part of the model on the provided waveform. Returns the encoded waveform as a Float32Array. Passing `number[]` is deprecated.                                                                                                                                                     |
+| `decode`       | `(tokens: number[] \| Int32Array, encoderOutput: Float32Array \| number[]): Promise<Float32Array>`         | Runs the decoder of the model. Passing `number[]` is deprecated.                                                                                                                                                                                                                                    |
+| `transcribe`   | `(waveform: Float32Array                                                                                   | number[], options?: DecodingOptions & { enableTimestamps?: boolean }): Promise<string                                                                                                                                                                                                               | Word[]>` | Starts a transcription process for a given input array (16kHz waveform). For multilingual models, specify the language in `options`. If `enableTimestamps` is true, returns transcription with timestamps (`Word[]>`). If `enableTimestamps` is false (default), returns transcription as a string. Passing `number[]` is deprecated. |
+| `stream`       | `(options?: DecodingOptions & { enableTimestamps?: boolean }): AsyncGenerator<StreamResult>`               | Starts a streaming transcription session. Yields objects with `committed` and `nonCommitted` transcriptions. As in `transcribe`, you can decide either you want transcription with timestamps or not by setting `enableTimestamps`. Use with `streamInsert` and `streamStop` to control the stream. |
+| `streamStop`   | `(): void`                                                                                                 | Stops the current streaming transcription session.                                                                                                                                                                                                                                                  |
+| `streamInsert` | `(waveform: Float32Array \| number[]): void`                                                               | Inserts a new audio chunk into the streaming transcription session. Passing `number[]` is deprecated.                                                                                                                                                                                               |
 
 :::info
 
@@ -40,6 +46,12 @@ await model.transcribe(waveform);
 <summary>Type definitions</summary>
 
 ```typescript
+interface Word {
+  word: string;
+  start: number;
+  end: number;
+}
+
 // Languages supported by whisper (Multilingual)
 type SpeechToTextLanguage =
   | 'af'
@@ -120,6 +132,7 @@ type SpeechToTextLanguage =
 
 interface DecodingOptions {
   language?: SpeechToTextLanguage;
+  enableTimestamps?: boolean;
 }
 
 interface SpeechToTextModelConfig {
@@ -154,7 +167,7 @@ For more information on loading resources, take a look at [loading models](../..
 
 ## Running the model
 
-To run the model, you can use the `transcribe` method. It accepts one argument, which is an array of numbers representing a waveform at 16kHz sampling rate. The method returns a promise, which can resolve either to an error or a string containing the output text.
+To run the model, you can use the `transcribe` method. It accepts one argument, which is an array of numbers representing a waveform at 16kHz sampling rate. The method returns a promise, which can resolve either to an error, a string (text only), or an array of `Word` objects (text with timestamps), depending on the `enableTimestamps` option.
 
 ### Multilingual transcription
 
@@ -169,6 +182,15 @@ await model.load(WHISPER_TINY, (progress) => {
 });
 
 const transcription = await model.transcribe(spanishAudio, { language: 'es' });
+```
+
+### Timestamps
+
+To get word-level timestamps, set `enableTimestamps` to `true`.
+
+```typescript
+const words = await model.transcribe(audioBuffer, { enableTimestamps: true });
+// words: [{ word: "Hello", start: 0.0, end: 0.5 }, ...]
 ```
 
 ## Example
@@ -196,8 +218,13 @@ const audioBuffer = decodedAudioData.getChannelData(0);
 
 // Transcribe the audio
 try {
-  const transcription = await model.transcribe(audioBuffer);
-  console.log(transcription);
+  // Option 1: Text only
+  const text = await model.transcribe(audioBuffer);
+  console.log('Text:', text);
+
+  // Option 2: With timestamps
+  const words = await model.transcribe(audioBuffer, { enableTimestamps: true });
+  console.log('Words:', words);
 } catch (error) {
   console.error('Error during audio transcription', error);
 }
@@ -237,6 +264,7 @@ recorder.start();
 // Start streaming transcription
 try {
   let transcription = '';
+  // Note: Pass { enableTimestamps: true } here to get Word[] objects instead
   for await (const { committed, nonCommitted } of model.stream()) {
     console.log('Streaming transcription:', { committed, nonCommitted });
     transcription += committed;

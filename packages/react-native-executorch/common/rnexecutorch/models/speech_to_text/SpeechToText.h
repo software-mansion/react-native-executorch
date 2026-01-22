@@ -23,14 +23,18 @@ public:
   [[nodiscard(
       "Registered non-void function")]] std::shared_ptr<OwningArrayBuffer>
   decode(std::span<int32_t> tokens, std::span<float> encoderOutput) const;
-  [[nodiscard("Registered non-void function")]] std::vector<char>
+  [[nodiscard("Registered non-void function")]] std::vector<Word>
   transcribe(std::span<float> waveform, std::string languageOption) const;
+
+  [[nodiscard("Registered non-void function")]]
+  std::vector<char> transcribeStringOnly(std::span<float> waveform,
+                                         std::string languageOption) const;
 
   size_t getMemoryLowerBound() const noexcept;
 
   // Stream
   void stream(std::shared_ptr<jsi::Function> callback,
-              std::string languageOption);
+              std::string languageOption, bool enableTimestamps);
   void streamStop();
   void streamInsert(std::span<float> waveform);
 

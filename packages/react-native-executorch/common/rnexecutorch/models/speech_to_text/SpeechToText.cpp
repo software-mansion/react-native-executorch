@@ -43,8 +43,31 @@ SpeechToText::decode(std::span<int32_t> tokens,
   return std::make_shared<OwningArrayBuffer>(decoderOutput);
 }
 
-std::vector<char> SpeechToText::transcribe(std::span<float> waveform,
+std::vector<Word> SpeechToText::transcribe(std::span<float> waveform,
                                            std::string languageOption) const {
+  std::vector<Segment> segments =
+      this->asr->transcribe(waveform, DecodingOptions(languageOption));
+  std::vector<Word> transcription;
+
+  size_t transcriptionLength = 0;
+  for (auto &segment : segments) {
+    transcriptionLength += segment.words.size();
+  }
+
+  transcription.reserve(segments.size());
+
+  for (auto &segment : segments) {
+    for (auto &word : segment.words) {
+      transcription.push_back(word);
+    }
+  }
+
+  return transcription;
+}
+
+std::vector<char>
+SpeechToText::transcribeStringOnly(std::span<float> waveform,
+                                   std::string languageOption) const {
   std::vector<Segment> segments =
       this->asr->transcribe(waveform, DecodingOptions(languageOption));
   std::string transcription;
@@ -66,29 +89,48 @@ std::vector<char> SpeechToText::transcribe(std::span<float> waveform,
   return {transcription.begin(), transcription.end()};
 }
 
+std::vector<char> mergeWordsToString(const std::vector<Word> &words) {
+  std::string result;
+  size_t totalLength = 0;
+
+  for (const auto &word : words) {
+    totalLength += word.content.size();
+  }
+  result.reserve(totalLength);
+
+  for (const auto &word : words) {
+    result += word.content;
+  }
+
+  return {result.begin(), result.end()};
+}
+
 size_t SpeechToText::getMemoryLowerBound() const noexcept {
   return this->encoder->getMemoryLowerBound() +
          this->decoder->getMemoryLowerBound();
 }
 
 void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
-                          std::string languageOption) {
+                          std::string languageOption, bool enableTimestamps) {
   if (this->isStreaming) {
     throw RnExecutorchError(RnExecutorchErrorCode::StreamingInProgress,
                             "Streaming is already in progress!");
   }
 
-  auto nativeCallback =
-      [this, callback](const std::vector<char> &committedVec,
-                       const std::vector<char> &nonCommittedVec, bool isDone) {
-        this->callInvoker->invokeAsync([callback, committedVec, nonCommittedVec,
-                                        isDone](jsi::Runtime &rt) {
-          callback->call(
-              rt, rnexecutorch::jsi_conversion::getJsiValue(committedVec, rt),
-              rnexecutorch::jsi_conversion::getJsiValue(nonCommittedVec, rt),
-              jsi::Value(isDone));
+  auto nativeCallback = [this, callback](const auto &committedVec,
+                                         const auto &nonCommittedVec,
+                                         bool isDone) {
+    this->callInvoker->invokeAsync(
+        [callback, committedVec, nonCommittedVec, isDone](jsi::Runtime &rt) {
+          jsi::Value committedJsi =
+              rnexecutorch::jsi_conversion::getJsiValue(committedVec, rt);
+          jsi::Value nonCommittedJsi =
+              rnexecutorch::jsi_conversion::getJsiValue(nonCommittedVec, rt);
+
+          callback->call(rt, std::move(committedJsi),
+                         std::move(nonCommittedJsi), jsi::Value(isDone));
         });
-      };
+  };
 
   this->isStreaming = true;
   while (this->isStreaming) {
@@ -100,14 +142,22 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
     ProcessResult res =
         this->processor->processIter(DecodingOptions(languageOption));
 
-    nativeCallback({res.committed.begin(), res.committed.end()},
-                   {res.nonCommitted.begin(), res.nonCommitted.end()}, false);
+    if (enableTimestamps) {
+      nativeCallback(res.committed, res.nonCommitted, false);
+    } else {
+      nativeCallback(mergeWordsToString(res.committed),
+                     mergeWordsToString(res.nonCommitted), false);
+    }
     this->readyToProcess = false;
   }
 
-  std::string committed = this->processor->finish();
+  std::vector<Word> committed = this->processor->finish();
 
-  nativeCallback({committed.begin(), committed.end()}, {}, true);
+  if (enableTimestamps) {
+    nativeCallback(committed, std::vector<Word>{}, true);
+  } else {
+    nativeCallback(mergeWordsToString(committed), std::vector<char>(), true);
+  }
 
   this->resetStreamState();
 }

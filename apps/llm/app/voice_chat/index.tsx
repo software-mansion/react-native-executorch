@@ -76,7 +76,11 @@ function VoiceChatScreen() {
       });
       recorder.start();
       const transcription = await speechToText.stream();
-      await llm.sendMessage(transcription);
+      await llm.sendMessage(
+        typeof transcription === 'string'
+          ? transcription
+          : transcription.map((w) => w.word).join(' ')
+      );
     }
   };
 
@@ -105,7 +109,13 @@ function VoiceChatScreen() {
                       ...llm.messageHistory,
                       {
                         role: 'user',
-                        content: speechToText.committedTranscription,
+                        content:
+                          typeof speechToText.committedTranscription ===
+                          'string'
+                            ? speechToText.committedTranscription
+                            : speechToText.committedTranscription
+                                .map((w) => w.word)
+                                .join(' '),
                       },
                     ]
                   : llm.messageHistory

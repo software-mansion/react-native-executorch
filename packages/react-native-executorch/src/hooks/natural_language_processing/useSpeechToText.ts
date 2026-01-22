@@ -1,5 +1,8 @@
 import { useEffect, useCallback, useState } from 'react';
-import { SpeechToTextModule } from '../../modules/natural_language_processing/SpeechToTextModule';
+import {
+  SpeechToTextModule,
+  Word,
+} from '../../modules/natural_language_processing/SpeechToTextModule';
 import { DecodingOptions, SpeechToTextModelConfig } from '../../types/stt';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
@@ -17,9 +20,13 @@ export const useSpeechToText = ({
   const [downloadProgress, setDownloadProgress] = useState(0);
 
   const [modelInstance] = useState(() => new SpeechToTextModule());
-  const [committedTranscription, setCommittedTranscription] = useState('');
-  const [nonCommittedTranscription, setNonCommittedTranscription] =
-    useState('');
+
+  const [committedTranscription, setCommittedTranscription] = useState<
+    string | Word[]
+  >('');
+  const [nonCommittedTranscription, setNonCommittedTranscription] = useState<
+    string | Word[]
+  >('');
 
   useEffect(() => {
     if (preventLoad) return;
@@ -75,7 +82,7 @@ export const useSpeechToText = ({
   );
 
   const stream = useCallback(
-    async (options?: DecodingOptions) => {
+    async (options?: DecodingOptions & { enableTimestamps?: boolean }) => {
       if (!isReady)
         throw new RnExecutorchError(
           RnExecutorchErrorCode.ModuleNotLoaded,
@@ -86,22 +93,53 @@ export const useSpeechToText = ({
           RnExecutorchErrorCode.ModelGenerating,
           'The model is currently generating. Please wait until previous model run is complete.'
         );
+
       setIsGenerating(true);
-      setCommittedTranscription('');
-      setNonCommittedTranscription('');
-      let transcription = '';
+
+      const enableTimestamps = options?.enableTimestamps ?? false;
+      setCommittedTranscription(enableTimestamps ? [] : '');
+      setNonCommittedTranscription(enableTimestamps ? [] : '');
+
+      let fullResult: string | Word[] = enableTimestamps ? [] : '';
+
       try {
-        for await (const { committed, nonCommitted } of modelInstance.stream(
-          options
-        )) {
-          setCommittedTranscription((prev) => prev + committed);
-          setNonCommittedTranscription(nonCommitted);
-          transcription += committed;
+        const streamGen = modelInstance.stream(
+          options as any
+        ) as AsyncGenerator<{
+          committed: string | Word[];
+          nonCommitted: string | Word[];
+        }>;
+
+        for await (const { committed, nonCommitted } of streamGen) {
+          if (typeof committed === 'string') {
+            const nc = nonCommitted as unknown as string;
+
+            if (committed.length > 0) {
+              setCommittedTranscription((prev) => {
+                const prevStr = typeof prev === 'string' ? prev : '';
+                return prevStr + committed;
+              });
+              (fullResult as string) += committed;
+            }
+            setNonCommittedTranscription(nc);
+          } else {
+            const committedWords = committed as Word[];
+            const nonCommittedWords = nonCommitted as Word[];
+
+            if (committedWords && committedWords.length > 0) {
+              setCommittedTranscription((prev) => {
+                const prevArr = Array.isArray(prev) ? prev : [];
+                return [...prevArr, ...committedWords];
+              });
+              (fullResult as Word[]).push(...committedWords);
+            }
+            setNonCommittedTranscription(nonCommittedWords);
+          }
         }
       } finally {
         setIsGenerating(false);
       }
-      return transcription;
+      return fullResult;
     },
     [isReady, isGenerating, modelInstance]
   );
@@ -129,7 +167,9 @@ export const useSpeechToText = ({
     nonCommittedTranscription,
     encode: stateWrapper(SpeechToTextModule.prototype.encode),
     decode: stateWrapper(SpeechToTextModule.prototype.decode),
-    transcribe: stateWrapper(SpeechToTextModule.prototype.transcribe),
+    transcribe: stateWrapper(
+      SpeechToTextModule.prototype.transcribe
+    ) as SpeechToTextModule['transcribe'],
     stream,
     streamStop: wrapper(SpeechToTextModule.prototype.streamStop),
     streamInsert: wrapper(SpeechToTextModule.prototype.streamInsert),

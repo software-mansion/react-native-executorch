@@ -4,9 +4,14 @@ import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
+export interface Word {
+  word: string;
+  start: number;
+  end: number;
+}
+
 export class SpeechToTextModule {
   private nativeModule: any;
-
   private modelConfig!: SpeechToTextModelConfig;
 
   private textDecoder = new TextDecoder('utf-8', {
@@ -87,8 +92,20 @@ export class SpeechToTextModule {
 
   public async transcribe(
     waveform: Float32Array | number[],
+    options?: DecodingOptions & { enableTimestamps: true }
+  ): Promise<Word[]>;
+
+  // eslint-disable-next-line no-dupe-class-members
+  public async transcribe(
+    waveform: Float32Array | number[],
+    options?: DecodingOptions & { enableTimestamps?: false | undefined }
+  ): Promise<string>;
+
+  // eslint-disable-next-line no-dupe-class-members
+  public async transcribe(
+    waveform: Float32Array | number[],
     options: DecodingOptions = {}
-  ): Promise<string> {
+  ): Promise<string | Word[]> {
     this.validateOptions(options);
 
     if (Array.isArray(waveform)) {
@@ -97,19 +114,44 @@ export class SpeechToTextModule {
       );
       waveform = new Float32Array(waveform);
     }
-    const transcriptionBytes = await this.nativeModule.transcribe(
-      waveform,
-      options.language || ''
-    );
-    return this.textDecoder.decode(new Uint8Array(transcriptionBytes));
+
+    const language = options.language || '';
+
+    if (options.enableTimestamps) {
+      return await this.nativeModule.transcribe(waveform, language);
+    } else {
+      const transcriptionBytes = await this.nativeModule.transcribeStringOnly(
+        waveform,
+        language
+      );
+
+      return this.textDecoder.decode(new Uint8Array(transcriptionBytes));
+    }
   }
 
-  public async *stream(
-    options: DecodingOptions = {}
-  ): AsyncGenerator<{ committed: string; nonCommitted: string }> {
+  public stream(
+    options: DecodingOptions & { enableTimestamps: true }
+  ): AsyncGenerator<{ committed: Word[]; nonCommitted: Word[] }>;
+
+  // eslint-disable-next-line no-dupe-class-members
+  public stream(
+    options?: DecodingOptions & { enableTimestamps?: false | undefined }
+  ): AsyncGenerator<{ committed: string; nonCommitted: string }>;
+
+  // eslint-disable-next-line no-dupe-class-members
+  public async *stream(options: DecodingOptions = {}): AsyncGenerator<{
+    committed: string | Word[];
+    nonCommitted: string | Word[];
+  }> {
     this.validateOptions(options);
 
-    const queue: { committed: string; nonCommitted: string }[] = [];
+    const enableTimestamps = options.enableTimestamps === true;
+
+    const queue: {
+      committed: string | Word[];
+      nonCommitted: string | Word[];
+    }[] = [];
+
     let waiter: (() => void) | null = null;
     let finished = false;
     let error: unknown;
@@ -121,21 +163,34 @@ export class SpeechToTextModule {
 
     (async () => {
       try {
-        await this.nativeModule.stream(
-          (committed: number[], nonCommitted: number[], isDone: boolean) => {
-            queue.push({
-              committed: this.textDecoder.decode(new Uint8Array(committed)),
-              nonCommitted: this.textDecoder.decode(
-                new Uint8Array(nonCommitted)
-              ),
-            });
-            if (isDone) {
-              finished = true;
+        const callback = (
+          committed: any,
+          nonCommitted: any,
+          isDone: boolean
+        ) => {
+          if (!enableTimestamps) {
+            try {
+              queue.push({
+                committed: this.textDecoder.decode(new Uint8Array(committed)),
+                nonCommitted: this.textDecoder.decode(
+                  new Uint8Array(nonCommitted)
+                ),
+              });
+            } catch (err) {
+              Logger.error('[Stream Decode Error]', err);
             }
-            wake();
-          },
-          options.language || ''
-        );
+          } else {
+            queue.push({ committed, nonCommitted });
+          }
+
+          if (isDone) finished = true;
+          wake();
+        };
+
+        const language = options.language || '';
+
+        await this.nativeModule.stream(callback, language, enableTimestamps);
+
         finished = true;
         wake();
       } catch (e) {
