@@ -126,12 +126,19 @@ a.hireUsButtonLink:hover {
   justify-content: center;
   align-items: center;
 
-  width: 24px;
-  height: 24px;
+  width: 16px;
+  height: 16px;
   transition: left 0.3s;
   left: 8px;
 }
 
 .homepageButton:hover .arrow {
   left: 16px;
+}
+
+.hireUsButton svg {
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke 0.3s;
 }
