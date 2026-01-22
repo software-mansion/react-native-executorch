@@ -24,7 +24,8 @@ TEST(ImageEmbeddingsCtorTests, ValidPathDoesntThrow) {
 
 TEST(ImageEmbeddingsGenerateTests, InvalidImagePathThrows) {
   ImageEmbeddings model(VALID_IMAGE_EMBEDDINGS_MODEL_PATH, nullptr);
-  EXPECT_THROW(model.generate("nonexistent_image.jpg"), RnExecutorchError);
+  EXPECT_THROW((void)model.generate("nonexistent_image.jpg"),
+               RnExecutorchError);
 }
 
 TEST(ImageEmbeddingsGenerateTests, ValidImageReturnsResults) {
@@ -72,7 +73,7 @@ TEST(ImageEmbeddingsGenerateTests, ResultsContainValidValues) {
 TEST(ImageEmbeddingsUnloadTests, GenerateAfterUnloadThrows) {
   ImageEmbeddings model(VALID_IMAGE_EMBEDDINGS_MODEL_PATH, nullptr);
   model.unload();
-  EXPECT_THROW(model.generate(VALID_TEST_IMAGE_PATH), RnExecutorchError);
+  EXPECT_THROW((void)model.generate(VALID_TEST_IMAGE_PATH), RnExecutorchError);
 }
 
 TEST(ImageEmbeddingsInheritedTests, GetInputShapeWorks) {

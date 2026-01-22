@@ -23,7 +23,8 @@ TEST(ObjectDetectionCtorTests, ValidPathDoesntThrow) {
 
 TEST(ObjectDetectionGenerateTests, InvalidImagePathThrows) {
   ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
-  EXPECT_THROW(model.generate("nonexistent_image.jpg", 0.5), RnExecutorchError);
+  EXPECT_THROW((void)model.generate("nonexistent_image.jpg", 0.5),
+               RnExecutorchError);
 }
 
 TEST(ObjectDetectionGenerateTests, ValidImageReturnsResults) {
@@ -74,7 +75,8 @@ TEST(ObjectDetectionGenerateTests, DetectionsHaveValidLabels) {
 TEST(ObjectDetectionUnloadTests, GenerateAfterUnloadThrows) {
   ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
   model.unload();
-  EXPECT_THROW(model.generate(VALID_TEST_IMAGE_PATH, 0.5), RnExecutorchError);
+  EXPECT_THROW((void)model.generate(VALID_TEST_IMAGE_PATH, 0.5),
+               RnExecutorchError);
 }
 
 TEST(ObjectDetectionInheritedTests, GetInputShapeWorks) {

@@ -24,7 +24,8 @@ TEST(StyleTransferCtorTests, ValidPathDoesntThrow) {
 
 TEST(StyleTransferGenerateTests, InvalidImagePathThrows) {
   StyleTransfer model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
-  EXPECT_THROW(model.generate("nonexistent_image.jpg"), RnExecutorchError);
+  EXPECT_THROW((void)model.generate("nonexistent_image.jpg"),
+               RnExecutorchError);
 }
 
 TEST(StyleTransferGenerateTests, ValidImageReturnsFilePath) {
@@ -50,7 +51,7 @@ TEST(StyleTransferGenerateTests, ResultFileHasContent) {
 
 TEST(StyleTransferGenerateTests, MultipleGeneratesWork) {
   StyleTransfer model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
-  EXPECT_NO_THROW(model.generate(VALID_TEST_IMAGE_PATH));
+  EXPECT_NO_THROW((void)model.generate(VALID_TEST_IMAGE_PATH));
   auto result1 = model.generate(VALID_TEST_IMAGE_PATH);
   auto result2 = model.generate(VALID_TEST_IMAGE_PATH);
   test_utils::trimFilePrefix(result1);
@@ -62,7 +63,7 @@ TEST(StyleTransferGenerateTests, MultipleGeneratesWork) {
 TEST(StyleTransferUnloadTests, GenerateAfterUnloadThrows) {
   StyleTransfer model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
   model.unload();
-  EXPECT_THROW(model.generate(VALID_TEST_IMAGE_PATH), RnExecutorchError);
+  EXPECT_THROW((void)model.generate(VALID_TEST_IMAGE_PATH), RnExecutorchError);
 }
 
 TEST(StyleTransferInheritedTests, GetInputShapeWorks) {

@@ -31,14 +31,14 @@ TEST(BaseModelGetInputShapeTests, ValidMethodCorrectShape) {
 
 TEST(BaseModelGetInputShapeTests, InvalidMethodThrows) {
   BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
-  EXPECT_THROW(model.getInputShape("this_method_does_not_exist", 0),
+  EXPECT_THROW((void)model.getInputShape("this_method_does_not_exist", 0),
                RnExecutorchError);
 }
 
 TEST(BaseModelGetInputShapeTests, ValidMethodInvalidIndexThrows) {
   BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
   EXPECT_THROW(
-      model.getInputShape("forward", std::numeric_limits<int32_t>::min()),
+      (void)model.getInputShape("forward", std::numeric_limits<int32_t>::min()),
       RnExecutorchError);
 }
 
@@ -76,7 +76,7 @@ TEST(BaseModelUnloadTests, UnloadDoesNotThrow) {
 TEST(BaseModelUnloadTests, GetInputShapeAfterUnloadThrows) {
   BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
   model.unload();
-  EXPECT_THROW(model.getInputShape("forward", 0), RnExecutorchError);
+  EXPECT_THROW((void)model.getInputShape("forward", 0), RnExecutorchError);
 }
 
 TEST(BaseModelUnloadTests, GetAllInputShapesAfterUnloadThrows) {
@@ -205,5 +205,5 @@ TEST(BaseModelForwardJSTests, ForwardJSAfterUnloadThrows) {
   tensorView.scalarType = executorch::aten::ScalarType::Float;
 
   std::vector<JSTensorViewIn> inputs = {tensorView};
-  EXPECT_THROW(model.forwardJS(inputs), RnExecutorchError);
+  EXPECT_THROW((void)model.forwardJS(inputs), RnExecutorchError);
 }

@@ -127,7 +127,7 @@ TEST(TextEmbeddingsUnloadTests, GenerateAfterUnloadThrows) {
   TextEmbeddings model(VALID_TEXT_EMBEDDINGS_MODEL_PATH,
                        VALID_TEXT_EMBEDDINGS_TOKENIZER_PATH, nullptr);
   model.unload();
-  EXPECT_THROW(model.generate("Test"), RnExecutorchError);
+  EXPECT_THROW((void)model.generate("Test"), RnExecutorchError);
 }
 
 TEST(TextEmbeddingsInheritedTests, GetInputShapeWorks) {

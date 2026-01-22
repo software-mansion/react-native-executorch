@@ -77,5 +77,5 @@ TEST(S2TUnloadTests, TranscribeAfterUnloadThrows) {
   model.unload();
   auto audio = loadAudioFromFile("test_audio_float.raw");
   ASSERT_FALSE(audio.empty());
-  EXPECT_THROW(model.transcribe(audio, "en"), RnExecutorchError);
+  EXPECT_THROW((void)model.transcribe(audio, "en"), RnExecutorchError);
 }

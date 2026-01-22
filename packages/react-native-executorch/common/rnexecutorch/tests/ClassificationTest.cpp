@@ -23,7 +23,8 @@ TEST(ClassificationCtorTests, ValidPathDoesntThrow) {
 
 TEST(ClassificationGenerateTests, InvalidImagePathThrows) {
   Classification model(VALID_CLASSIFICATION_MODEL_PATH, nullptr);
-  EXPECT_THROW(model.generate("nonexistent_image.jpg"), RnExecutorchError);
+  EXPECT_THROW((void)model.generate("nonexistent_image.jpg"),
+               RnExecutorchError);
 }
 
 TEST(ClassificationGenerateTests, ValidImageReturnsResults) {
@@ -68,7 +69,7 @@ TEST(ClassificationGenerateTests, TopPredictionHasReasonableConfidence) {
 TEST(ClassificationUnloadTests, GenerateAfterUnloadThrows) {
   Classification model(VALID_CLASSIFICATION_MODEL_PATH, nullptr);
   model.unload();
-  EXPECT_THROW(model.generate(VALID_TEST_IMAGE_PATH), RnExecutorchError);
+  EXPECT_THROW((void)model.generate(VALID_TEST_IMAGE_PATH), RnExecutorchError);
 }
 
 TEST(ClassificationInheritedTests, GetInputShapeWorks) {
