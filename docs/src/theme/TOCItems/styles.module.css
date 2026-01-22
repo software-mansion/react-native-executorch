@@ -1,3 +1,137 @@
 [data-theme='light'] .TOCItemsWrapper > div {
   background-color: var(--swm-cornflower-20);
 }
+
+.hireUsContainer {
+  padding: 26px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--swm-blue-light-20);
+  gap: 1rem;
+}
+
+[data-theme='dark'] .hireUsContainer {
+  border: 1px solid var(--swm-navy-light-40);
+  background-color: transparent;
+}
+
+.buttonContainer {
+  width: 100%;
+  height: 48px !important;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.hireUsContainer p {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+  color: var(--swm-navy-light-100);
+  text-align: center;
+}
+
+[data-theme='dark'] .hireUsContainer p {
+  background-color: transparent;
+  color: var(--swm-navy-light-40);
+}
+
+/* HIRE US TOC - button styling */
+
+.buttonTOCStyling {
+  background-color: var(--swm-hire-us-toc);
+  color: var(--swm-hire-us-toc-color);
+}
+
+.buttonTOCStyling:hover {
+  background-color: transparent;
+  color: var(--swm-hire-us-toc-color-hover);
+}
+
+.buttonTOCStyling svg {
+  stroke: var(--swm-hire-us-toc-color);
+}
+
+.buttonTOCStyling:hover svg {
+  stroke: var(--swm-hire-us-toc-color-hover);
+}
+
+.buttonTOCBorderStyling {
+  border: 1px solid var(--swm-hire-us-toc);
+}
+
+.buttonTOCBorderStyling:hover {
+  border: 1px solid var(--swm-hire-us-toc-border-hover);
+}
+
+.hireUsButton {
+  height: 48px;
+  padding: 1em 1.5em 1em 1em;
+
+  font-weight: 500;
+  font-size: 16px;
+  text-wrap: nowrap;
+
+  cursor: pointer;
+  transition:
+    background-color 0.3s,
+    color 0.3s;
+}
+
+a.hireUsButtonLink:hover {
+  text-decoration: none !important;
+}
+
+.hireUsButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .hireUsButton,
+  .hireUsButtonLink {
+    width: 100%;
+  }
+  .hireUsButton {
+    font-size: 18px;
+  }
+}
+
+.hireUsButton p {
+  margin: 0 0 2px 0;
+}
+
+.hireUsButton svg {
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.arrow {
+  transition: left 0.3s;
+}
+
+.arrow {
+  left: 8px;
+}
+
+.hireUsButton:hover .arrow {
+  left: 16px;
+}
+
+.arrow {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 24px;
+  height: 24px;
+  transition: left 0.3s;
+  left: 8px;
+}
+
+.homepageButton:hover .arrow {
+  left: 16px;
+}
