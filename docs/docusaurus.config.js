@@ -107,8 +107,20 @@ const config = {
         appId: '9PIVJVUUXB',
         apiKey: '8634751cfd500c6708f63ea5fc7446c6',
         indexName: 'swmansion',
+        askAi: {
+          appId: '9PIVJVUUXB',
+          apiKey: '8634751cfd500c6708f63ea5fc7446c6',
+          assistantId: 'MZHkLL8cFqAN',
+          indexName: 'swmansion-markdown-for-llms',
+        },
       },
     }),
+  customFields: {
+    algolia: {
+      suggestedQuestions: true,
+      enableSidePanel: true,
+    },
+  },
 };
 
 module.exports = config;
