@@ -32,9 +32,7 @@ declare global {
     taggerData: string,
     phonemizerData: string,
     durationPredictorSource: string,
-    f0nPredictorSource: string,
-    textEncoderSource: string,
-    textDecoderSource: string,
+    synthesizerSource: string,
     voice: string
   ) => any;
   var loadOCR: (

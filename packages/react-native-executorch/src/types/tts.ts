@@ -33,20 +33,7 @@ export interface KokoroVoiceExtras {
 export interface KokoroConfig {
   type: 'kokoro';
   durationPredictorSource: ResourceSource;
-  f0nPredictorSource: ResourceSource;
-  textEncoderSource: ResourceSource;
-  textDecoderSource: ResourceSource;
-}
-
-/**
- * Extra options associated with the Kokoro model
- *
- * @property {'small' | 'medium' | 'large'} fixedModel - if set, forces Kokoro to use only one if it's 3 models
- *                                 with static input shapes. Reduces the memory usage and
- *                                 inference time variance, but could affect the result quality a little bit.
- */
-export interface KokoroOptions {
-  fixedModel?: 'small' | 'medium' | 'large';
+  synthesizerSource: ResourceSource;
 }
 
 /**
@@ -59,7 +46,6 @@ export interface KokoroOptions {
 export interface TextToSpeechConfig {
   model: KokoroConfig; // ... add other model types in the future
   voice: VoiceConfig;
-  options?: KokoroOptions; // ... add other model options in the future
 }
 
 /**
