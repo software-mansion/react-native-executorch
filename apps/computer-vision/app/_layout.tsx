@@ -42,7 +42,7 @@ export default function _layout() {
       }}
     >
       <Drawer
-        drawerContent={(props) => (
+        drawerContent={(props: DrawerContentComponentProps) => (
           <CustomDrawerContent {...props} isGenerating={isGenerating} />
         )}
         screenOptions={{
@@ -105,6 +105,14 @@ export default function _layout() {
           options={{
             drawerLabel: 'Image Generation',
             title: 'Image Generation',
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
+        <Drawer.Screen
+          name="camera_object_detection/index"
+          options={{
+            drawerLabel: 'Object Detection (Live)',
+            title: 'Object Detection (Live)',
             headerTitleStyle: { color: ColorPalette.primary },
           }}
         />

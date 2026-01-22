@@ -54,8 +54,15 @@ private:
                 meta::createConstructorArgsWithCallInvoker<ModelT>(
                     args, runtime, jsCallInvoker);
 
-            auto modelImplementationPtr = std::make_shared<ModelT>(
-                std::make_from_tuple<ModelT>(constructorArgs));
+            // Use std::apply to directly pass tuple arguments to make_shared
+            // This avoids creating a temporary and trying to copy it (which
+            // fails for non-copyable types like VisionModel)
+            auto modelImplementationPtr = std::apply(
+                [](auto &&...args) {
+                  return std::make_shared<ModelT>(
+                      std::forward<decltype(args)>(args)...);
+                },
+                std::move(constructorArgs));
             auto modelHostObject = std::make_shared<ModelHostObject<ModelT>>(
                 modelImplementationPtr, jsCallInvoker);
 

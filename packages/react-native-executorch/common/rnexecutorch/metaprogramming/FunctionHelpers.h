@@ -47,4 +47,12 @@ std::tuple<Types...> createArgsTupleFromJsi(R (Model::*f)(Types...) const,
   return fillTupleFromArgs<Types...>(std::index_sequence_for<Types...>{}, args,
                                      runtime);
 }
+
+template <typename R, typename... Types>
+std::tuple<Types...> createArgsTupleFromJsi(R (*f)(Types...),
+                                            const jsi::Value *args,
+                                            jsi::Runtime &runtime) {
+  return fillTupleFromArgs<Types...>(std::index_sequence_for<Types...>{}, args,
+                                     runtime);
+}
 } // namespace rnexecutorch::meta

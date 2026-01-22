@@ -4961,6 +4961,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ajv@npm:^8.11.0":
+  version: 8.17.1
+  resolution: "ajv@npm:8.17.1"
+  dependencies:
+    fast-deep-equal: "npm:^3.1.3"
+    fast-uri: "npm:^3.0.1"
+    json-schema-traverse: "npm:^1.0.0"
+    require-from-string: "npm:^2.0.2"
+  checksum: 10/ee3c62162c953e91986c838f004132b6a253d700f1e51253b99791e2dbfdb39161bc950ebdc2f156f8568035bb5ed8be7bd78289cd9ecbf3381fe8f5b82e3f33
+  languageName: node
+  linkType: hard
+
 "anser@npm:^1.4.9":
   version: 1.4.10
   resolution: "anser@npm:1.4.10"
@@ -6208,6 +6220,7 @@ __metadata:
     "@types/pngjs": "npm:^6.0.5"
     "@types/react": "npm:~19.1.10"
     expo: "npm:^54.0.27"
+    expo-build-properties: "npm:~1.0.10"
     expo-constants: "npm:~18.0.11"
     expo-font: "npm:~14.0.10"
     expo-linking: "npm:~8.0.10"
@@ -6226,7 +6239,10 @@ __metadata:
     react-native-screens: "npm:~4.16.0"
     react-native-svg: "npm:15.12.1"
     react-native-svg-transformer: "npm:^1.5.0"
+    react-native-vision-camera: "npm:^4.7.3"
     react-native-worklets: "npm:0.5.1"
+    react-native-worklets-core: "npm:^1.3.3"
+    vision-camera-resize-plugin: "npm:^3.2.0"
   languageName: unknown
   linkType: soft
 
@@ -7654,6 +7670,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-build-properties@npm:~1.0.10":
+  version: 1.0.10
+  resolution: "expo-build-properties@npm:1.0.10"
+  dependencies:
+    ajv: "npm:^8.11.0"
+    semver: "npm:^7.6.0"
+  peerDependencies:
+    expo: "*"
+  checksum: 10/0dde41d659d243268ceae49bba3e4c07b72c245df8124f86fb720bc0556a2c4d03dd75e59e068a07438ef5ba3188b67a7a6516d2a37d3d91429070745b2506a2
+  languageName: node
+  linkType: hard
+
 "expo-calendar@npm:~15.0.8":
   version: 15.0.8
   resolution: "expo-calendar@npm:15.0.8"
@@ -7929,6 +7957,13 @@ __metadata:
   version: 2.0.6
   resolution: "fast-levenshtein@npm:2.0.6"
   checksum: 10/eb7e220ecf2bab5159d157350b81d01f75726a4382f5a9266f42b9150c4523b9795f7f5d9fbbbeaeac09a441b2369f05ee02db48ea938584205530fe5693cfe1
+  languageName: node
+  linkType: hard
+
+"fast-uri@npm:^3.0.1":
+  version: 3.1.0
+  resolution: "fast-uri@npm:3.1.0"
+  checksum: 10/818b2c96dc913bcf8511d844c3d2420e2c70b325c0653633f51821e4e29013c2015387944435cd0ef5322c36c9beecc31e44f71b257aeb8e0b333c1d62bb17c2
   languageName: node
   linkType: hard
 
@@ -9968,6 +10003,13 @@ __metadata:
   version: 0.4.1
   resolution: "json-schema-traverse@npm:0.4.1"
   checksum: 10/7486074d3ba247769fda17d5181b345c9fb7d12e0da98b22d1d71a5db9698d8b4bd900a3ec1a4ffdd60846fc2556274a5c894d0c48795f14cb03aeae7b55260b
+  languageName: node
+  linkType: hard
+
+"json-schema-traverse@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "json-schema-traverse@npm:1.0.0"
+  checksum: 10/02f2f466cdb0362558b2f1fd5e15cce82ef55d60cd7f8fa828cf35ba74330f8d767fcae5c5c2adb7851fa811766c694b9405810879bc4e1ddd78a7c0e03658ad
   languageName: node
   linkType: hard
 
@@ -13119,6 +13161,38 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-vision-camera@npm:^4.7.3":
+  version: 4.7.3
+  resolution: "react-native-vision-camera@npm:4.7.3"
+  peerDependencies:
+    "@shopify/react-native-skia": "*"
+    react: "*"
+    react-native: "*"
+    react-native-reanimated: "*"
+    react-native-worklets-core: "*"
+  peerDependenciesMeta:
+    "@shopify/react-native-skia":
+      optional: true
+    react-native-reanimated:
+      optional: true
+    react-native-worklets-core:
+      optional: true
+  checksum: 10/2487d3651cb07918820e1f255480e28fec77f936450570b531b429a1861fad573f6bfd4cdb15a78ea7adb471ee45d08e0006cdac81db4fe35949291f3e12d680
+  languageName: node
+  linkType: hard
+
+"react-native-worklets-core@npm:^1.3.3":
+  version: 1.6.2
+  resolution: "react-native-worklets-core@npm:1.6.2"
+  dependencies:
+    string-hash-64: "npm:^1.0.3"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/beeb767ac1fe8229d1bd31890253320b0c05df61a9a2498f274f2752429eb2a8c23491a355100c344ea1d988424b6ee61b723c264c134240039fec38a9d7df38
+  languageName: node
+  linkType: hard
+
 "react-native-worklets@npm:0.5.1":
   version: 0.5.1
   resolution: "react-native-worklets@npm:0.5.1"
@@ -14193,6 +14267,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"string-hash-64@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "string-hash-64@npm:1.0.3"
+  checksum: 10/39aab30e05dfe2effe9a0807a4987cedb6c04f4dfcda3c4915add5b90d68676a6c583d2ad51683932ac3546a4f64a5e99136521b8f2eb1956d581bd2947a96a9
+  languageName: node
+  linkType: hard
+
 "string-length@npm:^4.0.1":
   version: 4.0.2
   resolution: "string-length@npm:4.0.2"
@@ -15057,6 +15138,18 @@ __metadata:
     react: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
     react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
   checksum: 10/9d34f7f9aae1994450233f7803fcd47dca7680bc621ee24717b8e78b72fda9c5156e1ff2c8af6c2705993224fd8d3725ed89d84ba5bd1d411124dd91cde2b2e5
+  languageName: node
+  linkType: hard
+
+"vision-camera-resize-plugin@npm:^3.2.0":
+  version: 3.2.0
+  resolution: "vision-camera-resize-plugin@npm:3.2.0"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-vision-camera: ">=4.0.1"
+    react-native-worklets-core: ">=1.2.0"
+  checksum: 10/39f06e35e0fb92e77815d97d7967aec84c4875c99128d7178f2784a9b0f2967e76fc7bb608768d18ee618a64ae899e0318d688c3c9f8556534876b295f008244
   languageName: node
   linkType: hard
 

@@ -53,6 +53,12 @@ export default function Home() {
         >
           <Text style={styles.buttonText}>Image Generation</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, styles.cameraButton]}
+          onPress={() => router.navigate('camera_object_detection/')}
+        >
+          <Text style={styles.buttonText}>Camera Object Detection (Live)</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -91,6 +97,9 @@ const styles = StyleSheet.create({
     padding: 10,
     alignItems: 'center',
     marginBottom: 10,
+  },
+  cameraButton: {
+    backgroundColor: '#2563eb',
   },
   buttonText: {
     color: 'white',
