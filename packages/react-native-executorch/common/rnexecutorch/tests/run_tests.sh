@@ -1,6 +1,17 @@
 #!/bin/bash
 set -e
 
+# Parse arguments
+REFRESH_MODELS=false
+for arg in "$@"; do
+  case $arg in
+  --refresh-models)
+    REFRESH_MODELS=true
+    shift
+    ;;
+  esac
+done
+
 if ! adb shell ":"; then
   echo "ERROR: ADB SHELL COULDN'T RUN SUCCESFULLY"
   exit 1
@@ -18,6 +29,24 @@ ANDROID_ABI="arm64-v8a"
 ANDROID_LIBS_DIR="$PACKAGE_ROOT/third-party/android/libs"
 
 DEVICE_TEST_DIR="/data/local/tmp/rnexecutorch_tests"
+MODELS_DIR="$SCRIPT_DIR/models"
+
+# Create models directory if it doesn't exist
+mkdir -p "$MODELS_DIR"
+
+# Helper function to download a file if it doesn't exist (or if --refresh-models is used)
+download_if_needed() {
+  local url="$1"
+  local output="$2"
+  local filepath="$MODELS_DIR/$output"
+
+  if [ "$REFRESH_MODELS" = true ] || [ ! -f "$filepath" ]; then
+    echo "  Downloading $output..."
+    wget -q -O "$filepath" "$url"
+  else
+    echo "  $output already exists, skipping download"
+  fi
+}
 
 # cleanup build artifacts
 rm -rf build
@@ -35,7 +64,7 @@ make
 
 adb shell "mkdir -p $DEVICE_TEST_DIR"
 
-TEST_EXECUTABLES=("NumericalTests" "LogTests" "BaseModelTests" "ClassificationTests" "ObjectDetectionTests" "ImageEmbeddingsTests" "TextEmbeddingsTests" "StyleTransferTests" "VADTests" "TokenizerModuleTests" "SpeechToTextTests" "LLMTests")
+TEST_EXECUTABLES=("NumericalTests" "LogTests" "BaseModelTests" "ClassificationTests" "ObjectDetectionTests" "ImageEmbeddingsTests" "TextEmbeddingsTests" "StyleTransferTests" "VADTests" "TokenizerModuleTests" "SpeechToTextTests" "LLMTests" "ImageSegmentationTests" "TextToImageTests")
 
 # push test executables to device
 echo "Pushing test executables to device..."
@@ -49,36 +78,35 @@ done
 # Push test audio to device
 adb push ../test_audio_float.raw $DEVICE_TEST_DIR >/dev/null
 
-# download models needed for the tests & push to device
-echo "Downloading models..."
-wget -q https://huggingface.co/software-mansion/react-native-executorch-style-transfer-candy/resolve/main/xnnpack/style_transfer_candy_xnnpack.pte
-wget -q https://huggingface.co/software-mansion/react-native-executorch-efficientnet-v2-s/resolve/v0.6.0/xnnpack/efficientnet_v2_s_xnnpack.pte
-wget -q https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large/resolve/v0.6.0/ssdlite320-mobilenetv3-large.pte
-wget -q -O test_image.jpg https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Cat_November_2010-1a.jpg/1200px-Cat_November_2010-1a.jpg
-wget -q https://huggingface.co/software-mansion/react-native-executorch-clip-vit-base-patch32/resolve/v0.6.0/clip-vit-base-patch32-vision_xnnpack.pte
-wget -q https://huggingface.co/software-mansion/react-native-executorch-all-MiniLM-L6-v2/resolve/v0.6.0/all-MiniLM-L6-v2_xnnpack.pte
-wget -q -O tokenizer.json https://huggingface.co/software-mansion/react-native-executorch-all-MiniLM-L6-v2/resolve/v0.6.0/tokenizer.json
-wget -q https://huggingface.co/software-mansion/react-native-executorch-fsmn-vad/resolve/main/xnnpack/fsmn-vad_xnnpack.pte
-wget -q https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/main/xnnpack/whisper_tiny_en_encoder_xnnpack.pte
-wget -q https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/main/xnnpack/whisper_tiny_en_decoder_xnnpack.pte
-wget -q -O whisper_tokenizer.json https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/v0.6.0/tokenizer.json
-wget -q https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.6.0/smolLm-2-135M/quantized/smolLm2_135M_8da4w.pte
-wget -q -O smollm_tokenizer.json https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.6.0/tokenizer.json
+# download models needed for the tests
+echo "Downloading models (use --refresh-models to force re-download)..."
+download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-style-transfer-candy/resolve/main/xnnpack/style_transfer_candy_xnnpack.pte" "style_transfer_candy_xnnpack.pte"
+download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-efficientnet-v2-s/resolve/v0.6.0/xnnpack/efficientnet_v2_s_xnnpack.pte" "efficientnet_v2_s_xnnpack.pte"
+download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large/resolve/v0.6.0/ssdlite320-mobilenetv3-large.pte" "ssdlite320-mobilenetv3-large.pte"
+download_if_needed "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Cat_November_2010-1a.jpg/1200px-Cat_November_2010-1a.jpg" "test_image.jpg"
+download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-clip-vit-base-patch32/resolve/v0.6.0/clip-vit-base-patch32-vision_xnnpack.pte" "clip-vit-base-patch32-vision_xnnpack.pte"
+download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-all-MiniLM-L6-v2/resolve/v0.6.0/all-MiniLM-L6-v2_xnnpack.pte" "all-MiniLM-L6-v2_xnnpack.pte"
+download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-all-MiniLM-L6-v2/resolve/v0.6.0/tokenizer.json" "tokenizer.json"
+download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-fsmn-vad/resolve/main/xnnpack/fsmn-vad_xnnpack.pte" "fsmn-vad_xnnpack.pte"
+download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/main/xnnpack/whisper_tiny_en_encoder_xnnpack.pte" "whisper_tiny_en_encoder_xnnpack.pte"
+download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/main/xnnpack/whisper_tiny_en_decoder_xnnpack.pte" "whisper_tiny_en_decoder_xnnpack.pte"
+download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en/resolve/v0.6.0/tokenizer.json" "whisper_tokenizer.json"
+download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.6.0/smolLm-2-135M/quantized/smolLm2_135M_8da4w.pte" "smolLm2_135M_8da4w.pte"
+download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.6.0/tokenizer.json" "smollm_tokenizer.json"
+download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3/resolve/v0.6.0/xnnpack/deeplabV3_xnnpack_fp32.pte" "deeplabV3_xnnpack_fp32.pte"
+# TextToImage models (large ~2GB total)
+download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-bk-sdm-tiny/resolve/v0.6.0/tokenizer/tokenizer.json" "t2i_tokenizer.json"
+download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-bk-sdm-tiny/resolve/v0.6.0/text_encoder/model.pte" "t2i_encoder.pte"
+download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-bk-sdm-tiny/resolve/v0.6.0/unet/model.256.pte" "t2i_unet.pte"
+download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-bk-sdm-tiny/resolve/v0.6.0/vae/model.256.pte" "t2i_decoder.pte"
 
+# Push models to device
 echo "Pushing models to device..."
-adb push "style_transfer_candy_xnnpack.pte" "$DEVICE_TEST_DIR/" >/dev/null
-adb push "efficientnet_v2_s_xnnpack.pte" "$DEVICE_TEST_DIR/" >/dev/null
-adb push "ssdlite320-mobilenetv3-large.pte" "$DEVICE_TEST_DIR/" >/dev/null
-adb push "test_image.jpg" "$DEVICE_TEST_DIR/" >/dev/null
-adb push "clip-vit-base-patch32-vision_xnnpack.pte" "$DEVICE_TEST_DIR/" >/dev/null
-adb push "all-MiniLM-L6-v2_xnnpack.pte" "$DEVICE_TEST_DIR/" >/dev/null
-adb push "tokenizer.json" "$DEVICE_TEST_DIR/" >/dev/null
-adb push "fsmn-vad_xnnpack.pte" "$DEVICE_TEST_DIR/" >/dev/null
-adb push "whisper_tiny_en_encoder_xnnpack.pte" "$DEVICE_TEST_DIR/" >/dev/null
-adb push "whisper_tiny_en_decoder_xnnpack.pte" "$DEVICE_TEST_DIR/" >/dev/null
-adb push "whisper_tokenizer.json" "$DEVICE_TEST_DIR/" >/dev/null
-adb push "smolLm2_135M_8da4w.pte" "$DEVICE_TEST_DIR/" >/dev/null
-adb push "smollm_tokenizer.json" "$DEVICE_TEST_DIR/" >/dev/null
+for model in "$MODELS_DIR"/*; do
+  if [ -f "$model" ]; then
+    adb push "$model" "$DEVICE_TEST_DIR/" >/dev/null
+  fi
+done
 
 # push shared libraries needed by BaseModelTests
 echo "Pushing shared libraries to device..."
