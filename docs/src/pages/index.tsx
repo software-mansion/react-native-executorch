@@ -35,7 +35,7 @@ const Home = () => {
           <Carousel />
           <div className={styles.hireUsSection}>
             <HireUsSection
-              href="https://swmansion.com/contact/projects?utm_source=react-native-executorch&utm_medium=docs"
+              href="https://swmansion.com/contact?utm_source=react-native-executorch&utm_medium=docs"
               content="React Native Core Contributors and experts in dealing with all kinds of React Native issues. Need help using React Native ExecuTorch or deploying and running AI models on your device? Let's tackle it together."
             />
           </div>

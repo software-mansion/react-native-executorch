@@ -146,6 +146,6 @@ Pour en savoir plus sur nos futures plans et développements, veuillez consulter
 
 ## React Native ExecuTorch est créé par Software Mansion
 
-Depuis 2012, [Software Mansion](https://swmansion.com) est une agence de développement avec de l'expérience dans la création d'applications web et mobiles. Nous sommes Contributeurs React Native Core et experts dans la gestion de tous types de problèmes React Native. Nous pouvons vous aider à créer votre prochain produit rêvé – [Engagez-nous](https://swmansion.com/contact/projects?utm_source=react-native-executorch&utm_medium=readme).
+Depuis 2012, [Software Mansion](https://swmansion.com) est une agence de développement avec de l'expérience dans la création d'applications web et mobiles. Nous sommes Contributeurs React Native Core et experts dans la gestion de tous types de problèmes React Native. Nous pouvons vous aider à créer votre prochain produit rêvé – [Engagez-nous](https://swmansion.com/contact?utm_source=react-native-executorch&utm_medium=readme).
 
 [![swm](https://logo.swmansion.com/logo?color=white&variant=desktop&width=150&tag=react-native-executorch-github 'Software Mansion')](https://swmansion.com)
