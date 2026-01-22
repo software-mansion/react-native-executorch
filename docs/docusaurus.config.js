@@ -50,6 +50,24 @@ const config = {
     ],
   ],
 
+  plugins: [
+    [
+      'docusaurus-plugin-typedoc',
+      {
+        // 1. Point to the specific entry point inside the package
+        entryPoints: ['../packages/react-native-executorch/src/index.ts'],
+
+        // 2. Point to the specific tsconfig inside that package
+        tsconfig: '../packages/react-native-executorch/tsconfig.doc.json',
+
+        out: './docs/api',
+
+        // Remove invalid 'sidebar' option (v4+)
+        // sidebar: { ... }
+      },
+    ],
+  ],
+
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
