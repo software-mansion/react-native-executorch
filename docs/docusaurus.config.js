@@ -121,6 +121,30 @@ const config = {
       enableSidePanel: true,
     },
   },
+  plugins: [
+    [
+      '@signalwire/docusaurus-plugin-llms-txt',
+      /** @type {import('@signalwire/docusaurus-plugin-llms-txt').PluginOptions} */
+      ({
+        siteTitle: 'React Native ExecuTorch',
+        siteDescription:
+          "React Native ExecuTorch brings Meta's ExecuTorch AI framework into the React Native ecosystem, enabling developers to run AI models and LLMs locally, directly on mobile devices. It provides a declarative API for on-device inference, allowing you to use local AI models without relying on cloud infrastructure. Built on the ExecuTorch foundation - part of the PyTorch Edge ecosystem - it extends efficient on-device AI deployment to cross-platform mobile applications in React Native.",
+        depth: 3,
+        enableDescriptions: true,
+        content: {
+          includeVersionedDocs: false,
+          relativePaths: false,
+          enableMarkdownFiles: false,
+          excludeRoutes: ['**/react-native-executorch/search'],
+        },
+        includeOrder: [
+          '**/docs/!(category|benchmarks)**',
+          '**/docs/benchmarks/**',
+          '**/docs/category/**',
+        ],
+      }),
+    ],
+  ],
 };
 
 module.exports = config;
