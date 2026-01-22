@@ -60,7 +60,7 @@ const config = {
         // 2. Point to the specific tsconfig inside that package
         tsconfig: '../packages/react-native-executorch/tsconfig.doc.json',
 
-        out: './docs/api',
+        out: './docs/06-api-reference',
 
         // Remove invalid 'sidebar' option (v4+)
         // sidebar: { ... }

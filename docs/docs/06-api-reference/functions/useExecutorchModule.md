@@ -1,0 +1,45 @@
+# Function: useExecutorchModule()
+
+> **useExecutorchModule**(`__namedParameters`): `object`
+
+Defined in: [packages/react-native-executorch/src/hooks/general/useExecutorchModule.ts:10](https://github.com/software-mansion/react-native-executorch/blob/da1b9b6f6bcd0c76e913caeb68a23a84a79badba/packages/react-native-executorch/src/hooks/general/useExecutorchModule.ts#L10)
+
+## Parameters
+
+### \_\_namedParameters
+
+`Props`
+
+## Returns
+
+`object`
+
+### downloadProgress
+
+> **downloadProgress**: `number`
+
+### error
+
+> **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
+
+### forward()
+
+> **forward**: (...`input`) => `Promise`\<[`TensorPtr`](../interfaces/TensorPtr.md)[]\>
+
+#### Parameters
+
+##### input
+
+...\[[`TensorPtr`](../interfaces/TensorPtr.md)[]\]
+
+#### Returns
+
+`Promise`\<[`TensorPtr`](../interfaces/TensorPtr.md)[]\>
+
+### isGenerating
+
+> **isGenerating**: `boolean`
+
+### isReady
+
+> **isReady**: `boolean`
