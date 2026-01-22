@@ -93,3 +93,4 @@ apps/*/android/
 # custom
 *.tgz
 Makefile
+*.pte
