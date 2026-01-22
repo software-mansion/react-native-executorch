@@ -28,9 +28,6 @@ set(ANDROID_THIRD_PARTY "${PACKAGE_ROOT}/third-party/android/libs/")
 # GoogleTest
 add_subdirectory(${THIRD_PARTY_DIR}/googletest ${PROJECT_BINARY_DIR}/googletest)
 
-# Source files
-set(SOURCE_FILES ${CMAKE_SOURCE_DIR}/../data_processing/Numerical.cpp
-                 ${CMAKE_SOURCE_DIR}/../data_processing/FileUtils.h)
 # Include directories
 include_directories(${RNEXECUTORCH_DIR}/data_processing)
 include_directories(${RNEXECUTORCH_DIR})
@@ -58,6 +55,9 @@ set(IMAGE_EMBEDDINGS_SOURCES ${RNEXECUTORCH_DIR}/models/embeddings/image/ImageEm
 set(TEXT_EMBEDDINGS_SOURCES ${RNEXECUTORCH_DIR}/models/embeddings/text/TextEmbeddings.cpp)
 set(TOKENIZER_SOURCES ${RNEXECUTORCH_DIR}/TokenizerModule.cpp)
 set(STYLE_TRANSFER_SOURCES ${RNEXECUTORCH_DIR}/models/style_transfer/StyleTransfer.cpp)
+# set(IMAGE_SEGMENTATION_SOURCES
+#   ${RNEXECUTORCH_DIR}/models/image_segmentation/ImageSegmentation.cpp
+# )
 set(VAD_SOURCES
   ${RNEXECUTORCH_DIR}/models/voice_activity_detection/VoiceActivityDetection.cpp
   ${RNEXECUTORCH_DIR}/models/voice_activity_detection/Utils.cpp
@@ -79,6 +79,13 @@ set(RUNNER_SOURCES
 )
 set(LLM_SOURCES
   ${RNEXECUTORCH_DIR}/models/llm/LLM.cpp
+)
+set(TEXT_TO_IMAGE_SOURCES
+  ${RNEXECUTORCH_DIR}/models/text_to_image/TextToImage.cpp
+  ${RNEXECUTORCH_DIR}/models/text_to_image/Encoder.cpp
+  ${RNEXECUTORCH_DIR}/models/text_to_image/UNet.cpp
+  ${RNEXECUTORCH_DIR}/models/text_to_image/Decoder.cpp
+  ${RNEXECUTORCH_DIR}/models/text_to_image/Scheduler.cpp
 )
 
 # Stubs for mocking JSI/React Native symbols
@@ -157,6 +164,17 @@ add_executable(StyleTransferTests StyleTransferTest.cpp
   ${ADA_SOURCES}
   ${JSI_STUBS}
 )
+
+# add_executable(ImageSegmentationTests ImageSegmentationTest.cpp
+#   ${IMAGE_SEGMENTATION_SOURCES}
+#   ${BASEMODEL_SOURCES}
+#   ${IMAGE_PROCESSING_SOURCES}
+#   ${NUMERICAL_SOURCES}
+#   ${BASE64_SOURCES}
+#   ${ADA_SOURCES}
+#   ${JSI_STUBS}
+# )
+
 add_executable(VADTests VoiceActivityDetectionTest.cpp
   ${VAD_SOURCES}
   ${BASEMODEL_SOURCES}
@@ -180,6 +198,15 @@ add_executable(LLMTests LLMTest.cpp
   ${LLM_SOURCES}
   ${RUNNER_SOURCES}
   ${BASEMODEL_SOURCES}
+  ${JSI_STUBS}
+)
+add_executable(TextToImageTests TextToImageTest.cpp
+  ${TEXT_TO_IMAGE_SOURCES}
+  ${TEXT_EMBEDDINGS_SOURCES}
+  ${BASE_EMBEDDINGS_SOURCES}
+  ${BASEMODEL_SOURCES}
+  ${TOKENIZER_SOURCES}
+  ${NUMERICAL_SOURCES}
   ${JSI_STUBS}
 )
 
@@ -245,6 +272,19 @@ target_link_libraries(StyleTransferTests
   gtest_main
   log
 )
+
+# target_link_options(ImageSegmentationTests PRIVATE -fopenmp -static-openmp)
+# target_link_libraries(ImageSegmentationTests
+#   PRIVATE
+#   ${ANDROID_THIRD_PARTY}/executorch/${ANDROID_ABI}/libexecutorch.so
+#   ${OPENCV_LIBS}
+#   ${OPENCV_THIRD_PARTY_LIBS}
+#   z
+#   gtest
+#   gtest_main
+#   log
+# )
+
 target_link_libraries(VADTests
   PRIVATE
   ${ANDROID_THIRD_PARTY}/executorch/${ANDROID_ABI}/libexecutorch.so
@@ -276,6 +316,14 @@ target_link_libraries(LLMTests
   gtest_main
   log
 )
+target_link_libraries(TextToImageTests
+  PRIVATE
+  ${ANDROID_THIRD_PARTY}/executorch/${ANDROID_ABI}/libexecutorch.so
+  ${TOKENIZERS_LIBS}
+  gtest
+  gtest_main
+  log
+)
 
 # Add 16kB page size
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-z,max-page-size=16384")
@@ -283,7 +331,6 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-z,max-page-size=16384
 # Testing functionalities
 enable_testing()
 add_test(NAME NumericalTests COMMAND NumericalTests)
-add_test(NAME FileUtilsTests COMMAND FileUtilsTests)
 add_test(NAME LogTests COMMAND LogTests)
 add_test(NAME BaseModelTests COMMAND BaseModelTests)
 add_test(NAME ClassificationTests COMMAND ClassificationTests)
@@ -295,3 +342,5 @@ add_test(NAME VADTests COMMAND VADTests)
 add_test(NAME TokenizerModuleTests COMMAND TokenizerModuleTests)
 add_test(NAME SpeechToTextTests COMMAND SpeechToTextTests)
 add_test(NAME LLMTests COMMAND LLMTests)
+# add_test(NAME ImageSegmentationTests COMMAND ImageSegmentationTests)
+add_test(NAME TextToImageTests COMMAND TextToImageTests)
