@@ -146,6 +146,6 @@ https://docs.swmansion.com/react-native-executorch
 
 ## React Native ExecuTorch को Software Mansion द्वारा बनाया गया है
 
-2012 से, [Software Mansion](https://swmansion.com) वेब और मोबाइल ऐप्स बनाने का अनुभव रखने वाली एक सॉफ्टवेयर एजेंसी है। हम Core React Native योगदानकर्ता हैं और React Native से संबंधित सभी प्रकार की समस्याओं का निपटान करने के विशेषज्ञ हैं। हम आपको आपका अगला सपनों का प्रोजेक्ट बनाने में सहायता कर सकते हैं – [हमें नियुक्त करें](https://swmansion.com/contact/projects?utm_source=react-native-executorch&utm_medium=readme)।
+2012 से, [Software Mansion](https://swmansion.com) वेब और मोबाइल ऐप्स बनाने का अनुभव रखने वाली एक सॉफ्टवेयर एजेंसी है। हम Core React Native योगदानकर्ता हैं और React Native से संबंधित सभी प्रकार की समस्याओं का निपटान करने के विशेषज्ञ हैं। हम आपको आपका अगला सपनों का प्रोजेक्ट बनाने में सहायता कर सकते हैं – [हमें नियुक्त करें](https://swmansion.com/contact?utm_source=react-native-executorch&utm_medium=readme)।
 
 [![swm](https://logo.swmansion.com/logo?color=white&variant=desktop&width=150&tag=react-native-executorch-github 'Software Mansion')](https://swmansion.com)
