@@ -56,6 +56,13 @@ All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12 (A
 | ------------ | :--------------------: | :----------------: |
 | WHISPER_TINY |          410           |        375         |
 
+## Text to speech
+
+| Model         | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| ------------- | :--------------------: | :----------------: |
+| KOKORO_SMALL  |          820           |        820         |
+| KOKORO_MEDIUM |          1140          |        1100        |
+
 ## Text Embeddings
 
 | Model                      | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |

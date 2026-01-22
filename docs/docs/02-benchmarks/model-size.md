@@ -63,6 +63,13 @@ title: Model Size
 | WHISPER_SMALL_EN |     968      |
 | WHISPER_SMALL    |     968      |
 
+## Text to speech
+
+| Model         | XNNPACK [MB] |
+| ------------- | :----------: |
+| KOKORO_SMALL  |    329.6     |
+| KOKORO_MEDIUM |    334.4     |
+
 ## Text Embeddings
 
 | Model                      | XNNPACK [MB] |

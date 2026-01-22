@@ -66,6 +66,8 @@ The values below represent the averages across all runs for the benchmark image.
 
 ❌ - Insufficient RAM.
 
+## Speech to Text
+
 ### Encoding
 
 Average time for encoding audio of given length over 10 runs. For `Whisper` model we only list 30 sec audio chunks since `Whisper` does not accept other lengths (for shorter audio the audio needs to be padded to 30sec with silence).
@@ -81,6 +83,15 @@ Average time for decoding one token in sequence of approximately 100 tokens, wit
 | Model              | iPhone 17 Pro (XNNPACK) [ms] | iPhone 16 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
 | ------------------ | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
 | Whisper-tiny (30s) |              23              |              25              |            121             |                92                 |            115            |
+
+## Text to Speech
+
+Average time to synthesize speech from an input text of approximately 60 tokens, resulting in 2 to 5 seconds of audio depending on the input and selected voice.
+
+| Model         | iPhone 17 Pro (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| ------------- | :--------------------------: | :-----------------------: |
+| Kokoro-small  |             2051             |           1548            |
+| Kokoro-medium |             2124             |           1625            |
 
 ## Text Embeddings
 
