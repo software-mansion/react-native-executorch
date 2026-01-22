@@ -1,6 +1,6 @@
 # Class: VerticalOCRModule
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:5](https://github.com/software-mansion/react-native-executorch/blob/da1b9b6f6bcd0c76e913caeb68a23a84a79badba/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L5)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:5](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L5)
 
 ## Constructors
 
@@ -8,7 +8,7 @@ Defined in: [packages/react-native-executorch/src/modules/computer_vision/Vertic
 
 > **new VerticalOCRModule**(): `VerticalOCRModule`
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:8](https://github.com/software-mansion/react-native-executorch/blob/da1b9b6f6bcd0c76e913caeb68a23a84a79badba/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L8)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:8](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L8)
 
 #### Returns
 
@@ -20,7 +20,7 @@ Defined in: [packages/react-native-executorch/src/modules/computer_vision/Vertic
 
 > **delete**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:34](https://github.com/software-mansion/react-native-executorch/blob/da1b9b6f6bcd0c76e913caeb68a23a84a79badba/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L34)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:34](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L34)
 
 #### Returns
 
@@ -32,7 +32,7 @@ Defined in: [packages/react-native-executorch/src/modules/computer_vision/Vertic
 
 > **forward**(`imageSource`): `Promise`\<`any`\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:30](https://github.com/software-mansion/react-native-executorch/blob/da1b9b6f6bcd0c76e913caeb68a23a84a79badba/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L30)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:30](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L30)
 
 #### Parameters
 
@@ -50,7 +50,7 @@ Defined in: [packages/react-native-executorch/src/modules/computer_vision/Vertic
 
 > **load**(`model`, `independentCharacters`, `onDownloadProgressCallback`): `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:12](https://github.com/software-mansion/react-native-executorch/blob/da1b9b6f6bcd0c76e913caeb68a23a84a79badba/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L12)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:12](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L12)
 
 #### Parameters
 

@@ -2,7 +2,7 @@
 
 > **useImageSegmentation**(`__namedParameters`): `object`
 
-Defined in: [packages/react-native-executorch/src/hooks/computer_vision/useImageSegmentation.ts:10](https://github.com/software-mansion/react-native-executorch/blob/da1b9b6f6bcd0c76e913caeb68a23a84a79badba/packages/react-native-executorch/src/hooks/computer_vision/useImageSegmentation.ts#L10)
+Defined in: [packages/react-native-executorch/src/hooks/computer_vision/useImageSegmentation.ts:10](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/hooks/computer_vision/useImageSegmentation.ts#L10)
 
 ## Parameters
 
@@ -12,19 +12,23 @@ Defined in: [packages/react-native-executorch/src/hooks/computer_vision/useImage
 
 ## Returns
 
-`object`
-
 ### downloadProgress
 
 > **downloadProgress**: `number`
+
+Represents the download progress as a value between 0 and 1, indicating the extent of the model file retrieval.
 
 ### error
 
 > **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
 
+Contains the error message if the model failed to load.
+
 ### forward()
 
 > **forward**: (...`input`) => `Promise`\<\{ `0?`: `number`[]; `1?`: `number`[]; `10?`: `number`[]; `11?`: `number`[]; `12?`: `number`[]; `13?`: `number`[]; `14?`: `number`[]; `15?`: `number`[]; `16?`: `number`[]; `17?`: `number`[]; `18?`: `number`[]; `19?`: `number`[]; `2?`: `number`[]; `20?`: `number`[]; `21?`: `number`[]; `3?`: `number`[]; `4?`: `number`[]; `5?`: `number`[]; `6?`: `number`[]; `7?`: `number`[]; `8?`: `number`[]; `9?`: `number`[]; \}\>
+
+This function runs the model's forward method with the provided input arguments.
 
 #### Parameters
 
@@ -32,14 +36,22 @@ Defined in: [packages/react-native-executorch/src/hooks/computer_vision/useImage
 
 ...\[`string`, [`DeeplabLabel`](../enumerations/DeeplabLabel.md)[], `boolean`\]
 
+Input arguments for the model's forward method.
+
 #### Returns
 
 `Promise`\<\{ `0?`: `number`[]; `1?`: `number`[]; `10?`: `number`[]; `11?`: `number`[]; `12?`: `number`[]; `13?`: `number`[]; `14?`: `number`[]; `15?`: `number`[]; `16?`: `number`[]; `17?`: `number`[]; `18?`: `number`[]; `19?`: `number`[]; `2?`: `number`[]; `20?`: `number`[]; `21?`: `number`[]; `3?`: `number`[]; `4?`: `number`[]; `5?`: `number`[]; `6?`: `number`[]; `7?`: `number`[]; `8?`: `number`[]; `9?`: `number`[]; \}\>
+
+The output from the model's forward method.
 
 ### isGenerating
 
 > **isGenerating**: `boolean`
 
+Indicates whether the model is currently generating a response.
+
 ### isReady
 
 > **isReady**: `boolean`
+
+Indicates whether the model is ready.

@@ -1,30 +1,38 @@
 # Function: useTextEmbeddings()
 
-> **useTextEmbeddings**(`__namedParameters`): `object`
+> **useTextEmbeddings**(`TextEmbeddingsConfiguration`): `object`
 
-Defined in: [packages/react-native-executorch/src/hooks/natural_language_processing/useTextEmbeddings.ts:13](https://github.com/software-mansion/react-native-executorch/blob/da1b9b6f6bcd0c76e913caeb68a23a84a79badba/packages/react-native-executorch/src/hooks/natural_language_processing/useTextEmbeddings.ts#L13)
+Defined in: [packages/react-native-executorch/src/hooks/natural_language_processing/useTextEmbeddings.ts:32](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/hooks/natural_language_processing/useTextEmbeddings.ts#L32)
 
 ## Parameters
 
-### \_\_namedParameters
+### TextEmbeddingsConfiguration
 
-`Props`
+[`Props`](../interfaces/Props.md)
+
+Configuration object containing `model` source and optional `preventLoad` flag.
 
 ## Returns
 
-`object`
+- Ready to use Text Embeddings model.
 
 ### downloadProgress
 
 > **downloadProgress**: `number`
 
+Represents the download progress as a value between 0 and 1, indicating the extent of the model file retrieval.
+
 ### error
 
 > **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
 
+Contains the error message if the model failed to load.
+
 ### forward()
 
 > **forward**: (...`input`) => `Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
+
+This function runs the model's forward method with the provided input arguments.
 
 #### Parameters
 
@@ -32,14 +40,22 @@ Defined in: [packages/react-native-executorch/src/hooks/natural_language_process
 
 ...\[`string`\]
 
+Input arguments for the model's forward method.
+
 #### Returns
 
 `Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
+
+The output from the model's forward method.
 
 ### isGenerating
 
 > **isGenerating**: `boolean`
 
+Indicates whether the model is currently generating a response.
+
 ### isReady
 
 > **isReady**: `boolean`
+
+Indicates whether the model is ready.

@@ -1,12 +1,16 @@
 # Function: useLLM()
 
-> **useLLM**(`__namedParameters`): [`LLMType`](../interfaces/LLMType.md)
+> **useLLM**(`model`): [`LLMType`](../interfaces/LLMType.md)
 
-Defined in: [packages/react-native-executorch/src/hooks/natural_language_processing/useLLM.ts:17](https://github.com/software-mansion/react-native-executorch/blob/da1b9b6f6bcd0c76e913caeb68a23a84a79badba/packages/react-native-executorch/src/hooks/natural_language_processing/useLLM.ts#L17)
+Defined in: [packages/react-native-executorch/src/hooks/natural_language_processing/useLLM.ts:20](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/hooks/natural_language_processing/useLLM.ts#L20)
+
+React hook for managing a Large Language Model (LLM) instance.
 
 ## Parameters
 
-### \_\_namedParameters
+### model
+
+Object containing model, tokenizer, and tokenizer config sources.
 
 #### model
 
@@ -16,18 +20,28 @@ Defined in: [packages/react-native-executorch/src/hooks/natural_language_process
 
 [`ResourceSource`](../type-aliases/ResourceSource.md)
 
+`ResourceSource` that specifies the location of the model binary.
+
 #### model.tokenizerConfigSource
 
 [`ResourceSource`](../type-aliases/ResourceSource.md)
+
+`ResourceSource` pointing to the JSON file which contains the tokenizer config.
 
 #### model.tokenizerSource
 
 [`ResourceSource`](../type-aliases/ResourceSource.md)
 
+`ResourceSource pointing` to the JSON file which contains the tokenizer.
+
 #### preventLoad?
 
 `boolean` = `false`
 
+Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+
 ## Returns
 
 [`LLMType`](../interfaces/LLMType.md)
+
+An object implementing the `LLMType` interface for interacting with the LLM.

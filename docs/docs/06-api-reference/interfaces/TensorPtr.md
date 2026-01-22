@@ -1,6 +1,6 @@
 # Interface: TensorPtr
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:41](https://github.com/software-mansion/react-native-executorch/blob/da1b9b6f6bcd0c76e913caeb68a23a84a79badba/packages/react-native-executorch/src/types/common.ts#L41)
+Defined in: [packages/react-native-executorch/src/types/common.ts:51](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/types/common.ts#L51)
 
 ## Properties
 
@@ -8,7 +8,7 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:41](https://gi
 
 > **dataPtr**: [`TensorBuffer`](../type-aliases/TensorBuffer.md)
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:42](https://github.com/software-mansion/react-native-executorch/blob/da1b9b6f6bcd0c76e913caeb68a23a84a79badba/packages/react-native-executorch/src/types/common.ts#L42)
+Defined in: [packages/react-native-executorch/src/types/common.ts:52](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/types/common.ts#L52)
 
 ---
 
@@ -16,7 +16,7 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:42](https://gi
 
 > **scalarType**: [`ScalarType`](../enumerations/ScalarType.md)
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:44](https://github.com/software-mansion/react-native-executorch/blob/da1b9b6f6bcd0c76e913caeb68a23a84a79badba/packages/react-native-executorch/src/types/common.ts#L44)
+Defined in: [packages/react-native-executorch/src/types/common.ts:54](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/types/common.ts#L54)
 
 ---
 
@@ -24,4 +24,4 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:44](https://gi
 
 > **sizes**: `number`[]
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:43](https://github.com/software-mansion/react-native-executorch/blob/da1b9b6f6bcd0c76e913caeb68a23a84a79badba/packages/react-native-executorch/src/types/common.ts#L43)
+Defined in: [packages/react-native-executorch/src/types/common.ts:53](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/types/common.ts#L53)

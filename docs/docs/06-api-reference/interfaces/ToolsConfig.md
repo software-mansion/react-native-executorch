@@ -1,6 +1,8 @@
 # Interface: ToolsConfig
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:49](https://github.com/software-mansion/react-native-executorch/blob/da1b9b6f6bcd0c76e913caeb68a23a84a79badba/packages/react-native-executorch/src/types/llm.ts#L49)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:175](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/types/llm.ts#L175)
+
+Object configuring options for enabling and managing tool use. **It will only have effect if your model's chat template support it**.
 
 ## Properties
 
@@ -8,7 +10,9 @@ Defined in: [packages/react-native-executorch/src/types/llm.ts:49](https://githu
 
 > `optional` **displayToolCalls**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:52](https://github.com/software-mansion/react-native-executorch/blob/da1b9b6f6bcd0c76e913caeb68a23a84a79badba/packages/react-native-executorch/src/types/llm.ts#L52)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:189](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/types/llm.ts#L189)
+
+If set to true, JSON tool calls will be displayed in chat. If false, only answers will be displayed.
 
 ---
 
@@ -16,7 +20,9 @@ Defined in: [packages/react-native-executorch/src/types/llm.ts:52](https://githu
 
 > **executeToolCallback**: (`call`) => `Promise`\<`string` \| `null`\>
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:51](https://github.com/software-mansion/react-native-executorch/blob/da1b9b6f6bcd0c76e913caeb68a23a84a79badba/packages/react-native-executorch/src/types/llm.ts#L51)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:184](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/types/llm.ts#L184)
+
+Function that accepts `ToolCall`, executes tool and returns the string to model.
 
 #### Parameters
 
@@ -34,4 +40,6 @@ Defined in: [packages/react-native-executorch/src/types/llm.ts:51](https://githu
 
 > **tools**: `Object`[]
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:50](https://github.com/software-mansion/react-native-executorch/blob/da1b9b6f6bcd0c76e913caeb68a23a84a79badba/packages/react-native-executorch/src/types/llm.ts#L50)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:179](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/types/llm.ts#L179)
+
+List of objects defining tools.

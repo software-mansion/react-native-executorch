@@ -1,5 +1,15 @@
+/**
+ * Common types used across the React Native Executorch package.
+ */
+
+/**
+ * Represents a source of a resource, which can be a string (e.g., URL or file path), a number (e.g., resource ID), or an object (e.g., binary data).
+ */
 export type ResourceSource = string | number | object;
 
+/**
+ * Enum representing the scalar types of tensors.
+ */
 export enum ScalarType {
   BYTE = 0,
   CHAR = 1,

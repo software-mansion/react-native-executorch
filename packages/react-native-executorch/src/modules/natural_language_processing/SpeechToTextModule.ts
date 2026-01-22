@@ -64,6 +64,13 @@ export class SpeechToTextModule {
     return new Float32Array(await this.nativeModule.encode(waveform));
   }
 
+  /**
+   * Runs the decoder of the model. Passing number[] is deprecated.
+   *
+   * @param tokens - The input tokens.
+   * @param encoderOutput - The encoder output.
+   * @returns Decoded output.
+   */
   public async decode(
     tokens: Int32Array | number[],
     encoderOutput: Float32Array | number[]
@@ -85,6 +92,13 @@ export class SpeechToTextModule {
     );
   }
 
+  /**
+   * Transcribes audio using the Whisper model.
+   *
+   * @param waveform - The Float32Array audio data.
+   * @param options - Decoding options including language.
+   * @returns The transcription string.
+   */
   public async transcribe(
     waveform: Float32Array | number[],
     options: DecodingOptions = {}

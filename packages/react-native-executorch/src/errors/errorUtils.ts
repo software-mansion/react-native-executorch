@@ -1,13 +1,31 @@
 import { RnExecutorchErrorCode } from './ErrorCodes';
 
 export class RnExecutorchError extends Error {
+  /**
+   * The error code representing the type of error.
+   */
   public code: RnExecutorchErrorCode;
+
+  /**
+   * The original cause of the error, if any.
+   */
   public cause?: unknown;
 
   constructor(code: number, message: string, cause?: unknown) {
     super(message);
+    /**
+     * The error code representing the type of error.
+     */
     this.code = code;
+
+    /**
+     * The message describing the error.
+     */
     this.message = message;
+
+    /**
+     * The original cause of the error, if any.
+     */
     this.cause = cause;
   }
 }

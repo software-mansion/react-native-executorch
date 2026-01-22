@@ -1,6 +1,6 @@
 # Class: ObjectDetectionModule
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts:8](https://github.com/software-mansion/react-native-executorch/blob/da1b9b6f6bcd0c76e913caeb68a23a84a79badba/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L8)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts:8](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L8)
 
 ## Extends
 
@@ -26,7 +26,7 @@ Defined in: [packages/react-native-executorch/src/modules/computer_vision/Object
 
 > **nativeModule**: `any` = `null`
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:5](https://github.com/software-mansion/react-native-executorch/blob/da1b9b6f6bcd0c76e913caeb68a23a84a79badba/packages/react-native-executorch/src/modules/BaseModule.ts#L5)
+Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:5](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/BaseModule.ts#L5)
 
 #### Inherited from
 
@@ -38,7 +38,7 @@ Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:5](https
 
 > **delete**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:21](https://github.com/software-mansion/react-native-executorch/blob/da1b9b6f6bcd0c76e913caeb68a23a84a79badba/packages/react-native-executorch/src/modules/BaseModule.ts#L21)
+Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:21](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/BaseModule.ts#L21)
 
 #### Returns
 
@@ -54,7 +54,7 @@ Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:21](http
 
 > **forward**(`imageSource`, `detectionThreshold`): `Promise`\<[`Detection`](../interfaces/Detection.md)[]\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts:26](https://github.com/software-mansion/react-native-executorch/blob/da1b9b6f6bcd0c76e913caeb68a23a84a79badba/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L26)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts:26](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L26)
 
 #### Parameters
 
@@ -76,7 +76,7 @@ Defined in: [packages/react-native-executorch/src/modules/computer_vision/Object
 
 > `protected` **forwardET**(`inputTensor`): `Promise`\<[`TensorPtr`](../interfaces/TensorPtr.md)[]\>
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:13](https://github.com/software-mansion/react-native-executorch/blob/da1b9b6f6bcd0c76e913caeb68a23a84a79badba/packages/react-native-executorch/src/modules/BaseModule.ts#L13)
+Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:13](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/BaseModule.ts#L13)
 
 #### Parameters
 
@@ -98,7 +98,7 @@ Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:13](http
 
 > **getInputShape**(`methodName`, `index`): `Promise`\<`number`[]\>
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:17](https://github.com/software-mansion/react-native-executorch/blob/da1b9b6f6bcd0c76e913caeb68a23a84a79badba/packages/react-native-executorch/src/modules/BaseModule.ts#L17)
+Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:17](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/BaseModule.ts#L17)
 
 #### Parameters
 
@@ -124,7 +124,7 @@ Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:17](http
 
 > **load**(`model`, `onDownloadProgressCallback`): `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts:9](https://github.com/software-mansion/react-native-executorch/blob/da1b9b6f6bcd0c76e913caeb68a23a84a79badba/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L9)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts:9](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L9)
 
 #### Parameters
 

@@ -36,6 +36,7 @@
 - [Message](interfaces/Message.md)
 - [OCRBbox](interfaces/OCRBbox.md)
 - [OCRDetection](interfaces/OCRDetection.md)
+- [Props](interfaces/Props.md)
 - [Segment](interfaces/Segment.md)
 - [SpeechToTextModelConfig](interfaces/SpeechToTextModelConfig.md)
 - [TensorPtr](interfaces/TensorPtr.md)

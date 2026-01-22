@@ -74,10 +74,32 @@ export const useModule = <
   };
 
   return {
+    /**
+     * Contains the error message if the model failed to load.
+     */
     error,
+
+    /**
+     * Indicates whether the model is ready.
+     */
     isReady,
+
+    /**
+     * Indicates whether the model is currently generating a response.
+     */
     isGenerating,
+
+    /**
+     * Represents the download progress as a value between 0 and 1, indicating the extent of the model file retrieval.
+     */
     downloadProgress,
+
+    /**
+     * This function runs the model's forward method with the provided input arguments.
+     *
+     * @param input - Input arguments for the model's forward method.
+     * @returns The output from the model's forward method.
+     */
     forward,
   };
 };
