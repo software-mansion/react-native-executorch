@@ -8,6 +8,8 @@
   <a href="https://github.com/software-mansion/react-native-executorch/stargazers"><img src="https://img.shields.io/github/stars/software-mansion/react-native-executorch?style=for-the-badge&color=00008B" alt="GitHub - Stars"></a>
   <a href="https://discord.gg/ZGqqY55qkP"><img src="https://img.shields.io/badge/Discord-Rejoignez%20nous-00008B?logo=discord&logoColor=white&style=for-the-badge" alt="Join our Discord community"></a>
   <a href="https://docs.swmansion.com/react-native-executorch/"><img src="https://img.shields.io/badge/Documentation-00008B?logo=googledocs&logoColor=white&style=for-the-badge" alt="Documentation"></a>
+  <a href="https://swmansion.com/contact">
+    <img src="https://img.shields.io/badge/Engagez--nous-00008B?logo=react&logoColor=white&style=for-the-badge" alt="Hire Us">
 </div>
 
 ![Bannière Software Mansion](https://github.com/user-attachments/assets/fa2c4735-e75c-4cc1-970d-88905d95e3a4)
@@ -28,6 +30,7 @@
 React Native ExecuTorch comble le fossé entre React Native et les capacités natives de la plateforme, permettant aux développeurs de faire tourner efficacement des modèles AI locaux sur des appareils mobiles. Cela peut être réalisé sans besoin d'une expertise approfondie en programmation native ou en apprentissage machine.
 
 [![version npm](https://img.shields.io/npm/v/react-native-executorch?color=00008B)](https://www.npmjs.com/package/react-native-executorch)
+[![npm nightly](https://img.shields.io/npm/v/react-native-executorch/executorch-nightly?label=nightly&color=00008B)](https://www.npmjs.com/package/react-native-executorch)
 [![CI](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml/badge.svg)](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml)
 
 <details>
