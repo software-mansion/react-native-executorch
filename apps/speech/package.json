@@ -11,12 +11,13 @@
     "lint": "eslint . --ext .ts,.tsx --fix"
   },
   "dependencies": {
-    "@react-native/metro-config": "^0.76.3",
+    "@react-native/metro-config": "^0.81.5",
+    "@rn-executorch/expo-adapter": "workspace:*",
     "buffer": "^6.0.3",
     "expo": "^54.0.27",
     "expo-font": "~14.0.10",
     "expo-status-bar": "~3.0.9",
-    "metro-config": "^0.81.0",
+    "metro-config": "^0.81.5",
     "react": "19.1.0",
     "react-native": "0.81.5",
     "react-native-audio-api": "0.11.3",
