@@ -2,7 +2,7 @@
 
 > **useTextToSpeech**(`__namedParameters`): `object`
 
-Defined in: [packages/react-native-executorch/src/hooks/natural_language_processing/useTextToSpeech.ts:15](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/hooks/natural_language_processing/useTextToSpeech.ts#L15)
+Defined in: [packages/react-native-executorch/src/hooks/natural\_language\_processing/useTextToSpeech.ts:15](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/hooks/natural_language_processing/useTextToSpeech.ts#L15)
 
 ## Parameters
 
@@ -30,7 +30,7 @@ Defined in: [packages/react-native-executorch/src/hooks/natural_language_process
 
 ##### input
 
-`TextToSpeechInput`
+[`TextToSpeechInput`](../interfaces/TextToSpeechInput.md)
 
 #### Returns
 
@@ -52,7 +52,7 @@ Defined in: [packages/react-native-executorch/src/hooks/natural_language_process
 
 ##### input
 
-`TextToSpeechStreamingInput`
+[`TextToSpeechStreamingInput`](../interfaces/TextToSpeechStreamingInput.md)
 
 #### Returns
 

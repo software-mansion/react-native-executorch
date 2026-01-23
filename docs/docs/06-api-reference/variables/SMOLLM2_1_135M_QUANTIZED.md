@@ -1,8 +1,8 @@
-# Variable: SMOLLM2_1_135M_QUANTIZED
+# Variable: SMOLLM2\_1\_135M\_QUANTIZED
 
-> `const` **SMOLLM2_1_135M_QUANTIZED**: `object`
+> `const` **SMOLLM2\_1\_135M\_QUANTIZED**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:160](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/constants/modelUrls.ts#L160)
+Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:160](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/constants/modelUrls.ts#L160)
 
 ## Type Declaration
 

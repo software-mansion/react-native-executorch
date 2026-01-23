@@ -3,14 +3,29 @@ import { TokenizerModule } from '../../modules/natural_language_processing/Token
 import { ResourceSource } from '../../types/common';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
+import { TokenizerType } from '../../types/tokenizer';  
 
+/**
+ * 
+ * @param tokenizerConfiguration - Configuration object containing `tokenizer` source and optional `preventLoad` flag. 
+ * @returns Ready to use Tokenizer model.
+ */
 export const useTokenizer = ({
   tokenizer,
   preventLoad = false,
 }: {
+  /**
+   * Object containing:
+   * 
+   * `tokenizerSource` - A `ResourceSource` that specifies the location of the tokenizer.
+   */
   tokenizer: { tokenizerSource: ResourceSource };
+
+  /**
+   * Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+   */
   preventLoad?: boolean;
-}) => {
+}): TokenizerType => {
   const [error, setError] = useState<null | RnExecutorchError>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -36,7 +51,7 @@ export const useTokenizer = ({
   }, [tokenizerInstance, tokenizer.tokenizerSource, preventLoad]);
 
   const stateWrapper = <T extends (...args: any[]) => Promise<any>>(fn: T) => {
-    return (...args: Parameters<T>): Promise<ReturnType<T>> => {
+    return (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
       if (!isReady)
         throw new RnExecutorchError(
           RnExecutorchErrorCode.ModuleNotLoaded,

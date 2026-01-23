@@ -1,6 +1,6 @@
 # Class: OCRModule
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts:5](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts#L5)
+Defined in: [packages/react-native-executorch/src/modules/computer\_vision/OCRModule.ts:5](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts#L5)
 
 ## Constructors
 
@@ -8,7 +8,7 @@ Defined in: [packages/react-native-executorch/src/modules/computer_vision/OCRMod
 
 > **new OCRModule**(): `OCRModule`
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts:8](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts#L8)
+Defined in: [packages/react-native-executorch/src/modules/computer\_vision/OCRModule.ts:8](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts#L8)
 
 #### Returns
 
@@ -20,19 +20,19 @@ Defined in: [packages/react-native-executorch/src/modules/computer_vision/OCRMod
 
 > **delete**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts:32](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts#L32)
+Defined in: [packages/react-native-executorch/src/modules/computer\_vision/OCRModule.ts:32](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts#L32)
 
 #### Returns
 
 `void`
 
----
+***
 
 ### forward()
 
 > **forward**(`imageSource`): `Promise`\<`any`\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts:28](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts#L28)
+Defined in: [packages/react-native-executorch/src/modules/computer\_vision/OCRModule.ts:28](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts#L28)
 
 #### Parameters
 
@@ -44,13 +44,13 @@ Defined in: [packages/react-native-executorch/src/modules/computer_vision/OCRMod
 
 `Promise`\<`any`\>
 
----
+***
 
 ### load()
 
 > **load**(`model`, `onDownloadProgressCallback`): `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts:12](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts#L12)
+Defined in: [packages/react-native-executorch/src/modules/computer\_vision/OCRModule.ts:12](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts#L12)
 
 #### Parameters
 

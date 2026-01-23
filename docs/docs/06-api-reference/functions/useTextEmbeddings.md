@@ -1,8 +1,10 @@
 # Function: useTextEmbeddings()
 
-> **useTextEmbeddings**(`TextEmbeddingsConfiguration`): `object`
+> **useTextEmbeddings**(`TextEmbeddingsConfiguration`): [`TextEmbeddingsType`](../interfaces/TextEmbeddingsType.md)
 
-Defined in: [packages/react-native-executorch/src/hooks/natural_language_processing/useTextEmbeddings.ts:32](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/hooks/natural_language_processing/useTextEmbeddings.ts#L32)
+Defined in: [packages/react-native-executorch/src/hooks/natural\_language\_processing/useTextEmbeddings.ts:11](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/hooks/natural_language_processing/useTextEmbeddings.ts#L11)
+
+React hook for managing a Text Embeddings model instance.
 
 ## Parameters
 
@@ -14,48 +16,6 @@ Configuration object containing `model` source and optional `preventLoad` flag.
 
 ## Returns
 
-- Ready to use Text Embeddings model.
+[`TextEmbeddingsType`](../interfaces/TextEmbeddingsType.md)
 
-### downloadProgress
-
-> **downloadProgress**: `number`
-
-Represents the download progress as a value between 0 and 1, indicating the extent of the model file retrieval.
-
-### error
-
-> **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
-
-Contains the error message if the model failed to load.
-
-### forward()
-
-> **forward**: (...`input`) => `Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
-
-This function runs the model's forward method with the provided input arguments.
-
-#### Parameters
-
-##### input
-
-...\[`string`\]
-
-Input arguments for the model's forward method.
-
-#### Returns
-
-`Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
-
-The output from the model's forward method.
-
-### isGenerating
-
-> **isGenerating**: `boolean`
-
-Indicates whether the model is currently generating a response.
-
-### isReady
-
-> **isReady**: `boolean`
-
-Indicates whether the model is ready.
+Ready to use Text Embeddings model.

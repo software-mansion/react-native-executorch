@@ -1,5 +1,5 @@
-# Variable: KOKORO_VOICE_AM_SANTA
+# Variable: KOKORO\_VOICE\_AM\_SANTA
 
-> `const` **KOKORO_VOICE_AM_SANTA**: `VoiceConfig`
+> `const` **KOKORO\_VOICE\_AM\_SANTA**: [`VoiceConfig`](../interfaces/VoiceConfig.md)
 
-Defined in: [packages/react-native-executorch/src/constants/tts/voices.ts:46](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/constants/tts/voices.ts#L46)
+Defined in: [packages/react-native-executorch/src/constants/tts/voices.ts:46](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/constants/tts/voices.ts#L46)

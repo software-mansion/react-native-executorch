@@ -1,8 +1,8 @@
-# Variable: OCR_BULGARIAN
+# Variable: OCR\_BULGARIAN
 
-> `const` **OCR_BULGARIAN**: `object`
+> `const` **OCR\_BULGARIAN**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:77](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/constants/ocr/models.ts#L77)
+Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:77](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/constants/ocr/models.ts#L77)
 
 ## Type Declaration
 

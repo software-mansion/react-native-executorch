@@ -1,8 +1,8 @@
-# Variable: MULTI_QA_MINILM_L6_COS_V1
+# Variable: MULTI\_QA\_MINILM\_L6\_COS\_V1
 
-> `const` **MULTI_QA_MINILM_L6_COS_V1**: `object`
+> `const` **MULTI\_QA\_MINILM\_L6\_COS\_V1**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:418](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/constants/modelUrls.ts#L418)
+Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:418](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/constants/modelUrls.ts#L418)
 
 ## Type Declaration
 

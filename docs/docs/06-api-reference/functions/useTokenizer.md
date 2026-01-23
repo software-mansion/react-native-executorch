@@ -1,20 +1,28 @@
 # Function: useTokenizer()
 
-> **useTokenizer**(`__namedParameters`): `object`
+> **useTokenizer**(`tokenizerConfiguration`): [`TokenizerType`](../interfaces/TokenizerType.md)
 
-Defined in: [packages/react-native-executorch/src/hooks/natural_language_processing/useTokenizer.ts:7](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/hooks/natural_language_processing/useTokenizer.ts#L7)
+Defined in: [packages/react-native-executorch/src/hooks/natural\_language\_processing/useTokenizer.ts:13](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/hooks/natural_language_processing/useTokenizer.ts#L13)
 
 ## Parameters
 
-### \_\_namedParameters
+### tokenizerConfiguration
+
+Configuration object containing `tokenizer` source and optional `preventLoad` flag.
 
 #### preventLoad?
 
 `boolean` = `false`
 
+Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+
 #### tokenizer
 
 \{ `tokenizerSource`: [`ResourceSource`](../type-aliases/ResourceSource.md); \}
+
+Object containing:
+
+`tokenizerSource` - A `ResourceSource` that specifies the location of the tokenizer.
 
 #### tokenizer.tokenizerSource
 
@@ -22,90 +30,6 @@ Defined in: [packages/react-native-executorch/src/hooks/natural_language_process
 
 ## Returns
 
-`object`
+[`TokenizerType`](../interfaces/TokenizerType.md)
 
-### decode()
-
-> **decode**: (...`args`) => `Promise`\<`Promise`\<`any`\>\>
-
-#### Parameters
-
-##### args
-
-...\[`number`[], `boolean`\]
-
-#### Returns
-
-`Promise`\<`Promise`\<`any`\>\>
-
-### downloadProgress
-
-> **downloadProgress**: `number`
-
-### encode()
-
-> **encode**: (...`args`) => `Promise`\<`Promise`\<`any`\>\>
-
-#### Parameters
-
-##### args
-
-...\[`string`\]
-
-#### Returns
-
-`Promise`\<`Promise`\<`any`\>\>
-
-### error
-
-> **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
-
-### getVocabSize()
-
-> **getVocabSize**: (...`args`) => `Promise`\<`Promise`\<`number`\>\>
-
-#### Parameters
-
-##### args
-
-...\[\]
-
-#### Returns
-
-`Promise`\<`Promise`\<`number`\>\>
-
-### idToToken()
-
-> **idToToken**: (...`args`) => `Promise`\<`Promise`\<`string`\>\>
-
-#### Parameters
-
-##### args
-
-...\[`number`\]
-
-#### Returns
-
-`Promise`\<`Promise`\<`string`\>\>
-
-### isGenerating
-
-> **isGenerating**: `boolean`
-
-### isReady
-
-> **isReady**: `boolean`
-
-### tokenToId()
-
-> **tokenToId**: (...`args`) => `Promise`\<`Promise`\<`number`\>\>
-
-#### Parameters
-
-##### args
-
-...\[`string`\]
-
-#### Returns
-
-`Promise`\<`Promise`\<`number`\>\>
+Ready to use Tokenizer model.

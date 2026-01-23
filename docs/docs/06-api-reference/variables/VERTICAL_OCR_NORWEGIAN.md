@@ -1,8 +1,8 @@
-# Variable: VERTICAL_OCR_NORWEGIAN
+# Variable: VERTICAL\_OCR\_NORWEGIAN
 
-> `const` **VERTICAL_OCR_NORWEGIAN**: `object`
+> `const` **VERTICAL\_OCR\_NORWEGIAN**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:291](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/constants/ocr/models.ts#L291)
+Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:291](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/constants/ocr/models.ts#L291)
 
 ## Type Declaration
 

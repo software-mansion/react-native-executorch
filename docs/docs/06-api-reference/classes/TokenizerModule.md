@@ -1,6 +1,6 @@
 # Class: TokenizerModule
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts:6](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L6)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TokenizerModule.ts:6](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L6)
 
 ## Constructors
 
@@ -18,7 +18,7 @@ Defined in: [packages/react-native-executorch/src/modules/natural_language_proce
 
 > **nativeModule**: `any`
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts:7](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L7)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TokenizerModule.ts:7](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L7)
 
 ## Methods
 
@@ -26,7 +26,7 @@ Defined in: [packages/react-native-executorch/src/modules/natural_language_proce
 
 > **decode**(`tokens`, `skipSpecialTokens`): `Promise`\<`any`\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts:31](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L31)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TokenizerModule.ts:31](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L31)
 
 #### Parameters
 
@@ -42,13 +42,13 @@ Defined in: [packages/react-native-executorch/src/modules/natural_language_proce
 
 `Promise`\<`any`\>
 
----
+***
 
 ### encode()
 
 > **encode**(`s`): `Promise`\<`any`\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts:27](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L27)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TokenizerModule.ts:27](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L27)
 
 #### Parameters
 
@@ -60,25 +60,25 @@ Defined in: [packages/react-native-executorch/src/modules/natural_language_proce
 
 `Promise`\<`any`\>
 
----
+***
 
 ### getVocabSize()
 
 > **getVocabSize**(): `Promise`\<`number`\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts:38](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L38)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TokenizerModule.ts:38](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L38)
 
 #### Returns
 
 `Promise`\<`number`\>
 
----
+***
 
 ### idToToken()
 
 > **idToToken**(`tokenId`): `Promise`\<`string`\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts:42](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L42)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TokenizerModule.ts:42](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L42)
 
 #### Parameters
 
@@ -90,13 +90,13 @@ Defined in: [packages/react-native-executorch/src/modules/natural_language_proce
 
 `Promise`\<`string`\>
 
----
+***
 
 ### load()
 
 > **load**(`tokenizer`, `onDownloadProgressCallback`): `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts:9](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L9)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TokenizerModule.ts:9](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L9)
 
 #### Parameters
 
@@ -114,13 +114,13 @@ Defined in: [packages/react-native-executorch/src/modules/natural_language_proce
 
 `Promise`\<`void`\>
 
----
+***
 
 ### tokenToId()
 
 > **tokenToId**(`token`): `Promise`\<`number`\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts:46](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L46)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TokenizerModule.ts:46](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L46)
 
 #### Parameters
 

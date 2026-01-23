@@ -1,35 +1,35 @@
-# Variable: SPECIAL_TOKENS
+# Variable: SPECIAL\_TOKENS
 
-> `const` **SPECIAL_TOKENS**: `object`
+> `const` **SPECIAL\_TOKENS**: `object`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:217](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/types/llm.ts#L217)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:216](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/types/llm.ts#L216)
 
 ## Type Declaration
 
-### BOS_TOKEN
+### BOS\_TOKEN
 
-> **BOS_TOKEN**: `string` = `'bos_token'`
+> **BOS\_TOKEN**: `string` = `'bos_token'`
 
-### CLS_TOKEN
+### CLS\_TOKEN
 
-> **CLS_TOKEN**: `string` = `'cls_token'`
+> **CLS\_TOKEN**: `string` = `'cls_token'`
 
-### EOS_TOKEN
+### EOS\_TOKEN
 
-> **EOS_TOKEN**: `string` = `'eos_token'`
+> **EOS\_TOKEN**: `string` = `'eos_token'`
 
-### MASK_TOKEN
+### MASK\_TOKEN
 
-> **MASK_TOKEN**: `string` = `'mask_token'`
+> **MASK\_TOKEN**: `string` = `'mask_token'`
 
-### PAD_TOKEN
+### PAD\_TOKEN
 
-> **PAD_TOKEN**: `string` = `'pad_token'`
+> **PAD\_TOKEN**: `string` = `'pad_token'`
 
-### SEP_TOKEN
+### SEP\_TOKEN
 
-> **SEP_TOKEN**: `string` = `'sep_token'`
+> **SEP\_TOKEN**: `string` = `'sep_token'`
 
-### UNK_TOKEN
+### UNK\_TOKEN
 
-> **UNK_TOKEN**: `string` = `'unk_token'`
+> **UNK\_TOKEN**: `string` = `'unk_token'`

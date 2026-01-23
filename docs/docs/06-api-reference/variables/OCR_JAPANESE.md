@@ -1,8 +1,8 @@
-# Variable: OCR_JAPANESE
+# Variable: OCR\_JAPANESE
 
-> `const` **OCR_JAPANESE**: `object`
+> `const` **OCR\_JAPANESE**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:200](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/constants/ocr/models.ts#L200)
+Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:200](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/constants/ocr/models.ts#L200)
 
 ## Type Declaration
 

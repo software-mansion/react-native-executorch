@@ -1,6 +1,6 @@
 # Enumeration: RnExecutorchErrorCode
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:4](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L4)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:4](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L4)
 
 ## Enumeration Members
 
@@ -8,380 +8,380 @@ Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:4](https:
 
 > **AccessFailed**: `34`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:112](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L112)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:112](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L112)
 
----
+***
 
 ### DelegateInvalidCompatibility
 
 > **DelegateInvalidCompatibility**: `48`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:116](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L116)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:116](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L116)
 
----
+***
 
 ### DelegateInvalidHandle
 
 > **DelegateInvalidHandle**: `50`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:118](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L118)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:118](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L118)
 
----
+***
 
 ### DelegateMemoryAllocationFailed
 
 > **DelegateMemoryAllocationFailed**: `49`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:117](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L117)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:117](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L117)
 
----
+***
 
 ### DownloadInterrupted
 
 > **DownloadInterrupted**: `118`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:60](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L60)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:60](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L60)
 
 Thrown when the number of downloaded files is unexpected, due to download interruptions.
 
----
+***
 
 ### EndOfMethod
 
 > **EndOfMethod**: `3`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:104](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L104)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:104](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L104)
 
----
+***
 
 ### FileReadFailed
 
 > **FileReadFailed**: `114`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:44](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L44)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:44](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L44)
 
 Thrown when a file read operation failed. This could be invalid image url passed to image models, or unsupported format.
 
----
+***
 
 ### FileWriteFailed
 
 > **FileWriteFailed**: `103`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:16](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L16)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:16](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L16)
 
 An error ocurred when saving a file. This could be, for instance a result image from an image model.
 
----
+***
 
 ### Internal
 
 > **Internal**: `1`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:102](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L102)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:102](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L102)
 
----
+***
 
 ### InvalidArgument
 
 > **InvalidArgument**: `18`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:107](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L107)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:107](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L107)
 
----
+***
 
 ### InvalidConfig
 
 > **InvalidConfig**: `112`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:28](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L28)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:28](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L28)
 
 Thrown when config parameters passed to a model are invalid. For example, when LLM's topp is outside of range [0, 1].
 
----
+***
 
 ### InvalidExternalData
 
 > **InvalidExternalData**: `36`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:114](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L114)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:114](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L114)
 
----
+***
 
 ### InvalidModelOutput
 
 > **InvalidModelOutput**: `115`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:48](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L48)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:48](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L48)
 
 Thrown when the size of model output is unexpected.
 
----
+***
 
 ### InvalidModelSource
 
 > **InvalidModelSource**: `255`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:32](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L32)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:32](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L32)
 
 Thrown when the type of model source passed by the user is invalid.
 
----
+***
 
 ### InvalidProgram
 
 > **InvalidProgram**: `35`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:113](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L113)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:113](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L113)
 
----
+***
 
 ### InvalidState
 
 > **InvalidState**: `2`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:103](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L103)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:103](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L103)
 
----
+***
 
 ### InvalidType
 
 > **InvalidType**: `19`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:108](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L108)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:108](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L108)
 
----
+***
 
 ### InvalidUserInput
 
 > **InvalidUserInput**: `117`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:56](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L56)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:56](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L56)
 
 Thrown when the input passed to our APIs is invalid, for example when passing an empty message array to LLM's generate().
 
----
+***
 
 ### LanguageNotSupported
 
 > **LanguageNotSupported**: `105`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:24](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L24)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:24](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L24)
 
 Thrown when a language is passed to a multi-language model that is not supported. For example OCR or Speech To Text.
 
----
+***
 
 ### MemoryAllocationFailed
 
 > **MemoryAllocationFailed**: `33`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:111](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L111)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:111](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L111)
 
----
+***
 
 ### MissingDataChunk
 
 > **MissingDataChunk**: `161`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:68](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L68)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:68](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L68)
 
 Thrown when streaming transcription is attempted but audio data chunk is missing.
 
----
+***
 
 ### ModelGenerating
 
 > **ModelGenerating**: `104`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:20](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L20)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:20](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L20)
 
 Thrown when a user tries to run a model that is currently processing. It is only allowed to run a single model prediction at a time.
 
----
+***
 
 ### ModuleNotLoaded
 
 > **ModuleNotLoaded**: `102`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:12](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L12)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:12](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L12)
 
 Thrown when a user tries to run a model that is not yet downloaded or loaded into memory.
 
----
+***
 
 ### MultilingualConfiguration
 
 > **MultilingualConfiguration**: `160`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:64](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L64)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:64](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L64)
 
 Thrown when there's a configuration mismatch between multilingual and language settings in Speech-to-Text models.
 
----
+***
 
 ### NotFound
 
 > **NotFound**: `32`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:110](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L110)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:110](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L110)
 
----
+***
 
 ### NotImplemented
 
 > **NotImplemented**: `17`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:106](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L106)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:106](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L106)
 
----
+***
 
 ### NotSupported
 
 > **NotSupported**: `16`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:105](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L105)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:105](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L105)
 
----
+***
 
 ### Ok
 
 > **Ok**: `0`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:101](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L101)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:101](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L101)
 
----
+***
 
 ### OperatorMissing
 
 > **OperatorMissing**: `20`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:109](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L109)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:109](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L109)
 
----
+***
 
 ### OutOfResources
 
 > **OutOfResources**: `37`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:115](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L115)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:115](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L115)
 
----
+***
 
 ### ResourceFetcherAlreadyOngoing
 
 > **ResourceFetcherAlreadyOngoing**: `183`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:92](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L92)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:92](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L92)
 
 Thrown when trying to resume a download that is already ongoing.
 
----
+***
 
 ### ResourceFetcherAlreadyPaused
 
 > **ResourceFetcherAlreadyPaused**: `182`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:88](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L88)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:88](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L88)
 
 Thrown when trying to pause a download that is already paused.
 
----
+***
 
 ### ResourceFetcherDownloadFailed
 
 > **ResourceFetcherDownloadFailed**: `180`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:80](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L80)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:80](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L80)
 
 Thrown when a resource fails to download. This could be due to invalid URL, or for example a network problem.
 
----
+***
 
 ### ResourceFetcherDownloadInProgress
 
 > **ResourceFetcherDownloadInProgress**: `181`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:84](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L84)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:84](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L84)
 
 Thrown when a user tries to trigger a download that's already in progress.
 
----
+***
 
 ### ResourceFetcherMissingUri
 
 > **ResourceFetcherMissingUri**: `185`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:100](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L100)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:100](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L100)
 
 Thrown when required URI information is missing for a download operation.
 
----
+***
 
 ### ResourceFetcherNotActive
 
 > **ResourceFetcherNotActive**: `184`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:96](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L96)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:96](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L96)
 
 Thrown when trying to pause, resume, or cancel a download that is not active.
 
----
+***
 
 ### StreamingInProgress
 
 > **StreamingInProgress**: `163`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:76](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L76)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:76](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L76)
 
 Thrown when trying to start a new streaming session while another is already in progress.
 
----
+***
 
 ### StreamingNotStarted
 
 > **StreamingNotStarted**: `162`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:72](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L72)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:72](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L72)
 
 Thrown when trying to stop or insert data into a stream that hasn't been started.
 
----
+***
 
 ### ThreadPoolError
 
 > **ThreadPoolError**: `113`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:40](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L40)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:40](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L40)
 
 Thrown when React Native ExecuTorch threadpool problem occurs.
 
----
+***
 
 ### UnexpectedNumInputs
 
 > **UnexpectedNumInputs**: `97`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:36](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L36)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:36](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L36)
 
 Thrown when the number of passed inputs to the model is different than the model metadata specifies.
 
----
+***
 
 ### UnknownError
 
 > **UnknownError**: `101`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:8](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L8)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:8](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L8)
 
 An umbrella-error that is thrown usually when something unexpected happens, for example a 3rd-party library error.
 
----
+***
 
 ### WrongDimensions
 
 > **WrongDimensions**: `116`
 
-Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:52](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/errors/ErrorCodes.ts#L52)
+Defined in: [packages/react-native-executorch/src/errors/ErrorCodes.ts:52](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/errors/ErrorCodes.ts#L52)
 
 Thrown when the dimensions of input tensors don't match the model's expected dimensions.

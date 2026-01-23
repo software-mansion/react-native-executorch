@@ -1,8 +1,8 @@
-# Variable: WHISPER_TINY_EN_QUANTIZED
+# Variable: WHISPER\_TINY\_EN\_QUANTIZED
 
-> `const` **WHISPER_TINY_EN_QUANTIZED**: `object`
+> `const` **WHISPER\_TINY\_EN\_QUANTIZED**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:340](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/constants/modelUrls.ts#L340)
+Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:340](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/constants/modelUrls.ts#L340)
 
 ## Type Declaration
 

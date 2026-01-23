@@ -1,5 +1,5 @@
-# Variable: DEFAULT_CHAT_CONFIG
+# Variable: DEFAULT\_CHAT\_CONFIG
 
-> `const` **DEFAULT_CHAT_CONFIG**: [`ChatConfig`](../interfaces/ChatConfig.md)
+> `const` **DEFAULT\_CHAT\_CONFIG**: [`ChatConfig`](../interfaces/ChatConfig.md)
 
-Defined in: [packages/react-native-executorch/src/constants/llmDefaults.ts:21](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/constants/llmDefaults.ts#L21)
+Defined in: [packages/react-native-executorch/src/constants/llmDefaults.ts:21](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/constants/llmDefaults.ts#L21)

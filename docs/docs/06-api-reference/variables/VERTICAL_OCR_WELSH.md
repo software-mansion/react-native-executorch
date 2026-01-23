@@ -1,8 +1,8 @@
-# Variable: VERTICAL_OCR_WELSH
+# Variable: VERTICAL\_OCR\_WELSH
 
-> `const` **VERTICAL_OCR_WELSH**: `object`
+> `const` **VERTICAL\_OCR\_WELSH**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:111](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/constants/ocr/models.ts#L111)
+Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:111](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/constants/ocr/models.ts#L111)
 
 ## Type Declaration
 

@@ -2,7 +2,7 @@
 
 > **useOCR**(`__namedParameters`): `OCRModule`
 
-Defined in: [packages/react-native-executorch/src/hooks/computer_vision/useOCR.ts:15](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/hooks/computer_vision/useOCR.ts#L15)
+Defined in: [packages/react-native-executorch/src/hooks/computer\_vision/useOCR.ts:15](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/hooks/computer_vision/useOCR.ts#L15)
 
 ## Parameters
 

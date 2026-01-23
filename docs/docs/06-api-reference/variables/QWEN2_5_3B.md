@@ -1,8 +1,8 @@
-# Variable: QWEN2_5_3B
+# Variable: QWEN2\_5\_3B
 
-> `const` **QWEN2_5_3B**: `object`
+> `const` **QWEN2\_5\_3B**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:224](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/constants/modelUrls.ts#L224)
+Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:224](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/constants/modelUrls.ts#L224)
 
 ## Type Declaration
 

@@ -121,11 +121,10 @@ export * from './types/imageSegmentation';
 export * from './types/llm';
 export * from './types/vad';
 export * from './types/common';
-export {
-  SpeechToTextLanguage,
-  SpeechToTextModelConfig,
-  DecodingOptions,
-} from './types/stt';
+export * from './types/stt';
+export * from './types/textEmbeddings';
+export * from './types/tts';
+export * from './types/tokenizer';
 
 // constants
 export * from './constants/modelUrls';

@@ -1,8 +1,8 @@
-# Variable: VERTICAL_OCR_HUNGARIAN
+# Variable: VERTICAL\_OCR\_HUNGARIAN
 
-> `const` **VERTICAL_OCR_HUNGARIAN**: `object`
+> `const` **VERTICAL\_OCR\_HUNGARIAN**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:171](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/constants/ocr/models.ts#L171)
+Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:171](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/constants/ocr/models.ts#L171)
 
 ## Type Declaration
 

@@ -1,8 +1,8 @@
-# Variable: OCR_SIMPLIFIED_CHINESE
+# Variable: OCR\_SIMPLIFIED\_CHINESE
 
-> `const` **OCR_SIMPLIFIED_CHINESE**: `object`
+> `const` **OCR\_SIMPLIFIED\_CHINESE**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:89](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/constants/ocr/models.ts#L89)
+Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:89](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/constants/ocr/models.ts#L89)
 
 ## Type Declaration
 

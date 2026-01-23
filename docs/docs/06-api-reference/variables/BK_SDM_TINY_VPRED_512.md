@@ -1,8 +1,8 @@
-# Variable: BK_SDM_TINY_VPRED_512
+# Variable: BK\_SDM\_TINY\_VPRED\_512
 
-> `const` **BK_SDM_TINY_VPRED_512**: `object`
+> `const` **BK\_SDM\_TINY\_VPRED\_512**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:434](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/constants/modelUrls.ts#L434)
+Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:434](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/constants/modelUrls.ts#L434)
 
 ## Type Declaration
 

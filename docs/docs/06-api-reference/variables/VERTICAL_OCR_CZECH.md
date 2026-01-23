@@ -1,8 +1,8 @@
-# Variable: VERTICAL_OCR_CZECH
+# Variable: VERTICAL\_OCR\_CZECH
 
-> `const` **VERTICAL_OCR_CZECH**: `object`
+> `const` **VERTICAL\_OCR\_CZECH**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:105](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/constants/ocr/models.ts#L105)
+Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:105](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/constants/ocr/models.ts#L105)
 
 ## Type Declaration
 

@@ -1,8 +1,8 @@
-# Variable: CLIP_VIT_BASE_PATCH32_IMAGE
+# Variable: CLIP\_VIT\_BASE\_PATCH32\_IMAGE
 
-> `const` **CLIP_VIT_BASE_PATCH32_IMAGE**: `object`
+> `const` **CLIP\_VIT\_BASE\_PATCH32\_IMAGE**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:392](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/constants/modelUrls.ts#L392)
+Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:392](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/constants/modelUrls.ts#L392)
 
 ## Type Declaration
 

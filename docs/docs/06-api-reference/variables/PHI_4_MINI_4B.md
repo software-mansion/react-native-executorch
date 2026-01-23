@@ -1,8 +1,8 @@
-# Variable: PHI_4_MINI_4B
+# Variable: PHI\_4\_MINI\_4B
 
-> `const` **PHI_4_MINI_4B**: `object`
+> `const` **PHI\_4\_MINI\_4B**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:242](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/constants/modelUrls.ts#L242)
+Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:242](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/constants/modelUrls.ts#L242)
 
 ## Type Declaration
 

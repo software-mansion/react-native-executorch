@@ -1,8 +1,8 @@
-# Variable: VERTICAL_OCR_KOREAN
+# Variable: VERTICAL\_OCR\_KOREAN
 
-> `const` **VERTICAL_OCR_KOREAN**: `object`
+> `const` **VERTICAL\_OCR\_KOREAN**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:219](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/constants/ocr/models.ts#L219)
+Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:219](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/constants/ocr/models.ts#L219)
 
 ## Type Declaration
 

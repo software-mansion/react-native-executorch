@@ -1,8 +1,8 @@
-# Variable: STYLE_TRANSFER_CANDY
+# Variable: STYLE\_TRANSFER\_CANDY
 
-> `const` **STYLE_TRANSFER_CANDY**: `object`
+> `const` **STYLE\_TRANSFER\_CANDY**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:289](https://github.com/software-mansion/react-native-executorch/blob/cf09248d1b9fa5a88d8413f22ade5e99a246be08/packages/react-native-executorch/src/constants/modelUrls.ts#L289)
+Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:289](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/constants/modelUrls.ts#L289)
 
 ## Type Declaration
 

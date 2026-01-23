@@ -1,11 +1,12 @@
 import { useEffect, useCallback, useState } from 'react';
 import { SpeechToTextModule } from '../../modules/natural_language_processing/SpeechToTextModule';
-import { DecodingOptions, SpeechToTextModelConfig } from '../../types/stt';
+import { DecodingOptions, SpeechToTextModelConfig, SpeechToTextType } from '../../types/stt';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
 /**
- *
+ * React hook for managing a Speech to Text (STT) instance.
+ * 
  * @param speechToTextConfiguration - Configuration object containing `model` source and optional `preventLoad` flag.
  * @returns Ready to use Speech to Text model.
  */
@@ -30,7 +31,7 @@ export const useSpeechToText = ({
    * Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
    */
   preventLoad?: boolean;
-}) => {
+}): SpeechToTextType => {
   const [error, setError] = useState<null | RnExecutorchError>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -141,66 +142,17 @@ export const useSpeechToText = ({
   );
 
   return {
-    /**
-     * Contains the error message if the model failed to load.
-     */
     error,
-
-    /**
-     * Indicates whether the model has successfully loaded and is ready for inference.
-     */
     isReady,
-
-    /**
-     * Indicates whether the model is currently processing an inference.
-     */
     isGenerating,
-
-    /**
-     * Tracks the progress of the model download process.
-     */
     downloadProgress,
-
-    /**
-     * Contains the part of the transcription that is finalized and will not change. Useful for displaying stable results during streaming.
-     */
     committedTranscription,
-
-    /**
-     * Contains the part of the transcription that is still being processed and may change. Useful for displaying live, partial results during streaming.
-     */
     nonCommittedTranscription,
-
-    /**
-     * Runs the encoding part of the model on the provided waveform. Passing `number[]` is deprecated.
-     */
     encode: stateWrapper(SpeechToTextModule.prototype.encode),
-
-    /**
-     * Runs the decoder of the model. Passing `number[]` is deprecated.
-     * @param waveform - The encoded audio data.
-     */
     decode: stateWrapper(SpeechToTextModule.prototype.decode),
-
-    /**
-     * Starts a transcription process for a given input array, which should be a waveform at 16kHz. The second argument is an options object, e.g. `{ language: 'es' }` for multilingual models. Resolves a promise with the output transcription when the model is finished. Passing `number[]` is deprecated.
-     */
     transcribe: stateWrapper(SpeechToTextModule.prototype.transcribe),
-
-    /**
-     * Starts a streaming transcription process. Use in combination with `streamInsert` to feed audio chunks and `streamStop` to end the stream. The argument is an options object, e.g. `{ language: 'es' }` for multilingual models. Updates `committedTranscription` and `nonCommittedTranscription` as transcription progresses.
-     * @param options - Decoding options including language.
-     */
     stream,
-
-    /**
-     * Stops the ongoing streaming transcription process.
-     */
     streamStop: wrapper(SpeechToTextModule.prototype.streamStop),
-
-    /**
-     * Inserts a chunk of audio data (sampled at 16kHz) into the ongoing streaming transcription. Call this repeatedly as new audio data becomes available. Passing `number[]` is deprecated.
-     */
     streamInsert: wrapper(SpeechToTextModule.prototype.streamInsert),
   };
 };
