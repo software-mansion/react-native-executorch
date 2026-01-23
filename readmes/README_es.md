@@ -1,5 +1,5 @@
 <div align="center">
-  <h1 align="center" style="display:inline-block">React Native ExecuTorch 
+  <h1 align="center" style="display:inline-block">React Native ExecuTorch
   </h1>
 </div>
 
@@ -9,7 +9,7 @@
   <a href="https://discord.gg/ZGqqY55qkP"><img src="https://img.shields.io/badge/Únete%20a%20nosotros-00008B?logo=discord&logoColor=white&style=for-the-badge" alt="Join our Discord community"></a>
   <a href="https://docs.swmansion.com/react-native-executorch/"><img src="https://img.shields.io/badge/Documentación-00008B?logo=googledocs&logoColor=white&style=for-the-badge" alt="Documentation"></a>
   <a href="https://swmansion.com/contact">
-    <img src="https://img.shields.io/badge/Contrátanos-00008B?logo=react&logoColor=white&style=for-the-badge" alt="Hire Us">
+    <img src="https://img.shields.io/badge/Contrátanos-00008B?logo=react&logoColor=white&color=darkgreen&style=for-the-badge" alt="Hire Us">
 </div>
 
 ![Banner de Software Mansion](https://github.com/user-attachments/assets/fa2c4735-e75c-4cc1-970d-88905d95e3a4)
@@ -55,7 +55,7 @@ Las versiones mínimas compatibles son:
 - Android 13
 - React Native 0.76
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > React Native ExecuTorch solo admite la [nueva arquitectura de React Native](https://reactnative.dev/architecture/landing-page).
 
 ## :earth_africa: Ejemplo del mundo real
@@ -136,7 +136,7 @@ Nuestra biblioteca incluye varios modelos de IA listos para usar; la lista compl
 
 ## :books: Documentación
 
-Consulta cómo nuestra biblioteca puede ayudarte a crear funciones de IA en React Native visitando nuestra documentación:  
+Consulta cómo nuestra biblioteca puede ayudarte a crear funciones de IA en React Native visitando nuestra documentación:
 https://docs.swmansion.com/react-native-executorch
 
 ## :balance_scale: Licencia

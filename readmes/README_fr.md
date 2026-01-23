@@ -1,5 +1,5 @@
 <div align="center">
-  <h1 align="center" style="display:inline-block">React Native ExecuTorch 
+  <h1 align="center" style="display:inline-block">React Native ExecuTorch
   </h1>
 </div>
 
@@ -9,7 +9,7 @@
   <a href="https://discord.gg/ZGqqY55qkP"><img src="https://img.shields.io/badge/Discord-Rejoignez%20nous-00008B?logo=discord&logoColor=white&style=for-the-badge" alt="Join our Discord community"></a>
   <a href="https://docs.swmansion.com/react-native-executorch/"><img src="https://img.shields.io/badge/Documentation-00008B?logo=googledocs&logoColor=white&style=for-the-badge" alt="Documentation"></a>
   <a href="https://swmansion.com/contact">
-    <img src="https://img.shields.io/badge/Engagez--nous-00008B?logo=react&logoColor=white&style=for-the-badge" alt="Hire Us">
+    <img src="https://img.shields.io/badge/Engagez--nous-00008B?logo=react&logoColor=white&color=darkgreen&style=for-the-badge" alt="Hire Us">
 </div>
 
 ![Bannière Software Mansion](https://github.com/user-attachments/assets/fa2c4735-e75c-4cc1-970d-88905d95e3a4)
@@ -55,7 +55,7 @@ Les versions minimales supportées sont :
 - Android 13
 - React Native 0.76
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > React Native ExecuTorch ne supporte que la [nouvelle architecture React Native](https://reactnative.dev/architecture/landing-page).
 
 ## :earth_africa: Exemple du monde réel
@@ -127,7 +127,7 @@ Ensuite, selon la plateforme, choisissez soit iOS soit Android :
 yarn expo run:< ios | android >
 ```
 
-> [!WARNING]  
+> [!WARNING]
 > L'exécution des LLM nécessite une quantité importante de RAM. Si vous rencontrez des plantages inattendus de l'application, essayez d'augmenter la quantité de RAM allouée à l'émulateur.
 
 ## :robot: Modèles prêts à l'emploi
@@ -136,7 +136,7 @@ Notre bibliothèque contient un certain nombre de modèles AI prêts à l'emploi
 
 ## :books: Documentation
 
-Découvrez comment notre bibliothèque peut vous aider à construire vos fonctionnalités AI avec React Native en visitant notre documentation :  
+Découvrez comment notre bibliothèque peut vous aider à construire vos fonctionnalités AI avec React Native en visitant notre documentation :
 https://docs.swmansion.com/react-native-executorch
 
 ## :balance_scale: Licence

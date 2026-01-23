@@ -1,5 +1,5 @@
 <div align="center">
-  <h1 align="center" style="display:inline-block">React Native ExecuTorch 
+  <h1 align="center" style="display:inline-block">React Native ExecuTorch
   </h1>
 </div>
 
@@ -9,7 +9,7 @@
   <a href="https://discord.gg/ZGqqY55qkP"><img src="https://img.shields.io/badge/Discord-Join%20Us-00008B?logo=discord&logoColor=white&style=for-the-badge" alt="Join our Discord community"></a>
   <a href="https://docs.swmansion.com/react-native-executorch/"><img src="https://img.shields.io/badge/Documentation-00008B?logo=googledocs&logoColor=white&style=for-the-badge" alt="Documentation"></a>
   <a href="https://swmansion.com/contact">
-    <img src="https://img.shields.io/badge/Hire%20Us-00008B?logo=react&logoColor=white&style=for-the-badge" alt="Hire Us">
+    <img src="https://img.shields.io/badge/Hire%20Us-00008B?logo=react&logoColor=white&color=darkgreen&style=for-the-badge" alt="Hire Us">
 </div>
 
 ![Software Mansion banner](https://github.com/user-attachments/assets/fa2c4735-e75c-4cc1-970d-88905d95e3a4)
@@ -55,7 +55,7 @@ React Native ExecuTorch, React Native और नेटिव प्लेटफ�
 - Android 13
 - React Native 0.76
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > React Native ExecuTorch केवल [नई React Native आर्किटेक्चर](https://reactnative.dev/architecture/landing-page) का समर्थन करता है।
 
 ## :earth_africa: वास्तविक दुनिया का उदाहरण
@@ -127,7 +127,7 @@ yarn
 yarn expo run:< ios | android >
 ```
 
-> [!WARNING]  
+> [!WARNING]
 > LLMs चलाना बड़ी मात्रा में RAM की मांग करता है। यदि आप अप्रत्याशित ऐप क्रैश का सामना कर रहे हैं, तो एमुलेटर को आवंटित RAM की मात्रा बढ़ाने का प्रयास करें।
 
 ## :robot: तैयार-निर्मित मॉडल
@@ -136,7 +136,7 @@ yarn expo run:< ios | android >
 
 ## :books: दस्तावेज़
 
-देखें कि हमारी लाइब्रेरी कैसे आपकी React Native AI विशेषताएँ बनाने में सहायता कर सकती है, हमारे डॉक्स पर जाकर:  
+देखें कि हमारी लाइब्रेरी कैसे आपकी React Native AI विशेषताएँ बनाने में सहायता कर सकती है, हमारे डॉक्स पर जाकर:
 https://docs.swmansion.com/react-native-executorch
 
 ## :balance_scale: लाइसेंस

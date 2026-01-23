@@ -9,7 +9,7 @@
   <a href="https://discord.gg/ZGqqY55qkP"><img src="https://img.shields.io/badge/Discord-Juntem--se%20a%20nós-00008B?logo=discord&logoColor=white&style=for-the-badge" alt="Join our Discord community"></a>
   <a href="https://docs.swmansion.com/react-native-executorch/"><img src="https://img.shields.io/badge/Documentação-00008B?logo=googledocs&logoColor=white&style=for-the-badge" alt="Documentation"></a>
   <a href="https://swmansion.com/contact">
-    <img src="https://img.shields.io/badge/Contrate--nos-00008B?logo=react&logoColor=white&style=for-the-badge" alt="Hire Us">
+    <img src="https://img.shields.io/badge/Contrate--nos-00008B?logo=react&logoColor=white&color=darkgreen&style=for-the-badge" alt="Hire Us">
   </a>
 </div>
 
@@ -56,7 +56,7 @@ As versões mínimas suportadas são:
 - Android 13
 - React Native 0.76
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > React Native ExecuTorch suporta apenas a [Nova Arquitetura do React Native](https://reactnative.dev/architecture/landing-page).
 
 ## :earth_africa: Exemplo do Mundo Real
@@ -128,7 +128,7 @@ Então, dependendo da plataforma, escolha iOS ou Android:
 yarn expo run:< ios | android >
 ```
 
-> [!WARNING]  
+> [!WARNING]
 > Executar LLMs requer uma quantidade significativa de RAM. Se você estiver enfrentando travamentos inesperados do aplicativo, tente aumentar a quantidade de RAM alocada para o emulador.
 
 ## :robot: Modelos Prontos para Uso
@@ -137,7 +137,7 @@ Nossa biblioteca possui vários modelos de IA prontos para uso; uma lista comple
 
 ## :books: Documentação
 
-Confira como nossa biblioteca pode ajudar você a construir recursos de IA no React Native visitando nossa documentação:  
+Confira como nossa biblioteca pode ajudar você a construir recursos de IA no React Native visitando nossa documentação:
 https://docs.swmansion.com/react-native-executorch
 
 ## :balance_scale: Licença
