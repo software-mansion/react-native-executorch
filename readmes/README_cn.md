@@ -1,5 +1,5 @@
 <div align="center">
-  <h1 align="center" style="display:inline-block">React Native ExecuTorch 
+  <h1 align="center" style="display:inline-block">React Native ExecuTorch
   </h1>
 </div>
 
@@ -9,7 +9,7 @@
   <a href="https://discord.gg/ZGqqY55qkP"><img src="https://img.shields.io/badge/Discord-加入我们-00008B?logo=discord&logoColor=white&style=for-the-badge" alt="Join our Discord community"></a>
   <a href="https://docs.swmansion.com/react-native-executorch/"><img src="https://img.shields.io/badge/文档-00008B?logo=googledocs&logoColor=white&style=for-the-badge" alt="Documentation"></a>
   <a href="https://swmansion.com/contact">
-    <img src="https://img.shields.io/badge/聘请我们-00008B?logo=react&logoColor=white&style=for-the-badge" alt="Hire Us">
+    <img src="https://img.shields.io/badge/聘请我们-00008B?logo=react&logoColor=white&color=darkgreen&style=for-the-badge" alt="Hire Us">
 </div>
 
 ![Software Mansion banner](https://github.com/user-attachments/assets/fa2c4735-e75c-4cc1-970d-88905d95e3a4)
@@ -55,7 +55,7 @@ React Native ExecuTorch 架起了 React Native 和原生平台功能之间的桥
 - Android 13
 - React Native 0.76
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > React Native ExecuTorch 仅支持 [New React Native architecture](https://reactnative.dev/architecture/landing-page)。
 
 ## :earth_africa: 实际案例
@@ -127,7 +127,7 @@ yarn
 yarn expo run:< ios | android >
 ```
 
-> [!WARNING]  
+> [!WARNING]
 > 运行 LLM 需要大量的 RAM。如果您遇到意外的应用崩溃，请尝试增加分配给模拟器的 RAM。
 
 ## :robot: 现成模型
@@ -136,7 +136,7 @@ yarn expo run:< ios | android >
 
 ## :books: 文档
 
-查看我们的文档，了解我们的库如何帮助您构建 React Native AI 功能：  
+查看我们的文档，了解我们的库如何帮助您构建 React Native AI 功能：
 https://docs.swmansion.com/react-native-executorch
 
 ## :balance_scale: 许可证

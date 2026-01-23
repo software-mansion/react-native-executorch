@@ -9,7 +9,7 @@
   <a href="https://discord.gg/ZGqqY55qkP"><img src="https://img.shields.io/badge/Discord-Join%20Us-00008B?logo=discord&logoColor=white&style=for-the-badge" alt="Join our Discord community"></a>
   <a href="https://docs.swmansion.com/react-native-executorch/"><img src="https://img.shields.io/badge/Documentation-00008B?logo=googledocs&logoColor=white&style=for-the-badge" alt="Documentation"></a>
   <a href="https://swmansion.com/contact">
-    <img src="https://img.shields.io/badge/Hire%20Us-00008B?logo=react&logoColor=white&style=for-the-badge" alt="Hire Us">
+    <img src="https://img.shields.io/badge/Hire%20Us-00008B?logo=react&logoColor=white&color=darkgreen&style=for-the-badge" alt="Hire Us">
   </a>
 </div>
 
