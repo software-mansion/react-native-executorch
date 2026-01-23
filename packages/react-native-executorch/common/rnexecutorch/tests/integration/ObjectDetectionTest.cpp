@@ -1,26 +1,46 @@
+#include "BaseModelTests.h"
 #include <gtest/gtest.h>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/models/object_detection/Constants.h>
 #include <rnexecutorch/models/object_detection/ObjectDetection.h>
-#include <string>
 
 using namespace rnexecutorch;
 using namespace rnexecutorch::models::object_detection;
+using namespace model_tests;
 
 constexpr auto VALID_OBJECT_DETECTION_MODEL_PATH =
     "ssdlite320-mobilenetv3-large.pte";
 constexpr auto VALID_TEST_IMAGE_PATH =
     "file:///data/local/tmp/rnexecutorch_tests/test_image.jpg";
 
-TEST(ObjectDetectionCtorTests, InvalidPathThrows) {
-  EXPECT_THROW(ObjectDetection("this_file_does_not_exist.pte", nullptr),
-               RnExecutorchError);
-}
+// ============================================================================
+// Common tests via typed test suite
+// ============================================================================
+namespace model_tests {
+template <> struct ModelTraits<ObjectDetection> {
+  using ModelType = ObjectDetection;
 
-TEST(ObjectDetectionCtorTests, ValidPathDoesntThrow) {
-  EXPECT_NO_THROW(ObjectDetection(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr));
-}
+  static ModelType createValid() {
+    return ModelType(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
+  }
 
+  static ModelType createInvalid() {
+    return ModelType("nonexistent.pte", nullptr);
+  }
+
+  static void callGenerate(ModelType &model) {
+    (void)model.generate(VALID_TEST_IMAGE_PATH, 0.5);
+  }
+};
+} // namespace model_tests
+
+using ObjectDetectionTypes = ::testing::Types<ObjectDetection>;
+INSTANTIATE_TYPED_TEST_SUITE_P(ObjectDetection, CommonModelTest,
+                               ObjectDetectionTypes);
+
+// ============================================================================
+// Model-specific tests
+// ============================================================================
 TEST(ObjectDetectionGenerateTests, InvalidImagePathThrows) {
   ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
   EXPECT_THROW((void)model.generate("nonexistent_image.jpg", 0.5),
@@ -30,7 +50,6 @@ TEST(ObjectDetectionGenerateTests, InvalidImagePathThrows) {
 TEST(ObjectDetectionGenerateTests, ValidImageReturnsResults) {
   ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
   auto results = model.generate(VALID_TEST_IMAGE_PATH, 0.3);
-  // May or may not have detections depending on image content
   EXPECT_GE(results.size(), 0u);
 }
 
@@ -72,13 +91,6 @@ TEST(ObjectDetectionGenerateTests, DetectionsHaveValidLabels) {
   }
 }
 
-TEST(ObjectDetectionUnloadTests, GenerateAfterUnloadThrows) {
-  ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
-  model.unload();
-  EXPECT_THROW((void)model.generate(VALID_TEST_IMAGE_PATH, 0.5),
-               RnExecutorchError);
-}
-
 TEST(ObjectDetectionInheritedTests, GetInputShapeWorks) {
   ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
   auto shape = model.getInputShape("forward", 0);
@@ -97,9 +109,4 @@ TEST(ObjectDetectionInheritedTests, GetMethodMetaWorks) {
   ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
   auto result = model.getMethodMeta("forward");
   EXPECT_TRUE(result.ok());
-}
-
-TEST(ObjectDetectionInheritedTests, GetMemoryLowerBoundReturnsPositive) {
-  ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
-  EXPECT_GT(model.getMemoryLowerBound(), 0u);
 }

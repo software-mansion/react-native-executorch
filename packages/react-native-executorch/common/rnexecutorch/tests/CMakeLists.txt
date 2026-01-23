@@ -1,12 +1,10 @@
-# Since this test suite needs access to prebuilt Android ExecuTorch / other 3p libs, we early return if the target is not Android
 if(NOT ANDROID_ABI)
-    message(FATAL_ERROR "This can be only built for Android simulator")
+    message(FATAL_ERROR "Tests can be only built for Android simulator")
 endif()
 
 cmake_minimum_required(VERSION 3.13)
 project(RNExecutorchTests)
 
-# C++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
@@ -16,7 +14,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 # react-native-executorch/       <- PACKAGE_ROOT
 # <monorepo-root>/               <- MONOREPO_ROOT
 # <monorepo-root>/third-party/   <- THIRD_PARTY_DIR
-
 set(RNEXECUTORCH_DIR "${CMAKE_SOURCE_DIR}/..")
 set(COMMON_DIR "${RNEXECUTORCH_DIR}/..")
 set(PACKAGE_ROOT "${COMMON_DIR}/..")
@@ -25,322 +22,221 @@ set(THIRD_PARTY_DIR "${MONOREPO_ROOT}/third-party")
 set(REACT_NATIVE_DIR "${MONOREPO_ROOT}/node_modules/react-native")
 set(ANDROID_THIRD_PARTY "${PACKAGE_ROOT}/third-party/android/libs/")
 
-# GoogleTest
+# Add Gtest as a subdirectory
 add_subdirectory(${THIRD_PARTY_DIR}/googletest ${PROJECT_BINARY_DIR}/googletest)
 
-# Include directories
-include_directories(${RNEXECUTORCH_DIR}/data_processing)
-include_directories(${RNEXECUTORCH_DIR})
-include_directories(${COMMON_DIR})
-include_directories(${PACKAGE_ROOT}/third-party/include)
-
-# React Native / JSI headers
-include_directories(${REACT_NATIVE_DIR}/ReactCommon)
-include_directories(${REACT_NATIVE_DIR}/ReactCommon/jsi)
-include_directories(${REACT_NATIVE_DIR}/ReactCommon/callinvoker)
-
-# Source files
-set(NUMERICAL_SOURCES ${RNEXECUTORCH_DIR}/data_processing/Numerical.cpp)
-set(BASEMODEL_SOURCES ${RNEXECUTORCH_DIR}/models/BaseModel.cpp)
-set(CLASSIFICATION_SOURCES ${RNEXECUTORCH_DIR}/models/classification/Classification.cpp)
-set(OBJECT_DETECTION_SOURCES
-  ${RNEXECUTORCH_DIR}/models/object_detection/ObjectDetection.cpp
-  ${RNEXECUTORCH_DIR}/models/object_detection/Utils.cpp
-)
-set(IMAGE_PROCESSING_SOURCES ${RNEXECUTORCH_DIR}/data_processing/ImageProcessing.cpp)
-set(BASE64_SOURCES ${RNEXECUTORCH_DIR}/data_processing/base64.cpp)
-set(ADA_SOURCES ${COMMON_DIR}/ada/ada.cpp)
-set(BASE_EMBEDDINGS_SOURCES ${RNEXECUTORCH_DIR}/models/embeddings/BaseEmbeddings.cpp)
-set(IMAGE_EMBEDDINGS_SOURCES ${RNEXECUTORCH_DIR}/models/embeddings/image/ImageEmbeddings.cpp)
-set(TEXT_EMBEDDINGS_SOURCES ${RNEXECUTORCH_DIR}/models/embeddings/text/TextEmbeddings.cpp)
-set(TOKENIZER_SOURCES ${RNEXECUTORCH_DIR}/TokenizerModule.cpp)
-set(STYLE_TRANSFER_SOURCES ${RNEXECUTORCH_DIR}/models/style_transfer/StyleTransfer.cpp)
-# set(IMAGE_SEGMENTATION_SOURCES
-#   ${RNEXECUTORCH_DIR}/models/image_segmentation/ImageSegmentation.cpp
-# )
-set(VAD_SOURCES
-  ${RNEXECUTORCH_DIR}/models/voice_activity_detection/VoiceActivityDetection.cpp
-  ${RNEXECUTORCH_DIR}/models/voice_activity_detection/Utils.cpp
-)
-set(DSP_SOURCES ${RNEXECUTORCH_DIR}/data_processing/dsp.cpp)
-set(GZIP_SOURCES ${RNEXECUTORCH_DIR}/data_processing/gzip.cpp)
-set(S2T_SOURCES
-  ${RNEXECUTORCH_DIR}/models/speech_to_text/SpeechToText.cpp
-  ${RNEXECUTORCH_DIR}/models/speech_to_text/asr/ASR.cpp
-  ${RNEXECUTORCH_DIR}/models/speech_to_text/stream/HypothesisBuffer.cpp
-  ${RNEXECUTORCH_DIR}/models/speech_to_text/stream/OnlineASRProcessor.cpp
-)
-set(RUNNER_SOURCES
-  ${COMMON_DIR}/runner/runner.cpp
-  ${COMMON_DIR}/runner/text_prefiller.cpp
-  ${COMMON_DIR}/runner/text_decoder_runner.cpp
-  ${COMMON_DIR}/runner/sampler.cpp
-  ${COMMON_DIR}/runner/arange_util.cpp
-)
-set(LLM_SOURCES
-  ${RNEXECUTORCH_DIR}/models/llm/LLM.cpp
-)
-set(TEXT_TO_IMAGE_SOURCES
-  ${RNEXECUTORCH_DIR}/models/text_to_image/TextToImage.cpp
-  ${RNEXECUTORCH_DIR}/models/text_to_image/Encoder.cpp
-  ${RNEXECUTORCH_DIR}/models/text_to_image/UNet.cpp
-  ${RNEXECUTORCH_DIR}/models/text_to_image/Decoder.cpp
-  ${RNEXECUTORCH_DIR}/models/text_to_image/Scheduler.cpp
+# ExecuTorch Prebuilt binaries
+add_library(executorch_prebuilt SHARED IMPORTED)
+set_target_properties(executorch_prebuilt PROPERTIES
+    IMPORTED_LOCATION "${ANDROID_THIRD_PARTY}/executorch/${ANDROID_ABI}/libexecutorch.so"
 )
 
-# Stubs for mocking JSI/React Native symbols
-set(JSI_STUBS ${CMAKE_SOURCE_DIR}/stubs/jsi_stubs.cpp)
+# pthreadpool and cpuinfo (needed for OpenMP/OpenCV)
+if(ANDROID_ABI STREQUAL "arm64-v8a")
+  add_library(pthreadpool SHARED IMPORTED)
+  set_target_properties(pthreadpool PROPERTIES
+      IMPORTED_LOCATION "${ANDROID_THIRD_PARTY}/pthreadpool/${ANDROID_ABI}/libpthreadpool.so"
+  )
 
-# Ada URL parser include
-include_directories(${COMMON_DIR}/ada)
+  add_library(cpuinfo SHARED IMPORTED)
+  set_target_properties(cpuinfo PROPERTIES
+      IMPORTED_LOCATION "${ANDROID_THIRD_PARTY}/cpuinfo/${ANDROID_ABI}/libcpuinfo.so"
+  )
 
-# OpenCV (static libraries)
+  set(EXECUTORCH_LIBS pthreadpool cpuinfo)
+else()
+  set(EXECUTORCH_LIBS "")
+endif()
+
+# OpenCV (Interface Library)
 set(OPENCV_LIBS_DIR "${ANDROID_THIRD_PARTY}/opencv/${ANDROID_ABI}")
-set(OPENCV_LIBS
-  ${OPENCV_LIBS_DIR}/libopencv_imgproc.a
-  ${OPENCV_LIBS_DIR}/libopencv_core.a
-  ${OPENCV_LIBS_DIR}/libopencv_photo.a
-  ${OPENCV_LIBS_DIR}/libopencv_video.a
-  ${OPENCV_LIBS_DIR}/libopencv_features2d.a
-  ${OPENCV_LIBS_DIR}/libopencv_highgui.a
-)
 set(OPENCV_THIRD_PARTY_DIR "${ANDROID_THIRD_PARTY}/opencv-third-party/${ANDROID_ABI}")
-file(GLOB OPENCV_THIRD_PARTY_LIBS "${OPENCV_THIRD_PARTY_DIR}/*.a")
 
-# Tokenizers-cpp (static libraries)
+if(ANDROID_ABI STREQUAL "arm64-v8a")
+  set(OPENCV_THIRD_PARTY_LIBS
+    "${OPENCV_THIRD_PARTY_DIR}/libkleidicv_hal.a"
+    "${OPENCV_THIRD_PARTY_DIR}/libkleidicv_thread.a"
+    "${OPENCV_THIRD_PARTY_DIR}/libkleidicv.a"
+  )
+elseif(ANDROID_ABI STREQUAL "x86_64")
+  set(OPENCV_THIRD_PARTY_LIBS "")
+endif()
+
+
+add_library(opencv_deps INTERFACE)
+target_link_libraries(opencv_deps INTERFACE
+    ${OPENCV_LIBS_DIR}/libopencv_core.a
+    ${OPENCV_LIBS_DIR}/libopencv_features2d.a
+    ${OPENCV_LIBS_DIR}/libopencv_highgui.a
+    ${OPENCV_LIBS_DIR}/libopencv_imgproc.a
+    ${OPENCV_LIBS_DIR}/libopencv_photo.a
+    ${OPENCV_LIBS_DIR}/libopencv_video.a
+    ${OPENCV_THIRD_PARTY_LIBS}
+    ${EXECUTORCH_LIBS}
+    z
+    dl
+    m
+    log
+)
+target_link_options(opencv_deps INTERFACE -fopenmp -static-openmp)
+
+# Tokenizers (Interface Library)
 set(TOKENIZERS_LIBS_DIR "${ANDROID_THIRD_PARTY}/tokenizers-cpp/${ANDROID_ABI}")
-set(TOKENIZERS_LIBS
-  ${TOKENIZERS_LIBS_DIR}/libtokenizers_cpp.a
-  ${TOKENIZERS_LIBS_DIR}/libtokenizers_c.a
-  ${TOKENIZERS_LIBS_DIR}/libsentencepiece.a
+add_library(tokenizers_deps INTERFACE)
+target_link_libraries(tokenizers_deps INTERFACE
+    ${TOKENIZERS_LIBS_DIR}/libtokenizers_cpp.a
+    ${TOKENIZERS_LIBS_DIR}/libtokenizers_c.a
+    ${TOKENIZERS_LIBS_DIR}/libsentencepiece.a
 )
 
-# Executables for the tests
-add_executable(NumericalTests NumericalTest.cpp ${NUMERICAL_SOURCES})
-add_executable(LogTests LogTest.cpp)
-add_executable(BaseModelTests BaseModelTest.cpp ${BASEMODEL_SOURCES} ${JSI_STUBS})
-add_executable(ClassificationTests ClassificationTest.cpp
-  ${CLASSIFICATION_SOURCES}
-  ${BASEMODEL_SOURCES}
-  ${IMAGE_PROCESSING_SOURCES}
-  ${NUMERICAL_SOURCES}
-  ${BASE64_SOURCES}
-  ${ADA_SOURCES}
-  ${JSI_STUBS}
-)
-add_executable(ObjectDetectionTests ObjectDetectionTest.cpp
-  ${OBJECT_DETECTION_SOURCES}
-  ${BASEMODEL_SOURCES}
-  ${IMAGE_PROCESSING_SOURCES}
-  ${NUMERICAL_SOURCES}
-  ${BASE64_SOURCES}
-  ${ADA_SOURCES}
-  ${JSI_STUBS}
-)
-add_executable(ImageEmbeddingsTests ImageEmbeddingsTest.cpp
-  ${IMAGE_EMBEDDINGS_SOURCES}
-  ${BASE_EMBEDDINGS_SOURCES}
-  ${BASEMODEL_SOURCES}
-  ${IMAGE_PROCESSING_SOURCES}
-  ${NUMERICAL_SOURCES}
-  ${BASE64_SOURCES}
-  ${ADA_SOURCES}
-  ${JSI_STUBS}
-)
-add_executable(TextEmbeddingsTests TextEmbeddingsTest.cpp
-  ${TEXT_EMBEDDINGS_SOURCES}
-  ${BASE_EMBEDDINGS_SOURCES}
-  ${BASEMODEL_SOURCES}
-  ${TOKENIZER_SOURCES}
-  ${NUMERICAL_SOURCES}
-  ${JSI_STUBS}
-)
-add_executable(StyleTransferTests StyleTransferTest.cpp
-  ${STYLE_TRANSFER_SOURCES}
-  ${BASEMODEL_SOURCES}
-  ${IMAGE_PROCESSING_SOURCES}
-  ${NUMERICAL_SOURCES}
-  ${BASE64_SOURCES}
-  ${ADA_SOURCES}
-  ${JSI_STUBS}
+# Source Definitions
+set(CORE_SOURCES
+    ${RNEXECUTORCH_DIR}/models/BaseModel.cpp
+    ${RNEXECUTORCH_DIR}/data_processing/Numerical.cpp
+    ${CMAKE_SOURCE_DIR}/integration/stubs/jsi_stubs.cpp
 )
 
-# add_executable(ImageSegmentationTests ImageSegmentationTest.cpp
-#   ${IMAGE_SEGMENTATION_SOURCES}
-#   ${BASEMODEL_SOURCES}
-#   ${IMAGE_PROCESSING_SOURCES}
-#   ${NUMERICAL_SOURCES}
-#   ${BASE64_SOURCES}
-#   ${ADA_SOURCES}
-#   ${JSI_STUBS}
-# )
-
-add_executable(VADTests VoiceActivityDetectionTest.cpp
-  ${VAD_SOURCES}
-  ${BASEMODEL_SOURCES}
-  ${DSP_SOURCES}
-  ${JSI_STUBS}
-)
-add_executable(TokenizerModuleTests TokenizerModuleTest.cpp
-  ${TOKENIZER_SOURCES}
-  ${JSI_STUBS}
-)
-add_executable(SpeechToTextTests SpeechToTextTest.cpp
-  ${S2T_SOURCES}
-  ${BASEMODEL_SOURCES}
-  ${TOKENIZER_SOURCES}
-  ${NUMERICAL_SOURCES}
-  ${GZIP_SOURCES}
-  ${DSP_SOURCES}
-  ${JSI_STUBS}
-)
-add_executable(LLMTests LLMTest.cpp
-  ${LLM_SOURCES}
-  ${RUNNER_SOURCES}
-  ${BASEMODEL_SOURCES}
-  ${JSI_STUBS}
-)
-add_executable(TextToImageTests TextToImageTest.cpp
-  ${TEXT_TO_IMAGE_SOURCES}
-  ${TEXT_EMBEDDINGS_SOURCES}
-  ${BASE_EMBEDDINGS_SOURCES}
-  ${BASEMODEL_SOURCES}
-  ${TOKENIZER_SOURCES}
-  ${NUMERICAL_SOURCES}
-  ${JSI_STUBS}
+set(IMAGE_UTILS_SOURCES
+    ${RNEXECUTORCH_DIR}/data_processing/ImageProcessing.cpp
+    ${RNEXECUTORCH_DIR}/data_processing/base64.cpp
+    ${COMMON_DIR}/ada/ada.cpp
 )
 
-# Libraries linking
-target_link_libraries(NumericalTests gtest gtest_main)
-target_link_libraries(LogTests gtest gtest_main log)
-target_link_libraries(BaseModelTests
-  PRIVATE
-  ${ANDROID_THIRD_PARTY}/executorch/${ANDROID_ABI}/libexecutorch.so
-  gtest
-  gtest_main
-  log
-)
-target_link_options(ClassificationTests PRIVATE -fopenmp -static-openmp)
-target_link_libraries(ClassificationTests
-  PRIVATE
-  ${ANDROID_THIRD_PARTY}/executorch/${ANDROID_ABI}/libexecutorch.so
-  ${OPENCV_LIBS}
-  ${OPENCV_THIRD_PARTY_LIBS}
-  z
-  gtest
-  gtest_main
-  log
-)
-target_link_options(ObjectDetectionTests PRIVATE -fopenmp -static-openmp)
-target_link_libraries(ObjectDetectionTests
-  PRIVATE
-  ${ANDROID_THIRD_PARTY}/executorch/${ANDROID_ABI}/libexecutorch.so
-  ${OPENCV_LIBS}
-  ${OPENCV_THIRD_PARTY_LIBS}
-  z
-  gtest
-  gtest_main
-  log
-)
-target_link_options(ImageEmbeddingsTests PRIVATE -fopenmp -static-openmp)
-target_link_libraries(ImageEmbeddingsTests
-  PRIVATE
-  ${ANDROID_THIRD_PARTY}/executorch/${ANDROID_ABI}/libexecutorch.so
-  ${OPENCV_LIBS}
-  ${OPENCV_THIRD_PARTY_LIBS}
-  z
-  gtest
-  gtest_main
-  log
-)
-target_link_libraries(TextEmbeddingsTests
-  PRIVATE
-  ${ANDROID_THIRD_PARTY}/executorch/${ANDROID_ABI}/libexecutorch.so
-  ${TOKENIZERS_LIBS}
-  gtest
-  gtest_main
-  log
-)
-target_link_options(StyleTransferTests PRIVATE -fopenmp -static-openmp)
-target_link_libraries(StyleTransferTests
-  PRIVATE
-  ${ANDROID_THIRD_PARTY}/executorch/${ANDROID_ABI}/libexecutorch.so
-  ${OPENCV_LIBS}
-  ${OPENCV_THIRD_PARTY_LIBS}
-  z
-  gtest
-  gtest_main
-  log
+set(TOKENIZER_SOURCES ${RNEXECUTORCH_DIR}/TokenizerModule.cpp)
+set(DSP_SOURCES ${RNEXECUTORCH_DIR}/data_processing/dsp.cpp)
+
+# Core Library
+add_library(rntests_core STATIC ${CORE_SOURCES})
+
+target_include_directories(rntests_core PUBLIC
+    ${RNEXECUTORCH_DIR}/data_processing
+    ${RNEXECUTORCH_DIR}
+    ${COMMON_DIR}
+    ${PACKAGE_ROOT}/third-party/include
+    ${REACT_NATIVE_DIR}/ReactCommon
+    ${REACT_NATIVE_DIR}/ReactCommon/jsi
+    ${REACT_NATIVE_DIR}/ReactCommon/callinvoker
+    ${COMMON_DIR}/ada
 )
 
-# target_link_options(ImageSegmentationTests PRIVATE -fopenmp -static-openmp)
-# target_link_libraries(ImageSegmentationTests
-#   PRIVATE
-#   ${ANDROID_THIRD_PARTY}/executorch/${ANDROID_ABI}/libexecutorch.so
-#   ${OPENCV_LIBS}
-#   ${OPENCV_THIRD_PARTY_LIBS}
-#   z
-#   gtest
-#   gtest_main
-#   log
-# )
-
-target_link_libraries(VADTests
-  PRIVATE
-  ${ANDROID_THIRD_PARTY}/executorch/${ANDROID_ABI}/libexecutorch.so
-  gtest
-  gtest_main
-  log
-)
-target_link_libraries(TokenizerModuleTests
-  PRIVATE
-  ${TOKENIZERS_LIBS}
-  gtest
-  gtest_main
-  log
-)
-target_link_libraries(SpeechToTextTests
-  PRIVATE
-  ${ANDROID_THIRD_PARTY}/executorch/${ANDROID_ABI}/libexecutorch.so
-  ${TOKENIZERS_LIBS}
-  z
-  gtest
-  gtest_main
-  log
-)
-target_link_libraries(LLMTests
-  PRIVATE
-  ${ANDROID_THIRD_PARTY}/executorch/${ANDROID_ABI}/libexecutorch.so
-  ${TOKENIZERS_LIBS}
-  gtest
-  gtest_main
-  log
-)
-target_link_libraries(TextToImageTests
-  PRIVATE
-  ${ANDROID_THIRD_PARTY}/executorch/${ANDROID_ABI}/libexecutorch.so
-  ${TOKENIZERS_LIBS}
-  gtest
-  gtest_main
-  log
+target_link_libraries(rntests_core PUBLIC
+    executorch_prebuilt
+    gtest
+    log
 )
 
-# Add 16kB page size
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-z,max-page-size=16384")
-
-# Testing functionalities
 enable_testing()
-add_test(NAME NumericalTests COMMAND NumericalTests)
-add_test(NAME LogTests COMMAND LogTests)
-add_test(NAME BaseModelTests COMMAND BaseModelTests)
-add_test(NAME ClassificationTests COMMAND ClassificationTests)
-add_test(NAME ObjectDetectionTests COMMAND ObjectDetectionTests)
-add_test(NAME ImageEmbeddingsTests COMMAND ImageEmbeddingsTests)
-add_test(NAME TextEmbeddingsTests COMMAND TextEmbeddingsTests)
-add_test(NAME StyleTransferTests COMMAND StyleTransferTests)
-add_test(NAME VADTests COMMAND VADTests)
-add_test(NAME TokenizerModuleTests COMMAND TokenizerModuleTests)
-add_test(NAME SpeechToTextTests COMMAND SpeechToTextTests)
-add_test(NAME LLMTests COMMAND LLMTests)
-# add_test(NAME ImageSegmentationTests COMMAND ImageSegmentationTests)
-add_test(NAME TextToImageTests COMMAND TextToImageTests)
+function(add_rn_test TEST_TARGET TEST_FILENAME)
+    cmake_parse_arguments(ARG "" "" "SOURCES;LIBS" ${ARGN})
+    # Create executable using the explicit filename provided
+    add_executable(${TEST_TARGET} ${TEST_FILENAME} ${ARG_SOURCES})
+
+    target_link_libraries(${TEST_TARGET} PRIVATE rntests_core gtest_main ${ARG_LIBS})
+    target_link_options(${TEST_TARGET} PRIVATE "LINKER:-z,max-page-size=16384")
+
+    add_test(NAME ${TEST_TARGET} COMMAND ${TEST_TARGET})
+endfunction()
+
+add_rn_test(NumericalTests unit/NumericalTest.cpp)
+add_rn_test(LogTests unit/LogTest.cpp)
+add_rn_test(BaseModelTests integration/BaseModelTest.cpp)
+
+add_rn_test(ClassificationTests integration/ClassificationTest.cpp
+    SOURCES
+        ${RNEXECUTORCH_DIR}/models/classification/Classification.cpp
+        ${IMAGE_UTILS_SOURCES}
+    LIBS opencv_deps
+)
+
+add_rn_test(ObjectDetectionTests integration/ObjectDetectionTest.cpp
+    SOURCES
+        ${RNEXECUTORCH_DIR}/models/object_detection/ObjectDetection.cpp
+        ${RNEXECUTORCH_DIR}/models/object_detection/Utils.cpp
+        ${IMAGE_UTILS_SOURCES}
+    LIBS opencv_deps
+)
+
+add_rn_test(ImageEmbeddingsTests integration/ImageEmbeddingsTest.cpp
+    SOURCES
+        ${RNEXECUTORCH_DIR}/models/embeddings/image/ImageEmbeddings.cpp
+        ${RNEXECUTORCH_DIR}/models/embeddings/BaseEmbeddings.cpp
+        ${IMAGE_UTILS_SOURCES}
+    LIBS opencv_deps
+)
+
+add_rn_test(TextEmbeddingsTests integration/TextEmbeddingsTest.cpp
+    SOURCES
+        ${RNEXECUTORCH_DIR}/models/embeddings/text/TextEmbeddings.cpp
+        ${RNEXECUTORCH_DIR}/models/embeddings/BaseEmbeddings.cpp
+        ${TOKENIZER_SOURCES}
+    LIBS tokenizers_deps
+)
+
+add_rn_test(StyleTransferTests integration/StyleTransferTest.cpp
+    SOURCES
+        ${RNEXECUTORCH_DIR}/models/style_transfer/StyleTransfer.cpp
+        ${IMAGE_UTILS_SOURCES}
+    LIBS opencv_deps
+)
+
+add_rn_test(VADTests integration/VoiceActivityDetectionTest.cpp
+    SOURCES
+        ${RNEXECUTORCH_DIR}/models/voice_activity_detection/VoiceActivityDetection.cpp
+        ${RNEXECUTORCH_DIR}/models/voice_activity_detection/Utils.cpp
+        ${DSP_SOURCES}
+)
+
+add_rn_test(TokenizerModuleTests integration/TokenizerModuleTest.cpp
+    SOURCES ${TOKENIZER_SOURCES}
+    LIBS tokenizers_deps
+)
+
+add_rn_test(SpeechToTextTests integration/SpeechToTextTest.cpp
+    SOURCES
+        ${RNEXECUTORCH_DIR}/models/speech_to_text/SpeechToText.cpp
+        ${RNEXECUTORCH_DIR}/models/speech_to_text/asr/ASR.cpp
+        ${RNEXECUTORCH_DIR}/models/speech_to_text/stream/HypothesisBuffer.cpp
+        ${RNEXECUTORCH_DIR}/models/speech_to_text/stream/OnlineASRProcessor.cpp
+        ${RNEXECUTORCH_DIR}/data_processing/gzip.cpp
+        ${TOKENIZER_SOURCES}
+        ${DSP_SOURCES}
+    LIBS tokenizers_deps z
+)
+
+add_rn_test(LLMTests integration/LLMTest.cpp
+    SOURCES
+        ${RNEXECUTORCH_DIR}/models/llm/LLM.cpp
+        ${COMMON_DIR}/runner/runner.cpp
+        ${COMMON_DIR}/runner/text_prefiller.cpp
+        ${COMMON_DIR}/runner/text_decoder_runner.cpp
+        ${COMMON_DIR}/runner/sampler.cpp
+        ${COMMON_DIR}/runner/arange_util.cpp
+    LIBS tokenizers_deps
+)
+
+add_rn_test(TextToImageTests integration/TextToImageTest.cpp
+    SOURCES
+        ${RNEXECUTORCH_DIR}/models/text_to_image/TextToImage.cpp
+        ${RNEXECUTORCH_DIR}/models/text_to_image/Encoder.cpp
+        ${RNEXECUTORCH_DIR}/models/text_to_image/UNet.cpp
+        ${RNEXECUTORCH_DIR}/models/text_to_image/Decoder.cpp
+        ${RNEXECUTORCH_DIR}/models/text_to_image/Scheduler.cpp
+        ${RNEXECUTORCH_DIR}/models/embeddings/text/TextEmbeddings.cpp
+        ${RNEXECUTORCH_DIR}/models/embeddings/BaseEmbeddings.cpp
+        ${TOKENIZER_SOURCES}
+    LIBS tokenizers_deps
+)
+
+add_rn_test(OCRTests integration/OCRTest.cpp
+    SOURCES
+        ${RNEXECUTORCH_DIR}/models/ocr/OCR.cpp
+        ${RNEXECUTORCH_DIR}/models/ocr/CTCLabelConverter.cpp
+        ${RNEXECUTORCH_DIR}/models/ocr/Detector.cpp
+        ${RNEXECUTORCH_DIR}/models/ocr/RecognitionHandler.cpp
+        ${RNEXECUTORCH_DIR}/models/ocr/Recognizer.cpp
+        ${RNEXECUTORCH_DIR}/models/ocr/utils/DetectorUtils.cpp
+        ${RNEXECUTORCH_DIR}/models/ocr/utils/RecognitionHandlerUtils.cpp
+        ${RNEXECUTORCH_DIR}/models/ocr/utils/RecognizerUtils.cpp
+        ${IMAGE_UTILS_SOURCES}
+    LIBS opencv_deps
+)

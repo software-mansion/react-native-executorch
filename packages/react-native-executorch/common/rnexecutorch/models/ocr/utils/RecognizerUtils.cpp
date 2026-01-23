@@ -7,7 +7,15 @@ cv::Mat softmax(const cv::Mat &inputs) {
   cv::Mat maxVal;
   cv::reduce(inputs, maxVal, 1, cv::REDUCE_MAX, CV_32F);
   cv::Mat expInputs;
-  cv::exp(inputs - cv::repeat(maxVal, 1, inputs.cols), expInputs);
+  cv::Mat rzecz = inputs - cv::repeat(maxVal, 1, inputs.cols);
+  // Manually compute exp to avoid SIMD issues
+  rzecz.convertTo(rzecz, CV_32F);
+  expInputs = cv::Mat(rzecz.size(), CV_32F);
+  for (int i = 0; i < rzecz.rows; i++) {
+    for (int j = 0; j < rzecz.cols; j++) {
+      expInputs.at<float>(i, j) = std::exp(rzecz.at<float>(i, j));
+    }
+  }
   cv::Mat sumExp;
   cv::reduce(expInputs, sumExp, 1, cv::REDUCE_SUM, CV_32F);
   cv::Mat softmaxOutput = expInputs / cv::repeat(sumExp, 1, inputs.cols);

@@ -1,3 +1,4 @@
+#include "BaseModelTests.h"
 #include <gtest/gtest.h>
 #include <memory>
 #include <string>
@@ -8,6 +9,7 @@
 
 using namespace rnexecutorch;
 using namespace rnexecutorch::models::llm;
+using namespace model_tests;
 
 constexpr auto VALID_MODEL_PATH = "smolLm2_135M_8da4w.pte";
 constexpr auto VALID_TOKENIZER_PATH = "smollm_tokenizer.json";
@@ -27,25 +29,42 @@ std::string formatChatML(const std::string &systemPrompt,
          "<|im_start|>assistant\n";
 }
 
+// ============================================================================
+// Common tests via typed test suite
+// ============================================================================
+namespace model_tests {
+template <> struct ModelTraits<LLM> {
+  using ModelType = LLM;
+
+  static ModelType createValid() {
+    return ModelType(VALID_MODEL_PATH, VALID_TOKENIZER_PATH,
+                     rnexecutorch::createMockCallInvoker());
+  }
+
+  static ModelType createInvalid() {
+    return ModelType("nonexistent.pte", VALID_TOKENIZER_PATH,
+                     rnexecutorch::createMockCallInvoker());
+  }
+
+  static void callGenerate(ModelType &model) {
+    std::string prompt = formatChatML(SYSTEM_PROMPT, "Hello");
+    (void)model.generate(prompt, nullptr);
+  }
+};
+} // namespace model_tests
+
+using LLMTypes = ::testing::Types<LLM>;
+INSTANTIATE_TYPED_TEST_SUITE_P(LLM, CommonModelTest, LLMTypes);
+
+// ============================================================================
+// LLM-specific fixture tests
+// ============================================================================
 class LLMTest : public ::testing::Test {
 protected:
   std::shared_ptr<facebook::react::CallInvoker> mockInvoker_;
 
   void SetUp() override { mockInvoker_ = createMockCallInvoker(); }
 };
-
-TEST_F(LLMTest, LoadModel) {
-  LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
-  // Model loads in constructor, if we get here it succeeded
-  SUCCEED();
-}
-
-TEST_F(LLMTest, GetMemoryLowerBound) {
-  LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
-  size_t memoryBound = model.getMemoryLowerBound();
-  // Should be at least the size of the model file
-  EXPECT_GT(memoryBound, 0);
-}
 
 TEST_F(LLMTest, GetGeneratedTokenCountInitiallyZero) {
   LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
@@ -62,7 +81,6 @@ TEST_F(LLMTest, SetTemperature) {
 
 TEST_F(LLMTest, SetTopp) {
   LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
-  // Should not throw
   EXPECT_NO_THROW(model.setTopp(0.9f));
   EXPECT_NO_THROW(model.setTopp(0.5f));
   EXPECT_NO_THROW(model.setTopp(1.0f));
@@ -80,17 +98,9 @@ TEST_F(LLMTest, SetTimeInterval) {
   EXPECT_NO_THROW(model.setTimeInterval(500));
 }
 
-TEST_F(LLMTest, UnloadModel) {
-  LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
-  EXPECT_NO_THROW(model.unload());
-  // After unload, generated token count should still return 0
-  EXPECT_EQ(model.getGeneratedTokenCount(), 0);
-}
-
 TEST_F(LLMTest, InterruptThrowsWhenUnloaded) {
   LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
   model.unload();
-  // Should throw since model is unloaded
   EXPECT_THROW(model.interrupt(), RnExecutorchError);
 }
 
@@ -104,12 +114,13 @@ TEST_F(LLMTest, SettersThrowWhenUnloaded) {
   EXPECT_THROW(model.setTimeInterval(100), RnExecutorchError);
 }
 
-TEST_F(LLMTest, GenerateProducesOutput) {
+TEST_F(LLMTest, GenerateProducesValidOutput) {
   LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
+  model.setTemperature(0.0f);
   std::string prompt =
       formatChatML(SYSTEM_PROMPT, "Repeat exactly this: `naszponcilem testy`");
   std::string output = model.generate(prompt, nullptr);
-  EXPECT_FALSE(output.empty());
+  EXPECT_EQ(output, "`naszponcilem testy`<|im_end|>");
 }
 
 TEST_F(LLMTest, GenerateUpdatesTokenCount) {
@@ -119,12 +130,4 @@ TEST_F(LLMTest, GenerateUpdatesTokenCount) {
       formatChatML(SYSTEM_PROMPT, "Repeat exactly this: 'naszponcilem testy'");
   model.generate(prompt, nullptr);
   EXPECT_GT(model.getGeneratedTokenCount(), 0);
-}
-
-TEST_F(LLMTest, GenerateThrowsWhenUnloaded) {
-  LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
-  model.unload();
-  std::string prompt =
-      formatChatML(SYSTEM_PROMPT, "Repeat exactly this: `naszponcilem testy`");
-  EXPECT_THROW(model.generate(prompt, nullptr), RnExecutorchError);
 }

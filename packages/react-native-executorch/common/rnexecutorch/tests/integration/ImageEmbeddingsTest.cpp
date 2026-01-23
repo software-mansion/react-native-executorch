@@ -1,11 +1,12 @@
+#include "BaseModelTests.h"
 #include <cmath>
 #include <gtest/gtest.h>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/models/embeddings/image/ImageEmbeddings.h>
-#include <string>
 
 using namespace rnexecutorch;
 using namespace rnexecutorch::models::embeddings;
+using namespace model_tests;
 
 constexpr auto VALID_IMAGE_EMBEDDINGS_MODEL_PATH =
     "clip-vit-base-patch32-vision_xnnpack.pte";
@@ -13,15 +14,34 @@ constexpr auto VALID_TEST_IMAGE_PATH =
     "file:///data/local/tmp/rnexecutorch_tests/test_image.jpg";
 constexpr size_t CLIP_EMBEDDING_DIMENSIONS = 512;
 
-TEST(ImageEmbeddingsCtorTests, InvalidPathThrows) {
-  EXPECT_THROW(ImageEmbeddings("this_file_does_not_exist.pte", nullptr),
-               RnExecutorchError);
-}
+// ============================================================================
+// Common tests via typed test suite
+// ============================================================================
+namespace model_tests {
+template <> struct ModelTraits<ImageEmbeddings> {
+  using ModelType = ImageEmbeddings;
 
-TEST(ImageEmbeddingsCtorTests, ValidPathDoesntThrow) {
-  EXPECT_NO_THROW(ImageEmbeddings(VALID_IMAGE_EMBEDDINGS_MODEL_PATH, nullptr));
-}
+  static ModelType createValid() {
+    return ModelType(VALID_IMAGE_EMBEDDINGS_MODEL_PATH, nullptr);
+  }
 
+  static ModelType createInvalid() {
+    return ModelType("nonexistent.pte", nullptr);
+  }
+
+  static void callGenerate(ModelType &model) {
+    (void)model.generate(VALID_TEST_IMAGE_PATH);
+  }
+};
+} // namespace model_tests
+
+using ImageEmbeddingsTypes = ::testing::Types<ImageEmbeddings>;
+INSTANTIATE_TYPED_TEST_SUITE_P(ImageEmbeddings, CommonModelTest,
+                               ImageEmbeddingsTypes);
+
+// ============================================================================
+// Model-specific tests
+// ============================================================================
 TEST(ImageEmbeddingsGenerateTests, InvalidImagePathThrows) {
   ImageEmbeddings model(VALID_IMAGE_EMBEDDINGS_MODEL_PATH, nullptr);
   EXPECT_THROW((void)model.generate("nonexistent_image.jpg"),
@@ -70,12 +90,6 @@ TEST(ImageEmbeddingsGenerateTests, ResultsContainValidValues) {
   }
 }
 
-TEST(ImageEmbeddingsUnloadTests, GenerateAfterUnloadThrows) {
-  ImageEmbeddings model(VALID_IMAGE_EMBEDDINGS_MODEL_PATH, nullptr);
-  model.unload();
-  EXPECT_THROW((void)model.generate(VALID_TEST_IMAGE_PATH), RnExecutorchError);
-}
-
 TEST(ImageEmbeddingsInheritedTests, GetInputShapeWorks) {
   ImageEmbeddings model(VALID_IMAGE_EMBEDDINGS_MODEL_PATH, nullptr);
   auto shape = model.getInputShape("forward", 0);
@@ -94,9 +108,4 @@ TEST(ImageEmbeddingsInheritedTests, GetMethodMetaWorks) {
   ImageEmbeddings model(VALID_IMAGE_EMBEDDINGS_MODEL_PATH, nullptr);
   auto result = model.getMethodMeta("forward");
   EXPECT_TRUE(result.ok());
-}
-
-TEST(ImageEmbeddingsInheritedTests, GetMemoryLowerBoundReturnsPositive) {
-  ImageEmbeddings model(VALID_IMAGE_EMBEDDINGS_MODEL_PATH, nullptr);
-  EXPECT_GT(model.getMemoryLowerBound(), 0u);
 }

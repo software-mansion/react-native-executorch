@@ -1,3 +1,4 @@
+#include "BaseModelTests.h"
 #include "TestUtils.h"
 #include <gtest/gtest.h>
 #include <rnexecutorch/Error.h>
@@ -6,18 +7,38 @@
 using namespace rnexecutorch;
 using namespace rnexecutorch::models::voice_activity_detection;
 using namespace test_utils;
+using namespace model_tests;
 
 constexpr auto VALID_VAD_MODEL_PATH = "fsmn-vad_xnnpack.pte";
 
-TEST(VADCtorTests, InvalidPathThrows) {
-  EXPECT_THROW(VoiceActivityDetection("this_file_does_not_exist.pte", nullptr),
-               RnExecutorchError);
-}
+// ============================================================================
+// Common tests via typed test suite
+// ============================================================================
+namespace model_tests {
+template <> struct ModelTraits<VoiceActivityDetection> {
+  using ModelType = VoiceActivityDetection;
 
-TEST(VADCtorTests, ValidPathDoesntThrow) {
-  EXPECT_NO_THROW(VoiceActivityDetection(VALID_VAD_MODEL_PATH, nullptr));
-}
+  static ModelType createValid() {
+    return ModelType(VALID_VAD_MODEL_PATH, nullptr);
+  }
 
+  static ModelType createInvalid() {
+    return ModelType("nonexistent.pte", nullptr);
+  }
+
+  static void callGenerate(ModelType &model) {
+    auto audio = loadAudioFromFile("test_audio_float.raw");
+    (void)model.generate(audio);
+  }
+};
+} // namespace model_tests
+
+using VADTypes = ::testing::Types<VoiceActivityDetection>;
+INSTANTIATE_TYPED_TEST_SUITE_P(VAD, CommonModelTest, VADTypes);
+
+// ============================================================================
+// Model-specific tests
+// ============================================================================
 TEST(VADGenerateTests, SilenceReturnsNoSegments) {
   VoiceActivityDetection model(VALID_VAD_MODEL_PATH, nullptr);
   auto silence = generateSilence(16000 * 5);
@@ -59,14 +80,6 @@ TEST(VADGenerateTests, LongAudioSegmentBoundsValid) {
   }
 }
 
-TEST(VADUnloadTests, GenerateAfterUnloadThrows) {
-  VoiceActivityDetection model(VALID_VAD_MODEL_PATH, nullptr);
-  model.unload();
-  auto audio = loadAudioFromFile("test_audio_float.raw");
-  ASSERT_FALSE(audio.empty());
-  EXPECT_THROW((void)model.generate(audio), RnExecutorchError);
-}
-
 TEST(VADInheritedTests, GetInputShapeWorks) {
   VoiceActivityDetection model(VALID_VAD_MODEL_PATH, nullptr);
   auto shape = model.getInputShape("forward", 0);
@@ -83,9 +96,4 @@ TEST(VADInheritedTests, GetMethodMetaWorks) {
   VoiceActivityDetection model(VALID_VAD_MODEL_PATH, nullptr);
   auto result = model.getMethodMeta("forward");
   EXPECT_TRUE(result.ok());
-}
-
-TEST(VADInheritedTests, GetMemoryLowerBoundReturnsPositive) {
-  VoiceActivityDetection model(VALID_VAD_MODEL_PATH, nullptr);
-  EXPECT_GT(model.getMemoryLowerBound(), 0u);
 }

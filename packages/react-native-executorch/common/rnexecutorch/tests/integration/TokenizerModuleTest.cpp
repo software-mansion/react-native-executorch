@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/TokenizerModule.h>
-#include <string>
-#include <vector>
 
 using namespace rnexecutorch;
 
@@ -15,6 +13,11 @@ TEST(TokenizerCtorTests, InvalidPathThrows) {
 
 TEST(TokenizerCtorTests, ValidPathDoesntThrow) {
   EXPECT_NO_THROW(TokenizerModule(VALID_TOKENIZER_PATH, nullptr));
+}
+
+TEST(TokenizerMemoryTests, MemoryLowerBoundIsPositive) {
+  TokenizerModule tokenizer(VALID_TOKENIZER_PATH, nullptr);
+  EXPECT_GT(tokenizer.getMemoryLowerBound(), 0u);
 }
 
 TEST(TokenizerEncodeTests, EmptyStringReturnsEmptyString) {
@@ -80,9 +83,4 @@ TEST(TokenizerVocabTests, VocabSizeIsReasonable) {
   auto vocabSize = tokenizer.getVocabSize();
   EXPECT_GT(vocabSize, 1000u);
   EXPECT_LT(vocabSize, 1000000u);
-}
-
-TEST(TokenizerMemoryTests, MemoryLowerBoundIsPositive) {
-  TokenizerModule tokenizer(VALID_TOKENIZER_PATH, nullptr);
-  EXPECT_GT(tokenizer.getMemoryLowerBound(), 0u);
 }

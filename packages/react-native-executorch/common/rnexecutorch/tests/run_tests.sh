@@ -3,10 +3,16 @@ set -e
 
 # Parse arguments
 REFRESH_MODELS=false
+SKIP_BUILD=false
+
 for arg in "$@"; do
   case $arg in
   --refresh-models)
     REFRESH_MODELS=true
+    shift
+    ;;
+  --skip-build)
+    SKIP_BUILD=true
     shift
     ;;
   esac
@@ -29,7 +35,7 @@ ANDROID_ABI="arm64-v8a"
 ANDROID_LIBS_DIR="$PACKAGE_ROOT/third-party/android/libs"
 
 DEVICE_TEST_DIR="/data/local/tmp/rnexecutorch_tests"
-MODELS_DIR="$SCRIPT_DIR/models"
+MODELS_DIR="$SCRIPT_DIR/integration/assets/models"
 
 # Create models directory if it doesn't exist
 mkdir -p "$MODELS_DIR"
@@ -48,23 +54,31 @@ download_if_needed() {
   fi
 }
 
-# cleanup build artifacts
-rm -rf build
-mkdir build
-cd build
+if [ "$SKIP_BUILD" = false ]; then
+  # cleanup build artifacts
+  rm -rf build
+  mkdir build
+  cd build
+  # cross-compile tests with Android toolchain
+  cmake .. \
+    -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
+    -DANDROID_ABI=$ANDROID_ABI \
+    -DANDROID_PLATFORM=android-34 \
+    -DANDROID_STL=c++_shared
 
-# cross-compile tests with Android toolchain
-cmake .. \
-  -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
-  -DANDROID_ABI=$ANDROID_ABI \
-  -DANDROID_PLATFORM=android-34 \
-  -DANDROID_STL=c++_shared
-
-make
+  make
+else
+  if ! [ -d build ]; then
+    echo "Build was skipped and the build directory doesn't exist. Exiting."
+    exit 1
+  fi
+  echo "Skipping build..."
+  cd build
+fi
 
 adb shell "mkdir -p $DEVICE_TEST_DIR"
 
-TEST_EXECUTABLES=("NumericalTests" "LogTests" "BaseModelTests" "ClassificationTests" "ObjectDetectionTests" "ImageEmbeddingsTests" "TextEmbeddingsTests" "StyleTransferTests" "VADTests" "TokenizerModuleTests" "SpeechToTextTests" "LLMTests" "ImageSegmentationTests" "TextToImageTests")
+TEST_EXECUTABLES=("NumericalTests" "LogTests" "BaseModelTests" "ClassificationTests" "ObjectDetectionTests" "ImageEmbeddingsTests" "TextEmbeddingsTests" "StyleTransferTests" "VADTests" "TokenizerModuleTests" "SpeechToTextTests" "LLMTests" "ImageSegmentationTests" "TextToImageTests" "OCRTests")
 
 # push test executables to device
 echo "Pushing test executables to device..."
@@ -75,8 +89,10 @@ for test_exe in "${TEST_EXECUTABLES[@]}"; do
   fi
 done
 
-# Push test audio to device
-adb push ../test_audio_float.raw $DEVICE_TEST_DIR >/dev/null
+# Push test assets to device
+adb push ../integration/assets/test_audio_float.raw $DEVICE_TEST_DIR >/dev/null
+adb push ../integration/assets/we_are_software_mansion.jpg $DEVICE_TEST_DIR >/dev/null
+adb push ../integration/assets/test_ocr_image.png $DEVICE_TEST_DIR >/dev/null
 
 # download models needed for the tests
 echo "Downloading models (use --refresh-models to force re-download)..."
@@ -94,6 +110,11 @@ download_if_needed "https://huggingface.co/software-mansion/react-native-executo
 download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.6.0/smolLm-2-135M/quantized/smolLm2_135M_8da4w.pte" "smolLm2_135M_8da4w.pte"
 download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-smolLm-2/resolve/v0.6.0/tokenizer.json" "smollm_tokenizer.json"
 download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3/resolve/v0.6.0/xnnpack/deeplabV3_xnnpack_fp32.pte" "deeplabV3_xnnpack_fp32.pte"
+download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-recognizer-crnn.en/resolve/v0.7.0/xnnpack/english/xnnpack_crnn_english.pte" "xnnpack_crnn_english.pte"
+# download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-detector-craft/resolve/v0.7.0/xnnpack_quantized/xnnpack_craft_quantized.pte" "xnnpack_craft_quantized.pte"
+download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-detector-craft/resolve/v0.7.0/xnnpack/xnnpack_craft.pte" "xnnpack_craft_quantized.pte"
+#https://huggingface.co/software-mansion/react-native-executorch-detector-craft/resolve/v0.7.0/xnnpack/xnnpack_craft.pte
+
 # TextToImage models (large ~2GB total)
 download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-bk-sdm-tiny/resolve/v0.6.0/tokenizer/tokenizer.json" "t2i_tokenizer.json"
 download_if_needed "https://huggingface.co/software-mansion/react-native-executorch-bk-sdm-tiny/resolve/v0.6.0/text_encoder/model.pte" "t2i_encoder.pte"
@@ -114,7 +135,17 @@ GRADLE_LIBS="$PACKAGE_ROOT/android/build/intermediates/cmake/release/obj/$ANDROI
 
 adb push "$ANDROID_LIBS_DIR/executorch/$ANDROID_ABI/libexecutorch.so" "$DEVICE_TEST_DIR/libexecutorch_jni.so" >/dev/null
 
-for lib in libfbjni.so libpthreadpool.so libcpuinfo.so libc++_shared.so; do
+# Push pthreadpool and cpuinfo from ANDROID_LIBS_DIR (needed for OpenCV/OpenMP)
+if [ -f "$ANDROID_LIBS_DIR/pthreadpool/$ANDROID_ABI/libpthreadpool.so" ]; then
+  adb push "$ANDROID_LIBS_DIR/pthreadpool/$ANDROID_ABI/libpthreadpool.so" "$DEVICE_TEST_DIR/" >/dev/null
+fi
+
+if [ -f "$ANDROID_LIBS_DIR/cpuinfo/$ANDROID_ABI/libcpuinfo.so" ]; then
+  adb push "$ANDROID_LIBS_DIR/cpuinfo/$ANDROID_ABI/libcpuinfo.so" "$DEVICE_TEST_DIR/" >/dev/null
+fi
+
+# Push other libs from GRADLE_LIBS
+for lib in libfbjni.so libc++_shared.so; do
   if [ -f "$GRADLE_LIBS/$lib" ]; then
     adb push "$GRADLE_LIBS/$lib" "$DEVICE_TEST_DIR/" >/dev/null
   fi

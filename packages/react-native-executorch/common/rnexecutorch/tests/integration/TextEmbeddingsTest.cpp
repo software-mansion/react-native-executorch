@@ -1,3 +1,4 @@
+#include "BaseModelTests.h"
 #include <cmath>
 #include <gtest/gtest.h>
 #include <rnexecutorch/Error.h>
@@ -6,28 +7,47 @@
 
 using namespace rnexecutorch;
 using namespace rnexecutorch::models::embeddings;
+using namespace model_tests;
 
 constexpr auto VALID_TEXT_EMBEDDINGS_MODEL_PATH =
     "all-MiniLM-L6-v2_xnnpack.pte";
 constexpr auto VALID_TEXT_EMBEDDINGS_TOKENIZER_PATH = "tokenizer.json";
 constexpr size_t MINILM_EMBEDDING_DIMENSIONS = 384;
 
-TEST(TextEmbeddingsCtorTests, InvalidModelPathThrows) {
-  EXPECT_THROW(TextEmbeddings("this_file_does_not_exist.pte",
-                              VALID_TEXT_EMBEDDINGS_TOKENIZER_PATH, nullptr),
-               RnExecutorchError);
-}
+// ============================================================================
+// Common tests via typed test suite
+// ============================================================================
+namespace model_tests {
+template <> struct ModelTraits<TextEmbeddings> {
+  using ModelType = TextEmbeddings;
 
+  static ModelType createValid() {
+    return ModelType(VALID_TEXT_EMBEDDINGS_MODEL_PATH,
+                     VALID_TEXT_EMBEDDINGS_TOKENIZER_PATH, nullptr);
+  }
+
+  static ModelType createInvalid() {
+    return ModelType("nonexistent.pte", VALID_TEXT_EMBEDDINGS_TOKENIZER_PATH,
+                     nullptr);
+  }
+
+  static void callGenerate(ModelType &model) {
+    (void)model.generate("Hello, world!");
+  }
+};
+} // namespace model_tests
+
+using TextEmbeddingsTypes = ::testing::Types<TextEmbeddings>;
+INSTANTIATE_TYPED_TEST_SUITE_P(TextEmbeddings, CommonModelTest,
+                               TextEmbeddingsTypes);
+
+// ============================================================================
+// Model-specific tests
+// ============================================================================
 TEST(TextEmbeddingsCtorTests, InvalidTokenizerPathThrows) {
   EXPECT_THROW(TextEmbeddings(VALID_TEXT_EMBEDDINGS_MODEL_PATH,
                               "this_tokenizer_does_not_exist.json", nullptr),
                std::exception);
-}
-
-TEST(TextEmbeddingsCtorTests, ValidPathsDoesntThrow) {
-  EXPECT_NO_THROW(TextEmbeddings(VALID_TEXT_EMBEDDINGS_MODEL_PATH,
-                                 VALID_TEXT_EMBEDDINGS_TOKENIZER_PATH,
-                                 nullptr));
 }
 
 TEST(TextEmbeddingsGenerateTests, EmptyStringReturnsResults) {
@@ -123,13 +143,6 @@ TEST(TextEmbeddingsGenerateTests, SimilarTextProducesSimilarEmbeddings) {
   EXPECT_GT(dotProduct, 0.5f);
 }
 
-TEST(TextEmbeddingsUnloadTests, GenerateAfterUnloadThrows) {
-  TextEmbeddings model(VALID_TEXT_EMBEDDINGS_MODEL_PATH,
-                       VALID_TEXT_EMBEDDINGS_TOKENIZER_PATH, nullptr);
-  model.unload();
-  EXPECT_THROW((void)model.generate("Test"), RnExecutorchError);
-}
-
 TEST(TextEmbeddingsInheritedTests, GetInputShapeWorks) {
   TextEmbeddings model(VALID_TEXT_EMBEDDINGS_MODEL_PATH,
                        VALID_TEXT_EMBEDDINGS_TOKENIZER_PATH, nullptr);
@@ -149,10 +162,4 @@ TEST(TextEmbeddingsInheritedTests, GetMethodMetaWorks) {
                        VALID_TEXT_EMBEDDINGS_TOKENIZER_PATH, nullptr);
   auto result = model.getMethodMeta("forward");
   EXPECT_TRUE(result.ok());
-}
-
-TEST(TextEmbeddingsInheritedTests, GetMemoryLowerBoundReturnsPositive) {
-  TextEmbeddings model(VALID_TEXT_EMBEDDINGS_MODEL_PATH,
-                       VALID_TEXT_EMBEDDINGS_TOKENIZER_PATH, nullptr);
-  EXPECT_GT(model.getMemoryLowerBound(), 0u);
 }

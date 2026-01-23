@@ -1,0 +1,95 @@
+#pragma once
+
+#include "gtest/gtest.h"
+#include <gtest/gtest.h>
+#include <rnexecutorch/Error.h>
+
+namespace facebook::react {
+class CallInvoker;
+}
+
+namespace rnexecutorch {
+std::shared_ptr<facebook::react::CallInvoker> createMockCallInvoker();
+}
+
+namespace model_tests {
+
+inline auto getMockInvoker() { return rnexecutorch::createMockCallInvoker(); }
+
+// Trait struct that each model must specialize
+// This defines how to construct and test each model type
+template <typename T> struct ModelTraits;
+
+// Example of what a specialization looks like:
+//
+// template<>
+// struct ModelTraits<Classification> {
+//   using ModelType = Classification;
+//
+//   // Create valid model instance
+//   static ModelType createValid() {
+//     return ModelType("valid_model.pte", nullptr);
+//   }
+//
+//   // Create invalid model instance (should throw in constructor)
+//   static ModelType createInvalid() {
+//     return ModelType("nonexistent.pte", nullptr);
+//   }
+//
+//   // Call the model's generate/forward function with valid input
+//   // Used to test that generate throws after unload
+//   static void callGenerate(ModelType& model) {
+//     (void)model.generate("valid_input.jpg");
+//   }
+// };
+
+// Typed test fixture for common model tests
+template <typename T> class CommonModelTest : public ::testing::Test {
+protected:
+  using Traits = ModelTraits<T>;
+  using ModelType = typename Traits::ModelType;
+};
+
+// Define the test suite
+TYPED_TEST_SUITE_P(CommonModelTest);
+
+// Constructor tests
+TYPED_TEST_P(CommonModelTest, InvalidPathThrows) {
+  using Traits = typename TestFixture::Traits;
+  EXPECT_THROW(Traits::createInvalid(), rnexecutorch::RnExecutorchError);
+}
+
+TYPED_TEST_P(CommonModelTest, ValidPathDoesntThrow) {
+  using Traits = typename TestFixture::Traits;
+  EXPECT_NO_THROW(Traits::createValid());
+}
+
+// Memory tests
+TYPED_TEST_P(CommonModelTest, GetMemoryLowerBoundValue) {
+  using Traits = typename TestFixture::Traits;
+  auto model = Traits::createValid();
+  EXPECT_GT(model.getMemoryLowerBound(), 0u);
+  model.unload();
+  EXPECT_EQ(model.getMemoryLowerBound(), 0u);
+}
+
+// Unload tests
+TYPED_TEST_P(CommonModelTest, UnloadDoesntThrow) {
+  using Traits = typename TestFixture::Traits;
+  auto model = Traits::createValid();
+  EXPECT_NO_THROW(model.unload());
+}
+
+TYPED_TEST_P(CommonModelTest, GenerateAfterUnloadThrows) {
+  using Traits = typename TestFixture::Traits;
+  auto model = Traits::createValid();
+  model.unload();
+  EXPECT_THROW(Traits::callGenerate(model), rnexecutorch::RnExecutorchError);
+}
+
+// Register all tests in the suite
+REGISTER_TYPED_TEST_SUITE_P(CommonModelTest, InvalidPathThrows,
+                            ValidPathDoesntThrow, GetMemoryLowerBoundValue,
+                            UnloadDoesntThrow, GenerateAfterUnloadThrows);
+
+} // namespace model_tests

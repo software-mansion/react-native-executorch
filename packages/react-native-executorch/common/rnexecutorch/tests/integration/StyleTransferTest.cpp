@@ -1,27 +1,47 @@
+#include "BaseModelTests.h"
 #include "TestUtils.h"
 #include <filesystem>
 #include <gtest/gtest.h>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
-#include <string>
 
 using namespace rnexecutorch;
 using namespace rnexecutorch::models::style_transfer;
+using namespace model_tests;
 
 constexpr auto VALID_STYLE_TRANSFER_MODEL_PATH =
     "style_transfer_candy_xnnpack.pte";
 constexpr auto VALID_TEST_IMAGE_PATH =
     "file:///data/local/tmp/rnexecutorch_tests/test_image.jpg";
 
-TEST(StyleTransferCtorTests, InvalidPathThrows) {
-  EXPECT_THROW(StyleTransfer("this_file_does_not_exist.pte", nullptr),
-               RnExecutorchError);
-}
+// ============================================================================
+// Common tests via typed test suite
+// ============================================================================
+namespace model_tests {
+template <> struct ModelTraits<StyleTransfer> {
+  using ModelType = StyleTransfer;
 
-TEST(StyleTransferCtorTests, ValidPathDoesntThrow) {
-  EXPECT_NO_THROW(StyleTransfer(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr));
-}
+  static ModelType createValid() {
+    return ModelType(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
+  }
 
+  static ModelType createInvalid() {
+    return ModelType("nonexistent.pte", nullptr);
+  }
+
+  static void callGenerate(ModelType &model) {
+    (void)model.generate(VALID_TEST_IMAGE_PATH);
+  }
+};
+} // namespace model_tests
+
+using StyleTransferTypes = ::testing::Types<StyleTransfer>;
+INSTANTIATE_TYPED_TEST_SUITE_P(StyleTransfer, CommonModelTest,
+                               StyleTransferTypes);
+
+// ============================================================================
+// Model-specific tests
+// ============================================================================
 TEST(StyleTransferGenerateTests, InvalidImagePathThrows) {
   StyleTransfer model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
   EXPECT_THROW((void)model.generate("nonexistent_image.jpg"),
@@ -60,12 +80,6 @@ TEST(StyleTransferGenerateTests, MultipleGeneratesWork) {
   EXPECT_TRUE(std::filesystem::exists(result2));
 }
 
-TEST(StyleTransferUnloadTests, GenerateAfterUnloadThrows) {
-  StyleTransfer model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
-  model.unload();
-  EXPECT_THROW((void)model.generate(VALID_TEST_IMAGE_PATH), RnExecutorchError);
-}
-
 TEST(StyleTransferInheritedTests, GetInputShapeWorks) {
   StyleTransfer model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
   auto shape = model.getInputShape("forward", 0);
@@ -84,9 +98,4 @@ TEST(StyleTransferInheritedTests, GetMethodMetaWorks) {
   StyleTransfer model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
   auto result = model.getMethodMeta("forward");
   EXPECT_TRUE(result.ok());
-}
-
-TEST(StyleTransferInheritedTests, GetMemoryLowerBoundReturnsPositive) {
-  StyleTransfer model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
-  EXPECT_GT(model.getMemoryLowerBound(), 0u);
 }

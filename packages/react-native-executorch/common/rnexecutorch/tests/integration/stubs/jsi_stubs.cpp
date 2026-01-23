@@ -11,7 +11,6 @@
 namespace facebook::jsi {
 
 // MutableBuffer destructor - needed by OwningArrayBuffer
-// Don't stub Runtime - it has too many virtual methods
 MutableBuffer::~MutableBuffer() {}
 Value::~Value() {}
 Value::Value(Value &&other) noexcept {}
