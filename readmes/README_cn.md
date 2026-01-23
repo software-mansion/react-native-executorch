@@ -9,7 +9,7 @@
   <a href="https://discord.gg/ZGqqY55qkP"><img src="https://img.shields.io/badge/Discord-加入我们-00008B?logo=discord&logoColor=white&style=for-the-badge" alt="Join our Discord community"></a>
   <a href="https://docs.swmansion.com/react-native-executorch/"><img src="https://img.shields.io/badge/文档-00008B?logo=googledocs&logoColor=white&style=for-the-badge" alt="Documentation"></a>
   <a href="https://swmansion.com/contact">
-    <img src="https://img.shields.io/badge/Hire%20Us-00008B?logo=react&logoColor=white&style=for-the-badge" alt="聘请我们">
+    <img src="https://img.shields.io/badge/聘请我们-00008B?logo=react&logoColor=white&style=for-the-badge" alt="Hire Us">
 </div>
 
 ![Software Mansion banner](https://github.com/user-attachments/assets/fa2c4735-e75c-4cc1-970d-88905d95e3a4)
