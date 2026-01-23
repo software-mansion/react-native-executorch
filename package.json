@@ -5,6 +5,8 @@
   "workspaces": {
     "packages": [
       "packages/react-native-executorch",
+      "packages/bare-adapter",
+      "packages/expo-adapter",
       "apps/*"
     ]
   },

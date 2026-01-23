@@ -9,7 +9,8 @@
     "customConditions": ["react-native"],
     "noEmit": true,
     "paths": {
-      "react-native-executorch": ["../../packages/react-native-executorch/src"]
+      "react-native-executorch": ["../../packages/react-native-executorch/src"],
+      "@rn-executorch/expo-adapter": ["../../packages/expo-adapter/src"]
     }
   }
 }
