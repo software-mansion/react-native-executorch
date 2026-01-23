@@ -73,10 +73,26 @@ TYPED_TEST_P(CommonModelTest, GetMemoryLowerBoundValue) {
   EXPECT_EQ(model.getMemoryLowerBound(), 0u);
 }
 
+TYPED_TEST_P(CommonModelTest, GetMemoryLowerBoundConsistent) {
+  using Traits = typename TestFixture::Traits;
+  auto model = Traits::createValid();
+  auto bound1 = model.getMemoryLowerBound();
+  auto bound2 = model.getMemoryLowerBound();
+  EXPECT_EQ(bound1, bound2);
+}
+
 // Unload tests
 TYPED_TEST_P(CommonModelTest, UnloadDoesntThrow) {
   using Traits = typename TestFixture::Traits;
   auto model = Traits::createValid();
+  EXPECT_NO_THROW(model.unload());
+}
+
+TYPED_TEST_P(CommonModelTest, MultipleUnloadsSafe) {
+  using Traits = typename TestFixture::Traits;
+  auto model = Traits::createValid();
+  EXPECT_NO_THROW(model.unload());
+  EXPECT_NO_THROW(model.unload());
   EXPECT_NO_THROW(model.unload());
 }
 
@@ -90,6 +106,7 @@ TYPED_TEST_P(CommonModelTest, GenerateAfterUnloadThrows) {
 // Register all tests in the suite
 REGISTER_TYPED_TEST_SUITE_P(CommonModelTest, InvalidPathThrows,
                             ValidPathDoesntThrow, GetMemoryLowerBoundValue,
-                            UnloadDoesntThrow, GenerateAfterUnloadThrows);
+                            GetMemoryLowerBoundConsistent, UnloadDoesntThrow,
+                            MultipleUnloadsSafe, GenerateAfterUnloadThrows);
 
 } // namespace model_tests

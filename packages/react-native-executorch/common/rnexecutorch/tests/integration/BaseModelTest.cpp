@@ -1,3 +1,4 @@
+#include "BaseModelTests.h"
 #include <executorch/extension/tensor/tensor.h>
 #include <gtest/gtest.h>
 #include <limits>
@@ -8,19 +9,44 @@
 using namespace rnexecutorch;
 using namespace rnexecutorch::models;
 using namespace executorch::extension;
+using namespace model_tests;
 using executorch::runtime::EValue;
 
 constexpr auto VALID_STYLE_TRANSFER_MODEL_PATH =
     "style_transfer_candy_xnnpack.pte";
 
-TEST(BaseModelCtorTests, InvalidPathThrows) {
-  EXPECT_THROW(BaseModel("this_file_does_not_exist.mp3", nullptr),
-               RnExecutorchError);
-}
+// ============================================================================
+// Common tests via typed test suite
+// ============================================================================
+namespace model_tests {
+template <> struct ModelTraits<BaseModel> {
+  using ModelType = BaseModel;
 
-TEST(BaseModelCtorTests, ValidPathDoesntThrow) {
-  EXPECT_NO_THROW(BaseModel(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr));
-}
+  static ModelType createValid() {
+    return ModelType(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
+  }
+
+  static ModelType createInvalid() {
+    return ModelType("nonexistent.pte", nullptr);
+  }
+
+  static void callGenerate(ModelType &model) {
+    std::vector<int32_t> shape = {1, 3, 640, 640};
+    size_t numElements = 1 * 3 * 640 * 640;
+    std::vector<float> inputData(numElements, 0.5f);
+    auto tensorPtr = make_tensor_ptr(shape, inputData.data());
+    EValue input(*tensorPtr);
+    (void)model.forward(input);
+  }
+};
+} // namespace model_tests
+
+using BaseModelTypes = ::testing::Types<BaseModel>;
+INSTANTIATE_TYPED_TEST_SUITE_P(BaseModel, CommonModelTest, BaseModelTypes);
+
+// ============================================================================
+// BaseModel-specific tests (methods not in all models)
+// ============================================================================
 
 TEST(BaseModelGetInputShapeTests, ValidMethodCorrectShape) {
   BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
@@ -66,34 +92,6 @@ TEST(BaseModelGetMethodMetaTests, InvalidMethodReturnsError) {
   BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
   auto result = model.getMethodMeta("non_existent_method");
   EXPECT_FALSE(result.ok());
-}
-
-TEST(BaseModelUnloadTests, UnloadDoesNotThrow) {
-  BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
-  EXPECT_NO_THROW(model.unload());
-}
-
-TEST(BaseModelUnloadTests, GetInputShapeAfterUnloadThrows) {
-  BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
-  model.unload();
-  EXPECT_THROW((void)model.getInputShape("forward", 0), RnExecutorchError);
-}
-
-TEST(BaseModelUnloadTests, GetAllInputShapesAfterUnloadThrows) {
-  BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
-  model.unload();
-  EXPECT_THROW(model.getAllInputShapes("forward"), RnExecutorchError);
-}
-
-TEST(BaseModelUnloadTests, GetMethodMetaAfterUnloadThrows) {
-  BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
-  model.unload();
-  EXPECT_THROW(model.getMethodMeta("forward"), RnExecutorchError);
-}
-
-TEST(BaseModelMemoryTests, GetMemoryLowerBoundReturnsPositive) {
-  BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
-  EXPECT_GT(model.getMemoryLowerBound(), 0u);
 }
 
 TEST(BaseModelForwardTests, ForwardWithValidInputReturnsOk) {
