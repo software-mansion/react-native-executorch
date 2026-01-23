@@ -36,7 +36,7 @@ export interface TextEmbeddingsType {
 /**
  * Props for the useTextEmbeddings hook.
  */
-export interface Props {
+export interface TextEmbeddingsProps {
   model: {
     /**
      * `ResourceSource` that specifies the location of the model binary.

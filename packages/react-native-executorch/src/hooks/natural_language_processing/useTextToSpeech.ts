@@ -12,6 +12,13 @@ interface Props extends TextToSpeechConfig {
   preventLoad?: boolean;
 }
 
+
+/**
+ * React hook for managing Text to Speech instance.
+ * 
+ * @param TextToSpeechConfiguration - Configuration object containing `model` source, `voice` and optional `preventLoad`.
+ * @returns Ready to use Text to Speech model.
+ */
 export const useTextToSpeech = ({
   model,
   voice,

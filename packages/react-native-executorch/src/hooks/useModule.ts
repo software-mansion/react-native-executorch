@@ -93,13 +93,6 @@ export const useModule = <
      * Represents the download progress as a value between 0 and 1, indicating the extent of the model file retrieval.
      */
     downloadProgress,
-
-    /**
-     * This function runs the model's forward method with the provided input arguments.
-     *
-     * @param input - Input arguments for the model's forward method.
-     * @returns The output from the model's forward method.
-     */
     forward,
   };
 };
