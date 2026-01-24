@@ -101,10 +101,19 @@ TYPED_TEST_P(CommonModelTest, GenerateAfterUnloadThrows) {
   EXPECT_THROW(Traits::callGenerate(model), rnexecutorch::RnExecutorchError);
 }
 
+TYPED_TEST_P(CommonModelTest, MultipleGeneratesWork) {
+  using Traits = typename TestFixture::Traits;
+  auto model = Traits::createValid();
+  EXPECT_NO_THROW(Traits::callGenerate(model));
+  EXPECT_NO_THROW(Traits::callGenerate(model));
+  EXPECT_NO_THROW(Traits::callGenerate(model));
+}
+
 // Register all tests in the suite
 REGISTER_TYPED_TEST_SUITE_P(CommonModelTest, InvalidPathThrows,
                             ValidPathDoesntThrow, GetMemoryLowerBoundValue,
                             GetMemoryLowerBoundConsistent, UnloadDoesntThrow,
-                            MultipleUnloadsSafe, GenerateAfterUnloadThrows);
+                            MultipleUnloadsSafe, GenerateAfterUnloadThrows,
+                            MultipleGeneratesWork);
 
 } // namespace model_tests

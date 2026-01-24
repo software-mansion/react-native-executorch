@@ -93,15 +93,6 @@ TEST(VADGenerateTests, LongAudioSegmentBoundsValid) {
   }
 }
 
-TEST(VADGenerateTests, MultipleGeneratesWork) {
-  VoiceActivityDetection model(VALID_VAD_MODEL_PATH, nullptr);
-  auto audio = loadAudioFromFile("test_audio_float.raw");
-  ASSERT_FALSE(audio.empty());
-  EXPECT_NO_THROW((void)model.generate(audio));
-  EXPECT_NO_THROW((void)model.generate(audio));
-  EXPECT_NO_THROW((void)model.generate(audio));
-}
-
 TEST(VADInheritedTests, GetInputShapeWorks) {
   VoiceActivityDetection model(VALID_VAD_MODEL_PATH, nullptr);
   auto shape = model.getInputShape("forward", 0);

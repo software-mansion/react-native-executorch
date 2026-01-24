@@ -66,6 +66,12 @@ protected:
   void SetUp() override { mockInvoker_ = createMockCallInvoker(); }
 };
 
+TEST(LLMCtorTests, InvalidTokenizerPathThrows) {
+  EXPECT_THROW(LLM(VALID_MODEL_PATH, "nonexistent_tokenizer.json",
+                   createMockCallInvoker()),
+               RnExecutorchError);
+}
+
 TEST_F(LLMTest, GetGeneratedTokenCountInitiallyZero) {
   LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
   EXPECT_EQ(model.getGeneratedTokenCount(), 0);
@@ -146,11 +152,4 @@ TEST_F(LLMTest, GenerateUpdatesTokenCount) {
 TEST_F(LLMTest, EmptyPromptThrows) {
   LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
   EXPECT_THROW((void)model.generate("", nullptr), RnExecutorchError);
-}
-
-TEST_F(LLMTest, MultipleGeneratesWork) {
-  LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
-  std::string prompt = formatChatML(SYSTEM_PROMPT, "Hi");
-  EXPECT_NO_THROW((void)model.generate(prompt, nullptr));
-  EXPECT_NO_THROW((void)model.generate(prompt, nullptr));
 }

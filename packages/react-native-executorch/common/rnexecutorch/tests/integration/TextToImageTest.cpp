@@ -163,12 +163,3 @@ TEST(TextToImageGenerateTests, SameSeedProducesSameResult) {
   }
   EXPECT_TRUE(same);
 }
-
-TEST(TextToImageGenerateTests, MultipleGeneratesWork) {
-  TextToImage model(VALID_TOKENIZER_PATH, VALID_ENCODER_PATH, VALID_UNET_PATH,
-                    VALID_DECODER_PATH, SCHEDULER_BETA_START,
-                    SCHEDULER_BETA_END, SCHEDULER_NUM_TRAIN_TIMESTEPS,
-                    SCHEDULER_STEPS_OFFSET, createMockCallInvoker());
-  EXPECT_NO_THROW((void)model.generate("a cat", 128, 1, 42, nullptr));
-  EXPECT_NO_THROW((void)model.generate("a dog", 128, 1, 43, nullptr));
-}

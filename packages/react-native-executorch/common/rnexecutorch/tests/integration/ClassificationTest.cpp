@@ -97,13 +97,6 @@ TEST(ClassificationGenerateTests, TopPredictionHasReasonableConfidence) {
   EXPECT_GT(maxProb, 0.0f);
 }
 
-TEST(ClassificationGenerateTests, MultipleGeneratesWork) {
-  Classification model(VALID_CLASSIFICATION_MODEL_PATH, nullptr);
-  EXPECT_NO_THROW((void)model.generate(VALID_TEST_IMAGE_PATH));
-  EXPECT_NO_THROW((void)model.generate(VALID_TEST_IMAGE_PATH));
-  EXPECT_NO_THROW((void)model.generate(VALID_TEST_IMAGE_PATH));
-}
-
 TEST(ClassificationInheritedTests, GetInputShapeWorks) {
   Classification model(VALID_CLASSIFICATION_MODEL_PATH, nullptr);
   auto shape = model.getInputShape("forward", 0);

@@ -48,6 +48,17 @@ TEST(ImageEmbeddingsGenerateTests, InvalidImagePathThrows) {
                RnExecutorchError);
 }
 
+TEST(ImageEmbeddingsGenerateTests, EmptyImagePathThrows) {
+  ImageEmbeddings model(VALID_IMAGE_EMBEDDINGS_MODEL_PATH, nullptr);
+  EXPECT_THROW((void)model.generate(""), RnExecutorchError);
+}
+
+TEST(ImageEmbeddingsGenerateTests, MalformedURIThrows) {
+  ImageEmbeddings model(VALID_IMAGE_EMBEDDINGS_MODEL_PATH, nullptr);
+  EXPECT_THROW((void)model.generate("not_a_valid_uri://bad"),
+               RnExecutorchError);
+}
+
 TEST(ImageEmbeddingsGenerateTests, ValidImageReturnsResults) {
   ImageEmbeddings model(VALID_IMAGE_EMBEDDINGS_MODEL_PATH, nullptr);
   auto result = model.generate(VALID_TEST_IMAGE_PATH);

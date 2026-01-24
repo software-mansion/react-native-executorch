@@ -48,6 +48,17 @@ TEST(StyleTransferGenerateTests, InvalidImagePathThrows) {
                RnExecutorchError);
 }
 
+TEST(StyleTransferGenerateTests, EmptyImagePathThrows) {
+  StyleTransfer model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
+  EXPECT_THROW((void)model.generate(""), RnExecutorchError);
+}
+
+TEST(StyleTransferGenerateTests, MalformedURIThrows) {
+  StyleTransfer model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
+  EXPECT_THROW((void)model.generate("not_a_valid_uri://bad"),
+               RnExecutorchError);
+}
+
 TEST(StyleTransferGenerateTests, ValidImageReturnsFilePath) {
   StyleTransfer model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
   auto result = model.generate(VALID_TEST_IMAGE_PATH);

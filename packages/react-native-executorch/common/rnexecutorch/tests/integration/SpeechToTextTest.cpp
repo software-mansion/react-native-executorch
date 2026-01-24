@@ -87,6 +87,13 @@ TEST(S2TTranscribeTests, EmptyResultOnSilence) {
   EXPECT_TRUE(result.empty());
 }
 
+TEST(S2TTranscribeTests, EmptyAudioThrows) {
+  SpeechToText model(VALID_ENCODER_PATH, VALID_DECODER_PATH,
+                     VALID_TOKENIZER_PATH, nullptr);
+  std::vector<float> emptyAudio;
+  EXPECT_THROW((void)model.transcribe(emptyAudio, "en"), RnExecutorchError);
+}
+
 TEST(S2TTranscribeTests, InvalidLanguageThrows) {
   SpeechToText model(VALID_ENCODER_PATH, VALID_DECODER_PATH,
                      VALID_TOKENIZER_PATH, nullptr);

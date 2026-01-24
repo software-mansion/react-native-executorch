@@ -77,6 +77,13 @@ TEST(OCRGenerateTests, EmptyImagePathThrows) {
   EXPECT_THROW((void)model.generate(""), RnExecutorchError);
 }
 
+TEST(OCRGenerateTests, MalformedURIThrows) {
+  OCR model(VALID_DETECTOR_PATH, VALID_RECOGNIZER_PATH, ENGLISH_SYMBOLS,
+            createMockCallInvoker());
+  EXPECT_THROW((void)model.generate("not_a_valid_uri://bad"),
+               RnExecutorchError);
+}
+
 TEST(OCRGenerateTests, ValidImageReturnsResults) {
   OCR model(VALID_DETECTOR_PATH, VALID_RECOGNIZER_PATH, ENGLISH_SYMBOLS,
             createMockCallInvoker());
@@ -120,12 +127,4 @@ TEST(OCRGenerateTests, DetectionsHaveNonEmptyText) {
     std::cout << detection.text << std::endl;
     EXPECT_FALSE(detection.text.empty());
   }
-}
-
-TEST(OCRGenerateTests, MultipleGeneratesWork) {
-  OCR model(VALID_DETECTOR_PATH, VALID_RECOGNIZER_PATH, ENGLISH_SYMBOLS,
-            createMockCallInvoker());
-  EXPECT_NO_THROW((void)model.generate(VALID_TEST_IMAGE_PATH));
-  EXPECT_NO_THROW((void)model.generate(VALID_TEST_IMAGE_PATH));
-  EXPECT_NO_THROW((void)model.generate(VALID_TEST_IMAGE_PATH));
 }
