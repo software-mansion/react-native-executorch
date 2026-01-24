@@ -1,18 +1,24 @@
 # Function: useTextToSpeech()
 
-> **useTextToSpeech**(`__namedParameters`): `object`
+> **useTextToSpeech**(`TextToSpeechConfiguration`): `object`
 
-Defined in: [packages/react-native-executorch/src/hooks/natural\_language\_processing/useTextToSpeech.ts:15](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/hooks/natural_language_processing/useTextToSpeech.ts#L15)
+Defined in: [packages/react-native-executorch/src/hooks/natural\_language\_processing/useTextToSpeech.ts:22](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/hooks/natural_language_processing/useTextToSpeech.ts#L22)
+
+React hook for managing Text to Speech instance.
 
 ## Parameters
 
-### \_\_namedParameters
+### TextToSpeechConfiguration
 
 `Props`
+
+Configuration object containing `model` source, `voice` and optional `preventLoad`.
 
 ## Returns
 
 `object`
+
+Ready to use Text to Speech model.
 
 ### downloadProgress
 
@@ -57,3 +63,11 @@ Defined in: [packages/react-native-executorch/src/hooks/natural\_language\_proce
 #### Returns
 
 `Promise`\<`void`\>
+
+### streamStop()
+
+> **streamStop**: () => `void` = `moduleInstance.streamStop`
+
+#### Returns
+
+`void`

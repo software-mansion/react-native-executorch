@@ -2,7 +2,7 @@
 
 > **useSpeechToText**(`speechToTextConfiguration`): [`SpeechToTextType`](../interfaces/SpeechToTextType.md)
 
-Defined in: [packages/react-native-executorch/src/hooks/natural\_language\_processing/useSpeechToText.ts:13](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/hooks/natural_language_processing/useSpeechToText.ts#L13)
+Defined in: [packages/react-native-executorch/src/hooks/natural\_language\_processing/useSpeechToText.ts:13](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/hooks/natural_language_processing/useSpeechToText.ts#L13)
 
 React hook for managing a Speech to Text (STT) instance.
 

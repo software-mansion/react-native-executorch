@@ -1,6 +1,6 @@
 # Class: LLMModule
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/LLMModule.ts:11](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L11)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/LLMModule.ts:11](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L11)
 
 ## Constructors
 
@@ -8,7 +8,7 @@ Defined in: [packages/react-native-executorch/src/modules/natural\_language\_pro
 
 > **new LLMModule**(`__namedParameters`): `LLMModule`
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/LLMModule.ts:14](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L14)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/LLMModule.ts:14](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L14)
 
 #### Parameters
 
@@ -36,7 +36,7 @@ Defined in: [packages/react-native-executorch/src/modules/natural\_language\_pro
 
 > **configure**(`__namedParameters`): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/LLMModule.ts:52](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L52)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/LLMModule.ts:52](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L52)
 
 #### Parameters
 
@@ -64,7 +64,7 @@ Defined in: [packages/react-native-executorch/src/modules/natural\_language\_pro
 
 > **delete**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/LLMModule.ts:92](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L92)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/LLMModule.ts:92](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L92)
 
 #### Returns
 
@@ -76,7 +76,7 @@ Defined in: [packages/react-native-executorch/src/modules/natural\_language\_pro
 
 > **deleteMessage**(`index`): [`Message`](../interfaces/Message.md)[]
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/LLMModule.ts:79](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L79)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/LLMModule.ts:79](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L79)
 
 #### Parameters
 
@@ -94,7 +94,7 @@ Defined in: [packages/react-native-executorch/src/modules/natural\_language\_pro
 
 > **forward**(`input`): `Promise`\<`string`\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/LLMModule.ts:64](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L64)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/LLMModule.ts:64](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L64)
 
 #### Parameters
 
@@ -112,7 +112,7 @@ Defined in: [packages/react-native-executorch/src/modules/natural\_language\_pro
 
 > **generate**(`messages`, `tools?`): `Promise`\<`string`\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/LLMModule.ts:69](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L69)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/LLMModule.ts:69](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L69)
 
 #### Parameters
 
@@ -134,7 +134,7 @@ Defined in: [packages/react-native-executorch/src/modules/natural\_language\_pro
 
 > **getGeneratedTokenCount**(): `number`
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/LLMModule.ts:88](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L88)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/LLMModule.ts:88](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L88)
 
 #### Returns
 
@@ -146,7 +146,7 @@ Defined in: [packages/react-native-executorch/src/modules/natural\_language\_pro
 
 > **interrupt**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/LLMModule.ts:84](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L84)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/LLMModule.ts:84](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L84)
 
 #### Returns
 
@@ -158,7 +158,7 @@ Defined in: [packages/react-native-executorch/src/modules/natural\_language\_pro
 
 > **load**(`model`, `onDownloadProgressCallback`): `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/LLMModule.ts:30](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L30)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/LLMModule.ts:30](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L30)
 
 #### Parameters
 
@@ -190,7 +190,7 @@ Defined in: [packages/react-native-executorch/src/modules/natural\_language\_pro
 
 > **sendMessage**(`message`): `Promise`\<[`Message`](../interfaces/Message.md)[]\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/LLMModule.ts:74](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L74)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/LLMModule.ts:74](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L74)
 
 #### Parameters
 
@@ -208,7 +208,7 @@ Defined in: [packages/react-native-executorch/src/modules/natural\_language\_pro
 
 > **setTokenCallback**(`__namedParameters`): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/LLMModule.ts:44](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L44)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/LLMModule.ts:44](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L44)
 
 #### Parameters
 

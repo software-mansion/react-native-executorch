@@ -1,6 +1,6 @@
 # Interface: TextToSpeechConfig
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:59](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/types/tts.ts#L59)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:46](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/tts.ts#L46)
 
 General Text to Speech module configuration
 
@@ -10,19 +10,9 @@ General Text to Speech module configuration
 
 > **model**: [`KokoroConfig`](KokoroConfig.md)
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:60](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/types/tts.ts#L60)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:47](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/tts.ts#L47)
 
 a selected T2S model
-
-***
-
-### options?
-
-> `optional` **options**: [`KokoroOptions`](KokoroOptions.md)
-
-Defined in: [packages/react-native-executorch/src/types/tts.ts:62](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/types/tts.ts#L62)
-
-a completely optional model-specific configuration
 
 ***
 
@@ -30,6 +20,6 @@ a completely optional model-specific configuration
 
 > **voice**: [`VoiceConfig`](VoiceConfig.md)
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:61](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/types/tts.ts#L61)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:48](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/tts.ts#L48)
 
 a selected speaker's voice

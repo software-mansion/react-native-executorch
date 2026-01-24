@@ -1,6 +1,6 @@
 # Class: ExecutorchModule
 
-Defined in: [packages/react-native-executorch/src/modules/general/ExecutorchModule.ts:8](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/general/ExecutorchModule.ts#L8)
+Defined in: [packages/react-native-executorch/src/modules/general/ExecutorchModule.ts:8](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/general/ExecutorchModule.ts#L8)
 
 ## Extends
 
@@ -26,7 +26,7 @@ Defined in: [packages/react-native-executorch/src/modules/general/ExecutorchModu
 
 > **nativeModule**: `any` = `null`
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:5](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/BaseModule.ts#L5)
+Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:5](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/BaseModule.ts#L5)
 
 #### Inherited from
 
@@ -38,7 +38,7 @@ Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:5](https
 
 > **delete**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:21](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/BaseModule.ts#L21)
+Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:21](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/BaseModule.ts#L21)
 
 #### Returns
 
@@ -54,7 +54,7 @@ Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:21](http
 
 > **forward**(`inputTensor`): `Promise`\<[`TensorPtr`](../interfaces/TensorPtr.md)[]\>
 
-Defined in: [packages/react-native-executorch/src/modules/general/ExecutorchModule.ts:26](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/general/ExecutorchModule.ts#L26)
+Defined in: [packages/react-native-executorch/src/modules/general/ExecutorchModule.ts:26](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/general/ExecutorchModule.ts#L26)
 
 #### Parameters
 
@@ -72,7 +72,7 @@ Defined in: [packages/react-native-executorch/src/modules/general/ExecutorchModu
 
 > `protected` **forwardET**(`inputTensor`): `Promise`\<[`TensorPtr`](../interfaces/TensorPtr.md)[]\>
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:13](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/BaseModule.ts#L13)
+Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:13](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/BaseModule.ts#L13)
 
 #### Parameters
 
@@ -94,7 +94,7 @@ Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:13](http
 
 > **getInputShape**(`methodName`, `index`): `Promise`\<`number`[]\>
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:17](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/BaseModule.ts#L17)
+Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:17](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/BaseModule.ts#L17)
 
 #### Parameters
 
@@ -120,7 +120,7 @@ Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:17](http
 
 > **load**(`modelSource`, `onDownloadProgressCallback`): `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/modules/general/ExecutorchModule.ts:9](https://github.com/software-mansion/react-native-executorch/blob/58509193bdce6956ca0a9f447a97326983ae2e83/packages/react-native-executorch/src/modules/general/ExecutorchModule.ts#L9)
+Defined in: [packages/react-native-executorch/src/modules/general/ExecutorchModule.ts:9](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/general/ExecutorchModule.ts#L9)
 
 #### Parameters
 

@@ -1,6 +1,6 @@
 # Interface: TokenizerType
 
-Defined in: packages/react-native-executorch/src/types/tokenizer.ts:6
+Defined in: [packages/react-native-executorch/src/types/tokenizer.ts:6](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/tokenizer.ts#L6)
 
 React hook state and methods for managing a Tokenizer instance.
 
@@ -10,7 +10,7 @@ React hook state and methods for managing a Tokenizer instance.
 
 > **downloadProgress**: `number`
 
-Defined in: packages/react-native-executorch/src/types/tokenizer.ts:25
+Defined in: [packages/react-native-executorch/src/types/tokenizer.ts:25](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/tokenizer.ts#L25)
 
 Tracks the progress of the tokenizer download process (value between 0 and 1).
 
@@ -20,7 +20,7 @@ Tracks the progress of the tokenizer download process (value between 0 and 1).
 
 > **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
 
-Defined in: packages/react-native-executorch/src/types/tokenizer.ts:10
+Defined in: [packages/react-native-executorch/src/types/tokenizer.ts:10](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/tokenizer.ts#L10)
 
 Contains the error message if the tokenizer failed to load or during processing.
 
@@ -30,7 +30,7 @@ Contains the error message if the tokenizer failed to load or during processing.
 
 > **isGenerating**: `boolean`
 
-Defined in: packages/react-native-executorch/src/types/tokenizer.ts:20
+Defined in: [packages/react-native-executorch/src/types/tokenizer.ts:20](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/tokenizer.ts#L20)
 
 Indicates whether the tokenizer is currently processing data.
 
@@ -40,7 +40,7 @@ Indicates whether the tokenizer is currently processing data.
 
 > **isReady**: `boolean`
 
-Defined in: packages/react-native-executorch/src/types/tokenizer.ts:15
+Defined in: [packages/react-native-executorch/src/types/tokenizer.ts:15](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/tokenizer.ts#L15)
 
 Indicates whether the tokenizer has successfully loaded and is ready for use.
 
@@ -50,7 +50,7 @@ Indicates whether the tokenizer has successfully loaded and is ready for use.
 
 > **decode**(`tokens`, `skipSpecialTokens`): `Promise`\<`string`\>
 
-Defined in: packages/react-native-executorch/src/types/tokenizer.ts:32
+Defined in: [packages/react-native-executorch/src/types/tokenizer.ts:32](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/tokenizer.ts#L32)
 
 Converts an array of token IDs into a string.
 
@@ -78,7 +78,7 @@ A promise resolving to the decoded text string.
 
 > **encode**(`text`): `Promise`\<`number`[]\>
 
-Defined in: packages/react-native-executorch/src/types/tokenizer.ts:39
+Defined in: [packages/react-native-executorch/src/types/tokenizer.ts:39](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/tokenizer.ts#L39)
 
 Converts a string into an array of token IDs.
 
@@ -102,7 +102,7 @@ A promise resolving to an array `number[]` containing the encoded token IDs.
 
 > **getVocabSize**(): `Promise`\<`number`\>
 
-Defined in: packages/react-native-executorch/src/types/tokenizer.ts:45
+Defined in: [packages/react-native-executorch/src/types/tokenizer.ts:45](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/tokenizer.ts#L45)
 
 Returns the size of the tokenizer's vocabulary.
 
@@ -118,7 +118,7 @@ A promise resolving to the vocabulary size.
 
 > **idToToken**(`id`): `Promise`\<`string`\>
 
-Defined in: packages/react-native-executorch/src/types/tokenizer.ts:52
+Defined in: [packages/react-native-executorch/src/types/tokenizer.ts:52](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/tokenizer.ts#L52)
 
 Returns the token associated to the ID.
 
@@ -142,7 +142,7 @@ A promise resolving to the token string representation.
 
 > **tokenToId**(`token`): `Promise`\<`number`\>
 
-Defined in: packages/react-native-executorch/src/types/tokenizer.ts:59
+Defined in: [packages/react-native-executorch/src/types/tokenizer.ts:59](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/tokenizer.ts#L59)
 
 Returns the ID associated to the token.
 
