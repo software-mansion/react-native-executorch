@@ -10,6 +10,11 @@ import {
 
 export class LLMModule {
   private controller: LLMController;
+  private pendingConfig?: {
+    chatConfig?: Partial<ChatConfig>;
+    toolsConfig?: ToolsConfig;
+    generationConfig?: GenerationConfig;
+  };
 
   constructor({
     tokenCallback,
@@ -39,6 +44,11 @@ export class LLMModule {
       ...model,
       onDownloadProgressCallback,
     });
+
+    if (this.pendingConfig) {
+      this.controller.configure(this.pendingConfig);
+      this.pendingConfig = undefined;
+    }
   }
 
   setTokenCallback({
@@ -58,7 +68,12 @@ export class LLMModule {
     toolsConfig?: ToolsConfig;
     generationConfig?: GenerationConfig;
   }) {
-    this.controller.configure({ chatConfig, toolsConfig, generationConfig });
+    const config = { chatConfig, toolsConfig, generationConfig };
+    if (this.controller.isReady) {
+      this.controller.configure(config);
+    } else {
+      this.pendingConfig = config;
+    }
   }
 
   async forward(input: string): Promise<string> {
