@@ -1,8 +1,8 @@
 #include "../data_processing/Numerical.h"
 #include <gtest/gtest.h>
 #include <limits>
+#include <rnexecutorch/Error.h>
 #include <span>
-#include <stdexcept>
 #include <vector>
 
 namespace rnexecutorch::numerical {
@@ -94,14 +94,14 @@ TEST(MeanPoolingTests, InvalidDimensionSize) {
   const std::vector<float> modelOutput = {1.0F, 2.0F, 3.0F, 4.0F};
   const std::vector<int64_t> attnMask = {1, 1, 1};
 
-  EXPECT_THROW({ meanPooling(modelOutput, attnMask); }, std::invalid_argument);
+  EXPECT_THROW({ meanPooling(modelOutput, attnMask); }, RnExecutorchError);
 }
 
 TEST(MeanPoolingTests, EmptyAttentionMask) {
   const std::vector<float> modelOutput = {1.0F, 2.0F, 3.0F, 4.0F};
   const std::vector<int64_t> attnMask = {};
 
-  EXPECT_THROW({ meanPooling(modelOutput, attnMask); }, std::invalid_argument);
+  EXPECT_THROW({ meanPooling(modelOutput, attnMask); }, RnExecutorchError);
 }
 
 } // namespace rnexecutorch::numerical
