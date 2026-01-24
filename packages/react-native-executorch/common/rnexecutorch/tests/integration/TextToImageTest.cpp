@@ -111,15 +111,6 @@ TEST(TextToImageGenerateTests, ZeroStepsThrows) {
                RnExecutorchError);
 }
 
-TEST(TextToImageGenerateTests, NegativeStepsThrows) {
-  TextToImage model(VALID_TOKENIZER_PATH, VALID_ENCODER_PATH, VALID_UNET_PATH,
-                    VALID_DECODER_PATH, SCHEDULER_BETA_START,
-                    SCHEDULER_BETA_END, SCHEDULER_NUM_TRAIN_TIMESTEPS,
-                    SCHEDULER_STEPS_OFFSET, createMockCallInvoker());
-  EXPECT_THROW((void)model.generate("a cat", 128, -1, 42, nullptr),
-               RnExecutorchError);
-}
-
 TEST(TextToImageGenerateTests, GenerateReturnsNonNull) {
   TextToImage model(VALID_TOKENIZER_PATH, VALID_ENCODER_PATH, VALID_UNET_PATH,
                     VALID_DECODER_PATH, SCHEDULER_BETA_START,

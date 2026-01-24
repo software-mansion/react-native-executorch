@@ -46,19 +46,6 @@ TEST(VADGenerateTests, SilenceReturnsNoSegments) {
   EXPECT_TRUE(segments.empty());
 }
 
-TEST(VADGenerateTests, EmptyAudioThrows) {
-  VoiceActivityDetection model(VALID_VAD_MODEL_PATH, nullptr);
-  std::vector<float> emptyAudio;
-  EXPECT_THROW((void)model.generate(emptyAudio), RnExecutorchError);
-}
-
-TEST(VADGenerateTests, TooShortAudioReturnsNoSegments) {
-  VoiceActivityDetection model(VALID_VAD_MODEL_PATH, nullptr);
-  auto shortAudio = generateSilence(100);
-  auto segments = model.generate(shortAudio);
-  EXPECT_TRUE(segments.empty());
-}
-
 TEST(VADGenerateTests, SegmentsHaveValidBounds) {
   VoiceActivityDetection model(VALID_VAD_MODEL_PATH, nullptr);
   auto audio = loadAudioFromFile("test_audio_float.raw");

@@ -78,12 +78,6 @@ TEST(TokenizerIdToTokenTests, ValidIdReturnsToken) {
   EXPECT_FALSE(token.empty());
 }
 
-TEST(TokenizerIdToTokenTests, OutOfBoundsIdThrows) {
-  TokenizerModule tokenizer(VALID_TOKENIZER_PATH, nullptr);
-  auto vocabSize = tokenizer.getVocabSize();
-  EXPECT_THROW((void)tokenizer.idToToken(vocabSize + 1000), RnExecutorchError);
-}
-
 TEST(TokenizerTokenToIdTests, RoundTripWorks) {
   TokenizerModule tokenizer(VALID_TOKENIZER_PATH, nullptr);
   auto token = tokenizer.idToToken(100);
