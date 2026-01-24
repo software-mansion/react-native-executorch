@@ -14,17 +14,21 @@ include_directories(${CMAKE_SOURCE_DIR}/../data_processing)
 include_directories(${CMAKE_SOURCE_DIR}/..)
 
 # Source files
-set(SOURCE_FILES ${CMAKE_SOURCE_DIR}/../data_processing/Numerical.cpp)
+set(SOURCE_FILES ${CMAKE_SOURCE_DIR}/../data_processing/Numerical.cpp 
+                 ${CMAKE_SOURCE_DIR}/../data_processing/FileUtils.h)
 
 # Executables for the tests
 add_executable(NumericalTests NumericalTest.cpp ${SOURCE_FILES})
+add_executable(FileUtilsTests FileUtilsTest.cpp ${SOURCE_FILES})
 add_executable(LogTests LogTest.cpp)
 
 # Libraries linking
 target_link_libraries(NumericalTests gtest gtest_main)
+target_link_libraries(FileUtilsTests gtest gtest_main)
 target_link_libraries(LogTests gtest gtest_main)
 
 # Testing functionalities
 enable_testing()
 add_test(NAME NumericalTests COMMAND NumericalTests)
+add_test(NAME FileUtilsTests COMMAND FileUtilsTests)
 add_test(NAME LogTests COMMAND LogTests)

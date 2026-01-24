@@ -1,6 +1,5 @@
 import { ResourceSource } from '../types/common';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
-import { ETError, getError } from '../Error';
 import { Template } from '@huggingface/jinja';
 import { DEFAULT_CHAT_CONFIG } from '../constants/llmDefaults';
 import {
@@ -13,6 +12,8 @@ import {
 } from '../types/llm';
 import { parseToolCall } from '../utils/llm';
 import { Logger } from '../common/Logger';
+import { RnExecutorchError, parseUnknownError } from '../errors/errorUtils';
+import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 
 export class LLMController {
   private nativeModule: any;
@@ -123,7 +124,10 @@ export class LLMController {
       const modelPath = modelResult?.[0];
 
       if (!tokenizerPath || !tokenizerConfigPath || !modelPath) {
-        throw new Error('Download interrupted!');
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.DownloadInterrupted,
+          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+        );
       }
 
       this.tokenizerConfig = JSON.parse(
@@ -157,7 +161,7 @@ export class LLMController {
       };
     } catch (e) {
       this.isReadyCallback(false);
-      throw new Error(getError(e));
+      throw parseUnknownError(e);
     }
   }
 
@@ -188,8 +192,9 @@ export class LLMController {
     }
     if (generationConfig?.topp) {
       if (generationConfig.topp < 0 || generationConfig.topp > 1) {
-        throw new Error(
-          getError(ETError.InvalidConfig) + 'TopP has to be in range [0, 1].'
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.InvalidConfig,
+          'Top P has to be in range [0, 1]'
         );
       }
       this.nativeModule.setTopp(generationConfig.topp);
@@ -203,9 +208,9 @@ export class LLMController {
 
   public delete() {
     if (this._isGenerating) {
-      throw new Error(
-        getError(ETError.ModelGenerating) +
-          'You cannot delete the model now. You need to interrupt first.'
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelGenerating,
+        'You cannot delete the model now. You need ot interrupt it first.'
       );
     }
     this.onToken = () => {};
@@ -216,17 +221,23 @@ export class LLMController {
 
   public async forward(input: string) {
     if (!this._isReady) {
-      throw new Error(getError(ETError.ModuleNotLoaded));
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        'The model is currently not loaded. Please load the model before calling forward().'
+      );
     }
     if (this._isGenerating) {
-      throw new Error(getError(ETError.ModelGenerating));
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelGenerating,
+        'The model is currently generating. Please wait until previous model run is complete.'
+      );
     }
     try {
       this.responseCallback('');
       this.isGeneratingCallback(true);
       await this.nativeModule.generate(input, this.onToken);
     } catch (e) {
-      throw new Error(getError(e));
+      throw parseUnknownError(e);
     } finally {
       this.isGeneratingCallback(false);
     }
@@ -242,10 +253,16 @@ export class LLMController {
 
   public async generate(messages: Message[], tools?: LLMTool[]) {
     if (!this._isReady) {
-      throw new Error(getError(ETError.ModuleNotLoaded));
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        'The model is currently not loaded. Please load the model before calling generate().'
+      );
     }
     if (messages.length === 0) {
-      throw new Error(`Empty 'messages' array!`);
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidUserInput,
+        'Messages array is empty!'
+      );
     }
     if (messages[0] && messages[0].role !== 'system') {
       Logger.warn(
@@ -318,7 +335,10 @@ export class LLMController {
     templateFlags?: Object
   ): string {
     if (!tokenizerConfig.chat_template) {
-      throw Error("Tokenizer config doesn't include chat_template");
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidConfig,
+        "Tokenizer config doesn't include chat_template"
+      );
     }
     const template = new Template(tokenizerConfig.chat_template);
 

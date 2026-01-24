@@ -1,3 +1,5 @@
+import { RnExecutorchError } from '../errors/errorUtils';
+
 export interface LLMType {
   messageHistory: Message[];
   response: string;
@@ -5,7 +7,7 @@ export interface LLMType {
   isReady: boolean;
   isGenerating: boolean;
   downloadProgress: number;
-  error: string | null;
+  error: RnExecutorchError | null;
   configure: ({
     chatConfig,
     toolsConfig,

@@ -15036,9 +15036,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"speech-to-text@workspace:apps/speech-to-text":
+"speech@workspace:apps/speech":
   version: 0.0.0-use.local
-  resolution: "speech-to-text@workspace:apps/speech-to-text"
+  resolution: "speech@workspace:apps/speech"
   dependencies:
     "@babel/core": "npm:^7.25.2"
     "@react-native/metro-config": "npm:^0.81.5"

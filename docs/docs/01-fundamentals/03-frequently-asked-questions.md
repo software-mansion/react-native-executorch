@@ -10,11 +10,11 @@ Each hook documentation subpage (useClassification, useLLM, etc.) contains a sup
 
 ### How can I run my own AI model?
 
-To run your own model, you need to directly access the underlying [ExecuTorch Module API](https://pytorch.org/executorch/stable/extension-module.html). We provide an experimental [React hook](../02-hooks/03-executorch-bindings/useExecutorchModule.md) along with a [TypeScript alternative](../03-typescript-api/03-executorch-bindings/ExecutorchModule.md), which serve as a way to use the aforementioned API without the need of diving into native code. In order to get a model in a format runnable by the runtime, you'll need to get your hands dirty with some ExecuTorch knowledge. For more guides on exporting models, please refer to the [ExecuTorch tutorials](https://pytorch.org/executorch/stable/tutorials/export-to-executorch-tutorial.html). Once you obtain your model in a `.pte` format, you can run it with `useExecuTorchModule` and `ExecuTorchModule`.
+To run your own model, you need to directly access the underlying [ExecuTorch Module API](https://pytorch.org/executorch/stable/extension-module.html). We provide an experimental [React hook](../03-hooks/03-executorch-bindings/useExecutorchModule.md) along with a [TypeScript alternative](../04-typescript-api/03-executorch-bindings/ExecutorchModule.md), which serve as a way to use the aforementioned API without the need of diving into native code. In order to get a model in a format runnable by the runtime, you'll need to get your hands dirty with some ExecuTorch knowledge. For more guides on exporting models, please refer to the [ExecuTorch tutorials](https://pytorch.org/executorch/stable/tutorials/export-to-executorch-tutorial.html). Once you obtain your model in a `.pte` format, you can run it with `useExecuTorchModule` and `ExecuTorchModule`.
 
 ### Can you do function calling with useLLM?
 
-If your model supports tool calling (i.e. its chat template can process tools) you can use the method explained on the [useLLM page](../02-hooks/01-natural-language-processing/useLLM.md).
+If your model supports tool calling (i.e. its chat template can process tools) you can use the method explained on the [useLLM page](../03-hooks/01-natural-language-processing/useLLM.md).
 
 If your model doesn't support it, you can still work around it using context. For details, refer to [this comment](https://github.com/software-mansion/react-native-executorch/issues/173#issuecomment-2775082278).
 

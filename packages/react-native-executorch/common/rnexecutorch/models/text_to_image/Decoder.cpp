@@ -3,6 +3,8 @@
 #include <cmath>
 
 #include <executorch/extension/tensor/tensor_ptr_maker.h>
+#include <rnexecutorch/Error.h>
+#include <rnexecutorch/ErrorCodes.h>
 
 namespace rnexecutorch::models::text_to_image {
 
@@ -20,9 +22,9 @@ std::vector<float> Decoder::generate(std::vector<float> &input) const {
 
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
-    throw std::runtime_error(
-        "Function forward in decoder failed with error code: " +
-        std::to_string(static_cast<uint32_t>(forwardResult.error())));
+    throw RnExecutorchError(
+        forwardResult.error(),
+        "Function forward in decoder failed with error code: ");
   }
 
   auto forwardResultTensor = forwardResult->at(0).toTensor();

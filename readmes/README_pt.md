@@ -8,6 +8,9 @@
   <a href="https://github.com/software-mansion/react-native-executorch/stargazers"><img src="https://img.shields.io/github/stars/software-mansion/react-native-executorch?style=for-the-badge&color=00008B" alt="GitHub - Stars"></a>
   <a href="https://discord.gg/ZGqqY55qkP"><img src="https://img.shields.io/badge/Discord-Juntem--se%20a%20nós-00008B?logo=discord&logoColor=white&style=for-the-badge" alt="Join our Discord community"></a>
   <a href="https://docs.swmansion.com/react-native-executorch/"><img src="https://img.shields.io/badge/Documentação-00008B?logo=googledocs&logoColor=white&style=for-the-badge" alt="Documentation"></a>
+  <a href="https://swmansion.com/contact">
+    <img src="https://img.shields.io/badge/Contrate--nos-00008B?logo=react&logoColor=white&color=darkgreen&style=for-the-badge" alt="Hire Us">
+  </a>
 </div>
 
 ![Banner da Software Mansion](https://github.com/user-attachments/assets/fa2c4735-e75c-4cc1-970d-88905d95e3a4)
@@ -28,6 +31,7 @@
 React Native ExecuTorch faz a ponte entre React Native e as capacidades das plataformas nativas, permitindo que desenvolvedores executem modelos de IA localmente em dispositivos móveis de maneira eficiente. Isso pode ser alcançado sem a necessidade de extenso conhecimento em programação nativa ou aprendizado de máquina.
 
 [![Versão npm](https://img.shields.io/npm/v/react-native-executorch?color=00008B)](https://www.npmjs.com/package/react-native-executorch)
+[![npm nightly](https://img.shields.io/npm/v/react-native-executorch/executorch-nightly?label=nightly&color=00008B)](https://www.npmjs.com/package/react-native-executorch)
 [![CI](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml/badge.svg)](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml)
 
 <details>
@@ -52,7 +56,7 @@ As versões mínimas suportadas são:
 - Android 13
 - React Native 0.76
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > React Native ExecuTorch suporta apenas a [Nova Arquitetura do React Native](https://reactnative.dev/architecture/landing-page).
 
 ## :earth_africa: Exemplo do Mundo Real
@@ -124,7 +128,7 @@ Então, dependendo da plataforma, escolha iOS ou Android:
 yarn expo run:< ios | android >
 ```
 
-> [!WARNING]  
+> [!WARNING]
 > Executar LLMs requer uma quantidade significativa de RAM. Se você estiver enfrentando travamentos inesperados do aplicativo, tente aumentar a quantidade de RAM alocada para o emulador.
 
 ## :robot: Modelos Prontos para Uso
@@ -133,7 +137,7 @@ Nossa biblioteca possui vários modelos de IA prontos para uso; uma lista comple
 
 ## :books: Documentação
 
-Confira como nossa biblioteca pode ajudar você a construir recursos de IA no React Native visitando nossa documentação:  
+Confira como nossa biblioteca pode ajudar você a construir recursos de IA no React Native visitando nossa documentação:
 https://docs.swmansion.com/react-native-executorch
 
 ## :balance_scale: Licença
@@ -146,6 +150,6 @@ Para saber sobre nossos planos e desenvolvimentos futuros, visite nossos [marcos
 
 ## React Native ExecuTorch é criado pela Software Mansion
 
-Desde 2012, a [Software Mansion](https://swmansion.com) é uma agência de software com experiência na construção de aplicativos web e móveis. Somos colaboradores principais do React Native e especialistas em lidar com todos os tipos de problemas do React Native. Podemos ajudar você a construir seu próximo produto dos sonhos – [Contrate-nos](https://swmansion.com/contact/projects?utm_source=react-native-executorch&utm_medium=readme).
+Desde 2012, a [Software Mansion](https://swmansion.com) é uma agência de software com experiência na construção de aplicativos web e móveis. Somos colaboradores principais do React Native e especialistas em lidar com todos os tipos de problemas do React Native. Podemos ajudar você a construir seu próximo produto dos sonhos – [Contrate-nos](https://swmansion.com/contact?utm_source=react-native-executorch&utm_medium=readme).
 
 [![swm](https://logo.swmansion.com/logo?color=white&variant=desktop&width=150&tag=react-native-executorch-github 'Software Mansion')](https://swmansion.com)

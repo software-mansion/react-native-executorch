@@ -12,7 +12,8 @@
   },
   "scripts": {
     "lint": "yarn workspaces foreach --all --parallel run lint",
-    "typecheck": "yarn workspaces foreach --all --parallel run typecheck"
+    "typecheck": "yarn workspaces foreach --all --parallel run typecheck",
+    "codegen:errors": "npx ts-node scripts/generate-errors.ts"
   },
   "private": true,
   "devDependencies": {

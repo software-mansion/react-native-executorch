@@ -43,16 +43,21 @@ declare global {
     decoderSource: string,
     modelName: string
   ) => any;
+  var loadTextToSpeechKokoro: (
+    lang: string,
+    taggerData: string,
+    phonemizerData: string,
+    durationPredictorSource: string,
+    synthesizerSource: string,
+    voice: string
+  ) => any;
   var loadOCR: (
     detectorSource: string,
-    recognizerLarge: string,
-    recognizerMedium: string,
-    recognizerSmall: string,
+    recognizer: string,
     symbols: string
   ) => any;
   var loadVerticalOCR: (
-    detectorLarge: string,
-    detectorNarrow: string,
+    detectorSource: string,
     recognizer: string,
     symbols: string,
     independentCharacters?: boolean
@@ -72,6 +77,7 @@ if (
   global.loadVAD == null ||
   global.loadLLM == null ||
   global.loadSpeechToText == null ||
+  global.loadTextToSpeechKokoro == null ||
   global.loadOCR == null ||
   global.loadVerticalOCR == null
 ) {
@@ -95,6 +101,7 @@ export * from './hooks/computer_vision/useTextToImage';
 
 export * from './hooks/natural_language_processing/useLLM';
 export * from './hooks/natural_language_processing/useSpeechToText';
+export * from './hooks/natural_language_processing/useTextToSpeech';
 export * from './hooks/natural_language_processing/useTextEmbeddings';
 export * from './hooks/natural_language_processing/useTokenizer';
 export * from './hooks/natural_language_processing/useVAD';
@@ -141,4 +148,9 @@ export {
 // constants
 export * from './constants/modelUrls';
 export * from './constants/ocr/models';
+export * from './constants/tts/models';
+export * from './constants/tts/voices';
 export * from './constants/llmDefaults';
+
+export { RnExecutorchError } from './errors/errorUtils';
+export { RnExecutorchErrorCode } from './errors/ErrorCodes';

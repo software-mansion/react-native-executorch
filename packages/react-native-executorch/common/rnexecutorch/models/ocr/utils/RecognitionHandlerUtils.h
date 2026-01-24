@@ -43,6 +43,24 @@ void computeRatioAndResize(cv::Mat &img, cv::Size size, int32_t modelHeight);
  */
 cv::Mat cropImage(types::DetectorBBox box, cv::Mat &image, int32_t modelHeight);
 void adjustContrastGrey(cv::Mat &img, double target);
+
+/**
+ * @brief Determines the optimal width for an image based on its aspect ratio
+ * and orientation, to fit the requirements of the recognition model.
+ *
+ * This function calculates a `desiredWidth` that, when combined with a fixed
+ * `modelHeight` (from `normalizeForRecognizer`), maintains the image's aspect
+ * ratio and prepares it for input into the recognizer model. It considers
+ * whether the text in the image is `isVertical`, which might influence the
+ * chosen width for better recognition performance.
+ *
+ * @param img The input image matrix.
+ * @param isVertical A boolean indicating if the text in the image is oriented
+ * vertically.
+ * @return The calculated desired width for the image.
+ */
+int32_t getDesiredWidth(const cv::Mat &img, bool isVertical);
+
 /**
  * @brief Prepares an image for recognition models by standardizing size,
  * contrast, and pixel values.

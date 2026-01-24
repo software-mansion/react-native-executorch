@@ -12,9 +12,12 @@ void Promise::resolve(jsi::Value &&result) {
   _resolver.asObject(runtime).asFunction(runtime).call(runtime, result);
 }
 
+void Promise::reject(jsi::Value &&error) {
+  _rejecter.asObject(runtime).asFunction(runtime).call(runtime, error);
+}
+
 void Promise::reject(std::string message) {
   jsi::JSError error(runtime, message);
   _rejecter.asObject(runtime).asFunction(runtime).call(runtime, error.value());
 }
-
 } // namespace rnexecutorch

@@ -1,7 +1,8 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
 import { Detection } from '../../types/objectDetection';
-import { ETError, getError } from '../../Error';
+import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
+import { RnExecutorchError } from '../../errors/errorUtils';
 import { BaseModule } from '../BaseModule';
 
 export class ObjectDetectionModule extends BaseModule {
@@ -14,7 +15,10 @@ export class ObjectDetectionModule extends BaseModule {
       model.modelSource
     );
     if (paths === null || paths.length < 1) {
-      throw new Error('Download interrupted.');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.DownloadInterrupted,
+        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+      );
     }
     this.nativeModule = global.loadObjectDetection(paths[0] || '');
   }
@@ -24,7 +28,10 @@ export class ObjectDetectionModule extends BaseModule {
     detectionThreshold: number = 0.7
   ): Promise<Detection[]> {
     if (this.nativeModule == null)
-      throw new Error(getError(ETError.ModuleNotLoaded));
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        'The model is currently not loaded. Please load the model before calling forward().'
+      );
     return await this.nativeModule.generate(imageSource, detectionThreshold);
   }
 }

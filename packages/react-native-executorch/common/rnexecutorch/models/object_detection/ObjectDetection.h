@@ -20,8 +20,8 @@ class ObjectDetection : public BaseModel {
 public:
   ObjectDetection(const std::string &modelSource,
                   std::shared_ptr<react::CallInvoker> callInvoker);
-  std::vector<types::Detection> generate(std::string imageSource,
-                                         double detectionThreshold);
+  [[nodiscard("Registered non-void function")]] std::vector<types::Detection>
+  generate(std::string imageSource, double detectionThreshold);
 
 private:
   std::vector<types::Detection> postprocess(const std::vector<EValue> &tensors,

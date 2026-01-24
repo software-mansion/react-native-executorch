@@ -1,11 +1,9 @@
 #pragma once
 
-#include <set>
-#include <utility>
-
 #include <executorch/extension/tensor/tensor_ptr.h>
 #include <jsi/jsi.h>
 #include <opencv2/opencv.hpp>
+#include <set>
 
 #include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
 #include <rnexecutorch/jsi/OwningArrayBuffer.h>
@@ -23,7 +21,7 @@ class ImageSegmentation : public BaseModel {
 public:
   ImageSegmentation(const std::string &modelSource,
                     std::shared_ptr<react::CallInvoker> callInvoker);
-  std::shared_ptr<jsi::Object>
+  [[nodiscard("Registered non-void function")]] std::shared_ptr<jsi::Object>
   generate(std::string imageSource,
            std::set<std::string, std::less<>> classesOfInterest, bool resize);
 

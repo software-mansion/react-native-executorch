@@ -17,10 +17,8 @@ namespace rnexecutorch::models::ocr {
 
 class RecognitionHandler final {
 public:
-  explicit RecognitionHandler(const std::string &recognizerSourceLarge,
-                              const std::string &recognizerSourceMedium,
-                              const std::string &recognizerSourceSmall,
-                              std::string symbols,
+  explicit RecognitionHandler(const std::string &recognizer,
+                              const std::string &symbols,
                               std::shared_ptr<react::CallInvoker> callInvoker);
   std::vector<types::OCRDetection>
   recognize(std::vector<types::DetectorBBox> bboxesList, cv::Mat &imgGray,
@@ -35,8 +33,6 @@ private:
                    types::PaddingInfo ratioAndPadding);
   std::size_t memorySizeLowerBound{0};
   CTCLabelConverter converter;
-  Recognizer recognizerLarge;
-  Recognizer recognizerMedium;
-  Recognizer recognizerSmall;
+  Recognizer recognizer;
 };
 } // namespace rnexecutorch::models::ocr
