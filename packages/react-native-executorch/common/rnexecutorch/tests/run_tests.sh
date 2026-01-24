@@ -78,7 +78,7 @@ fi
 
 adb shell "mkdir -p $DEVICE_TEST_DIR"
 
-TEST_EXECUTABLES=("NumericalTests" "LogTests" "BaseModelTests" "ClassificationTests" "ObjectDetectionTests" "ImageEmbeddingsTests" "TextEmbeddingsTests" "StyleTransferTests" "VADTests" "TokenizerModuleTests" "SpeechToTextTests" "LLMTests" "ImageSegmentationTests" "TextToImageTests" "OCRTests")
+TEST_EXECUTABLES=("NumericalTests" "LogTests" "BaseModelTests" "ClassificationTests" "ObjectDetectionTests" "ImageEmbeddingsTests" "TextEmbeddingsTests" "StyleTransferTests" "VADTests" "TokenizerModuleTests" "SpeechToTextTests" "LLMTests" "ImageSegmentationTests" "TextToImageTests" "OCRTests" "VerticalOCRTests")
 
 # push test executables to device
 echo "Pushing test executables to device..."

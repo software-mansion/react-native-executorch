@@ -240,3 +240,17 @@ add_rn_test(OCRTests integration/OCRTest.cpp
         ${IMAGE_UTILS_SOURCES}
     LIBS opencv_deps
 )
+
+add_rn_test(VerticalOCRTests integration/VerticalOCRTest.cpp
+    SOURCES
+        ${RNEXECUTORCH_DIR}/models/vertical_ocr/VerticalOCR.cpp
+        ${RNEXECUTORCH_DIR}/models/vertical_ocr/VerticalDetector.cpp
+        ${RNEXECUTORCH_DIR}/models/ocr/Detector.cpp
+        ${RNEXECUTORCH_DIR}/models/ocr/CTCLabelConverter.cpp
+        ${RNEXECUTORCH_DIR}/models/ocr/Recognizer.cpp
+        ${RNEXECUTORCH_DIR}/models/ocr/utils/DetectorUtils.cpp
+        ${RNEXECUTORCH_DIR}/models/ocr/utils/RecognitionHandlerUtils.cpp
+        ${RNEXECUTORCH_DIR}/models/ocr/utils/RecognizerUtils.cpp
+        ${IMAGE_UTILS_SOURCES}
+    LIBS opencv_deps
+)
