@@ -58,11 +58,23 @@ TEST(OCRCtorTests, InvalidRecognizerPathThrows) {
                RnExecutorchError);
 }
 
+TEST(OCRCtorTests, EmptySymbolsThrows) {
+  EXPECT_THROW(OCR(VALID_DETECTOR_PATH, VALID_RECOGNIZER_PATH, "",
+                   createMockCallInvoker()),
+               RnExecutorchError);
+}
+
 TEST(OCRGenerateTests, InvalidImagePathThrows) {
   OCR model(VALID_DETECTOR_PATH, VALID_RECOGNIZER_PATH, ENGLISH_SYMBOLS,
             createMockCallInvoker());
   EXPECT_THROW((void)model.generate("nonexistent_image.jpg"),
                RnExecutorchError);
+}
+
+TEST(OCRGenerateTests, EmptyImagePathThrows) {
+  OCR model(VALID_DETECTOR_PATH, VALID_RECOGNIZER_PATH, ENGLISH_SYMBOLS,
+            createMockCallInvoker());
+  EXPECT_THROW((void)model.generate(""), RnExecutorchError);
 }
 
 TEST(OCRGenerateTests, ValidImageReturnsResults) {
@@ -108,4 +120,12 @@ TEST(OCRGenerateTests, DetectionsHaveNonEmptyText) {
     std::cout << detection.text << std::endl;
     EXPECT_FALSE(detection.text.empty());
   }
+}
+
+TEST(OCRGenerateTests, MultipleGeneratesWork) {
+  OCR model(VALID_DETECTOR_PATH, VALID_RECOGNIZER_PATH, ENGLISH_SYMBOLS,
+            createMockCallInvoker());
+  EXPECT_NO_THROW((void)model.generate(VALID_TEST_IMAGE_PATH));
+  EXPECT_NO_THROW((void)model.generate(VALID_TEST_IMAGE_PATH));
+  EXPECT_NO_THROW((void)model.generate(VALID_TEST_IMAGE_PATH));
 }

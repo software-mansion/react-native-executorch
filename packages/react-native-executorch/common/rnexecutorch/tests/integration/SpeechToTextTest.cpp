@@ -86,3 +86,20 @@ TEST(S2TTranscribeTests, EmptyResultOnSilence) {
   auto result = model.transcribe(audio, "en");
   EXPECT_TRUE(result.empty());
 }
+
+TEST(S2TTranscribeTests, InvalidLanguageThrows) {
+  SpeechToText model(VALID_ENCODER_PATH, VALID_DECODER_PATH,
+                     VALID_TOKENIZER_PATH, nullptr);
+  auto audio = loadAudioFromFile("test_audio_float.raw");
+  ASSERT_FALSE(audio.empty());
+  EXPECT_THROW((void)model.transcribe(audio, "invalid_language_code"),
+               RnExecutorchError);
+}
+
+TEST(S2TTranscribeTests, EmptyLanguageThrows) {
+  SpeechToText model(VALID_ENCODER_PATH, VALID_DECODER_PATH,
+                     VALID_TOKENIZER_PATH, nullptr);
+  auto audio = loadAudioFromFile("test_audio_float.raw");
+  ASSERT_FALSE(audio.empty());
+  EXPECT_THROW((void)model.transcribe(audio, ""), RnExecutorchError);
+}

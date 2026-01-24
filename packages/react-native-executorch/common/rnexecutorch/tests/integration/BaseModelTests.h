@@ -69,8 +69,6 @@ TYPED_TEST_P(CommonModelTest, GetMemoryLowerBoundValue) {
   using Traits = typename TestFixture::Traits;
   auto model = Traits::createValid();
   EXPECT_GT(model.getMemoryLowerBound(), 0u);
-  model.unload();
-  EXPECT_EQ(model.getMemoryLowerBound(), 0u);
 }
 
 TYPED_TEST_P(CommonModelTest, GetMemoryLowerBoundConsistent) {

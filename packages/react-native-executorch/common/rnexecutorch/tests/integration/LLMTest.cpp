@@ -73,10 +73,15 @@ TEST_F(LLMTest, GetGeneratedTokenCountInitiallyZero) {
 
 TEST_F(LLMTest, SetTemperature) {
   LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
-  // Should not throw
+  // Should not throw for valid values
   EXPECT_NO_THROW(model.setTemperature(0.5f));
   EXPECT_NO_THROW(model.setTemperature(1.0f));
   EXPECT_NO_THROW(model.setTemperature(0.0f));
+}
+
+TEST_F(LLMTest, SetTemperatureNegativeThrows) {
+  LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
+  EXPECT_THROW(model.setTemperature(-0.1f), RnExecutorchError);
 }
 
 TEST_F(LLMTest, SetTopp) {
@@ -84,6 +89,12 @@ TEST_F(LLMTest, SetTopp) {
   EXPECT_NO_THROW(model.setTopp(0.9f));
   EXPECT_NO_THROW(model.setTopp(0.5f));
   EXPECT_NO_THROW(model.setTopp(1.0f));
+}
+
+TEST_F(LLMTest, SetToppInvalidThrows) {
+  LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
+  EXPECT_THROW(model.setTopp(-0.1f), RnExecutorchError);
+  EXPECT_THROW(model.setTopp(1.1f), RnExecutorchError);
 }
 
 TEST_F(LLMTest, SetCountInterval) {
@@ -130,4 +141,16 @@ TEST_F(LLMTest, GenerateUpdatesTokenCount) {
       formatChatML(SYSTEM_PROMPT, "Repeat exactly this: 'naszponcilem testy'");
   model.generate(prompt, nullptr);
   EXPECT_GT(model.getGeneratedTokenCount(), 0);
+}
+
+TEST_F(LLMTest, EmptyPromptThrows) {
+  LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
+  EXPECT_THROW((void)model.generate("", nullptr), RnExecutorchError);
+}
+
+TEST_F(LLMTest, MultipleGeneratesWork) {
+  LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
+  std::string prompt = formatChatML(SYSTEM_PROMPT, "Hi");
+  EXPECT_NO_THROW((void)model.generate(prompt, nullptr));
+  EXPECT_NO_THROW((void)model.generate(prompt, nullptr));
 }

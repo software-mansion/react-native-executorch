@@ -46,6 +46,18 @@ TEST(TokenizerEncodeTests, DifferentTextReturnsDifferentTokens) {
   EXPECT_NE(tokens1, tokens2);
 }
 
+TEST(TokenizerEncodeTests, SpecialCharactersWork) {
+  TokenizerModule tokenizer(VALID_TOKENIZER_PATH, nullptr);
+  auto tokens = tokenizer.encode("!@#$%^&*()");
+  EXPECT_GT(tokens.size(), 0u);
+}
+
+TEST(TokenizerEncodeTests, VeryLongTextWorks) {
+  TokenizerModule tokenizer(VALID_TOKENIZER_PATH, nullptr);
+  std::string longText(10000, 'a');
+  EXPECT_NO_THROW((void)tokenizer.encode(longText));
+}
+
 TEST(TokenizerDecodeTests, DecodeEncodedTextReturnsOriginal) {
   TokenizerModule tokenizer(VALID_TOKENIZER_PATH, nullptr);
   std::string original = "szponcik";
@@ -64,6 +76,12 @@ TEST(TokenizerIdToTokenTests, ValidIdReturnsToken) {
   TokenizerModule tokenizer(VALID_TOKENIZER_PATH, nullptr);
   auto token = tokenizer.idToToken(0);
   EXPECT_FALSE(token.empty());
+}
+
+TEST(TokenizerIdToTokenTests, OutOfBoundsIdThrows) {
+  TokenizerModule tokenizer(VALID_TOKENIZER_PATH, nullptr);
+  auto vocabSize = tokenizer.getVocabSize();
+  EXPECT_THROW((void)tokenizer.idToToken(vocabSize + 1000), RnExecutorchError);
 }
 
 TEST(TokenizerTokenToIdTests, RoundTripWorks) {

@@ -47,6 +47,17 @@ TEST(ClassificationGenerateTests, InvalidImagePathThrows) {
                RnExecutorchError);
 }
 
+TEST(ClassificationGenerateTests, EmptyImagePathThrows) {
+  Classification model(VALID_CLASSIFICATION_MODEL_PATH, nullptr);
+  EXPECT_THROW((void)model.generate(""), RnExecutorchError);
+}
+
+TEST(ClassificationGenerateTests, MalformedURIThrows) {
+  Classification model(VALID_CLASSIFICATION_MODEL_PATH, nullptr);
+  EXPECT_THROW((void)model.generate("not_a_valid_uri://bad"),
+               RnExecutorchError);
+}
+
 TEST(ClassificationGenerateTests, ValidImageReturnsResults) {
   Classification model(VALID_CLASSIFICATION_MODEL_PATH, nullptr);
   auto results = model.generate(VALID_TEST_IMAGE_PATH);
@@ -84,6 +95,13 @@ TEST(ClassificationGenerateTests, TopPredictionHasReasonableConfidence) {
     }
   }
   EXPECT_GT(maxProb, 0.0f);
+}
+
+TEST(ClassificationGenerateTests, MultipleGeneratesWork) {
+  Classification model(VALID_CLASSIFICATION_MODEL_PATH, nullptr);
+  EXPECT_NO_THROW((void)model.generate(VALID_TEST_IMAGE_PATH));
+  EXPECT_NO_THROW((void)model.generate(VALID_TEST_IMAGE_PATH));
+  EXPECT_NO_THROW((void)model.generate(VALID_TEST_IMAGE_PATH));
 }
 
 TEST(ClassificationInheritedTests, GetInputShapeWorks) {

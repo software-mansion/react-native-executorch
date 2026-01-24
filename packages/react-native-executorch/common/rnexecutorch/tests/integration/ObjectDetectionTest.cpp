@@ -47,6 +47,23 @@ TEST(ObjectDetectionGenerateTests, InvalidImagePathThrows) {
                RnExecutorchError);
 }
 
+TEST(ObjectDetectionGenerateTests, EmptyImagePathThrows) {
+  ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
+  EXPECT_THROW((void)model.generate("", 0.5), RnExecutorchError);
+}
+
+TEST(ObjectDetectionGenerateTests, NegativeThresholdThrows) {
+  ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
+  EXPECT_THROW((void)model.generate(VALID_TEST_IMAGE_PATH, -0.1),
+               RnExecutorchError);
+}
+
+TEST(ObjectDetectionGenerateTests, ThresholdAboveOneThrows) {
+  ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
+  EXPECT_THROW((void)model.generate(VALID_TEST_IMAGE_PATH, 1.1),
+               RnExecutorchError);
+}
+
 TEST(ObjectDetectionGenerateTests, ValidImageReturnsResults) {
   ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
   auto results = model.generate(VALID_TEST_IMAGE_PATH, 0.3);
@@ -89,6 +106,13 @@ TEST(ObjectDetectionGenerateTests, DetectionsHaveValidLabels) {
   for (const auto &detection : results) {
     EXPECT_GE(detection.label, 0);
   }
+}
+
+TEST(ObjectDetectionGenerateTests, MultipleGeneratesWork) {
+  ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
+  EXPECT_NO_THROW((void)model.generate(VALID_TEST_IMAGE_PATH, 0.5));
+  EXPECT_NO_THROW((void)model.generate(VALID_TEST_IMAGE_PATH, 0.3));
+  EXPECT_NO_THROW((void)model.generate(VALID_TEST_IMAGE_PATH, 0.7));
 }
 
 TEST(ObjectDetectionInheritedTests, GetInputShapeWorks) {
