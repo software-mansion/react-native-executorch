@@ -74,9 +74,24 @@ export const useModule = <
   };
 
   return {
+    /**
+     * Contains the error message if the model failed to load.
+     */
     error,
+
+    /**
+     * Indicates whether the model is ready.
+     */
     isReady,
+
+    /**
+     * Indicates whether the model is currently generating a response.
+     */
     isGenerating,
+
+    /**
+     * Represents the download progress as a value between 0 and 1, indicating the extent of the model file retrieval.
+     */
     downloadProgress,
     forward,
   };

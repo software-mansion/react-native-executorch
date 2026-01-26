@@ -4,6 +4,9 @@ import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
+/**
+ * Module for Speech to Text (STT) functionalities.
+ */
 export class SpeechToTextModule {
   private nativeModule: any;
 
@@ -14,6 +17,13 @@ export class SpeechToTextModule {
     ignoreBOM: true,
   });
 
+  /**
+   * Loads the model specified by the config object. 
+   * `onDownloadProgressCallback` allows you to monitor the current progress of the model download.
+   * 
+   * @param model - Configuration object containing model sources.
+   * @param onDownloadProgressCallback - Optional callback to monitor download progress.
+   */
   public async load(
     model: SpeechToTextModelConfig,
     onDownloadProgressCallback: (progress: number) => void = () => {}
@@ -48,10 +58,20 @@ export class SpeechToTextModule {
     );
   }
 
+  /**
+   * Unloads the model from memory.
+   */
   public delete(): void {
     this.nativeModule.unload();
   }
 
+  /**
+   * Runs the encoding part of the model on the provided waveform.
+   * Returns the encoded waveform as a Float32Array. Passing `number[]` is deprecated.
+   * 
+   * @param waveform - The input audio waveform.
+   * @returns The encoded output.
+   */
   public async encode(
     waveform: Float32Array | number[]
   ): Promise<Float32Array> {
@@ -64,6 +84,13 @@ export class SpeechToTextModule {
     return new Float32Array(await this.nativeModule.encode(waveform));
   }
 
+  /**
+   * Runs the decoder of the model. Passing number[] is deprecated.
+   *
+   * @param tokens - The input tokens.
+   * @param encoderOutput - The encoder output.
+   * @returns Decoded output.
+   */
   public async decode(
     tokens: Int32Array | number[],
     encoderOutput: Float32Array | number[]
@@ -85,6 +112,15 @@ export class SpeechToTextModule {
     );
   }
 
+  /**
+   * Starts a transcription process for a given input array (16kHz waveform). 
+   * For multilingual models, specify the language in `options`. 
+   * Returns the transcription as a string. Passing `number[]` is deprecated.
+   *
+   * @param waveform - The Float32Array audio data.
+   * @param options - Decoding options including language.
+   * @returns The transcription string.
+   */
   public async transcribe(
     waveform: Float32Array | number[],
     options: DecodingOptions = {}
@@ -104,6 +140,14 @@ export class SpeechToTextModule {
     return this.textDecoder.decode(new Uint8Array(transcriptionBytes));
   }
 
+  /**
+   * Starts a streaming transcription session. 
+   * Yields objects with `committed` and `nonCommitted` transcriptions. 
+   * Use with `streamInsert` and `streamStop` to control the stream.
+   * 
+   * @param options - Decoding options including language.
+   * @returns An async generator yielding transcription updates.
+   */
   public async *stream(
     options: DecodingOptions = {}
   ): AsyncGenerator<{ committed: string; nonCommitted: string }> {
@@ -159,6 +203,11 @@ export class SpeechToTextModule {
     }
   }
 
+  /**
+   * Inserts a new audio chunk into the streaming transcription session. Passing `number[]` is deprecated.
+   * 
+   * @param waveform - The audio chunk to insert.
+   */
   public streamInsert(waveform: Float32Array | number[]): void {
     if (Array.isArray(waveform)) {
       Logger.info(
@@ -169,6 +218,9 @@ export class SpeechToTextModule {
     this.nativeModule.streamInsert(waveform);
   }
 
+  /**
+   * Stops the current streaming transcription session.
+   */
   public streamStop(): void {
     this.nativeModule.streamStop();
   }

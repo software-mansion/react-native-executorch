@@ -1,28 +1,41 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ResourceSource } from '../../types/common';
 import {
-  ChatConfig,
-  GenerationConfig,
+  LLMConfig,
   LLMTool,
   LLMType,
   Message,
-  ToolsConfig,
 } from '../../types/llm';
 import { LLMController } from '../../controllers/LLMController';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
-/*
-Hook version of LLMModule
-*/
+/**
+ * React hook for managing a Large Language Model (LLM) instance.
+ *
+ * @param model - Object containing model, tokenizer, and tokenizer config sources.
+ * @returns An object implementing the `LLMType` interface for interacting with the LLM.
+ */
 export const useLLM = ({
   model,
   preventLoad = false,
 }: {
   model: {
+    /**
+     * `ResourceSource` that specifies the location of the model binary.
+     */
     modelSource: ResourceSource;
+    /**
+     * `ResourceSource pointing` to the JSON file which contains the tokenizer.
+     */
     tokenizerSource: ResourceSource;
+    /**
+     * `ResourceSource` pointing to the JSON file which contains the tokenizer config.
+     */
     tokenizerConfigSource: ResourceSource;
   };
+  /**
+   * Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+   */
   preventLoad?: boolean;
 }): LLMType => {
   const [token, setToken] = useState<string>('');
@@ -86,11 +99,7 @@ export const useLLM = ({
       chatConfig,
       toolsConfig,
       generationConfig,
-    }: {
-      chatConfig?: Partial<ChatConfig>;
-      toolsConfig?: ToolsConfig;
-      generationConfig?: GenerationConfig;
-    }) =>
+    }: LLMConfig) =>
       controllerInstance.configure({
         chatConfig,
         toolsConfig,

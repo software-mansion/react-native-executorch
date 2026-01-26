@@ -8,9 +8,22 @@ import {
   VoiceConfig,
 } from '../../types/tts';
 
+/**
+ * Module for Text to Speech (TTS) functionalities.
+ */
 export class TextToSpeechModule {
+  /**
+   * Native module instance
+   */
   nativeModule: any = null;
 
+  /**
+   * Loads the model and voice assets specified by the config object. 
+   * `onDownloadProgressCallback` allows you to monitor the current progress.
+   * 
+   * @param config - Configuration object containing `model` source, `voice` and optional `preventLoad`.
+   * @param onDownloadProgressCallback - Optional callback to monitor download progress.
+   */
   public async load(
     config: TextToSpeechConfig,
     onDownloadProgressCallback: (progress: number) => void = () => {}
@@ -73,6 +86,14 @@ export class TextToSpeechModule {
     );
   }
 
+  /**
+   * Synthesizes the provided text into speech. 
+   * Returns a promise that resolves to the full audio waveform as a `Float32Array`.
+   * 
+   * @param text The input text to be synthesized.
+   * @param speed Optional speed multiplier for the speech synthesis (default is 1.0). 
+   * @returns A promise resolving to the synthesized audio waveform.
+   */
   public async forward(text: string, speed: number = 1.0) {
     if (this.nativeModule == null)
       throw new RnExecutorchError(
@@ -82,6 +103,12 @@ export class TextToSpeechModule {
     return await this.nativeModule.generate(text, speed);
   }
 
+  /**
+   * Starts a streaming synthesis session. Yields audio chunks as they are generated.
+   * 
+   * @param input - Input object containing text and optional speed.
+   * @returns An async generator yielding Float32Array audio chunks.
+   */
   public async *stream({ text, speed }: TextToSpeechStreamingInput) {
     // Stores computed audio segments
     const queue: Float32Array[] = [];
@@ -124,10 +151,16 @@ export class TextToSpeechModule {
     }
   }
 
+  /**
+   * Stops the streaming process if there is any ongoing.
+   */
   public streamStop(): void {
     this.nativeModule.streamStop();
   }
 
+  /**
+   * Unloads the model from memory.
+   */
   delete() {
     if (this.nativeModule !== null) {
       this.nativeModule.unload();
