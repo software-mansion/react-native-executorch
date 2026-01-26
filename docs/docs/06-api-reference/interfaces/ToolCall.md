@@ -1,6 +1,6 @@
 # Interface: ToolCall
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:142](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/llm.ts#L142)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:142](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/llm.ts#L142)
 
 ## Properties
 
@@ -8,7 +8,7 @@ Defined in: [packages/react-native-executorch/src/types/llm.ts:142](https://gith
 
 > **arguments**: `Object`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:144](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/llm.ts#L144)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:144](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/llm.ts#L144)
 
 ***
 
@@ -16,4 +16,4 @@ Defined in: [packages/react-native-executorch/src/types/llm.ts:144](https://gith
 
 > **toolName**: `string`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:143](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/llm.ts#L143)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:143](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/llm.ts#L143)

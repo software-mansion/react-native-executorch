@@ -1,6 +1,6 @@
 # Enumeration: ScalarType
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:13](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/common.ts#L13)
+Defined in: [packages/react-native-executorch/src/types/common.ts:13](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/common.ts#L13)
 
 Enum representing the scalar types of tensors.
 
@@ -10,7 +10,7 @@ Enum representing the scalar types of tensors.
 
 > **BITS16**: `22`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:28](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/common.ts#L28)
+Defined in: [packages/react-native-executorch/src/types/common.ts:28](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/common.ts#L28)
 
 ***
 
@@ -18,7 +18,7 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:28](https://gi
 
 > **BOOL**: `11`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:22](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/common.ts#L22)
+Defined in: [packages/react-native-executorch/src/types/common.ts:22](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/common.ts#L22)
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:22](https://gi
 
 > **BYTE**: `0`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:14](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/common.ts#L14)
+Defined in: [packages/react-native-executorch/src/types/common.ts:14](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/common.ts#L14)
 
 ***
 
@@ -34,7 +34,7 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:14](https://gi
 
 > **CHAR**: `1`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:15](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/common.ts#L15)
+Defined in: [packages/react-native-executorch/src/types/common.ts:15](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/common.ts#L15)
 
 ***
 
@@ -42,7 +42,7 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:15](https://gi
 
 > **DOUBLE**: `7`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:21](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/common.ts#L21)
+Defined in: [packages/react-native-executorch/src/types/common.ts:21](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/common.ts#L21)
 
 ***
 
@@ -50,7 +50,7 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:21](https://gi
 
 > **FLOAT**: `6`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:20](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/common.ts#L20)
+Defined in: [packages/react-native-executorch/src/types/common.ts:20](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/common.ts#L20)
 
 ***
 
@@ -58,7 +58,7 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:20](https://gi
 
 > **FLOAT8E4M3FN**: `24`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:30](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/common.ts#L30)
+Defined in: [packages/react-native-executorch/src/types/common.ts:30](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/common.ts#L30)
 
 ***
 
@@ -66,7 +66,7 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:30](https://gi
 
 > **FLOAT8E4M3FNUZ**: `26`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:32](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/common.ts#L32)
+Defined in: [packages/react-native-executorch/src/types/common.ts:32](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/common.ts#L32)
 
 ***
 
@@ -74,7 +74,7 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:32](https://gi
 
 > **FLOAT8E5M2**: `23`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:29](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/common.ts#L29)
+Defined in: [packages/react-native-executorch/src/types/common.ts:29](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/common.ts#L29)
 
 ***
 
@@ -82,7 +82,7 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:29](https://gi
 
 > **FLOAT8E5M2FNUZ**: `25`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:31](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/common.ts#L31)
+Defined in: [packages/react-native-executorch/src/types/common.ts:31](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/common.ts#L31)
 
 ***
 
@@ -90,7 +90,7 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:31](https://gi
 
 > **HALF**: `5`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:19](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/common.ts#L19)
+Defined in: [packages/react-native-executorch/src/types/common.ts:19](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/common.ts#L19)
 
 ***
 
@@ -98,7 +98,7 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:19](https://gi
 
 > **INT**: `3`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:17](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/common.ts#L17)
+Defined in: [packages/react-native-executorch/src/types/common.ts:17](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/common.ts#L17)
 
 ***
 
@@ -106,7 +106,7 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:17](https://gi
 
 > **LONG**: `4`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:18](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/common.ts#L18)
+Defined in: [packages/react-native-executorch/src/types/common.ts:18](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/common.ts#L18)
 
 ***
 
@@ -114,7 +114,7 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:18](https://gi
 
 > **QINT32**: `14`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:25](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/common.ts#L25)
+Defined in: [packages/react-native-executorch/src/types/common.ts:25](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/common.ts#L25)
 
 ***
 
@@ -122,7 +122,7 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:25](https://gi
 
 > **QINT8**: `12`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:23](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/common.ts#L23)
+Defined in: [packages/react-native-executorch/src/types/common.ts:23](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/common.ts#L23)
 
 ***
 
@@ -130,7 +130,7 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:23](https://gi
 
 > **QUINT2X4**: `17`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:27](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/common.ts#L27)
+Defined in: [packages/react-native-executorch/src/types/common.ts:27](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/common.ts#L27)
 
 ***
 
@@ -138,7 +138,7 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:27](https://gi
 
 > **QUINT4X2**: `16`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:26](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/common.ts#L26)
+Defined in: [packages/react-native-executorch/src/types/common.ts:26](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/common.ts#L26)
 
 ***
 
@@ -146,7 +146,7 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:26](https://gi
 
 > **QUINT8**: `13`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:24](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/common.ts#L24)
+Defined in: [packages/react-native-executorch/src/types/common.ts:24](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/common.ts#L24)
 
 ***
 
@@ -154,7 +154,7 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:24](https://gi
 
 > **SHORT**: `2`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:16](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/common.ts#L16)
+Defined in: [packages/react-native-executorch/src/types/common.ts:16](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/common.ts#L16)
 
 ***
 
@@ -162,7 +162,7 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:16](https://gi
 
 > **UINT16**: `27`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:33](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/common.ts#L33)
+Defined in: [packages/react-native-executorch/src/types/common.ts:33](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/common.ts#L33)
 
 ***
 
@@ -170,7 +170,7 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:33](https://gi
 
 > **UINT32**: `28`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:34](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/common.ts#L34)
+Defined in: [packages/react-native-executorch/src/types/common.ts:34](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/common.ts#L34)
 
 ***
 
@@ -178,4 +178,4 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:34](https://gi
 
 > **UINT64**: `29`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:35](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/common.ts#L35)
+Defined in: [packages/react-native-executorch/src/types/common.ts:35](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/common.ts#L35)

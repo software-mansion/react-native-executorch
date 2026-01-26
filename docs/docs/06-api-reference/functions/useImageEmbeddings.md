@@ -1,16 +1,22 @@
 # Function: useImageEmbeddings()
 
-> **useImageEmbeddings**(`__namedParameters`): `object`
+> **useImageEmbeddings**(`ImageEmbeddingsConfiguration`): `object`
 
-Defined in: [packages/react-native-executorch/src/hooks/computer\_vision/useImageEmbeddings.ts:10](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/hooks/computer_vision/useImageEmbeddings.ts#L10)
+Defined in: [packages/react-native-executorch/src/hooks/computer\_vision/useImageEmbeddings.ts:11](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/hooks/computer_vision/useImageEmbeddings.ts#L11)
+
+React hook for managing an Image Embeddings model instance.
 
 ## Parameters
 
-### \_\_namedParameters
+### ImageEmbeddingsConfiguration
 
-`Props`
+[`ImageEmbeddingsProps`](../interfaces/ImageEmbeddingsProps.md)
+
+Configuration object containing `model` source and optional `preventLoad` flag.
 
 ## Returns
+
+Ready to use Image Embeddings model.
 
 ### downloadProgress
 

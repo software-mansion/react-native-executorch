@@ -1,6 +1,6 @@
 # Class: SpeechToTextModule
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/SpeechToTextModule.ts:7](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L7)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/SpeechToTextModule.ts:7](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L7)
 
 ## Constructors
 
@@ -18,7 +18,7 @@ Defined in: [packages/react-native-executorch/src/modules/natural\_language\_pro
 
 > **decode**(`tokens`, `encoderOutput`): `Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/SpeechToTextModule.ts:74](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L74)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/SpeechToTextModule.ts:74](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L74)
 
 Runs the decoder of the model. Passing number[] is deprecated.
 
@@ -48,7 +48,7 @@ Decoded output.
 
 > **delete**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/SpeechToTextModule.ts:51](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L51)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/SpeechToTextModule.ts:51](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L51)
 
 #### Returns
 
@@ -60,7 +60,7 @@ Defined in: [packages/react-native-executorch/src/modules/natural\_language\_pro
 
 > **encode**(`waveform`): `Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/SpeechToTextModule.ts:55](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L55)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/SpeechToTextModule.ts:55](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L55)
 
 #### Parameters
 
@@ -78,7 +78,7 @@ Defined in: [packages/react-native-executorch/src/modules/natural\_language\_pro
 
 > **load**(`model`, `onDownloadProgressCallback`): `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/SpeechToTextModule.ts:17](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L17)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/SpeechToTextModule.ts:17](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L17)
 
 #### Parameters
 
@@ -100,7 +100,7 @@ Defined in: [packages/react-native-executorch/src/modules/natural\_language\_pro
 
 > **stream**(`options`): `AsyncGenerator`\<\{ `committed`: `string`; `nonCommitted`: `string`; \}\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/SpeechToTextModule.ts:121](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L121)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/SpeechToTextModule.ts:121](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L121)
 
 #### Parameters
 
@@ -118,7 +118,7 @@ Defined in: [packages/react-native-executorch/src/modules/natural\_language\_pro
 
 > **streamInsert**(`waveform`): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/SpeechToTextModule.ts:176](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L176)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/SpeechToTextModule.ts:176](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L176)
 
 #### Parameters
 
@@ -136,7 +136,7 @@ Defined in: [packages/react-native-executorch/src/modules/natural\_language\_pro
 
 > **streamStop**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/SpeechToTextModule.ts:186](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L186)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/SpeechToTextModule.ts:186](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L186)
 
 #### Returns
 
@@ -148,7 +148,7 @@ Defined in: [packages/react-native-executorch/src/modules/natural\_language\_pro
 
 > **transcribe**(`waveform`, `options`): `Promise`\<`string`\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/SpeechToTextModule.ts:102](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L102)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/SpeechToTextModule.ts:102](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L102)
 
 Transcribes audio using the Whisper model.
 

@@ -1,6 +1,6 @@
 # Interface: KokoroConfig
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:33](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/tts.ts#L33)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:34](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/tts.ts#L34)
 
 Kokoro model configuration.
 Only the core Kokoro model sources, as phonemizer sources are included in voice configuration.
@@ -11,7 +11,7 @@ Only the core Kokoro model sources, as phonemizer sources are included in voice 
 
 > **durationPredictorSource**: [`ResourceSource`](../type-aliases/ResourceSource.md)
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:35](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/tts.ts#L35)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:36](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/tts.ts#L36)
 
 ***
 
@@ -19,7 +19,7 @@ Defined in: [packages/react-native-executorch/src/types/tts.ts:35](https://githu
 
 > **synthesizerSource**: [`ResourceSource`](../type-aliases/ResourceSource.md)
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:36](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/tts.ts#L36)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:37](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/tts.ts#L37)
 
 ***
 
@@ -27,4 +27,4 @@ Defined in: [packages/react-native-executorch/src/types/tts.ts:36](https://githu
 
 > **type**: `"kokoro"`
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:34](https://github.com/software-mansion/react-native-executorch/blob/98ccf0be60ddbbdcffa6085f633ea6ccfd6c68f2/packages/react-native-executorch/src/types/tts.ts#L34)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:35](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/tts.ts#L35)
