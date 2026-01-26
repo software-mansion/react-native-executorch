@@ -59,6 +59,7 @@ export interface VADType {
    * Runs the Voice Activity Detection model on the provided audio waveform.
    * @param waveform - The input audio waveform array.
    * @returns A promise resolving to an array of detected audio segments (e.g., timestamps for speech).
+   * @throws {RnExecutorchError} If the model is not loaded or is currently processing another request.
    */
   forward(waveform: Float32Array): Promise<Segment[]>;
 }

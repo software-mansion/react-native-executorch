@@ -29,6 +29,7 @@ export interface TextEmbeddingsType {
    * Runs the text embeddings model on the provided input string.
    * * @param input - The text string to embed.
    * @returns A promise resolving to a Float32Array containing the vector embeddings.
+   * @throws {RnExecutorchError} If the model is not loaded or is currently processing another request.
    */
   forward(input: string): Promise<Float32Array>;
 }

@@ -1,12 +1,12 @@
 import { symbols } from '../constants/ocr/symbols';
 
 export interface OCRDetection {
-  bbox: OCRBbox[];
+  bbox: Point[];
   text: string;
   score: number;
 }
 
-export interface OCRBbox {
+export interface Point {
   x: number;
   y: number;
 }

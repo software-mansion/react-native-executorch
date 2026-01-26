@@ -1,4 +1,5 @@
 import { ResourceSource } from './common';
+import { RnExecutorchError } from '../errors/errorUtils';
 
 // List all the languages available in TTS models (as lang shorthands)
 export type TextToSpeechLanguage =
@@ -49,6 +50,17 @@ export interface TextToSpeechConfig {
 }
 
 /**
+ * Props for the useTextToSpeech hook.
+ * 
+ * @extends TextToSpeechConfig
+ * 
+ * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+ */
+export interface TextToSpeechProps extends TextToSpeechConfig {
+  preventLoad?: boolean;
+}
+
+/**
  * Text to Speech module input definition
  *
  * @property {string} text - a text to be spoken
@@ -57,6 +69,54 @@ export interface TextToSpeechConfig {
 export interface TextToSpeechInput {
   text: string;
   speed?: number;
+}
+
+/**
+ * Return type for the `useTextToSpeech` hook.
+ * Manages the state and operations for Text-to-Speech generation.
+ */
+export interface TextToSpeechType {
+  /**
+   * Contains the error object if the model failed to load or encountered an error during inference.
+   */
+  error: RnExecutorchError | null;
+
+  /**
+   * Indicates whether the Text-to-Speech model is loaded and ready to accept inputs.
+   */
+  isReady: boolean;
+
+  /**
+   * Indicates whether the model is currently generating audio.
+   */
+  isGenerating: boolean;
+
+  /**
+   * Represents the download progress of the model and voice assets as a value between 0 and 1.
+   */
+  downloadProgress: number;
+
+  /**
+   * Runs the model to convert the provided text into speech audio in a single pass.
+   * * @param input - The `TextToSpeechInput` object containing the `text` to synthesize and optional `speed`.
+   * @returns A Promise that resolves with the generated audio data (typically a `Float32Array`).
+   * @throws {RnExecutorchError} If the model is not loaded or is currently generating.
+   */
+  forward: (input: TextToSpeechInput) => Promise<Float32Array>;
+
+  /**
+   * Streams the generated audio data incrementally. 
+   * This is optimal for real-time playback, allowing audio to start playing before the full text is synthesized.
+   * * @param input - The `TextToSpeechStreamingInput` object containing `text`, optional `speed`, and lifecycle callbacks (`onBegin`, `onNext`, `onEnd`).
+   * @returns A Promise that resolves when the streaming process is complete.
+   * @throws {RnExecutorchError} If the model is not loaded or is currently generating.
+   */
+  stream: (input: TextToSpeechStreamingInput) => Promise<void>;
+
+  /**
+   * Interrupts and stops the currently active audio generation stream.
+   */
+  streamStop: () => void;
 }
 
 /**

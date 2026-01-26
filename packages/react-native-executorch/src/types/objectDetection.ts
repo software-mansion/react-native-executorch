@@ -1,3 +1,14 @@
+import { RnExecutorchError } from "../errors/errorUtils";
+import { ResourceSource } from "./common";
+
+/**
+ * Represents a bounding box for a detected object in an image.
+ * 
+ * @property {number} x1 - The x-coordinate of the bottom-left corner of the bounding box.
+ * @property {number} y1 - The y-coordinate of the bottom-left corner of the bounding box.
+ * @property {number} x2 - The x-coordinate of the top-right corner of the bounding box.
+ * @property {number} y2 - The y-coordinate of the top-right corner of the bounding box.
+ */
 export interface Bbox {
   x1: number;
   x2: number;
@@ -5,13 +16,23 @@ export interface Bbox {
   y2: number;
 }
 
+/**
+ * Represents a detected object within an image, including its bounding box, label, and confidence score.
+ * 
+ * @property {Bbox} bbox - The bounding box of the detected object, defined by its top-left (x1, y1) and bottom-right (x2, y2) coordinates.
+ * @property {keyof typeof CocoLabel} label - The class label of the detected object, represented as a key from the `CocoLabel` enum.
+ * @property {number} score - The confidence score of the detection, typically ranging from 0 to 1.
+ */
 export interface Detection {
   bbox: Bbox;
   label: keyof typeof CocoLabel;
   score: number;
 }
 
-enum CocoLabel {
+/**
+ * COCO dataset class labels used for object detection.
+ */
+export enum CocoLabel {
   PERSON = 1,
   BICYCLE = 2,
   CAR = 3,
@@ -102,4 +123,54 @@ enum CocoLabel {
   HAIR_DRIER = 89,
   TOOTHBRUSH = 90,
   HAIR_BRUSH = 91,
+}
+
+/**
+ * Props for the `useObjectDetection` hook.
+ * 
+ * @property {Object} model - An object containing the model source.
+ * @property {ResourceSource} model.modelSource - The source of the object detection model binary.
+ * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+ */
+export interface ObjectDetectionProps {
+  model: { modelSource: ResourceSource };
+  preventLoad?: boolean;
+}
+
+/**
+ * Return type for the `useObjectDetection` hook.
+ * Manages the state and operations for Computer Vision object detection tasks.
+ */
+export interface ObjectDetectionType {
+  /**
+   * Contains the error object if the model failed to load, download, or encountered a runtime error during detection.
+   */
+  error: RnExecutorchError | null;
+
+  /**
+   * Indicates whether the object detection model is loaded and ready to process images.
+   */
+  isReady: boolean;
+
+  /**
+   * Indicates whether the model is currently processing an image.
+   */
+  isGenerating: boolean;
+
+  /**
+   * Represents the download progress of the model binary as a value between 0 and 1.
+   */
+  downloadProgress: number;
+
+  /**
+   * Executes the model's forward pass to detect objects within the provided image.
+   * @param imageSource - A string representing the image source (e.g., a file path, URI, or base64 string) to be processed.
+   * @param detectionThreshold - An optional number between 0 and 1 representing the minimum confidence score required for an object to be included in the results. Dafault is 0.7.
+   * @returns A Promise that resolves to an array of `Detection` objects, where each object typically contains bounding box coordinates, a class label, and a confidence score.
+   * @throws {RnExecutorchError} If the model is not loaded or is currently processing another image.
+   */
+  forward: (
+    imageSource: string,
+    detectionThreshold?: number
+  ) => Promise<Detection[]>;
 }

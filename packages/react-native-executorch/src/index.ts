@@ -125,6 +125,9 @@ export * from './types/stt';
 export * from './types/textEmbeddings';
 export * from './types/tts';
 export * from './types/tokenizer';
+export * from './types/executorchModule';
+export * from './types/classification';
+export * from './types/imageEmbeddings';
 
 // constants
 export * from './constants/modelUrls';
