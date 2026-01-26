@@ -35,6 +35,9 @@ export enum ScalarType {
   UINT64 = 29,
 }
 
+/**
+ * Represents the data buffer of a tensor, which can be one of several typed array formats.
+ */
 export type TensorBuffer =
   | ArrayBuffer
   | Float32Array
@@ -48,6 +51,13 @@ export type TensorBuffer =
   | BigInt64Array
   | BigUint64Array;
 
+/**
+ * Represents a pointer to a tensor, including its data buffer, size dimensions, and scalar type.
+ * 
+ * @property {TensorBuffer} dataPtr - The data buffer of the tensor.
+ * @property {number[]} sizes - An array representing the size of each dimension of the tensor.
+ * @property {ScalarType} scalarType - The scalar type of the tensor, as defined in the `ScalarType` enum.
+ */
 export interface TensorPtr {
   dataPtr: TensorBuffer;
   sizes: number[];

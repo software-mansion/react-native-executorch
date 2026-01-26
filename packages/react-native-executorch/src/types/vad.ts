@@ -3,31 +3,24 @@ import { RnExecutorchError } from '../errors/errorUtils';
 
 /**
  * Props for the useVAD hook.
+ * 
+ * @property {Object} model - An object containing the model source.
+ * @property {ResourceSource} model.modelSource - The source of the VAD model binary.
+ * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
  */
 export interface VADProps {
-  /**
-   * `ResourceSource` that specifies the location of the VAD model binary.
-   */
   model: { modelSource: ResourceSource };
-
-  /**
-   * Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
-   */
   preventLoad?: boolean;
 }
 
 /**
  * Represents a detected audio segment with start and end timestamps.
+ * 
+ * @property {number} start - Start time of the segment in seconds.
+ * @property {number} end - End time of the segment in seconds.
  */
 export interface Segment {
-  /**
-   * Start time of the segment in seconds.
-   */
   start: number;
-
-  /**
-   * End time of the segment in seconds.
-   */
   end: number;
 }
 

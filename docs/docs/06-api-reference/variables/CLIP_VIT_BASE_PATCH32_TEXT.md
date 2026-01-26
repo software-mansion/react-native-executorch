@@ -2,7 +2,7 @@
 
 > `const` **CLIP\_VIT\_BASE\_PATCH32\_TEXT**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:428](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/constants/modelUrls.ts#L428)
+Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:428](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/constants/modelUrls.ts#L428)
 
 ## Type Declaration
 

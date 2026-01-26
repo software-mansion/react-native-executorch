@@ -1,51 +1,21 @@
 # Function: useStyleTransfer()
 
-> **useStyleTransfer**(`__namedParameters`): `object`
+> **useStyleTransfer**(`StyleTransferConfiguration`): [`StyleTransferType`](../interfaces/StyleTransferType.md)
 
-Defined in: [packages/react-native-executorch/src/hooks/computer\_vision/useStyleTransfer.ts:10](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/hooks/computer_vision/useStyleTransfer.ts#L10)
+Defined in: [packages/react-native-executorch/src/hooks/computer\_vision/useStyleTransfer.ts:11](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/hooks/computer_vision/useStyleTransfer.ts#L11)
+
+React hook for managing a Style Transfer model instance.
 
 ## Parameters
 
-### \_\_namedParameters
+### StyleTransferConfiguration
 
-`Props`
+[`StyleTransferProps`](../interfaces/StyleTransferProps.md)
+
+Configuration object containing `model` source and optional `preventLoad` flag.
 
 ## Returns
 
-### downloadProgress
+[`StyleTransferType`](../interfaces/StyleTransferType.md)
 
-> **downloadProgress**: `number`
-
-Represents the download progress as a value between 0 and 1, indicating the extent of the model file retrieval.
-
-### error
-
-> **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
-
-Contains the error message if the model failed to load.
-
-### forward()
-
-> **forward**: (...`input`) => `Promise`\<`string`\>
-
-#### Parameters
-
-##### input
-
-...\[`string`\]
-
-#### Returns
-
-`Promise`\<`string`\>
-
-### isGenerating
-
-> **isGenerating**: `boolean`
-
-Indicates whether the model is currently generating a response.
-
-### isReady
-
-> **isReady**: `boolean`
-
-Indicates whether the model is ready.
+Ready to use Style Transfer model.

@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ResourceSource } from '../../types/common';
 import {
-  ChatConfig,
-  GenerationConfig,
+  LLMConfig,
   LLMTool,
   LLMType,
   Message,
-  ToolsConfig,
 } from '../../types/llm';
 import { LLMController } from '../../controllers/LLMController';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
@@ -99,11 +97,7 @@ export const useLLM = ({
       chatConfig,
       toolsConfig,
       generationConfig,
-    }: {
-      chatConfig?: Partial<ChatConfig>;
-      toolsConfig?: ToolsConfig;
-      generationConfig?: GenerationConfig;
-    }) =>
+    }: LLMConfig) =>
       controllerInstance.configure({
         chatConfig,
         toolsConfig,

@@ -1,13 +1,14 @@
-import { ResourceSource } from '../../types/common';
 import { useModule } from '../useModule';
 import { StyleTransferModule } from '../../modules/computer_vision/StyleTransferModule';
+import { StyleTransferProps, StyleTransferType } from '../../types/styleTransfer';
 
-interface Props {
-  model: { modelSource: ResourceSource };
-  preventLoad?: boolean;
-}
-
-export const useStyleTransfer = ({ model, preventLoad = false }: Props) =>
+/**
+ * React hook for managing a Style Transfer model instance.
+ * 
+ * @param StyleTransferConfiguration - Configuration object containing `model` source and optional `preventLoad` flag.
+ * @returns Ready to use Style Transfer model.
+ */
+export const useStyleTransfer = ({ model, preventLoad = false }: StyleTransferProps): StyleTransferType =>
   useModule({
     module: StyleTransferModule,
     model,

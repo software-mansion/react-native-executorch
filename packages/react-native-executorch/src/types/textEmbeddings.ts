@@ -27,7 +27,7 @@ export interface TextEmbeddingsType {
 
   /**
    * Runs the text embeddings model on the provided input string.
-   * * @param input - The text string to embed.
+   * @param input - The text string to embed.
    * @returns A promise resolving to a Float32Array containing the vector embeddings.
    * @throws {RnExecutorchError} If the model is not loaded or is currently processing another request.
    */
@@ -36,22 +36,16 @@ export interface TextEmbeddingsType {
 
 /**
  * Props for the useTextEmbeddings hook.
+ * 
+ * @property {Object} model - An object containing the model and tokenizer sources.
+ * @property {ResourceSource} model.modelSource - The source of the text embeddings model binary.
+ * @property {ResourceSource} model.tokenizerSource - The source of the tokenizer JSON file.
+ * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
  */
 export interface TextEmbeddingsProps {
   model: {
-    /**
-     * `ResourceSource` that specifies the location of the model binary.
-     */
     modelSource: ResourceSource;
-
-    /**
-     * `ResourceSource` pointing to the JSON file which contains the tokenizer.
-     */
     tokenizerSource: ResourceSource;
   };
-
-  /**
-   * Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
-   */
   preventLoad?: boolean;
 }

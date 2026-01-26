@@ -21,7 +21,12 @@ export interface VoiceConfig {
   extra?: KokoroVoiceExtras; // ... add more possible types
 }
 
-// Kokoro-specific voice extra props
+/** 
+ * Kokoro-specific voice extra props
+ * 
+ * @property {ResourceSource} taggerSource - source to Kokoro's tagger model binary
+ * @property {ResourceSource} lexiconSource - source to Kokoro's lexicon binary
+ */
 export interface KokoroVoiceExtras {
   taggerSource: ResourceSource;
   lexiconSource: ResourceSource;
@@ -30,6 +35,10 @@ export interface KokoroVoiceExtras {
 /**
  * Kokoro model configuration.
  * Only the core Kokoro model sources, as phonemizer sources are included in voice configuration.
+ * 
+ * @property {'kokoro'} type - model type identifier
+ * @property {ResourceSource} durationPredictorSource - source to Kokoro's duration predictor model binary
+ * @property {ResourceSource} synthesizerSource - source to Kokoro's synthesizer model binary
  */
 export interface KokoroConfig {
   type: 'kokoro';

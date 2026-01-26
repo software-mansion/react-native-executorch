@@ -1,6 +1,8 @@
 # Interface: Point
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:9](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/ocr.ts#L9)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:25](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/ocr.ts#L25)
+
+Point represents a coordinate in 2D space.
 
 ## Properties
 
@@ -8,7 +10,9 @@ Defined in: [packages/react-native-executorch/src/types/ocr.ts:9](https://github
 
 > **x**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:10](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/ocr.ts#L10)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:26](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/ocr.ts#L26)
+
+The x-coordinate of the point.
 
 ***
 
@@ -16,4 +20,6 @@ Defined in: [packages/react-native-executorch/src/types/ocr.ts:10](https://githu
 
 > **y**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:11](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/ocr.ts#L11)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:27](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/ocr.ts#L27)
+
+The y-coordinate of the point.

@@ -1,6 +1,6 @@
 # Interface: TextToSpeechProps
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:59](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/tts.ts#L59)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:68](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/tts.ts#L68)
 
 Props for the useTextToSpeech hook.
 
@@ -14,7 +14,7 @@ Props for the useTextToSpeech hook.
 
 > **model**: [`KokoroConfig`](KokoroConfig.md)
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:48](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/tts.ts#L48)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:57](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/tts.ts#L57)
 
 a selected T2S model
 
@@ -28,7 +28,7 @@ a selected T2S model
 
 > `optional` **preventLoad**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:60](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/tts.ts#L60)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:69](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/tts.ts#L69)
 
 Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
 
@@ -38,7 +38,7 @@ Boolean that can prevent automatic model loading (and downloading the data if yo
 
 > **voice**: [`VoiceConfig`](VoiceConfig.md)
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:49](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/tts.ts#L49)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:58](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/tts.ts#L58)
 
 a selected speaker's voice
 

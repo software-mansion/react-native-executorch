@@ -1,33 +1,21 @@
 # Function: useOCR()
 
-> **useOCR**(`__namedParameters`): `OCRModule`
+> **useOCR**(`OCRConfiguration`): [`OCRType`](../interfaces/OCRType.md)
 
-Defined in: [packages/react-native-executorch/src/hooks/computer\_vision/useOCR.ts:15](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/hooks/computer_vision/useOCR.ts#L15)
+Defined in: [packages/react-native-executorch/src/hooks/computer\_vision/useOCR.ts:12](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/hooks/computer_vision/useOCR.ts#L12)
+
+React hook for managing an OCR instance.
 
 ## Parameters
 
-### \_\_namedParameters
+### OCRConfiguration
 
-#### model
+[`OCRProps`](../interfaces/OCRProps.md)
 
-\{ `detectorSource`: [`ResourceSource`](../type-aliases/ResourceSource.md); `language`: `"abq"` \| `"ady"` \| `"af"` \| `"ava"` \| `"az"` \| `"be"` \| `"bg"` \| `"bs"` \| `"chSim"` \| `"che"` \| `"cs"` \| `"cy"` \| `"da"` \| `"dar"` \| `"de"` \| `"en"` \| `"es"` \| `"et"` \| `"fr"` \| `"ga"` \| `"hr"` \| `"hu"` \| `"id"` \| `"inh"` \| `"ic"` \| `"it"` \| `"ja"` \| `"kbd"` \| `"kn"` \| `"ko"` \| `"ku"` \| `"la"` \| `"lbe"` \| `"lez"` \| `"lt"` \| `"lv"` \| `"mi"` \| `"mn"` \| `"ms"` \| `"mt"` \| `"nl"` \| `"no"` \| `"oc"` \| `"pi"` \| `"pl"` \| `"pt"` \| `"ro"` \| `"ru"` \| `"rsCyrillic"` \| `"rsLatin"` \| `"sk"` \| `"sl"` \| `"sq"` \| `"sv"` \| `"sw"` \| `"tab"` \| `"te"` \| `"tjk"` \| `"tl"` \| `"tr"` \| `"uk"` \| `"uz"` \| `"vi"`; `recognizerSource`: [`ResourceSource`](../type-aliases/ResourceSource.md); \}
-
-#### model.detectorSource
-
-[`ResourceSource`](../type-aliases/ResourceSource.md)
-
-#### model.language
-
-`"abq"` \| `"ady"` \| `"af"` \| `"ava"` \| `"az"` \| `"be"` \| `"bg"` \| `"bs"` \| `"chSim"` \| `"che"` \| `"cs"` \| `"cy"` \| `"da"` \| `"dar"` \| `"de"` \| `"en"` \| `"es"` \| `"et"` \| `"fr"` \| `"ga"` \| `"hr"` \| `"hu"` \| `"id"` \| `"inh"` \| `"ic"` \| `"it"` \| `"ja"` \| `"kbd"` \| `"kn"` \| `"ko"` \| `"ku"` \| `"la"` \| `"lbe"` \| `"lez"` \| `"lt"` \| `"lv"` \| `"mi"` \| `"mn"` \| `"ms"` \| `"mt"` \| `"nl"` \| `"no"` \| `"oc"` \| `"pi"` \| `"pl"` \| `"pt"` \| `"ro"` \| `"ru"` \| `"rsCyrillic"` \| `"rsLatin"` \| `"sk"` \| `"sl"` \| `"sq"` \| `"sv"` \| `"sw"` \| `"tab"` \| `"te"` \| `"tjk"` \| `"tl"` \| `"tr"` \| `"uk"` \| `"uz"` \| `"vi"`
-
-#### model.recognizerSource
-
-[`ResourceSource`](../type-aliases/ResourceSource.md)
-
-#### preventLoad?
-
-`boolean` = `false`
+Configuration object containing `model` sources and optional `preventLoad` flag.
 
 ## Returns
 
-`OCRModule`
+[`OCRType`](../interfaces/OCRType.md)
+
+Ready to use OCR model.

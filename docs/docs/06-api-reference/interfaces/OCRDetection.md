@@ -1,6 +1,9 @@
 # Interface: OCRDetection
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:3](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/ocr.ts#L3)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:13](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/ocr.ts#L13)
+
+OCRDetection represents a single detected text instance in an image,
+including its bounding box, recognized text, and confidence score.
 
 ## Properties
 
@@ -8,7 +11,9 @@ Defined in: [packages/react-native-executorch/src/types/ocr.ts:3](https://github
 
 > **bbox**: [`Point`](Point.md)[]
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:4](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/ocr.ts#L4)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:14](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/ocr.ts#L14)
+
+An array of points defining the bounding box around the detected text.
 
 ***
 
@@ -16,7 +21,9 @@ Defined in: [packages/react-native-executorch/src/types/ocr.ts:4](https://github
 
 > **score**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:6](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/ocr.ts#L6)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:16](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/ocr.ts#L16)
+
+The confidence score of the OCR detection, ranging from 0 to 1.
 
 ***
 
@@ -24,4 +31,6 @@ Defined in: [packages/react-native-executorch/src/types/ocr.ts:6](https://github
 
 > **text**: `string`
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:5](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/ocr.ts#L5)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:15](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/ocr.ts#L15)
+
+The recognized text within the bounding box.

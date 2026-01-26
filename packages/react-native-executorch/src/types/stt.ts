@@ -163,11 +163,10 @@ export type SpeechToTextLanguage =
 
 /**
  * Options for decoding speech to text.
+ * 
+ * @property {SpeechToTextLanguage} [language] - Optional language code to guide the transcription.
  */  
 export interface DecodingOptions {
-  /**
-   * Optional language code to guide the transcription.
-   */
   language?: SpeechToTextLanguage;
 }
 

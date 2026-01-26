@@ -43,57 +43,24 @@ export interface LLMType {
    * Configures chat and tool calling.
    * See [Configuring the model](../../03-hooks/01-natural-language-processing/useLLM.md#configuring-the-model) for details.
    *
-   * @param configuration - Configuration object containing `chatConfig`, `toolsConfig`, and `generationConfig`.
+   * @param {LLMConfig} configuration - Configuration object containing `chatConfig`, `toolsConfig`, and `generationConfig`.
    */
   configure: ({
     chatConfig,
     toolsConfig,
     generationConfig,
-  }: {
-    /**
-     * Object configuring chat management, contains following properties:
-     *
-     * `systemPrompt` - Often used to tell the model what is its purpose, for example - "Be a helpful translator".
-     *
-     * `initialMessageHistory` - An array of `Message` objects that represent the conversation history. This can be used to provide initial context to the model.
-     *
-     * `contextWindowLength` - The number of messages from the current conversation that the model will use to generate a response. The higher the number, the more context the model will have. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
-     */
-    chatConfig?: Partial<ChatConfig>;
-
-    /**
-     * Object configuring options for enabling and managing tool use. **It will only have effect if your model's chat template support it**. Contains following properties:
-     *
-     * `tools` - List of objects defining tools.
-     *
-     * `executeToolCallback` - Function that accepts `ToolCall`, executes tool and returns the string to model.
-     *
-     * `displayToolCalls` - If set to true, JSON tool calls will be displayed in chat. If false, only answers will be displayed.
-     */
-    toolsConfig?: ToolsConfig;
-
-    /**
-     * Object configuring generation settings.
-     *
-     * `outputTokenBatchSize` - Soft upper limit on the number of tokens in each token batch (in certain cases there can be more tokens in given batch, i.e. when the batch would end with special emoji join character).
-     *
-     * `batchTimeInterval` - Upper limit on the time interval between consecutive token batches.
-     *
-     * `temperature` - Scales output logits by the inverse of temperature. Controls the randomness / creativity of text generation.
-     *
-     * `topp` - Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
-     */
-    generationConfig?: GenerationConfig;
-  }) => void;
+  }: LLMConfig) => void;
 
   /**
    * Returns the number of tokens generated so far in the current generation.
+   * 
    * @returns The count of generated tokens.
    */
   getGeneratedTokenCount: () => number;
 
   /**
    * Runs model to complete chat passed in `messages` argument. It doesn't manage conversation context.
+   * 
    * @param messages - Array of messages representing the chat history.
    * @param tools - Optional array of tools that can be used during generation.
    */
@@ -102,14 +69,15 @@ export interface LLMType {
   /**
    * Function to add user message to conversation.
    * After model responds, `messageHistory` will be updated with both user message and model response.
+   * 
    * @param message - The message string to send.
    */
   sendMessage: (message: string) => Promise<void>;
 
   /**
    * Deletes all messages starting with message on `index` position. After deletion `messageHistory` will be updated.
+   * 
    * @param index - The index of the message to delete from history.
-   * @returns
    */
   deleteMessage: (index: number) => void;
 
@@ -120,25 +88,67 @@ export interface LLMType {
 }
 
 /**
+ * Configuration object for initializing and customizing a Large Language Model (LLM) instance.
+ */
+export interface LLMConfig {
+  /**
+   * Object configuring chat management, contains following properties:
+   *
+   * `systemPrompt` - Often used to tell the model what is its purpose, for example - "Be a helpful translator".
+   *
+   * `initialMessageHistory` - An array of `Message` objects that represent the conversation history. This can be used to provide initial context to the model.
+   *
+   * `contextWindowLength` - The number of messages from the current conversation that the model will use to generate a response. The higher the number, the more context the model will have. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
+   */
+  chatConfig?: Partial<ChatConfig>;
+
+  /**
+   * Object configuring options for enabling and managing tool use. **It will only have effect if your model's chat template support it**. Contains following properties:
+   *
+   * `tools` - List of objects defining tools.
+   *
+   * `executeToolCallback` - Function that accepts `ToolCall`, executes tool and returns the string to model.
+   *
+   * `displayToolCalls` - If set to true, JSON tool calls will be displayed in chat. If false, only answers will be displayed.
+   */
+  toolsConfig?: ToolsConfig;
+
+  /**
+   * Object configuring generation settings.
+   *
+   * `outputTokenBatchSize` - Soft upper limit on the number of tokens in each token batch (in certain cases there can be more tokens in given batch, i.e. when the batch would end with special emoji join character).
+   *
+   * `batchTimeInterval` - Upper limit on the time interval between consecutive token batches.
+   *
+   * `temperature` - Scales output logits by the inverse of temperature. Controls the randomness / creativity of text generation.
+   *
+   * `topp` - Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
+   */
+  generationConfig?: GenerationConfig;
+};
+
+/**
  * Roles that a message sender can have.
  */
 export type MessageRole = 'user' | 'assistant' | 'system';
 
 /**
  * Represents a message in the conversation.
+ * 
+ * @property {MessageRole} role - Role of the message sender of type `MessageRole`.
+ * @property {string} content - Content of the message.
  */
 export interface Message {
-  /**
-   * Role of the message sender of type `MessageRole`.
-   */
   role: MessageRole;
-
-  /**
-   * Content of the message.
-   */
   content: string;
 }
 
+/**
+ * Represents a tool call made by the model.
+ * 
+ * @property {string} toolName - The name of the tool being called.
+ * @property {Object} arguments - The arguments passed to the tool.
+ */
 export interface ToolCall {
   toolName: string;
   arguments: Object;
@@ -150,66 +160,42 @@ export type LLMTool = Object;
 
 /**
  * Object configuring chat management.
+ * 
+ * @property {Message[]} initialMessageHistory - An array of `Message` objects that represent the conversation history. This can be used to provide initial context to the model.
+ * @property {number} contextWindowLength - The number of messages from the current conversation that the model will use to generate a response. The higher the number, the more context the model will have. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
+ * @property {string} systemPrompt - Often used to tell the model what is its purpose, for example - "Be a helpful translator".
  */
 export interface ChatConfig {
-  /**
-   * An array of `Message` objects that represent the conversation history. This can be used to provide initial context to the model.
-   */
   initialMessageHistory: Message[];
-
-  /**
-   * The number of messages from the current conversation that the model will use to generate a response. The higher the number, the more context the model will have. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
-   */
   contextWindowLength: number;
-
-  /**
-   * Often used to tell the model what is its purpose, for example - "Be a helpful translator".
-   */
   systemPrompt: string;
 }
 
 /**
  * Object configuring options for enabling and managing tool use. **It will only have effect if your model's chat template support it**.
+ * 
+ * @property {LLMTool[]} tools - List of objects defining tools.
+ * @property {(call: ToolCall) => Promise<string | null>} executeToolCallback - Function that accepts `ToolCall`, executes tool and returns the string to model.
+ * @property {boolean} [displayToolCalls] - If set to true, JSON tool calls will be displayed in chat. If false, only answers will be displayed.
  */
 export interface ToolsConfig {
-  /**
-   * List of objects defining tools.
-   */
   tools: LLMTool[];
-
-  /**
-   * Function that accepts `ToolCall`, executes tool and returns the string to model.
-   */
   executeToolCallback: (call: ToolCall) => Promise<string | null>;
-
-  /**
-   * If set to true, JSON tool calls will be displayed in chat. If false, only answers will be displayed.
-   */
   displayToolCalls?: boolean;
 }
 
 /**
  * Object configuring generation settings.
+ * 
+ * @property {number} [temperature] - Scales output logits by the inverse of temperature. Controls the randomness / creativity of text generation.
+ * @property {number} [topp] - Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
+ * @property {number} [outputTokenBatchSize] - Soft upper limit on the number of tokens in each token batch (in certain cases there can be more tokens in given batch, i.e. when the batch would end with special emoji join character).
+ * @property {number} [batchTimeInterval] - Upper limit on the time interval between consecutive token batches.
  */
 export interface GenerationConfig {
-  /**
-   * Scales output logits by the inverse of temperature. Controls the randomness / creativity of text generation.
-   */
   temperature?: number;
-
-  /**
-   * Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
-   */
   topp?: number;
-
-  /**
-   * Soft upper limit on the number of tokens in each token batch (in certain cases there can be more tokens in given batch, i.e. when the batch would end with special emoji join character).
-   */
   outputTokenBatchSize?: number;
-
-  /**
-   * Upper limit on the time interval between consecutive token batches.
-   */
   batchTimeInterval?: number;
 }
 

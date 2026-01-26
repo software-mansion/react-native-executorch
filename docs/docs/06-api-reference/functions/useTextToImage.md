@@ -1,45 +1,21 @@
 # Function: useTextToImage()
 
-> **useTextToImage**(`__namedParameters`): `TextToImageType`
+> **useTextToImage**(`TextToImageConfiguration`): [`TextToImageType`](../interfaces/TextToImageType.md)
 
-Defined in: [packages/react-native-executorch/src/hooks/computer\_vision/useTextToImage.ts:21](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/hooks/computer_vision/useTextToImage.ts#L21)
+Defined in: [packages/react-native-executorch/src/hooks/computer\_vision/useTextToImage.ts:13](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/hooks/computer_vision/useTextToImage.ts#L13)
+
+React hook for managing a Text to Image instance.
 
 ## Parameters
 
-### \_\_namedParameters
+### TextToImageConfiguration
 
-#### inferenceCallback?
+[`TextToImageParams`](../interfaces/TextToImageParams.md)
 
-(`stepIdx`) => `void`
-
-#### model
-
-\{ `decoderSource`: [`ResourceSource`](../type-aliases/ResourceSource.md); `encoderSource`: [`ResourceSource`](../type-aliases/ResourceSource.md); `schedulerSource`: [`ResourceSource`](../type-aliases/ResourceSource.md); `tokenizerSource`: [`ResourceSource`](../type-aliases/ResourceSource.md); `unetSource`: [`ResourceSource`](../type-aliases/ResourceSource.md); \}
-
-#### model.decoderSource
-
-[`ResourceSource`](../type-aliases/ResourceSource.md)
-
-#### model.encoderSource
-
-[`ResourceSource`](../type-aliases/ResourceSource.md)
-
-#### model.schedulerSource
-
-[`ResourceSource`](../type-aliases/ResourceSource.md)
-
-#### model.tokenizerSource
-
-[`ResourceSource`](../type-aliases/ResourceSource.md)
-
-#### model.unetSource
-
-[`ResourceSource`](../type-aliases/ResourceSource.md)
-
-#### preventLoad?
-
-`boolean` = `false`
+Configuration object containing `model` source, `inferenceCallback`, and optional `preventLoad` flag.
 
 ## Returns
 
-`TextToImageType`
+[`TextToImageType`](../interfaces/TextToImageType.md)
+
+Ready to use Text to Image model.

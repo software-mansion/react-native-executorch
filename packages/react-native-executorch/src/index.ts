@@ -104,6 +104,7 @@ export * from './modules/computer_vision/TextToImageModule';
 
 export * from './modules/natural_language_processing/LLMModule';
 export * from './modules/natural_language_processing/SpeechToTextModule';
+export * from './modules/natural_language_processing/TextToSpeechModule';
 export * from './modules/natural_language_processing/TextEmbeddingsModule';
 export * from './modules/natural_language_processing/TokenizerModule';
 export * from './modules/natural_language_processing/VADModule';
@@ -128,6 +129,8 @@ export * from './types/tokenizer';
 export * from './types/executorchModule';
 export * from './types/classification';
 export * from './types/imageEmbeddings';
+export * from './types/styleTransfer';
+export * from './types/tti';
 
 // constants
 export * from './constants/modelUrls';

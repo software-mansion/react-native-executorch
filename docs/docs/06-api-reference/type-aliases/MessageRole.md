@@ -2,6 +2,6 @@
 
 > **MessageRole** = `"user"` \| `"assistant"` \| `"system"`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:125](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/llm.ts#L125)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:133](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/llm.ts#L133)
 
 Roles that a message sender can have.

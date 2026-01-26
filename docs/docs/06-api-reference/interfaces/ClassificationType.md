@@ -1,6 +1,6 @@
 # Interface: ClassificationType
 
-Defined in: packages/react-native-executorch/src/types/classification.ts:20
+Defined in: [packages/react-native-executorch/src/types/classification.ts:20](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/classification.ts#L20)
 
 Return type for the `useClassification` hook.
 Manages the state and operations for Computer Vision image classification.
@@ -11,7 +11,7 @@ Manages the state and operations for Computer Vision image classification.
 
 > **downloadProgress**: `number`
 
-Defined in: packages/react-native-executorch/src/types/classification.ts:39
+Defined in: [packages/react-native-executorch/src/types/classification.ts:39](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/classification.ts#L39)
 
 Represents the download progress of the model binary as a value between 0 and 1.
 
@@ -21,7 +21,7 @@ Represents the download progress of the model binary as a value between 0 and 1.
 
 > **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
 
-Defined in: packages/react-native-executorch/src/types/classification.ts:24
+Defined in: [packages/react-native-executorch/src/types/classification.ts:24](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/classification.ts#L24)
 
 Contains the error object if the model failed to load, download, or encountered a runtime error during classification.
 
@@ -31,7 +31,7 @@ Contains the error object if the model failed to load, download, or encountered 
 
 > **forward**: (`imageSource`) => `Promise`\<\{\[`category`: `string`\]: `number`; \}\>
 
-Defined in: packages/react-native-executorch/src/types/classification.ts:47
+Defined in: [packages/react-native-executorch/src/types/classification.ts:47](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/classification.ts#L47)
 
 Executes the model's forward pass to classify the provided image.
 
@@ -59,7 +59,7 @@ If the model is not loaded or is currently processing another image.
 
 > **isGenerating**: `boolean`
 
-Defined in: packages/react-native-executorch/src/types/classification.ts:34
+Defined in: [packages/react-native-executorch/src/types/classification.ts:34](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/classification.ts#L34)
 
 Indicates whether the model is currently processing an image.
 
@@ -69,6 +69,6 @@ Indicates whether the model is currently processing an image.
 
 > **isReady**: `boolean`
 
-Defined in: packages/react-native-executorch/src/types/classification.ts:29
+Defined in: [packages/react-native-executorch/src/types/classification.ts:29](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/classification.ts#L29)
 
 Indicates whether the classification model is loaded and ready to process images.

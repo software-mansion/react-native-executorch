@@ -1,6 +1,6 @@
 # Interface: TextToSpeechConfig
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:47](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/tts.ts#L47)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:56](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/tts.ts#L56)
 
 General Text to Speech module configuration
 
@@ -14,7 +14,7 @@ General Text to Speech module configuration
 
 > **model**: [`KokoroConfig`](KokoroConfig.md)
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:48](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/tts.ts#L48)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:57](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/tts.ts#L57)
 
 a selected T2S model
 
@@ -24,6 +24,6 @@ a selected T2S model
 
 > **voice**: [`VoiceConfig`](VoiceConfig.md)
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:49](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/tts.ts#L49)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:58](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/tts.ts#L58)
 
 a selected speaker's voice

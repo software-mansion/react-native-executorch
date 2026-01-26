@@ -1,6 +1,6 @@
 # Interface: VADProps
 
-Defined in: [packages/react-native-executorch/src/types/vad.ts:7](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/vad.ts#L7)
+Defined in: [packages/react-native-executorch/src/types/vad.ts:11](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/vad.ts#L11)
 
 Props for the useVAD hook.
 
@@ -10,9 +10,9 @@ Props for the useVAD hook.
 
 > **model**: `object`
 
-Defined in: [packages/react-native-executorch/src/types/vad.ts:11](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/vad.ts#L11)
+Defined in: [packages/react-native-executorch/src/types/vad.ts:12](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/vad.ts#L12)
 
-`ResourceSource` that specifies the location of the VAD model binary.
+An object containing the model source.
 
 #### modelSource
 
@@ -24,6 +24,6 @@ Defined in: [packages/react-native-executorch/src/types/vad.ts:11](https://githu
 
 > `optional` **preventLoad**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/vad.ts:16](https://github.com/software-mansion/react-native-executorch/blob/ac6840354d6a7d08dd7f9e5b0ae0fc23eca7922d/packages/react-native-executorch/src/types/vad.ts#L16)
+Defined in: [packages/react-native-executorch/src/types/vad.ts:13](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/vad.ts#L13)
 
 Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.

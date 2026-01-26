@@ -27,6 +27,7 @@ export interface TokenizerType {
   /**
    * Converts an array of token IDs into a string.
    * @param tokens - An array or `number[]` of token IDs to decode.
+   * @param skipSpecialTokens - Optional boolean to indicate whether special tokens should be skipped during decoding.
    * @returns A promise resolving to the decoded text string.
    */
   decode(tokens: number[], skipSpecialTokens: boolean | undefined): Promise<string>;
