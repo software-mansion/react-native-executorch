@@ -15,7 +15,7 @@ std::shared_ptr<facebook::react::CallInvoker> createMockCallInvoker();
 constexpr auto VALID_VERTICAL_DETECTOR_PATH = "xnnpack_craft_quantized.pte";
 constexpr auto VALID_VERTICAL_RECOGNIZER_PATH = "xnnpack_crnn_english.pte";
 constexpr auto VALID_VERTICAL_TEST_IMAGE_PATH =
-    "file:///data/local/tmp/rnexecutorch_tests/test_ocr_image.png";
+    "file:///data/local/tmp/rnexecutorch_tests/we_are_software_mansion.jpg";
 
 // English alphabet symbols (must match alphabets.english from symbols.ts)
 const std::string ENGLISH_SYMBOLS =
