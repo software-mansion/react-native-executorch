@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://github.com/software-mansion/react-native-executorch/blob/main/docs/static/img/logo-hero.svg" alt="RNE Logo">
+  <img src="https://github.com/software-mansion/react-native-executorch/blob/main/docs/static/img/logo-hero.svg" alt="RNE Logo" width="25%">
 </div>
 
 
