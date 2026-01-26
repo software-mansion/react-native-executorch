@@ -50,9 +50,7 @@ export const useOCR = ({
     })();
 
     return () => {
-      if (controllerInstance.isReady) {
-        controllerInstance.delete();
-      }
+      controllerInstance.delete();
     };
   }, [
     controllerInstance,
