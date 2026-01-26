@@ -19,12 +19,12 @@
 </div>
 
 <p align="center">
-  <a href="https://github.com/software-mansion/react-native-executorch/blob/main/README.md">English</a>
-  <a href="https://github.com/software-mansion/react-native-executorch/blob/main/readmes/README_es.md">Español</a>
-  <a href="https://github.com/software-mansion/react-native-executorch/blob/main/readmes/README_fr.md">Français</a>
-  <a href="https://github.com/software-mansion/react-native-executorch/blob/main/readmes/README_cn.md">简体中文</a>
-  <a href="https://github.com/software-mansion/react-native-executorch/blob/main/readmes/README_pt.md">Português</a>
-  <a href="https://github.com/software-mansion/react-native-executorch/blob/main/readmes/README_in.md">हिंदी</a>
+  <a href="https://github.com/software-mansion/react-native-executorch/blob/main/README.md"><img src="https://img.shields.io/badge/EN-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README"></a>
+  <a href="https://github.com/software-mansion/react-native-executorch/blob/main/readmes/README_es.md"><img src="https://img.shields.io/badge/ES-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README ES"></a>
+  <a href="https://github.com/software-mansion/react-native-executorch/blob/main/readmes/README_fr.md"><img src="https://img.shields.io/badge/FR-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README FR"></a>
+  <a href="https://github.com/software-mansion/react-native-executorch/blob/main/readmes/README_cn.md"><img src="https://img.shields.io/badge/CN-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README CN"></a>
+  <a href="https://github.com/software-mansion/react-native-executorch/blob/main/readmes/README_pt.md"><img src="https://img.shields.io/badge/PT-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README PT"></a>
+  <a href="https://github.com/software-mansion/react-native-executorch/blob/main/readmes/README_in.md"><img src="https://img.shields.io/badge/IN-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README IN"></a>
 </p>
 
 **React Native ExecuTorch** provides a declarative way to run AI models on-device using React Native, powered by **ExecuTorch** :rocket:. It offers out-of-the-box support for a wide range of LLMs, computer vision models, and more. Visit our [HuggingFace](https://huggingface.co/software-mansion) page to explore these models.
