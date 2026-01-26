@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include <pytorch/tokenizers/log.h>
+#include "log.h"
 #include <stdint.h>
 
 namespace tokenizers {

@@ -10,9 +10,9 @@
 // A tokenizer that works with sentencepiece. Used by Llama2.
 #pragma once
 
-#include "sentencepiece_processor.h"
+#include "tokenizer.h"
 #include <memory>
-#include <pytorch/tokenizers/tokenizer.h>
+#include <sentencepiece/sentencepiece_processor.h>
 #include <vector>
 namespace tokenizers {
 
@@ -24,12 +24,13 @@ public:
   Error load(const std::string &tokenizer_path) override;
 
   Result<std::string> id_to_piece(uint64_t token) const override;
+  Result<uint64_t> piece_to_id(const std::string &text) const override;
 
   Result<std::vector<uint64_t>> encode(const std::string &input, int8_t bos,
                                        int8_t eos) const override;
 
-  Result<std::string> decode(uint64_t prev_token,
-                             uint64_t token) const override;
+  Result<std::string> decode(uint64_t prev_token, uint64_t token,
+                             bool skip_special_tokens = false) const override;
 
 private:
   std::unique_ptr<sentencepiece::SentencePieceProcessor> _processor;

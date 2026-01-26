@@ -13,7 +13,7 @@
 
 #include <re2/re2.h>
 
-#include <pytorch/tokenizers/regex.h>
+#include "regex.h"
 
 namespace tokenizers {
 

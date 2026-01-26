@@ -13,9 +13,9 @@
 
 #pragma once
 
+#include "error.h"
 #include <cassert>
 #include <new>
-#include <pytorch/tokenizers/error.h>
 #include <utility>
 
 namespace tokenizers {

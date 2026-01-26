@@ -19,10 +19,10 @@
 #include <nlohmann/json.hpp>
 
 // Local
-#include <pytorch/tokenizers/bpe_tokenizer_base.h>
-#include <pytorch/tokenizers/error.h>
-#include <pytorch/tokenizers/regex.h>
-#include <pytorch/tokenizers/result.h>
+#include "bpe_tokenizer_base.h"
+#include "error.h"
+#include "regex.h"
+#include "result.h"
 
 namespace tokenizers {
 

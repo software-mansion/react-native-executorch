@@ -16,12 +16,12 @@
 #include <string>
 
 // Local
-#include <pytorch/tokenizers/bpe_tokenizer_base.h>
-#include <pytorch/tokenizers/error.h>
-#include <pytorch/tokenizers/normalizer.h>
-#include <pytorch/tokenizers/pre_tokenizer.h>
-#include <pytorch/tokenizers/result.h>
-#include <pytorch/tokenizers/token_decoder.h>
+#include "bpe_tokenizer_base.h"
+#include "error.h"
+#include "normalizer.h"
+#include "pre_tokenizer.h"
+#include "result.h"
+#include "token_decoder.h"
 
 namespace tokenizers {
 namespace detail {

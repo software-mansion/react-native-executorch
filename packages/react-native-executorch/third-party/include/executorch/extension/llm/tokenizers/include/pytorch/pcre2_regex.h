@@ -15,7 +15,7 @@
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>
 
-#include <pytorch/tokenizers/regex.h>
+#include "regex.h"
 
 namespace tokenizers {
 

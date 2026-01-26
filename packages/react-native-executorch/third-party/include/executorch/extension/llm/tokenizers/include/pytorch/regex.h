@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-#include <pytorch/tokenizers/result.h>
+#include "result.h"
 
 namespace tokenizers {
 

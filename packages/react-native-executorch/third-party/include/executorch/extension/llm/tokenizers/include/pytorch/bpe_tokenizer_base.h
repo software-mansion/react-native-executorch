@@ -19,13 +19,13 @@
 #include <vector>
 
 // Local
-#include <pytorch/tokenizers/error.h>
-#include <pytorch/tokenizers/regex.h>
-#include <pytorch/tokenizers/result.h>
-#include <pytorch/tokenizers/string_integer_map.h>
-#include <pytorch/tokenizers/tokenizer.h>
+#include "error.">
+#include "regex.h"
+#include "result.h"
+#include "string_integer_map.h"
+#include "tokenizer.h"
 
-#include "re2/re2.h"
+#include <re2/re2.h>
 
 namespace tokenizers {
 namespace detail {
@@ -118,9 +118,10 @@ public:
                                        int8_t eos) const override;
 
   Result<std::string> id_to_piece(uint64_t token) const override;
+  Result<uint64_t> piece_to_id(const std::string &text) const override;
 
-  Result<std::string> decode(uint64_t prev_token,
-                             uint64_t token) const override;
+  Result<std::string> decode(uint64_t prev_token, uint64_t token,
+                             bool skip_special_tokens = false) const override;
 
 protected:
   explicit BPETokenizerBase() {}

@@ -18,11 +18,11 @@
 #include <re2/re2.h>
 
 // Local
-#include <pytorch/tokenizers/bpe_tokenizer_base.h>
-#include <pytorch/tokenizers/compiler.h>
-#include <pytorch/tokenizers/regex.h>
-#include <pytorch/tokenizers/result.h>
-#include <pytorch/tokenizers/tokenizer.h>
+#include "bpe_tokenizer_base.h"
+#include "compiler.h"
+#include "regex.h"
+#include "result.h"
+#include "tokenizer.h"
 
 namespace tokenizers {
 

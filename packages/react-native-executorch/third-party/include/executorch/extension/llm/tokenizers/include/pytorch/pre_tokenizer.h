@@ -20,7 +20,7 @@
 #include <re2/re2.h>
 
 // Local
-#include <pytorch/tokenizers/regex.h>
+#include "regex.h"
 
 namespace tokenizers {
 
