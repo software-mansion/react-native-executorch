@@ -1,4 +1,9 @@
 <div align="center">
+  <img src="https://github.com/software-mansion/react-native-executorch/blob/main/docs/static/img/logo-hero.svg" alt="RNE Logo">
+</div>
+
+
+<div align="center">
   <h1 align="center" style="display:inline-block">React Native ExecuTorch
   </h1>
 </div>
@@ -12,8 +17,6 @@
     <img src="https://img.shields.io/badge/Hire%20Us-00008B?logo=react&logoColor=white&color=darkgreen&style=for-the-badge" alt="Hire Us">
   </a>
 </div>
-
-![Software Mansion banner](https://github.com/user-attachments/assets/fa2c4735-e75c-4cc1-970d-88905d95e3a4)
 
 <p align="center">
   <a href="https://github.com/software-mansion/react-native-executorch/blob/main/README.md">English</a>
