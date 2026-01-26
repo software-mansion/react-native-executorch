@@ -215,7 +215,9 @@ export class LLMController {
       );
     }
     this.onToken = () => {};
-    this.nativeModule.unload();
+    if (this.nativeModule) {
+      this.nativeModule.unload();
+    }
     this.isReadyCallback(false);
     this.isGeneratingCallback(false);
   }
@@ -245,10 +247,22 @@ export class LLMController {
   }
 
   public interrupt() {
+    if (!this.nativeModule) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        "Cannot interrupt a model that's not loaded."
+      );
+    }
     this.nativeModule.interrupt();
   }
 
   public getGeneratedTokenCount(): number {
+    if (!this.nativeModule) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        "Cannot get token count for a model that's not loaded."
+      );
+    }
     return this.nativeModule.getGeneratedTokenCount();
   }
 

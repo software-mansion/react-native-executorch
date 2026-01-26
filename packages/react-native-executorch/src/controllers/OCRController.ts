@@ -103,7 +103,9 @@ export class OCRController {
         'The model is currently generating. Please wait until previous model run is complete.'
       );
     }
-    this.nativeModule.unload();
+    if (this.nativeModule) {
+      this.nativeModule.unload();
+    }
     this.isReadyCallback(false);
     this.isGeneratingCallback(false);
   }

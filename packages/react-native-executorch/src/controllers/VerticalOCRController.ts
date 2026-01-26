@@ -106,7 +106,9 @@ export class VerticalOCRController {
         'The model is currently generating. Please wait until previous model run is complete.'
       );
     }
-    this.ocrNativeModule.unload();
+    if (this.ocrNativeModule) {
+      this.ocrNativeModule.unload();
+    }
     this.isReadyCallback(false);
     this.isGeneratingCallback(false);
   }
