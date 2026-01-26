@@ -2262,7 +2262,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@docusaurus/core@npm:3.9.2, @docusaurus/core@npm:^3.9.2":
+"@docusaurus/core@npm:3.9.2, @docusaurus/core@npm:^3.0.0, @docusaurus/core@npm:^3.9.2":
   version: 3.9.2
   resolution: "@docusaurus/core@npm:3.9.2"
   dependencies:
@@ -2648,7 +2648,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@docusaurus/theme-common@npm:3.9.2":
+"@docusaurus/theme-common@npm:3.9.2, @docusaurus/theme-common@npm:^3.0.0":
   version: 3.9.2
   resolution: "@docusaurus/theme-common@npm:3.9.2"
   dependencies:
@@ -3757,9 +3757,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@signalwire/docusaurus-plugin-llms-txt@npm:^1.2.2":
-  version: 1.2.2
-  resolution: "@signalwire/docusaurus-plugin-llms-txt@npm:1.2.2"
+"@signalwire/docusaurus-plugin-llms-txt@npm:2.0.0-alpha.7":
+  version: 2.0.0-alpha.7
+  resolution: "@signalwire/docusaurus-plugin-llms-txt@npm:2.0.0-alpha.7"
   dependencies:
     fs-extra: "npm:^11.0.0"
     hast-util-select: "npm:^6.0.4"
@@ -3775,7 +3775,22 @@ __metadata:
     unist-util-visit: "npm:^5"
   peerDependencies:
     "@docusaurus/core": ^3.0.0
-  checksum: 10/66ac57275178c86fcb060e107df4a30f6989be9d162e5c1f77e104c1ae99598a8b0564a45c5b795a601f3a341731eed3293804b9ee2fe628fe0485c05a3a5d3d
+  checksum: 10/501174d4913db22aa44bfc803fa6b01d5c3f6bb1f92761ebfcb0c2482539b504688d183ec8c722b0ee611834965058740d0e848a59413d53a929e1df99fef331
+  languageName: node
+  linkType: hard
+
+"@signalwire/docusaurus-theme-llms-txt@npm:1.0.0-alpha.9":
+  version: 1.0.0-alpha.9
+  resolution: "@signalwire/docusaurus-theme-llms-txt@npm:1.0.0-alpha.9"
+  dependencies:
+    "@docusaurus/core": "npm:^3.0.0"
+    "@docusaurus/theme-common": "npm:^3.0.0"
+    clsx: "npm:^2.0.0"
+    react-icons: "npm:^5.5.0"
+  peerDependencies:
+    react: ^18.0.0
+    react-dom: ^18.0.0
+  checksum: 10/2b9329a6bba390db27ac2d4bad9e8e4bc2e749cdc66d1a7d7f74cfc5e2af390bff1199819220581516f9182e4629066fcb65af4b7e9834d33bdc36fe73e5c9ac
   languageName: node
   linkType: hard
 
@@ -6327,7 +6342,8 @@ __metadata:
     "@emotion/styled": "npm:^11.14.1"
     "@mdx-js/react": "npm:^3.0.0"
     "@mui/material": "npm:^7.3.7"
-    "@signalwire/docusaurus-plugin-llms-txt": "npm:^1.2.2"
+    "@signalwire/docusaurus-plugin-llms-txt": "npm:2.0.0-alpha.7"
+    "@signalwire/docusaurus-theme-llms-txt": "npm:1.0.0-alpha.9"
     "@swmansion/t-rex-ui": "npm:^1.2.1"
     clsx: "npm:^2.1.0"
     copy-text-to-clipboard: "npm:^3.2.2"
@@ -11482,6 +11498,15 @@ __metadata:
     react: ^16.6.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
     react-dom: ^16.6.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
   checksum: 10/76854c3a9220e1adc7b4aece55926146583d43b6bf08905d8cb6a7e3ee0ac60f7a03b285c2bb6c4aa3110e8d048e5dee4e3bdcea9c4b9b5c00db67ba002b95ce
+  languageName: node
+  linkType: hard
+
+"react-icons@npm:^5.5.0":
+  version: 5.5.0
+  resolution: "react-icons@npm:5.5.0"
+  peerDependencies:
+    react: "*"
+  checksum: 10/67d5b311c23f74829cb90d58b78ddc87959d2087eda7f29b78d1ab6e337b04b0358a00724d73ab60652469d9a2c66ba3c034b8b7d4f32caae942592f92f59a84
   languageName: node
   linkType: hard
 
