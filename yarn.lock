@@ -4392,6 +4392,7 @@ __metadata:
     "@types/react": "npm:~19.1.10"
     react: "npm:19.1.0"
     react-native: "npm:0.81.5"
+    react-native-executorch: "workspace:*"
     typescript: "npm:~5.9.2"
   peerDependencies:
     "@dr.pogodin/react-native-fs": ^2.0.0
@@ -4411,6 +4412,7 @@ __metadata:
     expo-file-system: "npm:^19.0.20"
     react: "npm:19.1.0"
     react-native: "npm:0.81.5"
+    react-native-executorch: "workspace:*"
     typescript: "npm:~5.9.2"
   peerDependencies:
     expo: ">=54.0.0"

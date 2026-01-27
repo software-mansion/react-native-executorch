@@ -28,6 +28,7 @@
     "expo-file-system": "^19.0.20",
     "react": "19.1.0",
     "react-native": "0.81.5",
+    "react-native-executorch": "workspace:*",
     "typescript": "~5.9.2"
   }
 }
