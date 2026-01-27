@@ -1,6 +1,6 @@
 {
   "name": "@rn-executorch/expo-adapter",
-  "version": "0.6.0",
+  "version": "0.1.0",
   "description": "Expo adapter for react-native-executorch",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -19,7 +19,7 @@
     "expo-asset": "^12.0.0",
     "expo-file-system": "^19.0.0",
     "react-native": "*",
-    "react-native-executorch": "^0.6.0"
+    "react-native-executorch": "*"
   },
   "devDependencies": {
     "@types/react": "~19.1.10",
