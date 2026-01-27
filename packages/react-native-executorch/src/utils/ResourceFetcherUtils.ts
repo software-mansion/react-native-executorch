@@ -1,4 +1,4 @@
-import { ResourceSource, Logger } from '..';
+import { ResourceSource } from '..';
 
 export enum HTTP_CODE {
   OK = 200,
@@ -85,11 +85,7 @@ export namespace ResourceFetcherUtils {
       url.pathname.startsWith('/software-mansion/')
     ) {
       const baseUrl = `${url.protocol}//${url.host}${url.pathname.split('resolve')[0]}`;
-      fetch(`${baseUrl}resolve/main/config.json`, { method: 'HEAD' }).catch(
-        (e) => {
-          Logger.warn(`Failed to trigger HF download counter: ${e}`);
-        }
-      );
+      fetch(`${baseUrl}resolve/main/config.json`, { method: 'HEAD' });
     }
   }
 

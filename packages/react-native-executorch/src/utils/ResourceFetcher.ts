@@ -1,3 +1,33 @@
+/**
+ * Resource Fetcher
+ *
+ * Provides an interface for downloading files (via `ResourceFetcher.fetch()`)
+ *
+ * Key functionality:
+ * - Download control: pause, resume, and cancel operations through:
+ *   - Single file: `.pauseFetching()`, `.resumeFetching()`, `.cancelFetching()`
+ * - Downloaded file management:
+ *   -  `.getFilesTotalSize()`, `.listDownloadedFiles()`, `.listDownloadedModels()`, `.deleteResources()`
+ *
+ * Remark: The pausing/resuming/canceling works only for fetching remote resources.
+ *
+ * Most exported functions accept:
+ * - Multiple `ResourceSource` arguments, (union type of string, number or object)
+ *
+ * Method `.fetch()` takes argument as callback that reports download progress.
+ * Method`.fetch()` returns array of paths to successfully saved files or null if the download was paused or cancelled  (then resume functions can return paths).
+ *
+ * Technical Implementation:
+ * - Maintains a `downloads` Map instance that tracks:
+ *   - Currently downloading resources
+ *   - Paused downloads
+ * - Successful downloads are automatically removed from the `downloads` Map
+ * - Uses the `ResourceSourceExtended` interface to enable pause/resume functionality:
+ *   - Wraps user-provided `ResourceSource` elements
+ *   - Implements linked list behavior via the `.next` attribute
+ *   - Automatically processes subsequent downloads when `.next` contains a valid resource
+ */
+
 import { ResourceSource } from '../types/common';
 import {
   ResourceFetcherUtils,
