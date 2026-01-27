@@ -4,7 +4,17 @@ import { BaseModule } from '../BaseModule';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
 
+/**
+ * Module for image classification tasks.
+ */
 export class ClassificationModule extends BaseModule {
+  /**
+   * Loads the model, where `modelSource` is a string that specifies the location of the model binary.
+   * To track the download progress, supply a callback function `onDownloadProgressCallback`.
+   * 
+   * @param model - Object containing `modelSource`.
+   * @param onDownloadProgressCallback - Optional callback to monitor download progress.
+   */
   async load(
     model: { modelSource: ResourceSource },
     onDownloadProgressCallback: (progress: number) => void = () => {}
@@ -22,7 +32,13 @@ export class ClassificationModule extends BaseModule {
     this.nativeModule = global.loadClassification(paths[0] || '');
   }
 
-  async forward(imageSource: string) {
+  /**
+   * Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string.
+   * 
+   * @param imageSource - The image source to be classified.
+   * @returns The classification result.
+   */
+  async forward(imageSource: string): Promise<{ [category: string]: number }> {
     if (this.nativeModule == null)
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ModuleNotLoaded,

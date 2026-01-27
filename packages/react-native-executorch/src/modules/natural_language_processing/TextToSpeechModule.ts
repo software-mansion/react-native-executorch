@@ -94,7 +94,7 @@ export class TextToSpeechModule {
    * @param speed Optional speed multiplier for the speech synthesis (default is 1.0). 
    * @returns A promise resolving to the synthesized audio waveform.
    */
-  public async forward(text: string, speed: number = 1.0) {
+  public async forward(text: string, speed: number = 1.0): Promise<Float32Array> {
     if (this.nativeModule == null)
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ModuleNotLoaded,
@@ -109,7 +109,7 @@ export class TextToSpeechModule {
    * @param input - Input object containing text and optional speed.
    * @returns An async generator yielding Float32Array audio chunks.
    */
-  public async *stream({ text, speed }: TextToSpeechStreamingInput) {
+  public async *stream({ text, speed }: TextToSpeechStreamingInput): AsyncGenerator<Float32Array> {
     // Stores computed audio segments
     const queue: Float32Array[] = [];
 

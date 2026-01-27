@@ -40,7 +40,7 @@ export class TokenizerModule {
    * @param input - The input string to be tokenized.
    * @returns An array of token IDs.
    */
-  async encode(input: string) {
+  async encode(input: string): Promise<number[]> {
     return await this.nativeModule.encode(input);
   }
 
@@ -51,7 +51,7 @@ export class TokenizerModule {
    * @param skipSpecialTokens - Whether to skip special tokens during decoding (default: true).
    * @returns The decoded string.
   */
-  async decode(tokens: number[], skipSpecialTokens: boolean = true) {
+  async decode(tokens: number[], skipSpecialTokens: boolean = true): Promise<string> {
     if (tokens.length === 0) {
       return '';
     }

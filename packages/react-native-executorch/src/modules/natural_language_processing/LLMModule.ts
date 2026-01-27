@@ -157,7 +157,7 @@ export class LLMModule {
    * 
    * @returns The count of generated tokens.
    */
-  getGeneratedTokenCount() {
+  getGeneratedTokenCount(): number {
     return this.controller.getGeneratedTokenCount();
   }
 
