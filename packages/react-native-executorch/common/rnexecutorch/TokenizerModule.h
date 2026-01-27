@@ -2,8 +2,8 @@
 
 #include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
 #include <ReactCommon/CallInvoker.h>
+#include <pytorch/tokenizers/hf_tokenizer.h>
 #include <string>
-#include <tokenizers-cpp/tokenizers_cpp.h>
 namespace rnexecutorch {
 using namespace facebook;
 
@@ -25,7 +25,7 @@ public:
 
 private:
   void ensureTokenizerLoaded(const std::string &methodName) const;
-  std::unique_ptr<tokenizers::Tokenizer> tokenizer;
+  std::unique_ptr<tokenizers::HFTokenizer> tokenizer;
   const std::size_t memorySizeLowerBound{0};
 };
 

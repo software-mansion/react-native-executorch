@@ -35,7 +35,7 @@ static constexpr auto kUseSDPAWithKVCache = "use_sdpa_with_kv_cache";
 
 Runner::Runner(Module *module, const std::string &tokenizer_path,
                const llm::GenerationConfig &config)
-    : config_(config), module_(module), tokenizer_path_(tokenizer_path),
+    : config_(config), module_(module), tokenizer_(tokenizers::HFTokenizer()),
       metadata_({
           {kEnableDynamicShape, false},
           {kMaxSeqLen, 128},
@@ -54,16 +54,18 @@ Error Runner::load() {
     return Error::Ok;
   }
 
-  ET_CHECK_OK_OR_RETURN_ERROR(module_->load_method("forward"));
+  auto status = tokenizer_->load(file_utils::loadBytesFromFile(tokenizer_path));
 
-  // Load tokenizer.
-  auto blob = rnexecutorch::file_utils::loadBytesFromFile(tokenizer_path_);
-  tokenizer_ = tokenizers::Tokenizer::FromBlobJSON(blob);
+  if (status != tokenizers::Error::Ok) {
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
+                            "Unexpected issue when loading tokenizer");
+  };
+  ET_CHECK_OK_OR_RETURN_ERROR(module_->load_method("forward"));
 
   ET_LOG(Info, "Reading metadata from model");
 
   auto eos_ids = std::make_unique<std::unordered_set<uint64_t>>();
-  metadata_[kVocabSize] = tokenizer_->GetVocabSize();
+  metadata_[kVocabSize] = tokenizer_->vocab_size();
 
   // Load model metadata
   const auto method_names =
@@ -188,7 +190,7 @@ Error Runner::generate(const std::string &prompt,
 
   int64_t context_len_left = static_cast<int64_t>(max_context_length) - pos_;
 
-  std::vector<int32_t> prompt_tokens = tokenizer_->Encode(prompt);
+  std::vector<int32_t> prompt_tokens = tokenizer_->encode(prompt, 0, 0);
   std::vector<uint64_t> prompt_tokens_uint64(prompt_tokens.begin(),
                                              prompt_tokens.end());
 
@@ -234,7 +236,8 @@ Error Runner::generate(const std::string &prompt,
 
   // print the first token from prefill. No prev_token so use cur_token for it.
   const std::string cur_decoded =
-      tokenizer_->Decode(std::vector<int32_t>{static_cast<int32_t>(cur_token)});
+      tokenizer_->decode(tokenizer_->bos_tok(), cur_token);
+
   RUNNER_ET_LOG(generation_config.warming,
                 "RSS after prompt prefill: %f MiB (0 if unsupported)",
                 llm::get_rss_bytes() / 1024.0 / 1024.0);

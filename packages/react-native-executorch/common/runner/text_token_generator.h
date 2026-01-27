@@ -13,7 +13,7 @@
 #include "text_decoder_runner.h"
 #include "util.h"
 #include <executorch/extension/tensor/tensor.h>
-#include <tokenizers-cpp/tokenizers_cpp.h>
+#include <pytorch/tokenizers/hf_tokenizer.h>
 
 namespace executorch {
 namespace extension {
@@ -21,7 +21,7 @@ namespace llm {
 
 class TextTokenGenerator {
 public:
-  TextTokenGenerator(::tokenizers::Tokenizer *tokenizer,
+  TextTokenGenerator(tokenizers::HFTokenizer *tokenizer,
                      TextDecoderRunner *text_decoder_runner, bool use_kv_cache,
                      std::unique_ptr<std::unordered_set<uint64_t>> &&eos_ids,
                      Stats *stats)
@@ -177,7 +177,7 @@ private:
    * externally, likely in the Runner. This class assumes that the provided
    * pointers remain valid for the duration of its use.
    */
-  ::tokenizers::Tokenizer *tokenizer_;
+  tokenizers::HFTokenizer *tokenizer_;
   TextDecoderRunner *text_decoder_runner_;
   std::unique_ptr<std::unordered_set<uint64_t>> eos_ids_;
   bool use_kv_cache_;
