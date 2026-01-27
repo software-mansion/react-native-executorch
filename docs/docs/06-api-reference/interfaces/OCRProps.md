@@ -1,6 +1,6 @@
 # Interface: OCRProps
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:33](https://github.com/software-mansion/react-native-executorch/blob/81b229bbed784732fe329dbbff41e28b06bdb54d/packages/react-native-executorch/src/types/ocr.ts#L33)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:33](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/ocr.ts#L33)
 
 Configuration properties for the `useOCR` hook.
 
@@ -14,7 +14,7 @@ Configuration properties for the `useOCR` hook.
 
 > **model**: `object`
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:37](https://github.com/software-mansion/react-native-executorch/blob/81b229bbed784732fe329dbbff41e28b06bdb54d/packages/react-native-executorch/src/types/ocr.ts#L37)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:37](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/ocr.ts#L37)
 
 Object containing the necessary model sources and configuration for the OCR pipeline.
 
@@ -42,7 +42,7 @@ The language configuration enum for the OCR model (e.g., English, Polish, etc.).
 
 > `optional` **preventLoad**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:58](https://github.com/software-mansion/react-native-executorch/blob/81b229bbed784732fe329dbbff41e28b06bdb54d/packages/react-native-executorch/src/types/ocr.ts#L58)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:58](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/ocr.ts#L58)
 
 Boolean that can prevent automatic model loading (and downloading the data if loaded for the first time) after running the hook.
 Defaults to `false`.

@@ -1,6 +1,6 @@
 # Class: TextToImageModule
 
-Defined in: [packages/react-native-executorch/src/modules/computer\_vision/TextToImageModule.ts:9](https://github.com/software-mansion/react-native-executorch/blob/81b229bbed784732fe329dbbff41e28b06bdb54d/packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts#L9)
+Defined in: [packages/react-native-executorch/src/modules/computer\_vision/TextToImageModule.ts:9](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts#L9)
 
 ## Extends
 
@@ -12,7 +12,7 @@ Defined in: [packages/react-native-executorch/src/modules/computer\_vision/TextT
 
 > **new TextToImageModule**(`inferenceCallback?`): `TextToImageModule`
 
-Defined in: [packages/react-native-executorch/src/modules/computer\_vision/TextToImageModule.ts:12](https://github.com/software-mansion/react-native-executorch/blob/81b229bbed784732fe329dbbff41e28b06bdb54d/packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts#L12)
+Defined in: [packages/react-native-executorch/src/modules/computer\_vision/TextToImageModule.ts:12](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts#L12)
 
 #### Parameters
 
@@ -34,7 +34,7 @@ Defined in: [packages/react-native-executorch/src/modules/computer\_vision/TextT
 
 > **nativeModule**: `any` = `null`
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:8](https://github.com/software-mansion/react-native-executorch/blob/81b229bbed784732fe329dbbff41e28b06bdb54d/packages/react-native-executorch/src/modules/BaseModule.ts#L8)
+Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:8](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/modules/BaseModule.ts#L8)
 
 Native module instance
 
@@ -48,7 +48,7 @@ Native module instance
 
 > **delete**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:41](https://github.com/software-mansion/react-native-executorch/blob/81b229bbed784732fe329dbbff41e28b06bdb54d/packages/react-native-executorch/src/modules/BaseModule.ts#L41)
+Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:41](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/modules/BaseModule.ts#L41)
 
 Unloads the model from memory.
 
@@ -66,7 +66,7 @@ Unloads the model from memory.
 
 > **forward**(`input`, `imageSize`, `numSteps`, `seed?`): `Promise`\<`string`\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer\_vision/TextToImageModule.ts:74](https://github.com/software-mansion/react-native-executorch/blob/81b229bbed784732fe329dbbff41e28b06bdb54d/packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts#L74)
+Defined in: [packages/react-native-executorch/src/modules/computer\_vision/TextToImageModule.ts:74](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts#L74)
 
 #### Parameters
 
@@ -96,7 +96,7 @@ Defined in: [packages/react-native-executorch/src/modules/computer\_vision/TextT
 
 > `protected` **forwardET**(`inputTensor`): `Promise`\<[`TensorPtr`](../interfaces/TensorPtr.md)[]\>
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:23](https://github.com/software-mansion/react-native-executorch/blob/81b229bbed784732fe329dbbff41e28b06bdb54d/packages/react-native-executorch/src/modules/BaseModule.ts#L23)
+Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:23](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/modules/BaseModule.ts#L23)
 
 Runs the model's forward method with the given input tensors.
 It returns the output tensors that mimic the structure of output from ExecuTorch.
@@ -125,7 +125,7 @@ Array of output tensors.
 
 > **getInputShape**(`methodName`, `index`): `Promise`\<`number`[]\>
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:34](https://github.com/software-mansion/react-native-executorch/blob/81b229bbed784732fe329dbbff41e28b06bdb54d/packages/react-native-executorch/src/modules/BaseModule.ts#L34)
+Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:34](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/modules/BaseModule.ts#L34)
 
 Gets the input shape for a given method and index.
 
@@ -159,7 +159,7 @@ The input shape as an array of numbers.
 
 > **interrupt**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/computer\_vision/TextToImageModule.ts:98](https://github.com/software-mansion/react-native-executorch/blob/81b229bbed784732fe329dbbff41e28b06bdb54d/packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts#L98)
+Defined in: [packages/react-native-executorch/src/modules/computer\_vision/TextToImageModule.ts:98](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts#L98)
 
 #### Returns
 
@@ -171,7 +171,7 @@ Defined in: [packages/react-native-executorch/src/modules/computer\_vision/TextT
 
 > **load**(`model`, `onDownloadProgressCallback`): `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer\_vision/TextToImageModule.ts:19](https://github.com/software-mansion/react-native-executorch/blob/81b229bbed784732fe329dbbff41e28b06bdb54d/packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts#L19)
+Defined in: [packages/react-native-executorch/src/modules/computer\_vision/TextToImageModule.ts:19](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts#L19)
 
 #### Parameters
 

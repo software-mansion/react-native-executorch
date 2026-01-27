@@ -2,7 +2,7 @@
 
 > **useTextToImage**(`TextToImageConfiguration`): [`TextToImageType`](../interfaces/TextToImageType.md)
 
-Defined in: [packages/react-native-executorch/src/hooks/computer\_vision/useTextToImage.ts:13](https://github.com/software-mansion/react-native-executorch/blob/81b229bbed784732fe329dbbff41e28b06bdb54d/packages/react-native-executorch/src/hooks/computer_vision/useTextToImage.ts#L13)
+Defined in: [packages/react-native-executorch/src/hooks/computer\_vision/useTextToImage.ts:13](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/hooks/computer_vision/useTextToImage.ts#L13)
 
 React hook for managing a Text to Image instance.
 

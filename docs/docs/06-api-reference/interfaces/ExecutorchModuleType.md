@@ -1,6 +1,6 @@
 # Interface: ExecutorchModuleType
 
-Defined in: [packages/react-native-executorch/src/types/executorchModule.ts:19](https://github.com/software-mansion/react-native-executorch/blob/81b229bbed784732fe329dbbff41e28b06bdb54d/packages/react-native-executorch/src/types/executorchModule.ts#L19)
+Defined in: [packages/react-native-executorch/src/types/executorchModule.ts:19](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/executorchModule.ts#L19)
 
 Return type for the `useExecutorchModule` hook.
 Manages the state and core execution methods for a general ExecuTorch model.
@@ -11,7 +11,7 @@ Manages the state and core execution methods for a general ExecuTorch model.
 
 > **downloadProgress**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/executorchModule.ts:38](https://github.com/software-mansion/react-native-executorch/blob/81b229bbed784732fe329dbbff41e28b06bdb54d/packages/react-native-executorch/src/types/executorchModule.ts#L38)
+Defined in: [packages/react-native-executorch/src/types/executorchModule.ts:38](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/executorchModule.ts#L38)
 
 Represents the download progress of the model binary as a value between 0 and 1.
 
@@ -21,7 +21,7 @@ Represents the download progress of the model binary as a value between 0 and 1.
 
 > **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
 
-Defined in: [packages/react-native-executorch/src/types/executorchModule.ts:23](https://github.com/software-mansion/react-native-executorch/blob/81b229bbed784732fe329dbbff41e28b06bdb54d/packages/react-native-executorch/src/types/executorchModule.ts#L23)
+Defined in: [packages/react-native-executorch/src/types/executorchModule.ts:23](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/executorchModule.ts#L23)
 
 Contains the error object if the model failed to load, download, or encountered a runtime error.
 
@@ -31,7 +31,7 @@ Contains the error object if the model failed to load, download, or encountered 
 
 > **forward**: (`inputTensor`) => `Promise`\<[`TensorPtr`](TensorPtr.md)[]\>
 
-Defined in: [packages/react-native-executorch/src/types/executorchModule.ts:46](https://github.com/software-mansion/react-native-executorch/blob/81b229bbed784732fe329dbbff41e28b06bdb54d/packages/react-native-executorch/src/types/executorchModule.ts#L46)
+Defined in: [packages/react-native-executorch/src/types/executorchModule.ts:46](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/executorchModule.ts#L46)
 
 Executes the model's forward pass with the provided input tensors.
 
@@ -59,7 +59,7 @@ If the model is not loaded or is currently processing another request.
 
 > **isGenerating**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/executorchModule.ts:33](https://github.com/software-mansion/react-native-executorch/blob/81b229bbed784732fe329dbbff41e28b06bdb54d/packages/react-native-executorch/src/types/executorchModule.ts#L33)
+Defined in: [packages/react-native-executorch/src/types/executorchModule.ts:33](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/executorchModule.ts#L33)
 
 Indicates whether the model is currently processing a forward pass.
 
@@ -69,6 +69,6 @@ Indicates whether the model is currently processing a forward pass.
 
 > **isReady**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/executorchModule.ts:28](https://github.com/software-mansion/react-native-executorch/blob/81b229bbed784732fe329dbbff41e28b06bdb54d/packages/react-native-executorch/src/types/executorchModule.ts#L28)
+Defined in: [packages/react-native-executorch/src/types/executorchModule.ts:28](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/executorchModule.ts#L28)
 
 Indicates whether the ExecuTorch model binary has successfully loaded into memory and is ready for inference.
