@@ -84,13 +84,6 @@ elseif(ANDROID_ABI STREQUAL "x86_64")
   set(OPENCV_THIRD_PARTY_LIBS "")
 endif()
 
-# ------- tokenizers-cpp -------
-
-set(TOKENIZERS_LIBS
-  "${LIBS_DIR}/tokenizers-cpp/${ANDROID_ABI}/libtokenizers_c.a"
-  "${LIBS_DIR}/tokenizers-cpp/${ANDROID_ABI}/libtokenizers_cpp.a"
-  "${LIBS_DIR}/tokenizers-cpp/${ANDROID_ABI}/libsentencepiece.a"
-)
 
 # ------- phonemis -------
 
@@ -108,8 +101,6 @@ target_link_libraries(
   ${RN_VERSION_LINK_LIBRARIES}
   ${OPENCV_LIBS}
   ${OPENCV_THIRD_PARTY_LIBS}
-  ${TOKENIZERS_LIBS}
-  ${TOKENIZERS_THIRD_PARTY_LIBS}
   ${PHONEMIS_LIBS}
   executorch
   ${EXECUTORCH_LIBS}
