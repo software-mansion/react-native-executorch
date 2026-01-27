@@ -5620,6 +5620,7 @@ __metadata:
   version: 7.5.3
   resolution: "@react-navigation/routers@npm:7.5.3"
   dependencies:
+<<<<<<< HEAD
     nanoid: "npm:^3.3.11"
   checksum: 10/8b02cf4c9acd7d1ccb0771ebfbf18fa27aa8db4e5653403d9d78a08d1792b9f22654cb36ce3a1150181b141d8cf694d7665007ef005c041bce404d33f44acc73
   languageName: node
@@ -5628,6 +5629,45 @@ __metadata:
 "@shopify/react-native-skia@npm:2.4.21":
   version: 2.4.21
   resolution: "@shopify/react-native-skia@npm:2.4.21"
+=======
+    "@dr.pogodin/react-native-fs": "npm:^2.36.2"
+    "@kesha-antonov/react-native-background-downloader": "npm:^4.4.5"
+    "@types/react": "npm:~19.1.10"
+    react: "npm:19.1.0"
+    react-native: "npm:0.81.5"
+    typescript: "npm:~5.9.2"
+  peerDependencies:
+    "@dr.pogodin/react-native-fs": ^2.0.0
+    "@kesha-antonov/react-native-background-downloader": ^4.0.0
+    react-native: "*"
+    react-native-executorch: "*"
+  languageName: unknown
+  linkType: soft
+
+"@rn-executorch/expo-adapter@workspace:*, @rn-executorch/expo-adapter@workspace:packages/expo-adapter":
+  version: 0.0.0-use.local
+  resolution: "@rn-executorch/expo-adapter@workspace:packages/expo-adapter"
+  dependencies:
+    "@types/react": "npm:~19.1.10"
+    expo: "npm:^54.0.0"
+    expo-asset: "npm:12.0.11"
+    expo-file-system: "npm:^19.0.20"
+    react: "npm:19.1.0"
+    react-native: "npm:0.81.5"
+    typescript: "npm:~5.9.2"
+  peerDependencies:
+    expo: ">=54.0.0"
+    expo-asset: ^12.0.0
+    expo-file-system: ^19.0.0
+    react-native: "*"
+    react-native-executorch: "*"
+  languageName: unknown
+  linkType: soft
+
+"@shopify/react-native-skia@npm:2.2.12":
+  version: 2.2.12
+  resolution: "@shopify/react-native-skia@npm:2.2.12"
+>>>>>>> 529e49e7 (chore: update react-native-executorch dependency to allow any version)
   dependencies:
     canvaskit-wasm: "npm:0.40.0"
     react-reconciler: "npm:0.31.0"
