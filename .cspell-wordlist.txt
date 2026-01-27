@@ -95,3 +95,4 @@ Português
 codegen
 cstdint
 ocurred
+RNFS
