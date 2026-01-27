@@ -18,6 +18,15 @@ import {
   LLAMA3_2_1B_SPINQUANT,
 } from 'react-native-executorch';
 import { BareResourceFetcher } from '@rn-executorch/bare-adapter';
+import { setConfig } from '@kesha-antonov/react-native-background-downloader';
+
+// Configure Background Downloader logging
+setConfig({
+  isLogsEnabled: true,
+  logCallback: log => {
+    console.log('[BackgroundDownloader]', log);
+  },
+});
 
 // Initialize Executorch with bare adapter
 initExecutorch({
@@ -33,7 +42,13 @@ const ColorPalette = {
   gray200: '#E0E0E0',
 };
 
-function Spinner({ visible, textContent }: { visible: boolean; textContent: string }) {
+function Spinner({
+  visible,
+  textContent,
+}: {
+  visible: boolean;
+  textContent: string;
+}) {
   return (
     <Modal transparent={true} animationType="fade" visible={visible}>
       <View style={spinnerStyles.overlay}>
@@ -73,6 +88,12 @@ function App() {
   const scrollViewRef = useRef<ScrollView>(null);
 
   const llm = useLLM({ model: LLAMA3_2_1B_SPINQUANT });
+  // Alternatively, to use a custom local model, uncomment below:
+  // const llm = useLLM({ model: {
+  //   modelSource: require('./assets/ai-models/smolLm2/smolLm2_135M/smolLm2_135M_bf16.pte'),
+  //   tokenizerSource: require('./assets/ai-models/smolLm2/tokenizer.json'),
+  //   tokenizerConfigSource: require('./assets/ai-models/smolLm2/tokenizer_config.json'),
+  // } });
 
   useEffect(() => {
     if (llm.error) {
@@ -109,7 +130,9 @@ function App() {
             ref={scrollViewRef}
             style={styles.chatContainer}
             contentContainerStyle={styles.chatContent}
-            onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+            onContentSizeChange={() =>
+              scrollViewRef.current?.scrollToEnd({ animated: true })
+            }
             keyboardShouldPersistTaps="handled"
           >
             {llm.messageHistory.map((message, index) => (
@@ -117,13 +140,17 @@ function App() {
                 key={index}
                 style={[
                   styles.messageBubble,
-                  message.role === 'user' ? styles.userMessage : styles.aiMessage,
+                  message.role === 'user'
+                    ? styles.userMessage
+                    : styles.aiMessage,
                 ]}
               >
                 <Text
                   style={[
                     styles.messageText,
-                    message.role === 'user' ? styles.userMessageText : styles.aiMessageText,
+                    message.role === 'user'
+                      ? styles.userMessageText
+                      : styles.aiMessageText,
                   ]}
                 >
                   {message.content}
@@ -141,7 +168,9 @@ function App() {
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.welcomeContainer}>
               <Text style={styles.welcomeTitle}>Hello! 👋</Text>
-              <Text style={styles.welcomeSubtitle}>What can I help you with?</Text>
+              <Text style={styles.welcomeSubtitle}>
+                What can I help you with?
+              </Text>
             </View>
           </TouchableWithoutFeedback>
         )}
@@ -151,7 +180,11 @@ function App() {
             ref={textInputRef}
             style={[
               styles.textInput,
-              { borderColor: isTextInputFocused ? ColorPalette.blueDark : ColorPalette.blueLight },
+              {
+                borderColor: isTextInputFocused
+                  ? ColorPalette.blueDark
+                  : ColorPalette.blueLight,
+              },
             ]}
             placeholder="Your message"
             placeholderTextColor={ColorPalette.blueLight}
