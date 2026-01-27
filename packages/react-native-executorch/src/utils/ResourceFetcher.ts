@@ -29,6 +29,8 @@
  */
 
 import { ResourceSource } from '../types/common';
+import { RnExecutorchError } from '../errors/errorUtils';
+import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 
 export interface ResourceFetcherAdapter {
   fetch(
@@ -54,7 +56,8 @@ export class ResourceFetcher {
 
   static getAdapter(): ResourceFetcherAdapter {
     if (!this.adapter) {
-      throw new Error(
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.NotImplemented,
         'ResourceFetcher adapter is not initialized. Please call initExecutorch({ resourceFetcher: ... }) with a valid adapter, e.g., from @rn-executorch/expo-adapter or @rn-executorch/bare-adapter.'
       );
     }
