@@ -1,6 +1,6 @@
 {
   "name": "@rn-executorch/bare-adapter",
-  "version": "0.6.0",
+  "version": "0.1.0",
   "description": "Bare React Native adapter for react-native-executorch",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -18,7 +18,7 @@
     "@dr.pogodin/react-native-fs": "^2.0.0",
     "@kesha-antonov/react-native-background-downloader": "^4.0.0",
     "react-native": "*",
-    "react-native-executorch": "^0.6.0"
+    "react-native-executorch": "*"
   },
   "devDependencies": {
     "@dr.pogodin/react-native-fs": "^2.36.2",
