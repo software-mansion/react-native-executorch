@@ -131,6 +131,7 @@ function(add_rn_test TEST_TARGET TEST_FILENAME)
     # Create executable using the explicit filename provided
     add_executable(${TEST_TARGET} ${TEST_FILENAME} ${ARG_SOURCES})
 
+    target_compile_definitions(${TEST_TARGET} PRIVATE TEST_BUILD)
     target_link_libraries(${TEST_TARGET} PRIVATE rntests_core gtest_main ${ARG_LIBS})
     target_link_options(${TEST_TARGET} PRIVATE "LINKER:-z,max-page-size=16384")
 

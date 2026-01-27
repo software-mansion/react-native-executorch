@@ -12,15 +12,15 @@ namespace rnexecutorch {
 std::shared_ptr<facebook::react::CallInvoker> createMockCallInvoker();
 }
 
-constexpr auto VALID_TOKENIZER_PATH = "t2i_tokenizer.json";
-constexpr auto VALID_ENCODER_PATH = "t2i_encoder.pte";
-constexpr auto VALID_UNET_PATH = "t2i_unet.pte";
-constexpr auto VALID_DECODER_PATH = "t2i_decoder.pte";
+constexpr auto kValidTokenizerPath = "t2i_tokenizer.json";
+constexpr auto kValidEncoderPath = "t2i_encoder.pte";
+constexpr auto kValidUnetPath = "t2i_unet.pte";
+constexpr auto kValidDecoderPath = "t2i_decoder.pte";
 
-constexpr float SCHEDULER_BETA_START = 0.00085f;
-constexpr float SCHEDULER_BETA_END = 0.012f;
-constexpr int32_t SCHEDULER_NUM_TRAIN_TIMESTEPS = 1000;
-constexpr int32_t SCHEDULER_STEPS_OFFSET = 1;
+constexpr float kSchedulerBetaStart = 0.00085f;
+constexpr float kSchedulerBetaEnd = 0.012f;
+constexpr int32_t kSchedulerNumTrainTimesteps = 1000;
+constexpr int32_t kSchedulerStepsOffset = 1;
 
 // ============================================================================
 // Common tests via typed test suite
@@ -30,18 +30,16 @@ template <> struct ModelTraits<TextToImage> {
   using ModelType = TextToImage;
 
   static ModelType createValid() {
-    return ModelType(VALID_TOKENIZER_PATH, VALID_ENCODER_PATH, VALID_UNET_PATH,
-                     VALID_DECODER_PATH, SCHEDULER_BETA_START,
-                     SCHEDULER_BETA_END, SCHEDULER_NUM_TRAIN_TIMESTEPS,
-                     SCHEDULER_STEPS_OFFSET,
+    return ModelType(kValidTokenizerPath, kValidEncoderPath, kValidUnetPath,
+                     kValidDecoderPath, kSchedulerBetaStart, kSchedulerBetaEnd,
+                     kSchedulerNumTrainTimesteps, kSchedulerStepsOffset,
                      rnexecutorch::createMockCallInvoker());
   }
 
   static ModelType createInvalid() {
-    return ModelType("nonexistent.json", VALID_ENCODER_PATH, VALID_UNET_PATH,
-                     VALID_DECODER_PATH, SCHEDULER_BETA_START,
-                     SCHEDULER_BETA_END, SCHEDULER_NUM_TRAIN_TIMESTEPS,
-                     SCHEDULER_STEPS_OFFSET,
+    return ModelType("nonexistent.json", kValidEncoderPath, kValidUnetPath,
+                     kValidDecoderPath, kSchedulerBetaStart, kSchedulerBetaEnd,
+                     kSchedulerNumTrainTimesteps, kSchedulerStepsOffset,
                      rnexecutorch::createMockCallInvoker());
   }
 
@@ -58,73 +56,73 @@ INSTANTIATE_TYPED_TEST_SUITE_P(TextToImage, CommonModelTest, TextToImageTypes);
 // Model-specific tests
 // ============================================================================
 TEST(TextToImageCtorTests, InvalidEncoderPathThrows) {
-  EXPECT_THROW(TextToImage(VALID_TOKENIZER_PATH, "nonexistent.pte",
-                           VALID_UNET_PATH, VALID_DECODER_PATH,
-                           SCHEDULER_BETA_START, SCHEDULER_BETA_END,
-                           SCHEDULER_NUM_TRAIN_TIMESTEPS,
-                           SCHEDULER_STEPS_OFFSET, createMockCallInvoker()),
+  EXPECT_THROW(TextToImage(kValidTokenizerPath, "nonexistent.pte",
+                           kValidUnetPath, kValidDecoderPath,
+                           kSchedulerBetaStart, kSchedulerBetaEnd,
+                           kSchedulerNumTrainTimesteps, kSchedulerStepsOffset,
+                           createMockCallInvoker()),
                RnExecutorchError);
 }
 
 TEST(TextToImageCtorTests, InvalidUnetPathThrows) {
-  EXPECT_THROW(TextToImage(VALID_TOKENIZER_PATH, VALID_ENCODER_PATH,
-                           "nonexistent.pte", VALID_DECODER_PATH,
-                           SCHEDULER_BETA_START, SCHEDULER_BETA_END,
-                           SCHEDULER_NUM_TRAIN_TIMESTEPS,
-                           SCHEDULER_STEPS_OFFSET, createMockCallInvoker()),
+  EXPECT_THROW(TextToImage(kValidTokenizerPath, kValidEncoderPath,
+                           "nonexistent.pte", kValidDecoderPath,
+                           kSchedulerBetaStart, kSchedulerBetaEnd,
+                           kSchedulerNumTrainTimesteps, kSchedulerStepsOffset,
+                           createMockCallInvoker()),
                RnExecutorchError);
 }
 
 TEST(TextToImageCtorTests, InvalidDecoderPathThrows) {
-  EXPECT_THROW(TextToImage(VALID_TOKENIZER_PATH, VALID_ENCODER_PATH,
-                           VALID_UNET_PATH, "nonexistent.pte",
-                           SCHEDULER_BETA_START, SCHEDULER_BETA_END,
-                           SCHEDULER_NUM_TRAIN_TIMESTEPS,
-                           SCHEDULER_STEPS_OFFSET, createMockCallInvoker()),
+  EXPECT_THROW(TextToImage(kValidTokenizerPath, kValidEncoderPath,
+                           kValidUnetPath, "nonexistent.pte",
+                           kSchedulerBetaStart, kSchedulerBetaEnd,
+                           kSchedulerNumTrainTimesteps, kSchedulerStepsOffset,
+                           createMockCallInvoker()),
                RnExecutorchError);
 }
 
 TEST(TextToImageGenerateTests, InvalidImageSizeThrows) {
-  TextToImage model(VALID_TOKENIZER_PATH, VALID_ENCODER_PATH, VALID_UNET_PATH,
-                    VALID_DECODER_PATH, SCHEDULER_BETA_START,
-                    SCHEDULER_BETA_END, SCHEDULER_NUM_TRAIN_TIMESTEPS,
-                    SCHEDULER_STEPS_OFFSET, createMockCallInvoker());
+  TextToImage model(kValidTokenizerPath, kValidEncoderPath, kValidUnetPath,
+                    kValidDecoderPath, kSchedulerBetaStart, kSchedulerBetaEnd,
+                    kSchedulerNumTrainTimesteps, kSchedulerStepsOffset,
+                    createMockCallInvoker());
   EXPECT_THROW((void)model.generate("a cat", 100, 1, 42, nullptr),
                RnExecutorchError);
 }
 
 TEST(TextToImageGenerateTests, EmptyPromptThrows) {
-  TextToImage model(VALID_TOKENIZER_PATH, VALID_ENCODER_PATH, VALID_UNET_PATH,
-                    VALID_DECODER_PATH, SCHEDULER_BETA_START,
-                    SCHEDULER_BETA_END, SCHEDULER_NUM_TRAIN_TIMESTEPS,
-                    SCHEDULER_STEPS_OFFSET, createMockCallInvoker());
+  TextToImage model(kValidTokenizerPath, kValidEncoderPath, kValidUnetPath,
+                    kValidDecoderPath, kSchedulerBetaStart, kSchedulerBetaEnd,
+                    kSchedulerNumTrainTimesteps, kSchedulerStepsOffset,
+                    createMockCallInvoker());
   EXPECT_THROW((void)model.generate("", 128, 1, 42, nullptr),
                RnExecutorchError);
 }
 
 TEST(TextToImageGenerateTests, ZeroStepsThrows) {
-  TextToImage model(VALID_TOKENIZER_PATH, VALID_ENCODER_PATH, VALID_UNET_PATH,
-                    VALID_DECODER_PATH, SCHEDULER_BETA_START,
-                    SCHEDULER_BETA_END, SCHEDULER_NUM_TRAIN_TIMESTEPS,
-                    SCHEDULER_STEPS_OFFSET, createMockCallInvoker());
+  TextToImage model(kValidTokenizerPath, kValidEncoderPath, kValidUnetPath,
+                    kValidDecoderPath, kSchedulerBetaStart, kSchedulerBetaEnd,
+                    kSchedulerNumTrainTimesteps, kSchedulerStepsOffset,
+                    createMockCallInvoker());
   EXPECT_THROW((void)model.generate("a cat", 128, 0, 42, nullptr),
                RnExecutorchError);
 }
 
 TEST(TextToImageGenerateTests, GenerateReturnsNonNull) {
-  TextToImage model(VALID_TOKENIZER_PATH, VALID_ENCODER_PATH, VALID_UNET_PATH,
-                    VALID_DECODER_PATH, SCHEDULER_BETA_START,
-                    SCHEDULER_BETA_END, SCHEDULER_NUM_TRAIN_TIMESTEPS,
-                    SCHEDULER_STEPS_OFFSET, createMockCallInvoker());
+  TextToImage model(kValidTokenizerPath, kValidEncoderPath, kValidUnetPath,
+                    kValidDecoderPath, kSchedulerBetaStart, kSchedulerBetaEnd,
+                    kSchedulerNumTrainTimesteps, kSchedulerStepsOffset,
+                    createMockCallInvoker());
   auto result = model.generate("a cat", 128, 1, 42, nullptr);
   EXPECT_NE(result, nullptr);
 }
 
 TEST(TextToImageGenerateTests, GenerateReturnsCorrectSize) {
-  TextToImage model(VALID_TOKENIZER_PATH, VALID_ENCODER_PATH, VALID_UNET_PATH,
-                    VALID_DECODER_PATH, SCHEDULER_BETA_START,
-                    SCHEDULER_BETA_END, SCHEDULER_NUM_TRAIN_TIMESTEPS,
-                    SCHEDULER_STEPS_OFFSET, createMockCallInvoker());
+  TextToImage model(kValidTokenizerPath, kValidEncoderPath, kValidUnetPath,
+                    kValidDecoderPath, kSchedulerBetaStart, kSchedulerBetaEnd,
+                    kSchedulerNumTrainTimesteps, kSchedulerStepsOffset,
+                    createMockCallInvoker());
   int32_t imageSize = 128;
   auto result = model.generate("a cat", imageSize, 1, 42, nullptr);
   ASSERT_NE(result, nullptr);
@@ -133,10 +131,10 @@ TEST(TextToImageGenerateTests, GenerateReturnsCorrectSize) {
 }
 
 TEST(TextToImageGenerateTests, SameSeedProducesSameResult) {
-  TextToImage model(VALID_TOKENIZER_PATH, VALID_ENCODER_PATH, VALID_UNET_PATH,
-                    VALID_DECODER_PATH, SCHEDULER_BETA_START,
-                    SCHEDULER_BETA_END, SCHEDULER_NUM_TRAIN_TIMESTEPS,
-                    SCHEDULER_STEPS_OFFSET, createMockCallInvoker());
+  TextToImage model(kValidTokenizerPath, kValidEncoderPath, kValidUnetPath,
+                    kValidDecoderPath, kSchedulerBetaStart, kSchedulerBetaEnd,
+                    kSchedulerNumTrainTimesteps, kSchedulerStepsOffset,
+                    createMockCallInvoker());
   auto result1 = model.generate("a cat", 128, 1, 42, nullptr);
   auto result2 = model.generate("a cat", 128, 1, 42, nullptr);
   ASSERT_NE(result1, nullptr);
@@ -145,12 +143,7 @@ TEST(TextToImageGenerateTests, SameSeedProducesSameResult) {
 
   auto data1 = static_cast<uint8_t *>(result1->data());
   auto data2 = static_cast<uint8_t *>(result2->data());
-  bool same = true;
   for (size_t i = 0; i < result1->size(); i++) {
-    if (data1[i] != data2[i]) {
-      same = false;
-      break;
-    }
+    EXPECT_EQ(data1[i], data2[i]) << "at index: " << i;
   }
-  EXPECT_TRUE(same);
 }

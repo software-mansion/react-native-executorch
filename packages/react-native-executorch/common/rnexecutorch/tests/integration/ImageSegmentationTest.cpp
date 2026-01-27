@@ -13,8 +13,35 @@ using executorch::extension::make_tensor_ptr;
 using executorch::extension::TensorPtr;
 using executorch::runtime::EValue;
 
-constexpr auto VALID_IMAGE_SEGMENTATION_MODEL_PATH =
-    "deeplabV3_xnnpack_fp32.pte";
+constexpr auto kValidImageSegmentationModelPath = "deeplabV3_xnnpack_fp32.pte";
+
+// Test fixture for tests that need dummy input data
+class ImageSegmentationForwardTest : public ::testing::Test {
+protected:
+  void SetUp() override {
+    model = std::make_unique<ImageSegmentation>(
+        kValidImageSegmentationModelPath, nullptr);
+    auto shapes = model->getAllInputShapes("forward");
+    ASSERT_FALSE(shapes.empty());
+    shape = shapes[0];
+
+    size_t numElements = 1;
+    for (auto dim : shape) {
+      numElements *= dim;
+    }
+    dummyData = std::vector<float>(numElements, 0.5f);
+
+    sizes = std::vector<int32_t>(shape.begin(), shape.end());
+    inputTensor =
+        make_tensor_ptr(sizes, dummyData.data(), exec_aten::ScalarType::Float);
+  }
+
+  std::unique_ptr<ImageSegmentation> model;
+  std::vector<int32_t> shape;
+  std::vector<float> dummyData;
+  std::vector<int32_t> sizes;
+  TensorPtr inputTensor;
+};
 
 TEST(ImageSegmentationCtorTests, InvalidPathThrows) {
   EXPECT_THROW(ImageSegmentation("this_file_does_not_exist.pte", nullptr),
@@ -22,47 +49,16 @@ TEST(ImageSegmentationCtorTests, InvalidPathThrows) {
 }
 
 TEST(ImageSegmentationCtorTests, ValidPathDoesntThrow) {
-  EXPECT_NO_THROW(
-      ImageSegmentation(VALID_IMAGE_SEGMENTATION_MODEL_PATH, nullptr));
+  EXPECT_NO_THROW(ImageSegmentation(kValidImageSegmentationModelPath, nullptr));
 }
 
-TEST(ImageSegmentationForwardTests, ForwardWithValidTensorSucceeds) {
-  ImageSegmentation model(VALID_IMAGE_SEGMENTATION_MODEL_PATH, nullptr);
-  auto shapes = model.getAllInputShapes("forward");
-  ASSERT_FALSE(shapes.empty());
-  auto &shape = shapes[0];
-
-  size_t numElements = 1;
-  for (auto dim : shape) {
-    numElements *= dim;
-  }
-  std::vector<float> dummyData(numElements, 0.5f);
-
-  std::vector<int32_t> sizes(shape.begin(), shape.end());
-  TensorPtr inputTensor =
-      make_tensor_ptr(sizes, dummyData.data(), exec_aten::ScalarType::Float);
-
-  auto result = model.forward(EValue(inputTensor));
+TEST_F(ImageSegmentationForwardTest, ForwardWithValidTensorSucceeds) {
+  auto result = model->forward(EValue(inputTensor));
   EXPECT_TRUE(result.ok());
 }
 
-TEST(ImageSegmentationForwardTests, ForwardOutputHasCorrectDimensions) {
-  ImageSegmentation model(VALID_IMAGE_SEGMENTATION_MODEL_PATH, nullptr);
-  auto shapes = model.getAllInputShapes("forward");
-  ASSERT_FALSE(shapes.empty());
-  auto &shape = shapes[0];
-
-  size_t numElements = 1;
-  for (auto dim : shape) {
-    numElements *= dim;
-  }
-  std::vector<float> dummyData(numElements, 0.5f);
-
-  std::vector<int32_t> sizes(shape.begin(), shape.end());
-  TensorPtr inputTensor =
-      make_tensor_ptr(sizes, dummyData.data(), exec_aten::ScalarType::Float);
-
-  auto result = model.forward(EValue(inputTensor));
+TEST_F(ImageSegmentationForwardTest, ForwardOutputHasCorrectDimensions) {
+  auto result = model->forward(EValue(inputTensor));
   ASSERT_TRUE(result.ok());
 
   auto &outputs = result.get();
@@ -72,23 +68,8 @@ TEST(ImageSegmentationForwardTests, ForwardOutputHasCorrectDimensions) {
   EXPECT_EQ(outputTensor.dim(), 4); // NCHW format
 }
 
-TEST(ImageSegmentationForwardTests, ForwardOutputHas21Classes) {
-  ImageSegmentation model(VALID_IMAGE_SEGMENTATION_MODEL_PATH, nullptr);
-  auto shapes = model.getAllInputShapes("forward");
-  ASSERT_FALSE(shapes.empty());
-  auto &shape = shapes[0];
-
-  size_t numElements = 1;
-  for (auto dim : shape) {
-    numElements *= dim;
-  }
-  std::vector<float> dummyData(numElements, 0.5f);
-
-  std::vector<int32_t> sizes(shape.begin(), shape.end());
-  TensorPtr inputTensor =
-      make_tensor_ptr(sizes, dummyData.data(), exec_aten::ScalarType::Float);
-
-  auto result = model.forward(EValue(inputTensor));
+TEST_F(ImageSegmentationForwardTest, ForwardOutputHas21Classes) {
+  auto result = model->forward(EValue(inputTensor));
   ASSERT_TRUE(result.ok());
 
   auto &outputs = result.get();
@@ -98,51 +79,21 @@ TEST(ImageSegmentationForwardTests, ForwardOutputHas21Classes) {
   EXPECT_EQ(outputTensor.size(1), 21); // DeepLabV3 has 21 classes
 }
 
-TEST(ImageSegmentationForwardTests, MultipleForwardsWork) {
-  ImageSegmentation model(VALID_IMAGE_SEGMENTATION_MODEL_PATH, nullptr);
-  auto shapes = model.getAllInputShapes("forward");
-  ASSERT_FALSE(shapes.empty());
-  auto &shape = shapes[0];
-
-  size_t numElements = 1;
-  for (auto dim : shape) {
-    numElements *= dim;
-  }
-  std::vector<float> dummyData(numElements, 0.5f);
-
-  std::vector<int32_t> sizes(shape.begin(), shape.end());
-  TensorPtr inputTensor =
-      make_tensor_ptr(sizes, dummyData.data(), exec_aten::ScalarType::Float);
-
-  auto result1 = model.forward(EValue(inputTensor));
+TEST_F(ImageSegmentationForwardTest, MultipleForwardsWork) {
+  auto result1 = model->forward(EValue(inputTensor));
   EXPECT_TRUE(result1.ok());
 
-  auto result2 = model.forward(EValue(inputTensor));
+  auto result2 = model->forward(EValue(inputTensor));
   EXPECT_TRUE(result2.ok());
 }
 
-TEST(ImageSegmentationUnloadTests, ForwardAfterUnloadThrows) {
-  ImageSegmentation model(VALID_IMAGE_SEGMENTATION_MODEL_PATH, nullptr);
-  auto shapes = model.getAllInputShapes("forward");
-  ASSERT_FALSE(shapes.empty());
-  auto &shape = shapes[0];
-
-  size_t numElements = 1;
-  for (auto dim : shape) {
-    numElements *= dim;
-  }
-  std::vector<float> dummyData(numElements, 0.5f);
-
-  std::vector<int32_t> sizes(shape.begin(), shape.end());
-  TensorPtr inputTensor =
-      make_tensor_ptr(sizes, dummyData.data(), exec_aten::ScalarType::Float);
-
-  model.unload();
-  EXPECT_THROW((void)model.forward(EValue(inputTensor)), RnExecutorchError);
+TEST_F(ImageSegmentationForwardTest, ForwardAfterUnloadThrows) {
+  model->unload();
+  EXPECT_THROW((void)model->forward(EValue(inputTensor)), RnExecutorchError);
 }
 
 TEST(ImageSegmentationInheritedTests, GetInputShapeWorks) {
-  ImageSegmentation model(VALID_IMAGE_SEGMENTATION_MODEL_PATH, nullptr);
+  ImageSegmentation model(kValidImageSegmentationModelPath, nullptr);
   auto shape = model.getInputShape("forward", 0);
   EXPECT_EQ(shape.size(), 4);
   EXPECT_EQ(shape[0], 1); // Batch size
@@ -150,24 +101,24 @@ TEST(ImageSegmentationInheritedTests, GetInputShapeWorks) {
 }
 
 TEST(ImageSegmentationInheritedTests, GetAllInputShapesWorks) {
-  ImageSegmentation model(VALID_IMAGE_SEGMENTATION_MODEL_PATH, nullptr);
+  ImageSegmentation model(kValidImageSegmentationModelPath, nullptr);
   auto shapes = model.getAllInputShapes("forward");
   EXPECT_FALSE(shapes.empty());
 }
 
 TEST(ImageSegmentationInheritedTests, GetMethodMetaWorks) {
-  ImageSegmentation model(VALID_IMAGE_SEGMENTATION_MODEL_PATH, nullptr);
+  ImageSegmentation model(kValidImageSegmentationModelPath, nullptr);
   auto result = model.getMethodMeta("forward");
   EXPECT_TRUE(result.ok());
 }
 
 TEST(ImageSegmentationInheritedTests, GetMemoryLowerBoundReturnsPositive) {
-  ImageSegmentation model(VALID_IMAGE_SEGMENTATION_MODEL_PATH, nullptr);
+  ImageSegmentation model(kValidImageSegmentationModelPath, nullptr);
   EXPECT_GT(model.getMemoryLowerBound(), 0u);
 }
 
 TEST(ImageSegmentationInheritedTests, InputShapeIsSquare) {
-  ImageSegmentation model(VALID_IMAGE_SEGMENTATION_MODEL_PATH, nullptr);
+  ImageSegmentation model(kValidImageSegmentationModelPath, nullptr);
   auto shape = model.getInputShape("forward", 0);
   EXPECT_EQ(shape[2], shape[3]); // Height == Width for DeepLabV3
 }

@@ -8,14 +8,18 @@ cv::Mat softmax(const cv::Mat &inputs) {
   cv::reduce(inputs, maxVal, 1, cv::REDUCE_MAX, CV_32F);
   cv::Mat expInputs;
   cv::Mat repeated = inputs - cv::repeat(maxVal, 1, inputs.cols);
-  // Manually compute exp to avoid SIMD issues
   repeated.convertTo(repeated, CV_32F);
+#ifdef TEST_BUILD
+  // Manually compute exp to avoid SIMD issues in test environment
   expInputs = cv::Mat(repeated.size(), CV_32F);
   for (int i = 0; i < repeated.rows; i++) {
     for (int j = 0; j < repeated.cols; j++) {
       expInputs.at<float>(i, j) = std::exp(repeated.at<float>(i, j));
     }
   }
+#else
+  cv::exp(repeated, expInputs);
+#endif
   cv::Mat sumExp;
   cv::reduce(expInputs, sumExp, 1, cv::REDUCE_SUM, CV_32F);
   cv::Mat softmaxOutput = expInputs / cv::repeat(sumExp, 1, inputs.cols);

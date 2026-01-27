@@ -11,9 +11,9 @@ using namespace rnexecutorch;
 using namespace rnexecutorch::models::llm;
 using namespace model_tests;
 
-constexpr auto VALID_MODEL_PATH = "smolLm2_135M_8da4w.pte";
-constexpr auto VALID_TOKENIZER_PATH = "smollm_tokenizer.json";
-constexpr auto SYSTEM_PROMPT = "You are a helpful assistant. Assist the user "
+constexpr auto kValidModelPath = "smolLm2_135M_8da4w.pte";
+constexpr auto kValidTokenizerPath = "smollm_tokenizer.json";
+constexpr auto kSystemPrompt = "You are a helpful assistant. Assist the user "
                                "to the best of your abilities.";
 
 // Forward declaration from jsi_stubs.cpp
@@ -37,17 +37,17 @@ template <> struct ModelTraits<LLM> {
   using ModelType = LLM;
 
   static ModelType createValid() {
-    return ModelType(VALID_MODEL_PATH, VALID_TOKENIZER_PATH,
+    return ModelType(kValidModelPath, kValidTokenizerPath,
                      rnexecutorch::createMockCallInvoker());
   }
 
   static ModelType createInvalid() {
-    return ModelType("nonexistent.pte", VALID_TOKENIZER_PATH,
+    return ModelType("nonexistent.pte", kValidTokenizerPath,
                      rnexecutorch::createMockCallInvoker());
   }
 
   static void callGenerate(ModelType &model) {
-    std::string prompt = formatChatML(SYSTEM_PROMPT, "Hello");
+    std::string prompt = formatChatML(kSystemPrompt, "Hello");
     (void)model.generate(prompt, nullptr);
   }
 };
@@ -67,18 +67,18 @@ protected:
 };
 
 TEST(LLMCtorTests, InvalidTokenizerPathThrows) {
-  EXPECT_THROW(LLM(VALID_MODEL_PATH, "nonexistent_tokenizer.json",
+  EXPECT_THROW(LLM(kValidModelPath, "nonexistent_tokenizer.json",
                    createMockCallInvoker()),
                RnExecutorchError);
 }
 
 TEST_F(LLMTest, GetGeneratedTokenCountInitiallyZero) {
-  LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
+  LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
   EXPECT_EQ(model.getGeneratedTokenCount(), 0);
 }
 
 TEST_F(LLMTest, SetTemperature) {
-  LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
+  LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
   // Should not throw for valid values
   EXPECT_NO_THROW(model.setTemperature(0.5f));
   EXPECT_NO_THROW(model.setTemperature(1.0f));
@@ -86,43 +86,43 @@ TEST_F(LLMTest, SetTemperature) {
 }
 
 TEST_F(LLMTest, SetTemperatureNegativeThrows) {
-  LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
+  LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
   EXPECT_THROW(model.setTemperature(-0.1f), RnExecutorchError);
 }
 
 TEST_F(LLMTest, SetTopp) {
-  LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
+  LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
   EXPECT_NO_THROW(model.setTopp(0.9f));
   EXPECT_NO_THROW(model.setTopp(0.5f));
   EXPECT_NO_THROW(model.setTopp(1.0f));
 }
 
 TEST_F(LLMTest, SetToppInvalidThrows) {
-  LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
+  LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
   EXPECT_THROW(model.setTopp(-0.1f), RnExecutorchError);
   EXPECT_THROW(model.setTopp(1.1f), RnExecutorchError);
 }
 
 TEST_F(LLMTest, SetCountInterval) {
-  LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
+  LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
   EXPECT_NO_THROW(model.setCountInterval(5));
   EXPECT_NO_THROW(model.setCountInterval(10));
 }
 
 TEST_F(LLMTest, SetTimeInterval) {
-  LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
+  LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
   EXPECT_NO_THROW(model.setTimeInterval(100));
   EXPECT_NO_THROW(model.setTimeInterval(500));
 }
 
 TEST_F(LLMTest, InterruptThrowsWhenUnloaded) {
-  LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
+  LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
   model.unload();
   EXPECT_THROW(model.interrupt(), RnExecutorchError);
 }
 
 TEST_F(LLMTest, SettersThrowWhenUnloaded) {
-  LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
+  LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
   model.unload();
   // All setters should throw when model is unloaded
   EXPECT_THROW(model.setTemperature(0.5f), RnExecutorchError);
@@ -132,24 +132,24 @@ TEST_F(LLMTest, SettersThrowWhenUnloaded) {
 }
 
 TEST_F(LLMTest, GenerateProducesValidOutput) {
-  LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
+  LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
   model.setTemperature(0.0f);
   std::string prompt =
-      formatChatML(SYSTEM_PROMPT, "Repeat exactly this: `naszponcilem testy`");
+      formatChatML(kSystemPrompt, "Repeat exactly this: `naszponcilem testy`");
   std::string output = model.generate(prompt, nullptr);
   EXPECT_EQ(output, "`naszponcilem testy`<|im_end|>");
 }
 
 TEST_F(LLMTest, GenerateUpdatesTokenCount) {
-  LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
+  LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
   EXPECT_EQ(model.getGeneratedTokenCount(), 0);
   std::string prompt =
-      formatChatML(SYSTEM_PROMPT, "Repeat exactly this: 'naszponcilem testy'");
+      formatChatML(kSystemPrompt, "Repeat exactly this: 'naszponcilem testy'");
   model.generate(prompt, nullptr);
   EXPECT_GT(model.getGeneratedTokenCount(), 0);
 }
 
 TEST_F(LLMTest, EmptyPromptThrows) {
-  LLM model(VALID_MODEL_PATH, VALID_TOKENIZER_PATH, mockInvoker_);
+  LLM model(kValidModelPath, kValidTokenizerPath, mockInvoker_);
   EXPECT_THROW((void)model.generate("", nullptr), RnExecutorchError);
 }

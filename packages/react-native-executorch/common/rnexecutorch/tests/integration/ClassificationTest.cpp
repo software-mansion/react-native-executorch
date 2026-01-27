@@ -8,9 +8,8 @@ using namespace rnexecutorch;
 using namespace rnexecutorch::models::classification;
 using namespace model_tests;
 
-constexpr auto VALID_CLASSIFICATION_MODEL_PATH =
-    "efficientnet_v2_s_xnnpack.pte";
-constexpr auto VALID_TEST_IMAGE_PATH =
+constexpr auto kValidClassificationModelPath = "efficientnet_v2_s_xnnpack.pte";
+constexpr auto kValidTestImagePath =
     "file:///data/local/tmp/rnexecutorch_tests/test_image.jpg";
 
 // ============================================================================
@@ -21,7 +20,7 @@ template <> struct ModelTraits<Classification> {
   using ModelType = Classification;
 
   static ModelType createValid() {
-    return ModelType(VALID_CLASSIFICATION_MODEL_PATH, nullptr);
+    return ModelType(kValidClassificationModelPath, nullptr);
   }
 
   static ModelType createInvalid() {
@@ -29,7 +28,7 @@ template <> struct ModelTraits<Classification> {
   }
 
   static void callGenerate(ModelType &model) {
-    (void)model.generate(VALID_TEST_IMAGE_PATH);
+    (void)model.generate(kValidTestImagePath);
   }
 };
 } // namespace model_tests
@@ -42,38 +41,38 @@ INSTANTIATE_TYPED_TEST_SUITE_P(Classification, CommonModelTest,
 // Model-specific tests
 // ============================================================================
 TEST(ClassificationGenerateTests, InvalidImagePathThrows) {
-  Classification model(VALID_CLASSIFICATION_MODEL_PATH, nullptr);
+  Classification model(kValidClassificationModelPath, nullptr);
   EXPECT_THROW((void)model.generate("nonexistent_image.jpg"),
                RnExecutorchError);
 }
 
 TEST(ClassificationGenerateTests, EmptyImagePathThrows) {
-  Classification model(VALID_CLASSIFICATION_MODEL_PATH, nullptr);
+  Classification model(kValidClassificationModelPath, nullptr);
   EXPECT_THROW((void)model.generate(""), RnExecutorchError);
 }
 
 TEST(ClassificationGenerateTests, MalformedURIThrows) {
-  Classification model(VALID_CLASSIFICATION_MODEL_PATH, nullptr);
+  Classification model(kValidClassificationModelPath, nullptr);
   EXPECT_THROW((void)model.generate("not_a_valid_uri://bad"),
                RnExecutorchError);
 }
 
 TEST(ClassificationGenerateTests, ValidImageReturnsResults) {
-  Classification model(VALID_CLASSIFICATION_MODEL_PATH, nullptr);
-  auto results = model.generate(VALID_TEST_IMAGE_PATH);
+  Classification model(kValidClassificationModelPath, nullptr);
+  auto results = model.generate(kValidTestImagePath);
   EXPECT_FALSE(results.empty());
 }
 
 TEST(ClassificationGenerateTests, ResultsHaveCorrectSize) {
-  Classification model(VALID_CLASSIFICATION_MODEL_PATH, nullptr);
-  auto results = model.generate(VALID_TEST_IMAGE_PATH);
+  Classification model(kValidClassificationModelPath, nullptr);
+  auto results = model.generate(kValidTestImagePath);
   auto expectedNumClasses = constants::kImagenet1kV1Labels.size();
   EXPECT_EQ(results.size(), expectedNumClasses);
 }
 
 TEST(ClassificationGenerateTests, ResultsContainValidProbabilities) {
-  Classification model(VALID_CLASSIFICATION_MODEL_PATH, nullptr);
-  auto results = model.generate(VALID_TEST_IMAGE_PATH);
+  Classification model(kValidClassificationModelPath, nullptr);
+  auto results = model.generate(kValidTestImagePath);
 
   float sum = 0.0f;
   for (const auto &[label, prob] : results) {
@@ -85,8 +84,8 @@ TEST(ClassificationGenerateTests, ResultsContainValidProbabilities) {
 }
 
 TEST(ClassificationGenerateTests, TopPredictionHasReasonableConfidence) {
-  Classification model(VALID_CLASSIFICATION_MODEL_PATH, nullptr);
-  auto results = model.generate(VALID_TEST_IMAGE_PATH);
+  Classification model(kValidClassificationModelPath, nullptr);
+  auto results = model.generate(kValidTestImagePath);
 
   float maxProb = 0.0f;
   for (const auto &[label, prob] : results) {
@@ -98,7 +97,7 @@ TEST(ClassificationGenerateTests, TopPredictionHasReasonableConfidence) {
 }
 
 TEST(ClassificationInheritedTests, GetInputShapeWorks) {
-  Classification model(VALID_CLASSIFICATION_MODEL_PATH, nullptr);
+  Classification model(kValidClassificationModelPath, nullptr);
   auto shape = model.getInputShape("forward", 0);
   EXPECT_EQ(shape.size(), 4);
   EXPECT_EQ(shape[0], 1);
@@ -106,13 +105,13 @@ TEST(ClassificationInheritedTests, GetInputShapeWorks) {
 }
 
 TEST(ClassificationInheritedTests, GetAllInputShapesWorks) {
-  Classification model(VALID_CLASSIFICATION_MODEL_PATH, nullptr);
+  Classification model(kValidClassificationModelPath, nullptr);
   auto shapes = model.getAllInputShapes("forward");
   EXPECT_FALSE(shapes.empty());
 }
 
 TEST(ClassificationInheritedTests, GetMethodMetaWorks) {
-  Classification model(VALID_CLASSIFICATION_MODEL_PATH, nullptr);
+  Classification model(kValidClassificationModelPath, nullptr);
   auto result = model.getMethodMeta("forward");
   EXPECT_TRUE(result.ok());
 }

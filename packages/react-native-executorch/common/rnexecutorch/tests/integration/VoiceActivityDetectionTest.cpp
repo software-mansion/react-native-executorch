@@ -1,5 +1,5 @@
 #include "BaseModelTests.h"
-#include "TestUtils.h"
+#include "utils/TestUtils.h"
 #include <gtest/gtest.h>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/models/voice_activity_detection/VoiceActivityDetection.h>
@@ -9,7 +9,7 @@ using namespace rnexecutorch::models::voice_activity_detection;
 using namespace test_utils;
 using namespace model_tests;
 
-constexpr auto VALID_VAD_MODEL_PATH = "fsmn-vad_xnnpack.pte";
+constexpr auto kValidVadModelPath = "fsmn-vad_xnnpack.pte";
 
 // ============================================================================
 // Common tests via typed test suite
@@ -19,7 +19,7 @@ template <> struct ModelTraits<VoiceActivityDetection> {
   using ModelType = VoiceActivityDetection;
 
   static ModelType createValid() {
-    return ModelType(VALID_VAD_MODEL_PATH, nullptr);
+    return ModelType(kValidVadModelPath, nullptr);
   }
 
   static ModelType createInvalid() {
@@ -40,14 +40,14 @@ INSTANTIATE_TYPED_TEST_SUITE_P(VAD, CommonModelTest, VADTypes);
 // Model-specific tests
 // ============================================================================
 TEST(VADGenerateTests, SilenceReturnsNoSegments) {
-  VoiceActivityDetection model(VALID_VAD_MODEL_PATH, nullptr);
+  VoiceActivityDetection model(kValidVadModelPath, nullptr);
   auto silence = generateSilence(16000 * 5);
   auto segments = model.generate(silence);
   EXPECT_TRUE(segments.empty());
 }
 
 TEST(VADGenerateTests, SegmentsHaveValidBounds) {
-  VoiceActivityDetection model(VALID_VAD_MODEL_PATH, nullptr);
+  VoiceActivityDetection model(kValidVadModelPath, nullptr);
   auto audio = loadAudioFromFile("test_audio_float.raw");
   ASSERT_FALSE(audio.empty());
   auto segments = model.generate(audio);
@@ -59,7 +59,7 @@ TEST(VADGenerateTests, SegmentsHaveValidBounds) {
 }
 
 TEST(VADGenerateTests, SegmentsAreNonOverlapping) {
-  VoiceActivityDetection model(VALID_VAD_MODEL_PATH, nullptr);
+  VoiceActivityDetection model(kValidVadModelPath, nullptr);
   auto audio = loadAudioFromFile("test_audio_float.raw");
   ASSERT_FALSE(audio.empty());
   auto segments = model.generate(audio);
@@ -69,7 +69,7 @@ TEST(VADGenerateTests, SegmentsAreNonOverlapping) {
 }
 
 TEST(VADGenerateTests, LongAudioSegmentBoundsValid) {
-  VoiceActivityDetection model(VALID_VAD_MODEL_PATH, nullptr);
+  VoiceActivityDetection model(kValidVadModelPath, nullptr);
   auto audio = loadAudioFromFile("test_audio_float.raw");
   ASSERT_FALSE(audio.empty());
   auto segments = model.generate(audio);
@@ -81,19 +81,19 @@ TEST(VADGenerateTests, LongAudioSegmentBoundsValid) {
 }
 
 TEST(VADInheritedTests, GetInputShapeWorks) {
-  VoiceActivityDetection model(VALID_VAD_MODEL_PATH, nullptr);
+  VoiceActivityDetection model(kValidVadModelPath, nullptr);
   auto shape = model.getInputShape("forward", 0);
   EXPECT_GE(shape.size(), 2u);
 }
 
 TEST(VADInheritedTests, GetAllInputShapesWorks) {
-  VoiceActivityDetection model(VALID_VAD_MODEL_PATH, nullptr);
+  VoiceActivityDetection model(kValidVadModelPath, nullptr);
   auto shapes = model.getAllInputShapes("forward");
   EXPECT_FALSE(shapes.empty());
 }
 
 TEST(VADInheritedTests, GetMethodMetaWorks) {
-  VoiceActivityDetection model(VALID_VAD_MODEL_PATH, nullptr);
+  VoiceActivityDetection model(kValidVadModelPath, nullptr);
   auto result = model.getMethodMeta("forward");
   EXPECT_TRUE(result.ok());
 }

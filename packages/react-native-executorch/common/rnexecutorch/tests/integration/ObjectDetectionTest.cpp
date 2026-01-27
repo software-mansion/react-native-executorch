@@ -8,9 +8,9 @@ using namespace rnexecutorch;
 using namespace rnexecutorch::models::object_detection;
 using namespace model_tests;
 
-constexpr auto VALID_OBJECT_DETECTION_MODEL_PATH =
+constexpr auto kValidObjectDetectionModelPath =
     "ssdlite320-mobilenetv3-large.pte";
-constexpr auto VALID_TEST_IMAGE_PATH =
+constexpr auto kValidTestImagePath =
     "file:///data/local/tmp/rnexecutorch_tests/test_image.jpg";
 
 // ============================================================================
@@ -21,7 +21,7 @@ template <> struct ModelTraits<ObjectDetection> {
   using ModelType = ObjectDetection;
 
   static ModelType createValid() {
-    return ModelType(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
+    return ModelType(kValidObjectDetectionModelPath, nullptr);
   }
 
   static ModelType createInvalid() {
@@ -29,7 +29,7 @@ template <> struct ModelTraits<ObjectDetection> {
   }
 
   static void callGenerate(ModelType &model) {
-    (void)model.generate(VALID_TEST_IMAGE_PATH, 0.5);
+    (void)model.generate(kValidTestImagePath, 0.5);
   }
 };
 } // namespace model_tests
@@ -42,50 +42,50 @@ INSTANTIATE_TYPED_TEST_SUITE_P(ObjectDetection, CommonModelTest,
 // Model-specific tests
 // ============================================================================
 TEST(ObjectDetectionGenerateTests, InvalidImagePathThrows) {
-  ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
+  ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
   EXPECT_THROW((void)model.generate("nonexistent_image.jpg", 0.5),
                RnExecutorchError);
 }
 
 TEST(ObjectDetectionGenerateTests, EmptyImagePathThrows) {
-  ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
+  ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
   EXPECT_THROW((void)model.generate("", 0.5), RnExecutorchError);
 }
 
 TEST(ObjectDetectionGenerateTests, MalformedURIThrows) {
-  ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
+  ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
   EXPECT_THROW((void)model.generate("not_a_valid_uri://bad", 0.5),
                RnExecutorchError);
 }
 
 TEST(ObjectDetectionGenerateTests, NegativeThresholdThrows) {
-  ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
-  EXPECT_THROW((void)model.generate(VALID_TEST_IMAGE_PATH, -0.1),
+  ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
+  EXPECT_THROW((void)model.generate(kValidTestImagePath, -0.1),
                RnExecutorchError);
 }
 
 TEST(ObjectDetectionGenerateTests, ThresholdAboveOneThrows) {
-  ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
-  EXPECT_THROW((void)model.generate(VALID_TEST_IMAGE_PATH, 1.1),
+  ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
+  EXPECT_THROW((void)model.generate(kValidTestImagePath, 1.1),
                RnExecutorchError);
 }
 
 TEST(ObjectDetectionGenerateTests, ValidImageReturnsResults) {
-  ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
-  auto results = model.generate(VALID_TEST_IMAGE_PATH, 0.3);
+  ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
+  auto results = model.generate(kValidTestImagePath, 0.3);
   EXPECT_GE(results.size(), 0u);
 }
 
 TEST(ObjectDetectionGenerateTests, HighThresholdReturnsFewerResults) {
-  ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
-  auto lowThresholdResults = model.generate(VALID_TEST_IMAGE_PATH, 0.1);
-  auto highThresholdResults = model.generate(VALID_TEST_IMAGE_PATH, 0.9);
+  ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
+  auto lowThresholdResults = model.generate(kValidTestImagePath, 0.1);
+  auto highThresholdResults = model.generate(kValidTestImagePath, 0.9);
   EXPECT_GE(lowThresholdResults.size(), highThresholdResults.size());
 }
 
 TEST(ObjectDetectionGenerateTests, DetectionsHaveValidBoundingBoxes) {
-  ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
-  auto results = model.generate(VALID_TEST_IMAGE_PATH, 0.3);
+  ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
+  auto results = model.generate(kValidTestImagePath, 0.3);
 
   for (const auto &detection : results) {
     EXPECT_LE(detection.x1, detection.x2);
@@ -96,8 +96,8 @@ TEST(ObjectDetectionGenerateTests, DetectionsHaveValidBoundingBoxes) {
 }
 
 TEST(ObjectDetectionGenerateTests, DetectionsHaveValidScores) {
-  ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
-  auto results = model.generate(VALID_TEST_IMAGE_PATH, 0.3);
+  ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
+  auto results = model.generate(kValidTestImagePath, 0.3);
 
   for (const auto &detection : results) {
     EXPECT_GE(detection.score, 0.0f);
@@ -106,8 +106,8 @@ TEST(ObjectDetectionGenerateTests, DetectionsHaveValidScores) {
 }
 
 TEST(ObjectDetectionGenerateTests, DetectionsHaveValidLabels) {
-  ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
-  auto results = model.generate(VALID_TEST_IMAGE_PATH, 0.3);
+  ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
+  auto results = model.generate(kValidTestImagePath, 0.3);
 
   for (const auto &detection : results) {
     EXPECT_GE(detection.label, 0);
@@ -115,7 +115,7 @@ TEST(ObjectDetectionGenerateTests, DetectionsHaveValidLabels) {
 }
 
 TEST(ObjectDetectionInheritedTests, GetInputShapeWorks) {
-  ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
+  ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
   auto shape = model.getInputShape("forward", 0);
   EXPECT_EQ(shape.size(), 4);
   EXPECT_EQ(shape[0], 1);
@@ -123,13 +123,13 @@ TEST(ObjectDetectionInheritedTests, GetInputShapeWorks) {
 }
 
 TEST(ObjectDetectionInheritedTests, GetAllInputShapesWorks) {
-  ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
+  ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
   auto shapes = model.getAllInputShapes("forward");
   EXPECT_FALSE(shapes.empty());
 }
 
 TEST(ObjectDetectionInheritedTests, GetMethodMetaWorks) {
-  ObjectDetection model(VALID_OBJECT_DETECTION_MODEL_PATH, nullptr);
+  ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
   auto result = model.getMethodMeta("forward");
   EXPECT_TRUE(result.ok());
 }

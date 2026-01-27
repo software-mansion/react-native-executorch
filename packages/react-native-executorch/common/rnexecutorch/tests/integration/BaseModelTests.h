@@ -16,33 +16,35 @@ namespace model_tests {
 
 inline auto getMockInvoker() { return rnexecutorch::createMockCallInvoker(); }
 
-// Trait struct that each model must specialize
-// This defines how to construct and test each model type
+/// Helper macro to access Traits in typed tests
+#define SETUP_TRAITS() using Traits = typename TestFixture::Traits
+
+/// Trait struct that each model must specialize
+/// This defines how to construct and test each model type
 template <typename T> struct ModelTraits;
 
-// Example of what a specialization looks like:
-//
-// template<>
-// struct ModelTraits<Classification> {
-//   using ModelType = Classification;
-//
-//   // Create valid model instance
-//   static ModelType createValid() {
-//     return ModelType("valid_model.pte", nullptr);
-//   }
-//
-//   // Create invalid model instance (should throw in constructor)
-//   static ModelType createInvalid() {
-//     return ModelType("nonexistent.pte", nullptr);
-//   }
-//
-//   // Call the model's generate/forward function with valid input
-//   // Used to test that generate throws after unload
-//   static void callGenerate(ModelType& model) {
-//     (void)model.generate("valid_input.jpg");
-//   }
-// };
-
+/// Example of what a specialization looks like:
+///
+/// template<>
+/// struct ModelTraits<Classification> {
+///   using ModelType = Classification;
+///
+///   // Create valid model instance
+///   static ModelType createValid() {
+///     return ModelType("valid_model.pte", nullptr);
+///   }
+///
+///   // Create invalid model instance (should throw in constructor)
+///   static ModelType createInvalid() {
+///     return ModelType("nonexistent.pte", nullptr);
+///   }
+///
+///   // Call the model's generate/forward function with valid input
+///   // Used to test that generate throws after unload
+///  static void callGenerate(ModelType& model) {
+///     (void)model.generate("valid_input.jpg");
+///   }
+/// };
 // Typed test fixture for common model tests
 template <typename T> class CommonModelTest : public ::testing::Test {
 protected:
@@ -55,24 +57,24 @@ TYPED_TEST_SUITE_P(CommonModelTest);
 
 // Constructor tests
 TYPED_TEST_P(CommonModelTest, InvalidPathThrows) {
-  using Traits = typename TestFixture::Traits;
+  SETUP_TRAITS();
   EXPECT_THROW(Traits::createInvalid(), rnexecutorch::RnExecutorchError);
 }
 
 TYPED_TEST_P(CommonModelTest, ValidPathDoesntThrow) {
-  using Traits = typename TestFixture::Traits;
+  SETUP_TRAITS();
   EXPECT_NO_THROW(Traits::createValid());
 }
 
 // Memory tests
 TYPED_TEST_P(CommonModelTest, GetMemoryLowerBoundValue) {
-  using Traits = typename TestFixture::Traits;
+  SETUP_TRAITS();
   auto model = Traits::createValid();
   EXPECT_GT(model.getMemoryLowerBound(), 0u);
 }
 
 TYPED_TEST_P(CommonModelTest, GetMemoryLowerBoundConsistent) {
-  using Traits = typename TestFixture::Traits;
+  SETUP_TRAITS();
   auto model = Traits::createValid();
   auto bound1 = model.getMemoryLowerBound();
   auto bound2 = model.getMemoryLowerBound();
@@ -81,13 +83,13 @@ TYPED_TEST_P(CommonModelTest, GetMemoryLowerBoundConsistent) {
 
 // Unload tests
 TYPED_TEST_P(CommonModelTest, UnloadDoesntThrow) {
-  using Traits = typename TestFixture::Traits;
+  SETUP_TRAITS();
   auto model = Traits::createValid();
   EXPECT_NO_THROW(model.unload());
 }
 
 TYPED_TEST_P(CommonModelTest, MultipleUnloadsSafe) {
-  using Traits = typename TestFixture::Traits;
+  SETUP_TRAITS();
   auto model = Traits::createValid();
   EXPECT_NO_THROW(model.unload());
   EXPECT_NO_THROW(model.unload());
@@ -95,14 +97,14 @@ TYPED_TEST_P(CommonModelTest, MultipleUnloadsSafe) {
 }
 
 TYPED_TEST_P(CommonModelTest, GenerateAfterUnloadThrows) {
-  using Traits = typename TestFixture::Traits;
+  SETUP_TRAITS();
   auto model = Traits::createValid();
   model.unload();
   EXPECT_THROW(Traits::callGenerate(model), rnexecutorch::RnExecutorchError);
 }
 
 TYPED_TEST_P(CommonModelTest, MultipleGeneratesWork) {
-  using Traits = typename TestFixture::Traits;
+  SETUP_TRAITS();
   auto model = Traits::createValid();
   EXPECT_NO_THROW(Traits::callGenerate(model));
   EXPECT_NO_THROW(Traits::callGenerate(model));

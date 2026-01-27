@@ -12,7 +12,7 @@ using namespace executorch::extension;
 using namespace model_tests;
 using executorch::runtime::EValue;
 
-constexpr auto VALID_STYLE_TRANSFER_MODEL_PATH =
+constexpr auto kValidStyleTransferModelPath =
     "style_transfer_candy_xnnpack.pte";
 
 // ============================================================================
@@ -23,7 +23,7 @@ template <> struct ModelTraits<BaseModel> {
   using ModelType = BaseModel;
 
   static ModelType createValid() {
-    return ModelType(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
+    return ModelType(kValidStyleTransferModelPath, nullptr);
   }
 
   static ModelType createInvalid() {
@@ -49,27 +49,27 @@ INSTANTIATE_TYPED_TEST_SUITE_P(BaseModel, CommonModelTest, BaseModelTypes);
 // ============================================================================
 
 TEST(BaseModelGetInputShapeTests, ValidMethodCorrectShape) {
-  BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
+  BaseModel model(kValidStyleTransferModelPath, nullptr);
   auto forwardShape = model.getInputShape("forward", 0);
   std::vector<int32_t> expectedShape = {1, 3, 640, 640};
   EXPECT_EQ(forwardShape, expectedShape);
 }
 
 TEST(BaseModelGetInputShapeTests, InvalidMethodThrows) {
-  BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
+  BaseModel model(kValidStyleTransferModelPath, nullptr);
   EXPECT_THROW((void)model.getInputShape("this_method_does_not_exist", 0),
                RnExecutorchError);
 }
 
 TEST(BaseModelGetInputShapeTests, ValidMethodInvalidIndexThrows) {
-  BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
+  BaseModel model(kValidStyleTransferModelPath, nullptr);
   EXPECT_THROW(
       (void)model.getInputShape("forward", std::numeric_limits<int32_t>::min()),
       RnExecutorchError);
 }
 
 TEST(BaseModelGetAllInputShapesTests, ValidMethodReturnsShapes) {
-  BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
+  BaseModel model(kValidStyleTransferModelPath, nullptr);
   auto allShapes = model.getAllInputShapes("forward");
   EXPECT_FALSE(allShapes.empty());
   std::vector<int32_t> expectedFirstShape = {1, 3, 640, 640};
@@ -77,25 +77,25 @@ TEST(BaseModelGetAllInputShapesTests, ValidMethodReturnsShapes) {
 }
 
 TEST(BaseModelGetAllInputShapesTests, InvalidMethodThrows) {
-  BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
+  BaseModel model(kValidStyleTransferModelPath, nullptr);
   EXPECT_THROW(model.getAllInputShapes("non_existent_method"),
                RnExecutorchError);
 }
 
 TEST(BaseModelGetMethodMetaTests, ValidMethodReturnsOk) {
-  BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
+  BaseModel model(kValidStyleTransferModelPath, nullptr);
   auto result = model.getMethodMeta("forward");
   EXPECT_TRUE(result.ok());
 }
 
 TEST(BaseModelGetMethodMetaTests, InvalidMethodReturnsError) {
-  BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
+  BaseModel model(kValidStyleTransferModelPath, nullptr);
   auto result = model.getMethodMeta("non_existent_method");
   EXPECT_FALSE(result.ok());
 }
 
 TEST(BaseModelForwardTests, ForwardWithValidInputReturnsOk) {
-  BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
+  BaseModel model(kValidStyleTransferModelPath, nullptr);
   std::vector<int32_t> shape = {1, 3, 640, 640};
   size_t numElements = 1 * 3 * 640 * 640;
   std::vector<float> inputData(numElements, 0.5f);
@@ -107,7 +107,7 @@ TEST(BaseModelForwardTests, ForwardWithValidInputReturnsOk) {
 }
 
 TEST(BaseModelForwardTests, ForwardWithVectorInputReturnsOk) {
-  BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
+  BaseModel model(kValidStyleTransferModelPath, nullptr);
   std::vector<int32_t> shape = {1, 3, 640, 640};
   size_t numElements = 1 * 3 * 640 * 640;
   std::vector<float> inputData(numElements, 0.5f);
@@ -120,7 +120,7 @@ TEST(BaseModelForwardTests, ForwardWithVectorInputReturnsOk) {
 }
 
 TEST(BaseModelForwardTests, ForwardReturnsCorrectOutputShape) {
-  BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
+  BaseModel model(kValidStyleTransferModelPath, nullptr);
   std::vector<int32_t> shape = {1, 3, 640, 640};
   size_t numElements = 1 * 3 * 640 * 640;
   std::vector<float> inputData(numElements, 0.5f);
@@ -141,7 +141,7 @@ TEST(BaseModelForwardTests, ForwardReturnsCorrectOutputShape) {
 }
 
 TEST(BaseModelForwardTests, ForwardAfterUnloadThrows) {
-  BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
+  BaseModel model(kValidStyleTransferModelPath, nullptr);
   model.unload();
 
   std::vector<int32_t> shape = {1, 3, 640, 640};
@@ -154,7 +154,7 @@ TEST(BaseModelForwardTests, ForwardAfterUnloadThrows) {
 }
 
 TEST(BaseModelForwardJSTests, ForwardJSWithValidInputReturnsOutput) {
-  BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
+  BaseModel model(kValidStyleTransferModelPath, nullptr);
   std::vector<int32_t> shape = {1, 3, 640, 640};
   size_t numElements = 1 * 3 * 640 * 640;
   std::vector<float> inputData(numElements, 0.5f);
@@ -171,7 +171,7 @@ TEST(BaseModelForwardJSTests, ForwardJSWithValidInputReturnsOutput) {
 }
 
 TEST(BaseModelForwardJSTests, ForwardJSReturnsCorrectOutputShape) {
-  BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
+  BaseModel model(kValidStyleTransferModelPath, nullptr);
   std::vector<int32_t> shape = {1, 3, 640, 640};
   size_t numElements = 1 * 3 * 640 * 640;
   std::vector<float> inputData(numElements, 0.5f);
@@ -190,7 +190,7 @@ TEST(BaseModelForwardJSTests, ForwardJSReturnsCorrectOutputShape) {
 }
 
 TEST(BaseModelForwardJSTests, ForwardJSAfterUnloadThrows) {
-  BaseModel model(VALID_STYLE_TRANSFER_MODEL_PATH, nullptr);
+  BaseModel model(kValidStyleTransferModelPath, nullptr);
   model.unload();
 
   std::vector<int32_t> shape = {1, 3, 640, 640};

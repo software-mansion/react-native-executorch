@@ -1,5 +1,5 @@
 #include "BaseModelTests.h"
-#include "TestUtils.h"
+#include "utils/TestUtils.h"
 #include <gtest/gtest.h>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
@@ -9,9 +9,9 @@ using namespace rnexecutorch::models::speech_to_text;
 using namespace test_utils;
 using namespace model_tests;
 
-constexpr auto VALID_ENCODER_PATH = "whisper_tiny_en_encoder_xnnpack.pte";
-constexpr auto VALID_DECODER_PATH = "whisper_tiny_en_decoder_xnnpack.pte";
-constexpr auto VALID_TOKENIZER_PATH = "whisper_tokenizer.json";
+constexpr auto kValidEncoderPath = "whisper_tiny_en_encoder_xnnpack.pte";
+constexpr auto kValidDecoderPath = "whisper_tiny_en_decoder_xnnpack.pte";
+constexpr auto kValidTokenizerPath = "whisper_tokenizer.json";
 
 // ============================================================================
 // Common tests via typed test suite
@@ -21,13 +21,13 @@ template <> struct ModelTraits<SpeechToText> {
   using ModelType = SpeechToText;
 
   static ModelType createValid() {
-    return ModelType(VALID_ENCODER_PATH, VALID_DECODER_PATH,
-                     VALID_TOKENIZER_PATH, nullptr);
+    return ModelType(kValidEncoderPath, kValidDecoderPath, kValidTokenizerPath,
+                     nullptr);
   }
 
   static ModelType createInvalid() {
-    return ModelType("nonexistent.pte", VALID_DECODER_PATH,
-                     VALID_TOKENIZER_PATH, nullptr);
+    return ModelType("nonexistent.pte", kValidDecoderPath, kValidTokenizerPath,
+                     nullptr);
   }
 
   static void callGenerate(ModelType &model) {
@@ -45,20 +45,20 @@ INSTANTIATE_TYPED_TEST_SUITE_P(SpeechToText, CommonModelTest,
 // Model-specific tests
 // ============================================================================
 TEST(S2TCtorTests, InvalidDecoderPathThrows) {
-  EXPECT_THROW(SpeechToText(VALID_ENCODER_PATH, "nonexistent.pte",
-                            VALID_TOKENIZER_PATH, nullptr),
+  EXPECT_THROW(SpeechToText(kValidEncoderPath, "nonexistent.pte",
+                            kValidTokenizerPath, nullptr),
                RnExecutorchError);
 }
 
 TEST(S2TCtorTests, InvalidTokenizerPathThrows) {
-  EXPECT_THROW(SpeechToText(VALID_ENCODER_PATH, VALID_DECODER_PATH,
+  EXPECT_THROW(SpeechToText(kValidEncoderPath, kValidDecoderPath,
                             "nonexistent.json", nullptr),
                RnExecutorchError);
 }
 
 TEST(S2TEncodeTests, EncodeReturnsNonNull) {
-  SpeechToText model(VALID_ENCODER_PATH, VALID_DECODER_PATH,
-                     VALID_TOKENIZER_PATH, nullptr);
+  SpeechToText model(kValidEncoderPath, kValidDecoderPath, kValidTokenizerPath,
+                     nullptr);
   auto audio = loadAudioFromFile("test_audio_float.raw");
   ASSERT_FALSE(audio.empty());
   auto result = model.encode(audio);
@@ -67,8 +67,8 @@ TEST(S2TEncodeTests, EncodeReturnsNonNull) {
 }
 
 TEST(S2TTranscribeTests, TranscribeReturnsValidChars) {
-  SpeechToText model(VALID_ENCODER_PATH, VALID_DECODER_PATH,
-                     VALID_TOKENIZER_PATH, nullptr);
+  SpeechToText model(kValidEncoderPath, kValidDecoderPath, kValidTokenizerPath,
+                     nullptr);
   auto audio = loadAudioFromFile("test_audio_float.raw");
   ASSERT_FALSE(audio.empty());
   auto result = model.transcribe(audio, "en");
@@ -80,16 +80,16 @@ TEST(S2TTranscribeTests, TranscribeReturnsValidChars) {
 }
 
 TEST(S2TTranscribeTests, EmptyResultOnSilence) {
-  SpeechToText model(VALID_ENCODER_PATH, VALID_DECODER_PATH,
-                     VALID_TOKENIZER_PATH, nullptr);
+  SpeechToText model(kValidEncoderPath, kValidDecoderPath, kValidTokenizerPath,
+                     nullptr);
   auto audio = generateSilence(16000 * 5);
   auto result = model.transcribe(audio, "en");
   EXPECT_TRUE(result.empty());
 }
 
 TEST(S2TTranscribeTests, InvalidLanguageThrows) {
-  SpeechToText model(VALID_ENCODER_PATH, VALID_DECODER_PATH,
-                     VALID_TOKENIZER_PATH, nullptr);
+  SpeechToText model(kValidEncoderPath, kValidDecoderPath, kValidTokenizerPath,
+                     nullptr);
   auto audio = loadAudioFromFile("test_audio_float.raw");
   ASSERT_FALSE(audio.empty());
   EXPECT_THROW((void)model.transcribe(audio, "invalid_language_code"),
