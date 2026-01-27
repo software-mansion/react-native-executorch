@@ -68,7 +68,9 @@ export const useLLM = ({
     })();
 
     return () => {
-      controllerInstance.delete();
+      if (controllerInstance.isReady) {
+        controllerInstance.delete();
+      }
     };
   }, [
     controllerInstance,
