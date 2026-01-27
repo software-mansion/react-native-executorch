@@ -1,4 +1,3 @@
-import React from 'react';
 import CopyPageContent from '@theme-original/CopyPageContent';
 import './styles.module.css';
 
