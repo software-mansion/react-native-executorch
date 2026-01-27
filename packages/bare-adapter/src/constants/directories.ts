@@ -1,3 +1,3 @@
-import * as RNFS from '@dr.pogodin/react-native-fs';
+import { directories } from '@kesha-antonov/react-native-background-downloader';
 
-export const RNEDirectory = `${RNFS.DocumentDirectoryPath}/react-native-executorch/`;
+export const RNEDirectory = `${directories.documents}/react-native-executorch/`;
