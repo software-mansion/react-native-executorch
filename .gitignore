@@ -88,9 +88,7 @@ lib/
 ios/generated
 android/generated
 apps/*/ios/
-!apps/*_bare/ios/
 apps/*/android/
-!apps/*_bare/android/
 
 # custom
 *.tgz
