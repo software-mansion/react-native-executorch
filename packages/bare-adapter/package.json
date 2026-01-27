@@ -11,7 +11,7 @@
     }
   },
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "yarn workspace react-native-executorch run prepare && tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\""
   },
   "peerDependencies": {
