@@ -39,7 +39,6 @@ TEST_EXECUTABLES=(
 TEST_ASSETS=(
   "integration/assets/test_audio_float.raw"
   "integration/assets/we_are_software_mansion.jpg"
-  "integration/assets/test_ocr_image.png"
 )
 
 # ============================================================================
