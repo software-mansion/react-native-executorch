@@ -105,9 +105,20 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
+    // Only build for 64-bit architectures (MMKV doesn't support armeabi-v7a via prefab)
+    splits {
+        abi {
+            enable true
+            reset()
+            include 'arm64-v8a', 'x86_64'
+            universalApk false
+        }
+    }
 }
 
 dependencies {
+    // MMKV for persistent state storage in background downloads
+    implementation 'com.tencent:mmkv-shared:2.2.4'
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
 
