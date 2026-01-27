@@ -11,6 +11,8 @@ import { RNEDirectory } from './constants/directories';
 import {
   ResourceSource,
   ResourceFetcherAdapter,
+  RnExecutorchErrorCode,
+  RnExecutorchError,
 } from 'react-native-executorch';
 import {
   ResourceFetcherUtils,
@@ -25,15 +27,42 @@ interface DownloadResource {
   extendedInfo: ResourceSourceExtended;
 }
 
-export const BareResourceFetcher: ResourceFetcherAdapter = {
-  downloads: new Map<ResourceSource, DownloadResource>(),
+interface BareResourceFetcherInterface extends ResourceFetcherAdapter {
+  downloads: Map<ResourceSource, DownloadResource>;
+  singleFetch(sourceExtended: ResourceSourceExtended): Promise<string[] | null>;
+  returnOrStartNext(
+    sourceExtended: ResourceSourceExtended,
+    result: string | string[]
+  ): string[] | Promise<string[] | null>;
+  pause(source: ResourceSource): Promise<void>;
+  resume(source: ResourceSource): Promise<string[] | null>;
+  cancel(source: ResourceSource): Promise<void>;
+  findActive(sources: ResourceSource[]): ResourceSource;
+  handleObject(source: ResourceSource): Promise<string>;
+  handleLocalFile(source: ResourceSource): string;
+  handleReleaseModeFile(
+    sourceExtended: ResourceSourceExtended
+  ): Promise<string>;
+  handleDevModeFile(
+    sourceExtended: ResourceSourceExtended
+  ): Promise<string[] | string | null>;
+  handleRemoteFile(
+    sourceExtended: ResourceSourceExtended
+  ): Promise<string[] | string | null>;
+}
+
+export const BareResourceFetcher: BareResourceFetcherInterface = {
+  downloads: new Map<ResourceSource, DownloadResource>(), //map of currently downloading (or paused) files, if the download was started by .fetch() method.
 
   async fetch(
     callback: (downloadProgress: number) => void = () => {},
     ...sources: ResourceSource[]
   ) {
     if (sources.length === 0) {
-      throw new Error('Empty list given as an argument!');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidUserInput,
+        'Empty list given as an argument'
+      );
     }
     const { results: info, totalLength } =
       await ResourceFetcherUtils.getFilesSizes(sources);
@@ -114,6 +143,7 @@ export const BareResourceFetcher: ResourceFetcherAdapter = {
     }
   },
 
+  //if any download ends successfully this function is called - it checks whether it should trigger next download or return list of paths.
   returnOrStartNext(sourceExtended: ResourceSourceExtended, result: string) {
     sourceExtended.results.push(result);
 
@@ -130,7 +160,8 @@ export const BareResourceFetcher: ResourceFetcherAdapter = {
     const resource = this.downloads.get(source)!;
     switch (resource.status) {
       case DownloadStatus.PAUSED:
-        throw new Error(
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ResourceFetcherAlreadyPaused,
           "The file download is currently paused. Can't pause the download of the same file twice."
         );
       default: {
@@ -147,56 +178,22 @@ export const BareResourceFetcher: ResourceFetcherAdapter = {
       !resource.extendedInfo.cacheFileUri ||
       !resource.extendedInfo.uri
     ) {
-      throw new Error('Something went wrong. File uri info is not specified!');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ResourceFetcherMissingUri,
+        'Something went wrong. File uri info is not specified'
+      );
     }
     switch (resource.status) {
       case DownloadStatus.ONGOING:
-        throw new Error(
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ResourceFetcherAlreadyOngoing,
           "The file download is currently ongoing. Can't resume the ongoing download."
         );
       default: {
         resource.status = DownloadStatus.ONGOING;
         resource.task.resume();
 
-        // Wait for result? RNBackgroundDownloader resume() is void.
-        // The logic here is tricky. Expo's resumeAsync returns result.
-        // Here we just resume and let the event listeners handle it.
-        // But we need to return something here or allow the flow to continue.
-        // If we are just resuming the TASK, the promise from `handleRemoteFile` (fetch) is still pending?
-        // No, `handleRemoteFile` awaits `downloadAsync` which awaits the download.
-        // If I use `RNBackgroundDownloader`, I need to wrap it in a Promise that resolves when done.
-
-        // REVISIT: The structure of `ResourceFetcher` assumes `resume` returns the path (conceptually).
-        // But in strict adapter interface, `resumeFetching` returns `Promise<void>`.
-        // Wait, `resume` in original was `private static async resume`.
-        // But `resumeFetching` called `this.resume(source)`.
-        // AND `fetch` called `this.resume(source)` if paused.
-
-        // If I use `task.resume()`, the original `fetch` promise should continue?
-        // In Expo `downloadResumable.resumeAsync()` returns the result directly.
-        // In `RNBackgroundDownloader`, `resume()` just continues the download. The original `.done()` callback will eventually fire.
-
-        // So for Bare adapter, `resume` might not strictly await the completion if the architecture is event based.
-        // BUT, the core architecture expects a promise that resolves with the file path.
-
-        // If `fetch` is called on a paused item, we call `resume`.
-        // We need to return a Promise that resolves when the download completes.
-        // The `DownloadResource` needs to store the `resolve/reject` of the active promise?
-
         return new Promise((resolve, reject) => {
-          // We can attach new listeners or rely on the stored ones?
-          // RNBackgroundDownloader doesn't easily allow re-attaching `done` to an existing task object in a way that replaces the old one easily,
-          // but we can add logic to the global handler or similar.
-          // Actually, `task.done()` returns the task, it chains. we can add multiple handlers?
-
-          // Simplest approach: When we create the task, we wrap it in a generic Promise handler.
-          // When we resume, we rely on that original promise?
-          // But `fetch` calls `resume`. `fetch` expects a return value.
-
-          // If I look at `ExpoResourceFetcher.resume`, it awaits `resumeAsync`.
-
-          // For Bare, I might need to create a new Promise that listens to the task completion.
-
           resource.task
             .done(async () => {
               if (
@@ -229,7 +226,7 @@ export const BareResourceFetcher: ResourceFetcherAdapter = {
               );
               resolve(result);
             })
-            .error((e: any) => {
+            .error((e) => {
               reject(e);
             });
         });
@@ -264,14 +261,15 @@ export const BareResourceFetcher: ResourceFetcherAdapter = {
         return source;
       }
     }
-    throw new Error(
+    throw new RnExecutorchError(
+      RnExecutorchErrorCode.ResourceFetcherNotActive,
       'None of given sources are currently during downloading process.'
     );
   },
 
   async listDownloadedFiles() {
     const files = await RNFS.readDir(RNEDirectory);
-    return files.map((file: any) => file.path);
+    return files.map((file) => file.path);
   },
 
   async listDownloadedModels() {
@@ -297,7 +295,10 @@ export const BareResourceFetcher: ResourceFetcherAdapter = {
 
   async handleObject(source: ResourceSource) {
     if (typeof source !== 'object') {
-      throw new Error('Source is expected to be object!');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidModelSource,
+        'Source is expected to be object'
+      );
     }
     const jsonString = JSON.stringify(source);
     const digest = ResourceFetcherUtils.hashObject(jsonString);
@@ -316,7 +317,10 @@ export const BareResourceFetcher: ResourceFetcherAdapter = {
 
   handleLocalFile(source: ResourceSource) {
     if (typeof source !== 'string') {
-      throw new Error('Source is expected to be string.');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidModelSource,
+        'Source is expected to be string'
+      );
     }
     return ResourceFetcherUtils.removeFilePrefix(source);
   },
@@ -324,49 +328,23 @@ export const BareResourceFetcher: ResourceFetcherAdapter = {
   async handleReleaseModeFile(sourceExtended: ResourceSourceExtended) {
     const source = sourceExtended.source;
     if (typeof source !== 'number') {
-      throw new Error('Source is expected to be string.');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidModelSource,
+        'Source is expected to be number'
+      );
     }
-    // Use Image.resolveAssetSource for bare RN
     const assetSource = Image.resolveAssetSource(source);
     const uri = assetSource.uri;
     const filename = ResourceFetcherUtils.getFilenameFromUri(uri);
     const fileUri = `${RNEDirectory}${filename}`;
-    // Assuming assetSource.uri might not have extension if local?
-    // Bare RN assets are usually http/localhost or file/android_asset.
-    // We'll follow the original logic loosely but blindly trust copying.
-
-    // NOTE: Copying from asset resource in Bare RN is tricky.
-    // RNFS.copyFile from valid asset URI?
-    // Android: 'raw/...' or 'drawable/...'?
-    // standard `Image.resolveAssetSource` returns 'http://...' in dev and 'file:///...' or identifier in release.
-    // This part is fragile in Bare RN without expo-asset.
-    // I will implement a best-effort copy.
-
-    // For now, let's assume `fetch` can handle it if it is http (dev).
-    // If it is bundled, we might need `RNFS.copyFileAssets` (Android) or `RNFS.copyFile` (iOS).
-
-    // Simplified: Check if file exists, if not, try access.
 
     if (await ResourceFetcherUtils.checkFileExists(fileUri)) {
       return ResourceFetcherUtils.removeFilePrefix(fileUri);
     }
     await ResourceFetcherUtils.createDirectoryIfNoExists();
 
-    // Try to download/copy
-    // If it is http (dev), handleDevModeFile logic applies.
-    // We are in handleReleaseModeFile.
-
-    // For Bare RN, bundling assets usually puts them in resources.
-    // We can use `RNFS.copyFileRes` (Android) or `MainBundle` (iOS).
-    // This is getting complex. I will just throw for now or assume user handles assets manually if they are not remote.
-    // OR, I can use `handleRemoteFile` if URI is accessible?
-
-    // Let's use logic: if it has scheme, use generic copy.
     if (uri.startsWith('http') || uri.startsWith('file')) {
       await RNFS.copyFile(uri, fileUri);
-    } else {
-      // Fallback or error?
-      // On Android, bundled assets might need specific handling.
     }
     return ResourceFetcherUtils.removeFilePrefix(fileUri);
   },
@@ -374,7 +352,10 @@ export const BareResourceFetcher: ResourceFetcherAdapter = {
   async handleDevModeFile(sourceExtended: ResourceSourceExtended) {
     const source = sourceExtended.source;
     if (typeof source !== 'number') {
-      throw new Error('Source is expected to be a number.');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidModelSource,
+        'Source is expected to be a number'
+      );
     }
     sourceExtended.uri = Image.resolveAssetSource(source).uri;
     return await this.handleRemoteFile(sourceExtended);
@@ -383,18 +364,28 @@ export const BareResourceFetcher: ResourceFetcherAdapter = {
   async handleRemoteFile(sourceExtended: ResourceSourceExtended) {
     const source = sourceExtended.source;
     if (typeof source === 'object') {
-      throw new Error('Source is expected to be a string or a number.');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidModelSource,
+        'Source is expected to be a string or a number'
+      );
     }
     if (this.downloads.has(source)) {
-      // If paused, resume.
       const resource = this.downloads.get(source)!;
       if (resource.status === DownloadStatus.PAUSED) {
+        // if the download is paused, `fetch` is treated like `resume`
         return this.resume(source);
       }
-      throw new Error('Already downloading this file.');
+      // if the download is ongoing, throw error.
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ResourceFetcherDownloadInProgress,
+        'Already downloading this file'
+      );
     }
     if (typeof source === 'number' && !sourceExtended.uri) {
-      throw new Error('Source Uri is expected to be available here.');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ResourceFetcherMissingUri,
+        'Source Uri is expected to be available here'
+      );
     }
     if (typeof source === 'string') {
       sourceExtended.uri = source;
@@ -447,10 +438,13 @@ export const BareResourceFetcher: ResourceFetcherAdapter = {
           );
           resolve(nextResult);
         })
-        .error((error: any) => {
+        .error((error) => {
           this.downloads.delete(source);
           reject(
-            new Error(`Failed to fetch resource from '${source}': ${error}`)
+            new RnExecutorchError(
+              RnExecutorchErrorCode.ResourceFetcherDownloadFailed,
+              `Failed to fetch resource from '${source}', context: ${error}`
+            )
           );
         });
 
@@ -469,4 +463,4 @@ export const BareResourceFetcher: ResourceFetcherAdapter = {
   async readAsString(path: string) {
     return await RNFS.readFile(path, 'utf8');
   },
-} as ResourceFetcherAdapter & { [key: string]: any };
+};
