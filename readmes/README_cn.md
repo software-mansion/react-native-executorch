@@ -1,4 +1,8 @@
 <div align="center">
+  <img src="../docs/static/img/logo-hero.svg" alt="RNE Logo" width="25%">
+</div>
+
+<div align="center">
   <h1 align="center" style="display:inline-block">React Native ExecuTorch
   </h1>
 </div>
@@ -12,15 +16,13 @@
     <img src="https://img.shields.io/badge/聘请我们-00008B?logo=react&logoColor=white&color=darkgreen&style=for-the-badge" alt="Hire Us">
 </div>
 
-![Software Mansion banner](https://github.com/user-attachments/assets/fa2c4735-e75c-4cc1-970d-88905d95e3a4)
-
 <p align="center">
-  <a href="../README.md">English</a>
-  <a href="README_es.md">Español</a>
-  <a href="README_fr.md">Français</a>
-  <a href="README_cn.md">简体中文</a>
-  <a href="README_pt.md">Português</a>
-  <a href="README_in.md">हिंदी</a>
+  <a href="../README.md"><img src="https://img.shields.io/badge/EN-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README"></a>
+  <a href="README_es.md"><img src="https://img.shields.io/badge/ES-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README ES"></a>
+  <a href="README_fr.md"><img src="https://img.shields.io/badge/FR-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README FR"></a>
+  <a href="README_cn.md"><img src="https://img.shields.io/badge/CN-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README CN"></a>
+  <a href="README_pt.md"><img src="https://img.shields.io/badge/PT-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README PT"></a>
+  <a href="README_in.md"><img src="https://img.shields.io/badge/IN-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README IN"></a>
 </p>
 
 **React Native ExecuTorch** 是一个使用 React Native 在设备上运行 AI 模型的声明式工具，得益于 **ExecuTorch** 的支持 :rocket:。它为各种 LLM、计算机视觉模型等提供了开箱即用的支持。访问我们的 [HuggingFace](https://huggingface.co/software-mansion) 页面，以探索这些模型。
