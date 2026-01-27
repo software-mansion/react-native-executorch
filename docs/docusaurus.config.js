@@ -144,11 +144,13 @@ const config = {
               id: 'benchmarks',
               name: 'Benchmarks',
               routes: [{ route: '**/docs/benchmarks/**' }],
+              position: 2,
             },
             {
               id: 'category',
               name: 'Category',
               routes: [{ route: '**/docs/category/**' }],
+              position: 3,
             },
           ],
         },
