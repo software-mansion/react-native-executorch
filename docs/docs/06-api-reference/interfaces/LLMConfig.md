@@ -1,6 +1,6 @@
 # Interface: LLMConfig
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:93](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/llm.ts#L93)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:93](https://github.com/software-mansion/react-native-executorch/blob/81b229bbed784732fe329dbbff41e28b06bdb54d/packages/react-native-executorch/src/types/llm.ts#L93)
 
 Configuration object for initializing and customizing a Large Language Model (LLM) instance.
 
@@ -10,7 +10,7 @@ Configuration object for initializing and customizing a Large Language Model (LL
 
 > `optional` **chatConfig**: `Partial`\<[`ChatConfig`](ChatConfig.md)\>
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:103](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/llm.ts#L103)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:103](https://github.com/software-mansion/react-native-executorch/blob/81b229bbed784732fe329dbbff41e28b06bdb54d/packages/react-native-executorch/src/types/llm.ts#L103)
 
 Object configuring chat management, contains following properties:
 
@@ -26,7 +26,7 @@ Object configuring chat management, contains following properties:
 
 > `optional` **generationConfig**: [`GenerationConfig`](GenerationConfig.md)
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:127](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/llm.ts#L127)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:127](https://github.com/software-mansion/react-native-executorch/blob/81b229bbed784732fe329dbbff41e28b06bdb54d/packages/react-native-executorch/src/types/llm.ts#L127)
 
 Object configuring generation settings.
 
@@ -44,7 +44,7 @@ Object configuring generation settings.
 
 > `optional` **toolsConfig**: [`ToolsConfig`](ToolsConfig.md)
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:114](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/types/llm.ts#L114)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:114](https://github.com/software-mansion/react-native-executorch/blob/81b229bbed784732fe329dbbff41e28b06bdb54d/packages/react-native-executorch/src/types/llm.ts#L114)
 
 Object configuring options for enabling and managing tool use. **It will only have effect if your model's chat template support it**. Contains following properties:
 

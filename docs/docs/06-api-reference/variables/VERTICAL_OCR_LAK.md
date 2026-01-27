@@ -2,7 +2,7 @@
 
 > `const` **VERTICAL\_OCR\_LAK**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:237](https://github.com/software-mansion/react-native-executorch/blob/520acc3881283b9238af4c444f8831911dadd9ed/packages/react-native-executorch/src/constants/ocr/models.ts#L237)
+Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:237](https://github.com/software-mansion/react-native-executorch/blob/81b229bbed784732fe329dbbff41e28b06bdb54d/packages/react-native-executorch/src/constants/ocr/models.ts#L237)
 
 ## Type Declaration
 
