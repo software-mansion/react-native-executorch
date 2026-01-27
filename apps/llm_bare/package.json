@@ -13,10 +13,10 @@
   "dependencies": {
     "@dr.pogodin/react-native-fs": "^2.36.2",
     "@kesha-antonov/react-native-background-downloader": "^4.4.5",
-    "@rn-executorch/bare-adapter": "workspace:*",
+    "@rn-executorch/bare-adapter": "file:../../packages/bare-adapter",
     "react": "19.1.0",
     "react-native": "0.81.5",
-    "react-native-executorch": "workspace:*"
+    "react-native-executorch": "file:../../packages/react-native-executorch"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

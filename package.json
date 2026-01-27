@@ -7,7 +7,10 @@
       "packages/react-native-executorch",
       "packages/bare-adapter",
       "packages/expo-adapter",
-      "apps/*"
+      "apps/computer-vision",
+      "apps/llm",
+      "apps/speech",
+      "apps/text-embeddings"
     ]
   },
   "scripts": {
