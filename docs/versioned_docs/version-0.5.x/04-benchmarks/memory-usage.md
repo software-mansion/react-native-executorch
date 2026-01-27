@@ -79,10 +79,10 @@ All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12 (A
 Data presented in the following sections is based on inference with non-resized output. When resize is enabled, expect higher memory usage and inference time with higher resolutions.
 :::
 
-| Model                       | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| --------------------------- | ---------------------- | ------------------ |
-| DEELABV3_RESNET50           | 930                    | 660                |
-| CLIP_VIT_BASE_PATCH32_IMAGE | 345                    | 340                |
+| Model             | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| ----------------- | ---------------------- | ------------------ |
+| DEELABV3_RESNET50 | 930                    | 660                |
+| CLIP_VIT_BASE_PATCH32_IMAGE |          345           |        340         |
 
 ## Text to Image
 

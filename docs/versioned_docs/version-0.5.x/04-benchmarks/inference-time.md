@@ -114,6 +114,7 @@ Benchmark times for text embeddings are highly dependent on the sentence length.
 Image embedding benchmark times are measured using 224×224 pixel images, as required by the model. All input images, whether larger or smaller, are resized to 224×224 before processing. Resizing is typically fast for small images but may be noticeably slower for very large images, which can increase total inference time.
 :::
 
+
 ## Image Segmentation
 
 :::warning
@@ -123,6 +124,7 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 | Model             | iPhone 16 Pro (Core ML) [ms] | iPhone 14 Pro Max (Core ML) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] |
 | ----------------- | ---------------------------- | -------------------------------- | --------------------------------- |
 | DEELABV3_RESNET50 | 1000                         | 670                              | 700                               |
+
 
 ## Text to Image
 
