@@ -5,18 +5,23 @@
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
-    "lint": "eslint .",
+    "typecheck": "tsc",
+    "lint": "eslint . --ext .ts,.tsx --fix",
     "start": "react-native start",
     "test": "jest"
   },
   "dependencies": {
-    "@react-native/new-app-screen": "0.81.5",
+    "@dr.pogodin/react-native-fs": "^2.36.2",
+    "@kesha-antonov/react-native-background-downloader": "^4.4.5",
+    "@rn-executorch/bare-adapter": "file:../../packages/bare-adapter",
     "react": "19.1.0",
     "react-native": "0.81.5",
+    "react-native-executorch": "file:../../packages/react-native-executorch",
     "react-native-safe-area-context": "^5.5.2"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@babel/plugin-transform-export-namespace-from": "^7.25.2",
     "@babel/preset-env": "^7.25.3",
     "@babel/runtime": "^7.25.0",
     "@react-native-community/cli": "20.0.0",
