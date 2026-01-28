@@ -1,12 +1,17 @@
 #include "CTCLabelConverter.h"
 #include <algorithm>
 #include <optional>
+#include <rnexecutorch/Error.h>
 
 namespace rnexecutorch::models::ocr {
 CTCLabelConverter::CTCLabelConverter(const std::string &characters)
     : ignoreIdx(0),
       character({"[blank]"}) // blank character is ignored character (index 0).
 {
+  if (characters.empty()) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig,
+                            "Character set cannot be empty");
+  }
   for (size_t i = 0; i < characters.length();) {
     size_t char_len = 0;
     unsigned char first_byte = characters[i];
