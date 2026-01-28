@@ -1,7 +1,6 @@
 #pragma once
 
 #include "gtest/gtest.h"
-#include <gtest/gtest.h>
 #include <rnexecutorch/Error.h>
 
 namespace facebook::react {
