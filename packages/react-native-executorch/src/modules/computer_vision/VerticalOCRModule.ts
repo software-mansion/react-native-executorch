@@ -2,6 +2,11 @@ import { VerticalOCRController } from '../../controllers/VerticalOCRController';
 import { ResourceSource } from '../../types/common';
 import { OCRLanguage } from '../../types/ocr';
 
+/**
+ * Module for Vertical Optical Character Recognition (Vertical OCR) tasks.
+ * 
+ * @category Typescript API
+ */
 export class VerticalOCRModule {
   private controller: VerticalOCRController;
 

@@ -1,5 +1,8 @@
 import { RnExecutorchErrorCode } from './ErrorCodes';
 
+/**
+ * Custom error class for React Native ExecuTorch errors.
+ */
 export class RnExecutorchError extends Error {
   /**
    * The error code representing the type of error.

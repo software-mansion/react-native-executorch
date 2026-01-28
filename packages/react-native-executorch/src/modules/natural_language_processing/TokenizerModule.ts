@@ -3,6 +3,11 @@ import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { RnExecutorchError } from '../../errors/errorUtils';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 
+/**
+ * Module for Tokenizer functionalities.
+ * 
+ * @category Typescript API
+ */
 export class TokenizerModule {
   /**
    * Native module instance

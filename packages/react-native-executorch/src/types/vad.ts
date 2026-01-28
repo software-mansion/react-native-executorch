@@ -4,6 +4,7 @@ import { RnExecutorchError } from '../errors/errorUtils';
 /**
  * Props for the useVAD hook.
  * 
+ * @category Types
  * @property {Object} model - An object containing the model source.
  * @property {ResourceSource} model.modelSource - The source of the VAD model binary.
  * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
@@ -16,6 +17,7 @@ export interface VADProps {
 /**
  * Represents a detected audio segment with start and end timestamps.
  * 
+ * @category Types
  * @property {number} start - Start time of the segment in seconds.
  * @property {number} end - End time of the segment in seconds.
  */
@@ -26,6 +28,8 @@ export interface Segment {
 
 /**
  * React hook state and methods for managing a Voice Activity Detection (VAD) model instance.
+ * 
+ * @category Types
  */
 export interface VADType {
   /**

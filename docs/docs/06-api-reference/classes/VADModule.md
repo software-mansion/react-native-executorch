@@ -1,6 +1,8 @@
 # Class: VADModule
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/VADModule.ts:8](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/modules/natural_language_processing/VADModule.ts#L8)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/VADModule.ts:13](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/modules/natural_language_processing/VADModule.ts#L13)
+
+Module for Voice Activity Detection (VAD) functionalities.
 
 ## Extends
 
@@ -26,7 +28,7 @@ Defined in: [packages/react-native-executorch/src/modules/natural\_language\_pro
 
 > **nativeModule**: `any` = `null`
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:8](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/modules/BaseModule.ts#L8)
+Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:8](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/modules/BaseModule.ts#L8)
 
 Native module instance
 
@@ -40,7 +42,7 @@ Native module instance
 
 > **delete**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:41](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/modules/BaseModule.ts#L41)
+Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:41](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/modules/BaseModule.ts#L41)
 
 Unloads the model from memory.
 
@@ -58,7 +60,7 @@ Unloads the model from memory.
 
 > **forward**(`waveform`): `Promise`\<[`Segment`](../interfaces/Segment.md)[]\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/VADModule.ts:39](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/modules/natural_language_processing/VADModule.ts#L39)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/VADModule.ts:44](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/modules/natural_language_processing/VADModule.ts#L44)
 
 Executes the model's forward pass, where `waveform` is a Float32Array representing the audio signal.
 
@@ -82,7 +84,7 @@ A promise resolving to an array of detected speech segments.
 
 > `protected` **forwardET**(`inputTensor`): `Promise`\<[`TensorPtr`](../interfaces/TensorPtr.md)[]\>
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:23](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/modules/BaseModule.ts#L23)
+Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:23](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/modules/BaseModule.ts#L23)
 
 Runs the model's forward method with the given input tensors.
 It returns the output tensors that mimic the structure of output from ExecuTorch.
@@ -111,7 +113,7 @@ Array of output tensors.
 
 > **getInputShape**(`methodName`, `index`): `Promise`\<`number`[]\>
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:34](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/modules/BaseModule.ts#L34)
+Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:34](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/modules/BaseModule.ts#L34)
 
 Gets the input shape for a given method and index.
 
@@ -145,7 +147,7 @@ The input shape as an array of numbers.
 
 > **load**(`model`, `onDownloadProgressCallback`): `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/VADModule.ts:16](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/modules/natural_language_processing/VADModule.ts#L16)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/VADModule.ts:21](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/modules/natural_language_processing/VADModule.ts#L21)
 
 Loads the model, where `modelSource` is a string that specifies the location of the model binary.
 To track the download progress, supply a callback function `onDownloadProgressCallback`.

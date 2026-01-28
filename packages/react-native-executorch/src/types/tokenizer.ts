@@ -2,6 +2,8 @@ import { RnExecutorchError } from '../errors/errorUtils';
 
 /**
  * React hook state and methods for managing a Tokenizer instance.
+ * 
+ * @category Types
  */
 export interface TokenizerType {
   /**

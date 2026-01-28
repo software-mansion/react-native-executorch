@@ -5,6 +5,7 @@ import { useModule } from '../useModule';
 /**
  * React hook for managing an arbitrary Executorch module instance.
  * 
+ * @category Hooks
  * @param executorchModuleConfiguration - Configuration object containing `modelSource` and optional `preventLoad` flag.
  * @returns Ready to use Executorch module.
  */

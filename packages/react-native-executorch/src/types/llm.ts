@@ -2,6 +2,8 @@ import { RnExecutorchError } from '../errors/errorUtils';
 
 /**
  * React hook for managing a Large Language Model (LLM) instance.
+ * 
+ * @category Types
  */
 export interface LLMType {
   /**
@@ -89,6 +91,8 @@ export interface LLMType {
 
 /**
  * Configuration object for initializing and customizing a Large Language Model (LLM) instance.
+ * 
+ * @category Types
  */
 export interface LLMConfig {
   /**
@@ -129,12 +133,15 @@ export interface LLMConfig {
 
 /**
  * Roles that a message sender can have.
+ * 
+ * @category Types
  */
 export type MessageRole = 'user' | 'assistant' | 'system';
 
 /**
  * Represents a message in the conversation.
  * 
+ * @category Types
  * @property {MessageRole} role - Role of the message sender of type `MessageRole`.
  * @property {string} content - Content of the message.
  */
@@ -146,6 +153,7 @@ export interface Message {
 /**
  * Represents a tool call made by the model.
  * 
+ * @category Types
  * @property {string} toolName - The name of the tool being called.
  * @property {Object} arguments - The arguments passed to the tool.
  */
@@ -158,12 +166,15 @@ export interface ToolCall {
  * Represents a tool that can be used by the model.
  * Usually tool is represented with dictionary (Object), but fields depend on the model.
  * Unfortunately there's no one standard so it's hard to type it better.
+ * 
+ * @category Types
  */
 export type LLMTool = Object;
 
 /**
  * Object configuring chat management.
  * 
+ * @category Types
  * @property {Message[]} initialMessageHistory - An array of `Message` objects that represent the conversation history. This can be used to provide initial context to the model.
  * @property {number} contextWindowLength - The number of messages from the current conversation that the model will use to generate a response. The higher the number, the more context the model will have. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
  * @property {string} systemPrompt - Often used to tell the model what is its purpose, for example - "Be a helpful translator".
@@ -177,6 +188,7 @@ export interface ChatConfig {
 /**
  * Object configuring options for enabling and managing tool use. **It will only have effect if your model's chat template support it**.
  * 
+ * @category Types
  * @property {LLMTool[]} tools - List of objects defining tools.
  * @property {(call: ToolCall) => Promise<string | null>} executeToolCallback - Function that accepts `ToolCall`, executes tool and returns the string to model.
  * @property {boolean} [displayToolCalls] - If set to true, JSON tool calls will be displayed in chat. If false, only answers will be displayed.
@@ -190,6 +202,7 @@ export interface ToolsConfig {
 /**
  * Object configuring generation settings.
  * 
+ * @category Types
  * @property {number} [temperature] - Scales output logits by the inverse of temperature. Controls the randomness / creativity of text generation.
  * @property {number} [topp] - Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
  * @property {number} [outputTokenBatchSize] - Soft upper limit on the number of tokens in each token batch (in certain cases there can be more tokens in given batch, i.e. when the batch would end with special emoji join character).
@@ -202,6 +215,11 @@ export interface GenerationConfig {
   batchTimeInterval?: number;
 }
 
+/**
+ * Special tokens used in Large Language Models (LLMs).
+ * 
+ * @category Types
+ */
 export const SPECIAL_TOKENS = {
   BOS_TOKEN: 'bos_token',
   EOS_TOKEN: 'eos_token',

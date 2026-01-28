@@ -1,6 +1,6 @@
 # Interface: KokoroConfig
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:43](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tts.ts#L43)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:50](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/tts.ts#L50)
 
 Kokoro model configuration.
 Only the core Kokoro model sources, as phonemizer sources are included in voice configuration.
@@ -11,7 +11,7 @@ Only the core Kokoro model sources, as phonemizer sources are included in voice 
 
 > **durationPredictorSource**: [`ResourceSource`](../type-aliases/ResourceSource.md)
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:45](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tts.ts#L45)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:52](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/tts.ts#L52)
 
 source to Kokoro's duration predictor model binary
 
@@ -21,7 +21,7 @@ source to Kokoro's duration predictor model binary
 
 > **synthesizerSource**: [`ResourceSource`](../type-aliases/ResourceSource.md)
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:46](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tts.ts#L46)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:53](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/tts.ts#L53)
 
 source to Kokoro's synthesizer model binary
 
@@ -31,6 +31,6 @@ source to Kokoro's synthesizer model binary
 
 > **type**: `"kokoro"`
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:44](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tts.ts#L44)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:51](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/tts.ts#L51)
 
 model type identifier

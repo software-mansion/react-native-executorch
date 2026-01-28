@@ -8,6 +8,8 @@ import { RnExecutorchError } from '../../errors/errorUtils';
 
 /**
  * Module for text-to-image generation tasks.
+ * 
+ * @category Typescript API
  */
 export class TextToImageModule extends BaseModule {
   private inferenceCallback: (stepIdx: number) => void;

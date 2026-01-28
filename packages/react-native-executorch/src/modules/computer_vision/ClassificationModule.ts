@@ -6,6 +6,8 @@ import { RnExecutorchError } from '../../errors/errorUtils';
 
 /**
  * Module for image classification tasks.
+ * 
+ * @category Typescript API
  */
 export class ClassificationModule extends BaseModule {
   /**

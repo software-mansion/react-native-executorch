@@ -1,6 +1,6 @@
 # Interface: TextToImageParams
 
-Defined in: [packages/react-native-executorch/src/types/tti.ts:7](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tti.ts#L7)
+Defined in: [packages/react-native-executorch/src/types/tti.ts:9](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/tti.ts#L9)
 
 Configuration properties for the `useTextToImage` hook.
 
@@ -10,7 +10,7 @@ Configuration properties for the `useTextToImage` hook.
 
 > `optional` **inferenceCallback**: (`stepIdx`) => `void`
 
-Defined in: [packages/react-native-executorch/src/types/tti.ts:29](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tti.ts#L29)
+Defined in: [packages/react-native-executorch/src/types/tti.ts:31](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/tti.ts#L31)
 
 Optional callback function that is triggered after each diffusion inference step.
 Useful for updating a progress bar during image generation.
@@ -33,7 +33,7 @@ The index of the current inference step.
 
 > **model**: `object`
 
-Defined in: [packages/react-native-executorch/src/types/tti.ts:11](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tti.ts#L11)
+Defined in: [packages/react-native-executorch/src/types/tti.ts:13](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/tti.ts#L13)
 
 Object containing the required model sources for the diffusion pipeline.
 
@@ -73,7 +73,7 @@ Source for the UNet (noise predictor) model binary.
 
 > `optional` **preventLoad**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/tti.ts:35](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tti.ts#L35)
+Defined in: [packages/react-native-executorch/src/types/tti.ts:37](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/tti.ts#L37)
 
 Boolean that can prevent automatic model loading (and downloading the data if loaded for the first time) after running the hook.
 Defaults to `false`.

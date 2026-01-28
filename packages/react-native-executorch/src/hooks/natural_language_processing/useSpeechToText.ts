@@ -7,6 +7,7 @@ import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 /**
  * React hook for managing a Speech to Text (STT) instance.
  * 
+ * @category Hooks
  * @param speechToTextConfiguration - Configuration object containing `model` source and optional `preventLoad` flag.
  * @returns Ready to use Speech to Text model.
  */

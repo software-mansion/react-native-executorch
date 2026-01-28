@@ -1,6 +1,6 @@
 # Interface: VoiceConfig
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:18](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tts.ts#L18)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:23](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/tts.ts#L23)
 
 Voice configuration
 
@@ -12,7 +12,7 @@ So far in Kokoro, each voice is directly associated with a language.
 
 > `optional` **extra**: [`KokoroVoiceExtras`](KokoroVoiceExtras.md)
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:21](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tts.ts#L21)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:26](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/tts.ts#L26)
 
 an optional extra sources or properties related to specific voice
 
@@ -22,7 +22,7 @@ an optional extra sources or properties related to specific voice
 
 > **lang**: [`TextToSpeechLanguage`](../type-aliases/TextToSpeechLanguage.md)
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:19](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tts.ts#L19)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:24](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/tts.ts#L24)
 
 speaker's language
 
@@ -32,6 +32,6 @@ speaker's language
 
 > **voiceSource**: [`ResourceSource`](../type-aliases/ResourceSource.md)
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:20](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tts.ts#L20)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:25](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/tts.ts#L25)
 
 a source to a binary file with voice embedding

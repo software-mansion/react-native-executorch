@@ -4,7 +4,8 @@ import { ClassificationProps, ClassificationType } from '../../types/classificat
 
 /**
  * React hook for managing a Classification model instance.
- *  
+ * 
+ * @category Hooks
  * @param ClassificationConfiguration - Configuration object containing `model` source and optional `preventLoad` flag. 
  * @returns Ready to use Classification model.
  */

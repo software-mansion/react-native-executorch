@@ -4,6 +4,7 @@ import { ResourceSource } from "./common";
 /**
  * Represents a bounding box for a detected object in an image.
  * 
+ * @category Types
  * @property {number} x1 - The x-coordinate of the bottom-left corner of the bounding box.
  * @property {number} y1 - The y-coordinate of the bottom-left corner of the bounding box.
  * @property {number} x2 - The x-coordinate of the top-right corner of the bounding box.
@@ -19,6 +20,7 @@ export interface Bbox {
 /**
  * Represents a detected object within an image, including its bounding box, label, and confidence score.
  * 
+ * @category Types
  * @property {Bbox} bbox - The bounding box of the detected object, defined by its top-left (x1, y1) and bottom-right (x2, y2) coordinates.
  * @property {keyof typeof CocoLabel} label - The class label of the detected object, represented as a key from the `CocoLabel` enum.
  * @property {number} score - The confidence score of the detection, typically ranging from 0 to 1.
@@ -31,6 +33,8 @@ export interface Detection {
 
 /**
  * COCO dataset class labels used for object detection.
+ * 
+ * @category Types
  */
 export enum CocoLabel {
   PERSON = 1,
@@ -128,6 +132,7 @@ export enum CocoLabel {
 /**
  * Props for the `useObjectDetection` hook.
  * 
+ * @category Types
  * @property {Object} model - An object containing the model source.
  * @property {ResourceSource} model.modelSource - The source of the object detection model binary.
  * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
@@ -140,6 +145,8 @@ export interface ObjectDetectionProps {
 /**
  * Return type for the `useObjectDetection` hook.
  * Manages the state and operations for Computer Vision object detection tasks.
+ * 
+ * @category Types
  */
 export interface ObjectDetectionType {
   /**

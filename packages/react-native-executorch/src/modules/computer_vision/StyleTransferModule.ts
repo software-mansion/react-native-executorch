@@ -6,6 +6,8 @@ import { BaseModule } from '../BaseModule';
 
 /**
  * Module for style transfer tasks.
+ * 
+ * @category Typescript API
  */
 export class StyleTransferModule extends BaseModule {
   /**

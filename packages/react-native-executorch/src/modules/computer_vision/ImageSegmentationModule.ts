@@ -7,6 +7,8 @@ import { BaseModule } from '../BaseModule';
 
 /**
  * Module for image segmentation tasks.
+ * 
+ * @category Typescript API
  */
 export class ImageSegmentationModule extends BaseModule {
 

@@ -1,6 +1,6 @@
 # Interface: TensorPtr
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:127](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L127)
+Defined in: [packages/react-native-executorch/src/types/common.ts:134](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/common.ts#L134)
 
 Represents a pointer to a tensor, including its data buffer, size dimensions, and scalar type.
 
@@ -10,7 +10,7 @@ Represents a pointer to a tensor, including its data buffer, size dimensions, an
 
 > **dataPtr**: [`TensorBuffer`](../type-aliases/TensorBuffer.md)
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:128](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L128)
+Defined in: [packages/react-native-executorch/src/types/common.ts:135](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/common.ts#L135)
 
 The data buffer of the tensor.
 
@@ -20,7 +20,7 @@ The data buffer of the tensor.
 
 > **scalarType**: [`ScalarType`](../enumerations/ScalarType.md)
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:130](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L130)
+Defined in: [packages/react-native-executorch/src/types/common.ts:137](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/common.ts#L137)
 
 The scalar type of the tensor, as defined in the `ScalarType` enum.
 
@@ -30,6 +30,6 @@ The scalar type of the tensor, as defined in the `ScalarType` enum.
 
 > **sizes**: `number`[]
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:129](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L129)
+Defined in: [packages/react-native-executorch/src/types/common.ts:136](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/common.ts#L136)
 
 An array representing the size of each dimension of the tensor.

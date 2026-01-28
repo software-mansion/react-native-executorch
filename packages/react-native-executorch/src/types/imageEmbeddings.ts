@@ -4,6 +4,7 @@ import { ResourceSource } from "./common";
 /**
  * Props for the `useImageEmbeddings` hook.
  * 
+ * @category Types
  * @property {Object} model - An object containing the model source.
  * @property {ResourceSource} model.modelSource - The source of the image embeddings model binary.
  * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
@@ -16,6 +17,8 @@ export interface ImageEmbeddingsProps {
 /**
  * Return type for the `useImageEmbeddings` hook.
  * Manages the state and operations for generating image embeddings (feature vectors) used in Computer Vision tasks.
+ * 
+ * @category Types
  */
 export interface ImageEmbeddingsType {
   /**

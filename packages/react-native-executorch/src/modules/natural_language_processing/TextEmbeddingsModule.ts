@@ -6,6 +6,8 @@ import { RnExecutorchError } from '../../errors/errorUtils';
 
 /**
  * Module for generating text embeddings from input text.
+ * 
+ * @category Typescript API
  */
 export class TextEmbeddingsModule extends BaseModule {
 

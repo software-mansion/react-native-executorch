@@ -10,6 +10,8 @@ import {
 
 /**
  * Module for Text to Speech (TTS) functionalities.
+ * 
+ * @category Typescript API
  */
 export class TextToSpeechModule {
   /**

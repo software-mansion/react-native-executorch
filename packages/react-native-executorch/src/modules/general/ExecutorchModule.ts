@@ -5,6 +5,11 @@ import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
 
+/**
+ * General module for executing custom Executorch models.
+ * 
+ * @category Typescript API
+ */
 export class ExecutorchModule extends BaseModule {
   /**
    * Loads the model, where `modelSource` is a string, number, or object that specifies the location of the model binary.

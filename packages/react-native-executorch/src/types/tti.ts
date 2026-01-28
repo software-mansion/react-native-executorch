@@ -3,6 +3,8 @@ import { ResourceSource } from '../types/common';
 
 /**
  * Configuration properties for the `useTextToImage` hook.
+ * 
+ * @category Types
  */
 export interface TextToImageParams {
   /**
@@ -38,6 +40,8 @@ export interface TextToImageParams {
 /**
  * Return type for the `useTextToImage` hook.
  * Manages the state and operations for generating images from text prompts using a diffusion model pipeline.
+ * 
+ * @category Types
  */
 export interface TextToImageType {
   /**

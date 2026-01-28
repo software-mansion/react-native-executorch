@@ -3,6 +3,8 @@ import { RnExecutorchError } from '../errors/errorUtils';
 
 /**
  * React hook for managing Speech to Text (STT) instance.
+ * 
+ * @category Types
  */
 export interface SpeechToTextType {
   /**
@@ -83,7 +85,11 @@ export interface SpeechToTextType {
   streamStop(): void;
 }
 
-// Languages supported by whisper (not whisper.en)
+/** 
+ * Languages supported by whisper (not whisper.en)
+ * 
+ * @category Types
+ */
 export type SpeechToTextLanguage =
   | 'af'
   | 'sq'
@@ -164,6 +170,7 @@ export type SpeechToTextLanguage =
 /**
  * Options for decoding speech to text.
  * 
+ * @category Types
  * @property {SpeechToTextLanguage} [language] - Optional language code to guide the transcription.
  */  
 export interface DecodingOptions {
@@ -172,6 +179,8 @@ export interface DecodingOptions {
 
 /**
  * Configuration for Speech to Text model.
+ * 
+ * @category Types
  */
 export interface SpeechToTextModelConfig {
   /**

@@ -1,6 +1,6 @@
 # Interface: Message
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:141](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/llm.ts#L141)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:148](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/llm.ts#L148)
 
 Represents a message in the conversation.
 
@@ -10,7 +10,7 @@ Represents a message in the conversation.
 
 > **content**: `string`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:143](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/llm.ts#L143)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:150](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/llm.ts#L150)
 
 Content of the message.
 
@@ -20,6 +20,6 @@ Content of the message.
 
 > **role**: [`MessageRole`](../type-aliases/MessageRole.md)
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:142](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/llm.ts#L142)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:149](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/llm.ts#L149)
 
 Role of the message sender of type `MessageRole`.

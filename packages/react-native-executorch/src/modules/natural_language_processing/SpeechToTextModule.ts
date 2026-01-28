@@ -6,6 +6,8 @@ import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
 /**
  * Module for Speech to Text (STT) functionalities.
+ * 
+ * @category Typescript API
  */
 export class SpeechToTextModule {
   private nativeModule: any;

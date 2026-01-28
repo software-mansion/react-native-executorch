@@ -1,6 +1,6 @@
 # Interface: VerticalOCRProps
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:64](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/ocr.ts#L64)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:70](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/ocr.ts#L70)
 
 Configuration properties for the `useVerticalOCR` hook.
 
@@ -14,7 +14,7 @@ Configuration properties for the `useVerticalOCR` hook.
 
 > `optional` **independentCharacters**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:69](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/ocr.ts#L69)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:75](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/ocr.ts#L75)
 
 Boolean indicating whether to treat each character independently during recognition.
 Defaults to `false`.
@@ -25,7 +25,7 @@ Defaults to `false`.
 
 > **model**: `object`
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:37](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/ocr.ts#L37)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:41](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/ocr.ts#L41)
 
 Object containing the necessary model sources and configuration for the OCR pipeline.
 
@@ -57,7 +57,7 @@ The language configuration enum for the OCR model (e.g., English, Polish, etc.).
 
 > `optional` **preventLoad**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:58](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/ocr.ts#L58)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:62](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/ocr.ts#L62)
 
 Boolean that can prevent automatic model loading (and downloading the data if loaded for the first time) after running the hook.
 Defaults to `false`.

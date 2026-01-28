@@ -2,6 +2,8 @@ import { ChatConfig, Message } from '../types/llm';
 
 /**
  * Default system prompt used to guide the behavior of Large Language Models (LLMs).
+ * 
+ * @category Utilities - LLM
  */
 export const DEFAULT_SYSTEM_PROMPT =
   "You are a knowledgeable, efficient, and direct AI assistant. Provide concise answers, focusing on the key information needed. Offer suggestions tactfully when appropriate to improve outcomes. Engage in productive collaboration with the user. Don't return too much text.";
@@ -9,6 +11,7 @@ export const DEFAULT_SYSTEM_PROMPT =
 /**
  * Generates a default structured output prompt based on the provided JSON schema.
  * 
+ * @category Utilities - LLM
  * @param structuredOutputSchema - A string representing the JSON schema for the desired output format.
  * @returns A prompt string instructing the model to format its output according to the given schema.
  */
@@ -25,16 +28,22 @@ ${structuredOutputSchema}
 
 /**
  * Default message history for Large Language Models (LLMs).
+ * 
+ * @category Utilities - LLM
  */
 export const DEFAULT_MESSAGE_HISTORY: Message[] = [];
 
 /**
  * Default context window length for Large Language Models (LLMs).
+ * 
+ * @category Utilities - LLM
  */
 export const DEFAULT_CONTEXT_WINDOW_LENGTH = 5;
 
 /**
  * Default chat configuration for Large Language Models (LLMs).
+ * 
+ * @category Utilities - LLM
  */
 export const DEFAULT_CHAT_CONFIG: ChatConfig = {
   systemPrompt: DEFAULT_SYSTEM_PROMPT,

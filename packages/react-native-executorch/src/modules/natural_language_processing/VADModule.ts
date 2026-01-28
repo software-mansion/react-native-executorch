@@ -5,6 +5,11 @@ import { BaseModule } from '../BaseModule';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
 
+/**
+ * Module for Voice Activity Detection (VAD) functionalities.
+ * 
+ * @category Typescript API
+ */
 export class VADModule extends BaseModule {
   /**
    * Loads the model, where `modelSource` is a string that specifies the location of the model binary.

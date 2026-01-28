@@ -1,6 +1,6 @@
 # Interface: TextToSpeechStreamingInput
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:142](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tts.ts#L142)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:156](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/tts.ts#L156)
 
 Text to Speech streaming input definition
 
@@ -19,7 +19,7 @@ Callbacks can be both synchronous or asynchronous.
 
 > `optional` **onBegin**: () => `void` \| `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:143](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tts.ts#L143)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:157](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/tts.ts#L157)
 
 Called when streaming begins
 
@@ -33,7 +33,7 @@ Called when streaming begins
 
 > `optional` **onEnd**: () => `void` \| `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:145](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tts.ts#L145)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:159](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/tts.ts#L159)
 
 Called when streaming ends
 
@@ -47,7 +47,7 @@ Called when streaming ends
 
 > `optional` **onNext**: (`audio`) => `void` \| `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:144](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tts.ts#L144)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:158](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/tts.ts#L158)
 
 Called after each audio chunk gets calculated.
 
@@ -67,7 +67,7 @@ Called after each audio chunk gets calculated.
 
 > `optional` **speed**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:80](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tts.ts#L80)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:90](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/tts.ts#L90)
 
 optional speed argument - the higher it is, the faster the speech becomes
 
@@ -81,7 +81,7 @@ optional speed argument - the higher it is, the faster the speech becomes
 
 > **text**: `string`
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:79](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tts.ts#L79)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:89](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/tts.ts#L89)
 
 a text to be spoken
 

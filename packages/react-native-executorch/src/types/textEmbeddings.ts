@@ -3,6 +3,8 @@ import { ResourceSource } from '../types/common';
 
 /**
  * React hook state and methods for managing a Text Embeddings model instance.
+ * 
+ * @category Types
  */
 export interface TextEmbeddingsType {
   /**
@@ -37,6 +39,7 @@ export interface TextEmbeddingsType {
 /**
  * Props for the useTextEmbeddings hook.
  * 
+ * @category Types
  * @property {Object} model - An object containing the model and tokenizer sources.
  * @property {ResourceSource} model.modelSource - The source of the text embeddings model binary.
  * @property {ResourceSource} model.tokenizerSource - The source of the tokenizer JSON file.

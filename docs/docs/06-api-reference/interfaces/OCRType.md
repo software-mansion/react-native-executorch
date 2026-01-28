@@ -1,6 +1,6 @@
 # Interface: OCRType
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:76](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/ocr.ts#L76)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:84](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/ocr.ts#L84)
 
 Return type for the `useOCR` hook.
 Manages the state and operations for Optical Character Recognition (OCR).
@@ -11,7 +11,7 @@ Manages the state and operations for Optical Character Recognition (OCR).
 
 > **downloadProgress**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:95](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/ocr.ts#L95)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:103](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/ocr.ts#L103)
 
 Represents the total download progress of the model binaries as a value between 0 and 1.
 
@@ -21,7 +21,7 @@ Represents the total download progress of the model binaries as a value between 
 
 > **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:80](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/ocr.ts#L80)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:88](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/ocr.ts#L88)
 
 Contains the error object if the models failed to load, download, or encountered a runtime error during recognition.
 
@@ -31,7 +31,7 @@ Contains the error object if the models failed to load, download, or encountered
 
 > **forward**: (`imageSource`) => `Promise`\<[`OCRDetection`](OCRDetection.md)[]\>
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:103](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/ocr.ts#L103)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:111](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/ocr.ts#L111)
 
 Executes the OCR pipeline (detection and recognition) on the provided image.
 
@@ -59,7 +59,7 @@ If the models are not loaded or are currently processing another image.
 
 > **isGenerating**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:90](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/ocr.ts#L90)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:98](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/ocr.ts#L98)
 
 Indicates whether the model is currently processing an image.
 
@@ -69,6 +69,6 @@ Indicates whether the model is currently processing an image.
 
 > **isReady**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:85](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/ocr.ts#L85)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:93](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/ocr.ts#L93)
 
 Indicates whether both detector and recognizer models are loaded and ready to process images.

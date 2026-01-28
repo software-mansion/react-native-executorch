@@ -2,7 +2,7 @@
 
 > `const` **LLAMA3\_2\_3B\_SPINQUANT**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:28](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/constants/modelUrls.ts#L28)
+Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:37](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/constants/modelUrls.ts#L37)
 
 ## Type Declaration
 

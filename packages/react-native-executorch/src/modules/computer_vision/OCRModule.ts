@@ -2,6 +2,11 @@ import { OCRController } from '../../controllers/OCRController';
 import { ResourceSource } from '../../types/common';
 import { OCRLanguage } from '../../types/ocr';
 
+/**
+ * Module for Optical Character Recognition (OCR) tasks.
+ * 
+ * @category Typescript API
+ */
 export class OCRModule {
   private controller: OCRController;
 

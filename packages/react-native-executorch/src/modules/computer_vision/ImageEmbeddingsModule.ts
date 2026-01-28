@@ -6,6 +6,8 @@ import { BaseModule } from '../BaseModule';
 
 /**
  * Module for generating image embeddings from input images.
+ * 
+ * @category Typescript API
  */
 export class ImageEmbeddingsModule extends BaseModule {
   /**

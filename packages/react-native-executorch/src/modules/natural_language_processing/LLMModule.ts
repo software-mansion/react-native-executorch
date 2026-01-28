@@ -8,6 +8,8 @@ import {
 
 /**
  * Module for managing a Large Language Model (LLM) instance.
+ * 
+ * @category Typescript API
  */
 export class LLMModule {
   private controller: LLMController;

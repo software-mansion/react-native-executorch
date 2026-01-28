@@ -7,6 +7,8 @@ import { BaseModule } from '../BaseModule';
 
 /**
  * Module for object detection tasks.
+ * 
+ * @category Typescript API
  */
 export class ObjectDetectionModule extends BaseModule {
 

@@ -4,11 +4,15 @@
 
 /**
  * Represents a source of a resource, which can be a string (e.g., URL or file path), a number (e.g., resource ID), or an object (e.g., binary data).
+ * 
+ * @category Types
  */
 export type ResourceSource = string | number | object;
 
 /**
  * Enum representing the scalar types of tensors.
+ * 
+ * @category Types
  */
 export enum ScalarType {
   /**
@@ -103,6 +107,8 @@ export enum ScalarType {
 
 /**
  * Represents the data buffer of a tensor, which can be one of several typed array formats.
+ * 
+ * @category Types
  */
 export type TensorBuffer =
   | ArrayBuffer
@@ -120,6 +126,7 @@ export type TensorBuffer =
 /**
  * Represents a pointer to a tensor, including its data buffer, size dimensions, and scalar type.
  * 
+ * @category Types
  * @property {TensorBuffer} dataPtr - The data buffer of the tensor.
  * @property {number[]} sizes - An array representing the size of each dimension of the tensor.
  * @property {ScalarType} scalarType - The scalar type of the tensor, as defined in the `ScalarType` enum.

@@ -9,6 +9,8 @@ const KOKORO_EN_MEDIUM_MODELS_ROOT = `${KOKORO_EN_MODELS_ROOT}/medium`;
  * A Kokoro model instance which processes the text in batches of maximum 64 tokens.
  * Uses significant less memory than the medium model, but could produce
  * a lower quality speech due to forced, aggressive text splitting.
+ * 
+ * @category Models - Text to Speech
  */
 export const KOKORO_SMALL = {
   type: 'kokoro' as const,
@@ -18,6 +20,8 @@ export const KOKORO_SMALL = {
 
 /**
  * A standard Kokoro instance which processes the text in batches of maximum 128 tokens.
+ * 
+ * @category Models - Text to Speech
  */
 export const KOKORO_MEDIUM = {
   type: 'kokoro' as const,
