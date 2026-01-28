@@ -28,17 +28,48 @@ LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
 }
 
 // TODO: add a way to manipulate the generation config with params
+#ifdef TEST_BUILD
+std::string LLM::generate(std::string input,
+                          std::shared_ptr<jsi::Function> callback) {
+  if (!runner || !runner->is_loaded()) {
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
+                            "Runner is not loaded");
+  }
+
+  std::string output;
+
+  // Create a native callback that accumulates tokens and optionally invokes JS
+  auto nativeCallback = [this, callback, &output](const std::string &token) {
+    output += token;
+    if (callback && callInvoker) {
+      callInvoker->invokeAsync([callback, token](jsi::Runtime &runtime) {
+        callback->call(runtime, jsi::String::createFromUtf8(runtime, token));
+      });
+    }
+  };
+
+  auto config = llm::GenerationConfig{.echo = false, .warming = false};
+  auto error = runner->generate(input, config, nativeCallback, {});
+  if (error != executorch::runtime::Error::Ok) {
+    throw RnExecutorchError(error, "Failed to generate text");
+  }
+
+  return output;
+}
+#else
 void LLM::generate(std::string input, std::shared_ptr<jsi::Function> callback) {
   if (!runner || !runner->is_loaded()) {
     throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Runner is not loaded");
   }
 
-  // Create a native callback that will invoke the JS callback on the JS thread
+  // Create a native callback that only invokes JS (no accumulation)
   auto nativeCallback = [this, callback](const std::string &token) {
-    callInvoker->invokeAsync([callback, token](jsi::Runtime &runtime) {
-      callback->call(runtime, jsi::String::createFromUtf8(runtime, token));
-    });
+    if (callback && callInvoker) {
+      callInvoker->invokeAsync([callback, token](jsi::Runtime &runtime) {
+        callback->call(runtime, jsi::String::createFromUtf8(runtime, token));
+      });
+    }
   };
 
   auto config = llm::GenerationConfig{.echo = false, .warming = false};
@@ -47,6 +78,7 @@ void LLM::generate(std::string input, std::shared_ptr<jsi::Function> callback) {
     throw RnExecutorchError(error, "Failed to generate text");
   }
 }
+#endif
 
 void LLM::interrupt() {
   if (!runner || !runner->is_loaded()) {

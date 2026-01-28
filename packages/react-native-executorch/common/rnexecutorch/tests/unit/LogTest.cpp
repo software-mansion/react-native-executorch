@@ -7,7 +7,6 @@
 #include <deque>
 #include <forward_list>
 #include <fstream>
-#include <functional>
 #include <list>
 #include <map>
 #include <queue>

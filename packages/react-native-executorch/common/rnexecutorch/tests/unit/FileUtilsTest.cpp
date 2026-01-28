@@ -17,9 +17,7 @@ protected:
     out.close();
   }
 
-  void TearDown() override {
-    std::remove(tempFileName.c_str());
-  }
+  void TearDown() override { std::remove(tempFileName.c_str()); }
 };
 
 TEST_F(FileIOTest, LoadBytesFromFileSuccessfully) {
