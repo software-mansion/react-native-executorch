@@ -72,6 +72,10 @@ void LLM::setCountInterval(size_t countInterval) {
     throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Can't configure a model that's not loaded");
   }
+  if (countInterval == 0) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig,
+                            "Count interval must be greater than 0");
+  }
   runner->set_count_interval(countInterval);
 }
 
@@ -79,6 +83,10 @@ void LLM::setTimeInterval(size_t timeInterval) {
   if (!runner || !runner->is_loaded()) {
     throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Can't configure a model that's not loaded");
+  }
+  if (timeInterval == 0) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig,
+                            "Time interval must be greater than 0");
   }
   runner->set_time_interval(timeInterval);
 }
@@ -88,6 +96,10 @@ void LLM::setTemperature(float temperature) {
     throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Can't configure a model that's not loaded");
   }
+  if (temperature < 0.0f) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig,
+                            "Temperature must be non-negative");
+  }
   runner->set_temperature(temperature);
 };
 
@@ -95,6 +107,10 @@ void LLM::setTopp(float topp) {
   if (!runner || !runner->is_loaded()) {
     throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Can't configure a model that's not loaded");
+  }
+  if (topp < 0.0f || topp > 1.0f) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig,
+                            "Top-p must be between 0.0 and 1.0");
   }
   runner->set_topp(topp);
 }
