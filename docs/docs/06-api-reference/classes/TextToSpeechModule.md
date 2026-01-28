@@ -1,6 +1,6 @@
 # Class: TextToSpeechModule
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TextToSpeechModule.ts:14](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/modules/natural_language_processing/TextToSpeechModule.ts#L14)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TextToSpeechModule.ts:14](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/modules/natural_language_processing/TextToSpeechModule.ts#L14)
 
 Module for Text to Speech (TTS) functionalities.
 
@@ -20,7 +20,7 @@ Module for Text to Speech (TTS) functionalities.
 
 > **nativeModule**: `any` = `null`
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TextToSpeechModule.ts:18](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/modules/natural_language_processing/TextToSpeechModule.ts#L18)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TextToSpeechModule.ts:18](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/modules/natural_language_processing/TextToSpeechModule.ts#L18)
 
 Native module instance
 
@@ -30,7 +30,7 @@ Native module instance
 
 > **delete**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TextToSpeechModule.ts:164](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/modules/natural_language_processing/TextToSpeechModule.ts#L164)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TextToSpeechModule.ts:164](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/modules/natural_language_processing/TextToSpeechModule.ts#L164)
 
 Unloads the model from memory.
 
@@ -44,7 +44,7 @@ Unloads the model from memory.
 
 > **forward**(`text`, `speed`): `Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TextToSpeechModule.ts:97](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/modules/natural_language_processing/TextToSpeechModule.ts#L97)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TextToSpeechModule.ts:97](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/modules/natural_language_processing/TextToSpeechModule.ts#L97)
 
 Synthesizes the provided text into speech. 
 Returns a promise that resolves to the full audio waveform as a `Float32Array`.
@@ -75,7 +75,7 @@ A promise resolving to the synthesized audio waveform.
 
 > **load**(`config`, `onDownloadProgressCallback`): `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TextToSpeechModule.ts:27](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/modules/natural_language_processing/TextToSpeechModule.ts#L27)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TextToSpeechModule.ts:27](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/modules/natural_language_processing/TextToSpeechModule.ts#L27)
 
 Loads the model and voice assets specified by the config object. 
 `onDownloadProgressCallback` allows you to monitor the current progress.
@@ -104,7 +104,7 @@ Optional callback to monitor download progress.
 
 > **stream**(`input`): `AsyncGenerator`\<`Float32Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TextToSpeechModule.ts:112](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/modules/natural_language_processing/TextToSpeechModule.ts#L112)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TextToSpeechModule.ts:112](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/modules/natural_language_processing/TextToSpeechModule.ts#L112)
 
 Starts a streaming synthesis session. Yields audio chunks as they are generated.
 
@@ -128,7 +128,7 @@ An async generator yielding Float32Array audio chunks.
 
 > **streamStop**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TextToSpeechModule.ts:157](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/modules/natural_language_processing/TextToSpeechModule.ts#L157)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TextToSpeechModule.ts:157](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/modules/natural_language_processing/TextToSpeechModule.ts#L157)
 
 Stops the streaming process if there is any ongoing.
 

@@ -1,6 +1,6 @@
 # Enumeration: ScalarType
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:13](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/common.ts#L13)
+Defined in: [packages/react-native-executorch/src/types/common.ts:13](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L13)
 
 Enum representing the scalar types of tensors.
 
@@ -10,7 +10,9 @@ Enum representing the scalar types of tensors.
 
 > **BITS16**: `22`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:28](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/common.ts#L28)
+Defined in: [packages/react-native-executorch/src/types/common.ts:73](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L73)
+
+Raw Bits type.
 
 ***
 
@@ -18,7 +20,9 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:28](https://gi
 
 > **BOOL**: `11`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:22](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/common.ts#L22)
+Defined in: [packages/react-native-executorch/src/types/common.ts:49](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L49)
+
+Boolean type.
 
 ***
 
@@ -26,7 +30,9 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:22](https://gi
 
 > **BYTE**: `0`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:14](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/common.ts#L14)
+Defined in: [packages/react-native-executorch/src/types/common.ts:17](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L17)
+
+Byte type (8-bit unsigned integer).
 
 ***
 
@@ -34,7 +40,9 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:14](https://gi
 
 > **CHAR**: `1`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:15](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/common.ts#L15)
+Defined in: [packages/react-native-executorch/src/types/common.ts:21](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L21)
+
+Character type (8-bit signed integer).
 
 ***
 
@@ -42,7 +50,9 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:15](https://gi
 
 > **DOUBLE**: `7`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:21](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/common.ts#L21)
+Defined in: [packages/react-native-executorch/src/types/common.ts:45](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L45)
+
+Double-precision floating point type (64-bit).
 
 ***
 
@@ -50,7 +60,9 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:21](https://gi
 
 > **FLOAT**: `6`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:20](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/common.ts#L20)
+Defined in: [packages/react-native-executorch/src/types/common.ts:41](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L41)
+
+Single-precision floating point type (32-bit).
 
 ***
 
@@ -58,7 +70,9 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:20](https://gi
 
 > **FLOAT8E4M3FN**: `24`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:30](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/common.ts#L30)
+Defined in: [packages/react-native-executorch/src/types/common.ts:81](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L81)
+
+Quantized 8-bit floating point type: Sign bit, 4 Exponent bits, 3 Mantissa bits.
 
 ***
 
@@ -66,7 +80,9 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:30](https://gi
 
 > **FLOAT8E4M3FNUZ**: `26`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:32](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/common.ts#L32)
+Defined in: [packages/react-native-executorch/src/types/common.ts:89](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L89)
+
+Quantized 8-bit floating point type with No Unsigned Zero (NUZ): Sign bit, 4 Exponent bits, 3 Mantissa bits.
 
 ***
 
@@ -74,7 +90,9 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:32](https://gi
 
 > **FLOAT8E5M2**: `23`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:29](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/common.ts#L29)
+Defined in: [packages/react-native-executorch/src/types/common.ts:77](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L77)
+
+Quantized 8-bit floating point type: Sign bit, 5 Exponent bits, 2 Mantissa bits.
 
 ***
 
@@ -82,7 +100,9 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:29](https://gi
 
 > **FLOAT8E5M2FNUZ**: `25`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:31](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/common.ts#L31)
+Defined in: [packages/react-native-executorch/src/types/common.ts:85](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L85)
+
+Quantized 8-bit floating point type with No Unsigned Zero (NUZ): Sign bit, 5 Exponent bits, 2 Mantissa bits.
 
 ***
 
@@ -90,7 +110,9 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:31](https://gi
 
 > **HALF**: `5`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:19](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/common.ts#L19)
+Defined in: [packages/react-native-executorch/src/types/common.ts:37](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L37)
+
+Half-precision floating point type (16-bit).
 
 ***
 
@@ -98,7 +120,9 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:19](https://gi
 
 > **INT**: `3`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:17](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/common.ts#L17)
+Defined in: [packages/react-native-executorch/src/types/common.ts:29](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L29)
+
+Integer type (32-bit signed integer).
 
 ***
 
@@ -106,7 +130,9 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:17](https://gi
 
 > **LONG**: `4`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:18](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/common.ts#L18)
+Defined in: [packages/react-native-executorch/src/types/common.ts:33](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L33)
+
+Long integer type (64-bit signed integer).
 
 ***
 
@@ -114,7 +140,9 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:18](https://gi
 
 > **QINT32**: `14`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:25](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/common.ts#L25)
+Defined in: [packages/react-native-executorch/src/types/common.ts:61](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L61)
+
+Quantized 32-bit signed integer type.
 
 ***
 
@@ -122,7 +150,9 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:25](https://gi
 
 > **QINT8**: `12`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:23](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/common.ts#L23)
+Defined in: [packages/react-native-executorch/src/types/common.ts:53](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L53)
+
+Quantized 8-bit signed integer type.
 
 ***
 
@@ -130,7 +160,9 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:23](https://gi
 
 > **QUINT2X4**: `17`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:27](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/common.ts#L27)
+Defined in: [packages/react-native-executorch/src/types/common.ts:69](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L69)
+
+Packed Quantized Unsigned 2-bit Integer type (4 numbers in 1 byte).
 
 ***
 
@@ -138,7 +170,9 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:27](https://gi
 
 > **QUINT4X2**: `16`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:26](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/common.ts#L26)
+Defined in: [packages/react-native-executorch/src/types/common.ts:65](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L65)
+
+Packed Quantized Unsigned 4-bit Integers type (2 number in 1 byte).
 
 ***
 
@@ -146,7 +180,9 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:26](https://gi
 
 > **QUINT8**: `13`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:24](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/common.ts#L24)
+Defined in: [packages/react-native-executorch/src/types/common.ts:57](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L57)
+
+Quantized 8-bit unsigned integer type.
 
 ***
 
@@ -154,7 +190,9 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:24](https://gi
 
 > **SHORT**: `2`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:16](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/common.ts#L16)
+Defined in: [packages/react-native-executorch/src/types/common.ts:25](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L25)
+
+Short integer type (16-bit signed integer).
 
 ***
 
@@ -162,7 +200,9 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:16](https://gi
 
 > **UINT16**: `27`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:33](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/common.ts#L33)
+Defined in: [packages/react-native-executorch/src/types/common.ts:93](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L93)
+
+Unsigned 16-bit integer type.
 
 ***
 
@@ -170,7 +210,9 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:33](https://gi
 
 > **UINT32**: `28`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:34](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/common.ts#L34)
+Defined in: [packages/react-native-executorch/src/types/common.ts:97](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L97)
+
+Unsigned 32-bit integer type.
 
 ***
 
@@ -178,4 +220,6 @@ Defined in: [packages/react-native-executorch/src/types/common.ts:34](https://gi
 
 > **UINT64**: `29`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:35](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/common.ts#L35)
+Defined in: [packages/react-native-executorch/src/types/common.ts:101](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/common.ts#L101)
+
+Unsigned 64-bit integer type.

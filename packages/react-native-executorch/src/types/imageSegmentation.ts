@@ -1,6 +1,9 @@
 import { RnExecutorchError } from "../errors/errorUtils";
 import { ResourceSource } from "./common";
 
+/**
+ * Labels used in the DeepLab image segmentation model.
+ */
 /* eslint-disable @cspell/spellchecker */
 export enum DeeplabLabel {
   BACKGROUND,

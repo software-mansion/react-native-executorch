@@ -2,7 +2,9 @@
 
 > **DEFAULT\_STRUCTURED\_OUTPUT\_PROMPT**(`structuredOutputSchema`): `string`
 
-Defined in: [packages/react-native-executorch/src/constants/llmDefaults.ts:6](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/constants/llmDefaults.ts#L6)
+Defined in: [packages/react-native-executorch/src/constants/llmDefaults.ts:15](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/constants/llmDefaults.ts#L15)
+
+Generates a default structured output prompt based on the provided JSON schema.
 
 ## Parameters
 
@@ -10,6 +12,10 @@ Defined in: [packages/react-native-executorch/src/constants/llmDefaults.ts:6](ht
 
 `string`
 
+A string representing the JSON schema for the desired output format.
+
 ## Returns
 
 `string`
+
+A prompt string instructing the model to format its output according to the given schema.

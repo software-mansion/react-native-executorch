@@ -2,7 +2,9 @@
 
 > **fixAndValidateStructuredOutput**\<`T`\>(`output`, `responseSchema`): `output`\<`T`\>
 
-Defined in: [packages/react-native-executorch/src/utils/llm.ts:81](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/utils/llm.ts#L81)
+Defined in: [packages/react-native-executorch/src/utils/llm.ts:93](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/utils/llm.ts#L93)
+
+Fixes and validates structured output from LLMs against a provided schema.
 
 ## Type Parameters
 
@@ -16,10 +18,16 @@ Defined in: [packages/react-native-executorch/src/utils/llm.ts:81](https://githu
 
 `string`
 
+The raw output string from the LLM.
+
 ### responseSchema
+
+The schema (Zod or JSON Schema) to validate the output against.
 
 `Schema` | `T`
 
 ## Returns
 
 `output`\<`T`\>
+
+The validated and parsed output.

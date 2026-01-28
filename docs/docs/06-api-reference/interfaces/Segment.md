@@ -1,6 +1,6 @@
 # Interface: Segment
 
-Defined in: [packages/react-native-executorch/src/types/vad.ts:22](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/vad.ts#L22)
+Defined in: [packages/react-native-executorch/src/types/vad.ts:22](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/vad.ts#L22)
 
 Represents a detected audio segment with start and end timestamps.
 
@@ -10,7 +10,7 @@ Represents a detected audio segment with start and end timestamps.
 
 > **end**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/vad.ts:24](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/vad.ts#L24)
+Defined in: [packages/react-native-executorch/src/types/vad.ts:24](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/vad.ts#L24)
 
 End time of the segment in seconds.
 
@@ -20,6 +20,6 @@ End time of the segment in seconds.
 
 > **start**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/vad.ts:23](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/vad.ts#L23)
+Defined in: [packages/react-native-executorch/src/types/vad.ts:23](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/vad.ts#L23)
 
 Start time of the segment in seconds.

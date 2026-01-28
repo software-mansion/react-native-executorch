@@ -51,7 +51,7 @@ export enum RnExecutorchErrorCode {
    */
   WrongDimensions = 116,
   /**
-   * Thrown when the input passed to our APIs is invalid, for example when passing an empty message array to LLM's generate().
+   * Thrown when the input passed to our APIs is invalid, for example when passing an empty message aray to LLM's generate().
    */
   InvalidUserInput = 117,
   /**
@@ -98,22 +98,76 @@ export enum RnExecutorchErrorCode {
    * Thrown when required URI information is missing for a download operation.
    */
   ResourceFetcherMissingUri = 185,
+  /**
+   * Status indicating a successful operation.
+   */
   Ok = 0,
+  /**
+   * An internal error occurred.
+   */
   Internal = 1,
+  /**
+   * Status indicating the executor is in an invalid state for a targeted operation.
+   */
   InvalidState = 2,
+  /**
+   * Status indicating there are no more steps of execution to run
+   */
   EndOfMethod = 3,
+  /**
+   * Operation is not supported in the current context.
+   */
   NotSupported = 16,
+  /**
+   * Operation is not yet implemented.
+   */
   NotImplemented = 17,
+  /**
+   * User provided an invalid argument.
+   */
   InvalidArgument = 18,
+  /**
+   * Object is an invalid type for the operation.
+   */
   InvalidType = 19,
+  /**
+   * Operator(s) missing in the operator registry.
+   */
   OperatorMissing = 20,
+  /**
+   * Requested resource could not be found.
+   */
   NotFound = 32,
+  /**
+   * Could not allocate the requested memory.
+   */
   MemoryAllocationFailed = 33,
+  /**
+   * Could not access a resource.
+   */
   AccessFailed = 34,
+  /**
+   * Error caused by the contents of a program.
+   */
   InvalidProgram = 35,
+  /**
+   * Error caused by the contents of external data.
+   */
   InvalidExternalData = 36,
+  /**
+   * Does not have enough resources to perform the requested operation.
+   */
   OutOfResources = 37,
+  /**
+   * Init stage: Backend receives an incompatible delegate version.
+   */
   DelegateInvalidCompatibility = 48,
+  /**
+   * Init stage: Backend fails to allocate memory.
+   */
   DelegateMemoryAllocationFailed = 49,
+  /**
+   * Execute stage: The handle is invalid.
+   */
   DelegateInvalidHandle = 50,
 }

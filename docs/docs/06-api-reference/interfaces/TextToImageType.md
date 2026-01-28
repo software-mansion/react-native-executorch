@@ -1,6 +1,6 @@
 # Interface: TextToImageType
 
-Defined in: [packages/react-native-executorch/src/types/tti.ts:42](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/tti.ts#L42)
+Defined in: [packages/react-native-executorch/src/types/tti.ts:42](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tti.ts#L42)
 
 Return type for the `useTextToImage` hook.
 Manages the state and operations for generating images from text prompts using a diffusion model pipeline.
@@ -11,7 +11,7 @@ Manages the state and operations for generating images from text prompts using a
 
 > **downloadProgress**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/tti.ts:61](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/tti.ts#L61)
+Defined in: [packages/react-native-executorch/src/types/tti.ts:61](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tti.ts#L61)
 
 Represents the total download progress of all the model binaries combined, as a value between 0 and 1.
 
@@ -21,7 +21,7 @@ Represents the total download progress of all the model binaries combined, as a 
 
 > **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
 
-Defined in: [packages/react-native-executorch/src/types/tti.ts:46](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/tti.ts#L46)
+Defined in: [packages/react-native-executorch/src/types/tti.ts:46](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tti.ts#L46)
 
 Contains the error object if any of the pipeline models failed to load, download, or encountered a runtime error.
 
@@ -31,7 +31,7 @@ Contains the error object if any of the pipeline models failed to load, download
 
 > **generate**: (`input`, `imageSize?`, `numSteps?`, `seed?`) => `Promise`\<`string`\>
 
-Defined in: [packages/react-native-executorch/src/types/tti.ts:72](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/tti.ts#L72)
+Defined in: [packages/react-native-executorch/src/types/tti.ts:72](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tti.ts#L72)
 
 Runs the diffusion pipeline to generate an image from the provided text prompt.
 
@@ -77,7 +77,7 @@ If the model is not loaded or is currently generating another image.
 
 > **interrupt**: () => `void`
 
-Defined in: [packages/react-native-executorch/src/types/tti.ts:82](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/tti.ts#L82)
+Defined in: [packages/react-native-executorch/src/types/tti.ts:82](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tti.ts#L82)
 
 Interrupts the currently active image generation process at the next available inference step.
 
@@ -91,7 +91,7 @@ Interrupts the currently active image generation process at the next available i
 
 > **isGenerating**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/tti.ts:56](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/tti.ts#L56)
+Defined in: [packages/react-native-executorch/src/types/tti.ts:56](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tti.ts#L56)
 
 Indicates whether the model is currently generating an image.
 
@@ -101,6 +101,6 @@ Indicates whether the model is currently generating an image.
 
 > **isReady**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/tti.ts:51](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/tti.ts#L51)
+Defined in: [packages/react-native-executorch/src/types/tti.ts:51](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/tti.ts#L51)
 
 Indicates whether the entire diffusion pipeline is loaded into memory and ready for generation.

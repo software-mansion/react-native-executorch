@@ -1,6 +1,6 @@
 # Class: VerticalOCRModule
 
-Defined in: [packages/react-native-executorch/src/modules/computer\_vision/VerticalOCRModule.ts:5](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L5)
+Defined in: [packages/react-native-executorch/src/modules/computer\_vision/VerticalOCRModule.ts:5](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L5)
 
 ## Constructors
 
@@ -8,7 +8,7 @@ Defined in: [packages/react-native-executorch/src/modules/computer\_vision/Verti
 
 > **new VerticalOCRModule**(): `VerticalOCRModule`
 
-Defined in: [packages/react-native-executorch/src/modules/computer\_vision/VerticalOCRModule.ts:8](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L8)
+Defined in: [packages/react-native-executorch/src/modules/computer\_vision/VerticalOCRModule.ts:8](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L8)
 
 #### Returns
 
@@ -20,7 +20,10 @@ Defined in: [packages/react-native-executorch/src/modules/computer\_vision/Verti
 
 > **delete**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/computer\_vision/VerticalOCRModule.ts:34](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L34)
+Defined in: [packages/react-native-executorch/src/modules/computer\_vision/VerticalOCRModule.ts:53](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L53)
+
+Release the memory held by the module. Calling `forward` afterwards is invalid. 
+Note that you cannot delete model while it's generating.
 
 #### Returns
 
@@ -32,7 +35,9 @@ Defined in: [packages/react-native-executorch/src/modules/computer\_vision/Verti
 
 > **forward**(`imageSource`): `Promise`\<`any`\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer\_vision/VerticalOCRModule.ts:30](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L30)
+Defined in: [packages/react-native-executorch/src/modules/computer\_vision/VerticalOCRModule.ts:45](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L45)
+
+Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string.
 
 #### Parameters
 
@@ -40,9 +45,13 @@ Defined in: [packages/react-native-executorch/src/modules/computer\_vision/Verti
 
 `string`
 
+The image source to be processed.
+
 #### Returns
 
 `Promise`\<`any`\>
+
+The OCR result as a string.
 
 ***
 
@@ -50,11 +59,17 @@ Defined in: [packages/react-native-executorch/src/modules/computer\_vision/Verti
 
 > **load**(`model`, `independentCharacters`, `onDownloadProgressCallback`): `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer\_vision/VerticalOCRModule.ts:12](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L12)
+Defined in: [packages/react-native-executorch/src/modules/computer\_vision/VerticalOCRModule.ts:21](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L21)
+
+Loads the model, where `detectorSource` is a string that specifies the location of the detector binary,
+`recognizerSource` is a string that specifies the location of the recognizer binary, 
+and `language` is a parameter that specifies the language of the text to be recognized by the OCR.
 
 #### Parameters
 
 ##### model
+
+Object containing `detectorSource`, `recognizerSource`, and `language`.
 
 ###### detectorSource
 
@@ -72,9 +87,13 @@ Defined in: [packages/react-native-executorch/src/modules/computer\_vision/Verti
 
 `boolean`
 
+Whether to treat characters independently during recognition.
+
 ##### onDownloadProgressCallback
 
 (`progress`) => `void`
+
+Optional callback to monitor download progress.
 
 #### Returns
 

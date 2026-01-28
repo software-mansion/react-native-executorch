@@ -1,6 +1,6 @@
 # Interface: LLMType
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:6](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/llm.ts#L6)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:6](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/llm.ts#L6)
 
 React hook for managing a Large Language Model (LLM) instance.
 
@@ -10,7 +10,7 @@ React hook for managing a Large Language Model (LLM) instance.
 
 > **configure**: (`configuration`) => `void`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:48](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/llm.ts#L48)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:48](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/llm.ts#L48)
 
 Configures chat and tool calling.
 See [Configuring the model](../../03-hooks/01-natural-language-processing/useLLM.md#configuring-the-model) for details.
@@ -33,7 +33,7 @@ Configuration object containing `chatConfig`, `toolsConfig`, and `generationConf
 
 > **deleteMessage**: (`index`) => `void`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:82](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/llm.ts#L82)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:82](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/llm.ts#L82)
 
 Deletes all messages starting with message on `index` position. After deletion `messageHistory` will be updated.
 
@@ -55,7 +55,7 @@ The index of the message to delete from history.
 
 > **downloadProgress**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:35](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/llm.ts#L35)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:35](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/llm.ts#L35)
 
 Represents the download progress as a value between 0 and 1, indicating the extent of the model file retrieval.
 
@@ -65,7 +65,7 @@ Represents the download progress as a value between 0 and 1, indicating the exte
 
 > **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:40](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/llm.ts#L40)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:40](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/llm.ts#L40)
 
 Contains the error message if the model failed to load.
 
@@ -75,7 +75,7 @@ Contains the error message if the model failed to load.
 
 > **generate**: (`messages`, `tools?`) => `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:67](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/llm.ts#L67)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:67](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/llm.ts#L67)
 
 Runs model to complete chat passed in `messages` argument. It doesn't manage conversation context.
 
@@ -103,7 +103,7 @@ Optional array of tools that can be used during generation.
 
 > **getGeneratedTokenCount**: () => `number`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:59](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/llm.ts#L59)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:59](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/llm.ts#L59)
 
 Returns the number of tokens generated so far in the current generation.
 
@@ -119,7 +119,7 @@ The count of generated tokens.
 
 > **interrupt**: () => `void`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:87](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/llm.ts#L87)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:87](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/llm.ts#L87)
 
 Function to interrupt the current inference.
 
@@ -133,7 +133,7 @@ Function to interrupt the current inference.
 
 > **isGenerating**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:30](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/llm.ts#L30)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:30](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/llm.ts#L30)
 
 Indicates whether the model is currently generating a response.
 
@@ -143,7 +143,7 @@ Indicates whether the model is currently generating a response.
 
 > **isReady**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:25](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/llm.ts#L25)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:25](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/llm.ts#L25)
 
 Indicates whether the model is ready.
 
@@ -153,7 +153,7 @@ Indicates whether the model is ready.
 
 > **messageHistory**: [`Message`](Message.md)[]
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:10](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/llm.ts#L10)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:10](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/llm.ts#L10)
 
 History containing all messages in conversation. This field is updated after model responds to sendMessage.
 
@@ -163,7 +163,7 @@ History containing all messages in conversation. This field is updated after mod
 
 > **response**: `string`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:15](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/llm.ts#L15)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:15](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/llm.ts#L15)
 
 State of the generated response. This field is updated with each token generated by the model.
 
@@ -173,7 +173,7 @@ State of the generated response. This field is updated with each token generated
 
 > **sendMessage**: (`message`) => `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:75](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/llm.ts#L75)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:75](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/llm.ts#L75)
 
 Function to add user message to conversation.
 After model responds, `messageHistory` will be updated with both user message and model response.
@@ -196,6 +196,6 @@ The message string to send.
 
 > **token**: `string`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:20](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/llm.ts#L20)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:20](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/llm.ts#L20)
 
 The most recently generated token.

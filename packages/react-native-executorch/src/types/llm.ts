@@ -154,8 +154,11 @@ export interface ToolCall {
   arguments: Object;
 }
 
-// usually tool is represented with dictionary (Object), but fields depend on the model
-// unfortunately there's no one standard so it's hard to type it better
+/**
+ * Represents a tool that can be used by the model.
+ * Usually tool is represented with dictionary (Object), but fields depend on the model.
+ * Unfortunately there's no one standard so it's hard to type it better.
+ */
 export type LLMTool = Object;
 
 /**

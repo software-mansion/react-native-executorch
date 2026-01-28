@@ -1,6 +1,6 @@
 # Interface: ImageSegmentationProps
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:37](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/imageSegmentation.ts#L37)
+Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:40](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/imageSegmentation.ts#L40)
 
 Props for the `useImageSegmentation` hook.
 
@@ -10,7 +10,7 @@ Props for the `useImageSegmentation` hook.
 
 > **model**: `object`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:38](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/imageSegmentation.ts#L38)
+Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:41](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/imageSegmentation.ts#L41)
 
 An object containing the model source.
 
@@ -24,6 +24,6 @@ An object containing the model source.
 
 > `optional` **preventLoad**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:39](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/imageSegmentation.ts#L39)
+Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:42](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/imageSegmentation.ts#L42)
 
 Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.

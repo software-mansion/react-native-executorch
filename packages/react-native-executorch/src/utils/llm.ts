@@ -47,6 +47,12 @@ const filterObjectKeys = (obj: object, keysToRemove: string[]) => {
   return Object.fromEntries(filteredEntries);
 };
 
+/**
+ * Generates a structured output prompt based on the provided schema.
+ * 
+ * @param responseSchema - The schema (Zod or JSON Schema) defining the desired output format.
+ * @returns A prompt string instructing the model to format its output according to the given schema.
+ */
 export const getStructuredOutputPrompt = <T extends zCore.$ZodType>(
   responseSchema: T | Schema
 ) => {
@@ -77,7 +83,13 @@ const extractBetweenBrackets = (text: string): string => {
   );
 };
 
-// this is a bit hacky typing
+/**
+ * Fixes and validates structured output from LLMs against a provided schema.
+ * 
+ * @param output - The raw output string from the LLM.
+ * @param responseSchema - The schema (Zod or JSON Schema) to validate the output against.
+ * @returns The validated and parsed output.
+ */
 export const fixAndValidateStructuredOutput = <T extends zCore.$ZodType>(
   output: string,
   responseSchema: T | Schema

@@ -1,6 +1,6 @@
 # Interface: DecodingOptions
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:169](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/stt.ts#L169)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:169](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/stt.ts#L169)
 
 Options for decoding speech to text.
 
@@ -10,6 +10,6 @@ Options for decoding speech to text.
 
 > `optional` **language**: [`SpeechToTextLanguage`](../type-aliases/SpeechToTextLanguage.md)
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:170](https://github.com/software-mansion/react-native-executorch/blob/378038b2ca252093c86e64cbbe998c6201d1ff7a/packages/react-native-executorch/src/types/stt.ts#L170)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:170](https://github.com/software-mansion/react-native-executorch/blob/a8b0a412aa07c92692caf0b31a2b58a5f754121c/packages/react-native-executorch/src/types/stt.ts#L170)
 
 Optional language code to guide the transcription.
