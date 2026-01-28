@@ -76,22 +76,29 @@ REQUIRED_LIBS=(
   "$ANDROID_LIBS_DIR/cpuinfo/$ANDROID_ABI/libcpuinfo.so:libcpuinfo.so"
 )
 
-# Dynamically find libfbjni.so and libc++_shared.so from CMake builds
-# These are built by other native modules (e.g., react-native-reanimated, react-native-skia)
+# Dynamically find libfbjni.so from CMake builds (exclude node_modules for speed)
+# Get libc++_shared.so directly from NDK
 MONOREPO_ROOT="$PACKAGE_ROOT/../../.."
 
 LIBFBJNI_PATH=$(find "$MONOREPO_ROOT" -path "*/android/build/intermediates/cmake/*/obj/$ANDROID_ABI/libfbjni.so" -type f 2>/dev/null | head -1)
-LIBCPP_PATH=$(find "$MONOREPO_ROOT" -path "*/android/build/intermediates/cmake/*/obj/$ANDROID_ABI/libc++_shared.so" -type f 2>/dev/null | head -1)
 
 if [ -z "$LIBFBJNI_PATH" ]; then
-  echo "Error: libfbjni.so not found in monorepo."
+  echo "Error: libfbjni.so not found."
   echo "Please build an app first: cd apps/computer-vision/android && ./gradlew assembleRelease"
   exit 1
 fi
 
-if [ -z "$LIBCPP_PATH" ]; then
-  echo "Error: libc++_shared.so not found in monorepo."
-  echo "Please build an app first: cd apps/computer-vision/android && ./gradlew assembleRelease"
+# Get libc++_shared.so from NDK based on host platform
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  NDK_HOST="darwin-x86_64"
+else
+  NDK_HOST="linux-x86_64"
+fi
+
+LIBCPP_PATH="$ANDROID_NDK/toolchains/llvm/prebuilt/$NDK_HOST/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so"
+
+if [ ! -f "$LIBCPP_PATH" ]; then
+  echo "Error: libc++_shared.so not found at: $LIBCPP_PATH"
   exit 1
 fi
 
