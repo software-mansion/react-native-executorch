@@ -5,6 +5,12 @@ import { SpeechToTextScreen } from './screens/SpeechToTextScreen';
 import ColorPalette from './colors';
 import ExecutorchLogo from './assets/executorch.svg';
 import { Quiz } from './screens/Quiz';
+import { initExecutorch } from 'react-native-executorch';
+import { ExpoResourceFetcher } from '@rn-executorch/expo-adapter';
+
+initExecutorch({
+  resourceFetcher: ExpoResourceFetcher,
+});
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<

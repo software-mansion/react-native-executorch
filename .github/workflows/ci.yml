@@ -24,7 +24,11 @@ jobs:
         run: yarn lint
 
       - name: Typecheck files
-        run: yarn typecheck
+        run: |
+          cd packages/react-native-executorch
+          yarn prepare
+          cd ../../
+          yarn typecheck
 
   build-library:
     runs-on: ubuntu-latest

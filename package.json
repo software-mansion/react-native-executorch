@@ -5,7 +5,12 @@
   "workspaces": {
     "packages": [
       "packages/react-native-executorch",
-      "apps/*"
+      "packages/bare-adapter",
+      "packages/expo-adapter",
+      "apps/computer-vision",
+      "apps/llm",
+      "apps/speech",
+      "apps/text-embeddings"
     ]
   },
   "scripts": {

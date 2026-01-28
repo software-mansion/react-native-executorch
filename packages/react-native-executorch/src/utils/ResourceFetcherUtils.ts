@@ -1,28 +1,16 @@
-import { RNEDirectory } from '../constants/directories';
-import { ResourceSource } from '../types/common';
-import { Asset } from 'expo-asset';
-import { Logger } from '../common/Logger';
+import { ResourceSource } from '..';
 
-/**
- * @internal
- */
-import {
-  getInfoAsync,
-  makeDirectoryAsync,
-  type DownloadResumable,
-} from 'expo-file-system/legacy';
-
-export const enum HTTP_CODE {
+export enum HTTP_CODE {
   OK = 200,
   PARTIAL_CONTENT = 206,
 }
 
-export const enum DownloadStatus {
+export enum DownloadStatus {
   ONGOING,
   PAUSED,
 }
 
-export const enum SourceType {
+export enum SourceType {
   OBJECT,
   LOCAL_FILE,
   RELEASE_MODE_FILE,
@@ -41,71 +29,7 @@ export interface ResourceSourceExtended {
   next?: ResourceSourceExtended;
 }
 
-export interface DownloadResource {
-  downloadResumable: DownloadResumable;
-  status: DownloadStatus;
-  extendedInfo: ResourceSourceExtended;
-}
-
 export namespace ResourceFetcherUtils {
-  export function getType(source: ResourceSource): SourceType {
-    if (typeof source === 'object') {
-      return SourceType.OBJECT;
-    } else if (typeof source === 'number') {
-      const uri = Asset.fromModule(source).uri;
-      if (uri.startsWith('http')) {
-        return SourceType.DEV_MODE_FILE;
-      }
-      return SourceType.RELEASE_MODE_FILE;
-    }
-    // typeof source == 'string'
-    if (source.startsWith('file://')) {
-      return SourceType.LOCAL_FILE;
-    }
-    return SourceType.REMOTE_FILE;
-  }
-
-  export async function getFilesSizes(sources: ResourceSource[]) {
-    const results: Array<{
-      source: ResourceSource;
-      type: SourceType;
-      length: number;
-      previousFilesTotalLength: number;
-    }> = [];
-    let totalLength = 0;
-    let previousFilesTotalLength = 0;
-    for (const source of sources) {
-      const type = ResourceFetcherUtils.getType(source);
-      let length = 0;
-      try {
-        if (type === SourceType.REMOTE_FILE && typeof source === 'string') {
-          const response = await fetch(source, { method: 'HEAD' });
-          if (!response.ok) {
-            Logger.warn(
-              `Failed to fetch HEAD for ${source}: ${response.status}`
-            );
-            continue;
-          }
-
-          const contentLength = response.headers.get('content-length');
-          if (!contentLength) {
-            Logger.warn(`No content-length header for ${source}`);
-          }
-
-          length = contentLength ? parseInt(contentLength, 10) : 0;
-          previousFilesTotalLength = totalLength;
-          totalLength += length;
-        }
-      } catch (error) {
-        Logger.warn(`Error fetching HEAD for ${source}:`, error);
-        continue;
-      } finally {
-        results.push({ source, type, length, previousFilesTotalLength });
-      }
-    }
-    return { results, totalLength };
-  }
-
   export function removeFilePrefix(uri: string) {
     return uri.startsWith('file://') ? uri.slice(7) : uri;
   }
@@ -163,17 +87,6 @@ export namespace ResourceFetcherUtils {
       const baseUrl = `${url.protocol}//${url.host}${url.pathname.split('resolve')[0]}`;
       fetch(`${baseUrl}resolve/main/config.json`, { method: 'HEAD' });
     }
-  }
-
-  export async function createDirectoryIfNoExists() {
-    if (!(await checkFileExists(RNEDirectory))) {
-      await makeDirectoryAsync(RNEDirectory, { intermediates: true });
-    }
-  }
-
-  export async function checkFileExists(fileUri: string) {
-    const fileInfo = await getInfoAsync(fileUri);
-    return fileInfo.exists;
   }
 
   export function getFilenameFromUri(uri: string) {
