@@ -12,7 +12,6 @@ import {
 } from '../types/llm';
 import { parseToolCall } from '../utils/llm';
 import { Logger } from '../common/Logger';
-import { readAsStringAsync } from 'expo-file-system/legacy';
 import { RnExecutorchError, parseUnknownError } from '../errors/errorUtils';
 import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 
@@ -132,7 +131,7 @@ export class LLMController {
       }
 
       this.tokenizerConfig = JSON.parse(
-        await readAsStringAsync('file://' + tokenizerConfigPath!)
+        await ResourceFetcher.fs.readAsString(tokenizerConfigPath!)
       );
       this.nativeModule = global.loadLLM(modelPath, tokenizerPath);
       this.isReadyCallback(true);

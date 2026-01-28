@@ -11,9 +11,10 @@
     "lint": "eslint . --ext .ts,.tsx --fix"
   },
   "dependencies": {
-    "@react-native/metro-config": "^0.76.3",
+    "@react-native/metro-config": "^0.81.5",
     "@react-navigation/drawer": "^7.3.9",
     "@react-navigation/native": "^7.1.6",
+    "@rn-executorch/expo-adapter": "workspace:*",
     "expo": "^54.0.27",
     "expo-brightness": "~14.0.8",
     "expo-calendar": "~15.0.8",
@@ -22,7 +23,7 @@
     "expo-linking": "~8.0.10",
     "expo-router": "~6.0.17",
     "expo-status-bar": "~3.0.9",
-    "metro-config": "^0.81.0",
+    "metro-config": "^0.81.5",
     "react": "19.1.0",
     "react-native": "0.81.5",
     "react-native-audio-api": "^0.8.2",

@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@react-navigation/drawer": "^7.3.9",
+    "@rn-executorch/expo-adapter": "workspace:*",
     "expo": "^54.0.27",
     "expo-constants": "~18.0.11",
     "expo-linking": "~8.0.10",
