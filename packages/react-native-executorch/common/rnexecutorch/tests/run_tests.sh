@@ -76,10 +76,28 @@ REQUIRED_LIBS=(
   "$ANDROID_LIBS_DIR/cpuinfo/$ANDROID_ABI/libcpuinfo.so:libcpuinfo.so"
 )
 
-GRADLE_LIBS_DIR="$PACKAGE_ROOT/android/build/intermediates/cmake/release/obj/$ANDROID_ABI"
+# Dynamically find libfbjni.so and libc++_shared.so from CMake builds
+# These are built by other native modules (e.g., react-native-reanimated, react-native-skia)
+MONOREPO_ROOT="$PACKAGE_ROOT/../../.."
+
+LIBFBJNI_PATH=$(find "$MONOREPO_ROOT" -path "*/android/build/intermediates/cmake/*/obj/$ANDROID_ABI/libfbjni.so" -type f 2>/dev/null | head -1)
+LIBCPP_PATH=$(find "$MONOREPO_ROOT" -path "*/android/build/intermediates/cmake/*/obj/$ANDROID_ABI/libc++_shared.so" -type f 2>/dev/null | head -1)
+
+if [ -z "$LIBFBJNI_PATH" ]; then
+  echo "Error: libfbjni.so not found in monorepo."
+  echo "Please build an app first: cd apps/computer-vision/android && ./gradlew assembleRelease"
+  exit 1
+fi
+
+if [ -z "$LIBCPP_PATH" ]; then
+  echo "Error: libc++_shared.so not found in monorepo."
+  echo "Please build an app first: cd apps/computer-vision/android && ./gradlew assembleRelease"
+  exit 1
+fi
+
 GRADLE_LIBS=(
-  "libfbjni.so"
-  "libc++_shared.so"
+  "$LIBFBJNI_PATH:libfbjni.so"
+  "$LIBCPP_PATH:libc++_shared.so"
 )
 
 # ============================================================================
@@ -271,9 +289,12 @@ for lib_entry in "${REQUIRED_LIBS[@]}"; do
   fi
 done
 
-for lib in "${GRADLE_LIBS[@]}"; do
-  if [ -f "$GRADLE_LIBS_DIR/$lib" ]; then
-    push_file "$GRADLE_LIBS_DIR/$lib" "$DEVICE_TEST_DIR/"
+for lib_entry in "${GRADLE_LIBS[@]}"; do
+  IFS=':' read -r src dest <<<"$lib_entry"
+  if [ -f "$src" ]; then
+    push_file "$src" "$DEVICE_TEST_DIR/"
+  else
+    error "Library not found: $src"
   fi
 done
 

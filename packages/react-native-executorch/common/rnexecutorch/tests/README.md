@@ -9,13 +9,48 @@ The googletest is already in repo in `react-native-executorch/third-party/google
 * `git submodule update --init --recursive third-party/googletest`
 
 ### Running tests
-To run tests navigate to tests directory, namely:
-* `cd packages/react-native-executorch/common/rnexecutorch/tests`
-To run tests, you need to make sure your Android emulator is running. This is because we're cross-compiling the test executables for Android, so we can easily run the tests using prebuilt Android third-party libs. To run the tests, you need to run the following command:
-* `bash ./run_tests.sh`
-This script downloads all the needed models, pushes all the executables, models, assets, shared libs via ADB to a running emulator. Finally, it runs the pre-compiled executables.
-Available flags:
-* `--refresh-models` - Forcefully downloads all the models. By default, the models are not downloaded, unless they are not in the specified directory.
+
+#### Prerequisites
+
+- **Android NDK**: The `ANDROID_NDK` environment variable must be set
+- **wget**: Must be in your PATH
+- **Android emulator**: Must be running before executing tests
+- **Device requirements**:
+  - 16GB disk storage (minimum)
+  - 8GB RAM (minimum)
+
+#### First-time setup
+
+Before running tests, you need to build an app to generate required native libraries (`libfbjni.so` and `libc++_shared.so`). The test script automatically searches for these in the monorepo.
+
+If the script reports missing libraries, build any example app:
+```bash
+cd apps/computer-vision/android
+./gradlew assembleDebug
+# or
+./gradlew assembleRelease
+```
+
+#### Running the tests
+
+Navigate to the tests directory:
+```bash
+cd packages/react-native-executorch/common/rnexecutorch/tests
+```
+
+Run the test script:
+```bash
+bash ./run_tests.sh
+```
+
+This script:
+- Downloads all needed models
+- Pushes executables, models, assets, and shared libraries via ADB to the running emulator
+- Runs the pre-compiled test executables
+
+#### Available flags
+
+* `--refresh-models` - Forcefully downloads all the models. By default, models are not downloaded unless they are missing from the specified directory.
 * `--skip-build` - Skips the cmake build step.
 
 ### How to add a new test
