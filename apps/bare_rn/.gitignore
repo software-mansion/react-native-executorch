@@ -77,3 +77,4 @@ yarn-error.log
 # Custom
 !/ios/
 !/android/
+/assets/ai-models/
