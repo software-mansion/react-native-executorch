@@ -94,3 +94,6 @@ Português
 codegen
 cstdint
 ocurred
+libfbjni
+libc
+gradlew
