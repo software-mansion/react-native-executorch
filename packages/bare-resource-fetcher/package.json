@@ -1,7 +1,7 @@
 {
-  "name": "@rn-executorch/expo-adapter",
+  "name": "@react-native-executorch/bare-resource-fetcher",
   "version": "0.1.0",
-  "description": "Expo adapter for react-native-executorch",
+  "description": "Bare React Native resource fetcher for react-native-executorch",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "exports": {
@@ -15,17 +15,15 @@
     "lint": "eslint \"**/*.{js,ts,tsx}\""
   },
   "peerDependencies": {
-    "expo": ">=54.0.0",
-    "expo-asset": "^12.0.0",
-    "expo-file-system": "^19.0.0",
+    "@dr.pogodin/react-native-fs": "^2.0.0",
+    "@kesha-antonov/react-native-background-downloader": "^4.0.0",
     "react-native": "*",
     "react-native-executorch": "*"
   },
   "devDependencies": {
+    "@dr.pogodin/react-native-fs": "^2.36.2",
+    "@kesha-antonov/react-native-background-downloader": "^4.4.5",
     "@types/react": "~19.1.10",
-    "expo": "^54.0.0",
-    "expo-asset": "12.0.11",
-    "expo-file-system": "^19.0.20",
     "react": "19.1.0",
     "react-native": "0.81.5",
     "react-native-executorch": "workspace:*",

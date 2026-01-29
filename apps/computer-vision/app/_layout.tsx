@@ -1,6 +1,6 @@
 import { Drawer } from 'expo-router/drawer';
 import { initExecutorch } from 'react-native-executorch';
-import { ExpoResourceFetcher } from '@rn-executorch/expo-adapter';
+import { ExpoResourceFetcher } from '@react-native-executorch/expo-resource-fetcher';
 
 import ColorPalette from '../colors';
 import React, { useState } from 'react';

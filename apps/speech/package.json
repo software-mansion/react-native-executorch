@@ -11,8 +11,8 @@
     "lint": "eslint . --ext .ts,.tsx --fix"
   },
   "dependencies": {
+    "@react-native-executorch/expo-resource-fetcher": "workspace:*",
     "@react-native/metro-config": "^0.81.5",
-    "@rn-executorch/expo-adapter": "workspace:*",
     "buffer": "^6.0.3",
     "expo": "^54.0.27",
     "expo-font": "~14.0.10",

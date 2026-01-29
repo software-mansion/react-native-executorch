@@ -11,10 +11,10 @@
     "lint": "eslint . --ext .ts,.tsx --fix"
   },
   "dependencies": {
+    "@react-native-executorch/expo-resource-fetcher": "workspace:*",
     "@react-native/metro-config": "^0.81.5",
     "@react-navigation/drawer": "^7.3.9",
     "@react-navigation/native": "^7.1.6",
-    "@rn-executorch/expo-adapter": "workspace:*",
     "@shopify/react-native-skia": "2.2.12",
     "expo": "^54.0.27",
     "expo-constants": "~18.0.11",

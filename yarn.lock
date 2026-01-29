@@ -4033,6 +4033,46 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-executorch/bare-resource-fetcher@workspace:packages/bare-resource-fetcher":
+  version: 0.0.0-use.local
+  resolution: "@react-native-executorch/bare-resource-fetcher@workspace:packages/bare-resource-fetcher"
+  dependencies:
+    "@dr.pogodin/react-native-fs": "npm:^2.36.2"
+    "@kesha-antonov/react-native-background-downloader": "npm:^4.4.5"
+    "@types/react": "npm:~19.1.10"
+    react: "npm:19.1.0"
+    react-native: "npm:0.81.5"
+    react-native-executorch: "workspace:*"
+    typescript: "npm:~5.9.2"
+  peerDependencies:
+    "@dr.pogodin/react-native-fs": ^2.0.0
+    "@kesha-antonov/react-native-background-downloader": ^4.0.0
+    react-native: "*"
+    react-native-executorch: "*"
+  languageName: unknown
+  linkType: soft
+
+"@react-native-executorch/expo-resource-fetcher@workspace:*, @react-native-executorch/expo-resource-fetcher@workspace:packages/expo-resource-fetcher":
+  version: 0.0.0-use.local
+  resolution: "@react-native-executorch/expo-resource-fetcher@workspace:packages/expo-resource-fetcher"
+  dependencies:
+    "@types/react": "npm:~19.1.10"
+    expo: "npm:^54.0.0"
+    expo-asset: "npm:12.0.11"
+    expo-file-system: "npm:^19.0.20"
+    react: "npm:19.1.0"
+    react-native: "npm:0.81.5"
+    react-native-executorch: "workspace:*"
+    typescript: "npm:~5.9.2"
+  peerDependencies:
+    expo: ">=54.0.0"
+    expo-asset: ^12.0.0
+    expo-file-system: ^19.0.0
+    react-native: "*"
+    react-native-executorch: "*"
+  languageName: unknown
+  linkType: soft
+
 "@react-native/assets-registry@npm:0.81.5":
   version: 0.81.5
   resolution: "@react-native/assets-registry@npm:0.81.5"
@@ -4382,46 +4422,6 @@ __metadata:
   checksum: 10/b490b9bf9865cc419dfe9a7c3aa99041e7495b4b48e385716c1f9ce815fb59677c9c667de7e3b17d7e1fad6f9a7da5e26ace6f2ca8cb0be5e65178e9b9cc31a9
   languageName: node
   linkType: hard
-
-"@rn-executorch/bare-adapter@workspace:packages/bare-adapter":
-  version: 0.0.0-use.local
-  resolution: "@rn-executorch/bare-adapter@workspace:packages/bare-adapter"
-  dependencies:
-    "@dr.pogodin/react-native-fs": "npm:^2.36.2"
-    "@kesha-antonov/react-native-background-downloader": "npm:^4.4.5"
-    "@types/react": "npm:~19.1.10"
-    react: "npm:19.1.0"
-    react-native: "npm:0.81.5"
-    react-native-executorch: "workspace:*"
-    typescript: "npm:~5.9.2"
-  peerDependencies:
-    "@dr.pogodin/react-native-fs": ^2.0.0
-    "@kesha-antonov/react-native-background-downloader": ^4.0.0
-    react-native: "*"
-    react-native-executorch: "*"
-  languageName: unknown
-  linkType: soft
-
-"@rn-executorch/expo-adapter@workspace:*, @rn-executorch/expo-adapter@workspace:packages/expo-adapter":
-  version: 0.0.0-use.local
-  resolution: "@rn-executorch/expo-adapter@workspace:packages/expo-adapter"
-  dependencies:
-    "@types/react": "npm:~19.1.10"
-    expo: "npm:^54.0.0"
-    expo-asset: "npm:12.0.11"
-    expo-file-system: "npm:^19.0.20"
-    react: "npm:19.1.0"
-    react-native: "npm:0.81.5"
-    react-native-executorch: "workspace:*"
-    typescript: "npm:~5.9.2"
-  peerDependencies:
-    expo: ">=54.0.0"
-    expo-asset: ^12.0.0
-    expo-file-system: ^19.0.0
-    react-native: "*"
-    react-native-executorch: "*"
-  languageName: unknown
-  linkType: soft
 
 "@shopify/react-native-skia@npm:2.2.12":
   version: 2.2.12
@@ -6381,10 +6381,10 @@ __metadata:
   resolution: "computer-vision@workspace:apps/computer-vision"
   dependencies:
     "@babel/core": "npm:^7.25.2"
+    "@react-native-executorch/expo-resource-fetcher": "workspace:*"
     "@react-native/metro-config": "npm:^0.81.5"
     "@react-navigation/drawer": "npm:^7.3.9"
     "@react-navigation/native": "npm:^7.1.6"
-    "@rn-executorch/expo-adapter": "workspace:*"
     "@shopify/react-native-skia": "npm:2.2.12"
     "@types/pngjs": "npm:^6.0.5"
     "@types/react": "npm:~19.1.10"
@@ -10471,10 +10471,10 @@ __metadata:
   resolution: "llm@workspace:apps/llm"
   dependencies:
     "@babel/core": "npm:^7.25.2"
+    "@react-native-executorch/expo-resource-fetcher": "workspace:*"
     "@react-native/metro-config": "npm:^0.81.5"
     "@react-navigation/drawer": "npm:^7.3.9"
     "@react-navigation/native": "npm:^7.1.6"
-    "@rn-executorch/expo-adapter": "workspace:*"
     "@types/react": "npm:~19.1.10"
     expo: "npm:^54.0.27"
     expo-brightness: "npm:~14.0.8"
@@ -14180,8 +14180,8 @@ __metadata:
   resolution: "speech@workspace:apps/speech"
   dependencies:
     "@babel/core": "npm:^7.25.2"
+    "@react-native-executorch/expo-resource-fetcher": "workspace:*"
     "@react-native/metro-config": "npm:^0.81.5"
-    "@rn-executorch/expo-adapter": "workspace:*"
     "@types/react": "npm:~19.1.10"
     buffer: "npm:^6.0.3"
     expo: "npm:^54.0.27"
@@ -14635,8 +14635,8 @@ __metadata:
   resolution: "text-embeddings@workspace:apps/text-embeddings"
   dependencies:
     "@babel/core": "npm:^7.25.2"
+    "@react-native-executorch/expo-resource-fetcher": "workspace:*"
     "@react-navigation/drawer": "npm:^7.3.9"
-    "@rn-executorch/expo-adapter": "workspace:*"
     "@types/react": "npm:~19.1.10"
     expo: "npm:^54.0.27"
     expo-constants: "npm:~18.0.11"

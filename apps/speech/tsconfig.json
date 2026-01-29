@@ -10,7 +10,9 @@
     "noEmit": true,
     "paths": {
       "react-native-executorch": ["../../packages/react-native-executorch/src"],
-      "@rn-executorch/expo-adapter": ["../../packages/expo-adapter/src"]
+      "@react-native-executorch/expo-resource-fetcher": [
+        "../../packages/expo-resource-fetcher/src"
+      ]
     }
   }
 }

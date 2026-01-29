@@ -11,10 +11,10 @@
     "lint": "eslint . --ext .ts,.tsx --fix"
   },
   "dependencies": {
+    "@react-native-executorch/expo-resource-fetcher": "workspace:*",
     "@react-native/metro-config": "^0.81.5",
     "@react-navigation/drawer": "^7.3.9",
     "@react-navigation/native": "^7.1.6",
-    "@rn-executorch/expo-adapter": "workspace:*",
     "expo": "^54.0.27",
     "expo-brightness": "~14.0.8",
     "expo-calendar": "~15.0.8",
