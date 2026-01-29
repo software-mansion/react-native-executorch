@@ -4,13 +4,8 @@
   "packageManager": "yarn@4.1.1",
   "workspaces": {
     "packages": [
-      "packages/react-native-executorch",
-      "packages/bare-adapter",
-      "packages/expo-adapter",
-      "apps/computer-vision",
-      "apps/llm",
-      "apps/speech",
-      "apps/text-embeddings"
+      "packages/*",
+      "apps/*"
     ]
   },
   "scripts": {
