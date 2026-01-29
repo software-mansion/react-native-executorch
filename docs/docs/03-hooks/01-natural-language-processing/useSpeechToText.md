@@ -25,8 +25,8 @@ It is recommended to use models provided by us, which are available at our [Hugg
 
 ## API Reference
 
-* For detailed API Reference for `useSpeechToText` see: [`useSpeechToText` API Reference](../../06-api-reference/functions/useSpeechToText.md)
-* For all speech to text models available out-of-the-box in React Native ExecuTorch see: [STT Models](../../06-api-reference/index.md#models---speech-to-text)
+* For detailed API Reference for `useSpeechToText` see: [`useSpeechToText` API Reference](../../06-api-reference/functions/useSpeechToText.md).
+* For all speech to text models available out-of-the-box in React Native ExecuTorch see: [STT Models](../../06-api-reference/index.md#models---speech-to-text).
 
 ## Reference
 
@@ -70,7 +70,7 @@ Since speech-to-text models can only process audio segments up to 30 seconds lon
 
 You need more details? Check the following resources:
 * For detailed information about `useSpeechToText` arguments check this section: [`useSpeechToText` arguments](../../06-api-reference/functions/useSpeechToText.md#parameters)
-* For all speech to text models available out-of-the-box in React Native ExecuTorch see: [STT Models](../../06-api-reference/index.md#models---speech-to-text)
+* For all speech to text models available out-of-the-box in React Native ExecuTorch see: [STT Models](../../06-api-reference/index.md#models---speech-to-text).
 * For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns

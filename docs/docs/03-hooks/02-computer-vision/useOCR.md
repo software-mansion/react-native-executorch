@@ -2,11 +2,16 @@
 title: useOCR
 ---
 
-Optical character recognition(OCR) is a computer vision technique that detects and recognizes text within the image. It's commonly used to convert different types of documents, such as scanned paper documents, PDF files, or images captured by a digital camera, into editable and searchable data.
+Optical character recognition (OCR) is a computer vision technique that detects and recognizes text within the image. It's commonly used to convert different types of documents, such as scanned paper documents, PDF files, or images captured by a digital camera, into editable and searchable data.
 
 :::warning
 It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/ocr-68d0eb320ae6d20b5f901ea9). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
 :::
+
+## API Reference
+
+* For detailed API Reference for `useOCR` see: [`useOCR` API Reference](../../06-api-reference/functions/useOCR.md).
+* For all alphabets available in ocr out-of-the-box in React Native ExecuTorch see: [OCR Supported Alphabets](../../06-api-reference/index.md#ocr-supported-alphabets).
 
 ## Reference
 
@@ -26,113 +31,20 @@ function App() {
 }
 ```
 
-<details>
-<summary>Type definitions</summary>
-
-```typescript
-type OCRLanguage =
-  | 'abq'
-  | 'ady'
-  | 'af'
-  | 'ava'
-  | 'az'
-  | 'be'
-  | 'bg'
-  | 'bs'
-  | 'chSim'
-  | 'che'
-  | 'cs'
-  | 'cy'
-  | 'da'
-  | 'dar'
-  | 'de'
-  | 'en'
-  | 'es'
-  | 'et'
-  | 'fr'
-  | 'ga'
-  | 'hr'
-  | 'hu'
-  | 'id'
-  | 'inh'
-  | 'ic'
-  | 'it'
-  | 'ja'
-  | 'kbd'
-  | 'kn'
-  | 'ko'
-  | 'ku'
-  | 'la'
-  | 'lbe'
-  | 'lez'
-  | 'lt'
-  | 'lv'
-  | 'mi'
-  | 'mn'
-  | 'ms'
-  | 'mt'
-  | 'nl'
-  | 'no'
-  | 'oc'
-  | 'pi'
-  | 'pl'
-  | 'pt'
-  | 'ro'
-  | 'ru'
-  | 'rsCyrillic'
-  | 'rsLatin'
-  | 'sk'
-  | 'sl'
-  | 'sq'
-  | 'sv'
-  | 'sw'
-  | 'tab'
-  | 'te'
-  | 'th'
-  | 'tjk'
-  | 'tl'
-  | 'tr'
-  | 'uk'
-  | 'uz'
-  | 'vi';
-
-interface Point {
-  x: number;
-  y: number;
-}
-
-interface OCRDetection {
-  bbox: Point[];
-  text: string;
-  score: number;
-}
-```
-
-</details>
-
 ### Arguments
 
-**`model`** - Object containing the detector source, recognizer sources, and language.
+`useOCR` takes [`OCRProps`](../../06-api-reference/interfaces/OCRProps.md) that consists of:
+* `model` containing [`detectorSource`](../../06-api-reference/interfaces/OCRProps.md#detectorsource), [`recognizerSource`](../../06-api-reference/interfaces/OCRProps.md#recognizersource), and [`language`](../../06-api-reference/interfaces/OCRProps.md#language). 
+* An optional flag [`preventLoad`](../../06-api-reference/interfaces/OCRProps.md#preventload) which prevents auto-loading of the model.
 
-- **`detectorSource`** - A string that specifies the location of the detector binary.
-- **`recognizerSource`** - A string that specifies the location of the recognizer binary.
-- **`language`** - A parameter that specifies the language of the text to be recognized by the OCR.
-
-**`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
-
-For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+You need more details? Check the following resources:
+* For detailed information about `useOCR` arguments check this section: [`useOCR` arguments](../../06-api-reference/functions/useOCR.md#parameters).
+* For all alphabets available in ocr out-of-the-box in React Native ExecuTorch see: [OCR Supported Alphabets](../../06-api-reference/index.md#ocr-supported-alphabets).
+* For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
-The hook returns an object with the following properties:
-
-| Field              | Type                                               | Description                                                                                 |
-| ------------------ | -------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `forward`          | `(imageSource: string) => Promise<OCRDetection[]>` | A function that accepts an image (url, b64) and returns an array of `OCRDetection` objects. |
-| `error`            | <code>string &#124; null</code>                    | Contains the error message if the model loading failed.                                     |
-| `isGenerating`     | `boolean`                                          | Indicates whether the model is currently processing an inference.                           |
-| `isReady`          | `boolean`                                          | Indicates whether the model has successfully loaded and is ready for inference.             |
-| `downloadProgress` | `number`                                           | Represents the download progress as a value between 0 and 1.                                |
+`useOCR` returns an object called `OCRType` containing bunch of functions to interact with OCR models. To get more details please read: [`OCRType` API Reference](../../06-api-reference/interfaces/OCRType.md).
 
 ## Running the model
 
@@ -193,72 +105,7 @@ You need to make sure the recognizer model you pass in `recognizerSource` matche
 
 ## Supported languages
 
-|      Language      | Code Name  |
-| :----------------: | :--------: |
-|       Abaza        |    abq     |
-|       Adyghe       |    ady     |
-|      Africans      |     af     |
-|        Avar        |    ava     |
-|    Azerbaijani     |     az     |
-|     Belarusian     |     be     |
-|     Bulgarian      |     bg     |
-|      Bosnian       |     bs     |
-| Simplified Chinese |   chSim    |
-|      Chechen       |    che     |
-|       Chech        |     cs     |
-|       Welsh        |     cy     |
-|       Danish       |     da     |
-|       Dargwa       |    dar     |
-|       German       |     de     |
-|      English       |     en     |
-|      Spanish       |     es     |
-|      Estonian      |     et     |
-|       French       |     fr     |
-|       Irish        |     ga     |
-|      Croatian      |     hr     |
-|     Hungarian      |     hu     |
-|     Indonesian     |     id     |
-|       Ingush       |    inh     |
-|     Icelandic      |     ic     |
-|      Italian       |     it     |
-|      Japanese      |     ja     |
-|     Karbadian      |    kbd     |
-|      Kannada       |     kn     |
-|       Korean       |     ko     |
-|      Kurdish       |     ku     |
-|       Latin        |     la     |
-|        Lak         |    lbe     |
-|      Lezghian      |    lez     |
-|     Lithuanian     |     lt     |
-|      Latvian       |     lv     |
-|       Maori        |     mi     |
-|     Mongolian      |     mn     |
-|       Malay        |     ms     |
-|      Maltese       |     mt     |
-|       Dutch        |     nl     |
-|     Norwegian      |     no     |
-|      Occitan       |     oc     |
-|        Pali        |     pi     |
-|       Polish       |     pl     |
-|     Portuguese     |     pt     |
-|      Romanian      |     ro     |
-|      Russian       |     ru     |
-| Serbian (Cyrillic) | rsCyrillic |
-|  Serbian (Latin)   |  rsLatin   |
-|       Slovak       |     sk     |
-|     Slovenian      |     sl     |
-|      Albanian      |     sq     |
-|      Swedish       |     sv     |
-|      Swahili       |     sw     |
-|     Tabassaran     |    tab     |
-|       Telugu       |     te     |
-|        Thai        |     th     |
-|       Tajik        |    tjk     |
-|      Tagalog       |     tl     |
-|      Turkish       |     tr     |
-|     Ukrainian      |     uk     |
-|       Uzbek        |     uz     |
-|     Vietnamese     |     vi     |
+For all alphabets available in ocr out-of-the-box in React Native ExecuTorch see: [OCR Supported Alphabets](../../06-api-reference/index.md#ocr-supported-alphabets).
 
 ## Supported models
 

@@ -8,6 +8,11 @@ Voice Activity Detection (VAD) is the task of analyzing an audio signal to ident
 It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-fsmn-vad). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
 :::
 
+## API Reference
+
+* For detailed API Reference for `useVAD` see: [`useVAD` API Reference](../../06-api-reference/functions/useVAD.md).
+* For all VAD models available out-of-the-box in React Native ExecuTorch see: [VAD Models](../../06-api-reference/index.md#models---voice-activity-detection).
+
 ## Reference
 
 You can obtain waveform from audio in any way most suitable to you, however in the snippet below we utilize `react-native-audio-api` library to process a `.mp3` file.
@@ -43,35 +48,19 @@ try {
 
 ### Arguments
 
-**`model`** - Object containing the model source.
+`useVAD` takes [`VADProps`](../../06-api-reference/interfaces/VADProps.md) that consists of:
+* `model` containing [`modelSource`](../../06-api-reference/interfaces/VADProps.md#modelsource). 
+* An optional flag [`preventLoad`](../../06-api-reference/interfaces/VADProps.md#preventload) which prevents auto-loading of the model.
 
-- **`modelSource`** - A string that specifies the location of the model binary.
-
-**`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
-
-For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+You need more details? Check the following resources:
+* For detailed information about `useVAD` arguments check this section: [`useVAD` arguments](../../06-api-reference/functions/useVAD.md#parameters).
+* For all VAD models available out-of-the-box in React Native ExecuTorch see: [VAD Models](../../06-api-reference/index.md#models---voice-activity-detection).
+* For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
-| Field              | Type                                               | Description                                                                                                                                     |
-| ------------------ | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `forward`          | `(waveform: Float32Array) => Promise<{Segment[]}>` | Executes the model's forward pass, where input array should be a waveform at 16kHz. Returns a promise containing an array of `Segment` objects. |
-| `error`            | <code>string &#124; null</code>                    | Contains the error message if the model failed to load.                                                                                         |
-| `isGenerating`     | `boolean`                                          | Indicates whether the model is currently processing an inference.                                                                               |
-| `isReady`          | `boolean`                                          | Indicates whether the model has successfully loaded and is ready for inference.                                                                 |
-| `downloadProgress` | `number`                                           | Represents the download progress as a value between 0 and 1.                                                                                    |
+`useVAD` returns an object called `VADType` containing bunch of functions to interact with VAD models. To get more details please read: [`VADType` API Reference](../../06-api-reference/interfaces/VADType.md).
 
-<details>
-<summary>Type definitions</summary>
-
-```typescript
-interface Segment {
-  start: number;
-  end: number;
-}
-```
-
-</details>
 ## Running the model
 
 Before running the model's `forward` method, make sure to extract the audio waveform you want to process. You'll need to handle this step yourself, ensuring the audio is sampled at 16 kHz. Once you have the waveform, pass it as an argument to the forward method. The method returns a promise that resolves to the array of detected speech segments.

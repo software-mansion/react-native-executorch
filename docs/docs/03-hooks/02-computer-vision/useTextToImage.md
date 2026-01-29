@@ -6,11 +6,14 @@ description: "Learn how to use image generation models in your React Native appl
 
 Text-to-image is a process of generating images directly from a description in natural language by conditioning a model on the provided text input. Our implementation follows the Stable Diffusion pipeline, which applies the diffusion process in a lower-dimensional latent space to reduce memory requirements. The pipeline combines a text encoder to preprocess the prompt, a U-Net that iteratively denoises latent representations, and a VAE decoder to reconstruct the final image. React Native ExecuTorch offers a dedicated hook, `useTextToImage`, for this task.
 
-<!-- Update links after uploading the model to Swm HuggingFace -->
-
 :::warning
 It is recommended to use models provided by us which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/text-to-image-68d0edf50ae6d20b5f9076cd), you can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
 :::
+
+## API Reference
+
+* For detailed API Reference for `useTextToImage` see: [`useTextToImage` API Reference](../../06-api-reference/functions/useTextToImage.md).
+* For all text to image models available out-of-the-box in React Native ExecuTorch see: [Text to Image Models](../../06-api-reference/index.md#models---image-generation).
 
 ## Reference
 
@@ -30,32 +33,19 @@ try {
 
 ### Arguments
 
-**`model`** - Object containing the model source.
+`useTextToImage` takes [`TextToImageProps`](../../06-api-reference/interfaces/TextToImageProps.md) that consists of:
+* `model` containing [`schedulerSource`](../../06-api-reference/interfaces/TextToImageProps.md#schedulersource), [`tokenizerSource`](../../06-api-reference/interfaces/TextToImageProps.md#tokenizersource), [`encoderSource`](../../06-api-reference/interfaces/TextToImageProps.md#encodersource), [`unetSource`](../../06-api-reference/interfaces/TextToImageProps.md#unetsource), and [`decoderSource`](../../06-api-reference/interfaces/TextToImageProps.md#decodersource).
+* An inference callback [`inferenceCallback`](../../06-api-reference/interfaces/TextToImageProps.md#inferencecallback).
+* An optional flag [`preventLoad`](../../06-api-reference/interfaces/TextToImageProps.md#preventload) which prevents auto-loading of the model.
 
-- **`schedulerSource`** - A string that specifies the location of the scheduler config.
-
-- **`tokenizerSource`** - A string that specifies the location of the tokenizer config.
-
-- **`encoderSource`** - A string that specifies the location of the text encoder binary.
-
-- **`unetSource`** - A string that specifies the location of the U-Net binary.
-
-- **`decoderSource`** - A string that specifies the location of the VAE decoder binary.
-
-**`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
-
-For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+You need more details? Check the following resources:
+* For detailed information about `useTextToImage` arguments check this section: [`useTextToImage` arguments](../../06-api-reference/functions/useTextToImage.md#parameters).
+* For all text to image models available out-of-the-box in React Native ExecuTorch see: [Text to Image Models](../../06-api-reference/index.md#models---image-generation).
+* For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
-| Field              | Type                                                                                       | Description                                                                                                                                                                                                                              |
-| ------------------ | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `generate`         | `(input: string, imageSize?: number, numSteps?: number, seed?: number) => Promise<string>` | Runs the model to generate an image described by `input`, and conditioned by `seed`, performing `numSteps` inference steps. The resulting image, with dimensions `imageSize`×`imageSize` pixels, is returned as a base64-encoded string. |
-| `error`            | <code>string &#124; null</code>                                                            | Contains the error message if the model failed to load.                                                                                                                                                                                  |
-| `isGenerating`     | `boolean`                                                                                  | Indicates whether the model is currently processing an inference.                                                                                                                                                                        |
-| `isReady`          | `boolean`                                                                                  | Indicates whether the model has successfully loaded and is ready for inference.                                                                                                                                                          |
-| `downloadProgress` | `number`                                                                                   | Represents the download progress as a value between 0 and 1.                                                                                                                                                                             |
-| `interrupt()`      | `() => void`                                                                               | Interrupts the current inference. The model is stopped in the nearest inference step.                                                                                                                                                    |
+`useTextToImage` returns an object called `TextToImageType` containing bunch of functions to interact with text to image models. To get more details please read: [`TextToImageType` API Reference](../../06-api-reference/interfaces/TextToImageType.md).
 
 ## Running the model
 

@@ -2,6 +2,27 @@ import { RnExecutorchError } from '../errors/errorUtils';
 import { ResourceSource } from '../types/common';
 
 /**
+ * Props for the useTextEmbeddings hook.
+ * 
+ * @category Types
+ * @property {Object} model - An object containing the model and tokenizer sources.
+ * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+ */
+export interface TextEmbeddingsProps {
+  model: {
+    /**
+     * The source of the text embeddings model binary.
+     */
+    modelSource: ResourceSource;
+    /**
+     * The source of the tokenizer JSON file.
+     */
+    tokenizerSource: ResourceSource;
+  };
+  preventLoad?: boolean;
+}
+
+/**
  * React hook state and methods for managing a Text Embeddings model instance.
  * 
  * @category Types
@@ -34,25 +55,4 @@ export interface TextEmbeddingsType {
    * @throws {RnExecutorchError} If the model is not loaded or is currently processing another request.
    */
   forward(input: string): Promise<Float32Array>;
-}
-
-/**
- * Props for the useTextEmbeddings hook.
- * 
- * @category Types
- * @property {Object} model - An object containing the model and tokenizer sources.
- * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
- */
-export interface TextEmbeddingsProps {
-  model: {
-    /**
-     * The source of the text embeddings model binary.
-     */
-    modelSource: ResourceSource;
-    /**
-     * The source of the tokenizer JSON file.
-     */
-    tokenizerSource: ResourceSource;
-  };
-  preventLoad?: boolean;
 }

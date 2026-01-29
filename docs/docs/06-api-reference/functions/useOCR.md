@@ -2,7 +2,7 @@
 
 > **useOCR**(`OCRProps`): [`OCRType`](../interfaces/OCRType.md)
 
-Defined in: [packages/react-native-executorch/src/hooks/computer\_vision/useOCR.ts:13](https://github.com/software-mansion/react-native-executorch/blob/fb8c4994a25bab9bbad2c87a565a246cf0b7c346/packages/react-native-executorch/src/hooks/computer_vision/useOCR.ts#L13)
+Defined in: [packages/react-native-executorch/src/hooks/computer\_vision/useOCR.ts:13](https://github.com/software-mansion/react-native-executorch/blob/648d3b10102df620ad27372c8991aec047665199/packages/react-native-executorch/src/hooks/computer_vision/useOCR.ts#L13)
 
 React hook for managing an OCR instance.
 

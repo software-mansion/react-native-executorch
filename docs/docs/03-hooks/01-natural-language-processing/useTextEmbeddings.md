@@ -21,6 +21,11 @@ Text Embedding is the process of converting text into a numerical representation
 It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/text-embeddings-68d0ed42f8ca0200d0283362). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
 :::
 
+## API Reference
+
+* For detailed API Reference for `useTextEmbeddings` see: [`useTextEmbeddings` API Reference](../../06-api-reference/functions/useTextEmbeddings.md).
+* For all text embeddings models available out-of-the-box in React Native ExecuTorch see: [Text Embeddings Models](../../06-api-reference/index.md#models---text-embeddings).
+
 ## Reference
 
 ```typescript
@@ -42,13 +47,13 @@ try {
 * An optional flag [`preventLoad`](../../06-api-reference/interfaces/TextEmbeddingsProps.md#preventload) which prevents auto-loading of the model.
 
 You need more details? Check the following resources:
-* For detailed information about `useTextEmbeddings` arguments check this section: [`useTextEmbeddings` arguments](../../06-api-reference/functions/useTextEmbeddings.md#parameters)
-* For all text embeddings models available out-of-the-box in React Native ExecuTorch see: [Text Embeddings Models](../../06-api-reference/index.md#models---text-embeddings)
+* For detailed information about `useTextEmbeddings` arguments check this section: [`useTextEmbeddings` arguments](../../06-api-reference/functions/useTextEmbeddings.md#parameters).
+* For all text embeddings models available out-of-the-box in React Native ExecuTorch see: [Text Embeddings Models](../../06-api-reference/index.md#models---text-embeddings).
 * For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
-`useTextEmbeddings` returns an object called `TextEmbeddingsType` containing bunch of functions to interact with STT. To get more details please read: [`TextEmbeddingsType` API Reference](../../06-api-reference/interfaces/TextEmbeddingsType.md).
+`useTextEmbeddings` returns an object called `TextEmbeddingsType` containing bunch of functions to interact with text embedding. To get more details please read: [`TextEmbeddingsType` API Reference](../../06-api-reference/interfaces/TextEmbeddingsType.md).
 
 ## Running the model
 

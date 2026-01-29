@@ -32,9 +32,9 @@ Lower-end devices might not be able to fit LLMs into memory. We recommend using 
 
 ## API Reference
 
-* For detailed API Reference for `useLLM` see: [`useLLM` API Reference](../../06-api-reference/functions/useLLM.md)
-* For all LLM models available out-of-the-box in React Native ExecuTorch see: [LLM Models](../../06-api-reference/index.md#models---lmm)
-* For useful LLM utility functionalities please refere to the following link: [LLM Utility Functionalities](../../06-api-reference/index.md#utilities---llm)
+* For detailed API Reference for `useLLM` see: [`useLLM` API Reference](../../06-api-reference/functions/useLLM.md).
+* For all LLM models available out-of-the-box in React Native ExecuTorch see: [LLM Models](../../06-api-reference/index.md#models---lmm).
+* For useful LLM utility functionalities please refere to the following link: [LLM Utility Functionalities](../../06-api-reference/index.md#utilities---llm).
 
 ## Initializing
 
@@ -52,13 +52,14 @@ The code snippet above fetches the model from the specified URL, loads it into m
 
 ### Arguments
 
-`useLLM` takes [`LLMProps`](../../06-api-reference/interfaces/SpeechToTextProps.md) that consists of:
-[model source](../../06-api-reference/functions/useLLM.md#modelmodelsource), [tokenizer source](../../06-api-reference/functions/useLLM.md#modeltokenizerconfigsource), and [tokenizer config source](../../06-api-reference/functions/useLLM.md#modeltokenizerconfigsource), and optional flag [`preventLoad`](../../06-api-reference/functions/useLLM.md#preventload) which prevents auto-loading of the model.
+`useLLM` takes [`LLMProps`](../../06-api-reference/interfaces/LLMProps.md) that consists of:
+* [model source](../../06-api-reference/interfaces/LLMProps.md#modelsource), [tokenizer source](../../06-api-reference/interfaces/LLMProps.md#tokenizersource), and [tokenizer config source](../../06-api-reference/interfaces/LLMProps.md#tokenizerconfigsource).
+* An optional flag [`preventLoad`](../../06-api-reference/interfaces/SpeechToTextProps.md#preventload) which prevents auto-loading of the model.
 
 You need more details? Check the following resources:
-* For detailed information about `useLLM` arguments check this section: [`useLLM` arguments](../../06-api-reference/functions/useLLM.md#parameters)
+* For detailed information about `useLLM` arguments check this section: [`useLLM` arguments](../../06-api-reference/functions/useLLM.md#parameters).
 * For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
-* For available LLM models please check out the following list: [LLM Models](../../06-api-reference/index.md#models---lmm)
+* For available LLM models please check out the following list: [LLM Models](../../06-api-reference/index.md#models---lmm).
 
 ### Returns
 

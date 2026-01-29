@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { TokenizerModule } from '../../modules/natural_language_processing/TokenizerModule';
-import { ResourceSource } from '../../types/common';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
-import { TokenizerType } from '../../types/tokenizer';  
+import { TokenizerProps, TokenizerType } from '../../types/tokenizer';  
 
 /**
  * React hook for managing a Tokenizer instance.
@@ -15,19 +14,7 @@ import { TokenizerType } from '../../types/tokenizer';
 export const useTokenizer = ({
   tokenizer,
   preventLoad = false,
-}: {
-  /**
-   * Object containing:
-   * 
-   * `tokenizerSource` - A `ResourceSource` that specifies the location of the tokenizer.
-   */
-  tokenizer: { tokenizerSource: ResourceSource };
-
-  /**
-   * Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
-   */
-  preventLoad?: boolean;
-}): TokenizerType => {
+}: TokenizerProps): TokenizerType => {
   const [error, setError] = useState<null | RnExecutorchError>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);

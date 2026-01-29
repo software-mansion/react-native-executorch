@@ -1,4 +1,24 @@
 import { RnExecutorchError } from '../errors/errorUtils';
+import { ResourceSource } from './common';
+
+/**
+ * Parameters for initializing and configuring a Tokenizer instance.
+ * 
+ * @category Types
+ */
+export interface TokenizerProps {
+  /**
+   * Object containing:
+   * 
+   * `tokenizerSource` - A `ResourceSource` that specifies the location of the tokenizer.
+   */
+  tokenizer: { tokenizerSource: ResourceSource };
+
+  /**
+   * Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+   */
+  preventLoad?: boolean;
+}
 
 /**
  * React hook state and methods for managing a Tokenizer instance.

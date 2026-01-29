@@ -1,6 +1,6 @@
 # Class: ImageSegmentationModule
 
-Defined in: [packages/react-native-executorch/src/modules/computer\_vision/ImageSegmentationModule.ts:13](https://github.com/software-mansion/react-native-executorch/blob/fb8c4994a25bab9bbad2c87a565a246cf0b7c346/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L13)
+Defined in: [packages/react-native-executorch/src/modules/computer\_vision/ImageSegmentationModule.ts:13](https://github.com/software-mansion/react-native-executorch/blob/648d3b10102df620ad27372c8991aec047665199/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L13)
 
 Module for image segmentation tasks.
 
@@ -28,7 +28,7 @@ Module for image segmentation tasks.
 
 > **nativeModule**: `any` = `null`
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:8](https://github.com/software-mansion/react-native-executorch/blob/fb8c4994a25bab9bbad2c87a565a246cf0b7c346/packages/react-native-executorch/src/modules/BaseModule.ts#L8)
+Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:8](https://github.com/software-mansion/react-native-executorch/blob/648d3b10102df620ad27372c8991aec047665199/packages/react-native-executorch/src/modules/BaseModule.ts#L8)
 
 Native module instance
 
@@ -42,7 +42,7 @@ Native module instance
 
 > **delete**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:41](https://github.com/software-mansion/react-native-executorch/blob/fb8c4994a25bab9bbad2c87a565a246cf0b7c346/packages/react-native-executorch/src/modules/BaseModule.ts#L41)
+Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:41](https://github.com/software-mansion/react-native-executorch/blob/648d3b10102df620ad27372c8991aec047665199/packages/react-native-executorch/src/modules/BaseModule.ts#L41)
 
 Unloads the model from memory.
 
@@ -60,7 +60,7 @@ Unloads the model from memory.
 
 > **forward**(`imageSource`, `classesOfInterest?`, `resize?`): `Promise`\<`Partial`\<`Record`\<[`DeeplabLabel`](../enumerations/DeeplabLabel.md), `number`[]\>\>\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer\_vision/ImageSegmentationModule.ts:47](https://github.com/software-mansion/react-native-executorch/blob/fb8c4994a25bab9bbad2c87a565a246cf0b7c346/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L47)
+Defined in: [packages/react-native-executorch/src/modules/computer\_vision/ImageSegmentationModule.ts:47](https://github.com/software-mansion/react-native-executorch/blob/648d3b10102df620ad27372c8991aec047665199/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L47)
 
 Executes the model's forward pass
 
@@ -96,7 +96,7 @@ A dictionary where keys are `DeeplabLabel` and values are arrays of probabilitie
 
 > `protected` **forwardET**(`inputTensor`): `Promise`\<[`TensorPtr`](../interfaces/TensorPtr.md)[]\>
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:23](https://github.com/software-mansion/react-native-executorch/blob/fb8c4994a25bab9bbad2c87a565a246cf0b7c346/packages/react-native-executorch/src/modules/BaseModule.ts#L23)
+Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:23](https://github.com/software-mansion/react-native-executorch/blob/648d3b10102df620ad27372c8991aec047665199/packages/react-native-executorch/src/modules/BaseModule.ts#L23)
 
 Runs the model's forward method with the given input tensors.
 It returns the output tensors that mimic the structure of output from ExecuTorch.
@@ -125,7 +125,7 @@ Array of output tensors.
 
 > **getInputShape**(`methodName`, `index`): `Promise`\<`number`[]\>
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:34](https://github.com/software-mansion/react-native-executorch/blob/fb8c4994a25bab9bbad2c87a565a246cf0b7c346/packages/react-native-executorch/src/modules/BaseModule.ts#L34)
+Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:34](https://github.com/software-mansion/react-native-executorch/blob/648d3b10102df620ad27372c8991aec047665199/packages/react-native-executorch/src/modules/BaseModule.ts#L34)
 
 Gets the input shape for a given method and index.
 
@@ -159,7 +159,7 @@ The input shape as an array of numbers.
 
 > **load**(`model`, `onDownloadProgressCallback`): `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer\_vision/ImageSegmentationModule.ts:22](https://github.com/software-mansion/react-native-executorch/blob/fb8c4994a25bab9bbad2c87a565a246cf0b7c346/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L22)
+Defined in: [packages/react-native-executorch/src/modules/computer\_vision/ImageSegmentationModule.ts:22](https://github.com/software-mansion/react-native-executorch/blob/648d3b10102df620ad27372c8991aec047665199/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L22)
 
 Loads the model, where `modelSource` is a string that specifies the location of the model binary. 
 To track the download progress, supply a callback function `onDownloadProgressCallback`.

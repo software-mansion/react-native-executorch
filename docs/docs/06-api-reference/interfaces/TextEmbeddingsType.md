@@ -1,6 +1,6 @@
 # Interface: TextEmbeddingsType
 
-Defined in: [packages/react-native-executorch/src/types/textEmbeddings.ts:9](https://github.com/software-mansion/react-native-executorch/blob/fb8c4994a25bab9bbad2c87a565a246cf0b7c346/packages/react-native-executorch/src/types/textEmbeddings.ts#L9)
+Defined in: [packages/react-native-executorch/src/types/textEmbeddings.ts:30](https://github.com/software-mansion/react-native-executorch/blob/648d3b10102df620ad27372c8991aec047665199/packages/react-native-executorch/src/types/textEmbeddings.ts#L30)
 
 React hook state and methods for managing a Text Embeddings model instance.
 
@@ -10,7 +10,7 @@ React hook state and methods for managing a Text Embeddings model instance.
 
 > **downloadProgress**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/textEmbeddings.ts:28](https://github.com/software-mansion/react-native-executorch/blob/fb8c4994a25bab9bbad2c87a565a246cf0b7c346/packages/react-native-executorch/src/types/textEmbeddings.ts#L28)
+Defined in: [packages/react-native-executorch/src/types/textEmbeddings.ts:49](https://github.com/software-mansion/react-native-executorch/blob/648d3b10102df620ad27372c8991aec047665199/packages/react-native-executorch/src/types/textEmbeddings.ts#L49)
 
 Tracks the progress of the model download process (value between 0 and 1).
 
@@ -20,7 +20,7 @@ Tracks the progress of the model download process (value between 0 and 1).
 
 > **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
 
-Defined in: [packages/react-native-executorch/src/types/textEmbeddings.ts:13](https://github.com/software-mansion/react-native-executorch/blob/fb8c4994a25bab9bbad2c87a565a246cf0b7c346/packages/react-native-executorch/src/types/textEmbeddings.ts#L13)
+Defined in: [packages/react-native-executorch/src/types/textEmbeddings.ts:34](https://github.com/software-mansion/react-native-executorch/blob/648d3b10102df620ad27372c8991aec047665199/packages/react-native-executorch/src/types/textEmbeddings.ts#L34)
 
 Contains the error message if the model failed to load or during inference.
 
@@ -30,7 +30,7 @@ Contains the error message if the model failed to load or during inference.
 
 > **isGenerating**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/textEmbeddings.ts:23](https://github.com/software-mansion/react-native-executorch/blob/fb8c4994a25bab9bbad2c87a565a246cf0b7c346/packages/react-native-executorch/src/types/textEmbeddings.ts#L23)
+Defined in: [packages/react-native-executorch/src/types/textEmbeddings.ts:44](https://github.com/software-mansion/react-native-executorch/blob/648d3b10102df620ad27372c8991aec047665199/packages/react-native-executorch/src/types/textEmbeddings.ts#L44)
 
 Indicates whether the model is currently generating embeddings.
 
@@ -40,7 +40,7 @@ Indicates whether the model is currently generating embeddings.
 
 > **isReady**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/textEmbeddings.ts:18](https://github.com/software-mansion/react-native-executorch/blob/fb8c4994a25bab9bbad2c87a565a246cf0b7c346/packages/react-native-executorch/src/types/textEmbeddings.ts#L18)
+Defined in: [packages/react-native-executorch/src/types/textEmbeddings.ts:39](https://github.com/software-mansion/react-native-executorch/blob/648d3b10102df620ad27372c8991aec047665199/packages/react-native-executorch/src/types/textEmbeddings.ts#L39)
 
 Indicates whether the embeddings model has successfully loaded and is ready for inference.
 
@@ -50,7 +50,7 @@ Indicates whether the embeddings model has successfully loaded and is ready for 
 
 > **forward**(`input`): `Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [packages/react-native-executorch/src/types/textEmbeddings.ts:36](https://github.com/software-mansion/react-native-executorch/blob/fb8c4994a25bab9bbad2c87a565a246cf0b7c346/packages/react-native-executorch/src/types/textEmbeddings.ts#L36)
+Defined in: [packages/react-native-executorch/src/types/textEmbeddings.ts:57](https://github.com/software-mansion/react-native-executorch/blob/648d3b10102df620ad27372c8991aec047665199/packages/react-native-executorch/src/types/textEmbeddings.ts#L57)
 
 Runs the text embeddings model on the provided input string.
 

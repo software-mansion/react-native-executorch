@@ -12,6 +12,11 @@ Usually, the class with the highest probability is the one that is assigned to a
 It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/classification-68d0ea49b5c7de8a3cae1e68). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
 :::
 
+## API Reference
+
+* For detailed API Reference for `useClassification` see: [`useClassification` API Reference](../../06-api-reference/functions/useClassification.md).
+* For all classification models available out-of-the-box in React Native ExecuTorch see: [Classification Models](../../06-api-reference/index.md#models---classification).
+
 ## Reference
 
 ```typescript
@@ -30,23 +35,18 @@ try {
 
 ### Arguments
 
-**`model`** - Object containing the model source.
+`useClassification` takes [`ClassificationProps`](../../06-api-reference/interfaces/ClassificationProps.md) that consists of:
+* `model` containing [`modelSource`](../../06-api-reference/interfaces/ClassificationProps.md#modelsource). 
+* An optional flag [`preventLoad`](../../06-api-reference/interfaces/ClassificationProps.md#preventload) which prevents auto-loading of the model.
 
-- **`modelSource`** - A string that specifies the location of the model binary.
-
-**`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
-
-For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+You need more details? Check the following resources:
+* For detailed information about `useClassification` arguments check this section: [`useClassification` arguments](../../06-api-reference/functions/useClassification.md#parameters).
+* For all classification models available out-of-the-box in React Native ExecuTorch see: [Classification Models](../../06-api-reference/index.md#models---classification).
+* For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
-| Field              | Type                                                               | Description                                                                                                    |
-| ------------------ | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| `forward`          | `(imageSource: string) => Promise<{ [category: string]: number }>` | Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string. |
-| `error`            | <code>string &#124; null</code>                                    | Contains the error message if the model failed to load.                                                        |
-| `isGenerating`     | `boolean`                                                          | Indicates whether the model is currently processing an inference.                                              |
-| `isReady`          | `boolean`                                                          | Indicates whether the model has successfully loaded and is ready for inference.                                |
-| `downloadProgress` | `number`                                                           | Represents the download progress as a value between 0 and 1.                                                   |
+`useClassification` returns an object called `ClassificationType` containing bunch of functions to interact with Classification models. To get more details please read: [`ClassificationType` API Reference](../../06-api-reference/interfaces/ClassificationType.md).
 
 ## Running the model
 

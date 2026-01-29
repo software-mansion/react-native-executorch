@@ -6,7 +6,7 @@ import { ResourceSource } from '../types/common';
  * 
  * @category Types
  */
-export interface TextToImageParams {
+export interface TextToImageProps {
   /**
    * Object containing the required model sources for the diffusion pipeline.
    */

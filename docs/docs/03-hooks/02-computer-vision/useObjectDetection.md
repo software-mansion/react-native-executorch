@@ -9,6 +9,11 @@ Object detection is a computer vision technique that identifies and locates obje
 It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/object-detection-68d0ea936cd0906843cbba7d). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
 :::
 
+## API Reference
+
+* For detailed API Reference for `useObjectDetection` see: [`useObjectDetection` API Reference](../../06-api-reference/functions/useObjectDetection.md).
+* For all object detection models available out-of-the-box in React Native ExecuTorch see: [Object Detection Models](../../06-api-reference/index.md#models---object-detection).
+
 ## Reference
 
 ```tsx
@@ -30,47 +35,20 @@ function App() {
 }
 ```
 
-<details>
-<summary>Type definitions</summary>
-
-```typescript
-interface Bbox {
-  x1: number;
-  x2: number;
-  y1: number;
-  y2: number;
-}
-
-interface Detection {
-  bbox: Bbox;
-  label: keyof typeof CocoLabel;
-  score: number;
-}
-```
-
-</details>
-
 ### Arguments
 
-**`model`** - Object containing the model source.
+`useObjectDetection` takes [`ObjectDetectionProps`](../../06-api-reference/interfaces/ObjectDetectionProps.md) that consists of:
+* `model` containing [`modelSource`](../../06-api-reference/interfaces/ObjectDetectionProps.md#modelsource). 
+* An optional flag [`preventLoad`](../../06-api-reference/interfaces/ObjectDetectionProps.md#preventload) which prevents auto-loading of the model.
 
-- **`modelSource`** - A string that specifies the path to the model file. You can download the model from our [HuggingFace repository](https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large/tree/main).
-
-**`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
-
-For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+You need more details? Check the following resources:
+* For detailed information about `useObjectDetection` arguments check this section: [`useObjectDetection` arguments](../../06-api-reference/functions/useObjectDetection.md#parameters).
+* For all object detection models available out-of-the-box in React Native ExecuTorch see: [Object Detection Models](../../06-api-reference/index.md#models---object-detection).
+* For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
-The hook returns an object with the following properties:
-
-| Field              | Type                                                                              | Description                                                                                                                                                              |
-| ------------------ | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `forward`          | `(imageSource: string, detectionThreshold: number = 0.7) => Promise<Detection[]>` | A function that accepts an image (url, b64) and returns an array of `Detection` objects. `detectionThreshold` can be supplied to alter the sensitivity of the detection. |
-| `error`            | <code>string &#124; null</code>                                                   | Contains the error message if the model loading failed.                                                                                                                  |
-| `isGenerating`     | `boolean`                                                                         | Indicates whether the model is currently processing an inference.                                                                                                        |
-| `isReady`          | `boolean`                                                                         | Indicates whether the model has successfully loaded and is ready for inference.                                                                                          |
-| `downloadProgress` | `number`                                                                          | Represents the download progress as a value between 0 and 1.                                                                                                             |
+`useObjectDetection` returns an object called `ObjectDetectionType` containing bunch of functions to interact with object detection models. To get more details please read: [`ObjectDetectionType` API Reference](../../06-api-reference/interfaces/ObjectDetectionType.md).
 
 ## Running the model
 

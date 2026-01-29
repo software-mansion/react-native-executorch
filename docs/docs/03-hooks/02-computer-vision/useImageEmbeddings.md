@@ -22,6 +22,11 @@ Image Embedding is the process of converting an image into a numerical represent
 It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/image-embeddings-68d0eda599a9d37caaaf1ad0). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
 :::
 
+## API Reference
+
+* For detailed API Reference for `useImageEmbeddings` see: [`useImageEmbeddings` API Reference](../../06-api-reference/functions/useImageEmbeddings.md).
+* For all image embeddings models available out-of-the-box in React Native ExecuTorch see: [Image Embeddings Models](../../06-api-reference/index.md#models---image-embeddings).
+
 ## Reference
 
 ```typescript
@@ -41,23 +46,18 @@ try {
 
 ### Arguments
 
-**`model`** - Object containing the model source.
+`useImageEmbeddings` takes [`ImageEmbeddingsProps`](../../06-api-reference/interfaces/ImageEmbeddingsProps.md) that consists of:
+* `model` containing [`modelSource`](../../06-api-reference/interfaces/ImageEmbeddingsProps.md#modelsource). 
+* An optional flag [`preventLoad`](../../06-api-reference/interfaces/ImageEmbeddingsProps.md#preventload) which prevents auto-loading of the model.
 
-- **`modelSource`** - A string that specifies the location of the model binary.
-
-**`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
-
-For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+You need more details? Check the following resources:
+* For detailed information about `useImageEmbeddings` arguments check this section: [`useImageEmbeddings` arguments](../../06-api-reference/functions/useImageEmbeddings.md#parameters).
+* For all image embeddings models available out-of-the-box in React Native ExecuTorch see: [Image Embeddings Models](../../06-api-reference/index.md#models---image-embeddings).
+* For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
-| Field              | Type                                             | Description                                                                                         |
-| ------------------ | ------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
-| `forward`          | `(imageSource: string) => Promise<Float32Array>` | Executes the model's forward pass, where `imageSource` is a URI/URL to image that will be embedded. |
-| `error`            | <code>string &#124; null</code>                  | Contains the error message if the model failed to load.                                             |
-| `isGenerating`     | `boolean`                                        | Indicates whether the model is currently processing an inference.                                   |
-| `isReady`          | `boolean`                                        | Indicates whether the model has successfully loaded and is ready for inference.                     |
-| `downloadProgress` | `number`                                         | Represents the download progress as a value between 0 and 1.                                        |
+`useImageEmbeddings` returns an object called `ImageEmbeddingsType` containing bunch of functions to interact with image embeddings models. To get more details please read: [`ImageEmbeddingsType` API Reference](../../06-api-reference/interfaces/ImageEmbeddingsType.md).
 
 ## Running the model
 

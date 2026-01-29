@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { TextToImageModule } from '../../modules/computer_vision/TextToImageModule';
-import { TextToImageParams, TextToImageType } from '../../types/tti';
+import { TextToImageProps, TextToImageType } from '../../types/tti';
 
 /**
  * React hook for managing a Text to Image instance.
@@ -15,7 +15,7 @@ export const useTextToImage = ({
   model,
   inferenceCallback,
   preventLoad = false,
-}: TextToImageParams): TextToImageType => {
+}: TextToImageProps): TextToImageType => {
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
