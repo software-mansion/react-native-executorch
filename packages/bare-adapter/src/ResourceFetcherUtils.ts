@@ -7,6 +7,8 @@ import {
   DownloadStatus,
   SourceType,
   ResourceSourceExtended,
+  RnExecutorchError,
+  RnExecutorchErrorCode,
 } from 'react-native-executorch';
 import { Image } from 'react-native';
 import * as RNFS from '@dr.pogodin/react-native-fs';
@@ -82,7 +84,15 @@ export namespace ResourceFetcherUtils {
 
   export async function createDirectoryIfNoExists() {
     if (!(await checkFileExists(RNEDirectory))) {
-      await RNFS.mkdir(RNEDirectory);
+      try {
+        await RNFS.mkdir(RNEDirectory);
+      } catch (error) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.AccessFailed,
+          `Failed to create directory at ${RNEDirectory}`,
+          error
+        );
+      }
     }
   }
 

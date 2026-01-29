@@ -7,6 +7,8 @@ import {
   DownloadStatus,
   SourceType,
   ResourceSourceExtended,
+  RnExecutorchError,
+  RnExecutorchErrorCode,
 } from 'react-native-executorch';
 import { Asset } from 'expo-asset';
 
@@ -95,7 +97,15 @@ export namespace ResourceFetcherUtils {
 
   export async function createDirectoryIfNoExists() {
     if (!(await checkFileExists(RNEDirectory))) {
-      await makeDirectoryAsync(RNEDirectory, { intermediates: true });
+      try {
+        await makeDirectoryAsync(RNEDirectory, { intermediates: true });
+      } catch (error) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.AccessFailed,
+          `Failed to create directory at ${RNEDirectory}`,
+          error
+        );
+      }
     }
   }
 
