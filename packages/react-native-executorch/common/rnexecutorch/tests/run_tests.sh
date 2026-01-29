@@ -80,7 +80,7 @@ REQUIRED_LIBS=(
 # Get libc++_shared.so directly from NDK
 MONOREPO_ROOT="$PACKAGE_ROOT/../../.."
 
-LIBFBJNI_PATH=$(find "$MONOREPO_ROOT" -path "*/android/build/intermediates/cmake/*/obj/$ANDROID_ABI/libfbjni.so" -type f 2>/dev/null | head -1)
+LIBFBJNI_PATH="$SCRIPT_DIR/../integration/libs/libfbjni.so"
 
 if [ -z "$LIBFBJNI_PATH" ]; then
   echo "Error: libfbjni.so not found."
