@@ -8,6 +8,10 @@ useExecutorchModule provides React Native bindings to the ExecuTorch [Module API
 These bindings are primarily intended for custom model integration where no dedicated hook exists. If you are considering using a provided model, first verify whether a dedicated hook is available. Dedicated hooks simplify the implementation process by managing necessary pre and post-processing automatically. Utilizing these can save you effort and reduce complexity, ensuring you do not implement additional handling that is already covered.
 :::
 
+## API Reference
+
+* For detailed API Reference for `useExecutorchModule` see: [`useExecutorchModule` API Reference](../../06-api-reference/functions/useExecutorchModule.md).
+
 ## Initializing ExecuTorch Module
 
 You can initialize the ExecuTorch module in your JavaScript application using the `useExecutorchModule` hook. This hook facilitates the loading of models from the specified source and prepares them for use.
@@ -26,80 +30,27 @@ For more information on loading resources, take a look at [loading models](../..
 
 ### Arguments
 
-**`modelSource`** - A string that specifies the location of the model binary.
+`useExecutorchModule` takes [`ExecutorchModuleProps`](../../06-api-reference/interfaces/ExecutorchModuleProps.md) that consists of:
+* `model` containing [`modelSource`](../../06-api-reference/interfaces/ExecutorchModuleProps.md#modelsource). 
+* An optional flag [`preventLoad`](../../06-api-reference/interfaces/ExecutorchModuleProps.md#preventload) which prevents auto-loading of the model.
 
-**`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+You need more details? Check the following resources:
+* For detailed information about `useExecutorchModule` arguments check this section: [`useExecutorchModule` arguments](../../06-api-reference/functions/useExecutorchModule.md#parameters).
+* For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
-|       Field        |                      Type                      |                                                                         Description                                                                         |
-| :----------------: | :--------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------: |
-|      `error`       |        <code>string &#124; null</code>         |                                                   Contains the error message if the model failed to load.                                                   |
-|   `isGenerating`   |                   `boolean`                    |                                              Indicates whether the model is currently processing an inference.                                              |
-|     `isReady`      |                   `boolean`                    |                                       Indicates whether the model has successfully loaded and is ready for inference.                                       |
-|     `forward`      | `(input: TensorPtr[]) => Promise<TensorPtr[]>` | Executes the model's forward pass, where `input` is an array of TensorPtr objects. If the inference is successful, an array of tensor pointers is returned. |
-| `downloadProgress` |                    `number`                    |                                                Represents the download progress as a value between 0 and 1.                                                 |
+`useExecutorchModule` returns an object called `ExecutorchModuleType` containing bunch of functions to interact with arbitrarly chosen models. To get more details please read: [`ExecutorchModuleType` API Reference](../../06-api-reference/interfaces/ExecutorchModuleType.md).
 
 ## TensorPtr
 
-TensorPtr is a JS representation of the underlying tensor, which is then passed to the model. You can read more about creating tensors [here](https://docs.pytorch.org/executorch/stable/extension-tensor.html). On JS side, the TensorPtr holds the following information:
+[`TensorPtr`](../../06-api-reference/interfaces/TensorPtr.md) is a JS representation of the underlying tensor, which is then passed to the model. You can read more about creating tensors [here](https://docs.pytorch.org/executorch/stable/extension-tensor.html). On JS side, the TensorPtr holds the following information:
 
-<details>
-<summary>Type definitions</summary>
+[`dataPtr`](../../06-api-reference/interfaces/TensorPtr.md#dataptr) - Represents a data buffer that will be used to create a tensor on the native side. This can be either an `ArrayBuffer` or a `TypedArray`. If your model takes in a datatype which is not covered by any of the `TypedArray` types, just pass an `ArrayBuffer` here.
 
-```typescript
-interface TensorPtr {
-  dataPtr: TensorBuffer;
-  sizes: number[];
-  scalarType: ScalarType;
-}
+[`sizes`](../../06-api-reference/interfaces/TensorPtr.md#sizes) - Represents a shape of a given tensor, i.e. for a 640x640 RGB image with a batch size of 1, you would need to pass `[1, 3, 640, 640]` here.
 
-type TensorBuffer =
-  | ArrayBuffer
-  | Float32Array
-  | Float64Array
-  | Int8Array
-  | Int16Array
-  | Int32Array
-  | Uint8Array
-  | Uint16Array
-  | Uint32Array
-  | BigInt64Array
-  | BigUint64Array;
-
-enum ScalarType {
-  BYTE = 0,
-  CHAR = 1,
-  SHORT = 2,
-  INT = 3,
-  LONG = 4,
-  HALF = 5,
-  FLOAT = 6,
-  DOUBLE = 7,
-  BOOL = 11,
-  QINT8 = 12,
-  QUINT8 = 13,
-  QINT32 = 14,
-  QUINT4X2 = 16,
-  QUINT2X4 = 17,
-  BITS16 = 22,
-  FLOAT8E5M2 = 23,
-  FLOAT8E4M3FN = 24,
-  FLOAT8E5M2FNUZ = 25,
-  FLOAT8E4M3FNUZ = 26,
-  UINT16 = 27,
-  UINT32 = 28,
-  UINT64 = 29,
-}
-```
-
-</details>
-
-`dataPtr` - Represents a data buffer that will be used to create a tensor on the native side. This can be either an `ArrayBuffer` or a `TypedArray`. If your model takes in a datatype which is not covered by any of the `TypedArray` types, just pass an `ArrayBuffer` here.
-
-`sizes` - Represents a shape of a given tensor, i.e. for a 640x640 RGB image with a batch size of 1, you would need to pass `[1, 3, 640, 640]` here.
-
-`scalarType` - An enum resembling the ExecuTorch's `ScalarType`. For example, if your model was exported with float32 as an input, you will need to pass `ScalarType.FLOAT` here.
+[`scalarType`](../../06-api-reference/interfaces/TensorPtr.md#scalartype) - An enum resembling the ExecuTorch's `ScalarType`. For example, if your model was exported with float32 as an input, you will need to pass `ScalarType.FLOAT` here.
 
 ## End to end example
 

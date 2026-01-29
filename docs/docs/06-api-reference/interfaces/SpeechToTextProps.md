@@ -1,6 +1,6 @@
 # Interface: SpeechToTextProps
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:9](https://github.com/software-mansion/react-native-executorch/blob/648d3b10102df620ad27372c8991aec047665199/packages/react-native-executorch/src/types/stt.ts#L9)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:9](https://github.com/software-mansion/react-native-executorch/blob/7d713f1325a78449d56d2e9931c3ba580ce67027/packages/react-native-executorch/src/types/stt.ts#L9)
 
 Configuration for Speech to Text model.
 
@@ -10,7 +10,7 @@ Configuration for Speech to Text model.
 
 > **model**: [`SpeechToTextModelConfig`](SpeechToTextModelConfig.md)
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:13](https://github.com/software-mansion/react-native-executorch/blob/648d3b10102df620ad27372c8991aec047665199/packages/react-native-executorch/src/types/stt.ts#L13)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:13](https://github.com/software-mansion/react-native-executorch/blob/7d713f1325a78449d56d2e9931c3ba580ce67027/packages/react-native-executorch/src/types/stt.ts#L13)
 
 Configuration object containing model sources.
 
@@ -20,6 +20,6 @@ Configuration object containing model sources.
 
 > `optional` **preventLoad**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:17](https://github.com/software-mansion/react-native-executorch/blob/648d3b10102df620ad27372c8991aec047665199/packages/react-native-executorch/src/types/stt.ts#L17)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:17](https://github.com/software-mansion/react-native-executorch/blob/7d713f1325a78449d56d2e9931c3ba580ce67027/packages/react-native-executorch/src/types/stt.ts#L17)
 
 Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.

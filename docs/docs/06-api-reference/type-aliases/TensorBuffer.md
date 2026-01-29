@@ -2,6 +2,6 @@
 
 > **TensorBuffer** = `ArrayBuffer` \| `Float32Array` \| `Float64Array` \| `Int8Array` \| `Int16Array` \| `Int32Array` \| `Uint8Array` \| `Uint16Array` \| `Uint32Array` \| `BigInt64Array` \| `BigUint64Array`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:113](https://github.com/software-mansion/react-native-executorch/blob/648d3b10102df620ad27372c8991aec047665199/packages/react-native-executorch/src/types/common.ts#L113)
+Defined in: [packages/react-native-executorch/src/types/common.ts:113](https://github.com/software-mansion/react-native-executorch/blob/7d713f1325a78449d56d2e9931c3ba580ce67027/packages/react-native-executorch/src/types/common.ts#L113)
 
 Represents the data buffer of a tensor, which can be one of several typed array formats.

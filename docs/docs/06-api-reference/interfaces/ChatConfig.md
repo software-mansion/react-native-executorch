@@ -1,6 +1,6 @@
 # Interface: ChatConfig
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:209](https://github.com/software-mansion/react-native-executorch/blob/648d3b10102df620ad27372c8991aec047665199/packages/react-native-executorch/src/types/llm.ts#L209)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:209](https://github.com/software-mansion/react-native-executorch/blob/7d713f1325a78449d56d2e9931c3ba580ce67027/packages/react-native-executorch/src/types/llm.ts#L209)
 
 Object configuring chat management.
 
@@ -10,7 +10,7 @@ Object configuring chat management.
 
 > **contextWindowLength**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:211](https://github.com/software-mansion/react-native-executorch/blob/648d3b10102df620ad27372c8991aec047665199/packages/react-native-executorch/src/types/llm.ts#L211)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:211](https://github.com/software-mansion/react-native-executorch/blob/7d713f1325a78449d56d2e9931c3ba580ce67027/packages/react-native-executorch/src/types/llm.ts#L211)
 
 The number of messages from the current conversation that the model will use to generate a response. The higher the number, the more context the model will have. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
 
@@ -20,7 +20,7 @@ The number of messages from the current conversation that the model will use to 
 
 > **initialMessageHistory**: [`Message`](Message.md)[]
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:210](https://github.com/software-mansion/react-native-executorch/blob/648d3b10102df620ad27372c8991aec047665199/packages/react-native-executorch/src/types/llm.ts#L210)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:210](https://github.com/software-mansion/react-native-executorch/blob/7d713f1325a78449d56d2e9931c3ba580ce67027/packages/react-native-executorch/src/types/llm.ts#L210)
 
 An array of `Message` objects that represent the conversation history. This can be used to provide initial context to the model.
 
@@ -30,6 +30,6 @@ An array of `Message` objects that represent the conversation history. This can 
 
 > **systemPrompt**: `string`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:212](https://github.com/software-mansion/react-native-executorch/blob/648d3b10102df620ad27372c8991aec047665199/packages/react-native-executorch/src/types/llm.ts#L212)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:212](https://github.com/software-mansion/react-native-executorch/blob/7d713f1325a78449d56d2e9931c3ba580ce67027/packages/react-native-executorch/src/types/llm.ts#L212)
 
 Often used to tell the model what is its purpose, for example - "Be a helpful translator".
