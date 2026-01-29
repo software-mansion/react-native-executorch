@@ -37,25 +37,18 @@ try {
 
 ### Arguments
 
-**`model`** - Object containing the model source and tokenizer source.
+`useTextEmbeddings` takes [`TextEmbeddingsProps`](../../06-api-reference/interfaces/TextEmbeddingsProps.md) that consists of:
+* `model` of type `object` containing the [model source](../../06-api-reference/interfaces/TextEmbeddingsProps.md#modelsource) and [tokenizer source](../../06-api-reference/interfaces/TextEmbeddingsProps.md#tokenizersource). 
+* An optional flag [`preventLoad`](../../06-api-reference/interfaces/TextEmbeddingsProps.md#preventload) which prevents auto-loading of the model.
 
-- **`modelSource`** - A string that specifies the location of the model binary.
-
-- **`tokenizerSource`** - A string that specifies the location of the tokenizer JSON file.
-
-**`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
-
-For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+You need more details? Check the following resources:
+* For detailed information about `useTextEmbeddings` arguments check this section: [`useTextEmbeddings` arguments](../../06-api-reference/functions/useTextEmbeddings.md#parameters)
+* For all text embeddings models available out-of-the-box in React Native ExecuTorch see: [Text Embeddings Models](../../06-api-reference/index.md#models---text-embeddings)
+* For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
-| Field              | Type                                   | Description                                                                       |
-| ------------------ | -------------------------------------- | --------------------------------------------------------------------------------- |
-| `forward`          | `(input: string) => Promise<number[]>` | Executes the model's forward pass, where `input` is a text that will be embedded. |
-| `error`            | <code>string &#124; null</code>        | Contains the error message if the model failed to load.                           |
-| `isGenerating`     | `boolean`                              | Indicates whether the model is currently processing an inference.                 |
-| `isReady`          | `boolean`                              | Indicates whether the model has successfully loaded and is ready for inference.   |
-| `downloadProgress` | `number`                               | Represents the download progress as a value between 0 and 1.                      |
+`useTextEmbeddings` returns an object called `TextEmbeddingsType` containing bunch of functions to interact with STT. To get more details please read: [`TextEmbeddingsType` API Reference](../../06-api-reference/interfaces/TextEmbeddingsType.md).
 
 ## Running the model
 

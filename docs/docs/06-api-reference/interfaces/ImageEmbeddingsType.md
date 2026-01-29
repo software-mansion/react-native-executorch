@@ -1,6 +1,6 @@
 # Interface: ImageEmbeddingsType
 
-Defined in: [packages/react-native-executorch/src/types/imageEmbeddings.ts:23](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/imageEmbeddings.ts#L23)
+Defined in: [packages/react-native-executorch/src/types/imageEmbeddings.ts:23](https://github.com/software-mansion/react-native-executorch/blob/fb8c4994a25bab9bbad2c87a565a246cf0b7c346/packages/react-native-executorch/src/types/imageEmbeddings.ts#L23)
 
 Return type for the `useImageEmbeddings` hook.
 Manages the state and operations for generating image embeddings (feature vectors) used in Computer Vision tasks.
@@ -11,7 +11,7 @@ Manages the state and operations for generating image embeddings (feature vector
 
 > **downloadProgress**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/imageEmbeddings.ts:42](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/imageEmbeddings.ts#L42)
+Defined in: [packages/react-native-executorch/src/types/imageEmbeddings.ts:42](https://github.com/software-mansion/react-native-executorch/blob/fb8c4994a25bab9bbad2c87a565a246cf0b7c346/packages/react-native-executorch/src/types/imageEmbeddings.ts#L42)
 
 Represents the download progress of the model binary as a value between 0 and 1.
 
@@ -21,7 +21,7 @@ Represents the download progress of the model binary as a value between 0 and 1.
 
 > **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
 
-Defined in: [packages/react-native-executorch/src/types/imageEmbeddings.ts:27](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/imageEmbeddings.ts#L27)
+Defined in: [packages/react-native-executorch/src/types/imageEmbeddings.ts:27](https://github.com/software-mansion/react-native-executorch/blob/fb8c4994a25bab9bbad2c87a565a246cf0b7c346/packages/react-native-executorch/src/types/imageEmbeddings.ts#L27)
 
 Contains the error object if the model failed to load, download, or encountered a runtime error during embedding generation.
 
@@ -31,7 +31,7 @@ Contains the error object if the model failed to load, download, or encountered 
 
 > **forward**: (`imageSource`) => `Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [packages/react-native-executorch/src/types/imageEmbeddings.ts:50](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/imageEmbeddings.ts#L50)
+Defined in: [packages/react-native-executorch/src/types/imageEmbeddings.ts:50](https://github.com/software-mansion/react-native-executorch/blob/fb8c4994a25bab9bbad2c87a565a246cf0b7c346/packages/react-native-executorch/src/types/imageEmbeddings.ts#L50)
 
 Executes the model's forward pass to generate embeddings (a feature vector) for the provided image.
 
@@ -59,7 +59,7 @@ If the model is not loaded or is currently processing another image.
 
 > **isGenerating**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/imageEmbeddings.ts:37](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/imageEmbeddings.ts#L37)
+Defined in: [packages/react-native-executorch/src/types/imageEmbeddings.ts:37](https://github.com/software-mansion/react-native-executorch/blob/fb8c4994a25bab9bbad2c87a565a246cf0b7c346/packages/react-native-executorch/src/types/imageEmbeddings.ts#L37)
 
 Indicates whether the model is currently generating embeddings for an image.
 
@@ -69,6 +69,6 @@ Indicates whether the model is currently generating embeddings for an image.
 
 > **isReady**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/imageEmbeddings.ts:32](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/imageEmbeddings.ts#L32)
+Defined in: [packages/react-native-executorch/src/types/imageEmbeddings.ts:32](https://github.com/software-mansion/react-native-executorch/blob/fb8c4994a25bab9bbad2c87a565a246cf0b7c346/packages/react-native-executorch/src/types/imageEmbeddings.ts#L32)
 
 Indicates whether the image embeddings model is loaded and ready to process images.

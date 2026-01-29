@@ -13,7 +13,7 @@ import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
  * React hook for managing Text to Speech instance.
  * 
  * @category Hooks
- * @param TextToSpeechConfiguration - Configuration object containing `model` source, `voice` and optional `preventLoad`.
+ * @param TextToSpeechProps - Configuration object containing `model` source, `voice` and optional `preventLoad`.
  * @returns Ready to use Text to Speech model.
  */
 export const useTextToSpeech = ({

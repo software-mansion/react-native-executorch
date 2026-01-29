@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useState } from 'react';
 import { SpeechToTextModule } from '../../modules/natural_language_processing/SpeechToTextModule';
-import { DecodingOptions, SpeechToTextModelConfig, SpeechToTextType } from '../../types/stt';
+import { DecodingOptions, SpeechToTextType, SpeechToTextProps } from '../../types/stt';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
@@ -8,31 +8,13 @@ import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
  * React hook for managing a Speech to Text (STT) instance.
  * 
  * @category Hooks
- * @param speechToTextConfiguration - Configuration object containing `model` source and optional `preventLoad` flag.
+ * @param speechToTextProps - Configuration object containing `model` source and optional `preventLoad` flag.
  * @returns Ready to use Speech to Text model.
  */
 export const useSpeechToText = ({
   model,
   preventLoad = false,
-}: {
-  /**
-   * Object containing:
-   *
-   * `isMultilingual` - A boolean flag indicating whether the model supports multiple languages.
-   *
-   * `encoderSource` - A string that specifies the location of a `.pte` file for the encoder.
-   *
-   * `decoderSource` - A string that specifies the location of a `.pte` file for the decoder.
-   *
-   * `tokenizerSource` - A string that specifies the location to the tokenizer for the model.
-   */
-  model: SpeechToTextModelConfig;
-
-  /**
-   * Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
-   */
-  preventLoad?: boolean;
-}): SpeechToTextType => {
+}: SpeechToTextProps): SpeechToTextType => {
   const [error, setError] = useState<null | RnExecutorchError>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);

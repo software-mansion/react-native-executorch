@@ -7,7 +7,7 @@ import { RnExecutorchError } from '../../errors/errorUtils';
  * React hook for managing an OCR instance.
  * 
  * @category Hooks
- * @param OCRConfiguration - Configuration object containing `model` sources and optional `preventLoad` flag.
+ * @param OCRProps - Configuration object containing `model` sources and optional `preventLoad` flag.
  * @returns Ready to use OCR model.
  */
 export const useOCR = ({

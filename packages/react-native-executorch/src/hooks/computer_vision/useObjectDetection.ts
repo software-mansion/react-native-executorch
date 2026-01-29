@@ -6,7 +6,7 @@ import { ObjectDetectionProps, ObjectDetectionType } from '../../types/objectDet
  * React hook for managing an Object Detection model instance.
  * 
  * @category Hooks
- * @param ObjectDetectionConfiguration - Configuration object containing `model` source and optional `preventLoad` flag.
+ * @param ObjectDetectionProps - Configuration object containing `model` source and optional `preventLoad` flag.
  * @returns Ready to use Object Detection model.
  */
 export const useObjectDetection = ({ model, preventLoad = false }: ObjectDetectionProps): ObjectDetectionType =>

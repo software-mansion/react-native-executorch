@@ -8,7 +8,7 @@ import { TextToImageParams, TextToImageType } from '../../types/tti';
  * React hook for managing a Text to Image instance.
  * 
  * @category Hooks
- * @param TextToImageConfiguration - Configuration object containing `model` source, `inferenceCallback`, and optional `preventLoad` flag.
+ * @param TextToImageProps - Configuration object containing `model` source, `inferenceCallback`, and optional `preventLoad` flag.
  * @returns Ready to use Text to Image model.
  */
 export const useTextToImage = ({

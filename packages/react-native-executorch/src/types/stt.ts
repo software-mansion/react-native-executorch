@@ -2,6 +2,22 @@ import { ResourceSource } from './common';
 import { RnExecutorchError } from '../errors/errorUtils';
 
 /**
+ * Configuration for Speech to Text model.
+ * 
+ * @category Types
+ */
+export interface SpeechToTextProps {
+  /**
+   * Configuration object containing model sources.
+   */
+  model: SpeechToTextModelConfig;
+  /**
+   * Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+   */
+  preventLoad?: boolean;
+}
+
+/**
  * React hook for managing Speech to Text (STT) instance.
  * 
  * @category Types

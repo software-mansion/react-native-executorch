@@ -6,7 +6,7 @@ import { TextEmbeddingsType, TextEmbeddingsProps } from '../../types/textEmbeddi
  * React hook for managing a Text Embeddings model instance.
  * 
  * @category Hooks
- * @param TextEmbeddingsConfiguration - Configuration object containing `model` source and optional `preventLoad` flag.
+ * @param TextEmbeddingsProps - Configuration object containing `model` source and optional `preventLoad` flag.
  * @returns Ready to use Text Embeddings model.
  */
 export const useTextEmbeddings = ({ model, preventLoad = false }: TextEmbeddingsProps): TextEmbeddingsType =>

@@ -7,7 +7,7 @@ import { RnExecutorchError } from '../../errors/errorUtils';
  * React hook for managing a Vertical OCR instance.
  * 
  * @category Hooks
- * @param VerticalOCRConfiguration - Configuration object containing `model` sources, optional `independentCharacters` and `preventLoad` flag.
+ * @param VerticalOCRProps - Configuration object containing `model` sources, optional `independentCharacters` and `preventLoad` flag.
  * @returns Ready to use Vertical OCR model.
  */
 export const useVerticalOCR = ({

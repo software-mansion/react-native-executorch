@@ -6,7 +6,7 @@ import { ImageSegmentationProps, ImageSegmentationType } from '../../types/image
  * React hook for managing an Image Segmentation model instance.
  * 
  * @category Hooks
- * @param ImageSegmentationConfiguration - Configuration object containing `model` source and optional `preventLoad` flag.
+ * @param ImageSegmentationProps - Configuration object containing `model` source and optional `preventLoad` flag.
  * @returns Ready to use Image Segmentation model.
  */
 export const useImageSegmentation = ({ model, preventLoad = false }: ImageSegmentationProps): ImageSegmentationType =>

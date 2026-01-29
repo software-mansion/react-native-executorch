@@ -1,6 +1,6 @@
 # Interface: TextEmbeddingsProps
 
-Defined in: [packages/react-native-executorch/src/types/textEmbeddings.ts:48](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/textEmbeddings.ts#L48)
+Defined in: [packages/react-native-executorch/src/types/textEmbeddings.ts:46](https://github.com/software-mansion/react-native-executorch/blob/fb8c4994a25bab9bbad2c87a565a246cf0b7c346/packages/react-native-executorch/src/types/textEmbeddings.ts#L46)
 
 Props for the useTextEmbeddings hook.
 
@@ -10,7 +10,7 @@ Props for the useTextEmbeddings hook.
 
 > **model**: `object`
 
-Defined in: [packages/react-native-executorch/src/types/textEmbeddings.ts:49](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/textEmbeddings.ts#L49)
+Defined in: [packages/react-native-executorch/src/types/textEmbeddings.ts:47](https://github.com/software-mansion/react-native-executorch/blob/fb8c4994a25bab9bbad2c87a565a246cf0b7c346/packages/react-native-executorch/src/types/textEmbeddings.ts#L47)
 
 An object containing the model and tokenizer sources.
 
@@ -18,9 +18,13 @@ An object containing the model and tokenizer sources.
 
 > **modelSource**: [`ResourceSource`](../type-aliases/ResourceSource.md)
 
+The source of the text embeddings model binary.
+
 #### tokenizerSource
 
 > **tokenizerSource**: [`ResourceSource`](../type-aliases/ResourceSource.md)
+
+The source of the tokenizer JSON file.
 
 ***
 
@@ -28,6 +32,6 @@ An object containing the model and tokenizer sources.
 
 > `optional` **preventLoad**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/textEmbeddings.ts:53](https://github.com/software-mansion/react-native-executorch/blob/41ebfb44b8f7a0e75b79ecbd41a0ff716cb5fb5c/packages/react-native-executorch/src/types/textEmbeddings.ts#L53)
+Defined in: [packages/react-native-executorch/src/types/textEmbeddings.ts:57](https://github.com/software-mansion/react-native-executorch/blob/fb8c4994a25bab9bbad2c87a565a246cf0b7c346/packages/react-native-executorch/src/types/textEmbeddings.ts#L57)
 
 Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.

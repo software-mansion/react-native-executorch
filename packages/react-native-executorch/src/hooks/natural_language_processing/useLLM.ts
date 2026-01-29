@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ResourceSource } from '../../types/common';
 import {
   LLMConfig,
+  LLMProps,
   LLMTool,
   LLMType,
   Message,
@@ -19,26 +19,7 @@ import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 export const useLLM = ({
   model,
   preventLoad = false,
-}: {
-  model: {
-    /**
-     * `ResourceSource` that specifies the location of the model binary.
-     */
-    modelSource: ResourceSource;
-    /**
-     * `ResourceSource pointing` to the JSON file which contains the tokenizer.
-     */
-    tokenizerSource: ResourceSource;
-    /**
-     * `ResourceSource` pointing to the JSON file which contains the tokenizer config.
-     */
-    tokenizerConfigSource: ResourceSource;
-  };
-  /**
-   * Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
-   */
-  preventLoad?: boolean;
-}): LLMType => {
+}: LLMProps): LLMType => {
   const [token, setToken] = useState<string>('');
   const [response, setResponse] = useState<string>('');
   const [messageHistory, setMessageHistory] = useState<Message[]>([]);
@@ -73,7 +54,7 @@ export const useLLM = ({
         await controllerInstance.load({
           modelSource: model.modelSource,
           tokenizerSource: model.tokenizerSource,
-          tokenizerConfigSource: model.tokenizerConfigSource,
+          tokenizerConfigSource: model.tokenizerConfigSource!,
           onDownloadProgressCallback: setDownloadProgress,
         });
       } catch (e) {
