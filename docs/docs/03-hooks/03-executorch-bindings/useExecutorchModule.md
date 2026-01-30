@@ -24,7 +24,7 @@ const executorchModule = useExecutorchModule({
 });
 ```
 
-The `modelSource` parameter expects a location string pointing to the model binary.
+The [`modelSource`](../../06-api-reference/interfaces/ExecutorchModuleProps.md#modelsource) parameter expects a location string pointing to the model binary.
 
 For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
@@ -75,7 +75,7 @@ const executorchModule = useExecutorchModule({
 
 ### Setting up input parameters
 
-To prepare the model input, define the tensor shape according to your model's requirements (defined by the model export process). For example, the STYLE_TRANSFER_CANDY model expects a tensor with shape `[1, 3, 640, 640]` — representing a batch size of 1, 3 color channels (RGB), and 640×640 pixel dimensions.
+To prepare the model input, define the tensor shape according to your model's requirements (defined by the model export process). For example, the `STYLE_TRANSFER_CANDY` model expects a tensor with shape `[1, 3, 640, 640]` — representing a batch size of 1, 3 color channels (RGB), and 640×640 pixel dimensions.
 
 ```typescript
 const inputTensor = {
@@ -87,7 +87,7 @@ const inputTensor = {
 
 ### Performing inference
 
-After passing input to the forward function, you'll receive an array of TensorPtr objects. Each TensorPtr contains its `dataPtr` as an ArrayBuffer. Since ArrayBuffer represents raw binary data, you'll need to interpret it according to the tensor's underlying data type (e.g., creating a Float32Array view for float32 tensors, Int32Array for int32 tensors, etc.).
+After passing input to the forward function, you'll receive an array of TensorPtr objects. Each TensorPtr contains its [`dataPtr`](../../06-api-reference/interfaces/TensorPtr.md#dataptr) as an ArrayBuffer. Since ArrayBuffer represents raw binary data, you'll need to interpret it according to the tensor's underlying data type (e.g., creating a Float32Array view for float32 tensors, Int32Array for int32 tensors, etc.).
 
 ```typescript
 try {

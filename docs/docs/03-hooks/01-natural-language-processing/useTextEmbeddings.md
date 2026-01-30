@@ -57,7 +57,7 @@ You need more details? Check the following resources:
 
 ## Running the model
 
-To run the model, you can use the `forward` method. It accepts one argument, which is a string representing the text you want to embed. The function returns a promise, which can resolve either to an error or an array of numbers representing the embedding.
+To run the model, you can use the [`forward`](../../06-api-reference/interfaces/TextEmbeddingsType.md#forward) method. It accepts one argument, which is a string representing the text you want to embed. The function returns a promise, which can resolve either to an error or an array of numbers representing the embedding.
 
 ## Example
 
@@ -107,9 +107,9 @@ function App() {
 | [multi-qa-mpnet-base-dot-v1](https://huggingface.co/sentence-transformers/multi-qa-mpnet-base-dot-v1) | English  |    510     |         768          | This model was tuned for semantic search: Given a query/question, it can find relevant passages. It was trained on a large and diverse set of (question, answer) pairs.                                                                                                                                                                                                                                                          |
 | [clip-vit-base-patch32-text](https://huggingface.co/openai/clip-vit-base-patch32)                     | English  |     74     |         512          | CLIP (Contrastive Language-Image Pre-Training) is a neural network trained on a variety of (image, text) pairs. CLIP allows to embed images and text into the same vector space. This allows to find similar images as well as to implement image search. This is the text encoder part of the CLIP model. To embed images checkout [clip-vit-base-patch32-image](../02-computer-vision/useImageEmbeddings.md#supported-models). |
 
-**`Max Tokens`** - the maximum number of tokens that can be processed by the model. If the input text exceeds this limit, it will be truncated.
+**`Max Tokens`** - The maximum number of tokens that can be processed by the model. If the input text exceeds this limit, it will be truncated.
 
-**`Embedding Dimensions`** - the size of the output embedding vector. This is the number of dimensions in the vector representation of the input text.
+**`Embedding Dimensions`** - The size of the output embedding vector. This is the number of dimensions in the vector representation of the input text.
 
 :::info
 For the supported models, the returned embedding vector is normalized, meaning that its length is equal to 1. This allows for easier comparison of vectors using cosine similarity, just calculate the dot product of two vectors to get the cosine similarity score.

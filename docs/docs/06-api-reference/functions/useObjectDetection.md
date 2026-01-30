@@ -2,7 +2,7 @@
 
 > **useObjectDetection**(`ObjectDetectionProps`): [`ObjectDetectionType`](../interfaces/ObjectDetectionType.md)
 
-Defined in: [packages/react-native-executorch/src/hooks/computer\_vision/useObjectDetection.ts:12](https://github.com/software-mansion/react-native-executorch/blob/7e10c820da55c41850b183cae64d67ab1e216a67/packages/react-native-executorch/src/hooks/computer_vision/useObjectDetection.ts#L12)
+Defined in: [packages/react-native-executorch/src/hooks/computer\_vision/useObjectDetection.ts:12](https://github.com/software-mansion/react-native-executorch/blob/bf7cb740914337a4d266d2cb99d42114c1e469b1/packages/react-native-executorch/src/hooks/computer_vision/useObjectDetection.ts#L12)
 
 React hook for managing an Object Detection model instance.
 

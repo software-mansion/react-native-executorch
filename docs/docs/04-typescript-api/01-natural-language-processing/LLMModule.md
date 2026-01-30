@@ -95,29 +95,29 @@ To configure model (i.e. change system prompt, load initial conversation history
 
 * [`chatConfig`](../../06-api-reference/interfaces/LLMConfig.md#chatconfig) - Object configuring chat management that contains:
 
-    * [`systemPrompt`](../../06-api-reference/interfaces/ChatConfig.md#systemprompt)
+    * [`systemPrompt`](../../06-api-reference/interfaces/ChatConfig.md#systemprompt) - Often used to tell the model what is its purpose, for example - "Be a helpful translator".
 
-    * [`initialMessageHistory`](../../06-api-reference/interfaces/ChatConfig.md#initialmessagehistory)
+    * [`initialMessageHistory`](../../06-api-reference/interfaces/ChatConfig.md#initialmessagehistory) - Object that represent the conversation history. This can be used to provide initial context to the model.
 
-    * [`contextWindowLength`](../../06-api-reference/interfaces/ChatConfig.md#contextwindowlength)
+    * [`contextWindowLength`](../../06-api-reference/interfaces/ChatConfig.md#contextwindowlength) - The number of messages from the current conversation that the model will use to generate a response. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
 
-* [`toolsConfig`] - Object configuring options for enabling and managing tool use. **It will only have effect if your model's chat template support it**. Contains following properties:
+* [`toolsConfig`](../../06-api-reference/interfaces/ToolsConfig.md) - Object configuring options for enabling and managing tool use. **It will only have effect if your model's chat template support it**. Contains following properties:
 
-  * [`tools`](../../06-api-reference/interfaces/ToolsConfig.md#tools)
+  * [`tools`](../../06-api-reference/interfaces/ToolsConfig.md#tools) - List of objects defining tools.
 
-  * [`executeToolCallback`](../../06-api-reference/interfaces/ToolsConfig.md#executetoolcallback)
+  * [`executeToolCallback`](../../06-api-reference/interfaces/ToolsConfig.md#executetoolcallback) - Function that accepts [`ToolCall`](../../06-api-reference/interfaces/ToolCall.md), executes tool and returns the string to model.
 
-  * [`displayToolCalls`](../../06-api-reference/interfaces/ToolsConfig.md#displaytoolcalls)
+  * [`displayToolCalls`](../../06-api-reference/interfaces/ToolsConfig.md#displaytoolcalls) - If set to `true`, JSON tool calls will be displayed in chat. If `false`, only answers will be displayed.
 
 * [`generationConfig`](../../06-api-reference/interfaces/LLMConfig.md#generationconfig) - Object configuring generation settings with following properties:
 
-    * [`outputTokenBatchSize`](../../06-api-reference/interfaces/GenerationConfig.md#batchtimeinterval)
+    * [`outputTokenBatchSize`](../../06-api-reference/interfaces/GenerationConfig.md#batchtimeinterval) - Soft upper limit on the number of tokens in each token batch (in certain cases there can be more tokens in given batch, i.e. when the batch would end with special emoji join character).
 
-    * [`batchTimeInterval`](../../06-api-reference/interfaces/GenerationConfig.md#batchtimeinterval)
+    * [`batchTimeInterval`](../../06-api-reference/interfaces/GenerationConfig.md#batchtimeinterval) - Upper limit on the time interval between consecutive token batches.
 
-    * [`temperature`](../../06-api-reference/interfaces/GenerationConfig.md#temperature)
+    * [`temperature`](../../06-api-reference/interfaces/GenerationConfig.md#temperature) - Scales output logits by the inverse of temperature. Controls the randomness / creativity of text generation.
 
-    * [`topp`](../../06-api-reference/interfaces/GenerationConfig.md#topp)
+    * [`topp`](../../06-api-reference/interfaces/GenerationConfig.md#topp) - Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
 
 ## Deleting the model from memory
 

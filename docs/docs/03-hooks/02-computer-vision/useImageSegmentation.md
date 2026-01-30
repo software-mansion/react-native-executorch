@@ -49,20 +49,20 @@ You need more details? Check the following resources:
 
 ## Running the model
 
-To run the model, you can use the `forward` method. It accepts three arguments: a required image, an optional list of classes, and an optional flag whether to resize the output to the original dimensions.
+To run the model, you can use the [`forward`](../../06-api-reference/interfaces/ImageSegmentationType.md#forward) method. It accepts three arguments: a required image, an optional list of classes, and an optional flag whether to resize the output to the original dimensions.
 
 - The image can be a remote URL, a local file URI, or a base64-encoded image.
-- The `classesOfInterest` list contains classes for which to output the full results. By default the list is empty, and only the most probable classes are returned (essentially an arg max for each pixel). Look at [`DeeplabLabel`](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts) enum for possible classes.
-- The `resize` flag says whether the output will be rescaled back to the size of the image you put in. The default is `false`. The model runs inference on a scaled (probably smaller) version of your image (224x224 for `DEEPLAB_V3_RESNET50`). If you choose to resize, the output will be `number[]` of size `width * height` of your original image.
+- The [`classesOfInterest`](../../06-api-reference/interfaces/ImageSegmentationType.md#classesofinterest) list contains classes for which to output the full results. By default the list is empty, and only the most probable classes are returned (essentially an arg max for each pixel). Look at [`DeeplabLabel`](../../06-api-reference/enumerations/DeeplabLabel.md) enum for possible classes.
+- The [`resize`](../../06-api-reference/interfaces/ImageSegmentationType.md#resize) flag says whether the output will be rescaled back to the size of the image you put in. The default is `false`. The model runs inference on a scaled (probably smaller) version of your image (224x224 for `DEEPLAB_V3_RESNET50`). If you choose to resize, the output will be `number[]` of size `width * height` of your original image.
 
 :::warning
 Setting `resize` to true will make `forward` slower.
 :::
 
-`forward` returns a promise which can resolve either to an error or a dictionary containing number arrays with size depending on `resize`:
+[`forward`](../../06-api-reference/interfaces/ImageSegmentationType.md#forward) returns a promise which can resolve either to an error or a dictionary containing number arrays with size depending on [`resize`](../../06-api-reference/interfaces/ImageSegmentationType.md#resize):
 
-- For the key `DeeplabLabel.ARGMAX` the array contains for each pixel an integer corresponding to the class with the highest probability.
-- For every other key from `DeeplabLabel`, if the label was included in `classesOfInterest` the dictionary will contain an array of floats corresponding to the probability of this class for every pixel.
+- For the key [`DeeplabLabel.ARGMAX`](../../06-api-reference/enumerations/DeeplabLabel.md#argmax) the array contains for each pixel an integer corresponding to the class with the highest probability.
+- For every other key from [`DeeplabLabel`](../../06-api-reference/enumerations/DeeplabLabel.md), if the label was included in [`classesOfInterest`](../../06-api-reference/interfaces/ImageSegmentationType.md#classesofinterest) the dictionary will contain an array of floats corresponding to the probability of this class for every pixel.
 
 ## Example
 
@@ -86,4 +86,4 @@ function App() {
 
 | Model                                                                                                                            | Number of classes | Class list                                                                                                                                            |
 | -------------------------------------------------------------------------------------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [deeplabv3_resnet50](https://pytorch.org/vision/stable/models/generated/torchvision.models.segmentation.deeplabv3_resnet50.html) | 21                | [DeeplabLabel](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts) |
+| [deeplabv3_resnet50](https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3) | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md) |

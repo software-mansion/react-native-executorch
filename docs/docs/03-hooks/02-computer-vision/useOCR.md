@@ -48,7 +48,7 @@ You need more details? Check the following resources:
 
 ## Running the model
 
-To run the model, you can use the `forward` method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns an array of `OCRDetection` objects. Each object contains coordinates of the bounding box, the text recognized within the box, and the confidence score. For more information, please refer to the reference or type definitions.
+To run the model, you can use the [`forward`](../../06-api-reference/interfaces/OCRType.md#forward) method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns an array of [`OCRDetection`](../../06-api-reference/interfaces/OCRDetection.md) objects. Each object contains coordinates of the bounding box, the text recognized within the box, and the confidence score. For more information, please refer to the reference or type definitions.
 
 ## Detection object
 
@@ -101,7 +101,7 @@ Each supported alphabet requires its own recognizer model. The built-in constant
 > - To recognize text in languages using the **Cyrillic** alphabet (like Russian or Ukrainian), use:
 >   - `RECOGNIZER_CYRILLIC_CRNN`
 
-You need to make sure the recognizer model you pass in `recognizerSource` matches the alphabet of the `language` you specify.
+You need to make sure the recognizer model you pass in [`recognizerSource`](../../06-api-reference/interfaces/OCRProps.md#recognizersource) matches the alphabet of the [`language`](../../06-api-reference/interfaces/OCRProps.md#language) you specify.
 
 ## Supported languages
 

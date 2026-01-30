@@ -1,6 +1,6 @@
 # Interface: VADType
 
-Defined in: [packages/react-native-executorch/src/types/vad.ts:34](https://github.com/software-mansion/react-native-executorch/blob/7e10c820da55c41850b183cae64d67ab1e216a67/packages/react-native-executorch/src/types/vad.ts#L34)
+Defined in: [packages/react-native-executorch/src/types/vad.ts:34](https://github.com/software-mansion/react-native-executorch/blob/bf7cb740914337a4d266d2cb99d42114c1e469b1/packages/react-native-executorch/src/types/vad.ts#L34)
 
 React hook state and methods for managing a Voice Activity Detection (VAD) model instance.
 
@@ -10,7 +10,7 @@ React hook state and methods for managing a Voice Activity Detection (VAD) model
 
 > **downloadProgress**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/vad.ts:53](https://github.com/software-mansion/react-native-executorch/blob/7e10c820da55c41850b183cae64d67ab1e216a67/packages/react-native-executorch/src/types/vad.ts#L53)
+Defined in: [packages/react-native-executorch/src/types/vad.ts:53](https://github.com/software-mansion/react-native-executorch/blob/bf7cb740914337a4d266d2cb99d42114c1e469b1/packages/react-native-executorch/src/types/vad.ts#L53)
 
 Represents the download progress as a value between 0 and 1.
 
@@ -20,7 +20,7 @@ Represents the download progress as a value between 0 and 1.
 
 > **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
 
-Defined in: [packages/react-native-executorch/src/types/vad.ts:38](https://github.com/software-mansion/react-native-executorch/blob/7e10c820da55c41850b183cae64d67ab1e216a67/packages/react-native-executorch/src/types/vad.ts#L38)
+Defined in: [packages/react-native-executorch/src/types/vad.ts:38](https://github.com/software-mansion/react-native-executorch/blob/bf7cb740914337a4d266d2cb99d42114c1e469b1/packages/react-native-executorch/src/types/vad.ts#L38)
 
 Contains the error message if the VAD model failed to load or during processing.
 
@@ -30,7 +30,7 @@ Contains the error message if the VAD model failed to load or during processing.
 
 > **isGenerating**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/vad.ts:48](https://github.com/software-mansion/react-native-executorch/blob/7e10c820da55c41850b183cae64d67ab1e216a67/packages/react-native-executorch/src/types/vad.ts#L48)
+Defined in: [packages/react-native-executorch/src/types/vad.ts:48](https://github.com/software-mansion/react-native-executorch/blob/bf7cb740914337a4d266d2cb99d42114c1e469b1/packages/react-native-executorch/src/types/vad.ts#L48)
 
 Indicates whether the model is currently processing an inference.
 
@@ -40,7 +40,7 @@ Indicates whether the model is currently processing an inference.
 
 > **isReady**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/vad.ts:43](https://github.com/software-mansion/react-native-executorch/blob/7e10c820da55c41850b183cae64d67ab1e216a67/packages/react-native-executorch/src/types/vad.ts#L43)
+Defined in: [packages/react-native-executorch/src/types/vad.ts:43](https://github.com/software-mansion/react-native-executorch/blob/bf7cb740914337a4d266d2cb99d42114c1e469b1/packages/react-native-executorch/src/types/vad.ts#L43)
 
 Indicates whether the VAD model has successfully loaded and is ready for inference.
 
@@ -50,7 +50,7 @@ Indicates whether the VAD model has successfully loaded and is ready for inferen
 
 > **forward**(`waveform`): `Promise`\<[`Segment`](Segment.md)[]\>
 
-Defined in: [packages/react-native-executorch/src/types/vad.ts:61](https://github.com/software-mansion/react-native-executorch/blob/7e10c820da55c41850b183cae64d67ab1e216a67/packages/react-native-executorch/src/types/vad.ts#L61)
+Defined in: [packages/react-native-executorch/src/types/vad.ts:61](https://github.com/software-mansion/react-native-executorch/blob/bf7cb740914337a4d266d2cb99d42114c1e469b1/packages/react-native-executorch/src/types/vad.ts#L61)
 
 Runs the Voice Activity Detection model on the provided audio waveform.
 

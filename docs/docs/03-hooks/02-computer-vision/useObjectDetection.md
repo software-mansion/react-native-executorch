@@ -52,7 +52,7 @@ You need more details? Check the following resources:
 
 ## Running the model
 
-To run the model, you can use the `forward` method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns an array of `Detection` objects. Each object contains coordinates of the bounding box, the label of the detected object, and the confidence score. For more information, please refer to the reference or type definitions.
+To run the model, you can use the [`forward`](../../06-api-reference/interfaces/ObjectDetectionType.md#forward) method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns an array of [`Detection`](../../06-api-reference/interfaces/Detection.md) objects. Each object contains coordinates of the bounding box, the label of the detected object, and the confidence score. For more information, please refer to the reference or type definitions.
 
 ## Detection object
 
@@ -74,7 +74,7 @@ interface Detection {
 ```
 
 The `bbox` property contains information about the bounding box of detected objects. It is represented as two points: one at the bottom-left corner of the bounding box (`x1`, `y1`) and the other at the top-right corner (`x2`, `y2`).
-The `label` property contains the name of the detected object, which corresponds to one of the `CocoLabels`. The `score` represents the confidence score of the detected object.
+The `label` property contains the name of the detected object, which corresponds to one of the [`CocoLabels`](../../06-api-reference/enumerations/CocoLabel.md). The `score` represents the confidence score of the detected object.
 
 ## Example
 
@@ -103,4 +103,4 @@ function App() {
 
 | Model                                                                                                                                                                                                                 | Number of classes | Class list                                                                                                                                                             |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [SSDLite320 MobileNetV3 Large](https://pytorch.org/vision/stable/models/generated/torchvision.models.detection.ssdlite320_mobilenet_v3_large.html#torchvision.models.detection.SSDLite320_MobileNet_V3_Large_Weights) | 91                | [COCO](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/common/rnexecutorch/models/object_detection/Constants.h) |
+| [SSDLite320 MobileNetV3 Large](https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large) | 91                | [COCO](../../06-api-reference/enumerations/CocoLabel.md) |

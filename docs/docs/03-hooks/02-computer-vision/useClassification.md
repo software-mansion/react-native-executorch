@@ -50,7 +50,7 @@ You need more details? Check the following resources:
 
 ## Running the model
 
-To run the model, you can use the `forward` method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns a promise, which can resolve either to an error or an object containing categories with their probabilities.
+To run the model, you can use the [`forward`](../../06-api-reference/interfaces/ClassificationType.md#forward) method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns a promise, which can resolve either to an error or an object containing categories with their probabilities.
 
 :::info
 Images from external sources are stored in your application's temporary directory.
@@ -86,4 +86,4 @@ function App() {
 
 | Model                                                                                                             | Number of classes | Class list                                                                                                                                                                    |
 | ----------------------------------------------------------------------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [efficientnet_v2_s](https://pytorch.org/vision/stable/models/generated/torchvision.models.efficientnet_v2_s.html) | 1000              | [ImageNet1k_v1](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/common/rnexecutorch/models/classification/Constants.h) |
+| [efficientnet_v2_s](https://huggingface.co/software-mansion/react-native-executorch-efficientnet-v2-s) | 1000              | [ImageNet1k_v1](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/common/rnexecutorch/models/classification/Constants.h) |

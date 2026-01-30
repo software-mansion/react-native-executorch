@@ -15,7 +15,7 @@ It is recommended to use models provided by us, which are available at our [Hugg
 
 ## Reference
 
-You can obtain waveform from audio in any way most suitable to you, however in the snippet below we utilize `react-native-audio-api` library to process a `.mp3` file.
+You can obtain waveform from audio in any way most suitable to you, however in the snippet below we utilize [`react-native-audio-api`](https://docs.swmansion.com/react-native-audio-api/) library to process a `.mp3` file.
 
 ```typescript
 import { useVAD, FSMN_VAD } from 'react-native-executorch';
@@ -63,7 +63,7 @@ You need more details? Check the following resources:
 
 ## Running the model
 
-Before running the model's `forward` method, make sure to extract the audio waveform you want to process. You'll need to handle this step yourself, ensuring the audio is sampled at 16 kHz. Once you have the waveform, pass it as an argument to the forward method. The method returns a promise that resolves to the array of detected speech segments.
+Before running the model's [`forward`](../../06-api-reference/interfaces/VADType.md#forward) method, make sure to extract the audio waveform you want to process. You'll need to handle this step yourself, ensuring the audio is sampled at 16 kHz. Once you have the waveform, pass it as an argument to the [`forward`](../../06-api-reference/interfaces/VADType.md#forward) method. The method returns a promise that resolves to the array of detected speech [`Segment[]`](../../06-api-reference/interfaces/Segment.md).
 
 :::info
 Timestamps in returned speech segments, correspond to indices of input array (waveform).
@@ -152,4 +152,4 @@ export default function App() {
 
 ## Supported models
 
-- [fsmn-vad](https://huggingface.co/funasr/fsmn-vad)
+- [fsmn-vad](https://huggingface.co/collections/software-mansion/voice-activity-detection)

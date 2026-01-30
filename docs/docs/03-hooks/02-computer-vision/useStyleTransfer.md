@@ -49,7 +49,7 @@ You need more details? Check the following resources:
 
 ## Running the model
 
-To run the model, you can use `forward` method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns a promise which can resolve either to an error or a URL to generated image.
+To run the model, you can use [`forward`](../../06-api-reference/interfaces/StyleTransferType.md#forward) method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns a promise which can resolve either to an error or a URL to generated image.
 
 :::info
 Images from external sources and the generated image are stored in your application's temporary directory.

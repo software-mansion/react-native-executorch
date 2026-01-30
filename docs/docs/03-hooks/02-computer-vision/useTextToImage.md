@@ -49,7 +49,7 @@ You need more details? Check the following resources:
 
 ## Running the model
 
-To run the model, you can use the `forward` method. It accepts four arguments: a text prompt describing the requested image, a size of the image in pixels, a number of denoising steps, and an optional seed value, which enables reproducibility of the results.
+To run the model, you can use the [`generate`](../../06-api-reference/interfaces/TextToImageType.md#generate) method. It accepts four arguments: a text prompt describing the requested image, a size of the image in pixels, a number of denoising steps, and an optional seed value, which enables reproducibility of the results.
 
 The image size must be a multiple of 32 due to the architecture of the U-Net and VAE models. The seed should be a positive integer.
 

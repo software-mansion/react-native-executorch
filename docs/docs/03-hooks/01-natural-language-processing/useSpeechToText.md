@@ -30,7 +30,7 @@ It is recommended to use models provided by us, which are available at our [Hugg
 
 ## Reference
 
-You can obtain waveform from audio in any way most suitable to you, however in the snippet below we utilize `react-native-audio-api` library to process a `.mp3` file.
+You can obtain waveform from audio in any way most suitable to you, however in the snippet below we utilize [`react-native-audio-api`](https://docs.swmansion.com/react-native-audio-api/) library to process a `.mp3` file.
 
 ```typescript
 import { useSpeechToText, WHISPER_TINY_EN } from 'react-native-executorch';
@@ -79,11 +79,11 @@ You need more details? Check the following resources:
 
 ## Running the model
 
-Before running the model's `transcribe` method, make sure to extract the audio waveform you want to transcribe. You'll need to handle this step yourself, ensuring the audio is sampled at 16 kHz. Once you have the waveform, pass it as an argument to the transcribe method. The method returns a promise that resolves to the generated transcription on success, or an error if inference fails.
+Before running the model's [`transcribe`](../../06-api-reference/interfaces/SpeechToTextType.md#transcribe) method, make sure to extract the audio waveform you want to transcribe. You'll need to handle this step yourself, ensuring the audio is sampled at 16 kHz. Once you have the waveform, pass it as an argument to the transcribe method. The method returns a promise that resolves to the generated transcription on success, or an error if inference fails.
 
 ### Multilingual transcription
 
-If you want to transcribe speech in languages other than English, use the multilingual version of Whisper. To generate the output in your desired language, pass the `language` option to the `transcribe` method.
+If you want to transcribe speech in languages other than English, use the multilingual version of Whisper. To generate the output in your desired language, pass the [`language`](../../06-api-reference/interfaces/DecodingOptions.md#language) option to the [`transcribe`](../../06-api-reference/interfaces/SpeechToTextType.md#transcribe) method.
 
 ```typescript
 import { useSpeechToText, WHISPER_TINY } from 'react-native-executorch';

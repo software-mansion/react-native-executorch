@@ -82,13 +82,13 @@ You need more details? Check the following resources:
 
 The module provides two ways to generate speech:
 
-1.  **`forward(text, speed)`**: Generates the complete audio waveform at once. Returns a promise resolving to a `Float32Array`.
+1.  [**`forward(text, speed)`**](../../06-api-reference/interfaces/TextToSpeechType.md#forward): Generates the complete audio waveform at once. Returns a promise resolving to a `Float32Array`.
 
 :::note
 Since it processes the entire text at once, it might take a significant amount of time to produce an audio for long text inputs.
 :::
 
-2.  **`stream({ text, speed })`**: An async generator that yields chunks of audio as they are computed.
+2.  [**`stream({ text, speed })`**](../../06-api-reference/interfaces/TextToSpeechType.md#stream): An async generator that yields chunks of audio as they are computed.
     This is ideal for reducing the "time to first audio" for long sentences.
 
 ## Example
