@@ -24,9 +24,7 @@ jobs:
         run: yarn lint
 
       - name: Typecheck files
-        run: |
-          yarn workspaces foreach --all --parallel run prepare
-          yarn typecheck
+        run: yarn workspaces foreach --all --parallel run prepare && yarn typecheck
 
   build-library:
     runs-on: ubuntu-latest
