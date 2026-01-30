@@ -18,12 +18,8 @@ public:
                const std::string &tokenizerSource,
                std::shared_ptr<react::CallInvoker> callInvoker);
 
-#ifdef TEST_BUILD
   std::string generate(std::string input,
                        std::shared_ptr<jsi::Function> callback);
-#else
-  void generate(std::string input, std::shared_ptr<jsi::Function> callback);
-#endif
   void interrupt();
   void unload() noexcept;
   size_t getGeneratedTokenCount() const noexcept;
