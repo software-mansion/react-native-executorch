@@ -1,6 +1,6 @@
 # Class: TokenizerModule
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TokenizerModule.ts:11](https://github.com/software-mansion/react-native-executorch/blob/bf7cb740914337a4d266d2cb99d42114c1e469b1/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L11)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TokenizerModule.ts:11](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L11)
 
 Module for Tokenizer functionalities.
 
@@ -20,7 +20,7 @@ Module for Tokenizer functionalities.
 
 > **nativeModule**: `any`
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TokenizerModule.ts:15](https://github.com/software-mansion/react-native-executorch/blob/bf7cb740914337a4d266d2cb99d42114c1e469b1/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L15)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TokenizerModule.ts:15](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L15)
 
 Native module instance
 
@@ -30,7 +30,7 @@ Native module instance
 
 > **decode**(`tokens`, `skipSpecialTokens`): `Promise`\<`string`\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TokenizerModule.ts:59](https://github.com/software-mansion/react-native-executorch/blob/bf7cb740914337a4d266d2cb99d42114c1e469b1/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L59)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TokenizerModule.ts:59](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L59)
 
 Converts an array of token IDs into a string.
 
@@ -60,7 +60,7 @@ The decoded string.
 
 > **encode**(`input`): `Promise`\<`number`[]\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TokenizerModule.ts:48](https://github.com/software-mansion/react-native-executorch/blob/bf7cb740914337a4d266d2cb99d42114c1e469b1/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L48)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TokenizerModule.ts:48](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L48)
 
 Converts a string into an array of token IDs.
 
@@ -84,7 +84,7 @@ An array of token IDs.
 
 > **getVocabSize**(): `Promise`\<`number`\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TokenizerModule.ts:71](https://github.com/software-mansion/react-native-executorch/blob/bf7cb740914337a4d266d2cb99d42114c1e469b1/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L71)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TokenizerModule.ts:71](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L71)
 
 Returns the size of the tokenizer's vocabulary.
 
@@ -100,7 +100,7 @@ The vocabulary size.
 
 > **idToToken**(`tokenId`): `Promise`\<`string`\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TokenizerModule.ts:81](https://github.com/software-mansion/react-native-executorch/blob/bf7cb740914337a4d266d2cb99d42114c1e469b1/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L81)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TokenizerModule.ts:81](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L81)
 
 Returns the token associated to the ID.
 
@@ -124,7 +124,7 @@ The token string associated to ID.
 
 > **load**(`tokenizer`, `onDownloadProgressCallback`): `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TokenizerModule.ts:24](https://github.com/software-mansion/react-native-executorch/blob/bf7cb740914337a4d266d2cb99d42114c1e469b1/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L24)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TokenizerModule.ts:24](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L24)
 
 Loads the tokenizer from the specified source. 
 `tokenizerSource` is a string that points to the location of the tokenizer JSON file.
@@ -155,7 +155,7 @@ Optional callback to monitor download progress.
 
 > **tokenToId**(`token`): `Promise`\<`number`\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TokenizerModule.ts:91](https://github.com/software-mansion/react-native-executorch/blob/bf7cb740914337a4d266d2cb99d42114c1e469b1/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L91)
+Defined in: [packages/react-native-executorch/src/modules/natural\_language\_processing/TokenizerModule.ts:91](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L91)
 
 Returns the ID associated to the token.
 

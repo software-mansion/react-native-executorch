@@ -2,7 +2,7 @@
 
 > `const` **OCR\_TABASSARAN**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:317](https://github.com/software-mansion/react-native-executorch/blob/bf7cb740914337a4d266d2cb99d42114c1e469b1/packages/react-native-executorch/src/constants/ocr/models.ts#L317)
+Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:317](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/constants/ocr/models.ts#L317)
 
 ## Type Declaration
 

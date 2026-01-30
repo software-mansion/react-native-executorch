@@ -2,7 +2,7 @@
 
 > `const` **parseToolCall**: (`message`) => [`ToolCall`](../interfaces/ToolCall.md)[]
 
-Defined in: [packages/react-native-executorch/src/utils/llm.ts:16](https://github.com/software-mansion/react-native-executorch/blob/bf7cb740914337a4d266d2cb99d42114c1e469b1/packages/react-native-executorch/src/utils/llm.ts#L16)
+Defined in: [packages/react-native-executorch/src/utils/llm.ts:16](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/utils/llm.ts#L16)
 
 Parses tool calls from a given message string.
 

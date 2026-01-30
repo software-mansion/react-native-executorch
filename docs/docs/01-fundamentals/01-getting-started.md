@@ -95,6 +95,5 @@ yarn run expo:<ios | android> -d
 If you want to dive deeper into ExecuTorch or our previous work with the framework, we highly encourage you to check out the following resources:
 
 - [ExecuTorch docs](https://pytorch.org/executorch/stable/index.html)
-- [Native code for iOS](https://medium.com/swmansion/bringing-native-ai-to-your-mobile-apps-with-executorch-part-i-ios-f1562a4556e8?source=user_profile_page---------0-------------250189c98ccf---------------)
-- [Native code for Android](https://medium.com/swmansion/bringing-native-ai-to-your-mobile-apps-with-executorch-part-ii-android-29431b6b9f7f?source=user_profile_page---------2-------------b8e3a5cb1c63---------------)
-- [Exporting to Android with XNNPACK](https://medium.com/swmansion/exporting-ai-models-on-android-with-xnnpack-and-executorch-3e70cff51c59?source=user_profile_page---------1-------------b8e3a5cb1c63---------------)
+- [React Native RAG](https://blog.swmansion.com/introducing-react-native-rag-fbb62efa4991)
+- [Offline Text Recognition on Mobile: How We Brought EasyOCR to React Native ExecuTorch](https://blog.swmansion.com/bringing-easyocr-to-react-native-executorch-2401c09c2d0c)
