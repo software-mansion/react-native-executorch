@@ -59,14 +59,11 @@ export class LLMModule {
     this.controller.configure({ chatConfig, toolsConfig, generationConfig });
   }
 
-  async forward(input: string): Promise<ReturnType<LLMController['forward']>> {
+  async forward(input: string): Promise<string> {
     return await this.controller.forward(input);
   }
 
-  async generate(
-    messages: Message[],
-    tools?: LLMTool[]
-  ): Promise<ReturnType<LLMController['generate']>> {
+  async generate(messages: Message[], tools?: LLMTool[]): Promise<string> {
     return await this.controller.generate(messages, tools);
   }
 
