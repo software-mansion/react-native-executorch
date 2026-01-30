@@ -22,7 +22,8 @@
   "scripts": {
     "prepare": "tsc",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint \"**/*.{js,ts,tsx}\""
+    "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "clean": "del-cli lib"
   },
   "peerDependencies": {
     "@dr.pogodin/react-native-fs": "^2.0.0",

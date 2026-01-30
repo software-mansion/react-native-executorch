@@ -22,7 +22,8 @@
   "scripts": {
     "prepare": "tsc",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint \"**/*.{js,ts,tsx}\""
+    "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "clean": "del-cli lib"
   },
   "peerDependencies": {
     "expo": ">=54.0.0",

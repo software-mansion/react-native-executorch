@@ -24,7 +24,7 @@ jobs:
         run: yarn lint
 
       - name: Typecheck files
-        run: yarn workspaces foreach --all --parallel run prepare && yarn typecheck
+        run: yarn workspaces foreach --all --topological-dev run prepare && yarn typecheck
 
   build-library:
     runs-on: ubuntu-latest
@@ -36,4 +36,4 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Build all packages
-        run: yarn workspaces foreach --all --parallel run prepare
+        run: yarn workspaces foreach --all --topological-dev run prepare
