@@ -57,7 +57,7 @@ import { RnExecutorchError } from '../errors/errorUtils';
 /**
  * This module provides functions to download and work with downloaded files stored in the application's document directory inside the `react-native-executorch/` directory.
  * These utilities can help you manage your storage and clean up the downloaded files when they are no longer needed.
- * 
+ *
  * @category Utilities - General
  */
 export class ResourceFetcher {
@@ -65,7 +65,7 @@ export class ResourceFetcher {
 
   /**
    * Fetches resources (remote URLs, local files or embedded assets), downloads or stores them locally for use by React Native ExecuTorch.
-   * 
+   *
    * @param callback - Optional callback to track progress of all downloads, reported between 0 and 1.
    * @param sources - Multiple resources that can be strings, asset references, or objects.
    * @returns If the fetch was successful, it returns a promise which resolves to an array of local file paths for the downloaded/stored resources (without file:// prefix).
@@ -254,7 +254,7 @@ export class ResourceFetcher {
 
   /**
    * Pauses an ongoing download of files.
-   * 
+   *
    * @param sources - The resource identifiers used when calling `fetch`.
    * @returns A promise that resolves once the download is paused.
    */
@@ -265,7 +265,7 @@ export class ResourceFetcher {
 
   /**
    * Resumes a paused download of files.
-   * 
+   *
    * @param sources - The resource identifiers used when calling fetch.
    * @returns If the fetch was successful, it returns a promise which resolves to an array of local file paths for the downloaded resources (without file:// prefix).
    * If the fetch was again interrupted by `pauseFetching` or `cancelFetching`, it returns a promise which resolves to `null`.
@@ -277,7 +277,7 @@ export class ResourceFetcher {
 
   /**
    * Cancels an ongoing/paused download of files.
-   * 
+   *
    * @param sources - The resource identifiers used when calling `fetch()`.
    * @returns A promise that resolves once the download is canceled.
    */
@@ -300,7 +300,7 @@ export class ResourceFetcher {
 
   /**
    * Lists all the downloaded files used by React Native ExecuTorch.
-   * 
+   *
    * @returns A promise, which resolves to an array of URIs for all the downloaded files.
    */
   static async listDownloadedFiles() {
@@ -310,7 +310,7 @@ export class ResourceFetcher {
 
   /**
    * Lists all the downloaded models used by React Native ExecuTorch.
-   * 
+   *
    * @returns A promise, which resolves to an array of URIs for all the downloaded models.
    */
   static async listDownloadedModels() {
@@ -320,7 +320,7 @@ export class ResourceFetcher {
 
   /**
    * Deletes downloaded resources from the local filesystem.
-   * 
+   *
    * @param sources - The resource identifiers used when calling `fetch`.
    * @returns A promise that resolves once all specified resources have been removed.
    */
@@ -338,7 +338,7 @@ export class ResourceFetcher {
 
   /**
    * Fetches the info about files size. Works only for remote files.
-   * 
+   *
    * @param sources - The resource identifiers (URLs).
    * @returns A promise that resolves to combined size of files in bytes.
    */

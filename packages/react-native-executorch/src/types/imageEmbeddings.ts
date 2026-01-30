@@ -1,9 +1,9 @@
-import { RnExecutorchError } from "../errors/errorUtils";
-import { ResourceSource } from "./common";
+import { RnExecutorchError } from '../errors/errorUtils';
+import { ResourceSource } from './common';
 
 /**
  * Props for the `useImageEmbeddings` hook.
- * 
+ *
  * @category Types
  * @property {Object} model - An object containing the model source.
  * @property {ResourceSource} model.modelSource - The source of the image embeddings model binary.
@@ -17,7 +17,7 @@ export interface ImageEmbeddingsProps {
 /**
  * Return type for the `useImageEmbeddings` hook.
  * Manages the state and operations for generating image embeddings (feature vectors) used in Computer Vision tasks.
- * 
+ *
  * @category Types
  */
 export interface ImageEmbeddingsType {

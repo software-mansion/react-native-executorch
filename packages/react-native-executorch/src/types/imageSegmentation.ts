@@ -1,9 +1,9 @@
-import { RnExecutorchError } from "../errors/errorUtils";
-import { ResourceSource } from "./common";
+import { RnExecutorchError } from '../errors/errorUtils';
+import { ResourceSource } from './common';
 
 /**
  * Labels used in the DeepLab image segmentation model.
- * 
+ *
  * @category Types
  */
 /* eslint-disable @cspell/spellchecker */
@@ -34,11 +34,11 @@ export enum DeeplabLabel {
 
 /**
  * Props for the `useImageSegmentation` hook.
- * 
+ *
  * @property {Object} model - An object containing the model source.
  * @property {ResourceSource} model.modelSource - The source of the image segmentation model binary.
  * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
- * 
+ *
  * @category Types
  */
 export interface ImageSegmentationProps {
@@ -49,7 +49,7 @@ export interface ImageSegmentationProps {
 /**
  * Return type for the `useImageSegmentation` hook.
  * Manages the state and operations for Computer Vision image segmentation (e.g., DeepLab).
- * 
+ *
  * @category Types
  */
 export interface ImageSegmentationType {
@@ -87,4 +87,3 @@ export interface ImageSegmentationType {
     resize?: boolean
   ) => Promise<Partial<Record<DeeplabLabel, number[]>>>;
 }
-

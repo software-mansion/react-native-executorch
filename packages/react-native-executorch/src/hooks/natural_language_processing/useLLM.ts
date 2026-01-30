@@ -11,15 +11,12 @@ import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
 /**
  * React hook for managing a Large Language Model (LLM) instance.
- * 
+ *
  * @category Hooks
  * @param model - Object containing model, tokenizer, and tokenizer config sources.
  * @returns An object implementing the `LLMType` interface for interacting with the LLM.
  */
-export const useLLM = ({
-  model,
-  preventLoad = false,
-}: LLMProps): LLMType => {
+export const useLLM = ({ model, preventLoad = false }: LLMProps): LLMType => {
   const [token, setToken] = useState<string>('');
   const [response, setResponse] = useState<string>('');
   const [messageHistory, setMessageHistory] = useState<Message[]>([]);
@@ -77,11 +74,7 @@ export const useLLM = ({
 
   // memoization of returned functions
   const configure = useCallback(
-    ({
-      chatConfig,
-      toolsConfig,
-      generationConfig,
-    }: LLMConfig) =>
+    ({ chatConfig, toolsConfig, generationConfig }: LLMConfig) =>
       controllerInstance.configure({
         chatConfig,
         toolsConfig,

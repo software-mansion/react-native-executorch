@@ -5,7 +5,7 @@ import { ResourceSource } from './common';
 /**
  * OCRDetection represents a single detected text instance in an image,
  * including its bounding box, recognized text, and confidence score.
- * 
+ *
  * @category Types
  * @property {Point[]} bbox - An array of points defining the bounding box around the detected text.
  * @property {string} text - The recognized text within the bounding box.
@@ -19,7 +19,7 @@ export interface OCRDetection {
 
 /**
  * Point represents a coordinate in 2D space.
- * 
+ *
  * @category Types
  * @property {number} x - The x-coordinate of the point.
  * @property {number} y - The y-coordinate of the point.
@@ -31,7 +31,7 @@ export interface Point {
 
 /**
  * Configuration properties for the `useOCR` hook.
- * 
+ *
  * @category Types
  */
 export interface OCRProps {
@@ -64,7 +64,7 @@ export interface OCRProps {
 
 /**
  * Configuration properties for the `useVerticalOCR` hook.
- * 
+ *
  * @category Types
  */
 export interface VerticalOCRProps extends OCRProps {
@@ -73,12 +73,12 @@ export interface VerticalOCRProps extends OCRProps {
    * Defaults to `false`.
    */
   independentCharacters?: boolean;
-};
+}
 
 /**
  * Return type for the `useOCR` hook.
  * Manages the state and operations for Optical Character Recognition (OCR).
- * 
+ *
  * @category Types
  */
 export interface OCRType {
@@ -113,7 +113,7 @@ export interface OCRType {
 
 /**
  * Enumeration of supported OCR languages based on available symbol sets.
- * 
+ *
  * @category Types
  */
 export type OCRLanguage = keyof typeof symbols;

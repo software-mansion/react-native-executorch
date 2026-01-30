@@ -1,9 +1,9 @@
-import { RnExecutorchError } from "../errors/errorUtils";
-import { ResourceSource } from "./common";
+import { RnExecutorchError } from '../errors/errorUtils';
+import { ResourceSource } from './common';
 
 /**
  * Configuration properties for the `useStyleTransfer` hook.
- * 
+ *
  * @category Types
  * @property {Object} model - Object containing the `modelSource` for the style transfer model.
  * @property {ResourceSource} model.modelSource - `ResourceSource` that specifies the location of the style transfer model binary.
@@ -17,7 +17,7 @@ export interface StyleTransferProps {
 /**
  * Return type for the `useStyleTransfer` hook.
  * Manages the state and operations for applying artistic style transfer to images.
- * 
+ *
  * @category Types
  */
 export interface StyleTransferType {

@@ -1,12 +1,16 @@
 import { useEffect, useCallback, useState } from 'react';
 import { SpeechToTextModule } from '../../modules/natural_language_processing/SpeechToTextModule';
-import { DecodingOptions, SpeechToTextType, SpeechToTextProps } from '../../types/stt';
+import {
+  DecodingOptions,
+  SpeechToTextType,
+  SpeechToTextProps,
+} from '../../types/stt';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
 /**
  * React hook for managing a Speech to Text (STT) instance.
- * 
+ *
  * @category Hooks
  * @param speechToTextProps - Configuration object containing `model` source and optional `preventLoad` flag.
  * @returns Ready to use Speech to Text model.

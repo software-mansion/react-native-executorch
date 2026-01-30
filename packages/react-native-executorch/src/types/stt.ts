@@ -3,7 +3,7 @@ import { RnExecutorchError } from '../errors/errorUtils';
 
 /**
  * Configuration for Speech to Text model.
- * 
+ *
  * @category Types
  */
 export interface SpeechToTextProps {
@@ -19,7 +19,7 @@ export interface SpeechToTextProps {
 
 /**
  * React hook for managing Speech to Text (STT) instance.
- * 
+ *
  * @category Types
  */
 export interface SpeechToTextType {
@@ -44,7 +44,7 @@ export interface SpeechToTextType {
   downloadProgress: number;
 
   /**
-   * Contains the part of the transcription that is finalized and will not change. 
+   * Contains the part of the transcription that is finalized and will not change.
    * Useful for displaying stable results during streaming.
    */
   committedTranscription: string;
@@ -68,7 +68,10 @@ export interface SpeechToTextType {
    * @param encoderOutput - The output from the encoder.
    * @returns A promise resolving to the decoded text.
    */
-  decode(tokens: number[] | Int32Array, encoderOutput: Float32Array | number[]): Promise<Float32Array>;
+  decode(
+    tokens: number[] | Int32Array,
+    encoderOutput: Float32Array | number[]
+  ): Promise<Float32Array>;
 
   /**
    * Starts a transcription process for a given input array, which should be a waveform at 16kHz.
@@ -77,7 +80,10 @@ export interface SpeechToTextType {
    * @param options - Decoding options, e.g. `{ language: 'es' }` for multilingual models.
    * @returns Resolves a promise with the output transcription when the model is finished.
    */
-  transcribe(waveform: Float32Array | number[], options?: DecodingOptions | undefined): Promise<string>;
+  transcribe(
+    waveform: Float32Array | number[],
+    options?: DecodingOptions | undefined
+  ): Promise<string>;
 
   /**
    * Starts a streaming transcription process.
@@ -101,9 +107,9 @@ export interface SpeechToTextType {
   streamStop(): void;
 }
 
-/** 
+/**
  * Languages supported by whisper (not whisper.en)
- * 
+ *
  * @category Types
  */
 export type SpeechToTextLanguage =
@@ -185,17 +191,17 @@ export type SpeechToTextLanguage =
 
 /**
  * Options for decoding speech to text.
- * 
+ *
  * @category Types
  * @property {SpeechToTextLanguage} [language] - Optional language code to guide the transcription.
- */  
+ */
 export interface DecodingOptions {
   language?: SpeechToTextLanguage;
 }
 
 /**
  * Configuration for Speech to Text model.
- * 
+ *
  * @category Types
  */
 export interface SpeechToTextModelConfig {

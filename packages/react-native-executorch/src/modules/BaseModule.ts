@@ -16,7 +16,7 @@ export abstract class BaseModule {
   /**
    * Runs the model's forward method with the given input tensors.
    * It returns the output tensors that mimic the structure of output from ExecuTorch.
-   * 
+   *
    * @param inputTensor - Array of input tensors.
    * @returns Array of output tensors.
    */
@@ -26,8 +26,8 @@ export abstract class BaseModule {
 
   /**
    * Gets the input shape for a given method and index.
-   * 
-   * @param methodName method name 
+   *
+   * @param methodName method name
    * @param index index of the argument which shape is requested
    * @returns The input shape as an array of numbers.
    */

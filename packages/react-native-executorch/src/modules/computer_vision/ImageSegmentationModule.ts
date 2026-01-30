@@ -7,15 +7,14 @@ import { BaseModule } from '../BaseModule';
 
 /**
  * Module for image segmentation tasks.
- * 
+ *
  * @category Typescript API
  */
 export class ImageSegmentationModule extends BaseModule {
-
   /**
-   * Loads the model, where `modelSource` is a string that specifies the location of the model binary. 
+   * Loads the model, where `modelSource` is a string that specifies the location of the model binary.
    * To track the download progress, supply a callback function `onDownloadProgressCallback`.
-   * 
+   *
    * @param model - Object containing `modelSource`.
    * @param onDownloadProgressCallback - Optional callback to monitor download progress.
    */
@@ -38,9 +37,9 @@ export class ImageSegmentationModule extends BaseModule {
 
   /**
    * Executes the model's forward pass
-   * 
+   *
    * @param imageSource - a fetchable resource or a Base64-encoded string.
-   * @param classesOfInterest - an optional list of DeeplabLabel used to indicate additional arrays of probabilities to output (see section "Running the model"). The default is an empty list. 
+   * @param classesOfInterest - an optional list of DeeplabLabel used to indicate additional arrays of probabilities to output (see section "Running the model"). The default is an empty list.
    * @param resize - an optional boolean to indicate whether the output should be resized to the original image dimensions, or left in the size of the model (see section "Running the model"). The default is `false`.
    * @returns A dictionary where keys are `DeeplabLabel` and values are arrays of probabilities for each pixel belonging to the corresponding class.
    */

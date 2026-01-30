@@ -1,9 +1,9 @@
-import { RnExecutorchError } from "../errors/errorUtils";
-import { ResourceSource } from "./common";
+import { RnExecutorchError } from '../errors/errorUtils';
+import { ResourceSource } from './common';
 
 /**
  * Props for the `useClassification` hook.
- * 
+ *
  * @category Types
  * @property {Object} model - An object containing the model source.
  * @property {ResourceSource} model.modelSource - The source of the classification model binary.
@@ -17,7 +17,7 @@ export interface ClassificationProps {
 /**
  * Return type for the `useClassification` hook.
  * Manages the state and operations for Computer Vision image classification.
- * 
+ *
  * @category Types
  */
 export interface ClassificationType {
@@ -47,5 +47,5 @@ export interface ClassificationType {
    * @returns A Promise that resolves to the classification result (typically containing labels and confidence scores).
    * @throws {RnExecutorchError} If the model is not loaded or is currently processing another image.
    */
-  forward: (imageSource: string) => Promise<{ [category: string]: number }>
+  forward: (imageSource: string) => Promise<{ [category: string]: number }>;
 }

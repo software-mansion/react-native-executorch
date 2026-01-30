@@ -6,14 +6,14 @@ import { RnExecutorchError } from '../../errors/errorUtils';
 
 /**
  * Module for image classification tasks.
- * 
+ *
  * @category Typescript API
  */
 export class ClassificationModule extends BaseModule {
   /**
    * Loads the model, where `modelSource` is a string that specifies the location of the model binary.
    * To track the download progress, supply a callback function `onDownloadProgressCallback`.
-   * 
+   *
    * @param model - Object containing `modelSource`.
    * @param onDownloadProgressCallback - Optional callback to monitor download progress.
    */
@@ -36,7 +36,7 @@ export class ClassificationModule extends BaseModule {
 
   /**
    * Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string.
-   * 
+   *
    * @param imageSource - The image source to be classified.
    * @returns The classification result.
    */

@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react';
 import { TokenizerModule } from '../../modules/natural_language_processing/TokenizerModule';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
-import { TokenizerProps, TokenizerType } from '../../types/tokenizer';  
+import { TokenizerProps, TokenizerType } from '../../types/tokenizer';
 
 /**
  * React hook for managing a Tokenizer instance.
- * 
+ *
  * @category Hooks
- * @param tokenizerProps - Configuration object containing `tokenizer` source and optional `preventLoad` flag. 
+ * @param tokenizerProps - Configuration object containing `tokenizer` source and optional `preventLoad` flag.
  * @returns Ready to use Tokenizer model.
  */
 export const useTokenizer = ({

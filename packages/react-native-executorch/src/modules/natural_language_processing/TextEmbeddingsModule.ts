@@ -6,14 +6,13 @@ import { RnExecutorchError } from '../../errors/errorUtils';
 
 /**
  * Module for generating text embeddings from input text.
- * 
+ *
  * @category Typescript API
  */
 export class TextEmbeddingsModule extends BaseModule {
-
   /**
    * Loads the model and tokenizer specified by the config object.
-   * 
+   *
    * @param model - Object containing model and tokenizer sources.
    * @param model.modelSource - `ResourceSource` that specifies the location of the text embeddings model binary.
    * @param model.tokenizerSource - `ResourceSource` that specifies the location of the tokenizer JSON file.
@@ -48,7 +47,7 @@ export class TextEmbeddingsModule extends BaseModule {
 
   /**
    * Executes the model's forward pass, where `input` is a text that will be embedded.
-   * 
+   *
    * @param input - The text string to embed.
    * @returns A Float32Array containing the vector embeddings.
    */

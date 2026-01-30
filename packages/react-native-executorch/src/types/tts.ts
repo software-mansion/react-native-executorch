@@ -3,7 +3,7 @@ import { RnExecutorchError } from '../errors/errorUtils';
 
 /**
  * List all the languages available in TTS models (as lang shorthands)
- * 
+ *
  * @category Types
  */
 export type TextToSpeechLanguage =
@@ -26,9 +26,9 @@ export interface VoiceConfig {
   extra?: KokoroVoiceExtras; // ... add more possible types
 }
 
-/** 
+/**
  * Kokoro-specific voice extra props
- * 
+ *
  * @category Types
  * @property {ResourceSource} taggerSource - source to Kokoro's tagger model binary
  * @property {ResourceSource} lexiconSource - source to Kokoro's lexicon binary
@@ -41,7 +41,7 @@ export interface KokoroVoiceExtras {
 /**
  * Kokoro model configuration.
  * Only the core Kokoro model sources, as phonemizer sources are included in voice configuration.
- * 
+ *
  * @category Types
  * @property {'kokoro'} type - model type identifier
  * @property {ResourceSource} durationPredictorSource - source to Kokoro's duration predictor model binary
@@ -68,10 +68,10 @@ export interface TextToSpeechConfig {
 
 /**
  * Props for the useTextToSpeech hook.
- * 
+ *
  * @category Types
  * @extends TextToSpeechConfig
- * 
+ *
  * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
  */
 export interface TextToSpeechProps extends TextToSpeechConfig {
@@ -93,7 +93,7 @@ export interface TextToSpeechInput {
 /**
  * Return type for the `useTextToSpeech` hook.
  * Manages the state and operations for Text-to-Speech generation.
- * 
+ *
  * @category Types
  */
 export interface TextToSpeechType {
@@ -126,7 +126,7 @@ export interface TextToSpeechType {
   forward: (input: TextToSpeechInput) => Promise<Float32Array>;
 
   /**
-   * Streams the generated audio data incrementally. 
+   * Streams the generated audio data incrementally.
    * This is optimal for real-time playback, allowing audio to start playing before the full text is synthesized.
    * * @param input - The `TextToSpeechStreamingInput` object containing `text`, optional `speed`, and lifecycle callbacks (`onBegin`, `onNext`, `onEnd`).
    * @returns A Promise that resolves when the streaming process is complete.
@@ -147,7 +147,7 @@ export interface TextToSpeechType {
  * executed at given moments of the streaming.
  * Actions such as playing the audio should happen within the onNext callback.
  * Callbacks can be both synchronous or asynchronous.
- * 
+ *
  * @category Types
  * @property {() => void | Promise<void>} [onBegin] - Called when streaming begins
  * @property {(audio: Float32Array) => void | Promise<void>} [onNext] - Called after each audio chunk gets calculated.

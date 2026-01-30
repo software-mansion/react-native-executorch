@@ -3,13 +3,13 @@ import { ResourceSource } from './common';
 
 /**
  * Parameters for initializing and configuring a Tokenizer instance.
- * 
+ *
  * @category Types
  */
 export interface TokenizerProps {
   /**
    * Object containing:
-   * 
+   *
    * `tokenizerSource` - A `ResourceSource` that specifies the location of the tokenizer.
    */
   tokenizer: { tokenizerSource: ResourceSource };
@@ -22,7 +22,7 @@ export interface TokenizerProps {
 
 /**
  * React hook state and methods for managing a Tokenizer instance.
- * 
+ *
  * @category Types
  */
 export interface TokenizerType {
@@ -52,7 +52,10 @@ export interface TokenizerType {
    * @param skipSpecialTokens - Optional boolean to indicate whether special tokens should be skipped during decoding.
    * @returns A promise resolving to the decoded text string.
    */
-  decode(tokens: number[], skipSpecialTokens: boolean | undefined): Promise<string>;
+  decode(
+    tokens: number[],
+    skipSpecialTokens: boolean | undefined
+  ): Promise<string>;
 
   /**
    * Converts a string into an array of token IDs.

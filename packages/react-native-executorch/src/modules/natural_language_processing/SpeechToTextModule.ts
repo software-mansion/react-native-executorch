@@ -6,7 +6,7 @@ import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
 /**
  * Module for Speech to Text (STT) functionalities.
- * 
+ *
  * @category Typescript API
  */
 export class SpeechToTextModule {
@@ -20,9 +20,9 @@ export class SpeechToTextModule {
   });
 
   /**
-   * Loads the model specified by the config object. 
+   * Loads the model specified by the config object.
    * `onDownloadProgressCallback` allows you to monitor the current progress of the model download.
-   * 
+   *
    * @param model - Configuration object containing model sources.
    * @param onDownloadProgressCallback - Optional callback to monitor download progress.
    */
@@ -70,7 +70,7 @@ export class SpeechToTextModule {
   /**
    * Runs the encoding part of the model on the provided waveform.
    * Returns the encoded waveform as a Float32Array. Passing `number[]` is deprecated.
-   * 
+   *
    * @param waveform - The input audio waveform.
    * @returns The encoded output.
    */
@@ -115,8 +115,8 @@ export class SpeechToTextModule {
   }
 
   /**
-   * Starts a transcription process for a given input array (16kHz waveform). 
-   * For multilingual models, specify the language in `options`. 
+   * Starts a transcription process for a given input array (16kHz waveform).
+   * For multilingual models, specify the language in `options`.
    * Returns the transcription as a string. Passing `number[]` is deprecated.
    *
    * @param waveform - The Float32Array audio data.
@@ -143,10 +143,10 @@ export class SpeechToTextModule {
   }
 
   /**
-   * Starts a streaming transcription session. 
-   * Yields objects with `committed` and `nonCommitted` transcriptions. 
+   * Starts a streaming transcription session.
+   * Yields objects with `committed` and `nonCommitted` transcriptions.
    * Use with `streamInsert` and `streamStop` to control the stream.
-   * 
+   *
    * @param options - Decoding options including language.
    * @returns An async generator yielding transcription updates.
    */
@@ -207,7 +207,7 @@ export class SpeechToTextModule {
 
   /**
    * Inserts a new audio chunk into the streaming transcription session. Passing `number[]` is deprecated.
-   * 
+   *
    * @param waveform - The audio chunk to insert.
    */
   public streamInsert(waveform: Float32Array | number[]): void {

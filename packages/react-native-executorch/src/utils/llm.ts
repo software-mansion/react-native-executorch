@@ -8,7 +8,7 @@ import { Logger } from '../common/Logger';
 
 /**
  * Parses tool calls from a given message string.
- * 
+ *
  * @category Utilities - LLM
  * @param message - The message string containing tool calls in JSON format.
  * @returns An array of `ToolCall` objects extracted from the message.
@@ -56,7 +56,7 @@ const filterObjectKeys = (obj: object, keysToRemove: string[]) => {
 
 /**
  * Generates a structured output prompt based on the provided schema.
- * 
+ *
  * @category Utilities - LLM
  * @param responseSchema - The schema (Zod or JSON Schema) defining the desired output format.
  * @returns A prompt string instructing the model to format its output according to the given schema.
@@ -93,7 +93,7 @@ const extractBetweenBrackets = (text: string): string => {
 
 /**
  * Fixes and validates structured output from LLMs against a provided schema.
- * 
+ *
  * @category Utilities - LLM
  * @param output - The raw output string from the LLM.
  * @param responseSchema - The schema (Zod or JSON Schema) to validate the output against.
