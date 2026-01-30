@@ -131,7 +131,6 @@ export class LLMController {
         if (filtered.length === 0) {
           return;
         }
-
         this.tokenCallback(filtered);
       };
     } catch (e) {
