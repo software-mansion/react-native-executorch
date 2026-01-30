@@ -2,7 +2,7 @@
 
 > `const` **KOKORO\_SMALL**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/tts/models.ts:15](https://github.com/software-mansion/react-native-executorch/blob/7d713f1325a78449d56d2e9931c3ba580ce67027/packages/react-native-executorch/src/constants/tts/models.ts#L15)
+Defined in: [packages/react-native-executorch/src/constants/tts/models.ts:15](https://github.com/software-mansion/react-native-executorch/blob/4bb7c5e39cad5e7f0481e1bb508135978edc9be2/packages/react-native-executorch/src/constants/tts/models.ts#L15)
 
 A Kokoro model instance which processes the text in batches of maximum 64 tokens.
 Uses significant less memory than the medium model, but could produce

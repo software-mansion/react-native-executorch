@@ -1,6 +1,6 @@
 # Interface: GenerationConfig
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:238](https://github.com/software-mansion/react-native-executorch/blob/7d713f1325a78449d56d2e9931c3ba580ce67027/packages/react-native-executorch/src/types/llm.ts#L238)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:238](https://github.com/software-mansion/react-native-executorch/blob/4bb7c5e39cad5e7f0481e1bb508135978edc9be2/packages/react-native-executorch/src/types/llm.ts#L238)
 
 Object configuring generation settings.
 
@@ -10,7 +10,7 @@ Object configuring generation settings.
 
 > `optional` **batchTimeInterval**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:242](https://github.com/software-mansion/react-native-executorch/blob/7d713f1325a78449d56d2e9931c3ba580ce67027/packages/react-native-executorch/src/types/llm.ts#L242)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:242](https://github.com/software-mansion/react-native-executorch/blob/4bb7c5e39cad5e7f0481e1bb508135978edc9be2/packages/react-native-executorch/src/types/llm.ts#L242)
 
 Upper limit on the time interval between consecutive token batches.
 
@@ -20,7 +20,7 @@ Upper limit on the time interval between consecutive token batches.
 
 > `optional` **outputTokenBatchSize**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:241](https://github.com/software-mansion/react-native-executorch/blob/7d713f1325a78449d56d2e9931c3ba580ce67027/packages/react-native-executorch/src/types/llm.ts#L241)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:241](https://github.com/software-mansion/react-native-executorch/blob/4bb7c5e39cad5e7f0481e1bb508135978edc9be2/packages/react-native-executorch/src/types/llm.ts#L241)
 
 Soft upper limit on the number of tokens in each token batch (in certain cases there can be more tokens in given batch, i.e. when the batch would end with special emoji join character).
 
@@ -30,7 +30,7 @@ Soft upper limit on the number of tokens in each token batch (in certain cases t
 
 > `optional` **temperature**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:239](https://github.com/software-mansion/react-native-executorch/blob/7d713f1325a78449d56d2e9931c3ba580ce67027/packages/react-native-executorch/src/types/llm.ts#L239)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:239](https://github.com/software-mansion/react-native-executorch/blob/4bb7c5e39cad5e7f0481e1bb508135978edc9be2/packages/react-native-executorch/src/types/llm.ts#L239)
 
 Scales output logits by the inverse of temperature. Controls the randomness / creativity of text generation.
 
@@ -40,6 +40,6 @@ Scales output logits by the inverse of temperature. Controls the randomness / cr
 
 > `optional` **topp**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:240](https://github.com/software-mansion/react-native-executorch/blob/7d713f1325a78449d56d2e9931c3ba580ce67027/packages/react-native-executorch/src/types/llm.ts#L240)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:240](https://github.com/software-mansion/react-native-executorch/blob/4bb7c5e39cad5e7f0481e1bb508135978edc9be2/packages/react-native-executorch/src/types/llm.ts#L240)
 
 Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
