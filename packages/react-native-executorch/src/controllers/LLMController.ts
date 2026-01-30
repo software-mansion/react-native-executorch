@@ -155,6 +155,7 @@ export class LLMController {
 
         this.tokenCallback(data);
         this.responseCallback(this._response + data);
+        this._response = this._response + data;
       };
     } catch (e) {
       this.isReadyCallback(false);
@@ -230,6 +231,7 @@ export class LLMController {
       throw new Error(getError(e));
     } finally {
       this.isGeneratingCallback(false);
+      return this._response;
     }
   }
 
@@ -262,7 +264,9 @@ export class LLMController {
       { tools_in_user_message: false, add_generation_prompt: true }
     );
 
-    await this.forward(renderedChat);
+    const response = await this.forward(renderedChat);
+
+    return response;
   }
 
   public async sendMessage(message: string) {
@@ -276,7 +280,10 @@ export class LLMController {
       ...this._messageHistory.slice(-this.chatConfig.contextWindowLength),
     ];
 
-    await this.generate(messageHistoryWithPrompt, this.toolsConfig?.tools);
+    const response = await this.generate(
+      messageHistoryWithPrompt,
+      this.toolsConfig?.tools
+    );
 
     if (!this.toolsConfig || this.toolsConfig.displayToolCalls) {
       this.messageHistoryCallback([
@@ -285,7 +292,7 @@ export class LLMController {
       ]);
     }
     if (!this.toolsConfig) {
-      return;
+      return response;
     }
 
     const toolCalls = parseToolCall(this._response);
@@ -302,6 +309,8 @@ export class LLMController {
           }
         });
     }
+
+    return response;
   }
 
   public deleteMessage(index: number) {

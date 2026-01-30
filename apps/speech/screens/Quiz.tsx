@@ -4,9 +4,9 @@ import {
   View,
   StyleSheet,
   TouchableOpacity,
-  Platform,
   ScrollView,
   KeyboardAvoidingView,
+  TextInput,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -21,6 +21,8 @@ import {
   KOKORO_MEDIUM,
   KOKORO_VOICE_AM_SANTA,
   useTextToSpeech,
+  LLAMA3_2_1B_QLORA,
+  useLLM,
 } from 'react-native-executorch';
 import {
   AudioManager,
@@ -65,12 +67,18 @@ export const Quiz = ({ onBack }: { onBack: () => void }) => {
     voice: KOKORO_VOICE_AM_SANTA,
   });
 
+  const llm = useLLM({
+    model: LLAMA3_2_1B_QLORA,
+  });
+
   const [shuffledQuestions] = useState(() => shuffleArray(QUESTIONS));
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentQuestion, setCurrentQuestion] = useState(shuffledQuestions[0]);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [isAnswerCorrect, setIsAnswerCorrect] = useState<boolean | null>(null);
   const [showNext, setShowNext] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [userQuery, setUserQuery] = useState('');
   const fadeAnim = useSharedValue(1);
   const feedbackAnim = useSharedValue(0);
   const nextButtonAnim = useSharedValue(0);
@@ -99,7 +107,7 @@ export const Quiz = ({ onBack }: { onBack: () => void }) => {
     ],
   }));
 
-  // --- Audio Setup ---
+  // --- Audio & LLM Setup ---
   useEffect(() => {
     AudioManager.setAudioSessionOptions({
       iosCategory: 'playAndRecord',
@@ -110,10 +118,17 @@ export const Quiz = ({ onBack }: { onBack: () => void }) => {
     audioContextRef.current = new AudioContext({ sampleRate: 24000 });
     audioContextRef.current.suspend();
 
+    llm.configure({
+      chatConfig: {
+        systemPrompt: `You are a knowledgable quiz assistant. Your task is to provide very short (max few, short sentences), fact-oriented answers to user's question.`,
+      },
+    });
+
     return () => {
       audioContextRef.current?.close();
       audioContextRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // --- TTS Function ---
@@ -164,7 +179,8 @@ export const Quiz = ({ onBack }: { onBack: () => void }) => {
   );
 
   // --- Game Logic ---
-  const currentQ = shuffledQuestions[currentIndex];
+  // Removed derived currentQ
+  // const currentQ = shuffledQuestions[currentIndex];
 
   // Speak question on load
   useEffect(() => {
@@ -174,16 +190,16 @@ export const Quiz = ({ onBack }: { onBack: () => void }) => {
       return;
     }
     setIsSpeaking(true);
-    const t = setTimeout(() => speak(currentQ.q), 500);
+    const t = setTimeout(() => speak(currentQuestion.q), 500);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentIndex, model.isReady]);
+  }, [currentQuestion, model.isReady]);
 
   const handleAnswer = async (index: number) => {
     if (selectedAnswer !== null || isSpeaking) return; // Prevent double taps or clicks while reading
 
     setSelectedAnswer(index);
-    const correct = index === currentQ.c;
+    const correct = index === currentQuestion.c;
     setIsAnswerCorrect(correct);
 
     // 1. Visual Feedback Animation (1s)
@@ -197,7 +213,7 @@ export const Quiz = ({ onBack }: { onBack: () => void }) => {
       await speak('Correct!');
     } else {
       // Play "Incorrect" and explanation as one string
-      await speak(`Incorrect. ${currentQ.e}`);
+      await speak(`Incorrect. ${currentQuestion.e}`);
     }
 
     // 3. Show Next Button
@@ -207,7 +223,9 @@ export const Quiz = ({ onBack }: { onBack: () => void }) => {
   const updateQuestionState = (nextIdx: number) => {
     setSelectedAnswer(null);
     setIsAnswerCorrect(null);
+    setUserQuery('');
     setCurrentIndex(nextIdx);
+    setCurrentQuestion(shuffledQuestions[nextIdx]);
 
     setTimeout(() => {
       isTransitioningRef.current = false;
@@ -237,15 +255,33 @@ export const Quiz = ({ onBack }: { onBack: () => void }) => {
     buttonsInactiveAnim.value = withTiming(0.5, { duration: 800 });
 
     // Play the context for the current question
-    await speak(currentQ.context);
+    await speak(currentQuestion.context);
 
     buttonsInactiveAnim.value = withTiming(1, { duration: 800 });
   };
 
+  const handleAskQuestion = useCallback(async () => {
+    if (!userQuery.trim() || isSpeaking) return;
+
+    // Dim controls while processing
+    buttonsInactiveAnim.value = withTiming(0.7, {
+      duration: 300,
+    });
+
+    try {
+      const response = await llm.sendMessage(userQuery);
+      await speak(response);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      buttonsInactiveAnim.value = withTiming(1, { duration: 300 });
+    }
+  }, [userQuery, isSpeaking, llm, buttonsInactiveAnim, speak]);
+
   const getButtonColor = (index: number) => {
     if (selectedAnswer === null) return styles.optionButton;
 
-    if (index === currentQ.c) return styles.correctButton; // Highlight correct answer always if answered
+    if (index === currentQuestion.c) return styles.correctButton; // Highlight correct answer always if answered
     if (index === selectedAnswer && !isAnswerCorrect) return styles.wrongButton; // Highlight mistake
 
     return styles.disabledOption;
@@ -276,21 +312,18 @@ export const Quiz = ({ onBack }: { onBack: () => void }) => {
             </Text>
           </View>
         ) : (
-          <KeyboardAvoidingView
-            style={styles.flex1}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          >
+          <KeyboardAvoidingView style={styles.flex1} behavior="height">
             <ScrollView contentContainerStyle={styles.scrollContent}>
               <Animated.View style={[styles.quizContainer, containerStyle]}>
                 <View style={styles.questionCard}>
                   <Text style={styles.questionIndex}>
                     Question {currentIndex + 1}
                   </Text>
-                  <Text style={styles.questionText}>{currentQ.q}</Text>
+                  <Text style={styles.questionText}>{currentQuestion.q}</Text>
                 </View>
 
                 <View style={styles.optionsContainer}>
-                  {currentQ.a.map((opt, idx) => (
+                  {currentQuestion.a.map((opt, idx) => (
                     <TouchableOpacity
                       key={idx}
                       style={[styles.baseOption, getButtonColor(idx)]}
@@ -323,34 +356,55 @@ export const Quiz = ({ onBack }: { onBack: () => void }) => {
             </ScrollView>
 
             {showNext && (
-              <Animated.View
-                style={[styles.bottomContainer, nextButtonStyle]}
-                pointerEvents={showNext && !isSpeaking ? 'auto' : 'none'}
-              >
-                <TouchableOpacity
-                  onPress={handleNext}
-                  style={styles.nextButton}
+              <View style={styles.bottomContainer}>
+                <Animated.View
+                  style={[styles.innerBottomContainer, nextButtonStyle]}
+                  pointerEvents={showNext && !isSpeaking ? 'auto' : 'none'}
                 >
-                  <Text style={styles.nextButtonText}>Next Question</Text>
-                  <FontAwesome name="arrow-right" size={20} color="white" />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={handleLearnMore}
-                  style={[styles.nextButton, styles.learnMoreButton]}
-                >
-                  <Text
-                    style={[styles.nextButtonText, styles.learnMoreButtonText]}
+                  <TouchableOpacity
+                    onPress={handleNext}
+                    style={styles.nextButton}
                   >
-                    Learn More
-                  </Text>
-                  <FontAwesome
-                    name="graduation-cap"
-                    size={20}
-                    color="#0f186e"
-                  />
-                </TouchableOpacity>
-              </Animated.View>
+                    <Text style={styles.nextButtonText}>Next Question</Text>
+                    <FontAwesome name="arrow-right" size={20} color="white" />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={handleLearnMore}
+                    style={[styles.nextButton, styles.learnMoreButton]}
+                  >
+                    <Text
+                      style={[
+                        styles.nextButtonText,
+                        styles.learnMoreButtonText,
+                      ]}
+                    >
+                      Learn More
+                    </Text>
+                    <FontAwesome
+                      name="graduation-cap"
+                      size={20}
+                      color="#0f186e"
+                    />
+                  </TouchableOpacity>
+
+                  <View style={styles.inputRow}>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder="Ask a question..."
+                      placeholderTextColor="#888"
+                      value={userQuery}
+                      onChangeText={setUserQuery}
+                    />
+                    <TouchableOpacity
+                      style={styles.sendButton}
+                      onPress={handleAskQuestion}
+                    >
+                      <FontAwesome name="paper-plane" size={18} color="white" />
+                    </TouchableOpacity>
+                  </View>
+                </Animated.View>
+              </View>
             )}
           </KeyboardAvoidingView>
         )}
@@ -497,15 +551,49 @@ const styles = StyleSheet.create({
   learnMoreButtonText: {
     color: '#0f186e',
   },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    gap: 12,
+    marginTop: 4,
+  },
+  textInput: {
+    flex: 1,
+    height: 52,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 26,
+    paddingHorizontal: 20,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    color: '#333',
+  },
+  sendButton: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#0f186e',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
   bottomContainer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
+    backgroundColor: 'rgb(255,255,255)',
+  },
+  innerBottomContainer: {
     padding: 20,
     gap: 12,
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.95)',
+    width: '100%',
   },
   flex1: {
     flex: 1,
