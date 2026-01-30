@@ -1,49 +1,43 @@
-/**
- * Resource Fetcher
- *
- * Provides an interface for downloading files (via `ResourceFetcher.fetch()`)
- *
- * Key functionality:
- * - Download control: pause, resume, and cancel operations through:
- *   - Single file: `.pauseFetching()`, `.resumeFetching()`, `.cancelFetching()`
- * - Downloaded file management:
- *   -  `.getFilesTotalSize()`, `.listDownloadedFiles()`, `.listDownloadedModels()`, `.deleteResources()`
- *
- * Remark: The pausing/resuming/canceling works only for fetching remote resources.
- *
- * Most exported functions accept:
- * - Multiple `ResourceSource` arguments, (union type of string, number or object)
- *
- * Method `.fetch()` takes argument as callback that reports download progress.
- * Method`.fetch()` returns array of paths to successfully saved files or null if the download was paused or cancelled  (then resume functions can return paths).
- *
- * Technical Implementation:
- * - Maintains a `downloads` Map instance that tracks:
- *   - Currently downloading resources
- *   - Paused downloads
- * - Successful downloads are automatically removed from the `downloads` Map
- * - Uses the `ResourceSourceExtended` interface to enable pause/resume functionality:
- *   - Wraps user-provided `ResourceSource` elements
- *   - Implements linked list behavior via the `.next` attribute
- *   - Automatically processes subsequent downloads when `.next` contains a valid resource
- */
-
 import { ResourceSource } from '../types/common';
 import { RnExecutorchError } from '../errors/errorUtils';
 import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 
+/**
+ * Adapter interface for resource fetching operations.
+ *
+ * **Required Methods:**
+ * - {@link fetch}: Download resources to local storage (used by all modules)
+ * - {@link readAsString}: Read file contents as string (used for config files)
+ *
+ * @remarks
+ * This interface is intentionally minimal. Custom fetchers only need to implement
+ * these two methods for the library to function correctly.
+ */
 export interface ResourceFetcherAdapter {
+  /**
+   * Download resources to local storage.
+   *
+   * @param callback - Progress callback (0-100)
+   * @param sources - One or more resources to download
+   * @returns Array of local file paths, or null if download was interrupted
+   *
+   * @remarks
+   * **REQUIRED**: Used by all library modules for downloading models and resources.
+   */
   fetch(
     callback: (downloadProgress: number) => void,
     ...sources: ResourceSource[]
   ): Promise<string[] | null>;
-  pauseFetching(...sources: ResourceSource[]): Promise<void>;
-  resumeFetching(...sources: ResourceSource[]): Promise<void>;
-  cancelFetching(...sources: ResourceSource[]): Promise<void>;
-  listDownloadedFiles(): Promise<string[]>;
-  listDownloadedModels(): Promise<string[]>;
-  deleteResources(...sources: ResourceSource[]): Promise<void>;
-  getFilesTotalSize(...sources: ResourceSource[]): Promise<number>;
+
+  /**
+   * Read file contents as a string.
+   *
+   * @param path - Absolute file path
+   * @returns File contents as string
+   *
+   * @remarks
+   * **REQUIRED**: Used internally for reading configuration files (e.g., tokenizer configs).
+   */
   readAsString(path: string): Promise<string>;
 }
 

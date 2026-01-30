@@ -38,6 +38,13 @@ interface BareResourceFetcherInterface extends ResourceFetcherAdapter {
   resume(source: ResourceSource): Promise<string[] | null>;
   cancel(source: ResourceSource): Promise<void>;
   findActive(sources: ResourceSource[]): ResourceSource;
+  pauseFetching(...sources: ResourceSource[]): Promise<void>;
+  resumeFetching(...sources: ResourceSource[]): Promise<void>;
+  cancelFetching(...sources: ResourceSource[]): Promise<void>;
+  listDownloadedFiles(): Promise<string[]>;
+  listDownloadedModels(): Promise<string[]>;
+  deleteResources(...sources: ResourceSource[]): Promise<void>;
+  getFilesTotalSize(...sources: ResourceSource[]): Promise<number>;
   handleObject(source: ResourceSource): Promise<string>;
   handleLocalFile(source: ResourceSource): string;
   handleReleaseModeFile(
