@@ -1,6 +1,6 @@
 import { OCRController } from '../../controllers/OCRController';
 import { ResourceSource } from '../../types/common';
-import { OCRLanguage } from '../../types/ocr';
+import { OCRDetection, OCRLanguage } from '../../types/ocr';
 
 /**
  * Module for Optical Character Recognition (OCR) tasks.
@@ -42,9 +42,9 @@ export class OCRModule {
    * Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string.
    * 
    * @param imageSource - The image source to be processed.
-   * @returns The OCR result as a string.
+   * @returns The OCR result as a `OCRDetection[]`.
    */
-  async forward(imageSource: string) {
+  async forward(imageSource: string): Promise<OCRDetection[]>  {
     return await this.controller.forward(imageSource);
   }
 

@@ -2,7 +2,7 @@
 
 > `const` **SMOLLM2\_1\_135M**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:211](https://github.com/software-mansion/react-native-executorch/blob/4bb7c5e39cad5e7f0481e1bb508135978edc9be2/packages/react-native-executorch/src/constants/modelUrls.ts#L211)
+Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:211](https://github.com/software-mansion/react-native-executorch/blob/7e10c820da55c41850b183cae64d67ab1e216a67/packages/react-native-executorch/src/constants/modelUrls.ts#L211)
 
 ## Type Declaration
 

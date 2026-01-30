@@ -15,7 +15,7 @@ export class LLMModule {
   private controller: LLMController;
 
   /**
-   * Creates a new instance of LLMModule with optional callbacks.
+   * Creates a new instance of `LLMModule` with optional callbacks.
    * @param optionalCallbacks - Object containing optional callbacks.
    * 
    * @returns A new LLMModule instance.
@@ -26,15 +26,17 @@ export class LLMModule {
     messageHistoryCallback,
   }: {
     /**
-      * Optional callback invoked on every token batch (`string`).
+      * An optional function that will be called on every generated token (`string`) with that token as its only argument.
      */
     tokenCallback?: (token: string) => void;
     /**
-      * Optional callback invoked on every response update (`string`).
+      * An optional function that will be called on every generated token and receives the entire response (`string`), including this token. 
+      * [DEPRECATED - consider using tokenCallback]
      */
     responseCallback?: (response: string) => void;
     /**
-      * Optional callback invoked on message history updates (`Message[]`).
+      * An optional function called on every finished message (`Message[]`). 
+      * Returns the entire message history.
      */
     messageHistoryCallback?: (messageHistory: Message[]) => void;
   } = {}) {

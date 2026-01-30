@@ -23,7 +23,7 @@ export class TextToSpeechModule {
    * Loads the model and voice assets specified by the config object. 
    * `onDownloadProgressCallback` allows you to monitor the current progress.
    * 
-   * @param config - Configuration object containing `model` source, `voice` and optional `preventLoad`.
+   * @param config - Configuration object containing `model` source and `voice`.
    * @param onDownloadProgressCallback - Optional callback to monitor download progress.
    */
   public async load(

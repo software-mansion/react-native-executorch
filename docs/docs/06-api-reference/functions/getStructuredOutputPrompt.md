@@ -2,7 +2,7 @@
 
 > **getStructuredOutputPrompt**\<`T`\>(`responseSchema`): `string`
 
-Defined in: [packages/react-native-executorch/src/utils/llm.ts:64](https://github.com/software-mansion/react-native-executorch/blob/4bb7c5e39cad5e7f0481e1bb508135978edc9be2/packages/react-native-executorch/src/utils/llm.ts#L64)
+Defined in: [packages/react-native-executorch/src/utils/llm.ts:64](https://github.com/software-mansion/react-native-executorch/blob/7e10c820da55c41850b183cae64d67ab1e216a67/packages/react-native-executorch/src/utils/llm.ts#L64)
 
 Generates a structured output prompt based on the provided schema.
 
