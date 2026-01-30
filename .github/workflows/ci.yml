@@ -25,9 +25,7 @@ jobs:
 
       - name: Typecheck files
         run: |
-          cd packages/react-native-executorch
-          yarn prepare
-          cd ../../
+          yarn workspaces foreach --all --parallel run prepare
           yarn typecheck
 
   build-library:
@@ -39,7 +37,5 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
-      - name: Build package
-        run: |
-          cd packages/react-native-executorch
-          yarn prepare
+      - name: Build all packages
+        run: yarn workspaces foreach --all --parallel run prepare
