@@ -60,11 +60,15 @@ export class ResourceFetcher {
     this.adapter = adapter;
   }
 
+  static resetAdapter() {
+    this.adapter = null;
+  }
+
   static getAdapter(): ResourceFetcherAdapter {
     if (!this.adapter) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.NotImplemented,
-        'ResourceFetcher adapter is not initialized. Please call initExecutorch({ resourceFetcher: ... }) with a valid adapter, e.g., from @rn-executorch/expo-adapter or @rn-executorch/bare-adapter.'
+        'ResourceFetcher adapter is not initialized. Please call initExecutorch({ resourceFetcher: ... }) with a valid adapter, e.g., from @react-native-executorch/expo-resource-fetcher or @react-native-executorch/bare-resource-fetcher.'
       );
     }
     return this.adapter;

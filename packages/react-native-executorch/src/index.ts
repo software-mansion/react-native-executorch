@@ -13,7 +13,7 @@ export function initExecutorch(config: ExecutorchConfig) {
 }
 
 export function cleanupExecutorch() {
-  ResourceFetcher.setAdapter(null as unknown as ResourceFetcherAdapter);
+  ResourceFetcher.resetAdapter();
 }
 
 // eslint-disable no-var
