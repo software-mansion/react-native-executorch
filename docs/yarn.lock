@@ -4025,9 +4025,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swmansion/t-rex-ui@npm:^1.2.1":
-  version: 1.2.1
-  resolution: "@swmansion/t-rex-ui@npm:1.2.1"
+"@swmansion/t-rex-ui@npm:^1.2.2":
+  version: 1.2.2
+  resolution: "@swmansion/t-rex-ui@npm:1.2.2"
   dependencies:
     "@docusaurus/core": "npm:3.9.2"
     "@docusaurus/module-type-aliases": "npm:3.9.2"
@@ -4044,7 +4044,7 @@ __metadata:
     copy-text-to-clipboard: ^3.2.2
     react: "*"
     react-dom: "*"
-  checksum: 10/6462baa65ff0c23dfbdc562740e5cb2014f33f12030b0904839389993970ad2ceac5317daa8feb428eb1159b4e061bd19dcb99df3150fee392580c63d7d62ed7
+  checksum: 10/08ab5e7fb6f52ae1ed4ec3c8c6ee91b9e94c49e9a2cd6801c61901e5af9e1c750553fa00c8f4e6e8a3fa2eba396bb5fb42d03a3d724fe6fd03427c45aecfde65
   languageName: node
   linkType: hard
 
@@ -6395,7 +6395,7 @@ __metadata:
     "@mdx-js/react": "npm:^3.0.0"
     "@mui/material": "npm:^7.3.7"
     "@signalwire/docusaurus-plugin-llms-txt": "npm:^1.2.2"
-    "@swmansion/t-rex-ui": "npm:^1.2.1"
+    "@swmansion/t-rex-ui": "npm:^1.2.2"
     clsx: "npm:^2.1.0"
     copy-text-to-clipboard: "npm:^3.2.2"
     docusaurus-plugin-typedoc: "npm:^1.4.2"

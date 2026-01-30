@@ -27,7 +27,7 @@
     "@mdx-js/react": "^3.0.0",
     "@mui/material": "^7.3.7",
     "@signalwire/docusaurus-plugin-llms-txt": "^1.2.2",
-    "@swmansion/t-rex-ui": "^1.2.1",
+    "@swmansion/t-rex-ui": "^1.2.2",
     "clsx": "^2.1.0",
     "copy-text-to-clipboard": "^3.2.2",
     "prism-react-renderer": "^2.1.0",
