@@ -24,8 +24,9 @@ const llm = new LLMModule({
 // Loading the model
 await llm.load(LLAMA3_2_1B_QLORA, (progress) => console.log(progress));
 
-// Running the model
-await llm.sendMessage('Hello, World!');
+// Running the model - returns the generated response
+const response = await llm.sendMessage('Hello, World!');
+console.log('Response:', response);
 
 // Interrupting the model (to actually interrupt the generation it has to be called when sendMessage or generate is running)
 llm.interrupt();
@@ -36,15 +37,11 @@ llm.delete();
 
 ### Methods
 
-All methods of `LLMModule` are explained in details here: [`LLMModule API Reference`](../../06-api-reference/classes/LLMModule.md)
-
 ## Loading the model
 
 To create a new instance of `LLMModule`, use the [constructor](../../06-api-reference/classes/LLMModule.md#constructor) with optional callbacks:
 
 * [`tokenCallback`](../../06-api-reference/classes/LLMModule.md#tokencallback) - Function called on every generated token.
-
-* [`responseCallback`](../../06-api-reference/classes/LLMModule.md#responsecallback) - Deprecated, please use `tokenCallback`.
 
 * [`messageHistoryCallback`](../../06-api-reference/classes/LLMModule.md#messagehistorycallback) - Funtion called on every finshed message.
 
@@ -72,9 +69,9 @@ To subscribe to the download progress event, you can pass the [`onDownloadProgre
 
 To run the model, you can use [`generate`](../../06-api-reference/classes/LLMModule.md#generate) method. It allows you to pass chat messages and receive completion from the model. It doesn't provide any message history management.
 
-Alternatively in managed chat (see: [Functional vs managed](../../03-hooks/01-natural-language-processing/useLLM.md#functional-vs-managed)), you can use the [`sendMessage`](../../06-api-reference/classes/LLMModule.md#sendmessage) method. It accepts the user message. After model responds it will return new message history containing both user message and model response. Additionally, it will call [`messageHistoryCallback`](../../06-api-reference/classes/LLMModule.md#messagehistorycallback).
+Alternatively in managed chat (see: [Functional vs managed](../../03-hooks/01-natural-language-processing/useLLM.md#functional-vs-managed)), you can use the [`sendMessage`](../../06-api-reference/classes/LLMModule.md#sendmessage) method. It accepts the user message and returns a promise that resolves to the generated response. Additionally, it will call [`messageHistoryCallback`](../../06-api-reference/classes/LLMModule.md#messagehistorycallback) with the updated message history containing both user message and model response.
 
-If you need raw model, without any wrappers, you can use [`forward`](../../06-api-reference/classes/LLMModule.md#forward). It provides direct access to the model, so the input string is passed straight into the model. It may be useful to work with models that aren't finetuned for chat completions. If you're not sure what are implications of that (e.g. that you have to include special model tokens), you're better off with [`sendMessage`](../../06-api-reference/classes/LLMModule.md#sendmessage).
+If you need raw model access without any wrappers, you can use [`forward`](../../06-api-reference/classes/LLMModule.md#forward). It provides direct access to the model, so the input string is passed straight into the model and returns the generated response. It may be useful to work with models that aren't finetuned for chat completions. If you're not sure what are implications of that (e.g. that you have to include special model tokens), you're better off with [`sendMessage`](../../06-api-reference/classes/LLMModule.md#sendmessage).
 
 ## Listening for generated tokens
 

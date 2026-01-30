@@ -10,7 +10,6 @@
 namespace rnexecutorch::models::style_transfer {
 using namespace facebook;
 using executorch::extension::TensorPtr;
-using executorch::runtime::Error;
 
 StyleTransfer::StyleTransfer(const std::string &modelSource,
                              std::shared_ptr<react::CallInvoker> callInvoker)

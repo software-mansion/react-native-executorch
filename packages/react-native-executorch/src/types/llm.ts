@@ -92,8 +92,9 @@ export interface LLMType {
    * 
    * @param messages - Array of messages representing the chat history.
    * @param tools - Optional array of tools that can be used during generation.
+   * @returns The generated tokens as `string`.
    */
-  generate: (messages: Message[], tools?: LLMTool[]) => Promise<void>;
+  generate: (messages: Message[], tools?: LLMTool[]) => Promise<string>;
 
   /**
    * Function to add user message to conversation.

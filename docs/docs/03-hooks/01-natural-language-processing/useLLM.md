@@ -63,8 +63,6 @@ You need more details? Check the following resources:
 
 ### Returns
 
-`useLLM` returns an object called `LLMType` containing bunch of functions to interact with LLM. To get more details please read: [`LLMType` API Reference](../../06-api-reference/interfaces/LLMType.md)
-
 ## Functional vs managed
 
 You can use functions returned from this hooks in two manners:
@@ -77,12 +75,12 @@ You can use functions returned from this hooks in two manners:
 
 ### Simple generation
 
-To perform chat completion you can use the [`generate`](../../06-api-reference/interfaces/LLMType.md#generate) function. There is no return value. Instead, the [`response`](../../06-api-reference/interfaces/LLMType.md#response) value is updated with each token.
+To perform chat completion you can use the [`generate`](../../06-api-reference/interfaces/LLMType.md#generate) function. The [`response`](../../06-api-reference/interfaces/LLMType.md#response) value is updated with each token as it's generated, and the function returns a promise that resolves to the complete response when generation finishes.
 
 ```tsx
 const llm = useLLM({ model: LLAMA3_2_1B });
 
-const handleGenerate = () => {
+const handleGenerate = async () => {
   const chat: Message[] = [
     { role: 'system', content: 'You are a helpful assistant' },
     { role: 'user', content: 'Hi!' },
@@ -90,8 +88,9 @@ const handleGenerate = () => {
     { role: 'user', content: 'What is the meaning of life?' },
   ];
 
-  // Chat completion
-  llm.generate(chat);
+  // Chat completion - returns the generated response
+  const response = await llm.generate(chat);
+  console.log('Complete response:', response);
 };
 
 return (

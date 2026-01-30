@@ -32,6 +32,11 @@ ObjectDetection::ObjectDetection(
 std::vector<types::Detection>
 ObjectDetection::postprocess(const std::vector<EValue> &tensors,
                              cv::Size originalSize, double detectionThreshold) {
+  if (detectionThreshold <= 0 || detectionThreshold > 1) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig,
+                            "Detection threshold must be greater than 0 "
+                            "and less than or equal to 1.");
+  }
   float widthRatio =
       static_cast<float>(originalSize.width) / modelImageSize.width;
   float heightRatio =

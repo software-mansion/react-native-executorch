@@ -1,5 +1,10 @@
 <div align="center">
-  <h1 align="center" style="display:inline-block">React Native ExecuTorch 
+  <img src="../docs/static/img/logo-hero.svg" alt="RNE Logo" width="25%">
+</div>
+
+
+<div align="center">
+  <h1 align="center" style="display:inline-block">React Native ExecuTorch
   </h1>
 </div>
 
@@ -8,17 +13,17 @@
   <a href="https://github.com/software-mansion/react-native-executorch/stargazers"><img src="https://img.shields.io/github/stars/software-mansion/react-native-executorch?style=for-the-badge&color=00008B" alt="GitHub - Stars"></a>
   <a href="https://discord.gg/ZGqqY55qkP"><img src="https://img.shields.io/badge/Discord-Rejoignez%20nous-00008B?logo=discord&logoColor=white&style=for-the-badge" alt="Join our Discord community"></a>
   <a href="https://docs.swmansion.com/react-native-executorch/"><img src="https://img.shields.io/badge/Documentation-00008B?logo=googledocs&logoColor=white&style=for-the-badge" alt="Documentation"></a>
+  <a href="https://swmansion.com/contact">
+    <img src="https://img.shields.io/badge/Engagez--nous-00008B?logo=react&logoColor=white&color=darkgreen&style=for-the-badge" alt="Hire Us">
 </div>
 
-![Bannière Software Mansion](https://github.com/user-attachments/assets/fa2c4735-e75c-4cc1-970d-88905d95e3a4)
-
 <p align="center">
-  <a href="../README.md">English</a>
-  <a href="README_es.md">Español</a>
-  <a href="README_fr.md">Français</a>
-  <a href="README_cn.md">简体中文</a>
-  <a href="README_pt.md">Português</a>
-  <a href="README_in.md">हिंदी</a>
+  <a href="../README.md"><img src="https://img.shields.io/badge/EN-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README"></a>
+  <a href="README_es.md"><img src="https://img.shields.io/badge/ES-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README ES"></a>
+  <a href="README_fr.md"><img src="https://img.shields.io/badge/FR-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README FR"></a>
+  <a href="README_cn.md"><img src="https://img.shields.io/badge/CN-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README CN"></a>
+  <a href="README_pt.md"><img src="https://img.shields.io/badge/PT-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README PT"></a>
+  <a href="README_in.md"><img src="https://img.shields.io/badge/IN-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README IN"></a>
 </p>
 
 **React Native ExecuTorch** offre une manière déclarative de faire tourner des modèles AI sur des appareils utilisant React Native, propulsé par **ExecuTorch** :rocket:. Il propose un support natif pour une large gamme de LLM, de modèles de vision par ordinateur, et plus encore. Visitez notre page [HuggingFace](https://huggingface.co/software-mansion) pour explorer ces modèles.
@@ -28,6 +33,7 @@
 React Native ExecuTorch comble le fossé entre React Native et les capacités natives de la plateforme, permettant aux développeurs de faire tourner efficacement des modèles AI locaux sur des appareils mobiles. Cela peut être réalisé sans besoin d'une expertise approfondie en programmation native ou en apprentissage machine.
 
 [![version npm](https://img.shields.io/npm/v/react-native-executorch?color=00008B)](https://www.npmjs.com/package/react-native-executorch)
+[![npm nightly](https://img.shields.io/npm/v/react-native-executorch/executorch-nightly?label=nightly&color=00008B)](https://www.npmjs.com/package/react-native-executorch)
 [![CI](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml/badge.svg)](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml)
 
 <details>
@@ -52,7 +58,7 @@ Les versions minimales supportées sont :
 - Android 13
 - React Native 0.76
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > React Native ExecuTorch ne supporte que la [nouvelle architecture React Native](https://reactnative.dev/architecture/landing-page).
 
 ## :earth_africa: Exemple du monde réel
@@ -124,7 +130,7 @@ Ensuite, selon la plateforme, choisissez soit iOS soit Android :
 yarn expo run:< ios | android >
 ```
 
-> [!WARNING]  
+> [!WARNING]
 > L'exécution des LLM nécessite une quantité importante de RAM. Si vous rencontrez des plantages inattendus de l'application, essayez d'augmenter la quantité de RAM allouée à l'émulateur.
 
 ## :robot: Modèles prêts à l'emploi
@@ -133,7 +139,7 @@ Notre bibliothèque contient un certain nombre de modèles AI prêts à l'emploi
 
 ## :books: Documentation
 
-Découvrez comment notre bibliothèque peut vous aider à construire vos fonctionnalités AI avec React Native en visitant notre documentation :  
+Découvrez comment notre bibliothèque peut vous aider à construire vos fonctionnalités AI avec React Native en visitant notre documentation :
 https://docs.swmansion.com/react-native-executorch
 
 ## :balance_scale: Licence

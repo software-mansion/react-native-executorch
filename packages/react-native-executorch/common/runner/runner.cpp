@@ -268,7 +268,9 @@ Error Runner::generate(const std::string &prompt,
     ET_LOG(Info, "Warmup run finished!");
   } else {
     // Do not print report during warmup
+#ifndef TEST_BUILD
     ::executorch::llm::print_report(stats_);
+#endif
   }
   if (stats_callback) {
     stats_callback(stats_);
