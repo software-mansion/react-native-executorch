@@ -26,7 +26,7 @@ TEST_F(FileIOTest, LoadBytesFromFileSuccessfully) {
 }
 
 TEST_F(FileIOTest, LoadBytesFromFileFailOnNonExistentFile) {
-  EXPECT_THROW(
-      { loadBytesFromFile("non_existent_file.txt"); }, RnExecutorchError);
+  EXPECT_THROW({ loadBytesFromFile("non_existent_file.txt"); },
+               RnExecutorchError);
 }
 } // namespace rnexecutorch::file_utils

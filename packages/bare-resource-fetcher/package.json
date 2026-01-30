@@ -1,0 +1,43 @@
+{
+  "name": "@react-native-executorch/bare-resource-fetcher",
+  "version": "0.1.0",
+  "description": "Bare React Native resource fetcher for react-native-executorch",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./lib/index.js",
+      "types": "./lib/index.d.ts"
+    }
+  },
+  "files": [
+    "lib"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/software-mansion/react-native-executorch.git",
+    "directory": "packages/bare-resource-fetcher"
+  },
+  "scripts": {
+    "prepare": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "clean": "del-cli lib"
+  },
+  "peerDependencies": {
+    "@dr.pogodin/react-native-fs": "^2.0.0",
+    "@kesha-antonov/react-native-background-downloader": "^4.0.0",
+    "react-native": "*",
+    "react-native-executorch": "*"
+  },
+  "devDependencies": {
+    "@dr.pogodin/react-native-fs": "^2.36.2",
+    "@kesha-antonov/react-native-background-downloader": "^4.4.5",
+    "@types/react": "~19.1.10",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-executorch": "workspace:*",
+    "typescript": "~5.9.2"
+  }
+}

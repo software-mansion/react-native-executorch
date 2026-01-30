@@ -25,7 +25,6 @@
   <a href="README_in.md"><img src="https://img.shields.io/badge/IN-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README IN"></a>
 </p>
 
-
 **React Native ExecuTorch** एक घोषणात्मक तरीका प्रदान करता है जिससे React Native का उपयोग करके उपकरण पर AI मॉडल्स को चलाया जा सके, जो **ExecuTorch** द्वारा संचालित है :rocket:. यह LLMs, कंप्यूटर विज़न मॉडल्स, और भी कई के लिए आउट-ऑफ़-द-बॉक्स सपोर्ट प्रदान करता है। इन मॉडलों का अन्वेषण करने के लिए हमारे [HuggingFace](https://huggingface.co/software-mansion) पेज पर जाएं।
 
 **ExecuTorch**, Meta द्वारा विकसित, एक नया फ्रेमवर्क है जो मोबाइल फोनों या माइक्रोकंट्रोलर्स जैसे उपकरणों पर AI मॉडल निष्पादन की अनुमति देता है।

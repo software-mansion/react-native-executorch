@@ -1,0 +1,45 @@
+{
+  "name": "@react-native-executorch/expo-resource-fetcher",
+  "version": "0.1.0",
+  "description": "Expo resource fetcher for react-native-executorch",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./lib/index.js",
+      "types": "./lib/index.d.ts"
+    }
+  },
+  "files": [
+    "lib"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/software-mansion/react-native-executorch.git",
+    "directory": "packages/expo-resource-fetcher"
+  },
+  "scripts": {
+    "prepare": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint \"**/*.{js,ts,tsx}\"",
+    "clean": "del-cli lib"
+  },
+  "peerDependencies": {
+    "expo": ">=54.0.0",
+    "expo-asset": "^12.0.0",
+    "expo-file-system": "^19.0.0",
+    "react-native": "*",
+    "react-native-executorch": "*"
+  },
+  "devDependencies": {
+    "@types/react": "~19.1.10",
+    "expo": "^54.0.0",
+    "expo-asset": "12.0.11",
+    "expo-file-system": "^19.0.20",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-executorch": "workspace:*",
+    "typescript": "~5.9.2"
+  }
+}

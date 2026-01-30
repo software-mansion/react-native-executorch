@@ -2,7 +2,6 @@
   <img src="../docs/static/img/logo-hero.svg" alt="RNE Logo" width="25%">
 </div>
 
-
 <div align="center">
   <h1 align="center" style="display:inline-block">React Native ExecuTorch
   </h1>
