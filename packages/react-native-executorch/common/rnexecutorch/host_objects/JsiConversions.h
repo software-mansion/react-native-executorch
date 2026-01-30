@@ -352,7 +352,7 @@ inline jsi::Value getJsiValue(const std::vector<JSTensorViewOut> &vec,
 }
 
 inline jsi::Value getJsiValue(const std::string &str, jsi::Runtime &runtime) {
-  return jsi::String::createFromAscii(runtime, str);
+  return jsi::String::createFromUtf8(runtime, str);
 }
 
 inline jsi::Value

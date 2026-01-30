@@ -18,8 +18,8 @@ export interface LLMType {
     generationConfig?: GenerationConfig;
   }) => void;
   getGeneratedTokenCount: () => number;
-  generate: (messages: Message[], tools?: LLMTool[]) => Promise<void>;
-  sendMessage: (message: string) => Promise<void>;
+  generate: (messages: Message[], tools?: LLMTool[]) => Promise<string>;
+  sendMessage: (message: string) => Promise<string>;
   deleteMessage: (index: number) => void;
   interrupt: () => void;
 }
