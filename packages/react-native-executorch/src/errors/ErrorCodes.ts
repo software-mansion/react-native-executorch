@@ -51,7 +51,7 @@ export enum RnExecutorchErrorCode {
    */
   WrongDimensions = 116,
   /**
-   * Thrown when the input passed to our APIs is invalid, for example when passing an empty message aray to LLM's generate().
+   * Thrown when the input passed to our APIs is invalid, for example when passing an empty message array to LLM's generate().
    */
   InvalidUserInput = 117,
   /**

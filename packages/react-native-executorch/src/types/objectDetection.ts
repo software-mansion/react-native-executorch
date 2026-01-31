@@ -172,7 +172,7 @@ export interface ObjectDetectionType {
   /**
    * Executes the model's forward pass to detect objects within the provided image.
    * @param imageSource - A string representing the image source (e.g., a file path, URI, or base64 string) to be processed.
-   * @param detectionThreshold - An optional number between 0 and 1 representing the minimum confidence score required for an object to be included in the results. Dafault is 0.7.
+   * @param detectionThreshold - An optional number between 0 and 1 representing the minimum confidence score required for an object to be included in the results. Default is 0.7.
    * @returns A Promise that resolves to an array of `Detection` objects, where each object typically contains bounding box coordinates, a class label, and a confidence score.
    * @throws {RnExecutorchError} If the model is not loaded or is currently processing another image.
    */
