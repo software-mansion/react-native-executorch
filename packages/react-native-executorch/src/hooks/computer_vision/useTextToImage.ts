@@ -1,38 +1,21 @@
 import { useCallback, useEffect, useState } from 'react';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import { ResourceSource } from '../../types/common';
 import { TextToImageModule } from '../../modules/computer_vision/TextToImageModule';
+import { TextToImageProps, TextToImageType } from '../../types/tti';
 
-interface TextToImageType {
-  isReady: boolean;
-  isGenerating: boolean;
-  downloadProgress: number;
-  error: RnExecutorchError | null;
-  generate: (
-    input: string,
-    imageSize?: number,
-    numSteps?: number,
-    seed?: number
-  ) => Promise<string>;
-  interrupt: () => void;
-}
-
+/**
+ * React hook for managing a Text to Image instance.
+ *
+ * @category Hooks
+ * @param TextToImageProps - Configuration object containing `model` source, `inferenceCallback`, and optional `preventLoad` flag.
+ * @returns Ready to use Text to Image model.
+ */
 export const useTextToImage = ({
   model,
   inferenceCallback,
   preventLoad = false,
-}: {
-  model: {
-    tokenizerSource: ResourceSource;
-    schedulerSource: ResourceSource;
-    encoderSource: ResourceSource;
-    unetSource: ResourceSource;
-    decoderSource: ResourceSource;
-  };
-  inferenceCallback?: (stepIdx: number) => void;
-  preventLoad?: boolean;
-}): TextToImageType => {
+}: TextToImageProps): TextToImageType => {
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);

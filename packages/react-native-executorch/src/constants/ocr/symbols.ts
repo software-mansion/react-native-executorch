@@ -19,6 +19,9 @@ export const alphabets = {
     '0123456789!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~ abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZಂಃಅಆಇಈಉಊಋಎಏಐಒಓಔಕಖಗಘಙಚಛಜಝಞಟಠಡಢಣತಥದಧನಪಫಬಭಮಯರಲಳವಶಷಸಹಾಿೀುೂೃೆೇೈೊೋೌ್೦೧೨೩೪೫೬೭೮೯',
 };
 
+/**
+ * Mapping of language codes to their corresponding symbol sets.
+ */
 export const symbols = {
   // Abaza
   abq: alphabets.cyrillic,

@@ -5,7 +5,19 @@ import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
 import { BaseModule } from '../BaseModule';
 
+/**
+ * Module for object detection tasks.
+ *
+ * @category Typescript API
+ */
 export class ObjectDetectionModule extends BaseModule {
+  /**
+   * Loads the model, where `modelSource` is a string that specifies the location of the model binary.
+   * To track the download progress, supply a callback function `onDownloadProgressCallback`.
+   *
+   * @param model - Object containing `modelSource`.
+   * @param onDownloadProgressCallback - Optional callback to monitor download progress.
+   */
   async load(
     model: { modelSource: ResourceSource },
     onDownloadProgressCallback: (progress: number) => void = () => {}
@@ -23,6 +35,14 @@ export class ObjectDetectionModule extends BaseModule {
     this.nativeModule = global.loadObjectDetection(paths[0] || '');
   }
 
+  /**
+   * Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string.
+   * `detectionThreshold` can be supplied to alter the sensitivity of the detection.
+   *
+   * @param imageSource - The image source to be processed.
+   * @param detectionThreshold - The threshold for detection sensitivity. Default is 0.7.
+   * @returns An array of Detection objects representing detected items in the image.
+   */
   async forward(
     imageSource: string,
     detectionThreshold: number = 0.7

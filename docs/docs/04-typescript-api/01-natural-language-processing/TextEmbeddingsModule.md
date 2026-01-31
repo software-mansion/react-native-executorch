@@ -4,6 +4,11 @@ title: TextEmbeddingsModule
 
 TypeScript API implementation of the [useTextEmbeddings](../../03-hooks/01-natural-language-processing/useTextEmbeddings.md) hook.
 
+## API Reference
+
+* For detailed API Reference for `TextEmbeddingsModule` see: [`TextEmbeddingsModule` API Reference](../../06-api-reference/classes/TextEmbeddingsModule.md).
+* For all text embeddings models available out-of-the-box in React Native ExecuTorch see: [Text Embeddings Models](../../06-api-reference/index.md#models---text-embeddings).
+
 ## Reference
 
 ```typescript
@@ -24,31 +29,18 @@ const embedding = await textEmbeddingsModule.forward('Hello World!');
 
 ### Methods
 
-| Method               | Type                                                                                                                                                | Description                                                                                                                                                                             |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `load`               | `(model: { modelSource: ResourceSource; tokenizerSource: ResourceSource }, onDownloadProgressCallback?: (progress: number) => void): Promise<void>` | Loads the model, where `modelSource` is a string that specifies the location of the model binary, `tokenizerSource` is a string that specifies the location of the tokenizer JSON file. |
-| `forward`            | `(input: string): Promise<number[]>`                                                                                                                | Executes the model's forward pass, where `input` is a text that will be embedded.                                                                                                       |
-| `onDownloadProgress` | `(callback: (downloadProgress: number) => void): any`                                                                                               | Subscribe to the download progress event.                                                                                                                                               |
-
-<details>
-<summary>Type definitions</summary>
-
-```typescript
-type ResourceSource = string | number | object;
-```
-
-</details>
+All methods of `TextEmbeddingsModule` are explained in details here: [`TextEmbeddingsModule` API Reference](../../06-api-reference/classes/TextEmbeddingsModule.md)
 
 ## Loading the model
 
-To load the model, use the `load` method. It accepts an object:
+To load the model, use the [`load`](../../06-api-reference/classes/TextEmbeddingsModule.md#load) method. It accepts an object:
 
-**`model`** - Object containing the model source and tokenizer source.
+* [`model`](../../06-api-reference/classes/TextEmbeddingsModule.md#model) - Object containing:
 
-- **`modelSource`** - A string that specifies the location of the model binary.
-- **`tokenizerSource`** - A string that specifies the location of the tokenizer JSON file.
+    * [`modelSource`](../../06-api-reference/classes/TextEmbeddingsModule.md#modelsource) - Location of the used model. 
+    * [`tokenizerSource`](../../06-api-reference/classes/TextEmbeddingsModule.md#tokenizersource) - Location of the used tokenizer.
 
-**`onDownloadProgressCallback`** - (Optional) Function called on download progress.
+* [`onDownloadProgressCallback`](../../06-api-reference/classes/TextEmbeddingsModule.md#ondownloadprogresscallback) - Callback to track download progress.
 
 This method returns a promise, which can resolve to an error or void.
 
@@ -56,4 +48,4 @@ For more information on loading resources, take a look at [loading models](../..
 
 ## Running the model
 
-To run the model, you can use the `forward` method. It accepts one argument, which is the text you want to embed. The method returns a promise, which can resolve either to an error or an array of numbers representing the embedding.
+To run the model, you can use the [`forward`](../../06-api-reference/classes/TextEmbeddingsModule.md#forward) method. It accepts one argument, which is the text you want to embed. The method returns a promise, which can resolve either to an error or an array of numbers representing the embedding.

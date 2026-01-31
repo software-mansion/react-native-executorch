@@ -1,16 +1,21 @@
 import { ExecutorchModule } from '../../modules/general/ExecutorchModule';
-import { ResourceSource } from '../../types/common';
+import {
+  ExecutorchModuleProps,
+  ExecutorchModuleType,
+} from '../../types/executorchModule';
 import { useModule } from '../useModule';
 
-interface Props {
-  modelSource: ResourceSource;
-  preventLoad?: boolean;
-}
-
+/**
+ * React hook for managing an arbitrary Executorch module instance.
+ *
+ * @category Hooks
+ * @param executorchModuleProps - Configuration object containing `modelSource` and optional `preventLoad` flag.
+ * @returns Ready to use Executorch module.
+ */
 export const useExecutorchModule = ({
   modelSource,
   preventLoad = false,
-}: Props) =>
+}: ExecutorchModuleProps): ExecutorchModuleType =>
   useModule({
     module: ExecutorchModule,
     model: modelSource,

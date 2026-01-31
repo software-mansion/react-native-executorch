@@ -36,6 +36,10 @@ useExecutorchModule({
 The downloaded files are stored in documents directory of your application.
 :::
 
+## Predefined Models
+
+Our library offers support for multiple models. To make things easier, we created aliases for our model exported to `pte` format. For full list of aliases, check out: [API Reference](../06-api-reference/index.md#models---classification)
+
 ## Example
 
 The following code snippet demonstrates how to load model and tokenizer files using `useLLM` hook:

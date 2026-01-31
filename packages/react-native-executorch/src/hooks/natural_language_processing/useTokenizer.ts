@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react';
 import { TokenizerModule } from '../../modules/natural_language_processing/TokenizerModule';
-import { ResourceSource } from '../../types/common';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
+import { TokenizerProps, TokenizerType } from '../../types/tokenizer';
 
+/**
+ * React hook for managing a Tokenizer instance.
+ *
+ * @category Hooks
+ * @param tokenizerProps - Configuration object containing `tokenizer` source and optional `preventLoad` flag.
+ * @returns Ready to use Tokenizer model.
+ */
 export const useTokenizer = ({
   tokenizer,
   preventLoad = false,
-}: {
-  tokenizer: { tokenizerSource: ResourceSource };
-  preventLoad?: boolean;
-}) => {
+}: TokenizerProps): TokenizerType => {
   const [error, setError] = useState<null | RnExecutorchError>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -36,7 +40,7 @@ export const useTokenizer = ({
   }, [tokenizerInstance, tokenizer.tokenizerSource, preventLoad]);
 
   const stateWrapper = <T extends (...args: any[]) => Promise<any>>(fn: T) => {
-    return (...args: Parameters<T>): Promise<ReturnType<T>> => {
+    return (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
       if (!isReady)
         throw new RnExecutorchError(
           RnExecutorchErrorCode.ModuleNotLoaded,

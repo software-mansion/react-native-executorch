@@ -4,6 +4,12 @@ title: TextToSpeechModule
 
 TypeScript API implementation of the [useTextToSpeech](../../03-hooks/01-natural-language-processing/useTextToSpeech.md) hook.
 
+## API Reference
+
+* For detailed API Reference for `TextToSpeechModule` see: [`TextToSpeechModule` API Reference](../../06-api-reference/classes/TextToSpeechModule.md).
+* For all text to speech models available out-of-the-box in React Native ExecuTorch see: [TTS Models](../../06-api-reference/index.md#models---text-to-speech).
+* For all supported voices in `TextToSpeechModule` please refere to: [Supported Voices](../../06-api-reference/index.md#tts-supported-voices)
+
 ## Reference
 
 ```typescript
@@ -29,44 +35,20 @@ await model.forward(text, 1.0);
 
 ### Methods
 
-| Method       | Type                                                                                                   | Description                                                                                                                               |
-| ------------ | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `load`       | `(config: TextToSpeechConfig, onDownloadProgressCallback?: (progress: number) => void): Promise<void>` | Loads the model and voice assets specified by the config object. `onDownloadProgressCallback` allows you to monitor the current progress. |
-| `delete`     | `(): void`                                                                                             | Unloads the model from memory.                                                                                                            |
-| `forward`    | `(text: string, speed?: number): Promise<Float32Array>`                                                | Synthesizes the provided text into speech. Returns a promise that resolves to the full audio waveform as a `Float32Array`.                |
-| `stream`     | `(input: TextToSpeechStreamingInput): AsyncGenerator<Float32Array>`                                    | Starts a streaming synthesis session. Yields audio chunks as they are generated.                                                          |
-| `streamStop` | `(): void`                                                                                             | Stops the streaming process if there is any ongoing.                                                                                      |
-
-<details>
-<summary>Type definitions</summary>
-
-```typescript
-interface TextToSpeechConfig {
-  model: KokoroConfig;
-  voice: VoiceConfig;
-}
-
-interface TextToSpeechStreamingInput {
-  text: string;
-  speed?: number;
-  onBegin?: () => void | Promise<void>;
-  onNext?: (chunk: Float32Array) => Promise<void> | void;
-  onEnd?: () => Promise<void> | void;
-}
-```
-
-</details>
+All methods of `TextToSpeechModule` are explained in details here: [`TextToSpeechModule` API Reference](../../06-api-reference/classes/TextToSpeechModule.md)
 
 ## Loading the model
 
-To initialize the module, create an instance and call the `load` method with a configuration object. This method returns a promise that resolves once the assets are downloaded and loaded into memory.
+To initialize the module, create an instance and call the [`load`](../../06-api-reference/classes/TextToSpeechModule.md#load) method with the following parameters:
 
-**`config`** - Object containing:
+* [`config`](../../06-api-reference/classes/TextToSpeechModule.md#config) - Object containing:
 
-- **`model`** (`KokoroConfig`): Specifies the source files for the Kokoro TTS model (duration predictor, synthesizer).
-- **`voice`** (`VoiceConfig`): Specifies the voice data and additional phonemizer assets (tagger and lexicon). Each voice is associated with a concrete speech language.
+    * [`model`](../../06-api-reference/interfaces/TextToSpeechConfig.md#model) - Model configuration.
+    * [`voice`](../../06-api-reference/interfaces/TextToSpeechConfig.md#voice) - Voice configuration.
 
-**`onDownloadProgressCallback`** - (Optional) A callback function to track the download progress of the model and voice assets.
+* [`onDownloadProgressCallback`](../../06-api-reference/classes/TextToSpeechModule.md#ondownloadprogresscallback) - Callback to track download progress.
+
+This method returns a promise that resolves once the assets are downloaded and loaded into memory.
 
 For more information on resource sources, see [loading models](../../01-fundamentals/02-loading-models.md).
 
@@ -74,14 +56,13 @@ For more information on resource sources, see [loading models](../../01-fundamen
 
 The module provides two ways to generate speech:
 
-1.  **`forward(text, speed)`**: Generates the complete audio waveform at once. Returns a promise resolving to a `Float32Array`.
+1.  [**`forward(text, speed)`**](../../06-api-reference/classes/TextToSpeechModule.md#forward): Generates the complete audio waveform at once. Returns a promise resolving to a `Float32Array`.
 
 :::note
 Since it processes the entire text at once, it might take a significant amount of time to produce an audio for long text inputs.
 :::
 
-2.  **`stream({ text, speed })`**: An async generator that yields chunks of audio as they are computed.
-    This is ideal for reducing the "time to first audio" for long sentences.
+2.  [**`stream({ text, speed })`**](../../06-api-reference/classes/TextToSpeechModule.md#stream): An async generator that yields chunks of audio as they are computed. This is ideal for reducing the "time to first audio" for long sentences.
 
 ## Example
 

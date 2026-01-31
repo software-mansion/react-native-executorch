@@ -1,30 +1,22 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ResourceSource } from '../../types/common';
 import {
-  ChatConfig,
-  GenerationConfig,
+  LLMConfig,
+  LLMProps,
   LLMTool,
   LLMType,
   Message,
-  ToolsConfig,
 } from '../../types/llm';
 import { LLMController } from '../../controllers/LLMController';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
-/*
-Hook version of LLMModule
-*/
-export const useLLM = ({
-  model,
-  preventLoad = false,
-}: {
-  model: {
-    modelSource: ResourceSource;
-    tokenizerSource: ResourceSource;
-    tokenizerConfigSource: ResourceSource;
-  };
-  preventLoad?: boolean;
-}): LLMType => {
+/**
+ * React hook for managing a Large Language Model (LLM) instance.
+ *
+ * @category Hooks
+ * @param model - Object containing model, tokenizer, and tokenizer config sources.
+ * @returns An object implementing the `LLMType` interface for interacting with the LLM.
+ */
+export const useLLM = ({ model, preventLoad = false }: LLMProps): LLMType => {
   const [token, setToken] = useState<string>('');
   const [response, setResponse] = useState<string>('');
   const [messageHistory, setMessageHistory] = useState<Message[]>([]);
@@ -59,7 +51,7 @@ export const useLLM = ({
         await controllerInstance.load({
           modelSource: model.modelSource,
           tokenizerSource: model.tokenizerSource,
-          tokenizerConfigSource: model.tokenizerConfigSource,
+          tokenizerConfigSource: model.tokenizerConfigSource!,
           onDownloadProgressCallback: setDownloadProgress,
         });
       } catch (e) {
@@ -82,15 +74,7 @@ export const useLLM = ({
 
   // memoization of returned functions
   const configure = useCallback(
-    ({
-      chatConfig,
-      toolsConfig,
-      generationConfig,
-    }: {
-      chatConfig?: Partial<ChatConfig>;
-      toolsConfig?: ToolsConfig;
-      generationConfig?: GenerationConfig;
-    }) =>
+    ({ chatConfig, toolsConfig, generationConfig }: LLMConfig) =>
       controllerInstance.configure({
         chatConfig,
         toolsConfig,

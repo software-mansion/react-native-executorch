@@ -1,7 +1,7 @@
 import Spinner from '../../components/Spinner';
 import { BottomBar } from '../../components/BottomBar';
 import { getImage } from '../../utils';
-import { useVerticalOCR, VERTICAL_OCR_ENGLISH } from 'react-native-executorch';
+import { useVerticalOCR, OCR_ENGLISH } from 'react-native-executorch';
 import { View, StyleSheet, Image, Text, ScrollView } from 'react-native';
 import ImageWithBboxes2 from '../../components/ImageWithOCRBboxes';
 import React, { useContext, useEffect, useState } from 'react';
@@ -16,7 +16,7 @@ export default function VerticalOCRScree() {
     height: number;
   }>();
   const model = useVerticalOCR({
-    model: VERTICAL_OCR_ENGLISH,
+    model: OCR_ENGLISH,
     independentCharacters: true,
   });
   const { setGlobalGenerating } = useContext(GeneratingContext);

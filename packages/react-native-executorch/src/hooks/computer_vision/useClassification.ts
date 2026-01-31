@@ -1,13 +1,21 @@
-import { ResourceSource } from '../../types/common';
 import { useModule } from '../useModule';
 import { ClassificationModule } from '../../modules/computer_vision/ClassificationModule';
+import {
+  ClassificationProps,
+  ClassificationType,
+} from '../../types/classification';
 
-interface Props {
-  model: { modelSource: ResourceSource };
-  preventLoad?: boolean;
-}
-
-export const useClassification = ({ model, preventLoad = false }: Props) =>
+/**
+ * React hook for managing a Classification model instance.
+ *
+ * @category Hooks
+ * @param ClassificationProps - Configuration object containing `model` source and optional `preventLoad` flag.
+ * @returns Ready to use Classification model.
+ */
+export const useClassification = ({
+  model,
+  preventLoad = false,
+}: ClassificationProps): ClassificationType =>
   useModule({
     module: ClassificationModule,
     model,
