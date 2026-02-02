@@ -54,11 +54,9 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     const destination = FileSystem.cacheDirectory + 'audio_file.wav';
 
     if (sourceUri.startsWith('http')) {
-      // Case A: Remote URL -> Download it
       const { uri } = await FileSystem.downloadAsync(sourceUri, destination);
       return uri;
     } else {
-      // Case B: Local URI -> Copy it
       await FileSystem.copyAsync({
         from: sourceUri,
         to: destination,
