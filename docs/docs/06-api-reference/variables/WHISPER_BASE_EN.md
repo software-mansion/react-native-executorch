@@ -1,8 +1,8 @@
-# Variable: WHISPER\_BASE\_EN
+# Variable: WHISPER_BASE_EN
 
-> `const` **WHISPER\_BASE\_EN**: `object`
+> `const` **WHISPER_BASE_EN**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:470](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/constants/modelUrls.ts#L470)
+Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:470](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/constants/modelUrls.ts#L470)
 
 ## Type Declaration
 

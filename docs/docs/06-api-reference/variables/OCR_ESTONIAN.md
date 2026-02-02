@@ -1,8 +1,8 @@
-# Variable: OCR\_ESTONIAN
+# Variable: OCR_ESTONIAN
 
-> `const` **OCR\_ESTONIAN**: `object`
+> `const` **OCR_ESTONIAN**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:121](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/constants/ocr/models.ts#L121)
+Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:121](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/constants/ocr/models.ts#L121)
 
 ## Type Declaration
 

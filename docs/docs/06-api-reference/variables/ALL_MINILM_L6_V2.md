@@ -1,8 +1,8 @@
-# Variable: ALL\_MINILM\_L6\_V2
+# Variable: ALL_MINILM_L6_V2
 
-> `const` **ALL\_MINILM\_L6\_V2**: `object`
+> `const` **ALL_MINILM_L6_V2**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:552](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/constants/modelUrls.ts#L552)
+Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:552](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/constants/modelUrls.ts#L552)
 
 ## Type Declaration
 

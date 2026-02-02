@@ -1,8 +1,8 @@
-# Variable: SMOLLM2\_1\_360M
+# Variable: SMOLLM2_1_360M
 
-> `const` **SMOLLM2\_1\_360M**: `object`
+> `const` **SMOLLM2_1_360M**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:229](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/constants/modelUrls.ts#L229)
+Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:229](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/constants/modelUrls.ts#L229)
 
 ## Type Declaration
 

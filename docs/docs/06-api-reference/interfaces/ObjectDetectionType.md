@@ -1,6 +1,6 @@
 # Interface: ObjectDetectionType
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:151](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/objectDetection.ts#L151)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:151](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/objectDetection.ts#L151)
 
 Return type for the `useObjectDetection` hook.
 Manages the state and operations for Computer Vision object detection tasks.
@@ -11,27 +11,27 @@ Manages the state and operations for Computer Vision object detection tasks.
 
 > **downloadProgress**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:170](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/objectDetection.ts#L170)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:170](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/objectDetection.ts#L170)
 
 Represents the download progress of the model binary as a value between 0 and 1.
 
-***
+---
 
 ### error
 
 > **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:155](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/objectDetection.ts#L155)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:155](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/objectDetection.ts#L155)
 
 Contains the error object if the model failed to load, download, or encountered a runtime error during detection.
 
-***
+---
 
 ### forward()
 
 > **forward**: (`imageSource`, `detectionThreshold?`) => `Promise`\<[`Detection`](Detection.md)[]\>
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:179](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/objectDetection.ts#L179)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:179](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/objectDetection.ts#L179)
 
 Executes the model's forward pass to detect objects within the provided image.
 
@@ -47,7 +47,7 @@ A string representing the image source (e.g., a file path, URI, or base64 string
 
 `number`
 
-An optional number between 0 and 1 representing the minimum confidence score required for an object to be included in the results. Dafault is 0.7.
+An optional number between 0 and 1 representing the minimum confidence score required for an object to be included in the results. Default is 0.7.
 
 #### Returns
 
@@ -59,22 +59,22 @@ A Promise that resolves to an array of `Detection` objects, where each object ty
 
 If the model is not loaded or is currently processing another image.
 
-***
+---
 
 ### isGenerating
 
 > **isGenerating**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:165](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/objectDetection.ts#L165)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:165](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/objectDetection.ts#L165)
 
 Indicates whether the model is currently processing an image.
 
-***
+---
 
 ### isReady
 
 > **isReady**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:160](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/objectDetection.ts#L160)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:160](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/objectDetection.ts#L160)
 
 Indicates whether the object detection model is loaded and ready to process images.

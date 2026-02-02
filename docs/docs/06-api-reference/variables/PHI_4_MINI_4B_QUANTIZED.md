@@ -1,8 +1,8 @@
-# Variable: PHI\_4\_MINI\_4B\_QUANTIZED
+# Variable: PHI_4_MINI_4B_QUANTIZED
 
-> `const` **PHI\_4\_MINI\_4B\_QUANTIZED**: `object`
+> `const` **PHI_4_MINI_4B_QUANTIZED**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:344](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/constants/modelUrls.ts#L344)
+Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:344](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/constants/modelUrls.ts#L344)
 
 ## Type Declaration
 

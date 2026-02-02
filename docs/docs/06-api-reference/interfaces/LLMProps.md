@@ -1,6 +1,6 @@
 # Interface: LLMProps
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:9](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/llm.ts#L9)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:9](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/llm.ts#L9)
 
 Properties for initializing and configuring a Large Language Model (LLM) instance.
 
@@ -10,7 +10,7 @@ Properties for initializing and configuring a Large Language Model (LLM) instanc
 
 > **model**: `object`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:10](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/llm.ts#L10)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:10](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/llm.ts#L10)
 
 #### modelSource
 
@@ -30,12 +30,12 @@ Defined in: [packages/react-native-executorch/src/types/llm.ts:10](https://githu
 
 `ResourceSource` pointing to the JSON file which contains the tokenizer.
 
-***
+---
 
 ### preventLoad?
 
 > `optional` **preventLoad**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:27](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/llm.ts#L27)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:27](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/llm.ts#L27)
 
 Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.

@@ -1,37 +1,37 @@
-# Variable: SPECIAL\_TOKENS
+# Variable: SPECIAL_TOKENS
 
-> `const` **SPECIAL\_TOKENS**: `object`
+> `const` **SPECIAL_TOKENS**: `object`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:250](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/llm.ts#L250)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:248](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/llm.ts#L248)
 
 Special tokens used in Large Language Models (LLMs).
 
 ## Type Declaration
 
-### BOS\_TOKEN
+### BOS_TOKEN
 
-> **BOS\_TOKEN**: `string` = `'bos_token'`
+> **BOS_TOKEN**: `string` = `'bos_token'`
 
-### CLS\_TOKEN
+### CLS_TOKEN
 
-> **CLS\_TOKEN**: `string` = `'cls_token'`
+> **CLS_TOKEN**: `string` = `'cls_token'`
 
-### EOS\_TOKEN
+### EOS_TOKEN
 
-> **EOS\_TOKEN**: `string` = `'eos_token'`
+> **EOS_TOKEN**: `string` = `'eos_token'`
 
-### MASK\_TOKEN
+### MASK_TOKEN
 
-> **MASK\_TOKEN**: `string` = `'mask_token'`
+> **MASK_TOKEN**: `string` = `'mask_token'`
 
-### PAD\_TOKEN
+### PAD_TOKEN
 
-> **PAD\_TOKEN**: `string` = `'pad_token'`
+> **PAD_TOKEN**: `string` = `'pad_token'`
 
-### SEP\_TOKEN
+### SEP_TOKEN
 
-> **SEP\_TOKEN**: `string` = `'sep_token'`
+> **SEP_TOKEN**: `string` = `'sep_token'`
 
-### UNK\_TOKEN
+### UNK_TOKEN
 
-> **UNK\_TOKEN**: `string` = `'unk_token'`
+> **UNK_TOKEN**: `string` = `'unk_token'`

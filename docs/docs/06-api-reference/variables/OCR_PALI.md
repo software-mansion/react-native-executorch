@@ -1,8 +1,8 @@
-# Variable: OCR\_PALI
+# Variable: OCR_PALI
 
-> `const` **OCR\_PALI**: `object`
+> `const` **OCR_PALI**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:251](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/constants/ocr/models.ts#L251)
+Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:251](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/constants/ocr/models.ts#L251)
 
 ## Type Declaration
 

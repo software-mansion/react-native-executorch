@@ -1,8 +1,8 @@
-# Variable: QWEN3\_1\_7B\_QUANTIZED
+# Variable: QWEN3_1_7B_QUANTIZED
 
-> `const` **QWEN3\_1\_7B\_QUANTIZED**: `object`
+> `const` **QWEN3_1_7B_QUANTIZED**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:110](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/constants/modelUrls.ts#L110)
+Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:110](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/constants/modelUrls.ts#L110)
 
 ## Type Declaration
 

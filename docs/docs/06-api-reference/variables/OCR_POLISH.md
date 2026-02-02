@@ -1,8 +1,8 @@
-# Variable: OCR\_POLISH
+# Variable: OCR_POLISH
 
-> `const` **OCR\_POLISH**: `object`
+> `const` **OCR_POLISH**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:256](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/constants/ocr/models.ts#L256)
+Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:256](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/constants/ocr/models.ts#L256)
 
 ## Type Declaration
 

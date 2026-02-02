@@ -1,6 +1,6 @@
 # Class: VerticalOCRModule
 
-Defined in: [packages/react-native-executorch/src/modules/computer\_vision/VerticalOCRModule.ts:10](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L10)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:10](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L10)
 
 Module for Vertical Optical Character Recognition (Vertical OCR) tasks.
 
@@ -10,7 +10,7 @@ Module for Vertical Optical Character Recognition (Vertical OCR) tasks.
 
 > **new VerticalOCRModule**(): `VerticalOCRModule`
 
-Defined in: [packages/react-native-executorch/src/modules/computer\_vision/VerticalOCRModule.ts:13](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L13)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:13](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L13)
 
 #### Returns
 
@@ -22,22 +22,22 @@ Defined in: [packages/react-native-executorch/src/modules/computer\_vision/Verti
 
 > **delete**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/computer\_vision/VerticalOCRModule.ts:58](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L58)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:58](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L58)
 
-Release the memory held by the module. Calling `forward` afterwards is invalid. 
+Release the memory held by the module. Calling `forward` afterwards is invalid.
 Note that you cannot delete model while it's generating.
 
 #### Returns
 
 `void`
 
-***
+---
 
 ### forward()
 
 > **forward**(`imageSource`): `Promise`\<[`OCRDetection`](../interfaces/OCRDetection.md)[]\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer\_vision/VerticalOCRModule.ts:50](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L50)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:50](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L50)
 
 Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string.
 
@@ -55,16 +55,16 @@ The image source to be processed.
 
 The OCR result as a `OCRDetection[]`.
 
-***
+---
 
 ### load()
 
 > **load**(`model`, `independentCharacters`, `onDownloadProgressCallback`): `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer\_vision/VerticalOCRModule.ts:26](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L26)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:26](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L26)
 
 Loads the model, where `detectorSource` is a string that specifies the location of the detector binary,
-`recognizerSource` is a string that specifies the location of the recognizer binary, 
+`recognizerSource` is a string that specifies the location of the recognizer binary,
 and `language` is a parameter that specifies the language of the text to be recognized by the OCR.
 
 #### Parameters

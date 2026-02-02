@@ -1,8 +1,8 @@
-# Variable: LLAMA3\_2\_3B\_QLORA
+# Variable: LLAMA3_2_3B_QLORA
 
-> `const` **LLAMA3\_2\_3B\_QLORA**: `object`
+> `const` **LLAMA3_2_3B_QLORA**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:28](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/constants/modelUrls.ts#L28)
+Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:28](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/constants/modelUrls.ts#L28)
 
 ## Type Declaration
 

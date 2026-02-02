@@ -1,6 +1,6 @@
 # Interface: ImageSegmentationType
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:55](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/imageSegmentation.ts#L55)
+Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:55](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/imageSegmentation.ts#L55)
 
 Return type for the `useImageSegmentation` hook.
 Manages the state and operations for Computer Vision image segmentation (e.g., DeepLab).
@@ -11,27 +11,27 @@ Manages the state and operations for Computer Vision image segmentation (e.g., D
 
 > **downloadProgress**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:74](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/imageSegmentation.ts#L74)
+Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:74](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/imageSegmentation.ts#L74)
 
 Represents the download progress of the model binary as a value between 0 and 1.
 
-***
+---
 
 ### error
 
 > **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:59](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/imageSegmentation.ts#L59)
+Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:59](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/imageSegmentation.ts#L59)
 
 Contains the error object if the model failed to load, download, or encountered a runtime error during segmentation.
 
-***
+---
 
 ### forward()
 
 > **forward**: (`imageSource`, `classesOfInterest?`, `resize?`) => `Promise`\<`Partial`\<`Record`\<[`DeeplabLabel`](../enumerations/DeeplabLabel.md), `number`[]\>\>\>
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:84](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/imageSegmentation.ts#L84)
+Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:84](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/imageSegmentation.ts#L84)
 
 Executes the model's forward pass to perform semantic segmentation on the provided image.
 
@@ -65,22 +65,22 @@ A Promise that resolves to an object mapping each detected `DeeplabLabel` to its
 
 If the model is not loaded or is currently processing another image.
 
-***
+---
 
 ### isGenerating
 
 > **isGenerating**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:69](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/imageSegmentation.ts#L69)
+Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:69](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/imageSegmentation.ts#L69)
 
 Indicates whether the model is currently processing an image.
 
-***
+---
 
 ### isReady
 
 > **isReady**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:64](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/imageSegmentation.ts#L64)
+Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:64](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/imageSegmentation.ts#L64)
 
 Indicates whether the segmentation model is loaded and ready to process images.

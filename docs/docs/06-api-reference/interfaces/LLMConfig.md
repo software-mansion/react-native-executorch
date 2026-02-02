@@ -1,6 +1,6 @@
 # Interface: LLMConfig
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:124](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/llm.ts#L124)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:122](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/llm.ts#L122)
 
 Configuration object for initializing and customizing a Large Language Model (LLM) instance.
 
@@ -10,7 +10,7 @@ Configuration object for initializing and customizing a Large Language Model (LL
 
 > `optional` **chatConfig**: `Partial`\<[`ChatConfig`](ChatConfig.md)\>
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:134](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/llm.ts#L134)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:132](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/llm.ts#L132)
 
 Object configuring chat management, contains following properties:
 
@@ -20,13 +20,13 @@ Object configuring chat management, contains following properties:
 
 `contextWindowLength` - The number of messages from the current conversation that the model will use to generate a response. The higher the number, the more context the model will have. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
 
-***
+---
 
 ### generationConfig?
 
 > `optional` **generationConfig**: [`GenerationConfig`](GenerationConfig.md)
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:158](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/llm.ts#L158)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:156](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/llm.ts#L156)
 
 Object configuring generation settings.
 
@@ -38,13 +38,13 @@ Object configuring generation settings.
 
 `topp` - Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
 
-***
+---
 
 ### toolsConfig?
 
 > `optional` **toolsConfig**: [`ToolsConfig`](ToolsConfig.md)
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:145](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/llm.ts#L145)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:143](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/llm.ts#L143)
 
 Object configuring options for enabling and managing tool use. **It will only have effect if your model's chat template support it**. Contains following properties:
 

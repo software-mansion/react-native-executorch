@@ -1,8 +1,8 @@
-# Variable: OCR\_AVAR
+# Variable: OCR_AVAR
 
-> `const` **OCR\_AVAR**: `object`
+> `const` **OCR_AVAR**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:48](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/constants/ocr/models.ts#L48)
+Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:48](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/constants/ocr/models.ts#L48)
 
 ## Type Declaration
 

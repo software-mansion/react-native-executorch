@@ -1,8 +1,8 @@
-# Variable: HAMMER2\_1\_1\_5B\_QUANTIZED
+# Variable: HAMMER2_1_1_5B_QUANTIZED
 
-> `const` **HAMMER2\_1\_1\_5B\_QUANTIZED**: `object`
+> `const` **HAMMER2_1_1_5B_QUANTIZED**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:174](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/constants/modelUrls.ts#L174)
+Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:174](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/constants/modelUrls.ts#L174)
 
 ## Type Declaration
 

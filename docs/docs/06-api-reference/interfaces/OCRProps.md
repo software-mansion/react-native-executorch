@@ -1,6 +1,6 @@
 # Interface: OCRProps
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:37](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/ocr.ts#L37)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:37](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/ocr.ts#L37)
 
 Configuration properties for the `useOCR` hook.
 
@@ -14,7 +14,7 @@ Configuration properties for the `useOCR` hook.
 
 > **model**: `object`
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:41](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/ocr.ts#L41)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:41](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/ocr.ts#L41)
 
 Object containing the necessary model sources and configuration for the OCR pipeline.
 
@@ -36,13 +36,13 @@ The language configuration enum for the OCR model (e.g., English, Polish, etc.).
 
 `ResourceSource` that specifies the location of the text recognizer model binary.
 
-***
+---
 
 ### preventLoad?
 
 > `optional` **preventLoad**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:62](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/ocr.ts#L62)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:62](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/ocr.ts#L62)
 
 Boolean that can prevent automatic model loading (and downloading the data if loaded for the first time) after running the hook.
 Defaults to `false`.

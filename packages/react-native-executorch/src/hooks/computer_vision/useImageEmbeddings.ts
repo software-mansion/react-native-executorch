@@ -1,5 +1,8 @@
 import { ImageEmbeddingsModule } from '../../modules/computer_vision/ImageEmbeddingsModule';
-import { ImageEmbeddingsProps } from '../../types/imageEmbeddings';
+import {
+  ImageEmbeddingsProps,
+  ImageEmbeddingsType,
+} from '../../types/imageEmbeddings';
 import { useModule } from '../useModule';
 
 /**
@@ -12,7 +15,7 @@ import { useModule } from '../useModule';
 export const useImageEmbeddings = ({
   model,
   preventLoad = false,
-}: ImageEmbeddingsProps) =>
+}: ImageEmbeddingsProps): ImageEmbeddingsType =>
   useModule({
     module: ImageEmbeddingsModule,
     model,

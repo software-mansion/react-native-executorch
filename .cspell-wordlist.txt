@@ -98,3 +98,7 @@ ocurred
 libfbjni
 libc
 gradlew
+AEROPLANE
+DININGTABLE
+POTTEDPLANT
+TVMONITOR

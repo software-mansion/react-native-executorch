@@ -1,6 +1,6 @@
 # Interface: TextEmbeddingsProps
 
-Defined in: [packages/react-native-executorch/src/types/textEmbeddings.ts:11](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/textEmbeddings.ts#L11)
+Defined in: [packages/react-native-executorch/src/types/textEmbeddings.ts:11](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/textEmbeddings.ts#L11)
 
 Props for the useTextEmbeddings hook.
 
@@ -10,7 +10,7 @@ Props for the useTextEmbeddings hook.
 
 > **model**: `object`
 
-Defined in: [packages/react-native-executorch/src/types/textEmbeddings.ts:12](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/textEmbeddings.ts#L12)
+Defined in: [packages/react-native-executorch/src/types/textEmbeddings.ts:12](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/textEmbeddings.ts#L12)
 
 An object containing the model and tokenizer sources.
 
@@ -26,12 +26,12 @@ The source of the text embeddings model binary.
 
 The source of the tokenizer JSON file.
 
-***
+---
 
 ### preventLoad?
 
 > `optional` **preventLoad**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/textEmbeddings.ts:22](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/types/textEmbeddings.ts#L22)
+Defined in: [packages/react-native-executorch/src/types/textEmbeddings.ts:22](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/types/textEmbeddings.ts#L22)
 
 Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.

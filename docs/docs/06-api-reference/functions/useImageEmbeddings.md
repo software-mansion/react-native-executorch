@@ -1,8 +1,8 @@
 # Function: useImageEmbeddings()
 
-> **useImageEmbeddings**(`ImageEmbeddingsProps`): `object`
+> **useImageEmbeddings**(`ImageEmbeddingsProps`): [`ImageEmbeddingsType`](../interfaces/ImageEmbeddingsType.md)
 
-Defined in: [packages/react-native-executorch/src/hooks/computer\_vision/useImageEmbeddings.ts:12](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/hooks/computer_vision/useImageEmbeddings.ts#L12)
+Defined in: [packages/react-native-executorch/src/hooks/computer_vision/useImageEmbeddings.ts:12](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/hooks/computer_vision/useImageEmbeddings.ts#L12)
 
 React hook for managing an Image Embeddings model instance.
 
@@ -16,42 +16,6 @@ Configuration object containing `model` source and optional `preventLoad` flag.
 
 ## Returns
 
+[`ImageEmbeddingsType`](../interfaces/ImageEmbeddingsType.md)
+
 Ready to use Image Embeddings model.
-
-### downloadProgress
-
-> **downloadProgress**: `number`
-
-Represents the download progress as a value between 0 and 1, indicating the extent of the model file retrieval.
-
-### error
-
-> **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
-
-Contains the error message if the model failed to load.
-
-### forward()
-
-> **forward**: (...`input`) => `Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
-
-#### Parameters
-
-##### input
-
-...\[`string`\]
-
-#### Returns
-
-`Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
-
-### isGenerating
-
-> **isGenerating**: `boolean`
-
-Indicates whether the model is currently generating a response.
-
-### isReady
-
-> **isReady**: `boolean`
-
-Indicates whether the model is ready.

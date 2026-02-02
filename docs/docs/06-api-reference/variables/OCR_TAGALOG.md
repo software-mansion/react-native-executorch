@@ -1,8 +1,8 @@
-# Variable: OCR\_TAGALOG
+# Variable: OCR_TAGALOG
 
-> `const` **OCR\_TAGALOG**: `object`
+> `const` **OCR_TAGALOG**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:332](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/constants/ocr/models.ts#L332)
+Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:332](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/constants/ocr/models.ts#L332)
 
 ## Type Declaration
 

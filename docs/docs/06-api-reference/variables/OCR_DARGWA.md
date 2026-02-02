@@ -1,8 +1,8 @@
-# Variable: OCR\_DARGWA
+# Variable: OCR_DARGWA
 
-> `const` **OCR\_DARGWA**: `object`
+> `const` **OCR_DARGWA**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:101](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/constants/ocr/models.ts#L101)
+Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:101](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/constants/ocr/models.ts#L101)
 
 ## Type Declaration
 

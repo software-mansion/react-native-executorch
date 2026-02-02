@@ -2,7 +2,7 @@
 
 > **useVerticalOCR**(`VerticalOCRProps`): [`OCRType`](../interfaces/OCRType.md)
 
-Defined in: [packages/react-native-executorch/src/hooks/computer\_vision/useVerticalOCR.ts:13](https://github.com/software-mansion/react-native-executorch/blob/ec5f7c776ad985c8e6b0d570ee5098364e0b2ceb/packages/react-native-executorch/src/hooks/computer_vision/useVerticalOCR.ts#L13)
+Defined in: [packages/react-native-executorch/src/hooks/computer_vision/useVerticalOCR.ts:13](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/hooks/computer_vision/useVerticalOCR.ts#L13)
 
 React hook for managing a Vertical OCR instance.
 
