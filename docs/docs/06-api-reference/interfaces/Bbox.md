@@ -1,6 +1,6 @@
 # Interface: Bbox
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:13](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/types/objectDetection.ts#L13)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:13](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/types/objectDetection.ts#L13)
 
 Represents a bounding box for a detected object in an image.
 
@@ -10,7 +10,7 @@ Represents a bounding box for a detected object in an image.
 
 > **x1**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:14](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/types/objectDetection.ts#L14)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:14](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/types/objectDetection.ts#L14)
 
 The x-coordinate of the bottom-left corner of the bounding box.
 
@@ -20,7 +20,7 @@ The x-coordinate of the bottom-left corner of the bounding box.
 
 > **x2**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:15](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/types/objectDetection.ts#L15)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:15](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/types/objectDetection.ts#L15)
 
 The x-coordinate of the top-right corner of the bounding box.
 
@@ -30,7 +30,7 @@ The x-coordinate of the top-right corner of the bounding box.
 
 > **y1**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:16](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/types/objectDetection.ts#L16)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:16](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/types/objectDetection.ts#L16)
 
 The y-coordinate of the bottom-left corner of the bounding box.
 
@@ -40,6 +40,6 @@ The y-coordinate of the bottom-left corner of the bounding box.
 
 > **y2**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:17](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/types/objectDetection.ts#L17)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:17](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/types/objectDetection.ts#L17)
 
 The y-coordinate of the top-right corner of the bounding box.

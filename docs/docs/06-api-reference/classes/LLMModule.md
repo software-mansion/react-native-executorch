@@ -1,6 +1,6 @@
 # Class: LLMModule
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts:10](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L10)
+Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts:10](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L10)
 
 Module for managing a Large Language Model (LLM) instance.
 
@@ -10,7 +10,7 @@ Module for managing a Large Language Model (LLM) instance.
 
 > **new LLMModule**(`optionalCallbacks`): `LLMModule`
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts:19](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L19)
+Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts:19](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L19)
 
 Creates a new instance of `LLMModule` with optional callbacks.
 
@@ -52,7 +52,7 @@ A new LLMModule instance.
 
 > **configure**(`configuration`): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts:86](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L86)
+Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts:86](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L86)
 
 Configures chat and tool calling and generation settings.
 See [Configuring the model](https://docs.swmansion.com/react-native-executorch/docs/hooks/natural-language-processing/useLLM#configuring-the-model) for details.
@@ -75,7 +75,7 @@ Configuration object containing `chatConfig`, `toolsConfig`, and `generationConf
 
 > **delete**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts:161](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L161)
+Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts:161](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L161)
 
 Method to delete the model from memory.
 Note you cannot delete model while it's generating.
@@ -91,7 +91,7 @@ You need to interrupt it first and make sure model stopped generation.
 
 > **deleteMessage**(`index`): [`Message`](../interfaces/Message.md)[]
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts:135](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L135)
+Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts:135](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L135)
 
 Deletes all messages starting with message on `index` position.
 After deletion it will call `messageHistoryCallback()` containing new history.
@@ -117,7 +117,7 @@ The index of the message to delete from history.
 
 > **forward**(`input`): `Promise`\<`string`\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts:99](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L99)
+Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts:99](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L99)
 
 Runs model inference with raw input string.
 You need to provide entire conversation and prompt (in correct format and with special tokens!) in input string to this method.
@@ -144,7 +144,7 @@ The generated response as a string.
 
 > **generate**(`messages`, `tools?`): `Promise`\<`string`\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts:110](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L110)
+Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts:110](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L110)
 
 Runs model to complete chat passed in `messages` argument. It doesn't manage conversation context.
 
@@ -174,7 +174,7 @@ The generated response as a string.
 
 > **getGeneratedTokenCount**(): `number`
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts:152](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L152)
+Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts:152](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L152)
 
 Returns the number of tokens generated in the last response.
 
@@ -190,7 +190,7 @@ The count of generated tokens.
 
 > **interrupt**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts:143](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L143)
+Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts:143](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L143)
 
 Interrupts model generation. It may return one more token after interrupt.
 
@@ -204,7 +204,7 @@ Interrupts model generation. It may return one more token after interrupt.
 
 > **load**(`model`, `onDownloadProgressCallback`): `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts:53](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L53)
+Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts:53](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L53)
 
 Loads the LLM model and tokenizer.
 
@@ -248,7 +248,7 @@ Optional callback to track download progress (value between 0 and 1).
 
 > **sendMessage**(`message`): `Promise`\<[`Message`](../interfaces/Message.md)[]\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts:122](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L122)
+Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts:122](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L122)
 
 Method to add user message to conversation.
 After model responds it will call `messageHistoryCallback()` containing both user message and model response.
@@ -274,7 +274,7 @@ The message string to send.
 
 > **setTokenCallback**(`tokenCallback`): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts:72](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L72)
+Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts:72](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L72)
 
 Sets new token callback invoked on every token batch.
 

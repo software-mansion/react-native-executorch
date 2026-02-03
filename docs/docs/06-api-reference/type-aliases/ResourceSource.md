@@ -2,6 +2,6 @@
 
 > **ResourceSource** = `string` \| `number` \| `object`
 
-Defined in: [packages/react-native-executorch/src/types/common.ts:10](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/types/common.ts#L10)
+Defined in: [packages/react-native-executorch/src/types/common.ts:10](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/types/common.ts#L10)
 
 Represents a source of a resource, which can be a string (e.g., URL or file path), a number (e.g., resource ID), or an object (e.g., binary data).

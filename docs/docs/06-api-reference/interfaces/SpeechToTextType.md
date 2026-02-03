@@ -1,6 +1,6 @@
 # Interface: SpeechToTextType
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:25](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/types/stt.ts#L25)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:25](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/types/stt.ts#L25)
 
 React hook for managing Speech to Text (STT) instance.
 
@@ -10,7 +10,7 @@ React hook for managing Speech to Text (STT) instance.
 
 > **committedTranscription**: `string`
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:50](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/types/stt.ts#L50)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:50](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/types/stt.ts#L50)
 
 Contains the part of the transcription that is finalized and will not change.
 Useful for displaying stable results during streaming.
@@ -21,7 +21,7 @@ Useful for displaying stable results during streaming.
 
 > **downloadProgress**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:44](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/types/stt.ts#L44)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:44](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/types/stt.ts#L44)
 
 Tracks the progress of the model download process.
 
@@ -31,7 +31,7 @@ Tracks the progress of the model download process.
 
 > **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:29](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/types/stt.ts#L29)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:29](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/types/stt.ts#L29)
 
 Contains the error message if the model failed to load.
 
@@ -41,7 +41,7 @@ Contains the error message if the model failed to load.
 
 > **isGenerating**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:39](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/types/stt.ts#L39)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:39](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/types/stt.ts#L39)
 
 Indicates whether the model is currently processing an inference.
 
@@ -51,7 +51,7 @@ Indicates whether the model is currently processing an inference.
 
 > **isReady**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:34](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/types/stt.ts#L34)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:34](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/types/stt.ts#L34)
 
 Indicates whether the model has successfully loaded and is ready for inference.
 
@@ -61,7 +61,7 @@ Indicates whether the model has successfully loaded and is ready for inference.
 
 > **nonCommittedTranscription**: `string`
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:56](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/types/stt.ts#L56)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:56](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/types/stt.ts#L56)
 
 Contains the part of the transcription that is still being processed and may change.
 Useful for displaying live, partial results during streaming.
@@ -72,7 +72,7 @@ Useful for displaying live, partial results during streaming.
 
 > **decode**(`tokens`, `encoderOutput`): `Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:71](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/types/stt.ts#L71)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:71](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/types/stt.ts#L71)
 
 Runs the decoder of the model. Passing `number[]` is deprecated.
 
@@ -102,7 +102,7 @@ A promise resolving to the decoded text.
 
 > **encode**(`waveform`): `Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:63](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/types/stt.ts#L63)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:63](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/types/stt.ts#L63)
 
 Runs the encoding part of the model on the provided waveform. Passing `number[]` is deprecated.
 
@@ -126,7 +126,7 @@ A promise resolving to the encoded data.
 
 > **stream**(`options?`): `Promise`\<`string`\>
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:95](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/types/stt.ts#L95)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:95](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/types/stt.ts#L95)
 
 Starts a streaming transcription process.
 Use in combination with streamInsert to feed audio chunks and streamStop to end the stream.
@@ -152,7 +152,7 @@ The final transcription string.
 
 > **streamInsert**(`waveform`): `void`
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:102](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/types/stt.ts#L102)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:102](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/types/stt.ts#L102)
 
 Inserts a chunk of audio data (sampled at 16kHz) into the ongoing streaming transcription.
 Passing `number[]` is deprecated.
@@ -175,7 +175,7 @@ The audio chunk to insert.
 
 > **streamStop**(): `void`
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:107](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/types/stt.ts#L107)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:107](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/types/stt.ts#L107)
 
 Stops the ongoing streaming transcription process.
 
@@ -189,7 +189,7 @@ Stops the ongoing streaming transcription process.
 
 > **transcribe**(`waveform`, `options?`): `Promise`\<`string`\>
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:83](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/types/stt.ts#L83)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:83](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/types/stt.ts#L83)
 
 Starts a transcription process for a given input array, which should be a waveform at 16kHz.
 Passing `number[]` is deprecated.
