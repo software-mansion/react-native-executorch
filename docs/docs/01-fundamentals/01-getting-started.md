@@ -90,6 +90,10 @@ Running the app with the library:
 yarn run expo:<ios | android> -d
 ```
 
+## Supporting new models in React Native ExecuTorch
+
+The process of adding new functionality in our library is pretty much the same for every functionality. Firstly, we try to export PyTorch models that implement given task e.g. object detection into `*.pte` format. This a format supported by ExecuTorch runtime to call these models directly in C++. When we have such file, we implement code in C++ that utilizes ExecuTorch runtime and call inference in C++. Additionally, we implement other functions like preprocessing or postprocessing of data. Final step is implementing TypeScript API that will expose way to interoperate with previously written C++ code.
+
 ## Good reads
 
 If you want to dive deeper into ExecuTorch or our previous work with the framework, we highly encourage you to check out the following resources:
