@@ -1,6 +1,6 @@
 # Class: VerticalOCRModule
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:10](https://github.com/software-mansion/react-native-executorch/blob/6829cd7e41d61eb83543baaf8d938ad81501b178/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L10)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:10](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L10)
 
 Module for Vertical Optical Character Recognition (Vertical OCR) tasks.
 
@@ -10,7 +10,7 @@ Module for Vertical Optical Character Recognition (Vertical OCR) tasks.
 
 > **new VerticalOCRModule**(): `VerticalOCRModule`
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:13](https://github.com/software-mansion/react-native-executorch/blob/6829cd7e41d61eb83543baaf8d938ad81501b178/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L13)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:13](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L13)
 
 #### Returns
 
@@ -22,7 +22,7 @@ Defined in: [packages/react-native-executorch/src/modules/computer_vision/Vertic
 
 > **delete**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:58](https://github.com/software-mansion/react-native-executorch/blob/6829cd7e41d61eb83543baaf8d938ad81501b178/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L58)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:58](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L58)
 
 Release the memory held by the module. Calling `forward` afterwards is invalid.
 Note that you cannot delete model while it's generating.
@@ -37,7 +37,7 @@ Note that you cannot delete model while it's generating.
 
 > **forward**(`imageSource`): `Promise`\<[`OCRDetection`](../interfaces/OCRDetection.md)[]\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:50](https://github.com/software-mansion/react-native-executorch/blob/6829cd7e41d61eb83543baaf8d938ad81501b178/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L50)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:50](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L50)
 
 Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string.
 
@@ -61,7 +61,7 @@ The OCR result as a `OCRDetection[]`.
 
 > **load**(`model`, `independentCharacters`, `onDownloadProgressCallback`): `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:26](https://github.com/software-mansion/react-native-executorch/blob/6829cd7e41d61eb83543baaf8d938ad81501b178/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L26)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:26](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L26)
 
 Loads the model, where `detectorSource` is a string that specifies the location of the detector binary,
 `recognizerSource` is a string that specifies the location of the recognizer binary,

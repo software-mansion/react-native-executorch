@@ -18,7 +18,11 @@ const config = {
   projectName: 'react-native-executorch',
 
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
+  },
 
   presets: [
     [
@@ -192,7 +196,7 @@ const config = {
       suggestedQuestions: true,
       enableSidePanel: true,
     },
-  }
+  },
 };
 
 module.exports = config;

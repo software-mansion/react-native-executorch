@@ -2,7 +2,7 @@
 
 > `const` **HAMMER2_1_1_5B_QUANTIZED**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:174](https://github.com/software-mansion/react-native-executorch/blob/6829cd7e41d61eb83543baaf8d938ad81501b178/packages/react-native-executorch/src/constants/modelUrls.ts#L174)
+Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:174](https://github.com/software-mansion/react-native-executorch/blob/b5d7c2240b2bce86e529b0ca3bde7420456f9dbe/packages/react-native-executorch/src/constants/modelUrls.ts#L174)
 
 ## Type Declaration
 

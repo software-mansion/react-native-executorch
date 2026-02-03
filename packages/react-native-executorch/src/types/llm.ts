@@ -70,7 +70,7 @@ export interface LLMType {
 
   /**
    * Configures chat and tool calling.
-   * See [Configuring the model](../../03-hooks/01-natural-language-processing/useLLM.md#configuring-the-model) for details.
+   * See [Configuring the model](https://docs.swmansion.com/react-native-executorch/docs/hooks/natural-language-processing/useLLM#configuring-the-model) for details.
    *
    * @param {LLMConfig} configuration - Configuration object containing `chatConfig`, `toolsConfig`, and `generationConfig`.
    */
