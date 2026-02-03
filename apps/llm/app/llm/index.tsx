@@ -47,6 +47,9 @@ function LLMScreen() {
     textInputRef.current?.clear();
     try {
       await llm.sendMessage(userInput);
+      console.log(llm.getGeneratedTokenCount());
+      console.log(llm.getPromptTokenCount());
+      console.log(llm.getTotalTokenCount());
     } catch (e) {
       console.error(e);
     }

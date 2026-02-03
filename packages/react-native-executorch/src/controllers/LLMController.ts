@@ -255,18 +255,18 @@ export class LLMController {
     return this.nativeModule.getGeneratedTokenCount();
   }
 
-  public getPromptTokensCount(): number {
+  public getPromptTokenCount(): number {
     if (!this.nativeModule) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ModuleNotLoaded,
         "Cannot get prompt token count for a model that's not loaded."
       );
     }
-    return this.nativeModule.getPromptTokensCount();
+    return this.nativeModule.getPromptTokenCount();
   }
 
-  public getTotalTokensCount(): number {
-    return this.getGeneratedTokenCount() + this.getPromptTokensCount();
+  public getTotalTokenCount(): number {
+    return this.getGeneratedTokenCount() + this.getPromptTokenCount();
   }
 
   public async generate(

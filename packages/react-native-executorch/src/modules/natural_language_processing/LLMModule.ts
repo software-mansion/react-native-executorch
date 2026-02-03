@@ -154,7 +154,7 @@ export class LLMModule {
    * @returns The count of prompt token.
    */
   getPromptTokensCount() {
-    return this.controller.getPromptTokensCount();
+    return this.controller.getPromptTokenCount();
   }
 
   /**
@@ -163,7 +163,7 @@ export class LLMModule {
    * @returns The count of prompt and generated tokens.
    */
   getTotalTokensCount() {
-    return this.controller.getTotalTokensCount();
+    return this.controller.getTotalTokenCount();
   }
 
   /**

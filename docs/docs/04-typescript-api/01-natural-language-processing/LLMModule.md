@@ -37,6 +37,7 @@ llm.delete();
 
 ### Methods
 
+`LLMModule` provides methods like [`load`](../../06-api-reference/classes/LLMModule.md#load), [`generate`](../../06-api-reference/classes/LLMModule.md#generate), [`sendMessage`](../../06-api-reference/classes/LLMModule.md#sendmessage), [`getGeneratedTokenCount`](../../06-api-reference/classes/LLMModule.md#getgeneratedtokencount), [`getPromptTokenCount`](../../06-api-reference/classes/LLMModule.md#getprompttokencount), [`getTotalTokenCount`](../../06-api-reference/classes/LLMModule.md#gettotaltokencount), and more. For complete method details, see the [LLMModule API Reference](../../06-api-reference/classes/LLMModule.md).
 ## Loading the model
 
 To create a new instance of `LLMModule`, use the [constructor](../../06-api-reference/classes/LLMModule.md#constructor) with optional callbacks:

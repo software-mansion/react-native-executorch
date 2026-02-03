@@ -115,12 +115,12 @@ export const useLLM = ({ model, preventLoad = false }: LLMProps): LLMType => {
   );
 
   const getPromptTokenCount = useCallback(
-    () => controllerInstance.getPromptTokensCount(),
+    () => controllerInstance.getPromptTokenCount(),
     [controllerInstance]
   );
 
   const getTotalTokenCount = useCallback(
-    () => controllerInstance.getTotalTokensCount(),
+    () => controllerInstance.getTotalTokenCount(),
     [controllerInstance]
   );
 

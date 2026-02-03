@@ -65,6 +65,7 @@ You need more details? Check the following resources:
 
 ### Returns
 
+`useLLM` returns [`LLMType`](../../06-api-reference/interfaces/LLMType.md) which includes methods like [`generate`](../../06-api-reference/interfaces/LLMType.md#generate), [`sendMessage`](../../06-api-reference/interfaces/LLMType.md#sendmessage), [`getGeneratedTokenCount`](../../06-api-reference/interfaces/LLMType.md#getgeneratedtokencount), [`getPromptTokenCount`](../../06-api-reference/interfaces/LLMType.md#getprompttokencount), [`getTotalTokenCount`](../../06-api-reference/interfaces/LLMType.md#gettotaltokencount) and more. For complete details, see the [LLMType API Reference](../../06-api-reference/interfaces/LLMType.md).
 ## Functional vs managed
 
 You can use functions returned from this hooks in two manners:
