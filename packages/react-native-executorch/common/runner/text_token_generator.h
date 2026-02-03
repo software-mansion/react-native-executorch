@@ -42,7 +42,7 @@ public:
    * @return how many tokens are generated.
    */
   inline ::executorch::runtime::Result<int64_t> generate(
-      std::vector<uint64_t> tokens, int64_t start_pos, int32_t max_new_tokens,
+      std::vector<uint64_t> tokens, int64_t start_pos, uint64_t max_new_tokens,
       float temperature, float topp,
       const std::function<void(const std::string &)> &token_callback = {}) {
     ET_CHECK_MSG(!tokens.empty(),
@@ -57,9 +57,9 @@ public:
     [[maybe_unused]] uint64_t prev_token;
 
     // cache to keep tokens if they were decoded into illegal character
-    std::vector<int32_t> token_cache;
+    std::vector<uint64_t> token_cache;
     // add first token after prefill to cache here
-    token_cache.push_back(static_cast<int32_t>(cur_token));
+    token_cache.push_back(static_cast<uint64_t>(cur_token));
 
     if (use_kv_cache_) {
       // hard code these to size 1 as kv cache is locked to static size right
@@ -106,10 +106,12 @@ public:
             tokens_managed, {1, static_cast<int>(token_data.size())}));
       }
 
-      token_cache.push_back(static_cast<int32_t>(cur_token));
+      token_cache.push_back(static_cast<uint64_t>(cur_token));
 
       // print the token as string, decode it with the Tokenizer object
-      const std::string cache_decoded = tokenizer_->Decode(token_cache);
+      // We pass false, as we want don't want to skip special tokens e.g.
+      // <think>
+      std::string cache_decoded = tokenizer_->decode(token_cache, false).get();
 
       const auto timeIntervalElapsed =
           std::chrono::duration_cast<std::chrono::milliseconds>(

@@ -12,9 +12,10 @@ using namespace facebook;
 
 TokenizerModule::TokenizerModule(
     std::string source, std::shared_ptr<react::CallInvoker> callInvoker)
-    : memorySizeLowerBound(std::filesystem::file_size(source)) {
+    : tokenizer(std::make_unique<tokenizers::HFTokenizer>()),
+      memorySizeLowerBound(std::filesystem::file_size(source)) {
 
-  auto status = tokenizer.load(file_utils::loadBytesFromFile(source)));
+  auto status = tokenizer->load(source);
 
   if (status != tokenizers::Error::Ok) {
     throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
@@ -31,25 +32,21 @@ void TokenizerModule::ensureTokenizerLoaded(
   }
 }
 
-std::vector<int32_t> TokenizerModule::encode(std::string s) const {
+std::vector<uint64_t> TokenizerModule::encode(std::string s) const {
   ensureTokenizerLoaded("encode");
-  return tokenizer->encode(s, 0, 0);
+  // Two last arguments represent number of bos and eos tokens added to the
+  // encoded string
+  // If the used tokenizer.json has defined post_processor field,
+  // setting any of those flags to value other than 0 will result in running the
+  // post_processor with 'add_special_token' flag
+  return tokenizer->encode(s, 0, 0).get();
 }
 
-std::string TokenizerModule::decode(std::vector<int32_t> vec,
+std::string TokenizerModule::decode(std::vector<uint64_t> vec,
                                     bool skipSpecialTokens) const {
   ensureTokenizerLoaded("decode");
 
-  std::string decoded_text = "";
-  uint64_t prev_token = tokenizer->bos_tok();
-  for (const auto &current_token : vec) {
-    auto decoded_piece =
-        tokenizer.decode(prev_token, current_token, skipSpecialTokens);
-    ASSERT_EQ(decoded_piece.error(), tokenizers::Error::Ok)
-        << "Failed to decode token: " << current_token;
-    decoded_text += decoded_piece.get();
-    prev_token = current_token;
-  }
+  std::string decoded_text = tokenizer->decode(vec, skipSpecialTokens).get();
 
   return decoded_text;
 }
@@ -59,7 +56,7 @@ size_t TokenizerModule::getVocabSize() const {
   return static_cast<size_t>(tokenizer->vocab_size());
 }
 
-std::string TokenizerModule::idToToken(int32_t tokenId) const {
+std::string TokenizerModule::idToToken(uint64_t tokenId) const {
   ensureTokenizerLoaded("idToToken");
   auto result = tokenizer->id_to_piece(
       static_cast<uint64_t>(tokenId)); // TODO: Change accepted type to uint64_t
@@ -69,11 +66,11 @@ std::string TokenizerModule::idToToken(int32_t tokenId) const {
   return "";
 }
 
-int32_t TokenizerModule::tokenToId(std::string token) const {
+uint64_t TokenizerModule::tokenToId(std::string token) const {
   ensureTokenizerLoaded("tokenToId");
   auto result = tokenizer->piece_to_id(token);
   if (result.ok()) {
-    return static_cast<uint32_t>(result.get()); // TODO: CHANGE RETURN TYPE
+    return static_cast<uint64_t>(result.get()); // TODO: CHANGE RETURN TYPE
   }
   return -1;
 }

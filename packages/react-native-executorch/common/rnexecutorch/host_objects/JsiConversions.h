@@ -218,6 +218,12 @@ getValue<std::vector<int64_t>>(const jsi::Value &val, jsi::Runtime &runtime) {
   return getArrayAsVector<int64_t>(val, runtime);
 }
 
+template <>
+inline std::vector<uint64_t>
+getValue<std::vector<uint64_t>>(const jsi::Value &val, jsi::Runtime &runtime) {
+  return getArrayAsVector<uint64_t>(val, runtime);
+}
+
 // Template specializations for std::span<T> types
 template <>
 inline std::span<float> getValue<std::span<float>>(const jsi::Value &val,
@@ -273,6 +279,12 @@ inline std::span<int64_t> getValue<std::span<int64_t>>(const jsi::Value &val,
   return getTypedArrayAsSpan<int64_t>(val, runtime);
 }
 
+template <>
+inline std::span<uint64_t>
+getValue<std::span<uint64_t>>(const jsi::Value &val, jsi::Runtime &runtime) {
+  return getTypedArrayAsSpan<uint64_t>(val, runtime);
+}
+
 // Conversion from C++ types to jsi --------------------------------------------
 
 // Implementation functions might return any type, but in a promise we can only
@@ -293,11 +305,30 @@ inline jsi::Value getJsiValue(const std::vector<int32_t> &vec,
   return {runtime, array};
 }
 
+inline jsi::Value getJsiValue(const std::vector<uint64_t> &vec,
+                              jsi::Runtime &runtime) {
+  jsi::Array array(runtime, vec.size());
+  for (size_t i = 0; i < vec.size(); i++) {
+    array.setValueAtIndex(runtime, i, jsi::Value(static_cast<double>(vec[i])));
+  }
+  return {runtime, array};
+}
+
 inline jsi::Value getJsiValue(const std::vector<float> &vec,
                               jsi::Runtime &runtime) {
   jsi::Array array(runtime, vec.size());
   for (size_t i = 0; i < vec.size(); i++) {
     array.setValueAtIndex(runtime, i, jsi::Value(vec[i]));
+  }
+  return {runtime, array};
+}
+
+inline jsi::Value getJsiValue(const std::vector<std::string> &vec,
+                              jsi::Runtime &runtime) {
+  jsi::Array array(runtime, vec.size());
+  for (size_t i = 0; i < vec.size(); i++) {
+    array.setValueAtIndex(runtime, i,
+                          jsi::String::createFromUtf8(runtime, vec[i]));
   }
   return {runtime, array};
 }
@@ -313,6 +344,17 @@ inline jsi::Value getJsiValue(const std::vector<char> &vec,
 
 inline jsi::Value getJsiValue(int val, jsi::Runtime &runtime) {
   return {runtime, val};
+}
+
+template <typename T>
+  requires(meta::IsNumeric<T> && !meta::SameAs<T, int> &&
+           !meta::SameAs<T, bool>)
+inline jsi::Value getJsiValue(T val, jsi::Runtime &runtime) {
+  return jsi::Value(static_cast<double>(val));
+}
+
+inline jsi::Value getJsiValue(bool val, jsi::Runtime &runtime) {
+  return jsi::Value(val);
 }
 
 inline jsi::Value getJsiValue(const std::shared_ptr<OwningArrayBuffer> &buf,
