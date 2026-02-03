@@ -142,8 +142,8 @@ const config = {
         },
         items: [
           {
-            to: 'docs/fundamentals/getting-started',
-            activeBasePath: 'docs',
+            type: 'docSidebar',
+            sidebarId: 'tutorialSidebar',
             label: 'Docs',
             position: 'right',
           },

@@ -1,6 +1,6 @@
 # Interface: ImageEmbeddingsProps
 
-Defined in: [packages/react-native-executorch/src/types/imageEmbeddings.ts:12](https://github.com/software-mansion/react-native-executorch/blob/a4873616eca46e680b6c0a064462c773420037bc/packages/react-native-executorch/src/types/imageEmbeddings.ts#L12)
+Defined in: [packages/react-native-executorch/src/types/imageEmbeddings.ts:12](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/imageEmbeddings.ts#L12)
 
 Props for the `useImageEmbeddings` hook.
 
@@ -10,7 +10,7 @@ Props for the `useImageEmbeddings` hook.
 
 > **model**: `object`
 
-Defined in: [packages/react-native-executorch/src/types/imageEmbeddings.ts:13](https://github.com/software-mansion/react-native-executorch/blob/a4873616eca46e680b6c0a064462c773420037bc/packages/react-native-executorch/src/types/imageEmbeddings.ts#L13)
+Defined in: [packages/react-native-executorch/src/types/imageEmbeddings.ts:13](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/imageEmbeddings.ts#L13)
 
 An object containing the model source.
 
@@ -24,6 +24,6 @@ An object containing the model source.
 
 > `optional` **preventLoad**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/imageEmbeddings.ts:14](https://github.com/software-mansion/react-native-executorch/blob/a4873616eca46e680b6c0a064462c773420037bc/packages/react-native-executorch/src/types/imageEmbeddings.ts#L14)
+Defined in: [packages/react-native-executorch/src/types/imageEmbeddings.ts:14](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/imageEmbeddings.ts#L14)
 
 Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
