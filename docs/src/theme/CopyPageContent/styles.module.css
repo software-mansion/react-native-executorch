@@ -1,0 +1,3 @@
+[class*='copyButton'] [class*='dropdown'] {
+  background: var(--swm-dropdown-versions-background);
+}

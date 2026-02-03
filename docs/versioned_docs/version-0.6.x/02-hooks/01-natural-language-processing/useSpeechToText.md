@@ -20,7 +20,7 @@ description: "Learn how to use speech-to-text models in your React Native applic
 Speech to text is a task that allows to transform spoken language to written text. It is commonly used to implement features such as transcription or voice assistants.
 
 :::warning
-It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-whisper-tiny.en). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
+It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/speech-to-text-68d0ec99ed794250491b8bbe). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
 :::
 
 ## Reference
@@ -314,27 +314,29 @@ function App() {
 
 ## Supported models
 
-| Model                                                              |   Language   |
-| ------------------------------------------------------------------ | :----------: |
-| [whisper-tiny.en](https://huggingface.co/openai/whisper-tiny.en)   |   English    |
-| [whisper-tiny](https://huggingface.co/openai/whisper-tiny)         | Multilingual |
-| [whisper-base.en](https://huggingface.co/openai/whisper-base.en)   |   English    |
-| [whisper-base](https://huggingface.co/openai/whisper-base)         | Multilingual |
-| [whisper-small.en](https://huggingface.co/openai/whisper-small.en) |   English    |
-| [whisper-small](https://huggingface.co/openai/whisper-small)       | Multilingual |
+| Model                                                                        |   Language   |
+| ---------------------------------------------------------------------------- | :----------: |
+| [whisper-tiny.en](https://huggingface.co/openai/whisper-tiny.en)             |   English    |
+| [whisper-tiny.en (quantized)](https://huggingface.co/openai/whisper-tiny.en) |   English    |
+| [whisper-tiny](https://huggingface.co/openai/whisper-tiny)                   | Multilingual |
+| [whisper-base.en](https://huggingface.co/openai/whisper-base.en)             |   English    |
+| [whisper-base](https://huggingface.co/openai/whisper-base)                   | Multilingual |
+| [whisper-small.en](https://huggingface.co/openai/whisper-small.en)           |   English    |
+| [whisper-small](https://huggingface.co/openai/whisper-small)                 | Multilingual |
 
 ## Benchmarks
 
 ### Model size
 
-| Model            | XNNPACK [MB] |
-| ---------------- | :----------: |
-| WHISPER_TINY_EN  |     151      |
-| WHISPER_TINY     |     151      |
-| WHISPER_BASE_EN  |    290.6     |
-| WHISPER_BASE     |    290.6     |
-| WHISPER_SMALL_EN |     968      |
-| WHISPER_SMALL    |     968      |
+| Model                     | XNNPACK [MB] |
+| ------------------------- | :----------: |
+| WHISPER_TINY_EN           |     151      |
+| WHISPER_TINY_EN_QUANTIZED |      45      |
+| WHISPER_TINY              |     151      |
+| WHISPER_BASE_EN           |    290.6     |
+| WHISPER_BASE              |    290.6     |
+| WHISPER_SMALL_EN          |     968      |
+| WHISPER_SMALL             |     968      |
 
 ### Memory usage
 

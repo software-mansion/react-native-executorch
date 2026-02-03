@@ -34,7 +34,9 @@ private:
   // The maximum number of tokens the decoder can generate per chunk
   constexpr static int32_t kMaxDecodeLength = 128;
   // Maximum duration of each audio chunk to process (in seconds)
-  constexpr static int32_t kChunkSize = 30;
+  // It is intentionally set to 29 since otherwise only the last chunk would be
+  // correctly transcribe due to the model's positional encoding limit
+  constexpr static int32_t kChunkSize = 29;
   // Sampling rate expected by Whisper and the model's audio pipeline (16 kHz)
   constexpr static int32_t kSamplingRate = 16000;
   // Minimum allowed chunk length before processing (in audio samples)

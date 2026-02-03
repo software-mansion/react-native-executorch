@@ -11,24 +11,16 @@ export class VerticalOCRModule {
 
   async load(
     model: {
-      detectorLarge: ResourceSource;
-      detectorNarrow: ResourceSource;
-      recognizerLarge: ResourceSource;
-      recognizerSmall: ResourceSource;
+      detectorSource: ResourceSource;
+      recognizerSource: ResourceSource;
       language: OCRLanguage;
     },
     independentCharacters: boolean,
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ) {
     await this.controller.load(
-      {
-        detectorLarge: model.detectorLarge,
-        detectorNarrow: model.detectorNarrow,
-      },
-      {
-        recognizerLarge: model.recognizerLarge,
-        recognizerSmall: model.recognizerSmall,
-      },
+      model.detectorSource,
+      model.recognizerSource,
       model.language,
       independentCharacters,
       onDownloadProgressCallback

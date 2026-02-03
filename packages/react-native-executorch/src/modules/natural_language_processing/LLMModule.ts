@@ -13,7 +13,6 @@ export class LLMModule {
 
   constructor({
     tokenCallback,
-    responseCallback,
     messageHistoryCallback,
   }: {
     tokenCallback?: (token: string) => void;
@@ -22,7 +21,6 @@ export class LLMModule {
   } = {}) {
     this.controller = new LLMController({
       tokenCallback,
-      responseCallback,
       messageHistoryCallback,
     });
   }
@@ -62,13 +60,11 @@ export class LLMModule {
   }
 
   async forward(input: string): Promise<string> {
-    await this.controller.forward(input);
-    return this.controller.response;
+    return await this.controller.forward(input);
   }
 
   async generate(messages: Message[], tools?: LLMTool[]): Promise<string> {
-    await this.controller.generate(messages, tools);
-    return this.controller.response;
+    return await this.controller.generate(messages, tools);
   }
 
   async sendMessage(message: string): Promise<Message[]> {

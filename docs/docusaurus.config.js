@@ -26,7 +26,7 @@ const config = {
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         docs: {
-          breadcrumbs: false,
+          breadcrumbs: true,
           sidebarPath: require.resolve('./sidebars.js'),
           sidebarCollapsible: false,
           editUrl:
@@ -107,8 +107,77 @@ const config = {
         appId: '9PIVJVUUXB',
         apiKey: '8634751cfd500c6708f63ea5fc7446c6',
         indexName: 'swmansion',
+        askAi: {
+          appId: '9PIVJVUUXB',
+          apiKey: '8634751cfd500c6708f63ea5fc7446c6',
+          assistantId: 'MZHkLL8cFqAN',
+          indexName: 'swmansion-markdown-for-llms',
+        },
       },
     }),
+  customFields: {
+    algolia: {
+      suggestedQuestions: true,
+      enableSidePanel: true,
+    },
+  },
+  plugins: [
+    [
+      '@signalwire/docusaurus-plugin-llms-txt',
+      /** @type {import('@signalwire/docusaurus-plugin-llms-txt/public').PluginOptions} */
+      ({
+        markdown: {
+          enableFiles: true,
+          excludeRoutes: ['**/react-native-executorch/search'],
+          includeVersionedDocs: false,
+          relativePaths: false,
+        },
+        llmsTxt: {
+          siteTitle: 'React Native ExecuTorch',
+          siteDescription:
+            "React Native ExecuTorch brings Meta's ExecuTorch AI framework into the React Native ecosystem, enabling developers to run AI models and LLMs locally, directly on mobile devices. It provides a declarative API for on-device inference, allowing you to use local AI models without relying on cloud infrastructure. Built on the ExecuTorch foundation - part of the PyTorch Edge ecosystem - it extends efficient on-device AI deployment to cross-platform mobile applications in React Native.",
+          autoSectionDepth: 3,
+          autoSectionPosition: 1,
+          enableDescriptions: true,
+          sections: [
+            {
+              id: 'benchmarks',
+              name: 'Benchmarks',
+              routes: [{ route: '**/docs/benchmarks/**' }],
+              position: 2,
+            },
+            {
+              id: 'category',
+              name: 'Category',
+              routes: [{ route: '**/docs/category/**' }],
+              position: 3,
+            },
+          ],
+        },
+        ui: {
+          copyPageContent: {
+            buttonLabel: 'Copy Page',
+            contentStrategy: 'prefer-markdown',
+            display: {
+              excludeRoutes: ['**/docs/category/**'],
+            },
+            actions: {
+              viewMarkdown: true,
+              ai: {
+                chatGPT: {
+                  prompt: 'Check this link out GPT',
+                },
+                claude: {
+                  prompt: 'Check this link out Claude',
+                },
+              },
+            },
+          },
+        },
+      }),
+    ],
+  ],
+  themes: [require.resolve('@signalwire/docusaurus-theme-llms-txt')],
 };
 
 module.exports = config;

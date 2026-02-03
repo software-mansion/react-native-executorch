@@ -1,5 +1,9 @@
 <div align="center">
-  <h1 align="center" style="display:inline-block">React Native ExecuTorch 
+  <img src="../docs/static/img/logo-hero.svg" alt="RNE Logo" width="25%">
+</div>
+
+<div align="center">
+  <h1 align="center" style="display:inline-block">React Native ExecuTorch
   </h1>
 </div>
 
@@ -8,17 +12,17 @@
   <a href="https://github.com/software-mansion/react-native-executorch/stargazers"><img src="https://img.shields.io/github/stars/software-mansion/react-native-executorch?style=for-the-badge&color=00008B" alt="GitHub - Stars"></a>
   <a href="https://discord.gg/ZGqqY55qkP"><img src="https://img.shields.io/badge/Únete%20a%20nosotros-00008B?logo=discord&logoColor=white&style=for-the-badge" alt="Join our Discord community"></a>
   <a href="https://docs.swmansion.com/react-native-executorch/"><img src="https://img.shields.io/badge/Documentación-00008B?logo=googledocs&logoColor=white&style=for-the-badge" alt="Documentation"></a>
+  <a href="https://swmansion.com/contact">
+    <img src="https://img.shields.io/badge/Contrátanos-00008B?logo=react&logoColor=white&color=darkgreen&style=for-the-badge" alt="Hire Us">
 </div>
 
-![Banner de Software Mansion](https://github.com/user-attachments/assets/fa2c4735-e75c-4cc1-970d-88905d95e3a4)
-
 <p align="center">
-  <a href="../README.md">English</a>
-  <a href="README_es.md">Español</a>
-  <a href="README_fr.md">Français</a>
-  <a href="README_cn.md">简体中文</a>
-  <a href="README_pt.md">Português</a>
-  <a href="README_in.md">हिंदी</a>
+  <a href="../README.md"><img src="https://img.shields.io/badge/EN-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README"></a>
+  <a href="README_es.md"><img src="https://img.shields.io/badge/ES-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README ES"></a>
+  <a href="README_fr.md"><img src="https://img.shields.io/badge/FR-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README FR"></a>
+  <a href="README_cn.md"><img src="https://img.shields.io/badge/CN-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README CN"></a>
+  <a href="README_pt.md"><img src="https://img.shields.io/badge/PT-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README PT"></a>
+  <a href="README_in.md"><img src="https://img.shields.io/badge/IN-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README IN"></a>
 </p>
 
 **React Native ExecuTorch** ofrece una forma declarativa de ejecutar modelos de IA en el dispositivo utilizando React Native, impulsado por **ExecuTorch** :rocket:. Proporciona soporte listo para usar para una amplia gama de LLMs, modelos de visión por computadora y más. Visita nuestra página en [HuggingFace](https://huggingface.co/software-mansion) para explorar estos modelos.
@@ -28,6 +32,7 @@
 React Native ExecuTorch conecta React Native con las capacidades nativas de la plataforma, permitiendo a los desarrolladores ejecutar modelos locales de IA en dispositivos móviles de manera eficiente. Esto puede lograrse sin necesidad de una gran experiencia en programación nativa o aprendizaje automático.
 
 [![Versión en npm](https://img.shields.io/npm/v/react-native-executorch?color=00008B)](https://www.npmjs.com/package/react-native-executorch)
+[![npm nightly](https://img.shields.io/npm/v/react-native-executorch/executorch-nightly?label=nightly&color=00008B)](https://www.npmjs.com/package/react-native-executorch)
 [![CI](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml/badge.svg)](https://github.com/software-mansion/react-native-executorch/actions/workflows/ci.yml)
 
 <details>
@@ -52,7 +57,7 @@ Las versiones mínimas compatibles son:
 - Android 13
 - React Native 0.76
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > React Native ExecuTorch solo admite la [nueva arquitectura de React Native](https://reactnative.dev/architecture/landing-page).
 
 ## :earth_africa: Ejemplo del mundo real
@@ -133,7 +138,7 @@ Nuestra biblioteca incluye varios modelos de IA listos para usar; la lista compl
 
 ## :books: Documentación
 
-Consulta cómo nuestra biblioteca puede ayudarte a crear funciones de IA en React Native visitando nuestra documentación:  
+Consulta cómo nuestra biblioteca puede ayudarte a crear funciones de IA en React Native visitando nuestra documentación:
 https://docs.swmansion.com/react-native-executorch
 
 ## :balance_scale: Licencia
@@ -146,6 +151,6 @@ Para conocer nuestros próximos planes y desarrollos, visita nuestros [hitos](ht
 
 ## React Native ExecuTorch es creado por Software Mansion
 
-Desde 2012, [Software Mansion](https://swmansion.com) es una agencia de software con experiencia en el desarrollo de aplicaciones web y móviles. Somos colaboradores principales de React Native y expertos en resolver todo tipo de problemas relacionados con esta tecnología. Podemos ayudarte a construir tu próximo producto soñado – [Contrátanos](https://swmansion.com/contact/projects?utm_source=react-native-executorch&utm_medium=readme).
+Desde 2012, [Software Mansion](https://swmansion.com) es una agencia de software con experiencia en el desarrollo de aplicaciones web y móviles. Somos colaboradores principales de React Native y expertos en resolver todo tipo de problemas relacionados con esta tecnología. Podemos ayudarte a construir tu próximo producto soñado – [Contrátanos](https://swmansion.com/contact?utm_source=react-native-executorch&utm_medium=readme).
 
 [![swm](https://logo.swmansion.com/logo?color=white&variant=desktop&width=150&tag=react-native-executorch-github 'Software Mansion')](https://swmansion.com)

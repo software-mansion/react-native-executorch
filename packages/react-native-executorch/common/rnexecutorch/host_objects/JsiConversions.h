@@ -1,5 +1,6 @@
 #pragma once
 
+#include <codecvt>
 #include <cstdint>
 #include <set>
 #include <span>
@@ -42,6 +43,15 @@ template <>
 inline std::string getValue<std::string>(const jsi::Value &val,
                                          jsi::Runtime &runtime) {
   return val.getString(runtime).utf8(runtime);
+}
+
+template <>
+inline std::u32string getValue<std::u32string>(const jsi::Value &val,
+                                               jsi::Runtime &runtime) {
+  std::string utf8 = getValue<std::string>(val, runtime);
+  std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
+
+  return conv.from_bytes(utf8);
 }
 
 template <>
@@ -283,6 +293,15 @@ inline jsi::Value getJsiValue(const std::vector<int32_t> &vec,
   return {runtime, array};
 }
 
+inline jsi::Value getJsiValue(const std::vector<float> &vec,
+                              jsi::Runtime &runtime) {
+  jsi::Array array(runtime, vec.size());
+  for (size_t i = 0; i < vec.size(); i++) {
+    array.setValueAtIndex(runtime, i, jsi::Value(vec[i]));
+  }
+  return {runtime, array};
+}
+
 inline jsi::Value getJsiValue(const std::vector<char> &vec,
                               jsi::Runtime &runtime) {
   jsi::Array array(runtime, vec.size());
@@ -333,7 +352,7 @@ inline jsi::Value getJsiValue(const std::vector<JSTensorViewOut> &vec,
 }
 
 inline jsi::Value getJsiValue(const std::string &str, jsi::Runtime &runtime) {
-  return jsi::String::createFromAscii(runtime, str);
+  return jsi::String::createFromUtf8(runtime, str);
 }
 
 inline jsi::Value

@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { ResourceSource } from '../../types/common';
 import { OCRDetection, OCRLanguage } from '../../types/ocr';
 import { VerticalOCRController } from '../../controllers/VerticalOCRController';
+import { RnExecutorchError } from '../../errors/errorUtils';
 
 interface OCRModule {
-  error: string | null;
+  error: RnExecutorchError | null;
   isReady: boolean;
   isGenerating: boolean;
   forward: (imageSource: string) => Promise<OCRDetection[]>;
@@ -17,16 +18,14 @@ export const useVerticalOCR = ({
   preventLoad = false,
 }: {
   model: {
-    detectorLarge: ResourceSource;
-    detectorNarrow: ResourceSource;
-    recognizerLarge: ResourceSource;
-    recognizerSmall: ResourceSource;
+    detectorSource: ResourceSource;
+    recognizerSource: ResourceSource;
     language: OCRLanguage;
   };
   independentCharacters?: boolean;
   preventLoad?: boolean;
 }): OCRModule => {
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<RnExecutorchError | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
@@ -45,14 +44,8 @@ export const useVerticalOCR = ({
 
     (async () => {
       await controllerInstance.load(
-        {
-          detectorLarge: model.detectorLarge,
-          detectorNarrow: model.detectorNarrow,
-        },
-        {
-          recognizerLarge: model.recognizerLarge,
-          recognizerSmall: model.recognizerSmall,
-        },
+        model.detectorSource,
+        model.recognizerSource,
         model.language,
         independentCharacters,
         setDownloadProgress
@@ -64,10 +57,8 @@ export const useVerticalOCR = ({
     };
   }, [
     controllerInstance,
-    model.detectorLarge,
-    model.detectorNarrow,
-    model.recognizerLarge,
-    model.recognizerSmall,
+    model.detectorSource,
+    model.recognizerSource,
     model.language,
     independentCharacters,
     preventLoad,

@@ -78,4 +78,19 @@ groupTextBoxes(std::vector<types::DetectorBBox> &boxes, float centerThreshold,
                float distanceThreshold, float heightThreshold,
                int32_t minSideThreshold, int32_t maxSideThreshold,
                int32_t maxWidth);
+
+/**
+ * Validates if the provided image width is supported by the model.
+ * * This method checks the input width against the passed allowed
+ * widths in constants vector. If the width is not found, it
+ * constructs a descriptive error message listing all valid options.
+ *
+ * @param inputWidth The width of the input image to be validated.
+ * @param constants Vector of available input sizes.
+ * @param modelName String with modelNames used for generating error message
+ * @throws std::runtime_error If inputWidth is not present in the allowed
+ * detector input widths array.
+ */
+void validateInputWidth(int32_t inputWidth, std::span<const int32_t> constants,
+                        std::string modelName);
 } // namespace rnexecutorch::models::ocr::utils

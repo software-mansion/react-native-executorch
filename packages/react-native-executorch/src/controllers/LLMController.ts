@@ -1,6 +1,5 @@
 import { ResourceSource } from '../types/common';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
-import { ETError, getError } from '../Error';
 import { Template } from '@huggingface/jinja';
 import { DEFAULT_CHAT_CONFIG } from '../constants/llmDefaults';
 import {
@@ -14,6 +13,8 @@ import {
 import { parseToolCall } from '../utils/llm';
 import { Logger } from '../common/Logger';
 import { readAsStringAsync } from 'expo-file-system/legacy';
+import { RnExecutorchError, parseUnknownError } from '../errors/errorUtils';
+import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 
 export class LLMController {
   private nativeModule: any;
@@ -21,42 +22,29 @@ export class LLMController {
   private toolsConfig: ToolsConfig | undefined;
   private tokenizerConfig: any;
   private onToken?: (token: string) => void;
-  private _response = '';
   private _isReady = false;
   private _isGenerating = false;
   private _messageHistory: Message[] = [];
 
   // User callbacks
   private tokenCallback: (token: string) => void;
-  private responseCallback: (response: string) => void;
   private messageHistoryCallback: (messageHistory: Message[]) => void;
   private isReadyCallback: (isReady: boolean) => void;
   private isGeneratingCallback: (isGenerating: boolean) => void;
 
   constructor({
     tokenCallback,
-    responseCallback,
     messageHistoryCallback,
     isReadyCallback,
     isGeneratingCallback,
   }: {
     tokenCallback?: (token: string) => void;
-    responseCallback?: (response: string) => void;
     messageHistoryCallback?: (messageHistory: Message[]) => void;
     isReadyCallback?: (isReady: boolean) => void;
     isGeneratingCallback?: (isGenerating: boolean) => void;
   }) {
-    if (responseCallback !== undefined) {
-      Logger.warn(
-        'Passing response callback is deprecated and will be removed in 0.6.0'
-      );
-    }
     this.tokenCallback = (token) => {
       tokenCallback?.(token);
-    };
-    this.responseCallback = (response) => {
-      this._response = response;
-      responseCallback?.(response);
     };
     this.messageHistoryCallback = (messageHistory) => {
       this._messageHistory = messageHistory;
@@ -72,15 +60,14 @@ export class LLMController {
     };
   }
 
-  public get response() {
-    return this._response;
-  }
   public get isReady() {
     return this._isReady;
   }
+
   public get isGenerating() {
     return this._isGenerating;
   }
+
   public get messageHistory() {
     return this._messageHistory;
   }
@@ -97,7 +84,6 @@ export class LLMController {
     onDownloadProgressCallback?: (downloadProgress: number) => void;
   }) {
     // reset inner state when loading new model
-    this.responseCallback('');
     this.messageHistoryCallback(this.chatConfig.initialMessageHistory);
     this.isGeneratingCallback(false);
     this.isReadyCallback(false);
@@ -124,7 +110,10 @@ export class LLMController {
       const modelPath = modelResult?.[0];
 
       if (!tokenizerPath || !tokenizerConfigPath || !modelPath) {
-        throw new Error('Download interrupted!');
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.DownloadInterrupted,
+          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+        );
       }
 
       this.tokenizerConfig = JSON.parse(
@@ -137,28 +126,16 @@ export class LLMController {
           return;
         }
 
-        if (
-          SPECIAL_TOKENS.EOS_TOKEN in this.tokenizerConfig &&
-          data.indexOf(this.tokenizerConfig.eos_token) >= 0
-        ) {
-          data = data.replaceAll(this.tokenizerConfig.eos_token, '');
-        }
-        if (
-          SPECIAL_TOKENS.PAD_TOKEN in this.tokenizerConfig &&
-          data.indexOf(this.tokenizerConfig.pad_token) >= 0
-        ) {
-          data = data.replaceAll(this.tokenizerConfig.pad_token, '');
-        }
-        if (data.length === 0) {
+        const filtered = this.filterSpecialTokens(data);
+
+        if (filtered.length === 0) {
           return;
         }
-
-        this.tokenCallback(data);
-        this.responseCallback(this._response + data);
+        this.tokenCallback(filtered);
       };
     } catch (e) {
       this.isReadyCallback(false);
-      throw new Error(getError(e));
+      throw parseUnknownError(e);
     }
   }
 
@@ -189,64 +166,110 @@ export class LLMController {
     }
     if (generationConfig?.topp) {
       if (generationConfig.topp < 0 || generationConfig.topp > 1) {
-        throw new Error(
-          getError(ETError.InvalidConfig) + 'TopP has to be in range [0, 1].'
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.InvalidConfig,
+          'Top P has to be in range [0, 1]'
         );
       }
       this.nativeModule.setTopp(generationConfig.topp);
     }
 
     // reset inner state when loading new configuration
-    this.responseCallback('');
     this.messageHistoryCallback(this.chatConfig.initialMessageHistory);
     this.isGeneratingCallback(false);
   }
 
+  private filterSpecialTokens(text: string): string {
+    let filtered = text;
+    if (
+      SPECIAL_TOKENS.EOS_TOKEN in this.tokenizerConfig &&
+      this.tokenizerConfig.eos_token
+    ) {
+      filtered = filtered.replaceAll(this.tokenizerConfig.eos_token, '');
+    }
+    if (
+      SPECIAL_TOKENS.PAD_TOKEN in this.tokenizerConfig &&
+      this.tokenizerConfig.pad_token
+    ) {
+      filtered = filtered.replaceAll(this.tokenizerConfig.pad_token, '');
+    }
+    return filtered;
+  }
+
   public delete() {
     if (this._isGenerating) {
-      throw new Error(
-        getError(ETError.ModelGenerating) +
-          'You cannot delete the model now. You need to interrupt first.'
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelGenerating,
+        'You cannot delete the model now. You need ot interrupt it first.'
       );
     }
     this.onToken = () => {};
-    this.nativeModule.unload();
+    if (this.nativeModule) {
+      this.nativeModule.unload();
+    }
     this.isReadyCallback(false);
     this.isGeneratingCallback(false);
   }
 
-  public async forward(input: string) {
+  public async forward(input: string): Promise<string> {
     if (!this._isReady) {
-      throw new Error(getError(ETError.ModuleNotLoaded));
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        'The model is currently not loaded. Please load the model before calling forward().'
+      );
     }
     if (this._isGenerating) {
-      throw new Error(getError(ETError.ModelGenerating));
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelGenerating,
+        'The model is currently generating. Please wait until previous model run is complete.'
+      );
     }
     try {
-      this.responseCallback('');
       this.isGeneratingCallback(true);
-      await this.nativeModule.generate(input, this.onToken);
+      const response = await this.nativeModule.generate(input, this.onToken);
+      return this.filterSpecialTokens(response);
     } catch (e) {
-      throw new Error(getError(e));
+      throw parseUnknownError(e);
     } finally {
       this.isGeneratingCallback(false);
     }
   }
 
   public interrupt() {
+    if (!this.nativeModule) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        "Cannot interrupt a model that's not loaded."
+      );
+    }
     this.nativeModule.interrupt();
   }
 
   public getGeneratedTokenCount(): number {
+    if (!this.nativeModule) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        "Cannot get token count for a model that's not loaded."
+      );
+    }
     return this.nativeModule.getGeneratedTokenCount();
   }
 
-  public async generate(messages: Message[], tools?: LLMTool[]) {
+  public async generate(
+    messages: Message[],
+    tools?: LLMTool[]
+  ): Promise<string> {
     if (!this._isReady) {
-      throw new Error(getError(ETError.ModuleNotLoaded));
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        'The model is currently not loaded. Please load the model before calling generate().'
+      );
     }
     if (messages.length === 0) {
-      throw new Error(`Empty 'messages' array!`);
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidUserInput,
+        'Messages array is empty!'
+      );
     }
     if (messages[0] && messages[0].role !== 'system') {
       Logger.warn(
@@ -262,10 +285,10 @@ export class LLMController {
       { tools_in_user_message: false, add_generation_prompt: true }
     );
 
-    await this.forward(renderedChat);
+    return await this.forward(renderedChat);
   }
 
-  public async sendMessage(message: string) {
+  public async sendMessage(message: string): Promise<string> {
     this.messageHistoryCallback([
       ...this._messageHistory,
       { content: message, role: 'user' },
@@ -276,19 +299,22 @@ export class LLMController {
       ...this._messageHistory.slice(-this.chatConfig.contextWindowLength),
     ];
 
-    await this.generate(messageHistoryWithPrompt, this.toolsConfig?.tools);
+    const response = await this.generate(
+      messageHistoryWithPrompt,
+      this.toolsConfig?.tools
+    );
 
     if (!this.toolsConfig || this.toolsConfig.displayToolCalls) {
       this.messageHistoryCallback([
         ...this._messageHistory,
-        { content: this._response, role: 'assistant' },
+        { content: response, role: 'assistant' },
       ]);
     }
     if (!this.toolsConfig) {
-      return;
+      return response;
     }
 
-    const toolCalls = parseToolCall(this._response);
+    const toolCalls = parseToolCall(response);
 
     for (const toolCall of toolCalls) {
       this.toolsConfig
@@ -302,6 +328,7 @@ export class LLMController {
           }
         });
     }
+    return response;
   }
 
   public deleteMessage(index: number) {
@@ -319,7 +346,10 @@ export class LLMController {
     templateFlags?: Object
   ): string {
     if (!tokenizerConfig.chat_template) {
-      throw Error("Tokenizer config doesn't include chat_template");
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidConfig,
+        "Tokenizer config doesn't include chat_template"
+      );
     }
     const template = new Template(tokenizerConfig.chat_template);
 
