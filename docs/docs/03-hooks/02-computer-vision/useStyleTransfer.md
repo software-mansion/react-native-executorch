@@ -10,10 +10,10 @@ It is recommended to use models provided by us which are available at our [Huggi
 
 ## API Reference
 
-* For detailed API Reference for `useStyleTransfer` see: [`useStyleTransfer` API Reference](../../06-api-reference/functions/useStyleTransfer.md).
-* For all style transfer models available out-of-the-box in React Native ExecuTorch see: [Style Transfer Models](../../06-api-reference/index.md#models---style-transfer).
+- For detailed API Reference for `useStyleTransfer` see: [`useStyleTransfer` API Reference](../../06-api-reference/functions/useStyleTransfer.md).
+- For all style transfer models available out-of-the-box in React Native ExecuTorch see: [Style Transfer Models](../../06-api-reference/index.md#models---style-transfer).
 
-## Reference
+## High Level Overview
 
 ```typescript
 import {
@@ -35,13 +35,15 @@ try {
 ### Arguments
 
 `useStyleTransfer` takes [`StyleTransferProps`](../../06-api-reference/interfaces/StyleTransferProps.md) that consists of:
-* `model` containing [`modelSource`](../../06-api-reference/interfaces/StyleTransferProps.md#modelsource). 
-* An optional flag [`preventLoad`](../../06-api-reference/interfaces/StyleTransferProps.md#preventload) which prevents auto-loading of the model.
+
+- `model` containing [`modelSource`](../../06-api-reference/interfaces/StyleTransferProps.md#modelsource).
+- An optional flag [`preventLoad`](../../06-api-reference/interfaces/StyleTransferProps.md#preventload) which prevents auto-loading of the model.
 
 You need more details? Check the following resources:
-* For detailed information about `useStyleTransfer` arguments check this section: [`useStyleTransfer` arguments](../../06-api-reference/functions/useStyleTransfer.md#parameters).
-* For all style transfer models available out-of-the-box in React Native ExecuTorch see: [Style Transfer Models](../../06-api-reference/index.md#models---style-transfer).
-* For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+
+- For detailed information about `useStyleTransfer` arguments check this section: [`useStyleTransfer` arguments](../../06-api-reference/functions/useStyleTransfer.md#parameters).
+- For all style transfer models available out-of-the-box in React Native ExecuTorch see: [Style Transfer Models](../../06-api-reference/index.md#models---style-transfer).
+- For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 

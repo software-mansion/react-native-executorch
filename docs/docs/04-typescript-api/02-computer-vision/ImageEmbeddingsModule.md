@@ -6,10 +6,10 @@ TypeScript API implementation of the [useImageEmbeddings](../../03-hooks/02-comp
 
 ## API Reference
 
-* For detailed API Reference for `ImageEmbeddingsModule` see: [`ImageEmbeddingsModule` API Reference](../../06-api-reference/classes/ImageEmbeddingsModule.md).
-* For all image embeddings models available out-of-the-box in React Native ExecuTorch see: [Image Embeddings Models](../../06-api-reference/index.md#models---image-embeddings).
+- For detailed API Reference for `ImageEmbeddingsModule` see: [`ImageEmbeddingsModule` API Reference](../../06-api-reference/classes/ImageEmbeddingsModule.md).
+- For all image embeddings models available out-of-the-box in React Native ExecuTorch see: [Image Embeddings Models](../../06-api-reference/index.md#models---image-embeddings).
 
-## Reference
+## High Level Overview
 
 ```typescript
 import {
@@ -37,11 +37,10 @@ All methods of `ImageEmbeddingsModule` are explained in details here: [`ImageEmb
 
 To initialize the module, create an instance and call the [`load`](../../06-api-reference/classes/ImageEmbeddingsModule.md#load) method with the following parameters:
 
-* [`model`](../../06-api-reference/classes/ImageEmbeddingsModule.md#model) - Object containing:
+- [`model`](../../06-api-reference/classes/ImageEmbeddingsModule.md#model) - Object containing:
+  - [`modelSource`](../../06-api-reference/classes/ImageEmbeddingsModule.md#modelsource) - Location of the used model.
 
-    * [`modelSource`](../../06-api-reference/classes/ImageEmbeddingsModule.md#modelsource) - Location of the used model.
-
-* [`onDownloadProgressCallback`](../../06-api-reference/classes/ImageEmbeddingsModule.md#ondownloadprogresscallback) - Callback to track download progress.
+- [`onDownloadProgressCallback`](../../06-api-reference/classes/ImageEmbeddingsModule.md#ondownloadprogresscallback) - Callback to track download progress.
 
 This method returns a promise, which can resolve to an error or void.
 

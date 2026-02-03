@@ -6,16 +6,13 @@ TypeScript API implementation of the [useVerticalOCR](../../03-hooks/02-computer
 
 ## API Reference
 
-* For detailed API Reference for `VerticalOCRModule` see: [`VerticalOCRModule` API Reference](../../06-api-reference/classes/VerticalOCRModule.md).
-* For all alphabets available in ocr out-of-the-box in React Native ExecuTorch see: [OCR Supported Alphabets](../../06-api-reference/index.md#ocr-supported-alphabets).
+- For detailed API Reference for `VerticalOCRModule` see: [`VerticalOCRModule` API Reference](../../06-api-reference/classes/VerticalOCRModule.md).
+- For all alphabets available in ocr out-of-the-box in React Native ExecuTorch see: [OCR Supported Alphabets](../../06-api-reference/index.md#ocr-supported-alphabets).
 
-## Reference
+## High Level Overview
 
 ```typescript
-import {
-  VerticalOCRModule,
-  OCR_ENGLISH,
-} from 'react-native-executorch';
+import { VerticalOCRModule, OCR_ENGLISH } from 'react-native-executorch';
 
 const imageUri = 'path/to/image.png';
 
@@ -37,15 +34,14 @@ All methods of `VerticalOCRModule` are explained in details here: [`VerticalOCRM
 
 To load the model, use the [`load`](../../06-api-reference/classes/VerticalOCRModule.md#load) method. It accepts an object:
 
-* [`model`](../../06-api-reference/classes/VerticalOCRModule.md#model) - Object containing:
+- [`model`](../../06-api-reference/classes/VerticalOCRModule.md#model) - Object containing:
+  - [`detectorSource`](../../06-api-reference/classes/VerticalOCRModule.md#detectorsource) - Location of the used detector.
+  - [`recognizerSource`](../../06-api-reference/classes/VerticalOCRModule.md#recognizersource) - Location of the used recognizer.
+  - [`language`](../../06-api-reference/classes/VerticalOCRModule.md#recognizersource) - Language used in OCR.
 
-    * [`detectorSource`](../../06-api-reference/classes/VerticalOCRModule.md#detectorsource) - Location of the used detector. 
-    * [`recognizerSource`](../../06-api-reference/classes/VerticalOCRModule.md#recognizersource) - Location of the used recognizer.
-    * [`language`](../../06-api-reference/classes/VerticalOCRModule.md#recognizersource) - Language used in OCR.
+- [`independentCharacters`](../../06-api-reference/classes/VerticalOCRModule.md#independentcharacters) - Flag indicating to either treat characters as independent or not.
 
-* [`independentCharacters`](../../06-api-reference/classes/VerticalOCRModule.md#independentcharacters) - Flag indicating to either treat characters as independent or not.
-
-* [`onDownloadProgressCallback`](../../06-api-reference/classes/VerticalOCRModule.md#ondownloadprogresscallback) - Callback to track download progress.
+- [`onDownloadProgressCallback`](../../06-api-reference/classes/VerticalOCRModule.md#ondownloadprogresscallback) - Callback to track download progress.
 
 This method returns a promise, which can resolve to an error or void.
 

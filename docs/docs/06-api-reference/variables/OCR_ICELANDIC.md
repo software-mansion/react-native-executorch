@@ -2,7 +2,7 @@
 
 > `const` **OCR_ICELANDIC**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:156](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/constants/ocr/models.ts#L156)
+Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:156](https://github.com/software-mansion/react-native-executorch/blob/6829cd7e41d61eb83543baaf8d938ad81501b178/packages/react-native-executorch/src/constants/ocr/models.ts#L156)
 
 ## Type Declaration
 

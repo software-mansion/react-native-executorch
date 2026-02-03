@@ -10,10 +10,10 @@ It is recommended to use models provided by us, which are available at our [Hugg
 
 ## API Reference
 
-* For detailed API Reference for `useOCR` see: [`useOCR` API Reference](../../06-api-reference/functions/useOCR.md).
-* For all alphabets available in ocr out-of-the-box in React Native ExecuTorch see: [OCR Supported Alphabets](../../06-api-reference/index.md#ocr-supported-alphabets).
+- For detailed API Reference for `useOCR` see: [`useOCR` API Reference](../../06-api-reference/functions/useOCR.md).
+- For all alphabets available in ocr out-of-the-box in React Native ExecuTorch see: [OCR Supported Alphabets](../../06-api-reference/index.md#ocr-supported-alphabets).
 
-## Reference
+## High Level Overview
 
 ```tsx
 import { useOCR, OCR_ENGLISH } from 'react-native-executorch';
@@ -34,13 +34,15 @@ function App() {
 ### Arguments
 
 `useOCR` takes [`OCRProps`](../../06-api-reference/interfaces/OCRProps.md) that consists of:
-* `model` containing [`detectorSource`](../../06-api-reference/interfaces/OCRProps.md#detectorsource), [`recognizerSource`](../../06-api-reference/interfaces/OCRProps.md#recognizersource), and [`language`](../../06-api-reference/interfaces/OCRProps.md#language). 
-* An optional flag [`preventLoad`](../../06-api-reference/interfaces/OCRProps.md#preventload) which prevents auto-loading of the model.
+
+- `model` containing [`detectorSource`](../../06-api-reference/interfaces/OCRProps.md#detectorsource), [`recognizerSource`](../../06-api-reference/interfaces/OCRProps.md#recognizersource), and [`language`](../../06-api-reference/interfaces/OCRProps.md#language).
+- An optional flag [`preventLoad`](../../06-api-reference/interfaces/OCRProps.md#preventload) which prevents auto-loading of the model.
 
 You need more details? Check the following resources:
-* For detailed information about `useOCR` arguments check this section: [`useOCR` arguments](../../06-api-reference/functions/useOCR.md#parameters).
-* For all alphabets available in ocr out-of-the-box in React Native ExecuTorch see: [OCR Supported Alphabets](../../06-api-reference/index.md#ocr-supported-alphabets).
-* For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+
+- For detailed information about `useOCR` arguments check this section: [`useOCR` arguments](../../06-api-reference/functions/useOCR.md#parameters).
+- For all alphabets available in ocr out-of-the-box in React Native ExecuTorch see: [OCR Supported Alphabets](../../06-api-reference/index.md#ocr-supported-alphabets).
+- For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 

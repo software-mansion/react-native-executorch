@@ -6,10 +6,10 @@ TypeScript API implementation of the [useVAD](../../03-hooks/01-natural-language
 
 ## API Reference
 
-* For detailed API Reference for `VADModule` see: [`VADModule` API Reference](../../06-api-reference/classes/VADModule.md).
-* For all VAD models available out-of-the-box in React Native ExecuTorch see: [VAD Models](../../06-api-reference/index.md#models---voice-activity-detection).
+- For detailed API Reference for `VADModule` see: [`VADModule` API Reference](../../06-api-reference/classes/VADModule.md).
+- For all VAD models available out-of-the-box in React Native ExecuTorch see: [VAD Models](../../06-api-reference/index.md#models---voice-activity-detection).
 
-## Reference
+## High Level Overview
 
 ```typescript
 import { VADModule, FSMN_VAD } from 'react-native-executorch';
@@ -30,11 +30,10 @@ All methods of `VADModule` are explained in details here: [`VADModule` API Refer
 
 To initialize the module, create an instance and call the [`load`](../../06-api-reference/classes/VADModule.md#load) method with the following parameters:
 
-* [`model`](../../06-api-reference/classes/VADModule.md#model) - Object containing:
+- [`model`](../../06-api-reference/classes/VADModule.md#model) - Object containing:
+  - [`modelSource`](../../06-api-reference/classes/VADModule.md#modelsource) - Location of the used model.
 
-    * [`modelSource`](../../06-api-reference/classes/VADModule.md#modelsource) - Location of the used model.
-
-* [`onDownloadProgressCallback`](../../06-api-reference/classes/VADModule.md#ondownloadprogresscallback) - Callback to track download progress.
+- [`onDownloadProgressCallback`](../../06-api-reference/classes/VADModule.md#ondownloadprogresscallback) - Callback to track download progress.
 
 This method returns a promise, which can resolve to an error or void.
 

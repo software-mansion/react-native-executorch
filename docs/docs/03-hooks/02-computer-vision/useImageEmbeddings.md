@@ -24,10 +24,10 @@ It is recommended to use models provided by us, which are available at our [Hugg
 
 ## API Reference
 
-* For detailed API Reference for `useImageEmbeddings` see: [`useImageEmbeddings` API Reference](../../06-api-reference/functions/useImageEmbeddings.md).
-* For all image embeddings models available out-of-the-box in React Native ExecuTorch see: [Image Embeddings Models](../../06-api-reference/index.md#models---image-embeddings).
+- For detailed API Reference for `useImageEmbeddings` see: [`useImageEmbeddings` API Reference](../../06-api-reference/functions/useImageEmbeddings.md).
+- For all image embeddings models available out-of-the-box in React Native ExecuTorch see: [Image Embeddings Models](../../06-api-reference/index.md#models---image-embeddings).
 
-## Reference
+## High Level Overview
 
 ```typescript
 import {
@@ -47,13 +47,15 @@ try {
 ### Arguments
 
 `useImageEmbeddings` takes [`ImageEmbeddingsProps`](../../06-api-reference/interfaces/ImageEmbeddingsProps.md) that consists of:
-* `model` containing [`modelSource`](../../06-api-reference/interfaces/ImageEmbeddingsProps.md#modelsource). 
-* An optional flag [`preventLoad`](../../06-api-reference/interfaces/ImageEmbeddingsProps.md#preventload) which prevents auto-loading of the model.
+
+- `model` containing [`modelSource`](../../06-api-reference/interfaces/ImageEmbeddingsProps.md#modelsource).
+- An optional flag [`preventLoad`](../../06-api-reference/interfaces/ImageEmbeddingsProps.md#preventload) which prevents auto-loading of the model.
 
 You need more details? Check the following resources:
-* For detailed information about `useImageEmbeddings` arguments check this section: [`useImageEmbeddings` arguments](../../06-api-reference/functions/useImageEmbeddings.md#parameters).
-* For all image embeddings models available out-of-the-box in React Native ExecuTorch see: [Image Embeddings Models](../../06-api-reference/index.md#models---image-embeddings).
-* For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+
+- For detailed information about `useImageEmbeddings` arguments check this section: [`useImageEmbeddings` arguments](../../06-api-reference/functions/useImageEmbeddings.md#parameters).
+- For all image embeddings models available out-of-the-box in React Native ExecuTorch see: [Image Embeddings Models](../../06-api-reference/index.md#models---image-embeddings).
+- For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
@@ -91,8 +93,8 @@ try {
 
 ## Supported models
 
-| Model                                                                              | Language | Image size | Embedding dimensions | Description                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| ---------------------------------------------------------------------------------- | :------: | :--------: | :------------------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Model                                                                                               | Language | Image size | Embedding dimensions | Description                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| --------------------------------------------------------------------------------------------------- | :------: | :--------: | :------------------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [clip-vit-base-patch32-image](https://huggingface.co/collections/software-mansion/image-embeddings) | English  |  224×224   |         512          | CLIP (Contrastive Language-Image Pre-Training) is a neural network trained on a variety of (image, text) pairs. CLIP allows to embed images and text into the same vector space. This allows to find similar images as well as to implement image search. This is the image encoder part of the CLIP model. To embed text checkout [clip-vit-base-patch32-text](../01-natural-language-processing/useTextEmbeddings.md#supported-models). |
 
 **`Image size`** - The size of an image that the model takes as an input. Resize will happen automatically.

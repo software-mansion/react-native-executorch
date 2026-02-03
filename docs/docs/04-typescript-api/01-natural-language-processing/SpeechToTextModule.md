@@ -6,10 +6,10 @@ TypeScript API implementation of the [useSpeechToText](../../03-hooks/01-natural
 
 ## API Reference
 
-* For detailed API Reference for `SpeechToTextModule` see: [`SpeechToTextModule` API Reference](../../06-api-reference/classes/SpeechToTextModule.md).
-* For all speech to text models available out-of-the-box in React Native ExecuTorch see: [STT Models](../../06-api-reference/index.md#models---speech-to-text).
+- For detailed API Reference for `SpeechToTextModule` see: [`SpeechToTextModule` API Reference](../../06-api-reference/classes/SpeechToTextModule.md).
+- For all speech to text models available out-of-the-box in React Native ExecuTorch see: [STT Models](../../06-api-reference/index.md#models---speech-to-text).
 
-## Reference
+## High Level Overview
 
 ```typescript
 import { SpeechToTextModule, WHISPER_TINY_EN } from 'react-native-executorch';
@@ -36,17 +36,16 @@ All methods of `SpeechToTextModule` are explained in details here: [`SpeechToTex
 
 Create an instance of [`SpeechToTextModule`](../../06-api-reference/classes/SpeechToTextModule.md) and use the [`load`](../../06-api-reference/classes/SpeechToTextModule.md#load) method. It accepts an object with the following fields:
 
-* [`model`](../../06-api-reference/classes/SpeechToTextModule.md#model) - Object containing:
+- [`model`](../../06-api-reference/classes/SpeechToTextModule.md#model) - Object containing:
+  - [`isMultilingual`](../../06-api-reference/interfaces/SpeechToTextModelConfig.md#ismultilingual) - Flag indicating if model is multilingual.
 
-    * [`isMultilingual`](../../06-api-reference/interfaces/SpeechToTextModelConfig.md#ismultilingual) - Flag indicating if model is multilungual.
+  - [`encoderSource`](../../06-api-reference/interfaces/SpeechToTextModelConfig.md#encodersource) - The location of the used encoder.
 
-    * [`encoderSource`](../../06-api-reference/interfaces/SpeechToTextModelConfig.md#encodersource) - The location of the used encoder.
+  - [`decoderSource`](../../06-api-reference/interfaces/SpeechToTextModelConfig.md#decodersource) - The location of the used decoder.
 
-    * [`decoderSource`](../../06-api-reference/interfaces/SpeechToTextModelConfig.md#decodersource) - The location of the used decoder.
+  - [`tokenizerSource`](../../06-api-reference/interfaces/SpeechToTextModelConfig.md#tokenizersource) - The location of the used tokenizer.
 
-    * [`tokenizerSource`](../../06-api-reference/interfaces/SpeechToTextModelConfig.md#tokenizersource) - The location of the used tokenizer.
-
-* [`onDownloadProgressCallback`](../../06-api-reference/classes/SpeechToTextModule.md#ondownloadprogresscallback) - Callback to track download progress. 
+- [`onDownloadProgressCallback`](../../06-api-reference/classes/SpeechToTextModule.md#ondownloadprogresscallback) - Callback to track download progress.
 
 This method returns a promise, which can resolve to an error or void.
 

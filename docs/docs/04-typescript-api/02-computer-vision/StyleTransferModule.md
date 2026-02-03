@@ -6,10 +6,10 @@ TypeScript API implementation of the [useStyleTransfer](../../03-hooks/02-comput
 
 ## API Reference
 
-* For detailed API Reference for `StyleTransferModule` see: [`StyleTransferModule` API Reference](../../06-api-reference/classes/StyleTransferModule.md).
-* For all style transfer models available out-of-the-box in React Native ExecuTorch see: [Style Transfer Models](../../06-api-reference/index.md#models---style-transfer).
+- For detailed API Reference for `StyleTransferModule` see: [`StyleTransferModule` API Reference](../../06-api-reference/classes/StyleTransferModule.md).
+- For all style transfer models available out-of-the-box in React Native ExecuTorch see: [Style Transfer Models](../../06-api-reference/index.md#models---style-transfer).
 
-## Reference
+## High Level Overview
 
 ```typescript
 import {
@@ -37,11 +37,10 @@ All methods of `StyleTransferModule` are explained in details here: [`StyleTrans
 
 To load the model, create a new instance of the module and use the [`load`](../../06-api-reference/classes/StyleTransferModule.md#load) method on it. It accepts an object:
 
-* [`model`](../../06-api-reference/classes/StyleTransferModule.md#model) - Object containing:
+- [`model`](../../06-api-reference/classes/StyleTransferModule.md#model) - Object containing:
+  - [`modelSource`](../../06-api-reference/classes/StyleTransferModule.md#modelsource) - Location of the used model.
 
-    * [`modelSource`](../../06-api-reference/classes/StyleTransferModule.md#modelsource) - Location of the used model.
-
-* [`onDownloadProgressCallback`](../../06-api-reference/classes/StyleTransferModule.md#ondownloadprogresscallback) - Callback to track download progress.
+- [`onDownloadProgressCallback`](../../06-api-reference/classes/StyleTransferModule.md#ondownloadprogresscallback) - Callback to track download progress.
 
 This method returns a promise, which can resolve to an error or void.
 

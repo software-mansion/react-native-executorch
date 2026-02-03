@@ -10,10 +10,10 @@ It is recommended to use models provided by us, which are available at our [Hugg
 
 ## API Reference
 
-* For detailed API Reference for `useVAD` see: [`useVAD` API Reference](../../06-api-reference/functions/useVAD.md).
-* For all VAD models available out-of-the-box in React Native ExecuTorch see: [VAD Models](../../06-api-reference/index.md#models---voice-activity-detection).
+- For detailed API Reference for `useVAD` see: [`useVAD` API Reference](../../06-api-reference/functions/useVAD.md).
+- For all VAD models available out-of-the-box in React Native ExecuTorch see: [VAD Models](../../06-api-reference/index.md#models---voice-activity-detection).
 
-## Reference
+## High Level Overview
 
 You can obtain waveform from audio in any way most suitable to you, however in the snippet below we utilize [`react-native-audio-api`](https://docs.swmansion.com/react-native-audio-api/) library to process a `.mp3` file.
 
@@ -49,13 +49,15 @@ try {
 ### Arguments
 
 `useVAD` takes [`VADProps`](../../06-api-reference/interfaces/VADProps.md) that consists of:
-* `model` containing [`modelSource`](../../06-api-reference/interfaces/VADProps.md#modelsource). 
-* An optional flag [`preventLoad`](../../06-api-reference/interfaces/VADProps.md#preventload) which prevents auto-loading of the model.
+
+- `model` containing [`modelSource`](../../06-api-reference/interfaces/VADProps.md#modelsource).
+- An optional flag [`preventLoad`](../../06-api-reference/interfaces/VADProps.md#preventload) which prevents auto-loading of the model.
 
 You need more details? Check the following resources:
-* For detailed information about `useVAD` arguments check this section: [`useVAD` arguments](../../06-api-reference/functions/useVAD.md#parameters).
-* For all VAD models available out-of-the-box in React Native ExecuTorch see: [VAD Models](../../06-api-reference/index.md#models---voice-activity-detection).
-* For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+
+- For detailed information about `useVAD` arguments check this section: [`useVAD` arguments](../../06-api-reference/functions/useVAD.md#parameters).
+- For all VAD models available out-of-the-box in React Native ExecuTorch see: [VAD Models](../../06-api-reference/index.md#models---voice-activity-detection).
+- For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 

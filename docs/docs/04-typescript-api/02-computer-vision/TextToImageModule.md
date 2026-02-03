@@ -6,10 +6,10 @@ TypeScript API implementation of the [useTextToImage](../../03-hooks/02-computer
 
 ## API Reference
 
-* For detailed API Reference for `TextToImageModule` see: [`TextToImageModule` API Reference](../../06-api-reference/classes/TextToImageModule.md).
-* For all text to image models available out-of-the-box in React Native ExecuTorch see: [Text to Image Models](../../06-api-reference/index.md#models---image-generation).
+- For detailed API Reference for `TextToImageModule` see: [`TextToImageModule` API Reference](../../06-api-reference/classes/TextToImageModule.md).
+- For all text to image models available out-of-the-box in React Native ExecuTorch see: [Text to Image Models](../../06-api-reference/index.md#models---image-generation).
 
-## Reference
+## High Level Overview
 
 ```typescript
 import {
@@ -37,19 +37,18 @@ All methods of `TextToImageModule` are explained in details here: [`TextToImageM
 
 To load the model, use the [`load`](../../06-api-reference/classes/TextToImageModule.md#load) method. It accepts an object:
 
-* [`model`](../../06-api-reference/classes/TextToImageModule.md#model) - Object containing:
+- [`model`](../../06-api-reference/classes/TextToImageModule.md#model) - Object containing:
+  - [`schedulerSource`](../../06-api-reference/classes/TextToImageModule.md#schedulersource) - Location of the used scheduler.
 
-    * [`schedulerSource`](../../06-api-reference/classes/TextToImageModule.md#schedulersource) - Location of the used scheduler.
+  - [`tokenizerSource`](../../06-api-reference/classes/TextToImageModule.md#tokenizersource) - Location of the used tokenizer.
 
-    * [`tokenizerSource`](../../06-api-reference/classes/TextToImageModule.md#tokenizersource) - Location of the used tokenizer.
+  - [`encoderSource`](../../06-api-reference/classes/TextToImageModule.md#encodersource) - Location of the used encoder.
 
-    * [`encoderSource`](../../06-api-reference/classes/TextToImageModule.md#encodersource) - Location of the used encoder.
+  - [`unetSource`](../../06-api-reference/classes/TextToImageModule.md#unetsource) - Location of the used unet.
 
-    * [`unetSource`](../../06-api-reference/classes/TextToImageModule.md#unetsource) - Location of the used unet.
+  - [`decoderSource`](../../06-api-reference/classes/TextToImageModule.md#decodersource) - Location of the used decoder.
 
-    * [`decoderSource`](../../06-api-reference/classes/TextToImageModule.md#decodersource) - Location of the used decoder.
-
-* [`onDownloadProgressCallback`](../../06-api-reference/classes/TextToImageModule.md#ondownloadprogresscallback) - Callback to track download progress.
+- [`onDownloadProgressCallback`](../../06-api-reference/classes/TextToImageModule.md#ondownloadprogresscallback) - Callback to track download progress.
 
 This method returns a promise, which can resolve to an error or void.
 

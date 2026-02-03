@@ -24,11 +24,11 @@ It is recommended to use models provided by us, which are available at our [Hugg
 
 ## API Reference
 
-* For detailed API Reference for `useTextToSpeech` see: [`useTextToSpeech` API Reference](../../06-api-reference/functions/useTextToSpeech.md).
-* For all text to speech models available out-of-the-box in React Native ExecuTorch see: [TTS Models](../../06-api-reference/index.md#models---text-to-speech).
-* For all supported voices in `useTextToSpeech` please refere to: [Supported Voices](../../06-api-reference/index.md#tts-supported-voices)
+- For detailed API Reference for `useTextToSpeech` see: [`useTextToSpeech` API Reference](../../06-api-reference/functions/useTextToSpeech.md).
+- For all text to speech models available out-of-the-box in React Native ExecuTorch see: [TTS Models](../../06-api-reference/index.md#models---text-to-speech).
+- For all supported voices in `useTextToSpeech` please refer to: [Supported Voices](../../06-api-reference/index.md#tts-supported-voices)
 
-## Reference
+## High Level Overview
 
 You can play the generated waveform in any way most suitable to you; however, in the snippet below we utilize the react-native-audio-api library to play synthesized speech.
 
@@ -64,15 +64,17 @@ const handleSpeech = async (text: string) => {
 ### Arguments
 
 `useTextToSpeech` takes [`TextToSpeechProps`](../../06-api-reference/interfaces/TextToSpeechProps.md) that consists of:
-* `model` of type [`KokoroConfig`](../../06-api-reference/interfaces/KokoroConfig.md) containing the [`durationPredictorSource`](../../06-api-reference/interfaces/KokoroConfig.md#durationpredictorsource), [`synthesizerSource`](../../06-api-reference/interfaces/KokoroConfig.md#synthesizersource), and [`type`](../../06-api-reference/interfaces/KokoroConfig.md#type). 
-* An optional flag [`preventLoad`](../../06-api-reference/interfaces/TextToSpeechProps.md#preventload) which prevents auto-loading of the model.
-* [`voice`](../../06-api-reference/interfaces/TextToSpeechProps.md#preventload) of type [`VoiceConfig`](../../06-api-reference/interfaces/VoiceConfig.md) - configuration of specific voice used in TTS.
+
+- `model` of type [`KokoroConfig`](../../06-api-reference/interfaces/KokoroConfig.md) containing the [`durationPredictorSource`](../../06-api-reference/interfaces/KokoroConfig.md#durationpredictorsource), [`synthesizerSource`](../../06-api-reference/interfaces/KokoroConfig.md#synthesizersource), and [`type`](../../06-api-reference/interfaces/KokoroConfig.md#type).
+- An optional flag [`preventLoad`](../../06-api-reference/interfaces/TextToSpeechProps.md#preventload) which prevents auto-loading of the model.
+- [`voice`](../../06-api-reference/interfaces/TextToSpeechProps.md#preventload) of type [`VoiceConfig`](../../06-api-reference/interfaces/VoiceConfig.md) - configuration of specific voice used in TTS.
 
 You need more details? Check the following resources:
-* For detailed information about `useTextToSpeech` arguments check this section: [`useTextToSpeech` arguments](../../06-api-reference/functions/useTextToSpeech.md#parameters).
-* For all text to speech models available out-of-the-box in React Native ExecuTorch see: [Text to Speech Models](../../06-api-reference/index.md#models---text-to-speech).
-* For all supported voices in `useTextToSpeech` please refere to: [Supported Voices](../../06-api-reference/index.md#tts-supported-voices)
-* For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+
+- For detailed information about `useTextToSpeech` arguments check this section: [`useTextToSpeech` arguments](../../06-api-reference/functions/useTextToSpeech.md#parameters).
+- For all text to speech models available out-of-the-box in React Native ExecuTorch see: [Text to Speech Models](../../06-api-reference/index.md#models---text-to-speech).
+- For all supported voices in `useTextToSpeech` please refer to: [Supported Voices](../../06-api-reference/index.md#tts-supported-voices)
+- For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 

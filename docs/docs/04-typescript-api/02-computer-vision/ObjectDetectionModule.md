@@ -6,10 +6,10 @@ TypeScript API implementation of the [useObjectDetection](../../03-hooks/02-comp
 
 ## API Reference
 
-* For detailed API Reference for `ObjectDetectionModule` see: [`ObjectDetectionModule` API Reference](../../06-api-reference/classes/ObjectDetectionModule.md).
-* For all object detection models available out-of-the-box in React Native ExecuTorch see: [Object Detection Models](../../06-api-reference/index.md#models---object-detection).
+- For detailed API Reference for `ObjectDetectionModule` see: [`ObjectDetectionModule` API Reference](../../06-api-reference/classes/ObjectDetectionModule.md).
+- For all object detection models available out-of-the-box in React Native ExecuTorch see: [Object Detection Models](../../06-api-reference/index.md#models---object-detection).
 
-## Reference
+## High Level Overview
 
 ```typescript
 import {
@@ -37,11 +37,10 @@ All methods of `ObjectDetectionModule` are explained in details here: [`ObjectDe
 
 To initialize the module, create an instance and call the [`load`](../../06-api-reference/classes/ObjectDetectionModule.md#load) method with the following parameters:
 
-* [`model`](../../06-api-reference/classes/ObjectDetectionModule.md#model) - Object containing:
+- [`model`](../../06-api-reference/classes/ObjectDetectionModule.md#model) - Object containing:
+  - [`modelSource`](../../06-api-reference/classes/ObjectDetectionModule.md#modelsource) - Location of the used model.
 
-    * [`modelSource`](../../06-api-reference/classes/ObjectDetectionModule.md#modelsource) - Location of the used model.
-
-* [`onDownloadProgressCallback`](../../06-api-reference/classes/ObjectDetectionModule.md#ondownloadprogresscallback) - Callback to track download progress.
+- [`onDownloadProgressCallback`](../../06-api-reference/classes/ObjectDetectionModule.md#ondownloadprogresscallback) - Callback to track download progress.
 
 This method returns a promise, which can resolve to an error or void.
 

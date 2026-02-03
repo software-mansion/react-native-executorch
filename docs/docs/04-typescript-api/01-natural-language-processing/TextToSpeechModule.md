@@ -6,11 +6,11 @@ TypeScript API implementation of the [useTextToSpeech](../../03-hooks/01-natural
 
 ## API Reference
 
-* For detailed API Reference for `TextToSpeechModule` see: [`TextToSpeechModule` API Reference](../../06-api-reference/classes/TextToSpeechModule.md).
-* For all text to speech models available out-of-the-box in React Native ExecuTorch see: [TTS Models](../../06-api-reference/index.md#models---text-to-speech).
-* For all supported voices in `TextToSpeechModule` please refere to: [Supported Voices](../../06-api-reference/index.md#tts-supported-voices)
+- For detailed API Reference for `TextToSpeechModule` see: [`TextToSpeechModule` API Reference](../../06-api-reference/classes/TextToSpeechModule.md).
+- For all text to speech models available out-of-the-box in React Native ExecuTorch see: [TTS Models](../../06-api-reference/index.md#models---text-to-speech).
+- For all supported voices in `TextToSpeechModule` please refer to: [Supported Voices](../../06-api-reference/index.md#tts-supported-voices)
 
-## Reference
+## High Level Overview
 
 ```typescript
 import {
@@ -41,12 +41,11 @@ All methods of `TextToSpeechModule` are explained in details here: [`TextToSpeec
 
 To initialize the module, create an instance and call the [`load`](../../06-api-reference/classes/TextToSpeechModule.md#load) method with the following parameters:
 
-* [`config`](../../06-api-reference/classes/TextToSpeechModule.md#config) - Object containing:
+- [`config`](../../06-api-reference/classes/TextToSpeechModule.md#config) - Object containing:
+  - [`model`](../../06-api-reference/interfaces/TextToSpeechConfig.md#model) - Model configuration.
+  - [`voice`](../../06-api-reference/interfaces/TextToSpeechConfig.md#voice) - Voice configuration.
 
-    * [`model`](../../06-api-reference/interfaces/TextToSpeechConfig.md#model) - Model configuration.
-    * [`voice`](../../06-api-reference/interfaces/TextToSpeechConfig.md#voice) - Voice configuration.
-
-* [`onDownloadProgressCallback`](../../06-api-reference/classes/TextToSpeechModule.md#ondownloadprogresscallback) - Callback to track download progress.
+- [`onDownloadProgressCallback`](../../06-api-reference/classes/TextToSpeechModule.md#ondownloadprogresscallback) - Callback to track download progress.
 
 This method returns a promise that resolves once the assets are downloaded and loaded into memory.
 

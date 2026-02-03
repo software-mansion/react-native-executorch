@@ -6,9 +6,9 @@ TypeScript API implementation of the [useTokenizer](../../03-hooks/01-natural-la
 
 ## API Reference
 
-* For detailed API Reference for `TokenizerModule` see: [`TokenizerModule` API Reference](../../06-api-reference/classes/TokenizerModule.md).
+- For detailed API Reference for `TokenizerModule` see: [`TokenizerModule` API Reference](../../06-api-reference/classes/TokenizerModule.md).
 
-## Reference
+## High Level Overview
 
 ```typescript
 import { TokenizerModule, ALL_MINILM_L6_V2 } from 'react-native-executorch';

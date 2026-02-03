@@ -14,10 +14,10 @@ It is recommended to use models provided by us, which are available at our [Hugg
 
 ## API Reference
 
-* For detailed API Reference for `useClassification` see: [`useClassification` API Reference](../../06-api-reference/functions/useClassification.md).
-* For all classification models available out-of-the-box in React Native ExecuTorch see: [Classification Models](../../06-api-reference/index.md#models---classification).
+- For detailed API Reference for `useClassification` see: [`useClassification` API Reference](../../06-api-reference/functions/useClassification.md).
+- For all classification models available out-of-the-box in React Native ExecuTorch see: [Classification Models](../../06-api-reference/index.md#models---classification).
 
-## Reference
+## High Level Overview
 
 ```typescript
 import { useClassification, EFFICIENTNET_V2_S } from 'react-native-executorch';
@@ -36,13 +36,15 @@ try {
 ### Arguments
 
 `useClassification` takes [`ClassificationProps`](../../06-api-reference/interfaces/ClassificationProps.md) that consists of:
-* `model` containing [`modelSource`](../../06-api-reference/interfaces/ClassificationProps.md#modelsource). 
-* An optional flag [`preventLoad`](../../06-api-reference/interfaces/ClassificationProps.md#preventload) which prevents auto-loading of the model.
+
+- `model` containing [`modelSource`](../../06-api-reference/interfaces/ClassificationProps.md#modelsource).
+- An optional flag [`preventLoad`](../../06-api-reference/interfaces/ClassificationProps.md#preventload) which prevents auto-loading of the model.
 
 You need more details? Check the following resources:
-* For detailed information about `useClassification` arguments check this section: [`useClassification` arguments](../../06-api-reference/functions/useClassification.md#parameters).
-* For all classification models available out-of-the-box in React Native ExecuTorch see: [Classification Models](../../06-api-reference/index.md#models---classification).
-* For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+
+- For detailed information about `useClassification` arguments check this section: [`useClassification` arguments](../../06-api-reference/functions/useClassification.md#parameters).
+- For all classification models available out-of-the-box in React Native ExecuTorch see: [Classification Models](../../06-api-reference/index.md#models---classification).
+- For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
@@ -84,6 +86,6 @@ function App() {
 
 ## Supported models
 
-| Model                                                                                                             | Number of classes | Class list                                                                                                                                                                    |
-| ----------------------------------------------------------------------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Model                                                                                                  | Number of classes | Class list                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------------ | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [efficientnet_v2_s](https://huggingface.co/software-mansion/react-native-executorch-efficientnet-v2-s) | 1000              | [ImageNet1k_v1](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/common/rnexecutorch/models/classification/Constants.h) |

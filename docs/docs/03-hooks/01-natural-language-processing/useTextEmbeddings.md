@@ -23,10 +23,10 @@ It is recommended to use models provided by us, which are available at our [Hugg
 
 ## API Reference
 
-* For detailed API Reference for `useTextEmbeddings` see: [`useTextEmbeddings` API Reference](../../06-api-reference/functions/useTextEmbeddings.md).
-* For all text embeddings models available out-of-the-box in React Native ExecuTorch see: [Text Embeddings Models](../../06-api-reference/index.md#models---text-embeddings).
+- For detailed API Reference for `useTextEmbeddings` see: [`useTextEmbeddings` API Reference](../../06-api-reference/functions/useTextEmbeddings.md).
+- For all text embeddings models available out-of-the-box in React Native ExecuTorch see: [Text Embeddings Models](../../06-api-reference/index.md#models---text-embeddings).
 
-## Reference
+## High Level Overview
 
 ```typescript
 import { useTextEmbeddings, ALL_MINILM_L6_V2 } from 'react-native-executorch';
@@ -43,13 +43,15 @@ try {
 ### Arguments
 
 `useTextEmbeddings` takes [`TextEmbeddingsProps`](../../06-api-reference/interfaces/TextEmbeddingsProps.md) that consists of:
-* `model` of type `object` containing the [model source](../../06-api-reference/interfaces/TextEmbeddingsProps.md#modelsource) and [tokenizer source](../../06-api-reference/interfaces/TextEmbeddingsProps.md#tokenizersource). 
-* An optional flag [`preventLoad`](../../06-api-reference/interfaces/TextEmbeddingsProps.md#preventload) which prevents auto-loading of the model.
+
+- `model` of type `object` containing the [model source](../../06-api-reference/interfaces/TextEmbeddingsProps.md#modelsource) and [tokenizer source](../../06-api-reference/interfaces/TextEmbeddingsProps.md#tokenizersource).
+- An optional flag [`preventLoad`](../../06-api-reference/interfaces/TextEmbeddingsProps.md#preventload) which prevents auto-loading of the model.
 
 You need more details? Check the following resources:
-* For detailed information about `useTextEmbeddings` arguments check this section: [`useTextEmbeddings` arguments](../../06-api-reference/functions/useTextEmbeddings.md#parameters).
-* For all text embeddings models available out-of-the-box in React Native ExecuTorch see: [Text Embeddings Models](../../06-api-reference/index.md#models---text-embeddings).
-* For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+
+- For detailed information about `useTextEmbeddings` arguments check this section: [`useTextEmbeddings` arguments](../../06-api-reference/functions/useTextEmbeddings.md#parameters).
+- For all text embeddings models available out-of-the-box in React Native ExecuTorch see: [Text Embeddings Models](../../06-api-reference/index.md#models---text-embeddings).
+- For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 

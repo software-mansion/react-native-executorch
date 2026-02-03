@@ -12,10 +12,10 @@ It is recommended to use models provided by us which are available at our [Huggi
 
 ## API Reference
 
-* For detailed API Reference for `useTextToImage` see: [`useTextToImage` API Reference](../../06-api-reference/functions/useTextToImage.md).
-* For all text to image models available out-of-the-box in React Native ExecuTorch see: [Text to Image Models](../../06-api-reference/index.md#models---image-generation).
+- For detailed API Reference for `useTextToImage` see: [`useTextToImage` API Reference](../../06-api-reference/functions/useTextToImage.md).
+- For all text to image models available out-of-the-box in React Native ExecuTorch see: [Text to Image Models](../../06-api-reference/index.md#models---image-generation).
 
-## Reference
+## High Level Overview
 
 ```typescript
 import { useTextToImage, BK_SDM_TINY_VPRED_256 } from 'react-native-executorch';
@@ -34,14 +34,16 @@ try {
 ### Arguments
 
 `useTextToImage` takes [`TextToImageProps`](../../06-api-reference/interfaces/TextToImageProps.md) that consists of:
-* `model` containing [`schedulerSource`](../../06-api-reference/interfaces/TextToImageProps.md#schedulersource), [`tokenizerSource`](../../06-api-reference/interfaces/TextToImageProps.md#tokenizersource), [`encoderSource`](../../06-api-reference/interfaces/TextToImageProps.md#encodersource), [`unetSource`](../../06-api-reference/interfaces/TextToImageProps.md#unetsource), and [`decoderSource`](../../06-api-reference/interfaces/TextToImageProps.md#decodersource).
-* An inference callback [`inferenceCallback`](../../06-api-reference/interfaces/TextToImageProps.md#inferencecallback).
-* An optional flag [`preventLoad`](../../06-api-reference/interfaces/TextToImageProps.md#preventload) which prevents auto-loading of the model.
+
+- `model` containing [`schedulerSource`](../../06-api-reference/interfaces/TextToImageProps.md#schedulersource), [`tokenizerSource`](../../06-api-reference/interfaces/TextToImageProps.md#tokenizersource), [`encoderSource`](../../06-api-reference/interfaces/TextToImageProps.md#encodersource), [`unetSource`](../../06-api-reference/interfaces/TextToImageProps.md#unetsource), and [`decoderSource`](../../06-api-reference/interfaces/TextToImageProps.md#decodersource).
+- An inference callback [`inferenceCallback`](../../06-api-reference/interfaces/TextToImageProps.md#inferencecallback).
+- An optional flag [`preventLoad`](../../06-api-reference/interfaces/TextToImageProps.md#preventload) which prevents auto-loading of the model.
 
 You need more details? Check the following resources:
-* For detailed information about `useTextToImage` arguments check this section: [`useTextToImage` arguments](../../06-api-reference/functions/useTextToImage.md#parameters).
-* For all text to image models available out-of-the-box in React Native ExecuTorch see: [Text to Image Models](../../06-api-reference/index.md#models---image-generation).
-* For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+
+- For detailed information about `useTextToImage` arguments check this section: [`useTextToImage` arguments](../../06-api-reference/functions/useTextToImage.md#parameters).
+- For all text to image models available out-of-the-box in React Native ExecuTorch see: [Text to Image Models](../../06-api-reference/index.md#models---image-generation).
+- For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 

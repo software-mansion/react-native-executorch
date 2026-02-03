@@ -24,7 +24,7 @@ description: "Learn how to use LLMs in your React Native applications with React
 React Native ExecuTorch supports a variety of LLMs (checkout our [HuggingFace repository](https://huggingface.co/software-mansion) for model already converted to ExecuTorch format) including Llama 3.2. Before getting started, you’ll need to obtain the .pte binary—a serialized model, the tokenizer and tokenizer config JSON files. There are various ways to accomplish this:
 
 - For your convenience, it's best if you use models exported by us, you can get them from our [HuggingFace repository](https://huggingface.co/collections/software-mansion/llm). You can also use [constants](../../06-api-reference/index.md#models---lmm) shipped with our library.
-- Follow the official [tutorial](https://github.com/pytorch/executorch/tree/v1.1.0/examples/llm_manual) made by ExecuTorch team to build the model and tokenizer yourself.
+- Follow the official [tutorial](https://docs.pytorch.org/executorch/stable/llm/export-llm.html) made by ExecuTorch team to export arbitrary chosen LLM model.
 
 :::danger
 Lower-end devices might not be able to fit LLMs into memory. We recommend using quantized models to reduce the memory footprint.
@@ -32,9 +32,9 @@ Lower-end devices might not be able to fit LLMs into memory. We recommend using 
 
 ## API Reference
 
-* For detailed API Reference for `useLLM` see: [`useLLM` API Reference](../../06-api-reference/functions/useLLM.md).
-* For all LLM models available out-of-the-box in React Native ExecuTorch see: [LLM Models](../../06-api-reference/index.md#models---lmm).
-* For useful LLM utility functionalities please refere to the following link: [LLM Utility Functionalities](../../06-api-reference/index.md#utilities---llm).
+- For detailed API Reference for `useLLM` see: [`useLLM` API Reference](../../06-api-reference/functions/useLLM.md).
+- For all LLM models available out-of-the-box in React Native ExecuTorch see: [LLM Models](../../06-api-reference/index.md#models---lmm).
+- For useful LLM utility functionalities please refer to the following link: [LLM Utility Functionalities](../../06-api-reference/index.md#utilities---llm).
 
 ## Initializing
 
@@ -53,13 +53,15 @@ The code snippet above fetches the model from the specified URL, loads it into m
 ### Arguments
 
 `useLLM` takes [`LLMProps`](../../06-api-reference/interfaces/LLMProps.md) that consists of:
-* [model source](../../06-api-reference/interfaces/LLMProps.md#modelsource), [tokenizer source](../../06-api-reference/interfaces/LLMProps.md#tokenizersource), and [tokenizer config source](../../06-api-reference/interfaces/LLMProps.md#tokenizerconfigsource).
-* An optional flag [`preventLoad`](../../06-api-reference/interfaces/SpeechToTextProps.md#preventload) which prevents auto-loading of the model.
+
+- [model source](../../06-api-reference/interfaces/LLMProps.md#modelsource), [tokenizer source](../../06-api-reference/interfaces/LLMProps.md#tokenizersource), and [tokenizer config source](../../06-api-reference/interfaces/LLMProps.md#tokenizerconfigsource).
+- An optional flag [`preventLoad`](../../06-api-reference/interfaces/SpeechToTextProps.md#preventload) which prevents auto-loading of the model.
 
 You need more details? Check the following resources:
-* For detailed information about `useLLM` arguments check this section: [`useLLM` arguments](../../06-api-reference/functions/useLLM.md#parameters).
-* For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
-* For available LLM models please check out the following list: [LLM Models](../../06-api-reference/index.md#models---lmm).
+
+- For detailed information about `useLLM` arguments check this section: [`useLLM` arguments](../../06-api-reference/functions/useLLM.md#parameters).
+- For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+- For available LLM models please check out the following list: [LLM Models](../../06-api-reference/index.md#models---lmm).
 
 ### Returns
 
@@ -176,31 +178,28 @@ return (
 To configure model (i.e. change system prompt, load initial conversation history or manage tool calling, set generation settings) you can use
 [`configure`](../../06-api-reference/classes/LLMModule.md#configure) method. [**`chatConfig`**](../../06-api-reference/interfaces/LLMConfig.md#chatconfig) and [**`toolsConfig`**](../../06-api-reference/interfaces/LLMConfig.md#toolsconfig) is only applied to managed chats i.e. when using [`sendMessage`](../../06-api-reference/classes/LLMModule.md#sendmessage) (see: [Functional vs managed](../../03-hooks/01-natural-language-processing/useLLM.md#functional-vs-managed)) It accepts object with following fields:
 
-* [`chatConfig`](../../06-api-reference/interfaces/LLMConfig.md#chatconfig) - Object configuring chat management that contains:
+- [`chatConfig`](../../06-api-reference/interfaces/LLMConfig.md#chatconfig) - Object configuring chat management that contains:
+  - [`systemPrompt`](../../06-api-reference/interfaces/ChatConfig.md#systemprompt) - Often used to tell the model what is its purpose, for example - "Be a helpful translator".
 
-    * [`systemPrompt`](../../06-api-reference/interfaces/ChatConfig.md#systemprompt) - Often used to tell the model what is its purpose, for example - "Be a helpful translator".
+  - [`initialMessageHistory`](../../06-api-reference/interfaces/ChatConfig.md#initialmessagehistory) - Object that represent the conversation history. This can be used to provide initial context to the model.
 
-    * [`initialMessageHistory`](../../06-api-reference/interfaces/ChatConfig.md#initialmessagehistory) - Object that represent the conversation history. This can be used to provide initial context to the model.
+  - [`contextWindowLength`](../../06-api-reference/interfaces/ChatConfig.md#contextwindowlength) - The number of messages from the current conversation that the model will use to generate a response. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
 
-    * [`contextWindowLength`](../../06-api-reference/interfaces/ChatConfig.md#contextwindowlength) - The number of messages from the current conversation that the model will use to generate a response. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
+- [`toolsConfig`](../../06-api-reference/interfaces/LLMConfig.md#toolsconfig) - Object configuring options for enabling and managing tool use. **It will only have effect if your model's chat template support it**. Contains following properties:
+  - [`tools`](../../06-api-reference/interfaces/ToolsConfig.md#tools) - List of objects defining tools.
 
-* [`toolsConfig`](../../06-api-reference/interfaces/LLMConfig.md#toolsconfig) - Object configuring options for enabling and managing tool use. **It will only have effect if your model's chat template support it**. Contains following properties:
+  - [`executeToolCallback`](../../06-api-reference/interfaces/ToolsConfig.md#executetoolcallback) - Function that accepts [`ToolCall`](../../06-api-reference/interfaces/ToolCall.md), executes tool and returns the string to model.
 
-  * [`tools`](../../06-api-reference/interfaces/ToolsConfig.md#tools) - List of objects defining tools.
+  - [`displayToolCalls`](../../06-api-reference/interfaces/ToolsConfig.md#displaytoolcalls) - If set to `true`, JSON tool calls will be displayed in chat. If `false`, only answers will be displayed.
 
-  * [`executeToolCallback`](../../06-api-reference/interfaces/ToolsConfig.md#executetoolcallback) - Function that accepts [`ToolCall`](../../06-api-reference/interfaces/ToolCall.md), executes tool and returns the string to model.
+- [`generationConfig`](../../06-api-reference/interfaces/LLMConfig.md#generationconfig) - Object configuring generation settings with following properties:
+  - [`outputTokenBatchSize`](../../06-api-reference/interfaces/GenerationConfig.md#batchtimeinterval) - Soft upper limit on the number of tokens in each token batch (in certain cases there can be more tokens in given batch, i.e. when the batch would end with special emoji join character).
 
-  * [`displayToolCalls`](../../06-api-reference/interfaces/ToolsConfig.md#displaytoolcalls) - If set to `true`, JSON tool calls will be displayed in chat. If `false`, only answers will be displayed.
+  - [`batchTimeInterval`](../../06-api-reference/interfaces/GenerationConfig.md#batchtimeinterval) - Upper limit on the time interval between consecutive token batches.
 
-* [`generationConfig`](../../06-api-reference/interfaces/LLMConfig.md#generationconfig) - Object configuring generation settings with following properties:
+  - [`temperature`](../../06-api-reference/interfaces/GenerationConfig.md#temperature) - Scales output logits by the inverse of temperature. Controls the randomness / creativity of text generation.
 
-    * [`outputTokenBatchSize`](../../06-api-reference/interfaces/GenerationConfig.md#batchtimeinterval) - Soft upper limit on the number of tokens in each token batch (in certain cases there can be more tokens in given batch, i.e. when the batch would end with special emoji join character).
-
-    * [`batchTimeInterval`](../../06-api-reference/interfaces/GenerationConfig.md#batchtimeinterval) - Upper limit on the time interval between consecutive token batches.
-
-    * [`temperature`](../../06-api-reference/interfaces/GenerationConfig.md#temperature) - Scales output logits by the inverse of temperature. Controls the randomness / creativity of text generation.
-
-    * [`topp`](../../06-api-reference/interfaces/GenerationConfig.md#topp) - Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
+  - [`topp`](../../06-api-reference/interfaces/GenerationConfig.md#topp) - Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
 
 ### Sending a message
 

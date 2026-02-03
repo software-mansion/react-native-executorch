@@ -34,9 +34,9 @@ export class ImageEmbeddingsModule extends BaseModule {
   }
 
   /**
-   * Executes the model's forward pass, where `imageSource` is a URI/URL to image that will be embedded.
+   * Executes the model's forward pass. Returns an embedding array for a given sentence.
    *
-   * @param imageSource - The image source to be embedded.
+   * @param imageSource - The image source (URI/URL) to image that will be embedded.
    * @returns A Float32Array containing the image embeddings.
    */
   async forward(imageSource: string): Promise<Float32Array> {

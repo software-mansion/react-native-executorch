@@ -24,9 +24,9 @@ We are using [Hugging Face Tokenizers](https://huggingface.co/docs/tokenizers/in
 
 ## API Reference
 
-* For detailed API Reference for `useTokenizer` see: [`useTokenizer` API Reference](../../06-api-reference/functions/useTokenizer.md).
+- For detailed API Reference for `useTokenizer` see: [`useTokenizer` API Reference](../../06-api-reference/functions/useTokenizer.md).
 
-## Reference
+## High Level Overview
 
 ```typescript
 import { useTokenizer, ALL_MINILM_L6_V2 } from 'react-native-executorch';
@@ -51,12 +51,14 @@ try {
 ### Arguments
 
 `useTokenizer` takes [`TokenizerProps`](../../06-api-reference/interfaces/TokenizerProps.md) that consists of:
-* `tokenizer` of type [`KokoroConfig`](../../06-api-reference/interfaces/KokoroConfig.md) containing [`tokenizerSource`](../../06-api-reference/interfaces/TokenizerProps.md#tokenizersource). 
-* An optional flag [`preventLoad`](../../06-api-reference/interfaces/TokenizerProps.md#preventload) which prevents auto-loading of the model.
+
+- `tokenizer` of type [`KokoroConfig`](../../06-api-reference/interfaces/KokoroConfig.md) containing [`tokenizerSource`](../../06-api-reference/interfaces/TokenizerProps.md#tokenizersource).
+- An optional flag [`preventLoad`](../../06-api-reference/interfaces/TokenizerProps.md#preventload) which prevents auto-loading of the model.
 
 You need more details? Check the following resources:
-* For detailed information about `useTokenizer` arguments check this section: [`useTokenizer` arguments](../../06-api-reference/functions/useTokenizer.md#parameters).
-* For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+
+- For detailed information about `useTokenizer` arguments check this section: [`useTokenizer` arguments](../../06-api-reference/functions/useTokenizer.md#parameters).
+- For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 

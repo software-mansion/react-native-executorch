@@ -6,10 +6,10 @@ TypeScript API implementation of the [useTextEmbeddings](../../03-hooks/01-natur
 
 ## API Reference
 
-* For detailed API Reference for `TextEmbeddingsModule` see: [`TextEmbeddingsModule` API Reference](../../06-api-reference/classes/TextEmbeddingsModule.md).
-* For all text embeddings models available out-of-the-box in React Native ExecuTorch see: [Text Embeddings Models](../../06-api-reference/index.md#models---text-embeddings).
+- For detailed API Reference for `TextEmbeddingsModule` see: [`TextEmbeddingsModule` API Reference](../../06-api-reference/classes/TextEmbeddingsModule.md).
+- For all text embeddings models available out-of-the-box in React Native ExecuTorch see: [Text Embeddings Models](../../06-api-reference/index.md#models---text-embeddings).
 
-## Reference
+## High Level Overview
 
 ```typescript
 import {
@@ -35,12 +35,11 @@ All methods of `TextEmbeddingsModule` are explained in details here: [`TextEmbed
 
 To load the model, use the [`load`](../../06-api-reference/classes/TextEmbeddingsModule.md#load) method. It accepts an object:
 
-* [`model`](../../06-api-reference/classes/TextEmbeddingsModule.md#model) - Object containing:
+- [`model`](../../06-api-reference/classes/TextEmbeddingsModule.md#model) - Object containing:
+  - [`modelSource`](../../06-api-reference/classes/TextEmbeddingsModule.md#modelsource) - Location of the used model.
+  - [`tokenizerSource`](../../06-api-reference/classes/TextEmbeddingsModule.md#tokenizersource) - Location of the used tokenizer.
 
-    * [`modelSource`](../../06-api-reference/classes/TextEmbeddingsModule.md#modelsource) - Location of the used model. 
-    * [`tokenizerSource`](../../06-api-reference/classes/TextEmbeddingsModule.md#tokenizersource) - Location of the used tokenizer.
-
-* [`onDownloadProgressCallback`](../../06-api-reference/classes/TextEmbeddingsModule.md#ondownloadprogresscallback) - Callback to track download progress.
+- [`onDownloadProgressCallback`](../../06-api-reference/classes/TextEmbeddingsModule.md#ondownloadprogresscallback) - Callback to track download progress.
 
 This method returns a promise, which can resolve to an error or void.
 

@@ -10,9 +10,9 @@ For React applications, consider using the [`useExecutorchModule`](../../03-hook
 
 ## API Reference
 
-* For detailed API Reference for `ExecutorchModule` see: [`ExecutorchModule` API Reference](../../06-api-reference/classes/ExecutorchModule.md).
+- For detailed API Reference for `ExecutorchModule` see: [`ExecutorchModule` API Reference](../../06-api-reference/classes/ExecutorchModule.md).
 
-## Reference
+## High Level Overview
 
 ```typescript
 import {
@@ -46,11 +46,11 @@ All methods of `ExecutorchModule` are explained in details here: [`ExecutorchMod
 
 TensorPtr is a JS representation of the underlying tensor, which is then passed to the model. You can read more about creating tensors [here](https://docs.pytorch.org/executorch/stable/extension-tensor.html). On JS side, the [`TensorPtr`](../../06-api-reference/interfaces/TensorPtr.md) holds the following information:
 
-* [`dataPtr`](../../06-api-reference/interfaces/TensorPtr.md#dataptr) - Represents a data buffer that will be used to create a tensor on the native side. This can be either an `ArrayBuffer` or a `TypedArray`. If your model takes in a datatype which is not covered by any of the `TypedArray` types, just pass an `ArrayBuffer` here.
+- [`dataPtr`](../../06-api-reference/interfaces/TensorPtr.md#dataptr) - Represents a data buffer that will be used to create a tensor on the native side. This can be either an `ArrayBuffer` or a `TypedArray`. If your model takes in a datatype which is not covered by any of the `TypedArray` types, just pass an `ArrayBuffer` here.
 
-* [`sizes`](../../06-api-reference/interfaces/TensorPtr.md#sizes) - Represents the shape of a given tensor, i.e. for a 640x640 RGB image with a batch size of 1, you would need to pass `[1, 3, 640, 640]` here.
+- [`sizes`](../../06-api-reference/interfaces/TensorPtr.md#sizes) - Represents the shape of a given tensor, i.e. for a 640x640 RGB image with a batch size of 1, you would need to pass `[1, 3, 640, 640]` here.
 
-* [`scalarType`](../../06-api-reference/interfaces/TensorPtr.md#scalartype) - An enum resembling the ExecuTorch's [`ScalarType`](../../06-api-reference/enumerations/ScalarType.md). For example, if your model was exported with float32 as an input, you will need to pass [`ScalarType.FLOAT`](../../06-api-reference/enumerations/ScalarType.md#float) here.
+- [`scalarType`](../../06-api-reference/interfaces/TensorPtr.md#scalartype) - An enum resembling the ExecuTorch's [`ScalarType`](../../06-api-reference/enumerations/ScalarType.md). For example, if your model was exported with float32 as an input, you will need to pass [`ScalarType.FLOAT`](../../06-api-reference/enumerations/ScalarType.md#float) here.
 
 ## End to end example
 

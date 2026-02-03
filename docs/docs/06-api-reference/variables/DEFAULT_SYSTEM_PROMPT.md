@@ -2,6 +2,6 @@
 
 > `const` **DEFAULT_SYSTEM_PROMPT**: `"You are a knowledgeable, efficient, and direct AI assistant. Provide concise answers, focusing on the key information needed. Offer suggestions tactfully when appropriate to improve outcomes. Engage in productive collaboration with the user. Don't return too much text."` = `"You are a knowledgeable, efficient, and direct AI assistant. Provide concise answers, focusing on the key information needed. Offer suggestions tactfully when appropriate to improve outcomes. Engage in productive collaboration with the user. Don't return too much text."`
 
-Defined in: [packages/react-native-executorch/src/constants/llmDefaults.ts:8](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/constants/llmDefaults.ts#L8)
+Defined in: [packages/react-native-executorch/src/constants/llmDefaults.ts:8](https://github.com/software-mansion/react-native-executorch/blob/6829cd7e41d61eb83543baaf8d938ad81501b178/packages/react-native-executorch/src/constants/llmDefaults.ts#L8)
 
 Default system prompt used to guide the behavior of Large Language Models (LLMs).

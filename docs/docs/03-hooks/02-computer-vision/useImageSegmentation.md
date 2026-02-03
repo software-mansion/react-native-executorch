@@ -10,10 +10,10 @@ It is recommended to use models provided by us which are available at our [Huggi
 
 ## API Reference
 
-* For detailed API Reference for `useImageSegmentation` see: [`useImageSegmentation` API Reference](../../06-api-reference/functions/useImageSegmentation.md).
-* For all image segmentation models available out-of-the-box in React Native ExecuTorch see: [Image Segmentation Models](../../06-api-reference/index.md#models---image-segmentation).
+- For detailed API Reference for `useImageSegmentation` see: [`useImageSegmentation` API Reference](../../06-api-reference/functions/useImageSegmentation.md).
+- For all image segmentation models available out-of-the-box in React Native ExecuTorch see: [Image Segmentation Models](../../06-api-reference/index.md#models---image-segmentation).
 
-## Reference
+## High Level Overview
 
 ```typescript
 import {
@@ -35,13 +35,15 @@ try {
 ### Arguments
 
 `useImageSegmentation` takes [`ImageSegmentationProps`](../../06-api-reference/interfaces/ImageSegmentationProps.md) that consists of:
-* `model` containing [`modelSource`](../../06-api-reference/interfaces/ImageSegmentationProps.md#modelsource). 
-* An optional flag [`preventLoad`](../../06-api-reference/interfaces/ImageSegmentationProps.md#preventload) which prevents auto-loading of the model.
+
+- `model` containing [`modelSource`](../../06-api-reference/interfaces/ImageSegmentationProps.md#modelsource).
+- An optional flag [`preventLoad`](../../06-api-reference/interfaces/ImageSegmentationProps.md#preventload) which prevents auto-loading of the model.
 
 You need more details? Check the following resources:
-* For detailed information about `useImageSegmentation` arguments check this section: [`useImageSegmentation` arguments](../../06-api-reference/functions/useImageSegmentation.md#parameters).
-* For all image segmentation models available out-of-the-box in React Native ExecuTorch see: [Image Segmentation Models](../../06-api-reference/index.md#models---image-segmentation).
-* For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+
+- For detailed information about `useImageSegmentation` arguments check this section: [`useImageSegmentation` arguments](../../06-api-reference/functions/useImageSegmentation.md#parameters).
+- For all image segmentation models available out-of-the-box in React Native ExecuTorch see: [Image Segmentation Models](../../06-api-reference/index.md#models---image-segmentation).
+- For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
@@ -84,6 +86,6 @@ function App() {
 
 ## Supported models
 
-| Model                                                                                                                            | Number of classes | Class list                                                                                                                                            |
-| -------------------------------------------------------------------------------------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Model                                                                                            | Number of classes | Class list                                                          |
+| ------------------------------------------------------------------------------------------------ | ----------------- | ------------------------------------------------------------------- |
 | [deeplabv3_resnet50](https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3) | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md) |

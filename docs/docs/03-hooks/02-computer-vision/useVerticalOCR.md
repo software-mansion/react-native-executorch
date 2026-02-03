@@ -14,10 +14,10 @@ It is recommended to use models provided by us, which are available at our [Hugg
 
 ## API Reference
 
-* For detailed API Reference for `useVerticalOCR` see: [`useVerticalOCR` API Reference](../../06-api-reference/functions/useVerticalOCR.md).
-* For all alphabets available in ocr out-of-the-box in React Native ExecuTorch see: [OCR Supported Alphabets](../../06-api-reference/index.md#ocr-supported-alphabets).
+- For detailed API Reference for `useVerticalOCR` see: [`useVerticalOCR` API Reference](../../06-api-reference/functions/useVerticalOCR.md).
+- For all alphabets available in ocr out-of-the-box in React Native ExecuTorch see: [OCR Supported Alphabets](../../06-api-reference/index.md#ocr-supported-alphabets).
 
-## Reference
+## High Level Overview
 
 ```tsx
 import { useVerticalOCR, OCR_ENGLISH } from 'react-native-executorch';
@@ -41,14 +41,16 @@ function App() {
 ### Arguments
 
 `useVerticalOCR` takes [`VerticalOCRProps`](../../06-api-reference/interfaces/VerticalOCRProps.md) that consists of:
-* `model` containing [`detectorSource`](../../06-api-reference/interfaces/VerticalOCRProps.md#detectorsource), [`recognizerSource`](../../06-api-reference/interfaces/VerticalOCRProps.md#recognizersource), and [`language`](../../06-api-reference/interfaces/VerticalOCRProps.md#language). 
-* An optional flag [`preventLoad`](../../06-api-reference/interfaces/VerticalOCRProps.md#preventload) which prevents auto-loading of the model.
-* An optional flag [`independentCharacters`](../../06-api-reference/interfaces/VerticalOCRProps.md#independentcharacters) indicating either to treat characters as independent or words.
+
+- `model` containing [`detectorSource`](../../06-api-reference/interfaces/VerticalOCRProps.md#detectorsource), [`recognizerSource`](../../06-api-reference/interfaces/VerticalOCRProps.md#recognizersource), and [`language`](../../06-api-reference/interfaces/VerticalOCRProps.md#language).
+- An optional flag [`preventLoad`](../../06-api-reference/interfaces/VerticalOCRProps.md#preventload) which prevents auto-loading of the model.
+- An optional flag [`independentCharacters`](../../06-api-reference/interfaces/VerticalOCRProps.md#independentcharacters) indicating either to treat characters as independent or words.
 
 You need more details? Check the following resources:
-* For detailed information about `useVerticalOCR` arguments check this section: [`useVerticalOCR` arguments](../../06-api-reference/functions/useVerticalOCR.md#parameters).
-* For all alphabets available in ocr out-of-the-box in React Native ExecuTorch see: [OCR Supported Alphabets](../../06-api-reference/index.md#ocr-supported-alphabets).
-* For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+
+- For detailed information about `useVerticalOCR` arguments check this section: [`useVerticalOCR` arguments](../../06-api-reference/functions/useVerticalOCR.md#parameters).
+- For all alphabets available in ocr out-of-the-box in React Native ExecuTorch see: [OCR Supported Alphabets](../../06-api-reference/index.md#ocr-supported-alphabets).
+- For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 

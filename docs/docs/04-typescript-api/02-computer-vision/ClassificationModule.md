@@ -6,10 +6,10 @@ TypeScript API implementation of the [useClassification](../../03-hooks/02-compu
 
 ## API Reference
 
-* For detailed API Reference for `ClassificationModule` see: [`ClassificationModule` API Reference](../../06-api-reference/classes/ClassificationModule.md).
-* For all classification models available out-of-the-box in React Native ExecuTorch see: [Classification Models](../../06-api-reference/index.md#models---classification).
+- For detailed API Reference for `ClassificationModule` see: [`ClassificationModule` API Reference](../../06-api-reference/classes/ClassificationModule.md).
+- For all classification models available out-of-the-box in React Native ExecuTorch see: [Classification Models](../../06-api-reference/index.md#models---classification).
 
-## Reference
+## High Level Overview
 
 ```typescript
 import {
@@ -37,11 +37,10 @@ All methods of `ClassificationModule` are explained in details here: [`Classific
 
 To initialize the module, create an instance and call the [`load`](../../06-api-reference/classes/ClassificationModule.md#load) method with the following parameters:
 
-* [`model`](../../06-api-reference/classes/ClassificationModule.md#model) - Object containing:
+- [`model`](../../06-api-reference/classes/ClassificationModule.md#model) - Object containing:
+  - [`modelSource`](../../06-api-reference/classes/ClassificationModule.md#modelsource) - Location of the used model.
 
-    * [`modelSource`](../../06-api-reference/classes/ClassificationModule.md#modelsource) - Location of the used model.
-
-* [`onDownloadProgressCallback`](../../06-api-reference/classes/ClassificationModule.md#ondownloadprogresscallback) - Callback to track download progress.
+- [`onDownloadProgressCallback`](../../06-api-reference/classes/ClassificationModule.md#ondownloadprogresscallback) - Callback to track download progress.
 
 This method returns a promise, which can resolve to an error or void.
 

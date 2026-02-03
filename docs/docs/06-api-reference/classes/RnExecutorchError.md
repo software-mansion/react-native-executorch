@@ -1,6 +1,6 @@
 # Class: RnExecutorchError
 
-Defined in: [packages/react-native-executorch/src/errors/errorUtils.ts:6](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/errors/errorUtils.ts#L6)
+Defined in: [packages/react-native-executorch/src/errors/errorUtils.ts:6](https://github.com/software-mansion/react-native-executorch/blob/6829cd7e41d61eb83543baaf8d938ad81501b178/packages/react-native-executorch/src/errors/errorUtils.ts#L6)
 
 Custom error class for React Native ExecuTorch errors.
 
@@ -14,7 +14,7 @@ Custom error class for React Native ExecuTorch errors.
 
 > **new RnExecutorchError**(`code`, `message`, `cause?`): `RnExecutorchError`
 
-Defined in: [packages/react-native-executorch/src/errors/errorUtils.ts:17](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/errors/errorUtils.ts#L17)
+Defined in: [packages/react-native-executorch/src/errors/errorUtils.ts:17](https://github.com/software-mansion/react-native-executorch/blob/6829cd7e41d61eb83543baaf8d938ad81501b178/packages/react-native-executorch/src/errors/errorUtils.ts#L17)
 
 #### Parameters
 
@@ -44,7 +44,7 @@ Defined in: [packages/react-native-executorch/src/errors/errorUtils.ts:17](https
 
 > `optional` **cause**: `unknown`
 
-Defined in: [packages/react-native-executorch/src/errors/errorUtils.ts:15](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/errors/errorUtils.ts#L15)
+Defined in: [packages/react-native-executorch/src/errors/errorUtils.ts:15](https://github.com/software-mansion/react-native-executorch/blob/6829cd7e41d61eb83543baaf8d938ad81501b178/packages/react-native-executorch/src/errors/errorUtils.ts#L15)
 
 The original cause of the error, if any.
 
@@ -58,7 +58,7 @@ The original cause of the error, if any.
 
 > **code**: [`RnExecutorchErrorCode`](../enumerations/RnExecutorchErrorCode.md)
 
-Defined in: [packages/react-native-executorch/src/errors/errorUtils.ts:10](https://github.com/software-mansion/react-native-executorch/blob/d2a421e89661061da4ea192880e5bbf8f1b7a7be/packages/react-native-executorch/src/errors/errorUtils.ts#L10)
+Defined in: [packages/react-native-executorch/src/errors/errorUtils.ts:10](https://github.com/software-mansion/react-native-executorch/blob/6829cd7e41d61eb83543baaf8d938ad81501b178/packages/react-native-executorch/src/errors/errorUtils.ts#L10)
 
 The error code representing the type of error.
 

@@ -6,10 +6,10 @@ TypeScript API implementation of the [useImageSegmentation](../../03-hooks/02-co
 
 ## API Reference
 
-* For detailed API Reference for `ImageSegmentationModule` see: [`ImageSegmentationModule` API Reference](../../06-api-reference/classes/ImageSegmentationModule.md).
-* For all image segmentation models available out-of-the-box in React Native ExecuTorch see: [Image Segmentation Models](../../06-api-reference/index.md#models---image-segmentation).
+- For detailed API Reference for `ImageSegmentationModule` see: [`ImageSegmentationModule` API Reference](../../06-api-reference/classes/ImageSegmentationModule.md).
+- For all image segmentation models available out-of-the-box in React Native ExecuTorch see: [Image Segmentation Models](../../06-api-reference/index.md#models---image-segmentation).
 
-## Reference
+## High Level Overview
 
 ```typescript
 import {
@@ -37,11 +37,10 @@ All methods of `ImageSegmentationModule` are explained in details here: [`ImageS
 
 To initialize the module, create an instance and call the [`load`](../../06-api-reference/classes/ImageSegmentationModule.md#load) method with the following parameters:
 
-* [`model`](../../06-api-reference/classes/ImageSegmentationModule.md#model) - Object containing:
+- [`model`](../../06-api-reference/classes/ImageSegmentationModule.md#model) - Object containing:
+  - [`modelSource`](../../06-api-reference/classes/ImageSegmentationModule.md#modelsource) - Location of the used model.
 
-    * [`modelSource`](../../06-api-reference/classes/ImageSegmentationModule.md#modelsource) - Location of the used model.
-
-* [`onDownloadProgressCallback`](../../06-api-reference/classes/ImageSegmentationModule.md#ondownloadprogresscallback) - Callback to track download progress.
+- [`onDownloadProgressCallback`](../../06-api-reference/classes/ImageSegmentationModule.md#ondownloadprogresscallback) - Callback to track download progress.
 
 This method returns a promise, which can resolve to an error or void.
 
