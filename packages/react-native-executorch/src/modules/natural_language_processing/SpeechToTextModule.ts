@@ -1,4 +1,3 @@
-import { Logger } from '../../common/Logger';
 import { DecodingOptions, SpeechToTextModelConfig } from '../../types/stt';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
@@ -69,46 +68,26 @@ export class SpeechToTextModule {
 
   /**
    * Runs the encoding part of the model on the provided waveform.
-   * Returns the encoded waveform as a Float32Array. Passing `number[]` is deprecated.
+   * Returns the encoded waveform as a Float32Array.
    *
    * @param waveform - The input audio waveform.
    * @returns The encoded output.
    */
-  public async encode(
-    waveform: Float32Array | number[]
-  ): Promise<Float32Array> {
-    if (Array.isArray(waveform)) {
-      Logger.info(
-        'Passing waveform as number[] is deprecated, use Float32Array instead'
-      );
-      waveform = new Float32Array(waveform);
-    }
+  public async encode(waveform: Float32Array): Promise<Float32Array> {
     return new Float32Array(await this.nativeModule.encode(waveform));
   }
 
   /**
-   * Runs the decoder of the model. Passing number[] is deprecated.
+   * Runs the decoder of the model.
    *
    * @param tokens - The input tokens.
    * @param encoderOutput - The encoder output.
    * @returns Decoded output.
    */
   public async decode(
-    tokens: Int32Array | number[],
-    encoderOutput: Float32Array | number[]
+    tokens: Int32Array,
+    encoderOutput: Float32Array
   ): Promise<Float32Array> {
-    if (Array.isArray(tokens)) {
-      Logger.info(
-        'Passing tokens as number[] is deprecated, use Int32Array instead'
-      );
-      tokens = new Int32Array(tokens);
-    }
-    if (Array.isArray(encoderOutput)) {
-      Logger.info(
-        'Passing encoderOutput as number[] is deprecated, use Float32Array instead'
-      );
-      encoderOutput = new Float32Array(encoderOutput);
-    }
     return new Float32Array(
       await this.nativeModule.decode(tokens, encoderOutput)
     );
@@ -124,17 +103,10 @@ export class SpeechToTextModule {
    * @returns The transcription string.
    */
   public async transcribe(
-    waveform: Float32Array | number[],
+    waveform: Float32Array,
     options: DecodingOptions = {}
   ): Promise<string> {
     this.validateOptions(options);
-
-    if (Array.isArray(waveform)) {
-      Logger.info(
-        'Passing waveform as number[] is deprecated, use Float32Array instead'
-      );
-      waveform = new Float32Array(waveform);
-    }
     const transcriptionBytes = await this.nativeModule.transcribe(
       waveform,
       options.language || ''
@@ -206,17 +178,11 @@ export class SpeechToTextModule {
   }
 
   /**
-   * Inserts a new audio chunk into the streaming transcription session. Passing `number[]` is deprecated.
+   * Inserts a new audio chunk into the streaming transcription session.
    *
    * @param waveform - The audio chunk to insert.
    */
-  public streamInsert(waveform: Float32Array | number[]): void {
-    if (Array.isArray(waveform)) {
-      Logger.info(
-        'Passing waveform as number[] is deprecated, use Float32Array instead'
-      );
-      waveform = new Float32Array(waveform);
-    }
+  public streamInsert(waveform: Float32Array): void {
     this.nativeModule.streamInsert(waveform);
   }
 

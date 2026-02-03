@@ -56,32 +56,31 @@ export interface SpeechToTextType {
   nonCommittedTranscription: string;
 
   /**
-   * Runs the encoding part of the model on the provided waveform. Passing `number[]` is deprecated.
+   * Runs the encoding part of the model on the provided waveform.
    * @param waveform - The input audio waveform array.
    * @returns A promise resolving to the encoded data.
    */
-  encode(waveform: Float32Array | number[]): Promise<Float32Array>;
+  encode(waveform: Float32Array): Promise<Float32Array>;
 
   /**
-   * Runs the decoder of the model. Passing `number[]` is deprecated.
+   * Runs the decoder of the model.
    * @param tokens - The encoded audio data.
    * @param encoderOutput - The output from the encoder.
    * @returns A promise resolving to the decoded text.
    */
   decode(
-    tokens: number[] | Int32Array,
-    encoderOutput: Float32Array | number[]
+    tokens: Int32Array,
+    encoderOutput: Float32Array
   ): Promise<Float32Array>;
 
   /**
    * Starts a transcription process for a given input array, which should be a waveform at 16kHz.
-   * Passing `number[]` is deprecated.
    * @param waveform - The input audio waveform.
    * @param options - Decoding options, e.g. `{ language: 'es' }` for multilingual models.
    * @returns Resolves a promise with the output transcription when the model is finished.
    */
   transcribe(
-    waveform: Float32Array | number[],
+    waveform: Float32Array,
     options?: DecodingOptions | undefined
   ): Promise<string>;
 
@@ -96,10 +95,9 @@ export interface SpeechToTextType {
 
   /**
    * Inserts a chunk of audio data (sampled at 16kHz) into the ongoing streaming transcription.
-   * Passing `number[]` is deprecated.
    * @param waveform - The audio chunk to insert.
    */
-  streamInsert(waveform: Float32Array | number[]): void;
+  streamInsert(waveform: Float32Array): void;
 
   /**
    * Stops the ongoing streaming transcription process.

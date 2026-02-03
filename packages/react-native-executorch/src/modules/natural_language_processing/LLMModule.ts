@@ -25,11 +25,6 @@ export class LLMModule {
      */
     tokenCallback?: (token: string) => void;
     /**
-     * An optional function that will be called on every generated token and receives the entire response (`string`), including this token.
-     * [DEPRECATED - consider using tokenCallback]
-     */
-    responseCallback?: (response: string) => void;
-    /**
      * An optional function called on every finished message (`Message[]`).
      * Returns the entire message history.
      */

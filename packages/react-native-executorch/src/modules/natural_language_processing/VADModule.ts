@@ -36,9 +36,9 @@ export class VADModule extends BaseModule {
   }
 
   /**
-   * Executes the model's forward pass, where `waveform` is a Float32Array representing the audio signal.
+   * Executes the model's forward pass, where `waveform` is a Float32Array representing the audio signal (16kHz).
    *
-   * @param waveform - The input audio waveform as a Float32Array.
+   * @param waveform - The input audio waveform as a Float32Array. It must represent a mono audio signal sampled at 16kHz.
    * @returns A promise resolving to an array of detected speech segments.
    */
   async forward(waveform: Float32Array): Promise<Segment[]> {
