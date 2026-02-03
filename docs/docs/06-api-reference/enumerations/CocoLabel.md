@@ -1,6 +1,6 @@
 # Enumeration: CocoLabel
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:39](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L39)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:39](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L39)
 
 COCO dataset class labels used for object detection.
 
@@ -10,7 +10,7 @@ COCO dataset class labels used for object detection.
 
 > **AIRPLANE**: `5`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:44](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L44)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:44](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L44)
 
 ---
 
@@ -18,7 +18,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:44](h
 
 > **APPLE**: `53`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:91](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L91)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:91](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L91)
 
 ---
 
@@ -26,7 +26,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:91](h
 
 > **BACKPACK**: `27`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:66](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L66)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:66](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L66)
 
 ---
 
@@ -34,7 +34,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:66](h
 
 > **BANANA**: `52`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:90](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L90)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:90](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L90)
 
 ---
 
@@ -42,7 +42,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:90](h
 
 > **BASEBALL**: `39`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:78](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L78)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:78](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L78)
 
 ---
 
@@ -50,7 +50,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:78](h
 
 > **BEAR**: `23`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:62](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L62)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:62](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L62)
 
 ---
 
@@ -58,7 +58,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:62](h
 
 > **BED**: `65`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:103](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L103)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:103](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L103)
 
 ---
 
@@ -66,7 +66,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:103](
 
 > **BENCH**: `15`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:54](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L54)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:54](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L54)
 
 ---
 
@@ -74,7 +74,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:54](h
 
 > **BICYCLE**: `2`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:41](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L41)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:41](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L41)
 
 ---
 
@@ -82,7 +82,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:41](h
 
 > **BIRD**: `16`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:55](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L55)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:55](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L55)
 
 ---
 
@@ -90,7 +90,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:55](h
 
 > **BLENDER**: `83`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:121](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L121)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:121](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L121)
 
 ---
 
@@ -98,7 +98,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:121](
 
 > **BOAT**: `9`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:48](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L48)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:48](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L48)
 
 ---
 
@@ -106,7 +106,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:48](h
 
 > **BOOK**: `84`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:122](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L122)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:122](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L122)
 
 ---
 
@@ -114,7 +114,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:122](
 
 > **BOTTLE**: `44`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:82](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L82)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:82](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L82)
 
 ---
 
@@ -122,7 +122,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:82](h
 
 > **BOWL**: `51`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:89](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L89)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:89](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L89)
 
 ---
 
@@ -130,7 +130,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:89](h
 
 > **BROCCOLI**: `56`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:94](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L94)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:94](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L94)
 
 ---
 
@@ -138,7 +138,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:94](h
 
 > **BUS**: `6`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:45](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L45)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:45](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L45)
 
 ---
 
@@ -146,7 +146,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:45](h
 
 > **CAKE**: `61`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:99](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L99)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:99](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L99)
 
 ---
 
@@ -154,7 +154,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:99](h
 
 > **CAR**: `3`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:42](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L42)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:42](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L42)
 
 ---
 
@@ -162,7 +162,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:42](h
 
 > **CARROT**: `57`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:95](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L95)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:95](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L95)
 
 ---
 
@@ -170,7 +170,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:95](h
 
 > **CAT**: `17`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:56](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L56)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:56](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L56)
 
 ---
 
@@ -178,7 +178,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:56](h
 
 > **CELL_PHONE**: `77`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:115](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L115)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:115](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L115)
 
 ---
 
@@ -186,7 +186,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:115](
 
 > **CHAIR**: `62`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:100](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L100)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:100](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L100)
 
 ---
 
@@ -194,7 +194,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:100](
 
 > **CLOCK**: `85`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:123](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L123)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:123](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L123)
 
 ---
 
@@ -202,7 +202,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:123](
 
 > **COUCH**: `63`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:101](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L101)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:101](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L101)
 
 ---
 
@@ -210,7 +210,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:101](
 
 > **COW**: `21`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:60](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L60)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:60](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L60)
 
 ---
 
@@ -218,7 +218,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:60](h
 
 > **CUP**: `47`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:85](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L85)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:85](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L85)
 
 ---
 
@@ -226,7 +226,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:85](h
 
 > **DESK**: `69`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:107](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L107)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:107](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L107)
 
 ---
 
@@ -234,7 +234,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:107](
 
 > **DINING_TABLE**: `67`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:105](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L105)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:105](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L105)
 
 ---
 
@@ -242,7 +242,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:105](
 
 > **DOG**: `18`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:57](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L57)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:57](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L57)
 
 ---
 
@@ -250,7 +250,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:57](h
 
 > **DONUT**: `60`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:98](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L98)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:98](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L98)
 
 ---
 
@@ -258,7 +258,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:98](h
 
 > **DOOR**: `71`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:109](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L109)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:109](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L109)
 
 ---
 
@@ -266,7 +266,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:109](
 
 > **ELEPHANT**: `22`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:61](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L61)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:61](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L61)
 
 ---
 
@@ -274,7 +274,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:61](h
 
 > **EYE**: `30`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:69](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L69)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:69](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L69)
 
 ---
 
@@ -282,7 +282,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:69](h
 
 > **FIRE_HYDRANT**: `11`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:50](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L50)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:50](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L50)
 
 ---
 
@@ -290,7 +290,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:50](h
 
 > **FORK**: `48`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:86](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L86)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:86](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L86)
 
 ---
 
@@ -298,7 +298,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:86](h
 
 > **FRISBEE**: `34`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:73](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L73)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:73](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L73)
 
 ---
 
@@ -306,7 +306,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:73](h
 
 > **GIRAFFE**: `25`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:64](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L64)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:64](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L64)
 
 ---
 
@@ -314,7 +314,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:64](h
 
 > **HAIR_BRUSH**: `91`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:129](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L129)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:129](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L129)
 
 ---
 
@@ -322,7 +322,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:129](
 
 > **HAIR_DRIER**: `89`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:127](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L127)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:127](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L127)
 
 ---
 
@@ -330,7 +330,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:127](
 
 > **HANDBAG**: `31`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:70](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L70)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:70](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L70)
 
 ---
 
@@ -338,7 +338,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:70](h
 
 > **HAT**: `26`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:65](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L65)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:65](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L65)
 
 ---
 
@@ -346,7 +346,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:65](h
 
 > **HORSE**: `19`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:58](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L58)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:58](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L58)
 
 ---
 
@@ -354,7 +354,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:58](h
 
 > **HOT_DOG**: `58`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:96](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L96)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:96](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L96)
 
 ---
 
@@ -362,7 +362,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:96](h
 
 > **KEYBOARD**: `76`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:114](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L114)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:114](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L114)
 
 ---
 
@@ -370,7 +370,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:114](
 
 > **KITE**: `38`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:77](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L77)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:77](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L77)
 
 ---
 
@@ -378,7 +378,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:77](h
 
 > **KNIFE**: `49`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:87](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L87)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:87](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L87)
 
 ---
 
@@ -386,7 +386,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:87](h
 
 > **LAPTOP**: `73`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:111](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L111)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:111](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L111)
 
 ---
 
@@ -394,7 +394,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:111](
 
 > **MICROWAVE**: `78`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:116](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L116)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:116](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L116)
 
 ---
 
@@ -402,7 +402,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:116](
 
 > **MIRROR**: `66`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:104](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L104)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:104](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L104)
 
 ---
 
@@ -410,7 +410,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:104](
 
 > **MOTORCYCLE**: `4`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:43](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L43)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:43](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L43)
 
 ---
 
@@ -418,7 +418,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:43](h
 
 > **MOUSE**: `74`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:112](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L112)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:112](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L112)
 
 ---
 
@@ -426,7 +426,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:112](
 
 > **ORANGE**: `55`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:93](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L93)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:93](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L93)
 
 ---
 
@@ -434,7 +434,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:93](h
 
 > **OVEN**: `79`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:117](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L117)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:117](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L117)
 
 ---
 
@@ -442,7 +442,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:117](
 
 > **PARKING**: `14`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:53](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L53)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:53](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L53)
 
 ---
 
@@ -450,7 +450,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:53](h
 
 > **PERSON**: `1`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:40](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L40)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:40](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L40)
 
 ---
 
@@ -458,7 +458,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:40](h
 
 > **PIZZA**: `59`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:97](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L97)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:97](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L97)
 
 ---
 
@@ -466,7 +466,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:97](h
 
 > **PLATE**: `45`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:83](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L83)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:83](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L83)
 
 ---
 
@@ -474,7 +474,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:83](h
 
 > **POTTED_PLANT**: `64`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:102](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L102)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:102](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L102)
 
 ---
 
@@ -482,7 +482,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:102](
 
 > **REFRIGERATOR**: `82`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:120](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L120)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:120](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L120)
 
 ---
 
@@ -490,7 +490,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:120](
 
 > **REMOTE**: `75`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:113](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L113)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:113](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L113)
 
 ---
 
@@ -498,7 +498,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:113](
 
 > **SANDWICH**: `54`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:92](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L92)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:92](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L92)
 
 ---
 
@@ -506,7 +506,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:92](h
 
 > **SCISSORS**: `87`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:125](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L125)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:125](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L125)
 
 ---
 
@@ -514,7 +514,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:125](
 
 > **SHEEP**: `20`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:59](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L59)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:59](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L59)
 
 ---
 
@@ -522,7 +522,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:59](h
 
 > **SHOE**: `29`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:68](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L68)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:68](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L68)
 
 ---
 
@@ -530,7 +530,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:68](h
 
 > **SINK**: `81`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:119](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L119)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:119](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L119)
 
 ---
 
@@ -538,7 +538,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:119](
 
 > **SKATEBOARD**: `41`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:79](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L79)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:79](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L79)
 
 ---
 
@@ -546,7 +546,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:79](h
 
 > **SKIS**: `35`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:74](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L74)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:74](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L74)
 
 ---
 
@@ -554,7 +554,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:74](h
 
 > **SNOWBOARD**: `36`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:75](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L75)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:75](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L75)
 
 ---
 
@@ -562,7 +562,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:75](h
 
 > **SPOON**: `50`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:88](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L88)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:88](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L88)
 
 ---
 
@@ -570,7 +570,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:88](h
 
 > **SPORTS**: `37`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:76](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L76)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:76](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L76)
 
 ---
 
@@ -578,7 +578,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:76](h
 
 > **STOP_SIGN**: `13`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:52](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L52)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:52](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L52)
 
 ---
 
@@ -586,7 +586,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:52](h
 
 > **STREET_SIGN**: `12`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:51](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L51)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:51](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L51)
 
 ---
 
@@ -594,7 +594,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:51](h
 
 > **SUITCASE**: `33`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:72](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L72)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:72](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L72)
 
 ---
 
@@ -602,7 +602,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:72](h
 
 > **SURFBOARD**: `42`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:80](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L80)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:80](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L80)
 
 ---
 
@@ -610,7 +610,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:80](h
 
 > **TEDDY_BEAR**: `88`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:126](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L126)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:126](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L126)
 
 ---
 
@@ -618,7 +618,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:126](
 
 > **TENNIS_RACKET**: `43`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:81](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L81)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:81](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L81)
 
 ---
 
@@ -626,7 +626,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:81](h
 
 > **TIE**: `32`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:71](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L71)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:71](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L71)
 
 ---
 
@@ -634,7 +634,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:71](h
 
 > **TOASTER**: `80`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:118](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L118)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:118](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L118)
 
 ---
 
@@ -642,7 +642,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:118](
 
 > **TOILET**: `70`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:108](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L108)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:108](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L108)
 
 ---
 
@@ -650,7 +650,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:108](
 
 > **TOOTHBRUSH**: `90`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:128](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L128)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:128](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L128)
 
 ---
 
@@ -658,7 +658,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:128](
 
 > **TRAFFIC_LIGHT**: `10`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:49](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L49)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:49](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L49)
 
 ---
 
@@ -666,7 +666,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:49](h
 
 > **TRAIN**: `7`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:46](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L46)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:46](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L46)
 
 ---
 
@@ -674,7 +674,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:46](h
 
 > **TRUCK**: `8`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:47](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L47)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:47](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L47)
 
 ---
 
@@ -682,7 +682,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:47](h
 
 > **TV**: `72`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:110](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L110)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:110](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L110)
 
 ---
 
@@ -690,7 +690,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:110](
 
 > **UMBRELLA**: `28`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:67](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L67)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:67](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L67)
 
 ---
 
@@ -698,7 +698,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:67](h
 
 > **VASE**: `86`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:124](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L124)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:124](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L124)
 
 ---
 
@@ -706,7 +706,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:124](
 
 > **WINDOW**: `68`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:106](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L106)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:106](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L106)
 
 ---
 
@@ -714,7 +714,7 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:106](
 
 > **WINE_GLASS**: `46`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:84](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L84)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:84](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L84)
 
 ---
 
@@ -722,4 +722,4 @@ Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:84](h
 
 > **ZEBRA**: `24`
 
-Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:63](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/objectDetection.ts#L63)
+Defined in: [packages/react-native-executorch/src/types/objectDetection.ts:63](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/objectDetection.ts#L63)

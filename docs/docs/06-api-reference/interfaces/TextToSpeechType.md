@@ -1,6 +1,6 @@
 # Interface: TextToSpeechType
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:99](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/tts.ts#L99)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:99](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/tts.ts#L99)
 
 Return type for the `useTextToSpeech` hook.
 Manages the state and operations for Text-to-Speech generation.
@@ -11,7 +11,7 @@ Manages the state and operations for Text-to-Speech generation.
 
 > **downloadProgress**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:118](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/tts.ts#L118)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:118](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/tts.ts#L118)
 
 Represents the download progress of the model and voice assets as a value between 0 and 1.
 
@@ -21,7 +21,7 @@ Represents the download progress of the model and voice assets as a value betwee
 
 > **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:103](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/tts.ts#L103)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:103](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/tts.ts#L103)
 
 Contains the error object if the model failed to load or encountered an error during inference.
 
@@ -31,7 +31,7 @@ Contains the error object if the model failed to load or encountered an error du
 
 > **forward**: (`input`) => `Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:126](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/tts.ts#L126)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:126](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/tts.ts#L126)
 
 Runs the model to convert the provided text into speech audio in a single pass.
 
@@ -61,7 +61,7 @@ If the model is not loaded or is currently generating.
 
 > **isGenerating**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:113](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/tts.ts#L113)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:113](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/tts.ts#L113)
 
 Indicates whether the model is currently generating audio.
 
@@ -71,7 +71,7 @@ Indicates whether the model is currently generating audio.
 
 > **isReady**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:108](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/tts.ts#L108)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:108](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/tts.ts#L108)
 
 Indicates whether the Text-to-Speech model is loaded and ready to accept inputs.
 
@@ -81,7 +81,7 @@ Indicates whether the Text-to-Speech model is loaded and ready to accept inputs.
 
 > **stream**: (`input`) => `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:135](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/tts.ts#L135)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:135](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/tts.ts#L135)
 
 Streams the generated audio data incrementally.
 This is optimal for real-time playback, allowing audio to start playing before the full text is synthesized.
@@ -112,7 +112,7 @@ If the model is not loaded or is currently generating.
 
 > **streamStop**: () => `void`
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:140](https://github.com/software-mansion/react-native-executorch/blob/dc92f1905151887815a38c7ea48c46a40970e531/packages/react-native-executorch/src/types/tts.ts#L140)
+Defined in: [packages/react-native-executorch/src/types/tts.ts:140](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/tts.ts#L140)
 
 Interrupts and stops the currently active audio generation stream.
 
