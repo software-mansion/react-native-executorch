@@ -117,6 +117,10 @@ export class SpeechToTextModule {
   /**
    * Starts a streaming transcription session.
    * Yields objects with `committed` and `nonCommitted` transcriptions.
+   * Committed transcription contains the part of the transcription that is finalized and will not change.
+   * Useful for displaying stable results during streaming.
+   * Non-committed transcription contains the part of the transcription that is still being processed and may change.
+   * Useful for displaying live, partial results during streaming.
    * Use with `streamInsert` and `streamStop` to control the stream.
    *
    * @param options - Decoding options including language.

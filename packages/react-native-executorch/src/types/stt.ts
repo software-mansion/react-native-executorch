@@ -86,7 +86,7 @@ export interface SpeechToTextType {
 
   /**
    * Starts a streaming transcription process.
-   * Use in combination with streamInsert to feed audio chunks and streamStop to end the stream.
+   * Use in combination with `streamInsert` to feed audio chunks and `streamStop` to end the stream.
    * Updates `committedTranscription` and `nonCommittedTranscription` as transcription progresses.
    * @param options - Decoding options including language.
    * @returns The final transcription string.

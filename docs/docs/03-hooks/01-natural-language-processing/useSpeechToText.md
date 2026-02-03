@@ -77,7 +77,11 @@ You need more details? Check the following resources:
 
 ### Returns
 
-`useSpeechToText` returns an object called `SpeechToTextType` containing bunch of functions to interact with STT. To get more details please read: [`SpeechToTextType` API Reference](../../06-api-reference/interfaces/SpeechToTextType.md).
+`useSpeechToText` returns an object called `SpeechToTextType` containing bunch of functions to interact with STT.
+
+Please note, that both [`transcribe`](../../06-api-reference/interfaces/SpeechToTextType.md#transcribe) and [`stream`](../../06-api-reference/interfaces/SpeechToTextType.md#stream) functions accept [`DecodingOptions`](../../06-api-reference/interfaces/DecodingOptions.md) type as an argument. It accepts language abbreviation, you can check them out in [`language`](../../06-api-reference/interfaces/DecodingOptions.md#language) property of this config of type [`SpeechToTextLanguage`](../../06-api-reference/type-aliases/SpeechToTextLanguage.md).
+
+To get more details please read: [`SpeechToTextType` API Reference](../../06-api-reference/interfaces/SpeechToTextType.md).
 
 ## Running the model
 

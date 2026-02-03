@@ -2,7 +2,7 @@
 
 > **useVAD**(`VADProps`): [`VADType`](../interfaces/VADType.md)
 
-Defined in: [packages/react-native-executorch/src/hooks/natural_language_processing/useVAD.ts:12](https://github.com/software-mansion/react-native-executorch/blob/85b94bbe439dcc3a7da16d608f443313132ff5d8/packages/react-native-executorch/src/hooks/natural_language_processing/useVAD.ts#L12)
+Defined in: [packages/react-native-executorch/src/hooks/natural_language_processing/useVAD.ts:12](https://github.com/software-mansion/react-native-executorch/blob/a4873616eca46e680b6c0a064462c773420037bc/packages/react-native-executorch/src/hooks/natural_language_processing/useVAD.ts#L12)
 
 React hook for managing a VAD model instance.
 
