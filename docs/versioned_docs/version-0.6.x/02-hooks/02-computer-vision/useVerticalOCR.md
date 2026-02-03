@@ -204,7 +204,7 @@ function App() {
 
 ## Language-Specific Recognizers
 
-Each supported language requires its own set of recognizer models.
+Each supported language requires its own set of recognizer models.  
 The built-in constants such as `RECOGNIZER_EN_CRNN_512`, `RECOGNIZER_PL_CRNN_64`, etc., point to specific models trained for a particular language.
 
 > For example:
@@ -322,9 +322,9 @@ You need to make sure the recognizer models you pass in `recognizerSources` matc
 
 **Image Used for Benchmarking:**
 
-| ![Alt text](../../../../static/img/sales-vertical.jpeg) | ![Alt text](../../../../static/img/sales-vertical-boxes.png) |
-| ------------------------------------------------------- | ------------------------------------------------------------ |
-| Original Image                                          | Image with detected Text Boxes                               |
+| ![Alt text](../../../static/img/sales-vertical.jpeg) | ![Alt text](../../../static/img/sales-vertical-boxes.png) |
+| ---------------------------------------------------- | --------------------------------------------------------- |
+| Original Image                                       | Image with detected Text Boxes                            |
 
 :::warning warning
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
