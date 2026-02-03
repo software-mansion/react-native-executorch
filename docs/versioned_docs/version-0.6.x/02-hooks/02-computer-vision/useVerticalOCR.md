@@ -322,7 +322,7 @@ You need to make sure the recognizer models you pass in `recognizerSources` matc
 
 **Image Used for Benchmarking:**
 
-| ![Alt text](../../../static/img/sales-vertical.jpeg) | ![Alt text](../../../static/img/sales-vertical-boxes.png) |
+| ![Alt text](../../../../static/img/sales-vertical.jpeg) | ![Alt text](../../../../static/img/sales-vertical-boxes.png) |
 | ---------------------------------------------------- | --------------------------------------------------------- |
 | Original Image                                       | Image with detected Text Boxes                            |
 

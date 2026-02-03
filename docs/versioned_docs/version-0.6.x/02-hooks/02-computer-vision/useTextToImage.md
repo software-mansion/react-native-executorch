@@ -92,7 +92,7 @@ function App() {
 }
 ```
 
-| ![Castle 256x256](../../../static/img/castle256.png) | ![Castle 512x512](../../../static/img/castle512.png) |
+| ![Castle 256x256](../../../../static/img/castle256.png) | ![Castle 512x512](../../../../static/img/castle512.png) |
 | ---------------------------------------------------- | ---------------------------------------------------- |
 | Image of size 256×256                                | Image of size 512×512                                |
 
