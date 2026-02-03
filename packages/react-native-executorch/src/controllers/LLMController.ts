@@ -203,7 +203,7 @@ export class LLMController {
         'You cannot delete the model now. You need ot interrupt it first.'
       );
     }
-    this.onToken = () => {};
+    this.onToken = () => { };
     if (this.nativeModule) {
       this.nativeModule.unload();
     }
@@ -253,6 +253,20 @@ export class LLMController {
       );
     }
     return this.nativeModule.getGeneratedTokenCount();
+  }
+
+  public getPromptTokensCount(): number {
+    if (!this.nativeModule) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        "Cannot get prompt token count for a model that's not loaded."
+      );
+    }
+    return this.nativeModule.getPromptTokensCount();
+  }
+
+  public getTotalTokensCount(): number {
+    return this.getGeneratedTokenCount() + this.getPromptTokensCount();
   }
 
   public async generate(

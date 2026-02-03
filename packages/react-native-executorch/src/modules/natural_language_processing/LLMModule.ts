@@ -51,7 +51,7 @@ export class LLMModule {
       tokenizerSource: ResourceSource;
       tokenizerConfigSource: ResourceSource;
     },
-    onDownloadProgressCallback: (progress: number) => void = () => {}
+    onDownloadProgressCallback: (progress: number) => void = () => { }
   ) {
     await this.controller.load({
       ...model,
@@ -146,6 +146,24 @@ export class LLMModule {
    */
   getGeneratedTokenCount(): number {
     return this.controller.getGeneratedTokenCount();
+  }
+
+  /**
+   * Returns the number of prompt tokens in the last message.
+   *
+   * @returns The count of prompt token.
+   */
+  getPromptTokensCount() {
+    return this.controller.getPromptTokensCount();
+  }
+
+  /**
+   * Returns the number of total tokens from the previous generation. This is a sum of prompt tokens and generated tokens.
+   *
+   * @returns The count of prompt and generated tokens.
+   */
+  getTotalTokensCount() {
+    return this.controller.getTotalTokensCount();
   }
 
   /**

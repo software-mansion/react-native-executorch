@@ -114,6 +114,16 @@ export const useLLM = ({ model, preventLoad = false }: LLMProps): LLMType => {
     [controllerInstance]
   );
 
+  const getPromptTokenCount = useCallback(
+    () => controllerInstance.getPromptTokensCount(),
+    [controllerInstance]
+  );
+
+  const getTotalTokenCount = useCallback(
+    () => controllerInstance.getTotalTokensCount(),
+    [controllerInstance]
+  );
+
   return {
     messageHistory,
     response,
@@ -123,6 +133,8 @@ export const useLLM = ({ model, preventLoad = false }: LLMProps): LLMType => {
     downloadProgress,
     error,
     getGeneratedTokenCount: getGeneratedTokenCount,
+    getPromptTokenCount: getPromptTokenCount,
+    getTotalTokenCount: getTotalTokenCount,
     configure: configure,
     generate: generate,
     sendMessage: sendMessage,
