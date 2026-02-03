@@ -6,7 +6,6 @@ import { ResourceSource } from './common';
  *
  * @category Types
  */
-/* eslint-disable @cspell/spellchecker */
 export enum DeeplabLabel {
   BACKGROUND,
   AEROPLANE,
