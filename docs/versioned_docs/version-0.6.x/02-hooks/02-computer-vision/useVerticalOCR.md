@@ -324,7 +324,7 @@ You need to make sure the recognizer models you pass in `recognizerSources` matc
 
 | ![Alt text](../../../../static/img/sales-vertical.jpeg) | ![Alt text](../../../../static/img/sales-vertical-boxes.png) |
 | ------------------------------------------------------- | ------------------------------------------------------------ |
-| Original Image                                       | Image with detected Text Boxes                              |
+| Original Image                                       | Image with detected Text Boxes                               |
 
 :::warning
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
