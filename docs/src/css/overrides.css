@@ -183,3 +183,12 @@ table thead tr {
   overflow-x: auto;
   width: 100%;
 }
+
+/* Hide the children of the API section even when active */
+.hide-api-items .menu__list {
+  display: none !important;
+}
+/* Hide the toggle arrow */
+.hide-api-items .menu__link--sublist::after {
+  display: none !important;
+}

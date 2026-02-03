@@ -1,6 +1,6 @@
 # Class: SpeechToTextModule
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts:12](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L12)
+Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts:11](https://github.com/software-mansion/react-native-executorch/blob/85b94bbe439dcc3a7da16d608f443313132ff5d8/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L11)
 
 Module for Speech to Text (STT) functionalities.
 
@@ -20,23 +20,23 @@ Module for Speech to Text (STT) functionalities.
 
 > **decode**(`tokens`, `encoderOutput`): `Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts:96](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L96)
+Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts:87](https://github.com/software-mansion/react-native-executorch/blob/85b94bbe439dcc3a7da16d608f443313132ff5d8/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L87)
 
-Runs the decoder of the model. Passing number[] is deprecated.
+Runs the decoder of the model.
 
 #### Parameters
 
 ##### tokens
 
-The input tokens.
+`Int32Array`
 
-`number`[] | `Int32Array`\<`ArrayBufferLike`\>
+The input tokens.
 
 ##### encoderOutput
 
-The encoder output.
+`Float32Array`
 
-`number`[] | `Float32Array`\<`ArrayBufferLike`\>
+The encoder output.
 
 #### Returns
 
@@ -50,7 +50,7 @@ Decoded output.
 
 > **delete**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts:66](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L66)
+Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts:65](https://github.com/software-mansion/react-native-executorch/blob/85b94bbe439dcc3a7da16d608f443313132ff5d8/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L65)
 
 Unloads the model from memory.
 
@@ -64,18 +64,18 @@ Unloads the model from memory.
 
 > **encode**(`waveform`): `Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts:77](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L77)
+Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts:76](https://github.com/software-mansion/react-native-executorch/blob/85b94bbe439dcc3a7da16d608f443313132ff5d8/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L76)
 
 Runs the encoding part of the model on the provided waveform.
-Returns the encoded waveform as a Float32Array. Passing `number[]` is deprecated.
+Returns the encoded waveform as a Float32Array.
 
 #### Parameters
 
 ##### waveform
 
-The input audio waveform.
+`Float32Array`
 
-`number`[] | `Float32Array`\<`ArrayBufferLike`\>
+The input audio waveform.
 
 #### Returns
 
@@ -89,7 +89,7 @@ The encoded output.
 
 > **load**(`model`, `onDownloadProgressCallback`): `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts:29](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L29)
+Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts:28](https://github.com/software-mansion/react-native-executorch/blob/85b94bbe439dcc3a7da16d608f443313132ff5d8/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L28)
 
 Loads the model specified by the config object.
 `onDownloadProgressCallback` allows you to monitor the current progress of the model download.
@@ -118,7 +118,7 @@ Optional callback to monitor download progress.
 
 > **stream**(`options`): `AsyncGenerator`\<\{ `committed`: `string`; `nonCommitted`: `string`; \}\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts:153](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L153)
+Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts:125](https://github.com/software-mansion/react-native-executorch/blob/85b94bbe439dcc3a7da16d608f443313132ff5d8/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L125)
 
 Starts a streaming transcription session.
 Yields objects with `committed` and `nonCommitted` transcriptions.
@@ -144,17 +144,17 @@ An async generator yielding transcription updates.
 
 > **streamInsert**(`waveform`): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts:213](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L213)
+Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts:185](https://github.com/software-mansion/react-native-executorch/blob/85b94bbe439dcc3a7da16d608f443313132ff5d8/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L185)
 
-Inserts a new audio chunk into the streaming transcription session. Passing `number[]` is deprecated.
+Inserts a new audio chunk into the streaming transcription session.
 
 #### Parameters
 
 ##### waveform
 
-The audio chunk to insert.
+`Float32Array`
 
-`number`[] | `Float32Array`\<`ArrayBufferLike`\>
+The audio chunk to insert.
 
 #### Returns
 
@@ -166,7 +166,7 @@ The audio chunk to insert.
 
 > **streamStop**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts:226](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L226)
+Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts:192](https://github.com/software-mansion/react-native-executorch/blob/85b94bbe439dcc3a7da16d608f443313132ff5d8/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L192)
 
 Stops the current streaming transcription session.
 
@@ -180,7 +180,7 @@ Stops the current streaming transcription session.
 
 > **transcribe**(`waveform`, `options`): `Promise`\<`string`\>
 
-Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts:126](https://github.com/software-mansion/react-native-executorch/blob/2527130c1b837827db4b034f980357f06406f7ad/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L126)
+Defined in: [packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts:105](https://github.com/software-mansion/react-native-executorch/blob/85b94bbe439dcc3a7da16d608f443313132ff5d8/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L105)
 
 Starts a transcription process for a given input array (16kHz waveform).
 For multilingual models, specify the language in `options`.
@@ -190,9 +190,9 @@ Returns the transcription as a string. Passing `number[]` is deprecated.
 
 ##### waveform
 
-The Float32Array audio data.
+`Float32Array`
 
-`number`[] | `Float32Array`\<`ArrayBufferLike`\>
+The Float32Array audio data.
 
 ##### options
 

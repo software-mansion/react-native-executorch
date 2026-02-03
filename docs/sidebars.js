@@ -43,6 +43,7 @@ const sidebars = {
     {
       type: 'category',
       label: 'API Reference',
+      className: 'hide-api-items',
       collapsible: true,
       collapsed: true,
 
