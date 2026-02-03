@@ -17,6 +17,7 @@ target_include_directories(
   "${COMMON_CPP_DIR}"
   "${ANDROID_CPP_DIR}"
   "${INCLUDE_DIR}"
+  "${TOKENIZERS_DIR}"
   "${REACT_NATIVE_DIR}/ReactCommon"
   "${REACT_NATIVE_DIR}/ReactAndroid/src/main/jni/react/turbomodule"
   "${REACT_NATIVE_DIR}/ReactCommon/callinvoker"
