@@ -97,6 +97,9 @@ ASR::generateWithFallback(std::span<float> waveform,
                           const DecodingOptions &options) const {
   std::vector<float> temperatures = {0.0f, 0.2f, 0.4f, 0.6f, 0.8f, 1.0f};
   std::vector<uint64_t> bestTokens;
+  float bestAvgLogProb = -std::numeric_limits<float>::infinity();
+  float bestCompressionRatio = 0.0f;
+  float bestTemperature = 0.0f;
 
   for (auto t : temperatures) {
     auto [tokens, scores] = this->generate(waveform, t, options);
@@ -109,18 +112,33 @@ ASR::generateWithFallback(std::span<float> waveform,
     const std::string text = this->tokenizer->decode(tokens, true);
     const float compressionRatio = this->getCompressionRatio(text);
 
+    // Naive heuristic update - ensure we capture the stats of the chosen path
     if (avgLogProb >= -1.0f && compressionRatio < 2.4f) {
       bestTokens = std::move(tokens);
+      bestAvgLogProb = avgLogProb;
+      bestCompressionRatio = compressionRatio;
+      bestTemperature = t;
       break;
+    }
+    
+    // Fallback logic (simplify for brevity: keep last if none pass)
+    if (t == temperatures.back() && bestTokens.empty()) {
+        bestTokens = std::move(tokens);
+        bestAvgLogProb = avgLogProb;
+        bestCompressionRatio = compressionRatio;
+        bestTemperature = t;
     }
   }
 
-  return this->calculateWordLevelTimestamps(bestTokens, waveform);
+  // Pass metadata to calculation
+  return this->calculateWordLevelTimestamps(bestTokens, waveform, bestAvgLogProb, bestTemperature, bestCompressionRatio);
 }
 
 std::vector<Segment>
 ASR::calculateWordLevelTimestamps(std::span<const uint64_t> generatedTokens,
-                                  const std::span<const float> waveform) const {
+                                  const std::span<const float> waveform,
+                                  float avgLogProb, float temperature, float compressionRatio) const {
+
   const size_t generatedTokensSize = generatedTokens.size();
   if (generatedTokensSize < 2 ||
       generatedTokens[generatedTokensSize - 1] !=
@@ -153,9 +171,19 @@ ASR::calculateWordLevelTimestamps(std::span<const uint64_t> generatedTokens,
   const uint64_t end = generatedTokens[generatedTokensSize - 2];
   auto words = this->estimateWordLevelTimestampsLinear(tokens, start, end);
 
-  if (words.size()) {
-    segments.emplace_back(std::move(words), 0.0);
+  Segment seg;
+  seg.words = std::move(words);
+  seg.tokens = tokens;
+  seg.avgLogprob = avgLogProb;
+  seg.temperature = temperature;
+  seg.compressionRatio = compressionRatio;
+  
+  if (!seg.words.empty()) {
+      seg.start = seg.words.front().start;
+      seg.end = seg.words.back().end;
   }
+
+  segments.push_back(std::move(seg));
 
   float scalingFactor =
       static_cast<float>(waveform.size()) /

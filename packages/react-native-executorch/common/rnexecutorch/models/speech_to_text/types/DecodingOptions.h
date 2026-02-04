@@ -6,10 +6,12 @@
 namespace rnexecutorch::models::speech_to_text::types {
 
 struct DecodingOptions {
-  explicit DecodingOptions(const std::string &language)
-      : language(language.empty() ? std::nullopt : std::optional(language)) {}
+  explicit DecodingOptions(const std::string &language, bool verbose = false)
+      : language(language.empty() ? std::nullopt : std::optional(language)),
+        verbose(verbose) {}
 
   std::optional<std::string> language;
+  bool verbose;
 };
 
 } // namespace rnexecutorch::models::speech_to_text::types

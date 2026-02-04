@@ -503,19 +503,68 @@ getJsiValue(const std::vector<models::ocr::types::OCRDetection> &detections,
   return jsiDetections;
 }
 
-inline jsi::Value
-getJsiValue(const std::vector<models::voice_activity_detection::types::Segment>
-                &speechSegments,
-            jsi::Runtime &runtime) {
-  auto jsiSegments = jsi::Array(runtime, speechSegments.size());
-  for (size_t i = 0; i < speechSegments.size(); i++) {
-    const auto &[start, end] = speechSegments[i];
-    auto jsiSegmentObject = jsi::Object(runtime);
-    jsiSegmentObject.setProperty(runtime, "start", static_cast<int>(start));
-    jsiSegmentObject.setProperty(runtime, "end", static_cast<int>(end));
-    jsiSegments.setValueAtIndex(runtime, i, jsiSegmentObject);
+// inline jsi::Value
+// getJsiValue(const std::vector<models::voice_activity_detection::types::Segment>
+//                 &speechSegments,
+//             jsi::Runtime &runtime) {
+//   auto jsiSegments = jsi::Array(runtime, speechSegments.size());
+//   for (size_t i = 0; i < speechSegments.size(); i++) {
+//     const auto &[start, end] = speechSegments[i];
+//     auto jsiSegmentObject = jsi::Object(runtime);
+//     jsiSegmentObject.setProperty(runtime, "start", static_cast<int>(start));
+//     jsiSegmentObject.setProperty(runtime, "end", static_cast<int>(end));
+//     jsiSegments.setValueAtIndex(runtime, i, jsiSegmentObject);
+//   }
+//   return jsiSegments;
+// }
+
+inline jsi::Value getJsiValue(const TranscriptionResult &result, bool verbose, jsi::Runtime &runtime) {
+  Object obj(runtime);
+  obj.setProperty(runtime, "text", String::createFromUtf8(runtime, result.text));
+
+  // If not verbose, return object with just "text"
+  if (!verbose) {
+    return obj; 
   }
-  return jsiSegments;
+
+  obj.setProperty(runtime, "task", String::createFromUtf8(runtime, result.task));
+  obj.setProperty(runtime, "language", String::createFromUtf8(runtime, result.language));
+  obj.setProperty(runtime, "duration", result.duration);
+
+  jsi::Array segmentsAry(runtime, result.segments.size());
+  for (size_t i = 0; i < result.segments.size(); ++i) {
+    segmentsAry.setValueAtIndex(runtime, i, getJsiValue(runtime, result.segments[i], i));
+  }
+  obj.setProperty(runtime, "segments", segmentsAry);
+
+  return obj;
 }
+
+inline jsi::Value getJsiValue(const Segment &seg, int id, jsi::Runtime &runtime) {
+  jsi::Object obj(runtime);
+  obj.setProperty(runtime, "id", id);
+  obj.setProperty(runtime, "seek", 0); // Simplified
+  obj.setProperty(runtime, "start", seg.start);
+  obj.setProperty(runtime, "end", seg.end);
+  
+  std::string segText;
+  for(auto& w : seg.words) segText += w.content;
+  obj.setProperty(runtime, "text", String::createFromUtf8(runtime, segText));
+
+  obj.setProperty(runtime, "avg_logprob", seg.avgLogprob);
+  obj.setProperty(runtime, "compression_ratio", seg.compressionRatio);
+  obj.setProperty(runtime, "temperature", seg.temperature);
+  obj.setProperty(runtime, "no_speech_prob", seg.noSpeechProbability);
+
+  jsi::Array tokensAry(runtime, seg.tokens.size());
+  for (size_t i = 0; i < seg.tokens.size(); ++i) {
+    tokensAry.setValueAtIndex(runtime, i, static_cast<double>(seg.tokens[i]));
+  }
+  obj.setProperty(runtime, "tokens", tokensAry);
+
+  return obj;
+}
+
+
 
 } // namespace rnexecutorch::jsi_conversion
