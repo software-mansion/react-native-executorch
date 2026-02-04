@@ -97,7 +97,7 @@ function LLMScreen() {
                   ? ColorPalette.blueDark
                   : ColorPalette.blueLight,
               }}
-              placeholder="Your message"
+              placeholder={isTextInputFocused ? '' : 'Your message'}
               placeholderTextColor={'#C1C6E5'}
               multiline={true}
               ref={textInputRef}
