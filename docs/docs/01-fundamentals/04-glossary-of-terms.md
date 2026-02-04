@@ -16,7 +16,7 @@ The primary method of a PyTorch module (usually `forward()`) that defines the co
 
 ## Inference
 
-The process of using a trained machine learning model to make predictions or generate outputs based on new, unseen input data. Unlike training (which updates the model's weights), inference is static and computationally lighter, making it suitable for running directly on mobile devices.
+The process of using a trained machine learning model to make predictions or generate outputs for given input data.
 
 ## Out-of-the-Box Support
 
