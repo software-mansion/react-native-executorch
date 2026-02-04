@@ -17,7 +17,7 @@ public:
   transcribe(std::span<float> waveform,
              const types::DecodingOptions &options) const;
   std::vector<float> encode(std::span<float> waveform) const;
-  std::vector<float> decode(std::span<int32_t> tokens,
+  std::vector<float> decode(std::span<const uint64_t> tokens,
                             std::span<float> encoderOutput) const;
 
 private:
@@ -25,9 +25,9 @@ private:
   const models::BaseModel *decoder;
   const TokenizerModule *tokenizer;
 
-  int32_t startOfTranscriptionToken;
-  int32_t endOfTranscriptionToken;
-  int32_t timestampBeginToken;
+  uint64_t startOfTranscriptionToken;
+  uint64_t endOfTranscriptionToken;
+  uint64_t timestampBeginToken;
 
   // Time precision used by Whisper timestamps: each token spans 0.02 seconds
   constexpr static float kTimePrecision = 0.02f;
@@ -44,7 +44,7 @@ private:
   // Number of mel frames output by the encoder (derived from input spectrogram)
   constexpr static int32_t kNumFrames = 1500;
 
-  std::vector<int32_t>
+  std::vector<uint64_t>
   getInitialSequence(const types::DecodingOptions &options) const;
   types::GenerationResult generate(std::span<float> waveform, float temperature,
                                    const types::DecodingOptions &options) const;
@@ -52,11 +52,11 @@ private:
   generateWithFallback(std::span<float> waveform,
                        const types::DecodingOptions &options) const;
   std::vector<types::Segment>
-  calculateWordLevelTimestamps(std::span<const int32_t> tokens,
+  calculateWordLevelTimestamps(std::span<const uint64_t> tokens,
                                std::span<const float> waveform) const;
   std::vector<types::Word>
-  estimateWordLevelTimestampsLinear(std::span<const int32_t> tokens,
-                                    int32_t start, int32_t end) const;
+  estimateWordLevelTimestampsLinear(std::span<const uint64_t> tokens,
+                                    uint64_t start, uint64_t end) const;
   float getCompressionRatio(const std::string &text) const;
 };
 

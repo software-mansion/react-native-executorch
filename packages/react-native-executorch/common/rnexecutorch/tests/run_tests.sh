@@ -80,7 +80,7 @@ REQUIRED_LIBS=(
 # Get libc++_shared.so directly from NDK
 MONOREPO_ROOT="$PACKAGE_ROOT/../../.."
 
-LIBFBJNI_PATH="$SCRIPT_DIR/../integration/libs/libfbjni.so"
+LIBFBJNI_PATH="$SCRIPT_DIR/integration/libs/libfbjni.so"
 
 if [ -z "$LIBFBJNI_PATH" ]; then
   echo "Error: libfbjni.so not found."

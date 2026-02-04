@@ -347,7 +347,7 @@ export class LLMController {
   ): string {
     if (!tokenizerConfig.chat_template) {
       throw new RnExecutorchError(
-        RnExecutorchErrorCode.InvalidConfig,
+        RnExecutorchErrorCode.TokenizerError,
         "Tokenizer config doesn't include chat_template"
       );
     }

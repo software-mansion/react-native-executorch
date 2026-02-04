@@ -52,7 +52,7 @@ export const errorDefinitions = {
    */
   WrongDimensions: 0x74,
   /*
-   * Thrown when the input passed to our APIs is invalid, for example when passing an empty message aray to LLM's generate().
+   * Thrown when the input passed to our APIs is invalid, for example when passing an empty message array to LLM's generate().
    */
   InvalidUserInput: 0x75,
   /*
@@ -60,6 +60,10 @@ export const errorDefinitions = {
    */
   DownloadInterrupted: 0x76,
 
+  /*
+   * Thrown when an error occurs with the tokenizer or tokenization process.
+   */
+  TokenizerError: 0xa7,
   // INFO: SpeechToText errors
   /*
    * Thrown when there's a configuration mismatch between multilingual and language settings in Speech-to-Text models.

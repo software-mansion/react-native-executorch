@@ -22,7 +22,7 @@ public:
   encode(std::span<float> waveform) const;
   [[nodiscard(
       "Registered non-void function")]] std::shared_ptr<OwningArrayBuffer>
-  decode(std::span<int32_t> tokens, std::span<float> encoderOutput) const;
+  decode(std::span<uint64_t> tokens, std::span<float> encoderOutput) const;
   [[nodiscard("Registered non-void function")]] std::vector<char>
   transcribe(std::span<float> waveform, std::string languageOption) const;
 
