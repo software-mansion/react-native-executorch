@@ -1691,6 +1691,18 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/fundamentals/glossary-of-terms": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/fundamentals/loading-models": {
     "shouldDisplay": true,
     "hasMarkdown": false,
