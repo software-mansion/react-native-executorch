@@ -19,8 +19,8 @@ TokenizerModule::TokenizerModule(
   auto status = tokenizer->load(source);
 
   if (status != tokenizers::Error::Ok) {
-    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
-                            "Unexpected issue when loading tokenizer");
+    throw RnExecutorchError(RnExecutorchErrorCode::TokenizerError,
+                            "Unexpected issue occured while loading tokenizer");
   };
 }
 
