@@ -25,5 +25,8 @@ export function parseUnknownError(e: unknown): RnExecutorchError {
     return new RnExecutorchError(RnExecutorchErrorCode.Internal, e);
   }
 
-  return new RnExecutorchError(RnExecutorchErrorCode.Internal, String(e));
+  const message =
+    typeof e === 'object' && e !== null ? JSON.stringify(e) : String(e);
+
+  return new RnExecutorchError(RnExecutorchErrorCode.Internal, message);
 }
