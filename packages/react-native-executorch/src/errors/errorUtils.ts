@@ -1,5 +1,18 @@
 import { RnExecutorchErrorCode } from './ErrorCodes';
 
+function isRnExecutorchError(
+  e: unknown
+): e is { code: number; message: string } {
+  return (
+    typeof e === 'object' &&
+    e !== null &&
+    'code' in e &&
+    'message' in e &&
+    typeof (e as RnExecutorchError).code === 'number' &&
+    typeof (e as RnExecutorchError).message === 'string'
+  );
+}
+
 export class RnExecutorchError extends Error {
   public code: RnExecutorchErrorCode;
   public cause?: unknown;
@@ -13,16 +26,8 @@ export class RnExecutorchError extends Error {
 }
 
 export function parseUnknownError(e: unknown): RnExecutorchError {
-  if (
-    typeof e === 'object' &&
-    e !== null &&
-    'code' in e &&
-    'message' in e &&
-    typeof (e as any).code === 'number' &&
-    typeof (e as any).message === 'string'
-  ) {
-    const raw = e as { code: number; message: string };
-    return new RnExecutorchError(raw.code, raw.message);
+  if (isRnExecutorchError(e)) {
+    return new RnExecutorchError(e.code, e.message);
   }
 
   if (e instanceof RnExecutorchError) {
