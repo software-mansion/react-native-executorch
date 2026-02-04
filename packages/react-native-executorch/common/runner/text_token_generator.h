@@ -14,6 +14,7 @@
 #include "util.h"
 #include <executorch/extension/tensor/tensor.h>
 #include <pytorch/tokenizers/hf_tokenizer.h>
+#include <rnexecutorch/Error.h>
 
 namespace executorch {
 namespace extension {
@@ -111,8 +112,15 @@ public:
       // print the token as string, decode it with the Tokenizer object
       // We pass false, as we want don't want to skip special tokens e.g.
       // <think>
-      std::string cache_decoded = tokenizer_->decode(token_cache, false).get();
 
+      auto decodeResult = tokenizer_->decode(token_cache, false);
+      if (!decodeResult.ok()) {
+        throw rnexecutorch::RnExecutorchError(
+            rnexecutorch::RnExecutorchErrorCode::TokenizerError,
+            "Unexpected issue occured while decoding: " +
+                std::to_string(static_cast<int32_t>(decodeResult.error())));
+      }
+      std::string cache_decoded = decodeResult.get();
       const auto timeIntervalElapsed =
           std::chrono::duration_cast<std::chrono::milliseconds>(
               std::chrono::high_resolution_clock::now() - timestamp_) >

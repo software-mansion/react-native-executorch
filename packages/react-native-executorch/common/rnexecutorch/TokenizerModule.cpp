@@ -5,10 +5,11 @@
 #include <executorch/extension/module/module.h>
 #include <filesystem>
 #include <pytorch/tokenizers/error.h>
-#include <rnexecutorch/data_processing/FileUtils.h>
+#include <runner/constants.h>
 
 namespace rnexecutorch {
 using namespace facebook;
+using namespace executorch::extension::constants;
 
 TokenizerModule::TokenizerModule(
     std::string source, std::shared_ptr<react::CallInvoker> callInvoker)
@@ -34,21 +35,35 @@ void TokenizerModule::ensureTokenizerLoaded(
 
 std::vector<uint64_t> TokenizerModule::encode(std::string s) const {
   ensureTokenizerLoaded("encode");
-  // Two last arguments represent number of bos and eos tokens added to the
-  // encoded string
+
   // If the used tokenizer.json has defined post_processor field,
-  // setting any of those flags to value other than 0 will result in running the
-  // post_processor with 'add_special_token' flag
-  return tokenizer->encode(s, 0, 0).get();
+  // setting any of bos or eos arguments to value other than provided constant
+  // ( which is 0) will result in running the post_processor with
+  // 'add_special_token' flag
+  auto encodeResult =
+      tokenizer->encode(s, numOfAddedBoSTokens, numOfAddedEoSTokens);
+  if (!encodeResult.ok()) {
+    throw rnexecutorch::RnExecutorchError(
+        rnexecutorch::RnExecutorchErrorCode::TokenizerError,
+        "Unexpected issue occured while encoding: " +
+            std::to_string(static_cast<int32_t>(encodeResult.error())));
+  }
+  return encodeResult.get();
 }
 
 std::string TokenizerModule::decode(std::vector<uint64_t> vec,
                                     bool skipSpecialTokens) const {
   ensureTokenizerLoaded("decode");
 
-  std::string decoded_text = tokenizer->decode(vec, skipSpecialTokens).get();
+  auto decodeResult = tokenizer->decode(vec, skipSpecialTokens);
+  if (!decodeResult.ok()) {
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::TokenizerError,
+        "Unexpected issue occured while decoding: " +
+            std::to_string(static_cast<int32_t>(decodeResult.error())));
+  }
 
-  return decoded_text;
+  return decodeResult.get();
 }
 
 size_t TokenizerModule::getVocabSize() const {
@@ -58,21 +73,27 @@ size_t TokenizerModule::getVocabSize() const {
 
 std::string TokenizerModule::idToToken(uint64_t tokenId) const {
   ensureTokenizerLoaded("idToToken");
-  auto result = tokenizer->id_to_piece(
-      static_cast<uint64_t>(tokenId)); // TODO: Change accepted type to uint64_t
-  if (result.ok()) {
-    return result.get();
+  auto result = tokenizer->id_to_piece(tokenId);
+  if (!result.ok()) {
+    throw rnexecutorch::RnExecutorchError(
+        rnexecutorch::RnExecutorchErrorCode::TokenizerError,
+        "Unexpected issue occured while trying to convert id to token: " +
+            std::to_string(static_cast<int32_t>(result.error())));
   }
-  return "";
+  return result.get();
 }
 
 uint64_t TokenizerModule::tokenToId(std::string token) const {
   ensureTokenizerLoaded("tokenToId");
+
   auto result = tokenizer->piece_to_id(token);
-  if (result.ok()) {
-    return static_cast<uint64_t>(result.get()); // TODO: CHANGE RETURN TYPE
+  if (!result.ok()) {
+    throw rnexecutorch::RnExecutorchError(
+        rnexecutorch::RnExecutorchErrorCode::TokenizerError,
+        "Unexpected issue occured while trying to convert token to id: " +
+            std::to_string(static_cast<int32_t>(result.error())));
   }
-  return -1;
+  return result.get();
 }
 
 std::size_t TokenizerModule::getMemoryLowerBound() const noexcept {

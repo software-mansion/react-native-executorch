@@ -11,40 +11,30 @@
 // The module takes in a string as input and emits a string as output.
 
 #include "runner.h"
+#include "constants.h"
 #include "util.h"
 #include <cstdint>
 #include <ctime>
-#include <fstream>
-#include <iostream>
-#include <rnexecutorch/data_processing/FileUtils.h>
+#include <rnexecutorch/Error.h>
 
 namespace example {
 
+using namespace executorch::extension::constants;
 using ::executorch::extension::Module;
 using ::executorch::runtime::Error;
 using ::executorch::runtime::Result;
 
-namespace {
-static constexpr auto kEnableDynamicShape = "enable_dynamic_shape";
-static constexpr auto kEosIds = "get_eos_ids";
-static constexpr auto kMaxSeqLen = "get_max_seq_len";
-static constexpr auto kMaxContextLen = "get_max_context_len";
-static constexpr auto kVocabSize = "get_vocab_size";
-static constexpr auto kUseKVCache = "use_kv_cache";
-static constexpr auto kUseSDPAWithKVCache = "use_sdpa_with_kv_cache";
-} // namespace
-
 Runner::Runner(Module *module, const std::string &tokenizer_path,
                const llm::GenerationConfig &config)
-    : config_(config), module_(module),
+    : config_(config), module_(module), tokenizer_path_(tokenizer_path),
       tokenizer_(std::make_unique<tokenizers::HFTokenizer>()),
-      tokenizer_path_(tokenizer_path), metadata_({
-                                           {kEnableDynamicShape, false},
-                                           {kMaxSeqLen, 128},
-                                           {kMaxContextLen, 128},
-                                           {kUseKVCache, true},
-                                           {kUseSDPAWithKVCache, false},
-                                       }) {}
+      metadata_({
+          {kEnableDynamicShape, false},
+          {kMaxSeqLen, 128},
+          {kMaxContextLen, 128},
+          {kUseKVCache, true},
+          {kUseSDPAWithKVCache, false},
+      }) {}
 
 bool Runner::is_loaded() const {
   return module_->is_loaded() && tokenizer_->is_loaded() &&
@@ -60,9 +50,10 @@ Error Runner::load() {
 
   if (status != tokenizers::Error::Ok) {
     throw rnexecutorch::RnExecutorchError(
-        rnexecutorch::RnExecutorchErrorCode::ModuleNotLoaded,
-        "Unexpected issue when loading tokenizer");
+        rnexecutorch::RnExecutorchErrorCode::TokenizerError,
+        "Unexpected issue occured while loading tokenizer");
   };
+
   ET_CHECK_OK_OR_RETURN_ERROR(module_->load_method("forward"));
 
   ET_LOG(Info, "Reading metadata from model");
@@ -193,12 +184,20 @@ Error Runner::generate(const std::string &prompt,
 
   int64_t context_len_left = static_cast<int64_t>(max_context_length) - pos_;
 
-  // Two last arguments represent number of bos and eos tokens added to the
-  // encoded string
   // If the used tokenizer.json has defined post_processor field,
-  // setting any of those flags to value other than 0 will result in running the
-  // post_processor with 'add_special_token' flag
-  std::vector<uint64_t> prompt_tokens = tokenizer_->encode(prompt, 0, 0).get();
+  // setting any of bos or eos arguments to value other than provided constant
+  // ( which is 0) will result in running the post_processor with
+  // 'add_special_token' flag
+  auto encodeResult =
+      tokenizer_->encode(prompt, numOfAddedBoSTokens, numOfAddedEoSTokens);
+  if (!encodeResult.ok()) {
+    throw rnexecutorch::RnExecutorchError(
+        rnexecutorch::RnExecutorchErrorCode::TokenizerError,
+        "Unexpected issue occured while encoding: " +
+            std::to_string(static_cast<int32_t>(encodeResult.error())));
+  }
+  std::vector<uint64_t> prompt_tokens = encodeResult.get();
+
   std::vector<uint64_t> prompt_tokens_uint64(prompt_tokens.begin(),
                                              prompt_tokens.end());
 
@@ -241,8 +240,14 @@ Error Runner::generate(const std::string &prompt,
   stats_.prompt_eval_end_ms = llm::time_in_ms();
   ET_CHECK_OK_OR_RETURN_ERROR(prefill_res.error());
   uint64_t cur_token = prefill_res.get();
-  const std::string cur_decoded = tokenizer_->decode({cur_token}).get();
-
+  auto decodeResult = tokenizer_->decode({cur_token});
+  if (!decodeResult.ok()) {
+    throw rnexecutorch::RnExecutorchError(
+        rnexecutorch::RnExecutorchErrorCode::TokenizerError,
+        "Unexpected issue occured while decoding: " +
+            std::to_string(static_cast<int32_t>(decodeResult.error())));
+  }
+  const std::string cur_decoded = decodeResult.get();
   RUNNER_ET_LOG(generation_config.warming,
                 "RSS after prompt prefill: %f MiB (0 if unsupported)",
                 llm::get_rss_bytes() / 1024.0 / 1024.0);

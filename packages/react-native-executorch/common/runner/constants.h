@@ -7,7 +7,7 @@
  */
 #pragma once
 // constants for LLM runtime
-namespace executorch::extension::llm {
+namespace executorch::extension::constants {
 
 // Runtime metadata key constants
 inline constexpr auto kEnableDynamicShape = "enable_dynamic_shape";
@@ -25,4 +25,6 @@ inline constexpr auto kAudioEncoderMethod = "audio_encoder";
 inline constexpr auto kTokenEmbeddingMethod = "token_embedding";
 inline constexpr auto kTextModelMethod = "text_decoder";
 
-} // namespace executorch::extension::llm
+inline constexpr auto numOfAddedBoSTokens = 0;
+inline constexpr auto numOfAddedEoSTokens = 0;
+} // namespace executorch::extension::constants

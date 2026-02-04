@@ -342,15 +342,22 @@ inline jsi::Value getJsiValue(const std::vector<char> &vec,
   return {runtime, array};
 }
 
-inline jsi::Value getJsiValue(int val, jsi::Runtime &runtime) {
-  return {runtime, val};
-}
-
-template <typename T>
-  requires(meta::IsNumeric<T> && !meta::SameAs<T, int> &&
-           !meta::SameAs<T, bool>)
+// Conditional as on android, size_t and uint64_t reduce to the same type,
+// introducing ambiguity
+template <typename T,
+          typename = std::enable_if_t<std::is_same_v<T, size_t> &&
+                                      !std::is_same_v<size_t, uint64_t>>>
 inline jsi::Value getJsiValue(T val, jsi::Runtime &runtime) {
   return jsi::Value(static_cast<double>(val));
+}
+
+inline jsi::Value getJsiValue(uint64_t val, jsi::Runtime &runtime) {
+  jsi::BigInt bigInt = jsi::BigInt::fromUint64(runtime, val);
+  return {runtime, bigInt};
+}
+
+inline jsi::Value getJsiValue(int val, jsi::Runtime &runtime) {
+  return {runtime, val};
 }
 
 inline jsi::Value getJsiValue(bool val, jsi::Runtime &runtime) {
