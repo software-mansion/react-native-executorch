@@ -1,12 +1,8 @@
 ---
-title: useVerticalOCR
+title: useOCR
 ---
 
-:::danger Experimental
-The `useVerticalOCR` hook is currently in an experimental phase. We appreciate feedback from users as we continue to refine and enhance its functionality.
-:::
-
-Optical Character Recognition (OCR) is a computer vision technique used to detect and recognize text within images. It is commonly utilized to convert a variety of documents, such as scanned paper documents, PDF files, or images captured by a digital camera, into editable and searchable data. Traditionally, OCR technology has been optimized for recognizing horizontal text, and integrating support for vertical text recognition often requires significant additional effort from developers. To simplify this, we introduce `useVerticalOCR`, a tool designed to abstract the complexities of vertical text OCR, enabling seamless integration into your applications.
+Optical character recognition(OCR) is a computer vision technique that detects and recognizes text within the image. It's commonly used to convert different types of documents, such as scanned paper documents, PDF files, or images captured by a digital camera, into editable and searchable data.
 
 :::warning
 It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/ocr-68d0eb320ae6d20b5f901ea9). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
@@ -15,13 +11,10 @@ It is recommended to use models provided by us, which are available at our [Hugg
 ## Reference
 
 ```tsx
-import { useVerticalOCR, VERTICAL_OCR_ENGLISH } from 'react-native-executorch';
+import { useOCR, OCR_ENGLISH } from 'react-native-executorch';
 
 function App() {
-  const model = useVerticalOCR({
-    model: VERTICAL_OCR_ENGLISH,
-    independentCharacters: true,
-  });
+  const model = useOCR({ model: OCR_ENGLISH });
 
   // ...
   for (const ocrDetection of await model.forward('https://url-to-image.jpg')) {
@@ -37,13 +30,9 @@ function App() {
 <summary>Type definitions</summary>
 
 ```typescript
-interface DetectorSources {
-  detectorLarge: string | number;
-  detectorNarrow: string | number;
-}
-
 interface RecognizerSources {
   recognizerLarge: string | number;
+  recognizerMedium: string | number;
   recognizerSmall: string | number;
 }
 
@@ -129,15 +118,13 @@ interface OCRDetection {
 
 ### Arguments
 
-**`model`** - Object containing the detector sources, recognizer sources, and language.
+**`model`** - Object containing the detector source, recognizer sources, and language.
 
-- **`detectorLarge`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 1280 pixels.
-- **`detectorNarrow`** - A string that specifies the location of the detector binary file which accepts input images with a width of 320 pixels.
+- **`detectorSource`** - A string that specifies the location of the detector binary.
 - **`recognizerLarge`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 512 pixels.
-- **`recognizerSmall`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 64 pixels.
+- **`recognizerMedium`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 256 pixels.
+- **`recognizerSmall`** - A string that specifies the location of the recognizer binary file which accepts input images with a width of 128 pixels.
 - **`language`** - A parameter that specifies the language of the text to be recognized by the OCR.
-
-**`independentCharacters`** – A boolean parameter that indicates whether the text in the image consists of a random sequence of characters. If set to true, the algorithm will scan each character individually instead of reading them as continuous text.
 
 **`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
 
@@ -182,13 +169,10 @@ The `text` property contains the text recognized within detected text region. Th
 ## Example
 
 ```tsx
-import { useVerticalOCR, VERTICAL_OCR_ENGLISH } from 'react-native-executorch';
+import { useOCR, OCR_ENGLISH } from 'react-native-executorch';
 
 function App() {
-  const model = useVerticalOCR({
-    model: VERTICAL_OCR_ENGLISH,
-    independentCharacters: true,
-  });
+  const model = useOCR({ model: OCR_ENGLISH });
 
   const runModel = async () => {
     const ocrDetections = await model.forward('https://url-to-image.jpg');
@@ -205,16 +189,18 @@ function App() {
 ## Language-Specific Recognizers
 
 Each supported language requires its own set of recognizer models.
-The built-in constants such as `RECOGNIZER_EN_CRNN_512`, `RECOGNIZER_PL_CRNN_64`, etc., point to specific models trained for a particular language.
+The built-in constants such as `RECOGNIZER_EN_CRNN_512`, `RECOGNIZER_PL_CRNN_256`, etc., point to specific models trained for a particular language.
 
 > For example:
 >
 > - To recognize **English** text, use:
 >   - `RECOGNIZER_EN_CRNN_512`
->   - `RECOGNIZER_EN_CRNN_64`
+>   - `RECOGNIZER_EN_CRNN_256`
+>   - `RECOGNIZER_EN_CRNN_128`
 > - To recognize **Polish** text, use:
 >   - `RECOGNIZER_PL_CRNN_512`
->   - `RECOGNIZER_PL_CRNN_64`
+>   - `RECOGNIZER_PL_CRNN_256`
+>   - `RECOGNIZER_PL_CRNN_128`
 
 You need to make sure the recognizer models you pass in `recognizerSources` match the `language` you specify.
 
@@ -289,12 +275,12 @@ You need to make sure the recognizer models you pass in `recognizerSources` matc
 
 ## Supported models
 
-| Model                                                    | Type       |
-| -------------------------------------------------------- | ---------- |
-| [CRAFT_1280\*](https://github.com/clovaai/CRAFT-pytorch) | Detector   |
-| [CRAFT_320\*](https://github.com/clovaai/CRAFT-pytorch)  | Detector   |
-| [CRNN_512\*](https://www.jaided.ai/easyocr/modelhub/)    | Recognizer |
-| [CRNN_64\*](https://www.jaided.ai/easyocr/modelhub/)     | Recognizer |
+| Model                                                   |    Type    |
+| ------------------------------------------------------- | :--------: |
+| [CRAFT_800\*](https://github.com/clovaai/CRAFT-pytorch) |  Detector  |
+| [CRNN_512\*](https://www.jaided.ai/easyocr/modelhub/)   | Recognizer |
+| [CRNN_256\*](https://www.jaided.ai/easyocr/modelhub/)   | Recognizer |
+| [CRNN_128\*](https://www.jaided.ai/easyocr/modelhub/)   | Recognizer |
 
 \* - The number following the underscore (\_) indicates the input image width used during model export.
 
@@ -302,29 +288,28 @@ You need to make sure the recognizer models you pass in `recognizerSources` matc
 
 ### Model size
 
-| Model                           | XNNPACK [MB] |
-| ------------------------------- | :----------: |
-| Detector (CRAFT_1280_QUANTIZED) |     19.8     |
-| Detector (CRAFT_32_QUANTIZED)   |     19.8     |
-| Recognizer (CRNN_512)           |  15 - 18\*   |
-| Recognizer (CRNN_64)            |  15 - 16\*   |
+| Model                          | XNNPACK [MB] |
+| ------------------------------ | :----------: |
+| Detector (CRAFT_800_QUANTIZED) |     19.8     |
+| Recognizer (CRNN_512)          |  15 - 18\*   |
+| Recognizer (CRNN_256)          |  16 - 18\*   |
+| Recognizer (CRNN_128)          |  17 - 19\*   |
 
 \* - The model weights vary depending on the language.
 
 ### Memory usage
 
-| Model                                                                | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
-| -------------------------------------------------------------------- | :--------------------: | :----------------: |
-| Detector (CRAFT_1280) + Detector (CRAFT_320) + Recognizer (CRNN_512) |          1540          |        1470        |
-| Detector(CRAFT_1280) + Detector(CRAFT_320) + Recognizer (CRNN_64)    |          1070          |        1000        |
+| Model                                                                                                  | Android (XNNPACK) [MB] | iOS (XNNPACK) [MB] |
+| ------------------------------------------------------------------------------------------------------ | :--------------------: | :----------------: |
+| Detector (CRAFT_800_QUANTIZED) + Recognizer (CRNN_512) + Recognizer (CRNN_256) + Recognizer (CRNN_128) |          1400          |        1320        |
 
 ### Inference time
 
 **Image Used for Benchmarking:**
 
-| ![Alt text](../../../../static/img/sales-vertical.jpeg) | ![Alt text](../../../../static/img/sales-vertical-boxes.png) |
-| ------------------------------------------------------- | ------------------------------------------------------------ |
-| Original Image                                          | Image with detected Text Boxes                               |
+| ![Alt text](../../../../static/img/harvard.png) | ![Alt text](../../../../static/img/harvard-boxes.png) |
+| ----------------------------------------------- | ----------------------------------------------------- |
+| Original Image                               | Image with detected Text Boxes                        |
 
 :::warning
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
@@ -332,16 +317,16 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 
 **Time measurements:**
 
-| Metric                                                                     | iPhone 17 Pro <br /> [ms] | iPhone 16 Pro <br /> [ms] | iPhone SE 3 | Samsung Galaxy S24 <br /> [ms] | OnePlus 12 <br /> [ms] |
-| -------------------------------------------------------------------------- | ------------------------- | ------------------------- | ----------- | ------------------------------ | ---------------------- |
-| **Total Inference Time**                                                   | 1104                      | 1113                      | 8840        | 2845                           | 2640                   |
-| **Detector (CRAFT_1280_QUANTIZED)**                                        | 501                       | 507                       | 4317        | 1405                           | 1275                   |
-| **Detector (CRAFT_320_QUANTIZED)**                                         |                           |                           |             |                                |                        |
-| ├─ Average Time                                                            | 125                       | 121                       | 1060        | 338                            | 299                    |
-| ├─ Total Time (4 runs)                                                     | 500                       | 484                       | 4240        | 1352                           | 1196                   |
-| **Recognizer (CRNN_64)** <br /> (_With Flag `independentChars == true`_)   |                           |                           |             |                                |                        |
-| ├─ Average Time                                                            | 5                         | 6                         | 14          | 7                              | 6                      |
-| ├─ Total Time (21 runs)                                                    | 105                       | 126                       | 294         | 147                            | 126                    |
-| **Recognizer (CRNN_512)** <br /> (_With Flag `independentChars == false`_) |                           |                           |             |                                |                        |
-| ├─ Average Time                                                            | 46                        | 42                        | 109         | 47                             | 37                     |
-| ├─ Total Time (4 runs)                                                     | 184                       | 168                       | 436         | 188                            | 148                    |
+| Metric                             | iPhone 17 Pro <br /> [ms] | iPhone 16 Pro <br /> [ms] | iPhone SE 3 | Samsung Galaxy S24 <br /> [ms] | OnePlus 12 <br /> [ms] |
+| ---------------------------------- | ------------------------- | ------------------------- | ----------- | ------------------------------ | ---------------------- |
+| **Total Inference Time**           | 652                       | 600                       | 2855        | 1092                           | 1034                   |
+| **Detector (CRAFT_800_QUANTIZED)** | 220                       | 221                       | 1740        | 521                            | 492                    |
+| **Recognizer (CRNN_512)**          |                           |                           |             |                                |                        |
+| ├─ Average Time                    | 45                        | 38                        | 110         | 40                             | 38                     |
+| ├─ Total Time (3 runs)             | 135                       | 114                       | 330         | 120                            | 114                    |
+| **Recognizer (CRNN_256)**          |                           |                           |             |                                |                        |
+| ├─ Average Time                    | 21                        | 18                        | 54          | 20                             | 19                     |
+| ├─ Total Time (7 runs)             | 147                       | 126                       | 378         | 140                            | 133                    |
+| **Recognizer (CRNN_128)**          |                           |                           |             |                                |                        |
+| ├─ Average Time                    | 11                        | 9                         | 27          | 10                             | 10                     |
+| ├─ Total Time (7 runs)             | 77                        | 63                        | 189         | 70                             | 70                     |
