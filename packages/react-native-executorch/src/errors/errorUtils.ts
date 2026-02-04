@@ -13,6 +13,18 @@ export class RnExecutorchError extends Error {
 }
 
 export function parseUnknownError(e: unknown): RnExecutorchError {
+  if (
+    typeof e === 'object' &&
+    e !== null &&
+    'code' in e &&
+    'message' in e &&
+    typeof (e as any).code === 'number' &&
+    typeof (e as any).message === 'string'
+  ) {
+    const raw = e as { code: number; message: string };
+    return new RnExecutorchError(raw.code, raw.message);
+  }
+
   if (e instanceof RnExecutorchError) {
     return e;
   }
@@ -25,8 +37,5 @@ export function parseUnknownError(e: unknown): RnExecutorchError {
     return new RnExecutorchError(RnExecutorchErrorCode.Internal, e);
   }
 
-  const message =
-    typeof e === 'object' && e !== null ? JSON.stringify(e) : String(e);
-
-  return new RnExecutorchError(RnExecutorchErrorCode.Internal, message);
+  return new RnExecutorchError(RnExecutorchErrorCode.Internal, String(e));
 }
