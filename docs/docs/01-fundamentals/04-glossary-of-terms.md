@@ -56,4 +56,4 @@ The basic unit of text that an LLM reads and generates. A token can be a word, p
 
 The process of converting raw text (strings) into a sequence of numerical IDs (tokens) that the model can understand.
 
-- **Tokenizer (Component):** In React Native ExecuTorch, the `Tokenizer` is a utility class that handles encoding text into tensors and decoding output tensors back into readable text strings.
+- **TokenizerModule (Component):** In React Native ExecuTorch, the `Tokenizer` is a utility class that handles encoding text into tensors and decoding output tensors back into readable text strings.
