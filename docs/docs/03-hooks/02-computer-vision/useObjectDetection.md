@@ -9,7 +9,12 @@ Object detection is a computer vision technique that identifies and locates obje
 It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/object-detection-68d0ea936cd0906843cbba7d). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
 :::
 
-## Reference
+## API Reference
+
+- For detailed API Reference for `useObjectDetection` see: [`useObjectDetection` API Reference](../../06-api-reference/functions/useObjectDetection.md).
+- For all object detection models available out-of-the-box in React Native ExecuTorch see: [Object Detection Models](../../06-api-reference/index.md#models---object-detection).
+
+## High Level Overview
 
 ```tsx
 import {
@@ -30,51 +35,26 @@ function App() {
 }
 ```
 
-<details>
-<summary>Type definitions</summary>
-
-```typescript
-interface Bbox {
-  x1: number;
-  x2: number;
-  y1: number;
-  y2: number;
-}
-
-interface Detection {
-  bbox: Bbox;
-  label: keyof typeof CocoLabel;
-  score: number;
-}
-```
-
-</details>
-
 ### Arguments
 
-**`model`** - Object containing the model source.
+`useObjectDetection` takes [`ObjectDetectionProps`](../../06-api-reference/interfaces/ObjectDetectionProps.md) that consists of:
 
-- **`modelSource`** - A string that specifies the path to the model file. You can download the model from our [HuggingFace repository](https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large/tree/main).
+- `model` containing [`modelSource`](../../06-api-reference/interfaces/ObjectDetectionProps.md#modelsource).
+- An optional flag [`preventLoad`](../../06-api-reference/interfaces/ObjectDetectionProps.md#preventload) which prevents auto-loading of the model.
 
-**`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+You need more details? Check the following resources:
 
-For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+- For detailed information about `useObjectDetection` arguments check this section: [`useObjectDetection` arguments](../../06-api-reference/functions/useObjectDetection.md#parameters).
+- For all object detection models available out-of-the-box in React Native ExecuTorch see: [Object Detection Models](../../06-api-reference/index.md#models---object-detection).
+- For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
-The hook returns an object with the following properties:
-
-| Field              | Type                                                                              | Description                                                                                                                                                              |
-| ------------------ | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `forward`          | `(imageSource: string, detectionThreshold: number = 0.7) => Promise<Detection[]>` | A function that accepts an image (url, b64) and returns an array of `Detection` objects. `detectionThreshold` can be supplied to alter the sensitivity of the detection. |
-| `error`            | <code>string &#124; null</code>                                                   | Contains the error message if the model loading failed.                                                                                                                  |
-| `isGenerating`     | `boolean`                                                                         | Indicates whether the model is currently processing an inference.                                                                                                        |
-| `isReady`          | `boolean`                                                                         | Indicates whether the model has successfully loaded and is ready for inference.                                                                                          |
-| `downloadProgress` | `number`                                                                          | Represents the download progress as a value between 0 and 1.                                                                                                             |
+`useObjectDetection` returns an object called `ObjectDetectionType` containing bunch of functions to interact with object detection models. To get more details please read: [`ObjectDetectionType` API Reference](../../06-api-reference/interfaces/ObjectDetectionType.md).
 
 ## Running the model
 
-To run the model, you can use the `forward` method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns an array of `Detection` objects. Each object contains coordinates of the bounding box, the label of the detected object, and the confidence score. For more information, please refer to the reference or type definitions.
+To run the model, you can use the [`forward`](../../06-api-reference/interfaces/ObjectDetectionType.md#forward) method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns an array of [`Detection`](../../06-api-reference/interfaces/Detection.md) objects. Each object contains coordinates of the bounding box, the label of the detected object, and the confidence score. For more information, please refer to the reference or type definitions.
 
 ## Detection object
 
@@ -96,7 +76,7 @@ interface Detection {
 ```
 
 The `bbox` property contains information about the bounding box of detected objects. It is represented as two points: one at the bottom-left corner of the bounding box (`x1`, `y1`) and the other at the top-right corner (`x2`, `y2`).
-The `label` property contains the name of the detected object, which corresponds to one of the `CocoLabels`. The `score` represents the confidence score of the detected object.
+The `label` property contains the name of the detected object, which corresponds to one of the [`CocoLabels`](../../06-api-reference/enumerations/CocoLabel.md). The `score` represents the confidence score of the detected object.
 
 ## Example
 
@@ -123,6 +103,6 @@ function App() {
 
 ## Supported models
 
-| Model                                                                                                                                                                                                                 | Number of classes | Class list                                                                                                                                                             |
-| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [SSDLite320 MobileNetV3 Large](https://pytorch.org/vision/stable/models/generated/torchvision.models.detection.ssdlite320_mobilenet_v3_large.html#torchvision.models.detection.SSDLite320_MobileNet_V3_Large_Weights) | 91                | [COCO](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/common/rnexecutorch/models/object_detection/Constants.h) |
+| Model                                                                                                                         | Number of classes | Class list                                               |
+| ----------------------------------------------------------------------------------------------------------------------------- | ----------------- | -------------------------------------------------------- |
+| [SSDLite320 MobileNetV3 Large](https://huggingface.co/software-mansion/react-native-executorch-ssdlite320-mobilenet-v3-large) | 91                | [COCO](../../06-api-reference/enumerations/CocoLabel.md) |

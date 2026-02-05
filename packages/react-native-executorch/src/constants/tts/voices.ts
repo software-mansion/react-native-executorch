@@ -18,41 +18,65 @@ const EN_GB_RESOURCES = {
 
 // Kokoro voices
 const KOKORO_VOICE_PREFIX = `${URL_PREFIX}-kokoro/${NEXT_VERSION_TAG}/voices`;
+/**
+ * @category TTS Supported Voices
+ */
 export const KOKORO_VOICE_AF_HEART = {
   lang: 'en-us' as const,
   voiceSource: `${KOKORO_VOICE_PREFIX}/af_heart.bin`,
   extra: EN_US_RESOURCES,
 } as VoiceConfig;
+/**
+ * @category TTS Supported Voices
+ */
 export const KOKORO_VOICE_AF_RIVER = {
   lang: 'en-us' as const,
   voiceSource: `${KOKORO_VOICE_PREFIX}/af_river.bin`,
   extra: EN_US_RESOURCES,
 } as VoiceConfig;
+/**
+ * @category TTS Supported Voices
+ */
 export const KOKORO_VOICE_AF_SARAH = {
   lang: 'en-us' as const,
   voiceSource: `${KOKORO_VOICE_PREFIX}/af_sarah.bin`,
   extra: EN_US_RESOURCES,
 } as VoiceConfig;
+/**
+ * @category TTS Supported Voices
+ */
 export const KOKORO_VOICE_AM_ADAM = {
   lang: 'en-us' as const,
   voiceSource: `${KOKORO_VOICE_PREFIX}/am_adam.bin`,
   extra: EN_US_RESOURCES,
 } as VoiceConfig;
+/**
+ * @category TTS Supported Voices
+ */
 export const KOKORO_VOICE_AM_MICHAEL = {
   lang: 'en-us' as const,
   voiceSource: `${KOKORO_VOICE_PREFIX}/am_michael.bin`,
   extra: EN_US_RESOURCES,
 } as VoiceConfig;
+/**
+ * @category TTS Supported Voices
+ */
 export const KOKORO_VOICE_AM_SANTA = {
   lang: 'en-us' as const,
   voiceSource: `${KOKORO_VOICE_PREFIX}/am_santa.bin`,
   extra: EN_US_RESOURCES,
 } as VoiceConfig;
+/**
+ * @category TTS Supported Voices
+ */
 export const KOKORO_VOICE_BF_EMMA = {
   lang: 'en-gb' as const,
   voiceSource: `${KOKORO_VOICE_PREFIX}/bf_emma.bin`,
   extra: EN_GB_RESOURCES,
 } as VoiceConfig;
+/**
+ * @category TTS Supported Voices
+ */
 export const KOKORO_VOICE_BM_DANIEL = {
   lang: 'en-gb' as const,
   voiceSource: `${KOKORO_VOICE_PREFIX}/bm_daniel.bin`,

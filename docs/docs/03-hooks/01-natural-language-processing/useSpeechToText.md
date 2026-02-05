@@ -23,9 +23,14 @@ Speech to text is a task that allows to transform spoken language to written tex
 It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/speech-to-text-68d0ec99ed794250491b8bbe). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
 :::
 
-## Reference
+## API Reference
 
-You can obtain waveform from audio in any way most suitable to you, however in the snippet below we utilize `react-native-audio-api` library to process a `.mp3` file.
+- For detailed API Reference for `useSpeechToText` see: [`useSpeechToText` API Reference](../../06-api-reference/functions/useSpeechToText.md).
+- For all speech to text models available out-of-the-box in React Native ExecuTorch see: [STT Models](../../06-api-reference/index.md#models---speech-to-text).
+
+## High Level Overview
+
+You can obtain waveform from audio in any way most suitable to you, however in the snippet below we utilize [`react-native-audio-api`](https://docs.swmansion.com/react-native-audio-api/) library to process a `.mp3` file.
 
 ```typescript
 import { useSpeechToText, WHISPER_TINY_EN } from 'react-native-executorch';
@@ -59,140 +64,32 @@ Since speech-to-text models can only process audio segments up to 30 seconds lon
 
 ### Arguments
 
-**`model`** - Object containing:
+`useSpeechToText` takes [`SpeechToTextProps`](../../06-api-reference/interfaces/SpeechToTextProps.md) that consists of:
 
-- **`isMultilingual`** - A boolean flag indicating whether the model supports multiple languages.
+- `model` of type [`SpeechToTextConfig`](../../06-api-reference/interfaces/SpeechToTextModelConfig.md), containing the [`isMultilingual` flag](../../06-api-reference/interfaces/SpeechToTextModelConfig.md#ismultilingual), [tokenizer source](../../06-api-reference/interfaces/SpeechToTextModelConfig.md#tokenizersource), [encoder source](../../06-api-reference/interfaces/SpeechToTextModelConfig.md#encodersource), and [decoder source](../../06-api-reference/interfaces/SpeechToTextModelConfig.md#decodersource).
+- An optional flag [`preventLoad`](../../06-api-reference/interfaces/SpeechToTextProps.md#preventload) which prevents auto-loading of the model.
 
-- **`encoderSource`** - A string that specifies the location of a `.pte` file for the encoder.
+You need more details? Check the following resources:
 
-- **`decoderSource`** - A string that specifies the location of a `.pte` file for the decoder.
-
-- **`tokenizerSource`** - A string that specifies the location to the tokenizer for the model.
-
-**`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
-
-For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+- For detailed information about `useSpeechToText` arguments check this section: [`useSpeechToText` arguments](../../06-api-reference/functions/useSpeechToText.md#parameters)
+- For all speech to text models available out-of-the-box in React Native ExecuTorch see: [STT Models](../../06-api-reference/index.md#models---speech-to-text).
+- For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
-| Field                       | Type                                                                                                 | Description                                                                                                                                                                                                                                                                                                                   |
-| --------------------------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `transcribe`                | `(waveform: Float32Array \| number[], options?: DecodingOptions \| undefined) => Promise<string>`    | Starts a transcription process for a given input array, which should be a waveform at 16kHz. The second argument is an options object, e.g. `{ language: 'es' }` for multilingual models. Resolves a promise with the output transcription when the model is finished. Passing `number[]` is deprecated.                      |
-| `stream`                    | `(options?: DecodingOptions \| undefined) => Promise<string>`                                        | Starts a streaming transcription process. Use in combination with `streamInsert` to feed audio chunks and `streamStop` to end the stream. The argument is an options object, e.g. `{ language: 'es' }` for multilingual models. Updates `committedTranscription` and `nonCommittedTranscription` as transcription progresses. |
-| `streamInsert`              | `(waveform: Float32Array \| number[]) => void`                                                       | Inserts a chunk of audio data (sampled at 16kHz) into the ongoing streaming transcription. Call this repeatedly as new audio data becomes available. Passing `number[]` is deprecated.                                                                                                                                        |
-| `streamStop`                | `() => void`                                                                                         | Stops the ongoing streaming transcription process.                                                                                                                                                                                                                                                                            |
-| `encode`                    | `(waveform: Float32Array \| number[]) => Promise<Float32Array>`                                      | Runs the encoding part of the model on the provided waveform. Passing `number[]` is deprecated.                                                                                                                                                                                                                               |
-| `decode`                    | `(tokens: number[] \| Int32Array, encoderOutput: Float32Array \| number[]) => Promise<Float32Array>` | Runs the decoder of the model. Passing `number[]` is deprecated.                                                                                                                                                                                                                                                              |
-| `committedTranscription`    | `string`                                                                                             | Contains the part of the transcription that is finalized and will not change. Useful for displaying stable results during streaming.                                                                                                                                                                                          |
-| `nonCommittedTranscription` | `string`                                                                                             | Contains the part of the transcription that is still being processed and may change. Useful for displaying live, partial results during streaming.                                                                                                                                                                            |
-| `error`                     | `string \| null`                                                                                     | Contains the error message if the model failed to load.                                                                                                                                                                                                                                                                       |
-| `isGenerating`              | `boolean`                                                                                            | Indicates whether the model is currently processing an inference.                                                                                                                                                                                                                                                             |
-| `isReady`                   | `boolean`                                                                                            | Indicates whether the model has successfully loaded and is ready for inference.                                                                                                                                                                                                                                               |
-| `downloadProgress`          | `number`                                                                                             | Tracks the progress of the model download process.                                                                                                                                                                                                                                                                            |
+`useSpeechToText` returns an object called `SpeechToTextType` containing bunch of functions to interact with STT.
 
-<details>
-<summary>Type definitions</summary>
+Please note, that both [`transcribe`](../../06-api-reference/interfaces/SpeechToTextType.md#transcribe) and [`stream`](../../06-api-reference/interfaces/SpeechToTextType.md#stream) functions accept [`DecodingOptions`](../../06-api-reference/interfaces/DecodingOptions.md) type as an argument. It accepts language abbreviation, you can check them out in [`language`](../../06-api-reference/interfaces/DecodingOptions.md#language) property of this config of type [`SpeechToTextLanguage`](../../06-api-reference/type-aliases/SpeechToTextLanguage.md).
 
-```typescript
-// Languages supported by whisper (Multilingual)
-type SpeechToTextLanguage =
-  | 'af'
-  | 'sq'
-  | 'ar'
-  | 'hy'
-  | 'az'
-  | 'eu'
-  | 'be'
-  | 'bn'
-  | 'bs'
-  | 'bg'
-  | 'my'
-  | 'ca'
-  | 'zh'
-  | 'hr'
-  | 'cs'
-  | 'da'
-  | 'nl'
-  | 'et'
-  | 'en'
-  | 'fi'
-  | 'fr'
-  | 'gl'
-  | 'ka'
-  | 'de'
-  | 'el'
-  | 'gu'
-  | 'ht'
-  | 'he'
-  | 'hi'
-  | 'hu'
-  | 'is'
-  | 'id'
-  | 'it'
-  | 'ja'
-  | 'kn'
-  | 'kk'
-  | 'km'
-  | 'ko'
-  | 'lo'
-  | 'lv'
-  | 'lt'
-  | 'mk'
-  | 'mg'
-  | 'ms'
-  | 'ml'
-  | 'mt'
-  | 'mr'
-  | 'ne'
-  | 'no'
-  | 'fa'
-  | 'pl'
-  | 'pt'
-  | 'pa'
-  | 'ro'
-  | 'ru'
-  | 'sr'
-  | 'si'
-  | 'sk'
-  | 'sl'
-  | 'es'
-  | 'su'
-  | 'sw'
-  | 'sv'
-  | 'tl'
-  | 'tg'
-  | 'ta'
-  | 'te'
-  | 'th'
-  | 'tr'
-  | 'uk'
-  | 'ur'
-  | 'uz'
-  | 'vi'
-  | 'cy'
-  | 'yi';
-
-interface DecodingOptions {
-  language?: SpeechToTextLanguage;
-}
-
-interface SpeechToTextModelConfig {
-  isMultilingual: boolean;
-  encoderSource: ResourceSource;
-  decoderSource: ResourceSource;
-  tokenizerSource: ResourceSource;
-}
-```
-
-</details>
+To get more details please read: [`SpeechToTextType` API Reference](../../06-api-reference/interfaces/SpeechToTextType.md).
 
 ## Running the model
 
-Before running the model's `transcribe` method, make sure to extract the audio waveform you want to transcribe. You'll need to handle this step yourself, ensuring the audio is sampled at 16 kHz. Once you have the waveform, pass it as an argument to the transcribe method. The method returns a promise that resolves to the generated transcription on success, or an error if inference fails.
+Before running the model's [`transcribe`](../../06-api-reference/interfaces/SpeechToTextType.md#transcribe) method, make sure to extract the audio waveform you want to transcribe. You'll need to handle this step yourself, ensuring the audio is sampled at 16 kHz. Once you have the waveform, pass it as an argument to the transcribe method. The method returns a promise that resolves to the generated transcription on success, or an error if inference fails.
 
 ### Multilingual transcription
 
-If you want to transcribe speech in languages other than English, use the multilingual version of Whisper. To generate the output in your desired language, pass the `language` option to the `transcribe` method.
+If you want to transcribe speech in languages other than English, use the multilingual version of Whisper. To generate the output in your desired language, pass the [`language`](../../06-api-reference/interfaces/DecodingOptions.md#language) option to the [`transcribe`](../../06-api-reference/interfaces/SpeechToTextType.md#transcribe) method.
 
 ```typescript
 import { useSpeechToText, WHISPER_TINY } from 'react-native-executorch';

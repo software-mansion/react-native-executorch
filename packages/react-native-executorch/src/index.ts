@@ -104,6 +104,7 @@ export * from './modules/computer_vision/TextToImageModule';
 
 export * from './modules/natural_language_processing/LLMModule';
 export * from './modules/natural_language_processing/SpeechToTextModule';
+export * from './modules/natural_language_processing/TextToSpeechModule';
 export * from './modules/natural_language_processing/TextEmbeddingsModule';
 export * from './modules/natural_language_processing/TokenizerModule';
 export * from './modules/natural_language_processing/VADModule';
@@ -121,11 +122,15 @@ export * from './types/imageSegmentation';
 export * from './types/llm';
 export * from './types/vad';
 export * from './types/common';
-export {
-  SpeechToTextLanguage,
-  SpeechToTextModelConfig,
-  DecodingOptions,
-} from './types/stt';
+export * from './types/stt';
+export * from './types/textEmbeddings';
+export * from './types/tts';
+export * from './types/tokenizer';
+export * from './types/executorchModule';
+export * from './types/classification';
+export * from './types/imageEmbeddings';
+export * from './types/styleTransfer';
+export * from './types/tti';
 
 // constants
 export * from './constants/modelUrls';

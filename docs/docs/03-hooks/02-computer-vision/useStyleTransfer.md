@@ -8,7 +8,12 @@ Style transfer is a technique used in computer graphics and machine learning whe
 It is recommended to use models provided by us which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/style-transfer-68d0eab2b0767a20e7efeaf5), you can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
 :::
 
-## Reference
+## API Reference
+
+- For detailed API Reference for `useStyleTransfer` see: [`useStyleTransfer` API Reference](../../06-api-reference/functions/useStyleTransfer.md).
+- For all style transfer models available out-of-the-box in React Native ExecuTorch see: [Style Transfer Models](../../06-api-reference/index.md#models---style-transfer).
+
+## High Level Overview
 
 ```typescript
 import {
@@ -29,27 +34,24 @@ try {
 
 ### Arguments
 
-**`model`** - Object containing the model source.
+`useStyleTransfer` takes [`StyleTransferProps`](../../06-api-reference/interfaces/StyleTransferProps.md) that consists of:
 
-- **`modelSource`** - A string that specifies the location of the model binary.
+- `model` containing [`modelSource`](../../06-api-reference/interfaces/StyleTransferProps.md#modelsource).
+- An optional flag [`preventLoad`](../../06-api-reference/interfaces/StyleTransferProps.md#preventload) which prevents auto-loading of the model.
 
-**`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+You need more details? Check the following resources:
 
-For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+- For detailed information about `useStyleTransfer` arguments check this section: [`useStyleTransfer` arguments](../../06-api-reference/functions/useStyleTransfer.md#parameters).
+- For all style transfer models available out-of-the-box in React Native ExecuTorch see: [Style Transfer Models](../../06-api-reference/index.md#models---style-transfer).
+- For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
-| Field              | Type                                       | Description                                                                                                    |
-| ------------------ | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
-| `forward`          | `(imageSource: string) => Promise<string>` | Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string. |
-| `error`            | <code>string &#124; null</code>            | Contains the error message if the model failed to load.                                                        |
-| `isGenerating`     | `boolean`                                  | Indicates whether the model is currently processing an inference.                                              |
-| `isReady`          | `boolean`                                  | Indicates whether the model has successfully loaded and is ready for inference.                                |
-| `downloadProgress` | `number`                                   | Represents the download progress as a value between 0 and 1.                                                   |
+`useStyleTransfer` returns an object called `StyleTransferType` containing bunch of functions to interact with style transfer models. To get more details please read: [`StyleTransferType` API Reference](../../06-api-reference/interfaces/StyleTransferType.md).
 
 ## Running the model
 
-To run the model, you can use `forward` method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns a promise which can resolve either to an error or a URL to generated image.
+To run the model, you can use [`forward`](../../06-api-reference/interfaces/StyleTransferType.md#forward) method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns a promise which can resolve either to an error or a URL to generated image.
 
 :::info
 Images from external sources and the generated image are stored in your application's temporary directory.

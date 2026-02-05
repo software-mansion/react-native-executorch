@@ -1,22 +1,26 @@
 import { useCallback, useEffect, useState } from 'react';
 import { TextToSpeechModule } from '../../modules/natural_language_processing/TextToSpeechModule';
 import {
-  TextToSpeechConfig,
+  TextToSpeechProps,
   TextToSpeechInput,
+  TextToSpeechType,
   TextToSpeechStreamingInput,
 } from '../../types/tts';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
-interface Props extends TextToSpeechConfig {
-  preventLoad?: boolean;
-}
-
+/**
+ * React hook for managing Text to Speech instance.
+ *
+ * @category Hooks
+ * @param TextToSpeechProps - Configuration object containing `model` source, `voice` and optional `preventLoad`.
+ * @returns Ready to use Text to Speech model.
+ */
 export const useTextToSpeech = ({
   model,
   voice,
   preventLoad = false,
-}: Props) => {
+}: TextToSpeechProps): TextToSpeechType => {
   const [error, setError] = useState<RnExecutorchError | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);

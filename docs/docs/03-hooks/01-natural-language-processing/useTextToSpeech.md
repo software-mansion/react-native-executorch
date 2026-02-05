@@ -22,7 +22,13 @@ Text to speech is a task that allows to transform written text into spoken langu
 It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/software-mansion/react-native-executorch-kokoro). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
 :::
 
-## Reference
+## API Reference
+
+- For detailed API Reference for `useTextToSpeech` see: [`useTextToSpeech` API Reference](../../06-api-reference/functions/useTextToSpeech.md).
+- For all text to speech models available out-of-the-box in React Native ExecuTorch see: [TTS Models](../../06-api-reference/index.md#models---text-to-speech).
+- For all supported voices in `useTextToSpeech` please refer to: [Supported Voices](../../06-api-reference/index.md#tts-supported-voices)
+
+## High Level Overview
 
 You can play the generated waveform in any way most suitable to you; however, in the snippet below we utilize the react-native-audio-api library to play synthesized speech.
 
@@ -57,65 +63,34 @@ const handleSpeech = async (text: string) => {
 
 ### Arguments
 
-**`model`** (`KokoroConfig`) - Object specifying the source files for the Kokoro TTS model (duration predictor, synthesizer).
+`useTextToSpeech` takes [`TextToSpeechProps`](../../06-api-reference/interfaces/TextToSpeechProps.md) that consists of:
 
-**`voice`** (`VoiceConfig`) - Object specifying the voice data and phonemizer assets (tagger and lexicon).
+- `model` of type [`KokoroConfig`](../../06-api-reference/interfaces/KokoroConfig.md) containing the [`durationPredictorSource`](../../06-api-reference/interfaces/KokoroConfig.md#durationpredictorsource), [`synthesizerSource`](../../06-api-reference/interfaces/KokoroConfig.md#synthesizersource), and [`type`](../../06-api-reference/interfaces/KokoroConfig.md#type).
+- An optional flag [`preventLoad`](../../06-api-reference/interfaces/TextToSpeechProps.md#preventload) which prevents auto-loading of the model.
+- [`voice`](../../06-api-reference/interfaces/TextToSpeechProps.md#preventload) of type [`VoiceConfig`](../../06-api-reference/interfaces/VoiceConfig.md) - configuration of specific voice used in TTS.
 
-**`preventLoad?`** - Boolean that can prevent automatic model loading after running the hook.
+You need more details? Check the following resources:
 
-For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+- For detailed information about `useTextToSpeech` arguments check this section: [`useTextToSpeech` arguments](../../06-api-reference/functions/useTextToSpeech.md#parameters).
+- For all text to speech models available out-of-the-box in React Native ExecuTorch see: [Text to Speech Models](../../06-api-reference/index.md#models---text-to-speech).
+- For all supported voices in `useTextToSpeech` please refer to: [Supported Voices](../../06-api-reference/index.md#tts-supported-voices)
+- For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
-| Field              | Type                                                      | Description                                                                                                                                                                          |
-| ------------------ | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `forward`          | `(text: string, speed?: number) => Promise<Float32Array>` | Synthesizes a full text into speech. Returns a promise resolving to the full audio waveform as a `Float32Array`.                                                                     |
-| `stream`           | `(input: TextToSpeechStreamingInput) => Promise<void>`    | Starts a streaming synthesis session. Takes a text input and callbacks to handle audio chunks as they are generated. Ideal for reducing the "time to first audio" for long sentences |
-| `streamStop`       | `(): void`                                                | Stops the streaming process if there is any ongoing.                                                                                                                                 |
-| `error`            | `RnExecutorchError \| null`                               | Contains the error message if the model failed to load or synthesis failed.                                                                                                          |
-| `isGenerating`     | `boolean`                                                 | Indicates whether the model is currently processing a synthesis.                                                                                                                     |
-| `isReady`          | `boolean`                                                 | Indicates whether the model has successfully loaded and is ready for synthesis.                                                                                                      |
-| `downloadProgress` | `number`                                                  | Tracks the progress of the model and voice assets download process.                                                                                                                  |
-
-<details>
-<summary>Type definitions</summary>
-
-```typescript
-interface TextToSpeechStreamingInput {
-  text: string;
-  speed?: number;
-  onBegin?: () => void | Promise<void>;
-  onNext?: (chunk: Float32Array) => Promise<void> | void;
-  onEnd?: () => Promise<void> | void;
-}
-
-interface KokoroConfig {
-  durationSource: ResourceSource;
-  synthesizerSource: ResourceSource;
-}
-
-interface VoiceConfig {
-  voiceSource: ResourceSource;
-  extra: {
-    taggerSource: ResourceSource;
-    lexiconSource: ResourceSource;
-  };
-}
-```
-
-</details>
+`useTextToSpeech` returns an object called `TextToSpeechType` containing bunch of functions to interact with TTS. To get more details please read: [`TextToSpeechType` API Reference](../../06-api-reference/interfaces/TextToSpeechType.md).
 
 ## Running the model
 
 The module provides two ways to generate speech:
 
-1.  **`forward(text, speed)`**: Generates the complete audio waveform at once. Returns a promise resolving to a `Float32Array`.
+1.  [**`forward(text, speed)`**](../../06-api-reference/interfaces/TextToSpeechType.md#forward): Generates the complete audio waveform at once. Returns a promise resolving to a `Float32Array`.
 
 :::note
 Since it processes the entire text at once, it might take a significant amount of time to produce an audio for long text inputs.
 :::
 
-2.  **`stream({ text, speed })`**: An async generator that yields chunks of audio as they are computed.
+2.  [**`stream({ text, speed })`**](../../06-api-reference/interfaces/TextToSpeechType.md#stream): An async generator that yields chunks of audio as they are computed.
     This is ideal for reducing the "time to first audio" for long sentences.
 
 ## Example
