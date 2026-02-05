@@ -130,11 +130,12 @@ These errors are specific to streaming transcription operations.
 
 These errors come from the ExecuTorch runtime during model execution.
 
-| Error Code           | Description                  | When It Occurs                                 | How to Handle                                  |
-| -------------------- | ---------------------------- | ---------------------------------------------- | ---------------------------------------------- |
-| `InvalidModelOutput` | Model output size unexpected | Model produces output of wrong size            | Verify model is compatible with the library    |
-| `ThreadPoolError`    | Threadpool operation failed  | Internal threading issue                       | Restart the model or app                       |
-| `UnknownError`       | Unexpected error occurred    | 3rd-party library error or unhandled exception | Check logs for details, report if reproducible |
+| Error Code           | Description                      | When It Occurs                                 | How to Handle                                  |
+| -------------------- | -------------------------------- | ---------------------------------------------- | ---------------------------------------------- |
+| `InvalidModelOutput` | Model output size unexpected     | Model produces output of wrong size            | Verify model is compatible with the library    |
+| `ThreadPoolError`    | Threadpool operation failed      | Internal threading issue                       | Restart the model or app                       |
+| `TokenizerError`     | Tokenizer or tokenization failed | Tokenizer initialization or processing error   | Check tokenizer files and model compatibility  |
+| `UnknownError`       | Unexpected error occurred        | 3rd-party library error or unhandled exception | Check logs for details, report if reproducible |
 
 ### ExecuTorch Runtime Errors
 
