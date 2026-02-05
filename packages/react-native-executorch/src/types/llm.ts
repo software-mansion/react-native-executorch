@@ -82,7 +82,6 @@ export interface LLMType {
    * @returns The count of generated tokens.
    */
   getGeneratedTokenCount: () => number;
-
   /**
    * Runs model to complete chat passed in `messages` argument. It doesn't manage conversation context.
    *
@@ -91,6 +90,18 @@ export interface LLMType {
    * @returns The generated tokens as `string`.
    */
   generate: (messages: Message[], tools?: LLMTool[]) => Promise<string>;
+  /**
+   * Returns the number of total tokens from the previous generation.This is a sum of prompt tokens and generated tokens.
+   *
+   * @returns The count of prompt and generated tokens.
+   */
+  getTotalTokenCount: () => number;
+  /**
+   * Returns the number of prompt tokens in the last message.
+   *
+   * @returns The count of prompt token.
+   */
+  getPromptTokenCount: () => number;
 
   /**
    * Function to add user message to conversation.

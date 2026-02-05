@@ -71,6 +71,13 @@ size_t LLM::getGeneratedTokenCount() const noexcept {
   return runner->stats_.num_generated_tokens;
 }
 
+size_t LLM::getPromptTokenCount() const noexcept {
+  if (!runner || !runner->is_loaded()) {
+    return 0;
+  }
+  return runner->stats_.num_prompt_tokens;
+}
+
 size_t LLM::getMemoryLowerBound() const noexcept {
   return memorySizeLowerBound;
 }

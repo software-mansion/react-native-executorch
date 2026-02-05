@@ -33,26 +33,25 @@ export class RnExecutorchError extends Error {
   }
 }
 
-function isRnExecutorchError(
+function isRnExecutorchErrorLike(
   e: unknown
 ): e is { code: number; message: string } {
+  const candidate = e as Record<string, unknown>;
+
   return (
     typeof e === 'object' &&
     e !== null &&
-    'code' in e &&
-    'message' in e &&
-    typeof (e as RnExecutorchError).code === 'number' &&
-    typeof (e as RnExecutorchError).message === 'string'
+    typeof candidate.code === 'number' &&
+    typeof candidate.message === 'string'
   );
 }
 
 export function parseUnknownError(e: unknown): RnExecutorchError {
-  if (isRnExecutorchError(e)) {
-    return new RnExecutorchError(e.code, e.message);
-  }
-
   if (e instanceof RnExecutorchError) {
     return e;
+  }
+  if (isRnExecutorchErrorLike(e)) {
+    return new RnExecutorchError(e.code, e.message);
   }
 
   if (e instanceof Error) {

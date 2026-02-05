@@ -37,6 +37,8 @@ llm.delete();
 
 ### Methods
 
+All methods of `LLMModule` are explained in details here: [LLMModule API Reference](../../06-api-reference/classes/LLMModule.md).
+
 ## Loading the model
 
 To create a new instance of `LLMModule`, use the [constructor](../../06-api-reference/classes/LLMModule.md#constructor) with optional callbacks:

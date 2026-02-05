@@ -65,6 +65,15 @@ You need more details? Check the following resources:
 
 ### Returns
 
+`useLLM` returns [`LLMType`](../../06-api-reference/interfaces/LLMType.md) which provides:
+
+- State properties: [`response`](../../06-api-reference/interfaces/LLMType.md#response), [`token`](../../06-api-reference/interfaces/LLMType.md#token), [`isReady`](../../06-api-reference/interfaces/LLMType.md#isready), [`isGenerating`](../../06-api-reference/interfaces/LLMType.md#isgenerating), [`downloadProgress`](../../06-api-reference/interfaces/LLMType.md#downloadprogress), [`error`](../../06-api-reference/interfaces/LLMType.md#error), [`messageHistory`](../../06-api-reference/interfaces/LLMType.md#messagehistory)
+- Generation methods: [`generate`](../../06-api-reference/interfaces/LLMType.md#generate), [`sendMessage`](../../06-api-reference/interfaces/LLMType.md#sendmessage), [`interrupt`](../../06-api-reference/interfaces/LLMType.md#interrupt)
+- Configuration: [`configure`](../../06-api-reference/interfaces/LLMType.md#configure), [`deleteMessage`](../../06-api-reference/interfaces/LLMType.md#deletemessage)
+- Token counting: [`getGeneratedTokenCount`](../../06-api-reference/interfaces/LLMType.md#getgeneratedtokencount), [`getPromptTokenCount`](../../06-api-reference/interfaces/LLMType.md#getprompttokencount), [`getTotalTokenCount`](../../06-api-reference/interfaces/LLMType.md#gettotaltokencount)
+
+For complete details, see the [LLMType API Reference](../../06-api-reference/interfaces/LLMType.md).
+
 ## Functional vs managed
 
 You can use functions returned from this hooks in two manners:

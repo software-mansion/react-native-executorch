@@ -149,6 +149,24 @@ export class LLMModule {
   }
 
   /**
+   * Returns the number of prompt tokens in the last message.
+   *
+   * @returns The count of prompt token.
+   */
+  getPromptTokensCount() {
+    return this.controller.getPromptTokenCount();
+  }
+
+  /**
+   * Returns the number of total tokens from the previous generation. This is a sum of prompt tokens and generated tokens.
+   *
+   * @returns The count of prompt and generated tokens.
+   */
+  getTotalTokensCount() {
+    return this.controller.getTotalTokenCount();
+  }
+
+  /**
    * Method to delete the model from memory.
    * Note you cannot delete model while it's generating.
    * You need to interrupt it first and make sure model stopped generation.
