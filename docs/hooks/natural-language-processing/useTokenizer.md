@@ -6,7 +6,11 @@ Tokenization is the process of breaking down text into smaller units called toke
 
 We are using [Hugging Face Tokenizers](https://huggingface.co/docs/tokenizers/index) under the hood, ensuring compatibility with the Hugging Face ecosystem.
 
-## Reference[​](#reference "Direct link to Reference")
+## API Reference[​](#api-reference "Direct link to API Reference")
+
+* For detailed API Reference for `useTokenizer` see: [`useTokenizer` API Reference](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/useTokenizer).
+
+## High Level Overview[​](#high-level-overview "Direct link to High Level Overview")
 
 ```typescript
 import { useTokenizer, ALL_MINILM_L6_V2 } from 'react-native-executorch';
@@ -29,29 +33,21 @@ try {
 
 ```
 
-## Arguments[​](#arguments "Direct link to Arguments")
+### Arguments[​](#arguments "Direct link to Arguments")
 
-**`tokenizer`** - Object containing the tokenizer source.
+`useTokenizer` takes [`TokenizerProps`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/TokenizerProps) that consists of:
 
-* **`tokenizerSource`** - A string that specifies the location of the tokenizer JSON file.
+* `tokenizer` of type [`KokoroConfig`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/KokoroConfig) containing [`tokenizerSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/TokenizerProps#tokenizersource).
+* An optional flag [`preventLoad`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/TokenizerProps#preventload) which prevents auto-loading of the model.
 
-**`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+You need more details? Check the following resources:
 
-For more information on loading resources, take a look at [loading models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models.md) page.
+* For detailed information about `useTokenizer` arguments check this section: [`useTokenizer` arguments](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/useTokenizer#parameters).
+* For more information on loading resources, take a look at [loading models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models.md) page.
 
 ### Returns[​](#returns "Direct link to Returns")
 
-| Field              | Type                                  | Description                                                           |
-| ------------------ | ------------------------------------- | --------------------------------------------------------------------- |
-| `encode`           | `(text: string) => Promise<number[]>` | Converts a string into an array of token IDs.                         |
-| `decode`           | `(ids: number[]) => Promise<string>`  | Converts an array of token IDs into a string.                         |
-| `getVocabSize`     | `() => Promise<number>`               | Returns the size of the tokenizer's vocabulary.                       |
-| `idToToken`        | `(id: number) => Promise<string>`     | Returns the token associated to the ID.                               |
-| `tokenToId`        | `(token: string) => Promise<number>`  | Returns the ID associated to the token.                               |
-| `error`            | `string \| null`                      | Contains the error message if the tokenizer failed to load.           |
-| `isGenerating`     | `boolean`                             | Indicates whether the tokenizer is currently running.                 |
-| `isReady`          | `boolean`                             | Indicates whether the tokenizer has successfully loaded and is ready. |
-| `downloadProgress` | `number`                              | Represents the download progress as a value between 0 and 1.          |
+`useTokenizer` returns an object called `TokenizerType` containing bunch of functions to interact with Tokenizers. To get more details please read: [`TokenizerType` API Reference](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/TokenizerType).
 
 ## Example[​](#example "Direct link to Example")
 

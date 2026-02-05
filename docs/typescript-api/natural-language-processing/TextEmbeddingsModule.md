@@ -2,7 +2,12 @@
 
 TypeScript API implementation of the [useTextEmbeddings](https://docs.swmansion.com/react-native-executorch/docs/hooks/natural-language-processing/useTextEmbeddings.md) hook.
 
-## Reference[​](#reference "Direct link to Reference")
+## API Reference[​](#api-reference "Direct link to API Reference")
+
+* For detailed API Reference for `TextEmbeddingsModule` see: [`TextEmbeddingsModule` API Reference](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/TextEmbeddingsModule).
+* For all text embeddings models available out-of-the-box in React Native ExecuTorch see: [Text Embeddings Models](https://docs.swmansion.com/react-native-executorch/docs/api-reference#models---text-embeddings).
+
+## High Level Overview[​](#high-level-overview "Direct link to High Level Overview")
 
 ```typescript
 import {
@@ -23,29 +28,18 @@ const embedding = await textEmbeddingsModule.forward('Hello World!');
 
 ### Methods[​](#methods "Direct link to Methods")
 
-| Method               | Type                                                                                                                                                | Description                                                                                                                                                                             |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `load`               | `(model: { modelSource: ResourceSource; tokenizerSource: ResourceSource }, onDownloadProgressCallback?: (progress: number) => void): Promise<void>` | Loads the model, where `modelSource` is a string that specifies the location of the model binary, `tokenizerSource` is a string that specifies the location of the tokenizer JSON file. |
-| `forward`            | `(input: string): Promise<number[]>`                                                                                                                | Executes the model's forward pass, where `input` is a text that will be embedded.                                                                                                       |
-| `onDownloadProgress` | `(callback: (downloadProgress: number) => void): any`                                                                                               | Subscribe to the download progress event.                                                                                                                                               |
-
-![](/react-native-executorch/img/Arrow.svg)![](/react-native-executorch/img/Arrow-dark.svg)Type definitions
-
-```typescript
-type ResourceSource = string | number | object;
-
-```
+All methods of `TextEmbeddingsModule` are explained in details here: [`TextEmbeddingsModule` API Reference](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/TextEmbeddingsModule)
 
 ## Loading the model[​](#loading-the-model "Direct link to Loading the model")
 
-To load the model, use the `load` method. It accepts an object:
+To load the model, use the [`load`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/TextEmbeddingsModule#load) method. It accepts an object:
 
-**`model`** - Object containing the model source and tokenizer source.
+* [`model`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/TextEmbeddingsModule#model) - Object containing:
 
-* **`modelSource`** - A string that specifies the location of the model binary.
-* **`tokenizerSource`** - A string that specifies the location of the tokenizer JSON file.
+  * [`modelSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/TextEmbeddingsModule#modelsource) - Location of the used model.
+  * [`tokenizerSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/TextEmbeddingsModule#tokenizersource) - Location of the used tokenizer.
 
-**`onDownloadProgressCallback`** - (Optional) Function called on download progress.
+* [`onDownloadProgressCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/TextEmbeddingsModule#ondownloadprogresscallback) - Callback to track download progress.
 
 This method returns a promise, which can resolve to an error or void.
 
@@ -53,4 +47,4 @@ For more information on loading resources, take a look at [loading models](https
 
 ## Running the model[​](#running-the-model "Direct link to Running the model")
 
-To run the model, you can use the `forward` method. It accepts one argument, which is the text you want to embed. The method returns a promise, which can resolve either to an error or an array of numbers representing the embedding.
+To run the model, you can use the [`forward`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/TextEmbeddingsModule#forward) method. It accepts one argument, which is the text you want to embed. The method returns a promise, which can resolve either to an error or an array of numbers representing the embedding.

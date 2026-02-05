@@ -2,7 +2,13 @@
 
 TypeScript API implementation of the [useLLM](https://docs.swmansion.com/react-native-executorch/docs/hooks/natural-language-processing/useLLM.md) hook.
 
-## Reference[​](#reference "Direct link to Reference")
+## API Reference[​](#api-reference "Direct link to API Reference")
+
+* For detailed API Reference for `LLMModule` see: [`LLMModule` API Reference](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule).
+* For all LLM models available out-of-the-box in React Native ExecuTorch see: [LLM Models](https://docs.swmansion.com/react-native-executorch/docs/api-reference#models---lmm).
+* For useful LLM utility functionalities please refer to the following link: [LLM Utility Functionalities](https://docs.swmansion.com/react-native-executorch/docs/api-reference#utilities---llm).
+
+## High Level Overview[​](#high-level-overview "Direct link to High Level Overview")
 
 ```typescript
 import { LLMModule, LLAMA3_2_1B_QLORA } from 'react-native-executorch';
@@ -16,8 +22,9 @@ const llm = new LLMModule({
 // Loading the model
 await llm.load(LLAMA3_2_1B_QLORA, (progress) => console.log(progress));
 
-// Running the model
-await llm.sendMessage('Hello, World!');
+// Running the model - returns the generated response
+const response = await llm.sendMessage('Hello, World!');
+console.log('Response:', response);
 
 // Interrupting the model (to actually interrupt the generation it has to be called when sendMessage or generate is running)
 llm.interrupt();
@@ -29,81 +36,27 @@ llm.delete();
 
 ### Methods[​](#methods "Direct link to Methods")
 
-| Method                   | Type                                                                                                                                                                                       | Description                                                                                                                                                                                                                                                                                                                                                                  |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `constructor`            | `({tokenCallback?: (token: string) => void, responseCallback?: (response: string) => void, messageHistoryCallback?: (messageHistory: Message[]) => void})`                                 | Creates a new instance of LLMModule with optional callbacks.                                                                                                                                                                                                                                                                                                                 |
-| `load`                   | `(model: { modelSource: ResourceSource; tokenizerSource: ResourceSource; tokenizerConfigSource: ResourceSource }, onDownloadProgressCallback?: (progress: number) => void): Promise<void>` | Loads the model.                                                                                                                                                                                                                                                                                                                                                             |
-| `setTokenCallback`       | `{tokenCallback: (token: string) => void}) => void`                                                                                                                                        | Sets new token callback invoked on every token batch.                                                                                                                                                                                                                                                                                                                        |
-| `generate`               | `(messages: Message[], tools?: LLMTool[]) => Promise<string>`                                                                                                                              | Runs model to complete chat passed in `messages` argument. It doesn't manage conversation context.                                                                                                                                                                                                                                                                           |
-| `forward`                | `(input: string) => Promise<string>`                                                                                                                                                       | Runs model inference with raw input string. You need to provide entire conversation and prompt (in correct format and with special tokens!) in input string to this method. It doesn't manage conversation context. It is intended for users that need access to the model itself without any wrapper. If you want a simple chat with model the consider using `sendMessage` |
-| `configure`              | `({chatConfig?: Partial<ChatConfig>, toolsConfig?: ToolsConfig, generationConfig?: GenerationConfig}) => void`                                                                             | Configures chat and tool calling and generation settings. See more details in [configuring the model](#configuring-the-model).                                                                                                                                                                                                                                               |
-| `sendMessage`            | `(message: string) => Promise<Message[]>`                                                                                                                                                  | Method to add user message to conversation. After model responds it will call `messageHistoryCallback()`containing both user message and model response. It also returns them.                                                                                                                                                                                               |
-| `deleteMessage`          | `(index: number) => void`                                                                                                                                                                  | Deletes all messages starting with message on `index` position. After deletion it will call `messageHistoryCallback()` containing new history. It also returns it.                                                                                                                                                                                                           |
-| `delete`                 | `() => void`                                                                                                                                                                               | Method to delete the model from memory. Note you cannot delete model while it's generating. You need to interrupt it first and make sure model stopped generation.                                                                                                                                                                                                           |
-| `interrupt`              | `() => void`                                                                                                                                                                               | Interrupts model generation. It may return one more token after interrupt.                                                                                                                                                                                                                                                                                                   |
-| `getGeneratedTokenCount` | `() => number`                                                                                                                                                                             | Returns the number of tokens generated in the last response.                                                                                                                                                                                                                                                                                                                 |
-
-![](/react-native-executorch/img/Arrow.svg)![](/react-native-executorch/img/Arrow-dark.svg)Type definitions
-
-```typescript
-type ResourceSource = string | number | object;
-
-type MessageRole = 'user' | 'assistant' | 'system';
-
-interface Message {
-  role: MessageRole;
-  content: string;
-}
-interface ChatConfig {
-  initialMessageHistory: Message[];
-  contextWindowLength: number;
-  systemPrompt: string;
-}
-
-interface GenerationConfig {
-  temperature?: number;
-  topp?: number;
-  outputTokenBatchSize?: number;
-  batchTimeInterval?: number;
-}
-
-// tool calling
-interface ToolsConfig {
-  tools: LLMTool[];
-  executeToolCallback: (call: ToolCall) => Promise<string | null>;
-  displayToolCalls?: boolean;
-}
-
-interface ToolCall {
-  toolName: string;
-  arguments: Object;
-}
-
-type LLMTool = Object;
-
-```
+All methods of `LLMModule` are explained in details here: [LLMModule API Reference](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule).
 
 ## Loading the model[​](#loading-the-model "Direct link to Loading the model")
 
-To create a new instance of LLMModule, use the constructor with optional callbacks:
+To create a new instance of `LLMModule`, use the [constructor](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#constructor) with optional callbacks:
 
-**`tokenCallback`** - (Optional) A function that will be called on every generated token with that token as its only argument.
+* [`tokenCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#tokencallback) - Function called on every generated token.
 
-**`responseCallback`** - (Optional) A function that will be called on every generated token and receives the entire response, including this token. \[**DEPRECATED** - consider using `tokenCallback`]
+* [`messageHistoryCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#messagehistorycallback) - Function called on every finished message.
 
-**`messageHistoryCallback`** - (Optional) A function called on every finished message. Returns the entire message history.
+Then, to load the model, use the [`load`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#load) method. It accepts an object with the following fields:
 
-Then, to load the model, use the `load` method. It accepts an object with the following fields:
+* [`model`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#model) - Object containing:
 
-**`model`** - Object containing the model source, tokenizer source, and tokenizer config source.
+  * [`modelSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#modelsource) - The location of the used model.
 
-* **`modelSource`** - `ResourceSource` specifying the location of the model binary.
+  * [`tokenizerSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#tokenizersource) - The location of the used tokenizer.
 
-* **`tokenizerSource`** - `ResourceSource` specifying the location of the tokenizer.
+  * [`tokenizerConfigSource`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#tokenizerconfigsource) - The location of the used tokenizer config.
 
-* **`tokenizerConfigSource`** - `ResourceSource` specifying the location of the tokenizer config.
-
-**`onDownloadProgressCallback`** - (Optional) Function called on download progress.
+* [`onDownloadProgressCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#ondownloadprogresscallback) - Callback to track download progress.
 
 This method returns a promise, which can resolve to an error or void.
 
@@ -111,58 +64,58 @@ For more information on loading resources, take a look at [loading models](https
 
 ## Listening for download progress[​](#listening-for-download-progress "Direct link to Listening for download progress")
 
-To subscribe to the download progress event, you can pass the `onDownloadProgressCallback` function to the `load` method. This function is called whenever the download progress changes.
+To subscribe to the download progress event, you can pass the [`onDownloadProgressCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#ondownloadprogresscallback) function to the [`load`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#load) method. This function is called whenever the download progress changes.
 
 ## Running the model[​](#running-the-model "Direct link to Running the model")
 
-To run the model, you can use `generate` method. It allows you to pass chat messages and receive completion from the model. It doesn't provide any message history management.
+To run the model, you can use [`generate`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#generate) method. It allows you to pass chat messages and receive completion from the model. It doesn't provide any message history management.
 
-Alternatively in managed chat (see: [Functional vs managed](https://docs.swmansion.com/react-native-executorch/docs/hooks/natural-language-processing/useLLM.md#functional-vs-managed)), you can use the `sendMessage` method. It accepts the user message. After model responds it will return new message history containing both user message and model response.. Additionally, it will call `messageHistoryCallback`.
+Alternatively in managed chat (see: [Functional vs managed](https://docs.swmansion.com/react-native-executorch/docs/hooks/natural-language-processing/useLLM.md#functional-vs-managed)), you can use the [`sendMessage`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#sendmessage) method. It accepts the user message and returns a promise that resolves to the generated response. Additionally, it will call [`messageHistoryCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#messagehistorycallback) with the updated message history containing both user message and model response.
 
-If you need raw model, without any wrappers, you can use `forward`. It provides direct access to the model, so the input string is passed straight into the model. It may be useful to work with models that aren't finetuned for chat completions. If you're not sure what are implications of that (e.g. that you have to include special model tokens), you're better off with `sendMessage`.
+If you need raw model access without any wrappers, you can use [`forward`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#forward). It provides direct access to the model, so the input string is passed straight into the model and returns the generated response. It may be useful to work with models that aren't finetuned for chat completions. If you're not sure what are implications of that (e.g. that you have to include special model tokens), you're better off with [`sendMessage`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#sendmessage).
 
 ## Listening for generated tokens[​](#listening-for-generated-tokens "Direct link to Listening for generated tokens")
 
-To subscribe to the token generation event, you can pass `tokenCallback` or `messageHistoryCallback` functions to the constructor. `tokenCallback` is called on every token and contains only the most recent token. `messageHistoryCallback` is called whenever model finishes generation and contains all message history including user's and model's last messages.
+To subscribe to the token generation event, you can pass [`tokenCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#tokencallback) or [`messageHistoryCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#messagehistorycallback) functions to the constructor. [`tokenCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#tokencallback) is called on every token and contains only the most recent token. [`messageHistoryCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#messagehistorycallback) is called whenever model finishes generation and contains all message history including user's and model's last messages.
 
 ## Interrupting the model[​](#interrupting-the-model "Direct link to Interrupting the model")
 
-In order to interrupt the model, you can use the `interrupt` method.
+In order to interrupt the model, you can use the [`interrupt`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#interrupt) method.
 
 ## Token Batching[​](#token-batching "Direct link to Token Batching")
 
-Depending on selected model and the user's device generation speed can be above 60 tokens per second. If the `tokenCallback` triggers rerenders and is invoked on every single token it can significantly decrease the app's performance. To alleviate this and help improve performance we've implemented token batching. To configure this you need to call `configure` method and pass `generationConfig`. Inside you can set two parameters `outputTokenBatchSize` and `batchTimeInterval`. They set the size of the batch before tokens are emitted and the maximum time interval between consecutive batches respectively. Each batch is emitted if either `timeInterval` elapses since last batch or `countInterval` number of tokens are generated. This allows for smooth generation even if model lags during generation. Default parameters are set to 10 tokens and 80ms for time interval (\~12 batches per second).
+Depending on selected model and the user's device generation speed can be above 60 tokens per second. If the [`tokenCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#tokencallback) triggers rerenders and is invoked on every single token it can significantly decrease the app's performance. To alleviate this and help improve performance we've implemented token batching. To configure this you need to call [`configure`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#configure) method and pass [`generationConfig`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMConfig#generationconfig). In the next section, there are listed what you can tweak with this config.
 
 ## Configuring the model[​](#configuring-the-model "Direct link to Configuring the model")
 
-To configure model (i.e. change system prompt, load initial conversation history or manage tool calling, set generation settings) you can use `configure` method. `chatConfig` and `toolsConfig` is only applied to managed chats i.e. when using `sendMessage` (see: [Functional vs managed](https://docs.swmansion.com/react-native-executorch/docs/hooks/natural-language-processing/useLLM.md#functional-vs-managed)) It accepts object with following fields:
+To configure model (i.e. change system prompt, load initial conversation history or manage tool calling, set generation settings) you can use [`configure`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#configure) method. [**`chatConfig`**](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMConfig#chatconfig) and [**`toolsConfig`**](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMConfig#toolsconfig) is only applied to managed chats i.e. when using [`sendMessage`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#sendmessage) (see: [Functional vs managed](https://docs.swmansion.com/react-native-executorch/docs/hooks/natural-language-processing/useLLM.md#functional-vs-managed)) It accepts object with following fields:
 
-**`chatConfig`** - Object configuring chat management:
+* [`chatConfig`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMConfig#chatconfig) - Object configuring chat management that contains:
 
-* **`systemPrompt`** - Often used to tell the model what is its purpose, for example - "Be a helpful translator".
+  * [`systemPrompt`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/ChatConfig#systemprompt) - Often used to tell the model what is its purpose, for example - "Be a helpful translator".
 
-* **`initialMessageHistory`** - An array of `Message` objects that represent the conversation history. This can be used to provide initial context to the model.
+  * [`initialMessageHistory`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/ChatConfig#initialmessagehistory) - Object that represent the conversation history. This can be used to provide initial context to the model.
 
-* **`contextWindowLength`** - The number of messages from the current conversation that the model will use to generate a response. The higher the number, the more context the model will have. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
+  * [`contextWindowLength`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/ChatConfig#contextwindowlength) - The number of messages from the current conversation that the model will use to generate a response. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
 
-**`toolsConfig`** - Object configuring options for enabling and managing tool use. **It will only have effect if your model's chat template support it**. Contains following properties:
+* [`toolsConfig`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/ToolsConfig) - Object configuring options for enabling and managing tool use. **It will only have effect if your model's chat template support it**. Contains following properties:
 
-* **`tools`** - List of objects defining tools.
+  * [`tools`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/ToolsConfig#tools) - List of objects defining tools.
 
-* **`executeToolCallback`** - Function that accepts `ToolCall`, executes tool and returns the string to model.
+  * [`executeToolCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/ToolsConfig#executetoolcallback) - Function that accepts [`ToolCall`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/ToolCall), executes tool and returns the string to model.
 
-* **`displayToolCalls`** - If set to true, JSON tool calls will be displayed in chat. If false, only answers will be displayed.
+  * [`displayToolCalls`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/ToolsConfig#displaytoolcalls) - If set to `true`, JSON tool calls will be displayed in chat. If `false`, only answers will be displayed.
 
-**`generationConfig`** - Object configuring generation settings.
+* [`generationConfig`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMConfig#generationconfig) - Object configuring generation settings with following properties:
 
-* **`outputTokenBatchSize`** - Soft upper limit on the number of tokens in each token batch (in certain cases there can be more tokens in given batch, i.e. when the batch would end with special emoji join character).
+  * [`outputTokenBatchSize`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/GenerationConfig#batchtimeinterval) - Soft upper limit on the number of tokens in each token batch (in certain cases there can be more tokens in given batch, i.e. when the batch would end with special emoji join character).
 
-* **`batchTimeInterval`** - Upper limit on the time interval between consecutive token batches.
+  * [`batchTimeInterval`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/GenerationConfig#batchtimeinterval) - Upper limit on the time interval between consecutive token batches.
 
-* **`temperature`** - Scales output logits by the inverse of temperature. Controls the randomness / creativity of text generation.
+  * [`temperature`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/GenerationConfig#temperature) - Scales output logits by the inverse of temperature. Controls the randomness / creativity of text generation.
 
-* **`topp`** - Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
+  * [`topp`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/GenerationConfig#topp) - Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
 
 ## Deleting the model from memory[​](#deleting-the-model-from-memory "Direct link to Deleting the model from memory")
 
-To delete the model from memory, you can use the `delete` method.
+To delete the model from memory, you can use the [`delete`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#delete) method.

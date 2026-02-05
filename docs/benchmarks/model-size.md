@@ -23,23 +23,19 @@
 
 ## OCR[​](#ocr "Direct link to OCR")
 
-| Model                            | XNNPACK \[MB] |
-| -------------------------------- | ------------- |
-| Detector (CRAFT\_800\_QUANTIZED) | 19.8          |
-| Recognizer (CRNN\_512)           | 15 - 18\*     |
-| Recognizer (CRNN\_256)           | 16 - 18\*     |
-| Recognizer (CRNN\_128)           | 17 - 19\*     |
+| Model                       | XNNPACK \[MB] |
+| --------------------------- | ------------- |
+| Detector (CRAFT\_QUANTIZED) | 20.9          |
+| Recognizer (CRNN)           | 18.5 - 25.2\* |
 
 \* - The model weights vary depending on the language.
 
 ## Vertical OCR[​](#vertical-ocr "Direct link to Vertical OCR")
 
-| Model                             | XNNPACK \[MB] |
-| --------------------------------- | ------------- |
-| Detector (CRAFT\_1280\_QUANTIZED) | 19.8          |
-| Detector (CRAFT\_320\_QUANTIZED)  | 19.8          |
-| Recognizer (CRNN\_EN\_512)        | 15 - 18\*     |
-| Recognizer (CRNN\_EN\_64)         | 15 - 16\*     |
+| Model                       | XNNPACK \[MB] |
+| --------------------------- | ------------- |
+| Detector (CRAFT\_QUANTIZED) | 20.9          |
+| Recognizer (CRNN)           | 18.5 - 25.2\* |
 
 \* - The model weights vary depending on the language.
 
@@ -65,6 +61,13 @@
 | WHISPER\_SMALL\_EN | 968           |
 | WHISPER\_SMALL     | 968           |
 
+## Text to speech[​](#text-to-speech "Direct link to Text to speech")
+
+| Model          | XNNPACK \[MB] |
+| -------------- | ------------- |
+| KOKORO\_SMALL  | 329.6         |
+| KOKORO\_MEDIUM | 334.4         |
+
 ## Text Embeddings[​](#text-embeddings "Direct link to Text Embeddings")
 
 | Model                           | XNNPACK \[MB] |
@@ -87,7 +90,7 @@
 | ------------------ | ------------- |
 | DEELABV3\_RESNET50 | 168           |
 
-## Text to Image[​](#text-to-image "Direct link to Text to Image")
+## Text to image[​](#text-to-image "Direct link to Text to image")
 
 | Model                | Text encoder (XNNPACK) \[MB] | UNet (XNNPACK) \[MB] | VAE decoder (XNNPACK) \[MB] |
 | -------------------- | ---------------------------- | -------------------- | --------------------------- |

@@ -2,12 +2,18 @@
 
 React Native ExecuTorch supports a variety of LLMs (checkout our [HuggingFace repository](https://huggingface.co/software-mansion) for model already converted to ExecuTorch format) including Llama 3.2. Before getting started, you’ll need to obtain the .pte binary—a serialized model, the tokenizer and tokenizer config JSON files. There are various ways to accomplish this:
 
-* For your convenience, it's best if you use models exported by us, you can get them from our [HuggingFace repository](https://huggingface.co/software-mansion). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
-* Follow the official [tutorial](https://github.com/pytorch/executorch/blob/release/0.7/examples/demo-apps/android/LlamaDemo/docs/delegates/xnnpack_README.md) made by ExecuTorch team to build the model and tokenizer yourself.
+* For your convenience, it's best if you use models exported by us, you can get them from our [HuggingFace repository](https://huggingface.co/collections/software-mansion/llm). You can also use [constants](https://docs.swmansion.com/react-native-executorch/docs/api-reference#models---lmm) shipped with our library.
+* Follow the official [tutorial](https://docs.pytorch.org/executorch/stable/llm/export-llm.html) made by ExecuTorch team to export arbitrary chosen LLM model.
 
 ![](data:image/svg+xml,%3csvg%20width='21'%20height='20'%20viewBox='0%200%2021%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.5%2014.99V15'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%205V12'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%2019C15.4706%2019%2019.5%2014.9706%2019.5%2010C19.5%205.02944%2015.4706%201%2010.5%201C5.52944%201%201.5%205.02944%201.5%2010C1.5%2014.9706%205.52944%2019%2010.5%2019Z'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)![](data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10%2014.99V15'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%205V12'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%2019C14.9706%2019%2019%2014.9706%2019%2010C19%205.02944%2014.9706%201%2010%201C5.02944%201%201%205.02944%201%2010C1%2014.9706%205.02944%2019%2010%2019Z'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)danger
 
 Lower-end devices might not be able to fit LLMs into memory. We recommend using quantized models to reduce the memory footprint.
+
+## API Reference[​](#api-reference "Direct link to API Reference")
+
+* For detailed API Reference for `useLLM` see: [`useLLM` API Reference](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/useLLM).
+* For all LLM models available out-of-the-box in React Native ExecuTorch see: [LLM Models](https://docs.swmansion.com/react-native-executorch/docs/api-reference#models---lmm).
+* For useful LLM utility functionalities please refer to the following link: [LLM Utility Functionalities](https://docs.swmansion.com/react-native-executorch/docs/api-reference#utilities---llm).
 
 ## Initializing[​](#initializing "Direct link to Initializing")
 
@@ -22,121 +28,37 @@ const llm = useLLM({ model: LLAMA3_2_1B });
 
 <br />
 
-The code snippet above fetches the model from the specified URL, loads it into memory, and returns an object with various functions and properties for controlling the model. You can monitor the loading progress by checking the `llm.downloadProgress` and `llm.isReady` property, and if anything goes wrong, the `llm.error` property will contain the error message.
+The code snippet above fetches the model from the specified URL, loads it into memory, and returns an object with various functions and properties for controlling the model. You can monitor the loading progress by checking the [`llm.downloadProgress`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#downloadprogress) and [`llm.isReady`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#isready) property, and if anything goes wrong, the [`llm.error`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#error) property will contain the error message.
 
 ### Arguments[​](#arguments "Direct link to Arguments")
 
-**`model`** - Object containing the model source, tokenizer source, and tokenizer config source.
+`useLLM` takes [`LLMProps`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMProps) that consists of:
 
-* **`modelSource`** - `ResourceSource` that specifies the location of the model binary.
+* [model source](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMProps#modelsource), [tokenizer source](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMProps#tokenizersource), and [tokenizer config source](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMProps#tokenizerconfigsource).
+* An optional flag [`preventLoad`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/SpeechToTextProps#preventload) which prevents auto-loading of the model.
 
-* **`tokenizerSource`** - `ResourceSource` pointing to the JSON file which contains the tokenizer.
+You need more details? Check the following resources:
 
-* **`tokenizerConfigSource`** - `ResourceSource` pointing to the JSON file which contains the tokenizer config.
-
-**`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
-
-For more information on loading resources, take a look at [loading models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models.md) page.
+* For detailed information about `useLLM` arguments check this section: [`useLLM` arguments](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/useLLM#parameters).
+* For more information on loading resources, take a look at [loading models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models.md) page.
+* For available LLM models please check out the following list: [LLM Models](https://docs.swmansion.com/react-native-executorch/docs/api-reference#models---lmm).
 
 ### Returns[​](#returns "Direct link to Returns")
 
-| Field                    | Type                                                                                                           | Description                                                                                                                                     |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `generate()`             | `(messages: Message[], tools?: LLMTool[]) => Promise<void>`                                                    | Runs model to complete chat passed in `messages` argument. It doesn't manage conversation context.                                              |
-| `interrupt()`            | `() => void`                                                                                                   | Function to interrupt the current inference.                                                                                                    |
-| `response`               | `string`                                                                                                       | State of the generated response. This field is updated with each token generated by the model.                                                  |
-| `token`                  | `string`                                                                                                       | The most recently generated token.                                                                                                              |
-| `isReady`                | `boolean`                                                                                                      | Indicates whether the model is ready.                                                                                                           |
-| `isGenerating`           | `boolean`                                                                                                      | Indicates whether the model is currently generating a response.                                                                                 |
-| `downloadProgress`       | `number`                                                                                                       | Represents the download progress as a value between 0 and 1, indicating the extent of the model file retrieval.                                 |
-| `error`                  | `string \| null`                                                                                               | Contains the error message if the model failed to load.                                                                                         |
-| `configure`              | `({chatConfig?: Partial<ChatConfig>, toolsConfig?: ToolsConfig, generationConfig?: GenerationConfig}) => void` | Configures chat and tool calling. See more details in [configuring the model](#configuring-the-model).                                          |
-| `sendMessage`            | `(message: string) => Promise<void>`                                                                           | Function to add user message to conversation. After model responds, `messageHistory` will be updated with both user message and model response. |
-| `deleteMessage`          | `(index: number) => void`                                                                                      | Deletes all messages starting with message on `index` position. After deletion `messageHistory` will be updated.                                |
-| `messageHistory`         | `Message[]`                                                                                                    | History containing all messages in conversation. This field is updated after model responds to `sendMessage`.                                   |
-| `getGeneratedTokenCount` | `() => number`                                                                                                 | Returns the number of tokens generated in the last response.                                                                                    |
+`useLLM` returns [`LLMType`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType) which provides:
 
-![](/react-native-executorch/img/Arrow.svg)![](/react-native-executorch/img/Arrow-dark.svg)Type definitions
+* State properties: [`response`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#response), [`token`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#token), [`isReady`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#isready), [`isGenerating`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#isgenerating), [`downloadProgress`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#downloadprogress), [`error`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#error), [`messageHistory`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#messagehistory)
+* Generation methods: [`generate`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#generate), [`sendMessage`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#sendmessage), [`interrupt`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#interrupt)
+* Configuration: [`configure`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#configure), [`deleteMessage`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#deletemessage)
+* Token counting: [`getGeneratedTokenCount`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#getgeneratedtokencount), [`getPromptTokenCount`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#getprompttokencount), [`getTotalTokenCount`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#gettotaltokencount)
 
-```typescript
-const useLLM: ({
-  model,
-  preventLoad,
-}: {
-  model: {
-    modelSource: ResourceSource;
-    tokenizerSource: ResourceSource;
-    tokenizerConfigSource: ResourceSource;
-  };
-  preventLoad?: boolean;
-}) => LLMType;
-
-interface LLMType {
-  messageHistory: Message[];
-  response: string;
-  token: string;
-  isReady: boolean;
-  isGenerating: boolean;
-  downloadProgress: number;
-  error: string | null;
-  configure: ({
-    chatConfig,
-    toolsConfig,
-    generationConfig,
-  }: {
-    chatConfig?: Partial<ChatConfig>;
-    toolsConfig?: ToolsConfig;
-    generationConfig?: GenerationConfig;
-  }) => void;
-  getGeneratedTokenCount: () => number;
-  generate: (messages: Message[], tools?: LLMTool[]) => Promise<void>;
-  sendMessage: (message: string) => Promise<void>;
-  deleteMessage: (index: number) => void;
-  interrupt: () => void;
-}
-
-type ResourceSource = string | number | object;
-
-type MessageRole = 'user' | 'assistant' | 'system';
-
-interface Message {
-  role: MessageRole;
-  content: string;
-}
-interface ChatConfig {
-  initialMessageHistory: Message[];
-  contextWindowLength: number;
-  systemPrompt: string;
-}
-
-interface GenerationConfig {
-  temperature?: number;
-  topp?: number;
-  outputTokenBatchSize?: number;
-  batchTimeInterval?: number;
-}
-
-// tool calling
-interface ToolsConfig {
-  tools: LLMTool[];
-  executeToolCallback: (call: ToolCall) => Promise<string | null>;
-  displayToolCalls?: boolean;
-}
-
-interface ToolCall {
-  toolName: string;
-  arguments: Object;
-}
-
-type LLMTool = Object;
-
-```
+For complete details, see the [LLMType API Reference](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType).
 
 ## Functional vs managed[​](#functional-vs-managed "Direct link to Functional vs managed")
 
 You can use functions returned from this hooks in two manners:
 
-1. Functional/pure - we will not keep any state for you. You'll need to keep conversation history and handle function calling yourself. Use `generate` (and rarely `forward`) and `response`. Note that you don't need to run `configure` to use those. Furthermore, `chatConfig` and `toolsConfig` will not have any effect on those functions.
+1. Functional/pure - we will not keep any state for you. You'll need to keep conversation history and handle function calling yourself. Use [`generate`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#generate) and [`response`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#response). Note that you don't need to run [`configure`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#configure) to use those. Furthermore, [`chatConfig`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMConfig#chatconfig) and [`toolsConfig`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMConfig#toolsconfig) will not have any effect on those functions.
 
 2. Managed/stateful - we will manage conversation state. Tool calls will be parsed and called automatically after passing appropriate callbacks. See more at [managed LLM chat](#managed-llm-chat).
 
@@ -144,12 +66,12 @@ You can use functions returned from this hooks in two manners:
 
 ### Simple generation[​](#simple-generation "Direct link to Simple generation")
 
-To perform chat completion you can use the `generate` function. There is no return value. Instead, the `response` value is updated with each token.
+To perform chat completion you can use the [`generate`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#generate) function. The [`response`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#response) value is updated with each token as it's generated, and the function returns a promise that resolves to the complete response when generation finishes.
 
 ```tsx
 const llm = useLLM({ model: LLAMA3_2_1B });
 
-const handleGenerate = () => {
+const handleGenerate = async () => {
   const chat: Message[] = [
     { role: 'system', content: 'You are a helpful assistant' },
     { role: 'user', content: 'Hi!' },
@@ -157,8 +79,9 @@ const handleGenerate = () => {
     { role: 'user', content: 'What is the meaning of life?' },
   ];
 
-  // Chat completion
-  llm.generate(chat);
+  // Chat completion - returns the generated response
+  const response = await llm.generate(chat);
+  console.log('Complete response:', response);
 };
 
 return (
@@ -172,13 +95,13 @@ return (
 
 ### Interrupting the model[​](#interrupting-the-model "Direct link to Interrupting the model")
 
-Sometimes, you might want to stop the model while it’s generating. To do this, you can use `interrupt()`, which will halt the model and update the response one last time.
+Sometimes, you might want to stop the model while it’s generating. To do this, you can use [`interrupt`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#interrupt), which will halt the model and update the response one last time.
 
-There are also cases when you need to check if tokens are being generated, such as to conditionally render a stop button. We’ve made this easy with the `isGenerating` property.
+There are also cases when you need to check if tokens are being generated, such as to conditionally render a stop button. We’ve made this easy with the [`isGenerating`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#isgenerating) property.
 
 ![](data:image/svg+xml,%3csvg%20width='21'%20height='20'%20viewBox='0%200%2021%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.5%2014.99V15'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%205V12'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%2019C15.4706%2019%2019.5%2014.9706%2019.5%2010C19.5%205.02944%2015.4706%201%2010.5%201C5.52944%201%201.5%205.02944%201.5%2010C1.5%2014.9706%205.52944%2019%2010.5%2019Z'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)![](data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10%2014.99V15'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%205V12'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%2019C14.9706%2019%2019%2014.9706%2019%2010C19%205.02944%2014.9706%201%2010%201C5.02944%201%201%205.02944%201%2010C1%2014.9706%205.02944%2019%2010%2019Z'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)warning
 
-If you try to dismount the component using this hook while generation is still going on, it will result in crash. You'll need to interrupt the model first and wait until `isGenerating` is set to false.
+If you try to dismount the component using this hook while generation is still going on, it will result in crash. You'll need to interrupt the model first and wait until [`isGenerating`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#isgenerating) is set to false.
 
 ### Reasoning[​](#reasoning "Direct link to Reasoning")
 
@@ -242,33 +165,33 @@ return (
 
 ### Configuring the model[​](#configuring-the-model "Direct link to Configuring the model")
 
-To configure model (i.e. change system prompt, load initial conversation history or manage tool calling) you can use `configure` function. It accepts object with following fields:
+To configure model (i.e. change system prompt, load initial conversation history or manage tool calling, set generation settings) you can use [`configure`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#configure) method. [**`chatConfig`**](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMConfig#chatconfig) and [**`toolsConfig`**](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMConfig#toolsconfig) is only applied to managed chats i.e. when using [`sendMessage`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#sendmessage) (see: [Functional vs managed](https://docs.swmansion.com/react-native-executorch/docs/hooks/natural-language-processing/useLLM.md#functional-vs-managed)) It accepts object with following fields:
 
-**`chatConfig`** - Object configuring chat management, contains following properties:
+* [`chatConfig`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMConfig#chatconfig) - Object configuring chat management that contains:
 
-* **`systemPrompt`** - Often used to tell the model what is its purpose, for example - "Be a helpful translator".
+  * [`systemPrompt`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/ChatConfig#systemprompt) - Often used to tell the model what is its purpose, for example - "Be a helpful translator".
 
-* **`initialMessageHistory`** - An array of `Message` objects that represent the conversation history. This can be used to provide initial context to the model.
+  * [`initialMessageHistory`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/ChatConfig#initialmessagehistory) - Object that represent the conversation history. This can be used to provide initial context to the model.
 
-* **`contextWindowLength`** - The number of messages from the current conversation that the model will use to generate a response. The higher the number, the more context the model will have. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
+  * [`contextWindowLength`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/ChatConfig#contextwindowlength) - The number of messages from the current conversation that the model will use to generate a response. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
 
-**`toolsConfig`** - Object configuring options for enabling and managing tool use. **It will only have effect if your model's chat template support it**. Contains following properties:
+* [`toolsConfig`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMConfig#toolsconfig) - Object configuring options for enabling and managing tool use. **It will only have effect if your model's chat template support it**. Contains following properties:
 
-* **`tools`** - List of objects defining tools.
+  * [`tools`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/ToolsConfig#tools) - List of objects defining tools.
 
-* **`executeToolCallback`** - Function that accepts `ToolCall`, executes tool and returns the string to model.
+  * [`executeToolCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/ToolsConfig#executetoolcallback) - Function that accepts [`ToolCall`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/ToolCall), executes tool and returns the string to model.
 
-* **`displayToolCalls`** - If set to true, JSON tool calls will be displayed in chat. If false, only answers will be displayed.
+  * [`displayToolCalls`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/ToolsConfig#displaytoolcalls) - If set to `true`, JSON tool calls will be displayed in chat. If `false`, only answers will be displayed.
 
-**`generationConfig`** - Object configuring generation settings.
+* [`generationConfig`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMConfig#generationconfig) - Object configuring generation settings with following properties:
 
-* **`outputTokenBatchSize`** - Soft upper limit on the number of tokens in each token batch (in certain cases there can be more tokens in given batch, i.e. when the batch would end with special emoji join character).
+  * [`outputTokenBatchSize`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/GenerationConfig#batchtimeinterval) - Soft upper limit on the number of tokens in each token batch (in certain cases there can be more tokens in given batch, i.e. when the batch would end with special emoji join character).
 
-* **`batchTimeInterval`** - Upper limit on the time interval between consecutive token batches.
+  * [`batchTimeInterval`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/GenerationConfig#batchtimeinterval) - Upper limit on the time interval between consecutive token batches.
 
-* **`temperature`** - Scales output logits by the inverse of temperature. Controls the randomness / creativity of text generation.
+  * [`temperature`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/GenerationConfig#temperature) - Scales output logits by the inverse of temperature. Controls the randomness / creativity of text generation.
 
-* **`topp`** - Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
+  * [`topp`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/GenerationConfig#topp) - Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
 
 ### Sending a message[​](#sending-a-message "Direct link to Sending a message")
 
@@ -288,7 +211,7 @@ return <Button onPress={send} title="Generate!" />;
 
 ### Accessing conversation history[​](#accessing-conversation-history "Direct link to Accessing conversation history")
 
-Behind the scenes, tokens are generated one by one, and the `response` property is updated with each token as it’s created. If you want to get entire conversation you can use `messageHistory` field:
+Behind the scenes, tokens are generated one by one, and the [`response`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#response) property is updated with each token as it’s created. If you want to get entire conversation you can use [`messageHistory`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#messagehistory) field:
 
 ```tsx
 return (
@@ -468,7 +391,7 @@ The response should include JSON:
 
 ## Token Batching[​](#token-batching "Direct link to Token Batching")
 
-Depending on selected model and the user's device generation speed can be above 60 tokens per second. If the `tokenCallback` triggers rerenders and is invoked on every single token it can significantly decrease the app's performance. To alleviate this and help improve performance we've implemented token batching. To configure this you need to call `configure` method and pass `generationConfig`. Inside you can set two parameters `outputTokenBatchSize` and `batchTimeInterval`. They set the size of the batch before tokens are emitted and the maximum time interval between consecutive batches respectively. Each batch is emitted if either `timeInterval` elapses since last batch or `countInterval` number of tokens are generated. This allows for smooth generation even if model lags during generation. Default parameters are set to 10 tokens and 80ms for time interval (\~12 batches per second).
+Depending on selected model and the user's device generation speed can be above 60 tokens per second. If the [`tokenCallback`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule#tokencallback) from [`LLMModule`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/LLMModule), which is used under the hood, triggers rerenders and is invoked on every single token it can significantly decrease the app's performance. To alleviate this and help improve performance we've implemented token batching. To configure this you need to call [`configure`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMType#configure) method and pass [`generationConfig`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/LLMConfig#generationconfig). You can check what you can configure [Configuring the Model](https://docs.swmansion.com/react-native-executorch/docs/hooks/natural-language-processing/useLLM.md#configuring-the-model). They set the size of the batch before tokens are emitted and the maximum time interval between consecutive batches respectively. Each batch is emitted if either `timeInterval` elapses since last batch or `countInterval` number of tokens are generated. This allows for smooth generation even if model lags during generation. Default parameters are set to 10 tokens and 80ms for time interval (\~12 batches per second).
 
 ## Available models[​](#available-models "Direct link to Available models")
 
@@ -480,40 +403,3 @@ Depending on selected model and the user's device generation speed can be above 
 | [Phi 4 Mini](https://huggingface.co/software-mansion/react-native-executorch-phi-4-mini) | 4B               | ✅        |
 | [SmolLM 2](https://huggingface.co/software-mansion/react-native-executorch-smolLm-2)     | 135M, 360M, 1.7B | ✅        |
 | [LLaMA 3.2](https://huggingface.co/software-mansion/react-native-executorch-llama-3.2)   | 1B, 3B           | ✅        |
-
-## Benchmarks[​](#benchmarks "Direct link to Benchmarks")
-
-### Model size[​](#model-size "Direct link to Model size")
-
-| Model                    | XNNPACK \[GB] |
-| ------------------------ | ------------- |
-| LLAMA3\_2\_1B            | 2.47          |
-| LLAMA3\_2\_1B\_SPINQUANT | 1.14          |
-| LLAMA3\_2\_1B\_QLORA     | 1.18          |
-| LLAMA3\_2\_3B            | 6.43          |
-| LLAMA3\_2\_3B\_SPINQUANT | 2.55          |
-| LLAMA3\_2\_3B\_QLORA     | 2.65          |
-
-### Memory usage[​](#memory-usage "Direct link to Memory usage")
-
-| Model                    | Android (XNNPACK) \[GB] | iOS (XNNPACK) \[GB] |
-| ------------------------ | ----------------------- | ------------------- |
-| LLAMA3\_2\_1B            | 3.2                     | 3.1                 |
-| LLAMA3\_2\_1B\_SPINQUANT | 1.9                     | 2                   |
-| LLAMA3\_2\_1B\_QLORA     | 2.2                     | 2.5                 |
-| LLAMA3\_2\_3B            | 7.1                     | 7.3                 |
-| LLAMA3\_2\_3B\_SPINQUANT | 3.7                     | 3.8                 |
-| LLAMA3\_2\_3B\_QLORA     | 4                       | 4.1                 |
-
-### Inference time[​](#inference-time "Direct link to Inference time")
-
-| Model                    | iPhone 16 Pro (XNNPACK) \[tokens/s] | iPhone 13 Pro (XNNPACK) \[tokens/s] | iPhone SE 3 (XNNPACK) \[tokens/s] | Samsung Galaxy S24 (XNNPACK) \[tokens/s] | OnePlus 12 (XNNPACK) \[tokens/s] |
-| ------------------------ | ----------------------------------- | ----------------------------------- | --------------------------------- | ---------------------------------------- | -------------------------------- |
-| LLAMA3\_2\_1B            | 16.1                                | 11.4                                | ❌                                | 15.6                                     | 19.3                             |
-| LLAMA3\_2\_1B\_SPINQUANT | 40.6                                | 16.7                                | 16.5                              | 40.3                                     | 48.2                             |
-| LLAMA3\_2\_1B\_QLORA     | 31.8                                | 11.4                                | 11.2                              | 37.3                                     | 44.4                             |
-| LLAMA3\_2\_3B            | ❌                                  | ❌                                  | ❌                                | ❌                                       | 7.1                              |
-| LLAMA3\_2\_3B\_SPINQUANT | 17.2                                | 8.2                                 | ❌                                | 16.2                                     | 19.4                             |
-| LLAMA3\_2\_3B\_QLORA     | 14.5                                | ❌                                  | ❌                                | 14.8                                     | 18.1                             |
-
-❌ - Insufficient RAM.

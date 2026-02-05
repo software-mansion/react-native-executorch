@@ -27,16 +27,15 @@ All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12 (A
 
 ## OCR[​](#ocr "Direct link to OCR")
 
-| Model                                                                                                       | Android (XNNPACK) \[MB] | iOS (XNNPACK) \[MB] |
-| ----------------------------------------------------------------------------------------------------------- | ----------------------- | ------------------- |
-| Detector (CRAFT\_800\_QUANTIZED) + Recognizer (CRNN\_512) + Recognizer (CRNN\_256) + Recognizer (CRNN\_128) | 1400                    | 1320                |
+| Model                                | Android (XNNPACK) \[MB] | iOS (XNNPACK) \[MB] |
+| ------------------------------------ | ----------------------- | ------------------- |
+| Detector (CRAFT) + Recognizer (CRNN) | 1400                    | 1320                |
 
 ## Vertical OCR[​](#vertical-ocr "Direct link to Vertical OCR")
 
-| Model                                                                                         | Android (XNNPACK) \[MB] | iOS (XNNPACK) \[MB] |
-| --------------------------------------------------------------------------------------------- | ----------------------- | ------------------- |
-| Detector (CRAFT\_1280\_QUANTIZED) + Detector (CRAFT\_320\_QUANTIZED) + Recognizer (CRNN\_512) | 1540                    | 1470                |
-| Detector(CRAFT\_1280\_QUANTIZED) + Detector(CRAFT\_320\_QUANTIZED) + Recognizer (CRNN\_64)    | 1070                    | 1000                |
+| Model                                | Android (XNNPACK) \[MB] | iOS (XNNPACK) \[MB] |
+| ------------------------------------ | ----------------------- | ------------------- |
+| Detector (CRAFT) + Recognizer (CRNN) | 1000-1600               | 1000-1500           |
 
 ## LLMs[​](#llms "Direct link to LLMs")
 
@@ -54,6 +53,17 @@ All the below benchmarks were performed on iPhone 17 Pro (iOS) and OnePlus 12 (A
 | Model         | Android (XNNPACK) \[MB] | iOS (XNNPACK) \[MB] |
 | ------------- | ----------------------- | ------------------- |
 | WHISPER\_TINY | 410                     | 375                 |
+
+## Text to speech[​](#text-to-speech "Direct link to Text to speech")
+
+| Model          | Android (XNNPACK) \[MB] | iOS (XNNPACK) \[MB] |
+| -------------- | ----------------------- | ------------------- |
+| KOKORO\_SMALL  | 820                     | 820                 |
+| KOKORO\_MEDIUM | 1140                    | 1100                |
+
+![](data:image/svg+xml,%3csvg%20width='21'%20height='20'%20viewBox='0%200%2021%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10.5%2014.99V15'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%205V12'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10.5%2019C15.4706%2019%2019.5%2014.9706%2019.5%2010C19.5%205.02944%2015.4706%201%2010.5%201C5.52944%201%201.5%205.02944%201.5%2010C1.5%2014.9706%205.52944%2019%2010.5%2019Z'%20stroke='%23001A72'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)![](data:image/svg+xml,%3csvg%20width='20'%20height='20'%20viewBox='0%200%2020%2020'%20fill='none'%20xmlns='http://www.w3.org/2000/svg'%3e%3cpath%20d='M10%2014.99V15'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%205V12'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3cpath%20d='M10%2019C14.9706%2019%2019%2014.9706%2019%2010C19%205.02944%2014.9706%201%2010%201C5.02944%201%201%205.02944%201%2010C1%2014.9706%205.02944%2019%2010%2019Z'%20stroke='%23F8F9FF'%20stroke-width='1.5'%20stroke-linecap='round'%20stroke-linejoin='round'/%3e%3c/svg%3e)info
+
+The reported memory usage values include the memory footprint of the Phonemis package, which is used for phonemizing input text. Currently, this can range from 100 to 150 MB depending on the device.
 
 ## Text Embeddings[​](#text-embeddings "Direct link to Text Embeddings")
 
@@ -81,7 +91,7 @@ Data presented in the following sections is based on inference with non-resized 
 | ------------------ | ----------------------- | ------------------- |
 | DEELABV3\_RESNET50 | 930                     | 660                 |
 
-## Text to Image[​](#text-to-image "Direct link to Text to Image")
+## Text to image[​](#text-to-image "Direct link to Text to image")
 
 | Model                     | Android (XNNPACK) \[MB] | iOS (XNNPACK) \[MB] |
 | ------------------------- | ----------------------- | ------------------- |

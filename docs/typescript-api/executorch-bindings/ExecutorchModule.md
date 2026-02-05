@@ -6,7 +6,11 @@ ExecutorchModule provides TypeScript bindings for the underlying ExecuTorch [Mod
 
 For React applications, consider using the [`useExecutorchModule`](https://docs.swmansion.com/react-native-executorch/docs/hooks/executorch-bindings/useExecutorchModule.md) hook instead, which provides automatic state management, loading progress tracking, and cleanup on unmount.
 
-## Reference[​](#reference "Direct link to Reference")
+## API Reference[​](#api-reference "Direct link to API Reference")
+
+* For detailed API Reference for `ExecutorchModule` see: [`ExecutorchModule` API Reference](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/ExecutorchModule).
+
+## High Level Overview[​](#high-level-overview "Direct link to High Level Overview")
 
 ```typescript
 import {
@@ -35,71 +39,17 @@ const output = await model.forward([inputTensor]);
 
 ### Methods[​](#methods "Direct link to Methods")
 
-| Method          | Type                                                                                                    | Description                                                                                                                                                           |
-| --------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `load`          | `(modelSource: ResourceSource, onDownloadProgressCallback?: (progress: number) => void): Promise<void>` | Loads the model, where `modelSource` is a string, number, or object that specifies the location of the model binary. Optionally accepts a download progress callback. |
-| `forward`       | `(inputTensor: TensorPtr[]): Promise<TensorPtr[]>`                                                      | Executes the model's forward pass, where input is an array of TensorPtr objects. If the inference is successful, an array of tensor pointers is returned.             |
-| `getInputShape` | `(methodName: string, index: number): Promise<number[]>`                                                | Returns the expected input shape for a specific method and input index.                                                                                               |
-| `delete`        | `(): void`                                                                                              | Unloads the model and releases resources.                                                                                                                             |
+All methods of `ExecutorchModule` are explained in details here: [`ExecutorchModule` API Reference](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/ExecutorchModule)
 
 ## TensorPtr[​](#tensorptr "Direct link to TensorPtr")
 
-TensorPtr is a JS representation of the underlying tensor, which is then passed to the model. You can read more about creating tensors [here](https://docs.pytorch.org/executorch/stable/extension-tensor.html). On JS side, the TensorPtr holds the following information:
+TensorPtr is a JS representation of the underlying tensor, which is then passed to the model. You can read more about creating tensors [here](https://docs.pytorch.org/executorch/stable/extension-tensor.html). On JS side, the [`TensorPtr`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/TensorPtr) holds the following information:
 
-![](/react-native-executorch/img/Arrow.svg)![](/react-native-executorch/img/Arrow-dark.svg)Type definitions
+* [`dataPtr`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/TensorPtr#dataptr) - Represents a data buffer that will be used to create a tensor on the native side. This can be either an `ArrayBuffer` or a `TypedArray`. If your model takes in a datatype which is not covered by any of the `TypedArray` types, just pass an `ArrayBuffer` here.
 
-```typescript
-interface TensorPtr {
-  dataPtr: TensorBuffer;
-  sizes: number[];
-  scalarType: ScalarType;
-}
+* [`sizes`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/TensorPtr#sizes) - Represents the shape of a given tensor, i.e. for a 640x640 RGB image with a batch size of 1, you would need to pass `[1, 3, 640, 640]` here.
 
-type TensorBuffer =
-  | ArrayBuffer
-  | Float32Array
-  | Float64Array
-  | Int8Array
-  | Int16Array
-  | Int32Array
-  | Uint8Array
-  | Uint16Array
-  | Uint32Array
-  | BigInt64Array
-  | BigUint64Array;
-
-enum ScalarType {
-  BYTE = 0,
-  CHAR = 1,
-  SHORT = 2,
-  INT = 3,
-  LONG = 4,
-  HALF = 5,
-  FLOAT = 6,
-  DOUBLE = 7,
-  BOOL = 11,
-  QINT8 = 12,
-  QUINT8 = 13,
-  QINT32 = 14,
-  QUINT4X2 = 16,
-  QUINT2X4 = 17,
-  BITS16 = 22,
-  FLOAT8E5M2 = 23,
-  FLOAT8E4M3FN = 24,
-  FLOAT8E5M2FNUZ = 25,
-  FLOAT8E4M3FNUZ = 26,
-  UINT16 = 27,
-  UINT32 = 28,
-  UINT64 = 29,
-}
-
-```
-
-`dataPtr` - Represents a data buffer that will be used to create a tensor on the native side. This can be either an `ArrayBuffer` or a `TypedArray`. If your model takes in a datatype which is not covered by any of the `TypedArray` types, just pass an `ArrayBuffer` here.
-
-`sizes` - Represents the shape of a given tensor, i.e. for a 640x640 RGB image with a batch size of 1, you would need to pass `[1, 3, 640, 640]` here.
-
-`scalarType` - An enum resembling the ExecuTorch's `ScalarType`. For example, if your model was exported with float32 as an input, you will need to pass `ScalarType.FLOAT` here.
+* [`scalarType`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/TensorPtr#scalartype) - An enum resembling the ExecuTorch's [`ScalarType`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/enumerations/ScalarType). For example, if your model was exported with float32 as an input, you will need to pass [`ScalarType.FLOAT`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/enumerations/ScalarType#float) here.
 
 ## End to end example[​](#end-to-end-example "Direct link to End to end example")
 
@@ -128,7 +78,7 @@ await executorchModule.load(STYLE_TRANSFER_CANDY, (progress) => {
 
 ### Setting up input parameters[​](#setting-up-input-parameters "Direct link to Setting up input parameters")
 
-To prepare the model input, define the tensor shape according to your model's requirements (defined by the model export process). For example, the STYLE\_TRANSFER\_CANDY model expects a tensor with shape `[1, 3, 640, 640]` — representing a batch size of 1, 3 color channels (RGB), and 640×640 pixel dimensions.
+To prepare the model input, define the tensor shape according to your model's requirements (defined by the model export process). For example, the `STYLE_TRANSFER_CANDY` model expects a tensor with shape `[1, 3, 640, 640]` — representing a batch size of 1, 3 color channels (RGB), and 640×640 pixel dimensions.
 
 ```typescript
 const inputTensor = {
@@ -141,7 +91,7 @@ const inputTensor = {
 
 ### Performing inference[​](#performing-inference "Direct link to Performing inference")
 
-After passing input to the forward function, you'll receive an array of TensorPtr objects. Each TensorPtr contains its `dataPtr` field as an ArrayBuffer. Since ArrayBuffer represents raw binary data, you'll need to interpret it according to the tensor's underlying data type (e.g., creating a Float32Array view for float32 tensors, Int32Array for int32 tensors, etc.).
+After passing input to the forward function, you'll receive an array of [`TensorPtr`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/TensorPtr) objects. Each TensorPtr contains its [`dataPtr`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/interfaces/TensorPtr#dataptr) field as an `ArrayBuffer`. Since `ArrayBuffer` represents raw binary data, you'll need to interpret it according to the tensor's underlying data type (e.g., creating a `Float32Array` view for float32 tensors, `Int32Array` for int32 tensors, etc.).
 
 ```typescript
 try {

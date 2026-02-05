@@ -7,6 +7,7 @@
 
 - [Frequently Asked Questions](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/frequently-asked-questions.md): This section is meant to answer some common community inquiries, especially regarding the ExecuTorch runtime or adding your own models. If you can't see an answer to your question, feel free to open up a discussion.
 - [Getting Started](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/getting-started.md): Get started with React Native ExecuTorch - a framework for running AI models on-device in your React Native applications.
+- [Glossary of Terms](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/glossary-of-terms.md): This glossary defines key concepts used throughout the React Native ExecuTorch ecosystem, covering high-level machine learning terms and library-specific components.
 - [Loading Models](https://docs.swmansion.com/react-native-executorch/docs/fundamentals/loading-models.md): There are three different methods available for loading model files, depending on their size and location.
 
 ## Hooks
@@ -15,7 +16,7 @@
 - [useImageEmbeddings](https://docs.swmansion.com/react-native-executorch/docs/hooks/computer-vision/useImageEmbeddings.md): Learn how to use image embeddings models in your React Native applications with React Native ExecuTorch's useImageEmbeddings hook.
 - [useImageSegmentation](https://docs.swmansion.com/react-native-executorch/docs/hooks/computer-vision/useImageSegmentation.md): Semantic image segmentation, akin to image classification, tries to assign the content of the image to one of the predefined classes. However, in case of segmentation this classification is done on a per-pixel basis, so as the result the model provides an image-sized array of scores for each of the classes. You can then use this information to detect objects on a per-pixel basis. React Native ExecuTorch offers a dedicated hook useImageSegmentation for this task.
 - [useObjectDetection](https://docs.swmansion.com/react-native-executorch/docs/hooks/computer-vision/useObjectDetection.md): Object detection is a computer vision technique that identifies and locates objects within images or video. It’s commonly used in applications like image recognition, video surveillance or autonomous driving.
-- [useOCR](https://docs.swmansion.com/react-native-executorch/docs/hooks/computer-vision/useOCR.md): Optical character recognition(OCR) is a computer vision technique that detects and recognizes text within the image. It's commonly used to convert different types of documents, such as scanned paper documents, PDF files, or images captured by a digital camera, into editable and searchable data.
+- [useOCR](https://docs.swmansion.com/react-native-executorch/docs/hooks/computer-vision/useOCR.md): Optical character recognition (OCR) is a computer vision technique that detects and recognizes text within the image. It's commonly used to convert different types of documents, such as scanned paper documents, PDF files, or images captured by a digital camera, into editable and searchable data.
 - [useStyleTransfer](https://docs.swmansion.com/react-native-executorch/docs/hooks/computer-vision/useStyleTransfer.md): Style transfer is a technique used in computer graphics and machine learning where the visual style of one image is applied to the content of another. This is achieved using algorithms that manipulate data from both images, typically with the aid of a neural network. The result is a new image that combines the artistic elements of one picture with the structural details of another, effectively merging art with traditional imagery. React Native ExecuTorch offers a dedicated hook useStyleTransfer, for this task. However before you start you'll need to obtain ExecuTorch-compatible model binary.
 - [useTextToImage](https://docs.swmansion.com/react-native-executorch/docs/hooks/computer-vision/useTextToImage.md): Learn how to use image generation models in your React Native applications with React Native ExecuTorch's useTextToImage hook.
 - [useVerticalOCR](https://docs.swmansion.com/react-native-executorch/docs/hooks/computer-vision/useVerticalOCR.md): The useVerticalOCR hook is currently in an experimental phase. We appreciate feedback from users as we continue to refine and enhance its functionality.
@@ -23,6 +24,7 @@
 - [useLLM](https://docs.swmansion.com/react-native-executorch/docs/hooks/natural-language-processing/useLLM.md): Learn how to use LLMs in your React Native applications with React Native ExecuTorch's useLLM hook.
 - [useSpeechToText](https://docs.swmansion.com/react-native-executorch/docs/hooks/natural-language-processing/useSpeechToText.md): Learn how to use speech-to-text models in your React Native applications with React Native ExecuTorch's useSpeechToText hook.
 - [useTextEmbeddings](https://docs.swmansion.com/react-native-executorch/docs/hooks/natural-language-processing/useTextEmbeddings.md): Learn how to use text embeddings models in your React Native applications with React Native ExecuTorch's useTextEmbeddings hook.
+- [useTextToSpeech](https://docs.swmansion.com/react-native-executorch/docs/hooks/natural-language-processing/useTextToSpeech.md): Learn how to use text-to-speech models in your React Native applications with React Native ExecuTorch's useTextToSpeech hook.
 - [useTokenizer](https://docs.swmansion.com/react-native-executorch/docs/hooks/natural-language-processing/useTokenizer.md): Learn how to tokenize your text in your React Native applications using React Native ExecuTorch's useTokenizer hook.
 - [useVAD](https://docs.swmansion.com/react-native-executorch/docs/hooks/natural-language-processing/useVAD.md): Voice Activity Detection (VAD) is the task of analyzing an audio signal to identify time segments containing human speech, separating them from non-speech sections like silence and background noise.
 
@@ -40,11 +42,13 @@
 - [LLMModule](https://docs.swmansion.com/react-native-executorch/docs/typescript-api/natural-language-processing/LLMModule.md): TypeScript API implementation of the useLLM hook.
 - [SpeechToTextModule](https://docs.swmansion.com/react-native-executorch/docs/typescript-api/natural-language-processing/SpeechToTextModule.md): TypeScript API implementation of the useSpeechToText hook.
 - [TextEmbeddingsModule](https://docs.swmansion.com/react-native-executorch/docs/typescript-api/natural-language-processing/TextEmbeddingsModule.md): TypeScript API implementation of the useTextEmbeddings hook.
+- [TextToSpeechModule](https://docs.swmansion.com/react-native-executorch/docs/typescript-api/natural-language-processing/TextToSpeechModule.md): TypeScript API implementation of the useTextToSpeech hook.
 - [TokenizerModule](https://docs.swmansion.com/react-native-executorch/docs/typescript-api/natural-language-processing/TokenizerModule.md): TypeScript API implementation of the useTokenizer hook.
 - [VADModule](https://docs.swmansion.com/react-native-executorch/docs/typescript-api/natural-language-processing/VADModule.md): TypeScript API implementation of the useVAD hook.
 
 ## Utilities
 
+- [Error handling](https://docs.swmansion.com/react-native-executorch/docs/utilities/error-handling.md): Overview
 - [Resource Fetcher](https://docs.swmansion.com/react-native-executorch/docs/utilities/resource-fetcher.md): This module provides functions to download and work with downloaded files stored in the application's document directory inside the react-native-executorch/ directory. These utilities can help you manage your storage and clean up the downloaded files when they are no longer needed.
 
 ## Benchmarks
@@ -55,14 +59,9 @@
 
 ## Category
 
-- [Benchmarks](https://docs.swmansion.com/react-native-executorch/docs/category/benchmarks.md)
 - [Computer Vision](https://docs.swmansion.com/react-native-executorch/docs/category/computer-vision.md)
 - [Computer Vision](https://docs.swmansion.com/react-native-executorch/docs/category/computer-vision-1.md)
 - [ExecuTorch Bindings](https://docs.swmansion.com/react-native-executorch/docs/category/executorch-bindings.md)
 - [ExecuTorch Bindings](https://docs.swmansion.com/react-native-executorch/docs/category/executorch-bindings-1.md)
-- [Fundamentals](https://docs.swmansion.com/react-native-executorch/docs/category/fundamentals.md)
-- [Hooks](https://docs.swmansion.com/react-native-executorch/docs/category/hooks.md)
 - [Natural Language Processing](https://docs.swmansion.com/react-native-executorch/docs/category/natural-language-processing.md)
 - [Natural Language Processing](https://docs.swmansion.com/react-native-executorch/docs/category/natural-language-processing-1.md)
-- [TypeScript API](https://docs.swmansion.com/react-native-executorch/docs/category/typescript-api.md)
-- [Utilities](https://docs.swmansion.com/react-native-executorch/docs/category/utilities.md)

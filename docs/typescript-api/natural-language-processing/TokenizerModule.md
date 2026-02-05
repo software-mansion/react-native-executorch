@@ -2,7 +2,11 @@
 
 TypeScript API implementation of the [useTokenizer](https://docs.swmansion.com/react-native-executorch/docs/hooks/natural-language-processing/useTokenizer.md) hook.
 
-## Reference[​](#reference "Direct link to Reference")
+## API Reference[​](#api-reference "Direct link to API Reference")
+
+* For detailed API Reference for `TokenizerModule` see: [`TokenizerModule` API Reference](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/TokenizerModule).
+
+## High Level Overview[​](#high-level-overview "Direct link to High Level Overview")
 
 ```typescript
 import { TokenizerModule, ALL_MINILM_L6_V2 } from 'react-native-executorch';
@@ -40,18 +44,4 @@ console.log('Token for ID:', token);
 
 ### Methods[​](#methods "Direct link to Methods")
 
-| Method         | Type                                                                                                                       | Description                                                                                                                          |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `load`         | `(tokenizer: { tokenizerSource: ResourceSource }, onDownloadProgressCallback?: (progress: number) => void): Promise<void>` | Loads the tokenizer from the specified source. `tokenizerSource` is a string that points to the location of the tokenizer JSON file. |
-| `encode`       | `(input: string): Promise<number[]>`                                                                                       | Converts a string into an array of token IDs.                                                                                        |
-| `decode`       | `(input: number[]): Promise<string>`                                                                                       | Converts an array of token IDs into a string.                                                                                        |
-| `getVocabSize` | `(): Promise<number>`                                                                                                      | Returns the size of the tokenizer's vocabulary.                                                                                      |
-| `idToToken`    | `(tokenId: number): Promise<string>`                                                                                       | Returns the token associated to the ID.                                                                                              |
-| `tokenToId`    | `(token: string): Promise<number>`                                                                                         | Returns the ID associated to the token.                                                                                              |
-
-![](/react-native-executorch/img/Arrow.svg)![](/react-native-executorch/img/Arrow-dark.svg)Type definitions
-
-```typescript
-type ResourceSource = string | number | object;
-
-```
+All methods of `TokenizerModule` are explained in details here: [`TokenizerModule API Reference`](https://docs.swmansion.com/react-native-executorch/docs/api-reference/classes/TokenizerModule)

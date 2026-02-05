@@ -37,6 +37,10 @@ useExecutorchModule({
 
 The downloaded files are stored in documents directory of your application.
 
+## Predefined Models[​](#predefined-models "Direct link to Predefined Models")
+
+Our library offers out-of-the-box support for multiple models. To make things easier, we created aliases for our model exported to `pte` format. For full list of aliases, check out: [API Reference](https://docs.swmansion.com/react-native-executorch/docs/api-reference#models---classification)
+
 ## Example[​](#example "Direct link to Example")
 
 The following code snippet demonstrates how to load model and tokenizer files using `useLLM` hook:

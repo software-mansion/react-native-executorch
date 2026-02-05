@@ -8,7 +8,18 @@ Each hook documentation subpage (useClassification, useLLM, etc.) contains a sup
 
 ### How can I run my own AI model?[​](#how-can-i-run-my-own-ai-model "Direct link to How can I run my own AI model?")
 
-To run your own model, you need to directly access the underlying [ExecuTorch Module API](https://pytorch.org/executorch/stable/extension-module.html). We provide an experimental [React hook](https://docs.swmansion.com/react-native-executorch/docs/hooks/executorch-bindings/useExecutorchModule.md) along with a [TypeScript alternative](https://docs.swmansion.com/react-native-executorch/docs/typescript-api/executorch-bindings/ExecutorchModule.md), which serve as a way to use the aforementioned API without the need of diving into native code. In order to get a model in a format runnable by the runtime, you'll need to get your hands dirty with some ExecuTorch knowledge. For more guides on exporting models, please refer to the [ExecuTorch tutorials](https://pytorch.org/executorch/stable/tutorials/export-to-executorch-tutorial.html). Once you obtain your model in a `.pte` format, you can run it with `useExecuTorchModule` and `ExecuTorchModule`.
+To run your own model, you need to directly access the underlying [ExecuTorch Module API](https://pytorch.org/executorch/stable/extension-module.html). We provide [React hook](https://docs.swmansion.com/react-native-executorch/docs/hooks/executorch-bindings/useExecutorchModule.md) along with a [TypeScript alternative](https://docs.swmansion.com/react-native-executorch/docs/typescript-api/executorch-bindings/ExecutorchModule.md), which serve as a way to use the aforementioned API without the need of diving into native code. In order to get a model in a format runnable by the runtime, you'll need to get your hands dirty with some ExecuTorch knowledge. For more guides on exporting models, please refer to the [ExecuTorch tutorials](https://pytorch.org/executorch/stable/tutorials/export-to-executorch-tutorial.html). Once you obtain your model in a `.pte` format, you can run it with `useExecuTorchModule` and `ExecuTorchModule`.
+
+### How React Native ExecuTorch works under the hood?[​](#how-react-native-executorch-works-under-the-hood "Direct link to How React Native ExecuTorch works under the hood?")
+
+The general workflow for each functionality in our library goes like this:
+
+* You call a functionality from TypeScript
+* TypeScript calls C++ function like model inference or data processing via JSI
+* C++ returns result to TypeScript back via JSI
+* You get results in TypeScript
+
+Using JSI enables us using **zero-copy data transfer** and **fast, low-level C++**.
 
 ### Can you do function calling with useLLM?[​](#can-you-do-function-calling-with-usellm "Direct link to Can you do function calling with useLLM?")
 

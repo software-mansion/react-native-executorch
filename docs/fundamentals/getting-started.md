@@ -67,11 +67,20 @@ yarn run expo:<ios | android> -d
 
 ```
 
+## Supporting new models in React Native ExecuTorch[​](#supporting-new-models-in-react-native-executorch "Direct link to Supporting new models in React Native ExecuTorch")
+
+Adding new functionality to the library follows a consistent three-step integration pipeline:
+
+1. **Model Serialization:** We export PyTorch models for specific tasks (e.g., object detection) into the \*.pte format, which is optimized for the ExecuTorch runtime.
+
+2. **Native Implementation:** We develop a C++ execution layer that interfaces with the ExecuTorch runtime to handle inference. This layer also manages model-dependent logic, such as data pre-processing and post-processing.
+
+3. **TS Bindings:** Finally, we implement a TypeScript API that bridges the JavaScript environment to the native C++ logic, providing a clean, typed interface for the end user."
+
 ## Good reads[​](#good-reads "Direct link to Good reads")
 
 If you want to dive deeper into ExecuTorch or our previous work with the framework, we highly encourage you to check out the following resources:
 
 * [ExecuTorch docs](https://pytorch.org/executorch/stable/index.html)
-* [Native code for iOS](https://medium.com/swmansion/bringing-native-ai-to-your-mobile-apps-with-executorch-part-i-ios-f1562a4556e8?source=user_profile_page---------0-------------250189c98ccf---------------)
-* [Native code for Android](https://medium.com/swmansion/bringing-native-ai-to-your-mobile-apps-with-executorch-part-ii-android-29431b6b9f7f?source=user_profile_page---------2-------------b8e3a5cb1c63---------------)
-* [Exporting to Android with XNNPACK](https://medium.com/swmansion/exporting-ai-models-on-android-with-xnnpack-and-executorch-3e70cff51c59?source=user_profile_page---------1-------------b8e3a5cb1c63---------------)
+* [React Native RAG](https://blog.swmansion.com/introducing-react-native-rag-fbb62efa4991)
+* [Offline Text Recognition on Mobile: How We Brought EasyOCR to React Native ExecuTorch](https://blog.swmansion.com/bringing-easyocr-to-react-native-executorch-2401c09c2d0c)
