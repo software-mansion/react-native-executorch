@@ -37,14 +37,7 @@ llm.delete();
 
 ### Methods
 
-`LLMModule` provides the following methods:
-
-- Model lifecycle: [`load`](../../06-api-reference/classes/LLMModule.md#load), [`delete`](../../06-api-reference/classes/LLMModule.md#delete)
-- Generation: [`generate`](../../06-api-reference/classes/LLMModule.md#generate), [`forward`](../../06-api-reference/classes/LLMModule.md#forward), [`sendMessage`](../../06-api-reference/classes/LLMModule.md#sendmessage), [`interrupt`](../../06-api-reference/classes/LLMModule.md#interrupt)
-- Configuration: [`configure`](../../06-api-reference/classes/LLMModule.md#configure), [`setTokenCallback`](../../06-api-reference/classes/LLMModule.md#settokencallback), [`deleteMessage`](../../06-api-reference/classes/LLMModule.md#deletemessage)
-- Token counting: [`getGeneratedTokenCount`](../../06-api-reference/classes/LLMModule.md#getgeneratedtokencount), [`getPromptTokenCount`](../../06-api-reference/classes/LLMModule.md#getprompttokencount), [`getTotalTokenCount`](../../06-api-reference/classes/LLMModule.md#gettotaltokencount)
-
-For complete details, see the [LLMModule API Reference](../../06-api-reference/classes/LLMModule.md).
+All methods of `LLMModule` are explained in details here: [LLMModule API Reference](../../06-api-reference/classes/LLMModule.md).
 
 ## Loading the model
 
