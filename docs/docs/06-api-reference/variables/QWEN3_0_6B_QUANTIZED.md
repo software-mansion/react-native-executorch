@@ -2,7 +2,7 @@
 
 > `const` **QWEN3_0_6B_QUANTIZED**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:92](https://github.com/software-mansion/react-native-executorch/blob/180a40dc66a1a5554cd133093a04bade528bff90/packages/react-native-executorch/src/constants/modelUrls.ts#L92)
+Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:92](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/constants/modelUrls.ts#L92)
 
 ## Type Declaration
 
