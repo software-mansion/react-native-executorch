@@ -198,12 +198,19 @@ export interface DecodingOptions {
   verbose?: boolean;
 }
 
+export interface Word {
+  word: string;
+  start: number;
+  end: number;
+}
+
 export interface TranscriptionSegment {
   id: number;
   seek: number;
   start: number;
   end: number;
   text: string;
+  words?: Word[];
   tokens: number[];
   temperature: number;
   avg_logprob: number;

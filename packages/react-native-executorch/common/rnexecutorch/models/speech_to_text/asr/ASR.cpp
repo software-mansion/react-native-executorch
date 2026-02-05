@@ -284,6 +284,9 @@ std::vector<Segment> ASR::transcribe(std::span<float> waveform,
         w.start += seek;
         w.end += seek;
       }
+
+      seg.start += seek;
+      seg.end += seek;
     }
 
     seek = static_cast<int32_t>(segments.back().words.back().end);

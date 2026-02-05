@@ -25,9 +25,9 @@ public:
       "Registered non-void function")]] std::shared_ptr<OwningArrayBuffer>
   decode(std::span<uint64_t> tokens, std::span<float> encoderOutput) const;
   [[nodiscard("Registered non-void function")]]
-  TranscriptionResult transcribe(std::span<float> waveform,
-                                 std::string languageOption,
-                                 bool verbose) const;
+  types::TranscriptionResult transcribe(std::span<float> waveform,
+                                        std::string languageOption,
+                                        bool verbose) const;
 
   [[nodiscard("Registered non-void function")]]
   std::vector<char> transcribeStringOnly(std::span<float> waveform,

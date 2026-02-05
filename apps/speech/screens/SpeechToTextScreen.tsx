@@ -26,6 +26,8 @@ import * as FileSystem from 'expo-file-system/legacy';
 import SWMIcon from '../assets/swm_icon.svg';
 import DeviceInfo from 'react-native-device-info';
 
+import { VerboseTranscription } from '../components/VerboseTranscription';
+
 const isSimulator = DeviceInfo.isEmulatorSync();
 
 export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
@@ -79,22 +81,6 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
       return destination;
     }
   }
-  // Updated helper to handle TranscriptionResult structure
-  const getText = (data: TranscriptionResult | undefined | null) => {
-    if (!data) return '';
-
-    // If verbose mode was on, we have segments
-    if (data.segments && data.segments.length > 0) {
-      return data.segments
-        .map(
-          (s) => `${s.text} (${s.start.toFixed(2)}s - ${s.end.toFixed(2)}s)\n`
-        )
-        .join('');
-    }
-
-    // Otherwise just return the full text
-    return data.text || '';
-  };
 
   const handleTranscribeFromURL = async () => {
     if (!audioURL.trim()) {
@@ -106,11 +92,6 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     // Reset previous states
     setTranscription(null);
     setLiveResult(null);
-
-    const { uri } = await FileSystem.downloadAsync(
-      audioURL,
-      FileSystem.cacheDirectory + 'audio_file'
-    );
 
     const audioContext = new AudioContext({ sampleRate: 16000 });
 
@@ -186,15 +167,6 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   const readyToTranscribe = !model.isGenerating && model.isReady;
   const recordingButtonDisabled = isSimulator || !readyToTranscribe;
 
-  // Determine what text to display
-  let displayedText = '';
-  if (liveTranscribing && liveResult) {
-    displayedText =
-      getText(liveResult.committed) + getText(liveResult.nonCommitted);
-  } else if (transcription) {
-    displayedText = getText(transcription);
-  }
-
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
@@ -239,7 +211,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
                 scrollViewRef.current?.scrollToEnd({ animated: true })
               }
             >
-              <Text>{displayedText}</Text>
+              <VerboseTranscription data={transcription} />
             </ScrollView>
           </View>
 
