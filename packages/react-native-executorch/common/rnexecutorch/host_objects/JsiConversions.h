@@ -18,10 +18,12 @@
 #include <rnexecutorch/models/object_detection/Constants.h>
 #include <rnexecutorch/models/object_detection/Types.h>
 #include <rnexecutorch/models/ocr/Types.h>
+#include <rnexecutorch/models/speech_to_text/types/Segment.h>
+#include <rnexecutorch/models/speech_to_text/types/TranscriptionResult.h>
 #include <rnexecutorch/models/speech_to_text/types/Word.h>
 #include <rnexecutorch/models/voice_activity_detection/Types.h>
 
-using rnexecutorch::models::speech_to_text::types::Word;
+using namespace rnexecutorch::models::speech_to_text::types;
 
 namespace rnexecutorch::jsi_conversion {
 
@@ -68,17 +70,16 @@ getValue<std::shared_ptr<jsi::Function>>(const jsi::Value &val,
 template <>
 inline Word getValue<Word>(const jsi::Value &val, jsi::Runtime &runtime) {
   jsi::Object obj = val.asObject(runtime);
-  
-  std::string content = getValue<std::string>(obj.getProperty(runtime, "word"), runtime);
-  
+
+  std::string content =
+      getValue<std::string>(obj.getProperty(runtime, "word"), runtime);
+
   double start = obj.getProperty(runtime, "start").asNumber();
   double end = obj.getProperty(runtime, "end").asNumber();
 
-  return Word{
-      .content = std::move(content),
-      .start = static_cast<float>(start),
-      .end = static_cast<float>(end)
-  };
+  return Word{.content = std::move(content),
+              .start = static_cast<float>(start),
+              .end = static_cast<float>(end)};
 }
 
 template <>
@@ -317,13 +318,15 @@ inline jsi::Value getJsiValue(std::shared_ptr<jsi::Object> valuePtr,
 
 inline jsi::Value getJsiValue(const Word &word, jsi::Runtime &runtime) {
   jsi::Object obj(runtime);
-  obj.setProperty(runtime, "word", jsi::String::createFromUtf8(runtime, word.content));
+  obj.setProperty(runtime, "word",
+                  jsi::String::createFromUtf8(runtime, word.content));
   obj.setProperty(runtime, "start", static_cast<double>(word.start));
   obj.setProperty(runtime, "end", static_cast<double>(word.end));
   return obj;
 }
 
-inline jsi::Value getJsiValue(const std::vector<Word> &vec, jsi::Runtime &runtime) {
+inline jsi::Value getJsiValue(const std::vector<Word> &vec,
+                              jsi::Runtime &runtime) {
   jsi::Array array(runtime, vec.size());
   for (size_t i = 0; i < vec.size(); ++i) {
     array.setValueAtIndex(runtime, i, getJsiValue(vec[i], runtime));
@@ -504,7 +507,8 @@ getJsiValue(const std::vector<models::ocr::types::OCRDetection> &detections,
 }
 
 // inline jsi::Value
-// getJsiValue(const std::vector<models::voice_activity_detection::types::Segment>
+// getJsiValue(const
+// std::vector<models::voice_activity_detection::types::Segment>
 //                 &speechSegments,
 //             jsi::Runtime &runtime) {
 //   auto jsiSegments = jsi::Array(runtime, speechSegments.size());
@@ -518,38 +522,17 @@ getJsiValue(const std::vector<models::ocr::types::OCRDetection> &detections,
 //   return jsiSegments;
 // }
 
-inline jsi::Value getJsiValue(const TranscriptionResult &result, bool verbose, jsi::Runtime &runtime) {
-  Object obj(runtime);
-  obj.setProperty(runtime, "text", String::createFromUtf8(runtime, result.text));
-
-  // If not verbose, return object with just "text"
-  if (!verbose) {
-    return obj; 
-  }
-
-  obj.setProperty(runtime, "task", String::createFromUtf8(runtime, result.task));
-  obj.setProperty(runtime, "language", String::createFromUtf8(runtime, result.language));
-  obj.setProperty(runtime, "duration", result.duration);
-
-  jsi::Array segmentsAry(runtime, result.segments.size());
-  for (size_t i = 0; i < result.segments.size(); ++i) {
-    segmentsAry.setValueAtIndex(runtime, i, getJsiValue(runtime, result.segments[i], i));
-  }
-  obj.setProperty(runtime, "segments", segmentsAry);
-
-  return obj;
-}
-
-inline jsi::Value getJsiValue(const Segment &seg, int id, jsi::Runtime &runtime) {
+inline jsi::Value getJsiValue(const Segment &seg, jsi::Runtime &runtime) {
   jsi::Object obj(runtime);
-  obj.setProperty(runtime, "id", id);
   obj.setProperty(runtime, "seek", 0); // Simplified
   obj.setProperty(runtime, "start", seg.start);
   obj.setProperty(runtime, "end", seg.end);
-  
+
   std::string segText;
-  for(auto& w : seg.words) segText += w.content;
-  obj.setProperty(runtime, "text", String::createFromUtf8(runtime, segText));
+  for (auto &w : seg.words)
+    segText += w.content;
+  obj.setProperty(runtime, "text",
+                  jsi::String::createFromUtf8(runtime, segText));
 
   obj.setProperty(runtime, "avg_logprob", seg.avgLogprob);
   obj.setProperty(runtime, "compression_ratio", seg.compressionRatio);
@@ -565,6 +548,29 @@ inline jsi::Value getJsiValue(const Segment &seg, int id, jsi::Runtime &runtime)
   return obj;
 }
 
+inline jsi::Value getJsiValue(const TranscriptionResult &result,
+                              jsi::Runtime &runtime) {
+  jsi::Object obj(runtime);
+  obj.setProperty(runtime, "text",
+                  jsi::String::createFromUtf8(runtime, result.text));
 
+  if (!result.segments.empty() || !result.language.empty()) {
+    obj.setProperty(runtime, "task",
+                    jsi::String::createFromUtf8(runtime, result.task));
+    if (!result.language.empty()) {
+      obj.setProperty(runtime, "language",
+                      jsi::String::createFromUtf8(runtime, result.language));
+    }
+    obj.setProperty(runtime, "duration", result.duration);
 
+    jsi::Array segmentsAry(runtime, result.segments.size());
+    for (size_t i = 0; i < result.segments.size(); ++i) {
+      segmentsAry.setValueAtIndex(runtime, i,
+                                  getJsiValue(result.segments[i], runtime));
+    }
+    obj.setProperty(runtime, "segments", segmentsAry);
+  }
+
+  return obj;
+}
 } // namespace rnexecutorch::jsi_conversion

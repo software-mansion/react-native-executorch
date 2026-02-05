@@ -212,7 +212,7 @@ export interface TranscriptionSegment {
 }
 
 export interface TranscriptionResult {
-  task: string;
+  task?: string;
   language: string;
   duration: number;
   text: string;

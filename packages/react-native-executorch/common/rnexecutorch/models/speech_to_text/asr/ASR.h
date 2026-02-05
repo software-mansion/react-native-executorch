@@ -51,9 +51,11 @@ private:
   std::vector<types::Segment>
   generateWithFallback(std::span<float> waveform,
                        const types::DecodingOptions &options) const;
-  std::vector<types::Segment>
-  calculateWordLevelTimestamps(std::span<const uint64_t> tokens,
-                               std::span<const float> waveform) const;
+  std::vector<Segment>
+  calculateWordLevelTimestamps(std::span<const uint64_t> generatedTokens,
+                               const std::span<const float> waveform,
+                               float avgLogProb, float temperature,
+                               float compressionRatio) const;
   std::vector<types::Word>
   estimateWordLevelTimestampsLinear(std::span<const uint64_t> tokens,
                                     uint64_t start, uint64_t end) const;

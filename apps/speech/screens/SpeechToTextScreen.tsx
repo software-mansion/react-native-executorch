@@ -14,7 +14,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
   useSpeechToText,
   WHISPER_TINY_EN,
-  Word,
+  TranscriptionResult, // Changed from Word
 } from 'react-native-executorch';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {
@@ -33,10 +33,17 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     model: WHISPER_TINY_EN,
   });
 
-  const [transcription, setTranscription] = useState<string | Word[]>('');
+  // State now holds the new TranscriptionResult object or null
+  const [transcription, setTranscription] =
+    useState<TranscriptionResult | null>(null);
+
+  // State for live streaming results
+  const [liveResult, setLiveResult] = useState<{
+    committed: TranscriptionResult;
+    nonCommitted: TranscriptionResult;
+  } | null>(null);
 
   const [enableTimestamps, setEnableTimestamps] = useState(false);
-
   const [audioURL, setAudioURL] = useState('');
   const [liveTranscribing, setLiveTranscribing] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -72,6 +79,22 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
       return destination;
     }
   }
+  // Updated helper to handle TranscriptionResult structure
+  const getText = (data: TranscriptionResult | undefined | null) => {
+    if (!data) return '';
+
+    // If verbose mode was on, we have segments
+    if (data.segments && data.segments.length > 0) {
+      return data.segments
+        .map(
+          (s) => `${s.text} (${s.start.toFixed(2)}s - ${s.end.toFixed(2)}s)\n`
+        )
+        .join('');
+    }
+
+    // Otherwise just return the full text
+    return data.text || '';
+  };
 
   const handleTranscribeFromURL = async () => {
     if (!audioURL.trim()) {
@@ -80,6 +103,14 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     }
 
     const uri = await getAudioFile(audioURL);
+    // Reset previous states
+    setTranscription(null);
+    setLiveResult(null);
+
+    const { uri } = await FileSystem.downloadAsync(
+      audioURL,
+      FileSystem.cacheDirectory + 'audio_file'
+    );
 
     const audioContext = new AudioContext({ sampleRate: 16000 });
 
@@ -87,8 +118,9 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
       const decodedAudioData = await audioContext.decodeAudioDataSource(uri);
       const audioBuffer = decodedAudioData.getChannelData(0);
 
+      // API CHANGE: enableTimestamps -> verbose
       const result = await model.transcribe(audioBuffer, {
-        enableTimestamps: enableTimestamps as any,
+        verbose: enableTimestamps,
       });
       setTranscription(result);
     } catch (error) {
@@ -100,7 +132,11 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
 
   const handleStartTranscribeFromMicrophone = async () => {
     setLiveTranscribing(true);
-    setTranscription(enableTimestamps ? [] : '');
+    setTranscription(null);
+    setLiveResult({
+      committed: { text: '' },
+      nonCommitted: { text: '' },
+    });
 
     recorder.onAudioReady(({ buffer }) => {
       model.streamInsert(buffer.getChannelData(0));
@@ -108,7 +144,14 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     recorder.start();
 
     try {
-      await model.stream({ enableTimestamps: enableTimestamps });
+      // API CHANGE: Stream is now an AsyncGenerator
+      // API CHANGE: enableTimestamps -> verbose
+      const streamIter = model.stream({ verbose: enableTimestamps });
+
+      for await (const { committed, nonCommitted } of streamIter) {
+        if (!liveTranscribing) break; // Safety check
+        setLiveResult({ committed, nonCommitted });
+      }
     } catch (error) {
       console.error('Error during live transcription:', error);
     }
@@ -119,6 +162,18 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     model.streamStop();
     console.log('Live transcription stopped');
     setLiveTranscribing(false);
+
+    // Move live result to final transcription state
+    if (liveResult) {
+      setTranscription({
+        text: liveResult.committed.text + liveResult.nonCommitted.text,
+        segments: [
+          ...(liveResult.committed.segments || []),
+          ...(liveResult.nonCommitted.segments || []),
+        ],
+      });
+      setLiveResult(null);
+    }
   };
 
   const getModelStatus = () => {
@@ -131,12 +186,14 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   const readyToTranscribe = !model.isGenerating && model.isReady;
   const recordingButtonDisabled = isSimulator || !readyToTranscribe;
 
-  const hasResult = transcription.length > 0;
-
-  const displayedText = hasResult
-    ? getText(transcription)
-    : getText(model.committedTranscription) +
-      getText(model.nonCommittedTranscription);
+  // Determine what text to display
+  let displayedText = '';
+  if (liveTranscribing && liveResult) {
+    displayedText =
+      getText(liveResult.committed) + getText(liveResult.nonCommitted);
+  } else if (transcription) {
+    displayedText = getText(transcription);
+  }
 
   return (
     <SafeAreaProvider>
@@ -159,12 +216,13 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
           </View>
 
           <View style={styles.toggleContainer}>
-            <Text style={styles.toggleLabel}>Enable Timestamps</Text>
+            <Text style={styles.toggleLabel}>Enable Timestamps (Verbose)</Text>
             <Switch
               value={enableTimestamps}
               onValueChange={(val) => {
                 setEnableTimestamps(val);
-                setTranscription(val ? [] : '');
+                setTranscription(null);
+                setLiveResult(null);
               }}
               trackColor={{ false: '#767577', true: '#0f186e' }}
               thumbColor={enableTimestamps ? '#fff' : '#f4f3f4'}

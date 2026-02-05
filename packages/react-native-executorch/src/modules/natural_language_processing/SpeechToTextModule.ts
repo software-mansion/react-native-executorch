@@ -1,4 +1,8 @@
-import { DecodingOptions, SpeechToTextModelConfig } from '../../types/stt';
+import {
+  DecodingOptions,
+  SpeechToTextModelConfig,
+  TranscriptionResult,
+} from '../../types/stt';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
@@ -102,15 +106,20 @@ export class SpeechToTextModule {
    * @returns The transcription string.
    */
   public async transcribe(
+<<<<<<< HEAD
     waveform: Float32Array,
+=======
+    waveform: Float32Array | number[],
+>>>>>>> 6289290f (fix: Add corrections (still not working version))
     options: DecodingOptions = {}
-  ): Promise<string | Word[]> {
+  ): Promise<TranscriptionResult> {
     this.validateOptions(options);
     const transcriptionBytes = await this.nativeModule.transcribe(
       waveform,
       options.language || ''
     );
 
+<<<<<<< HEAD
     return transcriptionBytes;
   }
 
@@ -131,14 +140,30 @@ export class SpeechToTextModule {
   ): AsyncGenerator<{
     committed: string | Word[];
     nonCommitted: string | Word[];
+=======
+    return await this.nativeModule.transcribe(
+      waveform,
+      options.language || '',
+      !!options.verbose
+    );
+  }
+
+  public async *stream(
+    options: DecodingOptions = {}
+  ): AsyncGenerator<{
+    committed: TranscriptionResult;
+    nonCommitted: TranscriptionResult;
+>>>>>>> 6289290f (fix: Add corrections (still not working version))
   }> {
     this.validateOptions(options);
 
-    const enableTimestamps = options.enableTimestamps === true;
+    // Prepare arguments for native call
+    const verbose = !!options.verbose;
+    const language = options.language || '';
 
     const queue: {
-      committed: string | Word[];
-      nonCommitted: string | Word[];
+      committed: TranscriptionResult;
+      nonCommitted: TranscriptionResult;
     }[] = [];
 
     let waiter: (() => void) | null = null;
@@ -150,36 +175,32 @@ export class SpeechToTextModule {
       waiter = null;
     };
 
+    // Start the native streaming process in the background
     (async () => {
       try {
-        const callback = (
-          committed: any,
-          nonCommitted: any,
-          isDone: boolean
-        ) => {
-          if (!enableTimestamps) {
-            try {
-              queue.push({
-                committed: this.textDecoder.decode(new Uint8Array(committed)),
-                nonCommitted: this.textDecoder.decode(
-                  new Uint8Array(nonCommitted)
-                ),
-              });
-            } catch (err) {
-              Logger.error('[Stream Decode Error]', err);
+        await this.nativeModule.stream(
+          (
+            committed: TranscriptionResult,
+            nonCommitted: TranscriptionResult,
+            isDone: boolean
+          ) => {
+            // The native module now returns ready-to-use JS objects via JSI.
+            // No TextDecoder or JSON parsing required.
+            queue.push({
+              committed,
+              nonCommitted,
+            });
+
+            if (isDone) {
+              finished = true;
             }
-          } else {
-            queue.push({ committed, nonCommitted });
-          }
+            wake();
+          },
+          language,
+          verbose
+        );
 
-          if (isDone) finished = true;
-          wake();
-        };
-
-        const language = options.language || '';
-
-        await this.nativeModule.stream(callback, language, enableTimestamps);
-
+        // Mark as finished when the native promise resolves (stream ends)
         finished = true;
         wake();
       } catch (e) {
@@ -189,6 +210,7 @@ export class SpeechToTextModule {
       }
     })();
 
+    // Consumer Loop
     while (true) {
       if (queue.length > 0) {
         yield queue.shift()!;
