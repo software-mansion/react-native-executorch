@@ -1,11 +1,11 @@
 import { alphabets, symbols } from './symbols';
 
-import { URL_PREFIX, NEXT_VERSION_TAG } from '../versions';
+import { URL_PREFIX, VERSION_TAG } from '../versions';
 
-const DETECTOR_CRAFT_MODEL = `${URL_PREFIX}-detector-craft/${NEXT_VERSION_TAG}/xnnpack_quantized/xnnpack_craft_quantized.pte`;
+const DETECTOR_CRAFT_MODEL = `${URL_PREFIX}-detector-craft/${VERSION_TAG}/xnnpack_quantized/xnnpack_craft_quantized.pte`;
 
 const createHFRecognizerDownloadUrl = (alphabet: keyof typeof alphabets) =>
-  `${URL_PREFIX}-recognizer-crnn.en/${NEXT_VERSION_TAG}/xnnpack/${alphabet}/xnnpack_crnn_${alphabet}.pte`;
+  `${URL_PREFIX}-recognizer-crnn.en/${VERSION_TAG}/xnnpack/${alphabet}/xnnpack_crnn_${alphabet}.pte`;
 
 const RECOGNIZER_ENGLISH_CRNN = createHFRecognizerDownloadUrl('english');
 const RECOGNIZER_LATIN_CRNN = createHFRecognizerDownloadUrl('latin');
