@@ -1,6 +1,6 @@
 # Interface: VADProps
 
-Defined in: [packages/react-native-executorch/src/types/vad.ts:12](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/vad.ts#L12)
+Defined in: [packages/react-native-executorch/src/types/vad.ts:12](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/vad.ts#L12)
 
 Props for the useVAD hook.
 
@@ -10,7 +10,7 @@ Props for the useVAD hook.
 
 > **model**: `object`
 
-Defined in: [packages/react-native-executorch/src/types/vad.ts:13](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/vad.ts#L13)
+Defined in: [packages/react-native-executorch/src/types/vad.ts:13](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/vad.ts#L13)
 
 An object containing the model source.
 
@@ -24,6 +24,6 @@ An object containing the model source.
 
 > `optional` **preventLoad**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/vad.ts:14](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/vad.ts#L14)
+Defined in: [packages/react-native-executorch/src/types/vad.ts:14](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/vad.ts#L14)
 
 Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.

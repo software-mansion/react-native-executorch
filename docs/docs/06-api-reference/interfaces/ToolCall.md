@@ -1,6 +1,6 @@
 # Interface: ToolCall
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:185](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/llm.ts#L185)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:196](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/llm.ts#L196)
 
 Represents a tool call made by the model.
 
@@ -10,7 +10,7 @@ Represents a tool call made by the model.
 
 > **arguments**: `Object`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:187](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/llm.ts#L187)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:198](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/llm.ts#L198)
 
 The arguments passed to the tool.
 
@@ -20,6 +20,6 @@ The arguments passed to the tool.
 
 > **toolName**: `string`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:186](https://github.com/software-mansion/react-native-executorch/blob/4ee3121e1a18c982703726f1f72421920ed523a4/packages/react-native-executorch/src/types/llm.ts#L186)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:197](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/llm.ts#L197)
 
 The name of the tool being called.

@@ -76,7 +76,10 @@ const config = {
       ({
         markdown: {
           enableFiles: true,
-          excludeRoutes: ['**/react-native-executorch/search'],
+          excludeRoutes: [
+            '**/react-native-executorch/search',
+            '**/api-reference/**',
+          ],
           includeVersionedDocs: false,
           relativePaths: false,
         },
