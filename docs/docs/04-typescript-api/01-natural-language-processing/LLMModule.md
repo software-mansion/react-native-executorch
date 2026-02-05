@@ -4,7 +4,13 @@ title: LLMModule
 
 TypeScript API implementation of the [useLLM](../../03-hooks/01-natural-language-processing/useLLM.md) hook.
 
-## Reference
+## API Reference
+
+- For detailed API Reference for `LLMModule` see: [`LLMModule` API Reference](../../06-api-reference/classes/LLMModule.md).
+- For all LLM models available out-of-the-box in React Native ExecuTorch see: [LLM Models](../../06-api-reference/index.md#models---lmm).
+- For useful LLM utility functionalities please refer to the following link: [LLM Utility Functionalities](../../06-api-reference/index.md#utilities---llm).
+
+## High Level Overview
 
 ```typescript
 import { LLMModule, LLAMA3_2_1B_QLORA } from 'react-native-executorch';
@@ -31,81 +37,24 @@ llm.delete();
 
 ### Methods
 
-| Method                   | Type                                                                                                                                                                                       | Description                                                                                                                                                                                                                                                                                                                                                                                                  |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `constructor`            | `({tokenCallback?: (token: string) => void, messageHistoryCallback?: (messageHistory: Message[]) => void})`                                                                                | Creates a new instance of LLMModule with optional callbacks.                                                                                                                                                                                                                                                                                                                                                 |
-| `load`                   | `(model: { modelSource: ResourceSource; tokenizerSource: ResourceSource; tokenizerConfigSource: ResourceSource }, onDownloadProgressCallback?: (progress: number) => void): Promise<void>` | Loads the model.                                                                                                                                                                                                                                                                                                                                                                                             |
-| `setTokenCallback`       | `{tokenCallback: (token: string) => void}) => void`                                                                                                                                        | Sets new token callback invoked on every token batch.                                                                                                                                                                                                                                                                                                                                                        |
-| `generate`               | `(messages: Message[], tools?: LLMTool[]) => Promise<string>`                                                                                                                              | Runs model to complete chat passed in `messages` argument. Returns the generated response. It doesn't manage conversation context.                                                                                                                                                                                                                                                                           |
-| `forward`                | `(input: string) => Promise<string>`                                                                                                                                                       | Runs model inference with raw input string. Returns the generated response. You need to provide entire conversation and prompt (in correct format and with special tokens!) in input string to this method. It doesn't manage conversation context. It is intended for users that need access to the model itself without any wrapper. If you want a simple chat with model the consider using `sendMessage` |
-| `configure`              | `({chatConfig?: Partial<ChatConfig>, toolsConfig?: ToolsConfig, generationConfig?: GenerationConfig}) => void`                                                                             | Configures chat and tool calling and generation settings. See more details in [configuring the model](#configuring-the-model).                                                                                                                                                                                                                                                                               |
-| `sendMessage`            | `(message: string) => Promise<string>`                                                                                                                                                     | Method to add user message to conversation. Returns the generated response. After model responds it will call `messageHistoryCallback()` containing both user message and model response.                                                                                                                                                                                                                    |
-| `deleteMessage`          | `(index: number) => void`                                                                                                                                                                  | Deletes all messages starting with message on `index` position. After deletion it will call `messageHistoryCallback()` containing new history.                                                                                                                                                                                                                                                               |
-| `delete`                 | `() => void`                                                                                                                                                                               | Method to delete the model from memory. Note you cannot delete model while it's generating. You need to interrupt it first and make sure model stopped generation.                                                                                                                                                                                                                                           |
-| `interrupt`              | `() => void`                                                                                                                                                                               | Interrupts model generation. It may return one more token after interrupt.                                                                                                                                                                                                                                                                                                                                   |
-| `getGeneratedTokenCount` | `() => number`                                                                                                                                                                             | Returns the number of tokens generated in the last response.                                                                                                                                                                                                                                                                                                                                                 |
-
-<details>
-<summary>Type definitions</summary>
-
-```typescript
-type ResourceSource = string | number | object;
-
-type MessageRole = 'user' | 'assistant' | 'system';
-
-interface Message {
-  role: MessageRole;
-  content: string;
-}
-interface ChatConfig {
-  initialMessageHistory: Message[];
-  contextWindowLength: number;
-  systemPrompt: string;
-}
-
-interface GenerationConfig {
-  temperature?: number;
-  topp?: number;
-  outputTokenBatchSize?: number;
-  batchTimeInterval?: number;
-}
-
-// tool calling
-interface ToolsConfig {
-  tools: LLMTool[];
-  executeToolCallback: (call: ToolCall) => Promise<string | null>;
-  displayToolCalls?: boolean;
-}
-
-interface ToolCall {
-  toolName: string;
-  arguments: Object;
-}
-
-type LLMTool = Object;
-```
-
-</details>
-
 ## Loading the model
 
-To create a new instance of LLMModule, use the constructor with optional callbacks:
+To create a new instance of `LLMModule`, use the [constructor](../../06-api-reference/classes/LLMModule.md#constructor) with optional callbacks:
 
-**`tokenCallback`** - (Optional) A function that will be called on every generated token with that token as its only argument.
+- [`tokenCallback`](../../06-api-reference/classes/LLMModule.md#tokencallback) - Function called on every generated token.
 
-**`messageHistoryCallback`** - (Optional) A function called on every finished message. Returns the entire message history.
+- [`messageHistoryCallback`](../../06-api-reference/classes/LLMModule.md#messagehistorycallback) - Function called on every finished message.
 
-Then, to load the model, use the `load` method. It accepts an object with the following fields:
+Then, to load the model, use the [`load`](../../06-api-reference/classes/LLMModule.md#load) method. It accepts an object with the following fields:
 
-**`model`** - Object containing the model source, tokenizer source, and tokenizer config source.
+- [`model`](../../06-api-reference/classes/LLMModule.md#model) - Object containing:
+  - [`modelSource`](../../06-api-reference/classes/LLMModule.md#modelsource) - The location of the used model.
 
-- **`modelSource`** - `ResourceSource` specifying the location of the model binary.
+  - [`tokenizerSource`](../../06-api-reference/classes/LLMModule.md#tokenizersource) - The location of the used tokenizer.
 
-- **`tokenizerSource`** - `ResourceSource` specifying the location of the tokenizer.
+  - [`tokenizerConfigSource`](../../06-api-reference/classes/LLMModule.md#tokenizerconfigsource) - The location of the used tokenizer config.
 
-- **`tokenizerConfigSource`** - `ResourceSource` specifying the location of the tokenizer config.
-
-**`onDownloadProgressCallback`** - (Optional) Function called on download progress.
+- [`onDownloadProgressCallback`](../../06-api-reference/classes/LLMModule.md#ondownloadprogresscallback) - Callback to track download progress.
 
 This method returns a promise, which can resolve to an error or void.
 
@@ -113,59 +62,56 @@ For more information on loading resources, take a look at [loading models](../..
 
 ## Listening for download progress
 
-To subscribe to the download progress event, you can pass the `onDownloadProgressCallback` function to the `load` method. This function is called whenever the download progress changes.
+To subscribe to the download progress event, you can pass the [`onDownloadProgressCallback`](../../06-api-reference/classes/LLMModule.md#ondownloadprogresscallback) function to the [`load`](../../06-api-reference/classes/LLMModule.md#load) method. This function is called whenever the download progress changes.
 
 ## Running the model
 
-To run the model, you can use `generate` method. It allows you to pass chat messages and returns a promise that resolves to the generated response. It doesn't provide any message history management.
+To run the model, you can use [`generate`](../../06-api-reference/classes/LLMModule.md#generate) method. It allows you to pass chat messages and receive completion from the model. It doesn't provide any message history management.
 
-Alternatively in managed chat (see: [Functional vs managed](../../03-hooks/01-natural-language-processing/useLLM.md#functional-vs-managed)), you can use the `sendMessage` method. It accepts the user message and returns a promise that resolves to the generated response. Additionally, it will call `messageHistoryCallback` with the updated message history containing both user message and model response.
+Alternatively in managed chat (see: [Functional vs managed](../../03-hooks/01-natural-language-processing/useLLM.md#functional-vs-managed)), you can use the [`sendMessage`](../../06-api-reference/classes/LLMModule.md#sendmessage) method. It accepts the user message and returns a promise that resolves to the generated response. Additionally, it will call [`messageHistoryCallback`](../../06-api-reference/classes/LLMModule.md#messagehistorycallback) with the updated message history containing both user message and model response.
 
-If you need raw model access without any wrappers, you can use `forward`. It provides direct access to the model, so the input string is passed straight into the model and returns the generated response. It may be useful to work with models that aren't finetuned for chat completions. If you're not sure what are implications of that (e.g. that you have to include special model tokens), you're better off with `sendMessage`.
+If you need raw model access without any wrappers, you can use [`forward`](../../06-api-reference/classes/LLMModule.md#forward). It provides direct access to the model, so the input string is passed straight into the model and returns the generated response. It may be useful to work with models that aren't finetuned for chat completions. If you're not sure what are implications of that (e.g. that you have to include special model tokens), you're better off with [`sendMessage`](../../06-api-reference/classes/LLMModule.md#sendmessage).
 
 ## Listening for generated tokens
 
-To subscribe to the token generation event, you can pass `tokenCallback` or `messageHistoryCallback` functions to the constructor. `tokenCallback` is called on every token and contains only the most recent token. `messageHistoryCallback` is called whenever model finishes generation and contains all message history including user's and model's last messages.
+To subscribe to the token generation event, you can pass [`tokenCallback`](../../06-api-reference/classes/LLMModule.md#tokencallback) or [`messageHistoryCallback`](../../06-api-reference/classes/LLMModule.md#messagehistorycallback) functions to the constructor. [`tokenCallback`](../../06-api-reference/classes/LLMModule.md#tokencallback) is called on every token and contains only the most recent token. [`messageHistoryCallback`](../../06-api-reference/classes/LLMModule.md#messagehistorycallback) is called whenever model finishes generation and contains all message history including user's and model's last messages.
 
 ## Interrupting the model
 
-In order to interrupt the model, you can use the `interrupt` method.
+In order to interrupt the model, you can use the [`interrupt`](../../06-api-reference/classes/LLMModule.md#interrupt) method.
 
 ## Token Batching
 
-Depending on selected model and the user's device generation speed can be above 60 tokens per second. If the `tokenCallback` triggers rerenders and is invoked on every single token it can significantly decrease the app's performance. To alleviate this and help improve performance we've implemented token batching. To configure this you need to call `configure` method and pass `generationConfig`. Inside you can set two parameters `outputTokenBatchSize` and `batchTimeInterval`. They set the size of the batch before tokens are emitted and the maximum time interval between consecutive batches respectively. Each batch is emitted if either `timeInterval` elapses since last batch or `countInterval` number of tokens are generated. This allows for smooth generation even if model lags during generation. Default parameters are set to 10 tokens and 80ms for time interval (~12 batches per second).
+Depending on selected model and the user's device generation speed can be above 60 tokens per second. If the [`tokenCallback`](../../06-api-reference/classes/LLMModule.md#tokencallback) triggers rerenders and is invoked on every single token it can significantly decrease the app's performance. To alleviate this and help improve performance we've implemented token batching. To configure this you need to call [`configure`](../../06-api-reference/classes/LLMModule.md#configure) method and pass [`generationConfig`](../../06-api-reference/interfaces/LLMConfig.md#generationconfig). In the next section, there are listed what you can tweak with this config.
 
 ## Configuring the model
 
 To configure model (i.e. change system prompt, load initial conversation history or manage tool calling, set generation settings) you can use
-`configure` method. **`chatConfig`** and **`toolsConfig`** is only applied to managed chats i.e. when using `sendMessage` (see: [Functional vs managed](../../03-hooks/01-natural-language-processing/useLLM.md#functional-vs-managed)) It accepts object with following fields:
+[`configure`](../../06-api-reference/classes/LLMModule.md#configure) method. [**`chatConfig`**](../../06-api-reference/interfaces/LLMConfig.md#chatconfig) and [**`toolsConfig`**](../../06-api-reference/interfaces/LLMConfig.md#toolsconfig) is only applied to managed chats i.e. when using [`sendMessage`](../../06-api-reference/classes/LLMModule.md#sendmessage) (see: [Functional vs managed](../../03-hooks/01-natural-language-processing/useLLM.md#functional-vs-managed)) It accepts object with following fields:
 
-**`chatConfig`** - Object configuring chat management:
+- [`chatConfig`](../../06-api-reference/interfaces/LLMConfig.md#chatconfig) - Object configuring chat management that contains:
+  - [`systemPrompt`](../../06-api-reference/interfaces/ChatConfig.md#systemprompt) - Often used to tell the model what is its purpose, for example - "Be a helpful translator".
 
-- **`systemPrompt`** - Often used to tell the model what is its purpose, for example - "Be a helpful translator".
+  - [`initialMessageHistory`](../../06-api-reference/interfaces/ChatConfig.md#initialmessagehistory) - Object that represent the conversation history. This can be used to provide initial context to the model.
 
-- **`initialMessageHistory`** - An array of `Message` objects that represent the conversation history. This can be used to provide initial context to the model.
+  - [`contextWindowLength`](../../06-api-reference/interfaces/ChatConfig.md#contextwindowlength) - The number of messages from the current conversation that the model will use to generate a response. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
 
-- **`contextWindowLength`** - The number of messages from the current conversation that the model will use to generate a response. The higher the number, the more context the model will have. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
+- [`toolsConfig`](../../06-api-reference/interfaces/ToolsConfig.md) - Object configuring options for enabling and managing tool use. **It will only have effect if your model's chat template support it**. Contains following properties:
+  - [`tools`](../../06-api-reference/interfaces/ToolsConfig.md#tools) - List of objects defining tools.
 
-**`toolsConfig`** - Object configuring options for enabling and managing tool use. **It will only have effect if your model's chat template support it**. Contains following properties:
+  - [`executeToolCallback`](../../06-api-reference/interfaces/ToolsConfig.md#executetoolcallback) - Function that accepts [`ToolCall`](../../06-api-reference/interfaces/ToolCall.md), executes tool and returns the string to model.
 
-- **`tools`** - List of objects defining tools.
+  - [`displayToolCalls`](../../06-api-reference/interfaces/ToolsConfig.md#displaytoolcalls) - If set to `true`, JSON tool calls will be displayed in chat. If `false`, only answers will be displayed.
 
-- **`executeToolCallback`** - Function that accepts `ToolCall`, executes tool and returns the string to model.
+- [`generationConfig`](../../06-api-reference/interfaces/LLMConfig.md#generationconfig) - Object configuring generation settings with following properties:
+  - [`outputTokenBatchSize`](../../06-api-reference/interfaces/GenerationConfig.md#batchtimeinterval) - Soft upper limit on the number of tokens in each token batch (in certain cases there can be more tokens in given batch, i.e. when the batch would end with special emoji join character).
 
-- **`displayToolCalls`** - If set to true, JSON tool calls will be displayed in chat. If false, only answers will be displayed.
+  - [`batchTimeInterval`](../../06-api-reference/interfaces/GenerationConfig.md#batchtimeinterval) - Upper limit on the time interval between consecutive token batches.
 
-**`generationConfig`** - Object configuring generation settings.
+  - [`temperature`](../../06-api-reference/interfaces/GenerationConfig.md#temperature) - Scales output logits by the inverse of temperature. Controls the randomness / creativity of text generation.
 
-- **`outputTokenBatchSize`** - Soft upper limit on the number of tokens in each token batch (in certain cases there can be more tokens in given batch, i.e. when the batch would end with special emoji join character).
-
-- **`batchTimeInterval`** - Upper limit on the time interval between consecutive token batches.
-
-- **`temperature`** - Scales output logits by the inverse of temperature. Controls the randomness / creativity of text generation.
-
-- **`topp`** - Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
+  - [`topp`](../../06-api-reference/interfaces/GenerationConfig.md#topp) - Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
 
 ## Deleting the model from memory
 
-To delete the model from memory, you can use the `delete` method.
+To delete the model from memory, you can use the [`delete`](../../06-api-reference/classes/LLMModule.md#delete) method.

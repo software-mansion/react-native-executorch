@@ -18,7 +18,11 @@ const config = {
   projectName: 'react-native-executorch',
 
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
+  },
 
   presets: [
     [
@@ -50,78 +54,22 @@ const config = {
     ],
   ],
 
-  themeConfig:
-    /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
-    ({
-      colorMode: {
-        defaultMode: 'dark',
-      },
-      image: 'img/og-image.png',
-      navbar: {
-        title: 'React Native ExecuTorch',
-        hideOnScroll: true,
-        logo: {
-          alt: 'React Native ExecuTorch',
-          src: 'img/logo-hero.svg',
-        },
-        items: [
-          {
-            to: 'docs/fundamentals/getting-started',
-            activeBasePath: 'docs',
-            label: 'Docs',
-            position: 'right',
-          },
-          {
-            type: 'docsVersionDropdown',
-            position: 'right',
-            dropdownActiveClassDisabled: true,
-          },
-          {
-            'href': 'https://discord.gg/ZGqqY55qkP',
-            'position': 'right',
-            'className': 'header-discord',
-            'aria-label': 'Discord server',
-          },
-          {
-            'href':
-              'https://github.com/software-mansion/react-native-executorch',
-            'position': 'right',
-            'className': 'header-github',
-            'aria-label': 'GitHub repository',
-          },
-        ],
-      },
-      footer: {
-        style: 'light',
-        links: [],
-        copyright:
-          'All trademarks and copyrights belong to their respective owners.',
-      },
-      prism: {
-        additionalLanguages: ['bash'],
-        theme: lightCodeTheme,
-        darkTheme: darkCodeTheme,
-      },
-      algolia: {
-        // eslint-disable-next-line @cspell/spellchecker
-        appId: '9PIVJVUUXB',
-        apiKey: '8634751cfd500c6708f63ea5fc7446c6',
-        indexName: 'swmansion',
-        askAi: {
-          appId: '9PIVJVUUXB',
-          apiKey: '8634751cfd500c6708f63ea5fc7446c6',
-          assistantId: 'MZHkLL8cFqAN',
-          indexName: 'swmansion-markdown-for-llms',
-        },
-      },
-    }),
-  customFields: {
-    algolia: {
-      suggestedQuestions: true,
-      enableSidePanel: true,
-    },
-  },
   plugins: [
+    [
+      'docusaurus-plugin-typedoc',
+      {
+        // 1. Point to the specific entry point inside the package
+        entryPoints: ['../packages/react-native-executorch/src/index.ts'],
+
+        // 2. Point to the specific tsconfig inside that package
+        tsconfig: '../packages/react-native-executorch/tsconfig.doc.json',
+
+        out: './docs/06-api-reference',
+
+        // Remove invalid 'sidebar' option (v4+)
+        // sidebar: { ... }
+      },
+    ],
     [
       '@signalwire/docusaurus-plugin-llms-txt',
       /** @type {import('@signalwire/docusaurus-plugin-llms-txt/public').PluginOptions} */
@@ -178,6 +126,77 @@ const config = {
     ],
   ],
   themes: [require.resolve('@signalwire/docusaurus-theme-llms-txt')],
+  themeConfig:
+    /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
+    ({
+      colorMode: {
+        defaultMode: 'dark',
+      },
+      image: 'img/og-image.png',
+      navbar: {
+        title: 'React Native ExecuTorch',
+        hideOnScroll: true,
+        logo: {
+          alt: 'React Native ExecuTorch',
+          src: 'img/logo-hero.svg',
+        },
+        items: [
+          {
+            type: 'docSidebar',
+            sidebarId: 'tutorialSidebar',
+            label: 'Docs',
+            position: 'right',
+          },
+          {
+            type: 'docsVersionDropdown',
+            position: 'right',
+            dropdownActiveClassDisabled: true,
+          },
+          {
+            'href': 'https://discord.gg/ZGqqY55qkP',
+            'position': 'right',
+            'className': 'header-discord',
+            'aria-label': 'Discord server',
+          },
+          {
+            'href':
+              'https://github.com/software-mansion/react-native-executorch',
+            'position': 'right',
+            'className': 'header-github',
+            'aria-label': 'GitHub repository',
+          },
+        ],
+      },
+      footer: {
+        style: 'light',
+        links: [],
+        copyright:
+          'All trademarks and copyrights belong to their respective owners.',
+      },
+      prism: {
+        additionalLanguages: ['bash'],
+        theme: lightCodeTheme,
+        darkTheme: darkCodeTheme,
+      },
+      algolia: {
+        // eslint-disable-next-line @cspell/spellchecker
+        appId: '9PIVJVUUXB',
+        apiKey: '8634751cfd500c6708f63ea5fc7446c6',
+        indexName: 'swmansion',
+        askAi: {
+          appId: '9PIVJVUUXB',
+          apiKey: '8634751cfd500c6708f63ea5fc7446c6',
+          assistantId: 'MZHkLL8cFqAN',
+          indexName: 'swmansion-markdown-for-llms',
+        },
+      },
+    }),
+  customFields: {
+    algolia: {
+      suggestedQuestions: true,
+      enableSidePanel: true,
+    },
+  },
 };
 
 module.exports = config;

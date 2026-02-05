@@ -22,7 +22,11 @@ converts text into a format that machine learning models can understand.
 We are using [Hugging Face Tokenizers](https://huggingface.co/docs/tokenizers/index) under the hood, ensuring compatibility with the Hugging Face ecosystem.
 :::
 
-## Reference
+## API Reference
+
+- For detailed API Reference for `useTokenizer` see: [`useTokenizer` API Reference](../../06-api-reference/functions/useTokenizer.md).
+
+## High Level Overview
 
 ```typescript
 import { useTokenizer, ALL_MINILM_L6_V2 } from 'react-native-executorch';
@@ -44,29 +48,21 @@ try {
 }
 ```
 
-## Arguments
+### Arguments
 
-**`tokenizer`** - Object containing the tokenizer source.
+`useTokenizer` takes [`TokenizerProps`](../../06-api-reference/interfaces/TokenizerProps.md) that consists of:
 
-- **`tokenizerSource`** - A string that specifies the location of the tokenizer JSON file.
+- `tokenizer` of type [`KokoroConfig`](../../06-api-reference/interfaces/KokoroConfig.md) containing [`tokenizerSource`](../../06-api-reference/interfaces/TokenizerProps.md#tokenizersource).
+- An optional flag [`preventLoad`](../../06-api-reference/interfaces/TokenizerProps.md#preventload) which prevents auto-loading of the model.
 
-**`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+You need more details? Check the following resources:
 
-For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+- For detailed information about `useTokenizer` arguments check this section: [`useTokenizer` arguments](../../06-api-reference/functions/useTokenizer.md#parameters).
+- For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
-| Field              | Type                                  | Description                                                           |
-| ------------------ | ------------------------------------- | --------------------------------------------------------------------- |
-| `encode`           | `(text: string) => Promise<number[]>` | Converts a string into an array of token IDs.                         |
-| `decode`           | `(ids: number[]) => Promise<string>`  | Converts an array of token IDs into a string.                         |
-| `getVocabSize`     | `() => Promise<number>`               | Returns the size of the tokenizer's vocabulary.                       |
-| `idToToken`        | `(id: number) => Promise<string>`     | Returns the token associated to the ID.                               |
-| `tokenToId`        | `(token: string) => Promise<number>`  | Returns the ID associated to the token.                               |
-| `error`            | <code>string &#124; null</code>       | Contains the error message if the tokenizer failed to load.           |
-| `isGenerating`     | `boolean`                             | Indicates whether the tokenizer is currently running.                 |
-| `isReady`          | `boolean`                             | Indicates whether the tokenizer has successfully loaded and is ready. |
-| `downloadProgress` | `number`                              | Represents the download progress as a value between 0 and 1.          |
+`useTokenizer` returns an object called `TokenizerType` containing bunch of functions to interact with Tokenizers. To get more details please read: [`TokenizerType` API Reference](../../06-api-reference/interfaces/TokenizerType.md).
 
 ## Example
 

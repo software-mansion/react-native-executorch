@@ -4,7 +4,12 @@ title: OCRModule
 
 TypeScript API implementation of the [useOCR](../../03-hooks/02-computer-vision/useOCR.md) hook.
 
-## Reference
+## API Reference
+
+- For detailed API Reference for `OCRModule` see: [`OCRModule` API Reference](../../06-api-reference/classes/OCRModule.md).
+- For all alphabets available in ocr out-of-the-box in React Native ExecuTorch see: [OCR Supported Alphabets](../../06-api-reference/index.md#ocr-supported-alphabets).
+
+## High Level Overview
 
 ```typescript
 import { OCRModule, OCR_ENGLISH } from 'react-native-executorch';
@@ -22,107 +27,18 @@ const detections = await ocrModule.forward(imageUri);
 
 ### Methods
 
-| Method    | Type                                                                                                                                                                           | Description                                                                                                                                                                                                                                                                                     |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `load`    | `(model: { detectorSource: ResourceSource; recognizerSource: ResourceSource; language: OCRLanguage }, onDownloadProgressCallback?: (progress: number) => void): Promise<void>` | Loads the model, where `detectorSource` is a string that specifies the location of the detector binary, `recognizerSource` is a string that specifies the location of the recognizer binary, and `language` is a parameter that specifies the language of the text to be recognized by the OCR. |
-| `forward` | `(imageSource: string): Promise<OCRDetections[]>`                                                                                                                              | Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string.                                                                                                                                                                                  |
-| `delete`  | `(): void`                                                                                                                                                                     | Release the memory held by the module. Calling `forward` afterwards is invalid. Note that you cannot delete model while it's generating.                                                                                                                                                        |
-
-<details>
-<summary>Type definitions</summary>
-
-```typescript
-type OCRLanguage =
-  | 'abq'
-  | 'ady'
-  | 'af'
-  | 'ava'
-  | 'az'
-  | 'be'
-  | 'bg'
-  | 'bs'
-  | 'chSim'
-  | 'che'
-  | 'cs'
-  | 'cy'
-  | 'da'
-  | 'dar'
-  | 'de'
-  | 'en'
-  | 'es'
-  | 'et'
-  | 'fr'
-  | 'ga'
-  | 'hr'
-  | 'hu'
-  | 'id'
-  | 'inh'
-  | 'ic'
-  | 'it'
-  | 'ja'
-  | 'kbd'
-  | 'kn'
-  | 'ko'
-  | 'ku'
-  | 'la'
-  | 'lbe'
-  | 'lez'
-  | 'lt'
-  | 'lv'
-  | 'mi'
-  | 'mn'
-  | 'ms'
-  | 'mt'
-  | 'nl'
-  | 'no'
-  | 'oc'
-  | 'pi'
-  | 'pl'
-  | 'pt'
-  | 'ro'
-  | 'ru'
-  | 'rsCyrillic'
-  | 'rsLatin'
-  | 'sk'
-  | 'sl'
-  | 'sq'
-  | 'sv'
-  | 'sw'
-  | 'tab'
-  | 'te'
-  | 'th'
-  | 'tjk'
-  | 'tl'
-  | 'tr'
-  | 'uk'
-  | 'uz'
-  | 'vi';
-
-interface Point {
-  x: number;
-  y: number;
-}
-
-interface OCRDetection {
-  bbox: Point[];
-  text: string;
-  score: number;
-}
-```
-
-</details>
+All methods of `OCRModule` are explained in details here: [`OCRModule` API Reference](../../06-api-reference/classes/OCRModule.md)
 
 ## Loading the model
 
-To load the model, use the `load` method. It accepts an object:
+To load the model, use the [`load`](../../06-api-reference/classes/OCRModule.md#load) method. It accepts an object:
 
-**`model`** - Object containing the detector source, recognizer source, and language.
+- [`model`](../../06-api-reference/classes/OCRModule.md#model) - Object containing:
+  - [`detectorSource`](../../06-api-reference/classes/OCRModule.md#detectorsource) - Location of the used detector.
+  - [`recognizerSource`](../../06-api-reference/classes/OCRModule.md#recognizersource) - Location of the used recognizer.
+  - [`language`](../../06-api-reference/classes/OCRModule.md#recognizersource) - Language used in OCR.
 
-- **`detectorSource`** - A string that specifies the location of the detector binary.
-- **`recognizerSource`** - A string that specifies the location of the recognizer binary.
-- **`language`** - A parameter that specifies the language of the text to be recognized by the OCR.
-
-**`onDownloadProgressCallback`** - (Optional) Function called on download progress.
+- [`onDownloadProgressCallback`](../../06-api-reference/classes/OCRModule.md#ondownloadprogresscallback) - Callback to track download progress.
 
 This method returns a promise, which can resolve to an error or void.
 
@@ -130,4 +46,4 @@ For more information on loading resources, take a look at [loading models](../..
 
 ## Running the model
 
-To run the model, you can use the `forward` method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The method returns a promise, which can resolve either to an error or an array of `OCRDetection` objects. Each object contains coordinates of the bounding box, the label of the detected object, and the confidence score.
+To run the model, you can use the [`forward`](../../06-api-reference/classes/OCRModule.md#forward) method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The method returns a promise, which can resolve either to an error or an array of [`OCRDetection`](../../06-api-reference/interfaces/OCRDetection.md) objects. Each object contains coordinates of the bounding box, the label of the detected object, and the confidence score.
