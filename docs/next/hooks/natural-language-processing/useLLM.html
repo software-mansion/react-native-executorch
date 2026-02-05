@@ -11,8 +11,8 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.b3d43fde.css">
-<script src="/react-native-executorch/assets/js/runtime~main.0d65bc66.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.3862c062.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.0c515706.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.6db7951a.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <svg style="display: none;"><defs>
@@ -48,6 +48,14 @@
 <li class="">For available LLM models please check out the following list: <a class="" href="/react-native-executorch/docs/next/api-reference#models---lmm">LLM Models</a>.</li>
 </ul>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns">Returns<a href="#returns" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h3>
+<p><code>useLLM</code> returns <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/LLMType"><code>LLMType</code></a> which provides:</p>
+<ul>
+<li class="">State properties: <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/LLMType#response"><code>response</code></a>, <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/LLMType#token"><code>token</code></a>, <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/LLMType#isready"><code>isReady</code></a>, <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/LLMType#isgenerating"><code>isGenerating</code></a>, <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/LLMType#downloadprogress"><code>downloadProgress</code></a>, <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/LLMType#error"><code>error</code></a>, <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/LLMType#messagehistory"><code>messageHistory</code></a></li>
+<li class="">Generation methods: <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/LLMType#generate"><code>generate</code></a>, <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/LLMType#sendmessage"><code>sendMessage</code></a>, <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/LLMType#interrupt"><code>interrupt</code></a></li>
+<li class="">Configuration: <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/LLMType#configure"><code>configure</code></a>, <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/LLMType#deletemessage"><code>deleteMessage</code></a></li>
+<li class="">Token counting: <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/LLMType#getgeneratedtokencount"><code>getGeneratedTokenCount</code></a>, <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/LLMType#getprompttokencount"><code>getPromptTokenCount</code></a>, <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/LLMType#gettotaltokencount"><code>getTotalTokenCount</code></a></li>
+</ul>
+<p>For complete details, see the <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/LLMType">LLMType API Reference</a>.</p>
 <h2 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="functional-vs-managed">Functional vs managed<a href="#functional-vs-managed" class="hash-link" aria-label="Direct link to Functional vs managed" title="Direct link to Functional vs managed" translate="no">​</a></h2>
 <p>You can use functions returned from this hooks in two manners:</p>
 <ol>
