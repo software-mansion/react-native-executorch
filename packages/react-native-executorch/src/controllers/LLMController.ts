@@ -203,7 +203,8 @@ export class LLMController {
         'You cannot delete the model now. You need ot interrupt it first.'
       );
     }
-    this.onToken = () => { };
+
+    this.onToken = () => {};
     if (this.nativeModule) {
       this.nativeModule.unload();
     }

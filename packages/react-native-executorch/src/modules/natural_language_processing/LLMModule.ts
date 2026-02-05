@@ -51,7 +51,7 @@ export class LLMModule {
       tokenizerSource: ResourceSource;
       tokenizerConfigSource: ResourceSource;
     },
-    onDownloadProgressCallback: (progress: number) => void = () => { }
+    onDownloadProgressCallback: (progress: number) => void = () => {}
   ) {
     await this.controller.load({
       ...model,

@@ -96,12 +96,11 @@ export interface LLMType {
    * @returns The count of prompt and generated tokens.
    */
   getTotalTokenCount: () => number;
-
   /**
- * Returns the number of prompt tokens in the last message.
- *
- * @returns The count of prompt token.
- */
+   * Returns the number of prompt tokens in the last message.
+   *
+   * @returns The count of prompt token.
+   */
   getPromptTokenCount: () => number;
 
   /**
