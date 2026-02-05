@@ -1,8 +1,8 @@
 import { KokoroVoiceExtras, VoiceConfig } from '../../types/tts';
-import { URL_PREFIX, NEXT_VERSION_TAG } from '../versions';
+import { URL_PREFIX, VERSION_TAG } from '../versions';
 
 // Kokoro voices - phonemizers
-const KOKORO_PHONEMIZER_PREFIX = `${URL_PREFIX}-kokoro/${NEXT_VERSION_TAG}/phonemizer`;
+const KOKORO_PHONEMIZER_PREFIX = `${URL_PREFIX}-kokoro/${VERSION_TAG}/phonemizer`;
 const KOKORO_PHONEMIZER_TAGGER_DATA = `${KOKORO_PHONEMIZER_PREFIX}/tags.json`;
 const KOKORO_PHONEMIZER_LEXICON_EN_US_DATA = `${KOKORO_PHONEMIZER_PREFIX}/us_merged.json`;
 const KOKORO_PHONEMIZER_LEXICON_EN_GB_DATA = `${KOKORO_PHONEMIZER_PREFIX}/gb_merged.json`;
@@ -17,7 +17,7 @@ const EN_GB_RESOURCES = {
 } as KokoroVoiceExtras;
 
 // Kokoro voices
-const KOKORO_VOICE_PREFIX = `${URL_PREFIX}-kokoro/${NEXT_VERSION_TAG}/voices`;
+const KOKORO_VOICE_PREFIX = `${URL_PREFIX}-kokoro/${VERSION_TAG}/voices`;
 export const KOKORO_VOICE_AF_HEART = {
   lang: 'en-us' as const,
   voiceSource: `${KOKORO_VOICE_PREFIX}/af_heart.bin`,
