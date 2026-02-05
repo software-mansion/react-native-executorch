@@ -37,7 +37,15 @@ llm.delete();
 
 ### Methods
 
-`LLMModule` provides methods like [`load`](../../06-api-reference/classes/LLMModule.md#load), [`generate`](../../06-api-reference/classes/LLMModule.md#generate), [`sendMessage`](../../06-api-reference/classes/LLMModule.md#sendmessage), [`getGeneratedTokenCount`](../../06-api-reference/classes/LLMModule.md#getgeneratedtokencount), [`getPromptTokenCount`](../../06-api-reference/classes/LLMModule.md#getprompttokencount), [`getTotalTokenCount`](../../06-api-reference/classes/LLMModule.md#gettotaltokencount), and more. For complete method details, see the [LLMModule API Reference](../../06-api-reference/classes/LLMModule.md).
+`LLMModule` provides the following methods:
+
+- Model lifecycle: [`load`](../../06-api-reference/classes/LLMModule.md#load), [`delete`](../../06-api-reference/classes/LLMModule.md#delete)
+- Generation: [`generate`](../../06-api-reference/classes/LLMModule.md#generate), [`forward`](../../06-api-reference/classes/LLMModule.md#forward), [`sendMessage`](../../06-api-reference/classes/LLMModule.md#sendmessage), [`interrupt`](../../06-api-reference/classes/LLMModule.md#interrupt)
+- Configuration: [`configure`](../../06-api-reference/classes/LLMModule.md#configure), [`setTokenCallback`](../../06-api-reference/classes/LLMModule.md#settokencallback), [`deleteMessage`](../../06-api-reference/classes/LLMModule.md#deletemessage)
+- Token counting: [`getGeneratedTokenCount`](../../06-api-reference/classes/LLMModule.md#getgeneratedtokencount), [`getPromptTokenCount`](../../06-api-reference/classes/LLMModule.md#getprompttokencount), [`getTotalTokenCount`](../../06-api-reference/classes/LLMModule.md#gettotaltokencount)
+
+For complete details, see the [LLMModule API Reference](../../06-api-reference/classes/LLMModule.md).
+
 ## Loading the model
 
 To create a new instance of `LLMModule`, use the [constructor](../../06-api-reference/classes/LLMModule.md#constructor) with optional callbacks:
