@@ -57,7 +57,8 @@ enum class RnExecutorchErrorCode : int32_t {
    */
   WrongDimensions = 116,
   /**
-   * Thrown when the input passed to our APIs is invalid, for example when passing an empty message aray to LLM's generate().
+   * Thrown when the input passed to our APIs is invalid, for example when
+   * passing an empty message array to LLM's generate().
    */
   InvalidUserInput = 117,
   /**
@@ -65,7 +66,12 @@ enum class RnExecutorchErrorCode : int32_t {
    */
   DownloadInterrupted = 118,
   /**
-   * Thrown when there's a configuration mismatch between multilingual and language settings in Speech-to-Text models.
+   * Thrown when an error occurs with the tokenizer or tokenization process.
+   */
+  TokenizerError = 167,
+  /**
+   * Thrown when there's a configuration mismatch between multilingual and
+   * language settings in Speech-to-Text models.
    */
   MultilingualConfiguration = 160,
   /**

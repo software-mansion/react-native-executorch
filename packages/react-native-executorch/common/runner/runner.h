@@ -21,8 +21,8 @@
 #include <functional>
 #include <memory>
 #include <optional>
+#include <pytorch/tokenizers/hf_tokenizer.h>
 #include <string>
-#include <tokenizers-cpp/tokenizers_cpp.h>
 #include <unordered_map>
 
 namespace example {
@@ -74,7 +74,7 @@ private:
 
   // Subcomponents
   std::string tokenizer_path_;
-  std::unique_ptr<tokenizers::Tokenizer> tokenizer_;
+  std::unique_ptr<tokenizers::HFTokenizer> tokenizer_;
   std::unordered_map<std::string, int64_t> metadata_;
   std::unique_ptr<llm::IOManager> io_manager_;
   std::unique_ptr<llm::TextDecoderRunner> text_decoder_runner_;

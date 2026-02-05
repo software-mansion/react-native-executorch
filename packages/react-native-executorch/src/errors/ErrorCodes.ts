@@ -59,6 +59,10 @@ export enum RnExecutorchErrorCode {
    */
   DownloadInterrupted = 118,
   /**
+   * Thrown when an error occurs with the tokenizer or tokenization process.
+   */
+  TokenizerError = 167,
+  /**
    * Thrown when there's a configuration mismatch between multilingual and language settings in Speech-to-Text models.
    */
   MultilingualConfiguration = 160,

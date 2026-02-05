@@ -21,6 +21,7 @@ set(MONOREPO_ROOT "${PACKAGE_ROOT}/../..")
 set(THIRD_PARTY_DIR "${MONOREPO_ROOT}/third-party")
 set(REACT_NATIVE_DIR "${MONOREPO_ROOT}/node_modules/react-native")
 set(ANDROID_THIRD_PARTY "${PACKAGE_ROOT}/third-party/android/libs/")
+set(TOKENIZERS_DIR "${PACKAGE_ROOT}/third-party/include/executorch/extension/llm/tokenizers/include")
 
 # Add Gtest as a subdirectory
 add_subdirectory(${THIRD_PARTY_DIR}/googletest ${PROJECT_BINARY_DIR}/googletest)
@@ -80,14 +81,8 @@ target_link_libraries(opencv_deps INTERFACE
 )
 target_link_options(opencv_deps INTERFACE -fopenmp -static-openmp)
 
-# Tokenizers (Interface Library)
-set(TOKENIZERS_LIBS_DIR "${ANDROID_THIRD_PARTY}/tokenizers-cpp/${ANDROID_ABI}")
 add_library(tokenizers_deps INTERFACE)
-target_link_libraries(tokenizers_deps INTERFACE
-    ${TOKENIZERS_LIBS_DIR}/libtokenizers_cpp.a
-    ${TOKENIZERS_LIBS_DIR}/libtokenizers_c.a
-    ${TOKENIZERS_LIBS_DIR}/libsentencepiece.a
-)
+target_include_directories(tokenizers_deps INTERFACE "${TOKENIZERS_DIR}")
 
 # Source Definitions
 set(CORE_SOURCES
@@ -110,6 +105,7 @@ add_library(rntests_core STATIC ${CORE_SOURCES})
 
 target_include_directories(rntests_core PUBLIC
     ${RNEXECUTORCH_DIR}/data_processing
+    ${TOKENIZERS_DIR}
     ${RNEXECUTORCH_DIR}
     ${COMMON_DIR}
     ${PACKAGE_ROOT}/third-party/include
