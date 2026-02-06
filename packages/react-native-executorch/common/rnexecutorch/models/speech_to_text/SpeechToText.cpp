@@ -79,7 +79,6 @@ TranscriptionResult wordsToResult(const std::vector<Word> &words,
   TranscriptionResult res;
   res.language = language;
 
-  // 1. Flatten text
   std::string fullText;
   for (const auto &w : words) {
     fullText += w.content;
@@ -106,7 +105,6 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
                             "Streaming is already in progress!");
   }
 
-  // Lambda that constructs the C++ structs (thread-safe, no JSI here)
   auto nativeCallback = [this, callback,
                          verbose](const TranscriptionResult &committed,
                                   const TranscriptionResult &nonCommitted,

@@ -44,18 +44,6 @@ export interface SpeechToTextType {
   downloadProgress: number;
 
   /**
-   * Contains the part of the transcription that is finalized and will not change.
-   * Useful for displaying stable results during streaming.
-   */
-  committedTranscription: string;
-
-  /**
-   * Contains the part of the transcription that is still being processed and may change.
-   * Useful for displaying live, partial results during streaming.
-   */
-  nonCommittedTranscription: string;
-
-  /**
    * Runs the encoding part of the model on the provided waveform.
    * @param waveform - The input audio waveform array.
    * @returns A promise resolving to the encoded data.
@@ -76,22 +64,31 @@ export interface SpeechToTextType {
   /**
    * Starts a transcription process for a given input array, which should be a waveform at 16kHz.
    * @param waveform - The input audio waveform.
-   * @param options - Decoding options, e.g. `{ language: 'es' }` for multilingual models.
-   * @returns Resolves a promise with the output transcription when the model is finished.
+   * @param options - Decoding options, check API reference for more details.
+   * @returns Resolves a promise with the output transcription. Result of transcription is
+   * object of type `TranscriptionResult`.
    */
   transcribe(
     waveform: Float32Array,
     options?: DecodingOptions | undefined
-  ): Promise<string>;
+  ): Promise<TranscriptionResult>;
 
   /**
    * Starts a streaming transcription process.
    * Use in combination with `streamInsert` to feed audio chunks and `streamStop` to end the stream.
    * Updates `committedTranscription` and `nonCommittedTranscription` as transcription progresses.
    * @param options - Decoding options including language.
-   * @returns The final transcription string.
+   * @returns Asynchronous generator that returns `committed` and `nonCommitted` transcription.
+   * Both `committed` and `nonCommitted` are of type `TranscriptionResult`
    */
-  stream(options?: DecodingOptions | undefined): Promise<string>;
+  stream(options?: DecodingOptions | undefined): AsyncGenerator<
+    {
+      committed: TranscriptionResult;
+      nonCommitted: TranscriptionResult;
+    },
+    void,
+    unknown
+  >;
 
   /**
    * Inserts a chunk of audio data (sampled at 16kHz) into the ongoing streaming transcription.
@@ -192,21 +189,45 @@ export type SpeechToTextLanguage =
  *
  * @category Types
  * @property {SpeechToTextLanguage} [language] - Optional language code to guide the transcription.
+ * @property {boolean} [verbose] - Optional flag. If set, transcription result is presented with timestamps
+ * and with additional parameters. For more details please refer to `TranscriptionResult`.
  */
 export interface DecodingOptions {
   language?: SpeechToTextLanguage;
   verbose?: boolean;
 }
 
+/**
+ * Structure that represent single token with timestamp information.
+ *
+ * @category Types
+ * @property {string} [word] - Token as a string value.
+ * @property {number} [start] - Timestamp of the beginning of the token in audio (in seconds).
+ * @property {number} [end] - Timestamp of the end of the token in audio (in seconds).
+ */
 export interface Word {
   word: string;
   start: number;
   end: number;
 }
 
+/**
+ * Structure that represent single Segment of transcription.
+ *
+ * @category Types
+ * @property {number} [start] - Timestamp of the beginning of the segment in audio (in seconds).
+ * @property {number} [end] - Timestamp of the end of the segment in audio (in seconds).
+ * @property {string} [text] - Full text of the given segment as a string.
+ * @property {Word[]} [words] - If `verbose` set to `true` in `DecodingOptions`, it returns word-level timestamping
+ * as an array of `Word`.
+ * @property {number[]} [tokens] - Raw tokens represented as table of integers.
+ * @property {number} [temperature] - Temperature for which given segment was computed.
+ * @property {number} [avg_logprob] - Average log probability calculated across all tokens in a segment.
+ * @property {number} [compression_ratio] - Compresion ration achieved on a given segment.
+ * @property {number} [no_speech_prob] - No speech probability, the probability that segment contains silence,
+ * background noise etc.
+ */
 export interface TranscriptionSegment {
-  id: number;
-  seek: number;
   start: number;
   end: number;
   text: string;
@@ -218,6 +239,17 @@ export interface TranscriptionSegment {
   no_speech_prob: number;
 }
 
+/**
+ * Structure that represent result of transcription for a one function call (either `transcribe` or `stream`).
+ *
+ * @category Types
+ * @property {string} [task] - String indicating task, either 'transcribe' or 'stream'.
+ * @property {string} [language] - Langauge chosen for transcription.
+ * @property {number} [duration] - Duration in seconds of a given transcription.
+ * @property {string} [text] - The whole text of a transcription as a `string`.
+ * @property {TranscriptionSegment[]} [segments] - If `verbose` set to `true` in `DecodingOptions`, it contains array of
+ * `TranscriptionSegment` with details split into separate transcription segments.
+ */
 export interface TranscriptionResult {
   task?: string;
   language: string;

@@ -50,7 +50,7 @@ export const VerboseTranscription = ({
                 <Text style={styles.timeBadge}>
                   {seg.start.toFixed(2)}s - {seg.end.toFixed(2)}s
                 </Text>
-                <Text style={styles.segmentId}>ID: {seg.id ?? index}</Text>
+                <Text style={styles.segmentId}>ID: {index}</Text>
               </View>
 
               <Text style={styles.segmentText}>"{seg.text}"</Text>
