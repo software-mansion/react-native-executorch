@@ -223,7 +223,7 @@ export interface Word {
  * @property {number[]} [tokens] - Raw tokens represented as table of integers.
  * @property {number} [temperature] - Temperature for which given segment was computed.
  * @property {number} [avg_logprob] - Average log probability calculated across all tokens in a segment.
- * @property {number} [compression_ratio] - Compresion ration achieved on a given segment.
+ * @property {number} [compression_ratio] - Compression ration achieved on a given segment.
  * @property {number} [no_speech_prob] - No speech probability, the probability that segment contains silence,
  * background noise etc.
  */
@@ -244,7 +244,7 @@ export interface TranscriptionSegment {
  *
  * @category Types
  * @property {string} [task] - String indicating task, either 'transcribe' or 'stream'.
- * @property {string} [language] - Langauge chosen for transcription.
+ * @property {string} [language] - Language chosen for transcription.
  * @property {number} [duration] - Duration in seconds of a given transcription.
  * @property {string} [text] - The whole text of a transcription as a `string`.
  * @property {TranscriptionSegment[]} [segments] - If `verbose` set to `true` in `DecodingOptions`, it contains array of
