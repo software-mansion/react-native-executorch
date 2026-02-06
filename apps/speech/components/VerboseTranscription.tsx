@@ -100,7 +100,7 @@ export const VerboseTranscription = ({
                   {/*eslint-disable-next-line @cspell/spellchecker*/}
                   <Text style={styles.statLabel}>Compr.</Text>
                   <Text style={styles.statValue}>
-                    {data.task == 'transcribe'
+                    {data.task === 'transcribe'
                       ? seg.compression_ratio?.toFixed(2)
                       : 'N/A'}
                   </Text>
