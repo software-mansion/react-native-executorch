@@ -91,7 +91,7 @@ export const VerboseTranscription = ({
                 <View style={styles.statItem}>
                   <Text style={styles.statLabel}>Temp</Text>
                   <Text style={styles.statValue}>
-                    {data.task == 'transcribe'
+                    {data.task === 'transcribe'
                       ? seg.temperature?.toFixed(2)
                       : 'N/A'}
                   </Text>
