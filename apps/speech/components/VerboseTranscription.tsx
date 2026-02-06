@@ -75,7 +75,7 @@ export const VerboseTranscription = ({
                 <View style={styles.statItem}>
                   <Text style={styles.statLabel}>Avg LogProb</Text>
                   <Text style={styles.statValue}>
-                    {data.task == 'transcribe'
+                    {data.task === 'transcribe'
                       ? seg.avg_logprob?.toFixed(4)
                       : 'N/A'}
                   </Text>
