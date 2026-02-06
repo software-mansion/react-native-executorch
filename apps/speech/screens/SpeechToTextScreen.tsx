@@ -13,7 +13,7 @@ import {
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
   useSpeechToText,
-  WHISPER_TINY_EN,
+  WHISPER_TINY,
   TranscriptionResult,
 } from 'react-native-executorch';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -32,7 +32,7 @@ const isSimulator = DeviceInfo.isEmulatorSync();
 
 export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   const model = useSpeechToText({
-    model: WHISPER_TINY_EN,
+    model: WHISPER_TINY,
   });
 
   const [transcription, setTranscription] =
@@ -98,6 +98,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
       const audioBuffer = decodedAudioData.getChannelData(0);
       const result = await model.transcribe(audioBuffer, {
         verbose: enableTimestamps,
+        language: 'pl',
       });
       setTranscription(result);
     } catch (error) {
@@ -139,7 +140,10 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     let accumulatedSegments: any[] = [];
 
     try {
-      const streamIter = model.stream({ verbose: enableTimestamps });
+      const streamIter = model.stream({
+        verbose: enableTimestamps,
+        language: 'pl',
+      });
 
       for await (const { committed, nonCommitted } of streamIter) {
         if (!isRecordingRef.current) break;

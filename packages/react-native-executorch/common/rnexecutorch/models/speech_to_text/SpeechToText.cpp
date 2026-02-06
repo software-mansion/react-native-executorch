@@ -58,6 +58,7 @@ TranscriptionResult SpeechToText::transcribe(std::span<float> waveform,
 
   TranscriptionResult result;
   result.text = fullText;
+  result.task = "transcription";
 
   if (verbose) {
     result.language = languageOption.empty() ? "english" : languageOption;
@@ -78,6 +79,7 @@ TranscriptionResult wordsToResult(const std::vector<Word> &words,
                                   const std::string &language, bool verbose) {
   TranscriptionResult res;
   res.language = language;
+  res.task = "stream";
 
   std::string fullText;
   for (const auto &w : words) {
@@ -90,6 +92,10 @@ TranscriptionResult wordsToResult(const std::vector<Word> &words,
     seg.start = words.front().start;
     seg.end = words.back().end;
     seg.words = words;
+    seg.avgLogprob = std::nanf("0");
+    seg.compressionRatio = std::nanf("0");
+    seg.noSpeechProbability = std::nanf("0");
+    seg.temperature = std::nanf("0");
 
     res.segments.push_back(std::move(seg));
   }

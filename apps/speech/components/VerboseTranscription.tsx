@@ -75,25 +75,34 @@ export const VerboseTranscription = ({
                 <View style={styles.statItem}>
                   <Text style={styles.statLabel}>Avg LogProb</Text>
                   <Text style={styles.statValue}>
-                    {seg.avg_logprob?.toFixed(4)}
+                    {data.task == 'transcribe'
+                      ? seg.avg_logprob?.toFixed(4)
+                      : 'N/A'}
                   </Text>
                 </View>
                 <View style={styles.statItem}>
                   <Text style={styles.statLabel}>No Speech</Text>
                   <Text style={styles.statValue}>
-                    {seg.no_speech_prob?.toFixed(4)}
+                    {data.task == 'transcribe'
+                      ? seg.no_speech_prob?.toFixed(4)
+                      : 'N/A'}
                   </Text>
                 </View>
                 <View style={styles.statItem}>
                   <Text style={styles.statLabel}>Temp</Text>
                   <Text style={styles.statValue}>
-                    {seg.temperature?.toFixed(2)}
+                    {data.task == 'transcribe'
+                      ? seg.temperature?.toFixed(2)
+                      : 'N/A'}
                   </Text>
                 </View>
                 <View style={styles.statItem}>
+                  {/*eslint-disable-next-line @cspell/spellchecker*/}
                   <Text style={styles.statLabel}>Compr.</Text>
                   <Text style={styles.statValue}>
-                    {seg.compression_ratio?.toFixed(2)}
+                    {data.task == 'transcribe'
+                      ? seg.compression_ratio?.toFixed(2)
+                      : 'N/A'}
                   </Text>
                 </View>
               </View>
