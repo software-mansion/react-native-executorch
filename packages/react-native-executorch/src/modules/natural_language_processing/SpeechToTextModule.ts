@@ -16,11 +16,6 @@ export class SpeechToTextModule {
   private nativeModule: any;
   private modelConfig!: SpeechToTextModelConfig;
 
-  private textDecoder = new TextDecoder('utf-8', {
-    fatal: false,
-    ignoreBOM: true,
-  });
-
   /**
    * Loads the model specified by the config object.
    * `onDownloadProgressCallback` allows you to monitor the current progress of the model download.
@@ -106,21 +101,15 @@ export class SpeechToTextModule {
    * @returns The transcription string.
    */
   public async transcribe(
-<<<<<<< HEAD
     waveform: Float32Array,
-=======
-    waveform: Float32Array | number[],
->>>>>>> 6289290f (fix: Add corrections (still not working version))
     options: DecodingOptions = {}
   ): Promise<TranscriptionResult> {
     this.validateOptions(options);
-    const transcriptionBytes = await this.nativeModule.transcribe(
+    return await this.nativeModule.transcribe(
       waveform,
-      options.language || ''
+      options.language || '',
+      !!options.verbose
     );
-
-<<<<<<< HEAD
-    return transcriptionBytes;
   }
 
   /**
@@ -135,25 +124,9 @@ export class SpeechToTextModule {
    * @param options - Decoding options including language.
    * @returns An async generator yielding transcription updates.
    */
-  public async *stream(
-    options: DecodingOptions = {}
-  ): AsyncGenerator<{
-    committed: string | Word[];
-    nonCommitted: string | Word[];
-=======
-    return await this.nativeModule.transcribe(
-      waveform,
-      options.language || '',
-      !!options.verbose
-    );
-  }
-
-  public async *stream(
-    options: DecodingOptions = {}
-  ): AsyncGenerator<{
+  public async *stream(options: DecodingOptions = {}): AsyncGenerator<{
     committed: TranscriptionResult;
     nonCommitted: TranscriptionResult;
->>>>>>> 6289290f (fix: Add corrections (still not working version))
   }> {
     this.validateOptions(options);
 

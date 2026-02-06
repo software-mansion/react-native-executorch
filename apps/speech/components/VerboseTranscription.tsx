@@ -1,7 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
-import { TranscriptionResult, Word } from 'react-native-executorch';
-import { TranscriptionSegment } from '../../../packages/react-native-executorch/src/types/stt';
+import {
+  TranscriptionSegment,
+  TranscriptionResult,
+  Word,
+} from 'react-native-executorch';
 
 export const VerboseTranscription = ({
   data,

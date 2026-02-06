@@ -14,7 +14,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
   useSpeechToText,
   WHISPER_TINY_EN,
-  TranscriptionResult, // Changed from Word
+  TranscriptionResult,
 } from 'react-native-executorch';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {
@@ -115,8 +115,18 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     setLiveTranscribing(true);
     setTranscription(null);
     setLiveResult({
-      committed: { text: '' },
-      nonCommitted: { text: '' },
+      committed: {
+        text: '',
+        language: 'en',
+        duration: 0,
+        segments: [],
+      },
+      nonCommitted: {
+        text: '',
+        language: 'en',
+        duration: 0,
+        segments: [],
+      },
     });
 
     recorder.onAudioReady(({ buffer }) => {
@@ -152,6 +162,11 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
           ...(liveResult.committed.segments || []),
           ...(liveResult.nonCommitted.segments || []),
         ],
+        // Required fields derived from last known state
+        language: liveResult.committed.language || 'en',
+        duration:
+          (liveResult.committed.duration || 0) +
+          (liveResult.nonCommitted.duration || 0),
       });
       setLiveResult(null);
     }
@@ -211,7 +226,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
                 scrollViewRef.current?.scrollToEnd({ animated: true })
               }
             >
-              <VerboseTranscription data={transcription} />
+              <VerboseTranscription data={transcription!} />
             </ScrollView>
           </View>
 

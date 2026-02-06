@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -35,6 +35,9 @@ export default function VoiceChatScreenWrapper() {
 
 function VoiceChatScreen() {
   const [isRecording, setIsRecording] = useState(false);
+  // Local state to track the text while streaming
+  const [liveTranscription, setLiveTranscription] = useState('');
+
   const [recorder] = useState(
     () =>
       new AudioRecorder({
@@ -42,7 +45,7 @@ function VoiceChatScreen() {
         bufferLengthInSamples: 1600,
       })
   );
-  const messageRecorded = useRef<boolean>(false);
+
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   const llm = useLLM({ model: QWEN3_0_6B_QUANTIZED });
@@ -65,22 +68,40 @@ function VoiceChatScreen() {
 
   const handleRecordPress = async () => {
     if (isRecording) {
+      // STOP RECORDING
       setIsRecording(false);
       recorder.stop();
-      messageRecorded.current = true;
+      // This will cause the generator loop below to break
       speechToText.streamStop();
     } else {
+      // START RECORDING
       setIsRecording(true);
+      setLiveTranscription(''); // Reset previous text
+
       recorder.onAudioReady(({ buffer }) => {
         speechToText.streamInsert(buffer.getChannelData(0));
       });
       recorder.start();
-      const transcription = await speechToText.stream();
-      await llm.sendMessage(
-        typeof transcription === 'string'
-          ? transcription
-          : transcription.map((w) => w.word).join(' ')
-      );
+
+      let finalResult = '';
+
+      try {
+        // Iterate over the async generator
+        for await (const result of speechToText.stream()) {
+          // Combine committed and non-committed text for live preview
+          const text = result.committed.text + result.nonCommitted.text;
+          setLiveTranscription(text);
+          finalResult = text;
+        }
+      } catch (e) {
+        console.error('Streaming error:', e);
+      } finally {
+        // When the loop breaks (streamStop called), send to LLM
+        if (finalResult.trim().length > 0) {
+          await llm.sendMessage(finalResult);
+          setLiveTranscription(''); // Clear after sending
+        }
+      }
     }
   };
 
@@ -100,22 +121,19 @@ function VoiceChatScreen() {
           <SWMIcon width={45} height={45} />
           <Text style={styles.textModelName}>Qwen 3 x Whisper</Text>
         </View>
-        {llm.messageHistory.length || speechToText.committedTranscription ? (
+
+        {/* Show history OR if we are currently recording/have text */}
+        {llm.messageHistory.length > 0 || liveTranscription.length > 0 ? (
           <View style={styles.chatContainer}>
             <Messages
               chatHistory={
-                speechToText.isGenerating
+                // If we are recording, temporarily append the live user message
+                isRecording && liveTranscription.length > 0
                   ? [
                       ...llm.messageHistory,
                       {
                         role: 'user',
-                        content:
-                          typeof speechToText.committedTranscription ===
-                          'string'
-                            ? speechToText.committedTranscription
-                            : speechToText.committedTranscription
-                                .map((w) => w.word)
-                                .join(' '),
+                        content: liveTranscription,
                       },
                     ]
                   : llm.messageHistory
@@ -133,6 +151,7 @@ function VoiceChatScreen() {
             </Text>
           </View>
         )}
+
         <View style={styles.bottomContainer}>
           {DeviceInfo.isEmulatorSync() ? (
             <View style={styles.emulatorBox}>

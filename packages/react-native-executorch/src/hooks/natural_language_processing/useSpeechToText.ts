@@ -1,9 +1,10 @@
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useMemo } from 'react';
 import { SpeechToTextModule } from '../../modules/natural_language_processing/SpeechToTextModule';
 import {
   DecodingOptions,
   SpeechToTextType,
   SpeechToTextProps,
+  TranscriptionResult,
 } from '../../types/stt';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
@@ -24,38 +25,42 @@ export const useSpeechToText = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
 
-  const [modelInstance] = useState(() => new SpeechToTextModule());
+  // Use useMemo to ensure the module instance is stable
+  const moduleInstance = useMemo(() => new SpeechToTextModule(), []);
 
-  const [committedTranscription, setCommittedTranscription] = useState<
-    string | Word[]
-  >('');
-  const [nonCommittedTranscription, setNonCommittedTranscription] = useState<
-    string | Word[]
-  >('');
-
+  // 1. Load Model Effect
   useEffect(() => {
     if (preventLoad) return;
+    let isMounted = true;
+
     (async () => {
       setDownloadProgress(0);
       setError(null);
       try {
         setIsReady(false);
-        await modelInstance.load(
+        await moduleInstance.load(
           {
             isMultilingual: model.isMultilingual,
             encoderSource: model.encoderSource,
             decoderSource: model.decoderSource,
             tokenizerSource: model.tokenizerSource,
           },
-          setDownloadProgress
+          (progress) => {
+            if (isMounted) setDownloadProgress(progress);
+          }
         );
-        setIsReady(true);
+        if (isMounted) setIsReady(true);
       } catch (err) {
-        setError(parseUnknownError(err));
+        if (isMounted) setError(parseUnknownError(err));
       }
     })();
+
+    return () => {
+      isMounted = false;
+      moduleInstance.delete();
+    };
   }, [
-    modelInstance,
+    moduleInstance,
     model.isMultilingual,
     model.encoderSource,
     model.decoderSource,
@@ -63,120 +68,97 @@ export const useSpeechToText = ({
     preventLoad,
   ]);
 
-  const stateWrapper = useCallback(
-    <T extends (...args: any[]) => Promise<any>>(fn: T) =>
-      async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
-        if (!isReady)
-          throw new RnExecutorchError(
-            RnExecutorchErrorCode.ModuleNotLoaded,
-            'The model is currently not loaded. Please load the model before calling this function.'
-          );
-        if (isGenerating)
-          throw new RnExecutorchError(
-            RnExecutorchErrorCode.ModelGenerating,
-            'The model is currently generating. Please wait until previous model run is complete.'
-          );
-        setIsGenerating(true);
-        try {
-          return await fn.apply(modelInstance, args);
-        } finally {
-          setIsGenerating(false);
-        }
-      },
-    [isReady, isGenerating, modelInstance]
-  );
-
-  const stream = useCallback(
-    async (options?: DecodingOptions & { enableTimestamps?: boolean }) => {
-      if (!isReady)
+  // 2. Transcribe (Single Shot)
+  const transcribe = useCallback(
+    async (
+      waveform: Float32Array,
+      options: DecodingOptions = {}
+    ): Promise<TranscriptionResult> => {
+      if (!isReady) {
         throw new RnExecutorchError(
           RnExecutorchErrorCode.ModuleNotLoaded,
-          'The model is currently not loaded. Please load the model before calling this function.'
+          'The model is currently not loaded.'
         );
-      if (isGenerating)
+      }
+      if (isGenerating) {
         throw new RnExecutorchError(
           RnExecutorchErrorCode.ModelGenerating,
-          'The model is currently generating. Please wait until previous model run is complete.'
+          'The model is currently generating.'
         );
+      }
 
       setIsGenerating(true);
-
-      const enableTimestamps = options?.enableTimestamps ?? false;
-      setCommittedTranscription(enableTimestamps ? [] : '');
-      setNonCommittedTranscription(enableTimestamps ? [] : '');
-
-      let fullResult: string | Word[] = enableTimestamps ? [] : '';
-
       try {
-        const streamGen = modelInstance.stream(
-          options as any
-        ) as AsyncGenerator<{
-          committed: string | Word[];
-          nonCommitted: string | Word[];
-        }>;
+        return await moduleInstance.transcribe(waveform, options);
+      } finally {
+        setIsGenerating(false);
+      }
+    },
+    [isReady, isGenerating, moduleInstance]
+  );
 
-        for await (const { committed, nonCommitted } of streamGen) {
-          if (typeof committed === 'string') {
-            const nc = nonCommitted as unknown as string;
+  // 3. Stream (Async Generator)
+  // This wraps the native generator to manage the 'isGenerating' state automatically
+  const stream = useCallback(
+    async function* (options: DecodingOptions = {}): AsyncGenerator<
+      {
+        committed: TranscriptionResult;
+        nonCommitted: TranscriptionResult;
+      },
+      void,
+      unknown
+    > {
+      if (!isReady) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModuleNotLoaded,
+          'The model is currently not loaded.'
+        );
+      }
+      if (isGenerating) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModelGenerating,
+          'The model is currently generating.'
+        );
+      }
 
-            if (committed.length > 0) {
-              setCommittedTranscription((prev) => {
-                const prevStr = typeof prev === 'string' ? prev : '';
-                return prevStr + committed;
-              });
-              (fullResult as string) += committed;
-            }
-            setNonCommittedTranscription(nc);
-          } else {
-            const committedWords = committed as Word[];
-            const nonCommittedWords = nonCommitted as Word[];
-
-            if (committedWords && committedWords.length > 0) {
-              setCommittedTranscription((prev) => {
-                const prevArr = Array.isArray(prev) ? prev : [];
-                return [...prevArr, ...committedWords];
-              });
-              (fullResult as Word[]).push(...committedWords);
-            }
-            setNonCommittedTranscription(nonCommittedWords);
-          }
+      setIsGenerating(true);
+      try {
+        const generator = moduleInstance.stream(options);
+        for await (const result of generator) {
+          yield result;
         }
       } finally {
         setIsGenerating(false);
       }
-      return fullResult;
     },
-    [isReady, isGenerating, modelInstance]
+    [isReady, isGenerating, moduleInstance]
   );
 
-  const wrapper = useCallback(
-    <T extends (...args: any[]) => any>(fn: T) => {
-      return (...args: Parameters<T>): ReturnType<T> => {
-        if (!isReady)
-          throw new RnExecutorchError(
-            RnExecutorchErrorCode.ModuleNotLoaded,
-            'The model is currently not loaded. Please load the model before calling this function.'
-          );
-        return fn.apply(modelInstance, args);
-      };
+  // 4. Helper Wrappers (Synchronous)
+  const streamInsert = useCallback(
+    (waveform: Float32Array) => {
+      if (!isReady) return;
+      moduleInstance.streamInsert(waveform);
     },
-    [isReady, modelInstance]
+    [isReady, moduleInstance]
   );
+
+  const streamStop = useCallback(() => {
+    if (!isReady) return;
+    moduleInstance.streamStop();
+  }, [isReady, moduleInstance]);
 
   return {
     error,
     isReady,
     isGenerating,
     downloadProgress,
-    committedTranscription,
-    nonCommittedTranscription,
-    encode: stateWrapper(SpeechToTextModule.prototype.encode),
-    decode: stateWrapper(SpeechToTextModule.prototype.decode),
-    transcribe: stateWrapper(
-      SpeechToTextModule.prototype.transcribe
-    ) as SpeechToTextModule['transcribe'],
+    transcribe,
     stream,
-    streamStop: wrapper(SpeechToTextModule.prototype.streamStop),
-    streamInsert: wrapper(SpeechToTextModule.prototype.streamInsert),
+    streamInsert,
+    streamStop,
+    // Expose raw methods if needed, but 'transcribe' above is preferred
+    encode: moduleInstance.encode.bind(moduleInstance),
+    decode: moduleInstance.decode.bind(moduleInstance),
   };
 };
