@@ -47,12 +47,12 @@ const { uri } = await FileSystem.downloadAsync(
 );
 
 const audioContext = new AudioContext({ sampleRate: 16000 });
-const decodedAudioData = await audioContext.decodeAudioDataSource(uri);
+const decodedAudioData = await audioContext.decodeAudioData(uri);
 const audioBuffer = decodedAudioData.getChannelData(0);
 
 try {
   const transcription = await model.transcribe(audioBuffer);
-  console.log(transcription);
+  console.log(transcription.text);
 } catch (error) {
   console.error('Error during audio transcription', error);
 }
@@ -83,7 +83,6 @@ Please note, that both [`transcribe`](../../06-api-reference/interfaces/SpeechTo
 
 To get more details please read: [`SpeechToTextType` API Reference](../../06-api-reference/interfaces/SpeechToTextType.md).
 
-
 ## Running the model
 
 Before running the model's [`transcribe`](../../06-api-reference/interfaces/SpeechToTextType.md#transcribe) method, make sure to extract the audio waveform you want to transcribe. You'll need to handle this step yourself, ensuring the audio is sampled at 16 kHz. Once you have the waveform, pass it as an argument to the transcribe method. The method returns a promise that resolves to the generated transcription on success, or an error if inference fails.
@@ -102,13 +101,41 @@ const model = useSpeechToText({
 const transcription = await model.transcribe(spanishAudio, { language: 'es' });
 ```
 
-### Timestamps
+### Timestamps & Transcription Stat Data
 
-You can obtain word-level timestamps by setting `enableTimestamps: true` in the options. This changes the return type from a string to an array of `Word` objects.
+You can obtain word-level timestamps and other useful parameters from transcription ([`transcribe`](../../06-api-reference/interfaces/SpeechToTextType.md#transcribe) and [`stream`](../../06-api-reference/interfaces/SpeechToTextType.md#stream) methods) by setting `verbose: true` in the options. The result mimics the _verbose_json_ format from OpenAI Whisper API. For more information please read [`transcribe`](../../06-api-reference/interfaces/SpeechToTextType.md#transcribe), [`stream`](../../06-api-reference/interfaces/SpeechToTextType.md#stream), and [`TranscriptionResult`](../../06-api-reference/interfaces/TranscriptionResult.md) API References.
 
 ```typescript
-const words = await model.transcribe(audioBuffer, { enableTimestamps: true });
-// words: [{ word: "Hello", start: 0.0, end: 0.4 }, ...]
+const transcription = await model.transcribe(audioBuffer, { verbose: true });
+// Example result
+//
+// transcription: {
+//   task: "transcription",
+//   text: "Example text for a ...",
+//   duration: 9.05,
+//   language: "en",
+//   segments: [
+//     {
+//       start: 0;
+//       end: 5.4;
+//       text: "Example text for";
+//       words: [
+//         {
+//            word: "Example"
+//            start: 0,
+//            end: 1.4,
+//         },
+//         ...
+//       ]
+//       tokens: [1, 32, 45, ...]
+//       temperature: 0.0
+//       avg_logprob: -1.235
+//       compression_ratio: 1.632
+//       no_speech_prob: 0.04
+//     },
+//     ...
+//   ]
+// }
 ```
 
 ## Example
@@ -119,7 +146,7 @@ import { Button, Text, View } from 'react-native';
 import {
   useSpeechToText,
   WHISPER_TINY_EN,
-  Word,
+  TranscriptionResult,
 } from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
 import * as FileSystem from 'expo-file-system';
@@ -129,7 +156,7 @@ function App() {
     model: WHISPER_TINY_EN,
   });
 
-  const [transcription, setTranscription] = useState<string | Word[]>('');
+  const [transcription, setTranscription] = useState<TranscriptionResult>(null);
 
   const loadAudio = async () => {
     const { uri } = await FileSystem.downloadAsync(
@@ -154,19 +181,26 @@ function App() {
   const handleTranscribeWithTimestamps = async () => {
     const audio = await loadAudio();
     // Transcription with timestamps
-    const result = await model.transcribe(audio, { enableTimestamps: true });
+    const result = await model.transcribe(audio, { verbose: true });
     setTranscription(result);
   };
 
+  // Custom logic for printing transcription
+  // e.g.
+
   const renderContent = () => {
-    if (typeof transcription === 'string') {
-      return <Text>{transcription}</Text>;
+    if (!transcription) return <Text>Press a button to transcribe</Text>;
+
+    if (transcription.segments && transcription.segments.length > 0) {
+      return (
+        <Text>
+          {transcription.text +
+            '\n\nNum segments: ' +
+            transcription.segments.length.toString()}
+        </Text>
+      );
     }
-    return transcription.map((w, i) => (
-      <Text key={i}>
-        {w.word} ({w.start.toFixed(2)}s)
-      </Text>
-    ));
+    return <Text>{transcription.text}</Text>;
   };
 
   return (
@@ -185,24 +219,21 @@ function App() {
 ### Streaming transcription
 
 ```tsx
-import React, { useEffect, useState } from 'react';
-import { Text, Button, View } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { Text, Button, View, SafeAreaView } from 'react-native';
 import { useSpeechToText, WHISPER_TINY_EN } from 'react-native-executorch';
 import { AudioManager, AudioRecorder } from 'react-native-audio-api';
-import * as FileSystem from 'expo-file-system';
 
-function App() {
+export default function App() {
   const model = useSpeechToText({
     model: WHISPER_TINY_EN,
   });
 
-  const [recorder] = useState(
-    () =>
-      new AudioRecorder({
-        sampleRate: 16000,
-        bufferLengthInSamples: 1600,
-      })
-  );
+  const [transcribedText, setTranscribedText] = useState('');
+
+  const isRecordingRef = useRef(false);
+
+  const [recorder] = useState(() => new AudioRecorder());
 
   useEffect(() => {
     AudioManager.setAudioSessionOptions({
@@ -214,42 +245,74 @@ function App() {
   }, []);
 
   const handleStartStreamingTranscribe = async () => {
-    recorder.onAudioReady(({ buffer }) => {
-      model.streamInsert(buffer.getChannelData(0));
-    });
-    recorder.start();
+    isRecordingRef.current = true;
+    setTranscribedText('');
+
+    const sampleRate = 16000;
+
+    recorder.onAudioReady(
+      {
+        sampleRate,
+        bufferLength: 0.1 * sampleRate,
+        channelCount: 1,
+      },
+      (chunk) => {
+        model.streamInsert(chunk.buffer.getChannelData(0));
+      }
+    );
 
     try {
-      // Pass { enableTimestamps: true } here if you want Word[] updates
-      await model.stream();
+      await recorder.start();
+    } catch (e) {
+      console.error('Recorder failed:', e);
+      return;
+    }
+
+    try {
+      let accumulatedCommitted = '';
+
+      const streamIter = model.stream({ verbose: false });
+
+      for await (const { committed, nonCommitted } of streamIter) {
+        if (!isRecordingRef.current) break;
+
+        if (committed.text) {
+          accumulatedCommitted += committed.text;
+        }
+
+        setTranscribedText(accumulatedCommitted + nonCommitted.text);
+      }
     } catch (error) {
       console.error('Error during streaming transcription:', error);
     }
   };
 
   const handleStopStreamingTranscribe = () => {
+    isRecordingRef.current = false;
     recorder.stop();
     model.streamStop();
   };
 
-  // Helper to safely render mixed types
-  const getText = (data: string | any[]) => {
-    if (typeof data === 'string') return data;
-    return data.map((w) => w.word).join('');
-  };
-
   return (
-    <View>
-      <Text>
-        {getText(model.committedTranscription)}
-        {getText(model.nonCommittedTranscription)}
-      </Text>
-      <Button
-        onPress={handleStartStreamingTranscribe}
-        title="Start Streaming"
-      />
-      <Button onPress={handleStopStreamingTranscribe} title="Stop Streaming" />
-    </View>
+    <SafeAreaView>
+      <View style={{ padding: 20 }}>
+        <Text style={{ marginBottom: 20, fontSize: 18 }}>
+          {transcribedText || 'Press start to speak...'}
+        </Text>
+
+        <Button
+          onPress={handleStartStreamingTranscribe}
+          title="Start Streaming"
+          disabled={model.isGenerating}
+        />
+        <View style={{ height: 10 }} />
+        <Button
+          onPress={handleStopStreamingTranscribe}
+          title="Stop Streaming"
+          color="red"
+        />
+      </View>
+    </SafeAreaView>
   );
 }
 ```
