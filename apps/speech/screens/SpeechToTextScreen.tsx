@@ -99,7 +99,6 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
       const decodedAudioData = await audioContext.decodeAudioDataSource(uri);
       const audioBuffer = decodedAudioData.getChannelData(0);
 
-      // API CHANGE: enableTimestamps -> verbose
       const result = await model.transcribe(audioBuffer, {
         verbose: enableTimestamps,
       });
@@ -135,12 +134,10 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     recorder.start();
 
     try {
-      // API CHANGE: Stream is now an AsyncGenerator
-      // API CHANGE: enableTimestamps -> verbose
       const streamIter = model.stream({ verbose: enableTimestamps });
 
       for await (const { committed, nonCommitted } of streamIter) {
-        if (!liveTranscribing) break; // Safety check
+        if (!liveTranscribing) break;
         setLiveResult({ committed, nonCommitted });
       }
     } catch (error) {
@@ -162,7 +159,6 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
           ...(liveResult.committed.segments || []),
           ...(liveResult.nonCommitted.segments || []),
         ],
-        // Required fields derived from last known state
         language: liveResult.committed.language || 'en',
         duration:
           (liveResult.committed.duration || 0) +
@@ -181,6 +177,27 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
 
   const readyToTranscribe = !model.isGenerating && model.isReady;
   const recordingButtonDisabled = isSimulator || !readyToTranscribe;
+
+  // --- HELPER: Construct display data for live stream ---
+  const getDisplayData = () => {
+    if (liveTranscribing && liveResult) {
+      return {
+        text: liveResult.committed.text + liveResult.nonCommitted.text,
+        segments: [
+          ...(liveResult.committed.segments || []),
+          ...(liveResult.nonCommitted.segments || []),
+        ],
+        language: liveResult.committed.language,
+        duration:
+          (liveResult.committed.duration || 0) +
+          (liveResult.nonCommitted.duration || 0),
+      };
+    }
+    return transcription;
+  };
+
+  const displayData = getDisplayData();
+  // ----------------------------------------------------
 
   return (
     <SafeAreaProvider>
@@ -226,7 +243,13 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
                 scrollViewRef.current?.scrollToEnd({ animated: true })
               }
             >
-              <VerboseTranscription data={transcription!} />
+              {displayData ? (
+                <VerboseTranscription data={displayData} />
+              ) : (
+                <Text style={styles.placeholderText}>
+                  No transcription yet...
+                </Text>
+              )}
             </ScrollView>
           </View>
 
@@ -341,6 +364,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#0f186e',
     padding: 12,
+  },
+  placeholderText: {
+    color: '#aaa',
+    fontStyle: 'italic',
   },
   inputContainer: {
     marginBottom: 12,

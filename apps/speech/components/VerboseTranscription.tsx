@@ -1,10 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
-import {
-  TranscriptionSegment,
-  TranscriptionResult,
-  Word,
-} from 'react-native-executorch';
+import { View, Text, StyleSheet } from 'react-native';
+import { TranscriptionResult } from 'react-native-executorch';
 
 export const VerboseTranscription = ({
   data,
@@ -12,89 +8,107 @@ export const VerboseTranscription = ({
   data: TranscriptionResult;
 }) => {
   if (!data) return null;
-  console.log(data);
+
+  // 1. Strict checks to hide sections in non-verbose mode
+  const hasSegments = Array.isArray(data.segments) && data.segments.length > 0;
+
+  // check for valid language (ignore empty string or "N/A")
+  const hasLanguage =
+    !!data.language && data.language !== 'N/A' && data.language.trim() !== '';
+
+  // check for valid duration (ignore 0 or undefined)
+  const hasDuration = typeof data.duration === 'number' && data.duration > 0;
+
+  const hasMetadata = hasLanguage || hasDuration;
+
   return (
     <View style={styles.container}>
-      {/* Global Metadata */}
+      {/* Full Text is always shown */}
       <View style={styles.metaContainer}>
         <Text style={styles.label}>Full Text:</Text>
-        <Text style={styles.text}>{data.text}</Text>
+        <Text style={styles.text}>{data.text || ''}</Text>
 
-        <View style={styles.row}>
-          <Text style={styles.metaItem}>
-            Language: {data.language || 'N/A'}
-          </Text>
-          <Text style={styles.metaItem}>
-            Duration: {data.duration?.toFixed(2)}s
-          </Text>
-        </View>
+        {/* Only render this row if we have valid metadata */}
+        {hasMetadata && (
+          <View style={styles.row}>
+            {hasLanguage && (
+              <Text style={styles.metaItem}>Language: {data.language}</Text>
+            )}
+            {hasDuration && (
+              <Text style={styles.metaItem}>
+                Duration: {data.duration?.toFixed(2)}s
+              </Text>
+            )}
+          </View>
+        )}
       </View>
 
-      <Text style={styles.sectionHeader}>
-        Segments ({data.segments?.length || 0})
-      </Text>
+      {/* Only render Segments section if we actually have segments */}
+      {hasSegments && (
+        <>
+          <Text style={styles.sectionHeader}>
+            Segments ({data.segments?.length})
+          </Text>
 
-      {/* Segments List */}
-      {data.segments?.map((seg: TranscriptionSegment, index: number) => (
-        <View key={index} style={styles.segmentCard}>
-          <View style={styles.segmentHeader}>
-            <Text style={styles.timeBadge}>
-              {seg.start.toFixed(2)}s - {seg.end.toFixed(2)}s
-            </Text>
-            <Text style={styles.segmentId}>ID: {index}</Text>
-          </View>
+          {data.segments?.map((seg, index) => (
+            <View key={index} style={styles.segmentCard}>
+              <View style={styles.segmentHeader}>
+                <Text style={styles.timeBadge}>
+                  {seg.start.toFixed(2)}s - {seg.end.toFixed(2)}s
+                </Text>
+                <Text style={styles.segmentId}>ID: {seg.id ?? index}</Text>
+              </View>
 
-          <Text style={styles.segmentText}>"{seg.text}"</Text>
+              <Text style={styles.segmentText}>"{seg.text}"</Text>
 
-          {seg.words && seg.words.length > 0 && (
-            <View style={styles.wordsContainer}>
-              <Text style={styles.statLabel}>Word Timestamps:</Text>
-              <View style={styles.wordsGrid}>
-                {seg.words.map((w: Word, wIdx: number) => (
-                  <View key={wIdx} style={styles.wordChip}>
-                    <Text style={styles.wordText}>{w.word.trim()}</Text>
-                    <Text style={styles.wordTime}>{w.start.toFixed(2)}s</Text>
+              {/* Optional: Word Timestamps */}
+              {seg.words && seg.words.length > 0 && (
+                <View style={styles.wordsContainer}>
+                  <Text style={styles.statLabel}>Word Timestamps:</Text>
+                  <View style={styles.wordsGrid}>
+                    {seg.words.map((w, wIdx) => (
+                      <View key={wIdx} style={styles.wordChip}>
+                        <Text style={styles.wordText}>{w.word.trim()}</Text>
+                        <Text style={styles.wordTime}>
+                          {w.start.toFixed(2)}s
+                        </Text>
+                      </View>
+                    ))}
                   </View>
-                ))}
+                </View>
+              )}
+
+              {/* Optional: Verbose Stats */}
+              <View style={styles.statsGrid}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statLabel}>Avg LogProb</Text>
+                  <Text style={styles.statValue}>
+                    {seg.avg_logprob?.toFixed(4)}
+                  </Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statLabel}>No Speech</Text>
+                  <Text style={styles.statValue}>
+                    {seg.no_speech_prob?.toFixed(4)}
+                  </Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statLabel}>Temp</Text>
+                  <Text style={styles.statValue}>
+                    {seg.temperature?.toFixed(2)}
+                  </Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statLabel}>Compr.</Text>
+                  <Text style={styles.statValue}>
+                    {seg.compression_ratio?.toFixed(2)}
+                  </Text>
+                </View>
               </View>
             </View>
-          )}
-
-          {/* Verbose Statistics */}
-          <View style={styles.statsGrid}>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Avg LogProb</Text>
-              <Text style={styles.statValue}>
-                {seg.avg_logprob?.toFixed(4)}
-              </Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>No Speech</Text>
-              <Text style={styles.statValue}>
-                {seg.no_speech_prob?.toFixed(4)}
-              </Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Temp</Text>
-              <Text style={styles.statValue}>
-                {seg.temperature?.toFixed(2)}
-              </Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Compr.</Text>
-              <Text style={styles.statValue}>
-                {seg.compression_ratio?.toFixed(2)}
-              </Text>
-            </View>
-          </View>
-
-          {/* Tokens (Optional: Remove if too noisy) */}
-          <View style={styles.tokensContainer}>
-            <Text style={styles.tokenLabel}>Tokens: </Text>
-            <Text style={styles.tokenList}>[{seg.tokens?.join(', ')}]</Text>
-          </View>
-        </View>
-      ))}
+          ))}
+        </>
+      )}
     </View>
   );
 };
@@ -121,7 +135,7 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 10,
     marginTop: 8,
   },
   metaItem: {
@@ -131,6 +145,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
+    overflow: 'hidden',
   },
   sectionHeader: {
     fontSize: 18,
@@ -199,22 +214,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     color: '#444',
-  },
-  tokensContainer: {
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
-  },
-  tokenLabel: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#666',
-  },
-  tokenList: {
-    fontSize: 10,
-    color: '#888',
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
   wordsContainer: {
     marginVertical: 8,
