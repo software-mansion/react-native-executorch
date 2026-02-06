@@ -25,10 +25,8 @@ export const useSpeechToText = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
 
-  // Use useMemo to ensure the module instance is stable
   const moduleInstance = useMemo(() => new SpeechToTextModule(), []);
 
-  // 1. Load Model Effect
   useEffect(() => {
     if (preventLoad) return;
     let isMounted = true;
@@ -68,7 +66,6 @@ export const useSpeechToText = ({
     preventLoad,
   ]);
 
-  // 2. Transcribe (Single Shot)
   const transcribe = useCallback(
     async (
       waveform: Float32Array,
@@ -97,8 +94,6 @@ export const useSpeechToText = ({
     [isReady, isGenerating, moduleInstance]
   );
 
-  // 3. Stream (Async Generator)
-  // This wraps the native generator to manage the 'isGenerating' state automatically
   const stream = useCallback(
     async function* (options: DecodingOptions = {}): AsyncGenerator<
       {
@@ -134,7 +129,6 @@ export const useSpeechToText = ({
     [isReady, isGenerating, moduleInstance]
   );
 
-  // 4. Helper Wrappers (Synchronous)
   const streamInsert = useCallback(
     (waveform: Float32Array) => {
       if (!isReady) return;
@@ -157,7 +151,6 @@ export const useSpeechToText = ({
     stream,
     streamInsert,
     streamStop,
-    // Expose raw methods if needed, but 'transcribe' above is preferred
     encode: moduleInstance.encode.bind(moduleInstance),
     decode: moduleInstance.decode.bind(moduleInstance),
   };

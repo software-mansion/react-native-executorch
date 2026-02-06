@@ -20,16 +20,13 @@
 #include <rnexecutorch/models/ocr/Types.h>
 #include <rnexecutorch/models/speech_to_text/types/Segment.h>
 #include <rnexecutorch/models/speech_to_text/types/TranscriptionResult.h>
-// #include <rnexecutorch/models/speech_to_text/types/Word.h>
 #include <rnexecutorch/models/voice_activity_detection/Types.h>
 
-// using namespace rnexecutorch::models::speech_to_text::types;
+using namespace rnexecutorch::models::speech_to_text::types;
 
 namespace rnexecutorch::jsi_conversion {
 
 using namespace facebook;
-
-// #error "I AM READING THE CORRECT FILE"
 
 // Conversion from jsi to C++ types --------------------------------------------
 
@@ -318,24 +315,6 @@ inline jsi::Value getJsiValue(std::shared_ptr<jsi::Object> valuePtr,
   return std::move(*valuePtr);
 }
 
-// inline jsi::Value getJsiValue(const Word &word, jsi::Runtime &runtime) {
-//   jsi::Object obj(runtime);
-//   obj.setProperty(runtime, "word",
-//                   jsi::String::createFromUtf8(runtime, word.content));
-//   obj.setProperty(runtime, "start", static_cast<double>(word.start));
-//   obj.setProperty(runtime, "end", static_cast<double>(word.end));
-//   return obj;
-// }
-
-// inline jsi::Value getJsiValue(const std::vector<Word> &vec,
-//                               jsi::Runtime &runtime) {
-//   jsi::Array array(runtime, vec.size());
-//   for (size_t i = 0; i < vec.size(); ++i) {
-//     array.setValueAtIndex(runtime, i, getJsiValue(vec[i], runtime));
-//   }
-//   return {runtime, array};
-// }
-
 inline jsi::Value getJsiValue(const std::vector<int32_t> &vec,
                               jsi::Runtime &runtime) {
   jsi::Array array(runtime, vec.size());
@@ -523,37 +502,7 @@ getJsiValue(const std::vector<models::voice_activity_detection::types::Segment>
   return jsiSegments;
 }
 
-// inline jsi::Value getJsiValue(const
-// rnexecutorch::models::speech_to_text::types::Segment &seg, jsi::Runtime
-// &runtime) {
-//   jsi::Object obj(runtime);
-//   obj.setProperty(runtime, "start", seg.start);
-//   obj.setProperty(runtime, "end", seg.end);
-
-//   std::string segText;
-//   for (auto &w : seg.words)
-//     segText += w.content;
-//   obj.setProperty(runtime, "text",
-//                   jsi::String::createFromUtf8(runtime, segText));
-
-//   obj.setProperty(runtime, "avg_logprob", seg.avgLogprob);
-//   obj.setProperty(runtime, "compression_ratio", seg.compressionRatio);
-//   obj.setProperty(runtime, "temperature", seg.temperature);
-//   obj.setProperty(runtime, "no_speech_prob", seg.noSpeechProbability);
-
-//   jsi::Array tokensAry(runtime, seg.tokens.size());
-//   for (size_t i = 0; i < seg.tokens.size(); ++i) {
-//     tokensAry.setValueAtIndex(runtime, i,
-//     static_cast<double>(seg.tokens[i]));
-//   }
-//   obj.setProperty(runtime, "tokens", tokensAry);
-
-//   return obj;
-// }
-
-inline jsi::Value
-getJsiValue(const rnexecutorch::models::speech_to_text::types::Segment &seg,
-            jsi::Runtime &runtime) {
+inline jsi::Value getJsiValue(const Segment &seg, jsi::Runtime &runtime) {
   jsi::Object obj(runtime);
   obj.setProperty(runtime, "start", seg.start);
   obj.setProperty(runtime, "end", seg.end);
@@ -569,7 +518,6 @@ getJsiValue(const rnexecutorch::models::speech_to_text::types::Segment &seg,
   obj.setProperty(runtime, "temperature", seg.temperature);
   obj.setProperty(runtime, "no_speech_prob", seg.noSpeechProbability);
 
-  // --- NEW: EXPORT WORD TIMESTAMPS ---
   jsi::Array wordsAry(runtime, seg.words.size());
   for (size_t i = 0; i < seg.words.size(); ++i) {
     jsi::Object wordObj(runtime);
@@ -583,7 +531,6 @@ getJsiValue(const rnexecutorch::models::speech_to_text::types::Segment &seg,
     wordsAry.setValueAtIndex(runtime, i, wordObj);
   }
   obj.setProperty(runtime, "words", wordsAry);
-  // -----------------------------------
 
   jsi::Array tokensAry(runtime, seg.tokens.size());
   for (size_t i = 0; i < seg.tokens.size(); ++i) {
@@ -594,10 +541,8 @@ getJsiValue(const rnexecutorch::models::speech_to_text::types::Segment &seg,
   return obj;
 }
 
-inline jsi::Value getJsiValue(
-    const rnexecutorch::models::speech_to_text::types::TranscriptionResult
-        &result,
-    jsi::Runtime &runtime) {
+inline jsi::Value getJsiValue(const TranscriptionResult &result,
+                              jsi::Runtime &runtime) {
   jsi::Object obj(runtime);
   obj.setProperty(runtime, "text",
                   jsi::String::createFromUtf8(runtime, result.text));

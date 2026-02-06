@@ -46,12 +46,10 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   const [enableTimestamps, setEnableTimestamps] = useState(false);
   const [audioURL, setAudioURL] = useState('');
 
-  // Ref to track recording state (fixes the loop breaking immediately)
   const isRecordingRef = useRef(false);
   const [liveTranscribing, setLiveTranscribing] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  // 1. Keping your exact AudioRecorder setup
   const [recorder] = useState(() => new AudioRecorder());
 
   useEffect(() => {
@@ -109,7 +107,6 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   };
 
   const handleStartTranscribeFromMicrophone = async () => {
-    // 2. Set ref to true so the loop knows we are running
     isRecordingRef.current = true;
     setLiveTranscribing(true);
 
@@ -118,15 +115,13 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
 
     const sampleRate = 16000;
 
-    // 3. Your exact configuration structure
     recorder.onAudioReady(
       {
         sampleRate,
-        bufferLength: 0.1 * sampleRate, // 0.1s of data
+        bufferLength: 0.1 * sampleRate,
         channelCount: 1,
       },
       ({ buffer }) => {
-        // console.log('Audio chunk size:', buffer.buffer.length);
         model.streamInsert(buffer.getChannelData(0));
       }
     );
@@ -147,7 +142,6 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
       const streamIter = model.stream({ verbose: enableTimestamps });
 
       for await (const { committed, nonCommitted } of streamIter) {
-        // 4. CRITICAL FIX: Check the REF, not the stale variable
         if (!isRecordingRef.current) break;
 
         if (committed.text) {
@@ -172,7 +166,6 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   };
 
   const handleStopTranscribeFromMicrophone = () => {
-    // 5. Update Ref to stop the loop
     isRecordingRef.current = false;
 
     recorder.stop();
@@ -181,7 +174,6 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     setLiveTranscribing(false);
 
     if (liveResult) {
-      // 6. Ensure full TranscriptionResult object is returned
       setTranscription({
         text: liveResult.fullText,
         segments: liveResult.segments,
@@ -383,7 +375,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#0f186e',
     padding: 12,
-    maxHeight: 400, // Added limit
+    maxHeight: 400,
   },
   placeholderText: {
     color: '#aaa',
