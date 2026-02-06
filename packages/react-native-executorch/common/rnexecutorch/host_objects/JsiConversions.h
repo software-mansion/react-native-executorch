@@ -66,21 +66,6 @@ getValue<std::shared_ptr<jsi::Function>>(const jsi::Value &val,
       val.asObject(runtime).asFunction(runtime));
 }
 
-// template <>
-// inline Word getValue<Word>(const jsi::Value &val, jsi::Runtime &runtime) {
-//   jsi::Object obj = val.asObject(runtime);
-
-//   std::string content =
-//       getValue<std::string>(obj.getProperty(runtime, "word"), runtime);
-
-//   double start = obj.getProperty(runtime, "start").asNumber();
-//   double end = obj.getProperty(runtime, "end").asNumber();
-
-//   return Word{.content = std::move(content),
-//               .start = static_cast<float>(start),
-//               .end = static_cast<float>(end)};
-// }
-
 template <>
 inline JSTensorViewIn getValue<JSTensorViewIn>(const jsi::Value &val,
                                                jsi::Runtime &runtime) {
