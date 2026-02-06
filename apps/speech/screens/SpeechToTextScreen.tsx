@@ -35,28 +35,24 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     model: WHISPER_TINY_EN,
   });
 
-  // State now holds the new TranscriptionResult object or null
   const [transcription, setTranscription] =
     useState<TranscriptionResult | null>(null);
 
-  // State for live streaming results
   const [liveResult, setLiveResult] = useState<{
-    committed: TranscriptionResult;
-    nonCommitted: TranscriptionResult;
+    fullText: string;
+    segments: any[];
   } | null>(null);
 
   const [enableTimestamps, setEnableTimestamps] = useState(false);
   const [audioURL, setAudioURL] = useState('');
+
+  // Ref to track recording state (fixes the loop breaking immediately)
+  const isRecordingRef = useRef(false);
   const [liveTranscribing, setLiveTranscribing] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const [recorder] = useState(
-    () =>
-      new AudioRecorder({
-        sampleRate: 16000,
-        bufferLengthInSamples: 1600,
-      })
-  );
+  // 1. Keping your exact AudioRecorder setup
+  const [recorder] = useState(() => new AudioRecorder());
 
   useEffect(() => {
     AudioManager.setAudioSessionOptions({
@@ -64,7 +60,11 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
       iosMode: 'spokenAudio',
       iosOptions: ['allowBluetooth', 'defaultToSpeaker'],
     });
-    AudioManager.requestRecordingPermissions();
+    const checkPerms = async () => {
+      const granted = await AudioManager.requestRecordingPermissions();
+      if (!granted) console.warn('Microphone permission denied!');
+    };
+    checkPerms();
   }, []);
 
   async function getAudioFile(sourceUri: string) {
@@ -96,73 +96,97 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     const audioContext = new AudioContext({ sampleRate: 16000 });
 
     try {
-      const decodedAudioData = await audioContext.decodeAudioDataSource(uri);
+      const decodedAudioData = await audioContext.decodeAudioData(uri);
       const audioBuffer = decodedAudioData.getChannelData(0);
-
       const result = await model.transcribe(audioBuffer, {
         verbose: enableTimestamps,
       });
       setTranscription(result);
     } catch (error) {
       console.error('Error decoding audio data', error);
-      console.warn('Note: Supported file formats: mp3, wav, flac');
       return;
     }
   };
 
   const handleStartTranscribeFromMicrophone = async () => {
+    // 2. Set ref to true so the loop knows we are running
+    isRecordingRef.current = true;
     setLiveTranscribing(true);
-    setTranscription(null);
-    setLiveResult({
-      committed: {
-        text: '',
-        language: 'en',
-        duration: 0,
-        segments: [],
-      },
-      nonCommitted: {
-        text: '',
-        language: 'en',
-        duration: 0,
-        segments: [],
-      },
-    });
 
-    recorder.onAudioReady(({ buffer }) => {
-      model.streamInsert(buffer.getChannelData(0));
-    });
-    recorder.start();
+    setTranscription(null);
+    setLiveResult({ fullText: '', segments: [] });
+
+    const sampleRate = 16000;
+
+    // 3. Your exact configuration structure
+    recorder.onAudioReady(
+      {
+        sampleRate,
+        bufferLength: 0.1 * sampleRate, // 0.1s of data
+        channelCount: 1,
+      },
+      ({ buffer }) => {
+        // console.log('Audio chunk size:', buffer.buffer.length);
+        model.streamInsert(buffer.getChannelData(0));
+      }
+    );
+
+    try {
+      await recorder.start();
+    } catch (e) {
+      console.error('Failed to start recorder', e);
+      isRecordingRef.current = false;
+      setLiveTranscribing(false);
+      return;
+    }
+
+    let accumulatedText = '';
+    let accumulatedSegments: any[] = [];
 
     try {
       const streamIter = model.stream({ verbose: enableTimestamps });
 
       for await (const { committed, nonCommitted } of streamIter) {
-        if (!liveTranscribing) break;
-        setLiveResult({ committed, nonCommitted });
+        // 4. CRITICAL FIX: Check the REF, not the stale variable
+        if (!isRecordingRef.current) break;
+
+        if (committed.text) {
+          accumulatedText += committed.text;
+        }
+        if (committed.segments) {
+          accumulatedSegments = [...accumulatedSegments, ...committed.segments];
+        }
+
+        const currentDisplay = {
+          fullText: accumulatedText + nonCommitted.text,
+          segments: [...accumulatedSegments, ...(nonCommitted.segments || [])],
+        };
+
+        setLiveResult(currentDisplay);
       }
     } catch (error) {
       console.error('Error during live transcription:', error);
+    } finally {
+      setLiveTranscribing(false);
     }
   };
 
   const handleStopTranscribeFromMicrophone = () => {
+    // 5. Update Ref to stop the loop
+    isRecordingRef.current = false;
+
     recorder.stop();
     model.streamStop();
     console.log('Live transcription stopped');
     setLiveTranscribing(false);
 
-    // Move live result to final transcription state
     if (liveResult) {
+      // 6. Ensure full TranscriptionResult object is returned
       setTranscription({
-        text: liveResult.committed.text + liveResult.nonCommitted.text,
-        segments: [
-          ...(liveResult.committed.segments || []),
-          ...(liveResult.nonCommitted.segments || []),
-        ],
-        language: liveResult.committed.language || 'en',
-        duration:
-          (liveResult.committed.duration || 0) +
-          (liveResult.nonCommitted.duration || 0),
+        text: liveResult.fullText,
+        segments: liveResult.segments,
+        language: 'en',
+        duration: 0,
       });
       setLiveResult(null);
     }
@@ -178,26 +202,19 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   const readyToTranscribe = !model.isGenerating && model.isReady;
   const recordingButtonDisabled = isSimulator || !readyToTranscribe;
 
-  // --- HELPER: Construct display data for live stream ---
-  const getDisplayData = () => {
+  const getDisplayData = (): TranscriptionResult | null => {
     if (liveTranscribing && liveResult) {
       return {
-        text: liveResult.committed.text + liveResult.nonCommitted.text,
-        segments: [
-          ...(liveResult.committed.segments || []),
-          ...(liveResult.nonCommitted.segments || []),
-        ],
-        language: liveResult.committed.language,
-        duration:
-          (liveResult.committed.duration || 0) +
-          (liveResult.nonCommitted.duration || 0),
+        text: liveResult.fullText,
+        segments: liveResult.segments,
+        language: 'en',
+        duration: 0,
       };
     }
     return transcription;
   };
 
   const displayData = getDisplayData();
-  // ----------------------------------------------------
 
   return (
     <SafeAreaProvider>
@@ -247,7 +264,9 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
                 <VerboseTranscription data={displayData} />
               ) : (
                 <Text style={styles.placeholderText}>
-                  No transcription yet...
+                  {liveTranscribing
+                    ? 'Listening...'
+                    : 'No transcription yet...'}
                 </Text>
               )}
             </ScrollView>
@@ -364,6 +383,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#0f186e',
     padding: 12,
+    maxHeight: 400, // Added limit
   },
   placeholderText: {
     color: '#aaa',
