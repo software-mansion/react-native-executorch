@@ -9,26 +9,21 @@ export const VerboseTranscription = ({
 }) => {
   if (!data) return null;
 
-  // 1. Strict checks to hide sections in non-verbose mode
   const hasSegments = Array.isArray(data.segments) && data.segments.length > 0;
 
-  // check for valid language (ignore empty string or "N/A")
   const hasLanguage =
     !!data.language && data.language !== 'N/A' && data.language.trim() !== '';
 
-  // check for valid duration (ignore 0 or undefined)
   const hasDuration = typeof data.duration === 'number' && data.duration > 0;
 
   const hasMetadata = hasLanguage || hasDuration;
 
   return (
     <View style={styles.container}>
-      {/* Full Text is always shown */}
       <View style={styles.metaContainer}>
         <Text style={styles.label}>Full Text:</Text>
         <Text style={styles.text}>{data.text || ''}</Text>
 
-        {/* Only render this row if we have valid metadata */}
         {hasMetadata && (
           <View style={styles.row}>
             {hasLanguage && (
@@ -43,7 +38,6 @@ export const VerboseTranscription = ({
         )}
       </View>
 
-      {/* Only render Segments section if we actually have segments */}
       {hasSegments && (
         <>
           <Text style={styles.sectionHeader}>
@@ -61,7 +55,6 @@ export const VerboseTranscription = ({
 
               <Text style={styles.segmentText}>"{seg.text}"</Text>
 
-              {/* Optional: Word Timestamps */}
               {seg.words && seg.words.length > 0 && (
                 <View style={styles.wordsContainer}>
                   <Text style={styles.statLabel}>Word Timestamps:</Text>
@@ -78,7 +71,6 @@ export const VerboseTranscription = ({
                 </View>
               )}
 
-              {/* Optional: Verbose Stats */}
               <View style={styles.statsGrid}>
                 <View style={styles.statItem}>
                   <Text style={styles.statLabel}>Avg LogProb</Text>

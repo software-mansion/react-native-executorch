@@ -35,7 +35,6 @@ export default function VoiceChatScreenWrapper() {
 
 function VoiceChatScreen() {
   const [isRecording, setIsRecording] = useState(false);
-  // Local state to track the text while streaming
   const [liveTranscription, setLiveTranscription] = useState('');
 
   const [recorder] = useState(
@@ -68,15 +67,12 @@ function VoiceChatScreen() {
 
   const handleRecordPress = async () => {
     if (isRecording) {
-      // STOP RECORDING
       setIsRecording(false);
       recorder.stop();
-      // This will cause the generator loop below to break
       speechToText.streamStop();
     } else {
-      // START RECORDING
       setIsRecording(true);
-      setLiveTranscription(''); // Reset previous text
+      setLiveTranscription('');
 
       recorder.onAudioReady(({ buffer }) => {
         speechToText.streamInsert(buffer.getChannelData(0));
@@ -86,9 +82,7 @@ function VoiceChatScreen() {
       let finalResult = '';
 
       try {
-        // Iterate over the async generator
         for await (const result of speechToText.stream()) {
-          // Combine committed and non-committed text for live preview
           const text = result.committed.text + result.nonCommitted.text;
           setLiveTranscription(text);
           finalResult = text;
@@ -96,10 +90,9 @@ function VoiceChatScreen() {
       } catch (e) {
         console.error('Streaming error:', e);
       } finally {
-        // When the loop breaks (streamStop called), send to LLM
         if (finalResult.trim().length > 0) {
           await llm.sendMessage(finalResult);
-          setLiveTranscription(''); // Clear after sending
+          setLiveTranscription('');
         }
       }
     }
@@ -122,12 +115,10 @@ function VoiceChatScreen() {
           <Text style={styles.textModelName}>Qwen 3 x Whisper</Text>
         </View>
 
-        {/* Show history OR if we are currently recording/have text */}
         {llm.messageHistory.length > 0 || liveTranscription.length > 0 ? (
           <View style={styles.chatContainer}>
             <Messages
               chatHistory={
-                // If we are recording, temporarily append the live user message
                 isRecording && liveTranscription.length > 0
                   ? [
                       ...llm.messageHistory,

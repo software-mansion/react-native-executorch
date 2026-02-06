@@ -130,7 +130,6 @@ export class SpeechToTextModule {
   }> {
     this.validateOptions(options);
 
-    // Prepare arguments for native call
     const verbose = !!options.verbose;
     const language = options.language || '';
 
@@ -148,7 +147,6 @@ export class SpeechToTextModule {
       waiter = null;
     };
 
-    // Start the native streaming process in the background
     (async () => {
       try {
         await this.nativeModule.stream(
@@ -157,8 +155,6 @@ export class SpeechToTextModule {
             nonCommitted: TranscriptionResult,
             isDone: boolean
           ) => {
-            // The native module now returns ready-to-use JS objects via JSI.
-            // No TextDecoder or JSON parsing required.
             queue.push({
               committed,
               nonCommitted,
@@ -173,7 +169,6 @@ export class SpeechToTextModule {
           verbose
         );
 
-        // Mark as finished when the native promise resolves (stream ends)
         finished = true;
         wake();
       } catch (e) {
@@ -183,7 +178,6 @@ export class SpeechToTextModule {
       }
     })();
 
-    // Consumer Loop
     while (true) {
       if (queue.length > 0) {
         yield queue.shift()!;
