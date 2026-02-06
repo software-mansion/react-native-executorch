@@ -112,7 +112,6 @@ ASR::generateWithFallback(std::span<float> waveform,
     const std::string text = this->tokenizer->decode(tokens, true);
     const float compressionRatio = this->getCompressionRatio(text);
 
-    // Naive heuristic update - ensure we capture the stats of the chosen path
     if (avgLogProb >= -1.0f && compressionRatio < 2.4f) {
       bestTokens = std::move(tokens);
       bestAvgLogProb = avgLogProb;
@@ -121,7 +120,6 @@ ASR::generateWithFallback(std::span<float> waveform,
       break;
     }
 
-    // Fallback logic (simplify for brevity: keep last if none pass)
     if (t == temperatures.back() && bestTokens.empty()) {
       bestTokens = std::move(tokens);
       bestAvgLogProb = avgLogProb;
@@ -130,7 +128,6 @@ ASR::generateWithFallback(std::span<float> waveform,
     }
   }
 
-  // Pass metadata to calculation
   return this->calculateWordLevelTimestamps(bestTokens, waveform,
                                             bestAvgLogProb, bestTemperature,
                                             bestCompressionRatio);
@@ -162,11 +159,9 @@ ASR::calculateWordLevelTimestamps(std::span<const uint64_t> generatedTokens,
       const uint64_t end = generatedTokens[i - 1];
       auto words = this->estimateWordLevelTimestampsLinear(tokens, start, end);
       if (words.size()) {
-        // segments.emplace_back(std::move(words), 0.0);
         Segment seg;
         seg.words = std::move(words);
-        // Initialize new fields with defaults or passed values
-        seg.tokens = {}; // Empty for word-level approximation
+        seg.tokens = {};
         seg.avgLogprob = avgLogProb;
         seg.temperature = temperature;
         seg.compressionRatio = compressionRatio;
