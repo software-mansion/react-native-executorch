@@ -34,6 +34,10 @@ interface BareResourceFetcherInterface extends ResourceFetcherAdapter {
     sourceExtended: ResourceSourceExtended,
     result: string | string[]
   ): string[] | Promise<string[] | null>;
+  completeDownload(
+    extendedInfo: ResourceSourceExtended,
+    source: ResourceSource
+  ): Promise<string[] | null>;
   pause(source: ResourceSource): Promise<void>;
   resume(source: ResourceSource): Promise<string[] | null>;
   cancel(source: ResourceSource): Promise<void>;
@@ -164,7 +168,13 @@ export const BareResourceFetcher: BareResourceFetcherInterface = {
   },
 
   async pause(source: ResourceSource) {
-    const resource = this.downloads.get(source)!;
+    const resource = this.downloads.get(source);
+    if (!resource) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.NotFound,
+        'No active download found for the given source'
+      );
+    }
     switch (resource.status) {
       case DownloadStatus.PAUSED:
         throw new RnExecutorchError(
@@ -203,33 +213,9 @@ export const BareResourceFetcher: BareResourceFetcherInterface = {
         return new Promise((resolve, reject) => {
           resource.task
             .done(async () => {
-              if (
-                !this.downloads.has(source) ||
-                this.downloads.get(source)!.status === DownloadStatus.PAUSED
-              ) {
-                resolve(null);
-                return;
-              }
-              await RNFS.moveFile(
-                resource.extendedInfo.cacheFileUri!,
-                resource.extendedInfo.fileUri!
-              );
-              this.downloads.delete(source);
-              ResourceFetcherUtils.triggerHuggingFaceDownloadCounter(
-                resource.extendedInfo.uri!
-              );
-
-              // Get the filename from the fileUri
-              const filename = resource.extendedInfo.fileUri!.split('/').pop();
-              if (filename) {
-                completeHandler(filename);
-              }
-
-              const result = this.returnOrStartNext(
+              const result = await this.completeDownload(
                 resource.extendedInfo,
-                ResourceFetcherUtils.removeFilePrefix(
-                  resource.extendedInfo.fileUri!
-                )
+                source
               );
               resolve(result);
             })
@@ -242,9 +228,43 @@ export const BareResourceFetcher: BareResourceFetcherInterface = {
   },
 
   async cancel(source: ResourceSource) {
-    const resource = this.downloads.get(source)!;
+    const resource = this.downloads.get(source);
+    if (!resource) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.NotFound,
+        'No active download found for the given source'
+      );
+    }
     resource.task.stop();
     this.downloads.delete(source);
+  },
+
+  async completeDownload(
+    extendedInfo: ResourceSourceExtended,
+    source: ResourceSource
+  ): Promise<string[] | null> {
+    // Check if download was cancelled or paused
+    if (
+      !this.downloads.has(source) ||
+      this.downloads.get(source)!.status === DownloadStatus.PAUSED
+    ) {
+      return null;
+    }
+
+    await RNFS.moveFile(extendedInfo.cacheFileUri!, extendedInfo.fileUri!);
+    this.downloads.delete(source);
+    ResourceFetcherUtils.triggerHuggingFaceDownloadCounter(extendedInfo.uri!);
+
+    const filename = extendedInfo.fileUri!.split('/').pop();
+    if (filename) {
+      await completeHandler(filename);
+    }
+
+    const result = this.returnOrStartNext(
+      extendedInfo,
+      ResourceFetcherUtils.removeFilePrefix(extendedInfo.fileUri!)
+    );
+    return result instanceof Promise ? await result : result;
   },
 
   async pauseFetching(...sources: ResourceSource[]) {
@@ -422,26 +442,9 @@ export const BareResourceFetcher: BareResourceFetcherInterface = {
           );
         })
         .done(async () => {
-          if (
-            !this.downloads.has(source) ||
-            this.downloads.get(source)!.status === DownloadStatus.PAUSED
-          ) {
-            resolve(null);
-            return;
-          }
-          await RNFS.moveFile(
-            sourceExtended.cacheFileUri!,
-            sourceExtended.fileUri!
-          );
-          this.downloads.delete(source);
-          ResourceFetcherUtils.triggerHuggingFaceDownloadCounter(uri);
-
-          // Complete the download job
-          completeHandler(filename);
-
-          const nextResult = this.returnOrStartNext(
+          const nextResult = await this.completeDownload(
             sourceExtended,
-            ResourceFetcherUtils.removeFilePrefix(sourceExtended.fileUri!)
+            source
           );
           resolve(nextResult);
         })
