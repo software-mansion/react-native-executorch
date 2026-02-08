@@ -1,3 +1,35 @@
+/**
+ * Resource Fetcher for React Native applications.
+ *
+ * This module provides functions to download and manage files stored in the application's document directory
+ * inside the `react-native-executorch/` directory. These utilities help manage storage and clean up downloaded
+ * files when they are no longer needed.
+ *
+ * @category Utilities - General
+ *
+ * @remarks
+ * **Key Functionality:**
+ * - **Download Control**: Pause, resume, and cancel operations through:
+ *   - {@link pauseFetching} - Pause ongoing downloads
+ *   - {@link resumeFetching} - Resume paused downloads
+ *   - {@link cancelFetching} - Cancel ongoing or paused downloads
+ * - **File Management**:
+ *   - {@link getFilesTotalSize} - Get total size of resources
+ *   - {@link listDownloadedFiles} - List all downloaded files
+ *   - {@link listDownloadedModels} - List downloaded model files (.pte)
+ *   - {@link deleteResources} - Delete downloaded resources
+ *
+ * **Important Notes:**
+ * - Pause/resume/cancel operations work only for remote resources
+ * - Most functions accept multiple `ResourceSource` arguments (string, number, or object)
+ * - The {@link fetch} method accepts a progress callback (0-1) and returns file paths or null if interrupted
+ *
+ * **Technical Implementation:**
+ * - Maintains a `downloads` Map to track active and paused downloads
+ * - Successful downloads are automatically removed from the Map
+ * - Uses `ResourceSourceExtended` interface for pause/resume functionality with linked-list behavior
+ */
+
 import {
   createDownloadTask,
   completeHandler,
@@ -62,9 +94,23 @@ interface BareResourceFetcherInterface extends ResourceFetcherAdapter {
   ): Promise<string[] | string | null>;
 }
 
+/**
+ * This module provides functions to download and work with downloaded files stored in the application's document directory inside the `react-native-executorch/` directory.
+ * These utilities can help you manage your storage and clean up the downloaded files when they are no longer needed.
+ *
+ * @category Utilities - General
+ */
 export const BareResourceFetcher: BareResourceFetcherInterface = {
   downloads: new Map<ResourceSource, DownloadResource>(), //map of currently downloading (or paused) files, if the download was started by .fetch() method.
 
+  /**
+   * Fetches resources (remote URLs, local files or embedded assets), downloads or stores them locally for use by React Native ExecuTorch.
+   *
+   * @param callback - Optional callback to track progress of all downloads, reported between 0 and 1.
+   * @param sources - Multiple resources that can be strings, asset references, or objects.
+   * @returns If the fetch was successful, it returns a promise which resolves to an array of local file paths for the downloaded/stored resources (without file:// prefix).
+   * If the fetch was interrupted by `pauseFetching` or `cancelFetching`, it returns a promise which resolves to `null`.
+   */
   async fetch(
     callback: (downloadProgress: number) => void = () => {},
     ...sources: ResourceSource[]
@@ -267,16 +313,35 @@ export const BareResourceFetcher: BareResourceFetcherInterface = {
     return result instanceof Promise ? await result : result;
   },
 
+  /**
+   * Pauses an ongoing download of files.
+   *
+   * @param sources - The resource identifiers used when calling `fetch`.
+   * @returns A promise that resolves once the download is paused.
+   */
   async pauseFetching(...sources: ResourceSource[]) {
     const source = this.findActive(sources);
     await this.pause(source);
   },
 
+  /**
+   * Resumes a paused download of files.
+   *
+   * @param sources - The resource identifiers used when calling fetch.
+   * @returns If the fetch was successful, it returns a promise which resolves to an array of local file paths for the downloaded resources (without file:// prefix).
+   * If the fetch was again interrupted by `pauseFetching` or `cancelFetching`, it returns a promise which resolves to `null`.
+   */
   async resumeFetching(...sources: ResourceSource[]) {
     const source = this.findActive(sources);
     await this.resume(source);
   },
 
+  /**
+   * Cancels an ongoing/paused download of files.
+   *
+   * @param sources - The resource identifiers used when calling `fetch()`.
+   * @returns A promise that resolves once the download is canceled.
+   */
   async cancelFetching(...sources: ResourceSource[]) {
     const source = this.findActive(sources);
     await this.cancel(source);
@@ -294,16 +359,32 @@ export const BareResourceFetcher: BareResourceFetcherInterface = {
     );
   },
 
+  /**
+   * Lists all the downloaded files used by React Native ExecuTorch.
+   *
+   * @returns A promise, which resolves to an array of URIs for all the downloaded files.
+   */
   async listDownloadedFiles() {
     const files = await RNFS.readDir(RNEDirectory);
     return files.map((file) => file.path);
   },
 
+  /**
+   * Lists all the downloaded models used by React Native ExecuTorch.
+   *
+   * @returns A promise, which resolves to an array of URIs for all the downloaded models.
+   */
   async listDownloadedModels() {
     const files = await this.listDownloadedFiles();
     return files.filter((file: string) => file.endsWith('.pte'));
   },
 
+  /**
+   * Deletes downloaded resources from the local filesystem.
+   *
+   * @param sources - The resource identifiers used when calling `fetch`.
+   * @returns A promise that resolves once all specified resources have been removed.
+   */
   async deleteResources(...sources: ResourceSource[]) {
     for (const source of sources) {
       const filename = ResourceFetcherUtils.getFilenameFromUri(
@@ -316,6 +397,12 @@ export const BareResourceFetcher: BareResourceFetcherInterface = {
     }
   },
 
+  /**
+   * Fetches the info about files size. Works only for remote files.
+   *
+   * @param sources - The resource identifiers (URLs).
+   * @returns A promise that resolves to combined size of files in bytes.
+   */
   async getFilesTotalSize(...sources: ResourceSource[]) {
     return (await ResourceFetcherUtils.getFilesSizes(sources)).totalLength;
   },
@@ -470,6 +557,15 @@ export const BareResourceFetcher: BareResourceFetcherInterface = {
     });
   },
 
+  /**
+   * Reads the contents of a file as a string.
+   *
+   * @param path - Absolute file path to read.
+   * @returns A promise that resolves to the file contents as a string.
+   *
+   * @remarks
+   * **REQUIRED**: Used internally for reading configuration files (e.g., tokenizer configs).
+   */
   async readAsString(path: string) {
     return await RNFS.readFile(path, 'utf8');
   },
