@@ -1,9 +1,13 @@
 #pragma once
 
 #include <codecvt>
+#include <concepts>
 #include <cstdint>
+#include <functional> // Required for std::less
+#include <locale>
 #include <set>
 #include <span>
+#include <string>
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
@@ -24,326 +28,189 @@ namespace rnexecutorch::jsi_conversion {
 
 using namespace facebook;
 
-// Conversion from jsi to C++ types --------------------------------------------
-
-template <typename T> T getValue(const jsi::Value &val, jsi::Runtime &runtime);
+// =================================================================================================
+// HELPERS (Internal)
+// =================================================================================================
+namespace detail {
 
 template <typename T>
-  requires meta::IsNumeric<T>
-inline T getValue(const jsi::Value &val, jsi::Runtime &runtime) {
-  return static_cast<T>(val.asNumber());
-}
-
-template <>
-inline bool getValue<bool>(const jsi::Value &val, jsi::Runtime &runtime) {
-  return val.asBool();
-}
-
-template <>
-inline std::string getValue<std::string>(const jsi::Value &val,
-                                         jsi::Runtime &runtime) {
-  return val.getString(runtime).utf8(runtime);
-}
-
-template <>
-inline std::u32string getValue<std::u32string>(const jsi::Value &val,
-                                               jsi::Runtime &runtime) {
-  std::string utf8 = getValue<std::string>(val, runtime);
-  std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
-
-  return conv.from_bytes(utf8);
-}
-
-template <>
-inline std::shared_ptr<jsi::Function>
-getValue<std::shared_ptr<jsi::Function>>(const jsi::Value &val,
-                                         jsi::Runtime &runtime) {
-  return std::make_shared<jsi::Function>(
-      val.asObject(runtime).asFunction(runtime));
-}
-
-template <>
-inline JSTensorViewIn getValue<JSTensorViewIn>(const jsi::Value &val,
-                                               jsi::Runtime &runtime) {
-  jsi::Object obj = val.asObject(runtime);
-  JSTensorViewIn tensorView;
-
-  int scalarTypeInt = obj.getProperty(runtime, "scalarType").asNumber();
-  tensorView.scalarType = static_cast<ScalarType>(scalarTypeInt);
-
-  jsi::Value shapeValue = obj.getProperty(runtime, "sizes");
-  jsi::Array shapeArray = shapeValue.asObject(runtime).asArray(runtime);
-  size_t numShapeDims = shapeArray.size(runtime);
-  tensorView.sizes.reserve(numShapeDims);
-
-  for (size_t i = 0; i < numShapeDims; ++i) {
-    int32_t dim =
-        getValue<int32_t>(shapeArray.getValueAtIndex(runtime, i), runtime);
-    tensorView.sizes.push_back(dim);
-  }
-
-  // On JS side, TensorPtr objects hold a 'data' property which should be either
-  // an ArrayBuffer or TypedArray
-  jsi::Value dataValue = obj.getProperty(runtime, "dataPtr");
-  jsi::Object dataObj = dataValue.asObject(runtime);
-
-  // Check if it's an ArrayBuffer or TypedArray
-  if (dataObj.isArrayBuffer(runtime)) {
-    jsi::ArrayBuffer arrayBuffer = dataObj.getArrayBuffer(runtime);
-    tensorView.dataPtr = arrayBuffer.data(runtime);
-  } else {
-    // Handle typed arrays (Float32Array, Int32Array, etc.)
-    const bool isValidTypedArray = dataObj.hasProperty(runtime, "buffer") &&
-                                   dataObj.hasProperty(runtime, "byteOffset") &&
-                                   dataObj.hasProperty(runtime, "byteLength") &&
-                                   dataObj.hasProperty(runtime, "length");
-    if (!isValidTypedArray) {
-      throw jsi::JSError(runtime, "Data must be an ArrayBuffer or TypedArray");
-    }
-    jsi::Value bufferValue = dataObj.getProperty(runtime, "buffer");
-    if (!bufferValue.isObject() ||
-        !bufferValue.asObject(runtime).isArrayBuffer(runtime)) {
-      throw jsi::JSError(runtime,
-                         "TypedArray buffer property must be an ArrayBuffer");
-    }
-
-    jsi::ArrayBuffer arrayBuffer =
-        bufferValue.asObject(runtime).getArrayBuffer(runtime);
-    size_t byteOffset =
-        getValue<int>(dataObj.getProperty(runtime, "byteOffset"), runtime);
-
-    tensorView.dataPtr =
-        static_cast<uint8_t *>(arrayBuffer.data(runtime)) + byteOffset;
-  }
-  return tensorView;
-}
-
-// C++ set from JS array. Set with heterogenerous look-up (adding std::less<>
-// enables querying with std::string_view).
-template <>
-inline std::set<std::string, std::less<>>
-getValue<std::set<std::string, std::less<>>>(const jsi::Value &val,
-                                             jsi::Runtime &runtime) {
-
-  jsi::Array array = val.asObject(runtime).asArray(runtime);
-  size_t length = array.size(runtime);
-  std::set<std::string, std::less<>> result;
-
-  for (size_t i = 0; i < length; ++i) {
-    jsi::Value element = array.getValueAtIndex(runtime, i);
-    result.insert(getValue<std::string>(element, runtime));
-  }
-  return result;
-}
-
-// Helper function to convert typed arrays to std::span
-template <typename T>
-inline std::span<T> getTypedArrayAsSpan(const jsi::Value &val,
-                                        jsi::Runtime &runtime) {
+inline std::pair<T *, size_t> getTypedArrayData(const jsi::Value &val,
+                                                jsi::Runtime &runtime) {
   jsi::Object obj = val.asObject(runtime);
 
-  const bool isValidTypedArray = obj.hasProperty(runtime, "buffer") &&
-                                 obj.hasProperty(runtime, "byteOffset") &&
-                                 obj.hasProperty(runtime, "byteLength") &&
-                                 obj.hasProperty(runtime, "length");
+  if (obj.isArrayBuffer(runtime)) {
+    jsi::ArrayBuffer buffer = obj.getArrayBuffer(runtime);
+    return {reinterpret_cast<T *>(buffer.data(runtime)),
+            buffer.size(runtime) / sizeof(T)};
+  }
+
+  bool isValidTypedArray = obj.hasProperty(runtime, "buffer") &&
+                           obj.hasProperty(runtime, "byteOffset") &&
+                           obj.hasProperty(runtime, "length");
+
   if (!isValidTypedArray) {
-    throw jsi::JSError(runtime, "Value must be a TypedArray");
+    throw jsi::JSError(runtime, "Value must be an ArrayBuffer or TypedArray");
   }
 
-  // Get the underlying ArrayBuffer
   jsi::Value bufferValue = obj.getProperty(runtime, "buffer");
   if (!bufferValue.isObject() ||
       !bufferValue.asObject(runtime).isArrayBuffer(runtime)) {
-    throw jsi::JSError(runtime,
-                       "TypedArray buffer property must be an ArrayBuffer");
+    throw jsi::JSError(runtime, "TypedArray buffer must be an ArrayBuffer");
   }
 
   jsi::ArrayBuffer arrayBuffer =
       bufferValue.asObject(runtime).getArrayBuffer(runtime);
   size_t byteOffset =
-      getValue<size_t>(obj.getProperty(runtime, "byteOffset"), runtime);
-  size_t length = getValue<size_t>(obj.getProperty(runtime, "length"), runtime);
+      static_cast<size_t>(obj.getProperty(runtime, "byteOffset").asNumber());
+  size_t length =
+      static_cast<size_t>(obj.getProperty(runtime, "length").asNumber());
 
-  T *dataPtr = reinterpret_cast<T *>(
-      static_cast<uint8_t *>(arrayBuffer.data(runtime)) + byteOffset);
-
-  return {dataPtr, length};
+  uint8_t *rawData = arrayBuffer.data(runtime) + byteOffset;
+  return {reinterpret_cast<T *>(rawData), length};
 }
 
-template <typename T>
-inline std::vector<T> getArrayAsVector(const jsi::Value &val,
-                                       jsi::Runtime &runtime) {
-  jsi::Array array = val.asObject(runtime).asArray(runtime);
-  const size_t length = array.size(runtime);
-  std::vector<T> result;
-  result.reserve(length);
+} // namespace detail
 
-  for (size_t i = 0; i < length; ++i) {
-    const jsi::Value element = array.getValueAtIndex(runtime, i);
-    result.push_back(getValue<T>(element, runtime));
+// =================================================================================================
+// JS -> C++ (JsiGetter Struct)
+// We use a struct to allow partial specialization for vectors/spans
+// =================================================================================================
+
+// 1. Forward Declaration
+template <typename T> struct JsiGetter;
+
+// 2. Public API Wrapper
+template <typename T> T getValue(const jsi::Value &val, jsi::Runtime &runtime) {
+  return JsiGetter<T>::get(val, runtime);
+}
+
+// 3. Primary Template (Handles Numeric types generically)
+template <typename T> struct JsiGetter {
+  static T get(const jsi::Value &val, jsi::Runtime &runtime) {
+    if constexpr (meta::IsNumeric<T>) {
+      return static_cast<T>(val.asNumber());
+    } else {
+      // Fallback for unsupported types
+      throw jsi::JSError(runtime, "Unsupported type conversion");
+    }
   }
-  return result;
-}
+};
 
-// Template specializations for std::vector<T> types
-template <>
-inline std::vector<JSTensorViewIn>
-getValue<std::vector<JSTensorViewIn>>(const jsi::Value &val,
-                                      jsi::Runtime &runtime) {
-  return getArrayAsVector<JSTensorViewIn>(val, runtime);
-}
+// 4. Full Specializations for Scalars and Objects
 
-template <>
-inline std::vector<std::string>
-getValue<std::vector<std::string>>(const jsi::Value &val,
-                                   jsi::Runtime &runtime) {
-  return getArrayAsVector<std::string>(val, runtime);
-}
-
-template <>
-inline std::vector<int32_t>
-getValue<std::vector<int32_t>>(const jsi::Value &val, jsi::Runtime &runtime) {
-  return getArrayAsVector<int32_t>(val, runtime);
-}
-
-template <>
-inline std::vector<float> getValue<std::vector<float>>(const jsi::Value &val,
-                                                       jsi::Runtime &runtime) {
-  return getArrayAsVector<float>(val, runtime);
-}
-
-template <>
-inline std::vector<int64_t>
-getValue<std::vector<int64_t>>(const jsi::Value &val, jsi::Runtime &runtime) {
-  return getArrayAsVector<int64_t>(val, runtime);
-}
-
-template <>
-inline std::vector<uint64_t>
-getValue<std::vector<uint64_t>>(const jsi::Value &val, jsi::Runtime &runtime) {
-  return getArrayAsVector<uint64_t>(val, runtime);
-}
-
-// Template specializations for std::span<T> types
-template <>
-inline std::span<float> getValue<std::span<float>>(const jsi::Value &val,
-                                                   jsi::Runtime &runtime) {
-  return getTypedArrayAsSpan<float>(val, runtime);
-}
-
-template <>
-inline std::span<double> getValue<std::span<double>>(const jsi::Value &val,
-                                                     jsi::Runtime &runtime) {
-  return getTypedArrayAsSpan<double>(val, runtime);
-}
-
-template <>
-inline std::span<int32_t> getValue<std::span<int32_t>>(const jsi::Value &val,
-                                                       jsi::Runtime &runtime) {
-  return getTypedArrayAsSpan<int32_t>(val, runtime);
-}
-
-template <>
-inline std::span<uint32_t>
-getValue<std::span<uint32_t>>(const jsi::Value &val, jsi::Runtime &runtime) {
-  return getTypedArrayAsSpan<uint32_t>(val, runtime);
-}
-
-template <>
-inline std::span<int16_t> getValue<std::span<int16_t>>(const jsi::Value &val,
-                                                       jsi::Runtime &runtime) {
-  return getTypedArrayAsSpan<int16_t>(val, runtime);
-}
-
-template <>
-inline std::span<uint16_t>
-getValue<std::span<uint16_t>>(const jsi::Value &val, jsi::Runtime &runtime) {
-  return getTypedArrayAsSpan<uint16_t>(val, runtime);
-}
-
-template <>
-inline std::span<int8_t> getValue<std::span<int8_t>>(const jsi::Value &val,
-                                                     jsi::Runtime &runtime) {
-  return getTypedArrayAsSpan<int8_t>(val, runtime);
-}
-
-template <>
-inline std::span<uint8_t> getValue<std::span<uint8_t>>(const jsi::Value &val,
-                                                       jsi::Runtime &runtime) {
-  return getTypedArrayAsSpan<uint8_t>(val, runtime);
-}
-
-template <>
-inline std::span<int64_t> getValue<std::span<int64_t>>(const jsi::Value &val,
-                                                       jsi::Runtime &runtime) {
-  return getTypedArrayAsSpan<int64_t>(val, runtime);
-}
-
-template <>
-inline std::span<uint64_t>
-getValue<std::span<uint64_t>>(const jsi::Value &val, jsi::Runtime &runtime) {
-  return getTypedArrayAsSpan<uint64_t>(val, runtime);
-}
-
-// Conversion from C++ types to jsi --------------------------------------------
-
-// Implementation functions might return any type, but in a promise we can only
-// return jsi::Value or jsi::Object. For each type being returned
-// we add a function here.
-
-inline jsi::Value getJsiValue(std::shared_ptr<jsi::Object> valuePtr,
-                              jsi::Runtime &runtime) {
-  return std::move(*valuePtr);
-}
-
-inline jsi::Value getJsiValue(const std::vector<int32_t> &vec,
-                              jsi::Runtime &runtime) {
-  jsi::Array array(runtime, vec.size());
-  for (size_t i = 0; i < vec.size(); i++) {
-    array.setValueAtIndex(runtime, i, jsi::Value(static_cast<int>(vec[i])));
+template <> struct JsiGetter<bool> {
+  static bool get(const jsi::Value &val, jsi::Runtime &runtime) {
+    return val.asBool();
   }
-  return {runtime, array};
-}
+};
 
-inline jsi::Value getJsiValue(const std::vector<uint64_t> &vec,
-                              jsi::Runtime &runtime) {
-  jsi::Array array(runtime, vec.size());
-  for (size_t i = 0; i < vec.size(); i++) {
-    array.setValueAtIndex(runtime, i, jsi::Value(static_cast<double>(vec[i])));
+template <> struct JsiGetter<std::string> {
+  static std::string get(const jsi::Value &val, jsi::Runtime &runtime) {
+    return val.getString(runtime).utf8(runtime);
   }
-  return {runtime, array};
-}
+};
 
-inline jsi::Value getJsiValue(const std::vector<float> &vec,
-                              jsi::Runtime &runtime) {
-  jsi::Array array(runtime, vec.size());
-  for (size_t i = 0; i < vec.size(); i++) {
-    array.setValueAtIndex(runtime, i, jsi::Value(vec[i]));
+template <> struct JsiGetter<std::u32string> {
+  static std::u32string get(const jsi::Value &val, jsi::Runtime &runtime) {
+    std::string utf8 = getValue<std::string>(val, runtime);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
+    return conv.from_bytes(utf8);
+#pragma clang diagnostic pop
   }
-  return {runtime, array};
-}
+};
 
-inline jsi::Value getJsiValue(const std::vector<std::string> &vec,
-                              jsi::Runtime &runtime) {
-  jsi::Array array(runtime, vec.size());
-  for (size_t i = 0; i < vec.size(); i++) {
-    array.setValueAtIndex(runtime, i,
-                          jsi::String::createFromUtf8(runtime, vec[i]));
+template <> struct JsiGetter<std::shared_ptr<jsi::Function>> {
+  static std::shared_ptr<jsi::Function> get(const jsi::Value &val,
+                                            jsi::Runtime &runtime) {
+    return std::make_shared<jsi::Function>(
+        val.asObject(runtime).asFunction(runtime));
   }
-  return {runtime, array};
-}
+};
 
-inline jsi::Value getJsiValue(const std::vector<char> &vec,
-                              jsi::Runtime &runtime) {
-  jsi::Array array(runtime, vec.size());
-  for (size_t i = 0; i < vec.size(); i++) {
-    array.setValueAtIndex(runtime, i, jsi::Value(vec[i]));
+template <> struct JsiGetter<JSTensorViewIn> {
+  static JSTensorViewIn get(const jsi::Value &val, jsi::Runtime &runtime) {
+    jsi::Object obj = val.asObject(runtime);
+    JSTensorViewIn tensorView;
+
+    tensorView.scalarType = static_cast<ScalarType>(
+        static_cast<int>(obj.getProperty(runtime, "scalarType").asNumber()));
+
+    jsi::Array shapeArray =
+        obj.getProperty(runtime, "sizes").asObject(runtime).asArray(runtime);
+    size_t numDims = shapeArray.size(runtime);
+    tensorView.sizes.reserve(numDims);
+
+    for (size_t i = 0; i < numDims; ++i) {
+      tensorView.sizes.push_back(static_cast<int32_t>(
+          shapeArray.getValueAtIndex(runtime, i).asNumber()));
+    }
+
+    auto [ptr, _] = detail::getTypedArrayData<uint8_t>(
+        obj.getProperty(runtime, "dataPtr"), runtime);
+    tensorView.dataPtr = ptr;
+
+    return tensorView;
   }
-  return {runtime, array};
+};
+
+template <> struct JsiGetter<std::set<std::string, std::less<>>> {
+  static std::set<std::string, std::less<>> get(const jsi::Value &val,
+                                                jsi::Runtime &runtime) {
+    jsi::Array array = val.asObject(runtime).asArray(runtime);
+    size_t length = array.size(runtime);
+    std::set<std::string, std::less<>> result;
+
+    for (size_t i = 0; i < length; ++i) {
+      // Explicitly get string to avoid ambiguity
+      result.insert(
+          getValue<std::string>(array.getValueAtIndex(runtime, i), runtime));
+    }
+    return result;
+  }
+};
+
+// 5. Partial Specializations for Containers (The fix for your error)
+
+// Generic std::vector<T>
+template <typename T> struct JsiGetter<std::vector<T>> {
+  static std::vector<T> get(const jsi::Value &val, jsi::Runtime &runtime) {
+    jsi::Array array = val.asObject(runtime).asArray(runtime);
+    size_t length = array.size(runtime);
+    std::vector<T> result;
+    result.reserve(length);
+
+    for (size_t i = 0; i < length; ++i) {
+      result.push_back(getValue<T>(array.getValueAtIndex(runtime, i), runtime));
+    }
+    return result;
+  }
+};
+
+// Generic std::span<T>
+template <typename T> struct JsiGetter<std::span<T>> {
+  static std::span<T> get(const jsi::Value &val, jsi::Runtime &runtime) {
+    auto [ptr, len] = detail::getTypedArrayData<T>(val, runtime);
+    return std::span<T>{ptr, len};
+  }
+};
+
+// =================================================================================================
+// C++ -> JS (getJsiValue)
+// =================================================================================================
+
+inline jsi::Value getJsiValue(int val, jsi::Runtime &runtime) {
+  return {runtime, val};
+}
+inline jsi::Value getJsiValue(bool val, jsi::Runtime &runtime) { return {val}; }
+inline jsi::Value getJsiValue(double val, jsi::Runtime &runtime) {
+  return {val};
+}
+inline jsi::Value getJsiValue(float val, jsi::Runtime &runtime) {
+  return {static_cast<double>(val)};
 }
 
-// Conditional as on android, size_t and uint64_t reduce to the same type,
-// introducing ambiguity
 template <typename T,
           typename = std::enable_if_t<std::is_same_v<T, size_t> &&
                                       !std::is_same_v<size_t, uint64_t>>>
@@ -352,56 +219,54 @@ inline jsi::Value getJsiValue(T val, jsi::Runtime &runtime) {
 }
 
 inline jsi::Value getJsiValue(uint64_t val, jsi::Runtime &runtime) {
-  jsi::BigInt bigInt = jsi::BigInt::fromUint64(runtime, val);
-  return {runtime, bigInt};
+  return jsi::BigInt::fromUint64(runtime, val);
 }
 
-inline jsi::Value getJsiValue(int val, jsi::Runtime &runtime) {
-  return {runtime, val};
+inline jsi::Value getJsiValue(const std::string &str, jsi::Runtime &runtime) {
+  return jsi::String::createFromUtf8(runtime, str);
 }
 
-inline jsi::Value getJsiValue(bool val, jsi::Runtime &runtime) {
-  return jsi::Value(val);
+inline jsi::Value getJsiValue(std::shared_ptr<jsi::Object> valuePtr,
+                              jsi::Runtime &runtime) {
+  return std::move(*valuePtr);
 }
 
 inline jsi::Value getJsiValue(const std::shared_ptr<OwningArrayBuffer> &buf,
                               jsi::Runtime &runtime) {
-  jsi::ArrayBuffer arrayBuffer(runtime, buf);
-  return {runtime, arrayBuffer};
+  // Correctly returns jsi::ArrayBuffer (which is a jsi::Object/Value)
+  return jsi::ArrayBuffer(runtime, buf);
 }
 
-inline jsi::Value
-getJsiValue(const std::vector<std::shared_ptr<OwningArrayBuffer>> &vec,
-            jsi::Runtime &runtime) {
+// Generic Vector -> JS Array
+template <typename T>
+inline jsi::Value getJsiValue(const std::vector<T> &vec,
+                              jsi::Runtime &runtime) {
   jsi::Array array(runtime, vec.size());
-  for (size_t i = 0; i < vec.size(); i++) {
-    jsi::ArrayBuffer arrayBuffer(runtime, vec[i]);
-    array.setValueAtIndex(runtime, i, jsi::Value(runtime, arrayBuffer));
+  for (size_t i = 0; i < vec.size(); ++i) {
+    if constexpr (std::is_same_v<T, uint64_t>) {
+      array.setValueAtIndex(runtime, i, static_cast<double>(vec[i]));
+    } else {
+      array.setValueAtIndex(runtime, i, getJsiValue(vec[i], runtime));
+    }
   }
   return {runtime, array};
 }
+
+// Complex Types
 
 inline jsi::Value getJsiValue(const std::vector<JSTensorViewOut> &vec,
                               jsi::Runtime &runtime) {
   jsi::Array array(runtime, vec.size());
   for (size_t i = 0; i < vec.size(); i++) {
     jsi::Object tensorObj(runtime);
-
     tensorObj.setProperty(runtime, "sizes", getJsiValue(vec[i].sizes, runtime));
-
     tensorObj.setProperty(runtime, "scalarType",
-                          jsi::Value(static_cast<int>(vec[i].scalarType)));
-
-    jsi::ArrayBuffer arrayBuffer(runtime, vec[i].dataPtr);
-    tensorObj.setProperty(runtime, "dataPtr", arrayBuffer);
-
+                          static_cast<int>(vec[i].scalarType));
+    tensorObj.setProperty(runtime, "dataPtr",
+                          jsi::ArrayBuffer(runtime, vec[i].dataPtr));
     array.setValueAtIndex(runtime, i, tensorObj);
   }
   return {runtime, array};
-}
-
-inline jsi::Value getJsiValue(const std::string &str, jsi::Runtime &runtime) {
-  return jsi::String::createFromUtf8(runtime, str);
 }
 
 inline jsi::Value
@@ -409,7 +274,6 @@ getJsiValue(const std::unordered_map<std::string_view, float> &map,
             jsi::Runtime &runtime) {
   jsi::Object mapObj{runtime};
   for (auto &[k, v] : map) {
-    // The string_view keys must be null-terminated!
     mapObj.setProperty(runtime, k.data(), v);
   }
   return mapObj;
@@ -419,21 +283,23 @@ inline jsi::Value getJsiValue(
     const std::vector<models::object_detection::types::Detection> &detections,
     jsi::Runtime &runtime) {
   jsi::Array array(runtime, detections.size());
-  for (std::size_t i = 0; i < detections.size(); ++i) {
+  for (size_t i = 0; i < detections.size(); ++i) {
+    const auto &d = detections[i];
     jsi::Object detection(runtime);
     jsi::Object bbox(runtime);
-    bbox.setProperty(runtime, "x1", detections[i].x1);
-    bbox.setProperty(runtime, "y1", detections[i].y1);
-    bbox.setProperty(runtime, "x2", detections[i].x2);
-    bbox.setProperty(runtime, "y2", detections[i].y2);
+
+    bbox.setProperty(runtime, "x1", d.x1);
+    bbox.setProperty(runtime, "y1", d.y1);
+    bbox.setProperty(runtime, "x2", d.x2);
+    bbox.setProperty(runtime, "y2", d.y2);
 
     detection.setProperty(runtime, "bbox", bbox);
     detection.setProperty(
         runtime, "label",
         jsi::String::createFromAscii(
-            runtime, models::object_detection::constants::kCocoLablesMap.at(
-                         detections[i].label)));
-    detection.setProperty(runtime, "score", detections[i].score);
+            runtime,
+            models::object_detection::constants::kCocoLablesMap.at(d.label)));
+    detection.setProperty(runtime, "score", d.score);
     array.setValueAtIndex(runtime, i, detection);
   }
   return array;
@@ -444,41 +310,37 @@ getJsiValue(const std::vector<models::ocr::types::OCRDetection> &detections,
             jsi::Runtime &runtime) {
   auto jsiDetections = jsi::Array(runtime, detections.size());
   for (size_t i = 0; i < detections.size(); ++i) {
-    const auto &detection = detections[i];
+    const auto &d = detections[i];
+    auto jsiDetection = jsi::Object(runtime);
+    auto jsiBbox = jsi::Array(runtime, 4);
 
-    auto jsiDetectionObject = jsi::Object(runtime);
-
-    auto jsiBboxArray = jsi::Array(runtime, 4);
-#pragma unroll
     for (size_t j = 0; j < 4u; ++j) {
-      auto jsiPointObject = jsi::Object(runtime);
-      jsiPointObject.setProperty(runtime, "x", detection.bbox[j].x);
-      jsiPointObject.setProperty(runtime, "y", detection.bbox[j].y);
-      jsiBboxArray.setValueAtIndex(runtime, j, jsiPointObject);
+      auto point = jsi::Object(runtime);
+      point.setProperty(runtime, "x", d.bbox[j].x);
+      point.setProperty(runtime, "y", d.bbox[j].y);
+      jsiBbox.setValueAtIndex(runtime, j, point);
     }
 
-    jsiDetectionObject.setProperty(runtime, "bbox", jsiBboxArray);
-    jsiDetectionObject.setProperty(
-        runtime, "text", jsi::String::createFromUtf8(runtime, detection.text));
-    jsiDetectionObject.setProperty(runtime, "score", detection.score);
-
-    jsiDetections.setValueAtIndex(runtime, i, jsiDetectionObject);
+    jsiDetection.setProperty(runtime, "bbox", jsiBbox);
+    jsiDetection.setProperty(runtime, "text",
+                             jsi::String::createFromUtf8(runtime, d.text));
+    jsiDetection.setProperty(runtime, "score", d.score);
+    jsiDetections.setValueAtIndex(runtime, i, jsiDetection);
   }
-
   return jsiDetections;
 }
 
 inline jsi::Value
 getJsiValue(const std::vector<models::voice_activity_detection::types::Segment>
-                &speechSegments,
+                &segments,
             jsi::Runtime &runtime) {
-  auto jsiSegments = jsi::Array(runtime, speechSegments.size());
-  for (size_t i = 0; i < speechSegments.size(); i++) {
-    const auto &[start, end] = speechSegments[i];
-    auto jsiSegmentObject = jsi::Object(runtime);
-    jsiSegmentObject.setProperty(runtime, "start", static_cast<int>(start));
-    jsiSegmentObject.setProperty(runtime, "end", static_cast<int>(end));
-    jsiSegments.setValueAtIndex(runtime, i, jsiSegmentObject);
+  auto jsiSegments = jsi::Array(runtime, segments.size());
+  for (size_t i = 0; i < segments.size(); i++) {
+    auto segObj = jsi::Object(runtime);
+    segObj.setProperty(runtime, "start",
+                       static_cast<double>(segments[i].start));
+    segObj.setProperty(runtime, "end", static_cast<double>(segments[i].end));
+    jsiSegments.setValueAtIndex(runtime, i, segObj);
   }
   return jsiSegments;
 }
