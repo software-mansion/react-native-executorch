@@ -284,7 +284,13 @@ std::vector<Segment> ASR::transcribe(std::span<float> waveform,
       seg.end += seek;
     }
 
-    seek = static_cast<int32_t>(segments.back().words.back().end);
+    while (!segments.empty() && segments.back().words.empty()) {
+      segments.pop_back();
+    }
+
+    if (!segments.empty() && !segments.back().words.empty()) {
+      seek = static_cast<int32_t>(segments.back().words.back().end);
+    }
     results.insert(results.end(), std::make_move_iterator(segments.begin()),
                    std::make_move_iterator(segments.end()));
   }
