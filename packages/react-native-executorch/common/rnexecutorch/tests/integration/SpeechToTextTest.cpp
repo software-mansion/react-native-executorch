@@ -32,7 +32,7 @@ template <> struct ModelTraits<SpeechToText> {
 
   static void callGenerate(ModelType &model) {
     auto audio = test_utils::loadAudioFromFile("test_audio_float.raw");
-    (void)model.transcribe(audio, "en");
+    (void)model.transcribe(audio, "en", false);
   }
 };
 } // namespace model_tests
@@ -53,7 +53,7 @@ TEST(S2TCtorTests, InvalidDecoderPathThrows) {
 TEST(S2TCtorTests, InvalidTokenizerPathThrows) {
   EXPECT_THROW(SpeechToText(kValidEncoderPath, kValidDecoderPath,
                             "nonexistent.json", nullptr),
-               RnExecutorchError);
+               std::filesystem::filesystem_error);
 }
 
 TEST(S2TEncodeTests, EncodeReturnsNonNull) {
@@ -71,9 +71,13 @@ TEST(S2TTranscribeTests, TranscribeReturnsValidChars) {
                      nullptr);
   auto audio = loadAudioFromFile("test_audio_float.raw");
   ASSERT_FALSE(audio.empty());
-  auto result = model.transcribe(audio, "en");
-  ASSERT_FALSE(result.empty());
-  for (char c : result) {
+  auto result = model.transcribe(audio, "en", true);
+  ASSERT_EQ(result.language, "en");
+  EXPECT_GE(result.duration, 20.0f);
+  ASSERT_EQ(result.task, "transcription");
+  ASSERT_FALSE(result.segments.empty());
+  ASSERT_FALSE(result.text.empty());
+  for (char c : result.text) {
     EXPECT_GE(static_cast<unsigned char>(c), 0);
     EXPECT_LE(static_cast<unsigned char>(c), 127);
   }
@@ -83,8 +87,8 @@ TEST(S2TTranscribeTests, EmptyResultOnSilence) {
   SpeechToText model(kValidEncoderPath, kValidDecoderPath, kValidTokenizerPath,
                      nullptr);
   auto audio = generateSilence(16000 * 5);
-  auto result = model.transcribe(audio, "en");
-  EXPECT_TRUE(result.empty());
+  auto result = model.transcribe(audio, "en", false);
+  EXPECT_TRUE(result.text.empty());
 }
 
 TEST(S2TTranscribeTests, InvalidLanguageThrows) {
@@ -92,6 +96,6 @@ TEST(S2TTranscribeTests, InvalidLanguageThrows) {
                      nullptr);
   auto audio = loadAudioFromFile("test_audio_float.raw");
   ASSERT_FALSE(audio.empty());
-  EXPECT_THROW((void)model.transcribe(audio, "invalid_language_code"),
+  EXPECT_THROW((void)model.transcribe(audio, "invalid_language_code", false),
                RnExecutorchError);
 }
