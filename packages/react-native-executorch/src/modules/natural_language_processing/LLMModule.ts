@@ -9,11 +9,7 @@ import { LLMConfig, LLMTool, Message } from '../../types/llm';
  */
 export class LLMModule {
   private controller: LLMController;
-  private pendingConfig?: {
-    chatConfig?: Partial<ChatConfig>;
-    toolsConfig?: ToolsConfig;
-    generationConfig?: GenerationConfig;
-  };
+  private pendingConfig?: LLMConfig;
 
   /**
    * Creates a new instance of `LLMModule` with optional callbacks.
@@ -88,11 +84,7 @@ export class LLMModule {
    *
    * @param configuration - Configuration object containing `chatConfig`, `toolsConfig`, and `generationConfig`.
    */
-  configure({
-    chatConfig,
-    toolsConfig,
-    generationConfig,
-  }: LLMConfig) {
+  configure({ chatConfig, toolsConfig, generationConfig }: LLMConfig) {
     const config = { chatConfig, toolsConfig, generationConfig };
     if (this.controller.isReady) {
       this.controller.configure(config);
