@@ -84,8 +84,7 @@ export class LLMModule {
    *
    * @param configuration - Configuration object containing `chatConfig`, `toolsConfig`, and `generationConfig`.
    */
-  configure({ chatConfig, toolsConfig, generationConfig }: LLMConfig) {
-    const config = { chatConfig, toolsConfig, generationConfig };
+  configure(config: LLMConfig) {
     if (this.controller.isReady) {
       this.controller.configure(config);
     } else {
