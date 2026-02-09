@@ -1,5 +1,7 @@
 #include "TextEmbeddings.h"
 #include <executorch/extension/tensor/tensor_ptr_maker.h>
+#include <rnexecutorch/Error.h>
+#include <rnexecutorch/ErrorCodes.h>
 #include <rnexecutorch/data_processing/Numerical.h>
 
 namespace rnexecutorch::models::embeddings {
@@ -49,9 +51,10 @@ TextEmbeddings::generate(const std::string input) {
 
   auto forwardResult = BaseModel::forward({tokenIds, attnMask});
   if (!forwardResult.ok()) {
-    throw std::runtime_error(
-        "Function forward in TextEmbeddings failed with error code: " +
-        std::to_string(static_cast<uint32_t>(forwardResult.error())));
+    throw RnExecutorchError(
+        forwardResult.error(),
+        "The model's forward function did not succeed. Ensure the model input "
+        "is correct.");
   }
 
   return BaseEmbeddings::postprocess(forwardResult);

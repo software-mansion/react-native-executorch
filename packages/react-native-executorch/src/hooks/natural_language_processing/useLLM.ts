@@ -1,36 +1,29 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ResourceSource } from '../../types/common';
 import {
-  ChatConfig,
-  GenerationConfig,
+  LLMConfig,
+  LLMProps,
   LLMTool,
   LLMType,
   Message,
-  ToolsConfig,
 } from '../../types/llm';
 import { LLMController } from '../../controllers/LLMController';
+import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
-/*
-Hook version of LLMModule
-*/
-export const useLLM = ({
-  model,
-  preventLoad = false,
-}: {
-  model: {
-    modelSource: ResourceSource;
-    tokenizerSource: ResourceSource;
-    tokenizerConfigSource: ResourceSource;
-  };
-  preventLoad?: boolean;
-}): LLMType => {
+/**
+ * React hook for managing a Large Language Model (LLM) instance.
+ *
+ * @category Hooks
+ * @param model - Object containing model, tokenizer, and tokenizer config sources.
+ * @returns An object implementing the `LLMType` interface for interacting with the LLM.
+ */
+export const useLLM = ({ model, preventLoad = false }: LLMProps): LLMType => {
   const [token, setToken] = useState<string>('');
   const [response, setResponse] = useState<string>('');
   const [messageHistory, setMessageHistory] = useState<Message[]>([]);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const [error, setError] = useState<any>(null);
+  const [error, setError] = useState<null | RnExecutorchError>(null);
 
   const tokenCallback = useCallback((newToken: string) => {
     setToken(newToken);
@@ -58,16 +51,18 @@ export const useLLM = ({
         await controllerInstance.load({
           modelSource: model.modelSource,
           tokenizerSource: model.tokenizerSource,
-          tokenizerConfigSource: model.tokenizerConfigSource,
+          tokenizerConfigSource: model.tokenizerConfigSource!,
           onDownloadProgressCallback: setDownloadProgress,
         });
       } catch (e) {
-        setError(e);
+        setError(parseUnknownError(e));
       }
     })();
 
     return () => {
-      controllerInstance.delete();
+      if (controllerInstance.isReady) {
+        controllerInstance.delete();
+      }
     };
   }, [
     controllerInstance,
@@ -79,15 +74,7 @@ export const useLLM = ({
 
   // memoization of returned functions
   const configure = useCallback(
-    ({
-      chatConfig,
-      toolsConfig,
-      generationConfig,
-    }: {
-      chatConfig?: Partial<ChatConfig>;
-      toolsConfig?: ToolsConfig;
-      generationConfig?: GenerationConfig;
-    }) =>
+    ({ chatConfig, toolsConfig, generationConfig }: LLMConfig) =>
       controllerInstance.configure({
         chatConfig,
         toolsConfig,
@@ -127,6 +114,16 @@ export const useLLM = ({
     [controllerInstance]
   );
 
+  const getPromptTokenCount = useCallback(
+    () => controllerInstance.getPromptTokenCount(),
+    [controllerInstance]
+  );
+
+  const getTotalTokenCount = useCallback(
+    () => controllerInstance.getTotalTokenCount(),
+    [controllerInstance]
+  );
+
   return {
     messageHistory,
     response,
@@ -136,6 +133,8 @@ export const useLLM = ({
     downloadProgress,
     error,
     getGeneratedTokenCount: getGeneratedTokenCount,
+    getPromptTokenCount: getPromptTokenCount,
+    getTotalTokenCount: getTotalTokenCount,
     configure: configure,
     generate: generate,
     sendMessage: sendMessage,

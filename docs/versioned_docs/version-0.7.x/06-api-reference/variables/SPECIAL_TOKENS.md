@@ -1,0 +1,37 @@
+# Variable: SPECIAL_TOKENS
+
+> `const` **SPECIAL_TOKENS**: `object`
+
+Defined in: [packages/react-native-executorch/src/types/llm.ts:259](https://github.com/software-mansion/react-native-executorch/blob/180a40dc66a1a5554cd133093a04bade528bff90/packages/react-native-executorch/src/types/llm.ts#L259)
+
+Special tokens used in Large Language Models (LLMs).
+
+## Type Declaration
+
+### BOS_TOKEN
+
+> **BOS_TOKEN**: `string` = `'bos_token'`
+
+### CLS_TOKEN
+
+> **CLS_TOKEN**: `string` = `'cls_token'`
+
+### EOS_TOKEN
+
+> **EOS_TOKEN**: `string` = `'eos_token'`
+
+### MASK_TOKEN
+
+> **MASK_TOKEN**: `string` = `'mask_token'`
+
+### PAD_TOKEN
+
+> **PAD_TOKEN**: `string` = `'pad_token'`
+
+### SEP_TOKEN
+
+> **SEP_TOKEN**: `string` = `'sep_token'`
+
+### UNK_TOKEN
+
+> **UNK_TOKEN**: `string` = `'unk_token'`

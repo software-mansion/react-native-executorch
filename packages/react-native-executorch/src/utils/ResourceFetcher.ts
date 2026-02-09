@@ -51,16 +51,35 @@ import {
   ResourceSourceExtended,
   DownloadResource,
 } from './ResourceFetcherUtils';
+import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
+import { RnExecutorchError } from '../errors/errorUtils';
 
+/**
+ * This module provides functions to download and work with downloaded files stored in the application's document directory inside the `react-native-executorch/` directory.
+ * These utilities can help you manage your storage and clean up the downloaded files when they are no longer needed.
+ *
+ * @category Utilities - General
+ */
 export class ResourceFetcher {
   static downloads = new Map<ResourceSource, DownloadResource>(); //map of currently downloading (or paused) files, if the download was started by .fetch() method.
 
+  /**
+   * Fetches resources (remote URLs, local files or embedded assets), downloads or stores them locally for use by React Native ExecuTorch.
+   *
+   * @param callback - Optional callback to track progress of all downloads, reported between 0 and 1.
+   * @param sources - Multiple resources that can be strings, asset references, or objects.
+   * @returns If the fetch was successful, it returns a promise which resolves to an array of local file paths for the downloaded/stored resources (without file:// prefix).
+   * If the fetch was interrupted by `pauseFetching` or `cancelFetching`, it returns a promise which resolves to `null`.
+   */
   static async fetch(
     callback: (downloadProgress: number) => void = () => {},
     ...sources: ResourceSource[]
   ) {
     if (sources.length === 0) {
-      throw new Error('Empty list given as an argument!');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidUserInput,
+        'Empty list given as an argument'
+      );
     }
     const { results: info, totalLength } =
       await ResourceFetcherUtils.getFilesSizes(sources);
@@ -161,7 +180,8 @@ export class ResourceFetcher {
     const resource = this.downloads.get(source)!;
     switch (resource.status) {
       case DownloadStatus.PAUSED:
-        throw new Error(
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ResourceFetcherAlreadyPaused,
           "The file download is currently paused. Can't pause the download of the same file twice."
         );
       default: {
@@ -178,11 +198,15 @@ export class ResourceFetcher {
       !resource.extendedInfo.cacheFileUri ||
       !resource.extendedInfo.uri
     ) {
-      throw new Error('Something went wrong. File uri info is not specified!');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ResourceFetcherMissingUri,
+        'Something went wrong. File uri info is not specified'
+      );
     }
     switch (resource.status) {
       case DownloadStatus.ONGOING:
-        throw new Error(
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ResourceFetcherAlreadyOngoing,
           "The file download is currently ongoing. Can't resume the ongoing download."
         );
       default: {
@@ -200,8 +224,9 @@ export class ResourceFetcher {
           (result.status !== HTTP_CODE.OK &&
             result.status !== HTTP_CODE.PARTIAL_CONTENT)
         ) {
-          throw new Error(
-            `Failed to fetch resource from '${resource.extendedInfo.uri}'`
+          throw new RnExecutorchError(
+            RnExecutorchErrorCode.ResourceFetcherDownloadFailed,
+            `Failed to fetch resource from '${resource.extendedInfo.uri}, context: ${result}'`
           );
         }
         await moveAsync({
@@ -227,16 +252,35 @@ export class ResourceFetcher {
     this.downloads.delete(source);
   }
 
+  /**
+   * Pauses an ongoing download of files.
+   *
+   * @param sources - The resource identifiers used when calling `fetch`.
+   * @returns A promise that resolves once the download is paused.
+   */
   static async pauseFetching(...sources: ResourceSource[]) {
     const source = this.findActive(sources);
     await this.pause(source);
   }
 
+  /**
+   * Resumes a paused download of files.
+   *
+   * @param sources - The resource identifiers used when calling fetch.
+   * @returns If the fetch was successful, it returns a promise which resolves to an array of local file paths for the downloaded resources (without file:// prefix).
+   * If the fetch was again interrupted by `pauseFetching` or `cancelFetching`, it returns a promise which resolves to `null`.
+   */
   static async resumeFetching(...sources: ResourceSource[]) {
     const source = this.findActive(sources);
     await this.resume(source);
   }
 
+  /**
+   * Cancels an ongoing/paused download of files.
+   *
+   * @param sources - The resource identifiers used when calling `fetch()`.
+   * @returns A promise that resolves once the download is canceled.
+   */
   static async cancelFetching(...sources: ResourceSource[]) {
     const source = this.findActive(sources);
     await this.cancel(source);
@@ -248,21 +292,38 @@ export class ResourceFetcher {
         return source;
       }
     }
-    throw new Error(
+    throw new RnExecutorchError(
+      RnExecutorchErrorCode.ResourceFetcherNotActive,
       'None of given sources are currently during downloading process.'
     );
   }
 
+  /**
+   * Lists all the downloaded files used by React Native ExecuTorch.
+   *
+   * @returns A promise, which resolves to an array of URIs for all the downloaded files.
+   */
   static async listDownloadedFiles() {
     const files = await readDirectoryAsync(RNEDirectory);
     return files.map((file) => `${RNEDirectory}${file}`);
   }
 
+  /**
+   * Lists all the downloaded models used by React Native ExecuTorch.
+   *
+   * @returns A promise, which resolves to an array of URIs for all the downloaded models.
+   */
   static async listDownloadedModels() {
     const files = await this.listDownloadedFiles();
     return files.filter((file) => file.endsWith('.pte'));
   }
 
+  /**
+   * Deletes downloaded resources from the local filesystem.
+   *
+   * @param sources - The resource identifiers used when calling `fetch`.
+   * @returns A promise that resolves once all specified resources have been removed.
+   */
   static async deleteResources(...sources: ResourceSource[]) {
     for (const source of sources) {
       const filename = ResourceFetcherUtils.getFilenameFromUri(
@@ -275,13 +336,22 @@ export class ResourceFetcher {
     }
   }
 
+  /**
+   * Fetches the info about files size. Works only for remote files.
+   *
+   * @param sources - The resource identifiers (URLs).
+   * @returns A promise that resolves to combined size of files in bytes.
+   */
   static async getFilesTotalSize(...sources: ResourceSource[]) {
     return (await ResourceFetcherUtils.getFilesSizes(sources)).totalLength;
   }
 
   private static async handleObject(source: ResourceSource) {
     if (typeof source !== 'object') {
-      throw new Error('Source is expected to be object!');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidModelSource,
+        'Source is expected to be object'
+      );
     }
     const jsonString = JSON.stringify(source);
     const digest = ResourceFetcherUtils.hashObject(jsonString);
@@ -302,7 +372,10 @@ export class ResourceFetcher {
 
   private static handleLocalFile(source: ResourceSource) {
     if (typeof source !== 'string') {
-      throw new Error('Source is expected to be string.');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidModelSource,
+        'Source is expected to be string'
+      );
     }
     return ResourceFetcherUtils.removeFilePrefix(source);
   }
@@ -312,7 +385,10 @@ export class ResourceFetcher {
   ) {
     const source = sourceExtended.source;
     if (typeof source !== 'number') {
-      throw new Error('Source is expected to be string.');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidModelSource,
+        'Source is expected to be number'
+      );
     }
     const asset = Asset.fromModule(source);
     const uri = asset.uri;
@@ -337,7 +413,10 @@ export class ResourceFetcher {
   ) {
     const source = sourceExtended.source;
     if (typeof source !== 'number') {
-      throw new Error('Source is expected to be a number.');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidModelSource,
+        'Source is expected to be a number'
+      );
     }
     sourceExtended.uri = Asset.fromModule(source).uri;
     return await this.handleRemoteFile(sourceExtended);
@@ -348,7 +427,10 @@ export class ResourceFetcher {
   ) {
     const source = sourceExtended.source;
     if (typeof source === 'object') {
-      throw new Error('Source is expected to be a string or a number.');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidModelSource,
+        'Source is expected to be a string or a number'
+      );
     }
     if (this.downloads.has(source)) {
       const resource = this.downloads.get(source)!;
@@ -357,10 +439,16 @@ export class ResourceFetcher {
         this.resume(source);
       }
       // if the download is ongoing, throw error.
-      throw new Error('Already downloading this file.');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ResourceFetcherDownloadInProgress,
+        'Already downloading this file'
+      );
     }
     if (typeof source === 'number' && !sourceExtended.uri) {
-      throw new Error('Source Uri is expected to be available here.');
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ResourceFetcherMissingUri,
+        'Source Uri is expected to be available here'
+      );
     }
     if (typeof source === 'string') {
       sourceExtended.uri = source;
@@ -405,7 +493,10 @@ export class ResourceFetcher {
       return null;
     }
     if (!result || result.status !== HTTP_CODE.OK) {
-      throw new Error(`Failed to fetch resource from '${source}'`);
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ResourceFetcherDownloadFailed,
+        `Failed to fetch resource from '${source}, context: ${result}'`
+      );
     }
     await moveAsync({
       from: sourceExtended.cacheFileUri,

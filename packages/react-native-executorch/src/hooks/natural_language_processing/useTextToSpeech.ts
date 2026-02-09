@@ -1,31 +1,32 @@
 import { useCallback, useEffect, useState } from 'react';
 import { TextToSpeechModule } from '../../modules/natural_language_processing/TextToSpeechModule';
 import {
-  TextToSpeechConfig,
+  TextToSpeechProps,
   TextToSpeechInput,
+  TextToSpeechType,
   TextToSpeechStreamingInput,
 } from '../../types/tts';
-import { ETError, getError } from '../../Error';
+import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
+import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
-interface Props extends TextToSpeechConfig {
-  preventLoad?: boolean;
-}
-
+/**
+ * React hook for managing Text to Speech instance.
+ *
+ * @category Hooks
+ * @param TextToSpeechProps - Configuration object containing `model` source, `voice` and optional `preventLoad`.
+ * @returns Ready to use Text to Speech model.
+ */
 export const useTextToSpeech = ({
   model,
   voice,
-  options,
   preventLoad = false,
-}: Props) => {
-  const [error, setError] = useState<string | null>(null);
+}: TextToSpeechProps): TextToSpeechType => {
+  const [error, setError] = useState<RnExecutorchError | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
 
   const [moduleInstance] = useState(() => new TextToSpeechModule());
-
-  // Stabilize options to prevent unnecessary reloads when new object references are passed
-  const optionsJson = JSON.stringify(options);
 
   useEffect(() => {
     if (preventLoad) return;
@@ -39,13 +40,12 @@ export const useTextToSpeech = ({
           {
             model,
             voice,
-            options,
           },
           setDownloadProgress
         );
         setIsReady(true);
       } catch (err) {
-        setError((err as Error).message);
+        setError(parseUnknownError(err));
       }
     })();
 
@@ -56,18 +56,23 @@ export const useTextToSpeech = ({
   }, [
     moduleInstance,
     model.durationPredictorSource,
-    model.f0nPredictorSource,
-    model.textEncoderSource,
-    model.textDecoderSource,
+    model.synthesizerSource,
     voice?.voiceSource,
     voice?.extra,
-    optionsJson,
     preventLoad,
   ]);
 
   const forward = async (input: TextToSpeechInput) => {
-    if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
-    if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
+    if (!isReady)
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        'The model is currently not loaded. Please load the model before calling forward().'
+      );
+    if (isGenerating)
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelGenerating,
+        'The model is currently generating. Please wait until previous model run is complete.'
+      );
     try {
       setIsGenerating(true);
       return await moduleInstance.forward(input.text, input.speed ?? 1.0);
@@ -78,8 +83,16 @@ export const useTextToSpeech = ({
 
   const stream = useCallback(
     async (input: TextToSpeechStreamingInput) => {
-      if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
-      if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
+      if (!isReady)
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModuleNotLoaded,
+          'The model is currently not loaded. Please load the model before calling stream().'
+        );
+      if (isGenerating)
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModelGenerating,
+          'The model is currently generating. Please wait until previous model run is complete.'
+        );
       setIsGenerating(true);
       try {
         await input.onBegin?.();
@@ -105,6 +118,7 @@ export const useTextToSpeech = ({
     isGenerating,
     forward,
     stream,
+    streamStop: moduleInstance.streamStop,
     downloadProgress,
   };
 };

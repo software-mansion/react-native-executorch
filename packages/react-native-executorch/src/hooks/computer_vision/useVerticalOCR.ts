@@ -1,30 +1,21 @@
 import { useEffect, useState } from 'react';
-import { ResourceSource } from '../../types/common';
-import { OCRDetection, OCRLanguage } from '../../types/ocr';
+import { OCRType, VerticalOCRProps } from '../../types/ocr';
 import { VerticalOCRController } from '../../controllers/VerticalOCRController';
+import { RnExecutorchError } from '../../errors/errorUtils';
 
-interface OCRModule {
-  error: string | null;
-  isReady: boolean;
-  isGenerating: boolean;
-  forward: (imageSource: string) => Promise<OCRDetection[]>;
-  downloadProgress: number;
-}
-
+/**
+ * React hook for managing a Vertical OCR instance.
+ *
+ * @category Hooks
+ * @param VerticalOCRProps - Configuration object containing `model` sources, optional `independentCharacters` and `preventLoad` flag.
+ * @returns Ready to use Vertical OCR model.
+ */
 export const useVerticalOCR = ({
   model,
   independentCharacters = false,
   preventLoad = false,
-}: {
-  model: {
-    detectorSource: ResourceSource;
-    recognizerSource: ResourceSource;
-    language: OCRLanguage;
-  };
-  independentCharacters?: boolean;
-  preventLoad?: boolean;
-}): OCRModule => {
-  const [error, setError] = useState<string | null>(null);
+}: VerticalOCRProps): OCRType => {
+  const [error, setError] = useState<RnExecutorchError | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);

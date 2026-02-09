@@ -1,11 +1,25 @@
 #include "RecognizerUtils.h"
+#include <rnexecutorch/Error.h>
+#include <rnexecutorch/ErrorCodes.h>
 
 namespace rnexecutorch::models::ocr::utils {
 cv::Mat softmax(const cv::Mat &inputs) {
   cv::Mat maxVal;
   cv::reduce(inputs, maxVal, 1, cv::REDUCE_MAX, CV_32F);
   cv::Mat expInputs;
-  cv::exp(inputs - cv::repeat(maxVal, 1, inputs.cols), expInputs);
+  cv::Mat repeated = inputs - cv::repeat(maxVal, 1, inputs.cols);
+  repeated.convertTo(repeated, CV_32F);
+#ifdef TEST_BUILD
+  // Manually compute exp to avoid SIMD issues in test environment
+  expInputs = cv::Mat(repeated.size(), CV_32F);
+  for (int i = 0; i < repeated.rows; i++) {
+    for (int j = 0; j < repeated.cols; j++) {
+      expInputs.at<float>(i, j) = std::exp(repeated.at<float>(i, j));
+    }
+  }
+#else
+  cv::exp(repeated, expInputs);
+#endif
   cv::Mat sumExp;
   cv::reduce(expInputs, sumExp, 1, cv::REDUCE_SUM, CV_32F);
   cv::Mat softmaxOutput = expInputs / cv::repeat(sumExp, 1, inputs.cols);
@@ -150,7 +164,8 @@ cropImageWithBoundingBox(const cv::Mat &img,
                          const types::PaddingInfo &paddings,
                          const types::PaddingInfo &originalPaddings) {
   if (originalBbox.empty()) {
-    throw std::runtime_error("Original bounding box cannot be empty.");
+    throw RnExecutorchError(RnExecutorchErrorCode::UnknownError,
+                            "Original bounding box cannot be empty.");
   }
   const types::Point topLeft = originalBbox[0];
 

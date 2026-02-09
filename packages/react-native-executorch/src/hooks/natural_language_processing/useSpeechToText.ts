@@ -1,16 +1,25 @@
 import { useEffect, useCallback, useState } from 'react';
-import { ETError, getError } from '../../Error';
 import { SpeechToTextModule } from '../../modules/natural_language_processing/SpeechToTextModule';
-import { DecodingOptions, SpeechToTextModelConfig } from '../../types/stt';
+import {
+  DecodingOptions,
+  SpeechToTextType,
+  SpeechToTextProps,
+} from '../../types/stt';
+import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
+import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
+/**
+ * React hook for managing a Speech to Text (STT) instance.
+ *
+ * @category Hooks
+ * @param speechToTextProps - Configuration object containing `model` source and optional `preventLoad` flag.
+ * @returns Ready to use Speech to Text model.
+ */
 export const useSpeechToText = ({
   model,
   preventLoad = false,
-}: {
-  model: SpeechToTextModelConfig;
-  preventLoad?: boolean;
-}) => {
-  const [error, setError] = useState<null | string>(null);
+}: SpeechToTextProps): SpeechToTextType => {
+  const [error, setError] = useState<null | RnExecutorchError>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
@@ -38,7 +47,7 @@ export const useSpeechToText = ({
         );
         setIsReady(true);
       } catch (err) {
-        setError((err as Error).message);
+        setError(parseUnknownError(err));
       }
     })();
   }, [
@@ -53,8 +62,16 @@ export const useSpeechToText = ({
   const stateWrapper = useCallback(
     <T extends (...args: any[]) => Promise<any>>(fn: T) =>
       async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
-        if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
-        if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
+        if (!isReady)
+          throw new RnExecutorchError(
+            RnExecutorchErrorCode.ModuleNotLoaded,
+            'The model is currently not loaded. Please load the model before calling this function.'
+          );
+        if (isGenerating)
+          throw new RnExecutorchError(
+            RnExecutorchErrorCode.ModelGenerating,
+            'The model is currently generating. Please wait until previous model run is complete.'
+          );
         setIsGenerating(true);
         try {
           return await fn.apply(modelInstance, args);
@@ -67,8 +84,16 @@ export const useSpeechToText = ({
 
   const stream = useCallback(
     async (options?: DecodingOptions) => {
-      if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
-      if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
+      if (!isReady)
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModuleNotLoaded,
+          'The model is currently not loaded. Please load the model before calling this function.'
+        );
+      if (isGenerating)
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModelGenerating,
+          'The model is currently generating. Please wait until previous model run is complete.'
+        );
       setIsGenerating(true);
       setCommittedTranscription('');
       setNonCommittedTranscription('');
@@ -92,7 +117,11 @@ export const useSpeechToText = ({
   const wrapper = useCallback(
     <T extends (...args: any[]) => any>(fn: T) => {
       return (...args: Parameters<T>): ReturnType<T> => {
-        if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
+        if (!isReady)
+          throw new RnExecutorchError(
+            RnExecutorchErrorCode.ModuleNotLoaded,
+            'The model is currently not loaded. Please load the model before calling this function.'
+          );
         return fn.apply(modelInstance, args);
       };
     },

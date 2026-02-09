@@ -1,41 +1,25 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ETError, getError } from '../../Error';
-import { ResourceSource } from '../../types/common';
+import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
+import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { TextToImageModule } from '../../modules/computer_vision/TextToImageModule';
+import { TextToImageProps, TextToImageType } from '../../types/tti';
 
-interface TextToImageType {
-  isReady: boolean;
-  isGenerating: boolean;
-  downloadProgress: number;
-  error: string | null;
-  generate: (
-    input: string,
-    imageSize?: number,
-    numSteps?: number,
-    seed?: number
-  ) => Promise<string>;
-  interrupt: () => void;
-}
-
+/**
+ * React hook for managing a Text to Image instance.
+ *
+ * @category Hooks
+ * @param TextToImageProps - Configuration object containing `model` source, `inferenceCallback`, and optional `preventLoad` flag.
+ * @returns Ready to use Text to Image model.
+ */
 export const useTextToImage = ({
   model,
   inferenceCallback,
   preventLoad = false,
-}: {
-  model: {
-    tokenizerSource: ResourceSource;
-    schedulerSource: ResourceSource;
-    encoderSource: ResourceSource;
-    unetSource: ResourceSource;
-    decoderSource: ResourceSource;
-  };
-  inferenceCallback?: (stepIdx: number) => void;
-  preventLoad?: boolean;
-}): TextToImageType => {
+}: TextToImageProps): TextToImageType => {
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<RnExecutorchError | null>(null);
 
   const [module] = useState(() => new TextToImageModule(inferenceCallback));
 
@@ -50,7 +34,7 @@ export const useTextToImage = ({
         await module.load(model, setDownloadProgress);
         setIsReady(true);
       } catch (err) {
-        setError((err as Error).message);
+        setError(parseUnknownError(err));
       }
     })();
 
@@ -65,8 +49,16 @@ export const useTextToImage = ({
     numSteps?: number,
     seed?: number
   ): Promise<string> => {
-    if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
-    if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
+    if (!isReady)
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        'The model is currently not loaded. Please load the model before calling forward().'
+      );
+    if (isGenerating)
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelGenerating,
+        'The model is currently generating. Please wait until previous model run is complete.'
+      );
     try {
       setIsGenerating(true);
       return await module.forward(input, imageSize, numSteps, seed);

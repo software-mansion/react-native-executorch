@@ -50,16 +50,28 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     AudioManager.requestRecordingPermissions();
   }, []);
 
+  async function getAudioFile(sourceUri: string) {
+    const destination = FileSystem.cacheDirectory + 'audio_file.wav';
+
+    if (sourceUri.startsWith('http')) {
+      const { uri } = await FileSystem.downloadAsync(sourceUri, destination);
+      return uri;
+    } else {
+      await FileSystem.copyAsync({
+        from: sourceUri,
+        to: destination,
+      });
+      return destination;
+    }
+  }
+
   const handleTranscribeFromURL = async () => {
     if (!audioURL.trim()) {
       console.warn('Please provide a valid audio file URL');
       return;
     }
 
-    const { uri } = await FileSystem.downloadAsync(
-      audioURL,
-      FileSystem.cacheDirectory + 'audio_file'
-    );
+    const uri = await getAudioFile(audioURL);
 
     const audioContext = new AudioContext({ sampleRate: 16000 });
 

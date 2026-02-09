@@ -21,6 +21,7 @@ string(APPEND CMAKE_CXX_FLAGS " -DRCT_NEW_ARCH_ENABLED")
 set(ANDROID_CPP_DIR "${CMAKE_SOURCE_DIR}/src/main/cpp")
 set(COMMON_CPP_DIR "${CMAKE_SOURCE_DIR}/../common")
 set(LIBS_DIR "${CMAKE_SOURCE_DIR}/../third-party/android/libs")
+set(TOKENIZERS_DIR "${CMAKE_SOURCE_DIR}/../third-party/include/executorch/extension/llm/tokenizers/include")
 set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}/../third-party/include")
 
 # Treat third-party headers as system headers to suppress deprecation warnings

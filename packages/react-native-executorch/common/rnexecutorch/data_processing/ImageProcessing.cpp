@@ -68,7 +68,8 @@ std::string saveToTempFile(const cv::Mat &image) {
   std::filesystem::path filePath = tempDir / filename;
 
   if (!cv::imwrite(filePath.string(), image)) {
-    throw std::runtime_error("Failed to save the image: " + filePath.string());
+    throw RnExecutorchError(RnExecutorchErrorCode::FileWriteFailed,
+                            "Failed to save the image: " + filePath.string());
   }
 
   return "file://" + filePath.string();
@@ -86,7 +87,8 @@ cv::Mat readImage(const std::string &imageURI) {
       ++segmentIndex;
     }
     if (segmentIndex != 1) {
-      throw std::runtime_error("Read image error: invalid base64 URI");
+      throw RnExecutorchError(RnExecutorchErrorCode::FileReadFailed,
+                              "Read image error: invalid base64 URI");
     }
     auto data = base64_decode(stringData);
     cv::Mat encodedData(1, data.size(), CV_8UC1, (void *)data.data());
@@ -102,11 +104,13 @@ cv::Mat readImage(const std::string &imageURI) {
         cv::Mat(1, imageData.size(), CV_8UC1, (void *)imageData.data()),
         cv::IMREAD_COLOR);
   } else {
-    throw std::runtime_error("Read image error: unknown protocol");
+    throw RnExecutorchError(RnExecutorchErrorCode::FileReadFailed,
+                            "Read image error: unknown protocol");
   }
 
   if (image.empty()) {
-    throw std::runtime_error("Read image error: invalid argument");
+    throw RnExecutorchError(RnExecutorchErrorCode::FileReadFailed,
+                            "Read image error: invalid argument");
   }
 
   return image;
@@ -221,7 +225,8 @@ readImageToTensor(const std::string &path,
                   "Unexpected tensor size, expected at least 2 dimentions "
                   "but got: %zu.",
                   tensorDims.size());
-    throw std::runtime_error(errorMessage);
+    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
+                            errorMessage);
   }
   cv::Size tensorSize = cv::Size(tensorDims[tensorDims.size() - 1],
                                  tensorDims[tensorDims.size() - 2]);

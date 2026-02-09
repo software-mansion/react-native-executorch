@@ -13,7 +13,6 @@ Pod::Spec.new do |s|
   s.platforms    = { :ios => min_ios_version_supported }
   s.source       = { :git => "https://github.com/software-mansion/react-native-executorch.git", :tag => "#{s.version}" }
 
-  tokenizers_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/libs/tokenizers-cpp', __dir__)
 
   pthreadpool_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/libs/pthreadpool', __dir__)
   cpuinfo_binaries_path = File.expand_path('$(PODS_TARGET_SRCROOT)/third-party/ios/libs/cpuinfo', __dir__)
@@ -24,9 +23,6 @@ Pod::Spec.new do |s|
 
     "OTHER_LDFLAGS[sdk=iphoneos*]" => [
       '$(inherited)',
-      "\"#{tokenizers_binaries_path}/physical-arm64-release/libtokenizers_cpp.a\"",
-      "\"#{tokenizers_binaries_path}/physical-arm64-release/libsentencepiece.a\"",
-      "\"#{tokenizers_binaries_path}/physical-arm64-release/libtokenizers_c.a\"",
       "\"#{pthreadpool_binaries_path}/physical-arm64-release/libpthreadpool.a\"",
       "\"#{cpuinfo_binaries_path}/libcpuinfo.a\"",
       "\"#{phonemis_binaries_path}/physical-arm64-release/libphonemis.a\"",
@@ -35,9 +31,6 @@ Pod::Spec.new do |s|
 
     "OTHER_LDFLAGS[sdk=iphonesimulator*]" => [
       '$(inherited)',
-      "\"#{tokenizers_binaries_path}/simulator-arm64-debug/libtokenizers_cpp.a\"",
-      "\"#{tokenizers_binaries_path}/simulator-arm64-debug/libsentencepiece.a\"",
-      "\"#{tokenizers_binaries_path}/simulator-arm64-debug/libtokenizers_c.a\"",
       "\"#{pthreadpool_binaries_path}/simulator-arm64-debug/libpthreadpool.a\"",
       "\"#{cpuinfo_binaries_path}/libcpuinfo.a\"",
       "\"#{phonemis_binaries_path}/simulator-arm64-debug/libphonemis.a\"",
@@ -50,6 +43,7 @@ Pod::Spec.new do |s|
     "USE_HEADERMAP" => "YES",
     "HEADER_SEARCH_PATHS" =>
       '"$(PODS_TARGET_SRCROOT)/ios" '+
+      '"$(PODS_TARGET_SRCROOT)/third-party/include/executorch/extension/llm/tokenizers/include" '+
       '"$(PODS_TARGET_SRCROOT)/third-party/include" '+
       '"$(PODS_TARGET_SRCROOT)/common" ',
     "CLANG_CXX_LANGUAGE_STANDARD" => "c++20",
@@ -71,7 +65,7 @@ Pod::Spec.new do |s|
   # react-native-skia. The headers are preserved by preserve_paths and
   # then made available by HEADER_SEARCH_PATHS.
   s.exclude_files = [
-    "common/rnexecutorch/tests/*.{cpp}",
+    "common/rnexecutorch/tests/**/*.{cpp}",
     "common/rnexecutorch/jsi/*.{h,hpp}"
   ]
   s.header_mappings_dir = "common/rnexecutorch"

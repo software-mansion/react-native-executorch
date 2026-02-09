@@ -177,3 +177,18 @@ table thead tr {
 .theme-doc-sidebar-item-link-level-1 {
   margin-left: 0rem !important;
 }
+
+.markdown table {
+  display: block;
+  overflow-x: auto;
+  width: 100%;
+}
+
+/* Hide the children of the API section even when active */
+.hide-api-items .menu__list {
+  display: none !important;
+}
+/* Hide the toggle arrow */
+.hide-api-items .menu__link--sublist::after {
+  display: none !important;
+}

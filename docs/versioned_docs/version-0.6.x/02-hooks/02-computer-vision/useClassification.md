@@ -1,0 +1,113 @@
+---
+title: useClassification
+---
+
+Image classification is the process of assigning a label to an image that best describes its contents. For example, when given an image of a puppy, the image classifier should assign the puppy class to that image.
+
+:::info
+Usually, the class with the highest probability is the one that is assigned to an image. However, if there are multiple classes with comparatively high probabilities, this may indicate that the model is not confident in its prediction.
+:::
+
+:::warning
+It is recommended to use models provided by us, which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/classification-68d0ea49b5c7de8a3cae1e68). You can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
+:::
+
+## Reference
+
+```typescript
+import { useClassification, EFFICIENTNET_V2_S } from 'react-native-executorch';
+
+const model = useClassification({ model: EFFICIENTNET_V2_S });
+
+const imageUri = 'file::///Users/.../cute_puppy.png';
+
+try {
+  const classesWithProbabilities = await model.forward(imageUri);
+} catch (error) {
+  console.error(error);
+}
+```
+
+### Arguments
+
+**`model`** - Object containing the model source.
+
+- **`modelSource`** - A string that specifies the location of the model binary.
+
+**`preventLoad?`** - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
+
+For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
+
+### Returns
+
+| Field              | Type                                                               | Description                                                                                                    |
+| ------------------ | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| `forward`          | `(imageSource: string) => Promise<{ [category: string]: number }>` | Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string. |
+| `error`            | <code>string &#124; null</code>                                    | Contains the error message if the model failed to load.                                                        |
+| `isGenerating`     | `boolean`                                                          | Indicates whether the model is currently processing an inference.                                              |
+| `isReady`          | `boolean`                                                          | Indicates whether the model has successfully loaded and is ready for inference.                                |
+| `downloadProgress` | `number`                                                           | Represents the download progress as a value between 0 and 1.                                                   |
+
+## Running the model
+
+To run the model, you can use the `forward` method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns a promise, which can resolve either to an error or an object containing categories with their probabilities.
+
+:::info
+Images from external sources are stored in your application's temporary directory.
+:::
+
+## Example
+
+```typescript
+import { useClassification, EFFICIENTNET_V2_S } from 'react-native-executorch';
+
+function App() {
+  const model = useClassification({ model: EFFICIENTNET_V2_S });
+
+  // ...
+  const imageUri = 'file:///Users/.../cute_puppy.png';
+
+  try {
+    const classesWithProbabilities = await model.forward(imageUri);
+
+    // Extract three classes with the highest probabilities
+    const topThreeClasses = Object.entries(classesWithProbabilities)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 3)
+      .map(([label, score]) => ({ label, score }));
+  } catch (error) {
+    console.error(error);
+  }
+  // ...
+}
+```
+
+## Supported models
+
+| Model                                                                                                             | Number of classes | Class list                                                                                                                                                                    |
+| ----------------------------------------------------------------------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [efficientnet_v2_s](https://pytorch.org/vision/stable/models/generated/torchvision.models.efficientnet_v2_s.html) | 1000              | [ImageNet1k_v1](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/common/rnexecutorch/models/classification/Constants.h) |
+
+## Benchmarks
+
+### Model size
+
+| Model             | XNNPACK [MB] | Core ML [MB] |
+| ----------------- | :----------: | :----------: |
+| EFFICIENTNET_V2_S |     85.6     |     43.9     |
+
+### Memory usage
+
+| Model             | Android (XNNPACK) [MB] | iOS (Core ML) [MB] |
+| ----------------- | :--------------------: | :----------------: |
+| EFFICIENTNET_V2_S |          230           |         87         |
+
+### Inference time
+
+:::warning
+Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
+:::
+
+| Model             | iPhone 17 Pro (Core ML) [ms] | iPhone 16 Pro (Core ML) [ms] | iPhone SE 3 (Core ML) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
+| ----------------- | :--------------------------: | :--------------------------: | :------------------------: | :-------------------------------: | :-----------------------: |
+| EFFICIENTNET_V2_S |              64              |              68              |            217             |                205                |            198            |

@@ -8,22 +8,18 @@
 #include "Types.h"
 
 namespace rnexecutorch::models::text_to_speech::kokoro::constants {
-// Hyperparameters which determine the behavior of the model & algorithms.
-inline constexpr size_t kMaxTextSize =
-    2048; // An input which exceedes this value causes an exception to be thrown
-inline constexpr int32_t kAudioCroppingSteps = 20;
-inline constexpr float kAudioSilenceThreshold = 0.01F;
-inline const std::unordered_map<char32_t, int32_t> kPauseValues = {
-    {U'.', 250}, {U'?', 350}, {'!', 180},  {';', 300},
-    {U'…', 500}, {U',', 125}, {U':', 175}, {U'-', 175}}; // [ms]
-inline constexpr int32_t kDefaultPause = 0;              // [ms]
 
-// Model input sizes - input tokens & max (expected) durations
-inline constexpr Configuration kInputSmall = {.noTokens = 32, .duration = 92};
-inline constexpr Configuration kInputMedium = {.noTokens = 64, .duration = 164};
-inline constexpr Configuration kInputLarge = {.noTokens = 128, .duration = 296};
-inline const std::unordered_map<std::string, Configuration> kInputs = {
-    {"small", kInputSmall}, {"medium", kInputMedium}, {"large", kInputLarge}};
+// Model input size limits
+inline constexpr size_t kMinInputTokens =
+    8; // Models do not accept less amount of tokens (including padding)
+inline constexpr size_t kMaxInputTokens =
+    128; // Models do not accept more tokens (including padding)
+inline constexpr size_t kMinDurationTicks =
+    16; // Corresponds to DurationPredictor output and one of Synthesizer's
+        // input shapes
+inline constexpr size_t kMaxDurationTicks =
+    296; // Corresponds to DurationPredictor output and one of Synthesizer's
+         // input shapes
 
 // Model input sizes - voice reference vector
 inline constexpr int32_t kVoiceRefSize =

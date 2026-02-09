@@ -25,13 +25,13 @@ const output = await ExecutorchModule.forward(input, shape);
 
 ### Methods
 
-| Method               | Type                                                   | Description                                                                                                                                                                                         |
-| -------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `load`               | `(modelSource: ResourceSource): Promise<void>`         | Loads the model, where `modelSource` is a string that specifies the location of the model binary.                                                                                                   |
-| `forward`            | `(input: ETInput, shape: number[]): Promise<number[]>` | Executes the model's forward pass, where `input` is a JavaScript typed array and `shape` is an array of integers representing input Tensor shape. The output is a Tensor - raw result of inference. |
-| `loadMethod`         | `(methodName: string): Promise<void>`                  | Loads resources specific to `methodName` into memory before execution.                                                                                                                              |
-| `loadForward`        | `(): Promise<void>`                                    | Loads resources specific to `forward` method into memory before execution. Uses `loadMethod` under the hood.                                                                                        |
-| `onDownloadProgress` | `(callback: (downloadProgress: number) => void): any`  | Subscribe to the download progress event.                                                                                                                                                           |
+| Method               | Type                                                                 | Description                                                                                                                                                                                                                          |
+| -------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `load`               | `(modelSource: ResourceSource): Promise<void>`                       | Loads the model, where `modelSource` is a string that specifies the location of the model binary.                                                                                                                                    |
+| `forward`            | `(input: ETInput[] \| ETInput, shape: number[][]): Promise<unknown>` | Executes the model's forward pass, where `input` is a JavaScript typed array or an array of them and `shape` is an array of arrays of integers representing input Tensors' shapes. The output is a Tensor - raw result of inference. |
+| `loadMethod`         | `(methodName: string): Promise<void>`                                | Loads resources specific to `methodName` into memory before execution.                                                                                                                                                               |
+| `loadForward`        | `(): Promise<void>`                                                  | Loads resources specific to `forward` method into memory before execution. Uses `loadMethod` under the hood.                                                                                                                         |
+| `onDownloadProgress` | `(callback: (downloadProgress: number) => void): void`               | Subscribe to the download progress event.                                                                                                                                                                                            |
 
 <details>
 <summary>Type definitions</summary>
@@ -55,7 +55,7 @@ To load the model, use the `load` method. It accepts the `modelSource` which is 
 
 ## Running the model
 
-To run the model use the `forward` method. It accepts two arguments: `input` and `shape`. The `input` is a JavaScript typed array, and `shape` is an array of integers representing the input tensor shape. There's no need to explicitly define the input type, as it will automatically be inferred from the typed array you pass to forward method. Outputs from the model, such as classification probabilities, are returned in raw format.
+To run the model use the `forward` method. It accepts two arguments: `input` and `shape`. The `input` can be a single JavaScript typed array or an array of them. The `shape` is an array of arrays of integers, where each inner array represents the shape of a corresponding input tensor. There's no need to explicitly define the input type, as it will automatically be inferred from the typed array you pass to forward method. Outputs from the model, such as classification probabilities, are returned in raw format.
 
 ## Loading methods
 

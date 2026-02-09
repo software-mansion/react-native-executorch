@@ -1,6 +1,8 @@
 #include <thread>
 
 #include "SpeechToText.h"
+#include <rnexecutorch/Error.h>
+#include <rnexecutorch/ErrorCodes.h>
 
 namespace rnexecutorch::models::speech_to_text {
 
@@ -35,7 +37,7 @@ SpeechToText::encode(std::span<float> waveform) const {
 }
 
 std::shared_ptr<OwningArrayBuffer>
-SpeechToText::decode(std::span<int32_t> tokens,
+SpeechToText::decode(std::span<uint64_t> tokens,
                      std::span<float> encoderOutput) const {
   std::vector<float> decoderOutput = this->asr->decode(tokens, encoderOutput);
   return std::make_shared<OwningArrayBuffer>(decoderOutput);
@@ -72,7 +74,8 @@ size_t SpeechToText::getMemoryLowerBound() const noexcept {
 void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
                           std::string languageOption) {
   if (this->isStreaming) {
-    throw std::runtime_error("Streaming is already in progress");
+    throw RnExecutorchError(RnExecutorchErrorCode::StreamingInProgress,
+                            "Streaming is already in progress!");
   }
 
   auto nativeCallback =

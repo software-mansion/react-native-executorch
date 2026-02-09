@@ -18,7 +18,7 @@ export default function TextToImageScreen() {
   const [inferenceStepIdx, setInferenceStepIdx] = useState<number>(0);
   const [imageTitle, setImageTitle] = useState<string | null>(null);
   const [image, setImage] = useState<string | null>(null);
-  const [steps, setSteps] = useState<number>(10);
+  const [steps, setSteps] = useState<number>(40);
   const [showTextInput, setShowTextInput] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
@@ -115,6 +115,8 @@ export default function TextToImageScreen() {
         <View style={styles.bottomContainer}>
           <BottomBarWithTextInput
             runModel={runForward}
+            numSteps={steps}
+            setSteps={setSteps}
             stopModel={model.interrupt}
             isGenerating={model.isGenerating}
             isReady={model.isReady}

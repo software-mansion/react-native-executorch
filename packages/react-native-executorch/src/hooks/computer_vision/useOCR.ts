@@ -1,28 +1,17 @@
 import { useEffect, useState } from 'react';
-import { ResourceSource } from '../../types/common';
-import { OCRDetection, OCRLanguage } from '../../types/ocr';
+import { OCRProps, OCRType } from '../../types/ocr';
 import { OCRController } from '../../controllers/OCRController';
+import { RnExecutorchError } from '../../errors/errorUtils';
 
-interface OCRModule {
-  error: string | null;
-  isReady: boolean;
-  isGenerating: boolean;
-  forward: (imageSource: string) => Promise<OCRDetection[]>;
-  downloadProgress: number;
-}
-
-export const useOCR = ({
-  model,
-  preventLoad = false,
-}: {
-  model: {
-    detectorSource: ResourceSource;
-    recognizerSource: ResourceSource;
-    language: OCRLanguage;
-  };
-  preventLoad?: boolean;
-}): OCRModule => {
-  const [error, setError] = useState<string | null>(null);
+/**
+ * React hook for managing an OCR instance.
+ *
+ * @category Hooks
+ * @param OCRProps - Configuration object containing `model` sources and optional `preventLoad` flag.
+ * @returns Ready to use OCR model.
+ */
+export const useOCR = ({ model, preventLoad = false }: OCRProps): OCRType => {
+  const [error, setError] = useState<RnExecutorchError | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);

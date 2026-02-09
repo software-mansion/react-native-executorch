@@ -179,7 +179,11 @@ function LLMScreen() {
                   ? ColorPalette.blueDark
                   : ColorPalette.blueLight,
               }}
-              placeholder="Your message e.g. I'm John. Is this product damaged? I can give you $100 for this."
+              placeholder={
+                isTextInputFocused
+                  ? ''
+                  : "Your message e.g. I'm John. Is this product damaged? I can give you $100 for this."
+              }
               placeholderTextColor={'#C1C6E5'}
               multiline={true}
               ref={textInputRef}

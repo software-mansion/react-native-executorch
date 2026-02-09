@@ -11,44 +11,23 @@
 // The module takes in a string as input and emits a string as output.
 
 #include "runner.h"
+#include "constants.h"
 #include "util.h"
+#include <cstdint>
 #include <ctime>
-#include <fstream>
-#include <iostream>
+#include <rnexecutorch/Error.h>
 
 namespace example {
 
+using namespace executorch::extension::constants;
 using ::executorch::extension::Module;
 using ::executorch::runtime::Error;
 using ::executorch::runtime::Result;
 
-std::string loadBytesFromFile(const std::string &path) {
-  std::ifstream fs(path, std::ios::in | std::ios::binary);
-  if (fs.fail()) {
-    throw std::runtime_error("Failed to open tokenizer file");
-  }
-  std::string data;
-  fs.seekg(0, std::ios::end);
-  size_t size = static_cast<size_t>(fs.tellg());
-  fs.seekg(0, std::ios::beg);
-  data.resize(size);
-  fs.read(data.data(), size);
-  return data;
-}
-
-namespace {
-static constexpr auto kEnableDynamicShape = "enable_dynamic_shape";
-static constexpr auto kEosIds = "get_eos_ids";
-static constexpr auto kMaxSeqLen = "get_max_seq_len";
-static constexpr auto kMaxContextLen = "get_max_context_len";
-static constexpr auto kVocabSize = "get_vocab_size";
-static constexpr auto kUseKVCache = "use_kv_cache";
-static constexpr auto kUseSDPAWithKVCache = "use_sdpa_with_kv_cache";
-} // namespace
-
 Runner::Runner(Module *module, const std::string &tokenizer_path,
                const llm::GenerationConfig &config)
     : config_(config), module_(module), tokenizer_path_(tokenizer_path),
+      tokenizer_(std::make_unique<tokenizers::HFTokenizer>()),
       metadata_({
           {kEnableDynamicShape, false},
           {kMaxSeqLen, 128},
@@ -58,8 +37,8 @@ Runner::Runner(Module *module, const std::string &tokenizer_path,
       }) {}
 
 bool Runner::is_loaded() const {
-  return module_->is_loaded() && tokenizer_ && text_decoder_runner_ &&
-         text_prefiller_ && text_token_generator_;
+  return module_->is_loaded() && tokenizer_->is_loaded() &&
+         text_decoder_runner_ && text_prefiller_ && text_token_generator_;
 }
 
 Error Runner::load() {
@@ -67,16 +46,20 @@ Error Runner::load() {
     return Error::Ok;
   }
 
-  ET_CHECK_OK_OR_RETURN_ERROR(module_->load_method("forward"));
+  auto status = tokenizer_->load(tokenizer_path_);
 
-  // Load tokenizer.
-  auto blob = loadBytesFromFile(tokenizer_path_);
-  tokenizer_ = tokenizers::Tokenizer::FromBlobJSON(blob);
+  if (status != tokenizers::Error::Ok) {
+    throw rnexecutorch::RnExecutorchError(
+        rnexecutorch::RnExecutorchErrorCode::TokenizerError,
+        "Unexpected issue occured while loading tokenizer");
+  };
+
+  ET_CHECK_OK_OR_RETURN_ERROR(module_->load_method("forward"));
 
   ET_LOG(Info, "Reading metadata from model");
 
   auto eos_ids = std::make_unique<std::unordered_set<uint64_t>>();
-  metadata_[kVocabSize] = tokenizer_->GetVocabSize();
+  metadata_[kVocabSize] = tokenizer_->vocab_size();
 
   // Load model metadata
   const auto method_names =
@@ -201,7 +184,20 @@ Error Runner::generate(const std::string &prompt,
 
   int64_t context_len_left = static_cast<int64_t>(max_context_length) - pos_;
 
-  std::vector<int32_t> prompt_tokens = tokenizer_->Encode(prompt);
+  // If the used tokenizer.json has defined post_processor field,
+  // setting any of bos or eos arguments to value other than provided constant
+  // ( which is 0) will result in running the post_processor with
+  // 'add_special_token' flag
+  auto encodeResult =
+      tokenizer_->encode(prompt, numOfAddedBoSTokens, numOfAddedEoSTokens);
+  if (!encodeResult.ok()) {
+    throw rnexecutorch::RnExecutorchError(
+        rnexecutorch::RnExecutorchErrorCode::TokenizerError,
+        "Unexpected issue occured while encoding: " +
+            std::to_string(static_cast<int32_t>(encodeResult.error())));
+  }
+  std::vector<uint64_t> prompt_tokens = encodeResult.get();
+
   std::vector<uint64_t> prompt_tokens_uint64(prompt_tokens.begin(),
                                              prompt_tokens.end());
 
@@ -244,10 +240,14 @@ Error Runner::generate(const std::string &prompt,
   stats_.prompt_eval_end_ms = llm::time_in_ms();
   ET_CHECK_OK_OR_RETURN_ERROR(prefill_res.error());
   uint64_t cur_token = prefill_res.get();
-
-  // print the first token from prefill. No prev_token so use cur_token for it.
-  const std::string cur_decoded =
-      tokenizer_->Decode(std::vector<int32_t>{static_cast<int32_t>(cur_token)});
+  auto decodeResult = tokenizer_->decode({cur_token});
+  if (!decodeResult.ok()) {
+    throw rnexecutorch::RnExecutorchError(
+        rnexecutorch::RnExecutorchErrorCode::TokenizerError,
+        "Unexpected issue occured while decoding: " +
+            std::to_string(static_cast<int32_t>(decodeResult.error())));
+  }
+  const std::string cur_decoded = decodeResult.get();
   RUNNER_ET_LOG(generation_config.warming,
                 "RSS after prompt prefill: %f MiB (0 if unsupported)",
                 llm::get_rss_bytes() / 1024.0 / 1024.0);
@@ -281,7 +281,9 @@ Error Runner::generate(const std::string &prompt,
     ET_LOG(Info, "Warmup run finished!");
   } else {
     // Do not print report during warmup
+#ifndef TEST_BUILD
     ::executorch::llm::print_report(stats_);
+#endif
   }
   if (stats_callback) {
     stats_callback(stats_);

@@ -1,16 +1,21 @@
 import { useEffect, useState } from 'react';
 import { TokenizerModule } from '../../modules/natural_language_processing/TokenizerModule';
-import { ResourceSource } from '../../types/common';
-import { ETError, getError } from '../../Error';
+import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
+import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
+import { TokenizerProps, TokenizerType } from '../../types/tokenizer';
 
+/**
+ * React hook for managing a Tokenizer instance.
+ *
+ * @category Hooks
+ * @param tokenizerProps - Configuration object containing `tokenizer` source and optional `preventLoad` flag.
+ * @returns Ready to use Tokenizer model.
+ */
 export const useTokenizer = ({
   tokenizer,
   preventLoad = false,
-}: {
-  tokenizer: { tokenizerSource: ResourceSource };
-  preventLoad?: boolean;
-}) => {
-  const [error, setError] = useState<null | string>(null);
+}: TokenizerProps): TokenizerType => {
+  const [error, setError] = useState<null | RnExecutorchError>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
@@ -29,15 +34,23 @@ export const useTokenizer = ({
         );
         setIsReady(true);
       } catch (err) {
-        setError((err as Error).message);
+        setError(parseUnknownError(err));
       }
     })();
   }, [tokenizerInstance, tokenizer.tokenizerSource, preventLoad]);
 
   const stateWrapper = <T extends (...args: any[]) => Promise<any>>(fn: T) => {
-    return (...args: Parameters<T>): Promise<ReturnType<T>> => {
-      if (!isReady) throw new Error(getError(ETError.ModuleNotLoaded));
-      if (isGenerating) throw new Error(getError(ETError.ModelGenerating));
+    return (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
+      if (!isReady)
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModuleNotLoaded,
+          'The model is currently not loaded. Please load the model before calling this function.'
+        );
+      if (isGenerating)
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.ModelGenerating,
+          'The model is currently generating. Please wait until previous model run is complete.'
+        );
       try {
         setIsGenerating(true);
         return fn.apply(tokenizerInstance, args);

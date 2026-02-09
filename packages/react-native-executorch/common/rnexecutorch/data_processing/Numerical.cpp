@@ -7,6 +7,9 @@
 #include <sstream>
 #include <string>
 
+#include <rnexecutorch/Error.h>
+#include <rnexecutorch/ErrorCodes.h>
+
 namespace rnexecutorch::numerical {
 
 void softmax(std::span<float> input) {
@@ -34,8 +37,9 @@ void softmaxWithTemperature(std::span<float> input, float temperature) {
   }
 
   if (temperature <= 0.0F) {
-    throw std::invalid_argument(
-        "Temperature must be greater than 0 for softmax with temperature.");
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::InvalidConfig,
+        "Temperature must be greater than 0 for softmax with temperature!");
   }
 
   const auto maxElement = *std::ranges::max_element(input);
@@ -74,7 +78,7 @@ std::vector<float> meanPooling(std::span<const float> modelOutput,
        << "by the size of attention mask but got size: " << modelOutput.size()
        << " for model output and size: " << attnMask.size()
        << " for attention mask";
-    throw std::invalid_argument(ss.str());
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig, ss.str());
   }
 
   auto attnMaskLength = attnMask.size();

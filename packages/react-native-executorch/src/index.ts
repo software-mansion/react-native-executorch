@@ -32,9 +32,7 @@ declare global {
     taggerData: string,
     phonemizerData: string,
     durationPredictorSource: string,
-    f0nPredictorSource: string,
-    textEncoderSource: string,
-    textDecoderSource: string,
+    synthesizerSource: string,
     voice: string
   ) => any;
   var loadOCR: (
@@ -106,6 +104,7 @@ export * from './modules/computer_vision/TextToImageModule';
 
 export * from './modules/natural_language_processing/LLMModule';
 export * from './modules/natural_language_processing/SpeechToTextModule';
+export * from './modules/natural_language_processing/TextToSpeechModule';
 export * from './modules/natural_language_processing/TextEmbeddingsModule';
 export * from './modules/natural_language_processing/TokenizerModule';
 export * from './modules/natural_language_processing/VADModule';
@@ -123,11 +122,15 @@ export * from './types/imageSegmentation';
 export * from './types/llm';
 export * from './types/vad';
 export * from './types/common';
-export {
-  SpeechToTextLanguage,
-  SpeechToTextModelConfig,
-  DecodingOptions,
-} from './types/stt';
+export * from './types/stt';
+export * from './types/textEmbeddings';
+export * from './types/tts';
+export * from './types/tokenizer';
+export * from './types/executorchModule';
+export * from './types/classification';
+export * from './types/imageEmbeddings';
+export * from './types/styleTransfer';
+export * from './types/tti';
 
 // constants
 export * from './constants/modelUrls';
@@ -135,3 +138,6 @@ export * from './constants/ocr/models';
 export * from './constants/tts/models';
 export * from './constants/tts/voices';
 export * from './constants/llmDefaults';
+
+export { RnExecutorchError } from './errors/errorUtils';
+export { RnExecutorchErrorCode } from './errors/ErrorCodes';

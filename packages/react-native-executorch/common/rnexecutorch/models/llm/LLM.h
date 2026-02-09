@@ -18,10 +18,12 @@ public:
                const std::string &tokenizerSource,
                std::shared_ptr<react::CallInvoker> callInvoker);
 
-  void generate(std::string input, std::shared_ptr<jsi::Function> callback);
+  std::string generate(std::string input,
+                       std::shared_ptr<jsi::Function> callback);
   void interrupt();
   void unload() noexcept;
   size_t getGeneratedTokenCount() const noexcept;
+  size_t getPromptTokenCount() const noexcept;
   size_t getMemoryLowerBound() const noexcept;
   void setCountInterval(size_t countInterval);
   void setTemperature(float temperature);

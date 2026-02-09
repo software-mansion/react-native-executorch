@@ -12,7 +12,6 @@
 #include <mutex>
 #include <pthread.h>
 #include <queue>
-#include <ranges>
 #include <sched.h>
 #include <sys/resource.h>
 #include <thread>
@@ -20,6 +19,8 @@
 #include <vector>
 
 #include <executorch/extension/threadpool/cpuinfo_utils.h>
+#include <rnexecutorch/Error.h>
+#include <rnexecutorch/ErrorCodes.h>
 #include <rnexecutorch/Log.h>
 
 #ifdef __APPLE__
@@ -87,7 +88,8 @@ public:
       std::scoped_lock lock(queueMutex);
 
       if (!running) {
-        throw std::runtime_error("Thread pool is shutting down");
+        throw RnExecutorchError(RnExecutorchErrorCode::ThreadPoolError,
+                                "Thread pool is shutting down");
       }
 
       WorkItem item(std::move(task), priority,

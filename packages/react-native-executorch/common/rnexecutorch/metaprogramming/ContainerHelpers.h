@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 
+#include <rnexecutorch/Error.h>
 #include <rnexecutorch/Log.h>
 
 /**
@@ -25,5 +26,7 @@
                       std::filesystem::path(__FILE__).filename().string(),     \
                       ":", __LINE__, ": expected ", (expected), " but got ",   \
                       (container).size());                                     \
-    throw std::runtime_error("Invalid input shape for " #container);           \
+    throw rnexecutorch::RnExecutorchError(                                     \
+        rnexecutorch::RnExecutorchErrorCode::WrongDimensions,                  \
+        "Invalid shape of " #container);                                       \
   }

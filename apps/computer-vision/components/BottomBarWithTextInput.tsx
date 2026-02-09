@@ -14,6 +14,8 @@ import ColorPalette from '../colors';
 interface BottomBarProps {
   runModel: (input: string, numSteps: number) => void;
   stopModel: () => void;
+  numSteps: number;
+  setSteps: React.Dispatch<React.SetStateAction<number>>;
   isGenerating?: boolean;
   isReady?: boolean;
   showTextInput: boolean;
@@ -24,6 +26,8 @@ interface BottomBarProps {
 export const BottomBarWithTextInput = ({
   runModel,
   stopModel,
+  numSteps,
+  setSteps,
   isGenerating,
   isReady,
   showTextInput,
@@ -31,10 +35,9 @@ export const BottomBarWithTextInput = ({
   keyboardVisible,
 }: BottomBarProps) => {
   const [input, setInput] = useState('');
-  const [numSteps, setNumSteps] = useState(10);
 
-  const decreaseSteps = () => setNumSteps((prev) => Math.max(5, prev - 5));
-  const increaseSteps = () => setNumSteps((prev) => Math.min(50, prev + 5));
+  const decreaseSteps = () => setSteps((prev) => Math.max(5, prev - 5));
+  const increaseSteps = () => setSteps((prev) => Math.min(50, prev + 5));
 
   if (!showTextInput) {
     if (isGenerating) {
