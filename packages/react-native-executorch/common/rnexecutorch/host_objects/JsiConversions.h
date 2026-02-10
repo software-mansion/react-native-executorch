@@ -46,6 +46,7 @@ inline std::pair<T *, size_t> getTypedArrayData(const jsi::Value &val,
 
   bool isValidTypedArray = obj.hasProperty(runtime, "buffer") &&
                            obj.hasProperty(runtime, "byteOffset") &&
+                           obj.hasProperty(runtime, "byteLength") &&
                            obj.hasProperty(runtime, "length");
 
   if (!isValidTypedArray) {
@@ -76,15 +77,14 @@ inline std::pair<T *, size_t> getTypedArrayData(const jsi::Value &val,
 // We use a struct to allow partial specialization for vectors/spans
 // =================================================================================================
 
-// 1. Forward Declaration
+// Forward Declaration
 template <typename T> struct JsiGetter;
 
-// 2. Public API Wrapper
+// Public API Wrapper
 template <typename T> T getValue(const jsi::Value &val, jsi::Runtime &runtime) {
   return JsiGetter<T>::get(val, runtime);
 }
 
-// 3. Primary Template (Handles Numeric types generically)
 template <typename T> struct JsiGetter {
   static T get(const jsi::Value &val, jsi::Runtime &runtime) {
     if constexpr (meta::IsNumeric<T>) {
@@ -95,8 +95,6 @@ template <typename T> struct JsiGetter {
     }
   }
 };
-
-// 4. Full Specializations for Scalars and Objects
 
 template <> struct JsiGetter<bool> {
   static bool get(const jsi::Value &val, jsi::Runtime &runtime) {
@@ -147,6 +145,8 @@ template <> struct JsiGetter<JSTensorViewIn> {
           shapeArray.getValueAtIndex(runtime, i).asNumber()));
     }
 
+    // On JS side, TensorPtr objects hold a 'data' property which should be
+    // either an ArrayBuffer or TypedArray
     auto [ptr, _] = detail::getTypedArrayData<uint8_t>(
         obj.getProperty(runtime, "dataPtr"), runtime);
     tensorView.dataPtr = ptr;
@@ -155,6 +155,8 @@ template <> struct JsiGetter<JSTensorViewIn> {
   }
 };
 
+// C++ set from JS array. Set with heterogenerous look-up (adding std::less<>
+// enables querying with std::string_view).
 template <> struct JsiGetter<std::set<std::string, std::less<>>> {
   static std::set<std::string, std::less<>> get(const jsi::Value &val,
                                                 jsi::Runtime &runtime) {
@@ -171,9 +173,6 @@ template <> struct JsiGetter<std::set<std::string, std::less<>>> {
   }
 };
 
-// 5. Partial Specializations for Containers (The fix for your error)
-
-// Generic std::vector<T>
 template <typename T> struct JsiGetter<std::vector<T>> {
   static std::vector<T> get(const jsi::Value &val, jsi::Runtime &runtime) {
     jsi::Array array = val.asObject(runtime).asArray(runtime);
@@ -188,7 +187,6 @@ template <typename T> struct JsiGetter<std::vector<T>> {
   }
 };
 
-// Generic std::span<T>
 template <typename T> struct JsiGetter<std::span<T>> {
   static std::span<T> get(const jsi::Value &val, jsi::Runtime &runtime) {
     auto [ptr, len] = detail::getTypedArrayData<T>(val, runtime);
@@ -233,17 +231,18 @@ inline jsi::Value getJsiValue(std::shared_ptr<jsi::Object> valuePtr,
 
 inline jsi::Value getJsiValue(const std::shared_ptr<OwningArrayBuffer> &buf,
                               jsi::Runtime &runtime) {
-  // Correctly returns jsi::ArrayBuffer (which is a jsi::Object/Value)
   return jsi::ArrayBuffer(runtime, buf);
 }
 
-// Generic Vector -> JS Array
 template <typename T>
 inline jsi::Value getJsiValue(const std::vector<T> &vec,
                               jsi::Runtime &runtime) {
   jsi::Array array(runtime, vec.size());
   for (size_t i = 0; i < vec.size(); ++i) {
-    if constexpr (std::is_same_v<T, uint64_t>) {
+    if constexpr (std::is_same_v<T, size_t> &&
+                  !std::is_same_v<size_t, uint64_t>) {
+      // Conditional as on android, size_t and uint64_t reduce to the same type,
+      // introducing ambiguity
       array.setValueAtIndex(runtime, i, static_cast<double>(vec[i]));
     } else {
       array.setValueAtIndex(runtime, i, getJsiValue(vec[i], runtime));
