@@ -69,7 +69,7 @@ console.log(llm.messageHistory);
 
 ## Tool Calling
 
-```
+```tsx
 const TOOL_DEFINITIONS: LLMTool[] = [
   {
     name: 'get_weather',
