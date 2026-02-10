@@ -15,6 +15,7 @@
 #include <vector>
 
 #include <pytorch/tokenizers/model.h>
+#include <pytorch/tokenizers/regex.h>
 #include <pytorch/tokenizers/result.h>
 #include <pytorch/tokenizers/string_integer_map.h>
 
@@ -45,6 +46,10 @@ public:
 
   bool is_loaded() const override { return initialized_; }
 
+  std::pair<std::optional<std::string>, std::string>
+  split_with_allowed_special_token(const std::string &input,
+                                   size_t offset) const override;
+
   uint64_t bos_token_id() const override { return bos_token_id_.value_or(0); }
 
   uint64_t eos_token_id() const override { return eos_token_id_.value_or(0); }
@@ -52,6 +57,7 @@ public:
 private:
   detail::TokenMap token_map_;
   detail::TokenMap special_token_map_;
+  std::unique_ptr<IRegex> special_token_regex_;
 
   std::string unk_token_;
   std::string continuing_subword_prefix_;

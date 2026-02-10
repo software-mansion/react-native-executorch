@@ -22,11 +22,13 @@
 #include <pytorch/tokenizers/error.h>
 #include <pytorch/tokenizers/model.h>
 #include <pytorch/tokenizers/normalizer.h>
+#include <pytorch/tokenizers/padding.h>
 #include <pytorch/tokenizers/post_processor.h>
 #include <pytorch/tokenizers/pre_tokenizer.h>
 #include <pytorch/tokenizers/result.h>
 #include <pytorch/tokenizers/token_decoder.h>
 #include <pytorch/tokenizers/tokenizer.h>
+#include <pytorch/tokenizers/truncation.h>
 
 namespace tokenizers {
 
@@ -62,6 +64,8 @@ private:
   Error setup_pretokenizer(const nlohmann::json &parsed_json);
   Error setup_postprocessor(const nlohmann::json &parsed_json);
   Error setup_decoder(const nlohmann::json &parsed_json);
+  Error setup_truncation(const nlohmann::json &parsed_json);
+  Error setup_padding(const nlohmann::json &parsed_json);
   Error setup_model(const nlohmann::json &parsed_json,
                     const std::string &model_config_path,
                     const std::string &special_tokens_map_path);
@@ -70,6 +74,8 @@ private:
   PreTokenizer::Ptr _pretokenizer;
   PostProcessor::Ptr _postprocessor;
   TokenDecoder::Ptr _decoder;
+  Truncation::Ptr _truncation;
+  Padding::Ptr _padding;
 
   Model::Ptr _model;
 };

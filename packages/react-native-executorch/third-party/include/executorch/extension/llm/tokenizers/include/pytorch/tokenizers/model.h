@@ -85,6 +85,18 @@ public:
    */
   virtual bool is_loaded() const = 0;
 
+  /**
+   * Helper to split input text into a special token and the preceding regular
+   * text.
+   *
+   * @param input The input string.
+   * @param offset The starting offset.
+   * @return A pair of (matched special token string, preceding regular text).
+   */
+  virtual std::pair<std::optional<std::string>, std::string>
+  split_with_allowed_special_token(const std::string &input,
+                                   size_t offset) const = 0;
+
   virtual uint64_t bos_token_id() const = 0;
   virtual uint64_t eos_token_id() const = 0;
 };
