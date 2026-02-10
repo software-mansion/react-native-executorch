@@ -6,6 +6,8 @@ torch
 huggingface
 bbox
 bboxes
+chatbots
+llms
 deeplab
 unsqueeze
 qlora
