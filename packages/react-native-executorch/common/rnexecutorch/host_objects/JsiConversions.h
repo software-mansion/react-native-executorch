@@ -198,14 +198,16 @@ template <typename T> struct JsiGetter<std::span<T>> {
 // C++ -> JS (getJsiValue)
 // =================================================================================================
 
-inline jsi::Value getJsiValue(int val, jsi::Runtime &runtime) {
-  return {runtime, val};
-}
-inline jsi::Value getJsiValue(bool val, jsi::Runtime &runtime) { return {val}; }
-inline jsi::Value getJsiValue(double val, jsi::Runtime &runtime) {
+inline jsi::Value getJsiValue(int val, jsi::Runtime & /*runtime*/) {
   return {val};
 }
-inline jsi::Value getJsiValue(float val, jsi::Runtime &runtime) {
+inline jsi::Value getJsiValue(bool val, jsi::Runtime & /*runtime*/) {
+  return {val};
+}
+inline jsi::Value getJsiValue(double val, jsi::Runtime & /*runtime*/) {
+  return {val};
+}
+inline jsi::Value getJsiValue(float val, jsi::Runtime & /*runtime*/) {
   return {static_cast<double>(val)};
 }
 
@@ -213,11 +215,12 @@ template <typename T,
           typename = std::enable_if_t<std::is_same_v<T, size_t> &&
                                       !std::is_same_v<size_t, uint64_t>>>
 inline jsi::Value getJsiValue(T val, jsi::Runtime &runtime) {
-  return jsi::Value(static_cast<double>(val));
+  return {static_cast<double>(val)};
 }
 
 inline jsi::Value getJsiValue(uint64_t val, jsi::Runtime &runtime) {
-  return jsi::BigInt::fromUint64(runtime, val);
+  jsi::BigInt bigInt = jsi::BigInt::fromUint64(runtime, val);
+  return {runtime, bigInt};
 }
 
 inline jsi::Value getJsiValue(const std::string &str, jsi::Runtime &runtime) {
@@ -231,7 +234,8 @@ inline jsi::Value getJsiValue(std::shared_ptr<jsi::Object> valuePtr,
 
 inline jsi::Value getJsiValue(const std::shared_ptr<OwningArrayBuffer> &buf,
                               jsi::Runtime &runtime) {
-  return jsi::ArrayBuffer(runtime, buf);
+  jsi::ArrayBuffer arrayBuffer(runtime, buf);
+  return {runtime, arrayBuffer};
 }
 
 template <typename T>
@@ -250,8 +254,6 @@ inline jsi::Value getJsiValue(const std::vector<T> &vec,
   }
   return {runtime, array};
 }
-
-// Complex Types
 
 inline jsi::Value getJsiValue(const std::vector<JSTensorViewOut> &vec,
                               jsi::Runtime &runtime) {
