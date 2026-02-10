@@ -55,6 +55,14 @@ public:
 
 // -- Factory ------------------------------------------------------------------
 
+// Helper macro to standardize addition of config member fields
+#define TOKEN_DECODER_CONFIG_MEMBER(type, name)                                \
+  std::optional<type> name;                                                    \
+  TokenDecoderConfig &set_##name(type arg) {                                   \
+    this->name = std::move(arg);                                               \
+    return *this;                                                              \
+  }
+
 /**
  * Factory and config class for creating a new TokenDecoder
  */
@@ -67,16 +75,20 @@ public:
   std::string type;
 
   // Parameters for Replace decoder
-  std::string replace_pattern;
-  std::string replace_content;
+  TOKEN_DECODER_CONFIG_MEMBER(std::string, replace_pattern)
+  TOKEN_DECODER_CONFIG_MEMBER(std::string, replace_content)
 
   // Parameters for Sequence decoder
-  std::vector<nlohmann::json> sequence_decoders;
+  TOKEN_DECODER_CONFIG_MEMBER(std::vector<nlohmann::json>, sequence_decoders)
 
   // Parameters for Strip decoder
-  std::string strip_content;
-  size_t strip_start;
-  size_t strip_stop;
+  TOKEN_DECODER_CONFIG_MEMBER(std::string, strip_content)
+  TOKEN_DECODER_CONFIG_MEMBER(size_t, strip_start)
+  TOKEN_DECODER_CONFIG_MEMBER(size_t, strip_stop)
+
+  // Parameters for WordPiece decoder
+  TOKEN_DECODER_CONFIG_MEMBER(std::string, wordpiece_prefix)
+  TOKEN_DECODER_CONFIG_MEMBER(bool, wordpiece_cleanup)
 
   /*----------------*/
   /* Public methods */
@@ -160,6 +172,21 @@ private:
   size_t start_;
   size_t stop_;
 }; // end class StripTokenDecoder
+
+// -- WordPiece ----------------------------------------------------------------
+// Used for WordPiece decoding
+
+class WordPieceTokenDecoder : public TokenDecoder {
+public:
+  explicit WordPieceTokenDecoder(std::string prefix = "##",
+                                 bool cleanup = true);
+  std::vector<std::string>
+  decode(const std::vector<std::string> &tokens) const override;
+
+private:
+  std::string prefix_;
+  bool cleanup_;
+}; // end class WordPieceTokenDecoder
 
 // -- Sequence -----------------------------------------------------------------
 // Applies a sequence of decoders in order
