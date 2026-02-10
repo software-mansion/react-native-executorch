@@ -50,13 +50,13 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   const [liveTranscribing, setLiveTranscribing] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const [recorder] = useState(() => new AudioRecorder());
+  const recorder = new AudioRecorder();
 
   useEffect(() => {
     AudioManager.setAudioSessionOptions({
       iosCategory: 'playAndRecord',
       iosMode: 'spokenAudio',
-      iosOptions: ['allowBluetooth', 'defaultToSpeaker'],
+      iosOptions: ['allowBluetooth'],
     });
     const checkPerms = async () => {
       const granted = await AudioManager.requestRecordingPermissions();
@@ -127,7 +127,14 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     );
 
     try {
-      await recorder.start();
+      const success = await AudioManager.setAudioSessionActivity(true);
+      if (!success) {
+        console.warn('Cannot start audio session correctly');
+      }
+      const result = recorder.start();
+      if (result.status === 'error') {
+        console.warn('Recording problems: ', result.message);
+      }
     } catch (e) {
       console.error('Failed to start recorder', e);
       isRecordingRef.current = false;

@@ -12847,9 +12847,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-audio-api@npm:0.11.0":
-  version: 0.11.0
-  resolution: "react-native-audio-api@npm:0.11.0"
+"react-native-audio-api@npm:0.11.1":
+  version: 0.11.1
+  resolution: "react-native-audio-api@npm:0.11.1"
   dependencies:
     semver: "npm:^7.7.3"
   peerDependencies:
@@ -12857,7 +12857,7 @@ __metadata:
     react-native: "*"
   bin:
     setup-rn-audio-api-web: scripts/setup-rn-audio-api-web.js
-  checksum: 10/9cb7c9afce098e6b39ba2e8c80c3085b9d21cc0b18bf19643e7376fce3ddf5dd8ec5c02873c0d4d6b3dcd9d9f2588633e2ed9a0c42c2d506980d34a3a02c6ef8
+  checksum: 10/3e062c479ec76015fe068af3b03928b591c11fc6873b030b7756ab6e6eb2a17499801d061002997121fbfb746040d7039266d81196c3ae05ee8b489b07a97047
   languageName: node
   linkType: hard
 
@@ -14100,7 +14100,7 @@ __metadata:
     metro-config: "npm:^0.81.0"
     react: "npm:19.1.0"
     react-native: "npm:0.81.5"
-    react-native-audio-api: "npm:0.11.0"
+    react-native-audio-api: "npm:0.11.1"
     react-native-device-info: "npm:^14.0.4"
     react-native-executorch: "workspace:*"
     react-native-reanimated: "npm:~4.1.1"
