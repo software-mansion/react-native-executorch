@@ -1,3 +1,4 @@
+#include <numeric>
 #include <random>
 #include <sstream>
 
@@ -42,11 +43,15 @@ GenerationResult ASR::generate(std::span<float> waveform, float temperature,
   std::vector<float> encoderOutput = this->encode(waveform);
 
   std::vector<uint64_t> sequenceIds = this->getInitialSequence(options);
+  std::vector<uint64_t> cachedTokens = sequenceIds;
   const size_t initialSequenceLenght = sequenceIds.size();
   std::vector<float> scores;
 
-  while (std::cmp_less_equal(sequenceIds.size(), ASR::kMaxDecodeLength)) {
-    std::vector<float> logits = this->decode(sequenceIds, encoderOutput);
+  uint64_t startPos = 0;
+  while (std::cmp_less_equal(startPos + sequenceIds.size(),
+                             ASR::kMaxDecodeLength)) {
+    std::vector<float> logits =
+        this->decode(sequenceIds, startPos, encoderOutput);
 
     // intentionally comparing float to float
     // temperatures are predefined, so this is safe
@@ -74,7 +79,10 @@ GenerationResult ASR::generate(std::span<float> waveform, float temperature,
       nextProb = probs[nextId];
     }
 
-    sequenceIds.push_back(nextId);
+    // Move the startPos pointer by the amount of tokens we processed
+    startPos += sequenceIds.size();
+    sequenceIds = {nextId};
+    cachedTokens.push_back(nextId);
     scores.push_back(nextProb);
 
     if (nextId == this->endOfTranscriptionToken) {
@@ -82,8 +90,9 @@ GenerationResult ASR::generate(std::span<float> waveform, float temperature,
     }
   }
 
-  return {.tokens = std::vector<uint64_t>(
-              sequenceIds.cbegin() + initialSequenceLenght, sequenceIds.cend()),
+  return {.tokens = std::vector<uint64_t>(cachedTokens.cbegin() +
+                                              initialSequenceLenght,
+                                          cachedTokens.cend()),
           .scores = scores};
 }
 
@@ -318,13 +327,19 @@ std::vector<float> ASR::encode(std::span<float> waveform) const {
   return {dataPtr, dataPtr + outputNumel};
 }
 
-std::vector<float> ASR::decode(std::span<const uint64_t> tokens,
+std::vector<float> ASR::decode(std::span<uint64_t> tokens, uint64_t startPos,
                                std::span<float> encoderOutput) const {
   std::vector<int32_t> tokenShape = {1, static_cast<int32_t>(tokens.size())};
-  auto tokensLong = std::vector<int64_t>(tokens.begin(), tokens.end());
+  std::vector<int32_t> positionShape = {static_cast<int32_t>(tokens.size())};
 
   auto tokenTensor = executorch::extension::make_tensor_ptr(
-      tokenShape, tokensLong.data(), ScalarType::Long);
+      tokenShape, tokens.data(), ScalarType::Long);
+
+  // Populate cache position vector
+  std::vector<uint64_t> cachePositions(tokens.size());
+  std::iota(cachePositions.begin(), cachePositions.end(), startPos);
+  auto positionTensor = executorch::extension::make_tensor_ptr(
+      positionShape, cachePositions.data(), ScalarType::Long);
 
   const auto encoderOutputSize = static_cast<int32_t>(encoderOutput.size());
   std::vector<int32_t> encShape = {1, ASR::kNumFrames,
@@ -333,7 +348,7 @@ std::vector<float> ASR::decode(std::span<const uint64_t> tokens,
       std::move(encShape), encoderOutput.data(), ScalarType::Float);
 
   const auto decoderResult =
-      this->decoder->forward({tokenTensor, encoderTensor});
+      this->decoder->forward({tokenTensor, positionTensor, encoderTensor});
 
   if (!decoderResult.ok()) {
     throw RnExecutorchError(decoderResult.error(),
