@@ -224,8 +224,6 @@ export interface Word {
  * @property {number} [temperature] - Temperature for which given segment was computed.
  * @property {number} [avgLogprob] - Average log probability calculated across all tokens in a segment.
  * @property {number} [compressionRatio] - Compression ration achieved on a given segment.
- * @property {number} [noSpeechProb] - No speech probability, the probability that segment contains silence,
- * background noise etc.
  */
 export interface TranscriptionSegment {
   start: number;
@@ -236,7 +234,6 @@ export interface TranscriptionSegment {
   temperature: number;
   avgLogprob: number;
   compressionRatio: number;
-  noSpeechProb: number;
 }
 
 /**

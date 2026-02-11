@@ -81,14 +81,6 @@ export const VerboseTranscription = ({
                   </Text>
                 </View>
                 <View style={styles.statItem}>
-                  <Text style={styles.statLabel}>No Speech</Text>
-                  <Text style={styles.statValue}>
-                    {data.task === 'transcribe'
-                      ? seg.noSpeechProb?.toFixed(4)
-                      : 'N/A'}
-                  </Text>
-                </View>
-                <View style={styles.statItem}>
                   <Text style={styles.statLabel}>Temp</Text>
                   <Text style={styles.statValue}>
                     {data.task === 'transcribe'

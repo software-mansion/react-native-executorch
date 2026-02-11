@@ -94,7 +94,6 @@ TranscriptionResult wordsToResult(const std::vector<Word> &words,
     seg.words = words;
     seg.avgLogprob = std::nanf("0");
     seg.compressionRatio = std::nanf("0");
-    seg.noSpeechProbability = std::nanf("0");
     seg.temperature = std::nanf("0");
 
     res.segments.push_back(std::move(seg));

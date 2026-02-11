@@ -165,7 +165,6 @@ ASR::calculateWordLevelTimestamps(std::span<const uint64_t> generatedTokens,
         seg.avgLogprob = avgLogProb;
         seg.temperature = temperature;
         seg.compressionRatio = compressionRatio;
-        seg.noSpeechProbability = 0.0;
 
         if (!seg.words.empty()) {
           seg.start = seg.words.front().start;

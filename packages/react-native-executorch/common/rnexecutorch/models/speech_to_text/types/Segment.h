@@ -11,7 +11,6 @@ struct Segment {
   float start;
   float end;
   float avgLogprob;
-  float noSpeechProbability;
   float temperature;
   float compressionRatio;
 };

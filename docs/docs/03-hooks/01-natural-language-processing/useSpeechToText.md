@@ -116,22 +116,21 @@ const transcription = await model.transcribe(audioBuffer, { verbose: true });
 //   language: "en",
 //   segments: [
 //     {
-//       start: 0;
-//       end: 5.4;
-//       text: "Example text for";
+//       start: 0,
+//       end: 5.4,
+//       text: "Example text for",
 //       words: [
 //         {
-//            word: "Example"
+//            word: "Example",
 //            start: 0,
-//            end: 1.4,
+//            end: 1.4
 //         },
 //         ...
 //       ]
-//       tokens: [1, 32, 45, ...]
-//       temperature: 0.0
-//       avgLogprob: -1.235
+//       tokens: [1, 32, 45, ...],
+//       temperature: 0.0,
+//       avgLogprob: -1.235,
 //       compressionRatio: 1.632
-//       noSpeechProb: 0.04
 //     },
 //     ...
 //   ]
