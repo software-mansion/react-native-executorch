@@ -13,8 +13,7 @@ using namespace executorch::extension::constants;
 
 TokenizerModule::TokenizerModule(
     std::string source, std::shared_ptr<react::CallInvoker> callInvoker)
-    : tokenizer(std::make_unique<tokenizers::HFTokenizer>()),
-      memorySizeLowerBound(std::filesystem::file_size(source)) {
+    : tokenizer(std::make_unique<tokenizers::HFTokenizer>()) {
 
   auto status = tokenizer->load(source);
 
@@ -22,6 +21,8 @@ TokenizerModule::TokenizerModule(
     throw RnExecutorchError(RnExecutorchErrorCode::TokenizerError,
                             "Unexpected issue occured while loading tokenizer");
   };
+  std::filesystem::path modelPath{source};
+  memorySizeLowerBound = std::filesystem::file_size(modelPath);
 }
 
 void TokenizerModule::ensureTokenizerLoaded(

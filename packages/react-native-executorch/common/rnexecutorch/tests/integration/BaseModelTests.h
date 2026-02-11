@@ -111,6 +111,9 @@ TYPED_TEST_P(CommonModelTest, MultipleGeneratesWork) {
 }
 
 // Register all tests in the suite
+
+// TODO: Investigate why TextToImage fails on MultipleGeneratesWork in the
+// emulator environment
 REGISTER_TYPED_TEST_SUITE_P(CommonModelTest, InvalidPathThrows,
                             ValidPathDoesntThrow, GetMemoryLowerBoundValue,
                             GetMemoryLowerBoundConsistent, UnloadDoesntThrow,
