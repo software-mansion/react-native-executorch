@@ -222,9 +222,9 @@ export interface Word {
  * as an array of `Word`.
  * @property {number[]} [tokens] - Raw tokens represented as table of integers.
  * @property {number} [temperature] - Temperature for which given segment was computed.
- * @property {number} [avg_logprob] - Average log probability calculated across all tokens in a segment.
- * @property {number} [compression_ratio] - Compression ration achieved on a given segment.
- * @property {number} [no_speech_prob] - No speech probability, the probability that segment contains silence,
+ * @property {number} [avgLogprob] - Average log probability calculated across all tokens in a segment.
+ * @property {number} [compressionRatio] - Compression ration achieved on a given segment.
+ * @property {number} [noSpeechProb] - No speech probability, the probability that segment contains silence,
  * background noise etc.
  */
 export interface TranscriptionSegment {
@@ -234,9 +234,9 @@ export interface TranscriptionSegment {
   words?: Word[];
   tokens: number[];
   temperature: number;
-  avg_logprob: number;
-  compression_ratio: number;
-  no_speech_prob: number;
+  avgLogprob: number;
+  compressionRatio: number;
+  noSpeechProb: number;
 }
 
 /**

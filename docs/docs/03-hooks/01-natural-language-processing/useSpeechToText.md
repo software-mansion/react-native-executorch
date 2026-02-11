@@ -129,9 +129,9 @@ const transcription = await model.transcribe(audioBuffer, { verbose: true });
 //       ]
 //       tokens: [1, 32, 45, ...]
 //       temperature: 0.0
-//       avg_logprob: -1.235
-//       compression_ratio: 1.632
-//       no_speech_prob: 0.04
+//       avgLogprob: -1.235
+//       compressionRatio: 1.632
+//       noSpeechProb: 0.04
 //     },
 //     ...
 //   ]

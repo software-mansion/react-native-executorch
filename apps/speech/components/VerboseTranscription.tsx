@@ -76,7 +76,7 @@ export const VerboseTranscription = ({
                   <Text style={styles.statLabel}>Avg LogProb</Text>
                   <Text style={styles.statValue}>
                     {data.task === 'transcribe'
-                      ? seg.avg_logprob?.toFixed(4)
+                      ? seg.avgLogprob?.toFixed(4)
                       : 'N/A'}
                   </Text>
                 </View>
@@ -84,7 +84,7 @@ export const VerboseTranscription = ({
                   <Text style={styles.statLabel}>No Speech</Text>
                   <Text style={styles.statValue}>
                     {data.task === 'transcribe'
-                      ? seg.no_speech_prob?.toFixed(4)
+                      ? seg.noSpeechProb?.toFixed(4)
                       : 'N/A'}
                   </Text>
                 </View>
@@ -101,7 +101,7 @@ export const VerboseTranscription = ({
                   <Text style={styles.statLabel}>Compr.</Text>
                   <Text style={styles.statValue}>
                     {data.task === 'transcribe'
-                      ? seg.compression_ratio?.toFixed(2)
+                      ? seg.compressionRatio?.toFixed(2)
                       : 'N/A'}
                   </Text>
                 </View>

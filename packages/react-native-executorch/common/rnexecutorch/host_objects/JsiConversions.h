@@ -498,10 +498,10 @@ inline jsi::Value getJsiValue(const Segment &seg, jsi::Runtime &runtime) {
   obj.setProperty(runtime, "text",
                   jsi::String::createFromUtf8(runtime, segText));
 
-  obj.setProperty(runtime, "avg_logprob", seg.avgLogprob);
-  obj.setProperty(runtime, "compression_ratio", seg.compressionRatio);
+  obj.setProperty(runtime, "avgLogprob", seg.avgLogprob);
+  obj.setProperty(runtime, "compressionRatio", seg.compressionRatio);
   obj.setProperty(runtime, "temperature", seg.temperature);
-  obj.setProperty(runtime, "no_speech_prob", seg.noSpeechProbability);
+  obj.setProperty(runtime, "noSpeechProb", seg.noSpeechProbability);
 
   jsi::Array wordsArray(runtime, seg.words.size());
   for (size_t i = 0; i < seg.words.size(); ++i) {
