@@ -79,6 +79,46 @@ cv::Mat ObjectDetection::preprocessFrame(const cv::Mat &frame) const {
   return rgb;
 }
 
+cv::Mat ObjectDetection::preprocessFrame(const cv::Mat &frame) const {
+  // Get target size from model input shape
+  const std::vector<int32_t> tensorDims = getAllInputShapes()[0];
+  cv::Size tensorSize = cv::Size(tensorDims[tensorDims.size() - 1],
+                                 tensorDims[tensorDims.size() - 2]);
+
+  cv::Mat rgb;
+
+  // Convert RGBA/BGRA to RGB if needed (for VisionCamera frames)
+  if (frame.channels() == 4) {
+// Platform-specific color conversion:
+// iOS uses BGRA format, Android uses RGBA format
+#ifdef __APPLE__
+    // iOS: BGRA → RGB
+    cv::cvtColor(frame, rgb, cv::COLOR_BGRA2RGB);
+#else
+    // Android: RGBA → RGB
+    cv::cvtColor(frame, rgb, cv::COLOR_RGBA2RGB);
+#endif
+  } else if (frame.channels() == 3) {
+    // Already RGB
+    rgb = frame;
+  } else {
+    char errorMessage[100];
+    std::snprintf(errorMessage, sizeof(errorMessage),
+                  "Unsupported frame format: %d channels", frame.channels());
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            errorMessage);
+  }
+
+  // Only resize if dimensions don't match
+  if (rgb.size() != tensorSize) {
+    cv::Mat resized;
+    cv::resize(rgb, resized, tensorSize);
+    return resized;
+  }
+
+  return rgb;
+}
+
 std::vector<types::Detection>
 ObjectDetection::postprocess(const std::vector<EValue> &tensors,
                              cv::Size originalSize, double detectionThreshold) {
