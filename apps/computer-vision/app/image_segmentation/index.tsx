@@ -12,29 +12,12 @@ import {
   Skia,
   AlphaType,
   ColorType,
+  SkImage,
 } from '@shopify/react-native-skia';
 import { View, StyleSheet, Image } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
-
-const width = 224;
-const height = 224;
-
-let pixels = new Uint8Array(width * height * 4);
-pixels.fill(255);
-
-let data = Skia.Data.fromBytes(pixels);
-let img = Skia.Image.MakeImage(
-  {
-    width: width,
-    height: height,
-    alphaType: AlphaType.Opaque,
-    colorType: ColorType.RGBA_8888,
-  },
-  data,
-  width * 4
-);
 
 const numberToColor: number[][] = [
   [255, 87, 51], // 0 Red
@@ -67,48 +50,58 @@ export default function ImageSegmentationScreen() {
     setGlobalGenerating(model.isGenerating);
   }, [model.isGenerating, setGlobalGenerating]);
   const [imageUri, setImageUri] = useState('');
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+  const [segImage, setSegImage] = useState<SkImage | null>(null);
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
-    const uri = image?.uri;
-    setImageUri(uri as string);
+    if (!image?.uri) return;
+    setImageUri(image.uri);
+    setImageSize({
+      width: image.width ?? 0,
+      height: image.height ?? 0,
+    });
+    setSegImage(null);
   };
 
-  const [resultPresent, setResultPresent] = useState(false);
-
   const runForward = async () => {
-    if (imageUri) {
-      try {
-        const output = await model.forward(imageUri, [], false);
-        pixels = new Uint8Array(width * height * 4);
-
-        for (let x = 0; x < width; x++) {
-          for (let y = 0; y < height; y++) {
-            for (let i = 0; i < 3; i++) {
-              pixels[(x * height + y) * 4 + i] =
-                numberToColor[
-                  (output[DeeplabLabel.ARGMAX] || [])[x * height + y]
-                ][i];
-            }
-            pixels[(x * height + y) * 4 + 3] = 255;
-          }
-        }
-
-        data = Skia.Data.fromBytes(pixels);
-        img = Skia.Image.MakeImage(
-          {
-            width: width,
-            height: height,
-            alphaType: AlphaType.Opaque,
-            colorType: ColorType.RGBA_8888,
-          },
-          data,
-          width * 4
-        );
-        setResultPresent(true);
-      } catch (e) {
-        console.error(e);
+    if (!imageUri || imageSize.width === 0 || imageSize.height === 0) return;
+    try {
+      const { width, height } = imageSize;
+      const output = await model.forward(imageUri, [DeeplabLabel.ARGMAX]);
+      const argmax = output[DeeplabLabel.ARGMAX] || [];
+      const uniqueValues = new Set<number>();
+      for (let i = 0; i < argmax.length; i++) {
+        uniqueValues.add(argmax[i]);
       }
+      const pixels = new Uint8Array(width * height * 4);
+
+      for (let row = 0; row < height; row++) {
+        for (let col = 0; col < width; col++) {
+          const idx = row * width + col;
+          const color = numberToColor[argmax[idx]] || [0, 0, 0];
+          pixels[idx * 4] = color[0];
+          pixels[idx * 4 + 1] = color[1];
+          pixels[idx * 4 + 2] = color[2];
+          pixels[idx * 4 + 3] = 255;
+        }
+      }
+
+      const data = Skia.Data.fromBytes(pixels);
+      const img = Skia.Image.MakeImage(
+        {
+          width,
+          height,
+          alphaType: AlphaType.Opaque,
+          colorType: ColorType.RGBA_8888,
+        },
+        data,
+        width * 4
+      );
+      setSegImage(img);
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -135,16 +128,24 @@ export default function ImageSegmentationScreen() {
             }
           />
         </View>
-        {resultPresent && (
-          <View style={styles.canvasContainer}>
+        {segImage && (
+          <View
+            style={styles.canvasContainer}
+            onLayout={(e) =>
+              setCanvasSize({
+                width: e.nativeEvent.layout.width,
+                height: e.nativeEvent.layout.height,
+              })
+            }
+          >
             <Canvas style={styles.canvas}>
               <SkiaImage
-                image={img}
+                image={segImage}
                 fit="contain"
                 x={0}
                 y={0}
-                width={width}
-                height={height}
+                width={canvasSize.width}
+                height={canvasSize.height}
               />
             </Canvas>
           </View>
@@ -181,7 +182,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   canvas: {
-    width: width,
-    height: height,
+    width: '100%',
+    height: '100%',
   },
 });
