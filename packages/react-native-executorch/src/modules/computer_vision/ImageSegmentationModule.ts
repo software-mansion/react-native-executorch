@@ -40,13 +40,13 @@ export class ImageSegmentationModule extends BaseModule {
    *
    * @param imageSource - a fetchable resource or a Base64-encoded string.
    * @param classesOfInterest - an optional list of DeeplabLabel used to indicate additional arrays of probabilities to output (see section "Running the model"). The default is an empty list.
-   * @param resize - an optional boolean to indicate whether the output should be resized to the original image dimensions, or left in the size of the model (see section "Running the model"). The default is `false`.
+   * @param resizeToInput - an optional boolean to indicate whether the output should be resized to the original input image dimensions. If false, returns the model output without any resizing (see section "Running the model"). Defaults to `true`.
    * @returns A dictionary where keys are `DeeplabLabel` and values are arrays of probabilities for each pixel belonging to the corresponding class.
    */
   async forward(
     imageSource: string,
     classesOfInterest?: DeeplabLabel[],
-    resize?: boolean
+    resizeToInput?: boolean
   ): Promise<Partial<Record<DeeplabLabel, number[]>>> {
     if (this.nativeModule == null) {
       throw new RnExecutorchError(
@@ -58,7 +58,7 @@ export class ImageSegmentationModule extends BaseModule {
     const stringDict = await this.nativeModule.generate(
       imageSource,
       (classesOfInterest || []).map((label) => DeeplabLabel[label]),
-      resize || false
+      resizeToInput || true
     );
 
     let enumDict: { [key in DeeplabLabel]?: number[] } = {};
