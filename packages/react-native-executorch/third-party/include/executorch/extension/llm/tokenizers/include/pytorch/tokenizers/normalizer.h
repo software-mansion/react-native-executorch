@@ -219,6 +219,21 @@ public:
 
 }; // end class NFCNormalizer
 
+// -- Lowercase ----------------------------------------------------------------
+// Used for lowercasing the input
+// CITE:
+// https://github.com/huggingface/tokenizers/blob/main/tokenizers/src/normalizers/utils.rs
+
+class LowercaseNormalizer : public Normalizer {
+public:
+  /** Default constructor */
+  explicit LowercaseNormalizer() = default;
+
+  /** Lowercase the input */
+  std::string normalize(const std::string &input) const override;
+
+}; // end class LowercaseNormalizer
+
 // -- Bert ---------------------------------------------------------------------
 // Used for BERT-style normalization (cleaning, lowercasing, accent removal)
 // CITE:
