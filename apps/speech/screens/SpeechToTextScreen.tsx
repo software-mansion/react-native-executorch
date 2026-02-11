@@ -56,7 +56,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     AudioManager.setAudioSessionOptions({
       iosCategory: 'playAndRecord',
       iosMode: 'spokenAudio',
-      iosOptions: ['allowBluetooth'],
+      iosOptions: ['allowBluetoothHFP', 'defaultToSpeaker'],
     });
     const checkPerms = async () => {
       const granted = await AudioManager.requestRecordingPermissions();
