@@ -503,7 +503,7 @@ inline jsi::Value getJsiValue(const Segment &seg, jsi::Runtime &runtime) {
   obj.setProperty(runtime, "temperature", seg.temperature);
   obj.setProperty(runtime, "no_speech_prob", seg.noSpeechProbability);
 
-  jsi::Array wordsAry(runtime, seg.words.size());
+  jsi::Array wordsArray(runtime, seg.words.size());
   for (size_t i = 0; i < seg.words.size(); ++i) {
     jsi::Object wordObj(runtime);
     wordObj.setProperty(
@@ -513,15 +513,15 @@ inline jsi::Value getJsiValue(const Segment &seg, jsi::Runtime &runtime) {
                         static_cast<double>(seg.words[i].start));
     wordObj.setProperty(runtime, "end", static_cast<double>(seg.words[i].end));
 
-    wordsAry.setValueAtIndex(runtime, i, wordObj);
+    wordsArray.setValueAtIndex(runtime, i, wordObj);
   }
-  obj.setProperty(runtime, "words", wordsAry);
+  obj.setProperty(runtime, "words", wordsArray);
 
-  jsi::Array tokensAry(runtime, seg.tokens.size());
+  jsi::Array tokensArray(runtime, seg.tokens.size());
   for (size_t i = 0; i < seg.tokens.size(); ++i) {
-    tokensAry.setValueAtIndex(runtime, i, static_cast<double>(seg.tokens[i]));
+    tokensArray.setValueAtIndex(runtime, i, static_cast<double>(seg.tokens[i]));
   }
-  obj.setProperty(runtime, "tokens", tokensAry);
+  obj.setProperty(runtime, "tokens", tokensArray);
 
   return obj;
 }
