@@ -243,7 +243,7 @@ export interface TranscriptionSegment {
  * Structure that represent result of transcription for a one function call (either `transcribe` or `stream`).
  *
  * @category Types
- * @property {string} [task] - String indicating task, either 'transcribe' or 'stream'.
+ * @property {'transcribe' | 'stream'} [task] - String indicating task, either 'transcribe' or 'stream'.
  * @property {string} [language] - Language chosen for transcription.
  * @property {number} [duration] - Duration in seconds of a given transcription.
  * @property {string} [text] - The whole text of a transcription as a `string`.
@@ -251,7 +251,7 @@ export interface TranscriptionSegment {
  * `TranscriptionSegment` with details split into separate transcription segments.
  */
 export interface TranscriptionResult {
-  task?: string;
+  task?: 'transcribe' | 'stream';
   language: string;
   duration: number;
   text: string;
