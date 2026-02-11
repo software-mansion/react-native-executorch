@@ -58,7 +58,7 @@ TranscriptionResult SpeechToText::transcribe(std::span<float> waveform,
 
   TranscriptionResult result;
   result.text = fullText;
-  result.task = "transcription";
+  result.task = "transcribe";
 
   if (verbose) {
     result.language = languageOption.empty() ? "english" : languageOption;
