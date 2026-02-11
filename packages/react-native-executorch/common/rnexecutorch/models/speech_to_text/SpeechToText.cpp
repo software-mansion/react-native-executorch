@@ -40,7 +40,8 @@ SpeechToText::encode(std::span<float> waveform) const {
 std::shared_ptr<OwningArrayBuffer>
 SpeechToText::decode(std::span<uint64_t> tokens,
                      std::span<float> encoderOutput) const {
-  std::vector<float> decoderOutput = this->asr->decode(tokens, encoderOutput);
+  std::vector<float> decoderOutput =
+      this->asr->decode(tokens, 0, encoderOutput);
   return std::make_shared<OwningArrayBuffer>(decoderOutput);
 }
 

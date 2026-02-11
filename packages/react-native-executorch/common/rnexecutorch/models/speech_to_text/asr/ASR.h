@@ -17,7 +17,7 @@ public:
   transcribe(std::span<float> waveform,
              const types::DecodingOptions &options) const;
   std::vector<float> encode(std::span<float> waveform) const;
-  std::vector<float> decode(std::span<const uint64_t> tokens,
+  std::vector<float> decode(std::span<uint64_t> tokens, uint64_t startPos,
                             std::span<float> encoderOutput) const;
 
 private:
