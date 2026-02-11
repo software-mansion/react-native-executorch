@@ -61,7 +61,7 @@ export class SpeechToTextModule {
    * Unloads the model from memory.
    */
   public delete(): void {
-    this.nativeModule.unload();
+    this.nativeModule?.unload();
   }
 
   /**

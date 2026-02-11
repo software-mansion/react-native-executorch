@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState, useMemo } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { SpeechToTextModule } from '../../modules/natural_language_processing/SpeechToTextModule';
 import {
   DecodingOptions,
@@ -25,7 +25,7 @@ export const useSpeechToText = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
 
-  const moduleInstance = useMemo(() => new SpeechToTextModule(), []);
+  const [moduleInstance, _] = useState(() => new SpeechToTextModule());
 
   useEffect(() => {
     if (preventLoad) return;
