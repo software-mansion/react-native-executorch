@@ -1,6 +1,6 @@
 ---
 name: react-native-executorch
-description: Build on-device AI into React Native apps using ExecuTorch. Provides hooks for LLMs, computer vision, OCR, audio processing, and embeddings without cloud dependencies. Use when building AI features into mobile apps - AI chatbots, image recognition, speech processing, or text search.
+description: Integrate on-device AI into React Native apps using React Native ExecuTorch, which provides APIs for LLMs, computer vision, OCR, audio processing, and embeddings without cloud dependencies, as well as a variety of pre-exported models for common use cases. Use when user asks to build AI features into mobile apps - AI chatbots, image classification, object detection, style transfer, OCR, document parsing, speech processing, or semantic search - all running locally without cloud dependencies. Use when user mentions offline support, privacy, latency or cost concerns in AI-based applications.
 ---
 
 ## When to Use This Skill
@@ -18,7 +18,7 @@ Use this skill when you need to:
 
 ## Overview
 
-React Native Executorch is a library that enables on-device AI model execution in React Native applications. It provides hooks and utilities for running machine learning models directly on mobile devices without requiring cloud infrastructure or internet connectivity (after initial model download).
+[React Native Executorch](https://github.com/software-mansion/react-native-executorch) is a library developed by [Software Mansion](https://swmansion.com/) that enables on-device AI model execution in React Native applications. It provides APIs for running machine learning models directly on mobile devices without requiring cloud infrastructure or internet connectivity (after initial model download). React Native Executorch provides APIs for LLMs, computer vision, OCR, audio processing and embeddings without cloud dependencies, as well as a variety of pre-exported models for common use cases. React Native Executorch is a way of bringing ExecuTorch into the React Native world.
 
 ## Key Use Cases
 
@@ -39,7 +39,7 @@ React Native Executorch is a library that enables on-device AI model execution i
 
 ---
 
-### Use Case 2: Image Recognition & Tagging
+### Use Case 2: Computer Vision
 
 **Trigger:** User needs to classify images, detect objects, or recognize content in photos
 
@@ -47,7 +47,7 @@ React Native Executorch is a library that enables on-device AI model execution i
 
 1. Select vision model (classification, detection, or segmentation)
 2. Load model for image processing task
-3. Pass image URI and process results
+3. Pass image and process results
 4. Display detections or classifications in app UI
 
 **Result:** App that understands image content without sending data to servers
@@ -164,7 +164,7 @@ Convert between speech and text, and detect speech activity in audio.
 
 **Supported tasks:**
 
-- **Speech-to-Text** - Transcribe audio to text (supports English and multilingual)
+- **Speech-to-Text** - Transcribe audio to text (supports multiple languages including English)
 - **Text-to-Speech** - Generate natural-sounding speech from text
 - **Voice Activity Detection** - Detect speech segments in audio
 
@@ -189,12 +189,12 @@ Convert text to numerical representations for semantic understanding and search.
 
 ### I want to build a chatbot or AI assistant
 
-Use `useLLM` hook with one of the available language models.
+Use `useLLM` hook or `LLMModule` with one of the available language models.
 
 **What to do:**
 
 1. Choose a model from available LLM options (consider device memory constraints)
-2. Use the `useLLM` hook to load the model
+2. Use the `useLLM` hook or `LLMModule` to load the model
 3. Send messages and receive responses
 4. Optionally configure system prompts, generation parameters, and tools
 
@@ -206,7 +206,7 @@ Use `useLLM` hook with one of the available language models.
 
 ### I want to enable function/tool calling in my LLM
 
-Use `useLLM` with tool definitions to allow the model to call predefined functions.
+Use `useLLM` hook or `LLMModule` with tool definitions to allow the model to call predefined functions.
 
 **What to do:**
 
@@ -221,7 +221,7 @@ Use `useLLM` with tool definitions to allow the model to call predefined functio
 
 ### I want structured data extraction from text
 
-Use `useLLM` with structured output generation using JSON schema validation.
+Use `useLLM` hook or `LLMModule` with structured output generation using JSON schema validation.
 
 **What to do:**
 
@@ -236,13 +236,13 @@ Use `useLLM` with structured output generation using JSON schema validation.
 
 ### I want to classify or recognize objects in images
 
-Use `useClassification` for simple categorization or `useObjectDetection` for locating specific objects.
+Use `useClassification` hook or `ClassificationModule` for simple categorization or use `useObjectDetection` hook or `ObjectDetectionModule` for locating specific objects.
 
 **What to do:**
 
 1. Choose appropriate computer vision model based on task
-2. Load the model with the appropriate hook
-3. Pass image URI (local, remote, or base64)
+2. Load the model with the appropriate hook or module
+3. Pass image (local, remote, or base64)
 4. Process results (classifications, detections with bounding boxes)
 
 **Reference:** [./references/reference-cv.md](./references/reference-cv.md)
@@ -253,13 +253,13 @@ Use `useClassification` for simple categorization or `useObjectDetection` for lo
 
 ### I want to extract text from images
 
-Use `useOCR` for horizontal text or `useVerticalOCR` for vertical text (experimental).
+Use `useOCR` hook or `OCRModule` for horizontal text or use `useVerticalOCR` hook or `VerticalOCRModule` for vertical text (experimental).
 
 **What to do:**
 
 1. Choose appropriate OCR model and recognizer matching your target language
-2. Load the model with `useOCR` or `useVerticalOCR` hook
-3. Pass image URI
+2. Load the model with appropriate hook or module
+3. Pass image
 4. Extract detected text regions with bounding boxes and confidence scores
 5. Process results based on your application needs
 
@@ -271,7 +271,7 @@ Use `useOCR` for horizontal text or `useVerticalOCR` for vertical text (experime
 
 ### I want to convert speech to text or text to speech
 
-Use `useSpeechToText` for transcription or `useTextToSpeech` for voice synthesis.
+Use `useSpeechToText` hook or `SpeechToTextModule` for transcription or use `useTextToSpeech` hook or `TextToSpeechModule` for voice synthesis.
 
 **What to do:**
 
@@ -286,7 +286,7 @@ Use `useSpeechToText` for transcription or `useTextToSpeech` for voice synthesis
 
 ### I want to find similar images or texts
 
-Use `useImageEmbeddings` for images or `useTextEmbeddings` for text.
+Use `useImageEmbeddings` hook or `ImageEmbeddingsModule` for images or `useTextEmbeddings` hook or `TextEmbeddingsModule` for text.
 
 **What to do:**
 
@@ -304,13 +304,13 @@ Use `useImageEmbeddings` for images or `useTextEmbeddings` for text.
 
 ### I want to apply artistic filters to photos
 
-Use `useStyleTransfer` to apply predefined artistic styles to images.
+Use `useStyleTransfer` hook or `StyleTransferModule` to apply predefined artistic styles to images.
 
 **What to do:**
 
 1. Choose from available artistic styles (Candy, Mosaic, Udnie, Rain Princess)
 2. Load the style transfer model
-3. Pass image URI
+3. Pass image
 4. Retrieve and use the stylized image
 
 **Reference:** [./references/reference-cv-2.md](./references/reference-cv-2.md)
@@ -321,7 +321,7 @@ Use `useStyleTransfer` to apply predefined artistic styles to images.
 
 ### I want to generate images from text
 
-Use `useTextToImage` to create images based on text descriptions.
+Use `useTextToImage` hook or `TextToImageModule` to create images based on text descriptions.
 
 **What to do:**
 
@@ -380,7 +380,7 @@ Not all models work on all devices. Consider these constraints:
 **Processing power:**
 
 - Lower-end devices: Expect longer inference times
-- Audio processing requires specific sample rates (16kHz for STT, 24kHz for TTS output)
+- Audio processing requires specific sample rates (16kHz for STT and VAD, 24kHz for TTS output)
 
 **Storage:**
 
@@ -405,7 +405,7 @@ Not all models work on all devices. Consider these constraints:
 
 Audio must be in correct sample rate for processing:
 
-- **Speech-to-Text input:** 16kHz sample rate
+- **Speech-to-Text or VAD input:** 16kHz sample rate
 - **Text-to-Speech output:** 24kHz sample rate
 - Always decode/resample audio to correct rate before processing
 
@@ -453,7 +453,7 @@ The library provides core utilities for managing models and handling errors:
 
 **Poor LLM quality:** Adjust temperature/top-p parameters or improve system prompt
 
-**Audio issues:** Verify correct sample rate (16kHz for STT, 24kHz output for TTS)
+**Audio issues:** Verify correct sample rate (16kHz for STT and VAD, 24kHz output for TTS)
 
 **Download failures:** Implement retry logic and check network connectivity
 
@@ -599,7 +599,7 @@ Use this when building AI features with ExecuTorch:
 
 **Audio not processing**
 
-- Verify sample rate is 16kHz for STT, 24kHz output for TTS
+- Verify sample rate is 16kHz for STT and VAD, 24kHz output for TTS
 - Check audio format compatibility
 - Ensure audio buffer has data before processing
 - Validate microphone permissions
@@ -658,3 +658,4 @@ Use this when building AI features with ExecuTorch:
 - **HuggingFace Models:** https://huggingface.co/software-mansion/collections
 - **GitHub Repository:** https://github.com/software-mansion/react-native-executorch
 - **API Reference:** https://docs.swmansion.com/react-native-executorch/docs/api-reference
+- **Software Mansion:** https://swmansion.com/
