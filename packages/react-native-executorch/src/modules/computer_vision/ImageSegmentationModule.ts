@@ -40,7 +40,7 @@ export class ImageSegmentationModule extends BaseModule {
    *
    * @param imageSource - a fetchable resource or a Base64-encoded string.
    * @param classesOfInterest - an optional list of DeeplabLabel used to indicate additional arrays of probabilities to output (see section "Running the model"). The default is an empty list.
-   * @param resizeToInput - an optional boolean to indicate whether the output should be resized to the original input image dimensions. If false, returns the model output without any resizing (see section "Running the model"). Defaults to `true`.
+   * @param resizeToInput - an optional boolean to indicate whether the output should be resized to the original input image dimensions. If `false`, returns the model output without any resizing (see section "Running the model"). Defaults to `true`.
    * @returns A dictionary where keys are `DeeplabLabel` and values are arrays of probabilities for each pixel belonging to the corresponding class.
    */
   async forward(
