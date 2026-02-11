@@ -541,12 +541,12 @@ inline jsi::Value getJsiValue(const TranscriptionResult &result,
     }
     obj.setProperty(runtime, "duration", result.duration);
 
-    jsi::Array segmentsAry(runtime, result.segments.size());
+    jsi::Array segmentsArray(runtime, result.segments.size());
     for (size_t i = 0; i < result.segments.size(); ++i) {
-      segmentsAry.setValueAtIndex(runtime, i,
-                                  getJsiValue(result.segments[i], runtime));
+      segmentsArray.setValueAtIndex(runtime, i,
+                                    getJsiValue(result.segments[i], runtime));
     }
-    obj.setProperty(runtime, "segments", segmentsAry);
+    obj.setProperty(runtime, "segments", segmentsArray);
   }
 
   return obj;
