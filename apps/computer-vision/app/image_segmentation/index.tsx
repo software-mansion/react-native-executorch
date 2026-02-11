@@ -79,7 +79,7 @@ export default function ImageSegmentationScreen() {
   const runForward = async () => {
     if (imageUri) {
       try {
-        const output = await model.forward(imageUri);
+        const output = await model.forward(imageUri, [], false);
         pixels = new Uint8Array(width * height * 4);
 
         for (let x = 0; x < width; x++) {
