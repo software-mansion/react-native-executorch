@@ -58,7 +58,7 @@ export class ImageSegmentationModule extends BaseModule {
     const stringDict = await this.nativeModule.generate(
       imageSource,
       (classesOfInterest || []).map((label) => DeeplabLabel[label]),
-      resizeToInput || true
+      resizeToInput ?? true
     );
 
     let enumDict: { [key in DeeplabLabel]?: number[] } = {};
