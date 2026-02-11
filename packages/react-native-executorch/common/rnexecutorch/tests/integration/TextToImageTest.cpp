@@ -49,6 +49,8 @@ template <> struct ModelTraits<TextToImage> {
 };
 } // namespace model_tests
 
+// TODO: Investigate why TextToImage fails on MultipleGeneratesWork in the
+// emulator environment
 using TextToImageTypes = ::testing::Types<TextToImage>;
 INSTANTIATE_TYPED_TEST_SUITE_P(TextToImage, CommonModelTest, TextToImageTypes);
 
