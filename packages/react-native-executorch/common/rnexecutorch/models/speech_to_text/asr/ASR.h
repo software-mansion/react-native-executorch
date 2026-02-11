@@ -28,6 +28,7 @@ private:
   uint64_t startOfTranscriptionToken;
   uint64_t endOfTranscriptionToken;
   uint64_t timestampBeginToken;
+  uint64_t noSpeechToken;
 
   // Time precision used by Whisper timestamps: each token spans 0.02 seconds
   constexpr static float kTimePrecision = 0.02f;
@@ -51,11 +52,10 @@ private:
   std::vector<types::Segment>
   generateWithFallback(std::span<float> waveform,
                        const types::DecodingOptions &options) const;
-  std::vector<Segment>
-  calculateWordLevelTimestamps(std::span<const uint64_t> generatedTokens,
-                               const std::span<const float> waveform,
-                               float avgLogProb, float temperature,
-                               float compressionRatio) const;
+  std::vector<Segment> calculateWordLevelTimestamps(
+      std::span<const uint64_t> generatedTokens,
+      const std::span<const float> waveform, float avgLogProb,
+      float temperature, float compressionRatio, float noSpeechProb) const;
   std::vector<types::Word>
   estimateWordLevelTimestampsLinear(std::span<const uint64_t> tokens,
                                     uint64_t start, uint64_t end) const;

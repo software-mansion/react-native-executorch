@@ -17,7 +17,8 @@ ASR::ASR(const models::BaseModel *encoder, const models::BaseModel *decoder,
       startOfTranscriptionToken(
           this->tokenizer->tokenToId("<|startoftranscript|>")),
       endOfTranscriptionToken(this->tokenizer->tokenToId("<|endoftext|>")),
-      timestampBeginToken(this->tokenizer->tokenToId("<|0.00|>")) {}
+      timestampBeginToken(this->tokenizer->tokenToId("<|0.00|>")),
+      noSpeechToken(this->tokenizer->tokenToId("<|notimestamps|>")) {}
 
 std::vector<uint64_t>
 ASR::getInitialSequence(const DecodingOptions &options) const {
@@ -45,6 +46,9 @@ GenerationResult ASR::generate(std::span<float> waveform, float temperature,
   const size_t initialSequenceLenght = sequenceIds.size();
   std::vector<float> scores;
 
+  float noSpeechProb = 0.0f;
+  bool isFirstStep = true;
+
   while (std::cmp_less_equal(sequenceIds.size(), ASR::kMaxDecodeLength)) {
     std::vector<float> logits = this->decode(sequenceIds, encoderOutput);
 
@@ -57,6 +61,11 @@ GenerationResult ASR::generate(std::span<float> waveform, float temperature,
     }
 
     const std::vector<float> &probs = logits;
+
+    if (isFirstStep) {
+      noSpeechProb = probs[this->noSpeechToken];
+      isFirstStep = false;
+    }
 
     uint64_t nextId;
     float nextProb;
@@ -84,7 +93,8 @@ GenerationResult ASR::generate(std::span<float> waveform, float temperature,
 
   return {.tokens = std::vector<uint64_t>(
               sequenceIds.cbegin() + initialSequenceLenght, sequenceIds.cend()),
-          .scores = scores};
+          .scores = scores,
+          .noSpeechProb = noSpeechProb};
 }
 
 float ASR::getCompressionRatio(const std::string &text) const {
@@ -100,9 +110,10 @@ ASR::generateWithFallback(std::span<float> waveform,
   float bestAvgLogProb = -std::numeric_limits<float>::infinity();
   float bestCompressionRatio = 0.0f;
   float bestTemperature = 0.0f;
+  float bestNoSpeechProb = 0.0f;
 
   for (auto t : temperatures) {
-    auto [tokens, scores] = this->generate(waveform, t, options);
+    auto [tokens, scores, noSpeechProb] = this->generate(waveform, t, options);
 
     const float cumLogProb = std::transform_reduce(
         scores.begin(), scores.end(), 0.0f, std::plus<>(),
@@ -117,6 +128,7 @@ ASR::generateWithFallback(std::span<float> waveform,
       bestAvgLogProb = avgLogProb;
       bestCompressionRatio = compressionRatio;
       bestTemperature = t;
+      bestNoSpeechProb = noSpeechProb;
       break;
     }
 
@@ -125,19 +137,19 @@ ASR::generateWithFallback(std::span<float> waveform,
       bestAvgLogProb = avgLogProb;
       bestCompressionRatio = compressionRatio;
       bestTemperature = t;
+      bestNoSpeechProb = noSpeechProb;
     }
   }
 
-  return this->calculateWordLevelTimestamps(bestTokens, waveform,
-                                            bestAvgLogProb, bestTemperature,
-                                            bestCompressionRatio);
+  return this->calculateWordLevelTimestamps(
+      bestTokens, waveform, bestAvgLogProb, bestTemperature,
+      bestCompressionRatio, bestNoSpeechProb);
 }
 
-std::vector<Segment>
-ASR::calculateWordLevelTimestamps(std::span<const uint64_t> generatedTokens,
-                                  const std::span<const float> waveform,
-                                  float avgLogProb, float temperature,
-                                  float compressionRatio) const {
+std::vector<Segment> ASR::calculateWordLevelTimestamps(
+    std::span<const uint64_t> generatedTokens,
+    const std::span<const float> waveform, float avgLogProb, float temperature,
+    float compressionRatio, float noSpeechProb) const {
   const size_t generatedTokensSize = generatedTokens.size();
   if (generatedTokensSize < 2 ||
       generatedTokens[generatedTokensSize - 1] !=
@@ -165,7 +177,7 @@ ASR::calculateWordLevelTimestamps(std::span<const uint64_t> generatedTokens,
         seg.avgLogprob = avgLogProb;
         seg.temperature = temperature;
         seg.compressionRatio = compressionRatio;
-        seg.noSpeechProbability = 0.0;
+        seg.noSpeechProbability = noSpeechProb;
 
         if (!seg.words.empty()) {
           seg.start = seg.words.front().start;
@@ -192,6 +204,7 @@ ASR::calculateWordLevelTimestamps(std::span<const uint64_t> generatedTokens,
   seg.avgLogprob = avgLogProb;
   seg.temperature = temperature;
   seg.compressionRatio = compressionRatio;
+  seg.noSpeechProbability = noSpeechProb;
 
   if (!seg.words.empty()) {
     seg.start = seg.words.front().start;
