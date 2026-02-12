@@ -65,6 +65,10 @@ struct GenerationConfig {
 
   // Use KV_CACHE implementation (if implemented) or not
   bool enable_kv_cache = true;
+
+  // Number of eos and bos to add to the prompt
+  int32_t num_bos = 0;
+  int32_t num_eos = 0;
 };
 
 // Base interface for LLM runners

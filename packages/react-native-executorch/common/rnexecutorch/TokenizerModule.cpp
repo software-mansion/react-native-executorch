@@ -9,7 +9,7 @@
 
 namespace rnexecutorch {
 using namespace facebook;
-using namespace executorch::extension::constants;
+using namespace executorch::extension::llm;
 
 TokenizerModule::TokenizerModule(
     std::string source, std::shared_ptr<react::CallInvoker> callInvoker)

@@ -19,7 +19,7 @@
 
 namespace example {
 
-using namespace executorch::extension::constants;
+using namespace executorch::extension::llm;
 using ::executorch::extension::Module;
 using ::executorch::runtime::Error;
 using ::executorch::runtime::Result;

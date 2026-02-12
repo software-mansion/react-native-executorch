@@ -46,7 +46,7 @@ protected:
   // (unnecessary copies instead of working on JS memory). In this case
   // CallInvoker can be used to get jsi::Runtime, and use it in a safe manner.
   std::shared_ptr<react::CallInvoker> callInvoker;
-  std::unique_ptr<executorch::extension::Module> module_;
+  std::unique_ptr<Module> module_;
 
   std::size_t memorySizeLowerBound{0};
 
