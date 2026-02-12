@@ -3071,6 +3071,30 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/api-reference/interfaces/TranscriptionResult": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/interfaces/TranscriptionSegment": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/api-reference/interfaces/VADProps": {
     "shouldDisplay": true,
     "hasMarkdown": false,
@@ -3108,6 +3132,18 @@
     ]
   },
   "/react-native-executorch/docs/next/api-reference/interfaces/VoiceConfig": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/interfaces/Word": {
     "shouldDisplay": true,
     "hasMarkdown": false,
     "contentSelectors": [
