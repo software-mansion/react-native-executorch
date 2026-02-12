@@ -141,7 +141,7 @@ function ClipEmbeddingsScreen() {
 
   const getModelStatusText = (model: typeof textModel | typeof imageModel) => {
     if (model.error) {
-      return `Oops! Error: ${model.error}`;
+      return `Oops! ${model.error}`;
     }
     if (!model.isReady) {
       return `Loading model ${(model.downloadProgress * 100).toFixed(2)}%`;
