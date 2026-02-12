@@ -136,3 +136,36 @@ export interface TensorPtr {
   sizes: number[];
   scalarType: ScalarType;
 }
+
+/**
+ * Frame data for vision model processing.
+ * Supports two modes:
+ * 1. ArrayBuffer mode (with memory copy) - Compatible with all platforms
+ * 2. NativeBuffer mode (zero-copy) - Better performance with Vision Camera v5
+ */
+export interface FrameData {
+  /**
+   * Raw pixel data as ArrayBuffer (requires memory copy).
+   * Use this for compatibility or when getNativeBuffer is not available.
+   */
+  data?: ArrayBuffer | ArrayBufferLike;
+
+  /**
+   * Pointer to native platform buffer (zero-copy, best performance).
+   * - On iOS: CVPixelBufferRef pointer
+   * - On Android: AHardwareBuffer* pointer
+   *
+   * Obtain from Vision Camera v5: `frame.getNativeBuffer().pointer`
+   */
+  nativeBuffer?: bigint;
+
+  /**
+   * Frame width in pixels
+   */
+  width: number;
+
+  /**
+   * Frame height in pixels
+   */
+  height: number;
+}
