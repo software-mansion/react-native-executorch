@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rnexecutorch/models/speech_to_text/stream/OnlineASRProcessor.h"
+#include <rnexecutorch/models/speech_to_text/types/TranscriptionResult.h>
 #include <span>
 #include <string>
 #include <vector>
@@ -23,14 +24,20 @@ public:
   [[nodiscard(
       "Registered non-void function")]] std::shared_ptr<OwningArrayBuffer>
   decode(std::span<uint64_t> tokens, std::span<float> encoderOutput) const;
-  [[nodiscard("Registered non-void function")]] std::vector<char>
-  transcribe(std::span<float> waveform, std::string languageOption) const;
+  [[nodiscard("Registered non-void function")]]
+  types::TranscriptionResult transcribe(std::span<float> waveform,
+                                        std::string languageOption,
+                                        bool verbose) const;
+
+  [[nodiscard("Registered non-void function")]]
+  std::vector<char> transcribeStringOnly(std::span<float> waveform,
+                                         std::string languageOption) const;
 
   size_t getMemoryLowerBound() const noexcept;
 
   // Stream
   void stream(std::shared_ptr<jsi::Function> callback,
-              std::string languageOption);
+              std::string languageOption, bool enableTimestamps);
   void streamStop();
   void streamInsert(std::span<float> waveform);
 

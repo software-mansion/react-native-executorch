@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -35,6 +35,8 @@ export default function VoiceChatScreenWrapper() {
 
 function VoiceChatScreen() {
   const [isRecording, setIsRecording] = useState(false);
+  const [liveTranscription, setLiveTranscription] = useState('');
+
   const [recorder] = useState(
     () =>
       new AudioRecorder({
@@ -42,7 +44,7 @@ function VoiceChatScreen() {
         bufferLengthInSamples: 1600,
       })
   );
-  const messageRecorded = useRef<boolean>(false);
+
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   const llm = useLLM({ model: QWEN3_0_6B_QUANTIZED });
@@ -67,16 +69,32 @@ function VoiceChatScreen() {
     if (isRecording) {
       setIsRecording(false);
       recorder.stop();
-      messageRecorded.current = true;
       speechToText.streamStop();
     } else {
       setIsRecording(true);
+      setLiveTranscription('');
+
       recorder.onAudioReady(({ buffer }) => {
         speechToText.streamInsert(buffer.getChannelData(0));
       });
       recorder.start();
-      const transcription = await speechToText.stream();
-      await llm.sendMessage(transcription);
+
+      let finalResult = '';
+
+      try {
+        for await (const result of speechToText.stream()) {
+          const text = result.committed.text + result.nonCommitted.text;
+          setLiveTranscription(text);
+          finalResult = text;
+        }
+      } catch (e) {
+        console.error('Streaming error:', e);
+      } finally {
+        if (finalResult.trim().length > 0) {
+          await llm.sendMessage(finalResult);
+          setLiveTranscription('');
+        }
+      }
     }
   };
 
@@ -96,16 +114,17 @@ function VoiceChatScreen() {
           <SWMIcon width={45} height={45} />
           <Text style={styles.textModelName}>Qwen 3 x Whisper</Text>
         </View>
-        {llm.messageHistory.length || speechToText.committedTranscription ? (
+
+        {llm.messageHistory.length > 0 || liveTranscription.length > 0 ? (
           <View style={styles.chatContainer}>
             <Messages
               chatHistory={
-                speechToText.isGenerating
+                isRecording && liveTranscription.length > 0
                   ? [
                       ...llm.messageHistory,
                       {
                         role: 'user',
-                        content: speechToText.committedTranscription,
+                        content: liveTranscription,
                       },
                     ]
                   : llm.messageHistory
@@ -123,6 +142,7 @@ function VoiceChatScreen() {
             </Text>
           </View>
         )}
+
         <View style={styles.bottomContainer}>
           {DeviceInfo.isEmulatorSync() ? (
             <View style={styles.emulatorBox}>
