@@ -2,9 +2,9 @@ import Spinner from '../../components/Spinner';
 import { BottomBar } from '../../components/BottomBar';
 import { getImage } from '../../utils';
 import {
-  useImageSegmentation,
+  ImageSegmentation,
   DEEPLAB_V3_RESNET50,
-  DeeplabLabel,
+  SegmentationLabels,
 } from 'react-native-executorch';
 import {
   Canvas,
@@ -44,15 +44,33 @@ const numberToColor: number[][] = [
 ];
 
 export default function ImageSegmentationScreen() {
-  const model = useImageSegmentation({ model: DEEPLAB_V3_RESNET50 });
   const { setGlobalGenerating } = useContext(GeneratingContext);
-  useEffect(() => {
-    setGlobalGenerating(model.isGenerating);
-  }, [model.isGenerating, setGlobalGenerating]);
+  const [model, setModel] = useState<ImageSegmentation<'deeplab-v3'> | null>(
+    null
+  );
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
   const [imageUri, setImageUri] = useState('');
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [segImage, setSegImage] = useState<SkImage | null>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    setGlobalGenerating(isGenerating);
+  }, [isGenerating, setGlobalGenerating]);
+
+  useEffect(() => {
+    let instance: ImageSegmentation<'deeplab-v3'> | null = null;
+    (async () => {
+      instance = await ImageSegmentation.fromModelName(
+        DEEPLAB_V3_RESNET50.modelSource,
+        'deeplab-v3',
+        setDownloadProgress
+      );
+      setModel(instance);
+    })();
+    return () => instance?.delete();
+  }, []);
 
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
@@ -66,15 +84,13 @@ export default function ImageSegmentationScreen() {
   };
 
   const runForward = async () => {
-    if (!imageUri || imageSize.width === 0 || imageSize.height === 0) return;
+    if (!model || !imageUri || imageSize.width === 0 || imageSize.height === 0)
+      return;
     try {
+      setIsGenerating(true);
       const { width, height } = imageSize;
-      const output = await model.forward(imageUri, [DeeplabLabel.ARGMAX]);
-      const argmax = output[DeeplabLabel.ARGMAX] || [];
-      const uniqueValues = new Set<number>();
-      for (let i = 0; i < argmax.length; i++) {
-        uniqueValues.add(argmax[i]);
-      }
+      const output = await model.forward(imageUri, ['dupa'], true);
+      const argmax = output['ARGMAX'] || [];
       const pixels = new Uint8Array(width * height * 4);
 
       for (let row = 0; row < height; row++) {
@@ -102,14 +118,16 @@ export default function ImageSegmentationScreen() {
       setSegImage(img);
     } catch (e) {
       console.error(e);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
-  if (!model.isReady) {
+  if (!model) {
     return (
       <Spinner
-        visible={!model.isReady}
-        textContent={`Loading the model ${(model.downloadProgress * 100).toFixed(0)} %`}
+        visible={!model}
+        textContent={`Loading the model ${(downloadProgress * 100).toFixed(0)} %`}
       />
     );
   }
