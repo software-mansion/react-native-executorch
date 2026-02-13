@@ -94,7 +94,7 @@
 // User code should not inspect this macro.  To check in the preprocessor if
 // absl::any is a typedef of std::any, use the feature macro ABSL_USES_STD_ANY.
 
-#define ABSL_OPTION_USE_STD_ANY 2
+#define ABSL_OPTION_USE_STD_ANY 1
 
 // ABSL_OPTION_USE_STD_OPTIONAL
 //
@@ -120,7 +120,7 @@
 // absl::optional is a typedef of std::optional, use the feature macro
 // ABSL_USES_STD_OPTIONAL.
 
-#define ABSL_OPTION_USE_STD_OPTIONAL 2
+#define ABSL_OPTION_USE_STD_OPTIONAL 1
 
 // ABSL_OPTION_USE_STD_STRING_VIEW
 //
@@ -146,7 +146,7 @@
 // absl::string_view is a typedef of std::string_view, use the feature macro
 // ABSL_USES_STD_STRING_VIEW.
 
-#define ABSL_OPTION_USE_STD_STRING_VIEW 2
+#define ABSL_OPTION_USE_STD_STRING_VIEW 1
 
 // ABSL_OPTION_USE_STD_VARIANT
 //
@@ -172,7 +172,7 @@
 // absl::variant is a typedef of std::variant, use the feature macro
 // ABSL_USES_STD_VARIANT.
 
-#define ABSL_OPTION_USE_STD_VARIANT 2
+#define ABSL_OPTION_USE_STD_VARIANT 1
 
 // ABSL_OPTION_USE_STD_ORDERING
 //
@@ -199,7 +199,7 @@
 // the ordering types are aliases of std:: ordering types, use the feature macro
 // ABSL_USES_STD_ORDERING.
 
-#define ABSL_OPTION_USE_STD_ORDERING 2
+#define ABSL_OPTION_USE_STD_ORDERING 0
 
 // ABSL_OPTION_USE_INLINE_NAMESPACE
 // ABSL_OPTION_INLINE_NAMESPACE_NAME

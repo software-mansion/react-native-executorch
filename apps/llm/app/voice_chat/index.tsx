@@ -101,7 +101,7 @@ function VoiceChatScreen() {
   return !llm.isReady || !speechToText.isReady ? (
     <Spinner
       visible={!llm.isReady || !speechToText.isReady}
-      textContent={`Loading the model ${(llm.downloadProgress * 100).toFixed(0)} %\nLoading the speech model ${(speechToText.downloadProgress * 100).toFixed(0)} %`}
+      textContent={`Loading the LLM model ${(llm.downloadProgress * 100).toFixed(0)} %\nLoading the speech model ${(speechToText.downloadProgress * 100).toFixed(0)} %`}
     />
   ) : (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>

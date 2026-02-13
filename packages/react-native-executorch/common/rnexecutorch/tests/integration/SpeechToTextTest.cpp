@@ -74,7 +74,7 @@ TEST(S2TTranscribeTests, TranscribeReturnsValidChars) {
   auto result = model.transcribe(audio, "en", true);
   ASSERT_EQ(result.language, "en");
   EXPECT_GE(result.duration, 20.0f);
-  ASSERT_EQ(result.task, "transcription");
+  ASSERT_EQ(result.task, "transcribe");
   ASSERT_FALSE(result.segments.empty());
   ASSERT_FALSE(result.text.empty());
   for (char c : result.text) {

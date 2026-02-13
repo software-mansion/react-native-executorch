@@ -1,4 +1,3 @@
-#define C10_USING_CUSTOM_GENERATED_MACROS
 #pragma once
 
 #ifndef C10_MACROS_EXPORT_H_
