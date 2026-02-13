@@ -55,7 +55,7 @@ To run the model, you can use the [`forward`](../../06-api-reference/interfaces/
 
 - The image can be a remote URL, a local file URI, or a base64-encoded image.
 - The [`classesOfInterest`](../../06-api-reference/interfaces/ImageSegmentationType.md#classesofinterest) list contains classes for which to output the full results. By default the list is empty, and only the most probable classes are returned (essentially an arg max for each pixel). Look at [`DeeplabLabel`](../../06-api-reference/enumerations/DeeplabLabel.md) enum for possible classes.
-- The [`resize`](../../06-api-reference/interfaces/ImageSegmentationType.md#resize) flag says whether the output will be rescaled back to the size of the image you put in. The default is `false`. The model runs inference on a scaled (probably smaller) version of your image (224x224 for `DEEPLAB_V3_RESNET50`). If you choose to resize, the output will be `number[]` of size `width * height` of your original image.
+- The [`resizeToInput`](../../06-api-reference/interfaces/ImageSegmentationType.md#resizeToInput) flag specifies whether the output will be rescaled back to the size of the input image. The default is `true`. The model runs inference on a scaled (probably smaller) version of your image (224x224 for `DEEPLAB_V3_RESNET50`). If you choose to resize, the output will be `number[]` of size `width * height` of your original image.
 
 :::warning
 Setting `resize` to true will make `forward` slower.

@@ -39,6 +39,10 @@ public:
    * @param start_pos The start position of the new tokens, based on how many
    * prompt tokens is prefilled.
    * @param max_new_tokens Maximum number of new tokens to generate.
+   * @param temperature controls the randomness of predictions by scaling the
+   * logits before applying softmax. A higher temperature results in more
+   * random predictions, while a lower temperature results in more deterministic
+   * predictions.
    * @param token_callback what to do after a token is generated.
    * @return how many tokens are generated.
    */
@@ -113,7 +117,8 @@ public:
       // We pass false, as we want don't want to skip special tokens e.g.
       // <think>
 
-      auto decodeResult = tokenizer_->decode(token_cache, false);
+      auto decodeResult =
+          tokenizer_->decode(token_cache, false); // NOTE: difference
       if (!decodeResult.ok()) {
         throw rnexecutorch::RnExecutorchError(
             rnexecutorch::RnExecutorchErrorCode::TokenizerError,

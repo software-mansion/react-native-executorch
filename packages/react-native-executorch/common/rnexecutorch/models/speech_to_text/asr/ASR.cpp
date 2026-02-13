@@ -97,6 +97,9 @@ ASR::generateWithFallback(std::span<float> waveform,
                           const DecodingOptions &options) const {
   std::vector<float> temperatures = {0.0f, 0.2f, 0.4f, 0.6f, 0.8f, 1.0f};
   std::vector<uint64_t> bestTokens;
+  float bestAvgLogProb = -std::numeric_limits<float>::infinity();
+  float bestCompressionRatio = 0.0f;
+  float bestTemperature = 0.0f;
 
   for (auto t : temperatures) {
     auto [tokens, scores] = this->generate(waveform, t, options);
@@ -111,16 +114,30 @@ ASR::generateWithFallback(std::span<float> waveform,
 
     if (avgLogProb >= -1.0f && compressionRatio < 2.4f) {
       bestTokens = std::move(tokens);
+      bestAvgLogProb = avgLogProb;
+      bestCompressionRatio = compressionRatio;
+      bestTemperature = t;
       break;
+    }
+
+    if (t == temperatures.back() && bestTokens.empty()) {
+      bestTokens = std::move(tokens);
+      bestAvgLogProb = avgLogProb;
+      bestCompressionRatio = compressionRatio;
+      bestTemperature = t;
     }
   }
 
-  return this->calculateWordLevelTimestamps(bestTokens, waveform);
+  return this->calculateWordLevelTimestamps(bestTokens, waveform,
+                                            bestAvgLogProb, bestTemperature,
+                                            bestCompressionRatio);
 }
 
 std::vector<Segment>
 ASR::calculateWordLevelTimestamps(std::span<const uint64_t> generatedTokens,
-                                  const std::span<const float> waveform) const {
+                                  const std::span<const float> waveform,
+                                  float avgLogProb, float temperature,
+                                  float compressionRatio) const {
   const size_t generatedTokensSize = generatedTokens.size();
   if (generatedTokensSize < 2 ||
       generatedTokens[generatedTokensSize - 1] !=
@@ -142,7 +159,22 @@ ASR::calculateWordLevelTimestamps(std::span<const uint64_t> generatedTokens,
       const uint64_t end = generatedTokens[i - 1];
       auto words = this->estimateWordLevelTimestampsLinear(tokens, start, end);
       if (words.size()) {
-        segments.emplace_back(std::move(words), 0.0);
+        Segment seg;
+        seg.words = std::move(words);
+        seg.tokens = {};
+        seg.avgLogprob = avgLogProb;
+        seg.temperature = temperature;
+        seg.compressionRatio = compressionRatio;
+
+        if (!seg.words.empty()) {
+          seg.start = seg.words.front().start;
+          seg.end = seg.words.back().end;
+        } else {
+          seg.start = 0.0;
+          seg.end = 0.0;
+        }
+
+        segments.push_back(std::move(seg));
       }
       tokens.clear();
       prevTimestamp = generatedTokens[i];
@@ -153,9 +185,19 @@ ASR::calculateWordLevelTimestamps(std::span<const uint64_t> generatedTokens,
   const uint64_t end = generatedTokens[generatedTokensSize - 2];
   auto words = this->estimateWordLevelTimestampsLinear(tokens, start, end);
 
-  if (words.size()) {
-    segments.emplace_back(std::move(words), 0.0);
+  Segment seg;
+  seg.words = std::move(words);
+  seg.tokens = tokens;
+  seg.avgLogprob = avgLogProb;
+  seg.temperature = temperature;
+  seg.compressionRatio = compressionRatio;
+
+  if (!seg.words.empty()) {
+    seg.start = seg.words.front().start;
+    seg.end = seg.words.back().end;
   }
+
+  segments.push_back(std::move(seg));
 
   float scalingFactor =
       static_cast<float>(waveform.size()) /
@@ -216,7 +258,8 @@ std::vector<Segment> ASR::transcribe(std::span<float> waveform,
   while (std::cmp_less(seek * ASR::kSamplingRate, waveform.size())) {
     int32_t start = seek * ASR::kSamplingRate;
     const auto end = std::min<int32_t>(
-        (seek + ASR::kChunkSize) * ASR::kSamplingRate, waveform.size());
+        static_cast<int32_t>((seek + ASR::kChunkSize) * ASR::kSamplingRate),
+        static_cast<int32_t>(waveform.size()));
     auto chunk = waveform.subspan(start, end - start);
 
     if (std::cmp_less(chunk.size(), ASR::kMinChunkSamples)) {
@@ -235,9 +278,18 @@ std::vector<Segment> ASR::transcribe(std::span<float> waveform,
         w.start += seek;
         w.end += seek;
       }
+
+      seg.start += seek;
+      seg.end += seek;
     }
 
-    seek = static_cast<int32_t>(segments.back().words.back().end);
+    while (!segments.empty() && segments.back().words.empty()) {
+      segments.pop_back();
+    }
+
+    if (!segments.empty() && !segments.back().words.empty()) {
+      seek = static_cast<int32_t>(segments.back().words.back().end);
+    }
     results.insert(results.end(), std::make_move_iterator(segments.begin()),
                    std::make_move_iterator(segments.end()));
   }
@@ -290,7 +342,7 @@ std::vector<float> ASR::decode(std::span<const uint64_t> tokens,
   }
 
   const auto logitsTensor = decoderResult.get().at(0).toTensor();
-  const int32_t outputNumel = logitsTensor.numel();
+  const int32_t outputNumel = static_cast<int32_t>(logitsTensor.numel());
 
   const size_t innerDim = logitsTensor.size(1);
   const size_t dictSize = logitsTensor.size(2);

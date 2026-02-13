@@ -13,8 +13,8 @@
 
 #pragma once
 
-#include "error.h"
-#include "result.h"
+#include <pytorch/tokenizers/error.h>
+#include <pytorch/tokenizers/result.h>
 #include <string>
 #include <vector>
 

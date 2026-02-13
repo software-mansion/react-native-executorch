@@ -22,7 +22,11 @@
 #include <rnexecutorch/models/object_detection/Constants.h>
 #include <rnexecutorch/models/object_detection/Types.h>
 #include <rnexecutorch/models/ocr/Types.h>
+#include <rnexecutorch/models/speech_to_text/types/Segment.h>
+#include <rnexecutorch/models/speech_to_text/types/TranscriptionResult.h>
 #include <rnexecutorch/models/voice_activity_detection/Types.h>
+
+using namespace rnexecutorch::models::speech_to_text::types;
 
 namespace rnexecutorch::jsi_conversion {
 
@@ -346,4 +350,67 @@ getJsiValue(const std::vector<models::voice_activity_detection::types::Segment>
   return jsiSegments;
 }
 
+inline jsi::Value getJsiValue(const Segment &seg, jsi::Runtime &runtime) {
+  jsi::Object obj(runtime);
+  obj.setProperty(runtime, "start", seg.start);
+  obj.setProperty(runtime, "end", seg.end);
+
+  std::string segText;
+  for (const auto &w : seg.words)
+    segText += w.content;
+  obj.setProperty(runtime, "text",
+                  jsi::String::createFromUtf8(runtime, segText));
+
+  obj.setProperty(runtime, "avgLogprob", seg.avgLogprob);
+  obj.setProperty(runtime, "compressionRatio", seg.compressionRatio);
+  obj.setProperty(runtime, "temperature", seg.temperature);
+
+  jsi::Array wordsArray(runtime, seg.words.size());
+  for (size_t i = 0; i < seg.words.size(); ++i) {
+    jsi::Object wordObj(runtime);
+    wordObj.setProperty(
+        runtime, "word",
+        jsi::String::createFromUtf8(runtime, seg.words[i].content));
+    wordObj.setProperty(runtime, "start",
+                        static_cast<double>(seg.words[i].start));
+    wordObj.setProperty(runtime, "end", static_cast<double>(seg.words[i].end));
+
+    wordsArray.setValueAtIndex(runtime, i, wordObj);
+  }
+  obj.setProperty(runtime, "words", wordsArray);
+
+  jsi::Array tokensArray(runtime, seg.tokens.size());
+  for (size_t i = 0; i < seg.tokens.size(); ++i) {
+    tokensArray.setValueAtIndex(runtime, i, static_cast<double>(seg.tokens[i]));
+  }
+  obj.setProperty(runtime, "tokens", tokensArray);
+
+  return obj;
+}
+
+inline jsi::Value getJsiValue(const TranscriptionResult &result,
+                              jsi::Runtime &runtime) {
+  jsi::Object obj(runtime);
+  obj.setProperty(runtime, "text",
+                  jsi::String::createFromUtf8(runtime, result.text));
+
+  if (!result.segments.empty() || !result.language.empty()) {
+    obj.setProperty(runtime, "task",
+                    jsi::String::createFromUtf8(runtime, result.task));
+    if (!result.language.empty()) {
+      obj.setProperty(runtime, "language",
+                      jsi::String::createFromUtf8(runtime, result.language));
+    }
+    obj.setProperty(runtime, "duration", result.duration);
+
+    jsi::Array segmentsArray(runtime, result.segments.size());
+    for (size_t i = 0; i < result.segments.size(); ++i) {
+      segmentsArray.setValueAtIndex(runtime, i,
+                                    getJsiValue(result.segments[i], runtime));
+    }
+    obj.setProperty(runtime, "segments", segmentsArray);
+  }
+
+  return obj;
+}
 } // namespace rnexecutorch::jsi_conversion

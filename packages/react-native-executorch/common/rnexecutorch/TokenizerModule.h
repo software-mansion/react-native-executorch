@@ -26,7 +26,7 @@ public:
 private:
   void ensureTokenizerLoaded(const std::string &methodName) const;
   std::unique_ptr<tokenizers::HFTokenizer> tokenizer;
-  const std::size_t memorySizeLowerBound{0};
+  std::size_t memorySizeLowerBound{0};
 };
 
 REGISTER_CONSTRUCTOR(TokenizerModule, std::string,

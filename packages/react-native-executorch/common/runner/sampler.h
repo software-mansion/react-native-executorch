@@ -26,6 +26,8 @@ namespace extension {
 namespace llm {
 // A simple llama2 sampler.
 
+inline constexpr auto kTopp = 0.9f;
+
 template <typename T> struct ProbIndex {
   T prob;
   int32_t index;
@@ -65,3 +67,9 @@ using ::executorch::extension::llm::ProbIndex;
 using ::executorch::extension::llm::Sampler;
 } // namespace executor
 } // namespace torch
+
+namespace executorch::llm {
+// TODO(T197294990): Remove these deprecated aliases once all users have moved
+// to the new `::executorch::extension::llm` namespaces.
+using ::executorch::extension::llm::kTopp;
+} // namespace executorch::llm
