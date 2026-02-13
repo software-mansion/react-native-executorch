@@ -73,6 +73,12 @@ export const useModule = <
     }
   };
 
+  const forwardGeneric = async (
+    ...input: ForwardArgs
+  ): Promise<ForwardReturn> => {
+    return await forward(...input);
+  };
+
   return {
     /**
      * Contains the error message if the model failed to load.
@@ -94,5 +100,6 @@ export const useModule = <
      */
     downloadProgress,
     forward,
+    forwardGeneric,
   };
 };
