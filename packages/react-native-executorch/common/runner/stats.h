@@ -11,6 +11,7 @@
 #include "util.h"
 #include <cinttypes>
 #include <executorch/runtime/platform/log.h>
+#include <limits>
 #include <sstream>
 #include <string>
 
@@ -52,10 +53,10 @@ struct Stats {
   // GPU memory stats (optional; may be zero if not available)
   // GPU memory stats (optional). Use sentinel UINT64_MAX / -1.0 to indicate
   // "not available".
-  uint64_t gpu_total_bytes = static_cast<uint64_t>(-1);
-  uint64_t gpu_free_before_load_bytes = static_cast<uint64_t>(-1);
-  uint64_t gpu_free_after_load_bytes = static_cast<uint64_t>(-1);
-  uint64_t gpu_free_after_generate_bytes = static_cast<uint64_t>(-1);
+  uint64_t gpu_total_bytes = std::numeric_limits<uint64_t>::max();
+  uint64_t gpu_free_before_load_bytes = std::numeric_limits<uint64_t>::max();
+  uint64_t gpu_free_after_load_bytes = std::numeric_limits<uint64_t>::max();
+  uint64_t gpu_free_after_generate_bytes = std::numeric_limits<uint64_t>::max();
   double gpu_peak_usage_mb = -1.0;
   inline void on_sampling_begin() {
     aggregate_sampling_timer_start_timestamp = time_in_ms();
@@ -83,10 +84,10 @@ struct Stats {
     aggregate_sampling_time_ms = 0;
     num_prompt_tokens = 0;
     num_generated_tokens = 0;
-    gpu_total_bytes = static_cast<uint64_t>(-1);
-    gpu_free_before_load_bytes = static_cast<uint64_t>(-1);
-    gpu_free_after_load_bytes = static_cast<uint64_t>(-1);
-    gpu_free_after_generate_bytes = static_cast<uint64_t>(-1);
+    gpu_total_bytes = std::numeric_limits<uint64_t>::max();
+    gpu_free_before_load_bytes = std::numeric_limits<uint64_t>::max();
+    gpu_free_after_load_bytes = std::numeric_limits<uint64_t>::max();
+    gpu_free_after_generate_bytes = std::numeric_limits<uint64_t>::max();
     gpu_peak_usage_mb = -1.0;
     aggregate_sampling_timer_start_timestamp = 0;
   }
