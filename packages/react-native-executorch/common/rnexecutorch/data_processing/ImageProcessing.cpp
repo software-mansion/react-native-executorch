@@ -86,7 +86,7 @@ cv::Mat readImage(const std::string &imageURI) {
     while (std::getline(uriStream, stringData, ',')) {
       ++segmentIndex;
     }
-    if (segmentIndex != 1) {
+    if (segmentIndex != 2) {
       throw RnExecutorchError(RnExecutorchErrorCode::FileReadFailed,
                               "Read image error: invalid base64 URI");
     }
