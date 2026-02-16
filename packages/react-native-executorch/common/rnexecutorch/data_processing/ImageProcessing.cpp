@@ -104,8 +104,10 @@ cv::Mat readImage(const std::string &imageURI) {
         cv::Mat(1, imageData.size(), CV_8UC1, (void *)imageData.data()),
         cv::IMREAD_COLOR);
   } else {
-    throw RnExecutorchError(RnExecutorchErrorCode::FileReadFailed,
-                            "Read image error: unknown protocol");
+    // fallback to raw base64 content
+    auto data = base64_decode(imageURI);
+    cv::Mat encodedData(1, data.size(), CV_8UC1, (void *)data.data());
+    image = cv::imdecode(encodedData, cv::IMREAD_COLOR);
   }
 
   if (image.empty()) {

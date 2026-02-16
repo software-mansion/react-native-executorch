@@ -54,7 +54,7 @@ You need more details? Check the following resources:
 
 ## Running the model
 
-To run the model, you can use the [`forward`](../../06-api-reference/interfaces/ObjectDetectionType.md#forward) method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image. The function returns an array of [`Detection`](../../06-api-reference/interfaces/Detection.md) objects. Each object contains coordinates of the bounding box, the label of the detected object, and the confidence score. For more information, please refer to the reference or type definitions.
+To run the model, you can use the [`forward`](../../06-api-reference/interfaces/ObjectDetectionType.md#forward) method. It accepts one argument, which is the image. The image can be a remote URL, a local file URI, or a base64-encoded image (whole URI or only raw base64). The function returns an array of [`Detection`](../../06-api-reference/interfaces/Detection.md) objects. Each object contains coordinates of the bounding box, the label of the detected object, and the confidence score. For more information, please refer to the reference or type definitions.
 
 ## Detection object
 
