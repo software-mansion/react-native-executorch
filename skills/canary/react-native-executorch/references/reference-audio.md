@@ -76,7 +76,7 @@ const transcription = await model.transcribe(audioBuffer, { verbose: true });
 //       ],
 //       tokens: [1, 32, 45, ...],
 //       temperature: 0.0,
-//       avgLogprob: -1.235,
+//       avgLogProb: -1.235,
 //       compressionRatio: 1.632
 //     },
 //     ...
@@ -88,7 +88,7 @@ const transcription = await model.transcribe(audioBuffer, { verbose: true });
 
 For audio longer than 30 seconds, use streaming transcription with the whisper-streaming algorithm. This intelligently chunks audio to avoid cutting speech mid-sentence:
 
-```typescript
+```tsx
 import React, { useEffect, useState, useRef } from 'react';
 import { Text, Button, View, SafeAreaView } from 'react-native';
 import { useSpeechToText, WHISPER_TINY_EN } from 'react-native-executorch';
@@ -163,7 +163,7 @@ export default function App() {
     model.streamStop();
   };
 
-    return (
+  return (
     <SafeAreaView>
       <View style={{ padding: 20 }}>
         <Text style={{ marginBottom: 20, fontSize: 18 }}>
