@@ -36,7 +36,11 @@ export function cleanupExecutorch() {
 // eslint-disable no-var
 declare global {
   var loadStyleTransfer: (source: string) => any;
-  var loadImageSegmentation: (source: string) => any;
+  var loadImageSegmentation: (
+    source: string,
+    normMean: number[],
+    normStd: number[]
+  ) => any;
   var loadClassification: (source: string) => any;
   var loadObjectDetection: (source: string) => any;
   var loadExecutorchModule: (source: string) => any;
