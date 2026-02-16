@@ -102,20 +102,4 @@ export abstract class BaseModule {
       this.nativeModule.unload();
     }
   }
-
-  /**
-   * Bind JSI methods to this instance for worklet compatibility.
-   *
-   * This makes native JSI functions accessible from worklet threads,
-   * which is essential for VisionCamera frame processing.
-   *
-   * @internal
-   */
-  protected bindJSIMethods() {
-    if (this.nativeModule && this.nativeModule.generateFromFrame) {
-      // Bind the native JSI method directly to this instance
-      // This makes it worklet-compatible since JSI functions work across threads
-      this.generateFromFrame = this.nativeModule.generateFromFrame;
-    }
-  }
 }
