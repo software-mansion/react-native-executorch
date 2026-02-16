@@ -55,13 +55,13 @@ To run the model, you can use the [`forward`](../../06-api-reference/interfaces/
 
 - The image can be a remote URL, a local file URI, or a base64-encoded image.
 - The [`classesOfInterest`](../../06-api-reference/interfaces/ImageSegmentationType.md#classesofinterest) list contains classes for which to output the full results. By default the list is empty, and only the most probable classes are returned (essentially an arg max for each pixel). Look at [`DeeplabLabel`](../../06-api-reference/enumerations/DeeplabLabel.md) enum for possible classes.
-- The [`resizeToInput`](../../06-api-reference/interfaces/ImageSegmentationType.md#resizeToInput) flag specifies whether the output will be rescaled back to the size of the input image. The default is `true`. The model runs inference on a scaled (probably smaller) version of your image (224x224 for `DEEPLAB_V3_RESNET50`). If you choose to resize, the output will be `number[]` of size `width * height` of your original image.
+- The [`resizeToInput`](../../06-api-reference/interfaces/ImageSegmentationType.md#resizetoinput) flag specifies whether the output will be rescaled back to the size of the input image. The default is `true`. The model runs inference on a scaled (probably smaller) version of your image (224x224 for `DEEPLAB_V3_RESNET50`). If you choose to resize, the output will be `number[]` of size `width * height` of your original image.
 
 :::warning
-Setting `resize` to true will make `forward` slower.
+Setting `resizeToInput` to `false` will make `forward` faster.
 :::
 
-[`forward`](../../06-api-reference/interfaces/ImageSegmentationType.md#forward) returns a promise which can resolve either to an error or a dictionary containing number arrays with size depending on [`resize`](../../06-api-reference/interfaces/ImageSegmentationType.md#resize):
+[`forward`](../../06-api-reference/interfaces/ImageSegmentationType.md#forward) returns a promise which can resolve either to an error or a dictionary containing number arrays with size depending on [`resizeToInput`](../../06-api-reference/interfaces/ImageSegmentationType.md#resizetoinput):
 
 - For the key [`DeeplabLabel.ARGMAX`](../../06-api-reference/enumerations/DeeplabLabel.md#argmax) the array contains for each pixel an integer corresponding to the class with the highest probability.
 - For every other key from [`DeeplabLabel`](../../06-api-reference/enumerations/DeeplabLabel.md), if the label was included in [`classesOfInterest`](../../06-api-reference/interfaces/ImageSegmentationType.md#classesofinterest) the dictionary will contain an array of floats corresponding to the probability of this class for every pixel.
