@@ -1,29 +1,41 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
-import { DeeplabLabel } from '../../types/imageSegmentation';
+import { CocoLabel, DeeplabLabel } from '../../types/imageSegmentation';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
+import { BaseModule } from '../BaseModule';
 
-type Enumish = Record<string, number | string>;
+enum SelfieSegmentationLabel {
+  BACKGROUND,
+  SELFIE,
+}
+type Enumish = Readonly<Record<string, number | string>>;
+export type Triple<T> = readonly [T, T, T];
 
-type SegmentationConfig<T extends Enumish = Enumish> = {
+type SegmentationConfig<T extends Enumish> = {
   labelMap: T;
+  preprocessorConfig?: { normMean?: Triple<number>; normStd?: Triple<number> };
 };
+
+type ForwardReturnWithArgmax<C extends Enumish> = Partial<
+  Record<keyof C | 'ARGMAX', number[]>
+>;
+
+const IMAGENET_MEAN: Triple<number> = [0.485, 0.456, 0.406];
+const IMAGENET_STD: Triple<number> = [0.229, 0.224, 0.225];
 
 const ModelConfigs = {
   'deeplab-v3': {
     labelMap: DeeplabLabel,
-    loader: (path: string) => global.loadImageSegmentation(path),
   },
   'selfie-segmentation': {
-    labelMap: { background: 0, object: 1 },
-    loader: (path: string) => global.loadImageSegmentation(path),
+    labelMap: SelfieSegmentationLabel,
   },
   'rfdetr': {
-    labelMap: DeeplabLabel,
-    loader: (path: string) => global.loadImageSegmentation(path),
+    labelMap: CocoLabel,
+    preprocessorConfig: { normMean: IMAGENET_MEAN, normStd: IMAGENET_STD },
   },
-} as const;
+} as const satisfies Record<string, SegmentationConfig<Enumish>>;
 
 type ModelConfigsType = typeof ModelConfigs;
 type ModelName = keyof ModelConfigsType;
@@ -32,27 +44,62 @@ export type SegmentationLabels<M extends ModelName> =
   ModelConfigsType[M]['labelMap'];
 
 /**
- * Generic image segmentation module with type-safe label maps.
+ * Resolves the label type: if T is a ModelName, look up its labels; otherwise use T directly as an Enumish.
  */
-export class ImageSegmentation<T extends Enumish = Enumish> {
-  private labelMap: T;
-  private nativeModule: any;
+type ResolveLabels<T extends ModelName | Enumish> = T extends ModelName
+  ? SegmentationLabels<T>
+  : T;
 
-  private constructor(labelMap: T, nativeModule: unknown) {
+/**
+ * Per-model config for `fromModelName`. Each model name maps to its required fields.
+ * Add new union members here when a model needs extra sources or options.
+ */
+type ModelSources =
+  | { modelName: 'deeplab-v3'; modelSource: ResourceSource }
+  | { modelName: 'selfie-segmentation'; modelSource: ResourceSource }
+  | { modelName: 'rfdetr'; modelSource: ResourceSource };
+
+/**
+ * Extract the model name from a config object.
+ */
+type ModelNameOf<C extends ModelSources> = C['modelName'];
+
+/**
+ * Generic image segmentation module with type-safe label maps.
+ * Use a model name (e.g. `'deeplab-v3'`) as the generic parameter for built-in models,
+ * or a custom label enum for custom configs.
+ */
+export class ImageSegmentation<
+  T extends ModelName | Enumish,
+> extends BaseModule {
+  private labelMap: ResolveLabels<T>;
+
+  private constructor(labelMap: ResolveLabels<T>, nativeModule: unknown) {
+    super();
     this.labelMap = labelMap;
     this.nativeModule = nativeModule;
   }
 
+  // TODO: figure it out so we can delete this (we need this because of basemodule inheritance)
+  async load() {}
+
   /**
    * Creates a segmentation instance for a known model.
-   * The config object is strictly typed based on the modelName provided.
+   * The config object is discriminated by `modelName` — each model can require different fields.
    */
-  static async fromModelName<N extends ModelName>(
-    modelSource: ResourceSource,
-    modelName: N,
+  static async fromModelName<C extends ModelSources>(
+    config: C,
     onDownloadProgress: (progress: number) => void = () => {}
-  ): Promise<ImageSegmentation<ModelConfigsType[N]['labelMap']>> {
-    const { labelMap, loader } = ModelConfigs[modelName];
+  ): Promise<ImageSegmentation<ModelNameOf<C>>> {
+    const { modelName, modelSource } = config;
+    const modelConfig = ModelConfigs[modelName];
+    const { labelMap } = modelConfig;
+    const preprocessorConfig =
+      'preprocessorConfig' in modelConfig
+        ? modelConfig.preprocessorConfig
+        : undefined;
+    const normMean = [...(preprocessorConfig?.normMean ?? [])];
+    const normStd = [...(preprocessorConfig?.normStd ?? [])];
     const paths = await ResourceFetcher.fetch(onDownloadProgress, modelSource);
     if (paths === null || paths.length < 1) {
       throw new RnExecutorchError(
@@ -60,18 +107,25 @@ export class ImageSegmentation<T extends Enumish = Enumish> {
         'The download has been interrupted. Please retry.'
       );
     }
-    const nativeModule = loader(paths[0] || '');
-    return new ImageSegmentation(labelMap, nativeModule);
+    const nativeModule = global.loadImageSegmentation(
+      paths[0] || '',
+      normMean,
+      normStd
+    );
+    return new ImageSegmentation<ModelNameOf<C>>(
+      labelMap as ResolveLabels<ModelNameOf<C>>,
+      nativeModule
+    );
   }
 
   /**
    * Creates a segmentation instance with a user-provided label map and custom config.
    */
-  static async fromCustomConfig<T extends Enumish>(
+  static async fromCustomConfig<L extends Enumish>(
     modelSource: ResourceSource,
-    config: SegmentationConfig<T>,
+    config: SegmentationConfig<L>,
     onDownloadProgress: (progress: number) => void = () => {}
-  ): Promise<ImageSegmentation<T>> {
+  ): Promise<ImageSegmentation<L>> {
     const paths = await ResourceFetcher.fetch(onDownloadProgress, modelSource);
     if (paths === null || paths.length < 1) {
       throw new RnExecutorchError(
@@ -79,8 +133,17 @@ export class ImageSegmentation<T extends Enumish = Enumish> {
         'The download has been interrupted. Please retry.'
       );
     }
-    const nativeModule = global.loadImageSegmentation(paths[0] || '');
-    return new ImageSegmentation(config.labelMap, nativeModule);
+    const normMean = config.preprocessorConfig?.normMean ?? [];
+    const normStd = config.preprocessorConfig?.normStd ?? [];
+    const nativeModule = global.loadImageSegmentation(
+      paths[0] || '',
+      [...normMean],
+      [...normStd]
+    );
+    return new ImageSegmentation<L>(
+      config.labelMap as ResolveLabels<L>,
+      nativeModule
+    );
   }
 
   /**
@@ -88,9 +151,9 @@ export class ImageSegmentation<T extends Enumish = Enumish> {
    */
   async forward(
     imageSource: string,
-    classesOfInterest: (keyof T)[] = [],
+    classesOfInterest: (keyof ResolveLabels<T> | 'ARGMAX')[] = [],
     resizeToInput: boolean = true
-  ): Promise<Partial<Record<keyof T, number[]>>> {
+  ): Promise<ForwardReturnWithArgmax<ResolveLabels<T>>> {
     if (this.nativeModule == null) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ModuleNotLoaded,
@@ -98,65 +161,26 @@ export class ImageSegmentation<T extends Enumish = Enumish> {
       );
     }
 
-    const classNames = classesOfInterest.map((label) => String(label));
+    const allClassNames = Object.keys(this.labelMap).filter((k) =>
+      isNaN(Number(k))
+    );
+    const classesOfInterestNames = classesOfInterest.map((label) =>
+      String(label)
+    );
 
     const nativeResult = await this.nativeModule.generate(
       imageSource,
-      classNames,
+      allClassNames,
+      classesOfInterestNames,
       resizeToInput
     );
 
-    const result: Partial<Record<keyof T, number[]>> = {};
+    const result: ForwardReturnWithArgmax<ResolveLabels<T>> = {};
     for (const [key, maskData] of Object.entries(nativeResult)) {
-      if (key in this.labelMap) {
-        result[key as keyof T] = maskData as number[];
+      if (key in this.labelMap || key === 'ARGMAX') {
+        result[key as keyof ResolveLabels<T>] = maskData as number[];
       }
     }
     return result;
   }
-
-  /**
-   * Unloads the model from memory.
-   */
-  delete() {
-    if (this.nativeModule != null) {
-      this.nativeModule.unload();
-    }
-  }
 }
-
-// Type tests
-
-// async function _typeTests() {
-//   const deeplab = await ImageSegmentation.fromModelName('https://example.com/model.pte', 'deeplab-v3');
-//   const deeplabResult = await deeplab.forward('image.jpg', ['PERSON', 'CAR', 'ARGMAX']);
-//   deeplabResult.PERSON;    // OK
-//   deeplabResult.CAR;       // OK
-//   // ERROR: 'BANANA' is not a DeeplabLabel key
-//   deeplabResult.BANANA;
-//
-//   // fromModelName: selfie-segmentation — should autocomplete 'background' | 'object'
-//   const selfie = await ImageSegmentation.fromModelName('https://example.com/model.pte', 'selfie-segmentation');
-//   const selfieResult = await selfie.forward('image.jpg', ['background']);
-//   selfieResult.background; // OK
-//   selfieResult.object;     // OK
-//   // ERROR: 'PERSON' is not a selfie-segmentation key
-//   selfieResult.PERSON;
-//
-//   // fromCustomConfig: custom labels — should infer from provided map
-//   const custom = await ImageSegmentation.fromCustomConfig('https://example.com/model.pte', {
-//     labelMap: { sky: 0, ground: 1, building: 2 } as const,
-//   });
-//   const customResult = await custom.forward('image.jpg', ['sky', 'ground']);
-//   customResult.sky;        // OK
-//   customResult.building;   // OK
-//   // 'water' is not in the custom label map
-//   customResult.water;
-//
-//   // ERORR: 'nonexistent-model' is not a known model name
-//   await ImageSegmentation.fromModelName('https://example.com/model.pte', 'nonexistent-model');
-//
-//   // forward classesOfInterest should only accept valid keys
-//   // 'INVALID' is not a DeeplabLabel key
-//   await deeplab.forward('image.jpg', ['INVALID']);
-// }
