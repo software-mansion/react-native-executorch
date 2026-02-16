@@ -88,7 +88,7 @@ export namespace ResourceFetcherUtils {
         await RNFS.mkdir(RNEDirectory);
       } catch (error) {
         throw new RnExecutorchError(
-          RnExecutorchErrorCode.AccessFailed,
+          RnExecutorchErrorCode.FileWriteFailed,
           `Failed to create directory at ${RNEDirectory}`,
           error
         );

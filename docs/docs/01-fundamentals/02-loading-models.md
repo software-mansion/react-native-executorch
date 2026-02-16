@@ -4,6 +4,46 @@ title: Loading Models
 
 There are three different methods available for loading model files, depending on their size and location.
 
+## Prerequisites
+
+In our library, you can use two different resource fetching mechanisms. One is implemented using Expo module, the other one uses external file-system library. We encourage you to use implementation utilizing Expo if possible. But sometimes you cannot add Expo module to your project, then you should use bare React Native implementation.
+
+To use initialize Expo adapter, please add these libraries:
+
+```bash
+yarn add @rn-executorch/expo-adapter
+yarn add expo-file-system expo-asset
+```
+
+and then add the following code in your React Native app:
+
+```typescript
+import { initExecutorch } from 'react-native-executorch';
+import { ExpoResourceFetcher } from '@react-native-executorch/expo-resource-fetcher';
+
+initExecutorch({
+  resourceFetcher: ExpoResourceFetcher,
+});
+```
+
+If you cannot use Expo in your project, proceed with the following steps:
+
+```bash
+yarn add @rn-executorch/bare-adapter
+yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
+```
+
+and
+
+```typescript
+import { initExecutorch } from 'react-native-executorch';
+import { BareResourceFetcher } from '@rn-executorch/bare-adapter';
+
+initExecutorch({
+  resourceFetcher: BareResourceFetcher,
+});
+```
+
 **1. Load from React Native assets folder (For Files < 512MB)**
 
 ```typescript

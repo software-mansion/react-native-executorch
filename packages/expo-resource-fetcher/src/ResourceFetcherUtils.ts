@@ -101,7 +101,7 @@ export namespace ResourceFetcherUtils {
         await makeDirectoryAsync(RNEDirectory, { intermediates: true });
       } catch (error) {
         throw new RnExecutorchError(
-          RnExecutorchErrorCode.AccessFailed,
+          RnExecutorchErrorCode.FileWriteFailed,
           `Failed to create directory at ${RNEDirectory}`,
           error
         );

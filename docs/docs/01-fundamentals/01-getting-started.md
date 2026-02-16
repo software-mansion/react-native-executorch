@@ -62,7 +62,7 @@ Installation is pretty straightforward, just use your favorite package manager.
   </TabItem>
 </Tabs>
 
-If you're using bare React Native (instead of a managed Expo project), you also need to install Expo Modules because the underlying implementation relies on expo-file-system. Since expo-file-system is an Expo package, bare React Native projects need **Expo Modules** to properly integrate and use it. The link provided (https://docs.expo.dev/bare/installing-expo-modules/) offers guidance on setting up Expo Modules in a bare React Native environment.
+Our library offers support for both bare React Native and Expo projects. We encourage you to use Expo project if possible. If you are planning to migrate from bare React Native to Expo project, the link (https://docs.expo.dev/bare/installing-expo-modules/) offers a guidance on setting up Expo Modules in a bare React Native environment.
 
 If you plan on using your models via require() instead of fetching them from a url, you also need to add following lines to your `metro.config.js`:
 
