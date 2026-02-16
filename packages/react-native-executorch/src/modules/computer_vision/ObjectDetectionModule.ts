@@ -28,7 +28,6 @@ export class ObjectDetectionModule extends BaseModule {
         onDownloadProgressCallback,
         model.modelSource
       );
-
       if (!paths?.[0]) {
         throw new RnExecutorchError(
           RnExecutorchErrorCode.DownloadInterrupted,
