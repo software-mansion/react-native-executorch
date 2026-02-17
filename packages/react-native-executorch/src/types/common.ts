@@ -138,18 +138,52 @@ export interface TensorPtr {
 }
 
 /**
+ * Represents raw pixel data in RGB format for vision models.
+ *
+ * This type extends TensorPtr with constraints specific to image data:
+ * - dataPtr must be Uint8Array (8-bit unsigned integers)
+ * - scalarType is always BYTE (ScalarType.BYTE)
+ * - sizes represents [height, width, channels] where channels must be 3 (RGB)
+ *
+ * @category Types
+ * @example
+ * ```typescript
+ * const pixelData: PixelData = {
+ *   dataPtr: new Uint8Array(width * height * 3), // RGB pixel data
+ *   sizes: [height, width, 3], // [height, width, channels]
+ *   scalarType: ScalarType.BYTE
+ * };
+ * ```
+ */
+export interface PixelData extends Omit<TensorPtr, 'dataPtr' | 'scalarType'> {
+  /**
+   * RGB pixel data as Uint8Array.
+   * Expected format: RGB (3 channels), not RGBA or BGRA.
+   * Size must equal: width * height * 3
+   */
+  dataPtr: Uint8Array;
+
+  /**
+   * Dimensions of the pixel data: [height, width, channels].
+   * - sizes[0]: height (number of rows)
+   * - sizes[1]: width (number of columns)
+   * - sizes[2]: channels (must be 3 for RGB)
+   */
+  sizes: [number, number, 3];
+
+  /**
+   * Scalar type is always BYTE for pixel data.
+   */
+  scalarType: ScalarType.BYTE;
+}
+
+/**
  * Frame data for vision model processing.
  * Supports two modes:
  * 1. ArrayBuffer mode (with memory copy) - Compatible with all platforms
  * 2. NativeBuffer mode (zero-copy) - Better performance with Vision Camera v5
  */
-export interface FrameData {
-  /**
-   * Raw pixel data as ArrayBuffer (requires memory copy).
-   * Use this for compatibility or when getNativeBuffer is not available.
-   */
-  data?: ArrayBuffer | ArrayBufferLike;
-
+export interface Frame {
   /**
    * Pointer to native platform buffer (zero-copy, best performance).
    * - On iOS: CVPixelBufferRef pointer
@@ -157,15 +191,5 @@ export interface FrameData {
    *
    * Obtain from Vision Camera v5: `frame.getNativeBuffer().pointer`
    */
-  nativeBuffer?: bigint;
-
-  /**
-   * Frame width in pixels
-   */
-  width: number;
-
-  /**
-   * Frame height in pixels
-   */
-  height: number;
+  getNativeBuffer(): { pointer: number; release(): void };
 }

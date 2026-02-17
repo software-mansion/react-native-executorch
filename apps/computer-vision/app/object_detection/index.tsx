@@ -13,7 +13,26 @@ import ScreenWrapper from '../../ScreenWrapper';
 import ColorPalette from '../../colors';
 import { Images } from 'react-native-nitro-image';
 
-// Helper function to convert image URI to raw pixel data using NitroImage
+// Helper function to convert BGRA to RGB
+function convertBGRAtoRGB(
+  buffer: ArrayBuffer,
+  width: number,
+  height: number
+): ArrayBuffer {
+  const source = new Uint8Array(buffer);
+  const rgb = new Uint8Array(width * height * 3);
+
+  for (let i = 0; i < width * height; i++) {
+    // BGRA format: [B, G, R, A] → RGB: [R, G, B]
+    rgb[i * 3 + 0] = source[i * 4 + 2]; // R
+    rgb[i * 3 + 1] = source[i * 4 + 1]; // G
+    rgb[i * 3 + 2] = source[i * 4 + 0]; // B
+  }
+
+  return rgb.buffer;
+}
+
+// Helper function to convert image URI to raw RGB pixel data
 async function imageUriToPixelData(
   uri: string,
   targetWidth: number,
@@ -29,32 +48,19 @@ async function imageUriToPixelData(
     const image = await Images.loadFromFileAsync(uri);
     const resized = image.resize(targetWidth, targetHeight);
 
-    // Get pixel data as ArrayBuffer (RGBA format)
-    const pixelData = resized.toRawPixelData();
+    // Get pixel data as ArrayBuffer (BGRA format from NitroImage)
+    const rawPixelData = resized.toRawPixelData();
     const buffer =
-      pixelData instanceof ArrayBuffer ? pixelData : pixelData.buffer;
+      rawPixelData instanceof ArrayBuffer ? rawPixelData : rawPixelData.buffer;
 
-    // Calculate actual buffer dimensions (accounts for device pixel ratio)
-    const bufferSize = buffer?.byteLength || 0;
-    const totalPixels = bufferSize / 4; // RGBA = 4 bytes per pixel
-    const aspectRatio = targetWidth / targetHeight;
-    const actualHeight = Math.sqrt(totalPixels / aspectRatio);
-    const actualWidth = totalPixels / actualHeight;
-
-    console.log('Requested:', targetWidth, 'x', targetHeight);
-    console.log('Buffer size:', bufferSize);
-    console.log(
-      'Actual dimensions:',
-      Math.round(actualWidth),
-      'x',
-      Math.round(actualHeight)
-    );
+    // Convert BGRA to RGB as required by the native API
+    const rgbBuffer = convertBGRAtoRGB(buffer, targetWidth, targetHeight);
 
     return {
-      data: buffer,
-      width: Math.round(actualWidth),
-      height: Math.round(actualHeight),
-      channels: 4, // RGBA
+      data: rgbBuffer,
+      width: targetWidth,
+      height: targetHeight,
+      channels: 3, // RGB
     };
   } catch (error) {
     console.error('Error loading image with NitroImage:', error);
@@ -106,12 +112,11 @@ export default function ObjectDetectionScreen() {
     if (imageUri && imageDimensions) {
       try {
         console.log('Converting image to pixel data...');
-        // Resize to 640x640 to avoid memory issues
-        const intermediateSize = 640;
+        // Use original dimensions - let the model resize internally
         const pixelData = await imageUriToPixelData(
           imageUri,
-          intermediateSize,
-          intermediateSize
+          imageDimensions.width,
+          imageDimensions.height
         );
 
         console.log('Running forward with pixel data...', {
@@ -122,7 +127,7 @@ export default function ObjectDetectionScreen() {
         });
 
         // Run inference using unified forward() API
-        const output = await ssdLite.forward(pixelData, 0.5);
+        const output = await ssdLite.forward(pixelData, 0.3);
         console.log('Pixel data result:', output.length, 'detections');
         setResults(output);
       } catch (e) {

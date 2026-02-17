@@ -1,4 +1,6 @@
 #include "FrameExtractor.h"
+#include <rnexecutorch/Error.h>
+#include <rnexecutorch/ErrorCodes.h>
 #include <rnexecutorch/Log.h>
 
 #ifdef __APPLE__
@@ -20,7 +22,8 @@ cv::Mat FrameExtractor::extractFromNativeBuffer(uint64_t bufferPtr) {
 #elif defined(__ANDROID__)
   return extractFromAHardwareBuffer(reinterpret_cast<void *>(bufferPtr));
 #else
-  throw std::runtime_error("NativeBuffer not supported on this platform");
+  throw RnExecutorchError(RnExecutorchErrorCode::NotSupported,
+                          "NativeBuffer not supported on this platform");
 #endif
 }
 
@@ -40,41 +43,25 @@ cv::Mat FrameExtractor::extractFromCVPixelBuffer(void *pixelBuffer) {
 
   cv::Mat mat;
 
-  // Log pixel format once for debugging
-  static bool loggedPixelFormat = false;
-  if (!loggedPixelFormat) {
-    log(LOG_LEVEL::Debug, "CVPixelBuffer format code: ", pixelFormat);
-    loggedPixelFormat = true;
-  }
-
   if (pixelFormat == kCVPixelFormatType_32BGRA) {
     // BGRA format (most common on iOS when using pixelFormat: 'rgb')
-    if (!loggedPixelFormat) {
-      log(LOG_LEVEL::Debug, "Extracting from CVPixelBuffer: BGRA format, ",
-          width, "x", height, ", stride: ", bytesPerRow);
-    }
     mat = cv::Mat(static_cast<int>(height), static_cast<int>(width), CV_8UC4,
                   baseAddress, bytesPerRow);
   } else if (pixelFormat == kCVPixelFormatType_32RGBA) {
     // RGBA format
-    if (!loggedPixelFormat) {
-      log(LOG_LEVEL::Debug, "Extracting from CVPixelBuffer: RGBA format, ",
-          width, "x", height, ", stride: ", bytesPerRow);
-    }
     mat = cv::Mat(static_cast<int>(height), static_cast<int>(width), CV_8UC4,
                   baseAddress, bytesPerRow);
   } else if (pixelFormat == kCVPixelFormatType_24RGB) {
     // RGB format
-    if (!loggedPixelFormat) {
-      log(LOG_LEVEL::Debug, "Extracting from CVPixelBuffer: RGB format, ",
-          width, "x", height, ", stride: ", bytesPerRow);
-    }
     mat = cv::Mat(static_cast<int>(height), static_cast<int>(width), CV_8UC3,
                   baseAddress, bytesPerRow);
   } else {
     CVPixelBufferUnlockBaseAddress(buffer, kCVPixelBufferLock_ReadOnly);
-    throw std::runtime_error("Unsupported CVPixelBuffer format: " +
-                             std::to_string(pixelFormat));
+    char errorMessage[100];
+    std::snprintf(errorMessage, sizeof(errorMessage),
+                  "Unsupported CVPixelBuffer format: %u", pixelFormat);
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            errorMessage);
   }
 
   // Note: We don't unlock here - Vision Camera manages the lifecycle
@@ -99,50 +86,36 @@ cv::Mat FrameExtractor::extractFromAHardwareBuffer(void *hardwareBuffer) {
       buffer, AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN, -1, nullptr, &data);
 
   if (lockResult != 0) {
-    throw std::runtime_error("Failed to lock AHardwareBuffer");
+    throw RnExecutorchError(RnExecutorchErrorCode::AccessFailed,
+                            "Failed to lock AHardwareBuffer");
   }
 
   cv::Mat mat;
 
-  // Log format once for debugging
-  static bool loggedFormat = false;
-  if (!loggedFormat) {
-    log(LOG_LEVEL::Debug, "AHardwareBuffer format code: ", desc.format);
-    loggedFormat = true;
-  }
-
   if (desc.format == AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM) {
     // RGBA format (expected when using pixelFormat: 'rgb' on Android)
-    if (!loggedFormat) {
-      log(LOG_LEVEL::Debug, "Extracting from AHardwareBuffer: RGBA format, ",
-          desc.width, "x", desc.height, ", stride: ", desc.stride * 4);
-    }
     mat = cv::Mat(desc.height, desc.width, CV_8UC4, data, desc.stride * 4);
   } else if (desc.format == AHARDWAREBUFFER_FORMAT_R8G8B8X8_UNORM) {
     // RGBX format (treated as RGBA)
-    if (!loggedFormat) {
-      log(LOG_LEVEL::Debug, "Extracting from AHardwareBuffer: RGBX format, ",
-          desc.width, "x", desc.height, ", stride: ", desc.stride * 4);
-    }
     mat = cv::Mat(desc.height, desc.width, CV_8UC4, data, desc.stride * 4);
   } else if (desc.format == AHARDWAREBUFFER_FORMAT_R8G8B8_UNORM) {
     // RGB format (less common)
-    if (!loggedFormat) {
-      log(LOG_LEVEL::Debug, "Extracting from AHardwareBuffer: RGB format, ",
-          desc.width, "x", desc.height, ", stride: ", desc.stride * 3);
-    }
     mat = cv::Mat(desc.height, desc.width, CV_8UC3, data, desc.stride * 3);
   } else {
     AHardwareBuffer_unlock(buffer, nullptr);
-    throw std::runtime_error("Unsupported AHardwareBuffer format: " +
-                             std::to_string(desc.format));
+    char errorMessage[100];
+    std::snprintf(errorMessage, sizeof(errorMessage),
+                  "Unsupported AHardwareBuffer format: %u", desc.format);
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            errorMessage);
   }
 
   // Note: We don't unlock here - Vision Camera manages the lifecycle
 
   return mat;
 #else
-  throw std::runtime_error("AHardwareBuffer requires Android API 26+");
+  throw RnExecutorchError(RnExecutorchErrorCode::NotSupported,
+                          "AHardwareBuffer requires Android API 26+");
 #endif // __ANDROID_API__ >= 26
 }
 #endif // __ANDROID__

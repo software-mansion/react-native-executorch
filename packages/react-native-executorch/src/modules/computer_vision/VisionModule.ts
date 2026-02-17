@@ -1,25 +1,7 @@
 import { BaseModule } from '../BaseModule';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
-
-/**
- * Raw pixel data for vision model inference.
- */
-export type PixelData = {
-  data: ArrayBuffer;
-  width: number;
-  height: number;
-  channels: number;
-};
-
-/**
- * VisionCamera Frame object for real-time processing.
- */
-export type Frame = {
-  getNativeBuffer(): { pointer: number; release(): void };
-  width: number;
-  height: number;
-};
+import { Frame, PixelData, ScalarType } from '../../types/common';
 
 /**
  * Base class for computer vision models that support multiple input types.
@@ -74,8 +56,6 @@ export abstract class VisionModule<TOutput> extends BaseModule {
         nativeBuffer = frame.getNativeBuffer();
         const frameData = {
           nativeBuffer: nativeBuffer.pointer,
-          width: frame.width,
-          height: frame.height,
         };
         return nativeGenerateFromFrame(frameData, ...args);
       } finally {
@@ -107,10 +87,9 @@ export abstract class VisionModule<TOutput> extends BaseModule {
    *
    * // Pixel data (async)
    * const result2 = await model.forward({
-   *   data: pixelBuffer,
-   *   width: 640,
-   *   height: 480,
-   *   channels: 3
+   *   dataPtr: new Uint8Array(pixelBuffer),
+   *   sizes: [480, 640, 3],
+   *   scalarType: ScalarType.BYTE
    * });
    *
    * // For VisionCamera frames, use runOnFrame in worklet:
@@ -136,11 +115,13 @@ export abstract class VisionModule<TOutput> extends BaseModule {
       return await this.nativeModule.generateFromString(input, ...args);
     } else if (
       typeof input === 'object' &&
-      'data' in input &&
-      input.data instanceof ArrayBuffer &&
-      typeof input.width === 'number' &&
-      typeof input.height === 'number' &&
-      typeof input.channels === 'number'
+      'dataPtr' in input &&
+      input.dataPtr instanceof Uint8Array &&
+      'sizes' in input &&
+      Array.isArray(input.sizes) &&
+      input.sizes.length === 3 &&
+      'scalarType' in input &&
+      input.scalarType === ScalarType.BYTE
     ) {
       // Pixel data → generateFromPixels()
       return await this.nativeModule.generateFromPixels(input, ...args);

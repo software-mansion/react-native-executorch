@@ -237,10 +237,4 @@ export interface ObjectDetectionType {
    * @returns Array of Detection objects representing detected items in the frame.
    */
   runOnFrame: ((frame: any, detectionThreshold?: number) => Detection[]) | null;
-
-  /**
-   * Direct reference to the module instance for advanced use cases.
-   * Most users should use `forward()` for async processing or `runOnFrame` for real-time frame processing.
-   */
-  moduleInstance: any;
 }

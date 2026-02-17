@@ -45,8 +45,8 @@ public:
    *
    * @return cv::Mat wrapping or containing the frame data
    *
-   * @throws std::runtime_error if neither nativeBuffer nor data is available
-   * @throws std::runtime_error if nativeBuffer extraction fails
+   * @throws RnExecutorchError if neither nativeBuffer nor data is available
+   * @throws RnExecutorchError if nativeBuffer extraction fails
    *
    * @note The returned cv::Mat may not own the data (zero-copy path).
    *       Caller must ensure the source frame remains valid during use.
@@ -62,7 +62,7 @@ public:
    *
    * @return cv::Size with frame width and height
    *
-   * @throws std::runtime_error if width or height properties are missing
+   * @throws RnExecutorchError if width or height properties are missing
    */
   static cv::Size getFrameSize(jsi::Runtime &runtime,
                                const jsi::Object &frameData);
@@ -81,15 +81,15 @@ private:
   /**
    * @brief Extract frame from nativeBuffer pointer (zero-copy)
    *
+   * Native buffer contains all metadata (width, height, format), so no need to
+   * pass dimensions separately.
+   *
    * @param runtime JSI runtime
    * @param frameData JSI object with nativeBuffer property
-   * @param width Frame width
-   * @param height Frame height
    * @return cv::Mat wrapping the native buffer data
    */
   static cv::Mat extractFromNativeBuffer(jsi::Runtime &runtime,
-                                         const jsi::Object &frameData,
-                                         int width, int height);
+                                         const jsi::Object &frameData);
 
   /**
    * @brief Extract frame from ArrayBuffer (with copy)
