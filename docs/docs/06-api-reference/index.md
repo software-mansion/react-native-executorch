@@ -18,6 +18,10 @@
 - [useVAD](functions/useVAD.md)
 - [useVerticalOCR](functions/useVerticalOCR.md)
 
+## Interfaces
+
+- [ResourceSourceExtended](interfaces/ResourceSourceExtended.md)
+
 ## Models - Classification
 
 - [EFFICIENTNET\_V2\_S](variables/EFFICIENTNET_V2_S.md)
@@ -194,7 +198,10 @@
 
 - [CocoLabel](enumerations/CocoLabel.md)
 - [DeeplabLabel](enumerations/DeeplabLabel.md)
+- [DownloadStatus](enumerations/DownloadStatus.md)
+- [HTTP_CODE](enumerations/HTTP_CODE.md)
 - [ScalarType](enumerations/ScalarType.md)
+- [SourceType](enumerations/SourceType.md)
 - [Bbox](interfaces/Bbox.md)
 - [ChatConfig](interfaces/ChatConfig.md)
 - [ClassificationProps](interfaces/ClassificationProps.md)
@@ -240,10 +247,13 @@
 - [TokenizerType](interfaces/TokenizerType.md)
 - [ToolCall](interfaces/ToolCall.md)
 - [ToolsConfig](interfaces/ToolsConfig.md)
+- [TranscriptionResult](interfaces/TranscriptionResult.md)
+- [TranscriptionSegment](interfaces/TranscriptionSegment.md)
 - [VADProps](interfaces/VADProps.md)
 - [VADType](interfaces/VADType.md)
 - [VerticalOCRProps](interfaces/VerticalOCRProps.md)
 - [VoiceConfig](interfaces/VoiceConfig.md)
+- [Word](interfaces/Word.md)
 - [LLMTool](type-aliases/LLMTool.md)
 - [MessageRole](type-aliases/MessageRole.md)
 - [OCRLanguage](type-aliases/OCRLanguage.md)
@@ -273,7 +283,12 @@
 
 ## Utilities - General
 
+- [ResourceFetcherUtils](react-native-executorch/namespaces/ResourceFetcherUtils/index.md)
 - [ResourceFetcher](classes/ResourceFetcher.md)
+- [ExecutorchConfig](interfaces/ExecutorchConfig.md)
+- [ResourceFetcherAdapter](interfaces/ResourceFetcherAdapter.md)
+- [cleanupExecutorch](functions/cleanupExecutorch.md)
+- [initExecutorch](functions/initExecutorch.md)
 
 ## Utilities - LLM
 

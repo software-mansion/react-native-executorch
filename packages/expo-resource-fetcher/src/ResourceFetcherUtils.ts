@@ -29,6 +29,11 @@ export interface DownloadResource {
   extendedInfo: ResourceSourceExtended;
 }
 
+/**
+ * Utility functions for fetching and managing resources.
+ *
+ * @category Utilities - General
+ */
 export namespace ResourceFetcherUtils {
   export const removeFilePrefix = CoreUtils.removeFilePrefix;
   export const hashObject = CoreUtils.hashObject;

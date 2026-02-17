@@ -265,7 +265,7 @@ export const BareResourceFetcher: BareResourceFetcherInterface = {
               );
               resolve(result);
             })
-            .error((e) => {
+            .error((e: any) => {
               reject(e);
             });
         });
@@ -366,7 +366,7 @@ export const BareResourceFetcher: BareResourceFetcherInterface = {
    */
   async listDownloadedFiles() {
     const files = await RNFS.readDir(RNEDirectory);
-    return files.map((file) => file.path);
+    return files.map((file: any) => file.path);
   },
 
   /**
@@ -535,7 +535,7 @@ export const BareResourceFetcher: BareResourceFetcherInterface = {
           );
           resolve(nextResult);
         })
-        .error((error) => {
+        .error((error: any) => {
           this.downloads.delete(source);
           reject(
             new RnExecutorchError(

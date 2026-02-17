@@ -4,10 +4,11 @@ import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 
 /**
  * Adapter interface for resource fetching operations.
- *
  * **Required Methods:**
- * - {@link fetch}: Download resources to local storage (used by all modules)
- * - {@link readAsString}: Read file contents as string (used for config files)
+ * - `fetch`: Download resources to local storage (used by all modules)
+ * - `readAsString`: Read file contents as string (used for config files)
+ *
+ * @category Utilities - General
  *
  * @remarks
  * This interface is intentionally minimal. Custom fetchers only need to implement
