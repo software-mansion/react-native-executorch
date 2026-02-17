@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  ImageSegmentation,
+  ImageSegmentationModule,
   SegmentationLabels,
 } from '../../modules/computer_vision/ImageSegmentationModule';
 import {
@@ -35,21 +35,21 @@ export const useImageSegmentation = <C extends ModelSources>({
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const [instance, setInstance] = useState<ImageSegmentation<
+  const [instance, setInstance] = useState<ImageSegmentationModule<
     ModelNameOf<C>
   > | null>(null);
 
   useEffect(() => {
     if (preventLoad) return;
 
-    let currentInstance: ImageSegmentation<ModelNameOf<C>> | null = null;
+    let currentInstance: ImageSegmentationModule<ModelNameOf<C>> | null = null;
 
     (async () => {
       setDownloadProgress(0);
       setError(null);
       setIsReady(false);
       try {
-        currentInstance = await ImageSegmentation.fromModelName(
+        currentInstance = await ImageSegmentationModule.fromModelName(
           model,
           setDownloadProgress
         );
