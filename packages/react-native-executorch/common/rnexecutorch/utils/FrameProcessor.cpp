@@ -1,7 +1,8 @@
 #include "FrameProcessor.h"
 #include "FrameExtractor.h"
+#include <rnexecutorch/Error.h>
+#include <rnexecutorch/ErrorCodes.h>
 #include <rnexecutorch/Log.h>
-#include <stdexcept>
 
 namespace rnexecutorch {
 namespace utils {
@@ -16,34 +17,21 @@ cv::Mat FrameProcessor::extractFrame(jsi::Runtime &runtime,
 
   // Try zero-copy path first (nativeBuffer)
   if (hasNativeBuffer(runtime, frameData)) {
-    static bool loggedPath = false;
-    if (!loggedPath) {
-      log(LOG_LEVEL::Debug, "FrameProcessor: Using zero-copy nativeBuffer");
-      loggedPath = true;
-    }
-
     try {
-      return extractFromNativeBuffer(runtime, frameData, width, height);
+      return extractFromNativeBuffer(runtime, frameData);
     } catch (const std::exception &e) {
-      log(LOG_LEVEL::Debug,
-          "FrameProcessor: nativeBuffer extraction failed: ", e.what());
-      log(LOG_LEVEL::Debug, "FrameProcessor: Falling back to ArrayBuffer");
+      // Fallback to ArrayBuffer on failure
     }
   }
 
   // Fallback to ArrayBuffer path (with copy)
   if (frameData.hasProperty(runtime, "data")) {
-    static bool loggedPath = false;
-    if (!loggedPath) {
-      log(LOG_LEVEL::Debug, "FrameProcessor: Using ArrayBuffer (with copy)");
-      loggedPath = true;
-    }
-
     return extractFromArrayBuffer(runtime, frameData, width, height);
   }
 
   // No valid frame data source
-  throw std::runtime_error(
+  throw RnExecutorchError(
+      RnExecutorchErrorCode::InvalidUserInput,
       "FrameProcessor: No valid frame data (neither nativeBuffer nor data "
       "property found)");
 }
@@ -52,8 +40,9 @@ cv::Size FrameProcessor::getFrameSize(jsi::Runtime &runtime,
                                       const jsi::Object &frameData) {
   if (!frameData.hasProperty(runtime, "width") ||
       !frameData.hasProperty(runtime, "height")) {
-    throw std::runtime_error("FrameProcessor: Frame data missing width or "
-                             "height property");
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::InvalidUserInput,
+        "FrameProcessor: Frame data missing width or height property");
   }
 
   int width =
@@ -70,8 +59,7 @@ bool FrameProcessor::hasNativeBuffer(jsi::Runtime &runtime,
 }
 
 cv::Mat FrameProcessor::extractFromNativeBuffer(jsi::Runtime &runtime,
-                                                const jsi::Object &frameData,
-                                                int width, int height) {
+                                                const jsi::Object &frameData) {
   auto nativeBufferValue = frameData.getProperty(runtime, "nativeBuffer");
 
   // Handle bigint pointer value from JavaScript
@@ -79,15 +67,8 @@ cv::Mat FrameProcessor::extractFromNativeBuffer(jsi::Runtime &runtime,
       nativeBufferValue.asBigInt(runtime).asUint64(runtime));
 
   // Use FrameExtractor to get cv::Mat from platform-specific buffer
-  cv::Mat frame = FrameExtractor::extractFromNativeBuffer(bufferPtr);
-
-  // Validate extracted frame dimensions match expected
-  if (frame.cols != width || frame.rows != height) {
-    log(LOG_LEVEL::Debug, "FrameProcessor: Dimension mismatch - expected ",
-        width, "x", height, " but got ", frame.cols, "x", frame.rows);
-  }
-
-  return frame;
+  // Native buffer contains all metadata (width, height, format)
+  return FrameExtractor::extractFromNativeBuffer(bufferPtr);
 }
 
 cv::Mat FrameProcessor::extractFromArrayBuffer(jsi::Runtime &runtime,
@@ -103,39 +84,22 @@ cv::Mat FrameProcessor::extractFromArrayBuffer(jsi::Runtime &runtime,
   size_t expectedRGBAStride = width * 4;
   size_t expectedRGBStride = width * 3;
 
-  cv::Mat frame;
-
   if (stride == expectedRGBAStride || bufferSize >= width * height * 4) {
     // RGBA format with potential padding
-    frame = cv::Mat(height, width, CV_8UC4, data, stride);
-
-    static bool loggedFormat = false;
-    if (!loggedFormat) {
-      log(LOG_LEVEL::Debug,
-          "FrameProcessor: ArrayBuffer format is RGBA, "
-          "stride: ",
-          stride);
-      loggedFormat = true;
-    }
+    return cv::Mat(height, width, CV_8UC4, data, stride);
   } else if (stride >= expectedRGBStride) {
     // RGB format
-    frame = cv::Mat(height, width, CV_8UC3, data, stride);
-
-    static bool loggedFormat = false;
-    if (!loggedFormat) {
-      log(LOG_LEVEL::Debug,
-          "FrameProcessor: ArrayBuffer format is RGB, stride: ", stride);
-      loggedFormat = true;
-    }
+    return cv::Mat(height, width, CV_8UC3, data, stride);
   } else {
-    throw std::runtime_error(
-        "FrameProcessor: Unexpected buffer size - expected " +
-        std::to_string(expectedRGBStride) + " or " +
-        std::to_string(expectedRGBAStride) + " bytes per row, got " +
-        std::to_string(stride));
+    char errorMessage[200];
+    std::snprintf(
+        errorMessage, sizeof(errorMessage),
+        "FrameProcessor: Unexpected buffer size - expected %zu or %zu bytes "
+        "per row, got %zu",
+        expectedRGBStride, expectedRGBAStride, stride);
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            errorMessage);
   }
-
-  return frame;
 }
 
 } // namespace utils
