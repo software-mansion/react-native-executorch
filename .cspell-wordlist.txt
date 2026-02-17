@@ -116,3 +116,4 @@ antonov
 rfdetr
 basemodule
 IMAGENET
+worklet
