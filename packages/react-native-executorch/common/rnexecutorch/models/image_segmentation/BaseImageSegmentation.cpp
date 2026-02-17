@@ -39,13 +39,10 @@ void BaseImageSegmentation::initModelImageSize() {
   }
   std::vector<int32_t> modelInputShape = inputShapes[0];
   if (modelInputShape.size() < 2) {
-    char errorMessage[100];
-    std::snprintf(errorMessage, sizeof(errorMessage),
-                  "Unexpected model input size, expected at least 2 dimentions "
-                  "but got: %zu.",
-                  modelInputShape.size());
     throw RnExecutorchError(RnExecutorchErrorCode::WrongDimensions,
-                            errorMessage);
+                            "Unexpected model input size, expected at least 2 "
+                            "dimensions but got: " +
+                                std::to_string(modelInputShape.size()) + ".");
   }
   modelImageSize = cv::Size(modelInputShape[modelInputShape.size() - 1],
                             modelInputShape[modelInputShape.size() - 2]);
@@ -114,8 +111,8 @@ std::shared_ptr<jsi::Object> BaseImageSegmentation::postprocess(
     // Multi-class segmentation (e.g. DeepLab, RF-DETR)
     classBuffers.resize(numChannels);
     for (std::size_t cl = 0; cl < numChannels; ++cl) {
-      classBuffers[cl].assign(&resultData[cl * outputPixels],
-                              &resultData[(cl + 1) * outputPixels]);
+      classBuffers[cl].assign(resultData.data() + cl * outputPixels,
+                              resultData.data() + (cl + 1) * outputPixels);
     }
 
     // Apply softmax and compute argmax per pixel
