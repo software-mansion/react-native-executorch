@@ -149,10 +149,16 @@ export class ImageSegmentation<
         'The download has been interrupted. Please retry.'
       );
     }
+    if (!paths[0]) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.DownloadInterrupted,
+        "The download couldn't be completed. Please retry."
+      );
+    }
     const normMean = config.preprocessorConfig?.normMean ?? [];
     const normStd = config.preprocessorConfig?.normStd ?? [];
     const nativeModule = global.loadImageSegmentation(
-      paths[0]!,
+      paths[0],
       [...normMean],
       [...normStd]
     );
@@ -166,16 +172,16 @@ export class ImageSegmentation<
    * Executes the model's forward pass to perform semantic segmentation on the provided image.
    *
    * @param imageSource - A string representing the image source (e.g., a file path, URI, or Base64-encoded string).
-   * @param classesOfInterest - An optional list of label keys (or `'ARGMAX'`) indicating which per-class probability masks to include in the output. Defaults to an empty list (only `ARGMAX` is always returned).
+   * @param classesOfInterest - An optional list of label keys indicating which per-class probability masks to include in the output. `ARGMAX` is always returned regardless.
    * @param resizeToInput - Whether to resize the output masks to the original input image dimensions. If `false`, returns the raw model output dimensions. Defaults to `true`.
-   * @returns A Promise resolving to an object mapping each requested class label (and `'ARGMAX'`) to a flat array of per-pixel values.
+   * @returns A Promise resolving to an object mapping `'ARGMAX'` and each requested class label to a flat array of per-pixel values.
    * @throws {RnExecutorchError} If the model is not loaded.
    */
-  async forward<K extends keyof ResolveLabels<T> | 'ARGMAX' = 'ARGMAX'>(
+  async forward<K extends keyof ResolveLabels<T>>(
     imageSource: string,
-    classesOfInterest: K[] = ['ARGMAX' as K],
+    classesOfInterest: K[] = [],
     resizeToInput: boolean = true
-  ): Promise<Record<K, number[]>> {
+  ): Promise<Record<K | 'ARGMAX', number[]>> {
     if (this.nativeModule == null) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ModuleNotLoaded,
@@ -203,6 +209,6 @@ export class ImageSegmentation<
         result[key as K] = maskData as number[];
       }
     }
-    return result as Record<K, number[]>;
+    return result as Record<K | 'ARGMAX', number[]>;
   }
 }

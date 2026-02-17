@@ -67,13 +67,11 @@ export const useImageSegmentation = <C extends ModelSources>({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [model.modelName, model.modelSource, preventLoad]);
 
-  const forward = async <
-    K extends keyof SegmentationLabels<ModelNameOf<C>> | 'ARGMAX' = 'ARGMAX',
-  >(
+  const forward = async <K extends keyof SegmentationLabels<ModelNameOf<C>>>(
     imageSource: string,
-    classesOfInterest: K[] = ['ARGMAX' as K],
+    classesOfInterest: K[] = [],
     resizeToInput: boolean = true
-  ): Promise<Record<K, number[]>> => {
+  ): Promise<Record<K | 'ARGMAX', number[]>> => {
     if (!isReady || !instance) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ModuleNotLoaded,
