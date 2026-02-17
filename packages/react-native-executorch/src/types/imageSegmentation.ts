@@ -17,18 +17,6 @@ export type SegmentationConfig<T extends LabelEnum> = {
 };
 
 /**
- * Return type for the segmentation model's forward pass.
- * Maps class label keys (and optionally `"ARGMAX"`) to flat arrays of per-pixel values.
- *
- * @typeParam C - The {@link LabelEnum} type for the model.
- *
- * @category Types
- */
-export type ImageSegmentationForwardReturn<C extends LabelEnum> = Partial<
-  Record<keyof C | 'ARGMAX', number[]>
->;
-
-/**
  * Per-model config for {@link ImageSegmentation.fromModelName}.
  * Each model name maps to its required fields.
  * Add new union members here when a model needs extra sources or options.
