@@ -3,7 +3,6 @@ import { ResourceSource, LabelEnum } from '../../types/common';
 import { CocoLabel } from '../../types/objectDetection';
 import {
   DeeplabLabel,
-  ImageSegmentationForwardReturn,
   ModelNameOf,
   ModelSources,
   SegmentationConfig,
@@ -144,7 +143,7 @@ export class ImageSegmentation<
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<ImageSegmentation<L>> {
     const paths = await ResourceFetcher.fetch(onDownloadProgress, modelSource);
-    if (paths === null || !paths[0]) {
+    if (paths === null || paths.length < 1) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.DownloadInterrupted,
         'The download has been interrupted. Please retry.'
@@ -153,7 +152,7 @@ export class ImageSegmentation<
     const normMean = config.preprocessorConfig?.normMean ?? [];
     const normStd = config.preprocessorConfig?.normStd ?? [];
     const nativeModule = global.loadImageSegmentation(
-      paths[0],
+      paths[0]!,
       [...normMean],
       [...normStd]
     );
@@ -172,11 +171,11 @@ export class ImageSegmentation<
    * @returns A Promise resolving to an object mapping each requested class label (and `'ARGMAX'`) to a flat array of per-pixel values.
    * @throws {RnExecutorchError} If the model is not loaded.
    */
-  async forward(
+  async forward<K extends keyof ResolveLabels<T> | 'ARGMAX' = 'ARGMAX'>(
     imageSource: string,
-    classesOfInterest: (keyof ResolveLabels<T> | 'ARGMAX')[] = ['ARGMAX'],
+    classesOfInterest: K[] = ['ARGMAX' as K],
     resizeToInput: boolean = true
-  ): Promise<ImageSegmentationForwardReturn<ResolveLabels<T>>> {
+  ): Promise<Record<K, number[]>> {
     if (this.nativeModule == null) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ModuleNotLoaded,
@@ -198,12 +197,12 @@ export class ImageSegmentation<
       resizeToInput
     );
 
-    const result: ImageSegmentationForwardReturn<ResolveLabels<T>> = {};
+    const result: Partial<Record<K, number[]>> = {};
     for (const [key, maskData] of Object.entries(nativeResult)) {
       if (key in this.labelMap || key === 'ARGMAX') {
-        result[key as keyof ResolveLabels<T>] = maskData as number[];
+        result[key as K] = maskData as number[];
       }
     }
-    return result;
+    return result as Record<K, number[]>;
   }
 }

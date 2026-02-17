@@ -4,7 +4,6 @@ import {
   SegmentationLabels,
 } from '../../modules/computer_vision/ImageSegmentationModule';
 import {
-  ImageSegmentationForwardReturn,
   ImageSegmentationProps,
   ModelNameOf,
   ModelSources,
@@ -68,16 +67,13 @@ export const useImageSegmentation = <C extends ModelSources>({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [model.modelName, model.modelSource, preventLoad]);
 
-  const forward = async (
+  const forward = async <
+    K extends keyof SegmentationLabels<ModelNameOf<C>> | 'ARGMAX' = 'ARGMAX',
+  >(
     imageSource: string,
-    classesOfInterest: (
-      | keyof SegmentationLabels<ModelNameOf<C>>
-      | 'ARGMAX'
-    )[] = ['ARGMAX'],
+    classesOfInterest: K[] = ['ARGMAX' as K],
     resizeToInput: boolean = true
-  ): Promise<
-    ImageSegmentationForwardReturn<SegmentationLabels<ModelNameOf<C>>>
-  > => {
+  ): Promise<Record<K, number[]>> => {
     if (!isReady || !instance) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ModuleNotLoaded,
