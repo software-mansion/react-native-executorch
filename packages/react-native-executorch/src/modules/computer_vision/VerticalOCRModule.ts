@@ -1,3 +1,4 @@
+import { Logger } from '../../common/Logger';
 import { VerticalOCRController } from '../../controllers/VerticalOCRController';
 import { ResourceSource } from '../../types/common';
 import { OCRDetection, OCRLanguage } from '../../types/ocr';
@@ -32,13 +33,18 @@ export class VerticalOCRModule {
     independentCharacters: boolean,
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ) {
-    await this.controller.load(
-      model.detectorSource,
-      model.recognizerSource,
-      model.language,
-      independentCharacters,
-      onDownloadProgressCallback
-    );
+    try {
+      await this.controller.load(
+        model.detectorSource,
+        model.recognizerSource,
+        model.language,
+        independentCharacters,
+        onDownloadProgressCallback
+      );
+    } catch (error) {
+      Logger.error('Load failed:', error);
+      throw error;
+    }
   }
 
   /**

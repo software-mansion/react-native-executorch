@@ -30,12 +30,17 @@ export class OCRModule {
     },
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ) {
-    await this.controller.load(
-      model.detectorSource,
-      model.recognizerSource,
-      model.language,
-      onDownloadProgressCallback
-    );
+    try {
+      await this.controller.load(
+        model.detectorSource,
+        model.recognizerSource,
+        model.language,
+        onDownloadProgressCallback
+      );
+    } catch (error) {
+      console.error('Load Failed:', error);
+      throw error;
+    }
   }
 
   /**

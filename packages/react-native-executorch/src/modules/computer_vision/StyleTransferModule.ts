@@ -3,6 +3,7 @@ import { ResourceSource } from '../../types/common';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
 import { BaseModule } from '../BaseModule';
+import { Logger } from '../../common/Logger';
 
 /**
  * Module for style transfer tasks.
@@ -21,17 +22,24 @@ export class StyleTransferModule extends BaseModule {
     model: { modelSource: ResourceSource },
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ): Promise<void> {
-    const paths = await ResourceFetcher.fetch(
-      onDownloadProgressCallback,
-      model.modelSource
-    );
-    if (paths === null || paths.length < 1) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+    try {
+      const paths = await ResourceFetcher.fetch(
+        onDownloadProgressCallback,
+        model.modelSource
       );
+
+      if (paths === null || paths.length < 1) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.DownloadInterrupted,
+          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+        );
+      }
+
+      this.nativeModule = global.loadClassification(paths[0] || '');
+    } catch (error) {
+      Logger.error('Load failed:', error);
+      throw error;
     }
-    this.nativeModule = global.loadStyleTransfer(paths[0] || '');
   }
 
   /**
