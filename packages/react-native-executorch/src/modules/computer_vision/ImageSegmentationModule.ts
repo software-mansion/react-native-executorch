@@ -102,14 +102,14 @@ export class ImageSegmentation<
     const normMean = [...(preprocessorConfig?.normMean ?? [])];
     const normStd = [...(preprocessorConfig?.normStd ?? [])];
     const paths = await ResourceFetcher.fetch(onDownloadProgress, modelSource);
-    if (paths === null || paths.length < 1) {
+    if (!paths?.[0]) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.DownloadInterrupted,
         'The download has been interrupted. Please retry.'
       );
     }
     const nativeModule = global.loadImageSegmentation(
-      paths[0] || '',
+      paths[0],
       normMean,
       normStd
     );
@@ -143,16 +143,10 @@ export class ImageSegmentation<
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<ImageSegmentation<L>> {
     const paths = await ResourceFetcher.fetch(onDownloadProgress, modelSource);
-    if (paths === null || paths.length < 1) {
+    if (!paths?.[0]) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.DownloadInterrupted,
         'The download has been interrupted. Please retry.'
-      );
-    }
-    if (!paths[0]) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        "The download couldn't be completed. Please retry."
       );
     }
     const normMean = config.preprocessorConfig?.normMean ?? [];
