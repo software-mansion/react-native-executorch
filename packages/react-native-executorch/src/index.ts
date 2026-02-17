@@ -23,9 +23,9 @@ declare global {
     schedulerStepsOffset: number
   ) => any;
   var loadSpeechToText: (
-    encoderSource: string,
-    decoderSource: string,
-    modelName: string
+    modelName: string,
+    modelSource: string,
+    tokenizerSource: string
   ) => any;
   var loadTextToSpeechKokoro: (
     lang: string,

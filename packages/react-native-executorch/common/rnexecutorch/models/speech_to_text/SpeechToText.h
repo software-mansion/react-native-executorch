@@ -1,10 +1,12 @@
 #pragma once
 
-#include "rnexecutorch/models/speech_to_text/stream/OnlineASRProcessor.h"
-#include <rnexecutorch/models/speech_to_text/types/TranscriptionResult.h>
 #include <span>
 #include <string>
 #include <vector>
+
+#include "common/schema/ASR.h"
+#include "common/schema/OnlineASR.h"
+#include "common/types/TranscriptionResult.h"
 
 namespace rnexecutorch {
 
@@ -12,8 +14,8 @@ namespace models::speech_to_text {
 
 class SpeechToText {
 public:
-  explicit SpeechToText(const std::string &encoderSource,
-                        const std::string &decoderSource,
+  explicit SpeechToText(const std::string &modelName,
+                        const std::string &modelSource,
                         const std::string &tokenizerSource,
                         std::shared_ptr<react::CallInvoker> callInvoker);
 
@@ -25,9 +27,9 @@ public:
       "Registered non-void function")]] std::shared_ptr<OwningArrayBuffer>
   decode(std::span<uint64_t> tokens, std::span<float> encoderOutput) const;
   [[nodiscard("Registered non-void function")]]
-  types::TranscriptionResult transcribe(std::span<float> waveform,
-                                        std::string languageOption,
-                                        bool verbose) const;
+  TranscriptionResult transcribe(std::span<float> waveform,
+                                 std::string languageOption,
+                                 bool verbose) const;
 
   [[nodiscard("Registered non-void function")]]
   std::vector<char> transcribeStringOnly(std::span<float> waveform,
@@ -42,20 +44,18 @@ public:
   void streamInsert(std::span<float> waveform);
 
 private:
-  std::shared_ptr<react::CallInvoker> callInvoker;
-  std::unique_ptr<BaseModel> encoder;
-  std::unique_ptr<BaseModel> decoder;
-  std::unique_ptr<TokenizerModule> tokenizer;
-  std::unique_ptr<asr::ASR> asr;
-
-  // Stream
-  std::unique_ptr<stream::OnlineASRProcessor> processor;
-  bool isStreaming;
-  bool readyToProcess;
-
-  constexpr static int32_t kMinAudioSamples = 16000; // 1 second
-
+  // Helper functions
   void resetStreamState();
+
+  std::shared_ptr<react::CallInvoker> callInvoker_;
+
+  // ASR-like module (both static transcription & streaming)
+  std::unique_ptr<schema::ASR> transcriber_ = nullptr;
+
+  // Online ASR-like module (streaming only)
+  std::unique_ptr<schema::OnlineASR> streamer_ = nullptr;
+  bool isStreaming_ = false;
+  bool readyToProcess_ = true;
 };
 
 } // namespace models::speech_to_text
