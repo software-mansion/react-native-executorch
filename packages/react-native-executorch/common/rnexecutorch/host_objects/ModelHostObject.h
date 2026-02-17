@@ -45,10 +45,11 @@ public:
           "getInputShape"));
     }
 
-    if constexpr (meta::HasGenerate<Model>) {
-      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       promiseHostFunction<&Model::generate>,
-                                       "generate"));
+    if constexpr (meta::HasGenerateFromString<Model>) {
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                              promiseHostFunction<&Model::generateFromString>,
+                              "generateFromString"));
     }
 
     if constexpr (meta::HasEncode<Model>) {
@@ -155,9 +156,21 @@ public:
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::stream>,
                                        "stream"));
+    }
+
+    // Register generateFromFrame for all VisionModel subclasses
+    if constexpr (meta::DerivedFromOrSameAs<Model, models::VisionModel>) {
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>, synchronousHostFunction<&Model::streamStop>,
           "streamStop"));
+    }
+
+    // Register generateFromPixels for models that support it
+    if constexpr (meta::HasGenerateFromPixels<Model>) {
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                              visionHostFunction<&Model::generateFromPixels>,
+                              "generateFromPixels"));
     }
   }
 

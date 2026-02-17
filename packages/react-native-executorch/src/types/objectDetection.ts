@@ -170,14 +170,77 @@ export interface ObjectDetectionType {
   downloadProgress: number;
 
   /**
-   * Executes the model's forward pass to detect objects within the provided image.
-   * @param imageSource - A string representing the image source (e.g., a file path, URI, or base64 string) to be processed.
-   * @param detectionThreshold - An optional number between 0 and 1 representing the minimum confidence score required for an object to be included in the results. Default is 0.7.
-   * @returns A Promise that resolves to an array of `Detection` objects, where each object typically contains bounding box coordinates, a class label, and a confidence score.
+   * Executes the model's forward pass with automatic input type detection.
+   *
+   * Supports two input types:
+   * 1. **String path/URI**: File path, URL, or Base64-encoded string
+   * 2. **PixelData**: Raw pixel data from image libraries (e.g., NitroImage)
+   *
+   * **Note**: For VisionCamera frame processing, use `processFrame` instead.
+   *
+   * @param input - Image source (string or PixelData object)
+   * @param detectionThreshold - An optional number between 0 and 1 representing the minimum confidence score. Default is 0.7.
+   * @returns A Promise that resolves to an array of `Detection` objects.
    * @throws {RnExecutorchError} If the model is not loaded or is currently processing another image.
+   *
+   * @example
+   * ```typescript
+   * // String path
+   * const detections1 = await model.forward('file:///path/to/image.jpg');
+   *
+   * // Pixel data
+   * const detections2 = await model.forward({
+   *   data: pixelBuffer,
+   *   width: 640,
+   *   height: 480,
+   *   channels: 3
+   * });
+   * ```
    */
   forward: (
-    imageSource: string,
+    input:
+      | string
+      | {
+          data: ArrayBuffer;
+          width: number;
+          height: number;
+          channels: number;
+        },
     detectionThreshold?: number
   ) => Promise<Detection[]>;
+
+  /**
+   * Synchronous worklet function for real-time VisionCamera frame processing.
+   * Automatically handles native buffer extraction and cleanup.
+   *
+   * **Use this for VisionCamera frame processing in worklets.**
+   * For async processing, use `forward()` instead.
+   *
+   * Available after model is loaded (`isReady: true`).
+   *
+   * @example
+   * ```typescript
+   * const { runOnFrame, isReady } = useObjectDetection({ model: MODEL });
+   *
+   * const frameOutput = useFrameOutput({
+   *   onFrame(frame) {
+   *     'worklet';
+   *     if (!runOnFrame) return;
+   *     const detections = runOnFrame(frame, 0.5);
+   *     frame.dispose();
+   *   }
+   * });
+   * ```
+   *
+   * @param frame - VisionCamera Frame object
+   * @param detectionThreshold - The threshold for detection sensitivity. Default is 0.7.
+   * @returns Array of Detection objects representing detected items in the frame.
+   */
+  runOnFrame: ((frame: any, detectionThreshold?: number) => Detection[]) | null;
+
+  /**
+   * Direct reference to the module instance for advanced use cases.
+   * Most users should use `forward()` for async processing or `runOnFrame` for real-time frame processing.
+   */
+  moduleInstance: any;
 }

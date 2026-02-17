@@ -121,12 +121,48 @@ protected:
    * responsible
    * @note Typical usage:
    * @code
-   *   cv::Mat preprocessed = extractAndPreprocess(runtime, frameData);
+   *   cv::Mat preprocessed = extractFromFrame(runtime, frameData);
    *   auto tensor = image_processing::getTensorFromMatrix(dims, preprocessed);
    * @endcode
    */
-  cv::Mat extractAndPreprocess(jsi::Runtime &runtime,
-                               const jsi::Value &frameData) const;
+  cv::Mat extractFromFrame(jsi::Runtime &runtime,
+                           const jsi::Value &frameData) const;
+
+  /**
+   * @brief Extract cv::Mat from raw pixel data (ArrayBuffer) sent from
+   * JavaScript
+   *
+   * This method enables users to run inference on raw pixel data without file
+   * I/O. Useful for processing images already in memory (e.g., from canvas,
+   * image library).
+   *
+   * @param runtime JSI runtime
+   * @param pixelData JSI object containing:
+   *                  - data: ArrayBuffer with raw pixel values
+   *                  - width: number - image width
+   *                  - height: number - image height
+   *                  - channels: number - number of channels (3 for RGB, 4 for
+   * RGBA)
+   *
+   * @return cv::Mat containing the pixel data
+   *
+   * @throws std::runtime_error if pixelData format is invalid
+   *
+   * @note The returned cv::Mat owns a copy of the data
+   * @note Expected pixel format: RGB or RGBA, row-major order
+   * @note Typical usage from JS:
+   * @code
+   *   const pixels = new Uint8Array([...]);  // Raw pixel data
+   *   const result = model.generateFromPixels({
+   *     data: pixels.buffer,
+   *     width: 640,
+   *     height: 480,
+   *     channels: 3
+   *   }, 0.5);
+   * @endcode
+   */
+  cv::Mat extractFromPixels(jsi::Runtime &runtime,
+                            const jsi::Object &pixelData) const;
 };
 
 } // namespace models

@@ -15,9 +15,10 @@ import {
 export const useObjectDetection = ({
   model,
   preventLoad = false,
-}: ObjectDetectionProps): ObjectDetectionType =>
-  useModule({
+}: ObjectDetectionProps): ObjectDetectionType => {
+  return useModule({
     module: ObjectDetectionModule,
     model,
     preventLoad: preventLoad,
-  });
+  }) as ObjectDetectionType;
+};

@@ -6,6 +6,7 @@ interface Module {
   load: (...args: any[]) => Promise<void>;
   forward: (...args: any[]) => Promise<any>;
   delete: () => void;
+  nativeModule?: any; // JSI host object with native methods
 }
 
 interface ModuleConstructor<M extends Module> {
@@ -31,6 +32,7 @@ export const useModule = <
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [moduleInstance] = useState(() => new module());
+  const [runOnFrame, setRunOnFrame] = useState<any>(null);
 
   useEffect(() => {
     if (preventLoad) return;
@@ -42,6 +44,15 @@ export const useModule = <
         setIsReady(false);
         await moduleInstance.load(model, setDownloadProgress);
         setIsReady(true);
+
+        // Extract runOnFrame worklet from VisionModule if available
+        // Use "state trick" to make the worklet serializable for VisionCamera
+        if ('runOnFrame' in moduleInstance) {
+          const worklet = moduleInstance.runOnFrame;
+          if (worklet) {
+            setRunOnFrame(() => worklet);
+          }
+        }
       } catch (err) {
         setError(parseUnknownError(err));
       }
@@ -94,5 +105,32 @@ export const useModule = <
      */
     downloadProgress,
     forward,
+
+    /**
+     * Synchronous worklet function for real-time VisionCamera frame processing.
+     * Automatically handles native buffer extraction and cleanup.
+     *
+     * Only available for Computer Vision modules that support real-time frame processing
+     * (e.g., ObjectDetection, Classification, ImageSegmentation).
+     * Returns `null` if the module doesn't implement frame processing.
+     *
+     * **Use this for VisionCamera frame processing in worklets.**
+     * For async processing, use `forward()` instead.
+     *
+     * @example
+     * ```typescript
+     * const { runOnFrame } = useObjectDetection({ model: MODEL });
+     *
+     * const frameOutput = useFrameOutput({
+     *   onFrame(frame) {
+     *     'worklet';
+     *     if (!runOnFrame) return;
+     *     const detections = runOnFrame(frame, 0.5);
+     *     frame.dispose();
+     *   }
+     * });
+     * ```
+     */
+    runOnFrame,
   };
 };
