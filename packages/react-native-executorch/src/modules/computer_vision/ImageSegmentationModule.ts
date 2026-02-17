@@ -172,14 +172,14 @@ export class ImageSegmentationModule<
    * @param imageSource - A string representing the image source (e.g., a file path, URI, or Base64-encoded string).
    * @param classesOfInterest - An optional list of label keys indicating which per-class probability masks to include in the output. `ARGMAX` is always returned regardless.
    * @param resizeToInput - Whether to resize the output masks to the original input image dimensions. If `false`, returns the raw model output dimensions. Defaults to `true`.
-   * @returns A Promise resolving to an object mapping `'ARGMAX'` and each requested class label to a flat array of per-pixel values.
+   * @returns A Promise resolving to an object with an `'ARGMAX'` key mapped to an `Int32Array` of per-pixel class indices, and each requested class label mapped to a `Float32Array` of per-pixel probabilities.
    * @throws {RnExecutorchError} If the model is not loaded.
    */
   async forward<K extends keyof ResolveLabels<T>>(
     imageSource: string,
     classesOfInterest: K[] = [],
     resizeToInput: boolean = true
-  ): Promise<Record<K | 'ARGMAX', number[]>> {
+  ): Promise<Record<'ARGMAX', Int32Array> & Record<K, Float32Array>> {
     if (this.nativeModule == null) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ModuleNotLoaded,
@@ -198,10 +198,7 @@ export class ImageSegmentationModule<
       resizeToInput
     );
 
-    const result: Partial<Record<K | 'ARGMAX', number[]>> = {};
-    for (const [key, maskData] of Object.entries(nativeResult)) {
-      result[key as K | 'ARGMAX'] = maskData as number[];
-    }
-    return result as Record<K | 'ARGMAX', number[]>;
+    return nativeResult as Record<'ARGMAX', Int32Array> &
+      Record<K, Float32Array>;
   }
 }
