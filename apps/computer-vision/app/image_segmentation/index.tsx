@@ -1,11 +1,7 @@
 import Spinner from '../../components/Spinner';
 import { BottomBar } from '../../components/BottomBar';
 import { getImage } from '../../utils';
-import {
-  ImageSegmentation,
-  DEEPLAB_V3_RESNET50,
-  SegmentationLabels,
-} from 'react-native-executorch';
+import { ImageSegmentation } from 'react-native-executorch';
 import {
   Canvas,
   Image as SkiaImage,
@@ -63,8 +59,11 @@ export default function ImageSegmentationScreen() {
     let instance: ImageSegmentation<'deeplab-v3'> | null = null;
     (async () => {
       instance = await ImageSegmentation.fromModelName(
-        DEEPLAB_V3_RESNET50.modelSource,
-        'deeplab-v3',
+        {
+          modelName: 'deeplab-v3',
+          modelSource:
+            'https://ai.swmansion.com/storage/jc_tests/selfie_seg.pte',
+        },
         setDownloadProgress
       );
       setModel(instance);
@@ -89,7 +88,10 @@ export default function ImageSegmentationScreen() {
     try {
       setIsGenerating(true);
       const { width, height } = imageSize;
-      const output = await model.forward(imageUri, ['dupa'], true);
+      const t1 = performance.now();
+      const output = await model.forward(imageUri, [], true);
+      const t2 = performance.now();
+      console.log(t2 - t1);
       const argmax = output['ARGMAX'] || [];
       const pixels = new Uint8Array(width * height * 4);
 
