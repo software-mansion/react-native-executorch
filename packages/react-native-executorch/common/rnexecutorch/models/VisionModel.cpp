@@ -1,4 +1,9 @@
 #include "VisionModel.h"
+#include <rnexecutorch/Error.h>
+#include <rnexecutorch/ErrorCodes.h>
+#include <rnexecutorch/Log.h>
+#include <rnexecutorch/host_objects/JSTensorViewIn.h>
+#include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/utils/FrameProcessor.h>
 
 namespace rnexecutorch {
@@ -18,45 +23,47 @@ cv::Mat VisionModel::extractFromFrame(jsi::Runtime &runtime,
 
 cv::Mat VisionModel::extractFromPixels(jsi::Runtime &runtime,
                                        const jsi::Object &pixelData) const {
-  // Extract width, height, and channels
-  if (!pixelData.hasProperty(runtime, "width") ||
-      !pixelData.hasProperty(runtime, "height") ||
-      !pixelData.hasProperty(runtime, "channels") ||
-      !pixelData.hasProperty(runtime, "data")) {
-    throw std::runtime_error(
-        "Invalid pixel data: must contain width, height, channels, and data");
+  // PixelData follows TensorPtr structure (dataPtr, sizes, scalarType)
+  // Use JSI conversion helper to extract the data
+  auto tensorView = jsi::fromHostObject<JSTensorViewIn>(runtime, pixelData);
+
+  // Validate dimensions: sizes must be [height, width, channels]
+  if (tensorView.sizes.size() != 3) {
+    char errorMessage[100];
+    std::snprintf(errorMessage, sizeof(errorMessage),
+                  "Invalid pixel data: sizes must have 3 elements "
+                  "[height, width, channels], got %zu",
+                  tensorView.sizes.size());
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            errorMessage);
   }
 
-  int width = pixelData.getProperty(runtime, "width").asNumber();
-  int height = pixelData.getProperty(runtime, "height").asNumber();
-  int channels = pixelData.getProperty(runtime, "channels").asNumber();
+  int height = tensorView.sizes[0];
+  int width = tensorView.sizes[1];
+  int channels = tensorView.sizes[2];
 
-  // Get the ArrayBuffer
-  auto dataValue = pixelData.getProperty(runtime, "data");
-  if (!dataValue.isObject() ||
-      !dataValue.asObject(runtime).isArrayBuffer(runtime)) {
-    throw std::runtime_error(
-        "pixel data 'data' property must be an ArrayBuffer");
+  // Pixel data must be RGB (3 channels) and BYTE type
+  if (channels != 3) {
+    char errorMessage[100];
+    std::snprintf(errorMessage, sizeof(errorMessage),
+                  "Invalid pixel data: expected 3 channels (RGB), got %d",
+                  channels);
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            errorMessage);
   }
 
-  auto arrayBuffer = dataValue.asObject(runtime).getArrayBuffer(runtime);
-  size_t expectedSize = width * height * channels;
-
-  if (arrayBuffer.size(runtime) != expectedSize) {
-    throw std::runtime_error(
-        "ArrayBuffer size does not match width * height * channels");
+  if (tensorView.scalarType != ScalarType::Byte) {
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::InvalidUserInput,
+        "Invalid pixel data: scalarType must be BYTE (Uint8Array)");
   }
 
-  // Create cv::Mat and copy the data
-  // OpenCV uses BGR/BGRA format internally, but we'll create as-is and let
-  // preprocessFrame handle conversion
-  int cvType = (channels == 3) ? CV_8UC3 : CV_8UC4;
-  cv::Mat image(height, width, cvType);
+  // Create cv::Mat directly from dataPtr (zero-copy view)
+  uint8_t *dataPtr = static_cast<uint8_t *>(tensorView.dataPtr);
+  cv::Mat image(height, width, CV_8UC3, dataPtr);
 
-  // Copy data from ArrayBuffer to cv::Mat
-  std::memcpy(image.data, arrayBuffer.data(runtime), expectedSize);
-
-  return image;
+  // Clone to own the data, since JS memory may be GC'd
+  return image.clone();
 }
 
 } // namespace models

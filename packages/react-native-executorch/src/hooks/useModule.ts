@@ -6,7 +6,6 @@ interface Module {
   load: (...args: any[]) => Promise<void>;
   forward: (...args: any[]) => Promise<any>;
   delete: () => void;
-  nativeModule?: any; // JSI host object with native methods
 }
 
 interface ModuleConstructor<M extends Module> {
