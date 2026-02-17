@@ -110,6 +110,20 @@ export interface ObjectDetectionType<L extends LabelEnum> {
    * @param detectionThreshold - An optional number between 0 and 1 representing the minimum confidence score. Default is 0.7.
    * @returns A Promise that resolves to an array of `Detection` objects.
    * @throws {RnExecutorchError} If the model is not loaded or is currently processing another image.
+   *
+   * @example
+   * ```typescript
+   * // String path
+   * const detections1 = await model.forward('file:///path/to/image.jpg');
+   *
+   * // Pixel data
+   * const detections2 = await model.forward({
+   *   data: pixelBuffer,
+   *   width: 640,
+   *   height: 480,
+   *   channels: 3
+   * });
+   * ```
    */
   forward: (
     input: string | PixelData,
