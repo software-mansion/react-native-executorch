@@ -1,7 +1,7 @@
 import Spinner from '../../components/Spinner';
 import { BottomBar } from '../../components/BottomBar';
 import { getImage } from '../../utils';
-import { ImageSegmentationModule } from 'react-native-executorch';
+import { useImageSegmentation } from 'react-native-executorch';
 import {
   Canvas,
   Image as SkiaImage,
@@ -41,10 +41,13 @@ const numberToColor: number[][] = [
 
 export default function ImageSegmentationScreen() {
   const { setGlobalGenerating } = useContext(GeneratingContext);
-  const [model, setModel] =
-    useState<ImageSegmentationModule<'deeplab-v3'> | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState(0);
+  const { isReady, isGenerating, downloadProgress, forward } =
+    useImageSegmentation({
+      model: {
+        modelName: 'deeplab-v3',
+        modelSource: 'https://ai.swmansion.com/storage/jc_tests/selfie_seg.pte',
+      },
+    });
   const [imageUri, setImageUri] = useState('');
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [segImage, setSegImage] = useState<SkImage | null>(null);
@@ -53,22 +56,6 @@ export default function ImageSegmentationScreen() {
   useEffect(() => {
     setGlobalGenerating(isGenerating);
   }, [isGenerating, setGlobalGenerating]);
-
-  useEffect(() => {
-    let instance: ImageSegmentationModule<'deeplab-v3'> | null = null;
-    (async () => {
-      instance = await ImageSegmentationModule.fromModelName(
-        {
-          modelName: 'deeplab-v3',
-          modelSource:
-            'https://ai.swmansion.com/storage/jc_tests/selfie_seg.pte',
-        },
-        setDownloadProgress
-      );
-      setModel(instance);
-    })();
-    return () => instance?.delete();
-  }, []);
 
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
@@ -82,15 +69,10 @@ export default function ImageSegmentationScreen() {
   };
 
   const runForward = async () => {
-    if (!model || !imageUri || imageSize.width === 0 || imageSize.height === 0)
-      return;
+    if (!imageUri || imageSize.width === 0 || imageSize.height === 0) return;
     try {
-      setIsGenerating(true);
       const { width, height } = imageSize;
-      const t1 = performance.now();
-      const output = await model.forward(imageUri, ['PERSON'], true);
-      const t2 = performance.now();
-      console.log(t2 - t1);
+      const output = await forward(imageUri, ['PERSON'], true);
       const argmax = output['ARGMAX'] || [];
       const pixels = new Uint8Array(width * height * 4);
 
@@ -119,15 +101,13 @@ export default function ImageSegmentationScreen() {
       setSegImage(img);
     } catch (e) {
       console.error(e);
-    } finally {
-      setIsGenerating(false);
     }
   };
 
-  if (!model) {
+  if (!isReady) {
     return (
       <Spinner
-        visible={!model}
+        visible={!isReady}
         textContent={`Loading the model ${(downloadProgress * 100).toFixed(0)} %`}
       />
     );
