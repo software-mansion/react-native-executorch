@@ -71,7 +71,7 @@ export const useImageSegmentation = <C extends ModelSources>({
     imageSource: string,
     classesOfInterest: K[] = [],
     resizeToInput: boolean = true
-  ): Promise<Record<'ARGMAX', Int32Array> & Record<K, Float32Array>> => {
+  ) => {
     if (!isReady || !instance) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ModuleNotLoaded,
