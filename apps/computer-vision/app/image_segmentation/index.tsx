@@ -89,7 +89,7 @@ export default function ImageSegmentationScreen() {
       setIsGenerating(true);
       const { width, height } = imageSize;
       const t1 = performance.now();
-      const output = await model.forward(imageUri, [], true);
+      const output = await model.forward(imageUri, ['PERSON'], true);
       const t2 = performance.now();
       console.log(t2 - t1);
       const argmax = output['ARGMAX'] || [];
