@@ -5,6 +5,7 @@ import {
 } from '../../modules/computer_vision/ImageSegmentationModule';
 import {
   ImageSegmentationProps,
+  ImageSegmentationType,
   ModelNameOf,
   ModelSources,
 } from '../../types/imageSegmentation';
@@ -30,7 +31,9 @@ import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 export const useImageSegmentation = <C extends ModelSources>({
   model,
   preventLoad = false,
-}: ImageSegmentationProps<C>) => {
+}: ImageSegmentationProps<C>): ImageSegmentationType<
+  SegmentationLabels<ModelNameOf<C>>
+> => {
   const [error, setError] = useState<RnExecutorchError | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
