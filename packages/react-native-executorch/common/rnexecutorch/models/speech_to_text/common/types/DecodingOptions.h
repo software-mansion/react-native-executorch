@@ -3,7 +3,7 @@
 #include <optional>
 #include <string>
 
-namespace rnexecutorch::models::speech_to_text::types {
+namespace rnexecutorch::models::speech_to_text {
 
 struct DecodingOptions {
   explicit DecodingOptions(const std::string &language, bool verbose = false)
@@ -14,4 +14,4 @@ struct DecodingOptions {
   bool verbose;
 };
 
-} // namespace rnexecutorch::models::speech_to_text::types
+} // namespace rnexecutorch::models::speech_to_text

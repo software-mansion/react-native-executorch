@@ -69,10 +69,10 @@ declare global {
     schedulerStepsOffset: number
   ) => Promise<any>;
   var loadSpeechToText: (
-    encoderSource: string,
-    decoderSource: string,
-    modelName: string
-  ) => Promise<any>;
+    modelName: string,
+    modelSource: string,
+    tokenizerSource: string
+  ) => any;
   var loadTextToSpeechKokoro: (
     lang: string,
     taggerData: string,
