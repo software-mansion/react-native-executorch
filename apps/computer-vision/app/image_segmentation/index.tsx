@@ -1,7 +1,7 @@
 import Spinner from '../../components/Spinner';
 import { BottomBar } from '../../components/BottomBar';
 import { getImage } from '../../utils';
-import { ImageSegmentation } from 'react-native-executorch';
+import { ImageSegmentationModule } from 'react-native-executorch';
 import {
   Canvas,
   Image as SkiaImage,
@@ -41,9 +41,8 @@ const numberToColor: number[][] = [
 
 export default function ImageSegmentationScreen() {
   const { setGlobalGenerating } = useContext(GeneratingContext);
-  const [model, setModel] = useState<ImageSegmentation<'deeplab-v3'> | null>(
-    null
-  );
+  const [model, setModel] =
+    useState<ImageSegmentationModule<'deeplab-v3'> | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [imageUri, setImageUri] = useState('');
@@ -56,9 +55,9 @@ export default function ImageSegmentationScreen() {
   }, [isGenerating, setGlobalGenerating]);
 
   useEffect(() => {
-    let instance: ImageSegmentation<'deeplab-v3'> | null = null;
+    let instance: ImageSegmentationModule<'deeplab-v3'> | null = null;
     (async () => {
-      instance = await ImageSegmentation.fromModelName(
+      instance = await ImageSegmentationModule.fromModelName(
         {
           modelName: 'deeplab-v3',
           modelSource:

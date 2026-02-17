@@ -17,7 +17,7 @@ export type SegmentationConfig<T extends LabelEnum> = {
 };
 
 /**
- * Per-model config for {@link ImageSegmentation.fromModelName}.
+ * Per-model config for {@link ImageSegmentationModule.fromModelName}.
  * Each model name maps to its required fields.
  * Add new union members here when a model needs extra sources or options.
  *

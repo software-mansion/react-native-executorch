@@ -3,7 +3,7 @@ import {
   ResourceFetcher,
   ResourceFetcherAdapter,
 } from './utils/ResourceFetcher';
-
+import { Triple } from './types/common';
 /**
  * Configuration that goes to the `initExecutorch`.
  * You can pass either bare React Native or Expo configuration.
@@ -38,8 +38,8 @@ declare global {
   var loadStyleTransfer: (source: string) => any;
   var loadImageSegmentation: (
     source: string,
-    normMean: number[],
-    normStd: number[]
+    normMean: Triple<number> | [],
+    normStd: Triple<number> | []
   ) => any;
   var loadClassification: (source: string) => any;
   var loadObjectDetection: (source: string) => any;
