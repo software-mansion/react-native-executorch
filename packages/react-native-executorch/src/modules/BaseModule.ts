@@ -1,4 +1,4 @@
-import { ResourceSource } from '../types/common';
+import { Frame, ResourceSource } from '../types/common';
 import { TensorPtr } from '../types/common';
 
 /**
@@ -51,9 +51,9 @@ export abstract class BaseModule {
    * @param args Additional model-specific arguments (e.g., threshold, options)
    * @returns Model-specific output (e.g., detections, classifications, embeddings)
    *
-   * @see {@link FrameData} for frame data format details
+   * @see {@link Frame} for frame data format details
    */
-  public generateFromFrame!: (frameData: FrameData, ...args: any[]) => any;
+  public generateFromFrame!: (frameData: Frame, ...args: any[]) => any;
 
   /**
    * Load the model and prepare it for inference.
