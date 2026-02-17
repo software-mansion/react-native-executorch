@@ -1,13 +1,10 @@
 #include "BaseImageSegmentation.h"
 #include "jsi/jsi.h"
 
-#include <cmath>
 #include <future>
 
 #include <executorch/extension/tensor/tensor.h>
-#include <memory>
 #include <rnexecutorch/Error.h>
-#include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/data_processing/Numerical.h>
 #include <rnexecutorch/models/BaseModel.h>
@@ -57,16 +54,8 @@ void BaseImageSegmentation::initModelImageSize() {
 
 TensorPtr BaseImageSegmentation::preprocess(const std::string &imageSource,
                                             cv::Size &originalSize) {
-  if (normMean_.has_value() && normStd_.has_value()) {
-    cv::Mat input = image_processing::readImage(imageSource);
-    originalSize = input.size();
-    cv::resize(input, input, modelImageSize);
-    cv::cvtColor(input, input, cv::COLOR_BGR2RGB);
-    return image_processing::getTensorFromMatrix(
-        getAllInputShapes()[0], input, normMean_.value(), normStd_.value());
-  }
-  auto [inputTensor, origSize] =
-      image_processing::readImageToTensor(imageSource, getAllInputShapes()[0]);
+  auto [inputTensor, origSize] = image_processing::readImageToTensor(
+      imageSource, getAllInputShapes()[0], false, normMean_, normStd_);
   originalSize = origSize;
   return inputTensor;
 }
@@ -92,103 +81,73 @@ std::shared_ptr<jsi::Object> BaseImageSegmentation::generate(
 
 std::shared_ptr<jsi::Object> BaseImageSegmentation::postprocess(
     const Tensor &tensor, cv::Size originalSize,
-    std::vector<std::string> allClasses,
-    std::set<std::string, std::less<>> classesOfInterest, bool resize) {
+    std::vector<std::string> &allClasses,
+    std::set<std::string, std::less<>> &classesOfInterest, bool resize) {
 
   auto dataPtr = static_cast<const float *>(tensor.const_data_ptr());
   auto resultData = std::span(dataPtr, tensor.numel());
 
-  // Infer output pixel count and channel count.
-  // If output spatial dims differ from input (e.g. model downsamples),
-  // derive pixel count from the tensor and allClasses.size().
-  size_t numOutputChannels = tensor.numel() / numModelPixels;
-  size_t outputPixels = numModelPixels;
-  if (numOutputChannels != 1 && numOutputChannels != allClasses.size() &&
-      !allClasses.empty() && tensor.numel() % allClasses.size() == 0) {
-    outputPixels = tensor.numel() / allClasses.size();
-    numOutputChannels = allClasses.size();
-  }
-  auto outputSide = static_cast<int>(std::sqrt(outputPixels));
-  cv::Size outputSize(outputSide, outputSide);
+  // Read output dimensions directly from tensor shape
+  std::size_t numChannels =
+      (tensor.dim() >= 3) ? tensor.size(tensor.dim() - 3) : 1;
+  std::size_t outputH = tensor.size(tensor.dim() - 2);
+  std::size_t outputW = tensor.size(tensor.dim() - 1);
+  std::size_t outputPixels = outputH * outputW;
+  cv::Size outputSize(static_cast<int>(outputW), static_cast<int>(outputH));
 
-  std::vector<std::shared_ptr<OwningArrayBuffer>> resultClasses;
-  auto argmax =
-      std::make_shared<OwningArrayBuffer>(outputPixels * sizeof(int32_t));
+  // Work with vectors, only wrap into OwningArrayBuffer at the end
+  std::vector<std::vector<float>> classBuffers;
+  std::vector<int32_t> argmaxData(outputPixels);
 
-  if (numOutputChannels == 1) {
-    // Binary segmentation path (e.g. selfie segmentation)
-    // The single channel contains probability values in [0, 1]
-    // Synthesize two class buffers: background (1-p) and foreground (p)
-    resultClasses.reserve(2);
-
-    auto bgBuffer =
-        std::make_shared<OwningArrayBuffer>(outputPixels * sizeof(float));
-    auto fgBuffer =
-        std::make_shared<OwningArrayBuffer>(outputPixels * sizeof(float));
-
-    auto *bgData = reinterpret_cast<float *>(bgBuffer->data());
-    auto *fgData = reinterpret_cast<float *>(fgBuffer->data());
-    auto *argmaxData = reinterpret_cast<int32_t *>(argmax->data());
-
+  if (numChannels == 1) {
+    // Binary segmentation (e.g. selfie segmentation)
+    std::vector<float> bg(outputPixels);
+    std::vector<float> fg(outputPixels);
     for (std::size_t pixel = 0; pixel < outputPixels; ++pixel) {
       float p = resultData[pixel];
-      bgData[pixel] = 1.0f - p;
-      fgData[pixel] = p;
+      bg[pixel] = 1.0f - p;
+      fg[pixel] = p;
       argmaxData[pixel] = (p > 0.5f) ? 1 : 0;
     }
-
-    resultClasses.push_back(bgBuffer);
-    resultClasses.push_back(fgBuffer);
-  } else if (numOutputChannels == allClasses.size()) {
-    // Multi-class segmentation path (e.g. DeepLab-v3)
-    // Copy per-class buffers from the ET-owned tensor data
-    resultClasses.reserve(allClasses.size());
-    for (std::size_t cl = 0; cl < allClasses.size(); ++cl) {
-      auto classBuffer = std::make_shared<OwningArrayBuffer>(
-          &resultData[cl * outputPixels], outputPixels * sizeof(float));
-      resultClasses.push_back(classBuffer);
+    classBuffers = {std::move(bg), std::move(fg)};
+  } else {
+    // Multi-class segmentation (e.g. DeepLab, RF-DETR)
+    classBuffers.resize(numChannels);
+    for (std::size_t cl = 0; cl < numChannels; ++cl) {
+      classBuffers[cl].assign(&resultData[cl * outputPixels],
+                              &resultData[(cl + 1) * outputPixels]);
     }
 
-    // Apply softmax per each pixel across all classes
+    // Apply softmax and compute argmax per pixel
     for (std::size_t pixel = 0; pixel < outputPixels; ++pixel) {
-      std::vector<float> classValues(allClasses.size());
-      for (std::size_t cl = 0; cl < allClasses.size(); ++cl) {
-        classValues[cl] =
-            reinterpret_cast<float *>(resultClasses[cl]->data())[pixel];
+      std::vector<float> values(numChannels);
+      for (std::size_t cl = 0; cl < numChannels; ++cl) {
+        values[cl] = classBuffers[cl][pixel];
       }
-      numerical::softmax(classValues);
-      for (std::size_t cl = 0; cl < allClasses.size(); ++cl) {
-        reinterpret_cast<float *>(resultClasses[cl]->data())[pixel] =
-            classValues[cl];
-      }
-    }
+      numerical::softmax(values);
 
-    // Calculate the maximum class for each pixel
-    auto *argmaxData = reinterpret_cast<int32_t *>(argmax->data());
-    for (std::size_t pixel = 0; pixel < outputPixels; ++pixel) {
-      float max = reinterpret_cast<float *>(resultClasses[0]->data())[pixel];
+      float maxVal = values[0];
       int maxInd = 0;
-      for (std::size_t cl = 1; cl < allClasses.size(); ++cl) {
-        if (reinterpret_cast<float *>(resultClasses[cl]->data())[pixel] > max) {
+      for (std::size_t cl = 0; cl < numChannels; ++cl) {
+        classBuffers[cl][pixel] = values[cl];
+        if (values[cl] > maxVal) {
+          maxVal = values[cl];
           maxInd = static_cast<int>(cl);
-          max = reinterpret_cast<float *>(resultClasses[cl]->data())[pixel];
         }
       }
       argmaxData[pixel] = maxInd;
     }
-  } else {
-    char errorMessage[200];
-    std::snprintf(
-        errorMessage, sizeof(errorMessage),
-        "Unexpected number of output channels: %zu. Expected 1 (binary) or "
-        "%zu (matching allClasses). Model output has %zu elements for %zu "
-        "pixels.",
-        numOutputChannels, allClasses.size(), tensor.numel(), outputPixels);
-    throw RnExecutorchError(RnExecutorchErrorCode::WrongDimensions,
-                            errorMessage);
   }
 
-  // Filter classes of interest using allClasses labels
+  // Wrap into OwningArrayBuffers
+  auto argmax = std::make_shared<OwningArrayBuffer>(argmaxData);
+  std::vector<std::shared_ptr<OwningArrayBuffer>> resultClasses;
+  resultClasses.reserve(classBuffers.size());
+  for (auto &buf : classBuffers) {
+    resultClasses.push_back(std::make_shared<OwningArrayBuffer>(buf));
+  }
+
+  // Filter classes of interest
   auto buffersToReturn = std::make_shared<std::unordered_map<
       std::string_view, std::shared_ptr<OwningArrayBuffer>>>();
   for (std::size_t cl = 0; cl < resultClasses.size(); ++cl) {
@@ -212,6 +171,7 @@ std::shared_ptr<jsi::Object> BaseImageSegmentation::postprocess(
           classMat.data, originalSize.area() * sizeof(float));
     }
   }
+
   return populateDictionary(argmax, buffersToReturn);
 }
 
@@ -220,7 +180,6 @@ std::shared_ptr<jsi::Object> BaseImageSegmentation::populateDictionary(
     std::shared_ptr<std::unordered_map<std::string_view,
                                        std::shared_ptr<OwningArrayBuffer>>>
         classesToOutput) {
-  // Synchronize the invoked thread to return when the dict is constructed
   auto promisePtr = std::make_shared<std::promise<void>>();
   std::future<void> doneFuture = promisePtr->get_future();
 

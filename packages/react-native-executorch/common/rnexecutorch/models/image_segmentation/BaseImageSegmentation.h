@@ -35,8 +35,8 @@ protected:
                                cv::Size &originalSize);
   virtual std::shared_ptr<jsi::Object>
   postprocess(const Tensor &tensor, cv::Size originalSize,
-              std::vector<std::string> allClasses,
-              std::set<std::string, std::less<>> classesOfInterest,
+              std::vector<std::string> &allClasses,
+              std::set<std::string, std::less<>> &classesOfInterest,
               bool resize);
 
   cv::Size modelImageSize;
@@ -44,15 +44,14 @@ protected:
   std::optional<cv::Scalar> normMean_;
   std::optional<cv::Scalar> normStd_;
 
-private:
-  void initModelImageSize();
-
-protected:
   std::shared_ptr<jsi::Object> populateDictionary(
       std::shared_ptr<OwningArrayBuffer> argmax,
       std::shared_ptr<std::unordered_map<std::string_view,
                                          std::shared_ptr<OwningArrayBuffer>>>
           classesToOutput);
+
+private:
+  void initModelImageSize();
 };
 } // namespace models::image_segmentation
 } // namespace rnexecutorch

@@ -51,5 +51,7 @@ cv::Mat resizePadded(const cv::Mat inputImage, cv::Size targetSize);
 std::pair<TensorPtr, cv::Size>
 readImageToTensor(const std::string &path,
                   const std::vector<int32_t> &tensorDims,
-                  bool maintainAspectRatio = false);
+                  bool maintainAspectRatio = false,
+                  std::optional<cv::Scalar> normMean = std::nullopt,
+                  std::optional<cv::Scalar> normStd = std::nullopt);
 } // namespace rnexecutorch::image_processing
