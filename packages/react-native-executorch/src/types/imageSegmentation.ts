@@ -1,3 +1,4 @@
+import { RnExecutorchError } from '../errors/errorUtils';
 import { LabelEnum, Triple, ResourceSource } from './common';
 
 /**
@@ -94,4 +95,48 @@ export enum SelfieSegmentationLabel {
 export interface ImageSegmentationProps<C extends ModelSources> {
   model: C;
   preventLoad?: boolean;
+}
+
+/**
+ * Return type for the `useImageSegmentation` hook.
+ * Manages the state and operations for image segmentation models.
+ *
+ * @typeParam L - The {@link LabelEnum} representing the model's class labels.
+ *
+ * @category Types
+ */
+export interface ImageSegmentationType<L extends LabelEnum> {
+  /**
+   * Contains the error object if the model failed to load, download, or encountered a runtime error during segmentation.
+   */
+  error: RnExecutorchError | null;
+
+  /**
+   * Indicates whether the segmentation model is loaded and ready to process images.
+   */
+  isReady: boolean;
+
+  /**
+   * Indicates whether the model is currently processing an image.
+   */
+  isGenerating: boolean;
+
+  /**
+   * Represents the download progress of the model binary as a value between 0 and 1.
+   */
+  downloadProgress: number;
+
+  /**
+   * Executes the model's forward pass to perform semantic segmentation on the provided image.
+   * @param imageSource - A string representing the image source (e.g., a file path, URI, or base64 string) to be processed.
+   * @param classesOfInterest - An optional array of label keys indicating which per-class probability masks to include in the output. `ARGMAX` is always returned regardless.
+   * @param resizeToInput - Whether to resize the output masks to the original input image dimensions. If `false`, returns the raw model output dimensions. Defaults to `true`.
+   * @returns A Promise resolving to an object with an `'ARGMAX'` `Int32Array` of per-pixel class indices, and each requested class label mapped to a `Float32Array` of per-pixel probabilities.
+   * @throws {RnExecutorchError} If the model is not loaded or is currently processing another image.
+   */
+  forward: <K extends keyof L>(
+    imageSource: string,
+    classesOfInterest?: K[],
+    resizeToInput?: boolean
+  ) => Promise<Record<'ARGMAX', Int32Array> & Record<K, Float32Array>>;
 }
