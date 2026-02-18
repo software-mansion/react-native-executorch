@@ -1,5 +1,5 @@
 import { RnExecutorchError } from '../errors/errorUtils';
-import { ResourceSource } from './common';
+import { ResourceSource, PixelData, Frame } from './common';
 
 /**
  * Represents a bounding box for a detected object in an image.
@@ -190,22 +190,14 @@ export interface ObjectDetectionType {
    *
    * // Pixel data
    * const detections2 = await model.forward({
-   *   data: pixelBuffer,
-   *   width: 640,
-   *   height: 480,
-   *   channels: 3
+   *   dataPtr: new Uint8Array(rgbPixels),
+   *   sizes: [480, 640, 3],
+   *   scalarType: ScalarType.BYTE
    * });
    * ```
    */
   forward: (
-    input:
-      | string
-      | {
-          data: ArrayBuffer;
-          width: number;
-          height: number;
-          channels: number;
-        },
+    input: string | PixelData,
     detectionThreshold?: number
   ) => Promise<Detection[]>;
 
@@ -236,5 +228,7 @@ export interface ObjectDetectionType {
    * @param detectionThreshold - The threshold for detection sensitivity. Default is 0.7.
    * @returns Array of Detection objects representing detected items in the frame.
    */
-  runOnFrame: ((frame: any, detectionThreshold?: number) => Detection[]) | null;
+  runOnFrame:
+    | ((frame: Frame, detectionThreshold?: number) => Detection[])
+    | null;
 }

@@ -2,8 +2,6 @@
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/ErrorCodes.h>
 #include <rnexecutorch/Log.h>
-#include <rnexecutorch/host_objects/JSTensorViewIn.h>
-#include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/utils/FrameProcessor.h>
 
 namespace rnexecutorch {
@@ -21,12 +19,7 @@ cv::Mat VisionModel::extractFromFrame(jsi::Runtime &runtime,
   return preprocessFrame(frame);
 }
 
-cv::Mat VisionModel::extractFromPixels(jsi::Runtime &runtime,
-                                       const jsi::Object &pixelData) const {
-  // PixelData follows TensorPtr structure (dataPtr, sizes, scalarType)
-  // Use JSI conversion helper to extract the data
-  auto tensorView = jsi::fromHostObject<JSTensorViewIn>(runtime, pixelData);
-
+cv::Mat VisionModel::extractFromPixels(const JSTensorViewIn &tensorView) const {
   // Validate dimensions: sizes must be [height, width, channels]
   if (tensorView.sizes.size() != 3) {
     char errorMessage[100];
@@ -59,11 +52,11 @@ cv::Mat VisionModel::extractFromPixels(jsi::Runtime &runtime,
   }
 
   // Create cv::Mat directly from dataPtr (zero-copy view)
+  // Data is valid for the duration of this synchronous call
   uint8_t *dataPtr = static_cast<uint8_t *>(tensorView.dataPtr);
   cv::Mat image(height, width, CV_8UC3, dataPtr);
 
-  // Clone to own the data, since JS memory may be GC'd
-  return image.clone();
+  return image;
 }
 
 } // namespace models

@@ -86,7 +86,7 @@ cv::Mat FrameExtractor::extractFromAHardwareBuffer(void *hardwareBuffer) {
       buffer, AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN, -1, nullptr, &data);
 
   if (lockResult != 0) {
-    throw RnExecutorchError(RnExecutorchErrorCode::AccessFailed,
+    throw RnExecutorchError(RnExecutorchErrorCode::UnknownError,
                             "Failed to lock AHardwareBuffer");
   }
 

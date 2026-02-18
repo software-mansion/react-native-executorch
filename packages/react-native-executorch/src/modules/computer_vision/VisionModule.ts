@@ -73,7 +73,7 @@ export abstract class VisionModule<TOutput> extends BaseModule {
    * 1. **String path/URI**: File path, URL, or Base64-encoded string
    * 2. **PixelData**: Raw pixel data from image libraries (e.g., NitroImage)
    *
-   * **Note**: For VisionCamera frame processing, use `forwardSync` instead.
+   * **Note**: For VisionCamera frame processing, use `runOnFrame` instead.
    * This method is async and cannot be called in worklet context.
    *
    * @param input - Image source (string path or PixelData object)

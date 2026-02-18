@@ -205,5 +205,5 @@ export interface Frame {
    *
    * Obtain from Vision Camera v5: `frame.getNativeBuffer().pointer`
    */
-  getNativeBuffer(): { pointer: number; release(): void };
+  getNativeBuffer(): { pointer: bigint; release(): void };
 }
