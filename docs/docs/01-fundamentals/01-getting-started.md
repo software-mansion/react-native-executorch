@@ -62,7 +62,7 @@ Installation is pretty straightforward, just use your favorite package manager.
   </TabItem>
 </Tabs>
 
-Our library offers support for both bare React Native and Expo projects. We encourage you to use Expo project if possible. If you are planning to migrate from bare React Native to Expo project, the link (https://docs.expo.dev/bare/installing-expo-modules/) offers a guidance on setting up Expo Modules in a bare React Native environment.
+Our library offers support for both bare React Native and Expo projects. Please follow the instructions from [Loading models section](./02-loading-models.md) to make sure you setup your project correctly. We encourage you to use Expo project if possible. If you are planning to migrate from bare React Native to Expo project, the link (https://docs.expo.dev/bare/installing-expo-modules/) offers a guidance on setting up Expo Modules in a bare React Native environment.
 
 If you plan on using your models via require() instead of fetching them from a url, you also need to add following lines to your `metro.config.js`:
 
