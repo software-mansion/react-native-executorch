@@ -36,7 +36,7 @@ export class ImageSegmentationModule extends BaseModule {
         );
       }
 
-      this.nativeModule = global.loadClassification(paths[0] || '');
+      this.nativeModule = global.loadImageSegmentation(paths[0] || '');
     } catch (error) {
       Logger.error('Load failed:', error);
       throw error;

@@ -36,7 +36,7 @@ export class ObjectDetectionModule extends BaseModule {
         );
       }
 
-      this.nativeModule = global.loadClassification(paths[0] || '');
+      this.nativeModule = global.loadObjectDetection(paths[0] || '');
     } catch (error) {
       Logger.error('Load failed:', error);
       throw error;

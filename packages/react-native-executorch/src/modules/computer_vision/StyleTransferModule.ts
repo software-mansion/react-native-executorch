@@ -35,7 +35,7 @@ export class StyleTransferModule extends BaseModule {
         );
       }
 
-      this.nativeModule = global.loadClassification(paths[0] || '');
+      this.nativeModule = global.loadStyleTransfer(paths[0] || '');
     } catch (error) {
       Logger.error('Load failed:', error);
       throw error;
