@@ -6,7 +6,7 @@ There are three different methods available for loading model files, depending o
 
 ## Prerequisites
 
-In our library, you can use two different resource fetching mechanisms. One is implemented using Expo FileSystem, the other one uses external library. We encourage you to use implementation utilizing Expo if possible. But sometimes you cannot add Expo module to your project, then you should use bare React Native implementation.
+In our library, you can use two different resource fetching mechanisms. One is implemented using Expo FileSystem, the other one uses external library. We encourage you to use implementation utilizing Expo if possible.
 
 To use the Expo adapter, please add these libraries:
 
@@ -37,7 +37,7 @@ and
 
 ```typescript
 import { initExecutorch } from 'react-native-executorch';
-import { BareResourceFetcher } from '@rn-executorch/bare-adapter';
+import { BareResourceFetcher } from '@react-native-executorch/bare-adapter';
 
 initExecutorch({
   resourceFetcher: BareResourceFetcher,
