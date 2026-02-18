@@ -71,7 +71,7 @@ To run the model, use the [`forward`](../../06-api-reference/interfaces/ImageSeg
 - [`resizeToInput`](../../06-api-reference/interfaces/ImageSegmentationType.md#forward) (optional) - Whether to resize the output masks to the original input image dimensions. Defaults to `true`. If `false`, returns the raw model output dimensions (e.g. 224x224 for `DEEPLAB_V3_RESNET50`).
 
 :::warning
-Setting `resizeToInput` to `true` will make `forward` slower.
+Setting `resizeToInput` to `false` will make `forward` faster.
 :::
 
 `forward` returns a promise resolving to an object containing:
