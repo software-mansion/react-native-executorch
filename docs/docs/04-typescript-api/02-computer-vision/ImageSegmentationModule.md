@@ -44,7 +44,7 @@ Use [`fromModelName`](../../06-api-reference/classes/ImageSegmentationModule.md#
 
 ```typescript
 const segmentation = await ImageSegmentationModule.fromModelName(
-  { modelName: 'deeplab-v3', modelSource: DEEPLAB_V3_RESNET50 },
+  DEEPLAB_V3_RESNET50,
   (progress) => console.log(`Download: ${Math.round(progress * 100)}%`)
 );
 ```
