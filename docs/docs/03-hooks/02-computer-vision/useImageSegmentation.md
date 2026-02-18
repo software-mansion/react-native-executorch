@@ -22,7 +22,7 @@ import {
 } from 'react-native-executorch';
 
 const model = useImageSegmentation({
-  model: { modelName: 'deeplab-v3', modelSource: DEEPLAB_V3_RESNET50 },
+  model: DEEPLAB_V3_RESNET50,
 });
 
 const imageUri = 'file::///Users/.../cute_cat.png';
@@ -92,7 +92,7 @@ import {
 
 function App() {
   const model = useImageSegmentation({
-    model: { modelName: 'deeplab-v3', modelSource: DEEPLAB_V3_RESNET50 },
+    model: DEEPLAB_V3_RESNET50,
   });
 
   const handleSegment = async () => {
