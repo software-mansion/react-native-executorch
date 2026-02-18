@@ -5,6 +5,7 @@ import { Buffer } from 'buffer';
 import { PNG } from 'pngjs/browser';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
+import { Logger } from '../../common/Logger';
 
 /**
  * Module for text-to-image generation tasks.
@@ -87,7 +88,7 @@ export class TextToImageModule extends BaseModule {
         schedulerConfig.steps_offset
       );
     } catch (error) {
-      console.error('Load Failed:', error);
+      Logger.error('Load failed:', error);
       throw error;
     }
   }

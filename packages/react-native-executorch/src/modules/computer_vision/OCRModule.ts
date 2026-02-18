@@ -1,6 +1,7 @@
 import { OCRController } from '../../controllers/OCRController';
 import { ResourceSource } from '../../types/common';
 import { OCRDetection, OCRLanguage } from '../../types/ocr';
+import { Logger } from '../../common/Logger';
 
 /**
  * Module for Optical Character Recognition (OCR) tasks.
@@ -38,7 +39,7 @@ export class OCRModule {
         onDownloadProgressCallback
       );
     } catch (error) {
-      console.error('Load Failed:', error);
+      Logger.error('Load failed:', error);
       throw error;
     }
   }
