@@ -4,6 +4,8 @@ import {
   Detection,
   useObjectDetection,
   SSDLITE_320_MOBILENET_V3_LARGE,
+  ScalarType,
+  PixelData,
 } from 'react-native-executorch';
 import { View, StyleSheet, Image, TouchableOpacity, Text } from 'react-native';
 import ImageWithBboxes from '../../components/ImageWithBboxes';
@@ -11,62 +13,6 @@ import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
 import ColorPalette from '../../colors';
-import { Images } from 'react-native-nitro-image';
-
-// Helper function to convert BGRA to RGB
-function convertBGRAtoRGB(
-  buffer: ArrayBuffer,
-  width: number,
-  height: number
-): ArrayBuffer {
-  const source = new Uint8Array(buffer);
-  const rgb = new Uint8Array(width * height * 3);
-
-  for (let i = 0; i < width * height; i++) {
-    // BGRA format: [B, G, R, A] → RGB: [R, G, B]
-    rgb[i * 3 + 0] = source[i * 4 + 2]; // R
-    rgb[i * 3 + 1] = source[i * 4 + 1]; // G
-    rgb[i * 3 + 2] = source[i * 4 + 0]; // B
-  }
-
-  return rgb.buffer;
-}
-
-// Helper function to convert image URI to raw RGB pixel data
-async function imageUriToPixelData(
-  uri: string,
-  targetWidth: number,
-  targetHeight: number
-): Promise<{
-  data: ArrayBuffer;
-  width: number;
-  height: number;
-  channels: number;
-}> {
-  try {
-    // Load image and resize to target dimensions
-    const image = await Images.loadFromFileAsync(uri);
-    const resized = image.resize(targetWidth, targetHeight);
-
-    // Get pixel data as ArrayBuffer (BGRA format from NitroImage)
-    const rawPixelData = resized.toRawPixelData();
-    const buffer =
-      rawPixelData instanceof ArrayBuffer ? rawPixelData : rawPixelData.buffer;
-
-    // Convert BGRA to RGB as required by the native API
-    const rgbBuffer = convertBGRAtoRGB(buffer, targetWidth, targetHeight);
-
-    return {
-      data: rgbBuffer,
-      width: targetWidth,
-      height: targetHeight,
-      channels: 3, // RGB
-    };
-  } catch (error) {
-    console.error('Error loading image with NitroImage:', error);
-    throw error;
-  }
-}
 
 export default function ObjectDetectionScreen() {
   const [imageUri, setImageUri] = useState('');
@@ -109,30 +55,45 @@ export default function ObjectDetectionScreen() {
   };
 
   const runForwardPixels = async () => {
-    if (imageUri && imageDimensions) {
-      try {
-        console.log('Converting image to pixel data...');
-        // Use original dimensions - let the model resize internally
-        const pixelData = await imageUriToPixelData(
-          imageUri,
-          imageDimensions.width,
-          imageDimensions.height
-        );
+    try {
+      console.log('Testing with hardcoded pixel data...');
 
-        console.log('Running forward with pixel data...', {
-          width: pixelData.width,
-          height: pixelData.height,
-          channels: pixelData.channels,
-          dataSize: pixelData.data.byteLength,
-        });
+      // Create a simple 320x320 test image (all zeros - black image)
+      // In a real scenario, you would load actual image pixel data here
+      const width = 320;
+      const height = 320;
+      const channels = 3; // RGB
 
-        // Run inference using unified forward() API
-        const output = await ssdLite.forward(pixelData, 0.3);
-        console.log('Pixel data result:', output.length, 'detections');
-        setResults(output);
-      } catch (e) {
-        console.error('Error in runForwardPixels:', e);
+      // Create a black image (you can replace this with actual pixel data)
+      const rgbData = new Uint8Array(width * height * channels);
+
+      // Optionally, add some test pattern (e.g., white square in center)
+      for (let y = 100; y < 220; y++) {
+        for (let x = 100; x < 220; x++) {
+          const idx = (y * width + x) * 3;
+          rgbData[idx + 0] = 255; // R
+          rgbData[idx + 1] = 255; // G
+          rgbData[idx + 2] = 255; // B
+        }
       }
+
+      const pixelData: PixelData = {
+        dataPtr: rgbData,
+        sizes: [height, width, channels],
+        scalarType: ScalarType.BYTE,
+      };
+
+      console.log('Running forward with hardcoded pixel data...', {
+        sizes: pixelData.sizes,
+        dataSize: pixelData.dataPtr.byteLength,
+      });
+
+      // Run inference using unified forward() API
+      const output = await ssdLite.forward(pixelData, 0.3);
+      console.log('Pixel data result:', output.length, 'detections');
+      setResults(output);
+    } catch (e) {
+      console.error('Error in runForwardPixels:', e);
     }
   };
 

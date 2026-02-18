@@ -9,13 +9,8 @@ namespace utils {
 
 cv::Mat FrameProcessor::extractFrame(jsi::Runtime &runtime,
                                      const jsi::Object &frameData) {
-  // Get frame dimensions
-  int width =
-      static_cast<int>(frameData.getProperty(runtime, "width").asNumber());
-  int height =
-      static_cast<int>(frameData.getProperty(runtime, "height").asNumber());
-
   // Try zero-copy path first (nativeBuffer)
+  // Native buffer contains dimensions, so we don't need width/height properties
   if (hasNativeBuffer(runtime, frameData)) {
     try {
       return extractFromNativeBuffer(runtime, frameData);
@@ -25,7 +20,12 @@ cv::Mat FrameProcessor::extractFrame(jsi::Runtime &runtime,
   }
 
   // Fallback to ArrayBuffer path (with copy)
+  // Get frame dimensions for ArrayBuffer path
   if (frameData.hasProperty(runtime, "data")) {
+    int width =
+        static_cast<int>(frameData.getProperty(runtime, "width").asNumber());
+    int height =
+        static_cast<int>(frameData.getProperty(runtime, "height").asNumber());
     return extractFromArrayBuffer(runtime, frameData, width, height);
   }
 
