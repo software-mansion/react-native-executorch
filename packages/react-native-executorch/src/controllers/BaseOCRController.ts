@@ -76,7 +76,7 @@ export abstract class BaseOCRController {
         e &&
         typeof e === 'object' &&
         'code' in e &&
-        e.code == RnExecutorchErrorCode.NotImplemented
+        e.code === RnExecutorchErrorCode.NotImplemented
       ) {
         Logger.error('Load failed:', e);
       } else if (this.errorCallback) {
