@@ -87,7 +87,7 @@ export class ResourceFetcher {
     if (!this.adapter) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.NotImplemented,
-        'ResourceFetcher adapter is not initialized. Please call initExecutorch({ resourceFetcher: ... }) with a valid adapter, e.g., from @react-native-executorch/expo-resource-fetcher or @react-native-executorch/bare-resource-fetcher.'
+        'ResourceFetcher adapter is not initialized. Please call initExecutorch({ resourceFetcher: ... }) with a valid adapter, e.g., from @react-native-executorch/expo-resource-fetcher or @react-native-executorch/bare-resource-fetcher. For more details please refer: https://docs.swmansion.com/react-native-executorch/docs/next/fundamentals/loading-models'
       );
     }
     return this.adapter;

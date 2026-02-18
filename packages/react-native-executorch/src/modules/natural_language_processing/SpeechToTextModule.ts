@@ -6,6 +6,7 @@ import {
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
+import { Logger } from '../../common/Logger';
 
 /**
  * Module for Speech to Text (STT) functionalities.
@@ -27,34 +28,39 @@ export class SpeechToTextModule {
     model: SpeechToTextModelConfig,
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ) {
-    this.modelConfig = model;
+    try {
+      this.modelConfig = model;
 
-    const tokenizerLoadPromise = ResourceFetcher.fetch(
-      undefined,
-      model.tokenizerSource
-    );
-    const encoderDecoderPromise = ResourceFetcher.fetch(
-      onDownloadProgressCallback,
-      model.encoderSource,
-      model.decoderSource
-    );
-    const [tokenizerSources, encoderDecoderResults] = await Promise.all([
-      tokenizerLoadPromise,
-      encoderDecoderPromise,
-    ]);
-    const encoderSource = encoderDecoderResults?.[0];
-    const decoderSource = encoderDecoderResults?.[1];
-    if (!encoderSource || !decoderSource || !tokenizerSources) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+      const tokenizerLoadPromise = ResourceFetcher.fetch(
+        undefined,
+        model.tokenizerSource
       );
+      const encoderDecoderPromise = ResourceFetcher.fetch(
+        onDownloadProgressCallback,
+        model.encoderSource,
+        model.decoderSource
+      );
+      const [tokenizerSources, encoderDecoderResults] = await Promise.all([
+        tokenizerLoadPromise,
+        encoderDecoderPromise,
+      ]);
+      const encoderSource = encoderDecoderResults?.[0];
+      const decoderSource = encoderDecoderResults?.[1];
+      if (!encoderSource || !decoderSource || !tokenizerSources) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.DownloadInterrupted,
+          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+        );
+      }
+      this.nativeModule = await global.loadSpeechToText(
+        encoderSource,
+        decoderSource,
+        tokenizerSources[0]!
+      );
+    } catch (error) {
+      Logger.error('Load failed:', error);
+      throw parseUnknownError(error);
     }
-    this.nativeModule = await global.loadSpeechToText(
-      encoderSource,
-      decoderSource,
-      tokenizerSources[0]!
-    );
   }
 
   /**

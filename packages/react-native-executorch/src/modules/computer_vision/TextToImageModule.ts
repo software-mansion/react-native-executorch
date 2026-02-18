@@ -4,7 +4,7 @@ import { BaseModule } from '../BaseModule';
 import { Buffer } from 'buffer';
 import { PNG } from 'pngjs/browser';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import { RnExecutorchError } from '../../errors/errorUtils';
+import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { Logger } from '../../common/Logger';
 
 /**
@@ -89,7 +89,7 @@ export class TextToImageModule extends BaseModule {
       );
     } catch (error) {
       Logger.error('Load failed:', error);
-      throw error;
+      throw parseUnknownError(error);
     }
   }
 

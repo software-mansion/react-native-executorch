@@ -2,7 +2,7 @@ import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
 import { Detection } from '../../types/objectDetection';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import { RnExecutorchError } from '../../errors/errorUtils';
+import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { BaseModule } from '../BaseModule';
 import { Logger } from '../../common/Logger';
 
@@ -39,7 +39,7 @@ export class ObjectDetectionModule extends BaseModule {
       this.nativeModule = global.loadObjectDetection(paths[0] || '');
     } catch (error) {
       Logger.error('Load failed:', error);
-      throw error;
+      throw parseUnknownError(error);
     }
   }
 

@@ -2,6 +2,7 @@ import { OCRController } from '../../controllers/OCRController';
 import { ResourceSource } from '../../types/common';
 import { OCRDetection, OCRLanguage } from '../../types/ocr';
 import { Logger } from '../../common/Logger';
+import { parseUnknownError } from '../../errors/errorUtils';
 
 /**
  * Module for Optical Character Recognition (OCR) tasks.
@@ -40,7 +41,7 @@ export class OCRModule {
       );
     } catch (error) {
       Logger.error('Load failed:', error);
-      throw error;
+      throw parseUnknownError(error);
     }
   }
 

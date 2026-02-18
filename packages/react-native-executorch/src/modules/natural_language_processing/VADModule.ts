@@ -3,7 +3,8 @@ import { ResourceSource } from '../../types/common';
 import { Segment } from '../../types/vad';
 import { BaseModule } from '../BaseModule';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import { RnExecutorchError } from '../../errors/errorUtils';
+import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
+import { Logger } from '../../common/Logger';
 
 /**
  * Module for Voice Activity Detection (VAD) functionalities.
@@ -22,17 +23,22 @@ export class VADModule extends BaseModule {
     model: { modelSource: ResourceSource },
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ): Promise<void> {
-    const paths = await ResourceFetcher.fetch(
-      onDownloadProgressCallback,
-      model.modelSource
-    );
-    if (paths === null || paths.length < 1) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+    try {
+      const paths = await ResourceFetcher.fetch(
+        onDownloadProgressCallback,
+        model.modelSource
       );
+      if (paths === null || paths.length < 1) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.DownloadInterrupted,
+          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+        );
+      }
+      this.nativeModule = global.loadVAD(paths[0] || '');
+    } catch (error) {
+      Logger.error('Load failed:', error);
+      throw parseUnknownError(error);
     }
-    this.nativeModule = global.loadVAD(paths[0] || '');
   }
 
   /**

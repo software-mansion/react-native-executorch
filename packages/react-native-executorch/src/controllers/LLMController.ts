@@ -133,6 +133,7 @@ export class LLMController {
         this.tokenCallback(filtered);
       };
     } catch (e) {
+      Logger.error('Load failed:', e);
       this.isReadyCallback(false);
       throw parseUnknownError(e);
     }

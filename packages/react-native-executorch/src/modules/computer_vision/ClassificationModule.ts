@@ -2,7 +2,7 @@ import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
 import { BaseModule } from '../BaseModule';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import { RnExecutorchError } from '../../errors/errorUtils';
+import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { Logger } from '../../common/Logger';
 
 /**
@@ -38,7 +38,7 @@ export class ClassificationModule extends BaseModule {
       this.nativeModule = global.loadClassification(paths[0] || '');
     } catch (error) {
       Logger.error('Load failed:', error);
-      throw error;
+      throw parseUnknownError(error);
     }
   }
 

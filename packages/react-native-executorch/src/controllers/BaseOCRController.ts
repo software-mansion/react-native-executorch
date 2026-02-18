@@ -1,3 +1,4 @@
+import { Logger } from '../common/Logger';
 import { symbols } from '../constants/ocr/symbols';
 import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../errors/errorUtils';
@@ -71,7 +72,14 @@ export abstract class BaseOCRController {
       this.isReady = true;
       this.isReadyCallback(this.isReady);
     } catch (e) {
-      if (this.errorCallback) {
+      if (
+        e &&
+        typeof e === 'object' &&
+        'code' in e &&
+        e.code == RnExecutorchErrorCode.NotImplemented
+      ) {
+        Logger.error('Load failed:', e);
+      } else if (this.errorCallback) {
         this.errorCallback(parseUnknownError(e));
       } else {
         throw parseUnknownError(e);

@@ -1,5 +1,6 @@
 import { Logger } from '../../common/Logger';
 import { VerticalOCRController } from '../../controllers/VerticalOCRController';
+import { parseUnknownError } from '../../errors/errorUtils';
 import { ResourceSource } from '../../types/common';
 import { OCRDetection, OCRLanguage } from '../../types/ocr';
 
@@ -43,7 +44,7 @@ export class VerticalOCRModule {
       );
     } catch (error) {
       Logger.error('Load failed:', error);
-      throw error;
+      throw parseUnknownError(error);
     }
   }
 
