@@ -227,6 +227,7 @@ export class LLMController {
     }
     try {
       this.isGeneratingCallback(true);
+      this.nativeModule.reset();
       const response = await this.nativeModule.generate(input, this.onToken);
       return this.filterSpecialTokens(response);
     } catch (e) {
@@ -314,6 +315,13 @@ export class LLMController {
       ...this._messageHistory.slice(-this.chatConfig.contextWindowLength),
     ];
 
+    console.log(
+      messageHistoryWithPrompt.map((el) => ({
+        role: el.role,
+        length: el.content.split(' ').length,
+      }))
+    );
+
     const response = await this.generate(
       messageHistoryWithPrompt,
       this.toolsConfig?.tools
@@ -380,6 +388,12 @@ export class LLMController {
       ...templateFlags,
       ...specialTokens,
     });
+
+    console.log({
+      messages: messages.filter((el) => el.role === 'assistant'),
+      result,
+    });
+
     return result;
   }
 }

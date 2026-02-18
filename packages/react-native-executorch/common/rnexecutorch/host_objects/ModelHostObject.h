@@ -131,6 +131,10 @@ public:
 
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       synchronousHostFunction<&Model::reset>,
+                                       "reset"));
     }
 
     if constexpr (meta::SameAs<Model, models::text_to_image::TextToImage>) {

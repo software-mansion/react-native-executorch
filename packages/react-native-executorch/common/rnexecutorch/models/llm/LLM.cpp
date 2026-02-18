@@ -64,6 +64,14 @@ void LLM::interrupt() {
   runner->stop();
 }
 
+void LLM::reset() {
+  if (!runner || !runner->is_loaded()) {
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
+                            "Can't interrupt a model that's not loaded");
+  }
+  runner->reset();
+}
+
 size_t LLM::getGeneratedTokenCount() const noexcept {
   if (!runner || !runner->is_loaded()) {
     return 0;
@@ -116,7 +124,7 @@ void LLM::setTemperature(float temperature) {
                             "Temperature must be non-negative");
   }
   runner->set_temperature(temperature);
-};
+}
 
 void LLM::setTopp(float topp) {
   if (!runner || !runner->is_loaded()) {

@@ -21,6 +21,7 @@ public:
   std::string generate(std::string input,
                        std::shared_ptr<jsi::Function> callback);
   void interrupt();
+  void reset();
   void unload() noexcept;
   size_t getGeneratedTokenCount() const noexcept;
   size_t getPromptTokenCount() const noexcept;
