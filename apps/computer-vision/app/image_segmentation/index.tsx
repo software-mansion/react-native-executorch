@@ -73,7 +73,7 @@ export default function ImageSegmentationScreen() {
     try {
       const { width, height } = imageSize;
       const output = await forward(imageUri, [], true);
-      const argmax = output['ARGMAX'] || [];
+      const argmax = output.ARGMAX || [];
       const pixels = new Uint8Array(width * height * 4);
 
       for (let row = 0; row < height; row++) {

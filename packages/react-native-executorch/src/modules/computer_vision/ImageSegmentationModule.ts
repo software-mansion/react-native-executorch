@@ -1,6 +1,5 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource, LabelEnum } from '../../types/common';
-import { CocoLabel } from '../../types/objectDetection';
 import {
   DeeplabLabel,
   ModelNameOf,
@@ -9,13 +8,15 @@ import {
   SegmentationModelName,
   SelfieSegmentationLabel,
 } from '../../types/imageSegmentation';
-import { IMAGENET_MEAN, IMAGENET_STD } from '../../constants/commonVision';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { BaseModule } from '../BaseModule';
 import { Logger } from '../../common/Logger';
 
-const ModelConfigs = {
+const ModelConfigs: Record<
+  SegmentationModelName,
+  SegmentationConfig<LabelEnum>
+> = {
   'deeplab-v3': {
     labelMap: DeeplabLabel,
     preprocessorConfig: undefined,
@@ -24,14 +25,7 @@ const ModelConfigs = {
     labelMap: SelfieSegmentationLabel,
     preprocessorConfig: undefined,
   },
-  'rfdetr': {
-    labelMap: CocoLabel,
-    preprocessorConfig: { normMean: IMAGENET_MEAN, normStd: IMAGENET_STD },
-  },
-} as const satisfies Record<
-  SegmentationModelName,
-  SegmentationConfig<LabelEnum>
->;
+} as const;
 
 /** @internal */
 type ModelConfigsType = typeof ModelConfigs;
@@ -59,7 +53,7 @@ type ResolveLabels<T extends SegmentationModelName | LabelEnum> =
  * Use a model name (e.g. `'deeplab-v3'`) as the generic parameter for built-in models,
  * or a custom label enum for custom configs.
  *
- * @typeParam T - Either a built-in model name (`'deeplab-v3'`, `'selfie-segmentation'`, `'rfdetr'`)
+ * @typeParam T - Either a built-in model name (`'deeplab-v3'`, `'selfie-segmentation'`)
  *   or a custom {@link LabelEnum} label map.
  *
  * @category Typescript API

@@ -26,12 +26,11 @@ export type SegmentationConfig<T extends LabelEnum> = {
  */
 export type ModelSources =
   | { modelName: 'deeplab-v3'; modelSource: ResourceSource }
-  | { modelName: 'selfie-segmentation'; modelSource: ResourceSource }
-  | { modelName: 'rfdetr'; modelSource: ResourceSource };
+  | { modelName: 'selfie-segmentation'; modelSource: ResourceSource };
 
 /**
  * Union of all built-in segmentation model names
- * (e.g. `'deeplab-v3'`, `'selfie-segmentation'`, `'rfdetr'`).
+ * (e.g. `'deeplab-v3'`, `'selfie-segmentation'`).
  *
  * @category Types
  */
