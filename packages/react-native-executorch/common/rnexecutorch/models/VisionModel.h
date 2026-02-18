@@ -129,40 +129,35 @@ protected:
                            const jsi::Value &frameData) const;
 
   /**
-   * @brief Extract cv::Mat from raw pixel data (ArrayBuffer) sent from
+   * @brief Extract cv::Mat from raw pixel data (TensorPtr) sent from
    * JavaScript
    *
    * This method enables users to run inference on raw pixel data without file
    * I/O. Useful for processing images already in memory (e.g., from canvas,
    * image library).
    *
-   * @param runtime JSI runtime
-   * @param pixelData JSI object containing:
-   *                  - data: ArrayBuffer with raw pixel values
-   *                  - width: number - image width
-   *                  - height: number - image height
-   *                  - channels: number - number of channels (3 for RGB, 4 for
-   * RGBA)
+   * @param tensorView JSTensorViewIn containing:
+   *                   - dataPtr: Pointer to raw pixel values (RGB format)
+   *                   - sizes: [height, width, channels] - must be 3D
+   *                   - scalarType: Must be ScalarType::Byte (Uint8Array)
    *
    * @return cv::Mat containing the pixel data
    *
-   * @throws std::runtime_error if pixelData format is invalid
+   * @throws RnExecutorchError if tensorView format is invalid
    *
    * @note The returned cv::Mat owns a copy of the data
-   * @note Expected pixel format: RGB or RGBA, row-major order
+   * @note Expected pixel format: RGB (3 channels), row-major order
    * @note Typical usage from JS:
    * @code
-   *   const pixels = new Uint8Array([...]);  // Raw pixel data
+   *   const pixels = new Uint8Array([...]);  // Raw RGB pixel data
    *   const result = model.generateFromPixels({
-   *     data: pixels.buffer,
-   *     width: 640,
-   *     height: 480,
-   *     channels: 3
+   *     dataPtr: pixels,
+   *     sizes: [480, 640, 3],
+   *     scalarType: ScalarType.BYTE
    *   }, 0.5);
    * @endcode
    */
-  cv::Mat extractFromPixels(jsi::Runtime &runtime,
-                            const jsi::Object &pixelData) const;
+  cv::Mat extractFromPixels(const JSTensorViewIn &tensorView) const;
 };
 
 } // namespace models
