@@ -109,3 +109,5 @@ TTFT
 timestamping
 logprob
 rfdetr
+basemodule
+IMAGENET
