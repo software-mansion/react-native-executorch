@@ -19,14 +19,15 @@ import {
 
 const imageUri = 'path/to/image.png';
 
-// Creating an instance
-const imageSegmentationModule = new ImageSegmentationModule();
-
-// Loading the model
-await imageSegmentationModule.load(DEEPLAB_V3_RESNET50);
+// Creating an instance from a built-in model
+const segmentation = await ImageSegmentationModule.fromModelName({
+  modelName: 'deeplab-v3',
+  modelSource: DEEPLAB_V3_RESNET50,
+});
 
 // Running the model
-const outputDict = await imageSegmentationModule.forward(imageUri);
+const result = await segmentation.forward(imageUri);
+// result.ARGMAX — Int32Array of per-pixel class indices
 ```
 
 ### Methods
@@ -35,34 +36,75 @@ All methods of `ImageSegmentationModule` are explained in details here: [`ImageS
 
 ## Loading the model
 
-To initialize the module, create an instance and call the [`load`](../../06-api-reference/classes/ImageSegmentationModule.md#load) method with the following parameters:
+`ImageSegmentationModule` uses static factory methods instead of `new()` + `load()`. There are two ways to create an instance:
 
-- [`model`](../../06-api-reference/classes/ImageSegmentationModule.md#model) - Object containing:
-  - [`modelSource`](../../06-api-reference/classes/ImageSegmentationModule.md#modelsource) - Location of the used model.
+### Built-in models — `fromModelName`
 
-- [`onDownloadProgressCallback`](../../06-api-reference/classes/ImageSegmentationModule.md#ondownloadprogresscallback) - Callback to track download progress.
+Use [`fromModelName`](../../06-api-reference/classes/ImageSegmentationModule.md#frommodelname) for models that ship with built-in label maps and preprocessing configs:
 
-This method returns a promise, which can resolve to an error or void.
+```typescript
+const segmentation = await ImageSegmentationModule.fromModelName(
+  { modelName: 'deeplab-v3', modelSource: DEEPLAB_V3_RESNET50 },
+  (progress) => console.log(`Download: ${Math.round(progress * 100)}%`)
+);
+```
+
+The `config` parameter is a discriminated union — TypeScript ensures you provide the correct fields for each model name. Available built-in models: `'deeplab-v3'`, `'selfie-segmentation'`.
+
+### Custom models — `fromCustomConfig`
+
+Use [`fromCustomConfig`](../../06-api-reference/classes/ImageSegmentationModule.md#fromcustomconfig) for custom-exported segmentation models with your own label map:
+
+```typescript
+const MyLabels = { BACKGROUND: 0, FOREGROUND: 1 } as const;
+
+const segmentation = await ImageSegmentationModule.fromCustomConfig(
+  'https://example.com/custom_model.pte',
+  {
+    labelMap: MyLabels,
+    preprocessorConfig: {
+      normMean: [0.485, 0.456, 0.406],
+      normStd: [0.229, 0.224, 0.225],
+    },
+  }
+);
+```
+
+The `preprocessorConfig` is optional. If omitted, no input normalization is applied. The module instance will be typed to your custom label map — `forward` will accept and return keys from `MyLabels`.
 
 For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ## Running the model
 
-To run the model, you can use the [`forward`](../../06-api-reference/classes/ImageSegmentationModule.md#forward) method on the module object. It accepts three arguments: a required image - can be a remote URL, a local file URI, or a base64-encoded image (whole URI or only raw base64), an optional list of classes, and an optional flag whether to resize the output to the original dimensions.
+To run the model, use the [`forward`](../../06-api-reference/classes/ImageSegmentationModule.md#forward) method. It accepts three arguments:
 
-- The image can be a remote URL, a local file URI, or a base64-encoded image.
-- The [`classesOfInterest`](../../06-api-reference/classes/ImageSegmentationModule.md#classesofinterest) list contains classes for which to output the full results. By default the list is empty, and only the most probable classes are returned (essentially an arg max for each pixel). Look at [`DeeplabLabel`](../../06-api-reference/enumerations/DeeplabLabel.md) enum for possible classes.
-- The [`resizeToInput`](../../06-api-reference/classes/ImageSegmentationModule.md#resizetoinput) flag specifies whether the output will be rescaled back to the size of the input image. The default is `true`. The model runs inference on a scaled (probably smaller) version of your image (224x224 for the `DEEPLAB_V3_RESNET50`). If you choose to resize, the output will be `number[]` of size `width * height` of your original image.
+- `imageSource` (required) - The image to segment. Can be a remote URL, a local file URI, or a base64-encoded image (whole URI or only raw base64).
+- `classesOfInterest` (optional) - An array of label keys indicating which per-class probability masks to include in the output. Defaults to `[]`. The `ARGMAX` map is always returned regardless.
+- `resizeToInput` (optional) - Whether to resize the output masks to the original input image dimensions. Defaults to `true`. If `false`, returns the raw model output dimensions.
 
 :::warning
-Setting `resize` to true will make `forward` slower.
+Setting `resizeToInput` to `true` will make `forward` slower.
 :::
 
-[`forward`](../../06-api-reference/classes/ImageSegmentationModule.md#forward) returns a promise which can resolve either to an error or a dictionary containing number arrays with size depending on [`resizeToInput`](../../06-api-reference/classes/ImageSegmentationModule.md#resizetoinput):
+`forward` returns a promise resolving to an object containing:
 
-- For the key [`DeeplabLabel.ARGMAX`](../../06-api-reference/enumerations/DeeplabLabel.md#argmax) the array contains for each pixel an integer corresponding to the class with the highest probability.
-- For every other key from [`DeeplabLabel`](../../06-api-reference/enumerations/DeeplabLabel.md), if the label was included in [`classesOfInterest`](../../06-api-reference/classes/ImageSegmentationModule.md#classesofinterest) the dictionary will contain an array of floats corresponding to the probability of this class for every pixel.
+- `ARGMAX` - An `Int32Array` where each element is the class index with the highest probability for that pixel.
+- For each label included in `classesOfInterest`, a `Float32Array` of per-pixel probabilities for that class.
+
+The return type narrows based on the labels passed in `classesOfInterest`:
+
+```typescript
+// Only ARGMAX in the result
+const result = await segmentation.forward(imageUri);
+result.ARGMAX; // Int32Array
+
+// ARGMAX + requested class masks
+const result = await segmentation.forward(imageUri, ['CAT', 'DOG']);
+result.ARGMAX; // Int32Array
+result.CAT; // Float32Array
+result.DOG; // Float32Array
+```
 
 ## Managing memory
 
-The module is a regular JavaScript object, and as such its lifespan will be managed by the garbage collector. In most cases this should be enough, and you should not worry about freeing the memory of the module yourself, but in some cases you may want to release the memory occupied by the module before the garbage collector steps in. In this case use the method [`delete`](../../06-api-reference/classes/ImageSegmentationModule.md#delete) on the module object you will no longer use, and want to remove from the memory. Note that you cannot use [`forward`](../../06-api-reference/classes/ImageSegmentationModule.md#forward) after [`delete`](../../06-api-reference/classes/ImageSegmentationModule.md#delete) unless you load the module again.
+The module is a regular JavaScript object, and as such its lifespan will be managed by the garbage collector. In most cases this should be enough, and you should not worry about freeing the memory of the module yourself, but in some cases you may want to release the memory occupied by the module before the garbage collector steps in. In this case use the method [`delete`](../../06-api-reference/classes/ImageSegmentationModule.md#delete) on the module object you will no longer use, and want to remove from the memory. Note that you cannot use [`forward`](../../06-api-reference/classes/ImageSegmentationModule.md#forward) after [`delete`](../../06-api-reference/classes/ImageSegmentationModule.md#delete) unless you create a new instance.
