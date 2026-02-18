@@ -6,7 +6,6 @@
 #include <executorch/extension/tensor/tensor.h>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
-#include <rnexecutorch/data_processing/Numerical.h>
 #include <rnexecutorch/models/BaseModel.h>
 
 namespace rnexecutorch::models::image_segmentation {
@@ -92,56 +91,72 @@ std::shared_ptr<jsi::Object> BaseImageSegmentation::postprocess(
   std::size_t outputPixels = outputH * outputW;
   cv::Size outputSize(outputW, outputH);
 
-  // Work with vectors, only wrap into OwningArrayBuffer at the end
-  std::vector<std::vector<float>> classBuffers;
-  std::vector<int32_t> argmaxData(outputPixels);
+  // Copy class data directly into OwningArrayBuffers (single copy from span)
+  std::vector<std::shared_ptr<OwningArrayBuffer>> resultClasses;
+  resultClasses.reserve(numChannels);
 
   if (numChannels == 1) {
     // Binary segmentation (e.g. selfie segmentation)
-    std::vector<float> bg(outputPixels);
-    std::vector<float> fg(outputPixels);
+    auto fg = std::make_shared<OwningArrayBuffer>(resultData.data(),
+                                                  outputPixels * sizeof(float));
+    auto bg = std::make_shared<OwningArrayBuffer>(outputPixels * sizeof(float));
+    auto *fgPtr = reinterpret_cast<float *>(fg->data());
+    auto *bgPtr = reinterpret_cast<float *>(bg->data());
     for (std::size_t pixel = 0; pixel < outputPixels; ++pixel) {
-      float p = resultData[pixel];
-      bg[pixel] = 1.0f - p;
-      fg[pixel] = p;
-      argmaxData[pixel] = (p > 0.5f) ? 1 : 0;
+      bgPtr[pixel] = 1.0f - fgPtr[pixel];
     }
-    classBuffers = {std::move(bg), std::move(fg)};
+    resultClasses.push_back(bg);
+    resultClasses.push_back(fg);
   } else {
     // Multi-class segmentation (e.g. DeepLab, RF-DETR)
-    classBuffers.resize(numChannels);
     for (std::size_t cl = 0; cl < numChannels; ++cl) {
-      classBuffers[cl].assign(resultData.data() + cl * outputPixels,
-                              resultData.data() + (cl + 1) * outputPixels);
-    }
-
-    // Apply softmax and compute argmax per pixel
-    for (std::size_t pixel = 0; pixel < outputPixels; ++pixel) {
-      std::vector<float> values(numChannels);
-      for (std::size_t cl = 0; cl < numChannels; ++cl) {
-        values[cl] = classBuffers[cl][pixel];
-      }
-      numerical::softmax(values);
-
-      float maxVal = values[0];
-      int maxInd = 0;
-      for (std::size_t cl = 0; cl < numChannels; ++cl) {
-        classBuffers[cl][pixel] = values[cl];
-        if (values[cl] > maxVal) {
-          maxVal = values[cl];
-          maxInd = static_cast<int>(cl);
-        }
-      }
-      argmaxData[pixel] = maxInd;
+      resultClasses.push_back(std::make_shared<OwningArrayBuffer>(
+          resultData.data() + cl * outputPixels, outputPixels * sizeof(float)));
     }
   }
 
-  // Wrap into OwningArrayBuffers
-  auto argmax = std::make_shared<OwningArrayBuffer>(argmaxData);
-  std::vector<std::shared_ptr<OwningArrayBuffer>> resultClasses;
-  resultClasses.reserve(classBuffers.size());
-  for (auto &buf : classBuffers) {
-    resultClasses.push_back(std::make_shared<OwningArrayBuffer>(buf));
+  // Softmax + argmax in class-major order
+  auto argmax =
+      std::make_shared<OwningArrayBuffer>(outputPixels * sizeof(int32_t));
+  auto *argmaxPtr = reinterpret_cast<int32_t *>(argmax->data());
+
+  if (numChannels == 1) {
+    auto *fgPtr = reinterpret_cast<float *>(resultClasses[1]->data());
+    for (std::size_t pixel = 0; pixel < outputPixels; ++pixel) {
+      argmaxPtr[pixel] = (fgPtr[pixel] > 0.5f) ? 1 : 0;
+    }
+  } else {
+    std::vector<float> maxLogits(outputPixels,
+                                 -std::numeric_limits<float>::infinity());
+    std::vector<float> sumExp(outputPixels, 0.0f);
+
+    // Pass 1: find per-pixel max and argmax
+    for (std::size_t cl = 0; cl < numChannels; ++cl) {
+      auto *clPtr = reinterpret_cast<float *>(resultClasses[cl]->data());
+      for (std::size_t pixel = 0; pixel < outputPixels; ++pixel) {
+        if (clPtr[pixel] > maxLogits[pixel]) {
+          maxLogits[pixel] = clPtr[pixel];
+          argmaxPtr[pixel] = static_cast<int32_t>(cl);
+        }
+      }
+    }
+
+    // Pass 2: subtract max, exp, accumulate sum
+    for (std::size_t cl = 0; cl < numChannels; ++cl) {
+      auto *clPtr = reinterpret_cast<float *>(resultClasses[cl]->data());
+      for (std::size_t pixel = 0; pixel < outputPixels; ++pixel) {
+        clPtr[pixel] = std::exp(clPtr[pixel] - maxLogits[pixel]);
+        sumExp[pixel] += clPtr[pixel];
+      }
+    }
+
+    // Pass 3: normalize by sum
+    for (std::size_t cl = 0; cl < numChannels; ++cl) {
+      auto *clPtr = reinterpret_cast<float *>(resultClasses[cl]->data());
+      for (std::size_t pixel = 0; pixel < outputPixels; ++pixel) {
+        clPtr[pixel] /= sumExp[pixel];
+      }
+    }
   }
 
   // Filter classes of interest
