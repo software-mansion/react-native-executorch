@@ -118,10 +118,9 @@ export interface ObjectDetectionType<L extends LabelEnum> {
    *
    * // Pixel data
    * const detections2 = await model.forward({
-   *   data: pixelBuffer,
-   *   width: 640,
-   *   height: 480,
-   *   channels: 3
+   *   dataPtr: new Uint8Array(rgbPixels),
+   *   sizes: [480, 640, 3],
+   *   scalarType: ScalarType.BYTE
    * });
    * ```
    */
