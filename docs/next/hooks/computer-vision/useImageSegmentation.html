@@ -11,8 +11,8 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.5115ba83.css">
-<script src="/react-native-executorch/assets/js/runtime~main.b8fc4ceb.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.23086911.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.b9cf02ac.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.1b1a1137.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <svg style="display: none;"><defs>
@@ -42,7 +42,7 @@
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns">Returns<a href="#returns" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h3>
 <p><code>useImageSegmentation</code> returns an object called <code>ImageSegmentationType</code> containing bunch of functions to interact with image segmentation models. To get more details please read: <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/ImageSegmentationType"><code>ImageSegmentationType</code> API Reference</a>.</p>
 <h2 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="running-the-model">Running the model<a href="#running-the-model" class="hash-link" aria-label="Direct link to Running the model" title="Direct link to Running the model" translate="no">​</a></h2>
-<p>To run the model, you can use the <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/ImageSegmentationType#forward"><code>forward</code></a> method. It accepts three arguments: a required image, an optional list of classes, and an optional flag whether to resize the output to the original dimensions.</p>
+<p>To run the model, you can use the <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/ImageSegmentationType#forward"><code>forward</code></a> method. It accepts three arguments: a required image - can be a remote URL, a local file URI, or a base64-encoded image (whole URI or only raw base64), an optional list of classes, and an optional flag whether to resize the output to the original dimensions.</p>
 <ul>
 <li class="">The image can be a remote URL, a local file URI, or a base64-encoded image.</li>
 <li class="">The <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/ImageSegmentationType#classesofinterest"><code>classesOfInterest</code></a> list contains classes for which to output the full results. By default the list is empty, and only the most probable classes are returned (essentially an arg max for each pixel). Look at <a class="" href="/react-native-executorch/docs/next/api-reference/enumerations/DeeplabLabel"><code>DeeplabLabel</code></a> enum for possible classes.</li>
