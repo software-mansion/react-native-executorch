@@ -6,12 +6,12 @@ There are three different methods available for loading model files, depending o
 
 ## Prerequisites
 
-In our library, you can use two different resource fetching mechanisms. One is implemented using Expo module, the other one uses external file-system library. We encourage you to use implementation utilizing Expo if possible. But sometimes you cannot add Expo module to your project, then you should use bare React Native implementation.
+In our library, you can use two different resource fetching mechanisms. One is implemented using Expo FileSystem, the other one uses external library. We encourage you to use implementation utilizing Expo if possible. But sometimes you cannot add Expo module to your project, then you should use bare React Native implementation.
 
-To use initialize Expo adapter, please add these libraries:
+To use the Expo adapter, please add these libraries:
 
 ```bash
-yarn add @rn-executorch/expo-adapter
+yarn add @react-native-executorch/expo-adapter
 yarn add expo-file-system expo-asset
 ```
 
@@ -29,7 +29,7 @@ initExecutorch({
 If you cannot use Expo in your project, proceed with the following steps:
 
 ```bash
-yarn add @rn-executorch/bare-adapter
+yarn add @react-native-executorch/bare-adapter
 yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
 ```
 
