@@ -78,9 +78,9 @@ For more information on loading resources, take a look at [loading models](../..
 
 To run the model, use the [`forward`](../../06-api-reference/classes/ImageSegmentationModule.md#forward) method. It accepts three arguments:
 
-- `imageSource` (required) - The image to segment. Can be a remote URL, a local file URI, or a base64-encoded image (whole URI or only raw base64).
-- `classesOfInterest` (optional) - An array of label keys indicating which per-class probability masks to include in the output. Defaults to `[]`. The `ARGMAX` map is always returned regardless.
-- `resizeToInput` (optional) - Whether to resize the output masks to the original input image dimensions. Defaults to `true`. If `false`, returns the raw model output dimensions.
+- [`imageSource`](../../06-api-reference/classes/ImageSegmentationModule.md#forward) (required) - The image to segment. Can be a remote URL, a local file URI, or a base64-encoded image (whole URI or only raw base64).
+- [`classesOfInterest`](../../06-api-reference/classes/ImageSegmentationModule.md#forward) (optional) - An array of label keys indicating which per-class probability masks to include in the output. Defaults to `[]`. The `ARGMAX` map is always returned regardless.
+- [`resizeToInput`](../../06-api-reference/classes/ImageSegmentationModule.md#forward) (optional) - Whether to resize the output masks to the original input image dimensions. Defaults to `true`. If `false`, returns the raw model output dimensions.
 
 :::warning
 Setting `resizeToInput` to `true` will make `forward` slower.
