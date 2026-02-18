@@ -33,7 +33,7 @@ BaseImageSegmentation::BaseImageSegmentation(
 
 void BaseImageSegmentation::initModelImageSize() {
   auto inputShapes = getAllInputShapes();
-  if (inputShapes.size() == 0) {
+  if (inputShapes.empty()) {
     throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
                             "Model seems to not take any input tensors.");
   }
@@ -81,7 +81,7 @@ std::shared_ptr<jsi::Object> BaseImageSegmentation::postprocess(
     std::vector<std::string> &allClasses,
     std::set<std::string, std::less<>> &classesOfInterest, bool resize) {
 
-  auto dataPtr = static_cast<const float *>(tensor.const_data_ptr());
+  const auto *dataPtr = tensor.const_data_ptr<float>();
   auto resultData = std::span(dataPtr, tensor.numel());
 
   // Read output dimensions directly from tensor shape
@@ -90,7 +90,7 @@ std::shared_ptr<jsi::Object> BaseImageSegmentation::postprocess(
   std::size_t outputH = tensor.size(tensor.dim() - 2);
   std::size_t outputW = tensor.size(tensor.dim() - 1);
   std::size_t outputPixels = outputH * outputW;
-  cv::Size outputSize(static_cast<int>(outputW), static_cast<int>(outputH));
+  cv::Size outputSize(outputW, outputH);
 
   // Work with vectors, only wrap into OwningArrayBuffer at the end
   std::vector<std::vector<float>> classBuffers;
