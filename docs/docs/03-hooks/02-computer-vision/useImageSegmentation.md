@@ -51,7 +51,7 @@ You need more details? Check the following resources:
 
 ## Running the model
 
-To run the model, you can use the [`forward`](../../06-api-reference/interfaces/ImageSegmentationType.md#forward) method. It accepts three arguments: a required image, an optional list of classes, and an optional flag whether to resize the output to the original dimensions.
+To run the model, you can use the [`forward`](../../06-api-reference/interfaces/ImageSegmentationType.md#forward) method. It accepts three arguments: a required image - can be a remote URL, a local file URI, or a base64-encoded image (whole URI or only raw base64), an optional list of classes, and an optional flag whether to resize the output to the original dimensions.
 
 - The image can be a remote URL, a local file URI, or a base64-encoded image.
 - The [`classesOfInterest`](../../06-api-reference/interfaces/ImageSegmentationType.md#classesofinterest) list contains classes for which to output the full results. By default the list is empty, and only the most probable classes are returned (essentially an arg max for each pixel). Look at [`DeeplabLabel`](../../06-api-reference/enumerations/DeeplabLabel.md) enum for possible classes.

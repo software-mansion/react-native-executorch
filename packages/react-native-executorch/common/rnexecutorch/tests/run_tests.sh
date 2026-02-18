@@ -17,6 +17,8 @@ MODELS_DIR="$SCRIPT_DIR/integration/assets/models"
 TEST_EXECUTABLES=(
   "NumericalTests"
   "LogTests"
+  "FileUtilsTest"
+  "ImageProcessingTest"
   "BaseModelTests"
   "ClassificationTests"
   "ObjectDetectionTests"

@@ -136,6 +136,13 @@ endfunction()
 
 add_rn_test(NumericalTests unit/NumericalTest.cpp)
 add_rn_test(LogTests unit/LogTest.cpp)
+add_rn_test(FileUtilsTest unit/FileUtilsTest.cpp)
+add_rn_test(ImageProcessingTest unit/ImageProcessingTest.cpp
+    SOURCES
+        ${IMAGE_UTILS_SOURCES}
+    LIBS opencv_deps
+)
+
 add_rn_test(BaseModelTests integration/BaseModelTest.cpp)
 
 add_rn_test(ClassificationTests integration/ClassificationTest.cpp
