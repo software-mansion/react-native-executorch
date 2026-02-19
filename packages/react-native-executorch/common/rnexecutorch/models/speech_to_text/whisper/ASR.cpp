@@ -4,10 +4,13 @@
 
 #include "ASR.h"
 #include "Constants.h"
+#include "Params.h"
 #include <executorch/extension/tensor/tensor_ptr.h>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/data_processing/Numerical.h>
 #include <rnexecutorch/data_processing/gzip.h>
+
+#include <rnexecutorch/Log.h>
 
 namespace rnexecutorch::models::speech_to_text::whisper {
 
@@ -30,18 +33,24 @@ ASR::ASR(const std::string &modelSource, const std::string &tokenizerSource,
  */
 std::vector<Segment> ASR::transcribe(std::span<float> waveform,
                                      const DecodingOptions &options) const {
-  int32_t seek = 0;
+  // Use floats to prevent downcasting and timestamp mismatches
+  float seek = 0.f;
   std::vector<Segment> results;
+
+  const float waveformSize = static_cast<float>(waveform.size());
+  const float waveformSkipBoundary =
+      static_cast<float>((constants::kChunkSize - params::kChunkBreakBuffer) *
+                         constants::kSamplingRate);
 
   // We loop through the input audio waveform and process it in 30s chunks.
   // This is determined by Whisper models strict 30s audio length requirement.
-  while (std::cmp_less(seek * constants::kSamplingRate, waveform.size())) {
+  while (seek * constants::kSamplingRate < waveformSize) {
     // Calculate chunk bounds and extract the chunk.
-    int32_t start = seek * constants::kSamplingRate;
+    float start = seek * constants::kSamplingRate;
     const auto end =
-        std::min<int32_t>(static_cast<int32_t>((seek + constants::kChunkSize) *
-                                               constants::kSamplingRate),
-                          static_cast<int32_t>(waveform.size()));
+        std::min<float>(static_cast<float>((seek + constants::kChunkSize) *
+                                           constants::kSamplingRate),
+                        waveformSize);
     auto chunk = waveform.subspan(start, end - start);
 
     if (std::cmp_less(chunk.size(), constants::kMinChunkSamples)) {
@@ -71,7 +80,12 @@ std::vector<Segment> ASR::transcribe(std::span<float> waveform,
     }
 
     if (!segments.empty() && !segments.back().words.empty()) {
-      seek = static_cast<int32_t>(segments.back().words.back().end);
+      // This prevents additional segments to appear, unless the audio length is
+      // very close to the max chunk size, that is there could be some words
+      // spoken near the breakpoint.
+      seek = waveformSize < waveformSkipBoundary
+                 ? seek + constants::kChunkSize
+                 : segments.back().words.back().end;
     }
     results.insert(results.end(), std::make_move_iterator(segments.begin()),
                    std::make_move_iterator(segments.end()));
@@ -226,6 +240,12 @@ std::vector<Segment> ASR::generate(std::span<float> waveform,
     }
   }
 
+  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
+                    "[ASR] Raw transcription results (tokens): ", bestTokens);
+  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
+                    "[ASR] Raw transcription results (text): ",
+                    tokenizer_->decode(bestTokens, true));
+
   return this->calculateWordLevelTimestamps(bestTokens, waveform,
                                             bestAvgLogProb, bestTemperature,
                                             bestCompressionRatio);
@@ -323,7 +343,8 @@ std::vector<Segment> ASR::calculateWordLevelTimestamps(
       if (words.size()) {
         Segment seg;
         seg.words = std::move(words);
-        seg.tokens = {};
+        // seg.tokens = {};  // WTF ?
+        seg.tokens = tokens;
         seg.avgLogprob = avgLogProb;
         seg.temperature = temperature;
         seg.compressionRatio = compressionRatio;
@@ -382,6 +403,7 @@ ASR::estimateWordLevelTimestampsLinear(std::span<const uint64_t> tokens,
                                        uint64_t start, uint64_t end) const {
   const std::vector<uint64_t> tokensVec(tokens.begin(), tokens.end());
   const std::string segmentText = tokenizer_->decode(tokensVec, true);
+
   std::istringstream iss(segmentText);
   std::vector<std::string> wordsStr;
   std::string word;
