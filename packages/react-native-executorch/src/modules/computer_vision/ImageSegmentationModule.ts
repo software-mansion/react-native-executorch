@@ -13,10 +13,7 @@ import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { BaseModule } from '../BaseModule';
 import { Logger } from '../../common/Logger';
 
-const ModelConfigs: Record<
-  SegmentationModelName,
-  SegmentationConfig<LabelEnum>
-> = {
+const ModelConfigs = {
   'deeplab-v3': {
     labelMap: DeeplabLabel,
     preprocessorConfig: undefined,
@@ -25,7 +22,10 @@ const ModelConfigs: Record<
     labelMap: SelfieSegmentationLabel,
     preprocessorConfig: undefined,
   },
-} as const;
+} as const satisfies Record<
+  SegmentationModelName,
+  SegmentationConfig<LabelEnum>
+>;
 
 /** @internal */
 type ModelConfigsType = typeof ModelConfigs;
@@ -98,7 +98,10 @@ export class ImageSegmentationModule<
     onDownloadProgress: (progress: number) => void = () => { }
   ): Promise<ImageSegmentationModule<ModelNameOf<C>>> {
     const { modelName, modelSource } = config;
-    const { labelMap, preprocessorConfig } = ModelConfigs[modelName];
+    const { labelMap } = ModelConfigs[modelName];
+    const { preprocessorConfig } = ModelConfigs[
+      modelName
+    ] as SegmentationConfig<LabelEnum>;
     const normMean = preprocessorConfig?.normMean ?? [];
     const normStd = preprocessorConfig?.normStd ?? [];
     const paths = await ResourceFetcher.fetch(onDownloadProgress, modelSource);

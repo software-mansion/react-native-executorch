@@ -105,8 +105,8 @@ std::shared_ptr<jsi::Object> BaseImageSegmentation::postprocess(
     for (std::size_t pixel = 0; pixel < outputPixels; ++pixel) {
       bgPtr[pixel] = 1.0f - fgPtr[pixel];
     }
-    resultClasses.push_back(bg);
     resultClasses.push_back(fg);
+    resultClasses.push_back(bg);
   } else {
     // Multi-class segmentation (e.g. DeepLab, RF-DETR)
     for (std::size_t cl = 0; cl < numChannels; ++cl) {
@@ -121,9 +121,9 @@ std::shared_ptr<jsi::Object> BaseImageSegmentation::postprocess(
   auto *argmaxPtr = reinterpret_cast<int32_t *>(argmax->data());
 
   if (numChannels == 1) {
-    auto *fgPtr = reinterpret_cast<float *>(resultClasses[1]->data());
+    auto *fgPtr = reinterpret_cast<float *>(resultClasses[0]->data());
     for (std::size_t pixel = 0; pixel < outputPixels; ++pixel) {
-      argmaxPtr[pixel] = (fgPtr[pixel] > 0.5f) ? 1 : 0;
+      argmaxPtr[pixel] = (fgPtr[pixel] > 0.5f) ? 0 : 1;
     }
   } else {
     std::vector<float> maxLogits(outputPixels,
