@@ -319,7 +319,7 @@ export class LLMController {
         // eslint-disable-next-line camelcase
         { tools_in_user_message: false, add_generation_prompt: true }
       );
-      return this.nativeModule.getTokenCount(rendered);
+      return this.nativeModule.countTextTokens(rendered);
     };
 
     const messageHistoryWithPrompt =
