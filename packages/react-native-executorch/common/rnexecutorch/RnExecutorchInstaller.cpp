@@ -6,6 +6,7 @@
 #include <rnexecutorch/models/embeddings/image/ImageEmbeddings.h>
 #include <rnexecutorch/models/embeddings/text/TextEmbeddings.h>
 #include <rnexecutorch/models/llm/LLM.h>
+#include <rnexecutorch/models/multimodal_llm/MultimodalLLM.h>
 #include <rnexecutorch/models/object_detection/ObjectDetection.h>
 #include <rnexecutorch/models/ocr/OCR.h>
 #include <rnexecutorch/models/semantic_segmentation/BaseSemanticSegmentation.h>
@@ -87,6 +88,11 @@ void RnExecutorchInstaller::injectJSIBindings(
       *jsiRuntime, "loadLLM",
       RnExecutorchInstaller::loadModel<models::llm::LLM>(
           jsiRuntime, jsCallInvoker, "loadLLM"));
+
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadMultimodalLLM",
+      RnExecutorchInstaller::loadModel<models::multimodal_llm::MultimodalLLM>(
+          jsiRuntime, jsCallInvoker, "loadMultimodalLLM"));
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadOCR",
