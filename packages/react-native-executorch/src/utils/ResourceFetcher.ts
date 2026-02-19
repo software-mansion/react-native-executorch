@@ -1,6 +1,7 @@
 import { ResourceSource } from '../types/common';
 import { RnExecutorchError } from '../errors/errorUtils';
 import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
+import { ResourceFetcherUtils } from './ResourceFetcherUtils';
 
 /**
  * Adapter interface for resource fetching operations.
@@ -105,6 +106,15 @@ export class ResourceFetcher {
     callback: (downloadProgress: number) => void = () => {},
     ...sources: ResourceSource[]
   ) {
+    for (const source of sources) {
+      if (typeof source === 'string') {
+        try {
+          ResourceFetcherUtils.triggerHuggingFaceDownloadCounter(source);
+        } catch (error) {
+          throw error;
+        }
+      }
+    }
     return this.getAdapter().fetch(callback, ...sources);
   }
 
