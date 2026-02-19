@@ -17,6 +17,7 @@
 #include <rnexecutorch/metaprogramming/FunctionHelpers.h>
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
 #include <rnexecutorch/models/BaseModel.h>
+#include <rnexecutorch/models/VisionModel.h>
 #include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/ocr/OCR.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
@@ -158,10 +159,10 @@ public:
                                        "stream"));
     }
 
-    if constexpr (meta::DerivedFromOrSameAs<Model, models::VisionModel>) {
+    if constexpr (meta::HasGenerateFromFrame<Model>) {
       addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>, synchronousHostFunction<&Model::streamStop>,
-          "streamStop"));
+          ModelHostObject<Model>, visionHostFunction<&Model::generateFromFrame>,
+          "generateFromFrame"));
     }
 
     if constexpr (meta::HasGenerateFromPixels<Model>) {
