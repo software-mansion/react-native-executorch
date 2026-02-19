@@ -11,8 +11,8 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.5115ba83.css">
-<script src="/react-native-executorch/assets/js/runtime~main.b9cf02ac.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.1b1a1137.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.06f32246.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.e6c69fe3.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <svg style="display: none;"><defs>
@@ -36,7 +36,7 @@
 <p>If your model supports tool calling (i.e. its chat template can process tools) you can use the method explained on the <a class="" href="/react-native-executorch/docs/next/hooks/natural-language-processing/useLLM">useLLM page</a>.</p>
 <p>If your model doesn&#x27;t support it, you can still work around it using context. For details, refer to <a href="https://github.com/software-mansion/react-native-executorch/issues/173#issuecomment-2775082278" target="_blank" rel="noopener noreferrer" class="">this comment</a>.</p>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="can-i-use-react-native-executorch-in-bare-react-native-apps">Can I use React Native ExecuTorch in bare React Native apps?<a href="#can-i-use-react-native-executorch-in-bare-react-native-apps" class="hash-link" aria-label="Direct link to Can I use React Native ExecuTorch in bare React Native apps?" title="Direct link to Can I use React Native ExecuTorch in bare React Native apps?" translate="no">​</a></h3>
-<p>To use the library, you need to install Expo Modules first. For a setup guide, refer to <a href="https://docs.expo.dev/bare/installing-expo-modules/" target="_blank" rel="noopener noreferrer" class="">this tutorial</a>. This is because we use Expo File System under the hood to download and manage the model binaries.</p>
+<p>Yes, staring from version <code>0.8.x</code> you can use React Native ExecuTorch in bare React Native apps. You just need to use bare React Native resource fetcher instead of Expo one, see: <a class="" href="/react-native-executorch/docs/next/fundamentals/loading-models">Loading models section</a> for more details.</p>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="do-you-support-the-old-architecture">Do you support the old architecture?<a href="#do-you-support-the-old-architecture" class="hash-link" aria-label="Direct link to Do you support the old architecture?" title="Direct link to Do you support the old architecture?" translate="no">​</a></h3>
 <p>The old architecture is not supported and we&#x27;re currently not planning to add support.</p>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="can-i-run-gguf-models-using-the-library">Can I run GGUF models using the library?<a href="#can-i-run-gguf-models-using-the-library" class="hash-link" aria-label="Direct link to Can I run GGUF models using the library?" title="Direct link to Can I run GGUF models using the library?" translate="no">​</a></h3>
