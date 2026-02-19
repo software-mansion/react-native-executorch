@@ -20,6 +20,7 @@
     "@docsearch/css": "^4.4.0",
     "@docsearch/sidepanel": "^4.4.0",
     "@docusaurus/core": "^3.9.2",
+    "@docusaurus/plugin-google-tag-manager": "^3.9.2",
     "@docusaurus/plugin-sitemap": "^3.9.2",
     "@docusaurus/preset-classic": "^3.9.2",
     "@emotion/react": "^11.14.0",
