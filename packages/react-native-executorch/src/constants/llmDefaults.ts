@@ -1,4 +1,5 @@
 import { ChatConfig, Message } from '../types/llm';
+import { MessageCountContextStrategy } from '../utils/llms/context_strategy/MessageCountContextStrategy';
 
 /**
  * Default system prompt used to guide the behavior of Large Language Models (LLMs).
@@ -48,5 +49,7 @@ export const DEFAULT_CONTEXT_WINDOW_LENGTH = 5;
 export const DEFAULT_CHAT_CONFIG: ChatConfig = {
   systemPrompt: DEFAULT_SYSTEM_PROMPT,
   initialMessageHistory: DEFAULT_MESSAGE_HISTORY,
-  contextWindowLength: DEFAULT_CONTEXT_WINDOW_LENGTH,
+  contextStrategy: new MessageCountContextStrategy(
+    DEFAULT_CONTEXT_WINDOW_LENGTH
+  ),
 };
