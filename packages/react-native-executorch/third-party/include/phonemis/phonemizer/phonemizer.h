@@ -2,6 +2,7 @@
 
 #include "lexicon.h"
 #include <memory>
+#include <string>
 
 namespace phonemis::phonemizer {
 

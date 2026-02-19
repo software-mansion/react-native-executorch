@@ -9,6 +9,7 @@ import { LLMConfig, LLMTool, Message } from '../../types/llm';
  */
 export class LLMModule {
   private controller: LLMController;
+  private pendingConfig?: LLMConfig;
 
   /**
    * Creates a new instance of `LLMModule` with optional callbacks.
@@ -57,6 +58,11 @@ export class LLMModule {
       ...model,
       onDownloadProgressCallback,
     });
+
+    if (this.pendingConfig) {
+      this.controller.configure(this.pendingConfig);
+      this.pendingConfig = undefined;
+    }
   }
 
   /**
@@ -78,8 +84,12 @@ export class LLMModule {
    *
    * @param configuration - Configuration object containing `chatConfig`, `toolsConfig`, and `generationConfig`.
    */
-  configure({ chatConfig, toolsConfig, generationConfig }: LLMConfig) {
-    this.controller.configure({ chatConfig, toolsConfig, generationConfig });
+  configure(config: LLMConfig) {
+    if (this.controller.isReady) {
+      this.controller.configure(config);
+    } else {
+      this.pendingConfig = config;
+    }
   }
 
   /**

@@ -12847,15 +12847,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-audio-api@npm:0.6.5":
-  version: 0.6.5
-  resolution: "react-native-audio-api@npm:0.6.5"
+"react-native-audio-api@npm:0.11.3":
+  version: 0.11.3
+  resolution: "react-native-audio-api@npm:0.11.3"
+  dependencies:
+    semver: "npm:^7.7.3"
   peerDependencies:
     react: "*"
     react-native: "*"
   bin:
     setup-rn-audio-api-web: scripts/setup-rn-audio-api-web.js
-  checksum: 10/9bf5b124ff902f359a237bcd3c386a37b354cc6263ce66765c1788c7a8d42c307a133780c8b57ab2f0db530bfed8ac1d3ff8fb55055228854ccebc8da9a595d8
+  checksum: 10/0c973061a81196f93cb19eecf3c6126deaaaa28ad89c7830cdcfc833faad594fb275b733d12729aa11676e0d571c493006fdef4bf243a79dcb142666e87bcf0b
   languageName: node
   linkType: hard
 
@@ -13708,6 +13710,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"semver@npm:^7.7.3":
+  version: 7.7.4
+  resolution: "semver@npm:7.7.4"
+  bin:
+    semver: bin/semver.js
+  checksum: 10/26bdc6d58b29528f4142d29afb8526bc335f4fc04c4a10f2b98b217f277a031c66736bf82d3d3bb354a2f6a3ae50f18fd62b053c4ac3f294a3d10a61f5075b75
+  languageName: node
+  linkType: hard
+
 "semver@npm:~7.6.3":
   version: 7.6.3
   resolution: "semver@npm:7.6.3"
@@ -14089,7 +14100,7 @@ __metadata:
     metro-config: "npm:^0.81.0"
     react: "npm:19.1.0"
     react-native: "npm:0.81.5"
-    react-native-audio-api: "npm:0.6.5"
+    react-native-audio-api: "npm:0.11.3"
     react-native-device-info: "npm:^14.0.4"
     react-native-executorch: "workspace:*"
     react-native-reanimated: "npm:~4.1.1"

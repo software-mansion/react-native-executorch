@@ -98,8 +98,11 @@ TextPrefiller::prefill_chunk(std::vector<uint64_t> &prompt_tokens,
 
     // run the first token and get back logits tensor. Assuming the first token
     // is bos so don't callback.
-    auto logits_tensor =
-        ET_UNWRAP(text_decoder_runner_->step(tokens, start_pos));
+    auto logits_result = text_decoder_runner_->step(tokens, start_pos);
+    if (!logits_result.ok()) {
+      return logits_result.error();
+    }
+    auto logits_tensor = std::move(*logits_result);
 
     pos += 1; // start the loop from index 1
     start_pos += 1;

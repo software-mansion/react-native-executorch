@@ -1,6 +1,6 @@
 # Interface: SpeechToTextModelConfig
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:205](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/stt.ts#L205)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:266](https://github.com/software-mansion/react-native-executorch/blob/dc9a5617585ba60b2224b30bbe71a79b0f4e44d2/packages/react-native-executorch/src/types/stt.ts#L266)
 
 Configuration for Speech to Text model.
 
@@ -10,7 +10,7 @@ Configuration for Speech to Text model.
 
 > **decoderSource**: [`ResourceSource`](../type-aliases/ResourceSource.md)
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:219](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/stt.ts#L219)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:280](https://github.com/software-mansion/react-native-executorch/blob/dc9a5617585ba60b2224b30bbe71a79b0f4e44d2/packages/react-native-executorch/src/types/stt.ts#L280)
 
 A string that specifies the location of a `.pte` file for the decoder.
 
@@ -20,7 +20,7 @@ A string that specifies the location of a `.pte` file for the decoder.
 
 > **encoderSource**: [`ResourceSource`](../type-aliases/ResourceSource.md)
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:214](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/stt.ts#L214)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:275](https://github.com/software-mansion/react-native-executorch/blob/dc9a5617585ba60b2224b30bbe71a79b0f4e44d2/packages/react-native-executorch/src/types/stt.ts#L275)
 
 A string that specifies the location of a `.pte` file for the encoder.
 
@@ -30,7 +30,7 @@ A string that specifies the location of a `.pte` file for the encoder.
 
 > **isMultilingual**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:209](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/stt.ts#L209)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:270](https://github.com/software-mansion/react-native-executorch/blob/dc9a5617585ba60b2224b30bbe71a79b0f4e44d2/packages/react-native-executorch/src/types/stt.ts#L270)
 
 A boolean flag indicating whether the model supports multiple languages.
 
@@ -40,6 +40,6 @@ A boolean flag indicating whether the model supports multiple languages.
 
 > **tokenizerSource**: [`ResourceSource`](../type-aliases/ResourceSource.md)
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:224](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/stt.ts#L224)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:285](https://github.com/software-mansion/react-native-executorch/blob/dc9a5617585ba60b2224b30bbe71a79b0f4e44d2/packages/react-native-executorch/src/types/stt.ts#L285)
 
 A string that specifies the location to the tokenizer for the model.

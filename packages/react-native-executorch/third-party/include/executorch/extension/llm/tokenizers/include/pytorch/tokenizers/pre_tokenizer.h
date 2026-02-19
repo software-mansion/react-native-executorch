@@ -53,7 +53,7 @@ public:
 // -- Factory ------------------------------------------------------------------
 
 // Helper macro to standardize addition of config member fields
-#define CONFIG_MEMBER(type, name)                                              \
+#define PRETOKENIZER_CONFIG_MEMBER(type, name)                                 \
   std::optional<type> name;                                                    \
   PreTokenizerConfig &set_##name(type arg) {                                   \
     this->name = std::move(arg);                                               \
@@ -92,37 +92,38 @@ public:
   /**
    * Used by: RegexPreTokenizer, ByteLevelPreTokenizer
    */
-  CONFIG_MEMBER(std::string, pattern)
+  PRETOKENIZER_CONFIG_MEMBER(std::string, pattern)
 
   /**
    * Used by: DigitsPreTokenizer
    */
-  CONFIG_MEMBER(bool, individual_digits)
+  PRETOKENIZER_CONFIG_MEMBER(bool, individual_digits)
 
   /**
    * Used by: ByteLevelPreTokenizer
    */
-  CONFIG_MEMBER(bool, add_prefix_space)
+  PRETOKENIZER_CONFIG_MEMBER(bool, add_prefix_space)
 
   /**
    * Used by RegexPreTokenizer
    */
-  CONFIG_MEMBER(bool, is_delimiter)
+  PRETOKENIZER_CONFIG_MEMBER(bool, is_delimiter)
 
   /**
    * Used by RegexPreTokenizer - Split behavior
    */
-  CONFIG_MEMBER(std::string, behavior)
+  PRETOKENIZER_CONFIG_MEMBER(std::string, behavior)
 
   /**
    * Used by RegexPreTokenizer - Split invert flag
    */
-  CONFIG_MEMBER(bool, invert)
+  PRETOKENIZER_CONFIG_MEMBER(bool, invert)
 
   /**
    * Used by: SequencePreTokenizer
    */
-  CONFIG_MEMBER(std::vector<PreTokenizerConfig>, pretokenizers)
+  using Configs = std::vector<PreTokenizerConfig>;
+  PRETOKENIZER_CONFIG_MEMBER(Configs, pretokenizers)
 
   /*----------------*/
   /* Public methods */
@@ -259,6 +260,21 @@ public:
 private:
   const std::vector<PreTokenizer::Ptr> pre_tokenizers_;
 
-}; // end class ByteLevelPreTokenizer
+}; // end class SequencePreTokenizer
+
+// -- Bert ---------------------------------------------------------------------
+// Used for BERT-style pre-tokenization (splitting on whitespace and
+// punctuation) CITE:
+// https://github.com/huggingface/tokenizers/blob/main/tokenizers/src/pre_tokenizers/bert.rs
+
+class BertPreTokenizer : public PreTokenizer {
+public:
+  BertPreTokenizer() = default;
+
+  /** Perform BERT pre-tokenization */
+  std::vector<std::string>
+  pre_tokenize(const std::string &input) const override;
+
+}; // end class BertPreTokenizer
 
 } // namespace tokenizers

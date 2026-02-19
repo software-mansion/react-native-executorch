@@ -76,13 +76,13 @@ export interface ImageSegmentationType {
    * Executes the model's forward pass to perform semantic segmentation on the provided image.
    * @param imageSource - A string representing the image source (e.g., a file path, URI, or base64 string) to be processed.
    * @param classesOfInterest - An optional array of `DeeplabLabel` enums. If provided, the model will only return segmentation masks for these specific classes.
-   * @param resize - An optional boolean indicating whether the output segmentation masks should be resized to match the original image dimensions. Defaults to standard model behavior if undefined.
+   * @param resizeToInput - an optional boolean to indicate whether the output should be resized to the original input image dimensions. If `false`, returns the model output without any resizing (see section "Running the model"). Defaults to `true`.
    * @returns A Promise that resolves to an object mapping each detected `DeeplabLabel` to its corresponding segmentation mask (represented as a flattened array of numbers).
    * @throws {RnExecutorchError} If the model is not loaded or is currently processing another image.
    */
   forward: (
     imageSource: string,
     classesOfInterest?: DeeplabLabel[],
-    resize?: boolean
+    resizeToInput?: boolean
   ) => Promise<Partial<Record<DeeplabLabel, number[]>>>;
 }

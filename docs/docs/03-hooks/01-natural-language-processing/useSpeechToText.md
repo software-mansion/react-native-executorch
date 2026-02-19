@@ -47,12 +47,12 @@ const { uri } = await FileSystem.downloadAsync(
 );
 
 const audioContext = new AudioContext({ sampleRate: 16000 });
-const decodedAudioData = await audioContext.decodeAudioDataSource(uri);
+const decodedAudioData = await audioContext.decodeAudioData(uri);
 const audioBuffer = decodedAudioData.getChannelData(0);
 
 try {
   const transcription = await model.transcribe(audioBuffer);
-  console.log(transcription);
+  console.log(transcription.text);
 } catch (error) {
   console.error('Error during audio transcription', error);
 }
@@ -101,12 +101,52 @@ const model = useSpeechToText({
 const transcription = await model.transcribe(spanishAudio, { language: 'es' });
 ```
 
+### Timestamps & Transcription Stat Data
+
+You can obtain word-level timestamps and other useful parameters from transcription ([`transcribe`](../../06-api-reference/interfaces/SpeechToTextType.md#transcribe) and [`stream`](../../06-api-reference/interfaces/SpeechToTextType.md#stream) methods) by setting `verbose: true` in the options. The result mimics the _verbose_json_ format from OpenAI Whisper API. For more information please read [`transcribe`](../../06-api-reference/interfaces/SpeechToTextType.md#transcribe), [`stream`](../../06-api-reference/interfaces/SpeechToTextType.md#stream), and [`TranscriptionResult`](../../06-api-reference/interfaces/TranscriptionResult.md) API References.
+
+```typescript
+const transcription = await model.transcribe(audioBuffer, { verbose: true });
+// Example result
+//
+// transcription: {
+//   task: "transcription",
+//   text: "Example text for a ...",
+//   duration: 9.05,
+//   language: "en",
+//   segments: [
+//     {
+//       start: 0,
+//       end: 5.4,
+//       text: "Example text for",
+//       words: [
+//         {
+//            word: "Example",
+//            start: 0,
+//            end: 1.4
+//         },
+//         ...
+//       ]
+//       tokens: [1, 32, 45, ...],
+//       temperature: 0.0,
+//       avgLogprob: -1.235,
+//       compressionRatio: 1.632
+//     },
+//     ...
+//   ]
+// }
+```
+
 ## Example
 
 ```tsx
 import React, { useState } from 'react';
-import { Button, Text } from 'react-native';
-import { useSpeechToText, WHISPER_TINY_EN } from 'react-native-executorch';
+import { Button, Text, View } from 'react-native';
+import {
+  useSpeechToText,
+  WHISPER_TINY_EN,
+  TranscriptionResult,
+} from 'react-native-executorch';
 import { AudioContext } from 'react-native-audio-api';
 import * as FileSystem from 'expo-file-system';
 
@@ -115,7 +155,7 @@ function App() {
     model: WHISPER_TINY_EN,
   });
 
-  const [transcription, setTranscription] = useState('');
+  const [transcription, setTranscription] = useState<TranscriptionResult>(null);
 
   const loadAudio = async () => {
     const { uri } = await FileSystem.downloadAsync(
@@ -132,14 +172,45 @@ function App() {
 
   const handleTranscribe = async () => {
     const audio = await loadAudio();
-    await model.transcribe(audio);
+    // Default text transcription
+    const result = await model.transcribe(audio);
+    setTranscription(result);
+  };
+
+  const handleTranscribeWithTimestamps = async () => {
+    const audio = await loadAudio();
+    // Transcription with timestamps
+    const result = await model.transcribe(audio, { verbose: true });
+    setTranscription(result);
+  };
+
+  // Custom logic for printing transcription
+  // e.g.
+
+  const renderContent = () => {
+    if (!transcription) return <Text>Press a button to transcribe</Text>;
+
+    if (transcription.segments && transcription.segments.length > 0) {
+      return (
+        <Text>
+          {transcription.text +
+            '\n\nNum segments: ' +
+            transcription.segments.length.toString()}
+        </Text>
+      );
+    }
+    return <Text>{transcription.text}</Text>;
   };
 
   return (
-    <>
-      <Text>{transcription}</Text>
-      <Button onPress={handleTranscribe} title="Transcribe" />
-    </>
+    <View>
+      {renderContent()}
+      <Button onPress={handleTranscribe} title="Transcribe (Text)" />
+      <Button
+        onPress={handleTranscribeWithTimestamps}
+        title="Transcribe (Timestamps)"
+      />
+    </View>
   );
 }
 ```
@@ -147,24 +218,21 @@ function App() {
 ### Streaming transcription
 
 ```tsx
-import React, { useEffect, useState } from 'react';
-import { Text, Button } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { Text, Button, View, SafeAreaView } from 'react-native';
 import { useSpeechToText, WHISPER_TINY_EN } from 'react-native-executorch';
 import { AudioManager, AudioRecorder } from 'react-native-audio-api';
-import * as FileSystem from 'expo-file-system';
 
-function App() {
+export default function App() {
   const model = useSpeechToText({
     model: WHISPER_TINY_EN,
   });
 
-  const [recorder] = useState(
-    () =>
-      new AudioRecorder({
-        sampleRate: 16000,
-        bufferLengthInSamples: 1600,
-      })
-  );
+  const [transcribedText, setTranscribedText] = useState('');
+
+  const isRecordingRef = useRef(false);
+
+  const [recorder] = useState(() => new AudioRecorder());
 
   useEffect(() => {
     AudioManager.setAudioSessionOptions({
@@ -176,35 +244,74 @@ function App() {
   }, []);
 
   const handleStartStreamingTranscribe = async () => {
-    recorder.onAudioReady(({ buffer }) => {
-      model.streamInsert(buffer.getChannelData(0));
-    });
-    recorder.start();
+    isRecordingRef.current = true;
+    setTranscribedText('');
+
+    const sampleRate = 16000;
+
+    recorder.onAudioReady(
+      {
+        sampleRate,
+        bufferLength: 0.1 * sampleRate,
+        channelCount: 1,
+      },
+      (chunk) => {
+        model.streamInsert(chunk.buffer.getChannelData(0));
+      }
+    );
 
     try {
-      await model.stream();
+      await recorder.start();
+    } catch (e) {
+      console.error('Recorder failed:', e);
+      return;
+    }
+
+    try {
+      let accumulatedCommitted = '';
+
+      const streamIter = model.stream({ verbose: false });
+
+      for await (const { committed, nonCommitted } of streamIter) {
+        if (!isRecordingRef.current) break;
+
+        if (committed.text) {
+          accumulatedCommitted += committed.text;
+        }
+
+        setTranscribedText(accumulatedCommitted + nonCommitted.text);
+      }
     } catch (error) {
       console.error('Error during streaming transcription:', error);
     }
   };
 
   const handleStopStreamingTranscribe = () => {
+    isRecordingRef.current = false;
     recorder.stop();
     model.streamStop();
   };
 
   return (
-    <>
-      <Text>
-        {model.committedTranscription}
-        {model.nonCommittedTranscription}
-      </Text>
-      <Button
-        onPress={handleStartStreamingTranscribe}
-        title="Start Streaming"
-      />
-      <Button onPress={handleStopStreamingTranscribe} title="Stop Streaming" />
-    </>
+    <SafeAreaView>
+      <View style={{ padding: 20 }}>
+        <Text style={{ marginBottom: 20, fontSize: 18 }}>
+          {transcribedText || 'Press start to speak...'}
+        </Text>
+
+        <Button
+          onPress={handleStartStreamingTranscribe}
+          title="Start Streaming"
+          disabled={model.isGenerating}
+        />
+        <View style={{ height: 10 }} />
+        <Button
+          onPress={handleStopStreamingTranscribe}
+          title="Stop Streaming"
+          color="red"
+        />
+      </View>
+    </SafeAreaView>
   );
 }
 ```

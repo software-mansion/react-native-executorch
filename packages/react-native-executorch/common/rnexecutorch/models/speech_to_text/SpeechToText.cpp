@@ -3,6 +3,7 @@
 #include "SpeechToText.h"
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/ErrorCodes.h>
+#include <rnexecutorch/models/speech_to_text/types/TranscriptionResult.h>
 
 namespace rnexecutorch::models::speech_to_text {
 
@@ -43,27 +44,29 @@ SpeechToText::decode(std::span<uint64_t> tokens,
   return std::make_shared<OwningArrayBuffer>(decoderOutput);
 }
 
-std::vector<char> SpeechToText::transcribe(std::span<float> waveform,
-                                           std::string languageOption) const {
-  std::vector<Segment> segments =
-      this->asr->transcribe(waveform, DecodingOptions(languageOption));
-  std::string transcription;
+TranscriptionResult SpeechToText::transcribe(std::span<float> waveform,
+                                             std::string languageOption,
+                                             bool verbose) const {
+  DecodingOptions options(languageOption, verbose);
+  std::vector<Segment> segments = this->asr->transcribe(waveform, options);
 
-  size_t transcriptionLength = 0;
-  for (auto &segment : segments) {
-    for (auto &word : segment.words) {
-      transcriptionLength += word.content.size();
-    }
-  }
-  transcription.reserve(transcriptionLength);
-
-  for (auto &segment : segments) {
-    for (auto &word : segment.words) {
-      transcription += word.content;
-    }
+  std::string fullText;
+  for (const auto &segment : segments) {
+    for (const auto &word : segment.words)
+      fullText += word.content;
   }
 
-  return {transcription.begin(), transcription.end()};
+  TranscriptionResult result;
+  result.text = fullText;
+  result.task = "transcribe";
+
+  if (verbose) {
+    result.language = languageOption.empty() ? "english" : languageOption;
+    result.duration = static_cast<double>(waveform.size()) / 16000.0;
+    result.segments = std::move(segments);
+  }
+
+  return result;
 }
 
 size_t SpeechToText::getMemoryLowerBound() const noexcept {
@@ -71,44 +74,85 @@ size_t SpeechToText::getMemoryLowerBound() const noexcept {
          this->decoder->getMemoryLowerBound();
 }
 
+namespace {
+TranscriptionResult wordsToResult(const std::vector<Word> &words,
+                                  const std::string &language, bool verbose) {
+  TranscriptionResult res;
+  res.language = language;
+  res.task = "stream";
+
+  std::string fullText;
+  for (const auto &w : words) {
+    fullText += w.content;
+  }
+  res.text = fullText;
+
+  if (verbose && !words.empty()) {
+    Segment seg;
+    seg.start = words.front().start;
+    seg.end = words.back().end;
+    seg.words = words;
+    seg.avgLogprob = std::nanf("0");
+    seg.compressionRatio = std::nanf("0");
+    seg.temperature = std::nanf("0");
+
+    res.segments.push_back(std::move(seg));
+  }
+
+  return res;
+}
+} // namespace
+
 void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
-                          std::string languageOption) {
+                          std::string languageOption, bool verbose) {
   if (this->isStreaming) {
     throw RnExecutorchError(RnExecutorchErrorCode::StreamingInProgress,
                             "Streaming is already in progress!");
   }
 
-  auto nativeCallback =
-      [this, callback](const std::vector<char> &committedVec,
-                       const std::vector<char> &nonCommittedVec, bool isDone) {
-        this->callInvoker->invokeAsync([callback, committedVec, nonCommittedVec,
-                                        isDone](jsi::Runtime &rt) {
-          callback->call(
-              rt, rnexecutorch::jsi_conversion::getJsiValue(committedVec, rt),
-              rnexecutorch::jsi_conversion::getJsiValue(nonCommittedVec, rt),
-              jsi::Value(isDone));
+  auto nativeCallback = [this, callback,
+                         verbose](const TranscriptionResult &committed,
+                                  const TranscriptionResult &nonCommitted,
+                                  bool isDone) {
+    // This moves execution to the JS thread
+    this->callInvoker->invokeAsync(
+        [callback, committed, nonCommitted, isDone, verbose](jsi::Runtime &rt) {
+          jsi::Value jsiCommitted =
+              rnexecutorch::jsi_conversion::getJsiValue(committed, rt);
+          jsi::Value jsiNonCommitted =
+              rnexecutorch::jsi_conversion::getJsiValue(nonCommitted, rt);
+
+          callback->call(rt, std::move(jsiCommitted),
+                         std::move(jsiNonCommitted), jsi::Value(isDone));
         });
-      };
+  };
 
   this->isStreaming = true;
+  DecodingOptions options(languageOption, verbose);
+
   while (this->isStreaming) {
     if (!this->readyToProcess ||
         this->processor->audioBuffer.size() < SpeechToText::kMinAudioSamples) {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
       continue;
     }
-    ProcessResult res =
-        this->processor->processIter(DecodingOptions(languageOption));
 
-    nativeCallback({res.committed.begin(), res.committed.end()},
-                   {res.nonCommitted.begin(), res.nonCommitted.end()}, false);
+    ProcessResult res = this->processor->processIter(options);
+
+    TranscriptionResult cRes =
+        wordsToResult(res.committed, languageOption, verbose);
+    TranscriptionResult ncRes =
+        wordsToResult(res.nonCommitted, languageOption, verbose);
+
+    nativeCallback(cRes, ncRes, false);
     this->readyToProcess = false;
   }
 
-  std::string committed = this->processor->finish();
+  std::vector<Word> finalWords = this->processor->finish();
+  TranscriptionResult finalRes =
+      wordsToResult(finalWords, languageOption, verbose);
 
-  nativeCallback({committed.begin(), committed.end()}, {}, true);
-
+  nativeCallback(finalRes, {}, true);
   this->resetStreamState();
 }
 
