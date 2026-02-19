@@ -189,7 +189,7 @@ public:
                                        "stream"));
     }
 
-    if constexpr (meta::DerivedFromOrSameAs<Model, models::VisionModel>) {
+    if constexpr (meta::HasGenerateFromFrame<Model>) {
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>,
           synchronousHostFunction<&Model::streamStop>,
