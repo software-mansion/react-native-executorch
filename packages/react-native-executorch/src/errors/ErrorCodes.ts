@@ -103,6 +103,10 @@ export enum RnExecutorchErrorCode {
    */
   ResourceFetcherMissingUri = 185,
   /**
+   * Thrown when trying to load resources without fetcher initialization.
+   */
+  ResourceFetcherAdapterNotInitialized = 186,
+  /**
    * Status indicating a successful operation.
    */
   Ok = 0,
