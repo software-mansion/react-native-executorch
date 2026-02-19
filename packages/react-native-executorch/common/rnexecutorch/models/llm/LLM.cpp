@@ -86,6 +86,15 @@ size_t LLM::getPromptTokenCount() const noexcept {
   return runner->stats_.num_prompt_tokens;
 }
 
+size_t LLM::countTextTokens(std::string text) const {
+  if (!runner || !runner->is_loaded()) {
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::ModuleNotLoaded,
+        "Can't count tokens from a model that's not loaded");
+  }
+  return runner->count_text_tokens(text);
+}
+
 size_t LLM::getMemoryLowerBound() const noexcept {
   return memorySizeLowerBound;
 }

@@ -112,6 +112,10 @@ public:
           synchronousHostFunction<&Model::getPromptTokenCount>,
           "getPromptTokenCount"));
 
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>,
+          synchronousHostFunction<&Model::countTextTokens>, "countTextTokens"));
+
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                               synchronousHostFunction<&Model::setCountInterval>,

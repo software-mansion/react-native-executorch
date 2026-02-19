@@ -368,4 +368,17 @@ int32_t Runner::resolve_max_new_tokens(int32_t num_prompt_tokens,
   return std::max(0, result);
 }
 
+int32_t Runner::count_text_tokens(const std::string &text) const {
+  auto encodeResult =
+      tokenizer_->encode(text, numOfAddedBoSTokens, numOfAddedEoSTokens);
+
+  if (!encodeResult.ok()) {
+    throw rnexecutorch::RnExecutorchError(
+        rnexecutorch::RnExecutorchErrorCode::TokenizerError,
+        "Encoding failed during token count check.");
+  }
+
+  return static_cast<int32_t>(encodeResult.get().size());
+}
+
 } // namespace example

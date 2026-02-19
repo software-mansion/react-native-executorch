@@ -25,6 +25,7 @@ public:
   void unload() noexcept;
   size_t getGeneratedTokenCount() const noexcept;
   size_t getPromptTokenCount() const noexcept;
+  size_t countTextTokens(std::string text) const;
   size_t getMemoryLowerBound() const noexcept;
   void setCountInterval(size_t countInterval);
   void setTemperature(float temperature);
