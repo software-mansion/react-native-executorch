@@ -52,35 +52,43 @@ export default function _layout() {
           headerTitleStyle: { color: ColorPalette.primary },
         }}
       >
-        <Drawer.Screen
+        {/* <Drawer.Screen
           name="llm/index"
           options={{
             drawerLabel: 'LLM',
             title: 'LLM',
             headerTitleStyle: { color: ColorPalette.primary },
           }}
-        />
-        <Drawer.Screen
+        /> */}
+        {/* <Drawer.Screen
           name="llm_tool_calling/index"
           options={{
             drawerLabel: 'LLM Tool Calling',
             title: 'LLM Tool Calling',
             headerTitleStyle: { color: ColorPalette.primary },
           }}
-        />
-        <Drawer.Screen
+        /> */}
+        {/* <Drawer.Screen
           name="llm_structured_output/index"
           options={{
             drawerLabel: 'LLM Structured Output',
             title: 'LLM Structured Output',
             headerTitleStyle: { color: ColorPalette.primary },
           }}
-        />
-        <Drawer.Screen
+        /> */}
+        {/* <Drawer.Screen
           name="voice_chat/index"
           options={{
             drawerLabel: 'Voice Chat',
             title: 'Voice Chat',
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        /> */}
+        <Drawer.Screen
+          name="multimodal_llm/index"
+          options={{
+            drawerLabel: 'Multimodal LLM (VLM)',
+            title: 'Multimodal LLM',
             headerTitleStyle: { color: ColorPalette.primary },
           }}
         />

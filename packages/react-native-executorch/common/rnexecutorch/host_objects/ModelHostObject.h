@@ -18,6 +18,7 @@
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
 #include <rnexecutorch/models/BaseModel.h>
 #include <rnexecutorch/models/llm/LLM.h>
+#include <rnexecutorch/models/multimodal_llm/MultimodalLLM.h>
 #include <rnexecutorch/models/ocr/OCR.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <rnexecutorch/models/text_to_image/TextToImage.h>
@@ -32,7 +33,11 @@ public:
   explicit ModelHostObject(const std::shared_ptr<Model> &model,
                            std::shared_ptr<react::CallInvoker> callInvoker)
       : model(model), callInvoker(callInvoker) {
-    if constexpr (meta::DerivedFromOrSameAs<Model, models::BaseModel>) {
+    // MultimodalLLM moves module_ into its runner during construction, so
+    // the base class methods that go through module_ (forward, getInputShape)
+    // are unsafe to expose. Its unload is registered separately below.
+    if constexpr (meta::DerivedFromOrSameAs<Model, models::BaseModel> &&
+                  !meta::SameAs<Model, models::multimodal_llm::MultimodalLLM>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
 
@@ -158,6 +163,23 @@ public:
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>, synchronousHostFunction<&Model::streamStop>,
           "streamStop"));
+    }
+
+    if constexpr (meta::SameAs<Model, models::multimodal_llm::MultimodalLLM>) {
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>, synchronousHostFunction<&Model::interrupt>,
+          "interrupt"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>,
+          synchronousHostFunction<&Model::setTemperature>, "setTemperature"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       synchronousHostFunction<&Model::setTopp>,
+                                       "setTopp"));
+
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }
   }
 

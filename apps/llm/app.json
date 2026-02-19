@@ -54,7 +54,8 @@
       },
       "entitlements": {
         "com.apple.developer.kernel.increased-memory-limit": true
-      }
+      },
+      "appleTeamId": "B357MU264T"
     },
     "android": {
       "adaptiveIcon": {
@@ -64,7 +65,11 @@
       "package": "com.anonymous.llm",
       "permissions": [
         "android.permission.READ_CALENDAR",
-        "android.permission.WRITE_CALENDAR"
+        "android.permission.WRITE_CALENDAR",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
