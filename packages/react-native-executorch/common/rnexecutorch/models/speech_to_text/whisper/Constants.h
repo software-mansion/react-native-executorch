@@ -21,15 +21,17 @@ constexpr static int32_t kNumFrames = 1500;
 
 // Sampling rate expected by Whisper and the model's audio pipeline (16 kHz)
 constexpr static int32_t kSamplingRate = 16000;
+constexpr static int32_t kSamplesPerMilisecond = kSamplingRate / 1000;
 
 // Time precision used by Whisper timestamps: each token spans 0.02 seconds
 constexpr static float kTimePrecision = 0.02f;
 
 // Special token constants
 namespace tokens {
-inline const std::string kStartOfTranscript = "<|startoftranscript|>";
-inline const std::string kEndOfTranscript = "<|endoftext|>";
-inline const std::string kBeginTimestamp = "<|0.00|>";
+static const std::string kStartOfTranscript = "<|startoftranscript|>";
+static const std::string kEndOfTranscript = "<|endoftext|>";
+static const std::string kBeginTimestamp = "<|0.00|>";
+static const std::string kBlankAudio = "[BLANK_AUDIO]";
 } // namespace tokens
 
 } // namespace rnexecutorch::models::speech_to_text::whisper::constants
