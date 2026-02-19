@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-namespace rnexecutorch::models::speech_to_text::types {
+namespace rnexecutorch::models::speech_to_text {
 
 struct TranscriptionResult {
   std::string text;
@@ -13,4 +13,4 @@ struct TranscriptionResult {
   std::vector<Segment> segments; // Populated only if verbose=true
 };
 
-} // namespace rnexecutorch::models::speech_to_text::types
+} // namespace rnexecutorch::models::speech_to_text

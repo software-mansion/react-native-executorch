@@ -33,26 +33,23 @@ export class SpeechToTextModule {
       undefined,
       model.tokenizerSource
     );
-    const encoderDecoderPromise = ResourceFetcher.fetch(
+    const modelPromise = ResourceFetcher.fetch(
       onDownloadProgressCallback,
-      model.encoderSource,
-      model.decoderSource
+      model.modelSource
     );
-    const [tokenizerSources, encoderDecoderResults] = await Promise.all([
+    const [tokenizerSources, modelSources] = await Promise.all([
       tokenizerLoadPromise,
-      encoderDecoderPromise,
+      modelPromise,
     ]);
-    const encoderSource = encoderDecoderResults?.[0];
-    const decoderSource = encoderDecoderResults?.[1];
-    if (!encoderSource || !decoderSource || !tokenizerSources) {
+    if (!modelSources || !tokenizerSources) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.DownloadInterrupted,
         'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
       );
     }
     this.nativeModule = await global.loadSpeechToText(
-      encoderSource,
-      decoderSource,
+      model.type,
+      modelSources[0]!,
       tokenizerSources[0]!
     );
   }

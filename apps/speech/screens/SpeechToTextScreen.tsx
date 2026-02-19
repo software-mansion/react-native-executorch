@@ -50,7 +50,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   const [liveTranscribing, setLiveTranscribing] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const recorder = new AudioRecorder();
+  const recorder = useRef(new AudioRecorder());
 
   useEffect(() => {
     AudioManager.setAudioSessionOptions({
@@ -115,7 +115,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
 
     const sampleRate = 16000;
 
-    recorder.onAudioReady(
+    recorder.current.onAudioReady(
       {
         sampleRate,
         bufferLength: 0.1 * sampleRate,
@@ -131,7 +131,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
       if (!success) {
         console.warn('Cannot start audio session correctly');
       }
-      const result = recorder.start();
+      const result = recorder.current.start();
       if (result.status === 'error') {
         console.warn('Recording problems: ', result.message);
       }
@@ -177,7 +177,7 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   const handleStopTranscribeFromMicrophone = () => {
     isRecordingRef.current = false;
 
-    recorder.stop();
+    recorder.current.stop();
     model.streamStop();
     console.log('Live transcription stopped');
     setLiveTranscribing(false);

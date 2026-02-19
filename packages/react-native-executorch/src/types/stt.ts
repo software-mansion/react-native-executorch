@@ -10,7 +10,7 @@ export interface SpeechToTextProps {
   /**
    * Configuration object containing model sources.
    */
-  model: SpeechToTextModelConfig;
+  model: SpeechToTextModelConfig; // | ...
   /**
    * Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
    */
@@ -261,20 +261,19 @@ export interface TranscriptionResult {
  * @category Types
  */
 export interface SpeechToTextModelConfig {
+  type: 'whisper'; // | ... (add more in the future)
+
   /**
    * A boolean flag indicating whether the model supports multiple languages.
    */
   isMultilingual: boolean;
 
   /**
-   * A string that specifies the location of a `.pte` file for the encoder.
+   * A string that specifies the location of a `.pte` file for the model.
+   *
+   * We expect the model to have 2 bundled methods: 'decode' and 'encode'.
    */
-  encoderSource: ResourceSource;
-
-  /**
-   * A string that specifies the location of a `.pte` file for the decoder.
-   */
-  decoderSource: ResourceSource;
+  modelSource: ResourceSource;
 
   /**
    * A string that specifies the location to the tokenizer for the model.

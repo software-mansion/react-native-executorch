@@ -18,11 +18,11 @@
 #include <rnexecutorch/models/object_detection/Constants.h>
 #include <rnexecutorch/models/object_detection/Types.h>
 #include <rnexecutorch/models/ocr/Types.h>
-#include <rnexecutorch/models/speech_to_text/types/Segment.h>
-#include <rnexecutorch/models/speech_to_text/types/TranscriptionResult.h>
+#include <rnexecutorch/models/speech_to_text/common/types/Segment.h>
+#include <rnexecutorch/models/speech_to_text/common/types/TranscriptionResult.h>
 #include <rnexecutorch/models/voice_activity_detection/Types.h>
 
-using namespace rnexecutorch::models::speech_to_text::types;
+using namespace rnexecutorch::models::speech_to_text;
 
 namespace rnexecutorch::jsi_conversion {
 
