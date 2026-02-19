@@ -13,27 +13,9 @@ export default function Home() {
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.navigate('llm/')}
+          onPress={() => router.navigate('multimodal_llm/')}
         >
-          <Text style={styles.buttonText}>LLM</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('llm_tool_calling/')}
-        >
-          <Text style={styles.buttonText}>LLM Tool Calling</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('llm_structured_output/')}
-        >
-          <Text style={styles.buttonText}>LLM Structured Output</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.navigate('voice_chat/')}
-        >
-          <Text style={styles.buttonText}>Voice Chat</Text>
+          <Text style={styles.buttonText}>Multimodal LLM (VLM)</Text>
         </TouchableOpacity>
       </View>
     </View>
