@@ -217,7 +217,8 @@ cv::Mat resizePadded(const cv::Mat inputImage, cv::Size targetSize) {
 std::pair<TensorPtr, cv::Size>
 readImageToTensor(const std::string &path,
                   const std::vector<int32_t> &tensorDims,
-                  bool maintainAspectRatio) {
+                  bool maintainAspectRatio, std::optional<cv::Scalar> normMean,
+                  std::optional<cv::Scalar> normStd) {
   cv::Mat input = image_processing::readImage(path);
   cv::Size imageSize = input.size();
 
@@ -241,6 +242,11 @@ readImageToTensor(const std::string &path,
 
   cv::cvtColor(input, input, cv::COLOR_BGR2RGB);
 
+  if (normMean.has_value() && normStd.has_value()) {
+    return {image_processing::getTensorFromMatrix(
+                tensorDims, input, normMean.value(), normStd.value()),
+            imageSize};
+  }
   return {image_processing::getTensorFromMatrix(tensorDims, input), imageSize};
 }
 } // namespace image_processing

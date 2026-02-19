@@ -2,9 +2,8 @@ import Spinner from '../../components/Spinner';
 import { BottomBar } from '../../components/BottomBar';
 import { getImage } from '../../utils';
 import {
-  useImageSegmentation,
   DEEPLAB_V3_RESNET50,
-  DeeplabLabel,
+  useImageSegmentation,
 } from 'react-native-executorch';
 import {
   Canvas,
@@ -44,15 +43,19 @@ const numberToColor: number[][] = [
 ];
 
 export default function ImageSegmentationScreen() {
-  const model = useImageSegmentation({ model: DEEPLAB_V3_RESNET50 });
   const { setGlobalGenerating } = useContext(GeneratingContext);
-  useEffect(() => {
-    setGlobalGenerating(model.isGenerating);
-  }, [model.isGenerating, setGlobalGenerating]);
+  const { isReady, isGenerating, downloadProgress, forward } =
+    useImageSegmentation({
+      model: DEEPLAB_V3_RESNET50,
+    });
   const [imageUri, setImageUri] = useState('');
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [segImage, setSegImage] = useState<SkImage | null>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    setGlobalGenerating(isGenerating);
+  }, [isGenerating, setGlobalGenerating]);
 
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
@@ -69,12 +72,8 @@ export default function ImageSegmentationScreen() {
     if (!imageUri || imageSize.width === 0 || imageSize.height === 0) return;
     try {
       const { width, height } = imageSize;
-      const output = await model.forward(imageUri, [DeeplabLabel.ARGMAX]);
-      const argmax = output[DeeplabLabel.ARGMAX] || [];
-      const uniqueValues = new Set<number>();
-      for (let i = 0; i < argmax.length; i++) {
-        uniqueValues.add(argmax[i]);
-      }
+      const output = await forward(imageUri, [], true);
+      const argmax = output.ARGMAX || [];
       const pixels = new Uint8Array(width * height * 4);
 
       for (let row = 0; row < height; row++) {
@@ -105,11 +104,11 @@ export default function ImageSegmentationScreen() {
     }
   };
 
-  if (!model.isReady) {
+  if (!isReady) {
     return (
       <Spinner
-        visible={!model.isReady}
-        textContent={`Loading the model ${(model.downloadProgress * 100).toFixed(0)} %`}
+        visible={!isReady}
+        textContent={`Loading the model ${(downloadProgress * 100).toFixed(0)} %`}
       />
     );
   }

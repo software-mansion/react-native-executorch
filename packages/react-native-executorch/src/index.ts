@@ -1,9 +1,14 @@
 import { ETInstallerNativeModule } from './native/RnExecutorchModules';
+import { Triple } from './types/common';
 
 // eslint-disable no-var
 declare global {
   var loadStyleTransfer: (source: string) => any;
-  var loadImageSegmentation: (source: string) => any;
+  var loadImageSegmentation: (
+    source: string,
+    normMean: Triple<number> | [],
+    normStd: Triple<number> | []
+  ) => any;
   var loadClassification: (source: string) => any;
   var loadObjectDetection: (source: string) => any;
   var loadExecutorchModule: (source: string) => any;
