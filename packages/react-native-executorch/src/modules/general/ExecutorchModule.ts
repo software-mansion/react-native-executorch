@@ -28,7 +28,7 @@ export class ExecutorchModule extends BaseModule {
         onDownloadProgressCallback,
         modelSource
       );
-      if (paths === null || paths.length < 1 || paths[0] === undefined) {
+      if (!paths?.[0]) {
         throw new RnExecutorchError(
           RnExecutorchErrorCode.DownloadInterrupted,
           'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
