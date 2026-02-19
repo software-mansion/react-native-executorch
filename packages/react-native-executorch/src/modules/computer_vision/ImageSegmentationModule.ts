@@ -29,14 +29,14 @@ export class ImageSegmentationModule extends BaseModule {
         model.modelSource
       );
 
-      if (paths === null || paths.length < 1) {
+      if (paths === null || paths.length < 1 || paths[0] === undefined) {
         throw new RnExecutorchError(
           RnExecutorchErrorCode.DownloadInterrupted,
           'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
         );
       }
 
-      this.nativeModule = global.loadImageSegmentation(paths[0] || '');
+      this.nativeModule = global.loadImageSegmentation(paths[0]);
     } catch (error) {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);
