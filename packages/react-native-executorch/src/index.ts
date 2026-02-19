@@ -1,4 +1,37 @@
 import { ETInstallerNativeModule } from './native/RnExecutorchModules';
+import {
+  ResourceFetcher,
+  ResourceFetcherAdapter,
+} from './utils/ResourceFetcher';
+
+/**
+ * Configuration that goes to the `initExecutorch`.
+ * You can pass either bare React Native or Expo configuration.
+ *
+ * @category Utilities - General
+ */
+export interface ExecutorchConfig {
+  resourceFetcher: ResourceFetcherAdapter;
+}
+
+/**
+ * Function that setups the provided resource fetcher.
+ *
+ * @category Utilities - General
+ * @param config - Configuration that you want to use in resource fetching.
+ */
+export function initExecutorch(config: ExecutorchConfig) {
+  ResourceFetcher.setAdapter(config.resourceFetcher);
+}
+
+/**
+ * Function that cleans current setup of fetching resources.
+ *
+ * @category Utilities - General
+ */
+export function cleanupExecutorch() {
+  ResourceFetcher.resetAdapter();
+}
 
 // eslint-disable no-var
 declare global {
@@ -113,7 +146,9 @@ export * from './modules/general/ExecutorchModule';
 
 // utils
 export * from './utils/ResourceFetcher';
+export * from './utils/ResourceFetcherUtils';
 export * from './utils/llm';
+export * from './common/Logger';
 
 // types
 export * from './types/objectDetection';

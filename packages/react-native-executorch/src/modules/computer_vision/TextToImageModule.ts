@@ -4,7 +4,8 @@ import { BaseModule } from '../BaseModule';
 import { Buffer } from 'buffer';
 import { PNG } from 'pngjs/browser';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import { RnExecutorchError } from '../../errors/errorUtils';
+import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
+import { Logger } from '../../common/Logger';
 
 /**
  * Module for text-to-image generation tasks.
@@ -42,49 +43,54 @@ export class TextToImageModule extends BaseModule {
     },
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ): Promise<void> {
-    const results = await ResourceFetcher.fetch(
-      onDownloadProgressCallback,
-      model.tokenizerSource,
-      model.schedulerSource,
-      model.encoderSource,
-      model.unetSource,
-      model.decoderSource
-    );
-    if (!results) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+    try {
+      const results = await ResourceFetcher.fetch(
+        onDownloadProgressCallback,
+        model.tokenizerSource,
+        model.schedulerSource,
+        model.encoderSource,
+        model.unetSource,
+        model.decoderSource
       );
-    }
-    const [tokenizerPath, schedulerPath, encoderPath, unetPath, decoderPath] =
-      results;
+      if (!results) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.DownloadInterrupted,
+          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+        );
+      }
+      const [tokenizerPath, schedulerPath, encoderPath, unetPath, decoderPath] =
+        results;
 
-    if (
-      !tokenizerPath ||
-      !schedulerPath ||
-      !encoderPath ||
-      !unetPath ||
-      !decoderPath
-    ) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+      if (
+        !tokenizerPath ||
+        !schedulerPath ||
+        !encoderPath ||
+        !unetPath ||
+        !decoderPath
+      ) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.DownloadInterrupted,
+          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+        );
+      }
+
+      const response = await fetch('file://' + schedulerPath);
+      const schedulerConfig = await response.json();
+
+      this.nativeModule = global.loadTextToImage(
+        tokenizerPath,
+        encoderPath,
+        unetPath,
+        decoderPath,
+        schedulerConfig.beta_start,
+        schedulerConfig.beta_end,
+        schedulerConfig.num_train_timesteps,
+        schedulerConfig.steps_offset
       );
+    } catch (error) {
+      Logger.error('Load failed:', error);
+      throw parseUnknownError(error);
     }
-
-    const response = await fetch('file://' + schedulerPath);
-    const schedulerConfig = await response.json();
-
-    this.nativeModule = global.loadTextToImage(
-      tokenizerPath,
-      encoderPath,
-      unetPath,
-      decoderPath,
-      schedulerConfig.beta_start,
-      schedulerConfig.beta_end,
-      schedulerConfig.num_train_timesteps,
-      schedulerConfig.steps_offset
-    );
   }
 
   /**

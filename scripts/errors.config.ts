@@ -107,6 +107,10 @@ export const errorDefinitions = {
    * Thrown when required URI information is missing for a download operation.
    */
   ResourceFetcherMissingUri: 0xb9,
+  /**
+   * Thrown when trying to load resources without fetcher initialization.
+   */
+  ResourceFetcherAdapterNotInitialized: 0xba,
 
   // ExecuTorch mapped errors
   // Based on: https://github.com/pytorch/executorch/blob/main/runtime/core/error.h

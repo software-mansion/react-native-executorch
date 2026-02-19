@@ -98,6 +98,18 @@ function VoiceChatScreen() {
     }
   };
 
+  useEffect(() => {
+    if (llm.error) {
+      console.error('LLM error:', llm.error);
+    }
+  }, [llm.error]);
+
+  useEffect(() => {
+    if (speechToText.error) {
+      console.error('speechToText error:', speechToText.error);
+    }
+  }, [speechToText.error]);
+
   return !llm.isReady || !speechToText.isReady ? (
     <Spinner
       visible={!llm.isReady || !speechToText.isReady}

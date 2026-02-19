@@ -24,7 +24,7 @@ jobs:
         run: yarn lint
 
       - name: Typecheck files
-        run: yarn typecheck
+        run: yarn workspaces foreach --all --topological-dev run prepare && yarn typecheck
 
   build-library:
     runs-on: ubuntu-latest
@@ -35,7 +35,5 @@ jobs:
       - name: Setup
         uses: ./.github/actions/setup
 
-      - name: Build package
-        run: |
-          cd packages/react-native-executorch
-          yarn prepare
+      - name: Build all packages
+        run: yarn workspaces foreach --all --topological-dev run prepare
