@@ -1,7 +1,7 @@
 {
   "version": "0.2",
   "language": "en",
-  "ignorePaths": ["**/node_modules", "**/Pods"],
+  "ignorePaths": ["**/node_modules", "**/Pods", "**/readmes/**"],
   "dictionaryDefinitions": [
     {
       "name": "project-words",

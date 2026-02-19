@@ -97,7 +97,8 @@ Add this to your component file:
 import {
   useLLM,
   LLAMA3_2_1B,
-  Message
+  Message,
+  initExecutorch,
 } from 'react-native-executorch';
 import { ExpoResourceFetcher } from '@react-native-executorch/expo-resource-fetcher';
 
