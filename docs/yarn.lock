@@ -2532,7 +2532,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@docusaurus/plugin-google-tag-manager@npm:3.9.2":
+"@docusaurus/plugin-google-tag-manager@npm:3.9.2, @docusaurus/plugin-google-tag-manager@npm:^3.9.2":
   version: 3.9.2
   resolution: "@docusaurus/plugin-google-tag-manager@npm:3.9.2"
   dependencies:
@@ -6402,6 +6402,7 @@ __metadata:
     "@docsearch/sidepanel": "npm:^4.4.0"
     "@docusaurus/core": "npm:^3.9.2"
     "@docusaurus/module-type-aliases": "npm:^3.9.2"
+    "@docusaurus/plugin-google-tag-manager": "npm:^3.9.2"
     "@docusaurus/plugin-sitemap": "npm:^3.9.2"
     "@docusaurus/preset-classic": "npm:^3.9.2"
     "@docusaurus/tsconfig": "npm:^3.9.2"

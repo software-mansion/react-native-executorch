@@ -31,7 +31,7 @@ If your model doesn't support it, you can still work around it using context. Fo
 
 ### Can I use React Native ExecuTorch in bare React Native apps?
 
-To use the library, you need to install Expo Modules first. For a setup guide, refer to [this tutorial](https://docs.expo.dev/bare/installing-expo-modules/). This is because we use Expo File System under the hood to download and manage the model binaries.
+Yes, staring from version `0.8.x` you can use React Native ExecuTorch in bare React Native apps. You just need to use bare React Native resource fetcher instead of Expo one, see: [Loading models section](./02-loading-models.md) for more details.
 
 ### Do you support the old architecture?
 

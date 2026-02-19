@@ -1,7 +1,8 @@
 import { ResourceSource } from '../../types/common';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
-import { RnExecutorchError } from '../../errors/errorUtils';
+import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
+import { Logger } from '../../common/Logger';
 
 /**
  * Module for Tokenizer functionalities.
@@ -25,18 +26,23 @@ export class TokenizerModule {
     tokenizer: { tokenizerSource: ResourceSource },
     onDownloadProgressCallback: (progress: number) => void = () => {}
   ): Promise<void> {
-    const paths = await ResourceFetcher.fetch(
-      onDownloadProgressCallback,
-      tokenizer.tokenizerSource
-    );
-    const path = paths?.[0];
-    if (!path) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+    try {
+      const paths = await ResourceFetcher.fetch(
+        onDownloadProgressCallback,
+        tokenizer.tokenizerSource
       );
+      const path = paths?.[0];
+      if (!path) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.DownloadInterrupted,
+          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+        );
+      }
+      this.nativeModule = global.loadTokenizerModule(path);
+    } catch (error) {
+      Logger.error('Load failed:', error);
+      throw parseUnknownError(error);
     }
-    this.nativeModule = global.loadTokenizerModule(path);
   }
 
   /**

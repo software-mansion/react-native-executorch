@@ -61,7 +61,7 @@ function LLMToolCallingScreen() {
 
   useEffect(() => {
     if (llm.error) {
-      console.log('LLM error:', llm.error);
+      console.error('LLM error:', llm.error);
     }
   }, [llm.error]);
 

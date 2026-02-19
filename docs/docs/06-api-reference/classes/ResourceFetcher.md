@@ -1,6 +1,6 @@
 # Class: ResourceFetcher
 
-Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:63](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L63)
+Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:52](https://github.com/software-mansion/react-native-executorch/blob/9db6e3b8b0f1b11ef66f7c45d29a251b31e9c252/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L52)
 
 This module provides functions to download and work with downloaded files stored in the application's document directory inside the `react-native-executorch/` directory.
 These utilities can help you manage your storage and clean up the downloaded files when they are no longer needed.
@@ -17,67 +17,50 @@ These utilities can help you manage your storage and clean up the downloaded fil
 
 ## Properties
 
-### downloads
+### fs
 
-> `static` **downloads**: `Map`\<[`ResourceSource`](../type-aliases/ResourceSource.md), `DownloadResource`\>
+> `static` **fs**: `object`
 
-Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:64](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L64)
+Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:118](https://github.com/software-mansion/react-native-executorch/blob/9db6e3b8b0f1b11ef66f7c45d29a251b31e9c252/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L118)
+
+Filesystem utilities for reading downloaded resources.
+
+#### readAsString()
+
+> **readAsString**: (`path`) => `Promise`\<`string`\>
+
+Reads the contents of a file as a string.
+
+##### Parameters
+
+###### path
+
+`string`
+
+Absolute file path to read.
+
+##### Returns
+
+`Promise`\<`string`\>
+
+A promise that resolves to the file contents as a string.
+
+##### Remarks
+
+**REQUIRED**: Used internally for reading configuration files (e.g., tokenizer configs).
+
+#### Remarks
+
+Provides access to filesystem operations through the configured adapter.
+Currently supports reading file contents as strings for configuration files.
 
 ## Methods
-
-### cancelFetching()
-
-> `static` **cancelFetching**(...`sources`): `Promise`\<`void`\>
-
-Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:284](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L284)
-
-Cancels an ongoing/paused download of files.
-
-#### Parameters
-
-##### sources
-
-...[`ResourceSource`](../type-aliases/ResourceSource.md)[]
-
-The resource identifiers used when calling `fetch()`.
-
-#### Returns
-
-`Promise`\<`void`\>
-
-A promise that resolves once the download is canceled.
-
----
-
-### deleteResources()
-
-> `static` **deleteResources**(...`sources`): `Promise`\<`void`\>
-
-Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:327](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L327)
-
-Deletes downloaded resources from the local filesystem.
-
-#### Parameters
-
-##### sources
-
-...[`ResourceSource`](../type-aliases/ResourceSource.md)[]
-
-The resource identifiers used when calling `fetch`.
-
-#### Returns
-
-`Promise`\<`void`\>
-
-A promise that resolves once all specified resources have been removed.
-
----
 
 ### fetch()
 
 > `static` **fetch**(`callback`, ...`sources`): `Promise`\<`string`[] \| `null`\>
 
-Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:74](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L74)
+Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:104](https://github.com/software-mansion/react-native-executorch/blob/9db6e3b8b0f1b11ef66f7c45d29a251b31e9c252/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L104)
 
 Fetches resources (remote URLs, local files or embedded assets), downloads or stores them locally for use by React Native ExecuTorch.
 
@@ -100,109 +83,72 @@ Multiple resources that can be strings, asset references, or objects.
 `Promise`\<`string`[] \| `null`\>
 
 If the fetch was successful, it returns a promise which resolves to an array of local file paths for the downloaded/stored resources (without file:// prefix).
-If the fetch was interrupted by `pauseFetching` or `cancelFetching`, it returns a promise which resolves to `null`.
+If the fetch was interrupted, it returns a promise which resolves to `null`.
 
 ---
 
-### getFilesTotalSize()
+### getAdapter()
 
-> `static` **getFilesTotalSize**(...`sources`): `Promise`\<`number`\>
+> `static` **getAdapter**(): [`ResourceFetcherAdapter`](../interfaces/ResourceFetcherAdapter.md)
 
-Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:345](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L345)
+Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:86](https://github.com/software-mansion/react-native-executorch/blob/9db6e3b8b0f1b11ef66f7c45d29a251b31e9c252/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L86)
 
-Fetches the info about files size. Works only for remote files.
+Gets the current resource fetcher adapter instance.
+
+#### Returns
+
+[`ResourceFetcherAdapter`](../interfaces/ResourceFetcherAdapter.md)
+
+The configured ResourceFetcherAdapter instance.
+
+#### Throws
+
+If no adapter has been set via [setAdapter](#setadapter).
+
+#### Remarks
+
+**INTERNAL**: Used internally by all resource fetching operations.
+
+---
+
+### resetAdapter()
+
+> `static` **resetAdapter**(): `void`
+
+Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:73](https://github.com/software-mansion/react-native-executorch/blob/9db6e3b8b0f1b11ef66f7c45d29a251b31e9c252/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L73)
+
+Resets the resource fetcher adapter to null.
+
+#### Returns
+
+`void`
+
+#### Remarks
+
+**INTERNAL**: Used primarily for testing purposes to clear the adapter state.
+
+---
+
+### setAdapter()
+
+> `static` **setAdapter**(`adapter`): `void`
+
+Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:63](https://github.com/software-mansion/react-native-executorch/blob/9db6e3b8b0f1b11ef66f7c45d29a251b31e9c252/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L63)
+
+Sets a custom resource fetcher adapter for resource operations.
 
 #### Parameters
 
-##### sources
+##### adapter
 
-...[`ResourceSource`](../type-aliases/ResourceSource.md)[]
+[`ResourceFetcherAdapter`](../interfaces/ResourceFetcherAdapter.md)
 
-The resource identifiers (URLs).
-
-#### Returns
-
-`Promise`\<`number`\>
-
-A promise that resolves to combined size of files in bytes.
-
----
-
-### listDownloadedFiles()
-
-> `static` **listDownloadedFiles**(): `Promise`\<`string`[]\>
-
-Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:306](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L306)
-
-Lists all the downloaded files used by React Native ExecuTorch.
+The adapter instance to use for fetching resources.
 
 #### Returns
 
-`Promise`\<`string`[]\>
+`void`
 
-A promise, which resolves to an array of URIs for all the downloaded files.
+#### Remarks
 
----
-
-### listDownloadedModels()
-
-> `static` **listDownloadedModels**(): `Promise`\<`string`[]\>
-
-Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:316](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L316)
-
-Lists all the downloaded models used by React Native ExecuTorch.
-
-#### Returns
-
-`Promise`\<`string`[]\>
-
-A promise, which resolves to an array of URIs for all the downloaded models.
-
----
-
-### pauseFetching()
-
-> `static` **pauseFetching**(...`sources`): `Promise`\<`void`\>
-
-Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:261](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L261)
-
-Pauses an ongoing download of files.
-
-#### Parameters
-
-##### sources
-
-...[`ResourceSource`](../type-aliases/ResourceSource.md)[]
-
-The resource identifiers used when calling `fetch`.
-
-#### Returns
-
-`Promise`\<`void`\>
-
-A promise that resolves once the download is paused.
-
----
-
-### resumeFetching()
-
-> `static` **resumeFetching**(...`sources`): `Promise`\<`void`\>
-
-Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:273](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L273)
-
-Resumes a paused download of files.
-
-#### Parameters
-
-##### sources
-
-...[`ResourceSource`](../type-aliases/ResourceSource.md)[]
-
-The resource identifiers used when calling fetch.
-
-#### Returns
-
-`Promise`\<`void`\>
-
-If the fetch was successful, it returns a promise which resolves to an array of local file paths for the downloaded resources (without file:// prefix).
-If the fetch was again interrupted by `pauseFetching` or `cancelFetching`, it returns a promise which resolves to `null`.
+**INTERNAL**: Used by platform-specific init functions (expo/bare) to inject their fetcher implementation.
