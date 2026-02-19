@@ -4,6 +4,7 @@ import { Detection } from '../../types/objectDetection';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
 import { BaseModule } from '../BaseModule';
+import { nullish } from 'zod/v4';
 
 /**
  * Module for object detection tasks.
@@ -55,3 +56,15 @@ export class ObjectDetectionModule extends BaseModule {
     return await this.nativeModule.generate(imageSource, detectionThreshold);
   }
 }
+
+// export class ObjectDetectionModulev2 extends BaseModule {
+//   private constructor(labelMap: string, nativeModule: unknown) {
+//     super()
+//     this.labelMap = labelMap
+//     this.nativeModule = nativeModule
+//   }
+//
+//   override async load() { }
+//
+// }
+//
