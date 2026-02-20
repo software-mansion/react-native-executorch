@@ -347,6 +347,21 @@ export const PHI_4_MINI_4B_QUANTIZED = {
   tokenizerConfigSource: PHI_4_MINI_TOKENIZER_CONFIG,
 };
 
+// LFM2.5-1.2B-Instruct
+
+const LFM2_5_1_2B_INSTRUCT_MODEL = `${URL_PREFIX}-lfm2.5-1.2B-instruct/${VERSION_TAG}/lfm2_5_1_2b_8da4w.pte`;
+const LFM2_5_1_2B_TOKENIZER = `${URL_PREFIX}-lfm2.5-1.2B-instruct/${VERSION_TAG}/tokenizer.json`;
+const LFM2_5_1_2B_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm2.5-1.2B-instruct/${VERSION_TAG}/tokenizer_config.json`;
+
+/**
+ * @category Models - LMM
+ */
+export const LFM2_5_1_2B_INSTRUCT = {
+  modelSource: LFM2_5_1_2B_INSTRUCT_MODEL,
+  tokenizerSource: LFM2_5_1_2B_TOKENIZER,
+  tokenizerConfigSource: LFM2_5_1_2B_TOKENIZER_CONFIG,
+};
+
 // Classification
 const EFFICIENTNET_V2_S_MODEL =
   Platform.OS === `ios`
