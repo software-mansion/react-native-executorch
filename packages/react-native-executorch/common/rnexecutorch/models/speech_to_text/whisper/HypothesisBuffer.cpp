@@ -19,7 +19,8 @@ void HypothesisBuffer::insert(std::span<const Word> words, float offset) {
     // To optimize the process, we discard the words which are too old
     // according to the calculated timestamp.
     if (startGlobal > lastCommittedTime_ - params::kStreamFreshThreshold) {
-      fresh_.emplace_back(word.content, startGlobal, endGlobal);
+      fresh_.emplace_back(word.content, startGlobal, endGlobal,
+                          word.punctations);
     }
   }
 
@@ -27,9 +28,6 @@ void HypothesisBuffer::insert(std::span<const Word> words, float offset) {
   // correct any mistakes and remove the words which overlap with already
   // commited segments - to avoid duplicates.
   if (!fresh_.empty() && !committed_.empty()) {
-    const float freshSequenceStart = fresh_.front().start;
-    const float freshSequenceEnd = fresh_.back().end;
-
     // Calculate the largest overlapping fragment size.
     // Note that we use size limit (kStreamMaxOverlapSize) for efficiency of the
     // algorithm, and timestamp difference limit
@@ -53,9 +51,19 @@ std::deque<Word> HypothesisBuffer::commit() {
   // iteration.
   while (!fresh_.empty() && !hypothesis_.empty() &&
          fresh_.front().content == hypothesis_.front().content) {
-    toCommit.emplace_back(
-        std::move(hypothesis_.front())); // Timestamps from the previous
-                                         // iteration tends to be more reliable
+    // The last word from the fresh_ buffer must also match punctations with the
+    // hypothesis. This is done in order to ensure correct punctation marks in
+    // the resulting transcription.
+    if (fresh_.size() == 1 &&
+        fresh_.front().punctations != hypothesis_.front().punctations) {
+      break;
+    }
+
+    // Take timestamps from the hypothesis, but actual content from the fresh
+    // buffer.
+    toCommit.emplace_back(std::move(fresh_.front().content),
+                          hypothesis_.front().start, hypothesis_.front().end,
+                          std::move(fresh_.front().punctations));
     fresh_.pop_front();
     hypothesis_.pop_front();
   }

@@ -2,6 +2,7 @@
 
 #include <cinttypes>
 #include <string>
+#include <unordered_set>
 
 namespace rnexecutorch::models::speech_to_text::whisper::constants {
 
@@ -25,6 +26,10 @@ constexpr static int32_t kSamplesPerMilisecond = kSamplingRate / 1000;
 
 // Time precision used by Whisper timestamps: each token spans 0.02 seconds
 constexpr static float kTimePrecision = 0.02f;
+
+// Special characters serving as pause / end of sentence
+static const std::unordered_set<char> kPunctations = {',', '.', '?',
+                                                      '!', ':', ';'};
 
 // Special token constants
 namespace tokens {

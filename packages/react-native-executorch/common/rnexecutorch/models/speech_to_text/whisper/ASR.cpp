@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <array>
 #include <numeric>
 #include <random>
@@ -429,7 +430,16 @@ ASR::estimateWordLevelTimestampsLinear(std::span<const uint64_t> tokens,
     const float wStart = startOffset + prevCharCount * timePerChar;
     const float wEnd = wStart + timePerChar * wSize;
     prevCharCount += wSize;
-    wordObjs.emplace_back(std::move(w), wStart, wEnd);
+
+    // We store punctations separately to other characters.
+    std::string puncts = "";
+    while (!w.empty() && constants::kPunctations.contains(w.back())) {
+      puncts += w.back();
+      w.pop_back();
+    }
+    std::reverse(puncts.begin(), puncts.end());
+
+    wordObjs.emplace_back(std::move(w), wStart, wEnd, std::move(puncts));
   }
 
   return wordObjs;
