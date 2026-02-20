@@ -5,7 +5,7 @@
 #include <rnexecutorch/models/classification/Classification.h>
 #include <rnexecutorch/models/embeddings/image/ImageEmbeddings.h>
 #include <rnexecutorch/models/embeddings/text/TextEmbeddings.h>
-#include <rnexecutorch/models/image_segmentation/ImageSegmentation.h>
+#include <rnexecutorch/models/image_segmentation/BaseImageSegmentation.h>
 #include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/object_detection/ObjectDetection.h>
 #include <rnexecutorch/models/ocr/OCR.h>
@@ -44,7 +44,7 @@ void RnExecutorchInstaller::injectJSIBindings(
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadImageSegmentation",
       RnExecutorchInstaller::loadModel<
-          models::image_segmentation::ImageSegmentation>(
+          models::image_segmentation::BaseImageSegmentation>(
           jsiRuntime, jsCallInvoker, "loadImageSegmentation"));
 
   jsiRuntime->global().setProperty(

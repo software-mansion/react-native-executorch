@@ -5,6 +5,7 @@
 
 #include <executorch/extension/tensor/tensor.h>
 #include <rnexecutorch/Error.h>
+#include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/BaseModel.h>
 
@@ -22,11 +23,17 @@ BaseImageSegmentation::BaseImageSegmentation(
     std::vector<float> normStd, std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
   initModelImageSize();
-  if (normMean.size() >= 3) {
+  if (normMean.size() == 3) {
     normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
+  } else {
+    log(LOG_LEVEL::Warn,
+        "normMean must have 3 elements — ignoring provided value.");
   }
-  if (normStd.size() >= 3) {
+  if (normStd.size() == 3) {
     normStd_ = cv::Scalar(normStd[0], normStd[1], normStd[2]);
+  } else {
+    log(LOG_LEVEL::Warn,
+        "normStd must have 3 elements — ignoring provided value.");
   }
 }
 

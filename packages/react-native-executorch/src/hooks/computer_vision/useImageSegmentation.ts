@@ -45,6 +45,7 @@ export const useImageSegmentation = <C extends ModelSources>({
   useEffect(() => {
     if (preventLoad) return;
 
+    let isMounted = true;
     let currentInstance: ImageSegmentationModule<ModelNameOf<C>> | null = null;
 
     (async () => {
@@ -54,16 +55,21 @@ export const useImageSegmentation = <C extends ModelSources>({
       try {
         currentInstance = await ImageSegmentationModule.fromModelName(
           model,
-          setDownloadProgress
+          (progress) => {
+            if (isMounted) setDownloadProgress(progress);
+          }
         );
-        setInstance(currentInstance);
-        setIsReady(true);
+        if (isMounted) {
+          setInstance(currentInstance);
+          setIsReady(true);
+        }
       } catch (err) {
-        setError(parseUnknownError(err));
+        if (isMounted) setError(parseUnknownError(err));
       }
     })();
 
     return () => {
+      isMounted = false;
       currentInstance?.delete();
     };
 
