@@ -50,8 +50,8 @@ public:
   void set_time_interval(size_t time_interval);
   void set_temperature(float temperature) noexcept;
   void set_topp(float topp) noexcept;
-  int32_t count_text_tokens(const std::string &text) const;
-  int32_t get_max_context_length() const;
+  size_t count_text_tokens(const std::string &text) const;
+  size_t get_max_context_length() const;
 
   void stop() override;
   void reset() override;

@@ -342,14 +342,14 @@ void Runner::set_topp(float topp) noexcept {
   }
 }
 
-int32_t Runner::get_max_context_length() const {
+size_t Runner::get_max_context_length() const {
   if (!is_loaded()) {
-    return static_cast<int32_t>(metadata_.at(kMaxContextLen));
+    return metadata_.at(kMaxContextLen);
   }
   return config_.max_context_length;
 }
 
-int32_t Runner::count_text_tokens(const std::string &text) const {
+size_t Runner::count_text_tokens(const std::string &text) const {
   auto encodeResult =
       tokenizer_->encode(text, numOfAddedBoSTokens, numOfAddedEoSTokens);
 
@@ -359,7 +359,7 @@ int32_t Runner::count_text_tokens(const std::string &text) const {
         "Encoding failed during token count check.");
   }
 
-  return static_cast<int32_t>(encodeResult.get().size());
+  return encodeResult.get().size();
 }
 
 int32_t Runner::resolve_max_new_tokens(int32_t num_prompt_tokens,
