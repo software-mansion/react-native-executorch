@@ -11,12 +11,8 @@ using namespace facebook;
 
 cv::Mat VisionModel::extractFromFrame(jsi::Runtime &runtime,
                                       const jsi::Value &frameData) const {
-  // Extract frame using FrameProcessor utility
   auto frameObj = frameData.asObject(runtime);
-  cv::Mat frame = utils::FrameProcessor::extractFrame(runtime, frameObj);
-
-  // Apply model-specific preprocessing
-  return preprocessFrame(frame);
+  return ::rnexecutorch::utils::FrameProcessor::extractFrame(runtime, frameObj);
 }
 
 cv::Mat VisionModel::extractFromPixels(const JSTensorViewIn &tensorView) const {
