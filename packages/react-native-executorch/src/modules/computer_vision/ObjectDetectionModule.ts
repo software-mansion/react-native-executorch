@@ -1,52 +1,220 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
-import { ResourceSource, PixelData } from '../../types/common';
-import { Detection } from '../../types/objectDetection';
+import { LabelEnum, ResourceSource, PixelData, Frame } from '../../types/common';
+import {
+  CocoLabel,
+  Detection,
+  ObjectDetectionConfig,
+  ObjectDetectionModelName,
+  ObjectDetectionModelSources,
+} from '../../types/objectDetection';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
-import { Logger } from '../../common/Logger';
-import { VisionModule } from './VisionModule';
+import { RnExecutorchError } from '../../errors/errorUtils';
+import { BaseModule } from '../BaseModule';
+import { IMAGENET1K_MEAN, IMAGENET1K_STD } from '../../constants/commonVision';
+
+const ModelConfigs = {
+  'ssdlite-320-mobilenet-v3-large': {
+    labelMap: CocoLabel,
+    preprocessorConfig: undefined,
+  },
+  'rf-detr-nano': {
+    labelMap: CocoLabel,
+    preprocessorConfig: { normMean: IMAGENET1K_MEAN, normStd: IMAGENET1K_STD },
+  },
+} as const satisfies Record<
+  ObjectDetectionModelName,
+  ObjectDetectionConfig<LabelEnum>
+>;
+
+type ModelConfigsType = typeof ModelConfigs;
 
 /**
- * Module for object detection tasks.
+ * Resolves the {@link LabelEnum} for a given built-in object detection model name.
+ *
+ * @typeParam M - A built-in model name from {@link ObjectDetectionModelName}.
+ *
+ * @category Types
+ */
+export type ObjectDetectionLabels<M extends keyof ModelConfigsType> =
+  ModelConfigsType[M]['labelMap'];
+
+type ModelNameOf<C extends ObjectDetectionModelSources> = C['modelName'];
+
+/**
+ * @internal
+ * Resolves the label type: if `T` is a {@link ObjectDetectionModelName}, looks up its labels
+ * from the built-in config; otherwise uses `T` directly as a {@link LabelEnum}.
+ */
+type ResolveLabels<T extends ObjectDetectionModelName | LabelEnum> =
+  T extends ObjectDetectionModelName ? ObjectDetectionLabels<T> : T;
+
+/**
+ * Generic object detection module with type-safe label maps.
+ *
+ * @typeParam T - Either a built-in model name (e.g. `'ssdlite-320-mobilenet-v3-large'`)
+ *   or a custom {@link LabelEnum} label map.
  *
  * @category Typescript API
  */
-export class ObjectDetectionModule extends VisionModule<Detection[]> {
-  /**
-   * Loads the model, where `modelSource` is a string that specifies the location of the model binary.
-   * To track the download progress, supply a callback function `onDownloadProgressCallback`.
-   *
-   * @param model - Object containing `modelSource`.
-   * @param onDownloadProgressCallback - Optional callback to monitor download progress.
-   */
-  async load(
-    model: { modelSource: ResourceSource },
-    onDownloadProgressCallback: (progress: number) => void = () => {}
-  ): Promise<void> {
-    try {
-      const paths = await ResourceFetcher.fetch(
-        onDownloadProgressCallback,
-        model.modelSource
-      );
+export class ObjectDetectionModule<
+  T extends ObjectDetectionModelName | LabelEnum,
+> extends BaseModule {
+  private labelMap: ResolveLabels<T>;
+  private allLabelNames: string[];
 
-      if (!paths?.[0]) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.DownloadInterrupted,
-          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
-        );
+  private constructor(labelMap: ResolveLabels<T>, nativeModule: unknown) {
+    super();
+    this.labelMap = labelMap;
+    this.allLabelNames = [];
+    for (const [name, value] of Object.entries(this.labelMap)) {
+      if (typeof value === 'number') {
+        this.allLabelNames[value] = name;
       }
-
-      this.nativeModule = global.loadObjectDetection(paths[0]);
-    } catch (error) {
-      Logger.error('Load failed:', error);
-      throw parseUnknownError(error);
     }
+    for (let i = 0; i < this.allLabelNames.length; i++) {
+      if (this.allLabelNames[i] == null) {
+        this.allLabelNames[i] = '';
+      }
+    }
+    this.nativeModule = nativeModule;
   }
 
+  // TODO: figure it out so we can delete this (we need this because of basemodule inheritance)
+  override async load() {}
+
+  /**
+   * Creates an object detection instance for a built-in model.
+   *
+   * @param config - A {@link ObjectDetectionModelSources} object specifying which model to load and where to fetch it from.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @returns A Promise resolving to an `ObjectDetectionModule` instance typed to the chosen model's label map.
+   */
+  static async fromModelName<C extends ObjectDetectionModelSources>(
+    config: C,
+    onDownloadProgress: (progress: number) => void = () => {}
+  ): Promise<ObjectDetectionModule<ModelNameOf<C>>> {
+    const { modelSource } = config;
+    const { labelMap, preprocessorConfig } = ModelConfigs[
+      config.modelName
+    ] as ObjectDetectionConfig<LabelEnum>;
+    const normMean = preprocessorConfig?.normMean ?? [];
+    const normStd = preprocessorConfig?.normStd ?? [];
+    const paths = await ResourceFetcher.fetch(onDownloadProgress, modelSource);
+    if (!paths?.[0]) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.DownloadInterrupted,
+        'The download has been interrupted. Please retry.'
+      );
+    }
+    const nativeModule = global.loadObjectDetection(
+      paths[0],
+      normMean,
+      normStd
+    );
+    return new ObjectDetectionModule<ModelNameOf<C>>(
+      labelMap as ResolveLabels<ModelNameOf<C>>,
+      nativeModule
+    );
+  }
+
+  /**
+   * Creates an object detection instance with a user-provided label map and custom config.
+   *
+   * @param modelSource - A fetchable resource pointing to the model binary.
+   * @param config - A {@link ObjectDetectionConfig} object with the label map.
+   * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
+   * @returns A Promise resolving to an `ObjectDetectionModule` instance typed to the provided label map.
+   */
+  static async fromCustomConfig<L extends LabelEnum>(
+    modelSource: ResourceSource,
+    config: ObjectDetectionConfig<L>,
+    onDownloadProgress: (progress: number) => void = () => {}
+  ): Promise<ObjectDetectionModule<L>> {
+    const normMean = config.preprocessorConfig?.normMean ?? [];
+    const normStd = config.preprocessorConfig?.normStd ?? [];
+    const paths = await ResourceFetcher.fetch(onDownloadProgress, modelSource);
+    if (!paths?.[0]) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.DownloadInterrupted,
+        'The download has been interrupted. Please retry.'
+      );
+    }
+    const nativeModule = global.loadObjectDetection(
+      paths[0],
+      normMean,
+      normStd
+    );
+    return new ObjectDetectionModule<L>(
+      config.labelMap as ResolveLabels<L>,
+      nativeModule
+    );
+  }
+
+  /**
+   * Executes the model's forward pass to detect objects within the provided image.
+   *
+   * @param input - A string image source (file path, URI, or Base64) or a {@link PixelData} object.
+   * @param detectionThreshold - Minimum confidence score for a detection to be included. Default is 0.7.
+   * @returns A Promise resolving to an array of {@link Detection} objects.
+   * @throws {RnExecutorchError} If the model is not loaded.
+   */
   async forward(
     input: string | PixelData,
-    detectionThreshold: number = 0.5
-  ): Promise<Detection[]> {
-    return super.forward(input, detectionThreshold);
+    detectionThreshold: number = 0.7
+  ): Promise<Detection<ResolveLabels<T>>[]> {
+    if (this.nativeModule == null) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        'The model is currently not loaded.'
+      );
+    }
+    if (typeof input === 'string') {
+      return await this.nativeModule.generateFromString(
+        input,
+        detectionThreshold,
+        this.allLabelNames
+      );
+    }
+    return await this.nativeModule.generateFromPixels(
+      input,
+      detectionThreshold,
+      this.allLabelNames
+    );
+  }
+
+  /**
+   * Synchronous worklet function for real-time VisionCamera frame processing.
+   * The label names are captured from the module instance — no need to pass them per frame.
+   *
+   * **Use this for VisionCamera frame processing in worklets.**
+   * For async processing, use `forward()` instead.
+   */
+  get runOnFrame():
+    | ((frame: Frame, detectionThreshold: number) => Detection<ResolveLabels<T>>[])
+    | null {
+    if (!this.nativeModule?.generateFromFrame) {
+      return null;
+    }
+
+    const nativeGenerateFromFrame = this.nativeModule.generateFromFrame;
+    const allLabelNames = this.allLabelNames;
+
+    return (
+      frame: Frame,
+      detectionThreshold: number
+    ): Detection<ResolveLabels<T>>[] => {
+      'worklet';
+
+      let nativeBuffer: ReturnType<Frame['getNativeBuffer']> | null = null;
+      try {
+        nativeBuffer = frame.getNativeBuffer();
+        const frameData = { nativeBuffer: nativeBuffer.pointer };
+        return nativeGenerateFromFrame(frameData, detectionThreshold, allLabelNames);
+      } finally {
+        if (nativeBuffer?.release) {
+          nativeBuffer.release();
+        }
+      }
+    };
   }
 }
