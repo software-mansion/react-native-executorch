@@ -64,6 +64,14 @@ void LLM::interrupt() {
   runner->stop();
 }
 
+void LLM::reset() {
+  if (!runner || !runner->is_loaded()) {
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
+                            "Can't interrupt a model that's not loaded");
+  }
+  runner->reset();
+}
+
 size_t LLM::getGeneratedTokenCount() const noexcept {
   if (!runner || !runner->is_loaded()) {
     return 0;
@@ -76,6 +84,15 @@ size_t LLM::getPromptTokenCount() const noexcept {
     return 0;
   }
   return runner->stats_.num_prompt_tokens;
+}
+
+int32_t LLM::countTextTokens(std::string text) const {
+  if (!runner || !runner->is_loaded()) {
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::ModuleNotLoaded,
+        "Can't count tokens from a model that's not loaded");
+  }
+  return runner->count_text_tokens(text);
 }
 
 size_t LLM::getMemoryLowerBound() const noexcept {
@@ -116,7 +133,7 @@ void LLM::setTemperature(float temperature) {
                             "Temperature must be non-negative");
   }
   runner->set_temperature(temperature);
-};
+}
 
 void LLM::setTopp(float topp) {
   if (!runner || !runner->is_loaded()) {
@@ -129,6 +146,16 @@ void LLM::setTopp(float topp) {
   }
   runner->set_topp(topp);
 }
+
+int32_t LLM::getMaxContextLength() const {
+  if (!runner || !runner->is_loaded()) {
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::ModuleNotLoaded,
+        "Can't get context length from a model that's not loaded");
+  }
+  return runner->get_max_context_length();
+}
+
 void LLM::unload() noexcept { runner.reset(nullptr); }
 
 } // namespace rnexecutorch::models::llm

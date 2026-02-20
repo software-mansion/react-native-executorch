@@ -1,6 +1,6 @@
 # Class: ResourceFetcher
 
-Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:52](https://github.com/software-mansion/react-native-executorch/blob/9db6e3b8b0f1b11ef66f7c45d29a251b31e9c252/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L52)
+Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:53](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L53)
 
 This module provides functions to download and work with downloaded files stored in the application's document directory inside the `react-native-executorch/` directory.
 These utilities can help you manage your storage and clean up the downloaded files when they are no longer needed.
@@ -21,7 +21,7 @@ These utilities can help you manage your storage and clean up the downloaded fil
 
 > `static` **fs**: `object`
 
-Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:118](https://github.com/software-mansion/react-native-executorch/blob/9db6e3b8b0f1b11ef66f7c45d29a251b31e9c252/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L118)
+Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:128](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L128)
 
 Filesystem utilities for reading downloaded resources.
 
@@ -60,7 +60,7 @@ Currently supports reading file contents as strings for configuration files.
 
 > `static` **fetch**(`callback`, ...`sources`): `Promise`\<`string`[] \| `null`\>
 
-Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:104](https://github.com/software-mansion/react-native-executorch/blob/9db6e3b8b0f1b11ef66f7c45d29a251b31e9c252/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L104)
+Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:105](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L105)
 
 Fetches resources (remote URLs, local files or embedded assets), downloads or stores them locally for use by React Native ExecuTorch.
 
@@ -91,7 +91,7 @@ If the fetch was interrupted, it returns a promise which resolves to `null`.
 
 > `static` **getAdapter**(): [`ResourceFetcherAdapter`](../interfaces/ResourceFetcherAdapter.md)
 
-Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:86](https://github.com/software-mansion/react-native-executorch/blob/9db6e3b8b0f1b11ef66f7c45d29a251b31e9c252/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L86)
+Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:87](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L87)
 
 Gets the current resource fetcher adapter instance.
 
@@ -115,7 +115,7 @@ If no adapter has been set via [setAdapter](#setadapter).
 
 > `static` **resetAdapter**(): `void`
 
-Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:73](https://github.com/software-mansion/react-native-executorch/blob/9db6e3b8b0f1b11ef66f7c45d29a251b31e9c252/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L73)
+Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:74](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L74)
 
 Resets the resource fetcher adapter to null.
 
@@ -133,7 +133,7 @@ Resets the resource fetcher adapter to null.
 
 > `static` **setAdapter**(`adapter`): `void`
 
-Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:63](https://github.com/software-mansion/react-native-executorch/blob/9db6e3b8b0f1b11ef66f7c45d29a251b31e9c252/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L63)
+Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:64](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L64)
 
 Sets a custom resource fetcher adapter for resource operations.
 

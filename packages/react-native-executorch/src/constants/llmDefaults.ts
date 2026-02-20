@@ -1,4 +1,5 @@
 import { ChatConfig, Message } from '../types/llm';
+import { SlidingWindowContextStrategy } from '../utils/llms/context_strategy';
 
 /**
  * Default system prompt used to guide the behavior of Large Language Models (LLMs).
@@ -34,11 +35,11 @@ ${structuredOutputSchema}
 export const DEFAULT_MESSAGE_HISTORY: Message[] = [];
 
 /**
- * Default context window length for Large Language Models (LLMs).
+ * Default context buffer tokens (number of tokens to keep for the model response) for Large Language Models (LLMs).
  *
  * @category Utilities - LLM
  */
-export const DEFAULT_CONTEXT_WINDOW_LENGTH = 5;
+export const DEFAULT_CONTEXT_BUFFER_TOKENS = 5;
 
 /**
  * Default chat configuration for Large Language Models (LLMs).
@@ -48,5 +49,7 @@ export const DEFAULT_CONTEXT_WINDOW_LENGTH = 5;
 export const DEFAULT_CHAT_CONFIG: ChatConfig = {
   systemPrompt: DEFAULT_SYSTEM_PROMPT,
   initialMessageHistory: DEFAULT_MESSAGE_HISTORY,
-  contextWindowLength: DEFAULT_CONTEXT_WINDOW_LENGTH,
+  contextStrategy: new SlidingWindowContextStrategy(
+    DEFAULT_CONTEXT_BUFFER_TOKENS
+  ),
 };

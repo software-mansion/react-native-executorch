@@ -1,6 +1,6 @@
 # Interface: OCRType
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:84](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/ocr.ts#L84)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:84](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/types/ocr.ts#L84)
 
 Return type for the `useOCR` hook.
 Manages the state and operations for Optical Character Recognition (OCR).
@@ -11,7 +11,7 @@ Manages the state and operations for Optical Character Recognition (OCR).
 
 > **downloadProgress**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:103](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/ocr.ts#L103)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:103](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/types/ocr.ts#L103)
 
 Represents the total download progress of the model binaries as a value between 0 and 1.
 
@@ -21,7 +21,7 @@ Represents the total download progress of the model binaries as a value between 
 
 > **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:88](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/ocr.ts#L88)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:88](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/types/ocr.ts#L88)
 
 Contains the error object if the models failed to load, download, or encountered a runtime error during recognition.
 
@@ -31,7 +31,7 @@ Contains the error object if the models failed to load, download, or encountered
 
 > **forward**: (`imageSource`) => `Promise`\<[`OCRDetection`](OCRDetection.md)[]\>
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:111](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/ocr.ts#L111)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:111](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/types/ocr.ts#L111)
 
 Executes the OCR pipeline (detection and recognition) on the provided image.
 
@@ -59,7 +59,7 @@ If the models are not loaded or are currently processing another image.
 
 > **isGenerating**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:98](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/ocr.ts#L98)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:98](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/types/ocr.ts#L98)
 
 Indicates whether the model is currently processing an image.
 
@@ -69,6 +69,6 @@ Indicates whether the model is currently processing an image.
 
 > **isReady**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/ocr.ts:93](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/ocr.ts#L93)
+Defined in: [packages/react-native-executorch/src/types/ocr.ts:93](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/types/ocr.ts#L93)
 
 Indicates whether both detector and recognizer models are loaded and ready to process images.

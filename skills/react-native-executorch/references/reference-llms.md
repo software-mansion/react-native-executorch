@@ -51,7 +51,7 @@ useEffect(() => {
   llm.configure({
     chatConfig: {
       systemPrompt: 'You are a helpful assistant',
-      contextWindowLength: 10,
+      contextStrategy: new SlidingWindowContextStrategy(512),
     },
     generationConfig: {
       temperature: 0.7,

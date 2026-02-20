@@ -212,13 +212,13 @@ export type LLMTool = Object;
  *
  * @category Types
  * @property {Message[]} initialMessageHistory - An array of `Message` objects that represent the conversation history. This can be used to provide initial context to the model.
- * @property {number} contextWindowLength - The number of messages from the current conversation that the model will use to generate a response. The higher the number, the more context the model will have. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
  * @property {string} systemPrompt - Often used to tell the model what is its purpose, for example - "Be a helpful translator".
+ * @property {ContextStrategy} contextStrategy - Defines a strategy for managing the conversation context window and message history.
  */
 export interface ChatConfig {
   initialMessageHistory: Message[];
-  contextWindowLength: number;
   systemPrompt: string;
+  contextStrategy: ContextStrategy;
 }
 
 /**
@@ -249,6 +249,28 @@ export interface GenerationConfig {
   topp?: number;
   outputTokenBatchSize?: number;
   batchTimeInterval?: number;
+}
+
+/**
+ * Defines a strategy for managing the conversation context window and message history.
+ *
+ * @category Types
+ */
+export interface ContextStrategy {
+  /**
+   * Constructs the final array of messages to be sent to the model for the current inference step.
+   * * @param systemPrompt - The top-level instructions or persona assigned to the model.
+   * @param history - The complete conversation history up to the current point.
+   * @param maxContextLength - The maximum number of tokens that the model can keep in the context.
+   * @param getTokenCount - A callback function provided by the LLM controller that calculates the exact number of tokens a specific array of messages will consume once formatted.
+   * @returns The optimized array of messages, ready to be processed by the model.
+   */
+  buildContext(
+    systemPrompt: string,
+    history: Message[],
+    maxContextLength: number,
+    getTokenCount: (messages: Message[]) => number
+  ): Message[];
 }
 
 /**

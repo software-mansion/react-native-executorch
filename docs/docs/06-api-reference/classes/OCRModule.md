@@ -1,6 +1,6 @@
 # Class: OCRModule
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts:10](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts#L10)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts:12](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts#L12)
 
 Module for Optical Character Recognition (OCR) tasks.
 
@@ -10,7 +10,7 @@ Module for Optical Character Recognition (OCR) tasks.
 
 > **new OCRModule**(): `OCRModule`
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts:13](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts#L13)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts:15](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts#L15)
 
 #### Returns
 
@@ -22,7 +22,7 @@ Defined in: [packages/react-native-executorch/src/modules/computer_vision/OCRMod
 
 > **delete**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts:55](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts#L55)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts:62](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts#L62)
 
 Release the memory held by the module. Calling `forward` afterwards is invalid.
 Note that you cannot delete model while it's generating.
@@ -37,7 +37,7 @@ Note that you cannot delete model while it's generating.
 
 > **forward**(`imageSource`): `Promise`\<[`OCRDetection`](../interfaces/OCRDetection.md)[]\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts:47](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts#L47)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts:54](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts#L54)
 
 Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string.
 
@@ -61,7 +61,7 @@ The OCR result as a `OCRDetection[]`.
 
 > **load**(`model`, `onDownloadProgressCallback`): `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts:25](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts#L25)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts:27](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts#L27)
 
 Loads the model, where `detectorSource` is a string that specifies the location of the detector binary,
 `recognizerSource` is a string that specifies the location of the recognizer binary,

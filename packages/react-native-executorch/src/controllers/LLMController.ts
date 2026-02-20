@@ -227,6 +227,7 @@ export class LLMController {
     }
     try {
       this.isGeneratingCallback(true);
+      this.nativeModule.reset();
       const response = await this.nativeModule.generate(input, this.onToken);
       return this.filterSpecialTokens(response);
     } catch (e) {
@@ -304,15 +305,30 @@ export class LLMController {
   }
 
   public async sendMessage(message: string): Promise<string> {
-    this.messageHistoryCallback([
+    const updatedHistory = [
       ...this._messageHistory,
-      { content: message, role: 'user' },
-    ]);
-
-    const messageHistoryWithPrompt: Message[] = [
-      { content: this.chatConfig.systemPrompt, role: 'system' },
-      ...this._messageHistory.slice(-this.chatConfig.contextWindowLength),
+      { content: message, role: 'user' as const },
     ];
+    this.messageHistoryCallback(updatedHistory);
+
+    const countTokensCallback = (messages: Message[]) => {
+      const rendered = this.applyChatTemplate(
+        messages,
+        this.tokenizerConfig,
+        this.toolsConfig?.tools,
+        // eslint-disable-next-line camelcase
+        { tools_in_user_message: false, add_generation_prompt: true }
+      );
+      return this.nativeModule.countTextTokens(rendered);
+    };
+    const maxContextLength = this.nativeModule.getMaxContextLength();
+    const messageHistoryWithPrompt =
+      this.chatConfig.contextStrategy.buildContext(
+        this.chatConfig.systemPrompt,
+        updatedHistory,
+        maxContextLength,
+        countTokensCallback
+      );
 
     const response = await this.generate(
       messageHistoryWithPrompt,
