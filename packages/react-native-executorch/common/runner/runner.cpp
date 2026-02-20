@@ -342,14 +342,14 @@ void Runner::set_topp(float topp) noexcept {
   }
 }
 
-size_t Runner::get_max_context_length() const {
+int32_t Runner::get_max_context_length() const {
   if (!is_loaded()) {
     return metadata_.at(kMaxContextLen);
   }
   return config_.max_context_length;
 }
 
-size_t Runner::count_text_tokens(const std::string &text) const {
+int32_t Runner::count_text_tokens(const std::string &text) const {
   auto encodeResult =
       tokenizer_->encode(text, numOfAddedBoSTokens, numOfAddedEoSTokens);
 

@@ -86,7 +86,7 @@ size_t LLM::getPromptTokenCount() const noexcept {
   return runner->stats_.num_prompt_tokens;
 }
 
-size_t LLM::countTextTokens(std::string text) const {
+int32_t LLM::countTextTokens(std::string text) const {
   if (!runner || !runner->is_loaded()) {
     throw RnExecutorchError(
         RnExecutorchErrorCode::ModuleNotLoaded,
@@ -147,7 +147,7 @@ void LLM::setTopp(float topp) {
   runner->set_topp(topp);
 }
 
-size_t LLM::getMaxContextLength() const {
+int32_t LLM::getMaxContextLength() const {
   if (!runner || !runner->is_loaded()) {
     throw RnExecutorchError(
         RnExecutorchErrorCode::ModuleNotLoaded,

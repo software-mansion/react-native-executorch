@@ -25,13 +25,13 @@ public:
   void unload() noexcept;
   size_t getGeneratedTokenCount() const noexcept;
   size_t getPromptTokenCount() const noexcept;
-  size_t countTextTokens(std::string text) const;
+  int32_t countTextTokens(std::string text) const;
   size_t getMemoryLowerBound() const noexcept;
   void setCountInterval(size_t countInterval);
   void setTemperature(float temperature);
   void setTopp(float topp);
   void setTimeInterval(size_t timeInterval);
-  size_t getMaxContextLength() const;
+  int32_t getMaxContextLength() const;
 
 private:
   std::unique_ptr<example::Runner> runner;
