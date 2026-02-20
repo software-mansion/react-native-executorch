@@ -2,6 +2,7 @@
 
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/ErrorCodes.h>
+#include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 
 namespace rnexecutorch::models::object_detection {

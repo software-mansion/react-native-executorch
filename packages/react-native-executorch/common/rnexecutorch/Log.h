@@ -371,6 +371,8 @@ namespace rnexecutorch {
 enum class LOG_LEVEL : uint8_t {
   Info,  /**< Informational messages that highlight the progress of the
             application. */
+  Warn,  /**< Warning messages that a non-critical error occurred during
+            program execution */
   Error, /**< Error events of considerable importance that will prevent normal
             program execution. */
   Debug  /**< Detailed information, typically of interest only when diagnosing
@@ -384,6 +386,8 @@ inline android_LogPriority androidLogLevel(LOG_LEVEL logLevel) {
   switch (logLevel) {
   case LOG_LEVEL::Info:
     return ANDROID_LOG_INFO;
+  case LOG_LEVEL::Warn:
+    return ANDROID_LOG_WARN;
   case LOG_LEVEL::Error:
     return ANDROID_LOG_ERROR;
   case LOG_LEVEL::Debug:
@@ -403,6 +407,9 @@ inline void handleIosLog(LOG_LEVEL logLevel, const char *buffer) {
   switch (logLevel) {
   case LOG_LEVEL::Info:
     os_log_info(OS_LOG_DEFAULT, "%{public}s", buffer);
+    return;
+  case LOG_LEVEL::Warn:
+    os_log(OS_LOG_DEFAULT, "%{public}s", buffer);
     return;
   case LOG_LEVEL::Error:
     os_log_error(OS_LOG_DEFAULT, "%{public}s", buffer);

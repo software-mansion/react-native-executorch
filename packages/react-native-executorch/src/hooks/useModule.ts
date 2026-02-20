@@ -35,19 +35,24 @@ export const useModule = <
   useEffect(() => {
     if (preventLoad) return;
 
+    let isMounted = true;
+
     (async () => {
       setDownloadProgress(0);
       setError(null);
       try {
         setIsReady(false);
-        await moduleInstance.load(model, setDownloadProgress);
-        setIsReady(true);
+        await moduleInstance.load(model, (progress: number) => {
+          if (isMounted) setDownloadProgress(progress);
+        });
+        if (isMounted) setIsReady(true);
       } catch (err) {
-        setError(parseUnknownError(err));
+        if (isMounted) setError(parseUnknownError(err));
       }
     })();
 
     return () => {
+      isMounted = false;
       moduleInstance.delete();
     };
 
