@@ -32,7 +32,7 @@ public:
 
   virtual void insertAudioChunk(std::span<const float> audio) = 0;
 
-  virtual bool ready() const = 0;
+  virtual bool isReady() const = 0;
 
   virtual ProcessResult process(const DecodingOptions &options) = 0;
 

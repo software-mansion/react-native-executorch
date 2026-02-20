@@ -2,115 +2,92 @@
 #include "Params.h"
 #include "Utils.h"
 #include <cmath>
-#include <rnexecutorch/Log.h>
 
 namespace rnexecutorch::models::speech_to_text::whisper::stream {
 
-void HypothesisBuffer::insert(std::span<const Word> newWords, float offset) {
-  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
-                    "[HypothesisBuffer] Inserting " +
-                        std::to_string(newWords.size()) +
-                        " words with offset " + std::to_string(offset) + "s.");
-
+void HypothesisBuffer::insert(std::span<const Word> words, float offset) {
+  // Step 1 - decide which words should be considered as fresh.
+  // Using less amount of fresh words saves a little bit of time, but
+  // could backfire in terms of quality of the final committed transcript.
   fresh_.clear();
-  for (const auto &word : newWords) {
-    const float newStart = word.start + offset;
-    // Only accept words that start after or near the last committed time to
-    // avoid stale data
-    if (newStart > lastCommittedTime_ - params::kStreamFreshThreshold) {
-      fresh_.emplace_back(word.content, newStart, word.end + offset);
+  for (const Word &word : words) {
+    // Global start is a beginning timestamp relative only to the beginning of
+    // the current streaming process.
+    const float startGlobal = word.start + offset;
+    const float endGlobal = word.end + offset;
+
+    // To optimize the process, we discard the words which are too old
+    // according to the calculated timestamp.
+    if (startGlobal > lastCommittedTime_ - params::kStreamFreshThreshold) {
+      fresh_.emplace_back(word.content, startGlobal, endGlobal);
     }
   }
-  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
-                    "[HypothesisBuffer] Filtered " +
-                        std::to_string(fresh_.size()) +
-                        " words into 'fresh' buffer.");
 
-  if (!fresh_.empty() && !committedInBuffer_.empty()) {
-    const float a = fresh_.front().start;
-    // Check for overlap with already committed history to avoid duplicates in
-    // the stream
-    if (std::fabs(a - lastCommittedTime_) < 2.0f) {
-      const size_t cn = committedInBuffer_.size();
-      const size_t nn = fresh_.size();
+  // Step 2 - we have already selected the fresh words. Now it's time to
+  // correct any mistakes and remove the words which overlap with already
+  // commited segments - to avoid duplicates.
+  if (!fresh_.empty() && !committed_.empty()) {
+    const float freshSequenceStart = fresh_.front().start;
+    const float freshSequenceEnd = fresh_.back().end;
 
-      rnexecutorch::log(
-          rnexecutorch::LOG_LEVEL::Info,
-          "[HypothesisBuffer] Checking for overlap. cn=" + std::to_string(cn) +
-              ", nn=" + std::to_string(nn) +
-              ", maxCheck=" + std::to_string(params::kStreamMaxOverlapSize));
+    // Calculate the largest overlapping fragment size.
+    // Note that we use size limit (kStreamMaxOverlapSize) for efficiency of the
+    // algorithm, and timestamp difference limit
+    // (kStreamMaxOverlapTimestampDiff) to avoid removing correct fragments
+    // which were just repeated after some time.
+    size_t overlapSize = utils::findLargestOverlapingFragment(
+        committed_, fresh_, params::kStreamMaxOverlapSize,
+        params::kStreamMaxOverlapTimestampDiff);
 
-      size_t overlapSize = utils::findLargestOverlapingFragment(
-          committedInBuffer_, fresh_, params::kStreamMaxOverlapSize,
-          params::kStreamMaxOverlapTimestampDiff);
-
-      if (overlapSize > 0) {
-        rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
-                          "[HypothesisBuffer] Detected overlap of " +
-                              std::to_string(overlapSize) +
-                              " words with committed history. Erasing "
-                              "duplicates from 'fresh'.");
-        fresh_.erase(fresh_.begin(), fresh_.begin() + overlapSize);
-      }
+    // Remove all the overlapping words.
+    if (overlapSize > 0) {
+      fresh_.erase(fresh_.begin(), fresh_.begin() + overlapSize);
     }
   }
 }
 
-std::deque<Word> HypothesisBuffer::flush() {
-  std::deque<Word> commit;
+std::deque<Word> HypothesisBuffer::commit() {
+  std::deque<Word> toCommit = {};
 
-  // Find stable prefix: words that haven't changed between last and current
-  // iteration
-  while (!fresh_.empty() && !buffer_.empty()) {
-    if (fresh_.front().content != buffer_.front().content) {
-      break;
-    }
-    commit.push_back(fresh_.front());
-    buffer_.pop_front();
+  // Find a stable prefix: words that haven't changed between last and current
+  // iteration.
+  while (!fresh_.empty() && !hypothesis_.empty() &&
+         fresh_.front().content == hypothesis_.front().content) {
+    toCommit.emplace_back(
+        std::move(hypothesis_.front())); // Timestamps from the previous
+                                         // iteration tends to be more reliable
     fresh_.pop_front();
+    hypothesis_.pop_front();
   }
 
-  if (!commit.empty()) {
-    lastCommittedTime_ = commit.back().end;
-    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
-                      "[HypothesisBuffer] Found stable prefix. Committing " +
-                          std::to_string(commit.size()) +
-                          " words. New lastCommittedTime: " +
-                          std::to_string(lastCommittedTime_) + "s.");
+  // Save the last committed word timestamp.
+  // This will mark the end of the entire committed sequence.
+  if (!toCommit.empty()) {
+    lastCommittedTime_ = toCommit.back().end;
   }
 
-  // Current 'fresh' (remaining) becomes the new 'buffer' for next iteration
-  // comparison
-  buffer_ = std::move(fresh_);
+  // The remaining words from the fresh buffer (uncommitted phrase)
+  // become a hypothesis for the next iteration.
+  hypothesis_ = std::move(fresh_);
   fresh_.clear();
 
-  committedInBuffer_.insert(committedInBuffer_.end(), commit.begin(),
-                            commit.end());
+  // The last step is to commit the selected words.
+  committed_.insert(committed_.end(), toCommit.cbegin(), toCommit.cend());
 
-  return commit;
+  return toCommit;
 }
 
-void HypothesisBuffer::popCommitted(float time) {
-  size_t count = 0;
-  while (!committedInBuffer_.empty() &&
-         committedInBuffer_.front().end <= time) {
-    committedInBuffer_.pop_front();
-    count++;
-  }
-  if (count > 0) {
-    rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
-                      "[HypothesisBuffer] Popped " + std::to_string(count) +
-                          " old words from committed history up to " +
-                          std::to_string(time) + "s.");
+void HypothesisBuffer::releaseCommits(size_t wordsToKeep) {
+  if (committed_.size() > wordsToKeep) {
+    size_t nWordsToErase = committed_.size() - wordsToKeep;
+    committed_.erase(committed_.begin(), committed_.begin() + nWordsToErase);
   }
 }
-
-std::deque<Word> HypothesisBuffer::complete() const { return buffer_; }
 
 void HypothesisBuffer::reset() {
-  buffer_.clear();
   fresh_.clear();
-  committedInBuffer_.clear();
+  hypothesis_.clear();
+  committed_.clear();
 
   lastCommittedTime_ = 0.f;
 }

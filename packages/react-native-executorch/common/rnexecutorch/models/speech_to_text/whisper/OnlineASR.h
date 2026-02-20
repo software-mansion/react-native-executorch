@@ -30,7 +30,7 @@ public:
    *
    * @return True if audioBuffer has enough samples, False otherwise
    */
-  bool ready() const override;
+  bool isReady() const override;
 
   /**
    * Processes the current audio buffer and returns new transcription results.
@@ -57,21 +57,18 @@ public:
   void reset() override;
 
 private:
-  // Helper functions
-  void chunkCompletedSegment(std::span<const Segment> res);
-  void chunkAt(float time);
-
   // ASR module connection for transcribing the audio
   const ASR *asr_;
 
   // Helper buffers - audio buffer
-  std::vector<float> audioBuffer_;
+  // Stores the increasing amounts of streamed audio.
+  // Cleared from time to time after reaching a threshold size.
+  std::vector<float> audioBuffer_ = {};
+  float bufferTimeOffset_ = 0.f; // Audio buffer offset
 
   // Helper buffers - hypothesis buffer
+  // Manages the whisper streaming hypothesis mechanism.
   HypothesisBuffer hypothesisBuffer_;
-  float bufferTimeOffset_ = 0.f;
-
-  std::vector<Word> committed_;
 };
 
 } // namespace rnexecutorch::models::speech_to_text::whisper::stream

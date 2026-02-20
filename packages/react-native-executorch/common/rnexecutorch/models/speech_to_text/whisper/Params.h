@@ -43,4 +43,16 @@ constexpr static size_t kStreamMaxOverlapSize =
  */
 constexpr static float kStreamMaxOverlapTimestampDiff = 5.F; // [s]
 
+/**
+ * A threshold which exceeded causes the main streaming audio buffer to be
+ * cleared.
+ */
+constexpr static float kStreamChunkThreshold = 20.F; // [s]
+
+/**
+ * Decides how much of recent audio waveform should be kept in when
+ * clearing the audio buffer in streaming algorithm.
+ */
+constexpr static float kStreamAudioBufferReserve = 5.F; // [s]
+
 } // namespace rnexecutorch::models::speech_to_text::whisper::params

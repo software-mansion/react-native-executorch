@@ -15,50 +15,59 @@ namespace rnexecutorch::models::speech_to_text::whisper::stream {
 class HypothesisBuffer {
 public:
   /**
-   * Inserts new words into the hypothesis buffer.
+   * Inserts new words into the fresh_ buffer.
    * Words are filtered based on the last committed time and checked for
    * overlaps with existing committed words to prevent duplicates.
    *
-   * @param newWords A span of newly generated words.
+   * @param newWords A span of recently generated words.
    * @param offset   Time offset to adjust the word timestamps.
    */
-  void insert(std::span<const Word> newWords, float offset);
+  void insert(std::span<const Word> words, float offset);
 
   /**
-   * Moves stable words from the hypothesis into the committed buffer.
-   * It compares the new hypothesis (fresh) with the previous one (buffer)
-   * and returns the common prefix as committed words.
+   * Attempts to commit words present in the fresh_ buffer.
+   * A phrase from fresh_ buffer can only be committed if it also appears
+   * in the hypothesis_ buffer (uncommitted words from previous iteration).
    *
-   * @return A deque of words that have been newly committed.
-   */
-  std::deque<Word> flush();
-
-  /**
-   * Cleans up the history of committed words up to a certain timestamp.
+   * Uncommitted words become a 'hypothesis' and are moved into the hypothesis_
+   * buffer.
    *
-   * @param time The timestamp limit; words ending before this time are removed.
+   * @return A sequence of words committed in the current iteration.
    */
-  void popCommitted(float time);
+  std::deque<Word> commit();
 
   /**
-   * Retrieves the current uncommitted hypothesis.
+   * Shrinks the committed_ buffer by erasing all words except N latest ones.
    *
-   * @return A deque containing the words currently in the buffer.
+   * Used primarily to relieve increasing memory usage during very
+   * long streaming sessions.
+   *
+   * @param wordsToKeep - number of trailing words to be kept in.
    */
-  std::deque<Word> complete() const;
+  void releaseCommits(size_t wordsToKeep);
 
   /**
-   * Resets all the stored buffers to the initial state
+   * Resets all the stored buffers and state variables to the initial state
    */
   void reset();
 
-private:
-  float lastCommittedTime_ = 0.0f;
+  // Declare a friendship with OnlineASR to allow it to access the internal
+  // state of stored buffers.
+  friend class OnlineASR;
 
+private:
   // Stored buffers
-  std::deque<Word> buffer_;
-  std::deque<Word> fresh_;
-  std::deque<Word> committedInBuffer_;
+  // The lifecycle of a correct result word looks as following:
+  // fresh buffer -> hypothesis buffer -> commited
+  std::deque<Word>
+      fresh_; // 'New' words from current iterations, which require some checks
+              // before they go into hypothesis_ buffer.
+  std::deque<Word>
+      hypothesis_; // Words potentially to be commited, stored between
+                   // iterations (obtained from fresh_ buffer).
+  std::deque<Word> committed_; // A history of already commited words.
+
+  float lastCommittedTime_ = 0.0f;
 };
 
 } // namespace rnexecutorch::models::speech_to_text::whisper::stream
