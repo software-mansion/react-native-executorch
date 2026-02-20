@@ -1,4 +1,3 @@
-import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource, LabelEnum } from '../../types/common';
 import {
   DeeplabLabel,
@@ -10,7 +9,11 @@ import {
 } from '../../types/imageSegmentation';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
-import { BaseModule } from '../BaseModule';
+import {
+  BaseLabeledModule,
+  fetchModelPath,
+  ResolveLabels as ResolveLabelsFor,
+} from '../BaseLabeledModule';
 
 const ModelConfigs: Record<
   SegmentationModelName,
@@ -39,13 +42,9 @@ type ModelConfigsType = typeof ModelConfigs;
 export type SegmentationLabels<M extends SegmentationModelName> =
   ModelConfigsType[M]['labelMap'];
 
-/**
- * @internal
- * Resolves the label type: if `T` is a {@link SegmentationModelName}, looks up its labels
- * from the built-in config; otherwise uses `T` directly as a {@link LabelEnum}.
- */
+/** @internal */
 type ResolveLabels<T extends SegmentationModelName | LabelEnum> =
-  T extends SegmentationModelName ? SegmentationLabels<T> : T;
+  ResolveLabelsFor<T, ModelConfigsType>;
 
 /**
  * Generic image segmentation module with type-safe label maps.
@@ -59,21 +58,15 @@ type ResolveLabels<T extends SegmentationModelName | LabelEnum> =
  */
 export class ImageSegmentationModule<
   T extends SegmentationModelName | LabelEnum,
-> extends BaseModule {
-  private labelMap: ResolveLabels<T>;
+> extends BaseLabeledModule<ResolveLabels<T>> {
   private allClassNames: string[];
 
   private constructor(labelMap: ResolveLabels<T>, nativeModule: unknown) {
-    super();
-    this.labelMap = labelMap;
+    super(labelMap, nativeModule);
     this.allClassNames = Object.keys(this.labelMap).filter((k) =>
       isNaN(Number(k))
     );
-    this.nativeModule = nativeModule;
   }
-
-  // TODO: figure it out so we can delete this (we need this because of basemodule inheritance)
-  override async load() {}
 
   /**
    * Creates a segmentation instance for a built-in model.
@@ -99,15 +92,9 @@ export class ImageSegmentationModule<
     const { labelMap, preprocessorConfig } = ModelConfigs[modelName];
     const normMean = preprocessorConfig?.normMean ?? [];
     const normStd = preprocessorConfig?.normStd ?? [];
-    const paths = await ResourceFetcher.fetch(onDownloadProgress, modelSource);
-    if (!paths?.[0]) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        'The download has been interrupted. Please retry.'
-      );
-    }
+    const modelPath = await fetchModelPath(modelSource, onDownloadProgress);
     const nativeModule = global.loadImageSegmentation(
-      paths[0],
+      modelPath,
       normMean,
       normStd
     );
@@ -140,17 +127,11 @@ export class ImageSegmentationModule<
     config: SegmentationConfig<L>,
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<ImageSegmentationModule<L>> {
-    const paths = await ResourceFetcher.fetch(onDownloadProgress, modelSource);
-    if (!paths?.[0]) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        'The download has been interrupted. Please retry.'
-      );
-    }
     const normMean = config.preprocessorConfig?.normMean ?? [];
     const normStd = config.preprocessorConfig?.normStd ?? [];
+    const modelPath = await fetchModelPath(modelSource, onDownloadProgress);
     const nativeModule = global.loadImageSegmentation(
-      paths[0],
+      modelPath,
       normMean,
       normStd
     );

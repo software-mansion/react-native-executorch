@@ -1,16 +1,22 @@
-import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { LabelEnum, ResourceSource } from '../../types/common';
 import {
-  CocoLabel,
   Detection,
   ObjectDetectionConfig,
   ObjectDetectionModelName,
   ObjectDetectionModelSources,
 } from '../../types/objectDetection';
+import {
+  CocoLabel,
+  IMAGENET_MEAN,
+  IMAGENET_STD,
+} from '../../constants/commonVision';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
-import { BaseModule } from '../BaseModule';
-import { IMAGENET_MEAN, IMAGENET_STD } from '../../constants/commonVision';
+import {
+  BaseLabeledModule,
+  fetchModelPath,
+  ResolveLabels as ResolveLabelsFor,
+} from '../BaseLabeledModule';
 
 const ModelConfigs = {
   'ssdlite-320-mobilenet-v3-large': {
@@ -35,18 +41,14 @@ type ModelConfigsType = typeof ModelConfigs;
  *
  * @category Types
  */
-export type ObjectDetectionLabels<M extends keyof ModelConfigsType> =
-  ModelConfigsType[M]['labelMap'];
+export type ObjectDetectionLabels<M extends ObjectDetectionModelName> =
+  ResolveLabelsFor<M, ModelConfigsType>;
 
 type ModelNameOf<C extends ObjectDetectionModelSources> = C['modelName'];
 
-/**
- * @internal
- * Resolves the label type: if `T` is a {@link ObjectDetectionModelName}, looks up its labels
- * from the built-in config; otherwise uses `T` directly as a {@link LabelEnum}.
- */
+/** @internal */
 type ResolveLabels<T extends ObjectDetectionModelName | LabelEnum> =
-  T extends ObjectDetectionModelName ? ObjectDetectionLabels<T> : T;
+  ResolveLabelsFor<T, ModelConfigsType>;
 
 /**
  * Generic object detection module with type-safe label maps.
@@ -58,13 +60,11 @@ type ResolveLabels<T extends ObjectDetectionModelName | LabelEnum> =
  */
 export class ObjectDetectionModule<
   T extends ObjectDetectionModelName | LabelEnum,
-> extends BaseModule {
-  private labelMap: ResolveLabels<T>;
+> extends BaseLabeledModule<ResolveLabels<T>> {
   private allLabelNames: string[];
 
   private constructor(labelMap: ResolveLabels<T>, nativeModule: unknown) {
-    super();
-    this.labelMap = labelMap;
+    super(labelMap, nativeModule);
     this.allLabelNames = [];
     for (const [name, value] of Object.entries(this.labelMap)) {
       if (typeof value === 'number') {
@@ -76,11 +76,7 @@ export class ObjectDetectionModule<
         this.allLabelNames[i] = '';
       }
     }
-    this.nativeModule = nativeModule;
   }
-
-  // TODO: figure it out so we can delete this (we need this because of basemodule inheritance)
-  override async load() {}
 
   /**
    * Creates an object detection instance for a built-in model.
@@ -99,15 +95,9 @@ export class ObjectDetectionModule<
     ] as ObjectDetectionConfig<LabelEnum>;
     const normMean = preprocessorConfig?.normMean ?? [];
     const normStd = preprocessorConfig?.normStd ?? [];
-    const paths = await ResourceFetcher.fetch(onDownloadProgress, modelSource);
-    if (!paths?.[0]) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        'The download has been interrupted. Please retry.'
-      );
-    }
+    const modelPath = await fetchModelPath(modelSource, onDownloadProgress);
     const nativeModule = global.loadObjectDetection(
-      paths[0],
+      modelPath,
       normMean,
       normStd
     );
@@ -132,15 +122,9 @@ export class ObjectDetectionModule<
   ): Promise<ObjectDetectionModule<L>> {
     const normMean = config.preprocessorConfig?.normMean ?? [];
     const normStd = config.preprocessorConfig?.normStd ?? [];
-    const paths = await ResourceFetcher.fetch(onDownloadProgress, modelSource);
-    if (!paths?.[0]) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        'The download has been interrupted. Please retry.'
-      );
-    }
+    const modelPath = await fetchModelPath(modelSource, onDownloadProgress);
     const nativeModule = global.loadObjectDetection(
-      paths[0],
+      modelPath,
       normMean,
       normStd
     );

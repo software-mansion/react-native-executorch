@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import {
   ImageSegmentationModule,
   SegmentationLabels,
@@ -9,8 +8,7 @@ import {
   ModelNameOf,
   ModelSources,
 } from '../../types/imageSegmentation';
-import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
+import { useModuleFactory } from '../useModuleFactory';
 
 /**
  * React hook for managing an Image Segmentation model instance.
@@ -34,76 +32,22 @@ export const useImageSegmentation = <C extends ModelSources>({
 }: ImageSegmentationProps<C>): ImageSegmentationType<
   SegmentationLabels<ModelNameOf<C>>
 > => {
-  const [error, setError] = useState<RnExecutorchError | null>(null);
-  const [isReady, setIsReady] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState(0);
-  const [instance, setInstance] = useState<ImageSegmentationModule<
-    ModelNameOf<C>
-  > | null>(null);
+  const { error, isReady, isGenerating, downloadProgress, runForward } =
+    useModuleFactory({
+      factory: (config, onProgress) =>
+        ImageSegmentationModule.fromModelName(config, onProgress),
+      config: model,
+      preventLoad,
+    });
 
-  useEffect(() => {
-    if (preventLoad) return;
-
-    let currentInstance: ImageSegmentationModule<ModelNameOf<C>> | null = null;
-
-    (async () => {
-      setDownloadProgress(0);
-      setError(null);
-      setIsReady(false);
-      try {
-        currentInstance = await ImageSegmentationModule.fromModelName(
-          model,
-          setDownloadProgress
-        );
-        setInstance(currentInstance);
-        setIsReady(true);
-      } catch (err) {
-        setError(parseUnknownError(err));
-      }
-    })();
-
-    return () => {
-      currentInstance?.delete();
-    };
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [model.modelName, model.modelSource, preventLoad]);
-
-  const forward = async <K extends keyof SegmentationLabels<ModelNameOf<C>>>(
+  const forward = <K extends keyof SegmentationLabels<ModelNameOf<C>>>(
     imageSource: string,
     classesOfInterest: K[] = [],
     resizeToInput: boolean = true
-  ) => {
-    if (!isReady || !instance) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded. Please load the model before calling forward().'
-      );
-    }
-    if (isGenerating) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModelGenerating,
-        'The model is currently generating. Please wait until previous model run is complete.'
-      );
-    }
-    try {
-      setIsGenerating(true);
-      return await instance.forward(
-        imageSource,
-        classesOfInterest,
-        resizeToInput
-      );
-    } finally {
-      setIsGenerating(false);
-    }
-  };
+  ) =>
+    runForward((inst) =>
+      inst.forward(imageSource, classesOfInterest, resizeToInput)
+    );
 
-  return {
-    error,
-    isReady,
-    isGenerating,
-    downloadProgress,
-    forward,
-  };
+  return { error, isReady, isGenerating, downloadProgress, forward };
 };
