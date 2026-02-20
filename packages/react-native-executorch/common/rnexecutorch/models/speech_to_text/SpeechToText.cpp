@@ -130,7 +130,7 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
   DecodingOptions options(languageOption, verbose);
 
   while (isStreaming_) {
-    if (!readyToProcess_ || !streamer_->ready()) {
+    if (!readyToProcess_ || !streamer_->isReady()) {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
       continue;
     }
