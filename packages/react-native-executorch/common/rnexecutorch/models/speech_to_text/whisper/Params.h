@@ -35,13 +35,13 @@ constexpr static float kStreamFreshThreshold = 1.F; // [s], originally 0.5
  * The bigger it gets, the less probable it is to commit the same phrase twice.
  */
 constexpr static size_t kStreamMaxOverlapSize =
-    10; // Number of overlaping words
+    12; // Number of overlaping words
 
 /**
  * Similar to kMaxStreamOverlapSize, but this one determines
  * the maximum allowed timestamp difference between the overlaping fragments.
  */
-constexpr static float kStreamMaxOverlapTimestampDiff = 5.F; // [s]
+constexpr static float kStreamMaxOverlapTimestampDiff = 15.F; // [s]
 
 /**
  * A threshold which exceeded causes the main streaming audio buffer to be

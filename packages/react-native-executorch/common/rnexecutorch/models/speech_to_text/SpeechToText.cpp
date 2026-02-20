@@ -82,7 +82,7 @@ TranscriptionResult wordsToResult(const std::vector<Word> &words,
 
   std::string fullText;
   for (const auto &w : words) {
-    fullText += w.content;
+    fullText += w.content + w.punctations;
   }
   res.text = fullText;
 
