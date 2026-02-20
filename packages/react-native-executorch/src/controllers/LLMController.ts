@@ -321,11 +321,12 @@ export class LLMController {
       );
       return this.nativeModule.countTextTokens(rendered);
     };
-
+    const maxContextLength = this.nativeModule.getMaxContextLength();
     const messageHistoryWithPrompt =
       this.chatConfig.contextStrategy.buildContext(
         this.chatConfig.systemPrompt,
         updatedHistory,
+        maxContextLength,
         countTokensCallback
       );
 

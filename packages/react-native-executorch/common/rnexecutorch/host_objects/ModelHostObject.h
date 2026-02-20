@@ -133,6 +133,11 @@ public:
                                        synchronousHostFunction<&Model::setTopp>,
                                        "setTopp"));
 
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>,
+          synchronousHostFunction<&Model::getMaxContextLength>,
+          "getMaxContextLength"));
+
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
 

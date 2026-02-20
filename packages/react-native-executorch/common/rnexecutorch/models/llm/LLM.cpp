@@ -146,6 +146,16 @@ void LLM::setTopp(float topp) {
   }
   runner->set_topp(topp);
 }
+
+size_t LLM::getMaxContextLength() const {
+  if (!runner || !runner->is_loaded()) {
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::ModuleNotLoaded,
+        "Can't get context length from a model that's not loaded");
+  }
+  return runner->get_max_context_length();
+}
+
 void LLM::unload() noexcept { runner.reset(nullptr); }
 
 } // namespace rnexecutorch::models::llm

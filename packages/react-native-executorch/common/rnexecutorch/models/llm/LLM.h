@@ -31,6 +31,7 @@ public:
   void setTemperature(float temperature);
   void setTopp(float topp);
   void setTimeInterval(size_t timeInterval);
+  size_t getMaxContextLength() const;
 
 private:
   std::unique_ptr<example::Runner> runner;

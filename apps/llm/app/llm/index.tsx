@@ -39,7 +39,7 @@ function LLMScreen() {
   useEffect(() => {
     llm.configure({
       chatConfig: {
-        contextStrategy: new SlidingWindowContextStrategy(2048, 512),
+        contextStrategy: new SlidingWindowContextStrategy(512),
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
