@@ -1,4 +1,3 @@
-import { DEFAULT_CONTEXT_WINDOW_LENGTH } from '../../../constants/llmDefaults';
 import { ContextStrategy, Message } from '../../../types/llm';
 
 /**
@@ -10,11 +9,9 @@ import { ContextStrategy, Message } from '../../../types/llm';
 export class MessageCountContextStrategy implements ContextStrategy {
   /**
    * Initializes the MessageCountContextStrategy.
-   * * @param {number} windowLength - The maximum number of recent messages to retain in the context. Defaults to {@link DEFAULT_CONTEXT_WINDOW_LENGTH}.
+   * * @param {number} windowLength - The maximum number of recent messages to retain in the context. Defaults to 5.
    */
-  constructor(
-    private readonly windowLength: number = DEFAULT_CONTEXT_WINDOW_LENGTH
-  ) {}
+  constructor(private readonly windowLength: number = 5) {}
 
   /**
    * Builds the context by slicing the history to retain only the most recent `windowLength` messages.

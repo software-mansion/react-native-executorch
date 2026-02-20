@@ -11,11 +11,7 @@ import {
   View,
 } from 'react-native';
 import SendIcon from '../../assets/icons/send_icon.svg';
-import {
-  useLLM,
-  LLAMA3_2_1B_SPINQUANT,
-  SlidingWindowContextStrategy,
-} from 'react-native-executorch';
+import { useLLM, LLAMA3_2_1B_SPINQUANT } from 'react-native-executorch';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
 import ColorPalette from '../../colors';
 import Messages from '../../components/Messages';
@@ -35,15 +31,6 @@ function LLMScreen() {
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   const llm = useLLM({ model: LLAMA3_2_1B_SPINQUANT });
-
-  useEffect(() => {
-    llm.configure({
-      chatConfig: {
-        contextStrategy: new SlidingWindowContextStrategy(512),
-      },
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     if (llm.error) {
