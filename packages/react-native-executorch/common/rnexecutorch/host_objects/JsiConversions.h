@@ -360,6 +360,15 @@ inline jsi::Value getJsiValue(uint64_t val, jsi::Runtime &runtime) {
   return {runtime, bigInt};
 }
 
+inline jsi::Value getJsiValue(const std::vector<int64_t> &vec,
+                              jsi::Runtime &runtime) {
+  jsi::Array array(runtime, vec.size());
+  for (size_t i = 0; i < vec.size(); i++) {
+    array.setValueAtIndex(runtime, i, jsi::Value(static_cast<double>(vec[i])));
+  }
+  return {runtime, array};
+}
+
 inline jsi::Value getJsiValue(int val, jsi::Runtime &runtime) {
   return {runtime, val};
 }

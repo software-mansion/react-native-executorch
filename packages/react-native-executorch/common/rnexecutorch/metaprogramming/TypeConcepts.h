@@ -12,8 +12,18 @@ template <typename T, typename Base>
 concept SameAs = std::is_same_v<Base, T>;
 
 template <typename T>
-concept HasGenerate = requires(T t) {
-  { &T::generate };
+concept HasGenerateFromString = requires(T t) {
+  { &T::generateFromString };
+};
+
+template <typename T>
+concept HasGenerateFromPixels = requires(T t) {
+  { &T::generateFromPixels };
+};
+
+template <typename T>
+concept HasGenerateFromFrame = requires(T t) {
+  { &T::generateFromFrame };
 };
 
 template <typename T>

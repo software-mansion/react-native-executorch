@@ -17,6 +17,7 @@
 #include <rnexecutorch/metaprogramming/FunctionHelpers.h>
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
 #include <rnexecutorch/models/BaseModel.h>
+#include <rnexecutorch/models/VisionModel.h>
 #include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/ocr/OCR.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
@@ -45,10 +46,11 @@ public:
           "getInputShape"));
     }
 
-    if constexpr (meta::HasGenerate<Model>) {
-      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       promiseHostFunction<&Model::generate>,
-                                       "generate"));
+    if constexpr (meta::HasGenerateFromString<Model>) {
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                              promiseHostFunction<&Model::generateFromString>,
+                              "generateFromString"));
     }
 
     if constexpr (meta::HasEncode<Model>) {
@@ -155,9 +157,19 @@ public:
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::stream>,
                                        "stream"));
+    }
+
+    if constexpr (meta::HasGenerateFromFrame<Model>) {
       addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>, synchronousHostFunction<&Model::streamStop>,
-          "streamStop"));
+          ModelHostObject<Model>, visionHostFunction<&Model::generateFromFrame>,
+          "generateFromFrame"));
+    }
+
+    if constexpr (meta::HasGenerateFromPixels<Model>) {
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                              visionHostFunction<&Model::generateFromPixels>,
+                              "generateFromPixels"));
     }
   }
 
@@ -205,6 +217,66 @@ public:
       throw jsi::JSError(runtime, e.what());
     } catch (...) {
       throw jsi::JSError(runtime, "Unknown error in synchronous function");
+    }
+  }
+
+  template <auto FnPtr> JSI_HOST_FUNCTION(visionHostFunction) {
+    // 1. Check Argument Count
+    // (We rely on our new FunctionTraits)
+    constexpr std::size_t cppArgCount =
+        meta::FunctionTraits<decltype(FnPtr)>::arity;
+
+    // We expect JS args = (Total C++ Args) - (2 injected args: Runtime + Value)
+    constexpr std::size_t expectedJsArgs = cppArgCount - 1;
+    log(LOG_LEVEL::Debug, cppArgCount, count);
+    if (count != expectedJsArgs) {
+      throw jsi::JSError(runtime, "Argument count mismatch in vision function");
+    }
+
+    try {
+      // 2. The Magic Trick
+      // We get a pointer to a dummy function: void dummy(Rest...) {}
+      // This function has exactly the signature of the arguments we want to
+      // parse.
+      auto dummyFuncPtr = &meta::TailSignature<decltype(FnPtr)>::dummy;
+
+      // 3. Let existing helpers do the work
+      // We pass the dummy pointer. The helper inspects its arguments (Rest...)
+      // and converts args[0]...args[N] accordingly.
+      // Note: We pass (args + 1) because JS args[0] is the PixelData, which we
+      // handle manually. Note: We use expectedJsArgs - 1 because we skipped one
+      // JS arg.
+      auto tailArgsTuple =
+          meta::createArgsTupleFromJsi(dummyFuncPtr, args + 1, runtime);
+
+      // 4. Invoke
+      using ReturnType =
+          typename meta::FunctionTraits<decltype(FnPtr)>::return_type;
+
+      if constexpr (std::is_void_v<ReturnType>) {
+        std::apply(
+            [&](auto &&...tailArgs) {
+              (model.get()->*FnPtr)(
+                  runtime,
+                  args[0], // 1. PixelData (Manually passed)
+                  std::forward<decltype(tailArgs)>(
+                      tailArgs)...); // 2. The rest (Auto parsed)
+            },
+            std::move(tailArgsTuple));
+        return jsi::Value::undefined();
+      } else {
+        auto result = std::apply(
+            [&](auto &&...tailArgs) {
+              return (model.get()->*FnPtr)(
+                  runtime, args[0],
+                  std::forward<decltype(tailArgs)>(tailArgs)...);
+            },
+            std::move(tailArgsTuple));
+
+        return jsi_conversion::getJsiValue(std::move(result), runtime);
+      }
+    } catch (const std::exception &e) {
+      throw jsi::JSError(runtime, e.what());
     }
   }
 
