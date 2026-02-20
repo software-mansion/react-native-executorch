@@ -10,7 +10,11 @@ declare global {
     normStd: Triple<number> | []
   ) => any;
   var loadClassification: (source: string) => any;
-  var loadObjectDetection: (source: string) => any;
+  var loadObjectDetection: (
+    source: string,
+    normMean: Triple<number> | [],
+    normStd: Triple<number> | []
+  ) => any;
   var loadExecutorchModule: (source: string) => any;
   var loadTokenizerModule: (source: string) => any;
   var loadImageEmbeddings: (source: string) => any;

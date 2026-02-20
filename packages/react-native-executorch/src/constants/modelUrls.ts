@@ -362,13 +362,24 @@ export const EFFICIENTNET_V2_S = {
 
 // Object detection
 const SSDLITE_320_MOBILENET_V3_LARGE_MODEL = `${URL_PREFIX}-ssdlite320-mobilenet-v3-large/${VERSION_TAG}/ssdlite320-mobilenetv3-large.pte`;
+// const RF_DETR_NANO_MODEL = `${URL_PREFIX}-rf-detr-nano/${VERSION_TAG}/rf-detr-nano.pte`;
+const RF_DETR_NANO_MODEL = `https://ai.swmansion.com/storage/jc_tests/rfdetr_det.pte`;
 
 /**
  * @category Models - Object Detection
  */
 export const SSDLITE_320_MOBILENET_V3_LARGE = {
+  modelName: 'ssdlite-320-mobilenet-v3-large',
   modelSource: SSDLITE_320_MOBILENET_V3_LARGE_MODEL,
-};
+} as const;
+
+/**
+ * @category Models - Object Detection
+ */
+export const RF_DETR_NANO = {
+  modelName: 'rf-detr-nano',
+  modelSource: RF_DETR_NANO_MODEL,
+} as const;
 
 // Style transfer
 const STYLE_TRANSFER_CANDY_MODEL =
@@ -525,7 +536,9 @@ export const DEEPLAB_V3_RESNET50 = {
   modelSource: DEEPLAB_V3_RESNET50_MODEL,
 } as const;
 
-const SELFIE_SEGMENTATION_MODEL = `${URL_PREFIX}-selfie-segmentation/${VERSION_TAG}/xnnpack/selfie-segmentation.pte`;
+// const SELFIE_SEGMENTATION_MODEL = `${URL_PREFIX}-selfie-segmentation/${VERSION_TAG}/xnnpack/selfie-segmentation.pte`;
+const SELFIE_SEGMENTATION_MODEL =
+  'https://ai.swmansion.com/storage/jc_tests/selfie.pte';
 /**
  * @category Models - Image segmentation
  */

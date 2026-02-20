@@ -1,6 +1,6 @@
 #pragma once
 
-#include <unordered_map>
+#include <optional>
 
 #include <executorch/extension/tensor/tensor_ptr.h>
 #include <executorch/runtime/core/evalue.h>
@@ -20,18 +20,26 @@ class ObjectDetection : public BaseModel {
 public:
   ObjectDetection(const std::string &modelSource,
                   std::shared_ptr<react::CallInvoker> callInvoker);
+  ObjectDetection(const std::string &modelSource, std::vector<float> normMean,
+                  std::vector<float> normStd,
+                  std::shared_ptr<react::CallInvoker> callInvoker);
   [[nodiscard("Registered non-void function")]] std::vector<types::Detection>
-  generate(std::string imageSource, double detectionThreshold);
+  generate(std::string imageSource, double detectionThreshold,
+           std::vector<std::string> labelNames);
 
 private:
-  std::vector<types::Detection> postprocess(const std::vector<EValue> &tensors,
-                                            cv::Size originalSize,
-                                            double detectionThreshold);
+  std::vector<types::Detection>
+  postprocess(const std::vector<EValue> &tensors, cv::Size originalSize,
+              double detectionThreshold,
+              const std::vector<std::string> &labelNames);
 
   cv::Size modelImageSize{0, 0};
+  std::optional<cv::Scalar> normMean_;
+  std::optional<cv::Scalar> normStd_;
 };
 } // namespace models::object_detection
 
 REGISTER_CONSTRUCTOR(models::object_detection::ObjectDetection, std::string,
+                     std::vector<float>, std::vector<float>,
                      std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

@@ -15,7 +15,6 @@
 #include <rnexecutorch/jsi/OwningArrayBuffer.h>
 
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
-#include <rnexecutorch/models/object_detection/Constants.h>
 #include <rnexecutorch/models/object_detection/Types.h>
 #include <rnexecutorch/models/ocr/Types.h>
 #include <rnexecutorch/models/speech_to_text/types/Segment.h>
@@ -434,9 +433,7 @@ inline jsi::Value getJsiValue(
     detection.setProperty(runtime, "bbox", bbox);
     detection.setProperty(
         runtime, "label",
-        jsi::String::createFromAscii(
-            runtime, models::object_detection::constants::kCocoLablesMap.at(
-                         detections[i].label)));
+        jsi::String::createFromUtf8(runtime, detections[i].label));
     detection.setProperty(runtime, "score", detections[i].score);
     array.setValueAtIndex(runtime, i, detection);
   }

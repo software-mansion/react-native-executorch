@@ -35,7 +35,7 @@ nonMaxSuppression(std::vector<types::Detection> detections) {
   std::vector<types::Detection> result;
   // Apply NMS for each label
   for (size_t i = 0; i < detections.size();) {
-    float currentLabel = detections[i].label;
+    std::string currentLabel = detections[i].label;
 
     std::vector<types::Detection> labelDetections;
     while (i < detections.size() && detections[i].label == currentLabel) {
