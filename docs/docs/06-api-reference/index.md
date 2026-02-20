@@ -181,6 +181,7 @@
 ## Other
 
 - [RnExecutorchErrorCode](enumerations/RnExecutorchErrorCode.md)
+- [Logger](classes/Logger.md)
 - [RnExecutorchError](classes/RnExecutorchError.md)
 
 ## TTS Supported Voices
@@ -206,6 +207,7 @@
 - [ChatConfig](interfaces/ChatConfig.md)
 - [ClassificationProps](interfaces/ClassificationProps.md)
 - [ClassificationType](interfaces/ClassificationType.md)
+- [ContextStrategy](interfaces/ContextStrategy.md)
 - [DecodingOptions](interfaces/DecodingOptions.md)
 - [Detection](interfaces/Detection.md)
 - [ExecutorchModuleProps](interfaces/ExecutorchModuleProps.md)
@@ -293,10 +295,16 @@
 ## Utilities - LLM
 
 - [DEFAULT_CHAT_CONFIG](variables/DEFAULT_CHAT_CONFIG.md)
-- [DEFAULT_CONTEXT_WINDOW_LENGTH](variables/DEFAULT_CONTEXT_WINDOW_LENGTH.md)
+- [DEFAULT_CONTEXT_BUFFER_TOKENS](variables/DEFAULT_CONTEXT_BUFFER_TOKENS.md)
 - [DEFAULT_MESSAGE_HISTORY](variables/DEFAULT_MESSAGE_HISTORY.md)
 - [DEFAULT_SYSTEM_PROMPT](variables/DEFAULT_SYSTEM_PROMPT.md)
 - [parseToolCall](variables/parseToolCall.md)
 - [DEFAULT_STRUCTURED_OUTPUT_PROMPT](functions/DEFAULT_STRUCTURED_OUTPUT_PROMPT.md)
 - [fixAndValidateStructuredOutput](functions/fixAndValidateStructuredOutput.md)
 - [getStructuredOutputPrompt](functions/getStructuredOutputPrompt.md)
+
+## Utils
+
+- [MessageCountContextStrategy](classes/MessageCountContextStrategy.md)
+- [NaiveContextStrategy](classes/NaiveContextStrategy.md)
+- [SlidingWindowContextStrategy](classes/SlidingWindowContextStrategy.md)

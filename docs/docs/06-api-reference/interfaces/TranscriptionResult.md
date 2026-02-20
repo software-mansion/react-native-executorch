@@ -1,6 +1,6 @@
 # Interface: TranscriptionResult
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:253](https://github.com/software-mansion/react-native-executorch/blob/8478203d045f8c7f4cbcb8440eb10b6abf947ca7/packages/react-native-executorch/src/types/stt.ts#L253)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:250](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/types/stt.ts#L250)
 
 Structure that represent result of transcription for a one function call (either `transcribe` or `stream`).
 
@@ -10,7 +10,7 @@ Structure that represent result of transcription for a one function call (either
 
 > **duration**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:256](https://github.com/software-mansion/react-native-executorch/blob/8478203d045f8c7f4cbcb8440eb10b6abf947ca7/packages/react-native-executorch/src/types/stt.ts#L256)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:253](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/types/stt.ts#L253)
 
 Duration in seconds of a given transcription.
 
@@ -20,7 +20,7 @@ Duration in seconds of a given transcription.
 
 > **language**: `string`
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:255](https://github.com/software-mansion/react-native-executorch/blob/8478203d045f8c7f4cbcb8440eb10b6abf947ca7/packages/react-native-executorch/src/types/stt.ts#L255)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:252](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/types/stt.ts#L252)
 
 Language chosen for transcription.
 
@@ -30,7 +30,7 @@ Language chosen for transcription.
 
 > `optional` **segments**: [`TranscriptionSegment`](TranscriptionSegment.md)[]
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:258](https://github.com/software-mansion/react-native-executorch/blob/8478203d045f8c7f4cbcb8440eb10b6abf947ca7/packages/react-native-executorch/src/types/stt.ts#L258)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:255](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/types/stt.ts#L255)
 
 If `verbose` set to `true` in `DecodingOptions`, it contains array of
 `TranscriptionSegment` with details split into separate transcription segments.
@@ -41,7 +41,7 @@ If `verbose` set to `true` in `DecodingOptions`, it contains array of
 
 > `optional` **task**: `"transcribe"` \| `"stream"`
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:254](https://github.com/software-mansion/react-native-executorch/blob/8478203d045f8c7f4cbcb8440eb10b6abf947ca7/packages/react-native-executorch/src/types/stt.ts#L254)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:251](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/types/stt.ts#L251)
 
 String indicating task, either 'transcribe' or 'stream'.
 
@@ -51,6 +51,6 @@ String indicating task, either 'transcribe' or 'stream'.
 
 > **text**: `string`
 
-Defined in: [packages/react-native-executorch/src/types/stt.ts:257](https://github.com/software-mansion/react-native-executorch/blob/8478203d045f8c7f4cbcb8440eb10b6abf947ca7/packages/react-native-executorch/src/types/stt.ts#L257)
+Defined in: [packages/react-native-executorch/src/types/stt.ts:254](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/types/stt.ts#L254)
 
 The whole text of a transcription as a `string`.

@@ -1,6 +1,6 @@
 # Interface: TokenizerProps
 
-Defined in: [packages/react-native-executorch/src/types/tokenizer.ts:9](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/tokenizer.ts#L9)
+Defined in: [packages/react-native-executorch/src/types/tokenizer.ts:9](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/types/tokenizer.ts#L9)
 
 Parameters for initializing and configuring a Tokenizer instance.
 
@@ -10,7 +10,7 @@ Parameters for initializing and configuring a Tokenizer instance.
 
 > `optional` **preventLoad**: `boolean`
 
-Defined in: [packages/react-native-executorch/src/types/tokenizer.ts:20](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/tokenizer.ts#L20)
+Defined in: [packages/react-native-executorch/src/types/tokenizer.ts:20](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/types/tokenizer.ts#L20)
 
 Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
 
@@ -20,7 +20,7 @@ Boolean that can prevent automatic model loading (and downloading the data if yo
 
 > **tokenizer**: `object`
 
-Defined in: [packages/react-native-executorch/src/types/tokenizer.ts:15](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/tokenizer.ts#L15)
+Defined in: [packages/react-native-executorch/src/types/tokenizer.ts:15](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/types/tokenizer.ts#L15)
 
 Object containing:
 

@@ -1,6 +1,6 @@
 # Interface: ResourceFetcherAdapter
 
-Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:17](https://github.com/software-mansion/react-native-executorch/blob/9db6e3b8b0f1b11ef66f7c45d29a251b31e9c252/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L17)
+Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:18](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L18)
 
 Adapter interface for resource fetching operations.
 **Required Methods:**
@@ -19,7 +19,7 @@ these two methods for the library to function correctly.
 
 > **fetch**(`callback`, ...`sources`): `Promise`\<`string`[] \| `null`\>
 
-Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:29](https://github.com/software-mansion/react-native-executorch/blob/9db6e3b8b0f1b11ef66f7c45d29a251b31e9c252/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L29)
+Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:30](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L30)
 
 Fetches resources (remote URLs, local files or embedded assets), downloads or stores them locally for use by React Native ExecuTorch.
 
@@ -54,7 +54,7 @@ If the fetch was interrupted, it returns a promise which resolves to `null`.
 
 > **readAsString**(`path`): `Promise`\<`string`\>
 
-Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:43](https://github.com/software-mansion/react-native-executorch/blob/9db6e3b8b0f1b11ef66f7c45d29a251b31e9c252/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L43)
+Defined in: [packages/react-native-executorch/src/utils/ResourceFetcher.ts:44](https://github.com/software-mansion/react-native-executorch/blob/3acba46b6ae095fd7b0f269070ace822138c6f6a/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L44)
 
 Read file contents as a string.
 

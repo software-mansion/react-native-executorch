@@ -96,7 +96,7 @@ To configure model (i.e. change system prompt, load initial conversation history
 
   - [`initialMessageHistory`](../../06-api-reference/interfaces/ChatConfig.md#initialmessagehistory) - Object that represent the conversation history. This can be used to provide initial context to the model.
 
-  - [`contextWindowLength`](../../06-api-reference/interfaces/ChatConfig.md#contextwindowlength) - The number of messages from the current conversation that the model will use to generate a response. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
+  - [`contextStrategy`](../../06-api-reference/interfaces/ChatConfig.md#contextstrategy) - Object implementing [`ContextStrategy`](../../06-api-reference/interfaces/ContextStrategy.md) interface used to manage conversation context, including trimming history if necessary. Custom strategies can be implemented or one of the built-in options can be used (e.g. [`NaiveContextStrategy`](../../06-api-reference/classes/NaiveContextStrategy.md), [`MessageCountContextStrategy`](../../06-api-reference/classes/MessageCountContextStrategy.md) or the default [`SlidingWindowContextStrategy`](../../06-api-reference/classes/SlidingWindowContextStrategy.md)).
 
 - [`toolsConfig`](../../06-api-reference/interfaces/ToolsConfig.md) - Object configuring options for enabling and managing tool use. **It will only have effect if your model's chat template support it**. Contains following properties:
   - [`tools`](../../06-api-reference/interfaces/ToolsConfig.md#tools) - List of objects defining tools.
