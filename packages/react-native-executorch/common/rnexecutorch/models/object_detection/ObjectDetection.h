@@ -30,7 +30,6 @@ public:
                      double detectionThreshold);
 
 protected:
-  // Internal helper for shared preprocessing and inference logic
   std::vector<types::Detection> runInference(cv::Mat image,
                                              double detectionThreshold);
   cv::Mat preprocessFrame(const cv::Mat &frame) const override;

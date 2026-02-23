@@ -33,26 +33,19 @@ ObjectDetection::ObjectDetection(
 }
 
 cv::Mat ObjectDetection::preprocessFrame(const cv::Mat &frame) const {
-  // Get target size from model input shape
   const std::vector<int32_t> tensorDims = getAllInputShapes()[0];
   cv::Size tensorSize = cv::Size(tensorDims[tensorDims.size() - 1],
                                  tensorDims[tensorDims.size() - 2]);
 
   cv::Mat rgb;
 
-  // Convert RGBA/BGRA to RGB if needed (for VisionCamera frames)
   if (frame.channels() == 4) {
-// Platform-specific color conversion:
-// iOS uses BGRA format, Android uses RGBA format
 #ifdef __APPLE__
-    // iOS: BGRA → RGB
     cv::cvtColor(frame, rgb, cv::COLOR_BGRA2RGB);
 #else
-    // Android: RGBA → RGB
     cv::cvtColor(frame, rgb, cv::COLOR_RGBA2RGB);
 #endif
   } else if (frame.channels() == 3) {
-    // Already RGB
     rgb = frame;
   } else {
     char errorMessage[100];
@@ -113,15 +106,11 @@ ObjectDetection::postprocess(const std::vector<EValue> &tensors,
 
 std::vector<types::Detection>
 ObjectDetection::runInference(cv::Mat image, double detectionThreshold) {
-  std::lock_guard<std::mutex> lock(inference_mutex_);
+  std::scoped_lock lock(inference_mutex_);
 
-  // Store original size for postprocessing
   cv::Size originalSize = image.size();
-
-  // Preprocess the image using model-specific preprocessing
   cv::Mat preprocessed = preprocessFrame(image);
 
-  // Create tensor and run inference
   const std::vector<int32_t> tensorDims = getAllInputShapes()[0];
   auto inputTensor =
       image_processing::getTensorFromMatrix(tensorDims, preprocessed);
@@ -139,14 +128,11 @@ ObjectDetection::runInference(cv::Mat image, double detectionThreshold) {
 std::vector<types::Detection>
 ObjectDetection::generateFromString(std::string imageSource,
                                     double detectionThreshold) {
-  // Read image using OpenCV (BGR format)
-  cv::Mat image = image_processing::readImage(imageSource);
+  cv::Mat imageBGR = image_processing::readImage(imageSource);
 
-  // Convert BGR to RGB (OpenCV imread returns BGR)
   cv::Mat imageRGB;
-  cv::cvtColor(image, imageRGB, cv::COLOR_BGR2RGB);
+  cv::cvtColor(imageBGR, imageRGB, cv::COLOR_BGR2RGB);
 
-  // Use the internal helper - it handles locking, preprocessing, and inference
   return runInference(imageRGB, detectionThreshold);
 }
 
@@ -154,22 +140,9 @@ std::vector<types::Detection>
 ObjectDetection::generateFromFrame(jsi::Runtime &runtime,
                                    const jsi::Value &frameData,
                                    double detectionThreshold) {
-  // Try-lock: skip frame if model is busy (non-blocking for camera)
-  if (!inference_mutex_.try_lock()) {
-    return {}; // Return empty vector, don't block camera thread
-  }
+  auto frameObj = frameData.asObject(runtime);
+  cv::Mat frame = rnexecutorch::utils::extractFrame(runtime, frameObj);
 
-  // Extract frame (under lock to ensure thread safety)
-  cv::Mat frame;
-  {
-    std::lock_guard<std::mutex> lock(inference_mutex_, std::adopt_lock);
-    auto frameObj = frameData.asObject(runtime);
-    frame =
-        rnexecutorch::utils::FrameProcessor::extractFrame(runtime, frameObj);
-  }
-  // Lock is automatically released here when going out of scope
-
-  // Use the internal helper - it handles locking, preprocessing, and inference
   return runInference(frame, detectionThreshold);
 }
 
@@ -177,14 +150,10 @@ std::vector<types::Detection>
 ObjectDetection::generateFromPixels(jsi::Runtime &runtime,
                                     const jsi::Value &pixelData,
                                     double detectionThreshold) {
-  // Convert JSI value to JSTensorViewIn
   auto tensorView =
       jsi_conversion::getValue<JSTensorViewIn>(pixelData, runtime);
-
-  // Extract raw pixel data to cv::Mat
   cv::Mat image = extractFromPixels(tensorView);
 
-  // Use the internal helper - it handles locking, preprocessing, and inference
   return runInference(image, detectionThreshold);
 }
 } // namespace rnexecutorch::models::object_detection

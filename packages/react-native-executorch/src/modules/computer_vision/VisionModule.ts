@@ -15,6 +15,20 @@ import { Frame, PixelData, ScalarType } from '../../types/common';
  *
  * @category Typescript API
  */
+function isPixelData(input: unknown): input is PixelData {
+  return (
+    typeof input === 'object' &&
+    input !== null &&
+    'dataPtr' in input &&
+    input.dataPtr instanceof Uint8Array &&
+    'sizes' in input &&
+    Array.isArray(input.sizes) &&
+    input.sizes.length === 3 &&
+    'scalarType' in input &&
+    input.scalarType === ScalarType.BYTE
+  );
+}
+
 export abstract class VisionModule<TOutput> extends BaseModule {
   /**
    * Synchronous worklet function for real-time VisionCamera frame processing.
@@ -111,19 +125,8 @@ export abstract class VisionModule<TOutput> extends BaseModule {
 
     // Type detection and routing
     if (typeof input === 'string') {
-      // String path → generateFromString()
       return await this.nativeModule.generateFromString(input, ...args);
-    } else if (
-      typeof input === 'object' &&
-      'dataPtr' in input &&
-      input.dataPtr instanceof Uint8Array &&
-      'sizes' in input &&
-      Array.isArray(input.sizes) &&
-      input.sizes.length === 3 &&
-      'scalarType' in input &&
-      input.scalarType === ScalarType.BYTE
-    ) {
-      // Pixel data → generateFromPixels()
+    } else if (isPixelData(input)) {
       return await this.nativeModule.generateFromPixels(input, ...args);
     } else {
       throw new RnExecutorchError(
