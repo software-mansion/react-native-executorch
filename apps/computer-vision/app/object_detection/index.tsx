@@ -1,16 +1,16 @@
 import Spinner from '../../components/Spinner';
+import { BottomBar } from '../../components/BottomBar';
 import { getImage } from '../../utils';
 import {
   Detection,
   useObjectDetection,
   RF_DETR_NANO,
 } from 'react-native-executorch';
-import { View, StyleSheet, Image, TouchableOpacity, Text } from 'react-native';
+import { View, StyleSheet, Image } from 'react-native';
 import ImageWithBboxes from '../../components/ImageWithBboxes';
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
-import ColorPalette from '../../colors';
 
 export default function ObjectDetectionScreen() {
   const [imageUri, setImageUri] = useState('');
@@ -45,7 +45,7 @@ export default function ObjectDetectionScreen() {
         const output = await rfDetr.forward(imageUri);
         setResults(output);
       } catch (e) {
-        console.error('Error in runForward:', e);
+        console.error(e);
       }
     }
   };
@@ -124,41 +124,10 @@ export default function ObjectDetectionScreen() {
           )}
         </View>
       </View>
-
-      {/* Custom bottom bar with two buttons */}
-      <View style={styles.bottomContainer}>
-        <View style={styles.bottomIconsContainer}>
-          <TouchableOpacity onPress={() => handleCameraPress(false)}>
-            <Text style={styles.iconText}>📷 Gallery</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.buttonsRow}>
-          <TouchableOpacity
-            style={[
-              styles.button,
-              styles.halfButton,
-              !imageUri && styles.buttonDisabled,
-            ]}
-            onPress={runForward}
-            disabled={!imageUri}
-          >
-            <Text style={styles.buttonText}>Run (String)</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.button,
-              styles.halfButton,
-              !imageUri && styles.buttonDisabled,
-            ]}
-            onPress={runForwardPixels}
-            disabled={!imageUri}
-          >
-            <Text style={styles.buttonText}>Run (Pixels)</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <BottomBar
+        handleCameraPress={handleCameraPress}
+        runForward={runForward}
+      />
     </ScreenWrapper>
   );
 }
@@ -202,44 +171,5 @@ const styles = StyleSheet.create({
   fullSizeImage: {
     width: '100%',
     height: '100%',
-  },
-  bottomContainer: {
-    width: '100%',
-    gap: 15,
-    alignItems: 'center',
-    padding: 16,
-    flex: 1,
-  },
-  bottomIconsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    width: '100%',
-  },
-  iconText: {
-    fontSize: 16,
-    color: ColorPalette.primary,
-  },
-  buttonsRow: {
-    flexDirection: 'row',
-    width: '100%',
-    gap: 10,
-  },
-  button: {
-    height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: ColorPalette.primary,
-    color: '#fff',
-    borderRadius: 8,
-  },
-  halfButton: {
-    flex: 1,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
   },
 });
