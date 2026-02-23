@@ -36,3 +36,15 @@ jobs:
       - name: Generate docs
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: yarn build
+      - name: Check TypeDoc is up-to-date
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          yarn docusaurus generate-typedoc
+          if ! git diff --quiet; then
+            echo "API docs are out of date. Please run 'yarn build' locally and commit the changes."
+            echo ""
+            echo "Changed files:"
+            git diff --name-only
+            exit 1
+          fi
+          echo "API docs are up to date."
