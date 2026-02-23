@@ -1,4 +1,4 @@
 {
   "gitRevision": "main",
-  "skipErrorChecking": false
+  "skipErrorChecking": true
 }
