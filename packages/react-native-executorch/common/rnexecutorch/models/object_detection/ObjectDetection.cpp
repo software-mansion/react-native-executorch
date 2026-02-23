@@ -80,26 +80,19 @@ cv::Mat ObjectDetection::preprocessFrame(const cv::Mat &frame) const {
 }
 
 cv::Mat ObjectDetection::preprocessFrame(const cv::Mat &frame) const {
-  // Get target size from model input shape
   const std::vector<int32_t> tensorDims = getAllInputShapes()[0];
   cv::Size tensorSize = cv::Size(tensorDims[tensorDims.size() - 1],
                                  tensorDims[tensorDims.size() - 2]);
 
   cv::Mat rgb;
 
-  // Convert RGBA/BGRA to RGB if needed (for VisionCamera frames)
   if (frame.channels() == 4) {
-// Platform-specific color conversion:
-// iOS uses BGRA format, Android uses RGBA format
 #ifdef __APPLE__
-    // iOS: BGRA → RGB
     cv::cvtColor(frame, rgb, cv::COLOR_BGRA2RGB);
 #else
-    // Android: RGBA → RGB
     cv::cvtColor(frame, rgb, cv::COLOR_RGBA2RGB);
 #endif
   } else if (frame.channels() == 3) {
-    // Already RGB
     rgb = frame;
   } else {
     char errorMessage[100];
