@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { URL_PREFIX, VERSION_TAG } from './versions';
+import { URL_PREFIX, VERSION_TAG, NEXT_VERSION_TAG } from './versions';
 
 // LLMs
 
@@ -349,9 +349,9 @@ export const PHI_4_MINI_4B_QUANTIZED = {
 
 // LFM2.5-1.2B-Instruct
 
-const LFM2_5_1_2B_INSTRUCT_MODEL = `${URL_PREFIX}-lfm2.5-1.2B-instruct/${VERSION_TAG}/lfm2_5_1_2b_8da4w.pte`;
-const LFM2_5_1_2B_TOKENIZER = `${URL_PREFIX}-lfm2.5-1.2B-instruct/${VERSION_TAG}/tokenizer.json`;
-const LFM2_5_1_2B_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm2.5-1.2B-instruct/${VERSION_TAG}/tokenizer_config.json`;
+const LFM2_5_1_2B_INSTRUCT_MODEL = `${URL_PREFIX}-lfm2.5-1.2B-instruct/${NEXT_VERSION_TAG}/lfm2_5_1_2b_8da4w.pte`;
+const LFM2_5_1_2B_TOKENIZER = `${URL_PREFIX}-lfm2.5-1.2B-instruct/${NEXT_VERSION_TAG}/tokenizer.json`;
+const LFM2_5_1_2B_TOKENIZER_CONFIG = `${URL_PREFIX}-lfm2.5-1.2B-instruct/${NEXT_VERSION_TAG}/tokenizer_config.json`;
 
 /**
  * @category Models - LMM
