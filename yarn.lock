@@ -13662,24 +13662,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-nitro-image@npm:0.10.2":
-  version: 0.10.2
-  resolution: "react-native-nitro-image@npm:0.10.2"
+"react-native-nitro-image@npm:^0.12.0":
+  version: 0.12.0
+  resolution: "react-native-nitro-image@npm:0.12.0"
   peerDependencies:
     react: "*"
     react-native: "*"
     react-native-nitro-modules: "*"
-  checksum: 10/3be75e93da369adfe00441dae78171572dec38d3d7e75e5d4cb302b81479be9686c8d8dc0ea4b331514b8725099bf3eb069ab9933f7029627d12a72d71766cb4
+  checksum: 10/03f165381c35e060d4d05eae3ce029b32a4009482f327e9526840f306181ca87a862b335e12667c55d4ee9f2069542ca93dd112feb7f1822bf7d2ddc38fe58f0
   languageName: node
   linkType: hard
 
-"react-native-nitro-modules@npm:0.33.4":
-  version: 0.33.4
-  resolution: "react-native-nitro-modules@npm:0.33.4"
+"react-native-nitro-modules@npm:^0.33.9":
+  version: 0.33.9
+  resolution: "react-native-nitro-modules@npm:0.33.9"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/a737ff6b142c55821688612305245fd10a7cff36f0ee66cad0956c6815a60cdd4ba64cdfba6137a6dbfe815645763ce5d406cf488876edd47dab7f8d0031e01a
+  checksum: 10/4ebf4db46d1e4987a0e52054724081aa9712bcd1d505a6dbdd47aebc6afe72a7abaa0e947651d9f3cc594e4eb3dba47fc6f59db27c5a5ed383946e40d96543a0
   languageName: node
   linkType: hard
 
