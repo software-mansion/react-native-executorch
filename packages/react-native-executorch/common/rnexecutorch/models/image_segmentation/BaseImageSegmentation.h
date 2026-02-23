@@ -3,12 +3,12 @@
 #include <executorch/extension/tensor/tensor_ptr.h>
 #include <jsi/jsi.h>
 #include <opencv2/opencv.hpp>
+#include <optional>
 #include <set>
 
 #include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
 #include <rnexecutorch/jsi/OwningArrayBuffer.h>
 #include <rnexecutorch/models/BaseModel.h>
-#include <rnexecutorch/models/image_segmentation/Constants.h>
 
 namespace rnexecutorch {
 namespace models::image_segmentation {
@@ -17,32 +17,45 @@ using namespace facebook;
 using executorch::aten::Tensor;
 using executorch::extension::TensorPtr;
 
-class ImageSegmentation : public BaseModel {
+class BaseImageSegmentation : public BaseModel {
 public:
-  ImageSegmentation(const std::string &modelSource,
-                    std::shared_ptr<react::CallInvoker> callInvoker);
+  BaseImageSegmentation(const std::string &modelSource,
+                        std::shared_ptr<react::CallInvoker> callInvoker);
+
+  BaseImageSegmentation(const std::string &modelSource,
+                        std::vector<float> normMean, std::vector<float> normStd,
+                        std::shared_ptr<react::CallInvoker> callInvoker);
+
   [[nodiscard("Registered non-void function")]] std::shared_ptr<jsi::Object>
-  generate(std::string imageSource,
+  generate(std::string imageSource, std::vector<std::string> allClasses,
            std::set<std::string, std::less<>> classesOfInterest, bool resize);
 
-private:
-  std::shared_ptr<jsi::Object>
+protected:
+  virtual TensorPtr preprocess(const std::string &imageSource,
+                               cv::Size &originalSize);
+  virtual std::shared_ptr<jsi::Object>
   postprocess(const Tensor &tensor, cv::Size originalSize,
-              std::set<std::string, std::less<>> classesOfInterest,
+              std::vector<std::string> &allClasses,
+              std::set<std::string, std::less<>> &classesOfInterest,
               bool resize);
+
+  cv::Size modelImageSize;
+  std::size_t numModelPixels;
+  std::optional<cv::Scalar> normMean_;
+  std::optional<cv::Scalar> normStd_;
+
   std::shared_ptr<jsi::Object> populateDictionary(
       std::shared_ptr<OwningArrayBuffer> argmax,
       std::shared_ptr<std::unordered_map<std::string_view,
                                          std::shared_ptr<OwningArrayBuffer>>>
           classesToOutput);
 
-  static constexpr std::size_t numClasses{
-      constants::kDeeplabV3Resnet50Labels.size()};
-  cv::Size modelImageSize;
-  std::size_t numModelPixels;
+private:
+  void initModelImageSize();
 };
 } // namespace models::image_segmentation
 
-REGISTER_CONSTRUCTOR(models::image_segmentation::ImageSegmentation, std::string,
+REGISTER_CONSTRUCTOR(models::image_segmentation::BaseImageSegmentation,
+                     std::string, std::vector<float>, std::vector<float>,
                      std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

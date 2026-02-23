@@ -112,3 +112,6 @@ RNFS
 pogodin
 kesha
 antonov
+rfdetr
+basemodule
+IMAGENET

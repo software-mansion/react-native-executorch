@@ -521,8 +521,18 @@ const DEEPLAB_V3_RESNET50_MODEL = `${URL_PREFIX}-deeplab-v3/${VERSION_TAG}/xnnpa
  * @category Models - Image Segmentation
  */
 export const DEEPLAB_V3_RESNET50 = {
+  modelName: 'deeplab-v3',
   modelSource: DEEPLAB_V3_RESNET50_MODEL,
-};
+} as const;
+
+const SELFIE_SEGMENTATION_MODEL = `${URL_PREFIX}-selfie-segmentation/${VERSION_TAG}/xnnpack/selfie-segmentation.pte`;
+/**
+ * @category Models - Image segmentation
+ */
+export const SELFIE_SEGMENTATION = {
+  modelName: 'selfie-segmentation',
+  modelSource: SELFIE_SEGMENTATION_MODEL,
+} as const;
 
 // Image Embeddings
 const CLIP_VIT_BASE_PATCH32_IMAGE_MODEL = `${URL_PREFIX}-clip-vit-base-patch32/${VERSION_TAG}/clip-vit-base-patch32-vision_xnnpack.pte`;
