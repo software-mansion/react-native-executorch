@@ -1,4 +1,7 @@
 {
   "gitRevision": "main",
-  "skipErrorChecking": true
+  "skipErrorChecking": true,
+  "compilerOptions": {
+    "skipLibCheck": true
+  }
 }
