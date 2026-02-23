@@ -7,9 +7,11 @@ if [ -z "$VERSION" ]; then
   exit 1
 fi
 
-yarn docusaurus docs:version $VERSION && npx prettier --write .
+yarn docusaurus docs:version $VERSION
 
 find versioned_docs/version-$VERSION -type f \( -name "*.md" -o -name "*.mdx" \) \
   -exec sed -i "" "s|/blob/main/|/blob/$SHA/|g" {} +
 
-echo "Versioned $VERSION pinned to $SHA"
+yarn prettier
+
+echo "Versioned $VERSION docs pinned to $SHA"

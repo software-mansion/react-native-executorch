@@ -6,7 +6,7 @@
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
     "build": "docusaurus build && yarn prettier && npm run postbuild",
-    "docs:version": "./scripts/build-version-docs.sh && yarn prettier",
+    "docs:version": "./scripts/build-version-docs.sh",
     "postbuild": "node scripts/postbuild.mjs",
     "prettier": "npx prettier --write 'docs/06-api-reference/**/*.{md,mdx}'",
     "swizzle": "docusaurus swizzle",
