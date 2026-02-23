@@ -40,6 +40,7 @@ jobs:
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
           yarn docusaurus generate-typedoc
+          npx prettier --write "docs/**/*.{md,mdx}"
           if ! git diff --quiet; then
             echo "API docs are out of date. Please run 'yarn build' locally and commit the changes."
             echo ""
