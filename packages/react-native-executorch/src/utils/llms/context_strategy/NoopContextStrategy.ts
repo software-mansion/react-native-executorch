@@ -7,7 +7,7 @@ import { ContextStrategy, Message } from '../../../types/llm';
  *
  * @category Utils
  */
-export class NaiveContextStrategy implements ContextStrategy {
+export class NoopContextStrategy implements ContextStrategy {
   /**
    * Builds the context by prepending the system prompt to the entire unfiltered history.
    *

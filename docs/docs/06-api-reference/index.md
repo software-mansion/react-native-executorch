@@ -306,5 +306,5 @@
 ## Utils
 
 - [MessageCountContextStrategy](classes/MessageCountContextStrategy.md)
-- [NaiveContextStrategy](classes/NaiveContextStrategy.md)
+- [NoopContextStrategy](classes/NoopContextStrategy.md)
 - [SlidingWindowContextStrategy](classes/SlidingWindowContextStrategy.md)
