@@ -67,7 +67,7 @@ void LLM::interrupt() {
 void LLM::reset() {
   if (!runner || !runner->is_loaded()) {
     throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
-                            "Can't interrupt a model that's not loaded");
+                            "Can't reset a model that's not loaded");
   }
   runner->reset();
 }
