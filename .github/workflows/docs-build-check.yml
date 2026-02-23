@@ -38,6 +38,7 @@ jobs:
         run: |
           yarn docusaurus generate-typedoc
           yarn prettier
+          git status
           git diff
           if ! git diff --quiet; then
             echo "Differences found. Look at the 'git diff' output above."
