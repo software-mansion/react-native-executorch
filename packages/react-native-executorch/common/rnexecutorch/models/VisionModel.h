@@ -18,17 +18,13 @@ namespace models {
  * process camera frames in real-time (e.g., at 30fps).
  *
  * Thread Safety:
- * - All inference operations are protected by a mutex
- * - generateFromFrame() uses try_lock() to skip frames when the model is busy
- * - This prevents blocking the camera thread and maintains smooth frame rates
+ * - All inference operations are protected by a mutex via scoped_lock
  *
  * Usage:
  * Subclasses should:
  * 1. Inherit from VisionModel instead of BaseModel
  * 2. Implement preprocessFrame() with model-specific preprocessing
- * 3. Use inference_mutex_ when calling forward() in custom generate methods
- * 4. Use lock_guard for blocking operations (JS API)
- * 5. Use try_lock() for non-blocking operations (camera API)
+ * 3. Delegate to runInference() which handles locking internally
  *
  * Example:
  * @code
@@ -36,18 +32,9 @@ namespace models {
  * public:
  *   std::unordered_map<std::string_view, float>
  *   generateFromFrame(jsi::Runtime& runtime, const jsi::Value& frameValue) {
- *     // try_lock is handled automatically
  *     auto frameObject = frameValue.asObject(runtime);
- *     cv::Mat frame = FrameExtractor::extractFrame(runtime, frameObject);
- *
- *     // Lock before inference
- *     if (!inference_mutex_.try_lock()) {
- *       return {}; // Skip frame if busy
- *     }
- *     std::lock_guard<std::mutex> lock(inference_mutex_, std::adopt_lock);
- *
- *     auto preprocessed = preprocessFrame(frame);
- *     // ... run inference
+ *     cv::Mat frame = utils::extractFrame(runtime, frameObject);
+ *     return runInference(frame);
  *   }
  * };
  * @endcode
@@ -64,9 +51,6 @@ public:
               std::shared_ptr<react::CallInvoker> callInvoker)
       : BaseModel(modelSource, callInvoker) {}
 
-  /**
-   * @brief Virtual destructor for proper cleanup in derived classes
-   */
   virtual ~VisionModel() = default;
 
 protected:

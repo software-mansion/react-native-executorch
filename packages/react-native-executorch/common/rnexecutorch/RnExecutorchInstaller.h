@@ -54,9 +54,6 @@ private:
                 meta::createConstructorArgsWithCallInvoker<ModelT>(
                     args, runtime, jsCallInvoker);
 
-            // This unpacks the tuple and calls the constructor directly inside
-            // make_shared. It avoids creating a temporary object, so no
-            // move/copy is required.
             auto modelImplementationPtr = std::apply(
                 [](auto &&...unpackedArgs) {
                   return std::make_shared<ModelT>(
