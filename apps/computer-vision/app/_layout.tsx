@@ -84,6 +84,14 @@ export default function _layout() {
           }}
         />
         <Drawer.Screen
+          name="object_detection_live/index"
+          options={{
+            drawerLabel: 'Object Detection (Live)',
+            title: 'Object Detection (Live)',
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
+        <Drawer.Screen
           name="ocr/index"
           options={{
             drawerLabel: 'OCR',
