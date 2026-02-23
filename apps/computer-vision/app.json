@@ -25,7 +25,8 @@
         "foregroundImage": "./assets/icons/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.computervision"
+      "package": "com.anonymous.computervision",
+      "permissions": ["android.permission.CAMERA"]
     },
     "web": {
       "favicon": "./assets/icons/favicon.png"

@@ -225,10 +225,10 @@ export interface ObjectDetectionType {
    * ```
    *
    * @param frame - VisionCamera Frame object
-   * @param detectionThreshold - The threshold for detection sensitivity. Default is 0.5.
+   * @param detectionThreshold - The threshold for detection sensitivity.
    * @returns Array of Detection objects representing detected items in the frame.
    */
   runOnFrame:
-    | ((frame: Frame, detectionThreshold?: number) => Detection[])
+    | ((frame: Frame, detectionThreshold: number) => Detection[])
     | null;
 }
