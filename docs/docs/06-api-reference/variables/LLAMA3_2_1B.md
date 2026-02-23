@@ -2,7 +2,7 @@
 
 > `const` **LLAMA3_2_1B**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:46](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L46)
+Defined in: [constants/modelUrls.ts:46](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L46)
 
 ## Type Declaration
 

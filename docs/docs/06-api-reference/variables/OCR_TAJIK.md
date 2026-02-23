@@ -2,7 +2,7 @@
 
 > `const` **OCR_TAJIK**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:327](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/ocr/models.ts#L327)
+Defined in: [constants/ocr/models.ts:327](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/ocr/models.ts#L327)
 
 ## Type Declaration
 

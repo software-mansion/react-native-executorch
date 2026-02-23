@@ -2,7 +2,7 @@
 
 > `const` **HAMMER2_1_0_5B**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:147](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L147)
+Defined in: [constants/modelUrls.ts:147](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L147)
 
 ## Type Declaration
 

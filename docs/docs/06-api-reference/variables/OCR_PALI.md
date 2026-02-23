@@ -2,7 +2,7 @@
 
 > `const` **OCR_PALI**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:251](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/ocr/models.ts#L251)
+Defined in: [constants/ocr/models.ts:251](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/ocr/models.ts#L251)
 
 ## Type Declaration
 

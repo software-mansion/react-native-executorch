@@ -2,7 +2,7 @@
 
 > `const` **OCR_IRISH**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:131](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/ocr/models.ts#L131)
+Defined in: [constants/ocr/models.ts:131](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/ocr/models.ts#L131)
 
 ## Type Declaration
 

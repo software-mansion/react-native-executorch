@@ -3,5 +3,6 @@
   "skipErrorChecking": true,
   "compilerOptions": {
     "skipLibCheck": true
-  }
+  },
+  "excludeExternals": true
 }

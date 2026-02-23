@@ -2,7 +2,7 @@
 
 > `const` **OCR_TELUGU**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:322](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/ocr/models.ts#L322)
+Defined in: [constants/ocr/models.ts:322](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/ocr/models.ts#L322)
 
 ## Type Declaration
 

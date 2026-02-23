@@ -1,6 +1,6 @@
 # Class: ImageSegmentationModule\<T\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts:60](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L60)
+Defined in: [modules/computer_vision/ImageSegmentationModule.ts:60](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L60)
 
 Generic image segmentation module with type-safe label maps.
 Use a model name (e.g. `'deeplab-v3'`) as the generic parameter for built-in models,
@@ -25,7 +25,7 @@ or a custom [LabelEnum](../type-aliases/LabelEnum.md) label map.
 
 > **nativeModule**: `any` = `null`
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:8](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L8)
+Defined in: [modules/BaseModule.ts:8](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L8)
 
 Native module instance
 
@@ -39,7 +39,7 @@ Native module instance
 
 > **delete**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:41](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L41)
+Defined in: [modules/BaseModule.ts:41](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L41)
 
 Unloads the model from memory.
 
@@ -57,7 +57,7 @@ Unloads the model from memory.
 
 > **forward**\<`K`\>(`imageSource`, `classesOfInterest`, `resizeToInput`): `Promise`\<`Record`\<`"ARGMAX"`, `Int32Array`\<`ArrayBufferLike`\>\> & `Record`\<`K`, `Float32Array`\<`ArrayBufferLike`\>\>\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts:176](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L176)
+Defined in: [modules/computer_vision/ImageSegmentationModule.ts:176](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L176)
 
 Executes the model's forward pass to perform semantic segmentation on the provided image.
 
@@ -103,7 +103,7 @@ If the model is not loaded.
 
 > `protected` **forwardET**(`inputTensor`): `Promise`\<[`TensorPtr`](../interfaces/TensorPtr.md)[]\>
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:23](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L23)
+Defined in: [modules/BaseModule.ts:23](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L23)
 
 Runs the model's forward method with the given input tensors.
 It returns the output tensors that mimic the structure of output from ExecuTorch.
@@ -132,7 +132,7 @@ Array of output tensors.
 
 > **getInputShape**(`methodName`, `index`): `Promise`\<`number`[]\>
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:34](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L34)
+Defined in: [modules/BaseModule.ts:34](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L34)
 
 Gets the input shape for a given method and index.
 
@@ -166,7 +166,7 @@ The input shape as an array of numbers.
 
 > **load**(): `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts:76](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L76)
+Defined in: [modules/computer_vision/ImageSegmentationModule.ts:76](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L76)
 
 #### Returns
 
@@ -182,7 +182,7 @@ Defined in: [packages/react-native-executorch/src/modules/computer_vision/ImageS
 
 > `static` **fromCustomConfig**\<`L`\>(`modelSource`, `config`, `onDownloadProgress`): `Promise`\<`ImageSegmentationModule`\<`L`\>\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts:142](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L142)
+Defined in: [modules/computer_vision/ImageSegmentationModule.ts:142](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L142)
 
 Creates a segmentation instance with a user-provided label map and custom config.
 Use this when working with a custom-exported segmentation model that is not one of the built-in models.
@@ -235,7 +235,7 @@ const segmentation = await ImageSegmentationModule.fromCustomConfig(
 
 > `static` **fromModelName**\<`C`\>(`config`, `onDownloadProgress`): `Promise`\<`ImageSegmentationModule`\<[`ModelNameOf`](../type-aliases/ModelNameOf.md)\<`C`\>\>\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts:95](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L95)
+Defined in: [modules/computer_vision/ImageSegmentationModule.ts:95](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L95)
 
 Creates a segmentation instance for a built-in model.
 The config object is discriminated by `modelName` — each model can require different fields.

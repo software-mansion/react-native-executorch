@@ -2,7 +2,7 @@
 
 > `const` **OCR_AVAR**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:48](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/ocr/models.ts#L48)
+Defined in: [constants/ocr/models.ts:48](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/ocr/models.ts#L48)
 
 ## Type Declaration
 

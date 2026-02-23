@@ -2,7 +2,7 @@
 
 > `const` **PHI_4_MINI_4B_QUANTIZED**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:344](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L344)
+Defined in: [constants/modelUrls.ts:344](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L344)
 
 ## Type Declaration
 

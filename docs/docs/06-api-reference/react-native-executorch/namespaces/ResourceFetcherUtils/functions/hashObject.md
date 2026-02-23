@@ -2,7 +2,7 @@
 
 > **hashObject**(`jsonString`): `string`
 
-Defined in: [packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts:134](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L134)
+Defined in: [utils/ResourceFetcherUtils.ts:134](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L134)
 
 Generates a hash from a string representation of an object.
 

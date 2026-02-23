@@ -2,7 +2,7 @@
 
 > `const` **OCR_AZERBAIJANI**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:53](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/ocr/models.ts#L53)
+Defined in: [constants/ocr/models.ts:53](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/ocr/models.ts#L53)
 
 ## Type Declaration
 

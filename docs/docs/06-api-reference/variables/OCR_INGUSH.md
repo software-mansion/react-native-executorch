@@ -2,7 +2,7 @@
 
 > `const` **OCR_INGUSH**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:151](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/ocr/models.ts#L151)
+Defined in: [constants/ocr/models.ts:151](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/ocr/models.ts#L151)
 
 ## Type Declaration
 
