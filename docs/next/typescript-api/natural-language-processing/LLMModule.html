@@ -10,8 +10,8 @@
 
 
 <link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.5115ba83.css">
-<script src="/react-native-executorch/assets/js/runtime~main.3c58d105.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.ce68c271.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/runtime~main.c18f50b0.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.c75d4721.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNBF6SVN" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -89,7 +89,7 @@
 <p><a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/ChatConfig#initialmessagehistory"><code>initialMessageHistory</code></a> - Object that represent the conversation history. This can be used to provide initial context to the model.</p>
 </li>
 <li class="">
-<p><a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/ChatConfig#contextwindowlength"><code>contextWindowLength</code></a> - The number of messages from the current conversation that the model will use to generate a response. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.</p>
+<p><a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/ChatConfig#contextstrategy"><code>contextStrategy</code></a> - Object implementing <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/ContextStrategy"><code>ContextStrategy</code></a> interface used to manage conversation context, including trimming history if necessary. Custom strategies can be implemented or one of the built-in options can be used (e.g. <a class="" href="/react-native-executorch/docs/next/api-reference/classes/NoopContextStrategy"><code>NoopContextStrategy</code></a>, <a class="" href="/react-native-executorch/docs/next/api-reference/classes/MessageCountContextStrategy"><code>MessageCountContextStrategy</code></a> or the default <a class="" href="/react-native-executorch/docs/next/api-reference/classes/SlidingWindowContextStrategy"><code>SlidingWindowContextStrategy</code></a>).</p>
 </li>
 </ul>
 </li>
