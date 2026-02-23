@@ -46,13 +46,6 @@ public:
           "getInputShape"));
     }
 
-    if constexpr (meta::HasGenerateFromString<Model>) {
-      addFunctions(
-          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                              promiseHostFunction<&Model::generateFromString>,
-                              "generateFromString"));
-    }
-
     if constexpr (meta::HasEncode<Model>) {
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::encode>,
@@ -172,6 +165,13 @@ public:
                                        "stream"));
     }
 
+    if constexpr (meta::HasGenerateFromString<Model>) {
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                              promiseHostFunction<&Model::generateFromString>,
+                              "generateFromString"));
+    }
+
     if constexpr (meta::HasGenerateFromFrame<Model>) {
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>, visionHostFunction<&Model::generateFromFrame>,
@@ -181,7 +181,7 @@ public:
     if constexpr (meta::HasGenerateFromPixels<Model>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                              visionHostFunction<&Model::generateFromPixels>,
+                              promiseHostFunction<&Model::generateFromPixels>,
                               "generateFromPixels"));
     }
   }
@@ -233,36 +233,40 @@ public:
     }
   }
 
+  /**
+   * Unlike promiseHostFunction, this runs synchronously on the JS thread,
+   * which is required for VisionCamera worklet frame processors.
+   *
+   * The key challenge is argument mapping: the C++ function takes
+   * (Runtime, frameData, Rest...) but from the JS side, Runtime is injected
+   * automatically and frameData is JS args[0]. The remaining args (Rest...)
+   * map to JS args[1..N].
+   *
+   * This is achieved via TailSignature: it extracts the Rest... parameter pack
+   * from the function pointer type, creates a dummy free function with only
+   * those types, then uses createArgsTupleFromJsi on that dummy to convert
+   * args[1..N] — bypassing the manually-handled frameData at args[0].
+   *
+   * Argument mapping:
+   *   C++ params:  (Runtime&,  frameData,  Rest[0],   Rest[1], ...)
+   *   JS args:     (           args[0],    args[1],   args[2], ...)
+   *   JS arg count = C++ arity - 1  (Runtime is injected, not counted)
+   *
+   */
   template <auto FnPtr> JSI_HOST_FUNCTION(visionHostFunction) {
-    // 1. Check Argument Count
-    // (We rely on our new FunctionTraits)
     constexpr std::size_t cppArgCount =
         meta::FunctionTraits<decltype(FnPtr)>::arity;
-
-    // We expect JS args = (Total C++ Args) - (2 injected args: Runtime + Value)
     constexpr std::size_t expectedJsArgs = cppArgCount - 1;
-    log(LOG_LEVEL::Debug, cppArgCount, count);
+
     if (count != expectedJsArgs) {
       throw jsi::JSError(runtime, "Argument count mismatch in vision function");
     }
 
     try {
-      // 2. The Magic Trick
-      // We get a pointer to a dummy function: void dummy(Rest...) {}
-      // This function has exactly the signature of the arguments we want to
-      // parse.
       auto dummyFuncPtr = &meta::TailSignature<decltype(FnPtr)>::dummy;
-
-      // 3. Let existing helpers do the work
-      // We pass the dummy pointer. The helper inspects its arguments (Rest...)
-      // and converts args[0]...args[N] accordingly.
-      // Note: We pass (args + 1) because JS args[0] is the PixelData, which we
-      // handle manually. Note: We use expectedJsArgs - 1 because we skipped one
-      // JS arg.
       auto tailArgsTuple =
           meta::createArgsTupleFromJsi(dummyFuncPtr, args + 1, runtime);
 
-      // 4. Invoke
       using ReturnType =
           typename meta::FunctionTraits<decltype(FnPtr)>::return_type;
 
@@ -270,10 +274,8 @@ public:
         std::apply(
             [&](auto &&...tailArgs) {
               (model.get()->*FnPtr)(
-                  runtime,
-                  args[0], // 1. PixelData (Manually passed)
-                  std::forward<decltype(tailArgs)>(
-                      tailArgs)...); // 2. The rest (Auto parsed)
+                  runtime, args[0],
+                  std::forward<decltype(tailArgs)>(tailArgs)...);
             },
             std::move(tailArgsTuple));
         return jsi::Value::undefined();
