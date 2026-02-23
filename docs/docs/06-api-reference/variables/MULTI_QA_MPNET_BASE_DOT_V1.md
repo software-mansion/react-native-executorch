@@ -2,7 +2,7 @@
 
 > `const` **MULTI_QA_MPNET_BASE_DOT_V1**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:576](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L576)
+Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:586](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L586)
 
 ## Type Declaration
 

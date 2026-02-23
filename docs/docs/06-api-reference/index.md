@@ -39,6 +39,10 @@
 
 - [DEEPLAB_V3_RESNET50](variables/DEEPLAB_V3_RESNET50.md)
 
+## Models - Image segmentation
+
+- [SELFIE_SEGMENTATION](variables/SELFIE_SEGMENTATION.md)
+
 ## Models - LMM
 
 - [HAMMER2_1_0_5B](variables/HAMMER2_1_0_5B.md)
@@ -202,11 +206,13 @@
 - [DownloadStatus](enumerations/DownloadStatus.md)
 - [HTTP_CODE](enumerations/HTTP_CODE.md)
 - [ScalarType](enumerations/ScalarType.md)
+- [SelfieSegmentationLabel](enumerations/SelfieSegmentationLabel.md)
 - [SourceType](enumerations/SourceType.md)
 - [Bbox](interfaces/Bbox.md)
 - [ChatConfig](interfaces/ChatConfig.md)
 - [ClassificationProps](interfaces/ClassificationProps.md)
 - [ClassificationType](interfaces/ClassificationType.md)
+- [ContextStrategy](interfaces/ContextStrategy.md)
 - [DecodingOptions](interfaces/DecodingOptions.md)
 - [Detection](interfaces/Detection.md)
 - [ExecutorchModuleProps](interfaces/ExecutorchModuleProps.md)
@@ -255,13 +261,20 @@
 - [VerticalOCRProps](interfaces/VerticalOCRProps.md)
 - [VoiceConfig](interfaces/VoiceConfig.md)
 - [Word](interfaces/Word.md)
+- [LabelEnum](type-aliases/LabelEnum.md)
 - [LLMTool](type-aliases/LLMTool.md)
 - [MessageRole](type-aliases/MessageRole.md)
+- [ModelNameOf](type-aliases/ModelNameOf.md)
+- [ModelSources](type-aliases/ModelSources.md)
 - [OCRLanguage](type-aliases/OCRLanguage.md)
 - [ResourceSource](type-aliases/ResourceSource.md)
+- [SegmentationConfig](type-aliases/SegmentationConfig.md)
+- [SegmentationLabels](type-aliases/SegmentationLabels.md)
+- [SegmentationModelName](type-aliases/SegmentationModelName.md)
 - [SpeechToTextLanguage](type-aliases/SpeechToTextLanguage.md)
 - [TensorBuffer](type-aliases/TensorBuffer.md)
 - [TextToSpeechLanguage](type-aliases/TextToSpeechLanguage.md)
+- [Triple](type-aliases/Triple.md)
 - [SPECIAL_TOKENS](variables/SPECIAL_TOKENS.md)
 
 ## Typescript API
@@ -294,10 +307,16 @@
 ## Utilities - LLM
 
 - [DEFAULT_CHAT_CONFIG](variables/DEFAULT_CHAT_CONFIG.md)
-- [DEFAULT_CONTEXT_WINDOW_LENGTH](variables/DEFAULT_CONTEXT_WINDOW_LENGTH.md)
+- [DEFAULT_CONTEXT_BUFFER_TOKENS](variables/DEFAULT_CONTEXT_BUFFER_TOKENS.md)
 - [DEFAULT_MESSAGE_HISTORY](variables/DEFAULT_MESSAGE_HISTORY.md)
 - [DEFAULT_SYSTEM_PROMPT](variables/DEFAULT_SYSTEM_PROMPT.md)
 - [parseToolCall](variables/parseToolCall.md)
 - [DEFAULT_STRUCTURED_OUTPUT_PROMPT](functions/DEFAULT_STRUCTURED_OUTPUT_PROMPT.md)
 - [fixAndValidateStructuredOutput](functions/fixAndValidateStructuredOutput.md)
 - [getStructuredOutputPrompt](functions/getStructuredOutputPrompt.md)
+
+## Utils
+
+- [MessageCountContextStrategy](classes/MessageCountContextStrategy.md)
+- [NoopContextStrategy](classes/NoopContextStrategy.md)
+- [SlidingWindowContextStrategy](classes/SlidingWindowContextStrategy.md)

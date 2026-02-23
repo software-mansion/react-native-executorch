@@ -2,7 +2,7 @@
 
 > `const` **FSMN_VAD**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:619](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L619)
+Defined in: [packages/react-native-executorch/src/constants/modelUrls.ts:629](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L629)
 
 ## Type Declaration
 

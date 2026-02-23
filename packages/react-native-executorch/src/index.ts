@@ -3,7 +3,7 @@ import {
   ResourceFetcher,
   ResourceFetcherAdapter,
 } from './utils/ResourceFetcher';
-
+import { Triple } from './types/common';
 /**
  * Configuration that goes to the `initExecutorch`.
  * You can pass either bare React Native or Expo configuration.
@@ -36,7 +36,11 @@ export function cleanupExecutorch() {
 // eslint-disable no-var
 declare global {
   var loadStyleTransfer: (source: string) => any;
-  var loadImageSegmentation: (source: string) => any;
+  var loadImageSegmentation: (
+    source: string,
+    normMean: Triple<number> | [],
+    normStd: Triple<number> | []
+  ) => any;
   var loadClassification: (source: string) => any;
   var loadObjectDetection: (source: string) => any;
   var loadExecutorchModule: (source: string) => any;
@@ -149,6 +153,7 @@ export * from './utils/ResourceFetcher';
 export * from './utils/ResourceFetcherUtils';
 export * from './utils/llm';
 export * from './common/Logger';
+export * from './utils/llms/context_strategy';
 
 // types
 export * from './types/objectDetection';

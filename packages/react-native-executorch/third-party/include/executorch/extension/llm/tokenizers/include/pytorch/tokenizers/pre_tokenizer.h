@@ -105,6 +105,11 @@ public:
   PRETOKENIZER_CONFIG_MEMBER(bool, add_prefix_space)
 
   /**
+   * Used by: ByteLevelPreTokenizer
+   */
+  PRETOKENIZER_CONFIG_MEMBER(bool, use_regex)
+
+  /**
    * Used by RegexPreTokenizer
    */
   PRETOKENIZER_CONFIG_MEMBER(bool, is_delimiter)
@@ -225,11 +230,13 @@ public:
    * @param add_prefix_space: Whether to add a leading space to the first word
    * @param pattern: A user-supplied regex to use for token splitting. If not
    *    provided, it use the standard GPT2 pattern.
+   * @param use_regex: Whether to use regex for splitting. If false, only apply
+   *    byte encoding without splitting.
    */
   ByteLevelPreTokenizer(bool add_prefix_space = true,
-                        const std::string &pattern = "");
+                        const std::string &pattern = "", bool use_regex = true);
   explicit ByteLevelPreTokenizer(const std::string &pattern)
-      : ByteLevelPreTokenizer(true, pattern) {}
+      : ByteLevelPreTokenizer(true, pattern, true) {}
 
   /** Perform pre-tokenization */
   std::vector<std::string>
@@ -238,6 +245,7 @@ public:
 private:
   const std::string pattern_;
   const bool add_prefix_space_;
+  const bool use_regex_;
 
 }; // end class ByteLevelPreTokenizer
 

@@ -1,26 +1,23 @@
-# Class: ImageSegmentationModule
+# Class: ImageSegmentationModule\<T\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts:14](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L14)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts:60](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L60)
 
-Module for image segmentation tasks.
+Generic image segmentation module with type-safe label maps.
+Use a model name (e.g. `'deeplab-v3'`) as the generic parameter for built-in models,
+or a custom label enum for custom configs.
 
 ## Extends
 
 - `BaseModule`
 
-## Constructors
+## Type Parameters
 
-### Constructor
+### T
 
-> **new ImageSegmentationModule**(): `ImageSegmentationModule`
+`T` _extends_ [`SegmentationModelName`](../type-aliases/SegmentationModelName.md) \| [`LabelEnum`](../type-aliases/LabelEnum.md)
 
-#### Returns
-
-`ImageSegmentationModule`
-
-#### Inherited from
-
-`BaseModule.constructor`
+Either a built-in model name (`'deeplab-v3'`, `'selfie-segmentation'`)
+or a custom [LabelEnum](../type-aliases/LabelEnum.md) label map.
 
 ## Properties
 
@@ -58,11 +55,17 @@ Unloads the model from memory.
 
 ### forward()
 
-> **forward**(`imageSource`, `classesOfInterest?`, `resizeToInput?`): `Promise`\<`Partial`\<`Record`\<[`DeeplabLabel`](../enumerations/DeeplabLabel.md), `number`[]\>\>\>
+> **forward**\<`K`\>(`imageSource`, `classesOfInterest`, `resizeToInput`): `Promise`\<`Record`\<`"ARGMAX"`, `Int32Array`\<`ArrayBufferLike`\>\> & `Record`\<`K`, `Float32Array`\<`ArrayBufferLike`\>\>\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts:54](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L54)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts:176](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L176)
 
-Executes the model's forward pass
+Executes the model's forward pass to perform semantic segmentation on the provided image.
+
+#### Type Parameters
+
+##### K
+
+`K` _extends_ `string` \| `number` \| `symbol`
 
 #### Parameters
 
@@ -70,25 +73,29 @@ Executes the model's forward pass
 
 `string`
 
-a fetchable resource or a Base64-encoded string.
+A string representing the image source (e.g., a file path, URI, or Base64-encoded string).
 
-##### classesOfInterest?
+##### classesOfInterest
 
-[`DeeplabLabel`](../enumerations/DeeplabLabel.md)[]
+`K`[] = `[]`
 
-an optional list of DeeplabLabel used to indicate additional arrays of probabilities to output (see section "Running the model"). The default is an empty list.
+An optional list of label keys indicating which per-class probability masks to include in the output. `ARGMAX` is always returned regardless.
 
-##### resizeToInput?
+##### resizeToInput
 
-`boolean`
+`boolean` = `true`
 
-an optional boolean to indicate whether the output should be resized to the original input image dimensions. If `false`, returns the model output without any resizing (see section "Running the model"). Defaults to `true`.
+Whether to resize the output masks to the original input image dimensions. If `false`, returns the raw model output dimensions. Defaults to `true`.
 
 #### Returns
 
-`Promise`\<`Partial`\<`Record`\<[`DeeplabLabel`](../enumerations/DeeplabLabel.md), `number`[]\>\>\>
+`Promise`\<`Record`\<`"ARGMAX"`, `Int32Array`\<`ArrayBufferLike`\>\> & `Record`\<`K`, `Float32Array`\<`ArrayBufferLike`\>\>\>
 
-A dictionary where keys are `DeeplabLabel` and values are arrays of probabilities for each pixel belonging to the corresponding class.
+A Promise resolving to an object with an `'ARGMAX'` key mapped to an `Int32Array` of per-pixel class indices, and each requested class label mapped to a `Float32Array` of per-pixel probabilities.
+
+#### Throws
+
+If the model is not loaded.
 
 ---
 
@@ -157,28 +164,9 @@ The input shape as an array of numbers.
 
 ### load()
 
-> **load**(`model`, `onDownloadProgressCallback`): `Promise`\<`void`\>
+> **load**(): `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts:22](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L22)
-
-Loads the model, where `modelSource` is a string that specifies the location of the model binary.
-To track the download progress, supply a callback function `onDownloadProgressCallback`.
-
-#### Parameters
-
-##### model
-
-Object containing `modelSource`.
-
-###### modelSource
-
-[`ResourceSource`](../type-aliases/ResourceSource.md)
-
-##### onDownloadProgressCallback
-
-(`progress`) => `void`
-
-Optional callback to monitor download progress.
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts:76](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L76)
 
 #### Returns
 
@@ -187,3 +175,102 @@ Optional callback to monitor download progress.
 #### Overrides
 
 `BaseModule.load`
+
+---
+
+### fromCustomConfig()
+
+> `static` **fromCustomConfig**\<`L`\>(`modelSource`, `config`, `onDownloadProgress`): `Promise`\<`ImageSegmentationModule`\<`L`\>\>
+
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts:142](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L142)
+
+Creates a segmentation instance with a user-provided label map and custom config.
+Use this when working with a custom-exported segmentation model that is not one of the built-in models.
+
+#### Type Parameters
+
+##### L
+
+`L` _extends_ `Readonly`\<`Record`\<`string`, `string` \| `number`\>\>
+
+#### Parameters
+
+##### modelSource
+
+[`ResourceSource`](../type-aliases/ResourceSource.md)
+
+A fetchable resource pointing to the model binary.
+
+##### config
+
+[`SegmentationConfig`](../type-aliases/SegmentationConfig.md)\<`L`\>
+
+A [SegmentationConfig](../type-aliases/SegmentationConfig.md) object with the label map and optional preprocessing parameters.
+
+##### onDownloadProgress
+
+(`progress`) => `void`
+
+Optional callback to monitor download progress, receiving a value between 0 and 1.
+
+#### Returns
+
+`Promise`\<`ImageSegmentationModule`\<`L`\>\>
+
+A Promise resolving to an `ImageSegmentationModule` instance typed to the provided label map.
+
+#### Example
+
+```ts
+const MyLabels = { BACKGROUND: 0, FOREGROUND: 1 } as const;
+const segmentation = await ImageSegmentationModule.fromCustomConfig(
+  'https://example.com/custom_model.pte',
+  { labelMap: MyLabels }
+);
+```
+
+---
+
+### fromModelName()
+
+> `static` **fromModelName**\<`C`\>(`config`, `onDownloadProgress`): `Promise`\<`ImageSegmentationModule`\<[`ModelNameOf`](../type-aliases/ModelNameOf.md)\<`C`\>\>\>
+
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts:95](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L95)
+
+Creates a segmentation instance for a built-in model.
+The config object is discriminated by `modelName` — each model can require different fields.
+
+#### Type Parameters
+
+##### C
+
+`C` _extends_ [`ModelSources`](../type-aliases/ModelSources.md)
+
+#### Parameters
+
+##### config
+
+`C`
+
+A [ModelSources](../type-aliases/ModelSources.md) object specifying which model to load and where to fetch it from.
+
+##### onDownloadProgress
+
+(`progress`) => `void`
+
+Optional callback to monitor download progress, receiving a value between 0 and 1.
+
+#### Returns
+
+`Promise`\<`ImageSegmentationModule`\<[`ModelNameOf`](../type-aliases/ModelNameOf.md)\<`C`\>\>\>
+
+A Promise resolving to an `ImageSegmentationModule` instance typed to the chosen model's label map.
+
+#### Example
+
+```ts
+const segmentation = await ImageSegmentationModule.fromModelName({
+  modelName: 'deeplab-v3',
+  modelSource: 'https://example.com/deeplab.pte',
+});
+```

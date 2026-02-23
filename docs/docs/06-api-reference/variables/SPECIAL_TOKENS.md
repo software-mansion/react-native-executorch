@@ -2,7 +2,7 @@
 
 > `const` **SPECIAL_TOKENS**: `object`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:259](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L259)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:281](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L281)
 
 Special tokens used in Large Language Models (LLMs).
 

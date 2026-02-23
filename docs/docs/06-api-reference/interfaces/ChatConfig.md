@@ -6,13 +6,13 @@ Object configuring chat management.
 
 ## Properties
 
-### contextWindowLength
+### contextStrategy
 
-> **contextWindowLength**: `number`
+> **contextStrategy**: [`ContextStrategy`](ContextStrategy.md)
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:220](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L220)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:221](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L221)
 
-The number of messages from the current conversation that the model will use to generate a response. The higher the number, the more context the model will have. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
+Defines a strategy for managing the conversation context window and message history.
 
 ---
 
@@ -30,6 +30,6 @@ An array of `Message` objects that represent the conversation history. This can 
 
 > **systemPrompt**: `string`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:221](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L221)
+Defined in: [packages/react-native-executorch/src/types/llm.ts:220](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L220)
 
 Often used to tell the model what is its purpose, for example - "Be a helpful translator".
