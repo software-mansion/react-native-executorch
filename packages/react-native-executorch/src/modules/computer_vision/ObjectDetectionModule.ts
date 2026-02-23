@@ -1,5 +1,5 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
-import { ResourceSource } from '../../types/common';
+import { ResourceSource, PixelData } from '../../types/common';
 import { Detection } from '../../types/objectDetection';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
@@ -40,5 +40,12 @@ export class ObjectDetectionModule extends VisionModule<Detection[]> {
       Logger.error('Load failed:', error);
       throw parseUnknownError(error);
     }
+  }
+
+  async forward(
+    input: string | PixelData,
+    detectionThreshold: number = 0.5
+  ): Promise<Detection[]> {
+    return super.forward(input, detectionThreshold);
   }
 }

@@ -106,6 +106,10 @@ ObjectDetection::postprocess(const std::vector<EValue> &tensors,
 
 std::vector<types::Detection>
 ObjectDetection::runInference(cv::Mat image, double detectionThreshold) {
+  if (detectionThreshold < 0.0 || detectionThreshold > 1.0) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            "detectionThreshold must be in range [0, 1]");
+  }
   std::scoped_lock lock(inference_mutex_);
 
   cv::Size originalSize = image.size();
