@@ -17,7 +17,7 @@ on:
 jobs:
   check:
     if: github.repository == 'software-mansion/react-native-executorch'
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     concurrency:
       group: docs-check-${{ github.ref }}
       cancel-in-progress: true
