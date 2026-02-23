@@ -43,7 +43,7 @@ cv::Mat extractFromCVPixelBuffer(void *pixelBuffer) {
     char errorMessage[100];
     std::snprintf(errorMessage, sizeof(errorMessage),
                   "Unsupported CVPixelBuffer format: %u", pixelFormat);
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+    throw RnExecutorchError(RnExecutorchErrorCode::PlatformNotSupported,
                             errorMessage);
   }
 
@@ -84,14 +84,15 @@ cv::Mat extractFromAHardwareBuffer(void *hardwareBuffer) {
     char errorMessage[100];
     std::snprintf(errorMessage, sizeof(errorMessage),
                   "Unsupported AHardwareBuffer format: %u", desc.format);
-    throw RnExecutorchError(RnExecutorchErrorCode::UnknownError, errorMessage);
+    throw RnExecutorchError(RnExecutorchErrorCode::PlatformNotSupported,
+                            errorMessage);
   }
 
   // Note: We don't unlock here - Vision Camera manages the lifecycle
 
   return mat;
 #else
-  throw RnExecutorchError(RnExecutorchErrorCode::UnknownError,
+  throw RnExecutorchError(RnExecutorchErrorCode::PlatformNotSupported,
                           "AHardwareBuffer requires Android API 26+");
 #endif // __ANDROID_API__ >= 26
 }
@@ -105,7 +106,7 @@ cv::Mat extractFromNativeBuffer(uint64_t bufferPtr) {
 #elif defined(__ANDROID__)
   return extractFromAHardwareBuffer(reinterpret_cast<void *>(bufferPtr));
 #else
-  throw RnExecutorchError(RnExecutorchErrorCode::UnknownError,
+  throw RnExecutorchError(RnExecutorchErrorCode::PlatformNotSupported,
                           "NativeBuffer not supported on this platform");
 #endif
 }

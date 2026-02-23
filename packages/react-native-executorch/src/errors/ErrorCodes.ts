@@ -59,6 +59,10 @@ export enum RnExecutorchErrorCode {
    */
   DownloadInterrupted = 118,
   /**
+   * Thrown when a feature or platform is not supported in the current environment.
+   */
+  PlatformNotSupported = 119,
+  /**
    * Thrown when an error occurs with the tokenizer or tokenization process.
    */
   TokenizerError = 167,
