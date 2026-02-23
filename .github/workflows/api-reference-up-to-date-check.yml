@@ -41,7 +41,7 @@ jobs:
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
           yarn docusaurus generate-typedoc
-          yarn prettier
+          yarn prettier-api-reference
           git status
           git diff
           if ! git diff --quiet; then
