@@ -38,9 +38,6 @@
 ## Models - Image Segmentation
 
 - [DEEPLAB_V3_RESNET50](variables/DEEPLAB_V3_RESNET50.md)
-
-## Models - Image segmentation
-
 - [SELFIE_SEGMENTATION](variables/SELFIE_SEGMENTATION.md)
 
 ## Models - LMM
