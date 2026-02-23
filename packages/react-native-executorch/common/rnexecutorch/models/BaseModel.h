@@ -20,6 +20,8 @@ using executorch::runtime::Result;
 class BaseModel {
 public:
   virtual ~BaseModel() = default;
+  BaseModel(BaseModel &&) = default;
+  BaseModel &operator=(BaseModel &&) = default;
   BaseModel(
       const std::string &modelSource,
       std::shared_ptr<react::CallInvoker> callInvoker,

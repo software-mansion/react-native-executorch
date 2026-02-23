@@ -19,7 +19,6 @@ using executorch::extension::TensorPtr;
 
 class BaseImageSegmentation : public BaseModel {
 public:
-  ~BaseImageSegmentation() override = default;
   BaseImageSegmentation(const std::string &modelSource,
                         std::shared_ptr<react::CallInvoker> callInvoker);
 
