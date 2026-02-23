@@ -2351,6 +2351,18 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/api-reference/enumerations/SelfieSegmentationLabel": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/api-reference/enumerations/SourceType": {
     "shouldDisplay": true,
     "hasMarkdown": false,
@@ -3335,6 +3347,18 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/LabelEnum": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/api-reference/type-aliases/LLMTool": {
     "shouldDisplay": true,
     "hasMarkdown": false,
@@ -3359,6 +3383,30 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/ModelNameOf": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/ModelSources": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/api-reference/type-aliases/OCRLanguage": {
     "shouldDisplay": true,
     "hasMarkdown": false,
@@ -3372,6 +3420,42 @@
     ]
   },
   "/react-native-executorch/docs/next/api-reference/type-aliases/ResourceSource": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/SegmentationConfig": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/SegmentationLabels": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/SegmentationModelName": {
     "shouldDisplay": true,
     "hasMarkdown": false,
     "contentSelectors": [
@@ -3408,6 +3492,18 @@
     ]
   },
   "/react-native-executorch/docs/next/api-reference/type-aliases/TextToSpeechLanguage": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/type-aliases/Triple": {
     "shouldDisplay": true,
     "hasMarkdown": false,
     "contentSelectors": [
@@ -4788,6 +4884,18 @@
     ]
   },
   "/react-native-executorch/docs/next/api-reference/variables/QWEN3_4B_QUANTIZED": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/variables/SELFIE_SEGMENTATION": {
     "shouldDisplay": true,
     "hasMarkdown": false,
     "contentSelectors": [
