@@ -39,7 +39,7 @@ export const DEFAULT_MESSAGE_HISTORY: Message[] = [];
  *
  * @category Utilities - LLM
  */
-export const DEFAULT_CONTEXT_BUFFER_TOKENS = 5;
+export const DEFAULT_CONTEXT_BUFFER_TOKENS = 512;
 
 /**
  * Default chat configuration for Large Language Models (LLMs).
