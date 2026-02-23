@@ -179,7 +179,7 @@ export interface ObjectDetectionType {
    * **Note**: For VisionCamera frame processing, use `processFrame` instead.
    *
    * @param input - Image source (string or PixelData object)
-   * @param detectionThreshold - An optional number between 0 and 1 representing the minimum confidence score. Default is 0.7.
+   * @param detectionThreshold - An optional number between 0 and 1 representing the minimum confidence score. Default is 0.5.
    * @returns A Promise that resolves to an array of `Detection` objects.
    * @throws {RnExecutorchError} If the model is not loaded or is currently processing another image.
    *
@@ -225,7 +225,7 @@ export interface ObjectDetectionType {
    * ```
    *
    * @param frame - VisionCamera Frame object
-   * @param detectionThreshold - The threshold for detection sensitivity. Default is 0.7.
+   * @param detectionThreshold - The threshold for detection sensitivity. Default is 0.5.
    * @returns Array of Detection objects representing detected items in the frame.
    */
   runOnFrame:
