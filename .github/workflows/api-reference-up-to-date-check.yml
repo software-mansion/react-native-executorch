@@ -32,7 +32,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Install node dependencies
+      - name: Install root dependencies
+        run: yarn install --immutable
+      - name: Install node docs dependencies
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: yarn install --immutable
       - name: Check TypeDoc is up-to-date
