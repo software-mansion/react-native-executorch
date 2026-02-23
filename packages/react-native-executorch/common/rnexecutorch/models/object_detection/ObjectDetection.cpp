@@ -147,12 +147,9 @@ ObjectDetection::generateFromFrame(jsi::Runtime &runtime,
 }
 
 std::vector<types::Detection>
-ObjectDetection::generateFromPixels(jsi::Runtime &runtime,
-                                    const jsi::Value &pixelData,
+ObjectDetection::generateFromPixels(JSTensorViewIn pixelData,
                                     double detectionThreshold) {
-  auto tensorView =
-      jsi_conversion::getValue<JSTensorViewIn>(pixelData, runtime);
-  cv::Mat image = extractFromPixels(tensorView);
+  cv::Mat image = extractFromPixels(pixelData);
 
   return runInference(image, detectionThreshold);
 }
