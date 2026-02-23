@@ -26,8 +26,7 @@ public:
   generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData,
                     double detectionThreshold);
   [[nodiscard("Registered non-void function")]] std::vector<types::Detection>
-  generateFromPixels(jsi::Runtime &runtime, const jsi::Value &pixelData,
-                     double detectionThreshold);
+  generateFromPixels(JSTensorViewIn pixelData, double detectionThreshold);
 
 protected:
   std::vector<types::Detection> runInference(cv::Mat image,
