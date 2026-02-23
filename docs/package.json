@@ -5,9 +5,10 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
-    "build": "docusaurus build && npx prettier --write . && npm run postbuild",
-    "docs:version": "./scripts/build-version-docs.sh",
+    "build": "docusaurus build && yarn prettier && npm run postbuild",
+    "docs:version": "./scripts/build-version-docs.sh && yarn prettier",
     "postbuild": "node scripts/postbuild.mjs",
+    "prettier": "npx prettier --write 'docs/06-api-reference/**/*.{md,mdx}'",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",

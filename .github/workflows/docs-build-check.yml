@@ -37,7 +37,7 @@ jobs:
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
           yarn docusaurus generate-typedoc
-          npx prettier --write "docs/06-api-reference/**/*.{md,mdx}"
+          yarn prettier
           git diff
           if ! git diff --quiet; then
             echo "Differences found. Look at the 'git diff' output above."
