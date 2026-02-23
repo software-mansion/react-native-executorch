@@ -1,4 +1,4 @@
-name: Check documentation
+name: Check if API reference is up-to-date
 
 on:
   push:
@@ -6,26 +6,28 @@ on:
       - main
     paths:
       - 'docs/**'
-      - '.github/workflows/docs-build-check.yml'
+      - '.github/workflows/api-reference-up-to-date-check.yml'
   pull_request:
     branches:
       - main
     paths:
       - 'docs/**'
-      - '.github/workflows/docs-build-check.yml'
+      - '.github/workflows/api-reference-up-to-date-check.yml'
   workflow_dispatch:
 jobs:
   check:
     if: github.repository == 'software-mansion/react-native-executorch'
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     concurrency:
-      group: docs-check-${{ github.ref }}
+      group: api-reference-up-to-date-${{ github.ref }}
       cancel-in-progress: true
     env:
       WORKING_DIRECTORY: docs
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Use Node.js 20
         uses: actions/setup-node@v4
         with:
@@ -33,6 +35,14 @@ jobs:
       - name: Install node dependencies
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: yarn install --immutable
-      - name: Generate docs
+      - name: Check TypeDoc is up-to-date
         working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: yarn build
+        run: |
+          yarn docusaurus generate-typedoc
+          yarn prettier
+          git status
+          git diff
+          if ! git diff --quiet; then
+            echo "Differences found. Look at the 'git diff' output above."
+            exit 1
+          fi
