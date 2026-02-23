@@ -12,6 +12,6 @@ yarn docusaurus docs:version $VERSION
 find versioned_docs/version-$VERSION -type f \( -name "*.md" -o -name "*.mdx" \) \
   -exec sed -i "" "s|/blob/main/|/blob/$SHA/|g" {} +
 
-yarn prettier
+yarn prettier-api-reference
 
 echo "Versioned $VERSION docs pinned to $SHA"
