@@ -21,6 +21,7 @@ microcontrollers
 notimestamps
 seqs
 smollm
+llms
 qwen
 XNNPACK
 EFFICIENTNET

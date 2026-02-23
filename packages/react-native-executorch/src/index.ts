@@ -153,6 +153,7 @@ export * from './utils/ResourceFetcher';
 export * from './utils/ResourceFetcherUtils';
 export * from './utils/llm';
 export * from './common/Logger';
+export * from './utils/llms/context_strategy';
 
 // types
 export * from './types/objectDetection';

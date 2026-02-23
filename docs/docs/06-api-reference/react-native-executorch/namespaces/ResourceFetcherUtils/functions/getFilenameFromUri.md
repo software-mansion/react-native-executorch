@@ -2,7 +2,7 @@
 
 > **getFilenameFromUri**(`uri`): `string`
 
-Defined in: [packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts:204](https://github.com/software-mansion/react-native-executorch/blob/9db6e3b8b0f1b11ef66f7c45d29a251b31e9c252/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L204)
+Defined in: [packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts:204](https://github.com/software-mansion/react-native-executorch/blob/a6b2b6f4f1622166e3517338d42680655383a3be/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L204)
 
 Generates a safe filename from a URI by removing the protocol and replacing special characters.
 

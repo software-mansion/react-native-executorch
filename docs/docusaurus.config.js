@@ -40,7 +40,7 @@ const config = {
           customCss: require.resolve('./src/css/index.css'),
         },
         googleTagManager: {
-          containerId: "GTM-WNBF6SVN",
+          containerId: 'GTM-WNBF6SVN',
         },
         sitemap: {
           changefreq: 'weekly',

@@ -2,7 +2,7 @@
 
 > `const` **OCR_SWAHILI**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:312](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/constants/ocr/models.ts#L312)
+Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:312](https://github.com/software-mansion/react-native-executorch/blob/a6b2b6f4f1622166e3517338d42680655383a3be/packages/react-native-executorch/src/constants/ocr/models.ts#L312)
 
 ## Type Declaration
 
