@@ -9,9 +9,8 @@ import {
   SelfieSegmentationLabel,
 } from '../../types/imageSegmentation';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
+import { RnExecutorchError } from '../../errors/errorUtils';
 import { BaseModule } from '../BaseModule';
-import { Logger } from '../../common/Logger';
 
 const ModelConfigs = {
   'deeplab-v3': {
@@ -74,7 +73,7 @@ export class ImageSegmentationModule<
   }
 
   // TODO: figure it out so we can delete this (we need this because of basemodule inheritance)
-  override async load() { }
+  override async load() {}
 
   /**
    * Creates a segmentation instance for a built-in model.
@@ -95,7 +94,7 @@ export class ImageSegmentationModule<
 
   static async fromModelName<C extends ModelSources>(
     config: C,
-    onDownloadProgress: (progress: number) => void = () => { }
+    onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<ImageSegmentationModule<ModelNameOf<C>>> {
     const { modelName, modelSource } = config;
     const { labelMap } = ModelConfigs[modelName];
@@ -143,7 +142,7 @@ export class ImageSegmentationModule<
   static async fromCustomConfig<L extends LabelEnum>(
     modelSource: ResourceSource,
     config: SegmentationConfig<L>,
-    onDownloadProgress: (progress: number) => void = () => { }
+    onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<ImageSegmentationModule<L>> {
     const paths = await ResourceFetcher.fetch(onDownloadProgress, modelSource);
     if (!paths?.[0]) {
