@@ -210,6 +210,77 @@ To configure model (i.e. change system prompt, load initial conversation history
 
   - [`topp`](../../06-api-reference/interfaces/GenerationConfig.md#topp) - Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
 
+### Model configuration example
+
+```tsx
+import { useEffect } from 'react';
+import {
+  MessageCountContextStrategy,
+  DEFAULT_SYSTEM_PROMPT,
+  ToolCall,
+} from 'react-native-executorch';
+
+const TOOL_DEFINITIONS: LLMTool[] = [
+  {
+    name: 'get_weather',
+    description: 'Get/check weather in given location.',
+    parameters: {
+      type: 'dict',
+      properties: {
+        location: {
+          type: 'string',
+          description: 'Location where user wants to check weather',
+        },
+      },
+      required: ['location'],
+    },
+  },
+];
+
+const getWeather = async (_call: ToolCall) => {
+  return 'The weather is great!';
+};
+
+const executeTool: (call: ToolCall) => Promise<string | null> = async (
+  call
+) => {
+  switch (call.toolName) {
+    case 'get_weather':
+      return await getWeather(call);
+    default:
+      console.error(`Wrong function! We don't handle it!`);
+      return null;
+  }
+};
+
+const { configure } = llm;
+useEffect(() => {
+  configure({
+    chatConfig: {
+      systemPrompt: `${DEFAULT_SYSTEM_PROMPT} Current time and date: ${new Date().toString()}`,
+      initialMessageHistory: [
+        {
+          role: 'user',
+          content: 'What is the current time and date?',
+        },
+      ],
+      contextStrategy: new MessageCountContextStrategy(6),
+    },
+    toolsConfig: {
+      tools: TOOL_DEFINITIONS,
+      executeToolCallback: executeTool,
+      displayToolCalls: true,
+    },
+    generationConfig: {
+      outputTokenBatchSize: 15,
+      batchTimeInterval: 100,
+      temperature: 0.7,
+      topp: 0.9,
+    },
+  });
+}, [configure]);
+```
+
 ### Sending a message
 
 In order to send a message to the model, one can use the following code:

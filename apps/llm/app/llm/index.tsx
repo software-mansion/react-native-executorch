@@ -11,13 +11,78 @@ import {
   View,
 } from 'react-native';
 import SendIcon from '../../assets/icons/send_icon.svg';
-import { useLLM, LLAMA3_2_1B_SPINQUANT } from 'react-native-executorch';
+import {
+  useLLM,
+  LLAMA3_2_1B_SPINQUANT,
+  MessageCountContextStrategy,
+  DEFAULT_SYSTEM_PROMPT,
+  ToolCall,
+} from 'react-native-executorch';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
 import ColorPalette from '../../colors';
 import Messages from '../../components/Messages';
 import { useIsFocused } from '@react-navigation/native';
 import { GeneratingContext } from '../../context';
 import Spinner from '../../components/Spinner';
+import * as Brightness from 'expo-brightness';
+import { clamp } from 'react-native-reanimated';
+
+export const TOOL_DEFINITIONS = [
+  {
+    name: 'brightness',
+    description:
+      'Change screen brightness. Change can be relative (higher/lower) or set to minimal or maximal.',
+    parameters: {
+      type: 'dict',
+      properties: {
+        relativeChange: {
+          type: 'number',
+          description:
+            'Relative change of brightness (from 0 to 100). Change should be negative if user asks for less bright screen.',
+        },
+        targetBrightness: {
+          type: 'number',
+          description: 'Relative change of brightness (from 0 to 100).',
+        },
+      },
+    },
+  },
+];
+
+const brightness = async (call: ToolCall) => {
+  console.log('Changing brightness!', call);
+  if (
+    'targetBrightness' in call.arguments &&
+    typeof call.arguments.targetBrightness === 'number'
+  ) {
+    await Brightness.setBrightnessAsync(call.arguments.targetBrightness / 100);
+  } else if (
+    'relativeChange' in call.arguments &&
+    typeof call.arguments.relativeChange === 'number'
+  ) {
+    await Brightness.setBrightnessAsync(
+      clamp(
+        (await Brightness.getBrightnessAsync()) +
+          call.arguments.relativeChange / 100,
+        0,
+        1
+      )
+    );
+  }
+  return null;
+};
+
+const executeTool: (call: ToolCall) => Promise<string | null> = async (
+  call
+) => {
+  switch (call.toolName) {
+    case 'brightness':
+      return await brightness(call);
+    default:
+      console.error(`Wrong function! We don't handle it!`);
+      return null;
+  }
+};
 
 export default function LLMScreenWrapper() {
   const isFocused = useIsFocused();
@@ -51,6 +116,33 @@ function LLMScreen() {
       console.error(e);
     }
   };
+
+  const { configure } = llm;
+  useEffect(() => {
+    configure({
+      chatConfig: {
+        systemPrompt: `${DEFAULT_SYSTEM_PROMPT} Current time and date: ${new Date().toString()}`,
+        initialMessageHistory: [
+          {
+            role: 'user',
+            content: 'What is the current time and date?',
+          },
+        ],
+        contextStrategy: new MessageCountContextStrategy(6),
+      },
+      toolsConfig: {
+        tools: TOOL_DEFINITIONS,
+        executeToolCallback: executeTool,
+        displayToolCalls: true,
+      },
+      generationConfig: {
+        outputTokenBatchSize: 15,
+        batchTimeInterval: 100,
+        temperature: 0.7,
+        topp: 0.9,
+      },
+    });
+  }, [configure]);
 
   return !llm.isReady ? (
     <Spinner
