@@ -6,12 +6,14 @@ on:
       - main
     paths:
       - 'docs/**'
+      - 'packages/react-native-executorch/src/**'
       - '.github/workflows/api-reference-up-to-date-check.yml'
   pull_request:
     branches:
       - main
     paths:
       - 'docs/**'
+      - 'packages/react-native-executorch/src/**'
       - '.github/workflows/api-reference-up-to-date-check.yml'
   workflow_dispatch:
 jobs:
