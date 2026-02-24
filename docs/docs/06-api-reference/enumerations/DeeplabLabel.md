@@ -1,6 +1,6 @@
 # Enumeration: DeeplabLabel
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:9](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/imageSegmentation.ts#L9)
+Defined in: [types/imageSegmentation.ts:51](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L51)
 
 Labels used in the DeepLab image segmentation model.
 
@@ -10,15 +10,7 @@ Labels used in the DeepLab image segmentation model.
 
 > **AEROPLANE**: `1`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:11](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/imageSegmentation.ts#L11)
-
----
-
-### ARGMAX
-
-> **ARGMAX**: `21`
-
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:31](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/imageSegmentation.ts#L31)
+Defined in: [types/imageSegmentation.ts:53](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L53)
 
 ---
 
@@ -26,7 +18,7 @@ Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:31]
 
 > **BACKGROUND**: `0`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:10](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/imageSegmentation.ts#L10)
+Defined in: [types/imageSegmentation.ts:52](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L52)
 
 ---
 
@@ -34,7 +26,7 @@ Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:10]
 
 > **BICYCLE**: `2`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:12](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/imageSegmentation.ts#L12)
+Defined in: [types/imageSegmentation.ts:54](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L54)
 
 ---
 
@@ -42,7 +34,7 @@ Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:12]
 
 > **BIRD**: `3`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:13](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/imageSegmentation.ts#L13)
+Defined in: [types/imageSegmentation.ts:55](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L55)
 
 ---
 
@@ -50,7 +42,7 @@ Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:13]
 
 > **BOAT**: `4`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:14](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/imageSegmentation.ts#L14)
+Defined in: [types/imageSegmentation.ts:56](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L56)
 
 ---
 
@@ -58,7 +50,7 @@ Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:14]
 
 > **BOTTLE**: `5`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:15](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/imageSegmentation.ts#L15)
+Defined in: [types/imageSegmentation.ts:57](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L57)
 
 ---
 
@@ -66,7 +58,7 @@ Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:15]
 
 > **BUS**: `6`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:16](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/imageSegmentation.ts#L16)
+Defined in: [types/imageSegmentation.ts:58](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L58)
 
 ---
 
@@ -74,7 +66,7 @@ Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:16]
 
 > **CAR**: `7`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:17](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/imageSegmentation.ts#L17)
+Defined in: [types/imageSegmentation.ts:59](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L59)
 
 ---
 
@@ -82,7 +74,7 @@ Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:17]
 
 > **CAT**: `8`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:18](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/imageSegmentation.ts#L18)
+Defined in: [types/imageSegmentation.ts:60](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L60)
 
 ---
 
@@ -90,7 +82,7 @@ Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:18]
 
 > **CHAIR**: `9`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:19](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/imageSegmentation.ts#L19)
+Defined in: [types/imageSegmentation.ts:61](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L61)
 
 ---
 
@@ -98,7 +90,7 @@ Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:19]
 
 > **COW**: `10`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:20](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/imageSegmentation.ts#L20)
+Defined in: [types/imageSegmentation.ts:62](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L62)
 
 ---
 
@@ -106,7 +98,7 @@ Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:20]
 
 > **DININGTABLE**: `11`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:21](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/imageSegmentation.ts#L21)
+Defined in: [types/imageSegmentation.ts:63](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L63)
 
 ---
 
@@ -114,7 +106,7 @@ Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:21]
 
 > **DOG**: `12`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:22](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/imageSegmentation.ts#L22)
+Defined in: [types/imageSegmentation.ts:64](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L64)
 
 ---
 
@@ -122,7 +114,7 @@ Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:22]
 
 > **HORSE**: `13`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:23](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/imageSegmentation.ts#L23)
+Defined in: [types/imageSegmentation.ts:65](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L65)
 
 ---
 
@@ -130,7 +122,7 @@ Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:23]
 
 > **MOTORBIKE**: `14`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:24](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/imageSegmentation.ts#L24)
+Defined in: [types/imageSegmentation.ts:66](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L66)
 
 ---
 
@@ -138,7 +130,7 @@ Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:24]
 
 > **PERSON**: `15`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:25](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/imageSegmentation.ts#L25)
+Defined in: [types/imageSegmentation.ts:67](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L67)
 
 ---
 
@@ -146,7 +138,7 @@ Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:25]
 
 > **POTTEDPLANT**: `16`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:26](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/imageSegmentation.ts#L26)
+Defined in: [types/imageSegmentation.ts:68](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L68)
 
 ---
 
@@ -154,7 +146,7 @@ Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:26]
 
 > **SHEEP**: `17`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:27](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/imageSegmentation.ts#L27)
+Defined in: [types/imageSegmentation.ts:69](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L69)
 
 ---
 
@@ -162,7 +154,7 @@ Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:27]
 
 > **SOFA**: `18`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:28](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/imageSegmentation.ts#L28)
+Defined in: [types/imageSegmentation.ts:70](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L70)
 
 ---
 
@@ -170,7 +162,7 @@ Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:28]
 
 > **TRAIN**: `19`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:29](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/imageSegmentation.ts#L29)
+Defined in: [types/imageSegmentation.ts:71](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L71)
 
 ---
 
@@ -178,4 +170,4 @@ Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:29]
 
 > **TVMONITOR**: `20`
 
-Defined in: [packages/react-native-executorch/src/types/imageSegmentation.ts:30](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/types/imageSegmentation.ts#L30)
+Defined in: [types/imageSegmentation.ts:72](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L72)

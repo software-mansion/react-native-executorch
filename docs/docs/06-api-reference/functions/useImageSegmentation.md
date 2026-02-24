@@ -1,21 +1,37 @@
 # Function: useImageSegmentation()
 
-> **useImageSegmentation**(`ImageSegmentationProps`): [`ImageSegmentationType`](../interfaces/ImageSegmentationType.md)
+> **useImageSegmentation**\<`C`\>(`props`): [`ImageSegmentationType`](../interfaces/ImageSegmentationType.md)\<[`SegmentationLabels`](../type-aliases/SegmentationLabels.md)\<[`ModelNameOf`](../type-aliases/ModelNameOf.md)\<`C`\>\>\>
 
-Defined in: [packages/react-native-executorch/src/hooks/computer_vision/useImageSegmentation.ts:15](https://github.com/software-mansion/react-native-executorch/blob/6b532e47fba9c94d5beee0e422f95326d37e8c80/packages/react-native-executorch/src/hooks/computer_vision/useImageSegmentation.ts#L15)
+Defined in: [hooks/computer_vision/useImageSegmentation.ts:31](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/hooks/computer_vision/useImageSegmentation.ts#L31)
 
 React hook for managing an Image Segmentation model instance.
 
+## Type Parameters
+
+### C
+
+`C` _extends_ [`ModelSources`](../type-aliases/ModelSources.md)
+
+A [ModelSources](../type-aliases/ModelSources.md) config specifying which built-in model to load.
+
 ## Parameters
 
-### ImageSegmentationProps
+### props
 
-[`ImageSegmentationProps`](../interfaces/ImageSegmentationProps.md)
+[`ImageSegmentationProps`](../interfaces/ImageSegmentationProps.md)\<`C`\>
 
-Configuration object containing `model` source and optional `preventLoad` flag.
+Configuration object containing `model` config and optional `preventLoad` flag.
 
 ## Returns
 
-[`ImageSegmentationType`](../interfaces/ImageSegmentationType.md)
+[`ImageSegmentationType`](../interfaces/ImageSegmentationType.md)\<[`SegmentationLabels`](../type-aliases/SegmentationLabels.md)\<[`ModelNameOf`](../type-aliases/ModelNameOf.md)\<`C`\>\>\>
 
-Ready to use Image Segmentation model.
+An object with model state (`error`, `isReady`, `isGenerating`, `downloadProgress`) and a typed `forward` function.
+
+## Example
+
+```ts
+const { isReady, forward } = useImageSegmentation({
+  model: { modelName: 'deeplab-v3', modelSource: DEEPLAB_V3_RESNET50 },
+});
+```

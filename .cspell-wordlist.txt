@@ -21,6 +21,7 @@ microcontrollers
 notimestamps
 seqs
 smollm
+llms
 qwen
 XNNPACK
 EFFICIENTNET
@@ -112,3 +113,6 @@ RNFS
 pogodin
 kesha
 antonov
+rfdetr
+basemodule
+IMAGENET
