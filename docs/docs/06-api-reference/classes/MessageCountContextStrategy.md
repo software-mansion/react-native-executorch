@@ -1,6 +1,6 @@
 # Class: MessageCountContextStrategy
 
-Defined in: [packages/react-native-executorch/src/utils/llms/context_strategy/MessageCountContextStrategy.ts:9](https://github.com/software-mansion/react-native-executorch/blob/a6b2b6f4f1622166e3517338d42680655383a3be/packages/react-native-executorch/src/utils/llms/context_strategy/MessageCountContextStrategy.ts#L9)
+Defined in: [utils/llms/context_strategy/MessageCountContextStrategy.ts:9](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/llms/context_strategy/MessageCountContextStrategy.ts#L9)
 
 A simple context strategy that retains a fixed number of the most recent messages.
 This strategy trims the conversation history based purely on the message count.
@@ -15,7 +15,7 @@ This strategy trims the conversation history based purely on the message count.
 
 > **new MessageCountContextStrategy**(`windowLength`): `MessageCountContextStrategy`
 
-Defined in: [packages/react-native-executorch/src/utils/llms/context_strategy/MessageCountContextStrategy.ts:14](https://github.com/software-mansion/react-native-executorch/blob/a6b2b6f4f1622166e3517338d42680655383a3be/packages/react-native-executorch/src/utils/llms/context_strategy/MessageCountContextStrategy.ts#L14)
+Defined in: [utils/llms/context_strategy/MessageCountContextStrategy.ts:14](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/llms/context_strategy/MessageCountContextStrategy.ts#L14)
 
 Initializes the MessageCountContextStrategy.
 
@@ -39,7 +39,7 @@ The maximum number of recent messages to retain in the context. Defaults to 5.
 
 > **buildContext**(`systemPrompt`, `history`, `_maxContextLength`, `_getTokenCount`): [`Message`](../interfaces/Message.md)[]
 
-Defined in: [packages/react-native-executorch/src/utils/llms/context_strategy/MessageCountContextStrategy.ts:25](https://github.com/software-mansion/react-native-executorch/blob/a6b2b6f4f1622166e3517338d42680655383a3be/packages/react-native-executorch/src/utils/llms/context_strategy/MessageCountContextStrategy.ts#L25)
+Defined in: [utils/llms/context_strategy/MessageCountContextStrategy.ts:25](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/llms/context_strategy/MessageCountContextStrategy.ts#L25)
 
 Builds the context by slicing the history to retain only the most recent `windowLength` messages.
 

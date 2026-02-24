@@ -1,6 +1,6 @@
 # Interface: TextToSpeechInput
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:88](https://github.com/software-mansion/react-native-executorch/blob/a6b2b6f4f1622166e3517338d42680655383a3be/packages/react-native-executorch/src/types/tts.ts#L88)
+Defined in: [types/tts.ts:88](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tts.ts#L88)
 
 Text to Speech module input definition
 
@@ -14,7 +14,7 @@ Text to Speech module input definition
 
 > `optional` **speed**: `number`
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:90](https://github.com/software-mansion/react-native-executorch/blob/a6b2b6f4f1622166e3517338d42680655383a3be/packages/react-native-executorch/src/types/tts.ts#L90)
+Defined in: [types/tts.ts:90](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tts.ts#L90)
 
 optional speed argument - the higher it is, the faster the speech becomes
 
@@ -24,6 +24,6 @@ optional speed argument - the higher it is, the faster the speech becomes
 
 > **text**: `string`
 
-Defined in: [packages/react-native-executorch/src/types/tts.ts:89](https://github.com/software-mansion/react-native-executorch/blob/a6b2b6f4f1622166e3517338d42680655383a3be/packages/react-native-executorch/src/types/tts.ts#L89)
+Defined in: [types/tts.ts:89](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tts.ts#L89)
 
 a text to be spoken

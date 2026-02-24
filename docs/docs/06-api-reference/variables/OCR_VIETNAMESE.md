@@ -2,7 +2,7 @@
 
 > `const` **OCR_VIETNAMESE**: `object`
 
-Defined in: [packages/react-native-executorch/src/constants/ocr/models.ts:352](https://github.com/software-mansion/react-native-executorch/blob/a6b2b6f4f1622166e3517338d42680655383a3be/packages/react-native-executorch/src/constants/ocr/models.ts#L352)
+Defined in: [constants/ocr/models.ts:352](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/ocr/models.ts#L352)
 
 ## Type Declaration
 

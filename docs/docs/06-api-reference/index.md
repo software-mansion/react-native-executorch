@@ -38,6 +38,7 @@
 ## Models - Image Segmentation
 
 - [DEEPLAB_V3_RESNET50](variables/DEEPLAB_V3_RESNET50.md)
+- [SELFIE_SEGMENTATION](variables/SELFIE_SEGMENTATION.md)
 
 ## Models - LMM
 
@@ -202,6 +203,7 @@
 - [DownloadStatus](enumerations/DownloadStatus.md)
 - [HTTP_CODE](enumerations/HTTP_CODE.md)
 - [ScalarType](enumerations/ScalarType.md)
+- [SelfieSegmentationLabel](enumerations/SelfieSegmentationLabel.md)
 - [SourceType](enumerations/SourceType.md)
 - [Bbox](interfaces/Bbox.md)
 - [ChatConfig](interfaces/ChatConfig.md)
@@ -256,13 +258,20 @@
 - [VerticalOCRProps](interfaces/VerticalOCRProps.md)
 - [VoiceConfig](interfaces/VoiceConfig.md)
 - [Word](interfaces/Word.md)
+- [LabelEnum](type-aliases/LabelEnum.md)
 - [LLMTool](type-aliases/LLMTool.md)
 - [MessageRole](type-aliases/MessageRole.md)
+- [ModelNameOf](type-aliases/ModelNameOf.md)
+- [ModelSources](type-aliases/ModelSources.md)
 - [OCRLanguage](type-aliases/OCRLanguage.md)
 - [ResourceSource](type-aliases/ResourceSource.md)
+- [SegmentationConfig](type-aliases/SegmentationConfig.md)
+- [SegmentationLabels](type-aliases/SegmentationLabels.md)
+- [SegmentationModelName](type-aliases/SegmentationModelName.md)
 - [SpeechToTextLanguage](type-aliases/SpeechToTextLanguage.md)
 - [TensorBuffer](type-aliases/TensorBuffer.md)
 - [TextToSpeechLanguage](type-aliases/TextToSpeechLanguage.md)
+- [Triple](type-aliases/Triple.md)
 - [SPECIAL_TOKENS](variables/SPECIAL_TOKENS.md)
 
 ## Typescript API

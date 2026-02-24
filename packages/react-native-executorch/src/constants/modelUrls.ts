@@ -527,7 +527,7 @@ export const DEEPLAB_V3_RESNET50 = {
 
 const SELFIE_SEGMENTATION_MODEL = `${URL_PREFIX}-selfie-segmentation/${VERSION_TAG}/xnnpack/selfie-segmentation.pte`;
 /**
- * @category Models - Image segmentation
+ * @category Models - Image Segmentation
  */
 export const SELFIE_SEGMENTATION = {
   modelName: 'selfie-segmentation',
