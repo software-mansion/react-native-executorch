@@ -1,8 +1,8 @@
 ---
-title: useImageSegmentation
+title: useSemanticSegmentation
 ---
 
-Semantic image segmentation, akin to image classification, tries to assign the content of the image to one of the predefined classes. However, in case of segmentation this classification is done on a per-pixel basis, so as the result the model provides an image-sized array of scores for each of the classes. You can then use this information to detect objects on a per-pixel basis. React Native ExecuTorch offers a dedicated hook `useImageSegmentation` for this task.
+Semantic semantic segmentation, akin to image classification, tries to assign the content of the image to one of the predefined classes. However, in case of segmentation this classification is done on a per-pixel basis, so as the result the model provides an image-sized array of scores for each of the classes. You can then use this information to detect objects on a per-pixel basis. React Native ExecuTorch offers a dedicated hook `useSemanticSegmentation` for this task.
 
 :::warning
 It is recommended to use models provided by us which are available at our [Hugging Face repository](https://huggingface.co/collections/software-mansion/image-segmentation-68d5291bdf4a30bee0220f4f), you can also use [constants](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts) shipped with our library.
@@ -10,18 +10,18 @@ It is recommended to use models provided by us which are available at our [Huggi
 
 ## API Reference
 
-- For detailed API Reference for `useImageSegmentation` see: [`useImageSegmentation` API Reference](../../06-api-reference/functions/useImageSegmentation.md).
-- For all image segmentation models available out-of-the-box in React Native ExecuTorch see: [Image Segmentation Models](../../06-api-reference/index.md#models---image-segmentation).
+- For detailed API Reference for `useSemanticSegmentation` see: [`useSemanticSegmentation` API Reference](../../06-api-reference/functions/useSemanticSegmentation.md).
+- For all semantic segmentation models available out-of-the-box in React Native ExecuTorch see: [Semantic Segmentation Models](../../06-api-reference/index.md#models---image-segmentation).
 
 ## High Level Overview
 
 ```typescript
 import {
-  useImageSegmentation,
+  useSemanticSegmentation,
   DEEPLAB_V3_RESNET50,
 } from 'react-native-executorch';
 
-const model = useImageSegmentation({
+const model = useSemanticSegmentation({
   model: DEEPLAB_V3_RESNET50,
 });
 
@@ -37,24 +37,24 @@ try {
 
 ### Arguments
 
-`useImageSegmentation` takes [`ImageSegmentationProps`](../../06-api-reference/interfaces/ImageSegmentationProps.md) that consists of:
+`useSemanticSegmentation` takes [`SemanticSegmentationProps`](../../06-api-reference/interfaces/SemanticSegmentationProps.md) that consists of:
 
 - `model` - An object containing:
-  - `modelName` - The name of a built-in model. See [`ModelSources`](../../06-api-reference/type-aliases/ModelSources.md) for the list of supported models.
+  - `modelName` - The name of a built-in model. See [`SemanticSegmentationModelSources`](../../06-api-reference/type-aliases/SemanticSegmentationModelSources.md) for the list of supported models.
   - `modelSource` - The location of the model binary (a URL or a bundled resource).
-- An optional flag [`preventLoad`](../../06-api-reference/interfaces/ImageSegmentationProps.md#preventload) which prevents auto-loading of the model.
+- An optional flag [`preventLoad`](../../06-api-reference/interfaces/SemanticSegmentationProps.md#preventload) which prevents auto-loading of the model.
 
 The hook is generic over the model config — TypeScript automatically infers the correct label type based on the `modelName` you provide. No explicit generic parameter is needed.
 
 You need more details? Check the following resources:
 
-- For detailed information about `useImageSegmentation` arguments check this section: [`useImageSegmentation` arguments](../../06-api-reference/functions/useImageSegmentation.md#parameters).
-- For all image segmentation models available out-of-the-box in React Native ExecuTorch see: [Image Segmentation Models](../../06-api-reference/index.md#models---image-segmentation).
+- For detailed information about `useSemanticSegmentation` arguments check this section: [`useSemanticSegmentation` arguments](../../06-api-reference/functions/useSemanticSegmentation.md#parameters).
+- For all semantic segmentation models available out-of-the-box in React Native ExecuTorch see: [Semantic Segmentation Models](../../06-api-reference/index.md#models---image-segmentation).
 - For more information on loading resources, take a look at [loading models](../../01-fundamentals/02-loading-models.md) page.
 
 ### Returns
 
-`useImageSegmentation` returns an [`ImageSegmentationType`](../../06-api-reference/interfaces/ImageSegmentationType.md) object containing:
+`useSemanticSegmentation` returns an [`SemanticSegmentationType`](../../06-api-reference/interfaces/SemanticSegmentationType.md) object containing:
 
 - `isReady` - Whether the model is loaded and ready to process images.
 - `isGenerating` - Whether the model is currently processing an image.
@@ -64,11 +64,11 @@ You need more details? Check the following resources:
 
 ## Running the model
 
-To run the model, use the [`forward`](../../06-api-reference/interfaces/ImageSegmentationType.md#forward) method. It accepts three arguments:
+To run the model, use the [`forward`](../../06-api-reference/interfaces/SemanticSegmentationType.md#forward) method. It accepts three arguments:
 
-- [`imageSource`](../../06-api-reference/interfaces/ImageSegmentationType.md#forward) (required) - The image to segment. Can be a remote URL, a local file URI, or a base64-encoded image (whole URI or only raw base64).
-- [`classesOfInterest`](../../06-api-reference/interfaces/ImageSegmentationType.md#forward) (optional) - An array of label keys indicating which per-class probability masks to include in the output. Defaults to `[]` (no class masks). The `ARGMAX` map is always returned regardless of this parameter.
-- [`resizeToInput`](../../06-api-reference/interfaces/ImageSegmentationType.md#forward) (optional) - Whether to resize the output masks to the original input image dimensions. Defaults to `true`. If `false`, returns the raw model output dimensions (e.g. 224x224 for `DEEPLAB_V3_RESNET50`).
+- [`imageSource`](../../06-api-reference/interfaces/SemanticSegmentationType.md#forward) (required) - The image to segment. Can be a remote URL, a local file URI, or a base64-encoded image (whole URI or only raw base64).
+- [`classesOfInterest`](../../06-api-reference/interfaces/SemanticSegmentationType.md#forward) (optional) - An array of label keys indicating which per-class probability masks to include in the output. Defaults to `[]` (no class masks). The `ARGMAX` map is always returned regardless of this parameter.
+- [`resizeToInput`](../../06-api-reference/interfaces/SemanticSegmentationType.md#forward) (optional) - Whether to resize the output masks to the original input image dimensions. Defaults to `true`. If `false`, returns the raw model output dimensions (e.g. 224x224 for `DEEPLAB_V3_RESNET50`).
 
 :::warning
 Setting `resizeToInput` to `false` will make `forward` faster.
@@ -85,13 +85,13 @@ The return type is fully typed — TypeScript narrows it based on the labels you
 
 ```typescript
 import {
-  useImageSegmentation,
+  useSemanticSegmentation,
   DEEPLAB_V3_RESNET50,
   DeeplabLabel,
 } from 'react-native-executorch';
 
 function App() {
-  const model = useImageSegmentation({
+  const model = useSemanticSegmentation({
     model: DEEPLAB_V3_RESNET50,
   });
 
