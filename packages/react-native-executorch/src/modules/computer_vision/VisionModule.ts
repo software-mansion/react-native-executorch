@@ -43,11 +43,16 @@ export abstract class VisionModule<TOutput> extends BaseModule {
    * const model = new ClassificationModule();
    * await model.load({ modelSource: MODEL });
    *
+   * // Use the functional form of setState to store the worklet — passing it
+   * // directly would cause React to invoke it immediately as an updater fn.
+   * const [runOnFrame, setRunOnFrame] = useState(null);
+   * setRunOnFrame(() => model.runOnFrame);
+   *
    * const frameOutput = useFrameOutput({
    *   onFrame(frame) {
    *     'worklet';
-   *     if (!model.runOnFrame) return;
-   *     const result = model.runOnFrame(frame);
+   *     if (!runOnFrame) return;
+   *     const result = runOnFrame(frame);
    *     frame.dispose();
    *   }
    * });

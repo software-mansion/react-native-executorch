@@ -122,7 +122,7 @@ TEST(ObjectDetectionGenerateTests, DetectionsHaveValidLabels) {
 // ============================================================================
 TEST(ObjectDetectionPixelTests, ValidPixelDataReturnsResults) {
   ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
-  constexpr int width = 4, height = 4, channels = 3;
+  constexpr int32_t width = 4, height = 4, channels = 3;
   std::vector<uint8_t> pixelData(width * height * channels, 128);
   JSTensorViewIn tensorView{pixelData.data(),
                             {height, width, channels},
@@ -142,7 +142,7 @@ TEST(ObjectDetectionPixelTests, WrongSizesLengthThrows) {
 
 TEST(ObjectDetectionPixelTests, WrongChannelCountThrows) {
   ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
-  constexpr int width = 4, height = 4, channels = 4;
+  constexpr int32_t width = 4, height = 4, channels = 4;
   std::vector<uint8_t> pixelData(width * height * channels, 0);
   JSTensorViewIn tensorView{pixelData.data(),
                             {height, width, channels},
@@ -153,7 +153,7 @@ TEST(ObjectDetectionPixelTests, WrongChannelCountThrows) {
 
 TEST(ObjectDetectionPixelTests, WrongScalarTypeThrows) {
   ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
-  constexpr int width = 4, height = 4, channels = 3;
+  constexpr int32_t width = 4, height = 4, channels = 3;
   std::vector<uint8_t> pixelData(width * height * channels, 0);
   JSTensorViewIn tensorView{pixelData.data(),
                             {height, width, channels},
@@ -164,7 +164,7 @@ TEST(ObjectDetectionPixelTests, WrongScalarTypeThrows) {
 
 TEST(ObjectDetectionPixelTests, NegativeThresholdThrows) {
   ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
-  constexpr int width = 4, height = 4, channels = 3;
+  constexpr int32_t width = 4, height = 4, channels = 3;
   std::vector<uint8_t> pixelData(width * height * channels, 128);
   JSTensorViewIn tensorView{pixelData.data(),
                             {height, width, channels},
@@ -175,7 +175,7 @@ TEST(ObjectDetectionPixelTests, NegativeThresholdThrows) {
 
 TEST(ObjectDetectionPixelTests, ThresholdAboveOneThrows) {
   ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
-  constexpr int width = 4, height = 4, channels = 3;
+  constexpr int32_t width = 4, height = 4, channels = 3;
   std::vector<uint8_t> pixelData(width * height * channels, 128);
   JSTensorViewIn tensorView{pixelData.data(),
                             {height, width, channels},
