@@ -28,6 +28,7 @@ export class ObjectDetectionModule extends VisionModule<Detection[]> {
         onDownloadProgressCallback,
         model.modelSource
       );
+
       if (!paths?.[0]) {
         throw new RnExecutorchError(
           RnExecutorchErrorCode.DownloadInterrupted,

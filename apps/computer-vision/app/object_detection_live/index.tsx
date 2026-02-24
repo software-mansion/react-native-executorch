@@ -182,8 +182,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.3,
   },
-
-  // Bottom stats bar
   bottomBarWrapper: {
     position: 'absolute',
     bottom: 0,

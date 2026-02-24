@@ -176,7 +176,7 @@ export interface ObjectDetectionType {
    * 1. **String path/URI**: File path, URL, or Base64-encoded string
    * 2. **PixelData**: Raw pixel data from image libraries (e.g., NitroImage)
    *
-   * **Note**: For VisionCamera frame processing, use `processFrame` instead.
+   * **Note**: For VisionCamera frame processing, use `runOnFrame` instead.
    *
    * @param input - Image source (string or PixelData object)
    * @param detectionThreshold - An optional number between 0 and 1 representing the minimum confidence score. Default is 0.5.

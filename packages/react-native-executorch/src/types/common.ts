@@ -193,9 +193,6 @@ export interface PixelData extends Omit<TensorPtr, 'dataPtr' | 'scalarType'> {
 
 /**
  * Frame data for vision model processing.
- * Supports two modes:
- * 1. ArrayBuffer mode (with memory copy) - Compatible with all platforms
- * 2. NativeBuffer mode (zero-copy) - Better performance with Vision Camera v5
  */
 export interface Frame {
   /**

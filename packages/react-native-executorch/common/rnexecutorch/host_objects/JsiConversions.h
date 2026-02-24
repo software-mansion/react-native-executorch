@@ -346,6 +346,15 @@ inline jsi::Value getJsiValue(const std::vector<char> &vec,
   return {runtime, array};
 }
 
+inline jsi::Value getJsiValue(const std::vector<int64_t> &vec,
+                              jsi::Runtime &runtime) {
+  jsi::Array array(runtime, vec.size());
+  for (size_t i = 0; i < vec.size(); i++) {
+    array.setValueAtIndex(runtime, i, jsi::Value(static_cast<double>(vec[i])));
+  }
+  return {runtime, array};
+}
+
 // Conditional as on android, size_t and uint64_t reduce to the same type,
 // introducing ambiguity
 template <typename T,
@@ -358,15 +367,6 @@ inline jsi::Value getJsiValue(T val, jsi::Runtime &runtime) {
 inline jsi::Value getJsiValue(uint64_t val, jsi::Runtime &runtime) {
   jsi::BigInt bigInt = jsi::BigInt::fromUint64(runtime, val);
   return {runtime, bigInt};
-}
-
-inline jsi::Value getJsiValue(const std::vector<int64_t> &vec,
-                              jsi::Runtime &runtime) {
-  jsi::Array array(runtime, vec.size());
-  for (size_t i = 0; i < vec.size(); i++) {
-    array.setValueAtIndex(runtime, i, jsi::Value(static_cast<double>(vec[i])));
-  }
-  return {runtime, array};
 }
 
 inline jsi::Value getJsiValue(int val, jsi::Runtime &runtime) {

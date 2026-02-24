@@ -46,6 +46,12 @@ public:
           "getInputShape"));
     }
 
+    if constexpr (meta::HasGenerate<Model>) {
+      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                                       promiseHostFunction<&Model::generate>,
+                                       "generate"));
+    }
+
     if constexpr (meta::HasEncode<Model>) {
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::encode>,
