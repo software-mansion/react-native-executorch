@@ -19,7 +19,7 @@ import Spinner from '../../components/Spinner';
 import {
   useLLM,
   DEFAULT_SYSTEM_PROMPT,
-  HAMMER2_1_0_5B_QUANTIZED,
+  HAMMER2_1_1_5B_QUANTIZED,
 } from 'react-native-executorch';
 import PauseIcon from '../../assets/icons/pause_icon.svg';
 import ColorPalette from '../../colors';
@@ -44,7 +44,7 @@ function LLMToolCallingScreen() {
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
-  const llm = useLLM({ model: HAMMER2_1_0_5B_QUANTIZED });
+  const llm = useLLM({ model: HAMMER2_1_1_5B_QUANTIZED });
 
   useEffect(() => {
     setGlobalGenerating(llm.isGenerating);
