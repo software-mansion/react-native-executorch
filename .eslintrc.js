@@ -13,6 +13,7 @@ module.exports = {
     'plugin:@cspell/recommended',
     'plugin:prettier/recommended',
     'plugin:markdown/recommended-legacy',
+    'plugin:jsdoc/recommended-typescript',
   ],
   rules: {
     'react/react-in-jsx-scope': 'off',
@@ -33,8 +34,16 @@ module.exports = {
       },
     ],
     'camelcase': 'error',
+    'jsdoc/require-jsdoc': 'off',
+    'jsdoc/require-param': 'off',
+    'jsdoc/require-returns': 'off',
+    'jsdoc/require-param-description': 'off',
+    'jsdoc/require-returns-description': 'off',
+    'jsdoc/require-property-description': 'off',
+    'jsdoc/check-param-names': ['warn', { checkDestructured: false }],
+    'jsdoc/require-yields': 'off',
   },
-  plugins: ['prettier', 'markdown'],
+  plugins: ['prettier', 'markdown', 'jsdoc'],
   overrides: [
     {
       files: ['packages/react-native-executorch/src/**/*.{js,jsx,ts,tsx}'],
