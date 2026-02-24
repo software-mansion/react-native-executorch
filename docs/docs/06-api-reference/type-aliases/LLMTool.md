@@ -2,7 +2,7 @@
 
 > **LLMTool** = `Object`
 
-Defined in: [packages/react-native-executorch/src/types/llm.ts:208](https://github.com/software-mansion/react-native-executorch/blob/a6b2b6f4f1622166e3517338d42680655383a3be/packages/react-native-executorch/src/types/llm.ts#L208)
+Defined in: [types/llm.ts:208](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L208)
 
 Represents a tool that can be used by the model.
 Usually tool is represented with dictionary (Object), but fields depend on the model.

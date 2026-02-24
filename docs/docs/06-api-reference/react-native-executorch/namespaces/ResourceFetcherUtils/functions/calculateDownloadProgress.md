@@ -2,7 +2,7 @@
 
 > **calculateDownloadProgress**(`totalLength`, `previousFilesTotalLength`, `currentFileLength`, `setProgress`): (`progress`) => `void`
 
-Defined in: [packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts:155](https://github.com/software-mansion/react-native-executorch/blob/a6b2b6f4f1622166e3517338d42680655383a3be/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L155)
+Defined in: [utils/ResourceFetcherUtils.ts:155](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L155)
 
 Creates a progress callback that scales the current file's progress
 relative to the total size of all files being downloaded.

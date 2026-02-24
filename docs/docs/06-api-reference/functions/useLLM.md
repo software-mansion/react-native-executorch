@@ -2,7 +2,7 @@
 
 > **useLLM**(`model`): [`LLMType`](../interfaces/LLMType.md)
 
-Defined in: [packages/react-native-executorch/src/hooks/natural_language_processing/useLLM.ts:19](https://github.com/software-mansion/react-native-executorch/blob/a6b2b6f4f1622166e3517338d42680655383a3be/packages/react-native-executorch/src/hooks/natural_language_processing/useLLM.ts#L19)
+Defined in: [hooks/natural_language_processing/useLLM.ts:19](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/hooks/natural_language_processing/useLLM.ts#L19)
 
 React hook for managing a Large Language Model (LLM) instance.
 
