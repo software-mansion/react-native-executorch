@@ -7,7 +7,7 @@ TypeScript API implementation of the [useSemanticSegmentation](../../03-hooks/02
 ## API Reference
 
 - For detailed API Reference for `SemanticSegmentationModule` see: [`SemanticSegmentationModule` API Reference](../../06-api-reference/classes/SemanticSegmentationModule.md).
-- For all semantic segmentation models available out-of-the-box in React Native ExecuTorch see: [Semantic Segmentation Models](../../06-api-reference/index.md#models---semantic-segmentation).
+- For all semantic segmentation models available out-of-the-box in React Native ExecuTorch see: [Semantic Segmentation Models](../../06-api-reference/index.md#models---image-segmentation).
 
 ## High Level Overview
 
@@ -47,7 +47,7 @@ const segmentation = await SemanticSegmentationModule.fromModelName(
 );
 ```
 
-The `config` parameter is a discriminated union — TypeScript ensures you provide the correct fields for each model name. Available built-in models: `'deeplab-v3-resnet50'`, `'deeplab-v3-resnet50-quantized'`, `'deeplab-v3-resnet101'`, `'deeplab-v3-resnet101-quantized'`, `'deeplab-v3-mobilenet-v3-large'`, `'deeplab-v3-mobilenet-v3-large-quantized'`, `'lraspp-mobilenet-v3-large'`, `'lraspp-mobilenet-v3-large-quantized'`, `'fcn-resnet50'`, `'fcn-resnet50-quantized'`, `'fcn-resnet101'`, `'fcn-resnet101-quantized'`, and `'selfie-segmentation'`.
+The `config` parameter is a discriminated union — TypeScript ensures you provide the correct fields for each model name. Available built-in models: `'deeplab-v3'`, `'selfie-segmentation'`.
 
 ### Custom models — `fromCustomModel`
 
