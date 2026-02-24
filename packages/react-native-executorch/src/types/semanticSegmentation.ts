@@ -12,7 +12,7 @@ import { LabelEnum, Triple, ResourceSource } from './common';
  *
  * @category Types
  */
-export type SegmentationConfig<T extends LabelEnum> = {
+export type SemanticSegmentationConfig<T extends LabelEnum> = {
   labelMap: T;
   preprocessorConfig?: { normMean?: Triple<number>; normStd?: Triple<number> };
 };
@@ -24,7 +24,7 @@ export type SegmentationConfig<T extends LabelEnum> = {
  *
  * @category Types
  */
-export type ModelSources =
+export type SemanticSegmentationModelSources =
   | { modelName: 'deeplab-v3'; modelSource: ResourceSource }
   | { modelName: 'selfie-segmentation'; modelSource: ResourceSource };
 
@@ -34,14 +34,16 @@ export type ModelSources =
  *
  * @category Types
  */
-export type SegmentationModelName = ModelSources['modelName'];
+export type SemanticSegmentationModelName =
+  SemanticSegmentationModelSources['modelName'];
 
 /**
- * Extracts the model name from a {@link ModelSources} config object.
+ * Extracts the model name from a {@link SemanticSegmentationModelSources} config object.
  *
  * @category Types
  */
-export type ModelNameOf<C extends ModelSources> = C['modelName'];
+export type ModelNameOf<C extends SemanticSegmentationModelSources> =
+  C['modelName'];
 
 /**
  * Labels used in the DeepLab image segmentation model.
@@ -85,13 +87,15 @@ export enum SelfieSegmentationLabel {
 /**
  * Props for the `useImageSegmentation` hook.
  *
- * @typeParam C - A {@link ModelSources} config specifying which built-in model to load.
+ * @typeParam C - A {@link SemanticSegmentationModelSources} config specifying which built-in model to load.
  * @property model - The model config containing `modelName` and `modelSource`.
  * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
  *
  * @category Types
  */
-export interface ImageSegmentationProps<C extends ModelSources> {
+export interface SemanticSegmentationProps<
+  C extends SemanticSegmentationModelSources,
+> {
   model: C;
   preventLoad?: boolean;
 }
@@ -104,7 +108,7 @@ export interface ImageSegmentationProps<C extends ModelSources> {
  *
  * @category Types
  */
-export interface ImageSegmentationType<L extends LabelEnum> {
+export interface SemanticSegmentationType<L extends LabelEnum> {
   /**
    * Contains the error object if the model failed to load, download, or encountered a runtime error during segmentation.
    */

@@ -1,26 +1,27 @@
 #include <gtest/gtest.h>
 #include <rnexecutorch/Error.h>
-#include <rnexecutorch/models/image_segmentation/Constants.h>
-#include <rnexecutorch/models/image_segmentation/ImageSegmentation.h>
+#include <rnexecutorch/models/semantic_segmentation/Constants.h>
+#include <rnexecutorch/models/semantic_segmentation/SemanticSegmentation.h>
 #include <string>
 #include <vector>
 
 #include <executorch/extension/tensor/tensor.h>
 
 using namespace rnexecutorch;
-using namespace rnexecutorch::models::image_segmentation;
+using namespace rnexecutorch::models::semantic_segmentation;
 using executorch::extension::make_tensor_ptr;
 using executorch::extension::TensorPtr;
 using executorch::runtime::EValue;
 
-constexpr auto kValidImageSegmentationModelPath = "deeplabV3_xnnpack_fp32.pte";
+constexpr auto kValidSemanticSegmentationModelPath =
+    "deeplabV3_xnnpack_fp32.pte";
 
 // Test fixture for tests that need dummy input data
-class ImageSegmentationForwardTest : public ::testing::Test {
+class SemanticSegmentationForwardTest : public ::testing::Test {
 protected:
   void SetUp() override {
-    model = std::make_unique<ImageSegmentation>(
-        kValidImageSegmentationModelPath, nullptr);
+    model = std::make_unique<SemanticSegmentation>(
+        kValidSemanticSegmentationModelPath, nullptr);
     auto shapes = model->getAllInputShapes("forward");
     ASSERT_FALSE(shapes.empty());
     shape = shapes[0];
@@ -36,28 +37,29 @@ protected:
         make_tensor_ptr(sizes, dummyData.data(), exec_aten::ScalarType::Float);
   }
 
-  std::unique_ptr<ImageSegmentation> model;
+  std::unique_ptr<SemanticSegmentation> model;
   std::vector<int32_t> shape;
   std::vector<float> dummyData;
   std::vector<int32_t> sizes;
   TensorPtr inputTensor;
 };
 
-TEST(ImageSegmentationCtorTests, InvalidPathThrows) {
-  EXPECT_THROW(ImageSegmentation("this_file_does_not_exist.pte", nullptr),
+TEST(SemanticSegmentationCtorTests, InvalidPathThrows) {
+  EXPECT_THROW(SemanticSegmentation("this_file_does_not_exist.pte", nullptr),
                RnExecutorchError);
 }
 
-TEST(ImageSegmentationCtorTests, ValidPathDoesntThrow) {
-  EXPECT_NO_THROW(ImageSegmentation(kValidImageSegmentationModelPath, nullptr));
+TEST(SemanticSegmentationCtorTests, ValidPathDoesntThrow) {
+  EXPECT_NO_THROW(
+      SemanticSegmentation(kValidSemanticSegmentationModelPath, nullptr));
 }
 
-TEST_F(ImageSegmentationForwardTest, ForwardWithValidTensorSucceeds) {
+TEST_F(SemanticSegmentationForwardTest, ForwardWithValidTensorSucceeds) {
   auto result = model->forward(EValue(inputTensor));
   EXPECT_TRUE(result.ok());
 }
 
-TEST_F(ImageSegmentationForwardTest, ForwardOutputHasCorrectDimensions) {
+TEST_F(SemanticSegmentationForwardTest, ForwardOutputHasCorrectDimensions) {
   auto result = model->forward(EValue(inputTensor));
   ASSERT_TRUE(result.ok());
 
@@ -68,7 +70,7 @@ TEST_F(ImageSegmentationForwardTest, ForwardOutputHasCorrectDimensions) {
   EXPECT_EQ(outputTensor.dim(), 4); // NCHW format
 }
 
-TEST_F(ImageSegmentationForwardTest, ForwardOutputHas21Classes) {
+TEST_F(SemanticSegmentationForwardTest, ForwardOutputHas21Classes) {
   auto result = model->forward(EValue(inputTensor));
   ASSERT_TRUE(result.ok());
 
@@ -79,7 +81,7 @@ TEST_F(ImageSegmentationForwardTest, ForwardOutputHas21Classes) {
   EXPECT_EQ(outputTensor.size(1), 21); // DeepLabV3 has 21 classes
 }
 
-TEST_F(ImageSegmentationForwardTest, MultipleForwardsWork) {
+TEST_F(SemanticSegmentationForwardTest, MultipleForwardsWork) {
   auto result1 = model->forward(EValue(inputTensor));
   EXPECT_TRUE(result1.ok());
 
@@ -87,47 +89,47 @@ TEST_F(ImageSegmentationForwardTest, MultipleForwardsWork) {
   EXPECT_TRUE(result2.ok());
 }
 
-TEST_F(ImageSegmentationForwardTest, ForwardAfterUnloadThrows) {
+TEST_F(SemanticSegmentationForwardTest, ForwardAfterUnloadThrows) {
   model->unload();
   EXPECT_THROW((void)model->forward(EValue(inputTensor)), RnExecutorchError);
 }
 
-TEST(ImageSegmentationInheritedTests, GetInputShapeWorks) {
-  ImageSegmentation model(kValidImageSegmentationModelPath, nullptr);
+TEST(SemanticSegmentationInheritedTests, GetInputShapeWorks) {
+  SemanticSegmentation model(kValidSemanticSegmentationModelPath, nullptr);
   auto shape = model.getInputShape("forward", 0);
   EXPECT_EQ(shape.size(), 4);
   EXPECT_EQ(shape[0], 1); // Batch size
   EXPECT_EQ(shape[1], 3); // RGB channels
 }
 
-TEST(ImageSegmentationInheritedTests, GetAllInputShapesWorks) {
-  ImageSegmentation model(kValidImageSegmentationModelPath, nullptr);
+TEST(SemanticSegmentationInheritedTests, GetAllInputShapesWorks) {
+  SemanticSegmentation model(kValidSemanticSegmentationModelPath, nullptr);
   auto shapes = model.getAllInputShapes("forward");
   EXPECT_FALSE(shapes.empty());
 }
 
-TEST(ImageSegmentationInheritedTests, GetMethodMetaWorks) {
-  ImageSegmentation model(kValidImageSegmentationModelPath, nullptr);
+TEST(SemanticSegmentationInheritedTests, GetMethodMetaWorks) {
+  SemanticSegmentation model(kValidSemanticSegmentationModelPath, nullptr);
   auto result = model.getMethodMeta("forward");
   EXPECT_TRUE(result.ok());
 }
 
-TEST(ImageSegmentationInheritedTests, GetMemoryLowerBoundReturnsPositive) {
-  ImageSegmentation model(kValidImageSegmentationModelPath, nullptr);
+TEST(SemanticSegmentationInheritedTests, GetMemoryLowerBoundReturnsPositive) {
+  SemanticSegmentation model(kValidSemanticSegmentationModelPath, nullptr);
   EXPECT_GT(model.getMemoryLowerBound(), 0u);
 }
 
-TEST(ImageSegmentationInheritedTests, InputShapeIsSquare) {
-  ImageSegmentation model(kValidImageSegmentationModelPath, nullptr);
+TEST(SemanticSegmentationInheritedTests, InputShapeIsSquare) {
+  SemanticSegmentation model(kValidSemanticSegmentationModelPath, nullptr);
   auto shape = model.getInputShape("forward", 0);
   EXPECT_EQ(shape[2], shape[3]); // Height == Width for DeepLabV3
 }
 
-TEST(ImageSegmentationConstantsTests, ClassLabelsHas21Entries) {
+TEST(SemanticSegmentationConstantsTests, ClassLabelsHas21Entries) {
   EXPECT_EQ(constants::kDeeplabV3Resnet50Labels.size(), 21u);
 }
 
-TEST(ImageSegmentationConstantsTests, ClassLabelsContainExpectedClasses) {
+TEST(SemanticSegmentationConstantsTests, ClassLabelsContainExpectedClasses) {
   auto &labels = constants::kDeeplabV3Resnet50Labels;
   bool hasBackground = false;
   bool hasPerson = false;

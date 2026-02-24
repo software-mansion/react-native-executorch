@@ -3,7 +3,7 @@ import { BottomBar } from '../../components/BottomBar';
 import { getImage } from '../../utils';
 import {
   DEEPLAB_V3_RESNET50,
-  useImageSegmentation,
+  useSemanticSegmentation,
 } from 'react-native-executorch';
 import {
   Canvas,
@@ -42,10 +42,10 @@ const numberToColor: number[][] = [
   [162, 51, 255], // 20 Amethyst
 ];
 
-export default function ImageSegmentationScreen() {
+export default function SemanticSegmentationScreen() {
   const { setGlobalGenerating } = useContext(GeneratingContext);
   const { isReady, isGenerating, downloadProgress, forward } =
-    useImageSegmentation({
+    useSemanticSegmentation({
       model: DEEPLAB_V3_RESNET50,
     });
   const [imageUri, setImageUri] = useState('');
