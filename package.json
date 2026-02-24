@@ -22,6 +22,7 @@
     "cspell": "^8.19.0",
     "eslint": "^8.57.0",
     "eslint-plugin-ft-flow": "^2.0.3",
+    "eslint-plugin-jsdoc": "^62.7.1",
     "eslint-plugin-markdown": "^5.1.0",
     "eslint-plugin-prettier": "^5.0.1",
     "expo-router": "~6.0.17",
