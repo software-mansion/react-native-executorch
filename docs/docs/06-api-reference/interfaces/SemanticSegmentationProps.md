@@ -1,8 +1,8 @@
 # Interface: SemanticSegmentationProps\<C\>
 
-Defined in: [types/semanticSegmentation.ts:113](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L113)
+Defined in: [types/semanticSegmentation.ts:96](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L96)
 
-Props for the `useSemanticSegmentation` hook.
+Props for the `useImageSegmentation` hook.
 
 ## Type Parameters
 
@@ -18,7 +18,7 @@ A [SemanticSegmentationModelSources](../type-aliases/SemanticSegmentationModelSo
 
 > **model**: `C`
 
-Defined in: [types/semanticSegmentation.ts:116](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L116)
+Defined in: [types/semanticSegmentation.ts:99](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L99)
 
 The model config containing `modelName` and `modelSource`.
 
@@ -28,6 +28,6 @@ The model config containing `modelName` and `modelSource`.
 
 > `optional` **preventLoad**: `boolean`
 
-Defined in: [types/semanticSegmentation.ts:117](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L117)
+Defined in: [types/semanticSegmentation.ts:100](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L100)
 
 Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
