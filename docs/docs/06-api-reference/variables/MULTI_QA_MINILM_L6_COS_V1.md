@@ -2,7 +2,7 @@
 
 > `const` **MULTI_QA_MINILM_L6_COS_V1**: `object`
 
-Defined in: [constants/modelUrls.ts:593](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L593)
+Defined in: [constants/modelUrls.ts:602](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L602)
 
 ## Type Declaration
 
