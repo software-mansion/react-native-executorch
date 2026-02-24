@@ -2,12 +2,12 @@
 
 > **ModelNameOf**\<`C`\> = `C`\[`"modelName"`\]
 
-Defined in: [types/imageSegmentation.ts:44](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L44)
+Defined in: [types/semanticSegmentation.ts:45](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L45)
 
-Extracts the model name from a [ModelSources](ModelSources.md) config object.
+Extracts the model name from a [SemanticSegmentationModelSources](SemanticSegmentationModelSources.md) config object.
 
 ## Type Parameters
 
 ### C
 
-`C` _extends_ [`ModelSources`](ModelSources.md)
+`C` _extends_ [`SemanticSegmentationModelSources`](SemanticSegmentationModelSources.md)
