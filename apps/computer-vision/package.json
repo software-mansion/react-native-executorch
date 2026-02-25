@@ -15,7 +15,7 @@
     "@react-native/metro-config": "^0.81.5",
     "@react-navigation/drawer": "^7.3.9",
     "@react-navigation/native": "^7.1.6",
-    "@shopify/react-native-skia": "2.2.12",
+    "@shopify/react-native-skia": "2.4.21",
     "expo": "^54.0.27",
     "expo-constants": "~18.0.11",
     "expo-font": "~14.0.10",
