@@ -11570,7 +11570,7 @@ __metadata:
     expo-router: "npm:~6.0.17"
     expo-status-bar: "npm:~3.0.9"
     metro-config: "npm:^0.81.5"
-    react: "npm:19.1.0"
+    react: "npm:19.2.4"
     react-native: "npm:0.81.5"
     react-native-audio-api: "npm:^0.8.2"
     react-native-device-info: "npm:^15.0.2"
