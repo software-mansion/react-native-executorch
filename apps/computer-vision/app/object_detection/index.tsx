@@ -1,72 +1,16 @@
 import Spinner from '../../components/Spinner';
+import { BottomBar } from '../../components/BottomBar';
 import { getImage } from '../../utils';
 import {
   Detection,
   useObjectDetection,
   RF_DETR_NANO,
 } from 'react-native-executorch';
-import { View, StyleSheet, Image, TouchableOpacity, Text } from 'react-native';
+import { View, StyleSheet, Image } from 'react-native';
 import ImageWithBboxes from '../../components/ImageWithBboxes';
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
-import ColorPalette from '../../colors';
-import { Images } from 'react-native-nitro-image';
-
-// Helper function to convert BGRA to RGB
-function convertBGRAtoRGB(
-  buffer: ArrayBuffer,
-  width: number,
-  height: number
-): ArrayBuffer {
-  const source = new Uint8Array(buffer);
-  const rgb = new Uint8Array(width * height * 3);
-
-  for (let i = 0; i < width * height; i++) {
-    // BGRA format: [B, G, R, A] → RGB: [R, G, B]
-    rgb[i * 3 + 0] = source[i * 4 + 2]; // R
-    rgb[i * 3 + 1] = source[i * 4 + 1]; // G
-    rgb[i * 3 + 2] = source[i * 4 + 0]; // B
-  }
-
-  return rgb.buffer;
-}
-
-// Helper function to convert image URI to raw RGB pixel data
-async function imageUriToPixelData(
-  uri: string,
-  targetWidth: number,
-  targetHeight: number
-): Promise<{
-  data: ArrayBuffer;
-  width: number;
-  height: number;
-  channels: number;
-}> {
-  try {
-    // Load image and resize to target dimensions
-    const image = await Images.loadFromFileAsync(uri);
-    const resized = image.resize(targetWidth, targetHeight);
-
-    // Get pixel data as ArrayBuffer (BGRA format from NitroImage)
-    const rawPixelData = resized.toRawPixelData();
-    const buffer =
-      rawPixelData instanceof ArrayBuffer ? rawPixelData : rawPixelData.buffer;
-
-    // Convert BGRA to RGB as required by the native API
-    const rgbBuffer = convertBGRAtoRGB(buffer, targetWidth, targetHeight);
-
-    return {
-      data: rgbBuffer,
-      width: targetWidth,
-      height: targetHeight,
-      channels: 3, // RGB
-    };
-  } catch (error) {
-    console.error('Error loading image with NitroImage:', error);
-    throw error;
-  }
-}
 
 export default function ObjectDetectionScreen() {
   const [imageUri, setImageUri] = useState('');
@@ -101,35 +45,7 @@ export default function ObjectDetectionScreen() {
         const output = await rfDetr.forward(imageUri);
         setResults(output);
       } catch (e) {
-        console.error('Error in runForward:', e);
-      }
-    }
-  };
-
-  const runForwardPixels = async () => {
-    if (imageUri && imageDimensions) {
-      try {
-        console.log('Converting image to pixel data...');
-        // Use original dimensions - let the model resize internally
-        const pixelData = await imageUriToPixelData(
-          imageUri,
-          imageDimensions.width,
-          imageDimensions.height
-        );
-
-        console.log('Running forward with pixel data...', {
-          width: pixelData.width,
-          height: pixelData.height,
-          channels: pixelData.channels,
-          dataSize: pixelData.data.byteLength,
-        });
-
-        // Run inference using unified forward() API
-        const output = await ssdLite.forward(pixelData, 0.3);
-        console.log('Pixel data result:', output.length, 'detections');
-        setResults(output);
-      } catch (e) {
-        console.error('Error in runForwardPixels:', e);
+        console.error(e);
       }
     }
   };
@@ -208,41 +124,10 @@ export default function ObjectDetectionScreen() {
           )}
         </View>
       </View>
-
-      {/* Custom bottom bar with two buttons */}
-      <View style={styles.bottomContainer}>
-        <View style={styles.bottomIconsContainer}>
-          <TouchableOpacity onPress={() => handleCameraPress(false)}>
-            <Text style={styles.iconText}>📷 Gallery</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.buttonsRow}>
-          <TouchableOpacity
-            style={[
-              styles.button,
-              styles.halfButton,
-              !imageUri && styles.buttonDisabled,
-            ]}
-            onPress={runForward}
-            disabled={!imageUri}
-          >
-            <Text style={styles.buttonText}>Run (String)</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.button,
-              styles.halfButton,
-              !imageUri && styles.buttonDisabled,
-            ]}
-            onPress={runForwardPixels}
-            disabled={!imageUri}
-          >
-            <Text style={styles.buttonText}>Run (Pixels)</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <BottomBar
+        handleCameraPress={handleCameraPress}
+        runForward={runForward}
+      />
     </ScreenWrapper>
   );
 }
@@ -286,44 +171,5 @@ const styles = StyleSheet.create({
   fullSizeImage: {
     width: '100%',
     height: '100%',
-  },
-  bottomContainer: {
-    width: '100%',
-    gap: 15,
-    alignItems: 'center',
-    padding: 16,
-    flex: 1,
-  },
-  bottomIconsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    width: '100%',
-  },
-  iconText: {
-    fontSize: 16,
-    color: ColorPalette.primary,
-  },
-  buttonsRow: {
-    flexDirection: 'row',
-    width: '100%',
-    gap: 10,
-  },
-  button: {
-    height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: ColorPalette.primary,
-    color: '#fff',
-    borderRadius: 8,
-  },
-  halfButton: {
-    flex: 1,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
   },
 });
