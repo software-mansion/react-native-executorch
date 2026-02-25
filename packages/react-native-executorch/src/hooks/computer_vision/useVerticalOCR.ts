@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { OCRType, VerticalOCRProps } from '../../types/ocr';
+import { OCRType, VerticalOCRProps, OCRDetection } from '../../types/ocr';
+import { Frame } from '../../types/common';
 import { VerticalOCRController } from '../../controllers/VerticalOCRController';
 import { RnExecutorchError } from '../../errors/errorUtils';
 
@@ -19,6 +20,9 @@ export const useVerticalOCR = ({
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const [runOnFrame, setRunOnFrame] = useState<
+    ((frame: Frame) => OCRDetection[]) | null
+  >(null);
 
   const [controllerInstance] = useState(
     () =>
@@ -40,9 +44,16 @@ export const useVerticalOCR = ({
         independentCharacters,
         setDownloadProgress
       );
+
+      const worklet = controllerInstance.runOnFrame;
+      if (worklet) {
+        setRunOnFrame(() => worklet);
+      }
     })();
 
     return () => {
+      setRunOnFrame(null);
+      setIsReady(false);
       controllerInstance.delete();
     };
   }, [
@@ -60,5 +71,6 @@ export const useVerticalOCR = ({
     isGenerating,
     forward: controllerInstance.forward,
     downloadProgress,
+    runOnFrame,
   };
 };

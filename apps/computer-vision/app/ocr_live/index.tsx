@@ -24,30 +24,46 @@ import {
   useFrameOutput,
 } from 'react-native-vision-camera';
 import { scheduleOnRN } from 'react-native-worklets';
+import { OCR_ENGLISH, useOCR, OCRDetection } from 'react-native-executorch';
 import {
-  Detection,
-  SSDLITE_320_MOBILENET_V3_LARGE,
-  useObjectDetection,
-} from 'react-native-executorch';
+  Canvas,
+  Path,
+  Skia,
+  Text as SkiaText,
+  matchFont,
+} from '@shopify/react-native-skia';
 import { GeneratingContext } from '../../context';
 import Spinner from '../../components/Spinner';
 import ColorPalette from '../../colors';
 
-export default function ObjectDetectionLiveScreen() {
+interface FrameDetections {
+  detections: OCRDetection[];
+  frameWidth: number;
+  frameHeight: number;
+}
+
+export default function OCRLiveScreen() {
   const insets = useSafeAreaInsets();
   const [canvasSize, setCanvasSize] = useState({ width: 1, height: 1 });
 
-  const model = useObjectDetection({ model: SSDLITE_320_MOBILENET_V3_LARGE });
+  const { isReady, isGenerating, downloadProgress, runOnFrame } = useOCR({
+    model: OCR_ENGLISH,
+  });
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   useEffect(() => {
-    setGlobalGenerating(model.isGenerating);
-  }, [model.isGenerating, setGlobalGenerating]);
+    setGlobalGenerating(isGenerating);
+  }, [isGenerating, setGlobalGenerating]);
 
-  const [detections, setDetections] = useState<Detection[]>([]);
-  const [imageSize, setImageSize] = useState({ width: 1, height: 1 });
+  const [frameDetections, setFrameDetections] = useState<FrameDetections>({
+    detections: [],
+    frameWidth: 1,
+    frameHeight: 1,
+  });
   const [fps, setFps] = useState(0);
   const lastFrameTimeRef = useRef(Date.now());
+
+  const font = matchFont({ fontFamily: 'Helvetica', fontSize: 11 });
 
   const cameraPermission = useCameraPermission();
   const devices = useCameraDevices();
@@ -62,45 +78,34 @@ export default function ObjectDetectionLiveScreen() {
     }
   }, [device]);
 
-  const updateDetections = useCallback(
-    (payload: {
-      results: Detection[];
-      imageWidth: number;
-      imageHeight: number;
-    }) => {
-      setDetections(payload.results);
-      setImageSize({ width: payload.imageWidth, height: payload.imageHeight });
-      const now = Date.now();
-      const timeDiff = now - lastFrameTimeRef.current;
-      if (timeDiff > 0) {
-        setFps(Math.round(1000 / timeDiff));
-      }
-      lastFrameTimeRef.current = now;
-    },
-    []
-  );
+  const updateDetections = useCallback((result: FrameDetections) => {
+    setFrameDetections(result);
+    const now = Date.now();
+    const timeDiff = now - lastFrameTimeRef.current;
+    if (timeDiff > 0) {
+      setFps(Math.round(1000 / timeDiff));
+    }
+    lastFrameTimeRef.current = now;
+  }, []);
 
   const frameOutput = useFrameOutput({
-    pixelFormat: 'rgb',
     dropFramesWhileBusy: true,
+    pixelFormat: 'rgb',
     onFrame(frame) {
       'worklet';
-      if (!model.runOnFrame) {
+      if (!runOnFrame) {
         frame.dispose();
         return;
       }
-      // After 90° CW rotation, the image fed to the model has swapped dims.
-      const imageWidth =
-        frame.width > frame.height ? frame.height : frame.width;
-      const imageHeight =
-        frame.width > frame.height ? frame.width : frame.height;
+      const frameWidth = frame.width;
+      const frameHeight = frame.height;
       try {
-        const result = model.runOnFrame(frame, 0.5);
+        const result = runOnFrame(frame);
         if (result) {
           scheduleOnRN(updateDetections, {
-            results: result,
-            imageWidth,
-            imageHeight,
+            detections: result,
+            frameWidth,
+            frameHeight,
           });
         }
       } catch {
@@ -111,11 +116,11 @@ export default function ObjectDetectionLiveScreen() {
     },
   });
 
-  if (!model.isReady) {
+  if (!isReady) {
     return (
       <Spinner
-        visible={!model.isReady}
-        textContent={`Loading the model ${(model.downloadProgress * 100).toFixed(0)} %`}
+        visible={!isReady}
+        textContent={`Loading the model ${(downloadProgress * 100).toFixed(0)} %`}
       />
     );
   }
@@ -142,6 +147,30 @@ export default function ObjectDetectionLiveScreen() {
     );
   }
 
+  const { detections, frameWidth, frameHeight } = frameDetections;
+
+  // OCR runs on the raw landscape frame (no rotation applied in native).
+  // The camera preview displays it as portrait (90° CW rotation applied by iOS).
+  // After rotation the image dimensions become (frameHeight × frameWidth).
+  // Cover-fit scale uses post-rotation dims to match what the preview shows.
+  const isLandscape = frameWidth > frameHeight;
+  const imageW = isLandscape ? frameHeight : frameWidth;
+  const imageH = isLandscape ? frameWidth : frameHeight;
+  const scale = Math.max(canvasSize.width / imageW, canvasSize.height / imageH);
+  const offsetX = (canvasSize.width - imageW * scale) / 2;
+  const offsetY = (canvasSize.height - imageH * scale) / 2;
+
+  // Map a raw landscape point to screen coords accounting for rotation + cover-fit.
+  function toScreenX(px: number, py: number) {
+    // After 90° CW: rotated_x = frameHeight - py, rotated_y = px
+    const rx = isLandscape ? frameHeight - py : px;
+    return rx * scale + offsetX;
+  }
+  function toScreenY(px: number, py: number) {
+    const ry = isLandscape ? px : py;
+    return ry * scale + offsetY;
+  }
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent />
@@ -154,7 +183,7 @@ export default function ObjectDetectionLiveScreen() {
         format={format}
       />
 
-      {/* Bounding box overlay — measured to match the exact camera preview area */}
+      {/* Measure the overlay area, then draw polygons inside a Canvas */}
       <View
         style={StyleSheet.absoluteFill}
         pointerEvents="none"
@@ -165,31 +194,51 @@ export default function ObjectDetectionLiveScreen() {
           })
         }
       >
-        {(() => {
-          // Cover-fit: camera preview scales to fill the canvas, cropping the
-          // excess. Compute the same transform so bbox pixel coords map correctly.
-          const scale = Math.max(
-            canvasSize.width / imageSize.width,
-            canvasSize.height / imageSize.height
-          );
-          const offsetX = (canvasSize.width - imageSize.width * scale) / 2;
-          const offsetY = (canvasSize.height - imageSize.height * scale) / 2;
-          return detections.map((det, i) => {
-            const left = det.bbox.x1 * scale + offsetX;
-            const top = det.bbox.y1 * scale + offsetY;
-            const width = (det.bbox.x2 - det.bbox.x1) * scale;
-            const height = (det.bbox.y2 - det.bbox.y1) * scale;
-            return (
-              <View key={i} style={[styles.bbox, { left, top, width, height }]}>
-                <View style={styles.bboxLabel}>
-                  <Text style={styles.bboxLabelText}>
-                    {det.label} {(det.score * 100).toFixed(0)}%
-                  </Text>
-                </View>
-              </View>
+        <Canvas style={StyleSheet.absoluteFill}>
+          {detections.map((det, i) => {
+            if (!det.bbox || det.bbox.length < 2) return null;
+
+            const path = Skia.Path.Make();
+            path.moveTo(
+              toScreenX(det.bbox[0]!.x, det.bbox[0]!.y),
+              toScreenY(det.bbox[0]!.x, det.bbox[0]!.y)
             );
-          });
-        })()}
+            for (let j = 1; j < det.bbox.length; j++) {
+              path.lineTo(
+                toScreenX(det.bbox[j]!.x, det.bbox[j]!.y),
+                toScreenY(det.bbox[j]!.x, det.bbox[j]!.y)
+              );
+            }
+            path.close();
+
+            const labelX = toScreenX(det.bbox[0]!.x, det.bbox[0]!.y);
+            const labelY = Math.max(
+              0,
+              toScreenY(det.bbox[0]!.x, det.bbox[0]!.y) - 4
+            );
+
+            return (
+              <React.Fragment key={i}>
+                <Path path={path} color="transparent" style="fill" />
+                <Path
+                  path={path}
+                  color={ColorPalette.primary}
+                  style="stroke"
+                  strokeWidth={2}
+                />
+                {font && (
+                  <SkiaText
+                    x={labelX}
+                    y={labelY}
+                    text={`${det.text} ${(det.score * 100).toFixed(0)}%`}
+                    font={font}
+                    color={ColorPalette.primary}
+                  />
+                )}
+              </React.Fragment>
+            );
+          })}
+        </Canvas>
       </View>
 
       <View
@@ -199,7 +248,7 @@ export default function ObjectDetectionLiveScreen() {
         <View style={styles.bottomBar}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{detections.length}</Text>
-            <Text style={styles.statLabel}>objects</Text>
+            <Text style={styles.statLabel}>regions</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
@@ -239,26 +288,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     letterSpacing: 0.3,
-  },
-  bbox: {
-    position: 'absolute',
-    borderWidth: 2,
-    borderColor: ColorPalette.primary,
-    borderRadius: 4,
-  },
-  bboxLabel: {
-    position: 'absolute',
-    top: -22,
-    left: -2,
-    backgroundColor: ColorPalette.primary,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  bboxLabelText: {
-    color: 'white',
-    fontSize: 11,
-    fontWeight: '600',
   },
   bottomBarWrapper: {
     position: 'absolute',

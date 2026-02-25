@@ -1,16 +1,16 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
-import { ResourceSource } from '../../types/common';
+import { ResourceSource, PixelData } from '../../types/common';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
-import { BaseModule } from '../BaseModule';
 import { Logger } from '../../common/Logger';
+import { VisionModule } from './VisionModule';
 
 /**
  * Module for style transfer tasks.
  *
  * @category Typescript API
  */
-export class StyleTransferModule extends BaseModule {
+export class StyleTransferModule extends VisionModule<PixelData> {
   /**
    * Loads the model, where `modelSource` is a string that specifies the location of the model binary.
    * To track the download progress, supply a callback function `onDownloadProgressCallback`.
@@ -42,18 +42,7 @@ export class StyleTransferModule extends BaseModule {
     }
   }
 
-  /**
-   * Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string.
-   *
-   * @param imageSource - The image source to be processed.
-   * @returns The stylized image as a Base64-encoded string.
-   */
-  async forward(imageSource: string): Promise<string> {
-    if (this.nativeModule == null)
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded. Please load the model before calling forward().'
-      );
-    return await this.nativeModule.generate(imageSource);
+  async forward(input: string | PixelData): Promise<PixelData> {
+    return super.forward(input);
   }
 }

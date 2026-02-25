@@ -1,12 +1,14 @@
 #pragma once
 
 #include <executorch/extension/tensor/tensor_ptr.h>
+#include <mutex>
 #include <opencv2/opencv.hpp>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
+#include <rnexecutorch/host_objects/JSTensorViewIn.h>
 #include <rnexecutorch/models/BaseModel.h>
 #include <rnexecutorch/models/ocr/CTCLabelConverter.h>
 #include <rnexecutorch/models/ocr/Recognizer.h>
@@ -48,11 +50,17 @@ public:
                        bool indpendentCharacters,
                        std::shared_ptr<react::CallInvoker> callInvoker);
   [[nodiscard("Registered non-void function")]] std::vector<types::OCRDetection>
-  generate(std::string input);
+  generateFromString(std::string input);
+  [[nodiscard("Registered non-void function")]] std::vector<types::OCRDetection>
+  generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData);
+  [[nodiscard("Registered non-void function")]] std::vector<types::OCRDetection>
+  generateFromPixels(JSTensorViewIn pixelData);
   std::size_t getMemoryLowerBound() const noexcept;
   void unload() noexcept;
 
 private:
+  std::vector<types::OCRDetection> runInference(cv::Mat image);
+
   std::pair<std::string, float> _handleIndependentCharacters(
       const types::DetectorBBox &box, const cv::Mat &originalImage,
       const std::vector<types::DetectorBBox> &characterBoxes,
@@ -75,6 +83,7 @@ private:
   CTCLabelConverter converter;
   bool independentCharacters;
   std::shared_ptr<react::CallInvoker> callInvoker;
+  mutable std::mutex inference_mutex_;
 };
 } // namespace models::ocr
 

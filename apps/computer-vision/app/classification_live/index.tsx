@@ -24,28 +24,24 @@ import {
   useFrameOutput,
 } from 'react-native-vision-camera';
 import { scheduleOnRN } from 'react-native-worklets';
-import {
-  Detection,
-  SSDLITE_320_MOBILENET_V3_LARGE,
-  useObjectDetection,
-} from 'react-native-executorch';
+import { EFFICIENTNET_V2_S, useClassification } from 'react-native-executorch';
 import { GeneratingContext } from '../../context';
 import Spinner from '../../components/Spinner';
 import ColorPalette from '../../colors';
 
-export default function ObjectDetectionLiveScreen() {
+export default function ClassificationLiveScreen() {
   const insets = useSafeAreaInsets();
-  const [canvasSize, setCanvasSize] = useState({ width: 1, height: 1 });
 
-  const model = useObjectDetection({ model: SSDLITE_320_MOBILENET_V3_LARGE });
+  const { isReady, isGenerating, downloadProgress, runOnFrame } =
+    useClassification({ model: EFFICIENTNET_V2_S });
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   useEffect(() => {
-    setGlobalGenerating(model.isGenerating);
-  }, [model.isGenerating, setGlobalGenerating]);
+    setGlobalGenerating(isGenerating);
+  }, [isGenerating, setGlobalGenerating]);
 
-  const [detections, setDetections] = useState<Detection[]>([]);
-  const [imageSize, setImageSize] = useState({ width: 1, height: 1 });
+  const [topLabel, setTopLabel] = useState('');
+  const [topScore, setTopScore] = useState(0);
   const [fps, setFps] = useState(0);
   const lastFrameTimeRef = useRef(Date.now());
 
@@ -62,14 +58,10 @@ export default function ObjectDetectionLiveScreen() {
     }
   }, [device]);
 
-  const updateDetections = useCallback(
-    (payload: {
-      results: Detection[];
-      imageWidth: number;
-      imageHeight: number;
-    }) => {
-      setDetections(payload.results);
-      setImageSize({ width: payload.imageWidth, height: payload.imageHeight });
+  const updateStats = useCallback(
+    (result: { label: string; score: number }) => {
+      setTopLabel(result.label);
+      setTopScore(result.score);
       const now = Date.now();
       const timeDiff = now - lastFrameTimeRef.current;
       if (timeDiff > 0) {
@@ -82,26 +74,27 @@ export default function ObjectDetectionLiveScreen() {
 
   const frameOutput = useFrameOutput({
     pixelFormat: 'rgb',
-    dropFramesWhileBusy: true,
     onFrame(frame) {
       'worklet';
-      if (!model.runOnFrame) {
+      if (!runOnFrame) {
         frame.dispose();
         return;
       }
-      // After 90° CW rotation, the image fed to the model has swapped dims.
-      const imageWidth =
-        frame.width > frame.height ? frame.height : frame.width;
-      const imageHeight =
-        frame.width > frame.height ? frame.width : frame.height;
       try {
-        const result = model.runOnFrame(frame, 0.5);
+        const result = runOnFrame(frame);
         if (result) {
-          scheduleOnRN(updateDetections, {
-            results: result,
-            imageWidth,
-            imageHeight,
-          });
+          // find the top-1 entry
+          let bestLabel = '';
+          let bestScore = -1;
+          const entries = Object.entries(result);
+          for (let i = 0; i < entries.length; i++) {
+            const [label, score] = entries[i];
+            if ((score as number) > bestScore) {
+              bestScore = score as number;
+              bestLabel = label;
+            }
+          }
+          scheduleOnRN(updateStats, { label: bestLabel, score: bestScore });
         }
       } catch {
         // ignore frame errors
@@ -111,11 +104,11 @@ export default function ObjectDetectionLiveScreen() {
     },
   });
 
-  if (!model.isReady) {
+  if (!isReady) {
     return (
       <Spinner
-        visible={!model.isReady}
-        textContent={`Loading the model ${(model.downloadProgress * 100).toFixed(0)} %`}
+        visible={!isReady}
+        textContent={`Loading the model ${(downloadProgress * 100).toFixed(0)} %`}
       />
     );
   }
@@ -154,52 +147,18 @@ export default function ObjectDetectionLiveScreen() {
         format={format}
       />
 
-      {/* Bounding box overlay — measured to match the exact camera preview area */}
-      <View
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
-        onLayout={(e) =>
-          setCanvasSize({
-            width: e.nativeEvent.layout.width,
-            height: e.nativeEvent.layout.height,
-          })
-        }
-      >
-        {(() => {
-          // Cover-fit: camera preview scales to fill the canvas, cropping the
-          // excess. Compute the same transform so bbox pixel coords map correctly.
-          const scale = Math.max(
-            canvasSize.width / imageSize.width,
-            canvasSize.height / imageSize.height
-          );
-          const offsetX = (canvasSize.width - imageSize.width * scale) / 2;
-          const offsetY = (canvasSize.height - imageSize.height * scale) / 2;
-          return detections.map((det, i) => {
-            const left = det.bbox.x1 * scale + offsetX;
-            const top = det.bbox.y1 * scale + offsetY;
-            const width = (det.bbox.x2 - det.bbox.x1) * scale;
-            const height = (det.bbox.y2 - det.bbox.y1) * scale;
-            return (
-              <View key={i} style={[styles.bbox, { left, top, width, height }]}>
-                <View style={styles.bboxLabel}>
-                  <Text style={styles.bboxLabelText}>
-                    {det.label} {(det.score * 100).toFixed(0)}%
-                  </Text>
-                </View>
-              </View>
-            );
-          });
-        })()}
-      </View>
-
       <View
         style={[styles.bottomBarWrapper, { paddingBottom: insets.bottom + 12 }]}
         pointerEvents="none"
       >
         <View style={styles.bottomBar}>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{detections.length}</Text>
-            <Text style={styles.statLabel}>objects</Text>
+          <View style={styles.labelContainer}>
+            <Text style={styles.labelText} numberOfLines={1}>
+              {topLabel || '—'}
+            </Text>
+            <Text style={styles.scoreText}>
+              {topLabel ? (topScore * 100).toFixed(1) + '%' : ''}
+            </Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
@@ -240,32 +199,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.3,
   },
-  bbox: {
-    position: 'absolute',
-    borderWidth: 2,
-    borderColor: ColorPalette.primary,
-    borderRadius: 4,
-  },
-  bboxLabel: {
-    position: 'absolute',
-    top: -22,
-    left: -2,
-    backgroundColor: ColorPalette.primary,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  bboxLabelText: {
-    color: 'white',
-    fontSize: 11,
-    fontWeight: '600',
-  },
   bottomBarWrapper: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
     alignItems: 'center',
+    paddingHorizontal: 16,
   },
   bottomBar: {
     flexDirection: 'row',
@@ -275,6 +215,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     paddingVertical: 10,
     gap: 24,
+    maxWidth: '100%',
+  },
+  labelContainer: {
+    flex: 1,
+    alignItems: 'flex-start',
+  },
+  labelText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  scoreText: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 13,
+    fontWeight: '500',
   },
   statItem: {
     alignItems: 'center',

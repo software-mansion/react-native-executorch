@@ -5,7 +5,6 @@
 #include <rnexecutorch/Log.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
-#include <rnexecutorch/utils/FrameProcessor.h>
 
 namespace rnexecutorch::models::object_detection {
 
@@ -144,9 +143,7 @@ std::vector<types::Detection>
 ObjectDetection::generateFromFrame(jsi::Runtime &runtime,
                                    const jsi::Value &frameData,
                                    double detectionThreshold) {
-  auto frameObj = frameData.asObject(runtime);
-  cv::Mat frame = rnexecutorch::utils::extractFrame(runtime, frameObj);
-
+  cv::Mat frame = extractFromFrame(runtime, frameData);
   return runInference(frame, detectionThreshold);
 }
 

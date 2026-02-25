@@ -53,6 +53,20 @@ public:
 
   virtual ~VisionModel() = default;
 
+  /**
+   * @brief Thread-safe unload that waits for any in-flight inference to
+   * complete
+   *
+   * Overrides BaseModel::unload() to acquire inference_mutex_ before
+   * resetting the module. This prevents a crash where BaseModel::unload()
+   * destroys module_ while generateFromFrame() is still executing on the
+   * VisionCamera worklet thread.
+   */
+  void unload() noexcept {
+    std::scoped_lock lock(inference_mutex_);
+    BaseModel::unload();
+  }
+
 protected:
   /**
    * @brief Mutex to ensure thread-safe inference
