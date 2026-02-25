@@ -2,7 +2,7 @@
 
 > `const` **STYLE_TRANSFER_RAIN_PRINCESS**: `object`
 
-Defined in: [constants/modelUrls.ts:432](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L432)
+Defined in: [constants/modelUrls.ts:443](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L443)
 
 ## Type Declaration
 

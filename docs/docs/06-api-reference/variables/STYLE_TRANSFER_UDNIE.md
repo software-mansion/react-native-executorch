@@ -2,7 +2,7 @@
 
 > `const` **STYLE_TRANSFER_UDNIE**: `object`
 
-Defined in: [constants/modelUrls.ts:439](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L439)
+Defined in: [constants/modelUrls.ts:450](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L450)
 
 ## Type Declaration
 

@@ -1,9 +1,17 @@
-# Interface: ObjectDetectionType
+# Interface: ObjectDetectionType\<L\>
 
-Defined in: [types/objectDetection.ts:151](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L151)
+Defined in: [types/objectDetection.ts:84](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L84)
 
 Return type for the `useObjectDetection` hook.
 Manages the state and operations for Computer Vision object detection tasks.
+
+## Type Parameters
+
+### L
+
+`L` _extends_ [`LabelEnum`](../type-aliases/LabelEnum.md)
+
+The [LabelEnum](../type-aliases/LabelEnum.md) representing the model's class labels.
 
 ## Properties
 
@@ -11,7 +19,7 @@ Manages the state and operations for Computer Vision object detection tasks.
 
 > **downloadProgress**: `number`
 
-Defined in: [types/objectDetection.ts:170](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L170)
+Defined in: [types/objectDetection.ts:103](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L103)
 
 Represents the download progress of the model binary as a value between 0 and 1.
 
@@ -21,7 +29,7 @@ Represents the download progress of the model binary as a value between 0 and 1.
 
 > **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
 
-Defined in: [types/objectDetection.ts:155](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L155)
+Defined in: [types/objectDetection.ts:88](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L88)
 
 Contains the error object if the model failed to load, download, or encountered a runtime error during detection.
 
@@ -29,56 +37,35 @@ Contains the error object if the model failed to load, download, or encountered 
 
 ### forward()
 
-> **forward**: (`input`, `detectionThreshold?`) => `Promise`\<[`Detection`](Detection.md)[]\>
+> **forward**: (`imageSource`, `detectionThreshold?`) => `Promise`\<[`Detection`](Detection.md)\<`L`\>[]\>
 
-Defined in: [types/objectDetection.ts:199](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L199)
+Defined in: [types/objectDetection.ts:112](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L112)
 
-Executes the model's forward pass with automatic input type detection.
-
-Supports two input types:
-
-1. **String path/URI**: File path, URL, or Base64-encoded string
-2. **PixelData**: Raw pixel data from image libraries (e.g., NitroImage)
-
-**Note**: For VisionCamera frame processing, use `runOnFrame` instead.
+Executes the model's forward pass to detect objects within the provided image.
 
 #### Parameters
 
-##### input
+##### imageSource
 
-Image source (string or PixelData object)
+`string`
 
-`string` | [`PixelData`](PixelData.md)
+A string representing the image source (e.g., a file path, URI, or base64 string) to be processed.
 
 ##### detectionThreshold?
 
 `number`
 
-An optional number between 0 and 1 representing the minimum confidence score. Default is 0.5.
+An optional number between 0 and 1 representing the minimum confidence score required for an object to be included in the results. Default is 0.7.
 
 #### Returns
 
-`Promise`\<[`Detection`](Detection.md)[]\>
+`Promise`\<[`Detection`](Detection.md)\<`L`\>[]\>
 
-A Promise that resolves to an array of `Detection` objects.
+A Promise that resolves to an array of `Detection` objects, where each object typically contains bounding box coordinates, a class label, and a confidence score.
 
 #### Throws
 
 If the model is not loaded or is currently processing another image.
-
-#### Example
-
-```typescript
-// String path
-const detections1 = await model.forward('file:///path/to/image.jpg');
-
-// Pixel data
-const detections2 = await model.forward({
-  dataPtr: new Uint8Array(rgbPixels),
-  sizes: [480, 640, 3],
-  scalarType: ScalarType.BYTE,
-});
-```
 
 ---
 
@@ -86,7 +73,7 @@ const detections2 = await model.forward({
 
 > **isGenerating**: `boolean`
 
-Defined in: [types/objectDetection.ts:165](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L165)
+Defined in: [types/objectDetection.ts:98](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L98)
 
 Indicates whether the model is currently processing an image.
 
@@ -96,49 +83,6 @@ Indicates whether the model is currently processing an image.
 
 > **isReady**: `boolean`
 
-Defined in: [types/objectDetection.ts:160](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L160)
+Defined in: [types/objectDetection.ts:93](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L93)
 
 Indicates whether the object detection model is loaded and ready to process images.
-
----
-
-### runOnFrame
-
-> **runOnFrame**: (`frame`, `detectionThreshold`) => [`Detection`](Detection.md)[] \| `null`
-
-Defined in: [types/objectDetection.ts:231](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/objectDetection.ts#L231)
-
-Synchronous worklet function for real-time VisionCamera frame processing.
-Automatically handles native buffer extraction and cleanup.
-
-**Use this for VisionCamera frame processing in worklets.**
-For async processing, use `forward()` instead.
-
-Available after model is loaded (`isReady: true`).
-
-#### Example
-
-```typescript
-const { runOnFrame, isReady } = useObjectDetection({ model: MODEL });
-
-const frameOutput = useFrameOutput({
-  onFrame(frame) {
-    'worklet';
-    if (!runOnFrame) return;
-    const detections = runOnFrame(frame, 0.5);
-    frame.dispose();
-  },
-});
-```
-
-#### Param
-
-VisionCamera Frame object
-
-#### Param
-
-The threshold for detection sensitivity.
-
-#### Returns
-
-Array of Detection objects representing detected items in the frame.
