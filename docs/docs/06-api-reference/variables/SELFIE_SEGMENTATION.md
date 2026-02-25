@@ -12,4 +12,4 @@ Defined in: [constants/modelUrls.ts:556](https://github.com/software-mansion/rea
 
 ### modelSource
 
-> `readonly` **modelSource**: `"https://huggingface.co/software-mansion/react-native-executorch-selfie-segmentation/resolve/v0.7.0/xnnpack/selfie-segmentation.pte"` = `SELFIE_SEGMENTATION_MODEL`
+> `readonly` **modelSource**: `"https://huggingface.co/software-mansion/react-native-executorch-selfie-segmentation/resolve/v0.8.0/xnnpack/selfie-segmentation.pte"` = `SELFIE_SEGMENTATION_MODEL`
