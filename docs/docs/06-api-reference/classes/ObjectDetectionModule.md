@@ -6,7 +6,7 @@ Module for object detection tasks.
 
 ## Extends
 
-- `BaseModule`
+- `VisionModule`\<[`Detection`](../interfaces/Detection.md)[]\>
 
 ## Constructors
 
@@ -20,21 +20,141 @@ Module for object detection tasks.
 
 #### Inherited from
 
-`BaseModule.constructor`
+`VisionModule<Detection[]>.constructor`
 
 ## Properties
+
+### generateFromFrame()
+
+> **generateFromFrame**: (`frameData`, ...`args`) => `any`
+
+Defined in: [modules/BaseModule.ts:56](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L56)
+
+Process a camera frame directly for real-time inference.
+
+This method is bound to a native JSI function after calling `load()`,
+making it worklet-compatible and safe to call from VisionCamera's
+frame processor thread.
+
+**Performance characteristics:**
+
+- **Zero-copy path**: When using `frame.getNativeBuffer()` from VisionCamera v5,
+  frame data is accessed directly without copying (fastest, recommended).
+- **Copy path**: When using `frame.toArrayBuffer()`, pixel data is copied
+  from native to JS, then accessed from native code (slower, fallback).
+
+**Usage with VisionCamera:**
+
+```typescript
+const frameOutput = useFrameOutput({
+  pixelFormat: 'rgb',
+  onFrame(frame) {
+    'worklet';
+    // Zero-copy approach (recommended)
+    const nativeBuffer = frame.getNativeBuffer();
+    const result = model.generateFromFrame(
+      {
+        nativeBuffer: nativeBuffer.pointer,
+        width: frame.width,
+        height: frame.height,
+      },
+      ...args
+    );
+    nativeBuffer.release();
+    frame.dispose();
+  },
+});
+```
+
+#### Parameters
+
+##### frameData
+
+[`Frame`](../interfaces/Frame.md)
+
+Frame data object with either nativeBuffer (zero-copy) or data (ArrayBuffer)
+
+##### args
+
+...`any`[]
+
+Additional model-specific arguments (e.g., threshold, options)
+
+#### Returns
+
+`any`
+
+Model-specific output (e.g., detections, classifications, embeddings)
+
+#### See
+
+[Frame](../interfaces/Frame.md) for frame data format details
+
+#### Inherited from
+
+`VisionModule.generateFromFrame`
+
+---
 
 ### nativeModule
 
 > **nativeModule**: `any` = `null`
 
-Defined in: [modules/BaseModule.ts:8](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L8)
+Defined in: [modules/BaseModule.ts:17](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L17)
 
-Native module instance
+**`Internal`**
+
+Native module instance (JSI Host Object)
 
 #### Inherited from
 
-`BaseModule.nativeModule`
+`VisionModule.nativeModule`
+
+## Accessors
+
+### runOnFrame
+
+#### Get Signature
+
+> **get** **runOnFrame**(): (`frame`, ...`args`) => `TOutput` \| `null`
+
+Defined in: [modules/computer_vision/VisionModule.ts:61](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/VisionModule.ts#L61)
+
+Synchronous worklet function for real-time VisionCamera frame processing.
+
+Only available after the model is loaded. Returns null if not loaded.
+
+**Use this for VisionCamera frame processing in worklets.**
+For async processing, use `forward()` instead.
+
+##### Example
+
+```typescript
+const model = new ClassificationModule();
+await model.load({ modelSource: MODEL });
+
+// Use the functional form of setState to store the worklet — passing it
+// directly would cause React to invoke it immediately as an updater fn.
+const [runOnFrame, setRunOnFrame] = useState(null);
+setRunOnFrame(() => model.runOnFrame);
+
+const frameOutput = useFrameOutput({
+  onFrame(frame) {
+    'worklet';
+    if (!runOnFrame) return;
+    const result = runOnFrame(frame);
+    frame.dispose();
+  },
+});
+```
+
+##### Returns
+
+(`frame`, ...`args`) => `TOutput` \| `null`
+
+#### Inherited from
+
+`VisionModule.runOnFrame`
 
 ## Methods
 
@@ -42,9 +162,11 @@ Native module instance
 
 > **delete**(): `void`
 
-Defined in: [modules/BaseModule.ts:41](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L41)
+Defined in: [modules/BaseModule.ts:100](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L100)
 
-Unloads the model from memory.
+Unloads the model from memory and releases native resources.
+
+Always call this method when you're done with a model to prevent memory leaks.
 
 #### Returns
 
@@ -52,38 +174,70 @@ Unloads the model from memory.
 
 #### Inherited from
 
-`BaseModule.delete`
+`VisionModule.delete`
 
 ---
 
 ### forward()
 
-> **forward**(`imageSource`, `detectionThreshold`): `Promise`\<[`Detection`](../interfaces/Detection.md)[]\>
+> **forward**(`input`, `detectionThreshold`): `Promise`\<[`Detection`](../interfaces/Detection.md)[]\>
 
-Defined in: [modules/computer_vision/ObjectDetectionModule.ts:54](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L54)
+Defined in: [modules/computer_vision/ObjectDetectionModule.ts:46](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L46)
 
-Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string.
-`detectionThreshold` can be supplied to alter the sensitivity of the detection.
+Executes the model's forward pass with automatic input type detection.
+
+Supports two input types:
+
+1. **String path/URI**: File path, URL, or Base64-encoded string
+2. **PixelData**: Raw pixel data from image libraries (e.g., NitroImage)
+
+**Note**: For VisionCamera frame processing, use `runOnFrame` instead.
+This method is async and cannot be called in worklet context.
 
 #### Parameters
 
-##### imageSource
+##### input
 
-`string`
+Image source (string path or PixelData object)
 
-The image source to be processed.
+`string` | [`PixelData`](../interfaces/PixelData.md)
 
 ##### detectionThreshold
 
-`number` = `0.7`
-
-The threshold for detection sensitivity. Default is 0.7.
+`number` = `0.5`
 
 #### Returns
 
 `Promise`\<[`Detection`](../interfaces/Detection.md)[]\>
 
-An array of Detection objects representing detected items in the image.
+A Promise that resolves to the model output.
+
+#### Example
+
+```typescript
+// String path (async)
+const result1 = await model.forward('file:///path/to/image.jpg');
+
+// Pixel data (async)
+const result2 = await model.forward({
+  dataPtr: new Uint8Array(pixelBuffer),
+  sizes: [480, 640, 3],
+  scalarType: ScalarType.BYTE,
+});
+
+// For VisionCamera frames, use runOnFrame in worklet:
+const frameOutput = useFrameOutput({
+  onFrame(frame) {
+    'worklet';
+    if (!model.runOnFrame) return;
+    const result = model.runOnFrame(frame);
+  },
+});
+```
+
+#### Overrides
+
+`VisionModule.forward`
 
 ---
 
@@ -91,7 +245,9 @@ An array of Detection objects representing detected items in the image.
 
 > `protected` **forwardET**(`inputTensor`): `Promise`\<[`TensorPtr`](../interfaces/TensorPtr.md)[]\>
 
-Defined in: [modules/BaseModule.ts:23](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L23)
+Defined in: [modules/BaseModule.ts:80](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L80)
+
+**`Internal`**
 
 Runs the model's forward method with the given input tensors.
 It returns the output tensors that mimic the structure of output from ExecuTorch.
@@ -112,7 +268,7 @@ Array of output tensors.
 
 #### Inherited from
 
-`BaseModule.forwardET`
+`VisionModule.forwardET`
 
 ---
 
@@ -120,7 +276,7 @@ Array of output tensors.
 
 > **getInputShape**(`methodName`, `index`): `Promise`\<`number`[]\>
 
-Defined in: [modules/BaseModule.ts:34](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L34)
+Defined in: [modules/BaseModule.ts:91](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L91)
 
 Gets the input shape for a given method and index.
 
@@ -146,7 +302,7 @@ The input shape as an array of numbers.
 
 #### Inherited from
 
-`BaseModule.getInputShape`
+`VisionModule.getInputShape`
 
 ---
 
@@ -181,4 +337,4 @@ Optional callback to monitor download progress.
 
 #### Overrides
 
-`BaseModule.load`
+`VisionModule.load`
