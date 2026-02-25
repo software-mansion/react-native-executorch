@@ -30,7 +30,7 @@
     "react-native-worklets": "0.5.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.25.2",
+    "@babel/core": "^7.29.0",
     "@types/react": "~19.1.10"
   },
   "private": true
