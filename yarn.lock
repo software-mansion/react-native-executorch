@@ -6406,7 +6406,7 @@ __metadata:
     react-native-safe-area-context: "npm:~5.6.0"
     react-native-screens: "npm:~4.16.0"
     react-native-svg: "npm:15.12.1"
-    react-native-svg-transformer: "npm:^1.5.0"
+    react-native-svg-transformer: "npm:^1.5.3"
     react-native-worklets: "npm:0.5.1"
   languageName: unknown
   linkType: soft
@@ -10497,7 +10497,7 @@ __metadata:
     react-native-safe-area-context: "npm:~5.6.0"
     react-native-screens: "npm:~4.16.0"
     react-native-svg: "npm:15.12.1"
-    react-native-svg-transformer: "npm:^1.5.0"
+    react-native-svg-transformer: "npm:^1.5.3"
     react-native-worklets: "npm:0.5.1"
   languageName: unknown
   linkType: soft
@@ -13222,9 +13222,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-svg-transformer@npm:^1.5.0":
-  version: 1.5.2
-  resolution: "react-native-svg-transformer@npm:1.5.2"
+"react-native-svg-transformer@npm:^1.5.3":
+  version: 1.5.3
+  resolution: "react-native-svg-transformer@npm:1.5.3"
   dependencies:
     "@svgr/core": "npm:^8.1.0"
     "@svgr/plugin-jsx": "npm:^8.1.0"
@@ -13233,7 +13233,7 @@ __metadata:
   peerDependencies:
     react-native: ">=0.59.0"
     react-native-svg: ">=12.0.0"
-  checksum: 10/3b148e89edbbb70b16034a8a7d2f81b49bd0dba036a9bcbc765c942ae7631684154855dffbe597c45ebd911444b7f2d2228024bde508e6fcf08e8ef967676d92
+  checksum: 10/1c66bce6073b3e4144a71d931ff6e1305485154f858f5c8d2f5292f2fcac1ee0155fb6c0958a4ee03cb6267bed57481ab887325b8685240c2ba51cafa0c05185
   languageName: node
   linkType: hard
 
@@ -14196,7 +14196,7 @@ __metadata:
     react-native-reanimated: "npm:~4.1.1"
     react-native-safe-area-context: "npm:~5.6.0"
     react-native-svg: "npm:15.12.1"
-    react-native-svg-transformer: "npm:^1.5.0"
+    react-native-svg-transformer: "npm:^1.5.3"
     react-native-worklets: "npm:0.5.1"
   languageName: unknown
   linkType: soft
