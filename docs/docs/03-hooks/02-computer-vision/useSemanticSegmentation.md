@@ -11,7 +11,7 @@ It is recommended to use models provided by us which are available at our [Huggi
 ## API Reference
 
 - For detailed API Reference for `useSemanticSegmentation` see: [`useSemanticSegmentation` API Reference](../../06-api-reference/functions/useSemanticSegmentation.md).
-- For all semantic segmentation models available out-of-the-box in React Native ExecuTorch see: [Semantic Segmentation Models](../../06-api-reference/index.md#models---image-segmentation).
+- For all semantic segmentation models available out-of-the-box in React Native ExecuTorch see: [Semantic Segmentation Models](../../06-api-reference/index.md#models---semantic-segmentation).
 
 ## High Level Overview
 

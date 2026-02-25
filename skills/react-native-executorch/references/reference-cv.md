@@ -1,6 +1,6 @@
 ---
 title: Computer Vision models usage
-description: Reference for using Image Classification, Image Segmentation, and Object Detection models.
+description: Reference for using Image Classification, Semantic Segmentation, and Object Detection models.
 ---
 
 # useClassification
@@ -139,8 +139,8 @@ For the latest available models check out exported models in [this HuggingFace S
 
 ## Additional references
 
-- [useSemanticSegmentation docs](https://docs.swmansion.com/react-native-executorch/docs/hooks/computer-vision/useImageSegmentation)
-- [useSemanticSegmentation API reference](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/useImageSegmentation)
+- [useSemanticSegmentation docs](https://docs.swmansion.com/react-native-executorch/docs/hooks/computer-vision/useSemanticSegmentation)
+- [useSemanticSegmentation API reference](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/useSemanticSegmentation)
 - [HuggingFace Segmentation collection](https://huggingface.co/collections/software-mansion/image-segmentation)
 - [Typescript API implementation of segmentation](https://docs.swmansion.com/react-native-executorch/docs/typescript-api/computer-vision/SemanticSegmentationModule)
 
