@@ -169,4 +169,11 @@ export class ObjectDetectionModule<
       nativeModule
     );
   }
+
+  async forward(
+    input: string | PixelData,
+    detectionThreshold: number = 0.5
+  ): Promise<Detection[]> {
+    return super.forward(input, detectionThreshold);
+  }
 }
