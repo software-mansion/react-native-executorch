@@ -35,11 +35,6 @@
 - [BK_SDM_TINY_VPRED_256](variables/BK_SDM_TINY_VPRED_256.md)
 - [BK_SDM_TINY_VPRED_512](variables/BK_SDM_TINY_VPRED_512.md)
 
-## Models - Image Segmentation
-
-- [DEEPLAB_V3_RESNET50](variables/DEEPLAB_V3_RESNET50.md)
-- [SELFIE_SEGMENTATION](variables/SELFIE_SEGMENTATION.md)
-
 ## Models - LMM
 
 - [HAMMER2_1_0_5B](variables/HAMMER2_1_0_5B.md)
@@ -80,6 +75,11 @@
 ## Models - Object Detection
 
 - [SSDLITE_320_MOBILENET_V3_LARGE](variables/SSDLITE_320_MOBILENET_V3_LARGE.md)
+
+## Models - Semantic Segmentation
+
+- [DEEPLAB_V3_RESNET50](variables/DEEPLAB_V3_RESNET50.md)
+- [SELFIE_SEGMENTATION](variables/SELFIE_SEGMENTATION.md)
 
 ## Models - Speech To Text
 

@@ -7,7 +7,7 @@ TypeScript API implementation of the [useSemanticSegmentation](../../03-hooks/02
 ## API Reference
 
 - For detailed API Reference for `SemanticSegmentationModule` see: [`SemanticSegmentationModule` API Reference](../../06-api-reference/classes/SemanticSegmentationModule.md).
-- For all semantic segmentation models available out-of-the-box in React Native ExecuTorch see: [Semantic Segmentation Models](../../06-api-reference/index.md#models---image-segmentation).
+- For all semantic segmentation models available out-of-the-box in React Native ExecuTorch see: [Semantic Segmentation Models](../../06-api-reference/index.md#models---semantic-segmentation).
 
 ## High Level Overview
 

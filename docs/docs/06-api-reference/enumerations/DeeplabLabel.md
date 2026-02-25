@@ -2,7 +2,7 @@
 
 Defined in: [types/semanticSegmentation.ts:53](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L53)
 
-Labels used in the DeepLab image segmentation model.
+Labels used in the DeepLab semantic segmentation model.
 
 ## Enumeration Members
 

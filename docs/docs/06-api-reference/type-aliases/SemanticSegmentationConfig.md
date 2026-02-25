@@ -4,7 +4,7 @@
 
 Defined in: [types/semanticSegmentation.ts:15](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L15)
 
-Configuration for a custom segmentation model.
+Configuration for a custom semantic segmentation model.
 
 ## Type Parameters
 

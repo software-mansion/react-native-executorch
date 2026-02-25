@@ -10,15 +10,15 @@ Generates a structured output prompt based on the provided schema.
 
 ### T
 
-`T` _extends_ `$ZodType`\<`unknown`, `unknown`, `$ZodTypeInternals`\<`unknown`, `unknown`\>\>
+`T` _extends_ `$ZodType`
 
 ## Parameters
 
 ### responseSchema
 
-The schema (Zod or JSON Schema) defining the desired output format.
+`any`
 
-`T` | `Schema`
+The schema (Zod or JSON Schema) defining the desired output format.
 
 ## Returns
 

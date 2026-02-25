@@ -2,7 +2,7 @@
 
 Defined in: [types/semanticSegmentation.ts:96](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L96)
 
-Props for the `useImageSegmentation` hook.
+Props for the `useSemanticSegmentation` hook.
 
 ## Type Parameters
 
