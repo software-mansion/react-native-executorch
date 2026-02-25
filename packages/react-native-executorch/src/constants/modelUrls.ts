@@ -386,8 +386,7 @@ export const EFFICIENTNET_V2_S = {
 
 // Object detection
 const SSDLITE_320_MOBILENET_V3_LARGE_MODEL = `${URL_PREFIX}-ssdlite320-mobilenet-v3-large/${VERSION_TAG}/ssdlite320-mobilenetv3-large.pte`;
-// const RF_DETR_NANO_MODEL = `${URL_PREFIX}-rf-detr-nano/${VERSION_TAG}/rf-detr-nano.pte`;
-const RF_DETR_NANO_MODEL = `https://ai.swmansion.com/storage/jc_tests/rfdetr_det.pte`;
+const RF_DETR_NANO_MODEL = `${URL_PREFIX}-rf-detr-nano-detector/${VERSION_TAG}/rf-detr-nano.pte`;
 
 /**
  * @category Models - Object Detection
