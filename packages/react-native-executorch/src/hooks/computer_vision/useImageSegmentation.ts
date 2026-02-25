@@ -9,7 +9,7 @@ import {
   ModelNameOf,
   ModelSources,
 } from '../../types/imageSegmentation';
-import { Frame } from '../../types/common';
+import { Frame, PixelData } from '../../types/common';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
@@ -92,7 +92,7 @@ export const useImageSegmentation = <C extends ModelSources>({
   }, [model.modelName, model.modelSource, preventLoad]);
 
   const forward = async <K extends keyof SegmentationLabels<ModelNameOf<C>>>(
-    imageSource: string,
+    imageSource: string | PixelData,
     classesOfInterest: K[] = [],
     resizeToInput: boolean = true
   ) => {
