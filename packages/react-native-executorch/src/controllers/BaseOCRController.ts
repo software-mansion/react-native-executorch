@@ -2,9 +2,23 @@ import { Logger } from '../common/Logger';
 import { symbols } from '../constants/ocr/symbols';
 import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../errors/errorUtils';
-import { ResourceSource } from '../types/common';
+import { Frame, PixelData, ResourceSource, ScalarType } from '../types/common';
 import { OCRLanguage, OCRDetection } from '../types/ocr';
 import { ResourceFetcher } from '../utils/ResourceFetcher';
+
+function isPixelData(input: unknown): input is PixelData {
+  return (
+    typeof input === 'object' &&
+    input !== null &&
+    'dataPtr' in input &&
+    input.dataPtr instanceof Uint8Array &&
+    'sizes' in input &&
+    Array.isArray(input.sizes) &&
+    input.sizes.length === 3 &&
+    'scalarType' in input &&
+    input.scalarType === ScalarType.BYTE
+  );
+}
 
 export abstract class BaseOCRController {
   protected nativeModule: any;
@@ -87,7 +101,34 @@ export abstract class BaseOCRController {
     }
   };
 
-  public forward = async (imageSource: string): Promise<OCRDetection[]> => {
+  get runOnFrame(): ((frame: Frame) => OCRDetection[]) | null {
+    if (!this.nativeModule?.generateFromFrame) {
+      return null;
+    }
+
+    const nativeGenerateFromFrame = this.nativeModule.generateFromFrame;
+
+    return (frame: any): OCRDetection[] => {
+      'worklet';
+
+      let nativeBuffer: any = null;
+      try {
+        nativeBuffer = frame.getNativeBuffer();
+        const frameData = {
+          nativeBuffer: nativeBuffer.pointer,
+        };
+        return nativeGenerateFromFrame(frameData);
+      } finally {
+        if (nativeBuffer?.release) {
+          nativeBuffer.release();
+        }
+      }
+    };
+  }
+
+  public forward = async (
+    input: string | PixelData
+  ): Promise<OCRDetection[]> => {
     if (!this.isReady) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ModuleNotLoaded,
@@ -104,7 +145,17 @@ export abstract class BaseOCRController {
     try {
       this.isGenerating = true;
       this.isGeneratingCallback(this.isGenerating);
-      return await this.nativeModule.generate(imageSource);
+
+      if (typeof input === 'string') {
+        return await this.nativeModule.generateFromString(input);
+      } else if (isPixelData(input)) {
+        return await this.nativeModule.generateFromPixels(input);
+      } else {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.InvalidArgument,
+          'Invalid input: expected string path or PixelData object. For VisionCamera frames, use runOnFrame instead.'
+        );
+      }
     } catch (e) {
       throw parseUnknownError(e);
     } finally {

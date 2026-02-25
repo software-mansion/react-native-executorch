@@ -1,6 +1,8 @@
 #include "BaseModelTests.h"
+#include <executorch/extension/tensor/tensor.h>
 #include <gtest/gtest.h>
 #include <rnexecutorch/Error.h>
+#include <rnexecutorch/host_objects/JSTensorViewIn.h>
 #include <rnexecutorch/models/object_detection/Constants.h>
 #include <rnexecutorch/models/object_detection/ObjectDetection.h>
 
@@ -29,7 +31,7 @@ template <> struct ModelTraits<ObjectDetection> {
   }
 
   static void callGenerate(ModelType &model) {
-    (void)model.generate(kValidTestImagePath, 0.5);
+    (void)model.generateFromString(kValidTestImagePath, 0.5);
   }
 };
 } // namespace model_tests
@@ -43,49 +45,50 @@ INSTANTIATE_TYPED_TEST_SUITE_P(ObjectDetection, CommonModelTest,
 // ============================================================================
 TEST(ObjectDetectionGenerateTests, InvalidImagePathThrows) {
   ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
-  EXPECT_THROW((void)model.generate("nonexistent_image.jpg", 0.5),
+  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg", 0.5),
                RnExecutorchError);
 }
 
 TEST(ObjectDetectionGenerateTests, EmptyImagePathThrows) {
   ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
-  EXPECT_THROW((void)model.generate("", 0.5), RnExecutorchError);
+  EXPECT_THROW((void)model.generateFromString("", 0.5), RnExecutorchError);
 }
 
 TEST(ObjectDetectionGenerateTests, MalformedURIThrows) {
   ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
-  EXPECT_THROW((void)model.generate("not_a_valid_uri://bad", 0.5),
+  EXPECT_THROW((void)model.generateFromString("not_a_valid_uri://bad", 0.5),
                RnExecutorchError);
 }
 
 TEST(ObjectDetectionGenerateTests, NegativeThresholdThrows) {
   ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
-  EXPECT_THROW((void)model.generate(kValidTestImagePath, -0.1),
+  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, -0.1),
                RnExecutorchError);
 }
 
 TEST(ObjectDetectionGenerateTests, ThresholdAboveOneThrows) {
   ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
-  EXPECT_THROW((void)model.generate(kValidTestImagePath, 1.1),
+  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, 1.1),
                RnExecutorchError);
 }
 
 TEST(ObjectDetectionGenerateTests, ValidImageReturnsResults) {
   ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
-  auto results = model.generate(kValidTestImagePath, 0.3);
+  auto results = model.generateFromString(kValidTestImagePath, 0.3);
   EXPECT_GE(results.size(), 0u);
 }
 
 TEST(ObjectDetectionGenerateTests, HighThresholdReturnsFewerResults) {
   ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
-  auto lowThresholdResults = model.generate(kValidTestImagePath, 0.1);
-  auto highThresholdResults = model.generate(kValidTestImagePath, 0.9);
+  auto lowThresholdResults = model.generateFromString(kValidTestImagePath, 0.1);
+  auto highThresholdResults =
+      model.generateFromString(kValidTestImagePath, 0.9);
   EXPECT_GE(lowThresholdResults.size(), highThresholdResults.size());
 }
 
 TEST(ObjectDetectionGenerateTests, DetectionsHaveValidBoundingBoxes) {
   ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
-  auto results = model.generate(kValidTestImagePath, 0.3);
+  auto results = model.generateFromString(kValidTestImagePath, 0.3);
 
   for (const auto &detection : results) {
     EXPECT_LE(detection.x1, detection.x2);
@@ -97,7 +100,7 @@ TEST(ObjectDetectionGenerateTests, DetectionsHaveValidBoundingBoxes) {
 
 TEST(ObjectDetectionGenerateTests, DetectionsHaveValidScores) {
   ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
-  auto results = model.generate(kValidTestImagePath, 0.3);
+  auto results = model.generateFromString(kValidTestImagePath, 0.3);
 
   for (const auto &detection : results) {
     EXPECT_GE(detection.score, 0.0f);
@@ -107,11 +110,78 @@ TEST(ObjectDetectionGenerateTests, DetectionsHaveValidScores) {
 
 TEST(ObjectDetectionGenerateTests, DetectionsHaveValidLabels) {
   ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
-  auto results = model.generate(kValidTestImagePath, 0.3);
+  auto results = model.generateFromString(kValidTestImagePath, 0.3);
 
   for (const auto &detection : results) {
     EXPECT_GE(detection.label, 0);
   }
+}
+
+// ============================================================================
+// generateFromPixels tests
+// ============================================================================
+TEST(ObjectDetectionPixelTests, ValidPixelDataReturnsResults) {
+  ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
+  constexpr int32_t width = 4, height = 4, channels = 3;
+  std::vector<uint8_t> pixelData(width * height * channels, 128);
+  JSTensorViewIn tensorView{pixelData.data(),
+                            {height, width, channels},
+                            executorch::aten::ScalarType::Byte};
+  auto results = model.generateFromPixels(tensorView, 0.3);
+  EXPECT_GE(results.size(), 0u);
+}
+
+TEST(ObjectDetectionPixelTests, WrongSizesLengthThrows) {
+  ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
+  std::vector<uint8_t> pixelData(16, 0);
+  JSTensorViewIn tensorView{
+      pixelData.data(), {4, 4}, executorch::aten::ScalarType::Byte};
+  EXPECT_THROW((void)model.generateFromPixels(tensorView, 0.5),
+               RnExecutorchError);
+}
+
+TEST(ObjectDetectionPixelTests, WrongChannelCountThrows) {
+  ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
+  constexpr int32_t width = 4, height = 4, channels = 4;
+  std::vector<uint8_t> pixelData(width * height * channels, 0);
+  JSTensorViewIn tensorView{pixelData.data(),
+                            {height, width, channels},
+                            executorch::aten::ScalarType::Byte};
+  EXPECT_THROW((void)model.generateFromPixels(tensorView, 0.5),
+               RnExecutorchError);
+}
+
+TEST(ObjectDetectionPixelTests, WrongScalarTypeThrows) {
+  ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
+  constexpr int32_t width = 4, height = 4, channels = 3;
+  std::vector<uint8_t> pixelData(width * height * channels, 0);
+  JSTensorViewIn tensorView{pixelData.data(),
+                            {height, width, channels},
+                            executorch::aten::ScalarType::Float};
+  EXPECT_THROW((void)model.generateFromPixels(tensorView, 0.5),
+               RnExecutorchError);
+}
+
+TEST(ObjectDetectionPixelTests, NegativeThresholdThrows) {
+  ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
+  constexpr int32_t width = 4, height = 4, channels = 3;
+  std::vector<uint8_t> pixelData(width * height * channels, 128);
+  JSTensorViewIn tensorView{pixelData.data(),
+                            {height, width, channels},
+                            executorch::aten::ScalarType::Byte};
+  EXPECT_THROW((void)model.generateFromPixels(tensorView, -0.1),
+               RnExecutorchError);
+}
+
+TEST(ObjectDetectionPixelTests, ThresholdAboveOneThrows) {
+  ObjectDetection model(kValidObjectDetectionModelPath, nullptr);
+  constexpr int32_t width = 4, height = 4, channels = 3;
+  std::vector<uint8_t> pixelData(width * height * channels, 128);
+  JSTensorViewIn tensorView{pixelData.data(),
+                            {height, width, channels},
+                            executorch::aten::ScalarType::Byte};
+  EXPECT_THROW((void)model.generateFromPixels(tensorView, 1.1),
+               RnExecutorchError);
 }
 
 TEST(ObjectDetectionInheritedTests, GetInputShapeWorks) {

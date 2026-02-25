@@ -1,10 +1,12 @@
 #include "VerticalOCR.h"
 #include <future>
 #include <rnexecutorch/Error.h>
+#include <rnexecutorch/ErrorCodes.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/data_processing/Numerical.h>
 #include <rnexecutorch/models/ocr/Constants.h>
 #include <rnexecutorch/models/ocr/Types.h>
+#include <rnexecutorch/utils/FrameProcessor.h>
 #include <tuple>
 
 namespace rnexecutorch::models::ocr {
@@ -16,12 +18,9 @@ VerticalOCR::VerticalOCR(const std::string &detectorSource,
       converter(symbols), independentCharacters(independentChars),
       callInvoker(invoker) {}
 
-std::vector<types::OCRDetection> VerticalOCR::generate(std::string input) {
-  cv::Mat image = image_processing::readImage(input);
-  if (image.empty()) {
-    throw RnExecutorchError(RnExecutorchErrorCode::FileReadFailed,
-                            "Failed to load image from path: " + input);
-  }
+std::vector<types::OCRDetection> VerticalOCR::runInference(cv::Mat image) {
+  std::scoped_lock lock(inference_mutex_);
+
   // 1. Large Detector
   std::vector<types::DetectorBBox> largeBoxes =
       detector.generate(image, constants::kLargeDetectorWidth);
@@ -42,6 +41,65 @@ std::vector<types::OCRDetection> VerticalOCR::generate(std::string input) {
   }
 
   return predictions;
+}
+
+std::vector<types::OCRDetection>
+VerticalOCR::generateFromString(std::string input) {
+  cv::Mat image = image_processing::readImage(input);
+  if (image.empty()) {
+    throw RnExecutorchError(RnExecutorchErrorCode::FileReadFailed,
+                            "Failed to load image from path: " + input);
+  }
+  return runInference(image);
+}
+
+std::vector<types::OCRDetection>
+VerticalOCR::generateFromFrame(jsi::Runtime &runtime,
+                               const jsi::Value &frameData) {
+  auto frameObj = frameData.asObject(runtime);
+  cv::Mat frame = ::rnexecutorch::utils::extractFrame(runtime, frameObj);
+  // extractFrame returns RGB; convert to BGR for consistency with readImage
+  cv::cvtColor(frame, frame, cv::COLOR_RGB2BGR);
+  return runInference(frame);
+}
+
+std::vector<types::OCRDetection>
+VerticalOCR::generateFromPixels(JSTensorViewIn pixelData) {
+  if (pixelData.sizes.size() != 3) {
+    char errorMessage[100];
+    std::snprintf(errorMessage, sizeof(errorMessage),
+                  "Invalid pixel data: sizes must have 3 elements "
+                  "[height, width, channels], got %zu",
+                  pixelData.sizes.size());
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            errorMessage);
+  }
+
+  int32_t height = pixelData.sizes[0];
+  int32_t width = pixelData.sizes[1];
+  int32_t channels = pixelData.sizes[2];
+
+  if (channels != 3) {
+    char errorMessage[100];
+    std::snprintf(errorMessage, sizeof(errorMessage),
+                  "Invalid pixel data: expected 3 channels (RGB), got %d",
+                  channels);
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            errorMessage);
+  }
+
+  if (pixelData.scalarType != executorch::aten::ScalarType::Byte) {
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::InvalidUserInput,
+        "Invalid pixel data: scalarType must be BYTE (Uint8Array)");
+  }
+
+  uint8_t *dataPtr = static_cast<uint8_t *>(pixelData.dataPtr);
+  // Input is RGB from JS; convert to BGR for consistency with readImage
+  cv::Mat rgbImage(height, width, CV_8UC3, dataPtr);
+  cv::Mat image;
+  cv::cvtColor(rgbImage, image, cv::COLOR_RGB2BGR);
+  return runInference(image);
 }
 
 std::size_t VerticalOCR::getMemoryLowerBound() const noexcept {

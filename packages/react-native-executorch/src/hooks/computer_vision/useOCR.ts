@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { OCRProps, OCRType } from '../../types/ocr';
+import { OCRProps, OCRType, OCRDetection } from '../../types/ocr';
+import { Frame } from '../../types/common';
 import { OCRController } from '../../controllers/OCRController';
 import { RnExecutorchError } from '../../errors/errorUtils';
 
@@ -15,6 +16,9 @@ export const useOCR = ({ model, preventLoad = false }: OCRProps): OCRType => {
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const [runOnFrame, setRunOnFrame] = useState<
+    ((frame: Frame) => OCRDetection[]) | null
+  >(null);
 
   const [controllerInstance] = useState(
     () =>
@@ -35,9 +39,16 @@ export const useOCR = ({ model, preventLoad = false }: OCRProps): OCRType => {
         model.language,
         setDownloadProgress
       );
+
+      const worklet = controllerInstance.runOnFrame;
+      if (worklet) {
+        setRunOnFrame(() => worklet);
+      }
     })();
 
     return () => {
+      setRunOnFrame(null);
+      setIsReady(false);
       controllerInstance.delete();
     };
   }, [
@@ -54,5 +65,6 @@ export const useOCR = ({ model, preventLoad = false }: OCRProps): OCRType => {
     isGenerating,
     forward: controllerInstance.forward,
     downloadProgress,
+    runOnFrame,
   };
 };

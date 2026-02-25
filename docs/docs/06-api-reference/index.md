@@ -186,6 +186,7 @@
 - [RnExecutorchErrorCode](enumerations/RnExecutorchErrorCode.md)
 - [Logger](classes/Logger.md)
 - [RnExecutorchError](classes/RnExecutorchError.md)
+- [Frame](interfaces/Frame.md)
 
 ## TTS Supported Voices
 
@@ -232,6 +233,7 @@
 - [OCRDetection](interfaces/OCRDetection.md)
 - [OCRProps](interfaces/OCRProps.md)
 - [OCRType](interfaces/OCRType.md)
+- [PixelData](interfaces/PixelData.md)
 - [Point](interfaces/Point.md)
 - [Segment](interfaces/Segment.md)
 - [SpeechToTextModelConfig](interfaces/SpeechToTextModelConfig.md)

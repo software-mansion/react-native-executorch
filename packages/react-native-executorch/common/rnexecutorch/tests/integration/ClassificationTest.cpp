@@ -28,7 +28,7 @@ template <> struct ModelTraits<Classification> {
   }
 
   static void callGenerate(ModelType &model) {
-    (void)model.generate(kValidTestImagePath);
+    (void)model.generateFromString(kValidTestImagePath);
   }
 };
 } // namespace model_tests
@@ -42,37 +42,37 @@ INSTANTIATE_TYPED_TEST_SUITE_P(Classification, CommonModelTest,
 // ============================================================================
 TEST(ClassificationGenerateTests, InvalidImagePathThrows) {
   Classification model(kValidClassificationModelPath, nullptr);
-  EXPECT_THROW((void)model.generate("nonexistent_image.jpg"),
+  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg"),
                RnExecutorchError);
 }
 
 TEST(ClassificationGenerateTests, EmptyImagePathThrows) {
   Classification model(kValidClassificationModelPath, nullptr);
-  EXPECT_THROW((void)model.generate(""), RnExecutorchError);
+  EXPECT_THROW((void)model.generateFromString(""), RnExecutorchError);
 }
 
 TEST(ClassificationGenerateTests, MalformedURIThrows) {
   Classification model(kValidClassificationModelPath, nullptr);
-  EXPECT_THROW((void)model.generate("not_a_valid_uri://bad"),
+  EXPECT_THROW((void)model.generateFromString("not_a_valid_uri://bad"),
                RnExecutorchError);
 }
 
 TEST(ClassificationGenerateTests, ValidImageReturnsResults) {
   Classification model(kValidClassificationModelPath, nullptr);
-  auto results = model.generate(kValidTestImagePath);
+  auto results = model.generateFromString(kValidTestImagePath);
   EXPECT_FALSE(results.empty());
 }
 
 TEST(ClassificationGenerateTests, ResultsHaveCorrectSize) {
   Classification model(kValidClassificationModelPath, nullptr);
-  auto results = model.generate(kValidTestImagePath);
+  auto results = model.generateFromString(kValidTestImagePath);
   auto expectedNumClasses = constants::kImagenet1kV1Labels.size();
   EXPECT_EQ(results.size(), expectedNumClasses);
 }
 
 TEST(ClassificationGenerateTests, ResultsContainValidProbabilities) {
   Classification model(kValidClassificationModelPath, nullptr);
-  auto results = model.generate(kValidTestImagePath);
+  auto results = model.generateFromString(kValidTestImagePath);
 
   float sum = 0.0f;
   for (const auto &[label, prob] : results) {
@@ -85,7 +85,7 @@ TEST(ClassificationGenerateTests, ResultsContainValidProbabilities) {
 
 TEST(ClassificationGenerateTests, TopPredictionHasReasonableConfidence) {
   Classification model(kValidClassificationModelPath, nullptr);
-  auto results = model.generate(kValidTestImagePath);
+  auto results = model.generateFromString(kValidTestImagePath);
 
   float maxProb = 0.0f;
   for (const auto &[label, prob] : results) {

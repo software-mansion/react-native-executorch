@@ -1,6 +1,6 @@
 import { symbols } from '../constants/ocr/symbols';
 import { RnExecutorchError } from '../errors/errorUtils';
-import { ResourceSource } from './common';
+import { Frame, PixelData, ResourceSource } from './common';
 
 /**
  * OCRDetection represents a single detected text instance in an image,
@@ -104,11 +104,35 @@ export interface OCRType {
 
   /**
    * Executes the OCR pipeline (detection and recognition) on the provided image.
-   * @param imageSource - A string representing the image source (e.g., a file path, URI, or base64 string) to be processed.
-   * @returns A Promise that resolves to the OCR results (typically containing the recognized text strings and their bounding boxes).
+   *
+   * Supports two input types:
+   * 1. **String path/URI**: File path, URL, or Base64-encoded string
+   * 2. **PixelData**: Raw pixel data from image libraries (e.g., NitroImage)
+   *
+   * **Note**: For VisionCamera frame processing, use `runOnFrame` instead.
+   *
+   * @param input - Image source (string or PixelData object)
+   * @returns A Promise that resolves to the OCR results (recognized text and bounding boxes).
    * @throws {RnExecutorchError} If the models are not loaded or are currently processing another image.
    */
-  forward: (imageSource: string) => Promise<OCRDetection[]>;
+  forward: (input: string | PixelData) => Promise<OCRDetection[]>;
+
+  /**
+   * Synchronous worklet function for VisionCamera frame processing.
+   * Automatically handles native buffer extraction and cleanup.
+   *
+   * **Use this for VisionCamera frame processing in worklets.**
+   * For async processing, use `forward()` instead.
+   *
+   * **Note**: OCR is a two-stage pipeline (detection + recognition) and may not
+   * achieve real-time frame rates. Frames may be dropped if inference is still running.
+   *
+   * Available after model is loaded (`isReady: true`).
+   *
+   * @param frame - VisionCamera Frame object
+   * @returns Array of OCRDetection results for the frame.
+   */
+  runOnFrame: ((frame: Frame) => OCRDetection[]) | null;
 }
 
 /**

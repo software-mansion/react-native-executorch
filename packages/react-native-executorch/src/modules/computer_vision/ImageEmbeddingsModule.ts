@@ -1,16 +1,16 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
-import { ResourceSource } from '../../types/common';
+import { ResourceSource, PixelData } from '../../types/common';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
-import { BaseModule } from '../BaseModule';
 import { Logger } from '../../common/Logger';
+import { VisionModule } from './VisionModule';
 
 /**
  * Module for generating image embeddings from input images.
  *
  * @category Typescript API
  */
-export class ImageEmbeddingsModule extends BaseModule {
+export class ImageEmbeddingsModule extends VisionModule<Float32Array> {
   /**
    * Loads the model, where `modelSource` is a string that specifies the location of the model binary.
    *
@@ -41,18 +41,8 @@ export class ImageEmbeddingsModule extends BaseModule {
     }
   }
 
-  /**
-   * Executes the model's forward pass. Returns an embedding array for a given sentence.
-   *
-   * @param imageSource - The image source (URI/URL) to image that will be embedded.
-   * @returns A Float32Array containing the image embeddings.
-   */
-  async forward(imageSource: string): Promise<Float32Array> {
-    if (this.nativeModule == null)
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded. Please load the model before calling forward().'
-      );
-    return new Float32Array(await this.nativeModule.generate(imageSource));
+  async forward(input: string | PixelData): Promise<Float32Array> {
+    const result = await super.forward(input);
+    return new Float32Array(result as unknown as ArrayBuffer);
   }
 }

@@ -9,6 +9,7 @@ import {
   ModelNameOf,
   ModelSources,
 } from '../../types/imageSegmentation';
+import { Frame, PixelData } from '../../types/common';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
@@ -41,6 +42,14 @@ export const useImageSegmentation = <C extends ModelSources>({
   const [instance, setInstance] = useState<ImageSegmentationModule<
     ModelNameOf<C>
   > | null>(null);
+  const [runOnFrame, setRunOnFrame] = useState<
+    | ((
+        frame: Frame,
+        classesOfInterest?: string[],
+        resizeToInput?: boolean
+      ) => any)
+    | null
+  >(null);
 
   useEffect(() => {
     if (preventLoad) return;
@@ -62,6 +71,10 @@ export const useImageSegmentation = <C extends ModelSources>({
         if (isMounted) {
           setInstance(currentInstance);
           setIsReady(true);
+          const worklet = currentInstance.runOnFrame;
+          if (worklet) {
+            setRunOnFrame(() => worklet);
+          }
         }
       } catch (err) {
         if (isMounted) setError(parseUnknownError(err));
@@ -70,6 +83,8 @@ export const useImageSegmentation = <C extends ModelSources>({
 
     return () => {
       isMounted = false;
+      setIsReady(false);
+      setRunOnFrame(null);
       currentInstance?.delete();
     };
 
@@ -77,7 +92,7 @@ export const useImageSegmentation = <C extends ModelSources>({
   }, [model.modelName, model.modelSource, preventLoad]);
 
   const forward = async <K extends keyof SegmentationLabels<ModelNameOf<C>>>(
-    imageSource: string,
+    imageSource: string | PixelData,
     classesOfInterest: K[] = [],
     resizeToInput: boolean = true
   ) => {
@@ -111,5 +126,6 @@ export const useImageSegmentation = <C extends ModelSources>({
     isGenerating,
     downloadProgress,
     forward,
+    runOnFrame,
   };
 };

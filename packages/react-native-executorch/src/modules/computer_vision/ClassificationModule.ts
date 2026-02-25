@@ -1,16 +1,18 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
-import { ResourceSource } from '../../types/common';
-import { BaseModule } from '../BaseModule';
+import { ResourceSource, PixelData } from '../../types/common';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { Logger } from '../../common/Logger';
+import { VisionModule } from './VisionModule';
 
 /**
  * Module for image classification tasks.
  *
  * @category Typescript API
  */
-export class ClassificationModule extends BaseModule {
+export class ClassificationModule extends VisionModule<{
+  [category: string]: number;
+}> {
   /**
    * Loads the model, where `modelSource` is a string that specifies the location of the model binary.
    * To track the download progress, supply a callback function `onDownloadProgressCallback`.
@@ -42,18 +44,9 @@ export class ClassificationModule extends BaseModule {
     }
   }
 
-  /**
-   * Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string.
-   *
-   * @param imageSource - The image source to be classified.
-   * @returns The classification result.
-   */
-  async forward(imageSource: string): Promise<{ [category: string]: number }> {
-    if (this.nativeModule == null)
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded. Please load the model before calling forward().'
-      );
-    return await this.nativeModule.generate(imageSource);
+  async forward(
+    input: string | PixelData
+  ): Promise<{ [category: string]: number }> {
+    return super.forward(input);
   }
 }

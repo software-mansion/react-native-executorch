@@ -1,7 +1,4 @@
 #include "BaseImageSegmentation.h"
-#include "jsi/jsi.h"
-
-#include <future>
 
 #include <executorch/extension/tensor/tensor.h>
 #include <rnexecutorch/Error.h>
@@ -14,14 +11,14 @@ namespace rnexecutorch::models::image_segmentation {
 BaseImageSegmentation::BaseImageSegmentation(
     const std::string &modelSource,
     std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker) {
+    : VisionModel(modelSource, callInvoker) {
   initModelImageSize();
 }
 
 BaseImageSegmentation::BaseImageSegmentation(
     const std::string &modelSource, std::vector<float> normMean,
     std::vector<float> normStd, std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker) {
+    : VisionModel(modelSource, callInvoker) {
   initModelImageSize();
   if (normMean.size() == 3) {
     normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
@@ -55,7 +52,43 @@ void BaseImageSegmentation::initModelImageSize() {
   numModelPixels = modelImageSize.area();
 }
 
-TensorPtr BaseImageSegmentation::preprocess(const std::string &imageSource,
+cv::Mat BaseImageSegmentation::preprocessFrame(const cv::Mat &frame) const {
+  cv::Mat rgb;
+
+  if (frame.channels() == 4) {
+#ifdef __APPLE__
+    cv::cvtColor(frame, rgb, cv::COLOR_BGRA2RGB);
+#else
+    cv::cvtColor(frame, rgb, cv::COLOR_RGBA2RGB);
+#endif
+  } else if (frame.channels() == 3) {
+    rgb = frame;
+  } else {
+    char errorMessage[100];
+    std::snprintf(errorMessage, sizeof(errorMessage),
+                  "Unsupported frame format: %d channels", frame.channels());
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            errorMessage);
+  }
+
+  cv::Mat processed;
+  if (rgb.size() != modelImageSize) {
+    cv::resize(rgb, processed, modelImageSize);
+  } else {
+    processed = rgb;
+  }
+
+  if (normMean_.has_value() && normStd_.has_value()) {
+    processed.convertTo(processed, CV_32FC3, 1.0 / 255.0);
+    processed -= *normMean_;
+    processed /= *normStd_;
+  }
+
+  return processed;
+}
+
+TensorPtr
+BaseImageSegmentation::preprocessFromString(const std::string &imageSource,
                                             cv::Size &originalSize) {
   auto [inputTensor, origSize] = image_processing::readImageToTensor(
       imageSource, getAllInputShapes()[0], false, normMean_, normStd_);
@@ -63,12 +96,16 @@ TensorPtr BaseImageSegmentation::preprocess(const std::string &imageSource,
   return inputTensor;
 }
 
-std::shared_ptr<jsi::Object> BaseImageSegmentation::generate(
-    std::string imageSource, std::vector<std::string> allClasses,
+SegmentationResult BaseImageSegmentation::runInference(
+    cv::Mat image, cv::Size originalSize, std::vector<std::string> allClasses,
     std::set<std::string, std::less<>> classesOfInterest, bool resize) {
+  std::scoped_lock lock(inference_mutex_);
 
-  cv::Size originalSize;
-  auto inputTensor = preprocess(imageSource, originalSize);
+  cv::Mat preprocessed = preprocessFrame(image);
+
+  const std::vector<int32_t> tensorDims = getAllInputShapes()[0];
+  auto inputTensor =
+      image_processing::getTensorFromMatrix(tensorDims, preprocessed);
 
   auto forwardResult = BaseModel::forward(inputTensor);
 
@@ -82,7 +119,48 @@ std::shared_ptr<jsi::Object> BaseImageSegmentation::generate(
                      classesOfInterest, resize);
 }
 
-std::shared_ptr<jsi::Object> BaseImageSegmentation::postprocess(
+SegmentationResult BaseImageSegmentation::generateFromString(
+    std::string imageSource, std::vector<std::string> allClasses,
+    std::set<std::string, std::less<>> classesOfInterest, bool resize) {
+
+  cv::Size originalSize;
+  auto inputTensor = preprocessFromString(imageSource, originalSize);
+
+  auto forwardResult = BaseModel::forward(inputTensor);
+
+  if (!forwardResult.ok()) {
+    throw RnExecutorchError(forwardResult.error(),
+                            "The model's forward function did not succeed. "
+                            "Ensure the model input is correct.");
+  }
+
+  return postprocess(forwardResult->at(0).toTensor(), originalSize, allClasses,
+                     classesOfInterest, resize);
+}
+
+SegmentationResult BaseImageSegmentation::generateFromFrame(
+    jsi::Runtime &runtime, const jsi::Value &frameData,
+    std::vector<std::string> allClasses,
+    std::set<std::string, std::less<>> classesOfInterest, bool resize) {
+  // extractFromFrame rotates landscape frames 90° CW automatically.
+  cv::Mat frame = extractFromFrame(runtime, frameData);
+  cv::Size originalSize = frame.size();
+
+  return runInference(frame, originalSize, std::move(allClasses),
+                      std::move(classesOfInterest), resize);
+}
+
+SegmentationResult BaseImageSegmentation::generateFromPixels(
+    JSTensorViewIn pixelData, std::vector<std::string> allClasses,
+    std::set<std::string, std::less<>> classesOfInterest, bool resize) {
+  cv::Mat image = extractFromPixels(pixelData);
+  cv::Size originalSize = image.size();
+
+  return runInference(image, originalSize, std::move(allClasses),
+                      std::move(classesOfInterest), resize);
+}
+
+SegmentationResult BaseImageSegmentation::postprocess(
     const Tensor &tensor, cv::Size originalSize,
     std::vector<std::string> &allClasses,
     std::set<std::string, std::less<>> &classesOfInterest, bool resize) {
@@ -167,8 +245,8 @@ std::shared_ptr<jsi::Object> BaseImageSegmentation::postprocess(
   }
 
   // Filter classes of interest
-  auto buffersToReturn = std::make_shared<std::unordered_map<
-      std::string_view, std::shared_ptr<OwningArrayBuffer>>>();
+  auto buffersToReturn = std::make_shared<
+      std::unordered_map<std::string, std::shared_ptr<OwningArrayBuffer>>>();
   for (std::size_t cl = 0; cl < resultClasses.size(); ++cl) {
     if (cl < allClasses.size() && classesOfInterest.contains(allClasses[cl])) {
       (*buffersToReturn)[allClasses[cl]] = resultClasses[cl];
@@ -191,48 +269,7 @@ std::shared_ptr<jsi::Object> BaseImageSegmentation::postprocess(
     }
   }
 
-  return populateDictionary(argmax, buffersToReturn);
-}
-
-std::shared_ptr<jsi::Object> BaseImageSegmentation::populateDictionary(
-    std::shared_ptr<OwningArrayBuffer> argmax,
-    std::shared_ptr<std::unordered_map<std::string_view,
-                                       std::shared_ptr<OwningArrayBuffer>>>
-        classesToOutput) {
-  auto promisePtr = std::make_shared<std::promise<void>>();
-  std::future<void> doneFuture = promisePtr->get_future();
-
-  std::shared_ptr<jsi::Object> dictPtr = nullptr;
-  callInvoker->invokeAsync(
-      [argmax, classesToOutput, &dictPtr, promisePtr](jsi::Runtime &runtime) {
-        dictPtr = std::make_shared<jsi::Object>(runtime);
-        auto argmaxArrayBuffer = jsi::ArrayBuffer(runtime, argmax);
-
-        auto int32ArrayCtor =
-            runtime.global().getPropertyAsFunction(runtime, "Int32Array");
-        auto int32Array =
-            int32ArrayCtor.callAsConstructor(runtime, argmaxArrayBuffer)
-                .getObject(runtime);
-        dictPtr->setProperty(runtime, "ARGMAX", int32Array);
-
-        for (auto &[classLabel, owningBuffer] : *classesToOutput) {
-          auto classArrayBuffer = jsi::ArrayBuffer(runtime, owningBuffer);
-
-          auto float32ArrayCtor =
-              runtime.global().getPropertyAsFunction(runtime, "Float32Array");
-          auto float32Array =
-              float32ArrayCtor.callAsConstructor(runtime, classArrayBuffer)
-                  .getObject(runtime);
-
-          dictPtr->setProperty(
-              runtime, jsi::String::createFromAscii(runtime, classLabel.data()),
-              float32Array);
-        }
-        promisePtr->set_value();
-      });
-
-  doneFuture.wait();
-  return dictPtr;
+  return SegmentationResult{argmax, buffersToReturn};
 }
 
 } // namespace rnexecutorch::models::image_segmentation
