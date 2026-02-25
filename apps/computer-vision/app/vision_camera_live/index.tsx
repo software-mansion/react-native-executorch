@@ -71,8 +71,6 @@ const MODELS: { id: ModelId; label: string }[] = [
   { id: 'ocr', label: 'OCR' },
 ];
 
-// ─── Segmentation colors ─────────────────────────────────────────────────────
-
 const CLASS_COLORS: number[][] = [
   [0, 0, 0, 0],
   [51, 255, 87, 180],
