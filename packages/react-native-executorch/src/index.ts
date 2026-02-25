@@ -177,6 +177,7 @@ export * from './types/styleTransfer';
 export * from './types/tti';
 
 // constants
+export * from './constants/commonVision';
 export * from './constants/modelUrls';
 export * from './constants/ocr/models';
 export * from './constants/tts/models';
