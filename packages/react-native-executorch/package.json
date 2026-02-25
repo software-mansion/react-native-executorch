@@ -6,7 +6,7 @@
   "main": "./lib/module/index.js",
   "module": "./lib/module/index.js",
   "types": "./lib/typescript/index.d.ts",
-  "react-native": "0.84.0",
+  "react-native": "src/index",
   "files": [
     "src",
     "lib",
@@ -66,8 +66,8 @@
     "registry": "https://registry.npmjs.org/"
   },
   "peerDependencies": {
-    "react": "19.2.4",
-    "react-native": "0.84.0"
+    "react": "*",
+    "react-native": "*"
   },
   "devDependencies": {
     "@react-native-community/cli": "latest",
@@ -75,8 +75,8 @@
     "@types/react": "~19.1.10",
     "jest": "^30.2.0",
     "metro-react-native-babel-preset": "^0.77.0",
-    "react": "19.2.4",
-    "react-native": "0.84.0",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
     "react-native-builder-bob": "^0.40.12",
     "typescript": "~5.9.2"
   },
