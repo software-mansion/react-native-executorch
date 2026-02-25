@@ -2308,12 +2308,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@evilmartians/lefthook@npm:^1.5.0":
-  version: 1.13.6
-  resolution: "@evilmartians/lefthook@npm:1.13.6"
+"@evilmartians/lefthook@npm:^2.1.1":
+  version: 2.1.1
+  resolution: "@evilmartians/lefthook@npm:2.1.1"
   bin:
     lefthook: bin/index.js
-  checksum: 10/d3a564d9c9f7db61fe01530e6d15817b29a067c0df2989a5cc8cbd5e4bdcfe7d3ca406980733076d7a3888883d0b7a2ca9e0a8aae36b670df38226fccc7c7753
+  checksum: 10/5bf44fa530f91d7856de3141b953d909ed7feebe7cb23f7fa24631c50580329892328e0bbd4173327e9061dbee419cfc18d58406ed2356dd883507523e373b5a
   conditions: (os=darwin | os=linux | os=win32) & (cpu=x64 | cpu=arm64 | cpu=ia32)
   languageName: node
   linkType: hard
@@ -13070,7 +13070,7 @@ __metadata:
   resolution: "react-native-executorch-monorepo@workspace:."
   dependencies:
     "@cspell/eslint-plugin": "npm:^8.19.0"
-    "@evilmartians/lefthook": "npm:^1.5.0"
+    "@evilmartians/lefthook": "npm:^2.1.1"
     "@react-native/eslint-config": "npm:^0.79.0"
     cspell: "npm:^8.19.0"
     eslint: "npm:^8.57.0"
