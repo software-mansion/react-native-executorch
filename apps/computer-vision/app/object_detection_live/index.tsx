@@ -54,7 +54,7 @@ export default function ObjectDetectionLiveScreen() {
   const format = useMemo(() => {
     if (device == null) return undefined;
     try {
-      return getCameraFormat(device, Templates.Video);
+      return getCameraFormat(device, Templates.FrameProcessing);
     } catch {
       return undefined;
     }
@@ -72,6 +72,7 @@ export default function ObjectDetectionLiveScreen() {
 
   const frameOutput = useFrameOutput({
     pixelFormat: 'rgb',
+    dropFramesWhileBusy: true,
     onFrame(frame) {
       'worklet';
       if (!model.runOnFrame) {
