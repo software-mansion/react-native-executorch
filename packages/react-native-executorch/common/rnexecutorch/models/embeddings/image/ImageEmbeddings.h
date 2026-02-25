@@ -2,25 +2,41 @@
 
 #include <executorch/extension/tensor/tensor_ptr.h>
 #include <executorch/runtime/core/evalue.h>
+#include <jsi/jsi.h>
 #include <opencv2/opencv.hpp>
 
 #include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
-#include <rnexecutorch/models/embeddings/BaseEmbeddings.h>
+#include <rnexecutorch/jsi/OwningArrayBuffer.h>
+#include <rnexecutorch/models/VisionModel.h>
 
 namespace rnexecutorch {
 namespace models::embeddings {
 using executorch::extension::TensorPtr;
 using executorch::runtime::EValue;
 
-class ImageEmbeddings final : public BaseEmbeddings {
+class ImageEmbeddings final : public VisionModel {
 public:
   ImageEmbeddings(const std::string &modelSource,
                   std::shared_ptr<react::CallInvoker> callInvoker);
+
   [[nodiscard(
       "Registered non-void function")]] std::shared_ptr<OwningArrayBuffer>
-  generate(std::string imageSource);
+  generateFromString(std::string imageSource);
+
+  [[nodiscard(
+      "Registered non-void function")]] std::shared_ptr<OwningArrayBuffer>
+  generateFromFrame(jsi::Runtime &runtime, const jsi::Value &frameData);
+
+  [[nodiscard(
+      "Registered non-void function")]] std::shared_ptr<OwningArrayBuffer>
+  generateFromPixels(JSTensorViewIn pixelData);
+
+protected:
+  cv::Mat preprocessFrame(const cv::Mat &frame) const override;
 
 private:
+  std::shared_ptr<OwningArrayBuffer> runInference(cv::Mat image);
+
   cv::Size modelImageSize{0, 0};
 };
 } // namespace models::embeddings

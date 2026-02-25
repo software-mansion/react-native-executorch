@@ -11,6 +11,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,25 +26,34 @@ import {
 } from 'react-native-vision-camera';
 import { scheduleOnRN } from 'react-native-worklets';
 import {
-  Detection,
-  SSDLITE_320_MOBILENET_V3_LARGE,
-  useObjectDetection,
+  STYLE_TRANSFER_RAIN_PRINCESS,
+  useStyleTransfer,
 } from 'react-native-executorch';
+import {
+  Canvas,
+  Image as SkiaImage,
+  Skia,
+  AlphaType,
+  ColorType,
+  SkImage,
+} from '@shopify/react-native-skia';
 import { GeneratingContext } from '../../context';
 import Spinner from '../../components/Spinner';
 import ColorPalette from '../../colors';
 
-export default function ObjectDetectionLiveScreen() {
+export default function StyleTransferLiveScreen() {
   const insets = useSafeAreaInsets();
-  const [canvasSize, setCanvasSize] = useState({ width: 1, height: 1 });
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
-  const model = useObjectDetection({ model: SSDLITE_320_MOBILENET_V3_LARGE });
+  const { isReady, isGenerating, downloadProgress, runOnFrame } =
+    useStyleTransfer({ model: STYLE_TRANSFER_RAIN_PRINCESS });
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   useEffect(() => {
-    setGlobalGenerating(model.isGenerating);
-  }, [model.isGenerating, setGlobalGenerating]);
-  const [detectionCount, setDetectionCount] = useState(0);
+    setGlobalGenerating(isGenerating);
+  }, [isGenerating, setGlobalGenerating]);
+
+  const [styledImage, setStyledImage] = useState<SkImage | null>(null);
   const [fps, setFps] = useState(0);
   const lastFrameTimeRef = useRef(Date.now());
 
@@ -60,60 +70,64 @@ export default function ObjectDetectionLiveScreen() {
     }
   }, [device]);
 
-  const updateDetections = useCallback(
-    (payload: {
-      results: Detection[];
-      imageWidth: number;
-      imageHeight: number;
-    }) => {
-      setDetections(payload.results);
-      setImageSize({ width: payload.imageWidth, height: payload.imageHeight });
-      const now = Date.now();
-      const timeDiff = now - lastFrameTimeRef.current;
-      if (timeDiff > 0) {
-        setFps(Math.round(1000 / timeDiff));
-      }
-      lastFrameTimeRef.current = now;
-    },
-    []
-  );
+  const updateImage = useCallback((img: SkImage) => {
+    setStyledImage((prev) => {
+      prev?.dispose();
+      return img;
+    });
+    const now = Date.now();
+    const timeDiff = now - lastFrameTimeRef.current;
+    if (timeDiff > 0) {
+      setFps(Math.round(1000 / timeDiff));
+    }
+    lastFrameTimeRef.current = now;
+  }, []);
 
   const frameOutput = useFrameOutput({
     pixelFormat: 'rgb',
     dropFramesWhileBusy: true,
     onFrame(frame) {
       'worklet';
-      if (!model.runOnFrame) {
+      if (!runOnFrame) {
         frame.dispose();
         return;
       }
-      // After 90° CW rotation, the image fed to the model has swapped dims.
-      const imageWidth =
-        frame.width > frame.height ? frame.height : frame.width;
-      const imageHeight =
-        frame.width > frame.height ? frame.width : frame.height;
       try {
-        const result = model.runOnFrame(frame, 0.5);
-        if (result) {
-          scheduleOnRN(updateDetections, {
-            results: result,
-            imageWidth,
-            imageHeight,
-          });
+        const result = runOnFrame(frame);
+        if (result?.dataPtr) {
+          const { dataPtr, sizes } = result;
+          const height = sizes[0];
+          const width = sizes[1];
+          // Build Skia image on the worklet thread — avoids transferring the
+          // large pixel buffer across the worklet→RN boundary via scheduleOnRN.
+          const skData = Skia.Data.fromBytes(dataPtr);
+          const img = Skia.Image.MakeImage(
+            {
+              width,
+              height,
+              alphaType: AlphaType.Opaque,
+              colorType: ColorType.RGBA_8888,
+            },
+            skData,
+            width * 4
+          );
+          if (img) {
+            scheduleOnRN(updateImage, img);
+          }
         }
-      } catch {
-        // ignore frame errors
+      } catch (e) {
+        console.log('frame error:', String(e));
       } finally {
         frame.dispose();
       }
     },
   });
 
-  if (!model.isReady) {
+  if (!isReady) {
     return (
       <Spinner
-        visible={!model.isReady}
-        textContent={`Loading the model ${(model.downloadProgress * 100).toFixed(0)} %`}
+        visible={!isReady}
+        textContent={`Loading the model ${(downloadProgress * 100).toFixed(0)} %`}
       />
     );
   }
@@ -144,6 +158,7 @@ export default function ObjectDetectionLiveScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent />
 
+      {/* Camera always runs to keep frame processing active */}
       <Camera
         style={StyleSheet.absoluteFill}
         device={device}
@@ -152,43 +167,19 @@ export default function ObjectDetectionLiveScreen() {
         format={format}
       />
 
-      {/* Bounding box overlay — measured to match the exact camera preview area */}
-      <View
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
-        onLayout={(e) =>
-          setCanvasSize({
-            width: e.nativeEvent.layout.width,
-            height: e.nativeEvent.layout.height,
-          })
-        }
-      >
-        {(() => {
-          // Cover-fit: camera preview scales to fill the canvas, cropping the
-          // excess. Compute the same transform so bbox pixel coords map correctly.
-          const scale = Math.max(
-            canvasSize.width / imageSize.width,
-            canvasSize.height / imageSize.height
-          );
-          const offsetX = (canvasSize.width - imageSize.width * scale) / 2;
-          const offsetY = (canvasSize.height - imageSize.height * scale) / 2;
-          return detections.map((det, i) => {
-            const left = det.bbox.x1 * scale + offsetX;
-            const top = det.bbox.y1 * scale + offsetY;
-            const width = (det.bbox.x2 - det.bbox.x1) * scale;
-            const height = (det.bbox.y2 - det.bbox.y1) * scale;
-            return (
-              <View key={i} style={[styles.bbox, { left, top, width, height }]}>
-                <View style={styles.bboxLabel}>
-                  <Text style={styles.bboxLabelText}>
-                    {det.label} {(det.score * 100).toFixed(0)}%
-                  </Text>
-                </View>
-              </View>
-            );
-          });
-        })()}
-      </View>
+      {/* Styled output overlays the camera feed once available */}
+      {styledImage && (
+        <Canvas style={StyleSheet.absoluteFill}>
+          <SkiaImage
+            image={styledImage}
+            fit="cover"
+            x={0}
+            y={0}
+            width={screenWidth}
+            height={screenHeight}
+          />
+        </Canvas>
+      )}
 
       <View
         style={[styles.bottomBarWrapper, { paddingBottom: insets.bottom + 12 }]}
@@ -196,13 +187,13 @@ export default function ObjectDetectionLiveScreen() {
       >
         <View style={styles.bottomBar}>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>{detections.length}</Text>
-            <Text style={styles.statLabel}>objects</Text>
+            <Text style={styles.statValue}>{fps}</Text>
+            <Text style={styles.statLabel}>fps</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>{fps}</Text>
-            <Text style={styles.statLabel}>fps</Text>
+            <Text style={styles.styleLabel}>candy</Text>
+            <Text style={styles.statLabel}>style</Text>
           </View>
         </View>
       </View>
@@ -238,26 +229,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.3,
   },
-  bbox: {
-    position: 'absolute',
-    borderWidth: 2,
-    borderColor: ColorPalette.primary,
-    borderRadius: 4,
-  },
-  bboxLabel: {
-    position: 'absolute',
-    top: -22,
-    left: -2,
-    backgroundColor: ColorPalette.primary,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  bboxLabelText: {
-    color: 'white',
-    fontSize: 11,
-    fontWeight: '600',
-  },
   bottomBarWrapper: {
     position: 'absolute',
     bottom: 0,
@@ -282,6 +253,11 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
     letterSpacing: -0.5,
+  },
+  styleLabel: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '700',
   },
   statLabel: {
     color: 'rgba(255,255,255,0.55)',

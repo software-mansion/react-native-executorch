@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Frame, PixelData } from '../../types/common';
 import { OCRController } from '../../controllers/OCRController';
 import { RnExecutorchError } from '../../errors/errorUtils';
 import { OCRDetection, OCRProps, OCRType } from '../../types/ocr';
@@ -15,6 +16,9 @@ export const useOCR = ({ model, preventLoad = false }: OCRProps): OCRType => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [error, setError] = useState<RnExecutorchError | null>(null);
+  const [runOnFrame, setRunOnFrame] = useState<
+    ((frame: Frame) => OCRDetection[]) | null
+  >(null);
 
   const [controller] = useState(
     () =>
@@ -38,7 +42,13 @@ export const useOCR = ({ model, preventLoad = false }: OCRProps): OCRType => {
       setDownloadProgress
     );
 
+    const worklet = controller.runOnFrame;
+    if (worklet) {
+      setRunOnFrame(() => worklet);
+    }
+
     return () => {
+      setRunOnFrame(null);
       if (controller.isReady) {
         controller.delete();
       }
@@ -53,10 +63,17 @@ export const useOCR = ({ model, preventLoad = false }: OCRProps): OCRType => {
   ]);
 
   const forward = useCallback(
-    (imageSource: string): Promise<OCRDetection[]> =>
+    (imageSource: string | PixelData): Promise<OCRDetection[]> =>
       controller.forward(imageSource),
     [controller]
   );
 
-  return { error, isReady, isGenerating, downloadProgress, forward };
+  return {
+    error,
+    isReady,
+    isGenerating,
+    forward,
+    downloadProgress,
+    runOnFrame,
+  };
 };
