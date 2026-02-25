@@ -2,7 +2,7 @@
 
 > `const` **SELFIE_SEGMENTATION**: `object`
 
-Defined in: [constants/modelUrls.ts:532](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L532)
+Defined in: [constants/modelUrls.ts:556](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L556)
 
 ## Type Declaration
 
