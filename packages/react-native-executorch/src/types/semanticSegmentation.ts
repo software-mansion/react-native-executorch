@@ -2,7 +2,7 @@ import { RnExecutorchError } from '../errors/errorUtils';
 import { LabelEnum, Triple, ResourceSource } from './common';
 
 /**
- * Configuration for a custom segmentation model.
+ * Configuration for a custom semantic segmentation model.
  *
  * @typeParam T - The {@link LabelEnum} type for the model.
  * @property labelMap - The enum-like object mapping class names to indices.
@@ -18,7 +18,7 @@ export type SemanticSegmentationConfig<T extends LabelEnum> = {
 };
 
 /**
- * Per-model config for {@link ImageSegmentationModule.fromModelName}.
+ * Per-model config for {@link SemanticSegmentationModule.fromModelName}.
  * Each model name maps to its required fields.
  * Add new union members here when a model needs extra sources or options.
  *
@@ -29,7 +29,7 @@ export type SemanticSegmentationModelSources =
   | { modelName: 'selfie-segmentation'; modelSource: ResourceSource };
 
 /**
- * Union of all built-in segmentation model names
+ * Union of all built-in semantic segmentation model names
  * (e.g. `'deeplab-v3'`, `'selfie-segmentation'`).
  *
  * @category Types
@@ -46,7 +46,7 @@ export type ModelNameOf<C extends SemanticSegmentationModelSources> =
   C['modelName'];
 
 /**
- * Labels used in the DeepLab image segmentation model.
+ * Labels used in the DeepLab semantic segmentation model.
  *
  * @category Types
  */
@@ -75,7 +75,7 @@ export enum DeeplabLabel {
 }
 
 /**
- * Labels used in the selfie image segmentation model.
+ * Labels used in the selfie semantic segmentation model.
  *
  * @category Types
  */
@@ -85,7 +85,7 @@ export enum SelfieSegmentationLabel {
 }
 
 /**
- * Props for the `useImageSegmentation` hook.
+ * Props for the `useSemanticSegmentation` hook.
  *
  * @typeParam C - A {@link SemanticSegmentationModelSources} config specifying which built-in model to load.
  * @property model - The model config containing `modelName` and `modelSource`.
@@ -101,8 +101,8 @@ export interface SemanticSegmentationProps<
 }
 
 /**
- * Return type for the `useImageSegmentation` hook.
- * Manages the state and operations for image segmentation models.
+ * Return type for the `useSemanticSegmentation` hook.
+ * Manages the state and operations for semantic segmentation models.
  *
  * @typeParam L - The {@link LabelEnum} representing the model's class labels.
  *
