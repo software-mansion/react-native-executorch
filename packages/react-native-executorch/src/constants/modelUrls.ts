@@ -538,11 +538,11 @@ export const WHISPER_SMALL = {
   tokenizerSource: WHISPER_SMALL_TOKENIZER,
 };
 
-// Image segmentation
+// Semantic Segmentation
 const DEEPLAB_V3_RESNET50_MODEL = `${URL_PREFIX}-deeplab-v3/${VERSION_TAG}/xnnpack/deeplabV3_xnnpack_fp32.pte`;
 
 /**
- * @category Models - Image Segmentation
+ * @category Models - Semantic Segmentation
  */
 export const DEEPLAB_V3_RESNET50 = {
   modelName: 'deeplab-v3',
@@ -551,7 +551,7 @@ export const DEEPLAB_V3_RESNET50 = {
 
 const SELFIE_SEGMENTATION_MODEL = `${URL_PREFIX}-selfie-segmentation/${VERSION_TAG}/xnnpack/selfie-segmentation.pte`;
 /**
- * @category Models - Image Segmentation
+ * @category Models - Semantic Segmentation
  */
 export const SELFIE_SEGMENTATION = {
   modelName: 'selfie-segmentation',
