@@ -2149,10 +2149,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@docsearch/css@npm:4.5.3, @docsearch/css@npm:^4.4.0":
+"@docsearch/css@npm:4.5.3":
   version: 4.5.3
   resolution: "@docsearch/css@npm:4.5.3"
   checksum: 10/2e706d9f6f619018a5b19e50cd0227f336361cc747e4659bc533336d5c1bea5e135435aa4e312171c4cadc394b60c54ec9d144dd198a6aa366a8d1dec112505c
+  languageName: node
+  linkType: hard
+
+"@docsearch/css@npm:^4.6.0":
+  version: 4.6.0
+  resolution: "@docsearch/css@npm:4.6.0"
+  checksum: 10/beaa96cc64eda08f58fe25b8e665bbb435e18535f8499de21a3d8d27b7d391c4f6ec3254a406c4a4ea3cc4a2c0c4218c8c18d8fac2249c94fc4cc5dbdf4a879d
   languageName: node
   linkType: hard
 
@@ -6398,7 +6405,7 @@ __metadata:
   resolution: "docs@workspace:."
   dependencies:
     "@docsearch/core": "npm:^4.4.0"
-    "@docsearch/css": "npm:^4.4.0"
+    "@docsearch/css": "npm:^4.6.0"
     "@docsearch/sidepanel": "npm:^4.4.0"
     "@docusaurus/core": "npm:^3.9.2"
     "@docusaurus/module-type-aliases": "npm:^3.9.2"
