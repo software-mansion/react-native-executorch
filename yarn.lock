@@ -6592,7 +6592,7 @@ __metadata:
     react-native-screens: "npm:~4.16.0"
     react-native-svg: "npm:15.12.1"
     react-native-svg-transformer: "npm:^1.5.0"
-    react-native-vision-camera: "patch:react-native-vision-camera@npm%3A5.0.0-beta.1#~/.yarn/patches/react-native-vision-camera@npm-5.0.0-beta.1.patch"
+    react-native-vision-camera: "npm:5.0.0-beta.2"
     react-native-worklets: "npm:^0.7.2"
   languageName: unknown
   linkType: soft
@@ -13498,29 +13498,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-vision-camera@npm:5.0.0-beta.1":
-  version: 5.0.0-beta.1
-  resolution: "react-native-vision-camera@npm:5.0.0-beta.1"
+"react-native-vision-camera@npm:5.0.0-beta.2":
+  version: 5.0.0-beta.2
+  resolution: "react-native-vision-camera@npm:5.0.0-beta.2"
   peerDependencies:
     react: "*"
     react-native: "*"
     react-native-nitro-image: "*"
     react-native-nitro-modules: "*"
     react-native-worklets: "*"
-  checksum: 10/873410a33e33d68b162b6524997480133ef9b6469dce3f87253c371bba1643d326e835891b0c9f75018d376faf4aec23daba5ab729f431c718ecf901601a8d12
-  languageName: node
-  linkType: hard
-
-"react-native-vision-camera@patch:react-native-vision-camera@npm%3A5.0.0-beta.1#~/.yarn/patches/react-native-vision-camera@npm-5.0.0-beta.1.patch":
-  version: 5.0.0-beta.1
-  resolution: "react-native-vision-camera@patch:react-native-vision-camera@npm%3A5.0.0-beta.1#~/.yarn/patches/react-native-vision-camera@npm-5.0.0-beta.1.patch::version=5.0.0-beta.1&hash=b52326"
-  peerDependencies:
-    react: "*"
-    react-native: "*"
-    react-native-nitro-image: "*"
-    react-native-nitro-modules: "*"
-    react-native-worklets: "*"
-  checksum: 10/4ddf9325752243c92c5104b2fe8520d91072d4c359c52708872909b2bb85d136db59215bac1c6f902f04eee683a9d3d8ff11f7729e0468b00dee5aa3bb8f1944
+  checksum: 10/1f38d097d001c10b8544d0b931a9387a91c5df1e0677ae53e639962a90589586af02ca658ca5e99a5ca179af8d86bc8365227cf70750f2df4bfb775f4a26fc6d
   languageName: node
   linkType: hard
 

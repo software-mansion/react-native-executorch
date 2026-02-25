@@ -38,7 +38,7 @@
     "react-native-screens": "~4.16.0",
     "react-native-svg": "15.12.1",
     "react-native-svg-transformer": "^1.5.0",
-    "react-native-vision-camera": "patch:react-native-vision-camera@npm%3A5.0.0-beta.1#~/.yarn/patches/react-native-vision-camera@npm-5.0.0-beta.1.patch",
+    "react-native-vision-camera": "5.0.0-beta.2",
     "react-native-worklets": "^0.7.2"
   },
   "devDependencies": {
