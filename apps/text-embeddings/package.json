@@ -21,7 +21,7 @@
     "expo-linking": "~8.0.10",
     "expo-router": "~6.0.17",
     "expo-status-bar": "~3.0.9",
-    "react": "19.1.0",
+    "react": "19.2.4",
     "react-native": "0.81.5",
     "react-native-executorch": "workspace:*",
     "react-native-gesture-handler": "~2.28.0",
