@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@react-native-executorch/expo-resource-fetcher": "workspace:*",
-    "@react-native/metro-config": "^0.81.5",
+    "@react-native/metro-config": "^0.84.0",
     "@react-navigation/drawer": "^7.3.9",
     "@react-navigation/native": "^7.1.6",
     "expo": "^54.0.27",
