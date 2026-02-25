@@ -13,7 +13,7 @@ This strategy trims the conversation history based purely on the message count.
 
 ### Constructor
 
-> **new MessageCountContextStrategy**(`windowLength`): `MessageCountContextStrategy`
+> **new MessageCountContextStrategy**(`windowLength?`): `MessageCountContextStrategy`
 
 Defined in: [utils/llms/context_strategy/MessageCountContextStrategy.ts:14](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/llms/context_strategy/MessageCountContextStrategy.ts#L14)
 
@@ -23,7 +23,7 @@ Initializes the MessageCountContextStrategy.
 
 #### Parameters
 
-##### windowLength
+##### windowLength?
 
 `number` = `5`
 

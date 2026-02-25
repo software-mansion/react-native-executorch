@@ -42,7 +42,7 @@ Unloads the model from memory.
 
 ### forward()
 
-> **forward**(`text`, `speed`): `Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
+> **forward**(`text`, `speed?`): `Promise`\<`Float32Array`\<`ArrayBufferLike`\>\>
 
 Defined in: [modules/natural_language_processing/TextToSpeechModule.ts:109](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TextToSpeechModule.ts#L109)
 
@@ -57,7 +57,7 @@ Returns a promise that resolves to the full audio waveform as a `Float32Array`.
 
 The input text to be synthesized.
 
-##### speed
+##### speed?
 
 `number` = `1.0`
 
@@ -73,7 +73,7 @@ A promise resolving to the synthesized audio waveform.
 
 ### load()
 
-> **load**(`config`, `onDownloadProgressCallback`): `Promise`\<`void`\>
+> **load**(`config`, `onDownloadProgressCallback?`): `Promise`\<`void`\>
 
 Defined in: [modules/natural_language_processing/TextToSpeechModule.ts:30](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TextToSpeechModule.ts#L30)
 
@@ -88,7 +88,7 @@ Loads the model and voice assets specified by the config object.
 
 Configuration object containing `model` source and `voice`.
 
-##### onDownloadProgressCallback
+##### onDownloadProgressCallback?
 
 (`progress`) => `void`
 
