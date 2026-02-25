@@ -60,9 +60,13 @@ TensorPtr BaseSemanticSegmentation::preprocess(const std::string &imageSource,
 std::shared_ptr<jsi::Object> BaseSemanticSegmentation::generate(
     std::string imageSource,
     std::set<std::string, std::less<>> classesOfInterest, bool resize) {
+  std::scoped_lock lock(inference_mutex_);
 
-  cv::Size originalSize;
-  auto inputTensor = preprocess(imageSource, originalSize);
+  cv::Mat preprocessed = preprocessFrame(image);
+
+  const std::vector<int32_t> tensorDims = getAllInputShapes()[0];
+  auto inputTensor =
+      image_processing::getTensorFromMatrix(tensorDims, preprocessed);
 
   auto forwardResult = BaseModel::forward(inputTensor);
 
@@ -161,8 +165,8 @@ std::shared_ptr<jsi::Object> BaseSemanticSegmentation::postprocess(
   }
 
   // Filter classes of interest
-  auto buffersToReturn = std::make_shared<std::unordered_map<
-      std::string_view, std::shared_ptr<OwningArrayBuffer>>>();
+  auto buffersToReturn = std::make_shared<
+      std::unordered_map<std::string, std::shared_ptr<OwningArrayBuffer>>>();
   for (std::size_t cl = 0; cl < resultClasses.size(); ++cl) {
     if (cl < allClasses.size() && classesOfInterest.contains(allClasses[cl])) {
       (*buffersToReturn)[allClasses[cl]] = resultClasses[cl];

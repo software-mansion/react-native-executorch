@@ -92,6 +92,46 @@ export default function _layout() {
           }}
         />
         <Drawer.Screen
+          name="classification_live/index"
+          options={{
+            drawerLabel: 'Classification (Live)',
+            title: 'Classification (Live)',
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
+        <Drawer.Screen
+          name="image_segmentation_live/index"
+          options={{
+            drawerLabel: 'Image Segmentation (Live)',
+            title: 'Image Segmentation (Live)',
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
+        <Drawer.Screen
+          name="style_transfer_live/index"
+          options={{
+            drawerLabel: 'Style Transfer (Live)',
+            title: 'Style Transfer (Live)',
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
+        <Drawer.Screen
+          name="ocr_live/index"
+          options={{
+            drawerLabel: 'OCR (Live)',
+            title: 'OCR (Live)',
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
+        <Drawer.Screen
+          name="vision_camera_live/index"
+          options={{
+            drawerLabel: 'Vision Camera (Live)',
+            title: 'Vision Camera',
+            headerTitleStyle: { color: ColorPalette.primary },
+          }}
+        />
+        <Drawer.Screen
           name="ocr/index"
           options={{
             drawerLabel: 'OCR',

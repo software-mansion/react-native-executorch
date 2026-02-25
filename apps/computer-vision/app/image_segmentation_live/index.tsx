@@ -11,6 +11,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,25 +26,59 @@ import {
 } from 'react-native-vision-camera';
 import { scheduleOnRN } from 'react-native-worklets';
 import {
-  Detection,
-  SSDLITE_320_MOBILENET_V3_LARGE,
-  useObjectDetection,
+  DEEPLAB_V3_RESNET50,
+  useImageSegmentation,
 } from 'react-native-executorch';
+import {
+  Canvas,
+  Image as SkiaImage,
+  Skia,
+  AlphaType,
+  ColorType,
+  SkImage,
+} from '@shopify/react-native-skia';
 import { GeneratingContext } from '../../context';
 import Spinner from '../../components/Spinner';
 import ColorPalette from '../../colors';
 
-export default function ObjectDetectionLiveScreen() {
-  const insets = useSafeAreaInsets();
-  const [canvasSize, setCanvasSize] = useState({ width: 1, height: 1 });
+// RGBA colors for each DeepLab V3 class (alpha = 180 for semi-transparency)
+const CLASS_COLORS: number[][] = [
+  [0, 0, 0, 0], // 0 background — transparent
+  [51, 255, 87, 180], // 1 aeroplane
+  [51, 87, 255, 180], // 2 bicycle
+  [255, 51, 246, 180], // 3 bird
+  [51, 255, 246, 180], // 4 boat
+  [243, 255, 51, 180], // 5 bottle
+  [141, 51, 255, 180], // 6 bus
+  [255, 131, 51, 180], // 7 car
+  [51, 255, 131, 180], // 8 cat
+  [131, 51, 255, 180], // 9 chair
+  [255, 255, 51, 180], // 10 cow
+  [51, 255, 255, 180], // 11 diningtable
+  [255, 51, 143, 180], // 12 dog
+  [127, 51, 255, 180], // 13 horse
+  [51, 255, 175, 180], // 14 motorbike
+  [255, 175, 51, 180], // 15 person
+  [179, 255, 51, 180], // 16 pottedplant
+  [255, 87, 51, 180], // 17 sheep
+  [255, 51, 162, 180], // 18 sofa
+  [51, 162, 255, 180], // 19 train
+  [162, 51, 255, 180], // 20 tvmonitor
+];
 
-  const model = useObjectDetection({ model: SSDLITE_320_MOBILENET_V3_LARGE });
+export default function ImageSegmentationLiveScreen() {
+  const insets = useSafeAreaInsets();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+
+  const { isReady, isGenerating, downloadProgress, runOnFrame } =
+    useImageSegmentation({ model: DEEPLAB_V3_RESNET50 });
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   useEffect(() => {
-    setGlobalGenerating(model.isGenerating);
-  }, [model.isGenerating, setGlobalGenerating]);
-  const [detectionCount, setDetectionCount] = useState(0);
+    setGlobalGenerating(isGenerating);
+  }, [isGenerating, setGlobalGenerating]);
+
+  const [maskImage, setMaskImage] = useState<SkImage | null>(null);
   const [fps, setFps] = useState(0);
   const lastFrameTimeRef = useRef(Date.now());
 
@@ -60,60 +95,74 @@ export default function ObjectDetectionLiveScreen() {
     }
   }, [device]);
 
-  const updateDetections = useCallback(
-    (payload: {
-      results: Detection[];
-      imageWidth: number;
-      imageHeight: number;
-    }) => {
-      setDetections(payload.results);
-      setImageSize({ width: payload.imageWidth, height: payload.imageHeight });
-      const now = Date.now();
-      const timeDiff = now - lastFrameTimeRef.current;
-      if (timeDiff > 0) {
-        setFps(Math.round(1000 / timeDiff));
-      }
-      lastFrameTimeRef.current = now;
-    },
-    []
-  );
+  const updateMask = useCallback((img: SkImage) => {
+    setMaskImage(img);
+    const now = Date.now();
+    const timeDiff = now - lastFrameTimeRef.current;
+    if (timeDiff > 0) {
+      setFps(Math.round(1000 / timeDiff));
+    }
+    lastFrameTimeRef.current = now;
+  }, []);
 
   const frameOutput = useFrameOutput({
     pixelFormat: 'rgb',
     dropFramesWhileBusy: true,
     onFrame(frame) {
       'worklet';
-      if (!model.runOnFrame) {
+      if (!runOnFrame) {
         frame.dispose();
         return;
       }
-      // After 90° CW rotation, the image fed to the model has swapped dims.
-      const imageWidth =
-        frame.width > frame.height ? frame.height : frame.width;
-      const imageHeight =
-        frame.width > frame.height ? frame.width : frame.height;
       try {
-        const result = model.runOnFrame(frame, 0.5);
-        if (result) {
-          scheduleOnRN(updateDetections, {
-            results: result,
-            imageWidth,
-            imageHeight,
-          });
+        const result = runOnFrame(frame, [], false);
+        if (result?.ARGMAX) {
+          const argmax: Int32Array = result.ARGMAX;
+          // Model output is always square (modelImageSize × modelImageSize).
+          // Derive width/height from argmax length (sqrt for square output).
+          const side = Math.round(Math.sqrt(argmax.length));
+          const width = side;
+          const height = side;
+
+          // Build RGBA pixel buffer on the worklet thread to avoid transferring
+          // the large Int32Array across the worklet→RN boundary via scheduleOnRN.
+          const pixels = new Uint8Array(width * height * 4);
+          for (let i = 0; i < argmax.length; i++) {
+            const color = CLASS_COLORS[argmax[i]] ?? [0, 0, 0, 0];
+            pixels[i * 4] = color[0]!;
+            pixels[i * 4 + 1] = color[1]!;
+            pixels[i * 4 + 2] = color[2]!;
+            pixels[i * 4 + 3] = color[3]!;
+          }
+
+          const skData = Skia.Data.fromBytes(pixels);
+          const img = Skia.Image.MakeImage(
+            {
+              width,
+              height,
+              alphaType: AlphaType.Unpremul,
+              colorType: ColorType.RGBA_8888,
+            },
+            skData,
+            width * 4
+          );
+          if (img) {
+            scheduleOnRN(updateMask, img);
+          }
         }
-      } catch {
-        // ignore frame errors
+      } catch (e) {
+        console.log('frame error:', String(e));
       } finally {
         frame.dispose();
       }
     },
   });
 
-  if (!model.isReady) {
+  if (!isReady) {
     return (
       <Spinner
-        visible={!model.isReady}
-        textContent={`Loading the model ${(model.downloadProgress * 100).toFixed(0)} %`}
+        visible={!isReady}
+        textContent={`Loading the model ${(downloadProgress * 100).toFixed(0)} %`}
       />
     );
   }
@@ -152,54 +201,24 @@ export default function ObjectDetectionLiveScreen() {
         format={format}
       />
 
-      {/* Bounding box overlay — measured to match the exact camera preview area */}
-      <View
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
-        onLayout={(e) =>
-          setCanvasSize({
-            width: e.nativeEvent.layout.width,
-            height: e.nativeEvent.layout.height,
-          })
-        }
-      >
-        {(() => {
-          // Cover-fit: camera preview scales to fill the canvas, cropping the
-          // excess. Compute the same transform so bbox pixel coords map correctly.
-          const scale = Math.max(
-            canvasSize.width / imageSize.width,
-            canvasSize.height / imageSize.height
-          );
-          const offsetX = (canvasSize.width - imageSize.width * scale) / 2;
-          const offsetY = (canvasSize.height - imageSize.height * scale) / 2;
-          return detections.map((det, i) => {
-            const left = det.bbox.x1 * scale + offsetX;
-            const top = det.bbox.y1 * scale + offsetY;
-            const width = (det.bbox.x2 - det.bbox.x1) * scale;
-            const height = (det.bbox.y2 - det.bbox.y1) * scale;
-            return (
-              <View key={i} style={[styles.bbox, { left, top, width, height }]}>
-                <View style={styles.bboxLabel}>
-                  <Text style={styles.bboxLabelText}>
-                    {det.label} {(det.score * 100).toFixed(0)}%
-                  </Text>
-                </View>
-              </View>
-            );
-          });
-        })()}
-      </View>
+      {maskImage && (
+        <Canvas style={StyleSheet.absoluteFill}>
+          <SkiaImage
+            image={maskImage}
+            fit="cover"
+            x={0}
+            y={0}
+            width={screenWidth}
+            height={screenHeight}
+          />
+        </Canvas>
+      )}
 
       <View
         style={[styles.bottomBarWrapper, { paddingBottom: insets.bottom + 12 }]}
         pointerEvents="none"
       >
         <View style={styles.bottomBar}>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{detections.length}</Text>
-            <Text style={styles.statLabel}>objects</Text>
-          </View>
-          <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{fps}</Text>
             <Text style={styles.statLabel}>fps</Text>
@@ -238,26 +257,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.3,
   },
-  bbox: {
-    position: 'absolute',
-    borderWidth: 2,
-    borderColor: ColorPalette.primary,
-    borderRadius: 4,
-  },
-  bboxLabel: {
-    position: 'absolute',
-    top: -22,
-    left: -2,
-    backgroundColor: ColorPalette.primary,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  bboxLabelText: {
-    color: 'white',
-    fontSize: 11,
-    fontWeight: '600',
-  },
   bottomBarWrapper: {
     position: 'absolute',
     bottom: 0,
@@ -289,10 +288,5 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
-  },
-  statDivider: {
-    width: 1,
-    height: 32,
-    backgroundColor: 'rgba(255,255,255,0.2)',
   },
 });

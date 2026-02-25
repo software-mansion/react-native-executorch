@@ -1,17 +1,18 @@
 #include "ImageEmbeddings.h"
 
+#include <span>
+
 #include <executorch/extension/tensor/tensor.h>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/ErrorCodes.h>
 #include <rnexecutorch/data_processing/ImageProcessing.h>
-#include <rnexecutorch/data_processing/Numerical.h>
 
 namespace rnexecutorch::models::embeddings {
 
 ImageEmbeddings::ImageEmbeddings(
     const std::string &modelSource,
     std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseEmbeddings(modelSource, callInvoker) {
+    : VisionModel(modelSource, callInvoker) {
   auto inputTensors = getAllInputShapes();
   if (inputTensors.size() == 0) {
     throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
@@ -31,10 +32,43 @@ ImageEmbeddings::ImageEmbeddings(
                             modelInputShape[modelInputShape.size() - 2]);
 }
 
+cv::Mat ImageEmbeddings::preprocessFrame(const cv::Mat &frame) const {
+  cv::Mat rgb;
+
+  if (frame.channels() == 4) {
+#ifdef __APPLE__
+    cv::cvtColor(frame, rgb, cv::COLOR_BGRA2RGB);
+#else
+    cv::cvtColor(frame, rgb, cv::COLOR_RGBA2RGB);
+#endif
+  } else if (frame.channels() == 3) {
+    rgb = frame;
+  } else {
+    char errorMessage[100];
+    std::snprintf(errorMessage, sizeof(errorMessage),
+                  "Unsupported frame format: %d channels", frame.channels());
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            errorMessage);
+  }
+
+  if (rgb.size() != modelImageSize) {
+    cv::Mat resized;
+    cv::resize(rgb, resized, modelImageSize);
+    return resized;
+  }
+
+  return rgb;
+}
+
 std::shared_ptr<OwningArrayBuffer>
-ImageEmbeddings::generate(std::string imageSource) {
-  auto [inputTensor, originalSize] =
-      image_processing::readImageToTensor(imageSource, getAllInputShapes()[0]);
+ImageEmbeddings::runInference(cv::Mat image) {
+  std::scoped_lock lock(inference_mutex_);
+
+  cv::Mat preprocessed = preprocessFrame(image);
+
+  const std::vector<int32_t> tensorDims = getAllInputShapes()[0];
+  auto inputTensor =
+      image_processing::getTensorFromMatrix(tensorDims, preprocessed);
 
   auto forwardResult = BaseModel::forward(inputTensor);
 
@@ -45,7 +79,33 @@ ImageEmbeddings::generate(std::string imageSource) {
         "is correct.");
   }
 
-  return BaseEmbeddings::postprocess(forwardResult);
+  auto forwardResultTensor = forwardResult->at(0).toTensor();
+  return std::make_shared<OwningArrayBuffer>(
+      forwardResultTensor.const_data_ptr(), forwardResultTensor.nbytes());
+}
+
+std::shared_ptr<OwningArrayBuffer>
+ImageEmbeddings::generateFromString(std::string imageSource) {
+  cv::Mat imageBGR = image_processing::readImage(imageSource);
+
+  cv::Mat imageRGB;
+  cv::cvtColor(imageBGR, imageRGB, cv::COLOR_BGR2RGB);
+
+  return runInference(imageRGB);
+}
+
+std::shared_ptr<OwningArrayBuffer>
+ImageEmbeddings::generateFromFrame(jsi::Runtime &runtime,
+                                   const jsi::Value &frameData) {
+  cv::Mat frame = extractFromFrame(runtime, frameData);
+  return runInference(frame);
+}
+
+std::shared_ptr<OwningArrayBuffer>
+ImageEmbeddings::generateFromPixels(JSTensorViewIn pixelData) {
+  cv::Mat image = extractFromPixels(pixelData);
+
+  return runInference(image);
 }
 
 } // namespace rnexecutorch::models::embeddings

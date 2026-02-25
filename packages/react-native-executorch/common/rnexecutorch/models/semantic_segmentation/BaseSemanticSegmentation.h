@@ -8,7 +8,8 @@
 
 #include "rnexecutorch/metaprogramming/ConstructorHelpers.h"
 #include <rnexecutorch/jsi/OwningArrayBuffer.h>
-#include <rnexecutorch/models/BaseModel.h>
+#include <rnexecutorch/models/VisionModel.h>
+#include <rnexecutorch/models/image_segmentation/Types.h>
 
 namespace rnexecutorch {
 namespace models::semantic_segmentation {
@@ -30,9 +31,9 @@ public:
            std::set<std::string, std::less<>> classesOfInterest, bool resize);
 
 protected:
-  virtual TensorPtr preprocess(const std::string &imageSource,
-                               cv::Size &originalSize);
-  virtual std::shared_ptr<jsi::Object>
+  cv::Mat preprocessFrame(const cv::Mat &frame) const override;
+
+  virtual SegmentationResult
   postprocess(const Tensor &tensor, cv::Size originalSize,
               std::vector<std::string> &allClasses,
               std::set<std::string, std::less<>> &classesOfInterest,
@@ -44,14 +45,15 @@ protected:
   std::optional<cv::Scalar> normStd_;
   std::vector<std::string> allClasses_;
 
-  std::shared_ptr<jsi::Object> populateDictionary(
-      std::shared_ptr<OwningArrayBuffer> argmax,
-      std::shared_ptr<std::unordered_map<std::string_view,
-                                         std::shared_ptr<OwningArrayBuffer>>>
-          classesToOutput);
-
 private:
   void initModelImageSize();
+
+  SegmentationResult runInference(
+      cv::Mat image, cv::Size originalSize, std::vector<std::string> allClasses,
+      std::set<std::string, std::less<>> classesOfInterest, bool resize);
+
+  TensorPtr preprocessFromString(const std::string &imageSource,
+                                 cv::Size &originalSize);
 };
 } // namespace models::semantic_segmentation
 

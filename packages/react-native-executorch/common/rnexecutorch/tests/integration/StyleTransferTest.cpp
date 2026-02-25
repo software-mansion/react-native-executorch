@@ -1,6 +1,4 @@
 #include "BaseModelTests.h"
-#include "utils/TestUtils.h"
-#include <filesystem>
 #include <gtest/gtest.h>
 #include <rnexecutorch/Error.h>
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
@@ -30,7 +28,7 @@ template <> struct ModelTraits<StyleTransfer> {
   }
 
   static void callGenerate(ModelType &model) {
-    (void)model.generate(kValidTestImagePath);
+    (void)model.generateFromString(kValidTestImagePath);
   }
 };
 } // namespace model_tests
@@ -44,51 +42,34 @@ INSTANTIATE_TYPED_TEST_SUITE_P(StyleTransfer, CommonModelTest,
 // ============================================================================
 TEST(StyleTransferGenerateTests, InvalidImagePathThrows) {
   StyleTransfer model(kValidStyleTransferModelPath, nullptr);
-  EXPECT_THROW((void)model.generate("nonexistent_image.jpg"),
+  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg"),
                RnExecutorchError);
 }
 
 TEST(StyleTransferGenerateTests, EmptyImagePathThrows) {
   StyleTransfer model(kValidStyleTransferModelPath, nullptr);
-  EXPECT_THROW((void)model.generate(""), RnExecutorchError);
+  EXPECT_THROW((void)model.generateFromString(""), RnExecutorchError);
 }
 
 TEST(StyleTransferGenerateTests, MalformedURIThrows) {
   StyleTransfer model(kValidStyleTransferModelPath, nullptr);
-  EXPECT_THROW((void)model.generate("not_a_valid_uri://bad"),
+  EXPECT_THROW((void)model.generateFromString("not_a_valid_uri://bad"),
                RnExecutorchError);
 }
 
-TEST(StyleTransferGenerateTests, ValidImageReturnsFilePath) {
+TEST(StyleTransferGenerateTests, ValidImageReturnsNonNull) {
   StyleTransfer model(kValidStyleTransferModelPath, nullptr);
-  auto result = model.generate(kValidTestImagePath);
-  EXPECT_FALSE(result.empty());
-}
-
-TEST(StyleTransferGenerateTests, ResultIsValidFilePath) {
-  StyleTransfer model(kValidStyleTransferModelPath, nullptr);
-  auto result = model.generate(kValidTestImagePath);
-  test_utils::trimFilePrefix(result);
-  EXPECT_TRUE(std::filesystem::exists(result));
-}
-
-TEST(StyleTransferGenerateTests, ResultFileHasContent) {
-  StyleTransfer model(kValidStyleTransferModelPath, nullptr);
-  auto result = model.generate(kValidTestImagePath);
-  test_utils::trimFilePrefix(result);
-  auto fileSize = std::filesystem::file_size(result);
-  EXPECT_GT(fileSize, 0u);
+  auto result = model.generateFromString(kValidTestImagePath);
+  EXPECT_NE(result, nullptr);
 }
 
 TEST(StyleTransferGenerateTests, MultipleGeneratesWork) {
   StyleTransfer model(kValidStyleTransferModelPath, nullptr);
-  EXPECT_NO_THROW((void)model.generate(kValidTestImagePath));
-  auto result1 = model.generate(kValidTestImagePath);
-  auto result2 = model.generate(kValidTestImagePath);
-  test_utils::trimFilePrefix(result1);
-  test_utils::trimFilePrefix(result2);
-  EXPECT_TRUE(std::filesystem::exists(result1));
-  EXPECT_TRUE(std::filesystem::exists(result2));
+  EXPECT_NO_THROW((void)model.generateFromString(kValidTestImagePath));
+  auto result1 = model.generateFromString(kValidTestImagePath);
+  auto result2 = model.generateFromString(kValidTestImagePath);
+  EXPECT_NE(result1, nullptr);
+  EXPECT_NE(result2, nullptr);
 }
 
 TEST(StyleTransferInheritedTests, GetInputShapeWorks) {

@@ -62,6 +62,20 @@ export type SegmentationLabels<M extends SemanticSegmentationModelName> =
 type ResolveLabels<T extends SemanticSegmentationModelName | LabelEnum> =
   ResolveLabelsFor<T, ModelConfigsType>;
 
+function isPixelData(input: unknown): input is PixelData {
+  return (
+    typeof input === 'object' &&
+    input !== null &&
+    'dataPtr' in input &&
+    (input as any).dataPtr instanceof Uint8Array &&
+    'sizes' in input &&
+    Array.isArray((input as any).sizes) &&
+    (input as any).sizes.length === 3 &&
+    'scalarType' in input &&
+    (input as any).scalarType === ScalarType.BYTE
+  );
+}
+
 /**
  * Generic semantic segmentation module with type-safe label maps.
  * Use a model name (e.g. `'deeplab-v3-resnet50'`) as the generic parameter for built-in models,
@@ -82,6 +96,75 @@ export class SemanticSegmentationModule<
 > extends BaseLabeledModule<ResolveLabels<T>> {
   private constructor(labelMap: ResolveLabels<T>, nativeModule: unknown) {
     super(labelMap, nativeModule);
+  }
+
+  /**
+   * Synchronous worklet function for real-time VisionCamera frame processing.
+   * Automatically handles native buffer extraction and cleanup.
+   *
+   * **Use this for VisionCamera frame processing in worklets.**
+   * For async processing, use `forward()` instead.
+   *
+   * Available after model is loaded.
+   *
+   * @example
+   * ```typescript
+   * const [runOnFrame, setRunOnFrame] = useState(null);
+   * setRunOnFrame(() => segmentation.runOnFrame);
+   *
+   * const frameOutput = useFrameOutput({
+   *   onFrame(frame) {
+   *     'worklet';
+   *     if (!runOnFrame) return;
+   *     const result = runOnFrame(frame, [], true);
+   *     frame.dispose();
+   *   }
+   * });
+   * ```
+   *
+   * @param frame - VisionCamera Frame object
+   * @param classesOfInterest - Labels for which to return per-class probability masks.
+   * @param resizeToInput - Whether to resize masks to original frame dimensions. Defaults to `true`.
+   */
+  get runOnFrame():
+    | ((
+        frame: Frame,
+        classesOfInterest?: string[],
+        resizeToInput?: boolean
+      ) => any)
+    | null {
+    if (!this.nativeModule?.generateFromFrame) {
+      return null;
+    }
+
+    const nativeGenerateFromFrame = this.nativeModule.generateFromFrame;
+    const allClassNames = this.allClassNames;
+
+    return (
+      frame: any,
+      classesOfInterest: string[] = [],
+      resizeToInput: boolean = true
+    ): any => {
+      'worklet';
+
+      let nativeBuffer: any = null;
+      try {
+        nativeBuffer = frame.getNativeBuffer();
+        const frameData = {
+          nativeBuffer: nativeBuffer.pointer,
+        };
+        return nativeGenerateFromFrame(
+          frameData,
+          allClassNames,
+          classesOfInterest,
+          resizeToInput
+        );
+      } finally {
+        if (nativeBuffer?.release) {
+          nativeBuffer.release();
+        }
+      }
+    };
   }
 
   /**
@@ -184,14 +267,20 @@ export class SemanticSegmentationModule<
   /**
    * Executes the model's forward pass to perform semantic segmentation on the provided image.
    *
-   * @param imageSource - A string representing the image source (e.g., a file path, URI, or Base64-encoded string).
+   * Supports two input types:
+   * 1. **String path/URI**: File path, URL, or Base64-encoded string
+   * 2. **PixelData**: Raw pixel data from image libraries (e.g., NitroImage)
+   *
+   * **Note**: For VisionCamera frame processing, use `runOnFrame` instead.
+   *
+   * @param input - Image source (string or PixelData object)
    * @param classesOfInterest - An optional list of label keys indicating which per-class probability masks to include in the output. `ARGMAX` is always returned regardless.
    * @param resizeToInput - Whether to resize the output masks to the original input image dimensions. If `false`, returns the raw model output dimensions. Defaults to `true`.
    * @returns A Promise resolving to an object with an `'ARGMAX'` key mapped to an `Int32Array` of per-pixel class indices, and each requested class label mapped to a `Float32Array` of per-pixel probabilities.
    * @throws {RnExecutorchError} If the model is not loaded.
    */
   async forward<K extends keyof ResolveLabels<T>>(
-    imageSource: string,
+    input: string | PixelData,
     classesOfInterest: K[] = [],
     resizeToInput: boolean = true
   ): Promise<Record<'ARGMAX', Int32Array> & Record<K, Float32Array>> {

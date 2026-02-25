@@ -1,5 +1,5 @@
 import { RnExecutorchError } from '../errors/errorUtils';
-import { ResourceSource } from './common';
+import { ResourceSource, PixelData, Frame } from './common';
 
 /**
  * Union of all built-in style transfer model names.
@@ -59,9 +59,30 @@ export interface StyleTransferType {
 
   /**
    * Executes the model's forward pass to apply the specific artistic style to the provided image.
-   * @param imageSource - A string representing the input image source (e.g., a file path, URI, or base64 string) to be stylized.
-   * @returns A Promise that resolves to a string containing the stylized image (typically as a base64 string or a file URI).
+   *
+   * Supports two input types:
+   * 1. **String path/URI**: File path, URL, or Base64-encoded string
+   * 2. **PixelData**: Raw pixel data from image libraries (e.g., NitroImage)
+   *
+   * **Note**: For VisionCamera frame processing, use `runOnFrame` instead.
+   *
+   * @param input - Image source (string or PixelData object)
+   * @returns A Promise that resolves to `PixelData` containing the stylized image as raw RGB pixel data.
    * @throws {RnExecutorchError} If the model is not loaded or is currently processing another image.
    */
-  forward: (imageSource: string) => Promise<string>;
+  forward: (input: string | PixelData) => Promise<PixelData>;
+
+  /**
+   * Synchronous worklet function for real-time VisionCamera frame processing.
+   * Automatically handles native buffer extraction and cleanup.
+   *
+   * **Use this for VisionCamera frame processing in worklets.**
+   * For async processing, use `forward()` instead.
+   *
+   * Available after model is loaded (`isReady: true`).
+   *
+   * @param frame - VisionCamera Frame object
+   * @returns PixelData containing the stylized frame as raw RGB pixel data.
+   */
+  runOnFrame: ((frame: Frame) => PixelData) | null;
 }

@@ -12,7 +12,7 @@ namespace rnexecutorch::models::classification {
 
 Classification::Classification(const std::string &modelSource,
                                std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker) {
+    : VisionModel(modelSource, callInvoker) {
   auto inputShapes = getAllInputShapes();
   if (inputShapes.size() == 0) {
     throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
@@ -32,18 +32,76 @@ Classification::Classification(const std::string &modelSource,
                             modelInputShape[modelInputShape.size() - 2]);
 }
 
+cv::Mat Classification::preprocessFrame(const cv::Mat &frame) const {
+  cv::Mat rgb;
+
+  if (frame.channels() == 4) {
+#ifdef __APPLE__
+    cv::cvtColor(frame, rgb, cv::COLOR_BGRA2RGB);
+#else
+    cv::cvtColor(frame, rgb, cv::COLOR_RGBA2RGB);
+#endif
+  } else if (frame.channels() == 3) {
+    rgb = frame;
+  } else {
+    char errorMessage[100];
+    std::snprintf(errorMessage, sizeof(errorMessage),
+                  "Unsupported frame format: %d channels", frame.channels());
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            errorMessage);
+  }
+
+  if (rgb.size() != modelImageSize) {
+    cv::Mat resized;
+    cv::resize(rgb, resized, modelImageSize);
+    return resized;
+  }
+
+  return rgb;
+}
+
 std::unordered_map<std::string_view, float>
-Classification::generate(std::string imageSource) {
+Classification::runInference(cv::Mat image) {
+  std::scoped_lock lock(inference_mutex_);
+
+  cv::Mat preprocessed = preprocessFrame(image);
+
+  const std::vector<int32_t> tensorDims = getAllInputShapes()[0];
   auto inputTensor =
-      image_processing::readImageToTensor(imageSource, getAllInputShapes()[0])
-          .first;
+      image_processing::getTensorFromMatrix(tensorDims, preprocessed);
+
   auto forwardResult = BaseModel::forward(inputTensor);
   if (!forwardResult.ok()) {
     throw RnExecutorchError(forwardResult.error(),
                             "The model's forward function did not succeed. "
                             "Ensure the model input is correct.");
   }
+
   return postprocess(forwardResult->at(0).toTensor());
+}
+
+std::unordered_map<std::string_view, float>
+Classification::generateFromString(std::string imageSource) {
+  cv::Mat imageBGR = image_processing::readImage(imageSource);
+
+  cv::Mat imageRGB;
+  cv::cvtColor(imageBGR, imageRGB, cv::COLOR_BGR2RGB);
+
+  return runInference(imageRGB);
+}
+
+std::unordered_map<std::string_view, float>
+Classification::generateFromFrame(jsi::Runtime &runtime,
+                                  const jsi::Value &frameData) {
+  cv::Mat frame = extractFromFrame(runtime, frameData);
+  return runInference(frame);
+}
+
+std::unordered_map<std::string_view, float>
+Classification::generateFromPixels(JSTensorViewIn pixelData) {
+  cv::Mat image = extractFromPixels(pixelData);
+
+  return runInference(image);
 }
 
 std::unordered_map<std::string_view, float>
