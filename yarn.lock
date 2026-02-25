@@ -4340,23 +4340,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-navigation/drawer@npm:^7.3.9":
-  version: 7.7.8
-  resolution: "@react-navigation/drawer@npm:7.7.8"
+"@react-navigation/drawer@npm:^7.8.1":
+  version: 7.8.1
+  resolution: "@react-navigation/drawer@npm:7.8.1"
   dependencies:
-    "@react-navigation/elements": "npm:^2.9.1"
+    "@react-navigation/elements": "npm:^2.9.5"
     color: "npm:^4.2.3"
-    react-native-drawer-layout: "npm:^4.2.0"
+    react-native-drawer-layout: "npm:^4.2.2"
     use-latest-callback: "npm:^0.2.4"
   peerDependencies:
-    "@react-navigation/native": ^7.1.24
+    "@react-navigation/native": ^7.1.28
     react: ">= 18.2.0"
     react-native: "*"
     react-native-gesture-handler: ">= 2.0.0"
     react-native-reanimated: ">= 2.0.0"
     react-native-safe-area-context: ">= 4.0.0"
     react-native-screens: ">= 4.0.0"
-  checksum: 10/99ca45d9b0d37fd46dfdd17d43b0a44da5995c67c7b09d92480aa9d9d509834bb156abf2290aa0e4ef6ec2c3b9f83e6e040c73733e4a4f308a1b1ab7900dd57f
+  checksum: 10/1c39458642865379a55ea456937fc6e0eef07b0430b48ece64a2f96f393f81702831ed25981ade1938d1e72701062d4c1c3b60ded377a8edce11d0a3ce7f7af9
   languageName: node
   linkType: hard
 
@@ -4377,6 +4377,26 @@ __metadata:
     "@react-native-masked-view/masked-view":
       optional: true
   checksum: 10/ae4bb3be4773d12001a469cd972467cd4f83affe5eded4e972a9af1a14dee54b13bbb6d8481a7166329e028e9943e63d19ff36473d29b095053ca8de773f8939
+  languageName: node
+  linkType: hard
+
+"@react-navigation/elements@npm:^2.9.5":
+  version: 2.9.5
+  resolution: "@react-navigation/elements@npm:2.9.5"
+  dependencies:
+    color: "npm:^4.2.3"
+    use-latest-callback: "npm:^0.2.4"
+    use-sync-external-store: "npm:^1.5.0"
+  peerDependencies:
+    "@react-native-masked-view/masked-view": ">= 0.2.0"
+    "@react-navigation/native": ^7.1.28
+    react: ">= 18.2.0"
+    react-native: "*"
+    react-native-safe-area-context: ">= 4.0.0"
+  peerDependenciesMeta:
+    "@react-native-masked-view/masked-view":
+      optional: true
+  checksum: 10/b71c367082527dda303dfaa319af930ccbb1622f2cbe018382c8070c91944b59891fcabe048a76590d52ee07eac7ca9acb33e03fdacd8092aff1d58a165b0762
   languageName: node
   linkType: hard
 
@@ -6383,7 +6403,7 @@ __metadata:
     "@babel/core": "npm:^7.25.2"
     "@react-native-executorch/expo-resource-fetcher": "workspace:*"
     "@react-native/metro-config": "npm:^0.81.5"
-    "@react-navigation/drawer": "npm:^7.3.9"
+    "@react-navigation/drawer": "npm:^7.8.1"
     "@react-navigation/native": "npm:^7.1.6"
     "@shopify/react-native-skia": "npm:2.2.12"
     "@types/pngjs": "npm:^6.0.5"
@@ -10473,7 +10493,7 @@ __metadata:
     "@babel/core": "npm:^7.25.2"
     "@react-native-executorch/expo-resource-fetcher": "workspace:*"
     "@react-native/metro-config": "npm:^0.81.5"
-    "@react-navigation/drawer": "npm:^7.3.9"
+    "@react-navigation/drawer": "npm:^7.8.1"
     "@react-navigation/native": "npm:^7.1.6"
     "@types/react": "npm:~19.1.10"
     expo: "npm:^54.0.27"
@@ -13050,9 +13070,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-drawer-layout@npm:^4.2.0":
-  version: 4.2.0
-  resolution: "react-native-drawer-layout@npm:4.2.0"
+"react-native-drawer-layout@npm:^4.2.2":
+  version: 4.2.2
+  resolution: "react-native-drawer-layout@npm:4.2.2"
   dependencies:
     color: "npm:^4.2.3"
     use-latest-callback: "npm:^0.2.4"
@@ -13061,7 +13081,7 @@ __metadata:
     react-native: "*"
     react-native-gesture-handler: ">= 2.0.0"
     react-native-reanimated: ">= 2.0.0"
-  checksum: 10/9226ede6c7b038bbd0a6e16b67898fc6c5a016cc030fbd9f6598dc1dc59a3319e9e7514a1184356645373ce94fdc6f365ebd39887f75ab368a8d99ac48ad4025
+  checksum: 10/eb21cd0004b642c1489d045654486ec7e2f2be7dec0cedad3fa0cb65c23f1df19b60108ffa7b6c14db94b1962d095f2a6e4a76e275ac30ff3ebcd12ba565c99a
   languageName: node
   linkType: hard
 
@@ -14636,7 +14656,7 @@ __metadata:
   dependencies:
     "@babel/core": "npm:^7.25.2"
     "@react-native-executorch/expo-resource-fetcher": "workspace:*"
-    "@react-navigation/drawer": "npm:^7.3.9"
+    "@react-navigation/drawer": "npm:^7.8.1"
     "@types/react": "npm:~19.1.10"
     expo: "npm:^54.0.27"
     expo-constants: "npm:~18.0.11"

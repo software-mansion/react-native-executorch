@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@react-native-executorch/expo-resource-fetcher": "workspace:*",
-    "@react-navigation/drawer": "^7.3.9",
+    "@react-navigation/drawer": "^7.8.1",
     "expo": "^54.0.27",
     "expo-constants": "~18.0.11",
     "expo-linking": "~8.0.10",
