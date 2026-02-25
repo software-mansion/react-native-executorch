@@ -1,7 +1,5 @@
 #pragma once
 
-#include <optional>
-
 #include <executorch/extension/tensor/tensor_ptr.h>
 #include <executorch/runtime/core/evalue.h>
 #include <opencv2/opencv.hpp>
@@ -47,8 +45,8 @@ private:
               const std::vector<std::string> &labelNames);
 
   cv::Size modelImageSize{0, 0};
-  std::optional<cv::Scalar> normMean_;
-  std::optional<cv::Scalar> normStd_;
+  std::vector<float> normMean_;
+  std::vector<float> normStd_;
 };
 } // namespace models::object_detection
 

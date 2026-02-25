@@ -36,11 +36,17 @@ ObjectDetection::ObjectDetection(
     const std::string &modelSource, std::vector<float> normMean,
     std::vector<float> normStd, std::shared_ptr<react::CallInvoker> callInvoker)
     : ObjectDetection(modelSource, callInvoker) {
-  if (normMean.size() >= 3) {
-    normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
+  if (normMean.size() == 3) {
+    normMean_ = std::move(normMean);
+  } else if (!normMean.empty()) {
+    log(LOG_LEVEL::Warn,
+        "normMean must have 3 elements — ignoring provided value.");
   }
-  if (normStd.size() >= 3) {
-    normStd_ = cv::Scalar(normStd[0], normStd[1], normStd[2]);
+  if (normStd.size() == 3) {
+    normStd_ = std::move(normStd);
+  } else if (!normStd.empty()) {
+    log(LOG_LEVEL::Warn,
+        "normStd must have 3 elements — ignoring provided value.");
   }
 }
 
@@ -133,9 +139,11 @@ ObjectDetection::runInference(cv::Mat image, double detectionThreshold,
 
   const std::vector<int32_t> tensorDims = getAllInputShapes()[0];
   auto inputTensor =
-      (normMean_ && normStd_)
-          ? image_processing::getTensorFromMatrix(tensorDims, preprocessed,
-                                                  *normMean_, *normStd_)
+      (!normMean_.empty() && !normStd_.empty())
+          ? image_processing::getTensorFromMatrix(
+                tensorDims, preprocessed,
+                cv::Scalar(normMean_[0], normMean_[1], normMean_[2]),
+                cv::Scalar(normStd_[0], normStd_[1], normStd_[2]))
           : image_processing::getTensorFromMatrix(tensorDims, preprocessed);
 
   auto forwardResult = BaseModel::forward(inputTensor);
