@@ -4926,6 +4926,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-navigation/core@npm:^7.14.0":
+  version: 7.14.0
+  resolution: "@react-navigation/core@npm:7.14.0"
+  dependencies:
+    "@react-navigation/routers": "npm:^7.5.3"
+    escape-string-regexp: "npm:^4.0.0"
+    fast-deep-equal: "npm:^3.1.3"
+    nanoid: "npm:^3.3.11"
+    query-string: "npm:^7.1.3"
+    react-is: "npm:^19.1.0"
+    use-latest-callback: "npm:^0.2.4"
+    use-sync-external-store: "npm:^1.5.0"
+  peerDependencies:
+    react: ">= 18.2.0"
+  checksum: 10/fa43ad12304f0dfa60688c73f59ac374c1900d1bad1823ab2b1454ab7e6376d0038ec2a597f67fa09fabe4381bfd210fb048518d61ad4fc44d6d608a0ceb6a1a
+  languageName: node
+  linkType: hard
+
 "@react-navigation/drawer@npm:^7.8.1":
   version: 7.8.1
   resolution: "@react-navigation/drawer@npm:7.8.1"
@@ -5004,7 +5022,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-navigation/native@npm:^7.1.6, @react-navigation/native@npm:^7.1.8":
+"@react-navigation/native@npm:^7.1.28":
+  version: 7.1.28
+  resolution: "@react-navigation/native@npm:7.1.28"
+  dependencies:
+    "@react-navigation/core": "npm:^7.14.0"
+    escape-string-regexp: "npm:^4.0.0"
+    fast-deep-equal: "npm:^3.1.3"
+    nanoid: "npm:^3.3.11"
+    use-latest-callback: "npm:^0.2.4"
+  peerDependencies:
+    react: ">= 18.2.0"
+    react-native: "*"
+  checksum: 10/64f2d3136ad4034315b2aaf81d0ffd3d73425787aebf3ef7934dfb50931d50cbc3322378fdc240df5d795f5c1ab361038c3200cc24c266c8a089706ca1f4edb7
+  languageName: node
+  linkType: hard
+
+"@react-navigation/native@npm:^7.1.8":
   version: 7.1.24
   resolution: "@react-navigation/native@npm:7.1.24"
   dependencies:
@@ -5026,6 +5060,15 @@ __metadata:
   dependencies:
     nanoid: "npm:^3.3.11"
   checksum: 10/b490b9bf9865cc419dfe9a7c3aa99041e7495b4b48e385716c1f9ce815fb59677c9c667de7e3b17d7e1fad6f9a7da5e26ace6f2ca8cb0be5e65178e9b9cc31a9
+  languageName: node
+  linkType: hard
+
+"@react-navigation/routers@npm:^7.5.3":
+  version: 7.5.3
+  resolution: "@react-navigation/routers@npm:7.5.3"
+  dependencies:
+    nanoid: "npm:^3.3.11"
+  checksum: 10/8b02cf4c9acd7d1ccb0771ebfbf18fa27aa8db4e5653403d9d78a08d1792b9f22654cb36ce3a1150181b141d8cf694d7665007ef005c041bce404d33f44acc73
   languageName: node
   linkType: hard
 
@@ -7227,7 +7270,7 @@ __metadata:
     "@react-native-executorch/expo-resource-fetcher": "workspace:*"
     "@react-native/metro-config": "npm:^0.81.5"
     "@react-navigation/drawer": "npm:^7.8.1"
-    "@react-navigation/native": "npm:^7.1.6"
+    "@react-navigation/native": "npm:^7.1.28"
     "@shopify/react-native-skia": "npm:2.4.21"
     "@types/pngjs": "npm:^6.0.5"
     "@types/react": "npm:~19.1.10"
@@ -11444,7 +11487,7 @@ __metadata:
     "@react-native-executorch/expo-resource-fetcher": "workspace:*"
     "@react-native/metro-config": "npm:^0.84.0"
     "@react-navigation/drawer": "npm:^7.8.1"
-    "@react-navigation/native": "npm:^7.1.6"
+    "@react-navigation/native": "npm:^7.1.28"
     "@types/react": "npm:~19.1.10"
     expo: "npm:^54.0.27"
     expo-brightness: "npm:~14.0.8"
@@ -16017,6 +16060,7 @@ __metadata:
     "@babel/core": "npm:^7.29.0"
     "@react-native-executorch/expo-resource-fetcher": "workspace:*"
     "@react-navigation/drawer": "npm:^7.8.1"
+    "@react-navigation/native": "npm:^7.1.28"
     "@types/react": "npm:~19.1.10"
     expo: "npm:^54.0.27"
     expo-constants: "npm:~18.0.11"
@@ -16033,8 +16077,6 @@ __metadata:
     react-native-screens: "npm:~4.24.0"
     react-native-svg: "npm:15.15.3"
     react-native-worklets: "npm:0.5.1"
-  peerDependencies:
-    "@react-navigation/native": "*"
   languageName: unknown
   linkType: soft
 
