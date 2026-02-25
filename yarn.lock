@@ -6397,7 +6397,7 @@ __metadata:
     metro-config: "npm:^0.81.5"
     react: "npm:19.1.0"
     react-native: "npm:0.81.5"
-    react-native-device-info: "npm:^14.0.4"
+    react-native-device-info: "npm:^15.0.2"
     react-native-executorch: "workspace:*"
     react-native-gesture-handler: "npm:~2.28.0"
     react-native-image-picker: "npm:^7.2.2"
@@ -10488,7 +10488,7 @@ __metadata:
     react: "npm:19.1.0"
     react-native: "npm:0.81.5"
     react-native-audio-api: "npm:^0.8.2"
-    react-native-device-info: "npm:^14.0.4"
+    react-native-device-info: "npm:^15.0.2"
     react-native-executorch: "workspace:*"
     react-native-gesture-handler: "npm:~2.28.0"
     react-native-loading-spinner-overlay: "npm:^3.0.1"
@@ -13041,12 +13041,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-device-info@npm:^14.0.4":
-  version: 14.1.1
-  resolution: "react-native-device-info@npm:14.1.1"
+"react-native-device-info@npm:^15.0.2":
+  version: 15.0.2
+  resolution: "react-native-device-info@npm:15.0.2"
   peerDependencies:
     react-native: "*"
-  checksum: 10/560c5f8d990fc47e7f07ba526b0b016352854b9badac2ec1d5676912ea81df1a15eb05b78e4fb077d552e9dc4b6eff585ea0aad0f5d6a8f23a5cd4bfdf4b4652
+  checksum: 10/9f945a16bd1aebefc60868e22552375bc630eb98d5505d8cdc847d7841a226540408e7ea174cbb4eb5bfec17235eaca731d154082f64e4935e2a4d2e0244b39b
   languageName: node
   linkType: hard
 
@@ -14191,7 +14191,7 @@ __metadata:
     react: "npm:19.1.0"
     react-native: "npm:0.81.5"
     react-native-audio-api: "npm:0.11.3"
-    react-native-device-info: "npm:^14.0.4"
+    react-native-device-info: "npm:^15.0.2"
     react-native-executorch: "workspace:*"
     react-native-reanimated: "npm:~4.1.1"
     react-native-safe-area-context: "npm:~5.6.0"

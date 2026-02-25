@@ -27,7 +27,7 @@
     "react": "19.1.0",
     "react-native": "0.81.5",
     "react-native-audio-api": "^0.8.2",
-    "react-native-device-info": "^14.0.4",
+    "react-native-device-info": "^15.0.2",
     "react-native-executorch": "workspace:*",
     "react-native-gesture-handler": "~2.28.0",
     "react-native-loading-spinner-overlay": "^3.0.1",
