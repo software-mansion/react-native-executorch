@@ -10,7 +10,7 @@ Fixes and validates structured output from LLMs against a provided schema.
 
 ### T
 
-`T` _extends_ `$ZodType`
+`T` _extends_ `$ZodType`\<`unknown`, `unknown`, `$ZodTypeInternals`\<`unknown`, `unknown`\>\>
 
 ## Parameters
 
@@ -22,9 +22,9 @@ The raw output string from the LLM.
 
 ### responseSchema
 
-`any`
-
 The schema (Zod or JSON Schema) to validate the output against.
+
+`Schema` | `T`
 
 ## Returns
 
