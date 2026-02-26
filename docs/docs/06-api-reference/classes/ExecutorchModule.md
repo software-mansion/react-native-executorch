@@ -146,7 +146,7 @@ The input shape as an array of numbers.
 
 ### load()
 
-> **load**(`modelSource`, `onDownloadProgressCallback?`): `Promise`\<`void`\>
+> **load**(`modelSource`, `onDownloadProgressCallback`): `Promise`\<`void`\>
 
 Defined in: [modules/general/ExecutorchModule.ts:22](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/general/ExecutorchModule.ts#L22)
 
@@ -161,7 +161,7 @@ Optionally accepts a download progress callback.
 
 Source of the model to be loaded.
 
-##### onDownloadProgressCallback?
+##### onDownloadProgressCallback
 
 (`progress`) => `void`
 

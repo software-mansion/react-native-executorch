@@ -87,7 +87,7 @@ The encoded output.
 
 ### load()
 
-> **load**(`model`, `onDownloadProgressCallback?`): `Promise`\<`void`\>
+> **load**(`model`, `onDownloadProgressCallback`): `Promise`\<`void`\>
 
 Defined in: [modules/natural_language_processing/SpeechToTextModule.ts:27](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L27)
 
@@ -102,7 +102,7 @@ Loads the model specified by the config object.
 
 Configuration object containing model sources.
 
-##### onDownloadProgressCallback?
+##### onDownloadProgressCallback
 
 (`progress`) => `void`
 
@@ -116,7 +116,7 @@ Optional callback to monitor download progress.
 
 ### stream()
 
-> **stream**(`options?`): `AsyncGenerator`\<\{ `committed`: [`TranscriptionResult`](../interfaces/TranscriptionResult.md); `nonCommitted`: [`TranscriptionResult`](../interfaces/TranscriptionResult.md); \}\>
+> **stream**(`options`): `AsyncGenerator`\<\{ `committed`: [`TranscriptionResult`](../interfaces/TranscriptionResult.md); `nonCommitted`: [`TranscriptionResult`](../interfaces/TranscriptionResult.md); \}\>
 
 Defined in: [modules/natural_language_processing/SpeechToTextModule.ts:133](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L133)
 
@@ -130,7 +130,7 @@ Use with `streamInsert` and `streamStop` to control the stream.
 
 #### Parameters
 
-##### options?
+##### options
 
 [`DecodingOptions`](../interfaces/DecodingOptions.md) = `{}`
 
@@ -182,7 +182,7 @@ Stops the current streaming transcription session.
 
 ### transcribe()
 
-> **transcribe**(`waveform`, `options?`): `Promise`\<[`TranscriptionResult`](../interfaces/TranscriptionResult.md)\>
+> **transcribe**(`waveform`, `options`): `Promise`\<[`TranscriptionResult`](../interfaces/TranscriptionResult.md)\>
 
 Defined in: [modules/natural_language_processing/SpeechToTextModule.ts:109](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L109)
 
@@ -198,7 +198,7 @@ Returns the transcription as a string. Passing `number[]` is deprecated.
 
 The Float32Array audio data.
 
-##### options?
+##### options
 
 [`DecodingOptions`](../interfaces/DecodingOptions.md) = `{}`
 

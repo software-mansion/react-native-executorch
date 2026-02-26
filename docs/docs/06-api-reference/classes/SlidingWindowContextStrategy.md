@@ -17,7 +17,7 @@ to ensure it fits within the model's physical context limits.
 
 ### Constructor
 
-> **new SlidingWindowContextStrategy**(`bufferTokens`, `allowOrphanedAssistantMessages?`): `SlidingWindowContextStrategy`
+> **new SlidingWindowContextStrategy**(`bufferTokens`, `allowOrphanedAssistantMessages`): `SlidingWindowContextStrategy`
 
 Defined in: [utils/llms/context_strategy/SlidingWindowContextStrategy.ts:19](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/llms/context_strategy/SlidingWindowContextStrategy.ts#L19)
 
@@ -31,7 +31,7 @@ Initializes the SlidingWindowContextStrategy.
 
 The number of tokens to keep free for the model's generated response (e.g., 1000).
 
-##### allowOrphanedAssistantMessages?
+##### allowOrphanedAssistantMessages
 
 `boolean` = `false`
 

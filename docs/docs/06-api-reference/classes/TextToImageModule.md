@@ -70,7 +70,7 @@ Unloads the model from memory.
 
 ### forward()
 
-> **forward**(`input`, `imageSize?`, `numSteps?`, `seed?`): `Promise`\<`string`\>
+> **forward**(`input`, `imageSize`, `numSteps`, `seed?`): `Promise`\<`string`\>
 
 Defined in: [modules/computer_vision/TextToImageModule.ts:106](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts#L106)
 
@@ -85,13 +85,13 @@ The resulting image, with dimensions `imageSize`×`imageSize` pixels, is returne
 
 The text prompt to generate the image from.
 
-##### imageSize?
+##### imageSize
 
 `number` = `512`
 
 The desired width and height of the output image in pixels.
 
-##### numSteps?
+##### numSteps
 
 `number` = `5`
 
@@ -190,7 +190,7 @@ Interrupts model generation. The model is stopped in the nearest step.
 
 ### load()
 
-> **load**(`model`, `onDownloadProgressCallback?`): `Promise`\<`void`\>
+> **load**(`model`, `onDownloadProgressCallback`): `Promise`\<`void`\>
 
 Defined in: [modules/computer_vision/TextToImageModule.ts:36](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts#L36)
 
@@ -222,7 +222,7 @@ Object containing sources for tokenizer, scheduler, encoder, unet, and decoder.
 
 [`ResourceSource`](../type-aliases/ResourceSource.md)
 
-##### onDownloadProgressCallback?
+##### onDownloadProgressCallback
 
 (`progress`) => `void`
 

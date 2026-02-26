@@ -145,7 +145,7 @@ The input shape as an array of numbers.
 
 ### load()
 
-> **load**(`model`, `onDownloadProgressCallback?`): `Promise`\<`void`\>
+> **load**(`model`, `onDownloadProgressCallback`): `Promise`\<`void`\>
 
 Defined in: [modules/natural_language_processing/TextEmbeddingsModule.ts:22](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TextEmbeddingsModule.ts#L22)
 
@@ -169,7 +169,7 @@ Object containing model and tokenizer sources.
 
 `ResourceSource` that specifies the location of the tokenizer JSON file.
 
-##### onDownloadProgressCallback?
+##### onDownloadProgressCallback
 
 (`progress`) => `void`
 

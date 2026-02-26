@@ -2,7 +2,7 @@
 
 > `const` **ALL_MINILM_L6_V2**: `object`
 
-Defined in: [constants/modelUrls.ts:586](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L586)
+Defined in: [constants/modelUrls.ts:685](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L685)
 
 ## Type Declaration
 

@@ -58,7 +58,7 @@ Currently supports reading file contents as strings for configuration files.
 
 ### fetch()
 
-> `static` **fetch**(`callback?`, ...`sources`): `Promise`\<`string`[] \| `null`\>
+> `static` **fetch**(`callback`, ...`sources`): `Promise`\<`string`[] \| `null`\>
 
 Defined in: [utils/ResourceFetcher.ts:105](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcher.ts#L105)
 
@@ -66,7 +66,7 @@ Fetches resources (remote URLs, local files or embedded assets), downloads or st
 
 #### Parameters
 
-##### callback?
+##### callback
 
 (`downloadProgress`) => `void`
 

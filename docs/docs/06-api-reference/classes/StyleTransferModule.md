@@ -145,7 +145,7 @@ The input shape as an array of numbers.
 
 ### load()
 
-> **load**(`model`, `onDownloadProgressCallback?`): `Promise`\<`void`\>
+> **load**(`model`, `onDownloadProgressCallback`): `Promise`\<`void`\>
 
 Defined in: [modules/computer_vision/StyleTransferModule.ts:21](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/StyleTransferModule.ts#L21)
 
@@ -162,7 +162,7 @@ Object containing `modelSource`.
 
 [`ResourceSource`](../type-aliases/ResourceSource.md)
 
-##### onDownloadProgressCallback?
+##### onDownloadProgressCallback
 
 (`progress`) => `void`
 
