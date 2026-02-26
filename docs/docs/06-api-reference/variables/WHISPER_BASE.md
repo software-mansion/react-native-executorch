@@ -2,7 +2,7 @@
 
 > `const` **WHISPER_BASE**: `object`
 
-Defined in: [constants/modelUrls.ts:535](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L535)
+Defined in: [constants/modelUrls.ts:534](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L534)
 
 ## Type Declaration
 

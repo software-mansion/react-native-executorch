@@ -2,7 +2,7 @@
 
 > `const` **ALL_MPNET_BASE_V2**: `object`
 
-Defined in: [constants/modelUrls.ts:605](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L605)
+Defined in: [constants/modelUrls.ts:604](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L604)
 
 ## Type Declaration
 

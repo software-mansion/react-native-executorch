@@ -2,7 +2,7 @@
 
 > `const` **STYLE_TRANSFER_MOSAIC**: `object`
 
-Defined in: [constants/modelUrls.ts:436](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L436)
+Defined in: [constants/modelUrls.ts:435](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L435)
 
 ## Type Declaration
 

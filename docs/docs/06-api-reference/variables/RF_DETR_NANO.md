@@ -2,7 +2,7 @@
 
 > `const` **RF_DETR_NANO**: `object`
 
-Defined in: [constants/modelUrls.ts:403](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L403)
+Defined in: [constants/modelUrls.ts:402](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L402)
 
 ## Type Declaration
 
@@ -12,4 +12,4 @@ Defined in: [constants/modelUrls.ts:403](https://github.com/software-mansion/rea
 
 ### modelSource
 
-> `readonly` **modelSource**: `"https://ai.swmansion.com/storage/jc_tests/rfdetr_det.pte"` = `RF_DETR_NANO_MODEL`
+> `readonly` **modelSource**: `"https://huggingface.co/software-mansion/react-native-executorch-rf-detr-nano-detector/resolve/v0.8.0/rf-detr-nano.pte"` = `RF_DETR_NANO_MODEL`

@@ -2,7 +2,7 @@
 
 > `const` **SSDLITE_320_MOBILENET_V3_LARGE**: `object`
 
-Defined in: [constants/modelUrls.ts:395](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L395)
+Defined in: [constants/modelUrls.ts:394](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L394)
 
 ## Type Declaration
 
