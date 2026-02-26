@@ -117,7 +117,7 @@ Benchmark times for text embeddings are highly dependent on the sentence length.
 Image embedding benchmark times are measured using 224×224 pixel images, as required by the model. All input images, whether larger or smaller, are resized to 224×224 before processing. Resizing is typically fast for small images but may be noticeably slower for very large images, which can increase total inference time.
 :::
 
-## Image Segmentation
+## Semantic Segmentation
 
 :::warning
 Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
