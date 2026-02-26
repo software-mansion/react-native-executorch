@@ -11,12 +11,28 @@ import {
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
 import { BaseModule } from '../BaseModule';
+import { IMAGENET1K_MEAN, IMAGENET1K_STD } from '../../constants/commonVision';
 
-const ModelConfigs = {
-  'deeplab-v3': {
-    labelMap: DeeplabLabel,
-    preprocessorConfig: undefined,
+const PascalVocSegmentationConfig = {
+  labelMap: DeeplabLabel,
+  preprocessorConfig: {
+    normMean: IMAGENET1K_MEAN,
+    normStd: IMAGENET1K_STD,
   },
+};
+const ModelConfigs = {
+  'deeplab-v3-resnet50': PascalVocSegmentationConfig,
+  'deeplab-v3-resnet101': PascalVocSegmentationConfig,
+  'deeplab-v3-mobilenet-v3-large': PascalVocSegmentationConfig,
+  'lraspp-mobilenet-v3-large': PascalVocSegmentationConfig,
+  'fcn-resnet50': PascalVocSegmentationConfig,
+  'fcn-resnet101': PascalVocSegmentationConfig,
+  'deeplab-v3-resnet50-quantized': PascalVocSegmentationConfig,
+  'deeplab-v3-resnet101-quantized': PascalVocSegmentationConfig,
+  'deeplab-v3-mobilenet-v3-large-quantized': PascalVocSegmentationConfig,
+  'lraspp-mobilenet-v3-large-quantized': PascalVocSegmentationConfig,
+  'fcn-resnet50-quantized': PascalVocSegmentationConfig,
+  'fcn-resnet101-quantized': PascalVocSegmentationConfig,
   'selfie-segmentation': {
     labelMap: SelfieSegmentationLabel,
     preprocessorConfig: undefined,
@@ -49,11 +65,16 @@ type ResolveLabels<T extends SemanticSegmentationModelName | LabelEnum> =
 
 /**
  * Generic semantic segmentation module with type-safe label maps.
- * Use a model name (e.g. `'deeplab-v3'`) as the generic parameter for built-in models,
+ * Use a model name (e.g. `'deeplab-v3-resnet50'`) as the generic parameter for built-in models,
  * or a custom label enum for custom configs.
  *
- * @typeParam T - Either a built-in model name (`'deeplab-v3'`, `'selfie-segmentation'`)
- *   or a custom {@link LabelEnum} label map.
+ * @typeParam T - Either a built-in model name (`'deeplab-v3-resnet50'`,
+ *   `'deeplab-v3-resnet50-quantized'`, `'deeplab-v3-resnet101'`,
+ *   `'deeplab-v3-resnet101-quantized'`, `'deeplab-v3-mobilenet-v3-large'`,
+ *   `'deeplab-v3-mobilenet-v3-large-quantized'`, `'lraspp-mobilenet-v3-large'`,
+ *   `'lraspp-mobilenet-v3-large-quantized'`, `'fcn-resnet50'`,
+ *   `'fcn-resnet50-quantized'`, `'fcn-resnet101'`, `'fcn-resnet101-quantized'`,
+ *   `'selfie-segmentation'`) or a custom {@link LabelEnum} label map.
  *
  * @category Typescript API
  */
