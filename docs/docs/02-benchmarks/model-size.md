@@ -86,7 +86,7 @@ title: Model Size
 | --------------------------- | :----------: |
 | CLIP_VIT_BASE_PATCH32_IMAGE |     352      |
 
-## Image Segmentation
+## Semantic Segmentation
 
 | Model             | XNNPACK [MB] |
 | ----------------- | ------------ |

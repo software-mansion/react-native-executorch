@@ -83,7 +83,7 @@ The reported memory usage values include the memory footprint of the Phonemis pa
 | --------------------------- | :--------------------: | :----------------: |
 | CLIP_VIT_BASE_PATCH32_IMAGE |          345           |        340         |
 
-## Image Segmentation
+## Semantic Segmentation
 
 :::warning
 Data presented in the following sections is based on inference with non-resized output. When resize is enabled, expect higher memory usage and inference time with higher resolutions.
