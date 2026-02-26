@@ -185,6 +185,13 @@ export class SemanticSegmentationModule<
     );
   }
 
+  InstanceSegConfig = {
+    'yolo26n-seg': {
+      labelMap: LabelEnum,
+      prepocessorConfig: undefined,
+      availableInputSizes: [Number],
+    },
+  };
   /**
    * Executes the model's forward pass to perform semantic segmentation on the provided image.
    *

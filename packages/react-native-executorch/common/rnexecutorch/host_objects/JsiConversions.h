@@ -15,6 +15,7 @@
 #include <rnexecutorch/jsi/OwningArrayBuffer.h>
 
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
+#include <rnexecutorch/models/instance_segmentation/Types.h>
 #include <rnexecutorch/models/object_detection/Constants.h>
 #include <rnexecutorch/models/object_detection/Types.h>
 #include <rnexecutorch/models/ocr/Types.h>
@@ -439,6 +440,46 @@ inline jsi::Value getJsiValue(
                          detections[i].label)));
     detection.setProperty(runtime, "score", detections[i].score);
     array.setValueAtIndex(runtime, i, detection);
+  }
+  return array;
+}
+
+inline jsi::Value getJsiValue(
+    const std::vector<models::instance_segmentation::types::InstanceMask>
+        &instances,
+    jsi::Runtime &runtime) {
+  jsi::Array array(runtime, instances.size());
+  for (std::size_t i = 0; i < instances.size(); ++i) {
+    jsi::Object instance(runtime);
+
+    // Bbox
+    jsi::Object bbox(runtime);
+    bbox.setProperty(runtime, "x1", instances[i].x1);
+    bbox.setProperty(runtime, "y1", instances[i].y1);
+    bbox.setProperty(runtime, "x2", instances[i].x2);
+    bbox.setProperty(runtime, "y2", instances[i].y2);
+    instance.setProperty(runtime, "bbox", bbox);
+
+    // Mask as Uint8Array
+    auto maskBuffer = std::make_shared<OwningArrayBuffer>(
+        instances[i].mask.data(), instances[i].mask.size());
+    jsi::ArrayBuffer arrayBuffer(runtime, maskBuffer);
+    auto uint8ArrayCtor =
+        runtime.global().getPropertyAsFunction(runtime, "Uint8Array");
+    auto uint8Array = uint8ArrayCtor.callAsConstructor(runtime, arrayBuffer)
+                          .getObject(runtime);
+    instance.setProperty(runtime, "mask", uint8Array);
+
+    instance.setProperty(runtime, "maskWidth", instances[i].maskWidth);
+    instance.setProperty(runtime, "maskHeight", instances[i].maskHeight);
+
+    // Label - return as number, let TypeScript convert to string using labelMap
+    instance.setProperty(runtime, "label", instances[i].label);
+
+    instance.setProperty(runtime, "score", instances[i].score);
+    instance.setProperty(runtime, "instanceId", instances[i].instanceId);
+
+    array.setValueAtIndex(runtime, i, instance);
   }
   return array;
 }
