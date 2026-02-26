@@ -11,16 +11,7 @@ using namespace facebook;
 cv::Mat VisionModel::extractFromFrame(jsi::Runtime &runtime,
                                       const jsi::Value &frameData) const {
   auto frameObj = frameData.asObject(runtime);
-  cv::Mat frame = ::rnexecutorch::utils::extractFrame(runtime, frameObj);
-
-  // Camera sensors natively deliver frames in landscape orientation.
-  // Rotate 90° CW so all models receive upright portrait frames.
-  if (frame.cols > frame.rows) {
-    cv::Mat upright;
-    cv::rotate(frame, upright, cv::ROTATE_90_CLOCKWISE);
-    return upright;
-  }
-  return frame;
+  return ::rnexecutorch::utils::extractFrame(runtime, frameObj);
 }
 
 cv::Mat VisionModel::extractFromPixels(const JSTensorViewIn &tensorView) const {

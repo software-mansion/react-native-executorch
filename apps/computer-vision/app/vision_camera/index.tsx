@@ -42,6 +42,7 @@ import {
   Skia,
   SkImage,
 } from '@shopify/react-native-skia';
+import Svg, { Path, Polygon } from 'react-native-svg';
 import { GeneratingContext } from '../../context';
 import Spinner from '../../components/Spinner';
 import ColorPalette from '../../colors';
@@ -119,6 +120,9 @@ export default function VisionCameraScreen() {
   const [activeTask, setActiveTask] = useState<TaskId>('classification');
   const [activeModel, setActiveModel] = useState<ModelId>('classification');
   const [canvasSize, setCanvasSize] = useState({ width: 1, height: 1 });
+  const [cameraPosition, setCameraPosition] = useState<'back' | 'front'>(
+    'back'
+  );
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   const classification = useClassification({
@@ -149,7 +153,8 @@ export default function VisionCameraScreen() {
   const lastFrameTimeRef = useRef(Date.now());
   const cameraPermission = useCameraPermission();
   const devices = useCameraDevices();
-  const device = devices.find((d) => d.position === 'back') ?? devices[0];
+  const device =
+    devices.find((d) => d.position === cameraPosition) ?? devices[0];
   const format = useMemo(() => {
     if (device == null) return undefined;
     try {
@@ -375,7 +380,10 @@ export default function VisionCameraScreen() {
       />
 
       <View
-        style={StyleSheet.absoluteFill}
+        style={[
+          StyleSheet.absoluteFill,
+          cameraPosition === 'front' && { transform: [{ scaleX: -1 }] },
+        ]}
         pointerEvents="none"
         onLayout={(e) =>
           setCanvasSize({
@@ -422,6 +430,9 @@ export default function VisionCameraScreen() {
                     style={[
                       styles.bboxLabel,
                       { backgroundColor: labelColorBg(det.label) },
+                      cameraPosition === 'front' && {
+                        transform: [{ scaleX: -1 }],
+                      },
                     ]}
                   >
                     <Text style={styles.bboxLabelText}>
@@ -517,6 +528,37 @@ export default function VisionCameraScreen() {
             </TouchableOpacity>
           ))}
         </ScrollView>
+      </View>
+
+      <View
+        style={[styles.bottomOverlay, { paddingBottom: insets.bottom + 16 }]}
+        pointerEvents="box-none"
+      >
+        <TouchableOpacity
+          style={styles.flipButton}
+          onPress={() =>
+            setCameraPosition((p) => (p === 'back' ? 'front' : 'back'))
+          }
+        >
+          <Svg width={28} height={28} viewBox="0 0 24 24" fill="none">
+            {/* Camera body */}
+            <Path
+              d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+              stroke="white"
+              strokeWidth={1.8}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {/* Rotate arrows — arc with arrowhead around the lens */}
+            <Path
+              d="M9 13.5a3 3 0 1 0 3-3"
+              stroke="white"
+              strokeWidth={1.8}
+              strokeLinecap="round"
+            />
+            <Polygon points="8,11 9,13.5 11,12" fill="white" />
+          </Svg>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -661,5 +703,22 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0,0,0,0.8)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 6,
+  },
+  bottomOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  flipButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.4)',
   },
 });
