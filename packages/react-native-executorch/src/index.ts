@@ -41,7 +41,13 @@ declare global {
     normMean: Triple<number> | [],
     normStd: Triple<number> | []
   ) => any;
-  var loadInstanceSegmentation: (source: string) => any;
+  var loadInstanceSegmentation: (
+    source: string,
+    postprocessorType: string,
+    normMean: number[] | [],
+    normStd: number[] | [],
+    applyNMS: boolean
+  ) => any;
   var loadClassification: (source: string) => any;
   var loadObjectDetection: (source: string) => any;
   var loadExecutorchModule: (source: string) => any;

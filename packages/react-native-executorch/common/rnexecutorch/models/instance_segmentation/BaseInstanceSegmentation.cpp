@@ -1,4 +1,4 @@
-#include "InstanceSegmentation.h"
+#include "BaseInstanceSegmentation.h"
 
 #include <cmath>
 #include <iostream>
@@ -7,19 +7,33 @@
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 namespace rnexecutorch::models::instance_segmentation {
 
-InstanceSegmentation::InstanceSegmentation(
-    const std::string &modelSource,
+BaseInstanceSegmentation::BaseInstanceSegmentation(
+    const std::string &modelSource, const std::string &postprocessorType,
+    std::vector<float> normMean, std::vector<float> normStd, bool applyNMS,
     std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker) {
-  // For multi-method models (like YOLO with forward_512, forward_640, etc.),
-  // we can't use getAllInputShapes() as it requires a default "forward" method.
-  // Instead, we'll set a default size. The YOLO models typically use 512x512
-  // input. If you need a different size, modify this or the model export to
-  // include a default forward method.
-  modelImageSize = cv::Size(512, 512);
+    : BaseModel(modelSource, callInvoker),
+      postprocessorType_(postprocessorType), applyNMS_(applyNMS) {
+  // Validate postprocessor type
+  if (postprocessorType_ != "yolo" && postprocessorType_ != "rfdetr") {
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::InvalidConfig,
+        "Postprocessor type must be 'yolo' or 'rfdetr'. Got: " +
+            postprocessorType_);
+  }
+
+  // Store normalization parameters if provided
+  if (normMean.size() == 3) {
+    normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
+  }
+  if (normStd.size() == 3) {
+    normStd_ = cv::Scalar(normStd[0], normStd[1], normStd[2]);
+  }
+
+  // For multi-method models, we set a default size
+  modelImageSize = cv::Size(416, 416);
 }
 
-float InstanceSegmentation::intersectionOverUnion(
+float BaseInstanceSegmentation::intersectionOverUnion(
     const types::InstanceMask &a, const types::InstanceMask &b) {
   float x1 = std::max(a.x1, b.x1);
   float y1 = std::max(a.y1, b.y1);
@@ -34,7 +48,7 @@ float InstanceSegmentation::intersectionOverUnion(
   return (unionArea > 0) ? (intersectionArea / unionArea) : 0.0f;
 }
 
-std::vector<types::InstanceMask> InstanceSegmentation::nonMaxSuppression(
+std::vector<types::InstanceMask> BaseInstanceSegmentation::nonMaxSuppression(
     std::vector<types::InstanceMask> instances, double iouThreshold) {
   if (instances.empty()) {
     return {};
@@ -74,12 +88,13 @@ std::vector<types::InstanceMask> InstanceSegmentation::nonMaxSuppression(
   return result;
 }
 
-std::vector<types::InstanceMask> InstanceSegmentation::postprocess(
+std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
     const std::vector<EValue> &tensors, cv::Size originalSize,
     cv::Size modelInputSize, double confidenceThreshold, double iouThreshold,
     int maxInstances, const std::vector<int32_t> &classIndices,
     bool returnMaskAtOriginalResolution) {
 
+  // Validate parameters
   if (confidenceThreshold <= 0 || confidenceThreshold > 1) {
     throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig,
                             "Confidence threshold must be greater than 0 "
@@ -90,6 +105,15 @@ std::vector<types::InstanceMask> InstanceSegmentation::postprocess(
     throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig,
                             "IoU threshold must be greater than 0 "
                             "and less than or equal to 1.");
+  }
+
+  // Check postprocessor type and delegate
+  if (postprocessorType_ == "yolo") {
+    // Continue with YOLO postprocessing below
+  } else if (postprocessorType_ == "rfdetr") {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig,
+                            "RF-DETR postprocessing is not yet implemented. "
+                            "Only YOLO models are currently supported.");
   }
 
   float widthRatio =
@@ -241,9 +265,10 @@ std::vector<types::InstanceMask> InstanceSegmentation::postprocess(
     instances.push_back(std::move(instance));
   }
 
-  // Note: The model already applies NMS internally, but we can apply it again
-  // if requested with a different IoU threshold
-  if (iouThreshold < 0.45) {
+  // Apply NMS if enabled
+  // Note: Some models (like YOLO) already apply NMS internally,
+  // but we can apply it again if requested with a different IoU threshold
+  if (applyNMS_ && iouThreshold < 0.45) {
     // Only apply additional NMS if threshold is stricter than model's default
     instances = nonMaxSuppression(instances, iouThreshold);
   }
@@ -261,64 +286,39 @@ std::vector<types::InstanceMask> InstanceSegmentation::postprocess(
   return instances;
 }
 
-std::vector<types::InstanceMask> InstanceSegmentation::generate(
+std::vector<types::InstanceMask> BaseInstanceSegmentation::generate(
     std::string imageSource, double confidenceThreshold, double iouThreshold,
     int maxInstances, std::vector<int32_t> classIndices,
-    bool returnMaskAtOriginalResolution, std::string methodName) {
+    bool returnMaskAtOriginalResolution, int32_t inputSize) {
 
-  // Parse input size from method name (e.g., "forward_512" -> 512x512)
-  cv::Size inputSize = modelImageSize; // Default to 512x512
+  // Construct method name from inputSize (e.g., 512 -> "forward_512")
+  std::string methodName = getMethodName(inputSize);
+  cv::Size modelInputSize(inputSize, inputSize);
 
-  if (methodName.find("forward_") == 0) {
-    std::string sizeStr = methodName.substr(8); // Skip "forward_"
+  std::cout << "[InstanceSeg] Using method: " << methodName
+            << " with input size: " << inputSize << "x" << inputSize
+            << std::endl;
 
-    // Check for WxH format with 'x' (e.g., "640x384")
-    size_t xPos = sizeStr.find('x');
-    if (xPos != std::string::npos) {
-      // Format: forward_WIDTHxHEIGHT
-      int width = std::stoi(sizeStr.substr(0, xPos));
-      int height = std::stoi(sizeStr.substr(xPos + 1));
-      inputSize = cv::Size(width, height);
-      std::cout << "[InstanceSeg] Parsed " << methodName << " -> W=" << width
-                << " H=" << height << std::endl;
-    } else {
-      // Check for W_H format with underscore (e.g., "640_384")
-      size_t underscorePos = sizeStr.find('_');
-      if (underscorePos != std::string::npos) {
-        // Format: forward_WIDTH_HEIGHT
-        int width = std::stoi(sizeStr.substr(0, underscorePos));
-        int height = std::stoi(sizeStr.substr(underscorePos + 1));
-        inputSize = cv::Size(width, height);
-        std::cout << "[InstanceSeg] Parsed " << methodName << " -> W=" << width
-                  << " H=" << height << std::endl;
-      } else {
-        // Format: forward_SIZE (square)
-        int size = std::stoi(sizeStr);
-        inputSize = cv::Size(size, size);
-        std::cout << "[InstanceSeg] Parsed " << methodName << " -> " << size
-                  << "x" << size << std::endl;
-      }
-    }
-  }
+  // Create input shape
+  std::vector<int32_t> inputShape = {1, 3, inputSize, inputSize};
 
-  // Create input shape based on parsed size
-  std::vector<int32_t> inputShape = {1, 3, inputSize.height, inputSize.width};
-  std::cout << "[InstanceSeg] Input tensor shape: [1, 3, " << inputSize.height
-            << ", " << inputSize.width << "]" << std::endl;
+  // Read and preprocess image with optional normalization
+  // readImageToTensor will apply normalization if normMean_ and normStd_ are
+  // provided
+  auto [inputTensor, originalSize] = image_processing::readImageToTensor(
+      imageSource, inputShape, false, normMean_, normStd_);
 
-  auto [inputTensor, originalSize] =
-      image_processing::readImageToTensor(imageSource, inputShape);
-
-  // Use the specified method name (e.g., "forward_512", "forward_640")
+  // Execute model
   auto forwardResult = BaseModel::execute(methodName, {inputTensor});
   if (!forwardResult.ok()) {
     throw RnExecutorchError(
         forwardResult.error(),
         "The model's forward function did not succeed. "
-        "Ensure the model input is correct and method name is valid.");
+        "Ensure the model input is correct and method name '" +
+            methodName + "' is valid.");
   }
 
-  return postprocess(forwardResult.get(), originalSize, inputSize,
+  return postprocess(forwardResult.get(), originalSize, modelInputSize,
                      confidenceThreshold, iouThreshold, maxInstances,
                      classIndices, returnMaskAtOriginalResolution);
 }

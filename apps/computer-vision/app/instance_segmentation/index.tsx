@@ -33,29 +33,25 @@ import ScreenWrapper from '../../ScreenWrapper';
 const IMAGE_SIZES = [
   {
     size: 384,
-    method: 'forward_384',
     description: 'Baseline - Extreme low-power / simple objects',
   },
   {
     size: 416,
-    method: 'forward_416',
-    description: 'Legacy standard (YOLOv3/v4 era)',
+    description: 'Recommended - Best balance for edge (default)',
   },
   {
     size: 512,
-    method: 'forward_512',
-    description: 'Recommended - Best balance for edge',
+    description: 'Good balance for accuracy',
   },
-  { size: 640, method: 'forward_640', description: 'High accuracy standard' },
+  { size: 640, description: 'High accuracy standard' },
   {
     size: 1024,
-    method: 'forward_1024',
     description: 'Maximum accuracy (optional)',
   },
 ];
 
 interface BenchmarkResult {
-  method: string;
+  inputSize: number;
   description: string;
   resolution: string;
   timeMs: number;
@@ -85,8 +81,8 @@ export default function InstanceSegmentationScreen() {
   const { isReady, isGenerating, downloadProgress, forward, error } =
     useInstanceSegmentation({
       model: {
-        modelName: 'yolo26l-seg',
-        modelSource: 'http://192.168.83.59:3000/yolo26l-seg.pte',
+        modelName: 'yolo26n-seg',
+        modelSource: 'http://192.168.83.59:3000/yolo26n-seg.pte',
       },
     });
 
@@ -100,7 +96,7 @@ export default function InstanceSegmentationScreen() {
   );
   const [isBenchmarking, setIsBenchmarking] = useState(false);
   const [showBenchmark, setShowBenchmark] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState('forward_512');
+  const [selectedInputSize, setSelectedInputSize] = useState(416);
 
   useEffect(() => {
     setGlobalGenerating(isGenerating);
@@ -134,17 +130,17 @@ export default function InstanceSegmentationScreen() {
     console.log(`Image: ${imageUri}`);
     console.log(`Image Size: ${imageSize.width}x${imageSize.height}`);
     console.log('');
-    console.log('ℹ️  NOTE: Your model may only have forward_512 exported.');
-    console.log('   Other methods will fail if not present in the .pte file.');
+    console.log('ℹ️  NOTE: Your model may only support certain input sizes.');
+    console.log(
+      '   Methods will fail if the input size is not exported in the .pte file.'
+    );
     console.log('');
 
     for (const config of IMAGE_SIZES) {
-      const resolution = config.size
-        ? `${config.size}x${config.size}`
-        : `${config.width}x${config.height}`;
+      const resolution = `${config.size}x${config.size}`;
 
       console.log('-'.repeat(60));
-      console.log(`Testing: ${config.method}`);
+      console.log(`Testing: ${config.size}x${config.size}`);
       console.log(`Description: ${config.description}`);
       console.log(`Resolution: ${resolution}`);
       console.log('-'.repeat(60));
@@ -157,7 +153,7 @@ export default function InstanceSegmentationScreen() {
           iouThreshold: 0.45,
           maxInstances: 20,
           returnMaskAtOriginalResolution: true,
-          methodName: config.method,
+          inputSize: config.size,
         });
 
         const endTime = performance.now();
@@ -169,7 +165,7 @@ export default function InstanceSegmentationScreen() {
         console.log('');
 
         results.push({
-          method: config.method,
+          inputSize: config.size,
           description: config.description,
           resolution,
           timeMs,
@@ -178,7 +174,7 @@ export default function InstanceSegmentationScreen() {
         });
 
         // Update UI with the last result
-        if (config.method === IMAGE_SIZES[IMAGE_SIZES.length - 1].method) {
+        if (config.size === IMAGE_SIZES[IMAGE_SIZES.length - 1].size) {
           setInstances(output);
           // Create Skia images for visualization
           const images: SkImage[] = [];
@@ -225,7 +221,7 @@ export default function InstanceSegmentationScreen() {
         console.log('');
 
         results.push({
-          method: config.method,
+          inputSize: config.size,
           description: config.description,
           resolution,
           timeMs: 0,
@@ -253,10 +249,10 @@ export default function InstanceSegmentationScreen() {
         successfulRuns.length;
 
       console.log(
-        `⚡ Fastest: ${fastest.method} - ${fastest.timeMs.toFixed(2)} ms`
+        `⚡ Fastest: ${fastest.inputSize}x${fastest.inputSize} - ${fastest.timeMs.toFixed(2)} ms`
       );
       console.log(
-        `🐌 Slowest: ${slowest.method} - ${slowest.timeMs.toFixed(2)} ms`
+        `🐌 Slowest: ${slowest.inputSize}x${slowest.inputSize} - ${slowest.timeMs.toFixed(2)} ms`
       );
       console.log(`📊 Average: ${avgTime.toFixed(2)} ms`);
       console.log(
@@ -276,18 +272,21 @@ export default function InstanceSegmentationScreen() {
     }
 
     try {
-      console.log(`Running ${selectedMethod} with image:`, imageUri);
+      console.log(
+        `Running ${selectedInputSize}x${selectedInputSize} with image:`,
+        imageUri
+      );
       const startTime = performance.now();
       const output = await forward(imageUri, {
-        confidenceThreshold: 0.7,
-        iouThreshold: 0.15,
+        confidenceThreshold: 0.5,
+        iouThreshold: 0.55,
         maxInstances: 20,
         returnMaskAtOriginalResolution: true,
-        methodName: selectedMethod,
+        inputSize: selectedInputSize,
       });
       const endTime = performance.now();
       console.log(
-        `✅ ${selectedMethod} succeeded in ${(endTime - startTime).toFixed(2)}ms - detected ${output.length} instances`
+        `✅ ${selectedInputSize}x${selectedInputSize} succeeded in ${(endTime - startTime).toFixed(2)}ms - detected ${output.length} instances`
       );
 
       // Debug: log first instance structure
@@ -504,32 +503,32 @@ export default function InstanceSegmentationScreen() {
               style={styles.methodButtonsContainer}
             >
               {[
-                { label: '384', value: 'forward_384' },
-                { label: '416', value: 'forward_416' },
-                { label: '512', value: 'forward_512' },
-                { label: '640', value: 'forward_640' },
-                { label: '1024', value: 'forward_1024' },
-              ].map((method) => (
+                { label: '384', value: 384 },
+                { label: '416', value: 416 },
+                { label: '512', value: 512 },
+                { label: '640', value: 640 },
+                { label: '1024', value: 1024 },
+              ].map((sizeOption) => (
                 <TouchableOpacity
-                  key={method.value}
+                  key={sizeOption.value}
                   style={[
                     styles.methodButton,
-                    selectedMethod === method.value &&
+                    selectedInputSize === sizeOption.value &&
                       styles.methodButtonActive,
                   ]}
                   onPress={() => {
-                    console.log(`Selected method: ${method.value}`);
-                    setSelectedMethod(method.value);
+                    console.log(`Selected input size: ${sizeOption.value}`);
+                    setSelectedInputSize(sizeOption.value);
                   }}
                 >
                   <Text
                     style={[
                       styles.methodButtonText,
-                      selectedMethod === method.value &&
+                      selectedInputSize === sizeOption.value &&
                         styles.methodButtonTextActive,
                     ]}
                   >
-                    {method.label}
+                    {sizeOption.label}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -576,7 +575,8 @@ export default function InstanceSegmentationScreen() {
                 >
                   <View style={styles.benchmarkRowHeader}>
                     <Text style={styles.benchmarkMethod}>
-                      {result.success ? '✅' : '❌'} {result.method}
+                      {result.success ? '✅' : '❌'} {result.inputSize}x
+                      {result.inputSize}
                     </Text>
                     <Text style={styles.benchmarkResolution}>
                       {result.resolution}
@@ -645,28 +645,37 @@ const styles = StyleSheet.create({
   container: {
     flex: 6,
     width: '100%',
+    backgroundColor: '#f8f9fa',
   },
   imageCanvasContainer: {
     flex: 1,
     width: '100%',
-    padding: 16,
+    padding: 20,
   },
   imageContainer: {
     position: 'absolute',
-    top: 16,
-    left: 16,
-    right: 16,
-    bottom: 16,
+    top: 20,
+    left: 20,
+    right: 20,
+    bottom: 20,
+    borderRadius: 24,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 12,
   },
   image: {
     width: '100%',
     height: '100%',
-    borderRadius: 8,
   },
   canvasContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: 24,
+    overflow: 'hidden',
   },
   canvas: {
     width: '100%',
@@ -674,16 +683,23 @@ const styles = StyleSheet.create({
   },
   resultsContainer: {
     maxHeight: 200,
-    padding: 16,
-    backgroundColor: '#f5f5f5',
-    borderTopWidth: 1,
-    borderTopColor: '#ddd',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
   },
   resultsHeader: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#333',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 12,
+    color: '#1a1a1a',
+    letterSpacing: -0.5,
   },
   resultsList: {
     flex: 1,
@@ -691,166 +707,237 @@ const styles = StyleSheet.create({
   resultRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginBottom: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   colorBox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: '#333',
+    width: 24,
+    height: 24,
+    borderRadius: 8,
+    marginRight: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   resultText: {
-    fontSize: 14,
-    color: '#333',
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#2c3e50',
+    letterSpacing: -0.3,
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 32,
+    backgroundColor: '#f8f9fa',
   },
   errorTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#d32f2f',
-    marginBottom: 12,
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#e74c3c',
+    marginBottom: 16,
+    letterSpacing: -0.5,
   },
   errorText: {
-    fontSize: 14,
-    color: '#333',
+    fontSize: 16,
+    color: '#34495e',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
+    lineHeight: 24,
   },
   errorCode: {
-    fontSize: 12,
-    color: '#666',
-    fontFamily: 'monospace',
+    fontSize: 13,
+    color: '#7f8c8d',
+    fontFamily: 'Courier',
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
   benchmarkButtonContainer: {
-    padding: 16,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#ddd',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
   },
   benchmarkButton: {
-    backgroundColor: '#2196F3',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+    backgroundColor: '#667eea',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 16,
     alignItems: 'center',
+    shadowColor: '#667eea',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   benchmarkButtonDisabled: {
-    backgroundColor: '#90CAF9',
+    backgroundColor: '#a8b5f0',
+    shadowOpacity: 0.15,
   },
   benchmarkButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '700',
+    letterSpacing: -0.3,
   },
   benchmarkContainer: {
-    maxHeight: 300,
-    padding: 16,
-    backgroundColor: '#f9f9f9',
-    borderTopWidth: 2,
-    borderTopColor: '#2196F3',
+    maxHeight: 320,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
   },
   benchmarkHeader: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    color: '#2196F3',
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 16,
+    color: '#667eea',
+    letterSpacing: -0.5,
   },
   benchmarkList: {
     flex: 1,
   },
   benchmarkRow: {
-    backgroundColor: '#fff',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: '#4CAF50',
+    backgroundColor: 'rgba(102, 126, 234, 0.05)',
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: '#10b981',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
   benchmarkRowError: {
-    borderColor: '#f44336',
-    backgroundColor: '#ffebee',
+    backgroundColor: 'rgba(239, 68, 68, 0.08)',
+    borderLeftColor: '#ef4444',
   },
   benchmarkRowHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   benchmarkMethod: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    letterSpacing: -0.3,
   },
   benchmarkResolution: {
-    fontSize: 12,
-    color: '#666',
-    fontFamily: 'monospace',
+    fontSize: 13,
+    color: '#6b7280',
+    fontFamily: 'Courier',
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
   },
   benchmarkDescription: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 6,
-    fontStyle: 'italic',
+    fontSize: 13,
+    color: '#6b7280',
+    marginBottom: 8,
+    lineHeight: 18,
   },
   benchmarkStats: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   benchmarkTime: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#4CAF50',
-    fontFamily: 'monospace',
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#10b981',
+    fontFamily: 'Courier',
   },
   benchmarkInstances: {
-    fontSize: 14,
-    color: '#2196F3',
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#667eea',
   },
   benchmarkError: {
-    fontSize: 12,
-    color: '#f44336',
-    fontFamily: 'monospace',
+    fontSize: 13,
+    color: '#ef4444',
+    fontFamily: 'Courier',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
   },
   methodSelectorContainer: {
-    padding: 16,
-    paddingBottom: 8,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#ddd',
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
   },
   methodSelectorLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 12,
+    letterSpacing: -0.3,
   },
   methodButtonsContainer: {
     flexDirection: 'row',
   },
   methodButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    marginRight: 8,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#2196F3',
-    backgroundColor: '#fff',
+    paddingHorizontal: 22,
+    paddingVertical: 12,
+    marginRight: 10,
+    borderRadius: 14,
+    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+    shadowColor: '#667eea',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   methodButtonActive: {
-    backgroundColor: '#2196F3',
-    borderColor: '#2196F3',
+    backgroundColor: '#667eea',
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+    transform: [{ scale: 1.05 }],
   },
   methodButtonText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#2196F3',
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#667eea',
+    letterSpacing: -0.3,
   },
   methodButtonTextActive: {
     color: '#fff',
