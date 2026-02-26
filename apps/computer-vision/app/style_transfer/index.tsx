@@ -44,7 +44,6 @@ export default function StyleTransferScreen() {
         const output = await model.forward(imageUri);
         const height = output.sizes[0];
         const width = output.sizes[1];
-        // Native already returns RGBA uint8 — use directly
         const skData = Skia.Data.fromBytes(output.dataPtr);
         const img = Skia.Image.MakeImage(
           {
