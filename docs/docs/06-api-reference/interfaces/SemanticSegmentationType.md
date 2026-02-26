@@ -1,6 +1,6 @@
 # Interface: SemanticSegmentationType\<L\>
 
-Defined in: [types/semanticSegmentation.ts:118](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L118)
+Defined in: [types/semanticSegmentation.ts:117](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L117)
 
 Return type for the `useSemanticSegmentation` hook.
 Manages the state and operations for semantic segmentation models.
@@ -19,7 +19,7 @@ The [LabelEnum](../type-aliases/LabelEnum.md) representing the model's class lab
 
 > **downloadProgress**: `number`
 
-Defined in: [types/semanticSegmentation.ts:137](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L137)
+Defined in: [types/semanticSegmentation.ts:136](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L136)
 
 Represents the download progress of the model binary as a value between 0 and 1.
 
@@ -29,7 +29,7 @@ Represents the download progress of the model binary as a value between 0 and 1.
 
 > **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
 
-Defined in: [types/semanticSegmentation.ts:122](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L122)
+Defined in: [types/semanticSegmentation.ts:121](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L121)
 
 Contains the error object if the model failed to load, download, or encountered a runtime error during segmentation.
 
@@ -39,7 +39,7 @@ Contains the error object if the model failed to load, download, or encountered 
 
 > **forward**: \<`K`\>(`imageSource`, `classesOfInterest?`, `resizeToInput?`) => `Promise`\<`Record`\<`"ARGMAX"`, `Int32Array`\<`ArrayBufferLike`\>\> & `Record`\<`K`, `Float32Array`\<`ArrayBufferLike`\>\>\>
 
-Defined in: [types/semanticSegmentation.ts:147](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L147)
+Defined in: [types/semanticSegmentation.ts:146](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L146)
 
 Executes the model's forward pass to perform semantic segmentation on the provided image.
 
@@ -85,7 +85,7 @@ If the model is not loaded or is currently processing another image.
 
 > **isGenerating**: `boolean`
 
-Defined in: [types/semanticSegmentation.ts:132](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L132)
+Defined in: [types/semanticSegmentation.ts:131](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L131)
 
 Indicates whether the model is currently processing an image.
 
@@ -95,6 +95,6 @@ Indicates whether the model is currently processing an image.
 
 > **isReady**: `boolean`
 
-Defined in: [types/semanticSegmentation.ts:127](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L127)
+Defined in: [types/semanticSegmentation.ts:126](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L126)
 
 Indicates whether the segmentation model is loaded and ready to process images.
