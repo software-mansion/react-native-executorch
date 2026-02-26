@@ -1,6 +1,6 @@
 # Interface: LLMConfig
 
-Defined in: [types/llm.ts:133](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L133)
+Defined in: [types/llm.ts:123](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L123)
 
 Configuration object for initializing and customizing a Large Language Model (LLM) instance.
 
@@ -10,7 +10,7 @@ Configuration object for initializing and customizing a Large Language Model (LL
 
 > `optional` **chatConfig**: `Partial`\<[`ChatConfig`](ChatConfig.md)\>
 
-Defined in: [types/llm.ts:143](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L143)
+Defined in: [types/llm.ts:133](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L133)
 
 Object configuring chat management, contains following properties:
 
@@ -26,7 +26,7 @@ Object configuring chat management, contains following properties:
 
 > `optional` **generationConfig**: [`GenerationConfig`](GenerationConfig.md)
 
-Defined in: [types/llm.ts:167](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L167)
+Defined in: [types/llm.ts:157](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L157)
 
 Object configuring generation settings.
 
@@ -44,7 +44,7 @@ Object configuring generation settings.
 
 > `optional` **toolsConfig**: [`ToolsConfig`](ToolsConfig.md)
 
-Defined in: [types/llm.ts:154](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L154)
+Defined in: [types/llm.ts:144](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L144)
 
 Object configuring options for enabling and managing tool use. **It will only have effect if your model's chat template support it**. Contains following properties:
 

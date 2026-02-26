@@ -1,6 +1,6 @@
 # Class: ExecutorchModule
 
-Defined in: [modules/general/ExecutorchModule.ts:14](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/general/ExecutorchModule.ts#L14)
+Defined in: [modules/general/ExecutorchModule.ts:13](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/general/ExecutorchModule.ts#L13)
 
 General module for executing custom Executorch models.
 
@@ -42,7 +42,7 @@ Native module instance
 
 > **delete**(): `void`
 
-Defined in: [modules/BaseModule.ts:41](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L41)
+Defined in: [modules/BaseModule.ts:39](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L39)
 
 Unloads the model from memory.
 
@@ -60,7 +60,7 @@ Unloads the model from memory.
 
 > **forward**(`inputTensor`): `Promise`\<[`TensorPtr`](../interfaces/TensorPtr.md)[]\>
 
-Defined in: [modules/general/ExecutorchModule.ts:51](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/general/ExecutorchModule.ts#L51)
+Defined in: [modules/general/ExecutorchModule.ts:48](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/general/ExecutorchModule.ts#L48)
 
 Executes the model's forward pass, where input is an array of `TensorPtr` objects.
 If the inference is successful, an array of tensor pointers is returned.
@@ -85,7 +85,7 @@ An array of output tensor pointers.
 
 > `protected` **forwardET**(`inputTensor`): `Promise`\<[`TensorPtr`](../interfaces/TensorPtr.md)[]\>
 
-Defined in: [modules/BaseModule.ts:23](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L23)
+Defined in: [modules/BaseModule.ts:22](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L22)
 
 Runs the model's forward method with the given input tensors.
 It returns the output tensors that mimic the structure of output from ExecuTorch.
@@ -114,7 +114,7 @@ Array of output tensors.
 
 > **getInputShape**(`methodName`, `index`): `Promise`\<`number`[]\>
 
-Defined in: [modules/BaseModule.ts:34](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L34)
+Defined in: [modules/BaseModule.ts:32](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L32)
 
 Gets the input shape for a given method and index.
 
@@ -148,7 +148,7 @@ The input shape as an array of numbers.
 
 > **load**(`modelSource`, `onDownloadProgressCallback`): `Promise`\<`void`\>
 
-Defined in: [modules/general/ExecutorchModule.ts:22](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/general/ExecutorchModule.ts#L22)
+Defined in: [modules/general/ExecutorchModule.ts:20](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/general/ExecutorchModule.ts#L20)
 
 Loads the model, where `modelSource` is a string, number, or object that specifies the location of the model binary.
 Optionally accepts a download progress callback.

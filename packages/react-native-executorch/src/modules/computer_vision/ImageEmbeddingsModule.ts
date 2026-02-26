@@ -7,13 +7,11 @@ import { Logger } from '../../common/Logger';
 
 /**
  * Module for generating image embeddings from input images.
- *
  * @category Typescript API
  */
 export class ImageEmbeddingsModule extends BaseModule {
   /**
    * Loads the model, where `modelSource` is a string that specifies the location of the model binary.
-   *
    * @param model - Object containing `modelSource`.
    * @param onDownloadProgressCallback - Optional callback to monitor download progress.
    */
@@ -43,7 +41,6 @@ export class ImageEmbeddingsModule extends BaseModule {
 
   /**
    * Executes the model's forward pass. Returns an embedding array for a given sentence.
-   *
    * @param imageSource - The image source (URI/URL) to image that will be embedded.
    * @returns A Float32Array containing the image embeddings.
    */

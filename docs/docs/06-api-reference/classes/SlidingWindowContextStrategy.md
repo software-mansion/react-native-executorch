@@ -1,13 +1,12 @@
 # Class: SlidingWindowContextStrategy
 
-Defined in: [utils/llms/context_strategy/SlidingWindowContextStrategy.ts:12](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/llms/context_strategy/SlidingWindowContextStrategy.ts#L12)
+Defined in: [utils/llms/context_strategy/SlidingWindowContextStrategy.ts:11](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/llms/context_strategy/SlidingWindowContextStrategy.ts#L11)
 
 An advanced, token-aware context strategy that dynamically trims the message history
 to ensure it fits within the model's physical context limits.
-
-- This strategy calculates the exact token count of the formatted prompt. If the prompt
-  exceeds the allowed token budget (`maxContextLength` - `bufferTokens`), it recursively
-  removes the oldest messages.
+This strategy calculates the exact token count of the formatted prompt. If the prompt
+exceeds the allowed token budget (`maxContextLength` - `bufferTokens`), it recursively
+removes the oldest messages.
 
 ## Implements
 
@@ -19,7 +18,7 @@ to ensure it fits within the model's physical context limits.
 
 > **new SlidingWindowContextStrategy**(`bufferTokens`, `allowOrphanedAssistantMessages`): `SlidingWindowContextStrategy`
 
-Defined in: [utils/llms/context_strategy/SlidingWindowContextStrategy.ts:19](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/llms/context_strategy/SlidingWindowContextStrategy.ts#L19)
+Defined in: [utils/llms/context_strategy/SlidingWindowContextStrategy.ts:18](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/llms/context_strategy/SlidingWindowContextStrategy.ts#L18)
 
 Initializes the SlidingWindowContextStrategy.
 
@@ -48,7 +47,7 @@ If false, the strategy will ensure that an assistant message is not left without
 
 > **buildContext**(`systemPrompt`, `history`, `maxContextLength`, `getTokenCount`): [`Message`](../interfaces/Message.md)[]
 
-Defined in: [utils/llms/context_strategy/SlidingWindowContextStrategy.ts:34](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/llms/context_strategy/SlidingWindowContextStrategy.ts#L34)
+Defined in: [utils/llms/context_strategy/SlidingWindowContextStrategy.ts:32](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/llms/context_strategy/SlidingWindowContextStrategy.ts#L32)
 
 Builds the context by recursively evicting the oldest messages until the total
 token count is safely within the defined budget.

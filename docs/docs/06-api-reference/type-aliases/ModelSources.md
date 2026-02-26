@@ -2,7 +2,7 @@
 
 > **ModelSources** = \{ `modelName`: `"deeplab-v3"`; `modelSource`: [`ResourceSource`](ResourceSource.md); \} \| \{ `modelName`: `"selfie-segmentation"`; `modelSource`: [`ResourceSource`](ResourceSource.md); \}
 
-Defined in: [types/imageSegmentation.ts:27](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L27)
+Defined in: [types/imageSegmentation.ts:24](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L24)
 
 Per-model config for [ImageSegmentationModule.fromModelName](../classes/ImageSegmentationModule.md#frommodelname).
 Each model name maps to its required fields.

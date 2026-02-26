@@ -31,18 +31,16 @@ type ModelConfigsType = typeof ModelConfigs;
 
 /**
  * Resolves the {@link LabelEnum} for a given built-in model name.
- *
  * @typeParam M - A built-in model name from {@link SegmentationModelName}.
- *
  * @category Types
  */
 export type SegmentationLabels<M extends SegmentationModelName> =
   ModelConfigsType[M]['labelMap'];
 
 /**
- * @internal
  * Resolves the label type: if `T` is a {@link SegmentationModelName}, looks up its labels
  * from the built-in config; otherwise uses `T` directly as a {@link LabelEnum}.
+ * @internal
  */
 type ResolveLabels<T extends SegmentationModelName | LabelEnum> =
   T extends SegmentationModelName ? SegmentationLabels<T> : T;
@@ -51,10 +49,8 @@ type ResolveLabels<T extends SegmentationModelName | LabelEnum> =
  * Generic image segmentation module with type-safe label maps.
  * Use a model name (e.g. `'deeplab-v3'`) as the generic parameter for built-in models,
  * or a custom label enum for custom configs.
- *
  * @typeParam T - Either a built-in model name (`'deeplab-v3'`, `'selfie-segmentation'`)
  *   or a custom {@link LabelEnum} label map.
- *
  * @category Typescript API
  */
 export class ImageSegmentationModule<
@@ -78,11 +74,9 @@ export class ImageSegmentationModule<
   /**
    * Creates a segmentation instance for a built-in model.
    * The config object is discriminated by `modelName` — each model can require different fields.
-   *
    * @param config - A {@link ModelSources} object specifying which model to load and where to fetch it from.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @returns A Promise resolving to an `ImageSegmentationModule` instance typed to the chosen model's label map.
-   *
    * @example
    * ```ts
    * const segmentation = await ImageSegmentationModule.fromModelName({
@@ -124,12 +118,10 @@ export class ImageSegmentationModule<
   /**
    * Creates a segmentation instance with a user-provided label map and custom config.
    * Use this when working with a custom-exported segmentation model that is not one of the built-in models.
-   *
    * @param modelSource - A fetchable resource pointing to the model binary.
    * @param config - A {@link SegmentationConfig} object with the label map and optional preprocessing parameters.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @returns A Promise resolving to an `ImageSegmentationModule` instance typed to the provided label map.
-   *
    * @example
    * ```ts
    * const MyLabels = { BACKGROUND: 0, FOREGROUND: 1 } as const;
@@ -166,7 +158,6 @@ export class ImageSegmentationModule<
 
   /**
    * Executes the model's forward pass to perform semantic segmentation on the provided image.
-   *
    * @param imageSource - A string representing the image source (e.g., a file path, URI, or Base64-encoded string).
    * @param classesOfInterest - An optional list of label keys indicating which per-class probability masks to include in the output. `ARGMAX` is always returned regardless.
    * @param resizeToInput - Whether to resize the output masks to the original input image dimensions. If `false`, returns the raw model output dimensions. Defaults to `true`.

@@ -1,11 +1,10 @@
 # Class: NoopContextStrategy
 
-Defined in: [utils/llms/context_strategy/NoopContextStrategy.ts:10](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/llms/context_strategy/NoopContextStrategy.ts#L10)
+Defined in: [utils/llms/context_strategy/NoopContextStrategy.ts:9](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/llms/context_strategy/NoopContextStrategy.ts#L9)
 
 A context strategy that performs no filtering or trimming of the message history.
-
-- This strategy is ideal when the developer wants to manually manage the conversation
-  context.
+This strategy is ideal when the developer wants to manually manage the conversation
+context.
 
 ## Implements
 
@@ -27,7 +26,7 @@ A context strategy that performs no filtering or trimming of the message history
 
 > **buildContext**(`systemPrompt`, `history`, `_maxContextLength`, `_getTokenCount`): [`Message`](../interfaces/Message.md)[]
 
-Defined in: [utils/llms/context_strategy/NoopContextStrategy.ts:20](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/llms/context_strategy/NoopContextStrategy.ts#L20)
+Defined in: [utils/llms/context_strategy/NoopContextStrategy.ts:18](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/llms/context_strategy/NoopContextStrategy.ts#L18)
 
 Builds the context by prepending the system prompt to the entire unfiltered history.
 

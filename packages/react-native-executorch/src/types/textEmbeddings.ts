@@ -3,9 +3,8 @@ import { ResourceSource } from '../types/common';
 
 /**
  * Props for the useTextEmbeddings hook.
- *
  * @category Types
- * @property {Object} model - An object containing the model and tokenizer sources.
+ * @property {object} model - An object containing the model and tokenizer sources.
  * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
  */
 export interface TextEmbeddingsProps {
@@ -24,7 +23,6 @@ export interface TextEmbeddingsProps {
 
 /**
  * React hook state and methods for managing a Text Embeddings model instance.
- *
  * @category Types
  */
 export interface TextEmbeddingsType {

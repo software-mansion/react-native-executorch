@@ -7,7 +7,6 @@ import {
 
 /**
  * React hook for managing an Object Detection model instance.
- *
  * @category Hooks
  * @param ObjectDetectionProps - Configuration object containing `model` source and optional `preventLoad` flag.
  * @returns Ready to use Object Detection model.

@@ -1,6 +1,6 @@
 # Interface: TranscriptionSegment
 
-Defined in: [types/stt.ts:228](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/stt.ts#L228)
+Defined in: [types/stt.ts:222](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/stt.ts#L222)
 
 Structure that represent single Segment of transcription.
 
@@ -10,7 +10,7 @@ Structure that represent single Segment of transcription.
 
 > **avgLogprob**: `number`
 
-Defined in: [types/stt.ts:235](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/stt.ts#L235)
+Defined in: [types/stt.ts:229](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/stt.ts#L229)
 
 Average log probability calculated across all tokens in a segment.
 
@@ -20,7 +20,7 @@ Average log probability calculated across all tokens in a segment.
 
 > **compressionRatio**: `number`
 
-Defined in: [types/stt.ts:236](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/stt.ts#L236)
+Defined in: [types/stt.ts:230](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/stt.ts#L230)
 
 Compression ration achieved on a given segment.
 
@@ -30,7 +30,7 @@ Compression ration achieved on a given segment.
 
 > **end**: `number`
 
-Defined in: [types/stt.ts:230](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/stt.ts#L230)
+Defined in: [types/stt.ts:224](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/stt.ts#L224)
 
 Timestamp of the end of the segment in audio (in seconds).
 
@@ -40,7 +40,7 @@ Timestamp of the end of the segment in audio (in seconds).
 
 > **start**: `number`
 
-Defined in: [types/stt.ts:229](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/stt.ts#L229)
+Defined in: [types/stt.ts:223](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/stt.ts#L223)
 
 Timestamp of the beginning of the segment in audio (in seconds).
 
@@ -50,7 +50,7 @@ Timestamp of the beginning of the segment in audio (in seconds).
 
 > **temperature**: `number`
 
-Defined in: [types/stt.ts:234](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/stt.ts#L234)
+Defined in: [types/stt.ts:228](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/stt.ts#L228)
 
 Temperature for which given segment was computed.
 
@@ -60,7 +60,7 @@ Temperature for which given segment was computed.
 
 > **text**: `string`
 
-Defined in: [types/stt.ts:231](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/stt.ts#L231)
+Defined in: [types/stt.ts:225](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/stt.ts#L225)
 
 Full text of the given segment as a string.
 
@@ -70,7 +70,7 @@ Full text of the given segment as a string.
 
 > **tokens**: `number`[]
 
-Defined in: [types/stt.ts:233](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/stt.ts#L233)
+Defined in: [types/stt.ts:227](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/stt.ts#L227)
 
 Raw tokens represented as table of integers.
 
@@ -80,7 +80,7 @@ Raw tokens represented as table of integers.
 
 > `optional` **words**: [`Word`](Word.md)[]
 
-Defined in: [types/stt.ts:232](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/stt.ts#L232)
+Defined in: [types/stt.ts:226](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/stt.ts#L226)
 
 If `verbose` set to `true` in `DecodingOptions`, it returns word-level timestamping
 as an array of `Word`.

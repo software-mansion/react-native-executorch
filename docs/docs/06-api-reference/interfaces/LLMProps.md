@@ -1,6 +1,6 @@
 # Interface: LLMProps
 
-Defined in: [types/llm.ts:9](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L9)
+Defined in: [types/llm.ts:8](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L8)
 
 Properties for initializing and configuring a Large Language Model (LLM) instance.
 
@@ -10,7 +10,7 @@ Properties for initializing and configuring a Large Language Model (LLM) instanc
 
 > **model**: `object`
 
-Defined in: [types/llm.ts:10](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L10)
+Defined in: [types/llm.ts:9](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L9)
 
 #### modelSource
 
@@ -36,6 +36,6 @@ Defined in: [types/llm.ts:10](https://github.com/software-mansion/react-native-e
 
 > `optional` **preventLoad**: `boolean`
 
-Defined in: [types/llm.ts:27](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L27)
+Defined in: [types/llm.ts:26](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L26)
 
 Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.

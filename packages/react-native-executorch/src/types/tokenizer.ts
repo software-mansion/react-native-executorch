@@ -3,7 +3,6 @@ import { ResourceSource } from './common';
 
 /**
  * Parameters for initializing and configuring a Tokenizer instance.
- *
  * @category Types
  */
 export interface TokenizerProps {
@@ -22,7 +21,6 @@ export interface TokenizerProps {
 
 /**
  * React hook state and methods for managing a Tokenizer instance.
- *
  * @category Types
  */
 export interface TokenizerType {

@@ -2,7 +2,7 @@
 
 > **SegmentationConfig**\<`T`\> = `object`
 
-Defined in: [types/imageSegmentation.ts:15](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L15)
+Defined in: [types/imageSegmentation.ts:13](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L13)
 
 Configuration for a custom segmentation model.
 
@@ -20,7 +20,7 @@ The [LabelEnum](LabelEnum.md) type for the model.
 
 > **labelMap**: `T`
 
-Defined in: [types/imageSegmentation.ts:16](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L16)
+Defined in: [types/imageSegmentation.ts:14](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L14)
 
 The enum-like object mapping class names to indices.
 
@@ -30,7 +30,7 @@ The enum-like object mapping class names to indices.
 
 > `optional` **preprocessorConfig**: `object`
 
-Defined in: [types/imageSegmentation.ts:17](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L17)
+Defined in: [types/imageSegmentation.ts:15](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/imageSegmentation.ts#L15)
 
 Optional preprocessing parameters.
 

@@ -1,6 +1,6 @@
 # Enumeration: HTTP_CODE
 
-Defined in: [utils/ResourceFetcherUtils.ts:8](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L8)
+Defined in: [utils/ResourceFetcherUtils.ts:7](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L7)
 
 Http status codes
 
@@ -12,7 +12,7 @@ Http status codes
 
 Defined in: [utils/ResourceFetcherUtils.ts:11](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L11)
 
-- Everything is ok.
+Everything is ok.
 
 ---
 
@@ -20,6 +20,6 @@ Defined in: [utils/ResourceFetcherUtils.ts:11](https://github.com/software-mansi
 
 > **PARTIAL_CONTENT**: `206`
 
-Defined in: [utils/ResourceFetcherUtils.ts:15](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L15)
+Defined in: [utils/ResourceFetcherUtils.ts:16](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L16)
 
-- Server has fulfilled a client request for a specific part of a resource, instead of sending the entire file.
+Server has fulfilled a client request for a specific part of a resource, instead of sending the entire file.

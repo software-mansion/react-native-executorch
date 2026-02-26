@@ -2,7 +2,7 @@
 
 > **useExecutorchModule**(`executorchModuleProps`): [`ExecutorchModuleType`](../interfaces/ExecutorchModuleType.md)
 
-Defined in: [hooks/general/useExecutorchModule.ts:15](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/hooks/general/useExecutorchModule.ts#L15)
+Defined in: [hooks/general/useExecutorchModule.ts:14](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/hooks/general/useExecutorchModule.ts#L14)
 
 React hook for managing an arbitrary Executorch module instance.
 

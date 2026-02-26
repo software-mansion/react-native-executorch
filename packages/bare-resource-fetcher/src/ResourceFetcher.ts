@@ -4,9 +4,7 @@
  * This module provides functions to download and manage files stored in the application's document directory
  * inside the `react-native-executorch/` directory. These utilities help manage storage and clean up downloaded
  * files when they are no longer needed.
- *
  * @category Utilities - General
- *
  * @remarks
  * **Key Functionality:**
  * - **Download Control**: Pause, resume, and cancel operations through:
@@ -97,7 +95,6 @@ interface BareResourceFetcherInterface extends ResourceFetcherAdapter {
 /**
  * This module provides functions to download and work with downloaded files stored in the application's document directory inside the `react-native-executorch/` directory.
  * These utilities can help you manage your storage and clean up the downloaded files when they are no longer needed.
- *
  * @category Utilities - General
  */
 export const BareResourceFetcher: BareResourceFetcherInterface = {
@@ -105,7 +102,6 @@ export const BareResourceFetcher: BareResourceFetcherInterface = {
 
   /**
    * Fetches resources (remote URLs, local files or embedded assets), downloads or stores them locally for use by React Native ExecuTorch.
-   *
    * @param callback - Optional callback to track progress of all downloads, reported between 0 and 1.
    * @param sources - Multiple resources that can be strings, asset references, or objects.
    * @returns If the fetch was successful, it returns a promise which resolves to an array of local file paths for the downloaded/stored resources (without file:// prefix).
@@ -315,7 +311,6 @@ export const BareResourceFetcher: BareResourceFetcherInterface = {
 
   /**
    * Pauses an ongoing download of files.
-   *
    * @param sources - The resource identifiers used when calling `fetch`.
    * @returns A promise that resolves once the download is paused.
    */
@@ -326,7 +321,6 @@ export const BareResourceFetcher: BareResourceFetcherInterface = {
 
   /**
    * Resumes a paused download of files.
-   *
    * @param sources - The resource identifiers used when calling fetch.
    * @returns If the fetch was successful, it returns a promise which resolves to an array of local file paths for the downloaded resources (without file:// prefix).
    * If the fetch was again interrupted by `pauseFetching` or `cancelFetching`, it returns a promise which resolves to `null`.
@@ -338,7 +332,6 @@ export const BareResourceFetcher: BareResourceFetcherInterface = {
 
   /**
    * Cancels an ongoing/paused download of files.
-   *
    * @param sources - The resource identifiers used when calling `fetch()`.
    * @returns A promise that resolves once the download is canceled.
    */
@@ -361,7 +354,6 @@ export const BareResourceFetcher: BareResourceFetcherInterface = {
 
   /**
    * Lists all the downloaded files used by React Native ExecuTorch.
-   *
    * @returns A promise, which resolves to an array of URIs for all the downloaded files.
    */
   async listDownloadedFiles() {
@@ -371,7 +363,6 @@ export const BareResourceFetcher: BareResourceFetcherInterface = {
 
   /**
    * Lists all the downloaded models used by React Native ExecuTorch.
-   *
    * @returns A promise, which resolves to an array of URIs for all the downloaded models.
    */
   async listDownloadedModels() {
@@ -381,7 +372,6 @@ export const BareResourceFetcher: BareResourceFetcherInterface = {
 
   /**
    * Deletes downloaded resources from the local filesystem.
-   *
    * @param sources - The resource identifiers used when calling `fetch`.
    * @returns A promise that resolves once all specified resources have been removed.
    */
@@ -399,7 +389,6 @@ export const BareResourceFetcher: BareResourceFetcherInterface = {
 
   /**
    * Fetches the info about files size. Works only for remote files.
-   *
    * @param sources - The resource identifiers (URLs).
    * @returns A promise that resolves to combined size of files in bytes.
    */
@@ -559,10 +548,8 @@ export const BareResourceFetcher: BareResourceFetcherInterface = {
 
   /**
    * Reads the contents of a file as a string.
-   *
    * @param path - Absolute file path to read.
    * @returns A promise that resolves to the file contents as a string.
-   *
    * @remarks
    * **REQUIRED**: Used internally for reading configuration files (e.g., tokenizer configs).
    */

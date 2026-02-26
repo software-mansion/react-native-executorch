@@ -4,7 +4,6 @@ import { LLMConfig, LLMTool, Message } from '../../types/llm';
 
 /**
  * Module for managing a Large Language Model (LLM) instance.
- *
  * @category Typescript API
  */
 export class LLMModule {
@@ -14,7 +13,6 @@ export class LLMModule {
   /**
    * Creates a new instance of `LLMModule` with optional callbacks.
    * @param optionalCallbacks - Object containing optional callbacks.
-   *
    * @returns A new LLMModule instance.
    */
   constructor({
@@ -39,7 +37,6 @@ export class LLMModule {
 
   /**
    * Loads the LLM model and tokenizer.
-   *
    * @param model - Object containing model, tokenizer, and tokenizer config sources.
    * @param model.modelSource - `ResourceSource` that specifies the location of the model binary.
    * @param model.tokenizerSource - `ResourceSource` pointing to the JSON file which contains the tokenizer.
@@ -67,7 +64,6 @@ export class LLMModule {
 
   /**
    * Sets new token callback invoked on every token batch.
-   *
    * @param tokenCallback - Callback function to handle new tokens.
    */
   setTokenCallback({
@@ -81,7 +77,6 @@ export class LLMModule {
   /**
    * Configures chat and tool calling and generation settings.
    * See [Configuring the model](https://docs.swmansion.com/react-native-executorch/docs/hooks/natural-language-processing/useLLM#configuring-the-model) for details.
-   *
    * @param config - Configuration object containing `chatConfig`, `toolsConfig`, and `generationConfig`.
    */
   configure(config: LLMConfig) {
@@ -97,7 +92,6 @@ export class LLMModule {
    * You need to provide entire conversation and prompt (in correct format and with special tokens!) in input string to this method.
    * It doesn't manage conversation context. It is intended for users that need access to the model itself without any wrapper.
    * If you want a simple chat with model the consider using `sendMessage`
-   *
    * @param input - Raw input string containing the prompt and conversation history.
    * @returns The generated response as a string.
    */
@@ -107,7 +101,6 @@ export class LLMModule {
 
   /**
    * Runs model to complete chat passed in `messages` argument. It doesn't manage conversation context.
-   *
    * @param messages - Array of messages representing the chat history.
    * @param tools - Optional array of tools that can be used during generation.
    * @returns The generated response as a string.
@@ -120,7 +113,6 @@ export class LLMModule {
    * Method to add user message to conversation.
    * After model responds it will call `messageHistoryCallback()` containing both user message and model response.
    * It also returns them.
-   *
    * @param message - The message string to send.
    * @returns - Updated message history including the new user message and model response.
    */
@@ -133,7 +125,6 @@ export class LLMModule {
    * Deletes all messages starting with message on `index` position.
    * After deletion it will call `messageHistoryCallback()` containing new history.
    * It also returns it.
-   *
    * @param index - The index of the message to delete from history.
    * @returns - Updated message history after deletion.
    */
@@ -151,7 +142,6 @@ export class LLMModule {
 
   /**
    * Returns the number of tokens generated in the last response.
-   *
    * @returns The count of generated tokens.
    */
   getGeneratedTokenCount(): number {
@@ -160,7 +150,6 @@ export class LLMModule {
 
   /**
    * Returns the number of prompt tokens in the last message.
-   *
    * @returns The count of prompt token.
    */
   getPromptTokensCount() {
@@ -169,7 +158,6 @@ export class LLMModule {
 
   /**
    * Returns the number of total tokens from the previous generation. This is a sum of prompt tokens and generated tokens.
-   *
    * @returns The count of prompt and generated tokens.
    */
   getTotalTokensCount() {

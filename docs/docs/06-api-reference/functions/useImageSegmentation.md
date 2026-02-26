@@ -2,7 +2,7 @@
 
 > **useImageSegmentation**\<`C`\>(`props`): [`ImageSegmentationType`](../interfaces/ImageSegmentationType.md)\<[`SegmentationLabels`](../type-aliases/SegmentationLabels.md)\<[`ModelNameOf`](../type-aliases/ModelNameOf.md)\<`C`\>\>\>
 
-Defined in: [hooks/computer_vision/useImageSegmentation.ts:31](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/hooks/computer_vision/useImageSegmentation.ts#L31)
+Defined in: [hooks/computer_vision/useImageSegmentation.ts:28](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/hooks/computer_vision/useImageSegmentation.ts#L28)
 
 React hook for managing an Image Segmentation model instance.
 

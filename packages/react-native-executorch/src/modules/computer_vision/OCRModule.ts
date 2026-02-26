@@ -6,7 +6,6 @@ import { parseUnknownError } from '../../errors/errorUtils';
 
 /**
  * Module for Optical Character Recognition (OCR) tasks.
- *
  * @category Typescript API
  */
 export class OCRModule {
@@ -20,7 +19,6 @@ export class OCRModule {
    * Loads the model, where `detectorSource` is a string that specifies the location of the detector binary,
    * `recognizerSource` is a string that specifies the location of the recognizer binary,
    * and `language` is a parameter that specifies the language of the text to be recognized by the OCR.
-   *
    * @param model - Object containing `detectorSource`, `recognizerSource`, and `language`.
    * @param onDownloadProgressCallback - Optional callback to monitor download progress.
    */
@@ -47,7 +45,6 @@ export class OCRModule {
 
   /**
    * Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string.
-   *
    * @param imageSource - The image source to be processed.
    * @returns The OCR result as a `OCRDetection[]`.
    */

@@ -1,6 +1,6 @@
 # Interface: ResourceSourceExtended
 
-Defined in: [utils/ResourceFetcherUtils.ts:72](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L72)
+Defined in: [utils/ResourceFetcherUtils.ts:70](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L70)
 
 Extended interface for resource sources, tracking download state and file locations.
 
@@ -10,7 +10,7 @@ Extended interface for resource sources, tracking download state and file locati
 
 > `optional` **cacheFileUri**: `string`
 
-Defined in: [utils/ResourceFetcherUtils.ts:106](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L106)
+Defined in: [utils/ResourceFetcherUtils.ts:104](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L104)
 
 The URI where the file is cached.
 
@@ -20,7 +20,7 @@ The URI where the file is cached.
 
 > `optional` **callback**: (`downloadProgress`) => `void`
 
-Defined in: [utils/ResourceFetcherUtils.ts:86](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L86)
+Defined in: [utils/ResourceFetcherUtils.ts:84](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L84)
 
 Optional callback to report download progress (0 to 1).
 
@@ -40,7 +40,7 @@ Optional callback to report download progress (0 to 1).
 
 > `optional` **fileUri**: `string`
 
-Defined in: [utils/ResourceFetcherUtils.ts:101](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L101)
+Defined in: [utils/ResourceFetcherUtils.ts:99](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L99)
 
 The local file URI where the resource is stored.
 
@@ -50,7 +50,7 @@ The local file URI where the resource is stored.
 
 > `optional` **next**: `ResourceSourceExtended`
 
-Defined in: [utils/ResourceFetcherUtils.ts:111](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L111)
+Defined in: [utils/ResourceFetcherUtils.ts:109](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L109)
 
 Reference to the next resource in a linked chain of resources.
 
@@ -60,7 +60,7 @@ Reference to the next resource in a linked chain of resources.
 
 > **results**: `string`[]
 
-Defined in: [utils/ResourceFetcherUtils.ts:91](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L91)
+Defined in: [utils/ResourceFetcherUtils.ts:89](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L89)
 
 Array of paths or identifiers for the resulting files.
 
@@ -70,7 +70,7 @@ Array of paths or identifiers for the resulting files.
 
 > **source**: [`ResourceSource`](../type-aliases/ResourceSource.md)
 
-Defined in: [utils/ResourceFetcherUtils.ts:76](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L76)
+Defined in: [utils/ResourceFetcherUtils.ts:74](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L74)
 
 The original source definition.
 
@@ -80,7 +80,7 @@ The original source definition.
 
 > **sourceType**: [`SourceType`](../enumerations/SourceType.md)
 
-Defined in: [utils/ResourceFetcherUtils.ts:81](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L81)
+Defined in: [utils/ResourceFetcherUtils.ts:79](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L79)
 
 The type of the source (local, remote, etc.).
 
@@ -90,6 +90,6 @@ The type of the source (local, remote, etc.).
 
 > `optional` **uri**: `string`
 
-Defined in: [utils/ResourceFetcherUtils.ts:96](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L96)
+Defined in: [utils/ResourceFetcherUtils.ts:94](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/ResourceFetcherUtils.ts#L94)
 
 The URI of the resource.
