@@ -47,7 +47,7 @@ export type SemanticSegmentationModelSources =
 
 /**
  * Union of all built-in semantic segmentation model names
- * (e.g. `'deeplab-v3'`, `'selfie-segmentation'`).
+ * (e.g. `'deeplab-v3-resnet50'`, `'selfie-segmentation'`).
  *
  * @category Types
  */

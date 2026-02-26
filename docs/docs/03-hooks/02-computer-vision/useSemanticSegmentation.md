@@ -117,7 +117,18 @@ function App() {
 
 ## Supported models
 
-| Model                                                                                            | Number of classes | Class list                                                                                |
-| ------------------------------------------------------------------------------------------------ | ----------------- | ----------------------------------------------------------------------------------------- |
-| [deeplabv3_resnet50](https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3) | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |
-| selfie-segmentation                                                                              | 2                 | [SelfieSegmentationLabel](../../06-api-reference/enumerations/SelfieSegmentationLabel.md) |
+| Model                                                                                                                 | Number of classes | Class list                                                                                |
+| --------------------------------------------------------------------------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------- |
+| [deeplab-v3-resnet50](https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3)                     | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |
+| [deeplab-v3-resnet50-quantized](https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3)           | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |
+| [deeplab-v3-resnet101](https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3)                    | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |
+| [deeplab-v3-resnet101-quantized](https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3)          | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |
+| [deeplab-v3-mobilenet-v3-large](https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3)           | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |
+| [deeplab-v3-mobilenet-v3-large-quantized](https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3) | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |
+| [lraspp-mobilenet-v3-large](https://huggingface.co/software-mansion/react-native-executorch-lraspp)                   | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |
+| [lraspp-mobilenet-v3-large-quantized](https://huggingface.co/software-mansion/react-native-executorch-lraspp)         | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |
+| [fcn-resnet50](https://huggingface.co/software-mansion/react-native-executorch-fcn)                                   | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |
+| [fcn-resnet50-quantized](https://huggingface.co/software-mansion/react-native-executorch-fcn)                         | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |
+| [fcn-resnet101](https://huggingface.co/software-mansion/react-native-executorch-fcn)                                  | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |
+| [fcn-resnet101-quantized](https://huggingface.co/software-mansion/react-native-executorch-fcn)                        | 21                | [DeeplabLabel](../../06-api-reference/enumerations/DeeplabLabel.md)                       |
+| [selfie-segmentation](https://huggingface.co/software-mansion/react-native-executorch-selfie-segmentation)            | 2                 | [SelfieSegmentationLabel](../../06-api-reference/enumerations/SelfieSegmentationLabel.md) |
