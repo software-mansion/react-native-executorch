@@ -180,7 +180,7 @@ Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:76](https://g
 
 ### fromCustomConfig()
 
-> `static` **fromCustomConfig**\<`L`\>(`modelSource`, `config`, `onDownloadProgress`): `Promise`\<`SemanticSegmentationModule`\<`L`\>\>
+> `static` **fromCustomConfig**\<`L`\>(`modelSource`, `config`, `onDownloadProgress?`): `Promise`\<`SemanticSegmentationModule`\<`L`\>\>
 
 Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:142](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/SemanticSegmentationModule.ts#L142)
 
@@ -233,7 +233,7 @@ const segmentation = await SemanticSegmentationModule.fromCustomConfig(
 
 ### fromModelName()
 
-> `static` **fromModelName**\<`C`\>(`config`, `onDownloadProgress`): `Promise`\<`SemanticSegmentationModule`\<[`ModelNameOf`](../type-aliases/ModelNameOf.md)\<`C`\>\>\>
+> `static` **fromModelName**\<`C`\>(`config`, `onDownloadProgress?`): `Promise`\<`SemanticSegmentationModule`\<[`ModelNameOf`](../type-aliases/ModelNameOf.md)\<`C`\>\>\>
 
 Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:95](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/SemanticSegmentationModule.ts#L95)
 
