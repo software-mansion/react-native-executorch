@@ -11,12 +11,28 @@ import {
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
 import { BaseModule } from '../BaseModule';
+import { IMAGENET1K_MEAN, IMAGENET1K_STD } from '../../constants/commonVision';
 
-const ModelConfigs = {
-  'deeplab-v3': {
-    labelMap: DeeplabLabel,
-    preprocessorConfig: undefined,
+const PascalVocSegmentationConfig = {
+  labelMap: DeeplabLabel,
+  preprocessorConfig: {
+    normMean: IMAGENET1K_MEAN,
+    normStd: IMAGENET1K_STD,
   },
+};
+const ModelConfigs = {
+  'deeplab-v3-resnet50': PascalVocSegmentationConfig,
+  'deeplab-v3-resnet101': PascalVocSegmentationConfig,
+  'deeplab-v3-mobilenet-v3-large': PascalVocSegmentationConfig,
+  'lraspp-mobilenet-v3-large': PascalVocSegmentationConfig,
+  'fcn-resnet50': PascalVocSegmentationConfig,
+  'fcn-resnet101': PascalVocSegmentationConfig,
+  'deeplab-v3-resnet50-quantized': PascalVocSegmentationConfig,
+  'deeplab-v3-resnet101-quantized': PascalVocSegmentationConfig,
+  'deeplab-v3-mobilenet-v3-large-quantized': PascalVocSegmentationConfig,
+  'lraspp-mobilenet-v3-large-quantized': PascalVocSegmentationConfig,
+  'fcn-resnet50-quantized': PascalVocSegmentationConfig,
+  'fcn-resnet101-quantized': PascalVocSegmentationConfig,
   'selfie-segmentation': {
     labelMap: SelfieSegmentationLabel,
     preprocessorConfig: undefined,
