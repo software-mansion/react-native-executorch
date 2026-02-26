@@ -22,7 +22,7 @@ const pixelData: PixelData = {
 
 ## Extends
 
-- `Omit`\<[`TensorPtr`](TensorPtr.md), `"dataPtr"` \| `"scalarType"`\>
+- `Pick`\<[`TensorPtr`](TensorPtr.md), `"sizes"`\>
 
 ## Properties
 

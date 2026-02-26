@@ -180,7 +180,7 @@ Always call this method when you're done with a model to prevent memory leaks.
 
 ### forward()
 
-> **forward**(`imageSource`, `detectionThreshold?`): `Promise`\<[`Detection`](../interfaces/Detection.md)[]\>
+> **forward**(`input`, `detectionThreshold?`): `Promise`\<[`Detection`](../interfaces/Detection.md)[]\>
 
 Defined in: [modules/computer_vision/ObjectDetectionModule.ts:46](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L46)
 
