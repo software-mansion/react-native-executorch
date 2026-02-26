@@ -1,5 +1,30 @@
 const path = require('path');
 
+const VALID_CATEGORIES = [
+  'Hooks',
+  'Interfaces',
+  'Models - Classification',
+  'Models - Image Embeddings',
+  'Models - Image Generation',
+  'Models - LMM',
+  'Models - Object Detection',
+  'Models - Semantic Segmentation',
+  'Models - Speech To Text',
+  'Models - Style Transfer',
+  'Models - Text Embeddings',
+  'Models - Text to Speech',
+  'Models - Voice Activity Detection',
+  'OCR Supported Alphabets',
+  'TTS Supported Voices',
+  'Types',
+  'Typescript API',
+  'Utils',
+  'Utilities - General',
+  'Utilities - LLM',
+];
+
+const CATEGORY_TAG_MATCH = `^(${VALID_CATEGORIES.join('|')})$`;
+
 module.exports = {
   parserOptions: {
     requireConfigFile: false,
@@ -40,6 +65,20 @@ module.exports = {
     'jsdoc/require-yields-type': 'off',
     'jsdoc/require-yields-description': 'warn',
     'jsdoc/check-tag-names': ['error', { definedTags: ['property'] }],
+    'jsdoc/match-description': [
+      'error',
+      {
+        contexts: ['any'],
+        mainDescription: false,
+        tags: {
+          category: {
+            message:
+              '@category must be one of categories defined in .eslintrc.js',
+            match: CATEGORY_TAG_MATCH,
+          },
+        },
+      },
+    ],
   },
   plugins: ['prettier', 'markdown', 'jsdoc'],
   overrides: [
