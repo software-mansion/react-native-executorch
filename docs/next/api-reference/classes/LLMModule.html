@@ -9,9 +9,9 @@
 
 
 
-<link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.5115ba83.css">
-<script src="/react-native-executorch/assets/js/runtime~main.08e4e267.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.fec376c5.js" defer="defer"></script>
+<link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.6f2565c1.css">
+<script src="/react-native-executorch/assets/js/runtime~main.bb1f00fc.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.31e92591.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNBF6SVN" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -26,12 +26,12 @@
 <h2 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="constructors">Constructors<a href="#constructors" class="hash-link" aria-label="Direct link to Constructors" title="Direct link to Constructors" translate="no">​</a></h2>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="constructor">Constructor<a href="#constructor" class="hash-link" aria-label="Direct link to Constructor" title="Direct link to Constructor" translate="no">​</a></h3>
 <blockquote>
-<p><strong>new LLMModule</strong>(<code>optionalCallbacks</code>): <code>LLMModule</code></p>
+<p><strong>new LLMModule</strong>(<code>optionalCallbacks?</code>): <code>LLMModule</code></p>
 </blockquote>
 <p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L20" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:20</a></p>
 <p>Creates a new instance of <code>LLMModule</code> with optional callbacks.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="parameters">Parameters<a href="#parameters" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters" translate="no">​</a></h4>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="optionalcallbacks">optionalCallbacks<a href="#optionalcallbacks" class="hash-link" aria-label="Direct link to optionalCallbacks" title="Direct link to optionalCallbacks" translate="no">​</a></h5>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="optionalcallbacks">optionalCallbacks?<a href="#optionalcallbacks" class="hash-link" aria-label="Direct link to optionalCallbacks?" title="Direct link to optionalCallbacks?" translate="no">​</a></h5>
 <p>Object containing optional callbacks.</p>
 <h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="messagehistorycallback">messageHistoryCallback?<a href="#messagehistorycallback" class="hash-link" aria-label="Direct link to messageHistoryCallback?" title="Direct link to messageHistoryCallback?" translate="no">​</a></h6>
 <p>(<code>messageHistory</code>) =&gt; <code>void</code></p>
@@ -162,7 +162,7 @@ If you want a simple chat with model the consider using <code>sendMessage</code>
 <hr>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="load">load()<a href="#load" class="hash-link" aria-label="Direct link to load()" title="Direct link to load()" translate="no">​</a></h3>
 <blockquote>
-<p><strong>load</strong>(<code>model</code>, <code>onDownloadProgressCallback</code>): <code>Promise</code>&lt;<code>void</code>&gt;</p>
+<p><strong>load</strong>(<code>model</code>, <code>onDownloadProgressCallback?</code>): <code>Promise</code>&lt;<code>void</code>&gt;</p>
 </blockquote>
 <p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L49" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/LLMModule.ts:49</a></p>
 <p>Loads the LLM model and tokenizer.</p>
@@ -178,7 +178,7 @@ If you want a simple chat with model the consider using <code>sendMessage</code>
 <h6 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="tokenizersource">tokenizerSource<a href="#tokenizersource" class="hash-link" aria-label="Direct link to tokenizerSource" title="Direct link to tokenizerSource" translate="no">​</a></h6>
 <p><a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/ResourceSource"><code>ResourceSource</code></a></p>
 <p><code>ResourceSource</code> pointing to the JSON file which contains the tokenizer.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="ondownloadprogresscallback">onDownloadProgressCallback<a href="#ondownloadprogresscallback" class="hash-link" aria-label="Direct link to onDownloadProgressCallback" title="Direct link to onDownloadProgressCallback" translate="no">​</a></h5>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="ondownloadprogresscallback">onDownloadProgressCallback?<a href="#ondownloadprogresscallback" class="hash-link" aria-label="Direct link to onDownloadProgressCallback?" title="Direct link to onDownloadProgressCallback?" translate="no">​</a></h5>
 <p>(<code>progress</code>) =&gt; <code>void</code></p>
 <p>Optional callback to track download progress (value between 0 and 1).</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns-10">Returns<a href="#returns-10" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>

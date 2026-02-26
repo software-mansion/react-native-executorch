@@ -9,9 +9,9 @@
 
 
 
-<link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.5115ba83.css">
-<script src="/react-native-executorch/assets/js/runtime~main.08e4e267.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.fec376c5.js" defer="defer"></script>
+<link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.6f2565c1.css">
+<script src="/react-native-executorch/assets/js/runtime~main.bb1f00fc.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.31e92591.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNBF6SVN" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -49,7 +49,7 @@
 <hr>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="forward">forward()<a href="#forward" class="hash-link" aria-label="Direct link to forward()" title="Direct link to forward()" translate="no">​</a></h3>
 <blockquote>
-<p><strong>forward</strong>(<code>text</code>, <code>speed</code>): <code>Promise</code>&lt;<code>Float32Array</code>&lt;<code>ArrayBufferLike</code>&gt;&gt;</p>
+<p><strong>forward</strong>(<code>text</code>, <code>speed?</code>): <code>Promise</code>&lt;<code>Float32Array</code>&lt;<code>ArrayBufferLike</code>&gt;&gt;</p>
 </blockquote>
 <p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TextToSpeechModule.ts#L109" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/TextToSpeechModule.ts:109</a></p>
 <p>Synthesizes the provided text into speech.
@@ -58,7 +58,7 @@ Returns a promise that resolves to the full audio waveform as a <code>Float32Arr
 <h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="text">text<a href="#text" class="hash-link" aria-label="Direct link to text" title="Direct link to text" translate="no">​</a></h5>
 <p><code>string</code></p>
 <p>The input text to be synthesized.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="speed">speed<a href="#speed" class="hash-link" aria-label="Direct link to speed" title="Direct link to speed" translate="no">​</a></h5>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="speed">speed?<a href="#speed" class="hash-link" aria-label="Direct link to speed?" title="Direct link to speed?" translate="no">​</a></h5>
 <p><code>number</code> = <code>1.0</code></p>
 <p>Optional speed multiplier for the speech synthesis (default is 1.0).</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns-2">Returns<a href="#returns-2" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>
@@ -67,7 +67,7 @@ Returns a promise that resolves to the full audio waveform as a <code>Float32Arr
 <hr>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="load">load()<a href="#load" class="hash-link" aria-label="Direct link to load()" title="Direct link to load()" translate="no">​</a></h3>
 <blockquote>
-<p><strong>load</strong>(<code>config</code>, <code>onDownloadProgressCallback</code>): <code>Promise</code>&lt;<code>void</code>&gt;</p>
+<p><strong>load</strong>(<code>config</code>, <code>onDownloadProgressCallback?</code>): <code>Promise</code>&lt;<code>void</code>&gt;</p>
 </blockquote>
 <p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TextToSpeechModule.ts#L30" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/TextToSpeechModule.ts:30</a></p>
 <p>Loads the model and voice assets specified by the config object.
@@ -76,7 +76,7 @@ Returns a promise that resolves to the full audio waveform as a <code>Float32Arr
 <h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="config">config<a href="#config" class="hash-link" aria-label="Direct link to config" title="Direct link to config" translate="no">​</a></h5>
 <p><a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/TextToSpeechConfig"><code>TextToSpeechConfig</code></a></p>
 <p>Configuration object containing <code>model</code> source and <code>voice</code>.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="ondownloadprogresscallback">onDownloadProgressCallback<a href="#ondownloadprogresscallback" class="hash-link" aria-label="Direct link to onDownloadProgressCallback" title="Direct link to onDownloadProgressCallback" translate="no">​</a></h5>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="ondownloadprogresscallback">onDownloadProgressCallback?<a href="#ondownloadprogresscallback" class="hash-link" aria-label="Direct link to onDownloadProgressCallback?" title="Direct link to onDownloadProgressCallback?" translate="no">​</a></h5>
 <p>(<code>progress</code>) =&gt; <code>void</code></p>
 <p>Optional callback to monitor download progress.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns-3">Returns<a href="#returns-3" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>

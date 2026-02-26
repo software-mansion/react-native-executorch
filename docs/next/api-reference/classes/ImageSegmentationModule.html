@@ -9,9 +9,9 @@
 
 
 
-<link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.5115ba83.css">
-<script src="/react-native-executorch/assets/js/runtime~main.08e4e267.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.fec376c5.js" defer="defer"></script>
+<link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.6f2565c1.css">
+<script src="/react-native-executorch/assets/js/runtime~main.bb1f00fc.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.31e92591.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNBF6SVN" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -57,7 +57,7 @@ or a custom <a class="" href="/react-native-executorch/docs/next/api-reference/t
 <hr>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="forward">forward()<a href="#forward" class="hash-link" aria-label="Direct link to forward()" title="Direct link to forward()" translate="no">​</a></h3>
 <blockquote>
-<p><strong>forward</strong>&lt;<code>K</code>&gt;(<code>imageSource</code>, <code>classesOfInterest</code>, <code>resizeToInput</code>): <code>Promise</code>&lt;<code>Record</code>&lt;<code>&quot;ARGMAX&quot;</code>, <code>Int32Array</code>&lt;<code>ArrayBufferLike</code>&gt;&gt; &amp; <code>Record</code>&lt;<code>K</code>, <code>Float32Array</code>&lt;<code>ArrayBufferLike</code>&gt;&gt;&gt;</p>
+<p><strong>forward</strong>&lt;<code>K</code>&gt;(<code>imageSource</code>, <code>classesOfInterest?</code>, <code>resizeToInput?</code>): <code>Promise</code>&lt;<code>Record</code>&lt;<code>&quot;ARGMAX&quot;</code>, <code>Int32Array</code>&lt;<code>ArrayBufferLike</code>&gt;&gt; &amp; <code>Record</code>&lt;<code>K</code>, <code>Float32Array</code>&lt;<code>ArrayBufferLike</code>&gt;&gt;&gt;</p>
 </blockquote>
 <p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L176" target="_blank" rel="noopener noreferrer" class="">modules/computer_vision/ImageSegmentationModule.ts:176</a></p>
 <p>Executes the model&#x27;s forward pass to perform semantic segmentation on the provided image.</p>
@@ -68,10 +68,10 @@ or a custom <a class="" href="/react-native-executorch/docs/next/api-reference/t
 <h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="imagesource">imageSource<a href="#imagesource" class="hash-link" aria-label="Direct link to imageSource" title="Direct link to imageSource" translate="no">​</a></h5>
 <p><code>string</code></p>
 <p>A string representing the image source (e.g., a file path, URI, or Base64-encoded string).</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="classesofinterest">classesOfInterest<a href="#classesofinterest" class="hash-link" aria-label="Direct link to classesOfInterest" title="Direct link to classesOfInterest" translate="no">​</a></h5>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="classesofinterest">classesOfInterest?<a href="#classesofinterest" class="hash-link" aria-label="Direct link to classesOfInterest?" title="Direct link to classesOfInterest?" translate="no">​</a></h5>
 <p><code>K</code>[] = <code>[]</code></p>
 <p>An optional list of label keys indicating which per-class probability masks to include in the output. <code>ARGMAX</code> is always returned regardless.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="resizetoinput">resizeToInput<a href="#resizetoinput" class="hash-link" aria-label="Direct link to resizeToInput" title="Direct link to resizeToInput" translate="no">​</a></h5>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="resizetoinput">resizeToInput?<a href="#resizetoinput" class="hash-link" aria-label="Direct link to resizeToInput?" title="Direct link to resizeToInput?" translate="no">​</a></h5>
 <p><code>boolean</code> = <code>true</code></p>
 <p>Whether to resize the output masks to the original input image dimensions. If <code>false</code>, returns the raw model output dimensions. Defaults to <code>true</code>.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns-1">Returns<a href="#returns-1" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>
@@ -128,7 +128,7 @@ It returns the output tensors that mimic the structure of output from ExecuTorch
 <hr>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="fromcustomconfig">fromCustomConfig()<a href="#fromcustomconfig" class="hash-link" aria-label="Direct link to fromCustomConfig()" title="Direct link to fromCustomConfig()" translate="no">​</a></h3>
 <blockquote>
-<p><code>static</code> <strong>fromCustomConfig</strong>&lt;<code>L</code>&gt;(<code>modelSource</code>, <code>config</code>, <code>onDownloadProgress</code>): <code>Promise</code>&lt;<code>ImageSegmentationModule</code>&lt;<code>L</code>&gt;&gt;</p>
+<p><code>static</code> <strong>fromCustomConfig</strong>&lt;<code>L</code>&gt;(<code>modelSource</code>, <code>config</code>, <code>onDownloadProgress?</code>): <code>Promise</code>&lt;<code>ImageSegmentationModule</code>&lt;<code>L</code>&gt;&gt;</p>
 </blockquote>
 <p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L142" target="_blank" rel="noopener noreferrer" class="">modules/computer_vision/ImageSegmentationModule.ts:142</a></p>
 <p>Creates a segmentation instance with a user-provided label map and custom config.
@@ -143,7 +143,7 @@ Use this when working with a custom-exported segmentation model that is not one 
 <h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="config">config<a href="#config" class="hash-link" aria-label="Direct link to config" title="Direct link to config" translate="no">​</a></h5>
 <p><a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/SegmentationConfig"><code>SegmentationConfig</code></a>&lt;<code>L</code>&gt;</p>
 <p>A <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/SegmentationConfig">SegmentationConfig</a> object with the label map and optional preprocessing parameters.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="ondownloadprogress">onDownloadProgress<a href="#ondownloadprogress" class="hash-link" aria-label="Direct link to onDownloadProgress" title="Direct link to onDownloadProgress" translate="no">​</a></h5>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="ondownloadprogress">onDownloadProgress?<a href="#ondownloadprogress" class="hash-link" aria-label="Direct link to onDownloadProgress?" title="Direct link to onDownloadProgress?" translate="no">​</a></h5>
 <p>(<code>progress</code>) =&gt; <code>void</code></p>
 <p>Optional callback to monitor download progress, receiving a value between 0 and 1.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns-5">Returns<a href="#returns-5" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>
@@ -154,7 +154,7 @@ Use this when working with a custom-exported segmentation model that is not one 
 <hr>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="frommodelname">fromModelName()<a href="#frommodelname" class="hash-link" aria-label="Direct link to fromModelName()" title="Direct link to fromModelName()" translate="no">​</a></h3>
 <blockquote>
-<p><code>static</code> <strong>fromModelName</strong>&lt;<code>C</code>&gt;(<code>config</code>, <code>onDownloadProgress</code>): <code>Promise</code>&lt;<code>ImageSegmentationModule</code>&lt;<a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/ModelNameOf"><code>ModelNameOf</code></a>&lt;<code>C</code>&gt;&gt;&gt;</p>
+<p><code>static</code> <strong>fromModelName</strong>&lt;<code>C</code>&gt;(<code>config</code>, <code>onDownloadProgress?</code>): <code>Promise</code>&lt;<code>ImageSegmentationModule</code>&lt;<a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/ModelNameOf"><code>ModelNameOf</code></a>&lt;<code>C</code>&gt;&gt;&gt;</p>
 </blockquote>
 <p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L95" target="_blank" rel="noopener noreferrer" class="">modules/computer_vision/ImageSegmentationModule.ts:95</a></p>
 <p>Creates a segmentation instance for a built-in model.
@@ -166,7 +166,7 @@ The config object is discriminated by <code>modelName</code> — each model can 
 <h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="config-1">config<a href="#config-1" class="hash-link" aria-label="Direct link to config" title="Direct link to config" translate="no">​</a></h5>
 <p><code>C</code></p>
 <p>A <a class="" href="/react-native-executorch/docs/next/api-reference/type-aliases/ModelSources">ModelSources</a> object specifying which model to load and where to fetch it from.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="ondownloadprogress-1">onDownloadProgress<a href="#ondownloadprogress-1" class="hash-link" aria-label="Direct link to onDownloadProgress" title="Direct link to onDownloadProgress" translate="no">​</a></h5>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="ondownloadprogress-1">onDownloadProgress?<a href="#ondownloadprogress-1" class="hash-link" aria-label="Direct link to onDownloadProgress?" title="Direct link to onDownloadProgress?" translate="no">​</a></h5>
 <p>(<code>progress</code>) =&gt; <code>void</code></p>
 <p>Optional callback to monitor download progress, receiving a value between 0 and 1.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns-6">Returns<a href="#returns-6" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>

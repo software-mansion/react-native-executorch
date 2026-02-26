@@ -9,9 +9,9 @@
 
 
 
-<link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.5115ba83.css">
-<script src="/react-native-executorch/assets/js/runtime~main.08e4e267.js" defer="defer"></script>
-<script src="/react-native-executorch/assets/js/main.fec376c5.js" defer="defer"></script>
+<link rel="search" type="application/opensearchdescription+xml" title="React Native ExecuTorch" href="/react-native-executorch/opensearch.xml"><link rel="stylesheet" href="/react-native-executorch/assets/css/styles.6f2565c1.css">
+<script src="/react-native-executorch/assets/js/runtime~main.bb1f00fc.js" defer="defer"></script>
+<script src="/react-native-executorch/assets/js/main.31e92591.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WNBF6SVN" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -74,7 +74,7 @@ Returns the encoded waveform as a Float32Array.</p>
 <hr>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="load">load()<a href="#load" class="hash-link" aria-label="Direct link to load()" title="Direct link to load()" translate="no">​</a></h3>
 <blockquote>
-<p><strong>load</strong>(<code>model</code>, <code>onDownloadProgressCallback</code>): <code>Promise</code>&lt;<code>void</code>&gt;</p>
+<p><strong>load</strong>(<code>model</code>, <code>onDownloadProgressCallback?</code>): <code>Promise</code>&lt;<code>void</code>&gt;</p>
 </blockquote>
 <p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L27" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/SpeechToTextModule.ts:27</a></p>
 <p>Loads the model specified by the config object.
@@ -83,7 +83,7 @@ Returns the encoded waveform as a Float32Array.</p>
 <h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="model">model<a href="#model" class="hash-link" aria-label="Direct link to model" title="Direct link to model" translate="no">​</a></h5>
 <p><a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/SpeechToTextModelConfig"><code>SpeechToTextModelConfig</code></a></p>
 <p>Configuration object containing model sources.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="ondownloadprogresscallback">onDownloadProgressCallback<a href="#ondownloadprogresscallback" class="hash-link" aria-label="Direct link to onDownloadProgressCallback" title="Direct link to onDownloadProgressCallback" translate="no">​</a></h5>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="ondownloadprogresscallback">onDownloadProgressCallback?<a href="#ondownloadprogresscallback" class="hash-link" aria-label="Direct link to onDownloadProgressCallback?" title="Direct link to onDownloadProgressCallback?" translate="no">​</a></h5>
 <p>(<code>progress</code>) =&gt; <code>void</code></p>
 <p>Optional callback to monitor download progress.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns-4">Returns<a href="#returns-4" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>
@@ -91,7 +91,7 @@ Returns the encoded waveform as a Float32Array.</p>
 <hr>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="stream">stream()<a href="#stream" class="hash-link" aria-label="Direct link to stream()" title="Direct link to stream()" translate="no">​</a></h3>
 <blockquote>
-<p><strong>stream</strong>(<code>options</code>): <code>AsyncGenerator</code>&lt;{ <code>committed</code>: <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/TranscriptionResult"><code>TranscriptionResult</code></a>; <code>nonCommitted</code>: <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/TranscriptionResult"><code>TranscriptionResult</code></a>; }&gt;</p>
+<p><strong>stream</strong>(<code>options?</code>): <code>AsyncGenerator</code>&lt;{ <code>committed</code>: <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/TranscriptionResult"><code>TranscriptionResult</code></a>; <code>nonCommitted</code>: <a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/TranscriptionResult"><code>TranscriptionResult</code></a>; }&gt;</p>
 </blockquote>
 <p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L133" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/SpeechToTextModule.ts:133</a></p>
 <p>Starts a streaming transcription session.
@@ -102,7 +102,7 @@ Non-committed transcription contains the part of the transcription that is still
 Useful for displaying live, partial results during streaming.
 Use with <code>streamInsert</code> and <code>streamStop</code> to control the stream.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="parameters-3">Parameters<a href="#parameters-3" class="hash-link" aria-label="Direct link to Parameters" title="Direct link to Parameters" translate="no">​</a></h4>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="options">options<a href="#options" class="hash-link" aria-label="Direct link to options" title="Direct link to options" translate="no">​</a></h5>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="options">options?<a href="#options" class="hash-link" aria-label="Direct link to options?" title="Direct link to options?" translate="no">​</a></h5>
 <p><a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/DecodingOptions"><code>DecodingOptions</code></a> = <code>{}</code></p>
 <p>Decoding options including language.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns-5">Returns<a href="#returns-5" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>
@@ -133,7 +133,7 @@ Use with <code>streamInsert</code> and <code>streamStop</code> to control the st
 <hr>
 <h3 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="transcribe">transcribe()<a href="#transcribe" class="hash-link" aria-label="Direct link to transcribe()" title="Direct link to transcribe()" translate="no">​</a></h3>
 <blockquote>
-<p><strong>transcribe</strong>(<code>waveform</code>, <code>options</code>): <code>Promise</code>&lt;<a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/TranscriptionResult"><code>TranscriptionResult</code></a>&gt;</p>
+<p><strong>transcribe</strong>(<code>waveform</code>, <code>options?</code>): <code>Promise</code>&lt;<a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/TranscriptionResult"><code>TranscriptionResult</code></a>&gt;</p>
 </blockquote>
 <p>Defined in: <a href="https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/SpeechToTextModule.ts#L109" target="_blank" rel="noopener noreferrer" class="">modules/natural_language_processing/SpeechToTextModule.ts:109</a></p>
 <p>Starts a transcription process for a given input array (16kHz waveform).
@@ -143,7 +143,7 @@ Returns the transcription as a string. Passing <code>number[]</code> is deprecat
 <h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="waveform-2">waveform<a href="#waveform-2" class="hash-link" aria-label="Direct link to waveform" title="Direct link to waveform" translate="no">​</a></h5>
 <p><code>Float32Array</code></p>
 <p>The Float32Array audio data.</p>
-<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="options-1">options<a href="#options-1" class="hash-link" aria-label="Direct link to options" title="Direct link to options" translate="no">​</a></h5>
+<h5 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="options-1">options?<a href="#options-1" class="hash-link" aria-label="Direct link to options?" title="Direct link to options?" translate="no">​</a></h5>
 <p><a class="" href="/react-native-executorch/docs/next/api-reference/interfaces/DecodingOptions"><code>DecodingOptions</code></a> = <code>{}</code></p>
 <p>Decoding options including language.</p>
 <h4 class="anchor anchorTargetHideOnScrollNavbar_vjPI" id="returns-8">Returns<a href="#returns-8" class="hash-link" aria-label="Direct link to Returns" title="Direct link to Returns" translate="no">​</a></h4>
