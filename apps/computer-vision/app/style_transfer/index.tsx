@@ -27,6 +27,7 @@ export default function StyleTransferScreen() {
 
   const [imageUri, setImageUri] = useState('');
   const [styledImage, setStyledImage] = useState<SkImage | null>(null);
+  const [canvasSize, setCanvasSize] = useState({ width: 1, height: 1 });
 
   const handleCameraPress = async (isCamera: boolean) => {
     const image = await getImage(isCamera);
@@ -43,16 +44,8 @@ export default function StyleTransferScreen() {
         const output = await model.forward(imageUri);
         const height = output.sizes[0];
         const width = output.sizes[1];
-        // Convert RGB -> RGBA for Skia
-        const rgba = new Uint8Array(width * height * 4);
-        const rgb = output.dataPtr;
-        for (let i = 0; i < width * height; i++) {
-          rgba[i * 4] = rgb[i * 3];
-          rgba[i * 4 + 1] = rgb[i * 3 + 1];
-          rgba[i * 4 + 2] = rgb[i * 3 + 2];
-          rgba[i * 4 + 3] = 255;
-        }
-        const skData = Skia.Data.fromBytes(rgba);
+        // Native already returns RGBA uint8 — use directly
+        const skData = Skia.Data.fromBytes(output.dataPtr);
         const img = Skia.Image.MakeImage(
           {
             width,
@@ -83,16 +76,26 @@ export default function StyleTransferScreen() {
     <ScreenWrapper>
       <View style={styles.imageContainer}>
         {styledImage ? (
-          <Canvas style={styles.canvas}>
-            <SkiaImage
-              image={styledImage}
-              fit="contain"
-              x={0}
-              y={0}
-              width={styledImage.width()}
-              height={styledImage.height()}
-            />
-          </Canvas>
+          <View
+            style={styles.canvas}
+            onLayout={(e) =>
+              setCanvasSize({
+                width: e.nativeEvent.layout.width,
+                height: e.nativeEvent.layout.height,
+              })
+            }
+          >
+            <Canvas style={StyleSheet.absoluteFill}>
+              <SkiaImage
+                image={styledImage}
+                fit="contain"
+                x={0}
+                y={0}
+                width={canvasSize.width}
+                height={canvasSize.height}
+              />
+            </Canvas>
+          </View>
         ) : (
           <Image
             style={styles.image}
