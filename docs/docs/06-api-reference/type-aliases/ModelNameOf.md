@@ -2,7 +2,7 @@
 
 > **ModelNameOf**\<`C`\> = `C`\[`"modelName"`\]
 
-Defined in: [types/semanticSegmentation.ts:42](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L42)
+Defined in: [types/semanticSegmentation.ts:58](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L58)
 
 Extracts the model name from a [SemanticSegmentationModelSources](SemanticSegmentationModelSources.md) config object.
 

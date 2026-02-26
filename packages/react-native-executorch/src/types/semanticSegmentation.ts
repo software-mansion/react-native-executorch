@@ -22,12 +22,29 @@ export type SemanticSegmentationConfig<T extends LabelEnum> = {
  * @category Types
  */
 export type SemanticSegmentationModelSources =
-  | { modelName: 'deeplab-v3'; modelSource: ResourceSource }
+  | { modelName: 'deeplab-v3-resnet50'; modelSource: ResourceSource }
+  | { modelName: 'deeplab-v3-resnet101'; modelSource: ResourceSource }
+  | { modelName: 'deeplab-v3-mobilenet-v3-large'; modelSource: ResourceSource }
+  | { modelName: 'lraspp-mobilenet-v3-large'; modelSource: ResourceSource }
+  | { modelName: 'fcn-resnet50'; modelSource: ResourceSource }
+  | { modelName: 'fcn-resnet101'; modelSource: ResourceSource }
+  | { modelName: 'deeplab-v3-resnet50-quantized'; modelSource: ResourceSource }
+  | { modelName: 'deeplab-v3-resnet101-quantized'; modelSource: ResourceSource }
+  | {
+      modelName: 'deeplab-v3-mobilenet-v3-large-quantized';
+      modelSource: ResourceSource;
+    }
+  | {
+      modelName: 'lraspp-mobilenet-v3-large-quantized';
+      modelSource: ResourceSource;
+    }
+  | { modelName: 'fcn-resnet50-quantized'; modelSource: ResourceSource }
+  | { modelName: 'fcn-resnet101-quantized'; modelSource: ResourceSource }
   | { modelName: 'selfie-segmentation'; modelSource: ResourceSource };
 
 /**
  * Union of all built-in semantic segmentation model names
- * (e.g. `'deeplab-v3'`, `'selfie-segmentation'`).
+ * (e.g. `'deeplab-v3-resnet50'`, `'selfie-segmentation'`).
  * @category Types
  */
 export type SemanticSegmentationModelName =

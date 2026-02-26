@@ -1,6 +1,6 @@
 # Enumeration: SelfieSegmentationLabel
 
-Defined in: [types/semanticSegmentation.ts:79](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L79)
+Defined in: [types/semanticSegmentation.ts:93](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L93)
 
 Labels used in the selfie semantic segmentation model.
 
@@ -10,7 +10,7 @@ Labels used in the selfie semantic segmentation model.
 
 > **BACKGROUND**: `1`
 
-Defined in: [types/semanticSegmentation.ts:81](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L81)
+Defined in: [types/semanticSegmentation.ts:95](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L95)
 
 ---
 
@@ -18,4 +18,4 @@ Defined in: [types/semanticSegmentation.ts:81](https://github.com/software-mansi
 
 > **SELFIE**: `0`
 
-Defined in: [types/semanticSegmentation.ts:80](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L80)
+Defined in: [types/semanticSegmentation.ts:94](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/semanticSegmentation.ts#L94)

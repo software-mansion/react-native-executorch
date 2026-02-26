@@ -539,14 +539,113 @@ export const WHISPER_SMALL = {
 };
 
 // Semantic Segmentation
-const DEEPLAB_V3_RESNET50_MODEL = `${URL_PREFIX}-deeplab-v3/${VERSION_TAG}/xnnpack/deeplabV3_xnnpack_fp32.pte`;
+const DEEPLAB_V3_RESNET50_MODEL = `${URL_PREFIX}-deeplab-v3/${NEXT_VERSION_TAG}/deeplab-v3-resnet50/xnnpack/deeplabv3_resnet50_xnnpack_fp32.pte`;
+const DEEPLAB_V3_RESNET101_MODEL = `${URL_PREFIX}-deeplab-v3/${NEXT_VERSION_TAG}/deeplab-v3-resnet101/xnnpack/deeplabv3_resnet101_xnnpack_fp32.pte`;
+const DEEPLAB_V3_MOBILENET_V3_LARGE_MODEL = `${URL_PREFIX}-deeplab-v3/${NEXT_VERSION_TAG}/deeplab-v3-mobilenet-v3-large/xnnpack/deeplabv3_mobilenet_v3_large_xnnpack_fp32.pte`;
+const LRASPP_MOBILENET_V3_LARGE_MODEL = `${URL_PREFIX}-lraspp/${NEXT_VERSION_TAG}/xnnpack/lraspp_mobilenet_v3_large_xnnpack_fp32.pte`;
+const FCN_RESNET50_MODEL = `${URL_PREFIX}-fcn/${NEXT_VERSION_TAG}/fcn-resnet50/xnnpack/fcn_resnet50_xnnpack_fp32.pte`;
+const FCN_RESNET101_MODEL = `${URL_PREFIX}-fcn/${NEXT_VERSION_TAG}/fcn-resnet101/xnnpack/fcn_resnet101_xnnpack_fp32.pte`;
+const DEEPLAB_V3_RESNET50_QUANTIZED_MODEL = `${URL_PREFIX}-deeplab-v3/${NEXT_VERSION_TAG}/deeplab-v3-resnet50/xnnpack/deeplabv3_resnet50_xnnpack_int8.pte`;
+const DEEPLAB_V3_RESNET101_QUANTIZED_MODEL = `${URL_PREFIX}-deeplab-v3/${NEXT_VERSION_TAG}/deeplab-v3-resnet101/xnnpack/deeplabv3_resnet101_xnnpack_int8.pte`;
+const DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED_MODEL = `${URL_PREFIX}-deeplab-v3/${NEXT_VERSION_TAG}/deeplab-v3-mobilenet-v3-large/xnnpack/deeplabv3_mobilenet_v3_large_xnnpack_int8.pte`;
+const LRASPP_MOBILENET_V3_LARGE_QUANTIZED_MODEL = `${URL_PREFIX}-lraspp/${NEXT_VERSION_TAG}/xnnpack/lraspp_mobilenet_v3_large_xnnpack_int8.pte`;
+const FCN_RESNET50_QUANTIZED_MODEL = `${URL_PREFIX}-fcn/${NEXT_VERSION_TAG}/fcn-resnet50/xnnpack/fcn_resnet50_xnnpack_int8.pte`;
+const FCN_RESNET101_QUANTIZED_MODEL = `${URL_PREFIX}-fcn/${NEXT_VERSION_TAG}/fcn-resnet101/xnnpack/fcn_resnet101_xnnpack_int8.pte`;
 
 /**
  * @category Models - Semantic Segmentation
  */
 export const DEEPLAB_V3_RESNET50 = {
-  modelName: 'deeplab-v3',
+  modelName: 'deeplab-v3-resnet50',
   modelSource: DEEPLAB_V3_RESNET50_MODEL,
+} as const;
+
+/**
+ * @category Models - Semantic Segmentation
+ */
+export const DEEPLAB_V3_RESNET101 = {
+  modelName: 'deeplab-v3-resnet101',
+  modelSource: DEEPLAB_V3_RESNET101_MODEL,
+} as const;
+
+/**
+ * @category Models - Semantic Segmentation
+ */
+export const DEEPLAB_V3_MOBILENET_V3_LARGE = {
+  modelName: 'deeplab-v3-mobilenet-v3-large',
+  modelSource: DEEPLAB_V3_MOBILENET_V3_LARGE_MODEL,
+} as const;
+
+/**
+ * @category Models - Semantic Segmentation
+ */
+export const LRASPP_MOBILENET_V3_LARGE = {
+  modelName: 'lraspp-mobilenet-v3-large',
+  modelSource: LRASPP_MOBILENET_V3_LARGE_MODEL,
+} as const;
+
+/**
+ * @category Models - Semantic Segmentation
+ */
+export const FCN_RESNET50 = {
+  modelName: 'fcn-resnet50',
+  modelSource: FCN_RESNET50_MODEL,
+} as const;
+
+/**
+ * @category Models - Semantic Segmentation
+ */
+export const FCN_RESNET101 = {
+  modelName: 'fcn-resnet101',
+  modelSource: FCN_RESNET101_MODEL,
+} as const;
+
+/**
+ * @category Models - Semantic Segmentation
+ */
+export const DEEPLAB_V3_RESNET50_QUANTIZED = {
+  modelName: 'deeplab-v3-resnet50-quantized',
+  modelSource: DEEPLAB_V3_RESNET50_QUANTIZED_MODEL,
+} as const;
+
+/**
+ * @category Models - Semantic Segmentation
+ */
+export const DEEPLAB_V3_RESNET101_QUANTIZED = {
+  modelName: 'deeplab-v3-resnet101-quantized',
+  modelSource: DEEPLAB_V3_RESNET101_QUANTIZED_MODEL,
+} as const;
+
+/**
+ * @category Models - Semantic Segmentation
+ */
+export const DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED = {
+  modelName: 'deeplab-v3-mobilenet-v3-large-quantized',
+  modelSource: DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED_MODEL,
+} as const;
+
+/**
+ * @category Models - Semantic Segmentation
+ */
+export const LRASPP_MOBILENET_V3_LARGE_QUANTIZED = {
+  modelName: 'lraspp-mobilenet-v3-large-quantized',
+  modelSource: LRASPP_MOBILENET_V3_LARGE_QUANTIZED_MODEL,
+} as const;
+
+/**
+ * @category Models - Semantic Segmentation
+ */
+export const FCN_RESNET50_QUANTIZED = {
+  modelName: 'fcn-resnet50-quantized',
+  modelSource: FCN_RESNET50_QUANTIZED_MODEL,
+} as const;
+
+/**
+ * @category Models - Semantic Segmentation
+ */
+export const FCN_RESNET101_QUANTIZED = {
+  modelName: 'fcn-resnet101-quantized',
+  modelSource: FCN_RESNET101_QUANTIZED_MODEL,
 } as const;
 
 const SELFIE_SEGMENTATION_MODEL = `${URL_PREFIX}-selfie-segmentation/${NEXT_VERSION_TAG}/xnnpack/selfie-segmentation.pte`;
