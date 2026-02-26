@@ -12,7 +12,6 @@ import { Logger } from '../../common/Logger';
 
 /**
  * Module for Speech to Text (STT) functionalities.
- *
  * @category Typescript API
  */
 export class SpeechToTextModule {
@@ -128,7 +127,6 @@ export class SpeechToTextModule {
   /**
    * Runs the encoding part of the model on the provided waveform.
    * Returns the encoded waveform as a Float32Array.
-   *
    * @param waveform - The input audio waveform.
    * @returns The encoded output.
    */
@@ -139,7 +137,6 @@ export class SpeechToTextModule {
 
   /**
    * Runs the decoder of the model.
-   *
    * @param tokens - The input tokens.
    * @param encoderOutput - The encoder output.
    * @returns Decoded output.
@@ -156,7 +153,6 @@ export class SpeechToTextModule {
    * Starts a transcription process for a given input array (16kHz waveform).
    * For multilingual models, specify the language in `options`.
    * Returns the transcription as a string. Passing `number[]` is deprecated.
-   *
    * @param waveform - The Float32Array audio data.
    * @param options - Decoding options including language.
    * @returns The transcription string.
@@ -181,8 +177,8 @@ export class SpeechToTextModule {
    * Non-committed transcription contains the part of the transcription that is still being processed and may change.
    * Useful for displaying live, partial results during streaming.
    * Use with `streamInsert` and `streamStop` to control the stream.
-   *
    * @param options - Decoding options including language.
+   * @yields An object containing `committed` and `nonCommitted` transcription results.
    * @returns An async generator yielding transcription updates.
    */
   public async *stream(options: DecodingOptions = {}): AsyncGenerator<{
@@ -255,7 +251,6 @@ export class SpeechToTextModule {
 
   /**
    * Inserts a new audio chunk into the streaming transcription session.
-   *
    * @param waveform - The audio chunk to insert.
    */
   public streamInsert(waveform: Float32Array): void {
