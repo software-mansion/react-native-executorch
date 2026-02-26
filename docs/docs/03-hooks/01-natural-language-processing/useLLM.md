@@ -479,11 +479,12 @@ Depending on selected model and the user's device generation speed can be above 
 
 ## Available models
 
-| Model Family                                                                             |      Sizes       | Quantized |
-| ---------------------------------------------------------------------------------------- | :--------------: | :-------: |
-| [Hammer 2.1](https://huggingface.co/software-mansion/react-native-executorch-hammer-2.1) |  0.5B, 1.5B, 3B  |    ✅     |
-| [Qwen 2.5](https://huggingface.co/software-mansion/react-native-executorch-qwen-2.5)     |  0.5B, 1.5B, 3B  |    ✅     |
-| [Qwen 3](https://huggingface.co/software-mansion/react-native-executorch-qwen-3)         |  0.6B, 1.7B, 4B  |    ✅     |
-| [Phi 4 Mini](https://huggingface.co/software-mansion/react-native-executorch-phi-4-mini) |        4B        |    ✅     |
-| [SmolLM 2](https://huggingface.co/software-mansion/react-native-executorch-smolLm-2)     | 135M, 360M, 1.7B |    ✅     |
-| [LLaMA 3.2](https://huggingface.co/software-mansion/react-native-executorch-llama-3.2)   |      1B, 3B      |    ✅     |
+| Model Family                                                                                                 |      Sizes       | Quantized |
+| ------------------------------------------------------------------------------------------------------------ | :--------------: | :-------: |
+| [Hammer 2.1](https://huggingface.co/software-mansion/react-native-executorch-hammer-2.1)                     |  0.5B, 1.5B, 3B  |    ✅     |
+| [Qwen 2.5](https://huggingface.co/software-mansion/react-native-executorch-qwen-2.5)                         |  0.5B, 1.5B, 3B  |    ✅     |
+| [Qwen 3](https://huggingface.co/software-mansion/react-native-executorch-qwen-3)                             |  0.6B, 1.7B, 4B  |    ✅     |
+| [Phi 4 Mini](https://huggingface.co/software-mansion/react-native-executorch-phi-4-mini)                     |        4B        |    ✅     |
+| [SmolLM 2](https://huggingface.co/software-mansion/react-native-executorch-smolLm-2)                         | 135M, 360M, 1.7B |    ✅     |
+| [LLaMA 3.2](https://huggingface.co/software-mansion/react-native-executorch-llama-3.2)                       |      1B, 3B      |    ✅     |
+| [LFM2.5-1.2B-Instruct](https://huggingface.co/software-mansion/react-native-executorch-lfm2.5-1.2B-instruct) |       1.2B       |    ✅     |

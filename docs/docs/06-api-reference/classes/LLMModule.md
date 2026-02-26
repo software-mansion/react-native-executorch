@@ -8,7 +8,7 @@ Module for managing a Large Language Model (LLM) instance.
 
 ### Constructor
 
-> **new LLMModule**(`optionalCallbacks`): `LLMModule`
+> **new LLMModule**(`optionalCallbacks?`): `LLMModule`
 
 Defined in: [modules/natural_language_processing/LLMModule.ts:20](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L20)
 
@@ -16,7 +16,7 @@ Creates a new instance of `LLMModule` with optional callbacks.
 
 #### Parameters
 
-##### optionalCallbacks
+##### optionalCallbacks?
 
 Object containing optional callbacks.
 
@@ -227,7 +227,7 @@ Interrupts model generation. It may return one more token after interrupt.
 
 ### load()
 
-> **load**(`model`, `onDownloadProgressCallback`): `Promise`\<`void`\>
+> **load**(`model`, `onDownloadProgressCallback?`): `Promise`\<`void`\>
 
 Defined in: [modules/natural_language_processing/LLMModule.ts:49](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/LLMModule.ts#L49)
 
@@ -257,7 +257,7 @@ Object containing model, tokenizer, and tokenizer config sources.
 
 `ResourceSource` pointing to the JSON file which contains the tokenizer.
 
-##### onDownloadProgressCallback
+##### onDownloadProgressCallback?
 
 (`progress`) => `void`
 

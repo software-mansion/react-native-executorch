@@ -9,6 +9,9 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  Linking,
+  Alert,
+  AppState,
 } from 'react-native';
 import SWMIcon from '../../assets/icons/swm_icon.svg';
 import SendIcon from '../../assets/icons/send_icon.svg';
@@ -36,6 +39,8 @@ export default function LLMToolCallingScreenWrapper() {
 function LLMToolCallingScreen() {
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
   const [userInput, setUserInput] = useState('');
+  const [hasCalendarPermission, setHasCalendarPermission] = useState(true);
+  const [hasBrightnessPermission, setHasBrightnessPermission] = useState(true);
   const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
@@ -65,25 +70,78 @@ function LLMToolCallingScreen() {
     }
   }, [llm.error]);
 
-  // PERMISSIONS
-  useEffect(() => {
-    (async () => {
-      const { status } = await Calendar.requestCalendarPermissionsAsync();
-      if (status !== 'granted') {
-        console.log(
-          'No access to calendar! We need this to use app correctly!'
-        );
-      }
-    })();
+  const requestCalendarPermission = async () => {
+    const { status, canAskAgain } =
+      await Calendar.getCalendarPermissionsAsync();
 
-    (async () => {
-      const { status } = await Brightness.requestPermissionsAsync();
-      if (status !== 'granted') {
-        console.log(
-          'No access to brightness! We need this to use app correctly!'
-        );
+    if (status === Calendar.PermissionStatus.GRANTED) {
+      setHasCalendarPermission(true);
+      return;
+    }
+
+    if (status === Calendar.PermissionStatus.UNDETERMINED || canAskAgain) {
+      const { status: nextStatus } =
+        await Calendar.requestCalendarPermissionsAsync();
+      setHasCalendarPermission(
+        nextStatus === Calendar.PermissionStatus.GRANTED
+      );
+      return;
+    }
+
+    setHasCalendarPermission(false);
+    Alert.alert(
+      'Calendar Permission Required',
+      'To read or add events, the app requires "Full Access" to your calendar. Please enable this in your device settings.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Open Settings', onPress: () => Linking.openSettings() },
+      ]
+    );
+  };
+
+  const requestBrightnessPermission = async () => {
+    const { status, canAskAgain } = await Brightness.getPermissionsAsync();
+
+    if (status === Brightness.PermissionStatus.GRANTED) {
+      setHasBrightnessPermission(true);
+      return;
+    }
+
+    if (status === Brightness.PermissionStatus.UNDETERMINED || canAskAgain) {
+      const { status: nextStatus } = await Brightness.requestPermissionsAsync();
+      setHasBrightnessPermission(
+        nextStatus === Brightness.PermissionStatus.GRANTED
+      );
+      return;
+    }
+
+    setHasBrightnessPermission(false);
+    Alert.alert(
+      'Brightness Permission Required',
+      'To change screen brightness, the app requires permission. Please enable this in your device settings.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Open Settings', onPress: () => Linking.openSettings() },
+      ]
+    );
+  };
+
+  useEffect(() => {
+    requestCalendarPermission();
+    requestBrightnessPermission();
+  }, []);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        requestCalendarPermission();
+        requestBrightnessPermission();
       }
-    })();
+    });
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
 
   const sendMessage = async () => {
@@ -99,17 +157,13 @@ function LLMToolCallingScreen() {
   return !llm.isReady ? (
     <Spinner
       visible={!llm.isReady}
-      textContent={`Loading the model ${(llm.downloadProgress * 100).toFixed(
-        0
-      )} %`}
+      textContent={`Loading the model ${(llm.downloadProgress * 100).toFixed(0)} %`}
     />
   ) : (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
         <KeyboardAvoidingView
-          style={{
-            ...styles.container,
-          }}
+          style={{ ...styles.container }}
           collapsable={false}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 40}
@@ -133,6 +187,29 @@ function LLMToolCallingScreen() {
                 I can use calendar! Ask me to check it or add an event for you!
               </Text>
             </View>
+          )}
+
+          {!hasCalendarPermission && (
+            <TouchableOpacity
+              style={styles.permissionBanner}
+              onPress={requestCalendarPermission}
+            >
+              <Text style={styles.permissionBannerText}>
+                Calendar access is required.{' '}
+                <Text style={styles.permissionBannerLink}>Grant Access</Text>
+              </Text>
+            </TouchableOpacity>
+          )}
+          {!hasBrightnessPermission && (
+            <TouchableOpacity
+              style={styles.permissionBanner}
+              onPress={requestBrightnessPermission}
+            >
+              <Text style={styles.permissionBannerText}>
+                Brightness access is required.{' '}
+                <Text style={styles.permissionBannerLink}>Grant Access</Text>
+              </Text>
+            </TouchableOpacity>
           )}
 
           <View style={styles.bottomContainer}>
@@ -228,5 +305,20 @@ const styles = StyleSheet.create({
     width: 48,
     justifyContent: 'center',
     alignItems: 'flex-end',
+  },
+  permissionBanner: {
+    backgroundColor: '#FFF3CD',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  permissionBannerText: {
+    fontFamily: 'regular',
+    fontSize: 13,
+    color: '#856404',
+  },
+  permissionBannerLink: {
+    fontFamily: 'medium',
+    color: ColorPalette.blueDark,
   },
 });

@@ -5,10 +5,10 @@
 - [useClassification](functions/useClassification.md)
 - [useExecutorchModule](functions/useExecutorchModule.md)
 - [useImageEmbeddings](functions/useImageEmbeddings.md)
-- [useImageSegmentation](functions/useImageSegmentation.md)
 - [useLLM](functions/useLLM.md)
 - [useObjectDetection](functions/useObjectDetection.md)
 - [useOCR](functions/useOCR.md)
+- [useSemanticSegmentation](functions/useSemanticSegmentation.md)
 - [useSpeechToText](functions/useSpeechToText.md)
 - [useStyleTransfer](functions/useStyleTransfer.md)
 - [useTextEmbeddings](functions/useTextEmbeddings.md)
@@ -35,11 +35,6 @@
 - [BK_SDM_TINY_VPRED_256](variables/BK_SDM_TINY_VPRED_256.md)
 - [BK_SDM_TINY_VPRED_512](variables/BK_SDM_TINY_VPRED_512.md)
 
-## Models - Image Segmentation
-
-- [DEEPLAB_V3_RESNET50](variables/DEEPLAB_V3_RESNET50.md)
-- [SELFIE_SEGMENTATION](variables/SELFIE_SEGMENTATION.md)
-
 ## Models - LMM
 
 - [HAMMER2_1_0_5B](variables/HAMMER2_1_0_5B.md)
@@ -48,6 +43,8 @@
 - [HAMMER2_1_1_5B_QUANTIZED](variables/HAMMER2_1_1_5B_QUANTIZED.md)
 - [HAMMER2_1_3B](variables/HAMMER2_1_3B.md)
 - [HAMMER2_1_3B_QUANTIZED](variables/HAMMER2_1_3B_QUANTIZED.md)
+- [LFM2_5_1_2B_INSTRUCT](variables/LFM2_5_1_2B_INSTRUCT.md)
+- [LFM2_5_1_2B_INSTRUCT_QUANTIZED](variables/LFM2_5_1_2B_INSTRUCT_QUANTIZED.md)
 - [LLAMA3_2_1B](variables/LLAMA3_2_1B.md)
 - [LLAMA3_2_1B_QLORA](variables/LLAMA3_2_1B_QLORA.md)
 - [LLAMA3_2_1B_SPINQUANT](variables/LLAMA3_2_1B_SPINQUANT.md)
@@ -78,6 +75,22 @@
 ## Models - Object Detection
 
 - [SSDLITE_320_MOBILENET_V3_LARGE](variables/SSDLITE_320_MOBILENET_V3_LARGE.md)
+
+## Models - Semantic Segmentation
+
+- [DEEPLAB_V3_MOBILENET_V3_LARGE](variables/DEEPLAB_V3_MOBILENET_V3_LARGE.md)
+- [DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED](variables/DEEPLAB_V3_MOBILENET_V3_LARGE_QUANTIZED.md)
+- [DEEPLAB_V3_RESNET101](variables/DEEPLAB_V3_RESNET101.md)
+- [DEEPLAB_V3_RESNET101_QUANTIZED](variables/DEEPLAB_V3_RESNET101_QUANTIZED.md)
+- [DEEPLAB_V3_RESNET50](variables/DEEPLAB_V3_RESNET50.md)
+- [DEEPLAB_V3_RESNET50_QUANTIZED](variables/DEEPLAB_V3_RESNET50_QUANTIZED.md)
+- [FCN_RESNET101](variables/FCN_RESNET101.md)
+- [FCN_RESNET101_QUANTIZED](variables/FCN_RESNET101_QUANTIZED.md)
+- [FCN_RESNET50](variables/FCN_RESNET50.md)
+- [FCN_RESNET50_QUANTIZED](variables/FCN_RESNET50_QUANTIZED.md)
+- [LRASPP_MOBILENET_V3_LARGE](variables/LRASPP_MOBILENET_V3_LARGE.md)
+- [LRASPP_MOBILENET_V3_LARGE_QUANTIZED](variables/LRASPP_MOBILENET_V3_LARGE_QUANTIZED.md)
+- [SELFIE_SEGMENTATION](variables/SELFIE_SEGMENTATION.md)
 
 ## Models - Speech To Text
 
@@ -217,8 +230,6 @@
 - [GenerationConfig](interfaces/GenerationConfig.md)
 - [ImageEmbeddingsProps](interfaces/ImageEmbeddingsProps.md)
 - [ImageEmbeddingsType](interfaces/ImageEmbeddingsType.md)
-- [ImageSegmentationProps](interfaces/ImageSegmentationProps.md)
-- [ImageSegmentationType](interfaces/ImageSegmentationType.md)
 - [KokoroConfig](interfaces/KokoroConfig.md)
 - [KokoroVoiceExtras](interfaces/KokoroVoiceExtras.md)
 - [LLMConfig](interfaces/LLMConfig.md)
@@ -232,6 +243,8 @@
 - [OCRType](interfaces/OCRType.md)
 - [Point](interfaces/Point.md)
 - [Segment](interfaces/Segment.md)
+- [SemanticSegmentationProps](interfaces/SemanticSegmentationProps.md)
+- [SemanticSegmentationType](interfaces/SemanticSegmentationType.md)
 - [SpeechToTextModelConfig](interfaces/SpeechToTextModelConfig.md)
 - [SpeechToTextProps](interfaces/SpeechToTextProps.md)
 - [SpeechToTextType](interfaces/SpeechToTextType.md)
@@ -262,12 +275,12 @@
 - [LLMTool](type-aliases/LLMTool.md)
 - [MessageRole](type-aliases/MessageRole.md)
 - [ModelNameOf](type-aliases/ModelNameOf.md)
-- [ModelSources](type-aliases/ModelSources.md)
 - [OCRLanguage](type-aliases/OCRLanguage.md)
 - [ResourceSource](type-aliases/ResourceSource.md)
-- [SegmentationConfig](type-aliases/SegmentationConfig.md)
 - [SegmentationLabels](type-aliases/SegmentationLabels.md)
-- [SegmentationModelName](type-aliases/SegmentationModelName.md)
+- [SemanticSegmentationConfig](type-aliases/SemanticSegmentationConfig.md)
+- [SemanticSegmentationModelName](type-aliases/SemanticSegmentationModelName.md)
+- [SemanticSegmentationModelSources](type-aliases/SemanticSegmentationModelSources.md)
 - [SpeechToTextLanguage](type-aliases/SpeechToTextLanguage.md)
 - [TensorBuffer](type-aliases/TensorBuffer.md)
 - [TextToSpeechLanguage](type-aliases/TextToSpeechLanguage.md)
@@ -279,10 +292,10 @@
 - [ClassificationModule](classes/ClassificationModule.md)
 - [ExecutorchModule](classes/ExecutorchModule.md)
 - [ImageEmbeddingsModule](classes/ImageEmbeddingsModule.md)
-- [ImageSegmentationModule](classes/ImageSegmentationModule.md)
 - [LLMModule](classes/LLMModule.md)
 - [ObjectDetectionModule](classes/ObjectDetectionModule.md)
 - [OCRModule](classes/OCRModule.md)
+- [SemanticSegmentationModule](classes/SemanticSegmentationModule.md)
 - [SpeechToTextModule](classes/SpeechToTextModule.md)
 - [StyleTransferModule](classes/StyleTransferModule.md)
 - [TextEmbeddingsModule](classes/TextEmbeddingsModule.md)

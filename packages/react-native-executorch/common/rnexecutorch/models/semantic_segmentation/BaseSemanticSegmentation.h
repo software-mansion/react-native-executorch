@@ -11,20 +11,21 @@
 #include <rnexecutorch/models/BaseModel.h>
 
 namespace rnexecutorch {
-namespace models::image_segmentation {
+namespace models::semantic_segmentation {
 using namespace facebook;
 
 using executorch::aten::Tensor;
 using executorch::extension::TensorPtr;
 
-class BaseImageSegmentation : public BaseModel {
+class BaseSemanticSegmentation : public BaseModel {
 public:
-  BaseImageSegmentation(const std::string &modelSource,
-                        std::shared_ptr<react::CallInvoker> callInvoker);
+  BaseSemanticSegmentation(const std::string &modelSource,
+                           std::shared_ptr<react::CallInvoker> callInvoker);
 
-  BaseImageSegmentation(const std::string &modelSource,
-                        std::vector<float> normMean, std::vector<float> normStd,
-                        std::shared_ptr<react::CallInvoker> callInvoker);
+  BaseSemanticSegmentation(const std::string &modelSource,
+                           std::vector<float> normMean,
+                           std::vector<float> normStd,
+                           std::shared_ptr<react::CallInvoker> callInvoker);
 
   [[nodiscard("Registered non-void function")]] std::shared_ptr<jsi::Object>
   generate(std::string imageSource, std::vector<std::string> allClasses,
@@ -53,9 +54,9 @@ protected:
 private:
   void initModelImageSize();
 };
-} // namespace models::image_segmentation
+} // namespace models::semantic_segmentation
 
-REGISTER_CONSTRUCTOR(models::image_segmentation::BaseImageSegmentation,
+REGISTER_CONSTRUCTOR(models::semantic_segmentation::BaseSemanticSegmentation,
                      std::string, std::vector<float>, std::vector<float>,
                      std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

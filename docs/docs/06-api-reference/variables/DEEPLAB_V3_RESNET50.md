@@ -2,14 +2,14 @@
 
 > `const` **DEEPLAB_V3_RESNET50**: `object`
 
-Defined in: [constants/modelUrls.ts:523](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L523)
+Defined in: [constants/modelUrls.ts:558](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L558)
 
 ## Type Declaration
 
 ### modelName
 
-> `readonly` **modelName**: `"deeplab-v3"` = `'deeplab-v3'`
+> `readonly` **modelName**: `"deeplab-v3-resnet50"` = `'deeplab-v3-resnet50'`
 
 ### modelSource
 
-> `readonly` **modelSource**: `"https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3/resolve/v0.7.0/xnnpack/deeplabV3_xnnpack_fp32.pte"` = `DEEPLAB_V3_RESNET50_MODEL`
+> `readonly` **modelSource**: `"https://huggingface.co/software-mansion/react-native-executorch-deeplab-v3/resolve/v0.8.0/deeplab-v3-resnet50/xnnpack/deeplabv3_resnet50_xnnpack_fp32.pte"` = `DEEPLAB_V3_RESNET50_MODEL`

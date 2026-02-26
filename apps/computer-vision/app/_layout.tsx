@@ -68,10 +68,10 @@ export default function _layout() {
           }}
         />
         <Drawer.Screen
-          name="image_segmentation/index"
+          name="semantic_segmentation/index"
           options={{
-            drawerLabel: 'Image Segmentation',
-            title: 'Image Segmentation',
+            drawerLabel: 'Semantic Segmentation',
+            title: 'Semantic Segmentation',
             headerTitleStyle: { color: ColorPalette.primary },
           }}
         />

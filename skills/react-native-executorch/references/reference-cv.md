@@ -1,6 +1,6 @@
 ---
 title: Computer Vision models usage
-description: Reference for using Image Classification, Image Segmentation, and Object Detection models.
+description: Reference for using Image Classification, Semantic Segmentation, and Object Detection models.
 ---
 
 # useClassification
@@ -73,7 +73,7 @@ For the latest available models reference exported models in [HuggingFace Classi
 
 ---
 
-# useImageSegmentation
+# useSemanticSegmentation
 
 **Purpose:** Classify each pixel in an image to detect objects on a per-pixel basis.
 
@@ -83,12 +83,12 @@ For the latest available models reference exported models in [HuggingFace Classi
 
 ```typescript
 import {
-  useImageSegmentation,
+  useSemanticSegmentation,
   DEEPLAB_V3_RESNET50,
   DeeplabLabel,
 } from 'react-native-executorch';
 
-const model = useImageSegmentation({ model: DEEPLAB_V3_RESNET50 });
+const model = useSemanticSegmentation({ model: DEEPLAB_V3_RESNET50 });
 
 const imageUri = 'file:///Users/.../cute_cat.png';
 
@@ -103,7 +103,7 @@ try {
 ## Advanced Usage with Classes of Interest
 
 ```typescript
-const model = useImageSegmentation({ model: DEEPLAB_V3_RESNET50 });
+const model = useSemanticSegmentation({ model: DEEPLAB_V3_RESNET50 });
 
 const handleSegmentation = async (imageUri: string) => {
   try {
@@ -139,10 +139,10 @@ For the latest available models check out exported models in [this HuggingFace S
 
 ## Additional references
 
-- [useImageSegmentation docs](https://docs.swmansion.com/react-native-executorch/docs/hooks/computer-vision/useImageSegmentation)
-- [useImageSegmentation API reference](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/useImageSegmentation)
+- [useSemanticSegmentation docs](https://docs.swmansion.com/react-native-executorch/docs/hooks/computer-vision/useSemanticSegmentation)
+- [useSemanticSegmentation API reference](https://docs.swmansion.com/react-native-executorch/docs/api-reference/functions/useSemanticSegmentation)
 - [HuggingFace Segmentation collection](https://huggingface.co/collections/software-mansion/image-segmentation)
-- [Typescript API implementation of segmentation](https://docs.swmansion.com/react-native-executorch/docs/typescript-api/computer-vision/ImageSegmentationModule)
+- [Typescript API implementation of segmentation](https://docs.swmansion.com/react-native-executorch/docs/typescript-api/computer-vision/SemanticSegmentationModule)
 
 ---
 

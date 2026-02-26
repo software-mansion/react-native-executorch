@@ -2,7 +2,7 @@
 
 > `const` **SELFIE_SEGMENTATION**: `object`
 
-Defined in: [constants/modelUrls.ts:532](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L532)
+Defined in: [constants/modelUrls.ts:655](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/modelUrls.ts#L655)
 
 ## Type Declaration
 
@@ -12,4 +12,4 @@ Defined in: [constants/modelUrls.ts:532](https://github.com/software-mansion/rea
 
 ### modelSource
 
-> `readonly` **modelSource**: `"https://huggingface.co/software-mansion/react-native-executorch-selfie-segmentation/resolve/v0.7.0/xnnpack/selfie-segmentation.pte"` = `SELFIE_SEGMENTATION_MODEL`
+> `readonly` **modelSource**: `"https://huggingface.co/software-mansion/react-native-executorch-selfie-segmentation/resolve/v0.8.0/xnnpack/selfie-segmentation.pte"` = `SELFIE_SEGMENTATION_MODEL`

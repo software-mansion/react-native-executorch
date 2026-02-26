@@ -3,27 +3,43 @@ import { ResourceSource, LabelEnum } from '../../types/common';
 import {
   DeeplabLabel,
   ModelNameOf,
-  ModelSources,
-  SegmentationConfig,
-  SegmentationModelName,
+  SemanticSegmentationModelSources,
+  SemanticSegmentationConfig,
+  SemanticSegmentationModelName,
   SelfieSegmentationLabel,
-} from '../../types/imageSegmentation';
+} from '../../types/semanticSegmentation';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
 import { BaseModule } from '../BaseModule';
+import { IMAGENET1K_MEAN, IMAGENET1K_STD } from '../../constants/commonVision';
 
-const ModelConfigs = {
-  'deeplab-v3': {
-    labelMap: DeeplabLabel,
-    preprocessorConfig: undefined,
+const PascalVocSegmentationConfig = {
+  labelMap: DeeplabLabel,
+  preprocessorConfig: {
+    normMean: IMAGENET1K_MEAN,
+    normStd: IMAGENET1K_STD,
   },
+};
+const ModelConfigs = {
+  'deeplab-v3-resnet50': PascalVocSegmentationConfig,
+  'deeplab-v3-resnet101': PascalVocSegmentationConfig,
+  'deeplab-v3-mobilenet-v3-large': PascalVocSegmentationConfig,
+  'lraspp-mobilenet-v3-large': PascalVocSegmentationConfig,
+  'fcn-resnet50': PascalVocSegmentationConfig,
+  'fcn-resnet101': PascalVocSegmentationConfig,
+  'deeplab-v3-resnet50-quantized': PascalVocSegmentationConfig,
+  'deeplab-v3-resnet101-quantized': PascalVocSegmentationConfig,
+  'deeplab-v3-mobilenet-v3-large-quantized': PascalVocSegmentationConfig,
+  'lraspp-mobilenet-v3-large-quantized': PascalVocSegmentationConfig,
+  'fcn-resnet50-quantized': PascalVocSegmentationConfig,
+  'fcn-resnet101-quantized': PascalVocSegmentationConfig,
   'selfie-segmentation': {
     labelMap: SelfieSegmentationLabel,
     preprocessorConfig: undefined,
   },
 } as const satisfies Record<
-  SegmentationModelName,
-  SegmentationConfig<LabelEnum>
+  SemanticSegmentationModelName,
+  SemanticSegmentationConfig<LabelEnum>
 >;
 
 /** @internal */
@@ -32,33 +48,38 @@ type ModelConfigsType = typeof ModelConfigs;
 /**
  * Resolves the {@link LabelEnum} for a given built-in model name.
  *
- * @typeParam M - A built-in model name from {@link SegmentationModelName}.
+ * @typeParam M - A built-in model name from {@link SemanticSegmentationModelName}.
  *
  * @category Types
  */
-export type SegmentationLabels<M extends SegmentationModelName> =
+export type SegmentationLabels<M extends SemanticSegmentationModelName> =
   ModelConfigsType[M]['labelMap'];
 
 /**
  * @internal
- * Resolves the label type: if `T` is a {@link SegmentationModelName}, looks up its labels
+ * Resolves the label type: if `T` is a {@link SemanticSegmentationModelName}, looks up its labels
  * from the built-in config; otherwise uses `T` directly as a {@link LabelEnum}.
  */
-type ResolveLabels<T extends SegmentationModelName | LabelEnum> =
-  T extends SegmentationModelName ? SegmentationLabels<T> : T;
+type ResolveLabels<T extends SemanticSegmentationModelName | LabelEnum> =
+  T extends SemanticSegmentationModelName ? SegmentationLabels<T> : T;
 
 /**
- * Generic image segmentation module with type-safe label maps.
- * Use a model name (e.g. `'deeplab-v3'`) as the generic parameter for built-in models,
+ * Generic semantic segmentation module with type-safe label maps.
+ * Use a model name (e.g. `'deeplab-v3-resnet50'`) as the generic parameter for built-in models,
  * or a custom label enum for custom configs.
  *
- * @typeParam T - Either a built-in model name (`'deeplab-v3'`, `'selfie-segmentation'`)
- *   or a custom {@link LabelEnum} label map.
+ * @typeParam T - Either a built-in model name (`'deeplab-v3-resnet50'`,
+ *   `'deeplab-v3-resnet50-quantized'`, `'deeplab-v3-resnet101'`,
+ *   `'deeplab-v3-resnet101-quantized'`, `'deeplab-v3-mobilenet-v3-large'`,
+ *   `'deeplab-v3-mobilenet-v3-large-quantized'`, `'lraspp-mobilenet-v3-large'`,
+ *   `'lraspp-mobilenet-v3-large-quantized'`, `'fcn-resnet50'`,
+ *   `'fcn-resnet50-quantized'`, `'fcn-resnet101'`, `'fcn-resnet101-quantized'`,
+ *   `'selfie-segmentation'`) or a custom {@link LabelEnum} label map.
  *
  * @category Typescript API
  */
-export class ImageSegmentationModule<
-  T extends SegmentationModelName | LabelEnum,
+export class SemanticSegmentationModule<
+  T extends SemanticSegmentationModelName | LabelEnum,
 > extends BaseModule {
   private labelMap: ResolveLabels<T>;
   private allClassNames: string[];
@@ -79,28 +100,28 @@ export class ImageSegmentationModule<
    * Creates a segmentation instance for a built-in model.
    * The config object is discriminated by `modelName` — each model can require different fields.
    *
-   * @param config - A {@link ModelSources} object specifying which model to load and where to fetch it from.
+   * @param config - A {@link SemanticSegmentationModelSources} object specifying which model to load and where to fetch it from.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
-   * @returns A Promise resolving to an `ImageSegmentationModule` instance typed to the chosen model's label map.
+   * @returns A Promise resolving to a `SemanticSegmentationModule` instance typed to the chosen model's label map.
    *
    * @example
    * ```ts
-   * const segmentation = await ImageSegmentationModule.fromModelName({
+   * const segmentation = await SemanticSegmentationModule.fromModelName({
    *   modelName: 'deeplab-v3',
    *   modelSource: 'https://example.com/deeplab.pte',
    * });
    * ```
    */
 
-  static async fromModelName<C extends ModelSources>(
+  static async fromModelName<C extends SemanticSegmentationModelSources>(
     config: C,
     onDownloadProgress: (progress: number) => void = () => {}
-  ): Promise<ImageSegmentationModule<ModelNameOf<C>>> {
+  ): Promise<SemanticSegmentationModule<ModelNameOf<C>>> {
     const { modelName, modelSource } = config;
     const { labelMap } = ModelConfigs[modelName];
     const { preprocessorConfig } = ModelConfigs[
       modelName
-    ] as SegmentationConfig<LabelEnum>;
+    ] as SemanticSegmentationConfig<LabelEnum>;
     const normMean = preprocessorConfig?.normMean ?? [];
     const normStd = preprocessorConfig?.normStd ?? [];
     const paths = await ResourceFetcher.fetch(onDownloadProgress, modelSource);
@@ -110,12 +131,12 @@ export class ImageSegmentationModule<
         'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
       );
     }
-    const nativeModule = global.loadImageSegmentation(
+    const nativeModule = global.loadSemanticSegmentation(
       paths[0],
       normMean,
       normStd
     );
-    return new ImageSegmentationModule<ModelNameOf<C>>(
+    return new SemanticSegmentationModule<ModelNameOf<C>>(
       labelMap as ResolveLabels<ModelNameOf<C>>,
       nativeModule
     );
@@ -126,14 +147,14 @@ export class ImageSegmentationModule<
    * Use this when working with a custom-exported segmentation model that is not one of the built-in models.
    *
    * @param modelSource - A fetchable resource pointing to the model binary.
-   * @param config - A {@link SegmentationConfig} object with the label map and optional preprocessing parameters.
+   * @param config - A {@link SemanticSegmentationConfig} object with the label map and optional preprocessing parameters.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
-   * @returns A Promise resolving to an `ImageSegmentationModule` instance typed to the provided label map.
+   * @returns A Promise resolving to a `SemanticSegmentationModule` instance typed to the provided label map.
    *
    * @example
    * ```ts
    * const MyLabels = { BACKGROUND: 0, FOREGROUND: 1 } as const;
-   * const segmentation = await ImageSegmentationModule.fromCustomConfig(
+   * const segmentation = await SemanticSegmentationModule.fromCustomConfig(
    *   'https://example.com/custom_model.pte',
    *   { labelMap: MyLabels },
    * );
@@ -141,9 +162,9 @@ export class ImageSegmentationModule<
    */
   static async fromCustomConfig<L extends LabelEnum>(
     modelSource: ResourceSource,
-    config: SegmentationConfig<L>,
+    config: SemanticSegmentationConfig<L>,
     onDownloadProgress: (progress: number) => void = () => {}
-  ): Promise<ImageSegmentationModule<L>> {
+  ): Promise<SemanticSegmentationModule<L>> {
     const paths = await ResourceFetcher.fetch(onDownloadProgress, modelSource);
     if (!paths?.[0]) {
       throw new RnExecutorchError(
@@ -153,12 +174,12 @@ export class ImageSegmentationModule<
     }
     const normMean = config.preprocessorConfig?.normMean ?? [];
     const normStd = config.preprocessorConfig?.normStd ?? [];
-    const nativeModule = global.loadImageSegmentation(
+    const nativeModule = global.loadSemanticSegmentation(
       paths[0],
       normMean,
       normStd
     );
-    return new ImageSegmentationModule<L>(
+    return new SemanticSegmentationModule<L>(
       config.labelMap as ResolveLabels<L>,
       nativeModule
     );

@@ -1,44 +1,46 @@
 import { useState, useEffect } from 'react';
 import {
-  ImageSegmentationModule,
+  SemanticSegmentationModule,
   SegmentationLabels,
-} from '../../modules/computer_vision/ImageSegmentationModule';
+} from '../../modules/computer_vision/SemanticSegmentationModule';
 import {
-  ImageSegmentationProps,
-  ImageSegmentationType,
+  SemanticSegmentationProps,
+  SemanticSegmentationType,
   ModelNameOf,
-  ModelSources,
-} from '../../types/imageSegmentation';
+  SemanticSegmentationModelSources,
+} from '../../types/semanticSegmentation';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 
 /**
- * React hook for managing an Image Segmentation model instance.
+ * React hook for managing a Semantic Segmentation model instance.
  *
- * @typeParam C - A {@link ModelSources} config specifying which built-in model to load.
+ * @typeParam C - A {@link SemanticSegmentationModelSources} config specifying which built-in model to load.
  * @param props - Configuration object containing `model` config and optional `preventLoad` flag.
  * @returns An object with model state (`error`, `isReady`, `isGenerating`, `downloadProgress`) and a typed `forward` function.
  *
  * @example
  * ```ts
- * const { isReady, forward } = useImageSegmentation({
+ * const { isReady, forward } = useSemanticSegmentation({
  *   model: { modelName: 'deeplab-v3', modelSource: DEEPLAB_V3_RESNET50 },
  * });
  * ```
  *
  * @category Hooks
  */
-export const useImageSegmentation = <C extends ModelSources>({
+export const useSemanticSegmentation = <
+  C extends SemanticSegmentationModelSources,
+>({
   model,
   preventLoad = false,
-}: ImageSegmentationProps<C>): ImageSegmentationType<
+}: SemanticSegmentationProps<C>): SemanticSegmentationType<
   SegmentationLabels<ModelNameOf<C>>
 > => {
   const [error, setError] = useState<RnExecutorchError | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const [instance, setInstance] = useState<ImageSegmentationModule<
+  const [instance, setInstance] = useState<SemanticSegmentationModule<
     ModelNameOf<C>
   > | null>(null);
 
@@ -46,14 +48,15 @@ export const useImageSegmentation = <C extends ModelSources>({
     if (preventLoad) return;
 
     let isMounted = true;
-    let currentInstance: ImageSegmentationModule<ModelNameOf<C>> | null = null;
+    let currentInstance: SemanticSegmentationModule<ModelNameOf<C>> | null =
+      null;
 
     (async () => {
       setDownloadProgress(0);
       setError(null);
       setIsReady(false);
       try {
-        currentInstance = await ImageSegmentationModule.fromModelName(
+        currentInstance = await SemanticSegmentationModule.fromModelName(
           model,
           (progress) => {
             if (isMounted) setDownloadProgress(progress);

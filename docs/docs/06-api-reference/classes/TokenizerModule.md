@@ -28,7 +28,7 @@ Native module instance
 
 ### decode()
 
-> **decode**(`tokens`, `skipSpecialTokens`): `Promise`\<`string`\>
+> **decode**(`tokens`, `skipSpecialTokens?`): `Promise`\<`string`\>
 
 Defined in: [modules/natural_language_processing/TokenizerModule.ts:65](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L65)
 
@@ -42,7 +42,7 @@ Converts an array of token IDs into a string.
 
 Array of token IDs to be decoded.
 
-##### skipSpecialTokens
+##### skipSpecialTokens?
 
 `boolean` = `true`
 
@@ -122,7 +122,7 @@ The token string associated to ID.
 
 ### load()
 
-> **load**(`tokenizer`, `onDownloadProgressCallback`): `Promise`\<`void`\>
+> **load**(`tokenizer`, `onDownloadProgressCallback?`): `Promise`\<`void`\>
 
 Defined in: [modules/natural_language_processing/TokenizerModule.ts:25](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/natural_language_processing/TokenizerModule.ts#L25)
 
@@ -139,7 +139,7 @@ Object containing `tokenizerSource`.
 
 [`ResourceSource`](../type-aliases/ResourceSource.md)
 
-##### onDownloadProgressCallback
+##### onDownloadProgressCallback?
 
 (`progress`) => `void`
 
