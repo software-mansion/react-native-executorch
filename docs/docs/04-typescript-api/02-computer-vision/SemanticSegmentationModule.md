@@ -49,7 +49,7 @@ const segmentation = await SemanticSegmentationModule.fromModelName(
 );
 ```
 
-The `config` parameter is a discriminated union — TypeScript ensures you provide the correct fields for each model name. Available built-in models: `'deeplab-v3-resnet50'`, `'deeplab-v3-resnet50-quantized'`, `'deeplab-v3-resnet101'`, `'deeplab-v3-resnet101-quantized'`, `'deeplab-v3-mobilenet-v3-large'`, `'deeplab-v3-mobilenet-v3-large-quantized'`, `'lraspp-mobilenet-v3-large'`, `'lraspp-mobilenet-v3-large-quantized'`, `'fcn-resnet50'`, `'fcn-resnet50-quantized'`, `'fcn-resnet101'`, `'fcn-resnet101-quantized'`, `'selfie-segmentation'`.
+The `config` parameter is a discriminated union — TypeScript ensures you provide the correct fields for each model name. Available built-in models: `'deeplab-v3-resnet50'`, `'deeplab-v3-resnet50-quantized'`, `'deeplab-v3-resnet101'`, `'deeplab-v3-resnet101-quantized'`, `'deeplab-v3-mobilenet-v3-large'`, `'deeplab-v3-mobilenet-v3-large-quantized'`, `'lraspp-mobilenet-v3-large'`, `'lraspp-mobilenet-v3-large-quantized'`, `'fcn-resnet50'`, `'fcn-resnet50-quantized'`, `'fcn-resnet101'`, `'fcn-resnet101-quantized'`, and `'selfie-segmentation'`.
 
 ### Custom models — `fromCustomConfig`
 
