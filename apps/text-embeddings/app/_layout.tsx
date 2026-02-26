@@ -48,7 +48,7 @@ export default function _layout() {
       }}
     >
       <Drawer
-        drawerContent={(props) => (
+        drawerContent={(props: DrawerContentComponentProps) => (
           <CustomDrawerContent {...props} isGenerating={isGenerating} />
         )}
         screenOptions={{
