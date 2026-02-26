@@ -6,7 +6,7 @@
 #include <rnexecutorch/models/classification/Classification.h>
 #include <rnexecutorch/models/embeddings/image/ImageEmbeddings.h>
 #include <rnexecutorch/models/embeddings/text/TextEmbeddings.h>
-#include <rnexecutorch/models/instance_segmentation/InstanceSegmentation.h>
+#include <rnexecutorch/models/instance_segmentation/BaseInstanceSegmentation.h>
 #include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/object_detection/ObjectDetection.h>
 #include <rnexecutorch/models/ocr/OCR.h>
@@ -49,21 +49,11 @@ void RnExecutorchInstaller::injectJSIBindings(
           models::semantic_segmentation::BaseSemanticSegmentation>(
           jsiRuntime, jsCallInvoker, "loadSemanticSegmentation"));
 
-  std::cout << "[RnExecutorch] Registering loadInstanceSegmentation..."
-            << std::endl;
-  try {
-    jsiRuntime->global().setProperty(
-        *jsiRuntime, "loadInstanceSegmentation",
-        RnExecutorchInstaller::loadModel<
-            models::instance_segmentation::InstanceSegmentation>(
-            jsiRuntime, jsCallInvoker, "loadInstanceSegmentation"));
-    std::cout
-        << "[RnExecutorch] loadInstanceSegmentation registered successfully!"
-        << std::endl;
-  } catch (const std::exception &e) {
-    std::cerr << "[RnExecutorch] ERROR registering loadInstanceSegmentation: "
-              << e.what() << std::endl;
-  }
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadInstanceSegmentation",
+      RnExecutorchInstaller::loadModel<
+          models::instance_segmentation::BaseInstanceSegmentation>(
+          jsiRuntime, jsCallInvoker, "loadInstanceSegmentation"));
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadTextToImage",
@@ -134,19 +124,6 @@ void RnExecutorchInstaller::injectJSIBindings(
 
   threads::utils::unsafeSetupThreadPool();
   threads::GlobalThreadPool::initialize();
-
-  // Verify loadInstanceSegmentation is available
-  std::cout
-      << "[RnExecutorch] Verifying loadInstanceSegmentation is accessible..."
-      << std::endl;
-  if (jsiRuntime->global().hasProperty(*jsiRuntime,
-                                       "loadInstanceSegmentation")) {
-    std::cout << "[RnExecutorch] ✅ loadInstanceSegmentation IS available!"
-              << std::endl;
-  } else {
-    std::cerr << "[RnExecutorch] ❌ loadInstanceSegmentation IS NOT available!"
-              << std::endl;
-  }
 }
 
 } // namespace rnexecutorch

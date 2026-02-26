@@ -155,7 +155,7 @@ export class InstanceSegmentationModule<
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<InstanceSegmentationModule<InstanceModelNameOf<C>>> {
     const { modelName, modelSource } = config;
-    const { labelMap } = ModelConfigs[modelName];
+    const modelConfig = ModelConfigs[modelName];
 
     const paths = await ResourceFetcher.fetch(onDownloadProgress, modelSource);
     if (!paths?.[0]) {
@@ -172,10 +172,20 @@ export class InstanceSegmentationModule<
       );
     }
 
-    const nativeModule = global.loadInstanceSegmentation(paths[0]);
+    // Pass config parameters to native module
+    const nativeModule = global.loadInstanceSegmentation(
+      paths[0],
+      modelConfig.postprocessorConfig.type,
+      modelConfig.preprocessorConfig?.normMean || [],
+      modelConfig.preprocessorConfig?.normStd || [],
+      true // applyNMS - always true for now
+    );
 
     return new InstanceSegmentationModule<InstanceModelNameOf<C>>(
-      labelMap as ResolveLabels<InstanceModelNameOf<C>>,
+      modelConfig.labelMap as ResolveLabels<InstanceModelNameOf<C>>,
+      modelConfig as InstanceSegmentationConfig<
+        ResolveLabels<InstanceModelNameOf<C>>
+      >,
       nativeModule
     );
   }
@@ -211,10 +221,25 @@ export class InstanceSegmentationModule<
       );
     }
 
-    const nativeModule = global.loadInstanceSegmentation(paths[0]);
+    if (typeof global.loadInstanceSegmentation !== 'function') {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        `global.loadInstanceSegmentation is not available`
+      );
+    }
+
+    // Pass config parameters to native module
+    const nativeModule = global.loadInstanceSegmentation(
+      paths[0],
+      config.postprocessorConfig.type,
+      config.preprocessorConfig?.normMean || [],
+      config.preprocessorConfig?.normStd || [],
+      true // applyNMS - always true for now
+    );
 
     return new InstanceSegmentationModule<L>(
       config.labelMap as ResolveLabels<L>,
+      config as InstanceSegmentationConfig<ResolveLabels<L>>,
       nativeModule
     );
   }
@@ -238,13 +263,33 @@ export class InstanceSegmentationModule<
       );
     }
 
-    // Extract options with defaults
-    const confidenceThreshold = options?.confidenceThreshold ?? 0.5;
-    const iouThreshold = options?.iouThreshold ?? 0.45;
+    // Extract options with defaults from config
+    const confidenceThreshold =
+      options?.confidenceThreshold ??
+      this.modelConfig.postprocessorConfig.defaultConfidenceThreshold ??
+      0.5;
+    const iouThreshold =
+      options?.iouThreshold ??
+      this.modelConfig.postprocessorConfig.defaultIouThreshold ??
+      0.45;
     const maxInstances = options?.maxInstances ?? 100;
     const returnMaskAtOriginalResolution =
       options?.returnMaskAtOriginalResolution ?? true;
-    const methodName = options?.methodName ?? 'forward_512';
+
+    // Get inputSize from options or use default
+    const inputSize = options?.inputSize ?? this.modelConfig.defaultInputSize;
+
+    // Validate inputSize against available sizes
+    if (
+      !this.modelConfig.availableInputSizes.includes(
+        inputSize as (typeof this.modelConfig.availableInputSizes)[number]
+      )
+    ) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidArgument,
+        `Invalid inputSize: ${inputSize}. Available sizes: ${this.modelConfig.availableInputSizes.join(', ')}`
+      );
+    }
 
     // Convert classesOfInterest labels to indices
     const classIndices = options?.classesOfInterest
@@ -262,7 +307,7 @@ export class InstanceSegmentationModule<
       maxInstances,
       classIndices,
       returnMaskAtOriginalResolution,
-      methodName
+      inputSize // Pass inputSize as number instead of methodName as string
     );
 
     // Convert label indices back to label names
