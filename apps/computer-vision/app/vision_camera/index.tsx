@@ -377,6 +377,7 @@ export default function VisionCameraScreen() {
         outputs={[frameOutput]}
         isActive={true}
         format={format}
+        orientationSource="interface"
       />
 
       <View
