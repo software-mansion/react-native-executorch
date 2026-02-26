@@ -162,8 +162,11 @@ add_rn_test(BaseModelTests integration/BaseModelTest.cpp)
 add_rn_test(ClassificationTests integration/ClassificationTest.cpp
     SOURCES
         ${RNEXECUTORCH_DIR}/models/classification/Classification.cpp
+        ${RNEXECUTORCH_DIR}/models/VisionModel.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
         ${IMAGE_UTILS_SOURCES}
-    LIBS opencv_deps
+    LIBS opencv_deps android
 )
 
 add_rn_test(ObjectDetectionTests integration/ObjectDetectionTest.cpp
@@ -181,8 +184,11 @@ add_rn_test(ImageEmbeddingsTests integration/ImageEmbeddingsTest.cpp
     SOURCES
         ${RNEXECUTORCH_DIR}/models/embeddings/image/ImageEmbeddings.cpp
         ${RNEXECUTORCH_DIR}/models/embeddings/BaseEmbeddings.cpp
+        ${RNEXECUTORCH_DIR}/models/VisionModel.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
         ${IMAGE_UTILS_SOURCES}
-    LIBS opencv_deps
+    LIBS opencv_deps android
 )
 
 add_rn_test(TextEmbeddingsTests integration/TextEmbeddingsTest.cpp
@@ -196,8 +202,11 @@ add_rn_test(TextEmbeddingsTests integration/TextEmbeddingsTest.cpp
 add_rn_test(StyleTransferTests integration/StyleTransferTest.cpp
     SOURCES
         ${RNEXECUTORCH_DIR}/models/style_transfer/StyleTransfer.cpp
+        ${RNEXECUTORCH_DIR}/models/VisionModel.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
         ${IMAGE_UTILS_SOURCES}
-    LIBS opencv_deps
+    LIBS opencv_deps android
 )
 
 add_rn_test(VADTests integration/VoiceActivityDetectionTest.cpp
@@ -273,8 +282,10 @@ add_rn_test(OCRTests integration/OCRTest.cpp
         ${RNEXECUTORCH_DIR}/models/ocr/utils/DetectorUtils.cpp
         ${RNEXECUTORCH_DIR}/models/ocr/utils/RecognitionHandlerUtils.cpp
         ${RNEXECUTORCH_DIR}/models/ocr/utils/RecognizerUtils.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
         ${IMAGE_UTILS_SOURCES}
-    LIBS opencv_deps
+    LIBS opencv_deps android
 )
 
 add_rn_test(VerticalOCRTests integration/VerticalOCRTest.cpp
@@ -287,6 +298,8 @@ add_rn_test(VerticalOCRTests integration/VerticalOCRTest.cpp
         ${RNEXECUTORCH_DIR}/models/ocr/utils/DetectorUtils.cpp
         ${RNEXECUTORCH_DIR}/models/ocr/utils/RecognitionHandlerUtils.cpp
         ${RNEXECUTORCH_DIR}/models/ocr/utils/RecognizerUtils.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
         ${IMAGE_UTILS_SOURCES}
-    LIBS opencv_deps
+    LIBS opencv_deps android
 )

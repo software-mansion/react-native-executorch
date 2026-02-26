@@ -60,7 +60,9 @@ TEST(StyleTransferGenerateTests, MalformedURIThrows) {
 TEST(StyleTransferGenerateTests, ValidImageReturnsNonNull) {
   StyleTransfer model(kValidStyleTransferModelPath, nullptr);
   auto result = model.generateFromString(kValidTestImagePath);
-  EXPECT_NE(result, nullptr);
+  EXPECT_NE(result.dataPtr, nullptr);
+  EXPECT_GT(result.width, 0);
+  EXPECT_GT(result.height, 0);
 }
 
 TEST(StyleTransferGenerateTests, MultipleGeneratesWork) {
@@ -68,8 +70,8 @@ TEST(StyleTransferGenerateTests, MultipleGeneratesWork) {
   EXPECT_NO_THROW((void)model.generateFromString(kValidTestImagePath));
   auto result1 = model.generateFromString(kValidTestImagePath);
   auto result2 = model.generateFromString(kValidTestImagePath);
-  EXPECT_NE(result1, nullptr);
-  EXPECT_NE(result2, nullptr);
+  EXPECT_NE(result1.dataPtr, nullptr);
+  EXPECT_NE(result2.dataPtr, nullptr);
 }
 
 TEST(StyleTransferInheritedTests, GetInputShapeWorks) {
