@@ -35,13 +35,11 @@ module.exports = {
     ],
     'camelcase': 'error',
     'jsdoc/require-jsdoc': 'off',
-    'jsdoc/require-param': 'off',
-    'jsdoc/require-returns': 'off',
-    'jsdoc/require-param-description': 'off',
-    'jsdoc/require-returns-description': 'off',
-    'jsdoc/require-property-description': 'off',
-    'jsdoc/check-param-names': ['warn', { checkDestructured: false }],
-    'jsdoc/require-yields': 'off',
+    'jsdoc/require-param': ['error', { checkDestructured: false }],
+    'jsdoc/check-param-names': ['error', { checkDestructured: false }],
+    'jsdoc/require-yields-type': 'off',
+    'jsdoc/require-yields-description': 'warn',
+    'jsdoc/check-tag-names': ['error', { definedTags: ['property'] }],
   },
   plugins: ['prettier', 'markdown', 'jsdoc'],
   overrides: [
@@ -67,4 +65,11 @@ module.exports = {
     },
   ],
   ignorePatterns: ['node_modules/', 'lib/'],
+  settings: {
+    jsdoc: {
+      tagNamePreference: {
+        typeParam: 'typeParam',
+      },
+    },
+  },
 };

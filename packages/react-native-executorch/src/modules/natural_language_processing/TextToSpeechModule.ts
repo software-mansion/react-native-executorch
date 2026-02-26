@@ -11,7 +11,6 @@ import { Logger } from '../../common/Logger';
 
 /**
  * Module for Text to Speech (TTS) functionalities.
- *
  * @category Typescript API
  */
 export class TextToSpeechModule {
@@ -23,7 +22,6 @@ export class TextToSpeechModule {
   /**
    * Loads the model and voice assets specified by the config object.
    * `onDownloadProgressCallback` allows you to monitor the current progress.
-   *
    * @param config - Configuration object containing `model` source and `voice`.
    * @param onDownloadProgressCallback - Optional callback to monitor download progress.
    */
@@ -101,7 +99,6 @@ export class TextToSpeechModule {
   /**
    * Synthesizes the provided text into speech.
    * Returns a promise that resolves to the full audio waveform as a `Float32Array`.
-   *
    * @param text The input text to be synthesized.
    * @param speed Optional speed multiplier for the speech synthesis (default is 1.0).
    * @returns A promise resolving to the synthesized audio waveform.
@@ -120,8 +117,8 @@ export class TextToSpeechModule {
 
   /**
    * Starts a streaming synthesis session. Yields audio chunks as they are generated.
-   *
    * @param input - Input object containing text and optional speed.
+   * @yields An audio chunk generated during synthesis.
    * @returns An async generator yielding Float32Array audio chunks.
    */
   public async *stream({
