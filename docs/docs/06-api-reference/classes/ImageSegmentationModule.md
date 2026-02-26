@@ -55,7 +55,7 @@ Unloads the model from memory.
 
 ### forward()
 
-> **forward**\<`K`\>(`imageSource`, `classesOfInterest`, `resizeToInput`): `Promise`\<`Record`\<`"ARGMAX"`, `Int32Array`\<`ArrayBufferLike`\>\> & `Record`\<`K`, `Float32Array`\<`ArrayBufferLike`\>\>\>
+> **forward**\<`K`\>(`imageSource`, `classesOfInterest?`, `resizeToInput?`): `Promise`\<`Record`\<`"ARGMAX"`, `Int32Array`\<`ArrayBufferLike`\>\> & `Record`\<`K`, `Float32Array`\<`ArrayBufferLike`\>\>\>
 
 Defined in: [modules/computer_vision/ImageSegmentationModule.ts:176](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L176)
 
@@ -75,13 +75,13 @@ Executes the model's forward pass to perform semantic segmentation on the provid
 
 A string representing the image source (e.g., a file path, URI, or Base64-encoded string).
 
-##### classesOfInterest
+##### classesOfInterest?
 
 `K`[] = `[]`
 
 An optional list of label keys indicating which per-class probability masks to include in the output. `ARGMAX` is always returned regardless.
 
-##### resizeToInput
+##### resizeToInput?
 
 `boolean` = `true`
 
@@ -180,7 +180,7 @@ Defined in: [modules/computer_vision/ImageSegmentationModule.ts:76](https://gith
 
 ### fromCustomConfig()
 
-> `static` **fromCustomConfig**\<`L`\>(`modelSource`, `config`, `onDownloadProgress`): `Promise`\<`ImageSegmentationModule`\<`L`\>\>
+> `static` **fromCustomConfig**\<`L`\>(`modelSource`, `config`, `onDownloadProgress?`): `Promise`\<`ImageSegmentationModule`\<`L`\>\>
 
 Defined in: [modules/computer_vision/ImageSegmentationModule.ts:142](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L142)
 
@@ -207,7 +207,7 @@ A fetchable resource pointing to the model binary.
 
 A [SegmentationConfig](../type-aliases/SegmentationConfig.md) object with the label map and optional preprocessing parameters.
 
-##### onDownloadProgress
+##### onDownloadProgress?
 
 (`progress`) => `void`
 
@@ -233,7 +233,7 @@ const segmentation = await ImageSegmentationModule.fromCustomConfig(
 
 ### fromModelName()
 
-> `static` **fromModelName**\<`C`\>(`config`, `onDownloadProgress`): `Promise`\<`ImageSegmentationModule`\<[`ModelNameOf`](../type-aliases/ModelNameOf.md)\<`C`\>\>\>
+> `static` **fromModelName**\<`C`\>(`config`, `onDownloadProgress?`): `Promise`\<`ImageSegmentationModule`\<[`ModelNameOf`](../type-aliases/ModelNameOf.md)\<`C`\>\>\>
 
 Defined in: [modules/computer_vision/ImageSegmentationModule.ts:95](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L95)
 
@@ -254,7 +254,7 @@ The config object is discriminated by `modelName` — each model can require dif
 
 A [ModelSources](../type-aliases/ModelSources.md) object specifying which model to load and where to fetch it from.
 
-##### onDownloadProgress
+##### onDownloadProgress?
 
 (`progress`) => `void`
 
