@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { RnExecutorchErrorCode } from '../errors/ErrorCodes';
 import { RnExecutorchError, parseUnknownError } from '../errors/errorUtils';
 
+type RunOnFrame<M> = M extends { runOnFrame: infer R } ? R : never;
+
 interface Module {
   load: (...args: any[]) => Promise<void>;
   forward: (...args: any[]) => Promise<any>;
@@ -31,7 +33,7 @@ export const useModule = <
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [moduleInstance] = useState(() => new module());
-  const [runOnFrame, setRunOnFrame] = useState<any>(null);
+  const [runOnFrame, setRunOnFrame] = useState<RunOnFrame<M> | null>(null);
 
   useEffect(() => {
     if (preventLoad) return;
@@ -48,9 +50,21 @@ export const useModule = <
         });
         if (isMounted) setIsReady(true);
 
-        // Use "state trick" to make the worklet serializable for VisionCamera
+        // VisionCamera worklets run on a separate JS thread and can only capture
+        // serializable values (plain functions, primitives). The module instance
+        // is a class object and is not serializable, so accessing runOnFrame
+        // directly inside a worklet would fail at runtime.
+        //
+        // By extracting the method and storing it in React state, it becomes a
+        // standalone function reference that the worklet thread can capture and
+        // call safely.
+        //
+        // Note: setState(fn) triggers React's updater form — it calls fn(prevState)
+        // and stores the return value, not fn itself. Since runOnFrame is a function,
+        // we wrap it: setState(() => worklet) so React stores the worklet as the
+        // state value rather than invoking it.
         if ('runOnFrame' in moduleInstance) {
-          const worklet = moduleInstance.runOnFrame;
+          const worklet = moduleInstance.runOnFrame as RunOnFrame<M>;
           if (worklet) {
             setRunOnFrame(() => worklet);
           }

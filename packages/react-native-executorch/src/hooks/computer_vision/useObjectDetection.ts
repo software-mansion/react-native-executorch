@@ -20,5 +20,5 @@ export const useObjectDetection = ({
     module: ObjectDetectionModule,
     model,
     preventLoad: preventLoad,
-  }) as ObjectDetectionType;
+  });
 };

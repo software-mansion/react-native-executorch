@@ -169,7 +169,7 @@ export type Triple<T> = readonly [T, T, T];
  * };
  * ```
  */
-export interface PixelData extends Omit<TensorPtr, 'dataPtr' | 'scalarType'> {
+export interface PixelData extends Pick<TensorPtr, 'sizes'> {
   /**
    * RGB pixel data as Uint8Array.
    * Expected format: RGB (3 channels), not RGBA or BGRA.

@@ -42,7 +42,6 @@ export default function ObjectDetectionLiveScreen() {
   useEffect(() => {
     setGlobalGenerating(model.isGenerating);
   }, [model.isGenerating, setGlobalGenerating]);
-
   const [detectionCount, setDetectionCount] = useState(0);
   const [fps, setFps] = useState(0);
   const lastFrameTimeRef = useRef(Date.now());
