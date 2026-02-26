@@ -59,7 +59,7 @@ The OCR result as a `OCRDetection[]`.
 
 ### load()
 
-> **load**(`model`, `onDownloadProgressCallback`): `Promise`\<`void`\>
+> **load**(`model`, `onDownloadProgressCallback?`): `Promise`\<`void`\>
 
 Defined in: [modules/computer_vision/OCRModule.ts:25](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/OCRModule.ts#L25)
 
@@ -85,7 +85,7 @@ Object containing `detectorSource`, `recognizerSource`, and `language`.
 
 [`ResourceSource`](../type-aliases/ResourceSource.md)
 
-##### onDownloadProgressCallback
+##### onDownloadProgressCallback?
 
 (`progress`) => `void`
 

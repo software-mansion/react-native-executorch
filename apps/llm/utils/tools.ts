@@ -81,6 +81,10 @@ export const TOOL_DEFINITIONS_PHONE = [
 
 const brightness = async (call: ToolCall) => {
   console.log('Changing brightness!', call);
+  const { status } = await Brightness.getPermissionsAsync();
+  if (status !== Brightness.PermissionStatus.GRANTED) {
+    return 'Brightness permission denied. Inform the user they need to grant brightness access in the app.';
+  }
   if (
     'targetBrightness' in call.arguments &&
     typeof call.arguments.targetBrightness === 'number'
@@ -104,6 +108,10 @@ const brightness = async (call: ToolCall) => {
 
 const readCalendar = async (call: ToolCall) => {
   console.log('Reading calendar!', call);
+  const { status } = await Calendar.getCalendarPermissionsAsync();
+  if (status !== Calendar.PermissionStatus.GRANTED) {
+    return 'Calendar permission denied. Inform the user they need to grant calendar access in the app.';
+  }
 
   let startTime = Date.parse(
     'timeStart' in call.arguments &&
@@ -190,6 +198,10 @@ const readCalendar = async (call: ToolCall) => {
 
 const addEventToCalendar = async (call: ToolCall) => {
   console.log('Adding event to calendar!', call);
+  const { status } = await Calendar.getCalendarPermissionsAsync();
+  if (status !== Calendar.PermissionStatus.GRANTED) {
+    return 'Calendar permission denied. Inform the user they need to grant calendar access in the app.';
+  }
   if (
     'time' in call.arguments &&
     typeof call.arguments.time === 'string' &&

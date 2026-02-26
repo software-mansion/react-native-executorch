@@ -1,6 +1,6 @@
 ---
 title: Available models and loading models.
-description: RN Executorch provides models for a variety of AI tasks - Image classification, Object detection, Style transfer, OCR, Image embeddings, Image segmentation, Text to image, LLMs, Text embeddings, Speech to text, Text to speech, and Voice activity detection. This reference lists all supported models and provides a quick reference on available ways of loading a model.
+description: RN Executorch provides models for a variety of AI tasks - Image classification, Object detection, Style transfer, OCR, Image embeddings, Semantic segmentation, Text to image, LLMs, Text embeddings, Speech to text, Text to speech, and Voice activity detection. This reference lists all supported models and provides a quick reference on available ways of loading a model.
 ---
 
 # Available models RN Executorch

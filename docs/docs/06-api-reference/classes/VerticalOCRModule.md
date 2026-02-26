@@ -59,7 +59,7 @@ The OCR result as a `OCRDetection[]`.
 
 ### load()
 
-> **load**(`model`, `independentCharacters`, `onDownloadProgressCallback`): `Promise`\<`void`\>
+> **load**(`model`, `independentCharacters`, `onDownloadProgressCallback?`): `Promise`\<`void`\>
 
 Defined in: [modules/computer_vision/VerticalOCRModule.ts:26](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L26)
 
@@ -91,7 +91,7 @@ Object containing `detectorSource`, `recognizerSource`, and `language`.
 
 Whether to treat characters independently during recognition.
 
-##### onDownloadProgressCallback
+##### onDownloadProgressCallback?
 
 (`progress`) => `void`
 

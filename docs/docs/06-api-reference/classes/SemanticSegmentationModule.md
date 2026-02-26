@@ -1,8 +1,8 @@
-# Class: ImageSegmentationModule\<T\>
+# Class: SemanticSegmentationModule\<T\>
 
-Defined in: [modules/computer_vision/ImageSegmentationModule.ts:56](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L56)
+Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:59](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/SemanticSegmentationModule.ts#L59)
 
-Generic image segmentation module with type-safe label maps.
+Generic semantic segmentation module with type-safe label maps.
 Use a model name (e.g. `'deeplab-v3'`) as the generic parameter for built-in models,
 or a custom label enum for custom configs.
 
@@ -14,7 +14,7 @@ or a custom label enum for custom configs.
 
 ### T
 
-`T` _extends_ [`SegmentationModelName`](../type-aliases/SegmentationModelName.md) \| [`LabelEnum`](../type-aliases/LabelEnum.md)
+`T` _extends_ [`SemanticSegmentationModelName`](../type-aliases/SemanticSegmentationModelName.md) \| [`LabelEnum`](../type-aliases/LabelEnum.md)
 
 Either a built-in model name (`'deeplab-v3'`, `'selfie-segmentation'`)
 or a custom [LabelEnum](../type-aliases/LabelEnum.md) label map.
@@ -55,9 +55,9 @@ Unloads the model from memory.
 
 ### forward()
 
-> **forward**\<`K`\>(`imageSource`, `classesOfInterest`, `resizeToInput`): `Promise`\<`Record`\<`"ARGMAX"`, `Int32Array`\<`ArrayBufferLike`\>\> & `Record`\<`K`, `Float32Array`\<`ArrayBufferLike`\>\>\>
+> **forward**\<`K`\>(`imageSource`, `classesOfInterest?`, `resizeToInput?`): `Promise`\<`Record`\<`"ARGMAX"`, `Int32Array`\<`ArrayBufferLike`\>\> & `Record`\<`K`, `Float32Array`\<`ArrayBufferLike`\>\>\>
 
-Defined in: [modules/computer_vision/ImageSegmentationModule.ts:167](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L167)
+Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:173](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/SemanticSegmentationModule.ts#L173)
 
 Executes the model's forward pass to perform semantic segmentation on the provided image.
 
@@ -75,13 +75,13 @@ Executes the model's forward pass to perform semantic segmentation on the provid
 
 A string representing the image source (e.g., a file path, URI, or Base64-encoded string).
 
-##### classesOfInterest
+##### classesOfInterest?
 
 `K`[] = `[]`
 
 An optional list of label keys indicating which per-class probability masks to include in the output. `ARGMAX` is always returned regardless.
 
-##### resizeToInput
+##### resizeToInput?
 
 `boolean` = `true`
 
@@ -166,7 +166,7 @@ The input shape as an array of numbers.
 
 > **load**(): `Promise`\<`void`\>
 
-Defined in: [modules/computer_vision/ImageSegmentationModule.ts:72](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L72)
+Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:75](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/SemanticSegmentationModule.ts#L75)
 
 #### Returns
 
@@ -180,9 +180,9 @@ Defined in: [modules/computer_vision/ImageSegmentationModule.ts:72](https://gith
 
 ### fromCustomConfig()
 
-> `static` **fromCustomConfig**\<`L`\>(`modelSource`, `config`, `onDownloadProgress`): `Promise`\<`ImageSegmentationModule`\<`L`\>\>
+> `static` **fromCustomConfig**\<`L`\>(`modelSource`, `config`, `onDownloadProgress?`): `Promise`\<`SemanticSegmentationModule`\<`L`\>\>
 
-Defined in: [modules/computer_vision/ImageSegmentationModule.ts:134](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L134)
+Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:140](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/SemanticSegmentationModule.ts#L140)
 
 Creates a segmentation instance with a user-provided label map and custom config.
 Use this when working with a custom-exported segmentation model that is not one of the built-in models.
@@ -203,11 +203,11 @@ A fetchable resource pointing to the model binary.
 
 ##### config
 
-[`SegmentationConfig`](../type-aliases/SegmentationConfig.md)\<`L`\>
+[`SemanticSegmentationConfig`](../type-aliases/SemanticSegmentationConfig.md)\<`L`\>
 
-A [SegmentationConfig](../type-aliases/SegmentationConfig.md) object with the label map and optional preprocessing parameters.
+A [SemanticSegmentationConfig](../type-aliases/SemanticSegmentationConfig.md) object with the label map and optional preprocessing parameters.
 
-##### onDownloadProgress
+##### onDownloadProgress?
 
 (`progress`) => `void`
 
@@ -215,15 +215,15 @@ Optional callback to monitor download progress, receiving a value between 0 and 
 
 #### Returns
 
-`Promise`\<`ImageSegmentationModule`\<`L`\>\>
+`Promise`\<`SemanticSegmentationModule`\<`L`\>\>
 
-A Promise resolving to an `ImageSegmentationModule` instance typed to the provided label map.
+A Promise resolving to a `SemanticSegmentationModule` instance typed to the provided label map.
 
 #### Example
 
 ```ts
 const MyLabels = { BACKGROUND: 0, FOREGROUND: 1 } as const;
-const segmentation = await ImageSegmentationModule.fromCustomConfig(
+const segmentation = await SemanticSegmentationModule.fromCustomConfig(
   'https://example.com/custom_model.pte',
   { labelMap: MyLabels }
 );
@@ -233,9 +233,9 @@ const segmentation = await ImageSegmentationModule.fromCustomConfig(
 
 ### fromModelName()
 
-> `static` **fromModelName**\<`C`\>(`config`, `onDownloadProgress`): `Promise`\<`ImageSegmentationModule`\<[`ModelNameOf`](../type-aliases/ModelNameOf.md)\<`C`\>\>\>
+> `static` **fromModelName**\<`C`\>(`config`, `onDownloadProgress?`): `Promise`\<`SemanticSegmentationModule`\<[`ModelNameOf`](../type-aliases/ModelNameOf.md)\<`C`\>\>\>
 
-Defined in: [modules/computer_vision/ImageSegmentationModule.ts:89](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ImageSegmentationModule.ts#L89)
+Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:94](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/SemanticSegmentationModule.ts#L94)
 
 Creates a segmentation instance for a built-in model.
 The config object is discriminated by `modelName` — each model can require different fields.
@@ -244,7 +244,7 @@ The config object is discriminated by `modelName` — each model can require dif
 
 ##### C
 
-`C` _extends_ [`ModelSources`](../type-aliases/ModelSources.md)
+`C` _extends_ [`SemanticSegmentationModelSources`](../type-aliases/SemanticSegmentationModelSources.md)
 
 #### Parameters
 
@@ -252,9 +252,9 @@ The config object is discriminated by `modelName` — each model can require dif
 
 `C`
 
-A [ModelSources](../type-aliases/ModelSources.md) object specifying which model to load and where to fetch it from.
+A [SemanticSegmentationModelSources](../type-aliases/SemanticSegmentationModelSources.md) object specifying which model to load and where to fetch it from.
 
-##### onDownloadProgress
+##### onDownloadProgress?
 
 (`progress`) => `void`
 
@@ -262,14 +262,14 @@ Optional callback to monitor download progress, receiving a value between 0 and 
 
 #### Returns
 
-`Promise`\<`ImageSegmentationModule`\<[`ModelNameOf`](../type-aliases/ModelNameOf.md)\<`C`\>\>\>
+`Promise`\<`SemanticSegmentationModule`\<[`ModelNameOf`](../type-aliases/ModelNameOf.md)\<`C`\>\>\>
 
-A Promise resolving to an `ImageSegmentationModule` instance typed to the chosen model's label map.
+A Promise resolving to a `SemanticSegmentationModule` instance typed to the chosen model's label map.
 
 #### Example
 
 ```ts
-const segmentation = await ImageSegmentationModule.fromModelName({
+const segmentation = await SemanticSegmentationModule.fromModelName({
   modelName: 'deeplab-v3',
   modelSource: 'https://example.com/deeplab.pte',
 });

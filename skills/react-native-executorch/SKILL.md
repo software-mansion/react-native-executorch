@@ -133,7 +133,7 @@ Perform image understanding and manipulation tasks entirely on-device.
 
 - **Image Classification** - Categorize images into predefined classes
 - **Object Detection** - Locate and identify objects with bounding boxes
-- **Image Segmentation** - Pixel-level classification
+- **Semantic Segmentation** - Pixel-level classification
 - **Style Transfer** - Apply artistic styles to images
 - **Text-to-Image** - Generate images from text descriptions
 - **Image Embeddings** - Convert images to numerical vectors for similarity/search
@@ -463,23 +463,23 @@ The library provides core utilities for managing models and handling errors:
 
 ## Quick Reference by Hook
 
-| Hook                   | Purpose                                   | Reference                                             |
-| ---------------------- | ----------------------------------------- | ----------------------------------------------------- |
-| `useLLM`               | Text generation, chat, function calling   | [reference-llms.md](./references/reference-llms.md)   |
-| `useClassification`    | Image categorization                      | [reference-cv.md](./references/reference-cv.md)       |
-| `useObjectDetection`   | Object localization                       | [reference-cv.md](./references/reference-cv.md)       |
-| `useImageSegmentation` | Pixel-level classification                | [reference-cv.md](./references/reference-cv.md)       |
-| `useStyleTransfer`     | Artistic image filters                    | [reference-cv-2.md](./references/reference-cv-2.md)   |
-| `useTextToImage`       | Image generation                          | [reference-cv-2.md](./references/reference-cv-2.md)   |
-| `useImageEmbeddings`   | Image similarity/search                   | [reference-cv-2.md](./references/reference-cv-2.md)   |
-| `useOCR`               | Text recognition (horizontal)             | [reference-ocr.md](./references/reference-ocr.md)     |
-| `useVerticalOCR`       | Text recognition (vertical, experimental) | [reference-ocr.md](./references/reference-ocr.md)     |
-| `useSpeechToText`      | Audio transcription                       | [reference-audio.md](./references/reference-audio.md) |
-| `useTextToSpeech`      | Voice synthesis                           | [reference-audio.md](./references/reference-audio.md) |
-| `useVAD`               | Voice activity detection                  | [reference-audio.md](./references/reference-audio.md) |
-| `useTextEmbeddings`    | Text similarity/search                    | [reference-nlp.md](./references/reference-nlp.md)     |
-| `useTokenizer`         | Text to tokens conversion                 | [reference-nlp.md](./references/reference-nlp.md)     |
-| `useExecutorchModule`  | Custom model inference (advanced)         | [core-utilities.md](./references/core-utilities.md)   |
+| Hook                      | Purpose                                   | Reference                                             |
+| ------------------------- | ----------------------------------------- | ----------------------------------------------------- |
+| `useLLM`                  | Text generation, chat, function calling   | [reference-llms.md](./references/reference-llms.md)   |
+| `useClassification`       | Image categorization                      | [reference-cv.md](./references/reference-cv.md)       |
+| `useObjectDetection`      | Object localization                       | [reference-cv.md](./references/reference-cv.md)       |
+| `useSemanticSegmentation` | Pixel-level classification                | [reference-cv.md](./references/reference-cv.md)       |
+| `useStyleTransfer`        | Artistic image filters                    | [reference-cv-2.md](./references/reference-cv-2.md)   |
+| `useTextToImage`          | Image generation                          | [reference-cv-2.md](./references/reference-cv-2.md)   |
+| `useImageEmbeddings`      | Image similarity/search                   | [reference-cv-2.md](./references/reference-cv-2.md)   |
+| `useOCR`                  | Text recognition (horizontal)             | [reference-ocr.md](./references/reference-ocr.md)     |
+| `useVerticalOCR`          | Text recognition (vertical, experimental) | [reference-ocr.md](./references/reference-ocr.md)     |
+| `useSpeechToText`         | Audio transcription                       | [reference-audio.md](./references/reference-audio.md) |
+| `useTextToSpeech`         | Voice synthesis                           | [reference-audio.md](./references/reference-audio.md) |
+| `useVAD`                  | Voice activity detection                  | [reference-audio.md](./references/reference-audio.md) |
+| `useTextEmbeddings`       | Text similarity/search                    | [reference-nlp.md](./references/reference-nlp.md)     |
+| `useTokenizer`            | Text to tokens conversion                 | [reference-nlp.md](./references/reference-nlp.md)     |
+| `useExecutorchModule`     | Custom model inference (advanced)         | [core-utilities.md](./references/core-utilities.md)   |
 
 ---
 

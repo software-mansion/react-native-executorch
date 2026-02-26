@@ -1,4 +1,4 @@
-#include "BaseImageSegmentation.h"
+#include "BaseSemanticSegmentation.h"
 #include "jsi/jsi.h"
 
 #include <future>
@@ -9,16 +9,16 @@
 #include <rnexecutorch/data_processing/ImageProcessing.h>
 #include <rnexecutorch/models/BaseModel.h>
 
-namespace rnexecutorch::models::image_segmentation {
+namespace rnexecutorch::models::semantic_segmentation {
 
-BaseImageSegmentation::BaseImageSegmentation(
+BaseSemanticSegmentation::BaseSemanticSegmentation(
     const std::string &modelSource,
     std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
   initModelImageSize();
 }
 
-BaseImageSegmentation::BaseImageSegmentation(
+BaseSemanticSegmentation::BaseSemanticSegmentation(
     const std::string &modelSource, std::vector<float> normMean,
     std::vector<float> normStd, std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {
@@ -37,7 +37,7 @@ BaseImageSegmentation::BaseImageSegmentation(
   }
 }
 
-void BaseImageSegmentation::initModelImageSize() {
+void BaseSemanticSegmentation::initModelImageSize() {
   auto inputShapes = getAllInputShapes();
   if (inputShapes.empty()) {
     throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
@@ -55,15 +55,15 @@ void BaseImageSegmentation::initModelImageSize() {
   numModelPixels = modelImageSize.area();
 }
 
-TensorPtr BaseImageSegmentation::preprocess(const std::string &imageSource,
-                                            cv::Size &originalSize) {
+TensorPtr BaseSemanticSegmentation::preprocess(const std::string &imageSource,
+                                               cv::Size &originalSize) {
   auto [inputTensor, origSize] = image_processing::readImageToTensor(
       imageSource, getAllInputShapes()[0], false, normMean_, normStd_);
   originalSize = origSize;
   return inputTensor;
 }
 
-std::shared_ptr<jsi::Object> BaseImageSegmentation::generate(
+std::shared_ptr<jsi::Object> BaseSemanticSegmentation::generate(
     std::string imageSource, std::vector<std::string> allClasses,
     std::set<std::string, std::less<>> classesOfInterest, bool resize) {
 
@@ -82,7 +82,7 @@ std::shared_ptr<jsi::Object> BaseImageSegmentation::generate(
                      classesOfInterest, resize);
 }
 
-std::shared_ptr<jsi::Object> BaseImageSegmentation::postprocess(
+std::shared_ptr<jsi::Object> BaseSemanticSegmentation::postprocess(
     const Tensor &tensor, cv::Size originalSize,
     std::vector<std::string> &allClasses,
     std::set<std::string, std::less<>> &classesOfInterest, bool resize) {
@@ -194,7 +194,7 @@ std::shared_ptr<jsi::Object> BaseImageSegmentation::postprocess(
   return populateDictionary(argmax, buffersToReturn);
 }
 
-std::shared_ptr<jsi::Object> BaseImageSegmentation::populateDictionary(
+std::shared_ptr<jsi::Object> BaseSemanticSegmentation::populateDictionary(
     std::shared_ptr<OwningArrayBuffer> argmax,
     std::shared_ptr<std::unordered_map<std::string_view,
                                        std::shared_ptr<OwningArrayBuffer>>>
@@ -235,4 +235,4 @@ std::shared_ptr<jsi::Object> BaseImageSegmentation::populateDictionary(
   return dictPtr;
 }
 
-} // namespace rnexecutorch::models::image_segmentation
+} // namespace rnexecutorch::models::semantic_segmentation

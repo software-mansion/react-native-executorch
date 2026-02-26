@@ -33,7 +33,7 @@ export function cleanupExecutorch() {
 // eslint-disable no-var
 declare global {
   var loadStyleTransfer: (source: string) => any;
-  var loadImageSegmentation: (
+  var loadSemanticSegmentation: (
     source: string,
     normMean: Triple<number> | [],
     normStd: Triple<number> | []
@@ -84,7 +84,7 @@ declare global {
 // eslint-disable no-var
 if (
   global.loadStyleTransfer == null ||
-  global.loadImageSegmentation == null ||
+  global.loadSemanticSegmentation == null ||
   global.loadTextToImage == null ||
   global.loadExecutorchModule == null ||
   global.loadClassification == null ||
@@ -111,7 +111,7 @@ if (
 export * from './hooks/computer_vision/useClassification';
 export * from './hooks/computer_vision/useObjectDetection';
 export * from './hooks/computer_vision/useStyleTransfer';
-export * from './hooks/computer_vision/useImageSegmentation';
+export * from './hooks/computer_vision/useSemanticSegmentation';
 export * from './hooks/computer_vision/useOCR';
 export * from './hooks/computer_vision/useVerticalOCR';
 export * from './hooks/computer_vision/useImageEmbeddings';
@@ -130,7 +130,7 @@ export * from './hooks/general/useExecutorchModule';
 export * from './modules/computer_vision/ClassificationModule';
 export * from './modules/computer_vision/ObjectDetectionModule';
 export * from './modules/computer_vision/StyleTransferModule';
-export * from './modules/computer_vision/ImageSegmentationModule';
+export * from './modules/computer_vision/SemanticSegmentationModule';
 export * from './modules/computer_vision/OCRModule';
 export * from './modules/computer_vision/VerticalOCRModule';
 export * from './modules/computer_vision/ImageEmbeddingsModule';
@@ -155,7 +155,7 @@ export * from './utils/llms/context_strategy';
 // types
 export * from './types/objectDetection';
 export * from './types/ocr';
-export * from './types/imageSegmentation';
+export * from './types/semanticSegmentation';
 export * from './types/llm';
 export * from './types/vad';
 export * from './types/common';

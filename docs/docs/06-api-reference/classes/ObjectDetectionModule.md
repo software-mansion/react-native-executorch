@@ -58,7 +58,7 @@ Unloads the model from memory.
 
 ### forward()
 
-> **forward**(`imageSource`, `detectionThreshold`): `Promise`\<[`Detection`](../interfaces/Detection.md)[]\>
+> **forward**(`imageSource`, `detectionThreshold?`): `Promise`\<[`Detection`](../interfaces/Detection.md)[]\>
 
 Defined in: [modules/computer_vision/ObjectDetectionModule.ts:51](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L51)
 
@@ -73,7 +73,7 @@ Executes the model's forward pass, where `imageSource` can be a fetchable resour
 
 The image source to be processed.
 
-##### detectionThreshold
+##### detectionThreshold?
 
 `number` = `0.7`
 
@@ -152,7 +152,7 @@ The input shape as an array of numbers.
 
 ### load()
 
-> **load**(`model`, `onDownloadProgressCallback`): `Promise`\<`void`\>
+> **load**(`model`, `onDownloadProgressCallback?`): `Promise`\<`void`\>
 
 Defined in: [modules/computer_vision/ObjectDetectionModule.ts:20](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L20)
 
@@ -169,7 +169,7 @@ Object containing `modelSource`.
 
 [`ResourceSource`](../type-aliases/ResourceSource.md)
 
-##### onDownloadProgressCallback
+##### onDownloadProgressCallback?
 
 (`progress`) => `void`
 

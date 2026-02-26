@@ -2,7 +2,7 @@ import { RnExecutorchError } from '../errors/errorUtils';
 import { LabelEnum, Triple, ResourceSource } from './common';
 
 /**
- * Configuration for a custom segmentation model.
+ * Configuration for a custom semantic segmentation model.
  * @typeParam T - The {@link LabelEnum} type for the model.
  * @property labelMap - The enum-like object mapping class names to indices.
  * @property preprocessorConfig - Optional preprocessing parameters.
@@ -10,36 +10,38 @@ import { LabelEnum, Triple, ResourceSource } from './common';
  * @property preprocessorConfig.normStd - Per-channel standard deviation values for input normalization.
  * @category Types
  */
-export type SegmentationConfig<T extends LabelEnum> = {
+export type SemanticSegmentationConfig<T extends LabelEnum> = {
   labelMap: T;
   preprocessorConfig?: { normMean?: Triple<number>; normStd?: Triple<number> };
 };
 
 /**
- * Per-model config for {@link ImageSegmentationModule.fromModelName}.
+ * Per-model config for {@link SemanticSegmentationModule.fromModelName}.
  * Each model name maps to its required fields.
  * Add new union members here when a model needs extra sources or options.
  * @category Types
  */
-export type ModelSources =
+export type SemanticSegmentationModelSources =
   | { modelName: 'deeplab-v3'; modelSource: ResourceSource }
   | { modelName: 'selfie-segmentation'; modelSource: ResourceSource };
 
 /**
- * Union of all built-in segmentation model names
+ * Union of all built-in semantic segmentation model names
  * (e.g. `'deeplab-v3'`, `'selfie-segmentation'`).
  * @category Types
  */
-export type SegmentationModelName = ModelSources['modelName'];
+export type SemanticSegmentationModelName =
+  SemanticSegmentationModelSources['modelName'];
 
 /**
- * Extracts the model name from a {@link ModelSources} config object.
+ * Extracts the model name from a {@link SemanticSegmentationModelSources} config object.
  * @category Types
  */
-export type ModelNameOf<C extends ModelSources> = C['modelName'];
+export type ModelNameOf<C extends SemanticSegmentationModelSources> =
+  C['modelName'];
 
 /**
- * Labels used in the DeepLab image segmentation model.
+ * Labels used in the DeepLab semantic segmentation model.
  * @category Types
  */
 export enum DeeplabLabel {
@@ -67,7 +69,7 @@ export enum DeeplabLabel {
 }
 
 /**
- * Labels used in the selfie image segmentation model.
+ * Labels used in the selfie semantic segmentation model.
  * @category Types
  */
 export enum SelfieSegmentationLabel {
@@ -76,24 +78,26 @@ export enum SelfieSegmentationLabel {
 }
 
 /**
- * Props for the `useImageSegmentation` hook.
- * @typeParam C - A {@link ModelSources} config specifying which built-in model to load.
+ * Props for the `useSemanticSegmentation` hook.
+ * @typeParam C - A {@link SemanticSegmentationModelSources} config specifying which built-in model to load.
  * @property model - The model config containing `modelName` and `modelSource`.
  * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
  * @category Types
  */
-export interface ImageSegmentationProps<C extends ModelSources> {
+export interface SemanticSegmentationProps<
+  C extends SemanticSegmentationModelSources,
+> {
   model: C;
   preventLoad?: boolean;
 }
 
 /**
- * Return type for the `useImageSegmentation` hook.
- * Manages the state and operations for image segmentation models.
+ * Return type for the `useSemanticSegmentation` hook.
+ * Manages the state and operations for semantic segmentation models.
  * @typeParam L - The {@link LabelEnum} representing the model's class labels.
  * @category Types
  */
-export interface ImageSegmentationType<L extends LabelEnum> {
+export interface SemanticSegmentationType<L extends LabelEnum> {
   /**
    * Contains the error object if the model failed to load, download, or encountered a runtime error during segmentation.
    */
