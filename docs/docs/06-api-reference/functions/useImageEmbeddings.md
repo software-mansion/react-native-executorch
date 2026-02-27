@@ -2,7 +2,7 @@
 
 > **useImageEmbeddings**(`ImageEmbeddingsProps`): [`ImageEmbeddingsType`](../interfaces/ImageEmbeddingsType.md)
 
-Defined in: [hooks/computer_vision/useImageEmbeddings.ts:15](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/hooks/computer_vision/useImageEmbeddings.ts#L15)
+Defined in: [hooks/computer_vision/useImageEmbeddings.ts:14](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/hooks/computer_vision/useImageEmbeddings.ts#L14)
 
 React hook for managing an Image Embeddings model instance.
 

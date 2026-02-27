@@ -1,6 +1,6 @@
 # Interface: TextToSpeechProps
 
-Defined in: [types/tts.ts:77](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tts.ts#L77)
+Defined in: [types/tts.ts:70](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tts.ts#L70)
 
 Props for the useTextToSpeech hook.
 
@@ -14,7 +14,7 @@ Props for the useTextToSpeech hook.
 
 > **model**: [`KokoroConfig`](KokoroConfig.md)
 
-Defined in: [types/tts.ts:65](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tts.ts#L65)
+Defined in: [types/tts.ts:60](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tts.ts#L60)
 
 a selected T2S model
 
@@ -28,7 +28,7 @@ a selected T2S model
 
 > `optional` **preventLoad**: `boolean`
 
-Defined in: [types/tts.ts:78](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tts.ts#L78)
+Defined in: [types/tts.ts:71](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tts.ts#L71)
 
 Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
 
@@ -38,7 +38,7 @@ Boolean that can prevent automatic model loading (and downloading the data if yo
 
 > **voice**: [`VoiceConfig`](VoiceConfig.md)
 
-Defined in: [types/tts.ts:66](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tts.ts#L66)
+Defined in: [types/tts.ts:61](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tts.ts#L61)
 
 a selected speaker's voice
 

@@ -1,6 +1,6 @@
 # Interface: StyleTransferType
 
-Defined in: [types/styleTransfer.ts:23](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/styleTransfer.ts#L23)
+Defined in: [types/styleTransfer.ts:21](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/styleTransfer.ts#L21)
 
 Return type for the `useStyleTransfer` hook.
 Manages the state and operations for applying artistic style transfer to images.
@@ -11,7 +11,7 @@ Manages the state and operations for applying artistic style transfer to images.
 
 > **downloadProgress**: `number`
 
-Defined in: [types/styleTransfer.ts:42](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/styleTransfer.ts#L42)
+Defined in: [types/styleTransfer.ts:40](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/styleTransfer.ts#L40)
 
 Represents the download progress of the model binary as a value between 0 and 1.
 
@@ -21,7 +21,7 @@ Represents the download progress of the model binary as a value between 0 and 1.
 
 > **error**: [`RnExecutorchError`](../classes/RnExecutorchError.md) \| `null`
 
-Defined in: [types/styleTransfer.ts:27](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/styleTransfer.ts#L27)
+Defined in: [types/styleTransfer.ts:25](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/styleTransfer.ts#L25)
 
 Contains the error object if the model failed to load, download, or encountered a runtime error during style transfer.
 
@@ -31,7 +31,7 @@ Contains the error object if the model failed to load, download, or encountered 
 
 > **forward**: (`imageSource`) => `Promise`\<`string`\>
 
-Defined in: [types/styleTransfer.ts:50](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/styleTransfer.ts#L50)
+Defined in: [types/styleTransfer.ts:48](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/styleTransfer.ts#L48)
 
 Executes the model's forward pass to apply the specific artistic style to the provided image.
 
@@ -59,7 +59,7 @@ If the model is not loaded or is currently processing another image.
 
 > **isGenerating**: `boolean`
 
-Defined in: [types/styleTransfer.ts:37](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/styleTransfer.ts#L37)
+Defined in: [types/styleTransfer.ts:35](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/styleTransfer.ts#L35)
 
 Indicates whether the model is currently processing an image.
 
@@ -69,6 +69,6 @@ Indicates whether the model is currently processing an image.
 
 > **isReady**: `boolean`
 
-Defined in: [types/styleTransfer.ts:32](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/styleTransfer.ts#L32)
+Defined in: [types/styleTransfer.ts:30](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/styleTransfer.ts#L30)
 
 Indicates whether the style transfer model is loaded and ready to process images.

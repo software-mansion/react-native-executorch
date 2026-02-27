@@ -1,6 +1,6 @@
 # Interface: TensorPtr
 
-Defined in: [types/common.ts:134](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/common.ts#L134)
+Defined in: [types/common.ts:130](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/common.ts#L130)
 
 Represents a pointer to a tensor, including its data buffer, size dimensions, and scalar type.
 
@@ -10,7 +10,7 @@ Represents a pointer to a tensor, including its data buffer, size dimensions, an
 
 > **dataPtr**: [`TensorBuffer`](../type-aliases/TensorBuffer.md)
 
-Defined in: [types/common.ts:135](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/common.ts#L135)
+Defined in: [types/common.ts:131](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/common.ts#L131)
 
 The data buffer of the tensor.
 
@@ -20,7 +20,7 @@ The data buffer of the tensor.
 
 > **scalarType**: [`ScalarType`](../enumerations/ScalarType.md)
 
-Defined in: [types/common.ts:137](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/common.ts#L137)
+Defined in: [types/common.ts:133](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/common.ts#L133)
 
 The scalar type of the tensor, as defined in the `ScalarType` enum.
 
@@ -30,6 +30,6 @@ The scalar type of the tensor, as defined in the `ScalarType` enum.
 
 > **sizes**: `number`[]
 
-Defined in: [types/common.ts:136](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/common.ts#L136)
+Defined in: [types/common.ts:132](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/common.ts#L132)
 
 An array representing the size of each dimension of the tensor.

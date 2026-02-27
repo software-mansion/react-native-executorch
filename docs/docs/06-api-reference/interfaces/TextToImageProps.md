@@ -1,6 +1,6 @@
 # Interface: TextToImageProps
 
-Defined in: [types/tti.ts:9](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tti.ts#L9)
+Defined in: [types/tti.ts:8](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tti.ts#L8)
 
 Configuration properties for the `useTextToImage` hook.
 
@@ -10,7 +10,7 @@ Configuration properties for the `useTextToImage` hook.
 
 > `optional` **inferenceCallback**: (`stepIdx`) => `void`
 
-Defined in: [types/tti.ts:31](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tti.ts#L31)
+Defined in: [types/tti.ts:30](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tti.ts#L30)
 
 Optional callback function that is triggered after each diffusion inference step.
 Useful for updating a progress bar during image generation.
@@ -33,7 +33,7 @@ The index of the current inference step.
 
 > **model**: `object`
 
-Defined in: [types/tti.ts:13](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tti.ts#L13)
+Defined in: [types/tti.ts:12](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tti.ts#L12)
 
 Object containing the required model sources for the diffusion pipeline.
 
@@ -73,7 +73,7 @@ Source for the UNet (noise predictor) model binary.
 
 > `optional` **preventLoad**: `boolean`
 
-Defined in: [types/tti.ts:37](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tti.ts#L37)
+Defined in: [types/tti.ts:36](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/tti.ts#L36)
 
 Boolean that can prevent automatic model loading (and downloading the data if loaded for the first time) after running the hook.
 Defaults to `false`.

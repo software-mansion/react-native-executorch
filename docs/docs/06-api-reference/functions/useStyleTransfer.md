@@ -2,7 +2,7 @@
 
 > **useStyleTransfer**(`StyleTransferProps`): [`StyleTransferType`](../interfaces/StyleTransferType.md)
 
-Defined in: [hooks/computer_vision/useStyleTransfer.ts:15](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/hooks/computer_vision/useStyleTransfer.ts#L15)
+Defined in: [hooks/computer_vision/useStyleTransfer.ts:14](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/hooks/computer_vision/useStyleTransfer.ts#L14)
 
 React hook for managing a Style Transfer model instance.
 

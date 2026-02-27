@@ -3,7 +3,6 @@ import { ResourceSource } from './common';
 
 /**
  * Properties for initializing and configuring a Large Language Model (LLM) instance.
- *
  * @category Types
  */
 export interface LLMProps {
@@ -29,7 +28,6 @@ export interface LLMProps {
 
 /**
  * React hook for managing a Large Language Model (LLM) instance.
- *
  * @category Types
  */
 export interface LLMType {
@@ -71,20 +69,17 @@ export interface LLMType {
   /**
    * Configures chat and tool calling.
    * See [Configuring the model](https://docs.swmansion.com/react-native-executorch/docs/hooks/natural-language-processing/useLLM#configuring-the-model) for details.
-   *
    * @param {LLMConfig} configuration - Configuration object containing `chatConfig`, `toolsConfig`, and `generationConfig`.
    */
   configure: ({ chatConfig, toolsConfig, generationConfig }: LLMConfig) => void;
 
   /**
    * Returns the number of tokens generated so far in the current generation.
-   *
    * @returns The count of generated tokens.
    */
   getGeneratedTokenCount: () => number;
   /**
    * Runs model to complete chat passed in `messages` argument. It doesn't manage conversation context.
-   *
    * @param messages - Array of messages representing the chat history.
    * @param tools - Optional array of tools that can be used during generation.
    * @returns The generated tokens as `string`.
@@ -92,13 +87,11 @@ export interface LLMType {
   generate: (messages: Message[], tools?: LLMTool[]) => Promise<string>;
   /**
    * Returns the number of total tokens from the previous generation.This is a sum of prompt tokens and generated tokens.
-   *
    * @returns The count of prompt and generated tokens.
    */
   getTotalTokenCount: () => number;
   /**
    * Returns the number of prompt tokens in the last message.
-   *
    * @returns The count of prompt token.
    */
   getPromptTokenCount: () => number;
@@ -106,7 +99,6 @@ export interface LLMType {
   /**
    * Function to add user message to conversation.
    * After model responds, `messageHistory` will be updated with both user message and model response.
-   *
    * @param message - The message string to send.
    * @returns The model's response as a `string`.
    */
@@ -114,7 +106,6 @@ export interface LLMType {
 
   /**
    * Deletes all messages starting with message on `index` position. After deletion `messageHistory` will be updated.
-   *
    * @param index - The index of the message to delete from history.
    */
   deleteMessage: (index: number) => void;
@@ -127,7 +118,6 @@ export interface LLMType {
 
 /**
  * Configuration object for initializing and customizing a Large Language Model (LLM) instance.
- *
  * @category Types
  */
 export interface LLMConfig {
@@ -169,14 +159,12 @@ export interface LLMConfig {
 
 /**
  * Roles that a message sender can have.
- *
  * @category Types
  */
 export type MessageRole = 'user' | 'assistant' | 'system';
 
 /**
  * Represents a message in the conversation.
- *
  * @category Types
  * @property {MessageRole} role - Role of the message sender of type `MessageRole`.
  * @property {string} content - Content of the message.
@@ -188,10 +176,9 @@ export interface Message {
 
 /**
  * Represents a tool call made by the model.
- *
  * @category Types
  * @property {string} toolName - The name of the tool being called.
- * @property {Object} arguments - The arguments passed to the tool.
+ * @property {object} arguments - The arguments passed to the tool.
  */
 export interface ToolCall {
   toolName: string;
@@ -202,14 +189,12 @@ export interface ToolCall {
  * Represents a tool that can be used by the model.
  * Usually tool is represented with dictionary (Object), but fields depend on the model.
  * Unfortunately there's no one standard so it's hard to type it better.
- *
  * @category Types
  */
 export type LLMTool = Object;
 
 /**
  * Object configuring chat management.
- *
  * @category Types
  * @property {Message[]} initialMessageHistory - An array of `Message` objects that represent the conversation history. This can be used to provide initial context to the model.
  * @property {string} systemPrompt - Often used to tell the model what is its purpose, for example - "Be a helpful translator".
@@ -223,7 +208,6 @@ export interface ChatConfig {
 
 /**
  * Object configuring options for enabling and managing tool use. **It will only have effect if your model's chat template support it**.
- *
  * @category Types
  * @property {LLMTool[]} tools - List of objects defining tools.
  * @property {(call: ToolCall) => Promise<string | null>} executeToolCallback - Function that accepts `ToolCall`, executes tool and returns the string to model.
@@ -237,7 +221,6 @@ export interface ToolsConfig {
 
 /**
  * Object configuring generation settings.
- *
  * @category Types
  * @property {number} [temperature] - Scales output logits by the inverse of temperature. Controls the randomness / creativity of text generation.
  * @property {number} [topp] - Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
@@ -253,13 +236,12 @@ export interface GenerationConfig {
 
 /**
  * Defines a strategy for managing the conversation context window and message history.
- *
  * @category Types
  */
 export interface ContextStrategy {
   /**
    * Constructs the final array of messages to be sent to the model for the current inference step.
-   * * @param systemPrompt - The top-level instructions or persona assigned to the model.
+   * @param systemPrompt - The top-level instructions or persona assigned to the model.
    * @param history - The complete conversation history up to the current point.
    * @param maxContextLength - The maximum number of tokens that the model can keep in the context.
    * @param getTokenCount - A callback function provided by the LLM controller that calculates the exact number of tokens a specific array of messages will consume once formatted.
@@ -275,7 +257,6 @@ export interface ContextStrategy {
 
 /**
  * Special tokens used in Large Language Models (LLMs).
- *
  * @category Types
  */
 export const SPECIAL_TOKENS = {

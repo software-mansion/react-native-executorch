@@ -1,6 +1,6 @@
 # Class: ClassificationModule
 
-Defined in: [modules/computer_vision/ClassificationModule.ts:13](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ClassificationModule.ts#L13)
+Defined in: [modules/computer_vision/ClassificationModule.ts:12](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ClassificationModule.ts#L12)
 
 Module for image classification tasks.
 
@@ -42,7 +42,7 @@ Native module instance
 
 > **delete**(): `void`
 
-Defined in: [modules/BaseModule.ts:41](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L41)
+Defined in: [modules/BaseModule.ts:39](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L39)
 
 Unloads the model from memory.
 
@@ -60,7 +60,7 @@ Unloads the model from memory.
 
 > **forward**(`imageSource`): `Promise`\<\{\[`category`: `string`\]: `number`; \}\>
 
-Defined in: [modules/computer_vision/ClassificationModule.ts:51](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ClassificationModule.ts#L51)
+Defined in: [modules/computer_vision/ClassificationModule.ts:48](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ClassificationModule.ts#L48)
 
 Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string.
 
@@ -84,7 +84,7 @@ The classification result.
 
 > `protected` **forwardET**(`inputTensor`): `Promise`\<[`TensorPtr`](../interfaces/TensorPtr.md)[]\>
 
-Defined in: [modules/BaseModule.ts:23](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L23)
+Defined in: [modules/BaseModule.ts:22](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L22)
 
 Runs the model's forward method with the given input tensors.
 It returns the output tensors that mimic the structure of output from ExecuTorch.
@@ -113,7 +113,7 @@ Array of output tensors.
 
 > **getInputShape**(`methodName`, `index`): `Promise`\<`number`[]\>
 
-Defined in: [modules/BaseModule.ts:34](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L34)
+Defined in: [modules/BaseModule.ts:32](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L32)
 
 Gets the input shape for a given method and index.
 
@@ -147,7 +147,7 @@ The input shape as an array of numbers.
 
 > **load**(`model`, `onDownloadProgressCallback?`): `Promise`\<`void`\>
 
-Defined in: [modules/computer_vision/ClassificationModule.ts:21](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ClassificationModule.ts#L21)
+Defined in: [modules/computer_vision/ClassificationModule.ts:19](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ClassificationModule.ts#L19)
 
 Loads the model, where `modelSource` is a string that specifies the location of the model binary.
 To track the download progress, supply a callback function `onDownloadProgressCallback`.

@@ -1,6 +1,6 @@
 # Class: ObjectDetectionModule
 
-Defined in: [modules/computer_vision/ObjectDetectionModule.ts:14](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L14)
+Defined in: [modules/computer_vision/ObjectDetectionModule.ts:13](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L13)
 
 Module for object detection tasks.
 
@@ -42,7 +42,7 @@ Native module instance
 
 > **delete**(): `void`
 
-Defined in: [modules/BaseModule.ts:41](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L41)
+Defined in: [modules/BaseModule.ts:39](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L39)
 
 Unloads the model from memory.
 
@@ -60,7 +60,7 @@ Unloads the model from memory.
 
 > **forward**(`imageSource`, `detectionThreshold?`): `Promise`\<[`Detection`](../interfaces/Detection.md)[]\>
 
-Defined in: [modules/computer_vision/ObjectDetectionModule.ts:54](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L54)
+Defined in: [modules/computer_vision/ObjectDetectionModule.ts:51](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L51)
 
 Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string.
 `detectionThreshold` can be supplied to alter the sensitivity of the detection.
@@ -91,7 +91,7 @@ An array of Detection objects representing detected items in the image.
 
 > `protected` **forwardET**(`inputTensor`): `Promise`\<[`TensorPtr`](../interfaces/TensorPtr.md)[]\>
 
-Defined in: [modules/BaseModule.ts:23](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L23)
+Defined in: [modules/BaseModule.ts:22](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L22)
 
 Runs the model's forward method with the given input tensors.
 It returns the output tensors that mimic the structure of output from ExecuTorch.
@@ -120,7 +120,7 @@ Array of output tensors.
 
 > **getInputShape**(`methodName`, `index`): `Promise`\<`number`[]\>
 
-Defined in: [modules/BaseModule.ts:34](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L34)
+Defined in: [modules/BaseModule.ts:32](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L32)
 
 Gets the input shape for a given method and index.
 
@@ -154,7 +154,7 @@ The input shape as an array of numbers.
 
 > **load**(`model`, `onDownloadProgressCallback?`): `Promise`\<`void`\>
 
-Defined in: [modules/computer_vision/ObjectDetectionModule.ts:22](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L22)
+Defined in: [modules/computer_vision/ObjectDetectionModule.ts:20](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/ObjectDetectionModule.ts#L20)
 
 Loads the model, where `modelSource` is a string that specifies the location of the model binary.
 To track the download progress, supply a callback function `onDownloadProgressCallback`.

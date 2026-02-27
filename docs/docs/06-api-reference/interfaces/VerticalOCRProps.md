@@ -1,6 +1,6 @@
 # Interface: VerticalOCRProps
 
-Defined in: [types/ocr.ts:70](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/ocr.ts#L70)
+Defined in: [types/ocr.ts:66](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/ocr.ts#L66)
 
 Configuration properties for the `useVerticalOCR` hook.
 
@@ -14,7 +14,7 @@ Configuration properties for the `useVerticalOCR` hook.
 
 > `optional` **independentCharacters**: `boolean`
 
-Defined in: [types/ocr.ts:75](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/ocr.ts#L75)
+Defined in: [types/ocr.ts:71](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/ocr.ts#L71)
 
 Boolean indicating whether to treat each character independently during recognition.
 Defaults to `false`.
@@ -25,7 +25,7 @@ Defaults to `false`.
 
 > **model**: `object`
 
-Defined in: [types/ocr.ts:41](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/ocr.ts#L41)
+Defined in: [types/ocr.ts:38](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/ocr.ts#L38)
 
 Object containing the necessary model sources and configuration for the OCR pipeline.
 
@@ -57,7 +57,7 @@ The language configuration enum for the OCR model (e.g., English, Polish, etc.).
 
 > `optional` **preventLoad**: `boolean`
 
-Defined in: [types/ocr.ts:62](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/ocr.ts#L62)
+Defined in: [types/ocr.ts:59](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/ocr.ts#L59)
 
 Boolean that can prevent automatic model loading (and downloading the data if loaded for the first time) after running the hook.
 Defaults to `false`.

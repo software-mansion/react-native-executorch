@@ -2,7 +2,7 @@
 
 > **fixAndValidateStructuredOutput**\<`T`\>(`output`, `responseSchema`): `output`\<`T`\>
 
-Defined in: [utils/llm.ts:102](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/llm.ts#L102)
+Defined in: [utils/llm.ts:99](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/utils/llm.ts#L99)
 
 Fixes and validates structured output from LLMs against a provided schema.
 

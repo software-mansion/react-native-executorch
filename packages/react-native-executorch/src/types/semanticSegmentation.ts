@@ -3,13 +3,11 @@ import { LabelEnum, Triple, ResourceSource } from './common';
 
 /**
  * Configuration for a custom semantic segmentation model.
- *
  * @typeParam T - The {@link LabelEnum} type for the model.
  * @property labelMap - The enum-like object mapping class names to indices.
  * @property preprocessorConfig - Optional preprocessing parameters.
  * @property preprocessorConfig.normMean - Per-channel mean values for input normalization.
  * @property preprocessorConfig.normStd - Per-channel standard deviation values for input normalization.
- *
  * @category Types
  */
 export type SemanticSegmentationConfig<T extends LabelEnum> = {
@@ -21,7 +19,6 @@ export type SemanticSegmentationConfig<T extends LabelEnum> = {
  * Per-model config for {@link SemanticSegmentationModule.fromModelName}.
  * Each model name maps to its required fields.
  * Add new union members here when a model needs extra sources or options.
- *
  * @category Types
  */
 export type SemanticSegmentationModelSources =
@@ -48,7 +45,6 @@ export type SemanticSegmentationModelSources =
 /**
  * Union of all built-in semantic segmentation model names
  * (e.g. `'deeplab-v3-resnet50'`, `'selfie-segmentation'`).
- *
  * @category Types
  */
 export type SemanticSegmentationModelName =
@@ -56,7 +52,6 @@ export type SemanticSegmentationModelName =
 
 /**
  * Extracts the model name from a {@link SemanticSegmentationModelSources} config object.
- *
  * @category Types
  */
 export type ModelNameOf<C extends SemanticSegmentationModelSources> =
@@ -64,7 +59,6 @@ export type ModelNameOf<C extends SemanticSegmentationModelSources> =
 
 /**
  * Labels used in the DeepLab semantic segmentation model.
- *
  * @category Types
  */
 export enum DeeplabLabel {
@@ -93,7 +87,6 @@ export enum DeeplabLabel {
 
 /**
  * Labels used in the selfie semantic segmentation model.
- *
  * @category Types
  */
 export enum SelfieSegmentationLabel {
@@ -103,11 +96,9 @@ export enum SelfieSegmentationLabel {
 
 /**
  * Props for the `useSemanticSegmentation` hook.
- *
  * @typeParam C - A {@link SemanticSegmentationModelSources} config specifying which built-in model to load.
  * @property model - The model config containing `modelName` and `modelSource`.
  * @property {boolean} [preventLoad] - Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
- *
  * @category Types
  */
 export interface SemanticSegmentationProps<
@@ -120,9 +111,7 @@ export interface SemanticSegmentationProps<
 /**
  * Return type for the `useSemanticSegmentation` hook.
  * Manages the state and operations for semantic segmentation models.
- *
  * @typeParam L - The {@link LabelEnum} representing the model's class labels.
- *
  * @category Types
  */
 export interface SemanticSegmentationType<L extends LabelEnum> {

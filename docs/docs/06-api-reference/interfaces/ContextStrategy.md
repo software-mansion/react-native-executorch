@@ -1,6 +1,6 @@
 # Interface: ContextStrategy
 
-Defined in: [types/llm.ts:259](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L259)
+Defined in: [types/llm.ts:241](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L241)
 
 Defines a strategy for managing the conversation context window and message history.
 
@@ -10,11 +10,9 @@ Defines a strategy for managing the conversation context window and message hist
 
 > **buildContext**(`systemPrompt`, `history`, `maxContextLength`, `getTokenCount`): [`Message`](Message.md)[]
 
-Defined in: [types/llm.ts:268](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L268)
+Defined in: [types/llm.ts:250](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/types/llm.ts#L250)
 
 Constructs the final array of messages to be sent to the model for the current inference step.
-
--
 
 #### Parameters
 

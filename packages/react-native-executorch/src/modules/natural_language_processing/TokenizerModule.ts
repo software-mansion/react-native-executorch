@@ -6,7 +6,6 @@ import { Logger } from '../../common/Logger';
 
 /**
  * Module for Tokenizer functionalities.
- *
  * @category Typescript API
  */
 export class TokenizerModule {
@@ -18,7 +17,6 @@ export class TokenizerModule {
   /**
    * Loads the tokenizer from the specified source.
    * `tokenizerSource` is a string that points to the location of the tokenizer JSON file.
-   *
    * @param tokenizer - Object containing `tokenizerSource`.
    * @param onDownloadProgressCallback - Optional callback to monitor download progress.
    */
@@ -47,7 +45,6 @@ export class TokenizerModule {
 
   /**
    * Converts a string into an array of token IDs.
-   *
    * @param input - The input string to be tokenized.
    * @returns An array of token IDs.
    */
@@ -57,7 +54,6 @@ export class TokenizerModule {
 
   /**
    * Converts an array of token IDs into a string.
-   *
    * @param tokens - Array of token IDs to be decoded.
    * @param skipSpecialTokens - Whether to skip special tokens during decoding (default: true).
    * @returns The decoded string.
@@ -74,7 +70,6 @@ export class TokenizerModule {
 
   /**
    * Returns the size of the tokenizer's vocabulary.
-   *
    * @returns The vocabulary size.
    */
   async getVocabSize(): Promise<number> {
@@ -83,7 +78,6 @@ export class TokenizerModule {
 
   /**
    * Returns the token associated to the ID.
-   *
    * @param tokenId - ID of the token.
    * @returns The token string associated to ID.
    */
@@ -93,7 +87,6 @@ export class TokenizerModule {
 
   /**
    * Returns the ID associated to the token.
-   *
    * @param token - The token string.
    * @returns The ID associated to the token.
    */

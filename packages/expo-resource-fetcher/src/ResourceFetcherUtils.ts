@@ -31,7 +31,6 @@ export interface DownloadResource {
 
 /**
  * Utility functions for fetching and managing resources.
- *
  * @category Utilities - General
  */
 export namespace ResourceFetcherUtils {

@@ -2,7 +2,7 @@
 
 > **useSemanticSegmentation**\<`C`\>(`props`): [`SemanticSegmentationType`](../interfaces/SemanticSegmentationType.md)\<[`SegmentationLabels`](../type-aliases/SegmentationLabels.md)\<[`ModelNameOf`](../type-aliases/ModelNameOf.md)\<`C`\>\>\>
 
-Defined in: [hooks/computer_vision/useSemanticSegmentation.ts:31](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/hooks/computer_vision/useSemanticSegmentation.ts#L31)
+Defined in: [hooks/computer_vision/useSemanticSegmentation.ts:28](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/hooks/computer_vision/useSemanticSegmentation.ts#L28)
 
 React hook for managing a Semantic Segmentation model instance.
 

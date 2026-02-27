@@ -2,7 +2,7 @@
 
 > **SegmentationLabels**\<`M`\> = `ModelConfigsType`\[`M`\]\[`"labelMap"`\]
 
-Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:55](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/SemanticSegmentationModule.ts#L55)
+Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:53](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/SemanticSegmentationModule.ts#L53)
 
 Resolves the [LabelEnum](LabelEnum.md) for a given built-in model name.
 

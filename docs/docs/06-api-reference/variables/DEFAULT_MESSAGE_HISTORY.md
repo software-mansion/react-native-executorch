@@ -2,6 +2,6 @@
 
 > `const` **DEFAULT_MESSAGE_HISTORY**: [`Message`](../interfaces/Message.md)[] = `[]`
 
-Defined in: [constants/llmDefaults.ts:35](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/llmDefaults.ts#L35)
+Defined in: [constants/llmDefaults.ts:32](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/constants/llmDefaults.ts#L32)
 
 Default message history for Large Language Models (LLMs).

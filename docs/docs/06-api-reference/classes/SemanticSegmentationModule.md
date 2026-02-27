@@ -1,6 +1,6 @@
 # Class: SemanticSegmentationModule\<T\>
 
-Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:81](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/SemanticSegmentationModule.ts#L81)
+Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:77](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/SemanticSegmentationModule.ts#L77)
 
 Generic semantic segmentation module with type-safe label maps.
 Use a model name (e.g. `'deeplab-v3-resnet50'`) as the generic parameter for built-in models,
@@ -44,7 +44,7 @@ Native module instance
 
 > **delete**(): `void`
 
-Defined in: [modules/BaseModule.ts:41](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L41)
+Defined in: [modules/BaseModule.ts:39](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L39)
 
 Unloads the model from memory.
 
@@ -62,7 +62,7 @@ Unloads the model from memory.
 
 > **forward**\<`K`\>(`imageSource`, `classesOfInterest?`, `resizeToInput?`): `Promise`\<`Record`\<`"ARGMAX"`, `Int32Array`\<`ArrayBufferLike`\>\> & `Record`\<`K`, `Float32Array`\<`ArrayBufferLike`\>\>\>
 
-Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:197](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/SemanticSegmentationModule.ts#L197)
+Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:188](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/SemanticSegmentationModule.ts#L188)
 
 Executes the model's forward pass to perform semantic segmentation on the provided image.
 
@@ -108,7 +108,7 @@ If the model is not loaded.
 
 > `protected` **forwardET**(`inputTensor`): `Promise`\<[`TensorPtr`](../interfaces/TensorPtr.md)[]\>
 
-Defined in: [modules/BaseModule.ts:23](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L23)
+Defined in: [modules/BaseModule.ts:22](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L22)
 
 Runs the model's forward method with the given input tensors.
 It returns the output tensors that mimic the structure of output from ExecuTorch.
@@ -137,7 +137,7 @@ Array of output tensors.
 
 > **getInputShape**(`methodName`, `index`): `Promise`\<`number`[]\>
 
-Defined in: [modules/BaseModule.ts:34](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L34)
+Defined in: [modules/BaseModule.ts:32](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/BaseModule.ts#L32)
 
 Gets the input shape for a given method and index.
 
@@ -171,7 +171,7 @@ The input shape as an array of numbers.
 
 > **load**(): `Promise`\<`void`\>
 
-Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:97](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/SemanticSegmentationModule.ts#L97)
+Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:93](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/SemanticSegmentationModule.ts#L93)
 
 #### Returns
 
@@ -187,7 +187,7 @@ Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:97](https://g
 
 > `static` **fromCustomConfig**\<`L`\>(`modelSource`, `config`, `onDownloadProgress?`): `Promise`\<`SemanticSegmentationModule`\<`L`\>\>
 
-Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:163](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/SemanticSegmentationModule.ts#L163)
+Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:155](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/SemanticSegmentationModule.ts#L155)
 
 Creates a segmentation instance with a user-provided label map and custom config.
 Use this when working with a custom-exported segmentation model that is not one of the built-in models.
@@ -240,7 +240,7 @@ const segmentation = await SemanticSegmentationModule.fromCustomConfig(
 
 > `static` **fromModelName**\<`C`\>(`config`, `onDownloadProgress?`): `Promise`\<`SemanticSegmentationModule`\<[`ModelNameOf`](../type-aliases/ModelNameOf.md)\<`C`\>\>\>
 
-Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:116](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/SemanticSegmentationModule.ts#L116)
+Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:110](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/SemanticSegmentationModule.ts#L110)
 
 Creates a segmentation instance for a built-in model.
 The config object is discriminated by `modelName` — each model can require different fields.
