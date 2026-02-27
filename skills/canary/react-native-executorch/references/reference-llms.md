@@ -74,6 +74,8 @@ import {
   MessageCountContextStrategy,
   DEFAULT_SYSTEM_PROMPT,
   ToolCall,
+  useLLM,
+  LLAMA3_2_1B_SPINQUANT,
 } from 'react-native-executorch';
 
 const TOOL_DEFINITIONS: LLMTool[] = [
@@ -108,6 +110,8 @@ const executeTool: (call: ToolCall) => Promise<string | null> = async (
       return null;
   }
 };
+
+const llm = useLLM({ model: LLAMA3_2_1B_SPINQUANT });
 
 const { configure } = llm;
 useEffect(() => {
