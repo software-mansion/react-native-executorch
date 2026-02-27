@@ -32,7 +32,13 @@ const isSimulator = DeviceInfo.isEmulatorSync();
 
 export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
   const model = useSpeechToText({
-    model: WHISPER_TINY_EN,
+    // model: WHISPER_TINY_EN,
+    model: {
+      isMultilingual: false,
+      encoderSource: 'http://192.168.101.2:8000/whisper_encoder_coreml.pte',
+      decoderSource: 'http://192.168.101.2:8000/whisper_decoder_coreml.pte',
+      tokenizerSource: WHISPER_TINY_EN.tokenizerSource,
+    },
   });
 
   const [transcription, setTranscription] =
