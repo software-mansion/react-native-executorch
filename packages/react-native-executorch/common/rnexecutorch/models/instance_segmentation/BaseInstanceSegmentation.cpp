@@ -295,10 +295,6 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::generate(
   std::string methodName = getMethodName(inputSize);
   cv::Size modelInputSize(inputSize, inputSize);
 
-  std::cout << "[InstanceSeg] Using method: " << methodName
-            << " with input size: " << inputSize << "x" << inputSize
-            << std::endl;
-
   // Create input shape
   std::vector<int32_t> inputShape = {1, 3, inputSize, inputSize};
 

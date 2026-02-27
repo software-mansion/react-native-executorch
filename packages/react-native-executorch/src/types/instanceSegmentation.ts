@@ -3,34 +3,19 @@ import { LabelEnum, ResourceSource } from './common';
 import { Bbox, CocoLabel } from './objectDetection';
 
 /**
- * Represents a single instance in instance segmentation output.
+ * Represents a single detected instance in instance segmentation output.
  *
+ * @typeParam L - The {@link LabelEnum} type for the model.
  * @category Types
  * @property {Bbox} bbox - The bounding box of the instance.
  * @property {Uint8Array} mask - Binary mask (0 or 1) representing the instance.
  * @property {number} maskWidth - Width of the mask array.
  * @property {number} maskHeight - Height of the mask array.
- * @property {keyof typeof CocoLabel} label - The class label of the instance.
+ * @property {keyof L} label - The class label of the instance.
  * @property {number} score - Confidence score [0, 1].
  * @property {number} instanceId - Unique identifier for this instance.
  */
-export interface InstanceMask {
-  bbox: Bbox;
-  mask: Uint8Array;
-  maskWidth: number;
-  maskHeight: number;
-  label: keyof typeof CocoLabel;
-  score: number;
-  instanceId: number;
-}
-
-/**
- * Generic instance mask type for custom label maps.
- *
- * @typeParam L - The {@link LabelEnum} type for custom models.
- * @category Types
- */
-export interface GenericInstanceMask<L extends LabelEnum> {
+export interface SegmentedInstance<L extends LabelEnum> {
   bbox: Bbox;
   mask: Uint8Array;
   maskWidth: number;
@@ -74,6 +59,10 @@ export interface PostprocessorConfig {
    * Default IoU threshold for NMS for this model.
    */
   defaultIouThreshold?: number;
+  /**
+   * Whether to apply Non-Maximum Suppression (NMS). Default: true
+   */
+  applyNMS?: boolean;
 }
 
 /**
@@ -132,6 +121,7 @@ export type InstanceSegmentationConfig<T extends LabelEnum> = {
   postprocessorConfig: PostprocessorConfig;
 };
 
+/// We would bind it here - but we need a deafult conf for yolo to be applied instead of
 /**
  * Per-model config for {@link InstanceSegmentationModule.fromModelName}.
  * Each model name maps to its required fields.
@@ -159,7 +149,7 @@ export type InstanceSegmentationModelName =
  *
  * @category Types
  */
-export type InstanceModelNameOf<C extends InstanceSegmentationModelSources> =
+export type ModelNameOf<C extends InstanceSegmentationModelSources> =
   C['modelName'];
 
 /**
@@ -217,5 +207,5 @@ export interface InstanceSegmentationType<L extends LabelEnum> {
   forward: (
     imageSource: string,
     options?: InstanceSegmentationOptions<L>
-  ) => Promise<GenericInstanceMask<L>[]>;
+  ) => Promise<SegmentedInstance<L>[]>;
 }

@@ -5,7 +5,7 @@ import {
   InstanceSegmentationConfig,
   InstanceSegmentationModelName,
   InstanceModelNameOf,
-  GenericInstanceMask,
+  SegmentedInstance,
   InstanceSegmentationOptions,
 } from '../../types/instanceSegmentation';
 import { CocoLabel } from '../../types/objectDetection';
@@ -13,71 +13,24 @@ import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
 import { BaseModule } from '../BaseModule';
 
+const YOLO_SEG_CONFIG = {
+  labelMap: CocoLabel,
+  availableInputSizes: [384, 416, 512, 640, 1024] as const,
+  defaultInputSize: 416,
+  postprocessorConfig: {
+    type: 'yolo' as const,
+    defaultConfidenceThreshold: 0.5,
+    defaultIouThreshold: 0.5,
+    applyNMS: true,
+  },
+} as const;
+
 const ModelConfigs = {
-  'yolo26n-seg': {
-    labelMap: CocoLabel,
-    availableInputSizes: [384, 416, 512, 640, 1024] as const,
-    defaultInputSize: 416,
-    postprocessorConfig: {
-      type: 'yolo' as const,
-      defaultConfidenceThreshold: 0.5,
-      defaultIouThreshold: 0.45,
-    },
-  },
-  'yolo26s-seg': {
-    labelMap: CocoLabel,
-    availableInputSizes: [384, 416, 512, 640, 1024] as const,
-    defaultInputSize: 416,
-    postprocessorConfig: {
-      type: 'yolo' as const,
-      defaultConfidenceThreshold: 0.5,
-      defaultIouThreshold: 0.45,
-    },
-  },
-  'yolo26m-seg': {
-    labelMap: CocoLabel,
-    availableInputSizes: [384, 416, 512, 640, 1024] as const,
-    defaultInputSize: 416,
-    postprocessorConfig: {
-      type: 'yolo' as const,
-      defaultConfidenceThreshold: 0.5,
-      defaultIouThreshold: 0.45,
-    },
-  },
-  'yolo26l-seg': {
-    labelMap: CocoLabel,
-    availableInputSizes: [384, 416, 512, 640, 1024] as const,
-    defaultInputSize: 416,
-    postprocessorConfig: {
-      type: 'yolo' as const,
-      defaultConfidenceThreshold: 0.5,
-      defaultIouThreshold: 0.45,
-    },
-  },
-  'yolo26x-seg': {
-    labelMap: CocoLabel,
-    availableInputSizes: [384, 416, 512, 640, 1024] as const,
-    defaultInputSize: 416,
-    postprocessorConfig: {
-      type: 'yolo' as const,
-      defaultConfidenceThreshold: 0.5,
-      defaultIouThreshold: 0.45,
-    },
-  },
-  'rfdetr_seg': {
-    labelMap: CocoLabel,
-    availableInputSizes: [640, 1024] as const,
-    defaultInputSize: 640,
-    preprocessorConfig: {
-      normMean: [0.485, 0.456, 0.406] as [number, number, number],
-      normStd: [0.229, 0.224, 0.225] as [number, number, number],
-    },
-    postprocessorConfig: {
-      type: 'rfdetr' as const,
-      defaultConfidenceThreshold: 0.7,
-      defaultIouThreshold: 0.5,
-    },
-  },
+  'yolo26n-seg': YOLO_SEG_CONFIG,
+  'yolo26s-seg': YOLO_SEG_CONFIG,
+  'yolo26m-seg': YOLO_SEG_CONFIG,
+  'yolo26l-seg': YOLO_SEG_CONFIG,
+  'yolo26x-seg': YOLO_SEG_CONFIG,
 } as const satisfies Record<
   InstanceSegmentationModelName,
   InstanceSegmentationConfig<LabelEnum>
@@ -178,7 +131,7 @@ export class InstanceSegmentationModule<
       modelConfig.postprocessorConfig.type,
       modelConfig.preprocessorConfig?.normMean || [],
       modelConfig.preprocessorConfig?.normStd || [],
-      true // applyNMS - always true for now
+      modelConfig.postprocessorConfig.applyNMS ?? true
     );
 
     return new InstanceSegmentationModule<InstanceModelNameOf<C>>(
@@ -234,7 +187,7 @@ export class InstanceSegmentationModule<
       config.postprocessorConfig.type,
       config.preprocessorConfig?.normMean || [],
       config.preprocessorConfig?.normStd || [],
-      true // applyNMS - always true for now
+      config.postprocessorConfig.applyNMS ?? true
     );
 
     return new InstanceSegmentationModule<L>(
@@ -255,7 +208,7 @@ export class InstanceSegmentationModule<
   async forward(
     imageSource: string,
     options?: InstanceSegmentationOptions<ResolveLabels<T>>
-  ): Promise<GenericInstanceMask<ResolveLabels<T>>[]> {
+  ): Promise<SegmentedInstance<ResolveLabels<T>>[]> {
     if (this.nativeModule == null) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ModuleNotLoaded,
@@ -267,11 +220,11 @@ export class InstanceSegmentationModule<
     const confidenceThreshold =
       options?.confidenceThreshold ??
       this.modelConfig.postprocessorConfig.defaultConfidenceThreshold ??
-      0.5;
+      0.55;
     const iouThreshold =
       options?.iouThreshold ??
       this.modelConfig.postprocessorConfig.defaultIouThreshold ??
-      0.45;
+      0.55;
     const maxInstances = options?.maxInstances ?? 100;
     const returnMaskAtOriginalResolution =
       options?.returnMaskAtOriginalResolution ?? true;
@@ -311,6 +264,7 @@ export class InstanceSegmentationModule<
     );
 
     // Convert label indices back to label names
+    // YOLO outputs 0-indexed class IDs, but COCO labels are 1-indexed, so add 1
     const reverseLabelMap = Object.entries(this.labelMap).reduce(
       (acc, [key, value]) => {
         acc[value as number] = key;
@@ -321,7 +275,7 @@ export class InstanceSegmentationModule<
 
     return nativeResult.map((instance: any) => ({
       ...instance,
-      label: reverseLabelMap[instance.label] || `UNKNOWN_${instance.label}`,
-    })) as GenericInstanceMask<ResolveLabels<T>>[];
+      label: reverseLabelMap[instance.label + 1] || `UNKNOWN_${instance.label}`,
+    })) as SegmentedInstance<ResolveLabels<T>>[];
   }
 }
