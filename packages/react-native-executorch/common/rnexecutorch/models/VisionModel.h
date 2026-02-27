@@ -62,7 +62,7 @@ protected:
    * - generate() is called from JavaScript thread simultaneously
    *
    * Usage guidelines:
-   * - Use std::lock_guard for blocking operations (JS API can wait)
+   * - Use std::scoped_lock for blocking operations (JS API can wait)
    * - Use try_lock() for non-blocking operations (camera should skip frames)
    *
    * @note Marked mutable to allow locking in const methods if needed
