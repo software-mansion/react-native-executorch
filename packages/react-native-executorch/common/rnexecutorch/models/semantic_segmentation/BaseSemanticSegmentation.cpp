@@ -12,13 +12,6 @@
 namespace rnexecutorch::models::semantic_segmentation {
 
 BaseSemanticSegmentation::BaseSemanticSegmentation(
-    const std::string &modelSource,
-    std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker) {
-  initModelImageSize();
-}
-
-BaseSemanticSegmentation::BaseSemanticSegmentation(
     const std::string &modelSource, std::vector<float> normMean,
     std::vector<float> normStd, std::shared_ptr<react::CallInvoker> callInvoker)
     : BaseModel(modelSource, callInvoker) {

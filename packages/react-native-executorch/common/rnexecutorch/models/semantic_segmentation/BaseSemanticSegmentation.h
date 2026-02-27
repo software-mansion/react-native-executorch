@@ -20,9 +20,6 @@ using executorch::extension::TensorPtr;
 class BaseSemanticSegmentation : public BaseModel {
 public:
   BaseSemanticSegmentation(const std::string &modelSource,
-                           std::shared_ptr<react::CallInvoker> callInvoker);
-
-  BaseSemanticSegmentation(const std::string &modelSource,
                            std::vector<float> normMean,
                            std::vector<float> normStd,
                            std::shared_ptr<react::CallInvoker> callInvoker);
