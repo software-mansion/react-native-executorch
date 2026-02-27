@@ -178,7 +178,7 @@ The input shape as an array of numbers.
 
 > **interrupt**(): `void`
 
-Defined in: [modules/computer_vision/TextToImageModule.ts:133](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts#L133)
+Defined in: [modules/computer_vision/TextToImageModule.ts:138](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts#L138)
 
 Interrupts model generation. The model is stopped in the nearest step.
 

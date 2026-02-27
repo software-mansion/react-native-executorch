@@ -4450,8 +4450,8 @@ __metadata:
     typescript: "npm:~5.9.2"
   peerDependencies:
     expo: ">=54.0.0"
-    expo-asset: ^12.0.0
-    expo-file-system: ^19.0.0
+    expo-asset: ">=12.0.0"
+    expo-file-system: ">=19.0.0"
     react-native: "*"
     react-native-executorch: "*"
   languageName: unknown
