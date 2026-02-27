@@ -9,7 +9,7 @@ The release process of new minor version consists of the following steps:
 3. Commit with a message 'Release v{MAJOR}.{MINOR}.0'. (We want to keep the latest `MINOR` version on the `main` branch.)
 4. Create a new release branch `release/{MAJOR}.{MINOR}`and push it to the remote.
 5. Stability tests are performed on the release branch and all fixes to the new-found issues are pushed into the main branch and cherry-picked into the release branch. This allows for further development on the main branch without interfering with the release process.
-6. Once all tests are passed, tag the release branch with proper version tag `v{MAJOR}.{MINOR}.0` and run `npm publish`.
+6. Once all tests are passed, tag the release branch with proper version tag `v{MAJOR}.{MINOR}.0` and run the [npm publish workflow](https://github.com/software-mansion/react-native-executorch/actions/workflows/npm-publish.yml).
 7. Create versioned docs by running from repo root `(cd docs && yarn docs:version {MAJOR}.{MINOR}.x)` (the 'x' part is intentional and is not to be substituted). Also, make sure that all the links in `api-reference` are not broken.
 8. Create a PR with the updated docs.
 9. Create the release notes on GitHub.
