@@ -12966,8 +12966,8 @@ __metadata:
     zod: "npm:^3.25.0"
   peerDependencies:
     expo: ">=54.0.0"
-    expo-asset: ^12.0.0
-    expo-file-system: ^19.0.0
+    expo-asset: ">=12.0.0"
+    expo-file-system: ">=19.0.0"
     react: "*"
     react-native: "*"
   languageName: unknown

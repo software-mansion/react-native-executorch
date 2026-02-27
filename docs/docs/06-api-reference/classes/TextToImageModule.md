@@ -1,6 +1,6 @@
 # Class: TextToImageModule
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts:14](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts#L14)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts:14](https://github.com/software-mansion/react-native-executorch/blob/a305030e7ac90325b5f5072ed4ef18e419f59d34/packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts#L14)
 
 Module for text-to-image generation tasks.
 
@@ -14,7 +14,7 @@ Module for text-to-image generation tasks.
 
 > **new TextToImageModule**(`inferenceCallback?`): `TextToImageModule`
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts:22](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts#L22)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts:22](https://github.com/software-mansion/react-native-executorch/blob/a305030e7ac90325b5f5072ed4ef18e419f59d34/packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts#L22)
 
 Creates a new instance of `TextToImageModule` with optional callback on inference step.
 
@@ -40,7 +40,7 @@ Optional callback function that receives the current step index during inference
 
 > **nativeModule**: `any` = `null`
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:8](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/modules/BaseModule.ts#L8)
+Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:8](https://github.com/software-mansion/react-native-executorch/blob/a305030e7ac90325b5f5072ed4ef18e419f59d34/packages/react-native-executorch/src/modules/BaseModule.ts#L8)
 
 Native module instance
 
@@ -54,7 +54,7 @@ Native module instance
 
 > **delete**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:41](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/modules/BaseModule.ts#L41)
+Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:41](https://github.com/software-mansion/react-native-executorch/blob/a305030e7ac90325b5f5072ed4ef18e419f59d34/packages/react-native-executorch/src/modules/BaseModule.ts#L41)
 
 Unloads the model from memory.
 
@@ -70,9 +70,9 @@ Unloads the model from memory.
 
 ### forward()
 
-> **forward**(`input`, `imageSize`, `numSteps`, `seed?`): `Promise`\<`string`\>
+> **forward**(`input`, `imageSize?`, `numSteps?`, `seed?`): `Promise`\<`string`\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts:100](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts#L100)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts:100](https://github.com/software-mansion/react-native-executorch/blob/a305030e7ac90325b5f5072ed4ef18e419f59d34/packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts#L100)
 
 Runs the model to generate an image described by `input`, and conditioned by `seed`, performing `numSteps` inference steps.
 The resulting image, with dimensions `imageSize`×`imageSize` pixels, is returned as a base64-encoded string.
@@ -85,13 +85,13 @@ The resulting image, with dimensions `imageSize`×`imageSize` pixels, is returne
 
 The text prompt to generate the image from.
 
-##### imageSize
+##### imageSize?
 
 `number` = `512`
 
 The desired width and height of the output image in pixels.
 
-##### numSteps
+##### numSteps?
 
 `number` = `5`
 
@@ -115,7 +115,7 @@ A Base64-encoded string representing the generated PNG image.
 
 > `protected` **forwardET**(`inputTensor`): `Promise`\<[`TensorPtr`](../interfaces/TensorPtr.md)[]\>
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:23](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/modules/BaseModule.ts#L23)
+Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:23](https://github.com/software-mansion/react-native-executorch/blob/a305030e7ac90325b5f5072ed4ef18e419f59d34/packages/react-native-executorch/src/modules/BaseModule.ts#L23)
 
 Runs the model's forward method with the given input tensors.
 It returns the output tensors that mimic the structure of output from ExecuTorch.
@@ -144,7 +144,7 @@ Array of output tensors.
 
 > **getInputShape**(`methodName`, `index`): `Promise`\<`number`[]\>
 
-Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:34](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/modules/BaseModule.ts#L34)
+Defined in: [packages/react-native-executorch/src/modules/BaseModule.ts:34](https://github.com/software-mansion/react-native-executorch/blob/a305030e7ac90325b5f5072ed4ef18e419f59d34/packages/react-native-executorch/src/modules/BaseModule.ts#L34)
 
 Gets the input shape for a given method and index.
 
@@ -178,7 +178,7 @@ The input shape as an array of numbers.
 
 > **interrupt**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts:127](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts#L127)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts:132](https://github.com/software-mansion/react-native-executorch/blob/a305030e7ac90325b5f5072ed4ef18e419f59d34/packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts#L132)
 
 Interrupts model generation. The model is stopped in the nearest step.
 
@@ -190,9 +190,9 @@ Interrupts model generation. The model is stopped in the nearest step.
 
 ### load()
 
-> **load**(`model`, `onDownloadProgressCallback`): `Promise`\<`void`\>
+> **load**(`model`, `onDownloadProgressCallback?`): `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts:35](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts#L35)
+Defined in: [packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts:35](https://github.com/software-mansion/react-native-executorch/blob/a305030e7ac90325b5f5072ed4ef18e419f59d34/packages/react-native-executorch/src/modules/computer_vision/TextToImageModule.ts#L35)
 
 Loads the model from specified resources.
 
@@ -222,7 +222,7 @@ Object containing sources for tokenizer, scheduler, encoder, unet, and decoder.
 
 [`ResourceSource`](../type-aliases/ResourceSource.md)
 
-##### onDownloadProgressCallback
+##### onDownloadProgressCallback?
 
 (`progress`) => `void`
 
