@@ -1,7 +1,7 @@
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import { ResourceSource } from '../../types/common';
 import { BaseModule } from '../BaseModule';
-import { Buffer } from 'buffer';
+
 import { PNG } from 'pngjs/browser';
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
@@ -121,10 +121,15 @@ export class TextToImageModule extends BaseModule {
       return '';
     }
     const png = new PNG({ width: imageSize, height: imageSize });
-    png.data = Buffer.from(outputArray);
+    png.data = outputArray as unknown as Buffer;
     const pngBuffer = PNG.sync.write(png, { colorType: 6 });
-    const pngString = pngBuffer.toString('base64');
-    return pngString;
+    const pngArray = new Uint8Array(pngBuffer as unknown as ArrayBufferLike);
+    let binary = '';
+    const chunkSize = 8192;
+    for (let i = 0; i < pngArray.length; i += chunkSize) {
+      binary += String.fromCharCode(...pngArray.subarray(i, i + chunkSize));
+    }
+    return btoa(binary);
   }
 
   /**

@@ -4429,8 +4429,8 @@ __metadata:
     react-native-executorch: "workspace:*"
     typescript: "npm:~5.9.2"
   peerDependencies:
-    "@dr.pogodin/react-native-fs": ^2.0.0
-    "@kesha-antonov/react-native-background-downloader": ^4.0.0
+    "@dr.pogodin/react-native-fs": ">=2.0.0"
+    "@kesha-antonov/react-native-background-downloader": ">=4.0.0"
     react-native: "*"
     react-native-executorch: "*"
   languageName: unknown
@@ -4450,8 +4450,8 @@ __metadata:
     typescript: "npm:~5.9.2"
   peerDependencies:
     expo: ">=54.0.0"
-    expo-asset: ^12.0.0
-    expo-file-system: ^19.0.0
+    expo-asset: ">=12.0.0"
+    expo-file-system: ">=19.0.0"
     react-native: "*"
     react-native-executorch: "*"
   languageName: unknown
