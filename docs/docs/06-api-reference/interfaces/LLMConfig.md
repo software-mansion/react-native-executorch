@@ -18,7 +18,7 @@ Object configuring chat management, contains following properties:
 
 `initialMessageHistory` - An array of `Message` objects that represent the conversation history. This can be used to provide initial context to the model.
 
-`contextWindowLength` - The number of messages from the current conversation that the model will use to generate a response. The higher the number, the more context the model will have. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
+`contextStrategy` - Defines a strategy for managing the conversation context window and message history
 
 ---
 
