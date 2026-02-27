@@ -26,8 +26,8 @@
     "clean": "del-cli lib"
   },
   "peerDependencies": {
-    "@dr.pogodin/react-native-fs": "^2.0.0",
-    "@kesha-antonov/react-native-background-downloader": "^4.0.0",
+    "@dr.pogodin/react-native-fs": ">=2.0.0",
+    "@kesha-antonov/react-native-background-downloader": ">=4.0.0",
     "react-native": "*",
     "react-native-executorch": "*"
   },
