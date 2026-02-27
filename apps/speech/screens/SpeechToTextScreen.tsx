@@ -50,7 +50,13 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     useState<STTModelSources>(WHISPER_TINY_EN);
 
   const model = useSpeechToText({
-    model: selectedModel,
+    // model: WHISPER_TINY_EN,
+    model: {
+      isMultilingual: false,
+      encoderSource: 'http://192.168.83.59:8000/whisper_encoder_coreml.pte',
+      decoderSource: 'http://192.168.83.59:8000/whisper_decoder_coreml.pte',
+      tokenizerSource: WHISPER_TINY_EN.tokenizerSource,
+    },
   });
 
   const [transcription, setTranscription] =
