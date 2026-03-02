@@ -60,12 +60,31 @@ type ResolveLabels<T extends InstanceSegmentationModelName | LabelEnum> =
 
 /**
  * Generic instance segmentation module with type-safe label maps.
- * Use a model name (e.g. `'yolo26n-seg'`) as the generic parameter for built-in models,
+ * Use a model name (e.g. `'yolo26n-seg'`) as the generic parameter for pre-configured models,
  * or a custom label enum for custom configs.
  *
- * @typeParam T - Either a built-in model name or a custom {@link LabelEnum} label map.
+ * Supported models (download from HuggingFace):
+ * - `yolo26n-seg`, `yolo26s-seg`, `yolo26m-seg`, `yolo26l-seg`, `yolo26x-seg` - YOLO models with COCO labels (80 classes)
+ *
+ * @typeParam T - Either a pre-configured model name from {@link InstanceSegmentationModelName}
+ *   or a custom {@link LabelEnum} label map.
  *
  * @category Typescript API
+ *
+ * @example
+ * ```ts
+ * const segmentation = await InstanceSegmentationModule.fromModelName({
+ *   modelName: 'yolo26n-seg',
+ *   modelSource: 'https://huggingface.co/.../yolo26n-seg.pte',
+ * });
+ *
+ * const results = await segmentation.forward('path/to/image.jpg', {
+ *   confidenceThreshold: 0.5,
+ *   iouThreshold: 0.45,
+ *   maxInstances: 20,
+ *   inputSize: 640,
+ * });
+ * ```
  */
 export class InstanceSegmentationModule<
   T extends InstanceSegmentationModelName | LabelEnum,
@@ -88,7 +107,7 @@ export class InstanceSegmentationModule<
   override async load() {}
 
   /**
-   * Creates an instance segmentation module for a built-in model.
+   * Creates an instance segmentation module for a pre-configured model.
    * The config object is discriminated by `modelName` — each model can require different fields.
    *
    * @param config - A {@link InstanceSegmentationModelSources} object specifying which model to load and where to fetch it from.
@@ -99,7 +118,7 @@ export class InstanceSegmentationModule<
    * ```ts
    * const segmentation = await InstanceSegmentationModule.fromModelName({
    *   modelName: 'yolo26n-seg',
-   *   modelSource: 'https://example.com/yolo26n-seg.pte',
+   *   modelSource: 'https://huggingface.co/.../yolo26n-seg.pte',
    * });
    * ```
    */
@@ -145,10 +164,10 @@ export class InstanceSegmentationModule<
 
   /**
    * Creates an instance segmentation module with a user-provided label map and custom config.
-   * Use this when working with a custom-exported segmentation model that is not one of the built-in models.
+   * Use this when working with a custom-exported segmentation model that is not one of the pre-configured models.
    *
    * @param modelSource - A fetchable resource pointing to the model binary.
-   * @param config - A {@link InstanceSegmentationConfig} object with the label map.
+   * @param config - A {@link InstanceSegmentationConfig} object with the label map and optional preprocessing parameters.
    * @param onDownloadProgress - Optional callback to monitor download progress, receiving a value between 0 and 1.
    * @returns A Promise resolving to an `InstanceSegmentationModule` instance typed to the provided label map.
    *
@@ -156,8 +175,18 @@ export class InstanceSegmentationModule<
    * ```ts
    * const MyLabels = { PERSON: 0, CAR: 1 } as const;
    * const segmentation = await InstanceSegmentationModule.fromCustomConfig(
-   *   'https://example.com/custom_model.pte',
-   *   { labelMap: MyLabels },
+   *   'https://huggingface.co/.../custom_model.pte',
+   *   {
+   *     labelMap: MyLabels,
+   *     availableInputSizes: [640],
+   *     defaultInputSize: 640,
+   *     postprocessorConfig: {
+   *       type: 'yolo',
+   *       defaultConfidenceThreshold: 0.5,
+   *       defaultIouThreshold: 0.45,
+   *       applyNMS: true,
+   *     },
+   *   },
    * );
    * ```
    */
@@ -201,9 +230,25 @@ export class InstanceSegmentationModule<
    * Executes the model's forward pass to perform instance segmentation on the provided image.
    *
    * @param imageSource - A string representing the image source (e.g., a file path, URI, or Base64-encoded string).
-   * @param options - Optional configuration for the segmentation process.
-   * @returns A Promise resolving to an array of instance masks.
-   * @throws {RnExecutorchError} If the model is not loaded.
+   * @param options - Optional configuration for the segmentation process. Includes `confidenceThreshold`, `iouThreshold`, `maxInstances`, `classesOfInterest`, `returnMaskAtOriginalResolution`, and `inputSize`.
+   * @returns A Promise resolving to an array of {@link SegmentedInstance} objects with `bbox`, `mask`, `maskWidth`, `maskHeight`, `label`, `score`, and `instanceId`.
+   * @throws {RnExecutorchError} If the model is not loaded or if an invalid `inputSize` is provided.
+   *
+   * @example
+   * ```ts
+   * const results = await segmentation.forward('path/to/image.jpg', {
+   *   confidenceThreshold: 0.6,
+   *   iouThreshold: 0.5,
+   *   maxInstances: 10,
+   *   inputSize: 640,
+   *   classesOfInterest: ['PERSON', 'CAR'],
+   *   returnMaskAtOriginalResolution: true,
+   * });
+   *
+   * results.forEach((inst) => {
+   *   console.log(`${inst.label}: ${(inst.score * 100).toFixed(1)}%`);
+   * });
+   * ```
    */
   async forward(
     imageSource: string,
