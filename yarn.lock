@@ -4457,6 +4457,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@react-native-picker/picker@npm:^2.11.4":
+  version: 2.11.4
+  resolution: "@react-native-picker/picker@npm:2.11.4"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/cb8f0b7bf52044a5bbb89db5a3f1be7bd3cdf3a04845f0475c492ec3f24e63cd915b993b23012b674d3503499efd8ff4eebe18561f4e38ba67b4c45742de4c74
+  languageName: node
+  linkType: hard
+
 "@react-native/assets-registry@npm:0.81.5":
   version: 0.81.5
   resolution: "@react-native/assets-registry@npm:0.81.5"
@@ -7241,6 +7251,7 @@ __metadata:
   dependencies:
     "@babel/core": "npm:^7.29.0"
     "@react-native-executorch/expo-resource-fetcher": "workspace:*"
+    "@react-native-picker/picker": "npm:^2.11.4"
     "@react-native/metro-config": "npm:^0.81.5"
     "@react-navigation/drawer": "npm:^7.8.1"
     "@react-navigation/native": "npm:^7.1.28"

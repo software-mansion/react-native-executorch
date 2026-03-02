@@ -5,6 +5,7 @@ import { getImage } from '../../utils';
 import {
   useInstanceSegmentation,
   YOLO26N_SEG,
+  YOLO_SEG_CONFIG,
   // InstanceSegmentationModule, // Uncomment for custom models
   // CocoLabel, // Uncomment for custom models
 } from 'react-native-executorch';
@@ -18,9 +19,6 @@ import {
 import React, { useContext, useEffect, useState } from 'react';
 import { GeneratingContext } from '../../context';
 import ScreenWrapper from '../../ScreenWrapper';
-
-// Available input sizes for YOLO models
-const AVAILABLE_INPUT_SIZES = [384, 416, 512, 640, 1024];
 
 export default function InstanceSegmentationScreen() {
   const { setGlobalGenerating } = useContext(GeneratingContext);
@@ -60,6 +58,7 @@ export default function InstanceSegmentationScreen() {
           {
             labelMap: CocoLabel,
             postprocessorConfig: {
+              type: 'rfdetr',
               defaultConfidenceThreshold: 0.5,
               defaultIouThreshold: 0.5,
               applyNMS: true, // RFDetr needs NMS
@@ -106,7 +105,7 @@ export default function InstanceSegmentationScreen() {
 
     try {
       const output = await forward(imageUri, {
-        confidenceThreshold: 0.5,
+        confidenceThreshold: 0.2,
         iouThreshold: 0.45,
         maxInstances: 20,
         inputSize: selectedInputSize, // YOLO supports multiple input sizes
@@ -159,7 +158,7 @@ export default function InstanceSegmentationScreen() {
           <View style={styles.inputSizeContainer}>
             <Text style={styles.inputSizeLabel}>Input Size:</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {AVAILABLE_INPUT_SIZES.map((size) => (
+              {YOLO_SEG_CONFIG.availableInputSizes!.map((size) => (
                 <TouchableOpacity
                   key={size}
                   style={[
@@ -303,5 +302,3 @@ const styles = StyleSheet.create({
     fontFamily: 'Courier',
   },
 });
-export type SegmentationLabels<M extends SemanticSegmentationModelName> =
-  ModelConfigsType[M]['labelMap'];

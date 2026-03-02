@@ -8,10 +8,11 @@
 namespace rnexecutorch::models::instance_segmentation {
 
 BaseInstanceSegmentation::BaseInstanceSegmentation(
-    const std::string &modelSource, std::vector<float> normMean,
-    std::vector<float> normStd, bool applyNMS,
+    const std::string &modelSource, const std::string &postprocessorType,
+    std::vector<float> normMean, std::vector<float> normStd, bool applyNMS,
     std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker), applyNMS_(applyNMS) {
+    : BaseModel(modelSource, callInvoker),
+      postprocessorType_(postprocessorType), applyNMS_(applyNMS) {
   // Store normalization parameters if provided
   if (normMean.size() == 3) {
     normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
@@ -98,63 +99,25 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
                             "and less than or equal to 1.");
   }
 
-  // DEBUG: Log tensor information
-  std::cout << "\n=== Model Output Debug ===" << std::endl;
-  std::cout << "Number of output tensors: " << tensors.size() << std::endl;
-  for (size_t i = 0; i < tensors.size(); ++i) {
-    auto tensor = tensors[i].toTensor();
-    std::cout << "Tensor " << i << ": dim=" << tensor.dim() << ", shape=[";
-    for (int d = 0; d < tensor.dim(); ++d) {
-      std::cout << tensor.size(d);
-      if (d < tensor.dim() - 1)
-        std::cout << ", ";
-    }
-    std::cout << "]" << std::endl;
-  }
-  std::cout << "========================\n" << std::endl;
-
-  // Auto-detect model output format based on first few tensor shapes
-  // Models may output additional intermediate tensors that we ignore
-
-  bool isRFDetr = false;
-  bool isYOLO = false;
-
-  if (tensors.size() >= 3) {
-    // Check if first 3 tensors match RFDetr format
-    isRFDetr =
-        (tensors[0].toTensor().dim() == 3 &&
-         tensors[0].toTensor().size(2) == 4 &&
-         tensors[1].toTensor().dim() == 3 && tensors[2].toTensor().dim() == 4);
-  }
-
-  if (tensors.size() >= 2 && !isRFDetr) {
-    // Check if first 2 tensors match YOLO format
-    isYOLO = (tensors[0].toTensor().dim() == 3 &&
-              tensors[0].toTensor().size(2) == 38 &&
-              tensors[1].toTensor().dim() == 4 &&
-              tensors[1].toTensor().size(1) == 32);
-  }
-
-  if (!isRFDetr && !isYOLO) {
-    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-                            "Unknown model output format. First tensors don't "
-                            "match YOLO or RFDetr.");
-  }
-
   // Create allowed classes set for filtering
   auto allowedClasses = createAllowedClassesSet(classIndices);
 
-  // Delegate to model-specific postprocessing
+  // Delegate to model-specific postprocessing based on config
   std::vector<types::InstanceMask> instances;
 
-  if (isRFDetr) {
+  if (postprocessorType_ == "rfdetr") {
     instances = postprocessRFDetr(tensors, originalSize, modelInputSize,
                                   confidenceThreshold, allowedClasses,
                                   returnMaskAtOriginalResolution);
-  } else {
+  } else if (postprocessorType_ == "yolo") {
     instances = postprocessYOLO(tensors, originalSize, modelInputSize,
                                 confidenceThreshold, allowedClasses,
                                 returnMaskAtOriginalResolution);
+  } else {
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::InvalidConfig,
+        "Unknown postprocessor type: " + postprocessorType_ +
+            ". Expected 'yolo' or 'rfdetr'.");
   }
 
   return finalizeInstances(instances, iouThreshold, maxInstances);

@@ -43,6 +43,7 @@ declare global {
   ) => any;
   var loadInstanceSegmentation: (
     source: string,
+    postprocessorType: string,
     normMean: number[] | [],
     normStd: number[] | [],
     applyNMS: boolean

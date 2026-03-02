@@ -43,11 +43,14 @@ export interface PreprocessorConfig {
 
 /**
  * Postprocessor configuration for instance segmentation models.
- * Configuration is declarative - specify only what you need.
  *
  * @category Types
  */
 export interface PostprocessorConfig {
+  /**
+   * Model type for postprocessing.
+   */
+  type: 'yolo' | 'rfdetr';
   /**
    * Default confidence threshold for this model.
    */

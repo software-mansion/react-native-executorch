@@ -13,11 +13,16 @@ import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
 import { BaseModule } from '../BaseModule';
 
-const YOLO_SEG_CONFIG: InstanceSegmentationConfig<typeof CocoLabel> = {
+/**
+ * Configuration for YOLO instance segmentation models.
+ * @category Configuration
+ */
+export const YOLO_SEG_CONFIG: InstanceSegmentationConfig<typeof CocoLabel> = {
   labelMap: CocoLabel,
   availableInputSizes: [384, 416, 512, 640, 1024] as const,
   defaultInputSize: 416,
   postprocessorConfig: {
+    type: 'yolo',
     defaultConfidenceThreshold: 0.5,
     defaultIouThreshold: 0.5,
     applyNMS: false, // YOLO already applies NMS internally
@@ -146,6 +151,7 @@ export class InstanceSegmentationModule<
     // Pass config parameters to native module
     const nativeModule = global.loadInstanceSegmentation(
       paths[0],
+      modelConfig.postprocessorConfig.type,
       modelConfig.preprocessorConfig?.normMean || [],
       modelConfig.preprocessorConfig?.normStd || [],
       modelConfig.postprocessorConfig.applyNMS ?? true
@@ -209,6 +215,7 @@ export class InstanceSegmentationModule<
     // Pass config parameters to native module
     const nativeModule = global.loadInstanceSegmentation(
       paths[0],
+      config.postprocessorConfig.type,
       config.preprocessorConfig?.normMean || [],
       config.preprocessorConfig?.normStd || [],
       config.postprocessorConfig.applyNMS ?? true
