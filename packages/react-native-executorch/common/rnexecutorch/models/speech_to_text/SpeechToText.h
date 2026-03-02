@@ -44,7 +44,6 @@ public:
   void streamInsert(std::span<float> waveform);
 
 private:
-  // Helper functions
   void resetStreamState();
 
   std::shared_ptr<react::CallInvoker> callInvoker_;

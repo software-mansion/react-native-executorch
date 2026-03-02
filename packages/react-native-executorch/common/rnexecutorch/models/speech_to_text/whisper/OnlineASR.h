@@ -64,11 +64,14 @@ private:
   // Stores the increasing amounts of streamed audio.
   // Cleared from time to time after reaching a threshold size.
   std::vector<float> audioBuffer_ = {};
-  float bufferTimeOffset_ = 0.f; // Audio buffer offset
+  float bufferTimeOffset_ = 0.F; // Audio buffer offset
 
   // Helper buffers - hypothesis buffer
   // Manages the whisper streaming hypothesis mechanism.
   HypothesisBuffer hypothesisBuffer_;
+
+  // State members to keep track of specyfic aspects of buffer state
+  float lastSentenceEnd_ = 0.F;
 };
 
 } // namespace rnexecutorch::models::speech_to_text::whisper::stream

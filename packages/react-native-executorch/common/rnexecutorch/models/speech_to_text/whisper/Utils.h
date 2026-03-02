@@ -8,6 +8,16 @@
 
 namespace rnexecutorch::models::speech_to_text::whisper::utils {
 
+// Compares two strings without case-sensitivity.
+inline bool equalsIgnoreCase(const std::string &a, const std::string &b) {
+  if (a.size() != b.size())
+    return false;
+  return std::equal(a.begin(), a.end(), b.begin(), [](char c1, char c2) {
+    return std::tolower(static_cast<unsigned char>(c1)) ==
+           std::tolower(static_cast<unsigned char>(c2));
+  });
+}
+
 /**
  * Finds the largest (in number of words) overlaping fragment between word
  * vectors A (suffix) and B (prefix).
@@ -39,22 +49,16 @@ inline size_t findLargestOverlapingFragment(const Container &suffixVec,
     return 0;
   }
 
-  // Iterate backwards from the largest possible overlap size down to 1.
   // i starts at the index where the suffix of length 'range' begins.
   for (size_t i = suffixVec.size() - range; i < suffixVec.size(); ++i) {
     // We search for overlaps by searching for the first word of prefixVec
-    if (suffixVec[i].content == prefixVec[0].content) {
+    if (equalsIgnoreCase(suffixVec[i].content, prefixVec[0].content)) {
       size_t calculatedSize = suffixVec.size() - i;
-
-      // Optimization: Check if the last elements match before full comparison
-      if (prefixVec[calculatedSize - 1].content != suffixVec.back().content) {
-        continue;
-      }
 
       bool isEqual = std::equal(
           suffixVec.begin() + i, suffixVec.end(), prefixVec.begin(),
           [maxTimestampDiff](const Word &sWord, const Word &pWord) {
-            return sWord.content == pWord.content &&
+            return equalsIgnoreCase(sWord.content, pWord.content) &&
                    std::fabs(sWord.start - pWord.start) <= maxTimestampDiff &&
                    std::fabs(sWord.end - pWord.end) <= maxTimestampDiff;
           });
