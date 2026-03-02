@@ -343,6 +343,7 @@ export class LLMController {
         )
       : updatedHistory;
 
+    const IMAGE_VISUAL_TOKENS = 256;
     const countTokensCallback = (messages: Message[]) => {
       const rendered = this.applyChatTemplate(
         messages,
@@ -351,7 +352,9 @@ export class LLMController {
         // eslint-disable-next-line camelcase
         { tools_in_user_message: false, add_generation_prompt: true }
       );
-      return this.nativeModule.countTextTokens(rendered);
+      const textTokens = this.nativeModule.countTextTokens(rendered);
+      const imageCount = messages.filter((m) => m.mediaPath).length;
+      return textTokens + imageCount * (IMAGE_VISUAL_TOKENS - 1);
     };
     const maxContextLength = this.nativeModule.getMaxContextLength();
     const messageHistoryWithPrompt =
