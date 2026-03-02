@@ -133,10 +133,13 @@ std::string LLM::generate(std::string prompt,
           llm::make_text_input(prompt.substr(searchPos, found - searchPos)));
     }
     // Image at this position
-    if (imageIdx < imagePaths.size()) {
-      const llm::Image &img = getOrLoadImage(imagePaths[imageIdx++]);
-      inputs.push_back(llm::make_image_input(img));
+    if (imageIdx >= imagePaths.size()) {
+      throw RnExecutorchError(
+          RnExecutorchErrorCode::InvalidUserInput,
+          "More <image> placeholders in prompt than image paths provided");
     }
+    const llm::Image &img = getOrLoadImage(imagePaths[imageIdx++]);
+    inputs.push_back(llm::make_image_input(img));
     searchPos = found + kImageTokenLen;
   }
 
@@ -146,7 +149,7 @@ std::string LLM::generate(std::string prompt,
   }
 
   std::string output;
-  auto nativeCallback = [this, &callback, &output](const std::string &token) {
+  auto nativeCallback = [this, callback, &output](const std::string &token) {
     output += token;
     if (callback && callInvoker) {
       callInvoker->invokeAsync([callback, token](jsi::Runtime &runtime) {
@@ -155,7 +158,6 @@ std::string LLM::generate(std::string prompt,
     }
   };
 
-  runner_->reset();
   auto error =
       runner_->generate(inputs, temperature_, topp_, -1, nativeCallback);
   if (error != Error::Ok) {
