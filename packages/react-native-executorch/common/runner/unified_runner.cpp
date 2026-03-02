@@ -73,9 +73,11 @@ Error UnifiedRunner::load() {
 
   if (config_.max_seq_len < 0)
     config_.max_seq_len = static_cast<int32_t>(metadata_.at(kMaxSeqLen));
-  if (config_.max_context_length < 0)
+  if (config_.max_context_length < 0) {
+    auto ctx = metadata_.at(kMaxContextLen);
     config_.max_context_length =
-        static_cast<int32_t>(metadata_.at(kMaxContextLen));
+        static_cast<int32_t>(ctx > 128 ? ctx : metadata_.at(kMaxSeqLen));
+  }
   if (config_.max_new_tokens < 0)
     config_.max_new_tokens =
         std::min(config_.max_seq_len, config_.max_context_length);
