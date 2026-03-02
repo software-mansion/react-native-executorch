@@ -164,10 +164,6 @@ public:
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                               promiseHostFunction<&Model::generateMultimodal>,
                               "generateMultimodal"));
-
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>, synchronousHostFunction<&Model::isMultimodal>,
-          "isMultimodal"));
     }
 
     if constexpr (meta::SameAs<Model, models::text_to_image::TextToImage>) {

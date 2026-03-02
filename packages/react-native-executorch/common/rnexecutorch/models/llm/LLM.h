@@ -33,8 +33,6 @@ public:
       std::vector<rnexecutorch::jsi_conversion::NativeMessage> messages,
       std::shared_ptr<jsi::Function> callback);
 
-  bool isMultimodal() const noexcept;
-
   void interrupt();
   void reset();
   void unload() noexcept;
