@@ -2771,6 +2771,18 @@
       "main"
     ]
   },
+  "/react-native-executorch/docs/next/api-reference/interfaces/Frame": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
   "/react-native-executorch/docs/next/api-reference/interfaces/GenerationConfig": {
     "shouldDisplay": true,
     "hasMarkdown": false,
@@ -2928,6 +2940,18 @@
     ]
   },
   "/react-native-executorch/docs/next/api-reference/interfaces/OCRType": {
+    "shouldDisplay": true,
+    "hasMarkdown": false,
+    "contentSelectors": [
+      ".theme-doc-markdown",
+      "main .container .col",
+      "main .theme-doc-wrapper",
+      "article",
+      "main .container",
+      "main"
+    ]
+  },
+  "/react-native-executorch/docs/next/api-reference/interfaces/PixelData": {
     "shouldDisplay": true,
     "hasMarkdown": false,
     "contentSelectors": [
