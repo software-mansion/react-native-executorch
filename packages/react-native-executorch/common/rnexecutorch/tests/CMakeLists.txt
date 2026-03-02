@@ -156,8 +156,11 @@ add_rn_test(ObjectDetectionTests integration/ObjectDetectionTest.cpp
     SOURCES
         ${RNEXECUTORCH_DIR}/models/object_detection/ObjectDetection.cpp
         ${RNEXECUTORCH_DIR}/models/object_detection/Utils.cpp
+        ${RNEXECUTORCH_DIR}/models/VisionModel.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameProcessor.cpp
+        ${RNEXECUTORCH_DIR}/utils/FrameExtractor.cpp
         ${IMAGE_UTILS_SOURCES}
-    LIBS opencv_deps
+    LIBS opencv_deps android
 )
 
 add_rn_test(ImageEmbeddingsTests integration/ImageEmbeddingsTest.cpp

@@ -14,6 +14,14 @@ namespace facebook::jsi {
 MutableBuffer::~MutableBuffer() {}
 Value::~Value() {}
 Value::Value(Value &&other) noexcept {}
+
+// Needed to link ObjectDetectionTests: generateFromFrame and FrameProcessor
+// pull in these JSI symbols, but they are never called in tests.
+Object Value::asObject(Runtime &) const & { __builtin_unreachable(); }
+BigInt Value::asBigInt(Runtime &) const & { __builtin_unreachable(); }
+
+uint64_t BigInt::asUint64(Runtime &) const { return 0; }
+
 } // namespace facebook::jsi
 
 namespace facebook::react {

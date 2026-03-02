@@ -118,3 +118,7 @@ basemodule
 IMAGENET
 lraspp
 LRASPP
+worklet
+worklets
+BGRA
+RGBA

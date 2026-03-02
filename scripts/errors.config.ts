@@ -59,6 +59,10 @@ export const errorDefinitions = {
    * Thrown when the number of downloaded files is unexpected, due to download interruptions.
    */
   DownloadInterrupted: 0x76,
+  /*
+   * Thrown when a feature or platform is not supported in the current environment.
+   */
+  PlatformNotSupported: 0x77,
 
   /*
    * Thrown when an error occurs with the tokenizer or tokenization process.

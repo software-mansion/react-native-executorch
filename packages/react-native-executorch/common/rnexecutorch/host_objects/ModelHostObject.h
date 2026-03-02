@@ -17,6 +17,7 @@
 #include <rnexecutorch/metaprogramming/FunctionHelpers.h>
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
 #include <rnexecutorch/models/BaseModel.h>
+#include <rnexecutorch/models/VisionModel.h>
 #include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/ocr/OCR.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
@@ -168,9 +169,26 @@ public:
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::stream>,
                                        "stream"));
+    }
+
+    if constexpr (meta::HasGenerateFromString<Model>) {
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                              promiseHostFunction<&Model::generateFromString>,
+                              "generateFromString"));
+    }
+
+    if constexpr (meta::HasGenerateFromFrame<Model>) {
       addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>, synchronousHostFunction<&Model::streamStop>,
-          "streamStop"));
+          ModelHostObject<Model>, visionHostFunction<&Model::generateFromFrame>,
+          "generateFromFrame"));
+    }
+
+    if constexpr (meta::HasGenerateFromPixels<Model>) {
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                              promiseHostFunction<&Model::generateFromPixels>,
+                              "generateFromPixels"));
     }
   }
 
@@ -218,6 +236,68 @@ public:
       throw jsi::JSError(runtime, e.what());
     } catch (...) {
       throw jsi::JSError(runtime, "Unknown error in synchronous function");
+    }
+  }
+
+  /**
+   * Unlike promiseHostFunction, this runs synchronously on the JS thread,
+   * which is required for VisionCamera worklet frame processors.
+   *
+   * The key challenge is argument mapping: the C++ function takes
+   * (Runtime, frameData, Rest...) but from the JS side, Runtime is injected
+   * automatically and frameData is JS args[0]. The remaining args (Rest...)
+   * map to JS args[1..N].
+   *
+   * This is achieved via TailSignature: it extracts the Rest... parameter pack
+   * from the function pointer type, creates a dummy free function with only
+   * those types, then uses createArgsTupleFromJsi on that dummy to convert
+   * args[1..N] — bypassing the manually-handled frameData at args[0].
+   *
+   * Argument mapping:
+   *   C++ params:  (Runtime&,  frameData,  Rest[0],   Rest[1], ...)
+   *   JS args:     (           args[0],    args[1],   args[2], ...)
+   *   JS arg count = C++ arity - 1  (Runtime is injected, not counted)
+   *
+   */
+  template <auto FnPtr> JSI_HOST_FUNCTION(visionHostFunction) {
+    constexpr std::size_t cppArgCount =
+        meta::FunctionTraits<decltype(FnPtr)>::arity;
+    constexpr std::size_t expectedJsArgs = cppArgCount - 1;
+
+    if (count != expectedJsArgs) {
+      throw jsi::JSError(runtime, "Argument count mismatch in vision function");
+    }
+
+    try {
+      auto dummyFuncPtr = &meta::TailSignature<decltype(FnPtr)>::dummy;
+      auto tailArgsTuple =
+          meta::createArgsTupleFromJsi(dummyFuncPtr, args + 1, runtime);
+
+      using ReturnType =
+          typename meta::FunctionTraits<decltype(FnPtr)>::return_type;
+
+      if constexpr (std::is_void_v<ReturnType>) {
+        std::apply(
+            [&](auto &&...tailArgs) {
+              (model.get()->*FnPtr)(
+                  runtime, args[0],
+                  std::forward<decltype(tailArgs)>(tailArgs)...);
+            },
+            std::move(tailArgsTuple));
+        return jsi::Value::undefined();
+      } else {
+        auto result = std::apply(
+            [&](auto &&...tailArgs) {
+              return (model.get()->*FnPtr)(
+                  runtime, args[0],
+                  std::forward<decltype(tailArgs)>(tailArgs)...);
+            },
+            std::move(tailArgsTuple));
+
+        return jsi_conversion::getJsiValue(std::move(result), runtime);
+      }
+    } catch (const std::exception &e) {
+      throw jsi::JSError(runtime, e.what());
     }
   }
 
