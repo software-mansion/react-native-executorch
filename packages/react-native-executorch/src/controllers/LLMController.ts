@@ -319,10 +319,14 @@ export class LLMController {
 
     if (updatedHistory.some((m) => m.mediaPath)) {
       // Any message in history has media — use multimodal path
+      const historyWithSystemPrompt = [
+        { content: this.chatConfig.systemPrompt, role: 'system' as const },
+        ...updatedHistory,
+      ];
       try {
         this.isGeneratingCallback(true);
         response = await this.nativeModule.generateMultimodal(
-          updatedHistory,
+          historyWithSystemPrompt,
           this.onToken
         );
       } catch (e) {
