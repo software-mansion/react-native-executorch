@@ -153,6 +153,14 @@ export type ModelNameOf<C extends InstanceSegmentationModelSources> =
   C['modelName'];
 
 /**
+ * Alias for {@link ModelNameOf}. Extracts the instance segmentation model name from a config object.
+ *
+ * @category Types
+ */
+export type InstanceModelNameOf<C extends InstanceSegmentationModelSources> =
+  ModelNameOf<C>;
+
+/**
  * Props for the `useInstanceSegmentation` hook.
  *
  * @typeParam C - A {@link InstanceSegmentationModelSources} config specifying which built-in model to load.
