@@ -10,7 +10,6 @@
 namespace rnexecutorch::models::speech_to_text::whisper::stream {
 
 namespace {
-// A helper function to avoid code duplication.
 std::vector<Word> move_to_vector(std::deque<Word> &container) {
   return std::vector<Word>(std::make_move_iterator(container.begin()),
                            std::make_move_iterator(container.end()));
@@ -18,7 +17,6 @@ std::vector<Word> move_to_vector(std::deque<Word> &container) {
 } // namespace
 
 OnlineASR::OnlineASR(const ASR *asr) : asr_(asr) {
-  // Reserve a minimal expected amount of memory for audio buffer.
   audioBuffer_.reserve(static_cast<size_t>(2 * params::kStreamChunkThreshold *
                                            constants::kSamplingRate));
 }
@@ -32,8 +30,6 @@ bool OnlineASR::isReady() const {
 }
 
 ProcessResult OnlineASR::process(const DecodingOptions &options) {
-  // Perform a transcription process to obtain results for
-  // the current state of the audio buffer.
   std::vector<Segment> transcriptions = asr_->transcribe(audioBuffer_, options);
 
   if (transcriptions.empty()) {
@@ -41,7 +37,6 @@ ProcessResult OnlineASR::process(const DecodingOptions &options) {
   }
 
   // Flatten segments into a single word sequence.
-  // In this case, Word consists of text and timestamps.
   std::vector<Word> words;
   words.reserve(transcriptions.front().words.size());
 
@@ -103,11 +98,9 @@ ProcessResult OnlineASR::process(const DecodingOptions &options) {
     }
   }
 
-  // Commit matching words.
   auto committed = hypothesisBuffer_.commit();
   auto nonCommitted = hypothesisBuffer_.hypothesis_;
 
-  // Cut the audio buffer to not exceed the size threshold.
   // Since Whisper does not accept waveforms longer than 30 seconds, we need
   // to cut the audio at some safe point.
   const float audioDuration =
@@ -131,7 +124,7 @@ ProcessResult OnlineASR::process(const DecodingOptions &options) {
 
 std::vector<Word> OnlineASR::finish() {
   // We always push the last remaining hypothesis, even if it's not
-  // confirmed in second iteration.
+  // confirmed in second iteration, to avoid ending up with broken sentences.
   std::deque<Word> remaining = hypothesisBuffer_.hypothesis_;
 
   return move_to_vector(remaining);

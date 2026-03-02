@@ -406,7 +406,8 @@ ASR::estimateWordLevelTimestampsLinear(std::span<const uint64_t> tokens,
   while (iss >> word) {
     // Detect special tokens such as [BLANK_AUDIO] by searching for square
     // bracket
-    if (word.find('[') == std::string::npos) {
+    if (word.find('[') == std::string::npos &&
+        word.find(']') == std::string::npos) {
       wordsStr.emplace_back(" ");
       wordsStr.back().append(word);
     }

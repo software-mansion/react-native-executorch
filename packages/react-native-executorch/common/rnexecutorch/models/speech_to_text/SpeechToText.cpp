@@ -13,8 +13,7 @@ SpeechToText::SpeechToText(const std::string &modelName,
                            const std::string &modelSource,
                            const std::string &tokenizerSource,
                            std::shared_ptr<react::CallInvoker> callInvoker)
-    : callInvoker_(std::move(callInvoker)), isStreaming_(false),
-      readyToProcess_(false) {
+    : callInvoker_(std::move(callInvoker)) {
   // Switch between the ASR implementations based on model name
   if (modelName == "whisper") {
     transcriber_ = std::make_unique<whisper::ASR>(modelSource, tokenizerSource,
