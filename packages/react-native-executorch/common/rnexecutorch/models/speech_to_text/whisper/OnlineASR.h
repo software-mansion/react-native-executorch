@@ -69,11 +69,6 @@ private:
   // Helper buffers - hypothesis buffer
   // Manages the whisper streaming hypothesis mechanism.
   HypothesisBuffer hypothesisBuffer_;
-
-  // Silence estimation components
-  // Used primarily in timestamp range scaling algorithm.
-  float epsilon_ = 0.F;
-  float lastNonSilentMoment_ = 0.F;
 };
 
 } // namespace rnexecutorch::models::speech_to_text::whisper::stream
