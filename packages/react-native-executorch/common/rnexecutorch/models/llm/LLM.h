@@ -2,8 +2,6 @@
 
 #include <memory>
 #include <string>
-#include <unordered_map>
-#include <vector>
 
 #include <ReactCommon/CallInvoker.h>
 #include <jsi/jsi.h>
