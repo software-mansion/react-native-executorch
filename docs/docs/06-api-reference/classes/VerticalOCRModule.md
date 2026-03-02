@@ -1,6 +1,6 @@
 # Class: VerticalOCRModule
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:10](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L10)
+Defined in: [modules/computer_vision/VerticalOCRModule.ts:12](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L12)
 
 Module for Vertical Optical Character Recognition (Vertical OCR) tasks.
 
@@ -10,7 +10,7 @@ Module for Vertical Optical Character Recognition (Vertical OCR) tasks.
 
 > **new VerticalOCRModule**(): `VerticalOCRModule`
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:13](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L13)
+Defined in: [modules/computer_vision/VerticalOCRModule.ts:15](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L15)
 
 #### Returns
 
@@ -22,7 +22,7 @@ Defined in: [packages/react-native-executorch/src/modules/computer_vision/Vertic
 
 > **delete**(): `void`
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:58](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L58)
+Defined in: [modules/computer_vision/VerticalOCRModule.ts:65](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L65)
 
 Release the memory held by the module. Calling `forward` afterwards is invalid.
 Note that you cannot delete model while it's generating.
@@ -37,7 +37,7 @@ Note that you cannot delete model while it's generating.
 
 > **forward**(`imageSource`): `Promise`\<[`OCRDetection`](../interfaces/OCRDetection.md)[]\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:50](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L50)
+Defined in: [modules/computer_vision/VerticalOCRModule.ts:57](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L57)
 
 Executes the model's forward pass, where `imageSource` can be a fetchable resource or a Base64-encoded string.
 
@@ -59,9 +59,9 @@ The OCR result as a `OCRDetection[]`.
 
 ### load()
 
-> **load**(`model`, `independentCharacters`, `onDownloadProgressCallback`): `Promise`\<`void`\>
+> **load**(`model`, `independentCharacters`, `onDownloadProgressCallback?`): `Promise`\<`void`\>
 
-Defined in: [packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts:26](https://github.com/software-mansion/react-native-executorch/blob/326d6344894d75625c600d5988666e215a32d466/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L26)
+Defined in: [modules/computer_vision/VerticalOCRModule.ts:28](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/VerticalOCRModule.ts#L28)
 
 Loads the model, where `detectorSource` is a string that specifies the location of the detector binary,
 `recognizerSource` is a string that specifies the location of the recognizer binary,
@@ -91,7 +91,7 @@ Object containing `detectorSource`, `recognizerSource`, and `language`.
 
 Whether to treat characters independently during recognition.
 
-##### onDownloadProgressCallback
+##### onDownloadProgressCallback?
 
 (`progress`) => `void`
 

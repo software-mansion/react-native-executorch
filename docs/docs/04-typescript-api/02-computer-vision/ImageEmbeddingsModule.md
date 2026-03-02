@@ -48,4 +48,4 @@ For more information on loading resources, take a look at [loading models](../..
 
 ## Running the model
 
-[`forward`](../../06-api-reference/classes/ImageEmbeddingsModule.md#forward) accepts one argument, which is a URI/URL to an image you want to encode. The function returns a promise, which can resolve either to an error or an array of numbers representing the embedding.
+[`forward`](../../06-api-reference/classes/ImageEmbeddingsModule.md#forward) accepts one argument: image. The image can be a remote URL, a local file URI, or a base64-encoded image (whole URI or only raw base64). The function returns a promise, which can resolve either to an error or an array of numbers representing the embedding.

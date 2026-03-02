@@ -39,10 +39,8 @@ const config = {
         theme: {
           customCss: require.resolve('./src/css/index.css'),
         },
-        gtag: {
-          // eslint-disable-next-line @cspell/spellchecker
-          trackingID: 'G-TJND8QJM9P',
-          anonymizeIP: true,
+        googleTagManager: {
+          containerId: 'GTM-WNBF6SVN',
         },
         sitemap: {
           changefreq: 'weekly',

@@ -1,5 +1,5 @@
 import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
-import { RnExecutorchError } from '../../errors/errorUtils';
+import { parseUnknownError, RnExecutorchError } from '../../errors/errorUtils';
 import { ResourceFetcher } from '../../utils/ResourceFetcher';
 import {
   KokoroConfig,
@@ -7,6 +7,7 @@ import {
   TextToSpeechStreamingInput,
   VoiceConfig,
 } from '../../types/tts';
+import { Logger } from '../../common/Logger';
 
 /**
  * Module for Text to Speech (TTS) functionalities.
@@ -47,45 +48,54 @@ export class TextToSpeechModule {
     voice: VoiceConfig,
     onDownloadProgressCallback: (progress: number) => void
   ): Promise<void> {
-    if (
-      !voice.extra ||
-      !voice.extra.taggerSource ||
-      !voice.extra.lexiconSource
-    ) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.InvalidConfig,
-        'Kokoro: voice config is missing required extra fields: taggerSource and/or lexiconSource.'
+    try {
+      if (
+        !voice.extra ||
+        !voice.extra.taggerSource ||
+        !voice.extra.lexiconSource
+      ) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.InvalidConfig,
+          'Kokoro: voice config is missing required extra fields: taggerSource and/or lexiconSource.'
+        );
+      }
+
+      const paths = await ResourceFetcher.fetch(
+        onDownloadProgressCallback,
+        model.durationPredictorSource,
+        model.synthesizerSource,
+        voice.voiceSource,
+        voice.extra.taggerSource,
+        voice.extra.lexiconSource
       );
-    }
 
-    const paths = await ResourceFetcher.fetch(
-      onDownloadProgressCallback,
-      model.durationPredictorSource,
-      model.synthesizerSource,
-      voice.voiceSource,
-      voice.extra.taggerSource,
-      voice.extra.lexiconSource
-    );
+      if (
+        paths === null ||
+        paths.length !== 5 ||
+        paths.some((p) => p == null)
+      ) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.DownloadInterrupted,
+          'Download interrupted or missing resource.'
+        );
+      }
 
-    if (paths === null || paths.length !== 5 || paths.some((p) => p == null)) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.DownloadInterrupted,
-        'Download interrupted or missing resource.'
+      const modelPaths = paths.slice(0, 2) as [string, string, string, string];
+      const voiceDataPath = paths[2] as string;
+      const phonemizerPaths = paths.slice(3, 5) as [string, string];
+
+      this.nativeModule = global.loadTextToSpeechKokoro(
+        voice.lang,
+        phonemizerPaths[0],
+        phonemizerPaths[1],
+        modelPaths[0],
+        modelPaths[1],
+        voiceDataPath
       );
+    } catch (error) {
+      Logger.error('Load failed:', error);
+      throw parseUnknownError(error);
     }
-
-    const modelPaths = paths.slice(0, 2) as [string, string, string, string];
-    const voiceDataPath = paths[2] as string;
-    const phonemizerPaths = paths.slice(3, 5) as [string, string];
-
-    this.nativeModule = global.loadTextToSpeechKokoro(
-      voice.lang,
-      phonemizerPaths[0],
-      phonemizerPaths[1],
-      modelPaths[0],
-      modelPaths[1],
-      voiceDataPath
-    );
   }
 
   /**

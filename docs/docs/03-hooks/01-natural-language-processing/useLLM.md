@@ -192,7 +192,7 @@ To configure model (i.e. change system prompt, load initial conversation history
 
   - [`initialMessageHistory`](../../06-api-reference/interfaces/ChatConfig.md#initialmessagehistory) - Object that represent the conversation history. This can be used to provide initial context to the model.
 
-  - [`contextWindowLength`](../../06-api-reference/interfaces/ChatConfig.md#contextwindowlength) - The number of messages from the current conversation that the model will use to generate a response. Keep in mind that using larger context windows will result in longer inference time and higher memory usage.
+  - [`contextStrategy`](../../06-api-reference/interfaces/ChatConfig.md#contextstrategy) - Object implementing [`ContextStrategy`](../../06-api-reference/interfaces/ContextStrategy.md) interface used to manage conversation context, including trimming history if necessary. Custom strategies can be implemented or one of the built-in options can be used (e.g. [`NoopContextStrategy`](../../06-api-reference/classes/NoopContextStrategy.md), [`MessageCountContextStrategy`](../../06-api-reference/classes/MessageCountContextStrategy.md) or the default [`SlidingWindowContextStrategy`](../../06-api-reference/classes/SlidingWindowContextStrategy.md)).
 
 - [`toolsConfig`](../../06-api-reference/interfaces/LLMConfig.md#toolsconfig) - Object configuring options for enabling and managing tool use. **It will only have effect if your model's chat template support it**. Contains following properties:
   - [`tools`](../../06-api-reference/interfaces/ToolsConfig.md#tools) - List of objects defining tools.
@@ -209,6 +209,81 @@ To configure model (i.e. change system prompt, load initial conversation history
   - [`temperature`](../../06-api-reference/interfaces/GenerationConfig.md#temperature) - Scales output logits by the inverse of temperature. Controls the randomness / creativity of text generation.
 
   - [`topp`](../../06-api-reference/interfaces/GenerationConfig.md#topp) - Only samples from the smallest set of tokens whose cumulative probability exceeds topp.
+
+### Model configuration example
+
+```tsx
+import { useEffect } from 'react';
+import {
+  MessageCountContextStrategy,
+  DEFAULT_SYSTEM_PROMPT,
+  ToolCall,
+  useLLM,
+  LLAMA3_2_1B_SPINQUANT,
+} from 'react-native-executorch';
+
+const TOOL_DEFINITIONS: LLMTool[] = [
+  {
+    name: 'get_weather',
+    description: 'Get/check weather in given location.',
+    parameters: {
+      type: 'dict',
+      properties: {
+        location: {
+          type: 'string',
+          description: 'Location where user wants to check weather',
+        },
+      },
+      required: ['location'],
+    },
+  },
+];
+
+const getWeather = async (_call: ToolCall) => {
+  return 'The weather is great!';
+};
+
+const executeTool: (call: ToolCall) => Promise<string | null> = async (
+  call
+) => {
+  switch (call.toolName) {
+    case 'get_weather':
+      return await getWeather(call);
+    default:
+      console.error(`Wrong function! We don't handle it!`);
+      return null;
+  }
+};
+
+const llm = useLLM({ model: LLAMA3_2_1B_SPINQUANT });
+
+const { configure } = llm;
+useEffect(() => {
+  configure({
+    chatConfig: {
+      systemPrompt: `${DEFAULT_SYSTEM_PROMPT} Current time and date: ${new Date().toString()}`,
+      initialMessageHistory: [
+        {
+          role: 'user',
+          content: 'What is the current time and date?',
+        },
+      ],
+      contextStrategy: new MessageCountContextStrategy(6),
+    },
+    toolsConfig: {
+      tools: TOOL_DEFINITIONS,
+      executeToolCallback: executeTool,
+      displayToolCalls: true,
+    },
+    generationConfig: {
+      outputTokenBatchSize: 15,
+      batchTimeInterval: 100,
+      temperature: 0.7,
+      topp: 0.9,
+    },
+  });
+}, [configure]);
+```
 
 ### Sending a message
 
@@ -408,11 +483,12 @@ Depending on selected model and the user's device generation speed can be above 
 
 ## Available models
 
-| Model Family                                                                             |      Sizes       | Quantized |
-| ---------------------------------------------------------------------------------------- | :--------------: | :-------: |
-| [Hammer 2.1](https://huggingface.co/software-mansion/react-native-executorch-hammer-2.1) |  0.5B, 1.5B, 3B  |    ✅     |
-| [Qwen 2.5](https://huggingface.co/software-mansion/react-native-executorch-qwen-2.5)     |  0.5B, 1.5B, 3B  |    ✅     |
-| [Qwen 3](https://huggingface.co/software-mansion/react-native-executorch-qwen-3)         |  0.6B, 1.7B, 4B  |    ✅     |
-| [Phi 4 Mini](https://huggingface.co/software-mansion/react-native-executorch-phi-4-mini) |        4B        |    ✅     |
-| [SmolLM 2](https://huggingface.co/software-mansion/react-native-executorch-smolLm-2)     | 135M, 360M, 1.7B |    ✅     |
-| [LLaMA 3.2](https://huggingface.co/software-mansion/react-native-executorch-llama-3.2)   |      1B, 3B      |    ✅     |
+| Model Family                                                                                                 |      Sizes       | Quantized |
+| ------------------------------------------------------------------------------------------------------------ | :--------------: | :-------: |
+| [Hammer 2.1](https://huggingface.co/software-mansion/react-native-executorch-hammer-2.1)                     |  0.5B, 1.5B, 3B  |    ✅     |
+| [Qwen 2.5](https://huggingface.co/software-mansion/react-native-executorch-qwen-2.5)                         |  0.5B, 1.5B, 3B  |    ✅     |
+| [Qwen 3](https://huggingface.co/software-mansion/react-native-executorch-qwen-3)                             |  0.6B, 1.7B, 4B  |    ✅     |
+| [Phi 4 Mini](https://huggingface.co/software-mansion/react-native-executorch-phi-4-mini)                     |        4B        |    ✅     |
+| [SmolLM 2](https://huggingface.co/software-mansion/react-native-executorch-smolLm-2)                         | 135M, 360M, 1.7B |    ✅     |
+| [LLaMA 3.2](https://huggingface.co/software-mansion/react-native-executorch-llama-3.2)                       |      1B, 3B      |    ✅     |
+| [LFM2.5-1.2B-Instruct](https://huggingface.co/software-mansion/react-native-executorch-lfm2.5-1.2B-instruct) |       1.2B       |    ✅     |

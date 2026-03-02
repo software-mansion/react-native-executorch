@@ -1,14 +1,19 @@
 import { Drawer } from 'expo-router/drawer';
+import { initExecutorch } from 'react-native-executorch';
+import { ExpoResourceFetcher } from '@react-native-executorch/expo-resource-fetcher';
 import ColorPalette from '../colors';
 import React, { useState } from 'react';
 import { Text, StyleSheet, View } from 'react-native';
-
 import {
   DrawerContentComponentProps,
   DrawerContentScrollView,
   DrawerItemList,
 } from '@react-navigation/drawer';
 import { GeneratingContext } from '../context';
+
+initExecutorch({
+  resourceFetcher: ExpoResourceFetcher,
+});
 
 interface CustomDrawerProps extends DrawerContentComponentProps {
   isGenerating: boolean;

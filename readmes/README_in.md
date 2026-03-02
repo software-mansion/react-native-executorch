@@ -25,7 +25,6 @@
   <a href="README_in.md"><img src="https://img.shields.io/badge/IN-00008B?logo=&logoColor=white&color=00008B&style=for-the-badge" alt="README IN"></a>
 </p>
 
-
 **React Native ExecuTorch** एक घोषणात्मक तरीका प्रदान करता है जिससे React Native का उपयोग करके उपकरण पर AI मॉडल्स को चलाया जा सके, जो **ExecuTorch** द्वारा संचालित है :rocket:. यह LLMs, कंप्यूटर विज़न मॉडल्स, और भी कई के लिए आउट-ऑफ़-द-बॉक्स सपोर्ट प्रदान करता है। इन मॉडलों का अन्वेषण करने के लिए हमारे [HuggingFace](https://huggingface.co/software-mansion) पेज पर जाएं।
 
 **ExecuTorch**, Meta द्वारा विकसित, एक नया फ्रेमवर्क है जो मोबाइल फोनों या माइक्रोकंट्रोलर्स जैसे उपकरणों पर AI मॉडल निष्पादन की अनुमति देता है।
@@ -56,7 +55,7 @@ React Native ExecuTorch, React Native और नेटिव प्लेटफ�
 
 - iOS 17.0
 - Android 13
-- React Native 0.76
+- React Native 0.81
 
 > [!IMPORTANT]
 > React Native ExecuTorch केवल [नई React Native आर्किटेक्चर](https://reactnative.dev/architecture/landing-page) का समर्थन करता है।
@@ -76,6 +75,15 @@ React Native ExecuTorch को [Private Mind](https://privatemind.swmansion.com/
 ```bash
 # पैकेज को इंस्टॉल करें
 yarn add react-native-executorch
+
+# यदि आप expo का उपयोग करते हैं, तो कृपया संसाधन प्राप्त करने के लिए ये पैकेज जोड़ें:
+yarn add @react-native-executorch/expo-adapter
+yarn add expo-file-system expo-asset
+
+# यदि आप bare React Native प्रोजेक्ट का उपयोग करते हैं तो इन पैकेजों का उपयोग करें:
+yarn add @react-native-executorch/bare-adapter
+yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
+
 # प्लेटफॉर्म के अनुसार, या तो iOS या Android चुनें
 yarn expo run:< ios | android >
 ```
@@ -85,7 +93,17 @@ yarn expo run:< ios | android >
 अपने घटक फाइल में यह जोड़ें:
 
 ```tsx
-import { useLLM, LLAMA3_2_1B, Message } from 'react-native-executorch';
+import {
+  useLLM,
+  LLAMA3_2_1B,
+  Message,
+  initExecutorch,
+} from 'react-native-executorch';
+import { ExpoResourceFetcher } from '@react-native-executorch/expo-resource-fetcher';
+
+initExecutorch({
+  resourceFetcher: ExpoResourceFetcher,
+});
 
 function MyComponent() {
   // मॉडल को प्रारंभ करें 🚀

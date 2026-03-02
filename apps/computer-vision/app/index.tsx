@@ -19,15 +19,21 @@ export default function Home() {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => router.navigate('image_segmentation/')}
+          onPress={() => router.navigate('semantic_segmentation/')}
         >
-          <Text style={styles.buttonText}>Image Segmentation</Text>
+          <Text style={styles.buttonText}>Semantic Segmentation</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
           onPress={() => router.navigate('object_detection/')}
         >
           <Text style={styles.buttonText}>Object Detection</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.navigate('object_detection_live/')}
+        >
+          <Text style={styles.buttonText}>Object Detection Live</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}

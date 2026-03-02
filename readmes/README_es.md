@@ -55,7 +55,7 @@ Las versiones mínimas compatibles son:
 
 - iOS 17.0
 - Android 13
-- React Native 0.76
+- React Native 0.81
 
 > [!IMPORTANT]
 > React Native ExecuTorch solo admite la [nueva arquitectura de React Native](https://reactnative.dev/architecture/landing-page).
@@ -75,16 +75,35 @@ React Native ExecuTorch impulsa [Private Mind](https://privatemind.swmansion.com
 ```bash
 # Instalar el paquete
 yarn add react-native-executorch
+
+# Si usa expo, agregue estos paquetes para la obtención de recursos:
+yarn add @react-native-executorch/expo-adapter
+yarn add expo-file-system expo-asset
+
+# Si usa un proyecto básico de React Native, use estos paquetes:
+yarn add @react-native-executorch/bare-adapter
+yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
+
 # Dependiendo de la plataforma, elige iOS o Android
 yarn expo run:< ios | android >
 ```
 
-### :two: Configuración e inicialización
+### :two: **Configuración e inicialización**
 
 Agrega esto a tu archivo de componente:
 
 ```tsx
-import { useLLM, LLAMA3_2_1B, Message } from 'react-native-executorch';
+import {
+  useLLM,
+  LLAMA3_2_1B,
+  Message,
+  initExecutorch,
+} from 'react-native-executorch';
+import { ExpoResourceFetcher } from '@react-native-executorch/expo-resource-fetcher';
+
+initExecutorch({
+  resourceFetcher: ExpoResourceFetcher,
+});
 
 function MyComponent() {
   // Inicializa el modelo 🚀

@@ -6,6 +6,8 @@ torch
 huggingface
 bbox
 bboxes
+chatbots
+llms
 deeplab
 unsqueeze
 qlora
@@ -19,6 +21,7 @@ microcontrollers
 notimestamps
 seqs
 smollm
+llms
 qwen
 XNNPACK
 EFFICIENTNET
@@ -106,3 +109,16 @@ sublist
 TTFT
 timestamping
 logprob
+RNFS
+pogodin
+kesha
+antonov
+rfdetr
+basemodule
+IMAGENET
+lraspp
+LRASPP
+worklet
+worklets
+BGRA
+RGBA

@@ -1,9 +1,46 @@
 import { ETInstallerNativeModule } from './native/RnExecutorchModules';
+import {
+  ResourceFetcher,
+  ResourceFetcherAdapter,
+} from './utils/ResourceFetcher';
+import { Triple } from './types/common';
+/**
+ * Configuration that goes to the `initExecutorch`.
+ * You can pass either bare React Native or Expo configuration.
+ *
+ * @category Utilities - General
+ */
+export interface ExecutorchConfig {
+  resourceFetcher: ResourceFetcherAdapter;
+}
+
+/**
+ * Function that setups the provided resource fetcher.
+ *
+ * @category Utilities - General
+ * @param config - Configuration that you want to use in resource fetching.
+ */
+export function initExecutorch(config: ExecutorchConfig) {
+  ResourceFetcher.setAdapter(config.resourceFetcher);
+}
+
+/**
+ * Function that cleans current setup of fetching resources.
+ *
+ * @category Utilities - General
+ */
+export function cleanupExecutorch() {
+  ResourceFetcher.resetAdapter();
+}
 
 // eslint-disable no-var
 declare global {
   var loadStyleTransfer: (source: string) => any;
-  var loadImageSegmentation: (source: string) => any;
+  var loadSemanticSegmentation: (
+    source: string,
+    normMean: Triple<number> | [],
+    normStd: Triple<number> | []
+  ) => any;
   var loadClassification: (source: string) => any;
   var loadObjectDetection: (source: string) => any;
   var loadExecutorchModule: (source: string) => any;
@@ -50,7 +87,7 @@ declare global {
 // eslint-disable no-var
 if (
   global.loadStyleTransfer == null ||
-  global.loadImageSegmentation == null ||
+  global.loadSemanticSegmentation == null ||
   global.loadTextToImage == null ||
   global.loadExecutorchModule == null ||
   global.loadClassification == null ||
@@ -77,7 +114,7 @@ if (
 export * from './hooks/computer_vision/useClassification';
 export * from './hooks/computer_vision/useObjectDetection';
 export * from './hooks/computer_vision/useStyleTransfer';
-export * from './hooks/computer_vision/useImageSegmentation';
+export * from './hooks/computer_vision/useSemanticSegmentation';
 export * from './hooks/computer_vision/useOCR';
 export * from './hooks/computer_vision/useVerticalOCR';
 export * from './hooks/computer_vision/useImageEmbeddings';
@@ -96,7 +133,7 @@ export * from './hooks/general/useExecutorchModule';
 export * from './modules/computer_vision/ClassificationModule';
 export * from './modules/computer_vision/ObjectDetectionModule';
 export * from './modules/computer_vision/StyleTransferModule';
-export * from './modules/computer_vision/ImageSegmentationModule';
+export * from './modules/computer_vision/SemanticSegmentationModule';
 export * from './modules/computer_vision/OCRModule';
 export * from './modules/computer_vision/VerticalOCRModule';
 export * from './modules/computer_vision/ImageEmbeddingsModule';
@@ -113,12 +150,15 @@ export * from './modules/general/ExecutorchModule';
 
 // utils
 export * from './utils/ResourceFetcher';
+export * from './utils/ResourceFetcherUtils';
 export * from './utils/llm';
+export * from './common/Logger';
+export * from './utils/llms/context_strategy';
 
 // types
 export * from './types/objectDetection';
 export * from './types/ocr';
-export * from './types/imageSegmentation';
+export * from './types/semanticSegmentation';
 export * from './types/llm';
 export * from './types/vad';
 export * from './types/common';

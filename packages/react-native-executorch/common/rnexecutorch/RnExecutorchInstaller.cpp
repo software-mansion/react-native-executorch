@@ -5,14 +5,14 @@
 #include <rnexecutorch/models/classification/Classification.h>
 #include <rnexecutorch/models/embeddings/image/ImageEmbeddings.h>
 #include <rnexecutorch/models/embeddings/text/TextEmbeddings.h>
-#include <rnexecutorch/models/image_segmentation/ImageSegmentation.h>
 #include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/object_detection/ObjectDetection.h>
 #include <rnexecutorch/models/ocr/OCR.h>
+#include <rnexecutorch/models/semantic_segmentation/BaseSemanticSegmentation.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
-#include <rnexecutorch/models/text_to_speech/TextToSpeech.h>
 #include <rnexecutorch/models/style_transfer/StyleTransfer.h>
 #include <rnexecutorch/models/text_to_image/TextToImage.h>
+#include <rnexecutorch/models/text_to_speech/TextToSpeech.h>
 #include <rnexecutorch/models/vertical_ocr/VerticalOCR.h>
 #include <rnexecutorch/models/voice_activity_detection/VoiceActivityDetection.h>
 #include <rnexecutorch/threads/GlobalThreadPool.h>
@@ -42,10 +42,10 @@ void RnExecutorchInstaller::injectJSIBindings(
           jsiRuntime, jsCallInvoker, "loadStyleTransfer"));
 
   jsiRuntime->global().setProperty(
-      *jsiRuntime, "loadImageSegmentation",
+      *jsiRuntime, "loadSemanticSegmentation",
       RnExecutorchInstaller::loadModel<
-          models::image_segmentation::ImageSegmentation>(
-          jsiRuntime, jsCallInvoker, "loadImageSegmentation"));
+          models::semantic_segmentation::BaseSemanticSegmentation>(
+          jsiRuntime, jsCallInvoker, "loadSemanticSegmentation"));
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadTextToImage",
@@ -92,6 +92,7 @@ void RnExecutorchInstaller::injectJSIBindings(
       *jsiRuntime, "loadOCR",
       RnExecutorchInstaller::loadModel<models::ocr::OCR>(
           jsiRuntime, jsCallInvoker, "loadOCR"));
+
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadVerticalOCR",
       RnExecutorchInstaller::loadModel<models::ocr::VerticalOCR>(
@@ -101,10 +102,12 @@ void RnExecutorchInstaller::injectJSIBindings(
       *jsiRuntime, "loadSpeechToText",
       RnExecutorchInstaller::loadModel<models::speech_to_text::SpeechToText>(
           jsiRuntime, jsCallInvoker, "loadSpeechToText"));
+
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadTextToSpeechKokoro",
       RnExecutorchInstaller::loadModel<models::text_to_speech::kokoro::Kokoro>(
           jsiRuntime, jsCallInvoker, "loadTextToSpeechKokoro"));
+
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadVAD",
       RnExecutorchInstaller::loadModel<

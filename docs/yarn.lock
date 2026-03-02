@@ -17,6 +17,37 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@algolia/autocomplete-core@npm:1.19.2":
+  version: 1.19.2
+  resolution: "@algolia/autocomplete-core@npm:1.19.2"
+  dependencies:
+    "@algolia/autocomplete-plugin-algolia-insights": "npm:1.19.2"
+    "@algolia/autocomplete-shared": "npm:1.19.2"
+  checksum: 10/afe9a1686313e8c1f26fccc88a32fce84d43ae3c42c64e02fb25661a91e2af443a1720cc24970ed66df56c742fd83cfcee2ac8690e8f77bb670edee35a99e84b
+  languageName: node
+  linkType: hard
+
+"@algolia/autocomplete-plugin-algolia-insights@npm:1.19.2":
+  version: 1.19.2
+  resolution: "@algolia/autocomplete-plugin-algolia-insights@npm:1.19.2"
+  dependencies:
+    "@algolia/autocomplete-shared": "npm:1.19.2"
+  peerDependencies:
+    search-insights: ">= 1 < 3"
+  checksum: 10/b9135d0be51b9f9c5370c9df7567c0adb34ffe1cffa9c73d847d191b2bafee010a005edf4a7105391852151bdf8dbda010a8b6bd66cea61a0a2e29366dc1b3d2
+  languageName: node
+  linkType: hard
+
+"@algolia/autocomplete-shared@npm:1.19.2":
+  version: 1.19.2
+  resolution: "@algolia/autocomplete-shared@npm:1.19.2"
+  peerDependencies:
+    "@algolia/client-search": ">= 4.9.1 < 6"
+    algoliasearch: ">= 4.9.1 < 6"
+  checksum: 10/442223a1e09d75f103441469c7174e09c4c129b4005b6492771c6145b8bcc9a1df4d590acfdd8af009b802cb3be0aade9fabbaa4b21e9ec3753947ad17b988aa
+  languageName: node
+  linkType: hard
+
 "@algolia/client-abtesting@npm:5.47.0":
   version: 5.47.0
   resolution: "@algolia/client-abtesting@npm:5.47.0"
@@ -2149,14 +2180,64 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@docsearch/css@npm:4.5.3, @docsearch/css@npm:^4.4.0":
+"@docsearch/core@npm:4.6.0":
+  version: 4.6.0
+  resolution: "@docsearch/core@npm:4.6.0"
+  peerDependencies:
+    "@types/react": ">= 16.8.0 < 20.0.0"
+    react: ">= 16.8.0 < 20.0.0"
+    react-dom: ">= 16.8.0 < 20.0.0"
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    react:
+      optional: true
+    react-dom:
+      optional: true
+  checksum: 10/cd97d2e5e358ed250593521687338877852ec5fd069a674097ce999ae349da8b308eb4ac133b804cec962f5d06d67d471b33c614c85e4b6d31245787138c39c5
+  languageName: node
+  linkType: hard
+
+"@docsearch/css@npm:4.5.3":
   version: 4.5.3
   resolution: "@docsearch/css@npm:4.5.3"
   checksum: 10/2e706d9f6f619018a5b19e50cd0227f336361cc747e4659bc533336d5c1bea5e135435aa4e312171c4cadc394b60c54ec9d144dd198a6aa366a8d1dec112505c
   languageName: node
   linkType: hard
 
-"@docsearch/react@npm:4.5.3, @docsearch/react@npm:^3.9.0 || ^4.1.0":
+"@docsearch/css@npm:4.6.0, @docsearch/css@npm:^4.6.0":
+  version: 4.6.0
+  resolution: "@docsearch/css@npm:4.6.0"
+  checksum: 10/beaa96cc64eda08f58fe25b8e665bbb435e18535f8499de21a3d8d27b7d391c4f6ec3254a406c4a4ea3cc4a2c0c4218c8c18d8fac2249c94fc4cc5dbdf4a879d
+  languageName: node
+  linkType: hard
+
+"@docsearch/react@npm:4.6.0":
+  version: 4.6.0
+  resolution: "@docsearch/react@npm:4.6.0"
+  dependencies:
+    "@algolia/autocomplete-core": "npm:1.19.2"
+    "@docsearch/core": "npm:4.6.0"
+    "@docsearch/css": "npm:4.6.0"
+  peerDependencies:
+    "@types/react": ">= 16.8.0 < 20.0.0"
+    react: ">= 16.8.0 < 20.0.0"
+    react-dom: ">= 16.8.0 < 20.0.0"
+    search-insights: ">= 1 < 3"
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    react:
+      optional: true
+    react-dom:
+      optional: true
+    search-insights:
+      optional: true
+  checksum: 10/49bd4581b02b544a8ed4581e8715b09ace984ee0c97230458e97b4811fa4c31e4312838da09ebc4a4c4367adc338e5743f644918068d18283c1ffb1634b23767
+  languageName: node
+  linkType: hard
+
+"@docsearch/react@npm:^3.9.0 || ^4.1.0":
   version: 4.5.3
   resolution: "@docsearch/react@npm:4.5.3"
   dependencies:
@@ -2180,13 +2261,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@docsearch/sidepanel@npm:^4.4.0":
-  version: 4.5.3
-  resolution: "@docsearch/sidepanel@npm:4.5.3"
+"@docsearch/sidepanel@npm:^4.6.0":
+  version: 4.6.0
+  resolution: "@docsearch/sidepanel@npm:4.6.0"
   dependencies:
-    "@docsearch/core": "npm:4.5.3"
-    "@docsearch/css": "npm:4.5.3"
-    "@docsearch/react": "npm:4.5.3"
+    "@docsearch/core": "npm:4.6.0"
+    "@docsearch/css": "npm:4.6.0"
+    "@docsearch/react": "npm:4.6.0"
   peerDependencies:
     "@types/react": ">= 16.8.0 < 20.0.0"
     react: ">= 16.8.0 < 20.0.0"
@@ -2198,7 +2279,7 @@ __metadata:
       optional: true
     react-dom:
       optional: true
-  checksum: 10/d6741d5703281b7f4250ae88abd115dcf0a97d000c47f73520aa87f7e1faf03a32396a1a3f2d1b23c56d9b316928a05db541be4aab8af2b78976005b9eff295a
+  checksum: 10/5c19525a9408139756a565ff6c780f7e2d915f501ecbdd383faa787e942482fd2dbe798548d4cdcac0873632632413987cf6edd8aebdb53ae52029ad15340025
   languageName: node
   linkType: hard
 
@@ -2532,7 +2613,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@docusaurus/plugin-google-tag-manager@npm:3.9.2":
+"@docusaurus/plugin-google-tag-manager@npm:3.9.2, @docusaurus/plugin-google-tag-manager@npm:^3.9.2":
   version: 3.9.2
   resolution: "@docusaurus/plugin-google-tag-manager@npm:3.9.2"
   dependencies:
@@ -6398,10 +6479,11 @@ __metadata:
   resolution: "docs@workspace:."
   dependencies:
     "@docsearch/core": "npm:^4.4.0"
-    "@docsearch/css": "npm:^4.4.0"
-    "@docsearch/sidepanel": "npm:^4.4.0"
+    "@docsearch/css": "npm:^4.6.0"
+    "@docsearch/sidepanel": "npm:^4.6.0"
     "@docusaurus/core": "npm:^3.9.2"
     "@docusaurus/module-type-aliases": "npm:^3.9.2"
+    "@docusaurus/plugin-google-tag-manager": "npm:^3.9.2"
     "@docusaurus/plugin-sitemap": "npm:^3.9.2"
     "@docusaurus/preset-classic": "npm:^3.9.2"
     "@docusaurus/tsconfig": "npm:^3.9.2"
@@ -6418,9 +6500,9 @@ __metadata:
     prism-react-renderer: "npm:^2.1.0"
     react: "npm:^19.2.3"
     react-dom: "npm:^19.2.3"
-    swiper: "npm:^11.2.10"
-    typedoc: "npm:^0.28.16"
-    typedoc-plugin-markdown: "npm:^4.9.0"
+    swiper: "npm:^12.1.2"
+    typedoc: "npm:^0.28.17"
+    typedoc-plugin-markdown: "npm:^4.10.0"
     typescript: "npm:^5.9.3"
   languageName: unknown
   linkType: soft
@@ -12990,10 +13072,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"swiper@npm:^11.2.10":
-  version: 11.2.10
-  resolution: "swiper@npm:11.2.10"
-  checksum: 10/c3dde83e65d6ab686ad6e08b5e473f1043fa9f9f5b8d8825a8b5397c85025f71575acbcc23f2700fdf795cee9dd71256b8b65325dd0324f2fb3ca27651e59981
+"swiper@npm:^12.1.2":
+  version: 12.1.2
+  resolution: "swiper@npm:12.1.2"
+  checksum: 10/3e8fc6f39eba2475cddeed8f49ba37e5fe9c55f92b280eca26e164d1b052a6ed6d3f491840b54c79148cc70b7b15f226fa9a421c1c4e49caeab8be04d689dafe
   languageName: node
   linkType: hard
 
@@ -13225,18 +13307,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typedoc-plugin-markdown@npm:^4.9.0":
-  version: 4.9.0
-  resolution: "typedoc-plugin-markdown@npm:4.9.0"
+"typedoc-plugin-markdown@npm:^4.10.0":
+  version: 4.10.0
+  resolution: "typedoc-plugin-markdown@npm:4.10.0"
   peerDependencies:
     typedoc: 0.28.x
-  checksum: 10/69293e9cd1a5cecd9d2f92872472dbc48b3912c658d0a2d07b6d7bd96bd1efa9617e9bea6a4e6181482610733533b1b058dc1fc505cac7931875f081f0023a0c
+  checksum: 10/d16bb8efdc5fc7553f8f90802866a94040a8f19e37ddc0d430c19dcff6dd2cca9af7e55dd2144103ab44efcc36022a55f8161ffefb0bb0a4a3c9f48a93545828
   languageName: node
   linkType: hard
 
-"typedoc@npm:^0.28.16":
-  version: 0.28.16
-  resolution: "typedoc@npm:0.28.16"
+"typedoc@npm:^0.28.17":
+  version: 0.28.17
+  resolution: "typedoc@npm:0.28.17"
   dependencies:
     "@gerrit0/mini-shiki": "npm:^3.17.0"
     lunr: "npm:^2.3.9"
@@ -13247,7 +13329,7 @@ __metadata:
     typescript: 5.0.x || 5.1.x || 5.2.x || 5.3.x || 5.4.x || 5.5.x || 5.6.x || 5.7.x || 5.8.x || 5.9.x
   bin:
     typedoc: bin/typedoc
-  checksum: 10/657afd087d88a14cf77ad941de8913041a6a025e87c78833a5ee58a52b8252b685730394ab7920781b0b2faa0507b1c9d87fcf82dd86d1b788420716fc17ded3
+  checksum: 10/09bf15a30c51c7e16533865fb7988cece90c9eb10f7fa239b7db0ec8000c69b63c6a9ee999f40e4783311a6b0d641fb384b76c273a12fcd09f3ef5e9315902f6
   languageName: node
   linkType: hard
 

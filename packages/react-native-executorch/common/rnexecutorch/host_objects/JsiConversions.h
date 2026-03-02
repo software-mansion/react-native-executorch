@@ -215,6 +215,17 @@ inline jsi::Value getJsiValue(float val, jsi::Runtime & /*runtime*/) {
   return {static_cast<double>(val)};
 }
 
+inline jsi::Value getJsiValue(const std::vector<int64_t> &vec,
+                              jsi::Runtime &runtime) {
+  jsi::Array array(runtime, vec.size());
+  for (size_t i = 0; i < vec.size(); i++) {
+    array.setValueAtIndex(runtime, i, jsi::Value(static_cast<double>(vec[i])));
+  }
+  return {runtime, array};
+}
+
+// Conditional as on android, size_t and uint64_t reduce to the same type,
+// introducing ambiguity
 template <typename T,
           typename = std::enable_if_t<std::is_same_v<T, size_t> &&
                                       !std::is_same_v<size_t, uint64_t>>>

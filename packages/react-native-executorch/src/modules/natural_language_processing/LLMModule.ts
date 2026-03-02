@@ -82,7 +82,7 @@ export class LLMModule {
    * Configures chat and tool calling and generation settings.
    * See [Configuring the model](https://docs.swmansion.com/react-native-executorch/docs/hooks/natural-language-processing/useLLM#configuring-the-model) for details.
    *
-   * @param configuration - Configuration object containing `chatConfig`, `toolsConfig`, and `generationConfig`.
+   * @param config - Configuration object containing `chatConfig`, `toolsConfig`, and `generationConfig`.
    */
   configure(config: LLMConfig) {
     if (this.controller.isReady) {
