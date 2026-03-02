@@ -18,11 +18,7 @@
       "infoPlist": {
         "NSMicrophoneUsageDescription": "This app needs access to your microphone to record audio.",
         "NSAppTransportSecurity": {
-          "NSExceptionDomains": {
-            "192.168.101.13": {
-              "NSExceptionAllowsInsecureHTTPLoads": true
-            }
-          }
+          "NSAllowsArbitraryLoads": true
         }
       },
       "entitlements": {
