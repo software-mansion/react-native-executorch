@@ -131,10 +131,22 @@ Error UnifiedRunner::generate(
     std::function<void(const std::string &)> token_callback,
     std::function<void(const llm::Stats &)> stats_callback) {
 
-  ET_CHECK_MSG(!multimodal_,
-               "generate(prompt) called on a multimodal runner. Use "
-               "generate(vector<MultimodalInput>) instead.");
   ET_CHECK_MSG(!prompt.empty(), "Prompt cannot be null");
+
+  // In multimodal mode, delegate to the multimodal generate path with
+  // text-only input (no image).
+  if (multimodal_) {
+    std::vector<llm::MultimodalInput> text_inputs = {
+        llm::make_text_input(prompt)};
+    float temp =
+        generation_config.temperature >= 0.F
+            ? generation_config.temperature
+            : (config_.temperature >= 0.F ? config_.temperature : 0.8F);
+    float topp = generation_config.topp >= 0.F
+                     ? generation_config.topp
+                     : (config_.topp >= 0.F ? config_.topp : 0.9F);
+    return generate(text_inputs, temp, topp, -1, token_callback);
+  }
 
   if (!is_loaded()) {
     stats_.model_load_start_ms = llm::time_in_ms();
@@ -248,6 +260,7 @@ Error UnifiedRunner::generate(
 
   stats_.inference_start_ms = llm::time_in_ms();
 
+  int64_t pos_before_prefill = pos_;
   uint64_t prefill_next_token = 0;
   for (size_t i = 0; i < inputs.size(); ++i) {
     auto prefill_result = mm_prefiller_->prefill(inputs[i], pos_);
@@ -260,26 +273,14 @@ Error UnifiedRunner::generate(
   stats_.prompt_eval_end_ms = llm::time_in_ms();
   stats_.num_prompt_tokens = pos_;
 
-  auto decode_result =
-      tokenizer_->decode(prefill_next_token, prefill_next_token);
-  if (!decode_result.ok()) {
-    ET_LOG(Error, "Tokenizer decode error %d",
-           static_cast<uint32_t>(decode_result.error()));
-    return Error::InvalidArgument;
-  }
-  const std::string first_piece = std::move(*decode_result);
-  llm::safe_printf(first_piece.c_str());
-  fflush(stdout);
-  if (token_callback)
-    token_callback(first_piece);
-
   int64_t context_len = metadata_.count(kMaxContextLen)
                             ? metadata_.at(kMaxContextLen)
                         : metadata_.count(kMaxSeqLen) ? metadata_.at(kMaxSeqLen)
                                                       : 2048;
-  int32_t resolved_max_new = max_new_tokens > 0
-                                 ? max_new_tokens
-                                 : static_cast<int32_t>(context_len - pos_);
+  int32_t resolved_max_new =
+      max_new_tokens > 0
+          ? max_new_tokens
+          : static_cast<int32_t>(context_len - pos_before_prefill);
   resolved_max_new = std::max(0, resolved_max_new);
 
   std::vector<uint64_t> seed_tokens = {prefill_next_token};

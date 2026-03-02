@@ -77,11 +77,6 @@ std::string LLM::generate(std::string input,
     throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
                             "Runner is not loaded");
   }
-  if (multimodal_) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::InvalidUserInput,
-        "This is a multimodal model. Call generate(imagePath, prompt, cb).");
-  }
 
   std::string output;
   auto nativeCallback = [this, callback, &output](const std::string &token) {
@@ -136,7 +131,6 @@ std::string LLM::generate(std::string imagePath, std::string prompt,
     throw RnExecutorchError(error, "Failed to generate multimodal response");
   }
 
-  runner_->reset();
   return output;
 }
 
