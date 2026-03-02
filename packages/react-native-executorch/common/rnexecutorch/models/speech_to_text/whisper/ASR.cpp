@@ -241,12 +241,6 @@ std::vector<Segment> ASR::generate(std::span<float> waveform,
     }
   }
 
-  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
-                    "[ASR] Raw transcription results (tokens): ", bestTokens);
-  rnexecutorch::log(rnexecutorch::LOG_LEVEL::Info,
-                    "[ASR] Raw transcription results (text): ",
-                    tokenizer_->decode(bestTokens, true));
-
   return this->calculateWordLevelTimestamps(bestTokens, waveform,
                                             bestAvgLogProb, bestTemperature,
                                             bestCompressionRatio);
@@ -344,7 +338,6 @@ std::vector<Segment> ASR::calculateWordLevelTimestamps(
       if (words.size()) {
         Segment seg;
         seg.words = std::move(words);
-        // seg.tokens = {};  // WTF ?
         seg.tokens = tokens;
         seg.avgLogprob = avgLogProb;
         seg.temperature = temperature;
@@ -369,6 +362,10 @@ std::vector<Segment> ASR::calculateWordLevelTimestamps(
   const uint64_t end = generatedTokens[generatedTokensSize - 2];
   auto words = this->estimateWordLevelTimestampsLinear(tokens, start, end);
 
+  if (words.empty()) {
+    return {};
+  }
+
   Segment seg;
   seg.words = std::move(words);
   seg.tokens = tokens;
@@ -376,10 +373,8 @@ std::vector<Segment> ASR::calculateWordLevelTimestamps(
   seg.temperature = temperature;
   seg.compressionRatio = compressionRatio;
 
-  if (!seg.words.empty()) {
-    seg.start = seg.words.front().start;
-    seg.end = seg.words.back().end;
-  }
+  seg.start = seg.words.front().start;
+  seg.end = seg.words.back().end;
 
   segments.push_back(std::move(seg));
 
@@ -409,8 +404,12 @@ ASR::estimateWordLevelTimestampsLinear(std::span<const uint64_t> tokens,
   std::vector<std::string> wordsStr;
   std::string word;
   while (iss >> word) {
-    wordsStr.emplace_back(" ");
-    wordsStr.back().append(word);
+    // Detect special tokens such as [BLANK_AUDIO] by searching for square
+    // bracket
+    if (word.find('[') == std::string::npos) {
+      wordsStr.emplace_back(" ");
+      wordsStr.back().append(word);
+    }
   }
 
   size_t numChars = 0;
