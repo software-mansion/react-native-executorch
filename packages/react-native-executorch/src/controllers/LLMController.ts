@@ -211,7 +211,7 @@ export class LLMController {
     this.isGeneratingCallback(false);
   }
 
-  public async forward(input: string): Promise<string> {
+  public async forward(input: string, imagePaths?: string[]): Promise<string> {
     if (!this._isReady) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ModuleNotLoaded,
@@ -227,7 +227,14 @@ export class LLMController {
     try {
       this.isGeneratingCallback(true);
       this.nativeModule.reset();
-      const response = await this.nativeModule.generate(input, this.onToken);
+      const response =
+        imagePaths && imagePaths.length > 0
+          ? await this.nativeModule.generateMultimodal(
+              input,
+              imagePaths,
+              this.onToken
+            )
+          : await this.nativeModule.generate(input, this.onToken);
       return this.filterSpecialTokens(response);
     } catch (e) {
       throw parseUnknownError(e);
@@ -317,42 +324,56 @@ export class LLMController {
 
     let response: string;
 
-    if (updatedHistory.some((m) => m.mediaPath)) {
-      // Any message in history has media — use multimodal path
-      const historyWithSystemPrompt = [
-        { content: this.chatConfig.systemPrompt, role: 'system' as const },
-        ...updatedHistory,
-      ];
-      try {
-        this.isGeneratingCallback(true);
-        response = await this.nativeModule.generateMultimodal(
-          historyWithSystemPrompt,
-          this.onToken
-        );
-      } catch (e) {
-        throw parseUnknownError(e);
-      } finally {
-        this.isGeneratingCallback(false);
-      }
+    const isMultimodal = updatedHistory.some((m) => m.mediaPath);
+
+    // For multimodal messages, convert mediaPath into structured content so
+    // the chat template emits <image> placeholders in the right position.
+    const historyForTemplate = isMultimodal
+      ? updatedHistory.map((m) =>
+          m.mediaPath
+            ? {
+                ...m,
+                content: [
+                  { type: 'image' },
+                  { type: 'text', text: m.content },
+                ] as any,
+              }
+            : m
+        )
+      : updatedHistory;
+
+    const countTokensCallback = (messages: Message[]) => {
+      const rendered = this.applyChatTemplate(
+        messages,
+        this.tokenizerConfig,
+        this.toolsConfig?.tools,
+        // eslint-disable-next-line camelcase
+        { tools_in_user_message: false, add_generation_prompt: true }
+      );
+      return this.nativeModule.countTextTokens(rendered);
+    };
+    const maxContextLength = this.nativeModule.getMaxContextLength();
+    const messageHistoryWithPrompt =
+      this.chatConfig.contextStrategy.buildContext(
+        this.chatConfig.systemPrompt,
+        historyForTemplate,
+        maxContextLength,
+        countTokensCallback
+      );
+
+    if (isMultimodal) {
+      const renderedPrompt = this.applyChatTemplate(
+        messageHistoryWithPrompt,
+        this.tokenizerConfig,
+        undefined,
+        // eslint-disable-next-line camelcase
+        { tools_in_user_message: false, add_generation_prompt: true }
+      );
+      const imagePaths = updatedHistory
+        .filter((m) => m.mediaPath)
+        .map((m) => m.mediaPath!);
+      response = await this.forward(renderedPrompt, imagePaths);
     } else {
-      const countTokensCallback = (messages: Message[]) => {
-        const rendered = this.applyChatTemplate(
-          messages,
-          this.tokenizerConfig,
-          this.toolsConfig?.tools,
-          // eslint-disable-next-line camelcase
-          { tools_in_user_message: false, add_generation_prompt: true }
-        );
-        return this.nativeModule.countTextTokens(rendered);
-      };
-      const maxContextLength = this.nativeModule.getMaxContextLength();
-      const messageHistoryWithPrompt =
-        this.chatConfig.contextStrategy.buildContext(
-          this.chatConfig.systemPrompt,
-          updatedHistory,
-          maxContextLength,
-          countTokensCallback
-        );
       response = await this.generate(
         messageHistoryWithPrompt,
         this.toolsConfig?.tools

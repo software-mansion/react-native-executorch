@@ -156,14 +156,9 @@ public:
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>,
           promiseHostFunction<static_cast<std::string (Model::*)(
-              std::string, std::string, std::shared_ptr<jsi::Function>)>(
-              &Model::generate)>,
-          "generateWithImage"));
-
-      addFunctions(
-          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                              promiseHostFunction<&Model::generateMultimodal>,
-                              "generateMultimodal"));
+              std::string, std::vector<std::string>,
+              std::shared_ptr<jsi::Function>)>(&Model::generate)>,
+          "generateMultimodal"));
     }
 
     if constexpr (meta::SameAs<Model, models::text_to_image::TextToImage>) {

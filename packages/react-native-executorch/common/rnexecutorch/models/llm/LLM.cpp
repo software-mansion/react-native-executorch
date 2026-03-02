@@ -18,15 +18,6 @@ using executorch::runtime::Error;
 static constexpr int kImageSize = 512;
 static constexpr int kImageChannels = 3;
 
-// LFM2-VL chat template
-static constexpr const char *kChatPrefix = "<|startoftext|><|im_start|>user\n";
-static constexpr const char *kChatSuffix =
-    "<|im_end|>\n<|im_start|>assistant\n";
-// Separator inserted after each assistant turn in multi-turn conversations
-static constexpr const char *kAssistantTurnEnd = "<|im_end|>\n";
-// Prefix for subsequent user turns (no BOS token — only first turn has it)
-static constexpr const char *kUserTurnPrefix = "<|im_start|>user\n";
-
 static llm::Image loadImageForVLM(const std::string &imagePath) {
   cv::Mat mat = image_processing::readImage(imagePath);
   cv::resize(mat, mat, cv::Size(kImageSize, kImageSize));
@@ -106,7 +97,8 @@ std::string LLM::generate(std::string input,
   return output;
 }
 
-std::string LLM::generate(std::string imagePath, std::string prompt,
+std::string LLM::generate(std::string prompt,
+                          std::vector<std::string> imagePaths,
                           std::shared_ptr<jsi::Function> callback) {
   if (!runner_ || !runner_->is_loaded()) {
     throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
@@ -118,77 +110,34 @@ std::string LLM::generate(std::string imagePath, std::string prompt,
         "This is a text-only model. Call generate(prompt, cb).");
   }
 
-  llm::Image image = loadImageForVLM(imagePath);
-  std::vector<llm::MultimodalInput> inputs = {
-      llm::make_text_input(std::string(kChatPrefix)),
-      llm::make_image_input(std::move(image)),
-      llm::make_text_input(prompt + kChatSuffix),
-  };
-
-  std::string output;
-  auto nativeCallback = [this, &callback, &output](const std::string &token) {
-    output += token;
-    if (callback && callInvoker) {
-      callInvoker->invokeAsync([callback, token](jsi::Runtime &runtime) {
-        callback->call(runtime, jsi::String::createFromUtf8(runtime, token));
-      });
-    }
-  };
-
-  auto error =
-      runner_->generate(inputs, temperature_, topp_, -1, nativeCallback);
-  if (error != Error::Ok) {
-    throw RnExecutorchError(error, "Failed to generate multimodal response");
-  }
-
-  return output;
-}
-
-std::string LLM::generateMultimodal(
-    std::vector<rnexecutorch::jsi_conversion::NativeMessage> messages,
-    std::shared_ptr<jsi::Function> callback) {
-  if (!runner_ || !runner_->is_loaded()) {
-    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
-                            "Runner is not loaded");
-  }
-  if (!multimodal_) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::InvalidUserInput,
-        "This is a text-only model. Use generate(prompt, cb) instead.");
-  }
+  // Split rendered prompt on "<image>" placeholders and interleave with images.
+  static constexpr const char *kImageToken = "<image>";
+  static constexpr size_t kImageTokenLen = 7; // strlen("<image>")
 
   std::vector<llm::MultimodalInput> inputs;
-  bool isFirst = true;
+  size_t imageIdx = 0;
+  size_t searchPos = 0;
 
-  for (const auto &msg : messages) {
-    if (msg.role == "system") {
-      // LFM2-VL has no dedicated system turn — skip silently, consistent
-      // with the single-turn generate(imagePath, prompt, cb) path.
-      continue;
+  while (true) {
+    size_t found = prompt.find(kImageToken, searchPos);
+    if (found == std::string::npos) {
+      // Remaining text after last image (or entire prompt if no images)
+      if (searchPos < prompt.size()) {
+        inputs.push_back(llm::make_text_input(prompt.substr(searchPos)));
+      }
+      break;
     }
-
-    if (msg.role == "user") {
-      if (isFirst) {
-        inputs.push_back(llm::make_text_input(std::string(kChatPrefix)));
-        isFirst = false;
-      } else {
-        inputs.push_back(llm::make_text_input(std::string(kUserTurnPrefix)));
-      }
-
-      if (!msg.mediaPath.empty()) {
-        const llm::Image &img = getOrLoadImage(msg.mediaPath);
-        inputs.push_back(llm::make_image_input(img));
-      }
-
-      if (!msg.content.empty()) {
-        inputs.push_back(llm::make_text_input(msg.content));
-      }
-
-      inputs.push_back(llm::make_text_input(std::string(kChatSuffix)));
-    } else if (msg.role == "assistant") {
-      inputs.push_back(llm::make_text_input(msg.content + kAssistantTurnEnd));
-      isFirst = false;
+    // Text segment before this placeholder
+    if (found > searchPos) {
+      inputs.push_back(
+          llm::make_text_input(prompt.substr(searchPos, found - searchPos)));
     }
+    // Image at this position
+    if (imageIdx < imagePaths.size()) {
+      const llm::Image &img = getOrLoadImage(imagePaths[imageIdx++]);
+      inputs.push_back(llm::make_image_input(img));
+    }
+    searchPos = found + kImageTokenLen;
   }
 
   if (inputs.empty()) {

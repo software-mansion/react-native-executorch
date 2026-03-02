@@ -5,7 +5,6 @@
 
 #include <ReactCommon/CallInvoker.h>
 #include <jsi/jsi.h>
-#include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/models/BaseModel.h>
 #include <runner/image.h>
 #include <runner/unified_runner.h>
@@ -20,18 +19,14 @@ public:
                const std::string &tokenizerSource,
                std::shared_ptr<react::CallInvoker> callInvoker);
 
-  // Text-only generate (existing signature — used by LLMController)
-  std::string generate(std::string input,
+  // Text-only: pre-rendered prompt string
+  std::string generate(std::string prompt,
                        std::shared_ptr<jsi::Function> callback);
 
-  // Multimodal generate (image + text prompt)
-  std::string generate(std::string imagePath, std::string prompt,
+  // Multimodal: pre-rendered prompt string with <image> placeholders +
+  // ordered list of image paths (one per placeholder)
+  std::string generate(std::string prompt, std::vector<std::string> imagePaths,
                        std::shared_ptr<jsi::Function> callback);
-
-  // Multimodal generate — takes full message history, builds MultimodalInput[]
-  std::string generateMultimodal(
-      std::vector<rnexecutorch::jsi_conversion::NativeMessage> messages,
-      std::shared_ptr<jsi::Function> callback);
 
   void interrupt();
   void reset();
