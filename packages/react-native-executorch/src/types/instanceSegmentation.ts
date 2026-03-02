@@ -172,8 +172,7 @@ export type InstanceSegmentationModelSources =
   | { modelName: 'yolo26s-seg'; modelSource: ResourceSource }
   | { modelName: 'yolo26m-seg'; modelSource: ResourceSource }
   | { modelName: 'yolo26l-seg'; modelSource: ResourceSource }
-  | { modelName: 'yolo26x-seg'; modelSource: ResourceSource }
-  | { modelName: 'RFDetr'; modelSource: ResourceSource };
+  | { modelName: 'yolo26x-seg'; modelSource: ResourceSource };
 
 /**
  * Union of all built-in instance segmentation model names.

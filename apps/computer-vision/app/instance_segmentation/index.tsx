@@ -5,8 +5,8 @@ import { getImage } from '../../utils';
 import {
   useInstanceSegmentation,
   YOLO26N_SEG,
-  InstanceSegmentationModule,
-  CocoLabel,
+  // InstanceSegmentationModule, // Uncomment for custom models
+  // CocoLabel, // Uncomment for custom models
 } from 'react-native-executorch';
 import {
   View,
@@ -25,7 +25,19 @@ const AVAILABLE_INPUT_SIZES = [384, 416, 512, 640, 1024];
 export default function InstanceSegmentationScreen() {
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
-  // Custom model setup
+  // Using YOLO hook
+  const { isReady, isGenerating, downloadProgress, error, forward } =
+    useInstanceSegmentation({
+      model: YOLO26N_SEG, // YOLO26N_SEG already contains modelName and modelSource
+    });
+
+  const [imageUri, setImageUri] = useState('');
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+  const [instances, setInstances] = useState<any[]>([]);
+  const [selectedInputSize, setSelectedInputSize] = useState(640);
+
+  // RFDetr custom model (commented out - use this for custom models)
+  /*
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
@@ -34,12 +46,6 @@ export default function InstanceSegmentationScreen() {
     typeof CocoLabel
   > | null>(null);
 
-  const [imageUri, setImageUri] = useState('');
-  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
-  const [instances, setInstances] = useState<any[]>([]);
-  const [selectedInputSize, setSelectedInputSize] = useState(640);
-
-  // Load custom RFDetr model
   useEffect(() => {
     let isMounted = true;
     let instance: InstanceSegmentationModule<typeof CocoLabel> | null = null;
@@ -54,10 +60,9 @@ export default function InstanceSegmentationScreen() {
           {
             labelMap: CocoLabel,
             postprocessorConfig: {
-              type: 'rfdetr',
               defaultConfidenceThreshold: 0.5,
               defaultIouThreshold: 0.5,
-              applyNMS: false,
+              applyNMS: true, // RFDetr needs NMS
             },
           },
           (progress) => {
@@ -79,6 +84,7 @@ export default function InstanceSegmentationScreen() {
       instance?.delete();
     };
   }, []);
+  */
 
   useEffect(() => {
     setGlobalGenerating(isGenerating);
@@ -96,30 +102,19 @@ export default function InstanceSegmentationScreen() {
   };
 
   const runForward = async () => {
-    if (
-      !imageUri ||
-      imageSize.width === 0 ||
-      imageSize.height === 0 ||
-      !modelInstance
-    )
-      return;
+    if (!imageUri || imageSize.width === 0 || imageSize.height === 0) return;
 
     try {
-      setIsGenerating(true);
-      const output = await modelInstance.forward(imageUri, {
+      const output = await forward(imageUri, {
         confidenceThreshold: 0.5,
-        iouThreshold: 0.55,
+        iouThreshold: 0.45,
         maxInstances: 20,
-        returnMaskAtOriginalResolution: true,
-        inputSize: selectedInputSize,
+        inputSize: selectedInputSize, // YOLO supports multiple input sizes
       });
 
       setInstances(output);
     } catch (e) {
       console.error(e);
-      setError(e);
-    } finally {
-      setIsGenerating(false);
     }
   };
 
@@ -308,3 +303,5 @@ const styles = StyleSheet.create({
     fontFamily: 'Courier',
   },
 });
+export type SegmentationLabels<M extends SemanticSegmentationModelName> =
+  ModelConfigsType[M]['labelMap'];

@@ -98,21 +98,47 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
                             "and less than or equal to 1.");
   }
 
-  // Auto-detect model output format based on tensor shapes
-  bool isRFDetr =
-      (tensors.size() == 3 && tensors[0].toTensor().dim() == 3 &&
-       tensors[0].toTensor().size(2) == 4 && tensors[1].toTensor().dim() == 3 &&
-       tensors[2].toTensor().dim() == 4);
+  // DEBUG: Log tensor information
+  std::cout << "\n=== Model Output Debug ===" << std::endl;
+  std::cout << "Number of output tensors: " << tensors.size() << std::endl;
+  for (size_t i = 0; i < tensors.size(); ++i) {
+    auto tensor = tensors[i].toTensor();
+    std::cout << "Tensor " << i << ": dim=" << tensor.dim() << ", shape=[";
+    for (int d = 0; d < tensor.dim(); ++d) {
+      std::cout << tensor.size(d);
+      if (d < tensor.dim() - 1)
+        std::cout << ", ";
+    }
+    std::cout << "]" << std::endl;
+  }
+  std::cout << "========================\n" << std::endl;
 
-  bool isYOLO =
-      (tensors.size() == 2 && tensors[0].toTensor().dim() == 3 &&
-       tensors[0].toTensor().size(2) == 38 &&
-       tensors[1].toTensor().dim() == 4 && tensors[1].toTensor().size(1) == 32);
+  // Auto-detect model output format based on first few tensor shapes
+  // Models may output additional intermediate tensors that we ignore
+
+  bool isRFDetr = false;
+  bool isYOLO = false;
+
+  if (tensors.size() >= 3) {
+    // Check if first 3 tensors match RFDetr format
+    isRFDetr =
+        (tensors[0].toTensor().dim() == 3 &&
+         tensors[0].toTensor().size(2) == 4 &&
+         tensors[1].toTensor().dim() == 3 && tensors[2].toTensor().dim() == 4);
+  }
+
+  if (tensors.size() >= 2 && !isRFDetr) {
+    // Check if first 2 tensors match YOLO format
+    isYOLO = (tensors[0].toTensor().dim() == 3 &&
+              tensors[0].toTensor().size(2) == 38 &&
+              tensors[1].toTensor().dim() == 4 &&
+              tensors[1].toTensor().size(1) == 32);
+  }
 
   if (!isRFDetr && !isYOLO) {
     throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-                            "Unknown model output format. Expected YOLO (2 "
-                            "tensors) or RFDetr (3 tensors).");
+                            "Unknown model output format. First tensors don't "
+                            "match YOLO or RFDetr.");
   }
 
   // Create allowed classes set for filtering

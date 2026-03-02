@@ -30,7 +30,10 @@ const ModelConfigs = {
   'yolo26m-seg': YOLO_SEG_CONFIG,
   'yolo26l-seg': YOLO_SEG_CONFIG,
   'yolo26x-seg': YOLO_SEG_CONFIG,
-} as const;
+} as const satisfies Record<
+  InstanceSegmentationModelName,
+  InstanceSegmentationConfig<LabelEnum>
+>;
 
 /** @internal */
 type ModelConfigsType = typeof ModelConfigs;
