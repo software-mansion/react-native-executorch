@@ -164,9 +164,8 @@ std::string LLM::generateMultimodal(
 
   for (const auto &msg : messages) {
     if (msg.role == "system") {
-      if (isFirst) {
-        inputs.push_back(llm::make_text_input(msg.content + "\n"));
-      }
+      // LFM2-VL has no dedicated system turn — skip silently, consistent
+      // with the single-turn generate(imagePath, prompt, cb) path.
       continue;
     }
 
