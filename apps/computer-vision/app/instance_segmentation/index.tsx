@@ -1,7 +1,14 @@
 import Spinner from '../../components/Spinner';
 import { BottomBar } from '../../components/BottomBar';
 import { getImage } from '../../utils';
-import { useInstanceSegmentation } from 'react-native-executorch';
+import {
+  useInstanceSegmentation,
+  YOLO26N_SEG,
+  YOLO26L_SEG,
+  YOLO26M_SEG,
+  YOLO26S_SEG,
+  YOLO26X_SEG,
+} from 'react-native-executorch';
 import {
   Canvas,
   Image as SkiaImage,
@@ -41,15 +48,54 @@ const instanceColors = [
 // Available input sizes for YOLO models
 const AVAILABLE_INPUT_SIZES = [384, 416, 512, 640, 1024];
 
+/**
+ * EXAMPLE: Using built-in YOLO models with COCO labels (80 classes)
+ *
+ * const { forward } = useInstanceSegmentation({
+ *   model: YOLO26N_SEG, // or YOLO26S_SEG, YOLO26M_SEG, etc.
+ * });
+ *
+ * // Filter by specific COCO classes:
+ * const results = await forward(imageUri, {
+ *   classesOfInterest: ['PERSON', 'CAR', 'DOG'],
+ *   confidenceThreshold: 0.5,
+ *   inputSize: 640,
+ * });
+ *
+ *
+ * EXAMPLE: Using a custom model with custom labels
+ *
+ * // 1. Define your custom label enum
+ * const MyLabels = { APPLE: 0, ORANGE: 1, BANANA: 2 } as const;
+ *
+ * // 2. Load using InstanceSegmentationModule directly (not the hook)
+ * const customModel = await InstanceSegmentationModule.fromCustomConfig(
+ *   'https://example.com/my-model.pte',
+ *   {
+ *     labelMap: MyLabels,
+ *     availableInputSizes: [640],
+ *     defaultInputSize: 640,
+ *     postprocessorConfig: {
+ *       type: 'yolo',
+ *       defaultConfidenceThreshold: 0.5,
+ *       defaultIouThreshold: 0.45,
+ *       applyNMS: true,
+ *     },
+ *   }
+ * );
+ *
+ * // 3. Run inference
+ * const results = await customModel.forward(imageUri, {
+ *   classesOfInterest: ['APPLE', 'BANANA'],
+ * });
+ */
+
 export default function InstanceSegmentationScreen() {
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   const { isReady, isGenerating, downloadProgress, forward, error } =
     useInstanceSegmentation({
-      model: {
-        modelName: 'yolo26n-seg',
-        modelSource: 'http://192.168.83.59:3000/yolo26n-seg.pte',
-      },
+      model: YOLO26X_SEG,
     });
 
   const [imageUri, setImageUri] = useState('');
@@ -81,7 +127,7 @@ export default function InstanceSegmentationScreen() {
     try {
       const output = await forward(imageUri, {
         confidenceThreshold: 0.5,
-        iouThreshold: 0.45,
+        iouThreshold: 0.55,
         maxInstances: 20,
         returnMaskAtOriginalResolution: true,
         inputSize: selectedInputSize,
