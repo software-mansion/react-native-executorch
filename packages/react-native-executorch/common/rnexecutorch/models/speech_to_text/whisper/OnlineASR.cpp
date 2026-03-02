@@ -92,11 +92,9 @@ ProcessResult OnlineASR::process(const DecodingOptions &options) {
       // (assuming some fixed words per second frequency).
       const float freshDuration = newEnd - establishedEnd;
       const float epsilon = std::max(
-          0.F, 0.8F * (freshDuration -
-                       static_cast<float>(noNewWords /
-                                          params::kStreamWordsPerSecond)));
-      const float beforeScaleStart = hypothesisBuffer_.fresh_[i].start;
-      const float beforeScaleEnd = hypothesisBuffer_.fresh_[i].end;
+          0.F, 0.85F * (freshDuration -
+                        static_cast<float>(noNewWords /
+                                           params::kStreamWordsPerSecond)));
       float scale = (freshDuration - epsilon) / (newEnd - newBegin);
       hypothesisBuffer_.fresh_[i].start =
           (hypothesisBuffer_.fresh_[i].start - newEnd) * scale + newEnd;
@@ -134,9 +132,7 @@ ProcessResult OnlineASR::process(const DecodingOptions &options) {
 std::vector<Word> OnlineASR::finish() {
   // We always push the last remaining hypothesis, even if it's not
   // confirmed in second iteration.
-  auto remaining = hypothesisBuffer_.hypothesis_;
-
-  reset();
+  std::deque<Word> remaining = hypothesisBuffer_.hypothesis_;
 
   return move_to_vector(remaining);
 }
