@@ -64,9 +64,8 @@ INSTANTIATE_TYPED_TEST_SUITE_P(ObjectDetection, CommonModelTest,
 TEST(ObjectDetectionGenerateTests, InvalidImagePathThrows) {
   ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
                         nullptr);
-  EXPECT_THROW(
-      (void)model.generateFromString("nonexistent_image.jpg", 0.5),
-      RnExecutorchError);
+  EXPECT_THROW((void)model.generateFromString("nonexistent_image.jpg", 0.5),
+               RnExecutorchError);
 }
 
 TEST(ObjectDetectionGenerateTests, EmptyImagePathThrows) {
@@ -78,25 +77,22 @@ TEST(ObjectDetectionGenerateTests, EmptyImagePathThrows) {
 TEST(ObjectDetectionGenerateTests, MalformedURIThrows) {
   ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
                         nullptr);
-  EXPECT_THROW(
-      (void)model.generateFromString("not_a_valid_uri://bad", 0.5),
-      RnExecutorchError);
+  EXPECT_THROW((void)model.generateFromString("not_a_valid_uri://bad", 0.5),
+               RnExecutorchError);
 }
 
 TEST(ObjectDetectionGenerateTests, NegativeThresholdThrows) {
   ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
                         nullptr);
-  EXPECT_THROW(
-      (void)model.generateFromString(kValidTestImagePath, -0.1),
-      RnExecutorchError);
+  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, -0.1),
+               RnExecutorchError);
 }
 
 TEST(ObjectDetectionGenerateTests, ThresholdAboveOneThrows) {
   ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
                         nullptr);
-  EXPECT_THROW(
-      (void)model.generateFromString(kValidTestImagePath, 1.1),
-      RnExecutorchError);
+  EXPECT_THROW((void)model.generateFromString(kValidTestImagePath, 1.1),
+               RnExecutorchError);
 }
 
 TEST(ObjectDetectionGenerateTests, ValidImageReturnsResults) {
@@ -109,8 +105,7 @@ TEST(ObjectDetectionGenerateTests, ValidImageReturnsResults) {
 TEST(ObjectDetectionGenerateTests, HighThresholdReturnsFewerResults) {
   ObjectDetection model(kValidObjectDetectionModelPath, {}, {}, kCocoLabels,
                         nullptr);
-  auto lowThresholdResults =
-      model.generateFromString(kValidTestImagePath, 0.1);
+  auto lowThresholdResults = model.generateFromString(kValidTestImagePath, 0.1);
   auto highThresholdResults =
       model.generateFromString(kValidTestImagePath, 0.9);
   EXPECT_GE(lowThresholdResults.size(), highThresholdResults.size());
@@ -247,4 +242,33 @@ TEST(ObjectDetectionInheritedTests, GetMethodMetaWorks) {
                         nullptr);
   auto result = model.getMethodMeta("forward");
   EXPECT_TRUE(result.ok());
+}
+
+// ============================================================================
+// Normalisation tests
+// ============================================================================
+TEST(ObjectDetectionNormTests, ValidNormParamsDoesntThrow) {
+  const std::vector<float> mean = {0.485f, 0.456f, 0.406f};
+  const std::vector<float> std = {0.229f, 0.224f, 0.225f};
+  EXPECT_NO_THROW(
+      ObjectDetection(kValidObjectDetectionModelPath, mean, std, {}, nullptr));
+}
+
+TEST(ObjectDetectionNormTests, InvalidNormMeanSizeDoesntThrow) {
+  EXPECT_NO_THROW(ObjectDetection(kValidObjectDetectionModelPath, {0.5f},
+                                  {0.229f, 0.224f, 0.225f}, {}, nullptr));
+}
+
+TEST(ObjectDetectionNormTests, InvalidNormStdSizeDoesntThrow) {
+  EXPECT_NO_THROW(ObjectDetection(kValidObjectDetectionModelPath,
+                                  {0.485f, 0.456f, 0.406f}, {0.5f}, {},
+                                  nullptr));
+}
+
+TEST(ObjectDetectionNormTests, ValidNormParamsGenerateSucceeds) {
+  const std::vector<float> mean = {0.485f, 0.456f, 0.406f};
+  const std::vector<float> std = {0.229f, 0.224f, 0.225f};
+  ObjectDetection model(kValidObjectDetectionModelPath, mean, std, kCocoLabels,
+                        nullptr);
+  EXPECT_NO_THROW((void)model.generateFromString(kValidTestImagePath, 0.5));
 }
