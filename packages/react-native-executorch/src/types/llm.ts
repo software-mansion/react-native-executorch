@@ -20,6 +20,10 @@ export interface LLMProps {
      * `ResourceSource` pointing to the JSON file which contains the tokenizer config.
      */
     tokenizerConfigSource: ResourceSource;
+    /**
+     * Set to `true` for vision-language models that accept image inputs via `sendMessage`.
+     */
+    isMultimodal?: boolean;
   };
   /**
    * Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
@@ -28,11 +32,11 @@ export interface LLMProps {
 }
 
 /**
- * React hook for managing a Large Language Model (LLM) instance.
+ * Base return type for `useLLM`. Contains all fields except `sendMessage`.
  *
  * @category Types
  */
-export interface LLMType {
+export interface LLMTypeBase {
   /**
    * History containing all messages in conversation. This field is updated after model responds to sendMessage.
    */
@@ -91,7 +95,7 @@ export interface LLMType {
    */
   generate: (messages: Message[], tools?: LLMTool[]) => Promise<string>;
   /**
-   * Returns the number of total tokens from the previous generation.This is a sum of prompt tokens and generated tokens.
+   * Returns the number of total tokens from the previous generation. This is a sum of prompt tokens and generated tokens.
    *
    * @returns The count of prompt and generated tokens.
    */
@@ -104,17 +108,6 @@ export interface LLMType {
   getPromptTokenCount: () => number;
 
   /**
-   * Function to add user message to conversation.
-   * Pass `mediaPath` for a multimodal message (image, audio, etc.).
-   * After model responds, `messageHistory` will be updated.
-   *
-   * @param message - The message string to send.
-   * @param mediaPath - Optional local file path to media.
-   * @returns The model's response as a `string`.
-   */
-  sendMessage: (message: string, mediaPath?: string) => Promise<string>;
-
-  /**
    * Deletes all messages starting with message on `index` position. After deletion `messageHistory` will be updated.
    *
    * @param index - The index of the message to delete from history.
@@ -125,6 +118,42 @@ export interface LLMType {
    * Function to interrupt the current inference.
    */
   interrupt: () => void;
+}
+
+/**
+ * Return type for `useLLM` when `model.isMultimodal` is `true`.
+ * `sendMessage` accepts an optional `mediaPath` argument for image inputs.
+ *
+ * @category Types
+ */
+export interface LLMTypeMultimodal extends LLMTypeBase {
+  /**
+   * Function to add user message to conversation.
+   * Pass `mediaPath` with a local image path to send a multimodal message.
+   * After model responds, `messageHistory` will be updated.
+   *
+   * @param message - The message string to send.
+   * @param mediaPath - Optional local file path to an image.
+   * @returns The model's response as a `string`.
+   */
+  sendMessage: (message: string, mediaPath?: string) => Promise<string>;
+}
+
+/**
+ * Return type for `useLLM` when `model.isMultimodal` is absent or `false`.
+ * `sendMessage` accepts only text.
+ *
+ * @category Types
+ */
+export interface LLMType extends LLMTypeBase {
+  /**
+   * Function to add user message to conversation.
+   * After model responds, `messageHistory` will be updated.
+   *
+   * @param message - The message string to send.
+   * @returns The model's response as a `string`.
+   */
+  sendMessage: (message: string) => Promise<string>;
 }
 
 /**
