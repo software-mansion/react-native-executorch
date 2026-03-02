@@ -320,9 +320,15 @@ std::vector<float> ASR::encode(std::span<float> waveform) const {
 
 std::vector<float> ASR::decode(std::span<const uint64_t> tokens,
                                std::span<float> encoderOutput) const {
-  std::vector<int32_t> tokenShape = {1, static_cast<int32_t>(tokens.size())};
-  auto tokensLong = std::vector<int64_t>(tokens.begin(), tokens.end());
+  // The CoreML decoder model is exported with a static token sequence length
+  // of kMaxDecodeLength. Right-pad with zeros to preserve correct positional
+  // embeddings (Whisper uses learned position embeddings indexed from 0).
+  const int32_t paddedSeqLen = kMaxDecodeLength;
+  auto tokensLong = std::vector<int64_t>(paddedSeqLen, 0LL);
+  std::transform(tokens.begin(), tokens.end(), tokensLong.begin(),
+                 [](uint64_t t) { return static_cast<int64_t>(t); });
 
+  std::vector<int32_t> tokenShape = {1, paddedSeqLen};
   auto tokenTensor = executorch::extension::make_tensor_ptr(
       tokenShape, tokensLong.data(), ScalarType::Long);
 
@@ -342,15 +348,14 @@ std::vector<float> ASR::decode(std::span<const uint64_t> tokens,
   }
 
   const auto logitsTensor = decoderResult.get().at(0).toTensor();
-  const int32_t outputNumel = static_cast<int32_t>(logitsTensor.numel());
 
-  const size_t innerDim = logitsTensor.size(1);
   const size_t dictSize = logitsTensor.size(2);
-
+  // Extract logits at the last real token position (not the padded end).
+  const size_t lastRealIdx = tokens.size() - 1;
   const float *const dataPtr =
-      logitsTensor.const_data_ptr<float>() + (innerDim - 1) * dictSize;
+      logitsTensor.const_data_ptr<float>() + lastRealIdx * dictSize;
 
-  return {dataPtr, dataPtr + outputNumel / innerDim};
+  return {dataPtr, dataPtr + dictSize};
 }
 
 } // namespace rnexecutorch::models::speech_to_text::asr
