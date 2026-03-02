@@ -110,12 +110,14 @@ export interface LLMType {
 
   /**
    * Function to add user message to conversation.
-   * After model responds, `messageHistory` will be updated with both user message and model response.
+   * Pass `mediaPath` for a multimodal message (image, audio, etc.).
+   * After model responds, `messageHistory` will be updated.
    *
    * @param message - The message string to send.
+   * @param mediaPath - Optional local file path to media.
    * @returns The model's response as a `string`.
    */
-  sendMessage: (message: string) => Promise<string>;
+  sendMessage: (message: string, mediaPath?: string) => Promise<string>;
 
   /**
    * Deletes all messages starting with message on `index` position. After deletion `messageHistory` will be updated.
@@ -128,16 +130,6 @@ export interface LLMType {
    * Function to interrupt the current inference.
    */
   interrupt: () => void;
-
-  /**
-   * Send a user message with an image. Updates messageHistory after model responds.
-   * Only valid for multimodal models (loaded with `isMultimodal: true`).
-   *
-   * @param imagePath - Local path to the image file.
-   * @param message - The text question about the image.
-   * @returns The model's response as a string.
-   */
-  sendMessageWithImage: (imagePath: string, message: string) => Promise<string>;
 }
 
 /**
@@ -199,6 +191,11 @@ export type MessageRole = 'user' | 'assistant' | 'system';
 export interface Message {
   role: MessageRole;
   content: string;
+  /**
+   * Optional local file path to media (image, audio, etc.).
+   * Only valid on `user` messages.
+   */
+  mediaPath?: string;
 }
 
 /**
