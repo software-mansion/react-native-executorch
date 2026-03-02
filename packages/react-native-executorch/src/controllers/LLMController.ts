@@ -78,7 +78,7 @@ export class LLMController {
   }: {
     modelSource: ResourceSource;
     tokenizerSource: ResourceSource;
-    tokenizerConfigSource?: ResourceSource;
+    tokenizerConfigSource: ResourceSource;
     onDownloadProgressCallback?: (downloadProgress: number) => void;
   }) {
     // reset inner state when loading new model
@@ -90,7 +90,7 @@ export class LLMController {
       const tokenizersPromise = ResourceFetcher.fetch(
         undefined,
         tokenizerSource,
-        ...(tokenizerConfigSource ? [tokenizerConfigSource] : [])
+        tokenizerConfigSource
       );
 
       const modelPromise = ResourceFetcher.fetch(
