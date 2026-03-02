@@ -59,8 +59,6 @@ std::deque<Word> HypothesisBuffer::commit() {
       break;
     }
 
-    // Take timestamps from the hypothesis, but actual content from the fresh
-    // buffer.
     toCommit.emplace_back(std::move(fresh_.front().content),
                           hypothesis_.front().start, hypothesis_.front().end,
                           std::move(fresh_.front().punctations));
@@ -68,18 +66,13 @@ std::deque<Word> HypothesisBuffer::commit() {
     hypothesis_.pop_front();
   }
 
-  // Save the last committed word timestamp.
-  // This will mark the end of the entire committed sequence.
   if (!toCommit.empty()) {
     lastCommittedTime_ = toCommit.back().end;
   }
 
-  // The remaining words from the fresh buffer (uncommitted phrase)
-  // become a hypothesis for the next iteration.
   hypothesis_ = std::move(fresh_);
   fresh_.clear();
 
-  // The last step is to commit the selected words.
   committed_.insert(committed_.end(), toCommit.cbegin(), toCommit.cend());
 
   return toCommit;

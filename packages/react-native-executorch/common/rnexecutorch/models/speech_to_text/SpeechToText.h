@@ -55,7 +55,7 @@ private:
   // Online ASR-like module (streaming only)
   std::unique_ptr<schema::OnlineASR> streamer_ = nullptr;
   bool isStreaming_ = false;
-  bool readyToProcess_ = true;
+  bool readyToProcess_ = false;
 };
 
 } // namespace models::speech_to_text
