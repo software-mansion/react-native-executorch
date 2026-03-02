@@ -20,11 +20,6 @@ export interface LLMProps {
      * `ResourceSource` pointing to the JSON file which contains the tokenizer config.
      */
     tokenizerConfigSource?: ResourceSource;
-    /**
-     * Set to `true` when loading a vision-language (multimodal) model.
-     * Skips tokenizer config fetching and enables multimodal message handling via `sendMessage`.
-     */
-    isMultimodal?: boolean;
   };
   /**
    * Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.

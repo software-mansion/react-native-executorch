@@ -53,7 +53,6 @@ export const useLLM = ({ model, preventLoad = false }: LLMProps): LLMType => {
           tokenizerSource: model.tokenizerSource,
           tokenizerConfigSource: model.tokenizerConfigSource,
           onDownloadProgressCallback: setDownloadProgress,
-          isMultimodal: model.isMultimodal,
         });
       } catch (e) {
         setError(parseUnknownError(e));
@@ -70,7 +69,6 @@ export const useLLM = ({ model, preventLoad = false }: LLMProps): LLMType => {
     model.modelSource,
     model.tokenizerSource,
     model.tokenizerConfigSource,
-    model.isMultimodal,
     preventLoad,
   ]);
 

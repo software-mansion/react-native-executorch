@@ -24,8 +24,6 @@ export class LLMController {
   private _isReady = false;
   private _isGenerating = false;
   private _messageHistory: Message[] = [];
-  private isMultimodal_ = false;
-
   // User callbacks
   private tokenCallback: (token: string) => void;
   private messageHistoryCallback: (messageHistory: Message[]) => void;
@@ -77,13 +75,11 @@ export class LLMController {
     tokenizerSource,
     tokenizerConfigSource,
     onDownloadProgressCallback,
-    isMultimodal = false,
   }: {
     modelSource: ResourceSource;
     tokenizerSource: ResourceSource;
     tokenizerConfigSource?: ResourceSource;
     onDownloadProgressCallback?: (downloadProgress: number) => void;
-    isMultimodal?: boolean;
   }) {
     // reset inner state when loading new model
     this.messageHistoryCallback(this.chatConfig.initialMessageHistory);
@@ -91,34 +87,38 @@ export class LLMController {
     this.isReadyCallback(false);
 
     try {
-      const [tokenizerResults, modelResult] = await Promise.all([
-        ResourceFetcher.fetch(
-          undefined,
-          tokenizerSource,
-          ...(tokenizerConfigSource ? [tokenizerConfigSource] : [])
-        ),
-        ResourceFetcher.fetch(onDownloadProgressCallback, modelSource),
+      const tokenizersPromise = ResourceFetcher.fetch(
+        undefined,
+        tokenizerSource,
+        ...(tokenizerConfigSource ? [tokenizerConfigSource] : [])
+      );
+
+      const modelPromise = ResourceFetcher.fetch(
+        onDownloadProgressCallback,
+        modelSource
+      );
+
+      const [tokenizersResults, modelResult] = await Promise.all([
+        tokenizersPromise,
+        modelPromise,
       ]);
 
-      const tokenizerPath = tokenizerResults?.[0];
-      const tokenizerConfigPath = tokenizerResults?.[1];
+      const tokenizerPath = tokenizersResults?.[0];
+      const tokenizerConfigPath = tokenizersResults?.[1];
       const modelPath = modelResult?.[0];
 
-      if (!tokenizerPath || !modelPath) {
+      if (!tokenizerPath || !tokenizerConfigPath || !modelPath) {
         throw new RnExecutorchError(
           RnExecutorchErrorCode.DownloadInterrupted,
           'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
         );
       }
 
-      if (tokenizerConfigPath) {
-        this.tokenizerConfig = JSON.parse(
-          await ResourceFetcher.fs.readAsString(tokenizerConfigPath)
-        );
-      }
-
+      this.tokenizerConfig = JSON.parse(
+        await ResourceFetcher.fs.readAsString(tokenizerConfigPath!)
+      );
       this.nativeModule = await global.loadLLM(modelPath, tokenizerPath);
-      this.isMultimodal_ = this.nativeModule.isMultimodal();
+
       this.isReadyCallback(true);
       this.onToken = (data: string) => {
         if (!data) {
@@ -237,39 +237,6 @@ export class LLMController {
     }
   }
 
-  private async generateMultimodal(messages: Message[]): Promise<string> {
-    if (!this._isReady) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModuleNotLoaded,
-        'The model is currently not loaded.'
-      );
-    }
-    if (!this.isMultimodal_) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.InvalidUserInput,
-        'generateMultimodal() requires a multimodal model.'
-      );
-    }
-    if (this._isGenerating) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.ModelGenerating,
-        'The model is currently generating.'
-      );
-    }
-    try {
-      this.isGeneratingCallback(true);
-      const response = await this.nativeModule.generateMultimodal(
-        messages,
-        this.onToken
-      );
-      return response;
-    } catch (e) {
-      throw parseUnknownError(e);
-    } finally {
-      this.isGeneratingCallback(false);
-    }
-  }
-
   public interrupt() {
     if (!this.nativeModule) {
       throw new RnExecutorchError(
@@ -353,7 +320,17 @@ export class LLMController {
 
     if (updatedHistory.some((m) => m.mediaPath)) {
       // Any message in history has media — use multimodal path
-      response = await this.generateMultimodal(updatedHistory);
+      try {
+        this.isGeneratingCallback(true);
+        response = await this.nativeModule.generateMultimodal(
+          updatedHistory,
+          this.onToken
+        );
+      } catch (e) {
+        throw parseUnknownError(e);
+      } finally {
+        this.isGeneratingCallback(false);
+      }
     } else {
       const countTokensCallback = (messages: Message[]) => {
         const rendered = this.applyChatTemplate(

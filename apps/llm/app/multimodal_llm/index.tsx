@@ -45,7 +45,6 @@ function MultimodalLLMScreen() {
       modelSource: MODEL_SOURCE,
       tokenizerSource: TOKENIZER_SOURCE,
       tokenizerConfigSource: TOKENIZER_CONFIG_SOURCE,
-      isMultimodal: true,
     },
   });
 
