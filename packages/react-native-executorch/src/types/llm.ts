@@ -19,7 +19,7 @@ export interface LLMProps {
     /**
      * `ResourceSource` pointing to the JSON file which contains the tokenizer config.
      */
-    tokenizerConfigSource?: ResourceSource;
+    tokenizerConfigSource: ResourceSource;
   };
   /**
    * Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
