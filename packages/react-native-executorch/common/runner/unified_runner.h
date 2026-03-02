@@ -33,7 +33,8 @@ public:
       ::executorch::extension::Module *module,
       std::unique_ptr<::executorch::extension::Module> owned_module,
       const std::string &tokenizer_path,
-      const llm::GenerationConfig &config = llm::GenerationConfig{});
+      const llm::GenerationConfig &config = {.temperature = 0.8F,
+                                             .topp = 0.9F});
 
   bool is_multimodal() const noexcept;
   bool is_loaded() const;
