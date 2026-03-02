@@ -95,9 +95,12 @@ export class LLMController {
       let modelPath: string | undefined;
 
       if (isMultimodal) {
-        // Multimodal models don't need tokenizer config
         const [tokenizerResults, modelResult] = await Promise.all([
-          ResourceFetcher.fetch(undefined, tokenizerSource),
+          ResourceFetcher.fetch(
+            undefined,
+            tokenizerSource,
+            ...(tokenizerConfigSource ? [tokenizerConfigSource] : [])
+          ),
           ResourceFetcher.fetch(onDownloadProgressCallback, modelSource),
         ]);
         tokenizerPath = tokenizerResults?.[0];
@@ -107,6 +110,12 @@ export class LLMController {
           throw new RnExecutorchError(
             RnExecutorchErrorCode.DownloadInterrupted,
             'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+          );
+        }
+
+        if (tokenizerConfigSource && tokenizerResults?.[1]) {
+          this.tokenizerConfig = JSON.parse(
+            await ResourceFetcher.fs.readAsString(tokenizerResults[1])
           );
         }
       } else {

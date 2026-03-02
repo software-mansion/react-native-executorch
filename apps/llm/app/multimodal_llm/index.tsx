@@ -4,7 +4,6 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -12,123 +11,42 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import * as DocumentPicker from 'expo-document-picker';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useIsFocused } from '@react-navigation/native';
 import { useLLM } from 'react-native-executorch';
+import SendIcon from '../../assets/icons/send_icon.svg';
+import PauseIcon from '../../assets/icons/pause_icon.svg';
 import ColorPalette from '../../colors';
+import Messages from '../../components/Messages';
 import Spinner from '../../components/Spinner';
 import { GeneratingContext } from '../../context';
 
+const MODEL_SOURCE =
+  'https://huggingface.co/nklockiewicz/lfm2-vl-et/resolve/main/lfm2p5_vl_1.6B_quantized_xnnpack.pte';
+const TOKENIZER_SOURCE =
+  'https://huggingface.co/nklockiewicz/lfm2-vl-et/resolve/main/tokenizer_2.5.json';
+const TOKENIZER_CONFIG_SOURCE =
+  'https://huggingface.co/nklockiewicz/lfm2-vl-et/resolve/main/tokenizer_config_2_5.json';
+
 export default function MultimodalLLMScreenWrapper() {
   const isFocused = useIsFocused();
-  return isFocused ? <MultimodalLLMScreenOuter /> : null;
+  return isFocused ? <MultimodalLLMScreen /> : null;
 }
 
-// Outer component: collect model + tokenizer paths before mounting the hook
-function MultimodalLLMScreenOuter() {
-  const [modelUri, setModelUri] = useState<string | null>(null);
-  const [tokenizerUri, setTokenizerUri] = useState<string | null>(null);
-  const [confirmed, setConfirmed] = useState(false);
-
-  const pickFile = async (setter: (uri: string) => void) => {
-    const result = await DocumentPicker.getDocumentAsync({
-      copyToCacheDirectory: false,
-      multiple: false,
-    });
-    if (result.canceled) return;
-    const asset = result.assets[0];
-    if (asset?.uri) {
-      setter(asset.uri);
-    }
-  };
-
-  if (!confirmed) {
-    return (
-      <View style={styles.setupContainer}>
-        <Text style={styles.setupTitle}>Select model files</Text>
-        <Text style={styles.setupHint}>
-          Pick the .pte model and tokenizer.json from your device storage.
-        </Text>
-
-        <FilePicker
-          label="Model (.pte)"
-          uri={modelUri}
-          onPick={() => pickFile(setModelUri)}
-        />
-        <FilePicker
-          label="Tokenizer (.json)"
-          uri={tokenizerUri}
-          onPick={() => pickFile(setTokenizerUri)}
-        />
-
-        <TouchableOpacity
-          style={[
-            styles.loadButton,
-            (!modelUri || !tokenizerUri) && styles.loadButtonDisabled,
-          ]}
-          disabled={!modelUri || !tokenizerUri}
-          onPress={() => setConfirmed(true)}
-        >
-          <Text style={styles.loadButtonText}>Load model</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  return (
-    <MultimodalLLMScreen
-      modelSource={modelUri!}
-      tokenizerSource={tokenizerUri!}
-    />
-  );
-}
-
-function FilePicker({
-  label,
-  uri,
-  onPick,
-}: {
-  label: string;
-  uri: string | null;
-  onPick: () => void;
-}) {
-  const fileName = uri ? (uri.split('/').pop() ?? uri) : null;
-  return (
-    <TouchableOpacity style={styles.filePickerRow} onPress={onPick}>
-      <View style={styles.filePickerInfo}>
-        <Text style={styles.filePickerLabel}>{label}</Text>
-        <Text
-          style={[
-            styles.filePickerValue,
-            uri ? styles.filePickerValueSet : styles.filePickerValueEmpty,
-          ]}
-          numberOfLines={1}
-          ellipsizeMode="middle"
-        >
-          {fileName ?? 'Tap to pick file'}
-        </Text>
-      </View>
-      <Text style={styles.filePickerChevron}>›</Text>
-    </TouchableOpacity>
-  );
-}
-
-function MultimodalLLMScreen({
-  modelSource,
-  tokenizerSource,
-}: {
-  modelSource: string;
-  tokenizerSource: string;
-}) {
+function MultimodalLLMScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
-  const [prompt, setPrompt] = useState('');
+  const [userInput, setUserInput] = useState('');
   const [isTextInputFocused, setIsTextInputFocused] = useState(false);
-  const scrollViewRef = useRef<ScrollView>(null);
+  const textInputRef = useRef<TextInput>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
   const vlm = useLLM({
-    model: { modelSource, tokenizerSource, isMultimodal: true },
+    model: {
+      modelSource: MODEL_SOURCE,
+      tokenizerSource: TOKENIZER_SOURCE,
+      tokenizerConfigSource: TOKENIZER_CONFIG_SOURCE,
+      isMultimodal: true,
+    },
   });
 
   useEffect(() => {
@@ -136,26 +54,29 @@ function MultimodalLLMScreen({
   }, [vlm.isGenerating, setGlobalGenerating]);
 
   useEffect(() => {
-    if (vlm.error) {
-      console.error('MultimodalLLM error:', vlm.error);
-    }
+    if (vlm.error) console.error('MultimodalLLM error:', vlm.error);
   }, [vlm.error]);
 
   const pickImage = async () => {
     const result = await launchImageLibrary({ mediaType: 'photo' });
     if (result.assets && result.assets.length > 0) {
       const uri = result.assets[0]?.uri;
-      if (uri) {
-        setImageUri(uri);
-      }
+      if (uri) setImageUri(uri);
     }
   };
 
-  const handleGenerate = async () => {
-    if (!imageUri || !prompt.trim() || !vlm.isReady || vlm.isGenerating) return;
+  const sendMessage = async () => {
+    if (!userInput.trim() || vlm.isGenerating) return;
+    const text = userInput.trim();
+    setUserInput('');
+    textInputRef.current?.clear();
     Keyboard.dismiss();
     try {
-      await vlm.sendMessageWithImage(imageUri, prompt.trim());
+      if (imageUri) {
+        await vlm.sendMessageWithImage(imageUri, text);
+      } else {
+        await vlm.sendMessage(text);
+      }
     } catch (e) {
       console.error('Generation error:', e);
     }
@@ -182,79 +103,86 @@ function MultimodalLLMScreen({
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 120 : 40}
       >
-        <ScrollView
-          ref={scrollViewRef}
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          onContentSizeChange={() =>
-            scrollViewRef.current?.scrollToEnd({ animated: true })
-          }
-        >
-          {/* Image picker */}
-          <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
-            {imageUri ? (
+        <View style={styles.container}>
+          {vlm.messageHistory.length ? (
+            <View style={styles.chatContainer}>
+              <Messages
+                chatHistory={vlm.messageHistory}
+                llmResponse={vlm.response}
+                isGenerating={vlm.isGenerating}
+                deleteMessage={vlm.deleteMessage}
+              />
+            </View>
+          ) : (
+            <View style={styles.helloMessageContainer}>
+              <Text style={styles.helloText}>Hello! 👋</Text>
+              <Text style={styles.bottomHelloText}>
+                Pick an image and ask me anything about it.
+              </Text>
+            </View>
+          )}
+
+          {/* Image thumbnail strip */}
+          {imageUri && (
+            <TouchableOpacity
+              style={styles.imageThumbnailContainer}
+              onPress={pickImage}
+            >
               <Image
                 source={{ uri: imageUri }}
-                style={styles.previewImage}
+                style={styles.imageThumbnail}
                 resizeMode="cover"
               />
-            ) : (
-              <Text style={styles.imagePickerText}>Tap to pick an image</Text>
-            )}
-          </TouchableOpacity>
-
-          {/* Response area */}
-          {vlm.response ? (
-            <View style={styles.responseContainer}>
-              <Text style={styles.responseLabel}>Response:</Text>
-              <Text style={styles.responseText}>{vlm.response}</Text>
-            </View>
-          ) : vlm.isGenerating ? (
-            <View style={styles.responseContainer}>
-              <Text style={styles.responseLabel}>Generating…</Text>
-            </View>
-          ) : null}
-        </ScrollView>
-
-        {/* Bottom bar */}
-        <View style={styles.bottomContainer}>
-          <TextInput
-            autoCorrect={false}
-            onFocus={() => setIsTextInputFocused(true)}
-            onBlur={() => setIsTextInputFocused(false)}
-            style={[
-              styles.textInput,
-              {
-                borderColor: isTextInputFocused
-                  ? ColorPalette.blueDark
-                  : ColorPalette.blueLight,
-              },
-            ]}
-            placeholder="Ask about the image…"
-            placeholderTextColor="#C1C6E5"
-            multiline
-            value={prompt}
-            onChangeText={setPrompt}
-          />
-          {vlm.isGenerating ? (
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={vlm.interrupt}
-            >
-              <Text style={styles.actionButtonText}>Stop</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              style={[
-                styles.actionButton,
-                (!imageUri || !prompt.trim()) && styles.actionButtonDisabled,
-              ]}
-              onPress={handleGenerate}
-              disabled={!imageUri || !prompt.trim()}
-            >
-              <Text style={styles.actionButtonText}>Ask</Text>
+              <Text style={styles.imageThumbnailHint}>Tap to change</Text>
             </TouchableOpacity>
           )}
+
+          <View style={styles.bottomContainer}>
+            {/* Image picker button */}
+            <TouchableOpacity
+              style={styles.imageButton}
+              onPress={pickImage}
+              disabled={vlm.isGenerating}
+            >
+              <Text style={styles.imageButtonText}>📷</Text>
+            </TouchableOpacity>
+
+            <TextInput
+              autoCorrect={false}
+              ref={textInputRef}
+              onFocus={() => setIsTextInputFocused(true)}
+              onBlur={() => setIsTextInputFocused(false)}
+              style={[
+                styles.textInput,
+                {
+                  borderColor: isTextInputFocused
+                    ? ColorPalette.blueDark
+                    : ColorPalette.blueLight,
+                },
+              ]}
+              placeholder={imageUri ? 'Ask about the image…' : 'Your message'}
+              placeholderTextColor="#C1C6E5"
+              multiline
+              onChangeText={setUserInput}
+            />
+
+            {userInput.trim() && !vlm.isGenerating && (
+              <TouchableOpacity
+                style={styles.sendChatTouchable}
+                onPress={sendMessage}
+              >
+                <SendIcon height={24} width={24} padding={4} margin={8} />
+              </TouchableOpacity>
+            )}
+            {vlm.isGenerating && (
+              <TouchableOpacity
+                style={styles.sendChatTouchable}
+                onPress={vlm.interrupt}
+              >
+                <PauseIcon height={24} width={24} padding={4} margin={8} />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
@@ -318,74 +246,76 @@ const styles = StyleSheet.create({
   loadButtonText: { color: '#fff', fontFamily: 'medium', fontSize: 15 },
 
   // Chat phase
-  container: { flex: 1, backgroundColor: '#fff' },
-  scrollView: { flex: 1 },
-  scrollContent: { padding: 16, paddingBottom: 8 },
-  imagePicker: {
+  container: { flex: 1 },
+  chatContainer: { flex: 10, width: '100%' },
+  helloMessageContainer: {
+    flex: 10,
     width: '100%',
-    height: 220,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: ColorPalette.blueLight,
-    borderStyle: 'dashed',
-    justifyContent: 'center',
     alignItems: 'center',
-    overflow: 'hidden',
-    marginBottom: 16,
+    justifyContent: 'center',
   },
-  previewImage: { width: '100%', height: '100%' },
-  imagePickerText: {
-    color: ColorPalette.blueLight,
-    fontSize: 16,
-    fontFamily: 'regular',
-  },
-  responseContainer: {
-    backgroundColor: ColorPalette.seaBlueLight,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
-  },
-  responseLabel: {
-    fontSize: 12,
-    color: ColorPalette.blueDark,
+  helloText: {
     fontFamily: 'medium',
-    marginBottom: 4,
-  },
-  responseText: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 30,
     color: ColorPalette.primary,
-    fontFamily: 'regular',
   },
-  bottomContainer: {
+  bottomHelloText: {
+    fontFamily: 'regular',
+    fontSize: 20,
+    lineHeight: 28,
+    textAlign: 'center',
+    color: ColorPalette.primary,
+    paddingHorizontal: 24,
+  },
+  imageThumbnailContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: ColorPalette.blueLight,
-    backgroundColor: '#fff',
+    paddingVertical: 6,
+    gap: 8,
   },
+  imageThumbnail: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: ColorPalette.blueLight,
+  },
+  imageThumbnailHint: {
+    fontSize: 12,
+    fontFamily: 'regular',
+    color: ColorPalette.blueDark,
+  },
+  bottomContainer: {
+    height: 100,
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  imageButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 4,
+  },
+  imageButtonText: { fontSize: 22 },
   textInput: {
     flex: 1,
     borderWidth: 1,
     borderRadius: 8,
-    fontSize: 14,
     lineHeight: 19.6,
     fontFamily: 'regular',
+    fontSize: 14,
     color: ColorPalette.primary,
-    padding: 12,
-    maxHeight: 100,
+    padding: 16,
   },
-  actionButton: {
-    marginLeft: 8,
-    backgroundColor: ColorPalette.strongPrimary,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+  sendChatTouchable: {
+    height: '100%',
+    width: 48,
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'flex-end',
   },
-  actionButtonDisabled: { backgroundColor: ColorPalette.blueLight },
-  actionButtonText: { color: '#fff', fontFamily: 'medium', fontSize: 14 },
 });
