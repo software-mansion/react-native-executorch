@@ -22,10 +22,11 @@ public:
   BaseSemanticSegmentation(const std::string &modelSource,
                            std::vector<float> normMean,
                            std::vector<float> normStd,
+                           std::vector<std::string> allClasses,
                            std::shared_ptr<react::CallInvoker> callInvoker);
 
   [[nodiscard("Registered non-void function")]] std::shared_ptr<jsi::Object>
-  generate(std::string imageSource, std::vector<std::string> allClasses,
+  generate(std::string imageSource,
            std::set<std::string, std::less<>> classesOfInterest, bool resize);
 
 protected:
@@ -41,6 +42,7 @@ protected:
   std::size_t numModelPixels;
   std::optional<cv::Scalar> normMean_;
   std::optional<cv::Scalar> normStd_;
+  std::vector<std::string> allClasses_;
 
   std::shared_ptr<jsi::Object> populateDictionary(
       std::shared_ptr<OwningArrayBuffer> argmax,
@@ -55,5 +57,6 @@ private:
 
 REGISTER_CONSTRUCTOR(models::semantic_segmentation::BaseSemanticSegmentation,
                      std::string, std::vector<float>, std::vector<float>,
+                     std::vector<std::string>,
                      std::shared_ptr<react::CallInvoker>);
 } // namespace rnexecutorch

@@ -61,21 +61,8 @@ type ResolveLabels<T extends ObjectDetectionModelName | LabelEnum> =
 export class ObjectDetectionModule<
   T extends ObjectDetectionModelName | LabelEnum,
 > extends BaseLabeledModule<ResolveLabels<T>> {
-  private allLabelNames: string[];
-
   private constructor(labelMap: ResolveLabels<T>, nativeModule: unknown) {
     super(labelMap, nativeModule);
-    this.allLabelNames = [];
-    for (const [name, value] of Object.entries(this.labelMap)) {
-      if (typeof value === 'number') {
-        this.allLabelNames[value] = name;
-      }
-    }
-    for (let i = 0; i < this.allLabelNames.length; i++) {
-      if (this.allLabelNames[i] == null) {
-        this.allLabelNames[i] = '';
-      }
-    }
   }
 
   /**
@@ -95,11 +82,19 @@ export class ObjectDetectionModule<
     ] as ObjectDetectionConfig<LabelEnum>;
     const normMean = preprocessorConfig?.normMean ?? [];
     const normStd = preprocessorConfig?.normStd ?? [];
+    const allLabelNames: string[] = [];
+    for (const [name, value] of Object.entries(labelMap)) {
+      if (typeof value === 'number') allLabelNames[value] = name;
+    }
+    for (let i = 0; i < allLabelNames.length; i++) {
+      if (allLabelNames[i] == null) allLabelNames[i] = '';
+    }
     const modelPath = await fetchModelPath(modelSource, onDownloadProgress);
     const nativeModule = global.loadObjectDetection(
       modelPath,
       normMean,
-      normStd
+      normStd,
+      allLabelNames
     );
     return new ObjectDetectionModule<ModelNameOf<C>>(
       labelMap as ResolveLabels<ModelNameOf<C>>,
@@ -122,11 +117,19 @@ export class ObjectDetectionModule<
   ): Promise<ObjectDetectionModule<L>> {
     const normMean = config.preprocessorConfig?.normMean ?? [];
     const normStd = config.preprocessorConfig?.normStd ?? [];
+    const allLabelNames: string[] = [];
+    for (const [name, value] of Object.entries(config.labelMap)) {
+      if (typeof value === 'number') allLabelNames[value] = name;
+    }
+    for (let i = 0; i < allLabelNames.length; i++) {
+      if (allLabelNames[i] == null) allLabelNames[i] = '';
+    }
     const modelPath = await fetchModelPath(modelSource, onDownloadProgress);
     const nativeModule = global.loadObjectDetection(
       modelPath,
       normMean,
-      normStd
+      normStd,
+      allLabelNames
     );
     return new ObjectDetectionModule<L>(
       config.labelMap as ResolveLabels<L>,
@@ -155,14 +158,12 @@ export class ObjectDetectionModule<
     if (typeof input === 'string') {
       return await this.nativeModule.generateFromString(
         input,
-        detectionThreshold,
-        this.allLabelNames
+        detectionThreshold
       );
     }
     return await this.nativeModule.generateFromPixels(
       input,
-      detectionThreshold,
-      this.allLabelNames
+      detectionThreshold
     );
   }
 
@@ -181,7 +182,6 @@ export class ObjectDetectionModule<
     }
 
     const nativeGenerateFromFrame = this.nativeModule.generateFromFrame;
-    const allLabelNames = this.allLabelNames;
 
     return (
       frame: Frame,
@@ -193,7 +193,7 @@ export class ObjectDetectionModule<
       try {
         nativeBuffer = frame.getNativeBuffer();
         const frameData = { nativeBuffer: nativeBuffer.pointer };
-        return nativeGenerateFromFrame(frameData, detectionThreshold, allLabelNames);
+        return nativeGenerateFromFrame(frameData, detectionThreshold);
       } finally {
         if (nativeBuffer?.release) {
           nativeBuffer.release();

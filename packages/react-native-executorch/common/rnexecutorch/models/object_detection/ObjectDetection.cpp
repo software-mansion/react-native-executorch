@@ -10,9 +10,10 @@
 namespace rnexecutorch::models::object_detection {
 
 ObjectDetection::ObjectDetection(
-    const std::string &modelSource,
+    const std::string &modelSource, std::vector<float> normMean,
+    std::vector<float> normStd, std::vector<std::string> labelNames,
     std::shared_ptr<react::CallInvoker> callInvoker)
-    : VisionModel(modelSource, callInvoker) {
+    : VisionModel(modelSource, callInvoker), labelNames_(std::move(labelNames)) {
   auto inputTensors = getAllInputShapes();
   if (inputTensors.empty()) {
     throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
@@ -30,20 +31,14 @@ ObjectDetection::ObjectDetection(
   }
   modelImageSize = cv::Size(modelInputShape[modelInputShape.size() - 1],
                             modelInputShape[modelInputShape.size() - 2]);
-}
-
-ObjectDetection::ObjectDetection(
-    const std::string &modelSource, std::vector<float> normMean,
-    std::vector<float> normStd, std::shared_ptr<react::CallInvoker> callInvoker)
-    : ObjectDetection(modelSource, callInvoker) {
   if (normMean.size() == 3) {
-    normMean_ = std::move(normMean);
+    normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
   } else if (!normMean.empty()) {
     log(LOG_LEVEL::Warn,
         "normMean must have 3 elements — ignoring provided value.");
   }
   if (normStd.size() == 3) {
-    normStd_ = std::move(normStd);
+    normStd_ = cv::Scalar(normStd[0], normStd[1], normStd[2]);
   } else if (!normStd.empty()) {
     log(LOG_LEVEL::Warn,
         "normStd must have 3 elements — ignoring provided value.");
@@ -126,8 +121,7 @@ ObjectDetection::postprocess(const std::vector<EValue> &tensors,
 }
 
 std::vector<types::Detection>
-ObjectDetection::runInference(cv::Mat image, double detectionThreshold,
-                              const std::vector<std::string> &labelNames) {
+ObjectDetection::runInference(cv::Mat image, double detectionThreshold) {
   if (detectionThreshold < 0.0 || detectionThreshold > 1.0) {
     throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
                             "detectionThreshold must be in range [0, 1]");
@@ -139,11 +133,9 @@ ObjectDetection::runInference(cv::Mat image, double detectionThreshold,
 
   const std::vector<int32_t> tensorDims = getAllInputShapes()[0];
   auto inputTensor =
-      (!normMean_.empty() && !normStd_.empty())
-          ? image_processing::getTensorFromMatrix(
-                tensorDims, preprocessed,
-                cv::Scalar(normMean_[0], normMean_[1], normMean_[2]),
-                cv::Scalar(normStd_[0], normStd_[1], normStd_[2]))
+      (normMean_ && normStd_)
+          ? image_processing::getTensorFromMatrix(tensorDims, preprocessed,
+                                                  *normMean_, *normStd_)
           : image_processing::getTensorFromMatrix(tensorDims, preprocessed);
 
   auto forwardResult = BaseModel::forward(inputTensor);
@@ -154,38 +146,35 @@ ObjectDetection::runInference(cv::Mat image, double detectionThreshold,
   }
 
   return postprocess(forwardResult.get(), originalSize, detectionThreshold,
-                     labelNames);
+                     labelNames_);
 }
 
 std::vector<types::Detection>
 ObjectDetection::generateFromString(std::string imageSource,
-                                    double detectionThreshold,
-                                    std::vector<std::string> labelNames) {
+                                    double detectionThreshold) {
   cv::Mat imageBGR = image_processing::readImage(imageSource);
 
   cv::Mat imageRGB;
   cv::cvtColor(imageBGR, imageRGB, cv::COLOR_BGR2RGB);
 
-  return runInference(imageRGB, detectionThreshold, labelNames);
+  return runInference(imageRGB, detectionThreshold);
 }
 
 std::vector<types::Detection>
 ObjectDetection::generateFromFrame(jsi::Runtime &runtime,
                                    const jsi::Value &frameData,
-                                   double detectionThreshold,
-                                   std::vector<std::string> labelNames) {
+                                   double detectionThreshold) {
   auto frameObj = frameData.asObject(runtime);
   cv::Mat frame = rnexecutorch::utils::extractFrame(runtime, frameObj);
 
-  return runInference(frame, detectionThreshold, labelNames);
+  return runInference(frame, detectionThreshold);
 }
 
 std::vector<types::Detection>
 ObjectDetection::generateFromPixels(JSTensorViewIn pixelData,
-                                    double detectionThreshold,
-                                    std::vector<std::string> labelNames) {
+                                    double detectionThreshold) {
   cv::Mat image = extractFromPixels(pixelData);
 
-  return runInference(image, detectionThreshold, labelNames);
+  return runInference(image, detectionThreshold);
 }
 } // namespace rnexecutorch::models::object_detection

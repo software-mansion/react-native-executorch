@@ -80,13 +80,8 @@ type ResolveLabels<T extends SemanticSegmentationModelName | LabelEnum> =
 export class SemanticSegmentationModule<
   T extends SemanticSegmentationModelName | LabelEnum,
 > extends BaseLabeledModule<ResolveLabels<T>> {
-  private allClassNames: string[];
-
   private constructor(labelMap: ResolveLabels<T>, nativeModule: unknown) {
     super(labelMap, nativeModule);
-    this.allClassNames = Object.keys(this.labelMap).filter((k) =>
-      isNaN(Number(k))
-    );
   }
 
   /**
@@ -117,11 +112,13 @@ export class SemanticSegmentationModule<
     ] as SemanticSegmentationConfig<LabelEnum>;
     const normMean = preprocessorConfig?.normMean ?? [];
     const normStd = preprocessorConfig?.normStd ?? [];
+    const allClassNames = Object.keys(labelMap).filter((k) => isNaN(Number(k)));
     const modelPath = await fetchModelPath(modelSource, onDownloadProgress);
     const nativeModule = global.loadSemanticSegmentation(
       modelPath,
       normMean,
-      normStd
+      normStd,
+      allClassNames
     );
     return new SemanticSegmentationModule<ModelNameOf<C>>(
       labelMap as ResolveLabels<ModelNameOf<C>>,
@@ -154,11 +151,15 @@ export class SemanticSegmentationModule<
   ): Promise<SemanticSegmentationModule<L>> {
     const normMean = config.preprocessorConfig?.normMean ?? [];
     const normStd = config.preprocessorConfig?.normStd ?? [];
+    const allClassNames = Object.keys(config.labelMap).filter((k) =>
+      isNaN(Number(k))
+    );
     const modelPath = await fetchModelPath(modelSource, onDownloadProgress);
     const nativeModule = global.loadSemanticSegmentation(
       modelPath,
       normMean,
-      normStd
+      normStd,
+      allClassNames
     );
     return new SemanticSegmentationModule<L>(
       config.labelMap as ResolveLabels<L>,
@@ -193,7 +194,6 @@ export class SemanticSegmentationModule<
 
     const nativeResult = await this.nativeModule.generate(
       imageSource,
-      this.allClassNames,
       classesOfInterestNames,
       resizeToInput
     );
