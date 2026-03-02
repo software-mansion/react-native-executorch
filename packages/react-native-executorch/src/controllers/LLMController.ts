@@ -295,7 +295,6 @@ export class LLMController {
     }
     try {
       this.isGeneratingCallback(true);
-      this.nativeModule.reset();
       const response = await this.nativeModule.generateMultimodal(
         messages,
         this.onToken
@@ -389,7 +388,7 @@ export class LLMController {
 
     let response: string;
 
-    if (mediaPath || this._messageHistory.some((m) => m.mediaPath)) {
+    if (updatedHistory.some((m) => m.mediaPath)) {
       // Any message in history has media — use multimodal path
       response = await this.generateMultimodal(updatedHistory);
     } else {
