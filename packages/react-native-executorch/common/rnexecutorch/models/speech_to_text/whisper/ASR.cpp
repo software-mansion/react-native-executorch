@@ -11,8 +11,6 @@
 #include <rnexecutorch/data_processing/Numerical.h>
 #include <rnexecutorch/data_processing/gzip.h>
 
-#include <rnexecutorch/Log.h>
-
 namespace rnexecutorch::models::speech_to_text::whisper {
 
 using executorch::runtime::etensor::ScalarType;
@@ -362,21 +360,19 @@ std::vector<Segment> ASR::calculateWordLevelTimestamps(
   const uint64_t end = generatedTokens[generatedTokensSize - 2];
   auto words = this->estimateWordLevelTimestampsLinear(tokens, start, end);
 
-  if (words.empty()) {
-    return {};
+  if (!words.empty()) {
+    Segment seg;
+    seg.words = std::move(words);
+    seg.tokens = tokens;
+    seg.avgLogprob = avgLogProb;
+    seg.temperature = temperature;
+    seg.compressionRatio = compressionRatio;
+
+    seg.start = seg.words.front().start;
+    seg.end = seg.words.back().end;
+
+    segments.push_back(std::move(seg));
   }
-
-  Segment seg;
-  seg.words = std::move(words);
-  seg.tokens = tokens;
-  seg.avgLogprob = avgLogProb;
-  seg.temperature = temperature;
-  seg.compressionRatio = compressionRatio;
-
-  seg.start = seg.words.front().start;
-  seg.end = seg.words.back().end;
-
-  segments.push_back(std::move(seg));
 
   float scalingFactor =
       static_cast<float>(waveform.size()) /
@@ -405,7 +401,7 @@ ASR::estimateWordLevelTimestampsLinear(std::span<const uint64_t> tokens,
   std::string word;
   while (iss >> word) {
     // Detect special tokens such as [BLANK_AUDIO] by searching for square
-    // bracket
+    // bracket.
     if (word.find('[') == std::string::npos &&
         word.find(']') == std::string::npos) {
       wordsStr.emplace_back(" ");

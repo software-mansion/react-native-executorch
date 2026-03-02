@@ -50,10 +50,16 @@ constexpr static float kStreamMaxOverlapTimestampDiff = 15.F; // [s]
 constexpr static float kStreamChunkThreshold = 20.F; // [s]
 
 /**
- * Decides how much of recent audio waveform should be kept in when
+ * Decides how much of recent audio waveform is always kept in when
  * clearing the audio buffer in streaming algorithm.
  */
-constexpr static float kStreamAudioBufferReserve = 5.F; // [s]
+constexpr static float kStreamAudioBufferMinReserve = 2.F; // [s]
+
+/**
+ * Decides how much of recent audio waveform can be kept in when
+ * clearing the audio buffer in streaming algorithm.
+ */
+constexpr static float kStreamAudioBufferMaxReserve = 6.F; // [s]
 
 /**
  * An estimate of number of words per second produced in a standard
