@@ -51,7 +51,7 @@ export const useLLM = ({ model, preventLoad = false }: LLMProps): LLMType => {
         await controllerInstance.load({
           modelSource: model.modelSource,
           tokenizerSource: model.tokenizerSource,
-          tokenizerConfigSource: model.tokenizerConfigSource,
+          tokenizerConfigSource: model.tokenizerConfigSource!,
           onDownloadProgressCallback: setDownloadProgress,
         });
       } catch (e) {
