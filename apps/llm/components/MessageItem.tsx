@@ -38,7 +38,7 @@ const MessageItem = memo(({ message, deleteMessage }: MessageItemProps) => {
           <Image
             source={{ uri: message.mediaPath }}
             style={styles.userMessageImage}
-            resizeMode="cover"
+            resizeMode="contain"
           />
         )}
         <MarkdownComponent text={message.content} />
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   },
   userMessageImage: {
     width: 200,
-    height: 150,
+    height: 200,
     borderRadius: 6,
     marginBottom: 6,
   },
