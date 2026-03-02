@@ -370,7 +370,7 @@ export class LLMController {
         // eslint-disable-next-line camelcase
         { tools_in_user_message: false, add_generation_prompt: true }
       );
-      const imagePaths = updatedHistory
+      const imagePaths = messageHistoryWithPrompt
         .filter((m) => m.mediaPath)
         .map((m) => m.mediaPath!);
       response = await this.forward(renderedPrompt, imagePaths);
