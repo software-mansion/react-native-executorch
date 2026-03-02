@@ -109,41 +109,44 @@ void SpeechToText::stream(std::shared_ptr<jsi::Function> callback,
                             "Streaming is already in progress!");
   }
 
-  auto nativeCallback = [this, callback,
-                         verbose](const TranscriptionResult &committed,
-                                  const TranscriptionResult &nonCommitted,
-                                  bool isDone) {
-    // This moves execution to the JS thread
-    callInvoker_->invokeAsync(
-        [callback, committed, nonCommitted, isDone, verbose](jsi::Runtime &rt) {
-          jsi::Value jsiCommitted =
-              rnexecutorch::jsi_conversion::getJsiValue(committed, rt);
-          jsi::Value jsiNonCommitted =
-              rnexecutorch::jsi_conversion::getJsiValue(nonCommitted, rt);
+  auto nativeCallback =
+      [this, callback](const TranscriptionResult &committed,
+                       const TranscriptionResult &nonCommitted, bool isDone) {
+        // This moves execution to the JS thread
+        callInvoker_->invokeAsync(
+            [callback, committed, nonCommitted, isDone](jsi::Runtime &rt) {
+              jsi::Value jsiCommitted =
+                  rnexecutorch::jsi_conversion::getJsiValue(committed, rt);
+              jsi::Value jsiNonCommitted =
+                  rnexecutorch::jsi_conversion::getJsiValue(nonCommitted, rt);
 
-          callback->call(rt, std::move(jsiCommitted),
-                         std::move(jsiNonCommitted), jsi::Value(isDone));
-        });
-  };
+              callback->call(rt, std::move(jsiCommitted),
+                             std::move(jsiNonCommitted), jsi::Value(isDone));
+            });
+      };
 
   isStreaming_ = true;
   DecodingOptions options(languageOption, verbose);
 
   while (isStreaming_) {
-    if (!readyToProcess_ || !streamer_->isReady()) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-      continue;
+    if (readyToProcess_ && streamer_->isReady()) {
+      ProcessResult res = streamer_->process(options);
+
+      TranscriptionResult cRes =
+          wordsToResult(res.committed, languageOption, verbose);
+      TranscriptionResult ncRes =
+          wordsToResult(res.nonCommitted, languageOption, verbose);
+
+      nativeCallback(cRes, ncRes, false);
+      readyToProcess_ = false;
     }
 
-    ProcessResult res = streamer_->process(options);
-
-    TranscriptionResult cRes =
-        wordsToResult(res.committed, languageOption, verbose);
-    TranscriptionResult ncRes =
-        wordsToResult(res.nonCommitted, languageOption, verbose);
-
-    nativeCallback(cRes, ncRes, false);
-    readyToProcess_ = false;
+    // Add a minimal pause between transcriptions.
+    // The reasoning is very simple: with the current liberal threshold values,
+    // running transcriptions too rapidly (before the audio buffer is filled
+    // with significant amount of new data) can cause streamer to commit wrong
+    // phrases.
+    std::this_thread::sleep_for(std::chrono::milliseconds(75));
   }
 
   std::vector<Word> finalWords = streamer_->finish();
