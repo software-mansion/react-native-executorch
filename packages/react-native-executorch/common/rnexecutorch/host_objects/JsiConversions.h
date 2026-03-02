@@ -228,6 +228,36 @@ getValue<std::vector<uint64_t>>(const jsi::Value &val, jsi::Runtime &runtime) {
   return getArrayAsVector<uint64_t>(val, runtime);
 }
 
+struct NativeMessage {
+  std::string role; // "user" | "assistant" | "system"
+  std::string content;
+  std::string mediaPath; // empty string if no media
+};
+
+template <>
+inline std::vector<NativeMessage>
+getValue<std::vector<NativeMessage>>(const jsi::Value &val,
+                                     jsi::Runtime &runtime) {
+  jsi::Array array = val.asObject(runtime).asArray(runtime);
+  size_t length = array.size(runtime);
+  std::vector<NativeMessage> result;
+  result.reserve(length);
+  for (size_t i = 0; i < length; ++i) {
+    jsi::Object obj = array.getValueAtIndex(runtime, i).asObject(runtime);
+    NativeMessage msg;
+    msg.role =
+        obj.getProperty(runtime, "role").getString(runtime).utf8(runtime);
+    msg.content =
+        obj.getProperty(runtime, "content").getString(runtime).utf8(runtime);
+    auto mediaProp = obj.getProperty(runtime, "mediaPath");
+    if (!mediaProp.isUndefined() && !mediaProp.isNull()) {
+      msg.mediaPath = mediaProp.getString(runtime).utf8(runtime);
+    }
+    result.push_back(std::move(msg));
+  }
+  return result;
+}
+
 // Template specializations for std::span<T> types
 template <>
 inline std::span<float> getValue<std::span<float>>(const jsi::Value &val,
