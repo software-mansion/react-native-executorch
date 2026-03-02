@@ -1,6 +1,6 @@
 import { RnExecutorchError } from '../errors/errorUtils';
 import { LabelEnum, ResourceSource } from './common';
-import { Bbox, CocoLabel } from './objectDetection';
+import { Bbox } from './objectDetection';
 
 /**
  * Represents a single detected instance in instance segmentation output.
@@ -133,7 +133,6 @@ export type InstanceSegmentationModelSources =
   | { modelName: 'yolo26s-seg'; modelSource: ResourceSource }
   | { modelName: 'yolo26m-seg'; modelSource: ResourceSource }
   | { modelName: 'yolo26l-seg'; modelSource: ResourceSource }
-  | { modelName: 'rfdetr_seg'; modelSource: ResourceSource }
   | { modelName: 'yolo26x-seg'; modelSource: ResourceSource };
 
 /**
@@ -145,20 +144,12 @@ export type InstanceSegmentationModelName =
   InstanceSegmentationModelSources['modelName'];
 
 /**
- * Extracts the model name from a {@link InstanceSegmentationModelSources} config object.
- *
- * @category Types
- */
-export type ModelNameOf<C extends InstanceSegmentationModelSources> =
-  C['modelName'];
-
-/**
- * Alias for {@link ModelNameOf}. Extracts the instance segmentation model name from a config object.
+ * Extracts the instance segmentation model name from a {@link InstanceSegmentationModelSources} config object.
  *
  * @category Types
  */
 export type InstanceModelNameOf<C extends InstanceSegmentationModelSources> =
-  ModelNameOf<C>;
+  C['modelName'];
 
 /**
  * Props for the `useInstanceSegmentation` hook.

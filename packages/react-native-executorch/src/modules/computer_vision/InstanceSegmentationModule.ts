@@ -31,10 +31,7 @@ const ModelConfigs = {
   'yolo26m-seg': YOLO_SEG_CONFIG,
   'yolo26l-seg': YOLO_SEG_CONFIG,
   'yolo26x-seg': YOLO_SEG_CONFIG,
-} as const satisfies Record<
-  InstanceSegmentationModelName,
-  InstanceSegmentationConfig<LabelEnum>
->;
+} as const;
 
 /** @internal */
 type ModelConfigsType = typeof ModelConfigs;
@@ -90,11 +87,11 @@ export class InstanceSegmentationModule<
   T extends InstanceSegmentationModelName | LabelEnum,
 > extends BaseModule {
   private labelMap: ResolveLabels<T>;
-  private modelConfig: InstanceSegmentationConfig<ResolveLabels<T>>;
+  private modelConfig: InstanceSegmentationConfig<LabelEnum>;
 
   private constructor(
     labelMap: ResolveLabels<T>,
-    modelConfig: InstanceSegmentationConfig<ResolveLabels<T>>,
+    modelConfig: InstanceSegmentationConfig<LabelEnum>,
     nativeModule: unknown
   ) {
     super();
@@ -127,7 +124,7 @@ export class InstanceSegmentationModule<
     onDownloadProgress: (progress: number) => void = () => {}
   ): Promise<InstanceSegmentationModule<InstanceModelNameOf<C>>> {
     const { modelName, modelSource } = config;
-    const modelConfig = ModelConfigs[modelName];
+    const modelConfig = ModelConfigs[modelName as keyof typeof ModelConfigs];
 
     const paths = await ResourceFetcher.fetch(onDownloadProgress, modelSource);
     if (!paths?.[0]) {
@@ -155,9 +152,7 @@ export class InstanceSegmentationModule<
 
     return new InstanceSegmentationModule<InstanceModelNameOf<C>>(
       modelConfig.labelMap as ResolveLabels<InstanceModelNameOf<C>>,
-      modelConfig as InstanceSegmentationConfig<
-        ResolveLabels<InstanceModelNameOf<C>>
-      >,
+      modelConfig,
       nativeModule
     );
   }
@@ -221,7 +216,7 @@ export class InstanceSegmentationModule<
 
     return new InstanceSegmentationModule<L>(
       config.labelMap as ResolveLabels<L>,
-      config as InstanceSegmentationConfig<ResolveLabels<L>>,
+      config,
       nativeModule
     );
   }
@@ -298,6 +293,8 @@ export class InstanceSegmentationModule<
         })
       : [];
 
+    // Measure inference time
+    const startTime = performance.now();
     const nativeResult = await this.nativeModule.generate(
       imageSource,
       confidenceThreshold,
@@ -307,10 +304,18 @@ export class InstanceSegmentationModule<
       returnMaskAtOriginalResolution,
       inputSize // Pass inputSize as number instead of methodName as string
     );
+    const endTime = performance.now();
+    const inferenceTime = endTime - startTime;
+
+    console.log(
+      `[Instance Segmentation] Inference completed in ${inferenceTime.toFixed(2)}ms | Input size: ${inputSize}x${inputSize} | Detected: ${nativeResult.length} instances`
+    );
 
     // Convert label indices back to label names
     // YOLO outputs 0-indexed class IDs, but COCO labels are 1-indexed, so add 1
-    const reverseLabelMap = Object.entries(this.labelMap).reduce(
+    const reverseLabelMap = Object.entries(
+      this.labelMap as Record<string, number>
+    ).reduce(
       (acc, [key, value]) => {
         acc[value as number] = key;
         return acc;

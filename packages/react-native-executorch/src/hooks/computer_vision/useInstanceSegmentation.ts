@@ -47,9 +47,7 @@ export const useInstanceSegmentation = <
 >({
   model,
   preventLoad = false,
-}: InstanceSegmentationProps<C>): InstanceSegmentationType<
-  InstanceSegmentationLabels<InstanceModelNameOf<C>>
-> => {
+}: InstanceSegmentationProps<C>): InstanceSegmentationType<LabelEnum> => {
   const [error, setError] = useState<RnExecutorchError | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -96,9 +94,7 @@ export const useInstanceSegmentation = <
 
   const forward = async (
     imageSource: string,
-    options?: InstanceSegmentationOptions<
-      InstanceSegmentationLabels<InstanceModelNameOf<C>>
-    >
+    options?: InstanceSegmentationOptions<LabelEnum>
   ) => {
     if (!isReady || !instance) {
       throw new RnExecutorchError(
