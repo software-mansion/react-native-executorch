@@ -41,6 +41,13 @@ declare global {
     normMean: Triple<number> | [],
     normStd: Triple<number> | []
   ) => any;
+  var loadInstanceSegmentation: (
+    source: string,
+    postprocessorType: string,
+    normMean: number[] | [],
+    normStd: number[] | [],
+    applyNMS: boolean
+  ) => any;
   var loadClassification: (source: string) => any;
   var loadObjectDetection: (source: string) => any;
   var loadExecutorchModule: (source: string) => any;
@@ -85,9 +92,11 @@ declare global {
   ) => any;
 }
 // eslint-disable no-var
+
 if (
   global.loadStyleTransfer == null ||
   global.loadSemanticSegmentation == null ||
+  global.loadInstanceSegmentation == null ||
   global.loadTextToImage == null ||
   global.loadExecutorchModule == null ||
   global.loadClassification == null ||
@@ -115,6 +124,7 @@ export * from './hooks/computer_vision/useClassification';
 export * from './hooks/computer_vision/useObjectDetection';
 export * from './hooks/computer_vision/useStyleTransfer';
 export * from './hooks/computer_vision/useSemanticSegmentation';
+export * from './hooks/computer_vision/useInstanceSegmentation';
 export * from './hooks/computer_vision/useOCR';
 export * from './hooks/computer_vision/useVerticalOCR';
 export * from './hooks/computer_vision/useImageEmbeddings';
@@ -134,6 +144,7 @@ export * from './modules/computer_vision/ClassificationModule';
 export * from './modules/computer_vision/ObjectDetectionModule';
 export * from './modules/computer_vision/StyleTransferModule';
 export * from './modules/computer_vision/SemanticSegmentationModule';
+export * from './modules/computer_vision/InstanceSegmentationModule';
 export * from './modules/computer_vision/OCRModule';
 export * from './modules/computer_vision/VerticalOCRModule';
 export * from './modules/computer_vision/ImageEmbeddingsModule';
@@ -159,6 +170,7 @@ export * from './utils/llms/context_strategy';
 export * from './types/objectDetection';
 export * from './types/ocr';
 export * from './types/semanticSegmentation';
+export * from './types/instanceSegmentation';
 export * from './types/llm';
 export * from './types/vad';
 export * from './types/common';

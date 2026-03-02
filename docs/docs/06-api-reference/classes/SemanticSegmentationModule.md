@@ -1,9 +1,9 @@
 # Class: SemanticSegmentationModule\<T\>
 
-Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:81](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/SemanticSegmentationModule.ts#L81)
+Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:60](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/SemanticSegmentationModule.ts#L60)
 
 Generic semantic segmentation module with type-safe label maps.
-Use a model name (e.g. `'deeplab-v3-resnet50'`) as the generic parameter for built-in models,
+Use a model name (e.g. `'deeplab-v3'`) as the generic parameter for built-in models,
 or a custom label enum for custom configs.
 
 ## Extends
@@ -185,9 +185,9 @@ Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:97](https://g
 
 ### fromCustomConfig()
 
-> `static` **fromCustomConfig**\<`L`\>(`modelSource`, `config`, `onDownloadProgress?`): `Promise`\<`SemanticSegmentationModule`\<`L`\>\>
+> `static` **fromCustomConfig**\<`L`\>(`modelSource`, `config`, `onDownloadProgress`): `Promise`\<`SemanticSegmentationModule`\<`L`\>\>
 
-Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:163](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/SemanticSegmentationModule.ts#L163)
+Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:142](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/SemanticSegmentationModule.ts#L142)
 
 Creates a segmentation instance with a user-provided label map and custom config.
 Use this when working with a custom-exported segmentation model that is not one of the built-in models.
@@ -238,22 +238,6 @@ const segmentation = await SemanticSegmentationModule.fromCustomConfig(
 
 ### fromModelName()
 
-> `static` **fromModelName**\<`C`\>(`config`, `onDownloadProgress?`): `Promise`\<`SemanticSegmentationModule`\<[`ModelNameOf`](../type-aliases/ModelNameOf.md)\<`C`\>\>\>
-
-Defined in: [modules/computer_vision/SemanticSegmentationModule.ts:116](https://github.com/software-mansion/react-native-executorch/blob/main/packages/react-native-executorch/src/modules/computer_vision/SemanticSegmentationModule.ts#L116)
-
-Creates a segmentation instance for a built-in model.
-The config object is discriminated by `modelName` — each model can require different fields.
-
-#### Type Parameters
-
-##### C
-
-`C` _extends_ [`SemanticSegmentationModelSources`](../type-aliases/SemanticSegmentationModelSources.md)
-
-#### Parameters
-
-##### config
 
 `C`
 

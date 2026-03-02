@@ -1,10 +1,12 @@
 #include "RnExecutorchInstaller.h"
 
+#include <iostream>
 #include <rnexecutorch/TokenizerModule.h>
 #include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/models/classification/Classification.h>
 #include <rnexecutorch/models/embeddings/image/ImageEmbeddings.h>
 #include <rnexecutorch/models/embeddings/text/TextEmbeddings.h>
+#include <rnexecutorch/models/instance_segmentation/BaseInstanceSegmentation.h>
 #include <rnexecutorch/models/llm/LLM.h>
 #include <rnexecutorch/models/object_detection/ObjectDetection.h>
 #include <rnexecutorch/models/ocr/OCR.h>
@@ -46,6 +48,12 @@ void RnExecutorchInstaller::injectJSIBindings(
       RnExecutorchInstaller::loadModel<
           models::semantic_segmentation::BaseSemanticSegmentation>(
           jsiRuntime, jsCallInvoker, "loadSemanticSegmentation"));
+
+  jsiRuntime->global().setProperty(
+      *jsiRuntime, "loadInstanceSegmentation",
+      RnExecutorchInstaller::loadModel<
+          models::instance_segmentation::BaseInstanceSegmentation>(
+          jsiRuntime, jsCallInvoker, "loadInstanceSegmentation"));
 
   jsiRuntime->global().setProperty(
       *jsiRuntime, "loadTextToImage",

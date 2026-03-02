@@ -127,6 +127,23 @@ Times presented in the tables are measured as consecutive runs of the model. Ini
 | ----------------- | ---------------------------- | -------------------------------- | --------------------------------- |
 | DEELABV3_RESNET50 | 1000                         | 670                              | 700                               |
 
+## Instance Segmentation
+
+:::warning
+Times presented in the tables are measured as consecutive runs of the model. Initial run times may be up to 2x longer due to model loading and initialization.
+:::
+:::warning
+Times presented in the tables are measured for forward method with input size equal to 512. Other input sizes may yeild slower or faster inference times.
+:::
+
+| Model       | Samsung Galaxy S24 (XNNPACK) [ms] | Iphone 17 pro (XNNPACK) [ms] |
+| ----------- | --------------------------------- | ---------------------------- |
+| YOLO26n_SEG | 92                                | 90                           |
+| YOLO26s_SEG | 220                               | 188                          |
+| YOLO26m_SEG | 570                               | 550                          |
+| YOLO26l_SEG | 680                               | 608                          |
+| YOLO26x_SEG | 1410                              | 1338                         |
+
 ## Text to image
 
 | Model                 | iPhone 17 Pro (XNNPACK) [ms] | iPhone 16 Pro (XNNPACK) [ms] | iPhone SE 3 (XNNPACK) [ms] | Samsung Galaxy S24 (XNNPACK) [ms] | OnePlus 12 (XNNPACK) [ms] |
