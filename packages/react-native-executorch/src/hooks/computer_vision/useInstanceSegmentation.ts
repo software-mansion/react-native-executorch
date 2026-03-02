@@ -16,28 +16,32 @@ import { RnExecutorchError, parseUnknownError } from '../../errors/errorUtils';
 /**
  * React hook for managing an Instance Segmentation model instance.
  *
+ * Provides type-safe access to instance segmentation models with automatic label inference.
+ * For YOLO models, labels are automatically typed as COCO dataset classes (80 categories).
+ *
  * @typeParam C - A {@link InstanceSegmentationModelSources} config specifying which model to load.
  * @param props - Configuration object containing `model` config and optional `preventLoad` flag.
- * @returns An object with model state (`error`, `isReady`, `isGenerating`, `downloadProgress`) and a typed `forward` function.
+ * @returns An object with model state (`error`, `isReady`, `isGenerating`, `downloadProgress`) and a typed `forward` function where result labels are type-safe.
  *
  * @example
+ * Using a pre-configured model constant:
  * ```ts
+ * import { useInstanceSegmentation, YOLO26N_SEG } from 'react-native-executorch';
+ *
  * const { isReady, isGenerating, forward, error, downloadProgress } =
- *   useInstanceSegmentation({
- *     model: {
- *       modelName: 'yolo26n-seg',
- *       modelSource: 'https://huggingface.co/.../yolo26n-seg.pte',
- *     },
- *   });
+ *   useInstanceSegmentation({ model: YOLO26N_SEG });
  *
  * if (!isReady) {
  *   return <Text>Loading: {(downloadProgress * 100).toFixed(0)}%</Text>;
  * }
  *
- * const results = await forward('path/to/image.jpg', {
+ * const instances = await forward('path/to/image.jpg', {
  *   confidenceThreshold: 0.5,
  *   inputSize: 640,
  * });
+ *
+ * // instances[0].label is typed as COCO labels: "PERSON" | "CAR" | "DOG" | ...
+ * console.log(instances[0].label); // TypeScript knows all possible values
  * ```
  *
  * @category Hooks
@@ -47,7 +51,9 @@ export const useInstanceSegmentation = <
 >({
   model,
   preventLoad = false,
-}: InstanceSegmentationProps<C>): InstanceSegmentationType<LabelEnum> => {
+}: InstanceSegmentationProps<C>): InstanceSegmentationType<
+  InstanceSegmentationLabels<InstanceModelNameOf<C>>
+> => {
   const [error, setError] = useState<RnExecutorchError | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -94,7 +100,9 @@ export const useInstanceSegmentation = <
 
   const forward = async (
     imageSource: string,
-    options?: InstanceSegmentationOptions<LabelEnum>
+    options?: InstanceSegmentationOptions<
+      InstanceSegmentationLabels<InstanceModelNameOf<C>>
+    >
   ) => {
     if (!isReady || !instance) {
       throw new RnExecutorchError(

@@ -92,6 +92,16 @@ title: Model Size
 | ----------------- | ------------ |
 | DEELABV3_RESNET50 | 168          |
 
+## Instance Segmentation
+
+| Model       | XNNPACK [MB] |
+| ----------- | ------------ |
+| YOLO26N_SEG | 13.6         |
+| YOLO26S_SEG | 46.2         |
+| YOLO26M_SEG | 105          |
+| YOLO26L_SEG | 123          |
+| YOLO26X_SEG | 274          |
+
 ## Text to image
 
 | Model             | Text encoder (XNNPACK) [MB] | UNet (XNNPACK) [MB] | VAE decoder (XNNPACK) [MB] |

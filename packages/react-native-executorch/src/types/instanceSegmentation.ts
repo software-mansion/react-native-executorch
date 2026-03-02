@@ -43,14 +43,11 @@ export interface PreprocessorConfig {
 
 /**
  * Postprocessor configuration for instance segmentation models.
+ * Configuration is declarative - specify only what you need.
  *
  * @category Types
  */
 export interface PostprocessorConfig {
-  /**
-   * Type of postprocessor to use. Determines how model outputs are interpreted.
-   */
-  type: 'yolo' | 'rfdetr';
   /**
    * Default confidence threshold for this model.
    */
@@ -61,6 +58,7 @@ export interface PostprocessorConfig {
   defaultIouThreshold?: number;
   /**
    * Whether to apply Non-Maximum Suppression (NMS). Default: true
+   * If true, NMS will be applied using the specified or default IoU threshold.
    */
   applyNMS?: boolean;
 }
@@ -107,16 +105,57 @@ export interface InstanceSegmentationOptions<L extends LabelEnum> {
  *
  * @typeParam T - The {@link LabelEnum} type for the model.
  * @property labelMap - The enum-like object mapping class names to indices
- * @property availableInputSizes - Array of supported input sizes (e.g., [384, 416, 512, 640, 1024])
- * @property defaultInputSize - Default input size to use if not specified
+ * @property availableInputSizes - (Optional) Array of supported input sizes for multi-method models (e.g., [384, 416, 512, 640, 1024])
+ * @property defaultInputSize - (Optional) Default input size to use if not specified. Required if availableInputSizes is provided
  * @property preprocessorConfig - Optional preprocessing configuration (normalization, etc.)
  * @property postprocessorConfig - Postprocessing configuration (type, thresholds, etc.)
+ *
+ * @remarks
+ * **Multi-Method Models (e.g., YOLO):**
+ * - Provide both `availableInputSizes` and `defaultInputSize`
+ * - Model must have separate methods like `forward_384`, `forward_512`, `forward_640`
+ * - Input size can be specified in {@link InstanceSegmentationOptions.inputSize}
+ * - Input size will be validated against availableInputSizes
+ *
+ * @example
+ * ```typescript
+ * // Multi-method model config (YOLO)
+ * const yoloConfig = {
+ *   labelMap: CocoLabel,
+ *   availableInputSizes: [384, 416, 512, 640, 1024],
+ *   defaultInputSize: 640,
+ *   postprocessorConfig: {
+ *     defaultConfidenceThreshold: 0.5,
+ *     defaultIouThreshold: 0.45,
+ *     applyNMS: false  // YOLO already applies NMS internally
+ *   }
+ * };
+ * ```
+ *
+ * **Single-Method Models (e.g., RFDetr):**
+ * - Omit both `availableInputSizes` and `defaultInputSize`
+ * - Model must have a single `forward` method
+ * - Input shape is auto-detected from model metadata
+ * - {@link InstanceSegmentationOptions.inputSize} parameter is ignored (with warning)
+ *
+ * @example
+ * ```typescript
+ * // Single-method model config (RFDetr)
+ * const rfdetrConfig = {
+ *   labelMap: CocoLabel,
+ *   postprocessorConfig: {
+ *     defaultConfidenceThreshold: 0.5,
+ *     applyNMS: true  // RFDetr needs NMS to be applied
+ *   }
+ * };
+ * ```
+ *
  * @category Types
  */
 export type InstanceSegmentationConfig<T extends LabelEnum> = {
   labelMap: T;
-  availableInputSizes: readonly number[];
-  defaultInputSize: number;
+  availableInputSizes?: readonly number[];
+  defaultInputSize?: number;
   preprocessorConfig?: PreprocessorConfig;
   postprocessorConfig: PostprocessorConfig;
 };
@@ -133,7 +172,8 @@ export type InstanceSegmentationModelSources =
   | { modelName: 'yolo26s-seg'; modelSource: ResourceSource }
   | { modelName: 'yolo26m-seg'; modelSource: ResourceSource }
   | { modelName: 'yolo26l-seg'; modelSource: ResourceSource }
-  | { modelName: 'yolo26x-seg'; modelSource: ResourceSource };
+  | { modelName: 'yolo26x-seg'; modelSource: ResourceSource }
+  | { modelName: 'RFDetr'; modelSource: ResourceSource };
 
 /**
  * Union of all built-in instance segmentation model names.

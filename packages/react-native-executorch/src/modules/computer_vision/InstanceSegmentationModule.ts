@@ -13,17 +13,16 @@ import { RnExecutorchErrorCode } from '../../errors/ErrorCodes';
 import { RnExecutorchError } from '../../errors/errorUtils';
 import { BaseModule } from '../BaseModule';
 
-const YOLO_SEG_CONFIG = {
+const YOLO_SEG_CONFIG: InstanceSegmentationConfig<typeof CocoLabel> = {
   labelMap: CocoLabel,
   availableInputSizes: [384, 416, 512, 640, 1024] as const,
   defaultInputSize: 416,
   postprocessorConfig: {
-    type: 'yolo' as const,
     defaultConfidenceThreshold: 0.5,
     defaultIouThreshold: 0.5,
-    applyNMS: true,
+    applyNMS: false, // YOLO already applies NMS internally
   },
-} as const;
+};
 
 const ModelConfigs = {
   'yolo26n-seg': YOLO_SEG_CONFIG,
@@ -144,7 +143,6 @@ export class InstanceSegmentationModule<
     // Pass config parameters to native module
     const nativeModule = global.loadInstanceSegmentation(
       paths[0],
-      modelConfig.postprocessorConfig.type,
       modelConfig.preprocessorConfig?.normMean || [],
       modelConfig.preprocessorConfig?.normStd || [],
       modelConfig.postprocessorConfig.applyNMS ?? true
@@ -208,7 +206,6 @@ export class InstanceSegmentationModule<
     // Pass config parameters to native module
     const nativeModule = global.loadInstanceSegmentation(
       paths[0],
-      config.postprocessorConfig.type,
       config.preprocessorConfig?.normMean || [],
       config.preprocessorConfig?.normStd || [],
       config.postprocessorConfig.applyNMS ?? true
@@ -269,19 +266,31 @@ export class InstanceSegmentationModule<
     const returnMaskAtOriginalResolution =
       options?.returnMaskAtOriginalResolution ?? true;
 
-    // Get inputSize from options or use default
-    const inputSize = options?.inputSize ?? this.modelConfig.defaultInputSize;
+    // Determine inputSize based on config
+    let inputSize: number;
 
-    // Validate inputSize against available sizes
     if (
-      !this.modelConfig.availableInputSizes.includes(
-        inputSize as (typeof this.modelConfig.availableInputSizes)[number]
-      )
+      this.modelConfig.availableInputSizes &&
+      this.modelConfig.defaultInputSize
     ) {
-      throw new RnExecutorchError(
-        RnExecutorchErrorCode.InvalidArgument,
-        `Invalid inputSize: ${inputSize}. Available sizes: ${this.modelConfig.availableInputSizes.join(', ')}`
-      );
+      // Multi-method model: validate against available sizes
+      inputSize = options?.inputSize ?? this.modelConfig.defaultInputSize;
+
+      if (!this.modelConfig.availableInputSizes.includes(inputSize)) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.InvalidArgument,
+          `Invalid inputSize: ${inputSize}. Available sizes: ${this.modelConfig.availableInputSizes.join(', ')}`
+        );
+      }
+    } else {
+      // Single-method model: use 0 to signal C++ to use 'forward' method
+      inputSize = 0;
+
+      if (options?.inputSize !== undefined) {
+        console.warn(
+          '[Instance Segmentation] inputSize parameter ignored - model config does not specify availableInputSizes'
+        );
+      }
     }
 
     // Convert classesOfInterest labels to indices
@@ -307,8 +316,9 @@ export class InstanceSegmentationModule<
     const endTime = performance.now();
     const inferenceTime = endTime - startTime;
 
+    const sizeStr = inputSize > 0 ? `${inputSize}x${inputSize}` : 'auto';
     console.log(
-      `[Instance Segmentation] Inference completed in ${inferenceTime.toFixed(2)}ms | Input size: ${inputSize}x${inputSize} | Detected: ${nativeResult.length} instances`
+      `[Instance Segmentation] Inference completed in ${inferenceTime.toFixed(2)}ms | Input size: ${sizeStr} | Detected: ${nativeResult.length} instances`
     );
 
     // Convert label indices back to label names
@@ -317,15 +327,17 @@ export class InstanceSegmentationModule<
       this.labelMap as Record<string, number>
     ).reduce(
       (acc, [key, value]) => {
-        acc[value as number] = key;
+        acc[value as number] = key as keyof ResolveLabels<T>;
         return acc;
       },
-      {} as Record<number, string>
+      {} as Record<number, keyof ResolveLabels<T>>
     );
 
     return nativeResult.map((instance: any) => ({
       ...instance,
-      label: reverseLabelMap[instance.label + 1] || `UNKNOWN_${instance.label}`,
+      label:
+        reverseLabelMap[instance.label + 1] ||
+        (`UNKNOWN_${instance.label}` as keyof ResolveLabels<T>),
     })) as SegmentedInstance<ResolveLabels<T>>[];
   }
 }

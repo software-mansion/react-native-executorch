@@ -8,19 +8,10 @@
 namespace rnexecutorch::models::instance_segmentation {
 
 BaseInstanceSegmentation::BaseInstanceSegmentation(
-    const std::string &modelSource, const std::string &postprocessorType,
-    std::vector<float> normMean, std::vector<float> normStd, bool applyNMS,
+    const std::string &modelSource, std::vector<float> normMean,
+    std::vector<float> normStd, bool applyNMS,
     std::shared_ptr<react::CallInvoker> callInvoker)
-    : BaseModel(modelSource, callInvoker),
-      postprocessorType_(postprocessorType), applyNMS_(applyNMS) {
-  // Validate postprocessor type
-  if (postprocessorType_ != "yolo" && postprocessorType_ != "rfdetr") {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::InvalidConfig,
-        "Postprocessor type must be 'yolo' or 'rfdetr'. Got: " +
-            postprocessorType_);
-  }
-
+    : BaseModel(modelSource, callInvoker), applyNMS_(applyNMS) {
   // Store normalization parameters if provided
   if (normMean.size() == 3) {
     normMean_ = cv::Scalar(normMean[0], normMean[1], normMean[2]);
@@ -107,14 +98,89 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
                             "and less than or equal to 1.");
   }
 
-  // Check postprocessor type and delegate
-  if (postprocessorType_ == "yolo") {
-    // Continue with YOLO postprocessing below
-  } else if (postprocessorType_ == "rfdetr") {
-    throw RnExecutorchError(RnExecutorchErrorCode::InvalidConfig,
-                            "RF-DETR postprocessing is not yet implemented. "
-                            "Only YOLO models are currently supported.");
+  // Auto-detect model output format based on tensor shapes
+  bool isRFDetr =
+      (tensors.size() == 3 && tensors[0].toTensor().dim() == 3 &&
+       tensors[0].toTensor().size(2) == 4 && tensors[1].toTensor().dim() == 3 &&
+       tensors[2].toTensor().dim() == 4);
+
+  bool isYOLO =
+      (tensors.size() == 2 && tensors[0].toTensor().dim() == 3 &&
+       tensors[0].toTensor().size(2) == 38 &&
+       tensors[1].toTensor().dim() == 4 && tensors[1].toTensor().size(1) == 32);
+
+  if (!isRFDetr && !isYOLO) {
+    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
+                            "Unknown model output format. Expected YOLO (2 "
+                            "tensors) or RFDetr (3 tensors).");
   }
+
+  // Create allowed classes set for filtering
+  auto allowedClasses = createAllowedClassesSet(classIndices);
+
+  // Delegate to model-specific postprocessing
+  std::vector<types::InstanceMask> instances;
+
+  if (isRFDetr) {
+    instances = postprocessRFDetr(tensors, originalSize, modelInputSize,
+                                  confidenceThreshold, allowedClasses,
+                                  returnMaskAtOriginalResolution);
+  } else {
+    instances = postprocessYOLO(tensors, originalSize, modelInputSize,
+                                confidenceThreshold, allowedClasses,
+                                returnMaskAtOriginalResolution);
+  }
+
+  return finalizeInstances(instances, iouThreshold, maxInstances);
+}
+
+// Helper: Create allowed classes set from vector
+std::set<int32_t> BaseInstanceSegmentation::createAllowedClassesSet(
+    const std::vector<int32_t> &classIndices) {
+  if (classIndices.empty()) {
+    return {};
+  }
+  return std::set<int32_t>(classIndices.begin(), classIndices.end());
+}
+
+// Helper: Apply sigmoid and threshold to convert logits to binary mask
+std::vector<uint8_t>
+BaseInstanceSegmentation::applySigmoidAndThreshold(const float *logits,
+                                                   int size) {
+  std::vector<uint8_t> binaryMask(size);
+  for (int i = 0; i < size; ++i) {
+    float prob = 1.0f / (1.0f + std::exp(-logits[i]));
+    binaryMask[i] = (prob > 0.5f) ? 1 : 0;
+  }
+  return binaryMask;
+}
+
+// RFDetr-specific postprocessing
+std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocessRFDetr(
+    const std::vector<EValue> &tensors, cv::Size originalSize,
+    cv::Size modelInputSize, double confidenceThreshold,
+    const std::set<int32_t> &allowedClasses,
+    bool returnMaskAtOriginalResolution) {
+
+  // Tensor 0: [1, N, 4] - Bounding boxes (cxcywh normalized)
+  // Tensor 1: [1, N, 91] - Class logits (pre-sigmoid)
+  // Tensor 2: [1, N, H, W] - Mask logits (pre-sigmoid)
+
+  auto bboxTensor = tensors[0].toTensor();
+  auto classLogitsTensor = tensors[1].toTensor();
+  auto maskLogitsTensor = tensors[2].toTensor();
+
+  int numDetections = bboxTensor.size(1);
+  int numClasses = classLogitsTensor.size(2);
+  int maskHeight = maskLogitsTensor.size(2);
+  int maskWidth = maskLogitsTensor.size(3);
+
+  const float *bboxData =
+      static_cast<const float *>(bboxTensor.const_data_ptr());
+  const float *classLogitsData =
+      static_cast<const float *>(classLogitsTensor.const_data_ptr());
+  const float *maskLogitsData =
+      static_cast<const float *>(maskLogitsTensor.const_data_ptr());
 
   float widthRatio =
       static_cast<float>(originalSize.width) / modelInputSize.width;
@@ -123,50 +189,126 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
 
   std::vector<types::InstanceMask> instances;
 
-  // ACTUAL tensor format from YOLO instance segmentation:
-  // tensors[0]: [1, 300, 38] - postprocessed detections
-  //             Format per detection: [x1, y1, x2, y2, score, class,
-  //             mask_coef_0...31]
-  // tensors[1]: [1, 32, 128, 128] - prototype masks
+  for (int i = 0; i < numDetections; ++i) {
+    // Parse class logits and apply sigmoid to get probabilities
+    const float *logits = classLogitsData + (i * numClasses);
+    float maxScore = -std::numeric_limits<float>::infinity();
+    int maxClass = -1;
 
-  if (tensors.size() < 2) {
-    throw RnExecutorchError(
-        RnExecutorchErrorCode::UnexpectedNumInputs,
-        "Expected at least 2 output tensors (detections, prototype masks).");
+    for (int c = 0; c < numClasses; ++c) {
+      // Apply sigmoid: 1 / (1 + exp(-x))
+      float prob = 1.0f / (1.0f + std::exp(-logits[c]));
+      if (prob > maxScore) {
+        maxScore = prob;
+        maxClass = c;
+      }
+    }
+
+    // Skip if below confidence threshold
+    if (maxScore < confidenceThreshold) {
+      continue;
+    }
+
+    // Filter by class if specified (use 1-indexed for COCO compatibility)
+    if (!allowedClasses.empty() &&
+        allowedClasses.find(maxClass) == allowedClasses.end()) {
+      continue;
+    }
+
+    // Parse bounding box (cxcywh normalized [0, 1])
+    const float *bbox = bboxData + (i * 4);
+    float cx_norm = bbox[0];
+    float cy_norm = bbox[1];
+    float w_norm = bbox[2];
+    float h_norm = bbox[3];
+
+    // Convert normalized cxcywh to absolute xyxy (scaled to model input size)
+    float cx = cx_norm * modelInputSize.width;
+    float cy = cy_norm * modelInputSize.height;
+    float w = w_norm * modelInputSize.width;
+    float h = h_norm * modelInputSize.height;
+
+    float x1_model = cx - w / 2.0f;
+    float y1_model = cy - h / 2.0f;
+    float x2_model = cx + w / 2.0f;
+    float y2_model = cy + h / 2.0f;
+
+    // Scale to original image size
+    float widthRatio =
+        static_cast<float>(originalSize.width) / modelInputSize.width;
+    float heightRatio =
+        static_cast<float>(originalSize.height) / modelInputSize.height;
+
+    float x1 = x1_model * widthRatio;
+    float y1 = y1_model * heightRatio;
+    float x2 = x2_model * widthRatio;
+    float y2 = y2_model * heightRatio;
+
+    // Apply sigmoid to mask logits and threshold
+    const float *maskLogits = maskLogitsData + (i * maskHeight * maskWidth);
+    std::vector<uint8_t> binaryMask =
+        applySigmoidAndThreshold(maskLogits, maskHeight * maskWidth);
+
+    // Resize and crop mask
+    int finalMaskWidth, finalMaskHeight;
+    std::vector<uint8_t> finalMask = resizeAndCropMask(
+        binaryMask, maskWidth, maskHeight, originalSize, x1, y1, x2, y2,
+        returnMaskAtOriginalResolution, finalMaskWidth, finalMaskHeight);
+
+    types::InstanceMask instance;
+    instance.x1 = x1;
+    instance.y1 = y1;
+    instance.x2 = x2;
+    instance.y2 = y2;
+    instance.mask = std::move(finalMask);
+    instance.maskWidth = finalMaskWidth;
+    instance.maskHeight = finalMaskHeight;
+    instance.label = maxClass;
+    instance.score = maxScore;
+    instance.instanceId = i;
+
+    instances.push_back(std::move(instance));
   }
 
-  // Parse Tensor 0: postprocessed detections [1, 300, 38]
-  auto detectionTensor = tensors.at(0).toTensor();
-  if (detectionTensor.dim() != 3 || detectionTensor.size(2) != 38) {
-    throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
-                            "Expected detection tensor shape [1, N, 38]");
-  }
+  return instances;
+}
 
-  int maxDetections = detectionTensor.size(1);
-  const float *detectionData =
-      static_cast<const float *>(detectionTensor.const_data_ptr());
+// YOLO-specific postprocessing
+std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocessYOLO(
+    const std::vector<EValue> &tensors, cv::Size originalSize,
+    cv::Size modelInputSize, double confidenceThreshold,
+    const std::set<int32_t> &allowedClasses,
+    bool returnMaskAtOriginalResolution) {
 
-  // Parse Tensor 1: prototype masks [1, 32, H, W]
-  auto protoTensor = tensors.at(1).toTensor();
+  // Tensor 0: [1, N, 38] - Detections (x1, y1, x2, y2, score, class, mask_coef
+  // x32) Tensor 1: [1, 32, H, W] - Prototype masks
+
+  auto detectionTensor = tensors[0].toTensor();
+  auto protoTensor = tensors[1].toTensor();
+
   if (protoTensor.dim() != 4 || protoTensor.size(1) != 32) {
     throw RnExecutorchError(
         RnExecutorchErrorCode::UnexpectedNumInputs,
         "Expected prototype mask tensor shape [1, 32, H, W]");
   }
 
+  int numDetections = detectionTensor.size(1);
   int protoHeight = protoTensor.size(2);
   int protoWidth = protoTensor.size(3);
+
+  const float *detectionData =
+      static_cast<const float *>(detectionTensor.const_data_ptr());
   const float *protoData =
       static_cast<const float *>(protoTensor.const_data_ptr());
 
-  // Create a set for fast class lookup if classIndices is provided
-  std::set<int32_t> allowedClasses;
-  if (!classIndices.empty()) {
-    allowedClasses.insert(classIndices.begin(), classIndices.end());
-  }
+  float widthRatio =
+      static_cast<float>(originalSize.width) / modelInputSize.width;
+  float heightRatio =
+      static_cast<float>(originalSize.height) / modelInputSize.height;
 
-  // Parse each detection from Tensor 0
-  for (int i = 0; i < maxDetections; ++i) {
+  std::vector<types::InstanceMask> instances;
+
+  for (int i = 0; i < numDetections; ++i) {
     // Each detection: [x1, y1, x2, y2, score, class, mask_coef_0...31]
     const float *detection = detectionData + (i * 38);
 
@@ -195,7 +337,6 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
     }
 
     // Generate instance mask by multiplying coefficients with prototype masks
-    // Result: [protoHeight, protoWidth]
     std::vector<float> instanceMask(protoHeight * protoWidth, 0.0f);
 
     for (int maskIdx = 0; maskIdx < 32; maskIdx++) {
@@ -207,48 +348,21 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
       }
     }
 
-    // Apply sigmoid to mask values and threshold
-    std::vector<uint8_t> binaryMask(protoHeight * protoWidth);
-    for (int j = 0; j < protoHeight * protoWidth; j++) {
-      // Sigmoid: 1 / (1 + exp(-x))
-      float maskValue = 1.0f / (1.0f + std::exp(-instanceMask[j]));
-      binaryMask[j] = (maskValue > 0.5f) ? 1 : 0;
-    }
+    // Apply sigmoid and threshold
+    std::vector<uint8_t> binaryMask =
+        applySigmoidAndThreshold(instanceMask.data(), protoHeight * protoWidth);
 
-    // Scale bounding box to original image size first
+    // Scale bounding box to original image size
     x1 *= widthRatio;
     y1 *= heightRatio;
     x2 *= widthRatio;
     y2 *= heightRatio;
 
-    // Resize mask if needed
-    int finalMaskWidth = protoWidth;
-    int finalMaskHeight = protoHeight;
-    std::vector<uint8_t> finalMask = binaryMask;
-
-    if (returnMaskAtOriginalResolution) {
-      cv::Mat maskMat(protoHeight, protoWidth, CV_8UC1, binaryMask.data());
-      cv::Mat resizedMaskMat;
-      cv::resize(maskMat, resizedMaskMat, originalSize, 0, 0,
-                 cv::INTER_NEAREST);
-
-      finalMaskWidth = originalSize.width;
-      finalMaskHeight = originalSize.height;
-
-      // Crop mask to bounding box (removes artifacts outside bbox)
-      for (int y = 0; y < finalMaskHeight; y++) {
-        for (int x = 0; x < finalMaskWidth; x++) {
-          int idx = y * finalMaskWidth + x;
-          // Zero out pixels outside the bounding box
-          if (x < x1 || x > x2 || y < y1 || y > y2) {
-            resizedMaskMat.data[idx] = 0;
-          }
-        }
-      }
-
-      finalMask.assign(resizedMaskMat.data,
-                       resizedMaskMat.data + resizedMaskMat.total());
-    }
+    // Resize and crop mask
+    int finalMaskWidth, finalMaskHeight;
+    std::vector<uint8_t> finalMask = resizeAndCropMask(
+        binaryMask, protoWidth, protoHeight, originalSize, x1, y1, x2, y2,
+        returnMaskAtOriginalResolution, finalMaskWidth, finalMaskHeight);
 
     types::InstanceMask instance;
     instance.x1 = x1;
@@ -265,11 +379,52 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
     instances.push_back(std::move(instance));
   }
 
+  return instances;
+}
+
+// Helper function: Resize mask to original resolution and crop to bounding box
+std::vector<uint8_t> BaseInstanceSegmentation::resizeAndCropMask(
+    const std::vector<uint8_t> &mask, int maskWidth, int maskHeight,
+    cv::Size originalSize, float x1, float y1, float x2, float y2,
+    bool returnAtOriginalResolution, int &outWidth, int &outHeight) {
+
+  if (!returnAtOriginalResolution) {
+    outWidth = maskWidth;
+    outHeight = maskHeight;
+    return mask;
+  }
+
+  // Resize mask to original image size
+  cv::Mat maskMat(maskHeight, maskWidth, CV_8UC1,
+                  const_cast<uint8_t *>(mask.data()));
+  cv::Mat resizedMaskMat;
+  cv::resize(maskMat, resizedMaskMat, originalSize, 0, 0, cv::INTER_NEAREST);
+
+  outWidth = originalSize.width;
+  outHeight = originalSize.height;
+
+  // Crop mask to bounding box (zero out pixels outside bbox)
+  for (int y = 0; y < outHeight; y++) {
+    for (int x = 0; x < outWidth; x++) {
+      int idx = y * outWidth + x;
+      if (x < x1 || x > x2 || y < y1 || y > y2) {
+        resizedMaskMat.data[idx] = 0;
+      }
+    }
+  }
+
+  std::vector<uint8_t> result(resizedMaskMat.data,
+                              resizedMaskMat.data + resizedMaskMat.total());
+  return result;
+}
+
+// Helper function: Apply NMS, limit instances, and renumber IDs
+std::vector<types::InstanceMask> BaseInstanceSegmentation::finalizeInstances(
+    std::vector<types::InstanceMask> instances, double iouThreshold,
+    int maxInstances) {
+
   // Apply NMS if enabled
-  // Note: Some models (like YOLO) already apply NMS internally,
-  // but we can apply it again if requested with a different IoU threshold
-  if (applyNMS_ && iouThreshold < 0.45) {
-    // Only apply additional NMS if threshold is stricter than model's default
+  if (applyNMS_) {
     instances = nonMaxSuppression(instances, iouThreshold);
   }
 
@@ -278,7 +433,7 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::postprocess(
     instances.resize(maxInstances);
   }
 
-  // Update instance IDs to be sequential
+  // Renumber instance IDs to be sequential
   for (size_t i = 0; i < instances.size(); ++i) {
     instances[i].instanceId = static_cast<int>(i);
   }
@@ -291,12 +446,34 @@ std::vector<types::InstanceMask> BaseInstanceSegmentation::generate(
     int maxInstances, std::vector<int32_t> classIndices,
     bool returnMaskAtOriginalResolution, int32_t inputSize) {
 
-  // Construct method name from inputSize (e.g., 512 -> "forward_512")
-  std::string methodName = getMethodName(inputSize);
-  cv::Size modelInputSize(inputSize, inputSize);
+  std::string methodName;
+  cv::Size modelInputSize;
+  std::vector<int32_t> inputShape;
 
-  // Create input shape
-  std::vector<int32_t> inputShape = {1, 3, inputSize, inputSize};
+  if (inputSize == 0) {
+    // Single-method model: use 'forward' and auto-detect input shape
+    methodName = "forward";
+
+    // Get input shape from model metadata
+    auto inputShapeVec = getInputShape(methodName, 0);
+    if (inputShapeVec.size() != 4) {
+      throw RnExecutorchError(
+          RnExecutorchErrorCode::UnexpectedNumInputs,
+          "Expected 4D input tensor [batch, channels, height, width], got " +
+              std::to_string(inputShapeVec.size()) + "D");
+    }
+
+    int32_t height = inputShapeVec[2];
+    int32_t width = inputShapeVec[3];
+    modelInputSize = cv::Size(width, height);
+    inputShape = {1, 3, height, width};
+
+  } else {
+    // Multi-method model: use 'forward_{size}'
+    methodName = getMethodName(inputSize);
+    modelInputSize = cv::Size(inputSize, inputSize);
+    inputShape = {1, 3, inputSize, inputSize};
+  }
 
   // Read and preprocess image with optional normalization
   // readImageToTensor will apply normalization if normMean_ and normStd_ are

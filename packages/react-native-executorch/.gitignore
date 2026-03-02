@@ -1,3 +1,6 @@
 *.tsbuildinfo
 
 third-party/ios/ExecutorchLib/output
+
+# Test assets
+common/rnexecutorch/tests/integration/assets/
