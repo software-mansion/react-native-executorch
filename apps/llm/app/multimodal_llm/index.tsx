@@ -21,13 +21,6 @@ import Messages from '../../components/Messages';
 import Spinner from '../../components/Spinner';
 import { GeneratingContext } from '../../context';
 
-const MODEL_SOURCE =
-  'https://huggingface.co/nklockiewicz/lfm2-vl-et/resolve/main/lfm2p5_vl_1.6B_quantized_xnnpack.pte';
-const TOKENIZER_SOURCE =
-  'https://huggingface.co/nklockiewicz/lfm2-vl-et/resolve/main/tokenizer_2.5.json';
-const TOKENIZER_CONFIG_SOURCE =
-  'https://huggingface.co/nklockiewicz/lfm2-vl-et/resolve/main/tokenizer_config_2_5.json';
-
 export default function MultimodalLLMScreenWrapper() {
   const isFocused = useIsFocused();
   return isFocused ? <MultimodalLLMScreen /> : null;
@@ -42,9 +35,13 @@ function MultimodalLLMScreen() {
 
   const vlm = useLLM({
     model: {
-      modelSource: MODEL_SOURCE,
-      tokenizerSource: TOKENIZER_SOURCE,
-      tokenizerConfigSource: TOKENIZER_CONFIG_SOURCE,
+      isMultimodal: true,
+      modelSource:
+        'https://huggingface.co/nklockiewicz/lfm2-vl-et/resolve/main/lfm2p5_vl_1.6B_quantized_xnnpack.pte',
+      tokenizerSource:
+        'https://huggingface.co/nklockiewicz/lfm2-vl-et/resolve/main/tokenizer_2.5.json',
+      tokenizerConfigSource:
+        'https://huggingface.co/nklockiewicz/lfm2-vl-et/resolve/main/tokenizer_config_2_5.json',
     },
   });
 
@@ -70,9 +67,10 @@ function MultimodalLLMScreen() {
     setUserInput('');
     textInputRef.current?.clear();
     Keyboard.dismiss();
+    const currentImageUri = imageUri;
+    setImageUri(null);
     try {
-      await vlm.sendMessage(text, imageUri ?? undefined);
-      setImageUri(null);
+      await vlm.sendMessage(text, currentImageUri ?? undefined);
     } catch (e) {
       console.error('Generation error:', e);
     }
