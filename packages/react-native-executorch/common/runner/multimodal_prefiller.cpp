@@ -11,6 +11,7 @@
 
 #include "multimodal_prefiller.h"
 #include "constants.h"
+#include "util.h"
 
 namespace executorch {
 namespace extension {
