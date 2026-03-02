@@ -25,9 +25,6 @@ OnlineASR::OnlineASR(const ASR *asr) : asr_(asr) {
 
 void OnlineASR::insertAudioChunk(std::span<const float> audio) {
   audioBuffer_.insert(audioBuffer_.end(), audio.begin(), audio.end());
-
-  // Update the epsilon accordingly to the amount of added audio.
-  epsilon_ += static_cast<float>(audio.size()) / constants::kSamplingRate;
 }
 
 bool OnlineASR::isReady() const {
@@ -61,13 +58,13 @@ ProcessResult OnlineASR::process(const DecodingOptions &options) {
   // After the insert() call on hypothesis buffer, the inner fresh_ buffer
   // contains either a completely new words or words which overlap only
   // with the inner hypothesis_ buffer.
+  size_t noNewWords = hypothesisBuffer_.fresh_.size();
+  float establishedEnd = !hypothesisBuffer_.committed_.empty()
+                             ? hypothesisBuffer_.committed_.back().end
+                             : 0.F;
+  float newBegin = hypothesisBuffer_.fresh_.front().start;
+  const float newEnd = hypothesisBuffer_.fresh_.back().end;
   if (!hypothesisBuffer_.fresh_.empty()) {
-    float establishedEnd = !hypothesisBuffer_.committed_.empty()
-                               ? hypothesisBuffer_.committed_.back().end
-                               : 0.F;
-    const float newEnd = hypothesisBuffer_.fresh_.back().end;
-    float newBegin = hypothesisBuffer_.fresh_.front().start;
-
     for (size_t i = 0; i < hypothesisBuffer_.fresh_.size(); i++) {
       // If the word overlaps with the hypothesis, we can simply copy the
       // timestamps from the previous iteration (that is, from the hypothesis
@@ -81,6 +78,7 @@ ProcessResult OnlineASR::process(const DecodingOptions &options) {
 
         establishedEnd = hypothesisBuffer_.hypothesis_[i].end;
         newBegin = hypothesisBuffer_.fresh_[i].end;
+        noNewWords--;
 
         continue;
       }
@@ -89,22 +87,22 @@ ProcessResult OnlineASR::process(const DecodingOptions &options) {
       // based on timestamps established in previous iterations.
       // The idea is, that both ranges of established and completely new words
       // should sum up to the final timestamp produced by the model.
-      // TODO: estimate the epsilon value
+      // We estimate the preceeding silence (epsilon) by comparing the actual
+      // timestamp difference to the expected duration of fresh sentence
+      // (assuming some fixed words per second frequency).
+      const float freshDuration = newEnd - establishedEnd;
+      const float epsilon = std::max(
+          0.F, 0.8F * (freshDuration -
+                       static_cast<float>(noNewWords /
+                                          params::kStreamWordsPerSecond)));
       const float beforeScaleStart = hypothesisBuffer_.fresh_[i].start;
       const float beforeScaleEnd = hypothesisBuffer_.fresh_[i].end;
-      float scale =
-          (newEnd - establishedEnd) / (newEnd - newBegin); // missing epsilon
-      // float scale = (newEnd - establishedEnd - epsilon) / (newEnd -
-      // newBegin); // correct
+      float scale = (freshDuration - epsilon) / (newEnd - newBegin);
       hypothesisBuffer_.fresh_[i].start =
           (hypothesisBuffer_.fresh_[i].start - newEnd) * scale + newEnd;
       hypothesisBuffer_.fresh_[i].end =
           (hypothesisBuffer_.fresh_[i].end - newEnd) * scale + newEnd;
     }
-
-    // Before committing, save the last timestamp produced by the model.
-    // That is, the ending timestamp of the last fresh word.
-    lastNonSilentMoment_ = newEnd;
   }
 
   // Commit matching words.

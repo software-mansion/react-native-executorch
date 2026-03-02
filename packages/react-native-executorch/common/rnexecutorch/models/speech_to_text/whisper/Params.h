@@ -55,4 +55,10 @@ constexpr static float kStreamChunkThreshold = 20.F; // [s]
  */
 constexpr static float kStreamAudioBufferReserve = 5.F; // [s]
 
+/**
+ * An estimate of number of words per second produced in a standard
+ * human conversation speech.
+ */
+constexpr static float kStreamWordsPerSecond = 2.5F;
+
 } // namespace rnexecutorch::models::speech_to_text::whisper::params
