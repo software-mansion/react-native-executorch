@@ -20,6 +20,11 @@ export interface LLMProps {
      * `ResourceSource` pointing to the JSON file which contains the tokenizer config.
      */
     tokenizerConfigSource?: ResourceSource;
+    /**
+     * Set to `true` when loading a vision-language (multimodal) model.
+     * Skips tokenizer config fetching and enables `sendMessageWithImage`.
+     */
+    isMultimodal?: boolean;
   };
   /**
    * Boolean that can prevent automatic model loading (and downloading the data if you load it for the first time) after running the hook.
@@ -123,6 +128,16 @@ export interface LLMType {
    * Function to interrupt the current inference.
    */
   interrupt: () => void;
+
+  /**
+   * Send a user message with an image. Updates messageHistory after model responds.
+   * Only valid for multimodal models (loaded with `isMultimodal: true`).
+   *
+   * @param imagePath - Local path to the image file.
+   * @param message - The text question about the image.
+   * @returns The model's response as a string.
+   */
+  sendMessageWithImage: (imagePath: string, message: string) => Promise<string>;
 }
 
 /**

@@ -18,7 +18,6 @@
 #include <rnexecutorch/metaprogramming/TypeConcepts.h>
 #include <rnexecutorch/models/BaseModel.h>
 #include <rnexecutorch/models/llm/LLM.h>
-#include <rnexecutorch/models/multimodal_llm/MultimodalLLM.h>
 #include <rnexecutorch/models/ocr/OCR.h>
 #include <rnexecutorch/models/speech_to_text/SpeechToText.h>
 #include <rnexecutorch/models/text_to_image/TextToImage.h>
@@ -33,11 +32,7 @@ public:
   explicit ModelHostObject(const std::shared_ptr<Model> &model,
                            std::shared_ptr<react::CallInvoker> callInvoker)
       : model(model), callInvoker(callInvoker) {
-    // MultimodalLLM moves module_ into its runner during construction, so
-    // the base class methods that go through module_ (forward, getInputShape)
-    // are unsafe to expose. Its unload is registered separately below.
-    if constexpr (meta::DerivedFromOrSameAs<Model, models::BaseModel> &&
-                  !meta::SameAs<Model, models::multimodal_llm::MultimodalLLM>) {
+    if constexpr (meta::DerivedFromOrSameAs<Model, models::BaseModel>) {
       addFunctions(
           JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
 
@@ -50,7 +45,9 @@ public:
           "getInputShape"));
     }
 
-    if constexpr (meta::HasGenerate<Model>) {
+    // LLM has overloaded generate — handled explicitly in the LLM block below
+    if constexpr (meta::HasGenerate<Model> &&
+                  !meta::SameAs<Model, models::llm::LLM>) {
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        promiseHostFunction<&Model::generate>,
                                        "generate"));
@@ -104,6 +101,12 @@ public:
 
     if constexpr (meta::SameAs<Model, models::llm::LLM>) {
       addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>,
+          promiseHostFunction<static_cast<std::string (Model::*)(
+              std::string, std::shared_ptr<jsi::Function>)>(&Model::generate)>,
+          "generate"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>, synchronousHostFunction<&Model::interrupt>,
           "interrupt"));
 
@@ -149,6 +152,17 @@ public:
       addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
                                        synchronousHostFunction<&Model::reset>,
                                        "reset"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>,
+          promiseHostFunction<static_cast<std::string (Model::*)(
+              std::string, std::string, std::shared_ptr<jsi::Function>)>(
+              &Model::generate)>,
+          "generateWithImage"));
+
+      addFunctions(JSI_EXPORT_FUNCTION(
+          ModelHostObject<Model>, synchronousHostFunction<&Model::isMultimodal>,
+          "isMultimodal"));
     }
 
     if constexpr (meta::SameAs<Model, models::text_to_image::TextToImage>) {
@@ -176,23 +190,6 @@ public:
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>, synchronousHostFunction<&Model::streamStop>,
           "streamStop"));
-    }
-
-    if constexpr (meta::SameAs<Model, models::multimodal_llm::MultimodalLLM>) {
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>, synchronousHostFunction<&Model::interrupt>,
-          "interrupt"));
-
-      addFunctions(JSI_EXPORT_FUNCTION(
-          ModelHostObject<Model>,
-          synchronousHostFunction<&Model::setTemperature>, "setTemperature"));
-
-      addFunctions(JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
-                                       synchronousHostFunction<&Model::setTopp>,
-                                       "setTopp"));
-
-      addFunctions(
-          JSI_EXPORT_FUNCTION(ModelHostObject<Model>, unload, "unload"));
     }
   }
 

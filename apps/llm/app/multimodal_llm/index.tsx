@@ -15,7 +15,7 @@ import {
 import * as DocumentPicker from 'expo-document-picker';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useIsFocused } from '@react-navigation/native';
-import { useMultimodalLLM } from 'react-native-executorch';
+import { useLLM } from 'react-native-executorch';
 import ColorPalette from '../../colors';
 import Spinner from '../../components/Spinner';
 import { GeneratingContext } from '../../context';
@@ -127,7 +127,9 @@ function MultimodalLLMScreen({
   const scrollViewRef = useRef<ScrollView>(null);
   const { setGlobalGenerating } = useContext(GeneratingContext);
 
-  const vlm = useMultimodalLLM({ model: { modelSource, tokenizerSource } });
+  const vlm = useLLM({
+    model: { modelSource, tokenizerSource, isMultimodal: true },
+  });
 
   useEffect(() => {
     setGlobalGenerating(vlm.isGenerating);
@@ -153,7 +155,7 @@ function MultimodalLLMScreen({
     if (!imageUri || !prompt.trim() || !vlm.isReady || vlm.isGenerating) return;
     Keyboard.dismiss();
     try {
-      await vlm.generate(imageUri, prompt.trim());
+      await vlm.sendMessageWithImage(imageUri, prompt.trim());
     } catch (e) {
       console.error('Generation error:', e);
     }
