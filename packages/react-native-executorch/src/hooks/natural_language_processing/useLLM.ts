@@ -51,8 +51,9 @@ export const useLLM = ({ model, preventLoad = false }: LLMProps): LLMType => {
         await controllerInstance.load({
           modelSource: model.modelSource,
           tokenizerSource: model.tokenizerSource,
-          tokenizerConfigSource: model.tokenizerConfigSource!,
+          tokenizerConfigSource: model.tokenizerConfigSource,
           onDownloadProgressCallback: setDownloadProgress,
+          isMultimodal: model.isMultimodal,
         });
       } catch (e) {
         setError(parseUnknownError(e));
@@ -69,6 +70,7 @@ export const useLLM = ({ model, preventLoad = false }: LLMProps): LLMType => {
     model.modelSource,
     model.tokenizerSource,
     model.tokenizerConfigSource,
+    model.isMultimodal,
     preventLoad,
   ]);
 
@@ -124,6 +126,14 @@ export const useLLM = ({ model, preventLoad = false }: LLMProps): LLMType => {
     [controllerInstance]
   );
 
+  const sendMessageWithImage = useCallback(
+    (imagePath: string, message: string) => {
+      setResponse('');
+      return controllerInstance.sendMessageWithImage(imagePath, message);
+    },
+    [controllerInstance]
+  );
+
   return {
     messageHistory,
     response,
@@ -140,5 +150,6 @@ export const useLLM = ({ model, preventLoad = false }: LLMProps): LLMType => {
     sendMessage: sendMessage,
     deleteMessage: deleteMessage,
     interrupt: interrupt,
+    sendMessageWithImage: sendMessageWithImage,
   };
 };

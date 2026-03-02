@@ -6,7 +6,7 @@
 #include <ReactCommon/CallInvoker.h>
 #include <jsi/jsi.h>
 #include <rnexecutorch/models/BaseModel.h>
-#include <runner/runner.h>
+#include <runner/unified_runner.h>
 
 namespace rnexecutorch {
 namespace models::llm {
@@ -18,8 +18,16 @@ public:
                const std::string &tokenizerSource,
                std::shared_ptr<react::CallInvoker> callInvoker);
 
+  // Text-only generate (existing signature — used by LLMController)
   std::string generate(std::string input,
                        std::shared_ptr<jsi::Function> callback);
+
+  // Multimodal generate (image + text prompt)
+  std::string generate(std::string imagePath, std::string prompt,
+                       std::shared_ptr<jsi::Function> callback);
+
+  bool isMultimodal() const noexcept;
+
   void interrupt();
   void reset();
   void unload() noexcept;
@@ -34,7 +42,10 @@ public:
   int32_t getMaxContextLength() const;
 
 private:
-  std::unique_ptr<example::Runner> runner;
+  std::unique_ptr<example::UnifiedRunner> runner_;
+  bool multimodal_;
+  float temperature_ = 0.8f;
+  float topp_ = 0.9f;
 };
 } // namespace models::llm
 

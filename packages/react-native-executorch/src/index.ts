@@ -58,10 +58,6 @@ declare global {
     tokenizerSource: string
   ) => Promise<any>;
   var loadLLM: (modelSource: string, tokenizerSource: string) => Promise<any>;
-  var loadMultimodalLLM: (
-    modelSource: string,
-    tokenizerSource: string
-  ) => Promise<any>;
   var loadTextToImage: (
     tokenizerSource: string,
     encoderSource: string,
@@ -110,7 +106,6 @@ if (
   global.loadImageEmbeddings == null ||
   global.loadVAD == null ||
   global.loadLLM == null ||
-  global.loadMultimodalLLM == null ||
   global.loadSpeechToText == null ||
   global.loadTextToSpeechKokoro == null ||
   global.loadOCR == null ||
@@ -135,7 +130,6 @@ export * from './hooks/computer_vision/useImageEmbeddings';
 export * from './hooks/computer_vision/useTextToImage';
 
 export * from './hooks/natural_language_processing/useLLM';
-export * from './hooks/natural_language_processing/useMultimodalLLM';
 export * from './hooks/natural_language_processing/useSpeechToText';
 export * from './hooks/natural_language_processing/useTextToSpeech';
 export * from './hooks/natural_language_processing/useTextEmbeddings';

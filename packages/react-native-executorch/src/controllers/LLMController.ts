@@ -24,6 +24,7 @@ export class LLMController {
   private _isReady = false;
   private _isGenerating = false;
   private _messageHistory: Message[] = [];
+  private isMultimodal_ = false;
 
   // User callbacks
   private tokenCallback: (token: string) => void;
@@ -76,11 +77,13 @@ export class LLMController {
     tokenizerSource,
     tokenizerConfigSource,
     onDownloadProgressCallback,
+    isMultimodal = false,
   }: {
     modelSource: ResourceSource;
     tokenizerSource: ResourceSource;
-    tokenizerConfigSource: ResourceSource;
+    tokenizerConfigSource?: ResourceSource;
     onDownloadProgressCallback?: (downloadProgress: number) => void;
+    isMultimodal?: boolean;
   }) {
     // reset inner state when loading new model
     this.messageHistoryCallback(this.chatConfig.initialMessageHistory);
@@ -88,37 +91,59 @@ export class LLMController {
     this.isReadyCallback(false);
 
     try {
-      const tokenizersPromise = ResourceFetcher.fetch(
-        undefined,
-        tokenizerSource,
-        tokenizerConfigSource
-      );
+      let tokenizerPath: string | undefined;
+      let modelPath: string | undefined;
 
-      const modelPromise = ResourceFetcher.fetch(
-        onDownloadProgressCallback,
-        modelSource
-      );
+      if (isMultimodal) {
+        // Multimodal models don't need tokenizer config
+        const [tokenizerResults, modelResult] = await Promise.all([
+          ResourceFetcher.fetch(undefined, tokenizerSource),
+          ResourceFetcher.fetch(onDownloadProgressCallback, modelSource),
+        ]);
+        tokenizerPath = tokenizerResults?.[0];
+        modelPath = modelResult?.[0];
 
-      const [tokenizersResults, modelResult] = await Promise.all([
-        tokenizersPromise,
-        modelPromise,
-      ]);
+        if (!tokenizerPath || !modelPath) {
+          throw new RnExecutorchError(
+            RnExecutorchErrorCode.DownloadInterrupted,
+            'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+          );
+        }
+      } else {
+        const tokenizersPromise = ResourceFetcher.fetch(
+          undefined,
+          tokenizerSource,
+          tokenizerConfigSource!
+        );
 
-      const tokenizerPath = tokenizersResults?.[0];
-      const tokenizerConfigPath = tokenizersResults?.[1];
-      const modelPath = modelResult?.[0];
+        const modelPromise = ResourceFetcher.fetch(
+          onDownloadProgressCallback,
+          modelSource
+        );
 
-      if (!tokenizerPath || !tokenizerConfigPath || !modelPath) {
-        throw new RnExecutorchError(
-          RnExecutorchErrorCode.DownloadInterrupted,
-          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+        const [tokenizersResults, modelResult] = await Promise.all([
+          tokenizersPromise,
+          modelPromise,
+        ]);
+
+        tokenizerPath = tokenizersResults?.[0];
+        const tokenizerConfigPath = tokenizersResults?.[1];
+        modelPath = modelResult?.[0];
+
+        if (!tokenizerPath || !tokenizerConfigPath || !modelPath) {
+          throw new RnExecutorchError(
+            RnExecutorchErrorCode.DownloadInterrupted,
+            'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
+          );
+        }
+
+        this.tokenizerConfig = JSON.parse(
+          await ResourceFetcher.fs.readAsString(tokenizerConfigPath!)
         );
       }
 
-      this.tokenizerConfig = JSON.parse(
-        await ResourceFetcher.fs.readAsString(tokenizerConfigPath!)
-      );
       this.nativeModule = await global.loadLLM(modelPath, tokenizerPath);
+      this.isMultimodal_ = this.nativeModule.isMultimodal();
       this.isReadyCallback(true);
       this.onToken = (data: string) => {
         if (!data) {
@@ -180,6 +205,9 @@ export class LLMController {
   }
 
   private filterSpecialTokens(text: string): string {
+    if (!this.tokenizerConfig) {
+      return text;
+    }
     let filtered = text;
     if (
       SPECIAL_TOKENS.EOS_TOKEN in this.tokenizerConfig &&
@@ -235,6 +263,64 @@ export class LLMController {
     } finally {
       this.isGeneratingCallback(false);
     }
+  }
+
+  public async generateWithImage(
+    imagePath: string,
+    prompt: string
+  ): Promise<string> {
+    if (!this._isReady) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModuleNotLoaded,
+        'The model is currently not loaded.'
+      );
+    }
+    if (!this.isMultimodal_) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.InvalidUserInput,
+        'generateWithImage() requires a multimodal model. Load with isMultimodal: true.'
+      );
+    }
+    if (this._isGenerating) {
+      throw new RnExecutorchError(
+        RnExecutorchErrorCode.ModelGenerating,
+        'The model is currently generating.'
+      );
+    }
+    try {
+      this.isGeneratingCallback(true);
+      this.nativeModule.reset();
+      const response = await this.nativeModule.generateWithImage(
+        imagePath,
+        prompt,
+        this.onToken
+      );
+      return response;
+    } catch (e) {
+      throw parseUnknownError(e);
+    } finally {
+      this.isGeneratingCallback(false);
+    }
+  }
+
+  public async sendMessageWithImage(
+    imagePath: string,
+    message: string
+  ): Promise<string> {
+    const updatedHistory = [
+      ...this._messageHistory,
+      { content: message, role: 'user' as const },
+    ];
+    this.messageHistoryCallback(updatedHistory);
+
+    const response = await this.generateWithImage(imagePath, message);
+
+    this.messageHistoryCallback([
+      ...this._messageHistory,
+      { content: response, role: 'assistant' },
+    ]);
+
+    return response;
   }
 
   public interrupt() {
