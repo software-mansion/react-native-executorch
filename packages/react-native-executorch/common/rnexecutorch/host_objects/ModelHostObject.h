@@ -160,6 +160,11 @@ public:
               &Model::generate)>,
           "generateWithImage"));
 
+      addFunctions(
+          JSI_EXPORT_FUNCTION(ModelHostObject<Model>,
+                              promiseHostFunction<&Model::generateMultimodal>,
+                              "generateMultimodal"));
+
       addFunctions(JSI_EXPORT_FUNCTION(
           ModelHostObject<Model>, synchronousHostFunction<&Model::isMultimodal>,
           "isMultimodal"));

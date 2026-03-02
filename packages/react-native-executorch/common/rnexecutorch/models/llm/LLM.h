@@ -2,10 +2,14 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 #include <ReactCommon/CallInvoker.h>
 #include <jsi/jsi.h>
+#include <rnexecutorch/host_objects/JsiConversions.h>
 #include <rnexecutorch/models/BaseModel.h>
+#include <runner/image.h>
 #include <runner/unified_runner.h>
 
 namespace rnexecutorch {
@@ -25,6 +29,11 @@ public:
   // Multimodal generate (image + text prompt)
   std::string generate(std::string imagePath, std::string prompt,
                        std::shared_ptr<jsi::Function> callback);
+
+  // Multimodal generate — takes full message history, builds MultimodalInput[]
+  std::string generateMultimodal(
+      std::vector<rnexecutorch::jsi_conversion::NativeMessage> messages,
+      std::shared_ptr<jsi::Function> callback);
 
   bool isMultimodal() const noexcept;
 
@@ -46,6 +55,10 @@ private:
   bool multimodal_;
   float temperature_ = 0.8f;
   float topp_ = 0.9f;
+  std::unordered_map<std::string, executorch::extension::llm::Image>
+      imageCache_;
+  const executorch::extension::llm::Image &
+  getOrLoadImage(const std::string &path);
 };
 } // namespace models::llm
 
