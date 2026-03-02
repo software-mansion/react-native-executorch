@@ -81,8 +81,6 @@ LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
                          fs::file_size(fs::path(tokenizerSource));
 }
 
-bool LLM::isMultimodal() const noexcept { return multimodal_; }
-
 std::string LLM::generate(std::string input,
                           std::shared_ptr<jsi::Function> callback) {
   if (!runner_ || !runner_->is_loaded()) {

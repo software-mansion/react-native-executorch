@@ -91,63 +91,29 @@ export class LLMController {
     this.isReadyCallback(false);
 
     try {
-      let tokenizerPath: string | undefined;
-      let modelPath: string | undefined;
-
-      if (isMultimodal) {
-        const [tokenizerResults, modelResult] = await Promise.all([
-          ResourceFetcher.fetch(
-            undefined,
-            tokenizerSource,
-            ...(tokenizerConfigSource ? [tokenizerConfigSource] : [])
-          ),
-          ResourceFetcher.fetch(onDownloadProgressCallback, modelSource),
-        ]);
-        tokenizerPath = tokenizerResults?.[0];
-        modelPath = modelResult?.[0];
-
-        if (!tokenizerPath || !modelPath) {
-          throw new RnExecutorchError(
-            RnExecutorchErrorCode.DownloadInterrupted,
-            'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
-          );
-        }
-
-        if (tokenizerConfigSource && tokenizerResults?.[1]) {
-          this.tokenizerConfig = JSON.parse(
-            await ResourceFetcher.fs.readAsString(tokenizerResults[1])
-          );
-        }
-      } else {
-        const tokenizersPromise = ResourceFetcher.fetch(
+      const [tokenizerResults, modelResult] = await Promise.all([
+        ResourceFetcher.fetch(
           undefined,
           tokenizerSource,
-          tokenizerConfigSource!
+          ...(tokenizerConfigSource ? [tokenizerConfigSource] : [])
+        ),
+        ResourceFetcher.fetch(onDownloadProgressCallback, modelSource),
+      ]);
+
+      const tokenizerPath = tokenizerResults?.[0];
+      const tokenizerConfigPath = tokenizerResults?.[1];
+      const modelPath = modelResult?.[0];
+
+      if (!tokenizerPath || !modelPath) {
+        throw new RnExecutorchError(
+          RnExecutorchErrorCode.DownloadInterrupted,
+          'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
         );
+      }
 
-        const modelPromise = ResourceFetcher.fetch(
-          onDownloadProgressCallback,
-          modelSource
-        );
-
-        const [tokenizersResults, modelResult] = await Promise.all([
-          tokenizersPromise,
-          modelPromise,
-        ]);
-
-        tokenizerPath = tokenizersResults?.[0];
-        const tokenizerConfigPath = tokenizersResults?.[1];
-        modelPath = modelResult?.[0];
-
-        if (!tokenizerPath || !tokenizerConfigPath || !modelPath) {
-          throw new RnExecutorchError(
-            RnExecutorchErrorCode.DownloadInterrupted,
-            'The download has been interrupted. As a result, not every file was downloaded. Please retry the download.'
-          );
-        }
-
+      if (tokenizerConfigPath) {
         this.tokenizerConfig = JSON.parse(
-          await ResourceFetcher.fs.readAsString(tokenizerConfigPath!)
+          await ResourceFetcher.fs.readAsString(tokenizerConfigPath)
         );
       }
 
@@ -214,9 +180,6 @@ export class LLMController {
   }
 
   private filterSpecialTokens(text: string): string {
-    if (!this.tokenizerConfig) {
-      return text;
-    }
     let filtered = text;
     if (
       SPECIAL_TOKENS.EOS_TOKEN in this.tokenizerConfig &&
