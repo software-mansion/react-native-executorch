@@ -4,6 +4,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Text,
+  Image,
   Platform,
 } from 'react-native';
 import MarkdownComponent from './MarkdownComponent';
@@ -17,19 +18,31 @@ interface MessageItemProps {
 }
 
 const MessageItem = memo(({ message, deleteMessage }: MessageItemProps) => {
-  return (
-    <View
-      style={
-        message.role === 'assistant' ? styles.aiMessage : styles.userMessage
-      }
-    >
-      {message.role === 'assistant' && (
+  if (message.role === 'assistant') {
+    return (
+      <View style={styles.aiMessage}>
         <View style={styles.aiMessageIconContainer}>
           <LlamaIcon width={24} height={24} />
         </View>
-      )}
-      <MarkdownComponent text={message.content} />
+        <MarkdownComponent text={message.content} />
+        <CloseButton deleteMessage={deleteMessage} role={message.role} />
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.userMessageWrapper}>
       <CloseButton deleteMessage={deleteMessage} role={message.role} />
+      <View style={styles.userMessageBubble}>
+        {message.mediaPath && (
+          <Image
+            source={{ uri: message.mediaPath }}
+            style={styles.userMessageImage}
+            resizeMode="cover"
+          />
+        )}
+        <MarkdownComponent text={message.content} />
+      </View>
     </View>
   );
 });
@@ -64,17 +77,26 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     alignItems: 'center',
   },
-  userMessage: {
+  userMessageWrapper: {
     flexDirection: 'row-reverse',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
     marginRight: 8,
     marginVertical: 8,
     maxWidth: '75%',
+    alignSelf: 'flex-end',
+    alignItems: 'flex-start',
+  },
+  userMessageBubble: {
+    flexDirection: 'column',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: 8,
     backgroundColor: ColorPalette.seaBlueLight,
-    alignSelf: 'flex-end',
-    alignItems: 'center',
+  },
+  userMessageImage: {
+    width: 200,
+    height: 150,
+    borderRadius: 6,
+    marginBottom: 6,
   },
   aiMessageIconContainer: {
     backgroundColor: ColorPalette.seaBlueLight,
