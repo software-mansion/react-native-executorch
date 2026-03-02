@@ -94,9 +94,9 @@ export const useLLM = ({ model, preventLoad = false }: LLMProps): LLMType => {
   );
 
   const sendMessage = useCallback(
-    (message: string) => {
+    (message: string, mediaPath?: string) => {
       setResponse('');
-      return controllerInstance.sendMessage(message);
+      return controllerInstance.sendMessage(message, mediaPath);
     },
     [controllerInstance]
   );
@@ -126,14 +126,6 @@ export const useLLM = ({ model, preventLoad = false }: LLMProps): LLMType => {
     [controllerInstance]
   );
 
-  const sendMessageWithImage = useCallback(
-    (imagePath: string, message: string) => {
-      setResponse('');
-      return controllerInstance.sendMessageWithImage(imagePath, message);
-    },
-    [controllerInstance]
-  );
-
   return {
     messageHistory,
     response,
@@ -150,6 +142,5 @@ export const useLLM = ({ model, preventLoad = false }: LLMProps): LLMType => {
     sendMessage: sendMessage,
     deleteMessage: deleteMessage,
     interrupt: interrupt,
-    sendMessageWithImage: sendMessageWithImage,
   };
 };
