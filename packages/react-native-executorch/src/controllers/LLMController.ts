@@ -274,10 +274,7 @@ export class LLMController {
     }
   }
 
-  public async generateWithImage(
-    imagePath: string,
-    prompt: string
-  ): Promise<string> {
+  private async generateMultimodal(messages: Message[]): Promise<string> {
     if (!this._isReady) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.ModuleNotLoaded,
@@ -287,7 +284,7 @@ export class LLMController {
     if (!this.isMultimodal_) {
       throw new RnExecutorchError(
         RnExecutorchErrorCode.InvalidUserInput,
-        'generateWithImage() requires a multimodal model. Load with isMultimodal: true.'
+        'generateMultimodal() requires a multimodal model.'
       );
     }
     if (this._isGenerating) {
@@ -299,9 +296,8 @@ export class LLMController {
     try {
       this.isGeneratingCallback(true);
       this.nativeModule.reset();
-      const response = await this.nativeModule.generateWithImage(
-        imagePath,
-        prompt,
+      const response = await this.nativeModule.generateMultimodal(
+        messages,
         this.onToken
       );
       return response;
@@ -310,26 +306,6 @@ export class LLMController {
     } finally {
       this.isGeneratingCallback(false);
     }
-  }
-
-  public async sendMessageWithImage(
-    imagePath: string,
-    message: string
-  ): Promise<string> {
-    const updatedHistory = [
-      ...this._messageHistory,
-      { content: message, role: 'user' as const },
-    ];
-    this.messageHistoryCallback(updatedHistory);
-
-    const response = await this.generateWithImage(imagePath, message);
-
-    this.messageHistoryCallback([
-      ...this._messageHistory,
-      { content: response, role: 'assistant' },
-    ]);
-
-    return response;
   }
 
   public interrupt() {
@@ -399,36 +375,47 @@ export class LLMController {
     return await this.forward(renderedChat);
   }
 
-  public async sendMessage(message: string): Promise<string> {
-    const updatedHistory = [
-      ...this._messageHistory,
-      { content: message, role: 'user' as const },
-    ];
+  public async sendMessage(
+    message: string,
+    mediaPath?: string
+  ): Promise<string> {
+    const newMessage: Message = {
+      content: message,
+      role: 'user',
+      ...(mediaPath ? { mediaPath } : {}),
+    };
+    const updatedHistory = [...this._messageHistory, newMessage];
     this.messageHistoryCallback(updatedHistory);
 
-    const countTokensCallback = (messages: Message[]) => {
-      const rendered = this.applyChatTemplate(
-        messages,
-        this.tokenizerConfig,
-        this.toolsConfig?.tools,
-        // eslint-disable-next-line camelcase
-        { tools_in_user_message: false, add_generation_prompt: true }
-      );
-      return this.nativeModule.countTextTokens(rendered);
-    };
-    const maxContextLength = this.nativeModule.getMaxContextLength();
-    const messageHistoryWithPrompt =
-      this.chatConfig.contextStrategy.buildContext(
-        this.chatConfig.systemPrompt,
-        updatedHistory,
-        maxContextLength,
-        countTokensCallback
-      );
+    let response: string;
 
-    const response = await this.generate(
-      messageHistoryWithPrompt,
-      this.toolsConfig?.tools
-    );
+    if (mediaPath || this._messageHistory.some((m) => m.mediaPath)) {
+      // Any message in history has media — use multimodal path
+      response = await this.generateMultimodal(updatedHistory);
+    } else {
+      const countTokensCallback = (messages: Message[]) => {
+        const rendered = this.applyChatTemplate(
+          messages,
+          this.tokenizerConfig,
+          this.toolsConfig?.tools,
+          // eslint-disable-next-line camelcase
+          { tools_in_user_message: false, add_generation_prompt: true }
+        );
+        return this.nativeModule.countTextTokens(rendered);
+      };
+      const maxContextLength = this.nativeModule.getMaxContextLength();
+      const messageHistoryWithPrompt =
+        this.chatConfig.contextStrategy.buildContext(
+          this.chatConfig.systemPrompt,
+          updatedHistory,
+          maxContextLength,
+          countTokensCallback
+        );
+      response = await this.generate(
+        messageHistoryWithPrompt,
+        this.toolsConfig?.tools
+      );
+    }
 
     if (!this.toolsConfig || this.toolsConfig.displayToolCalls) {
       this.messageHistoryCallback([
@@ -436,24 +423,23 @@ export class LLMController {
         { content: response, role: 'assistant' },
       ]);
     }
-    if (!this.toolsConfig) {
-      return response;
+
+    if (this.toolsConfig) {
+      const toolCalls = parseToolCall(response);
+      for (const toolCall of toolCalls) {
+        this.toolsConfig
+          .executeToolCallback(toolCall)
+          .then((toolResponse: string | null) => {
+            if (toolResponse) {
+              this.messageHistoryCallback([
+                ...this._messageHistory,
+                { content: toolResponse, role: 'assistant' },
+              ]);
+            }
+          });
+      }
     }
 
-    const toolCalls = parseToolCall(response);
-
-    for (const toolCall of toolCalls) {
-      this.toolsConfig
-        .executeToolCallback(toolCall)
-        .then((toolResponse: string | null) => {
-          if (toolResponse) {
-            this.messageHistoryCallback([
-              ...this._messageHistory,
-              { content: toolResponse, role: 'assistant' },
-            ]);
-          }
-        });
-    }
     return response;
   }
 

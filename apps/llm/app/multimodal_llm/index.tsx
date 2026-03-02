@@ -72,11 +72,7 @@ function MultimodalLLMScreen() {
     textInputRef.current?.clear();
     Keyboard.dismiss();
     try {
-      if (imageUri) {
-        await vlm.sendMessageWithImage(imageUri, text);
-      } else {
-        await vlm.sendMessage(text);
-      }
+      await vlm.sendMessage(text, imageUri ?? undefined);
     } catch (e) {
       console.error('Generation error:', e);
     }

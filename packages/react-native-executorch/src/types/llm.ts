@@ -22,7 +22,7 @@ export interface LLMProps {
     tokenizerConfigSource?: ResourceSource;
     /**
      * Set to `true` when loading a vision-language (multimodal) model.
-     * Skips tokenizer config fetching and enables `sendMessageWithImage`.
+     * Skips tokenizer config fetching and enables multimodal message handling via `sendMessage`.
      */
     isMultimodal?: boolean;
   };
