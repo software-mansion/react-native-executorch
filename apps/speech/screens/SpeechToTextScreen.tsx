@@ -53,8 +53,13 @@ export const SpeechToTextScreen = ({ onBack }: { onBack: () => void }) => {
     // model: WHISPER_TINY_EN,
     model: {
       isMultilingual: false,
+<<<<<<< HEAD
       encoderSource: 'http://192.168.83.59:8000/whisper_encoder_coreml.pte',
       decoderSource: 'http://192.168.83.59:8000/whisper_decoder_coreml.pte',
+=======
+      encoderSource: 'http://192.168.82.121:8000/whisper_encoder_coreml.pte',
+      decoderSource: 'http://192.168.82.121:8000/whisper_decoder_coreml.pte',
+>>>>>>> cd660fa64 (chore: work in progress)
       tokenizerSource: WHISPER_TINY_EN.tokenizerSource,
     },
   });
