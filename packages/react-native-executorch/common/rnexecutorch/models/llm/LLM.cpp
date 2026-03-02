@@ -22,6 +22,10 @@ static constexpr int kImageChannels = 3;
 static constexpr const char *kChatPrefix = "<|startoftext|><|im_start|>user\n";
 static constexpr const char *kChatSuffix =
     "<|im_end|>\n<|im_start|>assistant\n";
+// Separator inserted after each assistant turn in multi-turn conversations
+static constexpr const char *kAssistantTurnEnd = "<|im_end|>\n";
+// Prefix for subsequent user turns (no BOS token — only first turn has it)
+static constexpr const char *kUserTurnPrefix = "<|im_start|>user\n";
 
 static llm::Image loadImageForVLM(const std::string &imagePath) {
   cv::Mat mat = image_processing::readImage(imagePath);
@@ -37,6 +41,14 @@ static llm::Image loadImageForVLM(const std::string &imagePath) {
     }
   }
   return llm::Image(std::move(chw), kImageSize, kImageSize, kImageChannels);
+}
+
+const llm::Image &LLM::getOrLoadImage(const std::string &path) {
+  auto it = imageCache_.find(path);
+  if (it != imageCache_.end()) {
+    return it->second;
+  }
+  return imageCache_.emplace(path, loadImageForVLM(path)).first->second;
 }
 
 LLM::LLM(const std::string &modelSource, const std::string &tokenizerSource,
@@ -134,6 +146,79 @@ std::string LLM::generate(std::string imagePath, std::string prompt,
   return output;
 }
 
+std::string LLM::generateMultimodal(
+    std::vector<rnexecutorch::jsi_conversion::NativeMessage> messages,
+    std::shared_ptr<jsi::Function> callback) {
+  if (!runner_ || !runner_->is_loaded()) {
+    throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
+                            "Runner is not loaded");
+  }
+  if (!multimodal_) {
+    throw RnExecutorchError(
+        RnExecutorchErrorCode::InvalidUserInput,
+        "This is a text-only model. Use generate(prompt, cb) instead.");
+  }
+
+  std::vector<llm::MultimodalInput> inputs;
+  bool isFirst = true;
+
+  for (const auto &msg : messages) {
+    if (msg.role == "system") {
+      if (isFirst) {
+        inputs.push_back(llm::make_text_input(msg.content + "\n"));
+      }
+      continue;
+    }
+
+    if (msg.role == "user") {
+      if (isFirst) {
+        inputs.push_back(llm::make_text_input(std::string(kChatPrefix)));
+        isFirst = false;
+      } else {
+        inputs.push_back(llm::make_text_input(std::string(kUserTurnPrefix)));
+      }
+
+      if (!msg.mediaPath.empty()) {
+        const llm::Image &img = getOrLoadImage(msg.mediaPath);
+        inputs.push_back(llm::make_image_input(img));
+      }
+
+      if (!msg.content.empty()) {
+        inputs.push_back(llm::make_text_input(msg.content));
+      }
+
+      inputs.push_back(llm::make_text_input(std::string(kChatSuffix)));
+    } else if (msg.role == "assistant") {
+      inputs.push_back(llm::make_text_input(msg.content + kAssistantTurnEnd));
+      isFirst = false;
+    }
+  }
+
+  if (inputs.empty()) {
+    throw RnExecutorchError(RnExecutorchErrorCode::InvalidUserInput,
+                            "No inputs to generate from");
+  }
+
+  std::string output;
+  auto nativeCallback = [this, &callback, &output](const std::string &token) {
+    output += token;
+    if (callback && callInvoker) {
+      callInvoker->invokeAsync([callback, token](jsi::Runtime &runtime) {
+        callback->call(runtime, jsi::String::createFromUtf8(runtime, token));
+      });
+    }
+  };
+
+  runner_->reset();
+  auto error =
+      runner_->generate(inputs, temperature_, topp_, -1, nativeCallback);
+  if (error != Error::Ok) {
+    throw RnExecutorchError(error, "Failed to generate multimodal response");
+  }
+
+  return output;
+}
+
 void LLM::interrupt() {
   if (!runner_ || !runner_->is_loaded()) {
     throw RnExecutorchError(RnExecutorchErrorCode::ModuleNotLoaded,
@@ -148,6 +233,7 @@ void LLM::reset() {
                             "Can't reset a model that's not loaded");
   }
   runner_->reset();
+  imageCache_.clear();
 }
 
 size_t LLM::getGeneratedTokenCount() const noexcept {
