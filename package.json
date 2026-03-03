@@ -19,7 +19,7 @@
     "@evilmartians/lefthook": "^2.1.1",
     "@react-native/eslint-config": "^0.84.1",
     "cspell": "^9.7.0",
-    "eslint": "^10.0.2",
+    "eslint": "^9.0.0",
     "eslint-plugin-ft-flow": "^3.0.11",
     "eslint-plugin-markdown": "^5.1.0",
     "eslint-plugin-prettier": "^5.0.1",
