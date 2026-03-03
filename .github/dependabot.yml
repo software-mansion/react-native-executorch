@@ -1,91 +1,23 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directory: "/"
+    directories:
+      - "/"
+      - "/packages/*"
+      - "/apps/*"
+      - "/docs"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     groups:
       security-updates:
         applies-to: security-updates
         patterns:
           - "*"
-
-  - package-ecosystem: "npm"
-    directory: "/packages/react-native-executorch"
-    schedule:
-      interval: "weekly"
-    groups:
-      security-updates:
-        applies-to: security-updates
+      all-updates:
+        applies-to: version-updates
         patterns:
           - "*"
-
-  - package-ecosystem: "npm"
-    directory: "/packages/bare-resource-fetcher"
-    schedule:
-      interval: "weekly"
-    groups:
-      security-updates:
-        applies-to: security-updates
-        patterns:
-          - "*"
-
-  - package-ecosystem: "npm"
-    directory: "/packages/expo-resource-fetcher"
-    schedule:
-      interval: "weekly"
-    groups:
-      security-updates:
-        applies-to: security-updates
-        patterns:
-          - "*"
-
-  - package-ecosystem: "npm"
-    directory: "/apps/llm"
-    schedule:
-      interval: "weekly"
-    groups:
-      security-updates:
-        applies-to: security-updates
-        patterns:
-          - "*"
-
-  - package-ecosystem: "npm"
-    directory: "/apps/computer-vision"
-    schedule:
-      interval: "weekly"
-    groups:
-      security-updates:
-        applies-to: security-updates
-        patterns:
-          - "*"
-
-  - package-ecosystem: "npm"
-    directory: "/apps/speech"
-    schedule:
-      interval: "weekly"
-    groups:
-      security-updates:
-        applies-to: security-updates
-        patterns:
-          - "*"
-
-  - package-ecosystem: "npm"
-    directory: "/apps/text-embeddings"
-    schedule:
-      interval: "weekly"
-    groups:
-      security-updates:
-        applies-to: security-updates
-        patterns:
-          - "*"
-
-  - package-ecosystem: "npm"
-    directory: "/docs"
-    schedule:
-      interval: "weekly"
-    groups:
-      security-updates:
-        applies-to: security-updates
-        patterns:
-          - "*"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-patch"
