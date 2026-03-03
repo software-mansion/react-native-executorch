@@ -48,7 +48,11 @@ declare global {
   var loadImageEmbeddings: (source: string) => any;
   var loadVAD: (source: string) => any;
   var loadTextEmbeddings: (modelSource: string, tokenizerSource: string) => any;
-  var loadLLM: (modelSource: string, tokenizerSource: string) => any;
+  var loadLLM: (
+    modelSource: string,
+    tokenizerSource: string,
+    capabilities: string[]
+  ) => any;
   var loadTextToImage: (
     tokenizerSource: string,
     encoderSource: string,
