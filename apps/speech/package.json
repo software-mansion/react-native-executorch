@@ -19,7 +19,7 @@
     "expo-status-bar": "~3.0.9",
     "metro-config": "^0.81.5",
     "react": "19.1.0",
-    "react-native": "0.81.5",
+    "react-native": "0.84.1",
     "react-native-audio-api": "0.11.5",
     "react-native-device-info": "^15.0.2",
     "react-native-executorch": "workspace:*",
