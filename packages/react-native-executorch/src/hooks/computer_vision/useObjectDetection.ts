@@ -25,18 +25,31 @@ export const useObjectDetection = <C extends ObjectDetectionModelSources>({
 }: ObjectDetectionProps<C>): ObjectDetectionType<
   ObjectDetectionLabels<C['modelName']>
 > => {
-  const { error, isReady, isGenerating, downloadProgress, runForward, instance } =
-    useModuleFactory({
-      factory: (config, onProgress) =>
-        ObjectDetectionModule.fromModelName(config, onProgress),
-      config: model,
-      preventLoad,
-    });
+  const {
+    error,
+    isReady,
+    isGenerating,
+    downloadProgress,
+    runForward,
+    instance,
+  } = useModuleFactory({
+    factory: (config, onProgress) =>
+      ObjectDetectionModule.fromModelName(config, onProgress),
+    config: model,
+    preventLoad,
+  });
 
   const forward = (input: string | PixelData, detectionThreshold?: number) =>
     runForward((inst) => inst.forward(input, detectionThreshold));
 
   const runOnFrame = useMemo(() => instance?.runOnFrame ?? null, [instance]);
 
-  return { error, isReady, isGenerating, downloadProgress, forward, runOnFrame };
+  return {
+    error,
+    isReady,
+    isGenerating,
+    downloadProgress,
+    forward,
+    runOnFrame,
+  };
 };
