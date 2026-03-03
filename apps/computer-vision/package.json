@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@react-native-executorch/expo-resource-fetcher": "workspace:*",
-    "@react-native/metro-config": "^0.84.1",
+    "@react-native/metro-config": "^0.83.0",
     "@react-navigation/drawer": "^7.8.1",
     "@react-navigation/native": "^7.1.28",
     "@shopify/react-native-skia": "2.5.0",
@@ -25,7 +25,7 @@
     "expo-status-bar": "~55.0.4",
     "metro-config": "^0.84.2",
     "react": "19.2.4",
-    "react-native": "0.84.1",
+    "react-native": "0.83.1",
     "react-native-device-info": "^15.0.2",
     "react-native-executorch": "workspace:*",
     "react-native-gesture-handler": "~2.30.0",
