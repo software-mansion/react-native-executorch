@@ -2162,7 +2162,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@docsearch/core@npm:4.5.3, @docsearch/core@npm:^4.4.0":
+"@docsearch/core@npm:4.5.3":
   version: 4.5.3
   resolution: "@docsearch/core@npm:4.5.3"
   peerDependencies:
@@ -2180,7 +2180,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@docsearch/core@npm:4.6.0":
+"@docsearch/core@npm:4.6.0, @docsearch/core@npm:^4.6.0":
   version: 4.6.0
   resolution: "@docsearch/core@npm:4.6.0"
   peerDependencies:
@@ -6478,7 +6478,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "docs@workspace:."
   dependencies:
-    "@docsearch/core": "npm:^4.4.0"
+    "@docsearch/core": "npm:^4.6.0"
     "@docsearch/css": "npm:^4.6.0"
     "@docsearch/sidepanel": "npm:^4.6.0"
     "@docusaurus/core": "npm:^3.9.2"
