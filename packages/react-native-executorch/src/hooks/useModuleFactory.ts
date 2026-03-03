@@ -81,5 +81,12 @@ export function useModuleFactory<
     }
   };
 
-  return { error, isReady, isGenerating, downloadProgress, runForward, instance };
+  return {
+    error,
+    isReady,
+    isGenerating,
+    downloadProgress,
+    runForward,
+    instance,
+  };
 }
