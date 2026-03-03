@@ -61,6 +61,7 @@ export function useLLM({
           modelSource: model.modelSource,
           tokenizerSource: model.tokenizerSource,
           tokenizerConfigSource: model.tokenizerConfigSource!,
+          capabilities: model.capabilities,
           onDownloadProgressCallback: setDownloadProgress,
         });
       } catch (e) {
@@ -78,6 +79,7 @@ export function useLLM({
     model.modelSource,
     model.tokenizerSource,
     model.tokenizerConfigSource,
+    model.capabilities,
     preventLoad,
   ]);
 

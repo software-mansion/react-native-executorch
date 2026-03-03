@@ -57,7 +57,11 @@ declare global {
     modelSource: string,
     tokenizerSource: string
   ) => Promise<any>;
-  var loadLLM: (modelSource: string, tokenizerSource: string) => Promise<any>;
+  var loadLLM: (
+    modelSource: string,
+    tokenizerSource: string,
+    capabilities: string[]
+  ) => Promise<any>;
   var loadTextToImage: (
     tokenizerSource: string,
     encoderSource: string,

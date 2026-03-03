@@ -5,6 +5,7 @@ import { DEFAULT_CHAT_CONFIG } from '../constants/llmDefaults';
 import {
   ChatConfig,
   GenerationConfig,
+  LLMCapability,
   LLMTool,
   Message,
   SPECIAL_TOKENS,
@@ -74,11 +75,13 @@ export class LLMController {
     modelSource,
     tokenizerSource,
     tokenizerConfigSource,
+    capabilities,
     onDownloadProgressCallback,
   }: {
     modelSource: ResourceSource;
     tokenizerSource: ResourceSource;
     tokenizerConfigSource: ResourceSource;
+    capabilities?: readonly LLMCapability[];
     onDownloadProgressCallback?: (downloadProgress: number) => void;
   }) {
     // reset inner state when loading new model
@@ -117,8 +120,10 @@ export class LLMController {
       this.tokenizerConfig = JSON.parse(
         await ResourceFetcher.fs.readAsString(tokenizerConfigPath!)
       );
-      this.nativeModule = await global.loadLLM(modelPath, tokenizerPath);
 
+      this.nativeModule = await global.loadLLM(modelPath, tokenizerPath, [
+        ...(capabilities ?? []),
+      ]);
       this.isReadyCallback(true);
       this.onToken = (data: string) => {
         if (!data) {
