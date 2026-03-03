@@ -17,7 +17,7 @@
     "@react-navigation/native": "^7.1.28",
     "@shopify/react-native-skia": "2.4.21",
     "expo": "^54.0.27",
-    "expo-build-properties": "~1.0.10",
+    "expo-build-properties": "~55.0.9",
     "expo-constants": "~18.0.11",
     "expo-font": "~14.0.10",
     "expo-linking": "~8.0.10",
