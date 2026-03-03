@@ -14,7 +14,7 @@
     "@react-native-executorch/expo-resource-fetcher": "workspace:*",
     "@react-native/metro-config": "^0.84.0",
     "buffer": "^6.0.3",
-    "expo": "^54.0.27",
+    "expo": "^55.0.4",
     "expo-font": "~14.0.10",
     "expo-status-bar": "~3.0.9",
     "metro-config": "^0.81.5",
