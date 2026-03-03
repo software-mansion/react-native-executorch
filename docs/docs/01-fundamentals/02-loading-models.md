@@ -11,7 +11,7 @@ In our library, you can use two different resource fetching mechanisms. One is i
 To use the Expo adapter, please add these libraries:
 
 ```bash
-yarn add @react-native-executorch/expo-adapter
+yarn add @react-native-executorch/expo-resource-fetcher
 yarn add expo-file-system expo-asset
 ```
 
@@ -29,7 +29,7 @@ initExecutorch({
 If you cannot use Expo in your project, proceed with the following steps:
 
 ```bash
-yarn add @react-native-executorch/bare-adapter
+yarn add @react-native-executorch/bare-resource-fetcher
 yarn add @dr.pogodin/react-native-fs @kesha-antonov/react-native-background-downloader
 ```
 
