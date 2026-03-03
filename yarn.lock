@@ -4021,7 +4021,7 @@ __metadata:
     "@types/react": "npm:~19.1.10"
     expo: "npm:^54.0.0"
     expo-asset: "npm:12.0.11"
-    expo-file-system: "npm:^19.0.20"
+    expo-file-system: "npm:^55.0.10"
     react: "npm:19.1.0"
     react-native: "npm:0.81.5"
     react-native-executorch: "workspace:*"
@@ -8224,7 +8224,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-file-system@npm:^19.0.20, expo-file-system@npm:~19.0.21":
+"expo-file-system@npm:^55.0.10":
+  version: 55.0.10
+  resolution: "expo-file-system@npm:55.0.10"
+  peerDependencies:
+    expo: "*"
+    react-native: "*"
+  checksum: 10/cf6cca908aed92fd226135f7c4609e8751ed69f512717076711db5b7697447b52a9b639204b5fd76ebc420a34e816deae647b939c273d00963a1e0654a8b3854
+  languageName: node
+  linkType: hard
+
+"expo-file-system@npm:~19.0.21":
   version: 19.0.21
   resolution: "expo-file-system@npm:19.0.21"
   peerDependencies:
