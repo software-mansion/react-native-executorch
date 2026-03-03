@@ -164,7 +164,5 @@ TEST(VisionEncoderTest, LoadFailsWithClearErrorWhenMethodMissing) {
   auto encoder =
       std::make_unique<executorch::extension::llm::VisionEncoder>(module.get());
 
-  EXPECT_THROW(
-      { ET_CHECK_OK_OR_RETURN_ERROR(encoder->load()); },
-      rnexecutorch::RnExecutorchError);
+  EXPECT_THROW(encoder->load(), rnexecutorch::RnExecutorchError);
 }

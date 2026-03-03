@@ -3,6 +3,7 @@
 
 #include "iencoder.h"
 #include <executorch/extension/module/module.h>
+#include <runner/multimodal_input.h>
 
 namespace executorch::extension::llm {
 
