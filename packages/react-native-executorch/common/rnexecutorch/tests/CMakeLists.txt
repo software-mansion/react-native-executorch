@@ -210,7 +210,6 @@ add_rn_test(SpeechToTextTests integration/SpeechToTextTest.cpp
 add_rn_test(LLMTests integration/LLMTest.cpp
     SOURCES
         ${RNEXECUTORCH_DIR}/models/llm/LLM.cpp
-        ${COMMON_DIR}/runner/runner.cpp          # keep until Task 5
         ${COMMON_DIR}/runner/base_llm_runner.cpp
         ${COMMON_DIR}/runner/text_runner.cpp
         ${COMMON_DIR}/runner/multimodal_runner.cpp
@@ -219,7 +218,7 @@ add_rn_test(LLMTests integration/LLMTest.cpp
         ${COMMON_DIR}/runner/text_decoder_runner.cpp
         ${COMMON_DIR}/runner/sampler.cpp
         ${COMMON_DIR}/runner/arange_util.cpp
-        ${COMMON_DIR}/runner/encoders/vision_encoder.cpp   # add this
+        ${COMMON_DIR}/runner/encoders/vision_encoder.cpp
     LIBS tokenizers_deps opencv_deps
 )
 
