@@ -18,7 +18,7 @@
     "expo": "^54.0.27",
     "expo-brightness": "~14.0.8",
     "expo-calendar": "~15.0.8",
-    "expo-constants": "~18.0.11",
+    "expo-constants": "~55.0.7",
     "expo-font": "~14.0.10",
     "expo-linking": "~8.0.10",
     "expo-router": "~6.0.17",
