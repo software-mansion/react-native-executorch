@@ -4103,7 +4103,7 @@ __metadata:
   dependencies:
     "@dr.pogodin/react-native-fs": "npm:^2.36.2"
     "@kesha-antonov/react-native-background-downloader": "npm:^4.4.5"
-    "@types/react": "npm:~19.2.14"
+    "@types/react": "npm:~19.1.10"
     react: "npm:19.2.4"
     react-native: "npm:0.84.1"
     react-native-executorch: "workspace:*"
@@ -4120,7 +4120,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@react-native-executorch/expo-resource-fetcher@workspace:packages/expo-resource-fetcher"
   dependencies:
-    "@types/react": "npm:~19.2.14"
+    "@types/react": "npm:~19.1.10"
     expo: "npm:^55.0.4"
     expo-asset: "npm:55.0.8"
     expo-file-system: "npm:^55.0.10"
@@ -4452,7 +4452,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native/metro-config@npm:^0.84.1":
+"@react-native/metro-config@npm:^0.84.0, @react-native/metro-config@npm:^0.84.1":
   version: 0.84.1
   resolution: "@react-native/metro-config@npm:0.84.1"
   dependencies:
@@ -5043,7 +5043,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:~19.2.14":
+"@types/react@npm:~19.1.10":
+  version: 19.1.17
+  resolution: "@types/react@npm:19.1.17"
+  dependencies:
+    csstype: "npm:^3.0.2"
+  checksum: 10/b21d0ce3296e758e0bbbaa177bea0ed2d7c6a08810d3889d2e7777b2d7ff76d9454690b964883ce2c9d3da73412380dd6cff05794cbd54890e0ef1f3c4b4332d
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:~19.2.0":
   version: 19.2.14
   resolution: "@types/react@npm:19.2.14"
   dependencies:
@@ -6718,7 +6727,7 @@ __metadata:
     "@react-navigation/native": "npm:^7.1.28"
     "@shopify/react-native-skia": "npm:2.5.0"
     "@types/pngjs": "npm:^6.0.5"
-    "@types/react": "npm:~19.2.14"
+    "@types/react": "npm:~19.2.0"
     expo: "npm:^55.0.4"
     expo-build-properties: "npm:~55.0.9"
     expo-constants: "npm:~55.0.7"
@@ -7053,7 +7062,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"csstype@npm:^3.2.2":
+"csstype@npm:^3.0.2, csstype@npm:^3.2.2":
   version: 3.2.3
   resolution: "csstype@npm:3.2.3"
   checksum: 10/ad41baf7e2ffac65ab544d79107bf7cd1a4bb9bab9ac3302f59ab4ba655d5e30942a8ae46e10ba160c6f4ecea464cc95b975ca2fefbdeeacd6ac63f12f99fe1f
@@ -10752,7 +10761,7 @@ __metadata:
     "@react-native/metro-config": "npm:^0.84.1"
     "@react-navigation/drawer": "npm:^7.8.1"
     "@react-navigation/native": "npm:^7.1.28"
-    "@types/react": "npm:~19.2.14"
+    "@types/react": "npm:~19.1.10"
     expo: "npm:^55.0.4"
     expo-brightness: "npm:~55.0.8"
     expo-calendar: "npm:~55.0.9"
@@ -13488,7 +13497,7 @@ __metadata:
     "@huggingface/jinja": "npm:^0.5.0"
     "@react-native-community/cli": "npm:latest"
     "@types/jest": "npm:^30.0.0"
-    "@types/react": "npm:~19.2.14"
+    "@types/react": "npm:~19.1.10"
     jest: "npm:^30.2.0"
     jsonrepair: "npm:^3.12.0"
     jsonschema: "npm:^1.5.0"
@@ -14565,8 +14574,8 @@ __metadata:
   dependencies:
     "@babel/core": "npm:^7.29.0"
     "@react-native-executorch/expo-resource-fetcher": "workspace:*"
-    "@react-native/metro-config": "npm:^0.84.1"
-    "@types/react": "npm:~19.2.14"
+    "@react-native/metro-config": "npm:^0.84.0"
+    "@types/react": "npm:~19.1.10"
     buffer: "npm:^6.0.3"
     expo: "npm:^55.0.4"
     expo-font: "npm:~55.0.4"
@@ -14990,7 +14999,7 @@ __metadata:
     "@react-native-executorch/expo-resource-fetcher": "workspace:*"
     "@react-navigation/drawer": "npm:^7.8.1"
     "@react-navigation/native": "npm:^7.1.28"
-    "@types/react": "npm:~19.2.14"
+    "@types/react": "npm:~19.1.10"
     expo: "npm:^55.0.4"
     expo-constants: "npm:~55.0.7"
     expo-linking: "npm:~55.0.7"
