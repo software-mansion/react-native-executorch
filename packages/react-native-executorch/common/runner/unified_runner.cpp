@@ -263,7 +263,6 @@ Error UnifiedRunner::generate(
 
   stats_.inference_start_ms = llm::time_in_ms();
 
-  int64_t pos_before_prefill = pos_;
   uint64_t prefill_next_token = 0;
   for (size_t i = 0; i < inputs.size(); ++i) {
     auto prefill_result = mm_prefiller_->prefill(inputs[i], pos_);
@@ -276,14 +275,10 @@ Error UnifiedRunner::generate(
   stats_.prompt_eval_end_ms = llm::time_in_ms();
   stats_.num_prompt_tokens = pos_;
 
-  int64_t context_len = metadata_.count(kMaxContextLen)
-                            ? metadata_.at(kMaxContextLen)
-                        : metadata_.count(kMaxSeqLen) ? metadata_.at(kMaxSeqLen)
-                                                      : 2048;
   int32_t resolved_max_new =
       max_new_tokens > 0
           ? max_new_tokens
-          : static_cast<int32_t>(context_len - pos_before_prefill);
+          : static_cast<int32_t>(config_.max_context_length - pos_);
   resolved_max_new = std::max(0, resolved_max_new);
 
   std::vector<uint64_t> seed_tokens = {prefill_next_token};
