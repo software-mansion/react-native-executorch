@@ -206,3 +206,27 @@ TEST(BaseLLMRunnerTest, ResetZerosPos) {
   runner.reset();
   EXPECT_EQ(runner.pos_, 0);
 }
+
+#include <runner/text_runner.h>
+
+TEST(TextRunnerTest, LoadsSuccessfully) {
+  auto module = std::make_unique<::executorch::extension::Module>(
+      "smolLm2_135M_8da4w.pte",
+      ::executorch::extension::Module::LoadMode::File);
+
+  example::TextRunner runner(module.get(), nullptr, "smollm_tokenizer.json");
+  auto err = runner.load();
+  EXPECT_EQ(err, ::executorch::runtime::Error::Ok);
+  EXPECT_TRUE(runner.is_loaded());
+}
+
+TEST(TextRunnerTest, SetTemperaturePropagatesToDecoder) {
+  auto module = std::make_unique<::executorch::extension::Module>(
+      "smolLm2_135M_8da4w.pte",
+      ::executorch::extension::Module::LoadMode::File);
+
+  example::TextRunner runner(module.get(), nullptr, "smollm_tokenizer.json");
+  runner.load();
+  EXPECT_NO_THROW(runner.set_temperature(0.5f));
+  EXPECT_FLOAT_EQ(runner.config_.temperature, 0.5f);
+}
