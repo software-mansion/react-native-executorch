@@ -6790,7 +6790,7 @@ __metadata:
     react-native-device-info: "npm:^15.0.2"
     react-native-executorch: "workspace:*"
     react-native-gesture-handler: "npm:~2.28.0"
-    react-native-image-picker: "npm:^7.2.2"
+    react-native-image-picker: "npm:^8.2.1"
     react-native-loading-spinner-overlay: "npm:^3.0.1"
     react-native-nitro-image: "npm:^0.12.0"
     react-native-nitro-modules: "npm:^0.33.9"
@@ -13483,13 +13483,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-image-picker@npm:^7.2.2":
-  version: 7.2.3
-  resolution: "react-native-image-picker@npm:7.2.3"
+"react-native-image-picker@npm:^8.2.1":
+  version: 8.2.1
+  resolution: "react-native-image-picker@npm:8.2.1"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/62c6cc3c88edb29f2b17b4cdaa098b32efd23a5faf4380171c2ccfb1706c732a50553f2ce447e1df1ea48197dde3af42dd67584c60e2c4577ee1b7769152475d
+  checksum: 10/d726950f2ab025462f5fbb788b2331672fc5bca1ac44899892736448ed3ee2d3ea49db9d6fee3bcbba4b4e064efeb646924e1cbd8522a23edd28c960f1db66aa
   languageName: node
   linkType: hard
 
@@ -15030,7 +15030,7 @@ __metadata:
     react-native: "npm:0.81.5"
     react-native-executorch: "workspace:*"
     react-native-gesture-handler: "npm:~2.30.0"
-    react-native-image-picker: "npm:^7.2.2"
+    react-native-image-picker: "npm:^8.2.1"
     react-native-reanimated: "npm:~4.2.2"
     react-native-safe-area-context: "npm:~5.7.0"
     react-native-screens: "npm:~4.16.0"
