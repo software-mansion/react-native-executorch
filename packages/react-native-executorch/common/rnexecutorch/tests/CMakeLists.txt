@@ -214,6 +214,7 @@ add_rn_test(LLMTests integration/LLMTest.cpp
     SOURCES
         ${RNEXECUTORCH_DIR}/models/llm/LLM.cpp
         ${COMMON_DIR}/runner/runner.cpp          # keep until Task 5
+        ${COMMON_DIR}/runner/base_llm_runner.cpp
         ${COMMON_DIR}/runner/text_prefiller.cpp
         ${COMMON_DIR}/runner/text_decoder_runner.cpp
         ${COMMON_DIR}/runner/sampler.cpp
