@@ -35,6 +35,9 @@ public:
    *                     skip).
    * @param labelNames   Ordered list of class label strings. Index @c i must
    *                     correspond to class index @c i produced by the model.
+   *                     This is a runtime value passed from JS side,
+   *                     dependant the model. The user can pass his own, custom
+   *                     labels.
    * @param callInvoker  JSI call invoker used to marshal results back to JS.
    *
    * @throws RnExecutorchError if the model cannot be loaded or its input shape
@@ -72,8 +75,8 @@ public:
   generateFromPixels(JSTensorViewIn pixelData, double detectionThreshold);
 
 protected:
-  std::vector<types::Detection>
-  runInference(cv::Mat image, double detectionThreshold);
+  std::vector<types::Detection> runInference(cv::Mat image,
+                                             double detectionThreshold);
   cv::Mat preprocessFrame(const cv::Mat &frame) const override;
 
 private:
@@ -87,14 +90,15 @@ private:
    *                           bounding boxes back to input coordinates.
    * @param detectionThreshold Confidence threshold below which detections
    *                           are discarded.
-   * @param labelNames         Label strings indexed by class id.
    *
    * @return Non-max-suppressed detections above the threshold.
+   *
+   * @throws RnExecutorchError if the model outputs a class index that exceeds
+   *         the size of @ref labelNames_.
    */
-  std::vector<types::Detection>
-  postprocess(const std::vector<EValue> &tensors, cv::Size originalSize,
-              double detectionThreshold,
-              const std::vector<std::string> &labelNames);
+  std::vector<types::Detection> postprocess(const std::vector<EValue> &tensors,
+                                            cv::Size originalSize,
+                                            double detectionThreshold);
 
   /// Expected input image dimensions derived from the model's input shape.
   cv::Size modelImageSize{0, 0};

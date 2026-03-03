@@ -13,7 +13,8 @@ ObjectDetection::ObjectDetection(
     const std::string &modelSource, std::vector<float> normMean,
     std::vector<float> normStd, std::vector<std::string> labelNames,
     std::shared_ptr<react::CallInvoker> callInvoker)
-    : VisionModel(modelSource, callInvoker), labelNames_(std::move(labelNames)) {
+    : VisionModel(modelSource, callInvoker),
+      labelNames_(std::move(labelNames)) {
   auto inputTensors = getAllInputShapes();
   if (inputTensors.empty()) {
     throw RnExecutorchError(RnExecutorchErrorCode::UnexpectedNumInputs,
@@ -80,8 +81,7 @@ cv::Mat ObjectDetection::preprocessFrame(const cv::Mat &frame) const {
 
 std::vector<types::Detection>
 ObjectDetection::postprocess(const std::vector<EValue> &tensors,
-                             cv::Size originalSize, double detectionThreshold,
-                             const std::vector<std::string> &labelNames) {
+                             cv::Size originalSize, double detectionThreshold) {
   float widthRatio =
       static_cast<float>(originalSize.width) / modelImageSize.width;
   float heightRatio =
@@ -112,9 +112,14 @@ ObjectDetection::postprocess(const std::vector<EValue> &tensors,
     float x2 = bboxes[i * 4 + 2] * widthRatio;
     float y2 = bboxes[i * 4 + 3] * heightRatio;
     auto labelIdx = static_cast<std::size_t>(labels[i]);
-    std::string labelName =
-        labelIdx < labelNames.size() ? labelNames[labelIdx] : "";
-    detections.emplace_back(x1, y1, x2, y2, labelName, scores[i]);
+    if (labelIdx >= labelNames_.size()) {
+      throw RnExecutorchError(
+          RnExecutorchErrorCode::InvalidConfig,
+          "Model output class index " + std::to_string(labelIdx) +
+              " exceeds labelNames size " + std::to_string(labelNames_.size()) +
+              ". Ensure the labelMap covers all model output classes.");
+    }
+    detections.emplace_back(x1, y1, x2, y2, labelNames_[labelIdx], scores[i]);
   }
 
   return utils::nonMaxSuppression(detections);
@@ -145,8 +150,7 @@ ObjectDetection::runInference(cv::Mat image, double detectionThreshold) {
                             "Ensure the model input is correct.");
   }
 
-  return postprocess(forwardResult.get(), originalSize, detectionThreshold,
-                     labelNames_);
+  return postprocess(forwardResult.get(), originalSize, detectionThreshold);
 }
 
 std::vector<types::Detection>
