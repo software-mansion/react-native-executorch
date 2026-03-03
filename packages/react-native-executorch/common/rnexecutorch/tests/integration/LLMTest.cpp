@@ -230,3 +230,24 @@ TEST(TextRunnerTest, SetTemperaturePropagatesToDecoder) {
   EXPECT_NO_THROW(runner.set_temperature(0.5f));
   EXPECT_FLOAT_EQ(runner.config_.temperature, 0.5f);
 }
+
+#include <runner/multimodal_runner.h>
+
+TEST(MultimodalRunnerTest, LoadFailsWithClearErrorWhenCapabilityMismatch) {
+  // smolLm2_135M_8da4w.pte is text-only — declaring vision capability should
+  // throw
+  auto module = std::make_unique<::executorch::extension::Module>(
+      "smolLm2_135M_8da4w.pte",
+      ::executorch::extension::Module::LoadMode::File);
+
+  std::map<executorch::extension::llm::MultimodalType,
+           std::unique_ptr<executorch::extension::llm::IEncoder>>
+      encoders;
+  encoders[executorch::extension::llm::MultimodalType::Image] =
+      std::make_unique<executorch::extension::llm::VisionEncoder>(module.get());
+
+  example::MultimodalRunner runner(std::move(module), "smollm_tokenizer.json",
+                                   std::move(encoders));
+
+  EXPECT_THROW(runner.load(), rnexecutorch::RnExecutorchError);
+}
