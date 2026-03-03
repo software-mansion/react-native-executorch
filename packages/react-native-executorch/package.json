@@ -76,7 +76,7 @@
     "jest": "^30.2.0",
     "metro-react-native-babel-preset": "^0.77.0",
     "react": "19.1.0",
-    "react-native": "0.81.5",
+    "react-native": "0.84.1",
     "react-native-builder-bob": "^0.40.12",
     "typescript": "~5.9.2"
   },
